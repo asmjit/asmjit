@@ -286,14 +286,14 @@ struct BaseAssembler : public CodeGen {
 
   //! @internal
   //!
-  //! @brief Get @ref VarData by @a var.
+  //! @brief Get @ref LabelData by @a label.
   ASMJIT_INLINE LabelData* getLabelData(const Label& label) const {
     return getLabelDataById(label.getId());
   }
 
   //! @internal
   //!
-  //! @brief Get @ref VarData by @a id.
+  //! @brief Get @ref LabelData by @a id.
   ASMJIT_INLINE LabelData* getLabelDataById(uint32_t id) const {
     ASMJIT_ASSERT(id != kInvalidValue);
     ASMJIT_ASSERT(id < _labels.getLength());
