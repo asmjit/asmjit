@@ -62,35 +62,45 @@ Include_Directories(${ASMJIT_SRC_DIR})
 Set(ASMJIT_DEPS)
 Set(ASMJIT_LFLAGS)
 
-Set(ASMJIT_CDEFS)
-Set(ASMJIT_CDEFS_DBG ASMJIT_DEBUG)
-Set(ASMJIT_CDEFS_REL ASMJIT_RELEASE)
-
 Set(ASMJIT_CFLAGS)
 Set(ASMJIT_CFLAGS_DBG)
 Set(ASMJIT_CFLAGS_REL)
 
+# MSVC.
 If(MSVC)
+  Message("-- Using MSVC")
   Set(ASMJIT_LFLAGS "/OPT:REF /OPT:ICF")
   Set(ASMJIT_CFLAGS /GF)
-  Set(ASMJIT_CFLAGS_DBG /GS /GR-)
-  Set(ASMJIT_CFLAGS_REL /Oi /Oy /GS- /GR-)
+  Set(ASMJIT_CFLAGS_DBG /DASMJIT_DEBUG /GS /GR-)
+  Set(ASMJIT_CFLAGS_REL /DASMJIT_RELEASE /Oi /Oy /GS- /GR-)
+
+  # Use Unicode by default on Windows target.
+  If(WIN32)
+    List(APPEND ASMJIT_CFLAGS /D_UNICODE)
+  EndIf()
 EndIf()
 
-If(CMAKE_COMPILER_IS_GNUCXX)
-  Set(ASMJIT_CFLAGS -fno-exceptions)
-  Set(ASMJIT_CFLAGS_DBG -O0
+# GCC.
+If(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+  Message("-- Using GCC")
+  Set(ASMJIT_CFLAGS
+    -fno-exceptions)
+  Set(ASMJIT_CFLAGS_DBG -DASMJIT_DEBUG -O0
     -fno-inline-functions)
-  Set(ASMJIT_CFLAGS_REL -O2
+  Set(ASMJIT_CFLAGS_REL -DASMJIT_RELEASE -O2
     -finline-functions
     -fomit-frame-pointer
     -fmerge-all-constants
     -fno-keep-static-consts)
+
+  # Use Unicode by default on Windows target.
+  If(WIN32)
+    List(APPEND ASMJIT_CFLAGS -D_UNICODE)
+  EndIf()
 EndIf()
 
-If(WIN32)
-  List(APPEND ASMJIT_CDEFS _UNICODE)
-Else()
+# Dependencies - Base.
+If(NOT WIN32)
   List(APPEND ASMJIT_DEPS pthread)
 EndIf()
 
@@ -101,61 +111,58 @@ Set(ASMJIT_CFLAGS_REL ${ASMJIT_CFLAGS} ${ASMJIT_CFLAGS_REL})
 # [AsmJit - Macros]
 # =============================================================================
 
-Macro(AsmJit_AddSource DST BASE_PATH)
+Macro(AsmJit_AddSource in_dst in_path)
   Set(__list "")
-  Set(__path "${ASMJIT_SRC_DIR}/${BASE_PATH}")
+  Set(__path "${ASMJIT_SRC_DIR}/${in_path}")
 
   ForEach(__name ${ARGN})
     Set(__file "${__path}/${__name}")
     Set(__cflags ${ASMJIT_CFLAGS})
 
     If(__name MATCHES "\\.cpp|\\.h")
-      If(${__cflags})
+      If("${__cflags}")
         Set_Source_Files_Properties(${__name} PROPERTIES COMPILE_FLAGS ${__cflags})
       EndIf()
       List(APPEND __list ${__file})
     EndIf()
   EndForEach()
 
-  List(APPEND "${DST}" ${__list})
-  Source_Group(${BASE_PATH} FILES ${__list})
+  List(APPEND "${in_dst}" ${__list})
+  Source_Group(${in_path} FILES ${__list})
 EndMacro()
 
-Macro(AsmJit_AddLibrary NAME SRC DEPS CDEFS_DBG CDEFS_REL CFLAGS_DBG CFLAGS_REL)
+Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags_rel)
   If(NOT ASMJIT_STATIC)
     Set(__type "SHARED")
   Else()
     Set(__type "STATIC")
   EndIf()
 
-  Add_Library(${NAME} ${__type} ${SRC})
+  Add_Library(${in_name} ${__type} ${in_src})
 
   # Dependencies.
-  Target_Link_Libraries(${NAME} ${DEPS})
+  Target_Link_Libraries(${in_name} ${in_deps})
 
   # Compiler Flags.
   If(${CMAKE_BUILD_TYPE})
     If(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      Set_Target_Properties(${NAME} PROPERTIES COMPILE_DEFINITIONS ${ASMJIT_CDEFS_DBG})
-      Set_Target_Properties(${NAME} PROPERTIES COMPILE_FLAGS ${ASMJIT_CFLAGS_DBG})
+      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags} ${in_cflags_dbg})
     Else()
-      Set_Target_Properties(${NAME} PROPERTIES COMPILE_DEFINITIONS ${ASMJIT_CDEFS_REL})
-      Set_Target_Properties(${NAME} PROPERTIES COMPILE_FLAGS ${ASMJIT_CFLAGS_REL})
+      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags} ${in_cflags_rel})
     EndIf()
   Else()
-    Target_Compile_Definitions(${NAME} PUBLIC
-      $<$<CONFIG:Debug>:${CDEFS_DBG}>$<$<NOT:$<CONFIG:Debug>>:${CDEFS_REL}>)
-
-    Target_Compile_Options(${NAME} PUBLIC
-      $<$<CONFIG:Debug>:${CFLAGS_DBG}>$<$<NOT:$<CONFIG:Debug>>:${CFLAGS_REL}>)
+    Target_Compile_Options(${in_name} PUBLIC
+      ${in_cflags}
+      $<$<CONFIG:Debug>:${in_cflags_dbg}>
+      $<$<NOT:$<CONFIG:Debug>>:${in_cflags_rel}>)
   EndIf()
 
   # Linker Flags.
-  Set_Target_Properties(${NAME} PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
+  Set_Target_Properties(${in_name} PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
 
   # Install Instructions.
   If(NOT ASMJIT_STATIC)
-    Install(TARGETS ${NAME} DESTINATION lib)
+    Install(TARGETS ${in_name} DESTINATION lib)
   EndIf()
 
   Unset(__type)
@@ -249,8 +256,8 @@ If(NOT ASMJIT_STATIC)
     Get_Filename_Component(path ${i} PATH)
     Get_Filename_Component(name ${i} NAME)
     String(REGEX REPLACE "^${ASMJIT_SRC_DIR}/" "" targetpath "${path}")
-    If(${name} MATCHES ".h$")
-      If(NOT "${name}" MATCHES "_p.h$")
+    If(name MATCHES ".h$")
+      If(NOT name MATCHES "_p.h$")
         Install(FILES ${i} DESTINATION "include/${targetpath}")
       EndIf()
     EndIf()
@@ -264,8 +271,7 @@ EndIf()
 AsmJit_AddLibrary(asmjit
   "${ASMJIT_SRC}"
   "${ASMJIT_DEPS}"
-  "${ASMJIT_CDEFS_DBG}"
-  "${ASMJIT_CDEFS_REL}"
+  "${ASMJIT_CFLAGS}"
   "${ASMJIT_CFLAGS_DBG}"
   "${ASMJIT_CFLAGS_REL}"
 )
