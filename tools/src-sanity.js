@@ -15,17 +15,19 @@ var filesToSanitize = (function() {
       var fullName = path.normalize(path.join(dir, baseName));
 
       var stat = fs.lstatSync(fullName);
-      if (stat.isSymbolicLink())
+      if (stat.isSymbolicLink()) {
         continue;
+      }
 
       if (stat.isDirectory()) {
-        listPrivate(subarray, path.join(dir, baseName), displayDir + baseName, accept);
+        subarray = listPrivate(subarray,
+          path.join(dir, baseName), displayDir ? displayDir + "/" + baseName : baseName, accept);
         continue;
       }
 
       if (stat.isFile()) {
         if (accept(baseName))
-          array.push({ name: fullName, display: displayDir + baseName });
+          array.push({ name: fullName, display: displayDir ? displayDir + "/" + baseName : baseName });
         continue;
       }
     }
@@ -38,6 +40,19 @@ var filesToSanitize = (function() {
   };
 })();
 
+/**
+ * Inject data into string.
+ */
+var inject = function(s, start, end, what) {
+  assert(start <= s.length);
+  assert(end <= s.length);
+
+  return s.substr(0, start) + what + s.substr(end);
+};
+
+/**
+ * Is the extension c++ header file?
+ */
 var isCppHeaderExt = function(ext) {
   return ext === ".h"     ||
          ext === ".hh"    ||
@@ -45,6 +60,9 @@ var isCppHeaderExt = function(ext) {
          ext === ".hxx"   ;
 };
 
+/**
+ * Is the extension c++ source file?
+ */
 var isCppSourceExt = function(ext) {
   return ext === ".c"     ||
          ext === ".cc"    ||
@@ -66,7 +84,10 @@ var filesToAccept = function(name) {
          ext === ".mm"       ;
 };
 
-var sanitySpaces = function(data) {
+/**
+ * Sanity spaces.
+ */
+var sanitySpaces = function(data, name) {
   // Remove carriage return.
   data = data.replace(/\r\n/g, "\n");
   // Remove spaces before the end of the line.
@@ -77,12 +98,109 @@ var sanitySpaces = function(data) {
   return data;
 };
 
-var sanityHeaderGuards = function(data) {
+/**
+ * Sanity header guards.
+ */
+var sanityHeaderGuards = (function() {
+  var parseGuardName = function(data, i) {
+    var m = data.substr(i).match(/[\w][\d\w]*/);
+    return m ? m[0] : null;
+  };
 
-  return data;
-};
+  var makeGuardName = function(name) {
+    // Remove leading '/' or '\'.
+    if (/^[\\\/]/.test(name))
+      name = name.substr(1);
+    return "_" + name.toUpperCase().replace(/[\/\\\.-]/g, "_");
+  };
 
-var sanityIncludeOrder = function(data, directive) {
+  var directiveMarks = [
+    "#ifndef ",
+    "#endif // ",
+    "#define "
+  ];
+
+  var directiveNames = [
+    "#ifndef ",
+    "#endif  ",
+    "#define "
+  ];
+
+  return function(data, name) {
+    var i = 0;
+    var nl = true;
+
+    var guard = "// " + "[Guard]" + "\n";
+    var nFound = 0;
+
+    while (i < data.length) {
+      if (nl && data.substr(i, guard.length) === guard) {
+        i += guard.length;
+        nFound++;
+
+        if (i >= data.length)
+          break;
+
+        for (var j = 0; j < directiveMarks.length; ) {
+          var m = directiveMarks[j];
+          if (data.substr(i, m.length) === m && data.charAt(i + m.length) === '_') {
+            i += directiveMarks[j].length;
+
+            var oldGuardName = parseGuardName(data, i);
+            var newGuardName;
+
+            if (oldGuardName) {
+              console.log(oldGuardName);
+              var startPosition = i;
+              var endPosition = i + oldGuardName.length;
+
+              newGuardName = makeGuardName(name);
+              if (oldGuardName !== newGuardName) {
+                console.log(name + ": " + directiveNames[j] + newGuardName);
+                data = inject(data, startPosition, endPosition, newGuardName);
+
+                i += newGuardName.length;
+                i = data.indexOf('\n', i);
+
+                if (i === -1) {
+                  // Terminates the loop.
+                  i = data.length;
+                  j = 9999;
+                  nl = false;
+                  break;
+                }
+                else {
+                  i++;
+                }
+              }
+            }
+            j += 2;
+          }
+          // Don't process '#define' directive if previous '#ifndef' wasn't matched.
+          else {
+            if (++j == 2)
+              break;
+          }
+        }
+      }
+      else {
+        nl = data.charAt(i) === '\n';
+        i++;
+      }
+    }
+
+    if (nFound & 1) {
+      console.log(name + ": Odd number of guards found: " + nFound);
+    }
+
+    return data;
+  };
+})();
+
+/**
+ * Sanity #include order.
+ */
+var sanityIncludeOrder = function(data, name, directive) {
   var i = 0;
   var nl = true;
 
@@ -92,7 +210,7 @@ var sanityIncludeOrder = function(data, directive) {
   var replacement;
   
   while (i < data.length) {
-    if (nl && data.indexOf(directive, i) === i) {
+    if (nl && data.substr(i, directive.length) === directive) {
       var iLocal = i
 
       if (startPosition === -1) {
@@ -105,7 +223,7 @@ var sanityIncludeOrder = function(data, directive) {
           list.push(data.substring(iLocal, i));
           break;
         }
-        if (data[i] === '\n') {
+        if (data.charAt(i) === '\n') {
           list.push(data.substring(iLocal, i));
           i++;
           break;
@@ -118,13 +236,10 @@ var sanityIncludeOrder = function(data, directive) {
 
       if (list.length > 1) {
         list.sort();
-        replacement = list.join("\n");
-        assert(replacement.length == endPosition - startPosition - 1);
+        replacement = list.join("\n") + "\n";
 
-        data = data.substring(0, startPosition) + 
-               replacement +
-               "\n" +
-               data.substring(endPosition);
+        assert(replacement.length == endPosition - startPosition);
+        data = inject(data, startPosition, endPosition, replacement);
       }
 
       startPosition = -1;
@@ -135,7 +250,7 @@ var sanityIncludeOrder = function(data, directive) {
       i++;
     }
     else {
-      nl = data[i] === '\n';
+      nl = data.charAt(i) === '\n';
       i++;
     }
   }
@@ -143,32 +258,34 @@ var sanityIncludeOrder = function(data, directive) {
   return data;
 };
 
+/**
+ * Sanity the given data of file.
+ */
 var sanity = function(data, name) {
   var ext = path.extname(name).toLowerCase();
 
   // Sanity spaces.
-  data = sanitySpaces(data);
+  data = sanitySpaces(data, name);
   
-  // Fix C/C++ header guards.
+  // Fix C/C++ header guards and sort '#include' files.
   if (isCppHeaderExt(ext)) {
-    data = sanityHeaderGuards(data);
-  }
-
-  // Sort #include files.
-  if (isCppHeaderExt(ext) || isCppSourceExt(ext)) {
-    data = sanityIncludeOrder(data, "#include");
+    data = sanityHeaderGuards(data, name);
+    data = sanityIncludeOrder(data, name, "#include");
   }
 
   return data;
 };
 
+/**
+ * Entry.
+ */
 var main = function(dir) {
   filesToSanitize(dir, filesToAccept).forEach(function(file) {
     var oldData = fs.readFileSync(file.name, "utf8");
     var newData = sanity(oldData, file.display);
 
     if (oldData !== newData) {
-      console.log("Sanitizing: " + file.display);
+      console.log(file.display + ": Writing...");
       fs.writeFileSync(file.name, newData, "utf8");
     }
   });

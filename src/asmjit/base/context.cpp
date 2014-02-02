@@ -186,7 +186,7 @@ Error BaseContext::resolveCellOffsets() {
 
   uint32_t stackAlignment = 0;
   if (stackCell != NULL)
-    stackAlignment = stackCell->getAlignment();  
+    stackAlignment = stackCell->getAlignment();
 
   uint32_t pos64 = 0;
   uint32_t pos32 = pos64 + _mem64ByteVarsUsed * 64;
@@ -200,7 +200,7 @@ Error BaseContext::resolveCellOffsets() {
 
   uint32_t gapAlignment = stackAlignment;
   uint32_t gapSize = 0;
- 
+
   if (gapAlignment)
     IntUtil::deltaTo(stackPos, gapAlignment);
   stackPos += gapSize;
@@ -301,7 +301,7 @@ Error BaseContext::removeUnreachableCode() {
 void BaseContext::cleanup() {
   VarData** array = _contextVd.getData();
   size_t length = _contextVd.getLength();
-  
+
   for (size_t i = 0; i < length; i++) {
     VarData* vd = array[i];
     vd->resetContextId();

@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _GENBLEND_H
-#define _GENBLEND_H
+#ifndef _APP_TEST_GENBLEND_H
+#define _APP_TEST_GENBLEND_H
 
 // [Dependencies]
 #include <asmjit/asmjit.h>
@@ -175,4 +175,4 @@ static void blend(asmjit::host::Compiler& c) {
 } // asmgen namespace
 
 // [Guard]
-#endif // _GENBLEND_H
+#endif // _APP_TEST_GENBLEND_H

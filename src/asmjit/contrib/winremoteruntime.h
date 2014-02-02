@@ -56,7 +56,7 @@ struct WinRemoteRuntime : public BaseRuntime {
 
   //! @brief Process.
   HANDLE _hProcess;
-  
+
   //! @brief Virtual memory manager.
   VirtualMemoryManager _memoryManager;
 };

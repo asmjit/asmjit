@@ -195,7 +195,7 @@ static uint32_t X86X64FuncDecl_initConv(X86X64FuncDecl* self, uint32_t arch, uin
 }
 #undef R
 
-static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch, 
+static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
   uint32_t ret, const uint32_t* argList, uint32_t argCount) {
 
   ASMJIT_ASSERT(argCount <= kFuncArgCount);

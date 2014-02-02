@@ -1910,7 +1910,7 @@ _NextGroup:
                 uint32_t inReg = special[i].inReg;
                 uint32_t outReg = special[i].outReg;
                 uint32_t c;
-                
+
                 if (static_cast<const X86Reg*>(op)->isGp())
                   c = kRegClassGp;
                 else

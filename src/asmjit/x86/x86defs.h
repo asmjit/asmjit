@@ -11,10 +11,10 @@
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
 #include "../base/assert.h"
-#include "../base/defs.h"
-#include "../base/vectypes.h"
 #include "../base/compiler.h"
+#include "../base/defs.h"
 #include "../base/intutil.h"
+#include "../base/vectypes.h"
 
 // [Api-Begin]
 #include "../base/apibegin.h"
@@ -2543,7 +2543,7 @@ struct Mem : public BaseMem {
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
       _getGpdFlags(reinterpret_cast<const BaseVar&>(base))
-        + (kMemVSibXmm << kMemVSibIndex) 
+        + (kMemVSibXmm << kMemVSibIndex)
         + (shift << kMemShiftIndex),
       _OP_ID(base));
     _vmem.index = _OP_ID(index);
@@ -2555,7 +2555,7 @@ struct Mem : public BaseMem {
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
       _getGpdFlags(reinterpret_cast<const BaseVar&>(base))
-        + (kMemVSibYmm << kMemVSibIndex) 
+        + (kMemVSibYmm << kMemVSibIndex)
         + (shift << kMemShiftIndex),
       _OP_ID(base));
     _vmem.index = _OP_ID(index);

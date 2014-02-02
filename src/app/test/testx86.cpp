@@ -975,7 +975,7 @@ struct X86Test_AllocStack : public X86Test {
 
     // Fill stack by sequence [0, 1, 2, 3 ... 255].
     c.xor_(i, i);
-    
+
     c.bind(L_1);
     c.mov(stack.clone().setIndex(i, 0), i.r8());
     c.inc(i);
@@ -985,7 +985,7 @@ struct X86Test_AllocStack : public X86Test {
     // Sum sequence in stack.
     c.xor_(i, i);
     c.xor_(a, a);
-    
+
     c.bind(L_2);
     c.movzx(b, stack.clone().setIndex(i, 0));
     c.add(a, b);
@@ -1709,7 +1709,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_AllocStack);
   ADD_TEST(X86Test_AllocMemcpy);
   ADD_TEST(X86Test_AllocBlend);
- 
+
   // Call.
   ADD_TEST(X86Test_CallBase);
   ADD_TEST(X86Test_CallFast);

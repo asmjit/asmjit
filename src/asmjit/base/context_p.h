@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_BASE_CONTEXT_H
-#define _ASMJIT_BASE_CONTEXT_H
+#ifndef _ASMJIT_BASE_CONTEXT_P_H
+#define _ASMJIT_BASE_CONTEXT_P_H
 
 // [Dependencies - AsmJit]
 #include "../base/compiler.h"
@@ -251,4 +251,4 @@ struct BaseContext {
 #include "../base/apiend.h"
 
 // [Guard]
-#endif // _ASMJIT_BASE_CONTEXT_H
+#endif // _ASMJIT_BASE_CONTEXT_P_H

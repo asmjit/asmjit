@@ -443,7 +443,7 @@ Error X86X64Compiler::setArg(uint32_t argIndex, BaseVar& var) {
 
 Error X86X64Compiler::_newVar(BaseVar* var, uint32_t vType, const char* name) {
   ASMJIT_ASSERT(vType < kVarTypeCount);
-  
+
   vType = _targetVarMapping[vType];
   const VarInfo& vInfo = _varInfo[vType];
 

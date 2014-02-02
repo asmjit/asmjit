@@ -250,7 +250,7 @@ namespace x86x64 {
 //! to create invalid instruction (for example <code>mov [eax], [eax]</code>,
 //! because such overload doesn't exist.
 //!
-//! Each call to an assembler intrinsic function emits instruction directly 
+//! Each call to an assembler intrinsic function emits instruction directly
 //! to the binary stream. There are also runtime checks that prevent invalid
 //! code to be emitted. It will assert in debug mode and put the @ref Assembler
 //! instance to an  error state in production mode.

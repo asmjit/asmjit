@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _GENOPCODE_H
-#define _GENOPCODE_H
+#ifndef _APP_TEST_GENOPCODE_H
+#define _APP_TEST_GENOPCODE_H
 
 // [Dependencies]
 #include <asmjit/asmjit.h>
@@ -2307,4 +2307,4 @@ static void opcode(asmjit::host::Assembler& a) {
 } // asmgen namespace
 
 // [Guard]
-#endif // _GENOPCODE_H
+#endif // _APP_TEST_GENOPCODE_H
