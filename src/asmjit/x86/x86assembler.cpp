@@ -220,14 +220,12 @@ X86X64Assembler::~X86X64Assembler() {}
 // ============================================================================
 
 void X86X64Assembler::_bind(const Label& label) {
-  uint32_t index = label.getId();
-  ASMJIT_ASSERT(index < _labels.getLength());
-
   // Get label data based on label id.
-  LabelData& data = _labels[index];
+  uint32_t index = label.getId();
+  LabelData* data = getLabelDataById(index);
 
   // Label can be bound only once.
-  ASMJIT_ASSERT(data.offset == -1);
+  ASMJIT_ASSERT(data->offset == -1);
 
   // Log.
   if (_logger)
@@ -235,7 +233,7 @@ void X86X64Assembler::_bind(const Label& label) {
 
   size_t pos = getOffset();
 
-  LabelLink* link = data.links;
+  LabelLink* link = data->links;
   LabelLink* prev = NULL;
 
   while (link) {
@@ -272,7 +270,7 @@ void X86X64Assembler::_bind(const Label& label) {
   }
 
   // Chain unused links.
-  link = data.links;
+  link = data->links;
   if (link) {
     if (prev == NULL)
       prev = link;
@@ -282,8 +280,8 @@ void X86X64Assembler::_bind(const Label& label) {
   }
 
   // Unlink label if it was linked.
-  data.offset = pos;
-  data.links = NULL;
+  data->offset = pos;
+  data->links = NULL;
 }
 
 // ============================================================================
@@ -299,7 +297,7 @@ Error X86X64Assembler::embedLabel(const Label& op) {
 
   uint8_t* cursor = getCursor();
 
-  LabelData& label = _labels[op.getId()];
+  LabelData* label = getLabelDataById(op.getId());
   RelocData reloc;
 
   if (_logger) {
@@ -311,20 +309,20 @@ Error X86X64Assembler::embedLabel(const Label& op) {
   reloc.from = static_cast<Ptr>(getOffset());
   reloc.data = 0;
 
-  if (label.offset != -1) {
+  if (label->offset != -1) {
     // Bound label.
-    reloc.data = static_cast<Ptr>(static_cast<SignedPtr>(label.offset));
+    reloc.data = static_cast<Ptr>(static_cast<SignedPtr>(label->offset));
   }
   else {
     // Non-bound label. Need to chain.
     LabelLink* link = _newLabelLink();
 
-    link->prev = (LabelLink*)label.links;
+    link->prev = (LabelLink*)label->links;
     link->offset = getOffset();
     link->displacement = 0;
     link->relocId = _relocData.getLength();
 
-    label.links = link;
+    label->links = link;
   }
 
   if (_relocData.append(reloc) != kErrorOk)
@@ -1253,7 +1251,7 @@ _Prepare:
       }
 
       if (encoded == ENC_OPS(Label, None, None)) {
-        label = &self->_labels[static_cast<const Label*>(o0)->getId()];
+        label = self->getLabelDataById(static_cast<const Label*>(o0)->getId());
         if (label->offset != -1) {
           // Bound label.
           static const intptr_t kRel32Size = 5;
@@ -1440,7 +1438,7 @@ _Prepare:
 
     case kInstGroupX86Jcc:
       if (encoded == ENC_OPS(Label, None, None)) {
-        label = &self->_labels[static_cast<const Label*>(o0)->getId()];
+        label = self->getLabelDataById(static_cast<const Label*>(o0)->getId());
 
         if (IntUtil::hasBit(self->_features, kCodeGenPredictedJumps)) {
           if (options & kInstOptionTaken)
@@ -1514,7 +1512,7 @@ _Prepare:
       }
 
       if (encoded == ENC_OPS(Label, None, None)) {
-        label = &self->_labels[static_cast<const Label*>(o0)->getId()];
+        label = self->getLabelDataById(static_cast<const Label*>(o0)->getId());
         if (label->offset != -1) {
           // Bound label.
           const intptr_t kRel8Size = 2;
@@ -3265,7 +3263,7 @@ _EmitSib:
 
     if (rmMem->getMemType() == kMemTypeLabel) {
       // Relative->Absolute [x86 mode].
-      label = &self->_labels[rmMem->_vmem.base];
+      label = self->getLabelDataById(rmMem->_vmem.base);
       relocId = self->_relocData.getLength();
 
       RelocData reloc;
@@ -3297,7 +3295,7 @@ _EmitSib:
   else {
     if (rmMem->getMemType() == kMemTypeLabel) {
       // [RIP + Disp32].
-      label = &self->_labels[rmMem->_vmem.base];
+      label = self->getLabelDataById(rmMem->_vmem.base);
 
       // Indexing is invalid.
       if (mIndex < kInvalidReg)
@@ -3535,7 +3533,7 @@ _EmitAvxV:
         goto _IllegalAddr;
 
       // Relative->Absolute [x86 mode].
-      label = &self->_labels[rmMem->_vmem.base];
+      label = self->getLabelDataById(rmMem->_vmem.base);
       relocId = self->_relocData.getLength();
 
       RelocData reloc;

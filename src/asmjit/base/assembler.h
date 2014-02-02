@@ -286,6 +286,23 @@ struct BaseAssembler : public CodeGen {
 
   //! @internal
   //!
+  //! @brief Get @ref VarData by @a var.
+  ASMJIT_INLINE LabelData* getLabelData(const Label& label) const {
+    return getLabelDataById(label.getId());
+  }
+
+  //! @internal
+  //!
+  //! @brief Get @ref VarData by @a id.
+  ASMJIT_INLINE LabelData* getLabelDataById(uint32_t id) const {
+    ASMJIT_ASSERT(id != kInvalidValue);
+    ASMJIT_ASSERT(id < _labels.getLength());
+
+    return const_cast<LabelData*>(&_labels[id]);
+  }
+
+  //! @internal
+  //!
   //! @brief Register labels for other code generator (@ref Compiler).
   ASMJIT_API Error _registerIndexedLabels(size_t index);
 
