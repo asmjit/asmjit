@@ -50,15 +50,12 @@ Project Organization
 --------------------
 
   - project root /
-    - extras     - Documentation and addons
-      - contrib  - Contributions (not official, but included)
-      - doc      - Documentation generator files
-      - msvs     - MS Visual Studio additions
-    - scripts    - Scripts to generate project files and regenerate defs
-    - src        - Source code
-      - asmjit   - Public header files (always include from here)
-        - base   - Base files, used by the AsmJit and all backends
-        - x86    - X86/X64 specific files, used only by X86/X64 backend
+    - src         - Source code
+      - asmjit    - Public header files (always include from here)
+        - base    - Base files, used by the AsmJit and all backends
+        - contrib - Contributions that extends base functionality
+        - x86     - X86/X64 specific files, used only by X86/X64 backend
+    - tools       - Tools used for configuring, documenting and generating files
 
 Code Generation Concepts
 ------------------------
@@ -78,25 +75,22 @@ AsmJit is designed to be easy embeddable in any project. However, it has some co
 
 ### Debugging
 
-  - *ASMJIT_DEBUG* - Define to always turn debugging on (regardless of build-mode).
-  - *ASMJIT_RELEASE* - Define to always turn debugging off (regardless of build-mode).
-
-  - By default none of these is defined, AsmJit detects mode based on compile-time macros (useful when using IDE that has switches for Debug/Release/etc...).
+  * *ASMJIT_DEBUG* - Define to always turn debugging on (regardless of build-mode).
+  * *ASMJIT_RELEASE* - Define to always turn debugging off (regardless of build-mode).
+  * By default none of these is defined, AsmJit detects mode based on compile-time macros (useful when using IDE that has switches for Debug/Release/etc...).
 
 ### Library
 
-  - *ASMJIT_STATIC* - Define when building AsmJit as a static library. No symbols will be exported by AsmJit by default.
-  - *ASMJIT_API* - This is AsmJit API decorator that is used in all functions that has to be exported. It can be redefined, however it's not a recommended way.
-
-  - By default AsmJit build is configured as a shared library and *ASMJIT_API* contains compiler specific attributes to import/export AsmJit symbols.
+  * *ASMJIT_STATIC* - Define when building AsmJit as a static library. No symbols will be exported by AsmJit by default.
+  * *ASMJIT_API* - This is AsmJit API decorator that is used in all functions that has to be exported. It can be redefined, however it's not a recommended way.
+  * By default AsmJit build is configured as a shared library and *ASMJIT_API* contains compiler specific attributes to import/export AsmJit symbols.
 
 ### Backends
 
-  - *ASMJIT_BUILD_X86* - Always build x86 backend regardless of host architecture.
-  - *ASMJIT_BUILD_X64* - Always build x64 backend regardless of host architecture.
-  - *ASMJIT_BUILD_HOST* - Always build host backand, if only *ASMJIT_BUILD_HOST* is used only the host architecture detected at compile-time will be included.
-
-  - By default only *ASMJIT_BUILD_HOST* is defined.
+  * *ASMJIT_BUILD_X86* - Always build x86 backend regardless of host architecture.
+  * *ASMJIT_BUILD_X64* - Always build x64 backend regardless of host architecture.
+  * *ASMJIT_BUILD_HOST* - Always build host backand, if only *ASMJIT_BUILD_HOST* is used only the host architecture detected at compile-time will be included.
+  * By default only *ASMJIT_BUILD_HOST* is defined.
 
 To build AsmJit please use cmake <http://www.cmake.org> that will generate  project files for your favorite IDE and platform. If you don't use cmake and you still want to include AsmJit in your project it's perfectly fine by just including it there, probably defining *ASMJIT_STATIC* to prevent AsmJit trying to export the API.
 
