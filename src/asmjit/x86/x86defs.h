@@ -1517,8 +1517,10 @@ ASMJIT_ENUM(kInstGroup) {
   kInstGroupFpuFldFst,
   //! @brief Fiadd/Ficom/Ficomp/Fidiv/Fidivr/Fild/Fimul/Fist/Fistp/Fisttp/Fisub/Fisubr.
   kInstGroupFpuM,
-  //! @brief Faddp/Fcmov/Fcomi/Fcomip/Fdivp/Fdivrp/Ffree/Fmulp/Fsubp/Fsubrp/Fucom/Fucomi/Fucomip/Fucomp/Fxch.
+  //! @brief Fcmov/Fcomi/Fcomip/Ffree/Fucom/Fucomi/Fucomip/Fucomp/Fxch.
   kInstGroupFpuR,
+  //! @brief Faddp/Fdivp/Fdivrp/Fmulp/Fsubp/Fsubrp.
+  kInstGroupFpuRDef,
   //! @brief Fnstsw/Fstsw.
   kInstGroupFpuStsw,
 

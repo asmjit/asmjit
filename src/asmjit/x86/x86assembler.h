@@ -1186,6 +1186,8 @@ struct X86X64Assembler : public BaseAssembler {
   INST_1x(fadd, kInstFadd, Mem)
   //! @brief Add fp0 to @a o0 and POP register stack (FPU).
   INST_1x(faddp, kInstFaddp, FpReg)
+  //! @overload.
+  INST_0x(faddp, kInstFaddp)
 
   //! @brief Load binary coded decimal (FPU).
   INST_1x(fbld, kInstFbld, Mem)
@@ -1216,10 +1218,14 @@ struct X86X64Assembler : public BaseAssembler {
 
   //! @brief Compare fp0 with @a o0 (FPU).
   INST_1x(fcom, kInstFcom, FpReg)
+  //! @brief Compare fp0 with fp1 (FPU).
+  INST_0x(fcom, kInstFcom)
   //! @brief Compare fp0 with 4-byte or 8-byte FP at @a src (FPU).
   INST_1x(fcom, kInstFcom, Mem)
   //! @brief Compare fp0 with @a o0 and pop the stack (FPU).
   INST_1x(fcomp, kInstFcomp, FpReg)
+  //! @brief Compare fp0 with fp1 and pop the stack (FPU).
+  INST_0x(fcomp, kInstFcomp)
   //! @brief Compare fp0 with 4-byte or 8-byte FP at @a adr and pop the stack (FPU).
   INST_1x(fcomp, kInstFcomp, Mem)
     //! @brief Compare fp0 with fp1 and pop register stack twice (FPU).
@@ -1243,6 +1249,8 @@ struct X86X64Assembler : public BaseAssembler {
   INST_1x(fdiv, kInstFdiv, Mem)
   //! @brief Divide @a o0 by fp0 (FPU).
   INST_1x(fdivp, kInstFdivp, FpReg)
+  //! @overload.
+  INST_0x(fdivp, kInstFdivp)
 
   //! @brief Reverse divide @a o0 by @a o1 (FPU).
   //!
@@ -1252,6 +1260,8 @@ struct X86X64Assembler : public BaseAssembler {
   INST_1x(fdivr, kInstFdivr, Mem)
   //! @brief Reverse divide @a o0 by fp0 (FPU).
   INST_1x(fdivrp, kInstFdivrp, FpReg)
+  //! @overload.
+  INST_0x(fdivrp, kInstFdivrp)
 
   //! @brief Free FP register (FPU).
   //!
@@ -1332,6 +1342,8 @@ struct X86X64Assembler : public BaseAssembler {
 
   //! @brief Multiply fp0 by @a o0 and POP register stack (FPU).
   INST_1x(fmulp, kInstFmulp, FpReg)
+  //! @overload.
+  INST_0x(fmulp, kInstFmulp)
 
   //! @brief Clear exceptions (FPU).
   INST_0x(fnclex, kInstFnclex)
@@ -1440,6 +1452,8 @@ struct X86X64Assembler : public BaseAssembler {
   INST_1x_(fsub, kInstFsub, Mem, o0.getSize() == 4 || o0.getSize() == 8)
   //! @brief Subtract fp0 from @a o0 and POP register stack (FPU).
   INST_1x(fsubp, kInstFsubp, FpReg)
+  //! @overload.
+  INST_0x(fsubp, kInstFsubp)
 
   //! @brief Reverse subtract @a o1 from @a o0 and store result in @a o0 (FPU).
   //!
@@ -1449,20 +1463,24 @@ struct X86X64Assembler : public BaseAssembler {
   INST_1x_(fsubr, kInstFsubr, Mem, o0.getSize() == 4 || o0.getSize() == 8)
   //! @brief Reverse subtract fp0 from @a o0 and POP register stack (FPU).
   INST_1x(fsubrp, kInstFsubrp, FpReg)
+  //! @overload.
+  INST_0x(fsubrp, kInstFsubrp)
 
   //! @brief Floating point test - Compare fp0 with 0.0. (FPU).
   INST_0x(ftst, kInstFtst)
 
   //! @brief Unordered compare fp0 with @a o0 (FPU).
   INST_1x(fucom, kInstFucom, FpReg)
-  //! @brief Unordered compare fp0 and @a o0, check for ordered values
-  //! and Set EFLAGS (FPU).
+  //! @brief Unordered compare fp0 with fp1 (FPU).
+  INST_0x(fucom, kInstFucom)
+  //! @brief Unordered compare fp0 and @a o0, check for ordered values and Set EFLAGS (FPU).
   INST_1x(fucomi, kInstFucomi, FpReg)
-  //! @brief Unordered compare fp0 and @a o0, Check for ordered values
-  //! and Set EFLAGS and pop the stack (FPU).
+  //! @brief Unordered compare fp0 and @a o0, Check for ordered values and Set EFLAGS and pop the stack (FPU).
   INST_1x(fucomip, kInstFucomip, FpReg)
   //! @brief Unordered compare fp0 with @a o0 and pop register stack (FPU).
   INST_1x(fucomp, kInstFucomp, FpReg)
+  //! @brief Unordered compare fp0 with fp1 and pop register stack (FPU).
+  INST_0x(fucomp, kInstFucomp)
   //! @brief Unordered compare fp0 with fp1 and pop register stack twice (FPU).
   INST_0x(fucompp, kInstFucompp)
 

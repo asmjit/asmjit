@@ -2076,6 +2076,11 @@ _EmitFpArith_Mem:
       break;
 
     case kInstGroupFpuCom:
+      if (encoded == ENC_OPS(None, None, None)) {
+        rmReg = 1;
+        goto _EmitFpArith_Reg;
+      }
+
       if (encoded == ENC_OPS(Reg, None, None)) {
         rmReg = static_cast<const FpReg*>(o0)->getRegIndex();
         goto _EmitFpArith_Reg;
@@ -2145,6 +2150,13 @@ _EmitFpArith_Mem:
         }
       }
       break;
+
+    case kInstGroupFpuRDef:
+      if (encoded == ENC_OPS(None, None, None)) {
+        opCode += 1;
+        goto _EmitFpuOp;
+      }
+      // ... Fall through ...
 
     case kInstGroupFpuR:
       if (encoded == ENC_OPS(Reg, None, None)) {
