@@ -150,7 +150,6 @@ var sanityHeaderGuards = (function() {
             var newGuardName;
 
             if (oldGuardName) {
-              console.log(oldGuardName);
               var startPosition = i;
               var endPosition = i + oldGuardName.length;
 

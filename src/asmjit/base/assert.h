@@ -38,20 +38,12 @@ ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
 // ============================================================================
 
 #if defined(ASMJIT_DEBUG)
-
-#if !defined(ASMJIT_ASSERT)
 #define ASMJIT_ASSERT(_Exp_) \
   do { \
     if (!(_Exp_)) ::asmjit::assertionFailed(#_Exp_, __FILE__, __LINE__); \
   } while (0)
-#endif
-
 #else
-
-#if !defined(ASMJIT_ASSERT)
 #define ASMJIT_ASSERT(_Exp_) ASMJIT_NOP()
-#endif
-
 #endif // DEBUG
 
 //! @}

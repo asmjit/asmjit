@@ -23,48 +23,50 @@
 # endif // !_CRT_SECURE_NO_WARNINGS
 #endif // ASMJIT_EXPORTS
 
-// Default includes.
+// [Dependencies - C]
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// [Dependencies - C++]
 #include <new>
 
 // ============================================================================
-// [ASMJIT_OS]
+// [asmjit::build - OS]
 // ============================================================================
 
-#if defined(WINDOWS) || defined(_WINDOWS) || defined(__WINDOWS__) || defined(_WIN32) || defined(_WIN64)
+#if defined(_WINDOWS) || defined(__WINDOWS__) || defined(_WIN32) || defined(_WIN64)
 # define ASMJIT_OS_WINDOWS
-#elif defined(__linux__)     || defined(__unix__)    || \
-      defined(__OpenBSD__)   || defined(__FreeBSD__) || defined(__NetBSD__) || \
-      defined(__DragonFly__) || defined(__BSD__)     || defined(__FREEBSD__) || \
-      defined(__APPLE__)
+#elif defined(__linux) || defined(__linux__)
 # define ASMJIT_OS_POSIX
+# define ASMJIT_OS_LINUX
+#elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+# define ASMJIT_OS_POSIX
+# define ASMJIT_OS_BSD
+#elif defined(__APPLE__)
+# define ASMJIT_OS_POSIX
+# define ASMJIT_OS_MAC
 #else
-# warning "AsmJit - Can't match host operating system, using ASMJIT_OS_POSIX"
+# warning "AsmJit - Unable to detect host operating system, using ASMJIT_OS_POSIX"
 # define ASMJIT_OS_POSIX
 #endif
 
 // ============================================================================
-// [ASMJIT_HOST]
+// [asmjit::build - Arch]
 // ============================================================================
 
-// Define it only if it's not defined. On some systems -D command can be passed
-// to the compiler to bypass this autodetection.
-#if !defined(ASMJIT_HOST_X86) && !defined(ASMJIT_HOST_X64)
-# if defined(__x86_64__) || defined(__LP64) || defined(__IA64__) || defined(_M_X64) || defined(_WIN64)
-#  define ASMJIT_HOST_X64
-#  define ASMJIT_HOST_LE
-# else
-// _M_IX86, __INTEL__, __i386__
-#  define ASMJIT_HOST_X86
-#  define ASMJIT_HOST_LE
-# endif
+#if defined(__x86_64__) || defined(__LP64) || defined(__IA64__) || defined(_M_X64) || defined(_WIN64)
+# define BLEND_HOST_X64
+# define BLEND_HOST_LE
+#elif defined(_M_IX86) || defined(__INTEL__) || defined(__i386__)
+# define BLEND_HOST_X86
+# define BLEND_HOST_LE
+#else
+# warning "AsmJit - Unable to detect host architecture"
 #endif
 
 // ============================================================================
-// [ASMJIT_BUILD]
+// [asmjit::build - Build]
 // ============================================================================
 
 // Build host architecture if no architecture is selected.
@@ -85,33 +87,31 @@
 #endif // ASMJIT_BUILD_HOST
 
 // ============================================================================
-// [ASMJIT_API]
+// [asmjit::build - Decorators]
 // ============================================================================
 
 #if !defined(ASMJIT_API)
 # if defined(ASMJIT_STATIC)
 #  define ASMJIT_API
 # elif defined(ASMJIT_OS_WINDOWS)
-#  if defined(__GNUC__)
+#  if defined(__GNUC__) || defined(__clang__)
 #   if defined(ASMJIT_EXPORTS)
 #    define ASMJIT_API __attribute__((dllexport))
 #   else
 #    define ASMJIT_API __attribute__((dllimport))
-#   endif // ASMJIT_EXPORTS
+#   endif
+#  elif defined(ASMJIT_EXPORTS)
+#   define ASMJIT_API __declspec(dllexport)
 #  else
-#   if defined(ASMJIT_EXPORTS)
-#    define ASMJIT_API __declspec(dllexport)
-#   else
-#    define ASMJIT_API __declspec(dllimport)
-#   endif // ASMJIT_EXPORTS
-#  endif // __GNUC__
+#   define ASMJIT_API __declspec(dllimport)
+#  endif
 # else
 #  if defined(__GNUC__)
 #   if __GNUC__ >= 4
 #    define ASMJIT_API __attribute__((visibility("default")))
 #    define ASMJIT_VAR extern ASMJIT_API
-#   endif // __GNUC__ >= 4
-#  endif // __GNUC__
+#   endif
+#  endif
 # endif
 #endif // ASMJIT_API
 
@@ -119,89 +119,8 @@
 # define ASMJIT_VAR extern ASMJIT_API
 #endif // !ASMJIT_VAR
 
-// ============================================================================
-// [ASMJIT_INLINE]
-// ============================================================================
-
-#if defined(_MSC_VER)
-# define ASMJIT_INLINE __forceinline
-#elif defined(__GNUC__) || defined(__clang__) && !defined(__MINGW32__)
-# define ASMJIT_INLINE inline __attribute__((always_inline))
-#else
-# define ASMJIT_INLINE inline
-#endif
-
-// ============================================================================
-// [ASMJIT_ENUM]
-// ============================================================================
-
-#if defined(_MSC_VER)
-# define ASMJIT_ENUM(_Name_) enum _Name_ : uint32_t
-#else
-# define ASMJIT_ENUM(_Name_) enum _Name_
-#endif
-
-// ============================================================================
-// [_ASMJIT_HOST_INDEX]
-// ============================================================================
-
-#if defined(ASMJIT_HOST_LE)
-# define _ASMJIT_HOST_INDEX(_Total_, _Index_) (_Index_)
-#else
-# define _ASMJIT_HOST_INDEX(_Total_, _Index_) ((_Total_) - 1 - (_Index_)
-#endif
-
-// ============================================================================
-// [ASMJIT_ARRAY_SIZE]
-// ============================================================================
-
-#define ASMJIT_ARRAY_SIZE(_Array_) (sizeof(_Array_) / sizeof(*_Array_))
-
-// ============================================================================
-// [ASMJIT_NO_COPY]
-// ============================================================================
-
-#define ASMJIT_NO_COPY(_Type_) \
-private: \
-  ASMJIT_INLINE _Type_(const _Type_& other); \
-  ASMJIT_INLINE _Type_& operator=(const _Type_& other); \
-public:
-
-// ============================================================================
-// [ASMJIT_DEBUG]
-// ============================================================================
-
-// If ASMJIT_DEBUG and ASMJIT_RELEASE is not defined ASMJIT_DEBUG will be
-// detected using the compiler specific macros. This enables to set the build
-// type using IDE.
-#if !defined(ASMJIT_DEBUG) && !defined(ASMJIT_RELEASE)
-# if defined(_DEBUG)
-#  define ASMJIT_DEBUG
-# endif // _DEBUG
-#endif // !ASMJIT_DEBUG && !ASMJIT_RELEASE
-
-// ============================================================================
-// [ASMJIT_UNUSED]
-// ============================================================================
-
-#if !defined(ASMJIT_UNUSED)
-# define ASMJIT_UNUSED(_Var_) ((void)_Var_)
-#endif // ASMJIT_UNUSED
-
-// ============================================================================
-// [ASMJIT_NOP]
-// ============================================================================
-
-#if !defined(ASMJIT_NOP)
-# define ASMJIT_NOP() ((void)0)
-#endif // ASMJIT_NOP
-
-// ============================================================================
-// [ASMJIT_CCONV]
-// ============================================================================
-
 #if defined(ASMJIT_HOST_X86)
-# if defined(__GNUC__)
+# if defined(__GNUC__) || defined(__clang__)
 #  define ASMJIT_REGPARM_1 __attribute__((regparm(1)))
 #  define ASMJIT_REGPARM_2 __attribute__((regparm(2)))
 #  define ASMJIT_REGPARM_3 __attribute__((regparm(3)))
@@ -219,8 +138,81 @@ public:
 # define ASMJIT_CDECL
 #endif // ASMJIT_HOST
 
+#if defined(_MSC_VER)
+# define ASMJIT_INLINE __forceinline
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(__MINGW32__)
+# define ASMJIT_INLINE inline __attribute__((always_inline))
+#else
+# define ASMJIT_INLINE inline
+#endif
+
 // ============================================================================
-// [IntTypes]
+// [asmjit::build - Enum]
+// ============================================================================
+
+#if defined(_MSC_VER)
+# define ASMJIT_ENUM(_Name_) enum _Name_ : uint32_t
+#else
+# define ASMJIT_ENUM(_Name_) enum _Name_
+#endif
+
+// ============================================================================
+// [asmjit::build - _ASMJIT_HOST_INDEX]
+// ============================================================================
+
+#if defined(ASMJIT_HOST_LE)
+# define _ASMJIT_HOST_INDEX(_Total_, _Index_) (_Index_)
+#else
+# define _ASMJIT_HOST_INDEX(_Total_, _Index_) ((_Total_) - 1 - (_Index_)
+#endif
+
+// ============================================================================
+// [asmjit::build - ASMJIT_ARRAY_SIZE]
+// ============================================================================
+
+#define ASMJIT_ARRAY_SIZE(_Array_) (sizeof(_Array_) / sizeof(*_Array_))
+
+// ============================================================================
+// [asmjit::build - ASMJIT_NO_COPY]
+// ============================================================================
+
+#define ASMJIT_NO_COPY(_Type_) \
+private: \
+  ASMJIT_INLINE _Type_(const _Type_& other); \
+  ASMJIT_INLINE _Type_& operator=(const _Type_& other); \
+public:
+
+// ============================================================================
+// [asmjit::build - ASMJIT_DEBUG]
+// ============================================================================
+
+// If ASMJIT_DEBUG and ASMJIT_RELEASE is not defined ASMJIT_DEBUG will be
+// detected using the compiler specific macros. This enables to set the build
+// type using IDE.
+#if !defined(ASMJIT_DEBUG) && !defined(ASMJIT_RELEASE)
+# if defined(_DEBUG)
+#  define ASMJIT_DEBUG
+# endif // _DEBUG
+#endif // !ASMJIT_DEBUG && !ASMJIT_RELEASE
+
+// ============================================================================
+// [asmjit::build - ASMJIT_UNUSED]
+// ============================================================================
+
+#if !defined(ASMJIT_UNUSED)
+# define ASMJIT_UNUSED(_Var_) ((void)_Var_)
+#endif // ASMJIT_UNUSED
+
+// ============================================================================
+// [asmjit::build - ASMJIT_NOP]
+// ============================================================================
+
+#if !defined(ASMJIT_NOP)
+# define ASMJIT_NOP() ((void)0)
+#endif // ASMJIT_NOP
+
+// ============================================================================
+// [asmjit::build - StdInt]
 // ============================================================================
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -263,11 +255,13 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 // ============================================================================
-// [OS Support]
+// [asmjit::build - Windows]
 // ============================================================================
 
 #if defined(ASMJIT_OS_WINDOWS) && !defined(ASMJIT_SUPRESS_WINDOWS_H)
-#include <windows.h>
+# define NOMINMAX
+# include <windows.h>
+# undef NOMINMAX
 #endif // ASMJIT_OS_WINDOWS  && !ASMJIT_SUPRESS_WINDOWS_H
 
 // [Guard]

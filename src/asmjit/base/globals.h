@@ -66,8 +66,9 @@ ASMJIT_ENUM(kArch) {
   kArchX86 = 1,
   //! @brief X64 architecture, also called AMD64.
   kArchX64 = 2,
+
   //! @brief Arm architecture.
-  kArchArm = 3,
+  kArchArm = 4,
 
 #if defined(ASMJIT_HOST_X86)
   kArchHost = kArchX86,
