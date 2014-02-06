@@ -56,11 +56,11 @@
 // ============================================================================
 
 #if defined(__x86_64__) || defined(__LP64) || defined(__IA64__) || defined(_M_X64) || defined(_WIN64)
-# define BLEND_HOST_X64
-# define BLEND_HOST_LE
+# define ASMJIT_HOST_X64
+# define ASMJIT_HOST_LE
 #elif defined(_M_IX86) || defined(__INTEL__) || defined(__i386__)
-# define BLEND_HOST_X86
-# define BLEND_HOST_LE
+# define ASMJIT_HOST_X86
+# define ASMJIT_HOST_LE
 #else
 # warning "AsmJit - Unable to detect host architecture"
 #endif
@@ -163,7 +163,7 @@
 #if defined(ASMJIT_HOST_LE)
 # define _ASMJIT_HOST_INDEX(_Total_, _Index_) (_Index_)
 #else
-# define _ASMJIT_HOST_INDEX(_Total_, _Index_) ((_Total_) - 1 - (_Index_)
+# define _ASMJIT_HOST_INDEX(_Total_, _Index_) ((_Total_) - 1 - (_Index_))
 #endif
 
 // ============================================================================
