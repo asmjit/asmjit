@@ -20,10 +20,12 @@ namespace asmjit {
 //! @{
 
 // ============================================================================
-// [asmjit::kGlobal]
+// [asmjit::kGlobals]
 // ============================================================================
 
-ASMJIT_ENUM(kGlobal) {
+static const size_t kInvalidIndex = ~static_cast<size_t>(0);
+
+ASMJIT_ENUM(kGlobals) {
   //! @brief Invalid operand id.
   kInvalidValue = 0xFFFFFFFF,
 
@@ -38,10 +40,11 @@ ASMJIT_ENUM(kGlobal) {
 
   //! @brief Memory grow threshold.
   //!
-  //! If the grow threshold is reached capacity is not doubled anymore.
+  //! After the grow threshold is reached the capacity won't be doubled 
+  //! anymore.
   kMemAllocGrowMax = 8192 * 1024,
 
-  //! @brief An overhead of the host memory allocator.
+  //! @brief Host memory allocator overhead.
   //!
   //! We decrement the overhead from our pools so the host operating system
   //! doesn't need allocate an extra virtual page to put the data it needs
@@ -50,8 +53,6 @@ ASMJIT_ENUM(kGlobal) {
   //! requirement by kMemAllocOverhead).
   kMemAllocOverhead = sizeof(intptr_t) * 4,
 };
-
-static const size_t kInvalidIndex = ~static_cast<size_t>(0);
 
 // ============================================================================
 // [asmjit::kArch]
@@ -87,18 +88,14 @@ ASMJIT_ENUM(kArch) {
 };
 
 // ============================================================================
-// [asmjit::_Initialize]
+// [asmjit::Init / NoInit]
 // ============================================================================
 
-struct _Initialize {};
-static const _Initialize Initialize = {};
+struct _Init {};
+static const _Init Init = {};
 
-// ============================================================================
-// [asmjit::_DontInitialize]
-// ============================================================================
-
-struct _DontInitialize {};
-static const _DontInitialize DontInitialize = {};
+struct _NoInit {};
+static const _NoInit NoInit = {};
 
 //! @}
 

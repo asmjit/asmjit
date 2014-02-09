@@ -1792,7 +1792,7 @@ struct BaseCompiler : public CodeGen {
 
   //! @brief Create and return new label.
   ASMJIT_INLINE Label newLabel() {
-    Label result(DontInitialize);
+    Label result(NoInit);
     _newLabel(&result);
     return result;
   }
@@ -1958,7 +1958,7 @@ struct BaseCompiler : public CodeGen {
 // [Defined-Later]
 // ============================================================================
 
-ASMJIT_INLINE Label::Label(BaseCompiler& c) : Operand(DontInitialize) {
+ASMJIT_INLINE Label::Label(BaseCompiler& c) : Operand(NoInit) {
   c._newLabel(this);
 }
 

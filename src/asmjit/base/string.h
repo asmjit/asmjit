@@ -84,7 +84,7 @@ struct StringBuilder {
   ASMJIT_API StringBuilder();
   ASMJIT_API ~StringBuilder();
 
-  ASMJIT_INLINE StringBuilder(const _DontInitialize&) {}
+  ASMJIT_INLINE StringBuilder(const _NoInit&) {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -323,7 +323,7 @@ struct StringBuilderT : public StringBuilder {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE StringBuilderT() : StringBuilder(DontInitialize) {
+  ASMJIT_INLINE StringBuilderT() : StringBuilder(NoInit) {
     _data = _embeddedData;
     _data[0] = 0;
 

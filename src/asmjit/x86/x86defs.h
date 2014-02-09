@@ -2241,7 +2241,7 @@ struct X86Reg : public BaseReg {
   //! @brief Create a reference to @a other X86 register.
   ASMJIT_INLINE X86Reg(const X86Reg& other) : BaseReg(other) {}
   //! @brief Create non-initialized X86 register.
-  explicit ASMJIT_INLINE X86Reg(const _DontInitialize&) : BaseReg(DontInitialize) {}
+  explicit ASMJIT_INLINE X86Reg(const _NoInit&) : BaseReg(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [X86Reg Specific]
@@ -2294,7 +2294,7 @@ struct GpReg : public X86Reg {
   //! @brief Create a custom Gp register.
   ASMJIT_INLINE GpReg(uint32_t type, uint32_t index, uint32_t size) : X86Reg(type, index, size) {}
   //! @brief Create non-initialized Gp register.
-  explicit ASMJIT_INLINE GpReg(const _DontInitialize&) : X86Reg(DontInitialize) {}
+  explicit ASMJIT_INLINE GpReg(const _NoInit&) : X86Reg(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [GpReg Specific]
@@ -2320,7 +2320,7 @@ struct FpReg : public X86Reg {
   //! @brief Create a custom Fp register.
   ASMJIT_INLINE FpReg(uint32_t type, uint32_t index, uint32_t size) : X86Reg(type, index, size) {}
   //! @brief Create non-initialized Fp register.
-  explicit ASMJIT_INLINE FpReg(const _DontInitialize&) : X86Reg(DontInitialize) {}
+  explicit ASMJIT_INLINE FpReg(const _NoInit&) : X86Reg(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [FpReg Specific]
@@ -2346,7 +2346,7 @@ struct MmReg : public X86Reg {
   //! @brief Create a custom Mm register.
   ASMJIT_INLINE MmReg(uint32_t type, uint32_t index, uint32_t size) : X86Reg(type, index, size) {}
   //! @brief Create non-initialized Mm register.
-  explicit ASMJIT_INLINE MmReg(const _DontInitialize&) : X86Reg(DontInitialize) {}
+  explicit ASMJIT_INLINE MmReg(const _NoInit&) : X86Reg(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [MmReg Specific]
@@ -2372,7 +2372,7 @@ struct XmmReg : public X86Reg {
   //! @brief Create a custom Xmm register.
   ASMJIT_INLINE XmmReg(uint32_t type, uint32_t index, uint32_t size) : X86Reg(type, index, size) {}
   //! @brief Create non-initialized Xmm register.
-  explicit ASMJIT_INLINE XmmReg(const _DontInitialize&) : X86Reg(DontInitialize) {}
+  explicit ASMJIT_INLINE XmmReg(const _NoInit&) : X86Reg(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [XmmReg Specific]
@@ -2398,7 +2398,7 @@ struct YmmReg : public X86Reg {
   //! @brief Create a custom Ymm register.
   ASMJIT_INLINE YmmReg(uint32_t type, uint32_t index, uint32_t size) : X86Reg(type, index, size) {}
   //! @brief Create non-initialized Ymm register.
-  explicit ASMJIT_INLINE YmmReg(const _DontInitialize&) : X86Reg(DontInitialize) {}
+  explicit ASMJIT_INLINE YmmReg(const _NoInit&) : X86Reg(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [YmmReg Specific]
@@ -2424,7 +2424,7 @@ struct SegReg : public X86Reg {
   //! @brief Create a custom segment register.
   ASMJIT_INLINE SegReg(uint32_t type, uint32_t index, uint32_t size) : X86Reg(type, index, size) {}
   //! @brief Create non-initialized segment register.
-  explicit ASMJIT_INLINE SegReg(const _DontInitialize&) : X86Reg(DontInitialize) {}
+  explicit ASMJIT_INLINE SegReg(const _NoInit&) : X86Reg(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [SegReg Specific]
@@ -2445,16 +2445,16 @@ struct Mem : public BaseMem {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE Mem() : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem() : BaseMem(NoInit) {
     reset();
   }
 
-  ASMJIT_INLINE Mem(const Label& label, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const Label& label, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeLabel, 0, label._base.id);
     _init_packed_d2_d3(kInvalidValue, disp);
   }
 
-  ASMJIT_INLINE Mem(const Label& label, const GpReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const Label& label, const GpReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeLabel,
@@ -2465,7 +2465,7 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const Label& label, const GpVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const Label& label, const GpVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeLabel,
@@ -2476,7 +2476,7 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const GpReg& base, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpReg& base, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
       _getGpdFlags(base)
         + (kMemVSibGpz << kMemVSibIndex),
@@ -2484,7 +2484,7 @@ struct Mem : public BaseMem {
     _init_packed_d2_d3(kInvalidValue, disp);
   }
 
-  ASMJIT_INLINE Mem(const GpReg& base, const GpReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpReg& base, const GpReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
@@ -2494,7 +2494,7 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const GpReg& base, const XmmReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpReg& base, const XmmReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
@@ -2506,7 +2506,7 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const GpReg& base, const YmmReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpReg& base, const YmmReg& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
@@ -2518,7 +2518,7 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const GpVar& base, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpVar& base, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
       _getGpdFlags(reinterpret_cast<const BaseVar&>(base))
         + (kMemVSibGpz << kMemVSibIndex),
@@ -2527,7 +2527,7 @@ struct Mem : public BaseMem {
   }
 
 
-  ASMJIT_INLINE Mem(const GpVar& base, const GpVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpVar& base, const GpVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
@@ -2538,7 +2538,7 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const GpVar& base, const XmmVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpVar& base, const XmmVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
@@ -2550,7 +2550,7 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const GpVar& base, const YmmVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const GpVar& base, const YmmVar& index, uint32_t shift, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeBaseIndex,
@@ -2562,13 +2562,13 @@ struct Mem : public BaseMem {
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const _Initialize&, uint32_t memType, const X86Var& base, int32_t disp, uint32_t size) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const _Init&, uint32_t memType, const X86Var& base, int32_t disp, uint32_t size) : BaseMem(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, memType, 0, _OP_ID(base));
     _vmem.index = kInvalidValue;
     _vmem.displacement = disp;
   }
 
-  ASMJIT_INLINE Mem(const _Initialize&, uint32_t memType, const X86Var& base, const GpVar& index, uint32_t shift, int32_t disp, uint32_t size) : BaseMem(DontInitialize) {
+  ASMJIT_INLINE Mem(const _Init&, uint32_t memType, const X86Var& base, const GpVar& index, uint32_t shift, int32_t disp, uint32_t size) : BaseMem(NoInit) {
     ASMJIT_ASSERT(shift <= 3);
 
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, memType, shift << kMemShiftIndex, _OP_ID(base));
@@ -2577,7 +2577,7 @@ struct Mem : public BaseMem {
   }
 
   ASMJIT_INLINE Mem(const Mem& other) : BaseMem(other) {}
-  explicit ASMJIT_INLINE Mem(const _DontInitialize&) : BaseMem(DontInitialize) {}
+  explicit ASMJIT_INLINE Mem(const _NoInit&) : BaseMem(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [Mem Specific]
@@ -2884,13 +2884,13 @@ struct X86Var : public BaseVar {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE X86Var() : BaseVar(DontInitialize) {
+  ASMJIT_INLINE X86Var() : BaseVar(NoInit) {
     reset();
   }
 
   ASMJIT_INLINE X86Var(const X86Var& other) : BaseVar(other) {}
 
-  explicit ASMJIT_INLINE X86Var(const _DontInitialize&) : BaseVar(DontInitialize) {}
+  explicit ASMJIT_INLINE X86Var(const _NoInit&) : BaseVar(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [X86Var Specific]
@@ -2947,67 +2947,67 @@ struct X86Var : public BaseVar {
   //! @note Size of operand depends on native variable type, you can use other
   //! variants if you want specific one.
   ASMJIT_INLINE Mem m(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, getSize()); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, getSize()); }
 
   //! @overload
   ASMJIT_INLINE Mem m(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, getSize()); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, getSize()); }
 
   //! @brief Cast this variable to 8-bit memory operand.
   ASMJIT_INLINE Mem m8(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, 1); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, 1); }
 
   //! @overload
   ASMJIT_INLINE Mem m8(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, 1); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, 1); }
 
   //! @brief Cast this variable to 16-bit memory operand.
   ASMJIT_INLINE Mem m16(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, 2); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, 2); }
 
   //! @overload
   ASMJIT_INLINE Mem m16(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, 2); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, 2); }
 
   //! @brief Cast this variable to 32-bit memory operand.
   ASMJIT_INLINE Mem m32(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, 4); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, 4); }
 
   //! @overload
   ASMJIT_INLINE Mem m32(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, 4); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, 4); }
 
   //! @brief Cast this variable to 64-bit memory operand.
   ASMJIT_INLINE Mem m64(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, 8); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, 8); }
 
   //! @overload
   ASMJIT_INLINE Mem m64(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, 8); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, 8); }
 
   //! @brief Cast this variable to 80-bit memory operand (long double).
   ASMJIT_INLINE Mem m80(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, 10); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, 10); }
 
   //! @overload
   ASMJIT_INLINE Mem m80(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, 10); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, 10); }
 
   //! @brief Cast this variable to 128-bit memory operand.
   ASMJIT_INLINE Mem m128(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, 16); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, 16); }
 
   //! @overload
   ASMJIT_INLINE Mem m128(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, 16); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, 16); }
 
   //! @brief Cast this variable to 256-bit memory operand.
   ASMJIT_INLINE Mem m256(int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, disp, 32); }
+  { return Mem(Init, kMemTypeStackIndex, *this, disp, 32); }
 
   //! @overload
   ASMJIT_INLINE Mem m256(const GpVar& index, uint32_t shift = 0, int32_t disp = 0) const
-  { return Mem(Initialize, kMemTypeStackIndex, *this, index, shift, disp, 32); }
+  { return Mem(Init, kMemTypeStackIndex, *this, index, shift, disp, 32); }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -3023,7 +3023,7 @@ struct X86Var : public BaseVar {
   // --------------------------------------------------------------------------
 
 protected:
-  ASMJIT_INLINE X86Var(const X86Var& other, uint32_t reg, uint32_t size) : BaseVar(DontInitialize)
+  ASMJIT_INLINE X86Var(const X86Var& other, uint32_t reg, uint32_t size) : BaseVar(NoInit)
   {
     _init_packed_op_sz_w0_id(kOperandTypeVar, size, (reg << 8) + other._vreg.index, other._base.id);
     _vreg.vType = other._vreg.vType;
@@ -3044,7 +3044,7 @@ struct GpVar : public X86Var {
   ASMJIT_INLINE GpVar() : X86Var() {}
 
   //! @brief Create new initialized @c GpVar instance.
-  ASMJIT_INLINE GpVar(BaseCompiler& c, uint32_t type = kVarTypeIntPtr, const char* name = NULL) : X86Var(DontInitialize) {
+  ASMJIT_INLINE GpVar(BaseCompiler& c, uint32_t type = kVarTypeIntPtr, const char* name = NULL) : X86Var(NoInit) {
     c._newVar(this, type, name);
   }
 
@@ -3056,7 +3056,7 @@ struct GpVar : public X86Var {
   ASMJIT_INLINE GpVar(const GpVar& other) : X86Var(other) {}
 
   //! @brief Create new uninitialized @c GpVar instance (internal).
-  explicit ASMJIT_INLINE GpVar(const _DontInitialize&) : X86Var(DontInitialize) {}
+  explicit ASMJIT_INLINE GpVar(const _NoInit&) : X86Var(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [GpVar Specific]
@@ -3122,7 +3122,7 @@ struct FpVar : public X86Var {
   ASMJIT_INLINE FpVar(const FpVar& other) : X86Var(other) {}
 
   //! @brief Create new uninitialized @c FpVar instance (internal).
-  explicit ASMJIT_INLINE FpVar(const _DontInitialize&) : X86Var(DontInitialize) {}
+  explicit ASMJIT_INLINE FpVar(const _NoInit&) : X86Var(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [FpVar Specific]
@@ -3161,7 +3161,7 @@ struct MmVar : public X86Var {
   //! @brief Create new uninitialized @c MmVar instance.
   ASMJIT_INLINE MmVar() : X86Var() {}
   //! @brief Create new initialized @c MmVar instance.
-  ASMJIT_INLINE MmVar(BaseCompiler& c, uint32_t type = kVarTypeMm, const char* name = NULL) : X86Var(DontInitialize) {
+  ASMJIT_INLINE MmVar(BaseCompiler& c, uint32_t type = kVarTypeMm, const char* name = NULL) : X86Var(NoInit) {
     c._newVar(this, type, name);
   }
 
@@ -3173,7 +3173,7 @@ struct MmVar : public X86Var {
   ASMJIT_INLINE MmVar(const MmVar& other) : X86Var(other) {}
 
   //! @brief Create new uninitialized @c MmVar instance (internal).
-  explicit ASMJIT_INLINE MmVar(const _DontInitialize&) : X86Var(DontInitialize) {}
+  explicit ASMJIT_INLINE MmVar(const _NoInit&) : X86Var(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [MmVar Specific]
@@ -3212,14 +3212,14 @@ struct XmmVar : public X86Var {
   //! @brief Create new uninitialized @c XmmVar instance.
   ASMJIT_INLINE XmmVar() : X86Var() {}
   //! @brief Create new initialized @c XmmVar instance.
-  ASMJIT_INLINE XmmVar(BaseCompiler& c, uint32_t type = kVarTypeXmm, const char* name = NULL) : X86Var(DontInitialize) {
+  ASMJIT_INLINE XmmVar(BaseCompiler& c, uint32_t type = kVarTypeXmm, const char* name = NULL) : X86Var(NoInit) {
     c._newVar(this, type, name);
   }
 
   ASMJIT_INLINE XmmVar(const XmmVar& other) : X86Var(other) {}
 
   //! @brief Create new uninitialized @c XmmVar instance (internal).
-  explicit ASMJIT_INLINE XmmVar(const _DontInitialize&) : X86Var(DontInitialize) {}
+  explicit ASMJIT_INLINE XmmVar(const _NoInit&) : X86Var(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [XmmVar Specific]
@@ -3258,14 +3258,14 @@ struct YmmVar : public X86Var {
   //! @brief Create new uninitialized @c YmmVar instance.
   ASMJIT_INLINE YmmVar() : X86Var() {}
   //! @brief Create new initialized @c YmmVar instance.
-  ASMJIT_INLINE YmmVar(BaseCompiler& c, uint32_t type = kVarTypeYmm, const char* name = NULL) : X86Var(DontInitialize) {
+  ASMJIT_INLINE YmmVar(BaseCompiler& c, uint32_t type = kVarTypeYmm, const char* name = NULL) : X86Var(NoInit) {
     c._newVar(this, type, name);
   }
 
   ASMJIT_INLINE YmmVar(const YmmVar& other) : X86Var(other) {}
 
   //! @brief Create new uninitialized @c YmmVar instance (internal).
-  explicit ASMJIT_INLINE YmmVar(const _DontInitialize&) : X86Var(DontInitialize) {}
+  explicit ASMJIT_INLINE YmmVar(const _NoInit&) : X86Var(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [YmmVar Specific]

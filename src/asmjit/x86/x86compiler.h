@@ -1387,7 +1387,7 @@ struct X86X64Compiler : public BaseCompiler {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeIntStart, _kVarTypeIntEnd));
 
-    GpVar var(DontInitialize);
+    GpVar var(NoInit);
     _newVar(&var, vType, name);
     return var;
   }
@@ -1397,7 +1397,7 @@ struct X86X64Compiler : public BaseCompiler {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeMmStart, _kVarTypeMmEnd));
 
-    MmVar var(DontInitialize);
+    MmVar var(NoInit);
     _newVar(&var, vType, name);
     return var;
   }
@@ -1407,7 +1407,7 @@ struct X86X64Compiler : public BaseCompiler {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeXmmStart, _kVarTypeXmmEnd));
 
-    XmmVar var(DontInitialize);
+    XmmVar var(NoInit);
     _newVar(&var, vType, name);
     return var;
   }
@@ -1417,7 +1417,7 @@ struct X86X64Compiler : public BaseCompiler {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeYmmStart, _kVarTypeYmmEnd));
 
-    YmmVar var(DontInitialize);
+    YmmVar var(NoInit);
     _newVar(&var, vType, name);
     return var;
   }
@@ -1458,7 +1458,7 @@ struct X86X64Compiler : public BaseCompiler {
 
   //! @brief Create a new memory chunk allocated on the stack.
   ASMJIT_INLINE Mem newStack(uint32_t size, uint32_t alignment, const char* name = NULL) {
-    Mem m(DontInitialize);
+    Mem m(NoInit);
     _newStack(&m, size, alignment, name);
     return m;
   }

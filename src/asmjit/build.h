@@ -13,7 +13,7 @@
 #include "config.h"
 #endif // !ASMJIT_CONFIG_FILE
 
-// Turn of deprecation warnings for this compiler when compiling AsmJit.
+// Turn off deprecation warnings when compiling AsmJit.
 #if defined(ASMJIT_EXPORTS) && defined(_MSC_VER)
 # if !defined(_CRT_SECURE_NO_DEPRECATE)
 #  define _CRT_SECURE_NO_DEPRECATE
@@ -173,16 +173,6 @@
 #define ASMJIT_ARRAY_SIZE(_Array_) (sizeof(_Array_) / sizeof(*_Array_))
 
 // ============================================================================
-// [asmjit::build - ASMJIT_NO_COPY]
-// ============================================================================
-
-#define ASMJIT_NO_COPY(_Type_) \
-private: \
-  ASMJIT_INLINE _Type_(const _Type_& other); \
-  ASMJIT_INLINE _Type_& operator=(const _Type_& other); \
-public:
-
-// ============================================================================
 // [asmjit::build - ASMJIT_DEBUG]
 // ============================================================================
 
@@ -210,6 +200,16 @@ public:
 #if !defined(ASMJIT_NOP)
 # define ASMJIT_NOP() ((void)0)
 #endif // ASMJIT_NOP
+
+// ============================================================================
+// [asmjit::build - ASMJIT_NO_COPY]
+// ============================================================================
+
+#define ASMJIT_NO_COPY(_Type_) \
+private: \
+  ASMJIT_INLINE _Type_(const _Type_& other); \
+  ASMJIT_INLINE _Type_& operator=(const _Type_& other); \
+public:
 
 // ============================================================================
 // [asmjit::build - StdInt]

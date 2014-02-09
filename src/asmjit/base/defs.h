@@ -406,7 +406,7 @@ struct Operand {
     _init(other);
   }
 
-  explicit ASMJIT_INLINE Operand(const _DontInitialize&) {}
+  explicit ASMJIT_INLINE Operand(const _NoInit&) {}
 
   // --------------------------------------------------------------------------
   // [Operand]
@@ -601,17 +601,17 @@ struct BaseReg : public Operand {
   // --------------------------------------------------------------------------
 
   //! @brief Create a dummy base register.
-  ASMJIT_INLINE BaseReg() : Operand(DontInitialize)
+  ASMJIT_INLINE BaseReg() : Operand(NoInit)
   { _init_packed_op_sz_w0_id(kOperandTypeReg, 0, (kInvalidReg << 8) + kInvalidReg, kInvalidValue); }
 
   //! @brief Create a new base register.
-  ASMJIT_INLINE BaseReg(uint32_t type, uint32_t index, uint32_t size) : Operand(DontInitialize)
+  ASMJIT_INLINE BaseReg(uint32_t type, uint32_t index, uint32_t size) : Operand(NoInit)
   { _init_packed_op_sz_w0_id(kOperandTypeReg, size, (type << 8) + index, kInvalidValue); }
 
   //! @brief Create a new reference to @a other.
   ASMJIT_INLINE BaseReg(const BaseReg& other) : Operand(other) {}
 
-  explicit ASMJIT_INLINE BaseReg(const _DontInitialize&) : Operand(DontInitialize) {}
+  explicit ASMJIT_INLINE BaseReg(const _NoInit&) : Operand(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [BaseReg Specific]
@@ -704,12 +704,12 @@ struct BaseMem : public Operand {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE BaseMem() : Operand(DontInitialize) {
+  ASMJIT_INLINE BaseMem() : Operand(NoInit) {
     reset();
   }
 
   ASMJIT_INLINE BaseMem(const BaseMem& other) : Operand(other) {}
-  explicit ASMJIT_INLINE BaseMem(const _DontInitialize&) : Operand(DontInitialize) {}
+  explicit ASMJIT_INLINE BaseMem(const _NoInit&) : Operand(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [BaseMem Specific]
@@ -779,14 +779,14 @@ struct BaseVar : public Operand {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE BaseVar() : Operand(DontInitialize) {
+  ASMJIT_INLINE BaseVar() : Operand(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeVar, 0, 0, 0, kInvalidValue);
     _init_packed_d2_d3(kInvalidValue, kInvalidValue);
   }
 
   ASMJIT_INLINE BaseVar(const BaseVar& other) : Operand(other) {}
 
-  explicit ASMJIT_INLINE BaseVar(const _DontInitialize&) : Operand(DontInitialize) {}
+  explicit ASMJIT_INLINE BaseVar(const _NoInit&) : Operand(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [BaseVar Specific]
@@ -831,13 +831,13 @@ struct Imm : public Operand {
   // --------------------------------------------------------------------------
 
   //! @brief Create a new immediate value (initial value is 0).
-  Imm() : Operand(DontInitialize) {
+  Imm() : Operand(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeImm, 0, 0, 0, kInvalidValue);
     _imm.value._i64[0] = 0;
   }
 
   //! @brief Create a new signed immediate value, assigning the value to @a val.
-  explicit Imm(int64_t val) : Operand(DontInitialize) {
+  explicit Imm(int64_t val) : Operand(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeImm, 0, 0, 0, kInvalidValue);
     _imm.value._i64[0] = val;
   }
@@ -845,7 +845,7 @@ struct Imm : public Operand {
   //! @brief Create a new immediate value from @a other.
   ASMJIT_INLINE Imm(const Imm& other) : Operand(other) {}
 
-  explicit ASMJIT_INLINE Imm(const _DontInitialize&) : Operand(DontInitialize) {}
+  explicit ASMJIT_INLINE Imm(const _NoInit&) : Operand(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [Immediate Specific]
@@ -1113,12 +1113,12 @@ struct Label : public Operand {
   // --------------------------------------------------------------------------
 
   //! @brief Create new, unassociated label.
-  ASMJIT_INLINE Label() : Operand(DontInitialize) {
+  ASMJIT_INLINE Label() : Operand(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeLabel, 0, 0, 0, kInvalidValue);
     _init_packed_d2_d3(0, 0);
   }
 
-  explicit ASMJIT_INLINE Label(uint32_t id) : Operand(DontInitialize) {
+  explicit ASMJIT_INLINE Label(uint32_t id) : Operand(NoInit) {
     _init_packed_op_sz_b0_b1_id(kOperandTypeLabel, 0, 0, 0, id);
     _init_packed_d2_d3(0, 0);
   }
@@ -1131,7 +1131,7 @@ struct Label : public Operand {
   //! @brief Create reference to another label.
   ASMJIT_INLINE Label(const Label& other) : Operand(other) {}
 
-  explicit ASMJIT_INLINE Label(const _DontInitialize&) : Operand(DontInitialize) {}
+  explicit ASMJIT_INLINE Label(const _NoInit&) : Operand(NoInit) {}
 
   // --------------------------------------------------------------------------
   // [Operator Overload]

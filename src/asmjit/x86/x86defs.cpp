@@ -3134,7 +3134,7 @@ const SegReg gs(kRegTypeSeg, kSegGs, 2);
 // ============================================================================
 
 Mem ptr_abs(Ptr pAbs, int32_t disp, uint32_t size) {
-  Mem m(DontInitialize);
+  Mem m(NoInit);
 
   m._init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeAbsolute, 0, kInvalidValue);
   m._vmem.index = kInvalidValue;
@@ -3144,7 +3144,7 @@ Mem ptr_abs(Ptr pAbs, int32_t disp, uint32_t size) {
 }
 
 Mem ptr_abs(Ptr pAbs, const X86Reg& index, uint32_t shift, int32_t disp, uint32_t size) {
-  Mem m(DontInitialize);
+  Mem m(NoInit);
   uint32_t flags = shift << kMemShiftIndex;
 
   if (index.isXmm()) flags |= kMemVSibXmm << kMemVSibIndex;
@@ -3158,7 +3158,7 @@ Mem ptr_abs(Ptr pAbs, const X86Reg& index, uint32_t shift, int32_t disp, uint32_
 }
 
 Mem ptr_abs(Ptr pAbs, const X86Var& index, uint32_t shift, int32_t disp, uint32_t size) {
-  Mem m(DontInitialize);
+  Mem m(NoInit);
   uint32_t flags = shift << kMemShiftIndex;
 
   if (index.isXmm()) flags |= kMemVSibXmm << kMemVSibIndex;
