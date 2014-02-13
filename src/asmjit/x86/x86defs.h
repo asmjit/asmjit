@@ -10,9 +10,9 @@
 
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
-#include "../base/assert.h"
 #include "../base/compiler.h"
 #include "../base/defs.h"
+#include "../base/globals.h"
 #include "../base/intutil.h"
 #include "../base/vectypes.h"
 

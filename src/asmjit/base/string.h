@@ -9,8 +9,8 @@
 #define _ASMJIT_BASE_STRING_H
 
 // [Dependencies - AsmJit]
-#include "../base/assert.h"
 #include "../base/defs.h"
+#include "../base/globals.h"
 
 // [Dependencies - C]
 #include <stdarg.h>

@@ -8,7 +8,7 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies - AsmJit]
-#include "../base/assert.h"
+#include "../base/globals.h"
 
 // [Api-Begin]
 #include "../base/apibegin.h"

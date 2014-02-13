@@ -8,9 +8,11 @@
 #ifndef _ASMJIT_BASE_CPU_H
 #define _ASMJIT_BASE_CPU_H
 
+// [Dependencies - AsmJit]
+#include "../base/globals.h"
+
 // [Api-Begin]
 #include "../base/apibegin.h"
-#include "../base/assert.h"
 
 namespace asmjit {
 

@@ -157,21 +157,33 @@ struct Cpu : public BaseCpu {
   // --------------------------------------------------------------------------
 
   //! @brief Get processor type.
-  ASMJIT_INLINE uint32_t getProcessorType() const { return _processorType; }
+  ASMJIT_INLINE uint32_t getProcessorType() const {
+    return _processorType;
+  }
+
   //! @brief Get brand index.
-  ASMJIT_INLINE uint32_t getBrandIndex() const { return _brandIndex; }
+  ASMJIT_INLINE uint32_t getBrandIndex() const {
+    return _brandIndex;
+  }
+
   //! @brief Get flush cache line size.
-  ASMJIT_INLINE uint32_t getFlushCacheLineSize() const { return _flushCacheLineSize; }
+  ASMJIT_INLINE uint32_t getFlushCacheLineSize() const {
+    return _flushCacheLineSize;
+  }
+
   //! @brief Get maximum logical processors count.
-  ASMJIT_INLINE uint32_t getMaxLogicalProcessors() const { return _maxLogicalProcessors; }
+  ASMJIT_INLINE uint32_t getMaxLogicalProcessors() const {
+    return _maxLogicalProcessors;
+  }
 
   // --------------------------------------------------------------------------
   // [Statics]
   // --------------------------------------------------------------------------
 
   //! @brief Get global instance of @ref X86CpuInfo.
-  static ASMJIT_INLINE const Cpu* getHost()
-  { return static_cast<const Cpu*>(BaseCpu::getHost()); }
+  static ASMJIT_INLINE const Cpu* getHost() {
+    return static_cast<const Cpu*>(BaseCpu::getHost());
+  }
 
   // --------------------------------------------------------------------------
   // [Members]

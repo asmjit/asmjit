@@ -12,7 +12,6 @@
 #include "build.h"
 
 #include "base/assembler.h"
-#include "base/assert.h"
 #include "base/codegen.h"
 #include "base/compiler.h"
 #include "base/cpu.h"

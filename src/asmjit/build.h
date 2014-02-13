@@ -55,11 +55,30 @@
 // [asmjit::build - Arch]
 // ============================================================================
 
-#if defined(__x86_64__) || defined(__LP64) || defined(__IA64__) || defined(_M_X64) || defined(_WIN64)
+#if defined(_M_X64    ) || \
+    defined(_M_AMD64  ) || \
+    defined(_WIN64    ) || \
+    defined(__amd64__ ) || \
+    defined(__LP64    ) || \
+    defined(__x86_64__)
 # define ASMJIT_HOST_X64
 # define ASMJIT_HOST_LE
-#elif defined(_M_IX86) || defined(__INTEL__) || defined(__i386__)
+#elif \
+    defined(_M_IX86  ) || \
+    defined(__INTEL__) || \
+    defined(__i386__ )
 # define ASMJIT_HOST_X86
+# define ASMJIT_HOST_LE
+#elif \
+    defined(_ARM               ) || \
+    defined(_M_ARM_FP          ) || \
+    defined(__ARM_NEON__       ) || \
+    defined(__arm              ) || \
+    defined(__arm__            ) || \
+    defined(__TARGET_ARCH_ARM  ) || \
+    defined(__TARGET_ARCH_THUMB) || \
+    defined(__thumb__          )
+# define ASMJIT_HOST_ARM
 # define ASMJIT_HOST_LE
 #else
 # warning "AsmJit - Unable to detect host architecture"

@@ -190,8 +190,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
 
   assembler.cpp
   assembler.h
-  assert.cpp
-  assert.h
   codegen.cpp
   codegen.h
   compiler.cpp
@@ -206,6 +204,7 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   error.h
   func.cpp
   func.h
+  globals.cpp
   globals.h
   intutil.h
   lock.h

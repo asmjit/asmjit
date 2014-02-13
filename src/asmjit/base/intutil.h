@@ -9,7 +9,6 @@
 #define _ASMJIT_BASE_INTUTIL_H
 
 // [Dependencies - AsmJit]
-#include "../base/assert.h"
 #include "../base/globals.h"
 
 #if defined(_MSC_VER)
@@ -121,8 +120,9 @@ struct IntUtil {
   // --------------------------------------------------------------------------
 
   template<typename T>
-  static ASMJIT_INLINE bool inInterval(const T& x, const T& start, const T& end)
-  { return x >= start && x <= end; }
+  static ASMJIT_INLINE bool inInterval(const T& x, const T& start, const T& end) {
+    return x >= start && x <= end;
+  }
 
   // --------------------------------------------------------------------------
   // [AsmJit - IsInt/IsUInt]
@@ -271,8 +271,9 @@ struct IntUtil {
   // [AsmJit - HasBit]
   // --------------------------------------------------------------------------
 
-  static ASMJIT_INLINE bool hasBit(uint32_t x, uint32_t n)
-  { return static_cast<bool>((x >> n) & 0x1); }
+  static ASMJIT_INLINE bool hasBit(uint32_t x, uint32_t n) {
+    return static_cast<bool>((x >> n) & 0x1);
+  }
 
   // --------------------------------------------------------------------------
   // [AsmJit - BitCount]
@@ -310,8 +311,7 @@ struct IntUtil {
   static ASMJIT_INLINE uint32_t findFirstBit(uint32_t mask) {
 #if defined(_MSC_VER)
     DWORD i;
-    if (_BitScanForward(&i, mask))
-    {
+    if (_BitScanForward(&i, mask)) {
       ASMJIT_ASSERT(findFirstBitSlow(mask) == i);
       return static_cast<uint32_t>(i);
     }
@@ -365,18 +365,21 @@ struct IntUtil {
   // --------------------------------------------------------------------------
 
   template<typename T>
-  static ASMJIT_INLINE bool isAligned(T base, T alignment)
-  { return (base % alignment) == 0; }
+  static ASMJIT_INLINE bool isAligned(T base, T alignment) {
+    return (base % alignment) == 0;
+  }
 
   //! @brief Align @a base to @a alignment.
   template<typename T>
-  static ASMJIT_INLINE T alignTo(T base, T alignment)
-  { return (base + (alignment - 1)) & ~(alignment - 1); }
+  static ASMJIT_INLINE T alignTo(T base, T alignment) {
+    return (base + (alignment - 1)) & ~(alignment - 1);
+  }
 
   //! @brief Get delta required to align @a base to @a alignment.
   template<typename T>
-  static ASMJIT_INLINE T deltaTo(T base, T alignment)
-  { return alignTo(base, alignment) - base; }
+  static ASMJIT_INLINE T deltaTo(T base, T alignment) {
+    return alignTo(base, alignment) - base;
+  }
 
   // --------------------------------------------------------------------------
   // [AsmJit - Round]
@@ -614,17 +617,21 @@ union UInt64 {
   // [Eq]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE bool isZero() const
-  { return kArchHost64Bit ? u64 == 0 : (u32[0] | u32[1]) == 0; }
+  ASMJIT_INLINE bool isZero() const {
+    return kArchHost64Bit ? u64 == 0 : (u32[0] | u32[1]) == 0;
+  }
 
-  ASMJIT_INLINE bool isNonZero() const
-  { return kArchHost64Bit ? u64 != 0 : (u32[0] | u32[1]) != 0; }
+  ASMJIT_INLINE bool isNonZero() const {
+    return kArchHost64Bit ? u64 != 0 : (u32[0] | u32[1]) != 0;
+  }
 
-  ASMJIT_INLINE bool eq(uint64_t val) const
-  { return u64 == val; }
+  ASMJIT_INLINE bool eq(uint64_t val) const {
+    return u64 == val;
+  }
 
-  ASMJIT_INLINE bool eq(const UInt64& val) const
-  { return kArchHost64Bit ? u64 == val.u64 : (u32[0] == val.u32[0]) & (u32[1] == val.u32[1]); }
+  ASMJIT_INLINE bool eq(const UInt64& val) const {
+    return kArchHost64Bit ? u64 == val.u64 : (u32[0] == val.u32[0]) & (u32[1] == val.u32[1]);
+  }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]

@@ -9,9 +9,9 @@
 #define _ASMJIT_BASE_PODVECTOR_H
 
 // [Dependencies - AsmJit]
-#include "../base/assert.h"
 #include "../base/defs.h"
 #include "../base/error.h"
+#include "../base/globals.h"
 
 // [Api-Begin]
 #include "../base/apibegin.h"

@@ -9,8 +9,8 @@
 #define _ASMJIT_BASE_FUNC_H
 
 // [Dependencies - AsmJit]
-#include "../base/assert.h"
 #include "../base/defs.h"
+#include "../base/globals.h"
 
 // [Api-Begin]
 #include "../base/apibegin.h"

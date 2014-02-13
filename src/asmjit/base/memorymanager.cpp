@@ -8,8 +8,8 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies - AsmJit]
-#include "../base/assert.h"
 #include "../base/error.h"
+#include "../base/globals.h"
 #include "../base/lock.h"
 #include "../base/memorymanager.h"
 #include "../base/vmem.h"

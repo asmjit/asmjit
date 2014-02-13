@@ -64,7 +64,7 @@ struct HostCpu : public x86x64::Cpu {
   ASMJIT_INLINE HostCpu() : Cpu() { hostCpuDetect(this); }
 };
 #else
-#error "asmjit/base/cpu.cpp - Unsupported CPU."
+#error "AsmJit - Unsupported CPU."
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
 
 const BaseCpu* BaseCpu::getHost()
@@ -72,7 +72,7 @@ const BaseCpu* BaseCpu::getHost()
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
   static HostCpu cpu;
 #else
-#error "asmjit/base/cpu.cpp - Unsupported CPU."
+#error "AsmJit - Unsupported CPU."
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
   return &cpu;
 }

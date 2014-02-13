@@ -26,7 +26,7 @@ namespace asmjit {
 static const size_t kInvalidIndex = ~static_cast<size_t>(0);
 
 ASMJIT_ENUM(kGlobals) {
-  //! @brief Invalid operand id.
+  //! @brief Invalid value or operand id.
   kInvalidValue = 0xFFFFFFFF,
 
   //! @brief Invalid register index.
@@ -96,6 +96,29 @@ static const _Init Init = {};
 
 struct _NoInit {};
 static const _NoInit NoInit = {};
+
+// ============================================================================
+// [asmjit::Assert]
+// ============================================================================
+
+//! @brief Called in debug build on assertion failure.
+//!
+//! @param exp Expression that failed.
+//! @param file Source file name where it happened.
+//! @param line Line in the source file.
+//!
+//! If you have problems with assertions put a breakpoint at assertionFailed()
+//! function (asmjit/base/assert.cpp) to see what happened.
+ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
+
+#if defined(ASMJIT_DEBUG)
+#define ASMJIT_ASSERT(_Exp_) \
+  do { \
+    if (!(_Exp_)) ::asmjit::assertionFailed(#_Exp_, __FILE__, __LINE__); \
+  } while (0)
+#else
+#define ASMJIT_ASSERT(_Exp_) ASMJIT_NOP()
+#endif // DEBUG
 
 //! @}
 

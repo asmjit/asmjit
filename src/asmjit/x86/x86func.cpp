@@ -12,7 +12,7 @@
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
 
 // [Dependencies - AsmJit]
-#include "../base/assert.h"
+#include "../base/globals.h"
 #include "../base/intutil.h"
 #include "../base/string.h"
 #include "../x86/x86defs.h"
