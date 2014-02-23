@@ -3143,13 +3143,14 @@ _EmitX86M:
 
   // Size override prefix.
   if (Arch == kArchX86) {
-    if (!rmMem->hasGpdBase())
+    if (rmMem->getMemType() != kMemTypeLabel && !rmMem->hasGpdBase())
       EMIT_BYTE(0x67);
   }
   else {
-    if (rmMem->hasGpdBase())
+    if (rmMem->getMemType() != kMemTypeLabel && rmMem->hasGpdBase())
       EMIT_BYTE(0x67);
   }
+
 
   // Segment override prefix.
   if (rmMem->hasSegment()) {

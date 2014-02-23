@@ -73,11 +73,11 @@ ASMJIT_ENUM(kArch) {
 
 #if defined(ASMJIT_HOST_X86)
   kArchHost = kArchX86,
-#endif // ASMJIT_HOST
+#endif // ASMJIT_HOST_X86
 
 #if defined(ASMJIT_HOST_X64)
-  kArchHost = kArchX86,
-#endif // ASMJIT_HOST
+  kArchHost = kArchX64,
+#endif // ASMJIT_HOST_X64
 
 #if defined(ASMJIT_HOST_ARM)
   kArchHost = kArchArm,

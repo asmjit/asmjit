@@ -59,8 +59,8 @@ static const char* errorMessages[] = {
   "Unknown error"
 };
 
-const char* ErrorUtil::asString(Error err) {
-  return errorMessages[IntUtil::iMin<Error>(err, kErrorCount)];
+const char* ErrorUtil::asString(Error e) {
+  return errorMessages[IntUtil::iMin<Error>(e, kErrorCount)];
 }
 
 } // AsmJit
