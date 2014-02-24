@@ -278,9 +278,19 @@ typedef unsigned __int64 uint64_t;
 // ============================================================================
 
 #if defined(ASMJIT_OS_WINDOWS) && !defined(ASMJIT_SUPRESS_WINDOWS_H)
-# define NOMINMAX
+
+# if !defined(NOMINMAX)
+#  define NOMINMAX
+#  define ASMJIT_UNDEF_NOMINMAX
+# endif
+
 # include <windows.h>
-# undef NOMINMAX
+
+# if defined(ASMJIT_UNDEF_NOMINMAX)
+#  undef NOMINMAX
+#  undef ASMJIT_UNDEF_NOMINMAX
+# endif
+
 #endif // ASMJIT_OS_WINDOWS  && !ASMJIT_SUPRESS_WINDOWS_H
 
 // [Guard]
