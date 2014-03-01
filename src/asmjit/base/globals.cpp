@@ -13,7 +13,6 @@
 // [Api-Begin]
 #include "../base/apibegin.h"
 
-// helpers
 namespace asmjit {
 
 // ============================================================================

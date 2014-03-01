@@ -40,7 +40,7 @@ ASMJIT_ENUM(kGlobals) {
 
   //! @brief Memory grow threshold.
   //!
-  //! After the grow threshold is reached the capacity won't be doubled 
+  //! After the grow threshold is reached the capacity won't be doubled
   //! anymore.
   kMemAllocGrowMax = 8192 * 1024,
 

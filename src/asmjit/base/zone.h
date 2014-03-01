@@ -188,4 +188,5 @@ struct Zone {
 // [Api-End]
 #include "../base/apiend.h"
 
+// [Guard]
 #endif // _ASMJIT_BASE_ZONE_H

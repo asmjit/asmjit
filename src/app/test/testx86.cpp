@@ -851,7 +851,7 @@ struct X86Test_AllocGpLo : public X86Test {
 // ============================================================================
 
 struct X86Test_AllocRepMovsb : public X86Test {
-  X86Test_AllocRepMovsb() : X86Test("[Special] Rep Movsb") {}
+  X86Test_AllocRepMovsb() : X86Test("[Alloc] Rep Movsb") {}
 
   static void add(PodVector<X86Test*>& tests) {
     tests.append(new X86Test_AllocSetz());
@@ -884,6 +884,117 @@ struct X86Test_AllocRepMovsb : public X86Test {
     expect.setFormat("ret=\"%s\"", src);
 
     return ::memcmp(dst, src, strlen(src) + 1) == 0;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocIfElse1]
+// ============================================================================
+
+struct X86Test_AllocIfElse1 : public X86Test {
+  X86Test_AllocIfElse1() : X86Test("[Alloc] If-Else #1") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocIfElse1());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder2<int,int,int>());
+
+    GpVar v1(c, kVarTypeInt32);
+    GpVar v2(c, kVarTypeInt32);
+
+    Label L_1(c);
+    Label L_2(c);
+
+    c.setArg(0, v1);
+    c.setArg(1, v2);
+
+    c.cmp(v1, v2);
+    c.jg(L_1);
+
+    c.mov(v1, 1);
+    c.jmp(L_2);
+
+    c.bind(L_1);
+    c.mov(v1, 2);
+
+    c.bind(L_2);
+    c.ret(v1);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect)  {
+    typedef int (*Func)(int, int);
+    Func func = asmjit_cast<Func>(_func);
+
+    int a = func(1, 0);
+    int b = func(0, 1);
+
+    result.appendFormat("ret={%d, %d}", a, b);
+    result.appendFormat("ret={%d, %d}", 2, 1);
+
+    return a == 2 && b == 1;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocIfElse2]
+// ============================================================================
+
+struct X86Test_AllocIfElse2 : public X86Test {
+  X86Test_AllocIfElse2() : X86Test("[Alloc] If-Else #1") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocIfElse2());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder2<int,int,int>());
+
+    GpVar v1(c, kVarTypeInt32);
+    GpVar v2(c, kVarTypeInt32);
+
+    Label L_1(c);
+    Label L_2(c);
+    Label L_3(c);
+    Label L_4(c);
+
+    c.setArg(0, v1);
+    c.setArg(1, v2);
+
+    c.jmp(L_1);
+    c.bind(L_2);
+    c.jmp(L_4);
+    c.bind(L_1);
+
+    c.cmp(v1, v2);
+    c.jg(L_3);
+
+    c.mov(v1, 1);
+    c.jmp(L_2);
+
+    c.bind(L_3);
+    c.mov(v1, 2);
+    c.jmp(L_2);
+
+    c.bind(L_4);
+
+    c.ret(v1);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect)  {
+    typedef int (*Func)(int, int);
+    Func func = asmjit_cast<Func>(_func);
+
+    int a = func(1, 0);
+    int b = func(0, 1);
+
+    result.appendFormat("ret={%d, %d}", a, b);
+    result.appendFormat("ret={%d, %d}", 2, 1);
+
+    return a == 2 && b == 1;
   }
 };
 
@@ -1705,6 +1816,8 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_AllocShlRor);
   ADD_TEST(X86Test_AllocGpLo);
   ADD_TEST(X86Test_AllocRepMovsb);
+  ADD_TEST(X86Test_AllocIfElse1);
+  ADD_TEST(X86Test_AllocIfElse2);
   ADD_TEST(X86Test_AllocArgs);
   ADD_TEST(X86Test_AllocStack);
   ADD_TEST(X86Test_AllocMemcpy);

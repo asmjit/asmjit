@@ -1063,8 +1063,11 @@ struct TargetNode : public BaseNode {
   ASMJIT_INLINE uint32_t getNumRefs() const { return _numRefs; }
   //! @brief Set number of jumps to this target.
   ASMJIT_INLINE void setNumRefs(uint32_t i) { _numRefs = i; }
+
   //! @brief Add number of jumps to this target.
   ASMJIT_INLINE void addNumRefs(uint32_t i = 1) { _numRefs += i; }
+  //! @brief Subtract number of jumps to this target.
+  ASMJIT_INLINE void subNumRefs(uint32_t i = 1) { _numRefs -= i; }
 
   // --------------------------------------------------------------------------
   // [Members]

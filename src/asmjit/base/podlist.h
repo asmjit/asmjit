@@ -113,4 +113,5 @@ struct PodList {
 // [Api-End]
 #include "../base/apiend.h"
 
+// [Guard]
 #endif // _ASMJIT_BASE_PODLIST_H

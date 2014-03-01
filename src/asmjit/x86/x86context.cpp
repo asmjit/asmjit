@@ -1367,6 +1367,8 @@ static ASMJIT_INLINE void X86X64Context_switchStateVars(X86X64Context* self, Var
 }
 
 void X86X64Context::switchState(BaseVarState* src_) {
+  ASMJIT_ASSERT(src_ != NULL);
+
   VarState* cur = getState();
   VarState* src = static_cast<VarState*>(src_);
 
@@ -1476,7 +1478,7 @@ static void X86X64Context_prepareSingleVarInst(uint32_t code, VarAttr* va) {
 //! @internal
 //!
 //! @brief Add unreachable-flow data to the unreachable flow list.
-static ASMJIT_INLINE Error X86X64Context_prepareAddUnreachableNode(X86X64Context* self, BaseNode* node) {
+static ASMJIT_INLINE Error X86X64Context_addUnreachableNode(X86X64Context* self, BaseNode* node) {
   PodList<BaseNode*>::Link* link = self->_zoneAllocator.allocT<PodList<BaseNode*>::Link>();
   if (link == NULL)
     return self->setError(kErrorNoHeapMemory);
@@ -1490,7 +1492,7 @@ static ASMJIT_INLINE Error X86X64Context_prepareAddUnreachableNode(X86X64Context
 //! @internal
 //!
 //! @brief Add jump-flow data to the jcc flow list.
-static ASMJIT_INLINE Error X86X64Context_prepareAddJccNode(X86X64Context* self, BaseNode* node) {
+static ASMJIT_INLINE Error X86X64Context_addJccNode(X86X64Context* self, BaseNode* node) {
   PodList<BaseNode*>::Link* link = self->_zoneAllocator.allocT<PodList<BaseNode*>::Link>();
 
   if (link == NULL)
@@ -2059,7 +2061,7 @@ _NextGroup:
           // natural flow of the function.
           if (jNode->isJmp()) {
             if (!jNext->isFetched())
-              ASMJIT_PROPAGATE_ERROR(X86X64Context_prepareAddUnreachableNode(this, jNext));
+              ASMJIT_PROPAGATE_ERROR(X86X64Context_addUnreachableNode(this, jNext));
 
             node_ = jTarget;
             goto _Do;
@@ -2080,7 +2082,7 @@ _NextGroup:
               goto _Do;
             }
             else {
-              ASMJIT_PROPAGATE_ERROR(X86X64Context_prepareAddJccNode(this, jNode));
+              ASMJIT_PROPAGATE_ERROR(X86X64Context_addJccNode(this, jNode));
 
               node_ = X86X64Context_getJccFlow(jNode);
               goto _Do;
@@ -2409,6 +2411,8 @@ _OnVisit:
 
     if (node == func)
       goto _OnDone;
+
+    ASMJIT_ASSERT(node->getPrev());
     node = node->getPrev();
   }
 
@@ -4671,22 +4675,26 @@ _NextGroup:
         goto _Done;
       }
       else {
-        JumpNode* jNode = static_cast<JumpNode*>(jLink->getValue());
+        node_ = jLink->getValue();
         jLink = jLink->getNext();
 
-        BaseNode* jFlow = X86X64Context_getOppositeJccFlow(jNode);
-        loadState(jNode->getState());
+        BaseNode* jFlow = X86X64Context_getOppositeJccFlow(static_cast<JumpNode*>(node_));
+        loadState(node_->getState());
 
-        // TODO:
-        if (jNode->getNext() == jFlow) {
+        if (jFlow->getState()) {
+          X86X64Context_translateJump(this,
+            static_cast<JumpNode*>(node_),
+            static_cast<TargetNode*>(jFlow));
+
+          node_ = jFlow;
+          if (node_->isTranslated())
+            goto _NextGroup;
         }
         else {
-          X86X64Context_translateJump(this, jNode, static_cast<TargetNode*>(jFlow));
+          node_ = jFlow;
         }
 
-        node_ = jFlow;
-        if (node_->isTranslated())
-          goto _NextGroup;
+        break;
       }
     }
 

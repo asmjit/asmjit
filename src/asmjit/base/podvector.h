@@ -259,4 +259,5 @@ struct PodVector : PodVectorBase {
 // [Api-End]
 #include "../base/apiend.h"
 
+// [Guard]
 #endif // _ASMJIT_BASE_PODVECTOR_H

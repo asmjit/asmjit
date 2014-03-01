@@ -176,6 +176,32 @@ BaseNode* BaseCompiler::addNodeAfter(BaseNode* node, BaseNode* ref) {
   return node;
 }
 
+static ASMJIT_INLINE void BaseCompiler_nodeRemoved(BaseCompiler* self, BaseNode* node_) {
+  if (node_->isJmpOrJcc()) {
+    JumpNode* node = static_cast<JumpNode*>(node_);
+    TargetNode* target = node->getTarget();
+
+    // Disconnect.
+    JumpNode** pPrev = &target->_from;
+    for (;;) {
+      ASMJIT_ASSERT(*pPrev != NULL);
+      JumpNode* current = *pPrev;
+
+      if (current == NULL)
+        break;
+
+      if (current == node) {
+        *pPrev = node->_jumpNext;
+        break;
+      }
+
+      pPrev = &current->_jumpNext;
+    }
+
+    target->subNumRefs();
+  }
+}
+
 BaseNode* BaseCompiler::removeNode(BaseNode* node) {
   BaseNode* prev = node->_prev;
   BaseNode* next = node->_next;
@@ -195,6 +221,7 @@ BaseNode* BaseCompiler::removeNode(BaseNode* node) {
 
   if (_cursor == node)
     _cursor = prev;
+  BaseCompiler_nodeRemoved(this, node);
 
   return node;
 }
@@ -228,6 +255,7 @@ void BaseCompiler::removeNodes(BaseNode* first, BaseNode* last) {
 
     if (_cursor == node)
       _cursor = prev;
+    BaseCompiler_nodeRemoved(this, node);
 
     if (node == last)
       break;
