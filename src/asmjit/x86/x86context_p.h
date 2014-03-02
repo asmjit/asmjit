@@ -59,14 +59,23 @@ struct X86X64Context : public BaseContext {
   // --------------------------------------------------------------------------
 
   //! @brief Get compiler as @ref X86X64Compiler.
-  ASMJIT_INLINE X86X64Compiler* getCompiler() const { return static_cast<X86X64Compiler*>(_compiler); }
-  //! @brief Get function as @ref X86X64FuncNode.
-  ASMJIT_INLINE X86X64FuncNode* getFunc() const { return reinterpret_cast<X86X64FuncNode*>(_func); }
+  ASMJIT_INLINE X86X64Compiler* getCompiler() const {
+    return static_cast<X86X64Compiler*>(_compiler);
+  }
 
-  ASMJIT_INLINE bool isX64() const { return _baseRegsCount == 16; }
+  //! @brief Get function as @ref X86X64FuncNode.
+  ASMJIT_INLINE X86X64FuncNode* getFunc() const {
+    return reinterpret_cast<X86X64FuncNode*>(_func);
+  }
+
+  ASMJIT_INLINE bool isX64() const {
+    return _baseRegsCount == 16;
+  }
 
   //! @brief Get clobbered registers (global).
-  ASMJIT_INLINE uint32_t getClobberedRegs(uint32_t c) { return _clobberedRegs.get(c); }
+  ASMJIT_INLINE uint32_t getClobberedRegs(uint32_t c) {
+    return _clobberedRegs.get(c);
+  }
 
   // --------------------------------------------------------------------------
   // [Helpers]
@@ -255,11 +264,10 @@ struct X86X64Context : public BaseContext {
     ASMJIT_ASSERT(vd->getRegIndex() != kInvalidReg);
 
     uint32_t oldIndex = vd->getRegIndex();
-    if (regIndex == oldIndex)
-      return;
-
-    emitMove(vd, regIndex, oldIndex, "Move");
-    rebase<C>(vd, regIndex, oldIndex);
+    if (regIndex != oldIndex) {
+      emitMove(vd, regIndex, oldIndex, "Move");
+      rebase<C>(vd, regIndex, oldIndex);
+    }
 
     ASMJIT_CONTEXT_CHECK_STATE
   }
@@ -323,6 +331,7 @@ struct X86X64Context : public BaseContext {
       regMask ^= IntUtil::mask(oldRegIndex);
     }
     else {
+      ASMJIT_CONTEXT_CHECK_STATE
       return;
     }
 
@@ -342,8 +351,11 @@ struct X86X64Context : public BaseContext {
   template<int C>
   ASMJIT_INLINE void spill(VarData* vd) {
     ASMJIT_ASSERT(vd->getClass() == C);
-    if (vd->getState() != kVarStateReg)
+
+    if (vd->getState() != kVarStateReg) {
+      ASMJIT_CONTEXT_CHECK_STATE
       return;
+    }
 
     uint32_t regIndex = vd->getRegIndex();
 
@@ -401,7 +413,9 @@ struct X86X64Context : public BaseContext {
   // --------------------------------------------------------------------------
 
   //! @brief Get state as @ref VarState.
-  ASMJIT_INLINE VarState* getState() const { return const_cast<VarState*>(&_x86State); }
+  ASMJIT_INLINE VarState* getState() const {
+    return const_cast<VarState*>(&_x86State);
+  }
 
   virtual void loadState(BaseVarState* src);
   virtual BaseVarState* saveState();

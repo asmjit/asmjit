@@ -1175,19 +1175,19 @@ void X86X64Context::_checkState() {}
 // ============================================================================
 
 template<int C>
-static ASMJIT_INLINE void X86X64Context_loadStateVars(X86X64Context* self, VarState* target) {
-  VarState* state = self->getState();
+static ASMJIT_INLINE void X86X64Context_loadStateVars(X86X64Context* self, VarState* src) {
+  VarState* cur = self->getState();
 
-  VarData** sVars = state->getListByClass(C);
-  VarData** tVars = target->getListByClass(C);
+  VarData** cVars = cur->getListByClass(C);
+  VarData** sVars = src->getListByClass(C);
 
   uint32_t regIndex;
-  uint32_t modified = target->_modified.get(C);
+  uint32_t modified = src->_modified.get(C);
   uint32_t regCount = self->getRegsCount(C);
 
   for (regIndex = 0; regIndex < regCount; regIndex++, modified >>= 1) {
-    VarData* vd = tVars[regIndex];
-    sVars[regIndex] = vd;
+    VarData* vd = sVars[regIndex];
+    cVars[regIndex] = vd;
 
     if (vd == NULL)
       continue;
@@ -1198,30 +1198,32 @@ static ASMJIT_INLINE void X86X64Context_loadStateVars(X86X64Context* self, VarSt
   }
 }
 
-void X86X64Context::loadState(BaseVarState* target_) {
-  VarState* state = getState();
-  VarState* target = static_cast<VarState*>(target_);
+void X86X64Context::loadState(BaseVarState* src_) {
+  VarState* cur = getState();
+  VarState* src = static_cast<VarState*>(src_);
 
   VarData** vdArray = _contextVd.getData();
   uint32_t vdCount = static_cast<uint32_t>(_contextVd.getLength());
 
   // Load allocated variables.
-  X86X64Context_loadStateVars<kRegClassGp>(this, target);
-  X86X64Context_loadStateVars<kRegClassMm>(this, target);
-  X86X64Context_loadStateVars<kRegClassXy>(this, target);
+  X86X64Context_loadStateVars<kRegClassGp>(this, src);
+  X86X64Context_loadStateVars<kRegClassMm>(this, src);
+  X86X64Context_loadStateVars<kRegClassXy>(this, src);
 
   // Load masks.
-  state->_occupied = target->_occupied;
-  state->_modified = target->_modified;
+  cur->_occupied = src->_occupied;
+  cur->_modified = src->_modified;
 
   // Load states of other variables and clear their 'Modified' flags.
   for (uint32_t i = 0; i < vdCount; i++) {
-    uint32_t vState = target->_cells[i].getState();
+    uint32_t vState = src->_cells[i].getState();
 
-    if (vState != kVarStateReg) {
-      vdArray[i]->setState(vState);
-      vdArray[i]->setModified(false);
-    }
+    if (vState == kVarStateReg)
+      continue;
+
+    vdArray[i]->setState(vState);
+    vdArray[i]->setRegIndex(kInvalidReg);
+    vdArray[i]->setModified(false);
   }
 
   ASMJIT_CONTEXT_CHECK_STATE
@@ -1309,6 +1311,7 @@ static ASMJIT_INLINE void X86X64Context_switchStateVars(X86X64Context* self, Var
       }
 
       if (dVd == NULL && sVd != NULL) {
+_MoveOrLoad:
         if (sVd->getRegIndex() != kInvalidReg)
           self->move<C>(sVd, regIndex);
         else
@@ -1331,19 +1334,33 @@ static ASMJIT_INLINE void X86X64Context_switchStateVars(X86X64Context* self, Var
         didWork = true;
         continue;
       }
-
-      if (C == kRegClassGp) {
-        self->swapGp(dVd, sVd);
-
-        didWork = true;
-        continue;
-      }
       else {
-        self->spill<C>(dVd);
-        self->move<C>(sVd, regIndex);
+        StateCell& cell = cells[dVd->getContextId()];
 
-        didWork = true;
-        continue;
+        if (cell.getState() == kVarStateReg) {
+          if (dVd->getRegIndex() != kInvalidReg && sVd->getRegIndex() != kInvalidReg) {
+            if (C == kRegClassGp) {
+              self->swapGp(dVd, sVd);
+            }
+            else {
+              self->spill<C>(dVd);
+              self->move<C>(sVd, regIndex);
+            }
+
+            didWork = true;
+            continue;
+          }
+          else {
+            didWork = true;
+            continue;
+          }
+        }
+
+        if (cell.getState() == kVarStateMem)
+          self->spill<C>(dVd);
+        else
+          self->unuse<C>(dVd);
+        goto _MoveOrLoad;
       }
     }
   } while (didWork);
@@ -1358,10 +1375,15 @@ static ASMJIT_INLINE void X86X64Context_switchStateVars(X86X64Context* self, Var
       if (vd == NULL)
         continue;
 
-      if ((dstModified & regMask) && !(srcModified & regMask))
+      if ((dstModified & regMask) && !(srcModified & regMask)) {
         self->save<C>(vd);
-      else if (!(dstModified & regMask) && (srcModified & regMask))
+        continue;
+      }
+
+      if (!(dstModified & regMask) && (srcModified & regMask)) {
         self->modify<C>(vd);
+        continue;
+      }
     }
   }
 }
@@ -1381,8 +1403,11 @@ void X86X64Context::switchState(BaseVarState* src_) {
   X86X64Context_switchStateVars<kRegClassMm>(this, src);
   X86X64Context_switchStateVars<kRegClassXy>(this, src);
 
+  // TODO: Review: This is from the older version of asmjit and it shouldn't
+  // be needed to copy these masks, because switchStateVars() should have
+  // done it already.
+  //
   // Copy occupied mask.
-  // TODO: Review.
   // cur->_occupied = src->_occupied;
   // cur->_modified = src->_modified;
 
