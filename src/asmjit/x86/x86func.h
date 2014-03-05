@@ -447,13 +447,6 @@ struct X86X64FuncDecl : public FuncDecl {
   ASMJIT_INLINE const uint8_t* getPassedOrderXmm() const { return _passedOrderXmm; }
 
   // --------------------------------------------------------------------------
-  // [FindArgByReg]
-  // --------------------------------------------------------------------------
-
-  //! @brief Find argument ID by register class and index.
-  ASMJIT_API uint32_t findArgByReg(uint32_t rClass, uint32_t rIndex) const;
-
-  // --------------------------------------------------------------------------
   // [SetPrototype]
   // --------------------------------------------------------------------------
 

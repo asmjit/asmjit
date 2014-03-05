@@ -97,6 +97,21 @@ struct BaseContext {
   // [Mem]
   // --------------------------------------------------------------------------
 
+  ASMJIT_INLINE Error _registerContextVar(VarData* vd) {
+    if (vd->hasContextId())
+      return kErrorOk;
+
+    uint32_t cid = static_cast<uint32_t>(_contextVd.getLength());
+    ASMJIT_PROPAGATE_ERROR(_contextVd.append(vd));
+
+    vd->setContextId(cid);
+    return kErrorOk;
+  }
+
+  // --------------------------------------------------------------------------
+  // [Mem]
+  // --------------------------------------------------------------------------
+
   MemCell* _newVarCell(VarData* vd);
   MemCell* _newStackCell(uint32_t size, uint32_t alignment);
 

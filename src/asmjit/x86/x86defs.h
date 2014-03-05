@@ -1869,28 +1869,28 @@ ASMJIT_ENUM(kCond) {
 //! @brief X86 variable type.
 ASMJIT_ENUM(kVarType) {
   //! @brief Variable is Mm (MMX).
-  kVarTypeMm = 13,
+  kVarTypeMm = 12,
 
   //! @brief Variable is Xmm (SSE/SSE2).
-  kVarTypeXmm = 14,
+  kVarTypeXmm,
   //! @brief Variable is SSE scalar SP-FP number.
-  kVarTypeXmmSs = 15,
+  kVarTypeXmmSs,
   //! @brief Variable is SSE packed SP-FP number (4 floats).
-  kVarTypeXmmPs = 16,
+  kVarTypeXmmPs,
   //! @brief Variable is SSE2 scalar DP-FP number.
-  kVarTypeXmmSd = 17,
+  kVarTypeXmmSd,
   //! @brief Variable is SSE2 packed DP-FP number (2 doubles).
-  kVarTypeXmmPd = 18,
+  kVarTypeXmmPd,
 
   //! @brief Variable is Ymm (AVX).
-  kVarTypeYmm = 19,
+  kVarTypeYmm,
   //! @brief Variable is AVX packed SP-FP number (8 floats).
-  kVarTypeYmmPs = 20,
+  kVarTypeYmmPs,
   //! @brief Variable is AVX packed DP-FP number (4 doubles).
-  kVarTypeYmmPd = 21,
+  kVarTypeYmmPd,
 
   //! @brief Count of variable types.
-  kVarTypeCount = 22,
+  kVarTypeCount,
 
   //! @internal
   _kVarTypeMmStart = kVarTypeMm,

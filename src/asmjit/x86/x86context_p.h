@@ -98,6 +98,7 @@ struct X86X64Context : public BaseContext {
   void emitPushSequence(uint32_t regs);
   void emitPopSequence(uint32_t regs);
 
+  void emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32_t srcType, uint32_t srcIndex);
   void emitMoveVarOnStack(uint32_t dstType, const Mem* dst, uint32_t srcType, uint32_t srcIndex);
   void emitMoveImmOnStack(uint32_t dstType, const Mem* dst, const Imm* src);
 

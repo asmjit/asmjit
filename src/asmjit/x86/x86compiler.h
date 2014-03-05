@@ -226,35 +226,38 @@ struct VarInst : public BaseVarInst {
   // --------------------------------------------------------------------------
 
   //! @brief Get variable-attributes list as VarAttr data.
-  ASMJIT_INLINE VarAttr* getVaList() const
-  { return const_cast<VarAttr*>(_list); }
+  ASMJIT_INLINE VarAttr* getVaList() const {
+    return const_cast<VarAttr*>(_list);
+  }
 
   //! @brief Get variable-attributes list as VarAttr data (by class).
-  ASMJIT_INLINE VarAttr* getVaListByClass(uint32_t c) const
-  { return const_cast<VarAttr*>(_list) + _start.get(c); }
+  ASMJIT_INLINE VarAttr* getVaListByClass(uint32_t c) const {
+    return const_cast<VarAttr*>(_list) + _start.get(c);
+  }
 
   //! @brief Get position of variables (by class).
-  ASMJIT_INLINE uint32_t getVaStart(uint32_t c) const
-  { return _start.get(c); }
+  ASMJIT_INLINE uint32_t getVaStart(uint32_t c) const {
+    return _start.get(c);
+  }
 
   //! @brief Get count of variables (all).
-  ASMJIT_INLINE uint32_t getVaCount() const
-  { return _vaCount; }
+  ASMJIT_INLINE uint32_t getVaCount() const {
+    return _vaCount;
+  }
 
   //! @brief Get count of variables (by class).
-  ASMJIT_INLINE uint32_t getVaCountByClass(uint32_t c) const
-  { return _count.get(c); }
+  ASMJIT_INLINE uint32_t getVaCountByClass(uint32_t c) const {
+    return _count.get(c);
+  }
 
   //! @brief Get VarAttr at @a index.
-  ASMJIT_INLINE VarAttr* getVa(uint32_t index) const
-  {
+  ASMJIT_INLINE VarAttr* getVa(uint32_t index) const {
     ASMJIT_ASSERT(index < _vaCount);
     return getVaList() + index;
   }
 
   //! @brief Get VarAttr of @a c class at @a index.
-  ASMJIT_INLINE VarAttr* getVaByClass(uint32_t c, uint32_t index) const
-  {
+  ASMJIT_INLINE VarAttr* getVaByClass(uint32_t c, uint32_t index) const {
     ASMJIT_ASSERT(index < _count._regs[c]);
     return getVaListByClass(c) + index;
   }
@@ -264,8 +267,7 @@ struct VarInst : public BaseVarInst {
   // --------------------------------------------------------------------------
 
   //! @brief Find VarAttr.
-  ASMJIT_INLINE VarAttr* findVa(VarData* vd) const
-  {
+  ASMJIT_INLINE VarAttr* findVa(VarData* vd) const {
     VarAttr* list = getVaList();
     uint32_t count = getVaCount();
 
@@ -277,8 +279,7 @@ struct VarInst : public BaseVarInst {
   }
 
   //! @brief Find VarAttr (by class).
-  ASMJIT_INLINE VarAttr* findVaByClass(uint32_t c, VarData* vd) const
-  {
+  ASMJIT_INLINE VarAttr* findVaByClass(uint32_t c, VarData* vd) const {
     VarAttr* list = getVaListByClass(c);
     uint32_t count = getVaCountByClass(c);
 
@@ -385,11 +386,11 @@ struct VarState : BaseVarState {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE VarData** getList()
-  { return _list; }
+  ASMJIT_INLINE VarData** getList() {
+    return _list;
+  }
 
-  ASMJIT_INLINE VarData** getListByClass(uint32_t c)
-  {
+  ASMJIT_INLINE VarData** getListByClass(uint32_t c) {
     switch (c) {
       case kRegClassGp: return _listGp;
       case kRegClassMm: return _listMm;
@@ -404,8 +405,7 @@ struct VarState : BaseVarState {
   // [Clear]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void reset(size_t numCells)
-  {
+  ASMJIT_INLINE void reset(size_t numCells) {
     ::memset(this, 0, kAllCount * sizeof(VarData* ) +
                       2         * sizeof(RegMask  ) +
                       numCells  * sizeof(StateCell));
@@ -852,45 +852,44 @@ struct X86X64CallNode : public CallNode {
 //!
 //! X86/X64 variable types:
 //!
-//! - @c kVarTypeInt8 - Signed 8-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - @c kVarTypeUInt8 - Unsigned 8-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - @c kVarTypeInt8   - Signed 8-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - @c kVarTypeUInt8  - Unsigned 8-bit integer, mapped to Gpd register (eax, ebx, ...).
 //!
-//! - @c kVarTypeInt16 - Signed 16-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - @c kVarTypeUInt16 - Unsigned 16-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - @c kVarTypeInt16   - Signed 16-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - @c kVarTypeUInt16  - Unsigned 16-bit integer, mapped to Gpd register (eax, ebx, ...).
 //!
-//! - @c kVarTypeInt32 - Signed 32-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - @c kVarTypeUInt32 - Unsigned 32-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - @c kVarTypeInt32   - Signed 32-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - @c kVarTypeUInt32  - Unsigned 32-bit integer, mapped to Gpd register (eax, ebx, ...).
 //!
-//! - @c kVarTypeInt64 - Signed 64-bit integer, mapped to Gpq register (rax, rbx, ...).
-//! - @c kVarTypeUInt64 - Unsigned 64-bit integer, mapped to Gpq register (rax, rbx, ...).
+//! - @c kVarTypeInt64   - Signed 64-bit integer, mapped to Gpq register (rax, rbx, ...).
+//! - @c kVarTypeUInt64  - Unsigned 64-bit integer, mapped to Gpq register (rax, rbx, ...).
 //!
-//! - @c kVarTypeIntPtr - intptr_t, mapped to Gpd/Gpq register; depends on target, not host!
+//! - @c kVarTypeIntPtr  - intptr_t, mapped to Gpd/Gpq register; depends on target, not host!
 //! - @c kVarTypeUIntPtr - uintptr_t, mapped to Gpd/Gpq register; depends on target, not host!
 //!
-//! - @c kVarTypeFp32 - 32-bit floating point register (fp0, fp1, ...).
-//! - @c kVarTypeFp64 - 64-bit floating point register (fp0, fp1, ...).
-//! - @c kVarTypeFpEx - 80-bit floating point register (fp0, fp1, ...).
+//! - @c kVarTypeFp32    - 32-bit floating point register (fp0, fp1, ...).
+//! - @c kVarTypeFp64    - 64-bit floating point register (fp0, fp1, ...).
 //!
-//! - @c kVarTypeMm - 64-bit Mm register (mm0, mm1, ...).
+//! - @c kVarTypeMm      - 64-bit Mm register (mm0, mm1, ...).
 //!
-//! - @c kVarTypeXmm - 128-bit SSE register.
-//! - @c kVarTypeXmmSs - 128-bit SSE register that contains a scalar 32-bit SP-FP value.
-//! - @c kVarTypeXmmSd - 128-bit SSE register that contains a scalar 64-bit DP-FP value.
-//! - @c kVarTypeXmmPs - 128-bit SSE register that contains 4 packed 32-bit SP-FP values.
-//! - @c kVarTypeXmmPd - 128-bit SSE register that contains 2 packed 64-bit DP-FP values.
+//! - @c kVarTypeXmm     - 128-bit SSE register.
+//! - @c kVarTypeXmmSs   - 128-bit SSE register that contains a scalar 32-bit SP-FP value.
+//! - @c kVarTypeXmmSd   - 128-bit SSE register that contains a scalar 64-bit DP-FP value.
+//! - @c kVarTypeXmmPs   - 128-bit SSE register that contains 4 packed 32-bit SP-FP values.
+//! - @c kVarTypeXmmPd   - 128-bit SSE register that contains 2 packed 64-bit DP-FP values.
 //!
-//! - @c kVarTypeYmm - 256-bit AVX register.
-//! - @c kVarTypeYmmPs - 256-bit AVX register that contains 4 packed 32-bit SP-FP values.
-//! - @c kVarTypeYmmPd - 256-bit AVX register that contains 2 packed 64-bit DP-FP values.
+//! - @c kVarTypeYmm     - 256-bit AVX register.
+//! - @c kVarTypeYmmPs   - 256-bit AVX register that contains 4 packed 32-bit SP-FP values.
+//! - @c kVarTypeYmmPd   - 256-bit AVX register that contains 2 packed 64-bit DP-FP values.
 //!
 //! Variable states:
 //!
 //! - @c kVarStateUnused - State that is assigned to newly created
-//!   variables or to not used variables (dereferenced to zero).
-//! - @c kVarStateReg - State that means that variable is currently
-//!   allocated in register.
-//! - @c kVarStateMem - State that means that variable is currently
-//!   only in memory location.
+//!      variables or to not used variables (dereferenced to zero).
+//! - @c kVarStateReg    - State that means that variable is currently
+//!      allocated in register.
+//! - @c kVarStateMem    - State that means that variable is currently
+//!      only in memory location.
 //!
 //! When you create new variable, initial state is always @c kVarStateUnused,
 //! allocating it to register or spilling to memory changes this state to
@@ -1532,24 +1531,34 @@ struct X86X64Compiler : public BaseCompiler {
   // -------------------------------------------------------------------------
 
   //! @brief Force short form of jmp/jcc/other instruction.
-  ASMJIT_INLINE X86X64Compiler& short_()
-  { _options |= kInstOptionShortForm; return *this; }
+  ASMJIT_INLINE X86X64Compiler& short_() {
+    _options |= kInstOptionShortForm;
+    return *this;
+  }
 
   //! @brief Force long form of jmp/jcc/other instruction.
-  ASMJIT_INLINE X86X64Compiler& long_()
-  { _options |= kInstOptionLongForm; return *this; }
+  ASMJIT_INLINE X86X64Compiler& long_() {
+    _options |= kInstOptionLongForm;
+    return *this;
+  }
 
   //! @brief Condition is likely to be taken.
-  ASMJIT_INLINE X86X64Compiler& taken()
-  { _options |= kInstOptionTaken; return *this; }
+  ASMJIT_INLINE X86X64Compiler& taken() {
+    _options |= kInstOptionTaken;
+    return *this;
+  }
 
   //! @brief Condition is unlikely to be taken.
-  ASMJIT_INLINE X86X64Compiler& notTaken()
-  { _options |= kInstOptionNotTaken; return *this; }
+  ASMJIT_INLINE X86X64Compiler& notTaken() {
+    _options |= kInstOptionNotTaken;
+    return *this;
+  }
 
   //! @brief Lock prefix.
-  ASMJIT_INLINE X86X64Compiler& lock()
-  { _options |= kInstOptionLock; return *this; }
+  ASMJIT_INLINE X86X64Compiler& lock() {
+    _options |= kInstOptionLock;
+    return *this;
+  }
 
   // --------------------------------------------------------------------------
   // [X86 Instructions]
@@ -1638,22 +1647,26 @@ struct X86X64Compiler : public BaseCompiler {
   INST_2i(bts, kInstBts, Mem, Imm)
 
   //! @brief Call.
-  ASMJIT_INLINE X86X64CallNode* call(const GpVar& dst, uint32_t conv, const FuncPrototype& p)
-  { return addCall(dst, conv, p); }
+  ASMJIT_INLINE X86X64CallNode* call(const GpVar& dst, uint32_t conv, const FuncPrototype& p) {
+    return addCall(dst, conv, p);
+  }
   //! @overload
-  ASMJIT_INLINE X86X64CallNode* call(const Mem& dst, uint32_t conv, const FuncPrototype& p)
-  { return addCall(dst, conv, p); }
+  ASMJIT_INLINE X86X64CallNode* call(const Mem& dst, uint32_t conv, const FuncPrototype& p) {
+    return addCall(dst, conv, p);
+  }
   //! @overload
-  ASMJIT_INLINE X86X64CallNode* call(const Imm& dst, uint32_t conv, const FuncPrototype& p)
-  { return addCall(dst, conv, p); }
+  ASMJIT_INLINE X86X64CallNode* call(const Imm& dst, uint32_t conv, const FuncPrototype& p) {
+    return addCall(dst, conv, p);
+  }
   //! @overload
   ASMJIT_INLINE X86X64CallNode* call(void* dst, uint32_t conv, const FuncPrototype& p) {
     Imm imm((intptr_t)dst);
     return addCall(imm, conv, p);
   }
   //! @overload
-  ASMJIT_INLINE X86X64CallNode* call(const Label& label, uint32_t conv, const FuncPrototype& p)
-  { return addCall(label, conv, p); }
+  ASMJIT_INLINE X86X64CallNode* call(const Label& label, uint32_t conv, const FuncPrototype& p) {
+    return addCall(label, conv, p);
+  }
 
   //! @brief Clear carry flag
   INST_0x(clc, kInstClc)
@@ -4015,24 +4028,34 @@ struct Compiler : public X86X64Compiler {
   // -------------------------------------------------------------------------
 
   //! @overload
-  ASMJIT_INLINE Compiler& short_()
-  { _options |= kInstOptionShortForm; return *this; }
+  ASMJIT_INLINE Compiler& short_() {
+    _options |= kInstOptionShortForm;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& long_()
-  { _options |= kInstOptionLongForm; return *this; }
+  ASMJIT_INLINE Compiler& long_() {
+    _options |= kInstOptionLongForm;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& taken()
-  { _options |= kInstOptionTaken; return *this; }
+  ASMJIT_INLINE Compiler& taken() {
+    _options |= kInstOptionTaken;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& notTaken()
-  { _options |= kInstOptionNotTaken; return *this; }
+  ASMJIT_INLINE Compiler& notTaken() {
+    _options |= kInstOptionNotTaken;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& lock()
-  { _options |= kInstOptionLock; return *this; }
+  ASMJIT_INLINE Compiler& lock() {
+    _options |= kInstOptionLock;
+    return *this;
+  }
 
   // --------------------------------------------------------------------------
   // [X86-Only Instructions]
@@ -4086,28 +4109,40 @@ struct Compiler : public X86X64Compiler {
   // -------------------------------------------------------------------------
 
   //! @overload
-  ASMJIT_INLINE Compiler& short_()
-  { _options |= kInstOptionShortForm; return *this; }
+  ASMJIT_INLINE Compiler& short_() {
+    _options |= kInstOptionShortForm;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& long_()
-  { _options |= kInstOptionLongForm; return *this; }
+  ASMJIT_INLINE Compiler& long_() {
+    _options |= kInstOptionLongForm;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& taken()
-  { _options |= kInstOptionTaken; return *this; }
+  ASMJIT_INLINE Compiler& taken() {
+    _options |= kInstOptionTaken;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& notTaken()
-  { _options |= kInstOptionNotTaken; return *this; }
+  ASMJIT_INLINE Compiler& notTaken() {
+    _options |= kInstOptionNotTaken;
+    return *this;
+  }
 
   //! @overload
-  ASMJIT_INLINE Compiler& lock()
-  { _options |= kInstOptionLock; return *this; }
+  ASMJIT_INLINE Compiler& lock() {
+    _options |= kInstOptionLock;
+    return *this;
+  }
 
   //! @brief Force rex prefix.
-  ASMJIT_INLINE Compiler& rex()
-  { _options |= kInstOptionRex; return *this; }
+  ASMJIT_INLINE Compiler& rex() {
+    _options |= kInstOptionRex;
+    return *this;
+  }
 
   // --------------------------------------------------------------------------
   // [X64-Only Instructions]
@@ -4122,8 +4157,10 @@ struct Compiler : public X86X64Compiler {
   ASMJIT_INLINE InstNode* cmpxchg16b(
     const GpVar& cmp_edx, const GpVar& cmp_eax,
     const GpVar& cmp_ecx, const GpVar& cmp_ebx,
-    const Mem& dst)
-  { return emit(kInstCmpxchg16b, cmp_edx, cmp_eax, cmp_ecx, cmp_ebx, dst); }
+    const Mem& dst) {
+
+    return emit(kInstCmpxchg16b, cmp_edx, cmp_eax, cmp_ecx, cmp_ebx, dst);
+  }
 
   //! @brief Move dword to qword with sign-extension.
   INST_2x(movsxd, kInstMovsxd, GpVar, GpVar)

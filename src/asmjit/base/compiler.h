@@ -81,15 +81,13 @@ ASMJIT_ENUM(kVarAttrFlags) {
   kVarAttrInCall = 0x00000100,
   //! @brief Variable is a function argument passed in register.
   kVarAttrInArg = 0x00000200,
-  //! @brief Variable is a function argument passed on the stack.
-  kVarAttrInStack = 0x00000400,
+
   //! @brief Variable is a function return value passed in register.
-  kVarAttrOutRet = 0x00000800,
-
+  kVarAttrOutRet = 0x00000400,
   //! @brief Variable should be unused at the end of the instruction/node.
-  kVarAttrUnuse = 0x00001000,
+  kVarAttrUnuse = 0x00000800,
 
-  kVarAttrInAll = kVarAttrInReg | kVarAttrInMem | kVarAttrInDecide | kVarAttrInCall | kVarAttrInArg | kVarAttrInStack,
+  kVarAttrInAll = kVarAttrInReg | kVarAttrInMem | kVarAttrInDecide | kVarAttrInCall | kVarAttrInArg,
   kVarAttrOutAll = kVarAttrOutReg | kVarAttrOutMem | kVarAttrOutDecide | kVarAttrOutRet,
 
   //! @brief Variable is already allocated on the input.
@@ -544,9 +542,9 @@ struct VarAttr {
     _vd = vd;
     _flags = flags;
     _varCount = 0;
-    _argStackCount = 0;
     _inRegIndex = kInvalidReg;
     _outRegIndex = kInvalidReg;
+    _reserved = 0;
     _inRegs = inRegs;
     _allocableRegs = allocableRegs;
   }
@@ -580,13 +578,6 @@ struct VarAttr {
   ASMJIT_INLINE void setVarCount(uint32_t count) { _varCount = static_cast<uint8_t>(count); }
   //! @brief Add how many times the variable is used by the instruction/node.
   ASMJIT_INLINE void addVarCount(uint32_t count = 1) { _varCount += static_cast<uint8_t>(count); }
-
-  //! @brief Get how many times the variable is used by the function argument.
-  ASMJIT_INLINE uint32_t getArgStackCount() const { return _argStackCount; }
-  //! @brief Set how many times the variable is used by the function argument.
-  ASMJIT_INLINE void setArgStackCount(uint32_t count) { _argStackCount = static_cast<uint8_t>(count); }
-  //! @brief Add how many times the variable is used by the function argument.
-  ASMJIT_INLINE void addArgStackCount(uint32_t count = 1) { _argStackCount += static_cast<uint8_t>(count); }
 
   //! @brief Get whether the variable has to be allocated in a specific input register.
   ASMJIT_INLINE uint32_t hasInRegIndex() const { return _inRegIndex != kInvalidReg; }
@@ -651,12 +642,6 @@ struct VarAttr {
     struct {
       //! @brief How many times the variable is used by the instruction/node.
       uint8_t _varCount;
-      //! @brief How many times the variable is used as a function argument on
-      //! the stack.
-      //!
-      //! This is important to know for function-call allocator. It doesn't
-      //! allocate by arguments, but by using VarAttr's.
-      uint8_t _argStackCount;
       //! @brief Input register index or @ref kInvalidReg if it's not given.
       //!
       //! Even if the input register index is not given (i.e. it may by any
@@ -669,6 +654,8 @@ struct VarAttr {
       //!
       //! Typically @ref kInvalidReg if variable is only used on input.
       uint8_t _outRegIndex;
+      //! @internal
+      uint8_t _reserved;
     };
 
     //! @internal
@@ -1605,10 +1592,12 @@ struct SArgNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! @brief Create a new @ref SArgNode instance.
-  ASMJIT_INLINE SArgNode(BaseCompiler* compiler, VarData* vd, CallNode* call) :
+  ASMJIT_INLINE SArgNode(BaseCompiler* compiler, CallNode* call, VarData* sVd, VarData* cVd) :
     BaseNode(compiler, kNodeTypeSArg),
-    _vd(vd),
-    _call(call) {}
+    _call(call),
+    _sVd(sVd),
+    _cVd(cVd),
+    _args(0) {}
 
   //! @brief Destroy the @ref SArgNode instance.
   ASMJIT_INLINE ~SArgNode() {}
@@ -1617,20 +1606,26 @@ struct SArgNode : public BaseNode {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get the associated variable.
-  ASMJIT_INLINE VarData* getVd() const { return _vd; }
-
   //! @brief Get the associated function-call.
   ASMJIT_INLINE CallNode* getCall() const { return _call; }
+  //! @brief Get source variable.
+  ASMJIT_INLINE VarData* getSVd() const { return _sVd; }
+  //! @brief Get conversion variable.
+  ASMJIT_INLINE VarData* getCVd() const { return _cVd; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Variable.
-  VarData* _vd;
   //! @brief Associated @ref CallNode.
   CallNode* _call;
+  //! @brief Source variable.
+  VarData* _sVd;
+  //! @brief Temporary variable used for conversion (or NULL).
+  VarData* _cVd;
+
+  //! @brief Affected arguments bit-array.
+  uint32_t _args;
 };
 
 // ============================================================================

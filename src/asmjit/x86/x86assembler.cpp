@@ -3049,6 +3049,13 @@ _EmitAvxRvm:
   // [Illegal]
   // --------------------------------------------------------------------------
 
+_IllegalInst:
+  self->setError(kErrorAssemblerIllegalInst);
+#if defined(ASMJIT_DEBUG)
+  assertIllegal = true;
+#endif // ASMJIT_DEBUG
+  goto _EmitDone;
+
 _IllegalAddr:
   self->setError(kErrorAssemblerIllegalAddr);
 #if defined(ASMJIT_DEBUG)
@@ -3056,12 +3063,6 @@ _IllegalAddr:
 #endif // ASMJIT_DEBUG
   goto _EmitDone;
 
-_IllegalInst:
-  self->setError(kErrorAssemblerIllegalInst);
-#if defined(ASMJIT_DEBUG)
-  assertIllegal = true;
-#endif // ASMJIT_DEBUG
-  goto _EmitDone;
 
   // --------------------------------------------------------------------------
   // [Emit - X86]

@@ -202,10 +202,6 @@ ASMJIT_ENUM(kVarType) {
   kVarTypeFp32 = 10,
   //! @brief Variable is 64-bit floating point (double precision).
   kVarTypeFp64 = 11,
-  //! @brief Variable is 80-bit or 128-bit floating point (extended precision).
-  //!
-  //! @note Experimental, better not to use.
-  kVarTypeFpEx = 12,
 
   //! @brief Invalid variable type.
   kVarTypeInvalid = 0xFF,
@@ -213,7 +209,12 @@ ASMJIT_ENUM(kVarType) {
   //! @internal
   _kVarTypeIntStart = kVarTypeInt8,
   //! @internal
-  _kVarTypeIntEnd = kVarTypeUIntPtr
+  _kVarTypeIntEnd = kVarTypeUIntPtr,
+
+  //! @internal
+  _kVarTypeFpStart = kVarTypeFp32,
+  //! @internal
+  _kVarTypeFpEnd = kVarTypeFp64
 };
 
 // ============================================================================
@@ -424,7 +425,9 @@ struct Operand {
   //! @internal
   //!
   //! @brief Initialize operand to @a other (used by constructors).
-  ASMJIT_INLINE void _init(const Operand& other) { ::memcpy(this, &other, sizeof(Operand)); }
+  ASMJIT_INLINE void _init(const Operand& other) {
+    ::memcpy(this, &other, sizeof(Operand));
+  }
 
   ASMJIT_INLINE void _init_packed_op_sz_b0_b1_id(uint32_t op, uint32_t sz, uint32_t r0, uint32_t r1, uint32_t id) {
     // This hack is not for performance, but to decrease the size of the binary
@@ -451,7 +454,9 @@ struct Operand {
   //! @internal
   //!
   //! @brief Initialize operand to @a other (used by assign operators).
-  ASMJIT_INLINE void _copy(const Operand& other) { ::memcpy(this, &other, sizeof(Operand)); }
+  ASMJIT_INLINE void _copy(const Operand& other) {
+    ::memcpy(this, &other, sizeof(Operand));
+  }
 
   // --------------------------------------------------------------------------
   // [Data]
@@ -807,9 +812,7 @@ struct BaseVar : public Operand {
 
   ASMJIT_INLINE BaseVar& operator=(const BaseVar& other) { _copy(other); return *this; }
 
-  ASMJIT_INLINE bool operator==(const BaseVar& other) const
-  { return _packed[0] == other._packed[0]; }
-
+  ASMJIT_INLINE bool operator==(const BaseVar& other) const { return _packed[0] == other._packed[0]; }
   ASMJIT_INLINE bool operator!=(const BaseVar& other) const { return !operator==(other); }
 };
 

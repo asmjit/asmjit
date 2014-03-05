@@ -416,7 +416,6 @@ void X86X64Context::emitLoad(VarData* vd, uint32_t regIndex, const char* reason)
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-    case kVarTypeFpEx:
       // TODO: [COMPILER] FPU.
       break;
 
@@ -498,7 +497,6 @@ void X86X64Context::emitSave(VarData* vd, uint32_t regIndex, const char* reason)
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-    case kVarTypeFpEx:
       // TODO: [COMPILER] FPU.
       break;
 
@@ -572,7 +570,6 @@ void X86X64Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegI
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-    case kVarTypeFpEx:
       // TODO: [COMPILER] FPU.
       break;
 
@@ -582,7 +579,7 @@ void X86X64Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegI
       break;
 
     case kVarTypeXmm:
-      node = compiler->emit(kInstMovdqa, xmm(toRegIndex), xmm(fromRegIndex));
+      node = compiler->emit(kInstMovaps, xmm(toRegIndex), xmm(fromRegIndex));
       if (comment) goto _Comment;
       break;
 
@@ -597,12 +594,8 @@ void X86X64Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegI
       break;
 
     case kVarTypeXmmPs:
-      node = compiler->emit(kInstMovaps, xmm(toRegIndex), xmm(fromRegIndex));
-      if (comment) goto _Comment;
-      break;
-
     case kVarTypeXmmPd:
-      node = compiler->emit(kInstMovapd, xmm(toRegIndex), xmm(fromRegIndex));
+      node = compiler->emit(kInstMovaps, xmm(toRegIndex), xmm(fromRegIndex));
       if (comment) goto _Comment;
       break;
   }
@@ -678,7 +671,65 @@ void X86X64Context::emitPopSequence(uint32_t regs) {
 }
 
 // ============================================================================
-// [asmjit::x86x64::X86X64Context - EmitMoveArgOnStack / EmitMoveImmOnStack]
+// [asmjit::x86x64::X86X64Context - EmitConvertVarToVar]
+// ============================================================================
+
+void X86X64Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32_t srcType, uint32_t srcIndex) {
+  X86X64Compiler* compiler = getCompiler();
+
+  switch (dstType) {
+    case kVarTypeInt8:
+    case kVarTypeUInt8:
+    case kVarTypeInt16:
+    case kVarTypeUInt16:
+    case kVarTypeInt32:
+    case kVarTypeUInt32:
+    case kVarTypeInt64:
+    case kVarTypeUInt64:
+      break;
+
+    case kVarTypeXmmPs:
+      if (srcType == kVarTypeXmmPd || srcType == kVarTypeYmmPd) {
+        compiler->emit(kInstCvtpd2ps, xmm(dstIndex), xmm(srcIndex));
+        return;
+      }
+      // ... Fall through ...
+
+    case kVarTypeXmmSs:
+      if (srcType == kVarTypeXmmSd || srcType == kVarTypeXmmPd || srcType == kVarTypeYmmPd) {
+        compiler->emit(kInstCvtsd2ss, xmm(dstIndex), xmm(srcIndex));
+        break;
+      }
+
+      if (IntUtil::inInterval<uint32_t>(srcType, _kVarTypeIntStart, _kVarTypeIntEnd)) {
+        // TODO:
+        ASMJIT_ASSERT(!"Reached");
+      }
+      break;
+
+    case kVarTypeXmmPd:
+      if (srcType == kVarTypeXmmPs || srcType == kVarTypeYmmPs) {
+        compiler->emit(kInstCvtps2pd, xmm(dstIndex), xmm(srcIndex));
+        return;
+      }
+      // ... Fall through ...
+
+    case kVarTypeXmmSd:
+      if (srcType == kVarTypeXmmSs || srcType == kVarTypeXmmPs || srcType == kVarTypeYmmPs) {
+        compiler->emit(kInstCvtss2sd, xmm(dstIndex), xmm(srcIndex));
+        return;
+      }
+
+      if (IntUtil::inInterval<uint32_t>(srcType, _kVarTypeIntStart, _kVarTypeIntEnd)) {
+        // TODO:
+        ASMJIT_ASSERT(!"Reached");
+      }
+      break;
+  }
+}
+
+// ============================================================================
+// [asmjit::x86x64::X86X64Context - EmitMoveVarOnStack / EmitMoveImmOnStack]
 // ============================================================================
 
 void X86X64Context::emitMoveVarOnStack(
@@ -730,7 +781,7 @@ void X86X64Context::emitMoveVarOnStack(
       // Move DWORD (Mm).
       if (IntUtil::inInterval<uint32_t>(srcType, kVarTypeMm, kVarTypeMm))
         goto _MovMmD;
-
+       
       // Move DWORD (Xmm).
       if (IntUtil::inInterval<uint32_t>(srcType, kVarTypeXmm, kVarTypeXmmPd))
         goto _MovXmmD;
@@ -851,18 +902,37 @@ void X86X64Context::emitMoveVarOnStack(
         goto _MovXmmQ;
       break;
 
+    case kVarTypeFp32:
+    case kVarTypeXmmSs:
+      // Move FLOAT.
+      if (srcType == kVarTypeXmmSs || srcType == kVarTypeXmmPs || srcType == kVarTypeXmm)
+        goto _MovXmmD;
+
+      ASMJIT_ASSERT(!"Reached");
+      break;
+
+    case kVarTypeFp64:
+    case kVarTypeXmmSd:
+      // Move DOUBLE.
+      if (srcType == kVarTypeXmmSd || srcType == kVarTypeXmmPd || srcType == kVarTypeXmm)
+        goto _MovXmmQ;
+
+      ASMJIT_ASSERT(!"Reached");
+      break;
+
     case kVarTypeXmm:
+      // TODO: [COMPILER].
+      ASMJIT_ASSERT(!"Reached");
+      break;
+
     case kVarTypeXmmPs:
+      // TODO: [COMPILER].
+      ASMJIT_ASSERT(!"Reached");
+      break;
+
     case kVarTypeXmmPd:
       // TODO: [COMPILER].
-      break;
-
-    case kVarTypeXmmSs:
-      // TODO: [COMPILER].
-      break;
-
-    case kVarTypeXmmSd:
-      // TODO: [COMPILER].
+      ASMJIT_ASSERT(!"Reached");
       break;
   }
   return;
@@ -941,14 +1011,14 @@ _MovXmmD:
   m0.setSize(4);
   r0.setSize(16);
   r0.setCode(kRegTypeXmm, srcIndex);
-  compiler->emit(kInstMovd, m0, r0);
+  compiler->emit(kInstMovss, m0, r0);
   return;
 
 _MovXmmQ:
   m0.setSize(8);
   r0.setSize(16);
   r0.setCode(kRegTypeXmm, srcIndex);
-  compiler->emit(kInstMovq, m0, r0);
+  compiler->emit(kInstMovlps, m0, r0);
 }
 
 void X86X64Context::emitMoveImmOnStack(uint32_t dstType, const Mem* dst, const Imm* src) {
@@ -1009,11 +1079,6 @@ _Move64:
 
     case kVarTypeFp64:
       goto _Move64;
-
-    case kVarTypeFpEx:
-      // Not supported.
-      ASMJIT_ASSERT(!"Reached");
-      break;
 
     case kVarTypeMm:
       goto _Move64;
@@ -1108,7 +1173,6 @@ _Move32:
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-    case kVarTypeFpEx:
       // TODO: [COMPILER] EmitMoveImmToReg.
       break;
 
@@ -1403,14 +1467,6 @@ void X86X64Context::switchState(BaseVarState* src_) {
   X86X64Context_switchStateVars<kRegClassMm>(this, src);
   X86X64Context_switchStateVars<kRegClassXy>(this, src);
 
-  // TODO: Review: This is from the older version of asmjit and it shouldn't
-  // be needed to copy these masks, because switchStateVars() should have
-  // done it already.
-  //
-  // Copy occupied mask.
-  // cur->_occupied = src->_occupied;
-  // cur->_modified = src->_modified;
-
   // Calculate changed state.
   VarData** vdArray = _contextVd.getData();
   uint32_t vdCount = static_cast<uint32_t>(_contextVd.getLength());
@@ -1439,7 +1495,6 @@ void X86X64Context::intersectStates(BaseVarState* a_, BaseVarState* b_) {
   VarState* bState = static_cast<VarState*>(b_);
 
   // TODO: [COMPILER] Intersect states.
-
   ASMJIT_CONTEXT_CHECK_STATE
 }
 
@@ -1464,7 +1519,7 @@ static ASMJIT_INLINE BaseNode* X86X64Context_getOppositeJccFlow(JumpNode* jNode)
 }
 
 // ============================================================================
-// [asmjit::x86x64::X86X64Context - Prepare - SingleVarInst]
+// [asmjit::x86x64::X86X64Context - SingleVarInst]
 // ============================================================================
 
 //! @internal
@@ -1497,7 +1552,7 @@ static void X86X64Context_prepareSingleVarInst(uint32_t code, VarAttr* va) {
 }
 
 // ============================================================================
-// [asmjit::x86x64::X86X64Context - Prepare]
+// [asmjit::x86x64::X86X64Context - Helpers]
 // ============================================================================
 
 //! @internal
@@ -1550,41 +1605,213 @@ static ASMJIT_INLINE RegMask X86X64Context_getUsedArgs(X86X64Context* self, X86X
 }
 
 // ============================================================================
-// [Helpers]
+// [asmjit::x86x64::X86X64Context - SArg Insertion]
 // ============================================================================
 
-static ASMJIT_INLINE SArgNode* X86X64Context_insertSArgNode(
-  X86X64Context* self,
-  X86X64Compiler* compiler,
-  X86X64CallNode* call,
-  VarData* vd, const uint32_t* gaRegs) {
+struct SArgData {
+  VarData* sVd;
+  VarData* cVd;
+  SArgNode* sArg;
+  uint32_t aType;
+};
 
-  uint32_t vType = vd->getType();
-  const VarInfo& vInfo = _varInfo[vType];
-  uint32_t c = vInfo.getClass();
+#define SARG(_Dst_, S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20) \
+  (S0  <<  0) | (S1  <<  1) | (S2  <<  2) | (S3  <<  3) | \
+  (S4  <<  4) | (S5  <<  5) | (S6  <<  6) | (S7  <<  7) | \
+  (S8  <<  8) | (S9  <<  9) | (S10 << 10) | (S11 << 11) | \
+  (S12 << 12) | (S13 << 13) | (S14 << 14) | (S15 << 15) | \
+  (S16 << 16) | (S17 << 17) | (S18 << 18) | (S19 << 19) | \
+  (S20 << 20)
+#define A 0 /* Auto-convert (doesn't need conversion step). */
+static const uint32_t X86X64Context_sArgConvTable[kVarTypeCount] = {
+  // dst <- | i8| u8|i16|u16|i32|u32|i64|u64| iP| uP|f32|f64|mmx|xmm|xSs|xPs|xSd|xPd|ymm|yPs|yPd|
+  //--------+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+  SARG(i8   , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(u8   , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(i16  , A , A , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(u16  , A , A , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(i32  , A , A , A , A , 0 , 0 , 0 , 0 , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(u32  , A , A , A , A , 0 , 0 , 0 , 0 , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(i64  , A , A , A , A , A , A , 0 , 0 , A , A , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(u64  , A , A , A , A , A , A , 0 , 0 , A , A , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(iPtr , A , A , A , A , A , A , A , A , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(uPtr , A , A , A , A , A , A , A , A , 0 , 0 , A , A , 0 , 0 , 1 , 1 , 1 , 1 , 0 , 1 , 1 ),
+  SARG(f32  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , A , 0 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 1 ),
+  SARG(f64  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , A , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 , 1 , 0 ),
+  SARG(mmx  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ),
+  SARG(xmm  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ),
+  SARG(xSs  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 1 ),
+  SARG(xPs  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 1 ),
+  SARG(xSd  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 1 , 1 , 0 , 0 , 0 , 1 , 0 ),
+  SARG(xPd  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 1 , 1 , 0 , 0 , 0 , 1 , 0 ),
+  SARG(ymm  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ),
+  SARG(yPs  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 1 ),
+  SARG(yPd  , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 0 , 1 , 1 , 0 , 0 , 0 , 1 , 0 )
+};
+#undef A
+#undef SARG
 
-  SArgNode* sArg = compiler->newNode<SArgNode>(vd, call);
-  if (sArg == NULL)
-    return NULL;
-
-  VarInst* vi = self->newVarInst(1);
-  if (vi == NULL)
-    return NULL;
-
-  vi->_vaCount = 1;
-  vi->_count.reset();
-  vi->_count.add(c);
-  vi->_start.reset();
-  vi->_inRegs.reset();
-  vi->_outRegs.reset();
-  vi->_clobberedRegs.reset();
-  vi->_list[0].setup(vd, kVarAttrInReg, 0, gaRegs[c]);
-
-  sArg->setVarInst(vi);
-
-  compiler->addNodeBefore(sArg, call);
-  return sArg;
+static ASMJIT_INLINE bool X86X64Context_mustConvertSArg(X86X64Context* self, uint32_t aType, uint32_t sType) {
+  return (X86X64Context_sArgConvTable[aType] & (1 << sType)) != 0;
 }
+
+static ASMJIT_INLINE uint32_t X86X64Context_typeOfConvertedSArg(X86X64Context* self, uint32_t aType, uint32_t sType) {
+  ASMJIT_ASSERT(X86X64Context_mustConvertSArg(self, aType, sType));
+
+  if (IntUtil::inInterval<uint32_t>(aType, _kVarTypeIntStart, _kVarTypeIntEnd))
+    return aType;
+
+  if (aType == kVarTypeFp32)
+    return kVarTypeXmmSs;
+
+  if (aType == kVarTypeFp64)
+    return kVarTypeXmmSd;
+
+  if (IntUtil::inInterval<uint32_t>(aType, _kVarTypeXmmStart, _kVarTypeXmmEnd))
+    return aType;
+
+  if (IntUtil::inInterval<uint32_t>(aType, _kVarTypeYmmStart, _kVarTypeYmmEnd))
+    return aType;
+
+  ASMJIT_ASSERT(!"Reached");
+  return aType;
+}
+
+static ASMJIT_INLINE Error X86X64Context_insertSArgNode(
+  X86X64Context* self, X86X64CallNode* call,
+  VarData* sVd, const uint32_t* gaRegs,
+  const FuncInOut& arg, uint32_t argIndex,
+  SArgData* sArgList, uint32_t& sArgCount) {
+
+  X86X64Compiler* compiler = self->getCompiler();
+  uint32_t i;
+
+  uint32_t aType = arg.getVarType();
+  uint32_t sType = sVd->getType();
+
+  // First locate or create sArgBase.
+  for (i = 0; i < sArgCount; i++) {
+    if (sArgList[i].sVd == sVd && sArgList[i].cVd == NULL)
+      break;
+  }
+
+  SArgData* sArgData = &sArgList[i];
+
+  if (i == sArgCount) {
+    sArgData->sVd = sVd;
+    sArgData->cVd = NULL;
+    sArgData->sArg = NULL;
+    sArgData->aType = 0xFF;
+    sArgCount++;
+  }
+
+  const VarInfo& sInfo = _varInfo[sType];
+  uint32_t sClass = sInfo.getClass();
+
+  if (X86X64Context_mustConvertSArg(self, aType, sType)) {
+    uint32_t cType = X86X64Context_typeOfConvertedSArg(self, aType, sType);
+
+    const VarInfo& cInfo = _varInfo[cType];
+    uint32_t cClass = cInfo.getClass();
+
+    while (++i < sArgCount) {
+      sArgData = &sArgList[i];
+      if (sArgData->sVd != sVd)
+        break;
+
+      if (sArgData->cVd->getType() != cType || sArgData->aType != aType)
+        continue;
+
+      sArgData->sArg->_args |= IntUtil::mask(argIndex);
+      return kErrorOk;
+    }
+
+    VarData* cVd = compiler->_newVd(cType, cInfo.getSize(), cInfo.getClass(), NULL);
+    if (cVd == NULL)
+      return kErrorNoHeapMemory;
+
+    SArgNode* sArg = compiler->newNode<SArgNode>(call, sVd, cVd);
+    if (sArg == NULL)
+      return kErrorNoHeapMemory;
+
+    VarInst* vi = self->newVarInst(2);
+    if (vi == NULL)
+      return kErrorNoHeapMemory;
+
+    ASMJIT_PROPAGATE_ERROR(self->_registerContextVar(cVd));
+    ASMJIT_PROPAGATE_ERROR(self->_registerContextVar(sVd));
+
+    vi->_vaCount = 2;
+    vi->_count.reset();
+    vi->_count.add(sClass);
+    vi->_count.add(cClass);
+
+    vi->_start.reset();
+    vi->_inRegs.reset();
+    vi->_outRegs.reset();
+    vi->_clobberedRegs.reset();
+
+    if (sClass <= cClass) {
+      vi->_list[0].setup(sVd, kVarAttrInReg , 0, gaRegs[sClass]);
+      vi->_list[1].setup(cVd, kVarAttrOutReg, 0, gaRegs[cClass]);
+      vi->_start.set(cClass, sClass != cClass);
+    }
+    else {
+      vi->_list[0].setup(cVd, kVarAttrOutReg, 0, gaRegs[cClass]);
+      vi->_list[1].setup(sVd, kVarAttrInReg , 0, gaRegs[sClass]);
+      vi->_start.set(sClass, 1);
+    }
+
+    sArg->setVarInst(vi);
+    sArg->_args |= IntUtil::mask(argIndex);
+
+    compiler->addNodeBefore(sArg, call);
+    ::memmove(sArgData + 1, sArgData, (sArgCount - i) * sizeof(SArgData));
+
+    sArgData->sVd = sVd;
+    sArgData->cVd = cVd;
+    sArgData->sArg = sArg;
+    sArgData->aType = aType;
+
+    sArgCount++;
+    return kErrorOk;
+  }
+  else {
+    SArgNode* sArg = sArgData->sArg;
+    ASMJIT_PROPAGATE_ERROR(self->_registerContextVar(sVd));
+
+    if (sArg == NULL) {
+      sArg = compiler->newNode<SArgNode>(call, sVd, (VarData*)NULL);
+      if (sArg == NULL)
+        return kErrorNoHeapMemory;
+
+      VarInst* vi = self->newVarInst(1);
+      if (vi == NULL)
+        return kErrorNoHeapMemory;
+
+      vi->_vaCount = 1;
+      vi->_count.reset();
+      vi->_count.add(sClass);
+      vi->_start.reset();
+      vi->_inRegs.reset();
+      vi->_outRegs.reset();
+      vi->_clobberedRegs.reset();
+      vi->_list[0].setup(sVd, kVarAttrInReg, 0, gaRegs[sClass]);
+
+      sArg->setVarInst(vi);
+      sArgData->sArg = sArg;
+
+      compiler->addNodeBefore(sArg, call);
+    }
+
+    sArg->_args |= IntUtil::mask(argIndex);
+    return kErrorOk;
+  }
+}
+
+// ============================================================================
+// [asmjit::x86x64::X86X64Context - Fetch]
+// ============================================================================
 
 //! @internal
 //!
@@ -1607,6 +1834,8 @@ Error X86X64Context::fetch() {
   uint32_t flowId = 0;
 
   VarAttr vaTmpList[80];
+  SArgData sArgList[80];
+
   PodList<BaseNode*>::Link* jLink = NULL;
 
   // Function flags.
@@ -1696,15 +1925,6 @@ Error X86X64Context::fetch() {
     _Node_->setVarInst(vi); \
   } while (0)
 
-#define VI_UPDATE_CID(_Vd_) \
-  do { \
-    if (!_Vd_->hasContextId()) { \
-      _Vd_->setContextId(static_cast<uint32_t>(_contextVd.getLength())); \
-      if (_contextVd.append(_Vd_) != kErrorOk) \
-        goto _NoMemory; \
-    } \
-  } while (0)
-
 #define VI_ADD_VAR(_Vd_, _Va_, _Flags_, _NewAllocable_) \
   do { \
     ASMJIT_ASSERT(_Vd_->_va == NULL); \
@@ -1714,7 +1934,8 @@ Error X86X64Context::fetch() {
     _Va_->addVarCount(1); \
     _Vd_->setVa(_Va_); \
     \
-    VI_UPDATE_CID(_Vd_); \
+    if (_registerContextVar(_Vd_) != kErrorOk) \
+      goto _NoMemory; \
     regCount.add(_Vd_->getClass()); \
   } while (0)
 
@@ -1727,7 +1948,8 @@ Error X86X64Context::fetch() {
       _Va_->setup(_Vd_, 0, 0, _NewAllocable_); \
       _Vd_->setVa(_Va_); \
       \
-      VI_UPDATE_CID(_Vd_); \
+      if (_registerContextVar(_Vd_) != kErrorOk) \
+        goto _NoMemory; \
       regCount.add(_Vd_->getClass()); \
     } \
     \
@@ -2140,18 +2362,28 @@ _NextGroup:
             return compiler->setError(kErrorCompilerOverlappedArgs);
           VI_ADD_VAR(vd, va, 0, 0);
 
-          if (x86VarTypeToClass(arg.getVarType()) == vd->getClass()) {
-            if (arg.hasRegIndex()) {
+          uint32_t aType = arg.getVarType();
+          uint32_t vType = vd->getType();
+
+          if (arg.hasRegIndex()) {
+            if (x86VarTypeToClass(aType) == vd->getClass()) {
               va->addFlags(kVarAttrOutReg);
               va->setOutRegIndex(arg.getRegIndex());
             }
             else {
-              va->addFlags(kVarAttrOutMem);
+              va->addFlags(kVarAttrOutConv);
             }
           }
           else {
-            // TODO: [COMPILER] Function Argument Conversion.
-            va->addFlags(kVarAttrOutDecide | kVarAttrOutConv);
+            if ((x86VarTypeToClass(aType) == vd->getClass()) ||
+                (vType == kVarTypeXmmSs && aType == kVarTypeFp32) ||
+                (vType == kVarTypeXmmSd && aType == kVarTypeFp64)) {
+              va->addFlags(kVarAttrOutMem);
+            }
+            else {
+              // TODO: [COMPILER] Not implemented.
+              ASMJIT_ASSERT(!"Implemented");
+            }
           }
         }
         VI_END(node_);
@@ -2218,6 +2450,7 @@ _NextGroup:
 
         uint32_t i;
         uint32_t argCount = decl->getArgCount();
+        uint32_t sArgCount = 0;
         uint32_t gpAllocableMask = gaRegs[kRegClassGp] & ~node->_usedArgs.get(kRegClassGp);
 
         VarData* vd;
@@ -2270,10 +2503,11 @@ _NextGroup:
             continue;
 
           vd = compiler->getVdById(op->getId());
-          VI_MERGE_VAR(vd, va, 0, 0);
-
           const FuncInOut& arg = decl->getArg(i);
+
           if (arg.hasRegIndex()) {
+            VI_MERGE_VAR(vd, va, 0, 0);
+
             uint32_t argType = arg.getVarType();
             uint32_t argClass = x86VarTypeToClass(argType);
 
@@ -2285,9 +2519,15 @@ _NextGroup:
               va->addFlags(kVarAttrInConv | kVarAttrInArg);
             }
           }
+          // If this is a stack-based argument we insert SArgNode instead of
+          // using VarAttr. It improves the code, because the argument can be
+          // moved onto stack as soon as it is ready and the register used by
+          // the variable can be reused for something else. It is also much 
+          // easier to handle argument conversions, because there will be at
+          // most only one node per conversion.
           else {
-            va->addArgStackCount();
-            va->addFlags(kVarAttrInStack | kVarAttrInArg);
+            if (X86X64Context_insertSArgNode(this, node, vd, gaRegs, arg, i, sArgList, sArgCount) != kErrorOk)
+              goto _NoMemory;
           }
         }
 
@@ -2320,20 +2560,6 @@ _NextGroup:
         clobberedRegs.set(kRegClassFp, IntUtil::bits(kRegCountFp   )                                     );
         clobberedRegs.set(kRegClassMm, IntUtil::bits(kRegCountMm   ) & (~decl->getPreserved(kRegClassMm)));
         clobberedRegs.set(kRegClassXy, IntUtil::bits(_baseRegsCount) & (~decl->getPreserved(kRegClassXy)));
-
-        // Split all variables allocated in stack-only (i.e. if the variable is
-        // only passed in stack; it doesn't matter how many times) and create
-        // extra nodes having only stack moves. It improves x86 code, because
-        // arguments can be moved on stack right after they are ready.
-        for (i = 0; i < vaCount; i++) {
-          VarAttr* va = &vaTmpList[i];
-
-          if ((va->getFlags() & kVarAttrInAll) == (kVarAttrInArg | kVarAttrInStack)) {
-            if (!X86X64Context_insertSArgNode(this, compiler, node, va->getVd(), gaRegs))
-              goto _NoMemory;
-            va->delFlags(kVarAttrInAll);
-          }
-        }
 
         VI_END(node_);
         break;
@@ -2698,7 +2924,6 @@ ASMJIT_INLINE void X86X64BaseAlloc::unuseBefore() {
     kVarAttrInOutReg |
     kVarAttrInMem    |
     kVarAttrInArg    |
-    kVarAttrInStack  |
     kVarAttrInCall   |
     kVarAttrInConv   ;
 
@@ -2845,21 +3070,38 @@ ASMJIT_INLINE Error X86X64VarAlloc::run(BaseNode* node_) {
   }
   else if (node_->getType() == kNodeTypeSArg) {
     SArgNode* node = static_cast<SArgNode*>(node_);
-    VarData* vd = node->getVd();
 
     X86X64CallNode* call = static_cast<X86X64CallNode*>(node->getCall());
     X86X64FuncDecl* decl = call->getDecl();
 
-    uint32_t argCount = decl->getArgCount();
-    for (uint32_t i = 0; i < argCount; i++) {
-      Operand& op = call->getArg(i);
-      FuncInOut& arg = decl->getArg(i);
+    uint32_t argIndex = 0;
+    uint32_t argMask = node->_args;
 
-      if (!op.isVar() || op.getId() != vd->getId())
-        continue;
+    VarData* sVd = node->getSVd();
+    VarData* cVd = node->getCVd();
 
-      Mem dst = ptr(_context->_zsp, -static_cast<int>(_context->getRegSize()) + arg.getStackOffset());
-      _context->emitMoveVarOnStack(arg.getVarType(), &dst, vd->getType(), vd->getRegIndex());
+    // Convert first.
+    ASMJIT_ASSERT(sVd->getRegIndex() != kInvalidReg);
+
+    if (cVd != NULL) {
+      ASMJIT_ASSERT(cVd->getRegIndex() != kInvalidReg);
+      _context->emitConvertVarToVar(
+        cVd->getType(), cVd->getRegIndex(),
+        sVd->getType(), sVd->getRegIndex());
+      sVd = cVd;
+    }
+
+    while (argMask != 0) {
+      if (argMask & 0x1) {
+        FuncInOut& arg = decl->getArg(argIndex);
+        ASMJIT_ASSERT(arg.hasStackOffset());
+
+        Mem dst = ptr(_context->_zsp, -static_cast<int>(_context->getRegSize()) + arg.getStackOffset());
+        _context->emitMoveVarOnStack(arg.getVarType(), &dst, sVd->getType(), sVd->getRegIndex());
+      }
+
+      argIndex++;
+      argMask >>= 1;
     }
   }
 
@@ -3378,11 +3620,17 @@ protected:
   ASMJIT_INLINE void alloc();
 
   // --------------------------------------------------------------------------
-  // [AllocVars/Imms]
+  // [AllocImmsOnStack]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void allocVarsOnStack();
   ASMJIT_INLINE void allocImmsOnStack();
+
+  // --------------------------------------------------------------------------
+  // [Duplicate]
+  // --------------------------------------------------------------------------
+
+  template<int C>
+  ASMJIT_INLINE void duplicate();
 
   // --------------------------------------------------------------------------
   // [GuessAlloc / GuessSpill]
@@ -3415,15 +3663,6 @@ protected:
   ASMJIT_INLINE void ret();
 
   // --------------------------------------------------------------------------
-  // [Utils]
-  // --------------------------------------------------------------------------
-
-  ASMJIT_INLINE void stackArgDone(uint32_t argMask) {
-    ASMJIT_ASSERT(_stackArgsMask & argMask);
-    _stackArgsMask ^= argMask;
-  }
-
-  // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
@@ -3431,12 +3670,6 @@ protected:
   RegMask _willAlloc;
   //! @brief Will spill these registers.
   RegMask _willSpill;
-
-  //! @brief Pending stack-arguments mask.
-  uint32_t _stackArgsMask;
-
-  //! @brief Argument index to VarAttr mapping.
-  VarAttr* _argToVa[kFuncArgCountLoHi];
 };
 
 // ============================================================================
@@ -3451,9 +3684,6 @@ ASMJIT_INLINE Error X86X64CallAlloc::run(X86X64CallNode* node) {
 
   // Initialize the allocator; prepare basics and connect Vd->Va.
   init(node, vi);
-
-  // Move whatever can be moved on the stack.
-  allocVarsOnStack();
 
   // Plan register allocation. Planner is only able to assign one register per
   // variable. If any variable is used multiple times it will be handled later.
@@ -3471,9 +3701,6 @@ ASMJIT_INLINE Error X86X64CallAlloc::run(X86X64CallNode* node) {
   alloc<kRegClassMm>();
   alloc<kRegClassXy>();
 
-  // Move the remaining variables on the stack.
-  allocVarsOnStack();
-
   // Unuse clobbered registers that are not used to pass function arguments and
   // save variables used to pass function arguments that will be reused later on.
   save<kRegClassGp>();
@@ -3483,8 +3710,10 @@ ASMJIT_INLINE Error X86X64CallAlloc::run(X86X64CallNode* node) {
   // Allocate immediates in registers and on the stack.
   allocImmsOnStack();
 
-  // Duplicate/Convert.
-  // TODO:
+  // Duplicate.
+  duplicate<kRegClassGp>();
+  duplicate<kRegClassMm>();
+  duplicate<kRegClassXy>();
 
   // Translate call operand.
   ASMJIT_PROPAGATE_ERROR(X86X64Context_translateOperands(_context, &node->_target, 1));
@@ -3522,35 +3751,6 @@ ASMJIT_INLINE void X86X64CallAlloc::init(X86X64CallNode* node, VarInst* vi) {
   // Create mask of all registers that will be used to pass function arguments.
   _willAlloc = node->_usedArgs;
   _willSpill.reset();
-
-  // Initialize argToVa[] array and pending stack-args mask/count.
-  X86X64FuncDecl* decl = node->getDecl();
-  uint32_t i, mask;
-
-  Operand* argList = node->_args;
-  uint32_t argCount = decl->getArgCount();
-
-  _stackArgsMask = 0;
-  ::memset(_argToVa, 0, kFuncArgCountLoHi * sizeof(VarAttr*));
-
-  for (i = 0, mask = 1; i < argCount; i++, mask <<= 1) {
-    Operand* op = &argList[i];
-
-    if (!op->isVar())
-      continue;
-
-    VarData* vd = _compiler->getVdById(op->getId());
-    VarAttr* va = vd->getVa();
-    _argToVa[i] = va;
-
-    const FuncInOut& arg = decl->getArg(i);
-    if (!arg.hasStackOffset())
-      continue;
-
-    if ((va->getFlags() & kVarAttrInAll) == 0)
-      continue;
-    _stackArgsMask |= mask;
-  }
 }
 
 ASMJIT_INLINE void X86X64CallAlloc::cleanup() {
@@ -3792,43 +3992,8 @@ ASMJIT_INLINE void X86X64CallAlloc::alloc() {
 }
 
 // ============================================================================
-// [asmjit::x86x64::X86X64CallAlloc - AllocVars/Imms]
+// [asmjit::x86x64::X86X64CallAlloc - AllocImmsOnStack]
 // ============================================================================
-
-ASMJIT_INLINE void X86X64CallAlloc::allocVarsOnStack() {
-  if (_stackArgsMask == 0)
-    return;
-
-  X86X64CallNode* node = getNode();
-  X86X64FuncDecl* decl = node->getDecl();
-
-  uint32_t i;
-  uint32_t mask;
-
-  uint32_t argCount = decl->getArgCount();
-  Operand* argList = node->_args;
-
-  for (i = 0, mask = 1; i < argCount; i++, mask <<= 1) {
-    if ((_stackArgsMask & mask) == 0)
-      continue;
-
-    VarAttr* va = _argToVa[i];
-    ASMJIT_ASSERT(va != NULL);
-    ASMJIT_ASSERT(va->getArgStackCount() != 0);
-
-    VarData* vd = va->getVd();
-    uint32_t regIndex = vd->getRegIndex();
-
-    if (regIndex == kInvalidReg)
-      continue;
-
-    const FuncInOut& arg = decl->getArg(i);
-    Mem dst = ptr(_context->_zsp, -static_cast<int>(_context->getRegSize()) + arg.getStackOffset());
-
-    _context->emitMoveVarOnStack(arg.getVarType(), &dst, vd->getType(), regIndex);
-    stackArgDone(mask);
-  }
-}
 
 ASMJIT_INLINE void X86X64CallAlloc::allocImmsOnStack() {
   X86X64CallNode* node = getNode();
@@ -3838,11 +4003,12 @@ ASMJIT_INLINE void X86X64CallAlloc::allocImmsOnStack() {
   Operand* argList = node->_args;
 
   for (uint32_t i = 0; i < argCount; i++) {
-    VarAttr* va = _argToVa[i];
-    if (va != NULL)
+    Operand& op = argList[i];
+
+    if (!op.isImm())
       continue;
 
-    const Imm& imm = static_cast<const Imm&>(node->getArg(i));
+    const Imm& imm = static_cast<const Imm&>(op);
     const FuncInOut& arg = decl->getArg(i);
 
     if (arg.hasStackOffset()) {
@@ -3851,6 +4017,42 @@ ASMJIT_INLINE void X86X64CallAlloc::allocImmsOnStack() {
     }
     else {
       _context->emitMoveImmToReg(arg.getVarType(), arg.getRegIndex(), &imm);
+    }
+  }
+}
+
+// ============================================================================
+// [asmjit::x86x64::X86X64CallAlloc - Duplicate]
+// ============================================================================
+
+template<int C>
+ASMJIT_INLINE void X86X64CallAlloc::duplicate() {
+  VarAttr* list = getVaListByClass(C);
+  uint32_t count = getVaCountByClass(C);
+
+  for (uint32_t i = 0; i < count; i++) {
+    VarAttr* va = &list[i];
+    if (!va->hasFlag(kVarAttrInReg))
+      continue;
+
+    uint32_t inRegs = va->getInRegs();
+    if (!inRegs)
+      continue;
+
+    VarData* vd = va->getVd();
+    uint32_t regIndex = vd->getRegIndex();
+
+    ASMJIT_ASSERT(regIndex != kInvalidReg);
+
+    inRegs &= ~IntUtil::mask(regIndex);
+    if (!inRegs)
+      continue;
+
+    for (uint32_t dupIndex = 0; inRegs != 0; dupIndex++, inRegs >>= 1) {
+      if (inRegs & 0x1) {
+        _context->emitMove(vd, dupIndex, regIndex, "Duplicate");
+        _context->_clobberedRegs.add(C, IntUtil::mask(dupIndex));
+      }
     }
   }
 }
@@ -4100,7 +4302,7 @@ static Error X86X64Context_initFunc(X86X64Context* self, X86X64FuncNode* func) {
     uint32_t requiredStackAlignment = IntUtil::iMax(self->_memMaxAlign, self->getRegSize());
 
     if (requiredStackAlignment < 16) {
-      // Require 16-byte alignment 8-byte vars are used.
+      // Require 16-byte alignment if 8-byte vars are used.
       if (self->_mem8ByteVarsUsed)
         requiredStackAlignment = 16;
       else if (func->_saveRestoreRegs.get(kRegClassMm) || func->_saveRestoreRegs.get(kRegClassXy))
@@ -4148,7 +4350,7 @@ static Error X86X64Context_initFunc(X86X64Context* self, X86X64FuncNode* func) {
       fRegMask = tRegMask;
 
     // Try to remove preserved registers from the mask.
-    tRegMask = fRegMask & decl->getPreserved(kRegClassGp);
+    tRegMask = fRegMask & ~decl->getPreserved(kRegClassGp);
     if (tRegMask != 0)
       fRegMask = tRegMask;
 
@@ -4218,9 +4420,9 @@ static Error X86X64Context_initFunc(X86X64Context* self, X86X64FuncNode* func) {
     func->_alignStackSize = 0;
   }
   else {
-    // If function is aligned, the RETURN address is stored to the aligned
+    // If function is aligned, the RETURN address is stored in the aligned
     // [ZSP - PtrSize] which makes current ZSP unaligned.
-    int32_t v = regSize;
+    int32_t v = static_cast<int32_t>(regSize);
 
     // If we have to store function frame pointer we have to count it as well,
     // because it is the first thing pushed on the stack.
@@ -4443,7 +4645,7 @@ static Error X86X64Context_translatePrologEpilog(X86X64Context* self, X86X64Func
   }
 
   // --------------------------------------------------------------------------
-  // [Copy-Args]
+  // [Move-Args]
   // --------------------------------------------------------------------------
 
   if (func->hasFuncFlag(kFuncFlagMoveArgs)) {
@@ -4858,10 +5060,9 @@ _NextGroup:
             VarAttr* va = vi->findVa(vd);
             ASMJIT_ASSERT(va != NULL);
 
-            if (vd->getFlags() & kVarAttrUnuse)
+            if (va->getFlags() & kVarAttrUnuse)
               continue;
 
-            // Special means that the argument is passed in register.
             uint32_t regIndex = va->getOutRegIndex();
             if (regIndex != kInvalidReg && (va->getFlags() & kVarAttrOutConv) == 0) {
               switch (vd->getClass()) {
@@ -4872,6 +5073,7 @@ _NextGroup:
             }
             else if (va->hasFlag(kVarAttrOutConv)) {
               // TODO: [COMPILER] Function Argument Conversion.
+              ASMJIT_ASSERT(!"Reached");
             }
             else {
               vd->_isMemArg = true;
@@ -5051,7 +5253,7 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
             case kInstMul:
             case kInstIdiv:
             case kInstDiv:
-              // We assume "Mul/Div dst_hi (implicit), dst_lo (implicit), src (explicit)".
+              // Assume "Mul/Div dst_hi (implicit), dst_lo (implicit), src (explicit)".
               ASMJIT_ASSERT(opCount == 3);
               o0 = &opList[2];
               break;

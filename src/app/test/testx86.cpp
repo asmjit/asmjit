@@ -1585,6 +1585,64 @@ struct X86Test_CallManyArgs : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_CallDuplicateArgs]
+// ============================================================================
+
+struct X86Test_CallDuplicateArgs : public X86Test {
+  X86Test_CallDuplicateArgs() : X86Test("[Call] Duplicate Args") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_CallDuplicateArgs());
+  }
+
+  static int calledFunc(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {
+    return (a * b * c * d * e) + (f * g * h * i * j);
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+
+    // Prepare.
+    GpVar fn(c, kVarTypeIntPtr, "fn");
+    GpVar a(c, kVarTypeInt32, "a");
+
+    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(a, 3);
+
+    // Call function.
+    X86X64CallNode* call = c.call(fn, kFuncConvHost,
+      FuncBuilder10<int, int, int, int, int, int, int, int, int, int, int>());
+    call->setArg(0, a);
+    call->setArg(1, a);
+    call->setArg(2, a);
+    call->setArg(3, a);
+    call->setArg(4, a);
+    call->setArg(5, a);
+    call->setArg(6, a);
+    call->setArg(7, a);
+    call->setArg(8, a);
+    call->setArg(9, a);
+    call->setRet(0, a);
+
+    c.ret(a);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func();
+    int expectRet = calledFunc(3, 3, 3, 3, 3, 3, 3, 3, 3, 3);
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_CallImmArgs]
 // ============================================================================
 
@@ -1638,14 +1696,14 @@ struct X86Test_CallImmArgs : public X86Test {
 };
 
 // ============================================================================
-// [X86Test_CallFloatRet]
+// [X86Test_CallFloatAsXmmRet]
 // ============================================================================
 
-struct X86Test_CallFloatRet : public X86Test {
-  X86Test_CallFloatRet() : X86Test("[Call] Float Ret") {}
+struct X86Test_CallFloatAsXmmRet : public X86Test {
+  X86Test_CallFloatAsXmmRet() : X86Test("[Call] Float As Xmm Ret") {}
 
   static void add(PodVector<X86Test*>& tests) {
-    tests.append(new X86Test_CallFloatRet());
+    tests.append(new X86Test_CallFloatAsXmmRet());
   }
 
   static float calledFunc(float a, float b) {
@@ -1655,6 +1713,13 @@ struct X86Test_CallFloatRet : public X86Test {
   virtual void compile(Compiler& c) {
     c.addFunc(kFuncConvHost, FuncBuilder2<float, float, float>());
 
+    XmmVar a(c, kVarTypeXmmSs, "a");
+    XmmVar b(c, kVarTypeXmmSs, "b");
+    XmmVar ret(c, kVarTypeXmmSs, "ret");
+
+    c.setArg(0, a);
+    c.setArg(1, b);
+
     // Prepare.
     GpVar fn(c);
     c.mov(fn, imm_ptr((void*)calledFunc));
@@ -1663,12 +1728,8 @@ struct X86Test_CallFloatRet : public X86Test {
     X86X64CallNode* call = c.call(fn, kFuncConvHost,
       FuncBuilder2<float, float, float>());
 
-    XmmVar a(c, kVarTypeXmmSd, "a");
-    XmmVar b(c, kVarTypeXmmSd, "b");
-    XmmVar ret(c, kVarTypeXmmSd, "ret");
-
     call->setArg(0, a);
-    call->setArg(0, b);
+    call->setArg(1, b);
     call->setRet(0, ret);
 
     c.ret(ret);
@@ -1690,14 +1751,14 @@ struct X86Test_CallFloatRet : public X86Test {
 };
 
 // ============================================================================
-// [X86Test_CallDoubleRet]
+// [X86Test_CallDoubleAsXmmRet]
 // ============================================================================
 
-struct X86Test_CallDoubleRet : public X86Test {
-  X86Test_CallDoubleRet() : X86Test("[Call] Float Ret") {}
+struct X86Test_CallDoubleAsXmmRet : public X86Test {
+  X86Test_CallDoubleAsXmmRet() : X86Test("[Call] Double As Xmm Ret") {}
 
   static void add(PodVector<X86Test*>& tests) {
-    tests.append(new X86Test_CallDoubleRet());
+    tests.append(new X86Test_CallDoubleAsXmmRet());
   }
 
   static double calledFunc(double a, double b) {
@@ -1707,20 +1768,21 @@ struct X86Test_CallDoubleRet : public X86Test {
   virtual void compile(Compiler& c) {
     c.addFunc(kFuncConvHost, FuncBuilder2<double, double, double>());
 
-    // Prepare.
-    GpVar fn(c);
-    c.mov(fn, imm_ptr((void*)calledFunc));
-
-    // Call function.
-    X86X64CallNode* call = c.call(fn, kFuncConvHost,
-      FuncBuilder2<double, double, double>());
-
     XmmVar a(c, kVarTypeXmmSd, "a");
     XmmVar b(c, kVarTypeXmmSd, "b");
     XmmVar ret(c, kVarTypeXmmSd, "ret");
 
+    c.setArg(0, a);
+    c.setArg(1, b);
+
+    GpVar fn(c);
+    c.mov(fn, imm_ptr((void*)calledFunc));
+
+    X86X64CallNode* call = c.call(fn, kFuncConvHost,
+      FuncBuilder2<double, double, double>());
+
     call->setArg(0, a);
-    call->setArg(0, b);
+    call->setArg(1, b);
     call->setRet(0, ret);
 
     c.ret(ret);
@@ -2058,8 +2120,10 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallBase);
   ADD_TEST(X86Test_CallFast);
   ADD_TEST(X86Test_CallManyArgs);
+  ADD_TEST(X86Test_CallDuplicateArgs);
   ADD_TEST(X86Test_CallImmArgs);
-  ADD_TEST(X86Test_CallDoubleRet);
+  ADD_TEST(X86Test_CallFloatAsXmmRet);
+  ADD_TEST(X86Test_CallDoubleAsXmmRet);
   ADD_TEST(X86Test_CallConditional);
   ADD_TEST(X86Test_CallMultiple);
   ADD_TEST(X86Test_CallRecursive);
@@ -2084,14 +2148,24 @@ int X86TestSuite::run() {
 
   FILE* file = stdout;
 
+  FileLogger fileLogger(file);
+  fileLogger.setOption(kLoggerOptionBinaryForm, true);
+
+  StringLogger stringLogger;
+  stringLogger.setOption(kLoggerOptionBinaryForm, true);
+
   for (i = 0; i < count; i++) {
     JitRuntime runtime;
-
-    StringLogger logger;
-    logger.setOption(kLoggerOptionBinaryForm, true);
-
     Compiler compiler(&runtime);
-    compiler.setLogger(&logger);
+
+    if (alwaysPrintLog) {
+      fprintf(file, "\n");
+      compiler.setLogger(&fileLogger);
+    }
+    else {
+      stringLogger.clearString();
+      compiler.setLogger(&stringLogger);
+    }
 
     X86Test* test = tests[i];
     test->compile(compiler);
@@ -2099,7 +2173,6 @@ int X86TestSuite::run() {
     void* func = compiler.make();
 
     if (alwaysPrintLog) {
-      fprintf(file, "\n%s", logger.getString());
       fflush(file);
     }
 
@@ -2111,8 +2184,10 @@ int X86TestSuite::run() {
         fprintf(file, "[Success] %s.\n", test->getName());
       }
       else {
-        if (!alwaysPrintLog)
-          fprintf(file, "\n%s", logger.getString());
+        if (!alwaysPrintLog) {
+          fprintf(file, "\n%s", stringLogger.getString());
+        }
+
         fprintf(file, "-------------------------------------------------------------------------------\n");
         fprintf(file, "[Failure] %s.\n", test->getName());
         fprintf(file, "-------------------------------------------------------------------------------\n");
@@ -2124,8 +2199,10 @@ int X86TestSuite::run() {
       runtime.release(func);
     }
     else {
-      if (!alwaysPrintLog)
-        fprintf(file, "%s\n", logger.getString());
+      if (!alwaysPrintLog) {
+        fprintf(file, "%s\n", stringLogger.getString());
+      }
+
       fprintf(file, "-------------------------------------------------------------------------------\n");
       fprintf(file, "[Failure] %s.\n", test->getName());
       fprintf(file, "===============================================================================\n");

@@ -3038,16 +3038,15 @@ const VarInfo _varInfo[] = {
   /* 09: kVarTypeUIntPtr */ { 0            , 0 , C(Gp), 0                , ""    }, // Remapped.
   /* 10: kVarTypeFp32    */ { kRegTypeFp   , 4 , C(Fp), D(Sp)            , "fp"  },
   /* 11: kVarTypeFp64    */ { kRegTypeFp   , 8 , C(Fp), D(Dp)            , "fp"  },
-  /* 12: kVarTypeFpEx    */ { kRegTypeFp   , 16, C(Fp), D(Sp)            , "fp"  },
-  /* 13: kVarTypeMm      */ { kRegTypeMm   , 8 , C(Mm), 0                , "mm"  },
-  /* 14: kVarTypeXmm     */ { kRegTypeXmm  , 16, C(Xy), 0                , "xmm" },
-  /* 15: kVarTypeXmmSs   */ { kRegTypeXmm  , 4 , C(Xy), D(Sp)            , "xmm" },
+  /* 12: kVarTypeMm      */ { kRegTypeMm   , 8 , C(Mm), 0                , "mm"  },
+  /* 13: kVarTypeXmm     */ { kRegTypeXmm  , 16, C(Xy), 0                , "xmm" },
+  /* 14: kVarTypeXmmSs   */ { kRegTypeXmm  , 4 , C(Xy), D(Sp)            , "xmm" },
+  /* 15: kVarTypeXmmPs   */ { kRegTypeXmm  , 16, C(Xy), D(Sp) | D(Packed), "xmm" },
   /* 16: kVarTypeXmmSd   */ { kRegTypeXmm  , 8 , C(Xy), D(Dp)            , "xmm" },
-  /* 17: kVarTypeXmmPs   */ { kRegTypeXmm  , 16, C(Xy), D(Sp) | D(Packed), "xmm" },
-  /* 18: kVarTypeXmmPd   */ { kRegTypeXmm  , 16, C(Xy), D(Dp) | D(Packed), "xmm" },
-  /* 19: kVarTypeYmm     */ { kRegTypeYmm  , 32, C(Xy), 0                , "ymm" },
-  /* 20: kVarTypeYmmPs   */ { kRegTypeYmm  , 32, C(Xy), D(Sp) | D(Packed), "ymm" },
-  /* 21: kVarTypeYmmPd   */ { kRegTypeYmm  , 32, C(Xy), D(Dp) | D(Packed), "ymm" }
+  /* 17: kVarTypeXmmPd   */ { kRegTypeXmm  , 16, C(Xy), D(Dp) | D(Packed), "xmm" },
+  /* 18: kVarTypeYmm     */ { kRegTypeYmm  , 32, C(Xy), 0                , "ymm" },
+  /* 19: kVarTypeYmmPs   */ { kRegTypeYmm  , 32, C(Xy), D(Sp) | D(Packed), "ymm" },
+  /* 20: kVarTypeYmmPd   */ { kRegTypeYmm  , 32, C(Xy), D(Dp) | D(Packed), "ymm" }
 };
 
 #undef D
@@ -3196,16 +3195,15 @@ const uint8_t _varMapping[kVarTypeCount] = {
   /* 09: kVarTypeUIntPtr */ kVarTypeUInt32,  // Remapped.
   /* 10: kVarTypeFp32    */ kVarTypeFp32,
   /* 11: kVarTypeFp64    */ kVarTypeFp64,
-  /* 12: kVarTypeFpEx    */ kVarTypeFpEx,
-  /* 13: kVarTypeMm      */ kVarTypeMm,
-  /* 14: kVarTypeXmm     */ kVarTypeXmm,
-  /* 15: kVarTypeXmmSs   */ kVarTypeXmmSs,
+  /* 12: kVarTypeMm      */ kVarTypeMm,
+  /* 13: kVarTypeXmm     */ kVarTypeXmm,
+  /* 14: kVarTypeXmmSs   */ kVarTypeXmmSs,
+  /* 15: kVarTypeXmmPs   */ kVarTypeXmmPs,
   /* 16: kVarTypeXmmSd   */ kVarTypeXmmSd,
-  /* 17: kVarTypeXmmPs   */ kVarTypeXmmPs,
-  /* 18: kVarTypeXmmPd   */ kVarTypeXmmPd,
-  /* 19: kVarTypeYmm     */ kVarTypeYmm,
-  /* 20: kVarTypeYmmPs   */ kVarTypeYmmPs,
-  /* 21: kVarTypeYmmPd   */ kVarTypeYmmPd
+  /* 17: kVarTypeXmmPd   */ kVarTypeXmmPd,
+  /* 18: kVarTypeYmm     */ kVarTypeYmm,
+  /* 19: kVarTypeYmmPs   */ kVarTypeYmmPs,
+  /* 20: kVarTypeYmmPd   */ kVarTypeYmmPd
 };
 
 const GpReg zax(kRegTypeGpd, kRegIndexAx, 4);
@@ -3243,16 +3241,15 @@ const uint8_t _varMapping[kVarTypeCount] = {
   /* 09: kVarTypeUIntPtr */ kVarTypeUInt64,  // Remapped.
   /* 10: kVarTypeFp32    */ kVarTypeFp32,
   /* 11: kVarTypeFp64    */ kVarTypeFp64,
-  /* 12: kVarTypeFpEx    */ kVarTypeFpEx,
-  /* 13: kVarTypeMm      */ kVarTypeMm,
-  /* 14: kVarTypeXmm     */ kVarTypeXmm,
-  /* 15: kVarTypeXmmSs   */ kVarTypeXmmSs,
+  /* 12: kVarTypeMm      */ kVarTypeMm,
+  /* 13: kVarTypeXmm     */ kVarTypeXmm,
+  /* 14: kVarTypeXmmSs   */ kVarTypeXmmSs,
+  /* 15: kVarTypeXmmPs   */ kVarTypeXmmPs,
   /* 16: kVarTypeXmmSd   */ kVarTypeXmmSd,
-  /* 17: kVarTypeXmmPs   */ kVarTypeXmmPs,
-  /* 18: kVarTypeXmmPd   */ kVarTypeXmmPd,
-  /* 19: kVarTypeYmm     */ kVarTypeYmm,
-  /* 20: kVarTypeYmmPs   */ kVarTypeYmmPs,
-  /* 21: kVarTypeYmmPd   */ kVarTypeYmmPd
+  /* 17: kVarTypeXmmPd   */ kVarTypeXmmPd,
+  /* 18: kVarTypeYmm     */ kVarTypeYmm,
+  /* 19: kVarTypeYmmPs   */ kVarTypeYmmPs,
+  /* 20: kVarTypeYmmPd   */ kVarTypeYmmPd
 };
 
 const GpReg spl(kRegTypeGpbLo, kRegIndexSp, 1);

@@ -30,9 +30,8 @@
 @define asmjit::kVarAttrInOutConv (0x000000C0)
 @define asmjit::kVarAttrInCall (0x00000100)
 @define asmjit::kVarAttrInArg (0x00000200)
-@define asmjit::kVarAttrInStack (0x00000400)
-@define asmjit::kVarAttrOutRet (0x00000800)
-@define asmjit::kVarAttrUnuse (0x00001000)
+@define asmjit::kVarAttrOutRet (0x00000400)
+@define asmjit::kVarAttrUnuse (0x00000800)
 @
 @define asmjit::kVarTypeInt8 (0x0)
 @define asmjit::kVarTypeUInt8 (0x1)
@@ -727,7 +726,7 @@ asmjit::BaseVarAttr|asmjit::x86x64::VarAttr {
               #else ("INVALID"),
             " ",
 
-            #if (($e._flags & (asmjit::kVarAttrInReg | asmjit::kVarAttrInMem | asmjit::kVarAttrInDecide | asmjit::kVarAttrInConv | asmjit::kVarAttrInCall | asmjit::kVarAttrInArg | asmjit::kVarAttrInStack)) != 0) (
+            #if (($e._flags & (asmjit::kVarAttrInReg | asmjit::kVarAttrInMem | asmjit::kVarAttrInDecide | asmjit::kVarAttrInConv | asmjit::kVarAttrInCall | asmjit::kVarAttrInArg)) != 0) (
               #(
                 "in[",
                   #if (($e._flags & asmjit::kVarAttrInReg) != 0) ("reg "),
@@ -736,7 +735,6 @@ asmjit::BaseVarAttr|asmjit::x86x64::VarAttr {
                   #if (($e._flags & asmjit::kVarAttrInConv) != 0) ("conv "),
                   #if (($e._flags & asmjit::kVarAttrInCall) != 0) ("call "),
                   #if (($e._flags & asmjit::kVarAttrInArg) != 0) ("arg "),
-                  #if (($e._flags & asmjit::kVarAttrInStack) != 0) ("stack "),
                 "] "
               )
             ),

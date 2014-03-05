@@ -25,17 +25,15 @@ namespace asmjit {
 namespace x86x64 {
 
 // ============================================================================
-// [asmjit::X86X64FuncDecl - FindArgByReg]
+// [asmjit::X86X64FuncDecl - Helpers]
 // ============================================================================
 
-uint32_t X86X64FuncDecl::findArgByReg(uint32_t rClass, uint32_t rIndex) const {
-  for (uint32_t i = 0; i < _argCount; i++) {
-    const FuncInOut& arg = getArg(i);
-    if (arg.getRegIndex() == rIndex && x86VarTypeToClass(arg.getVarType()) == rClass)
-      return i;
-  }
-
-  return kInvalidValue;
+static ASMJIT_INLINE uint32_t x86FpVarTypeToXmmType(uint32_t vType) {
+  if (vType == kVarTypeFp32)
+    return kVarTypeXmmSs;
+  if (vType == kVarTypeFp64)
+    return kVarTypeXmmSd;
+  return vType;
 }
 
 // ============================================================================
@@ -152,7 +150,7 @@ static uint32_t X86X64FuncDecl_initConv(X86X64FuncDecl* self, uint32_t arch, uin
       self->_passedOrderGp[2] = R(R8);
       self->_passedOrderGp[3] = R(R9);
 
-      self->_passed.set(kRegClassXy, IntUtil::mask(0, 1, 2, 3));
+      self->_passed.set(kRegClassXy, IntUtil::mask(R(Xmm0), R(Xmm1), R(Xmm2), R(Xmm3)));
       self->_passedOrderXmm[0] = R(Xmm0);
       self->_passedOrderXmm[1] = R(Xmm1);
       self->_passedOrderXmm[2] = R(Xmm2);
@@ -298,12 +296,6 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         }
         break;
 
-      case kVarTypeFpEx:
-        self->_retCount = 1;
-        self->_retList[0]._varType = static_cast<uint8_t>(ret);
-        self->_retList[0]._regIndex = kRegIndexFp0;
-        break;
-
       case kVarTypeXmm:
       case kVarTypeXmmSs:
       case kVarTypeXmmSd:
@@ -366,7 +358,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
 #if defined(ASMJIT_BUILD_X64)
   if (arch == kArchX64) {
     if (conv == kFuncConvX64W) {
-      int32_t argMax = argCount < 4 ? argCount : 4;
+      int32_t argMax = IntUtil::iMin<int32_t>(argCount, 4);
 
       // Register arguments (Gp/Xmm), always left-to-right.
       for (i = 0; i != argMax; i++) {
@@ -378,6 +370,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
           self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
         }
         else if (x86VarIsFloat(varType)) {
+          arg._varType = static_cast<uint8_t>(x86FpVarTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[i];
           self->_used.add(kRegClassXy, IntUtil::mask(arg.getRegIndex()));
         }
@@ -423,6 +416,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         uint32_t varType = varMapping[arg.getVarType()];
 
         if (x86VarIsFloat(varType)) {
+          arg._varType = static_cast<uint8_t>(x86FpVarTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[xmmPos++];
           self->_used.add(kRegClassXy, IntUtil::mask(arg.getRegIndex()));
         }
