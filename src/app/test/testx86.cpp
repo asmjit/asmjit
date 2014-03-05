@@ -1124,28 +1124,25 @@ struct X86Test_AllocIfElse4 : public X86Test {
 };
 
 // ============================================================================
-// [X86Test_AllocArgs]
+// [X86Test_AllocArgsIntPtr]
 // ============================================================================
 
-struct X86Test_AllocArgs : public X86Test {
-  X86Test_AllocArgs() : X86Test("[Alloc] Args") {}
+struct X86Test_AllocArgsIntPtr : public X86Test {
+  X86Test_AllocArgsIntPtr() : X86Test("[Alloc] Args-IntPtr") {}
 
   static void add(PodVector<X86Test*>& tests) {
-    tests.append(new X86Test_AllocArgs());
+    tests.append(new X86Test_AllocArgsIntPtr());
   }
 
   virtual void compile(Compiler& c) {
     c.addFunc(kFuncConvHost,
       FuncBuilder8<FnVoid, void*, void*, void*, void*, void*, void*, void*, void*>());
 
-    GpVar var[8];
     uint32_t i;
+    GpVar var[8];
 
     for (i = 0; i < 8; i++) {
       var[i] = c.newGpVar();
-    }
-
-    for (i = 0; i < 8; i++) {
       c.setArg(i, var[i]);
     }
 
@@ -1182,6 +1179,114 @@ struct X86Test_AllocArgs : public X86Test {
       expectBuf[8]);
 
     return ::memcmp(resultBuf, expectBuf, 9) == 0;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocArgsFloat]
+// ============================================================================
+
+struct X86Test_AllocArgsFloat : public X86Test {
+  X86Test_AllocArgsFloat() : X86Test("[Alloc] Args-Float") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocArgsFloat());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost,
+      FuncBuilder8<FnVoid, float, float, float, float, float, float, float, void*>());
+
+    uint32_t i;
+
+    XmmVar xv[7];
+    GpVar p(c);
+
+    for (i = 0; i < 7; i++) {
+      xv[i] = c.newXmmVar(kVarTypeXmmSs);
+      c.setArg(i, xv[i]);
+    }
+
+    c.setArg(7, p);
+
+    c.addss(xv[0], xv[1]);
+    c.addss(xv[0], xv[2]);
+    c.addss(xv[0], xv[3]);
+    c.addss(xv[0], xv[4]);
+    c.addss(xv[0], xv[5]);
+    c.addss(xv[0], xv[6]);
+
+    c.movss(ptr(p), xv[0]);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef void (*Func)(float, float, float, float, float, float, float, float*);
+    Func func = asmjit_cast<Func>(_func);
+
+    float resultRet;
+    float expectRet = 1.0f + 2.0f + 3.0f + 4.0f + 5.0f + 6.0f + 7.0f;
+
+    func(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, &resultRet);
+
+    result.setFormat("ret={%g}", resultRet);
+    expect.setFormat("ret={%g}", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocArgsDouble]
+// ============================================================================
+
+struct X86Test_AllocArgsDouble : public X86Test {
+  X86Test_AllocArgsDouble() : X86Test("[Alloc] Args-Float") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocArgsDouble());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost,
+      FuncBuilder8<FnVoid, double, double, double, double, double, double, double, void*>());
+
+    uint32_t i;
+
+    XmmVar xv[7];
+    GpVar p(c);
+
+    for (i = 0; i < 7; i++) {
+      xv[i] = c.newXmmVar(kVarTypeXmmSd);
+      c.setArg(i, xv[i]);
+    }
+
+    c.setArg(7, p);
+
+    c.addsd(xv[0], xv[1]);
+    c.addsd(xv[0], xv[2]);
+    c.addsd(xv[0], xv[3]);
+    c.addsd(xv[0], xv[4]);
+    c.addsd(xv[0], xv[5]);
+    c.addsd(xv[0], xv[6]);
+
+    c.movsd(ptr(p), xv[0]);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef void (*Func)(double, double, double, double, double, double, double, double*);
+    Func func = asmjit_cast<Func>(_func);
+
+    double resultRet;
+    double expectRet = 1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0;
+
+    func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, &resultRet);
+
+    result.setFormat("ret={%g}", resultRet);
+    expect.setFormat("ret={%g}", expectRet);
+
+    return resultRet == expectRet;
   }
 };
 
@@ -2111,7 +2216,9 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_AllocIfElse2);
   ADD_TEST(X86Test_AllocIfElse3);
   ADD_TEST(X86Test_AllocIfElse4);
-  ADD_TEST(X86Test_AllocArgs);
+  ADD_TEST(X86Test_AllocArgsIntPtr);
+  ADD_TEST(X86Test_AllocArgsFloat);
+  ADD_TEST(X86Test_AllocArgsDouble);
   ADD_TEST(X86Test_AllocStack);
   ADD_TEST(X86Test_AllocMemcpy);
   ADD_TEST(X86Test_AllocBlend);

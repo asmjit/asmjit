@@ -28,12 +28,22 @@ namespace x86x64 {
 // [asmjit::X86X64FuncDecl - Helpers]
 // ============================================================================
 
-static ASMJIT_INLINE uint32_t x86FpVarTypeToXmmType(uint32_t vType) {
-  if (vType == kVarTypeFp32)
+static ASMJIT_INLINE bool x86ArgIsInt(uint32_t aType) {
+  ASMJIT_ASSERT(aType < kVarTypeCount);
+  return IntUtil::inInterval<uint32_t>(aType, _kVarTypeIntStart, _kVarTypeIntEnd);
+}
+
+static ASMJIT_INLINE bool x86ArgIsFp(uint32_t aType) {
+  ASMJIT_ASSERT(aType < kVarTypeCount);
+  return IntUtil::inInterval<uint32_t>(aType, _kVarTypeFpStart, _kVarTypeFpEnd);
+}
+
+static ASMJIT_INLINE uint32_t x86ArgTypeToXmmType(uint32_t aType) {
+  if (aType == kVarTypeFp32)
     return kVarTypeXmmSs;
-  if (vType == kVarTypeFp64)
+  if (aType == kVarTypeFp64)
     return kVarTypeXmmSd;
-  return vType;
+  return aType;
 }
 
 // ============================================================================
@@ -318,7 +328,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
       FuncInOut& arg = self->getArg(i);
       uint32_t varType = varMapping[arg.getVarType()];
 
-      if (x86VarIsInt(varType) && gpPos < 16 && self->_passedOrderGp[gpPos] != kInvalidReg) {
+      if (x86ArgIsInt(varType) && gpPos < 16 && self->_passedOrderGp[gpPos] != kInvalidReg) {
         arg._regIndex = self->_passedOrderGp[gpPos++];
         self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
       }
@@ -342,11 +352,11 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
       if (arg.hasRegIndex())
         continue;
 
-      if (x86VarIsInt(varType)) {
+      if (x86ArgIsInt(varType)) {
         stackOffset -= 4;
         arg._stackOffset = static_cast<int16_t>(stackOffset);
       }
-      else if (x86VarIsFloat(varType)) {
+      else if (x86ArgIsFp(varType)) {
         int32_t size = static_cast<int32_t>(_varInfo[varType].getSize());
         stackOffset -= size;
         arg._stackOffset = static_cast<int16_t>(stackOffset);
@@ -365,12 +375,12 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         FuncInOut& arg = self->getArg(i);
         uint32_t varType = varMapping[arg.getVarType()];
 
-        if (x86VarIsInt(varType)) {
+        if (x86ArgIsInt(varType)) {
           arg._regIndex = self->_passedOrderGp[i];
           self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
         }
-        else if (x86VarIsFloat(varType)) {
-          arg._varType = static_cast<uint8_t>(x86FpVarTypeToXmmType(varType));
+        else if (x86ArgIsFp(varType)) {
+          arg._varType = static_cast<uint8_t>(x86ArgTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[i];
           self->_used.add(kRegClassXy, IntUtil::mask(arg.getRegIndex()));
         }
@@ -384,13 +394,12 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         if (arg.hasRegIndex())
           continue;
 
-        if (x86VarIsInt(varType)) {
+        if (x86ArgIsInt(varType)) {
           stackOffset -= 8; // Always 8 bytes.
           arg._stackOffset = stackOffset;
         }
-        else if (x86VarIsFloat(varType)) {
-          int32_t size = static_cast<int32_t>(_varInfo[varType].getSize());
-          stackOffset -= size;
+        else if (x86ArgIsFp(varType)) {
+          stackOffset -= 8; // Always 8 bytes (float/double).
           arg._stackOffset = stackOffset;
         }
       }
@@ -404,7 +413,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         FuncInOut& arg = self->getArg(i);
         uint32_t varType = varMapping[arg.getVarType()];
 
-        if (x86VarIsInt(varType) && gpPos < 32 && self->_passedOrderGp[gpPos] != kInvalidReg) {
+        if (x86ArgIsInt(varType) && gpPos < 32 && self->_passedOrderGp[gpPos] != kInvalidReg) {
           arg._regIndex = self->_passedOrderGp[gpPos++];
           self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
         }
@@ -415,8 +424,8 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         FuncInOut& arg = self->getArg(i);
         uint32_t varType = varMapping[arg.getVarType()];
 
-        if (x86VarIsFloat(varType)) {
-          arg._varType = static_cast<uint8_t>(x86FpVarTypeToXmmType(varType));
+        if (x86ArgIsFp(varType)) {
+          arg._varType = static_cast<uint8_t>(x86ArgTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[xmmPos++];
           self->_used.add(kRegClassXy, IntUtil::mask(arg.getRegIndex()));
         }
@@ -430,11 +439,11 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         if (arg.hasRegIndex())
           continue;
 
-        if (x86VarIsInt(varType)) {
+        if (x86ArgIsInt(varType)) {
           stackOffset -= 8;
           arg._stackOffset = static_cast<int16_t>(stackOffset);
         }
-        else if (x86VarIsFloat(varType)) {
+        else if (x86ArgIsFp(varType)) {
           int32_t size = static_cast<int32_t>(_varInfo[varType].getSize());
 
           stackOffset -= size;

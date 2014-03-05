@@ -3838,16 +3838,6 @@ static ASMJIT_INLINE uint32_t x86VarTypeToClass(uint32_t vType) {
   return _varInfo[vType].getClass();
 }
 
-static ASMJIT_INLINE bool x86VarIsInt(uint32_t vType) {
-  ASMJIT_ASSERT(vType < kVarTypeCount);
-  return IntUtil::inInterval<uint32_t>(vType, _kVarTypeIntStart, _kVarTypeIntEnd);
-}
-
-static ASMJIT_INLINE bool x86VarIsFloat(uint32_t vType) {
-  ASMJIT_ASSERT(vType < kVarTypeCount);
-  return (_varInfo[vType].getDesc() & (kVarDescSp | kVarDescDp)) != 0;
-}
-
 //! @}
 
 } // x86x64 namespace
