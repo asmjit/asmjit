@@ -862,7 +862,7 @@ struct AlignNode : public BaseNode {
   //! @brief Get align size in bytes.
   ASMJIT_INLINE uint32_t getSize() const { return _size; }
   //! @brief Set align size in bytes to @a size.
-  ASMJIT_INLINE void setSize(uint32_t size) { _size; }
+  ASMJIT_INLINE void setSize(uint32_t size) { _size = size; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -1253,8 +1253,8 @@ struct FuncNode : public BaseNode {
     BaseNode(compiler, kNodeTypeFunc),
     _entryNode(NULL),
     _exitNode(NULL),
-    _end(NULL),
     _decl(NULL),
+    _end(NULL),
     _argList(NULL),
     _funcHints(IntUtil::mask(kFuncHintNaked)),
     _funcFlags(0),
