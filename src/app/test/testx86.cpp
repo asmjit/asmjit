@@ -1128,7 +1128,7 @@ struct X86Test_AllocIfElse4 : public X86Test {
 // ============================================================================
 
 struct X86Test_AllocArgsIntPtr : public X86Test {
-  X86Test_AllocArgsIntPtr() : X86Test("[Alloc] Args-IntPtr") {}
+  X86Test_AllocArgsIntPtr() : X86Test("[Alloc] Args IntPtr") {}
 
   static void add(PodVector<X86Test*>& tests) {
     tests.append(new X86Test_AllocArgsIntPtr());
@@ -1187,7 +1187,7 @@ struct X86Test_AllocArgsIntPtr : public X86Test {
 // ============================================================================
 
 struct X86Test_AllocArgsFloat : public X86Test {
-  X86Test_AllocArgsFloat() : X86Test("[Alloc] Args-Float") {}
+  X86Test_AllocArgsFloat() : X86Test("[Alloc] Args Float") {}
 
   static void add(PodVector<X86Test*>& tests) {
     tests.append(new X86Test_AllocArgsFloat());
@@ -1241,7 +1241,7 @@ struct X86Test_AllocArgsFloat : public X86Test {
 // ============================================================================
 
 struct X86Test_AllocArgsDouble : public X86Test {
-  X86Test_AllocArgsDouble() : X86Test("[Alloc] Args-Float") {}
+  X86Test_AllocArgsDouble() : X86Test("[Alloc] Args Double") {}
 
   static void add(PodVector<X86Test*>& tests) {
     tests.append(new X86Test_AllocArgsDouble());
@@ -1282,6 +1282,86 @@ struct X86Test_AllocArgsDouble : public X86Test {
     double expectRet = 1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0;
 
     func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, &resultRet);
+
+    result.setFormat("ret={%g}", resultRet);
+    expect.setFormat("ret={%g}", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocRetFloat]
+// ============================================================================
+
+struct X86Test_AllocRetFloat : public X86Test {
+  X86Test_AllocRetFloat() : X86Test("[Alloc] Ret Float") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocRetFloat());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder2<float, float, float>());
+
+    XmmVar a(c, kVarTypeXmmSs);
+    XmmVar b(c, kVarTypeXmmSs);
+
+    c.setArg(0, a);
+    c.setArg(1, b);
+
+    c.addss(a, b);
+    c.ret(a);
+
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef float (*Func)(float, float);
+    Func func = asmjit_cast<Func>(_func);
+
+    float resultRet = func(1.0f, 2.0f);
+    float expectRet = 1.0f + 2.0f;
+
+    result.setFormat("ret={%g}", resultRet);
+    expect.setFormat("ret={%g}", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocRetDouble]
+// ============================================================================
+
+struct X86Test_AllocRetDouble : public X86Test {
+  X86Test_AllocRetDouble() : X86Test("[Alloc] Ret Double") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocRetDouble());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder2<double, double, double>());
+
+    XmmVar a(c, kVarTypeXmmSd);
+    XmmVar b(c, kVarTypeXmmSd);
+
+    c.setArg(0, a);
+    c.setArg(1, b);
+
+    c.addsd(a, b);
+    c.ret(a);
+
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef double (*Func)(double, double);
+    Func func = asmjit_cast<Func>(_func);
+
+    double resultRet = func(1.0, 2.0);
+    double expectRet = 1.0 + 2.0;
 
     result.setFormat("ret={%g}", resultRet);
     expect.setFormat("ret={%g}", expectRet);
@@ -2219,6 +2299,8 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_AllocArgsIntPtr);
   ADD_TEST(X86Test_AllocArgsFloat);
   ADD_TEST(X86Test_AllocArgsDouble);
+  ADD_TEST(X86Test_AllocRetFloat);
+  ADD_TEST(X86Test_AllocRetDouble);
   ADD_TEST(X86Test_AllocStack);
   ADD_TEST(X86Test_AllocMemcpy);
   ADD_TEST(X86Test_AllocBlend);
@@ -2336,10 +2418,9 @@ struct CmdLine {
 
   bool hasArg(const char* arg) {
     for (int i = 1; i < _argc; i++) {
-      if (strcmp(_argv[i], arg) == 0)
+      if (::strcmp(_argv[i], arg) == 0)
         return true;
     }
-
     return false;
   }
 
@@ -2356,10 +2437,10 @@ struct CmdLine {
 // ============================================================================
 
 int main(int argc, char* argv[]) {
-  CmdLine cmdLine(argc, argv);
   X86TestSuite testSuite;
+  CmdLine cmd(argc, argv);
 
-  if (cmdLine.hasArg("--always-print-log")) {
+  if (cmd.hasArg("--always-print-log")) {
     testSuite.alwaysPrintLog = true;
   }
 
