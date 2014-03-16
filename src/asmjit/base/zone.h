@@ -123,11 +123,10 @@ struct Zone {
   ASMJIT_INLINE void* alloc(size_t size) {
     Chunk* cur = _chunks;
 
-    if (cur == NULL || cur->getRemainingSize() < size)
+    if (cur->getRemainingSize() < size)
       return _alloc(size);
 
     uint8_t* p = cur->data + cur->pos;
-
     cur->pos += size;
     ASMJIT_ASSERT(cur->pos <= cur->size);
 
@@ -147,11 +146,10 @@ struct Zone {
   ASMJIT_INLINE void* calloc(size_t size) {
     Chunk* cur = _chunks;
 
-    if (cur == NULL || cur->getRemainingSize() < size)
+    if (cur->getRemainingSize() < size)
       return _calloc(size);
 
     uint8_t* p = cur->data + cur->pos;
-
     cur->pos += size;
     ASMJIT_ASSERT(cur->pos <= cur->size);
 

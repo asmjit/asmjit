@@ -20,12 +20,17 @@
 
 namespace asmjit {
 
+//! @brief Zero width chunk used when Zone doesn't have any memory allocated.
+static const Zone::Chunk Zone_zeroChunk = {
+  NULL, 0, 0, { 0 }
+};
+
 // ============================================================================
 // [asmjit::Zone - Construction / Destruction]
 // ============================================================================
 
 Zone::Zone(size_t chunkSize) {
-  _chunks = NULL;
+  _chunks = const_cast<Zone::Chunk*>(&Zone_zeroChunk);
   _chunkSize = chunkSize;
 }
 
@@ -40,7 +45,7 @@ Zone::~Zone() {
 void Zone::clear() {
   Chunk* cur = _chunks;
 
-  if (cur == NULL)
+  if (cur == &Zone_zeroChunk)
     return;
 
   cur = cur->prev;
@@ -56,13 +61,17 @@ void Zone::clear() {
 
 void Zone::reset() {
   Chunk* cur = _chunks;
-  _chunks = NULL;
+
+  if (cur == &Zone_zeroChunk)
+    return;
 
   while (cur != NULL) {
     Chunk* prev = cur->prev;
     ::free(cur);
     cur = prev;
   }
+
+  _chunks = const_cast<Zone::Chunk*>(&Zone_zeroChunk);
 }
 
 // ============================================================================
@@ -71,7 +80,7 @@ void Zone::reset() {
 
 void* Zone::_alloc(size_t size) {
   Chunk* cur = _chunks;
-  ASMJIT_ASSERT(cur == NULL || cur->getRemainingSize() < size);
+  ASMJIT_ASSERT(cur == &Zone_zeroChunk || cur->getRemainingSize() < size);
 
   size_t chunkSize = _chunkSize;
   if (chunkSize < size)
@@ -81,10 +90,12 @@ void* Zone::_alloc(size_t size) {
   if (cur == NULL)
     return NULL;
 
-  cur->prev = _chunks;
+  cur->prev = NULL;
   cur->pos = 0;
   cur->size = chunkSize;
 
+  if (_chunks != &Zone_zeroChunk)
+    cur->prev = _chunks;
   _chunks = cur;
 
   uint8_t* p = cur->data + cur->pos;
