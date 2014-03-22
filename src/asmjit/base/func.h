@@ -500,16 +500,19 @@ struct FuncBuilderX : public FuncPrototype {
   }
 
   template<typename T>
-  ASMJIT_INLINE void setRetT()
-  { setRet(TypeId<T>::kId); }
+  ASMJIT_INLINE void setRetT() {
+    setRet(TypeId<T>::kId);
+  }
 
   template<typename T>
-  ASMJIT_INLINE void setArgT(uint32_t id)
-  { setArg(id, TypeId<T>::kId); }
+  ASMJIT_INLINE void setArgT(uint32_t id) {
+    setArg(id, TypeId<T>::kId);
+  }
 
   template<typename T>
-  ASMJIT_INLINE void addArgT()
-  { addArg(TypeId<T>::kId); }
+  ASMJIT_INLINE void addArgT() {
+    addArg(TypeId<T>::kId);
+  }
 
   // --------------------------------------------------------------------------
   // [Members]

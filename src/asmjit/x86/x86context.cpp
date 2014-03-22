@@ -2584,7 +2584,7 @@ _NoMemory:
 }
 
 // ============================================================================
-// [asmjit::x86x64::X86X64Context - AnalyzeFunc]
+// [asmjit::x86x64::X86X64Context - Analyze]
 // ============================================================================
 
 //! @internal
@@ -2766,6 +2766,150 @@ _OnDone:
 
 _NoMemory:
   return setError(kErrorNoHeapMemory);
+}
+
+// ============================================================================
+// [asmjit::x86x64::X86X64Context - Annotate]
+// ============================================================================
+
+static void X86X64Context_annotateVariable(X86X64Context* self, 
+  StringBuilder& sb, const VarData* vd) {
+
+  const char* name = vd->getName();
+  if (name != NULL && name[0] != '\0') {
+    sb._appendString(name);
+  }
+  else {
+    sb._appendChar('v');
+    sb._appendUInt32(vd->getId() & kOperandIdNum);
+  }
+}
+
+static void X86X64Context_annotateOperand(X86X64Context* self,
+  StringBuilder& sb, const Operand* op) {
+
+  if (op->isVar()) {
+    X86X64Context_annotateVariable(self, sb, self->_compiler->getVdById(op->getId()));
+  }
+  else if (op->isMem()) {
+    const Mem* m = static_cast<const Mem*>(op);
+    bool isAbsolute = false;
+
+    sb._appendChar('[');
+    switch (m->getMemType()) {
+      case kMemTypeBaseIndex:
+      case kMemTypeStackIndex:
+        // [base + index << shift + displacement]
+        X86X64Context_annotateVariable(self, sb, self->_compiler->getVdById(m->getBase()));
+        break;
+
+      case kMemTypeLabel:
+        // [label + index << shift + displacement]
+        sb.appendFormat("L%u", m->getBase());
+        break;
+
+      case kMemTypeAbsolute:
+        // [absolute]
+        isAbsolute = true;
+        sb.appendUInt(static_cast<uint32_t>(m->getDisplacement()), 16);
+        break;
+    }
+
+    if (m->hasIndex()) {
+      sb._appendChar('+');
+      X86X64Context_annotateVariable(self, sb, self->_compiler->getVdById(m->getIndex()));
+
+      if (m->getShift()) {
+        sb._appendChar('*');
+        sb._appendChar("1248"[m->getShift() & 3]);
+      }
+    }
+
+    if (m->getDisplacement() && !isAbsolute) {
+      uint32_t base = 10;
+      int32_t dispOffset = m->getDisplacement();
+
+      char prefix = '+';
+      if (dispOffset < 0) {
+        dispOffset = -dispOffset;
+        prefix = '-';
+      }
+
+      sb._appendChar(prefix);
+      /*
+      if ((loggerOptions & (1 << kLoggerOptionHexDisplacement)) != 0 && dispOffset > 9) {
+        sb._appendString("0x", 2);
+        base = 16;
+      }
+      */
+      sb.appendUInt(static_cast<uint32_t>(dispOffset), base);
+    }
+
+    sb._appendChar(']');
+  }
+  else if (op->isImm()) {
+    const Imm* i = static_cast<const Imm*>(op);
+    int64_t val = i->getInt64();
+
+    /*
+    if ((loggerOptions & (1 << kLoggerOptionHexImmediate)) && static_cast<uint64_t>(val) > 9)
+      sb.appendUInt(static_cast<uint64_t>(val), 16);
+    else*/
+      sb.appendInt(val, 10);
+  }
+  else if (op->isLabel()) {
+    sb.appendFormat("L%u", op->getId());
+  }
+  else {
+    sb._appendString("None", 4);
+  }
+}
+
+static bool X86X64Context_annotateInstruction(X86X64Context* self, 
+  StringBuilder& sb, uint32_t code, const Operand* opList, uint32_t opCount) {
+
+  if (!sb.reserve(sb.getLength() + 128))
+    return false;
+
+  sb._appendString(_instInfo[code].getName());
+  for (uint32_t i = 0; i < opCount; i++) {
+    if (i == 0)
+      sb._appendChar(' ');
+    else
+      sb._appendString(", ", 2);
+    X86X64Context_annotateOperand(self, sb, &opList[i]);
+  }
+  return true;
+}
+
+Error X86X64Context::annotate() {
+  FuncNode* func = getFunc();
+
+  BaseNode* node_ = func;
+  BaseNode* end = func->getEnd();
+
+  StringBuilderT<128> sb;
+  Zone& sa = _compiler->_stringAllocator;
+  uint32_t maxLen = 0;
+
+  while (node_ != end) {
+    if (node_->getComment() == NULL) {
+      if (node_->getType() == kNodeTypeInst) {
+        InstNode* node = static_cast<InstNode*>(node_);
+        X86X64Context_annotateInstruction(this, sb, node->getCode(), node->getOpList(), node->getOpCount());
+
+        node_->setComment(static_cast<char*>(sa.dup(sb.getData(), sb.getLength() + 1)));
+        maxLen = IntUtil::iMax<uint32_t>(maxLen, static_cast<uint32_t>(sb.getLength()));
+
+        sb.clear();
+      }
+    }
+
+    node_ = node_->getNext();
+  }
+
+  _annotationLength = maxLen + 1;
+  return kErrorOk;
 }
 
 // ============================================================================
@@ -4784,7 +4928,7 @@ static Error X86X64Context_translatePrologEpilog(X86X64Context* self, X86X64Func
 }
 
 // ============================================================================
-// [asmjit::x86x64::X86X64Context - TranslateJump]
+// [asmjit::x86x64::X86X64Context - Translate - Jump]
 // ============================================================================
 
 //! @internal
@@ -4820,7 +4964,7 @@ static void X86X64Context_translateJump(X86X64Context* self, JumpNode* jNode, Ta
 }
 
 // ============================================================================
-// [asmjit::x86x64::X86X64Context - TranslateRet]
+// [asmjit::x86x64::X86X64Context - Translate - Ret]
 // ============================================================================
 
 static Error X86X64Context_translateRet(X86X64Context* self, RetNode* rNode, TargetNode* exitTarget) {
@@ -5120,10 +5264,14 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
   StringBuilder& sb = self->_stringBuilder;
 
   BaseLogger* logger;
-  const char* comment;
+  uint32_t vdCount;
+  uint32_t annotationLength;
 
   if (LoggingEnabled) {
     logger = assembler->getLogger();
+
+    vdCount = static_cast<uint32_t>(self->_contextVd.getLength());
+    annotationLength = self->_annotationLength;
   }
 
   // Create labels on Assembler side.
@@ -5132,21 +5280,26 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
 
   do {
     if (LoggingEnabled) {
-      comment = node_->getComment();
+      sb.clear();
+
+      if (node_->getComment()) {
+        sb.appendString(node_->getComment());
+      }
+
+      if (sb.getLength() < annotationLength)
+        sb.appendChars(' ', annotationLength - sb.getLength());
+
+      size_t offset = sb.getLength();
+      sb.appendChars(' ', vdCount);
 
       if (node_->hasLiveness()) {
-        uint32_t i;
-        uint32_t vdCount = static_cast<uint32_t>(self->_contextVd.getLength());
-
         VarBits* liveness = node_->getLiveness();
         VarInst* vi = static_cast<VarInst*>(node_->getVarInst());
 
-        sb.clear();
-        sb.appendChars(' ', vdCount);
-
+        uint32_t i;
         for (i = 0; i < vdCount; i++) {
           if (liveness->getBit(i))
-            sb.getData()[i] = '.';
+            sb.getData()[offset + i] = '.';
         }
 
         if (vi != NULL) {
@@ -5166,15 +5319,12 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
             if ((flags & kVarAttrUnuse))
               c -= 'a' - 'A';
 
-            sb.getData()[vd->getContextId()] = c;
+            sb.getData()[offset + vd->getContextId()] = c;
           }
         }
+      }
 
-        assembler->_comment = sb.getData();
-      }
-      else {
-        assembler->_comment = comment;
-      }
+      assembler->_comment = sb.getData();
     }
 
     switch (node_->getType()) {

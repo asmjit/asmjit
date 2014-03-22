@@ -99,7 +99,7 @@ ASMJIT_VAR const VarInfo _varInfo[];
 // [asmjit::x86x64::kRegClass]
 // ============================================================================
 
-//! @brief X86 variable class.
+//! @brief X86/X64 variable class.
 ASMJIT_ENUM(kRegClass) {
   // kRegClassGp defined in base/defs.h; it's used by all implementations.
 
@@ -118,6 +118,7 @@ ASMJIT_ENUM(kRegClass) {
 // [asmjit::x86x64::kRegCount]
 // ============================================================================
 
+//! @brief X86/X64 registers count.
 ASMJIT_ENUM(kRegCount) {
   //! @brief Count of Fp registers (8).
   kRegCountFp = 8,
@@ -131,7 +132,7 @@ ASMJIT_ENUM(kRegCount) {
 // [asmjit::x86x64::kRegType]
 // ============================================================================
 
-//! @brief X86 register types.
+//! @brief X86/X64 register types.
 ASMJIT_ENUM(kRegType) {
   //! @brief Gpb-lo register (AL, BL, CL, DL, ...).
   kRegTypeGpbLo = 0x01,
@@ -170,7 +171,7 @@ ASMJIT_ENUM(kRegType) {
 // [asmjit::x86x64::kRegIndex]
 // ============================================================================
 
-//! @brief X86 register indices.
+//! @brief X86/X64 register indices.
 //!
 //! These codes are real, don't miss with @c REG enum! and don't use these
 //! values if you are not writing AsmJit code.
@@ -313,7 +314,7 @@ ASMJIT_ENUM(kRegIndex) {
 // [asmjit::x86x64::kSeg]
 // ============================================================================
 
-//! @brief X86 segment codes.
+//! @brief X86/X64 segment codes.
 ASMJIT_ENUM(kSeg) {
   //! @brief No segment.
   kSegDefault = 0,
@@ -335,7 +336,7 @@ ASMJIT_ENUM(kSeg) {
 // [asmjit::x86x64::kMemVSib]
 // ============================================================================
 
-//! @brief X86 index register legacy and AVX2 (VSIB) support.
+//! @brief X86/X64 index register legacy and AVX2 (VSIB) support.
 ASMJIT_ENUM(kMemVSib) {
   //! @brief Memory operand uses Gp or no index register.
   kMemVSibGpz = 0,
@@ -351,7 +352,7 @@ ASMJIT_ENUM(kMemVSib) {
 
 //! @internal
 //!
-//! @brief X86 specific memory flags.
+//! @brief X86/X64 specific memory flags.
 ASMJIT_ENUM(kMemFlags) {
   kMemSegBits    = 0x7,
   kMemSegIndex   = 0,
@@ -374,7 +375,7 @@ ASMJIT_ENUM(kMemFlags) {
 // [asmjit::x86x64::kPrefetchHint]
 // ============================================================================
 
-//! @brief X86 Prefetch hints.
+//! @brief X86/X64 Prefetch hints.
 ASMJIT_ENUM(kPrefetchHint) {
   //! @brief Prefetch using NT hint.
   kPrefetchNta = 0,
@@ -390,7 +391,7 @@ ASMJIT_ENUM(kPrefetchHint) {
 // [asmjit::x86x64::kFPSW]
 // ============================================================================
 
-//! @brief X86 FPU status Word.
+//! @brief X86/X64 FPU status Word.
 ASMJIT_ENUM(kFPSW) {
   kFPSW_Invalid        = 0x0001,
   kFPSW_Denormalized   = 0x0002,
@@ -412,7 +413,7 @@ ASMJIT_ENUM(kFPSW) {
 // [asmjit::x86x64::kFPCW]
 // ============================================================================
 
-//! @brief X86 FPU control Word.
+//! @brief X86/X64 FPU control Word.
 ASMJIT_ENUM(kFPCW) {
   kFPCW_EM_Mask        = 0x003F, // Bits 0-5.
   kFPCW_EM_Invalid     = 0x0001,
@@ -443,7 +444,7 @@ ASMJIT_ENUM(kFPCW) {
 // [asmjit::x86x64::kInstCode]
 // ============================================================================
 
-//! @brief X86 instruction codes.
+//! @brief X86/X64 instruction codes.
 //!
 //! Note that these instruction codes are AsmJit specific. Each instruction has
 //! a unique ID that is used as an index to AsmJit instruction table.
@@ -1415,7 +1416,7 @@ ASMJIT_ENUM(kInstCode) {
 // [asmjit::x86x64::kInstOptions]
 // ============================================================================
 
-//! @brief Instruction emit options, mainly for internal purposes.
+//! @brief X86/X64 instruction emit options, mainly for internal purposes.
 ASMJIT_ENUM(kInstOptions) {
   //! @brief Emit instruction with LOCK prefix.
   //!
@@ -1443,7 +1444,7 @@ ASMJIT_ENUM(kInstOptions) {
 // [asmjit::x86x64::kInstGroup]
 // ============================================================================
 
-//! @brief X86 instruction groups.
+//! @brief X86/X64 instruction groups.
 //!
 //! This should be only used by assembler, because it's @c asmjit::Assembler
 //! specific grouping. Each group represents one 'case' in the Assembler's
@@ -1676,7 +1677,7 @@ ASMJIT_ENUM(kInstOpCode) {
 // [asmjit::x86x64::kInstFlags]
 // ============================================================================
 
-//! @brief X86 instruction type flags.
+//! @brief X86/X64 instruction type flags.
 ASMJIT_ENUM(kInstFlags) {
   //! @brief No flags.
   kInstFlagNone        = 0x0000,
@@ -1748,7 +1749,7 @@ ASMJIT_ENUM(kInstFlags) {
 // [asmjit::x86x64::kInstOp]
 // ============================================================================
 
-//! @brief X86 instruction operand flags.
+//! @brief X86/X64 instruction operand flags.
 ASMJIT_ENUM(kInstOp) {
   // Gp, Fp, Mm, Xmm, Ymm, Zmm.
   kInstOpGb            = 0x0001,
@@ -1796,29 +1797,29 @@ ASMJIT_ENUM(kInstOp) {
 // [asmjit::x86x64::kCond]
 // ============================================================================
 
-//! @brief X86 Condition codes.
+//! @brief X86/X64 Condition codes.
 ASMJIT_ENUM(kCond) {
   // Condition codes from processor manuals.
-  kCondA               = 0x07, // CF==0 & ZF==0
-  kCondAE              = 0x03, // CF==0
-  kCondB               = 0x02, // CF==1
-  kCondBE              = 0x06, // CF==1 | ZF==1
+  kCondA               = 0x07, // CF==0 & ZF==0          (unsigned)
+  kCondAE              = 0x03, // CF==0                  (unsigned)
+  kCondB               = 0x02, // CF==1                  (unsigned)
+  kCondBE              = 0x06, // CF==1 | ZF==1          (unsigned)
   kCondC               = 0x02, // CF==1
-  kCondE               = 0x04, //         ZF==1
-  kCondG               = 0x0F, //         ZF==0 & SF==OF
-  kCondGE              = 0x0D, //                 SF==OF
-  kCondL               = 0x0C, //                 SF!=OF
-  kCondLE              = 0x0E, //         ZF==1 | SF!=OF
-  kCondNA              = 0x06, // CF==1 | ZF==1
-  kCondNAE             = 0x02, // CF==1
-  kCondNB              = 0x03, // CF==0
-  kCondNBE             = 0x07, // CF==0 & ZF==0
+  kCondE               = 0x04, //         ZF==1          (signed/unsigned)
+  kCondG               = 0x0F, //         ZF==0 & SF==OF (signed)
+  kCondGE              = 0x0D, //                 SF==OF (signed)
+  kCondL               = 0x0C, //                 SF!=OF (signed)
+  kCondLE              = 0x0E, //         ZF==1 | SF!=OF (signed)
+  kCondNA              = 0x06, // CF==1 | ZF==1          (unsigned)
+  kCondNAE             = 0x02, // CF==1                  (unsigned)
+  kCondNB              = 0x03, // CF==0                  (unsigned)
+  kCondNBE             = 0x07, // CF==0 & ZF==0          (unsigned)
   kCondNC              = 0x03, // CF==0
-  kCondNE              = 0x05, //         ZF==0
-  kCondNG              = 0x0E, //         ZF==1 | SF!=OF
-  kCondNGE             = 0x0C, //                 SF!=OF
-  kCondNL              = 0x0D, //                 SF==OF
-  kCondNLE             = 0x0F, //         ZF==0 & SF==OF
+  kCondNE              = 0x05, //         ZF==0          (signed/unsigned)
+  kCondNG              = 0x0E, //         ZF==1 | SF!=OF (signed)
+  kCondNGE             = 0x0C, //                 SF!=OF (signed)
+  kCondNL              = 0x0D, //                 SF==OF (signed)
+  kCondNLE             = 0x0F, //         ZF==0 & SF==OF (signed)
   kCondNO              = 0x01, //                 OF==0
   kCondNP              = 0x0B, // PF==0
   kCondNS              = 0x09, //                 SF==0
@@ -1866,7 +1867,7 @@ ASMJIT_ENUM(kCond) {
 // [asmjit::x86x64::kVarType]
 // ============================================================================
 
-//! @brief X86 variable type.
+//! @brief X86/X64 variable type.
 ASMJIT_ENUM(kVarType) {
   //! @brief Variable is Mm (MMX).
   kVarTypeMm = 12,
@@ -1912,7 +1913,7 @@ ASMJIT_ENUM(kVarType) {
 // [asmjit::x86x64::kVarDesc]
 // ============================================================================
 
-//! @brief X86 variable description.
+//! @brief X86/X64 variable description.
 ASMJIT_ENUM(kVarDesc) {
   //! @brief Variable contains single-precision floating-point(s).
   kVarDescSp = 0x10,

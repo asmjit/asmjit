@@ -171,6 +171,12 @@ struct BaseContext {
   virtual Error analyze() = 0;
 
   // --------------------------------------------------------------------------
+  // [Annotate]
+  // --------------------------------------------------------------------------
+
+  virtual Error annotate() = 0;
+
+  // --------------------------------------------------------------------------
   // [Translate]
   // --------------------------------------------------------------------------
 
@@ -255,6 +261,9 @@ struct BaseContext {
   uint32_t _memStackTotal;
   //! @brief Count of bytes used by variables and stack after alignment.
   uint32_t _memAllTotal;
+
+  //! @brief Default lenght of annotated instruction.
+  uint32_t _annotationLength;
 
   //! @brief Current state (used by register allocator).
   BaseVarState* _state;

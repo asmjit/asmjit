@@ -543,7 +543,7 @@ static ASMJIT_INLINE size_t X86X64Assembler_relocCode(const X86X64Assembler* sel
 }
 
 // ============================================================================
-// [asmjit::Assembler - Logging]
+// [asmjit::x86x64::Assembler - Logging]
 // ============================================================================
 
 // Logging helpers.
@@ -578,9 +578,9 @@ static const char X86Assembler_segName[] =
   "\0\0\0\0";
 
 static void X86Assembler_dumpRegister(StringBuilder& sb, uint32_t type, uint32_t index) {
-  // NE == Not-Encodable.
+  // -- (Not-Encodable).
   static const char reg8l[] = "al\0\0" "cl\0\0" "dl\0\0" "bl\0\0" "spl\0"  "bpl\0"  "sil\0"  "dil\0" ;
-  static const char reg8h[] = "ah\0\0" "ch\0\0" "dh\0\0" "bh\0\0" "NE\0\0" "NE\0\0" "NE\0\0" "NE\0\0";
+  static const char reg8h[] = "ah\0\0" "ch\0\0" "dh\0\0" "bh\0\0" "--\0\0" "--\0\0" "--\0\0" "--\0\0";
   static const char reg16[] = "ax\0\0" "cx\0\0" "dx\0\0" "bx\0\0" "sp\0\0" "bp\0\0" "si\0\0" "di\0\0";
 
   char suffix = '\0';
@@ -606,11 +606,12 @@ static void X86Assembler_dumpRegister(StringBuilder& sb, uint32_t type, uint32_t
     case kRegTypeGpbHi:
       if (index >= 4)
         goto _EmitNE;
+
       sb._appendString(&reg8h[index * 4]);
       return;
 
 _EmitNE:
-      sb._appendString("NE", 2);
+      sb._appendString("--", 2);
       return;
 
     case kRegTypeGpw:
@@ -671,6 +672,7 @@ _EmitNE:
 
 _EmitID:
   sb._appendUInt32(index);
+
   if (suffix)
     sb._appendChar(suffix);
 }
@@ -729,11 +731,11 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
         case kMemVSibYmm: type = kRegTypeYmm; break;
       }
 
-      sb._appendString(" + ", 3);
+      sb._appendChar('+');
       X86Assembler_dumpRegister(sb, type, m->getIndex());
 
       if (m->getShift()) {
-        sb._appendString(" * ", 3);
+        sb._appendChar('*');
         sb._appendChar("1248"[m->getShift() & 3]);
       }
     }
@@ -742,13 +744,13 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
       uint32_t base = 10;
       int32_t dispOffset = m->getDisplacement();
 
-      const char* prefix = " + ";
+      char prefix = '+';
       if (dispOffset < 0) {
         dispOffset = -dispOffset;
-        prefix = " - ";
+        prefix = '-';
       }
 
-      sb._appendString(prefix, 3);
+      sb._appendChar(prefix);
       if ((loggerOptions & (1 << kLoggerOptionHexDisplacement)) != 0 && dispOffset > 9) {
         sb._appendString("0x", 2);
         base = 16;
@@ -781,8 +783,9 @@ static bool X86Assembler_dumpInstruction(StringBuilder& sb,
   const Operand* o0,
   const Operand* o1,
   const Operand* o2,
-  uint32_t loggerOptions)
-{
+  const Operand* o3,
+  uint32_t loggerOptions) {
+
   if (!sb.reserve(sb.getLength() + 128))
     return false;
 
@@ -813,6 +816,11 @@ static bool X86Assembler_dumpInstruction(StringBuilder& sb,
   if (!o2->isNone()) {
     sb._appendString(", ", 2);
     X86Assembler_dumpOperand(sb, arch, o2, loggerOptions);
+  }
+
+  if (!o3->isNone()) {
+    sb._appendString(", ", 3);
+    X86Assembler_dumpOperand(sb, arch, o3, loggerOptions);
   }
 
   return true;
@@ -867,7 +875,7 @@ static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_
 }
 
 // ============================================================================
-// [asmjit::Assembler - Emit]
+// [asmjit::x86x64::Assembler - Emit]
 // ============================================================================
 
 //! @brief Encode MODR/M.
@@ -3641,7 +3649,7 @@ _EmitDone:
       loggerOptions = self->_logger->getOptions();
     }
 
-    X86Assembler_dumpInstruction(sb, Arch, code, options, o0, o1, o2, loggerOptions);
+    X86Assembler_dumpInstruction(sb, Arch, code, options, o0, o1, o2, o3, loggerOptions);
 
     if ((loggerOptions & (1 << kLoggerOptionBinaryForm)) != 0)
       X86Assembler_dumpComment(sb, sb.getLength(), self->_cursor, (intptr_t)(cursor - self->_cursor), dispSize, self->_comment);

@@ -62,6 +62,7 @@ void BaseContext::reset() {
   _memVarTotal = 0;
   _memStackTotal = 0;
   _memAllTotal = 0;
+  _annotationLength = 12;
 
   _state = NULL;
 }
@@ -327,6 +328,10 @@ Error BaseContext::compile(FuncNode* func) {
   ASMJIT_PROPAGATE_ERROR(fetch());
   ASMJIT_PROPAGATE_ERROR(removeUnreachableCode());
   ASMJIT_PROPAGATE_ERROR(analyze());
+
+  if (_compiler->hasLogger())
+    ASMJIT_PROPAGATE_ERROR(annotate());
+
   ASMJIT_PROPAGATE_ERROR(translate());
 
   // We alter the compiler cursor, because it doesn't make sense to reference

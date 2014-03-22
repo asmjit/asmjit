@@ -107,7 +107,7 @@ struct VirtualMemoryManager : public MemoryManager {
   //!
   //! This is specialized version of constructor available only for windows and
   //! usable to alloc/free memory of different process.
-  ASMJIT_API VirtualMemoryManager(HANDLE hProcess);
+  explicit ASMJIT_API VirtualMemoryManager(HANDLE hProcess);
 #endif // ASMJIT_OS_WINDOWS
 
   //! @brief Destroy the @c VirtualMemoryManager instance, this means also to
