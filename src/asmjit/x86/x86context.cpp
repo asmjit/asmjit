@@ -2777,11 +2777,11 @@ static void X86X64Context_annotateVariable(X86X64Context* self,
 
   const char* name = vd->getName();
   if (name != NULL && name[0] != '\0') {
-    sb._appendString(name);
+    sb.appendString(name);
   }
   else {
-    sb._appendChar('v');
-    sb._appendUInt32(vd->getId() & kOperandIdNum);
+    sb.appendChar('v');
+    sb.appendUInt(vd->getId() & kOperandIdNum);
   }
 }
 
@@ -2795,7 +2795,7 @@ static void X86X64Context_annotateOperand(X86X64Context* self,
     const Mem* m = static_cast<const Mem*>(op);
     bool isAbsolute = false;
 
-    sb._appendChar('[');
+    sb.appendChar('[');
     switch (m->getMemType()) {
       case kMemTypeBaseIndex:
       case kMemTypeStackIndex:
@@ -2816,12 +2816,12 @@ static void X86X64Context_annotateOperand(X86X64Context* self,
     }
 
     if (m->hasIndex()) {
-      sb._appendChar('+');
+      sb.appendChar('+');
       X86X64Context_annotateVariable(self, sb, self->_compiler->getVdById(m->getIndex()));
 
       if (m->getShift()) {
-        sb._appendChar('*');
-        sb._appendChar("1248"[m->getShift() & 3]);
+        sb.appendChar('*');
+        sb.appendChar("1248"[m->getShift() & 3]);
       }
     }
 
@@ -2835,17 +2835,17 @@ static void X86X64Context_annotateOperand(X86X64Context* self,
         prefix = '-';
       }
 
-      sb._appendChar(prefix);
+      sb.appendChar(prefix);
       /*
       if ((loggerOptions & (1 << kLoggerOptionHexDisplacement)) != 0 && dispOffset > 9) {
-        sb._appendString("0x", 2);
+        sb.appendString("0x", 2);
         base = 16;
       }
       */
       sb.appendUInt(static_cast<uint32_t>(dispOffset), base);
     }
 
-    sb._appendChar(']');
+    sb.appendChar(']');
   }
   else if (op->isImm()) {
     const Imm* i = static_cast<const Imm*>(op);
@@ -2861,22 +2861,19 @@ static void X86X64Context_annotateOperand(X86X64Context* self,
     sb.appendFormat("L%u", op->getId());
   }
   else {
-    sb._appendString("None", 4);
+    sb.appendString("None", 4);
   }
 }
 
 static bool X86X64Context_annotateInstruction(X86X64Context* self, 
   StringBuilder& sb, uint32_t code, const Operand* opList, uint32_t opCount) {
 
-  if (!sb.reserve(sb.getLength() + 128))
-    return false;
-
-  sb._appendString(_instInfo[code].getName());
+  sb.appendString(_instInfo[code].getName());
   for (uint32_t i = 0; i < opCount; i++) {
     if (i == 0)
-      sb._appendChar(' ');
+      sb.appendChar(' ');
     else
-      sb._appendString(", ", 2);
+      sb.appendString(", ", 2);
     X86X64Context_annotateOperand(self, sb, &opList[i]);
   }
   return true;
@@ -2888,8 +2885,9 @@ Error X86X64Context::annotate() {
   BaseNode* node_ = func;
   BaseNode* end = func->getEnd();
 
-  StringBuilderT<128> sb;
   Zone& sa = _compiler->_stringAllocator;
+  StringBuilderT<128> sb;
+
   uint32_t maxLen = 0;
 
   while (node_ != end) {
@@ -3475,6 +3473,12 @@ ASMJIT_INLINE void X86X64VarAlloc::plan() {
       occupied |= regMask;
       continue;
     }
+    else if ((vaFlags & kVarAttrInOutMem) != 0) {
+      uint32_t regIndex = vd->getRegIndex();
+      if (regIndex != kInvalidReg && (vaFlags & kVarAttrInOutMem) != kVarAttrOutMem) {
+        willSpill |= IntUtil::mask(regIndex);
+      }
+    }
   }
 
   // Set calculated masks back to the allocator; needed by spill() and alloc().
@@ -3505,7 +3509,7 @@ ASMJIT_INLINE void X86X64VarAlloc::spill() {
 
     VarData* vd = sVars[i];
     ASMJIT_ASSERT(vd != NULL);
-    ASMJIT_ASSERT(vd->getVa() == NULL);
+    ASMJIT_ASSERT(vd->getVa() == NULL || (vd->getVa()->getFlags() & kVarAttrInOutReg) == 0);
 
     if (vd->isModified() && availableRegs) {
       uint32_t m = guessSpill<C>(vd, availableRegs);

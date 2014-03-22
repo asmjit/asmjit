@@ -397,6 +397,58 @@ struct X86Test_AllocManual : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_AllocUseMem]
+// ============================================================================
+
+struct X86Test_AllocUseMem : public X86Test {
+  X86Test_AllocUseMem() : X86Test("[Alloc] Alloc/use mem") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocUseMem());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+
+    GpVar iIdx(c, kVarTypeInt32);
+    GpVar iEnd(c, kVarTypeInt32);
+
+    GpVar aIdx(c, kVarTypeInt32);
+    GpVar aEnd(c, kVarTypeInt32);
+
+    Label L_1(c);
+
+    c.setArg(0, aIdx);
+    c.setArg(1, aEnd);
+
+    c.mov(iIdx, aIdx);
+    c.mov(iEnd, aEnd);
+    c.spill(iEnd);
+
+    c.bind(L_1);
+    c.inc(iIdx);
+    c.cmp(iIdx, iEnd.m());
+    c.jne(L_1);
+
+    c.ret(iIdx);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(int, int);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func(10, 20);
+    int expectRet = 20;
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_AllocMany1]
 // ============================================================================
 
@@ -2284,6 +2336,7 @@ X86TestSuite::X86TestSuite() :
   // Alloc.
   ADD_TEST(X86Test_AllocBase);
   ADD_TEST(X86Test_AllocManual);
+  ADD_TEST(X86Test_AllocUseMem);
   ADD_TEST(X86Test_AllocMany1);
   ADD_TEST(X86Test_AllocMany2);
   ADD_TEST(X86Test_AllocImul1);
