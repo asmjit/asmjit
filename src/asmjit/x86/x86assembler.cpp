@@ -2021,9 +2021,20 @@ _GroupPop_Gp:
         opReg = static_cast<const GpReg*>(o1)->getRegIndex();
         rmReg = static_cast<const GpReg*>(o0)->getRegIndex();
 
-        // Special opcode for AX/EAX/RAX.
-        if (o0->getSize() > 1 && (opReg == 0 || rmReg == 0)) {
-          opCode = 0x90 + opReg + rmReg; // One of them is zero.
+        // Special opcode for 'xchg ?ax, reg'.
+        if (code == kInstXchg && o0->getSize() > 1 && (opReg == 0 || rmReg == 0)) {
+          // One of them is zero, it doesn't matter if the instruction's form is
+          // 'xchg ?ax, reg' or 'xchg reg, ?ax'.
+          opReg += rmReg; 
+
+          // Rex.B (0x01).
+          if (Arch == kArchX64) {
+            opX += opReg >> 3;
+            opReg &= 0x7;
+          }
+
+          opCode = 0x90 + opReg;
+
           ADD_66H_P(o0->getSize() == 2);
           ADD_REX_W(o0->getSize() == 8);
           goto _EmitX86Op;

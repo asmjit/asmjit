@@ -231,14 +231,14 @@ struct X86Test_JumpCross : public X86Test {
 };
 
 // ============================================================================
-// [X86Test_JumpUnreachable]
+// [X86Test_JumpUnreachable1]
 // ============================================================================
 
-struct X86Test_JumpUnreachable : public X86Test {
-  X86Test_JumpUnreachable() : X86Test("[Jump] Unreachable code") {}
+struct X86Test_JumpUnreachable1 : public X86Test {
+  X86Test_JumpUnreachable1() : X86Test("[Jump] Unreachable #1") {}
 
   static void add(PodVector<X86Test*>& tests) {
-    tests.append(new X86Test_JumpUnreachable());
+    tests.append(new X86Test_JumpUnreachable1());
   }
 
   virtual void compile(Compiler& c) {
@@ -272,6 +272,52 @@ struct X86Test_JumpUnreachable : public X86Test {
     c.jmp(L_2);
     c.bind(L_7);
     c.add(v0, v1);
+
+    c.bind(L_1);
+    c.ret();
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef void (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    func();
+
+    result.appendString("ret={}");
+    expect.appendString("ret={}");
+
+    return true;
+  }
+};
+
+// ============================================================================
+// [X86Test_JumpUnreachable2]
+// ============================================================================
+
+struct X86Test_JumpUnreachable2 : public X86Test {
+  X86Test_JumpUnreachable2() : X86Test("[Jump] Unreachable #2") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_JumpUnreachable2());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder0<FnVoid>());
+
+    Label L_1(c);
+    Label L_2(c);
+
+    GpVar v0(c, kVarTypeUInt32, "v0");
+    GpVar v1(c, kVarTypeUInt32, "v1");
+
+    c.jmp(L_1);
+    c.bind(L_2);
+    c.mov(v0, 1);
+    c.mov(v1, 2);
+    c.cmp(v0, v1);
+    c.jz(L_2);
+    c.jmp(L_1);
 
     c.bind(L_1);
     c.ret();
@@ -2331,7 +2377,8 @@ X86TestSuite::X86TestSuite() :
 
   // Jump.
   ADD_TEST(X86Test_JumpCross);
-  ADD_TEST(X86Test_JumpUnreachable);
+  ADD_TEST(X86Test_JumpUnreachable1);
+  ADD_TEST(X86Test_JumpUnreachable2);
 
   // Alloc.
   ADD_TEST(X86Test_AllocBase);

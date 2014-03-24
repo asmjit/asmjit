@@ -270,11 +270,11 @@ Error BaseContext::removeUnreachableCode() {
 
   while (link != NULL) {
     BaseNode* node = link->getValue();
-    if (node != NULL) {
+    if (node != NULL && node->getPrev() != NULL) {
       // Locate all unreachable nodes.
       BaseNode* first = node;
       do {
-        if (node->isFetched() || (node->getType() == kNodeTypeTarget && static_cast<TargetNode*>(node)->getNumRefs() > 0))
+        if (node->isFetched())
           break;
         node = node->getNext();
       } while (node != stop);
