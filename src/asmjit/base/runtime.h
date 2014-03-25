@@ -74,6 +74,7 @@ struct BaseRuntime {
 // [asmjit::JitRuntime]
 // ============================================================================
 
+//! @brief JIT runtime.
 struct JitRuntime : public BaseRuntime {
   ASMJIT_NO_COPY(JitRuntime)
 

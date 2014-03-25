@@ -23,13 +23,11 @@ namespace asmjit {
 // [asmjit::kVirtualAlloc]
 // ============================================================================
 
-//! @brief Type of virtual memory allocation, see @c asmjit::MemoryManager::alloc().
+//! @brief Type of virtual memory allocation, see @ref MemoryManager::alloc().
 ASMJIT_ENUM(kVirtualAlloc) {
-  //! @brief Normal memory allocation, allocated memory can be free by calling
-  //! @ref asmjit::MemoryManager::free()
-  //! method.
+  //! @brief Normal memory allocation, has to be freed by @ref MemoryManager::release().
   kVirtualAllocFreeable = 0,
-  //! @brief Allocate permanent memory that will be never freed.
+  //! @brief Allocate permanent memory, can't be freed.
   kVirtualAllocPermanent = 1
 };
 

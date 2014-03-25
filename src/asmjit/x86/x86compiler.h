@@ -819,7 +819,7 @@ struct X86X64CallNode : public CallNode {
 //! Compiler c;
 //! GpVar a0(c, kVarTypeIntPtr);
 //!
-//! c.addFunc(kFuncConvHost, BuildFunction1<FnVoid, int*>());
+//! c.addFunc(kFuncConvHost, FuncBuilder1<FnVoid, int*>());
 //! c.setArg(0, a0);
 //!
 //! // Create your variables.
@@ -1277,10 +1277,10 @@ struct X86X64Compiler : public BaseCompiler {
   //! by @c Compiler. First parameter @a cconv specifies function calling
   //! convention to use. Second parameter @a params specifies function
   //! arguments. To create function arguments are used templates
-  //! @c BuildFunction0<...>, @c BuildFunction1<...>, @c BuildFunction2<...>,
+  //! @c FuncBuilder0<...>, @c FuncBuilder1<...>, @c FuncBuilder2<...>,
   //! etc...
   //!
-  //! Templates with BuildFunction prefix are used to generate argument IDs
+  //! Templates with FuncBuilder prefix are used to generate argument IDs
   //! based on real C++ types. See next example how to generate function with
   //! two 32-bit integer arguments.
   //!
@@ -1295,7 +1295,7 @@ struct X86X64Compiler : public BaseCompiler {
   //!   // Default calling convention (32-bit cdecl or 64-bit for host OS)
   //!   kFuncConvHost,
   //!   // Using function builder to generate arguments list
-  //!   BuildFunction2<FnVoid, int, int>());
+  //!   FuncBuilder2<FnVoid, int, int>());
   //!
   //! // End of function (also emits function @c Epilog)
   //! c.endFunc();
@@ -1319,7 +1319,7 @@ struct X86X64Compiler : public BaseCompiler {
   //!   // Default calling convention (32-bit cdecl or 64-bit for host OS)
   //!   kFuncConvHost,
   //!   // Using function builder to generate arguments list
-  //!   BuildFunction2<FnVoid, int, int>());
+  //!   FuncBuilder2<FnVoid, int, int>());
   //!
   //! c.setArg(0, a0);
   //! c.setArg(1, a1);
@@ -1338,7 +1338,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! pointer to @c asmjit::Function returned by @c asmjit::Compiler::addFunc<>
   //! method. Recommended is to save the pointer.
   //!
-  //! @sa @c BuildFunction0, @c BuildFunction1, @c BuildFunction2, ...
+  //! @sa @c FuncBuilder0, @c FuncBuilder1, @c FuncBuilder2, ...
   ASMJIT_API X86X64FuncNode* addFunc(uint32_t conv, const FuncPrototype& p);
 
   //! @brief End of current function.
