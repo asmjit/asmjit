@@ -2310,27 +2310,22 @@ struct X86Test_CallMisc1 : public X86Test {
 
     X86X64FuncNode* func = c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
 
-    GpVar aa(c, kVarTypeInt32, "aa");
-    GpVar ab(c, kVarTypeInt32, "ab");
-
-    c.setArg(0, aa);
-    c.setArg(1, ab);
-
     GpVar a(c, kVarTypeInt32, "a");
     GpVar b(c, kVarTypeInt32, "b");
+    GpVar r(c, kVarTypeInt32, "r");
+
+    c.setArg(0, a);
+    c.setArg(1, b);
 
     c.alloc(a, eax);
     c.alloc(b, ebx);
 
-    c.mov(a, aa);
-    c.mov(b, ab);
-
-    X86X64CallNode* call = c.call(imm_ptr(dummy), kFuncConvHost, FuncBuilder2<void, int, int>());
+    X86X64CallNode* call = c.call(imm_ptr((void*)dummy), kFuncConvHost, FuncBuilder2<void, int, int>());
     call->setArg(0, a);
     call->setArg(1, b);
 
-    c.add(aa, ab);
-    c.ret(aa);
+    c.lea(r, ptr(a, b));
+    c.ret(r);
 
     c.endFunc();
   }
