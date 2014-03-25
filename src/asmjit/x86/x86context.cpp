@@ -3943,7 +3943,10 @@ ASMJIT_INLINE void X86X64CallAlloc::plan() {
         inRegs = va->getAllocableRegs();
       }
 
-      if (regMask & inRegs) {
+      // Optimize situation where the variable has to be allocated in a
+      // mandatory register, but it's already allocated in register that
+      // is not clobbered (i.e. it will survive function call).
+      if ((regMask & inRegs) != 0 || ((regMask & ~clobbered) != 0 && (vaFlags & kVarAttrUnuse) == 0)) {
         va->setInRegIndex(regIndex);
         va->addFlags(kVarAttrAllocInDone);
         addVaDone(C);
@@ -4293,7 +4296,7 @@ ASMJIT_INLINE void X86X64CallAlloc::save() {
       ASMJIT_ASSERT(vd->isModified());
 
       VarAttr* va = vd->getVa();
-      if (va == NULL || !(va->getFlags() & kVarAttrInAll)) {
+      if (va == NULL || (va->getFlags() & (kVarAttrOutReg | kVarAttrUnuse)) == 0) {
         _context->save<C>(vd);
       }
     }
