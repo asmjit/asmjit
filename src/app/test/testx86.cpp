@@ -2292,6 +2292,64 @@ struct X86Test_CallRecursive : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_CallMisc1]
+// ============================================================================
+
+struct X86Test_CallMisc1 : public X86Test {
+  X86Test_CallMisc1() : X86Test("[Call] Misc #1") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_CallMisc1());
+  }
+
+  static void dummy(int a, int b) {}
+
+  virtual void compile(Compiler& c) {
+    GpVar val(c, kVarTypeInt32, "val");
+    Label skip(c);
+
+    X86X64FuncNode* func = c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+
+    GpVar aa(c, kVarTypeInt32, "aa");
+    GpVar ab(c, kVarTypeInt32, "ab");
+
+    c.setArg(0, aa);
+    c.setArg(1, ab);
+
+    GpVar a(c, kVarTypeInt32, "a");
+    GpVar b(c, kVarTypeInt32, "b");
+
+    c.alloc(a, eax);
+    c.alloc(b, ebx);
+
+    c.mov(a, aa);
+    c.mov(b, ab);
+
+    X86X64CallNode* call = c.call(imm_ptr(dummy), kFuncConvHost, FuncBuilder2<void, int, int>());
+    call->setArg(0, a);
+    call->setArg(1, b);
+
+    c.add(aa, ab);
+    c.ret(aa);
+
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(int, int);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func(44, 199);
+    int expectRet = 243;
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_Dummy]
 // ============================================================================
 
@@ -2416,6 +2474,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallConditional);
   ADD_TEST(X86Test_CallMultiple);
   ADD_TEST(X86Test_CallRecursive);
+  ADD_TEST(X86Test_CallMisc1);
 
   // Dummy.
   // ADD_TEST(X86Test_Dummy);
