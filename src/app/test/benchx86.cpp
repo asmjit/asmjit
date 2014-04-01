@@ -16,6 +16,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(ASMJIT_OS_POSIX)
+#include <time.h>
+#endif
+
 // ============================================================================
 // [Performance]
 // ============================================================================
@@ -24,6 +28,12 @@ struct Performance {
   static inline uint32_t now() {
 #if defined(ASMJIT_OS_WINDOWS)
     return ::GetTickCount();
+#elif defined(ASMJIT_OS_POSIX)
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+        return 0;
+    }
+    return (uint32_t)((ts.tv_sec * 1000000L) + (ts.tv_nsec / 1000L));
 #else
     return 0;
 #endif
