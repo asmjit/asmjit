@@ -13,7 +13,7 @@
 #include "../x86/x86defs.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -5387,7 +5387,7 @@ struct Assembler : public X86X64Assembler {
 #undef INST_3i_
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_X86_X86ASSEMBLER_H

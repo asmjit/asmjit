@@ -5,7 +5,7 @@
 // Zlib - See LICENSE.md file in the package.
 
 #if !defined(_ASMJIT_BUILD_H)
-#include "../build.h"
+#include "build.h"
 #endif // !_ASMJIT_BUILD_H
 
 // ============================================================================
@@ -51,4 +51,9 @@
 // # if (__GNUC__ * 10000  + __GNUC_MINOR__ * 100  + __GNUC_PATCHLEVEL__) >= 402001
 // #  pragma GCC diagnostic ignored "-w"
 // # endif
+
+#if __GNUC__ >= 4
+# pragma GCC visibility push(hidden)
+#endif __GNUC__ >= 4
+
 #endif // __GNUC__

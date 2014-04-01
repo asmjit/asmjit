@@ -12,7 +12,7 @@
 #include "../base/intutil.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -115,4 +115,4 @@ Error CodeGen::setFeature(uint32_t feature, bool value) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

@@ -15,7 +15,7 @@
 #include "../base/vmem.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 // This file contains implementation of virtual memory management for AsmJit
 // library. The initial concept is to keep this implementation simple but
@@ -1044,4 +1044,4 @@ void VirtualMemoryManager::setKeepVirtualMemory(bool keepVirtualMemory) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

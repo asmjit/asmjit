@@ -11,10 +11,10 @@
 #include "../base/func.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

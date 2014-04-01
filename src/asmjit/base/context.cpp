@@ -12,7 +12,7 @@
 #include "../base/intutil.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -345,4 +345,4 @@ Error BaseContext::compile(FuncNode* func) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

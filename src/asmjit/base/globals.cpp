@@ -11,7 +11,7 @@
 #include "../base/globals.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -27,4 +27,4 @@ void assertionFailed(const char* exp, const char* file, int line) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

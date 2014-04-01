@@ -19,7 +19,7 @@
 #include <stdarg.h>
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -574,4 +574,4 @@ void BaseCompiler::rename(BaseVar& var, const char* name) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

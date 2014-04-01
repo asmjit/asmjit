@@ -19,7 +19,7 @@
 #include "../base/zone.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -470,7 +470,7 @@ ASMJIT_INLINE Label::Label(BaseAssembler& a) : Operand(NoInit) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_ASSEMBLER_H

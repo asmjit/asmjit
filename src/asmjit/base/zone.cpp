@@ -16,7 +16,7 @@
 #include <stdarg.h>
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -171,4 +171,4 @@ char* Zone::sformat(const char* fmt, ...) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

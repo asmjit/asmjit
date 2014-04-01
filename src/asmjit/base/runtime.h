@@ -12,7 +12,7 @@
 #include "../base/error.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -127,7 +127,7 @@ struct JitRuntime : public BaseRuntime {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_RUNTIME_H

@@ -22,7 +22,7 @@
 #endif // ASMJIT_OS_MAC
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -117,4 +117,4 @@ uint32_t CpuTicks::now() {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

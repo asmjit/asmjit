@@ -12,7 +12,7 @@
 #include "../base/defs.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -1242,7 +1242,7 @@ union Vec256Data {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_VECTYPES_H

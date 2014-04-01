@@ -16,7 +16,7 @@
 #include <stdarg.h>
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -232,7 +232,7 @@ struct StringLogger : public BaseLogger {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_LOGGER_H

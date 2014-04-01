@@ -15,7 +15,7 @@
 #include "../x86/x86defs.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -3333,7 +3333,7 @@ const YmmReg ymm15(kRegTypeYmm, kRegIndexYmm15, 32);
 
 #endif // ASMJIT_BUILD_X64
 
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64

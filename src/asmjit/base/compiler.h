@@ -20,7 +20,7 @@
 #include "../base/runtime.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -1976,7 +1976,7 @@ ASMJIT_INLINE BaseNode::BaseNode(BaseCompiler* compiler, uint32_t type) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_COMPILER_H

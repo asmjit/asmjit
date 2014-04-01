@@ -16,7 +16,7 @@
 #endif // ASMJIT_OS_WINDOWS
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -694,7 +694,7 @@ union UInt64 {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_INTUTIL_H

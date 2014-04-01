@@ -12,7 +12,7 @@
 #include "../build.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -139,7 +139,7 @@ template<typename T, typename Z>
 static ASMJIT_INLINE T asmjit_cast(Z* p) { return (T)p; }
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_GLOBALS_H

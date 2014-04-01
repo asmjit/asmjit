@@ -16,7 +16,7 @@
 #include "../base/runtime.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -110,4 +110,4 @@ Error JitRuntime::release(void* p) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

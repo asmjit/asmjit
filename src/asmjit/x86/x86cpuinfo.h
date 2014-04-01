@@ -13,7 +13,7 @@
 #include "../base/defs.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -217,7 +217,7 @@ ASMJIT_API void hostCpuDetect(CpuInfo* cpuInfo);
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_X86_X86CPUINFO_H

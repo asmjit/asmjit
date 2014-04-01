@@ -13,7 +13,7 @@
 #include "../base/string.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -372,4 +372,4 @@ bool StringBuilder::eq(const char* str, size_t len) const {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

@@ -16,7 +16,7 @@
 #include <stdarg.h>
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -283,4 +283,4 @@ Error BaseAssembler::emit(uint32_t code, const Operand& o0, const Operand& o1, c
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

@@ -12,7 +12,7 @@
 #include "../base/intutil.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -66,4 +66,4 @@ const char* ErrorUtil::asString(Error e) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

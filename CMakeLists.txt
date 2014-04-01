@@ -184,6 +184,9 @@ EndMacro()
 Set(ASMJIT_SRC "")
 
 AsmJit_AddSource(ASMJIT_SRC asmjit
+  apibegin.h
+  apiend.h
+
   asmjit.h
   base.h
   build.h
@@ -194,9 +197,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit
 )
 
 AsmJit_AddSource(ASMJIT_SRC asmjit/base
-  apibegin.h
-  apiend.h
-
   assembler.cpp
   assembler.h
   codegen.cpp

@@ -21,7 +21,7 @@
 #include "../x86/x86func.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -5545,7 +5545,7 @@ Error X86X64Context::serialize(BaseAssembler* assembler, BaseNode* start, BaseNo
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64

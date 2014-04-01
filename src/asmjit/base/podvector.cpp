@@ -12,7 +12,7 @@
 #include "../base/podvector.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -93,4 +93,4 @@ Error PodVectorBase::_reserve(size_t n, size_t sizeOfT) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

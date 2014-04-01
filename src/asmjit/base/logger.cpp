@@ -16,7 +16,7 @@
 #include <stdarg.h>
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -157,4 +157,4 @@ void StringLogger::logString(uint32_t style, const char* buf, size_t len) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

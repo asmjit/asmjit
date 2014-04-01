@@ -22,7 +22,7 @@
 #include "../x86/x86defs.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -3754,7 +3754,7 @@ Error Assembler::_emit(uint32_t code, const Operand& o0, const Operand& o1, cons
 #endif // ASMJIT_BUILD_X64
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64

@@ -15,7 +15,7 @@
 #include "../x86/x86func.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -4232,7 +4232,7 @@ struct Compiler : public X86X64Compiler {
 #undef INST_3i_
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_X86_X86COMPILER_H

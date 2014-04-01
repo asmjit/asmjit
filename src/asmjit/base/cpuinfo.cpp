@@ -30,7 +30,7 @@
 #endif // ASMJIT_OS_POSIX
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -81,4 +81,4 @@ const BaseCpuInfo* BaseCpuInfo::getHost() {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

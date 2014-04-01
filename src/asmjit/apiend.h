@@ -31,4 +31,9 @@
 // ============================================================================
 
 #if defined(__GNUC__)
+
+#if __GNUC__ >= 4
+# pragma GCC visibility pop
+#endif // __GNUC__ >= 4
+
 #endif // __GNUC__

@@ -19,7 +19,7 @@
 #include "../x86/x86context_p.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -652,7 +652,7 @@ Compiler::~Compiler() {}
 #endif // ASMJIT_BUILD_X64
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64

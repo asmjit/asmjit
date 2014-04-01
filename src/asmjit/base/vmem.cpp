@@ -24,7 +24,7 @@
 #endif // ASMJIT_OS_POSIX
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -142,4 +142,4 @@ size_t VMem::getPageSize() {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"

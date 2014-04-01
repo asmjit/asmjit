@@ -17,7 +17,7 @@
 #include "../base/vectypes.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -4196,7 +4196,7 @@ static ASMJIT_INLINE Mem intptr_ptr(const GpVar& base, const GpVar& index, uint3
 #endif // ASMJIT_BUILD_X64
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_X86_X86DEFS_H

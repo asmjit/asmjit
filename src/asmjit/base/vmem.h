@@ -9,7 +9,7 @@
 #define _ASMJIT_BASE_VMEM_H
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -70,7 +70,7 @@ struct VMem {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_VMEM_H

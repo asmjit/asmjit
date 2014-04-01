@@ -14,7 +14,7 @@
 #include "../x86/x86defs.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -487,7 +487,7 @@ struct X86X64FuncDecl : public FuncDecl {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_X86_X86FUNC_H

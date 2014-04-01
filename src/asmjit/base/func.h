@@ -13,7 +13,7 @@
 #include "../base/globals.h"
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -626,7 +626,7 @@ struct FuncBuilder10 : public FuncPrototype {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_FUNC_H

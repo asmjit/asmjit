@@ -22,7 +22,7 @@
 #endif // _MSC_VER >= 1400
 
 // [Api-Begin]
-#include "../base/apibegin.h"
+#include "../apibegin.h"
 
 namespace asmjit {
 namespace x86x64 {
@@ -300,7 +300,7 @@ void hostCpuDetect(CpuInfo* cpuInfo) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../base/apiend.h"
+#include "../apiend.h"
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64
