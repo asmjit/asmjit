@@ -9,7 +9,7 @@
 
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
-#include "../base/cpu.h"
+#include "../base/cpuinfo.h"
 #include "../base/defs.h"
 #include "../base/error.h"
 #include "../base/memorymanager.h"
@@ -65,8 +65,8 @@ uint32_t JitRuntime::getStackAlignment() {
   return alignment;
 }
 
-const BaseCpu* JitRuntime::getCpu() {
-  return BaseCpu::getHost();
+const BaseCpuInfo* JitRuntime::getCpuInfo() {
+  return BaseCpuInfo::getHost();
 }
 
 // ============================================================================

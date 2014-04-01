@@ -12,16 +12,13 @@
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
 
 // [Dependencies - AsmJit]
-#include "../base/assembler.h"
-#include "../base/cpu.h"
-#include "../base/defs.h"
 #include "../base/intutil.h"
 #include "../base/logger.h"
 #include "../base/memorymanager.h"
 #include "../base/runtime.h"
 #include "../base/string.h"
 #include "../x86/x86assembler.h"
-#include "../x86/x86cpu.h"
+#include "../x86/x86cpuinfo.h"
 #include "../x86/x86defs.h"
 
 // [Api-Begin]
@@ -360,7 +357,7 @@ Error X86X64Assembler::_align(uint32_t m) {
   uint8_t* cursor = getCursor();
 
   if (IntUtil::hasBit(_features, kCodeGenOptimizedAlign)) {
-    const Cpu* cpuInfo = static_cast<const Cpu*>(getRuntime()->getCpu());
+    const CpuInfo* cpuInfo = static_cast<const CpuInfo*>(getRuntime()->getCpuInfo());
 
     // NOPs optimized for Intel:
     //   Intel 64 and IA-32 Architectures Software Developer's Manual

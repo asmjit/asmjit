@@ -10,35 +10,45 @@
 
 //! @mainpage
 //!
-//! @brief AsmJit is a complete x86/x64 JIT Assembler for C++ language.
+//! @brief AsmJit - Complete x86/x64 JIT and Remote Assembler for C++.
 //!
-//! It supports FPU, MMX, 3dNow, SSE, SSE2, SSE3 and SSE4 intrinsics, powerful
-//! compiler that helps to write portable functions for 32-bit (x86) and 64-bit
-//! (x64) architectures. AsmJit can be used to create functions at runtime that
-//! can be called from existing (but also generated) C/C++ code.
+//! AsmJit is a complete JIT and remote assembler for C++ language. It can
+//! generate native code for x86 and x64 architectures having support for
+//! a full instruction set, from legacy MMX to the newest AVX2. It has a
+//! type-safe API that allows C++ compiler to do a semantic checks at
+//! compile-time even before the assembled code is generated or run.
 //!
-//! AsmJit is a cross-platform library that supports various compilers and
-//! operating systems. Currently only limitation is x86 (32-bit) or x64 (64-bit)
-//! processor. Currently tested operating systems are Windows (32-bit and 64-bit),
-//! Linux (32-bit and 64-bit) and MacOSX (32-bit and 64-bit).
+//! AsmJit is not a virtual machine (VM). It doesn't have functionality to
+//! implement VM out of the box; however, it can be be used as a JIT backend
+//! for your own VM. The usage of AsmJit is not limited at all; it's suitable
+//! for multimedia, VM backends or remote code generation.
 //!
-//! @section AsmJit_Main_Introduction Introduction
+//! @section AsmJit_Concepts Code Generation Concepts
 //!
-//! AsmJit library contains two main classes for code generation with different
-//! goals. First main code generation class is called @c asmjit::Assembler and
-//! contains low level API that can be used to generate JIT binary code. It
-//! directly emits binary stream that represents encoded x86/x64 assembler
-//! opcodes. Together with operands and labels it can be used to generate
-//! complete code. For details look to @ref asmjit_base and @ref asmjit_compiler
-//! sections.
+//! AsmJit has two completely different code generation concepts. The difference
+//! is in how the code is generated. The first concept, also referred as the low
+//! level concept, is called 'Assembler' and it's the same as writing RAW 
+//! assembly by using physical registers directly. In this case AsmJit does only
+//! instruction encoding, verification and relocation.
 //!
-//! There is also class named @c asmjit::BaseCompiler that allows to develop
-//! cross-platform assembler code without worring about function calling
-//! conventions and registers allocation. It can be also used to write 32-bit
-//! and 64-bit portable code. Compiler is a recommended concept to use for code
-//! generation.
+//! The second concept, also referred as the high level concept, is called
+//! 'Compiler'. Compiler lets you use virtually unlimited number of registers
+//! (called variables) significantly simplifying the code generation process.
+//! Compiler allocates these virtual registers to physical registers after the
+//! code generation is done. This requires some extra effort - Compiler has to
+//! generate information for each node (instruction, function declaration,
+//! function call) in the code, perform a variable liveness analysis and
+//! translate the code having variables into code having only registers.
 //!
-//! Everything in AsmJit library is in @c asmjit namespace.
+//! In addition, Compiler understands functions and function calling conventions.
+//! It has been designed in a way that the code generated is always a function
+//! having prototype like in a programming language. By having a function
+//! prototype the Compiler is able to insert prolog and epilog to a function
+//! being generated and it is able to call a function inside a generated one.
+//!
+//! There is no conclusion on which concept is better. Assembler brings full
+//! control on how the code is generated, while Compiler makes the generation
+//! more portable.
 //!
 //! @section AsmJit_Main_CodeGeneration Code Generation
 //!
@@ -71,7 +81,7 @@
 //!   be freely used by callee. The caller must free all registers before calling
 //!   other function.
 
-//! @defgroup asmjit_base Platform neutral API, abstract classes and operands.
+//! @defgroup asmjit_base Base - base (backend neutral) classes.
 //!
 //! Contains all AsmJit classes and helper functions that are neutral or
 //! abstract. All abstract classes are reimplemented for every supported
@@ -147,7 +157,7 @@
 //!
 //! Contains macros that can be redefined to fit into any project.
 
-//! @defgroup asmjit_cpuinfo CPU information.
+//! @defgroup asmjit_cpuinfo Cpu information.
 //!
 //! X86 or x64 cpuid instruction allows to get information about processor
 //! vendor and it's features. It's always used to detect features like MMX,
@@ -160,8 +170,8 @@
 //!
 //! AsmJit library also contains higher level function @c asmjit::getCpu()
 //! that returns features detected by the library. The detection process is
-//! done only once and the returned object is always the same. @c asmjit::BaseCpu
-//! structure not contains only information through @c asmjit::cpuid(), but
+//! done only once and the returned object is always the same. @c BaseCpuInfo
+//! structure does not contain only information through @c asmjit::cpuid(), but
 //! there is also small multiplatform code to detect number of processors
 //! (or cores) through operating system API.
 //!
@@ -192,29 +202,29 @@
 //! puts(vendor);
 //! @endcode
 //!
-//! If the high-level interface of asmjit::BaseCpu is not enough, you can use
-//! low-level asmjit::cpuid() when running on x86/x64 host, but please read
+//! If the high-level interface of asmjit::BaseCpuInfo is not enough, you can
+//! use low-level asmjit::cpuid() when running on x86/x64 host, but please read
 //! processor manuals provided by Intel, AMD or other manufacturer for cpuid
 //! details.
 //!
-//! Example of using @c asmjit::BaseCpu::getHost():
+//! Example of using @c BaseCpuInfo::getHost():
 //!
 //! @code
 //! // All functions and structures are in asmjit namesapce.
 //! using namespace asmjit;
 //!
-//! // Call to cpuInfo return BaseCpu structure that shouldn't be modified.
+//! // Call to cpuInfo return BaseCpuInfo structure that shouldn't be modified.
 //! // Make it const by default.
-//! const BaseCpu* cpu = BaseCpu::getHost();
+//! const BaseCpuInfo* cpuInfo = BaseCpuInfo::getHost();
 //!
 //! // Now you are able to get specific features.
 //!
 //! // Processor has SSE2
-//! if (cpu->features & kCpuFeatureSse2) {
+//! if (cpuInfo->hasFeature(kCpuFeatureSse2)) {
 //!   // your code...
 //! }
 //! // Processor has MMX
-//! else if (cpu->features & kCpuFeature_MMX) {
+//! else if (cpuInfo->hasFeature(kCpuFeature_MMX)) {
 //!   // your code...
 //! }
 //! // Processor is old, no SSE2 or MMX support.
@@ -224,7 +234,6 @@
 //! @endcode
 //!
 //! Better example is in app/test/testcpu.cpp file.
-
 
 //! @defgroup asmjit_logging Logging and error handling.
 //!

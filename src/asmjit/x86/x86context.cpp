@@ -17,7 +17,7 @@
 #include "../x86/x86assembler.h"
 #include "../x86/x86compiler.h"
 #include "../x86/x86context_p.h"
-#include "../x86/x86cpu.h"
+#include "../x86/x86cpuinfo.h"
 #include "../x86/x86func.h"
 
 // [Api-Begin]

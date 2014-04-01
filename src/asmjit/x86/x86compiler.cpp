@@ -25,6 +25,22 @@ namespace asmjit {
 namespace x86x64 {
 
 // ============================================================================
+// [Debug]
+// ============================================================================
+
+#if !defined(ASMJIT_DEBUG)
+#define ASMJIT_DETECT_UNINITIALIZED(op) \
+  do {} while(0)
+#else
+#define ASMJIT_DETECT_UNINITIALIZED(op) \
+  do { \
+    if (op.isVar() || op.isLabel()) { \
+      ASMJIT_ASSERT(op.getId() != kInvalidValue); \
+    } \
+  } while(0)
+#endif
+
+// ============================================================================
 // [asmjit::x86x64::X86X64CallNode - Prototype]
 // ============================================================================
 
@@ -120,6 +136,7 @@ InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0) {
   {
     Operand* opList = reinterpret_cast<Operand*>(reinterpret_cast<uint8_t*>(inst) + size);
     opList[0] = o0;
+    ASMJIT_DETECT_UNINITIALIZED(o0);
     return X86X64Compiler_newInst(this, inst, code, getOptionsAndClear(), opList, 1);
   }
 
@@ -139,6 +156,8 @@ InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operan
     Operand* opList = reinterpret_cast<Operand*>(reinterpret_cast<uint8_t*>(inst) + size);
     opList[0] = o0;
     opList[1] = o1;
+    ASMJIT_DETECT_UNINITIALIZED(o0);
+    ASMJIT_DETECT_UNINITIALIZED(o1);
     return X86X64Compiler_newInst(this, inst, code, getOptionsAndClear(), opList, 2);
   }
 
@@ -159,6 +178,9 @@ InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operan
     opList[0] = o0;
     opList[1] = o1;
     opList[2] = o2;
+    ASMJIT_DETECT_UNINITIALIZED(o0);
+    ASMJIT_DETECT_UNINITIALIZED(o1);
+    ASMJIT_DETECT_UNINITIALIZED(o2);
     return X86X64Compiler_newInst(this, inst, code, getOptionsAndClear(), opList, 3);
   }
 
@@ -180,6 +202,10 @@ InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operan
     opList[1] = o1;
     opList[2] = o2;
     opList[3] = o3;
+    ASMJIT_DETECT_UNINITIALIZED(o0);
+    ASMJIT_DETECT_UNINITIALIZED(o1);
+    ASMJIT_DETECT_UNINITIALIZED(o2);
+    ASMJIT_DETECT_UNINITIALIZED(o3);
     return X86X64Compiler_newInst(this, inst, code, getOptionsAndClear(), opList, 4);
   }
 
@@ -202,6 +228,11 @@ InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operan
     opList[2] = o2;
     opList[3] = o3;
     opList[4] = o4;
+    ASMJIT_DETECT_UNINITIALIZED(o0);
+    ASMJIT_DETECT_UNINITIALIZED(o1);
+    ASMJIT_DETECT_UNINITIALIZED(o2);
+    ASMJIT_DETECT_UNINITIALIZED(o3);
+    ASMJIT_DETECT_UNINITIALIZED(o4);
     return X86X64Compiler_newInst(this, inst, code, getOptionsAndClear(), opList, 5);
   }
 

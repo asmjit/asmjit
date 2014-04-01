@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_BASE_CPU_H
-#define _ASMJIT_BASE_CPU_H
+#ifndef _ASMJIT_BASE_CPUINFO_H
+#define _ASMJIT_BASE_CPUINFO_H
 
 // [Dependencies - AsmJit]
 #include "../base/globals.h"
@@ -44,12 +44,12 @@ ASMJIT_ENUM(kCpuVendor) {
 };
 
 // ============================================================================
-// [asmjit::BaseCpu]
+// [asmjit::BaseCpuInfo]
 // ============================================================================
 
 //! @brief Base cpu information.
-struct BaseCpu {
-  ASMJIT_NO_COPY(BaseCpu)
+struct BaseCpuInfo {
+  ASMJIT_NO_COPY(BaseCpuInfo)
 
   enum { kFeaturesPerUInt32 = static_cast<int>(sizeof(uint32_t)) * 8 };
 
@@ -57,7 +57,7 @@ struct BaseCpu {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE BaseCpu(uint32_t size = sizeof(BaseCpu)) : _size(size) {}
+  ASMJIT_INLINE BaseCpuInfo(uint32_t size = sizeof(BaseCpuInfo)) : _size(size) {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -88,7 +88,7 @@ struct BaseCpu {
   }
 
   //! @brief Add CPU @a feature.
-  ASMJIT_INLINE BaseCpu& addFeature(uint32_t feature) {
+  ASMJIT_INLINE BaseCpuInfo& addFeature(uint32_t feature) {
     ASMJIT_ASSERT(feature < sizeof(_features) * 8);
 
     _features[feature / kFeaturesPerUInt32] |= (1U << (feature % kFeaturesPerUInt32));
@@ -103,7 +103,7 @@ struct BaseCpu {
   static ASMJIT_API uint32_t detectNumberOfCores();
 
   //! @brief Get host cpu.
-  static ASMJIT_API const BaseCpu* getHost();
+  static ASMJIT_API const BaseCpuInfo* getHost();
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -140,4 +140,4 @@ struct BaseCpu {
 #include "../base/apiend.h"
 
 // [Guard]
-#endif // _ASMJIT_BASE_CPU_H
+#endif // _ASMJIT_BASE_CPUINFO_H

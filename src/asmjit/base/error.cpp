@@ -63,7 +63,7 @@ const char* ErrorUtil::asString(Error e) {
   return errorMessages[IntUtil::iMin<Error>(e, kErrorCount)];
 }
 
-} // AsmJit
+} // asmjit namespace
 
 // [Api-End]
 #include "../base/apiend.h"

@@ -67,16 +67,16 @@ static const CpuFeature x86x64Features[] = {
 };
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
 
-static void printFeatures(const char* prefix, const BaseCpu* cpu, const CpuFeature* data) {
+static void printFeatures(const char* prefix, const BaseCpuInfo* cpuInfo, const CpuFeature* data) {
   for (uint32_t i = 0; i < ASMJIT_ARRAY_SIZE(x86x64Features); i++) {
-    if (cpu->hasFeature(data[i].feature)) {
+    if (cpuInfo->hasFeature(data[i].feature)) {
       printf("%s%s\n", prefix, data[i].description);
     }
   }
 }
 
 int main(int argc, char* argv[]) {
-  const BaseCpu* cpu_ = BaseCpu::getHost();
+  const BaseCpuInfo* cpuInfo_ = BaseCpuInfo::getHost();
 
   // --------------------------------------------------------------------------
   // [Core Features]
@@ -86,28 +86,28 @@ int main(int argc, char* argv[]) {
   printf("========\n");
 
   printf("\nBasic info\n");
-  printf("  Vendor string         : %s\n", cpu_->getVendorString());
-  printf("  Brand string          : %s\n", cpu_->getBrandString());
-  printf("  Family                : %u\n", cpu_->getFamily());
-  printf("  Model                 : %u\n", cpu_->getModel());
-  printf("  Stepping              : %u\n", cpu_->getStepping());
-  printf("  Cores Count           : %u\n", cpu_->getCoresCount());
+  printf("  Vendor string         : %s\n", cpuInfo_->getVendorString());
+  printf("  Brand string          : %s\n", cpuInfo_->getBrandString());
+  printf("  Family                : %u\n", cpuInfo_->getFamily());
+  printf("  Model                 : %u\n", cpuInfo_->getModel());
+  printf("  Stepping              : %u\n", cpuInfo_->getStepping());
+  printf("  Cores Count           : %u\n", cpuInfo_->getCoresCount());
 
   // --------------------------------------------------------------------------
   // [X86 Features]
   // --------------------------------------------------------------------------
 
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-  const x86x64::Cpu* cpu = static_cast<const x86x64::Cpu*>(cpu_);
+  const x86x64::CpuInfo* cpuInfo = static_cast<const x86x64::CpuInfo*>(cpuInfo_);
 
   printf("\nX86/X64 Extended Info:\n");
-  printf("  Processor Type        : %u\n", cpu->getProcessorType());
-  printf("  Brand Index           : %u\n", cpu->getBrandIndex());
-  printf("  CL Flush Cache Line   : %u\n", cpu->getFlushCacheLineSize());
-  printf("  Max logical Processors: %u\n", cpu->getMaxLogicalProcessors());
+  printf("  Processor Type        : %u\n", cpuInfo->getProcessorType());
+  printf("  Brand Index           : %u\n", cpuInfo->getBrandIndex());
+  printf("  CL Flush Cache Line   : %u\n", cpuInfo->getFlushCacheLineSize());
+  printf("  Max logical Processors: %u\n", cpuInfo->getMaxLogicalProcessors());
 
   printf("\nX86/X64 Features:\n");
-  printFeatures("  ", cpu, x86x64Features);
+  printFeatures("  ", cpuInfo, x86x64Features);
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
 
   return 0;

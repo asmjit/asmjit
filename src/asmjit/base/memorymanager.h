@@ -10,6 +10,7 @@
 
 // [Dependencies - AsmJit]
 #include "../base/defs.h"
+#include "../base/error.h"
 
 // [Api-Begin]
 #include "../base/apibegin.h"

@@ -11,7 +11,7 @@
 #include "../base/assembler.h"
 #include "../base/compiler.h"
 #include "../base/context_p.h"
-#include "../base/cpu.h"
+#include "../base/cpuinfo.h"
 #include "../base/intutil.h"
 #include "../base/logger.h"
 

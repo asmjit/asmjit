@@ -155,7 +155,7 @@
 # define ASMJIT_FASTCALL
 # define ASMJIT_STDCALL
 # define ASMJIT_CDECL
-#endif // ASMJIT_HOST
+#endif // ASMJIT_HOST_X86
 
 #if defined(_MSC_VER)
 # define ASMJIT_INLINE __forceinline

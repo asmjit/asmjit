@@ -14,7 +14,7 @@
 #include "../base/apibegin.h"
 
 namespace asmjit {
-} // AsmJit
+} // asmjit namespace
 
 // [Api-End]
 #include "../base/apiend.h"

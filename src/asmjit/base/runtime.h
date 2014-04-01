@@ -21,7 +21,7 @@ namespace asmjit {
 // ============================================================================
 
 struct BaseAssembler;
-struct BaseCpu;
+struct BaseCpuInfo;
 struct MemoryManager;
 
 // ============================================================================
@@ -49,7 +49,7 @@ struct BaseRuntime {
   virtual uint32_t getStackAlignment() = 0;
 
   //! @brief Get CPU information.
-  virtual const BaseCpu* getCpu() = 0;
+  virtual const BaseCpuInfo* getCpuInfo() = 0;
 
   //! @brief Allocate memory for code generated in @a assembler and reloc it
   //! to the target location.
@@ -109,7 +109,7 @@ struct JitRuntime : public BaseRuntime {
   // --------------------------------------------------------------------------
 
   ASMJIT_API virtual uint32_t getStackAlignment();
-  ASMJIT_API virtual const BaseCpu* getCpu();
+  ASMJIT_API virtual const BaseCpuInfo* getCpuInfo();
 
   ASMJIT_API virtual Error add(void** dst, BaseAssembler* assembler);
   ASMJIT_API virtual Error release(void* p);

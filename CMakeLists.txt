@@ -103,6 +103,9 @@ If(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   If(ASMJIT_STATIC)
     List(APPEND ASMJIT_CFLAGS -DASMJIT_STATIC)
   EndIf(ASMJIT_STATIC)
+  If(ASMJIT_STATIC AND NOT WIN32)
+    List(APPEND ASMJIT_CFLAGS -fPIC)
+  EndIf(ASMJIT_STATIC)
 EndIf()
 
 # Dependencies - Base.
@@ -202,8 +205,10 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   compiler.h
   context.cpp
   context_p.h
-  cpu.cpp
-  cpu.h
+  cpuinfo.cpp
+  cpuinfo.h
+  cputicks.cpp
+  cputicks.h
   defs.cpp
   defs.h
   error.cpp
@@ -239,8 +244,8 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
   x86compiler.h
   x86context.cpp
   x86context_p.h
-  x86cpu.cpp
-  x86cpu.h
+  x86cpuinfo.cpp
+  x86cpuinfo.h
   x86defs.cpp
   x86defs.h
   x86func.cpp

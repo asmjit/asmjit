@@ -13,7 +13,7 @@
 
 // [Dependencies - AsmJit]
 #include "../base/intutil.h"
-#include "../x86/x86cpu.h"
+#include "../x86/x86cpuinfo.h"
 
 // 2009-02-05: Thanks to Mike Tajmajer for VC7.1 compiler support. It shouldn't
 // affect x64 compilation, because x64 compiler starts with VS2005 (VC8.0).
@@ -148,31 +148,31 @@ static ASMJIT_INLINE bool cpuVendorEq(const CpuVendor& info, const char* vendorS
 // [asmjit::x86x64::hostCpuDetect]
 // ============================================================================
 
-void hostCpuDetect(Cpu* out) {
+void hostCpuDetect(CpuInfo* cpuInfo) {
   CpuId regs;
 
   uint32_t i;
   uint32_t maxId;
 
   // Clear everything except the '_size' member.
-  ::memset(reinterpret_cast<uint8_t*>(out) + sizeof(uint32_t),
-    0, sizeof(BaseCpu) - sizeof(uint32_t));
+  ::memset(reinterpret_cast<uint8_t*>(cpuInfo) + sizeof(uint32_t),
+    0, sizeof(BaseCpuInfo) - sizeof(uint32_t));
 
   // Fill safe defaults.
-  ::memcpy(out->_vendorString, "Unknown", 8);
-  out->_coresCount = BaseCpu::detectNumberOfCores();
+  ::memcpy(cpuInfo->_vendorString, "Unknown", 8);
+  cpuInfo->_coresCount = BaseCpuInfo::detectNumberOfCores();
 
   // Get vendor string/id.
   hostCpuId(0, 0, &regs);
 
   maxId = regs.eax;
-  ::memcpy(out->_vendorString, &regs.ebx, 4);
-  ::memcpy(out->_vendorString + 4, &regs.edx, 4);
-  ::memcpy(out->_vendorString + 8, &regs.ecx, 4);
+  ::memcpy(cpuInfo->_vendorString, &regs.ebx, 4);
+  ::memcpy(cpuInfo->_vendorString + 4, &regs.edx, 4);
+  ::memcpy(cpuInfo->_vendorString + 8, &regs.ecx, 4);
 
   for (i = 0; i < 3; i++) {
-    if (cpuVendorEq(cpuVendorTable[i], out->_vendorString)) {
-      out->_vendorId = cpuVendorTable[i].id;
+    if (cpuVendorEq(cpuVendorTable[i], cpuInfo->_vendorString)) {
+      cpuInfo->_vendorId = cpuVendorTable[i].id;
       break;
     }
   }
@@ -181,72 +181,72 @@ void hostCpuDetect(Cpu* out) {
   hostCpuId(1, 0, &regs);
 
   // Fill family and model fields.
-  out->_family   = (regs.eax >> 8) & 0x0F;
-  out->_model    = (regs.eax >> 4) & 0x0F;
-  out->_stepping = (regs.eax     ) & 0x0F;
+  cpuInfo->_family   = (regs.eax >> 8) & 0x0F;
+  cpuInfo->_model    = (regs.eax >> 4) & 0x0F;
+  cpuInfo->_stepping = (regs.eax     ) & 0x0F;
 
   // Use extended family and model fields.
-  if (out->_family == 0x0F) {
-    out->_family += ((regs.eax >> 20) & 0xFF);
-    out->_model  += ((regs.eax >> 16) & 0x0F) << 4;
+  if (cpuInfo->_family == 0x0F) {
+    cpuInfo->_family += ((regs.eax >> 20) & 0xFF);
+    cpuInfo->_model  += ((regs.eax >> 16) & 0x0F) << 4;
   }
 
-  out->_processorType        = ((regs.eax >> 12) & 0x03);
-  out->_brandIndex           = ((regs.ebx      ) & 0xFF);
-  out->_flushCacheLineSize   = ((regs.ebx >>  8) & 0xFF) * 8;
-  out->_maxLogicalProcessors = ((regs.ebx >> 16) & 0xFF);
+  cpuInfo->_processorType        = ((regs.eax >> 12) & 0x03);
+  cpuInfo->_brandIndex           = ((regs.ebx      ) & 0xFF);
+  cpuInfo->_flushCacheLineSize   = ((regs.ebx >>  8) & 0xFF) * 8;
+  cpuInfo->_maxLogicalProcessors = ((regs.ebx >> 16) & 0xFF);
 
-  if (regs.ecx & 0x00000001U) out->addFeature(kCpuFeatureSse3);
-  if (regs.ecx & 0x00000002U) out->addFeature(kCpuFeaturePclmulqdq);
-  if (regs.ecx & 0x00000008U) out->addFeature(kCpuFeatureMonitorMWait);
-  if (regs.ecx & 0x00000200U) out->addFeature(kCpuFeatureSsse3);
-  if (regs.ecx & 0x00002000U) out->addFeature(kCpuFeatureCmpXchg16B);
-  if (regs.ecx & 0x00080000U) out->addFeature(kCpuFeatureSse41);
-  if (regs.ecx & 0x00100000U) out->addFeature(kCpuFeatureSse42);
-  if (regs.ecx & 0x00400000U) out->addFeature(kCpuFeatureMovbe);
-  if (regs.ecx & 0x00800000U) out->addFeature(kCpuFeaturePopcnt);
-  if (regs.ecx & 0x02000000U) out->addFeature(kCpuFeatureAesni);
-  if (regs.ecx & 0x40000000U) out->addFeature(kCpuFeatureRdrand);
+  if (regs.ecx & 0x00000001U) cpuInfo->addFeature(kCpuFeatureSse3);
+  if (regs.ecx & 0x00000002U) cpuInfo->addFeature(kCpuFeaturePclmulqdq);
+  if (regs.ecx & 0x00000008U) cpuInfo->addFeature(kCpuFeatureMonitorMWait);
+  if (regs.ecx & 0x00000200U) cpuInfo->addFeature(kCpuFeatureSsse3);
+  if (regs.ecx & 0x00002000U) cpuInfo->addFeature(kCpuFeatureCmpXchg16B);
+  if (regs.ecx & 0x00080000U) cpuInfo->addFeature(kCpuFeatureSse41);
+  if (regs.ecx & 0x00100000U) cpuInfo->addFeature(kCpuFeatureSse42);
+  if (regs.ecx & 0x00400000U) cpuInfo->addFeature(kCpuFeatureMovbe);
+  if (regs.ecx & 0x00800000U) cpuInfo->addFeature(kCpuFeaturePopcnt);
+  if (regs.ecx & 0x02000000U) cpuInfo->addFeature(kCpuFeatureAesni);
+  if (regs.ecx & 0x40000000U) cpuInfo->addFeature(kCpuFeatureRdrand);
 
-  if (regs.edx & 0x00000010U) out->addFeature(kCpuFeatureRdtsc);
-  if (regs.edx & 0x00000100U) out->addFeature(kCpuFeatureCmpXchg8B);
-  if (regs.edx & 0x00008000U) out->addFeature(kCpuFeatureCmov);
-  if (regs.edx & 0x00800000U) out->addFeature(kCpuFeatureMmx);
-  if (regs.edx & 0x01000000U) out->addFeature(kCpuFeatureFxsr);
-  if (regs.edx & 0x02000000U) out->addFeature(kCpuFeatureSse).addFeature(kCpuFeatureMmxExt);
-  if (regs.edx & 0x04000000U) out->addFeature(kCpuFeatureSse).addFeature(kCpuFeatureSse2);
-  if (regs.edx & 0x10000000U) out->addFeature(kCpuFeatureMultithreading);
+  if (regs.edx & 0x00000010U) cpuInfo->addFeature(kCpuFeatureRdtsc);
+  if (regs.edx & 0x00000100U) cpuInfo->addFeature(kCpuFeatureCmpXchg8B);
+  if (regs.edx & 0x00008000U) cpuInfo->addFeature(kCpuFeatureCmov);
+  if (regs.edx & 0x00800000U) cpuInfo->addFeature(kCpuFeatureMmx);
+  if (regs.edx & 0x01000000U) cpuInfo->addFeature(kCpuFeatureFxsr);
+  if (regs.edx & 0x02000000U) cpuInfo->addFeature(kCpuFeatureSse).addFeature(kCpuFeatureMmxExt);
+  if (regs.edx & 0x04000000U) cpuInfo->addFeature(kCpuFeatureSse).addFeature(kCpuFeatureSse2);
+  if (regs.edx & 0x10000000U) cpuInfo->addFeature(kCpuFeatureMultithreading);
 
-  if (out->_vendorId == kCpuVendorAmd && (regs.edx & 0x10000000U)) {
+  if (cpuInfo->_vendorId == kCpuVendorAmd && (regs.edx & 0x10000000U)) {
     // AMD sets Multithreading to ON if it has more cores.
-    if (out->_coresCount == 1)
-      out->_coresCount = 2;
+    if (cpuInfo->_coresCount == 1)
+      cpuInfo->_coresCount = 2;
   }
 
   // Detect AVX.
   if (regs.ecx & 0x10000000U) {
-    out->addFeature(kCpuFeatureAvx);
+    cpuInfo->addFeature(kCpuFeatureAvx);
 
-    if (regs.ecx & 0x00000800U) out->addFeature(kCpuFeatureXop);
-    if (regs.ecx & 0x00004000U) out->addFeature(kCpuFeatureFma3);
-    if (regs.ecx & 0x00010000U) out->addFeature(kCpuFeatureFma4);
-    if (regs.ecx & 0x20000000U) out->addFeature(kCpuFeatureF16C);
+    if (regs.ecx & 0x00000800U) cpuInfo->addFeature(kCpuFeatureXop);
+    if (regs.ecx & 0x00004000U) cpuInfo->addFeature(kCpuFeatureFma3);
+    if (regs.ecx & 0x00010000U) cpuInfo->addFeature(kCpuFeatureFma4);
+    if (regs.ecx & 0x20000000U) cpuInfo->addFeature(kCpuFeatureF16C);
   }
 
   // Detect new features if the processor supports CPUID-07.
   if (maxId >= 7) {
     hostCpuId(7, 0, &regs);
 
-    if (regs.ebx & 0x00000001) out->addFeature(kCpuFeatureFsGsBase);
-    if (regs.ebx & 0x00000008) out->addFeature(kCpuFeatureBmi);
-    if (regs.ebx & 0x00000010) out->addFeature(kCpuFeatureHle);
-    if (regs.ebx & 0x00000100) out->addFeature(kCpuFeatureBmi2);
-    if (regs.ebx & 0x00000200) out->addFeature(kCpuFeatureRepMovsbStosbExt);
-    if (regs.ebx & 0x00000800) out->addFeature(kCpuFeatureRtm);
+    if (regs.ebx & 0x00000001) cpuInfo->addFeature(kCpuFeatureFsGsBase);
+    if (regs.ebx & 0x00000008) cpuInfo->addFeature(kCpuFeatureBmi);
+    if (regs.ebx & 0x00000010) cpuInfo->addFeature(kCpuFeatureHle);
+    if (regs.ebx & 0x00000100) cpuInfo->addFeature(kCpuFeatureBmi2);
+    if (regs.ebx & 0x00000200) cpuInfo->addFeature(kCpuFeatureRepMovsbStosbExt);
+    if (regs.ebx & 0x00000800) cpuInfo->addFeature(kCpuFeatureRtm);
 
     // AVX2 depends on AVX.
-    if (out->hasFeature(kCpuFeatureAvx)) {
-      if (regs.ebx & 0x00000020) out->addFeature(kCpuFeatureAvx2);
+    if (cpuInfo->hasFeature(kCpuFeatureAvx)) {
+      if (regs.ebx & 0x00000020) cpuInfo->addFeature(kCpuFeatureAvx2);
     }
   }
 
@@ -255,25 +255,25 @@ void hostCpuDetect(Cpu* out) {
   hostCpuId(0x80000000, 0, &regs);
 
   uint32_t maxExtId = IntUtil::iMin<uint32_t>(regs.eax, 0x80000004);
-  uint32_t* brand = reinterpret_cast<uint32_t*>(out->_brandString);
+  uint32_t* brand = reinterpret_cast<uint32_t*>(cpuInfo->_brandString);
 
   for (i = 0x80000001; i <= maxExtId; i++) {
     hostCpuId(i, 0, &regs);
 
     switch (i) {
       case 0x80000001:
-        if (regs.ecx & 0x00000001U) out->addFeature(kCpuFeatureLahfSahf);
-        if (regs.ecx & 0x00000020U) out->addFeature(kCpuFeatureLzcnt);
-        if (regs.ecx & 0x00000040U) out->addFeature(kCpuFeatureSse4A);
-        if (regs.ecx & 0x00000080U) out->addFeature(kCpuFeatureMsse);
-        if (regs.ecx & 0x00000100U) out->addFeature(kCpuFeaturePrefetch);
+        if (regs.ecx & 0x00000001U) cpuInfo->addFeature(kCpuFeatureLahfSahf);
+        if (regs.ecx & 0x00000020U) cpuInfo->addFeature(kCpuFeatureLzcnt);
+        if (regs.ecx & 0x00000040U) cpuInfo->addFeature(kCpuFeatureSse4A);
+        if (regs.ecx & 0x00000080U) cpuInfo->addFeature(kCpuFeatureMsse);
+        if (regs.ecx & 0x00000100U) cpuInfo->addFeature(kCpuFeaturePrefetch);
 
-        if (regs.edx & 0x00100000U) out->addFeature(kCpuFeatureExecuteDisableBit);
-        if (regs.edx & 0x00200000U) out->addFeature(kCpuFeatureFfxsr);
-        if (regs.edx & 0x00400000U) out->addFeature(kCpuFeatureMmxExt);
-        if (regs.edx & 0x08000000U) out->addFeature(kCpuFeatureRdtscp);
-        if (regs.edx & 0x40000000U) out->addFeature(kCpuFeature3dNowExt).addFeature(kCpuFeatureMmxExt);
-        if (regs.edx & 0x80000000U) out->addFeature(kCpuFeature3dNow);
+        if (regs.edx & 0x00100000U) cpuInfo->addFeature(kCpuFeatureExecuteDisableBit);
+        if (regs.edx & 0x00200000U) cpuInfo->addFeature(kCpuFeatureFfxsr);
+        if (regs.edx & 0x00400000U) cpuInfo->addFeature(kCpuFeatureMmxExt);
+        if (regs.edx & 0x08000000U) cpuInfo->addFeature(kCpuFeatureRdtscp);
+        if (regs.edx & 0x40000000U) cpuInfo->addFeature(kCpuFeature3dNowExt).addFeature(kCpuFeatureMmxExt);
+        if (regs.edx & 0x80000000U) cpuInfo->addFeature(kCpuFeature3dNow);
         break;
 
       case 0x80000002:
@@ -292,7 +292,7 @@ void hostCpuDetect(Cpu* out) {
   }
 
   // Simplify the brand string (remove unnecessary spaces to make printing nicer).
-  cpuSimplifyBrandString(out->_brandString);
+  cpuSimplifyBrandString(cpuInfo->_brandString);
 }
 #endif
 

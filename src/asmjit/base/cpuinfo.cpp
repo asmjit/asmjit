@@ -8,10 +8,10 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies - AsmJit]
-#include "../base/cpu.h"
+#include "../base/cpuinfo.h"
 
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-#include "../x86/x86cpu.h"
+#include "../x86/x86cpuinfo.h"
 #else
 // ?
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
@@ -35,10 +35,10 @@
 namespace asmjit {
 
 // ============================================================================
-// [asmjit::BaseCpu - DetectNumberOfCores]
+// [asmjit::BaseCpuInfo - DetectNumberOfCores]
 // ============================================================================
 
-uint32_t BaseCpu::detectNumberOfCores() {
+uint32_t BaseCpuInfo::detectNumberOfCores() {
 #if defined(ASMJIT_OS_WINDOWS)
   SYSTEM_INFO info;
   ::GetSystemInfo(&info);
@@ -56,28 +56,29 @@ uint32_t BaseCpu::detectNumberOfCores() {
 }
 
 // ============================================================================
-// [asmjit::BaseCpu - GetHost]
+// [asmjit::BaseCpuInfo - GetHost]
 // ============================================================================
 
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-struct HostCpu : public x86x64::Cpu {
-  ASMJIT_INLINE HostCpu() : Cpu() { hostCpuDetect(this); }
+struct HostCpuInfo : public x86x64::CpuInfo {
+  ASMJIT_INLINE HostCpuInfo() : CpuInfo() {
+    x86x64::hostCpuDetect(this);
+  }
 };
 #else
 #error "AsmJit - Unsupported CPU."
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
 
-const BaseCpu* BaseCpu::getHost()
-{
+const BaseCpuInfo* BaseCpuInfo::getHost() {
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-  static HostCpu cpu;
+  static HostCpuInfo cpuInfo;
 #else
 #error "AsmJit - Unsupported CPU."
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
-  return &cpu;
+  return &cpuInfo;
 }
 
-} // AsmJit
+} // asmjit namespace
 
 // [Api-End]
 #include "../base/apiend.h"

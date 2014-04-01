@@ -5,11 +5,11 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_X86_X86CPU_H
-#define _ASMJIT_X86_X86CPU_H
+#ifndef _ASMJIT_X86_X86CPUINFO_H
+#define _ASMJIT_X86_X86CPUINFO_H
 
 // [Dependencies - AsmJit]
-#include "../base/cpu.h"
+#include "../base/cpuinfo.h"
 #include "../base/defs.h"
 
 // [Api-Begin]
@@ -140,17 +140,18 @@ union CpuId {
 };
 
 // ============================================================================
-// [asmjit::x86x64::Cpu]
+// [asmjit::x86x64::CpuInfo]
 // ============================================================================
 
-struct Cpu : public BaseCpu {
-  ASMJIT_NO_COPY(Cpu)
+struct CpuInfo : public BaseCpuInfo {
+  ASMJIT_NO_COPY(CpuInfo)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE Cpu(uint32_t size = sizeof(Cpu)) : BaseCpu(size) {}
+  ASMJIT_INLINE CpuInfo(uint32_t size = sizeof(CpuInfo)) :
+    BaseCpuInfo(size) {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -181,8 +182,8 @@ struct Cpu : public BaseCpu {
   // --------------------------------------------------------------------------
 
   //! @brief Get global instance of @ref X86CpuInfo.
-  static ASMJIT_INLINE const Cpu* getHost() {
-    return static_cast<const Cpu*>(BaseCpu::getHost());
+  static ASMJIT_INLINE const CpuInfo* getHost() {
+    return static_cast<const CpuInfo*>(BaseCpuInfo::getHost());
   }
 
   // --------------------------------------------------------------------------
@@ -204,18 +205,10 @@ struct Cpu : public BaseCpu {
 // ============================================================================
 
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-//! @brief Calls CPUID instruction with eax == @a inEax and ecx === @a inEcx
-//! and stores the result to @a result.
-//!
-//! @c cpuid() function has one input parameter that is passed to cpuid through
-//! eax register and results in four output values representing result of cpuid
-//! instruction (eax, ebx, ecx and edx registers).
+//! @brief Get the result of calling CPUID instruction.
 ASMJIT_API void hostCpuId(uint32_t inEax, uint32_t inEcx, CpuId* result);
-
-//! @brief Detect CPU features to x86x64::Cpu structure @a out.
-//!
-//! @sa @c BaseCpu.
-ASMJIT_API void hostCpuDetect(Cpu* out);
+//! @brief Detect host CPU.
+ASMJIT_API void hostCpuDetect(CpuInfo* cpuInfo);
 #endif // ASMJIT_HOST_X86 || ASMJIT_HOST_X64
 
 //! @}
@@ -227,4 +220,4 @@ ASMJIT_API void hostCpuDetect(Cpu* out);
 #include "../base/apiend.h"
 
 // [Guard]
-#endif // _ASMJIT_X86_X86CPU_H
+#endif // _ASMJIT_X86_X86CPUINFO_H
