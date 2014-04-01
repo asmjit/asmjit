@@ -2022,7 +2022,7 @@ _GroupPop_Gp:
         if (code == kInstXchg && o0->getSize() > 1 && (opReg == 0 || rmReg == 0)) {
           // One of them is zero, it doesn't matter if the instruction's form is
           // 'xchg ?ax, reg' or 'xchg reg, ?ax'.
-          opReg += rmReg; 
+          opReg += rmReg;
 
           // Rex.B (0x01).
           if (Arch == kArchX64) {

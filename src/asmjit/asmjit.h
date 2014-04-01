@@ -27,7 +27,7 @@
 //!
 //! AsmJit has two completely different code generation concepts. The difference
 //! is in how the code is generated. The first concept, also referred as the low
-//! level concept, is called 'Assembler' and it's the same as writing RAW 
+//! level concept, is called 'Assembler' and it's the same as writing RAW
 //! assembly by using physical registers directly. In this case AsmJit does only
 //! instruction encoding, verification and relocation.
 //!

@@ -781,7 +781,7 @@ void X86X64Context::emitMoveVarOnStack(
       // Move DWORD (Mm).
       if (IntUtil::inInterval<uint32_t>(srcType, kVarTypeMm, kVarTypeMm))
         goto _MovMmD;
-       
+
       // Move DWORD (Xmm).
       if (IntUtil::inInterval<uint32_t>(srcType, kVarTypeXmm, kVarTypeXmmPd))
         goto _MovXmmD;
@@ -2522,7 +2522,7 @@ _NextGroup:
           // If this is a stack-based argument we insert SArgNode instead of
           // using VarAttr. It improves the code, because the argument can be
           // moved onto stack as soon as it is ready and the register used by
-          // the variable can be reused for something else. It is also much 
+          // the variable can be reused for something else. It is also much
           // easier to handle argument conversions, because there will be at
           // most only one node per conversion.
           else {
@@ -2772,7 +2772,7 @@ _NoMemory:
 // [asmjit::x86x64::X86X64Context - Annotate]
 // ============================================================================
 
-static void X86X64Context_annotateVariable(X86X64Context* self, 
+static void X86X64Context_annotateVariable(X86X64Context* self,
   StringBuilder& sb, const VarData* vd) {
 
   const char* name = vd->getName();
@@ -2865,7 +2865,7 @@ static void X86X64Context_annotateOperand(X86X64Context* self,
   }
 }
 
-static bool X86X64Context_annotateInstruction(X86X64Context* self, 
+static bool X86X64Context_annotateInstruction(X86X64Context* self,
   StringBuilder& sb, uint32_t code, const Operand* opList, uint32_t opCount) {
 
   sb.appendString(_instInfo[code].getName());

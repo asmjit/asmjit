@@ -13,6 +13,7 @@
 // [Dependencies - Posix]
 #if defined(ASMJIT_OS_POSIX)
 # include <time.h>
+# include <unistd.h>
 #endif // ASMJIT_OS_POSIX
 
 // [Dependencies - Mac]
@@ -105,7 +106,7 @@ uint32_t CpuTicks::now() {
     return 0;
 
   uint64_t t = (uint64_t(ts.tv_sec ) * 1000) + (uint64_t(ts.tv_nsec) / 1000000);
-  return static_cast<uint32_t>(t & 0xFFFFFFFFU)
+  return static_cast<uint32_t>(t & 0xFFFFFFFFU);
 #else  // _POSIX_MONOTONIC_CLOCK
 #error "AsmJit - Unsupported OS."
   return 0;
