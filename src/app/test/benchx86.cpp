@@ -22,11 +22,7 @@
 
 struct Performance {
   static inline uint32_t now() {
-#if defined(ASMJIT_OS_WINDOWS)
-    return ::GetTickCount();
-#else
-    return 0;
-#endif
+    return asmjit::CpuTicks::now();
   }
 
   inline void reset() {
