@@ -1483,8 +1483,10 @@ ASMJIT_ENUM(kInstGroup) {
   kInstGroupX86Lea,
   //! @brief Mov.
   kInstGroupX86Mov,
-  //! @brief Movsx/Movsxd/Movzx.
+  //! @brief Movsx/Movzx.
   kInstGroupX86MovSxZx,
+  //! @brief Movsxd.
+  kInstGroupX86MovSxd,
   //! @brief Mov having absolute memory operand (x86/x64).
   kInstGroupX86MovPtr,
   //! @brief Push.

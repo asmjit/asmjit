@@ -1717,6 +1717,24 @@ _Prepare:
       }
       break;
 
+    case kInstGroupX86MovSxd:
+      if (encoded == ENC_OPS(Reg, Reg, None)) {
+        ADD_REX_W(true);
+
+        opReg = static_cast<const GpReg*>(o0)->getRegIndex();
+        rmReg = static_cast<const GpReg*>(o1)->getRegIndex();
+        goto _EmitX86R;
+      }
+
+      if (encoded == ENC_OPS(Reg, Mem, None)) {
+        ADD_REX_W(true);
+
+        opReg = static_cast<const GpReg*>(o0)->getRegIndex();
+        rmMem = static_cast<const Mem*>(o1);
+        goto _EmitX86M;
+      }
+      break;
+
     case kInstGroupX86MovPtr:
       if (encoded == ENC_OPS(Reg, Imm, None)) {
         ASMJIT_ASSERT(static_cast<const GpReg*>(o0)->getRegIndex() == 0);
