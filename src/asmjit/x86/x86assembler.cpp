@@ -1160,8 +1160,7 @@ _Prepare:
           ADD_66H_P(o0->getSize() == 2);
           ADD_REX_W(o0->getSize() == 8);
 
-          if (imLen == 1)
-            imLen = 4;
+          imLen = IntUtil::iMin<uint32_t>(o0->getSize(), 4);
           goto _EmitX86OpI;
         }
 
