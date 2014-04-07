@@ -8,6 +8,10 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # [AsmJit - Configuration]
 # =============================================================================
 
+# Whether not to build anything (the source will be included by another library
+# or executable).
+# Set(ASMJIT_EMBED FALSE)
+
 # Whether to build static library (default FALSE).
 # Set(ASMJIT_STATIC FALSE)
 
@@ -17,6 +21,10 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # =============================================================================
 # [AsmJit - Build]
 # =============================================================================
+
+If(ASMJIT_EMBED)
+  Set(ASMJIT_STATIC TRUE)
+EndIf()
 
 If(NOT CMAKE_PROJECT_NAME)
   Project(asmjit C CXX)
@@ -78,9 +86,15 @@ If(MSVC)
   If(WIN32)
     List(APPEND ASMJIT_CFLAGS /D_UNICODE)
   EndIf()
+
   If(ASMJIT_STATIC)
     List(APPEND ASMJIT_CFLAGS /DASMJIT_STATIC)
-  EndIf(ASMJIT_STATIC)
+  EndIf()
+
+  # Enable multi-process compilation.
+  If(NOT MSVC60 AND NOT MSVC70 AND NOT MSVC71)
+     List(APPEND ASMJIT_CFLAGS /MP)
+  EndIf()
 EndIf()
 
 # GCC.
@@ -102,10 +116,7 @@ If(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   EndIf()
   If(ASMJIT_STATIC)
     List(APPEND ASMJIT_CFLAGS -DASMJIT_STATIC)
-  EndIf(ASMJIT_STATIC)
-  If(ASMJIT_STATIC AND NOT WIN32)
-    List(APPEND ASMJIT_CFLAGS -fPIC)
-  EndIf(ASMJIT_STATIC AND NOT WIN32)
+  EndIf()
 EndIf()
 
 # Dependencies - Base.
@@ -278,13 +289,15 @@ EndIf()
 # [Asmjit - Library]
 # =============================================================================
 
-AsmJit_AddLibrary(asmjit
-  "${ASMJIT_SRC}"
-  "${ASMJIT_DEPS}"
-  "${ASMJIT_CFLAGS}"
-  "${ASMJIT_CFLAGS_DBG}"
-  "${ASMJIT_CFLAGS_REL}"
-)
+If(NOT ASMJIT_EMBED)
+  AsmJit_AddLibrary(asmjit
+    "${ASMJIT_SRC}"
+    "${ASMJIT_DEPS}"
+    "${ASMJIT_CFLAGS}"
+    "${ASMJIT_CFLAGS_DBG}"
+    "${ASMJIT_CFLAGS_REL}"
+  )
+EndIf()
 
 # =============================================================================
 # [Asmjit - Samples]
