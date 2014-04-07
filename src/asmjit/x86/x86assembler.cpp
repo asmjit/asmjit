@@ -3185,7 +3185,6 @@ _EmitX86M:
       EMIT_BYTE(0x67);
   }
 
-
   // Segment override prefix.
   if (rmMem->hasSegment()) {
     EMIT_BYTE(x86SegmentPrefix[rmMem->getSegment()]);

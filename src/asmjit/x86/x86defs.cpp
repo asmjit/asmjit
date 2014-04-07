@@ -3146,6 +3146,7 @@ Mem ptr_abs(Ptr pAbs, const X86Reg& index, uint32_t shift, int32_t disp, uint32_
   Mem m(NoInit);
   uint32_t flags = shift << kMemShiftIndex;
 
+  if (index.isGp()) flags |= Mem::_getGpdFlags(reinterpret_cast<const BaseVar&>(index));
   if (index.isXmm()) flags |= kMemVSibXmm << kMemVSibIndex;
   if (index.isYmm()) flags |= kMemVSibYmm << kMemVSibIndex;
 
@@ -3160,6 +3161,7 @@ Mem ptr_abs(Ptr pAbs, const X86Var& index, uint32_t shift, int32_t disp, uint32_
   Mem m(NoInit);
   uint32_t flags = shift << kMemShiftIndex;
 
+  if (index.isGp()) flags |= Mem::_getGpdFlags(reinterpret_cast<const BaseVar&>(index));
   if (index.isXmm()) flags |= kMemVSibXmm << kMemVSibIndex;
   if (index.isYmm()) flags |= kMemVSibYmm << kMemVSibIndex;
 
