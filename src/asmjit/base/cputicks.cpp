@@ -90,7 +90,7 @@ uint32_t CpuTicks::now() {
   uint64_t t = mach_absolute_time() / 1000000;
 
   t = t * CpuTicks_machTime.numer / CpuTicks_machTime.denom;
-  return static_cast<uint32_t>(t & 0xFFFFFFFFU)
+  return static_cast<uint32_t>(t & 0xFFFFFFFFU);
 }
 
 // ============================================================================
