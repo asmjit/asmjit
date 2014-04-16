@@ -3340,7 +3340,7 @@ _EmitSib:
 
       if (label->offset != -1) {
         // Bound label.
-        dispOffset += static_cast<int32_t>((intptr_t)(cursor - self->_buffer) - label->offset);
+        dispOffset += label->offset - static_cast<int32_t>((intptr_t)(cursor - self->_buffer));
         EMIT_DWORD(static_cast<int32_t>(dispOffset));
       }
       else {
