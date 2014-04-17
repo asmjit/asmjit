@@ -1533,6 +1533,8 @@ ASMJIT_ENUM(kInstGroup) {
   kInstGroupExtRm_P,
   //! @brief Mm/Xmm instruction (propagates REX.W if GPQ is used).
   kInstGroupExtRm_Q,
+  //! @brief Mm/Xmm instruction (propagates 66H and REX.W).
+  kInstGroupExtRm_PQ,
   //! @brief Mm/Xmm instruction having Rm/Ri encodings.
   kInstGroupExtRmRi,
   //! @brief Mm/Xmm instruction having Rm/Ri encodings (propagates 66H if the instruction uses XMM register).

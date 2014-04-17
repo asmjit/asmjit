@@ -2467,6 +2467,10 @@ _EmitMmMovD:
       }
       break;
 
+    case kInstGroupExtRm_PQ:
+      ADD_66H_P(o0->isRegType(kRegTypeXmm) || o1->isRegType(kRegTypeXmm));
+      // ... Fall through ...
+
     case kInstGroupExtRm_Q:
       ADD_REX_W(o0->isRegType(kRegTypeGpq) || o1->isRegType(kRegTypeGpq) || (o1->isMem() && o1->getSize() == 8));
       // ... Fall through ...
