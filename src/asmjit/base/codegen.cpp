@@ -29,7 +29,7 @@ CodeGen::CodeGen(BaseRuntime* runtime) :
   _error(kErrorOk),
   _features(IntUtil::mask(kCodeGenOptimizedAlign)),
   _options(0),
-  _zoneAllocator(16384 - sizeof(Zone::Chunk) - kMemAllocOverhead) {}
+  _baseZone(16384 - sizeof(Zone::Chunk) - kMemAllocOverhead) {}
 
 CodeGen::~CodeGen() {
   if (_errorHandler != NULL)

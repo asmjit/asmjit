@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_BASE_ZONE_H
 #define _ASMJIT_BASE_ZONE_H
 
+// [Dependencies]
+#include "../base/globals.h"
+
 // [Api-Begin]
 #include "../apibegin.h"
 

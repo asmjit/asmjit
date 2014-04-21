@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
   size_t i;
   size_t count = 200000;
 
-  printf("Memory alloc/free test - %d allocations\n\n", (int)count);
+  printf("Memory alloc/free test - %d allocations.\n\n", (int)count);
 
   void** a = (void**)::malloc(sizeof(void*) * count);
   void** b = (void**)::malloc(sizeof(void*) * count);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     ::memset(a[i], 0, r);
   }
 
-  printf("done\n");
+  printf("Done.\n");
   stats(memmgr);
 
   printf("\n");
@@ -91,16 +91,16 @@ int main(int argc, char* argv[]) {
 
   for (i = 0; i < count; i++) {
     if (memmgr->release(a[i]) != kErrorOk) {
-      printf("Failed to free %p\n", b[i]);
+      printf("Failed to free %p.\n", b[i]);
       problems++;
     }
   }
 
-  printf("done\n");
+  printf("Done.\n");
   stats(memmgr);
 
   printf("\n");
-  printf("Verified alloc/free test - %d allocations\n\n", (int)count);
+  printf("Verified alloc/free test - %d allocations.\n\n", (int)count);
 
   printf("Alloc...");
   for (i = 0; i < count; i++) {
@@ -112,25 +112,25 @@ int main(int argc, char* argv[]) {
 
     gen(a[i], b[i], r);
   }
-  printf("done\n");
+  printf("Done.\n");
   stats(memmgr);
 
   printf("\n");
   printf("Shuffling...");
   shuffle(a, b, count);
-  printf("done\n");
+  printf("Done.\n");
 
   printf("\n");
   printf("Verify and free...");
   for (i = 0; i < count / 2; i++) {
     verify(a[i], b[i]);
     if (memmgr->release(a[i]) != kErrorOk) {
-      printf("Failed to free %p\n", a[i]);
+      printf("Failed to free %p.\n", a[i]);
       problems++;
     }
     free(b[i]);
   }
-  printf("done\n");
+  printf("Done.\n");
   stats(memmgr);
 
   printf("\n");
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     gen(a[i], b[i], r);
   }
-  printf("done\n");
+  printf("Done.\n");
   stats(memmgr);
 
   printf("\n");
@@ -152,12 +152,12 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < count; i++) {
     verify(a[i], b[i]);
     if (memmgr->release(a[i]) != kErrorOk) {
-      printf("Failed to free %p\n", a[i]);
+      printf("Failed to free %p.\n", a[i]);
       problems++;
     }
     free(b[i]);
   }
-  printf("done\n");
+  printf("Done.\n");
   stats(memmgr);
 
   printf("\n");

@@ -22,7 +22,7 @@ namespace asmjit {
 
 BaseContext::BaseContext(BaseCompiler* compiler) :
   _compiler(compiler),
-  _zoneAllocator(8192 - sizeof(Zone::Chunk) - kMemAllocOverhead) {
+  _baseZone(8192 - sizeof(Zone::Chunk) - kMemAllocOverhead) {
 
   BaseContext::reset();
 }
@@ -34,7 +34,7 @@ BaseContext::~BaseContext() {}
 // ============================================================================
 
 void BaseContext::reset() {
-  _zoneAllocator.clear();
+  _baseZone.clear();
 
   _func = NULL;
   _start = NULL;
@@ -101,7 +101,7 @@ MemCell* BaseContext::_newVarCell(VarData* vd) {
       return NULL;
   }
   else {
-    cell = static_cast<MemCell*>(_zoneAllocator.alloc(sizeof(MemCell)));
+    cell = static_cast<MemCell*>(_baseZone.alloc(sizeof(MemCell)));
     if (cell == NULL)
       goto _NoMemory;
 
@@ -136,7 +136,7 @@ _NoMemory:
 }
 
 MemCell* BaseContext::_newStackCell(uint32_t size, uint32_t alignment) {
-  MemCell* cell = static_cast<MemCell*>(_zoneAllocator.alloc(sizeof(MemCell)));
+  MemCell* cell = static_cast<MemCell*>(_baseZone.alloc(sizeof(MemCell)));
   if (cell == NULL)
     goto _NoMemory;
 

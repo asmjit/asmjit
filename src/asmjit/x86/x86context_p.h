@@ -83,7 +83,7 @@ struct X86X64Context : public BaseContext {
 
   ASMJIT_INLINE VarInst* newVarInst(uint32_t vaCount) {
     return static_cast<VarInst*>(
-      _zoneAllocator.alloc(sizeof(VarInst) + vaCount * sizeof(VarAttr)));
+      _baseZone.alloc(sizeof(VarInst) + vaCount * sizeof(VarAttr)));
   }
 
   // --------------------------------------------------------------------------

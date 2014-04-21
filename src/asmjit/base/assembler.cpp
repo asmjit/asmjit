@@ -48,7 +48,7 @@ void BaseAssembler::clear() {
 
 void BaseAssembler::reset() {
   _purge();
-  _zoneAllocator.reset();
+  _baseZone.reset();
 
   if (_buffer != NULL) {
     ::free(_buffer);
@@ -63,7 +63,7 @@ void BaseAssembler::reset() {
 }
 
 void BaseAssembler::_purge() {
-  _zoneAllocator.clear();
+  _baseZone.clear();
   _cursor = _buffer;
 
   _options = 0;
@@ -188,7 +188,7 @@ LabelLink* BaseAssembler::_newLabelLink() {
     _unusedLinks = link->prev;
   }
   else {
-    link = _zoneAllocator.allocT<LabelLink>();
+    link = _baseZone.allocT<LabelLink>();
     if (link == NULL)
       return NULL;
   }

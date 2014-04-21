@@ -11,6 +11,7 @@
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
 #include "../base/codegen.h"
+#include "../base/constpool.h"
 #include "../base/defs.h"
 #include "../base/error.h"
 #include "../base/func.h"
@@ -18,6 +19,7 @@
 #include "../base/podlist.h"
 #include "../base/podvector.h"
 #include "../base/runtime.h"
+#include "../base/zone.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -39,6 +41,23 @@ struct BaseNode;
 struct EndNode;
 struct InstNode;
 struct JumpNode;
+
+// ============================================================================
+// [asmjit::kConstScope]
+// ============================================================================
+
+//! @brief Type of constant in constant pool
+ASMJIT_ENUM(kConstScope) {
+  //! @brief Local constant.
+  //!
+  //! Local constant is always embedded right after the current function.
+  kConstScopeLocal = 0,
+
+  //! @brief Global constant.
+  //!
+  //! Global constant is embedded at the end of the currently compiled code.
+  kConstScopeGlobal = 1
+};
 
 // ============================================================================
 // [asmjit::kVarAttrFlags]
@@ -486,7 +505,7 @@ struct VarData {
   uint8_t _modified : 1;
   //! @internal
   uint8_t _reserved0 : 3;
-  //! @brief Varialbe natural alignment.
+  //! @brief Variable natural alignment.
   uint8_t _alignment;
 
   //! @brief Variable size.
@@ -896,10 +915,13 @@ struct EmbedNode : public BaseNode {
   //! @brief Create a new @ref EmbedNode instance.
   ASMJIT_INLINE EmbedNode(BaseCompiler* compiler, void* data, uint32_t size) : BaseNode(compiler, kNodeTypeEmbed) {
     _size = size;
-    if (size <= kInlineBufferSize)
-      ::memcpy(_data.buf, data, size);
-    else
+    if (size <= kInlineBufferSize) {
+      if (data != NULL)
+        ::memcpy(_data.buf, data, size);
+    }
+    else {
       _data.ptr = static_cast<uint8_t*>(data);
+    }
   }
 
   //! @brief Destroy the @ref EmbedNode instance.
@@ -1100,48 +1122,74 @@ struct InstNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! @brief Get instruction code, see @c kInstCode.
-  ASMJIT_INLINE uint32_t getCode() const
-  { return _code; }
+  ASMJIT_INLINE uint32_t getCode() const {
+    return _code;
+  }
 
   //! @brief Set instruction code to @a code.
   //!
   //! Please do not modify instruction code if you are not know what you are
   //! doing. Incorrect instruction code or operands can raise assertion() at
   //! runtime.
-  ASMJIT_INLINE void setCode(uint32_t code)
-  { _code = static_cast<uint16_t>(code); }
+  ASMJIT_INLINE void setCode(uint32_t code) {
+    _code = static_cast<uint16_t>(code);
+  }
 
   //! @brief Whether the instruction is an unconditional jump or whether the
   //! instruction is a conditional jump which is likely to be taken.
-  ASMJIT_INLINE bool isTaken() const { return hasFlag(kNodeFlagIsTaken); }
+  ASMJIT_INLINE bool isTaken() const {
+    return hasFlag(kNodeFlagIsTaken);
+  }
 
   //! @brief Get emit options.
-  ASMJIT_INLINE uint32_t getOptions() const { return _options; }
+  ASMJIT_INLINE uint32_t getOptions() const {
+    return _options;
+  }
   //! @brief Set emit options.
-  ASMJIT_INLINE void setOptions(uint32_t options) { _options = static_cast<uint8_t>(options); }
+  ASMJIT_INLINE void setOptions(uint32_t options) {
+    _options = static_cast<uint8_t>(options);
+  }
   //! @brief Add emit options.
-  ASMJIT_INLINE void addOptions(uint32_t options) { _options |= static_cast<uint8_t>(options); }
+  ASMJIT_INLINE void addOptions(uint32_t options) {
+    _options |= static_cast<uint8_t>(options);
+  }
   //! @brief Mask emit options.
-  ASMJIT_INLINE void andOptions(uint32_t options) { _options &= static_cast<uint8_t>(options); }
+  ASMJIT_INLINE void andOptions(uint32_t options) {
+    _options &= static_cast<uint8_t>(options);
+  }
   //! @brief Clear emit options.
-  ASMJIT_INLINE void delOptions(uint32_t options) { _options &= static_cast<uint8_t>(~options); }
+  ASMJIT_INLINE void delOptions(uint32_t options) {
+    _options &= static_cast<uint8_t>(~options);
+  }
 
   //! @brief Get operands list.
-  ASMJIT_INLINE Operand* getOpList() { return _opList; }
+  ASMJIT_INLINE Operand* getOpList() {
+    return _opList;
+  }
   //! @overload
-  ASMJIT_INLINE const Operand* getOpList() const { return _opList; }
+  ASMJIT_INLINE const Operand* getOpList() const {
+    return _opList;
+  }
 
   //! @brief Get operands count.
-  ASMJIT_INLINE uint32_t getOpCount() const { return _opCount; }
+  ASMJIT_INLINE uint32_t getOpCount() const {
+    return _opCount;
+  }
 
   //! @brief Get whether the instruction contains a memory operand.
-  ASMJIT_INLINE bool hasMemOp() const { return _memOpIndex != 0xFF; }
+  ASMJIT_INLINE bool hasMemOp() const {
+    return _memOpIndex != 0xFF;
+  }
 
   //! @brief Set memory operand index (in opList), 0xFF means that instruction
   //! doesn't have a memory operand.
-  ASMJIT_INLINE void setMemOpIndex(uint32_t index) { _memOpIndex = static_cast<uint8_t>(index); }
+  ASMJIT_INLINE void setMemOpIndex(uint32_t index) {
+    _memOpIndex = static_cast<uint8_t>(index);
+  }
   //! @brief Reset memory operand index, setting it to 0xFF.
-  ASMJIT_INLINE void resetMemOpIndex() { _memOpIndex = 0xFF; }
+  ASMJIT_INLINE void resetMemOpIndex() {
+    _memOpIndex = 0xFF;
+  }
 
   //! @brief Get memory operand.
   //!
@@ -1678,25 +1726,25 @@ struct BaseCompiler : public CodeGen {
 
   template<typename T>
   ASMJIT_INLINE T* newNode() {
-    void* p = _zoneAllocator.alloc(sizeof(T));
+    void* p = _baseZone.alloc(sizeof(T));
     return new(p) T(this);
   }
 
   template<typename T, typename P0>
   ASMJIT_INLINE T* newNode(P0 p0) {
-    void* p = _zoneAllocator.alloc(sizeof(T));
+    void* p = _baseZone.alloc(sizeof(T));
     return new(p) T(this, p0);
   }
 
   template<typename T, typename P0, typename P1>
   ASMJIT_INLINE T* newNode(P0 p0, P1 p1) {
-    void* p = _zoneAllocator.alloc(sizeof(T));
+    void* p = _baseZone.alloc(sizeof(T));
     return new(p) T(this, p0, p1);
   }
 
   template<typename T, typename P0, typename P1, typename P2>
   ASMJIT_INLINE T* newNode(P0 p0, P1 p1, P2 p2) {
-    void* p = _zoneAllocator.alloc(sizeof(T));
+    void* p = _baseZone.alloc(sizeof(T));
     return new(p) T(this, p0, p1, p2);
   }
 
@@ -1906,8 +1954,19 @@ struct BaseCompiler : public CodeGen {
   // [Stack]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref BaseMem.
+  //! @internal
+  //!
+  //! @brief Create a new memory chunk allocated on the current function's stack.
   virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) = 0;
+
+  // --------------------------------------------------------------------------
+  // [Const]
+  // --------------------------------------------------------------------------
+
+  //! @internal
+  //!
+  //! @brief Put data to a constant-pool and get a memory reference to it.
+  virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) = 0;
 
   // --------------------------------------------------------------------------
   // [Serialize]
@@ -1941,15 +2000,27 @@ struct BaseCompiler : public CodeGen {
   //! @brief Current function.
   FuncNode* _func;
 
-  //! @brief Variable allocator.
-  Zone _varAllocator;
-  //! @brief String/data allocator.
-  Zone _stringAllocator;
+  //! @brief Variable zone.
+  Zone _varZone;
+  //! @brief String/data zone.
+  Zone _stringZone;
+  //! @brief Local constant pool zone.
+  Zone _localConstZone;
 
   //! @brief Targets.
   PodVector<TargetNode*> _targets;
   //! @brief Variables.
   PodVector<VarData*> _vars;
+
+  //! @brief Local constant pool, flushed at the end of each function.
+  ConstPool _localConstPool;
+  //! @brief Global constant pool, flushed at the end of the compilation.
+  ConstPool _globalConstPool;
+
+  //! @brief Label to start of the local constant pool.
+  Label _localConstPoolLabel;
+  //! @brief Label to start of the global constant pool.
+  Label _globalConstPoolLabel;
 };
 
 // ============================================================================

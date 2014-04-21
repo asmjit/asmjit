@@ -69,6 +69,30 @@ bool X86X64CallNode::_setRet(uint32_t i, const Operand& op) {
 }
 
 // ============================================================================
+// [asmjit::x86x64::X86X64Compiler - Helpers (Private)]
+// ============================================================================
+
+static Error X86X64Compiler_emitConstPool(X86X64Compiler* self,
+  Label& label, ConstPool& pool) {
+
+  if (label.getId() == kInvalidValue)
+    return kErrorOk;
+
+  self->align(static_cast<uint32_t>(pool.getAlignment()));
+  self->bind(label);
+
+  EmbedNode* embedNode = self->embed(NULL, static_cast<uint32_t>(pool.getSize()));
+  if (embedNode == NULL)
+    return kErrorNoHeapMemory;
+
+  pool.fill(embedNode->getData());
+  pool.reset();
+  label.reset();
+
+  return kErrorOk;
+}
+
+// ============================================================================
 // [asmjit::x86x64::X86X64Compiler - Construction / Destruction]
 // ============================================================================
 
@@ -114,7 +138,7 @@ static InstNode* X86X64Compiler_newInst(X86X64Compiler* self, void* p, uint32_t 
 
 InstNode* X86X64Compiler::newInst(uint32_t code) {
   size_t size = X86X64Compiler_getInstSize(code);
-  InstNode* inst = static_cast<InstNode*>(_zoneAllocator.alloc(size));
+  InstNode* inst = static_cast<InstNode*>(_baseZone.alloc(size));
 
   if (inst == NULL)
     goto _NoMemory;
@@ -128,7 +152,7 @@ _NoMemory:
 
 InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0) {
   size_t size = X86X64Compiler_getInstSize(code);
-  InstNode* inst = static_cast<InstNode*>(_zoneAllocator.alloc(size + 1 * sizeof(Operand)));
+  InstNode* inst = static_cast<InstNode*>(_baseZone.alloc(size + 1 * sizeof(Operand)));
 
   if (inst == NULL)
     goto _NoMemory;
@@ -147,7 +171,7 @@ _NoMemory:
 
 InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1) {
   size_t size = X86X64Compiler_getInstSize(code);
-  InstNode* inst = static_cast<InstNode*>(_zoneAllocator.alloc(size + 2 * sizeof(Operand)));
+  InstNode* inst = static_cast<InstNode*>(_baseZone.alloc(size + 2 * sizeof(Operand)));
 
   if (inst == NULL)
     goto _NoMemory;
@@ -168,7 +192,7 @@ _NoMemory:
 
 InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) {
   size_t size = X86X64Compiler_getInstSize(code);
-  InstNode* inst = static_cast<InstNode*>(_zoneAllocator.alloc(size + 3 * sizeof(Operand)));
+  InstNode* inst = static_cast<InstNode*>(_baseZone.alloc(size + 3 * sizeof(Operand)));
 
   if (inst == NULL)
     goto _NoMemory;
@@ -191,7 +215,7 @@ _NoMemory:
 
 InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) {
   size_t size = X86X64Compiler_getInstSize(code);
-  InstNode* inst = static_cast<InstNode*>(_zoneAllocator.alloc(size + 4 * sizeof(Operand)));
+  InstNode* inst = static_cast<InstNode*>(_baseZone.alloc(size + 4 * sizeof(Operand)));
 
   if (inst == NULL)
     goto _NoMemory;
@@ -216,7 +240,7 @@ _NoMemory:
 
 InstNode* X86X64Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) {
   size_t size = X86X64Compiler_getInstSize(code);
-  InstNode* inst = static_cast<InstNode*>(_zoneAllocator.alloc(size + 5 * sizeof(Operand)));
+  InstNode* inst = static_cast<InstNode*>(_baseZone.alloc(size + 5 * sizeof(Operand)));
 
   if (inst == NULL)
     goto _NoMemory;
@@ -348,7 +372,7 @@ X86X64FuncNode* X86X64Compiler::newFunc(uint32_t conv, const FuncPrototype& p) {
   // Allocate space for function arguments.
   func->_argList = NULL;
   if (func->getArgCount() != 0) {
-    func->_argList = _zoneAllocator.allocT<VarData*>(func->getArgCount() * sizeof(VarData*));
+    func->_argList = _baseZone.allocT<VarData*>(func->getArgCount() * sizeof(VarData*));
     if (func->_argList == NULL)
       goto _NoMemory;
     ::memset(func->_argList, 0, func->getArgCount() * sizeof(VarData*));
@@ -382,9 +406,16 @@ EndNode* X86X64Compiler::endFunc() {
   X86X64FuncNode* func = getFunc();
   ASMJIT_ASSERT(func != NULL);
 
+  // App function exit / epilog marker.
   addNode(func->getExitNode());
+
+  // Add local constant pool at the end of the function (if exist).
+  X86X64Compiler_emitConstPool(this, _localConstPoolLabel, _localConstPool);
+
+  // Add function end marker.
   addNode(func->getEnd());
 
+  // Finalize...
   func->addFuncFlags(kFuncFlagIsFinished);
   _func = NULL;
 
@@ -434,7 +465,7 @@ X86X64CallNode* X86X64Compiler::newCall(const Operand& o0, uint32_t conv, const 
   if ((nArgs = p.getArgCount()) == 0)
     return node;
 
-  node->_args = static_cast<Operand*>(_zoneAllocator.alloc(nArgs * sizeof(Operand)));
+  node->_args = static_cast<Operand*>(_baseZone.alloc(nArgs * sizeof(Operand)));
   if (node->_args == NULL)
     goto _NoMemory;
 
@@ -514,6 +545,47 @@ Error X86X64Compiler::_newStack(BaseMem* mem, uint32_t size, uint32_t alignment,
 }
 
 // ============================================================================
+// [asmjit::x86x64::X86X64Compiler - Const]
+// ============================================================================
+
+Error X86X64Compiler::_newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) {
+  Error error = kErrorOk;
+  size_t offset;
+
+  Label* dstLabel;
+  ConstPool* dstPool;
+
+  if (scope == kConstScopeLocal) {
+    dstLabel = &_localConstPoolLabel;
+    dstPool = &_localConstPool;
+  }
+  else if (scope == kConstScopeGlobal) {
+    dstLabel = &_globalConstPoolLabel;
+    dstPool = &_globalConstPool;
+  }
+  else {
+    error = kErrorInvalidArgument;
+    goto _OnError;
+  }
+
+  error = dstPool->add(data, size, offset);
+  if (error != kErrorOk)
+    goto _OnError;
+
+  if (dstLabel->getId() == kInvalidValue) {
+    error = _newLabel(dstLabel);
+    if (error != kErrorOk)
+      goto _OnError;
+  }
+
+  *static_cast<Mem*>(mem) = ptr(*dstLabel, static_cast<int32_t>(offset), static_cast<uint32_t>(size));
+  return kErrorOk;
+
+_OnError:
+  return error;
+}
+
+// ============================================================================
 // [asmjit::x86x64::X86X64Compiler - Make]
 // ============================================================================
 
@@ -550,6 +622,9 @@ static ASMJIT_INLINE void* X86X64Compiler_make(X86X64Compiler* self) {
 }
 
 void* X86X64Compiler::make() {
+  // Flush global constant pool
+  X86X64Compiler_emitConstPool(this, _globalConstPoolLabel, _globalConstPool);
+
 #if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_BUILD_X64)
   return X86X64Compiler_make<x86::Assembler>(this);
 #elif !defined(ASMJIT_BUILD_X86) && defined(ASMJIT_BUILD_X64)

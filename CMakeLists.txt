@@ -8,8 +8,7 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # [AsmJit - Configuration]
 # =============================================================================
 
-# Whether not to build anything (the source will be included by another library
-# or executable).
+# Whether not to build anything (default FALSE).
 # Set(ASMJIT_EMBED FALSE)
 
 # Whether to build static library (default FALSE).
@@ -114,6 +113,7 @@ If(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   If(WIN32)
     List(APPEND ASMJIT_CFLAGS -D_UNICODE)
   EndIf()
+
   If(ASMJIT_STATIC)
     List(APPEND ASMJIT_CFLAGS -DASMJIT_STATIC)
   EndIf()
@@ -214,6 +214,8 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   codegen.h
   compiler.cpp
   compiler.h
+  constpool.cpp
+  constpool.h
   context.cpp
   context_p.h
   cpuinfo.cpp
@@ -310,6 +312,7 @@ If(ASMJIT_BUILD_SAMPLES)
     testdummy
     testmem
     testopcode
+    testpool
     testsizeof
     testx86
   )

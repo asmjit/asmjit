@@ -402,7 +402,7 @@ struct X86Test_AllocManual : public X86Test {
     c.addFunc(kFuncConvHost, FuncBuilder0<int>());
 
     GpVar v0(c, kVarTypeInt32, "v0");
-    GpVar v1(c, kVarTypeInt32, "v0");
+    GpVar v1(c, kVarTypeInt32, "v1");
     GpVar cnt(c, kVarTypeInt32, "cnt");
 
     c.xor_(v0, v0);
@@ -2345,6 +2345,49 @@ struct X86Test_CallMisc1 : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_ConstPoolBase]
+// ============================================================================
+
+struct X86Test_ConstPoolBase : public X86Test {
+  X86Test_ConstPoolBase() : X86Test("[ConstPool] Base") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_ConstPoolBase());
+  }
+
+  virtual void compile(Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+
+    GpVar v0(c, kVarTypeInt32, "v0");
+    GpVar v1(c, kVarTypeInt32, "v1");
+
+    Mem c0(c.newConst4(kConstScopeLocal, 200));
+    Mem c1(c.newConst4(kConstScopeLocal, 33));
+
+    c.mov(v0, c0);
+    c.mov(v1, c1);
+    c.add(v0, v1);
+
+    c.ret(v0);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func();
+    int expectRet = 233;
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+
+// ============================================================================
 // [X86Test_Dummy]
 // ============================================================================
 
@@ -2470,6 +2513,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallMultiple);
   ADD_TEST(X86Test_CallRecursive);
   ADD_TEST(X86Test_CallMisc1);
+  ADD_TEST(X86Test_ConstPoolBase);
 
   // Dummy.
   // ADD_TEST(X86Test_Dummy);

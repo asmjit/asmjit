@@ -63,12 +63,18 @@
     defined(__x86_64__)
 # define ASMJIT_HOST_X64
 # define ASMJIT_HOST_LE
+# define ASMJIT_HOST_UNALIGNED_16
+# define ASMJIT_HOST_UNALIGNED_32
+# define ASMJIT_HOST_UNALIGNED_64
 #elif \
     defined(_M_IX86  ) || \
     defined(__INTEL__) || \
     defined(__i386__ )
 # define ASMJIT_HOST_X86
 # define ASMJIT_HOST_LE
+# define ASMJIT_HOST_UNALIGNED_16
+# define ASMJIT_HOST_UNALIGNED_32
+# define ASMJIT_HOST_UNALIGNED_64
 #elif \
     defined(_ARM               ) || \
     defined(_M_ARM_FP          ) || \

@@ -10,6 +10,7 @@
 
 // [Dependencies - AsmJit]
 #include "../base/compiler.h"
+#include "../base/vectypes.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86defs.h"
 #include "../x86/x86func.h"
@@ -1455,12 +1456,43 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overridden
   ASMJIT_API virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name);
 
-  //! @brief Create a new memory chunk allocated on the stack.
+  //! @brief Create a new memory chunk allocated on the current function's stack.
   ASMJIT_INLINE Mem newStack(uint32_t size, uint32_t alignment, const char* name = NULL) {
     Mem m(NoInit);
     _newStack(&m, size, alignment, name);
     return m;
   }
+
+  // --------------------------------------------------------------------------
+  // [Const]
+  // --------------------------------------------------------------------------
+
+  //! @overridden
+  ASMJIT_API virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size);
+
+  //! @brief Put data to a constant-pool and get a memory reference to it.
+  ASMJIT_INLINE Mem newConst(uint32_t scope, const void* data, size_t size) {
+    Mem m(NoInit);
+    _newConst(&m, scope, data, size);
+    return m;
+  }
+
+  ASMJIT_INLINE Mem newConst1(uint32_t scope, uint8_t val) { return newConst(scope, &val, 1); }
+
+  ASMJIT_INLINE Mem newConst2(uint32_t scope, int16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE Mem newConst2(uint32_t scope, uint16_t val) { return newConst(scope, &val, 2); }
+
+  ASMJIT_INLINE Mem newConst4(uint32_t scope, int32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE Mem newConst4(uint32_t scope, uint32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE Mem newConst4(uint32_t scope, float val) { return newConst(scope, &val, 4); }
+
+  ASMJIT_INLINE Mem newConst8(uint32_t scope, int64_t val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE Mem newConst8(uint32_t scope, uint64_t val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE Mem newConst8(uint32_t scope, double val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE Mem newConst8(uint32_t scope, const Vec64Data& val) { return newConst(scope, &val, 8); }
+
+  ASMJIT_INLINE Mem newConst16(uint32_t scope, const Vec128Data& val) { return newConst(scope, &val, 16); }
+  ASMJIT_INLINE Mem newConst32(uint32_t scope, const Vec256Data& val) { return newConst(scope, &val, 32); }
 
   // --------------------------------------------------------------------------
   // [Embed]

@@ -189,8 +189,8 @@ struct CodeGen {
   //! @brief Options for the next generated instruction (only 8-bits used).
   uint32_t _options;
 
-  //! @brief Zone memory allocator.
-  Zone _zoneAllocator;
+  //! @brief Base zone.
+  Zone _baseZone;
 };
 
 //! @}

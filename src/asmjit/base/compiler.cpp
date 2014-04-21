@@ -44,8 +44,11 @@ BaseCompiler::BaseCompiler(BaseRuntime* runtime) :
   _lastNode(NULL),
   _cursor(NULL),
   _func(NULL),
-  _varAllocator(4096 - kMemAllocOverhead),
-  _stringAllocator(4096 - kMemAllocOverhead) {}
+  _varZone(4096 - kMemAllocOverhead),
+  _stringZone(4096 - kMemAllocOverhead),
+  _localConstZone(4096 - kMemAllocOverhead),
+  _localConstPool(&_localConstZone),
+  _globalConstPool(&_baseZone) {}
 
 BaseCompiler::~BaseCompiler() {
   reset();
@@ -61,20 +64,24 @@ void BaseCompiler::clear() {
 
 void BaseCompiler::reset() {
   _purge();
-  _zoneAllocator.reset();
 
-  _varAllocator.reset();
-  _stringAllocator.reset();
+  _localConstPool.reset();
+  _globalConstPool.reset();
 
   _targets.reset();
   _vars.reset();
+
+  _baseZone.reset();
+  _varZone.reset();
+  _stringZone.reset();
+  _localConstZone.reset();
 }
 
 void BaseCompiler::_purge() {
-  _zoneAllocator.clear();
+  _baseZone.clear();
 
-  _varAllocator.clear();
-  _stringAllocator.clear();
+  _varZone.clear();
+  _stringZone.clear();
 
   _options = 0;
 
@@ -343,11 +350,12 @@ EmbedNode* BaseCompiler::newEmbed(const void* data, uint32_t size) {
   EmbedNode* node;
 
   if (size > EmbedNode::kInlineBufferSize) {
-    void* clonedData = _stringAllocator.alloc(size);
+    void* clonedData = _stringZone.alloc(size);
     if (clonedData == NULL)
       goto _NoMemory;
 
-    ::memcpy(clonedData, data, size);
+    if (data != NULL)
+      ::memcpy(clonedData, data, size);
     data = clonedData;
   }
 
@@ -376,7 +384,7 @@ CommentNode* BaseCompiler::newComment(const char* str) {
   CommentNode* node;
 
   if (str != NULL && str[0]) {
-    str = _stringAllocator.sdup(str);
+    str = _stringZone.sdup(str);
     if (str == NULL)
       goto _NoMemory;
   }
@@ -452,7 +460,7 @@ HintNode* BaseCompiler::addHint(BaseVar& var, uint32_t hint, uint32_t value) {
 // ============================================================================
 
 VarData* BaseCompiler:: _newVd(uint32_t type, uint32_t size, uint32_t c, const char* name) {
-  VarData* vd = reinterpret_cast<VarData*>(_varAllocator.alloc(sizeof(VarData)));
+  VarData* vd = reinterpret_cast<VarData*>(_varZone.alloc(sizeof(VarData)));
   if (vd == NULL)
     goto _NoMemory;
 
@@ -461,7 +469,7 @@ VarData* BaseCompiler:: _newVd(uint32_t type, uint32_t size, uint32_t c, const c
   vd->_contextId = kInvalidValue;
 
   if (name != NULL && name[0] != '\0') {
-    vd->_name = _stringAllocator.sdup(name);
+    vd->_name = _stringZone.sdup(name);
   }
 
   vd->_type = static_cast<uint8_t>(type);
@@ -567,7 +575,7 @@ void BaseCompiler::rename(BaseVar& var, const char* name) {
   vd->_name = noName;
 
   if (name != NULL && name[0] != '\0') {
-    vd->_name = _stringAllocator.sdup(name);
+    vd->_name = _stringZone.sdup(name);
   }
 }
 

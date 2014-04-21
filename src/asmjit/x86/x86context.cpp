@@ -452,7 +452,7 @@ void X86X64Context::emitLoad(VarData* vd, uint32_t regIndex, const char* reason)
   return;
 
 _Comment:
-  node->setComment(compiler->_stringAllocator.sformat("[%s] %s", reason, vd->getName()));
+  node->setComment(compiler->_stringZone.sformat("[%s] %s", reason, vd->getName()));
 }
 
 // ============================================================================
@@ -533,7 +533,7 @@ void X86X64Context::emitSave(VarData* vd, uint32_t regIndex, const char* reason)
   return;
 
 _Comment:
-  node->setComment(compiler->_stringAllocator.sformat("[%s] %s", reason, vd->getName()));
+  node->setComment(compiler->_stringZone.sformat("[%s] %s", reason, vd->getName()));
 }
 
 // ============================================================================
@@ -602,7 +602,7 @@ void X86X64Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegI
   return;
 
 _Comment:
-  node->setComment(compiler->_stringAllocator.sformat("[%s] %s", reason, vd->getName()));
+  node->setComment(compiler->_stringZone.sformat("[%s] %s", reason, vd->getName()));
 }
 
 // ============================================================================
@@ -633,7 +633,7 @@ void X86X64Context::emitSwapGp(VarData* aVd, VarData* bVd, uint32_t aIndex, uint
   return;
 
 _Comment:
-  node->setComment(compiler->_stringAllocator.sformat("[%s] %s, %s", reason, aVd->getName(), bVd->getName()));
+  node->setComment(compiler->_stringZone.sformat("[%s] %s, %s", reason, aVd->getName(), bVd->getName()));
 }
 
 // ============================================================================
@@ -1305,7 +1305,7 @@ BaseVarState* X86X64Context::saveState() {
     sizeof(VarState) + vdCount * sizeof(StateCell), sizeof(void*));
 
   VarState* cur = getState();
-  VarState* dst = _zoneAllocator.allocT<VarState>(size);
+  VarState* dst = _baseZone.allocT<VarState>(size);
 
   if (dst == NULL)
     return NULL;
@@ -1559,7 +1559,7 @@ static void X86X64Context_prepareSingleVarInst(uint32_t code, VarAttr* va) {
 //!
 //! @brief Add unreachable-flow data to the unreachable flow list.
 static ASMJIT_INLINE Error X86X64Context_addUnreachableNode(X86X64Context* self, BaseNode* node) {
-  PodList<BaseNode*>::Link* link = self->_zoneAllocator.allocT<PodList<BaseNode*>::Link>();
+  PodList<BaseNode*>::Link* link = self->_baseZone.allocT<PodList<BaseNode*>::Link>();
   if (link == NULL)
     return self->setError(kErrorNoHeapMemory);
 
@@ -1573,7 +1573,7 @@ static ASMJIT_INLINE Error X86X64Context_addUnreachableNode(X86X64Context* self,
 //!
 //! @brief Add jump-flow data to the jcc flow list.
 static ASMJIT_INLINE Error X86X64Context_addJccNode(X86X64Context* self, BaseNode* node) {
-  PodList<BaseNode*>::Link* link = self->_zoneAllocator.allocT<PodList<BaseNode*>::Link>();
+  PodList<BaseNode*>::Link* link = self->_baseZone.allocT<PodList<BaseNode*>::Link>();
 
   if (link == NULL)
     ASMJIT_PROPAGATE_ERROR(self->setError(kErrorNoHeapMemory));
@@ -1998,16 +1998,13 @@ _NextGroup:
         VI_BEGIN();
 
         if (node->getHint() == kVarHintAlloc) {
-          HintNode* cur = node;
-
           uint32_t remain[kRegClassCount];
-          RegMask inRegs;
+          HintNode* cur = node;
 
           remain[kRegClassGp] = _baseRegsCount - 1 - func->hasFuncFlag(kFuncFlagIsNaked);
           remain[kRegClassFp] = kRegCountFp;
           remain[kRegClassMm] = kRegCountMm;
           remain[kRegClassXy] = _baseRegsCount;
-          inRegs.reset();
 
           // Merge as many alloc-hints as possible.
           for (;;) {
@@ -2695,7 +2692,7 @@ _OnTarget:
         ltUnused = ltUnused->prev;
       }
       else {
-        ltTmp = _zoneAllocator.allocT<LivenessTarget>(
+        ltTmp = _baseZone.allocT<LivenessTarget>(
           sizeof(LivenessTarget) - sizeof(VarBits) + bLen * sizeof(uintptr_t));
 
         if (ltTmp == NULL)
@@ -2885,7 +2882,7 @@ Error X86X64Context::annotate() {
   BaseNode* node_ = func;
   BaseNode* end = func->getEnd();
 
-  Zone& sa = _compiler->_stringAllocator;
+  Zone& sa = _compiler->_stringZone;
   StringBuilderT<128> sb;
 
   uint32_t maxLen = 0;
@@ -4947,8 +4944,8 @@ static void X86X64Context_translateJump(X86X64Context* self, JumpNode* jNode, Ta
   compiler->_setCursor(extNode);
   self->switchState(jTarget->getState());
 
-  // If any instruction was added during switchState() we have to wrap the
-  // generated code in a block.
+  // If one or more instruction has been added during switchState() it will be
+  // moved at the end of the function body.
   if (compiler->getCursor() != extNode) {
     TargetNode* jTrampolineTarget = compiler->newTarget();
 

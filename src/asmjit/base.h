@@ -14,6 +14,7 @@
 #include "base/assembler.h"
 #include "base/codegen.h"
 #include "base/compiler.h"
+#include "base/constpool.h"
 #include "base/cpuinfo.h"
 #include "base/cputicks.h"
 #include "base/defs.h"

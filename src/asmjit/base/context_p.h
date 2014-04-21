@@ -128,12 +128,12 @@ struct BaseContext {
 
   ASMJIT_INLINE VarBits* newBits(uint32_t len) {
     return static_cast<VarBits*>(
-      _zoneAllocator.calloc(static_cast<size_t>(len) * VarBits::kEntitySize));
+      _baseZone.calloc(static_cast<size_t>(len) * VarBits::kEntitySize));
   }
 
   ASMJIT_INLINE VarBits* copyBits(const VarBits* src, uint32_t len) {
     return static_cast<VarBits*>(
-      _zoneAllocator.dup(src, static_cast<size_t>(len) * VarBits::kEntitySize));
+      _baseZone.dup(src, static_cast<size_t>(len) * VarBits::kEntitySize));
   }
 
   // --------------------------------------------------------------------------
@@ -211,7 +211,7 @@ struct BaseContext {
   FuncNode* _func;
 
   //! @brief Zone allocator.
-  Zone _zoneAllocator;
+  Zone _baseZone;
 
   //! @brief Start of the current active scope.
   BaseNode* _start;

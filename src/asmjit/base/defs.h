@@ -1117,8 +1117,7 @@ struct Label : public Operand {
 
   //! @brief Create new, unassociated label.
   ASMJIT_INLINE Label() : Operand(NoInit) {
-    _init_packed_op_sz_b0_b1_id(kOperandTypeLabel, 0, 0, 0, kInvalidValue);
-    _init_packed_d2_d3(0, 0);
+    reset();
   }
 
   explicit ASMJIT_INLINE Label(uint32_t id) : Operand(NoInit) {
@@ -1135,6 +1134,15 @@ struct Label : public Operand {
   ASMJIT_INLINE Label(const Label& other) : Operand(other) {}
 
   explicit ASMJIT_INLINE Label(const _NoInit&) : Operand(NoInit) {}
+
+  // --------------------------------------------------------------------------
+  // [Reset]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE void reset() {
+    _init_packed_op_sz_b0_b1_id(kOperandTypeLabel, 0, 0, 0, kInvalidValue);
+    _init_packed_d2_d3(0, 0);
+  }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
