@@ -3863,14 +3863,19 @@ ASMJIT_INLINE Error X86X64CallAlloc::run(X86X64CallNode* node) {
   // Translate call operand.
   ASMJIT_PROPAGATE_ERROR(X86X64Context_translateOperands(_context, &node->_target, 1));
 
+  // To emit instructions after call.
+  _compiler->_setCursor(node);
+
+  // If the callee pops stack it has to be manually adjusted back.
+  X86X64FuncDecl* decl = node->getDecl();
+  if (decl->getCalleePopsStack() && decl->getArgStackSize() != 0) {
+    _compiler->emit(kInstSub, _context->_zsp, static_cast<int>(decl->getArgStackSize()));
+  }
+
   // Clobber.
   clobber<kRegClassGp>();
   clobber<kRegClassMm>();
   clobber<kRegClassXy>();
-
-  // If any instruction has to be emitted to properly handle function return it
-  // has to be emitted right after the call, thus the cursor has to be changed.
-  _compiler->_setCursor(node);
 
   // Return.
   ret();
