@@ -58,7 +58,7 @@ void BaseLogger::logBinary(uint32_t style, const void* data, size_t size) {
   ::memcpy(buffer, prefix, ASMJIT_ARRAY_SIZE(prefix) - 1);
 
   while (i) {
-    uint32_t n = static_cast<uint32_t>(IntUtil::iMax<size_t>(i, 16));
+    uint32_t n = static_cast<uint32_t>(IntUtil::iMin<size_t>(i, 16));
     char* p = buffer + ASMJIT_ARRAY_SIZE(prefix) - 1;
 
     i -= n;
