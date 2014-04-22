@@ -606,12 +606,14 @@ struct BaseReg : public Operand {
   // --------------------------------------------------------------------------
 
   //! @brief Create a dummy base register.
-  ASMJIT_INLINE BaseReg() : Operand(NoInit)
-  { _init_packed_op_sz_w0_id(kOperandTypeReg, 0, (kInvalidReg << 8) + kInvalidReg, kInvalidValue); }
+  ASMJIT_INLINE BaseReg() : Operand(NoInit) {
+    _init_packed_op_sz_w0_id(kOperandTypeReg, 0, (kInvalidReg << 8) + kInvalidReg, kInvalidValue);
+  }
 
   //! @brief Create a new base register.
-  ASMJIT_INLINE BaseReg(uint32_t type, uint32_t index, uint32_t size) : Operand(NoInit)
-  { _init_packed_op_sz_w0_id(kOperandTypeReg, size, (type << 8) + index, kInvalidValue); }
+  ASMJIT_INLINE BaseReg(uint32_t type, uint32_t index, uint32_t size) : Operand(NoInit) {
+    _init_packed_op_sz_w0_id(kOperandTypeReg, size, (type << 8) + index, kInvalidValue);
+  }
 
   //! @brief Create a new reference to @a other.
   ASMJIT_INLINE BaseReg(const BaseReg& other) : Operand(other) {}
