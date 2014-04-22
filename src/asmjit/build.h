@@ -115,6 +115,10 @@
 // [asmjit::build - Decorators]
 // ============================================================================
 
+#if defined(ASMJIT_EMBED) && !defined(ASMJIT_STATIC)
+# define ASMJIT_STATIC
+#endif // ASMJIT_EMBED && !ASMJIT_STATIC
+
 #if !defined(ASMJIT_API)
 # if defined(ASMJIT_STATIC)
 #  define ASMJIT_API
