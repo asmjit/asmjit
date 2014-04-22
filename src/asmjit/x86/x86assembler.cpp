@@ -3180,13 +3180,15 @@ _EmitX86M:
   mIndex = rmMem->getIndex();
 
   // Size override prefix.
-  if (Arch == kArchX86) {
-    if (rmMem->getMemType() != kMemTypeLabel && !rmMem->hasGpdBase())
-      EMIT_BYTE(0x67);
-  }
-  else {
-    if (rmMem->getMemType() != kMemTypeLabel && rmMem->hasGpdBase())
-      EMIT_BYTE(0x67);
+  if (rmMem->hasBaseOrIndex()) {
+    if (Arch == kArchX86) {
+      if (!rmMem->hasGpdBase())
+        EMIT_BYTE(0x67);
+    }
+    else {
+      if (rmMem->hasGpdBase())
+        EMIT_BYTE(0x67);
+    }
   }
 
   // Segment override prefix.

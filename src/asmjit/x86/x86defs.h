@@ -2685,12 +2685,14 @@ struct Mem : public BaseMem {
   // --------------------------------------------------------------------------
 
   //! @brief Get whether the memory operand has base register.
-  ASMJIT_INLINE bool hasBase() const
-  { return _vmem.base != kInvalidValue; }
+  ASMJIT_INLINE bool hasBase() const {
+    return _vmem.base != kInvalidValue;
+  }
 
   //! @brief Get memory operand base register code, variable id, or @ref kInvalidValue.
-  ASMJIT_INLINE uint32_t getBase() const
-  { return _vmem.base; }
+  ASMJIT_INLINE uint32_t getBase() const {
+    return _vmem.base;
+  }
 
   //! @brief Set memory operand base register code, variable id, or @ref kInvalidValue.
   ASMJIT_INLINE Mem& setBase(uint32_t base) {
@@ -2794,6 +2796,20 @@ struct Mem : public BaseMem {
   ASMJIT_INLINE Mem& resetIndex() {
     _vmem.index = kInvalidValue;
     return _setVSib(kMemVSibGpz);
+  }
+
+  // --------------------------------------------------------------------------
+  // [Misc]
+  // --------------------------------------------------------------------------
+
+  //! @brief Get whether the memory operand has base and index register.
+  ASMJIT_INLINE bool hasBaseOrIndex() const {
+    return _vmem.base != kInvalidValue || _vmem.index != kInvalidValue;
+  }
+
+  //! @brief Get whether the memory operand has base and index register.
+  ASMJIT_INLINE bool hasBaseAndIndex() const {
+    return _vmem.base != kInvalidValue && _vmem.index != kInvalidValue;
   }
 
   // --------------------------------------------------------------------------
