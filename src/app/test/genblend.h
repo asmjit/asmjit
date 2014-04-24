@@ -15,7 +15,7 @@ namespace asmgen {
 
 // Generate a typical alpha blend function using SSE2 instruction set. Used
 // for benchmarking and also in test86. The generated code should be stable
-// and can be tested.
+// and fully functional.
 static void blend(asmjit::host::Compiler& c) {
   using namespace asmjit;
   using namespace asmjit::host;
@@ -55,7 +55,7 @@ static void blend(asmjit::host::Compiler& c) {
   c.alloc(src);
   c.alloc(i);
 
-  // How many pixels we have to process to align the loop.
+  // How many pixels have to be processed to make the loop aligned.
   c.lea(t, ptr(L_Data));
   c.xor_(j, j);
   c.xorps(cZero, cZero);
