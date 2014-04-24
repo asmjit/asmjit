@@ -2361,8 +2361,8 @@ struct X86Test_ConstPoolBase : public X86Test {
     GpVar v0(c, kVarTypeInt32, "v0");
     GpVar v1(c, kVarTypeInt32, "v1");
 
-    Mem c0(c.newConst4(kConstScopeLocal, 200));
-    Mem c1(c.newConst4(kConstScopeLocal, 33));
+    Mem c0(c.newInt32Const(kConstScopeLocal, 200));
+    Mem c1(c.newInt32Const(kConstScopeLocal, 33));
 
     c.mov(v0, c0);
     c.mov(v1, c1);
@@ -2385,7 +2385,6 @@ struct X86Test_ConstPoolBase : public X86Test {
     return resultRet == expectRet;
   }
 };
-
 
 // ============================================================================
 // [X86Test_Dummy]

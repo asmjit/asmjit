@@ -1477,22 +1477,24 @@ struct X86X64Compiler : public BaseCompiler {
     return m;
   }
 
-  ASMJIT_INLINE Mem newConst1(uint32_t scope, uint8_t val) { return newConst(scope, &val, 1); }
+  ASMJIT_INLINE Mem newByteConst(uint32_t scope, uint8_t val) { return newConst(scope, &val, 1); }
+  ASMJIT_INLINE Mem newWordConst(uint32_t scope, uint16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE Mem newDWordConst(uint32_t scope, uint32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE Mem newQWordConst(uint32_t scope, uint64_t val) { return newConst(scope, &val, 8); }
 
-  ASMJIT_INLINE Mem newConst2(uint32_t scope, int16_t val) { return newConst(scope, &val, 2); }
-  ASMJIT_INLINE Mem newConst2(uint32_t scope, uint16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE Mem newInt16Const(uint32_t scope, int16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE Mem newUInt16Const(uint32_t scope, uint16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE Mem newInt32Const(uint32_t scope, int32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE Mem newUInt32Const(uint32_t scope, uint32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE Mem newInt64Const(uint32_t scope, int64_t val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE Mem newUInt64Const(uint32_t scope, uint64_t val) { return newConst(scope, &val, 8); }
 
-  ASMJIT_INLINE Mem newConst4(uint32_t scope, int32_t val) { return newConst(scope, &val, 4); }
-  ASMJIT_INLINE Mem newConst4(uint32_t scope, uint32_t val) { return newConst(scope, &val, 4); }
-  ASMJIT_INLINE Mem newConst4(uint32_t scope, float val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE Mem newFloatConst(uint32_t scope, float val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE Mem newDoubleConst(uint32_t scope, double val) { return newConst(scope, &val, 8); }
 
-  ASMJIT_INLINE Mem newConst8(uint32_t scope, int64_t val) { return newConst(scope, &val, 8); }
-  ASMJIT_INLINE Mem newConst8(uint32_t scope, uint64_t val) { return newConst(scope, &val, 8); }
-  ASMJIT_INLINE Mem newConst8(uint32_t scope, double val) { return newConst(scope, &val, 8); }
-  ASMJIT_INLINE Mem newConst8(uint32_t scope, const Vec64Data& val) { return newConst(scope, &val, 8); }
-
-  ASMJIT_INLINE Mem newConst16(uint32_t scope, const Vec128Data& val) { return newConst(scope, &val, 16); }
-  ASMJIT_INLINE Mem newConst32(uint32_t scope, const Vec256Data& val) { return newConst(scope, &val, 32); }
+  ASMJIT_INLINE Mem newMmConst(uint32_t scope, const Vec64Data& val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE Mem newXmmConst(uint32_t scope, const Vec128Data& val) { return newConst(scope, &val, 16); }
+  ASMJIT_INLINE Mem newYmmConst(uint32_t scope, const Vec256Data& val) { return newConst(scope, &val, 32); }
 
   // --------------------------------------------------------------------------
   // [Embed]
