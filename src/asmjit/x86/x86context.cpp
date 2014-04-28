@@ -2586,7 +2586,7 @@ _NoMemory:
 
 //! @internal
 struct LivenessTarget {
-  //! @brief Previous.
+  //! @brief Previous target.
   LivenessTarget* prev;
 
   //! @brief Target node.
@@ -2684,8 +2684,9 @@ _OnPatch:
 
 _OnTarget:
   if (static_cast<TargetNode*>(node)->getNumRefs() != 0) {
-    // Push a new LivenessTarget on the stack if needed.
+    // Push a new LivenessTarget onto the stack if needed.
     if (ltCur == NULL || ltCur->node != node) {
+      // Allocate a new LivenessTarget object (from pool or zone).
       LivenessTarget* ltTmp = ltUnused;
 
       if (ltTmp != NULL) {
@@ -2699,6 +2700,7 @@ _OnTarget:
           goto _NoMemory;
       }
 
+      // Initialize and make current - ltTmp->from will be set later on.
       ltTmp->prev = ltCur;
       ltTmp->node = static_cast<TargetNode*>(node);
       ltCur = ltTmp;
@@ -2721,12 +2723,14 @@ _OnTarget:
         goto _OnVisit;
       }
 
+      // Issue #25: Moved '_OnJumpNext' here since it's important to patch 
+      // code again if there are more live variables than before.
+_OnJumpNext:
       if (bCur->delBits(from->getLiveness(), bLen)) {
         node = from;
         goto _OnPatch;
       }
 
-_OnJumpNext:
       from = from->getJumpNext();
     } while (from != NULL);
 
