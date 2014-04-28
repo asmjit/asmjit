@@ -17,9 +17,9 @@ Support the Project
 Introduction
 ------------
 
-AsmJit is a complete JIT and remote assembler for C++ language. It can generate native code for x86 and x64 architectures having support for a full instruction set, from legacy MMX to the newest AVX2. It has a type-safe API that allows C++ compiler to do a semantic checks at compile-time even before the assembled code is generated or run.
+AsmJit is a complete JIT and remote assembler for C++ language. It can generate native code for x86 and x64 architectures and supports the whole x86/x64 instruction set (from legacy MMX to the newest AVX2). It has a type-safe API that allows C++ compiler to do a semantic checks at compile-time even before the assembled code is generated or run.
 
-AsmJit is not a virtual machine (VM). It doesn't have functionality to implement VM out of the box; however, it can be be used as a JIT backend for your own VM. The usage of AsmJit is not limited at all; it's suitable for multimedia, VM backends or remote code generation.
+AsmJit is not a virtual machine nor tries to be. It's a general purpose tool that can be used to encode assembly instructions into their machine code representations and tries to make such process easy and fun. AsmJit has been used so far in software encryption, image/sound processing, emulators and as a JIT backend in virtual machines.
 
 Features
 --------
@@ -137,7 +137,7 @@ AsmJit needs to know the prototype of the function it will generate or call. Asm
 
 Let's put all together and generate a first function that sums its two arguments and returns the result. At the end the generated function is called from a C++ code.
 
-```
+```C++
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
@@ -217,7 +217,7 @@ The function starts with `c.addFunc()` and ends with `c.endFunc()`. It's not all
 
 Labels are essential for making jumps, function calls or to refer to a data that is embedded in the code section. Label has to be explicitly created by using `newLabel()` member function of your code generator in order to be used. The following example executes a code that depends on the condition by using a `Label` and conditional jump instruction. If the first parameter is zero it returns `a + b`, otherwise `a - b`.
 
-```
+```C++
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
@@ -289,7 +289,7 @@ X86/X64 architectures have several memory addressing modes which can be used to 
 
 In the following example various memory addressing modes are used to demonstrate how to construct and use memory operands. It creates a function that accepts an array and two indexes which specify which elements to sum and return.
 
-```
+```C++
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
@@ -358,7 +358,7 @@ AsmJit uses stack automatically to spill variables if there is not enough regist
 
 In the following example a stack of 256 bytes size is allocated, filled by bytes starting from 0 to 255 and then iterated again to sum all the values.
 
-```
+```C++
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
@@ -458,7 +458,7 @@ Code injection was one of key concepts of Compiler from the beginning. Compiler 
 
 To manipulate the current cursor use Compiler's `getCursor()` and `setCursor()` member functions. The following snippet demonstrates the proper way of code injection.
 
-```
+```C++
 Compiler c(...);
 
 GpVar a(c, kVarTypeInt32, "a");
