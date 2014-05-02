@@ -75,12 +75,12 @@ struct ConstPoolTree {
   // --------------------------------------------------------------------------
   // [Reset]
   // --------------------------------------------------------------------------
-  
+
   ASMJIT_INLINE void reset() {
     _root = const_cast<ConstPoolNode*>(&_sentinel);
     _length = 0;
   }
-  
+
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
@@ -92,12 +92,12 @@ struct ConstPoolTree {
   ASMJIT_INLINE size_t getLength() const {
     return _length;
   }
-  
+
   ASMJIT_INLINE void setDataSize(size_t dataSize) {
     ASMJIT_ASSERT(isEmpty());
     _dataSize = dataSize;
   }
-  
+
   // --------------------------------------------------------------------------
   // [Ops]
   // --------------------------------------------------------------------------
@@ -220,9 +220,9 @@ struct ConstPool {
   // --------------------------------------------------------------------------
   // [Reset]
   // --------------------------------------------------------------------------
-  
+
   ASMJIT_API void reset();
-  
+
   // --------------------------------------------------------------------------
   // [Ops]
   // --------------------------------------------------------------------------
@@ -266,7 +266,7 @@ struct ConstPool {
 
   //! @brief Fill the destination with the constants from the pool.
   ASMJIT_API void fill(void* dst);
-  
+
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
@@ -279,7 +279,7 @@ struct ConstPool {
   ConstPoolGap* _gaps[kIndexCount];
   //! @brief Gaps pool
   ConstPoolGap* _gapPool;
-  
+
   //! @brief Size of the pool (in bytes).
   size_t _size;
   //! @brief Alignemnt.

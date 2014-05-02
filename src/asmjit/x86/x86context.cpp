@@ -2213,7 +2213,7 @@ _NextGroup:
 
                       // Handle the case that a 32-bit operation in 64-bit mode
                       // always zeroes the rest of the destination register and
-                      // the case that move size is actually greater than or 
+                      // the case that move size is actually greater than or
                       // equal to the size of the variable.
                       if (movSize >= 4 || movSize >= varSize)
                         combinedFlags = outFlags;
@@ -2745,7 +2745,7 @@ _OnTarget:
         goto _OnVisit;
       }
 
-      // Issue #25: Moved '_OnJumpNext' here since it's important to patch 
+      // Issue #25: Moved '_OnJumpNext' here since it's important to patch
       // code again if there are more live variables than before.
 _OnJumpNext:
       if (bCur->delBits(from->getLiveness(), bLen)) {

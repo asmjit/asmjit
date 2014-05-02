@@ -64,7 +64,7 @@ ConstPoolNode* ConstPoolTree::get(const void* data) {
   size_t dataSize = _dataSize;
 
   while (node != sentinel) {
-    int c = ::memcmp(node->getData(), data, dataSize); 
+    int c = ::memcmp(node->getData(), data, dataSize);
     if (c == 0)
       return node;
     node = node->_link[c < 0];
@@ -118,11 +118,11 @@ void ConstPoolTree::put(ConstPoolNode* newNode) {
       _root = node;
   }
 }
- 
+
 // ============================================================================
 // [asmjit::ConstPool - Construction / Destruction]
 // ============================================================================
- 
+
 ConstPool::ConstPool(Zone* zone) {
   _zone = zone;
 
@@ -226,7 +226,7 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) {
 
     gap->_offset = offset;
     gap->_length = gapLength;
-    
+
     offset += gapLength;
     length -= gapLength;
   }
