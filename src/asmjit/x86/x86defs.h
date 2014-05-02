@@ -1698,17 +1698,21 @@ ASMJIT_ENUM(kInstFlags) {
   //!
   //! Move instructions typically overwrite the first operand by the second
   //! operand. The first operand can be the exact copy of the second operand
-  //! or it can be any kind of conversion. Mov instructions are typically
-  //! 'mov', 'movd', 'movq', 'movdq?', 'cmov??' like instructions, but we also
-  //! consider 'lea' (Load Effective Address), multimedia  instructions like
-  //! 'cvtdq2pd', shuffle instructions like 'pshufb' and SSE/SSE2 mathematic
-  //! instructions like 'rcp??', 'round??' and 'rsqrt??'.
+  //! or it can be any kind of conversion or shuffling.
+  //!
+  //! Mov instructions are 'mov', 'movd', 'movq', movdq', 'lea', multimedia
+  //! instructions like 'cvtdq2pd', shuffle instructions like 'pshufb' and
+  //! SSE/SSE2 mathematic instructions like 'rcp?', 'round?' and 'rsqrt?'.
+  //!
+  //! There are some MOV instructions that do only a partial move (for example
+  //! 'cvtsi2ss'), register allocator has to know the variable size and use
+  //! the flag accordingly to it.
   kInstFlagMove        = 0x0004,
 
   //! @brief Instruction is an exchange like instruction.
   //!
-  //! Exchange instruction typically overwrite first and second operand, we
-  //! count 'xchg' and 'xadd' instructions right now.
+  //! Exchange instruction typically overwrite first and second operand. So
+  //! far only the instructions 'xchg' and 'xadd' are considered.
   kInstFlagXchg        = 0x0008,
 
   //! @brief Instruction accesses Fp register(s).
@@ -1744,6 +1748,9 @@ ASMJIT_ENUM(kInstFlags) {
   kInstFlagMem4_8      = kInstFlagMem4   | kInstFlagMem8,
   //! @brief Combination of @c kInstFlagMem4 and @c kInstFlagMem8 and @c kInstFlagMem10.
   kInstFlagMem4_8_10   = kInstFlagMem4_8 | kInstFlagMem10,
+
+  //! @brief Zeroes the rest of the register if the source operand is memory.
+  kInstFlagZeroIfMem   = 0x1000,
 
   //! @brief REX.W/VEX.W by default.
   kInstFlagW           = 0x8000
@@ -1938,54 +1945,98 @@ struct InstInfo {
   // --------------------------------------------------------------------------
 
   //! @brief Get instruction name string (null terminated string).
-  ASMJIT_INLINE const char* getName() const { return _instName + static_cast<uint32_t>(_nameIndex); }
+  ASMJIT_INLINE const char* getName() const {
+    return _instName + static_cast<uint32_t>(_nameIndex);
+  }
+
   //! @brief Get instruction name index (index to @ref _instName array).
-  ASMJIT_INLINE uint32_t _getNameIndex() const { return _nameIndex; }
+  ASMJIT_INLINE uint32_t _getNameIndex() const {
+    return _nameIndex;
+  }
 
   //! @brief Get instruction group, see @ref kInstGroup.
-  ASMJIT_INLINE uint32_t getGroup() const { return _group; }
+  ASMJIT_INLINE uint32_t getGroup() const {
+    return _group;
+  }
+
+  //! @brief Get size of move instruction in bytes.
+  //!
+  //! If zero, the size of MOV instruction is determined by the size of the
+  //! destination register (applies mostly for x86 arithmetic). This value is
+  //! useful for register allocator when determining if a variable is going to
+  //! be overwritten or not. Basically if the move size is equal or greater
+  //! than a variable itself it is considered overwritten.
+  ASMJIT_INLINE uint32_t getMoveSize() const {
+    return _moveSize;
+  }
 
   // --------------------------------------------------------------------------
   // [Flags]
   // --------------------------------------------------------------------------
 
   //! @brief Get instruction flags, see @ref kInstFlags.
-  ASMJIT_INLINE uint32_t getFlags() const { return _flags; }
+  ASMJIT_INLINE uint32_t getFlags() const {
+    return _flags;
+  }
 
   //! @brief Get whether the instruction is a control-flow intruction.
   //!
   //! Control flow instruction is instruction that modifies instruction pointer,
   //! typically jmp, jcc, call, or ret.
-  ASMJIT_INLINE bool isFlow() const { return (_flags & kInstFlagFlow) != 0; }
+  ASMJIT_INLINE bool isFlow() const {
+    return (_flags & kInstFlagFlow) != 0;
+  }
 
   //! @brief Get whether the instruction is a compare/test like intruction.
-  ASMJIT_INLINE bool isTest() const { return (_flags & kInstFlagTest) != 0; }
+  ASMJIT_INLINE bool isTest() const {
+    return (_flags & kInstFlagTest) != 0;
+  }
 
   //! @brief Get whether the instruction is a typical Move instruction.
   //!
   //! Move instructions typically overwrite the first operand, so it's an useful
   //! hint for @ref Compiler. Applies also to multimedia instruction - MMX,
   //! SSE, SSE2 and AVX moves).
-  ASMJIT_INLINE bool isMove() const { return (_flags & kInstFlagMove) != 0; }
+  ASMJIT_INLINE bool isMove() const {
+    return (_flags & kInstFlagMove) != 0;
+  }
 
   //! @brief Get whether the instruction is a typical Exchange instruction.
   //!
   //! Exchange instructios are 'xchg' and 'xadd'.
-  ASMJIT_INLINE bool isXchg() const { return (_flags & kInstFlagXchg) != 0; }
+  ASMJIT_INLINE bool isXchg() const {
+    return (_flags & kInstFlagXchg) != 0;
+  }
 
   //! @brief Get whether the instruction accesses Fp register(s).
-  ASMJIT_INLINE bool isFp() const { return (_flags & kInstFlagFp) != 0; }
+  ASMJIT_INLINE bool isFp() const {
+    return (_flags & kInstFlagFp) != 0;
+  }
 
   //! @brief Get whether the instruction can be prefixed by LOCK prefix.
-  ASMJIT_INLINE bool isLockable() const { return (_flags & kInstFlagLock) != 0; }
+  ASMJIT_INLINE bool isLockable() const {
+    return (_flags & kInstFlagLock) != 0;
+  }
 
   //! @brief Get whether the instruction is special type (this is used by
   //! @c Compiler to manage additional variables or functionality).
-  ASMJIT_INLINE bool isSpecial() const { return (_flags & kInstFlagSpecial) != 0; }
+  ASMJIT_INLINE bool isSpecial() const {
+    return (_flags & kInstFlagSpecial) != 0;
+  }
 
   //! @brief Get whether the instruction is special type and it performs
   //! memory access.
-  ASMJIT_INLINE bool isSpecialMem() const { return (_flags & kInstFlagSpecialMem) != 0; }
+  ASMJIT_INLINE bool isSpecialMem() const {
+    return (_flags & kInstFlagSpecialMem) != 0;
+  }
+
+  //! @brief Get whether the move instruction zeroes the rest of the register
+  //! if the source is memory operand.
+  //!
+  //! Basically flag needed by 'movsd' and 'movss' instructions.
+  ASMJIT_INLINE bool isZeroIfMem() const {
+    return (_flags & kInstFlagZeroIfMem) != 0;
+  }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -1997,8 +2048,13 @@ struct InstInfo {
   uint16_t _flags;
   //! @brief Instruction group, used also by @c Compiler.
   uint8_t _group;
+  //! @brief Count of bytes overritten by a move instruction.
+  //!
+  //! Only used when kInstFlagMove flag is set. If this value is zero move
+  //! depends on the destination register size.
+  uint8_t _moveSize;
   //! @brief Reserved for future use.
-  uint8_t _reserved[3];
+  uint8_t _reserved[2];
   //! @brief Operands' flags.
   uint16_t _opFlags[4];
   //! @brief Primary and secondary opcodes.
@@ -2129,82 +2185,97 @@ struct RegMask {
   // [Zero]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void zero(uint32_t c)
-  { _packed.u16[c] = 0; }
+  ASMJIT_INLINE void zero(uint32_t c) {
+    _packed.u16[c] = 0;
+  }
 
   // --------------------------------------------------------------------------
   // [Get]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE uint32_t get(uint32_t c) const
-  { return _packed.u16[c]; }
+  ASMJIT_INLINE uint32_t get(uint32_t c) const {
+    return _packed.u16[c];
+  }
 
   // --------------------------------------------------------------------------
   // [Set]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void set(uint32_t c, uint32_t mask)
-  { _packed.u16[c] = static_cast<uint16_t>(mask); }
+  ASMJIT_INLINE void set(uint32_t c, uint32_t mask) {
+    _packed.u16[c] = static_cast<uint16_t>(mask);
+  }
 
-  ASMJIT_INLINE void set(const RegMask& other)
-  { _packed.setUInt64(other._packed); }
+  ASMJIT_INLINE void set(const RegMask& other) {
+    _packed.setUInt64(other._packed);
+  }
 
   // --------------------------------------------------------------------------
   // [Add]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void add(uint32_t c, uint32_t mask)
-  { _packed.u16[c] |= static_cast<uint16_t>(mask); }
+  ASMJIT_INLINE void add(uint32_t c, uint32_t mask) {
+    _packed.u16[c] |= static_cast<uint16_t>(mask);
+  }
 
-  ASMJIT_INLINE void add(const RegMask& other)
-  { _packed.or_(other._packed); }
+  ASMJIT_INLINE void add(const RegMask& other) {
+    _packed.or_(other._packed);
+  }
 
   // --------------------------------------------------------------------------
   // [Del]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void del(uint32_t c, uint32_t mask)
-  { _packed.u16[c] &= ~static_cast<uint16_t>(mask); }
+  ASMJIT_INLINE void del(uint32_t c, uint32_t mask) {
+    _packed.u16[c] &= ~static_cast<uint16_t>(mask);
+  }
 
-  ASMJIT_INLINE void del(const RegMask& other)
-  { _packed.del(other._packed); }
+  ASMJIT_INLINE void del(const RegMask& other) {
+    _packed.del(other._packed);
+  }
 
   // --------------------------------------------------------------------------
   // [And]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void and_(uint32_t c, uint32_t mask)
-  { _packed.u16[c] &= static_cast<uint16_t>(mask); }
+  ASMJIT_INLINE void and_(uint32_t c, uint32_t mask) {
+    _packed.u16[c] &= static_cast<uint16_t>(mask);
+  }
 
-  ASMJIT_INLINE void and_(const RegMask& other)
-  { _packed.and_(other._packed); }
+  ASMJIT_INLINE void and_(const RegMask& other) {
+    _packed.and_(other._packed);
+  }
 
   // --------------------------------------------------------------------------
   // [Xor]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void xor_(uint32_t c, uint32_t mask)
-  { _packed.u16[c] ^= static_cast<uint16_t>(mask); }
+  ASMJIT_INLINE void xor_(uint32_t c, uint32_t mask) {
+    _packed.u16[c] ^= static_cast<uint16_t>(mask);
+  }
 
-  ASMJIT_INLINE void xor_(const RegMask& other)
-  { _packed.xor_(other._packed); }
+  ASMJIT_INLINE void xor_(const RegMask& other) {
+    _packed.xor_(other._packed);
+  }
 
   // --------------------------------------------------------------------------
   // [IsEmpty / Has]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE bool isEmpty() const
-  { return _packed.isZero(); }
+  ASMJIT_INLINE bool isEmpty() const {
+    return _packed.isZero();
+  }
 
-  ASMJIT_INLINE bool has(uint32_t c, uint32_t mask = 0xFFFFFFFF) const
-  { return (static_cast<uint32_t>(_packed.u16[c]) & mask) != 0; }
+  ASMJIT_INLINE bool has(uint32_t c, uint32_t mask = 0xFFFFFFFF) const {
+    return (static_cast<uint32_t>(_packed.u16[c]) & mask) != 0;
+  }
 
   // --------------------------------------------------------------------------
   // [Reset]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void reset()
-  { _packed.reset(); }
+  ASMJIT_INLINE void reset() {
+    _packed.reset();
+  }
 
   // --------------------------------------------------------------------------
   // [Members]

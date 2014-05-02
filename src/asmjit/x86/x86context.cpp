@@ -2182,27 +2182,46 @@ _NextGroup:
                 uint32_t combinedFlags;
 
                 if (i == 0) {
-                  // Default for the first operand.
+                  // Read/Write is usualy the combination of the first operand.
                   combinedFlags = inFlags | outFlags;
 
-                  // Comparison/Test instructions never modify the source operand.
-                  if (info->isTest()) {
-                    combinedFlags = inFlags;
-                  }
-                  // Move instructions typically overwrite the first operand, but
-                  // there are some exceptions based on the operands' size and type.
-                  else if (info->isMove()) {
-                    // Cvttsd2si/Cvttss2si. In 32-bit mode the whole destination is replaced.
-                    // In 64-bit mode we need to check whether the destination operand size
-                    // is 64-bits.
-                    if (code == kInstCvttsd2si || code == kInstCvttss2si)
-                      combinedFlags = vd->getSize() > 4 ? (op->isRegType(kRegTypeGpq) ? outFlags : inFlags | outFlags) : outFlags;
-                    // Movss/Movsd. These instructions won't overwrite the whole register if move
-                    // is between two registers.
-                    else if (code == kInstMovss || code == kInstMovsd)
-                      combinedFlags = opList[1].isMem() ? outFlags : inFlags | outFlags;
-                    else
+                  // Move instructions typically overwrite the first operand,
+                  // but there are some exceptions based on the operands' size
+                  // and type.
+                  if (info->isMove()) {
+                    uint32_t movSize = info->getMoveSize();
+                    uint32_t varSize = vd->getSize();
+
+                    // Exception - If the source operand is a memory location
+                    // promote move size into 16 bytes.
+                    if (info->isZeroIfMem() && opList[1].isMem())
+                      movSize = 16;
+
+                    if (movSize >= varSize) {
+                      // If move size is greater than or equal to the size of
+                      // the variable there is nothing to do, because the move
+                      // will overwrite the variable in all cases.
                       combinedFlags = outFlags;
+                    }
+                    else if (static_cast<const X86Var*>(op)->isGp()) {
+                      uint32_t opSize = static_cast<const X86Var*>(op)->getSize();
+
+                      // Move size is zero in case that it should be determined
+                      // from the destination register.
+                      if (movSize == 0)
+                        movSize = opSize;
+
+                      // Handle the case that a 32-bit operation in 64-bit mode
+                      // always zeroes the rest of the destination register and
+                      // the case that move size is actually greater than or 
+                      // equal to the size of the variable.
+                      if (movSize >= 4 || movSize >= varSize)
+                        combinedFlags = outFlags;
+                    }
+                  }
+                  // Comparison/Test instructions don't modify any operand.
+                  else if (info->isTest()) {
+                    combinedFlags = inFlags;
                   }
                   // Imul.
                   else if (code == kInstImul && opCount == 3) {
@@ -2210,10 +2229,13 @@ _NextGroup:
                   }
                 }
                 else {
-                  // Default for secon/third operands.
+                  // Read-Only is usualy the combination of the second/third/fourth operands.
                   combinedFlags = inFlags;
 
-                  // Xchg/Xadd/Imul/Idiv.
+                  // Idiv is a special instruction, never handled here.
+                  ASMJIT_ASSERT(code != kInstIdiv);
+
+                  // Xchg/Xadd/Imul.
                   if (info->isXchg() || (code == kInstImul && opCount == 3 && i == 1))
                     combinedFlags = inFlags | outFlags;
                 }
@@ -2240,26 +2262,26 @@ _NextGroup:
                       // Default for the first operand.
                       combinedFlags = inFlags | outFlags;
 
-                      // Comparison/Test instructions never modify the source operand.
-                      if (info->isTest()) {
-                        combinedFlags = inFlags;
-                      }
-                      // Move instructions typically overwrite the first operand, but
-                      // there are some exceptions based on the operands' size and type.
-                      else if (info->isMove()) {
-                        // Movss.
-                        if (code == kInstMovss)
-                          combinedFlags = vd->getSize() == 4 ? outFlags : inFlags | outFlags;
-                        // Movsd.
-                        else if (code == kInstMovsd)
-                          combinedFlags = vd->getSize() == 8 ? outFlags : inFlags | outFlags;
-                        else
+                      // Move to memory - setting the right flags is important
+                      // as if it's just move to the register. It's just a bit
+                      // simpler as there are no special cases.
+                      if (info->isMove()) {
+                        uint32_t movSize = IntUtil::iMax<uint32_t>(info->getMoveSize(), m->getSize());
+                        uint32_t varSize = vd->getSize();
+
+                        if (movSize >= varSize)
                           combinedFlags = outFlags;
+                      }
+                      // Comparison/Test instructions don't modify any operand.
+                      else if (info->isTest()) {
+                        combinedFlags = inFlags;
                       }
                     }
                     else {
                       // Default for the second operand.
                       combinedFlags = inFlags;
+
+                      // Handle Xchg instruction (modifies both operands).
                       if (info->isXchg())
                         combinedFlags = inFlags | outFlags;
                     }
