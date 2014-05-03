@@ -1564,35 +1564,7 @@ struct X86X64Compiler : public BaseCompiler {
   // [Options]
   // -------------------------------------------------------------------------
 
-  //! @brief Force short form of jmp/jcc/other instruction.
-  ASMJIT_INLINE X86X64Compiler& short_() {
-    _options |= kInstOptionShortForm;
-    return *this;
-  }
-
-  //! @brief Force long form of jmp/jcc/other instruction.
-  ASMJIT_INLINE X86X64Compiler& long_() {
-    _options |= kInstOptionLongForm;
-    return *this;
-  }
-
-  //! @brief Condition is likely to be taken.
-  ASMJIT_INLINE X86X64Compiler& taken() {
-    _options |= kInstOptionTaken;
-    return *this;
-  }
-
-  //! @brief Condition is unlikely to be taken.
-  ASMJIT_INLINE X86X64Compiler& notTaken() {
-    _options |= kInstOptionNotTaken;
-    return *this;
-  }
-
-  //! @brief Lock prefix.
-  ASMJIT_INLINE X86X64Compiler& lock() {
-    _options |= kInstOptionLock;
-    return *this;
-  }
+  ASMJIT_X86X64_EMIT_OPTIONS(X86X64Compiler)
 
   // --------------------------------------------------------------------------
   // [X86 Instructions]
@@ -4061,35 +4033,7 @@ struct Compiler : public X86X64Compiler {
   // [Options]
   // -------------------------------------------------------------------------
 
-  //! @overload
-  ASMJIT_INLINE Compiler& short_() {
-    _options |= kInstOptionShortForm;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& long_() {
-    _options |= kInstOptionLongForm;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& taken() {
-    _options |= kInstOptionTaken;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& notTaken() {
-    _options |= kInstOptionNotTaken;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& lock() {
-    _options |= kInstOptionLock;
-    return *this;
-  }
+  ASMJIT_X86X64_EMIT_OPTIONS(Compiler)
 
   // --------------------------------------------------------------------------
   // [X86-Only Instructions]
@@ -4142,41 +4086,7 @@ struct Compiler : public X86X64Compiler {
   // [Options]
   // -------------------------------------------------------------------------
 
-  //! @overload
-  ASMJIT_INLINE Compiler& short_() {
-    _options |= kInstOptionShortForm;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& long_() {
-    _options |= kInstOptionLongForm;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& taken() {
-    _options |= kInstOptionTaken;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& notTaken() {
-    _options |= kInstOptionNotTaken;
-    return *this;
-  }
-
-  //! @overload
-  ASMJIT_INLINE Compiler& lock() {
-    _options |= kInstOptionLock;
-    return *this;
-  }
-
-  //! @brief Force rex prefix.
-  ASMJIT_INLINE Compiler& rex() {
-    _options |= kInstOptionRex;
-    return *this;
-  }
+  ASMJIT_X86X64_EMIT_OPTIONS(Compiler)
 
   // --------------------------------------------------------------------------
   // [X64-Only Instructions]
@@ -4201,24 +4111,20 @@ struct Compiler : public X86X64Compiler {
   //! @overload
   INST_2x(movsxd, kInstMovsxd, GpVar, Mem)
 
-  //! @brief Load ECX/RCX Qdwords from DS:[ESI/RSI] to RAX.
+  //! @brief Load ECX/RCX QWORDs from DS:[ESI/RSI] to RAX.
   INST_3x_(rep_lodsq, kInstRepLodsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-
-  //! @brief Move ECX/RCX Qdwords from DS:[ESI/RSI] to ES:[EDI/RDI].
+  //! @brief Move ECX/RCX QWORDs from DS:[ESI/RSI] to ES:[EDI/RDI].
   INST_3x_(rep_movsq, kInstRepMovsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-
-  //! @brief Fill ECX/RCX Qdwords at ES:[EDI/RDI] with RAX.
+  //! @brief Fill ECX/RCX QWORDs at ES:[EDI/RDI] with RAX.
   INST_3x_(rep_stosq, kInstRepStosq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Repeated find nonmatching Qdwords in ES:[EDI/RDI] and DS:[ESI/RDI].
+  //! @brief Repeated find nonmatching QWORDs in ES:[EDI/RDI] and DS:[ESI/RDI].
   INST_3x_(repe_cmpsq, kInstRepeCmpsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-
   //! @brief Find non-RAX QWORD starting at ES:[EDI/RDI].
   INST_3x_(repe_scasq, kInstRepeScasq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Find matching Qdwords in [RDI] and [RSI].
+  //! @brief Find matching QWORDs in [RDI] and [RSI].
   INST_3x_(repne_cmpsq, kInstRepneCmpsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-
   //! @brief Find RAX, starting at ES:[EDI/RDI].
   INST_3x_(repne_scasq, kInstRepneScasq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 

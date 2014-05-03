@@ -235,6 +235,49 @@ namespace x86x64 {
     return emit(_Code_, o0, o1, o2, o3); \
   }
 
+#define ASMJIT_X86X64_EMIT_OPTIONS(_Class_) \
+  /*! @brief Force short form of jmp/jcc instruction. */ \
+  ASMJIT_INLINE _Class_& short_() { \
+    _options |= kInstOptionShortForm; \
+    return *this; \
+  } \
+  \
+  /*! @brief Force long form of jmp/jcc instruction. */ \
+  ASMJIT_INLINE _Class_& long_() { \
+    _options |= kInstOptionLongForm; \
+    return *this; \
+  } \
+  \
+  /*! @brief Condition is likely to be taken (has only benefit on P4). */ \
+  ASMJIT_INLINE _Class_& taken() { \
+    _options |= kInstOptionTaken; \
+    return *this; \
+  } \
+  \
+  /*! @brief Condition is unlikely to be taken (has only benefit on P4). */ \
+  ASMJIT_INLINE _Class_& notTaken() { \
+    _options |= kInstOptionNotTaken; \
+    return *this; \
+  } \
+  \
+  /*! @brief Use LOCK prefix. */ \
+  ASMJIT_INLINE _Class_& lock() { \
+    _options |= kInstOptionLock; \
+    return *this; \
+  } \
+  \
+  /*! @brief Force REX prefix. */ \
+  ASMJIT_INLINE _Class_& rex() { \
+    _options |= kInstOptionRex; \
+    return *this; \
+  } \
+  \
+  /*! @brief Force 3-byte VEX prefix. */ \
+  ASMJIT_INLINE _Class_& vex3() { \
+    _options |= kInstOptionVex3; \
+    return *this; \
+  }
+
 // ============================================================================
 // [asmjit::x86x64::X86X64Assembler]
 // ============================================================================
@@ -586,25 +629,7 @@ struct X86X64Assembler : public BaseAssembler {
   // [Options]
   // -------------------------------------------------------------------------
 
-  //! @brief Force short form of jmp/jcc/other instruction.
-  ASMJIT_INLINE X86X64Assembler& short_()
-  { _options |= kInstOptionShortForm; return *this; }
-
-  //! @brief Force long form of jmp/jcc/other instruction.
-  ASMJIT_INLINE X86X64Assembler& long_()
-  { _options |= kInstOptionLongForm; return *this; }
-
-  //! @brief Condition is likely to be taken.
-  ASMJIT_INLINE X86X64Assembler& taken()
-  { _options |= kInstOptionTaken; return *this; }
-
-  //! @brief Condition is unlikely to be taken.
-  ASMJIT_INLINE X86X64Assembler& notTaken()
-  { _options |= kInstOptionNotTaken; return *this; }
-
-  //! @brief Lock prefix.
-  ASMJIT_INLINE X86X64Assembler& lock()
-  { _options |= kInstOptionLock; return *this; }
+  ASMJIT_X86X64_EMIT_OPTIONS(X86X64Assembler)
 
   // --------------------------------------------------------------------------
   // [Base Instructions]
@@ -5169,29 +5194,7 @@ struct Assembler : public X86X64Assembler {
   // [Options]
   // -------------------------------------------------------------------------
 
-  //! @overload
-  ASMJIT_INLINE Assembler& short_()
-  { _options |= kInstOptionShortForm; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& long_()
-  { _options |= kInstOptionLongForm; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& taken()
-  { _options |= kInstOptionTaken; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& notTaken()
-  { _options |= kInstOptionNotTaken; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& lock()
-  { _options |= kInstOptionLock; return *this; }
-
-  //! @brief Force rex prefix.
-  ASMJIT_INLINE Assembler& vex3()
-  { _options |= kInstOptionVex3; return *this; }
+  ASMJIT_X86X64_EMIT_OPTIONS(Assembler)
 
   // --------------------------------------------------------------------------
   // [X86-Only Instructions]
@@ -5202,10 +5205,9 @@ struct Assembler : public X86X64Assembler {
   //! @brief Decimal adjust AL after subtraction (32-bit).
   INST_0x(das, kInstDas)
 
-  //! @brief Pop all Gp registers (EDI|ESI|EBP|EBX|EDX|ECX|EAX).
+  //! @brief Pop all Gp registers - EDI|ESI|EBP|Ign|EBX|EDX|ECX|EAX.
   INST_0x(popa, kInstPopa)
-
-  //! @brief Push all Gp registers (EAX|ECX|EDX|EBX|original ESP|EBP|ESI|EDI).
+  //! @brief Push all Gp registers - EAX|ECX|EDX|EBX|ESP|EBP|ESI|EDI.
   INST_0x(pusha, kInstPusha)
 };
 
@@ -5255,33 +5257,7 @@ struct Assembler : public X86X64Assembler {
   // [Options]
   // --------------------------------------------------------------------------
 
-  //! @overload
-  ASMJIT_INLINE Assembler& short_()
-  { _options |= kInstOptionShortForm; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& long_()
-  { _options |= kInstOptionLongForm; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& taken()
-  { _options |= kInstOptionTaken; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& notTaken()
-  { _options |= kInstOptionNotTaken; return *this; }
-
-  //! @overload
-  ASMJIT_INLINE Assembler& lock()
-  { _options |= kInstOptionLock; return *this; }
-
-  //! @brief Force rex prefix.
-  ASMJIT_INLINE Assembler& rex()
-  { _options |= kInstOptionRex; return *this; }
-
-  //! @brief Force rex prefix.
-  ASMJIT_INLINE Assembler& vex3()
-  { _options |= kInstOptionVex3; return *this; }
+  ASMJIT_X86X64_EMIT_OPTIONS(Assembler)
 
   // --------------------------------------------------------------------------
   // [X64-Only Instructions]
@@ -5300,24 +5276,20 @@ struct Assembler : public X86X64Assembler {
   //! @overload
   INST_2x(movsxd, kInstMovsxd, GpReg, Mem)
 
-  //! @brief Load ECX/RCX qwords from DS:[ESI/RSI] to RAX.
+  //! @brief Load ECX/RCX QWORDs from DS:[ESI/RSI] to RAX.
   INST_0x(rep_lodsq, kInstRepLodsq)
-
-  //! @brief Move ECX/RCX qwords from DS:[ESI/RSI] to ES:[EDI/RDI].
+  //! @brief Move ECX/RCX QWORDs from DS:[ESI/RSI] to ES:[EDI/RDI].
   INST_0x(rep_movsq, kInstRepMovsq)
-
-  //! @brief Fill ECX/RCX qwords at ES:[EDI/RDI] with RAX.
+  //! @brief Fill ECX/RCX QWORDs at ES:[EDI/RDI] with RAX.
   INST_0x(rep_stosq, kInstRepStosq)
 
-  //! @brief Repeated find nonmatching qwords in ES:[EDI/RDI] and DS:[ESI/RDI].
+  //! @brief Repeated find nonmatching QWORDs in ES:[EDI/RDI] and DS:[ESI/RDI].
   INST_0x(repe_cmpsq, kInstRepeCmpsq)
-
-  //! @brief Find non-rax qword starting at ES:[EDI/RDI].
+  //! @brief Find non-rax QWORD starting at ES:[EDI/RDI].
   INST_0x(repe_scasq, kInstRepeScasq)
 
-  //! @brief Repeated find nonmatching qwords in ES:[EDI/RDI] and DS:[ESI/RDI].
+  //! @brief Repeated find nonmatching QWORDs in ES:[EDI/RDI] and DS:[ESI/RDI].
   INST_0x(repne_cmpsq, kInstRepneCmpsq)
-
   //! @brief Find RAX, starting at ES:[EDI/RDI].
   INST_0x(repne_scasq, kInstRepneScasq)
 

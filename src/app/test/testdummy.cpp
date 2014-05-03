@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef void (*MyFunc)(void);
+typedef int (*MyFunc)(void);
 
 int main(int argc, char* argv[]) {
   using namespace asmjit;
@@ -27,40 +27,12 @@ int main(int argc, char* argv[]) {
   Compiler c(&runtime);
   c.setLogger(&logger);
 
-  c.addFunc(kFuncConvHost, FuncBuilder0<void>());
-
-  Label L_1(c);
-  Label L_2(c);
-  Label L_3(c);
-  Label L_4(c);
-  Label L_5(c);
-  Label L_6(c);
-  Label L_7(c);
-
-  GpVar v1(c);
-  GpVar v2(c);
-
-  c.bind(L_2);
-  c.bind(L_3);
-
-  c.jmp(L_1);
-  c.bind(L_5);
-  c.mov(v1, 0);
-  c.bind(L_6);
-  c.jmp(L_3);
-  c.mov(v2, 1);
-  c.jmp(L_1);
-  c.bind(L_4);
-  c.jmp(L_2);
-  c.bind(L_7);
-  c.add(v1, v2);
-
-  c.bind(L_1);
-  c.ret();
+  c.addFunc(kFuncConvHost, FuncBuilder0<int>());
   c.endFunc();
 
   MyFunc func = asmjit_cast<MyFunc>(c.make());
-  runtime.release((void*)func);
+  func();
 
+  runtime.release((void*)func);
   return 0;
 }
