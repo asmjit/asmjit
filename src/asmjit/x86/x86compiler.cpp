@@ -509,6 +509,12 @@ Error X86X64Compiler::_newVar(BaseVar* var, uint32_t vType, const char* name) {
   vType = _targetVarMapping[vType];
   ASMJIT_ASSERT(vType != kVarTypeInvalid);
 
+  // There is not ASSERT in release mode and this should be checked.
+  if (vType == kVarTypeInvalid) {
+    static_cast<X86Var*>(var)->reset();
+    return kErrorInvalidArgument;
+  }
+
   const VarInfo& vInfo = _varInfo[vType];
   VarData* vd = _newVd(vType, vInfo.getSize(), vInfo.getClass(), name);
 

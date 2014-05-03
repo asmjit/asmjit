@@ -1114,6 +1114,12 @@ ASMJIT_ENUM(kInstCode) {
   kInstVfmadd231ps,     // FMA3
   kInstVfmadd231sd,     // FMA3
   kInstVfmadd231ss,     // FMA3
+  kInstVfmaddpd,        // FMA4
+  kInstVfmaddps,        // FMA4
+  kInstVfmaddsd,        // FMA4
+  kInstVfmaddss,        // FMA4
+  kInstVfmaddsubpd,     // FMA4
+  kInstVfmaddsubps,     // FMA4
   kInstVfmaddsub132pd,  // FMA3
   kInstVfmaddsub132ps,  // FMA3
   kInstVfmaddsub213pd,  // FMA3
@@ -1138,6 +1144,12 @@ ASMJIT_ENUM(kInstCode) {
   kInstVfmsubadd213ps,  // FMA3
   kInstVfmsubadd231pd,  // FMA3
   kInstVfmsubadd231ps,  // FMA3
+  kInstVfmsubaddpd,     // FMA4
+  kInstVfmsubaddps,     // FMA4
+  kInstVfmsubpd,        // FMA4
+  kInstVfmsubps,        // FMA4
+  kInstVfmsubsd,        // FMA4
+  kInstVfmsubss,        // FMA4
   kInstVfnmadd132pd,    // FMA3
   kInstVfnmadd132ps,    // FMA3
   kInstVfnmadd132sd,    // FMA3
@@ -1150,6 +1162,10 @@ ASMJIT_ENUM(kInstCode) {
   kInstVfnmadd231ps,    // FMA3
   kInstVfnmadd231sd,    // FMA3
   kInstVfnmadd231ss,    // FMA3
+  kInstVfnmaddpd,       // FMA4
+  kInstVfnmaddps,       // FMA4
+  kInstVfnmaddsd,       // FMA4
+  kInstVfnmaddss,       // FMA4
   kInstVfnmsub132pd,    // FMA3
   kInstVfnmsub132ps,    // FMA3
   kInstVfnmsub132sd,    // FMA3
@@ -1162,6 +1178,14 @@ ASMJIT_ENUM(kInstCode) {
   kInstVfnmsub231ps,    // FMA3
   kInstVfnmsub231sd,    // FMA3
   kInstVfnmsub231ss,    // FMA3
+  kInstVfnmsubpd,       // FMA4
+  kInstVfnmsubps,       // FMA4
+  kInstVfnmsubsd,       // FMA4
+  kInstVfnmsubss,       // FMA4
+  kInstVfrczpd,         // XOP
+  kInstVfrczps,         // XOP
+  kInstVfrczsd,         // XOP
+  kInstVfrczss,         // XOP
   kInstVgatherdpd,      // AVX2
   kInstVgatherdps,      // AVX2
   kInstVgatherqpd,      // AVX2
@@ -1246,6 +1270,7 @@ ASMJIT_ENUM(kInstCode) {
   kInstVpbroadcastq,    // AVX2
   kInstVpbroadcastw,    // AVX2
   kInstVpclmulqdq,      // AVX+PCLMULQDQ
+  kInstVpcmov,          // XOP
   kInstVpcmpeqb,        // AVX2
   kInstVpcmpeqd,        // AVX2
   kInstVpcmpeqq,        // AVX2
@@ -1258,9 +1283,19 @@ ASMJIT_ENUM(kInstCode) {
   kInstVpcmpgtw,        // AVX2
   kInstVpcmpistri,      // AVX
   kInstVpcmpistrm,      // AVX
+  kInstVpcomb,          // XOP
+  kInstVpcomd,          // XOP
+  kInstVpcomq,          // XOP
+  kInstVpcomub,         // XOP
+  kInstVpcomud,         // XOP
+  kInstVpcomuq,         // XOP
+  kInstVpcomuw,         // XOP
+  kInstVpcomw,          // XOP
   kInstVperm2f128,      // AVX
   kInstVperm2i128,      // AVX2
   kInstVpermd,          // AVX2
+  kInstVpermil2pd,      // XOP
+  kInstVpermil2ps,      // XOP
   kInstVpermilpd,       // AVX
   kInstVpermilps,       // AVX
   kInstVpermpd,         // AVX2
@@ -1274,17 +1309,44 @@ ASMJIT_ENUM(kInstCode) {
   kInstVpgatherdq,      // AVX2
   kInstVpgatherqd,      // AVX2
   kInstVpgatherqq,      // AVX2
+  kInstVphaddbd,        // XOP
+  kInstVphaddbq,        // XOP
+  kInstVphaddbw,        // XOP
   kInstVphaddd,         // AVX2
+  kInstVphadddq,        // XOP
   kInstVphaddsw,        // AVX2
+  kInstVphaddubd,       // XOP
+  kInstVphaddubq,       // XOP
+  kInstVphaddubw,       // XOP
+  kInstVphaddudq,       // XOP
+  kInstVphadduwd,       // XOP
+  kInstVphadduwq,       // XOP
   kInstVphaddw,         // AVX2
+  kInstVphaddwd,        // XOP
+  kInstVphaddwq,        // XOP
   kInstVphminposuw,     // AVX
+  kInstVphsubbw,        // XOP
+  kInstVphsubdq,        // XOP
   kInstVphsubd,         // AVX2
   kInstVphsubsw,        // AVX2
   kInstVphsubw,         // AVX2
+  kInstVphsubwd,        // XOP
   kInstVpinsrb,         // AVX
   kInstVpinsrd,         // AVX
   kInstVpinsrq,         // AVX (x64 only)
   kInstVpinsrw,         // AVX
+  kInstVpmacsdd,        // XOP
+  kInstVpmacsdqh,       // XOP
+  kInstVpmacsdql,       // XOP
+  kInstVpmacssdd,       // XOP
+  kInstVpmacssdqh,      // XOP
+  kInstVpmacssdql,      // XOP
+  kInstVpmacsswd,       // XOP
+  kInstVpmacssww,       // XOP
+  kInstVpmacswd,        // XOP
+  kInstVpmacsww,        // XOP
+  kInstVpmadcsswd,      // XOP
+  kInstVpmadcswd,       // XOP
   kInstVpmaddubsw,      // AVX/AVX2
   kInstVpmaddwd,        // AVX/AVX2
   kInstVpmaskmovd,      // AVX2
@@ -1322,7 +1384,20 @@ ASMJIT_ENUM(kInstCode) {
   kInstVpmullw,         // AVX/AVX2
   kInstVpmuludq,        // AVX/AVX2
   kInstVpor,            // AVX/AVX2
+  kInstVpperm,          // XOP
+  kInstVprotb,          // XOP
+  kInstVprotd,          // XOP
+  kInstVprotq,          // XOP
+  kInstVprotw,          // XOP
   kInstVpsadbw,         // AVX/AVX2
+  kInstVpshab,          // XOP
+  kInstVpshad,          // XOP
+  kInstVpshaq,          // XOP
+  kInstVpshaw,          // XOP
+  kInstVpshlb,          // XOP
+  kInstVpshld,          // XOP
+  kInstVpshlq,          // XOP
+  kInstVpshlw,          // XOP
   kInstVpshufb,         // AVX/AVX2
   kInstVpshufd,         // AVX/AVX2
   kInstVpshufhw,        // AVX/AVX2
@@ -1576,66 +1651,151 @@ ASMJIT_ENUM(kInstGroup) {
   kInstGroupAvxM,
   //! @brief AVX instruction encoded as 'MR'.
   kInstGroupAvxMr,
-  //! @brief AVX instruction encoded as 'MR' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'MR'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxMr_P,
+
   //! @brief AVX instruction encoded as 'MRI'.
   kInstGroupAvxMri,
-  //! @brief AVX instruction encoded as 'MRI' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'MRI'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxMri_P,
+
   //! @brief AVX instruction encoded as 'RM'.
   kInstGroupAvxRm,
-  //! @brief AVX instruction encoded as 'RM' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RM'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRm_P,
+
   //! @brief AVX instruction encoded as 'RMI'.
   kInstGroupAvxRmi,
-  //! @brief AVX instruction encoded as 'RMI' (propagates AVX.L if the instruction uses YMM register)..
+  //! @brief AVX instruction encoded as 'RMI'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRmi_P,
+
   //! @brief AVX instruction encoded as 'RVM'.
   kInstGroupAvxRvm,
-  //! @brief AVX instruction encoded as 'RVM' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RVM'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRvm_P,
+
   //! @brief AVX instruction encoded as 'RVMR'.
   kInstGroupAvxRvmr,
-  //! @brief AVX instruction encoded as 'RVMR' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RVMR'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRvmr_P,
   //! @brief AVX instruction encoded as 'RVMI'.
+
   kInstGroupAvxRvmi,
-  //! @brief AVX instruction encoded as 'RVMI' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RVMI'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRvmi_P,
   //! @brief AVX instruction encoded as 'RMV'.
+
   kInstGroupAvxRmv,
   //! @brief AVX instruction encoded as 'RMVI'.
   kInstGroupAvxRmvi,
+
   //! @brief AVX instruction encoded as 'RM' or 'MR'.
   kInstGroupAvxRmMr,
-  //! @brief AVX instruction encoded as 'RM' or 'MR' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RM' or 'MR'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRmMr_P,
+
   //! @brief AVX instruction encoded as 'RVM' or 'RMI'.
   kInstGroupAvxRvmRmi,
-  //! @brief AVX instruction encoded as 'RVM' or 'RMI' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RVM' or 'RMI'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRvmRmi_P,
+
   //! @brief AVX instruction encoded as 'RVM' or 'MR'.
   kInstGroupAvxRvmMr,
+
   //! @brief AVX instruction encoded as 'RVM' or 'MVR'.
   kInstGroupAvxRvmMvr,
-  //! @brief AVX instruction encoded as 'RVM' or 'MVR' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RVM' or 'MVR'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRvmMvr_P,
+
   //! @brief AVX instruction encoded as 'RVM' or 'VMI'.
   kInstGroupAvxRvmVmi,
-  //! @brief AVX instruction encoded as 'RVM' or 'VMI' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'RVM' or 'VMI'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxRvmVmi_P,
+
   //! @brief AVX instruction encoded as 'VM'.
   kInstGroupAvxVm,
   //! @brief AVX instruction encoded as 'VMI'.
   kInstGroupAvxVmi,
-  //! @brief AVX instruction encoded as 'VMI' (propagates AVX.L if the instruction uses YMM register).
+  //! @brief AVX instruction encoded as 'VMI'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register.
   kInstGroupAvxVmi_P,
+
+  //! @brief AVX instruction encoded as 'RVRM' or 'RVMR'.
+  kInstGroupAvxRvrmRvmr,
+  //! @brief AVX instruction encoded as 'RVRM' or 'RVMR'.
+  //!
+  //! Propagates AVX.L if the instruction uses YMM register).
+  kInstGroupAvxRvrmRvmr_P,
+
   //! @brief Vmovss/Vmovsd.
   kInstGroupAvxMovSsSd,
+
   //! @brief AVX2 gather family instructions (VSIB).
   kInstGroupAvxGather,
   //! @brief AVX2 gather family instructions (VSIB), differs only in mem operand.
-  kInstGroupAvxGatherEx
+  kInstGroupAvxGatherEx,
+
+  //! @brief FMA4 supporting XMM in form [R, R, R/M, R/M].
+  kInstGroupFma4,
+  //! @brief FMA4 supporting XMM/YMM in form [R, R, R/M, R/M].
+  kInstGroupFma4_P,
+
+  //! @brief XOP instruction encoded as 'RM'.
+  kInstGroupXopRm,
+  //! @brief XOP instruction encoded as 'RM'.
+  //!
+  //! Propagates XOP.L if the instruction uses YMM register).
+  kInstGroupXopRm_P,
+
+  //! @brief XOP instruction encoded as 'RVM' or 'RMV'.
+  kInstGroupXopRvmRmv,
+
+  //! @brief XOP instruction encoded as 'RVM' or 'RMI'.
+  kInstGroupXopRvmRmi,
+
+  //! @brief XOP instruction encoded as 'RVMR'.
+  kInstGroupXopRvmr,
+  //! @brief XOP instruction encoded as 'RVMR'.
+  //!
+  //! Propagates XOP.L if the instruction uses YMM register.
+  kInstGroupXopRvmr_P,
+
+  //! @brief XOP instruction encoded as 'RVMI'.
+  kInstGroupXopRvmi,
+  //! @brief XOP instruction encoded as 'RVMI'.
+  //!
+  //! Propagates XOP.L if the instruction uses YMM register.
+  kInstGroupXopRvmi_P,
+
+  //! @brief XOP instruction encoded as 'RVRM' or 'RVMR'.
+  kInstGroupXopRvrmRvmr,
+  //! @brief XOP instruction encoded as 'RVRM' or 'RVMR'.
+  //!
+  //! Propagates XOP.L if the instruction uses YMM register).
+  kInstGroupXopRvrmRvmr_P
 };
 
 // ============================================================================
@@ -1646,7 +1806,7 @@ ASMJIT_ENUM(kInstGroup) {
 //!
 //! The schema was inspired by AVX/AVX2 features.
 ASMJIT_ENUM(kInstOpCode) {
-  // 'MMMMM' field in AVX instruction.
+  // 'MMMMM' field in AVX/XOP instruction.
   // 'OpCode' leading bytes in legacy encoding.
   kInstOpCode_MM_Shift = 16,
   kInstOpCode_MM_Mask  = 0x0FU << kInstOpCode_MM_Shift,
@@ -1656,7 +1816,11 @@ ASMJIT_ENUM(kInstOpCode) {
   kInstOpCode_MM_0F3A  = 0x03U << kInstOpCode_MM_Shift,
   kInstOpCode_MM_0F01  = 0x0FU << kInstOpCode_MM_Shift, // Ext/Not part of AVX.
 
-  // 'PP' field in AVX instruction.
+  kInstOpCode_MM_00011 = 0x03U << kInstOpCode_MM_Shift,
+  kInstOpCode_MM_01000 = 0x08U << kInstOpCode_MM_Shift,
+  kInstOpCode_MM_01001 = 0x09U << kInstOpCode_MM_Shift,
+
+  // 'PP' field in AVX/XOP instruction.
   // 'Mandatory Prefix' in legacy encoding.
   kInstOpCode_PP_Shift = 21,
   kInstOpCode_PP_Mask  = 0x07U << kInstOpCode_PP_Shift,
@@ -1666,7 +1830,7 @@ ASMJIT_ENUM(kInstOpCode) {
   kInstOpCode_PP_F2    = 0x03U << kInstOpCode_PP_Shift,
   kInstOpCode_PP_9B    = 0x07U << kInstOpCode_PP_Shift, //Ext/Not part of AVX.
 
-  // 'L' field in AVX instruction.
+  // 'L' field in AVX/XOP instruction.
   kInstOpCode_L_Shift  = 24,
   kInstOpCode_L_Mask   = 0x01U << kInstOpCode_L_Shift,
   kInstOpCode_L_False  = 0x00U << kInstOpCode_L_Shift,

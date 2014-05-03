@@ -5073,6 +5073,306 @@ struct X86X64Assembler : public BaseAssembler {
   INST_3x(vfnmsub231ss, kInstVfnmsub231ss, XmmReg, XmmReg, XmmReg)
 
   // --------------------------------------------------------------------------
+  // [FMA4]
+  // --------------------------------------------------------------------------
+
+  INST_4x(vfmaddpd, kInstVfmaddpd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmaddpd, kInstVfmaddpd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmaddpd, kInstVfmaddpd, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmaddpd, kInstVfmaddpd, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmaddpd, kInstVfmaddpd, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmaddpd, kInstVfmaddpd, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmaddps, kInstVfmaddps, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmaddps, kInstVfmaddps, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmaddps, kInstVfmaddps, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmaddps, kInstVfmaddps, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmaddps, kInstVfmaddps, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmaddps, kInstVfmaddps, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmaddsd, kInstVfmaddsd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmaddsd, kInstVfmaddsd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmaddsd, kInstVfmaddsd, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_4x(vfmaddss, kInstVfmaddss, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmaddss, kInstVfmaddss, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmaddss, kInstVfmaddss, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_4x(vfmaddsubpd, kInstVfmaddsubpd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmaddsubpd, kInstVfmaddsubpd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmaddsubpd, kInstVfmaddsubpd, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmaddsubpd, kInstVfmaddsubpd, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmaddsubpd, kInstVfmaddsubpd, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmaddsubpd, kInstVfmaddsubpd, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmaddsubps, kInstVfmaddsubps, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmaddsubps, kInstVfmaddsubps, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmaddsubps, kInstVfmaddsubps, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmaddsubps, kInstVfmaddsubps, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmaddsubps, kInstVfmaddsubps, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmaddsubps, kInstVfmaddsubps, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmsubaddpd, kInstVfmsubaddpd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmsubaddpd, kInstVfmsubaddpd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmsubaddpd, kInstVfmsubaddpd, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmsubaddpd, kInstVfmsubaddpd, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmsubaddpd, kInstVfmsubaddpd, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmsubaddpd, kInstVfmsubaddpd, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmsubaddps, kInstVfmsubaddps, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmsubaddps, kInstVfmsubaddps, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmsubaddps, kInstVfmsubaddps, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmsubaddps, kInstVfmsubaddps, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmsubaddps, kInstVfmsubaddps, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmsubaddps, kInstVfmsubaddps, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmsubpd, kInstVfmsubpd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmsubpd, kInstVfmsubpd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmsubpd, kInstVfmsubpd, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmsubpd, kInstVfmsubpd, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmsubpd, kInstVfmsubpd, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmsubpd, kInstVfmsubpd, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmsubps, kInstVfmsubps, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmsubps, kInstVfmsubps, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmsubps, kInstVfmsubps, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfmsubps, kInstVfmsubps, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfmsubps, kInstVfmsubps, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfmsubps, kInstVfmsubps, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfmsubsd, kInstVfmsubsd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmsubsd, kInstVfmsubsd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmsubsd, kInstVfmsubsd, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_4x(vfmsubss, kInstVfmsubss, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfmsubss, kInstVfmsubss, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfmsubss, kInstVfmsubss, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_4x(vfnmaddpd, kInstVfnmaddpd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmaddpd, kInstVfnmaddpd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmaddpd, kInstVfnmaddpd, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfnmaddpd, kInstVfnmaddpd, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfnmaddpd, kInstVfnmaddpd, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfnmaddpd, kInstVfnmaddpd, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfnmaddps, kInstVfnmaddps, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmaddps, kInstVfnmaddps, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmaddps, kInstVfnmaddps, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfnmaddps, kInstVfnmaddps, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfnmaddps, kInstVfnmaddps, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfnmaddps, kInstVfnmaddps, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfnmaddsd, kInstVfnmaddsd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmaddsd, kInstVfnmaddsd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmaddsd, kInstVfnmaddsd, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_4x(vfnmaddss, kInstVfnmaddss, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmaddss, kInstVfnmaddss, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmaddss, kInstVfnmaddss, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_4x(vfnmsubpd, kInstVfnmsubpd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmsubpd, kInstVfnmsubpd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmsubpd, kInstVfnmsubpd, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfnmsubpd, kInstVfnmsubpd, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfnmsubpd, kInstVfnmsubpd, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfnmsubpd, kInstVfnmsubpd, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfnmsubps, kInstVfnmsubps, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmsubps, kInstVfnmsubps, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmsubps, kInstVfnmsubps, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vfnmsubps, kInstVfnmsubps, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vfnmsubps, kInstVfnmsubps, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vfnmsubps, kInstVfnmsubps, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vfnmsubsd, kInstVfnmsubsd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmsubsd, kInstVfnmsubsd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmsubsd, kInstVfnmsubsd, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_4x(vfnmsubss, kInstVfnmsubss, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vfnmsubss, kInstVfnmsubss, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vfnmsubss, kInstVfnmsubss, XmmReg, XmmReg, XmmReg, Mem)
+
+  // --------------------------------------------------------------------------
+  // [XOP]
+  // --------------------------------------------------------------------------
+
+  INST_2x(vfrczpd, kInstVfrczpd, XmmReg, XmmReg)
+  INST_2x(vfrczpd, kInstVfrczpd, XmmReg, Mem)
+  INST_2x(vfrczpd, kInstVfrczpd, YmmReg, YmmReg)
+  INST_2x(vfrczpd, kInstVfrczpd, YmmReg, Mem)
+
+  INST_2x(vfrczps, kInstVfrczps, XmmReg, XmmReg)
+  INST_2x(vfrczps, kInstVfrczps, XmmReg, Mem)
+  INST_2x(vfrczps, kInstVfrczps, YmmReg, YmmReg)
+  INST_2x(vfrczps, kInstVfrczps, YmmReg, Mem)
+
+  INST_2x(vfrczsd, kInstVfrczsd, XmmReg, XmmReg)
+  INST_2x(vfrczsd, kInstVfrczsd, XmmReg, Mem)
+
+  INST_2x(vfrczss, kInstVfrczss, XmmReg, XmmReg)
+  INST_2x(vfrczss, kInstVfrczss, XmmReg, Mem)
+
+  INST_4x(vpcmov, kInstVpcmov, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpcmov, kInstVpcmov, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpcmov, kInstVpcmov, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vpcmov, kInstVpcmov, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vpcmov, kInstVpcmov, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vpcmov, kInstVpcmov, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4i(vpcomb, kInstVpcomb, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomb, kInstVpcomb, XmmReg, XmmReg, Mem, Imm)
+  INST_4i(vpcomd, kInstVpcomd, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomd, kInstVpcomd, XmmReg, XmmReg, Mem, Imm)
+  INST_4i(vpcomq, kInstVpcomq, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomq, kInstVpcomq, XmmReg, XmmReg, Mem, Imm)
+  INST_4i(vpcomw, kInstVpcomw, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomw, kInstVpcomw, XmmReg, XmmReg, Mem, Imm)
+
+  INST_4i(vpcomub, kInstVpcomub, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomub, kInstVpcomub, XmmReg, XmmReg, Mem, Imm)
+  INST_4i(vpcomud, kInstVpcomud, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomud, kInstVpcomud, XmmReg, XmmReg, Mem, Imm)
+  INST_4i(vpcomuq, kInstVpcomuq, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomuq, kInstVpcomuq, XmmReg, XmmReg, Mem, Imm)
+  INST_4i(vpcomuw, kInstVpcomuw, XmmReg, XmmReg, XmmReg, Imm)
+  INST_4i(vpcomuw, kInstVpcomuw, XmmReg, XmmReg, Mem, Imm)
+
+  INST_4x(vpermil2pd, kInstVpermil2pd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpermil2pd, kInstVpermil2pd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpermil2pd, kInstVpermil2pd, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vpermil2pd, kInstVpermil2pd, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vpermil2pd, kInstVpermil2pd, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vpermil2pd, kInstVpermil2pd, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_4x(vpermil2ps, kInstVpermil2ps, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpermil2ps, kInstVpermil2ps, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpermil2ps, kInstVpermil2ps, XmmReg, XmmReg, XmmReg, Mem)
+  INST_4x(vpermil2ps, kInstVpermil2ps, YmmReg, YmmReg, YmmReg, YmmReg)
+  INST_4x(vpermil2ps, kInstVpermil2ps, YmmReg, YmmReg, Mem, YmmReg)
+  INST_4x(vpermil2ps, kInstVpermil2ps, YmmReg, YmmReg, YmmReg, Mem)
+
+  INST_2x(vphaddbd, kInstVphaddbd, XmmReg, XmmReg)
+  INST_2x(vphaddbd, kInstVphaddbd, XmmReg, Mem)
+  INST_2x(vphaddbq, kInstVphaddbq, XmmReg, XmmReg)
+  INST_2x(vphaddbq, kInstVphaddbq, XmmReg, Mem)
+  INST_2x(vphaddbw, kInstVphaddbw, XmmReg, XmmReg)
+  INST_2x(vphaddbw, kInstVphaddbw, XmmReg, Mem)
+  INST_2x(vphadddq, kInstVphadddq, XmmReg, XmmReg)
+  INST_2x(vphadddq, kInstVphadddq, XmmReg, Mem)
+  INST_2x(vphaddwd, kInstVphaddwd, XmmReg, XmmReg)
+  INST_2x(vphaddwd, kInstVphaddwd, XmmReg, Mem)
+  INST_2x(vphaddwq, kInstVphaddwq, XmmReg, XmmReg)
+  INST_2x(vphaddwq, kInstVphaddwq, XmmReg, Mem)
+
+  INST_2x(vphaddubd, kInstVphaddubd, XmmReg, XmmReg)
+  INST_2x(vphaddubd, kInstVphaddubd, XmmReg, Mem)
+  INST_2x(vphaddubq, kInstVphaddubq, XmmReg, XmmReg)
+  INST_2x(vphaddubq, kInstVphaddubq, XmmReg, Mem)
+  INST_2x(vphaddubw, kInstVphaddubw, XmmReg, XmmReg)
+  INST_2x(vphaddubw, kInstVphaddubw, XmmReg, Mem)
+  INST_2x(vphaddudq, kInstVphaddudq, XmmReg, XmmReg)
+  INST_2x(vphaddudq, kInstVphaddudq, XmmReg, Mem)
+  INST_2x(vphadduwd, kInstVphadduwd, XmmReg, XmmReg)
+  INST_2x(vphadduwd, kInstVphadduwd, XmmReg, Mem)
+  INST_2x(vphadduwq, kInstVphadduwq, XmmReg, XmmReg)
+  INST_2x(vphadduwq, kInstVphadduwq, XmmReg, Mem)
+
+  INST_2x(vphsubbw, kInstVphsubbw, XmmReg, XmmReg)
+  INST_2x(vphsubbw, kInstVphsubbw, XmmReg, Mem)
+  INST_2x(vphsubdq, kInstVphsubdq, XmmReg, XmmReg)
+  INST_2x(vphsubdq, kInstVphsubdq, XmmReg, Mem)
+  INST_2x(vphsubwd, kInstVphsubwd, XmmReg, XmmReg)
+  INST_2x(vphsubwd, kInstVphsubwd, XmmReg, Mem)
+
+  INST_4x(vpmacsdd, kInstVpmacsdd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacsdd, kInstVpmacsdd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacsdqh, kInstVpmacsdqh, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacsdqh, kInstVpmacsdqh, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacsdql, kInstVpmacsdql, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacsdql, kInstVpmacsdql, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacswd, kInstVpmacswd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacswd, kInstVpmacswd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacsww, kInstVpmacsww, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacsww, kInstVpmacsww, XmmReg, XmmReg, Mem, XmmReg)
+
+  INST_4x(vpmacssdd, kInstVpmacssdd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacssdd, kInstVpmacssdd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacssdqh, kInstVpmacssdqh, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacssdqh, kInstVpmacssdqh, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacssdql, kInstVpmacssdql, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacssdql, kInstVpmacssdql, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacsswd, kInstVpmacsswd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacsswd, kInstVpmacsswd, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpmacssww, kInstVpmacssww, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmacssww, kInstVpmacssww, XmmReg, XmmReg, Mem, XmmReg)
+
+  INST_4x(vpmadcsswd, kInstVpmadcsswd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmadcsswd, kInstVpmadcsswd, XmmReg, XmmReg, Mem, XmmReg)
+
+  INST_4x(vpmadcswd, kInstVpmadcswd, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpmadcswd, kInstVpmadcswd, XmmReg, XmmReg, Mem, XmmReg)
+
+  INST_4x(vpperm, kInstVpperm, XmmReg, XmmReg, XmmReg, XmmReg)
+  INST_4x(vpperm, kInstVpperm, XmmReg, XmmReg, Mem, XmmReg)
+  INST_4x(vpperm, kInstVpperm, XmmReg, XmmReg, XmmReg, Mem)
+
+  INST_3x(vprotb, kInstVprotb, XmmReg, XmmReg, XmmReg)
+  INST_3x(vprotb, kInstVprotb, XmmReg, Mem, XmmReg)
+  INST_3x(vprotb, kInstVprotb, XmmReg, XmmReg, Mem)
+  INST_3i(vprotb, kInstVprotb, XmmReg, XmmReg, Imm)
+  INST_3i(vprotb, kInstVprotb, XmmReg, Mem, Imm)
+
+  INST_3x(vprotd, kInstVprotd, XmmReg, XmmReg, XmmReg)
+  INST_3x(vprotd, kInstVprotd, XmmReg, Mem, XmmReg)
+  INST_3x(vprotd, kInstVprotd, XmmReg, XmmReg, Mem)
+  INST_3i(vprotd, kInstVprotd, XmmReg, XmmReg, Imm)
+  INST_3i(vprotd, kInstVprotd, XmmReg, Mem, Imm)
+
+  INST_3x(vprotq, kInstVprotq, XmmReg, XmmReg, XmmReg)
+  INST_3x(vprotq, kInstVprotq, XmmReg, Mem, XmmReg)
+  INST_3x(vprotq, kInstVprotq, XmmReg, XmmReg, Mem)
+  INST_3i(vprotq, kInstVprotq, XmmReg, XmmReg, Imm)
+  INST_3i(vprotq, kInstVprotq, XmmReg, Mem, Imm)
+
+  INST_3x(vprotw, kInstVprotw, XmmReg, XmmReg, XmmReg)
+  INST_3x(vprotw, kInstVprotw, XmmReg, Mem, XmmReg)
+  INST_3x(vprotw, kInstVprotw, XmmReg, XmmReg, Mem)
+  INST_3i(vprotw, kInstVprotw, XmmReg, XmmReg, Imm)
+  INST_3i(vprotw, kInstVprotw, XmmReg, Mem, Imm)
+
+  INST_3x(vpshab, kInstVpshab, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshab, kInstVpshab, XmmReg, Mem, XmmReg)
+  INST_3x(vpshab, kInstVpshab, XmmReg, XmmReg, Mem)
+
+  INST_3x(vpshad, kInstVpshad, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshad, kInstVpshad, XmmReg, Mem, XmmReg)
+  INST_3x(vpshad, kInstVpshad, XmmReg, XmmReg, Mem)
+
+  INST_3x(vpshaq, kInstVpshaq, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshaq, kInstVpshaq, XmmReg, Mem, XmmReg)
+  INST_3x(vpshaq, kInstVpshaq, XmmReg, XmmReg, Mem)
+
+  INST_3x(vpshaw, kInstVpshaw, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshaw, kInstVpshaw, XmmReg, Mem, XmmReg)
+  INST_3x(vpshaw, kInstVpshaw, XmmReg, XmmReg, Mem)
+
+  INST_3x(vpshlb, kInstVpshlb, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshlb, kInstVpshlb, XmmReg, Mem, XmmReg)
+  INST_3x(vpshlb, kInstVpshlb, XmmReg, XmmReg, Mem)
+
+  INST_3x(vpshld, kInstVpshld, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshld, kInstVpshld, XmmReg, Mem, XmmReg)
+  INST_3x(vpshld, kInstVpshld, XmmReg, XmmReg, Mem)
+
+  INST_3x(vpshlq, kInstVpshlq, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshlq, kInstVpshlq, XmmReg, Mem, XmmReg)
+  INST_3x(vpshlq, kInstVpshlq, XmmReg, XmmReg, Mem)
+
+  INST_3x(vpshlw, kInstVpshlw, XmmReg, XmmReg, XmmReg)
+  INST_3x(vpshlw, kInstVpshlw, XmmReg, Mem, XmmReg)
+  INST_3x(vpshlw, kInstVpshlw, XmmReg, XmmReg, Mem)
+
+  // --------------------------------------------------------------------------
   // [BMI]
   // --------------------------------------------------------------------------
 
