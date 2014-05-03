@@ -507,9 +507,11 @@ Error X86X64Compiler::_newVar(BaseVar* var, uint32_t vType, const char* name) {
   ASMJIT_ASSERT(vType < kVarTypeCount);
 
   vType = _targetVarMapping[vType];
-  const VarInfo& vInfo = _varInfo[vType];
+  ASMJIT_ASSERT(vType != kVarTypeInvalid);
 
+  const VarInfo& vInfo = _varInfo[vType];
   VarData* vd = _newVd(vType, vInfo.getSize(), vInfo.getClass(), name);
+
   if (vd == NULL) {
     static_cast<X86Var*>(var)->reset();
     return getError();

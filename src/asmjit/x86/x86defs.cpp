@@ -3191,8 +3191,8 @@ const uint8_t _varMapping[kVarTypeCount] = {
   /* 03: kVarTypeUInt16  */ kVarTypeUInt16,
   /* 04: kVarTypeInt32   */ kVarTypeInt32,
   /* 05: kVarTypeUInt32  */ kVarTypeUInt32,
-  /* 06: kVarTypeInt64   */ kVarTypeInt32,   // Remapped (Invalid in 32-bit mode).
-  /* 07: kVarTypeUInt64  */ kVarTypeUInt32,  // Remapped (Invalid in 32-bit mode).
+  /* 06: kVarTypeInt64   */ kVarTypeInvalid, // Invalid in 32-bit mode.
+  /* 07: kVarTypeUInt64  */ kVarTypeInvalid, // Invalid in 32-bit mode.
   /* 08: kVarTypeIntPtr  */ kVarTypeInt32,   // Remapped.
   /* 09: kVarTypeUIntPtr */ kVarTypeUInt32,  // Remapped.
   /* 10: kVarTypeFp32    */ kVarTypeFp32,
