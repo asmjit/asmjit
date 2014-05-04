@@ -2583,7 +2583,7 @@ struct X86X64Compiler : public BaseCompiler {
   INST_1x(ldmxcsr, kInstLdmxcsr, Mem)
 
   //! Byte mask write (SSE).
-  INST_2x(maskmovq, kInstMaskmovq, MmVar, MmVar)
+  INST_3x(maskmovq, kInstMaskmovq, GpVar, MmVar, MmVar)
 
   //! Packed SP-FP maximum (SSE).
   INST_2x(maxps, kInstMaxps, XmmVar, XmmVar)
@@ -2950,7 +2950,7 @@ struct X86X64Compiler : public BaseCompiler {
   INST_0x(lfence, kInstLfence)
 
   //! Store selected bytes of OWORD (SSE2).
-  INST_2x(maskmovdqu, kInstMaskmovdqu, XmmVar, XmmVar)
+  INST_3x(maskmovdqu, kInstMaskmovdqu, GpVar, XmmVar, XmmVar)
 
   //! Packed DP-FP maximum (SSE2).
   INST_2x(maxpd, kInstMaxpd, XmmVar, XmmVar)
