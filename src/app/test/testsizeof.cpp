@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
   printf("  asmjit::CodeGen                : %u\n", static_cast<uint32_t>(sizeof(CodeGen)));
   printf("  asmjit::BaseAssembler          : %u\n", static_cast<uint32_t>(sizeof(BaseAssembler)));
   printf("  asmjit::BaseCompiler           : %u\n", static_cast<uint32_t>(sizeof(BaseCompiler)));
-  printf("  asmjit::BaseRuntime            : %u\n", static_cast<uint32_t>(sizeof(BaseRuntime)));
+  printf("  asmjit::Runtime                : %u\n", static_cast<uint32_t>(sizeof(Runtime)));
   printf("\n");
   printf("  asmjit::Operand                : %u\n", static_cast<uint32_t>(sizeof(Operand)));
   printf("  asmjit::BaseReg                : %u\n", static_cast<uint32_t>(sizeof(BaseReg)));

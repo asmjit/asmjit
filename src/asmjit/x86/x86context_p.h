@@ -22,7 +22,7 @@
 namespace asmjit {
 namespace x86x64 {
 
-//! @addtogroup asmjit_x86x64
+//! @addtogroup asmjit_x86x64_codegen
 //! @{
 
 // ============================================================================
@@ -31,7 +31,7 @@ namespace x86x64 {
 
 //! @internal
 //!
-//! @brief Compiler context is used by @ref X86X64Compiler.
+//! Compiler context is used by `X86X64Compiler`.
 //!
 //! Compiler context is used during compilation and normally developer doesn't
 //! need access to it. The context is user per function (it's reset after each
@@ -43,9 +43,9 @@ struct X86X64Context : public BaseContext {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref Context instance.
+  //! Create a new `X86X64Context` instance.
   X86X64Context(X86X64Compiler* compiler);
-  //! @brief Destroy the @ref Context instance.
+  //! Destroy the `X86X64Context` instance.
   virtual ~X86X64Context();
 
   // --------------------------------------------------------------------------
@@ -58,12 +58,12 @@ struct X86X64Context : public BaseContext {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get compiler as @ref X86X64Compiler.
+  //! Get compiler as `X86X64Compiler`.
   ASMJIT_INLINE X86X64Compiler* getCompiler() const {
     return static_cast<X86X64Compiler*>(_compiler);
   }
 
-  //! @brief Get function as @ref X86X64FuncNode.
+  //! Get function as `X86X64FuncNode`.
   ASMJIT_INLINE X86X64FuncNode* getFunc() const {
     return reinterpret_cast<X86X64FuncNode*>(_func);
   }
@@ -72,7 +72,7 @@ struct X86X64Context : public BaseContext {
     return _baseRegsCount == 16;
   }
 
-  //! @brief Get clobbered registers (global).
+  //! Get clobbered registers (global).
   ASMJIT_INLINE uint32_t getClobberedRegs(uint32_t c) {
     return _clobberedRegs.get(c);
   }
@@ -131,7 +131,7 @@ struct X86X64Context : public BaseContext {
   // [Attach / Detach]
   // --------------------------------------------------------------------------
 
-  //! @brief Attach.
+  //! Attach.
   //!
   //! Attach a register to the 'VarData', changing 'VarData' members to show
   //! that the variable is currently alive and linking variable with the
@@ -157,7 +157,7 @@ struct X86X64Context : public BaseContext {
     ASMJIT_CONTEXT_CHECK_STATE
   }
 
-  //! @brief Detach.
+  //! Detach.
   //!
   //! The opposite of 'Attach'. Detach resets the members in 'VarData'
   //! (regIndex, state and changed flags) and unlinks the variable with the
@@ -185,7 +185,7 @@ struct X86X64Context : public BaseContext {
   // [Rebase]
   // --------------------------------------------------------------------------
 
-  //! @brief Rebase.
+  //! Rebase.
   //!
   //! Change the register of the 'VarData' changing also the current 'VarState'.
   //! Rebase is nearly identical to 'Detach' and 'Attach' sequence, but doesn't
@@ -213,7 +213,7 @@ struct X86X64Context : public BaseContext {
   // [Load / Save]
   // --------------------------------------------------------------------------
 
-  //! @brief Load.
+  //! Load.
   //!
   //! Load variable from its memory slot to a register, emitting 'Load'
   //! instruction and changing the variable state to allocated.
@@ -230,7 +230,7 @@ struct X86X64Context : public BaseContext {
     ASMJIT_CONTEXT_CHECK_STATE
   }
 
-  //! @brief Save.
+  //! Save.
   //!
   //! Save the variable into its home location, but keep it as allocated.
   template<int C>
@@ -254,7 +254,7 @@ struct X86X64Context : public BaseContext {
   // [Move / Swap]
   // --------------------------------------------------------------------------
 
-  //! @brief Move a register.
+  //! Move a register.
   //!
   //! Move register from one index to another, emitting 'Move' if needed. This
   //! function does nothing if register is already at the given index.
@@ -273,7 +273,7 @@ struct X86X64Context : public BaseContext {
     ASMJIT_CONTEXT_CHECK_STATE
   }
 
-  //! @brief Swap two registers
+  //! Swap two registers
   //!
   //! It's only possible to swap Gp registers.
   ASMJIT_INLINE void swapGp(VarData* aVd, VarData* bVd) {
@@ -308,7 +308,7 @@ struct X86X64Context : public BaseContext {
   // [Alloc / Spill]
   // --------------------------------------------------------------------------
 
-  //! @brief Alloc
+  //! Alloc
   template<int C>
   ASMJIT_INLINE void alloc(VarData* vd, uint32_t regIndex) {
     ASMJIT_ASSERT(vd->getClass() == C);
@@ -346,7 +346,7 @@ struct X86X64Context : public BaseContext {
     ASMJIT_CONTEXT_CHECK_STATE
   }
 
-  //! @brief Spill.
+  //! Spill.
   //!
   //! Spill variable/register, saves the content to the memory-home if modified.
   template<int C>
@@ -391,7 +391,7 @@ struct X86X64Context : public BaseContext {
   // [Unuse]
   // --------------------------------------------------------------------------
 
-  //! @brief Unuse.
+  //! Unuse.
   //!
   //! Unuse variable, it will be detached it if it's allocated then its state
   //! will be changed to kVarStateUnused.
@@ -413,7 +413,7 @@ struct X86X64Context : public BaseContext {
   // [State]
   // --------------------------------------------------------------------------
 
-  //! @brief Get state as @ref VarState.
+  //! Get state as `VarState`.
   ASMJIT_INLINE VarState* getState() const {
     return const_cast<VarState*>(&_x86State);
   }
@@ -465,45 +465,45 @@ struct X86X64Context : public BaseContext {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief X86/X64 stack-pointer (esp or rsp).
+  //! X86/X64 stack-pointer (esp or rsp).
   GpReg _zsp;
-  //! @brief X86/X64 frame-pointer (ebp or rbp).
+  //! X86/X64 frame-pointer (ebp or rbp).
   GpReg _zbp;
-  //! @brief Temporary memory operand.
+  //! Temporary memory operand.
   Mem _memSlot;
 
-  //! @brief X86/X64 specific compiler state (linked with @ref _state).
+  //! X86/X64 specific compiler state, linked to `_state`.
   VarState _x86State;
-  //! @brief Clobbered registers (for the whole function).
+  //! Clobbered registers (for the whole function).
   RegMask _clobberedRegs;
 
-  //! @brief Memory cell where is stored address used to restore manually
+  //! Memory cell where is stored address used to restore manually
   //! aligned stack.
   MemCell* _stackFrameCell;
 
-  //! @brief Global allocable registers mask.
+  //! Global allocable registers mask.
   uint32_t _gaRegs[kRegClassCount];
 
-  //! @brief X86/X64 number of Gp/Xmm registers.
+  //! X86/X64 number of Gp/Xmm registers.
   uint8_t _baseRegsCount;
-  //! @brief Function arguments base pointer (register).
+  //! Function arguments base pointer (register).
   uint8_t _argBaseReg;
-  //! @brief Function variables base pointer (register).
+  //! Function variables base pointer (register).
   uint8_t _varBaseReg;
-  //! @brief Whether to emit comments.
+  //! Whether to emit comments.
   uint8_t _emitComments;
 
-  //! @brief Function arguments base offset.
+  //! Function arguments base offset.
   int32_t _argBaseOffset;
-  //! @brief Function variables base offset.
+  //! Function variables base offset.
   int32_t _varBaseOffset;
 
-  //! @brief Function arguments displacement.
+  //! Function arguments displacement.
   int32_t _argActualDisp;
-  //! @brief Function variables displacement.
+  //! Function variables displacement.
   int32_t _varActualDisp;
 
-  //! @brief Temporary string builder used for logging.
+  //! Temporary string builder used for logging.
   StringBuilderT<256> _stringBuilder;
 };
 

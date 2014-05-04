@@ -20,7 +20,7 @@
 
 namespace asmjit {
 
-//! @brief Zero width chunk used when Zone doesn't have any memory allocated.
+//! Zero width chunk used when Zone doesn't have any memory allocated.
 static const Zone::Chunk Zone_zeroChunk = {
   NULL, 0, 0, { 0 }
 };

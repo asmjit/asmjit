@@ -18,20 +18,23 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_util
 //! @{
 
 // ============================================================================
 // [asmjit::PodVectorData]
 // ============================================================================
 
+//! @internal
 struct PodVectorData {
-  //! @brief Get data.
-  ASMJIT_INLINE void* getData() const { return (void*)(this + 1); }
+  //! Get data.
+  ASMJIT_INLINE void* getData() const {
+    return (void*)(this + 1);
+  }
 
-  //! @brief Capacity of the vector.
+  //! Capacity of the vector.
   size_t capacity;
-  //! @brief Length of the vector.
+  //! Length of the vector.
   size_t length;
 };
 
@@ -39,6 +42,7 @@ struct PodVectorData {
 // [asmjit::PodVectorBase]
 // ============================================================================
 
+//! @internal
 struct PodVectorBase {
   static ASMJIT_API const PodVectorData _nullData;
 
@@ -46,11 +50,11 @@ struct PodVectorBase {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new instance of @ref PodVectorBase.
+  //! Create a new instance of `PodVectorBase`.
   ASMJIT_INLINE PodVectorBase() :
     _d(const_cast<PodVectorData*>(&_nullData)) {}
 
-  //! @brief Destroy the @ref PodVectorBase and data.
+  //! Destroy the `PodVectorBase` and data.
   ASMJIT_INLINE ~PodVectorBase() {
     if (_d != &_nullData)
       ::free(_d);
@@ -76,7 +80,7 @@ public:
 // [asmjit::PodVector<T>]
 // ============================================================================
 
-//! @brief Template used to store and manage array of POD data.
+//! Template used to store and manage array of POD data.
 //!
 //! This template has these adventages over other vector<> templates:
 //! - Non-copyable (designed to be non-copyable, we want it)
@@ -91,38 +95,51 @@ struct PodVector : PodVectorBase {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create new instance of @ref PodVector<>.
+  //! Create a new instance of `PodVector<T>`.
   ASMJIT_INLINE PodVector() {}
-  //! @brief Destroy the @ref PodVector<> and data.
+  //! Destroy the `PodVector<>` and data.
   ASMJIT_INLINE ~PodVector() {}
 
   // --------------------------------------------------------------------------
   // [Data]
   // --------------------------------------------------------------------------
 
-  //! @brief Get whether the vector is empty.
-  ASMJIT_INLINE bool isEmpty() const { return _d->length == 0; }
-  //! @brief Get length.
-  ASMJIT_INLINE size_t getLength() const { return _d->length; }
-  //! @brief Get capacity.
-  ASMJIT_INLINE size_t getCapacity() const { return _d->capacity; }
+  //! Get whether the vector is empty.
+  ASMJIT_INLINE bool isEmpty() const {
+    return _d->length == 0;
+  }
 
-  //! @brief Get data.
-  ASMJIT_INLINE T* getData() { return static_cast<T*>(_d->getData()); }
+  //! Get length.
+  ASMJIT_INLINE size_t getLength() const {
+    return _d->length;
+  }
+
+  //! Get capacity.
+  ASMJIT_INLINE size_t getCapacity() const {
+    return _d->capacity;
+  }
+
+  //! Get data.
+  ASMJIT_INLINE T* getData() {
+    return static_cast<T*>(_d->getData());
+  }
+
   //! @overload
-  ASMJIT_INLINE const T* getData() const { return static_cast<const T*>(_d->getData()); }
+  ASMJIT_INLINE const T* getData() const {
+    return static_cast<const T*>(_d->getData());
+  }
 
   // --------------------------------------------------------------------------
   // [Clear / Reset]
   // --------------------------------------------------------------------------
 
-  //! @brief Clear vector data, but don't free an internal buffer.
+  //! Clear vector data, but don't free an internal buffer.
   ASMJIT_INLINE void clear() {
     if (_d != &_nullData)
       _d->length = 0;
   }
 
-  //! @brief Clear vector data and free internal buffer.
+  //! Clear vector data and free internal buffer.
   ASMJIT_INLINE void reset() {
     if (_d != &_nullData) {
       ::free(_d);
@@ -134,19 +151,21 @@ struct PodVector : PodVectorBase {
   // [Grow / Reserve]
   // --------------------------------------------------------------------------
 
-  //! @brief Called to grow the buffer to fit at least @a n elements more.
-  ASMJIT_INLINE Error _grow(size_t n)
-  { return PodVectorBase::_grow(n, sizeof(T)); }
+  //! Called to grow the buffer to fit at least `n` elements more.
+  ASMJIT_INLINE Error _grow(size_t n) {
+    return PodVectorBase::_grow(n, sizeof(T));
+  }
 
-  //! @brief Realloc internal array to fit at least @a to items.
-  ASMJIT_INLINE Error _reserve(size_t n)
-  { return PodVectorBase::_reserve(n, sizeof(T)); }
+  //! Realloc internal array to fit at least `n` items.
+  ASMJIT_INLINE Error _reserve(size_t n) {
+    return PodVectorBase::_reserve(n, sizeof(T));
+  }
 
   // --------------------------------------------------------------------------
   // [Ops]
   // --------------------------------------------------------------------------
 
-  //! @brief Prepend @a item to vector.
+  //! Prepend `item` to vector.
   Error prepend(const T& item) {
     PodVectorData* d = _d;
 
@@ -162,7 +181,7 @@ struct PodVector : PodVectorBase {
     return kErrorOk;
   }
 
-  //! @brief Insert an @a item at the @a index.
+  //! Insert an `item` at the `index`.
   Error insert(size_t index, const T& item) {
     PodVectorData* d = _d;
     ASMJIT_ASSERT(index <= d->length);
@@ -180,7 +199,7 @@ struct PodVector : PodVectorBase {
     return kErrorOk;
   }
 
-  //! @brief Append @a item to vector.
+  //! Append `item` to vector.
   Error append(const T& item) {
     PodVectorData* d = _d;
 
@@ -195,7 +214,7 @@ struct PodVector : PodVectorBase {
     return kErrorOk;
   }
 
-  //! @brief Get index of @a val or kInvalidIndex if not found.
+  //! Get index of `val` or `kInvalidIndex` if not found.
   size_t indexOf(const T& val) const {
     PodVectorData* d = _d;
 
@@ -209,7 +228,7 @@ struct PodVector : PodVectorBase {
     return kInvalidIndex;
   }
 
-  //! @brief Remove item at index @a i.
+  //! Remove item at index `i`.
   void removeAt(size_t i) {
     PodVectorData* d = _d;
     ASMJIT_ASSERT(i < d->length);
@@ -219,26 +238,26 @@ struct PodVector : PodVectorBase {
     ::memmove(data, data + 1, d->length - i);
   }
 
-  //! @brief Swap this pod-vector with @a other.
+  //! Swap this pod-vector with `other`.
   void swap(PodVector<T>& other) {
     T* otherData = other._d;
     other._d = _d;
     _d = otherData;
   }
 
-  //! @brief Get item at index @a i.
+  //! Get item at index `i`.
   ASMJIT_INLINE T& operator[](size_t i) {
     ASMJIT_ASSERT(i < getLength());
     return getData()[i];
   }
 
-  //! @brief Get item at index @a i.
+  //! Get item at index `i`.
   ASMJIT_INLINE const T& operator[](size_t i) const {
     ASMJIT_ASSERT(i < getLength());
     return getData()[i];
   }
 
-  //! @brief Allocate and append a new item and return its address.
+  //! Allocate and append a new item and return its address.
   T* newElement() {
     PodVectorData* d = _d;
 

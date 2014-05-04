@@ -26,6 +26,9 @@
 
 namespace asmjit {
 
+//! @addtogroup asmjit_base_codegen
+//! @{
+
 // ============================================================================
 // [Forward Declarations]
 // ============================================================================
@@ -46,16 +49,11 @@ struct JumpNode;
 // [asmjit::kConstScope]
 // ============================================================================
 
-//! @brief Type of constant in constant pool
+//! Scope of the constant.
 ASMJIT_ENUM(kConstScope) {
-  //! @brief Local constant.
-  //!
-  //! Local constant is always embedded right after the current function.
+  //! Local constant, always embedded right after the current function.
   kConstScopeLocal = 0,
-
-  //! @brief Global constant.
-  //!
-  //! Global constant is embedded at the end of the currently compiled code.
+  //! Global constant, embedded at the end of the currently compiled code.
   kConstScopeGlobal = 1
 };
 
@@ -63,55 +61,62 @@ ASMJIT_ENUM(kConstScope) {
 // [asmjit::kVarAttrFlags]
 // ============================================================================
 
-//! @brief Variable attribute flags.
+//! Variable attribute flags.
 ASMJIT_ENUM(kVarAttrFlags) {
-  //! @brief Variable is accessed through register on input.
+  //! Variable is accessed through register on input.
   kVarAttrInReg = 0x00000001,
-  //! @brief Variable is accessed through register on output.
+  //! Variable is accessed through register on output.
   kVarAttrOutReg = 0x00000002,
-  //! @brief Variable is accessed through register on input & output.
+  //! Variable is accessed through register on input & output.
   kVarAttrInOutReg = 0x00000003,
 
-  //! @brief Variable is accessed through memory on input.
+  //! Variable is accessed through memory on input.
   kVarAttrInMem = 0x00000004,
-  //! @brief Variable is accessed through memory on output.
+  //! Variable is accessed through memory on output.
   kVarAttrOutMem = 0x00000008,
-  //! @brief Variable is accessed through memory on input & output.
+  //! Variable is accessed through memory on input & output.
   kVarAttrInOutMem = 0x0000000C,
 
-  //! @brief It can be decided whether it's better to alloc variable to register
-  //! or memory on the input.
+  //! Register allocator can decide if input will be in register or memory.
   kVarAttrInDecide = 0x00000010,
-  //! @brief It can be decided whether it's better to alloc variable to register
-  //! or memory on the output.
+  //! Register allocator can decide if output will be in register or memory.
   kVarAttrOutDecide = 0x00000020,
-  //! @brief It can be decided whether it's better to alloc variable to register
-  //! or memory on the input & output.
+  //! Register allocator can decide if in/out will be in register or memory.
   kVarAttrInOutDecide = 0x00000030,
 
-  //! @brief Variable is converted to other type/class on the input.
+  //! Variable is converted to other type/class on the input.
   kVarAttrInConv = 0x00000040,
-  //! @brief Variable is converted from other type/class on the output.
+  //! Variable is converted from other type/class on the output.
   kVarAttrOutConv = 0x00000080,
-  //! @brief Combination of @ref kVarAttrInConv and @ref kVarAttrOutConv.
+  //! Combination of `kVarAttrInConv` and `kVarAttrOutConv`.
   kVarAttrInOutConv = 0x000000C0,
 
-  //! @brief Variable is a function call operand.
+  //! Variable is a function call operand.
   kVarAttrInCall = 0x00000100,
-  //! @brief Variable is a function argument passed in register.
+  //! Variable is a function argument passed in register.
   kVarAttrInArg = 0x00000200,
 
-  //! @brief Variable is a function return value passed in register.
+  //! Variable is a function return value passed in register.
   kVarAttrOutRet = 0x00000400,
-  //! @brief Variable should be unused at the end of the instruction/node.
+  //! Variable should be unused at the end of the instruction/node.
   kVarAttrUnuse = 0x00000800,
 
-  kVarAttrInAll = kVarAttrInReg | kVarAttrInMem | kVarAttrInDecide | kVarAttrInCall | kVarAttrInArg,
-  kVarAttrOutAll = kVarAttrOutReg | kVarAttrOutMem | kVarAttrOutDecide | kVarAttrOutRet,
+  kVarAttrInAll =
+    kVarAttrInReg     |
+    kVarAttrInMem     |
+    kVarAttrInDecide  |
+    kVarAttrInCall    |
+    kVarAttrInArg,
 
-  //! @brief Variable is already allocated on the input.
+  kVarAttrOutAll =
+    kVarAttrOutReg    |
+    kVarAttrOutMem    |
+    kVarAttrOutDecide |
+    kVarAttrOutRet,
+
+  //! Variable is already allocated on the input.
   kVarAttrAllocInDone = 0x00400000,
-  //! @brief Variable is already allocated on the output.
+  //! Variable is already allocated on the output.
   kVarAttrAllocOutDone = 0x00800000
 };
 
@@ -119,19 +124,19 @@ ASMJIT_ENUM(kVarAttrFlags) {
 // [asmjit::kVarHint]
 // ============================================================================
 
-//! @brief Variable hint (used by @ref BaseCompiler).
+//! Variable hint (used by `BaseCompiler)`.
 //!
-//! @sa @ref BaseCompiler.
+//! @sa `BaseCompiler`.
 ASMJIT_ENUM(kVarHint) {
-  //! @brief Alloc variable.
+  //! Alloc variable.
   kVarHintAlloc = 0,
-  //! @brief Spill variable.
+  //! Spill variable.
   kVarHintSpill = 1,
-  //! @brief Save variable if modified.
+  //! Save variable if modified.
   kVarHintSave = 2,
-  //! @brief Save variable if modified and mark it as unused.
+  //! Save variable if modified and mark it as unused.
   kVarHintSaveAndUnuse = 3,
-  //! @brief Mark variable as unused.
+  //! Mark variable as unused.
   kVarHintUnuse = 4
 };
 
@@ -139,20 +144,20 @@ ASMJIT_ENUM(kVarHint) {
 // [asmjit::kVarState]
 // ============================================================================
 
-//! @brief State of variable.
+//! State of variable.
 //!
 //! @note State of variable is used only during make process and it's not
 //! visible to the developer.
 ASMJIT_ENUM(kVarState) {
-  //! @brief Variable is currently not used.
+  //! Variable is currently not used.
   kVarStateUnused = 0,
 
-  //! @brief Variable is in register.
+  //! Variable is in register.
   //!
   //! Variable is currently allocated in register.
   kVarStateReg = 1,
 
-  //! @brief Variable is in memory location or spilled.
+  //! Variable is in memory location or spilled.
   //!
   //! Variable was spilled from register to memory or variable is used for
   //! memory only storage.
@@ -163,31 +168,31 @@ ASMJIT_ENUM(kVarState) {
 // [asmjit::kNodeType]
 // ============================================================================
 
-//! @brief Type of node (see @ref BaseNode).
+//! Type of node (see `BaseNode)`.
 ASMJIT_ENUM(kNodeType) {
-  //! @brief Invalid node (internal, can't be used).
+  //! Invalid node (internal, can't be used).
   kNodeTypeNone = 0,
-  //! @brief Node is an .align directive, see @ref AlignNode.
+  //! Node is an .align directive, see `AlignNode`.
   kNodeTypeAlign,
-  //! @brief Node is an embedded data, see @ref EmbedNode.
+  //! Node is an embedded data, see `EmbedNode`.
   kNodeTypeEmbed,
-  //! @brief Node is a comment, see @ref CommentNode.
+  //! Node is a comment, see `CommentNode`.
   kNodeTypeComment,
-  //! @brief Node is a variable hint (alloc, spill, use, unuse), see @ref HintNode.
+  //! Node is a variable hint (alloc, spill, use, unuse), see `HintNode`.
   kNodeTypeHint,
-  //! @brief Node is a label, see @ref TargetNode.
+  //! Node is a label, see `TargetNode`.
   kNodeTypeTarget,
-  //! @brief Node is an instruction, see @ref InstNode.
+  //! Node is an instruction, see `InstNode`.
   kNodeTypeInst,
-  //! @brief Node is a function declaration, see @ref FuncNode.
+  //! Node is a function declaration, see `FuncNode`.
   kNodeTypeFunc,
-  //! @brief Node is an end of the function, see @ref EndNode.
+  //! Node is an end of the function, see `EndNode`.
   kNodeTypeEnd,
-  //! @brief Node is a return, see @ref RetNode.
+  //! Node is a return, see `RetNode`.
   kNodeTypeRet,
-  //! @brief Node is a function call, see @ref CallNode.
+  //! Node is a function call, see `CallNode`.
   kNodeTypeCall,
-  //! @brief Node is a function call argument moved on stack, see @ref SArgNode.
+  //! Node is a function call argument moved on stack, see `SArgNode`.
   kNodeTypeSArg
 };
 
@@ -196,27 +201,27 @@ ASMJIT_ENUM(kNodeType) {
 // ============================================================================
 
 ASMJIT_ENUM(kNodeFlag) {
-  //! @brief Whether the node was translated by @ref BaseContext.
+  //! Whether the node was translated by `BaseContext`.
   kNodeFlagIsTranslated = 0x0001,
 
-  //! @Brief Whether the @ref InstNode is a jump.
+  //! Whether the `InstNode` is a jump.
   kNodeFlagIsJmp = 0x0002,
-  //! @Brief Whether the @ref InstNode is a conditional jump.
+  //! Whether the `InstNode` is a conditional jump.
   kNodeFlagIsJcc = 0x0004,
 
-  //! @brief Whether the @ref InstNode is an unconditinal jump or conditional
+  //! Whether the `InstNode` is an unconditinal jump or conditional
   //! jump that is likely to be taken.
   kNodeFlagIsTaken = 0x0008,
 
-  //! @brief Whether the @ref Node will return from a function.
+  //! Whether the `Node` will return from a function.
   //!
-  //! This flag is used by both @ref EndNode and @ref RetNode.
+  //! This flag is used by both `EndNode` and `RetNode`.
   kNodeFlagIsRet = 0x0010,
 
-  //! @brief Whether the instruction is special.
+  //! Whether the instruction is special.
   kNodeFlagIsSpecial = 0x0020,
 
-  //! @brief Whether the instruction is an FPU instruction.
+  //! Whether the instruction is an FPU instruction.
   kNodeFlagIsFp = 0x0040
 };
 
@@ -231,33 +236,33 @@ struct MemCell {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get cell offset.
+  //! Get cell offset.
   ASMJIT_INLINE int32_t getOffset() const { return _offset; }
-  //! @brief Set cell offset.
+  //! Set cell offset.
   ASMJIT_INLINE void setOffset(int32_t offset) { _offset = offset; }
 
-  //! @brief Get cell size.
+  //! Get cell size.
   ASMJIT_INLINE uint32_t getSize() const { return _size; }
-  //! @brief Set cell size.
+  //! Set cell size.
   ASMJIT_INLINE void setSize(uint32_t size) { _size = size; }
 
-  //! @brief Get cell alignment.
+  //! Get cell alignment.
   ASMJIT_INLINE uint32_t getAlignment() const { return _alignment; }
-  //! @brief Set cell alignment.
+  //! Set cell alignment.
   ASMJIT_INLINE void setAlignment(uint32_t alignment) { _alignment = alignment; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Next active cell.
+  //! Next active cell.
   MemCell* _next;
 
-  //! @brief Offset, relative to base-offset.
+  //! Offset, relative to base-offset.
   int32_t _offset;
-  //! @brief Size.
+  //! Size.
   uint32_t _size;
-  //! @brief Alignment.
+  //! Alignment.
   uint32_t _alignment;
 };
 
@@ -265,7 +270,7 @@ struct MemCell {
 // [asmjit::VarBits]
 // ============================================================================
 
-//! @brief Bit-array used by variable-liveness analysis.
+//! Bit-array used by variable-liveness analysis.
 struct VarBits {
   // --------------------------------------------------------------------------
   // [Enums]
@@ -378,152 +383,151 @@ struct VarBits {
 // [asmjit::VarData]
 // ============================================================================
 
-//! @brief Base variable data.
+//! Base variable data.
 struct VarData {
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get variable name.
+  //! Get variable name.
   ASMJIT_INLINE const char* getName() const { return _name; }
-  //! @brief Get variable id.
+  //! Get variable id.
   ASMJIT_INLINE uint32_t getId() const { return _id; }
 
-  //! @brief Get whether the variable has context id.
+  //! Get whether the variable has context id.
   ASMJIT_INLINE bool hasContextId() const { return _contextId != kInvalidValue; }
-  //! @brief Get context variable id (used only by @ref Context).
+  //! Get context variable id (used only by `Context)`.
   ASMJIT_INLINE uint32_t getContextId() const { return _contextId; }
-  //! @brief Set context variable id (used only by @ref Context).
+  //! Set context variable id (used only by `Context)`.
   ASMJIT_INLINE void setContextId(uint32_t contextId) { _contextId = contextId; }
-  //! @brief Reset context variable id (used only by @ref Context).
+  //! Reset context variable id (used only by `Context)`.
   ASMJIT_INLINE void resetContextId() { _contextId = kInvalidValue; }
 
-  //! @brief Get variable type.
+  //! Get variable type.
   ASMJIT_INLINE uint32_t getType() const { return _type; }
-  //! @brief Get variable class.
+  //! Get variable class.
   ASMJIT_INLINE uint32_t getClass() const { return _class; }
-  //! @brief Get variable flags.
+  //! Get variable flags.
   ASMJIT_INLINE uint32_t getFlags() const { return _flags; }
 
-  //! @brief Get variable priority.
+  //! Get variable priority.
   ASMJIT_INLINE uint32_t getPriority() const { return _priority; }
 
-  //! @brief Get variable state (only used by @ref Context).
+  //! Get variable state (only used by `Context)`.
   ASMJIT_INLINE uint32_t getState() const { return _state; }
-  //! @brief Set variable state (only used by @ref Context).
+  //! Set variable state (only used by `Context)`.
   ASMJIT_INLINE void setState(uint32_t state) { _state = static_cast<uint8_t>(state); }
 
-  //! @brief Get register index.
+  //! Get register index.
   ASMJIT_INLINE uint32_t getRegIndex() const { return _regIndex; }
-  //! @brief Set register index.
+  //! Set register index.
   ASMJIT_INLINE void setRegIndex(uint32_t regIndex) { _regIndex = static_cast<uint8_t>(regIndex); }
-  //! @brief Reset register index.
+  //! Reset register index.
   ASMJIT_INLINE void resetRegIndex() { _regIndex = static_cast<uint8_t>(kInvalidReg); }
 
-  //! @brief Get whether the VarData is only memory allocated on the stack.
+  //! Get whether the VarData is only memory allocated on the stack.
   ASMJIT_INLINE bool isStack() const { return static_cast<bool>(_isStack); }
 
-  //! @brief Get whether the variable is a function argument passed through memory.
+  //! Get whether the variable is a function argument passed through memory.
   ASMJIT_INLINE bool isMemArg() const { return static_cast<bool>(_isMemArg); }
 
-  //! @brief Get variable content can be calculated by a simple instruction.
+  //! Get variable content can be calculated by a simple instruction.
   ASMJIT_INLINE bool isCalculated() const { return static_cast<bool>(_isCalculated); }
-  //! @brief Get whether to save variable when it's unused (spill).
+  //! Get whether to save variable when it's unused (spill).
   ASMJIT_INLINE bool saveOnUnuse() const { return static_cast<bool>(_saveOnUnuse); }
 
-  //! @brief Get whether the variable was changed.
+  //! Get whether the variable was changed.
   ASMJIT_INLINE bool isModified() const { return static_cast<bool>(_modified); }
-  //! @brief Set whether the variable was changed.
+  //! Set whether the variable was changed.
   ASMJIT_INLINE void setModified(bool modified) { _modified = modified; }
 
-  //! @brief Get variable alignment.
+  //! Get variable alignment.
   ASMJIT_INLINE uint32_t getAlignment() const { return _alignment; }
-  //! @brief Get variable size.
+  //! Get variable size.
   ASMJIT_INLINE uint32_t getSize() const { return _size; }
 
-  //! @brief Get home memory offset.
+  //! Get home memory offset.
   ASMJIT_INLINE int32_t getMemOffset() const { return _memOffset; }
-  //! @brief Set home memory offset.
+  //! Set home memory offset.
   ASMJIT_INLINE void setMemOffset(int32_t offset) { _memOffset = offset; }
 
-  //! @brief Get home memory cell.
+  //! Get home memory cell.
   ASMJIT_INLINE MemCell* getMemCell() const { return _memCell; }
-  //! @brief Set home memory cell.
+  //! Set home memory cell.
   ASMJIT_INLINE void setMemCell(MemCell* cell) { _memCell = cell; }
 
   // --------------------------------------------------------------------------
   // [Accessors - Temporary Usage]
   // --------------------------------------------------------------------------
 
-  //! @brief Get temporary VarAttr.
+  //! Get temporary VarAttr.
   ASMJIT_INLINE VarAttr* getVa() const { return _va; }
-  //! @brief Set temporary VarAttr.
+  //! Set temporary VarAttr.
   ASMJIT_INLINE void setVa(VarAttr* va) { _va = va; }
-  //! @brief Reset temporary VarAttr.
+  //! Reset temporary VarAttr.
   ASMJIT_INLINE void resetVa() { _va = NULL; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Variable name.
+  //! Variable name.
   const char* _name;
 
-  //! @brief Variable id.
+  //! Variable id.
   uint32_t _id;
-  //! @brief Context variable id (used by @ref Context only, initially set to
-  //! @c kInvalidValue).
+  //! Context variable id, used by `Context` only, initially `kInvalidValue`.
   uint32_t _contextId;
 
-  //! @brief Variable type.
+  //! Variable type.
   uint8_t _type;
-  //! @brief Variable class.
+  //! Variable class.
   uint8_t _class;
-  //! @brief Variable flags.
+  //! Variable flags.
   uint8_t _flags;
-  //! @brief Variable priority.
+  //! Variable priority.
   uint8_t _priority;
 
-  //! @brief Variable state (connected with actual @ref BaseVarState).
+  //! Variable state (connected with actual `BaseVarState)`.
   uint8_t _state;
-  //! @brief Actual register index (only used by @ref Context), during translate.
+  //! Actual register index (only used by `Context)`, during translate.
   uint8_t _regIndex;
 
-  //! @brief Whether the variable is only used as memory allocated on the stack.
+  //! Whether the variable is only used as memory allocated on the stack.
   uint8_t _isStack : 1;
-  //! @brief Whether the variable is a function argument passed through memory.
+  //! Whether the variable is a function argument passed through memory.
   uint8_t _isMemArg : 1;
-  //! @brief Whether variable content can be calculated by a simple instruction.
+  //! Whether variable content can be calculated by a simple instruction.
   //!
   //! This is used mainly by MMX and SSE2 code. This flag indicates that
   //! register allocator should never reserve memory for this variable, because
   //! the content can be generated by a single instruction (for example PXOR).
   uint8_t _isCalculated : 1;
-  //! @brief Save on unuse (at end of the variable scope).
+  //! Save on unuse (at end of the variable scope).
   uint8_t _saveOnUnuse : 1;
-  //! @brief Whether variable was changed (connected with actual @ref BaseVarState).
+  //! Whether variable was changed (connected with actual `BaseVarState)`.
   uint8_t _modified : 1;
   //! @internal
   uint8_t _reserved0 : 3;
-  //! @brief Variable natural alignment.
+  //! Variable natural alignment.
   uint8_t _alignment;
 
-  //! @brief Variable size.
+  //! Variable size.
   uint32_t _size;
 
-  //! @brief Home memory offset.
+  //! Home memory offset.
   int32_t _memOffset;
-  //! @brief Home memory cell, used by @c Context (initially NULL).
+  //! Home memory cell, used by `BaseContext` (initially NULL).
   MemCell* _memCell;
 
-  //! @brief Register read access statistics.
+  //! Register read access statistics.
   uint32_t rReadCount;
-  //! @brief Register write access statistics.
+  //! Register write access statistics.
   uint32_t rWriteCount;
 
-  //! @brief Memory read statistics.
+  //! Memory read statistics.
   uint32_t mReadCount;
-  //! @brief Memory write statistics.
+  //! Memory write statistics.
   uint32_t mWriteCount;
 
   // --------------------------------------------------------------------------
@@ -534,7 +538,7 @@ struct VarData {
   // initialized by init() phase and cleared by cleanup() phase.
 
   union {
-    //! @brief Temporary link to VarAttr* used by the @ref Context used in
+    //! Temporary link to VarAttr* used by the `Context` used in
     //! various phases, but always set back to NULL when finished.
     //!
     //! This temporary data is designed to be used by algorithms that need to
@@ -572,72 +576,72 @@ struct VarAttr {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get VarData.
+  //! Get VarData.
   ASMJIT_INLINE VarData* getVd() const { return _vd; }
-  //! @brief Set VarData.
+  //! Set VarData.
   ASMJIT_INLINE void setVd(VarData* vd) { _vd = vd; }
 
-  //! @brief Get flags.
+  //! Get flags.
   ASMJIT_INLINE uint32_t getFlags() const { return _flags; }
-  //! @brief Set flags.
+  //! Set flags.
   ASMJIT_INLINE void setFlags(uint32_t flags) { _flags = flags; }
 
-  //! @brief Get whether @a flag is on.
+  //! Get whether `flag` is on.
   ASMJIT_INLINE bool hasFlag(uint32_t flag) { return (_flags & flag) != 0; }
-  //! @brief Add @a flags.
+  //! Add `flags`.
   ASMJIT_INLINE void addFlags(uint32_t flags) { _flags |= flags; }
-  //! @brief Mask @a flags.
+  //! Mask `flags`.
   ASMJIT_INLINE void andFlags(uint32_t flags) { _flags &= flags; }
-  //! @brief Clear @a flags.
+  //! Clear `flags`.
   ASMJIT_INLINE void delFlags(uint32_t flags) { _flags &= ~flags; }
 
-  //! @brief Get how many times the variable is used by the instruction/node.
+  //! Get how many times the variable is used by the instruction/node.
   ASMJIT_INLINE uint32_t getVarCount() const { return _varCount; }
-  //! @brief Set how many times the variable is used by the instruction/node.
+  //! Set how many times the variable is used by the instruction/node.
   ASMJIT_INLINE void setVarCount(uint32_t count) { _varCount = static_cast<uint8_t>(count); }
-  //! @brief Add how many times the variable is used by the instruction/node.
+  //! Add how many times the variable is used by the instruction/node.
   ASMJIT_INLINE void addVarCount(uint32_t count = 1) { _varCount += static_cast<uint8_t>(count); }
 
-  //! @brief Get whether the variable has to be allocated in a specific input register.
+  //! Get whether the variable has to be allocated in a specific input register.
   ASMJIT_INLINE uint32_t hasInRegIndex() const { return _inRegIndex != kInvalidReg; }
-  //! @brief Get the input register index or @ref kInvalidReg.
+  //! Get the input register index or `kInvalidReg`.
   ASMJIT_INLINE uint32_t getInRegIndex() const { return _inRegIndex; }
-  //! @brief Set the input register index.
+  //! Set the input register index.
   ASMJIT_INLINE void setInRegIndex(uint32_t index) { _inRegIndex = static_cast<uint8_t>(index); }
-  //! @brief Reset the input register index.
+  //! Reset the input register index.
   ASMJIT_INLINE void resetInRegIndex() { _inRegIndex = kInvalidReg; }
 
-  //! @brief Get whether the variable has to be allocated in a specific output register.
+  //! Get whether the variable has to be allocated in a specific output register.
   ASMJIT_INLINE uint32_t hasOutRegIndex() const { return _outRegIndex != kInvalidReg; }
-  //! @brief Get the output register index or @ref kInvalidReg.
+  //! Get the output register index or `kInvalidReg`.
   ASMJIT_INLINE uint32_t getOutRegIndex() const { return _outRegIndex; }
-  //! @brief Set the output register index.
+  //! Set the output register index.
   ASMJIT_INLINE void setOutRegIndex(uint32_t index) { _outRegIndex = static_cast<uint8_t>(index); }
-  //! @brief Reset the output register index.
+  //! Reset the output register index.
   ASMJIT_INLINE void resetOutRegIndex() { _outRegIndex = kInvalidReg; }
 
-  //! @brief Get whether the mandatory input registers are in used.
+  //! Get whether the mandatory input registers are in used.
   ASMJIT_INLINE bool hasInRegs() const { return _inRegs != 0; }
-  //! @brief Get mandatory input registers (mask).
+  //! Get mandatory input registers (mask).
   ASMJIT_INLINE uint32_t getInRegs() const { return _inRegs; }
-  //! @brief Set mandatory input registers (mask).
+  //! Set mandatory input registers (mask).
   ASMJIT_INLINE void setInRegs(uint32_t mask) { _inRegs = mask; }
-  //! @brief Add mandatory input registers (mask).
+  //! Add mandatory input registers (mask).
   ASMJIT_INLINE void addInRegs(uint32_t mask) { _inRegs |= mask; }
-  //! @brief And mandatory input registers (mask).
+  //! And mandatory input registers (mask).
   ASMJIT_INLINE void andInRegs(uint32_t mask) { _inRegs &= mask; }
-  //! @brief Clear mandatory input registers (mask).
+  //! Clear mandatory input registers (mask).
   ASMJIT_INLINE void delInRegs(uint32_t mask) { _inRegs &= ~mask; }
 
-  //! @brief Get allocable input registers (mask).
+  //! Get allocable input registers (mask).
   ASMJIT_INLINE uint32_t getAllocableRegs() const { return _allocableRegs; }
-  //! @brief Set allocable input registers (mask).
+  //! Set allocable input registers (mask).
   ASMJIT_INLINE void setAllocableRegs(uint32_t mask) { _allocableRegs = mask; }
-  //! @brief Add allocable input registers (mask).
+  //! Add allocable input registers (mask).
   ASMJIT_INLINE void addAllocableRegs(uint32_t mask) { _allocableRegs |= mask; }
-  //! @brief And allocable input registers (mask).
+  //! And allocable input registers (mask).
   ASMJIT_INLINE void andAllocableRegs(uint32_t mask) { _allocableRegs &= mask; }
-  //! @brief Clear allocable input registers (mask).
+  //! Clear allocable input registers (mask).
   ASMJIT_INLINE void delAllocableRegs(uint32_t mask) { _allocableRegs &= ~mask; }
 
   // --------------------------------------------------------------------------
@@ -654,14 +658,14 @@ struct VarAttr {
   // --------------------------------------------------------------------------
 
   VarData* _vd;
-  //! @brief Flags.
+  //! Flags.
   uint32_t _flags;
 
   union {
     struct {
-      //! @brief How many times the variable is used by the instruction/node.
+      //! How many times the variable is used by the instruction/node.
       uint8_t _varCount;
-      //! @brief Input register index or @ref kInvalidReg if it's not given.
+      //! Input register index or `kInvalidReg` if it's not given.
       //!
       //! Even if the input register index is not given (i.e. it may by any
       //! register), register allocator should assign an index that will be
@@ -669,9 +673,9 @@ struct VarAttr {
       //! in situations where one variable has to be allocated in multiple
       //! registers to determine the register which will be persistent.
       uint8_t _inRegIndex;
-      //! @brief Output register index or @ref kInvalidReg if it's not given.
+      //! Output register index or `kInvalidReg` if it's not given.
       //!
-      //! Typically @ref kInvalidReg if variable is only used on input.
+      //! Typically `kInvalidReg` if variable is only used on input.
       uint8_t _outRegIndex;
       //! @internal
       uint8_t _reserved;
@@ -679,11 +683,11 @@ struct VarAttr {
 
     //! @internal
     //!
-    //! @brief Packed data #0.
+    //! Packed data #0.
     uint32_t _packed;
   };
 
-  //! @brief Mandatory input registers.
+  //! Mandatory input registers.
   //!
   //! Mandatory input registers are required by the instruction even if
   //! there are duplicates. This schema allows us to allocate one variable
@@ -692,7 +696,7 @@ struct VarAttr {
   //! call.
   uint32_t _inRegs;
 
-  //! @brief Allocable input registers.
+  //! Allocable input registers.
   //!
   //! Optional input registers is a mask of all allocable registers for a given
   //! variable where we have to pick one of them. This mask is usually not used
@@ -706,23 +710,23 @@ struct VarAttr {
 // [asmjit::BaseVarInst]
 // ============================================================================
 
-//! @brief Variable allocation instructions.
+//! Variable allocation instructions.
 struct BaseVarInst {};
 
 // ============================================================================
 // [asmjit::BaseVarState]
 // ============================================================================
 
-//! @brief Variable(s) state.
+//! Variable(s) state.
 struct BaseVarState {};
 
 // ============================================================================
 // [asmjit::BaseNode]
 // ============================================================================
 
-//! @brief Base node.
+//! Base node.
 //!
-//! @ref Every node represents an abstract instruction, directive, label, or
+//! `Every` node represents an abstract instruction, directive, label, or
 //! macro-instruction generated by compiler.
 struct BaseNode {
   ASMJIT_NO_COPY(BaseNode)
@@ -731,123 +735,123 @@ struct BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create new @ref BaseNode.
+  //! Create new `BaseNode`.
   //!
   //! @note Always use compiler to create nodes.
   ASMJIT_INLINE BaseNode(BaseCompiler* compiler, uint32_t type); // Defined-Later.
 
-  //! @brief Destroy @ref BaseNode.
+  //! Destroy `BaseNode`.
   ASMJIT_INLINE ~BaseNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get previous node in the compiler stream.
+  //! Get previous node in the compiler stream.
   ASMJIT_INLINE BaseNode* getPrev() const { return _prev; }
-  //! @brief Get next node in the compiler stream.
+  //! Get next node in the compiler stream.
   ASMJIT_INLINE BaseNode* getNext() const { return _next; }
 
-  //! @brief Get comment string.
+  //! Get comment string.
   ASMJIT_INLINE const char* getComment() const { return _comment; }
-  //! @brief Set comment string to @a str.
+  //! Set comment string to `str`.
   ASMJIT_INLINE void setComment(const char* comment) { _comment = comment; }
 
-  //! @brief Get type of node, see @ref kNodeType.
+  //! Get type of node, see `kNodeType`.
   ASMJIT_INLINE uint32_t getType() const { return _type; }
 
-  //! @brief Get node flags.
+  //! Get node flags.
   ASMJIT_INLINE uint32_t getFlags() const { return _flags; }
-  //! @brief Set node flags to @a flags.
+  //! Set node flags to `flags`.
   ASMJIT_INLINE void setFlags(uint32_t flags) { _flags = static_cast<uint16_t>(flags); }
 
-  //! @brief Get whether the instruction has flag @a flag.
+  //! Get whether the instruction has flag `flag`.
   ASMJIT_INLINE bool hasFlag(uint32_t flag) const { return (static_cast<uint32_t>(_flags) & flag) != 0; }
-  //! @brief Add instruction @a flags.
+  //! Add instruction `flags`.
   ASMJIT_INLINE void addFlags(uint32_t flags) { _flags |= static_cast<uint16_t>(flags); }
-  //! @brief Clear instruction @a flags.
+  //! Clear instruction `flags`.
   ASMJIT_INLINE void delFlags(uint32_t flags) { _flags &= static_cast<uint16_t>(~flags); }
 
-  //! @brief Get whether the node has beed fetched.
+  //! Get whether the node has beed fetched.
   ASMJIT_INLINE bool isFetched() const { return _flowId != 0; }
-  //! @brief Get whether the node has been translated.
+  //! Get whether the node has been translated.
   ASMJIT_INLINE bool isTranslated() const { return hasFlag(kNodeFlagIsTranslated); }
 
-  //! @brief Whether the instruction is an unconditional jump.
+  //! Whether the instruction is an unconditional jump.
   ASMJIT_INLINE bool isJmp() const { return hasFlag(kNodeFlagIsJmp); }
-  //! @brief Whether the instruction is a conditional jump.
+  //! Whether the instruction is a conditional jump.
   ASMJIT_INLINE bool isJcc() const { return hasFlag(kNodeFlagIsJcc); }
-  //! @brief Whether the instruction is an unconditional or conditional jump.
+  //! Whether the instruction is an unconditional or conditional jump.
   ASMJIT_INLINE bool isJmpOrJcc() const { return hasFlag(kNodeFlagIsJmp | kNodeFlagIsJcc); }
-  //! @brief Whether the instruction is a return.
+  //! Whether the instruction is a return.
   ASMJIT_INLINE bool isRet() const { return hasFlag(kNodeFlagIsRet); }
 
-  //! @brief Get whether the instruction is special.
+  //! Get whether the instruction is special.
   ASMJIT_INLINE bool isSpecial() const { return hasFlag(kNodeFlagIsSpecial); }
-  //! @brief Get whether the instruction accesses FPU.
+  //! Get whether the instruction accesses FPU.
   ASMJIT_INLINE bool isFp() const { return hasFlag(kNodeFlagIsFp); }
 
-  //! @brief Get flow index.
+  //! Get flow index.
   ASMJIT_INLINE uint32_t getFlowId() const { return _flowId; }
-  //! @brief Set flow index.
+  //! Set flow index.
   ASMJIT_INLINE void setFlowId(uint32_t flowId) { _flowId = flowId; }
 
-  //! @brief Get whether node contains variable allocation instructions.
+  //! Get whether node contains variable allocation instructions.
   ASMJIT_INLINE bool hasVarInst() const { return _varInst != NULL; }
 
-  //! @brief Get variable allocation instructions.
+  //! Get variable allocation instructions.
   ASMJIT_INLINE BaseVarInst* getVarInst() const { return _varInst; }
-  //! @brief Get variable allocation instructions <T>.
+  //! Get variable allocation instructions casted to `T*`.
   template<typename T>
   ASMJIT_INLINE T* getVarInst() const { return static_cast<T*>(_varInst); }
-  //! @brief Set variable allocation instructions.
+  //! Set variable allocation instructions.
   ASMJIT_INLINE void setVarInst(BaseVarInst* vi) { _varInst = vi; }
 
-  //! @brief Get node state.
+  //! Get node state.
   ASMJIT_INLINE BaseVarState* getState() const { return _state; }
-  //! @brief Get node state <T>.
+  //! Get node state casted to `T*`.
   template<typename T>
   ASMJIT_INLINE T* getState() const { return static_cast<BaseVarState*>(_state); }
-  //! @brief Set node state.
+  //! Set node state.
   ASMJIT_INLINE void setState(BaseVarState* state) { _state = state; }
 
-  //! @brief Get whether the node has variable liveness bits.
+  //! Get whether the node has variable liveness bits.
   ASMJIT_INLINE bool hasLiveness() const { return _liveness != NULL; }
-  //! @brief Get variable liveness bits.
+  //! Get variable liveness bits.
   ASMJIT_INLINE VarBits* getLiveness() const { return _liveness; }
-  //! @brief Set variable liveness bits.
+  //! Set variable liveness bits.
   ASMJIT_INLINE void setLiveness(VarBits* liveness) { _liveness = liveness; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Previous node.
+  //! Previous node.
   BaseNode* _prev;
-  //! @brief Next node.
+  //! Next node.
   BaseNode* _next;
 
-  //! @brief Node type, see @ref kNodeType.
+  //! Node type, see `kNodeType`.
   uint8_t _type;
-  //! @brief Operands count (if the node has operands, otherwise zero).
+  //! Operands count (if the node has operands, otherwise zero).
   uint8_t _opCount;
-  //! @brief Node flags, different meaning for every node type.
+  //! Node flags, different meaning for every node type.
   uint16_t _flags;
 
-  //! @brief Flow index.
+  //! Flow index.
   uint32_t _flowId;
 
-  //! @brief Inline comment string, initially set to NULL.
+  //! Inline comment string, initially set to NULL.
   const char* _comment;
 
-  //! @brief Variable allocation instructions (initially NULL, filled by prepare
+  //! Variable allocation instructions (initially NULL, filled by prepare
   //! phase).
   BaseVarInst* _varInst;
 
-  //! @brief Variable liveness bits (initially NULL, filled by analysis phase).
+  //! Variable liveness bits (initially NULL, filled by analysis phase).
   VarBits* _liveness;
 
-  //! @brief Saved state.
+  //! Saved state.
   //!
   //! Initially NULL, not all nodes have saved state, only branch/flow control
   //! nodes.
@@ -858,7 +862,7 @@ struct BaseNode {
 // [asmjit::AlignNode]
 // ============================================================================
 
-//! @brief Align node.
+//! Align node.
 struct AlignNode : public BaseNode {
   ASMJIT_NO_COPY(AlignNode)
 
@@ -866,28 +870,28 @@ struct AlignNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref AlignNode instance.
+  //! Create a new `AlignNode` instance.
   ASMJIT_INLINE AlignNode(BaseCompiler* compiler, uint32_t size) : BaseNode(compiler, kNodeTypeAlign) {
     _size = size;
   }
 
-  //! @brief Destroy the @ref AlignNode instance.
+  //! Destroy the `AlignNode` instance.
   ASMJIT_INLINE ~AlignNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get align size in bytes.
+  //! Get align size in bytes.
   ASMJIT_INLINE uint32_t getSize() const { return _size; }
-  //! @brief Set align size in bytes to @a size.
+  //! Set align size in bytes to `size`.
   ASMJIT_INLINE void setSize(uint32_t size) { _size = size; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Size of the alignment.
+  //! Size of the alignment.
   uint32_t _size;
 };
 
@@ -895,7 +899,7 @@ struct AlignNode : public BaseNode {
 // [asmjit::EmbedNode]
 // ============================================================================
 
-//! @brief Embed node.
+//! Embed node.
 //!
 //! Embed node is used to embed data into final assembler stream. The data is
 //! considered to be RAW; No analysis is performed on RAW data.
@@ -912,7 +916,7 @@ struct EmbedNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref EmbedNode instance.
+  //! Create a new `EmbedNode` instance.
   ASMJIT_INLINE EmbedNode(BaseCompiler* compiler, void* data, uint32_t size) : BaseNode(compiler, kNodeTypeEmbed) {
     _size = size;
     if (size <= kInlineBufferSize) {
@@ -924,29 +928,29 @@ struct EmbedNode : public BaseNode {
     }
   }
 
-  //! @brief Destroy the @ref EmbedNode instance.
+  //! Destroy the `EmbedNode` instance.
   ASMJIT_INLINE ~EmbedNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get pointer to data.
+  //! Get pointer to data.
   uint8_t* getData() { return getSize() <= kInlineBufferSize ? const_cast<uint8_t*>(_data.buf) : _data.ptr; }
-  //! @brief Get size of data.
+  //! Get size of data.
   uint32_t getSize() const { return _size; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Size of the embedded data.
+  //! Size of the embedded data.
   uint32_t _size;
 
   union {
-    //! @brief data buffer.
+    //! data buffer.
     uint8_t buf[kInlineBufferSize];
-    //! @brief Data buffer.
+    //! Data buffer.
     uint8_t* ptr;
   } _data;
 };
@@ -955,7 +959,7 @@ struct EmbedNode : public BaseNode {
 // [asmjit::CommentNode]
 // ============================================================================
 
-//! @brief Comment node.
+//! Comment node.
 //!
 //! Comments allows to comment your assembler stream for better debugging
 //! and visualization. Comments are usually ignored in release builds unless
@@ -967,12 +971,12 @@ struct CommentNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref CommentNode instance.
+  //! Create a new `CommentNode` instance.
   ASMJIT_INLINE CommentNode(BaseCompiler* compiler, const char* comment) : BaseNode(compiler, kNodeTypeComment) {
     _comment = comment;
   }
 
-  //! @brief Destroy the @ref CommentNode instance.
+  //! Destroy the `CommentNode` instance.
   ASMJIT_INLINE ~CommentNode() {}
 };
 
@@ -980,7 +984,7 @@ struct CommentNode : public BaseNode {
 // [asmjit::HintNode]
 // ============================================================================
 
-//! @brief Hint node.
+//! Hint node.
 struct HintNode : public BaseNode {
   ASMJIT_NO_COPY(HintNode)
 
@@ -988,42 +992,42 @@ struct HintNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref HintNode instance.
+  //! Create a new `HintNode` instance.
   ASMJIT_INLINE HintNode(BaseCompiler* compiler, VarData* vd, uint32_t hint, uint32_t value) : BaseNode(compiler, kNodeTypeHint) {
     _vd = vd;
     _hint = hint;
     _value = value;
   }
 
-  //! @brief Destroy the @ref HintNode instance.
+  //! Destroy the `HintNode` instance.
   ASMJIT_INLINE ~HintNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get variable.
+  //! Get variable.
   ASMJIT_INLINE VarData* getVd() const { return _vd; }
 
-  //! @brief Get hint it (see @ref kVarHint).
+  //! Get hint it (see `kVarHint)`.
   ASMJIT_INLINE uint32_t getHint() const{ return _hint; }
-  //! @brief Set hint it (see @ref kVarHint).
+  //! Set hint it (see `kVarHint)`.
   ASMJIT_INLINE void setHint(uint32_t hint) { _hint = hint; }
 
-  //! @brief Get hint value.
+  //! Get hint value.
   ASMJIT_INLINE uint32_t getValue() const { return _value; }
-  //! @brief Set hint value.
+  //! Set hint value.
   ASMJIT_INLINE void setValue(uint32_t value) { _value = value; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Variable.
+  //! Variable.
   VarData* _vd;
-  //! @brief Hint id.
+  //! Hint id.
   uint32_t _hint;
-  //! @brief Value.
+  //! Value.
   uint32_t _value;
 };
 
@@ -1031,7 +1035,7 @@ struct HintNode : public BaseNode {
 // [asmjit::TargetNode]
 // ============================================================================
 
-//! @brief label node.
+//! label node.
 struct TargetNode : public BaseNode {
   ASMJIT_NO_COPY(TargetNode)
 
@@ -1039,55 +1043,55 @@ struct TargetNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref TargetNode instance.
+  //! Create a new `TargetNode` instance.
   ASMJIT_INLINE TargetNode(BaseCompiler* compiler, uint32_t labelId) : BaseNode(compiler, kNodeTypeTarget) {
     _id = labelId;
     _numRefs = 0;
     _from = NULL;
   }
 
-  //! @brief Destroy the @ref TargetNode instance.
+  //! Destroy the `TargetNode` instance.
   ASMJIT_INLINE ~TargetNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get target label.
+  //! Get target label.
   ASMJIT_INLINE Label getLabel() const { return Label(_id); }
-  //! @brief Get target label id.
+  //! Get target label id.
   ASMJIT_INLINE uint32_t getLabelId() const { return _id; }
 
-  //! @brief Get first jmp instruction.
+  //! Get first jmp instruction.
   ASMJIT_INLINE JumpNode* getFrom() const { return _from; }
 
-  //! @brief Get whether the node has assigned state.
+  //! Get whether the node has assigned state.
   ASMJIT_INLINE bool hasState() const { return _state != NULL; }
-  //! @brief Get state for this target.
+  //! Get state for this target.
   ASMJIT_INLINE BaseVarState* getState() const { return _state; }
-  //! @brief Set state for this target.
+  //! Set state for this target.
   ASMJIT_INLINE void setState(BaseVarState* state) { _state = state; }
 
-  //! @brief Get number of jumps to this target.
+  //! Get number of jumps to this target.
   ASMJIT_INLINE uint32_t getNumRefs() const { return _numRefs; }
-  //! @brief Set number of jumps to this target.
+  //! Set number of jumps to this target.
   ASMJIT_INLINE void setNumRefs(uint32_t i) { _numRefs = i; }
 
-  //! @brief Add number of jumps to this target.
+  //! Add number of jumps to this target.
   ASMJIT_INLINE void addNumRefs(uint32_t i = 1) { _numRefs += i; }
-  //! @brief Subtract number of jumps to this target.
+  //! Subtract number of jumps to this target.
   ASMJIT_INLINE void subNumRefs(uint32_t i = 1) { _numRefs -= i; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Label id.
+  //! Label id.
   uint32_t _id;
-  //! @brief Count of jumps here.
+  //! Count of jumps here.
   uint32_t _numRefs;
 
-  //! @brief First jump instruction that points to this target (label).
+  //! First jump instruction that points to this target (label).
   JumpNode* _from;
 };
 
@@ -1095,7 +1099,7 @@ struct TargetNode : public BaseNode {
 // [asmjit::InstNode]
 // ============================================================================
 
-//! @brief Instruction node.
+//! Instruction node.
 struct InstNode : public BaseNode {
   ASMJIT_NO_COPY(InstNode)
 
@@ -1103,7 +1107,7 @@ struct InstNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref InstNode instance.
+  //! Create a new `InstNode` instance.
   ASMJIT_INLINE InstNode(BaseCompiler* compiler, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) : BaseNode(compiler, kNodeTypeInst) {
     _code = static_cast<uint16_t>(code);
     _options = static_cast<uint8_t>(options);
@@ -1114,19 +1118,19 @@ struct InstNode : public BaseNode {
     _updateMemOp();
   }
 
-  //! @brief Destroy the @ref InstNode instance.
+  //! Destroy the `InstNode` instance.
   ASMJIT_INLINE ~InstNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get instruction code, see @c kInstCode.
+  //! Get instruction code, see `kInstCode`.
   ASMJIT_INLINE uint32_t getCode() const {
     return _code;
   }
 
-  //! @brief Set instruction code to @a code.
+  //! Set instruction code to `code`.
   //!
   //! Please do not modify instruction code if you are not know what you are
   //! doing. Incorrect instruction code or operands can raise assertion() at
@@ -1135,34 +1139,34 @@ struct InstNode : public BaseNode {
     _code = static_cast<uint16_t>(code);
   }
 
-  //! @brief Whether the instruction is an unconditional jump or whether the
+  //! Whether the instruction is an unconditional jump or whether the
   //! instruction is a conditional jump which is likely to be taken.
   ASMJIT_INLINE bool isTaken() const {
     return hasFlag(kNodeFlagIsTaken);
   }
 
-  //! @brief Get emit options.
+  //! Get emit options.
   ASMJIT_INLINE uint32_t getOptions() const {
     return _options;
   }
-  //! @brief Set emit options.
+  //! Set emit options.
   ASMJIT_INLINE void setOptions(uint32_t options) {
     _options = static_cast<uint8_t>(options);
   }
-  //! @brief Add emit options.
+  //! Add emit options.
   ASMJIT_INLINE void addOptions(uint32_t options) {
     _options |= static_cast<uint8_t>(options);
   }
-  //! @brief Mask emit options.
+  //! Mask emit options.
   ASMJIT_INLINE void andOptions(uint32_t options) {
     _options &= static_cast<uint8_t>(options);
   }
-  //! @brief Clear emit options.
+  //! Clear emit options.
   ASMJIT_INLINE void delOptions(uint32_t options) {
     _options &= static_cast<uint8_t>(~options);
   }
 
-  //! @brief Get operands list.
+  //! Get operands list.
   ASMJIT_INLINE Operand* getOpList() {
     return _opList;
   }
@@ -1171,30 +1175,29 @@ struct InstNode : public BaseNode {
     return _opList;
   }
 
-  //! @brief Get operands count.
+  //! Get operands count.
   ASMJIT_INLINE uint32_t getOpCount() const {
     return _opCount;
   }
 
-  //! @brief Get whether the instruction contains a memory operand.
+  //! Get whether the instruction contains a memory operand.
   ASMJIT_INLINE bool hasMemOp() const {
     return _memOpIndex != 0xFF;
   }
 
-  //! @brief Set memory operand index (in opList), 0xFF means that instruction
+  //! Set memory operand index (in opList), 0xFF means that instruction
   //! doesn't have a memory operand.
   ASMJIT_INLINE void setMemOpIndex(uint32_t index) {
     _memOpIndex = static_cast<uint8_t>(index);
   }
-  //! @brief Reset memory operand index, setting it to 0xFF.
+  //! Reset memory operand index, setting it to 0xFF.
   ASMJIT_INLINE void resetMemOpIndex() {
     _memOpIndex = 0xFF;
   }
 
-  //! @brief Get memory operand.
+  //! Get memory operand.
   //!
-  //! @note Can only be called if the instruction has such operand, see @ref
-  //! hasMemOp().
+  //! Can only be called if the instruction has such operand, see `hasMemOp()`.
   ASMJIT_INLINE BaseMem* getMemOp() const {
     ASMJIT_ASSERT(hasMemOp());
     return static_cast<BaseMem*>(&_opList[_memOpIndex]);
@@ -1229,14 +1232,14 @@ _Update:
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Instruction code, see @c kInstCode.
+  //! Instruction code, see `kInstCode`.
   uint16_t _code;
-  //! @brief Instruction options, see @c kInstOptions.
+  //! Instruction options, see `kInstOptions`.
   uint8_t _options;
   //! @internal
   uint8_t _memOpIndex;
 
-  //! @brief Operands list.
+  //! Operands list.
   Operand* _opList;
 };
 
@@ -1244,7 +1247,7 @@ _Update:
 // [asmjit::JumpNode]
 // ============================================================================
 
-//! @brief Jump node.
+//! Jump node.
 struct JumpNode : public InstNode {
   ASMJIT_NO_COPY(JumpNode)
 
@@ -1267,9 +1270,9 @@ struct JumpNode : public InstNode {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Target node.
+  //! Target node.
   TargetNode* _target;
-  //! @brief Next jump to the same target in a single linked-list.
+  //! Next jump to the same target in a single linked-list.
   JumpNode *_jumpNext;
 };
 
@@ -1277,13 +1280,13 @@ struct JumpNode : public InstNode {
 // [asmjit::FuncNode]
 // ============================================================================
 
-//! @brief Function declaration node.
+//! Function declaration node.
 //!
 //! Functions are base blocks for generating assembler output. Each generated
 //! assembler stream needs standard entry and leave sequences which are compatible
 //! with the operating system ABI.
 //!
-//! @ref FuncNode can be used to generate function prolog and epilog which are
+//! `FuncNode` can be used to generate function prolog and epilog which are
 //! compatible with a given function calling convention and to allocate and
 //! manage variables that can be allocated/spilled during compilation phase.
 struct FuncNode : public BaseNode {
@@ -1293,10 +1296,9 @@ struct FuncNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @c FuncNode instance.
+  //! Create a new `FuncNode` instance.
   //!
-  //! @note Always use @ref asmjit::BaseCompiler::addFunc() to create a
-  //! @ref FuncNode instance.
+  //! Always use `BaseCompiler::addFunc()` to create a `FuncNode` instance.
   ASMJIT_INLINE FuncNode(BaseCompiler* compiler) :
     BaseNode(compiler, kNodeTypeFunc),
     _entryNode(NULL),
@@ -1314,87 +1316,87 @@ struct FuncNode : public BaseNode {
     _memStackSize(0),
     _callStackSize(0) {}
 
-  //! @brief Destroy the @c FuncNode instance.
+  //! Destroy the `FuncNode` instance.
   ASMJIT_INLINE ~FuncNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get function entry @ref TargetNode.
+  //! Get function entry `TargetNode`.
   ASMJIT_INLINE TargetNode* getEntryNode() const { return _entryNode; }
-  //! @brief Get function exit @ref TargetNode.
+  //! Get function exit `TargetNode`.
   ASMJIT_INLINE TargetNode* getExitNode() const { return _exitNode; }
 
-  //! @brief Get function entry label.
+  //! Get function entry label.
   ASMJIT_INLINE Label getEntryLabel() const { return _entryNode->getLabel(); }
-  //! @brief Get function exit label.
+  //! Get function exit label.
   ASMJIT_INLINE Label getExitLabel() const { return _exitNode->getLabel(); }
 
-  //! @brief Get function @ref EndNode.
+  //! Get function `EndNode`.
   ASMJIT_INLINE EndNode* getEnd() const { return _end; }
-  //! @brief Get function declaration.
+  //! Get function declaration.
   ASMJIT_INLINE FuncDecl* getDecl() const { return _decl; }
 
-  //! @brief Get arguments list.
+  //! Get arguments list.
   ASMJIT_INLINE VarData** getArgList() const { return _argList; }
-  //! @brief Get arguments count.
+  //! Get arguments count.
   ASMJIT_INLINE uint32_t getArgCount() const { return _decl->getArgCount(); }
 
-  //! @brief Get argument at @a i.
+  //! Get argument at `i`.
   ASMJIT_INLINE VarData* getArg(uint32_t i) const {
     ASMJIT_ASSERT(i < getArgCount());
     return _argList[i];
   }
 
-  //! @brief Set argument at @a i.
+  //! Set argument at `i`.
   ASMJIT_INLINE void setArg(uint32_t i, VarData* vd) {
     ASMJIT_ASSERT(i < getArgCount());
     _argList[i] = vd;
   }
 
-  //! @brief Reset argument at @a i.
+  //! Reset argument at `i`.
   ASMJIT_INLINE void resetArg(uint32_t i) {
     ASMJIT_ASSERT(i < getArgCount());
     _argList[i] = NULL;
   }
 
-  //! @brief Get function hints.
+  //! Get function hints.
   ASMJIT_INLINE uint32_t getFuncHints() const { return _funcHints; }
-  //! @brief Get function flags.
+  //! Get function flags.
   ASMJIT_INLINE uint32_t getFuncFlags() const { return _funcFlags; }
 
-  //! @brief Get whether the _funcFlags has @a flag
+  //! Get whether the _funcFlags has `flag`
   ASMJIT_INLINE bool hasFuncFlag(uint32_t flag) const { return (_funcFlags & flag) != 0; }
-  //! @brief Set function @a flag.
+  //! Set function `flag`.
   ASMJIT_INLINE void addFuncFlags(uint32_t flags) { _funcFlags |= flags; }
-  //! @brief Clear function @a flag.
+  //! Clear function `flag`.
   ASMJIT_INLINE void clearFuncFlags(uint32_t flags) { _funcFlags &= ~flags; }
 
-  //! @brief Get whether the function is naked.
+  //! Get whether the function is naked.
   ASMJIT_INLINE bool isNaked() const { return hasFuncFlag(kFuncFlagIsNaked); }
-  //! @brief Get whether the function is also a caller.
+  //! Get whether the function is also a caller.
   ASMJIT_INLINE bool isCaller() const { return hasFuncFlag(kFuncFlagIsCaller); }
-  //! @brief Get whether the required stack alignment is lower than expected one,
+  //! Get whether the required stack alignment is lower than expected one,
   //! thus it has to be aligned manually.
   ASMJIT_INLINE bool isStackMisaligned() const { return hasFuncFlag(kFuncFlagIsStackMisaligned); }
-  //! @brief Get whether the stack pointer is adjusted inside function prolog/epilog.
+  //! Get whether the stack pointer is adjusted inside function prolog/epilog.
   ASMJIT_INLINE bool isStackAdjusted() const { return hasFuncFlag(kFuncFlagIsStackAdjusted); }
 
-  //! @brief Get whether the function is finished.
+  //! Get whether the function is finished.
   ASMJIT_INLINE bool isFinished() const { return hasFuncFlag(kFuncFlagIsFinished); }
 
-  //! @brief Get expected stack alignment.
+  //! Get expected stack alignment.
   ASMJIT_INLINE uint32_t getExpectedStackAlignment() const { return _expectedStackAlignment; }
-  //! @brief Set expected stack alignment.
+  //! Set expected stack alignment.
   ASMJIT_INLINE void setExpectedStackAlignment(uint32_t alignment) { _expectedStackAlignment = alignment; }
 
-  //! @brief Get required stack alignment.
+  //! Get required stack alignment.
   ASMJIT_INLINE uint32_t getRequiredStackAlignment() const { return _requiredStackAlignment; }
-  //! @brief Set required stack alignment.
+  //! Set required stack alignment.
   ASMJIT_INLINE void setRequiredStackAlignment(uint32_t alignment) { _requiredStackAlignment = alignment; }
 
-  //! @brief Update required stack alignment so it's not lower than expected
+  //! Update required stack alignment so it's not lower than expected
   //! stack alignment.
   ASMJIT_INLINE void updateRequiredStackAlignment() {
     if (_requiredStackAlignment <= _expectedStackAlignment) {
@@ -1406,32 +1408,32 @@ struct FuncNode : public BaseNode {
     }
   }
 
-  //! @brief Set stack "Red Zone" size.
+  //! Set stack "Red Zone" size.
   ASMJIT_INLINE uint32_t getRedZoneSize() const { return _redZoneSize; }
-  //! @brief Get stack "Red Zone" size.
+  //! Get stack "Red Zone" size.
   ASMJIT_INLINE void setRedZoneSize(uint32_t s) { _redZoneSize = static_cast<uint16_t>(s); }
 
-  //! @brief Set stack "Spill Zone" size.
+  //! Set stack "Spill Zone" size.
   ASMJIT_INLINE uint32_t getSpillZoneSize() const { return _spillZoneSize; }
-  //! @brief Get stack "Spill Zone" size.
+  //! Get stack "Spill Zone" size.
   ASMJIT_INLINE void setSpillZoneSize(uint32_t s) { _spillZoneSize = static_cast<uint16_t>(s); }
 
-  //! @brief Get stack size used by function arguments.
+  //! Get stack size used by function arguments.
   ASMJIT_INLINE uint32_t getArgStackSize() const { return _argStackSize; }
 
-  //! @brief Get stack size used by variables and memory allocated on the stack.
+  //! Get stack size used by variables and memory allocated on the stack.
   ASMJIT_INLINE uint32_t getMemStackSize() const { return _memStackSize; }
 
-  //! @brief Get stack size used by function calls.
+  //! Get stack size used by function calls.
   ASMJIT_INLINE uint32_t getCallStackSize() const { return _callStackSize; }
-  //! @brief Merge stack size used by function call with @a s.
+  //! Merge stack size used by function call with `s`.
   ASMJIT_INLINE void mergeCallStackSize(uint32_t s) { if (_callStackSize < s) _callStackSize = s; }
 
   // --------------------------------------------------------------------------
   // [Hints]
   // --------------------------------------------------------------------------
 
-  //! @brief Set function hint.
+  //! Set function hint.
   ASMJIT_INLINE void setHint(uint32_t hint, uint32_t value) {
     ASMJIT_ASSERT(hint <= 31);
     ASMJIT_ASSERT(value <= 1);
@@ -1440,7 +1442,7 @@ struct FuncNode : public BaseNode {
     _funcHints |=  (value << hint);
   }
 
-  //! @brief Get function hint.
+  //! Get function hint.
   ASMJIT_INLINE uint32_t getHint(uint32_t hint) const {
     ASMJIT_ASSERT(hint <= 31);
     return (_funcHints >> hint) & 0x1;
@@ -1450,44 +1452,44 @@ struct FuncNode : public BaseNode {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Function entry.
+  //! Function entry.
   TargetNode* _entryNode;
-  //! @brief Function exit.
+  //! Function exit.
   TargetNode* _exitNode;
 
-  //! @brief Function declaration.
+  //! Function declaration.
   FuncDecl* _decl;
-  //! @brief Function end.
+  //! Function end.
   EndNode* _end;
 
-  //! @brief Arguments list as @ref VarData.
+  //! Arguments list as `VarData`.
   VarData** _argList;
 
-  //! @brief Function hints;
+  //! Function hints;
   uint32_t _funcHints;
-  //! @brief Function flags.
+  //! Function flags.
   uint32_t _funcFlags;
 
-  //! @brief Expected stack alignment (we depend on this value).
+  //! Expected stack alignment (we depend on this value).
   //!
   //! @note It can be global alignment given by the OS or described by an
   //! target platform ABI.
   uint32_t _expectedStackAlignment;
-  //! @brief Required stack alignment (usually for multimedia instructions).
+  //! Required stack alignment (usually for multimedia instructions).
   uint32_t _requiredStackAlignment;
 
-  //! @brief The "Red Zone" suze - count of bytes which might be accessed
+  //! The "Red Zone" suze - count of bytes which might be accessed
   //! without adjusting the stack pointer.
   uint16_t _redZoneSize;
-  //! @brief Spill zone size (zone used by WIN64ABI).
+  //! Spill zone size (zone used by WIN64ABI).
   uint16_t _spillZoneSize;
 
-  //! @brief Stack size needed for function arguments.
+  //! Stack size needed for function arguments.
   uint32_t _argStackSize;
-  //! @brief Stack size needed for all variables and memory allocated on
+  //! Stack size needed for all variables and memory allocated on
   //! the stack.
   uint32_t _memStackSize;
-  //! @brief Stack size needed to call other functions.
+  //! Stack size needed to call other functions.
   uint32_t _callStackSize;
 };
 
@@ -1495,7 +1497,7 @@ struct FuncNode : public BaseNode {
 // [asmjit::EndNode]
 // ============================================================================
 
-//! @brief End of function/block node.
+//! End of function/block node.
 struct EndNode : public BaseNode {
   ASMJIT_NO_COPY(EndNode)
 
@@ -1503,12 +1505,12 @@ struct EndNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref EndNode instance.
+  //! Create a new `EndNode` instance.
   ASMJIT_INLINE EndNode(BaseCompiler* compiler) : BaseNode(compiler, kNodeTypeEnd) {
     _flags |= kNodeFlagIsRet;
   }
 
-  //! @brief Destroy the @ref EndNode instance.
+  //! Destroy the `EndNode` instance.
   ASMJIT_INLINE ~EndNode() {}
 };
 
@@ -1516,7 +1518,7 @@ struct EndNode : public BaseNode {
 // [asmjit::RetNode]
 // ============================================================================
 
-//! @brief Function return node.
+//! Function return node.
 struct RetNode : public BaseNode {
   ASMJIT_NO_COPY(RetNode)
 
@@ -1524,26 +1526,26 @@ struct RetNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref RetNode instance.
+  //! Create a new `RetNode` instance.
   ASMJIT_INLINE RetNode(BaseCompiler* compiler, const Operand& o0, const Operand& o1) : BaseNode(compiler, kNodeTypeRet) {
     _flags |= kNodeFlagIsRet;
     _ret[0] = o0;
     _ret[1] = o1;
   }
 
-  //! @brief Destroy the @ref RetNode instance.
+  //! Destroy the `RetNode` instance.
   ASMJIT_INLINE ~RetNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get the first return operand.
+  //! Get the first return operand.
   ASMJIT_INLINE Operand& getFirst() { return _ret[0]; }
   //! @overload
   ASMJIT_INLINE const Operand& getFirst() const { return _ret[0]; }
 
-  //! @brief Get the second return operand.
+  //! Get the second return operand.
   ASMJIT_INLINE Operand& getSecond() { return _ret[1]; }
    //! @overload
   ASMJIT_INLINE const Operand& getSecond() const { return _ret[1]; }
@@ -1552,7 +1554,7 @@ struct RetNode : public BaseNode {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Ret operand(s).
+  //! Ret operand(s).
   Operand _ret[2];
 };
 
@@ -1560,7 +1562,7 @@ struct RetNode : public BaseNode {
 // [asmjit::CallNode]
 // ============================================================================
 
-//! @brief Function-call node.
+//! Function-call node.
 struct CallNode : public BaseNode {
   ASMJIT_NO_COPY(CallNode)
 
@@ -1568,29 +1570,29 @@ struct CallNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref CallNode instance.
+  //! Create a new `CallNode` instance.
   ASMJIT_INLINE CallNode(BaseCompiler* compiler, const Operand& target) :
     BaseNode(compiler, kNodeTypeCall),
     _decl(NULL),
     _target(target),
     _args(NULL) {}
 
-  //! @brief Destroy the @ref CallNode instance.
+  //! Destroy the `CallNode` instance.
   ASMJIT_INLINE ~CallNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get function declaration.
+  //! Get function declaration.
   ASMJIT_INLINE FuncDecl* getDecl() const { return _decl; }
 
-  //! @brief Get target operand.
+  //! Get target operand.
   ASMJIT_INLINE Operand& getTarget() { return _target; }
   //! @overload
   ASMJIT_INLINE const Operand& getTarget() const  { return _target; }
 
-  //! @brief Get return at @a i.
+  //! Get return at `i`.
   ASMJIT_INLINE Operand& getRet(uint32_t i = 0) {
     ASMJIT_ASSERT(i < 2);
     return _ret[i];
@@ -1601,7 +1603,7 @@ struct CallNode : public BaseNode {
     return _ret[i];
   }
 
-  //! @brief Get argument at @a i.
+  //! Get argument at `i`.
   ASMJIT_INLINE Operand& getArg(uint32_t i) {
     ASMJIT_ASSERT(i < kFuncArgCountLoHi);
     return _args[i];
@@ -1616,14 +1618,14 @@ struct CallNode : public BaseNode {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Function declaration.
+  //! Function declaration.
   FuncDecl* _decl;
 
-  //! @brief Target (address of function, register, label, ...).
+  //! Target (address of function, register, label, ...).
   Operand _target;
-  //! @brief Return.
+  //! Return.
   Operand _ret[2];
-  //! @brief Arguments.
+  //! Arguments.
   Operand* _args;
 };
 
@@ -1631,7 +1633,7 @@ struct CallNode : public BaseNode {
 // [asmjit::SArgNode]
 // ============================================================================
 
-//! @brief Function-call 'argument on the stack' node.
+//! Function-call 'argument on the stack' node.
 struct SArgNode : public BaseNode {
   ASMJIT_NO_COPY(SArgNode)
 
@@ -1639,7 +1641,7 @@ struct SArgNode : public BaseNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref SArgNode instance.
+  //! Create a new `SArgNode` instance.
   ASMJIT_INLINE SArgNode(BaseCompiler* compiler, CallNode* call, VarData* sVd, VarData* cVd) :
     BaseNode(compiler, kNodeTypeSArg),
     _call(call),
@@ -1647,32 +1649,32 @@ struct SArgNode : public BaseNode {
     _cVd(cVd),
     _args(0) {}
 
-  //! @brief Destroy the @ref SArgNode instance.
+  //! Destroy the `SArgNode` instance.
   ASMJIT_INLINE ~SArgNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get the associated function-call.
+  //! Get the associated function-call.
   ASMJIT_INLINE CallNode* getCall() const { return _call; }
-  //! @brief Get source variable.
+  //! Get source variable.
   ASMJIT_INLINE VarData* getSVd() const { return _sVd; }
-  //! @brief Get conversion variable.
+  //! Get conversion variable.
   ASMJIT_INLINE VarData* getCVd() const { return _cVd; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Associated @ref CallNode.
+  //! Associated `CallNode`.
   CallNode* _call;
-  //! @brief Source variable.
+  //! Source variable.
   VarData* _sVd;
-  //! @brief Temporary variable used for conversion (or NULL).
+  //! Temporary variable used for conversion (or NULL).
   VarData* _cVd;
 
-  //! @brief Affected arguments bit-array.
+  //! Affected arguments bit-array.
   uint32_t _args;
 };
 
@@ -1680,7 +1682,7 @@ struct SArgNode : public BaseNode {
 // [asmjit::BaseCompiler]
 // ============================================================================
 
-//! @brief Base compiler.
+//! Base compiler.
 //!
 //! @sa BaseAssembler.
 struct BaseCompiler : public CodeGen {
@@ -1690,33 +1692,33 @@ struct BaseCompiler : public CodeGen {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref BaseCompiler instance.
-  ASMJIT_API BaseCompiler(BaseRuntime* runtime);
-  //! @brief Destroy the @ref BaseCompiler instance.
+  //! Create a new `BaseCompiler` instance.
+  ASMJIT_API BaseCompiler(Runtime* runtime);
+  //! Destroy the `BaseCompiler` instance.
   ASMJIT_API virtual ~BaseCompiler();
 
   // --------------------------------------------------------------------------
   // [LookAhead]
   // --------------------------------------------------------------------------
 
-  //! @brief Get maximum look ahead.
+  //! Get maximum look ahead.
   ASMJIT_INLINE uint32_t getMaxLookAhead() const { return _maxLookAhead; }
-  //! @brief Set maximum look ahead to @a val.
+  //! Set maximum look ahead to `val`.
   ASMJIT_INLINE void setMaxLookAhead(uint32_t val) { _maxLookAhead = val; }
 
   // --------------------------------------------------------------------------
   // [Clear / Reset]
   // --------------------------------------------------------------------------
 
-  //! @brief Clear everything, but keep buffers allocated.
+  //! Clear everything, but keep buffers allocated.
   //!
   //! @note This method will destroy your code.
   ASMJIT_API void clear();
-  //! @brief Clear everything and reset all buffers.
+  //! Clear everything and reset all buffers.
   //!
   //! @note This method will destroy your code.
   ASMJIT_API void reset();
-  //! @brief Called by clear() and reset() to clear all data related to derived
+  //! Called by clear() and reset() to clear all data related to derived
   //! class implementation.
   ASMJIT_API virtual void _purge();
 
@@ -1748,65 +1750,65 @@ struct BaseCompiler : public CodeGen {
     return new(p) T(this, p0, p1, p2);
   }
 
-  //! @brief Get first node.
+  //! Get first node.
   ASMJIT_INLINE BaseNode* getFirstNode() const { return _firstNode; }
-  //! @brief Get last node.
+  //! Get last node.
   ASMJIT_INLINE BaseNode* getLastNode() const { return _lastNode; }
 
-  //! @brief Get current node.
+  //! Get current node.
   //!
-  //! @note If this method returns @c NULL it means that nothing has been emitted
+  //! @note If this method returns `NULL` it means that nothing has been emitted
   //! yet.
   ASMJIT_INLINE BaseNode* getCursor() const { return _cursor; }
-  //! @brief Set the current node without returning the previous node (private).
+  //! Set the current node without returning the previous node (private).
   ASMJIT_INLINE void _setCursor(BaseNode* node) { _cursor = node; }
-  //! @brief Set the current node to @a node and return the previous one.
+  //! Set the current node to `node` and return the previous one.
   ASMJIT_API BaseNode* setCursor(BaseNode* node);
 
-  //! @brief Add node @a node after current and set current to @a node.
+  //! Add node `node` after current and set current to `node`.
   ASMJIT_API BaseNode* addNode(BaseNode* node);
-  //! @brief Add node before @a ref.
+  //! Add node before `ref`.
   ASMJIT_API BaseNode* addNodeBefore(BaseNode* node, BaseNode* ref);
-  //! @brief Add node after @a ref.
+  //! Add node after `ref`.
   ASMJIT_API BaseNode* addNodeAfter(BaseNode* node, BaseNode* ref);
-  //! @brief Remove node @a node.
+  //! Remove node `node`.
   ASMJIT_API BaseNode* removeNode(BaseNode* node);
-  //! @brief Remove multiple nodes.
+  //! Remove multiple nodes.
   ASMJIT_API void removeNodes(BaseNode* first, BaseNode* last);
 
   // --------------------------------------------------------------------------
   // [Func]
   // --------------------------------------------------------------------------
 
-  //! @brief Get current function.
+  //! Get current function.
   ASMJIT_INLINE FuncNode* getFunc() const { return _func; }
 
   // --------------------------------------------------------------------------
   // [Align]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref AlignNode.
+  //! Create a new `AlignNode`.
   ASMJIT_API AlignNode* newAlign(uint32_t m);
-  //! @brief Add a new @ref AlignNode.
+  //! Add a new `AlignNode`.
   ASMJIT_API AlignNode* addAlign(uint32_t m);
 
-  //! @brief Align target buffer to @a m bytes.
+  //! Align target buffer to `m` bytes.
   //!
   //! Typical usage of this is to align labels at start of the inner loops.
   //!
-  //! Inserts @c nop() instructions or CPU optimized NOPs.
+  //! Inserts `nop()` instructions or CPU optimized NOPs.
   ASMJIT_INLINE AlignNode* align(uint32_t m) { return addAlign(m); }
 
   // --------------------------------------------------------------------------
   // [Target]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref TargetNode.
+  //! Create a new `TargetNode`.
   ASMJIT_API TargetNode* newTarget();
-  //! @brief Add a new @ref TargetNode.
+  //! Add a new `TargetNode`.
   ASMJIT_API TargetNode* addTarget();
 
-  //! @brief Get @ref TargetNode by @a id.
+  //! Get `TargetNode` by `id`.
   ASMJIT_INLINE TargetNode* getTargetById(uint32_t id) {
     ASMJIT_ASSERT(OperandUtil::isLabelId(id));
     ASMJIT_ASSERT(id < _targets.getLength());
@@ -1814,7 +1816,7 @@ struct BaseCompiler : public CodeGen {
     return _targets[id];
   }
 
-  //! @brief Get @ref TargetNode by @a label.
+  //! Get `TargetNode` by `label`.
   ASMJIT_INLINE TargetNode* getTarget(const Label& label) {
     return getTargetById(label.getId());
   }
@@ -1823,27 +1825,27 @@ struct BaseCompiler : public CodeGen {
   // [Label]
   // --------------------------------------------------------------------------
 
-  //! @brief Get count of created labels.
+  //! Get count of created labels.
   ASMJIT_INLINE size_t getLabelsCount() const
   { return _targets.getLength(); }
 
-  //! @brief Get whether @a label is created.
+  //! Get whether `label` is created.
   ASMJIT_INLINE bool isLabelCreated(const Label& label) const
   { return static_cast<size_t>(label.getId()) < _targets.getLength(); }
 
   //! @internal
   //!
-  //! @brief Create and initialize a new label.
+  //! Create and initialize a new `Label`.
   ASMJIT_API Error _newLabel(Label* dst);
 
-  //! @brief Create and return new label.
+  //! Create and return a new `Label`.
   ASMJIT_INLINE Label newLabel() {
     Label result(NoInit);
     _newLabel(&result);
     return result;
   }
 
-  //! @brief Bind label to the current offset.
+  //! Bind label to the current offset.
   //!
   //! @note Label can be bound only once!
   ASMJIT_API void bind(const Label& label);
@@ -1852,54 +1854,54 @@ struct BaseCompiler : public CodeGen {
   // [Embed]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref EmbedNode.
+  //! Create a new `EmbedNode`.
   ASMJIT_API EmbedNode* newEmbed(const void* data, uint32_t size);
-  //! @brief Add a new @ref EmbedNode.
+  //! Add a new `EmbedNode`.
   ASMJIT_API EmbedNode* addEmbed(const void* data, uint32_t size);
 
-  //! @brief Embed data.
+  //! Embed data.
   ASMJIT_INLINE EmbedNode* embed(const void* data, uint32_t size) { return addEmbed(data, size); }
 
   // --------------------------------------------------------------------------
   // [Comment]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref CommentNode.
+  //! Create a new `CommentNode`.
   ASMJIT_API CommentNode* newComment(const char* str);
-  //! @brief Add a new @ref CommentNode.
+  //! Add a new `CommentNode`.
   ASMJIT_API CommentNode* addComment(const char* str);
 
-  //! @brief Emit a single comment line.
+  //! Emit a single comment line.
   ASMJIT_API CommentNode* comment(const char* fmt, ...);
 
   // --------------------------------------------------------------------------
   // [Hint]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref HintNode.
+  //! Create a new `HintNode`.
   ASMJIT_API HintNode* newHint(BaseVar& var, uint32_t hint, uint32_t value);
-  //! @brief Add a new @ref HintNode.
+  //! Add a new `HintNode`.
   ASMJIT_API HintNode* addHint(BaseVar& var, uint32_t hint, uint32_t value);
 
   // --------------------------------------------------------------------------
   // [Vars]
   // --------------------------------------------------------------------------
 
-  //! @brief Get whether variable @a var is created.
+  //! Get whether variable `var` is created.
   ASMJIT_INLINE bool isVarCreated(const BaseVar& var) const {
     return static_cast<size_t>(var.getId() & kOperandIdNum) < _vars.getLength();
   }
 
   //! @internal
   //!
-  //! @brief Get @ref VarData by @a var.
+  //! Get `VarData` by `var`.
   ASMJIT_INLINE VarData* getVd(const BaseVar& var) const {
     return getVdById(var.getId());
   }
 
   //! @internal
   //!
-  //! @brief Get @ref VarData by @a id.
+  //! Get `VarData` by `id`.
   ASMJIT_INLINE VarData* getVdById(uint32_t id) const {
     ASMJIT_ASSERT(id != kInvalidValue);
     ASMJIT_ASSERT(static_cast<size_t>(id & kOperandIdNum) < _vars.getLength());
@@ -1909,43 +1911,43 @@ struct BaseCompiler : public CodeGen {
 
   //! @internal
   //!
-  //! @brief Get an array of 'VarData*'.
+  //! Get an array of 'VarData*'.
   ASMJIT_INLINE VarData** _getVdArray() const {
     return const_cast<VarData**>(_vars.getData());
   }
 
   //! @internal
   //!
-  //! @brief Create a new @ref VarData.
+  //! Create a new `VarData`.
   ASMJIT_API VarData* _newVd(uint32_t type, uint32_t size, uint32_t c, const char* name);
 
-  //! @brief Create a new @ref BaseVar.
+  //! Create a new `BaseVar`.
   virtual Error _newVar(BaseVar* var, uint32_t type, const char* name) = 0;
 
-  //! @brief Alloc variable @a var.
+  //! Alloc variable `var`.
   ASMJIT_API void alloc(BaseVar& var);
-  //! @brief Alloc variable @a var using @a regIndex as a register index.
+  //! Alloc variable `var` using `regIndex` as a register index.
   ASMJIT_API void alloc(BaseVar& var, uint32_t regIndex);
-  //! @brief Alloc variable @a var using @a reg as a demanded register.
+  //! Alloc variable `var` using `reg` as a demanded register.
   ASMJIT_API void alloc(BaseVar& var, const BaseReg& reg);
-  //! @brief Spill variable @a var.
+  //! Spill variable `var`.
   ASMJIT_API void spill(BaseVar& var);
-  //! @brief Save variable @a var if modified.
+  //! Save variable `var` if modified.
   ASMJIT_API void save(BaseVar& var);
-  //! @brief Unuse variable @a var.
+  //! Unuse variable `var`.
   ASMJIT_API void unuse(BaseVar& var);
 
-  //! @brief Get priority of variable @a var.
+  //! Get priority of variable `var`.
   ASMJIT_API uint32_t getPriority(BaseVar& var) const;
-  //! @brief Set priority of variable @a var to @a priority.
+  //! Set priority of variable `var` to `priority`.
   ASMJIT_API void setPriority(BaseVar& var, uint32_t priority);
 
-  //! @brief Get save-on-unuse @a var property.
+  //! Get save-on-unuse `var` property.
   ASMJIT_API bool getSaveOnUnuse(BaseVar& var) const;
-  //! @brief Set save-on-unuse @a var property to @a value.
+  //! Set save-on-unuse `var` property to `value`.
   ASMJIT_API void setSaveOnUnuse(BaseVar& var, bool value);
 
-  //! @brief Rename variable @a var to @a name.
+  //! Rename variable `var` to `name`.
   //!
   //! @note Only new name will appear in the logger.
   ASMJIT_API void rename(BaseVar& var, const char* name);
@@ -1956,7 +1958,7 @@ struct BaseCompiler : public CodeGen {
 
   //! @internal
   //!
-  //! @brief Create a new memory chunk allocated on the current function's stack.
+  //! Create a new memory chunk allocated on the current function's stack.
   virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) = 0;
 
   // --------------------------------------------------------------------------
@@ -1965,61 +1967,61 @@ struct BaseCompiler : public CodeGen {
 
   //! @internal
   //!
-  //! @brief Put data to a constant-pool and get a memory reference to it.
+  //! Put data to a constant-pool and get a memory reference to it.
   virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) = 0;
 
   // --------------------------------------------------------------------------
   // [Serialize]
   // --------------------------------------------------------------------------
 
-  //! @brief Send assembled code to @a assembler.
+  //! Send assembled code to `assembler`.
   virtual Error serialize(BaseAssembler& assembler) = 0;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Flow id added to each node created (used only by @ref Context).
+  //! Flow id added to each node created (used only by `Context)`.
   uint32_t _nodeFlowId;
-  //! @brief Flags added to each node created (used only by @ref Context).
+  //! Flags added to each node created (used only by `Context)`.
   uint32_t _nodeFlags;
-  //! @brief Maximum count of nodes to look ahead when allocating/spilling
+  //! Maximum count of nodes to look ahead when allocating/spilling
   //! registers.
   uint32_t _maxLookAhead;
 
-  //! @brief Variable mapping (translates incoming kVarType into target).
+  //! Variable mapping (translates incoming kVarType into target).
   const uint8_t* _targetVarMapping;
 
-  //! @brief First node.
+  //! First node.
   BaseNode* _firstNode;
-  //! @brief Last node.
+  //! Last node.
   BaseNode* _lastNode;
 
-  //! @brief Current node.
+  //! Current node.
   BaseNode* _cursor;
-  //! @brief Current function.
+  //! Current function.
   FuncNode* _func;
 
-  //! @brief Variable zone.
+  //! Variable zone.
   Zone _varZone;
-  //! @brief String/data zone.
+  //! String/data zone.
   Zone _stringZone;
-  //! @brief Local constant pool zone.
+  //! Local constant pool zone.
   Zone _localConstZone;
 
-  //! @brief Targets.
+  //! Targets.
   PodVector<TargetNode*> _targets;
-  //! @brief Variables.
+  //! Variables.
   PodVector<VarData*> _vars;
 
-  //! @brief Local constant pool, flushed at the end of each function.
+  //! Local constant pool, flushed at the end of each function.
   ConstPool _localConstPool;
-  //! @brief Global constant pool, flushed at the end of the compilation.
+  //! Global constant pool, flushed at the end of the compilation.
   ConstPool _globalConstPool;
 
-  //! @brief Label to start of the local constant pool.
+  //! Label to start of the local constant pool.
   Label _localConstPoolLabel;
-  //! @brief Label to start of the global constant pool.
+  //! Label to start of the global constant pool.
   Label _globalConstPoolLabel;
 };
 
@@ -2043,6 +2045,8 @@ ASMJIT_INLINE BaseNode::BaseNode(BaseCompiler* compiler, uint32_t type) {
   _liveness = NULL;
   _state = NULL;
 }
+
+//! @}
 
 } // asmjit namespace
 

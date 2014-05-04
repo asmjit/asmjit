@@ -17,13 +17,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_util
 //! @{
 
 // ============================================================================
 // [asmjit::PodList<T>]
 // ============================================================================
 
+//! @internal
 template <typename T>
 struct PodList {
   ASMJIT_NO_COPY(PodList<T>)
@@ -37,12 +38,12 @@ struct PodList {
     // [Accessors]
     // --------------------------------------------------------------------------
 
-    //! @brief Get next node.
+    //! Get next node.
     ASMJIT_INLINE Link* getNext() const { return _next; }
 
-    //! @brief Get value.
+    //! Get value.
     ASMJIT_INLINE T getValue() const { return _value; }
-    //! @brief Set value to @a value.
+    //! Set value to `value`.
     ASMJIT_INLINE void setValue(const T& value) { _value = value; }
 
     // --------------------------------------------------------------------------

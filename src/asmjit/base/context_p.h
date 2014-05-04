@@ -17,10 +17,17 @@
 
 namespace asmjit {
 
+//! @addtogroup asmjit_base_codegen
+//! @{
+
 // ============================================================================
 // [asmjit::BaseContext]
 // ============================================================================
 
+//! @internal
+//!
+//! Code generation context is the logic behind `BaseCompiler`. The context is
+//! used to compile the code stored in `BaseCompiler`.
 struct BaseContext {
   ASMJIT_NO_COPY(BaseContext)
 
@@ -35,41 +42,41 @@ struct BaseContext {
   // [Reset]
   // --------------------------------------------------------------------------
 
-  //! @brief Reset the whole context.
+  //! Reset the whole context.
   virtual void reset();
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get compiler.
+  //! Get compiler.
   ASMJIT_INLINE BaseCompiler* getCompiler() const { return _compiler; }
 
-  //! @brief Get function.
+  //! Get function.
   ASMJIT_INLINE FuncNode* getFunc() const { return _func; }
-  //! @brief Get stop node.
+  //! Get stop node.
   ASMJIT_INLINE BaseNode* getStop() const { return _stop; }
 
-  //! @brief Get start of the current scope.
+  //! Get start of the current scope.
   ASMJIT_INLINE BaseNode* getStart() const { return _start; }
-  //! @brief Get end of the current scope.
+  //! Get end of the current scope.
   ASMJIT_INLINE BaseNode* getEnd() const { return _end; }
 
-  //! @brief Get extra block.
+  //! Get extra block.
   ASMJIT_INLINE BaseNode* getExtraBlock() const { return _extraBlock; }
-  //! @brief Set extra block.
+  //! Set extra block.
   ASMJIT_INLINE void setExtraBlock(BaseNode* node) { _extraBlock = node; }
 
   // --------------------------------------------------------------------------
   // [Error]
   // --------------------------------------------------------------------------
 
-  //! @brief Get the last error code.
+  //! Get the last error code.
   ASMJIT_INLINE Error getError() const {
     return getCompiler()->getError();
   }
 
-  //! @brief Set the last error code and propagate it through the error handler.
+  //! Set the last error code and propagate it through the error handler.
   ASMJIT_INLINE Error setError(Error error, const char* message = NULL) {
     return getCompiler()->setError(error, message);
   }
@@ -78,19 +85,20 @@ struct BaseContext {
   // [State]
   // --------------------------------------------------------------------------
 
-  //! @brief Get current state.
-  ASMJIT_INLINE BaseVarState* getState() const { return _state; }
+  //! Get current state.
+  ASMJIT_INLINE BaseVarState* getState() const {
+    return _state;
+  }
 
-  //! @brief Load current state from @a target state.
+  //! Load current state from `target` state.
   virtual void loadState(BaseVarState* src) = 0;
-  //! @brief Save current state, returning new @ref BaseVarState instance.
+  //! Save current state, returning new `BaseVarState` instance.
   virtual BaseVarState* saveState() = 0;
 
-  //! @brief Change the current state to @a target state.
+  //! Change the current state to `target` state.
   virtual void switchState(BaseVarState* src) = 0;
 
-  //! @brief Change the current state to the intersection of two states @a a
-  //! and @a b.
+  //! Change the current state to the intersection of two states `a` and `b`.
   virtual void intersectStates(BaseVarState* a, BaseVarState* b) = 0;
 
   // --------------------------------------------------------------------------
@@ -140,7 +148,7 @@ struct BaseContext {
   // [Fetch]
   // --------------------------------------------------------------------------
 
-  //! @brief Fetch.
+  //! Fetch.
   //!
   //! Fetch iterates over all nodes and gathers information about all variables
   //! used. The process generates information required by register allocator,
@@ -151,14 +159,14 @@ struct BaseContext {
   // [RemoveUnreachableCode]
   // --------------------------------------------------------------------------
 
-  //! @brief Remove unreachable code.
+  //! Remove unreachable code.
   virtual Error removeUnreachableCode();
 
   // --------------------------------------------------------------------------
   // [Analyze]
   // --------------------------------------------------------------------------
 
-  //! @brief Preform variable liveness analysis.
+  //! Preform variable liveness analysis.
   //!
   //! Analysis phase iterates over nodes in reverse order and generates a bit
   //! array describing variables that are alive at every node in the function.
@@ -180,7 +188,7 @@ struct BaseContext {
   // [Translate]
   // --------------------------------------------------------------------------
 
-  //! @brief Translate code by allocating registers and handling state changes.
+  //! Translate code by allocating registers and handling state changes.
   virtual Error translate() = 0;
 
   // --------------------------------------------------------------------------
@@ -205,69 +213,71 @@ struct BaseContext {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Compiler.
+  //! Compiler.
   BaseCompiler* _compiler;
-  //! @brief Function.
+  //! Function.
   FuncNode* _func;
 
-  //! @brief Zone allocator.
+  //! Zone allocator.
   Zone _baseZone;
 
-  //! @brief Start of the current active scope.
+  //! Start of the current active scope.
   BaseNode* _start;
-  //! @brief End of the current active scope.
+  //! End of the current active scope.
   BaseNode* _end;
 
-  //! @brief Node that is used to insert extra code after the function body.
+  //! Node that is used to insert extra code after the function body.
   BaseNode* _extraBlock;
-  //! @brief Stop node.
+  //! Stop node.
   BaseNode* _stop;
 
-  //! @brief Unreachable nodes.
+  //! Unreachable nodes.
   PodList<BaseNode*> _unreachableList;
-  //! @brief Jump nodes.
+  //! Jump nodes.
   PodList<BaseNode*> _jccList;
 
-  //! @brief All variables used by the current function.
+  //! All variables used by the current function.
   PodVector<VarData*> _contextVd;
 
-  //! @brief Memory used to spill variables.
+  //! Memory used to spill variables.
   MemCell* _memVarCells;
-  //! @brief Memory used to alloc memory on the stack.
+  //! Memory used to alloc memory on the stack.
   MemCell* _memStackCells;
 
-  //! @brief Count of 1-byte cells.
+  //! Count of 1-byte cells.
   uint32_t _mem1ByteVarsUsed;
-  //! @brief Count of 2-byte cells.
+  //! Count of 2-byte cells.
   uint32_t _mem2ByteVarsUsed;
-  //! @brief Count of 4-byte cells.
+  //! Count of 4-byte cells.
   uint32_t _mem4ByteVarsUsed;
-  //! @brief Count of 8-byte cells.
+  //! Count of 8-byte cells.
   uint32_t _mem8ByteVarsUsed;
-  //! @brief Count of 16-byte cells.
+  //! Count of 16-byte cells.
   uint32_t _mem16ByteVarsUsed;
-  //! @brief Count of 32-byte cells.
+  //! Count of 32-byte cells.
   uint32_t _mem32ByteVarsUsed;
-  //! @brief Count of 64-byte cells.
+  //! Count of 64-byte cells.
   uint32_t _mem64ByteVarsUsed;
-  //! @brief Count of stack memory cells.
+  //! Count of stack memory cells.
   uint32_t _memStackCellsUsed;
 
-  //! @brief Maximum memory alignment used by the function.
+  //! Maximum memory alignment used by the function.
   uint32_t _memMaxAlign;
-  //! @brief Count of bytes used by variables.
+  //! Count of bytes used by variables.
   uint32_t _memVarTotal;
-  //! @brief Count of bytes used by stack.
+  //! Count of bytes used by stack.
   uint32_t _memStackTotal;
-  //! @brief Count of bytes used by variables and stack after alignment.
+  //! Count of bytes used by variables and stack after alignment.
   uint32_t _memAllTotal;
 
-  //! @brief Default lenght of annotated instruction.
+  //! Default lenght of annotated instruction.
   uint32_t _annotationLength;
 
-  //! @brief Current state (used by register allocator).
+  //! Current state (used by register allocator).
   BaseVarState* _state;
 };
+
+//! @}
 
 } // asmjit namespace
 

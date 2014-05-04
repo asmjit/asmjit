@@ -22,11 +22,10 @@ namespace contrib {
 // ============================================================================
 
 WinRemoteRuntime::WinRemoteRuntime(HANDLE hProcess) :
-  _hProcess(hProcess),
-  _memoryManager(hProcess) {
+  _memMgr(hProcess) {
 
   // We are patching another process so enable keep-virtual-memory option.
-  _memoryManager.setKeepVirtualMemory(true);
+  _memMgr.setKeepVirtualMemory(true);
 }
 
 WinRemoteRuntime::~WinRemoteRuntime() {}
@@ -53,7 +52,7 @@ uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
   }
 
   // Allocate a pernament remote process memory.
-  void* processMemPtr = _memoryManager.alloc(codeSize, kVirtualAllocPermanent);
+  void* processMemPtr = _memMgr.alloc(codeSize, kVMemAllocPermanent);
 
   if (processMemPtr == NULL) {
     ::free(codeData);
@@ -64,7 +63,7 @@ uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
   // Relocate and write the code to the process memory.
   assembler->relocCode(codeData, (uintptr_t)processMemPtr);
 
-  ::WriteProcessMemory(_hProcess, processMemPtr, codeData, codeSize, NULL);
+  ::WriteProcessMemory(getProcessHandle(), processMemPtr, codeData, codeSize, NULL);
   ::free(codeData);
 
   *dest = processMemPtr;

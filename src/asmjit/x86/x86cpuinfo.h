@@ -18,103 +18,109 @@
 namespace asmjit {
 namespace x86x64 {
 
-//! @addtogroup asmjit_x86x64
+//! @addtogroup asmjit_x86x64_cpu_info
 //! @{
+
+// ============================================================================
+// [Forward Declarations]
+// ============================================================================
+
+struct CpuInfo;
 
 // ============================================================================
 // [asmjit::x86x64::kCpuFeature]
 // ============================================================================
 
-//! @brief X86 CPU features.
+//! X86 CPU features.
 ASMJIT_ENUM(kCpuFeature) {
-  //! @brief Cpu has multithreading.
+  //! Cpu has multithreading.
   kCpuFeatureMultithreading = 1,
-  //! @brief Cpu has execute disable bit.
+  //! Cpu has execute disable bit.
   kCpuFeatureExecuteDisableBit,
-  //! @brief Cpu has RDTSC.
+  //! Cpu has RDTSC.
   kCpuFeatureRdtsc,
-  //! @brief Cpu has RDTSCP.
+  //! Cpu has RDTSCP.
   kCpuFeatureRdtscp,
-  //! @brief Cpu has CMOV.
+  //! Cpu has CMOV.
   kCpuFeatureCmov,
-  //! @brief Cpu has CMPXCHG8B.
+  //! Cpu has CMPXCHG8B.
   kCpuFeatureCmpXchg8B,
-  //! @brief Cpu has CMPXCHG16B (x64).
+  //! Cpu has CMPXCHG16B (x64).
   kCpuFeatureCmpXchg16B,
-  //! @brief Cpu has CLFUSH.
+  //! Cpu has CLFUSH.
   kCpuFeatureClflush,
-  //! @brief Cpu has PREFETCH.
+  //! Cpu has PREFETCH.
   kCpuFeaturePrefetch,
-  //! @brief Cpu has LAHF/SAHF.
+  //! Cpu has LAHF/SAHF.
   kCpuFeatureLahfSahf,
-  //! @brief Cpu has FXSAVE/FXRSTOR.
+  //! Cpu has FXSAVE/FXRSTOR.
   kCpuFeatureFxsr,
-  //! @brief Cpu has FXSAVE/FXRSTOR optimizations.
+  //! Cpu has FXSAVE/FXRSTOR optimizations.
   kCpuFeatureFfxsr,
-  //! @brief Cpu has MMX.
+  //! Cpu has MMX.
   kCpuFeatureMmx,
-  //! @brief Cpu has extended MMX.
+  //! Cpu has extended MMX.
   kCpuFeatureMmxExt,
-  //! @brief Cpu has 3dNow!
+  //! Cpu has 3dNow!
   kCpuFeature3dNow,
-  //! @brief Cpu has enchanced 3dNow!
+  //! Cpu has enchanced 3dNow!
   kCpuFeature3dNowExt,
-  //! @brief Cpu has SSE.
+  //! Cpu has SSE.
   kCpuFeatureSse,
-  //! @brief Cpu has SSE2.
+  //! Cpu has SSE2.
   kCpuFeatureSse2,
-  //! @brief Cpu has SSE3.
+  //! Cpu has SSE3.
   kCpuFeatureSse3,
-  //! @brief Cpu has Supplemental SSE3 (SSSE3).
+  //! Cpu has Supplemental SSE3 (SSSE3).
   kCpuFeatureSsse3,
-  //! @brief Cpu has SSE4.A.
+  //! Cpu has SSE4.A.
   kCpuFeatureSse4A,
-  //! @brief Cpu has SSE4.1.
+  //! Cpu has SSE4.1.
   kCpuFeatureSse41,
-  //! @brief Cpu has SSE4.2.
+  //! Cpu has SSE4.2.
   kCpuFeatureSse42,
-  //! @brief Cpu has Misaligned SSE (MSSE).
+  //! Cpu has Misaligned SSE (MSSE).
   kCpuFeatureMsse,
-  //! @brief Cpu has MONITOR and MWAIT.
+  //! Cpu has MONITOR and MWAIT.
   kCpuFeatureMonitorMWait,
-  //! @brief Cpu has MOVBE.
+  //! Cpu has MOVBE.
   kCpuFeatureMovbe,
-  //! @brief Cpu has POPCNT.
+  //! Cpu has POPCNT.
   kCpuFeaturePopcnt,
-  //! @brief Cpu has LZCNT.
+  //! Cpu has LZCNT.
   kCpuFeatureLzcnt,
-  //! @brief Cpu has AESNI.
+  //! Cpu has AESNI.
   kCpuFeatureAesni,
-  //! @brief Cpu has PCLMULQDQ.
+  //! Cpu has PCLMULQDQ.
   kCpuFeaturePclmulqdq,
-  //! @brief Cpu has RDRAND.
+  //! Cpu has RDRAND.
   kCpuFeatureRdrand,
-  //! @brief Cpu has AVX.
+  //! Cpu has AVX.
   kCpuFeatureAvx,
-  //! @brief Cpu has AVX2.
+  //! Cpu has AVX2.
   kCpuFeatureAvx2,
-  //! @brief Cpu has F16C.
+  //! Cpu has F16C.
   kCpuFeatureF16C,
-  //! @brief Cpu has FMA3.
+  //! Cpu has FMA3.
   kCpuFeatureFma3,
-  //! @brief Cpu has FMA4.
+  //! Cpu has FMA4.
   kCpuFeatureFma4,
-  //! @brief Cpu has XOP.
+  //! Cpu has XOP.
   kCpuFeatureXop,
-  //! @brief Cpu has BMI.
+  //! Cpu has BMI.
   kCpuFeatureBmi,
-  //! @brief Cpu has BMI2.
+  //! Cpu has BMI2.
   kCpuFeatureBmi2,
-  //! @brief Cpu has HLE.
+  //! Cpu has HLE.
   kCpuFeatureHle,
-  //! @brief Cpu has RTM.
+  //! Cpu has RTM.
   kCpuFeatureRtm,
-  //! @brief Cpu has FSGSBASE.
+  //! Cpu has FSGSBASE.
   kCpuFeatureFsGsBase,
-  //! @brief Cpu has enhanced REP MOVSB/STOSB.
+  //! Cpu has enhanced REP MOVSB/STOSB.
   kCpuFeatureRepMovsbStosbExt,
 
-  //! @brief Count of X86/X64 Cpu features.
+  //! Count of X86/X64 Cpu features.
   kCpuFeatureCount
 };
 
@@ -122,22 +128,37 @@ ASMJIT_ENUM(kCpuFeature) {
 // [asmjit::x86x64::CpuId]
 // ============================================================================
 
-//! @brief X86/X64 cpuid output.
+//! X86/X64 CPUID output.
 union CpuId {
-  //! @brief EAX/EBX/ECX/EDX output.
+  //! EAX/EBX/ECX/EDX output.
   uint32_t i[4];
 
   struct {
-    //! @brief EAX output.
+    //! EAX output.
     uint32_t eax;
-    //! @brief EBX output.
+    //! EBX output.
     uint32_t ebx;
-    //! @brief ECX output.
+    //! ECX output.
     uint32_t ecx;
-    //! @brief EDX output.
+    //! EDX output.
     uint32_t edx;
   };
 };
+
+// ============================================================================
+// [asmjit::x86x64::CpuUtil]
+// ============================================================================
+
+#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+//! CPU utilities available only if the host processor is X86/X64.
+struct CpuUtil {
+  //! Get the result of calling CPUID instruction to `out`.
+  ASMJIT_API static void callCpuId(uint32_t inEax, uint32_t inEcx, CpuId* out);
+
+  //! Detect the Host CPU.
+  ASMJIT_API static void detect(CpuInfo* cpuInfo);
+};
+#endif // ASMJIT_HOST_X86 || ASMJIT_HOST_X64
 
 // ============================================================================
 // [asmjit::x86x64::CpuInfo]
@@ -157,22 +178,22 @@ struct CpuInfo : public BaseCpuInfo {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get processor type.
+  //! Get processor type.
   ASMJIT_INLINE uint32_t getProcessorType() const {
     return _processorType;
   }
 
-  //! @brief Get brand index.
+  //! Get brand index.
   ASMJIT_INLINE uint32_t getBrandIndex() const {
     return _brandIndex;
   }
 
-  //! @brief Get flush cache line size.
+  //! Get flush cache line size.
   ASMJIT_INLINE uint32_t getFlushCacheLineSize() const {
     return _flushCacheLineSize;
   }
 
-  //! @brief Get maximum logical processors count.
+  //! Get maximum logical processors count.
   ASMJIT_INLINE uint32_t getMaxLogicalProcessors() const {
     return _maxLogicalProcessors;
   }
@@ -181,7 +202,7 @@ struct CpuInfo : public BaseCpuInfo {
   // [Statics]
   // --------------------------------------------------------------------------
 
-  //! @brief Get global instance of @ref X86CpuInfo.
+  //! Get global instance of `x86x64::CpuInfo`.
   static ASMJIT_INLINE const CpuInfo* getHost() {
     return static_cast<const CpuInfo*>(BaseCpuInfo::getHost());
   }
@@ -190,26 +211,15 @@ struct CpuInfo : public BaseCpuInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Processor type.
+  //! Processor type.
   uint32_t _processorType;
-  //! @brief Brand index.
+  //! Brand index.
   uint32_t _brandIndex;
-  //! @brief Flush cache line size in bytes.
+  //! Flush cache line size in bytes.
   uint32_t _flushCacheLineSize;
-  //! @brief Maximum number of addressable IDs for logical processors.
+  //! Maximum number of addressable IDs for logical processors.
   uint32_t _maxLogicalProcessors;
 };
-
-// ============================================================================
-// [asmjit::x86x64::hostCpuId / hostCpuDetect]
-// ============================================================================
-
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-//! @brief Get the result of calling CPUID instruction.
-ASMJIT_API void hostCpuId(uint32_t inEax, uint32_t inEcx, CpuId* result);
-//! @brief Detect host CPU.
-ASMJIT_API void hostCpuDetect(CpuInfo* cpuInfo);
-#endif // ASMJIT_HOST_X86 || ASMJIT_HOST_X64
 
 //! @}
 

@@ -16,7 +16,7 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_globals
 //! @{
 
 // ============================================================================
@@ -26,25 +26,25 @@ namespace asmjit {
 static const size_t kInvalidIndex = ~static_cast<size_t>(0);
 
 ASMJIT_ENUM(kGlobals) {
-  //! @brief Invalid value or operand id.
+  //! Invalid value or operand id.
   kInvalidValue = 0xFFFFFFFF,
 
-  //! @brief Invalid register index.
+  //! Invalid register index.
   kInvalidReg = 0xFF,
 
-  //! @brief Minimum reserved bytes in @ref Buffer.
+  //! Minimum reserved bytes in `Buffer`.
   kBufferGrow = 32U,
 
-  //! @brief Minimum size of assembler/compiler code buffer.
+  //! Minimum size of assembler/compiler code buffer.
   kMemAllocMinimum = 4096,
 
-  //! @brief Memory grow threshold.
+  //! Memory grow threshold.
   //!
   //! After the grow threshold is reached the capacity won't be doubled
   //! anymore.
   kMemAllocGrowMax = 8192 * 1024,
 
-  //! @brief Host memory allocator overhead.
+  //! Host memory allocator overhead.
   //!
   //! We decrement the overhead from our pools so the host operating system
   //! doesn't need allocate an extra virtual page to put the data it needs
@@ -58,17 +58,17 @@ ASMJIT_ENUM(kGlobals) {
 // [asmjit::kArch]
 // ============================================================================
 
-//! @brief Architecture.
+//! Architecture.
 ASMJIT_ENUM(kArch) {
-  //! @brief No/Unknown architecture.
+  //! No/Unknown architecture.
   kArchNone = 0,
 
-  //! @brief X86 architecture.
+  //! X86 architecture.
   kArchX86 = 1,
-  //! @brief X64 architecture, also called AMD64.
+  //! X64 architecture, also called AMD64.
   kArchX64 = 2,
 
-  //! @brief Arm architecture.
+  //! Arm architecture.
   kArchArm = 4,
 
 #if defined(ASMJIT_HOST_X86)
@@ -83,25 +83,32 @@ ASMJIT_ENUM(kArch) {
   kArchHost = kArchArm,
 #endif // ASMJIT_HOST_ARM
 
-  //! @brief Whether the host is 64-bit.
+  //! Whether the host is 64-bit.
   kArchHost64Bit = sizeof(intptr_t) >= 8
 };
+
+//! @}
 
 // ============================================================================
 // [asmjit::Init / NoInit]
 // ============================================================================
 
+#if !defined(ASMJIT_DOCGEN)
 struct _Init {};
 static const _Init Init = {};
 
 struct _NoInit {};
 static const _NoInit NoInit = {};
+#endif // !ASMJIT_DOCGEN
 
 // ============================================================================
 // [asmjit::Assert]
 // ============================================================================
 
-//! @brief Called in debug build on assertion failure.
+//! @addtogroup asmjit_base_logging_and_errors
+//! @{
+
+//! Called in debug build on assertion failure.
 //!
 //! @param exp Expression that failed.
 //! @param file Source file name where it happened.
@@ -128,15 +135,20 @@ ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
 // [asmjit_cast<>]
 // ============================================================================
 
-//! @brief Cast used to cast pointer to function. It's like reinterpret_cast<>,
+//! @addtogroup asmjit_base_util
+//! @{
+
+//! Cast used to cast pointer to function. It's like reinterpret_cast<>,
 //! but uses internally C style cast to work with MinGW.
 //!
-//! If you are using single compiler and @c reinterpret_cast<> works for you,
-//! there is no reason to use @c asmjit_cast<>. If you are writing
+//! If you are using single compiler and `reinterpret_cast<>` works for you,
+//! there is no reason to use `asmjit_cast<>`. If you are writing
 //! cross-platform software with various compiler support, consider using
-//! @c asmjit_cast<> instead of @c reinterpret_cast<>.
+//! `asmjit_cast<>` instead of `reinterpret_cast<>`.
 template<typename T, typename Z>
 static ASMJIT_INLINE T asmjit_cast(Z* p) { return (T)p; }
+
+//! @}
 
 // [Api-End]
 #include "../apiend.h"

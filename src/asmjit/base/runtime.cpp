@@ -12,7 +12,6 @@
 #include "../base/cpuinfo.h"
 #include "../base/defs.h"
 #include "../base/error.h"
-#include "../base/memorymanager.h"
 #include "../base/runtime.h"
 
 // [Api-Begin]
@@ -21,19 +20,18 @@
 namespace asmjit {
 
 // ============================================================================
-// [asmjit::BaseRuntime - Construction / Destruction]
+// [asmjit::Runtime - Construction / Destruction]
 // ============================================================================
 
-BaseRuntime::BaseRuntime() {}
-BaseRuntime::~BaseRuntime() {}
+Runtime::Runtime() {}
+Runtime::~Runtime() {}
 
 // ============================================================================
 // [asmjit::JitRuntime - Construction / Destruction]
 // ============================================================================
 
-JitRuntime::JitRuntime(MemoryManager* memmgr) :
-  _memoryManager(memmgr ? memmgr : MemoryManager::getGlobal()),
-  _allocType(kVirtualAllocFreeable) {}
+JitRuntime::JitRuntime() :
+  _allocType(kVMemAllocFreeable) {}
 
 JitRuntime::~JitRuntime() {}
 
@@ -82,8 +80,7 @@ Error JitRuntime::add(void** dst, BaseAssembler* assembler) {
     return kErrorCompilerNoFunc;
   }
 
-  MemoryManager* memmgr = getMemoryManager();
-  void* p = memmgr->alloc(codeSize, getAllocType());
+  void* p = _memMgr.alloc(codeSize, getAllocType());
 
   if (p == NULL) {
     *dst = NULL;
@@ -93,9 +90,9 @@ Error JitRuntime::add(void** dst, BaseAssembler* assembler) {
   // Relocate the code.
   size_t relocSize = assembler->relocCode(p);
 
-  // Return unused memory to MemoryManager.
+  // Return unused memory to `VMemMgr`.
   if (relocSize < codeSize)
-    memmgr->shrink(p, relocSize);
+    _memMgr.shrink(p, relocSize);
 
   // Return the code.
   *dst = p;
@@ -103,8 +100,7 @@ Error JitRuntime::add(void** dst, BaseAssembler* assembler) {
 }
 
 Error JitRuntime::release(void* p) {
-  MemoryManager* memmgr = getMemoryManager();
-  return memmgr->release(p);
+  return _memMgr.release(p);
 }
 
 } // asmjit namespace

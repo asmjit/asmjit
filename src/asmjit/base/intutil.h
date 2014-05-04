@@ -20,13 +20,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_util
 //! @{
 
 // ============================================================================
 // [asmjit::IntTraits]
 // ============================================================================
 
+//! @internal
 template<typename T>
 struct IntTraits {
   enum {
@@ -46,31 +47,40 @@ struct IntTraits {
 // [asmjit::IntUtil]
 // ============================================================================
 
+//! Integer utilities.
 struct IntUtil {
   // --------------------------------------------------------------------------
   // [Float <-> Int]
   // --------------------------------------------------------------------------
 
+  //! @internal
   union Float {
     int32_t i;
     float f;
   };
 
+  //! @internal
   union Double {
     int64_t i;
     double d;
   };
 
+  //! Bit-cast `float` to 32-bit integer.
   static ASMJIT_INLINE int32_t floatAsInt(float f) { Float m; m.f = f; return m.i; }
+  //! Bit-cast 32-bit integer to `float`.
   static ASMJIT_INLINE float intAsFloat(int32_t i) { Float m; m.i = i; return m.f; }
 
+  //! Bit-cast `double` to 64-bit integer.
   static ASMJIT_INLINE int64_t doubleAsInt(double d) { Double m; m.d = d; return m.i; }
+  //! Bit-cast 64-bit integer to `double`.
   static ASMJIT_INLINE double intAsDouble(int64_t i) { Double m; m.i = i; return m.d; }
 
   // --------------------------------------------------------------------------
   // [AsmJit - Pack / Unpack]
   // --------------------------------------------------------------------------
 
+  //! Pack two 8-bit integer and one 16-bit integer into a 32-bit integer as it
+  //! is an array of `{u0,u1,w2}`.
   static ASMJIT_INLINE uint32_t pack32_2x8_1x16(uint32_t u0, uint32_t u1, uint32_t w2) {
 #if defined(ASMJIT_HOST_LE)
     return u0 + (u1 << 8) + (w2 << 16);
@@ -79,6 +89,7 @@ struct IntUtil {
 #endif // ASMJIT_HOST
   }
 
+  //! Pack four 8-bit integer into a 32-bit integer as it is an array of `{u0,u1,u2,u3}`.
   static ASMJIT_INLINE uint32_t pack32_4x8(uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) {
 #if defined(ASMJIT_HOST_LE)
     return u0 + (u1 << 8) + (u2 << 16) + (u3 << 24);
@@ -87,6 +98,7 @@ struct IntUtil {
 #endif // ASMJIT_HOST
   }
 
+  //! Pack two 32-bit integer into a 64-bit integer as it is an array of `{u0,u1}`.
   static ASMJIT_INLINE uint64_t pack64_2x32(uint32_t u0, uint32_t u1) {
 #if defined(ASMJIT_HOST_LE)
     return (static_cast<uint64_t>(u1) << 32) + u0;
@@ -102,9 +114,11 @@ struct IntUtil {
   // NOTE: Because some environments declare min() and max() as macros, it has
   // been decided to use different name so we never collide with them.
 
+  //! Get minimum value of `a` and `b`.
   template<typename T>
   static ASMJIT_INLINE T iMin(const T& a, const T& b) { return a < b ? a : b; }
 
+  //! Get maximum value of `a` and `b`.
   template<typename T>
   static ASMJIT_INLINE T iMax(const T& a, const T& b) { return a > b ? a : b; }
 
@@ -112,6 +126,7 @@ struct IntUtil {
   // [AsmJit - MaxUInt]
   // --------------------------------------------------------------------------
 
+  //! Get maximum unsigned value of `T`.
   template<typename T>
   static ASMJIT_INLINE T maxUInt() { return ~T(0); }
 
@@ -119,6 +134,7 @@ struct IntUtil {
   // [AsmJit - InInterval]
   // --------------------------------------------------------------------------
 
+  //! Get whether `x` is greater or equal than `start` and less or equal than `end`.
   template<typename T>
   static ASMJIT_INLINE bool inInterval(const T& x, const T& start, const T& end) {
     return x >= start && x <= end;
@@ -128,8 +144,7 @@ struct IntUtil {
   // [AsmJit - IsInt/IsUInt]
   // --------------------------------------------------------------------------
 
-  //! @brief Get whether the given integer @a x can be casted to a signed 8-bit
-  //! integer.
+  //! Get whether the given integer `x` can be casted to a signed 8-bit integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt8(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -138,8 +153,7 @@ struct IntUtil {
       return x <= T(127);
   }
 
-  //! @brief Get whether the given integer @a x can be casted to an unsigned 8-bit
-  //! integer.
+  //! Get whether the given integer `x` can be casted to an unsigned 8-bit integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt8(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -148,8 +162,7 @@ struct IntUtil {
       return sizeof(T) <= sizeof(uint8_t) ? true : x <= T(255);
   }
 
-  //! @brief Get whether the given integer @a x can be casted to a signed 16-bit
-  //! integer.
+  //! Get whether the given integer `x` can be casted to a signed 16-bit integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt16(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -158,8 +171,7 @@ struct IntUtil {
       return x >= T(0) && (sizeof(T) <= sizeof(int16_t) ? true : x <= T(32767));
   }
 
-  //! @brief Get whether the given integer @a x can be casted to an unsigned 16-bit
-  //! integer.
+  //! Get whether the given integer `x` can be casted to an unsigned 16-bit integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt16(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -168,8 +180,7 @@ struct IntUtil {
       return sizeof(T) <= sizeof(uint16_t) ? true : x <= T(65535);
   }
 
-  //! @brief Get whether the given integer @a x can be casted to a signed 32-bit
-  //! integer.
+  //! Get whether the given integer `x` can be casted to a signed 32-bit integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt32(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -178,8 +189,7 @@ struct IntUtil {
       return x >= T(0) && (sizeof(T) <= sizeof(int32_t) ? true : x <= T(2147483647));
   }
 
-  //! @brief Get whether the given integer @a x can be casted to an unsigned 32-bit
-  //! integer.
+  //! Get whether the given integer `x` can be casted to an unsigned 32-bit integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt32(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -192,6 +202,7 @@ struct IntUtil {
   // [AsmJit - IsPowerOf2]
   // --------------------------------------------------------------------------
 
+  //! Get whether the `n` value is a power of two (only one bit is set).
   template<typename T>
   static ASMJIT_INLINE bool isPowerOf2(T n) {
     return n != 0 && (n & (n - 1)) == 0;
@@ -201,49 +212,59 @@ struct IntUtil {
   // [AsmJit - Mask]
   // --------------------------------------------------------------------------
 
+  //! Generate a bit-mask that has `x` bit set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x) {
     ASMJIT_ASSERT(x < 32);
     return (1U << x);
   }
 
+  //! Generate a bit-mask that has `x0` and `x1` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1) {
     return mask(x0) | mask(x1);
   }
 
+  //! Generate a bit-mask that has `x0`, `x1` and `x2` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2) {
     return mask(x0) | mask(x1) | mask(x2);
   }
 
+  //! Generate a bit-mask that has `x0`, `x1`, `x2` and `x3` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3) {
     return mask(x0) | mask(x1) | mask(x2) | mask(x3);
   }
 
+  //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3` and `x4` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4) {
     return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
            mask(x4) ;
   }
 
+  //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4` and `x5` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5) {
     return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
            mask(x4) | mask(x5) ;
   }
 
+  //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5` and `x6` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6) {
     return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
            mask(x4) | mask(x5) | mask(x6) ;
   }
 
+  //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5`, `x6` and `x7` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7) {
     return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
            mask(x4) | mask(x5) | mask(x6) | mask(x7) ;
   }
 
+  //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5`, `x6`, `x7` and `x8` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7, uint32_t x8) {
     return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
            mask(x4) | mask(x5) | mask(x6) | mask(x7) |
            mask(x8) ;
   }
 
+  //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5`, `x6`, `x7`, `x8` and `x9` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7, uint32_t x8, uint32_t x9) {
     return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
            mask(x4) | mask(x5) | mask(x6) | mask(x7) |
@@ -254,6 +275,7 @@ struct IntUtil {
   // [AsmJit - Bits]
   // --------------------------------------------------------------------------
 
+  //! Generate a bit-mask that has `x` most significant bits set.
   static ASMJIT_INLINE uint32_t bits(uint32_t x) {
     // Shifting more bits that the type has has undefined behavior. Everything
     // we need is that application shouldn't crash because of that, but the
@@ -271,6 +293,7 @@ struct IntUtil {
   // [AsmJit - HasBit]
   // --------------------------------------------------------------------------
 
+  //! Get whether `x` has bit `n` set.
   static ASMJIT_INLINE bool hasBit(uint32_t x, uint32_t n) {
     return static_cast<bool>((x >> n) & 0x1);
   }
@@ -279,7 +302,9 @@ struct IntUtil {
   // [AsmJit - BitCount]
   // --------------------------------------------------------------------------
 
-  // From http://graphics.stanford.edu/~seander/bithacks.html .
+  //! Get count of bits in `x`.
+  //!
+  //! Taken from http://graphics.stanford.edu/~seander/bithacks.html .
   static ASMJIT_INLINE uint32_t bitCount(uint32_t x) {
     x = x - ((x >> 1) & 0x55555555U);
     x = (x & 0x33333333U) + ((x >> 2) & 0x33333333U);
@@ -290,6 +315,7 @@ struct IntUtil {
   // [AsmJit - FindFirstBit]
   // --------------------------------------------------------------------------
 
+  //! @internal
   static ASMJIT_INLINE uint32_t findFirstBitSlow(uint32_t mask) {
     // This is a reference (slow) implementation of findFirstBit(), used when
     // we don't have compiler support for this task. The implementation speed
@@ -308,6 +334,7 @@ struct IntUtil {
     return 0xFFFFFFFFU;
   }
 
+  //! Find a first bit in `mask`.
   static ASMJIT_INLINE uint32_t findFirstBit(uint32_t mask) {
 #if defined(_MSC_VER)
     DWORD i;
@@ -369,13 +396,13 @@ struct IntUtil {
     return (base % alignment) == 0;
   }
 
-  //! @brief Align @a base to @a alignment.
+  //! Align `base` to `alignment`.
   template<typename T>
   static ASMJIT_INLINE T alignTo(T base, T alignment) {
     return (base + (alignment - 1)) & ~(alignment - 1);
   }
 
-  //! @brief Get delta required to align @a base to @a alignment.
+  //! Get delta required to align `base` to `alignment`.
   template<typename T>
   static ASMJIT_INLINE T deltaTo(T base, T alignment) {
     return alignTo(base, alignment) - base;

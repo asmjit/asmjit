@@ -23,22 +23,24 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_codegen
 //! @{
 
 // ============================================================================
 // [asmjit::LabelLink]
 // ============================================================================
 
-//! @brief Data structure used to link linked-labels.
+//! @internal
+//!
+//! Data structure used to link linked-labels.
 struct LabelLink {
-  //! @brief Previous link.
+  //! Previous link.
   LabelLink* prev;
-  //! @brief Offset.
+  //! Offset.
   intptr_t offset;
-  //! @brief Inlined displacement.
+  //! Inlined displacement.
   intptr_t displacement;
-  //! @brief RelocId if link must be absolute when relocated.
+  //! RelocId if link must be absolute when relocated.
   intptr_t relocId;
 };
 
@@ -46,11 +48,13 @@ struct LabelLink {
 // [asmjit::LabelData]
 // ============================================================================
 
-//! @brief Label data.
+//! @internal
+//!
+//! Label data.
 struct LabelData {
-  //! @brief Label offset.
+  //! Label offset.
   intptr_t offset;
-  //! @brief Label links chain.
+  //! Label links chain.
   LabelLink* links;
 };
 
@@ -58,7 +62,9 @@ struct LabelData {
 // [asmjit::RelocData]
 // ============================================================================
 
-//! @brief Code relocation data (relative vs absolute addresses).
+//! @internal
+//!
+//! Code relocation data (relative vs absolute addresses).
 //!
 //! X86/X64:
 //!
@@ -68,16 +74,16 @@ struct LabelData {
 //! and embedded data. In 32-bit mode we must patch all references to absolute
 //! address before we can call generated function.
 struct RelocData {
-  //! @brief Type of relocation.
+  //! Type of relocation.
   uint32_t type;
-  //! @brief Size of relocation (4 or 8 bytes).
+  //! Size of relocation (4 or 8 bytes).
   uint32_t size;
 
-  //! @brief Offset from code begin address.
+  //! Offset from code begin address.
   Ptr from;
 
-  //! @brief Relative displacement from code begin address (not to @c offset)
-  //! or absolute address.
+  //! Relative displacement from code begin address (not to `offset`) or
+  //! absolute address.
   Ptr data;
 };
 
@@ -85,10 +91,10 @@ struct RelocData {
 // [asmjit::BaseAssembler]
 // ============================================================================
 
-//! @brief Base assembler.
+//! Base assembler.
 //!
-//! This class implements core setialization API only. The platform specific
-//! methods and intrinsics is implemented by derived classes.
+//! This class implements the base interface to an assembler. The architecture
+//! specific API is implemented by backends.
 //!
 //! @sa BaseCompiler.
 struct BaseAssembler : public CodeGen {
@@ -98,66 +104,66 @@ struct BaseAssembler : public CodeGen {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref BaseAssembler instance.
-  ASMJIT_API BaseAssembler(BaseRuntime* runtime);
-  //! @brief Destroy the @ref BaseAssembler instance.
+  //! Create a new `BaseAssembler` instance.
+  ASMJIT_API BaseAssembler(Runtime* runtime);
+  //! Destroy the `BaseAssembler` instance.
   ASMJIT_API virtual ~BaseAssembler();
 
   // --------------------------------------------------------------------------
   // [Clear / Reset]
   // --------------------------------------------------------------------------
 
-  //! @brief Clear everything, but not deallocate buffers.
+  //! Clear everything, but not deallocate buffers.
   ASMJIT_API void clear();
-  //! @brief Reset everything (means also to free all buffers).
+  //! Reset everything (means also to free all buffers).
   ASMJIT_API void reset();
-  //! @brief Called by clear() and reset() to clear all data related to derived
-  //! class implementation.
+  //! Called by clear() and reset() to clear all data related to derived class
+  //! implementation.
   ASMJIT_API virtual void _purge();
 
   // --------------------------------------------------------------------------
   // [Buffer]
   // --------------------------------------------------------------------------
 
-  //! @brief Get capacity of the code buffer.
+  //! Get capacity of the code buffer.
   ASMJIT_INLINE size_t getCapacity() const {
     return (size_t)(_end - _buffer);
   }
 
-  //! @brief Get the number of remaining bytes (space between cursor and the
-  //! end of the buffer).
+  //! Get the number of remaining bytes (space between cursor and the end of
+  //! the buffer).
   ASMJIT_INLINE size_t getRemainingSpace() const {
     return (size_t)(_end - _cursor);
   }
 
-  //! @brief Get buffer.
+  //! Get buffer.
   ASMJIT_INLINE uint8_t* getBuffer() const {
     return _buffer;
   }
 
-  //! @brief Get the end of the buffer (points to the first byte that is outside).
+  //! Get the end of the buffer (points to the first byte that is outside).
   ASMJIT_INLINE uint8_t* getEnd() const {
     return _end;
   }
 
-  //! @brief Get the current position in the buffer.
+  //! Get the current position in the buffer.
   ASMJIT_INLINE uint8_t* getCursor() const {
     return _cursor;
   }
 
-  //! @brief Set the current position in the buffer.
+  //! Set the current position in the buffer.
   ASMJIT_INLINE void setCursor(uint8_t* cursor) {
     ASMJIT_ASSERT(cursor >= _buffer && cursor <= _end);
     _cursor = cursor;
   }
 
-  //! @brief Get the current offset in the buffer (<code>_cursor - _buffer</code>).
+  //! Get the current offset in the buffer.
   ASMJIT_INLINE size_t getOffset() const {
     return (size_t)(_cursor - _buffer);
   }
 
-  //! @brief Set the current offset in the buffer to @a offset and get the
-  //! previous offset value.
+  //! Set the current offset in the buffer to `offset` and get the previous
+  //! offset value.
   ASMJIT_INLINE size_t setOffset(size_t offset) {
     ASMJIT_ASSERT(offset < getCapacity());
 
@@ -166,84 +172,83 @@ struct BaseAssembler : public CodeGen {
     return oldOffset;
   }
 
-  //! @brief Grow the internal buffer.
+  //! Grow the internal buffer.
   //!
-  //! The internal buffer will grow at least by @a n bytes so @a n bytes
-  //! can be added to it. If @a n is zero or <code>getOffset() + n</code>
-  //! is not greater than the current capacity of the buffer this function
-  //! won't do anything.
+  //! The internal buffer will grow at least by `n` bytes so `n` bytes can be
+  //! added to it. If `n` is zero or `getOffset() + n` is not greater than the
+  //! current capacity of the buffer this function does nothing.
   ASMJIT_API Error _grow(size_t n);
 
-  //! @brief Reserve the internal buffer to at least @a n bytes.
+  //! Reserve the internal buffer to at least `n` bytes.
   ASMJIT_API Error _reserve(size_t n);
 
-  //! @brief Set byte at position @a pos.
+  //! Set byte at position `pos`.
   ASMJIT_INLINE uint8_t getByteAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 1 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint8_t*>(_buffer + pos);
   }
 
-  //! @brief Set word at position @a pos.
+  //! Set word at position `pos`.
   ASMJIT_INLINE uint16_t getWordAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 2 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint16_t*>(_buffer + pos);
   }
 
-  //! @brief Set dword at position @a pos.
+  //! Set dword at position `pos`.
   ASMJIT_INLINE uint32_t getDWordAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint32_t*>(_buffer + pos);
   }
 
-  //! @brief Set qword at position @a pos.
+  //! Set qword at position `pos`.
   ASMJIT_INLINE uint64_t getQWordAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 8 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint64_t*>(_buffer + pos);
   }
 
-  //! @brief Set int32_t at position @a pos.
+  //! Set int32_t at position `pos`.
   ASMJIT_INLINE int32_t getInt32At(size_t pos) const {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const int32_t*>(_buffer + pos);
   }
 
-  //! @brief Set uint32_t at position @a pos.
+  //! Set uint32_t at position `pos`.
   ASMJIT_INLINE uint32_t getUInt32At(size_t pos) const {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint32_t*>(_buffer + pos);
   }
 
-  //! @brief Set byte at position @a pos.
+  //! Set byte at position `pos`.
   ASMJIT_INLINE void setByteAt(size_t pos, uint8_t x) {
     ASMJIT_ASSERT(pos + 1 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint8_t*>(_buffer + pos) = x;
   }
 
-  //! @brief Set word at position @a pos.
+  //! Set word at position `pos`.
   ASMJIT_INLINE void setWordAt(size_t pos, uint16_t x) {
     ASMJIT_ASSERT(pos + 2 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint16_t*>(_buffer + pos) = x;
   }
 
-  //! @brief Set dword at position @a pos.
+  //! Set dword at position `pos`.
   ASMJIT_INLINE void setDWordAt(size_t pos, uint32_t x) {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint32_t*>(_buffer + pos) = x;
   }
 
-  //! @brief Set qword at position @a pos.
+  //! Set qword at position `pos`.
   ASMJIT_INLINE void setQWordAt(size_t pos, uint64_t x) {
     ASMJIT_ASSERT(pos + 8 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint64_t*>(_buffer + pos) = x;
   }
 
-  //! @brief Set int32_t at position @a pos.
+  //! Set int32_t at position `pos`.
   ASMJIT_INLINE void setInt32At(size_t pos, int32_t x) {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     *reinterpret_cast<int32_t*>(_buffer + pos) = x;
   }
 
-  //! @brief Set uint32_t at position @a pos.
+  //! Set uint32_t at position `pos`.
   ASMJIT_INLINE void setUInt32At(size_t pos, uint32_t x) {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint32_t*>(_buffer + pos) = x;
@@ -253,7 +258,7 @@ struct BaseAssembler : public CodeGen {
   // [GetCodeSize]
   // --------------------------------------------------------------------------
 
-  //! @brief Get current offset in buffer (same as <code>getOffset() + getTramplineSize()</code>).
+  //! Get current offset in buffer, same as `getOffset() + getTramplineSize()`.
   ASMJIT_INLINE size_t getCodeSize() const {
     return getOffset() + getTrampolineSize();
   }
@@ -262,10 +267,12 @@ struct BaseAssembler : public CodeGen {
   // [GetTrampolineSize]
   // --------------------------------------------------------------------------
 
-  //! @brief Get size of all possible trampolines needed to successfuly generate
-  //! relative jumps to absolute addresses. This value is only non-zero if jmp
-  //! of call instructions were used with immediate operand (this means jumping
-  //! or calling an absolute address directly).
+  //! Get size of all possible trampolines.
+  //!
+  //! Trampolines are needed to successfuly generate relative jumps to absolute
+  //! addresses. This value is only non-zero if jmp of call instructions were
+  //! used with immediate operand (this means jumping or calling an absolute
+  //! address directly).
   ASMJIT_INLINE size_t getTrampolineSize() const {
     return _trampolineSize;
   }
@@ -274,26 +281,26 @@ struct BaseAssembler : public CodeGen {
   // [Label]
   // --------------------------------------------------------------------------
 
-  //! @brief Get count of labels created.
+  //! Get count of labels created.
   ASMJIT_INLINE size_t getLabelsCount() const {
     return _labels.getLength();
   }
 
-  //! @brief Get whether @a label is created.
+  //! Get whether `label` is created.
   ASMJIT_INLINE bool isLabelCreated(const Label& label) const {
     return static_cast<size_t>(label.getId()) < _labels.getLength();
   }
 
   //! @internal
   //!
-  //! @brief Get @ref LabelData by @a label.
+  //! Get `LabelData` by `label`.
   ASMJIT_INLINE LabelData* getLabelData(const Label& label) const {
     return getLabelDataById(label.getId());
   }
 
   //! @internal
   //!
-  //! @brief Get @ref LabelData by @a id.
+  //! Get `LabelData` by `id`.
   ASMJIT_INLINE LabelData* getLabelDataById(uint32_t id) const {
     ASMJIT_ASSERT(id != kInvalidValue);
     ASMJIT_ASSERT(id < _labels.getLength());
@@ -303,30 +310,30 @@ struct BaseAssembler : public CodeGen {
 
   //! @internal
   //!
-  //! @brief Register labels for other code generator (@ref Compiler).
+  //! Register labels for other code generator, i.e. `Compiler`.
   ASMJIT_API Error _registerIndexedLabels(size_t index);
 
   //! @internal
   //!
-  //! @brief Create and initialize a new label.
+  //! Create and initialize a new `Label`.
   ASMJIT_API Error _newLabel(Label* dst);
 
   //! @internal
   //!
-  //! @brief New LabelLink instance.
+  //! New LabelLink instance.
   ASMJIT_API LabelLink* _newLabelLink();
 
-  //! @brief Create and return new label.
+  //! Create and return a new `Label`.
   ASMJIT_INLINE Label newLabel() {
     Label result(NoInit);
     _newLabel(&result);
     return result;
   }
 
-  //! @brief Bind label to the current offset (virtual).
+  //! Bind label to the current offset.
   virtual void _bind(const Label& label) = 0;
 
-  //! @brief Bind label to the current offset (virtual).
+  //! Bind label to the current offset.
   //!
   //! @note Label can be bound only once!
   ASMJIT_INLINE void bind(const Label& label) {
@@ -337,43 +344,43 @@ struct BaseAssembler : public CodeGen {
   // [Embed]
   // --------------------------------------------------------------------------
 
-  //! @brief Embed data into the code buffer.
+  //! Embed data into the code buffer.
   ASMJIT_API Error embed(const void* data, uint32_t size);
 
   // --------------------------------------------------------------------------
   // [Align]
   // --------------------------------------------------------------------------
 
-  //! @brief Align target buffer to @a m bytes.
+  //! Align target buffer to `m` bytes.
   //!
   //! Typical usage of this is to align labels at start of the inner loops.
   //!
-  //! Inserts @c nop() instructions or CPU optimized NOPs.
+  //! Inserts `nop()` instructions or CPU optimized NOPs.
   ASMJIT_INLINE Error align(uint32_t m) {
     return _align(m);
   }
 
-  //! @brief Align target buffer to @a m bytes (virtual).
+  //! Align target buffer to `m` bytes (virtual).
   virtual Error _align(uint32_t m) = 0;
 
   // --------------------------------------------------------------------------
   // [Reloc]
   // --------------------------------------------------------------------------
 
-  //! @brief Simplifed version of @c relocCode() method designed for JIT.
+  //! Simplifed version of `relocCode()` method designed for JIT.
   //!
   //! @overload
   ASMJIT_INLINE size_t relocCode(void* dst) const {
     return _relocCode(dst, static_cast<Ptr>((uintptr_t)dst));
   }
 
-  //! @brief Relocate code to a given address @a dst.
+  //! Relocate code to a given address `dst`.
   //!
   //! @param dst Where the relocated code should me stored. The pointer can be
   //! address returned by virtual memory allocator or your own address if you
   //! want only to store the code for later reuse (or load, etc...).
   //! @param addressBase Base address used for relocation. When using JIT code
-  //! generation, this will be the same as @a dst, only casted to system
+  //! generation, this will be the same as `dst`, only casted to system
   //! integer type. But when generating code for remote process then the value
   //! can be different.
   //!
@@ -383,12 +390,12 @@ struct BaseAssembler : public CodeGen {
   //! for the function.
   //!
   //! A given buffer will be overwritten, to get number of bytes required use
-  //! @c getCodeSize().
+  //! `getCodeSize()`.
   ASMJIT_INLINE size_t relocCode(void* dst, Ptr base) const {
     return _relocCode(dst, base);
   }
 
-  //! @brief Reloc code (virtual).
+  //! Reloc code (virtual).
   virtual size_t _relocCode(void* dst, Ptr base) const = 0;
 
   // --------------------------------------------------------------------------
@@ -401,7 +408,7 @@ struct BaseAssembler : public CodeGen {
   // [Emit]
   // --------------------------------------------------------------------------
 
-  //! @brief Emit an instruction.
+  //! Emit an instruction.
   ASMJIT_API Error emit(uint32_t code);
   //! @overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0);
@@ -414,7 +421,7 @@ struct BaseAssembler : public CodeGen {
     return _emit(code, o0, o1, o2, o3);
   }
 
-  //! @brief Emit an instruction with integer immediate operand.
+  //! Emit an instruction with integer immediate operand.
   ASMJIT_API Error emit(uint32_t code, int o0);
   //! @overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0, int o1);
@@ -423,37 +430,37 @@ struct BaseAssembler : public CodeGen {
   //! @overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3);
 
-  //! @brief Emit an instruction (virtual).
+  //! Emit an instruction (virtual).
   virtual Error _emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) = 0;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Buffer where the code is emitted (either live or temporary).
+  //! Buffer where the code is emitted (either live or temporary).
   //!
   //! This is actually the base pointer of the buffer, to get the current
-  //! position (cursor) look at the @c _cursor member.
+  //! position (cursor) look at the `_cursor` member.
   uint8_t* _buffer;
-  //! @brief The end of the buffer (points to the first invalid byte).
+  //! The end of the buffer (points to the first invalid byte).
   //!
   //! The end of the buffer is calculated as <code>_buffer + size</code>.
   uint8_t* _end;
-  //! @brief The current position in code @c _buffer.
+  //! The current position in code `_buffer`.
   uint8_t* _cursor;
 
-  //! @brief Size of possible trampolines.
+  //! Size of possible trampolines.
   uint32_t _trampolineSize;
 
-  //! @brief Inline comment that will be logged by the next instruction and
+  //! Inline comment that will be logged by the next instruction and
   //! set to NULL.
   const char* _comment;
-  //! @brief Linked list of unused links (@c LabelLink* structures)
+  //! Unused `LabelLink` structures pool.
   LabelLink* _unusedLinks;
 
-  //! @brief Labels data.
+  //! Labels data.
   PodVector<LabelData> _labels;
-  //! @brief Relocations data.
+  //! Relocations data.
   PodVector<RelocData> _relocData;
 };
 

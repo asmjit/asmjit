@@ -20,18 +20,20 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_util
 //! @{
 
 // ============================================================================
 // [asmjit::kStringOp]
 // ============================================================================
 
-//! @brief String operation.
+//! @internal
+//!
+//! String operation.
 ASMJIT_ENUM(kStringOp) {
-  //! @brief Replace the current string by a given content.
+  //! Replace the current string by a given content.
   kStringOpSet = 0,
-  //! @brief Append a given content to the current string.
+  //! Append a given content to the current string.
   kStringOpAppend = 1
 };
 
@@ -39,7 +41,9 @@ ASMJIT_ENUM(kStringOp) {
 // [asmjit::kStringFormat]
 // ============================================================================
 
-//! @brief String format flags.
+//! @internal
+//!
+//! String format flags.
 ASMJIT_ENUM(kStringFormat) {
   kStringFormatShowSign  = 0x00000001,
   kStringFormatShowSpace = 0x00000002,
@@ -51,7 +55,9 @@ ASMJIT_ENUM(kStringFormat) {
 // [asmjit::StringUtil]
 // ============================================================================
 
-//! @brief String utilities.
+//! @internal
+//!
+//! String utilities.
 struct StringUtil {
   static ASMJIT_INLINE size_t nlen(const char* s, size_t maxlen) {
     size_t i;
@@ -66,7 +72,9 @@ struct StringUtil {
 // [asmjit::StringBuilder]
 // ============================================================================
 
-//! @brief String builder.
+//! @internal
+//!
+//! String builder.
 //!
 //! String builder was designed to be able to build a string using append like
 //! operation to append numbers, other strings, or signle characters. It can
@@ -90,31 +98,31 @@ struct StringBuilder {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get string builder capacity.
+  //! Get string builder capacity.
   ASMJIT_INLINE size_t getCapacity() const { return _capacity; }
-  //! @brief Get length.
+  //! Get length.
   ASMJIT_INLINE size_t getLength() const { return _length; }
 
-  //! @brief Get null-terminated string data.
+  //! Get null-terminated string data.
   ASMJIT_INLINE char* getData() { return _data; }
-  //! @brief Get null-terminated string data (const).
+  //! Get null-terminated string data (const).
   ASMJIT_INLINE const char* getData() const { return _data; }
 
   // --------------------------------------------------------------------------
   // [Prepare / Reserve]
   // --------------------------------------------------------------------------
 
-  //! @brief Prepare to set/append.
+  //! Prepare to set/append.
   ASMJIT_API char* prepare(uint32_t op, size_t len);
 
-  //! @brief Reserve @a to bytes in string builder.
+  //! Reserve `to` bytes in string builder.
   ASMJIT_API bool reserve(size_t to);
 
   // --------------------------------------------------------------------------
   // [Clear]
   // --------------------------------------------------------------------------
 
-  //! @brief Clear the content in String builder.
+  //! Clear the content in String builder.
   ASMJIT_API void clear();
 
   // --------------------------------------------------------------------------
@@ -132,77 +140,91 @@ struct StringBuilder {
   // [Set]
   // --------------------------------------------------------------------------
 
-  //! @brief Replace the current content by @a str of @a len.
-  ASMJIT_INLINE bool setString(const char* str, size_t len = kInvalidIndex)
-  { return _opString(kStringOpSet, str, len); }
+  //! Replace the current content by `str` of `len`.
+  ASMJIT_INLINE bool setString(const char* str, size_t len = kInvalidIndex) {
+    return _opString(kStringOpSet, str, len);
+  }
 
-  //! @brief Replace the current content by formatted string @a fmt.
-  ASMJIT_INLINE bool setVFormat(const char* fmt, va_list ap)
-  { return _opVFormat(kStringOpSet, fmt, ap); }
+  //! Replace the current content by formatted string `fmt`.
+  ASMJIT_INLINE bool setVFormat(const char* fmt, va_list ap) {
+    return _opVFormat(kStringOpSet, fmt, ap);
+  }
 
-  //! @brief Replace the current content by formatted string @a fmt.
+  //! Replace the current content by formatted string `fmt`.
   ASMJIT_API bool setFormat(const char* fmt, ...);
 
-  //! @brief Replace the current content by @a c character.
-  ASMJIT_INLINE bool setChar(char c)
-  { return _opChar(kStringOpSet, c); }
+  //! Replace the current content by `c` character.
+  ASMJIT_INLINE bool setChar(char c) {
+    return _opChar(kStringOpSet, c);
+  }
 
-  //! @brief Replace the current content by @a c of @a len.
-  ASMJIT_INLINE bool setChars(char c, size_t len)
-  { return _opChars(kStringOpSet, c, len); }
+  //! Replace the current content by `c` of `len`.
+  ASMJIT_INLINE bool setChars(char c, size_t len) {
+    return _opChars(kStringOpSet, c, len);
+  }
 
-  //! @brief Replace the current content by @a i..
-  ASMJIT_INLINE bool setInt(uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0)
-  { return _opNumber(kStringOpSet, i, base, width, flags | kStringFormatSigned); }
+  //! Replace the current content by formatted integer `i`.
+  ASMJIT_INLINE bool setInt(uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) {
+    return _opNumber(kStringOpSet, i, base, width, flags | kStringFormatSigned);
+  }
 
-  //! @brief Replace the current content by @a i..
-  ASMJIT_INLINE bool setUInt(uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0)
-  { return _opNumber(kStringOpSet, i, base, width, flags); }
+  //! Replace the current content by formatted integer `i`.
+  ASMJIT_INLINE bool setUInt(uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) {
+    return _opNumber(kStringOpSet, i, base, width, flags);
+  }
 
-  //! @brief Replace the current content by the given @a data converted to a HEX string.
-  ASMJIT_INLINE bool setHex(const void* data, size_t len)
-  { return _opHex(kStringOpSet, data, len); }
+  //! Replace the current content by the given `data` converted to a HEX string.
+  ASMJIT_INLINE bool setHex(const void* data, size_t len) {
+    return _opHex(kStringOpSet, data, len);
+  }
 
   // --------------------------------------------------------------------------
   // [Append]
   // --------------------------------------------------------------------------
 
-  //! @brief Append @a str of @a len.
-  ASMJIT_INLINE bool appendString(const char* str, size_t len = kInvalidIndex)
-  { return _opString(kStringOpAppend, str, len); }
+  //! Append `str` of `len`.
+  ASMJIT_INLINE bool appendString(const char* str, size_t len = kInvalidIndex) {
+    return _opString(kStringOpAppend, str, len);
+  }
 
-  //! @brief Append a formatted string @a fmt to the current content.
-  ASMJIT_INLINE bool appendVFormat(const char* fmt, va_list ap)
-  { return _opVFormat(kStringOpAppend, fmt, ap); }
+  //! Append a formatted string `fmt` to the current content.
+  ASMJIT_INLINE bool appendVFormat(const char* fmt, va_list ap) {
+    return _opVFormat(kStringOpAppend, fmt, ap);
+  }
 
-  //! @brief Append a formatted string @a fmt to the current content.
+  //! Append a formatted string `fmt` to the current content.
   ASMJIT_API bool appendFormat(const char* fmt, ...);
 
-  //! @brief Append @a c character.
-  ASMJIT_INLINE bool appendChar(char c)
-  { return _opChar(kStringOpAppend, c); }
+  //! Append `c` character.
+  ASMJIT_INLINE bool appendChar(char c) {
+    return _opChar(kStringOpAppend, c);
+  }
 
-  //! @brief Append @a c of @a len.
-  ASMJIT_INLINE bool appendChars(char c, size_t len)
-  { return _opChars(kStringOpAppend, c, len); }
+  //! Append `c` of `len`.
+  ASMJIT_INLINE bool appendChars(char c, size_t len) {
+    return _opChars(kStringOpAppend, c, len);
+  }
 
-  //! @brief Append @a i.
-  ASMJIT_INLINE bool appendInt(int64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0)
-  { return _opNumber(kStringOpAppend, static_cast<uint64_t>(i), base, width, flags | kStringFormatSigned); }
+  //! Append `i`.
+  ASMJIT_INLINE bool appendInt(int64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) {
+    return _opNumber(kStringOpAppend, static_cast<uint64_t>(i), base, width, flags | kStringFormatSigned);
+  }
 
-  //! @brief Append @a i.
-  ASMJIT_INLINE bool appendUInt(uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0)
-  { return _opNumber(kStringOpAppend, i, base, width, flags); }
+  //! Append `i`.
+  ASMJIT_INLINE bool appendUInt(uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) {
+    return _opNumber(kStringOpAppend, i, base, width, flags);
+  }
 
-  //! @brief Append the given @a data converted to a HEX string.
-  ASMJIT_INLINE bool appendHex(const void* data, size_t len)
-  { return _opHex(kStringOpAppend, data, len); }
+  //! Append the given `data` converted to a HEX string.
+  ASMJIT_INLINE bool appendHex(const void* data, size_t len) {
+    return _opHex(kStringOpAppend, data, len);
+  }
 
   // --------------------------------------------------------------------------
   // [_Append]
   // --------------------------------------------------------------------------
 
-  //! @brief Append @a str of @a len (inlined, without buffer overflow check).
+  //! Append `str` of `len`, inlined, without buffer overflow check.
   ASMJIT_INLINE void _appendString(const char* str, size_t len = kInvalidIndex) {
     // len should be a constant if we are inlining.
     if (len == kInvalidIndex) {
@@ -230,7 +252,7 @@ struct StringBuilder {
     }
   }
 
-  //! @brief Append @a c character (inlined, without buffer overflow check).
+  //! Append `c` character, inlined, without buffer overflow check.
   ASMJIT_INLINE void _appendChar(char c) {
     ASMJIT_ASSERT(_capacity - _length >= 1);
 
@@ -239,7 +261,7 @@ struct StringBuilder {
     _data[_length] = '\0';
   }
 
-  //! @brief Append @a c of @a len (inlined, without buffer overflow check).
+  //! Append `c` of `len`, inlined, without buffer overflow check.
   ASMJIT_INLINE void _appendChars(char c, size_t len) {
     ASMJIT_ASSERT(_capacity - _length >= len);
 
@@ -282,10 +304,12 @@ struct StringBuilder {
   // [Eq]
   // --------------------------------------------------------------------------
 
-  //! @brief Check for equality with other @a str.
+  //! Check for equality with other `str` of `len`.
   ASMJIT_API bool eq(const char* str, size_t len = kInvalidIndex) const;
-  //! @brief Check for equality with StringBuilder @a other.
-  ASMJIT_INLINE bool eq(const StringBuilder& other) const { return eq(other._data); }
+  //! Check for equality with `other`.
+  ASMJIT_INLINE bool eq(const StringBuilder& other) const {
+    return eq(other._data);
+  }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -301,13 +325,13 @@ struct StringBuilder {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief String data.
+  //! String data.
   char* _data;
-  //! @brief Length.
+  //! Length.
   size_t _length;
-  //! @brief Capacity.
+  //! Capacity.
   size_t _capacity;
-  //! @brief Whether the string can be freed.
+  //! Whether the string can be freed.
   size_t _canFree;
 };
 
@@ -315,6 +339,7 @@ struct StringBuilder {
 // [asmjit::StringBuilderT]
 // ============================================================================
 
+//! @internal
 template<size_t N>
 struct StringBuilderT : public StringBuilder {
   ASMJIT_NO_COPY(StringBuilderT<N>)
@@ -336,8 +361,9 @@ struct StringBuilderT : public StringBuilder {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Embedded data.
-  char _embeddedData[static_cast<size_t>(N + 1 + sizeof(intptr_t)) & ~static_cast<size_t>(sizeof(intptr_t) - 1)];
+  //! Embedded data.
+  char _embeddedData[static_cast<size_t>(
+    N + 1 + sizeof(intptr_t)) & ~static_cast<size_t>(sizeof(intptr_t) - 1)];
 };
 
 //! @}

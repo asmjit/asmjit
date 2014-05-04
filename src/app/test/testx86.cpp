@@ -22,7 +22,7 @@ using namespace asmjit::host;
 // [X86Test]
 // ============================================================================
 
-//! @brief Interface used to test Compiler.
+//! Interface used to test Compiler.
 struct X86Test {
   X86Test(const char* name = NULL) { _name.setString(name); }
   virtual ~X86Test() {}

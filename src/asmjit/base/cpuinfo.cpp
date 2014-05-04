@@ -62,7 +62,7 @@ uint32_t BaseCpuInfo::detectNumberOfCores() {
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
 struct HostCpuInfo : public x86x64::CpuInfo {
   ASMJIT_INLINE HostCpuInfo() : CpuInfo() {
-    x86x64::hostCpuDetect(this);
+    x86x64::CpuUtil::detect(this);
   }
 };
 #else

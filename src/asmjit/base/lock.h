@@ -26,14 +26,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_util
 //! @{
 
 // ============================================================================
 // [asmjit::Lock]
 // ============================================================================
 
-//! @brief Lock - used in thread-safe code for locking.
+//! Lock - used in thread-safe code for locking.
 struct Lock {
   ASMJIT_NO_COPY(Lock)
 
@@ -44,14 +44,14 @@ struct Lock {
 #if defined(ASMJIT_OS_WINDOWS)
   typedef CRITICAL_SECTION Handle;
 
-  //! @brief Create a new @ref Lock instance.
+  //! Create a new `Lock` instance.
   ASMJIT_INLINE Lock() { InitializeCriticalSection(&_handle); }
-  //! @brief Destroy the @ref Lock instance.
+  //! Destroy the `Lock` instance.
   ASMJIT_INLINE ~Lock() { DeleteCriticalSection(&_handle); }
 
-  //! @brief Lock.
+  //! Lock.
   ASMJIT_INLINE void lock() { EnterCriticalSection(&_handle); }
-  //! @brief Unlock.
+  //! Unlock.
   ASMJIT_INLINE void unlock() { LeaveCriticalSection(&_handle); }
 
 #endif // ASMJIT_OS_WINDOWS
@@ -63,14 +63,14 @@ struct Lock {
 #if defined(ASMJIT_OS_POSIX)
   typedef pthread_mutex_t Handle;
 
-  //! @brief Create a new @ref Lock instance.
+  //! Create a new `Lock` instance.
   ASMJIT_INLINE Lock() { pthread_mutex_init(&_handle, NULL); }
-  //! @brief Destroy the @ref Lock instance.
+  //! Destroy the `Lock` instance.
   ASMJIT_INLINE ~Lock() { pthread_mutex_destroy(&_handle); }
 
-  //! @brief Lock.
+  //! Lock.
   ASMJIT_INLINE void lock() { pthread_mutex_lock(&_handle); }
-  //! @brief Unlock.
+  //! Unlock.
   ASMJIT_INLINE void unlock() { pthread_mutex_unlock(&_handle); }
 #endif // ASMJIT_OS_POSIX
 
@@ -78,7 +78,7 @@ struct Lock {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get handle.
+  //! Get handle.
   ASMJIT_INLINE Handle& getHandle() { return _handle; }
   //! @overload
   ASMJIT_INLINE const Handle& getHandle() const { return _handle; }
@@ -87,7 +87,7 @@ struct Lock {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Handle.
+  //! Handle.
   Handle _handle;
 };
 
@@ -95,7 +95,7 @@ struct Lock {
 // [asmjit::AutoLock]
 // ============================================================================
 
-//! @brief Scope auto locker.
+//! Scope auto locker.
 struct AutoLock {
   ASMJIT_NO_COPY(AutoLock)
 
@@ -103,12 +103,12 @@ struct AutoLock {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Locks @a target.
+  //! Autolock `target`, scoped.
   ASMJIT_INLINE AutoLock(Lock& target) : _target(target) {
     _target.lock();
   }
 
-  //! @brief Unlocks target.
+  //! Autounlock `target`.
   ASMJIT_INLINE ~AutoLock() {
     _target.unlock();
   }
@@ -117,7 +117,7 @@ struct AutoLock {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Pointer to target (lock).
+  //! Pointer to target (lock).
   Lock& _target;
 };
 

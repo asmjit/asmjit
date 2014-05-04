@@ -34,7 +34,7 @@ enum { kBaseCompilerDefaultLookAhead = 64 };
 // [asmjit::BaseCompiler - Construction / Destruction]
 // ============================================================================
 
-BaseCompiler::BaseCompiler(BaseRuntime* runtime) :
+BaseCompiler::BaseCompiler(Runtime* runtime) :
   CodeGen(runtime),
   _nodeFlowId(0),
   _nodeFlags(0),

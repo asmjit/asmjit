@@ -10,7 +10,7 @@
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
 #include "../base/intutil.h"
-#include "../base/memorymanager.h"
+#include "../base/vmem.h"
 
 // [Dependenceis - C]
 #include <stdarg.h>
@@ -24,7 +24,7 @@ namespace asmjit {
 // [asmjit::BaseAssembler - Construction / Destruction]
 // ============================================================================
 
-BaseAssembler::BaseAssembler(BaseRuntime* runtime) :
+BaseAssembler::BaseAssembler(Runtime* runtime) :
   CodeGen(runtime),
   _buffer(NULL),
   _end(NULL),

@@ -16,17 +16,20 @@
 
 namespace asmjit {
 
+//! @addtogroup asmjit_base_vectypes
+//! @{
+
 // ============================================================================
 // [asmjit::Vec64Data]
 // ============================================================================
 
-//! @brief 64-bit vector register data.
+//! 64-bit vector register data.
 union Vec64Data {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Set all eight signed 8-bit integers.
+  //! Set all eight signed 8-bit integers.
   static ASMJIT_INLINE Vec64Data fromSb(
     int8_t x0, int8_t x1, int8_t x2, int8_t x3, int8_t x4, int8_t x5, int8_t x6, int8_t x7)
   {
@@ -35,7 +38,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all eight signed 8-bit integers.
+  //! Set all eight signed 8-bit integers.
   static ASMJIT_INLINE Vec64Data fromSb(
     int8_t x0)
   {
@@ -44,7 +47,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all eight unsigned 8-bit integers.
+  //! Set all eight unsigned 8-bit integers.
   static ASMJIT_INLINE Vec64Data fromUb(
     uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
   {
@@ -53,7 +56,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all eight unsigned 8-bit integers.
+  //! Set all eight unsigned 8-bit integers.
   static ASMJIT_INLINE Vec64Data fromUb(
     uint8_t x0)
   {
@@ -62,7 +65,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all four signed 16-bit integers.
+  //! Set all four signed 16-bit integers.
   static ASMJIT_INLINE Vec64Data fromSw(
     int16_t x0, int16_t x1, int16_t x2, int16_t x3)
   {
@@ -71,7 +74,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all four signed 16-bit integers.
+  //! Set all four signed 16-bit integers.
   static ASMJIT_INLINE Vec64Data fromSw(
     int16_t x0)
   {
@@ -80,7 +83,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all four unsigned 16-bit integers.
+  //! Set all four unsigned 16-bit integers.
   static ASMJIT_INLINE Vec64Data fromUw(
     uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3)
   {
@@ -89,7 +92,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all four unsigned 16-bit integers.
+  //! Set all four unsigned 16-bit integers.
   static ASMJIT_INLINE Vec64Data fromUw(
     uint16_t x0)
   {
@@ -98,7 +101,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all two signed 32-bit integers.
+  //! Set all two signed 32-bit integers.
   static ASMJIT_INLINE Vec64Data fromSd(
     int32_t x0, int32_t x1)
   {
@@ -107,7 +110,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all two signed 32-bit integers.
+  //! Set all two signed 32-bit integers.
   static ASMJIT_INLINE Vec64Data fromSd(
     int32_t x0)
   {
@@ -116,7 +119,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all two unsigned 32-bit integers.
+  //! Set all two unsigned 32-bit integers.
   static ASMJIT_INLINE Vec64Data fromUd(
     uint32_t x0, uint32_t x1)
   {
@@ -125,7 +128,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all two unsigned 32-bit integers.
+  //! Set all two unsigned 32-bit integers.
   static ASMJIT_INLINE Vec64Data fromUd(
     uint32_t x0)
   {
@@ -134,7 +137,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set signed 64-bit integer.
+  //! Set signed 64-bit integer.
   static ASMJIT_INLINE Vec64Data fromSq(
     int64_t x0)
   {
@@ -143,7 +146,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set unsigned 64-bit integer.
+  //! Set unsigned 64-bit integer.
   static ASMJIT_INLINE Vec64Data fromUq(
     uint64_t x0)
   {
@@ -152,7 +155,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all two SP-FP values.
+  //! Set all two SP-FP values.
   static ASMJIT_INLINE Vec64Data fromSf(
     float x0, float x1)
   {
@@ -161,7 +164,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all two SP-FP values.
+  //! Set all two SP-FP values.
   static ASMJIT_INLINE Vec64Data fromSf(
     float x0)
   {
@@ -170,7 +173,7 @@ union Vec64Data {
     return self;
   }
 
-  //! @brief Set all two SP-FP values.
+  //! Set all two SP-FP values.
   static ASMJIT_INLINE Vec64Data fromDf(
     double x0)
   {
@@ -183,7 +186,7 @@ union Vec64Data {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Set all eight signed 8-bit integers.
+  //! Set all eight signed 8-bit integers.
   ASMJIT_INLINE void setSb(
     int8_t x0, int8_t x1, int8_t x2, int8_t x3, int8_t x4, int8_t x5, int8_t x6, int8_t x7)
   {
@@ -191,14 +194,14 @@ union Vec64Data {
     sb[4] = x4; sb[5] = x5; sb[6] = x6; sb[7] = x7;
   }
 
-  //! @brief Set all eight signed 8-bit integers.
+  //! Set all eight signed 8-bit integers.
   ASMJIT_INLINE void setSb(
     int8_t x0)
   {
     setUb(static_cast<uint8_t>(x0));
   }
 
-  //! @brief Set all eight unsigned 8-bit integers.
+  //! Set all eight unsigned 8-bit integers.
   ASMJIT_INLINE void setUb(
     uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
   {
@@ -206,7 +209,7 @@ union Vec64Data {
     ub[4] = x4; ub[5] = x5; ub[6] = x6; ub[7] = x7;
   }
 
-  //! @brief Set all eight unsigned 8-bit integers.
+  //! Set all eight unsigned 8-bit integers.
   ASMJIT_INLINE void setUb(
     uint8_t x0)
   {
@@ -221,28 +224,28 @@ union Vec64Data {
     }
   }
 
-  //! @brief Set all four signed 16-bit integers.
+  //! Set all four signed 16-bit integers.
   ASMJIT_INLINE void setSw(
     int16_t x0, int16_t x1, int16_t x2, int16_t x3)
   {
     sw[0] = x0; sw[1] = x1; sw[2] = x2; sw[3] = x3;
   }
 
-  //! @brief Set all four signed 16-bit integers.
+  //! Set all four signed 16-bit integers.
   ASMJIT_INLINE void setSw(
     int16_t x0)
   {
     setUw(static_cast<uint16_t>(x0));
   }
 
-  //! @brief Set all four unsigned 16-bit integers.
+  //! Set all four unsigned 16-bit integers.
   ASMJIT_INLINE void setUw(
     uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3)
   {
     uw[0] = x0; uw[1] = x1; uw[2] = x2; uw[3] = x3;
   }
 
-  //! @brief Set all four unsigned 16-bit integers.
+  //! Set all four unsigned 16-bit integers.
   ASMJIT_INLINE void setUw(
     uint16_t x0)
   {
@@ -257,63 +260,63 @@ union Vec64Data {
     }
   }
 
-  //! @brief Set all two signed 32-bit integers.
+  //! Set all two signed 32-bit integers.
   ASMJIT_INLINE void setSd(
     int32_t x0, int32_t x1)
   {
     sd[0] = x0; sd[1] = x1;
   }
 
-  //! @brief Set all two signed 32-bit integers.
+  //! Set all two signed 32-bit integers.
   ASMJIT_INLINE void setSd(
     int32_t x0)
   {
     sd[0] = x0; sd[1] = x0;
   }
 
-  //! @brief Set all two unsigned 32-bit integers.
+  //! Set all two unsigned 32-bit integers.
   ASMJIT_INLINE void setUd(
     uint32_t x0, uint32_t x1)
   {
     ud[0] = x0; ud[1] = x1;
   }
 
-  //! @brief Set all two unsigned 32-bit integers.
+  //! Set all two unsigned 32-bit integers.
   ASMJIT_INLINE void setUd(
     uint32_t x0)
   {
     ud[0] = x0; ud[1] = x0;
   }
 
-  //! @brief Set signed 64-bit integer.
+  //! Set signed 64-bit integer.
   ASMJIT_INLINE void setSq(
     int64_t x0)
   {
     sq[0] = x0;
   }
 
-  //! @brief Set unsigned 64-bit integer.
+  //! Set unsigned 64-bit integer.
   ASMJIT_INLINE void setUq(
     uint64_t x0)
   {
     uq[0] = x0;
   }
 
-  //! @brief Set all two SP-FP values.
+  //! Set all two SP-FP values.
   ASMJIT_INLINE void setSf(
     float x0, float x1)
   {
     sf[0] = x0; sf[1] = x1;
   }
 
-  //! @brief Set all two SP-FP values.
+  //! Set all two SP-FP values.
   ASMJIT_INLINE void setSf(
     float x0)
   {
     sf[0] = x0; sf[1] = x0;
   }
 
-  //! @brief Set all two SP-FP values.
+  //! Set all two SP-FP values.
   ASMJIT_INLINE void setDf(
     double x0)
   {
@@ -324,26 +327,26 @@ union Vec64Data {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Array of eight signed 8-bit integers.
+  //! Array of eight signed 8-bit integers.
   int8_t sb[8];
-  //! @brief Array of eight unsigned 8-bit integers.
+  //! Array of eight unsigned 8-bit integers.
   uint8_t ub[8];
-  //! @brief Array of four signed 16-bit integers.
+  //! Array of four signed 16-bit integers.
   int16_t sw[4];
-  //! @brief Array of four unsigned 16-bit integers.
+  //! Array of four unsigned 16-bit integers.
   uint16_t uw[4];
-  //! @brief Array of two signed 32-bit integers.
+  //! Array of two signed 32-bit integers.
   int32_t sd[2];
-  //! @brief Array of two unsigned 32-bit integers.
+  //! Array of two unsigned 32-bit integers.
   uint32_t ud[2];
-  //! @brief Array of one signed 64-bit integer.
+  //! Array of one signed 64-bit integer.
   int64_t sq[1];
-  //! @brief Array of one unsigned 64-bit integer.
+  //! Array of one unsigned 64-bit integer.
   uint64_t uq[1];
 
-  //! @brief Array of two SP-FP values.
+  //! Array of two SP-FP values.
   float sf[2];
-  //! @brief Array of one DP-FP value.
+  //! Array of one DP-FP value.
   double df[1];
 };
 
@@ -351,13 +354,13 @@ union Vec64Data {
 // [asmjit::Vec128Data]
 // ============================================================================
 
-//! @brief 128-bit vector register data.
+//! 128-bit vector register data.
 union Vec128Data {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Set all sixteen signed 8-bit integers.
+  //! Set all sixteen signed 8-bit integers.
   static ASMJIT_INLINE Vec128Data fromSb(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -369,7 +372,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all sixteen signed 8-bit integers.
+  //! Set all sixteen signed 8-bit integers.
   static ASMJIT_INLINE Vec128Data fromSb(
     int8_t x0)
   {
@@ -378,7 +381,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all sixteen unsigned 8-bit integers.
+  //! Set all sixteen unsigned 8-bit integers.
   static ASMJIT_INLINE Vec128Data fromUb(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -390,7 +393,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all sixteen unsigned 8-bit integers.
+  //! Set all sixteen unsigned 8-bit integers.
   static ASMJIT_INLINE Vec128Data fromUb(
     uint8_t x0)
   {
@@ -399,7 +402,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all eight signed 16-bit integers.
+  //! Set all eight signed 16-bit integers.
   static ASMJIT_INLINE Vec128Data fromSw(
     int16_t x0, int16_t x1, int16_t x2, int16_t x3, int16_t x4, int16_t x5, int16_t x6, int16_t x7)
   {
@@ -408,7 +411,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all eight signed 16-bit integers.
+  //! Set all eight signed 16-bit integers.
   static ASMJIT_INLINE Vec128Data fromSw(
     int16_t x0)
   {
@@ -417,7 +420,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all eight unsigned 16-bit integers.
+  //! Set all eight unsigned 16-bit integers.
   static ASMJIT_INLINE Vec128Data fromUw(
     uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3, uint16_t x4, uint16_t x5, uint16_t x6, uint16_t x7)
   {
@@ -426,7 +429,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all eight unsigned 16-bit integers.
+  //! Set all eight unsigned 16-bit integers.
   static ASMJIT_INLINE Vec128Data fromUw(
     uint16_t x0)
   {
@@ -435,7 +438,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all four signed 32-bit integers.
+  //! Set all four signed 32-bit integers.
   static ASMJIT_INLINE Vec128Data fromSd(
     int32_t x0, int32_t x1, int32_t x2, int32_t x3)
   {
@@ -444,7 +447,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all four signed 32-bit integers.
+  //! Set all four signed 32-bit integers.
   static ASMJIT_INLINE Vec128Data fromSd(
     int32_t x0)
   {
@@ -453,7 +456,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all four unsigned 32-bit integers.
+  //! Set all four unsigned 32-bit integers.
   static ASMJIT_INLINE Vec128Data fromUd(
     uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3)
   {
@@ -462,7 +465,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all four unsigned 32-bit integers.
+  //! Set all four unsigned 32-bit integers.
   static ASMJIT_INLINE Vec128Data fromUd(
     uint32_t x0)
   {
@@ -471,7 +474,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all two signed 64-bit integers.
+  //! Set all two signed 64-bit integers.
   static ASMJIT_INLINE Vec128Data fromSq(
     int64_t x0, int64_t x1)
   {
@@ -480,7 +483,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all two signed 64-bit integers.
+  //! Set all two signed 64-bit integers.
   static ASMJIT_INLINE Vec128Data fromSq(
     int64_t x0)
   {
@@ -489,7 +492,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all two unsigned 64-bit integers.
+  //! Set all two unsigned 64-bit integers.
   static ASMJIT_INLINE Vec128Data fromUq(
     uint64_t x0, uint64_t x1)
   {
@@ -498,7 +501,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all two unsigned 64-bit integers.
+  //! Set all two unsigned 64-bit integers.
   static ASMJIT_INLINE Vec128Data fromUq(
     uint64_t x0)
   {
@@ -507,7 +510,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all four SP-FP floats.
+  //! Set all four SP-FP floats.
   static ASMJIT_INLINE Vec128Data fromSf(
     float x0, float x1, float x2, float x3)
   {
@@ -516,7 +519,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all four SP-FP floats.
+  //! Set all four SP-FP floats.
   static ASMJIT_INLINE Vec128Data fromSf(
     float x0)
   {
@@ -525,7 +528,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all two DP-FP floats.
+  //! Set all two DP-FP floats.
   static ASMJIT_INLINE Vec128Data fromDf(
     double x0, double x1)
   {
@@ -534,7 +537,7 @@ union Vec128Data {
     return self;
   }
 
-  //! @brief Set all two DP-FP floats.
+  //! Set all two DP-FP floats.
   static ASMJIT_INLINE Vec128Data fromDf(
     double x0)
   {
@@ -547,7 +550,7 @@ union Vec128Data {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Set all sixteen signed 8-bit integers.
+  //! Set all sixteen signed 8-bit integers.
   ASMJIT_INLINE void setSb(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -560,14 +563,14 @@ union Vec128Data {
     sb[12] = x12; sb[13] = x13; sb[14] = x14; sb[15] = x15;
   }
 
-  //! @brief Set all sixteen signed 8-bit integers.
+  //! Set all sixteen signed 8-bit integers.
   ASMJIT_INLINE void setSb(
     int8_t x0)
   {
     setUb(static_cast<uint8_t>(x0));
   }
 
-  //! @brief Set all sixteen unsigned 8-bit integers.
+  //! Set all sixteen unsigned 8-bit integers.
   ASMJIT_INLINE void setUb(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -580,7 +583,7 @@ union Vec128Data {
     ub[12] = x12; ub[13] = x13; ub[14] = x14; ub[15] = x15;
   }
 
-  //! @brief Set all sixteen unsigned 8-bit integers.
+  //! Set all sixteen unsigned 8-bit integers.
   ASMJIT_INLINE void setUb(
     uint8_t x0)
   {
@@ -598,7 +601,7 @@ union Vec128Data {
     }
   }
 
-  //! @brief Set all eight signed 16-bit integers.
+  //! Set all eight signed 16-bit integers.
   ASMJIT_INLINE void setSw(
     int16_t x0, int16_t x1, int16_t x2, int16_t x3, int16_t x4, int16_t x5, int16_t x6, int16_t x7)
   {
@@ -606,14 +609,14 @@ union Vec128Data {
     sw[4] = x4; sw[5] = x5; sw[6] = x6; sw[7] = x7;
   }
 
-  //! @brief Set all eight signed 16-bit integers.
+  //! Set all eight signed 16-bit integers.
   ASMJIT_INLINE void setSw(
     int16_t x0)
   {
     setUw(static_cast<uint16_t>(x0));
   }
 
-  //! @brief Set all eight unsigned 16-bit integers.
+  //! Set all eight unsigned 16-bit integers.
   ASMJIT_INLINE void setUw(
     uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3, uint16_t x4, uint16_t x5, uint16_t x6, uint16_t x7)
   {
@@ -621,7 +624,7 @@ union Vec128Data {
     uw[4] = x4; uw[5] = x5; uw[6] = x6; uw[7] = x7;
   }
 
-  //! @brief Set all eight unsigned 16-bit integers.
+  //! Set all eight unsigned 16-bit integers.
   ASMJIT_INLINE void setUw(
     uint16_t x0)
   {
@@ -639,28 +642,28 @@ union Vec128Data {
     }
   }
 
-  //! @brief Set all four signed 32-bit integers.
+  //! Set all four signed 32-bit integers.
   ASMJIT_INLINE void setSd(
     int32_t x0, int32_t x1, int32_t x2, int32_t x3)
   {
     sd[0] = x0; sd[1] = x1; sd[2] = x2; sd[3] = x3;
   }
 
-  //! @brief Set all four signed 32-bit integers.
+  //! Set all four signed 32-bit integers.
   ASMJIT_INLINE void setSd(
     int32_t x0)
   {
     setUd(static_cast<uint32_t>(x0));
   }
 
-  //! @brief Set all four unsigned 32-bit integers.
+  //! Set all four unsigned 32-bit integers.
   ASMJIT_INLINE void setUd(
     uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3)
   {
     ud[0] = x0; ud[1] = x1; ud[2] = x2; ud[3] = x3;
   }
 
-  //! @brief Set all four unsigned 32-bit integers.
+  //! Set all four unsigned 32-bit integers.
   ASMJIT_INLINE void setUd(
     uint32_t x0)
   {
@@ -677,56 +680,56 @@ union Vec128Data {
     }
   }
 
-  //! @brief Set all two signed 64-bit integers.
+  //! Set all two signed 64-bit integers.
   ASMJIT_INLINE void setSq(
     int64_t x0, int64_t x1)
   {
     sq[0] = x0; sq[1] = x1;
   }
 
-  //! @brief Set all two signed 64-bit integers.
+  //! Set all two signed 64-bit integers.
   ASMJIT_INLINE void setSq(
     int64_t x0)
   {
     sq[0] = x0; sq[1] = x0;
   }
 
-  //! @brief Set all two unsigned 64-bit integers.
+  //! Set all two unsigned 64-bit integers.
   ASMJIT_INLINE void setUq(
     uint64_t x0, uint64_t x1)
   {
     uq[0] = x0; uq[1] = x1;
   }
 
-  //! @brief Set all two unsigned 64-bit integers.
+  //! Set all two unsigned 64-bit integers.
   ASMJIT_INLINE void setUq(
     uint64_t x0)
   {
     uq[0] = x0; uq[1] = x0;
   }
 
-  //! @brief Set all four SP-FP floats.
+  //! Set all four SP-FP floats.
   ASMJIT_INLINE void setSf(
     float x0, float x1, float x2, float x3)
   {
     sf[0] = x0; sf[1] = x1; sf[2] = x2; sf[3] = x3;
   }
 
-  //! @brief Set all four SP-FP floats.
+  //! Set all four SP-FP floats.
   ASMJIT_INLINE void setSf(
     float x0)
   {
     sf[0] = x0; sf[1] = x0; sf[2] = x0; sf[3] = x0;
   }
 
-  //! @brief Set all two DP-FP floats.
+  //! Set all two DP-FP floats.
   ASMJIT_INLINE void setDf(
     double x0, double x1)
   {
     df[0] = x0; df[1] = x1;
   }
 
-  //! @brief Set all two DP-FP floats.
+  //! Set all two DP-FP floats.
   ASMJIT_INLINE void setDf(
     double x0)
   {
@@ -737,26 +740,26 @@ union Vec128Data {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Array of sixteen signed 8-bit integers.
+  //! Array of sixteen signed 8-bit integers.
   int8_t sb[16];
-  //! @brief Array of sixteen unsigned 8-bit integers.
+  //! Array of sixteen unsigned 8-bit integers.
   uint8_t ub[16];
-  //! @brief Array of eight signed 16-bit integers.
+  //! Array of eight signed 16-bit integers.
   int16_t sw[8];
-  //! @brief Array of eight unsigned 16-bit integers.
+  //! Array of eight unsigned 16-bit integers.
   uint16_t uw[8];
-  //! @brief Array of four signed 32-bit integers.
+  //! Array of four signed 32-bit integers.
   int32_t sd[4];
-  //! @brief Array of four unsigned 32-bit integers.
+  //! Array of four unsigned 32-bit integers.
   uint32_t ud[4];
-  //! @brief Array of two signed 64-bit integers.
+  //! Array of two signed 64-bit integers.
   int64_t sq[2];
-  //! @brief Array of two unsigned 64-bit integers.
+  //! Array of two unsigned 64-bit integers.
   uint64_t uq[2];
 
-  //! @brief Array of four 32-bit single precision floating points.
+  //! Array of four 32-bit single precision floating points.
   float sf[4];
-  //! @brief Array of two 64-bit double precision floating points.
+  //! Array of two 64-bit double precision floating points.
   double df[2];
 };
 
@@ -764,13 +767,13 @@ union Vec128Data {
 // [asmjit::Vec256Data]
 // ============================================================================
 
-//! @brief 256-bit vector register data.
+//! 256-bit vector register data.
 union Vec256Data {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Set all thirty two signed 8-bit integers.
+  //! Set all thirty two signed 8-bit integers.
   static ASMJIT_INLINE Vec256Data fromSb(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -788,7 +791,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all thirty two signed 8-bit integers.
+  //! Set all thirty two signed 8-bit integers.
   static ASMJIT_INLINE Vec256Data fromSb(
     int8_t x0)
   {
@@ -797,7 +800,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all thirty two unsigned 8-bit integers.
+  //! Set all thirty two unsigned 8-bit integers.
   static ASMJIT_INLINE Vec256Data fromUb(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -815,7 +818,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all thirty two unsigned 8-bit integers.
+  //! Set all thirty two unsigned 8-bit integers.
   static ASMJIT_INLINE Vec256Data fromUb(
     uint8_t x0)
   {
@@ -824,7 +827,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all sixteen signed 16-bit integers.
+  //! Set all sixteen signed 16-bit integers.
   static ASMJIT_INLINE Vec256Data fromSw(
     int16_t x0, int16_t x1, int16_t x2 , int16_t x3 , int16_t x4 , int16_t x5 , int16_t x6 , int16_t x7 ,
     int16_t x8, int16_t x9, int16_t x10, int16_t x11, int16_t x12, int16_t x13, int16_t x14, int16_t x15)
@@ -834,7 +837,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all sixteen signed 16-bit integers.
+  //! Set all sixteen signed 16-bit integers.
   static ASMJIT_INLINE Vec256Data fromSw(
     int16_t x0)
   {
@@ -843,7 +846,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all sixteen unsigned 16-bit integers.
+  //! Set all sixteen unsigned 16-bit integers.
   static ASMJIT_INLINE Vec256Data fromUw(
     uint16_t x0, uint16_t x1, uint16_t x2 , uint16_t x3 , uint16_t x4 , uint16_t x5 , uint16_t x6 , uint16_t x7 ,
     uint16_t x8, uint16_t x9, uint16_t x10, uint16_t x11, uint16_t x12, uint16_t x13, uint16_t x14, uint16_t x15)
@@ -853,7 +856,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all sixteen unsigned 16-bit integers.
+  //! Set all sixteen unsigned 16-bit integers.
   static ASMJIT_INLINE Vec256Data fromUw(
     uint16_t x0)
   {
@@ -862,7 +865,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all eight signed 32-bit integers.
+  //! Set all eight signed 32-bit integers.
   static ASMJIT_INLINE Vec256Data fromSd(
     int32_t x0, int32_t x1, int32_t x2, int32_t x3,
     int32_t x4, int32_t x5, int32_t x6, int32_t x7)
@@ -872,7 +875,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all eight signed 32-bit integers.
+  //! Set all eight signed 32-bit integers.
   static ASMJIT_INLINE Vec256Data fromSd(
     int32_t x0)
   {
@@ -881,7 +884,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all eight unsigned 32-bit integers.
+  //! Set all eight unsigned 32-bit integers.
   static ASMJIT_INLINE Vec256Data fromUd(
     uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
     uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7)
@@ -891,7 +894,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all eight unsigned 32-bit integers.
+  //! Set all eight unsigned 32-bit integers.
   static ASMJIT_INLINE Vec256Data fromUd(
     uint32_t x0)
   {
@@ -900,7 +903,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all four signed 64-bit integers.
+  //! Set all four signed 64-bit integers.
   static ASMJIT_INLINE Vec256Data fromSq(
     int64_t x0, int64_t x1, int64_t x2, int64_t x3)
   {
@@ -909,7 +912,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all four signed 64-bit integers.
+  //! Set all four signed 64-bit integers.
   static ASMJIT_INLINE Vec256Data fromSq(
     int64_t x0)
   {
@@ -918,7 +921,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all four unsigned 64-bit integers.
+  //! Set all four unsigned 64-bit integers.
   static ASMJIT_INLINE Vec256Data fromUq(
     uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3)
   {
@@ -927,7 +930,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all four unsigned 64-bit integers.
+  //! Set all four unsigned 64-bit integers.
   static ASMJIT_INLINE Vec256Data fromUq(
     uint64_t x0)
   {
@@ -936,7 +939,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all eight SP-FP floats.
+  //! Set all eight SP-FP floats.
   static ASMJIT_INLINE Vec256Data fromSf(
     float x0, float x1, float x2, float x3,
     float x4, float x5, float x6, float x7)
@@ -946,7 +949,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all eight SP-FP floats.
+  //! Set all eight SP-FP floats.
   static ASMJIT_INLINE Vec256Data fromSf(
     float x0)
   {
@@ -955,7 +958,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all four DP-FP floats.
+  //! Set all four DP-FP floats.
   static ASMJIT_INLINE Vec256Data fromDf(
     double x0, double x1, double x2, double x3)
   {
@@ -964,7 +967,7 @@ union Vec256Data {
     return self;
   }
 
-  //! @brief Set all four DP-FP floats.
+  //! Set all four DP-FP floats.
   static ASMJIT_INLINE Vec256Data fromDf(
     double x0)
   {
@@ -977,7 +980,7 @@ union Vec256Data {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Set all thirty two signed 8-bit integers.
+  //! Set all thirty two signed 8-bit integers.
   ASMJIT_INLINE void setSb(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -998,14 +1001,14 @@ union Vec256Data {
     sb[28] = x28; sb[29] = x29; sb[30] = x30; sb[31] = x31;
   }
 
-  //! @brief Set all thirty two signed 8-bit integers.
+  //! Set all thirty two signed 8-bit integers.
   ASMJIT_INLINE void setSb(
     int8_t x0)
   {
     setUb(static_cast<uint8_t>(x0));
   }
 
-  //! @brief Set all thirty two unsigned 8-bit integers.
+  //! Set all thirty two unsigned 8-bit integers.
   ASMJIT_INLINE void setUb(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -1026,7 +1029,7 @@ union Vec256Data {
     ub[28] = x28; ub[29] = x29; ub[30] = x30; ub[31] = x31;
   }
 
-  //! @brief Set all thirty two unsigned 8-bit integers.
+  //! Set all thirty two unsigned 8-bit integers.
   ASMJIT_INLINE void setUb(
     uint8_t x0)
   {
@@ -1050,7 +1053,7 @@ union Vec256Data {
     }
   }
 
-  //! @brief Set all sixteen signed 16-bit integers.
+  //! Set all sixteen signed 16-bit integers.
   ASMJIT_INLINE void setSw(
     int16_t x0, int16_t x1, int16_t x2, int16_t x3, int16_t x4, int16_t x5, int16_t x6, int16_t x7,
     int16_t x8, int16_t x9, int16_t x10, int16_t x11, int16_t x12, int16_t x13, int16_t x14, int16_t x15)
@@ -1061,14 +1064,14 @@ union Vec256Data {
     sw[12] = x12; sw[13] = x13; sw[14] = x14; sw[15] = x15;
   }
 
-  //! @brief Set all sixteen signed 16-bit integers.
+  //! Set all sixteen signed 16-bit integers.
   ASMJIT_INLINE void setSw(
     int16_t x0)
   {
     setUw(static_cast<uint16_t>(x0));
   }
 
-  //! @brief Set all sixteen unsigned 16-bit integers.
+  //! Set all sixteen unsigned 16-bit integers.
   ASMJIT_INLINE void setUw(
     uint16_t x0, uint16_t x1, uint16_t x2 , uint16_t x3 , uint16_t x4 , uint16_t x5 , uint16_t x6 , uint16_t x7 ,
     uint16_t x8, uint16_t x9, uint16_t x10, uint16_t x11, uint16_t x12, uint16_t x13, uint16_t x14, uint16_t x15)
@@ -1079,7 +1082,7 @@ union Vec256Data {
     uw[12] = x12; uw[13] = x13; uw[14] = x14; uw[15] = x15;
   }
 
-  //! @brief Set all eight unsigned 16-bit integers.
+  //! Set all eight unsigned 16-bit integers.
   ASMJIT_INLINE void setUw(
     uint16_t x0)
   {
@@ -1103,7 +1106,7 @@ union Vec256Data {
     }
   }
 
-  //! @brief Set all eight signed 32-bit integers.
+  //! Set all eight signed 32-bit integers.
   ASMJIT_INLINE void setSd(
     int32_t x0, int32_t x1, int32_t x2, int32_t x3,
     int32_t x4, int32_t x5, int32_t x6, int32_t x7)
@@ -1112,14 +1115,14 @@ union Vec256Data {
     sd[4] = x4; sd[5] = x5; sd[6] = x6; sd[7] = x7;
   }
 
-  //! @brief Set all eight signed 32-bit integers.
+  //! Set all eight signed 32-bit integers.
   ASMJIT_INLINE void setSd(
     int32_t x0)
   {
     setUd(static_cast<uint32_t>(x0));
   }
 
-  //! @brief Set all eight unsigned 32-bit integers.
+  //! Set all eight unsigned 32-bit integers.
   ASMJIT_INLINE void setUd(
     uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
     uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7)
@@ -1128,7 +1131,7 @@ union Vec256Data {
     ud[4] = x4; ud[5] = x5; ud[6] = x6; ud[7] = x7;
   }
 
-  //! @brief Set all eight unsigned 32-bit integers.
+  //! Set all eight unsigned 32-bit integers.
   ASMJIT_INLINE void setUd(
     uint32_t x0)
   {
@@ -1151,35 +1154,35 @@ union Vec256Data {
     }
   }
 
-  //! @brief Set all four signed 64-bit integers.
+  //! Set all four signed 64-bit integers.
   ASMJIT_INLINE void setSq(
     int64_t x0, int64_t x1, int64_t x2, int64_t x3)
   {
     sq[0] = x0; sq[1] = x1; sq[2] = x2; sq[3] = x3;
   }
 
-  //! @brief Set all four signed 64-bit integers.
+  //! Set all four signed 64-bit integers.
   ASMJIT_INLINE void setSq(
     int64_t x0)
   {
     sq[0] = x0; sq[1] = x0; sq[2] = x0; sq[3] = x0;
   }
 
-  //! @brief Set all four unsigned 64-bit integers.
+  //! Set all four unsigned 64-bit integers.
   ASMJIT_INLINE void setUq(
     uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3)
   {
     uq[0] = x0; uq[1] = x1; uq[2] = x2; uq[3] = x3;
   }
 
-  //! @brief Set all four unsigned 64-bit integers.
+  //! Set all four unsigned 64-bit integers.
   ASMJIT_INLINE void setUq(
     uint64_t x0)
   {
     uq[0] = x0; uq[1] = x0; uq[2] = x0; uq[3] = x0;
   }
 
-  //! @brief Set all eight SP-FP floats.
+  //! Set all eight SP-FP floats.
   ASMJIT_INLINE void setSf(
     float x0, float x1, float x2, float x3,
     float x4, float x5, float x6, float x7)
@@ -1188,7 +1191,7 @@ union Vec256Data {
     sf[4] = x4; sf[5] = x5; sf[6] = x6; sf[7] = x7;
   }
 
-  //! @brief Set all eight SP-FP floats.
+  //! Set all eight SP-FP floats.
   ASMJIT_INLINE void setSf(
     float x0)
   {
@@ -1196,14 +1199,14 @@ union Vec256Data {
     sf[4] = x0; sf[5] = x0; sf[6] = x0; sf[7] = x0;
   }
 
-  //! @brief Set all four DP-FP floats.
+  //! Set all four DP-FP floats.
   ASMJIT_INLINE void setDf(
     double x0, double x1, double x2, double x3)
   {
     df[0] = x0; df[1] = x1; df[2] = x2; df[3] = x3;
   }
 
-  //! @brief Set all four DP-FP floats.
+  //! Set all four DP-FP floats.
   ASMJIT_INLINE void setDf(
     double x0)
   {
@@ -1214,26 +1217,26 @@ union Vec256Data {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Array of thirty two signed 8-bit integers.
+  //! Array of thirty two signed 8-bit integers.
   int8_t sb[32];
-  //! @brief Array of thirty two unsigned 8-bit integers.
+  //! Array of thirty two unsigned 8-bit integers.
   uint8_t ub[32];
-  //! @brief Array of sixteen signed 16-bit integers.
+  //! Array of sixteen signed 16-bit integers.
   int16_t sw[16];
-  //! @brief Array of sixteen unsigned 16-bit integers.
+  //! Array of sixteen unsigned 16-bit integers.
   uint16_t uw[16];
-  //! @brief Array of eight signed 32-bit integers.
+  //! Array of eight signed 32-bit integers.
   int32_t sd[8];
-  //! @brief Array of eight unsigned 32-bit integers.
+  //! Array of eight unsigned 32-bit integers.
   uint32_t ud[8];
-  //! @brief Array of four signed 64-bit integers.
+  //! Array of four signed 64-bit integers.
   int64_t sq[4];
-  //! @brief Array of four unsigned 64-bit integers.
+  //! Array of four unsigned 64-bit integers.
   uint64_t uq[4];
 
-  //! @brief Array of eight 32-bit single precision floating points.
+  //! Array of eight 32-bit single precision floating points.
   float sf[8];
-  //! @brief Array of four 64-bit double precision floating points.
+  //! Array of four 64-bit double precision floating points.
   double df[4];
 };
 

@@ -28,65 +28,34 @@ namespace asmjit {
 namespace x86x64 {
 
 // ============================================================================
-// [asmjit::x86x64::hostCpuId]
+// [asmjit::x86x64::CpuVendor]
 // ============================================================================
 
-// This is messy, I know. Cpuid is implemented as intrinsic in VS2005, but
-// we should support other compilers as well. Main problem is that MS compilers
-// in 64-bit mode not allows to use inline assembler, so we need intrinsic and
-// we need also asm version.
+struct CpuVendor {
+  uint32_t id;
+  char text[12];
+};
 
-// hostCpuId() and detectCpuInfo() for x86 and x64 platforms begins here.
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-void hostCpuId(uint32_t inEax, uint32_t inEcx, CpuId* result) {
+static const CpuVendor cpuVendorTable[] = {
+  { kCpuVendorAmd      , { 'A', 'M', 'D', 'i', 's', 'b', 'e', 't', 't', 'e', 'r', '!' } },
+  { kCpuVendorAmd      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
+  { kCpuVendorVia      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } },
+  { kCpuVendorNSM      , { 'C', 'y', 'r', 'i', 'x', 'I', 'n', 's', 't', 'e', 'a', 'd' } },
+  { kCpuVendorIntel    , { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'I', 'n', 't', 'e', 'l' } },
+  { kCpuVendorTransmeta, { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'T', 'M', 'x', '8', '6' } },
+  { kCpuVendorNSM      , { 'G', 'e', 'o', 'd', 'e', ' ', 'b', 'y', ' ', 'N', 'S', 'C' } },
+  { kCpuVendorTransmeta, { 'T', 'r', 'a', 'n', 's', 'm', 'e', 't', 'a', 'C', 'P', 'U' } },
+  { kCpuVendorVia      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } }
+};
 
-#if defined(_MSC_VER)
-// 2009-02-05: Thanks to Mike Tajmajer for supporting VC7.1 compiler.
-// ASMJIT_HOST_X64 is here only for readibility, only VS2005 can compile 64-bit code.
-# if _MSC_VER >= 1400 || defined(ASMJIT_HOST_X64)
-  // Done by intrinsics.
-  __cpuidex(reinterpret_cast<int*>(result->i), inEax, inEcx);
-# else // _MSC_VER < 1400
-  uint32_t cpuid_eax = inEax;
-  uint32_t cpuid_ecx = inCax;
-  uint32_t* cpuid_out = result->i;
+static ASMJIT_INLINE bool cpuVendorEq(const CpuVendor& info, const char* vendorString) {
+  const uint32_t* a = reinterpret_cast<const uint32_t*>(info.text);
+  const uint32_t* b = reinterpret_cast<const uint32_t*>(vendorString);
 
-  __asm {
-    mov     eax, cpuid_eax
-    mov     ecx, cpuid_ecx
-    mov     edi, cpuid_out
-    cpuid
-    mov     dword ptr[edi +  0], eax
-    mov     dword ptr[edi +  4], ebx
-    mov     dword ptr[edi +  8], ecx
-    mov     dword ptr[edi + 12], edx
-  }
-# endif // _MSC_VER < 1400
-
-#elif defined(__GNUC__)
-// Note, patched to preserve ebx/rbx register which is used by GCC.
-# if defined(ASMJIT_HOST_X86)
-#  define __myCpuId(inEax, inEcx, outEax, outEbx, outEcx, outEdx) \
-  asm ("mov %%ebx, %%edi\n"  \
-       "cpuid\n"             \
-       "xchg %%edi, %%ebx\n" \
-       : "=a" (outEax), "=D" (outEbx), "=c" (outEcx), "=d" (outEdx) : "a" (inEax), "c" (inEcx))
-# else
-#  define __myCpuId(inEax, inEcx, outEax, outEbx, outEcx, outEdx) \
-  asm ("mov %%rbx, %%rdi\n"  \
-       "cpuid\n"             \
-       "xchg %%rdi, %%rbx\n" \
-       : "=a" (outEax), "=D" (outEbx), "=c" (outEcx), "=d" (outEdx) : "a" (inEax), "c" (inEcx))
-# endif
-  __myCpuId(inEax, inEcx, result->eax, result->ebx, result->ecx, result->edx);
-#endif // Compiler #ifdef.
+  return (a[0] == b[0]) & (a[1] == b[1]) & (a[2] == b[2]);
 }
 
-// ============================================================================
-// [asmjit::x86x64::cpuSimplifyBrandString]
-// ============================================================================
-
-static ASMJIT_INLINE void cpuSimplifyBrandString(char* s) {
+static ASMJIT_INLINE void simplifyBrandString(char* s) {
   // Always clear the current character in the buffer. It ensures that there
   // is no garbage after the string NULL terminator.
   char* d = s;
@@ -117,38 +86,61 @@ _Skip:
 }
 
 // ============================================================================
-// [asmjit::x86x64::CpuVendor]
+// [asmjit::x86x64::CpuUtil]
 // ============================================================================
 
-struct CpuVendor {
-  uint32_t id;
-  char text[12];
-};
+// This is messy, I know. Cpuid is implemented as intrinsic in VS2005, but
+// we should support other compilers as well. Main problem is that MS compilers
+// in 64-bit mode not allows to use inline assembler, so we need intrinsic and
+// we need also asm version.
 
-static const CpuVendor cpuVendorTable[] = {
-  { kCpuVendorAmd      , { 'A', 'M', 'D', 'i', 's', 'b', 'e', 't', 't', 'e', 'r', '!' } },
-  { kCpuVendorAmd      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
-  { kCpuVendorVia      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } },
-  { kCpuVendorNSM      , { 'C', 'y', 'r', 'i', 'x', 'I', 'n', 's', 't', 'e', 'a', 'd' } },
-  { kCpuVendorIntel    , { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'I', 'n', 't', 'e', 'l' } },
-  { kCpuVendorTransmeta, { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'T', 'M', 'x', '8', '6' } },
-  { kCpuVendorNSM      , { 'G', 'e', 'o', 'd', 'e', ' ', 'b', 'y', ' ', 'N', 'S', 'C' } },
-  { kCpuVendorTransmeta, { 'T', 'r', 'a', 'n', 's', 'm', 'e', 't', 'a', 'C', 'P', 'U' } },
-  { kCpuVendorVia      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } }
-};
+// callCpuId() and detectCpuInfo() for x86 and x64 platforms begins here.
+#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+void CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, CpuId* outResult) {
 
-static ASMJIT_INLINE bool cpuVendorEq(const CpuVendor& info, const char* vendorString) {
-  const uint32_t* a = reinterpret_cast<const uint32_t*>(info.text);
-  const uint32_t* b = reinterpret_cast<const uint32_t*>(vendorString);
+#if defined(_MSC_VER)
+// 2009-02-05: Thanks to Mike Tajmajer for supporting VC7.1 compiler.
+// ASMJIT_HOST_X64 is here only for readibility, only VS2005 can compile 64-bit code.
+# if _MSC_VER >= 1400 || defined(ASMJIT_HOST_X64)
+  // Done by intrinsics.
+  __cpuidex(reinterpret_cast<int*>(outResult->i), inEax, inEcx);
+# else // _MSC_VER < 1400
+  uint32_t cpuid_eax = inEax;
+  uint32_t cpuid_ecx = inCax;
+  uint32_t* cpuid_out = outResult->i;
 
-  return (a[0] == b[0]) & (a[1] == b[1]) & (a[2] == b[2]);
+  __asm {
+    mov     eax, cpuid_eax
+    mov     ecx, cpuid_ecx
+    mov     edi, cpuid_out
+    cpuid
+    mov     dword ptr[edi +  0], eax
+    mov     dword ptr[edi +  4], ebx
+    mov     dword ptr[edi +  8], ecx
+    mov     dword ptr[edi + 12], edx
+  }
+# endif // _MSC_VER < 1400
+
+#elif defined(__GNUC__)
+// Note, patched to preserve ebx/rbx register which is used by GCC.
+# if defined(ASMJIT_HOST_X86)
+#  define __myCpuId(inEax, inEcx, outEax, outEbx, outEcx, outEdx) \
+  asm ("mov %%ebx, %%edi\n"  \
+       "cpuid\n"             \
+       "xchg %%edi, %%ebx\n" \
+       : "=a" (outEax), "=D" (outEbx), "=c" (outEcx), "=d" (outEdx) : "a" (inEax), "c" (inEcx))
+# else
+#  define __myCpuId(inEax, inEcx, outEax, outEbx, outEcx, outEdx) \
+  asm ("mov %%rbx, %%rdi\n"  \
+       "cpuid\n"             \
+       "xchg %%rdi, %%rbx\n" \
+       : "=a" (outEax), "=D" (outEbx), "=c" (outEcx), "=d" (outEdx) : "a" (inEax), "c" (inEcx))
+# endif
+  __myCpuId(inEax, inEcx, outResult->eax, outResult->ebx, outResult->ecx, outResult->edx);
+#endif // COMPILER
 }
 
-// ============================================================================
-// [asmjit::x86x64::hostCpuDetect]
-// ============================================================================
-
-void hostCpuDetect(CpuInfo* cpuInfo) {
+void CpuUtil::detect(CpuInfo* cpuInfo) {
   CpuId regs;
 
   uint32_t i;
@@ -163,7 +155,7 @@ void hostCpuDetect(CpuInfo* cpuInfo) {
   cpuInfo->_coresCount = BaseCpuInfo::detectNumberOfCores();
 
   // Get vendor string/id.
-  hostCpuId(0, 0, &regs);
+  callCpuId(0, 0, &regs);
 
   maxId = regs.eax;
   ::memcpy(cpuInfo->_vendorString, &regs.ebx, 4);
@@ -178,7 +170,7 @@ void hostCpuDetect(CpuInfo* cpuInfo) {
   }
 
   // Get feature flags in ecx/edx and family/model in eax.
-  hostCpuId(1, 0, &regs);
+  callCpuId(1, 0, &regs);
 
   // Fill family and model fields.
   cpuInfo->_family   = (regs.eax >> 8) & 0x0F;
@@ -235,7 +227,7 @@ void hostCpuDetect(CpuInfo* cpuInfo) {
 
   // Detect new features if the processor supports CPUID-07.
   if (maxId >= 7) {
-    hostCpuId(7, 0, &regs);
+    callCpuId(7, 0, &regs);
 
     if (regs.ebx & 0x00000001) cpuInfo->addFeature(kCpuFeatureFsGsBase);
     if (regs.ebx & 0x00000008) cpuInfo->addFeature(kCpuFeatureBmi);
@@ -252,13 +244,13 @@ void hostCpuDetect(CpuInfo* cpuInfo) {
 
   // Calling cpuid with 0x80000000 as the in argument gets the number of valid
   // extended IDs.
-  hostCpuId(0x80000000, 0, &regs);
+  callCpuId(0x80000000, 0, &regs);
 
   uint32_t maxExtId = IntUtil::iMin<uint32_t>(regs.eax, 0x80000004);
   uint32_t* brand = reinterpret_cast<uint32_t*>(cpuInfo->_brandString);
 
   for (i = 0x80000001; i <= maxExtId; i++) {
-    hostCpuId(i, 0, &regs);
+    callCpuId(i, 0, &regs);
 
     switch (i) {
       case 0x80000001:
@@ -292,7 +284,7 @@ void hostCpuDetect(CpuInfo* cpuInfo) {
   }
 
   // Simplify the brand string (remove unnecessary spaces to make printing nicer).
-  cpuSimplifyBrandString(cpuInfo->_brandString);
+  simplifyBrandString(cpuInfo->_brandString);
 }
 #endif
 

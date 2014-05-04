@@ -52,8 +52,6 @@ static ASMJIT_INLINE uint32_t x86ArgTypeToXmmType(uint32_t aType) {
 
 #define R(_Index_) kRegIndex##_Index_
 static uint32_t X86X64FuncDecl_initConv(X86X64FuncDecl* self, uint32_t arch, uint32_t conv) {
-  uint32_t i;
-
   // Setup defaults.
   self->_argStackSize = 0;
   self->_redZoneSize = 0;
@@ -66,13 +64,8 @@ static uint32_t X86X64FuncDecl_initConv(X86X64FuncDecl* self, uint32_t arch, uin
   self->_passed.reset();
   self->_preserved.reset();
 
-  for (i = 0; i < ASMJIT_ARRAY_SIZE(self->_passedOrderGp); i++) {
-    self->_passedOrderGp[i] = kInvalidReg;
-  }
-
-  for (i = 0; i < ASMJIT_ARRAY_SIZE(self->_passedOrderXmm); i++) {
-    self->_passedOrderXmm[i] = kInvalidReg;
-  }
+  ::memset(self->_passedOrderGp, kInvalidReg, ASMJIT_ARRAY_SIZE(self->_passedOrderGp));
+  ::memset(self->_passedOrderXmm, kInvalidReg, ASMJIT_ARRAY_SIZE(self->_passedOrderXmm));
 
   // --------------------------------------------------------------------------
   // [X86 Support]
@@ -328,10 +321,14 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
       FuncInOut& arg = self->getArg(i);
       uint32_t varType = varMapping[arg.getVarType()];
 
-      if (x86ArgIsInt(varType) && gpPos < 16 && self->_passedOrderGp[gpPos] != kInvalidReg) {
-        arg._regIndex = self->_passedOrderGp[gpPos++];
-        self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
-      }
+      if (!x86ArgIsInt(varType) || gpPos >= ASMJIT_ARRAY_SIZE(self->_passedOrderGp))
+        continue;
+
+      if (self->_passedOrderGp[gpPos] == kInvalidReg)
+        continue;
+
+      arg._regIndex = self->_passedOrderGp[gpPos++];
+      self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
     }
 
     // Stack arguments.
@@ -375,11 +372,13 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         FuncInOut& arg = self->getArg(i);
         uint32_t varType = varMapping[arg.getVarType()];
 
-        if (x86ArgIsInt(varType)) {
+        if (x86ArgIsInt(varType) && i < ASMJIT_ARRAY_SIZE(self->_passedOrderGp)) {
           arg._regIndex = self->_passedOrderGp[i];
           self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
+          continue;
         }
-        else if (x86ArgIsFp(varType)) {
+
+        if (x86ArgIsFp(varType) && i < ASMJIT_ARRAY_SIZE(self->_passedOrderXmm)) {
           arg._varType = static_cast<uint8_t>(x86ArgTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[i];
           self->_used.add(kRegClassXy, IntUtil::mask(arg.getRegIndex()));
@@ -413,10 +412,14 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         FuncInOut& arg = self->getArg(i);
         uint32_t varType = varMapping[arg.getVarType()];
 
-        if (x86ArgIsInt(varType) && gpPos < 32 && self->_passedOrderGp[gpPos] != kInvalidReg) {
-          arg._regIndex = self->_passedOrderGp[gpPos++];
-          self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
-        }
+        if (!x86ArgIsInt(varType) || gpPos >= ASMJIT_ARRAY_SIZE(self->_passedOrderGp))
+          continue;
+
+        if (self->_passedOrderGp[gpPos] == kInvalidReg)
+          continue;
+
+        arg._regIndex = self->_passedOrderGp[gpPos++];
+        self->_used.add(kRegClassGp, IntUtil::mask(arg.getRegIndex()));
       }
 
       // Register arguments (Xmm), always left-to-right.
@@ -523,13 +526,8 @@ void X86X64FuncDecl::reset() {
   _passed.reset();
   _preserved.reset();
 
-  for (i = 0; i < ASMJIT_ARRAY_SIZE(_passedOrderGp); i++) {
-    _passedOrderGp[i] = kInvalidReg;
-  }
-
-  for (i = 0; i < ASMJIT_ARRAY_SIZE(_passedOrderXmm); i++) {
-    _passedOrderXmm[i] = kInvalidReg;
-  }
+  ::memset(_passedOrderGp, kInvalidReg, ASMJIT_ARRAY_SIZE(_passedOrderGp));
+  ::memset(_passedOrderXmm, kInvalidReg, ASMJIT_ARRAY_SIZE(_passedOrderXmm));
 }
 
 } // x86x64 namespace

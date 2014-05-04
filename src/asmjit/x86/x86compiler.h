@@ -21,9 +21,6 @@
 namespace asmjit {
 namespace x86x64 {
 
-//! @addtogroup asmjit_x86x64
-//! @{
-
 // ============================================================================
 // [CodeGen-Begin]
 // ============================================================================
@@ -48,7 +45,7 @@ namespace x86x64 {
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0) { \
     return emit(_Code_, o0); \
   } \
-  /* @overload */ \
+  /*! @overload */ \
   ASMJIT_INLINE InstNode* _Inst_(int o0) { \
     return emit(_Code_, o0); \
   }
@@ -58,7 +55,7 @@ namespace x86x64 {
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0); \
   } \
-  /* @overload */ \
+  /*! @overload */ \
   ASMJIT_INLINE InstNode* _Inst_(int o0) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0); \
@@ -115,7 +112,7 @@ namespace x86x64 {
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1) { \
     return emit(_Code_, o0, o1); \
   } \
-  /* @overload */ \
+  /*! @overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int o1) { \
     return emit(_Code_, o0, o1); \
   }
@@ -125,7 +122,7 @@ namespace x86x64 {
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1); \
   } \
-  /* @overload */ \
+  /*! @overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int o1) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1); \
@@ -183,7 +180,7 @@ namespace x86x64 {
     return emit(_Code_, o0, o1, o2); \
   } \
   \
-  /* @overload */ \
+  /*! @overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
     return emit(_Code_, o0, o1, o2); \
   }
@@ -193,11 +190,14 @@ namespace x86x64 {
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2); \
   } \
-  /* @overload */ \
+  /*! @overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2); \
   }
+
+//! @addtogroup asmjit_x86x64_codegen
+//! @{
 
 // ============================================================================
 // [Forward Declarations]
@@ -211,7 +211,7 @@ struct VarState;
 // [asmjit::x86x64::kVarAttr]
 // ============================================================================
 
-//! @brief X86/X64 VarAttr flags.
+//! X86/X64 VarAttr flags.
 ASMJIT_ENUM(kVarAttr) {
   kVarAttrGpbLo = 0x10000000,
   kVarAttrGpbHi = 0x20000000
@@ -226,38 +226,38 @@ struct VarInst : public BaseVarInst {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get variable-attributes list as VarAttr data.
+  //! Get variable-attributes list as VarAttr data.
   ASMJIT_INLINE VarAttr* getVaList() const {
     return const_cast<VarAttr*>(_list);
   }
 
-  //! @brief Get variable-attributes list as VarAttr data (by class).
+  //! Get variable-attributes list as VarAttr data (by class).
   ASMJIT_INLINE VarAttr* getVaListByClass(uint32_t c) const {
     return const_cast<VarAttr*>(_list) + _start.get(c);
   }
 
-  //! @brief Get position of variables (by class).
+  //! Get position of variables (by class).
   ASMJIT_INLINE uint32_t getVaStart(uint32_t c) const {
     return _start.get(c);
   }
 
-  //! @brief Get count of variables (all).
+  //! Get count of variables (all).
   ASMJIT_INLINE uint32_t getVaCount() const {
     return _vaCount;
   }
 
-  //! @brief Get count of variables (by class).
+  //! Get count of variables (by class).
   ASMJIT_INLINE uint32_t getVaCountByClass(uint32_t c) const {
     return _count.get(c);
   }
 
-  //! @brief Get VarAttr at @a index.
+  //! Get VarAttr at `index`.
   ASMJIT_INLINE VarAttr* getVa(uint32_t index) const {
     ASMJIT_ASSERT(index < _vaCount);
     return getVaList() + index;
   }
 
-  //! @brief Get VarAttr of @a c class at @a index.
+  //! Get VarAttr of `c` class at `index`.
   ASMJIT_INLINE VarAttr* getVaByClass(uint32_t c, uint32_t index) const {
     ASMJIT_ASSERT(index < _count._regs[c]);
     return getVaListByClass(c) + index;
@@ -267,7 +267,7 @@ struct VarInst : public BaseVarInst {
   // [Utils]
   // --------------------------------------------------------------------------
 
-  //! @brief Find VarAttr.
+  //! Find VarAttr.
   ASMJIT_INLINE VarAttr* findVa(VarData* vd) const {
     VarAttr* list = getVaList();
     uint32_t count = getVaCount();
@@ -279,7 +279,7 @@ struct VarInst : public BaseVarInst {
     return NULL;
   }
 
-  //! @brief Find VarAttr (by class).
+  //! Find VarAttr (by class).
   ASMJIT_INLINE VarAttr* findVaByClass(uint32_t c, VarData* vd) const {
     VarAttr* list = getVaListByClass(c);
     uint32_t count = getVaCountByClass(c);
@@ -295,10 +295,10 @@ struct VarInst : public BaseVarInst {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Variables count.
+  //! Variables count.
   uint32_t _vaCount;
 
-  //! @brief Special registers on input.
+  //! Special registers on input.
   //!
   //! Special register(s) restricted to one or more physical register. If there
   //! is more than one special register it means that we have to duplicate the
@@ -307,22 +307,22 @@ struct VarInst : public BaseVarInst {
   //! allocation finishes and marks all duplicates as non-assigned.
   RegMask _inRegs;
 
-  //! @brief Special registers on output.
+  //! Special registers on output.
   //!
   //! Special register(s) used on output. Each variable can have only one
   //! special register on the output, 'VarInst' contains all registers from
   //! all 'VarAttr's.
   RegMask _outRegs;
 
-  //! @brief Clobbered registers (by a function call).
+  //! Clobbered registers (by a function call).
   RegMask _clobberedRegs;
 
-  //! @brief Start indexes of variables per register class.
+  //! Start indexes of variables per register class.
   RegCount _start;
-  //! @brief Count of variables per register class.
+  //! Count of variables per register class.
   RegCount _count;
 
-  //! @brief VarAttr list.
+  //! VarAttr list.
   VarAttr _list[1];
 };
 
@@ -330,7 +330,7 @@ struct VarInst : public BaseVarInst {
 // [asmjit::x86x64::StateCell]
 // ============================================================================
 
-//! @brief X86/X64 state-cell.
+//! X86/X64 state-cell.
 union StateCell {
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -361,25 +361,25 @@ union StateCell {
 // [asmjit::x86x64::VarState]
 // ============================================================================
 
-//! @brief X86/X64 state.
+//! X86/X64 state.
 struct VarState : BaseVarState {
   enum {
-    //! @brief Base index for Gp registers.
+    //! Base index for Gp registers.
     kGpIndex = 0,
-    //! @brief Count of Gp registers.
+    //! Count of Gp registers.
     kGpCount = 16,
 
-    //! @brief Base index for Mm registers.
+    //! Base index for Mm registers.
     kMmIndex = kGpIndex + kGpCount,
-    //! @brief Count of Mm registers.
+    //! Count of Mm registers.
     kMmCount = 8,
 
-    //! @brief Base index for Xmm registers.
+    //! Base index for Xmm registers.
     kXmmIndex = kMmIndex + kMmCount,
-    //! @brief Count of Xmm registers.
+    //! Count of Xmm registers.
     kXmmCount = 16,
 
-    //! @brief Count of all registers in @ref VarState.
+    //! Count of all registers in `VarState`.
     kAllCount = kXmmIndex + kXmmCount
   };
 
@@ -417,25 +417,25 @@ struct VarState : BaseVarState {
   // --------------------------------------------------------------------------
 
   union {
-    //! @brief List of all allocated variables in one array.
+    //! List of all allocated variables in one array.
     VarData* _list[kAllCount];
 
     struct {
-      //! @brief Allocated Gp registers.
+      //! Allocated Gp registers.
       VarData* _listGp[kGpCount];
-      //! @brief Allocated Mm registers.
+      //! Allocated Mm registers.
       VarData* _listMm[kMmCount];
-      //! @brief Allocated Xmm registers.
+      //! Allocated Xmm registers.
       VarData* _listXmm[kXmmCount];
     };
   };
 
-  //! @brief Occupied registers (mask).
+  //! Occupied registers (mask).
   RegMask _occupied;
-  //! @brief Modified registers (mask).
+  //! Modified registers (mask).
   RegMask _modified;
 
-  //! @brief Variables data (count of variables is stored in @ref Context).
+  //! Variables data, the length is stored in `X86X64Context`.
   StateCell _cells[1];
 };
 
@@ -443,7 +443,7 @@ struct VarState : BaseVarState {
 // [asmjit::X86X64FuncNode]
 // ============================================================================
 
-//! @brief X86/X64 function node.
+//! X86/X64 function node.
 struct X86X64FuncNode : public FuncNode {
   ASMJIT_NO_COPY(X86X64FuncNode)
 
@@ -451,7 +451,7 @@ struct X86X64FuncNode : public FuncNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref X86X64FuncNode instance.
+  //! Create a new `X86X64FuncNode` instance.
   ASMJIT_INLINE X86X64FuncNode(BaseCompiler* compiler) : FuncNode(compiler) {
     _decl = &_x86Decl;
     _saveRestoreRegs.reset();
@@ -472,62 +472,62 @@ struct X86X64FuncNode : public FuncNode {
     _stackFrameCopyGpIndex[5] = kInvalidReg;
   }
 
-  //! @brief Destroy the @ref X86X64FuncNode instance.
+  //! Destroy the `X86X64FuncNode` instance.
   ASMJIT_INLINE ~X86X64FuncNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get function declaration as @ref X86X64FuncDecl.
+  //! Get function declaration as `X86X64FuncDecl`.
   ASMJIT_INLINE X86X64FuncDecl* getDecl() const {
     return const_cast<X86X64FuncDecl*>(&_x86Decl);
   }
 
-  //! @brief Get argument.
+  //! Get argument.
   ASMJIT_INLINE VarData* getArg(uint32_t i) const {
     ASMJIT_ASSERT(i < _x86Decl.getArgCount());
     return static_cast<VarData*>(_argList[i]);
   }
 
-  //! @brief Get registers which have to be saved in prolog/epilog.
+  //! Get registers which have to be saved in prolog/epilog.
   ASMJIT_INLINE uint32_t getSaveRestoreRegs(uint32_t c) { return _saveRestoreRegs.get(c); }
 
-  //! @brief Get stack size needed to align stack back to the nature alignment.
+  //! Get stack size needed to align stack back to the nature alignment.
   ASMJIT_INLINE uint32_t getAlignStackSize() const { return _alignStackSize; }
-  //! @brief Set stack size needed to align stack back to the nature alignment.
+  //! Set stack size needed to align stack back to the nature alignment.
   ASMJIT_INLINE void setAlignStackSize(uint32_t s) { _alignStackSize = s; }
 
-  //! @brief Get aligned stack size used by variables and memory allocated on the stack.
+  //! Get aligned stack size used by variables and memory allocated on the stack.
   ASMJIT_INLINE uint32_t getAlignedMemStackSize() const { return _alignedMemStackSize; }
 
-  //! @brief Get stack size used by push/pop sequences in prolog/epilog.
+  //! Get stack size used by push/pop sequences in prolog/epilog.
   ASMJIT_INLINE uint32_t getPushPopStackSize() const { return _pushPopStackSize; }
-  //! @brief Set stack size used by push/pop sequences in prolog/epilog.
+  //! Set stack size used by push/pop sequences in prolog/epilog.
   ASMJIT_INLINE void setPushPopStackSize(uint32_t s) { _pushPopStackSize = s; }
 
-  //! @brief Get stack size used by mov sequences in prolog/epilog.
+  //! Get stack size used by mov sequences in prolog/epilog.
   ASMJIT_INLINE uint32_t getMoveStackSize() const { return _moveStackSize; }
-  //! @brief Set stack size used by mov sequences in prolog/epilog.
+  //! Set stack size used by mov sequences in prolog/epilog.
   ASMJIT_INLINE void setMoveStackSize(uint32_t s) { _moveStackSize = s; }
 
-  //! @brief Get extra stack size.
+  //! Get extra stack size.
   ASMJIT_INLINE uint32_t getExtraStackSize() const { return _extraStackSize; }
-  //! @brief Set extra stack size.
+  //! Set extra stack size.
   ASMJIT_INLINE void setExtraStackSize(uint32_t s) { _extraStackSize  = s; }
 
-  //! @brief Get whether the function has stack frame register.
+  //! Get whether the function has stack frame register.
   //!
   //! @note Stack frame register can be used for both - aligning purposes or
   //! generating standard prolog/epilog sequence.
   //!
   //! @note Used only when stack is misaligned.
   ASMJIT_INLINE bool hasStackFrameReg() const { return _stackFrameRegIndex != kInvalidReg; }
-  //! @brief Get stack frame register index.
+  //! Get stack frame register index.
   //!
   //! @note Used only when stack is misaligned.
   ASMJIT_INLINE uint32_t getStackFrameRegIndex() const { return _stackFrameRegIndex; }
-  //! @brief Get whether the stack frame register is preserved.
+  //! Get whether the stack frame register is preserved.
   //!
   //! @note Used only when stack is misaligned.
   ASMJIT_INLINE bool isStackFrameRegPreserved() const { return static_cast<bool>(_isStackFrameRegPreserved); }
@@ -536,30 +536,30 @@ struct X86X64FuncNode : public FuncNode {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief X86 function decl.
+  //! X86 function decl.
   X86X64FuncDecl _x86Decl;
-  //! @brief Registers which must be saved/restored in prolog/epilog.
+  //! Registers which must be saved/restored in prolog/epilog.
   RegMask _saveRestoreRegs;
 
-  //! @brief Stack size needed to align function back to the nature alignment.
+  //! Stack size needed to align function back to the nature alignment.
   uint32_t _alignStackSize;
-  //! @brief Like @ref _memStackSize, but aligned.
+  //! Like `_memStackSize`, but aligned.
   uint32_t _alignedMemStackSize;
 
-  //! @brief Stack required for push/pop in prolog/epilog (X86/X64 specific).
+  //! Stack required for push/pop in prolog/epilog (X86/X64 specific).
   uint32_t _pushPopStackSize;
-  //! @brief Stack required for movs in prolog/epilog (X86/X64 specific).
+  //! Stack required for movs in prolog/epilog (X86/X64 specific).
   uint32_t _moveStackSize;
 
-  //! @brief Stack required to put extra data (for example function arguments
+  //! Stack required to put extra data (for example function arguments
   //! when manually aligning to requested alignment).
   uint32_t _extraStackSize;
 
-  //! @brief Stack frame register.
+  //! Stack frame register.
   uint8_t _stackFrameRegIndex;
-  //! @brief Whether the stack frame register is preserved.
+  //! Whether the stack frame register is preserved.
   uint8_t _isStackFrameRegPreserved;
-  //! @brief Gp registers indexes that can be used to copy function arguments
+  //! Gp registers indexes that can be used to copy function arguments
   //! to a new location in case we are doing manual stack alignment.
   uint8_t _stackFrameCopyGpIndex[6];
 };
@@ -568,7 +568,7 @@ struct X86X64FuncNode : public FuncNode {
 // [asmjit::X86X64CallNode]
 // ============================================================================
 
-//! @brief X86/X64 function-call node.
+//! X86/X64 function-call node.
 struct X86X64CallNode : public CallNode {
   ASMJIT_NO_COPY(X86X64CallNode)
 
@@ -576,20 +576,20 @@ struct X86X64CallNode : public CallNode {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref X86X64CallNode instance.
+  //! Create a new `X86X64CallNode` instance.
   ASMJIT_INLINE X86X64CallNode(BaseCompiler* compiler, const Operand& target) : CallNode(compiler, target) {
     _decl = &_x86Decl;
     _usedArgs.reset();
   }
 
-  //! @brief Destroy the @ref X86X64CallNode instance.
+  //! Destroy the `X86X64CallNode` instance.
   ASMJIT_INLINE ~X86X64CallNode() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get function prototype.
+  //! Get function prototype.
   ASMJIT_INLINE X86X64FuncDecl* getDecl() const {
     return const_cast<X86X64FuncDecl*>(&_x86Decl);
   }
@@ -598,32 +598,32 @@ struct X86X64CallNode : public CallNode {
   // [Prototype]
   // --------------------------------------------------------------------------
 
-  //! @brief Set function prototype.
+  //! Set function prototype.
   ASMJIT_API Error setPrototype(uint32_t conv, const FuncPrototype& p);
 
   // --------------------------------------------------------------------------
   // [Arg / Ret]
   // --------------------------------------------------------------------------
 
-  //! @brief Set argument at @a i to @a op.
+  //! Set argument at `i` to `op`.
   ASMJIT_API bool _setArg(uint32_t i, const Operand& op);
-  //! @brief Set return at @a i to @a op.
+  //! Set return at `i` to `op`.
   ASMJIT_API bool _setRet(uint32_t i, const Operand& op);
 
-  //! @brief Set argument at @a i to @a var.
+  //! Set argument at `i` to `var`.
   ASMJIT_INLINE bool setArg(uint32_t i, const BaseVar& var) { return _setArg(i, var); }
-  //! @brief Set argument at @a i to @a imm.
+  //! Set argument at `i` to `imm`.
   ASMJIT_INLINE bool setArg(uint32_t i, const Imm& imm) { return _setArg(i, imm); }
-  //! @brief Set return at @a i to @a var.
+  //! Set return at `i` to `var`.
   ASMJIT_INLINE bool setRet(uint32_t i, const BaseVar& var) { return _setRet(i, var); }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief X86 declaration.
+  //! X86 declaration.
   X86X64FuncDecl _x86Decl;
-  //! @brief Mask of all registers actually used to pass function arguments.
+  //! Mask of all registers actually used to pass function arguments.
   //!
   //! @note This bit-mask is not the same as @c X86X64Func::_passed. It contains
   //! only registers actually used to do the call while X86X64Func::_passed
@@ -635,7 +635,7 @@ struct X86X64CallNode : public CallNode {
 // [asmjit::x86x64::X86X64Compiler]
 // ============================================================================
 
-//! @brief X86/X64 compiler.
+//! X86/X64 compiler.
 //!
 //! This class is used to store instruction stream and allows to modify
 //! it on the fly. It uses different concept than @c asmjit::Assembler class
@@ -644,15 +644,9 @@ struct X86X64CallNode : public CallNode {
 //! array instead. This allows to modify instruction stream later and for
 //! example to reorder instructions to make better performance.
 //!
-//! @ref asmjit::X86X64Compiler moves code generation to a higher level. Higher
-//! level constructs allows to write more abstract and extensible code that
-//! is not possible with pure @c asmjit::Assembler class. Because
-//! @c asmjit::Compiler needs to create many objects and lifetime of these
-//! objects is small (same as @c asmjit::Compiler lifetime itself) it uses
-//! very fast memory management model. This model allows to create object
-//! instances in nearly zero time (compared to @c malloc() or @c new()
-//! operators) so overhead by creating machine code by @c asmjit::Compiler
-//! is minimized.
+//! `X86X64Compiler` moves code generation to a higher level. Higher level 
+//! constructs allows to write more abstract and extensible code that is not
+//! possible with pure `X86X64Assembler`.
 //!
 //! @section asmjit_compiler_introduction The Story
 //!
@@ -740,7 +734,7 @@ struct X86X64CallNode : public CallNode {
 //! Comparison of generating machine code through @c Assembler and directly
 //! by @c Compiler:
 //!
-//! @code
+//! ~~~
 //! // Assembler instance is low level code generation class that emits
 //! // machine code.
 //! Assembler a;
@@ -757,11 +751,11 @@ struct X86X64CallNode : public CallNode {
 //!
 //! // Your function
 //! void* fn = a.make();
-//! @endcode
+//! ~~~
 //!
 //! Example how to generate machine code using only @c Compiler (preferred):
 //!
-//! @code
+//! ~~~
 //! // Compiler instance is enough.
 //! Compiler c;
 //!
@@ -769,7 +763,7 @@ struct X86X64CallNode : public CallNode {
 //!
 //! // Your function
 //! void* fn = c.make();
-//! @endcode
+//! ~~~
 //!
 //! You can see that there is @c asmjit::Compiler::serialize() function that
 //! emits instructions into @c asmjit::Assembler(). This layered architecture
@@ -778,24 +772,21 @@ struct X86X64CallNode : public CallNode {
 //! method that can create your function using @c asmjit::Assembler, but
 //! internally (this is preferred bahavior when using @c asmjit::Compiler).
 //!
-//! The @c make() method allocates memory using @ref BaseRuntime instance passed
+//! The @c make() method allocates memory using `Runtime` instance passed
 //! into the @c Compiler constructor. If code generator is used to create JIT
-//! function then virtual memory allocated by @c MemoryManager is used. To get
-//! global memory manager use @c MemoryManager::getGlobal().
+//! function then virtual memory allocated by `VMemMgr` is used.
 //!
-//! @code
-//! // Compiler instance is enough.
-//! Compiler c;
+//! ~~~
+//! JitRuntime runtime;
+//! Compiler c(&runtime);
 //!
 //! // ... put your code using Compiler instance ...
 //!
 //! // Your function
 //! void* fn = c.make();
 //!
-//! // Free it if you don't want it anymore
-//! // (using global memory manager instance)
-//! MemoryManager::getGlobal()->free(fn);
-//! @endcode
+//! runtime.release(fn);
+//! ~~~
 //!
 //! @section asmjit_compiler_Functions Functions
 //!
@@ -815,7 +806,7 @@ struct X86X64CallNode : public CallNode {
 //! variable size is 64-bit). To override this behavior the variable type
 //! must be specified.
 //!
-//! @code
+//! ~~~
 //! // Compiler and function declaration - void f(int*);
 //! Compiler c;
 //! GpVar a0(c, kVarTypeIntPtr);
@@ -844,7 +835,7 @@ struct X86X64CallNode : public CallNode {
 //! // Make the function.
 //! typedef void (*MyFunc)(int*);
 //! MyFunc func = asmjit_cast<MyFunc>(c.make());
-//! @endcode
+//! ~~~
 //!
 //! This code snipped needs to be explained. You can see that there are more
 //! variable types that can be used by @c Compiler. Most useful variables can
@@ -853,44 +844,44 @@ struct X86X64CallNode : public CallNode {
 //!
 //! X86/X64 variable types:
 //!
-//! - @c kVarTypeInt8   - Signed 8-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - @c kVarTypeUInt8  - Unsigned 8-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - `kVarTypeInt8`     - Signed 8-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - `kVarTypeUInt8`    - Unsigned 8-bit integer, mapped to Gpd register (eax, ebx, ...).
 //!
-//! - @c kVarTypeInt16   - Signed 16-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - @c kVarTypeUInt16  - Unsigned 16-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - `kVarTypeInt16`    - Signed 16-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - `kVarTypeUInt16`   - Unsigned 16-bit integer, mapped to Gpd register (eax, ebx, ...).
 //!
-//! - @c kVarTypeInt32   - Signed 32-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - @c kVarTypeUInt32  - Unsigned 32-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - `kVarTypeInt32`    - Signed 32-bit integer, mapped to Gpd register (eax, ebx, ...).
+//! - `kVarTypeUInt32`   - Unsigned 32-bit integer, mapped to Gpd register (eax, ebx, ...).
 //!
-//! - @c kVarTypeInt64   - Signed 64-bit integer, mapped to Gpq register (rax, rbx, ...).
-//! - @c kVarTypeUInt64  - Unsigned 64-bit integer, mapped to Gpq register (rax, rbx, ...).
+//! - `kVarTypeInt64`    - Signed 64-bit integer, mapped to Gpq register (rax, rbx, ...).
+//! - `kVarTypeUInt64`   - Unsigned 64-bit integer, mapped to Gpq register (rax, rbx, ...).
 //!
-//! - @c kVarTypeIntPtr  - intptr_t, mapped to Gpd/Gpq register; depends on target, not host!
-//! - @c kVarTypeUIntPtr - uintptr_t, mapped to Gpd/Gpq register; depends on target, not host!
+//! - `kVarTypeIntPtr`   - intptr_t, mapped to Gpd/Gpq register; depends on target, not host!
+//! - `kVarTypeUIntPtr`  - uintptr_t, mapped to Gpd/Gpq register; depends on target, not host!
 //!
-//! - @c kVarTypeFp32    - 32-bit floating point register (fp0, fp1, ...).
-//! - @c kVarTypeFp64    - 64-bit floating point register (fp0, fp1, ...).
+//! - `kVarTypeFp32`     - 32-bit floating point register (fp0, fp1, ...).
+//! - `kVarTypeFp64`     - 64-bit floating point register (fp0, fp1, ...).
 //!
-//! - @c kVarTypeMm      - 64-bit Mm register (mm0, mm1, ...).
+//! - `kVarTypeMm`       - 64-bit Mm register (mm0, mm1, ...).
 //!
-//! - @c kVarTypeXmm     - 128-bit SSE register.
-//! - @c kVarTypeXmmSs   - 128-bit SSE register that contains a scalar 32-bit SP-FP value.
-//! - @c kVarTypeXmmSd   - 128-bit SSE register that contains a scalar 64-bit DP-FP value.
-//! - @c kVarTypeXmmPs   - 128-bit SSE register that contains 4 packed 32-bit SP-FP values.
-//! - @c kVarTypeXmmPd   - 128-bit SSE register that contains 2 packed 64-bit DP-FP values.
+//! - `kVarTypeXmm`      - 128-bit SSE register.
+//! - `kVarTypeXmmSs`    - 128-bit SSE register that contains a scalar 32-bit SP-FP value.
+//! - `kVarTypeXmmSd`    - 128-bit SSE register that contains a scalar 64-bit DP-FP value.
+//! - `kVarTypeXmmPs`    - 128-bit SSE register that contains 4 packed 32-bit SP-FP values.
+//! - `kVarTypeXmmPd`    - 128-bit SSE register that contains 2 packed 64-bit DP-FP values.
 //!
-//! - @c kVarTypeYmm     - 256-bit AVX register.
-//! - @c kVarTypeYmmPs   - 256-bit AVX register that contains 4 packed 32-bit SP-FP values.
-//! - @c kVarTypeYmmPd   - 256-bit AVX register that contains 2 packed 64-bit DP-FP values.
+//! - `kVarTypeYmm`      - 256-bit AVX register.
+//! - `kVarTypeYmmPs`    - 256-bit AVX register that contains 4 packed 32-bit SP-FP values.
+//! - `kVarTypeYmmPd`    - 256-bit AVX register that contains 2 packed 64-bit DP-FP values.
 //!
 //! Variable states:
 //!
-//! - @c kVarStateUnused - State that is assigned to newly created
-//!      variables or to not used variables (dereferenced to zero).
-//! - @c kVarStateReg    - State that means that variable is currently
-//!      allocated in register.
-//! - @c kVarStateMem    - State that means that variable is currently
-//!      only in memory location.
+//! - `kVarStateUnused - State that is assigned to newly created variables or
+//!    to not used variables (dereferenced to zero).
+//! - `kVarStateReg - State that means that variable is currently allocated in
+//!    register.
+//! - `kVarStateMem - State that means that variable is currently only in 
+//!    memory location.
 //!
 //! When you create new variable, initial state is always @c kVarStateUnused,
 //! allocating it to register or spilling to memory changes this state to
@@ -901,15 +892,15 @@ struct X86X64CallNode : public CallNode {
 //!
 //! Explicit variable allocating / spilling methods:
 //!
-//! - @c Compiler::alloc() - Explicit method to alloc variable into
-//!      register. You can use this before loops or code blocks.
+//! - `BaseCompiler::alloc()` - Explicit method to alloc variable into register.
+//!    It can be used to force allocation a variable before a loop for example.
 //!
-//! - @c Compiler::spill() - Explicit method to spill variable. If variable
-//!      is in register and you call this method, it's moved to its home memory
-//!      location. If variable is not in register no operation is performed.
+//! - `BaseCompiler::spill()` - Explicit method to spill variable. If variable
+//!    is in register and you call this method, it's moved to its home memory
+//!    location. If variable is not in register no operation is performed.
 //!
-//! - @c Compiler::unuse() - Unuse variable (you can use this to end the
-//!      variable scope or sub-scope).
+//! - `BaseCompiler::unuse()` - Unuse variable (you can use this to end the
+//!    variable scope or sub-scope).
 //!
 //! Please see AsmJit tutorials (testcompiler.cpp and testvariables.cpp) for
 //! more complete examples.
@@ -952,7 +943,7 @@ struct X86X64CallNode : public CallNode {
 //! Next example is the situation where the extended code block is used to
 //! do state-change:
 //!
-//! @code
+//! ~~~
 //! Compiler c;
 //!
 //! c.addFunc(kFuncConvHost, FuncBuilder0<FnVoid>());
@@ -1006,7 +997,7 @@ struct X86X64CallNode : public CallNode {
 //! //   var1 - register.
 //!
 //! c.endFunc();
-//! @endcode
+//! ~~~
 //!
 //! The output:
 //!
@@ -1043,7 +1034,7 @@ struct X86X64CallNode : public CallNode {
 //! will be taken). To demonstrate the possibility to embed state-switch before
 //! jump we use slightly modified code:
 //!
-//! @code
+//! ~~~
 //! Compiler c;
 //!
 //! c.addFunc(kFuncConvHost, FuncBuilder0<FnVoid>());
@@ -1086,11 +1077,11 @@ struct X86X64CallNode : public CallNode {
 //! c.je(L0);
 //!
 //! c.endFunc();
-//! @endcode
+//! ~~~
 //!
 //! The output:
 //!
-//! @verbatim
+//! ~~~
 //! xor ecx, ecx                    ; xor var_0, var_0
 //! xor edx, edx                    ; xor var_1, var_1
 //! mov [esp - 24], ecx             ; spill var_0
@@ -1108,7 +1099,7 @@ struct X86X64CallNode : public CallNode {
 //!
 //! je short L2
 //! ret
-//! @endverbatim
+//! ~~~
 //!
 //! Please notice where the state-switch section is located. The @c Compiler
 //! decided that jump is likely to be taken so the state change is embedded
@@ -1153,7 +1144,7 @@ struct X86X64CallNode : public CallNode {
 //!
 //! Example of code generating by standard type-safe API:
 //!
-//! @code
+//! ~~~
 //! Compiler c;
 //!
 //! GpVar var0(c, kVarTypeInt32);
@@ -1164,11 +1155,11 @@ struct X86X64CallNode : public CallNode {
 //! c.mov(var0, 0);
 //! c.add(var0, var1);
 //! c.sub(var0, var1);
-//! @endcode
+//! ~~~
 //!
 //! The code above can be rewritten as:
 //!
-//! @code
+//! ~~~
 //! Compiler c;
 //!
 //! GpVar var0(c, kVarTypeInt32);
@@ -1179,7 +1170,7 @@ struct X86X64CallNode : public CallNode {
 //! c.emit(kInstMov, var0, 0);
 //! c.emit(kInstAdd, var0, var1);
 //! c.emit(kInstSub, var0, var1);
-//! @endcode
+//! ~~~
 //!
 //! The advantage of first snippet is very friendly API and type-safe control
 //! that is controlled by the C++ compiler. The advantage of second snippet is
@@ -1189,18 +1180,17 @@ struct X86X64CallNode : public CallNode {
 //!
 //! Use case:
 //!
-//! @code
-//! bool emitArithmetic(Compiler& c, XmmVar& var0, XmmVar& var1, const char* op)
-//! {
+//! ~~~
+//! bool emitArithmetic(Compiler& c, XmmVar& var0, XmmVar& var1, const char* op) {
 //!   uint32_t code = kInstNone;
 //!
 //!   if (strcmp(op, "ADD") == 0)
 //!     code = kInstAddss;
-//!   else if (strcmp(op, "SUBTRACT") == 0)
+//!   else if (::strcmp(op, "SUBTRACT") == 0)
 //!     code = kInstSubss;
-//!   else if (strcmp(op, "MULTIPLY") == 0)
+//!   else if (::strcmp(op, "MULTIPLY") == 0)
 //!     code = kInstMulss;
-//!   else if (strcmp(op, "DIVIDE") == 0)
+//!   else if (::strcmp(op, "DIVIDE") == 0)
 //!     code = kInstDivss;
 //!   else
 //!     // Invalid parameter?
@@ -1208,7 +1198,7 @@ struct X86X64CallNode : public CallNode {
 //!
 //!   c.emit(code, var0, var1);
 //! }
-//! @endcode
+//! ~~~
 //!
 //! Other use cases are waiting for you! Be sure that instruction you are
 //! emitting is correct and encodable, because if not, Assembler will set
@@ -1220,16 +1210,16 @@ struct X86X64Compiler : public BaseCompiler {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a @ref X86X64Compiler instance.
-  ASMJIT_API X86X64Compiler(BaseRuntime* runtime);
-  //! @brief Destroy the @ref X86X64Compiler instance.
+  //! Create a `X86X64Compiler` instance.
+  ASMJIT_API X86X64Compiler(Runtime* runtime);
+  //! Destroy the `X86X64Compiler` instance.
   ASMJIT_API ~X86X64Compiler();
 
   // --------------------------------------------------------------------------
   // [Inst / Emit]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref InstNode.
+  //! Create a new `InstNode`.
   ASMJIT_API InstNode* newInst(uint32_t code);
   //! @overload
   ASMJIT_API InstNode* newInst(uint32_t code, const Operand& o0);
@@ -1242,7 +1232,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   ASMJIT_API InstNode* newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4);
 
-  //! @brief Add a new @ref InstNode.
+  //! Add a new `InstNode`.
   ASMJIT_API InstNode* emit(uint32_t code);
   //! @overload
   ASMJIT_API InstNode* emit(uint32_t code, const Operand& o0);
@@ -1266,17 +1256,17 @@ struct X86X64Compiler : public BaseCompiler {
   // [Func]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref X86X64FuncNode.
+  //! Create a new `X86X64FuncNode`.
   ASMJIT_API X86X64FuncNode* newFunc(uint32_t conv, const FuncPrototype& p);
 
-  //! @brief Add a new function.
+  //! Add a new function.
   //!
-  //! @param cconv Calling convention to use (see @c kFuncConv enum)
+  //! @param conv Calling convention to use (see @c kFuncConv enum)
   //! @param params Function arguments prototype.
   //!
   //! This method is usually used as a first step when generating functions
-  //! by @c Compiler. First parameter @a cconv specifies function calling
-  //! convention to use. Second parameter @a params specifies function
+  //! by @c Compiler. First parameter `cconv` specifies function calling
+  //! convention to use. Second parameter `params` specifies function
   //! arguments. To create function arguments are used templates
   //! @c FuncBuilder0<...>, @c FuncBuilder1<...>, @c FuncBuilder2<...>,
   //! etc...
@@ -1285,7 +1275,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! based on real C++ types. See next example how to generate function with
   //! two 32-bit integer arguments.
   //!
-  //! @code
+  //! ~~~
   //! // Building function using asmjit::Compiler example.
   //!
   //! // Compiler instance
@@ -1300,14 +1290,14 @@ struct X86X64Compiler : public BaseCompiler {
   //!
   //! // End of function (also emits function @c Epilog)
   //! c.endFunc();
-  //! @endcode
+  //! ~~~
   //!
   //! You can see that building functions is really easy. Previous code snipped
   //! will generate code for function with two 32-bit integer arguments. You
   //! can access arguments by @c asmjit::Function::argument() method. Arguments
   //! are indexed from 0 (like everything in C).
   //!
-  //! @code
+  //! ~~~
   //! // Accessing function arguments through asmjit::Function example.
   //!
   //! // Compiler instance
@@ -1330,7 +1320,7 @@ struct X86X64Compiler : public BaseCompiler {
   //!
   //! // End of function - emits function epilog and return instruction.
   //! c.endFunc();
-  //! @endcode
+  //! ~~~
   //!
   //! Arguments are like variables. How to manipulate with variables is
   //! documented in @c asmjit::Compiler, variables section.
@@ -1342,10 +1332,10 @@ struct X86X64Compiler : public BaseCompiler {
   //! @sa @c FuncBuilder0, @c FuncBuilder1, @c FuncBuilder2, ...
   ASMJIT_API X86X64FuncNode* addFunc(uint32_t conv, const FuncPrototype& p);
 
-  //! @brief End of current function.
+  //! End of current function.
   ASMJIT_API EndNode* endFunc();
 
-  //! @brief Get current function as @ref X86X64FuncNode.
+  //! Get current function as `X86X64FuncNode`.
   //!
   //! This method can be called within @c addFunc() and @c endFunc()
   //! block to get current function you are working with. It's recommended
@@ -1358,31 +1348,30 @@ struct X86X64Compiler : public BaseCompiler {
   // [Ret]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref RetNode.
+  //! Create a new `RetNode`.
   ASMJIT_API RetNode* newRet(const Operand& o0, const Operand& o1);
-  //! @brief Add a new @ref RetNode.
+  //! Add a new `RetNode`.
   ASMJIT_API RetNode* addRet(const Operand& o0, const Operand& o1);
 
   // --------------------------------------------------------------------------
   // [Call]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref X86X64CallNode.
+  //! Create a new `X86X64CallNode`.
   ASMJIT_API X86X64CallNode* newCall(const Operand& o0, uint32_t conv, const FuncPrototype& p);
-  //! @brief Add a new @ref X86X64CallNode.
+  //! Add a new `X86X64CallNode`.
   ASMJIT_API X86X64CallNode* addCall(const Operand& o0, uint32_t conv, const FuncPrototype& p);
 
   // --------------------------------------------------------------------------
   // [Vars]
   // --------------------------------------------------------------------------
 
-  //! @brief Set function argument to @a var.
+  //! Set function argument to `var`.
   ASMJIT_API Error setArg(uint32_t argIndex, BaseVar& var);
 
-  //! @overridden
   ASMJIT_API virtual Error _newVar(BaseVar* var, uint32_t type, const char* name);
 
-  //! @brief Create a new Gp variable.
+  //! Create a new Gp variable.
   ASMJIT_INLINE GpVar newGpVar(uint32_t vType = kVarTypeIntPtr, const char* name = NULL) {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeIntStart, _kVarTypeIntEnd));
@@ -1392,7 +1381,7 @@ struct X86X64Compiler : public BaseCompiler {
     return var;
   }
 
-  //! @brief Create a new Mm variable.
+  //! Create a new Mm variable.
   ASMJIT_INLINE MmVar newMmVar(uint32_t vType = kVarTypeMm, const char* name = NULL) {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeMmStart, _kVarTypeMmEnd));
@@ -1402,7 +1391,7 @@ struct X86X64Compiler : public BaseCompiler {
     return var;
   }
 
-  //! @brief Create a new Xmm variable.
+  //! Create a new Xmm variable.
   ASMJIT_INLINE XmmVar newXmmVar(uint32_t vType = kVarTypeXmm, const char* name = NULL) {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeXmmStart, _kVarTypeXmmEnd));
@@ -1412,7 +1401,7 @@ struct X86X64Compiler : public BaseCompiler {
     return var;
   }
 
-  //! @brief Create a new Ymm variable.
+  //! Create a new Ymm variable.
   ASMJIT_INLINE YmmVar newYmmVar(uint32_t vType = kVarTypeYmm, const char* name = NULL) {
     ASMJIT_ASSERT(vType < kVarTypeCount);
     ASMJIT_ASSERT(IntUtil::inInterval<uint32_t>(vType, _kVarTypeYmmStart, _kVarTypeYmmEnd));
@@ -1422,10 +1411,10 @@ struct X86X64Compiler : public BaseCompiler {
     return var;
   }
 
-  //! @brief Get memory home of variable @a var.
+  //! Get memory home of variable `var`.
   ASMJIT_API void getMemoryHome(BaseVar& var, GpVar* home, int* displacement = NULL);
 
-  //! @brief Set memory home of variable @a var.
+  //! Set memory home of variable `var`.
   //!
   //! Default memory home location is on stack (ESP/RSP), but when needed the
   //! bebahior can be changed by this method.
@@ -1433,7 +1422,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! It is an error to chaining memory home locations. For example the given
   //! code is invalid:
   //!
-  //! @code
+  //! ~~~
   //! Compiler c;
   //!
   //! ...
@@ -1446,17 +1435,16 @@ struct X86X64Compiler : public BaseCompiler {
   //! c.setMemoryHome(v1, v0, 0); // Allowed, [v0+0] is memory home for v1.
   //! c.setMemoryHome(v2, v0, 4); // Allowed, [v0+4] is memory home for v2.
   //! c.setMemoryHome(v3, v2);    // CHAINING, NOT ALLOWED!
-  //! @endcode
+  //! ~~~
   ASMJIT_API void setMemoryHome(BaseVar& var, const GpVar& home, int displacement = 0);
 
   // --------------------------------------------------------------------------
   // [Stack]
   // --------------------------------------------------------------------------
 
-  //! @overridden
   ASMJIT_API virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name);
 
-  //! @brief Create a new memory chunk allocated on the current function's stack.
+  //! Create a new memory chunk allocated on the current function's stack.
   ASMJIT_INLINE Mem newStack(uint32_t size, uint32_t alignment, const char* name = NULL) {
     Mem m(NoInit);
     _newStack(&m, size, alignment, name);
@@ -1467,10 +1455,9 @@ struct X86X64Compiler : public BaseCompiler {
   // [Const]
   // --------------------------------------------------------------------------
 
-  //! @overridden
   ASMJIT_API virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size);
 
-  //! @brief Put data to a constant-pool and get a memory reference to it.
+  //! Put data to a constant-pool and get a memory reference to it.
   ASMJIT_INLINE Mem newConst(uint32_t scope, const void* data, size_t size) {
     Mem m(NoInit);
     _newConst(&m, scope, data, size);
@@ -1500,49 +1487,49 @@ struct X86X64Compiler : public BaseCompiler {
   // [Embed]
   // --------------------------------------------------------------------------
 
-  //! @brief Add 8-bit integer data to the instuction stream.
+  //! Add 8-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* db(uint8_t x) { return embed(&x, 1); }
-  //! @brief Add 16-bit integer data to the instuction stream.
+  //! Add 16-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dw(uint16_t x) { return embed(&x, 2); }
-  //! @brief Add 32-bit integer data to the instuction stream.
+  //! Add 32-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dd(uint32_t x) { return embed(&x, 4); }
-  //! @brief Add 64-bit integer data to the instuction stream.
+  //! Add 64-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dq(uint64_t x) { return embed(&x, 8); }
 
-  //! @brief Add 8-bit integer data to the instuction stream.
+  //! Add 8-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dint8(int8_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int8_t))); }
-  //! @brief Add 8-bit integer data to the instuction stream.
+  //! Add 8-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* duint8(uint8_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint8_t))); }
 
-  //! @brief Add 16-bit integer data to the instuction stream.
+  //! Add 16-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dint16(int16_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int16_t))); }
-  //! @brief Add 16-bit integer data to the instuction stream.
+  //! Add 16-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* duint16(uint16_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint16_t))); }
 
-  //! @brief Add 32-bit integer data to the instuction stream.
+  //! Add 32-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dint32(int32_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int32_t))); }
-  //! @brief Add 32-bit integer data to the instuction stream.
+  //! Add 32-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* duint32(uint32_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint32_t))); }
 
-  //! @brief Add 64-bit integer data to the instuction stream.
+  //! Add 64-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dint64(int64_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int64_t))); }
-  //! @brief Add 64-bit integer data to the instuction stream.
+  //! Add 64-bit integer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* duint64(uint64_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint64_t))); }
 
-  //! @brief Add float data to the instuction stream.
+  //! Add float data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dfloat(float x) { return embed(&x, static_cast<uint32_t>(sizeof(float))); }
-  //! @brief Add double data to the instuction stream.
+  //! Add double data to the instuction stream.
   ASMJIT_INLINE EmbedNode* ddouble(double x) { return embed(&x, static_cast<uint32_t>(sizeof(double))); }
 
-  //! @brief Add pointer data to the instuction stream.
+  //! Add pointer data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dptr(void* x) { return embed(&x, static_cast<uint32_t>(sizeof(void*))); }
 
-  //! @brief Add Mm data to the instuction stream.
+  //! Add Mm data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dmm(const MmData& x) { return embed(&x, static_cast<uint32_t>(sizeof(MmData))); }
-  //! @brief Add Xmm data to the instuction stream.
+  //! Add Xmm data to the instuction stream.
   ASMJIT_INLINE EmbedNode* dxmm(const XmmData& x) { return embed(&x, static_cast<uint32_t>(sizeof(XmmData))); }
 
-  //! @brief Add data in a given structure instance to the instuction stream.
+  //! Add data in a given structure instance to the instuction stream.
   template<typename T>
   ASMJIT_INLINE EmbedNode* dstruct(const T& x) { return embed(&x, static_cast<uint32_t>(sizeof(T))); }
 
@@ -1550,14 +1537,12 @@ struct X86X64Compiler : public BaseCompiler {
   // [Make]
   // --------------------------------------------------------------------------
 
-  //! @overridden
   ASMJIT_API virtual void* make();
 
   // -------------------------------------------------------------------------
   // [Serialize]
   // -------------------------------------------------------------------------
 
-  //! @overridden
   ASMJIT_API virtual Error serialize(BaseAssembler& assembler);
 
   // -------------------------------------------------------------------------
@@ -1570,7 +1555,7 @@ struct X86X64Compiler : public BaseCompiler {
   // [X86 Instructions]
   // --------------------------------------------------------------------------
 
-  //! @brief Add with carry.
+  //! Add with carry.
   INST_2x(adc, kInstAdc, GpVar, GpVar)
   //! @overload
   INST_2x(adc, kInstAdc, GpVar, Mem)
@@ -1581,7 +1566,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(adc, kInstAdc, Mem, Imm)
 
-  //! @brief Add.
+  //! Add.
   INST_2x(add, kInstAdd, GpVar, GpVar)
   //! @overload
   INST_2x(add, kInstAdd, GpVar, Mem)
@@ -1592,7 +1577,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(add, kInstAdd, Mem, Imm)
 
-  //! @brief And.
+  //! And.
   INST_2x(and_, kInstAnd, GpVar, GpVar)
   //! @overload
   INST_2x(and_, kInstAnd, GpVar, Mem)
@@ -1603,20 +1588,20 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(and_, kInstAnd, Mem, Imm)
 
-  //! @brief Bit scan forward.
+  //! Bit scan forward.
   INST_2x_(bsf, kInstBsf, GpVar, GpVar, !o0.isGpb())
   //! @overload
   INST_2x_(bsf, kInstBsf, GpVar, Mem, !o0.isGpb())
 
-  //! @brief Bit scan reverse.
+  //! Bit scan reverse.
   INST_2x_(bsr, kInstBsr, GpVar, GpVar, !o0.isGpb())
   //! @overload
   INST_2x_(bsr, kInstBsr, GpVar, Mem, !o0.isGpb())
 
-  //! @brief Byte swap (32-bit or 64-bit registers only) (i486).
+  //! Byte swap (32-bit or 64-bit registers only) (i486).
   INST_1x_(bswap, kInstBswap, GpVar, o0.getSize() >= 4)
 
-  //! @brief Bit test.
+  //! Bit test.
   INST_2x(bt, kInstBt, GpVar, GpVar)
   //! @overload
   INST_2i(bt, kInstBt, GpVar, Imm)
@@ -1625,7 +1610,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(bt, kInstBt, Mem, Imm)
 
-  //! @brief Bit test and complement.
+  //! Bit test and complement.
   INST_2x(btc, kInstBtc, GpVar, GpVar)
   //! @overload
   INST_2i(btc, kInstBtc, GpVar, Imm)
@@ -1634,7 +1619,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(btc, kInstBtc, Mem, Imm)
 
-  //! @brief Bit test and reset.
+  //! Bit test and reset.
   INST_2x(btr, kInstBtr, GpVar, GpVar)
   //! @overload
   INST_2i(btr, kInstBtr, GpVar, Imm)
@@ -1643,7 +1628,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(btr, kInstBtr, Mem, Imm)
 
-  //! @brief Bit test and set.
+  //! Bit test and set.
   INST_2x(bts, kInstBts, GpVar, GpVar)
   //! @overload
   INST_2i(bts, kInstBts, GpVar, Imm)
@@ -1652,7 +1637,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(bts, kInstBts, Mem, Imm)
 
-  //! @brief Call.
+  //! Call.
   ASMJIT_INLINE X86X64CallNode* call(const GpVar& dst, uint32_t conv, const FuncPrototype& p) {
     return addCall(dst, conv, p);
   }
@@ -1674,28 +1659,28 @@ struct X86X64Compiler : public BaseCompiler {
     return addCall(label, conv, p);
   }
 
-  //! @brief Clear carry flag
+  //! Clear carry flag
   INST_0x(clc, kInstClc)
-  //! @brief Clear direction flag
+  //! Clear direction flag
   INST_0x(cld, kInstCld)
-  //! @brief Complement carry Flag.
+  //! Complement carry Flag.
   INST_0x(cmc, kInstCmc)
 
-  //! @brief Convert byte to word (AX <- Sign Extend AL).
+  //! Convert byte to word (AX <- Sign Extend AL).
   INST_1x(cbw, kInstCbw, GpVar  /* al */)
-  //! @brief Convert word to dword (DX:AX <- Sign Extend AX).
+  //! Convert word to dword (DX:AX <- Sign Extend AX).
   INST_2x(cwd, kInstCwd, GpVar  /* dx */, GpVar /* ax */)
-  //! @brief Convert word to dword (EAX <- Sign Extend AX).
+  //! Convert word to dword (EAX <- Sign Extend AX).
   INST_1x(cwde, kInstCwde, GpVar /* eax */)
-  //! @brief Convert dword to qword (EDX:EAX <- Sign Extend EAX).
+  //! Convert dword to qword (EDX:EAX <- Sign Extend EAX).
   INST_2x(cdq, kInstCdq, GpVar /* edx */, GpVar /* eax */)
 
-  //! @brief Conditional move.
+  //! Conditional move.
   INST_2cc(cmov, kInstCmov, condToCmovcc, GpVar, GpVar)
-  //! @brief Conditional move.
+  //! Conditional move.
   INST_2cc(cmov, kInstCmov, condToCmovcc, GpVar, Mem)
 
-  //! @brief Compare two operands.
+  //! Compare two operands.
   INST_2x(cmp, kInstCmp, GpVar, GpVar)
   //! @overload
   INST_2x(cmp, kInstCmp, GpVar, Mem)
@@ -1706,12 +1691,12 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(cmp, kInstCmp, Mem, Imm)
 
-  //! @brief Compare and exchange (i486).
+  //! Compare and exchange (i486).
   INST_3x(cmpxchg, kInstCmpxchg, GpVar /* eax */, GpVar, GpVar)
   //! @overload
   INST_3x(cmpxchg, kInstCmpxchg, GpVar /* eax */, Mem, GpVar)
 
-  //! @brief Compares the 64-bit value in EDX:EAX with the memory operand (Pentium).
+  //! Compares the 64-bit value in EDX:EAX with the memory operand (Pentium).
   ASMJIT_INLINE InstNode* cmpxchg8b(
     const GpVar& cmp_edx, const GpVar& cmp_eax,
     const GpVar& cmp_ecx, const GpVar& cmp_ebx,
@@ -1720,7 +1705,7 @@ struct X86X64Compiler : public BaseCompiler {
     return emit(kInstCmpxchg8b, cmp_edx, cmp_eax, cmp_ecx, cmp_ebx, dst);
   }
 
-  //! @brief CPU identification (i486).
+  //! CPU identification (i486).
   ASMJIT_INLINE InstNode* cpuid(
     const GpVar& inout_eax,
     const GpVar& out_ebx,
@@ -1735,63 +1720,63 @@ struct X86X64Compiler : public BaseCompiler {
     return emit(kInstCpuid, inout_eax, out_ebx, out_ecx, out_edx);
   }
 
-  //! @brief Accumulate crc32 value (polynomial 0x11EDC6F41) (SSE4.2).
+  //! Accumulate crc32 value (polynomial 0x11EDC6F41) (SSE4.2).
   INST_2x_(crc32, kInstCrc32, GpVar, GpVar, o0.isRegType(kRegTypeGpd) || o0.isRegType(kRegTypeGpq))
   //! @overload
   INST_2x_(crc32, kInstCrc32, GpVar, Mem, o0.isRegType(kRegTypeGpd) || o0.isRegType(kRegTypeGpq))
 
-  //! @brief Decrement by 1.
+  //! Decrement by 1.
   INST_1x(dec, kInstDec, GpVar)
   //! @overload
   INST_1x(dec, kInstDec, Mem)
 
-  //! @brief Unsigned divide (o0:o1 <- o0:o1 / o2).
+  //! Unsigned divide (o0:o1 <- o0:o1 / o2).
   //!
-  //! Remainder is stored in @a o0, quotient is stored in @a o1.
+  //! Remainder is stored in `o0`, quotient is stored in `o1`.
   INST_3x_(div, kInstDiv, GpVar, GpVar, GpVar, o0.getId() != o1.getId())
   //! @overload
   INST_3x_(div, kInstDiv, GpVar, GpVar, Mem, o0.getId() != o1.getId())
 
-  //! @brief Signed divide (o0:o1 <- o0:o1 / o2).
+  //! Signed divide (o0:o1 <- o0:o1 / o2).
   //!
-  //! Remainder is stored in @a o0, quotient is stored in @a o1.
+  //! Remainder is stored in `o0`, quotient is stored in `o1`.
   INST_3x_(idiv, kInstIdiv, GpVar, GpVar, GpVar, o0.getId() != o1.getId())
   //! @overload
   INST_3x_(idiv, kInstIdiv, GpVar, GpVar, Mem, o0.getId() != o1.getId())
 
-  //! @brief Signed multiply (o0:o1 <- o1 * o2).
+  //! Signed multiply (o0:o1 <- o1 * o2).
   //!
-  //! Hi value is stored in @a o0, lo value is stored in @a o1.
+  //! Hi value is stored in `o0`, lo value is stored in `o1`.
   INST_3x_(imul, kInstImul, GpVar, GpVar, GpVar, o0.getId() != o1.getId())
   //! @overload
   INST_3x_(imul, kInstImul, GpVar, GpVar, Mem, o0.getId() != o1.getId())
 
-  //! @brief Signed multiply.
+  //! Signed multiply.
   INST_2x(imul, kInstImul, GpVar, GpVar)
   //! @overload
   INST_2x(imul, kInstImul, GpVar, Mem)
   //! @overload
   INST_2i(imul, kInstImul, GpVar, Imm)
 
-  //! @brief Signed multiply.
+  //! Signed multiply.
   INST_3i(imul, kInstImul, GpVar, GpVar, Imm)
   //! @overload
   INST_3i(imul, kInstImul, GpVar, Mem, Imm)
 
-  //! @brief Increment by 1.
+  //! Increment by 1.
   INST_1x(inc, kInstInc, GpVar)
   //! @overload
   INST_1x(inc, kInstInc, Mem)
 
-  //! @brief Interrupt.
+  //! Interrupt.
   INST_1i(int_, kInstInt, Imm)
-  //! @brief Interrupt 3 - trap to debugger.
+  //! Interrupt 3 - trap to debugger.
   ASMJIT_INLINE InstNode* int3() { return int_(3); }
 
-  //! @brief Jump to label @a label if condition @a cc is met.
+  //! Jump to label `label` if condition `cc` is met.
   INST_1cc(j, kInstJ, condToJcc, Label)
 
-  //! @brief Jump.
+  //! Jump.
   INST_1x(jmp, kInstJmp, GpVar)
   //! @overload
   INST_1x(jmp, kInstJmp, Mem)
@@ -1802,13 +1787,13 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   ASMJIT_INLINE InstNode* jmp(void* dst) { return jmp(Imm((intptr_t)dst)); }
 
-  //! @brief Load AH from flags.
+  //! Load AH from flags.
   INST_1x(lahf, kInstLahf, GpVar)
 
-  //! @brief Load effective address
+  //! Load effective address
   INST_2x(lea, kInstLea, GpVar, Mem)
 
-  //! @brief Move.
+  //! Move.
   INST_2x(mov, kInstMov, GpVar, GpVar)
   //! @overload
   INST_2x(mov, kInstMov, GpVar, Mem)
@@ -1819,60 +1804,60 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(mov, kInstMov, Mem, Imm)
 
-  //! @brief Move from segment register.
+  //! Move from segment register.
   INST_2x(mov, kInstMov, GpVar, SegReg)
   //! @overload
   INST_2x(mov, kInstMov, Mem, SegReg)
-  //! @brief Move to segment register.
+  //! Move to segment register.
   INST_2x(mov, kInstMov, SegReg, GpVar)
   //! @overload
   INST_2x(mov, kInstMov, SegReg, Mem)
 
-  //! @brief Move (AL|AX|EAX|RAX <- absolute address in immediate).
+  //! Move (AL|AX|EAX|RAX <- absolute address in immediate).
   ASMJIT_INLINE InstNode* mov_ptr(const GpVar& dst, void* src) {
     Imm imm(static_cast<int64_t>((intptr_t)src));
     return emit(kInstMovptr, dst, imm);
   }
-  //! @brief Move (absolute address in immediate <- AL|AX|EAX|RAX).
+  //! Move (absolute address in immediate <- AL|AX|EAX|RAX).
   ASMJIT_INLINE InstNode* mov_ptr(void* dst, const GpVar& src) {
     Imm imm(static_cast<int64_t>((intptr_t)dst));
     return emit(kInstMovptr, imm, src);
   }
 
-  //! @brief Move data after swapping bytes (SSE3 - Atom).
+  //! Move data after swapping bytes (SSE3 - Atom).
   INST_2x_(movbe, kInstMovbe, GpVar, Mem, !o0.isGpb());
   //! @overload
   INST_2x_(movbe, kInstMovbe, Mem, GpVar, !o1.isGpb());
 
-  //! @brief Move with sign-extension.
+  //! Move with sign-extension.
   INST_2x(movsx, kInstMovsx, GpVar, GpVar)
   //! @overload
   INST_2x(movsx, kInstMovsx, GpVar, Mem)
 
-  //! @brief Move with zero-extension.
+  //! Move with zero-extension.
   INST_2x(movzx, kInstMovzx, GpVar, GpVar)
   //! @overload
   INST_2x(movzx, kInstMovzx, GpVar, Mem)
 
-  //! @brief Unsigned multiply (o0:o1 <- o1 * o2).
+  //! Unsigned multiply (o0:o1 <- o1 * o2).
   INST_3x_(mul, kInstMul, GpVar, GpVar, GpVar, o0.getId() != o1.getId())
   //! @overload
   INST_3x_(mul, kInstMul, GpVar, GpVar, Mem, o0.getId() != o1.getId())
 
-  //! @brief Two's complement negation.
+  //! Two's complement negation.
   INST_1x(neg, kInstNeg, GpVar)
   //! @overload
   INST_1x(neg, kInstNeg, Mem)
 
-  //! @brief No operation.
+  //! No operation.
   INST_0x(nop, kInstNop)
 
-  //! @brief One's complement negation.
+  //! One's complement negation.
   INST_1x(not_, kInstNot, GpVar)
   //! @overload
   INST_1x(not_, kInstNot, Mem)
 
-  //! @brief Or.
+  //! Or.
   INST_2x(or_, kInstOr, GpVar, GpVar)
   //! @overload
   INST_2x(or_, kInstOr, GpVar, Mem)
@@ -1883,104 +1868,104 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(or_, kInstOr, Mem, Imm)
 
-  //! @brief Pop a value from the stack.
+  //! Pop a value from the stack.
   INST_1x_(pop, kInstPop, GpVar, o0.getSize() == 2 || o0.getSize() == _regSize)
   //! @overload
   INST_1x_(pop, kInstPop, Mem, o0.getSize() == 2 || o0.getSize() == _regSize)
 
-  //! @brief Pop stack into EFLAGS Register (32-bit or 64-bit).
+  //! Pop stack into EFLAGS Register (32-bit or 64-bit).
   INST_0x(popf, kInstPopf)
 
-  //! @brief Return the count of number of bits set to 1 (SSE4.2).
+  //! Return the count of number of bits set to 1 (SSE4.2).
   INST_2x_(popcnt, kInstPopcnt, GpVar, GpVar, !o0.isGpb() && o0.getSize() == o1.getSize())
   //! @overload
   INST_2x_(popcnt, kInstPopcnt, GpVar, Mem, !o0.isGpb())
 
-  //! @brief Push word/dword/qword on the stack.
+  //! Push word/dword/qword on the stack.
   INST_1x_(push, kInstPush, GpVar, o0.getSize() == 2 || o0.getSize() == _regSize)
-  //! @brief Push word/dword/qword on the stack.
+  //! Push word/dword/qword on the stack.
   INST_1x_(push, kInstPush, Mem,o0.getSize() == 2 || o0.getSize() == _regSize)
-  //! @brief Push segment register on the stack.
+  //! Push segment register on the stack.
   INST_1x(push, kInstPush, SegReg)
-  //! @brief Push word/dword/qword on the stack.
+  //! Push word/dword/qword on the stack.
   INST_1i(push, kInstPush, Imm)
 
-  //! @brief Push EFLAGS register (32-bit or 64-bit) on the stack.
+  //! Push EFLAGS register (32-bit or 64-bit) on the stack.
   INST_0x(pushf, kInstPushf)
 
-  //! @brief Rotate bits left.
+  //! Rotate bits left.
   INST_2x(rcl, kInstRcl, GpVar, GpVar)
   //! @overload
   INST_2x(rcl, kInstRcl, Mem, GpVar)
-  //! @brief Rotate bits left.
+  //! Rotate bits left.
   INST_2i(rcl, kInstRcl, GpVar, Imm)
   //! @overload
   INST_2i(rcl, kInstRcl, Mem, Imm)
 
-  //! @brief Rotate bits right.
+  //! Rotate bits right.
   INST_2x(rcr, kInstRcr, GpVar, GpVar)
   //! @overload
   INST_2x(rcr, kInstRcr, Mem, GpVar)
-  //! @brief Rotate bits right.
+  //! Rotate bits right.
   INST_2i(rcr, kInstRcr, GpVar, Imm)
   //! @overload
   INST_2i(rcr, kInstRcr, Mem, Imm)
 
-  //! @brief Read time-stamp counter (Pentium).
+  //! Read time-stamp counter (Pentium).
   INST_2x_(rdtsc, kInstRdtsc, GpVar, GpVar, o0.getId() != o1.getId())
-  //! @brief Read time-stamp counter and processor id (Pentium).
+  //! Read time-stamp counter and processor id (Pentium).
   INST_3x_(rdtscp, kInstRdtscp, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Load ECX/RCX bytes from DS:[ESI/RSI] to AL.
+  //! Load ECX/RCX bytes from DS:[ESI/RSI] to AL.
   INST_3x_(rep_lodsb, kInstRepLodsb, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Load ECX/RCX dwords from DS:[ESI/RSI] to AL.
+  //! Load ECX/RCX dwords from DS:[ESI/RSI] to AL.
   INST_3x_(rep_lodsd, kInstRepLodsd, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Load ECX/RCX words from DS:[ESI/RSI] to AX.
+  //! Load ECX/RCX words from DS:[ESI/RSI] to AX.
   INST_3x_(rep_lodsw, kInstRepLodsw, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Move ECX/RCX bytes from DS:[ESI/RSI] to ES:[EDI/RDI].
+  //! Move ECX/RCX bytes from DS:[ESI/RSI] to ES:[EDI/RDI].
   INST_3x_(rep_movsb, kInstRepMovsb, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Move ECX/RCX dwords from DS:[ESI/RSI] to ES:[EDI/RDI].
+  //! Move ECX/RCX dwords from DS:[ESI/RSI] to ES:[EDI/RDI].
   INST_3x_(rep_movsd, kInstRepMovsd, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Move ECX/RCX dwords from DS:[ESI/RSI] to ES:[EDI/RDI].
+  //! Move ECX/RCX dwords from DS:[ESI/RSI] to ES:[EDI/RDI].
   INST_3x_(rep_movsw, kInstRepMovsw, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Fill ECX/RCX bytes at ES:[EDI/RDI] with AL.
+  //! Fill ECX/RCX bytes at ES:[EDI/RDI] with AL.
   INST_3x_(rep_stosb, kInstRepStosb, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Fill ECX/RCX dwords at ES:[EDI/RDI] with EAX.
+  //! Fill ECX/RCX dwords at ES:[EDI/RDI] with EAX.
   INST_3x_(rep_stosd, kInstRepStosd, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Fill ECX/RCX words at ES:[EDI/RDI] with AX.
+  //! Fill ECX/RCX words at ES:[EDI/RDI] with AX.
   INST_3x_(rep_stosw, kInstRepStosw, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Repeated find nonmatching bytes in ES:[EDI/RDI] and DS:[ESI/RDI].
+  //! Repeated find nonmatching bytes in ES:[EDI/RDI] and DS:[ESI/RDI].
   INST_3x_(repe_cmpsb, kInstRepeCmpsb, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Repeated find nonmatching dwords in ES:[EDI/RDI] and DS:[ESI/RDI].
+  //! Repeated find nonmatching dwords in ES:[EDI/RDI] and DS:[ESI/RDI].
   INST_3x_(repe_cmpsd, kInstRepeCmpsd, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Repeated find nonmatching words in ES:[EDI/RDI] and DS:[ESI/RDI].
+  //! Repeated find nonmatching words in ES:[EDI/RDI] and DS:[ESI/RDI].
   INST_3x_(repe_cmpsw, kInstRepeCmpsw, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Find non-AL byte starting at ES:[EDI/RDI].
+  //! Find non-AL byte starting at ES:[EDI/RDI].
   INST_3x_(repe_scasb, kInstRepeScasb, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find non-EAX dword starting at ES:[EDI/RDI].
+  //! Find non-EAX dword starting at ES:[EDI/RDI].
   INST_3x_(repe_scasd, kInstRepeScasd, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find non-AX word starting at ES:[EDI/RDI].
+  //! Find non-AX word starting at ES:[EDI/RDI].
   INST_3x_(repe_scasw, kInstRepeScasw, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Find matching bytes in [RDI] and [RSI].
+  //! Find matching bytes in [RDI] and [RSI].
   INST_3x_(repne_cmpsb, kInstRepneCmpsb, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find matching dwords in [RDI] and [RSI].
+  //! Find matching dwords in [RDI] and [RSI].
   INST_3x_(repne_cmpsd, kInstRepneCmpsd, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find matching words in [RDI] and [RSI].
+  //! Find matching words in [RDI] and [RSI].
   INST_3x_(repne_cmpsw, kInstRepneCmpsw, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Find AL, starting at ES:[EDI/RDI].
+  //! Find AL, starting at ES:[EDI/RDI].
   INST_3x_(repne_scasb, kInstRepneScasb, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find EAX, starting at ES:[EDI/RDI].
+  //! Find EAX, starting at ES:[EDI/RDI].
   INST_3x_(repne_scasd, kInstRepneScasd, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find AX, starting at ES:[EDI/RDI].
+  //! Find AX, starting at ES:[EDI/RDI].
   INST_3x_(repne_scasw, kInstRepneScasw, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Return.
+  //! Return.
   ASMJIT_INLINE RetNode* ret() { return addRet(noOperand, noOperand); }
   //! @overload
   ASMJIT_INLINE RetNode* ret(const GpVar& o0) { return addRet(o0, noOperand); }
@@ -1991,28 +1976,28 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   ASMJIT_INLINE RetNode* ret(const XmmVar& o0, const XmmVar& o1) { return addRet(o0, o1); }
 
-  //! @brief Rotate bits left.
+  //! Rotate bits left.
   INST_2x(rol, kInstRol, GpVar, GpVar)
   //! @overload
   INST_2x(rol, kInstRol, Mem, GpVar)
-  //! @brief Rotate bits left.
+  //! Rotate bits left.
   INST_2i(rol, kInstRol, GpVar, Imm)
   //! @overload
   INST_2i(rol, kInstRol, Mem, Imm)
 
-  //! @brief Rotate bits right.
+  //! Rotate bits right.
   INST_2x(ror, kInstRor, GpVar, GpVar)
   //! @overload
   INST_2x(ror, kInstRor, Mem, GpVar)
-  //! @brief Rotate bits right.
+  //! Rotate bits right.
   INST_2i(ror, kInstRor, GpVar, Imm)
   //! @overload
   INST_2i(ror, kInstRor, Mem, Imm)
 
-  //! @brief Store @a var (allocated in AH/AX/EAX/RAX) into Flags.
+  //! Store `a` (allocated in AH/AX/EAX/RAX) into Flags.
   INST_1x(sahf, kInstSahf, GpVar)
 
-  //! @brief Integer subtraction with borrow.
+  //! Integer subtraction with borrow.
   INST_2x(sbb, kInstSbb, GpVar, GpVar)
   //! @overload
   INST_2x(sbb, kInstSbb, GpVar, Mem)
@@ -2023,71 +2008,71 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(sbb, kInstSbb, Mem, Imm)
 
-  //! @brief Shift bits left.
+  //! Shift bits left.
   INST_2x(sal, kInstSal, GpVar, GpVar)
   //! @overload
   INST_2x(sal, kInstSal, Mem, GpVar)
-  //! @brief Shift bits left.
+  //! Shift bits left.
   INST_2i(sal, kInstSal, GpVar, Imm)
   //! @overload
   INST_2i(sal, kInstSal, Mem, Imm)
 
-  //! @brief Shift bits right.
+  //! Shift bits right.
   INST_2x(sar, kInstSar, GpVar, GpVar)
   //! @overload
   INST_2x(sar, kInstSar, Mem, GpVar)
-  //! @brief Shift bits right.
+  //! Shift bits right.
   INST_2i(sar, kInstSar, GpVar, Imm)
   //! @overload
   INST_2i(sar, kInstSar, Mem, Imm)
 
-  //! @brief Set byte on condition.
+  //! Set byte on condition.
   INST_1cc(set, kInstSet, condToSetcc, GpVar)
-  //! @brief Set byte on condition.
+  //! Set byte on condition.
   INST_1cc(set, kInstSet, condToSetcc, Mem)
 
-  //! @brief Shift bits left.
+  //! Shift bits left.
   INST_2x(shl, kInstShl, GpVar, GpVar)
   //! @overload
   INST_2x(shl, kInstShl, Mem, GpVar)
-  //! @brief Shift bits left.
+  //! Shift bits left.
   INST_2i(shl, kInstShl, GpVar, Imm)
   //! @overload
   INST_2i(shl, kInstShl, Mem, Imm)
 
-  //! @brief Shift bits right.
+  //! Shift bits right.
   INST_2x(shr, kInstShr, GpVar, GpVar)
   //! @overload
   INST_2x(shr, kInstShr, Mem, GpVar)
-  //! @brief Shift bits right.
+  //! Shift bits right.
   INST_2i(shr, kInstShr, GpVar, Imm)
   //! @overload
   INST_2i(shr, kInstShr, Mem, Imm)
 
-  //! @brief Double precision shift left.
+  //! Double precision shift left.
   INST_3x(shld, kInstShld, GpVar, GpVar, GpVar)
   //! @overload
   INST_3x(shld, kInstShld, Mem, GpVar, GpVar)
-  //! @brief Double precision shift left.
+  //! Double precision shift left.
   INST_3i(shld, kInstShld, GpVar, GpVar, Imm)
   //! @overload
   INST_3i(shld, kInstShld, Mem, GpVar, Imm)
 
-  //! @brief Double precision shift right.
+  //! Double precision shift right.
   INST_3x(shrd, kInstShrd, GpVar, GpVar, GpVar)
   //! @overload
   INST_3x(shrd, kInstShrd, Mem, GpVar, GpVar)
-  //! @brief Double precision shift right.
+  //! Double precision shift right.
   INST_3i(shrd, kInstShrd, GpVar, GpVar, Imm)
   //! @overload
   INST_3i(shrd, kInstShrd, Mem, GpVar, Imm)
 
-  //! @brief Set carry flag to 1.
+  //! Set carry flag to 1.
   INST_0x(stc, kInstStc)
-  //! @brief Set direction flag to 1.
+  //! Set direction flag to 1.
   INST_0x(std, kInstStd)
 
-  //! @brief Subtract.
+  //! Subtract.
   INST_2x(sub, kInstSub, GpVar, GpVar)
   //! @overload
   INST_2x(sub, kInstSub, GpVar, Mem)
@@ -2098,7 +2083,7 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(sub, kInstSub, Mem, Imm)
 
-  //! @brief Logical compare.
+  //! Logical compare.
   INST_2x(test, kInstTest, GpVar, GpVar)
   //! @overload
   INST_2i(test, kInstTest, GpVar, Imm)
@@ -2107,22 +2092,22 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2i(test, kInstTest, Mem, Imm)
 
-  //! @brief Undefined instruction - Raise #UD exception.
+  //! Undefined instruction - Raise #UD exception.
   INST_0x(ud2, kInstUd2)
 
-  //! @brief Exchange and add.
+  //! Exchange and add.
   INST_2x(xadd, kInstXadd, GpVar, GpVar)
   //! @overload
   INST_2x(xadd, kInstXadd, Mem, GpVar)
 
-  //! @brief Exchange register/memory with register.
+  //! Exchange register/memory with register.
   INST_2x(xchg, kInstXchg, GpVar, GpVar)
   //! @overload
   INST_2x(xchg, kInstXchg, Mem, GpVar)
   //! @overload
   INST_2x(xchg, kInstXchg, GpVar, Mem)
 
-  //! @brief Xor.
+  //! Xor.
   INST_2x(xor_, kInstXor, GpVar, GpVar)
   //! @overload
   INST_2x(xor_, kInstXor, GpVar, Mem)
@@ -2137,7 +2122,7 @@ struct X86X64Compiler : public BaseCompiler {
   // [MMX]
   // --------------------------------------------------------------------------
 
-  //! @brief Move dword (MMX).
+  //! Move DWORD (MMX).
   INST_2x(movd, kInstMovd, Mem, MmVar)
   //! @overload
   INST_2x(movd, kInstMovd, GpVar, MmVar)
@@ -2146,490 +2131,488 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2x(movd, kInstMovd, MmVar, GpVar)
 
-  //! @brief Move qword (MMX).
+  //! Move QWORD (MMX).
   INST_2x(movq, kInstMovq, MmVar, MmVar)
   //! @overload
   INST_2x(movq, kInstMovq, Mem, MmVar)
   //! @overload
   INST_2x(movq, kInstMovq, MmVar, Mem)
 
-  //! @brief Pack with signed saturation (MMX).
-  INST_2x(packsswb, kInstPacksswb, MmVar, MmVar)
-  //! @overload
-  INST_2x(packsswb, kInstPacksswb, MmVar, Mem)
-
-  //! @brief Pack with signed saturation (MMX).
+  //! Pack DWORDs to WORDs with signed saturation (MMX).
   INST_2x(packssdw, kInstPackssdw, MmVar, MmVar)
   //! @overload
   INST_2x(packssdw, kInstPackssdw, MmVar, Mem)
 
-  //! @brief Pack with unsigned saturation (MMX).
+  //! Pack WORDs to BYTEs with signed saturation (MMX).
+  INST_2x(packsswb, kInstPacksswb, MmVar, MmVar)
+  //! @overload
+  INST_2x(packsswb, kInstPacksswb, MmVar, Mem)
+
+  //! Pack WORDs to BYTEs with unsigned saturation (MMX).
   INST_2x(packuswb, kInstPackuswb, MmVar, MmVar)
   //! @overload
   INST_2x(packuswb, kInstPackuswb, MmVar, Mem)
 
-  //! @brief Packed byte add (MMX).
+  //! Packed BYTE add (MMX).
   INST_2x(paddb, kInstPaddb, MmVar, MmVar)
   //! @overload
   INST_2x(paddb, kInstPaddb, MmVar, Mem)
 
-  //! @brief Packed word add (MMX).
-  INST_2x(paddw, kInstPaddw, MmVar, MmVar)
-  //! @overload
-  INST_2x(paddw, kInstPaddw, MmVar, Mem)
-
-  //! @brief Packed dword add (MMX).
+  //! Packed DWORD add (MMX).
   INST_2x(paddd, kInstPaddd, MmVar, MmVar)
   //! @overload
   INST_2x(paddd, kInstPaddd, MmVar, Mem)
 
-  //! @brief Packed add with saturation (MMX).
+  //! Packed BYTE add with saturation (MMX).
   INST_2x(paddsb, kInstPaddsb, MmVar, MmVar)
   //! @overload
   INST_2x(paddsb, kInstPaddsb, MmVar, Mem)
 
-  //! @brief Packed add with saturation (MMX).
+  //! Packed WORD add with saturation (MMX).
   INST_2x(paddsw, kInstPaddsw, MmVar, MmVar)
   //! @overload
   INST_2x(paddsw, kInstPaddsw, MmVar, Mem)
 
-  //! @brief Packed add unsigned with saturation (MMX).
+  //! Packed BYTE add with unsigned saturation (MMX).
   INST_2x(paddusb, kInstPaddusb, MmVar, MmVar)
   //! @overload
   INST_2x(paddusb, kInstPaddusb, MmVar, Mem)
 
-  //! @brief Packed add unsigned with saturation (MMX).
+  //! Packed WORD add with unsigned saturation (MMX).
   INST_2x(paddusw, kInstPaddusw, MmVar, MmVar)
   //! @overload
   INST_2x(paddusw, kInstPaddusw, MmVar, Mem)
 
-  //! @brief And (MMX).
+  //! Packed WORD add (MMX).
+  INST_2x(paddw, kInstPaddw, MmVar, MmVar)
+  //! @overload
+  INST_2x(paddw, kInstPaddw, MmVar, Mem)
+
+  //! Packed and (MMX).
   INST_2x(pand, kInstPand, MmVar, MmVar)
   //! @overload
   INST_2x(pand, kInstPand, MmVar, Mem)
 
-  //! @brief And-not (MMX).
+  //! Packed and-not (MMX).
   INST_2x(pandn, kInstPandn, MmVar, MmVar)
   //! @overload
   INST_2x(pandn, kInstPandn, MmVar, Mem)
 
-  //! @brief Packed compare bytes for equal (MMX).
+  //! Packed BYTEs compare for equality (MMX).
   INST_2x(pcmpeqb, kInstPcmpeqb, MmVar, MmVar)
   //! @overload
   INST_2x(pcmpeqb, kInstPcmpeqb, MmVar, Mem)
 
-  //! @brief Packed compare words for equal (MMX).
-  INST_2x(pcmpeqw, kInstPcmpeqw, MmVar, MmVar)
-  //! @overload
-  INST_2x(pcmpeqw, kInstPcmpeqw, MmVar, Mem)
-
-  //! @brief Packed compare dwords for equal (MMX).
+  //! Packed DWORDs compare for equality (MMX).
   INST_2x(pcmpeqd, kInstPcmpeqd, MmVar, MmVar)
   //! @overload
   INST_2x(pcmpeqd, kInstPcmpeqd, MmVar, Mem)
 
-  //! @brief Packed compare bytes for greater than (MMX).
+  //! Packed WORDs compare for equality (MMX).
+  INST_2x(pcmpeqw, kInstPcmpeqw, MmVar, MmVar)
+  //! @overload
+  INST_2x(pcmpeqw, kInstPcmpeqw, MmVar, Mem)
+
+  //! Packed BYTEs compare if greater than (MMX).
   INST_2x(pcmpgtb, kInstPcmpgtb, MmVar, MmVar)
   //! @overload
   INST_2x(pcmpgtb, kInstPcmpgtb, MmVar, Mem)
 
-  //! @brief Packed compare words for greater than (MMX).
-  INST_2x(pcmpgtw, kInstPcmpgtw, MmVar, MmVar)
-  //! @overload
-  INST_2x(pcmpgtw, kInstPcmpgtw, MmVar, Mem)
-
-  //! @brief Packed compare dwords for greater than (MMX).
+  //! Packed DWORDs compare if greater than (MMX).
   INST_2x(pcmpgtd, kInstPcmpgtd, MmVar, MmVar)
   //! @overload
   INST_2x(pcmpgtd, kInstPcmpgtd, MmVar, Mem)
 
-  //! @brief Packed multiply high (MMX).
+  //! Packed WORDs compare if greater than (MMX).
+  INST_2x(pcmpgtw, kInstPcmpgtw, MmVar, MmVar)
+  //! @overload
+  INST_2x(pcmpgtw, kInstPcmpgtw, MmVar, Mem)
+
+  //! Packed WORD multiply high (MMX).
   INST_2x(pmulhw, kInstPmulhw, MmVar, MmVar)
   //! @overload
   INST_2x(pmulhw, kInstPmulhw, MmVar, Mem)
 
-  //! @brief Packed multiply low (MMX).
+  //! Packed WORD multiply low (MMX).
   INST_2x(pmullw, kInstPmullw, MmVar, MmVar)
   //! @overload
   INST_2x(pmullw, kInstPmullw, MmVar, Mem)
 
-  //! @brief Bitwise logical or (MMX).
+  //! Packed bitwise or (MMX).
   INST_2x(por, kInstPor, MmVar, MmVar)
   //! @overload
   INST_2x(por, kInstPor, MmVar, Mem)
 
-  //! @brief Packed multiply and add (MMX).
+  //! Packed WORD multiply and add to packed DWORD (MMX).
   INST_2x(pmaddwd, kInstPmaddwd, MmVar, MmVar)
   //! @overload
   INST_2x(pmaddwd, kInstPmaddwd, MmVar, Mem)
 
-  //! @brief Packed shift left logical (MMX).
+  //! Packed DWORD shift left logical (MMX).
   INST_2x(pslld, kInstPslld, MmVar, MmVar)
   //! @overload
   INST_2x(pslld, kInstPslld, MmVar, Mem)
   //! @overload
   INST_2i(pslld, kInstPslld, MmVar, Imm)
 
-  //! @brief Packed shift left logical (MMX).
+  //! Packed QWORD shift left logical (MMX).
   INST_2x(psllq, kInstPsllq, MmVar, MmVar)
   //! @overload
   INST_2x(psllq, kInstPsllq, MmVar, Mem)
   //! @overload
   INST_2i(psllq, kInstPsllq, MmVar, Imm)
 
-  //! @brief Packed shift left logical (MMX).
+  //! Packed WORD shift left logical (MMX).
   INST_2x(psllw, kInstPsllw, MmVar, MmVar)
   //! @overload
   INST_2x(psllw, kInstPsllw, MmVar, Mem)
   //! @overload
   INST_2i(psllw, kInstPsllw, MmVar, Imm)
 
-  //! @brief Packed shift right arithmetic (MMX).
+  //! Packed DWORD shift right arithmetic (MMX).
   INST_2x(psrad, kInstPsrad, MmVar, MmVar)
   //! @overload
   INST_2x(psrad, kInstPsrad, MmVar, Mem)
   //! @overload
   INST_2i(psrad, kInstPsrad, MmVar, Imm)
 
-  //! @brief Packed shift right arithmetic (MMX).
+  //! Packed WORD shift right arithmetic (MMX).
   INST_2x(psraw, kInstPsraw, MmVar, MmVar)
   //! @overload
   INST_2x(psraw, kInstPsraw, MmVar, Mem)
   //! @overload
   INST_2i(psraw, kInstPsraw, MmVar, Imm)
 
-  //! @brief Packed shift right logical (MMX).
+  //! Packed DWORD shift right logical (MMX).
   INST_2x(psrld, kInstPsrld, MmVar, MmVar)
   //! @overload
   INST_2x(psrld, kInstPsrld, MmVar, Mem)
   //! @overload
   INST_2i(psrld, kInstPsrld, MmVar, Imm)
 
-  //! @brief Packed shift right logical (MMX).
+  //! Packed QWORD shift right logical (MMX).
   INST_2x(psrlq, kInstPsrlq, MmVar, MmVar)
   //! @overload
   INST_2x(psrlq, kInstPsrlq, MmVar, Mem)
   //! @overload
   INST_2i(psrlq, kInstPsrlq, MmVar, Imm)
 
-  //! @brief Packed shift right logical (MMX).
+  //! Packed WORD shift right logical (MMX).
   INST_2x(psrlw, kInstPsrlw, MmVar, MmVar)
   //! @overload
   INST_2x(psrlw, kInstPsrlw, MmVar, Mem)
   //! @overload
   INST_2i(psrlw, kInstPsrlw, MmVar, Imm)
 
-  //! @brief Packed subtract (MMX).
+  //! Packed BYTE subtract (MMX).
   INST_2x(psubb, kInstPsubb, MmVar, MmVar)
   //! @overload
   INST_2x(psubb, kInstPsubb, MmVar, Mem)
 
-  //! @brief Packed subtract (MMX).
-  INST_2x(psubw, kInstPsubw, MmVar, MmVar)
-  //! @overload
-  INST_2x(psubw, kInstPsubw, MmVar, Mem)
-
-  //! @brief Packed subtract (MMX).
+  //! Packed DWORD subtract (MMX).
   INST_2x(psubd, kInstPsubd, MmVar, MmVar)
   //! @overload
   INST_2x(psubd, kInstPsubd, MmVar, Mem)
 
-  //! @brief Packed subtract with saturation (MMX).
+  //! Packed BYTE subtract with saturation (MMX).
   INST_2x(psubsb, kInstPsubsb, MmVar, MmVar)
   //! @overload
   INST_2x(psubsb, kInstPsubsb, MmVar, Mem)
 
-  //! @brief Packed subtract with saturation (MMX).
+  //! Packed WORD subtract with saturation (MMX).
   INST_2x(psubsw, kInstPsubsw, MmVar, MmVar)
   //! @overload
   INST_2x(psubsw, kInstPsubsw, MmVar, Mem)
 
-  //! @brief Packed subtract with unsigned saturation (MMX).
+  //! Packed BYTE subtract with unsigned saturation (MMX).
   INST_2x(psubusb, kInstPsubusb, MmVar, MmVar)
   //! @overload
   INST_2x(psubusb, kInstPsubusb, MmVar, Mem)
 
-  //! @brief Packed subtract with unsigned saturation (MMX).
+  //! Packed WORD subtract with unsigned saturation (MMX).
   INST_2x(psubusw, kInstPsubusw, MmVar, MmVar)
   //! @overload
   INST_2x(psubusw, kInstPsubusw, MmVar, Mem)
 
-  //! @brief Unpack high packed data (MMX).
+  //! Packed WORD subtract (MMX).
+  INST_2x(psubw, kInstPsubw, MmVar, MmVar)
+  //! @overload
+  INST_2x(psubw, kInstPsubw, MmVar, Mem)
+
+  //! Unpack high packed BYTEs to WORDs (MMX).
   INST_2x(punpckhbw, kInstPunpckhbw, MmVar, MmVar)
   //! @overload
   INST_2x(punpckhbw, kInstPunpckhbw, MmVar, Mem)
 
-  //! @brief Unpack high packed data (MMX).
-  INST_2x(punpckhwd, kInstPunpckhwd, MmVar, MmVar)
-  //! @overload
-  INST_2x(punpckhwd, kInstPunpckhwd, MmVar, Mem)
-
-  //! @brief Unpack high packed data (MMX).
+  //! Unpack high packed DWORDs to QWORDs (MMX).
   INST_2x(punpckhdq, kInstPunpckhdq, MmVar, MmVar)
   //! @overload
   INST_2x(punpckhdq, kInstPunpckhdq, MmVar, Mem)
 
-  //! @brief Unpack high packed data (MMX).
+  //! Unpack high packed WORDs to DWORDs (MMX).
+  INST_2x(punpckhwd, kInstPunpckhwd, MmVar, MmVar)
+  //! @overload
+  INST_2x(punpckhwd, kInstPunpckhwd, MmVar, Mem)
+
+  //! Unpack low packed BYTEs to WORDs (MMX).
   INST_2x(punpcklbw, kInstPunpcklbw, MmVar, MmVar)
   //! @overload
   INST_2x(punpcklbw, kInstPunpcklbw, MmVar, Mem)
 
-  //! @brief Unpack high packed data (MMX).
-  INST_2x(punpcklwd, kInstPunpcklwd, MmVar, MmVar)
-  //! @overload
-  INST_2x(punpcklwd, kInstPunpcklwd, MmVar, Mem)
-
-  //! @brief Unpack high packed data (MMX).
+  //! Unpack low packed DWORDs to QWORDs (MMX).
   INST_2x(punpckldq, kInstPunpckldq, MmVar, MmVar)
   //! @overload
   INST_2x(punpckldq, kInstPunpckldq, MmVar, Mem)
 
-  //! @brief Xor (MMX).
+  //! Unpack low packed WORDs to DWORDs (MMX).
+  INST_2x(punpcklwd, kInstPunpcklwd, MmVar, MmVar)
+  //! @overload
+  INST_2x(punpcklwd, kInstPunpcklwd, MmVar, Mem)
+
+  //! Packed bitwise xor (MMX).
   INST_2x(pxor, kInstPxor, MmVar, MmVar)
   //! @overload
   INST_2x(pxor, kInstPxor, MmVar, Mem)
 
-  //! @brief Empty MMX state.
+  //! Empty MMX state.
   INST_0x(emms, kInstEmms)
 
   // --------------------------------------------------------------------------
   // [3dNow]
   // --------------------------------------------------------------------------
 
-  //! @brief Packed SP-FP to integer convert (3dNow!).
+  //! Packed SP-FP to DWORD convert (3dNow!).
   INST_2x(pf2id, kInstPf2id, MmVar, MmVar)
   //! @overload
   INST_2x(pf2id, kInstPf2id, MmVar, Mem)
 
-  //! @brief  Packed SP-FP to integer word convert (3dNow!).
+  //!  Packed SP-FP to WORD convert (3dNow!).
   INST_2x(pf2iw, kInstPf2iw, MmVar, MmVar)
   //! @overload
   INST_2x(pf2iw, kInstPf2iw, MmVar, Mem)
 
-  //! @brief Packed SP-FP accumulate (3dNow!).
+  //! Packed SP-FP accumulate (3dNow!).
   INST_2x(pfacc, kInstPfacc, MmVar, MmVar)
   //! @overload
   INST_2x(pfacc, kInstPfacc, MmVar, Mem)
 
-  //! @brief Packed SP-FP addition (3dNow!).
+  //! Packed SP-FP addition (3dNow!).
   INST_2x(pfadd, kInstPfadd, MmVar, MmVar)
   //! @overload
   INST_2x(pfadd, kInstPfadd, MmVar, Mem)
 
-  //! @brief Packed SP-FP compare - dst == src (3dNow!).
+  //! Packed SP-FP compare - dst == src (3dNow!).
   INST_2x(pfcmpeq, kInstPfcmpeq, MmVar, MmVar)
   //! @overload
   INST_2x(pfcmpeq, kInstPfcmpeq, MmVar, Mem)
 
-  //! @brief Packed SP-FP compare - dst >= src (3dNow!).
+  //! Packed SP-FP compare - dst >= src (3dNow!).
   INST_2x(pfcmpge, kInstPfcmpge, MmVar, MmVar)
   //! @overload
   INST_2x(pfcmpge, kInstPfcmpge, MmVar, Mem)
 
-  //! @brief Packed SP-FP compare - dst > src (3dNow!).
+  //! Packed SP-FP compare - dst > src (3dNow!).
   INST_2x(pfcmpgt, kInstPfcmpgt, MmVar, MmVar)
   //! @overload
   INST_2x(pfcmpgt, kInstPfcmpgt, MmVar, Mem)
 
-  //! @brief Packed SP-FP maximum (3dNow!).
+  //! Packed SP-FP maximum (3dNow!).
   INST_2x(pfmax, kInstPfmax, MmVar, MmVar)
   //! @overload
   INST_2x(pfmax, kInstPfmax, MmVar, Mem)
 
-  //! @brief Packed SP-FP minimum (3dNow!).
+  //! Packed SP-FP minimum (3dNow!).
   INST_2x(pfmin, kInstPfmin, MmVar, MmVar)
   //! @overload
   INST_2x(pfmin, kInstPfmin, MmVar, Mem)
 
-  //! @brief Packed SP-FP multiply (3dNow!).
+  //! Packed SP-FP multiply (3dNow!).
   INST_2x(pfmul, kInstPfmul, MmVar, MmVar)
   //! @overload
   INST_2x(pfmul, kInstPfmul, MmVar, Mem)
 
-  //! @brief Packed SP-FP negative accumulate (3dNow!).
+  //! Packed SP-FP negative accumulate (3dNow!).
   INST_2x(pfnacc, kInstPfnacc, MmVar, MmVar)
   //! @overload
   INST_2x(pfnacc, kInstPfnacc, MmVar, Mem)
 
-  //! @brief Packed SP-FP mixed accumulate (3dNow!).
+  //! Packed SP-FP mixed accumulate (3dNow!).
   INST_2x(pfpnacc, kInstPfpnacc, MmVar, MmVar)
   //! @overload
   INST_2x(pfpnacc, kInstPfpnacc, MmVar, Mem)
 
-  //! @brief Packed SP-FP reciprocal approximation (3dNow!).
+  //! Packed SP-FP reciprocal approximation (3dNow!).
   INST_2x(pfrcp, kInstPfrcp, MmVar, MmVar)
   //! @overload
   INST_2x(pfrcp, kInstPfrcp, MmVar, Mem)
 
-  //! @brief Packed SP-FP reciprocal, first iteration step (3dNow!).
+  //! Packed SP-FP reciprocal, first iteration step (3dNow!).
   INST_2x(pfrcpit1, kInstPfrcpit1, MmVar, MmVar)
   //! @overload
   INST_2x(pfrcpit1, kInstPfrcpit1, MmVar, Mem)
 
-  //! @brief Packed SP-FP reciprocal, second iteration step (3dNow!).
+  //! Packed SP-FP reciprocal, second iteration step (3dNow!).
   INST_2x(pfrcpit2, kInstPfrcpit2, MmVar, MmVar)
   //! @overload
   INST_2x(pfrcpit2, kInstPfrcpit2, MmVar, Mem)
 
-  //! @brief Packed SP-FP reciprocal square root, first iteration step (3dNow!).
+  //! Packed SP-FP reciprocal square root, first iteration step (3dNow!).
   INST_2x(pfrsqit1, kInstPfrsqit1, MmVar, MmVar)
   //! @overload
   INST_2x(pfrsqit1, kInstPfrsqit1, MmVar, Mem)
 
-  //! @brief Packed SP-FP reciprocal square root approximation (3dNow!).
+  //! Packed SP-FP reciprocal square root approximation (3dNow!).
   INST_2x(pfrsqrt, kInstPfrsqrt, MmVar, MmVar)
   //! @overload
   INST_2x(pfrsqrt, kInstPfrsqrt, MmVar, Mem)
 
-  //! @brief Packed SP-FP subtract (3dNow!).
+  //! Packed SP-FP subtract (3dNow!).
   INST_2x(pfsub, kInstPfsub, MmVar, MmVar)
   //! @overload
   INST_2x(pfsub, kInstPfsub, MmVar, Mem)
 
-  //! @brief Packed SP-FP reverse subtract (3dNow!).
+  //! Packed SP-FP reverse subtract (3dNow!).
   INST_2x(pfsubr, kInstPfsubr, MmVar, MmVar)
   //! @overload
   INST_2x(pfsubr, kInstPfsubr, MmVar, Mem)
 
-  //! @brief Packed dwords to SP-FP (3dNow!).
+  //! Packed DWORDs to SP-FP (3dNow!).
   INST_2x(pi2fd, kInstPi2fd, MmVar, MmVar)
   //! @overload
   INST_2x(pi2fd, kInstPi2fd, MmVar, Mem)
 
-  //! @brief Packed words to SP-FP (3dNow!).
+  //! Packed WORDs to SP-FP (3dNow!).
   INST_2x(pi2fw, kInstPi2fw, MmVar, MmVar)
   //! @overload
   INST_2x(pi2fw, kInstPi2fw, MmVar, Mem)
 
-  //! @brief Packed swap dword (3dNow!)
+  //! Packed swap DWORDs (3dNow!)
   INST_2x(pswapd, kInstPswapd, MmVar, MmVar)
   //! @overload
   INST_2x(pswapd, kInstPswapd, MmVar, Mem)
 
-  //! @brief Prefetch (3dNow!).
+  //! Prefetch (3dNow!).
   INST_1x(prefetch_3dnow, kInstPrefetch3dNow, Mem)
 
-  //! @brief Prefetch and set cache to modified (3dNow!).
+  //! Prefetch and set cache to modified (3dNow!).
   INST_1x(prefetchw_3dnow, kInstPrefetchw3dNow, Mem)
 
-  //! @brief Faster EMMS (3dNow!).
+  //! Faster EMMS (3dNow!).
   INST_0x(femms, kInstFemms)
 
   // --------------------------------------------------------------------------
   // [SSE]
   // --------------------------------------------------------------------------
 
-  //! @brief Packed SP-FP add (SSE).
+  //! Packed SP-FP add (SSE).
   INST_2x(addps, kInstAddps, XmmVar, XmmVar)
   //! @overload
   INST_2x(addps, kInstAddps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP add (SSE).
+  //! Scalar SP-FP add (SSE).
   INST_2x(addss, kInstAddss, XmmVar, XmmVar)
   //! @overload
   INST_2x(addss, kInstAddss, XmmVar, Mem)
 
-  //! @brief And-not For SP-FP (SSE).
+  //! Packed SP-FP bitwise and-not (SSE).
   INST_2x(andnps, kInstAndnps, XmmVar, XmmVar)
   //! @overload
   INST_2x(andnps, kInstAndnps, XmmVar, Mem)
 
-  //! @brief And for SP-FP (SSE).
+  //! Packed SP-FP bitwise and (SSE).
   INST_2x(andps, kInstAndps, XmmVar, XmmVar)
   //! @overload
   INST_2x(andps, kInstAndps, XmmVar, Mem)
 
-  //! @brief Packed SP-FP compare (SSE).
+  //! Packed SP-FP compare (SSE).
   INST_3i(cmpps, kInstCmpps, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(cmpps, kInstCmpps, XmmVar, Mem, Imm)
 
-  //! @brief Compare scalar SP-FP Values (SSE).
+  //! Compare scalar SP-FP Values (SSE).
   INST_3i(cmpss, kInstCmpss, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(cmpss, kInstCmpss, XmmVar, Mem, Imm)
 
-  //! @brief Scalar ordered SP-FP compare and set EFLAGS (SSE).
+  //! Scalar ordered SP-FP compare and set EFLAGS (SSE).
   INST_2x(comiss, kInstComiss, XmmVar, XmmVar)
   //! @overload
   INST_2x(comiss, kInstComiss, XmmVar, Mem)
 
-  //! @brief Packed signed INT32 to packed SP-FP conversion (SSE).
+  //! Packed signed INT32 to packed SP-FP conversion (SSE).
   INST_2x(cvtpi2ps, kInstCvtpi2ps, XmmVar, MmVar)
   //! @overload
   INST_2x(cvtpi2ps, kInstCvtpi2ps, XmmVar, Mem)
 
-  //! @brief Packed SP-FP to packed INT32 conversion (SSE).
+  //! Packed SP-FP to packed INT32 conversion (SSE).
   INST_2x(cvtps2pi, kInstCvtps2pi, MmVar, XmmVar)
   //! @overload
   INST_2x(cvtps2pi, kInstCvtps2pi, MmVar, Mem)
 
-  //! @brief Scalar signed INT32 to SP-FP conversion (SSE).
+  //! Convert scalar INT32 to SP-FP (SSE).
   INST_2x(cvtsi2ss, kInstCvtsi2ss, XmmVar, GpVar)
   //! @overload
   INST_2x(cvtsi2ss, kInstCvtsi2ss, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP to Signed INT32 conversion (SSE).
+  //! Convert scalar SP-FP to INT32 (SSE).
   INST_2x(cvtss2si, kInstCvtss2si, GpVar, XmmVar)
   //! @overload
   INST_2x(cvtss2si, kInstCvtss2si, GpVar, Mem)
 
-  //! @brief Packed SP-FP to packed INT32 conversion (truncate) (SSE).
+  //! Convert with truncation packed SP-FP to packed INT32 (SSE).
   INST_2x(cvttps2pi, kInstCvttps2pi, MmVar, XmmVar)
   //! @overload
   INST_2x(cvttps2pi, kInstCvttps2pi, MmVar, Mem)
 
-  //! @brief Scalar SP-FP to signed INT32 conversion (truncate) (SSE).
+  //! Convert with truncation scalar SP-FP to INT32 (SSE).
   INST_2x(cvttss2si, kInstCvttss2si, GpVar, XmmVar)
   //! @overload
   INST_2x(cvttss2si, kInstCvttss2si, GpVar, Mem)
 
-  //! @brief Packed SP-FP divide (SSE).
+  //! Packed SP-FP divide (SSE).
   INST_2x(divps, kInstDivps, XmmVar, XmmVar)
   //! @overload
   INST_2x(divps, kInstDivps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP divide (SSE).
+  //! Scalar SP-FP divide (SSE).
   INST_2x(divss, kInstDivss, XmmVar, XmmVar)
   //! @overload
   INST_2x(divss, kInstDivss, XmmVar, Mem)
 
-  //! @brief Load streaming SIMD extension control/status (SSE).
+  //! Load streaming SIMD extension control/status (SSE).
   INST_1x(ldmxcsr, kInstLdmxcsr, Mem)
 
-  //! @brief Byte mask write (SSE).
-  //!
-  //! @note The default memory location is specified by DS:EDI.
+  //! Byte mask write (SSE).
   INST_2x(maskmovq, kInstMaskmovq, MmVar, MmVar)
 
-  //! @brief Packed SP-FP maximum (SSE).
+  //! Packed SP-FP maximum (SSE).
   INST_2x(maxps, kInstMaxps, XmmVar, XmmVar)
   //! @overload
   INST_2x(maxps, kInstMaxps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP maximum (SSE).
+  //! Scalar SP-FP maximum (SSE).
   INST_2x(maxss, kInstMaxss, XmmVar, XmmVar)
   //! @overload
   INST_2x(maxss, kInstMaxss, XmmVar, Mem)
 
-  //! @brief Packed SP-FP minimum (SSE).
+  //! Packed SP-FP minimum (SSE).
   INST_2x(minps, kInstMinps, XmmVar, XmmVar)
   //! @overload
   INST_2x(minps, kInstMinps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP minimum (SSE).
+  //! Scalar SP-FP minimum (SSE).
   INST_2x(minss, kInstMinss, XmmVar, XmmVar)
   //! @overload
   INST_2x(minss, kInstMinss, XmmVar, Mem)
 
-  //! @brief Move aligned packed SP-FP values (SSE).
+  //! Move aligned packed SP-FP (SSE).
   INST_2x(movaps, kInstMovaps, XmmVar, XmmVar)
   //! @overload
   INST_2x(movaps, kInstMovaps, XmmVar, Mem)
-  //! @brief Move aligned packed SP-FP values (SSE).
+  //! Move aligned packed SP-FP (SSE).
   INST_2x(movaps, kInstMovaps, Mem, XmmVar)
 
-  //! @brief Move dword.
+  //! Move DWORD.
   INST_2x(movd, kInstMovd, Mem, XmmVar)
   //! @overload
   INST_2x(movd, kInstMovd, GpVar, XmmVar)
@@ -2638,826 +2621,828 @@ struct X86X64Compiler : public BaseCompiler {
   //! @overload
   INST_2x(movd, kInstMovd, XmmVar, GpVar)
 
-  //! @brief Move qword (SSE).
+  //! Move QWORD (SSE).
   INST_2x(movq, kInstMovq, XmmVar, XmmVar)
   //! @overload
   INST_2x(movq, kInstMovq, Mem, XmmVar)
   //! @overload
   INST_2x(movq, kInstMovq, XmmVar, Mem)
 
-  //! @brief Move 64 bits non-temporal (SSE).
+  //! Move QWORD using NT hint (SSE).
   INST_2x(movntq, kInstMovntq, Mem, MmVar)
 
-  //! @brief High to low packed SP-FP (SSE).
+  //! Move high to low packed SP-FP (SSE).
   INST_2x(movhlps, kInstMovhlps, XmmVar, XmmVar)
 
-  //! @brief Move high packed SP-FP (SSE).
+  //! Move high packed SP-FP (SSE).
   INST_2x(movhps, kInstMovhps, XmmVar, Mem)
-  //! @brief Move high packed SP-FP (SSE).
+  //! Move high packed SP-FP (SSE).
   INST_2x(movhps, kInstMovhps, Mem, XmmVar)
 
-  //! @brief Move low to high packed SP-FP (SSE).
+  //! Move low to high packed SP-FP (SSE).
   INST_2x(movlhps, kInstMovlhps, XmmVar, XmmVar)
 
-  //! @brief Move low packed SP-FP (SSE).
+  //! Move low packed SP-FP (SSE).
   INST_2x(movlps, kInstMovlps, XmmVar, Mem)
-  //! @brief Move low packed SP-FP (SSE).
+  //! Move low packed SP-FP (SSE).
   INST_2x(movlps, kInstMovlps, Mem, XmmVar)
 
-  //! @brief Move aligned four packed SP-FP non-temporal (SSE).
+  //! Move aligned packed SP-FP using NT hint (SSE).
   INST_2x(movntps, kInstMovntps, Mem, XmmVar)
 
-  //! @brief Move scalar SP-FP (SSE).
+  //! Move scalar SP-FP (SSE).
   INST_2x(movss, kInstMovss, XmmVar, XmmVar)
   //! @overload
   INST_2x(movss, kInstMovss, XmmVar, Mem)
   //! @overload
   INST_2x(movss, kInstMovss, Mem, XmmVar)
 
-  //! @brief Move unaligned packed SP-FP values (SSE).
+  //! Move unaligned packed SP-FP (SSE).
   INST_2x(movups, kInstMovups, XmmVar, XmmVar)
   //! @overload
   INST_2x(movups, kInstMovups, XmmVar, Mem)
   //! @overload
   INST_2x(movups, kInstMovups, Mem, XmmVar)
 
-  //! @brief Packed SP-FP multiply (SSE).
+  //! Packed SP-FP multiply (SSE).
   INST_2x(mulps, kInstMulps, XmmVar, XmmVar)
   //! @overload
   INST_2x(mulps, kInstMulps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP multiply (SSE).
+  //! Scalar SP-FP multiply (SSE).
   INST_2x(mulss, kInstMulss, XmmVar, XmmVar)
   //! @overload
   INST_2x(mulss, kInstMulss, XmmVar, Mem)
 
-  //! @brief Or for SP-FP data (SSE).
+  //! Packed SP-FP bitwise or (SSE).
   INST_2x(orps, kInstOrps, XmmVar, XmmVar)
   //! @overload
   INST_2x(orps, kInstOrps, XmmVar, Mem)
 
-  //! @brief Packed average (SSE).
+  //! Packed BYTE average (SSE).
   INST_2x(pavgb, kInstPavgb, MmVar, MmVar)
   //! @overload
   INST_2x(pavgb, kInstPavgb, MmVar, Mem)
 
-  //! @brief Packed average (SSE).
+  //! Packed WORD average (SSE).
   INST_2x(pavgw, kInstPavgw, MmVar, MmVar)
   //! @overload
   INST_2x(pavgw, kInstPavgw, MmVar, Mem)
 
-  //! @brief Extract word (SSE).
+  //! Extract WORD based on selector (SSE).
   INST_3i(pextrw, kInstPextrw, GpVar, MmVar, Imm)
 
-  //! @brief Insert word (SSE).
+  //! Insert WORD based on selector (SSE).
   INST_3i(pinsrw, kInstPinsrw, MmVar, GpVar, Imm)
   //! @overload
   INST_3i(pinsrw, kInstPinsrw, MmVar, Mem, Imm)
 
-  //! @brief Packed signed integer word maximum (SSE).
+  //! Packed WORD maximum (SSE).
   INST_2x(pmaxsw, kInstPmaxsw, MmVar, MmVar)
   //! @overload
   INST_2x(pmaxsw, kInstPmaxsw, MmVar, Mem)
 
-  //! @brief Packed unsigned integer byte maximum (SSE).
+  //! Packed BYTE unsigned maximum (SSE).
   INST_2x(pmaxub, kInstPmaxub, MmVar, MmVar)
   //! @overload
   INST_2x(pmaxub, kInstPmaxub, MmVar, Mem)
 
-  //! @brief Packed signed integer word minimum (SSE).
+  //! Packed WORD minimum (SSE).
   INST_2x(pminsw, kInstPminsw, MmVar, MmVar)
   //! @overload
   INST_2x(pminsw, kInstPminsw, MmVar, Mem)
 
-  //! @brief Packed unsigned integer byte minimum (SSE).
+  //! Packed BYTE unsigned minimum (SSE).
   INST_2x(pminub, kInstPminub, MmVar, MmVar)
   //! @overload
   INST_2x(pminub, kInstPminub, MmVar, Mem)
 
-  //! @brief Move byte mask to integer (SSE).
+  //! Move byte mask to integer (SSE).
   INST_2x(pmovmskb, kInstPmovmskb, GpVar, MmVar)
 
-  //! @brief Packed multiply high unsigned (SSE).
+  //! Packed WORD unsigned multiply high (SSE).
   INST_2x(pmulhuw, kInstPmulhuw, MmVar, MmVar)
   //! @overload
   INST_2x(pmulhuw, kInstPmulhuw, MmVar, Mem)
 
-  //! @brief Packed sum of absolute differences (SSE).
+  //! Packed WORD sum of absolute differences (SSE).
   INST_2x(psadbw, kInstPsadbw, MmVar, MmVar)
   //! @overload
   INST_2x(psadbw, kInstPsadbw, MmVar, Mem)
 
-  //! @brief Packed shuffle word (SSE).
+  //! Packed WORD shuffle (SSE).
   INST_3i(pshufw, kInstPshufw, MmVar, MmVar, Imm)
   //! @overload
   INST_3i(pshufw, kInstPshufw, MmVar, Mem, Imm)
 
-  //! @brief Packed SP-FP reciprocal (SSE).
+  //! Packed SP-FP reciprocal (SSE).
   INST_2x(rcpps, kInstRcpps, XmmVar, XmmVar)
   //! @overload
   INST_2x(rcpps, kInstRcpps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP reciprocal (SSE).
+  //! Scalar SP-FP reciprocal (SSE).
   INST_2x(rcpss, kInstRcpss, XmmVar, XmmVar)
   //! @overload
   INST_2x(rcpss, kInstRcpss, XmmVar, Mem)
 
-  //! @brief Prefetch (SSE).
+  //! Prefetch (SSE).
   INST_2i(prefetch, kInstPrefetch, Mem, Imm)
 
-  //! @brief Compute sum of absolute differences (SSE).
+  //! Packed WORD sum of absolute differences (SSE).
   INST_2x(psadbw, kInstPsadbw, XmmVar, XmmVar)
   //! @overload
   INST_2x(psadbw, kInstPsadbw, XmmVar, Mem)
 
-  //! @brief Packed SP-FP Square root reciprocal (SSE).
+  //! Packed SP-FP Square root reciprocal (SSE).
   INST_2x(rsqrtps, kInstRsqrtps, XmmVar, XmmVar)
   //! @overload
   INST_2x(rsqrtps, kInstRsqrtps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP Square root reciprocal (SSE).
+  //! Scalar SP-FP Square root reciprocal (SSE).
   INST_2x(rsqrtss, kInstRsqrtss, XmmVar, XmmVar)
   //! @overload
   INST_2x(rsqrtss, kInstRsqrtss, XmmVar, Mem)
 
-  //! @brief Store fence (SSE).
+  //! Store fence (SSE).
   INST_0x(sfence, kInstSfence)
 
-  //! @brief Shuffle SP-FP (SSE).
+  //! Shuffle SP-FP (SSE).
   INST_3i(shufps, kInstShufps, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(shufps, kInstShufps, XmmVar, Mem, Imm)
 
-  //! @brief Packed SP-FP square root (SSE).
+  //! Packed SP-FP square root (SSE).
   INST_2x(sqrtps, kInstSqrtps, XmmVar, XmmVar)
   //! @overload
   INST_2x(sqrtps, kInstSqrtps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP square root (SSE).
+  //! Scalar SP-FP square root (SSE).
   INST_2x(sqrtss, kInstSqrtss, XmmVar, XmmVar)
   //! @overload
   INST_2x(sqrtss, kInstSqrtss, XmmVar, Mem)
 
-  //! @brief Store streaming SIMD extension control/status (SSE).
+  //! Store streaming SIMD extension control/status (SSE).
   INST_1x(stmxcsr, kInstStmxcsr, Mem)
 
-  //! @brief Packed SP-FP subtract (SSE).
+  //! Packed SP-FP subtract (SSE).
   INST_2x(subps, kInstSubps, XmmVar, XmmVar)
   //! @overload
   INST_2x(subps, kInstSubps, XmmVar, Mem)
 
-  //! @brief Scalar SP-FP subtract (SSE).
+  //! Scalar SP-FP subtract (SSE).
   INST_2x(subss, kInstSubss, XmmVar, XmmVar)
   //! @overload
   INST_2x(subss, kInstSubss, XmmVar, Mem)
 
-  //! @brief Unordered scalar SP-FP compare and set EFLAGS (SSE).
+  //! Unordered scalar SP-FP compare and set EFLAGS (SSE).
   INST_2x(ucomiss, kInstUcomiss, XmmVar, XmmVar)
   //! @overload
   INST_2x(ucomiss, kInstUcomiss, XmmVar, Mem)
 
-  //! @brief Unpack high packed SP-FP data (SSE).
+  //! Unpack high packed SP-FP data (SSE).
   INST_2x(unpckhps, kInstUnpckhps, XmmVar, XmmVar)
   //! @overload
   INST_2x(unpckhps, kInstUnpckhps, XmmVar, Mem)
 
-  //! @brief Unpack low packed SP-FP data (SSE).
+  //! Unpack low packed SP-FP data (SSE).
   INST_2x(unpcklps, kInstUnpcklps, XmmVar, XmmVar)
   //! @overload
   INST_2x(unpcklps, kInstUnpcklps, XmmVar, Mem)
 
-  //! @brief Xor for SP-FP data (SSE).
+  //! Packed SP-FP bitwise xor (SSE).
   INST_2x(xorps, kInstXorps, XmmVar, XmmVar)
   //! @overload
   INST_2x(xorps, kInstXorps, XmmVar, Mem)
 
-  //! @brief Packed DP-FP add (SSE2).
+  // --------------------------------------------------------------------------
+  // [SSE2]
+  // --------------------------------------------------------------------------
+
+  //! Packed DP-FP add (SSE2).
   INST_2x(addpd, kInstAddpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(addpd, kInstAddpd, XmmVar, Mem)
 
-  //! @brief Scalar DP-FP add (SSE2).
+  //! Scalar DP-FP add (SSE2).
   INST_2x(addsd, kInstAddsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(addsd, kInstAddsd, XmmVar, Mem)
 
-  //! @brief And-not for DP-FP (SSE2).
+  //! Packed DP-FP bitwise and-not (SSE2).
   INST_2x(andnpd, kInstAndnpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(andnpd, kInstAndnpd, XmmVar, Mem)
 
-  //! @brief And for DP-FP (SSE2).
+  //! Packed DP-FP bitwise and (SSE2).
   INST_2x(andpd, kInstAndpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(andpd, kInstAndpd, XmmVar, Mem)
 
-  //! @brief Flush cache line (SSE2).
+  //! Flush cache line (SSE2).
   INST_1x(clflush, kInstClflush, Mem)
 
-  //! @brief Packed DP-FP compare (SSE2).
+  //! Packed DP-FP compare (SSE2).
   INST_3i(cmppd, kInstCmppd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(cmppd, kInstCmppd, XmmVar, Mem, Imm)
 
-  //! @brief Compare scalar SP-FP values (SSE2).
+  //! Scalar SP-FP compare (SSE2).
   INST_3i(cmpsd, kInstCmpsd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(cmpsd, kInstCmpsd, XmmVar, Mem, Imm)
 
-  //! @brief Scalar ordered DP-FP compare and set EFLAGS (SSE2).
+  //! Scalar ordered DP-FP compare and set EFLAGS (SSE2).
   INST_2x(comisd, kInstComisd, XmmVar, XmmVar)
   //! @overload
   INST_2x(comisd, kInstComisd, XmmVar, Mem)
 
-  //! @brief Convert packed Dword integers to packed DP-FP values (SSE2).
+  //! Convert packed DWORD integers to packed DP-FP (SSE2).
   INST_2x(cvtdq2pd, kInstCvtdq2pd, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtdq2pd, kInstCvtdq2pd, XmmVar, Mem)
 
-  //! @brief Convert packed Dword integers to packed SP-FP values (SSE2).
+  //! Convert packed DWORD integers to packed SP-FP (SSE2).
   INST_2x(cvtdq2ps, kInstCvtdq2ps, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtdq2ps, kInstCvtdq2ps, XmmVar, Mem)
 
-  //! @brief Convert packed DP-FP values to packed dword integers (SSE2).
+  //! Convert packed DP-FP to packed DWORDs (SSE2).
   INST_2x(cvtpd2dq, kInstCvtpd2dq, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtpd2dq, kInstCvtpd2dq, XmmVar, Mem)
 
-  //! @brief Convert packed DP-FP values to packed dword integers (SSE2).
+  //! Convert packed DP-FP to packed DWORDs (SSE2).
   INST_2x(cvtpd2pi, kInstCvtpd2pi, MmVar, XmmVar)
   //! @overload
   INST_2x(cvtpd2pi, kInstCvtpd2pi, MmVar, Mem)
 
-  //! @brief Convert packed DP-FP values to packed SP-FP values (SSE2).
+  //! Convert packed DP-FP to packed SP-FP (SSE2).
   INST_2x(cvtpd2ps, kInstCvtpd2ps, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtpd2ps, kInstCvtpd2ps, XmmVar, Mem)
 
-  //! @brief Convert packed dword integers to packed DP-FP values (SSE2).
+  //! Convert packed DWORDs to packed DP-FP (SSE2).
   INST_2x(cvtpi2pd, kInstCvtpi2pd, XmmVar, MmVar)
   //! @overload
   INST_2x(cvtpi2pd, kInstCvtpi2pd, XmmVar, Mem)
 
-  //! @brief Convert packed SP-FP values to packed dword integers (SSE2).
+  //! Convert packed SP-FP to packed DWORDs (SSE2).
   INST_2x(cvtps2dq, kInstCvtps2dq, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtps2dq, kInstCvtps2dq, XmmVar, Mem)
 
-  //! @brief Convert packed SP-FP values to packed DP-FP values (SSE2).
+  //! Convert packed SP-FP to packed DP-FP (SSE2).
   INST_2x(cvtps2pd, kInstCvtps2pd, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtps2pd, kInstCvtps2pd, XmmVar, Mem)
 
-  //! @brief Convert scalar DP-FP value to dword Integer (SSE2).
+  //! Convert scalar DP-FP to DWORD (SSE2).
   INST_2x(cvtsd2si, kInstCvtsd2si, GpVar, XmmVar)
   //! @overload
   INST_2x(cvtsd2si, kInstCvtsd2si, GpVar, Mem)
 
-  //! @brief Convert scalar DP-FP value to scalar SP-FP value (SSE2).
+  //! Convert scalar DP-FP to scalar SP-FP (SSE2).
   INST_2x(cvtsd2ss, kInstCvtsd2ss, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtsd2ss, kInstCvtsd2ss, XmmVar, Mem)
 
-  //! @brief Convert dword integer to scalar DP-FP value (SSE2).
+  //! Convert DWORD to scalar DP-FP (SSE2).
   INST_2x(cvtsi2sd, kInstCvtsi2sd, XmmVar, GpVar)
   //! @overload
   INST_2x(cvtsi2sd, kInstCvtsi2sd, XmmVar, Mem)
 
-  //! @brief Convert scalar SP-FP value to scalar DP-FP value (SSE2).
+  //! Convert scalar SP-FP to DP-FP (SSE2).
   INST_2x(cvtss2sd, kInstCvtss2sd, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvtss2sd, kInstCvtss2sd, XmmVar, Mem)
 
-  //! @brief Convert with truncation packed DP-FP values to packed dword Integers (SSE2).
+  //! Convert with truncation packed DP-FP to packed DWORDs (SSE2).
   INST_2x(cvttpd2pi, kInstCvttpd2pi, MmVar, XmmVar)
   //! @overload
   INST_2x(cvttpd2pi, kInstCvttpd2pi, MmVar, Mem)
 
-  //! @brief Convert with truncation packed DP-FP values to packed qword Integers (SSE2).
+  //! Convert with truncation packed DP-FP to packed QWORDs (SSE2).
   INST_2x(cvttpd2dq, kInstCvttpd2dq, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvttpd2dq, kInstCvttpd2dq, XmmVar, Mem)
 
-  //! @brief Convert with truncation packed SP-FP values to packed qword Integers (SSE2).
+  //! Convert with truncation packed SP-FP to packed QWORDs (SSE2).
   INST_2x(cvttps2dq, kInstCvttps2dq, XmmVar, XmmVar)
   //! @overload
   INST_2x(cvttps2dq, kInstCvttps2dq, XmmVar, Mem)
 
-  //! @brief Convert with truncation scalar DP-FP value to signed dword Integer (SSE2).
+  //! Convert with truncation scalar DP-FP to DWORD (SSE2).
   INST_2x(cvttsd2si, kInstCvttsd2si, GpVar, XmmVar)
   //! @overload
   INST_2x(cvttsd2si, kInstCvttsd2si, GpVar, Mem)
 
-  //! @brief Packed DP-FP divide (SSE2).
+  //! Packed DP-FP divide (SSE2).
   INST_2x(divpd, kInstDivpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(divpd, kInstDivpd, XmmVar, Mem)
 
-  //! @brief Scalar DP-FP divide (SSE2).
+  //! Scalar DP-FP divide (SSE2).
   INST_2x(divsd, kInstDivsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(divsd, kInstDivsd, XmmVar, Mem)
 
-  //! @brief Load fence (SSE2).
+  //! Load fence (SSE2).
   INST_0x(lfence, kInstLfence)
 
-  //! @brief Store selected bytes of oword (SSE2).
-  //!
-  //! @note Target is DS:EDI.
+  //! Store selected bytes of OWORD (SSE2).
   INST_2x(maskmovdqu, kInstMaskmovdqu, XmmVar, XmmVar)
 
-  //! @brief Return maximum packed DP-FP values (SSE2).
+  //! Packed DP-FP maximum (SSE2).
   INST_2x(maxpd, kInstMaxpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(maxpd, kInstMaxpd, XmmVar, Mem)
 
-  //! @brief Return maximum scalar DP-FP value (SSE2).
+  //! Scalar DP-FP maximum (SSE2).
   INST_2x(maxsd, kInstMaxsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(maxsd, kInstMaxsd, XmmVar, Mem)
 
-  //! @brief Memory fence (SSE2).
+  //! Memory fence (SSE2).
   INST_0x(mfence, kInstMfence)
 
-  //! @brief Return minimum packed DP-FP Values (SSE2).
+  //! Packed DP-FP minimum (SSE2).
   INST_2x(minpd, kInstMinpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(minpd, kInstMinpd, XmmVar, Mem)
 
-  //! @brief Return minimum scalar DP-FP value (SSE2).
+  //! Scalar DP-FP minimum (SSE2).
   INST_2x(minsd, kInstMinsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(minsd, kInstMinsd, XmmVar, Mem)
 
-  //! @brief Move aligned oword (SSE2).
+  //! Move aligned OWORD (SSE2).
   INST_2x(movdqa, kInstMovdqa, XmmVar, XmmVar)
   //! @overload
   INST_2x(movdqa, kInstMovdqa, XmmVar, Mem)
   //! @overload
   INST_2x(movdqa, kInstMovdqa, Mem, XmmVar)
 
-  //! @brief Move unaligned oword (SSE2).
+  //! Move unaligned OWORD (SSE2).
   INST_2x(movdqu, kInstMovdqu, XmmVar, XmmVar)
   //! @overload
   INST_2x(movdqu, kInstMovdqu, XmmVar, Mem)
   //! @overload
   INST_2x(movdqu, kInstMovdqu, Mem, XmmVar)
 
-  //! @brief Extract packed SP-FP sign mask (SSE2).
+  //! Extract packed SP-FP sign mask (SSE2).
   INST_2x(movmskps, kInstMovmskps, GpVar, XmmVar)
 
-  //! @brief Extract packed DP-FP sign mask (SSE2).
+  //! Extract packed DP-FP sign mask (SSE2).
   INST_2x(movmskpd, kInstMovmskpd, GpVar, XmmVar)
 
-  //! @brief Move scalar DP-FP value (SSE2).
+  //! Move scalar DP-FP (SSE2).
   INST_2x(movsd, kInstMovsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(movsd, kInstMovsd, XmmVar, Mem)
   //! @overload
   INST_2x(movsd, kInstMovsd, Mem, XmmVar)
 
-  //! @brief Move aligned packed DP-FP values (SSE2).
+  //! Move aligned packed DP-FP (SSE2).
   INST_2x(movapd, kInstMovapd, XmmVar, XmmVar)
   //! @overload
   INST_2x(movapd, kInstMovapd, XmmVar, Mem)
   //! @overload
   INST_2x(movapd, kInstMovapd, Mem, XmmVar)
 
-  //! @brief Move qword from Xmm to Mm register (SSE2).
+  //! Move QWORD from XMM to MM register (SSE2).
   INST_2x(movdq2q, kInstMovdq2q, MmVar, XmmVar)
 
-  //! @brief Move qword from Mm to Xmm register (SSE2).
+  //! Move QWORD from MM to XMM register (SSE2).
   INST_2x(movq2dq, kInstMovq2dq, XmmVar, MmVar)
 
-  //! @brief Move high packed DP-FP value (SSE2).
+  //! Move high packed DP-FP (SSE2).
   INST_2x(movhpd, kInstMovhpd, XmmVar, Mem)
   //! @overload
   INST_2x(movhpd, kInstMovhpd, Mem, XmmVar)
 
-  //! @brief Move low packed DP-FP value (SSE2).
+  //! Move low packed DP-FP (SSE2).
   INST_2x(movlpd, kInstMovlpd, XmmVar, Mem)
   //! @overload
   INST_2x(movlpd, kInstMovlpd, Mem, XmmVar)
 
-  //! @brief Store oword using non-temporal hint (SSE2).
+  //! Store OWORD using NT hint (SSE2).
   INST_2x(movntdq, kInstMovntdq, Mem, XmmVar)
 
-  //! @brief Store dword using non-temporal hint (SSE2).
+  //! Store DWORD using NT hint (SSE2).
   INST_2x(movnti, kInstMovnti, Mem, GpVar)
 
-  //! @brief Store packed DP-FP values using non-temporal hint (SSE2).
+  //! Store packed DP-FP using NT hint (SSE2).
   INST_2x(movntpd, kInstMovntpd, Mem, XmmVar)
 
-  //! @brief Move unaligned packed DP-FP values (SSE2).
+  //! Move unaligned packed DP-FP (SSE2).
   INST_2x(movupd, kInstMovupd, XmmVar, XmmVar)
   //! @overload
   INST_2x(movupd, kInstMovupd, XmmVar, Mem)
   //! @overload
   INST_2x(movupd, kInstMovupd, Mem, XmmVar)
 
-  //! @brief Packed DP-FP multiply (SSE2).
+  //! Packed DP-FP multiply (SSE2).
   INST_2x(mulpd, kInstMulpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(mulpd, kInstMulpd, XmmVar, Mem)
 
-  //! @brief Scalar DP-FP multiply (SSE2).
+  //! Scalar DP-FP multiply (SSE2).
   INST_2x(mulsd, kInstMulsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(mulsd, kInstMulsd, XmmVar, Mem)
 
-  //! @brief Or for DP-FP data (SSE2).
+  //! Packed DP-FP bitwise or (SSE2).
   INST_2x(orpd, kInstOrpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(orpd, kInstOrpd, XmmVar, Mem)
 
-  //! @brief Pack with signed saturation (SSE2).
+  //! Pack WORDs to BYTEs with signed saturation (SSE2).
   INST_2x(packsswb, kInstPacksswb, XmmVar, XmmVar)
   //! @overload
   INST_2x(packsswb, kInstPacksswb, XmmVar, Mem)
 
-  //! @brief Pack with signed saturation (SSE2).
+  //! Pack DWORDs to WORDs with signed saturation (SSE2).
   INST_2x(packssdw, kInstPackssdw, XmmVar, XmmVar)
   //! @overload
   INST_2x(packssdw, kInstPackssdw, XmmVar, Mem)
 
-  //! @brief Pack with unsigned saturation (SSE2).
+  //! Pack WORDs to BYTEs with unsigned saturation (SSE2).
   INST_2x(packuswb, kInstPackuswb, XmmVar, XmmVar)
   //! @overload
   INST_2x(packuswb, kInstPackuswb, XmmVar, Mem)
 
-  //! @brief Packed byte add (SSE2).
+  //! Packed BYTE add (SSE2).
   INST_2x(paddb, kInstPaddb, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddb, kInstPaddb, XmmVar, Mem)
 
-  //! @brief Packed word add (SSE2).
+  //! Packed WORD add (SSE2).
   INST_2x(paddw, kInstPaddw, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddw, kInstPaddw, XmmVar, Mem)
 
-  //! @brief Packed dword add (SSE2).
+  //! Packed DWORD add (SSE2).
   INST_2x(paddd, kInstPaddd, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddd, kInstPaddd, XmmVar, Mem)
 
-  //! @brief Packed qword add (SSE2).
+  //! Packed QWORD add (SSE2).
   INST_2x(paddq, kInstPaddq, MmVar, MmVar)
   //! @overload
   INST_2x(paddq, kInstPaddq, MmVar, Mem)
 
-  //! @brief Packed qword add (SSE2).
+  //! Packed QWORD add (SSE2).
   INST_2x(paddq, kInstPaddq, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddq, kInstPaddq, XmmVar, Mem)
 
-  //! @brief Packed add with saturation (SSE2).
+  //! Packed BYTE add with saturation (SSE2).
   INST_2x(paddsb, kInstPaddsb, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddsb, kInstPaddsb, XmmVar, Mem)
 
-  //! @brief Packed add with saturation (SSE2).
+  //! Packed WORD add with saturation (SSE2).
   INST_2x(paddsw, kInstPaddsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddsw, kInstPaddsw, XmmVar, Mem)
 
-  //! @brief Packed add unsigned with saturation (SSE2).
+  //! Packed BYTE add with unsigned saturation (SSE2).
   INST_2x(paddusb, kInstPaddusb, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddusb, kInstPaddusb, XmmVar, Mem)
 
-  //! @brief Packed add unsigned with saturation (SSE2).
+  //! Packed WORD add with unsigned saturation (SSE2).
   INST_2x(paddusw, kInstPaddusw, XmmVar, XmmVar)
   //! @overload
   INST_2x(paddusw, kInstPaddusw, XmmVar, Mem)
 
-  //! @brief And (SSE2).
+  //! Packed bitwise and (SSE2).
   INST_2x(pand, kInstPand, XmmVar, XmmVar)
   //! @overload
   INST_2x(pand, kInstPand, XmmVar, Mem)
 
-  //! @brief And-not (SSE2).
+  //! Packed bitwise and-not (SSE2).
   INST_2x(pandn, kInstPandn, XmmVar, XmmVar)
   //! @overload
   INST_2x(pandn, kInstPandn, XmmVar, Mem)
 
-  //! @brief Spin loop hint (SSE2).
+  //! Spin loop hint (SSE2).
   INST_0x(pause, kInstPause)
 
-  //! @brief Packed average (SSE2).
+  //! Packed BYTE average (SSE2).
   INST_2x(pavgb, kInstPavgb, XmmVar, XmmVar)
   //! @overload
   INST_2x(pavgb, kInstPavgb, XmmVar, Mem)
 
-  //! @brief Packed average (SSE2).
+  //! Packed WORD average (SSE2).
   INST_2x(pavgw, kInstPavgw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pavgw, kInstPavgw, XmmVar, Mem)
 
-  //! @brief Packed compare bytes for equal (SSE2).
+  //! Packed BYTE compare for equality (SSE2).
   INST_2x(pcmpeqb, kInstPcmpeqb, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpeqb, kInstPcmpeqb, XmmVar, Mem)
 
-  //! @brief Packed compare words for equal (SSE2).
+  //! Packed WROD compare for equality (SSE2).
   INST_2x(pcmpeqw, kInstPcmpeqw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpeqw, kInstPcmpeqw, XmmVar, Mem)
 
-  //! @brief Packed compare dwords for equal (SSE2).
+  //! Packed DWORD compare for equality (SSE2).
   INST_2x(pcmpeqd, kInstPcmpeqd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpeqd, kInstPcmpeqd, XmmVar, Mem)
 
-  //! @brief Packed compare bytes for greater than (SSE2).
+  //! Packed BYTE compare if greater than (SSE2).
   INST_2x(pcmpgtb, kInstPcmpgtb, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpgtb, kInstPcmpgtb, XmmVar, Mem)
 
-  //! @brief Packed compare words for greater than (SSE2).
+  //! Packed WORD compare if greater than (SSE2).
   INST_2x(pcmpgtw, kInstPcmpgtw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpgtw, kInstPcmpgtw, XmmVar, Mem)
 
-  //! @brief Packed compare dwords for greater than (SSE2).
+  //! Packed DWORD compare if greater than (SSE2).
   INST_2x(pcmpgtd, kInstPcmpgtd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpgtd, kInstPcmpgtd, XmmVar, Mem)
 
-  //! @brief Extract word (SSE2).
+  //! Extract WORD based on selector (SSE2).
   INST_3i(pextrw, kInstPextrw, GpVar, XmmVar, Imm)
 
-  //! @brief Insert word (SSE2).
+  //! Insert WORD based on selector (SSE2).
   INST_3i(pinsrw, kInstPinsrw, XmmVar, GpVar, Imm)
   //! @overload
   INST_3i(pinsrw, kInstPinsrw, XmmVar, Mem, Imm)
 
-  //! @brief Packed signed integer word maximum (SSE2).
+  //! Packed WORD maximum (SSE2).
   INST_2x(pmaxsw, kInstPmaxsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmaxsw, kInstPmaxsw, XmmVar, Mem)
 
-  //! @brief Packed unsigned integer byte maximum (SSE2).
+  //! Packed BYTE unsigned maximum (SSE2).
   INST_2x(pmaxub, kInstPmaxub, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmaxub, kInstPmaxub, XmmVar, Mem)
 
-  //! @brief Packed signed integer word minimum (SSE2).
+  //! Packed WORD minimum (SSE2).
   INST_2x(pminsw, kInstPminsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pminsw, kInstPminsw, XmmVar, Mem)
 
-  //! @brief Packed unsigned integer byte minimum (SSE2).
+  //! Packed BYTE unsigned minimum (SSE2).
   INST_2x(pminub, kInstPminub, XmmVar, XmmVar)
   //! @overload
   INST_2x(pminub, kInstPminub, XmmVar, Mem)
 
-  //! @brief Move byte mask (SSE2).
+  //! Move BYTE mask (SSE2).
   INST_2x(pmovmskb, kInstPmovmskb, GpVar, XmmVar)
 
-  //! @brief Packed multiply high (SSE2).
+  //! Packed WORD multiply high (SSE2).
   INST_2x(pmulhw, kInstPmulhw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmulhw, kInstPmulhw, XmmVar, Mem)
 
-  //! @brief Packed multiply high Unsigned (SSE2).
+  //! Packed WORD unsigned multiply high (SSE2).
   INST_2x(pmulhuw, kInstPmulhuw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmulhuw, kInstPmulhuw, XmmVar, Mem)
 
-  //! @brief Packed multiply low (SSE2).
+  //! Packed WORD multiply low (SSE2).
   INST_2x(pmullw, kInstPmullw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmullw, kInstPmullw, XmmVar, Mem)
 
-  //! @brief Packed multiply to QWORD (SSE2).
+  //! Packed DWORD multiply to QWORD (SSE2).
   INST_2x(pmuludq, kInstPmuludq, MmVar, MmVar)
   //! @overload
   INST_2x(pmuludq, kInstPmuludq, MmVar, Mem)
 
-  //! @brief Packed multiply to QWORD (SSE2).
+  //! Packed DWORD multiply to QWORD (SSE2).
   INST_2x(pmuludq, kInstPmuludq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmuludq, kInstPmuludq, XmmVar, Mem)
 
-  //! @brief Or (SSE2).
+  //! Packed bitwise or (SSE2).
   INST_2x(por, kInstPor, XmmVar, XmmVar)
   //! @overload
   INST_2x(por, kInstPor, XmmVar, Mem)
 
-  //! @brief Packed shift left logical (SSE2).
+  //! Packed DWORD shift left logical (SSE2).
   INST_2x(pslld, kInstPslld, XmmVar, XmmVar)
   //! @overload
   INST_2x(pslld, kInstPslld, XmmVar, Mem)
   //! @overload
   INST_2i(pslld, kInstPslld, XmmVar, Imm)
 
-  //! @brief Packed shift left logical (SSE2).
+  //! Packed QWORD shift left logical (SSE2).
   INST_2x(psllq, kInstPsllq, XmmVar, XmmVar)
   //! @overload
   INST_2x(psllq, kInstPsllq, XmmVar, Mem)
   //! @overload
   INST_2i(psllq, kInstPsllq, XmmVar, Imm)
 
-  //! @brief Packed shift left logical (SSE2).
+  //! Packed WORD shift left logical (SSE2).
   INST_2x(psllw, kInstPsllw, XmmVar, XmmVar)
   //! @overload
   INST_2x(psllw, kInstPsllw, XmmVar, Mem)
   //! @overload
   INST_2i(psllw, kInstPsllw, XmmVar, Imm)
 
-  //! @brief Packed shift left logical (SSE2).
+  //! Packed OWORD shift left logical (SSE2).
   INST_2i(pslldq, kInstPslldq, XmmVar, Imm)
 
-  //! @brief Packed shift right arithmetic (SSE2).
+  //! Packed DWORD shift right arithmetic (SSE2).
   INST_2x(psrad, kInstPsrad, XmmVar, XmmVar)
   //! @overload
   INST_2x(psrad, kInstPsrad, XmmVar, Mem)
   //! @overload
   INST_2i(psrad, kInstPsrad, XmmVar, Imm)
 
-  //! @brief Packed shift right arithmetic (SSE2).
+  //! Packed WORD shift right arithmetic (SSE2).
   INST_2x(psraw, kInstPsraw, XmmVar, XmmVar)
   //! @overload
   INST_2x(psraw, kInstPsraw, XmmVar, Mem)
   //! @overload
   INST_2i(psraw, kInstPsraw, XmmVar, Imm)
 
-  //! @brief Packed subtract (SSE2).
+  //! Packed BYTE subtract (SSE2).
   INST_2x(psubb, kInstPsubb, XmmVar, XmmVar)
   //! @overload
   INST_2x(psubb, kInstPsubb, XmmVar, Mem)
 
-  //! @brief Packed subtract (SSE2).
-  INST_2x(psubw, kInstPsubw, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(psubw, kInstPsubw, XmmVar, Mem)
-
-  //! @brief Packed subtract (SSE2).
+  //! Packed DWORD subtract (SSE2).
   INST_2x(psubd, kInstPsubd, XmmVar, XmmVar)
   //! @overload
   INST_2x(psubd, kInstPsubd, XmmVar, Mem)
 
-  //! @brief Packed subtract (SSE2).
+  //! Packed QWORD subtract (SSE2).
   INST_2x(psubq, kInstPsubq, MmVar, MmVar)
   //! @overload
   INST_2x(psubq, kInstPsubq, MmVar, Mem)
 
-  //! @brief Packed subtract (SSE2).
+  //! Packed QWORD subtract (SSE2).
   INST_2x(psubq, kInstPsubq, XmmVar, XmmVar)
   //! @overload
   INST_2x(psubq, kInstPsubq, XmmVar, Mem)
 
-  //! @brief Packed multiply and Add (SSE2).
+  //! Packed WORD subtract (SSE2).
+  INST_2x(psubw, kInstPsubw, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(psubw, kInstPsubw, XmmVar, Mem)
+
+  //! Packed WORD to DWORD multiply and add (SSE2).
   INST_2x(pmaddwd, kInstPmaddwd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmaddwd, kInstPmaddwd, XmmVar, Mem)
 
-  //! @brief Shuffle packed dwords (SSE2).
+  //! Packed DWORD shuffle (SSE2).
   INST_3i(pshufd, kInstPshufd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pshufd, kInstPshufd, XmmVar, Mem, Imm)
 
-  //! @brief Shuffle packed high words (SSE2).
+  //! Packed WORD shuffle high (SSE2).
   INST_3i(pshufhw, kInstPshufhw, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pshufhw, kInstPshufhw, XmmVar, Mem, Imm)
 
-  //! @brief Shuffle packed low words (SSE2).
+  //! Packed WORD shuffle low (SSE2).
   INST_3i(pshuflw, kInstPshuflw, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pshuflw, kInstPshuflw, XmmVar, Mem, Imm)
 
-  //! @brief Packed shift right logical (SSE2).
+  //! Packed DWORD shift right logical (SSE2).
   INST_2x(psrld, kInstPsrld, XmmVar, XmmVar)
   //! @overload
   INST_2x(psrld, kInstPsrld, XmmVar, Mem)
   //! @overload
   INST_2i(psrld, kInstPsrld, XmmVar, Imm)
 
-  //! @brief Packed shift right logical (SSE2).
+  //! Packed QWORD shift right logical (SSE2).
   INST_2x(psrlq, kInstPsrlq, XmmVar, XmmVar)
   //! @overload
   INST_2x(psrlq, kInstPsrlq, XmmVar, Mem)
   //! @overload
   INST_2i(psrlq, kInstPsrlq, XmmVar, Imm)
 
-  //! @brief Oword shift right logical (SSE2).
+  //! Scalar OWORD shift right logical (SSE2).
   INST_2i(psrldq, kInstPsrldq, XmmVar, Imm)
 
-  //! @brief Packed shift right logical (SSE2).
+  //! Packed WORD shift right logical (SSE2).
   INST_2x(psrlw, kInstPsrlw, XmmVar, XmmVar)
   //! @overload
   INST_2x(psrlw, kInstPsrlw, XmmVar, Mem)
   //! @overload
   INST_2i(psrlw, kInstPsrlw, XmmVar, Imm)
 
-  //! @brief Packed subtract with saturation (SSE2).
+  //! Packed BYTE subtract with saturation (SSE2).
   INST_2x(psubsb, kInstPsubsb, XmmVar, XmmVar)
   //! @overload
   INST_2x(psubsb, kInstPsubsb, XmmVar, Mem)
 
-  //! @brief Packed subtract with saturation (SSE2).
+  //! Packed WORD subtract with saturation (SSE2).
   INST_2x(psubsw, kInstPsubsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(psubsw, kInstPsubsw, XmmVar, Mem)
 
-  //! @brief Packed subtract with unsigned saturation (SSE2).
+  //! Packed BYTE subtract with unsigned saturation (SSE2).
   INST_2x(psubusb, kInstPsubusb, XmmVar, XmmVar)
   //! @overload
   INST_2x(psubusb, kInstPsubusb, XmmVar, Mem)
 
-  //! @brief Packed subtract with unsigned saturation (SSE2).
+  //! Packed WORD subtract with unsigned saturation (SSE2).
   INST_2x(psubusw, kInstPsubusw, XmmVar, XmmVar)
   //! @overload
   INST_2x(psubusw, kInstPsubusw, XmmVar, Mem)
 
-  //! @brief Unpack high data (SSE2).
+  //! Unpack high packed BYTEs to WORDs (SSE2).
   INST_2x(punpckhbw, kInstPunpckhbw, XmmVar, XmmVar)
   //! @overload
   INST_2x(punpckhbw, kInstPunpckhbw, XmmVar, Mem)
 
-  //! @brief Unpack high data (SSE2).
-  INST_2x(punpckhwd, kInstPunpckhwd, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(punpckhwd, kInstPunpckhwd, XmmVar, Mem)
-
-  //! @brief Unpack high data (SSE2).
+  //! Unpack high packed DWORDs to QWORDs (SSE2).
   INST_2x(punpckhdq, kInstPunpckhdq, XmmVar, XmmVar)
   //! @overload
   INST_2x(punpckhdq, kInstPunpckhdq, XmmVar, Mem)
 
-  //! @brief Unpack high data (SSE2).
+  //! Unpack high packed QWORDs to OWORD (SSE2).
   INST_2x(punpckhqdq, kInstPunpckhqdq, XmmVar, XmmVar)
   //! @overload
   INST_2x(punpckhqdq, kInstPunpckhqdq, XmmVar, Mem)
 
-  //! @brief Unpack low data (SSE2).
+  //! Unpack high packed WORDs to DWORDs (SSE2).
+  INST_2x(punpckhwd, kInstPunpckhwd, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(punpckhwd, kInstPunpckhwd, XmmVar, Mem)
+
+  //! Unpack low packed BYTEs to WORDs (SSE2).
   INST_2x(punpcklbw, kInstPunpcklbw, XmmVar, XmmVar)
   //! @overload
   INST_2x(punpcklbw, kInstPunpcklbw, XmmVar, Mem)
 
-  //! @brief Unpack low data (SSE2).
-  INST_2x(punpcklwd, kInstPunpcklwd, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(punpcklwd, kInstPunpcklwd, XmmVar, Mem)
-
-  //! @brief Unpack low data (SSE2).
+  //! Unpack low packed DWORDs to QWORDs (SSE2).
   INST_2x(punpckldq, kInstPunpckldq, XmmVar, XmmVar)
   //! @overload
   INST_2x(punpckldq, kInstPunpckldq, XmmVar, Mem)
 
-  //! @brief Unpack low data (SSE2).
+  //! Unpack low packed QWORDs to OWORD (SSE2).
   INST_2x(punpcklqdq, kInstPunpcklqdq, XmmVar, XmmVar)
   //! @overload
   INST_2x(punpcklqdq, kInstPunpcklqdq, XmmVar, Mem)
 
-  //! @brief Xor (SSE2).
+  //! Unpack low packed WORDs to DWORDs (SSE2).
+  INST_2x(punpcklwd, kInstPunpcklwd, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(punpcklwd, kInstPunpcklwd, XmmVar, Mem)
+
+  //! Packed bitwise xor (SSE2).
   INST_2x(pxor, kInstPxor, XmmVar, XmmVar)
   //! @overload
   INST_2x(pxor, kInstPxor, XmmVar, Mem)
 
-  //! @brief Shuffle DP-FP (SSE2).
+  //! Shuffle DP-FP (SSE2).
   INST_3i(shufpd, kInstShufpd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(shufpd, kInstShufpd, XmmVar, Mem, Imm)
 
-  //! @brief Compute square roots of packed DP-FP Values (SSE2).
+  //! Packed DP-FP square root (SSE2).
   INST_2x(sqrtpd, kInstSqrtpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(sqrtpd, kInstSqrtpd, XmmVar, Mem)
 
-  //! @brief Compute square root of scalar DP-FP value (SSE2).
+  //! Scalar DP-FP square root (SSE2).
   INST_2x(sqrtsd, kInstSqrtsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(sqrtsd, kInstSqrtsd, XmmVar, Mem)
 
-  //! @brief Packed DP-FP subtract (SSE2).
+  //! Packed DP-FP subtract (SSE2).
   INST_2x(subpd, kInstSubpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(subpd, kInstSubpd, XmmVar, Mem)
 
-  //! @brief Scalar DP-FP subtract (SSE2).
+  //! Scalar DP-FP subtract (SSE2).
   INST_2x(subsd, kInstSubsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(subsd, kInstSubsd, XmmVar, Mem)
 
-  //! @brief Scalar unordered DP-FP compare and set EFLAGS (SSE2).
+  //! Scalar DP-FP unordered compare and set EFLAGS (SSE2).
   INST_2x(ucomisd, kInstUcomisd, XmmVar, XmmVar)
   //! @overload
   INST_2x(ucomisd, kInstUcomisd, XmmVar, Mem)
 
-  //! @brief Unpack and interleave high packed DP-FP values (SSE2).
+  //! Unpack and interleave high packed DP-FP (SSE2).
   INST_2x(unpckhpd, kInstUnpckhpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(unpckhpd, kInstUnpckhpd, XmmVar, Mem)
 
-  //! @brief Unpack and interleave low packed DP-FP values (SSE2).
+  //! Unpack and interleave low packed DP-FP (SSE2).
   INST_2x(unpcklpd, kInstUnpcklpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(unpcklpd, kInstUnpcklpd, XmmVar, Mem)
 
-  //! @brief Or for DP-FP data (SSE2).
+  //! Packed DP-FP bitwise xor (SSE2).
   INST_2x(xorpd, kInstXorpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(xorpd, kInstXorpd, XmmVar, Mem)
@@ -3466,223 +3451,223 @@ struct X86X64Compiler : public BaseCompiler {
   // [SSE3]
   // --------------------------------------------------------------------------
 
-  //! @brief Packed DP-FP add/subtract (SSE3).
+  //! Packed DP-FP add/subtract (SSE3).
   INST_2x(addsubpd, kInstAddsubpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(addsubpd, kInstAddsubpd, XmmVar, Mem)
 
-  //! @brief Packed SP-FP add/subtract (SSE3).
+  //! Packed SP-FP add/subtract (SSE3).
   INST_2x(addsubps, kInstAddsubps, XmmVar, XmmVar)
   //! @overload
   INST_2x(addsubps, kInstAddsubps, XmmVar, Mem)
 
-  // //! @brief Store integer with truncation (SSE3).
+  // //! Store integer with truncation (SSE3).
   // INST_1x(fisttp, kInstFisttp, Mem)
 
-  //! @brief Packed DP-FP horizontal add (SSE3).
+  //! Packed DP-FP horizontal add (SSE3).
   INST_2x(haddpd, kInstHaddpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(haddpd, kInstHaddpd, XmmVar, Mem)
 
-  //! @brief Packed SP-FP horizontal add (SSE3).
+  //! Packed SP-FP horizontal add (SSE3).
   INST_2x(haddps, kInstHaddps, XmmVar, XmmVar)
   //! @overload
   INST_2x(haddps, kInstHaddps, XmmVar, Mem)
 
-  //! @brief Packed DP-FP horizontal subtract (SSE3).
+  //! Packed DP-FP horizontal subtract (SSE3).
   INST_2x(hsubpd, kInstHsubpd, XmmVar, XmmVar)
   //! @overload
   INST_2x(hsubpd, kInstHsubpd, XmmVar, Mem)
 
-  //! @brief Packed SP-FP horizontal subtract (SSE3).
+  //! Packed SP-FP horizontal subtract (SSE3).
   INST_2x(hsubps, kInstHsubps, XmmVar, XmmVar)
   //! @overload
   INST_2x(hsubps, kInstHsubps, XmmVar, Mem)
 
-  //! @brief Load unaligned Integer 128 Bits (SSE3).
+  //! Load 128-bits unaligned (SSE3).
   INST_2x(lddqu, kInstLddqu, XmmVar, Mem)
 
-  // //! @brief Setup monitor address (SSE3).
+  // //! Setup monitor address (SSE3).
   // INST_0x(monitor, kInstMonitor)
 
-  //! @brief Move one DP-FP and duplicate (SSE3).
+  //! Move one DP-FP and duplicate (SSE3).
   INST_2x(movddup, kInstMovddup, XmmVar, XmmVar)
   //! @overload
   INST_2x(movddup, kInstMovddup, XmmVar, Mem)
 
-  //! @brief Move packed SP-FP high and duplicate (SSE3).
+  //! Move packed SP-FP high and duplicate (SSE3).
   INST_2x(movshdup, kInstMovshdup, XmmVar, XmmVar)
   //! @overload
   INST_2x(movshdup, kInstMovshdup, XmmVar, Mem)
 
-  //! @brief Move packed SP-FP low and duplicate (SSE3).
+  //! Move packed SP-FP low and duplicate (SSE3).
   INST_2x(movsldup, kInstMovsldup, XmmVar, XmmVar)
   //! @overload
   INST_2x(movsldup, kInstMovsldup, XmmVar, Mem)
 
-  // //! @brief Monitor wait (SSE3).
+  // //! Monitor wait (SSE3).
   // INST_0x(mwait, kInstMwait)
 
   // --------------------------------------------------------------------------
   // [SSSE3]
   // --------------------------------------------------------------------------
 
-  //! @brief Packed sign (SSSE3).
+  //! Packed BYTE sign (SSSE3).
   INST_2x(psignb, kInstPsignb, MmVar, MmVar)
   //! @overload
   INST_2x(psignb, kInstPsignb, MmVar, Mem)
 
-  //! @brief Packed sign (SSSE3).
+  //! PackedBYTE  sign (SSSE3).
   INST_2x(psignb, kInstPsignb, XmmVar, XmmVar)
   //! @overload
   INST_2x(psignb, kInstPsignb, XmmVar, Mem)
 
-  //! @brief Packed sign (SSSE3).
-  INST_2x(psignw, kInstPsignw, MmVar, MmVar)
-  //! @overload
-  INST_2x(psignw, kInstPsignw, MmVar, Mem)
-
-  //! @brief Packed sign (SSSE3).
-  INST_2x(psignw, kInstPsignw, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(psignw, kInstPsignw, XmmVar, Mem)
-
-  //! @brief Packed sign (SSSE3).
+  //! Packed DWORD sign (SSSE3).
   INST_2x(psignd, kInstPsignd, MmVar, MmVar)
   //! @overload
   INST_2x(psignd, kInstPsignd, MmVar, Mem)
 
-  //! @brief Packed sign (SSSE3).
+  //! Packed DWORD sign (SSSE3).
   INST_2x(psignd, kInstPsignd, XmmVar, XmmVar)
   //! @overload
   INST_2x(psignd, kInstPsignd, XmmVar, Mem)
 
-  //! @brief Packed horizontal add (SSSE3).
-  INST_2x(phaddw, kInstPhaddw, MmVar, MmVar)
+  //! Packed WORD sign (SSSE3).
+  INST_2x(psignw, kInstPsignw, MmVar, MmVar)
   //! @overload
-  INST_2x(phaddw, kInstPhaddw, MmVar, Mem)
+  INST_2x(psignw, kInstPsignw, MmVar, Mem)
 
-  //! @brief Packed horizontal add (SSSE3).
-  INST_2x(phaddw, kInstPhaddw, XmmVar, XmmVar)
+  //! Packed WORD sign (SSSE3).
+  INST_2x(psignw, kInstPsignw, XmmVar, XmmVar)
   //! @overload
-  INST_2x(phaddw, kInstPhaddw, XmmVar, Mem)
+  INST_2x(psignw, kInstPsignw, XmmVar, Mem)
 
-  //! @brief Packed horizontal add (SSSE3).
+  //! Packed DWORD horizontal add (SSSE3).
   INST_2x(phaddd, kInstPhaddd, MmVar, MmVar)
   //! @overload
   INST_2x(phaddd, kInstPhaddd, MmVar, Mem)
 
-  //! @brief Packed horizontal add (SSSE3).
+  //! Packed DWORD horizontal add (SSSE3).
   INST_2x(phaddd, kInstPhaddd, XmmVar, XmmVar)
   //! @overload
   INST_2x(phaddd, kInstPhaddd, XmmVar, Mem)
 
-  //! @brief Packed horizontal add and saturate (SSSE3).
+  //! Packed WORD horizontal add with saturation (SSSE3).
   INST_2x(phaddsw, kInstPhaddsw, MmVar, MmVar)
   //! @overload
   INST_2x(phaddsw, kInstPhaddsw, MmVar, Mem)
 
-  //! @brief Packed horizontal add and saturate (SSSE3).
+  //! Packed WORD horizontal add with with saturation (SSSE3).
   INST_2x(phaddsw, kInstPhaddsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(phaddsw, kInstPhaddsw, XmmVar, Mem)
 
-  //! @brief Packed horizontal subtract (SSSE3).
-  INST_2x(phsubw, kInstPhsubw, MmVar, MmVar)
+  //! Packed WORD horizontal add (SSSE3).
+  INST_2x(phaddw, kInstPhaddw, MmVar, MmVar)
   //! @overload
-  INST_2x(phsubw, kInstPhsubw, MmVar, Mem)
+  INST_2x(phaddw, kInstPhaddw, MmVar, Mem)
 
-  //! @brief Packed horizontal subtract (SSSE3).
-  INST_2x(phsubw, kInstPhsubw, XmmVar, XmmVar)
+  //! Packed WORD horizontal add (SSSE3).
+  INST_2x(phaddw, kInstPhaddw, XmmVar, XmmVar)
   //! @overload
-  INST_2x(phsubw, kInstPhsubw, XmmVar, Mem)
+  INST_2x(phaddw, kInstPhaddw, XmmVar, Mem)
 
-  //! @brief Packed horizontal subtract (SSSE3).
+  //! Packed DWORD horizontal subtract (SSSE3).
   INST_2x(phsubd, kInstPhsubd, MmVar, MmVar)
   //! @overload
   INST_2x(phsubd, kInstPhsubd, MmVar, Mem)
 
-  //! @brief Packed horizontal subtract (SSSE3).
+  //! Packed DWORD horizontal subtract (SSSE3).
   INST_2x(phsubd, kInstPhsubd, XmmVar, XmmVar)
   //! @overload
   INST_2x(phsubd, kInstPhsubd, XmmVar, Mem)
 
-  //! @brief Packed horizontal subtract and saturate (SSSE3).
+  //! Packed WORD horizontal subtract with saturation (SSSE3).
   INST_2x(phsubsw, kInstPhsubsw, MmVar, MmVar)
   //! @overload
   INST_2x(phsubsw, kInstPhsubsw, MmVar, Mem)
 
-  //! @brief Packed horizontal subtract and saturate (SSSE3).
+  //! Packed WORD horizontal subtract with saturation (SSSE3).
   INST_2x(phsubsw, kInstPhsubsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(phsubsw, kInstPhsubsw, XmmVar, Mem)
 
-  //! @brief Multiply and add packed signed and unsigned bytes (SSSE3).
+  //! Packed WORD horizontal subtract (SSSE3).
+  INST_2x(phsubw, kInstPhsubw, MmVar, MmVar)
+  //! @overload
+  INST_2x(phsubw, kInstPhsubw, MmVar, Mem)
+
+  //! Packed WORD horizontal subtract (SSSE3).
+  INST_2x(phsubw, kInstPhsubw, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(phsubw, kInstPhsubw, XmmVar, Mem)
+
+  //! Packed multiply and add signed and unsigned bytes (SSSE3).
   INST_2x(pmaddubsw, kInstPmaddubsw, MmVar, MmVar)
   //! @overload
   INST_2x(pmaddubsw, kInstPmaddubsw, MmVar, Mem)
 
-  //! @brief Multiply and add packed signed and unsigned bytes (SSSE3).
+  //! Packed multiply and add signed and unsigned bytes (SSSE3).
   INST_2x(pmaddubsw, kInstPmaddubsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmaddubsw, kInstPmaddubsw, XmmVar, Mem)
 
-  //! @brief Packed absolute value (SSSE3).
+  //! Packed BYTE absolute value (SSSE3).
   INST_2x(pabsb, kInstPabsb, MmVar, MmVar)
   //! @overload
   INST_2x(pabsb, kInstPabsb, MmVar, Mem)
 
-  //! @brief Packed absolute value (SSSE3).
+  //! Packed BYTE absolute value (SSSE3).
   INST_2x(pabsb, kInstPabsb, XmmVar, XmmVar)
   //! @overload
   INST_2x(pabsb, kInstPabsb, XmmVar, Mem)
 
-  //! @brief Packed absolute value (SSSE3).
-  INST_2x(pabsw, kInstPabsw, MmVar, MmVar)
-  //! @overload
-  INST_2x(pabsw, kInstPabsw, MmVar, Mem)
-
-  //! @brief Packed absolute value (SSSE3).
-  INST_2x(pabsw, kInstPabsw, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(pabsw, kInstPabsw, XmmVar, Mem)
-
-  //! @brief Packed absolute value (SSSE3).
+  //! Packed DWORD absolute value (SSSE3).
   INST_2x(pabsd, kInstPabsd, MmVar, MmVar)
   //! @overload
   INST_2x(pabsd, kInstPabsd, MmVar, Mem)
 
-  //! @brief Packed absolute value (SSSE3).
+  //! Packed DWORD absolute value (SSSE3).
   INST_2x(pabsd, kInstPabsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pabsd, kInstPabsd, XmmVar, Mem)
 
-  //! @brief Packed multiply high with round and scale (SSSE3).
+  //! Packed WORD absolute value (SSSE3).
+  INST_2x(pabsw, kInstPabsw, MmVar, MmVar)
+  //! @overload
+  INST_2x(pabsw, kInstPabsw, MmVar, Mem)
+
+  //! Packed WORD absolute value (SSSE3).
+  INST_2x(pabsw, kInstPabsw, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(pabsw, kInstPabsw, XmmVar, Mem)
+
+  //! Packed WORD multiply high, round and scale (SSSE3).
   INST_2x(pmulhrsw, kInstPmulhrsw, MmVar, MmVar)
   //! @overload
   INST_2x(pmulhrsw, kInstPmulhrsw, MmVar, Mem)
 
-  //! @brief Packed multiply high with round and scale (SSSE3).
+  //! Packed WORD multiply high, round and scale (SSSE3).
   INST_2x(pmulhrsw, kInstPmulhrsw, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmulhrsw, kInstPmulhrsw, XmmVar, Mem)
 
-  //! @brief Packed shuffle bytes (SSSE3).
+  //! Packed BYTE shuffle (SSSE3).
   INST_2x(pshufb, kInstPshufb, MmVar, MmVar)
   //! @overload
   INST_2x(pshufb, kInstPshufb, MmVar, Mem)
 
-  //! @brief Packed shuffle bytes (SSSE3).
+  //! Packed BYTE shuffle (SSSE3).
   INST_2x(pshufb, kInstPshufb, XmmVar, XmmVar)
   //! @overload
   INST_2x(pshufb, kInstPshufb, XmmVar, Mem)
 
-  //! @brief Packed shuffle bytes (SSSE3).
+  //! Packed align right (SSSE3).
   INST_3i(palignr, kInstPalignr, MmVar, MmVar, Imm)
   //! @overload
   INST_3i(palignr, kInstPalignr, MmVar, Mem, Imm)
 
-  //! @brief Packed shuffle bytes (SSSE3).
+  //! Packed align right (SSSE3).
   INST_3i(palignr, kInstPalignr, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(palignr, kInstPalignr, XmmVar, Mem, Imm)
@@ -3691,267 +3676,272 @@ struct X86X64Compiler : public BaseCompiler {
   // [SSE4.1]
   // --------------------------------------------------------------------------
 
-  //! @brief Blend packed DP-FP values (SSE4.1).
+  //! Packed DP-FP blend (SSE4.1).
   INST_3i(blendpd, kInstBlendpd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(blendpd, kInstBlendpd, XmmVar, Mem, Imm)
 
-  //! @brief Blend packed SP-FP values (SSE4.1).
+  //! Packed SP-FP blend (SSE4.1).
   INST_3i(blendps, kInstBlendps, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(blendps, kInstBlendps, XmmVar, Mem, Imm)
 
-  //! @brief Variable blend packed DP-FP values (SSE4.1).
+  //! Packed DP-FP variable blend (SSE4.1).
   INST_3x(blendvpd, kInstBlendvpd, XmmVar, XmmVar, XmmVar)
   //! @overload
   INST_3x(blendvpd, kInstBlendvpd, XmmVar, Mem, XmmVar)
 
-  //! @brief Variable blend packed SP-FP values (SSE4.1).
+  //! Packed SP-FP variable blend (SSE4.1).
   INST_3x(blendvps, kInstBlendvps, XmmVar, XmmVar, XmmVar)
   //! @overload
   INST_3x(blendvps, kInstBlendvps, XmmVar, Mem, XmmVar)
 
-  //! @brief Dot product of packed DP-FP values (SSE4.1).
+  //! Packed DP-FP dot product (SSE4.1).
   INST_3i(dppd, kInstDppd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(dppd, kInstDppd, XmmVar, Mem, Imm)
 
-  //! @brief Dot product of packed SP-FP values (SSE4.1).
+  //! Packed SP-FP dot product (SSE4.1).
   INST_3i(dpps, kInstDpps, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(dpps, kInstDpps, XmmVar, Mem, Imm)
 
-  //! @brief Extract packed SP-FP value (SSE4.1).
+  //! Extract SP-FP based on selector (SSE4.1).
   INST_3i(extractps, kInstExtractps, GpVar, XmmVar, Imm)
   //! @overload
   INST_3i(extractps, kInstExtractps, Mem, XmmVar, Imm)
 
-  //! @brief Load oword non-temporal aligned hint (SSE4.1).
+  //! Insert SP-FP based on selector (SSE4.1).
+  INST_3i(insertps, kInstInsertps, XmmVar, XmmVar, Imm)
+  //! @overload
+  INST_3i(insertps, kInstInsertps, XmmVar, Mem, Imm)
+
+  //! Load OWORD aligned using NT hint (SSE4.1).
   INST_2x(movntdqa, kInstMovntdqa, XmmVar, Mem)
 
-  //! @brief Compute multiple packed sums of absolute difference (SSE4.1).
+  //! Packed WORD sums of absolute difference (SSE4.1).
   INST_3i(mpsadbw, kInstMpsadbw, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(mpsadbw, kInstMpsadbw, XmmVar, Mem, Imm)
 
-  //! @brief Pack with unsigned saturation (SSE4.1).
+  //! Pack DWORDs to WORDs with unsigned saturation (SSE4.1).
   INST_2x(packusdw, kInstPackusdw, XmmVar, XmmVar)
   //! @overload
   INST_2x(packusdw, kInstPackusdw, XmmVar, Mem)
 
-  //! @brief Variable blend packed bytes (SSE4.1).
+  //! Packed BYTE variable blend (SSE4.1).
   INST_3x(pblendvb, kInstPblendvb, XmmVar, XmmVar, XmmVar)
   //! @overload
   INST_3x(pblendvb, kInstPblendvb, XmmVar, Mem, XmmVar)
 
-  //! @brief Blend packed words (SSE4.1).
+  //! Packed WORD blend (SSE4.1).
   INST_3i(pblendw, kInstPblendw, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pblendw, kInstPblendw, XmmVar, Mem, Imm)
 
-  //! @brief Compare packed qword Data for Equal (SSE4.1).
+  //! Packed QWORD compare for equality (SSE4.1).
   INST_2x(pcmpeqq, kInstPcmpeqq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpeqq, kInstPcmpeqq, XmmVar, Mem)
 
-  //! @brief Extract byte (SSE4.1).
+  //! Extract BYTE based on selector (SSE4.1).
   INST_3i(pextrb, kInstPextrb, GpVar, XmmVar, Imm)
   //! @overload
   INST_3i(pextrb, kInstPextrb, Mem, XmmVar, Imm)
 
-  //! @brief Extract dword (SSE4.1).
+  //! Extract DWORD based on selector (SSE4.1).
   INST_3i(pextrd, kInstPextrd, GpVar, XmmVar, Imm)
   //! @overload
   INST_3i(pextrd, kInstPextrd, Mem, XmmVar, Imm)
 
-  //! @brief Extract qword (SSE4.1).
+  //! Extract QWORD based on selector (SSE4.1).
   INST_3i(pextrq, kInstPextrq, GpVar, XmmVar, Imm)
   //! @overload
   INST_3i(pextrq, kInstPextrq, Mem, XmmVar, Imm)
 
-  //! @brief Extract word (SSE4.1).
+  //! Extract WORD based on selector (SSE4.1).
   INST_3i(pextrw, kInstPextrw, Mem, XmmVar, Imm)
 
-  //! @brief Packed horizontal word minimum (SSE4.1).
+  //! Packed WORD horizontal minimum (SSE4.1).
   INST_2x(phminposuw, kInstPhminposuw, XmmVar, XmmVar)
   //! @overload
   INST_2x(phminposuw, kInstPhminposuw, XmmVar, Mem)
 
-  //! @brief Insert byte (SSE4.1).
+  //! Insert BYTE based on selector (SSE4.1).
   INST_3i(pinsrb, kInstPinsrb, XmmVar, GpVar, Imm)
   //! @overload
   INST_3i(pinsrb, kInstPinsrb, XmmVar, Mem, Imm)
 
-  //! @brief Insert dword (SSE4.1).
+  //! Insert DWORD based on selector (SSE4.1).
   INST_3i(pinsrd, kInstPinsrd, XmmVar, GpVar, Imm)
   //! @overload
   INST_3i(pinsrd, kInstPinsrd, XmmVar, Mem, Imm)
 
-  //! @brief Insert qword (SSE4.1).
+  //! Insert QWORD based on selector (SSE4.1).
   INST_3i(pinsrq, kInstPinsrq, XmmVar, GpVar, Imm)
   //! @overload
   INST_3i(pinsrq, kInstPinsrq, XmmVar, Mem, Imm)
 
-  //! @brief Maximum of packed word integers (SSE4.1).
-  INST_2x(pmaxuw, kInstPmaxuw, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(pmaxuw, kInstPmaxuw, XmmVar, Mem)
-
-  //! @brief Maximum of packed signed byte integers (SSE4.1).
+  //! Packed BYTE maximum (SSE4.1).
   INST_2x(pmaxsb, kInstPmaxsb, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmaxsb, kInstPmaxsb, XmmVar, Mem)
 
-  //! @brief Maximum of packed signed dword integers (SSE4.1).
+  //! Packed DWORD maximum (SSE4.1).
   INST_2x(pmaxsd, kInstPmaxsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmaxsd, kInstPmaxsd, XmmVar, Mem)
 
-  //! @brief Maximum of packed unsigned dword integers (SSE4.1).
+  //! Packed DWORD unsigned maximum (SSE4.1).
   INST_2x(pmaxud, kInstPmaxud, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmaxud,kInstPmaxud , XmmVar, Mem)
 
-  //! @brief Minimum of packed signed byte integers (SSE4.1).
+  //! Packed WORD unsigned maximum (SSE4.1).
+  INST_2x(pmaxuw, kInstPmaxuw, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(pmaxuw, kInstPmaxuw, XmmVar, Mem)
+
+  //! Packed BYTE minimum (SSE4.1).
   INST_2x(pminsb, kInstPminsb, XmmVar, XmmVar)
   //! @overload
   INST_2x(pminsb, kInstPminsb, XmmVar, Mem)
 
-  //! @brief Minimum of packed word integers (SSE4.1).
-  INST_2x(pminuw, kInstPminuw, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(pminuw, kInstPminuw, XmmVar, Mem)
-
-  //! @brief Minimum of packed dword integers (SSE4.1).
-  INST_2x(pminud, kInstPminud, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(pminud, kInstPminud, XmmVar, Mem)
-
-  //! @brief Minimum of packed dword integers (SSE4.1).
+  //! Packed DWORD minimum (SSE4.1).
   INST_2x(pminsd, kInstPminsd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pminsd, kInstPminsd, XmmVar, Mem)
 
-  //! @brief Packed move with sign extend (SSE4.1).
-  INST_2x(pmovsxbw, kInstPmovsxbw, XmmVar, XmmVar)
+  //! Packed WORD unsigned minimum (SSE4.1).
+  INST_2x(pminuw, kInstPminuw, XmmVar, XmmVar)
   //! @overload
-  INST_2x(pmovsxbw, kInstPmovsxbw, XmmVar, Mem)
+  INST_2x(pminuw, kInstPminuw, XmmVar, Mem)
 
-  //! @brief Packed move with sign extend (SSE4.1).
+  //! Packed DWORD unsigned minimum (SSE4.1).
+  INST_2x(pminud, kInstPminud, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(pminud, kInstPminud, XmmVar, Mem)
+
+  //! Packed BYTE to DWORD with sign extend (SSE4.1).
   INST_2x(pmovsxbd, kInstPmovsxbd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmovsxbd, kInstPmovsxbd, XmmVar, Mem)
 
-  //! @brief Packed move with sign extend (SSE4.1).
+  //! Packed BYTE to QWORD with sign extend (SSE4.1).
   INST_2x(pmovsxbq, kInstPmovsxbq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmovsxbq, kInstPmovsxbq, XmmVar, Mem)
 
-  //! @brief Packed move with sign extend (SSE4.1).
-  INST_2x(pmovsxwd, kInstPmovsxwd, XmmVar, XmmVar)
+  //! Packed BYTE to WORD with sign extend (SSE4.1).
+  INST_2x(pmovsxbw, kInstPmovsxbw, XmmVar, XmmVar)
   //! @overload
-  INST_2x(pmovsxwd, kInstPmovsxwd, XmmVar, Mem)
+  INST_2x(pmovsxbw, kInstPmovsxbw, XmmVar, Mem)
 
-  //! @brief (SSE4.1).
-  INST_2x(pmovsxwq, kInstPmovsxwq, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(pmovsxwq, kInstPmovsxwq, XmmVar, Mem)
-
-  //! @brief (SSE4.1).
+  //! Packed DWORD to QWORD with sign extend (SSE4.1).
   INST_2x(pmovsxdq, kInstPmovsxdq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmovsxdq, kInstPmovsxdq, XmmVar, Mem)
 
-  //! @brief Packed move with zero extend (SSE4.1).
-  INST_2x(pmovzxbw, kInstPmovzxbw, XmmVar, XmmVar)
+  //! Packed WORD to DWORD with sign extend (SSE4.1).
+  INST_2x(pmovsxwd, kInstPmovsxwd, XmmVar, XmmVar)
   //! @overload
-  INST_2x(pmovzxbw, kInstPmovzxbw, XmmVar, Mem)
+  INST_2x(pmovsxwd, kInstPmovsxwd, XmmVar, Mem)
 
-  //! @brief Packed move with zero extend (SSE4.1).
+  //! Packed WORD to QWORD with sign extend (SSE4.1).
+  INST_2x(pmovsxwq, kInstPmovsxwq, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(pmovsxwq, kInstPmovsxwq, XmmVar, Mem)
+
+  //! BYTE to DWORD with zero extend (SSE4.1).
   INST_2x(pmovzxbd, kInstPmovzxbd, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmovzxbd, kInstPmovzxbd, XmmVar, Mem)
 
-  //! @brief Packed move with zero extend (SSE4.1).
+  //! Packed BYTE to QWORD with zero extend (SSE4.1).
   INST_2x(pmovzxbq, kInstPmovzxbq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmovzxbq, kInstPmovzxbq, XmmVar, Mem)
 
-  //! @brief Packed move with zero extend (SSE4.1).
-  INST_2x(pmovzxwd, kInstPmovzxwd, XmmVar, XmmVar)
+  //! BYTE to WORD with zero extend (SSE4.1).
+  INST_2x(pmovzxbw, kInstPmovzxbw, XmmVar, XmmVar)
   //! @overload
-  INST_2x(pmovzxwd, kInstPmovzxwd, XmmVar, Mem)
+  INST_2x(pmovzxbw, kInstPmovzxbw, XmmVar, Mem)
 
-  //! @brief (SSE4.1).
-  INST_2x(pmovzxwq, kInstPmovzxwq, XmmVar, XmmVar)
-  //! @overload
-  INST_2x(pmovzxwq, kInstPmovzxwq, XmmVar, Mem)
-
-  //! @brief (SSE4.1).
+  //! Packed DWORD to QWORD with zero extend (SSE4.1).
   INST_2x(pmovzxdq, kInstPmovzxdq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmovzxdq, kInstPmovzxdq, XmmVar, Mem)
 
-  //! @brief Multiply packed signed dword integers (SSE4.1).
+  //! Packed WORD to DWORD with zero extend (SSE4.1).
+  INST_2x(pmovzxwd, kInstPmovzxwd, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(pmovzxwd, kInstPmovzxwd, XmmVar, Mem)
+
+  //! Packed WORD to QWORD with zero extend (SSE4.1).
+  INST_2x(pmovzxwq, kInstPmovzxwq, XmmVar, XmmVar)
+  //! @overload
+  INST_2x(pmovzxwq, kInstPmovzxwq, XmmVar, Mem)
+
+  //! Packed DWORD to QWORD multiply (SSE4.1).
   INST_2x(pmuldq, kInstPmuldq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmuldq, kInstPmuldq, XmmVar, Mem)
 
-  //! @brief Multiply packed signed integers and store low result (SSE4.1).
+  //! Packed DWORD multiply low (SSE4.1).
   INST_2x(pmulld, kInstPmulld, XmmVar, XmmVar)
   //! @overload
   INST_2x(pmulld, kInstPmulld, XmmVar, Mem)
 
-  //! @brief Logical compare (SSE4.1).
+  //! Logical compare (SSE4.1).
   INST_2x(ptest, kInstPtest, XmmVar, XmmVar)
   //! @overload
   INST_2x(ptest, kInstPtest, XmmVar, Mem)
 
-  //! @brief Round packed SP-FP values (SSE4.1).
-  INST_3i(roundps, kInstRoundps, XmmVar, XmmVar, Imm)
-  //! @overload
-  INST_3i(roundps, kInstRoundps, XmmVar, Mem, Imm)
-
-  //! @brief Round scalar SP-FP values (SSE4.1).
-  INST_3i(roundss, kInstRoundss, XmmVar, XmmVar, Imm)
-  //! @overload
-  INST_3i(roundss, kInstRoundss, XmmVar, Mem, Imm)
-
-  //! @brief Round packed DP-FP values (SSE4.1).
+  //! Packed DP-FP round (SSE4.1).
   INST_3i(roundpd, kInstRoundpd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(roundpd, kInstRoundpd, XmmVar, Mem, Imm)
 
-  //! @brief Round scalar DP-FP values (SSE4.1).
+  //! Packed SP-FP round (SSE4.1).
+  INST_3i(roundps, kInstRoundps, XmmVar, XmmVar, Imm)
+  //! @overload
+  INST_3i(roundps, kInstRoundps, XmmVar, Mem, Imm)
+
+  //! Scalar DP-FP round (SSE4.1).
   INST_3i(roundsd, kInstRoundsd, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(roundsd, kInstRoundsd, XmmVar, Mem, Imm)
+
+  //! Scalar SP-FP round (SSE4.1).
+  INST_3i(roundss, kInstRoundss, XmmVar, XmmVar, Imm)
+  //! @overload
+  INST_3i(roundss, kInstRoundss, XmmVar, Mem, Imm)
 
   // --------------------------------------------------------------------------
   // [SSE4.2]
   // --------------------------------------------------------------------------
 
-  //! @brief Packed compare explicit length strings, return index (SSE4.2).
+  //! Packed compare explicit length strings, return index (SSE4.2).
   INST_3i(pcmpestri, kInstPcmpestri, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pcmpestri, kInstPcmpestri, XmmVar, Mem, Imm)
 
-  //! @brief Packed compare explicit length strings, return mask (SSE4.2).
+  //! Packed compare explicit length strings, return mask (SSE4.2).
   INST_3i(pcmpestrm, kInstPcmpestrm, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pcmpestrm, kInstPcmpestrm, XmmVar, Mem, Imm)
 
-  //! @brief Packed compare implicit length strings, return index (SSE4.2).
+  //! Packed compare implicit length strings, return index (SSE4.2).
   INST_3i(pcmpistri, kInstPcmpistri, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pcmpistri, kInstPcmpistri, XmmVar, Mem, Imm)
 
-  //! @brief Packed compare implicit length strings, return mask (SSE4.2).
+  //! Packed compare implicit length strings, return mask (SSE4.2).
   INST_3i(pcmpistrm, kInstPcmpistrm, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(pcmpistrm, kInstPcmpistrm, XmmVar, Mem, Imm)
 
-  //! @brief Compare packed data for greater than (SSE4.2).
+  //! Packed QWORD compare if greater than (SSE4.2).
   INST_2x(pcmpgtq, kInstPcmpgtq, XmmVar, XmmVar)
   //! @overload
   INST_2x(pcmpgtq, kInstPcmpgtq, XmmVar, Mem)
@@ -3960,32 +3950,32 @@ struct X86X64Compiler : public BaseCompiler {
   // [AESNI]
   // --------------------------------------------------------------------------
 
-  //! @brief Perform a single round of the AES decryption flow.
+  //! Perform a single round of the AES decryption flow.
   INST_2x(aesdec, kInstAesdec, XmmVar, XmmVar)
   //! @overload
   INST_2x(aesdec, kInstAesdec, XmmVar, Mem)
 
-  //! @brief Perform the last round of the AES decryption flow.
+  //! Perform the last round of the AES decryption flow.
   INST_2x(aesdeclast, kInstAesdeclast, XmmVar, XmmVar)
   //! @overload
   INST_2x(aesdeclast, kInstAesdeclast, XmmVar, Mem)
 
-  //! @brief Perform a single round of the AES encryption flow.
+  //! Perform a single round of the AES encryption flow.
   INST_2x(aesenc, kInstAesenc, XmmVar, XmmVar)
   //! @overload
   INST_2x(aesenc, kInstAesenc, XmmVar, Mem)
 
-  //! @brief Perform the last round of the AES encryption flow.
+  //! Perform the last round of the AES encryption flow.
   INST_2x(aesenclast, kInstAesenclast, XmmVar, XmmVar)
   //! @overload
   INST_2x(aesenclast, kInstAesenclast, XmmVar, Mem)
 
-  //! @brief Perform the InvMixColumns transformation.
+  //! Perform the InvMixColumns transformation.
   INST_2x(aesimc, kInstAesimc, XmmVar, XmmVar)
   //! @overload
   INST_2x(aesimc, kInstAesimc, XmmVar, Mem)
 
-  //! @brief Assist in expanding the AES cipher key.
+  //! Assist in expanding the AES cipher key.
   INST_3i(aeskeygenassist, kInstAeskeygenassist, XmmVar, XmmVar, Imm)
   //! @overload
   INST_3i(aeskeygenassist, kInstAeskeygenassist, XmmVar, Mem, Imm)
@@ -3994,7 +3984,7 @@ struct X86X64Compiler : public BaseCompiler {
   // [PCLMULQDQ]
   // --------------------------------------------------------------------------
 
-  //! @brief Carry-less multiplication quadword.
+  //! Packed QWORD to OWORD carry-less multiply (PCLMULQDQ).
   INST_3i(pclmulqdq, kInstPclmulqdq, XmmVar, XmmVar, Imm);
   //! @overload
   INST_3i(pclmulqdq, kInstPclmulqdq, XmmVar, Mem, Imm);
@@ -4024,9 +4014,9 @@ struct Compiler : public X86X64Compiler {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a @ref Compiler instance.
-  ASMJIT_API Compiler(BaseRuntime* runtime);
-  //! @brief Destroy the @ref Compiler instance.
+  //! Create a `x86::Compiler` instance.
+  ASMJIT_API Compiler(Runtime* runtime);
+  //! Destroy the `x86::Compiler` instance.
   ASMJIT_API ~Compiler();
 
   // -------------------------------------------------------------------------
@@ -4039,16 +4029,10 @@ struct Compiler : public X86X64Compiler {
   // [X86-Only Instructions]
   // --------------------------------------------------------------------------
 
-  //! @brief Decimal adjust AL after addition (32-bit).
+  //! Decimal adjust AL after addition (32-bit).
   INST_1x(daa, kInstDaa, GpVar)
-  //! @brief Decimal adjust AL after subtraction (32-bit).
+  //! Decimal adjust AL after subtraction (32-bit).
   INST_1x(das, kInstDas, GpVar)
-
-  //! @brief Pop all Gp registers (EDI|ESI|EBP|EBX|EDX|ECX|EAX).
-  INST_0x(popa, kInstPopa)
-
-  //! @brief Push all Gp registers (EAX|ECX|EDX|EBX|original ESP|EBP|ESI|EDI).
-  INST_0x(pusha, kInstPusha)
 };
 
 //! @}
@@ -4077,9 +4061,9 @@ struct Compiler : public X86X64Compiler {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a @ref Compiler instance.
-  ASMJIT_API Compiler(BaseRuntime* runtime);
-  //! @brief Destroy the @ref Compiler instance.
+  //! Create a `x64::Compiler` instance.
+  ASMJIT_API Compiler(Runtime* runtime);
+  //! Destroy the `x64::Compiler` instance.
   ASMJIT_API ~Compiler();
 
   // -------------------------------------------------------------------------
@@ -4092,12 +4076,12 @@ struct Compiler : public X86X64Compiler {
   // [X64-Only Instructions]
   // --------------------------------------------------------------------------
 
-  //! @brief Convert dword to qword (RAX <- Sign Extend EAX).
+  //! Convert dword to qword (RAX <- Sign Extend EAX).
   INST_1x(cdqe, kInstCdqe, GpVar /* eax */)
-  //! @brief Convert qword to oword (RDX:RAX <- Sign Extend RAX).
+  //! Convert qword to oword (RDX:RAX <- Sign Extend RAX).
   INST_2x(cqo, kInstCdq, GpVar /* rdx */, GpVar /* rax */)
 
-  //! @brief Compares the 128-bit value in RDX:RAX with the memory operand (X64).
+  //! Compares the 128-bit value in RDX:RAX with the memory operand (X64).
   ASMJIT_INLINE InstNode* cmpxchg16b(
     const GpVar& cmp_edx, const GpVar& cmp_eax,
     const GpVar& cmp_ecx, const GpVar& cmp_ebx,
@@ -4106,26 +4090,26 @@ struct Compiler : public X86X64Compiler {
     return emit(kInstCmpxchg16b, cmp_edx, cmp_eax, cmp_ecx, cmp_ebx, dst);
   }
 
-  //! @brief Move dword to qword with sign-extension.
+  //! Move dword to qword with sign-extension.
   INST_2x(movsxd, kInstMovsxd, GpVar, GpVar)
   //! @overload
   INST_2x(movsxd, kInstMovsxd, GpVar, Mem)
 
-  //! @brief Load ECX/RCX QWORDs from DS:[ESI/RSI] to RAX.
+  //! Load ECX/RCX QWORDs from DS:[ESI/RSI] to RAX.
   INST_3x_(rep_lodsq, kInstRepLodsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Move ECX/RCX QWORDs from DS:[ESI/RSI] to ES:[EDI/RDI].
+  //! Move ECX/RCX QWORDs from DS:[ESI/RSI] to ES:[EDI/RDI].
   INST_3x_(rep_movsq, kInstRepMovsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Fill ECX/RCX QWORDs at ES:[EDI/RDI] with RAX.
+  //! Fill ECX/RCX QWORDs at ES:[EDI/RDI] with RAX.
   INST_3x_(rep_stosq, kInstRepStosq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Repeated find nonmatching QWORDs in ES:[EDI/RDI] and DS:[ESI/RDI].
+  //! Repeated find nonmatching QWORDs in ES:[EDI/RDI] and DS:[ESI/RDI].
   INST_3x_(repe_cmpsq, kInstRepeCmpsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find non-RAX QWORD starting at ES:[EDI/RDI].
+  //! Find non-RAX QWORD starting at ES:[EDI/RDI].
   INST_3x_(repe_scasq, kInstRepeScasq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
-  //! @brief Find matching QWORDs in [RDI] and [RSI].
+  //! Find matching QWORDs in [RDI] and [RSI].
   INST_3x_(repne_cmpsq, kInstRepneCmpsq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
-  //! @brief Find RAX, starting at ES:[EDI/RDI].
+  //! Find RAX, starting at ES:[EDI/RDI].
   INST_3x_(repne_scasq, kInstRepneScasq, GpVar, GpVar, GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
 
   using X86X64Compiler::movq;

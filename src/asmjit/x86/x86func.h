@@ -19,14 +19,14 @@
 namespace asmjit {
 namespace x86x64 {
 
-//! @addtogroup asmjit_x86x64
+//! @addtogroup asmjit_x86x64_codegen
 //! @{
 
 // ============================================================================
 // [asmjit::x86x64::kFuncConv]
 // ============================================================================
 
-//! @brief X86 function calling conventions.
+//! X86 function calling conventions.
 //!
 //! Calling convention is scheme how function arguments are passed into
 //! function and how functions returns values. In assembler programming
@@ -34,33 +34,32 @@ namespace x86x64 {
 //! even small inconsistency can cause undefined behavior or crash.
 //!
 //! List of calling conventions for 32-bit x86 mode:
-//! - @c kFuncConvCDecl - Calling convention for C runtime.
-//! - @c kFuncConvStdCall - Calling convention for WinAPI functions.
-//! - @c kFuncConvMsThisCall - Calling convention for C++ members under
-//!      Windows (produced by MSVC and all MSVC compatible compilers).
-//! - @c kFuncConvMsFastCall - Fastest calling convention that can be used
-//!      by MSVC compiler.
-//! - @c kFuncConv_BORNANDFASTCALL - Borland fastcall convention.
-//! - @c kFuncConvGccFastCall - GCC fastcall convention (2 register arguments).
-//! - @c kFuncConvGccRegParm1 - GCC regparm(1) convention.
-//! - @c kFuncConvGccRegParm2 - GCC regparm(2) convention.
-//! - @c kFuncConvGccRegParm3 - GCC regparm(3) convention.
+//! - `kFuncConvCDecl` - Calling convention for C runtime.
+//! - `kFuncConvStdCall` - Calling convention for WinAPI functions.
+//! - `kFuncConvMsThisCall` - Calling convention for C++ members under
+//!    Windows (produced by MSVC and all MSVC compatible compilers).
+//! - `kFuncConvMsFastCall` - Fastest calling convention that can be used
+//!    by MSVC compiler.
+//! - `kFuncConvBorlandFastCall` - Borland fastcall convention.
+//! - `kFuncConvGccFastCall` - GCC fastcall convention (2 register arguments).
+//! - `kFuncConvGccRegParm1` - GCC regparm(1) convention.
+//! - `kFuncConvGccRegParm2` - GCC regparm(2) convention.
+//! - `kFuncConvGccRegParm3` - GCC regparm(3) convention.
 //!
 //! List of calling conventions for 64-bit x86 mode (x64):
-//! - @c kFuncConvX64W - Windows 64-bit calling convention (WIN64 ABI).
-//! - @c kFuncConvX64U - Unix 64-bit calling convention (AMD64 ABI).
+//! - `kFuncConvX64W` - Windows 64-bit calling convention (WIN64 ABI).
+//! - `kFuncConvX64U` - Unix 64-bit calling convention (AMD64 ABI).
 //!
-//! There is also @c kFuncConvHost that is defined to fit best to your
-//! compiler.
+//! There is also `kFuncConvHost` that is defined to fit the host calling
+//! convention.
 //!
-//! These types are used together with @c asmjit::Compiler::addFunc()
-//! method.
+//! These types are used together with `BaseCompiler::addFunc()` method.
 ASMJIT_ENUM(kFuncConv) {
   // --------------------------------------------------------------------------
   // [X64]
   // --------------------------------------------------------------------------
 
-  //! @brief X64 calling convention for Windows platform (WIN64 ABI).
+  //! X64 calling convention for Windows platform (WIN64 ABI).
   //!
   //! For first four arguments are used these registers:
   //! - 1. 32/64-bit integer or floating point argument - rcx/xmm0
@@ -93,7 +92,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! http://msdn.microsoft.com/en-us/library/9b372w95.aspx .
   kFuncConvX64W = 1,
 
-  //! @brief X64 calling convention for Unix platforms (AMD64 ABI).
+  //! X64 calling convention for Unix platforms (AMD64 ABI).
   //!
   //! First six 32 or 64-bit integer arguments are passed in rdi, rsi, rdx,
   //! rcx, r8, r9 registers. First eight floating point or Xmm arguments
@@ -120,7 +119,7 @@ ASMJIT_ENUM(kFuncConv) {
   // [X86]
   // --------------------------------------------------------------------------
 
-  //! @brief Cdecl calling convention (used by C runtime).
+  //! Cdecl calling convention (used by C runtime).
   //!
   //! Compatible across MSVC and GCC.
   //!
@@ -131,7 +130,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Caller.
   kFuncConvCDecl = 3,
 
-  //! @brief Stdcall calling convention (used by WinAPI).
+  //! Stdcall calling convention (used by WinAPI).
   //!
   //! Compatible across MSVC and GCC.
   //!
@@ -146,7 +145,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Floating points - fp0 register.
   kFuncConvStdCall = 4,
 
-  //! @brief MSVC specific calling convention used by MSVC/Intel compilers
+  //! MSVC specific calling convention used by MSVC/Intel compilers
   //! for struct/class methods.
   //!
   //! This is MSVC (and Intel) only calling convention used in Windows
@@ -170,7 +169,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! it's implicit and there is no way how to override it.
   kFuncConvMsThisCall = 5,
 
-  //! @brief MSVC specific fastcall.
+  //! MSVC specific fastcall.
   //!
   //! Two first parameters (evaluated from left-to-right) are in ECX:EDX
   //! registers, all others on the stack in right-to-left order.
@@ -189,7 +188,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! mechanism.
   kFuncConvMsFastCall = 6,
 
-  //! @brief Borland specific fastcall with 2 parameters in registers.
+  //! Borland specific fastcall with 2 parameters in registers.
   //!
   //! Two first parameters (evaluated from left-to-right) are in ECX:EDX
   //! registers, all others on the stack in left-to-right order.
@@ -208,7 +207,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! to other fastcall conventions used in different compilers.
   kFuncConvBorlandFastCall = 7,
 
-  //! @brief GCC specific fastcall convention.
+  //! GCC specific fastcall convention.
   //!
   //! Two first parameters (evaluated from left-to-right) are in ECX:EDX
   //! registers, all others on the stack in right-to-left order.
@@ -223,11 +222,10 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Integer types - EAX:EDX registers.
   //! - Floating points - fp0 register.
   //!
-  //! @note This calling convention should be compatible with
-  //! @c kFuncConvMsFastCall.
+  //! @note This calling convention should be compatible with `kFuncConvMsFastCall`.
   kFuncConvGccFastCall = 8,
 
-  //! @brief GCC specific regparm(1) convention.
+  //! GCC specific regparm(1) convention.
   //!
   //! The first parameter (evaluated from left-to-right) is in EAX register,
   //! all others on the stack in right-to-left order.
@@ -243,7 +241,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Floating points - fp0 register.
   kFuncConvGccRegParm1 = 9,
 
-  //! @brief GCC specific regparm(2) convention.
+  //! GCC specific regparm(2) convention.
   //!
   //! Two first parameters (evaluated from left-to-right) are in EAX:EDX
   //! registers, all others on the stack in right-to-left order.
@@ -259,7 +257,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Floating points - fp0 register.
   kFuncConvGccRegParm2 = 10,
 
-  //! @brief GCC specific fastcall with 3 parameters in registers.
+  //! GCC specific fastcall with 3 parameters in registers.
   //!
   //! Three first parameters (evaluated from left-to-right) are in
   //! EAX:EDX:ECX registers, all others on the stack in right-to-left order.
@@ -277,7 +275,7 @@ ASMJIT_ENUM(kFuncConv) {
 
   //! @internal
   //!
-  //! @brief Count of function calling conventions.
+  //! Count of function calling conventions.
   _kFuncConvCount = 12,
 
   // --------------------------------------------------------------------------
@@ -285,24 +283,24 @@ ASMJIT_ENUM(kFuncConv) {
   // --------------------------------------------------------------------------
 
   //! @def kFuncConvHost
-  //! @brief Default calling convention for current platform / operating system.
+  //! Default calling convention for current platform / operating system.
 
   //! @def kFuncConvHostCDecl
-  //! @brief Default C calling convention based on current compiler's settings.
+  //! Default C calling convention based on current compiler's settings.
 
   //! @def kFuncConvHostStdCall
-  //! @brief Compatibility for __stdcall calling convention.
+  //! Compatibility for `__stdcall` calling convention.
   //!
   //! @note This enumeration is always set to a value which is compatible with
   //! current compilers __stdcall calling convention. In 64-bit mode the value
-  //! is compatible with @ref kFuncConvX64W or @ref kFuncConvX64U.
+  //! is compatible with `kFuncConvX64W` or `kFuncConvX64U`.
 
   //! @def kFuncConvHostFastCall
-  //! @brief Compatibility for __fastcall calling convention.
+  //! Compatibility for `__fastcall` calling convention.
   //!
   //! @note This enumeration is always set to a value which is compatible with
-  //! current compilers __fastcall calling convention. In 64-bit mode the value
-  //! is compatible with @ref kFuncConvX64W or @ref kFuncConvX64U.
+  //! current compilers `__fastcall` calling convention. In 64-bit mode the value
+  //! is compatible with `kFuncConvX64W` or `kFuncConvX64U`.
 
 #if defined(ASMJIT_HOST_X86)
 
@@ -339,16 +337,16 @@ ASMJIT_ENUM(kFuncConv) {
 // [asmjit::x86x64::kFuncHint]
 // ============================================================================
 
-//! @brief X86 function hints.
+//! X86 function hints.
 ASMJIT_ENUM(kFuncHint) {
-  //! @brief Use push/pop sequences instead of mov sequences in function prolog
+  //! Use push/pop sequences instead of mov sequences in function prolog
   //! and epilog.
   kFuncHintPushPop = 16,
-  //! @brief Add emms instruction to the function epilog.
+  //! Add emms instruction to the function epilog.
   kFuncHintEmms = 17,
-  //! @brief Add sfence instruction to the function epilog.
+  //! Add sfence instruction to the function epilog.
   kFuncHintSFence = 18,
-  //! @brief Add lfence instruction to the function epilog.
+  //! Add lfence instruction to the function epilog.
   kFuncHintLFence = 19
 };
 
@@ -356,36 +354,34 @@ ASMJIT_ENUM(kFuncHint) {
 // [asmjit::x86x64::kFuncFlags]
 // ============================================================================
 
-//! @brief X86 function flags.
+//! X86 function flags.
 ASMJIT_ENUM(kFuncFlags) {
-  //! @brief Whether to emit register load/save sequence using push/pop pairs.
+  //! Whether to emit register load/save sequence using push/pop pairs.
   kFuncFlagPushPop = 0x00010000,
 
-  //! @brief Whether to emit "enter" instead of three instructions in case
+  //! Whether to emit `enter` instead of three instructions in case
   //! that the function is not naked or misaligned.
   kFuncFlagEnter = 0x00020000,
 
-  //! @brief Whether to emit "leave" instead of two instructions in case
+  //! Whether to emit `leave` instead of two instructions in case
   //! that the function is not naked or misaligned.
   kFuncFlagLeave = 0x00040000,
 
-  //! @brief Whether it's required to move arguments to a new stack location,
+  //! Whether it's required to move arguments to a new stack location,
   //! because of manual aligning.
   kFuncFlagMoveArgs = 0x00080000,
 
-  //! @brief Whether to emit EMMS instruction in epilog (auto-detected).
+  //! Whether to emit `emms` instruction in epilog (auto-detected).
   kFuncFlagEmms = 0x01000000,
 
-  //! @brief Whether to emit SFence instruction in epilog (auto-detected).
+  //! Whether to emit `sfence` instruction in epilog (auto-detected).
   //!
-  //! @note @ref kFuncFlagSFence and @ref kFuncFlagLFence
-  //! combination will result in emitting mfence.
+  //! `kFuncFlagSFence` with `kFuncFlagLFence` results in emitting `mfence`.
   kFuncFlagSFence = 0x02000000,
 
-  //! @brief Whether to emit LFence instruction in epilog (auto-detected).
+  //! Whether to emit `lfence` instruction in epilog (auto-detected).
   //!
-  //! @note @ref kFuncFlagSFence and @ref kFuncFlagLFence
-  //! combination will result in emitting mfence.
+  //! `kFuncFlagSFence` with `kFuncFlagLFence` results in emitting `mfence`.
   kFuncFlagLFence = 0x04000000
 };
 
@@ -393,6 +389,9 @@ ASMJIT_ENUM(kFuncFlags) {
 // [asmjit::x86x64::x86GetArchFromCConv]
 // ============================================================================
 
+//! Get architecture by a calling convention.
+//!
+//! Returns `kArchX86` or `kArchX64` depending on `conv`.
 static ASMJIT_INLINE uint32_t x86GetArchFromCConv(uint32_t conv) {
   return IntUtil::inInterval<uint32_t>(conv, kFuncConvX64W, kFuncConvX64U) ? kArchX64 : kArchX86;
 }
@@ -401,56 +400,68 @@ static ASMJIT_INLINE uint32_t x86GetArchFromCConv(uint32_t conv) {
 // [asmjit::x86x64::X86X64FuncDecl]
 // ============================================================================
 
-//! @brief X86 function, including calling convention, arguments and their
+//! X86 function, including calling convention, arguments and their
 //! register indices or stack positions.
 struct X86X64FuncDecl : public FuncDecl {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref X86X64FuncDecl instance.
-  ASMJIT_INLINE X86X64FuncDecl() { reset(); }
+  //! Create a new `X86X64FuncDecl` instance.
+  ASMJIT_INLINE X86X64FuncDecl() {
+    reset();
+  }
 
   // --------------------------------------------------------------------------
   // [Accessors - X86]
   // --------------------------------------------------------------------------
 
-  //! @brief Get used registers (mask).
+  //! Get used registers (mask).
   //!
   //! @note The result depends on the function calling convention AND the
   //! function prototype. Returned mask contains only registers actually used
   //! to pass function arguments.
-  ASMJIT_INLINE uint32_t getUsed(uint32_t c) const { return _used.get(c); }
+  ASMJIT_INLINE uint32_t getUsed(uint32_t c) const {
+    return _used.get(c);
+  }
 
-  //! @brief Get passed registers (mask).
+  //! Get passed registers (mask).
   //!
   //! @note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
-  ASMJIT_INLINE uint32_t getPassed(uint32_t c) const { return _passed.get(c); }
+  ASMJIT_INLINE uint32_t getPassed(uint32_t c) const {
+    return _passed.get(c);
+  }
 
-  //! @brief Get preserved registers (mask).
+  //! Get preserved registers (mask).
   //!
   //! @note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
-  ASMJIT_INLINE uint32_t getPreserved(uint32_t c) const { return _preserved.get(c); }
+  ASMJIT_INLINE uint32_t getPreserved(uint32_t c) const {
+    return _preserved.get(c);
+  }
 
-  //! @brief Get ther order of passed registers (Gp).
+  //! Get ther order of passed registers (Gp).
   //!
   //! @note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
-  ASMJIT_INLINE const uint8_t* getPassedOrderGp() const { return _passedOrderGp; }
+  ASMJIT_INLINE const uint8_t* getPassedOrderGp() const {
+    return _passedOrderGp;
+  }
 
-  //! @brief Get ther order of passed registers (Xmm).
+  //! Get ther order of passed registers (Xmm).
   //!
   //! @note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
-  ASMJIT_INLINE const uint8_t* getPassedOrderXmm() const { return _passedOrderXmm; }
+  ASMJIT_INLINE const uint8_t* getPassedOrderXmm() const {
+    return _passedOrderXmm;
+  }
 
   // --------------------------------------------------------------------------
   // [SetPrototype]
   // --------------------------------------------------------------------------
 
-  //! @brief Set function prototype.
+  //! Set function prototype.
   //!
   //! This will set function calling convention and setup arguments variables.
   //!
@@ -467,18 +478,18 @@ struct X86X64FuncDecl : public FuncDecl {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Used registers .
+  //! Used registers.
   RegMask _used;
 
-  //! @brief Passed registers (defined by the calling convention).
+  //! Passed registers (defined by the calling convention).
   RegMask _passed;
-  //! @brief Preserved registers (defined by the calling convention).
+  //! Preserved registers (defined by the calling convention).
   RegMask _preserved;
 
-  //! @brief Order of registers defined to pass function arguments (Gp).
-  uint8_t _passedOrderGp[kFuncArgCount];
-  //! @brief Order of registers defined to pass function arguments (Xmm).
-  uint8_t _passedOrderXmm[kFuncArgCount];
+  //! Order of registers defined to pass function arguments (Gp).
+  uint8_t _passedOrderGp[8];
+  //! Order of registers defined to pass function arguments (Xmm).
+  uint8_t _passedOrderXmm[8];
 };
 
 //! @}

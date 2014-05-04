@@ -14,9 +14,9 @@
 // [Dependencies - AsmJit]
 #include "../base/intutil.h"
 #include "../base/logger.h"
-#include "../base/memorymanager.h"
 #include "../base/runtime.h"
 #include "../base/string.h"
+#include "../base/vmem.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86cpuinfo.h"
 #include "../x86/x86defs.h"
@@ -60,7 +60,7 @@ enum kVexVVVV {
 
 //! @internal
 //!
-//! @brief Instruction 2-byte/3-byte opcode prefix definition.
+//! Instruction 2-byte/3-byte opcode prefix definition.
 struct OpCodeMM {
   uint8_t len;
   uint8_t data[3];
@@ -68,7 +68,7 @@ struct OpCodeMM {
 
 //! @internal
 //!
-//! @brief Mandatory prefixes encoded in 'asmjit' opcode [66, F3, F2] and asmjit
+//! Mandatory prefixes encoded in 'asmjit' opcode [66, F3, F2] and asmjit
 //! extensions
 static const uint8_t x86OpCodePP[8] = {
   0x00,
@@ -83,7 +83,7 @@ static const uint8_t x86OpCodePP[8] = {
 
 //! @internal
 //!
-//! @brief Instruction 2-byte/3-byte opcode prefix data.
+//! Instruction 2-byte/3-byte opcode prefix data.
 static const OpCodeMM x86OpCodeMM[] = {
   { 0, { 0x00, 0x00, 0 } },
   { 1, { 0x0F, 0x00, 0 } },
@@ -111,7 +111,9 @@ static const uint8_t x86OpCodePopSeg[8]  = { 0x00, 0x07, 0x00, 0x17, 0x1F, 0xA1,
 // [asmjit::X64TrampolineWriter]
 // ============================================================================
 
-//! @brief Trampoline writer.
+//! @internal
+//!
+//! Trampoline writer.
 struct X64TrampolineWriter {
   // Size of trampoline
   enum {
@@ -120,9 +122,8 @@ struct X64TrampolineWriter {
     kSizeTotal = kSizeJmp + kSizeAddr
   };
 
-  // Write trampoline into code at address @a code that will jump to @a target.
-  static void writeTrampoline(uint8_t* code, uint64_t target)
-  {
+  // Write trampoline into code at address `code` that will jump to `target`.
+  static void writeTrampoline(uint8_t* code, uint64_t target) {
     code[0] = 0xFF;                                       // Jmp OpCode.
     code[1] = 0x25;                                       // ModM (RIP addressing).
     ((uint32_t*)(code + 2))[0] = 0;                       // Offset (zero).
@@ -221,7 +222,7 @@ struct X64TrampolineWriter {
 // [asmjit::x86x64::Assembler - Construction / Destruction]
 // ============================================================================
 
-X86X64Assembler::X86X64Assembler(BaseRuntime* runtime) : BaseAssembler(runtime) {}
+X86X64Assembler::X86X64Assembler(Runtime* runtime) : BaseAssembler(runtime) {}
 X86X64Assembler::~X86X64Assembler() {}
 
 // ============================================================================
@@ -887,12 +888,12 @@ static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_
 // [asmjit::x86x64::Assembler - Emit]
 // ============================================================================
 
-//! @brief Encode MODR/M.
+//! Encode MODR/M.
 static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) {
   return (m << 6) + (o << 3) + rm;
 }
 
-//! @brief Encode SIB.
+//! Encode SIB.
 static ASMJIT_INLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) {
   return (s << 6) + (i << 3) + b;
 }
@@ -928,7 +929,7 @@ static ASMJIT_INLINE Error X86X64Assembler_emit(X86X64Assembler* self, uint32_t 
   //
   // AVX:
   //   0x0008 - AVX.W.
-  //   0xF000 - VVVV, zeros by default, see @ref kVexVVVV.
+  //   0xF000 - VVVV, zeros by default, see `kVexVVVV`.
   //
   uint32_t opX;
 
@@ -3969,8 +3970,8 @@ _EmitXopM:
   // [Emit - Jump/Call to an Immediate]
   // --------------------------------------------------------------------------
 
-  // Emit relative relocation to absolute pointer @a target. It's needed
-  // to add what instruction is emitting this, because in x64 mode the relative
+  // Emit relative relocation to absolute pointer `target`. It's needed to add
+  // what instruction is emitting this, because in x64 mode the relative
   // displacement can be impossible to calculate and in this case the trampoline
   // is used.
 _EmitJmpOrCallImm:
@@ -4087,7 +4088,7 @@ _GrowBuffer:
 namespace asmjit {
 namespace x86 {
 
-Assembler::Assembler(BaseRuntime* runtime) : X86X64Assembler(runtime) {
+Assembler::Assembler(Runtime* runtime) : X86X64Assembler(runtime) {
   _arch = kArchX86;
   _regSize = 4;
 }
@@ -4116,7 +4117,7 @@ Error Assembler::_emit(uint32_t code, const Operand& o0, const Operand& o1, cons
 namespace asmjit {
 namespace x64 {
 
-Assembler::Assembler(BaseRuntime* runtime) : X86X64Assembler(runtime) {
+Assembler::Assembler(Runtime* runtime) : X86X64Assembler(runtime) {
   _arch = kArchX64;
   _regSize = 8;
 }

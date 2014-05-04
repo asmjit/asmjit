@@ -21,21 +21,21 @@
 namespace asmjit {
 
 // ============================================================================
-// [asmjit::BaseLogger - Construction / Destruction]
+// [asmjit::Logger - Construction / Destruction]
 // ============================================================================
 
-BaseLogger::BaseLogger() {
+Logger::Logger() {
   _options = 0;
   ::memset(_indentation, 0, ASMJIT_ARRAY_SIZE(_indentation));
 }
 
-BaseLogger::~BaseLogger() {}
+Logger::~Logger() {}
 
 // ============================================================================
-// [asmjit::BaseLogger - Logging]
+// [asmjit::Logger - Logging]
 // ============================================================================
 
-void BaseLogger::logFormat(uint32_t style, const char* fmt, ...) {
+void Logger::logFormat(uint32_t style, const char* fmt, ...) {
   char buf[1024];
   size_t len;
 
@@ -47,7 +47,7 @@ void BaseLogger::logFormat(uint32_t style, const char* fmt, ...) {
   logString(style, buf, len);
 }
 
-void BaseLogger::logBinary(uint32_t style, const void* data, size_t size) {
+void Logger::logBinary(uint32_t style, const void* data, size_t size) {
   static const char prefix[] = ".data ";
   static const char hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
@@ -78,10 +78,10 @@ void BaseLogger::logBinary(uint32_t style, const void* data, size_t size) {
 }
 
 // ============================================================================
-// [asmjit::BaseLogger - LogBinary]
+// [asmjit::Logger - LogBinary]
 // ============================================================================
 
-void BaseLogger::setOption(uint32_t id, bool value) {
+void Logger::setOption(uint32_t id, bool value) {
   if (id >= kLoggerOptionCount)
     return;
 
@@ -94,10 +94,10 @@ void BaseLogger::setOption(uint32_t id, bool value) {
 }
 
 // ============================================================================
-// [asmjit::BaseLogger - Indentation]
+// [asmjit::Logger - Indentation]
 // ============================================================================
 
-void BaseLogger::setIndentation(const char* indentation) {
+void Logger::setIndentation(const char* indentation) {
   ::memset(_indentation, 0, ASMJIT_ARRAY_SIZE(_indentation));
   if (!indentation)
     return;
@@ -120,7 +120,7 @@ FileLogger::~FileLogger() {}
 // [asmjit::FileLogger - Accessors]
 // ============================================================================
 
-//! @brief Set file stream.
+//! Set file stream.
 void FileLogger::setStream(FILE* stream) {
   _stream = stream;
 }

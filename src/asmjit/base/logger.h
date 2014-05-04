@@ -20,24 +20,24 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_logging
+//! @addtogroup asmjit_base_logging_and_errors
 //! @{
 
 // ============================================================================
 // [asmjit::kLoggerOption]
 // ============================================================================
 
-//! @brief Logger options.
+//! Logger options.
 ASMJIT_ENUM(kLoggerOption) {
-  //! @brief Whether to output instructions also in binary form.
+  //! Whether to output instructions also in binary form.
   kLoggerOptionBinaryForm = 0,
 
-  //! @brief Whether to output immediates as hexadecimal numbers.
+  //! Whether to output immediates as hexadecimal numbers.
   kLoggerOptionHexImmediate = 1,
-  //! @brief Whether to output displacements as hexadecimal numbers.
+  //! Whether to output displacements as hexadecimal numbers.
   kLoggerOptionHexDisplacement = 2,
 
-  //! @brief Count of logger options.
+  //! Count of logger options.
   kLoggerOptionCount = 3
 };
 
@@ -45,6 +45,7 @@ ASMJIT_ENUM(kLoggerOption) {
 // [asmjit::kLoggerStyle]
 // ============================================================================
 
+//! Logger style.
 ASMJIT_ENUM(kLoggerStyle) {
   kLoggerStyleDefault = 0,
   kLoggerStyleDirective = 1,
@@ -59,77 +60,75 @@ ASMJIT_ENUM(kLoggerStyle) {
 // [asmjit::Logger]
 // ============================================================================
 
-//! @brief Abstract logging class.
+//! Abstract logging class.
 //!
 //! This class can be inherited and reimplemented to fit into your logging
-//! subsystem. When reimplementing use @c asmjit::Logger::log() method to
-//! log into your stream.
+//! subsystem. When reimplementing use `Logger::log()` method to log into
+//! a custom stream.
 //!
-//! This class also contain @c _enabled member that can be used to enable
+//! This class also contain `_enabled` member that can be used to enable
 //! or disable logging.
-struct BaseLogger {
-  ASMJIT_NO_COPY(BaseLogger)
+struct Logger {
+  ASMJIT_NO_COPY(Logger)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a @ref BaseLogger instance.
-  ASMJIT_API BaseLogger();
-  //! @brief Destroy the @ref BaseLogger instance.
-  ASMJIT_API virtual ~BaseLogger();
+  //! Create a `Logger` instance.
+  ASMJIT_API Logger();
+  //! Destroy the `Logger` instance.
+  ASMJIT_API virtual ~Logger();
 
   // --------------------------------------------------------------------------
   // [Logging]
   // --------------------------------------------------------------------------
 
-  //! @brief Abstract method to log output.
-  //!
-  //! Default implementation that is in @c asmjit::Logger is to do nothing.
-  //! It's virtual to fit to your logging system.
+  //! Log output.
   virtual void logString(uint32_t style, const char* buf, size_t len = kInvalidIndex) = 0;
 
-  //! @brief Log formatter message (like sprintf) sending output to @c logString() method.
+  //! Log formatter message (like sprintf) sending output to `logString()` method.
   ASMJIT_API void logFormat(uint32_t style, const char* fmt, ...);
-  //! @brief Log binary data.
+  //! Log binary data.
   ASMJIT_API void logBinary(uint32_t style, const void* data, size_t size);
 
   // --------------------------------------------------------------------------
   // [Options]
   // --------------------------------------------------------------------------
 
-  //! @brief Get all logger options as a single integer.
-  ASMJIT_INLINE uint32_t getOptions() const
-  { return _options; }
+  //! Get all logger options as a single integer.
+  ASMJIT_INLINE uint32_t getOptions() const {
+    return _options;
+  }
 
-  //! @brief Get the given logger option.
+  //! Get the given logger option.
   ASMJIT_INLINE bool getOption(uint32_t id) const {
     ASMJIT_ASSERT(id < kLoggerOptionCount);
     return static_cast<bool>((_options >> id) & 0x1);
   }
 
-  //! @brief Set the given logger option.
+  //! Set the given logger option.
   ASMJIT_API void setOption(uint32_t id, bool value);
 
   // --------------------------------------------------------------------------
   // [Indentation]
   // --------------------------------------------------------------------------
 
-  //! @brief Get indentation.
+  //! Get indentation.
   ASMJIT_INLINE const char* getIndentation() const { return _indentation; }
-  //! @brief Set indentation.
+  //! Set indentation.
   ASMJIT_API void setIndentation(const char* indentation);
-  //! @brief Reset indentation.
+  //! Reset indentation.
   ASMJIT_INLINE void resetIndentation() { setIndentation(NULL); }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Options, see @ref kLoggerOption.
+  //! Options, see `kLoggerOption`.
   uint32_t _options;
 
-  //! @brief Indentation.
+  //! Indentation.
   char _indentation[12];
 };
 
@@ -137,35 +136,33 @@ struct BaseLogger {
 // [asmjit::FileLogger]
 // ============================================================================
 
-//! @brief Logger that can log to standard C @c FILE* stream.
-struct FileLogger : public BaseLogger {
+//! Logger that can log to standard C `FILE*` stream.
+struct FileLogger : public Logger {
   ASMJIT_NO_COPY(FileLogger)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @c FileLogger.
-  //! @param stream FILE stream where logging will be sent (can be @c NULL
-  //! to disable logging).
+  //! Create a new `FileLogger` that logs to a `FILE` stream.
   ASMJIT_API FileLogger(FILE* stream = NULL);
 
-  //! @brief Destroy the @ref FileLogger.
+  //! Destroy the `FileLogger`.
   ASMJIT_API virtual ~FileLogger();
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get @c FILE* stream.
+  //! Get `FILE*` stream.
   //!
-  //! @note Return value can be @c NULL.
+  //! @note Return value can be `NULL`.
   ASMJIT_INLINE FILE* getStream() const { return _stream; }
 
-  //! @brief Set @c FILE* stream.
+  //! Set `FILE*` stream.
   //!
-  //! @param stream @c FILE stream where to log output (can be @c NULL to
-  //! disable logging).
+  //! @param stream `FILE` stream where to log output, can be set to `NULL` to
+  //! disable logging.
   ASMJIT_API void setStream(FILE* stream);
 
   // --------------------------------------------------------------------------
@@ -178,7 +175,7 @@ struct FileLogger : public BaseLogger {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief C file stream.
+  //! C file stream.
   FILE* _stream;
 };
 
@@ -186,31 +183,31 @@ struct FileLogger : public BaseLogger {
 // [asmjit::StringLogger]
 // ============================================================================
 
-//! @brief String logger.
-struct StringLogger : public BaseLogger {
+//! String logger.
+struct StringLogger : public Logger {
   ASMJIT_NO_COPY(StringLogger)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create new @ref StringLogger.
+  //! Create new `StringLogger`.
   ASMJIT_API StringLogger();
 
-  //! @brief Destroy the @ref StringLogger.
+  //! Destroy the `StringLogger`.
   ASMJIT_API virtual ~StringLogger();
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get <code>char*</code> pointer which represents the resulting
+  //! Get <code>char*</code> pointer which represents the resulting
   //! string.
   //!
-  //! The pointer is owned by @ref StringLogger, it can't be modified or freed.
+  //! The pointer is owned by `StringLogger`, it can't be modified or freed.
   ASMJIT_INLINE const char* getString() const { return _stringBuilder.getData(); }
 
-  //! @brief Clear the resulting string.
+  //! Clear the resulting string.
   ASMJIT_INLINE void clearString() { _stringBuilder.clear(); }
 
   // --------------------------------------------------------------------------
@@ -223,7 +220,7 @@ struct StringLogger : public BaseLogger {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Output.
+  //! Output.
   StringBuilder _stringBuilder;
 };
 

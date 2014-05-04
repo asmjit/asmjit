@@ -20,7 +20,7 @@ namespace asmjit {
 // [asmjit::CodeGen - Construction / Destruction]
 // ============================================================================
 
-CodeGen::CodeGen(BaseRuntime* runtime) :
+CodeGen::CodeGen(Runtime* runtime) :
   _runtime(runtime),
   _logger(NULL),
   _errorHandler(NULL),
@@ -40,7 +40,7 @@ CodeGen::~CodeGen() {
 // [asmjit::CodeGen - Logging]
 // ============================================================================
 
-Error CodeGen::setLogger(BaseLogger* logger) {
+Error CodeGen::setLogger(Logger* logger) {
   _logger = logger;
   return kErrorOk;
 }
@@ -64,7 +64,7 @@ Error CodeGen::setError(Error error, const char* message) {
   if (handler != NULL && handler->handleError(error, message))
     return error;
 
-  BaseLogger* logger = _logger;
+  Logger* logger = _logger;
   if (logger != NULL) {
     logger->logFormat(kLoggerStyleComment,
       "*** ERROR: %s (%u).\n", message, static_cast<unsigned int>(error));

@@ -234,8 +234,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   lock.h
   logger.cpp
   logger.h
-  memorymanager.cpp
-  memorymanager.h
   podlist.h
   podvector.cpp
   podvector.h

@@ -269,6 +269,8 @@ static void opcode(asmjit::host::Assembler& a) {
   a.xor_(intptr_gp0, 0);
 
   // Fpu.
+  a.nop();
+
   a.f2xm1();
   a.fabs();
   a.fadd(fp0, fpx);
@@ -399,6 +401,8 @@ static void opcode(asmjit::host::Assembler& a) {
   a.fyl2xp1();
 
   // MMX/MMX-EXT.
+  a.nop();
+
   a.movd(ptr_gp0, mm7);
   a.movd(eax, mm7);
   a.movd(mm0, ptr_gp0);
@@ -501,6 +505,8 @@ static void opcode(asmjit::host::Assembler& a) {
   a.emms();
 
   // 3DNOW!
+  a.nop();
+
   a.pf2id(mm0, mm7);
   a.pf2id(mm0, ptr_gp0);
   a.pf2iw(mm0, mm7);
@@ -550,6 +556,8 @@ static void opcode(asmjit::host::Assembler& a) {
   a.femms();
 
   // SSE.
+  a.nop();
+
   a.addps(xmm0, xmm7);
   a.addps(xmm0, ptr_gp0);
   a.addss(xmm0, xmm7);
@@ -675,6 +683,8 @@ static void opcode(asmjit::host::Assembler& a) {
   a.xorps(xmm0, ptr_gp0);
 
   // SSE2.
+  a.nop();
+
   a.addpd(xmm0, xmm7);
   a.addpd(xmm0, ptr_gp0);
   a.addsd(xmm0, xmm7);
@@ -922,7 +932,9 @@ static void opcode(asmjit::host::Assembler& a) {
   a.xorpd(xmm0, xmm7);
   a.xorpd(xmm0, ptr_gp0);
 
-  // SSE3/SSSE3/SSE4.1/SSE4.2.
+  // SSE3.
+  a.nop();
+
   a.addsubpd(xmm0, xmm7);
   a.addsubpd(xmm0, ptr_gp0);
   a.addsubps(xmm0, xmm7);
@@ -945,6 +957,10 @@ static void opcode(asmjit::host::Assembler& a) {
   a.movsldup(xmm0, xmm7);
   a.movsldup(xmm0, ptr_gp0);
   a.mwait();
+
+  // SSSE3.
+  a.nop();
+
   a.psignb(mm0, mm7);
   a.psignb(mm0, ptr_gp0);
   a.psignb(xmm0, xmm7);
@@ -1009,6 +1025,10 @@ static void opcode(asmjit::host::Assembler& a) {
   a.palignr(mm0, ptr_gp0, 0);
   a.palignr(xmm0, xmm0, 0);
   a.palignr(xmm0, ptr_gp0, 0);
+
+  // SSE4.1.
+  a.nop();
+
   a.blendpd(xmm0, xmm0, 0);
   a.blendpd(xmm0, ptr_gp0, 0);
   a.blendps(xmm0, xmm0, 0);
@@ -1023,6 +1043,8 @@ static void opcode(asmjit::host::Assembler& a) {
   a.dpps(xmm0, ptr_gp0, 0);
   a.extractps(gp0, xmm0, 0);
   a.extractps(ptr_gp0, xmm0, 0);
+  a.insertps(xmm0, xmm1, 0);
+  a.insertps(xmm0, ptr_gp0, 0);
   a.movntdqa(xmm0, ptr_gp0);
   a.mpsadbw(xmm0, xmm0, 0);
   a.mpsadbw(xmm0, ptr_gp0, 0);
@@ -1104,6 +1126,10 @@ static void opcode(asmjit::host::Assembler& a) {
   a.roundpd(xmm0, ptr_gp0, 0);
   a.roundsd(xmm0, xmm0, 0);
   a.roundsd(xmm0, ptr_gp0, 0);
+
+  // SSE4.2.
+  a.nop();
+
   a.pcmpestri(xmm0, xmm0, 0);
   a.pcmpestri(xmm0, ptr_gp0, 0);
   a.pcmpestrm(xmm0, xmm0, 0);

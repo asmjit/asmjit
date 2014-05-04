@@ -1557,7 +1557,7 @@ static void X86X64Context_prepareSingleVarInst(uint32_t code, VarAttr* va) {
 
 //! @internal
 //!
-//! @brief Add unreachable-flow data to the unreachable flow list.
+//! Add unreachable-flow data to the unreachable flow list.
 static ASMJIT_INLINE Error X86X64Context_addUnreachableNode(X86X64Context* self, BaseNode* node) {
   PodList<BaseNode*>::Link* link = self->_baseZone.allocT<PodList<BaseNode*>::Link>();
   if (link == NULL)
@@ -1571,7 +1571,7 @@ static ASMJIT_INLINE Error X86X64Context_addUnreachableNode(X86X64Context* self,
 
 //! @internal
 //!
-//! @brief Add jump-flow data to the jcc flow list.
+//! Add jump-flow data to the jcc flow list.
 static ASMJIT_INLINE Error X86X64Context_addJccNode(X86X64Context* self, BaseNode* node) {
   PodList<BaseNode*>::Link* link = self->_baseZone.allocT<PodList<BaseNode*>::Link>();
 
@@ -1586,7 +1586,7 @@ static ASMJIT_INLINE Error X86X64Context_addJccNode(X86X64Context* self, BaseNod
 
 //! @internal
 //!
-//! @brief Get mask of all registers actually used to pass function arguments.
+//! Get mask of all registers actually used to pass function arguments.
 static ASMJIT_INLINE RegMask X86X64Context_getUsedArgs(X86X64Context* self, X86X64CallNode* node, X86X64FuncDecl* decl) {
   RegMask regs;
   regs.reset();
@@ -1815,7 +1815,7 @@ static ASMJIT_INLINE Error X86X64Context_insertSArgNode(
 
 //! @internal
 //!
-//! @brief Prepare the given function @a func.
+//! Prepare the given function `func`.
 //!
 //! For each node:
 //! - Create and assign groupId and flowId.
@@ -2608,12 +2608,12 @@ _NoMemory:
 
 //! @internal
 struct LivenessTarget {
-  //! @brief Previous target.
+  //! Previous target.
   LivenessTarget* prev;
 
-  //! @brief Target node.
+  //! Target node.
   TargetNode* node;
-  //! @brief Jumped from.
+  //! Jumped from.
   JumpNode* from;
 };
 
@@ -2952,33 +2952,33 @@ struct X86X64BaseAlloc {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get the context.
+  //! Get the context.
   ASMJIT_INLINE X86X64Context* getContext() const { return _context; }
-  //! @brief Get the current state (always the same instance as X86X64Context::_x86State).
+  //! Get the current state (always the same instance as X86X64Context::_x86State).
   ASMJIT_INLINE VarState* getState() const { return _context->getState(); }
 
-  //! @brief Get the node.
+  //! Get the node.
   ASMJIT_INLINE BaseNode* getNode() const { return _node; }
 
-  //! @brief Get VarAttr list (all).
+  //! Get VarAttr list (all).
   ASMJIT_INLINE VarAttr* getVaList() const { return _vaList[0]; }
-  //! @brief Get VarAttr list (per class).
+  //! Get VarAttr list (per class).
   ASMJIT_INLINE VarAttr* getVaListByClass(uint32_t c) const { return _vaList[c]; }
 
-  //! @brief Get VarAttr count (all).
+  //! Get VarAttr count (all).
   ASMJIT_INLINE uint32_t getVaCount() const { return _vaCount; }
-  //! @brief Get VarAttr count (per class).
+  //! Get VarAttr count (per class).
   ASMJIT_INLINE uint32_t getVaCountByClass(uint32_t c) const { return _count.get(c); }
 
-  //! @brief Get whether all variables of class @a c are done.
+  //! Get whether all variables of class `c` are done.
   ASMJIT_INLINE bool isVaDone(uint32_t c) const { return _done.get(c) == _count.get(c); }
 
-  //! @brief Get how many variables have been allocated.
+  //! Get how many variables have been allocated.
   ASMJIT_INLINE uint32_t getVaDone(uint32_t c) const { return _done.get(c); }
 
   ASMJIT_INLINE void addVaDone(uint32_t c, uint32_t n = 1) { _done.add(c, n); }
 
-  //! @brief Get number of allocable registers per class.
+  //! Get number of allocable registers per class.
   ASMJIT_INLINE uint32_t getGaRegs(uint32_t c) const {
     return _context->_gaRegs[c];
   }
@@ -3007,25 +3007,25 @@ protected:
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Context.
+  //! Context.
   X86X64Context* _context;
-  //! @brief Compiler.
+  //! Compiler.
   X86X64Compiler* _compiler;
 
-  //! @brief Node.
+  //! Node.
   BaseNode* _node;
 
-  //! @brief Variable instructions.
+  //! Variable instructions.
   VarInst* _vi;
-  //! @brief VarAttr list (per register class).
+  //! VarAttr list (per register class).
   VarAttr* _vaList[4];
 
-  //! @brief Count of all VarAttr's.
+  //! Count of all VarAttr's.
   uint32_t _vaCount;
 
-  //! @brief VarAttr's total counter.
+  //! VarAttr's total counter.
   RegCount _count;
-  //! @brief VarAttr's done counter.
+  //! VarAttr's done counter.
   RegCount _done;
 };
 
@@ -3120,7 +3120,7 @@ ASMJIT_INLINE void X86X64BaseAlloc::unuseAfter() {
 
 //! @internal
 //!
-//! @brief Register allocator context (asm instructions).
+//! Register allocator context (asm instructions).
 struct X86X64VarAlloc : public X86X64BaseAlloc {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -3162,7 +3162,7 @@ protected:
   // [GuessAlloc / GuessSpill]
   // --------------------------------------------------------------------------
 
-  //! @brief Guess which register is the best candidate for 'vd' from
+  //! Guess which register is the best candidate for 'vd' from
   //! 'allocableRegs'.
   //!
   //! The guess is based on looking ahead and inspecting register allocator
@@ -3173,7 +3173,7 @@ protected:
   template<int C>
   ASMJIT_INLINE uint32_t guessAlloc(VarData* vd, uint32_t allocableRegs);
 
-  //! @brief Guess whether to move the given 'vd' instead of spill.
+  //! Guess whether to move the given 'vd' instead of spill.
   template<int C>
   ASMJIT_INLINE uint32_t guessSpill(VarData* vd, uint32_t allocableRegs);
 
@@ -3188,9 +3188,9 @@ protected:
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Will alloc to these registers.
+  //! Will alloc to these registers.
   RegMask _willAlloc;
-  //! @brief Will spill these registers.
+  //! Will spill these registers.
   RegMask _willSpill;
 };
 
@@ -3745,7 +3745,7 @@ ASMJIT_INLINE void X86X64VarAlloc::modified() {
 
 //! @internal
 //!
-//! @brief Register allocator context (function call).
+//! Register allocator context (function call).
 struct X86X64CallAlloc : public X86X64BaseAlloc {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -3758,7 +3758,7 @@ struct X86X64CallAlloc : public X86X64BaseAlloc {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get the node.
+  //! Get the node.
   ASMJIT_INLINE X86X64CallNode* getNode() const { return static_cast<X86X64CallNode*>(_node); }
 
   // --------------------------------------------------------------------------
@@ -3837,9 +3837,9 @@ protected:
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Will alloc to these registers.
+  //! Will alloc to these registers.
   RegMask _willAlloc;
-  //! @brief Will spill these registers.
+  //! Will spill these registers.
   RegMask _willSpill;
 };
 
@@ -5298,7 +5298,7 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
   BaseNode* node_ = start;
   StringBuilder& sb = self->_stringBuilder;
 
-  BaseLogger* logger;
+  Logger* logger;
   uint32_t vdCount;
   uint32_t annotationLength;
 

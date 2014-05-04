@@ -20,33 +20,35 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_codegen
 //! @{
 
 // ============================================================================
 // [asmjit::kCodeGen]
 // ============================================================================
 
-//! @brief @ref CodeGen features.
+//! Features of `CodeGen`.
 ASMJIT_ENUM(kCodeGen) {
-  //! @brief Emit optimized code-alignment sequences.
+  //! Emit optimized code-alignment sequences.
   //!
-  //! X86/X64:
+  //! X86/X64
+  //! -------
   //!
   //! Default align sequence used by X86/X64 architecture is one-byte 0x90
   //! opcode that is mostly shown by disassemblers as nop. However there are
   //! more optimized align sequences for 2-11 bytes that may execute faster.
   //! If this feature is enabled asmjit will generate specialized sequences
-  //! for alignment between 1 to 11 bytes. Also when @ref x86x64::Compiler
-  //! is used, it may add rex prefixes into the code to make some instructions
-  //! larger so no alignment sequences are needed.
+  //! for alignment between 1 to 11 bytes. Also when `x86x64::Compiler` is
+  //! used, it may add rex prefixes into the code to make some instructions
+  //! greater so no alignment sequences are needed.
   //!
-  //! @default true.
+  //! Default true.
   kCodeGenOptimizedAlign = 0,
 
-  //! @brief Emit jump-prediction hints.
+  //! Emit jump-prediction hints.
   //!
-  //! X86/X64:
+  //! X86/X64
+  //! -------
   //!
   //! Jump prediction is usually based on the direction of the jump. If the
   //! jump is backward it is usually predicted as taken; and if the jump is
@@ -55,7 +57,7 @@ ASMJIT_ENUM(kCodeGen) {
   //! However this behavior can be overridden by using instruction prefixes.
   //! If this option is enabled these hints will be emitted.
   //!
-  //! @default true.
+  //! Default true.
   kCodeGenPredictedJumps = 1
 };
 
@@ -63,7 +65,7 @@ ASMJIT_ENUM(kCodeGen) {
 // [asmjit::CodeGen]
 // ============================================================================
 
-//! @brief Abstract class inherited by @ref Assembler and @ref Compiler.
+//! Abstract class inherited by `Assembler` and `Compiler`.
 struct CodeGen {
   ASMJIT_NO_COPY(CodeGen)
 
@@ -71,76 +73,76 @@ struct CodeGen {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new @ref CodeGen instance.
-  ASMJIT_API CodeGen(BaseRuntime* runtime);
-  //! @brief Destroy the @ref CodeGen instance.
+  //! Create a new `CodeGen` instance.
+  ASMJIT_API CodeGen(Runtime* runtime);
+  //! Destroy the `CodeGen` instance.
   ASMJIT_API virtual ~CodeGen();
 
   // --------------------------------------------------------------------------
   // [Runtime]
   // --------------------------------------------------------------------------
 
-  //! @brief Get runtime.
-  ASMJIT_INLINE BaseRuntime* getRuntime() const { return _runtime; }
+  //! Get runtime.
+  ASMJIT_INLINE Runtime* getRuntime() const { return _runtime; }
 
   // --------------------------------------------------------------------------
   // [Logger]
   // --------------------------------------------------------------------------
 
-  //! @brief Get whether the code generator has a logger.
+  //! Get whether the code generator has a logger.
   ASMJIT_INLINE bool hasLogger() const { return _logger != NULL; }
-  //! @brief Get logger.
-  ASMJIT_INLINE BaseLogger* getLogger() const { return _logger; }
-  //! @brief Set logger to @a logger.
-  ASMJIT_API Error setLogger(BaseLogger* logger);
+  //! Get logger.
+  ASMJIT_INLINE Logger* getLogger() const { return _logger; }
+  //! Set logger to `logger`.
+  ASMJIT_API Error setLogger(Logger* logger);
 
   // --------------------------------------------------------------------------
   // [Arch]
   // --------------------------------------------------------------------------
 
-  //! @brief Get target architecture.
+  //! Get target architecture.
   ASMJIT_INLINE uint32_t getArch() const { return _arch; }
 
-  //! @brief Get default register size (4 or 8 bytes).
+  //! Get default register size (4 or 8 bytes).
   ASMJIT_INLINE uint32_t getRegSize() const { return _regSize; }
 
   // --------------------------------------------------------------------------
   // [Error]
   // --------------------------------------------------------------------------
 
-  //! @brief Get last error code.
+  //! Get last error code.
   ASMJIT_INLINE Error getError() const { return _error; }
-  //! @brief Set last error code and propagate it through the error handler.
+  //! Set last error code and propagate it through the error handler.
   ASMJIT_API Error setError(Error error, const char* message = NULL);
-  //! @brief Clear the last error code.
+  //! Clear the last error code.
   ASMJIT_INLINE void clearError() { _error = kErrorOk; }
 
-  //! @brief Get error handler.
+  //! Get error handler.
   ASMJIT_INLINE ErrorHandler* getErrorHandler() const { return _errorHandler; }
-  //! @brief Set error handler.
+  //! Set error handler.
   ASMJIT_API Error setErrorHandler(ErrorHandler* handler);
-  //! @brief Clear error handler.
+  //! Clear error handler.
   ASMJIT_INLINE Error clearErrorHandler() { return setErrorHandler(NULL); }
 
   // --------------------------------------------------------------------------
   // [Features]
   // --------------------------------------------------------------------------
 
-  //! @brief Get code-generator @a feature.
+  //! Get code-generator `feature`.
   ASMJIT_API bool hasFeature(uint32_t feature) const;
-  //! @brief Set code-generator @a feature to @a value.
+  //! Set code-generator `feature` to `value`.
   ASMJIT_API Error setFeature(uint32_t feature, bool value);
 
   // --------------------------------------------------------------------------
   // [Options]
   // --------------------------------------------------------------------------
 
-  //! @brief Get options.
+  //! Get options.
   ASMJIT_INLINE uint32_t getOptions() const { return _options; }
-  //! @brief Set options.
+  //! Set options.
   ASMJIT_INLINE void setOptions(uint32_t options) { _options = options; }
 
-  //! @brief Get options and clear them.
+  //! Get options and clear them.
   ASMJIT_INLINE uint32_t getOptionsAndClear() {
     uint32_t options = _options;
     _options = 0;
@@ -151,7 +153,7 @@ struct CodeGen {
   // [Purge]
   // --------------------------------------------------------------------------
 
-  //! @brief Called by clear() and reset() to clear all data used by the code
+  //! Called by `clear()` and `reset()` to clear all data used by the code
   //! generator.
   virtual void _purge() = 0;
 
@@ -159,37 +161,37 @@ struct CodeGen {
   // [Make]
   // --------------------------------------------------------------------------
 
-  //! @brief Make is a convenience method to make and relocate the current code
-  //! into the associated runtime.
+  //! Make is a convenience method to make and relocate the current code and 
+  //! add it to the associated `Runtime`.
   //!
   //! What is needed is only to cast the returned pointer to your function type
-  //! and then use it. If there was an error during make() @c NULL is returned
-  //! and the last error code can be obtained by calling @ref getError().
+  //! and then use it. If there was an error during `make()` `NULL` is returned
+  //! and the last error code can be obtained by calling `getError()`.
   virtual void* make() = 0;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Runtime.
-  BaseRuntime* _runtime;
-  //! @brief Logger.
-  BaseLogger* _logger;
-  //! @brief Error handler, called by @ref setError().
+  //! Runtime.
+  Runtime* _runtime;
+  //! Logger.
+  Logger* _logger;
+  //! Error handler, called by `setError()`.
   ErrorHandler* _errorHandler;
 
-  //! @brief Target architecture.
+  //! Target architecture.
   uint8_t _arch;
-  //! @brief Get the default register size of the architecture (4 or 8 bytes).
+  //! Get the default register size of the architecture (4 or 8 bytes).
   uint8_t _regSize;
-  //! @brief Last error code.
+  //! Last error code.
   uint8_t _error;
-  //! @brief Target features.
+  //! Target features.
   uint8_t _features;
-  //! @brief Options for the next generated instruction (only 8-bits used).
+  //! Options for the next generated instruction (only 8-bits used).
   uint32_t _options;
 
-  //! @brief Base zone.
+  //! Base zone.
   Zone _baseZone;
 };
 

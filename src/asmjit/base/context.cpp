@@ -298,7 +298,7 @@ Error BaseContext::removeUnreachableCode() {
 
 //! @internal
 //!
-//! @brief Translate the given function @a func.
+//! Translate the given function `func`.
 void BaseContext::cleanup() {
   VarData** array = _contextVd.getData();
   size_t length = _contextVd.getLength();

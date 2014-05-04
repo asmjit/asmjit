@@ -31,7 +31,7 @@ const ConstPoolNode ConstPoolTree::_sentinel = { {
 
 //! @internal
 //!
-//! @brief Remove left horizontal links.
+//! Remove left horizontal links.
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) {
   if (node->_link[0]->_level == node->_level && node->_level != 0 ) {
     ConstPoolNode *save = node->_link[0];
@@ -45,7 +45,7 @@ static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) 
 
 //! @internal
 //!
-//! @brief Remove consecutive horizontal links.
+//! Remove consecutive horizontal links.
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_splitNode(ConstPoolNode* node) {
   if (node->_link[1]->_link[1]->_level == node->_level && node->_level != 0) {
     ConstPoolNode *save = node->_link[1];
@@ -159,7 +159,7 @@ void ConstPool::reset() {
 // [asmjit::ConstPool - Ops]
 // ============================================================================
 
-ASMJIT_INLINE size_t ConstPool_getGapIndex(size_t size) {
+static ASMJIT_INLINE size_t ConstPool_getGapIndex(size_t size) {
   if (size <=  1)
     return ConstPool::kIndex1;
   else if (size <=  3)
@@ -172,7 +172,7 @@ ASMJIT_INLINE size_t ConstPool_getGapIndex(size_t size) {
     return ConstPool::kIndex16;
 }
 
-ASMJIT_INLINE ConstPoolGap* ConstPool_allocGap(ConstPool* self) {
+static ASMJIT_INLINE ConstPoolGap* ConstPool_allocGap(ConstPool* self) {
   ConstPoolGap* gap = self->_gapPool;
   if (gap == NULL)
     return self->_zone->allocT<ConstPoolGap>();
@@ -181,7 +181,7 @@ ASMJIT_INLINE ConstPoolGap* ConstPool_allocGap(ConstPool* self) {
   return gap;
 }
 
-ASMJIT_INLINE void ConstPool_freeGap(ConstPool* self,  ConstPoolGap* gap) {
+static ASMJIT_INLINE void ConstPool_freeGap(ConstPool* self,  ConstPoolGap* gap) {
   gap->_next = self->_gapPool;
   self->_gapPool = gap;
 }

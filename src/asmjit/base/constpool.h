@@ -17,13 +17,16 @@
 
 namespace asmjit {
 
+//! @addtogroup asmjit_base_util
+//! @{
+
 // ============================================================================
 // [asmjit::ConstPoolNode]
 // ============================================================================
 
 //! @internal
 //!
-//! @brief Zone-allocated constant-pool node.
+//! Zone-allocated constant-pool node.
 struct ConstPoolNode {
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -37,13 +40,13 @@ struct ConstPoolNode {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Left/Right nodes.
+  //! Left/Right nodes.
   ConstPoolNode* _link[2];
-  //! @brief Horizontal level for balance.
+  //! Horizontal level for balance.
   uint32_t _level : 31;
-  //! @brief Whether this constant is shared with another.
+  //! Whether this constant is shared with another.
   uint32_t _shared : 1;
-  //! @brief Data offset from the beginning of the pool.
+  //! Data offset from the beginning of the pool.
   uint32_t _offset;
 };
 
@@ -53,10 +56,10 @@ struct ConstPoolNode {
 
 //! @internal
 //!
-//! @brief Zone-allocated constant-pool tree.
+//! Zone-allocated constant-pool tree.
 struct ConstPoolTree {
   enum {
-    //! @brief Maximum tree height == log2(1 << 64).
+    //! Maximum tree height == log2(1 << 64).
     kHeightLimit = 64
   };
 
@@ -169,11 +172,11 @@ struct ConstPoolTree {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Root of the tree
+  //! Root of the tree
   ConstPoolNode* _root;
-  //! @brief Length of the tree (count of nodes).
+  //! Length of the tree (count of nodes).
   size_t _length;
-  //! @brief Size of the data.
+  //! Size of the data.
   size_t _dataSize;
 };
 
@@ -183,13 +186,13 @@ struct ConstPoolTree {
 
 //! @internal
 //!
-//! @brief Zone-allocated constant-pool gap.
+//! Zone-allocated constant-pool gap.
 struct ConstPoolGap {
-  //! @brief Link to the next gap
+  //! Link to the next gap
   ConstPoolGap* _next;
-  //! @brief Offset of the gap.
+  //! Offset of the gap.
   size_t _offset;
-  //! @brief Remaining bytes of the gap (basically a gap size).
+  //! Remaining bytes of the gap (basically a gap size).
   size_t _length;
 };
 
@@ -197,6 +200,7 @@ struct ConstPoolGap {
 // [asmjit::ConstPool]
 // ============================================================================
 
+//! Constant pool.
 struct ConstPool {
   ASMJIT_NO_COPY(ConstPool)
 
@@ -227,21 +231,22 @@ struct ConstPool {
   // [Ops]
   // --------------------------------------------------------------------------
 
-  //! @brief Get whether the constant-pool is empty.
+  //! Get whether the constant-pool is empty.
   ASMJIT_INLINE bool isEmpty() const {
     return _size == 0;
   }
 
-  //! @brief Get the size of the constant-pool in bytes.
+  //! Get the size of the constant-pool in bytes.
   ASMJIT_INLINE size_t getSize() const {
     return _size;
   }
 
+  //! Get minimum alignment.
   ASMJIT_INLINE size_t getAlignment() const {
     return _alignment;
   }
 
-  //! @brief Add a constant to the constant pool.
+  //! Add a constant to the constant pool.
   //!
   //! The constant must have known size, which is 1, 2, 4, 8, 16 or 32 bytes.
   //! The constant is added to the pool only if it doesn't not exist, otherwise
@@ -264,27 +269,29 @@ struct ConstPool {
   // [Fill]
   // --------------------------------------------------------------------------
 
-  //! @brief Fill the destination with the constants from the pool.
+  //! Fill the destination with the constants from the pool.
   ASMJIT_API void fill(void* dst);
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Zone allocator.
+  //! Zone allocator.
   Zone* _zone;
-  //! @brief Tree per size.
+  //! Tree per size.
   ConstPoolTree _tree[kIndexCount];
-  //! @brief Gaps per size.
+  //! Gaps per size.
   ConstPoolGap* _gaps[kIndexCount];
-  //! @brief Gaps pool
+  //! Gaps pool
   ConstPoolGap* _gapPool;
 
-  //! @brief Size of the pool (in bytes).
+  //! Size of the pool (in bytes).
   size_t _size;
-  //! @brief Alignemnt.
+  //! Alignemnt.
   size_t _alignment;
 };
+
+//! @}
 
 } // asmjit namespace
 

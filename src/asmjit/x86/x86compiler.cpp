@@ -96,14 +96,14 @@ static Error X86X64Compiler_emitConstPool(X86X64Compiler* self,
 // [asmjit::x86x64::X86X64Compiler - Construction / Destruction]
 // ============================================================================
 
-X86X64Compiler::X86X64Compiler(BaseRuntime* runtime) : BaseCompiler(runtime) {}
+X86X64Compiler::X86X64Compiler(Runtime* runtime) : BaseCompiler(runtime) {}
 X86X64Compiler::~X86X64Compiler() {}
 
 // ============================================================================
 // [asmjit::x86x64::X86X64Compiler - Inst]
 // ============================================================================
 
-//! @brief Get compiler instruction item size without operands assigned.
+//! Get compiler instruction item size without operands assigned.
 static ASMJIT_INLINE size_t X86X64Compiler_getInstSize(uint32_t code) {
   return (IntUtil::inInterval<uint32_t>(code, _kInstJbegin, _kInstJend)) ? sizeof(JumpNode) : sizeof(InstNode);
 }
@@ -600,7 +600,7 @@ _OnError:
 template<typename Assembler>
 static ASMJIT_INLINE void* X86X64Compiler_make(X86X64Compiler* self) {
   Assembler assembler(self->_runtime);
-  BaseLogger* logger = self->_logger;
+  Logger* logger = self->_logger;
 
   if (logger) {
     assembler.setLogger(logger);
@@ -699,7 +699,7 @@ _Error:
 namespace asmjit {
 namespace x86 {
 
-Compiler::Compiler(BaseRuntime* runtime) : X86X64Compiler(runtime) {
+Compiler::Compiler(Runtime* runtime) : X86X64Compiler(runtime) {
   _arch = kArchX86;
   _regSize = 4;
   _targetVarMapping = _varMapping;
@@ -721,7 +721,7 @@ Compiler::~Compiler() {}
 namespace asmjit {
 namespace x64 {
 
-Compiler::Compiler(BaseRuntime* runtime) : X86X64Compiler(runtime) {
+Compiler::Compiler(Runtime* runtime) : X86X64Compiler(runtime) {
   _arch = kArchX64;
   _regSize = 8;
   _targetVarMapping = _varMapping;

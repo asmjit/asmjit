@@ -27,7 +27,10 @@ ErrorHandler::~ErrorHandler() {}
 // [asmjit::ErrorHandler - Interface]
 // ============================================================================
 
-ErrorHandler* ErrorHandler::addRef() const { return const_cast<ErrorHandler*>(this); }
+ErrorHandler* ErrorHandler::addRef() const {
+  return const_cast<ErrorHandler*>(this);
+}
+
 void ErrorHandler::release() {}
 
 // ============================================================================

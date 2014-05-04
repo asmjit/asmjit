@@ -16,17 +16,17 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_util
 //! @{
 
 // ============================================================================
 // [asmjit::Zone]
 // ============================================================================
 
-//! @brief Fast incremental memory allocator.
+//! Fast incremental memory allocator.
 //!
 //! Memory allocator designed to allocate small objects that will be invalidated
-//! (free) all at once.
+//! (freed) all at once.
 struct Zone {
   // --------------------------------------------------------------------------
   // [Chunk]
@@ -34,19 +34,19 @@ struct Zone {
 
   //! @internal
   //!
-  //! @brief One allocated chunk of memory.
+  //! One allocated chunk of memory.
   struct Chunk {
-    //! @brief Get count of remaining (unused) bytes in chunk.
+    //! Get count of remaining (unused) bytes in chunk.
     ASMJIT_INLINE size_t getRemainingSize() const { return size - pos; }
 
-    //! @brief Link to previous chunk.
+    //! Link to previous chunk.
     Chunk* prev;
-    //! @brief Position in this chunk.
+    //! Position in this chunk.
     size_t pos;
-    //! @brief Size of this chunk (in bytes).
+    //! Size of this chunk (in bytes).
     size_t size;
 
-    //! @brief Data.
+    //! Data.
     uint8_t data[sizeof(void*)];
   };
 
@@ -54,25 +54,25 @@ struct Zone {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! @brief Create a new instance of @c Zone allocator.
+  //! Create a new instance of `Zone` allocator.
   //!
   //! @param chunkSize Default size of the first chunk.
   ASMJIT_API Zone(size_t chunkSize);
 
-  //! @brief Destroy @ref Zone instance.
+  //! Destroy `Zone` instance.
   ASMJIT_API ~Zone();
 
   // --------------------------------------------------------------------------
   // [Clear / Reset]
   // --------------------------------------------------------------------------
 
-  //! @brief Free all allocated memory except first block that remains for reuse.
+  //! Free all allocated memory except first block that remains for reuse.
   //!
   //! Note that this method will invalidate all instances using this memory
   //! allocated by this zone instance.
   ASMJIT_API void clear();
 
-  //! @brief Free all allocated memory at once.
+  //! Free all allocated memory at once.
   //!
   //! Note that this method will invalidate all instances using this memory
   //! allocated by this zone instance.
@@ -82,32 +82,30 @@ struct Zone {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get (default) chunk size.
+  //! Get (default) chunk size.
   ASMJIT_INLINE size_t getChunkSize() const { return _chunkSize; }
 
   // --------------------------------------------------------------------------
   // [Alloc]
   // --------------------------------------------------------------------------
 
-  //! @brief Allocate @c size bytes of memory.
+  //! Allocate `size` bytes of memory.
   //!
-  //! Pointer allocated by this way will be valid until @c Zone object is
-  //! destroyed. To create class by this way use placement @c new and @c delete
+  //! Pointer allocated by this way will be valid until `Zone` object is
+  //! destroyed. To create class by this way use placement `new` and `delete`
   //! operators:
   //!
-  //! @code
+  //! ~~~
   //! // Example of simple class allocation.
   //! using namespace asmjit
   //!
   //! // Your class.
-  //! class Object
-  //! {
+  //! class Object {
   //!   // members...
   //! };
   //!
   //! // Your function
-  //! void f()
-  //! {
+  //! void f() {
   //!   // Create zone object with chunk size of 65536 bytes.
   //!   Zone zone(65536);
   //!
@@ -120,9 +118,9 @@ struct Zone {
   //!   obj->~Object();
   //!
   //!   // Zone destructor will free all memory allocated through it, you can
-  //!   // call @c zone.reset() if you wan't to reuse current @ref Zone.
+  //!   // call `zone.reset()` if you wan't to reuse current `Zone`.
   //! }
-  //! @endcode
+  //! ~~~
   ASMJIT_INLINE void* alloc(size_t size) {
     Chunk* cur = _chunks;
 
@@ -136,7 +134,7 @@ struct Zone {
     return (void*)p;
   }
 
-  //! @brief Like @ref alloc(), but returns <code>T*</code>.
+  //! Like `alloc()`, but the return is casted to `T*`.
   template<typename T>
   ASMJIT_INLINE T* allocT(size_t size = sizeof(T)) {
     return static_cast<T*>(alloc(size));
@@ -145,7 +143,7 @@ struct Zone {
   //! @internal
   ASMJIT_API void* _alloc(size_t size);
 
-  //! @brief Allocate @c size bytes of zeroed memory.
+  //! Allocate `size` bytes of zeroed memory.
   ASMJIT_INLINE void* calloc(size_t size) {
     Chunk* cur = _chunks;
 
@@ -163,22 +161,22 @@ struct Zone {
   //! @internal
   ASMJIT_API void* _calloc(size_t size);
 
-  //! @brief Helper to duplicate data.
+  //! Helper to duplicate data.
   ASMJIT_API void* dup(const void* data, size_t size);
 
-  //! @brief Helper to duplicate string.
+  //! Helper to duplicate string.
   ASMJIT_API char* sdup(const char* str);
 
-  //! @brief Helper to duplicate formatted string, maximum length is 256 bytes.
+  //! Helper to duplicate formatted string, maximum length is 256 bytes.
   ASMJIT_API char* sformat(const char* str, ...);
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Last allocated chunk of memory.
+  //! Last allocated chunk of memory.
   Chunk* _chunks;
-  //! @brief Default chunk size.
+  //! Default chunk size.
   size_t _chunkSize;
 };
 

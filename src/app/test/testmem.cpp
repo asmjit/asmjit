@@ -27,8 +27,8 @@ static void gen(void* a, void* b, int i) {
 static void verify(void* a, void* b) {
   int ai = *(int*)a;
   int bi = *(int*)b;
-  if (ai != bi || memcmp(a, b, ai) != 0)
-  {
+
+  if (ai != bi || ::memcmp(a, b, ai) != 0) {
     printf("Failed to verify %p\n", a);
     problems++;
   }
@@ -39,9 +39,11 @@ static void die() {
   exit(1);
 }
 
-static void stats(MemoryManager* memmgr) {
-  printf("-- Used: %d\n", (int)memmgr->getUsedBytes());
-  printf("-- Allocated: %d\n", (int)memmgr->getAllocatedBytes());
+static void stats(VMemMgr& memmgr) {
+  printf("-- Used: %d\n",
+    static_cast<int>(memmgr.getUsedBytes()));
+  printf("-- Allocated: %d\n",
+    static_cast<int>(memmgr.getAllocatedBytes()));
 }
 
 static void shuffle(void **a, void **b, size_t count) {
@@ -60,12 +62,13 @@ static void shuffle(void **a, void **b, size_t count) {
 }
 
 int main(int argc, char* argv[]) {
-  MemoryManager* memmgr = MemoryManager::getGlobal();
+  VMemMgr memmgr;
 
   size_t i;
   size_t count = 200000;
 
-  printf("Memory alloc/free test - %d allocations.\n\n", (int)count);
+  printf("Memory alloc/free test - %d allocations.\n\n",
+    static_cast<int>(count));
 
   void** a = (void**)::malloc(sizeof(void*) * count);
   void** b = (void**)::malloc(sizeof(void*) * count);
@@ -77,7 +80,7 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < count; i++) {
     int r = (rand() % 1000) + 4;
 
-    a[i] = memmgr->alloc(r);
+    a[i] = memmgr.alloc(r);
     if (a[i] == NULL) die();
 
     ::memset(a[i], 0, r);
@@ -90,7 +93,7 @@ int main(int argc, char* argv[]) {
   printf("Freeing virtual memory...");
 
   for (i = 0; i < count; i++) {
-    if (memmgr->release(a[i]) != kErrorOk) {
+    if (memmgr.release(a[i]) != kErrorOk) {
       printf("Failed to free %p.\n", b[i]);
       problems++;
     }
@@ -106,7 +109,7 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < count; i++) {
     int r = (rand() % 1000) + 4;
 
-    a[i] = memmgr->alloc(r);
+    a[i] = memmgr.alloc(r);
     b[i] = ::malloc(r);
     if (a[i] == NULL || b[i] == NULL) die();
 
@@ -124,7 +127,7 @@ int main(int argc, char* argv[]) {
   printf("Verify and free...");
   for (i = 0; i < count / 2; i++) {
     verify(a[i], b[i]);
-    if (memmgr->release(a[i]) != kErrorOk) {
+    if (memmgr.release(a[i]) != kErrorOk) {
       printf("Failed to free %p.\n", a[i]);
       problems++;
     }
@@ -138,7 +141,7 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < count / 2; i++) {
     int r = (rand() % 1000) + 4;
 
-    a[i] = memmgr->alloc(r);
+    a[i] = memmgr.alloc(r);
     b[i] = ::malloc(r);
     if (a[i] == NULL || b[i] == NULL) die();
 
@@ -151,7 +154,7 @@ int main(int argc, char* argv[]) {
   printf("Verify and free...");
   for (i = 0; i < count; i++) {
     verify(a[i], b[i]);
-    if (memmgr->release(a[i]) != kErrorOk) {
+    if (memmgr.release(a[i]) != kErrorOk) {
       printf("Failed to free %p.\n", a[i]);
       problems++;
     }

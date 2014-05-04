@@ -21,28 +21,33 @@ namespace contrib {
 // [asmjit::contrib::WinRemoteRuntime]
 // ============================================================================
 
-//! @brief WinRemoteRuntime can be used to inject code to a remote process.
-struct WinRemoteRuntime : public BaseRuntime {
+//! WinRemoteRuntime can be used to inject code to a remote process.
+struct WinRemoteRuntime : public Runtime {
   ASMJIT_NO_COPY(WinRemoteRuntime)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
-  //! @brief Create a @c WinRemoteRuntime instance for a given @a hProcess.
+
+  //! Create a `WinRemoteRuntime` instance for a given `hProcess`.
   ASMJIT_API WinRemoteRuntime(HANDLE hProcess);
 
-  //! @brief Destroy the @c WinRemoteRuntime instance.
+  //! Destroy the `WinRemoteRuntime` instance.
   ASMJIT_API virtual ~WinRemoteRuntime();
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! @brief Get the remote process handle.
-  ASMJIT_INLINE HANDLE getProcess() const { return _hProcess; }
+  //! Get the remote process handle.
+  ASMJIT_INLINE HANDLE getProcessHandle() const {
+    return _memMgr.getProcessHandle();
+  }
 
-  //! @brief Get the virtual memory manager.
-  ASMJIT_INLINE VirtualMemoryManager* getMemoryManager() { return &_memoryManager; }
+  //! Get the remote memory manager.
+  ASMJIT_INLINE VMemMgr* getMemMgr() const {
+    return const_cast<VMemMgr*>(&_memMgr);
+  }
 
   // --------------------------------------------------------------------------
   // [Interface]
@@ -54,11 +59,8 @@ struct WinRemoteRuntime : public BaseRuntime {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @brief Process.
-  HANDLE _hProcess;
-
-  //! @brief Virtual memory manager.
-  VirtualMemoryManager _memoryManager;
+  //! Remove memory manager.
+  VMemMgr _memMgr;
 };
 
 } // contrib namespace

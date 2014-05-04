@@ -16,14 +16,16 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base
+//! @addtogroup asmjit_base_util
 //! @{
 
 // ============================================================================
 // [asmjit::CpuTicks]
 // ============================================================================
 
+//! CPU ticks utilities.
 struct CpuTicks {
+  //! Get the current CPU ticks for benchmarking (1ms resolution).
   static ASMJIT_API uint32_t now();
 };
 
