@@ -3103,7 +3103,7 @@ struct Mem : public BaseMem {
   }
 
   //! Reset memory operand relative displacement.
-  ASMJIT_INLINE Mem& resetDisplacement(int32_t disp) {
+  ASMJIT_INLINE Mem& resetDisplacement() {
     _vmem.displacement = 0;
     return *this;
   }
