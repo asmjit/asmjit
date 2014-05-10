@@ -9,7 +9,6 @@
 #define _ASMJIT_BASE_PODLIST_H
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
 #include "../base/globals.h"
 
 // [Api-Begin]
@@ -17,14 +16,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::PodList<T>]
 // ============================================================================
 
-//! @internal
+//! \internal
 template <typename T>
 struct PodList {
   ASMJIT_NO_COPY(PodList<T>)
@@ -107,7 +106,7 @@ struct PodList {
   Link* _last;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

@@ -29,7 +29,7 @@ Features
   * Built-in CPU detection,
   * Virtual Memory management,
   * Pretty logging and error handling,
-  * Small and embeddable, around 150kB compiled,
+  * Small and embeddable, around 150-200kB compiled,
   * Zero dependencies, not even STL or RTTI.
 
 Supported Environments
@@ -46,7 +46,7 @@ Supported Environments
 
   * BorlandC++
   * GNU (3.4.X+, 4.0+, MinGW)
-  * MSVC (VS2005, VS2008, VS2010)
+  * MSVC (VS2005+)
   * Other compilers require testing
 
 ### Backends
@@ -423,7 +423,7 @@ int main(int argc, char* argv[]) {
   c.inc(i);
   c.cmp(i, 256);
   c.jb(L2);
-  
+
   c.ret(a);
   c.endFunc();
 

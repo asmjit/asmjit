@@ -8,7 +8,7 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
+#include "../base/operand.h"
 
 // [Api-Begin]
 #include "../apibegin.h"

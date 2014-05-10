@@ -14,11 +14,6 @@
 #include "../base/lock.h"
 #include "../base/vmem.h"
 
-// [Dependencies - Windows]
-#if defined(ASMJIT_OS_WINDOWS)
-# include <windows.h>
-#endif // ASMJIT_OS_WINDOWS
-
 // [Dependencies - Posix]
 #if defined(ASMJIT_OS_POSIX)
 # include <sys/types.h>
@@ -190,12 +185,12 @@ void VMemUtil::release(void* addr, size_t length) {
 // [VMem - Ops]
 // ============================================================================
 
-//! @internal
+//! \internal
 enum {
   kBitsPerEntity = (sizeof(size_t) * 8)
 };
 
-//! @internal
+//! \internal
 //!
 //! Set `len` bits in `buf` starting at `index` bit index.
 static void _SetBits(size_t* buf, size_t index, size_t len) {
@@ -231,7 +226,7 @@ static void _SetBits(size_t* buf, size_t index, size_t len) {
 #define M_DIV(x, y) ((x) / (y))
 #define M_MOD(x, y) ((x) % (y))
 
-//! @internal
+//! \internal
 //!
 //! Base red-black tree node.
 struct RbNode {
@@ -255,7 +250,7 @@ struct RbNode {
   uint8_t* mem;
 };
 
-//! @internal
+//! \internal
 //!
 //! Get whether the node is red (NULL or node with red flag).
 static ASMJIT_INLINE bool rbIsRed(RbNode* node) {
@@ -303,7 +298,7 @@ struct MemNode : public RbNode {
 // [asmjit::PermanentNode]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Permanent node.
 struct PermanentNode {
@@ -330,7 +325,7 @@ struct PermanentNode {
 // [asmjit::VMemPrivate]
 // ============================================================================
 
-//! @internal
+//! \internal
 struct VMemPrivate {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]

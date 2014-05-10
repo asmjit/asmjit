@@ -17,14 +17,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_codegen
-//! @{
+//! \addtogroup asmjit_base_tree
+//! \{
 
 // ============================================================================
 // [asmjit::BaseContext]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Code generation context is the logic behind `BaseCompiler`. The context is
 //! used to compile the code stored in `BaseCompiler`.
@@ -55,17 +55,17 @@ struct BaseContext {
   //! Get function.
   ASMJIT_INLINE FuncNode* getFunc() const { return _func; }
   //! Get stop node.
-  ASMJIT_INLINE BaseNode* getStop() const { return _stop; }
+  ASMJIT_INLINE Node* getStop() const { return _stop; }
 
   //! Get start of the current scope.
-  ASMJIT_INLINE BaseNode* getStart() const { return _start; }
+  ASMJIT_INLINE Node* getStart() const { return _start; }
   //! Get end of the current scope.
-  ASMJIT_INLINE BaseNode* getEnd() const { return _end; }
+  ASMJIT_INLINE Node* getEnd() const { return _end; }
 
   //! Get extra block.
-  ASMJIT_INLINE BaseNode* getExtraBlock() const { return _extraBlock; }
+  ASMJIT_INLINE Node* getExtraBlock() const { return _extraBlock; }
   //! Set extra block.
-  ASMJIT_INLINE void setExtraBlock(BaseNode* node) { _extraBlock = node; }
+  ASMJIT_INLINE void setExtraBlock(Node* node) { _extraBlock = node; }
 
   // --------------------------------------------------------------------------
   // [Error]
@@ -207,7 +207,7 @@ struct BaseContext {
   // [Serialize]
   // --------------------------------------------------------------------------
 
-  virtual Error serialize(BaseAssembler* assembler, BaseNode* start, BaseNode* stop) = 0;
+  virtual Error serialize(BaseAssembler* assembler, Node* start, Node* stop) = 0;
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -222,19 +222,19 @@ struct BaseContext {
   Zone _baseZone;
 
   //! Start of the current active scope.
-  BaseNode* _start;
+  Node* _start;
   //! End of the current active scope.
-  BaseNode* _end;
+  Node* _end;
 
   //! Node that is used to insert extra code after the function body.
-  BaseNode* _extraBlock;
+  Node* _extraBlock;
   //! Stop node.
-  BaseNode* _stop;
+  Node* _stop;
 
   //! Unreachable nodes.
-  PodList<BaseNode*> _unreachableList;
+  PodList<Node*> _unreachableList;
   //! Jump nodes.
-  PodList<BaseNode*> _jccList;
+  PodList<Node*> _jccList;
 
   //! All variables used by the current function.
   PodVector<VarData*> _contextVd;
@@ -277,7 +277,7 @@ struct BaseContext {
   BaseVarState* _state;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

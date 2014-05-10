@@ -9,9 +9,8 @@
 #define _ASMJIT_X86_X86FUNC_H
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
 #include "../base/func.h"
-#include "../x86/x86defs.h"
+#include "../x86/x86util.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -19,8 +18,8 @@
 namespace asmjit {
 namespace x86x64 {
 
-//! @addtogroup asmjit_x86x64_codegen
-//! @{
+//! \addtogroup asmjit_x86x64_tree
+//! \{
 
 // ============================================================================
 // [asmjit::x86x64::kFuncConv]
@@ -83,8 +82,8 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Caller.
   //!
   //! Return value:
-  //! - Integer types - RAX register.
-  //! - Floating points - XMM0 register.
+  //! - Integer types - Rax register.
+  //! - Floating points - Xmm0 register.
   //!
   //! Stack is always aligned by 16 bytes.
   //!
@@ -109,8 +108,8 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Caller.
   //!
   //! Return value:
-  //! - Integer types - RAX register.
-  //! - Floating points - XMM0 register.
+  //! - Integer types - Rax register.
+  //! - Floating points - Xmm0 register.
   //!
   //! Stack is always aligned by 16 bytes.
   kFuncConvX64U = 2,
@@ -165,7 +164,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! C++ class methods that have variable count of arguments uses different
   //! calling convention called cdecl.
   //!
-  //! @note This calling convention is always used by MSVC for class methods,
+  //! \note This calling convention is always used by MSVC for class methods,
   //! it's implicit and there is no way how to override it.
   kFuncConvMsThisCall = 5,
 
@@ -184,7 +183,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Integer types - EAX:EDX registers.
   //! - Floating points - fp0 register.
   //!
-  //! @note This calling convention differs to GCC one in stack cleaning
+  //! \note This calling convention differs to GCC one in stack cleaning
   //! mechanism.
   kFuncConvMsFastCall = 6,
 
@@ -203,7 +202,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Integer types - EAX:EDX registers.
   //! - Floating points - fp0 register.
   //!
-  //! @note Arguments on the stack are in left-to-right order that differs
+  //! \note Arguments on the stack are in left-to-right order that differs
   //! to other fastcall conventions used in different compilers.
   kFuncConvBorlandFastCall = 7,
 
@@ -222,7 +221,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Integer types - EAX:EDX registers.
   //! - Floating points - fp0 register.
   //!
-  //! @note This calling convention should be compatible with `kFuncConvMsFastCall`.
+  //! \note This calling convention should be compatible with `kFuncConvMsFastCall`.
   kFuncConvGccFastCall = 8,
 
   //! GCC specific regparm(1) convention.
@@ -273,7 +272,7 @@ ASMJIT_ENUM(kFuncConv) {
   //! - Floating points - fp0 register.
   kFuncConvGccRegParm3 = 11,
 
-  //! @internal
+  //! \internal
   //!
   //! Count of function calling conventions.
   _kFuncConvCount = 12,
@@ -282,55 +281,51 @@ ASMJIT_ENUM(kFuncConv) {
   // [Host]
   // --------------------------------------------------------------------------
 
-  //! @def kFuncConvHost
+#if defined(ASMJIT_DOCGEN)
   //! Default calling convention for current platform / operating system.
+  kFuncConvHost = DependsOnHost,
 
-  //! @def kFuncConvHostCDecl
   //! Default C calling convention based on current compiler's settings.
+  kFuncConvHostCDecl = DependsOnHost,
 
-  //! @def kFuncConvHostStdCall
   //! Compatibility for `__stdcall` calling convention.
   //!
-  //! @note This enumeration is always set to a value which is compatible with
+  //! \note This enumeration is always set to a value which is compatible with
   //! current compilers __stdcall calling convention. In 64-bit mode the value
   //! is compatible with `kFuncConvX64W` or `kFuncConvX64U`.
+  kFuncConvHostStdCall = DependsOnHost,
 
-  //! @def kFuncConvHostFastCall
   //! Compatibility for `__fastcall` calling convention.
   //!
-  //! @note This enumeration is always set to a value which is compatible with
+  //! \note This enumeration is always set to a value which is compatible with
   //! current compilers `__fastcall` calling convention. In 64-bit mode the value
   //! is compatible with `kFuncConvX64W` or `kFuncConvX64U`.
-
-#if defined(ASMJIT_HOST_X86)
-
+  kFuncConvHostFastCall = DependsOnHost
+#elif defined(ASMJIT_HOST_X86)
+  // X86.
   kFuncConvHost = kFuncConvCDecl,
   kFuncConvHostCDecl = kFuncConvCDecl,
   kFuncConvHostStdCall = kFuncConvStdCall,
-
-# if defined(_MSC_VER)
+#if defined(_MSC_VER)
   kFuncConvHostFastCall = kFuncConvMsFastCall
-# elif defined(__GNUC__)
+#elif defined(__GNUC__)
   kFuncConvHostFastCall = kFuncConvGccFastCall
-# elif defined(__BORLANDC__)
+#elif defined(__BORLANDC__)
   kFuncConvHostFastCall = kFuncConvBorlandFastCall
-# else
-#  error "asmjit/x86/x86func.h - asmjit::kFuncConvHostFastCall not supported."
-# endif
-
 #else
-
-# if defined(ASMJIT_OS_WINDOWS)
+#error "kFuncConvHostFastCall not determined."
+#endif
+#else
+  // X64.
+#if defined(ASMJIT_OS_WINDOWS)
   kFuncConvHost = kFuncConvX64W,
-# else
+#else
   kFuncConvHost = kFuncConvX64U,
-# endif
-
+#endif
   kFuncConvHostCDecl = kFuncConvHost,
   kFuncConvHostStdCall = kFuncConvHost,
   kFuncConvHostFastCall = kFuncConvHost
-
-#endif // ASMJIT_HOST
+#endif
 };
 
 // ============================================================================
@@ -386,17 +381,6 @@ ASMJIT_ENUM(kFuncFlags) {
 };
 
 // ============================================================================
-// [asmjit::x86x64::x86GetArchFromCConv]
-// ============================================================================
-
-//! Get architecture by a calling convention.
-//!
-//! Returns `kArchX86` or `kArchX64` depending on `conv`.
-static ASMJIT_INLINE uint32_t x86GetArchFromCConv(uint32_t conv) {
-  return IntUtil::inInterval<uint32_t>(conv, kFuncConvX64W, kFuncConvX64U) ? kArchX64 : kArchX86;
-}
-
-// ============================================================================
 // [asmjit::x86x64::X86X64FuncDecl]
 // ============================================================================
 
@@ -418,7 +402,7 @@ struct X86X64FuncDecl : public FuncDecl {
 
   //! Get used registers (mask).
   //!
-  //! @note The result depends on the function calling convention AND the
+  //! \note The result depends on the function calling convention AND the
   //! function prototype. Returned mask contains only registers actually used
   //! to pass function arguments.
   ASMJIT_INLINE uint32_t getUsed(uint32_t c) const {
@@ -427,7 +411,7 @@ struct X86X64FuncDecl : public FuncDecl {
 
   //! Get passed registers (mask).
   //!
-  //! @note The result depends on the function calling convention used; the
+  //! \note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE uint32_t getPassed(uint32_t c) const {
     return _passed.get(c);
@@ -435,7 +419,7 @@ struct X86X64FuncDecl : public FuncDecl {
 
   //! Get preserved registers (mask).
   //!
-  //! @note The result depends on the function calling convention used; the
+  //! \note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE uint32_t getPreserved(uint32_t c) const {
     return _preserved.get(c);
@@ -443,7 +427,7 @@ struct X86X64FuncDecl : public FuncDecl {
 
   //! Get ther order of passed registers (Gp).
   //!
-  //! @note The result depends on the function calling convention used; the
+  //! \note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE const uint8_t* getPassedOrderGp() const {
     return _passedOrderGp;
@@ -451,7 +435,7 @@ struct X86X64FuncDecl : public FuncDecl {
 
   //! Get ther order of passed registers (Xmm).
   //!
-  //! @note The result depends on the function calling convention used; the
+  //! \note The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE const uint8_t* getPassedOrderXmm() const {
     return _passedOrderXmm;
@@ -465,7 +449,7 @@ struct X86X64FuncDecl : public FuncDecl {
   //!
   //! This will set function calling convention and setup arguments variables.
   //!
-  //! @note This function will allocate variables, it can be called only once.
+  //! \note This function will allocate variables, it can be called only once.
   ASMJIT_API Error setPrototype(uint32_t conv, const FuncPrototype& p);
 
   // --------------------------------------------------------------------------
@@ -492,7 +476,7 @@ struct X86X64FuncDecl : public FuncDecl {
   uint8_t _passedOrderXmm[8];
 };
 
-//! @}
+//! \}
 
 } // x86x64 namespace
 } // asmjit namespace

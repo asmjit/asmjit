@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_BASE_DEFS_H
-#define _ASMJIT_BASE_DEFS_H
+#ifndef _ASMJIT_BASE_OPERAND_H
+#define _ASMJIT_BASE_OPERAND_H
 
 // [Dependencies - AsmJit]
 #include "../base/intutil.h"
@@ -16,15 +16,15 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_codegen
-//! @{
-
 // ============================================================================
 // [Forward Declarations]
 // ============================================================================
 
 struct BaseAssembler;
 struct BaseCompiler;
+
+//! \addtogroup asmjit_base_general
+//! \{
 
 // ============================================================================
 // [asmjit::kOperandType]
@@ -69,51 +69,6 @@ ASMJIT_ENUM(kRegClass) {
 
   //! Invalid register class.
   kRegClassInvalid = 0xFF
-};
-
-// ============================================================================
-// [asmjit::kInstCode]
-// ============================================================================
-
-//! Instruction codes (stub).
-ASMJIT_ENUM(kInstCode) {
-  //! No instruction.
-  kInstNone = 0
-};
-
-// ============================================================================
-// [asmjit::kInstOptions]
-// ============================================================================
-
-//! Instruction options (stub).
-ASMJIT_ENUM(kInstOptions) {
-  //! No instruction options.
-  kInstOptionNone = 0x00,
-
-  //! Emit short form of the instruction.
-  //!
-  //! X86/X64:
-  //!
-  //! Short form is mostly related to jmp and jcc instructions, but can be used
-  //! by other instructions supporting 8-bit or 32-bit immediates. This option
-  //! can be dangerous if the short jmp/jcc is required, but not encodable due
-  //! to large displacement, in such case an error happens and the whole
-  //! assembler/compiler stream is unusable.
-  kInstOptionShortForm = 0x01,
-
-  //! Emit long form of the instruction.
-  //!
-  //! X86/X64:
-  //!
-  //! Long form is mosrlt related to jmp and jcc instructions, but like the
-  //! `kInstOptionShortForm` option it can be used by other instructions
-  //! supporting both 8-bit and 32-bit immediates.
-  kInstOptionLongForm = 0x02,
-
-  //! Condition is likely to be taken (instruction).
-  kInstOptionTaken = 0x04,
-  //! Condition is unlikely to be taken (instruction).
-  kInstOptionNotTaken = 0x08
 };
 
 // ============================================================================
@@ -174,21 +129,21 @@ ASMJIT_ENUM(kMemType) {
 // ============================================================================
 
 ASMJIT_ENUM(kVarType) {
-  //! Variable is signed 8-bit integer.
+  //! Variable is 8-bit signed integer.
   kVarTypeInt8 = 0,
-  //! Variable is unsigned 8-bit integer.
+  //! Variable is 8-bit unsigned integer.
   kVarTypeUInt8 = 1,
-  //! Variable is signed 16-bit integer.
+  //! Variable is 16-bit signed integer.
   kVarTypeInt16 = 2,
-  //! Variable is unsigned 16-bit integer.
+  //! Variable is 16-bit unsigned integer.
   kVarTypeUInt16 = 3,
-  //! Variable is signed 32-bit integer.
+  //! Variable is 32-bit signed integer.
   kVarTypeInt32 = 4,
-  //! Variable is unsigned 32-bit integer.
+  //! Variable is 32-bit unsigned integer.
   kVarTypeUInt32 = 5,
-  //! Variable is signed 64-bit integer.
+  //! Variable is 64-bit signed integer.
   kVarTypeInt64 = 6,
-  //! Variable is unsigned 64-bit integer.
+  //! Variable is 64-bit unsigned integer.
   kVarTypeUInt64 = 7,
 
   //! Variable is target `intptr_t`, not compatible with host `intptr_t`.
@@ -204,37 +159,16 @@ ASMJIT_ENUM(kVarType) {
   //! Invalid variable type.
   kVarTypeInvalid = 0xFF,
 
-  //! @internal
+  //! \internal
   _kVarTypeIntStart = kVarTypeInt8,
-  //! @internal
+  //! \internal
   _kVarTypeIntEnd = kVarTypeUIntPtr,
 
-  //! @internal
+  //! \internal
   _kVarTypeFpStart = kVarTypeFp32,
-  //! @internal
+  //! \internal
   _kVarTypeFpEnd = kVarTypeFp64
 };
-
-// ============================================================================
-// [asmjit::kRelocMode]
-// ============================================================================
-
-ASMJIT_ENUM(kRelocMode) {
-  kRelocAbsToAbs = 0,
-  kRelocRelToAbs = 1,
-  kRelocAbsToRel = 2,
-  kRelocTrampoline = 3
-};
-
-// ============================================================================
-// [asmjit::Ptr]
-// ============================================================================
-
-//! 64-bit signed pointer, compatible with JIT and non-JIT generators.
-typedef int64_t SignedPtr;
-
-//! 64-bit unsigned pointer, compatible with JIT and non-JIT generators.
-typedef uint64_t Ptr;
 
 // ============================================================================
 // [asmjit::Operand]
@@ -246,7 +180,7 @@ struct Operand {
   // [Structs]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   //!
   //! Base operand data.
   struct BaseOp {
@@ -261,11 +195,11 @@ struct Operand {
 
     //! Operand id, identifier used by `BaseAssembler` and `BaseCompiler`.
     //!
-    //! @note Uninitialized operand has always set id to `kInvalidValue`.
+    //! \note Uninitialized operand has always set id to `kInvalidValue`.
     uint32_t id;
   };
 
-  //! @internal
+  //! \internal
   //!
   //! Register or Variable operand data.
   struct VRegOp {
@@ -299,13 +233,13 @@ struct Operand {
 
     //! Variable type.
     uint32_t vType;
-    //! @internal
+    //! \internal
     //!
     //! Unused.
     uint32_t vUnused;
   };
 
-  //! @internal
+  //! \internal
   //!
   //! Memory or Variable operand data.
   struct VMemOp {
@@ -328,7 +262,7 @@ struct Operand {
     int32_t displacement;
   };
 
-  //! @internal
+  //! \internal
   //!
   //! Immediate operand data.
   struct ImmOp {
@@ -345,24 +279,24 @@ struct Operand {
     uint32_t id;
 
     union {
-      //! 8x signed 8-bit immediate values.
+      //! 8x8-bit signed immediate values.
       int8_t _i8[8];
-      //! 8x unsigned 8-bit immediate values.
+      //! 8x8-bit unsigned immediate values.
       uint8_t _u8[8];
 
-      //! 4x signed 16-bit immediate values.
+      //! 4x16-bit signed immediate values.
       int16_t _i16[4];
-      //! 4x unsigned 16-bit immediate values.
+      //! 4x16-bit unsigned immediate values.
       uint16_t _u16[4];
 
-      //! 2x signed 32-bit immediate values.
+      //! 2x32-bit signed immediate values.
       int32_t _i32[2];
-      //! 2x unsigned 32-bit immediate values.
+      //! 2x32-bit unsigned immediate values.
       uint32_t _u32[2];
 
-      //! 1x signed 64-bit immediate value.
+      //! 1x64-bit signed immediate value.
       int64_t _i64[1];
-      //! 1x unsigned 64-bit immediate value.
+      //! 1x64-bit unsigned immediate value.
       uint64_t _u64[1];
 
       //! 2x SP-FP values.
@@ -372,7 +306,7 @@ struct Operand {
     } value;
   };
 
-  //! @internal
+  //! \internal
   //!
   //! Label operand data.
   struct LabelOp {
@@ -419,7 +353,7 @@ struct Operand {
   // [Init & Copy]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   //!
   //! Initialize operand to `other` (used by constructors).
   ASMJIT_INLINE void _init(const Operand& other) {
@@ -448,7 +382,7 @@ struct Operand {
     _packed[1].setPacked_2x32(u2, u3);
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Initialize operand to `other` (used by assign operators).
   ASMJIT_INLINE void _copy(const Operand& other) {
@@ -525,7 +459,7 @@ struct Operand {
   // --------------------------------------------------------------------------
 
   //! Get operand id.
-  //! 
+  //!
   //! Operand id's are used internally by `BaseAssembler` and `BaseCompiler`.
   //!
   //! There is no way to change or remove operand id. Unneeded operands can be
@@ -553,8 +487,6 @@ struct Operand {
   };
 };
 
-ASMJIT_VAR const Operand noOperand;
-
 // ============================================================================
 // [asmjit::OperandUtil]
 // ============================================================================
@@ -578,7 +510,7 @@ struct OperandUtil {
 
   //! Get whether the id refers to `BaseVar`.
   //!
-  //! @note The function will never return `true` if the id is `kInvalidValue`.
+  //! \note The function will never return `true` if the id is `kInvalidValue`.
   //! The trick is to compare a given id to -1 (kInvalidValue) so we check both
   //! using only one comparison.
   static ASMJIT_INLINE bool isVarId(uint32_t id) {
@@ -587,7 +519,7 @@ struct OperandUtil {
 
   //! Get whether the id refers to `Label`.
   //!
-  //! @note The function will never return `true` if the id is `kInvalidValue`.
+  //! \note The function will never return `true` if the id is `kInvalidValue`.
   static ASMJIT_INLINE bool isLabelId(uint32_t id) {
     return static_cast<int32_t>(id) >= 0;
   }
@@ -1075,21 +1007,6 @@ struct Imm : public Operand {
   }
 };
 
-//! Create signed immediate value operand.
-static ASMJIT_INLINE Imm imm(int64_t val) {
-  return Imm(val);
-}
-
-//! Create unsigned immediate value operand.
-static ASMJIT_INLINE Imm imm_u(uint64_t val) {
-  return Imm(static_cast<int64_t>(val));
-}
-
-//! Create void* pointer immediate value operand.
-static ASMJIT_INLINE Imm imm_ptr(void* p) {
-  return Imm(static_cast<int64_t>((intptr_t)p));
-}
-
 // ============================================================================
 // [asmjit::Label]
 // ============================================================================
@@ -1164,7 +1081,30 @@ struct Label : public Operand {
   ASMJIT_INLINE bool operator!=(const Label& other) const { return _base.id != other._base.id; }
 };
 
-//! @}
+// ============================================================================
+// [asmjit::Operand - Globals]
+// ============================================================================
+
+//! No operand, can be used to reset an operand by assignment or to refer to an
+//! operand that doesn't exist.
+ASMJIT_VAR const Operand noOperand;
+
+//! Create signed immediate value operand.
+static ASMJIT_INLINE Imm imm(int64_t val) {
+  return Imm(val);
+}
+
+//! Create unsigned immediate value operand.
+static ASMJIT_INLINE Imm imm_u(uint64_t val) {
+  return Imm(static_cast<int64_t>(val));
+}
+
+//! Create void* pointer immediate value operand.
+static ASMJIT_INLINE Imm imm_ptr(void* p) {
+  return Imm(static_cast<int64_t>((intptr_t)p));
+}
+
+//! \}
 
 } // asmjit namespace
 
@@ -1172,4 +1112,4 @@ struct Label : public Operand {
 #include "../apiend.h"
 
 // [Guard]
-#endif // _ASMJIT_BASE_DEFS_H
+#endif // _ASMJIT_BASE_OPERAND_H

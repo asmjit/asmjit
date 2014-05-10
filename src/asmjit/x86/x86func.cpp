@@ -15,8 +15,8 @@
 #include "../base/globals.h"
 #include "../base/intutil.h"
 #include "../base/string.h"
-#include "../x86/x86defs.h"
 #include "../x86/x86func.h"
+#include "../x86/x86operand.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -44,6 +44,13 @@ static ASMJIT_INLINE uint32_t x86ArgTypeToXmmType(uint32_t aType) {
   if (aType == kVarTypeFp64)
     return kVarTypeXmmSd;
   return aType;
+}
+
+//! Get an architecture from calling convention.
+//!
+//! Returns `kArchX86` or `kArchX64` depending on `conv`.
+static ASMJIT_INLINE uint32_t x86GetArchFromCConv(uint32_t conv) {
+  return IntUtil::inInterval<uint32_t>(conv, kFuncConvX64W, kFuncConvX64U) ? kArchX64 : kArchX86;
 }
 
 // ============================================================================
@@ -147,44 +154,44 @@ static uint32_t X86X64FuncDecl_initConv(X86X64FuncDecl* self, uint32_t arch, uin
     case kFuncConvX64W:
       self->_spillZoneSize = 32;
 
-      self->_passed.set(kRegClassGp, IntUtil::mask(R(Cx), R(Dx), R(R8), R(R9)));
+      self->_passed.set(kRegClassGp, IntUtil::mask(R(Cx), R(Dx), 8, 9));
       self->_passedOrderGp[0] = R(Cx);
       self->_passedOrderGp[1] = R(Dx);
-      self->_passedOrderGp[2] = R(R8);
-      self->_passedOrderGp[3] = R(R9);
+      self->_passedOrderGp[2] = 8;
+      self->_passedOrderGp[3] = 9;
 
-      self->_passed.set(kRegClassXy, IntUtil::mask(R(Xmm0), R(Xmm1), R(Xmm2), R(Xmm3)));
-      self->_passedOrderXmm[0] = R(Xmm0);
-      self->_passedOrderXmm[1] = R(Xmm1);
-      self->_passedOrderXmm[2] = R(Xmm2);
-      self->_passedOrderXmm[3] = R(Xmm3);
+      self->_passed.set(kRegClassXyz, IntUtil::mask(0, 1, 2, 3));
+      self->_passedOrderXmm[0] = 0;
+      self->_passedOrderXmm[1] = 1;
+      self->_passedOrderXmm[2] = 2;
+      self->_passedOrderXmm[3] = 3;
 
-      self->_preserved.set(kRegClassGp, IntUtil::mask(R(Bx), R(Sp), R(Bp), R(Si), R(Di), R(R12), R(R13), R(R14), R(R15)));
-      self->_preserved.set(kRegClassXy, IntUtil::mask(R(Xmm6), R(Xmm7), R(Xmm8), R(Xmm9), R(Xmm10), R(Xmm11), R(Xmm12), R(Xmm13), R(Xmm14), R(Xmm15)));
+      self->_preserved.set(kRegClassGp , IntUtil::mask(R(Bx), R(Sp), R(Bp), R(Si), R(Di), 12, 13, 14, 15));
+      self->_preserved.set(kRegClassXyz, IntUtil::mask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
       break;
 
     case kFuncConvX64U:
       self->_redZoneSize = 128;
 
-      self->_passed.set(kRegClassGp, IntUtil::mask(R(Di), R(Si), R(Dx), R(Cx), R(R8), R(R9)));
+      self->_passed.set(kRegClassGp, IntUtil::mask(R(Di), R(Si), R(Dx), R(Cx), 8, 9));
       self->_passedOrderGp[0] = R(Di);
       self->_passedOrderGp[1] = R(Si);
       self->_passedOrderGp[2] = R(Dx);
       self->_passedOrderGp[3] = R(Cx);
-      self->_passedOrderGp[4] = R(R8);
-      self->_passedOrderGp[5] = R(R9);
+      self->_passedOrderGp[4] = 8;
+      self->_passedOrderGp[5] = 9;
 
-      self->_passed.set(kRegClassXy, IntUtil::mask(R(Xmm0), R(Xmm1), R(Xmm2), R(Xmm3), R(Xmm4), R(Xmm5), R(Xmm6), R(Xmm7)));
-      self->_passedOrderXmm[0] = R(Xmm0);
-      self->_passedOrderXmm[1] = R(Xmm1);
-      self->_passedOrderXmm[2] = R(Xmm2);
-      self->_passedOrderXmm[3] = R(Xmm3);
-      self->_passedOrderXmm[4] = R(Xmm4);
-      self->_passedOrderXmm[5] = R(Xmm5);
-      self->_passedOrderXmm[6] = R(Xmm6);
-      self->_passedOrderXmm[7] = R(Xmm7);
+      self->_passed.set(kRegClassXyz, IntUtil::mask(0, 1, 2, 3, 4, 5, 6, 7));
+      self->_passedOrderXmm[0] = 0;
+      self->_passedOrderXmm[1] = 1;
+      self->_passedOrderXmm[2] = 2;
+      self->_passedOrderXmm[3] = 3;
+      self->_passedOrderXmm[4] = 4;
+      self->_passedOrderXmm[5] = 5;
+      self->_passedOrderXmm[6] = 6;
+      self->_passedOrderXmm[7] = 7;
 
-      self->_preserved.set(kRegClassGp, IntUtil::mask(R(Bx), R(Sp), R(Bp), R(R12), R(R13), R(R14), R(R15)));
+      self->_preserved.set(kRegClassGp, IntUtil::mask(R(Bx), R(Sp), R(Bp), 12, 13, 14, 15));
       break;
 
     default:
@@ -271,18 +278,18 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
       case kVarTypeMm:
         self->_retCount = 1;
         self->_retList[0]._varType = static_cast<uint8_t>(ret);
-        self->_retList[0]._regIndex = kRegIndexMm0;
+        self->_retList[0]._regIndex = 0;
         break;
 
       case kVarTypeFp32:
         self->_retCount = 1;
         if (arch == kArchX86) {
           self->_retList[0]._varType = kVarTypeFp32;
-          self->_retList[0]._regIndex = kRegIndexFp0;
+          self->_retList[0]._regIndex = 0;
         }
         else {
           self->_retList[0]._varType = kVarTypeXmmSs;
-          self->_retList[0]._regIndex = kRegIndexXmm0;
+          self->_retList[0]._regIndex = 0;
         }
         break;
 
@@ -290,11 +297,11 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         self->_retCount = 1;
         if (arch == kArchX86) {
           self->_retList[0]._varType = kVarTypeFp64;
-          self->_retList[0]._regIndex = kRegIndexFp0;
+          self->_retList[0]._regIndex = 0;
         }
         else {
           self->_retList[0]._varType = kVarTypeXmmSd;
-          self->_retList[0]._regIndex = kRegIndexXmm0;
+          self->_retList[0]._regIndex = 0;
           break;
         }
         break;
@@ -306,7 +313,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
       case kVarTypeXmmPd:
         self->_retCount = 1;
         self->_retList[0]._varType = static_cast<uint8_t>(ret);
-        self->_retList[0]._regIndex = kRegIndexXmm0;
+        self->_retList[0]._regIndex = 0;
         break;
     }
   }
@@ -381,7 +388,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         if (x86ArgIsFp(varType) && i < ASMJIT_ARRAY_SIZE(self->_passedOrderXmm)) {
           arg._varType = static_cast<uint8_t>(x86ArgTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[i];
-          self->_used.add(kRegClassXy, IntUtil::mask(arg.getRegIndex()));
+          self->_used.add(kRegClassXyz, IntUtil::mask(arg.getRegIndex()));
         }
       }
 
@@ -430,7 +437,7 @@ static Error X86X64FuncDecl_initFunc(X86X64FuncDecl* self, uint32_t arch,
         if (x86ArgIsFp(varType)) {
           arg._varType = static_cast<uint8_t>(x86ArgTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[xmmPos++];
-          self->_used.add(kRegClassXy, IntUtil::mask(arg.getRegIndex()));
+          self->_used.add(kRegClassXyz, IntUtil::mask(arg.getRegIndex()));
         }
       }
 

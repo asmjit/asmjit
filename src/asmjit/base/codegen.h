@@ -9,7 +9,6 @@
 #define _ASMJIT_BASE_CODEGEN_H
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
 #include "../base/error.h"
 #include "../base/logger.h"
 #include "../base/runtime.h"
@@ -20,16 +19,16 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_codegen
-//! @{
+//! \addtogroup asmjit_base_general
+//! \{
 
 // ============================================================================
 // [asmjit::kCodeGen]
 // ============================================================================
 
-//! Features of `CodeGen`.
+//! Features of \ref CodeGen.
 ASMJIT_ENUM(kCodeGen) {
-  //! Emit optimized code-alignment sequences.
+  //! Emit optimized code-alignment sequences (true by default).
   //!
   //! X86/X64
   //! -------
@@ -41,11 +40,9 @@ ASMJIT_ENUM(kCodeGen) {
   //! for alignment between 1 to 11 bytes. Also when `x86x64::Compiler` is
   //! used, it may add rex prefixes into the code to make some instructions
   //! greater so no alignment sequences are needed.
-  //!
-  //! Default true.
   kCodeGenOptimizedAlign = 0,
 
-  //! Emit jump-prediction hints.
+  //! Emit jump-prediction hints (false by default).
   //!
   //! X86/X64
   //! -------
@@ -57,15 +54,39 @@ ASMJIT_ENUM(kCodeGen) {
   //! However this behavior can be overridden by using instruction prefixes.
   //! If this option is enabled these hints will be emitted.
   //!
-  //! Default true.
+  //! This feature is disabled by default, because the only processor that
+  //! used to take into consideration prediction hints was P4 that is not used
+  //! anymore.
   kCodeGenPredictedJumps = 1
+};
+
+// ============================================================================
+// [asmjit::kAlignMode]
+// ============================================================================
+
+//! Code aligning mode.
+ASMJIT_ENUM(kAlignMode) {
+  kAlignCode = 0,
+  kAlignData = 1
+};
+
+// ============================================================================
+// [asmjit::kRelocMode]
+// ============================================================================
+
+//! Relocation mode.
+ASMJIT_ENUM(kRelocMode) {
+  kRelocAbsToAbs = 0,
+  kRelocRelToAbs = 1,
+  kRelocAbsToRel = 2,
+  kRelocTrampoline = 3
 };
 
 // ============================================================================
 // [asmjit::CodeGen]
 // ============================================================================
 
-//! Abstract class inherited by `Assembler` and `Compiler`.
+//! Abstract class defining basics of \ref Assembler and \ref BaseCompiler.
 struct CodeGen {
   ASMJIT_NO_COPY(CodeGen)
 
@@ -137,12 +158,17 @@ struct CodeGen {
   // [Options]
   // --------------------------------------------------------------------------
 
-  //! Get options.
-  ASMJIT_INLINE uint32_t getOptions() const { return _options; }
-  //! Set options.
-  ASMJIT_INLINE void setOptions(uint32_t options) { _options = options; }
+  //! Get options of the next instruction.
+  ASMJIT_INLINE uint32_t getOptions() const {
+    return _options;
+  }
 
-  //! Get options and clear them.
+  //! Set options of the next instruction.
+  ASMJIT_INLINE void setOptions(uint32_t options) {
+    _options = options;
+  }
+
+  //! Get options of the next instruction and clear them.
   ASMJIT_INLINE uint32_t getOptionsAndClear() {
     uint32_t options = _options;
     _options = 0;
@@ -153,15 +179,15 @@ struct CodeGen {
   // [Purge]
   // --------------------------------------------------------------------------
 
-  //! Called by `clear()` and `reset()` to clear all data used by the code
-  //! generator.
+  //! Called by \ref clear() and \ref reset() to clear all data used by the
+  //! code generator.
   virtual void _purge() = 0;
 
   // --------------------------------------------------------------------------
   // [Make]
   // --------------------------------------------------------------------------
 
-  //! Make is a convenience method to make and relocate the current code and 
+  //! Make is a convenience method to make and relocate the current code and
   //! add it to the associated `Runtime`.
   //!
   //! What is needed is only to cast the returned pointer to your function type
@@ -177,17 +203,18 @@ struct CodeGen {
   Runtime* _runtime;
   //! Logger.
   Logger* _logger;
-  //! Error handler, called by `setError()`.
+  //! Error handler, called by \ref setError().
   ErrorHandler* _errorHandler;
 
   //! Target architecture.
   uint8_t _arch;
-  //! Get the default register size of the architecture (4 or 8 bytes).
+  //! Target general-purpose register size (4 or 8 bytes).
   uint8_t _regSize;
-  //! Last error code.
-  uint8_t _error;
   //! Target features.
   uint8_t _features;
+  //! Last error code.
+  uint8_t _error;
+
   //! Options for the next generated instruction (only 8-bits used).
   uint32_t _options;
 
@@ -195,7 +222,7 @@ struct CodeGen {
   Zone _baseZone;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

@@ -49,16 +49,10 @@ static const char* errorMessages[] = {
   "Unknown instruction",
   "Illegal instruction",
   "Illegal addressing",
-  "Illegal short jump",
+  "Illegal displacement",
 
-  "No function defined",
-  "Incomplete function",
+  "Invalid function",
   "Overlapped arguments",
-  "No registers",
-  "Overlapped registers",
-  "Incompatible argument",
-  "Incompatible return",
-
   "Unknown error"
 };
 

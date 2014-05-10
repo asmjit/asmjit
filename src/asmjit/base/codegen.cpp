@@ -26,8 +26,8 @@ CodeGen::CodeGen(Runtime* runtime) :
   _errorHandler(NULL),
   _arch(kArchNone),
   _regSize(0),
+  _features(static_cast<uint8_t>(IntUtil::mask(kCodeGenOptimizedAlign))),
   _error(kErrorOk),
-  _features(IntUtil::mask(kCodeGenOptimizedAlign)),
   _options(0),
   _baseZone(16384 - sizeof(Zone::Chunk) - kMemAllocOverhead) {}
 

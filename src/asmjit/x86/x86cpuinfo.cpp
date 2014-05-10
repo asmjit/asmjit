@@ -37,15 +37,11 @@ struct CpuVendor {
 };
 
 static const CpuVendor cpuVendorTable[] = {
-  { kCpuVendorAmd      , { 'A', 'M', 'D', 'i', 's', 'b', 'e', 't', 't', 'e', 'r', '!' } },
-  { kCpuVendorAmd      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
-  { kCpuVendorVia      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } },
-  { kCpuVendorNSM      , { 'C', 'y', 'r', 'i', 'x', 'I', 'n', 's', 't', 'e', 'a', 'd' } },
   { kCpuVendorIntel    , { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'I', 'n', 't', 'e', 'l' } },
-  { kCpuVendorTransmeta, { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'T', 'M', 'x', '8', '6' } },
-  { kCpuVendorNSM      , { 'G', 'e', 'o', 'd', 'e', ' ', 'b', 'y', ' ', 'N', 'S', 'C' } },
-  { kCpuVendorTransmeta, { 'T', 'r', 'a', 'n', 's', 'm', 'e', 't', 'a', 'C', 'P', 'U' } },
-  { kCpuVendorVia      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } }
+  { kCpuVendorAmd      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
+  { kCpuVendorAmd      , { 'A', 'M', 'D', 'i', 's', 'b', 'e', 't', 't', 'e', 'r', '!' } },
+  { kCpuVendorVia      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } },
+  { kCpuVendorVia      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } }
 };
 
 static ASMJIT_INLINE bool cpuVendorEq(const CpuVendor& info, const char* vendorString) {
@@ -162,7 +158,7 @@ void CpuUtil::detect(CpuInfo* cpuInfo) {
   ::memcpy(cpuInfo->_vendorString + 4, &regs.edx, 4);
   ::memcpy(cpuInfo->_vendorString + 8, &regs.ecx, 4);
 
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < ASMJIT_ARRAY_SIZE(cpuVendorTable); i++) {
     if (cpuVendorEq(cpuVendorTable[i], cpuInfo->_vendorString)) {
       cpuInfo->_vendorId = cpuVendorTable[i].id;
       break;

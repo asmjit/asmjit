@@ -16,15 +16,21 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_globals
-//! @{
+//! \addtogroup asmjit_base_general
+//! \{
 
 // ============================================================================
 // [asmjit::kGlobals]
 // ============================================================================
 
+//! Invalid index
+//!
+//! Invalid index is the last possible index that is never used in practice. In
+//! AsmJit it is used exclusively with strings to indicate the the length of the
+//! string is not known and has to be determined.
 static const size_t kInvalidIndex = ~static_cast<size_t>(0);
 
+//! Global constants.
 ASMJIT_ENUM(kGlobals) {
   //! Invalid value or operand id.
   kInvalidValue = 0xFFFFFFFF,
@@ -32,26 +38,20 @@ ASMJIT_ENUM(kGlobals) {
   //! Invalid register index.
   kInvalidReg = 0xFF,
 
-  //! Minimum reserved bytes in `Buffer`.
-  kBufferGrow = 32U,
-
-  //! Minimum size of assembler/compiler code buffer.
-  kMemAllocMinimum = 4096,
+  //! Host memory allocator overhead.
+  //!
+  //! The overhead is decremented from all zone allocators so the operating
+  //! system doesn't have allocate extra virtual page to keep tract of the
+  //! requested memory block.
+  //!
+  //! The number is actually a guess.
+  kMemAllocOverhead = sizeof(intptr_t) * 4,
 
   //! Memory grow threshold.
   //!
   //! After the grow threshold is reached the capacity won't be doubled
   //! anymore.
-  kMemAllocGrowMax = 8192 * 1024,
-
-  //! Host memory allocator overhead.
-  //!
-  //! We decrement the overhead from our pools so the host operating system
-  //! doesn't need allocate an extra virtual page to put the data it needs
-  //! to manage the requested memory block (for example if a single virtual
-  //! page is 4096 and we require the same memory size we decrease our
-  //! requirement by kMemAllocOverhead).
-  kMemAllocOverhead = sizeof(intptr_t) * 4,
+  kMemAllocGrowMax = 8192 * 1024
 };
 
 // ============================================================================
@@ -87,7 +87,21 @@ ASMJIT_ENUM(kArch) {
   kArchHost64Bit = sizeof(intptr_t) >= 8
 };
 
-//! @}
+// ============================================================================
+// [asmjit::Ptr / SignedPtr]
+// ============================================================================
+
+//! 64-bit unsigned pointer, compatible with JIT and non-JIT generators.
+//!
+//! This is the preferred pointer type to use with AsmJit library. It has a
+//! capability to hold any pointer for any architecture making it an ideal
+//! candidate for cross-platform code generation.
+typedef uint64_t Ptr;
+
+//! 64-bit signed pointer, like \ref Ptr, but made signed.
+typedef int64_t SignedPtr;
+
+//! \}
 
 // ============================================================================
 // [asmjit::Init / NoInit]
@@ -105,17 +119,18 @@ static const _NoInit NoInit = {};
 // [asmjit::Assert]
 // ============================================================================
 
-//! @addtogroup asmjit_base_logging_and_errors
-//! @{
+//! \addtogroup asmjit_base_general
+//! \{
 
 //! Called in debug build on assertion failure.
 //!
-//! @param exp Expression that failed.
-//! @param file Source file name where it happened.
-//! @param line Line in the source file.
+//! \param exp Expression that failed.
+//! \param file Source file name where it happened.
+//! \param line Line in the source file.
 //!
 //! If you have problems with assertions put a breakpoint at assertionFailed()
-//! function (asmjit/base/assert.cpp) to see what happened.
+//! function (asmjit/base/globals.cpp) and check the call stack to locate the
+//! failing code.
 ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
 
 #if defined(ASMJIT_DEBUG)
@@ -127,7 +142,7 @@ ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
 #define ASMJIT_ASSERT(_Exp_) ASMJIT_NOP()
 #endif // DEBUG
 
-//! @}
+//! \}
 
 } // asmjit namespace
 
@@ -135,8 +150,8 @@ ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
 // [asmjit_cast<>]
 // ============================================================================
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 //! Cast used to cast pointer to function. It's like reinterpret_cast<>,
 //! but uses internally C style cast to work with MinGW.
@@ -148,7 +163,7 @@ ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
 template<typename T, typename Z>
 static ASMJIT_INLINE T asmjit_cast(Z* p) { return (T)p; }
 
-//! @}
+//! \}
 
 // [Api-End]
 #include "../apiend.h"

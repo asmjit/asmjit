@@ -70,6 +70,11 @@ uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
   return kErrorOk;
 }
 
+// NOP.
+Error WinRemoteRuntime::release(void* p) {
+  return kErrorOk;
+}
+
 } // contrib namespace
 } // asmjit namespace
 

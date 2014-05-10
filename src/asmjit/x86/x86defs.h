@@ -2169,7 +2169,7 @@ struct InstInfo {
   //!
   //! Move instructions overwrite the first operand or at least part of it,
   //! This is a very useful hint that is used by variable liveness analysis
-  //! and `BaseCompiler` in general to know which variable is completely 
+  //! and `BaseCompiler` in general to know which variable is completely
   //! overwritten.
   //!
   //! All AVX/XOP instructions that have 3 or more operands are considered to

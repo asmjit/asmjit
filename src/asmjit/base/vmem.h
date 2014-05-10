@@ -9,21 +9,15 @@
 #define _ASMJIT_BASE_VMEM_H
 
 // [Dependencies]
-#include "../base/defs.h"
 #include "../base/error.h"
-
-// [Dependencies - Windows]
-#if defined(ASMJIT_OS_WINDOWS)
-# include <windows.h>
-#endif // ASMJIT_OS_WINDOWS
 
 // [Api-Begin]
 #include "../apibegin.h"
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::kVMemAlloc]
@@ -72,12 +66,12 @@ struct VMemUtil {
 #if defined(ASMJIT_OS_WINDOWS)
   //! Allocate virtual memory of `hProcess`.
   //!
-  //! @note This function is Windows specific.
+  //! \note This function is Windows specific.
   static ASMJIT_API void* allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, bool canExecute);
 
   //! Free virtual memory of `hProcess`.
   //!
-  //! @note This function is Windows specific.
+  //! \note This function is Windows specific.
   static ASMJIT_API void releaseProcessMemory(HANDLE hProcess, void* addr, size_t length);
 #endif // ASMJIT_OS_WINDOWS
 };
@@ -130,7 +124,7 @@ struct VMemMgr {
 
   //! Get whether to keep allocated memory after the `VMemMgr` is destroyed.
   //!
-  //! @sa `setKeepVirtualMemory()`.
+  //! \sa \ref setKeepVirtualMemory.
   ASMJIT_API bool getKeepVirtualMemory() const;
 
   //! Set whether to keep allocated memory after memory manager is
@@ -142,9 +136,9 @@ struct VMemMgr {
   //! VMemMgr destructor. After destruction all internal
   //! structures are freed, only the process virtual memory remains.
   //!
-  //! @note Memory allocated with kVMemAllocPermanent is always kept.
+  //! \note Memory allocated with kVMemAllocPermanent is always kept.
   //!
-  //! @sa `getKeepVirtualMemory()`.
+  //! \sa \ref getKeepVirtualMemory.
   ASMJIT_API void setKeepVirtualMemory(bool keepVirtualMemory);
 
   // --------------------------------------------------------------------------
@@ -168,13 +162,13 @@ struct VMemMgr {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   //!
   //! Pointer to private data hidden out of the public API.
   void* _d;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

@@ -16,11 +16,6 @@
 // ?
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
 
-// [Dependencies - Windows]
-#if defined(ASMJIT_OS_WINDOWS)
-# include <windows.h>
-#endif // ASMJIT_OS_WINDOWS
-
 // [Dependencies - Posix]
 #if defined(ASMJIT_OS_POSIX)
 # include <errno.h>

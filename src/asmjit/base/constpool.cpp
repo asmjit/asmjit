@@ -29,7 +29,7 @@ const ConstPoolNode ConstPoolTree::_sentinel = { {
   const_cast<ConstPoolNode*>(&ConstPoolTree::_sentinel)
 }, 0, 0, 0 };
 
-//! @internal
+//! \internal
 //!
 //! Remove left horizontal links.
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) {
@@ -43,7 +43,7 @@ static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) 
   return node;
 }
 
-//! @internal
+//! \internal
 //!
 //! Remove consecutive horizontal links.
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_splitNode(ConstPoolNode* node) {

@@ -12,10 +12,10 @@
 #include "../base/assembler.h"
 #include "../base/codegen.h"
 #include "../base/constpool.h"
-#include "../base/defs.h"
 #include "../base/error.h"
 #include "../base/func.h"
 #include "../base/intutil.h"
+#include "../base/operand.h"
 #include "../base/podlist.h"
 #include "../base/podvector.h"
 #include "../base/runtime.h"
@@ -25,9 +25,6 @@
 #include "../apibegin.h"
 
 namespace asmjit {
-
-//! @addtogroup asmjit_base_codegen
-//! @{
 
 // ============================================================================
 // [Forward Declarations]
@@ -40,7 +37,7 @@ struct VarData;
 struct BaseVarInst;
 struct BaseVarState;
 
-struct BaseNode;
+struct Node;
 struct EndNode;
 struct InstNode;
 struct JumpNode;
@@ -48,6 +45,9 @@ struct JumpNode;
 // ============================================================================
 // [asmjit::kConstScope]
 // ============================================================================
+
+//! \addtogroup asmjit_base_general
+//! \{
 
 //! Scope of the constant.
 ASMJIT_ENUM(kConstScope) {
@@ -57,9 +57,14 @@ ASMJIT_ENUM(kConstScope) {
   kConstScopeGlobal = 1
 };
 
+//! \}
+
 // ============================================================================
 // [asmjit::kVarAttrFlags]
 // ============================================================================
+
+//! \addtogroup asmjit_base_tree
+//! \{
 
 //! Variable attribute flags.
 ASMJIT_ENUM(kVarAttrFlags) {
@@ -101,6 +106,9 @@ ASMJIT_ENUM(kVarAttrFlags) {
   //! Variable should be unused at the end of the instruction/node.
   kVarAttrUnuse = 0x00000800,
 
+  //! \internal
+  //!
+  //! All in-flags.
   kVarAttrInAll =
     kVarAttrInReg     |
     kVarAttrInMem     |
@@ -108,6 +116,9 @@ ASMJIT_ENUM(kVarAttrFlags) {
     kVarAttrInCall    |
     kVarAttrInArg,
 
+  //! \internal
+  //!
+  //! All out-flags.
   kVarAttrOutAll =
     kVarAttrOutReg    |
     kVarAttrOutMem    |
@@ -146,7 +157,7 @@ ASMJIT_ENUM(kVarHint) {
 
 //! State of variable.
 //!
-//! @note State of variable is used only during make process and it's not
+//! \note State of variable is used only during make process and it's not
 //! visible to the developer.
 ASMJIT_ENUM(kVarState) {
   //! Variable is currently not used.
@@ -168,31 +179,31 @@ ASMJIT_ENUM(kVarState) {
 // [asmjit::kNodeType]
 // ============================================================================
 
-//! Type of node (see `BaseNode)`.
+//! Type of node, see \ref Node.
 ASMJIT_ENUM(kNodeType) {
   //! Invalid node (internal, can't be used).
   kNodeTypeNone = 0,
-  //! Node is an .align directive, see `AlignNode`.
+  //! Node is an .align directive, see \ref AlignNode.
   kNodeTypeAlign,
-  //! Node is an embedded data, see `EmbedNode`.
+  //! Node is an embedded data, see \ref EmbedNode.
   kNodeTypeEmbed,
-  //! Node is a comment, see `CommentNode`.
+  //! Node is a comment, see \ref CommentNode.
   kNodeTypeComment,
-  //! Node is a variable hint (alloc, spill, use, unuse), see `HintNode`.
+  //! Node is a variable hint (alloc, spill, use, unuse), see \ref HintNode.
   kNodeTypeHint,
-  //! Node is a label, see `TargetNode`.
+  //! Node is a label, see \ref TargetNode.
   kNodeTypeTarget,
-  //! Node is an instruction, see `InstNode`.
+  //! Node is an instruction, see \ref InstNode.
   kNodeTypeInst,
-  //! Node is a function declaration, see `FuncNode`.
+  //! Node is a function declaration, see \ref FuncNode.
   kNodeTypeFunc,
-  //! Node is an end of the function, see `EndNode`.
+  //! Node is an end of the function, see \ref EndNode.
   kNodeTypeEnd,
-  //! Node is a return, see `RetNode`.
+  //! Node is a return, see \ref RetNode.
   kNodeTypeRet,
-  //! Node is a function call, see `CallNode`.
+  //! Node is a function call, see \ref CallNode.
   kNodeTypeCall,
-  //! Node is a function call argument moved on stack, see `SArgNode`.
+  //! Node is a function call argument moved on stack, see \ref SArgNode.
   kNodeTypeSArg
 };
 
@@ -225,9 +236,14 @@ ASMJIT_ENUM(kNodeFlag) {
   kNodeFlagIsFp = 0x0040
 };
 
+//! \}
+
 // ============================================================================
 // [asmjit::MemCell]
 // ============================================================================
+
+//! \addtogroup asmjit_base_tree
+//! \{
 
 struct MemCell {
   ASMJIT_NO_COPY(MemCell)
@@ -507,7 +523,7 @@ struct VarData {
   uint8_t _saveOnUnuse : 1;
   //! Whether variable was changed (connected with actual `BaseVarState)`.
   uint8_t _modified : 1;
-  //! @internal
+  //! \internal
   uint8_t _reserved0 : 3;
   //! Variable natural alignment.
   uint8_t _alignment;
@@ -547,7 +563,9 @@ struct VarData {
     //! back to zero/null. Initial value is NULL.
     VarAttr* _va;
 
-    //! @internal
+    //! \internal
+    //!
+    //! Same as `_va` just provided as `uintptr_t`.
     uintptr_t _vaUInt;
   };
 };
@@ -677,11 +695,11 @@ struct VarAttr {
       //!
       //! Typically `kInvalidReg` if variable is only used on input.
       uint8_t _outRegIndex;
-      //! @internal
+      //! \internal
       uint8_t _reserved;
     };
 
-    //! @internal
+    //! \internal
     //!
     //! Packed data #0.
     uint32_t _packed;
@@ -721,36 +739,36 @@ struct BaseVarInst {};
 struct BaseVarState {};
 
 // ============================================================================
-// [asmjit::BaseNode]
+// [asmjit::Node]
 // ============================================================================
 
 //! Base node.
 //!
 //! `Every` node represents an abstract instruction, directive, label, or
 //! macro-instruction generated by compiler.
-struct BaseNode {
-  ASMJIT_NO_COPY(BaseNode)
+struct Node {
+  ASMJIT_NO_COPY(Node)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create new `BaseNode`.
+  //! Create new `Node`.
   //!
-  //! @note Always use compiler to create nodes.
-  ASMJIT_INLINE BaseNode(BaseCompiler* compiler, uint32_t type); // Defined-Later.
+  //! \note Always use compiler to create nodes.
+  ASMJIT_INLINE Node(BaseCompiler* compiler, uint32_t type); // Defined-Later.
 
-  //! Destroy `BaseNode`.
-  ASMJIT_INLINE ~BaseNode() {}
+  //! Destroy `Node`.
+  ASMJIT_INLINE ~Node() {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
   //! Get previous node in the compiler stream.
-  ASMJIT_INLINE BaseNode* getPrev() const { return _prev; }
+  ASMJIT_INLINE Node* getPrev() const { return _prev; }
   //! Get next node in the compiler stream.
-  ASMJIT_INLINE BaseNode* getNext() const { return _next; }
+  ASMJIT_INLINE Node* getNext() const { return _next; }
 
   //! Get comment string.
   ASMJIT_INLINE const char* getComment() const { return _comment; }
@@ -827,9 +845,9 @@ struct BaseNode {
   // --------------------------------------------------------------------------
 
   //! Previous node.
-  BaseNode* _prev;
+  Node* _prev;
   //! Next node.
-  BaseNode* _next;
+  Node* _next;
 
   //! Node type, see `kNodeType`.
   uint8_t _type;
@@ -863,7 +881,7 @@ struct BaseNode {
 // ============================================================================
 
 //! Align node.
-struct AlignNode : public BaseNode {
+struct AlignNode : public Node {
   ASMJIT_NO_COPY(AlignNode)
 
   // --------------------------------------------------------------------------
@@ -871,8 +889,11 @@ struct AlignNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `AlignNode` instance.
-  ASMJIT_INLINE AlignNode(BaseCompiler* compiler, uint32_t size) : BaseNode(compiler, kNodeTypeAlign) {
-    _size = size;
+  ASMJIT_INLINE AlignNode(BaseCompiler* compiler, uint32_t mode, uint32_t offset) :
+    Node(compiler, kNodeTypeAlign) {
+
+    _mode = mode;
+    _offset = offset;
   }
 
   //! Destroy the `AlignNode` instance.
@@ -882,17 +903,34 @@ struct AlignNode : public BaseNode {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get align size in bytes.
-  ASMJIT_INLINE uint32_t getSize() const { return _size; }
-  //! Set align size in bytes to `size`.
-  ASMJIT_INLINE void setSize(uint32_t size) { _size = size; }
+  //! Get alignment mode.
+  ASMJIT_INLINE uint32_t getMode() const {
+    return _mode;
+  }
+
+  //! Set alignment mode.
+  ASMJIT_INLINE void setMode(uint32_t mode) {
+    _mode = mode;
+  }
+
+  //! Get align offset in bytes.
+  ASMJIT_INLINE uint32_t getOffset() const {
+    return _offset;
+  }
+
+  //! Set align offset in bytes to `offset`.
+  ASMJIT_INLINE void setOffset(uint32_t offset) {
+    _offset = offset;
+  }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Size of the alignment.
-  uint32_t _size;
+  //! Alignment mode, see \ref kAlignMode.
+  uint32_t _mode;
+  //! Alignment offset in bytes.
+  uint32_t _offset;
 };
 
 // ============================================================================
@@ -903,7 +941,7 @@ struct AlignNode : public BaseNode {
 //!
 //! Embed node is used to embed data into final assembler stream. The data is
 //! considered to be RAW; No analysis is performed on RAW data.
-struct EmbedNode : public BaseNode {
+struct EmbedNode : public Node {
   ASMJIT_NO_COPY(EmbedNode)
 
   // --------------------------------------------------------------------------
@@ -917,7 +955,7 @@ struct EmbedNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `EmbedNode` instance.
-  ASMJIT_INLINE EmbedNode(BaseCompiler* compiler, void* data, uint32_t size) : BaseNode(compiler, kNodeTypeEmbed) {
+  ASMJIT_INLINE EmbedNode(BaseCompiler* compiler, void* data, uint32_t size) : Node(compiler, kNodeTypeEmbed) {
     _size = size;
     if (size <= kInlineBufferSize) {
       if (data != NULL)
@@ -964,7 +1002,7 @@ struct EmbedNode : public BaseNode {
 //! Comments allows to comment your assembler stream for better debugging
 //! and visualization. Comments are usually ignored in release builds unless
 //! the logger is present.
-struct CommentNode : public BaseNode {
+struct CommentNode : public Node {
   ASMJIT_NO_COPY(CommentNode)
 
   // --------------------------------------------------------------------------
@@ -972,7 +1010,7 @@ struct CommentNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `CommentNode` instance.
-  ASMJIT_INLINE CommentNode(BaseCompiler* compiler, const char* comment) : BaseNode(compiler, kNodeTypeComment) {
+  ASMJIT_INLINE CommentNode(BaseCompiler* compiler, const char* comment) : Node(compiler, kNodeTypeComment) {
     _comment = comment;
   }
 
@@ -985,7 +1023,7 @@ struct CommentNode : public BaseNode {
 // ============================================================================
 
 //! Hint node.
-struct HintNode : public BaseNode {
+struct HintNode : public Node {
   ASMJIT_NO_COPY(HintNode)
 
   // --------------------------------------------------------------------------
@@ -993,7 +1031,7 @@ struct HintNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `HintNode` instance.
-  ASMJIT_INLINE HintNode(BaseCompiler* compiler, VarData* vd, uint32_t hint, uint32_t value) : BaseNode(compiler, kNodeTypeHint) {
+  ASMJIT_INLINE HintNode(BaseCompiler* compiler, VarData* vd, uint32_t hint, uint32_t value) : Node(compiler, kNodeTypeHint) {
     _vd = vd;
     _hint = hint;
     _value = value;
@@ -1036,7 +1074,7 @@ struct HintNode : public BaseNode {
 // ============================================================================
 
 //! label node.
-struct TargetNode : public BaseNode {
+struct TargetNode : public Node {
   ASMJIT_NO_COPY(TargetNode)
 
   // --------------------------------------------------------------------------
@@ -1044,7 +1082,7 @@ struct TargetNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `TargetNode` instance.
-  ASMJIT_INLINE TargetNode(BaseCompiler* compiler, uint32_t labelId) : BaseNode(compiler, kNodeTypeTarget) {
+  ASMJIT_INLINE TargetNode(BaseCompiler* compiler, uint32_t labelId) : Node(compiler, kNodeTypeTarget) {
     _id = labelId;
     _numRefs = 0;
     _from = NULL;
@@ -1100,7 +1138,7 @@ struct TargetNode : public BaseNode {
 // ============================================================================
 
 //! Instruction node.
-struct InstNode : public BaseNode {
+struct InstNode : public Node {
   ASMJIT_NO_COPY(InstNode)
 
   // --------------------------------------------------------------------------
@@ -1108,7 +1146,7 @@ struct InstNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `InstNode` instance.
-  ASMJIT_INLINE InstNode(BaseCompiler* compiler, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) : BaseNode(compiler, kNodeTypeInst) {
+  ASMJIT_INLINE InstNode(BaseCompiler* compiler, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) : Node(compiler, kNodeTypeInst) {
     _code = static_cast<uint16_t>(code);
     _options = static_cast<uint8_t>(options);
 
@@ -1170,7 +1208,7 @@ struct InstNode : public BaseNode {
   ASMJIT_INLINE Operand* getOpList() {
     return _opList;
   }
-  //! @overload
+  //! \overload
   ASMJIT_INLINE const Operand* getOpList() const {
     return _opList;
   }
@@ -1203,7 +1241,7 @@ struct InstNode : public BaseNode {
     return static_cast<BaseMem*>(&_opList[_memOpIndex]);
   }
 
-  //! @overload
+  //! \overload
   template<typename T>
   ASMJIT_INLINE T* getMemOp() const {
     ASMJIT_ASSERT(hasMemOp());
@@ -1236,7 +1274,7 @@ _Update:
   uint16_t _code;
   //! Instruction options, see `kInstOptions`.
   uint8_t _options;
-  //! @internal
+  //! \internal
   uint8_t _memOpIndex;
 
   //! Operands list.
@@ -1289,7 +1327,7 @@ struct JumpNode : public InstNode {
 //! `FuncNode` can be used to generate function prolog and epilog which are
 //! compatible with a given function calling convention and to allocate and
 //! manage variables that can be allocated/spilled during compilation phase.
-struct FuncNode : public BaseNode {
+struct FuncNode : public Node {
   ASMJIT_NO_COPY(FuncNode)
 
   // --------------------------------------------------------------------------
@@ -1300,7 +1338,7 @@ struct FuncNode : public BaseNode {
   //!
   //! Always use `BaseCompiler::addFunc()` to create a `FuncNode` instance.
   ASMJIT_INLINE FuncNode(BaseCompiler* compiler) :
-    BaseNode(compiler, kNodeTypeFunc),
+    Node(compiler, kNodeTypeFunc),
     _entryNode(NULL),
     _exitNode(NULL),
     _decl(NULL),
@@ -1472,7 +1510,7 @@ struct FuncNode : public BaseNode {
 
   //! Expected stack alignment (we depend on this value).
   //!
-  //! @note It can be global alignment given by the OS or described by an
+  //! \note It can be global alignment given by the OS or described by an
   //! target platform ABI.
   uint32_t _expectedStackAlignment;
   //! Required stack alignment (usually for multimedia instructions).
@@ -1498,7 +1536,7 @@ struct FuncNode : public BaseNode {
 // ============================================================================
 
 //! End of function/block node.
-struct EndNode : public BaseNode {
+struct EndNode : public Node {
   ASMJIT_NO_COPY(EndNode)
 
   // --------------------------------------------------------------------------
@@ -1506,7 +1544,7 @@ struct EndNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `EndNode` instance.
-  ASMJIT_INLINE EndNode(BaseCompiler* compiler) : BaseNode(compiler, kNodeTypeEnd) {
+  ASMJIT_INLINE EndNode(BaseCompiler* compiler) : Node(compiler, kNodeTypeEnd) {
     _flags |= kNodeFlagIsRet;
   }
 
@@ -1519,7 +1557,7 @@ struct EndNode : public BaseNode {
 // ============================================================================
 
 //! Function return node.
-struct RetNode : public BaseNode {
+struct RetNode : public Node {
   ASMJIT_NO_COPY(RetNode)
 
   // --------------------------------------------------------------------------
@@ -1527,7 +1565,7 @@ struct RetNode : public BaseNode {
   // --------------------------------------------------------------------------
 
   //! Create a new `RetNode` instance.
-  ASMJIT_INLINE RetNode(BaseCompiler* compiler, const Operand& o0, const Operand& o1) : BaseNode(compiler, kNodeTypeRet) {
+  ASMJIT_INLINE RetNode(BaseCompiler* compiler, const Operand& o0, const Operand& o1) : Node(compiler, kNodeTypeRet) {
     _flags |= kNodeFlagIsRet;
     _ret[0] = o0;
     _ret[1] = o1;
@@ -1542,12 +1580,12 @@ struct RetNode : public BaseNode {
 
   //! Get the first return operand.
   ASMJIT_INLINE Operand& getFirst() { return _ret[0]; }
-  //! @overload
+  //! \overload
   ASMJIT_INLINE const Operand& getFirst() const { return _ret[0]; }
 
   //! Get the second return operand.
   ASMJIT_INLINE Operand& getSecond() { return _ret[1]; }
-   //! @overload
+   //! \overload
   ASMJIT_INLINE const Operand& getSecond() const { return _ret[1]; }
 
   // --------------------------------------------------------------------------
@@ -1563,7 +1601,7 @@ struct RetNode : public BaseNode {
 // ============================================================================
 
 //! Function-call node.
-struct CallNode : public BaseNode {
+struct CallNode : public Node {
   ASMJIT_NO_COPY(CallNode)
 
   // --------------------------------------------------------------------------
@@ -1572,7 +1610,7 @@ struct CallNode : public BaseNode {
 
   //! Create a new `CallNode` instance.
   ASMJIT_INLINE CallNode(BaseCompiler* compiler, const Operand& target) :
-    BaseNode(compiler, kNodeTypeCall),
+    Node(compiler, kNodeTypeCall),
     _decl(NULL),
     _target(target),
     _args(NULL) {}
@@ -1589,7 +1627,7 @@ struct CallNode : public BaseNode {
 
   //! Get target operand.
   ASMJIT_INLINE Operand& getTarget() { return _target; }
-  //! @overload
+  //! \overload
   ASMJIT_INLINE const Operand& getTarget() const  { return _target; }
 
   //! Get return at `i`.
@@ -1597,7 +1635,7 @@ struct CallNode : public BaseNode {
     ASMJIT_ASSERT(i < 2);
     return _ret[i];
   }
-  //! @overload
+  //! \overload
   ASMJIT_INLINE const Operand& getRet(uint32_t i = 0) const  {
     ASMJIT_ASSERT(i < 2);
     return _ret[i];
@@ -1608,7 +1646,7 @@ struct CallNode : public BaseNode {
     ASMJIT_ASSERT(i < kFuncArgCountLoHi);
     return _args[i];
   }
-  //! @overload
+  //! \overload
   ASMJIT_INLINE const Operand& getArg(uint32_t i) const  {
     ASMJIT_ASSERT(i < kFuncArgCountLoHi);
     return _args[i];
@@ -1634,7 +1672,7 @@ struct CallNode : public BaseNode {
 // ============================================================================
 
 //! Function-call 'argument on the stack' node.
-struct SArgNode : public BaseNode {
+struct SArgNode : public Node {
   ASMJIT_NO_COPY(SArgNode)
 
   // --------------------------------------------------------------------------
@@ -1643,7 +1681,7 @@ struct SArgNode : public BaseNode {
 
   //! Create a new `SArgNode` instance.
   ASMJIT_INLINE SArgNode(BaseCompiler* compiler, CallNode* call, VarData* sVd, VarData* cVd) :
-    BaseNode(compiler, kNodeTypeSArg),
+    Node(compiler, kNodeTypeSArg),
     _call(call),
     _sVd(sVd),
     _cVd(cVd),
@@ -1678,9 +1716,14 @@ struct SArgNode : public BaseNode {
   uint32_t _args;
 };
 
+//! \}
+
 // ============================================================================
 // [asmjit::BaseCompiler]
 // ============================================================================
+
+//! \addtogroup asmjit_base_general
+//! \{
 
 //! Base compiler.
 //!
@@ -1712,11 +1755,11 @@ struct BaseCompiler : public CodeGen {
 
   //! Clear everything, but keep buffers allocated.
   //!
-  //! @note This method will destroy your code.
+  //! \note This method will destroy your code.
   ASMJIT_API void clear();
   //! Clear everything and reset all buffers.
   //!
-  //! @note This method will destroy your code.
+  //! \note This method will destroy your code.
   ASMJIT_API void reset();
   //! Called by clear() and reset() to clear all data related to derived
   //! class implementation.
@@ -1751,30 +1794,30 @@ struct BaseCompiler : public CodeGen {
   }
 
   //! Get first node.
-  ASMJIT_INLINE BaseNode* getFirstNode() const { return _firstNode; }
+  ASMJIT_INLINE Node* getFirstNode() const { return _firstNode; }
   //! Get last node.
-  ASMJIT_INLINE BaseNode* getLastNode() const { return _lastNode; }
+  ASMJIT_INLINE Node* getLastNode() const { return _lastNode; }
 
   //! Get current node.
   //!
-  //! @note If this method returns `NULL` it means that nothing has been emitted
+  //! \note If this method returns `NULL` it means that nothing has been emitted
   //! yet.
-  ASMJIT_INLINE BaseNode* getCursor() const { return _cursor; }
+  ASMJIT_INLINE Node* getCursor() const { return _cursor; }
   //! Set the current node without returning the previous node (private).
-  ASMJIT_INLINE void _setCursor(BaseNode* node) { _cursor = node; }
+  ASMJIT_INLINE void _setCursor(Node* node) { _cursor = node; }
   //! Set the current node to `node` and return the previous one.
-  ASMJIT_API BaseNode* setCursor(BaseNode* node);
+  ASMJIT_API Node* setCursor(Node* node);
 
   //! Add node `node` after current and set current to `node`.
-  ASMJIT_API BaseNode* addNode(BaseNode* node);
+  ASMJIT_API Node* addNode(Node* node);
   //! Add node before `ref`.
-  ASMJIT_API BaseNode* addNodeBefore(BaseNode* node, BaseNode* ref);
+  ASMJIT_API Node* addNodeBefore(Node* node, Node* ref);
   //! Add node after `ref`.
-  ASMJIT_API BaseNode* addNodeAfter(BaseNode* node, BaseNode* ref);
+  ASMJIT_API Node* addNodeAfter(Node* node, Node* ref);
   //! Remove node `node`.
-  ASMJIT_API BaseNode* removeNode(BaseNode* node);
+  ASMJIT_API Node* removeNode(Node* node);
   //! Remove multiple nodes.
-  ASMJIT_API void removeNodes(BaseNode* first, BaseNode* last);
+  ASMJIT_API void removeNodes(Node* first, Node* last);
 
   // --------------------------------------------------------------------------
   // [Func]
@@ -1788,16 +1831,18 @@ struct BaseCompiler : public CodeGen {
   // --------------------------------------------------------------------------
 
   //! Create a new `AlignNode`.
-  ASMJIT_API AlignNode* newAlign(uint32_t m);
+  ASMJIT_API AlignNode* newAlign(uint32_t mode, uint32_t offset);
   //! Add a new `AlignNode`.
-  ASMJIT_API AlignNode* addAlign(uint32_t m);
+  ASMJIT_API AlignNode* addAlign(uint32_t mode, uint32_t offset);
 
   //! Align target buffer to `m` bytes.
   //!
   //! Typical usage of this is to align labels at start of the inner loops.
   //!
   //! Inserts `nop()` instructions or CPU optimized NOPs.
-  ASMJIT_INLINE AlignNode* align(uint32_t m) { return addAlign(m); }
+  ASMJIT_INLINE AlignNode* align(uint32_t mode, uint32_t offset) {
+    return addAlign(mode, offset);
+  }
 
   // --------------------------------------------------------------------------
   // [Target]
@@ -1826,14 +1871,16 @@ struct BaseCompiler : public CodeGen {
   // --------------------------------------------------------------------------
 
   //! Get count of created labels.
-  ASMJIT_INLINE size_t getLabelsCount() const
-  { return _targets.getLength(); }
+  ASMJIT_INLINE size_t getLabelsCount() const {
+    return _targets.getLength();
+  }
 
   //! Get whether `label` is created.
-  ASMJIT_INLINE bool isLabelCreated(const Label& label) const
-  { return static_cast<size_t>(label.getId()) < _targets.getLength(); }
+  ASMJIT_INLINE bool isLabelCreated(const Label& label) const {
+    return static_cast<size_t>(label.getId()) < _targets.getLength();
+  }
 
-  //! @internal
+  //! \internal
   //!
   //! Create and initialize a new `Label`.
   ASMJIT_API Error _newLabel(Label* dst);
@@ -1847,7 +1894,7 @@ struct BaseCompiler : public CodeGen {
 
   //! Bind label to the current offset.
   //!
-  //! @note Label can be bound only once!
+  //! \note Label can be bound only once!
   ASMJIT_API void bind(const Label& label);
 
   // --------------------------------------------------------------------------
@@ -1860,7 +1907,9 @@ struct BaseCompiler : public CodeGen {
   ASMJIT_API EmbedNode* addEmbed(const void* data, uint32_t size);
 
   //! Embed data.
-  ASMJIT_INLINE EmbedNode* embed(const void* data, uint32_t size) { return addEmbed(data, size); }
+  ASMJIT_INLINE EmbedNode* embed(const void* data, uint32_t size) {
+    return addEmbed(data, size);
+  }
 
   // --------------------------------------------------------------------------
   // [Comment]
@@ -1892,14 +1941,14 @@ struct BaseCompiler : public CodeGen {
     return static_cast<size_t>(var.getId() & kOperandIdNum) < _vars.getLength();
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Get `VarData` by `var`.
   ASMJIT_INLINE VarData* getVd(const BaseVar& var) const {
     return getVdById(var.getId());
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Get `VarData` by `id`.
   ASMJIT_INLINE VarData* getVdById(uint32_t id) const {
@@ -1909,14 +1958,14 @@ struct BaseCompiler : public CodeGen {
     return _vars[id & kOperandIdNum];
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Get an array of 'VarData*'.
   ASMJIT_INLINE VarData** _getVdArray() const {
     return const_cast<VarData**>(_vars.getData());
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Create a new `VarData`.
   ASMJIT_API VarData* _newVd(uint32_t type, uint32_t size, uint32_t c, const char* name);
@@ -1949,14 +1998,14 @@ struct BaseCompiler : public CodeGen {
 
   //! Rename variable `var` to `name`.
   //!
-  //! @note Only new name will appear in the logger.
+  //! \note Only new name will appear in the logger.
   ASMJIT_API void rename(BaseVar& var, const char* name);
 
   // --------------------------------------------------------------------------
   // [Stack]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   //!
   //! Create a new memory chunk allocated on the current function's stack.
   virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) = 0;
@@ -1965,7 +2014,7 @@ struct BaseCompiler : public CodeGen {
   // [Const]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   //!
   //! Put data to a constant-pool and get a memory reference to it.
   virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) = 0;
@@ -1993,12 +2042,12 @@ struct BaseCompiler : public CodeGen {
   const uint8_t* _targetVarMapping;
 
   //! First node.
-  BaseNode* _firstNode;
+  Node* _firstNode;
   //! Last node.
-  BaseNode* _lastNode;
+  Node* _lastNode;
 
   //! Current node.
-  BaseNode* _cursor;
+  Node* _cursor;
   //! Current function.
   FuncNode* _func;
 
@@ -2025,6 +2074,8 @@ struct BaseCompiler : public CodeGen {
   Label _globalConstPoolLabel;
 };
 
+//! \}
+
 // ============================================================================
 // [Defined-Later]
 // ============================================================================
@@ -2033,7 +2084,7 @@ ASMJIT_INLINE Label::Label(BaseCompiler& c) : Operand(NoInit) {
   c._newLabel(this);
 }
 
-ASMJIT_INLINE BaseNode::BaseNode(BaseCompiler* compiler, uint32_t type) {
+ASMJIT_INLINE Node::Node(BaseCompiler* compiler, uint32_t type) {
   _prev = NULL;
   _next = NULL;
   _type = static_cast<uint8_t>(type);
@@ -2045,8 +2096,6 @@ ASMJIT_INLINE BaseNode::BaseNode(BaseCompiler* compiler, uint32_t type) {
   _liveness = NULL;
   _state = NULL;
 }
-
-//! @}
 
 } // asmjit namespace
 

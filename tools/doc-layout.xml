@@ -14,7 +14,6 @@
   <class>
     <briefdescription title=""/>
     <inheritancegraph visible="$CLASS_GRAPH"/>
-    <detaileddescription title=""/>
     <memberdecl>
       <nestedclasses visible="yes" title=""/>
       <publictypes title=""/>
@@ -49,6 +48,7 @@
       <related title="" subtitle=""/>
       <membergroups visible="yes"/>
     </memberdecl>
+    <detaileddescription title=""/>
     <memberdef>
       <inlineclasses title=""/>
       <typedefs title=""/>
@@ -67,8 +67,8 @@
 
   <!-- Layout definition for a group page -->
   <group>
+    <briefdescription title=""/>
     <groupgraph visible="$GROUP_GRAPHS"/>
-    <detaileddescription title=""/>
     <memberdecl>
       <nestedgroups visible="yes" title=""/>
       <dirs visible="yes" title=""/>
@@ -90,6 +90,7 @@
       <friends title=""/>
       <membergroups visible="yes"/>
     </memberdecl>
+    <detaileddescription title=""/>
     <memberdef>
       <pagedocs/>
       <inlineclasses title=""/>
@@ -107,6 +108,5 @@
       <properties title=""/>
       <friends title=""/>
     </memberdef>
-    <authorsection visible="yes"/>
   </group>
 </doxygenlayout>

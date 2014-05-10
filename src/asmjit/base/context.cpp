@@ -265,14 +265,14 @@ Error BaseContext::resolveCellOffsets() {
 // ============================================================================
 
 Error BaseContext::removeUnreachableCode() {
-  PodList<BaseNode*>::Link* link = _unreachableList.getFirst();
-  BaseNode* stop = getStop();
+  PodList<Node*>::Link* link = _unreachableList.getFirst();
+  Node* stop = getStop();
 
   while (link != NULL) {
-    BaseNode* node = link->getValue();
+    Node* node = link->getValue();
     if (node != NULL && node->getPrev() != NULL) {
       // Locate all unreachable nodes.
-      BaseNode* first = node;
+      Node* first = node;
       do {
         if (node->isFetched())
           break;
@@ -281,7 +281,7 @@ Error BaseContext::removeUnreachableCode() {
 
       // Remove.
       if (node != first) {
-        BaseNode* last = (node != NULL) ? node->getPrev() : getCompiler()->getLastNode();
+        Node* last = (node != NULL) ? node->getPrev() : getCompiler()->getLastNode();
         getCompiler()->removeNodes(first, last);
       }
     }
@@ -296,7 +296,7 @@ Error BaseContext::removeUnreachableCode() {
 // [asmjit::BaseContext - Cleanup]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Translate the given function `func`.
 void BaseContext::cleanup() {
@@ -318,8 +318,8 @@ void BaseContext::cleanup() {
 // ============================================================================
 
 Error BaseContext::compile(FuncNode* func) {
-  BaseNode* end = func->getEnd();
-  BaseNode* stop = end->getNext();
+  Node* end = func->getEnd();
+  Node* stop = end->getNext();
 
   _func = func;
   _stop = stop;

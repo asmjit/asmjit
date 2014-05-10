@@ -16,8 +16,8 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::Zone]
@@ -32,7 +32,7 @@ struct Zone {
   // [Chunk]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   //!
   //! One allocated chunk of memory.
   struct Chunk {
@@ -56,33 +56,37 @@ struct Zone {
 
   //! Create a new instance of `Zone` allocator.
   //!
-  //! @param chunkSize Default size of the first chunk.
+  //! The `chunkSize` parameter describes the size of the chunk. If `alloc()`
+  //! requires more memory than `chunkSize` then a bigger chunk will be
+  //! allocated, however `chunkSize` will not be changed.
   ASMJIT_API Zone(size_t chunkSize);
 
   //! Destroy `Zone` instance.
+  //!
+  //! Destructor released all chunks allocated by `Zone`. The `reset()` member
+  //! function does the same without actually destroying `Zone` object itself.
   ASMJIT_API ~Zone();
 
   // --------------------------------------------------------------------------
   // [Clear / Reset]
   // --------------------------------------------------------------------------
 
-  //! Free all allocated memory except first block that remains for reuse.
+  //! Reset the `Zone` releasing all chunks allocated.
   //!
-  //! Note that this method will invalidate all instances using this memory
-  //! allocated by this zone instance.
+  //! Calling `clear()` will release all chunks allocated by `Zone` except the
+  //! first one that will be reused if needed.
   ASMJIT_API void clear();
 
-  //! Free all allocated memory at once.
+  //! Reset the `Zone` releasing all chunks allocated.
   //!
-  //! Note that this method will invalidate all instances using this memory
-  //! allocated by this zone instance.
+  //! Calling `reset()` will release all chunks allocated by `Zone`.
   ASMJIT_API void reset();
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get (default) chunk size.
+  //! Get chunk size.
   ASMJIT_INLINE size_t getChunkSize() const { return _chunkSize; }
 
   // --------------------------------------------------------------------------
@@ -140,7 +144,7 @@ struct Zone {
     return static_cast<T*>(alloc(size));
   }
 
-  //! @internal
+  //! \internal
   ASMJIT_API void* _alloc(size_t size);
 
   //! Allocate `size` bytes of zeroed memory.
@@ -158,7 +162,7 @@ struct Zone {
     return (void*)p;
   }
 
-  //! @internal
+  //! \internal
   ASMJIT_API void* _calloc(size_t size);
 
   //! Helper to duplicate data.
@@ -180,7 +184,7 @@ struct Zone {
   size_t _chunkSize;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

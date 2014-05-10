@@ -17,6 +17,9 @@
 namespace asmjit {
 namespace contrib {
 
+//! \addtogroup asmjit_contrib
+//! \{
+
 // ============================================================================
 // [asmjit::contrib::WinRemoteRuntime]
 // ============================================================================
@@ -54,6 +57,7 @@ struct WinRemoteRuntime : public Runtime {
   // --------------------------------------------------------------------------
 
   ASMJIT_API virtual uint32_t add(void** dest, BaseAssembler* assembler);
+  ASMJIT_API virtual Error release(void* p);
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -62,6 +66,8 @@ struct WinRemoteRuntime : public Runtime {
   //! Remove memory manager.
   VMemMgr _memMgr;
 };
+
+//! \}
 
 } // contrib namespace
 } // asmjit namespace

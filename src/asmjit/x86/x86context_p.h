@@ -14,7 +14,6 @@
 #include "../base/intutil.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86compiler.h"
-#include "../x86/x86defs.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -22,14 +21,20 @@
 namespace asmjit {
 namespace x86x64 {
 
-//! @addtogroup asmjit_x86x64_codegen
-//! @{
-
 // ============================================================================
 // [asmjit::Context]
 // ============================================================================
 
-//! @internal
+#if defined(ASMJIT_DEBUG)
+# define ASMJIT_X86_CHECK_STATE _checkState();
+#else
+# define ASMJIT_X86_CHECK_STATE
+#endif // ASMJIT_DEBUG
+
+//! \addtogroup asmjit_x86x64_tree
+//! \{
+
+//! \internal
 //!
 //! Compiler context is used by `X86X64Compiler`.
 //!
@@ -110,14 +115,8 @@ struct X86X64Context : public BaseContext {
 
   void _checkState();
 
-#if defined(ASMJIT_DEBUG)
-#define ASMJIT_CONTEXT_CHECK_STATE _checkState();
-#else
-#define ASMJIT_CONTEXT_CHECK_STATE
-#endif // ASMJIT_DEBUG
-
   ASMJIT_INLINE uint32_t getRegsCount(uint32_t c) const {
-    if (c == kRegClassGp || c == kRegClassXy)
+    if (c == kRegClassGp || c == kRegClassXyz)
       return _baseRegsCount;
     else
       return 8;
@@ -154,7 +153,7 @@ struct X86X64Context : public BaseContext {
     _x86State._occupied.add(C, regMask);
     _x86State._modified.add(C, static_cast<uint32_t>(modified) << regIndex);
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   //! Detach.
@@ -178,7 +177,7 @@ struct X86X64Context : public BaseContext {
     _x86State._occupied.del(C, regMask);
     _x86State._modified.del(C, regMask);
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   // --------------------------------------------------------------------------
@@ -206,7 +205,7 @@ struct X86X64Context : public BaseContext {
     _x86State._occupied.xor_(C, bothRegMask);
     _x86State._modified.xor_(C, bothRegMask & -static_cast<int32_t>(vd->isModified()));
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   // --------------------------------------------------------------------------
@@ -227,7 +226,7 @@ struct X86X64Context : public BaseContext {
     emitLoad(vd, regIndex, "Load");
     attach<C>(vd, regIndex, false);
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   //! Save.
@@ -247,7 +246,7 @@ struct X86X64Context : public BaseContext {
     vd->setModified(false);
     _x86State._modified.del(C, regMask);
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   // --------------------------------------------------------------------------
@@ -270,7 +269,7 @@ struct X86X64Context : public BaseContext {
       rebase<C>(vd, regIndex, oldIndex);
     }
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   //! Swap two registers
@@ -301,7 +300,7 @@ struct X86X64Context : public BaseContext {
     uint32_t m = aVd->isModified() ^ bVd->isModified();
     _x86State._modified.xor_(kRegClassGp, (m << aIndex) | (m << bIndex));
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   // --------------------------------------------------------------------------
@@ -332,7 +331,7 @@ struct X86X64Context : public BaseContext {
       regMask ^= IntUtil::mask(oldRegIndex);
     }
     else {
-      ASMJIT_CONTEXT_CHECK_STATE
+      ASMJIT_X86_CHECK_STATE
       return;
     }
 
@@ -343,7 +342,7 @@ struct X86X64Context : public BaseContext {
     _x86State._occupied.xor_(C, regMask);
     _x86State._modified.xor_(C, regMask & -static_cast<int32_t>(vd->isModified()));
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   //! Spill.
@@ -354,7 +353,7 @@ struct X86X64Context : public BaseContext {
     ASMJIT_ASSERT(vd->getClass() == C);
 
     if (vd->getState() != kVarStateReg) {
-      ASMJIT_CONTEXT_CHECK_STATE
+      ASMJIT_X86_CHECK_STATE
       return;
     }
 
@@ -367,7 +366,7 @@ struct X86X64Context : public BaseContext {
       emitSave(vd, regIndex, "Spill");
     detach<C>(vd, regIndex, kVarStateMem);
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   // --------------------------------------------------------------------------
@@ -384,7 +383,7 @@ struct X86X64Context : public BaseContext {
     vd->setModified(true);
     _x86State._modified.add(C, regMask);
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   // --------------------------------------------------------------------------
@@ -406,7 +405,7 @@ struct X86X64Context : public BaseContext {
     else
       vd->setState(vState);
 
-    ASMJIT_CONTEXT_CHECK_STATE
+    ASMJIT_X86_CHECK_STATE
   }
 
   // --------------------------------------------------------------------------
@@ -459,7 +458,7 @@ struct X86X64Context : public BaseContext {
   // [Serialize]
   // --------------------------------------------------------------------------
 
-  virtual Error serialize(BaseAssembler* assembler, BaseNode* start, BaseNode* stop);
+  virtual Error serialize(BaseAssembler* assembler, Node* start, Node* stop);
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -507,7 +506,7 @@ struct X86X64Context : public BaseContext {
   StringBuilderT<256> _stringBuilder;
 };
 
-//! @}
+//! \}
 
 } // x86x64 namespace
 } // asmjit namespace

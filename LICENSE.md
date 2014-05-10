@@ -1,4 +1,4 @@
-AsmJit - Complete x86/x64 JIT and Remote Assembler for C++
+AsmJit - Complete x86/x64 JIT and Remote Assembler for C++  
 Copyright (c) 2008-2014, Petr Kobalicek <kobalicek.petr@gmail.com>
 
 This software is provided 'as-is', without any express or implied

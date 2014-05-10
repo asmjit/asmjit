@@ -10,9 +10,9 @@
 
 // [Dependencies - AsmJit]
 #include "../base/codegen.h"
-#include "../base/defs.h"
 #include "../base/error.h"
 #include "../base/logger.h"
+#include "../base/operand.h"
 #include "../base/podlist.h"
 #include "../base/podvector.h"
 #include "../base/runtime.h"
@@ -23,14 +23,59 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_codegen
-//! @{
+//! \addtogroup asmjit_base_general
+//! \{
+
+// ============================================================================
+// [asmjit::kInstCode]
+// ============================================================================
+
+//! Instruction codes (stub).
+ASMJIT_ENUM(kInstCode) {
+  //! No instruction.
+  kInstNone = 0
+};
+
+// ============================================================================
+// [asmjit::kInstOptions]
+// ============================================================================
+
+//! Instruction options (stub).
+ASMJIT_ENUM(kInstOptions) {
+  //! No instruction options.
+  kInstOptionNone = 0x00,
+
+  //! Emit short form of the instruction.
+  //!
+  //! X86/X64:
+  //!
+  //! Short form is mostly related to jmp and jcc instructions, but can be used
+  //! by other instructions supporting 8-bit or 32-bit immediates. This option
+  //! can be dangerous if the short jmp/jcc is required, but not encodable due
+  //! to large displacement, in such case an error happens and the whole
+  //! assembler/compiler stream is unusable.
+  kInstOptionShortForm = 0x01,
+
+  //! Emit long form of the instruction.
+  //!
+  //! X86/X64:
+  //!
+  //! Long form is mosrlt related to jmp and jcc instructions, but like the
+  //! `kInstOptionShortForm` option it can be used by other instructions
+  //! supporting both 8-bit and 32-bit immediates.
+  kInstOptionLongForm = 0x02,
+
+  //! Condition is likely to be taken (instruction).
+  kInstOptionTaken = 0x04,
+  //! Condition is unlikely to be taken (instruction).
+  kInstOptionNotTaken = 0x08
+};
 
 // ============================================================================
 // [asmjit::LabelLink]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Data structure used to link linked-labels.
 struct LabelLink {
@@ -48,7 +93,7 @@ struct LabelLink {
 // [asmjit::LabelData]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Label data.
 struct LabelData {
@@ -62,7 +107,7 @@ struct LabelData {
 // [asmjit::RelocData]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Code relocation data (relative vs absolute addresses).
 //!
@@ -182,61 +227,61 @@ struct BaseAssembler : public CodeGen {
   //! Reserve the internal buffer to at least `n` bytes.
   ASMJIT_API Error _reserve(size_t n);
 
-  //! Set byte at position `pos`.
+  //! Get BYTE at position `pos`.
   ASMJIT_INLINE uint8_t getByteAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 1 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint8_t*>(_buffer + pos);
   }
 
-  //! Set word at position `pos`.
+  //! Get WORD at position `pos`.
   ASMJIT_INLINE uint16_t getWordAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 2 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint16_t*>(_buffer + pos);
   }
 
-  //! Set dword at position `pos`.
+  //! Get DWORD at position `pos`.
   ASMJIT_INLINE uint32_t getDWordAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint32_t*>(_buffer + pos);
   }
 
-  //! Set qword at position `pos`.
+  //! Get QWORD at position `pos`.
   ASMJIT_INLINE uint64_t getQWordAt(size_t pos) const {
     ASMJIT_ASSERT(pos + 8 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint64_t*>(_buffer + pos);
   }
 
-  //! Set int32_t at position `pos`.
+  //! Get int32_t at position `pos`.
   ASMJIT_INLINE int32_t getInt32At(size_t pos) const {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const int32_t*>(_buffer + pos);
   }
 
-  //! Set uint32_t at position `pos`.
+  //! Get uint32_t at position `pos`.
   ASMJIT_INLINE uint32_t getUInt32At(size_t pos) const {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     return *reinterpret_cast<const uint32_t*>(_buffer + pos);
   }
 
-  //! Set byte at position `pos`.
+  //! Set BYTE at position `pos`.
   ASMJIT_INLINE void setByteAt(size_t pos, uint8_t x) {
     ASMJIT_ASSERT(pos + 1 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint8_t*>(_buffer + pos) = x;
   }
 
-  //! Set word at position `pos`.
+  //! Set WORD at position `pos`.
   ASMJIT_INLINE void setWordAt(size_t pos, uint16_t x) {
     ASMJIT_ASSERT(pos + 2 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint16_t*>(_buffer + pos) = x;
   }
 
-  //! Set dword at position `pos`.
+  //! Set DWORD at position `pos`.
   ASMJIT_INLINE void setDWordAt(size_t pos, uint32_t x) {
     ASMJIT_ASSERT(pos + 4 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint32_t*>(_buffer + pos) = x;
   }
 
-  //! Set qword at position `pos`.
+  //! Set QWORD at position `pos`.
   ASMJIT_INLINE void setQWordAt(size_t pos, uint64_t x) {
     ASMJIT_ASSERT(pos + 8 <= (size_t)(_end - _buffer));
     *reinterpret_cast<uint64_t*>(_buffer + pos) = x;
@@ -291,14 +336,14 @@ struct BaseAssembler : public CodeGen {
     return static_cast<size_t>(label.getId()) < _labels.getLength();
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Get `LabelData` by `label`.
   ASMJIT_INLINE LabelData* getLabelData(const Label& label) const {
     return getLabelDataById(label.getId());
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Get `LabelData` by `id`.
   ASMJIT_INLINE LabelData* getLabelDataById(uint32_t id) const {
@@ -308,17 +353,17 @@ struct BaseAssembler : public CodeGen {
     return const_cast<LabelData*>(&_labels[id]);
   }
 
-  //! @internal
+  //! \internal
   //!
   //! Register labels for other code generator, i.e. `Compiler`.
   ASMJIT_API Error _registerIndexedLabels(size_t index);
 
-  //! @internal
+  //! \internal
   //!
   //! Create and initialize a new `Label`.
   ASMJIT_API Error _newLabel(Label* dst);
 
-  //! @internal
+  //! \internal
   //!
   //! New LabelLink instance.
   ASMJIT_API LabelLink* _newLabelLink();
@@ -335,7 +380,7 @@ struct BaseAssembler : public CodeGen {
 
   //! Bind label to the current offset.
   //!
-  //! @note Label can be bound only once!
+  //! \note Label can be bound only once!
   ASMJIT_INLINE void bind(const Label& label) {
     _bind(label);
   }
@@ -356,12 +401,14 @@ struct BaseAssembler : public CodeGen {
   //! Typical usage of this is to align labels at start of the inner loops.
   //!
   //! Inserts `nop()` instructions or CPU optimized NOPs.
-  ASMJIT_INLINE Error align(uint32_t m) {
-    return _align(m);
+  ASMJIT_INLINE Error align(uint32_t mode, uint32_t offset) {
+    return _align(mode, offset);
   }
 
-  //! Align target buffer to `m` bytes (virtual).
-  virtual Error _align(uint32_t m) = 0;
+  //! \internal
+  //!
+  //! Align target buffer to `m` bytes.
+  virtual Error _align(uint32_t mode, uint32_t offset) = 0;
 
   // --------------------------------------------------------------------------
   // [Reloc]
@@ -369,25 +416,25 @@ struct BaseAssembler : public CodeGen {
 
   //! Simplifed version of `relocCode()` method designed for JIT.
   //!
-  //! @overload
+  //! \overload
   ASMJIT_INLINE size_t relocCode(void* dst) const {
     return _relocCode(dst, static_cast<Ptr>((uintptr_t)dst));
   }
 
   //! Relocate code to a given address `dst`.
   //!
-  //! @param dst Where the relocated code should me stored. The pointer can be
-  //! address returned by virtual memory allocator or your own address if you
-  //! want only to store the code for later reuse (or load, etc...).
-  //! @param addressBase Base address used for relocation. When using JIT code
-  //! generation, this will be the same as `dst`, only casted to system
-  //! integer type. But when generating code for remote process then the value
-  //! can be different.
+  //! \param dst Refers the location where the relocated code should be copied.
+  //! The pointer can be address returned by virtual memory allocator or any
+  //! custom address.
   //!
-  //! @retval The bytes used. Code-generator can create trampolines which are
-  //! used when calling other functions inside the JIT code. However, these
-  //! trampolines can be unused so the relocCode() returns the exact size needed
-  //! for the function.
+  //! \param base Base address used for relocation. `JitRuntime` always sets
+  //! `base` address to be the same as `dst`, but other runtimes do not have
+  //! to follow this rule.
+  //!
+  //! \retval The number bytes used. If the code generator reserved space for
+  //! possible trampolines, but these weren't generated, the number of bytes
+  //! used can be actually less than the expected worst case. Virtual memory
+  //! allocator can in such case return some memory back to the pool.
   //!
   //! A given buffer will be overwritten, to get number of bytes required use
   //! `getCodeSize()`.
@@ -395,7 +442,9 @@ struct BaseAssembler : public CodeGen {
     return _relocCode(dst, base);
   }
 
-  //! Reloc code (virtual).
+  //! \internal
+  //!
+  //! Reloc code.
   virtual size_t _relocCode(void* dst, Ptr base) const = 0;
 
   // --------------------------------------------------------------------------
@@ -410,24 +459,24 @@ struct BaseAssembler : public CodeGen {
 
   //! Emit an instruction.
   ASMJIT_API Error emit(uint32_t code);
-  //! @overload
+  //! \overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0);
-  //! @overload
+  //! \overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0, const Operand& o1);
-  //! @overload
+  //! \overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2);
-  //! @overload
+  //! \overload
   ASMJIT_INLINE Error emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) {
     return _emit(code, o0, o1, o2, o3);
   }
 
   //! Emit an instruction with integer immediate operand.
   ASMJIT_API Error emit(uint32_t code, int o0);
-  //! @overload
+  //! \overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0, int o1);
-  //! @overload
+  //! \overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0, const Operand& o1, int o2);
-  //! @overload
+  //! \overload
   ASMJIT_API Error emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3);
 
   //! Emit an instruction (virtual).
@@ -464,7 +513,7 @@ struct BaseAssembler : public CodeGen {
   PodVector<RelocData> _relocData;
 };
 
-//! @}
+//! \}
 
 // ============================================================================
 // [Defined-Later]

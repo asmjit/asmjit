@@ -17,14 +17,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::ConstPoolNode]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Zone-allocated constant-pool node.
 struct ConstPoolNode {
@@ -54,7 +54,7 @@ struct ConstPoolNode {
 // [asmjit::ConstPoolTree]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Zone-allocated constant-pool tree.
 struct ConstPoolTree {
@@ -184,7 +184,7 @@ struct ConstPoolTree {
 // [asmjit::ConstPoolGap]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Zone-allocated constant-pool gap.
 struct ConstPoolGap {
@@ -291,7 +291,7 @@ struct ConstPool {
   size_t _alignment;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

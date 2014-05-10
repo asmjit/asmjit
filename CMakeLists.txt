@@ -222,8 +222,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   cpuinfo.h
   cputicks.cpp
   cputicks.h
-  defs.cpp
-  defs.h
   error.cpp
   error.h
   func.cpp
@@ -234,6 +232,8 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   lock.h
   logger.cpp
   logger.h
+  operand.cpp
+  operand.h
   podlist.h
   podvector.cpp
   podvector.h
@@ -257,10 +257,14 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
   x86context_p.h
   x86cpuinfo.cpp
   x86cpuinfo.h
-  x86defs.cpp
-  x86defs.h
   x86func.cpp
   x86func.h
+  x86inst.cpp
+  x86inst.h
+  x86operand.cpp
+  x86operand.h
+  x86util.cpp
+  x86util.h
 )
 
 AsmJit_AddSource(ASMJIT_SRC asmjit/contrib

@@ -16,31 +16,30 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_cpu_info
-//! @{
+//! \addtogroup asmjit_base_general
+//! \{
 
 // ============================================================================
 // [asmjit::kCpuVendor]
 // ============================================================================
 
-//! Cpu vendor IDs.
+//! Cpu vendor ID.
 //!
-//! Cpu vendor IDs are specific for AsmJit library. Vendor ID is not directly
-//! read from cpuid result, instead it's based on CPU vendor string.
+//! Vendor IDs are specific to AsmJit library. During the library initialization
+//! AsmJit checks host CPU and tries to identify the vendor based on the CPUID
+//! calls. Some manufacturers changed their vendor strings and AsmJit is aware
+//! of that - it checks multiple combinations and decides which vendor ID should
+//! be used.
 ASMJIT_ENUM(kCpuVendor) {
-  //! Unknown CPU vendor.
-  kCpuVendorUnknown = 0,
+  //! No/Unknown vendor.
+  kCpuVendorNone = 0,
 
-  //! Intel CPU vendor.
+  //! Intel vendor.
   kCpuVendorIntel = 1,
-  //! AMD CPU vendor.
+  //! AMD vendor.
   kCpuVendorAmd = 2,
-  //! National Semiconductor CPU vendor (applies also to Cyrix processors).
-  kCpuVendorNSM = 3,
-  //! Transmeta CPU vendor.
-  kCpuVendorTransmeta = 4,
-  //! VIA CPU vendor.
-  kCpuVendorVia = 5
+  //! VIA vendor.
+  kCpuVendorVia = 3
 };
 
 // ============================================================================
@@ -51,7 +50,7 @@ ASMJIT_ENUM(kCpuVendor) {
 struct BaseCpuInfo {
   ASMJIT_NO_COPY(BaseCpuInfo)
 
-  //! @internal
+  //! \internal
   enum {
     kFeaturesPerUInt32 = static_cast<int>(sizeof(uint32_t)) * 8
   };
@@ -135,7 +134,7 @@ struct BaseCpuInfo {
   uint32_t _features[4];
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

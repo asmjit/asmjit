@@ -9,23 +9,21 @@
 #define _ASMJIT_BASE_PODVECTOR_H
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
 #include "../base/error.h"
-#include "../base/globals.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::PodVectorData]
 // ============================================================================
 
-//! @internal
+//! \internal
 struct PodVectorData {
   //! Get data.
   ASMJIT_INLINE void* getData() const {
@@ -42,7 +40,7 @@ struct PodVectorData {
 // [asmjit::PodVectorBase]
 // ============================================================================
 
-//! @internal
+//! \internal
 struct PodVectorBase {
   static ASMJIT_API const PodVectorData _nullData;
 
@@ -124,7 +122,7 @@ struct PodVector : PodVectorBase {
     return static_cast<T*>(_d->getData());
   }
 
-  //! @overload
+  //! \overload
   ASMJIT_INLINE const T* getData() const {
     return static_cast<const T*>(_d->getData());
   }
@@ -271,7 +269,7 @@ struct PodVector : PodVectorBase {
   }
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

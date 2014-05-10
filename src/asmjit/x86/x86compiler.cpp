@@ -78,7 +78,7 @@ static Error X86X64Compiler_emitConstPool(X86X64Compiler* self,
   if (label.getId() == kInvalidValue)
     return kErrorOk;
 
-  self->align(static_cast<uint32_t>(pool.getAlignment()));
+  self->align(kAlignData, static_cast<uint32_t>(pool.getAlignment()));
   self->bind(label);
 
   EmbedNode* embedNode = self->embed(NULL, static_cast<uint32_t>(pool.getSize()));
@@ -656,8 +656,8 @@ Error X86X64Compiler::serialize(BaseAssembler& assembler) {
   X86X64Context context(this);
   Error error = kErrorOk;
 
-  BaseNode* node = _firstNode;
-  BaseNode* start;
+  Node* node = _firstNode;
+  Node* start;
 
   // Find function and use the context to translate/emit.
   do {

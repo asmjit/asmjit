@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
   printf("  asmjit::LabelData              : %u\n", static_cast<uint32_t>(sizeof(LabelData)));
   printf("  asmjit::RelocData              : %u\n", static_cast<uint32_t>(sizeof(RelocData)));
   printf("\n");
-  printf("  asmjit::BaseNode               : %u\n", static_cast<uint32_t>(sizeof(BaseNode)));
+  printf("  asmjit::Node                   : %u\n", static_cast<uint32_t>(sizeof(Node)));
   printf("  asmjit::AlignNode              : %u\n", static_cast<uint32_t>(sizeof(AlignNode)));
   printf("  asmjit::CallNode               : %u\n", static_cast<uint32_t>(sizeof(CallNode)));
   printf("  asmjit::CommentNode            : %u\n", static_cast<uint32_t>(sizeof(CommentNode)));

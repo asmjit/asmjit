@@ -19,7 +19,6 @@
 #include "../base/vmem.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86cpuinfo.h"
-#include "../x86/x86defs.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -58,7 +57,7 @@ enum kVexVVVV {
   kVexVVVVMask = 0xF << kVexVVVVShift
 };
 
-//! @internal
+//! \internal
 //!
 //! Instruction 2-byte/3-byte opcode prefix definition.
 struct OpCodeMM {
@@ -66,7 +65,7 @@ struct OpCodeMM {
   uint8_t data[3];
 };
 
-//! @internal
+//! \internal
 //!
 //! Mandatory prefixes encoded in 'asmjit' opcode [66, F3, F2] and asmjit
 //! extensions
@@ -81,7 +80,7 @@ static const uint8_t x86OpCodePP[8] = {
   0x9B
 };
 
-//! @internal
+//! \internal
 //!
 //! Instruction 2-byte/3-byte opcode prefix data.
 static const OpCodeMM x86OpCodeMM[] = {
@@ -111,7 +110,7 @@ static const uint8_t x86OpCodePopSeg[8]  = { 0x00, 0x07, 0x00, 0x17, 0x1F, 0xA1,
 // [asmjit::X64TrampolineWriter]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! Trampoline writer.
 struct X64TrampolineWriter {
@@ -271,7 +270,7 @@ void X86X64Assembler::_bind(const Label& label) {
         if (IntUtil::isInt8(patchedValue))
           setByteAt(offset, static_cast<uint8_t>(patchedValue & 0xFF));
         else
-          setError(kErrorAssemblerIllegalShortJump);
+          setError(kErrorIllegalDisplacement);
       }
     }
 
@@ -352,113 +351,108 @@ Error X86X64Assembler::embedLabel(const Label& op) {
 // [asmjit::x86x64::Assembler - Align]
 // ============================================================================
 
-Error X86X64Assembler::_align(uint32_t m) {
+Error X86X64Assembler::_align(uint32_t mode, uint32_t offset) {
   if (_logger) {
     _logger->logFormat(kLoggerStyleDirective,
-      "%s.align %u\n", _logger->getIndentation(), static_cast<unsigned int>(m));
+      "%s.align %u\n", _logger->getIndentation(), static_cast<unsigned int>(offset));
   }
 
-  if (m <= 1 || !IntUtil::isPowerOf2(m) || m > 64)
+  if (offset <= 1 || !IntUtil::isPowerOf2(offset) || offset > 64)
     return setError(kErrorInvalidArgument);
 
-  uint32_t i = static_cast<uint32_t>(IntUtil::deltaTo<size_t>(getOffset(), m));
+  uint32_t i = static_cast<uint32_t>(IntUtil::deltaTo<size_t>(getOffset(), offset));
   if (i == 0)
     return kErrorOk;
 
   if (getRemainingSpace() < i)
     ASMJIT_PROPAGATE_ERROR(_grow(i));
+  
   uint8_t* cursor = getCursor();
+  uint8_t alignPattern = 0xCC;
 
-  if (IntUtil::hasBit(_features, kCodeGenOptimizedAlign)) {
-    const CpuInfo* cpuInfo = static_cast<const CpuInfo*>(getRuntime()->getCpuInfo());
+  if (mode == kAlignCode) {
+    alignPattern = 0x90;
 
-    // NOPs optimized for Intel:
-    //   Intel 64 and IA-32 Architectures Software Developer's Manual
-    //   - Volume 2B
-    //   - Instruction Set Reference N-Z
-    //     - NOP
+    if (IntUtil::hasBit(_features, kCodeGenOptimizedAlign)) {
+      const CpuInfo* cpuInfo = static_cast<const CpuInfo*>(getRuntime()->getCpuInfo());
 
-    // NOPs optimized for AMD:
-    //   Software Optimization Guide for AMD Family 10h Processors (Quad-Core)
-    //   - 4.13 - Code Padding with Operand-Size Override and Multibyte NOP
+      // NOPs optimized for Intel:
+      //   Intel 64 and IA-32 Architectures Software Developer's Manual
+      //   - Volume 2B
+      //   - Instruction Set Reference N-Z
+      //     - NOP
 
-    // Intel and AMD.
-    static const uint8_t nop1[] = { 0x90 };
-    static const uint8_t nop2[] = { 0x66, 0x90 };
-    static const uint8_t nop3[] = { 0x0F, 0x1F, 0x00 };
-    static const uint8_t nop4[] = { 0x0F, 0x1F, 0x40, 0x00 };
-    static const uint8_t nop5[] = { 0x0F, 0x1F, 0x44, 0x00, 0x00 };
-    static const uint8_t nop6[] = { 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00 };
-    static const uint8_t nop7[] = { 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00 };
-    static const uint8_t nop8[] = { 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    static const uint8_t nop9[] = { 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+      // NOPs optimized for AMD:
+      //   Software Optimization Guide for AMD Family 10h Processors (Quad-Core)
+      //   - 4.13 - Code Padding with Operand-Size Override and Multibyte NOP
 
-    // AMD.
-    static const uint8_t nop10[] = { 0x66, 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    static const uint8_t nop11[] = { 0x66, 0x66, 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+      // Intel and AMD.
+      static const uint8_t nop1[] = { 0x90 };
+      static const uint8_t nop2[] = { 0x66, 0x90 };
+      static const uint8_t nop3[] = { 0x0F, 0x1F, 0x00 };
+      static const uint8_t nop4[] = { 0x0F, 0x1F, 0x40, 0x00 };
+      static const uint8_t nop5[] = { 0x0F, 0x1F, 0x44, 0x00, 0x00 };
+      static const uint8_t nop6[] = { 0x66, 0x0F, 0x1F, 0x44, 0x00, 0x00 };
+      static const uint8_t nop7[] = { 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00 };
+      static const uint8_t nop8[] = { 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+      static const uint8_t nop9[] = { 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-    const uint8_t* p;
-    uint32_t n;
+      // AMD.
+      static const uint8_t nop10[] = { 0x66, 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+      static const uint8_t nop11[] = { 0x66, 0x66, 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-    if (cpuInfo->getVendorId() == kCpuVendorIntel && ((cpuInfo->getFamily() & 0x0F) == 0x06 || (cpuInfo->getFamily() & 0x0F) == 0x0F)) {
-      do {
-        switch (i) {
-          case  1: p = nop1; n = 1; break;
-          case  2: p = nop2; n = 2; break;
-          case  3: p = nop3; n = 3; break;
-          case  4: p = nop4; n = 4; break;
-          case  5: p = nop5; n = 5; break;
-          case  6: p = nop6; n = 6; break;
-          case  7: p = nop7; n = 7; break;
-          case  8: p = nop8; n = 8; break;
-          default: p = nop9; n = 9; break;
-        }
+      const uint8_t* p;
+      uint32_t n;
 
-        i -= n;
+      if (cpuInfo->getVendorId() == kCpuVendorIntel && (
+          (cpuInfo->getFamily() & 0x0F) == 0x06 ||
+          (cpuInfo->getFamily() & 0x0F) == 0x0F)) {
         do {
-          EMIT_BYTE(*p++);
-        } while (--n);
-      } while (i);
-    }
-    else if (cpuInfo->getVendorId() == kCpuVendorAmd && cpuInfo->getFamily() >= 0x0F) {
-      do {
-        switch (i) {
-          case  1: p = nop1 ; n =  1; break;
-          case  2: p = nop2 ; n =  2; break;
-          case  3: p = nop3 ; n =  3; break;
-          case  4: p = nop4 ; n =  4; break;
-          case  5: p = nop5 ; n =  5; break;
-          case  6: p = nop6 ; n =  6; break;
-          case  7: p = nop7 ; n =  7; break;
-          case  8: p = nop8 ; n =  8; break;
-          case  9: p = nop9 ; n =  9; break;
-          case 10: p = nop10; n = 10; break;
-          default: p = nop11; n = 11; break;
-        }
+          switch (i) {
+            case  1: p = nop1; n = 1; break;
+            case  2: p = nop2; n = 2; break;
+            case  3: p = nop3; n = 3; break;
+            case  4: p = nop4; n = 4; break;
+            case  5: p = nop5; n = 5; break;
+            case  6: p = nop6; n = 6; break;
+            case  7: p = nop7; n = 7; break;
+            case  8: p = nop8; n = 8; break;
+            default: p = nop9; n = 9; break;
+          }
 
-        i -= n;
+          i -= n;
+          do {
+            EMIT_BYTE(*p++);
+          } while (--n);
+        } while (i);
+      }
+      else if (cpuInfo->getVendorId() == kCpuVendorAmd && cpuInfo->getFamily() >= 0x0F) {
         do {
-          EMIT_BYTE(*p++);
-        } while (--n);
-      } while (i);
-    }
+          switch (i) {
+            case  1: p = nop1 ; n =  1; break;
+            case  2: p = nop2 ; n =  2; break;
+            case  3: p = nop3 ; n =  3; break;
+            case  4: p = nop4 ; n =  4; break;
+            case  5: p = nop5 ; n =  5; break;
+            case  6: p = nop6 ; n =  6; break;
+            case  7: p = nop7 ; n =  7; break;
+            case  8: p = nop8 ; n =  8; break;
+            case  9: p = nop9 ; n =  9; break;
+            case 10: p = nop10; n = 10; break;
+            default: p = nop11; n = 11; break;
+          }
 
-    // Legacy NOPs, 0x90 with 0x66 prefix.
-    if (getArch() == kArchX86) {
-      while (i) {
-        switch (i) {
-          default: EMIT_BYTE(0x66); i--;
-          case  3: EMIT_BYTE(0x66); i--;
-          case  2: EMIT_BYTE(0x66); i--;
-          case  1: EMIT_BYTE(0x90); i--;
-        }
+          i -= n;
+          do {
+            EMIT_BYTE(*p++);
+          } while (--n);
+        } while (i);
       }
     }
   }
 
-  // Legacy NOPs, only 0x90.
   while (i) {
-    EMIT_BYTE(0x90);
+    EMIT_BYTE(alignPattern);
     i--;
   }
 
@@ -898,7 +892,7 @@ static ASMJIT_INLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) {
   return (s << 6) + (i << 3) + b;
 }
 
-//! @internal
+//! \internal
 static const Operand::VRegOp x86PatchedHiRegs[4] = {
   // --------------+---+--------------------------------+--------------+------+
   // Operand       | S | Register Code                  | OperandId    |Unused|
@@ -1006,7 +1000,7 @@ _Prepare:
 
     // Check if one or more register operand is one of BPL, SPL, SIL, DIL and
     // force a REX prefix in such case.
-    if (x86IsGpbRegOp(o0)) {
+    if (X86Util::isGpbRegOp(*o0)) {
       uint32_t index = static_cast<const X86Reg*>(o0)->getRegIndex();
       if (static_cast<const X86Reg*>(o0)->isGpbLo()) {
         opX |= (index >= 4) << kRexShift;
@@ -1017,7 +1011,7 @@ _Prepare:
       }
     }
 
-    if (x86IsGpbRegOp(o1)) {
+    if (X86Util::isGpbRegOp(*o1)) {
       uint32_t index = static_cast<const X86Reg*>(o1)->getRegIndex();
       if (static_cast<const X86Reg*>(o1)->isGpbLo()) {
         opX |= (index >= 4) << kRexShift;
@@ -1505,6 +1499,37 @@ _Prepare:
             relocId = -1;
             goto _EmitDisplacement;
           }
+        }
+      }
+      break;
+
+    case kInstGroupX86Jecxz:
+      if (encoded == ENC_OPS(Reg, Label, None)) {
+        ASMJIT_ASSERT(static_cast<const X86Reg*>(o0)->getRegIndex() == kRegIndexCx);
+
+        if ((Arch == kArchX86 && o0->getSize() == 2) ||
+             Arch == kArchX64 && o0->getSize() == 4) {
+          EMIT_BYTE(0x67);
+        }
+
+        EMIT_BYTE(0xE3);
+        label = self->getLabelDataById(static_cast<const Label*>(o1)->getId());
+
+        if (label->offset != -1) {
+          // Bound label.
+          intptr_t offs = label->offset - (intptr_t)(cursor - self->_buffer) - 1;
+          if (!IntUtil::isInt8(offs))
+            goto _IllegalInst;
+
+          EMIT_BYTE(offs);
+          goto _EmitDone;
+        }
+        else {
+          // Non-bound label.
+          dispOffset = -1;
+          dispSize = 1;
+          relocId = -1;
+          goto _EmitDisplacement;
         }
       }
       break;
@@ -3371,19 +3396,25 @@ _EmitAvxRvm:
   // --------------------------------------------------------------------------
 
 _IllegalInst:
-  self->setError(kErrorAssemblerIllegalInst);
+  self->setError(kErrorIllegalInst);
 #if defined(ASMJIT_DEBUG)
   assertIllegal = true;
 #endif // ASMJIT_DEBUG
   goto _EmitDone;
 
 _IllegalAddr:
-  self->setError(kErrorAssemblerIllegalAddr);
+  self->setError(kErrorIllegalAddresing);
 #if defined(ASMJIT_DEBUG)
   assertIllegal = true;
 #endif // ASMJIT_DEBUG
   goto _EmitDone;
 
+_IllegalDisp:
+  self->setError(kErrorIllegalDisplacement);
+#if defined(ASMJIT_DEBUG)
+  assertIllegal = true;
+#endif // ASMJIT_DEBUG
+  goto _EmitDone;
 
   // --------------------------------------------------------------------------
   // [Emit - X86]
@@ -3623,7 +3654,7 @@ _EmitSib:
 
       // Indexing is invalid.
       if (mIndex < kInvalidReg)
-        goto _IllegalAddr;
+        goto _IllegalDisp;
 
       EMIT_BYTE(x86EncodeMod(0, opReg, 5));
       dispOffset -= (4 + imLen);
@@ -4067,7 +4098,7 @@ _EmitDone:
 
 _UnknownInst:
   self->_comment = NULL;
-  return self->setError(kErrorAssemblerUnknownInst);
+  return self->setError(kErrorUnknownInst);
 
 _GrowBuffer:
   ASMJIT_PROPAGATE_ERROR(self->_grow(16));

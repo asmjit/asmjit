@@ -9,7 +9,6 @@
 #define _ASMJIT_BASE_LOGGER_H
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
 #include "../base/string.h"
 
 // [Dependencies - C]
@@ -20,8 +19,8 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_logging_and_errors
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::kLoggerOption]
@@ -156,13 +155,11 @@ struct FileLogger : public Logger {
 
   //! Get `FILE*` stream.
   //!
-  //! @note Return value can be `NULL`.
+  //! \note Return value can be `NULL`.
   ASMJIT_INLINE FILE* getStream() const { return _stream; }
 
-  //! Set `FILE*` stream.
-  //!
-  //! @param stream `FILE` stream where to log output, can be set to `NULL` to
-  //! disable logging.
+  //! Set `FILE*` stream, can be set to `NULL` to disable logging, although
+  //! the `CodeGen` will still call `logString` even if there is no stream.
   ASMJIT_API void setStream(FILE* stream);
 
   // --------------------------------------------------------------------------
@@ -224,7 +221,7 @@ struct StringLogger : public Logger {
   StringBuilder _stringBuilder;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

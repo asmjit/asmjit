@@ -88,7 +88,7 @@ static void blend(asmjit::host::Compiler& c) {
   c.psrlw(a0, 8);
   c.punpcklbw(x0, cZero);
 
-  c.pshuflw(a0, a0, mm_shuffle(1, 1, 1, 1));
+  c.pshuflw(a0, a0, X86Util::mmShuffle(1, 1, 1, 1));
   c.punpcklbw(y0, cZero);
 
   c.pmullw(x0, a0);
@@ -136,8 +136,8 @@ static void blend(asmjit::host::Compiler& c) {
   c.punpckhbw(x1, cZero);
   c.punpckhwd(a1, a1);
 
-  c.pshufd(a0, a0, mm_shuffle(3, 3, 1, 1));
-  c.pshufd(a1, a1, mm_shuffle(3, 3, 1, 1));
+  c.pshufd(a0, a0, X86Util::mmShuffle(3, 3, 1, 1));
+  c.pshufd(a1, a1, X86Util::mmShuffle(3, 3, 1, 1));
 
   c.pmullw(x0, a0);
   c.pmullw(x1, a1);
@@ -166,7 +166,7 @@ static void blend(asmjit::host::Compiler& c) {
   c.endFunc();
 
   // Data.
-  c.align(16);
+  c.align(kAlignData, 16);
   c.bind(L_Data);
   c.dxmm(XmmData::fromSw(0x0080));
   c.dxmm(XmmData::fromSw(0x0101));

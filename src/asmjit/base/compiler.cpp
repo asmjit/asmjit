@@ -101,13 +101,13 @@ void BaseCompiler::_purge() {
 // [asmjit::BaseCompiler - Node Management]
 // ============================================================================
 
-BaseNode* BaseCompiler::setCursor(BaseNode* node) {
-  BaseNode* old = _cursor;
+Node* BaseCompiler::setCursor(Node* node) {
+  Node* old = _cursor;
   _cursor = node;
   return old;
 }
 
-BaseNode* BaseCompiler::addNode(BaseNode* node) {
+Node* BaseCompiler::addNode(Node* node) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
@@ -124,8 +124,8 @@ BaseNode* BaseCompiler::addNode(BaseNode* node) {
     }
   }
   else {
-    BaseNode* prev = _cursor;
-    BaseNode* next = _cursor->_next;
+    Node* prev = _cursor;
+    Node* next = _cursor->_next;
 
     node->_prev = prev;
     node->_next = next;
@@ -141,14 +141,14 @@ BaseNode* BaseCompiler::addNode(BaseNode* node) {
   return node;
 }
 
-BaseNode* BaseCompiler::addNodeBefore(BaseNode* node, BaseNode* ref) {
+Node* BaseCompiler::addNodeBefore(Node* node, Node* ref) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
   ASMJIT_ASSERT(ref != NULL);
 
-  BaseNode* prev = ref->_prev;
-  BaseNode* next = ref;
+  Node* prev = ref->_prev;
+  Node* next = ref;
 
   node->_prev = prev;
   node->_next = next;
@@ -162,14 +162,14 @@ BaseNode* BaseCompiler::addNodeBefore(BaseNode* node, BaseNode* ref) {
   return node;
 }
 
-BaseNode* BaseCompiler::addNodeAfter(BaseNode* node, BaseNode* ref) {
+Node* BaseCompiler::addNodeAfter(Node* node, Node* ref) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
   ASMJIT_ASSERT(ref != NULL);
 
-  BaseNode* prev = ref;
-  BaseNode* next = ref->_next;
+  Node* prev = ref;
+  Node* next = ref->_next;
 
   node->_prev = prev;
   node->_next = next;
@@ -183,7 +183,7 @@ BaseNode* BaseCompiler::addNodeAfter(BaseNode* node, BaseNode* ref) {
   return node;
 }
 
-static ASMJIT_INLINE void BaseCompiler_nodeRemoved(BaseCompiler* self, BaseNode* node_) {
+static ASMJIT_INLINE void BaseCompiler_nodeRemoved(BaseCompiler* self, Node* node_) {
   if (node_->isJmpOrJcc()) {
     JumpNode* node = static_cast<JumpNode*>(node_);
     TargetNode* target = node->getTarget();
@@ -209,9 +209,9 @@ static ASMJIT_INLINE void BaseCompiler_nodeRemoved(BaseCompiler* self, BaseNode*
   }
 }
 
-BaseNode* BaseCompiler::removeNode(BaseNode* node) {
-  BaseNode* prev = node->_prev;
-  BaseNode* next = node->_next;
+Node* BaseCompiler::removeNode(Node* node) {
+  Node* prev = node->_prev;
+  Node* next = node->_next;
 
   if (_firstNode == node)
     _firstNode = next;
@@ -233,14 +233,14 @@ BaseNode* BaseCompiler::removeNode(BaseNode* node) {
   return node;
 }
 
-void BaseCompiler::removeNodes(BaseNode* first, BaseNode* last) {
+void BaseCompiler::removeNodes(Node* first, Node* last) {
   if (first == last) {
     removeNode(first);
     return;
   }
 
-  BaseNode* prev = first->_prev;
-  BaseNode* next = last->_next;
+  Node* prev = first->_prev;
+  Node* next = last->_next;
 
   if (_firstNode == first)
     _firstNode = next;
@@ -252,9 +252,9 @@ void BaseCompiler::removeNodes(BaseNode* first, BaseNode* last) {
   else
     next->_prev = prev;
 
-  BaseNode* node = first;
+  Node* node = first;
   for (;;) {
-    BaseNode* next = node->getNext();
+    Node* next = node->getNext();
     ASMJIT_ASSERT(next != NULL);
 
     node->_prev = NULL;
@@ -274,8 +274,8 @@ void BaseCompiler::removeNodes(BaseNode* first, BaseNode* last) {
 // [asmjit::BaseCompiler - Align]
 // ============================================================================
 
-AlignNode* BaseCompiler::newAlign(uint32_t m) {
-  AlignNode* node = newNode<AlignNode>(m);
+AlignNode* BaseCompiler::newAlign(uint32_t mode, uint32_t offset) {
+  AlignNode* node = newNode<AlignNode>(mode, offset);
   if (node == NULL)
     goto _NoMemory;
   return node;
@@ -285,8 +285,8 @@ _NoMemory:
   return NULL;
 }
 
-AlignNode* BaseCompiler::addAlign(uint32_t m) {
-  AlignNode* node = newAlign(m);
+AlignNode* BaseCompiler::addAlign(uint32_t mode, uint32_t offset) {
+  AlignNode* node = newAlign(mode, offset);
   if (node == NULL)
     return NULL;
   return static_cast<AlignNode*>(addNode(node));

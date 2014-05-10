@@ -10,7 +10,6 @@
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
 #include "../base/cpuinfo.h"
-#include "../base/defs.h"
 #include "../base/error.h"
 #include "../base/runtime.h"
 
@@ -77,7 +76,7 @@ Error JitRuntime::add(void** dst, BaseAssembler* assembler) {
 
   if (codeSize == 0) {
     *dst = NULL;
-    return kErrorCompilerNoFunc;
+    return kErrorInvalidFunction;
   }
 
   void* p = _memMgr.alloc(codeSize, getAllocType());
@@ -96,11 +95,25 @@ Error JitRuntime::add(void** dst, BaseAssembler* assembler) {
 
   // Return the code.
   *dst = p;
+
+  flush(p, relocSize);
   return kErrorOk;
 }
 
 Error JitRuntime::release(void* p) {
   return _memMgr.release(p);
+}
+
+void JitRuntime::flush(void* p, size_t size) {
+  // Only useful on non-x86 architectures.
+#if !defined(ASMJIT_HOST_X86) && !defined(ASMJIT_HOST_X64)
+
+  // Windows has built-in support in kernel32.dll.
+#if defined(ASMJIT_OS_WINDOWS)
+  ::FlushInstructionCache(_memMgr.getProcessHandle(), p, size);
+#endif // ASMJIT_OS_WINDOWS
+
+#endif // !ASMJIT_HOST_X86 && !ASMJIT_HOST_X64
 }
 
 } // asmjit namespace

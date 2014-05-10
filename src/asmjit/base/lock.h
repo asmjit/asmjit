@@ -11,11 +11,6 @@
 // [Dependencies - AsmJit]
 #include "../build.h"
 
-// [Dependencies - Windows]
-#if defined(ASMJIT_OS_WINDOWS)
-# include <windows.h>
-#endif // ASMJIT_OS_WINDOWS
-
 // [Dependencies - Posix]
 #if defined(ASMJIT_OS_POSIX)
 # include <pthread.h>
@@ -26,8 +21,8 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::Lock]
@@ -80,7 +75,7 @@ struct Lock {
 
   //! Get handle.
   ASMJIT_INLINE Handle& getHandle() { return _handle; }
-  //! @overload
+  //! \overload
   ASMJIT_INLINE const Handle& getHandle() const { return _handle; }
 
   // --------------------------------------------------------------------------
@@ -95,7 +90,7 @@ struct Lock {
 // [asmjit::AutoLock]
 // ============================================================================
 
-//! Scope auto locker.
+//! Scoped lock.
 struct AutoLock {
   ASMJIT_NO_COPY(AutoLock)
 
@@ -121,7 +116,7 @@ struct AutoLock {
   Lock& _target;
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

@@ -8,7 +8,6 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
 #include "../base/intutil.h"
 #include "../base/zone.h"
 

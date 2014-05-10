@@ -20,14 +20,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::IntTraits]
 // ============================================================================
 
-//! @internal
+//! \internal
 template<typename T>
 struct IntTraits {
   enum {
@@ -53,13 +53,13 @@ struct IntUtil {
   // [Float <-> Int]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   union Float {
     int32_t i;
     float f;
   };
 
-  //! @internal
+  //! \internal
   union Double {
     int64_t i;
     double d;
@@ -144,7 +144,7 @@ struct IntUtil {
   // [AsmJit - IsInt/IsUInt]
   // --------------------------------------------------------------------------
 
-  //! Get whether the given integer `x` can be casted to a signed 8-bit integer.
+  //! Get whether the given integer `x` can be casted to 8-bit signed integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt8(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -153,7 +153,7 @@ struct IntUtil {
       return x <= T(127);
   }
 
-  //! Get whether the given integer `x` can be casted to an unsigned 8-bit integer.
+  //! Get whether the given integer `x` can be casted to 8-bit unsigned integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt8(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -162,7 +162,7 @@ struct IntUtil {
       return sizeof(T) <= sizeof(uint8_t) ? true : x <= T(255);
   }
 
-  //! Get whether the given integer `x` can be casted to a signed 16-bit integer.
+  //! Get whether the given integer `x` can be casted to 16-bit signed integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt16(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -171,7 +171,7 @@ struct IntUtil {
       return x >= T(0) && (sizeof(T) <= sizeof(int16_t) ? true : x <= T(32767));
   }
 
-  //! Get whether the given integer `x` can be casted to an unsigned 16-bit integer.
+  //! Get whether the given integer `x` can be casted to 16-bit unsigned integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt16(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -180,7 +180,7 @@ struct IntUtil {
       return sizeof(T) <= sizeof(uint16_t) ? true : x <= T(65535);
   }
 
-  //! Get whether the given integer `x` can be casted to a signed 32-bit integer.
+  //! Get whether the given integer `x` can be casted to 32-bit signed integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt32(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -189,7 +189,7 @@ struct IntUtil {
       return x >= T(0) && (sizeof(T) <= sizeof(int32_t) ? true : x <= T(2147483647));
   }
 
-  //! Get whether the given integer `x` can be casted to an unsigned 32-bit integer.
+  //! Get whether the given integer `x` can be casted to 32-bit unsigned integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt32(T x) {
     if (IntTraits<T>::kIsSigned)
@@ -315,7 +315,7 @@ struct IntUtil {
   // [AsmJit - FindFirstBit]
   // --------------------------------------------------------------------------
 
-  //! @internal
+  //! \internal
   static ASMJIT_INLINE uint32_t findFirstBitSlow(uint32_t mask) {
     // This is a reference (slow) implementation of findFirstBit(), used when
     // we don't have compiler support for this task. The implementation speed
@@ -716,7 +716,7 @@ union UInt64 {
   };
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

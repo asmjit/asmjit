@@ -268,6 +268,87 @@ static void opcode(asmjit::host::Assembler& a) {
   a.xor_(intptr_gp0, gp1);
   a.xor_(intptr_gp0, 0);
 
+  // Label...Jcc/Jecxz/Jmp.
+  {
+    a.nop();
+
+    Label L(a);
+    a.bind(L);
+
+    a.ja(L);
+    a.jae(L);
+    a.jb(L);
+    a.jbe(L);
+    a.jc(L);
+    a.je(L);
+    a.jg(L);
+    a.jge(L);
+    a.jl(L);
+    a.jle(L);
+    a.jna(L);
+    a.jnae(L);
+    a.jnb(L);
+    a.jnbe(L);
+    a.jnc(L);
+    a.jne(L);
+    a.jng(L);
+    a.jnge(L);
+    a.jnl(L);
+    a.jnle(L);
+    a.jno(L);
+    a.jnp(L);
+    a.jns(L);
+    a.jnz(L);
+    a.jo(L);
+    a.jp(L);
+    a.jpe(L);
+    a.jpo(L);
+    a.js(L);
+    a.jz(L);
+    a.jecxz(ecx, L);
+    a.jmp(L);
+  }
+
+  // Jcc/Jecxz/Jmp...Label.
+  {
+    a.nop();
+
+    Label L(a);
+    a.ja(L);
+    a.jae(L);
+    a.jb(L);
+    a.jbe(L);
+    a.jc(L);
+    a.je(L);
+    a.jg(L);
+    a.jge(L);
+    a.jl(L);
+    a.jle(L);
+    a.jna(L);
+    a.jnae(L);
+    a.jnb(L);
+    a.jnbe(L);
+    a.jnc(L);
+    a.jne(L);
+    a.jng(L);
+    a.jnge(L);
+    a.jnl(L);
+    a.jnle(L);
+    a.jno(L);
+    a.jnp(L);
+    a.jns(L);
+    a.jnz(L);
+    a.jo(L);
+    a.jp(L);
+    a.jpe(L);
+    a.jpo(L);
+    a.js(L);
+    a.jz(L);
+    a.jecxz(ecx, L);
+    a.jmp(L);
+    a.bind(L);
+  }
+
   // Fpu.
   a.nop();
 

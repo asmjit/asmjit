@@ -10,7 +10,6 @@
 
 // [Dependencies - AsmJit]
 #include "../base/cpuinfo.h"
-#include "../base/defs.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -18,14 +17,14 @@
 namespace asmjit {
 namespace x86x64 {
 
-//! @addtogroup asmjit_x86x64_cpu_info
-//! @{
-
 // ============================================================================
 // [Forward Declarations]
 // ============================================================================
 
 struct CpuInfo;
+
+//! \addtogroup asmjit_x86x64_general
+//! \{
 
 // ============================================================================
 // [asmjit::x86x64::kCpuFeature]
@@ -221,7 +220,7 @@ struct CpuInfo : public BaseCpuInfo {
   uint32_t _maxLogicalProcessors;
 };
 
-//! @}
+//! \}
 
 } // x86x64 namespace
 } // asmjit namespace

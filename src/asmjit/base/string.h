@@ -9,7 +9,6 @@
 #define _ASMJIT_BASE_STRING_H
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
 #include "../base/globals.h"
 
 // [Dependencies - C]
@@ -20,14 +19,14 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::kStringOp]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! String operation.
 ASMJIT_ENUM(kStringOp) {
@@ -41,7 +40,7 @@ ASMJIT_ENUM(kStringOp) {
 // [asmjit::kStringFormat]
 // ============================================================================
 
-//! @internal
+//! \internal
 //!
 //! String format flags.
 ASMJIT_ENUM(kStringFormat) {
@@ -55,8 +54,6 @@ ASMJIT_ENUM(kStringFormat) {
 // [asmjit::StringUtil]
 // ============================================================================
 
-//! @internal
-//!
 //! String utilities.
 struct StringUtil {
   static ASMJIT_INLINE size_t nlen(const char* s, size_t maxlen) {
@@ -72,8 +69,6 @@ struct StringUtil {
 // [asmjit::StringBuilder]
 // ============================================================================
 
-//! @internal
-//!
 //! String builder.
 //!
 //! String builder was designed to be able to build a string using append like
@@ -339,7 +334,7 @@ struct StringBuilder {
 // [asmjit::StringBuilderT]
 // ============================================================================
 
-//! @internal
+//! \internal
 template<size_t N>
 struct StringBuilderT : public StringBuilder {
   ASMJIT_NO_COPY(StringBuilderT<N>)
@@ -366,7 +361,7 @@ struct StringBuilderT : public StringBuilder {
     N + 1 + sizeof(intptr_t)) & ~static_cast<size_t>(sizeof(intptr_t) - 1)];
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

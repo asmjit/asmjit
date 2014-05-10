@@ -16,8 +16,8 @@
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_util
-//! @{
+//! \addtogroup asmjit_base_util
+//! \{
 
 // ============================================================================
 // [asmjit::CpuTicks]
@@ -29,7 +29,7 @@ struct CpuTicks {
   static ASMJIT_API uint32_t now();
 };
 
-//! @}
+//! \}
 
 } // asmjit namespace
 

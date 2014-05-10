@@ -9,23 +9,15 @@
 #define _ASMJIT_BASE_FUNC_H
 
 // [Dependencies - AsmJit]
-#include "../base/defs.h"
-#include "../base/globals.h"
+#include "../base/operand.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
 
 namespace asmjit {
 
-//! @addtogroup asmjit_base_codegen
-//! @{
-
-// ============================================================================
-// [Forward Declarations]
-// ============================================================================
-
-template<typename T>
-struct FnTypeId;
+//! \addtogroup asmjit_base_tree
+//! \{
 
 // ============================================================================
 // [asmjit::kFuncConv]
@@ -141,22 +133,13 @@ ASMJIT_ENUM(kFuncFlags) {
 ASMJIT_ENUM(kFuncDir) {
   //! Arguments are passed left to right.
   //!
-  //! This arguments direction is unusual to C programming, it's used by pascal
-  //! compilers and in some calling conventions by Borland compiler).
+  //! This arguments direction is unusual in C, however it's used in Pascal.
   kFuncDirLtr = 0,
+
   //! Arguments are passed right ro left
   //!
-  //! This is default argument direction in C programming.
+  //! This is the default argument direction in C.
   kFuncDirRtl = 1
-};
-
-// ============================================================================
-// [asmjit::kFuncStackInvalid]
-// ============================================================================
-
-enum {
-  //! Invalid stack offset in function or function parameter.
-  kFuncStackInvalid = -1
 };
 
 // ============================================================================
@@ -196,23 +179,17 @@ ASMJIT_ENUM(kFuncRet) {
 };
 
 // ============================================================================
-// [asmjit::FnTypeId]
+// [asmjit::kFuncStackInvalid]
 // ============================================================================
 
-//! @internal
-#define ASMJIT_DECLARE_TYPE_CORE(_PtrId_) \
-  template<typename T> \
-  struct TypeId { enum { kId = static_cast<int>(::asmjit::kVarTypeInvalid) }; }; \
-  \
-  template<typename T> \
-  struct TypeId<T*> { enum { kId = _PtrId_ }; }
+enum kFuncMisc {
+  //! Invalid stack offset in function or function parameter.
+  kFuncStackInvalid = -1
+};
 
-//! @internal
-//!
-//! Declare C/C++ type-id mapped to `kVarType`.
-#define ASMJIT_DECLARE_TYPE_ID(_T_, _Id_) \
-  template<> \
-  struct TypeId<_T_> { enum { kId = _Id_ }; }
+// ============================================================================
+// [asmjit::FnTypeId]
+// ============================================================================
 
 //! Function builder 'void' type.
 struct FnVoid {};
@@ -248,6 +225,20 @@ struct FnFloat {};
 struct FnDouble {};
 
 #if !defined(ASMJIT_DOCGEN)
+template<typename T>
+struct FnTypeId;
+
+#define ASMJIT_DECLARE_TYPE_CORE(_PtrId_) \
+  template<typename T> \
+  struct TypeId { enum { kId = static_cast<int>(::asmjit::kVarTypeInvalid) }; }; \
+  \
+  template<typename T> \
+  struct TypeId<T*> { enum { kId = _PtrId_ }; }
+
+#define ASMJIT_DECLARE_TYPE_ID(_T_, _Id_) \
+  template<> \
+  struct TypeId<_T_> { enum { kId = _Id_ }; }
+
 ASMJIT_DECLARE_TYPE_CORE(kVarTypeIntPtr);
 
 ASMJIT_DECLARE_TYPE_ID(void, kVarTypeInvalid);
@@ -398,7 +389,7 @@ struct FuncDecl {
   //!
   //! Direction should be always `kFuncDirRtl`.
   //!
-  //! @note This is related to used calling convention, it's not affected by
+  //! \note This is related to used calling convention, it's not affected by
   //! number of function arguments or their types.
   ASMJIT_INLINE uint32_t getDirection() const { return _direction; }
 
@@ -471,12 +462,12 @@ struct FuncDecl {
 
   //! Size of "Red Zone".
   //!
-  //! @note Used by AMD64-ABI (128 bytes).
+  //! \note Used by AMD64-ABI (128 bytes).
   uint16_t _redZoneSize;
 
   //! Size of "Spill Zone".
   //!
-  //! @note Used by WIN64-ABI (32 bytes).
+  //! \note Used by WIN64-ABI (32 bytes).
   uint16_t _spillZoneSize;
 
   //! Function arguments (including HI arguments) mapped to physical
@@ -542,6 +533,7 @@ struct FuncBuilderX : public FuncPrototype {
   uint32_t _builderArgList[kFuncArgCount];
 };
 
+//! \internal
 #define _TID(_T_) TypeId<_T_>::kId
 
 //! Function builder (no args).
@@ -644,7 +636,7 @@ struct FuncBuilder10 : public FuncPrototype {
 
 #undef _TID
 
-//! @}
+//! \}
 
 } // asmjit namespace
 
