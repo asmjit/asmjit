@@ -6,7 +6,7 @@ Complete x86/x64 JIT and Remote Assembler for C++.
 Official Repository
 -------------------
 
-https://github.com/kobalicekp/asmjit
+https://github.com/kobalicek/asmjit
 
 Support the Project
 -------------------
