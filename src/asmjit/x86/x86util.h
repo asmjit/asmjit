@@ -280,14 +280,16 @@ struct RegMask {
   // --------------------------------------------------------------------------
 
   union {
-    //! Gp mask (16-bit).
-    uint16_t _gp;
-    //! Fp mask (8-bit).
-    uint8_t _fp;
-    //! Mm mask (8-bit).
-    uint8_t _mm;
-    //! Xmm/Ymm/Zmm mask (32-bit).
-    uint32_t _xyz;
+    struct {
+      //! Gp mask (16-bit).
+      uint16_t _gp;
+      //! Fp mask (8-bit).
+      uint8_t _fp;
+      //! Mm mask (8-bit).
+      uint8_t _mm;
+      //! Xmm/Ymm/Zmm mask (32-bit).
+      uint32_t _xyz;
+    };
 
     //! All masks as 64-bit integer.
     UInt64 _packed;
