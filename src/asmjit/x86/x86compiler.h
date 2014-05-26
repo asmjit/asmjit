@@ -50,24 +50,16 @@ namespace x86x64 {
     return emit(_Code_, o0); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE InstNode* _Inst_(int64_t o0) { \
-    return emit(_Code_, Imm(o0)); \
-  }
-
-#define INST_1i_(_Inst_, _Code_, _Op0_, _Cond_) \
-  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0); \
-  } \
-  /*! \overload */ \
-  ASMJIT_INLINE InstNode* _Inst_(int o0) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0); \
+  ASMJIT_INLINE InstNode* _Inst_(unsigned int o0) { \
+    return emit(_Code_, static_cast<uint64_t>(o0)); \
   } \
   /*! \overload */ \
   ASMJIT_INLINE InstNode* _Inst_(int64_t o0) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, Imm(o0)); \
+    return emit(_Code_, static_cast<uint64_t>(o0)); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(uint64_t o0) { \
+    return emit(_Code_, o0); \
   }
 
 #define INST_1cc(_Inst_, _Code_, _Translate_, _Op0_) \
@@ -126,24 +118,16 @@ namespace x86x64 {
     return emit(_Code_, o0, o1); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int64_t o1) { \
-    return emit(_Code_, o0, Imm(o1)); \
-  }
-
-#define INST_2i_(_Inst_, _Code_, _Op0_, _Op1_, _Cond_) \
-  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1); \
-  } \
-  /*! \overload */ \
-  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int o1) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1); \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, unsigned int o1) { \
+    return emit(_Code_, o0, static_cast<uint64_t>(o1)); \
   } \
   /*! \overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int64_t o1) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, Imm(o1)); \
+    return emit(_Code_, o0, static_cast<uint64_t>(o1)); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, uint64_t o1) { \
+    return emit(_Code_, o0, o1); \
   }
 
 #define INST_2cc(_Inst_, _Code_, _Translate_, _Op0_, _Op1_) \
@@ -202,24 +186,16 @@ namespace x86x64 {
     return emit(_Code_, o0, o1, o2); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
-    return emit(_Code_, o0, o1, Imm(o2)); \
-  }
-
-#define INST_3i_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Cond_) \
-  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1, o2); \
-  } \
-  /*! \overload */ \
-  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1, o2); \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) { \
+    return emit(_Code_, o0, o1, static_cast<uint64_t>(o2)); \
   } \
   /*! \overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1, Imm(o2)); \
+    return emit(_Code_, o0, o1, static_cast<uint64_t>(o2)); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) { \
+    return emit(_Code_, o0, o1, o2); \
   }
 
 // ============================================================================
@@ -1286,9 +1262,15 @@ struct X86X64Compiler : public BaseCompiler {
   //! \overload
   ASMJIT_API InstNode* emit(uint32_t code, int o0);
   //! \overload
+  ASMJIT_API InstNode* emit(uint32_t code, uint64_t o0);
+  //! \overload
   ASMJIT_API InstNode* emit(uint32_t code, const Operand& o0, int o1);
   //! \overload
+  ASMJIT_API InstNode* emit(uint32_t code, const Operand& o0, uint64_t o1);
+  //! \overload
   ASMJIT_API InstNode* emit(uint32_t code, const Operand& o0, const Operand& o1, int o2);
+  //! \overload
+  ASMJIT_API InstNode* emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2);
 
   // --------------------------------------------------------------------------
   // [Func]
@@ -4184,19 +4166,16 @@ struct Compiler : public X86X64Compiler {
 #undef INST_1x
 #undef INST_1x_
 #undef INST_1i
-#undef INST_1i_
 #undef INST_1cc
 
 #undef INST_2x
 #undef INST_2x_
 #undef INST_2i
-#undef INST_2i_
 #undef INST_2cc
 
 #undef INST_3x
 #undef INST_3x_
 #undef INST_3i
-#undef INST_3i_
 
 // [Api-End]
 #include "../apiend.h"

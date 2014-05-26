@@ -266,7 +266,15 @@ Error BaseAssembler::emit(uint32_t code, int o0_) {
   return _emit(code, Imm(o0_), no, no, no);
 }
 
+Error BaseAssembler::emit(uint32_t code, uint64_t o0_) {
+  return _emit(code, Imm(o0_), no, no, no);
+}
+
 Error BaseAssembler::emit(uint32_t code, const Operand& o0, int o1_) {
+  return _emit(code, o0, Imm(o1_), no, no);
+}
+
+Error BaseAssembler::emit(uint32_t code, const Operand& o0, uint64_t o1_) {
   return _emit(code, o0, Imm(o1_), no, no);
 }
 
@@ -274,7 +282,15 @@ Error BaseAssembler::emit(uint32_t code, const Operand& o0, const Operand& o1, i
   return _emit(code, o0, o1, Imm(o2_), no);
 }
 
+Error BaseAssembler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2_) {
+  return _emit(code, o0, o1, Imm(o2_), no);
+}
+
 Error BaseAssembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3_) {
+  return _emit(code, o0, o1, o2, Imm(o3_));
+}
+
+Error BaseAssembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3_) {
   return _emit(code, o0, o1, o2, Imm(o3_));
 }
 

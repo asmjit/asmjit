@@ -315,6 +315,14 @@ InstNode* X86X64Compiler::emit(uint32_t code, int o0_) {
   return static_cast<InstNode*>(addNode(node));
 }
 
+InstNode* X86X64Compiler::emit(uint32_t code, uint64_t o0_) {
+  Imm o0(o0_);
+  InstNode* node = newInst(code, o0);
+  if (node == NULL)
+    return NULL;
+  return static_cast<InstNode*>(addNode(node));
+}
+
 InstNode* X86X64Compiler::emit(uint32_t code, const Operand& o0, int o1_) {
   Imm o1(o1_);
   InstNode* node = newInst(code, o0, o1);
@@ -323,7 +331,23 @@ InstNode* X86X64Compiler::emit(uint32_t code, const Operand& o0, int o1_) {
   return static_cast<InstNode*>(addNode(node));
 }
 
+InstNode* X86X64Compiler::emit(uint32_t code, const Operand& o0, uint64_t o1_) {
+  Imm o1(o1_);
+  InstNode* node = newInst(code, o0, o1);
+  if (node == NULL)
+    return NULL;
+  return static_cast<InstNode*>(addNode(node));
+}
+
 InstNode* X86X64Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, int o2_) {
+  Imm o2(o2_);
+  InstNode* node = newInst(code, o0, o1, o2);
+  if (node == NULL)
+    return NULL;
+  return static_cast<InstNode*>(addNode(node));
+}
+
+InstNode* X86X64Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2_) {
   Imm o2(o2_);
   InstNode* node = newInst(code, o0, o1, o2);
   if (node == NULL)
