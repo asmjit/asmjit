@@ -348,8 +348,8 @@ struct X86Util {
   //!
   //! Shuffle constants can be used to make immediate value for these intrinsics:
   //! - `X86X64Assembler::shufpd()` and `X86X64Compiler::shufpd()`
-  static ASMJIT_INLINE uint32_t mmShuffle(uint32_t x, uint32_t y) {
-    return (x << 1) | y;
+  static ASMJIT_INLINE int mmShuffle(uint32_t x, uint32_t y) {
+    return static_cast<int>((x << 1) | y);
   }
 
   //! Pack a shuffle constant to be used with multimedia instrutions (4 values).
@@ -365,8 +365,8 @@ struct X86Util {
   //! - `X86X64Assembler::pshufhw()` and `X86X64Compiler::pshufhw()`
   //! - `X86X64Assembler::pshuflw()` and `X86X64Compiler::pshuflw()`
   //! - `X86X64Assembler::shufps()` and `X86X64Compiler::shufps()`
-  static ASMJIT_INLINE uint32_t mmShuffle(uint32_t z, uint32_t y, uint32_t x, uint32_t w) {
-    return (z << 6) | (y << 4) | (x << 2) | w;
+  static ASMJIT_INLINE int mmShuffle(uint32_t z, uint32_t y, uint32_t x, uint32_t w) {
+    return static_cast<int>((z << 6) | (y << 4) | (x << 2) | w);
   }
 };
 

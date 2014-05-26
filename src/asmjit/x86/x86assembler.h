@@ -44,10 +44,13 @@ namespace x86x64 {
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0) { \
     return emit(_Code_, o0); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(int o0) { \
     return emit(_Code_, o0); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(int64_t o0) { \
+    return emit(_Code_, Imm(o0)); \
   }
 
 #define INST_1i_(_Inst_, _Code_, _Op0_, _Cond_) \
@@ -55,11 +58,15 @@ namespace x86x64 {
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(int o0) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(int64_t o0) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, Imm(o0)); \
   }
 
 #define INST_1cc(_Inst_, _Code_, _Translate_, _Op0_) \
@@ -113,10 +120,13 @@ namespace x86x64 {
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1) { \
     return emit(_Code_, o0, o1); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1) { \
     return emit(_Code_, o0, o1); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1) { \
+    return emit(_Code_, o0, Imm(o1)); \
   }
 
 #define INST_2i_(_Inst_, _Code_, _Op0_, _Op1_, _Cond_) \
@@ -124,11 +134,15 @@ namespace x86x64 {
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, o0, Imm(o1)); \
   }
 
 #define INST_2cc(_Inst_, _Code_, _Translate_, _Op0_, _Op1_) \
@@ -182,10 +196,13 @@ namespace x86x64 {
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
     return emit(_Code_, o0, o1, o2); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
     return emit(_Code_, o0, o1, o2); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
+    return emit(_Code_, o0, o1, Imm(o2)); \
   }
 
 #define INST_3i_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Cond_) \
@@ -193,13 +210,16 @@ namespace x86x64 {
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, o0, o1, Imm(o2)); \
   }
-
 
 #define INST_4x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
@@ -216,10 +236,13 @@ namespace x86x64 {
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
     return emit(_Code_, o0, o1, o2, o3); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { \
     return emit(_Code_, o0, o1, o2, o3); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { \
+    return emit(_Code_, o0, o1, o2, Imm(o3)); \
   }
 
 #define INST_4i_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_, _Cond_) \
@@ -227,11 +250,15 @@ namespace x86x64 {
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2, o3); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2, o3); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, o0, o1, o2, Imm(o3)); \
   }
 
 #define ASMJIT_X86X64_EMIT_OPTIONS(_Class_) \

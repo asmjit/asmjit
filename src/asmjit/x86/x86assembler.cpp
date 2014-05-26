@@ -106,29 +106,15 @@ static const uint8_t x86SegmentPrefix[8] = { 0x00, 0x26, 0x2E, 0x36, 0x3E, 0x64,
 static const uint8_t x86OpCodePushSeg[8] = { 0x00, 0x06, 0x0E, 0x16, 0x1E, 0xA0, 0xA8 };
 static const uint8_t x86OpCodePopSeg[8]  = { 0x00, 0x07, 0x00, 0x17, 0x1F, 0xA1, 0xA9 };
 
-// ============================================================================
-// [asmjit::X64TrampolineWriter]
-// ============================================================================
+//! Encode MODR/M.
+static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) {
+  return (m << 6) + (o << 3) + rm;
+}
 
-//! \internal
-//!
-//! Trampoline writer.
-struct X64TrampolineWriter {
-  // Size of trampoline
-  enum {
-    kSizeJmp = 6,
-    kSizeAddr = 8,
-    kSizeTotal = kSizeJmp + kSizeAddr
-  };
-
-  // Write trampoline into code at address `code` that will jump to `target`.
-  static void writeTrampoline(uint8_t* code, uint64_t target) {
-    code[0] = 0xFF;                                       // Jmp OpCode.
-    code[1] = 0x25;                                       // ModM (RIP addressing).
-    ((uint32_t*)(code + 2))[0] = 0;                       // Offset (zero).
-    ((uint64_t*)(code + kSizeJmp))[0] = (uint64_t)target; // Absolute address.
-  }
-};
+//! Encode SIB.
+static ASMJIT_INLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) {
+  return (s << 6) + (i << 3) + b;
+}
 
 // ============================================================================
 // [asmjit::x86x64::Emit]
@@ -482,8 +468,7 @@ static ASMJIT_INLINE size_t X86X64Assembler_relocCode(const X86X64Assembler* sel
     tramp = dst + codeOffset;
 
   // Relocate all recorded locations.
-  size_t i;
-  size_t len = self->_relocData.getLength();
+  size_t i, len = self->_relocData.getLength();
 
   for (i = 0; i < len; i++) {
     const RelocData& r = self->_relocData[i];
@@ -493,7 +478,8 @@ static ASMJIT_INLINE size_t X86X64Assembler_relocCode(const X86X64Assembler* sel
     bool useTrampoline = false;
 
     // Be sure that reloc data structure is correct.
-    ASMJIT_ASSERT(r.from + r.size <= static_cast<Ptr>(codeSize));
+    size_t offset = static_cast<size_t>(r.from);
+    ASMJIT_ASSERT(offset + r.size <= static_cast<Ptr>(codeSize));
 
     switch (r.type) {
       case kRelocAbsToAbs:
@@ -520,23 +506,44 @@ static ASMJIT_INLINE size_t X86X64Assembler_relocCode(const X86X64Assembler* sel
 
     switch (r.size) {
       case 4:
-        *reinterpret_cast<int32_t*>(dst + static_cast<intptr_t>(r.from)) = static_cast<int32_t>(ptr);
+        *reinterpret_cast<int32_t*>(dst + offset) = static_cast<int32_t>(ptr);
         break;
 
       case 8:
-        *reinterpret_cast<int64_t*>(dst + static_cast<intptr_t>(r.from)) = static_cast<int64_t>(ptr);
+        *reinterpret_cast<int64_t*>(dst + offset) = static_cast<int64_t>(ptr);
         break;
 
       default:
         ASMJIT_ASSERT(!"Reached");
     }
 
+    // Patch `jmp/call` to use trampoline.
     if (Arch == kArchX64 && useTrampoline) {
-      if (self->_logger)
-        self->_logger->logFormat(kLoggerStyleComment, "; Trampoline from %llX -> %llX\n", base + r.from, r.data);
+      uint32_t byte0 = 0xFF;
+      uint32_t byte1 = dst[offset - 1];
 
-      X64TrampolineWriter::writeTrampoline(tramp, (uint64_t)r.data);
-      tramp += X64TrampolineWriter::kSizeTotal;
+      if (byte1 == 0xE8) {
+        // Call, path to FF/2 (-> 0x15).
+        byte1 = x86EncodeMod(0, 2, 5);
+      }
+      else if (byte1 == 0xE9) {
+        // Jmp, path to FF/4 (-> 0x25).
+        byte1 = x86EncodeMod(0, 4, 5);
+      }
+
+      // Patch `jmp/call` instruction.
+      ASMJIT_ASSERT(offset >= 2);
+      dst[offset - 2] = byte0;
+      dst[offset - 1] = byte1;
+
+      // Absolute address.
+      ((uint64_t*)tramp)[0] = static_cast<uint64_t>(r.data);
+
+      // Advance trampoline pointer.
+      tramp += 8;
+
+      if (self->_logger)
+        self->_logger->logFormat(kLoggerStyleComment, "; Trampoline %llX\n", r.data);
     }
   }
 
@@ -881,16 +888,6 @@ static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_
 // ============================================================================
 // [asmjit::x86x64::Assembler - Emit]
 // ============================================================================
-
-//! Encode MODR/M.
-static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) {
-  return (m << 6) + (o << 3) + rm;
-}
-
-//! Encode SIB.
-static ASMJIT_INLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) {
-  return (s << 6) + (i << 3) + b;
-}
 
 //! \internal
 static const Operand::VRegOp x86PatchedHiRegs[4] = {
@@ -4001,13 +3998,26 @@ _EmitXopM:
   // [Emit - Jump/Call to an Immediate]
   // --------------------------------------------------------------------------
 
-  // Emit relative relocation to absolute pointer `target`. It's needed to add
-  // what instruction is emitting this, because in x64 mode the relative
-  // displacement can be impossible to calculate and in this case the trampoline
-  // is used.
+  // 64-bit mode requires a trampoline if a relative displacement doesn't fit
+  // into 32-bit integer. Old version of AsmJit used to emit jump to a section
+  // which contained another jump followed by an address (it worked well for
+  // both `jmp` and `call`), but it required to reserve 14-bytes for a possible
+  // trampoline.
+  //
+  // Instead of using 5-byte `jmp/call` and reserving 14 bytes required by the
+  // trampoline, it's better to use 6-byte `jmp/call` (prefixing it with REX
+  // prefix) and to patch the `jmp/call` instruction itself.
 _EmitJmpOrCallImm:
   {
-    // The jmp and call instructions have single-byte opcode.
+    // Emit REX prefix (64-bit).
+    //
+    // Does nothing, but allows to path the instruction in case a trampoline is
+    // needed.
+    if (Arch == kArchX64) {
+      EMIT_OP(0x40);
+    }
+
+    // Both `jmp` and `call` instructions have a single-byte opcode.
     EMIT_OP(opCode);
 
     RelocData rd;
@@ -4019,13 +4029,12 @@ _EmitJmpOrCallImm:
     if (self->_relocData.append(rd) != kErrorOk)
       return self->setError(kErrorNoHeapMemory);
 
-    // Emit dummy 32-bit integer; will be overwritten by relocCode().
+    // Emit dummy 32-bit integer; will be overwritten by `relocCode()`.
     EMIT_DWORD(0);
 
+    // Trampoline has to be reserved, even if it's not used.
     if (Arch == kArchX64) {
-      // If we are compiling in 64-bit mode, we can use trampoline if relative jump
-      // is not possible.
-      self->_trampolineSize += X64TrampolineWriter::kSizeTotal;
+      self->_trampolineSize += 8;
     }
   }
   goto _EmitDone;

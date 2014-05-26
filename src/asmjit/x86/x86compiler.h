@@ -48,6 +48,10 @@ namespace x86x64 {
   /*! \overload */ \
   ASMJIT_INLINE InstNode* _Inst_(int o0) { \
     return emit(_Code_, o0); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(int64_t o0) { \
+    return emit(_Code_, Imm(o0)); \
   }
 
 #define INST_1i_(_Inst_, _Code_, _Op0_, _Cond_) \
@@ -59,6 +63,11 @@ namespace x86x64 {
   ASMJIT_INLINE InstNode* _Inst_(int o0) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(int64_t o0) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, Imm(o0)); \
   }
 
 #define INST_1cc(_Inst_, _Code_, _Translate_, _Op0_) \
@@ -115,6 +124,10 @@ namespace x86x64 {
   /*! \overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int o1) { \
     return emit(_Code_, o0, o1); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int64_t o1) { \
+    return emit(_Code_, o0, Imm(o1)); \
   }
 
 #define INST_2i_(_Inst_, _Code_, _Op0_, _Op1_, _Cond_) \
@@ -126,6 +139,11 @@ namespace x86x64 {
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int o1) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, int64_t o1) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, o0, Imm(o1)); \
   }
 
 #define INST_2cc(_Inst_, _Code_, _Translate_, _Op0_, _Op1_) \
@@ -179,10 +197,13 @@ namespace x86x64 {
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
     return emit(_Code_, o0, o1, o2); \
   } \
-  \
   /*! \overload */ \
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
     return emit(_Code_, o0, o1, o2); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
+    return emit(_Code_, o0, o1, Imm(o2)); \
   }
 
 #define INST_3i_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Cond_) \
@@ -194,6 +215,11 @@ namespace x86x64 {
   ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
     ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, o0, o1, Imm(o2)); \
   }
 
 // ============================================================================

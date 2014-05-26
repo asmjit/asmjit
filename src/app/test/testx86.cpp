@@ -592,7 +592,7 @@ struct X86Test_AllocMany2 : public X86Test {
 
     c.setArg(0, a);
 
-    uint32_t i;
+    int i;
     for (i = 0; i < ASMJIT_ARRAY_SIZE(var); i++) {
       var[i] = c.newGpVar(kVarTypeInt32);
     }
