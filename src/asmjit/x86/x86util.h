@@ -341,7 +341,18 @@ struct X86Util {
     return (op._packed[0].u32[0] & mask) == IntUtil::pack32_2x8_1x16(kOperandTypeReg, 1, 0x0000);
   }
 
-  //! Pack a shuffle constant to be used with multimedia instrutions.
+  //! Pack a shuffle constant to be used with multimedia instrutions (2 values).
+  //!
+  //! \param x First component position, number at interval [0, 1] inclusive.
+  //! \param y Second component position, number at interval [0, 1] inclusive.
+  //!
+  //! Shuffle constants can be used to make immediate value for these intrinsics:
+  //! - `X86X64Assembler::shufpd()` and `X86X64Compiler::shufpd()`
+  static ASMJIT_INLINE uint32_t mmShuffle(uint32_t x, uint32_t y) {
+    return (x << 1) | y;
+  }
+
+  //! Pack a shuffle constant to be used with multimedia instrutions (4 values).
   //!
   //! \param z First component position, number at interval [0, 3] inclusive.
   //! \param x Second component position, number at interval [0, 3] inclusive.

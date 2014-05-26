@@ -56,11 +56,11 @@
 //!
 //! @section AsmJit_Main_CodeGeneration Code Generation
 //!
-//! - @ref asmjit_base_general "Assembler core" - Operands, intrinsics and low-level assembler.
-//! - @ref asmjit_compiler "Compiler" - High level code generation.
-//! - @ref asmjit_cpuinfo "Cpu Information" - Get information about host processor.
-//! - @ref asmjit_logging "Logging" - Logging and error handling.
-//! - @ref AsmJit_MemoryManagement "Memory Management" - Virtual memory management.
+//! - \ref asmjit_base_general "Assembler core" - Operands, intrinsics and low-level assembler.
+//! - \ref asmjit_compiler "Compiler" - High level code generation.
+//! - \ref asmjit_cpuinfo "Cpu Information" - Get information about host processor.
+//! - \ref asmjit_logging "Logging" - Logging and error handling.
+//! - \ref AsmJit_MemoryManagement "Memory Management" - Virtual memory management.
 //!
 //! @section AsmJit_Main_HomePage AsmJit Homepage
 //!

@@ -33,10 +33,12 @@ const ConstPoolNode ConstPoolTree::_sentinel = { {
 //!
 //! Remove left horizontal links.
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) {
-  if (node->_link[0]->_level == node->_level && node->_level != 0 ) {
+  if (node->_link[0]->_level == node->_level && node->_level != 0) {
     ConstPoolNode *save = node->_link[0];
+
     node->_link[0] = save->_link[1];
     save->_link[1] = node;
+
     node = save;
   }
 
@@ -49,8 +51,10 @@ static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) 
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_splitNode(ConstPoolNode* node) {
   if (node->_link[1]->_link[1]->_level == node->_level && node->_level != 0) {
     ConstPoolNode *save = node->_link[1];
+
     node->_link[1] = save->_link[0];
     save->_link[0] = node;
+
     node = save;
     node->_level++;
   }
