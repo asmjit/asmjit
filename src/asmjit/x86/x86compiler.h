@@ -198,6 +198,38 @@ namespace x86x64 {
     return emit(_Code_, o0, o1, o2); \
   }
 
+#define INST_4x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
+    return emit(_Code_, o0, o1, o2, o3); \
+  }
+
+#define INST_4x_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Cond_) \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
+    ASMJIT_ASSERT(_Cond_); \
+    return emit(_Code_, o0, o1, o2, o3); \
+  }
+
+#define INST_4i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
+    return emit(_Code_, o0, o1, o2, o3); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { \
+    return emit(_Code_, o0, o1, o2, o3); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) { \
+    return emit(_Code_, o0, o1, o2, static_cast<uint64_t>(o3)); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { \
+    return emit(_Code_, o0, o1, o2, static_cast<uint64_t>(o3)); \
+  } \
+  /*! \overload */ \
+  ASMJIT_INLINE InstNode* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) { \
+    return emit(_Code_, o0, o1, o2, o3); \
+  }
+
 // ============================================================================
 // [Forward Declarations]
 // ============================================================================
@@ -4176,6 +4208,10 @@ struct Compiler : public X86X64Compiler {
 #undef INST_3x
 #undef INST_3x_
 #undef INST_3i
+
+#undef INST_4x
+#undef INST_4x_
+#undef INST_4i
 
 // [Api-End]
 #include "../apiend.h"
