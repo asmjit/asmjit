@@ -180,6 +180,19 @@ struct Operand {
   // [Structs]
   // --------------------------------------------------------------------------
 
+  // \internal
+  //
+  // Register operand structure, allows to do register initialization at
+  // compile time instead of doing it "non-deterministically" at runtime.
+  struct InitRegOp {
+    uint8_t op;
+    uint8_t size;
+    uint16_t code;
+    uint32_t id;
+    uint32_t vType;
+    uint32_t vUnused;
+  };
+
   //! \internal
   //!
   //! Base operand data.
@@ -538,11 +551,13 @@ struct BaseReg : public Operand {
   //! Create a dummy base register.
   ASMJIT_INLINE BaseReg() : Operand(NoInit) {
     _init_packed_op_sz_w0_id(kOperandTypeReg, 0, (kInvalidReg << 8) + kInvalidReg, kInvalidValue);
+    _init_packed_d2_d3(kVarTypeInvalid, 0);
   }
 
   //! Create a new base register.
   ASMJIT_INLINE BaseReg(uint32_t type, uint32_t index, uint32_t size) : Operand(NoInit) {
     _init_packed_op_sz_w0_id(kOperandTypeReg, size, (type << 8) + index, kInvalidValue);
+    _init_packed_d2_d3(kVarTypeInvalid, 0);
   }
 
   //! Create a new reference to `other`.

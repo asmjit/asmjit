@@ -263,6 +263,8 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
   x86inst.h
   x86operand.cpp
   x86operand.h
+  x86regs.cpp
+  x86regs.h
   x86util.cpp
   x86util.h
 )

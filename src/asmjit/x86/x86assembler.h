@@ -12,6 +12,7 @@
 #include "../base/assembler.h"
 #include "../x86/x86inst.h"
 #include "../x86/x86operand.h"
+#include "../x86/x86regs.h"
 #include "../x86/x86util.h"
 
 // [Api-Begin]
