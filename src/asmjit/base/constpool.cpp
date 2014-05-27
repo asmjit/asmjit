@@ -24,22 +24,18 @@ namespace asmjit {
 // [asmjit::ConstPoolTree - Ops]
 // ============================================================================
 
-const ConstPoolNode ConstPoolTree::_sentinel = { {
-  const_cast<ConstPoolNode*>(&ConstPoolTree::_sentinel),
-  const_cast<ConstPoolNode*>(&ConstPoolTree::_sentinel)
-}, 0, 0, 0 };
-
 //! \internal
 //!
 //! Remove left horizontal links.
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) {
-  if (node->_link[0]->_level == node->_level && node->_level != 0) {
-    ConstPoolNode *save = node->_link[0];
+  ConstPoolNode* link = node->_link[0];
+  uint32_t level = node->_level;
 
-    node->_link[0] = save->_link[1];
-    save->_link[1] = node;
+  if (level != 0 && link != NULL && link->_level == level) {
+    node->_link[0] = link->_link[1];
+    link->_link[1] = node;
 
-    node = save;
+    node = link;
   }
 
   return node;
@@ -49,13 +45,14 @@ static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) 
 //!
 //! Remove consecutive horizontal links.
 static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_splitNode(ConstPoolNode* node) {
-  if (node->_link[1]->_link[1]->_level == node->_level && node->_level != 0) {
-    ConstPoolNode *save = node->_link[1];
+  ConstPoolNode* link = node->_link[1];
+  uint32_t level = node->_level;
 
-    node->_link[1] = save->_link[0];
-    save->_link[0] = node;
+  if (level != 0 && link != NULL && link->_link[1] != NULL && link->_link[1]->_level == level) {
+    node->_link[1] = link->_link[0];
+    link->_link[0] = node;
 
-    node = save;
+    node = link;
     node->_level++;
   }
 
@@ -63,11 +60,10 @@ static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_splitNode(ConstPoolNode* node)
 }
 
 ConstPoolNode* ConstPoolTree::get(const void* data) {
-  ConstPoolNode* sentinel = const_cast<ConstPoolNode*>(&_sentinel);
   ConstPoolNode* node = _root;
   size_t dataSize = _dataSize;
 
-  while (node != sentinel) {
+  while (node != NULL) {
     int c = ::memcmp(node->getData(), data, dataSize);
     if (c == 0)
       return node;
@@ -78,11 +74,10 @@ ConstPoolNode* ConstPoolTree::get(const void* data) {
 }
 
 void ConstPoolTree::put(ConstPoolNode* newNode) {
-  ConstPoolNode* sentinel = const_cast<ConstPoolNode*>(&_sentinel);
   size_t dataSize = _dataSize;
 
   _length++;
-  if (_root == sentinel) {
+  if (_root == NULL) {
     _root = newNode;
     return;
   }
@@ -97,9 +92,12 @@ void ConstPoolTree::put(ConstPoolNode* newNode) {
   for (;;) {
     stack[top++] = node;
     dir = ::memcmp(node->getData(), newNode->getData(), dataSize) < 0;
-    if (node->_link[dir] == sentinel)
+
+    ConstPoolNode* link = node->_link[dir];
+    if (link == NULL)
       break;
-    node = node->_link[dir];
+
+    node = link;
   }
 
   // Link and rebalance.
@@ -109,8 +107,9 @@ void ConstPoolTree::put(ConstPoolNode* newNode) {
     // Which child?
     node = stack[--top];
 
-    if (top != 0)
+    if (top != 0) {
       dir = stack[top - 1]->_link[1] == node;
+    }
 
     node = ConstPoolTree_skewNode(node);
     node = ConstPoolTree_splitNode(node);

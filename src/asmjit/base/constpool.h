@@ -63,14 +63,12 @@ struct ConstPoolTree {
     kHeightLimit = 64
   };
 
-  ASMJIT_API static const ConstPoolNode _sentinel;
-
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE ConstPoolTree(size_t dataSize = 0) :
-    _root(const_cast<ConstPoolNode*>(&_sentinel)),
+    _root(NULL),
     _length(0),
     _dataSize(dataSize) {}
   ASMJIT_INLINE ~ConstPoolTree() {}
@@ -80,7 +78,7 @@ struct ConstPoolTree {
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE void reset() {
-    _root = const_cast<ConstPoolNode*>(&_sentinel);
+    _root = NULL;
     _length = 0;
   }
 
@@ -118,9 +116,8 @@ struct ConstPoolTree {
     ConstPoolNode* link;
 
     ConstPoolNode* stack[kHeightLimit];
-    ConstPoolNode* sentinel = const_cast<ConstPoolNode*>(&_sentinel);
 
-    if (node == sentinel)
+    if (node == NULL)
       return;
 
     size_t top = 0;
@@ -128,7 +125,7 @@ struct ConstPoolTree {
     for (;;) {
       link = node->_link[0];
 
-      if (link != sentinel) {
+      if (link != NULL) {
         ASMJIT_ASSERT(top != kHeightLimit);
         stack[top++] = node;
         continue;
@@ -137,7 +134,7 @@ struct ConstPoolTree {
       visitor.visit(node);
       link = node->_link[1];
 
-      if (link != sentinel) {
+      if (link != NULL) {
         node = link;
         continue;
       }
@@ -158,8 +155,8 @@ struct ConstPoolTree {
     if (node == NULL)
       return NULL;
 
-    node->_link[0] = const_cast<ConstPoolNode*>(&_sentinel);
-    node->_link[1] = const_cast<ConstPoolNode*>(&_sentinel);
+    node->_link[0] = NULL;
+    node->_link[1] = NULL;
     node->_level = 1;
     node->_shared = shared;
     node->_offset = static_cast<uint32_t>(offset);
