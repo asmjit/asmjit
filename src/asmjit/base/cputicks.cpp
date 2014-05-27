@@ -68,7 +68,7 @@ uint32_t CpuTicks::now() {
     }
   } while (0);
 
-  // Bail to mmsystem.
+  // Bail to a less precise GetTickCount().
   return ::GetTickCount();
 }
 
