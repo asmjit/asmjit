@@ -104,7 +104,7 @@ void* Zone::_alloc(size_t size) {
   return (void*)p;
 }
 
-void* Zone::_calloc(size_t size) {
+void* Zone::_allocZeroed(size_t size) {
   void* p = _alloc(size);
 
   if (p != NULL)

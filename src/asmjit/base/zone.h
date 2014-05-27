@@ -148,11 +148,11 @@ struct Zone {
   ASMJIT_API void* _alloc(size_t size);
 
   //! Allocate `size` bytes of zeroed memory.
-  ASMJIT_INLINE void* calloc(size_t size) {
+  ASMJIT_INLINE void* allocZeroed(size_t size) {
     Chunk* cur = _chunks;
 
     if (cur->getRemainingSize() < size)
-      return _calloc(size);
+      return _allocZeroed(size);
 
     uint8_t* p = cur->data + cur->pos;
     cur->pos += size;
@@ -163,7 +163,7 @@ struct Zone {
   }
 
   //! \internal
-  ASMJIT_API void* _calloc(size_t size);
+  ASMJIT_API void* _allocZeroed(size_t size);
 
   //! Helper to duplicate data.
   ASMJIT_API void* dup(const void* data, size_t size);

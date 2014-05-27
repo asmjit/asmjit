@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
       printf("Failed to free %p.\n", a[i]);
       problems++;
     }
-    free(b[i]);
+    ::free(b[i]);
   }
   printf("Done.\n");
   stats(memmgr);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
       printf("Failed to free %p.\n", a[i]);
       problems++;
     }
-    free(b[i]);
+    ::free(b[i]);
   }
   printf("Done.\n");
   stats(memmgr);

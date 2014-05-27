@@ -136,7 +136,7 @@ struct BaseContext {
 
   ASMJIT_INLINE VarBits* newBits(uint32_t len) {
     return static_cast<VarBits*>(
-      _baseZone.calloc(static_cast<size_t>(len) * VarBits::kEntitySize));
+      _baseZone.allocZeroed(static_cast<size_t>(len) * VarBits::kEntitySize));
   }
 
   ASMJIT_INLINE VarBits* copyBits(const VarBits* src, uint32_t len) {
