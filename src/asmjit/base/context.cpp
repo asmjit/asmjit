@@ -22,7 +22,7 @@ namespace asmjit {
 
 BaseContext::BaseContext(BaseCompiler* compiler) :
   _compiler(compiler),
-  _baseZone(8192 - sizeof(Zone::Chunk) - kMemAllocOverhead) {
+  _baseZone(8192 - kZoneOverhead) {
 
   BaseContext::reset();
 }

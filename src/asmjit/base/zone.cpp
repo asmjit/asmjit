@@ -19,18 +19,18 @@
 
 namespace asmjit {
 
-//! Zero width chunk used when Zone doesn't have any memory allocated.
-static const Zone::Chunk Zone_zeroChunk = {
-  NULL, 0, 0, { 0 }
+//! Zero size block used by `Zone` that doesn't have any memory allocated.
+static const Zone::Block Zone_zeroBlock = {
+  NULL, NULL, NULL, NULL, { 0 }
 };
 
 // ============================================================================
 // [asmjit::Zone - Construction / Destruction]
 // ============================================================================
 
-Zone::Zone(size_t chunkSize) {
-  _chunks = const_cast<Zone::Chunk*>(&Zone_zeroChunk);
-  _chunkSize = chunkSize;
+Zone::Zone(size_t blockSize) {
+  _blocks = const_cast<Zone::Block*>(&Zone_zeroBlock);
+  _blockSize = blockSize;
 }
 
 Zone::~Zone() {
@@ -42,35 +42,33 @@ Zone::~Zone() {
 // ============================================================================
 
 void Zone::clear() {
-  Chunk* cur = _chunks;
+  Block* cur = _blocks;
 
-  if (cur == &Zone_zeroChunk)
+  // Can't be altered.
+  if (cur == &Zone_zeroBlock)
     return;
 
-  cur = cur->prev;
-  while (cur != NULL) {
-    Chunk* prev = cur->prev;
-    ::free(cur);
-    cur = prev;
-  }
+  while (cur->prev != NULL)
+    cur = cur->prev;
 
-  _chunks->pos = 0;
-  _chunks->prev = NULL;
+  cur->pos = cur->data;
+  _blocks = cur;
 }
 
 void Zone::reset() {
-  Chunk* cur = _chunks;
+  Block* cur = _blocks;
 
-  if (cur == &Zone_zeroChunk)
+  // Can't be altered.
+  if (cur == &Zone_zeroBlock)
     return;
 
-  while (cur != NULL) {
-    Chunk* prev = cur->prev;
+  do {
+    Block* prev = cur->prev;
     ::free(cur);
     cur = prev;
-  }
+  } while (cur != NULL);
 
-  _chunks = const_cast<Zone::Chunk*>(&Zone_zeroChunk);
+  _blocks = const_cast<Zone::Block*>(&Zone_zeroBlock);
 }
 
 // ============================================================================
@@ -78,38 +76,58 @@ void Zone::reset() {
 // ============================================================================
 
 void* Zone::_alloc(size_t size) {
-  Chunk* cur = _chunks;
-  ASMJIT_ASSERT(cur == &Zone_zeroChunk || cur->getRemainingSize() < size);
+  Block* curBlock = _blocks;
+  size_t blockSize = IntUtil::iMax<size_t>(_blockSize, size);
 
-  size_t chunkSize = _chunkSize;
-  if (chunkSize < size)
-    chunkSize = size;
+  // The `_alloc()` method can only be called if there is not enough space
+  // in the current block, see `alloc()` implementation for more details.
+  ASMJIT_ASSERT(curBlock == &Zone_zeroBlock || curBlock->getRemainingSize() < size);
 
-  cur = static_cast<Chunk*>(::malloc(sizeof(Chunk) - sizeof(void*) + chunkSize));
-  if (cur == NULL)
+  // If the `Zone` has been cleared the current block doesn't have to be the
+  // last one. Check if there is a block that can be used instead of allocating
+  // a new one. If there is a `next` block it's completely unused, we don't have
+  // to check for remaining bytes.
+  Block* next = curBlock->next;
+  if (next != NULL && next->getBlockSize() >= size) {
+    next->pos = next->data + size;
+    _blocks = next;
+    return static_cast<void*>(next->data);
+  }
+
+  // Prevent arithmetic overflow.
+  if (blockSize > ~static_cast<size_t>(0) - sizeof(Block))
     return NULL;
 
-  cur->prev = NULL;
-  cur->pos = 0;
-  cur->size = chunkSize;
+  Block* newBlock = static_cast<Block*>(::malloc(sizeof(Block) - sizeof(void*) + blockSize));
+  if (newBlock == NULL)
+    return NULL;
 
-  if (_chunks != &Zone_zeroChunk)
-    cur->prev = _chunks;
-  _chunks = cur;
+  newBlock->pos = newBlock->data + size;
+  newBlock->end = newBlock->data + blockSize;
+  newBlock->prev = NULL;
+  newBlock->next = NULL;
 
-  uint8_t* p = cur->data + cur->pos;
-  cur->pos += size;
+  if (curBlock != &Zone_zeroBlock) {
+    newBlock->prev = curBlock;
+    curBlock->next = newBlock;
 
-  ASMJIT_ASSERT(cur->pos <= cur->size);
-  return (void*)p;
+    // Does only happen if there is a next block, but the requested memory
+    // can't fit into it. In this case a new buffer is allocated and inserted
+    // between the current block and the next one.
+    if (next != NULL) {
+      newBlock->next = next;
+      next->prev = newBlock;
+    }
+  }
+
+  _blocks = newBlock;
+  return static_cast<void*>(newBlock->data);
 }
 
-void* Zone::_allocZeroed(size_t size) {
-  void* p = _alloc(size);
-
+void* Zone::allocZeroed(size_t size) {
+  void* p = alloc(size);
   if (p != NULL)
     ::memset(p, 0, size);
-
   return p;
 }
 
@@ -132,7 +150,7 @@ char* Zone::sdup(const char* str) {
   if (str == NULL)
     return NULL;
 
-  size_t len = strlen(str);
+  size_t len = ::strlen(str);
   if (len == 0)
     return NULL;
 
@@ -153,17 +171,16 @@ char* Zone::sformat(const char* fmt, ...) {
   if (fmt == NULL)
     return NULL;
 
-  char buf[256];
+  char buf[512];
   size_t len;
 
   va_list ap;
   va_start(ap, fmt);
-  len = vsnprintf(buf, 256, fmt, ap);
-  va_end(ap);
 
-  len = IntUtil::iMin<size_t>(len, 255);
+  len = vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf) - 1, fmt, ap);
   buf[len++] = 0;
 
+  va_end(ap);
   return static_cast<char*>(dup(buf, len));
 }
 

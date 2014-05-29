@@ -44,9 +44,9 @@ BaseCompiler::BaseCompiler(Runtime* runtime) :
   _lastNode(NULL),
   _cursor(NULL),
   _func(NULL),
-  _varZone(4096 - kMemAllocOverhead),
-  _stringZone(4096 - kMemAllocOverhead),
-  _localConstZone(4096 - kMemAllocOverhead),
+  _varZone(4096 - kZoneOverhead),
+  _stringZone(4096 - kZoneOverhead),
+  _localConstZone(4096 - kZoneOverhead),
   _localConstPool(&_localConstZone),
   _globalConstPool(&_baseZone) {}
 

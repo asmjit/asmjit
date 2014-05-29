@@ -23,28 +23,53 @@ namespace asmjit {
 // [asmjit::Zone]
 // ============================================================================
 
-//! Fast incremental memory allocator.
+//! Zone memory allocator.
 //!
-//! Memory allocator designed to allocate small objects that will be invalidated
-//! (freed) all at once.
+//! Zone is an incremental memory allocator that allocates memory by simply
+//! incrementing a pointer. It allocates blocks of memory by using standard
+//! C library `malloc/free`, but divides these blocks into smaller segments
+//! requirested by calling `Zone::alloc()` and friends.
+//!
+//! Zone memory allocators are designed to allocate data of short lifetime. The
+//! data used by `Assembler` and `Compiler` has a very short lifetime, thus, is
+//! allocated by `Zone`. The advantage is that `Zone` can free all of the data
+//! allocated at once by calling `clear()` or `reset()`.
 struct Zone {
   // --------------------------------------------------------------------------
-  // [Chunk]
+  // [Block]
   // --------------------------------------------------------------------------
 
   //! \internal
   //!
-  //! One allocated chunk of memory.
-  struct Chunk {
-    //! Get count of remaining (unused) bytes in chunk.
-    ASMJIT_INLINE size_t getRemainingSize() const { return size - pos; }
+  //! A single block of memory.
+  struct Block {
+    // ------------------------------------------------------------------------
+    // [Accessors]
+    // ------------------------------------------------------------------------
 
-    //! Link to previous chunk.
-    Chunk* prev;
-    //! Position in this chunk.
-    size_t pos;
-    //! Size of this chunk (in bytes).
-    size_t size;
+    //! Get the size of the block.
+    ASMJIT_INLINE size_t getBlockSize() const {
+      return (size_t)(end - data);
+    }
+
+    //! Get count of remaining bytes in the block.
+    ASMJIT_INLINE size_t getRemainingSize() const {
+      return (size_t)(end - pos);
+    }
+
+    // ------------------------------------------------------------------------
+    // [Members]
+    // ------------------------------------------------------------------------
+
+    //! Current data pointer (pointer to the first available byte).
+    uint8_t* pos;
+    //! End data pointer (pointer to the first invalid byte).
+    uint8_t* end;
+
+    //! Link to the previous block.
+    Block* prev;
+    //! Link to the next block.
+    Block* next;
 
     //! Data.
     uint8_t data[sizeof(void*)];
@@ -56,38 +81,45 @@ struct Zone {
 
   //! Create a new instance of `Zone` allocator.
   //!
-  //! The `chunkSize` parameter describes the size of the chunk. If `alloc()`
-  //! requires more memory than `chunkSize` then a bigger chunk will be
-  //! allocated, however `chunkSize` will not be changed.
-  ASMJIT_API Zone(size_t chunkSize);
-
-  //! Destroy `Zone` instance.
+  //! The `blockSize` parameter describes the default size of the block. If the
+  //! `size` parameter passed to `alloc()` is greater than the default size
+  //! `Zone` will allocate and use a larger block, but it will not change the
+  //! default `blockSize`.
   //!
-  //! Destructor released all chunks allocated by `Zone`. The `reset()` member
-  //! function does the same without actually destroying `Zone` object itself.
+  //! It's not required, but it's good practice to set `blockSize` to a
+  //! reasonable value that depends on the usage of `Zone`. Greater block sizes
+  //! are generally safer and performs better than unreasonably low values.
+  ASMJIT_API Zone(size_t blockSize);
+
+  //! Destroy the `Zone` instance.
+  //!
+  //! This will destroy the `Zone` instance and release all blocks of memory
+  //! allocated by it. It performs implicit `reset()`.
   ASMJIT_API ~Zone();
 
   // --------------------------------------------------------------------------
   // [Clear / Reset]
   // --------------------------------------------------------------------------
 
-  //! Reset the `Zone` releasing all chunks allocated.
+  //! Clear the `Zone`, but keep all blocks allocated so they can be reused.
   //!
-  //! Calling `clear()` will release all chunks allocated by `Zone` except the
-  //! first one that will be reused if needed.
+  //! This is the preferred way of invalidating objects allocated by `Zone`.
   ASMJIT_API void clear();
 
-  //! Reset the `Zone` releasing all chunks allocated.
+  //! Reset the `Zone` releasing all blocks allocated.
   //!
-  //! Calling `reset()` will release all chunks allocated by `Zone`.
+  //! Calling `reset()` does complete cleanup, it releases all blocks allocated
+  //! by `Zone`.
   ASMJIT_API void reset();
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get chunk size.
-  ASMJIT_INLINE size_t getChunkSize() const { return _chunkSize; }
+  //! Get the default block size.
+  ASMJIT_INLINE size_t getBlockSize() const {
+    return _blockSize;
+  }
 
   // --------------------------------------------------------------------------
   // [Alloc]
@@ -95,75 +127,70 @@ struct Zone {
 
   //! Allocate `size` bytes of memory.
   //!
-  //! Pointer allocated by this way will be valid until `Zone` object is
-  //! destroyed. To create class by this way use placement `new` and `delete`
-  //! operators:
+  //! Pointer returned is valid until the `Zone` instance is destroyed or reset
+  //! by calling `clear()` or `reset()`. If you plan to make an instance of C++
+  //! from the given pointer use placement `new` and `delete` operators:
   //!
   //! ~~~
-  //! // Example of simple class allocation.
-  //! using namespace asmjit
+  //! using namespace asmjit;
   //!
-  //! // Your class.
-  //! class Object {
-  //!   // members...
-  //! };
+  //! class SomeObject { ... };
   //!
-  //! // Your function
-  //! void f() {
-  //!   // Create zone object with chunk size of 65536 bytes.
-  //!   Zone zone(65536);
+  //! // Create Zone with default block size of 65536 bytes.
+  //! Zone zone(65536);
   //!
-  //!   // Create your objects using zone object allocating, for example:
-  //!   Object* obj = new(zone.alloc(sizeof(YourClass))) Object();
-  //!
-  //!   // ... lifetime of your objects ...
-  //!
-  //!   // Destroy your objects:
-  //!   obj->~Object();
-  //!
-  //!   // Zone destructor will free all memory allocated through it, you can
-  //!   // call `zone.reset()` if you wan't to reuse current `Zone`.
+  //! // Create your objects using zone object allocating, for example:
+  //! Object* obj = static_cast<Object*>( zone.alloc(sizeof(SomeClass)) );
+  //
+  //! if (obj == NULL) {
+  //!   // Handle out of memory error.
   //! }
+  //!
+  //! // To instantiate class placement `new` and `delete` operators can be used.
+  //! new(obj) Object();
+  //!
+  //! // ... lifetime of your objects ...
+  //!
+  //! // To destroy the instance (if required).
+  //! obj->~Object();
+  //!
+  //! // Reset of destroy `Zone`.
+  //! zone.reset();
   //! ~~~
   ASMJIT_INLINE void* alloc(size_t size) {
-    Chunk* cur = _chunks;
+    Block* cur = _blocks;
 
-    if (cur->getRemainingSize() < size)
+    uint8_t* ptr = cur->pos;
+    size_t remainingBytes = (size_t)(cur->end - ptr);
+
+    if (remainingBytes < size)
       return _alloc(size);
 
-    uint8_t* p = cur->data + cur->pos;
     cur->pos += size;
-    ASMJIT_ASSERT(cur->pos <= cur->size);
+    ASMJIT_ASSERT(cur->pos <= cur->end);
 
-    return (void*)p;
+    return (void*)ptr;
   }
 
-  //! Like `alloc()`, but the return is casted to `T*`.
+  //! Allocate `size` bytes of zeroed memory.
+  //!
+  //! See \ref alloc() for more details.
+  ASMJIT_API void* allocZeroed(size_t size);
+
+  //! Like `alloc()`, but the return pointer is casted to `T*`.
   template<typename T>
   ASMJIT_INLINE T* allocT(size_t size = sizeof(T)) {
     return static_cast<T*>(alloc(size));
   }
 
-  //! \internal
-  ASMJIT_API void* _alloc(size_t size);
-
-  //! Allocate `size` bytes of zeroed memory.
-  ASMJIT_INLINE void* allocZeroed(size_t size) {
-    Chunk* cur = _chunks;
-
-    if (cur->getRemainingSize() < size)
-      return _allocZeroed(size);
-
-    uint8_t* p = cur->data + cur->pos;
-    cur->pos += size;
-    ASMJIT_ASSERT(cur->pos <= cur->size);
-
-    ::memset(p, 0, size);
-    return (void*)p;
+  //! Like `allocZeroed()`, but the return pointer is casted to `T*`.
+  template<typename T>
+  ASMJIT_INLINE T* allocZeroedT(size_t size = sizeof(T)) {
+    return static_cast<T*>(allocZeroed(size));
   }
 
   //! \internal
-  ASMJIT_API void* _allocZeroed(size_t size);
+  ASMJIT_API void* _alloc(size_t size);
 
   //! Helper to duplicate data.
   ASMJIT_API void* dup(const void* data, size_t size);
@@ -178,10 +205,15 @@ struct Zone {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Last allocated chunk of memory.
-  Chunk* _chunks;
-  //! Default chunk size.
-  size_t _chunkSize;
+  //! The current block.
+  Block* _blocks;
+  //! Default block size.
+  size_t _blockSize;
+};
+
+enum {
+  //! Zone allocator overhead.
+  kZoneOverhead = static_cast<int>(sizeof(Zone::Block) - sizeof(void*)) + kMemAllocOverhead
 };
 
 //! \}

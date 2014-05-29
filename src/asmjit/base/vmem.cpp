@@ -29,32 +29,39 @@
 // efficient. There are several goals I decided to write implementation myself.
 //
 // Goals:
-// - We need usually to allocate blocks of 64 bytes long and more.
-// - Alignment of allocated blocks is large - 32 bytes or 64 bytes.
-// - Keep memory manager information outside allocated virtual memory pages
-//   (these pages allows execution of code).
-// - Keep implementation small.
 //
-// I think that implementation is not small and probably not too much readable,
-// so there is small know how.
+// - Granularity of allocated blocks is different than granularity for a typical
+//   C malloc. It is at least 64-bytes so Assembler/Compiler can guarantee the
+//   alignment required. Alignment requirements can grow in the future, but at
+//   the moment 64 bytes is safe (we may jump to 128 bytes if necessary or make
+//   it configurable).
 //
-// - Implementation is based on bit arrays and binary trees. Bit arrays
-//   contains information about allocated and unused blocks of memory. Each
-//   block size describes MemNode::density member. Count of blocks are
-//   stored in MemNode::blocks member. For example if density is 64 and
-//   count of blocks is 20, memory node contains 64*20 bytes of memory and
-//   smallest possible allocation (and also alignment) is 64 bytes. So density
-//   describes also memory alignment. Binary trees are used to enable fast
-//   lookup into all addresses allocated by memory manager instance. This is
-//   used mainly in VMemPrivate::release().
+// - Keep memory manager information outside of the allocated virtual memory
+//   pages, because these pages allow executing of machine code and there should
+//   not be data required to keep track of these blocks. Another reason is that
+//   some environments (i.e. iOS) allow to generate and run JIT code, but this
+//   code has to be set to [Executable, but not Writable].
 //
-//   Bit array looks like this (empty = unused, X = used) - Size of block 64
+// - Keep implementation simple and easy to follow.
+//
+// Implementation is based on bit arrays and binary trees. Bit arrays contain
+// information related to allocated and unused blocks of memory. The size of 
+// a block is described by `MemNode::density`. Count of blocks is stored in
+// `MemNode::blocks`. For example if density is 64 and count of blocks is 20,
+// memory node contains 64*20 bytes of memory and smallest possible allocation
+// (and also alignment) is 64 bytes. So density is also related to memory
+// alignment. Binary trees (RB) are used to enable fast lookup into all addresses
+// allocated by memory manager instance. This is used mainly by `VMemPrivate::release()`.
+//
+// Bit array looks like this (empty = unused, X = used) - Size of block 64:
+//
 //   -------------------------------------------------------------------------
 //   | |X|X| | | | | |X|X|X|X|X|X| | | | | | | | | | | | |X| | | | |X|X|X| | |
 //   -------------------------------------------------------------------------
-//   Bits array shows that there are 12 allocated blocks of 64 bytes, so total
-//   allocated size is 768 bytes. Maximum count of continuous blocks is 12
-//   (see largest gap).
+//                               (Maximum continuous block)
+//
+// These bits show that there are 12 allocated blocks (X) of 64 bytes, so total
+// size allocated is 768 bytes. Maximum count of continuous memory is 12 * 64.
 
 namespace asmjit {
 

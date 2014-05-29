@@ -29,7 +29,7 @@ CodeGen::CodeGen(Runtime* runtime) :
   _features(static_cast<uint8_t>(IntUtil::mask(kCodeGenOptimizedAlign))),
   _error(kErrorOk),
   _options(0),
-  _baseZone(16384 - sizeof(Zone::Chunk) - kMemAllocOverhead) {}
+  _baseZone(16384 - kZoneOverhead) {}
 
 CodeGen::~CodeGen() {
   if (_errorHandler != NULL)
