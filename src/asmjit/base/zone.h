@@ -158,7 +158,7 @@ struct Zone {
   //! zone.reset();
   //! ~~~
   ASMJIT_INLINE void* alloc(size_t size) {
-    Block* cur = _blocks;
+    Block* cur = _block;
 
     uint8_t* ptr = cur->pos;
     size_t remainingBytes = (size_t)(cur->end - ptr);
@@ -206,7 +206,7 @@ struct Zone {
   // --------------------------------------------------------------------------
 
   //! The current block.
-  Block* _blocks;
+  Block* _block;
   //! Default block size.
   size_t _blockSize;
 };

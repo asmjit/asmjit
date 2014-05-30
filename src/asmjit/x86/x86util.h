@@ -302,6 +302,10 @@ struct RegMask {
 
 //! X86/X64 utilities.
 struct X86Util {
+  // --------------------------------------------------------------------------
+  // [Condition Codes]
+  // --------------------------------------------------------------------------
+
   //! Corresponds to transposing the operands of a comparison.
   static ASMJIT_INLINE uint32_t reverseCond(uint32_t cond) {
     ASMJIT_ASSERT(cond < ASMJIT_ARRAY_SIZE(_reverseCond));
@@ -335,11 +339,19 @@ struct X86Util {
     return _condToSetcc[cond];
   }
 
+  // --------------------------------------------------------------------------
+  // [Registers]
+  // --------------------------------------------------------------------------
+
   //! Get whether the `op` operand is Gpb-Lo or Gpb-Hi register.
   static ASMJIT_INLINE bool isGpbRegOp(const Operand& op) {
     const uint32_t mask = IntUtil::pack32_2x8_1x16(0xFF, 0xFF, ~(kRegTypePatchedGpbHi << 8) & 0xFF00);
     return (op._packed[0].u32[0] & mask) == IntUtil::pack32_2x8_1x16(kOperandTypeReg, 1, 0x0000);
   }
+
+  // --------------------------------------------------------------------------
+  // [Immediates]
+  // --------------------------------------------------------------------------
 
   //! Pack a shuffle constant to be used with multimedia instrutions (2 values).
   //!

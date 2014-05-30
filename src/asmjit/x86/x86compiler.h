@@ -1873,12 +1873,12 @@ struct X86X64Compiler : public BaseCompiler {
   //! Move (AL|AX|EAX|RAX <- absolute address in immediate).
   ASMJIT_INLINE InstNode* mov_ptr(const GpVar& dst, void* src) {
     Imm imm(static_cast<int64_t>((intptr_t)src));
-    return emit(kInstMovptr, dst, imm);
+    return emit(kInstMovPtr, dst, imm);
   }
   //! Move (absolute address in immediate <- AL|AX|EAX|RAX).
   ASMJIT_INLINE InstNode* mov_ptr(void* dst, const GpVar& src) {
     Imm imm(static_cast<int64_t>((intptr_t)dst));
-    return emit(kInstMovptr, imm, src);
+    return emit(kInstMovPtr, imm, src);
   }
 
   //! Move data after swapping bytes (SSE3 - Atom).

@@ -260,7 +260,7 @@ static ASMJIT_INLINE const X86X64SpecialInst* X86X64SpecialInst_get(uint32_t cod
     case kInstMul:
       return x86SpecialInstMul;
 
-    case kInstMovptr:
+    case kInstMovPtr:
       return x86SpecialInstMovPtr;
 
     case kInstLahf:
@@ -5450,7 +5450,7 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
               o0 = &opList[2];
               break;
 
-            case kInstMovptr:
+            case kInstMovPtr:
               break;
 
             case kInstLahf:

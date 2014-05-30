@@ -352,7 +352,7 @@ Error X86X64Assembler::_align(uint32_t mode, uint32_t offset) {
 
   if (getRemainingSpace() < i)
     ASMJIT_PROPAGATE_ERROR(_grow(i));
-  
+
   uint8_t* cursor = getCursor();
   uint8_t alignPattern = 0xCC;
 

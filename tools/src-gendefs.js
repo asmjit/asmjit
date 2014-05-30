@@ -47,25 +47,6 @@ var inject = function(s, start, end, code) {
 // SuffixIndex - Index to a suffix string.
 
 var Database = (function() {
-  function bestSuffix(s, suffixes) {
-    var best = -1;
- 
-    for (var i = 0; i < suffixes.length; i++) {
-      var suffix = suffixes[i];
-      var si = s.lastIndexOf(suffix);
-
-      if (si === -1 || si + suffix.length != s.length)
-        continue;
-
-      if (best !== -1 && suffix.length < suffixes[best].length)
-        continue;
-
-      best = i;
-    }
-    
-    return best;
-  }
-
   var IndexedString = function() {
     this.array = [];
     this.index = 0;
@@ -106,13 +87,10 @@ var Database = (function() {
     return this.index;
   };
 
-  var Database = function(suffixes) {
+  var Database = function() {
     this.map = {};
-    this.suffixes = suffixes;
-
+    this.alphabetical = new Array(26);
     this.fullString = new IndexedString();
-    this.prefixString = new IndexedString();
-    this.suffixString = new IndexedString();
   };
 
   Database.prototype.add = function(name, id) {
@@ -120,40 +98,28 @@ var Database = (function() {
       id: id,
       fullIndex: 0,
       prefixIndex: 0,
-      suffixIndex: 0,
       hasV: 0
     };
   };
 
   Database.prototype.index = function() {
     var map = this.map;
-    var suffixes = this.suffixes;
-
-    for (var i = 0; i < suffixes.length; i++) {
-      this.suffixString.add(suffixes[i]);
-    }
+    var alphabetical = this.alphabetical;
 
     for (var name in map) {
       var inst = map[name];
-      var si = bestSuffix(name, suffixes);
-
       inst.fullIndex = this.fullString.add(name);
 
+      var aIndex = name.charCodeAt(0) - 'a'.charCodeAt(0);
+      if (aIndex < 0 || aIndex >= 26)
+        throw new Error("Alphabetical index error");
+
+      if (alphabetical[aIndex] === undefined)
+        alphabetical[aIndex] = inst.id;
+      
       if (name.indexOf("v") === 0) {
         inst.hasV = 1;
         name = name.substr(1);
-      }
-
-      if (si !== -1) {
-        var suffix = suffixes[si];
-        var prefix = name.substr(0, name.length - suffix.length);
-
-        inst.prefixIndex = this.prefixString.add(prefix);
-        inst.suffixIndex = this.suffixString.add(suffix);
-      }
-      else {
-        inst.prefixIndex = this.prefixString.add(name);
-        inst.suffixIndex = this.suffixString.add("");
       }
     }
   };
@@ -165,7 +131,7 @@ var Database = (function() {
 // [Generate]
 // ----------------------------------------------------------------------------
 
-var generate = function(fileName, arch, suffixes) {
+var generate = function(fileName, arch) {
   var oldData = fs.readFileSync(fileName, "utf8").replace(/\r\n/g, "\n");
 
   var data = oldData;
@@ -174,7 +140,7 @@ var generate = function(fileName, arch, suffixes) {
   var Arch = uppercaseFirst(arch);
 
   // Create database.
-  var db = new Database(suffixes);
+  var db = new Database();
   var re = new RegExp("INST\\(([A-Za-z0-9_]+)\\s*,\\s*\\\"([A-Za-z0-9_ ]*)\\\"", "g");
 
   while (m = re.exec(data)) {
@@ -186,8 +152,6 @@ var generate = function(fileName, arch, suffixes) {
   db.index();
 
   console.log("Full size: " + db.fullString.getSize());
-  console.log("Prefix size: " + db.prefixString.getSize());
-  console.log("Suffix size: " + db.suffixString.getSize());
 
   // Generate InstName[] string.
   code += "const char _instName[] =\n";
@@ -197,14 +161,32 @@ var generate = function(fileName, arch, suffixes) {
   }
   code = code.substr(code, code.length - 1) + ";\n\n";
 
+  // Generate AlphaIndex.
+  code += "enum kInstAlphaIndex {\n";
+  code += "  kInstAlphaIndexFirst = 'a',\n";
+  code += "  kInstAlphaIndexLast = 'z',\n";
+  code += "  kInstAlphaIndexInvalid = 0xFFFF\n";
+  code += "};\n";
+  code += "\n";
+
   // Generate NameIndex.
+  code += "static const uint16_t _instAlphaIndex[26] = {\n";
+  for (var i = 0; i < db.alphabetical.length; i++) {
+    var id = db.alphabetical[i];
+    code += "  " + (id === undefined ? "0xFFFF" : id);
+    if (i !== db.alphabetical.length - 1)
+      code += ",";
+    code += "\n";
+  }
+  code += "};\n\n";
+
   code += "enum kInstData_NameIndex {\n";
   for (var k in db.map) {
     var inst = db.map[k];
     code += "  " + inst.id + "_NameIndex = " + inst.fullIndex + ",\n";
   }
   code = code.substr(code, code.length - 2) + "\n};\n";
-
+ 
   // Inject.
   data = inject(data, injectStartMarker, injectEndMarker, code);
 
@@ -219,35 +201,13 @@ var generate = function(fileName, arch, suffixes) {
 
 var main = function(files) {
   files.forEach(function(file) {
-    generate(file.name, file.arch, file.suffixes);
+    generate(file.name, file.arch);
   });
 };
 
 main([
   {
     name: "../src/asmjit/x86/x86inst.cpp",
-    arch: "x86",
-    suffixes: [
-      "a", "ae",
-      "b", "bd", "be", "bq", "bw",
-      "c",
-      "d", "dq", "dqa", "dqu", "dw",
-      "e",
-      "f128",
-      "g", "ge",
-      "hpd", "hps",
-      "i", "i128", "ip",
-      "l", "last", "ld", "le", "lpd", "lps", "lw",
-      "na", "nae", "nb", "nbe", "nc", "ne", "ng", "nge", "nl", "nle", "no", "np", "ns", "nz",
-      "o",
-      "p", "pd", "pe", "ph", "pi", "po", "pp", "ps",
-      "q",
-      "r",
-      "s", "sb", "sd", "si", "sq", "ss", "sw",
-      "usb", "usw",
-      "vpd", "vps",
-      "w", "wb", "wd", "wq",
-      "z"
-    ]
+    arch: "x86"
   }
 ]);

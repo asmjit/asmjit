@@ -29,7 +29,7 @@ static const Zone::Block Zone_zeroBlock = {
 // ============================================================================
 
 Zone::Zone(size_t blockSize) {
-  _blocks = const_cast<Zone::Block*>(&Zone_zeroBlock);
+  _block = const_cast<Zone::Block*>(&Zone_zeroBlock);
   _blockSize = blockSize;
 }
 
@@ -42,7 +42,7 @@ Zone::~Zone() {
 // ============================================================================
 
 void Zone::clear() {
-  Block* cur = _blocks;
+  Block* cur = _block;
 
   // Can't be altered.
   if (cur == &Zone_zeroBlock)
@@ -52,11 +52,11 @@ void Zone::clear() {
     cur = cur->prev;
 
   cur->pos = cur->data;
-  _blocks = cur;
+  _block = cur;
 }
 
 void Zone::reset() {
-  Block* cur = _blocks;
+  Block* cur = _block;
 
   // Can't be altered.
   if (cur == &Zone_zeroBlock)
@@ -68,7 +68,7 @@ void Zone::reset() {
     cur = prev;
   } while (cur != NULL);
 
-  _blocks = const_cast<Zone::Block*>(&Zone_zeroBlock);
+  _block = const_cast<Zone::Block*>(&Zone_zeroBlock);
 }
 
 // ============================================================================
@@ -76,7 +76,7 @@ void Zone::reset() {
 // ============================================================================
 
 void* Zone::_alloc(size_t size) {
-  Block* curBlock = _blocks;
+  Block* curBlock = _block;
   size_t blockSize = IntUtil::iMax<size_t>(_blockSize, size);
 
   // The `_alloc()` method can only be called if there is not enough space
@@ -90,7 +90,7 @@ void* Zone::_alloc(size_t size) {
   Block* next = curBlock->next;
   if (next != NULL && next->getBlockSize() >= size) {
     next->pos = next->data + size;
-    _blocks = next;
+    _block = next;
     return static_cast<void*>(next->data);
   }
 
@@ -120,7 +120,7 @@ void* Zone::_alloc(size_t size) {
     }
   }
 
-  _blocks = newBlock;
+  _block = newBlock;
   return static_cast<void*>(newBlock->data);
 }
 

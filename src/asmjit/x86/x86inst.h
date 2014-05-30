@@ -334,6 +334,7 @@ ASMJIT_ENUM(kInstCode) {
   kInstMinsd,           // SSE2
   kInstMinss,           // SSE
   kInstMonitor,         // SSE3
+  kInstMovPtr,          // X86/X64
   kInstMov,             // X86/X64
   kInstMovapd,          // SSE2
   kInstMovaps,          // SSE
@@ -357,7 +358,6 @@ ASMJIT_ENUM(kInstCode) {
   kInstMovntpd,         // SSE2
   kInstMovntps,         // SSE
   kInstMovntq,          // MMX-Ext
-  kInstMovptr,          // X86/X64
   kInstMovq,            // MMX/SSE/SSE2
   kInstMovq2dq,         // SSE2
   kInstMovsd,           // SSE2
@@ -745,14 +745,14 @@ ASMJIT_ENUM(kInstCode) {
   kInstVfmsub231ps,     // FMA3
   kInstVfmsub231sd,     // FMA3
   kInstVfmsub231ss,     // FMA3
+  kInstVfmsubaddpd,     // FMA4
+  kInstVfmsubaddps,     // FMA4
   kInstVfmsubadd132pd,  // FMA3
   kInstVfmsubadd132ps,  // FMA3
   kInstVfmsubadd213pd,  // FMA3
   kInstVfmsubadd213ps,  // FMA3
   kInstVfmsubadd231pd,  // FMA3
   kInstVfmsubadd231ps,  // FMA3
-  kInstVfmsubaddpd,     // FMA4
-  kInstVfmsubaddps,     // FMA4
   kInstVfmsubpd,        // FMA4
   kInstVfmsubps,        // FMA4
   kInstVfmsubsd,        // FMA4
@@ -933,8 +933,8 @@ ASMJIT_ENUM(kInstCode) {
   kInstVphaddwq,        // XOP
   kInstVphminposuw,     // AVX
   kInstVphsubbw,        // XOP
-  kInstVphsubdq,        // XOP
   kInstVphsubd,         // AVX2
+  kInstVphsubdq,        // XOP
   kInstVphsubsw,        // AVX2
   kInstVphsubw,         // AVX2
   kInstVphsubwd,        // XOP
@@ -1405,15 +1405,15 @@ ASMJIT_ENUM(kInstOpCode) {
 //! X86/X64 instruction type flags.
 ASMJIT_ENUM(kInstFlags) {
   //! No flags.
-  kInstFlagNone        = 0x0000,
+  kInstFlagNone = 0x0000,
 
   //! Instruction is a control-flow instruction.
   //!
   //! Control flow instructions are jmp, jcc, call and ret.
-  kInstFlagFlow        = 0x0001,
+  kInstFlagFlow = 0x0001,
 
   //! Instruction is a compare/test like instruction.
-  kInstFlagTest        = 0x0002,
+  kInstFlagTest = 0x0002,
 
   //! Instruction is a move like instruction.
   //!
@@ -1428,64 +1428,64 @@ ASMJIT_ENUM(kInstFlags) {
   //! There are some MOV instructions that do only a partial move (for example
   //! 'cvtsi2ss'), register allocator has to know the variable size and use
   //! the flag accordingly to it.
-  kInstFlagMove        = 0x0004,
+  kInstFlagMove = 0x0004,
 
   //! Instruction is an exchange like instruction.
   //!
   //! Exchange instruction typically overwrite first and second operand. So
   //! far only the instructions 'xchg' and 'xadd' are considered.
-  kInstFlagXchg        = 0x0008,
+  kInstFlagXchg = 0x0008,
 
   //! Instruction accesses Fp register(s).
-  kInstFlagFp          = 0x0010,
+  kInstFlagFp = 0x0010,
 
   //! Instruction can be prefixed by using the LOCK prefix.
-  kInstFlagLock        = 0x0020,
+  kInstFlagLock = 0x0020,
 
   //! Instruction is special, this is for `BaseCompiler`.
-  kInstFlagSpecial     = 0x0040,
+  kInstFlagSpecial = 0x0040,
 
   //! Instruction always performs memory access.
   //!
   //! This flag is always combined with `kInstFlagSpecial` and signalizes
   //! that there is an implicit address which is accessed (usually EDI/RDI or
   //! ESI/EDI).
-  kInstFlagSpecialMem  = 0x0080,
+  kInstFlagSpecialMem = 0x0080,
 
   //! Instruction memory operand can refer to 16-bit address (used by FPU).
-  kInstFlagMem2        = 0x0100,
+  kInstFlagMem2 = 0x0100,
   //! Instruction memory operand can refer to 32-bit address (used by FPU).
-  kInstFlagMem4        = 0x0200,
+  kInstFlagMem4 = 0x0200,
   //! Instruction memory operand can refer to 64-bit address (used by FPU).
-  kInstFlagMem8        = 0x0400,
+  kInstFlagMem8 = 0x0400,
   //! Instruction memory operand can refer to 80-bit address (used by FPU).
-  kInstFlagMem10       = 0x0800,
+  kInstFlagMem10 = 0x0800,
 
   //! \internal
   //!
   //! Combination of `kInstFlagMem2` and `kInstFlagMem4`.
-  kInstFlagMem2_4      = kInstFlagMem2   | kInstFlagMem4,
+  kInstFlagMem2_4 = kInstFlagMem2   | kInstFlagMem4,
 
   //! \internal
   //!
   //! Combination of `kInstFlagMem2`, `kInstFlagMem4` and `kInstFlagMem8`.
-  kInstFlagMem2_4_8    = kInstFlagMem2_4 | kInstFlagMem8,
+  kInstFlagMem2_4_8 = kInstFlagMem2_4 | kInstFlagMem8,
 
   //! \internal
   //!
   //! Combination of `kInstFlagMem4` and `kInstFlagMem8`.
-  kInstFlagMem4_8      = kInstFlagMem4   | kInstFlagMem8,
+  kInstFlagMem4_8 = kInstFlagMem4   | kInstFlagMem8,
 
   //! \internal
   //!
   //! Combination of `kInstFlagMem4`, `kInstFlagMem8` and `kInstFlagMem10`.
-  kInstFlagMem4_8_10   = kInstFlagMem4_8 | kInstFlagMem10,
+  kInstFlagMem4_8_10 = kInstFlagMem4_8 | kInstFlagMem10,
 
   //! Zeroes the rest of the register if the source operand is memory.
-  kInstFlagZeroIfMem   = 0x1000,
+  kInstFlagZeroIfMem = 0x1000,
 
   //! REX.W/VEX.W by default.
-  kInstFlagW           = 0x8000
+  kInstFlagW = 0x8000
 };
 
 // ============================================================================
@@ -1821,6 +1821,15 @@ struct InstInfo {
   uint16_t _opFlags[4];
   //! Primary and secondary opcodes.
   uint32_t _opCode[2];
+};
+
+// ============================================================================
+// [asmjit::x86x64::X86InstUtil]
+// ============================================================================
+
+struct X86InstUtil {
+  ASMJIT_API static uint32_t getInstIdByName(
+    const char* name, size_t len = kInvalidIndex);
 };
 
 //! \}

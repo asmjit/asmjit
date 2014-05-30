@@ -45,7 +45,7 @@
 // - Keep implementation simple and easy to follow.
 //
 // Implementation is based on bit arrays and binary trees. Bit arrays contain
-// information related to allocated and unused blocks of memory. The size of 
+// information related to allocated and unused blocks of memory. The size of
 // a block is described by `MemNode::density`. Count of blocks is stored in
 // `MemNode::blocks`. For example if density is 64 and count of blocks is 20,
 // memory node contains 64*20 bytes of memory and smallest possible allocation

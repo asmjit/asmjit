@@ -309,6 +309,7 @@ const char _instName[] =
   "minsd\0"
   "minss\0"
   "monitor\0"
+  "mov_ptr\0"
   "mov\0"
   "movapd\0"
   "movaps\0"
@@ -332,7 +333,6 @@ const char _instName[] =
   "movntpd\0"
   "movntps\0"
   "movntq\0"
-  "mov_ptr\0"
   "movq\0"
   "movq2dq\0"
   "movsd\0"
@@ -700,14 +700,14 @@ const char _instName[] =
   "vfmaddps\0"
   "vfmaddsd\0"
   "vfmaddss\0"
-  "vfmaddsubpd\0"
-  "vfmaddsubps\0"
   "vfmaddsub132pd\0"
   "vfmaddsub132ps\0"
   "vfmaddsub213pd\0"
   "vfmaddsub213ps\0"
   "vfmaddsub231pd\0"
   "vfmaddsub231ps\0"
+  "vfmaddsubpd\0"
+  "vfmaddsubps\0"
   "vfmsub132pd\0"
   "vfmsub132ps\0"
   "vfmsub132sd\0"
@@ -908,8 +908,8 @@ const char _instName[] =
   "vphaddwq\0"
   "vphminposuw\0"
   "vphsubbw\0"
-  "vphsubdq\0"
   "vphsubd\0"
+  "vphsubdq\0"
   "vphsubsw\0"
   "vphsubw\0"
   "vphsubwd\0"
@@ -1058,6 +1058,41 @@ const char _instName[] =
   "xor\0"
   "xorpd\0"
   "xorps\0";
+
+enum kInstAlphaIndex {
+  kInstAlphaIndexFirst = 'a',
+  kInstAlphaIndexLast = 'z',
+  kInstAlphaIndexInvalid = 0xFFFF
+};
+
+static const uint16_t _instAlphaIndex[26] = {
+  kInstAdc,
+  kInstBextr,
+  kInstCall,
+  kInstDaa,
+  kInstEmms,
+  kInstF2xm1,
+  0xFFFF,
+  kInstHaddpd,
+  kInstIdiv,
+  kInstJa,
+  0xFFFF,
+  kInstLahf,
+  kInstMaskmovdqu,
+  kInstNeg,
+  kInstOr,
+  kInstPabsb,
+  0xFFFF,
+  kInstRcl,
+  kInstSahf,
+  kInstTest,
+  kInstUcomisd,
+  kInstVaddpd,
+  kInstWrfsbase,
+  kInstXadd,
+  0xFFFF,
+  0xFFFF
+};
 
 enum kInstData_NameIndex {
   kInstNone_NameIndex = 0,
@@ -1341,30 +1376,30 @@ enum kInstData_NameIndex {
   kInstMinsd_NameIndex = 1746,
   kInstMinss_NameIndex = 1752,
   kInstMonitor_NameIndex = 1758,
-  kInstMov_NameIndex = 1766,
-  kInstMovapd_NameIndex = 1770,
-  kInstMovaps_NameIndex = 1777,
-  kInstMovbe_NameIndex = 1784,
-  kInstMovd_NameIndex = 1790,
-  kInstMovddup_NameIndex = 1795,
-  kInstMovdq2q_NameIndex = 1803,
-  kInstMovdqa_NameIndex = 1811,
-  kInstMovdqu_NameIndex = 1818,
-  kInstMovhlps_NameIndex = 1825,
-  kInstMovhpd_NameIndex = 1833,
-  kInstMovhps_NameIndex = 1840,
-  kInstMovlhps_NameIndex = 1847,
-  kInstMovlpd_NameIndex = 1855,
-  kInstMovlps_NameIndex = 1862,
-  kInstMovmskpd_NameIndex = 1869,
-  kInstMovmskps_NameIndex = 1878,
-  kInstMovntdq_NameIndex = 1887,
-  kInstMovntdqa_NameIndex = 1895,
-  kInstMovnti_NameIndex = 1904,
-  kInstMovntpd_NameIndex = 1911,
-  kInstMovntps_NameIndex = 1919,
-  kInstMovntq_NameIndex = 1927,
-  kInstMovptr_NameIndex = 1934,
+  kInstMovPtr_NameIndex = 1766,
+  kInstMov_NameIndex = 1774,
+  kInstMovapd_NameIndex = 1778,
+  kInstMovaps_NameIndex = 1785,
+  kInstMovbe_NameIndex = 1792,
+  kInstMovd_NameIndex = 1798,
+  kInstMovddup_NameIndex = 1803,
+  kInstMovdq2q_NameIndex = 1811,
+  kInstMovdqa_NameIndex = 1819,
+  kInstMovdqu_NameIndex = 1826,
+  kInstMovhlps_NameIndex = 1833,
+  kInstMovhpd_NameIndex = 1841,
+  kInstMovhps_NameIndex = 1848,
+  kInstMovlhps_NameIndex = 1855,
+  kInstMovlpd_NameIndex = 1863,
+  kInstMovlps_NameIndex = 1870,
+  kInstMovmskpd_NameIndex = 1877,
+  kInstMovmskps_NameIndex = 1886,
+  kInstMovntdq_NameIndex = 1895,
+  kInstMovntdqa_NameIndex = 1903,
+  kInstMovnti_NameIndex = 1912,
+  kInstMovntpd_NameIndex = 1919,
+  kInstMovntps_NameIndex = 1927,
+  kInstMovntq_NameIndex = 1935,
   kInstMovq_NameIndex = 1942,
   kInstMovq2dq_NameIndex = 1947,
   kInstMovsd_NameIndex = 1955,
@@ -1732,14 +1767,14 @@ enum kInstData_NameIndex {
   kInstVfmaddps_NameIndex = 4775,
   kInstVfmaddsd_NameIndex = 4784,
   kInstVfmaddss_NameIndex = 4793,
-  kInstVfmaddsubpd_NameIndex = 4802,
-  kInstVfmaddsubps_NameIndex = 4814,
-  kInstVfmaddsub132pd_NameIndex = 4826,
-  kInstVfmaddsub132ps_NameIndex = 4841,
-  kInstVfmaddsub213pd_NameIndex = 4856,
-  kInstVfmaddsub213ps_NameIndex = 4871,
-  kInstVfmaddsub231pd_NameIndex = 4886,
-  kInstVfmaddsub231ps_NameIndex = 4901,
+  kInstVfmaddsub132pd_NameIndex = 4802,
+  kInstVfmaddsub132ps_NameIndex = 4817,
+  kInstVfmaddsub213pd_NameIndex = 4832,
+  kInstVfmaddsub213ps_NameIndex = 4847,
+  kInstVfmaddsub231pd_NameIndex = 4862,
+  kInstVfmaddsub231ps_NameIndex = 4877,
+  kInstVfmaddsubpd_NameIndex = 4892,
+  kInstVfmaddsubps_NameIndex = 4904,
   kInstVfmsub132pd_NameIndex = 4916,
   kInstVfmsub132ps_NameIndex = 4928,
   kInstVfmsub132sd_NameIndex = 4940,
@@ -1940,8 +1975,8 @@ enum kInstData_NameIndex {
   kInstVphaddwq_NameIndex = 6842,
   kInstVphminposuw_NameIndex = 6851,
   kInstVphsubbw_NameIndex = 6863,
-  kInstVphsubdq_NameIndex = 6872,
-  kInstVphsubd_NameIndex = 6881,
+  kInstVphsubd_NameIndex = 6872,
+  kInstVphsubdq_NameIndex = 6880,
   kInstVphsubsw_NameIndex = 6889,
   kInstVphsubw_NameIndex = 6898,
   kInstVphsubwd_NameIndex = 6906,
@@ -2417,6 +2452,7 @@ const InstInfo _instInfo[] = {
   INST(kInstMinsd            , "minsd"            , G(ExtRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_F20F00(5D,U)  , U               ),
   INST(kInstMinss            , "minss"            , G(ExtRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_F30F00(5D,U)  , U               ),
   INST(kInstMonitor          , "monitor"          , G(X86Op)         , F(None)|F(Special)     , 0 , U                   , U                   , U                   , U                   , O_000F01(C8,U)  , U               ),
+  INST(kInstMovPtr           , "mov_ptr"          , G(X86MovPtr)     , F(Move)|F(Special)     , 0 , O(Gqdwb)            , O(Imm)              , U                   , U                   , O_000000(A0,U)  , O_000000(A2,U)  ),
   INST(kInstMov              , "mov"              , G(X86Mov)        , F(Move)                , 0 , O(GqdwbMem)         , O(GqdwbMem)|O(Imm)  , U                   , U                   , U               , U               ),
   INST(kInstMovapd           , "movapd"           , G(ExtMov)        , F(Move)                , 16, O(XmmMem)           , O(XmmMem)           , U                   , U                   , O_660F00(28,U)  , O_660F00(29,U)  ),
   INST(kInstMovaps           , "movaps"           , G(ExtMov)        , F(Move)                , 16, O(XmmMem)           , O(XmmMem)           , U                   , U                   , O_000F00(28,U)  , O_000F00(29,U)  ),
@@ -2440,7 +2476,6 @@ const InstInfo _instInfo[] = {
   INST(kInstMovntpd          , "movntpd"          , G(ExtMov)        , F(Move)                , 16, O(Mem)              , O(Xmm)              , U                   , U                   , U               , O_660F00(2B,U)  ),
   INST(kInstMovntps          , "movntps"          , G(ExtMov)        , F(Move)                , 16, O(Mem)              , O(Xmm)              , U                   , U                   , U               , O_000F00(2B,U)  ),
   INST(kInstMovntq           , "movntq"           , G(ExtMov)        , F(Move)                , 8 , O(Mem)              , O(Mm)               , U                   , U                   , U               , O_000F00(E7,U)  ),
-  INST(kInstMovptr           , "mov_ptr"          , G(X86MovPtr)     , F(Move)|F(Special)     , 0 , O(Gqdwb)            , O(Imm)              , U                   , U                   , O_000000(A0,U)  , O_000000(A2,U)  ),
   INST(kInstMovq             , "movq"             , G(ExtMovQ)       , F(Move)                , 16, O(Gq)|O(MmXmmMem)   , O(Gq)|O(MmXmmMem)   , U                   , U                   , U               , U               ),
   INST(kInstMovq2dq          , "movq2dq"          , G(ExtRm)         , F(Move)                , 16, O(Xmm)              , O(Mm)               , U                   , U                   , O_F30F00(D6,U)  , U               ),
   INST(kInstMovsd            , "movsd"            , G(ExtMov)        , F(Move)|F(ZeroIfMem)   , 8 , O(XmmMem)           , O(XmmMem)           , U                   , U                   , O_F20F00(10,U)  , O_F20F00(11,U)  ),
@@ -2808,14 +2843,14 @@ const InstInfo _instInfo[] = {
   INST(kInstVfmaddps         , "vfmaddps"         , G(Fma4_P)        , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , O(XmmYmmMem)        , O_660F3A(68,U)  , U               ),
   INST(kInstVfmaddsd         , "vfmaddsd"         , G(Fma4)          , F(None)                , 0 , O(Xmm)              , O(Xmm)              , O(XmmMem)           , O(XmmMem)           , O_660F3A(6B,U)  , U               ),
   INST(kInstVfmaddss         , "vfmaddss"         , G(Fma4)          , F(None)                , 0 , O(Xmm)              , O(Xmm)              , O(XmmMem)           , O(XmmMem)           , O_660F3A(6A,U)  , U               ),
-  INST(kInstVfmaddsubpd      , "vfmaddsubpd"      , G(Fma4_P)        , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , O(XmmYmmMem)        , O_660F3A(5D,U)  , U               ),
-  INST(kInstVfmaddsubps      , "vfmaddsubps"      , G(Fma4_P)        , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , O(XmmYmmMem)        , O_660F3A(5C,U)  , U               ),
   INST(kInstVfmaddsub132pd   , "vfmaddsub132pd"   , G(AvxRvm_P)      , F(None)           |F(W), 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(96,U)  , U               ),
   INST(kInstVfmaddsub132ps   , "vfmaddsub132ps"   , G(AvxRvm_P)      , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(96,U)  , U               ),
   INST(kInstVfmaddsub213pd   , "vfmaddsub213pd"   , G(AvxRvm_P)      , F(None)           |F(W), 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(A6,U)  , U               ),
   INST(kInstVfmaddsub213ps   , "vfmaddsub213ps"   , G(AvxRvm_P)      , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(A6,U)  , U               ),
   INST(kInstVfmaddsub231pd   , "vfmaddsub231pd"   , G(AvxRvm_P)      , F(None)           |F(W), 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(B6,U)  , U               ),
   INST(kInstVfmaddsub231ps   , "vfmaddsub231ps"   , G(AvxRvm_P)      , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(B6,U)  , U               ),
+  INST(kInstVfmaddsubpd      , "vfmaddsubpd"      , G(Fma4_P)        , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , O(XmmYmmMem)        , O_660F3A(5D,U)  , U               ),
+  INST(kInstVfmaddsubps      , "vfmaddsubps"      , G(Fma4_P)        , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , O(XmmYmmMem)        , O_660F3A(5C,U)  , U               ),
   INST(kInstVfmsub132pd      , "vfmsub132pd"      , G(AvxRvm_P)      , F(None)           |F(W), 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(9A,U)  , U               ),
   INST(kInstVfmsub132ps      , "vfmsub132ps"      , G(AvxRvm_P)      , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(9A,U)  , U               ),
   INST(kInstVfmsub132sd      , "vfmsub132sd"      , G(AvxRvm)        , F(None)           |F(W), 0 , O(Xmm)              , O(Xmm)              , O(XmmMem)           , U                   , O_660F38(9B,U)  , U               ),
@@ -3016,8 +3051,8 @@ const InstInfo _instInfo[] = {
   INST(kInstVphaddwq         , "vphaddwq"         , G(XopRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_00_M09(C7,U)  , U               ),
   INST(kInstVphminposuw      , "vphminposuw"      , G(AvxRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_660F38(41,U)  , U               ),
   INST(kInstVphsubbw         , "vphsubbw"         , G(XopRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_00_M09(E1,U)  , U               ),
-  INST(kInstVphsubdq         , "vphsubdq"         , G(XopRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_00_M09(E3,U)  , U               ),
   INST(kInstVphsubd          , "vphsubd"          , G(AvxRvm_P)      , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(06,U)  , U               ),
+  INST(kInstVphsubdq         , "vphsubdq"         , G(XopRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_00_M09(E3,U)  , U               ),
   INST(kInstVphsubsw         , "vphsubsw"         , G(AvxRvm_P)      , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(07,U)  , U               ),
   INST(kInstVphsubw          , "vphsubw"          , G(AvxRvm_P)      , F(None)                , 0 , O(XmmYmm)           , O(XmmYmm)           , O(XmmYmmMem)        , U                   , O_660F38(05,U)  , U               ),
   INST(kInstVphsubwd         , "vphsubwd"         , G(XopRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_00_M09(E2,U)  , U               ),
@@ -3207,6 +3242,87 @@ const InstInfo _instInfo[] = {
 #undef G
 
 #undef INST
+
+// ============================================================================
+// [asmjit::x86x64::X86Util]
+// ============================================================================
+
+// Compare two instruction names.
+//
+// `a` is null terminated instruction name from `_instName[]` table.
+// `b` is non-null terminated instruction name passed to `getInstIdByName()`.
+static ASMJIT_INLINE int X86InstUtil_cmpName(const char* a, const char* b, size_t len) {
+  for (size_t i = 0; i < len; i++) {
+    int c = static_cast<int>(static_cast<uint8_t>(a[i])) -
+            static_cast<int>(static_cast<uint8_t>(b[i])) ;
+    if (c != 0)
+      return c;
+  }
+
+  return static_cast<int>(a[len]);
+}
+
+uint32_t X86InstUtil::getInstIdByName(const char* name, size_t len) {
+  if (name == NULL)
+    return kInstNone;
+
+  if (len == kInvalidIndex)
+    len = ::strlen(name);
+
+  if (len == 0)
+    return kInstNone;
+
+  uint32_t prefix = name[0] - kInstAlphaIndexFirst;
+  if (prefix > kInstAlphaIndexLast - kInstAlphaIndexFirst)
+    return kInstNone;
+
+  uint32_t index = _instAlphaIndex[prefix];
+  if (index == kInstAlphaIndexInvalid)
+    return kInstNone;
+
+  const InstInfo* base = _instInfo + index;
+  const InstInfo* end = _instInfo + _kInstCount;
+
+  // Handle instructions starting with 'j' specially. `jcc` instruction breaks
+  // the sorting, because of the suffixes (it's considered as one instruction),
+  // so basically `jecxz` and `jmp` are stored after all `jcc` instructions.
+  bool linearSearch = prefix == ('j' - kInstAlphaIndexFirst);
+
+  while (++prefix <= kInstAlphaIndexLast - kInstAlphaIndexFirst) {
+    index = _instAlphaIndex[prefix];
+    if (index == kInstAlphaIndexInvalid)
+      continue;
+    end = _instInfo + index;
+    break;
+  }
+
+  if (linearSearch) {
+    while (base != end) {
+      if (X86InstUtil_cmpName(base->getName(), name, len) == 0)
+        return static_cast<uint32_t>((size_t)(base - _instInfo));
+      base++;
+    }
+  }
+  else {
+    for (size_t lim = (size_t)(end - base); lim != 0; lim >>= 1) {
+      const InstInfo* cur = base + (lim >> 1);
+      int result = X86InstUtil_cmpName(cur->getName(), name, len);
+
+      if (result < 0) {
+        base = cur + 1;
+        lim--;
+        continue;
+      }
+
+      if (result > 0)
+        continue;
+
+      return static_cast<uint32_t>((size_t)(cur - _instInfo));
+    }
+  }
+
+  return kInstNone;
+}
 
 } // x86x64 namespace
 } // asmjit namespace
