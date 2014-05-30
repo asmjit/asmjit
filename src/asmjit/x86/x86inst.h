@@ -1828,6 +1828,12 @@ struct InstInfo {
 // ============================================================================
 
 struct X86InstUtil {
+  //! Get an instruction ID from a given instruction `name`.
+  //!
+  //! If there is an exact match the instruction id is returned, otherwise
+  //! `kInstNone` (zero) is returned.
+  //!
+  //! The given `name` doesn't have to be null-terminated if `len` is provided.
   ASMJIT_API static uint32_t getInstIdByName(
     const char* name, size_t len = kInvalidIndex);
 };
