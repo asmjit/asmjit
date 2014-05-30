@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_BASE_LOGGER_H
 #define _ASMJIT_BASE_LOGGER_H
 
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_LOGGER)
+
 // [Dependencies - AsmJit]
 #include "../base/string.h"
 
@@ -229,4 +232,5 @@ struct StringLogger : public Logger {
 #include "../apiend.h"
 
 // [Guard]
+#endif // !ASMJIT_DISABLE_LOGGER
 #endif // _ASMJIT_BASE_LOGGER_H

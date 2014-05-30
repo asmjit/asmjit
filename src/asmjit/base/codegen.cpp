@@ -40,10 +40,12 @@ CodeGen::~CodeGen() {
 // [asmjit::CodeGen - Logging]
 // ============================================================================
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
 Error CodeGen::setLogger(Logger* logger) {
   _logger = logger;
   return kErrorOk;
 }
+#endif // !ASMJIT_DISABLE_LOGGER
 
 // ============================================================================
 // [asmjit::CodeGen - Error]
@@ -64,16 +66,19 @@ Error CodeGen::setError(Error error, const char* message) {
   if (handler != NULL && handler->handleError(error, message))
     return error;
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
   Logger* logger = _logger;
   if (logger != NULL) {
     logger->logFormat(kLoggerStyleComment,
       "*** ERROR: %s (%u).\n", message, static_cast<unsigned int>(error));
   }
+#endif // !ASMJIT_DISABLE_LOGGER
 
   // The handler->handleError() function may throw an exception or longjmp()
   // to terminate the execution of setError(). This is the reason why we have
   // delayed changing the _error member until now.
   _error = error;
+
   return error;
 }
 

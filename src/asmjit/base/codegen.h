@@ -104,46 +104,72 @@ struct CodeGen {
   // --------------------------------------------------------------------------
 
   //! Get runtime.
-  ASMJIT_INLINE Runtime* getRuntime() const { return _runtime; }
+  ASMJIT_INLINE Runtime* getRuntime() const {
+    return _runtime;
+  }
 
   // --------------------------------------------------------------------------
   // [Logger]
   // --------------------------------------------------------------------------
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
   //! Get whether the code generator has a logger.
-  ASMJIT_INLINE bool hasLogger() const { return _logger != NULL; }
+  ASMJIT_INLINE bool hasLogger() const {
+    return _logger != NULL;
+  }
+
   //! Get logger.
-  ASMJIT_INLINE Logger* getLogger() const { return _logger; }
+  ASMJIT_INLINE Logger* getLogger() const {
+    return _logger;
+  }
+
   //! Set logger to `logger`.
   ASMJIT_API Error setLogger(Logger* logger);
+#endif // !ASMJIT_DISABLE_LOGGER
 
   // --------------------------------------------------------------------------
   // [Arch]
   // --------------------------------------------------------------------------
 
   //! Get target architecture.
-  ASMJIT_INLINE uint32_t getArch() const { return _arch; }
+  ASMJIT_INLINE uint32_t getArch() const {
+    return _arch;
+  }
 
   //! Get default register size (4 or 8 bytes).
-  ASMJIT_INLINE uint32_t getRegSize() const { return _regSize; }
+  ASMJIT_INLINE uint32_t getRegSize() const {
+    return _regSize;
+  }
 
   // --------------------------------------------------------------------------
   // [Error]
   // --------------------------------------------------------------------------
 
   //! Get last error code.
-  ASMJIT_INLINE Error getError() const { return _error; }
+  ASMJIT_INLINE Error getError() const {
+    return _error;
+  }
+
   //! Set last error code and propagate it through the error handler.
   ASMJIT_API Error setError(Error error, const char* message = NULL);
+
   //! Clear the last error code.
-  ASMJIT_INLINE void clearError() { _error = kErrorOk; }
+  ASMJIT_INLINE void clearError() {
+    _error = kErrorOk;
+  }
 
   //! Get error handler.
-  ASMJIT_INLINE ErrorHandler* getErrorHandler() const { return _errorHandler; }
+  ASMJIT_INLINE ErrorHandler* getErrorHandler() const {
+    return _errorHandler;
+  }
+
   //! Set error handler.
   ASMJIT_API Error setErrorHandler(ErrorHandler* handler);
+
   //! Clear error handler.
-  ASMJIT_INLINE Error clearErrorHandler() { return setErrorHandler(NULL); }
+  ASMJIT_INLINE Error clearErrorHandler() {
+    return setErrorHandler(NULL);
+  }
 
   // --------------------------------------------------------------------------
   // [Features]
@@ -201,8 +227,15 @@ struct CodeGen {
 
   //! Runtime.
   Runtime* _runtime;
+
+#if !defined(ASMJIT_DISABLE_LOGGER)
   //! Logger.
   Logger* _logger;
+#else
+  // Makes the libraries built with/without logging support binary compatible.
+  void* _logger;
+#endif // ASMJIT_DISABLE_LOGGER
+
   //! Error handler, called by \ref setError().
   ErrorHandler* _errorHandler;
 

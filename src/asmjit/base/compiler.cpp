@@ -7,6 +7,10 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
+// [Guard]
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
 #include "../base/compiler.h"
@@ -583,3 +587,6 @@ void BaseCompiler::rename(BaseVar& var, const char* name) {
 
 // [Api-End]
 #include "../apiend.h"
+
+// [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER

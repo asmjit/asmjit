@@ -9,7 +9,7 @@
 
 // [Guard]
 #include "../build.h"
-#if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
+#if !defined(ASMJIT_DISABLE_COMPILER) && (defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64))
 
 // [Dependencies - AsmJit]
 #include "../base/intutil.h"
@@ -59,9 +59,11 @@ X86X64Context::X86X64Context(X86X64Compiler* compiler) : BaseContext(compiler) {
   }
 #endif // ASMJIT_BUILD_X64
 
-  _state = &_x86State;
-  _emitComments = compiler->getLogger() != NULL;
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  _emitComments = compiler->hasLogger();
+#endif // !ASMJIT_DISABLE_LOGGER
 
+  _state = &_x86State;
   reset();
 }
 
@@ -2802,6 +2804,7 @@ _NoMemory:
 // [asmjit::x86x64::X86X64Context - Annotate]
 // ============================================================================
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
 static void X86X64Context_annotateVariable(X86X64Context* self,
   StringBuilder& sb, const VarData* vd) {
 
@@ -2908,8 +2911,10 @@ static bool X86X64Context_annotateInstruction(X86X64Context* self,
   }
   return true;
 }
+#endif // !ASMJIT_DISABLE_LOGGER
 
 Error X86X64Context::annotate() {
+#if !defined(ASMJIT_DISABLE_LOGGER)
   FuncNode* func = getFunc();
 
   Node* node_ = func;
@@ -2935,8 +2940,9 @@ Error X86X64Context::annotate() {
 
     node_ = node_->getNext();
   }
-
   _annotationLength = maxLen + 1;
+#endif // !ASMJIT_DISABLE_LOGGER
+
   return kErrorOk;
 }
 
@@ -4758,8 +4764,10 @@ static Error X86X64Context_translatePrologEpilog(X86X64Context* self, X86X64Func
 
   compiler->_setCursor(func->getEntryNode());
 
-  if (compiler->getLogger())
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (compiler->hasLogger())
     compiler->comment("Prolog");
+#endif // !ASMJIT_DISABLE_LOGGER
 
   // Entry.
   if (func->isNaked()) {
@@ -4873,8 +4881,10 @@ static Error X86X64Context_translatePrologEpilog(X86X64Context* self, X86X64Func
     }
   }
 
-  if (compiler->getLogger())
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (compiler->hasLogger())
     compiler->comment("Body");
+#endif // !ASMJIT_DISABLE_LOGGER
 
   // --------------------------------------------------------------------------
   // [Epilog]
@@ -4882,8 +4892,10 @@ static Error X86X64Context_translatePrologEpilog(X86X64Context* self, X86X64Func
 
   compiler->_setCursor(func->getExitNode());
 
-  if (compiler->getLogger())
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (compiler->hasLogger())
     compiler->comment("Epilog");
+#endif // !ASMJIT_DISABLE_LOGGER
 
   // Restore Xmm/Mm/Gp (Mov).
   stackPtr = stackBase;
@@ -5305,9 +5317,11 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
   Node* node_ = start;
   StringBuilder& sb = self->_stringBuilder;
 
-  Logger* logger;
+#if !defined(ASMJIT_DISABLE_LOGGER)
   uint32_t vdCount;
   uint32_t annotationLength;
+
+  Logger* logger;
 
   if (LoggingEnabled) {
     logger = assembler->getLogger();
@@ -5315,12 +5329,14 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
     vdCount = static_cast<uint32_t>(self->_contextVd.getLength());
     annotationLength = self->_annotationLength;
   }
+#endif // !ASMJIT_DISABLE_LOGGER
 
   // Create labels on Assembler side.
   ASMJIT_PROPAGATE_ERROR(
     assembler->_registerIndexedLabels(self->getCompiler()->_targets.getLength()));
 
   do {
+#if !defined(ASMJIT_DISABLE_LOGGER)
     if (LoggingEnabled) {
       sb.clear();
 
@@ -5368,6 +5384,7 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
 
       assembler->_comment = sb.getData();
     }
+#endif // !ASMJIT_DISABLE_LOGGER
 
     switch (node_->getType()) {
       case kNodeTypeAlign: {
@@ -5384,10 +5401,13 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
 
       case kNodeTypeComment: {
         CommentNode* node = static_cast<CommentNode*>(node_);
-        if (LoggingEnabled) {
+
+#if !defined(ASMJIT_DISABLE_LOGGER)
+        if (LoggingEnabled)
           logger->logFormat(kLoggerStyleComment,
             "%s; %s\n", logger->getIndentation(), node->getComment());
-        }
+#endif // !ASMJIT_DISABLE_LOGGER
+
         break;
       }
 
@@ -5570,10 +5590,12 @@ static ASMJIT_INLINE Error X86X64Context_serialize(X86X64Context* self, X86X64As
 }
 
 Error X86X64Context::serialize(BaseAssembler* assembler, Node* start, Node* stop) {
-  if (!assembler->hasLogger())
-    return X86X64Context_serialize<0>(this, static_cast<X86X64Assembler*>(assembler), start, stop);
-  else
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (assembler->hasLogger())
     return X86X64Context_serialize<1>(this, static_cast<X86X64Assembler*>(assembler), start, stop);
+#endif // !ASMJIT_DISABLE_LOGGER
+
+  return X86X64Context_serialize<0>(this, static_cast<X86X64Assembler*>(assembler), start, stop);
 }
 
 } // x86x64 namespace
@@ -5583,4 +5605,4 @@ Error X86X64Context::serialize(BaseAssembler* assembler, Node* start, Node* stop
 #include "../apiend.h"
 
 // [Guard]
-#endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64
+#endif // !ASMJIT_DISABLE_COMPILER && (ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64)

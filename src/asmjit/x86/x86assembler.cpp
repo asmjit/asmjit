@@ -222,9 +222,10 @@ void X86X64Assembler::_bind(const Label& label) {
   // Label can be bound only once.
   ASMJIT_ASSERT(data->offset == -1);
 
-  // Log.
+#if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
     _logger->logFormat(kLoggerStyleLabel, "L%u:\n", index);
+#endif // !ASMJIT_DISABLE_LOGGER
 
   size_t pos = getOffset();
 
@@ -295,9 +296,10 @@ Error X86X64Assembler::embedLabel(const Label& op) {
   LabelData* label = getLabelDataById(op.getId());
   RelocData reloc;
 
-  if (_logger) {
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (_logger)
     _logger->logFormat(kLoggerStyleData, regSize == 4 ? ".dd L%u\n" : ".dq L%u\n", op.getId());
-  }
+#endif // !ASMJIT_DISABLE_LOGGER
 
   reloc.type = kRelocRelToAbs;
   reloc.size = regSize;
@@ -338,10 +340,11 @@ Error X86X64Assembler::embedLabel(const Label& op) {
 // ============================================================================
 
 Error X86X64Assembler::_align(uint32_t mode, uint32_t offset) {
-  if (_logger) {
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (_logger)
     _logger->logFormat(kLoggerStyleDirective,
       "%s.align %u\n", _logger->getIndentation(), static_cast<unsigned int>(offset));
-  }
+#endif // !ASMJIT_DISABLE_LOGGER
 
   if (offset <= 1 || !IntUtil::isPowerOf2(offset) || offset > 64)
     return setError(kErrorInvalidArgument);
@@ -542,8 +545,10 @@ static ASMJIT_INLINE size_t X86X64Assembler_relocCode(const X86X64Assembler* sel
       // Advance trampoline pointer.
       tramp += 8;
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
       if (self->_logger)
         self->_logger->logFormat(kLoggerStyleComment, "; Trampoline %llX\n", r.data);
+#endif // !ASMJIT_DISABLE_LOGGER
     }
   }
 
@@ -557,6 +562,7 @@ static ASMJIT_INLINE size_t X86X64Assembler_relocCode(const X86X64Assembler* sel
 // [asmjit::x86x64::Assembler - Logging]
 // ============================================================================
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
 // Logging helpers.
 static const char* AssemblerX86_operandSize[] = {
   "",
@@ -884,6 +890,7 @@ static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_
 
   return sb.appendChar('\n');
 }
+#endif // !ASMJIT_DISABLE_LOGGER
 
 // ============================================================================
 // [asmjit::x86x64::Assembler - Emit]
@@ -4068,11 +4075,12 @@ _EmitDisplacement:
   // --------------------------------------------------------------------------
 
 _EmitDone:
-#if defined(ASMJIT_DEBUG)
+#if !defined(ASMJIT_DISABLE_LOGGER)
+# if defined(ASMJIT_DEBUG)
   if (self->_logger || assertIllegal) {
-#else
+# else
   if (self->_logger) {
-#endif // ASMJIT_DEBUG
+# endif // ASMJIT_DEBUG
     StringBuilderT<512> sb;
     uint32_t loggerOptions = 0;
 
@@ -4088,17 +4096,22 @@ _EmitDone:
     else
       X86Assembler_dumpComment(sb, sb.getLength(), NULL, 0, 0, self->_comment);
 
-#if defined(ASMJIT_DEBUG)
+# if defined(ASMJIT_DEBUG)
     if (self->_logger)
-#endif // ASMJIT_DEBUG
+# endif // ASMJIT_DEBUG
       self->_logger->logString(kLoggerStyleDefault, sb.getData(), sb.getLength());
 
-#if defined(ASMJIT_DEBUG)
+# if defined(ASMJIT_DEBUG)
     // Raise an assertion failure, because this situation shouldn't happen.
     if (assertIllegal)
       assertionFailed(sb.getData(), __FILE__, __LINE__);
-#endif // ASMJIT_DEBUG
+# endif // ASMJIT_DEBUG
   }
+#else
+# if defined(ASMJIT_DEBUG)
+  ASMJIT_ASSERT(!assertIllegal);
+# endif // ASMJIT_DEBUG
+#endif // !ASMJIT_DISABLE_LOGGER
 
   self->_comment = NULL;
   self->setCursor(cursor);

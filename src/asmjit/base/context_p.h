@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_BASE_CONTEXT_P_H
 #define _ASMJIT_BASE_CONTEXT_P_H
 
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/compiler.h"
 #include "../base/zone.h"
@@ -285,4 +288,5 @@ struct BaseContext {
 #include "../apiend.h"
 
 // [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_BASE_CONTEXT_P_H

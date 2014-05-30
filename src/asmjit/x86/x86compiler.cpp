@@ -9,7 +9,7 @@
 
 // [Guard]
 #include "../build.h"
-#if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
+#if !defined(ASMJIT_DISABLE_COMPILER) && (defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64))
 
 // [Dependencies - AsmJit]
 #include "../base/intutil.h"
@@ -624,11 +624,12 @@ _OnError:
 template<typename Assembler>
 static ASMJIT_INLINE void* X86X64Compiler_make(X86X64Compiler* self) {
   Assembler assembler(self->_runtime);
-  Logger* logger = self->_logger;
 
-  if (logger) {
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  Logger* logger = self->_logger;
+  if (logger)
     assembler.setLogger(logger);
-  }
+#endif // !ASMJIT_DISABLE_LOGGER
 
   assembler._features = self->_features;
 
@@ -642,13 +643,15 @@ static ASMJIT_INLINE void* X86X64Compiler_make(X86X64Compiler* self) {
   }
 
   void* result = assembler.make();
-  if (logger) {
+
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (logger)
     logger->logFormat(kLoggerStyleComment,
       "*** COMPILER SUCCESS - Wrote %u bytes, code: %u, trampolines: %u.\n\n",
       static_cast<unsigned int>(assembler.getCodeSize()),
       static_cast<unsigned int>(assembler.getOffset()),
       static_cast<unsigned int>(assembler.getTrampolineSize()));
-  }
+#endif // !ASMJIT_DISABLE_LOGGER
 
   return result;
 }
@@ -762,4 +765,4 @@ Compiler::~Compiler() {}
 #include "../apiend.h"
 
 // [Guard]
-#endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64
+#endif // !ASMJIT_DISABLE_COMPILER && (ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64)

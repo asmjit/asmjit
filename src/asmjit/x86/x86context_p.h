@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_X86_X86CONTEXT_P_H
 #define _ASMJIT_X86_X86CONTEXT_P_H
 
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/compiler.h"
 #include "../base/context_p.h"
@@ -515,4 +518,5 @@ struct X86X64Context : public BaseContext {
 #include "../apiend.h"
 
 // [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_X86_X86CONTEXT_P_H

@@ -7,6 +7,10 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
+// [Guard]
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/context_p.h"
 #include "../base/intutil.h"
@@ -329,8 +333,10 @@ Error BaseContext::compile(FuncNode* func) {
   ASMJIT_PROPAGATE_ERROR(removeUnreachableCode());
   ASMJIT_PROPAGATE_ERROR(analyze());
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
   if (_compiler->hasLogger())
     ASMJIT_PROPAGATE_ERROR(annotate());
+#endif // !ASMJIT_DISABLE_LOGGER
 
   ASMJIT_PROPAGATE_ERROR(translate());
 
@@ -346,3 +352,6 @@ Error BaseContext::compile(FuncNode* func) {
 
 // [Api-End]
 #include "../apiend.h"
+
+// [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER

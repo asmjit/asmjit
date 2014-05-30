@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_BASE_FUNC_H
 #define _ASMJIT_BASE_FUNC_H
 
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/operand.h"
 
@@ -644,4 +647,5 @@ struct FuncBuilder10 : public FuncPrototype {
 #include "../apiend.h"
 
 // [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_BASE_FUNC_H

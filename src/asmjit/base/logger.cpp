@@ -7,6 +7,10 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
+// [Guard]
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_LOGGER)
+
 // [Dependencies - AsmJit]
 #include "../base/intutil.h"
 #include "../base/logger.h"
@@ -158,3 +162,6 @@ void StringLogger::logString(uint32_t style, const char* buf, size_t len) {
 
 // [Api-End]
 #include "../apiend.h"
+
+// [Guard]
+#endif // !ASMJIT_DISABLE_LOGGER

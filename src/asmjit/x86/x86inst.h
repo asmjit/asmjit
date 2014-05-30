@@ -1464,7 +1464,7 @@ ASMJIT_ENUM(kInstFlags) {
   //! \internal
   //!
   //! Combination of `kInstFlagMem2` and `kInstFlagMem4`.
-  kInstFlagMem2_4 = kInstFlagMem2   | kInstFlagMem4,
+  kInstFlagMem2_4 = kInstFlagMem2 | kInstFlagMem4,
 
   //! \internal
   //!
@@ -1474,7 +1474,7 @@ ASMJIT_ENUM(kInstFlags) {
   //! \internal
   //!
   //! Combination of `kInstFlagMem4` and `kInstFlagMem8`.
-  kInstFlagMem4_8 = kInstFlagMem4   | kInstFlagMem8,
+  kInstFlagMem4_8 = kInstFlagMem4 | kInstFlagMem8,
 
   //! \internal
   //!

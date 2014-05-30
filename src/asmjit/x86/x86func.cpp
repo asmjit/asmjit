@@ -9,7 +9,7 @@
 
 // [Guard]
 #include "../build.h"
-#if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
+#if !defined(ASMJIT_DISABLE_COMPILER) && (defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64))
 
 // [Dependencies - AsmJit]
 #include "../base/globals.h"
@@ -544,4 +544,4 @@ void X86X64FuncDecl::reset() {
 #include "../apiend.h"
 
 // [Guard]
-#endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64
+#endif // !ASMJIT_DISABLE_COMPILER && (ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64)

@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_X86_X86FUNC_H
 #define _ASMJIT_X86_X86FUNC_H
 
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/func.h"
 #include "../x86/x86util.h"
@@ -485,4 +488,5 @@ struct X86X64FuncDecl : public FuncDecl {
 #include "../apiend.h"
 
 // [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_X86_X86FUNC_H

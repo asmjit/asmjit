@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_X86_X86COMPILER_H
 #define _ASMJIT_X86_X86COMPILER_H
 
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/compiler.h"
 #include "../base/vectypes.h"
@@ -4217,4 +4220,5 @@ struct Compiler : public X86X64Compiler {
 #include "../apiend.h"
 
 // [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_X86_X86COMPILER_H

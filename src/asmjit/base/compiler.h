@@ -8,6 +8,9 @@
 #ifndef _ASMJIT_BASE_COMPILER_H
 #define _ASMJIT_BASE_COMPILER_H
 
+#include "../build.h"
+#if !defined(ASMJIT_DISABLE_COMPILER)
+
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
 #include "../base/codegen.h"
@@ -2103,4 +2106,5 @@ ASMJIT_INLINE Node::Node(BaseCompiler* compiler, uint32_t type) {
 #include "../apiend.h"
 
 // [Guard]
+#endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_BASE_COMPILER_H

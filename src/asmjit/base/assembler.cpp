@@ -216,8 +216,10 @@ Error BaseAssembler::embed(const void* data, uint32_t size) {
   ::memcpy(cursor, data, size);
   setCursor(cursor + size);
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
     _logger->logBinary(kLoggerStyleData, data, size);
+#endif // !ASMJIT_DISABLE_LOGGER
 
   return kErrorOk;
 }
