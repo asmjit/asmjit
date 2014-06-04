@@ -14,6 +14,12 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # Whether to build static library (default FALSE).
 # Set(ASMJIT_STATIC FALSE)
 
+# Whether to build contribution together with AsmJit (default FALSE)
+# Set(ASMJIT_BUILD_CONTRIB)
+
+# Whether to build tests (default FALSE).
+# Set(ASMJIT_BUILD_TEST FALSE)
+
 # Whether to build samples (default FALSE).
 # Set(ASMJIT_BUILD_SAMPLES FALSE)
 
@@ -73,9 +79,13 @@ Set(ASMJIT_CFLAGS)
 Set(ASMJIT_CFLAGS_DBG)
 Set(ASMJIT_CFLAGS_REL)
 
+Set(ASMJIT_DEFINE "-D")
+
 # MSVC.
 If(MSVC)
   Message("-- Using MSVC")
+
+  Set(ASMJIT_DEFINE "/D")
   Set(ASMJIT_LFLAGS "/OPT:REF /OPT:ICF")
   Set(ASMJIT_CFLAGS /GF)
   Set(ASMJIT_CFLAGS_DBG /DASMJIT_DEBUG /GS /GR-)
@@ -84,10 +94,6 @@ If(MSVC)
   # Use Unicode by default on Windows target.
   If(WIN32)
     List(APPEND ASMJIT_CFLAGS /D_UNICODE)
-  EndIf()
-
-  If(ASMJIT_STATIC)
-    List(APPEND ASMJIT_CFLAGS /DASMJIT_STATIC)
   EndIf()
 
   # Enable multi-process compilation.
@@ -99,6 +105,7 @@ EndIf()
 # GCC.
 If(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   Message("-- Using GCC")
+
   Set(ASMJIT_CFLAGS
     -fno-exceptions)
   Set(ASMJIT_CFLAGS_DBG -DASMJIT_DEBUG -O0
@@ -113,10 +120,11 @@ If(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   If(WIN32)
     List(APPEND ASMJIT_CFLAGS -D_UNICODE)
   EndIf()
+EndIf()
 
-  If(ASMJIT_STATIC)
-    List(APPEND ASMJIT_CFLAGS -DASMJIT_STATIC)
-  EndIf()
+# Static library.
+If(ASMJIT_STATIC)
+  List(APPEND ASMJIT_CFLAGS "${ASMJIT_DEFINE}ASMJIT_STATIC")
 EndIf()
 
 # Dependencies - Base.
@@ -171,8 +179,7 @@ Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags
       Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags} ${in_cflags_rel})
     EndIf()
   Else()
-    Target_Compile_Options(${in_name} PUBLIC
-      ${in_cflags}
+    Target_Compile_Options(${in_name} PUBLIC ${in_cflags}
       $<$<CONFIG:Debug>:${in_cflags_dbg}>
       $<$<NOT:$<CONFIG:Debug>>:${in_cflags_rel}>)
   EndIf()
@@ -228,6 +235,7 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   func.h
   globals.cpp
   globals.h
+  intutil.cpp
   intutil.h
   lock.h
   logger.cpp
@@ -269,10 +277,12 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
   x86util.h
 )
 
+If(ASMJIT_BUILD_CONTRIB)
 AsmJit_AddSource(ASMJIT_SRC asmjit/contrib
   winremoteruntime.cpp
   winremoteruntime.h
 )
+EndIf()
 
 # =============================================================================
 # [AsmJit - Headers]
@@ -306,18 +316,48 @@ If(NOT ASMJIT_EMBED)
 EndIf()
 
 # =============================================================================
+# [Asmjit - Testing]
+# =============================================================================
+
+# AsmJit library is always embedded into the tests executable. This way it's
+# much easier to test private functions compared to just linking to AsmJit.
+If(ASMJIT_BUILD_TEST)
+  AsmJit_AddSource(ASMJIT_TEST_SRC asmjit/test
+    main.cpp
+    test.cpp
+    test.h)
+
+  Set(ASMJIT_TEST_CFLAGS
+    ${ASMJIT_CFLAGS}
+    ${ASMJIT_DEFINE}ASMJIT_STATIC
+    ${ASMJIT_DEFINE}ASMJIT_TEST)
+
+  Add_Executable(asmjit_test ${ASMJIT_SRC} ${ASMJIT_TEST_SRC})
+  Target_Link_Libraries(asmjit_test ${ASMJIT_DEPS})
+
+  If(${CMAKE_BUILD_TYPE})
+    If(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+      Set_Target_Properties(asmjit_test PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_DBG})
+    Else()
+      Set_Target_Properties(asmjit_test PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_REL})
+    EndIf()
+  Else()
+    Target_Compile_Options(asmjit_test PUBLIC ${ASMJIT_TEST_CFLAGS}
+      $<$<CONFIG:Debug>:${ASMJIT_CFLAGS_DBG}>
+      $<$<NOT:$<CONFIG:Debug>>:${ASMJIT_CFLAGS_REL}>)
+  EndIf()
+
+  Set_Target_Properties(asmjit_test PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
+EndIf()
+
+# =============================================================================
 # [Asmjit - Samples]
 # =============================================================================
 
 If(ASMJIT_BUILD_SAMPLES)
   Set(ASMJIT_SRC_SAMPLES
     benchx86
-    testcpu
-    testdummy
-    testmem
     testopcode
-    testpool
-    testsizeof
     testx86
   )
 

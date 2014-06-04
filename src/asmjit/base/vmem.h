@@ -32,6 +32,18 @@ ASMJIT_ENUM(kVMemAlloc) {
 };
 
 // ============================================================================
+// [asmjit::kVMemFlags]
+// ============================================================================
+
+//! Type of virtual memory allocation, see `VMemMgr::alloc()`.
+ASMJIT_ENUM(kVMemFlags) {
+  //! Memory is writable.
+  kVMemFlagWritable = 0x00000001,
+  //! Memory is executable.
+  kVMemFlagExecutable = 0x00000002
+};
+
+// ============================================================================
 // [asmjit::VMemUtil]
 // ============================================================================
 
@@ -58,7 +70,7 @@ struct VMemUtil {
   //! Pages are readable/writeable, but they are not guaranteed to be
   //! executable unless 'canExecute' is true. Returns the address of
   //! allocated memory, or NULL on failure.
-  static ASMJIT_API void* alloc(size_t length, size_t* allocated, bool canExecute);
+  static ASMJIT_API void* alloc(size_t length, size_t* allocated, uint32_t flags);
 
   //! Free memory allocated by `alloc()`.
   static ASMJIT_API void release(void* addr, size_t length);
@@ -67,7 +79,7 @@ struct VMemUtil {
   //! Allocate virtual memory of `hProcess`.
   //!
   //! \note This function is Windows specific.
-  static ASMJIT_API void* allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, bool canExecute);
+  static ASMJIT_API void* allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, uint32_t flags);
 
   //! Free virtual memory of `hProcess`.
   //!
@@ -164,7 +176,7 @@ struct VMemMgr {
 
   //! \internal
   //!
-  //! Pointer to private data hidden out of the public API.
+  //! Pointer to a private data hidden from the public API.
   void* _d;
 };
 

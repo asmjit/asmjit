@@ -159,7 +159,7 @@ ASMJIT_ENUM(kRegIndex) {
 
 //! X86/X64 segment codes.
 ASMJIT_ENUM(kSeg) {
-  //! No segment.
+  //! No/Default segment.
   kSegDefault = 0,
   //! Es segment.
   kSegEs = 1,

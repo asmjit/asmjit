@@ -8,10 +8,7 @@
 #ifndef _ASMJIT_CONTRIB_WINREMOTERUNTIME_H
 #define _ASMJIT_CONTRIB_WINREMOTERUNTIME_H
 
-// [Dependencies]
 #include "../base.h"
-
-// [Guard - Windows]
 #if defined(ASMJIT_OS_WINDOWS)
 
 namespace asmjit {
@@ -72,8 +69,6 @@ struct WinRemoteRuntime : public Runtime {
 } // contrib namespace
 } // asmjit namespace
 
-// [Guard - Windows]
-#endif // ASMJIT_OS_WINDOWS
-
 // [Guard]
+#endif // ASMJIT_OS_WINDOWS
 #endif // _ASMJIT_CONTRIB_WINREMOTERUNTIME_H

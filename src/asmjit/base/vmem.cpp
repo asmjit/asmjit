@@ -78,7 +78,7 @@ struct VMemLocal {
 
     hProcess = GetCurrentProcess();
     alignment = info.dwAllocationGranularity;
-    pageSize = IntUtil::roundUpToPowerOf2<uint32_t>(info.dwPageSize);
+    pageSize = IntUtil::alignToPowerOf2<uint32_t>(info.dwPageSize);
   }
 
   HANDLE hProcess;
@@ -99,27 +99,38 @@ size_t VMemUtil::getPageSize() {
   return vm().pageSize;
 }
 
-void* VMemUtil::alloc(size_t length, size_t* allocated, bool canExecute) {
-  return allocProcessMemory(static_cast<HANDLE>(0), length, allocated, canExecute);
+void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) {
+  return allocProcessMemory(static_cast<HANDLE>(0), length, allocated, flags);
 }
 
 void VMemUtil::release(void* addr, size_t length) {
   return releaseProcessMemory(static_cast<HANDLE>(0), addr, length);
 }
 
-void* VMemUtil::allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, bool canExecute) {
+void* VMemUtil::allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, uint32_t flags) {
   VMemLocal& vmLocal = vm();
 
   if (hProcess == static_cast<HANDLE>(0))
     hProcess = vmLocal.hProcess;
 
   // VirtualAlloc rounds allocated size to a page size automatically.
-  size_t mSize = IntUtil::roundUp(length, vmLocal.pageSize);
+  size_t mSize = IntUtil::alignTo(length, vmLocal.pageSize);
 
   // Windows XP SP2 / Vista allow Data Excution Prevention (DEP).
-  WORD protect = canExecute ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
-  LPVOID mBase = VirtualAllocEx(hProcess, NULL, mSize, MEM_COMMIT | MEM_RESERVE, protect);
+  DWORD protectFlags = 0;
 
+  if (flags & kVMemFlagExecutable) {
+    protectFlags |= (flags & kVMemFlagWritable)
+      ? PAGE_EXECUTE_READWRITE
+      : PAGE_EXECUTE_READ;
+  }
+  else {
+    protectFlags |= (flags & kVMemFlagWritable)
+      ? PAGE_READWRITE
+      : PAGE_READONLY;
+  }
+
+  LPVOID mBase = VirtualAllocEx(hProcess, NULL, mSize, MEM_COMMIT | MEM_RESERVE, protectFlags);
   if (mBase == NULL)
     return NULL;
 
@@ -170,9 +181,12 @@ size_t VMemUtil::getPageSize() {
   return vm().pageSize;
 }
 
-void* VMemUtil::alloc(size_t length, size_t* allocated, bool canExecute) {
-  size_t msize = IntUtil::roundUp<size_t>(length, vm().pageSize);
-  int protection = PROT_READ | PROT_WRITE | (canExecute ? PROT_EXEC : 0);
+void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) {
+  size_t msize = IntUtil::alignTo<size_t>(length, vm().pageSize);
+  int protection = PROT_READ;
+
+  if (flags & kVMemFlagWritable  ) protection |= PROT_WRITE;
+  if (flags & kVMemFlagExecutable) protection |= PROT_EXEC;
 
   void* mbase = ::mmap(NULL, msize, protection, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (mbase == MAP_FAILED)
@@ -360,10 +374,11 @@ struct VMemPrivate {
 
   // Helpers to avoid ifdefs in the code.
   ASMJIT_INLINE uint8_t* allocVirtualMemory(size_t size, size_t* vsize) {
+    uint32_t flags = kVMemFlagWritable | kVMemFlagExecutable;
 #if !defined(ASMJIT_OS_WINDOWS)
-    return (uint8_t*)VMemUtil::alloc(size, vsize, true);
+    return (uint8_t*)VMemUtil::alloc(size, vsize, flags);
 #else
-    return (uint8_t*)VMemUtil::allocProcessMemory(_hProcess, size, vsize, true);
+    return (uint8_t*)VMemUtil::allocProcessMemory(_hProcess, size, vsize, flags);
 #endif
   }
 
@@ -1203,5 +1218,142 @@ Error VMemMgr::shrink(void* address, size_t used) {
   VMemPrivate* d = static_cast<VMemPrivate*>(_d);
   return d->shrink(address, used);
 }
+
+// ============================================================================
+// [asmjit::VMem - Test]
+// ============================================================================
+
+#if defined(ASMJIT_TEST)
+static void VMemTest_fill(void* a, void* b, int i) {
+  int pattern = rand() % 256;
+  *(int *)a = i;
+  *(int *)b = i;
+  ::memset((char*)a + sizeof(int), pattern, i - sizeof(int));
+  ::memset((char*)b + sizeof(int), pattern, i - sizeof(int));
+}
+
+static void VMemTest_verify(void* a, void* b) {
+  int ai = *(int*)a;
+  int bi = *(int*)b;
+
+  EXPECT(ai == bi,
+    "The length of 'a' (%d) and 'b' (%d) should be same", ai, bi);
+
+  EXPECT(::memcmp(a, b, ai) == 0,
+    "Pattern (%p) doesn't match", a);
+}
+
+static void VMemTest_stats(VMemMgr& memmgr) {
+  INFO("Used     : %u", static_cast<unsigned int>(memmgr.getUsedBytes()));
+  INFO("Allocated: %u", static_cast<unsigned int>(memmgr.getAllocatedBytes()));
+}
+
+static void VMemTest_shuffle(void **a, void **b, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    size_t si = (size_t)rand() % count;
+
+    void *ta = a[i];
+    void *tb = b[i];
+
+    a[i] = a[si];
+    b[i] = b[si];
+
+    a[si] = ta;
+    b[si] = tb;
+  }
+}
+
+UNIT(base_vmem) {
+  VMemMgr memmgr;
+
+  // Should be predictible.
+  srand(100);
+
+  int i;
+  int kCount = 200000;
+
+  INFO("Memory alloc/free test - %d allocations.", static_cast<int>(kCount));
+
+  void** a = (void**)::malloc(sizeof(void*) * kCount);
+  void** b = (void**)::malloc(sizeof(void*) * kCount);
+
+  EXPECT(a != NULL && b != NULL,
+    "Couldn't allocate %u bytes on heap.", kCount * 2);
+
+  INFO("Allocating virtual memory...");
+  for (i = 0; i < kCount; i++) {
+    int r = (rand() % 1000) + 4;
+
+    a[i] = memmgr.alloc(r);
+    EXPECT(a[i] != NULL,
+      "Couldn't allocate %d bytes of virtual memory", r);
+    ::memset(a[i], 0, r);
+  }
+  VMemTest_stats(memmgr);
+
+  INFO("Freeing virtual memory...");
+  for (i = 0; i < kCount; i++) {
+    EXPECT(memmgr.release(a[i]) == kErrorOk,
+      "Failed to free %p.", b[i]);
+  }
+  VMemTest_stats(memmgr);
+
+  INFO("Verified alloc/free test - %d allocations.", static_cast<int>(kCount));
+  for (i = 0; i < kCount; i++) {
+    int r = (rand() % 1000) + 4;
+
+    a[i] = memmgr.alloc(r);
+    EXPECT(a[i] != NULL,
+      "Couldn't allocate %d bytes of virtual memory.", r);
+
+    b[i] = ::malloc(r);
+    EXPECT(b[i] != NULL,
+      "Couldn't allocate %d bytes on heap.", r);
+
+    VMemTest_fill(a[i], b[i], r);
+  }
+  VMemTest_stats(memmgr);
+
+  INFO("Shuffling...");
+  VMemTest_shuffle(a, b, kCount);
+
+  INFO("Verify and free...");
+  for (i = 0; i < kCount / 2; i++) {
+    VMemTest_verify(a[i], b[i]);
+    EXPECT(memmgr.release(a[i]) == kErrorOk,
+      "Failed to free %p.", a[i]);
+    ::free(b[i]);
+  }
+  VMemTest_stats(memmgr);
+
+  INFO("Alloc again.");
+  for (i = 0; i < kCount / 2; i++) {
+    int r = (rand() % 1000) + 4;
+
+    a[i] = memmgr.alloc(r);
+    EXPECT(a[i] != NULL,
+      "Couldn't allocate %d bytes of virtual memory.", r);
+
+    b[i] = ::malloc(r);
+    EXPECT(b[i] != NULL,
+      "Couldn't allocate %d bytes on heap.");
+
+    VMemTest_fill(a[i], b[i], r);
+  }
+  VMemTest_stats(memmgr);
+
+  INFO("Verify and free...");
+  for (i = 0; i < kCount; i++) {
+    VMemTest_verify(a[i], b[i]);
+    EXPECT(memmgr.release(a[i]) == kErrorOk,
+      "Failed to free %p.", a[i]);
+    ::free(b[i]);
+  }
+  VMemTest_stats(memmgr);
+
+  ::free(a);
+  ::free(b);
+}
+#endif // ASMJIT_TEST
 
 } // asmjit namespace

@@ -114,9 +114,9 @@ struct ErrorHandler {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new `ErrorHandler`.
+  //! Create a new `ErrorHandler` instance.
   ASMJIT_API ErrorHandler();
-  //! Destroy the `ErrorHandler`.
+  //! Destroy the `ErrorHandler` instance.
   ASMJIT_API virtual ~ErrorHandler();
 
   // --------------------------------------------------------------------------
@@ -142,17 +142,18 @@ struct ErrorHandler {
   //!
   //! Error handler is called when an error happened. An error can happen in
   //! many places, but error handler is mostly used by `BaseAssembler` and
-  //! `BaseCompiler` classes to report anything that may prevent correct code
+  //! `BaseCompiler` classes to report anything that may cause incorrect code
   //! generation. There are multiple ways how the error handler can be used
   //! and each has it's pros/cons.
   //!
   //! AsmJit library doesn't use exceptions and can be compiled with or without
-  //! exception feature support. Even if the AsmJit library is compiled without
+  //! exception handling support. Even if the AsmJit library is compiled without
   //! exceptions it is exception-safe and handleError() can report an incoming
   //! error by throwing an exception of any type. It's guaranteed that the
   //! exception won't be catched by AsmJit and will be propagated to the code
-  //! calling AsmJit `BaseAssembler` or `BaseCompiler`. Alternative to throwing
-  //! exception is using setjmp() / longjmp() pair from the standard C library.
+  //! calling AsmJit `BaseAssembler` or `BaseCompiler` methods. Alternative to
+  //! throwing an exception is using `setjmp()` and `longjmp()` pair available
+  //! in the standard C library.
   //!
   //! If the exception or setjmp() / longjmp() mechanism is used, the state of
   //! the `BaseAssember` or `BaseCompiler` is unchanged and if it's possible the
@@ -162,13 +163,12 @@ struct ErrorHandler {
   //! done by `BaseCompiler`) the execution can't continue and the error will
   //! be also stored in `BaseAssembler` or `BaseCompiler`.
   //!
-  //! Finally, if exceptions nor setjmp() / longjmp() mechanisms were used,
-  //! you can still implement a compatible design by returning from your error
-  //! handler. Returning `true` means that error was reported and AsmJit
-  //! should continue execution. When `false` is returned, AsmJit sets the
-  //! error immediately to the `BaseAssembler` or `BaseCompiler` and execution
-  //! shouldn't continue (this is the default behavior in case no error handler
-  //! is used).
+  //! Finally, if no exceptions nor setjmp() / longjmp() mechanisms were used,
+  //! you can still implement a compatible handling by returning from your
+  //! error handler. Returning `true` means that error was reported and AsmJit
+  //! should continue execution, but `false` sets the rror immediately to the
+  //! `BaseAssembler` or `BaseCompiler` and execution shouldn't continue (this
+  //! is the default behavior in case no error handler is used).
   virtual bool handleError(Error code, const char* message) = 0;
 };
 

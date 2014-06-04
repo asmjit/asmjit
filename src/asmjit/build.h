@@ -10,7 +10,7 @@
 
 // [Include]
 #if !defined(ASMJIT_CONFIG_FILE)
-#include "config.h"
+#include "./config.h"
 #endif // !ASMJIT_CONFIG_FILE
 
 // Turn off deprecation warnings when compiling AsmJit.
@@ -302,6 +302,15 @@ typedef unsigned __int64 uint64_t;
 # endif
 
 #endif // ASMJIT_OS_WINDOWS  && !ASMJIT_SUPRESS_WINDOWS_H
+
+// ============================================================================
+// [asmjit::build - Test]
+// ============================================================================
+
+// Include test if building for unit testing.
+#if defined(ASMJIT_TEST)
+#include "./test/test.h"
+#endif // ASMJIT_TEST
 
 // [Guard]
 #endif // _ASMJIT_BUILD_H

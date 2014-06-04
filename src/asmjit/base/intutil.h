@@ -31,7 +31,7 @@ namespace asmjit {
 template<typename T>
 struct IntTraits {
   enum {
-    kIsSigned = (~static_cast<T>(0)) < static_cast<T>(0),
+    kIsSigned = static_cast<T>(~static_cast<T>(0)) < static_cast<T>(0),
     kIsUnsigned = !kIsSigned,
 
     kIs8Bit = sizeof(T) == 1,
@@ -402,31 +402,11 @@ struct IntUtil {
     return (base + (alignment - 1)) & ~(alignment - 1);
   }
 
-  //! Get delta required to align `base` to `alignment`.
   template<typename T>
-  static ASMJIT_INLINE T deltaTo(T base, T alignment) {
-    return alignTo(base, alignment) - base;
-  }
-
-  // --------------------------------------------------------------------------
-  // [AsmJit - Round]
-  // --------------------------------------------------------------------------
-
-  template<typename T>
-  static ASMJIT_INLINE T roundUp(T base, T alignment) {
-    T over = base % alignment;
-    return base + (over > 0 ? alignment - over : 0);
-  }
-
-  template<typename T>
-  static ASMJIT_INLINE T roundUpToPowerOf2(T base) {
-    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
-    // figure 3-3, page 48, where the function is called clp2.
+  static ASMJIT_INLINE T alignToPowerOf2(T base) {
+    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.
     base -= 1;
 
-    // I'm trying to make this portable and MSVC strikes me the warning C4293:
-    //   "Shift count negative or too big, undefined behavior"
-    // Fixing...
 #if defined(_MSC_VER)
 # pragma warning(push)
 # pragma warning(disable: 4293)
@@ -447,6 +427,12 @@ struct IntUtil {
 #endif // _MSC_VER
 
     return base + 1;
+  }
+
+  //! Get delta required to align `base` to `alignment`.
+  template<typename T>
+  static ASMJIT_INLINE T deltaTo(T base, T alignment) {
+    return alignTo(base, alignment) - base;
   }
 };
 

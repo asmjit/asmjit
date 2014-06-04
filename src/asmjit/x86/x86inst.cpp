@@ -309,8 +309,8 @@ const char _instName[] =
   "minsd\0"
   "minss\0"
   "monitor\0"
-  "mov_ptr\0"
   "mov\0"
+  "mov_ptr\0"
   "movapd\0"
   "movaps\0"
   "movbe\0"
@@ -1376,8 +1376,8 @@ enum kInstData_NameIndex {
   kInstMinsd_NameIndex = 1746,
   kInstMinss_NameIndex = 1752,
   kInstMonitor_NameIndex = 1758,
-  kInstMovPtr_NameIndex = 1766,
-  kInstMov_NameIndex = 1774,
+  kInstMov_NameIndex = 1766,
+  kInstMovPtr_NameIndex = 1770,
   kInstMovapd_NameIndex = 1778,
   kInstMovaps_NameIndex = 1785,
   kInstMovbe_NameIndex = 1792,
@@ -2452,8 +2452,8 @@ const InstInfo _instInfo[] = {
   INST(kInstMinsd            , "minsd"            , G(ExtRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_F20F00(5D,U)  , U               ),
   INST(kInstMinss            , "minss"            , G(ExtRm)         , F(None)                , 0 , O(Xmm)              , O(XmmMem)           , U                   , U                   , O_F30F00(5D,U)  , U               ),
   INST(kInstMonitor          , "monitor"          , G(X86Op)         , F(None)|F(Special)     , 0 , U                   , U                   , U                   , U                   , O_000F01(C8,U)  , U               ),
-  INST(kInstMovPtr           , "mov_ptr"          , G(X86MovPtr)     , F(Move)|F(Special)     , 0 , O(Gqdwb)            , O(Imm)              , U                   , U                   , O_000000(A0,U)  , O_000000(A2,U)  ),
   INST(kInstMov              , "mov"              , G(X86Mov)        , F(Move)                , 0 , O(GqdwbMem)         , O(GqdwbMem)|O(Imm)  , U                   , U                   , U               , U               ),
+  INST(kInstMovPtr           , "mov_ptr"          , G(X86MovPtr)     , F(Move)|F(Special)     , 0 , O(Gqdwb)            , O(Imm)              , U                   , U                   , O_000000(A0,U)  , O_000000(A2,U)  ),
   INST(kInstMovapd           , "movapd"           , G(ExtMov)        , F(Move)                , 16, O(XmmMem)           , O(XmmMem)           , U                   , U                   , O_660F00(28,U)  , O_660F00(29,U)  ),
   INST(kInstMovaps           , "movaps"           , G(ExtMov)        , F(Move)                , 16, O(XmmMem)           , O(XmmMem)           , U                   , U                   , O_000F00(28,U)  , O_000F00(29,U)  ),
   INST(kInstMovbe            , "movbe"            , G(ExtMovBe)      , F(Move)                , 0 , O(GqdwMem)          , O(GqdwMem)          , U                   , U                   , O_000F38(F0,U)  , O_000F38(F1,U)  ),
@@ -3323,6 +3323,37 @@ uint32_t X86InstUtil::getInstIdByName(const char* name, size_t len) {
 
   return kInstNone;
 }
+
+// ============================================================================
+// [asmjit::x86x64::X86Util - Test]
+// ============================================================================
+
+#if defined(ASMJIT_TEST)
+UNIT(x86_inst_name) {
+  // All known instructions should be matched.
+  for (uint32_t a = 0; a < _kInstCount; a++) {
+    uint32_t b = X86InstUtil::getInstIdByName(_instInfo[a].getName());
+
+    EXPECT(a == b,
+      "Should match existing instruction \"%s\" {id:%u} != \"%s\" {id:%u}.",
+        _instInfo[a].getName(), a,
+        _instInfo[b].getName(), b);
+  }
+
+  // Everything else should return kInstNone
+  EXPECT(X86InstUtil::getInstIdByName(NULL) == kInstNone,
+    "Should return kInstNone for NULL input.");
+
+  EXPECT(X86InstUtil::getInstIdByName("") == kInstNone,
+    "Should return kInstNone for empty string.");
+
+  EXPECT(X86InstUtil::getInstIdByName("_") == kInstNone,
+    "Should return kInstNone for unknown instruction.");
+
+  EXPECT(X86InstUtil::getInstIdByName("123xyz") == kInstNone,
+    "Should return kInstNone for unknown instruction.");
+}
+#endif // ASMJIT_TEST
 
 } // x86x64 namespace
 } // asmjit namespace

@@ -334,8 +334,8 @@ ASMJIT_ENUM(kInstCode) {
   kInstMinsd,           // SSE2
   kInstMinss,           // SSE
   kInstMonitor,         // SSE3
-  kInstMovPtr,          // X86/X64
   kInstMov,             // X86/X64
+  kInstMovPtr,          // X86/X64
   kInstMovapd,          // SSE2
   kInstMovaps,          // SSE
   kInstMovbe,           // SSE3 - Intel-Atom
