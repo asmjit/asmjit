@@ -193,6 +193,10 @@
 # define ASMJIT_ALLOC(_Size_) ::malloc(_Size_)
 # define ASMJIT_REALLOC(_Ptr_, _Size_) ::realloc(_Ptr_, _Size_)
 # define ASMJIT_FREE(_Ptr_) ::free(_Ptr_)
+#else
+# if !defined(ASMJIT_ALLOC) || !defined(ASMJIT_REALLOC) || !defined(ASMJIT_FREE)
+#  error "AsmJit - You must redefine ASMJIT_ALLOC, ASMJIT_REALLOC and ASMJIT_FREE."
+# endif
 #endif // !ASMJIT_ALLOC && !ASMJIT_REALLOC && !ASMJIT_FREE
 
 // ============================================================================
