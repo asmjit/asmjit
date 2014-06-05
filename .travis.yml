@@ -1,0 +1,14 @@
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+before_script:
+  - mkdir build
+  - cd build
+  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASMJIT_BUILD_TEST=1 -DASMJIT_BUILD_SAMPLES=1
+
+script:
+  - make
+  - ./asmjit_test
