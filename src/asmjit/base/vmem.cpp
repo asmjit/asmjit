@@ -458,7 +458,7 @@ VMemPrivate::~VMemPrivate() {
   PermanentNode* node = _permanent;
   while (node) {
     PermanentNode* prev = node->prev;
-    ::free(node);
+    ASMJIT_FREE(node);
     node = prev;
   }
 }
@@ -480,14 +480,14 @@ MemNode* VMemPrivate::createNode(size_t size, size_t density) {
   size_t blocks = (vsize / density);
   size_t bsize = (((blocks + 7) >> 3) + sizeof(size_t) - 1) & ~(size_t)(sizeof(size_t) - 1);
 
-  MemNode* node = static_cast<MemNode*>(::malloc(sizeof(MemNode)));
-  uint8_t* data = static_cast<uint8_t*>(::malloc(bsize * 2));
+  MemNode* node = static_cast<MemNode*>(ASMJIT_ALLOC(sizeof(MemNode)));
+  uint8_t* data = static_cast<uint8_t*>(ASMJIT_ALLOC(bsize * 2));
 
   // Out of memory.
   if (node == NULL || data == NULL) {
     freeVirtualMemory(vmem, vsize);
-    if (node) ::free(node);
-    if (data) ::free(data);
+    if (node) ASMJIT_FREE(node);
+    if (data) ASMJIT_FREE(data);
     return NULL;
   }
 
@@ -523,8 +523,8 @@ void VMemPrivate::reset(bool keepVirtualMemory) {
     if (!keepVirtualMemory)
       freeVirtualMemory(node->mem, node->size);
 
-    ::free(node->baUsed);
-    ::free(node);
+    ASMJIT_FREE(node->baUsed);
+    ASMJIT_FREE(node);
 
     node = next;
   }
@@ -562,7 +562,7 @@ void* VMemPrivate::allocPermanent(size_t vsize) {
     if (vsize > nodeSize)
       nodeSize = vsize;
 
-    node = static_cast<PermanentNode*>(::malloc(sizeof(PermanentNode)));
+    node = static_cast<PermanentNode*>(ASMJIT_ALLOC(sizeof(PermanentNode)));
 
     // Out of memory.
     if (node == NULL)
@@ -572,7 +572,7 @@ void* VMemPrivate::allocPermanent(size_t vsize) {
 
     // Out of memory.
     if (node->mem == NULL) {
-      ::free(node);
+      ASMJIT_FREE(node);
       return NULL;
     }
 
@@ -775,7 +775,7 @@ Error VMemPrivate::release(void* address) {
     // Free memory associated with node (this memory is not accessed
     // anymore so it's safe).
     freeVirtualMemory(node->mem, node->size);
-    ::free(node->baUsed);
+    ASMJIT_FREE(node->baUsed);
 
     node->baUsed = NULL;
     node->baCont = NULL;
@@ -785,7 +785,7 @@ Error VMemPrivate::release(void* address) {
 
     // Remove node. This function can return different node than
     // passed into, but data is copied into previous node if needed.
-    ::free(removeNode(node));
+    ASMJIT_FREE(removeNode(node));
     ASMJIT_ASSERT(checkTree());
   }
 
@@ -1274,8 +1274,8 @@ UNIT(base_vmem) {
 
   INFO("Memory alloc/free test - %d allocations.", static_cast<int>(kCount));
 
-  void** a = (void**)::malloc(sizeof(void*) * kCount);
-  void** b = (void**)::malloc(sizeof(void*) * kCount);
+  void** a = (void**)ASMJIT_ALLOC(sizeof(void*) * kCount);
+  void** b = (void**)ASMJIT_ALLOC(sizeof(void*) * kCount);
 
   EXPECT(a != NULL && b != NULL,
     "Couldn't allocate %u bytes on heap.", kCount * 2);
@@ -1306,7 +1306,7 @@ UNIT(base_vmem) {
     EXPECT(a[i] != NULL,
       "Couldn't allocate %d bytes of virtual memory.", r);
 
-    b[i] = ::malloc(r);
+    b[i] = ASMJIT_ALLOC(r);
     EXPECT(b[i] != NULL,
       "Couldn't allocate %d bytes on heap.", r);
 
@@ -1322,7 +1322,7 @@ UNIT(base_vmem) {
     VMemTest_verify(a[i], b[i]);
     EXPECT(memmgr.release(a[i]) == kErrorOk,
       "Failed to free %p.", a[i]);
-    ::free(b[i]);
+    ASMJIT_FREE(b[i]);
   }
   VMemTest_stats(memmgr);
 
@@ -1334,7 +1334,7 @@ UNIT(base_vmem) {
     EXPECT(a[i] != NULL,
       "Couldn't allocate %d bytes of virtual memory.", r);
 
-    b[i] = ::malloc(r);
+    b[i] = ASMJIT_ALLOC(r);
     EXPECT(b[i] != NULL,
       "Couldn't allocate %d bytes on heap.");
 
@@ -1347,12 +1347,12 @@ UNIT(base_vmem) {
     VMemTest_verify(a[i], b[i]);
     EXPECT(memmgr.release(a[i]) == kErrorOk,
       "Failed to free %p.", a[i]);
-    ::free(b[i]);
+    ASMJIT_FREE(b[i]);
   }
   VMemTest_stats(memmgr);
 
-  ::free(a);
-  ::free(b);
+  ASMJIT_FREE(a);
+  ASMJIT_FREE(b);
 }
 #endif // ASMJIT_TEST
 

@@ -186,6 +186,16 @@
 #endif
 
 // ============================================================================
+// [asmjit::build - Memory Management]
+// ============================================================================
+
+#if !defined(ASMJIT_ALLOC) && !defined(ASMJIT_REALLOC) && !defined(ASMJIT_FREE)
+# define ASMJIT_ALLOC(_Size_) ::malloc(_Size_)
+# define ASMJIT_REALLOC(_Ptr_, _Size_) ::realloc(_Ptr_, _Size_)
+# define ASMJIT_FREE(_Ptr_) ::free(_Ptr_)
+#endif // !ASMJIT_ALLOC && !ASMJIT_REALLOC && !ASMJIT_FREE
+
+// ============================================================================
 // [asmjit::build - _ASMJIT_HOST_INDEX]
 // ============================================================================
 

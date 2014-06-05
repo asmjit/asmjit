@@ -73,13 +73,13 @@ Error PodVectorBase::_reserve(size_t n, size_t sizeOfT) {
     return kErrorNoHeapMemory;
 
   if (d == &_nullData) {
-    d = static_cast<PodVectorData*>(::malloc(nBytes));
+    d = static_cast<PodVectorData*>(ASMJIT_ALLOC(nBytes));
     if (d == NULL)
       return kErrorNoHeapMemory;
     d->length = 0;
   }
   else {
-    d = static_cast<PodVectorData*>(::realloc(d, nBytes));
+    d = static_cast<PodVectorData*>(ASMJIT_REALLOC(d, nBytes));
     if (d == NULL)
       return kErrorNoHeapMemory;
   }

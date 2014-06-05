@@ -35,7 +35,7 @@ BaseAssembler::BaseAssembler(Runtime* runtime) :
 
 BaseAssembler::~BaseAssembler() {
   if (_buffer != NULL)
-    ::free(_buffer);
+    ASMJIT_FREE(_buffer);
 }
 
 // ============================================================================
@@ -51,7 +51,7 @@ void BaseAssembler::reset() {
   _baseZone.reset();
 
   if (_buffer != NULL) {
-    ::free(_buffer);
+    ASMJIT_FREE(_buffer);
 
     _buffer = NULL;
     _end = NULL;
@@ -124,9 +124,9 @@ Error BaseAssembler::_reserve(size_t n) {
 
   uint8_t* newBuffer;
   if (_buffer == NULL)
-    newBuffer = static_cast<uint8_t*>(::malloc(n));
+    newBuffer = static_cast<uint8_t*>(ASMJIT_ALLOC(n));
   else
-    newBuffer = static_cast<uint8_t*>(::realloc(_buffer, n));
+    newBuffer = static_cast<uint8_t*>(ASMJIT_REALLOC(_buffer, n));
 
   if (newBuffer == NULL)
     return setError(kErrorNoHeapMemory);

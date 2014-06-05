@@ -31,7 +31,7 @@ StringBuilder::StringBuilder() :
 
 StringBuilder::~StringBuilder() {
   if (_canFree)
-    ::free(_data);
+    ASMJIT_FREE(_data);
 }
 
 // ============================================================================
@@ -62,14 +62,14 @@ char* StringBuilder::prepare(uint32_t op, size_t len) {
       if (to < 256 - sizeof(intptr_t))
         to = 256 - sizeof(intptr_t);
 
-      char* newData = static_cast<char*>(::malloc(to + sizeof(intptr_t)));
+      char* newData = static_cast<char*>(ASMJIT_ALLOC(to + sizeof(intptr_t)));
       if (newData == NULL) {
         clear();
         return NULL;
       }
 
       if (_canFree)
-        ::free(_data);
+        ASMJIT_FREE(_data);
 
       _data = newData;
       _capacity = to + sizeof(intptr_t) - 1;
@@ -114,14 +114,14 @@ char* StringBuilder::prepare(uint32_t op, size_t len) {
       }
 
       to = IntUtil::alignTo<size_t>(to, sizeof(intptr_t));
-      char* newData = static_cast<char*>(::malloc(to + sizeof(intptr_t)));
+      char* newData = static_cast<char*>(ASMJIT_ALLOC(to + sizeof(intptr_t)));
 
       if (newData == NULL)
         return NULL;
 
       ::memcpy(newData, _data, _length);
       if (_canFree)
-        ::free(_data);
+        ASMJIT_FREE(_data);
 
       _data = newData;
       _capacity = to + sizeof(intptr_t) - 1;
@@ -146,13 +146,13 @@ bool StringBuilder::reserve(size_t to) {
 
   to = IntUtil::alignTo<size_t>(to, sizeof(intptr_t));
 
-  char* newData = static_cast<char*>(::malloc(to + sizeof(intptr_t)));
+  char* newData = static_cast<char*>(ASMJIT_ALLOC(to + sizeof(intptr_t)));
   if (newData == NULL)
     return false;
 
   ::memcpy(newData, _data, _length + 1);
   if (_canFree)
-    ::free(_data);
+    ASMJIT_FREE(_data);
 
   _data = newData;
   _capacity = to + sizeof(intptr_t) - 1;

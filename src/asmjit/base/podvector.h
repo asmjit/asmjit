@@ -55,7 +55,7 @@ struct PodVectorBase {
   //! Destroy the `PodVectorBase` and data.
   ASMJIT_INLINE ~PodVectorBase() {
     if (_d != &_nullData)
-      ::free(_d);
+      ASMJIT_FREE(_d);
   }
 
   // --------------------------------------------------------------------------
@@ -140,7 +140,7 @@ struct PodVector : PodVectorBase {
   //! Clear vector data and free internal buffer.
   ASMJIT_INLINE void reset() {
     if (_d != &_nullData) {
-      ::free(_d);
+      ASMJIT_FREE(_d);
       _d = const_cast<PodVectorData*>(&_nullData);
     }
   }

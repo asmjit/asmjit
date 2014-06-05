@@ -64,7 +64,7 @@ void Zone::reset() {
 
   do {
     Block* prev = cur->prev;
-    ::free(cur);
+    ASMJIT_FREE(cur);
     cur = prev;
   } while (cur != NULL);
 
@@ -98,7 +98,7 @@ void* Zone::_alloc(size_t size) {
   if (blockSize > ~static_cast<size_t>(0) - sizeof(Block))
     return NULL;
 
-  Block* newBlock = static_cast<Block*>(::malloc(sizeof(Block) - sizeof(void*) + blockSize));
+  Block* newBlock = static_cast<Block*>(ASMJIT_ALLOC(sizeof(Block) - sizeof(void*) + blockSize));
   if (newBlock == NULL)
     return NULL;
 
