@@ -1512,7 +1512,7 @@ _Prepare:
         ASMJIT_ASSERT(static_cast<const X86Reg*>(o0)->getRegIndex() == kRegIndexCx);
 
         if ((Arch == kArchX86 && o0->getSize() == 2) ||
-             Arch == kArchX64 && o0->getSize() == 4) {
+            (Arch == kArchX64 && o0->getSize() == 4)) {
           EMIT_BYTE(0x67);
         }
 

@@ -1490,9 +1490,6 @@ static ASMJIT_INLINE uint32_t x86VarTypeToClass(uint32_t vType) {
 namespace asmjit {
 namespace x86 {
 
-// This is the only place where the x86x64 namespace is included into x86.
-using namespace ::asmjit::x86x64;
-
 //! \addtogroup asmjit_x86x64_general
 //! \{
 
@@ -1576,9 +1573,6 @@ static ASMJIT_INLINE Mem intptr_ptr_abs(Ptr pAbs, const GpVar& index, uint32_t s
 
 namespace asmjit {
 namespace x64 {
-
-// This is the only place where the x86x64 namespace is included into x64.
-using namespace ::asmjit::x86x64;
 
 //! \addtogroup asmjit_x86x64_general
 //! \{

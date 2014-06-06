@@ -328,6 +328,9 @@ ASMJIT_VAR const SegReg gs;    //!< Gs segment register.
 namespace asmjit {
 namespace x86 {
 
+// This is the only place where the x86x64 namespace is included into x86.
+using namespace ::asmjit::x86x64;
+
 //! \addtogroup asmjit_x86x64_general
 //! \{
 
