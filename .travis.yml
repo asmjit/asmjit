@@ -4,6 +4,11 @@ compiler:
   - clang
   - gcc
 
+before_install:
+  - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq cmake
+
 before_script:
   - mkdir build
   - cd build

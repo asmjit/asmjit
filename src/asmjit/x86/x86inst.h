@@ -35,10 +35,12 @@ struct InstInfo;
 // [asmjit::x86x64::Inst/Cond - Globals]
 // ============================================================================
 
+#if !defined(ASMJIT_DISABLE_INST_NAMES)
 //! \internal
 //!
 //! X86/X64 instructions' names.
 ASMJIT_VAR const char _instName[];
+#endif // !ASMJIT_DISABLE_INST_NAMES
 
 //! \internal
 //!
@@ -725,14 +727,14 @@ ASMJIT_ENUM(kInstCode) {
   kInstVfmaddps,        // FMA4
   kInstVfmaddsd,        // FMA4
   kInstVfmaddss,        // FMA4
-  kInstVfmaddsubpd,     // FMA4
-  kInstVfmaddsubps,     // FMA4
   kInstVfmaddsub132pd,  // FMA3
   kInstVfmaddsub132ps,  // FMA3
   kInstVfmaddsub213pd,  // FMA3
   kInstVfmaddsub213ps,  // FMA3
   kInstVfmaddsub231pd,  // FMA3
   kInstVfmaddsub231ps,  // FMA3
+  kInstVfmaddsubpd,     // FMA4
+  kInstVfmaddsubps,     // FMA4
   kInstVfmsub132pd,     // FMA3
   kInstVfmsub132ps,     // FMA3
   kInstVfmsub132sd,     // FMA3
@@ -745,14 +747,14 @@ ASMJIT_ENUM(kInstCode) {
   kInstVfmsub231ps,     // FMA3
   kInstVfmsub231sd,     // FMA3
   kInstVfmsub231ss,     // FMA3
-  kInstVfmsubaddpd,     // FMA4
-  kInstVfmsubaddps,     // FMA4
   kInstVfmsubadd132pd,  // FMA3
   kInstVfmsubadd132ps,  // FMA3
   kInstVfmsubadd213pd,  // FMA3
   kInstVfmsubadd213ps,  // FMA3
   kInstVfmsubadd231pd,  // FMA3
   kInstVfmsubadd231ps,  // FMA3
+  kInstVfmsubaddpd,     // FMA4
+  kInstVfmsubaddps,     // FMA4
   kInstVfmsubpd,        // FMA4
   kInstVfmsubps,        // FMA4
   kInstVfmsubsd,        // FMA4
@@ -1383,7 +1385,7 @@ ASMJIT_ENUM(kInstOpCode) {
   kInstOpCode_PP_66    = 0x01U << kInstOpCode_PP_Shift,
   kInstOpCode_PP_F3    = 0x02U << kInstOpCode_PP_Shift,
   kInstOpCode_PP_F2    = 0x03U << kInstOpCode_PP_Shift,
-  kInstOpCode_PP_9B    = 0x07U << kInstOpCode_PP_Shift, //Ext/Not part of AVX.
+  kInstOpCode_PP_9B    = 0x07U << kInstOpCode_PP_Shift, // Ext/Not part of AVX.
 
   // 'L' field in AVX/XOP instruction.
   kInstOpCode_L_Shift  = 24,
@@ -1706,6 +1708,7 @@ struct InstInfo {
   // [Accessors]
   // --------------------------------------------------------------------------
 
+#if !defined(ASMJIT_DISABLE_INST_NAMES)
   //! Get instruction name string (null terminated).
   ASMJIT_INLINE const char* getName() const {
     return _instName + static_cast<uint32_t>(_nameIndex);
@@ -1715,6 +1718,7 @@ struct InstInfo {
   ASMJIT_INLINE uint32_t _getNameIndex() const {
     return _nameIndex;
   }
+#endif // !ASMJIT_DISABLE_INST_NAMES
 
   //! Get instruction group, see `kInstGroup`.
   ASMJIT_INLINE uint32_t getGroup() const {
@@ -1828,6 +1832,7 @@ struct InstInfo {
 // ============================================================================
 
 struct X86InstUtil {
+#if !defined(ASMJIT_DISABLE_INST_NAMES)
   //! Get an instruction ID from a given instruction `name`.
   //!
   //! If there is an exact match the instruction id is returned, otherwise
@@ -1836,6 +1841,7 @@ struct X86InstUtil {
   //! The given `name` doesn't have to be null-terminated if `len` is provided.
   ASMJIT_API static uint32_t getInstIdByName(
     const char* name, size_t len = kInvalidIndex);
+#endif // !ASMJIT_DISABLE_INST_NAMES
 };
 
 //! \}

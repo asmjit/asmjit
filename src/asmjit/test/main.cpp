@@ -130,7 +130,6 @@ static void dumpSizeOf() {
   INFO("SizeOf Base:");
   DUMP_SIZE(asmjit::CodeGen);
   DUMP_SIZE(asmjit::ConstPool);
-  DUMP_SIZE(asmjit::Logger);
   DUMP_SIZE(asmjit::Runtime);
   DUMP_SIZE(asmjit::Zone);
   INFO("");
@@ -150,6 +149,7 @@ static void dumpSizeOf() {
   DUMP_SIZE(asmjit::RelocData);
   INFO("");
 
+#if !defined(ASMJIT_DISABLE_COMPILER)
   INFO("SizeOf Compiler:");
   DUMP_SIZE(asmjit::BaseCompiler);
   DUMP_SIZE(asmjit::Node);
@@ -170,6 +170,7 @@ static void dumpSizeOf() {
   DUMP_SIZE(asmjit::BaseVarInst);
   DUMP_SIZE(asmjit::BaseVarState);
   INFO("");
+#endif // !ASMJIT_DISABLE_COMPILER
 
   // --------------------------------------------------------------------------
   // [X86/X64]

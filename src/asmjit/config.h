@@ -18,15 +18,15 @@
 // [AsmJit - Debugging]
 // ============================================================================
 
-// #define ASMJIT_DEBUG            // Define to enable debug-mode.
-// #define ASMJIT_RELEASE          // Define to enable release-mode.
+// #define ASMJIT_DEBUG              // Define to enable debug-mode.
+// #define ASMJIT_RELEASE            // Define to enable release-mode.
 
 // ============================================================================
 // [AsmJit - Library]
 // ============================================================================
 
-// #define ASMJIT_EMBED            // Asmjit is embedded (implies ASMJIT_STATIC).
-// #define ASMJIT_STATIC           // Define to enable static-library build.
+// #define ASMJIT_EMBED              // Asmjit is embedded (implies ASMJIT_STATIC).
+// #define ASMJIT_STATIC             // Define to enable static-library build.
 
 // ============================================================================
 // [AsmJit - Features]
@@ -34,12 +34,13 @@
 
 // If none of these is defined AsmJit will select host architecture by default.
 
-// #define ASMJIT_BUILD_X86        // Define to enable x86 instruction set (32-bit).
-// #define ASMJIT_BUILD_X64        // Define to enable x64 instruction set (64-bit).
-// #define ASMJIT_BUILD_HOST       // Define to enable host instruction set.
+// #define ASMJIT_BUILD_X86          // Define to enable x86 instruction set (32-bit).
+// #define ASMJIT_BUILD_X64          // Define to enable x64 instruction set (64-bit).
+// #define ASMJIT_BUILD_HOST         // Define to enable host instruction set.
 
-// #define ASMJIT_DISABLE_COMPILER // Disable Compiler.
-// #define ASMJIT_DISABLE_LOGGER   // Disable Logger (completely).
+// #define ASMJIT_DISABLE_COMPILER   // Disable Compiler.
+// #define ASMJIT_DISABLE_LOGGER     // Disable Logger (completely).
+// #define ASMJIT_DISABLE_INST_NAMES // Disable Instruction names (and API).
 
 // [Guard]
 #endif // _ASMJIT_CONFIG_H

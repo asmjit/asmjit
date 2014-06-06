@@ -938,7 +938,7 @@ struct X86Var : public BaseVar {
   // [Memory Cast]
   // --------------------------------------------------------------------------
 
-  //! Cast this variable to memory operand.
+  //! Cast this variable to a memory operand.
   //!
   //! \note Size of operand depends on native variable type, you can use other
   //! variants if you want specific one.

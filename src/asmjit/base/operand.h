@@ -726,6 +726,7 @@ struct BaseMem : public Operand {
 // [asmjit::BaseVar]
 // ============================================================================
 
+#if !defined(ASMJIT_DISABLE_COMPILER)
 //! Base class for all variables.
 struct BaseVar : public Operand {
   // --------------------------------------------------------------------------
@@ -763,6 +764,7 @@ struct BaseVar : public Operand {
   ASMJIT_INLINE bool operator==(const BaseVar& other) const { return _packed[0] == other._packed[0]; }
   ASMJIT_INLINE bool operator!=(const BaseVar& other) const { return !operator==(other); }
 };
+#endif // !ASMJIT_DISABLE_COMPILER
 
 // ============================================================================
 // [asmjit::Imm]

@@ -55,7 +55,6 @@ ASMJIT_ENUM(kInstOptions) {
   //! to large displacement, in such case an error happens and the whole
   //! assembler/compiler stream is unusable.
   kInstOptionShortForm = 0x01,
-
   //! Emit long form of the instruction.
   //!
   //! X86/X64:
@@ -65,9 +64,9 @@ ASMJIT_ENUM(kInstOptions) {
   //! supporting both 8-bit and 32-bit immediates.
   kInstOptionLongForm = 0x02,
 
-  //! Condition is likely to be taken (instruction).
+  //! Condition is likely to be taken.
   kInstOptionTaken = 0x04,
-  //! Condition is unlikely to be taken (instruction).
+  //! Condition is unlikely to be taken.
   kInstOptionNotTaken = 0x08
 };
 

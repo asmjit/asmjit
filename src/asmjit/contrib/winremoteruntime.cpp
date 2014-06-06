@@ -44,7 +44,7 @@ uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
   }
 
   // Allocate temporary memory where the code will be stored and relocated.
-  void* codeData = ::malloc(codeSize);
+  void* codeData = ASMJIT_ALLOC(codeSize);
 
   if (codeData == NULL) {
     *dest = NULL;
@@ -55,7 +55,7 @@ uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
   void* processMemPtr = _memMgr.alloc(codeSize, kVMemAllocPermanent);
 
   if (processMemPtr == NULL) {
-    ::free(codeData);
+    ASMJIT_FREE(codeData);
     *dest = NULL;
     return kErrorNoVirtualMemory;
   }
@@ -64,7 +64,7 @@ uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
   assembler->relocCode(codeData, (uintptr_t)processMemPtr);
 
   ::WriteProcessMemory(getProcessHandle(), processMemPtr, codeData, codeSize, NULL);
-  ::free(codeData);
+  ASMJIT_FREE(codeData);
 
   *dest = processMemPtr;
   return kErrorOk;

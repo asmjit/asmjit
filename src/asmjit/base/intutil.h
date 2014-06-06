@@ -184,7 +184,7 @@ struct IntUtil {
   template<typename T>
   static ASMJIT_INLINE bool isInt32(T x) {
     if (IntTraits<T>::kIsSigned)
-      return sizeof(T) <= sizeof(int32_t) ? true : x >= T(-32768) && x <= T(32767);
+      return sizeof(T) <= sizeof(int32_t) ? true : x >= T(-2147483647) - 1 && x <= T(2147483647);
     else
       return x >= T(0) && (sizeof(T) <= sizeof(int32_t) ? true : x <= T(2147483647));
   }

@@ -32,6 +32,14 @@
 #include <new>
 
 // ============================================================================
+// [asmjit::build - Sanity]
+// ============================================================================
+
+#if defined(ASMJIT_DISABLE_INST_NAMES) && !defined(ASMJIT_DISABLE_LOGGER)
+# error "ASMJIT_DISABLE_INST_NAMES requires ASMJIT_DISABLE_LOGGER to be defined."
+#endif // ASMJIT_DISABLE_INST_NAMES && !ASMJIT_DISABLE_LOGGER
+
+// ============================================================================
 // [asmjit::build - OS]
 // ============================================================================
 

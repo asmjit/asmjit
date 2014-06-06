@@ -71,29 +71,61 @@ UNIT(base_intutil) {
   EXPECT(IntUtil::inInterval<int>(101, 10, 20) == false,
     "IntUtil::inInterval<int> should return false if outside.");
 
-  INFO("IntUtil::isInt?().");
-  EXPECT(IntUtil::isInt8<int>(-128) == true,
-    "IntUtil::isInt8<int> should return true if >= -128.");
-  EXPECT(IntUtil::isInt8<int>(127) == true,
-    "IntUtil::isInt8<int> should return true if <= 127.");
-  EXPECT(IntUtil::isInt8<int>(-129) == false,
-    "IntUtil::isInt8<int> should return false if < -128.");
-  EXPECT(IntUtil::isInt8<int>(128) == false,
-    "IntUtil::isInt8<int> should return false if > 127.");
+  INFO("IntUtil::isInt8().");
+  EXPECT(IntUtil::isInt8(-128) == true,
+    "IntUtil::isInt8<> should return true if inside.");
+  EXPECT(IntUtil::isInt8(127) == true,
+    "IntUtil::isInt8<> should return true if inside.");
+  EXPECT(IntUtil::isInt8(-129) == false,
+    "IntUtil::isInt8<> should return false if outside.");
+  EXPECT(IntUtil::isInt8(128) == false,
+    "IntUtil::isInt8<> should return false if outside.");
 
-  EXPECT(IntUtil::isInt16<int>(-32768) == true,
-    "IntUtil::isInt16<int> should return true if >= -32768.");
-  EXPECT(IntUtil::isInt16<int>(32767) == true,
-    "IntUtil::isInt16<int> should return true if <= 32767.");
-  EXPECT(IntUtil::isInt16<int>(-32769) == false,
-    "IntUtil::isInt16<int> should return false if < -32768.");
-  EXPECT(IntUtil::isInt16<int>(32768) == false,
-    "IntUtil::isInt16<int> should return false if > 32767.");
+  INFO("IntUtil::isUInt8().");
+  EXPECT(IntUtil::isUInt8(255) == true,
+    "IntUtil::isUInt8<> should return true if inside.");
+  EXPECT(IntUtil::isUInt8(256) == false,
+    "IntUtil::isUInt8<> should return false if outside.");
+  EXPECT(IntUtil::isUInt8(-1) == false,
+    "IntUtil::isUInt8<> should return false if negative.");
 
-  EXPECT(IntUtil::isInt32(ASMJIT_UINT64_C(0x100000000)) == false,
+  INFO("IntUtil::isInt16().");
+  EXPECT(IntUtil::isInt16(-32768) == true,
+    "IntUtil::isInt16<> should return true if inside.");
+  EXPECT(IntUtil::isInt16(32767) == true,
+    "IntUtil::isInt16<> should return true if inside.");
+  EXPECT(IntUtil::isInt16(-32769) == false,
+    "IntUtil::isInt16<> should return false if outside.");
+  EXPECT(IntUtil::isInt16(32768) == false,
+    "IntUtil::isInt16<> should return false if outside.");
+
+  INFO("IntUtil::isUInt16().");
+  EXPECT(IntUtil::isUInt16(65535) == true,
+    "IntUtil::isUInt16<> should return true if inside.");
+  EXPECT(IntUtil::isUInt16(65536) == false,
+    "IntUtil::isUInt16<> should return false if outside.");
+  EXPECT(IntUtil::isUInt16(-1) == false,
+    "IntUtil::isUInt16<> should return false if negative.");
+
+  INFO("IntUtil::isInt32().");
+  EXPECT(IntUtil::isInt32(2147483647) == true,
+    "IntUtil::isInt32<int> should return true if inside.");
+  EXPECT(IntUtil::isInt32(-2147483647 - 1) == true,
+    "IntUtil::isInt32<int> should return true if inside.");
+  EXPECT(IntUtil::isInt32(ASMJIT_UINT64_C(2147483648)) == false,
     "IntUtil::isInt32<int> should return false if outside.");
-  EXPECT(IntUtil::isInt32(ASMJIT_UINT64_C(0x100000000)) == false,
+  EXPECT(IntUtil::isInt32(ASMJIT_UINT64_C(0xFFFFFFFF)) == false,
     "IntUtil::isInt32<int> should return false if outside.");
+  EXPECT(IntUtil::isInt32(ASMJIT_UINT64_C(0xFFFFFFFF) + 1) == false,
+    "IntUtil::isInt32<int> should return false if outside.");
+
+  INFO("IntUtil::isUInt32().");
+  EXPECT(IntUtil::isUInt32(ASMJIT_UINT64_C(0xFFFFFFFF)) == true,
+    "IntUtil::isUInt32<int> should return true if inside.");
+  EXPECT(IntUtil::isUInt32(ASMJIT_UINT64_C(0xFFFFFFFF) + 1) == false,
+    "IntUtil::isUInt32<int> should return false if outside.");
+  EXPECT(IntUtil::isUInt32(-1) == false,
+    "IntUtil::isUInt32<int> should return false if negative.");
 
   INFO("IntUtil::isPower2().");
   for (i = 0; i < 64; i++) {
