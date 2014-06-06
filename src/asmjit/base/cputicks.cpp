@@ -31,6 +31,14 @@ namespace asmjit {
 // ============================================================================
 
 #if defined(ASMJIT_OS_WINDOWS)
+
+// `_InterlockedCompareExchange` is only available as intrinsic (MS Compiler).
+#if defined(_MSC_VER)
+# pragma intrinsic(_InterlockedCompareExchange)
+#else
+# define _InterlockedCompareExchange InterlockedCompareExchange
+#endif // _MSC_VER
+
 static volatile uint32_t CpuTicks_hiResOk;
 static volatile double CpuTicks_hiResFreq;
 
