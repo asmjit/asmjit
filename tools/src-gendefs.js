@@ -1,4 +1,4 @@
-// [GenDefs] 
+// [GenDefs]
 //
 // The purpose of this script is to fetch all instructions' names into a single
 // string. It prevents relocation that has to be done by linked to make all
@@ -11,8 +11,8 @@ var fs = require("fs");
 // [Configuration]
 // ----------------------------------------------------------------------------
 
-var injectStartMarker = "// ${kInstData:Begin}\n"
-var injectEndMarker = "// ${kInstData:End}\n"
+var injectStartMarker = "// ${kInstData:Begin}\n";
+var injectEndMarker = "// ${kInstData:End}\n";
 
 // ----------------------------------------------------------------------------
 // [Utilities]
@@ -41,10 +41,7 @@ var inject = function(s, start, end, code) {
 // [Database]
 // ----------------------------------------------------------------------------
 
-// FullIndex   - Index of the name of the instruction in one big string (no
-//               prefix/suffix concept).
-// PrefixIndex - Index to a prefix string.
-// SuffixIndex - Index to a suffix string.
+// FullIndex - Index of the name of the instruction in one big string.
 
 var Database = (function() {
   var IndexedString = function() {
@@ -57,14 +54,14 @@ var Database = (function() {
     var index = this.map[s];
     if (typeof index === "number")
       return index;
-  
+
     index = this.index;
     this.array.push(s);
     this.index += s.length + 1;
     this.map[s] = index;
     return index;
   };
-  
+
   IndexedString.prototype.get = function(s) {
     return this.map[s];
   };
@@ -79,7 +76,7 @@ var Database = (function() {
         s += ";";
       s += "\n";
     }
-    
+
     return s;
   };
 
@@ -97,7 +94,6 @@ var Database = (function() {
     this.map[name] = {
       id: id,
       fullIndex: 0,
-      prefixIndex: 0,
       hasV: 0
     };
   };
@@ -116,7 +112,7 @@ var Database = (function() {
 
       if (alphabetical[aIndex] === undefined)
         alphabetical[aIndex] = inst.id;
-      
+
       if (name.indexOf("v") === 0) {
         inst.hasV = 1;
         name = name.substr(1);
@@ -146,7 +142,7 @@ var generate = function(fileName, arch) {
   while (m = re.exec(data)) {
     var id = m[1];
     var name = m[2];
-    
+
     db.add(name, id);
   }
   db.index();
@@ -186,7 +182,7 @@ var generate = function(fileName, arch) {
     code += "  " + inst.id + "_NameIndex = " + inst.fullIndex + ",\n";
   }
   code = code.substr(code, code.length - 2) + "\n};\n";
- 
+
   // Inject.
   data = inject(data, injectStartMarker, injectEndMarker, code);
 
