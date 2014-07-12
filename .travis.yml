@@ -6,14 +6,33 @@ compiler:
 
 before_install:
   - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq cmake
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install cmake valgrind
 
 before_script:
-  - mkdir build
-  - cd build
+  - mkdir build_dbg
+  - mkdir build_rel
+
+  - cd build_dbg
   - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASMJIT_BUILD_TEST=1 -DASMJIT_BUILD_SAMPLES=1
+  - cd ..
+
+  - cd build_rel
+  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASMJIT_BUILD_TEST=1 -DASMJIT_BUILD_SAMPLES=1
+  - cd ..
 
 script:
+  - cd build_dbg
   - make
-  - ./asmjit_test
+  - cd ..
+
+  - cd build_rel
+  - make
+  - cd ..
+
+  - ./build_dbg/asmjit_test
+  - ./build_rel/asmjit_test
+
+after_success:
+  - valgrind --leak-check=full --show-reachable=yes ./build_dbg/asmjit_test
+  - valgrind --leak-check=full --show-reachable=yes ./build_rel/asmjit_test

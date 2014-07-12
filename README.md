@@ -1,25 +1,22 @@
 AsmJit
-======
+------
 
 Complete x86/x64 JIT and Remote Assembler for C++.
+
+[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](
+  https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=QDRM6SRNG7378&lc=EN;&item_name=asmjit&currency_code=EUR)
 
 Official Repository
 -------------------
 
 https://github.com/kobalicek/asmjit
 
-Support the Project
--------------------
-
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](
-  https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=QDRM6SRNG7378&lc=EN;&item_name=asmjit&currency_code=EUR)
-
 Introduction
 ------------
 
-AsmJit is a complete JIT and remote assembler for C++ language. It can generate native code for x86 and x64 architectures and supports the whole x86/x64 instruction set (from legacy MMX to the newest AVX2). It has a type-safe API that allows C++ compiler to do a semantic checks at compile-time even before the assembled code is generated or run.
+AsmJit is a complete JIT and remote assembler for C++ language. It can generate native code for x86 and x64 architectures and supports the whole x86/x64 instruction set - from legacy MMX to the newest AVX2. It has a type-safe API that allows C++ compiler to do a semantic checks at compile-time even before the assembled code is generated or run.
 
-AsmJit is not a virtual machine nor tries to be. It's a general purpose tool that can be used to encode assembly instructions into their machine code representations and tries to make such process easy and fun. AsmJit has been used so far in software encryption, image/sound processing, emulators and as a JIT backend in virtual machines.
+AsmJit is not a virtual machine nor tries to be. It's a tool that can be used to encode instructions into their machine code representations and tries to make such process easy and fun. AsmJit has been used so far in software encryption, image/sound processing, emulators and as a JIT backend in virtual machines.
 
 Features
 --------
@@ -45,9 +42,11 @@ Supported Environments
 ### C++ Compilers
 
   * BorlandC++
-  * GNU (3.4.X+, 4.0+, MinGW)
-  * MSVC (VS2005+)
-  * Other compilers require testing
+  * Clang (Travis-CI)
+  * Gcc (Travis-CI)
+  * MinGW
+  * MSVC
+  * Other compilers require testing and support in `asmjit/build.h` header
 
 ### Backends
 
@@ -57,77 +56,85 @@ Supported Environments
 Project Organization
 --------------------
 
-  - project root /
-    - src         - Source code
-      - asmjit    - Public header files (always include from here)
-        - base    - Base files, used by the AsmJit and all backends
-        - contrib - Contributions that extends base functionality
-        - x86     - X86/X64 specific files, used only by X86/X64 backend
-    - tools       - Tools used for configuring, documenting and generating files
+  * `/`             - Project root
+    * `src`         - Source code
+      * `asmjit`    - Public header files (always include from here)
+        * `base`    - Base files, used by the AsmJit and all backends
+        * `contrib` - Contributions that extends base functionality
+        * `test`    - Unit testing support (don't include in your project)
+        * `x86`     - X86/X64 specific files, used only by X86/X64 backend
+    * `tools`       - Tools used for configuring, documenting and generating files
 
 Code Generation Concepts
 ------------------------
 
-AsmJit has two completely different code generation concepts. The difference is in how the code is generated. The first concept, also referred as the low level concept, is called 'Assembler' and it's the same as writing RAW assembly by using physical registers directly. In this case AsmJit does only instruction encoding, verification and relocation.
+AsmJit has two completely different code generation concepts. The difference is in how the code is generated. The first concept, also referred as the low level concept, is called `Assembler` and it's the same as writing RAW assembly by using physical registers directly. In this case AsmJit does only instruction encoding, verification and optionally code-relocation.
 
-The second concept, also referred as the high level concept, is called 'Compiler'. Compiler lets you use virtually unlimited number of registers (called variables) significantly simplifying the code generation process. Compiler allocates these virtual registers to physical registers after the code generation is done. This requires some extra effort - Compiler has to generate information for each node (instruction, function declaration, function call) in the code, perform a variable liveness analysis and translate the code having variables into code having only registers.
+The second concept, also referred as the high level concept, is called `Compiler`. Compiler lets you use virtually unlimited number of registers (called variables) significantly simplifying the code generation process. Compiler allocates these virtual registers to physical registers after the code generation is done. This requires some extra effort - Compiler has to generate information for each node (instruction, function declaration, function call) in the code, perform a variable liveness analysis and translate the code having variables into code having only registers.
 
-In addition, Compiler understands functions and function calling conventions. It has been designed in a way that the code generated is always a function having prototype like in a programming language. By having a function prototype the Compiler is able to insert prolog and epilog to a function being generated and it is able to call a function inside a generated one.
+In addition, Compiler understands functions and function calling conventions. It has been designed in a way that the code generated is always a function having a prototype like in a programming language. By having a function prototype the Compiler is able to insert prolog and epilog to a function being generated and it is able to call a function inside a generated one.
 
-There is no conclusion on which concept is better. Assembler brings full control on how the code is generated, while Compiler makes the generation easier and more portable.
+There is no conclusion on which concept is better. Assembler brings full control on how the code is generated, while Compiler makes the generation easier and more portable. However, Compiler does sometimes relatively bad job when it comes to register allocation, so for projects where there is already an analysis perfored, pure Assembler code generator is the preffered way.
 
 Configuring & Building
 ----------------------
 
-AsmJit is designed to be easy embeddable in any project. However, it has some compile-time flags that can be used to build a specific version of AsmJit including or omitting certain features:
+AsmJit is designed to be easy embeddable in any kind project. However, it has some compile-time flags that can be used to build a specific version of AsmJit including or omitting certain features. A typical way to build AsmJit is to use [cmake](http://www.cmake.org), but it's also possible to just include AsmJit source code in our project and build it with it optionally editing its `asmjit/config.h` file to turn on/off some specific features. The most easies way to include AsmJit in your project is to just copy AsmJit source somewhere into it and to define globally `ASMJIT_STATIC` macro. This way AsmJit can be just updated from time to time without any changes to it. Please do not include / compile AsmJit test files (`asmjit/test` directory) when embedding.
 
-### Library Type
+### Build Type
 
-  * *ASMJIT_EMBED* - Parameter that can be set to cmake to turn off building library, useful if you want to include asmjit in your project without building the library.
-  * *ASMJIT_STATIC* - Define when building AsmJit as a static library. No symbols will be exported by AsmJit by default.
-  * *ASMJIT_API* - This is AsmJit API decorator that is used in all functions that has to be exported. It can be redefined, however it's not a recommended way.
-  * By default AsmJit build is configured as a shared library and *ASMJIT_API* contains compiler specific attributes to import/export AsmJit symbols.
+  * `ASMJIT_EMBED` - Parameter that can be set to cmake to turn off building library, useful if you want to include asmjit in your project without building the library. `ASMJIT_EMBED` behaves identically as `ASMJIT_STATIC`.
+  * `ASMJIT_STATIC` - Define when building AsmJit as a static library. No symbols will be exported by AsmJit by default.
 
-### Backends
-
-  * *ASMJIT_BUILD_X86* - Always build x86 backend regardless of host architecture.
-  * *ASMJIT_BUILD_X64* - Always build x64 backend regardless of host architecture.
-  * *ASMJIT_BUILD_HOST* - Always build host backand, if only *ASMJIT_BUILD_HOST* is used only the host architecture detected at compile-time will be included.
-  * By default only *ASMJIT_BUILD_HOST* is defined.
+  * By default AsmJit build is configured as a shared library so none of `ASMJIT_EMBED` and `ASMJIT_STATIC` have to be defined explicitly.
 
 ### Build Mode
 
-  * *ASMJIT_DEBUG* - Define to always turn debugging on (regardless of build-mode).
-  * *ASMJIT_RELEASE* - Define to always turn debugging off (regardless of build-mode).
+  * `ASMJIT_DEBUG` - Define to always turn debugging on (regardless of build-mode).
+  * `ASMJIT_RELEASE` - Define to always turn debugging off (regardless of build-mode).
+  * `ASMJIT_TRACE` - Define to enable AsmJit tracing. Tracing is used to catch bugs in AsmJit and it has to be enabled explicitly. When AsmJit is compiled with `ASMJIT_TRACE` it uses `stdout` to log information related to AsmJit execution. This log can be helpful when examining liveness analysis, register allocation or any other part of AsmJit.
+
   * By default none of these is defined, AsmJit detects mode based on compile-time macros (useful when using IDE that has switches for Debug/Release/etc...).
 
 
-To build AsmJit please use cmake <http://www.cmake.org> that will generate  project files for your favorite IDE and platform. If you don't use cmake and you still want to include AsmJit in your project it's perfectly fine by just including it there, probably defining *ASMJIT_STATIC* to prevent AsmJit trying to export the API.
+### Architectures
+
+  * `ASMJIT_BUILD_X86` - Always build x86 backend regardless of host architecture.
+  * `ASMJIT_BUILD_X64` - Always build x64 backend regardless of host architecture.
+  * `ASMJIT_BUILD_HOST` - Always build host backand, if only `ASMJIT_BUILD_HOST` is used only the host architecture detected at compile-time will be included.
+
+  * By default only `ASMJIT_BUILD_HOST` is defined.
+
+### Features
+
+  * `ASMJIT_DISABLE_COMPILER` - Disable `Compiler` completely. Use this flag if you don't use Compiler and want slimmer binary.
+
+  * `ASMJIT_DISABLE_LOGGER` - Disable `Logger` completely. Use this flag if you don't need `Logger` functionality and want slimmer binary. AsmJit compiled with or without `Logger` support is binary compatible (all classes that use Logger pointer will simply use `void*`), but the Logger interface and in general instruction dumps are not available.
+
+  * `ASMJIT_DISABLE_NAMES` = Disable everything that uses strings and that causes that certain strings are stored in the resulting binary. For example when this flag is enabled instruction or error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGER`.
 
 Using AsmJit
 ------------
 
-AsmJit test suite contains up-to-date tests that can be used as a starting point. Base concepts are discussed below. Most of the constructs will work in pure Assembler if variables are replaced by registers and functions prologs/epilogs hand coded. The Compiler is used just to make things simple and most of users prefer it anyway. To use AsmJit basic skills to setup your environment are required and not discussed here.
-
-AsmJit library uses one global namespace called `asmjit` which contains the basics. Architecture specific code is nested, for example x86 support is in `asmjit::x86`, x64 support is in `asmjit::x64` and shared x86/x64 in `asmjit::x86x64`. To make things simple AsmJit provides `asmjit::host` namespace which imports namespace of the detected host architecture automatically. Nested namespaces were introduced to enable support of multiple architectures in the future and to make JIT code generation a special case, not a mandatory requirement. To use AsmJit include only the main `asmjit.h` header usually in form `<asmjit/asmjit.h>`, don't include headers found in subdirectories.
+AsmJit library uses one global namespace called `asmjit`, which contains the basics. Architecture specific code is prefixed by the architecture and architecture registers and operand builders are in its own namespace. For example classes for both x86 and x64 code generation are prefixed by `X86`, enums by `kX86`, registers and operand builders are accessible through `x86` namespace. This design is very different from the initial version of AsmJit and it seems now as the most convenient one.
 
 ### Runtime & Code-Generators
 
-AsmJit contains two classes that are required to generate machine code. Runtime specifies where the code is generated and acts as a storage, while Code-Generator specifies how the code is generated and acts as a machine code stream. All the examples here use `asmjit::host::Compiler` class to generate the code and 'asmjit::JitRuntime` to store and run it.
+AsmJit contains two classes that are required to generate a machine code. `Runtime` specifies where the code is generated and acts as a storage, while `CodeGen` specifies how the code is generated and acts as a machine code stream. All the examples here use `Compiler` code-generator to generate the code and `JitRuntime` to store and run it.
 
 ### Instruction Operands
 
 Operand is a part of CPU instruction which specifices the data the instruction will operate on. There are five types of operands in AsmJit:
 
-  * *Register* - Physical register (used only by Assember)
-  * *Variable* - Virtual register (used only by Compiler)
-  * *Memory* - Location in memory
-  * *Label* - Location in code
-  * *Immediate* - Constant that is encoded with the instruction itself
+  * `Reg` - Physical register, used only by `Assember`
+  * `Var` - Virtual register, used only by `Compiler`
+  * `Mem` - Used to reference memory location
+  * `Label` - Used to reference a location in code
+  * `Imm` - Immediate value that is encoded with the instruction itself
 
-Base class for all operands is `asmjit::Operand`, but it contains only interface that can be used by all of them. Operand is a statically allocated structure that acts lika a value, not a pointer - just copy if you need multiple instances of the same operand. Since the most of the operands are architecture dependent,AsmJit always contain a base-operand structure - for example `asmjit::BaseReg` or `asmjit::BaseMem` and their architecture specific counterparts `asmjit::x86x64::GpReg` or `asmjit::x86x64::Mem`. 
+Base class for all operands is `Operand`. It contains interface that can be used by all types of operands only and it is typically pased by value, not as a pointer. The classes `Reg`, `Var`, `BaseMem`, `Label` and `Imm` all inherit `Operand` and provide an operand specific functionality. Architecture specific operands are prefixed by the architecture like `X86Reg` or `X86Mem`. Most of the architectures provide several types of registers, for example x86/x64 architecture has `X86GpReg`, `X86MmReg`, `X86FpReg`, `X86XmmReg` and `X86YmmReg` registers plus some extras including segment registers and `rip` (relative instruction pointer).
 
-When using a code-generator some operands have to be created explicitly, for example use `newLabel()` to create a label and `newGpVar()` to create a virtual general purpose register.
+When using a code-generator some operands have to be created explicitly by using its interface. For example labels are created by using `newLabel()` method of the code-generator and variables are used by using architecture specific methods like `newGpVar()`, `newMmVar()` or `newXmmVar()`.
 
 ### Function Prototypes
 
@@ -146,7 +153,7 @@ using namespace asmjit::host;
 int main(int argc, char* argv[]) {
   // Create JitRuntime and host specific Compiler.
   JitRuntime runtime;
-  Compiler c(&runtime);
+  X86Compiler c(&runtime);
 
   // Build function having two arguments and a return value of type 'int'.
   // First type in function builder describes the return value. kFuncConvHost
@@ -156,8 +163,8 @@ int main(int argc, char* argv[]) {
   // Create 32-bit variables (virtual registers) and assign some names to
   // them. Using names is purely optional and only greatly helps while
   // debugging.
-  GpVar a(c, kVarTypeInt32, "a");
-  GpVar b(c, kVarTypeInt32, "b");
+  X86GpVar a(c, kVarTypeInt32, "a");
+  X86GpVar b(c, kVarTypeInt32, "b");
 
   // Tell asmjit to use these variables as function arguments.
   c.setArg(0, a);
@@ -215,7 +222,7 @@ The function starts with `c.addFunc()` and ends with `c.endFunc()`. It's not all
 
 ### Using Labels
 
-Labels are essential for making jumps, function calls or to refer to a data that is embedded in the code section. Label has to be explicitly created by using `newLabel()` member function of your code generator in order to be used. The following example executes a code that depends on the condition by using a `Label` and conditional jump instruction. If the first parameter is zero it returns `a + b`, otherwise `a - b`.
+Labels are essential for making jumps, function calls or to refer to a data that is embedded in the code section. Label has to be explicitly created by using `newLabel()` method of your code generator in order to be used. The following example executes a code that depends on the condition by using a `Label` and conditional jump instruction. If the first parameter is zero it returns `a + b`, otherwise `a - b`.
 
 ```C++
 #include <asmjit/asmjit.h>
@@ -225,15 +232,15 @@ using namespace asmjit::host;
 
 int main(int argc, char* argv[]) {
   JitRuntime runtime;
-  Compiler c(&runtime);
+  X86Compiler c(&runtime);
 
   // This function uses 3 arguments.
   c.addFunc(kFuncConvHost, FuncBuilder3<int, int, int, int>());
 
   // New variable 'op' added.
-  GpVar op(c, kVarTypeInt32, "op");
-  GpVar a(c, kVarTypeInt32, "a");
-  GpVar b(c, kVarTypeInt32, "b");
+  X86GpVar op(c, kVarTypeInt32, "op");
+  X86GpVar a(c, kVarTypeInt32, "a");
+  X86GpVar b(c, kVarTypeInt32, "b");
 
   c.setArg(0, op);
   c.setArg(1, a);
@@ -297,21 +304,21 @@ using namespace asmjit::host;
 
 int main(int argc, char* argv[]) {
   JitRuntime runtime;
-  Compiler c(&runtime);
+  X86Compiler c(&runtime);
 
   // Function returning 'int' accepting pointer and two indexes.
   c.addFunc(kFuncConvHost, FuncBuilder3<int, const int*, intptr_t, intptr_t>());
 
-  GpVar p(c, kVarTypeIntPtr, "p");
-  GpVar aIndex(c, kVarTypeIntPtr, "aIndex");
-  GpVar bIndex(c, kVarTypeIntPtr, "bIndex");
+  X86GpVar p(c, kVarTypeIntPtr, "p");
+  X86GpVar aIndex(c, kVarTypeIntPtr, "aIndex");
+  X86GpVar bIndex(c, kVarTypeIntPtr, "bIndex");
 
   c.setArg(0, p);
   c.setArg(1, aIndex);
   c.setArg(2, bIndex);
 
-  GpVar a(c, kVarTypeInt32, "a");
-  GpVar b(c, kVarTypeInt32, "b");
+  X86GpVar a(c, kVarTypeInt32, "a");
+  X86GpVar b(c, kVarTypeInt32, "b");
 
   // Read 'a' by using a memory operand having base register, index register
   // and scale. Translates to 'mov a, dword ptr [p + aIndex << 2]'.
@@ -326,11 +333,11 @@ int main(int argc, char* argv[]) {
   c.add(p, bIndex);
 
   // Read 'b'.
-  c.mov(b, ptr(p));  
-  
+  c.mov(b, ptr(p));
+
   // a = a + b;
   c.add(a, b);
-  
+
   c.ret(a);
   c.endFunc();
 
@@ -354,7 +361,7 @@ int main(int argc, char* argv[]) {
 
 ### Using Stack
 
-AsmJit uses stack automatically to spill variables if there is not enough registers to keep them all allocated. Stack is allocated automatically by Compiler and it's not allowed to manipulate it directly. However, Compiler provides an interface to allocate chunks of memory of user specified size and alignment on the stack.
+AsmJit uses stack automatically to spill variables if there is not enough registers to keep them all allocated. The stack frame is managed by `Compiler` that provides also an interface to allocate chunks of memory of user specified size and alignment.
 
 In the following example a stack of 256 bytes size is allocated, filled by bytes starting from 0 to 255 and then iterated again to sum all the values.
 
@@ -366,16 +373,16 @@ using namespace asmjit::host;
 
 int main(int argc, char* argv[]) {
   JitRuntime runtime;
-  Compiler c(&runtime);
+  X86Compiler c(&runtime);
 
   // Function returning 'int' without any arguments.
   c.addFunc(kFuncConvHost, FuncBuilder0<int>());
 
   // Allocate a function stack of size 256 aligned to 4 bytes.
-  Mem stack = c.newStack(256, 4);
+  X86Mem stack = c.newStack(256, 4);
 
-  GpVar p(c, kVarTypeIntPtr, "p");
-  GpVar i(c, kVarTypeIntPtr, "i");
+  X86GpVar p(c, kVarTypeIntPtr, "p");
+  X86GpVar i(c, kVarTypeIntPtr, "i");
 
   // Load a stack address to 'p'. This step is purely optional and shows
   // that 'lea' is useful to load a memory operands address (even absolute)
@@ -404,8 +411,8 @@ int main(int argc, char* argv[]) {
   c.jb(L1);
 
   // Second loop, sum all bytes stored in 'stack'.
-  GpVar a(c, kVarTypeInt32, "a");
-  GpVar t(c, kVarTypeInt32, "t");
+  X86GpVar a(c, kVarTypeInt32, "a");
+  X86GpVar t(c, kVarTypeInt32, "t");
 
   c.xor_(i, i);
   c.xor_(a, a);
@@ -448,30 +455,71 @@ AsmJit offers much more, but not everything can fit into the introduction. The f
 
 ### Logging and Error Handling
 
-Failures are common when working at machine level. AsmJit does already a good job by using overloaded functions per instruction to prevent from emitting semantically incorrect code. However, AsmJit can't prevent you from emitting code that is semantically correct, but doesn't do what it it supposed to do. Logging has always been an important part of AsmJit's infrastructure and the output can be very valuable after something went wrong.
+Failures are common when working at machine level. AsmJit does already a good job with function overloading to prevent from emitting semantically incorrect instructions; however, AsmJit can't prevent from emitting code that is semantically correct, but contains bug(s). Logging has always been an important part of AsmJit's infrastructure and the output can be very valuable after something went wrong.
 
-To be documented.
+AsmJit contains extensible logging interface defined by `Logger` class and implemented by `FileLogger` and `StringLogger`. `FileLogger` can log into a standard C-based `FILE*` stream while `StringLogger` logs to an internal buffer that can be used after the code generation is done.
+
+Loggers can be assigned to any code generator and there is no restriction of assigning a single logger to multiple code generators, but this is not practical when running these in multiple threads. `FileLogger` is thread-safe since it uses plain C `FILE*` stream, but `StringLogger` is not!
+
+The following snippet describes how to log into `FILE*`:
+
+```C++
+// Create logger logging to `stdout`. Logger life-time should always be
+// greater than lifetime of the code generator.
+FileLogger logger(stdout);
+
+// Create a code generator and assign our logger into it.
+X86Compiler c(...);
+c.setLogger(&logger);
+
+// ... Generate the code ...
+```
+
+The following snippet describes how to log into a string:
+
+```C++
+StringLogger logger;
+
+// Create a code generator and assign our logger into it.
+X86Compiler c(...);
+c.setLogger(&logger);
+
+// ... Generate the code ...
+
+printf("Logger Content:\n%s", logger.getString());
+
+// You can also use `logger.clearString()` if the logger
+// instance will be reused.
+```
+
+Logger can be configured to show more information by using `logger.setOption()` method. The following options are available:
+
+  * `kLoggerOptionBinaryForm` - Log also binary sequence for each instruction generated.
+  * `kLoggerOptionHexImmediate` - Format immediate values to base16 (hex) form.
+  * `kLoggerOptionHexDisplacement` - Format memory displacements to base16 (hex) form.
+
+TODO: Liveness analysis and instruction scheduling options.
 
 ### Code Injection
 
 Code injection was one of key concepts of Compiler from the beginning. Compiler records all emitted instructions in a double-linked list which can be manipulated before `make()` is called. Any call to Compiler that adds instruction, function or anything else in fact manipulates this list by inserting nodes into it.
 
-To manipulate the current cursor use Compiler's `getCursor()` and `setCursor()` member functions. The following snippet demonstrates the proper way of code injection.
+To manipulate the current cursor use Compiler's `getCursor()` and `setCursor()` methods. The following snippet demonstrates the proper way of code injection.
 
 ```C++
-Compiler c(...);
+X86Compiler c(...);
 
-GpVar a(c, kVarTypeInt32, "a");
-GpVar b(c, kVarTypeInt32, "b");
+X86GpVar a(c, kVarTypeInt32, "a");
+X86GpVar b(c, kVarTypeInt32, "b");
 
-BaseNode* here = c.getCursor();
+Node* here = c.getCursor();
 c.mov(b, 2);
 
 // Now, 'here' can be used to inject something before 'mov b, 2'. To inject
 // anything it's good to remember the current cursor so it can be set back
 // after the injecting is done. When setCursor() is called it returns the old
 // cursor.
-BaseNode* oldCursor = c.setCursor(here);
+Node* oldCursor = c.setCursor(here);
 c.mov(a, 1);
 c.setCursor(oldCursor);
 ```

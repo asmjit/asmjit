@@ -25,33 +25,31 @@
 #include "../apibegin.h"
 
 namespace asmjit {
-namespace x86x64 {
 
 // ============================================================================
-// [asmjit::x86x64::CpuVendor]
+// [asmjit::X86CpuVendor]
 // ============================================================================
 
-struct CpuVendor {
+struct X86CpuVendor {
   uint32_t id;
   char text[12];
 };
 
-static const CpuVendor cpuVendorTable[] = {
+static const X86CpuVendor x86CpuVendorList[] = {
   { kCpuVendorIntel    , { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'I', 'n', 't', 'e', 'l' } },
   { kCpuVendorAmd      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
-  { kCpuVendorAmd      , { 'A', 'M', 'D', 'i', 's', 'b', 'e', 't', 't', 'e', 'r', '!' } },
   { kCpuVendorVia      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } },
   { kCpuVendorVia      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } }
 };
 
-static ASMJIT_INLINE bool cpuVendorEq(const CpuVendor& info, const char* vendorString) {
+static ASMJIT_INLINE bool x86CpuVendorEq(const X86CpuVendor& info, const char* vendorString) {
   const uint32_t* a = reinterpret_cast<const uint32_t*>(info.text);
   const uint32_t* b = reinterpret_cast<const uint32_t*>(vendorString);
 
   return (a[0] == b[0]) & (a[1] == b[1]) & (a[2] == b[2]);
 }
 
-static ASMJIT_INLINE void simplifyBrandString(char* s) {
+static ASMJIT_INLINE void x86SimplifyBrandString(char* s) {
   // Always clear the current character in the buffer. It ensures that there
   // is no garbage after the string NULL terminator.
   char* d = s;
@@ -82,7 +80,7 @@ _Skip:
 }
 
 // ============================================================================
-// [asmjit::x86x64::CpuUtil]
+// [asmjit::X86CpuUtil]
 // ============================================================================
 
 // This is messy, I know. Cpuid is implemented as intrinsic in VS2005, but
@@ -92,7 +90,7 @@ _Skip:
 
 // callCpuId() and detectCpuInfo() for x86 and x64 platforms begins here.
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-void CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, CpuId* outResult) {
+void X86CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* outResult) {
 
 #if defined(_MSC_VER)
 // 2009-02-05: Thanks to Mike Tajmajer for supporting VC7.1 compiler.
@@ -136,34 +134,42 @@ void CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, CpuId* outResult) {
 #endif // COMPILER
 }
 
-void CpuUtil::detect(CpuInfo* cpuInfo) {
-  CpuId regs;
+void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
+  X86CpuId regs;
 
   uint32_t i;
   uint32_t maxId;
 
   // Clear everything except the '_size' member.
   ::memset(reinterpret_cast<uint8_t*>(cpuInfo) + sizeof(uint32_t),
-    0, sizeof(BaseCpuInfo) - sizeof(uint32_t));
+    0, sizeof(CpuInfo) - sizeof(uint32_t));
 
   // Fill safe defaults.
-  ::memcpy(cpuInfo->_vendorString, "Unknown", 8);
-  cpuInfo->_coresCount = BaseCpuInfo::detectNumberOfCores();
+  cpuInfo->_hwThreadsCount = CpuInfo::detectHwThreadsCount();
+
+  // --------------------------------------------------------------------------
+  // [CPUID EAX=0x00000000]
+  // --------------------------------------------------------------------------
 
   // Get vendor string/id.
   callCpuId(0, 0, &regs);
 
   maxId = regs.eax;
+
   ::memcpy(cpuInfo->_vendorString, &regs.ebx, 4);
   ::memcpy(cpuInfo->_vendorString + 4, &regs.edx, 4);
   ::memcpy(cpuInfo->_vendorString + 8, &regs.ecx, 4);
 
-  for (i = 0; i < ASMJIT_ARRAY_SIZE(cpuVendorTable); i++) {
-    if (cpuVendorEq(cpuVendorTable[i], cpuInfo->_vendorString)) {
-      cpuInfo->_vendorId = cpuVendorTable[i].id;
+  for (i = 0; i < ASMJIT_ARRAY_SIZE(x86CpuVendorList); i++) {
+    if (x86CpuVendorEq(x86CpuVendorList[i], cpuInfo->_vendorString)) {
+      cpuInfo->_vendorId = x86CpuVendorList[i].id;
       break;
     }
   }
+
+  // --------------------------------------------------------------------------
+  // [CPUID EAX=0x00000001]
+  // --------------------------------------------------------------------------
 
   // Get feature flags in ecx/edx and family/model in eax.
   callCpuId(1, 0, &regs);
@@ -184,59 +190,63 @@ void CpuUtil::detect(CpuInfo* cpuInfo) {
   cpuInfo->_flushCacheLineSize   = ((regs.ebx >>  8) & 0xFF) * 8;
   cpuInfo->_maxLogicalProcessors = ((regs.ebx >> 16) & 0xFF);
 
-  if (regs.ecx & 0x00000001U) cpuInfo->addFeature(kCpuFeatureSse3);
-  if (regs.ecx & 0x00000002U) cpuInfo->addFeature(kCpuFeaturePclmulqdq);
-  if (regs.ecx & 0x00000008U) cpuInfo->addFeature(kCpuFeatureMonitorMWait);
-  if (regs.ecx & 0x00000200U) cpuInfo->addFeature(kCpuFeatureSsse3);
-  if (regs.ecx & 0x00002000U) cpuInfo->addFeature(kCpuFeatureCmpXchg16B);
-  if (regs.ecx & 0x00080000U) cpuInfo->addFeature(kCpuFeatureSse41);
-  if (regs.ecx & 0x00100000U) cpuInfo->addFeature(kCpuFeatureSse42);
-  if (regs.ecx & 0x00400000U) cpuInfo->addFeature(kCpuFeatureMovbe);
-  if (regs.ecx & 0x00800000U) cpuInfo->addFeature(kCpuFeaturePopcnt);
-  if (regs.ecx & 0x02000000U) cpuInfo->addFeature(kCpuFeatureAesni);
-  if (regs.ecx & 0x40000000U) cpuInfo->addFeature(kCpuFeatureRdrand);
+  if (regs.ecx & 0x00000001U) cpuInfo->addFeature(kX86CpuFeatureSse3);
+  if (regs.ecx & 0x00000002U) cpuInfo->addFeature(kX86CpuFeaturePclmulqdq);
+  if (regs.ecx & 0x00000008U) cpuInfo->addFeature(kX86CpuFeatureMonitorMWait);
+  if (regs.ecx & 0x00000200U) cpuInfo->addFeature(kX86CpuFeatureSsse3);
+  if (regs.ecx & 0x00002000U) cpuInfo->addFeature(kX86CpuFeatureCmpXchg16B);
+  if (regs.ecx & 0x00080000U) cpuInfo->addFeature(kX86CpuFeatureSse41);
+  if (regs.ecx & 0x00100000U) cpuInfo->addFeature(kX86CpuFeatureSse42);
+  if (regs.ecx & 0x00400000U) cpuInfo->addFeature(kX86CpuFeatureMovbe);
+  if (regs.ecx & 0x00800000U) cpuInfo->addFeature(kX86CpuFeaturePopcnt);
+  if (regs.ecx & 0x02000000U) cpuInfo->addFeature(kX86CpuFeatureAesni);
+  if (regs.ecx & 0x40000000U) cpuInfo->addFeature(kX86CpuFeatureRdrand);
 
-  if (regs.edx & 0x00000010U) cpuInfo->addFeature(kCpuFeatureRdtsc);
-  if (regs.edx & 0x00000100U) cpuInfo->addFeature(kCpuFeatureCmpXchg8B);
-  if (regs.edx & 0x00008000U) cpuInfo->addFeature(kCpuFeatureCmov);
-  if (regs.edx & 0x00800000U) cpuInfo->addFeature(kCpuFeatureMmx);
-  if (regs.edx & 0x01000000U) cpuInfo->addFeature(kCpuFeatureFxsr);
-  if (regs.edx & 0x02000000U) cpuInfo->addFeature(kCpuFeatureSse).addFeature(kCpuFeatureMmxExt);
-  if (regs.edx & 0x04000000U) cpuInfo->addFeature(kCpuFeatureSse).addFeature(kCpuFeatureSse2);
-  if (regs.edx & 0x10000000U) cpuInfo->addFeature(kCpuFeatureMultithreading);
+  if (regs.edx & 0x00000010U) cpuInfo->addFeature(kX86CpuFeatureRdtsc);
+  if (regs.edx & 0x00000100U) cpuInfo->addFeature(kX86CpuFeatureCmpXchg8B);
+  if (regs.edx & 0x00008000U) cpuInfo->addFeature(kX86CpuFeatureCmov);
+  if (regs.edx & 0x00800000U) cpuInfo->addFeature(kX86CpuFeatureMmx);
+  if (regs.edx & 0x01000000U) cpuInfo->addFeature(kX86CpuFeatureFxsr);
+  if (regs.edx & 0x02000000U) cpuInfo->addFeature(kX86CpuFeatureSse).addFeature(kX86CpuFeatureMmxExt);
+  if (regs.edx & 0x04000000U) cpuInfo->addFeature(kX86CpuFeatureSse).addFeature(kX86CpuFeatureSse2);
+  if (regs.edx & 0x10000000U) cpuInfo->addFeature(kX86CpuFeatureMultithreading);
 
   if (cpuInfo->_vendorId == kCpuVendorAmd && (regs.edx & 0x10000000U)) {
     // AMD sets Multithreading to ON if it has more cores.
-    if (cpuInfo->_coresCount == 1)
-      cpuInfo->_coresCount = 2;
+    if (cpuInfo->_hwThreadsCount == 1)
+      cpuInfo->_hwThreadsCount = 2;
   }
 
   // Detect AVX.
   if (regs.ecx & 0x10000000U) {
-    cpuInfo->addFeature(kCpuFeatureAvx);
+    cpuInfo->addFeature(kX86CpuFeatureAvx);
 
-    if (regs.ecx & 0x00000800U) cpuInfo->addFeature(kCpuFeatureXop);
-    if (regs.ecx & 0x00004000U) cpuInfo->addFeature(kCpuFeatureFma3);
-    if (regs.ecx & 0x00010000U) cpuInfo->addFeature(kCpuFeatureFma4);
-    if (regs.ecx & 0x20000000U) cpuInfo->addFeature(kCpuFeatureF16C);
+    if (regs.ecx & 0x00000800U) cpuInfo->addFeature(kX86CpuFeatureXop);
+    if (regs.ecx & 0x00004000U) cpuInfo->addFeature(kX86CpuFeatureFma3);
+    if (regs.ecx & 0x00010000U) cpuInfo->addFeature(kX86CpuFeatureFma4);
+    if (regs.ecx & 0x20000000U) cpuInfo->addFeature(kX86CpuFeatureF16C);
   }
 
   // Detect new features if the processor supports CPUID-07.
   if (maxId >= 7) {
     callCpuId(7, 0, &regs);
 
-    if (regs.ebx & 0x00000001) cpuInfo->addFeature(kCpuFeatureFsGsBase);
-    if (regs.ebx & 0x00000008) cpuInfo->addFeature(kCpuFeatureBmi);
-    if (regs.ebx & 0x00000010) cpuInfo->addFeature(kCpuFeatureHle);
-    if (regs.ebx & 0x00000100) cpuInfo->addFeature(kCpuFeatureBmi2);
-    if (regs.ebx & 0x00000200) cpuInfo->addFeature(kCpuFeatureRepMovsbStosbExt);
-    if (regs.ebx & 0x00000800) cpuInfo->addFeature(kCpuFeatureRtm);
+    if (regs.ebx & 0x00000001) cpuInfo->addFeature(kX86CpuFeatureFsGsBase);
+    if (regs.ebx & 0x00000008) cpuInfo->addFeature(kX86CpuFeatureBmi);
+    if (regs.ebx & 0x00000010) cpuInfo->addFeature(kX86CpuFeatureHle);
+    if (regs.ebx & 0x00000100) cpuInfo->addFeature(kX86CpuFeatureBmi2);
+    if (regs.ebx & 0x00000200) cpuInfo->addFeature(kX86CpuFeatureRepMovsbStosbExt);
+    if (regs.ebx & 0x00000800) cpuInfo->addFeature(kX86CpuFeatureRtm);
 
     // AVX2 depends on AVX.
-    if (cpuInfo->hasFeature(kCpuFeatureAvx)) {
-      if (regs.ebx & 0x00000020) cpuInfo->addFeature(kCpuFeatureAvx2);
+    if (cpuInfo->hasFeature(kX86CpuFeatureAvx)) {
+      if (regs.ebx & 0x00000020) cpuInfo->addFeature(kX86CpuFeatureAvx2);
     }
   }
+
+  // --------------------------------------------------------------------------
+  // [CPUID EAX=0x80000000]
+  // --------------------------------------------------------------------------
 
   // Calling cpuid with 0x80000000 as the in argument gets the number of valid
   // extended IDs.
@@ -250,18 +260,18 @@ void CpuUtil::detect(CpuInfo* cpuInfo) {
 
     switch (i) {
       case 0x80000001:
-        if (regs.ecx & 0x00000001U) cpuInfo->addFeature(kCpuFeatureLahfSahf);
-        if (regs.ecx & 0x00000020U) cpuInfo->addFeature(kCpuFeatureLzcnt);
-        if (regs.ecx & 0x00000040U) cpuInfo->addFeature(kCpuFeatureSse4A);
-        if (regs.ecx & 0x00000080U) cpuInfo->addFeature(kCpuFeatureMsse);
-        if (regs.ecx & 0x00000100U) cpuInfo->addFeature(kCpuFeaturePrefetch);
+        if (regs.ecx & 0x00000001U) cpuInfo->addFeature(kX86CpuFeatureLahfSahf);
+        if (regs.ecx & 0x00000020U) cpuInfo->addFeature(kX86CpuFeatureLzcnt);
+        if (regs.ecx & 0x00000040U) cpuInfo->addFeature(kX86CpuFeatureSse4A);
+        if (regs.ecx & 0x00000080U) cpuInfo->addFeature(kX86CpuFeatureMsse);
+        if (regs.ecx & 0x00000100U) cpuInfo->addFeature(kX86CpuFeaturePrefetch);
 
-        if (regs.edx & 0x00100000U) cpuInfo->addFeature(kCpuFeatureExecuteDisableBit);
-        if (regs.edx & 0x00200000U) cpuInfo->addFeature(kCpuFeatureFfxsr);
-        if (regs.edx & 0x00400000U) cpuInfo->addFeature(kCpuFeatureMmxExt);
-        if (regs.edx & 0x08000000U) cpuInfo->addFeature(kCpuFeatureRdtscp);
-        if (regs.edx & 0x40000000U) cpuInfo->addFeature(kCpuFeature3dNowExt).addFeature(kCpuFeatureMmxExt);
-        if (regs.edx & 0x80000000U) cpuInfo->addFeature(kCpuFeature3dNow);
+        if (regs.edx & 0x00100000U) cpuInfo->addFeature(kX86CpuFeatureExecuteDisableBit);
+        if (regs.edx & 0x00200000U) cpuInfo->addFeature(kX86CpuFeatureFfxsr);
+        if (regs.edx & 0x00400000U) cpuInfo->addFeature(kX86CpuFeatureMmxExt);
+        if (regs.edx & 0x08000000U) cpuInfo->addFeature(kX86CpuFeatureRdtscp);
+        if (regs.edx & 0x40000000U) cpuInfo->addFeature(kX86CpuFeature3dNowExt).addFeature(kX86CpuFeatureMmxExt);
+        if (regs.edx & 0x80000000U) cpuInfo->addFeature(kX86CpuFeature3dNow);
         break;
 
       case 0x80000002:
@@ -280,11 +290,10 @@ void CpuUtil::detect(CpuInfo* cpuInfo) {
   }
 
   // Simplify the brand string (remove unnecessary spaces to make printing nicer).
-  simplifyBrandString(cpuInfo->_brandString);
+  x86SimplifyBrandString(cpuInfo->_brandString);
 }
 #endif
 
-} // x86x64 namespace
 } // asmjit namespace
 
 // [Api-End]

@@ -70,7 +70,7 @@ ASMJIT_ENUM(kLoggerStyle) {
 //!
 //! This class also contain `_enabled` member that can be used to enable
 //! or disable logging.
-struct Logger {
+struct ASMJIT_VCLASS Logger {
   ASMJIT_NO_COPY(Logger)
 
   // --------------------------------------------------------------------------
@@ -117,11 +117,17 @@ struct Logger {
   // --------------------------------------------------------------------------
 
   //! Get indentation.
-  ASMJIT_INLINE const char* getIndentation() const { return _indentation; }
+  ASMJIT_INLINE const char* getIndentation() const {
+    return _indentation;
+  }
+
   //! Set indentation.
   ASMJIT_API void setIndentation(const char* indentation);
+
   //! Reset indentation.
-  ASMJIT_INLINE void resetIndentation() { setIndentation(NULL); }
+  ASMJIT_INLINE void resetIndentation() {
+    setIndentation(NULL);
+  }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -139,7 +145,7 @@ struct Logger {
 // ============================================================================
 
 //! Logger that can log to standard C `FILE*` stream.
-struct FileLogger : public Logger {
+struct ASMJIT_VCLASS FileLogger : public Logger {
   ASMJIT_NO_COPY(FileLogger)
 
   // --------------------------------------------------------------------------
@@ -184,7 +190,7 @@ struct FileLogger : public Logger {
 // ============================================================================
 
 //! String logger.
-struct StringLogger : public Logger {
+struct ASMJIT_VCLASS StringLogger : public Logger {
   ASMJIT_NO_COPY(StringLogger)
 
   // --------------------------------------------------------------------------
@@ -205,10 +211,14 @@ struct StringLogger : public Logger {
   //! string.
   //!
   //! The pointer is owned by `StringLogger`, it can't be modified or freed.
-  ASMJIT_INLINE const char* getString() const { return _stringBuilder.getData(); }
+  ASMJIT_INLINE const char* getString() const {
+    return _stringBuilder.getData();
+  }
 
   //! Clear the resulting string.
-  ASMJIT_INLINE void clearString() { _stringBuilder.clear(); }
+  ASMJIT_INLINE void clearString() {
+    _stringBuilder.clear();
+  }
 
   // --------------------------------------------------------------------------
   // [Logging]

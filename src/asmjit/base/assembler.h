@@ -10,11 +10,10 @@
 
 // [Dependencies - AsmJit]
 #include "../base/codegen.h"
+#include "../base/containers.h"
 #include "../base/error.h"
 #include "../base/logger.h"
 #include "../base/operand.h"
-#include "../base/podlist.h"
-#include "../base/podvector.h"
 #include "../base/runtime.h"
 #include "../base/zone.h"
 
@@ -27,13 +26,13 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kInstCode]
+// [asmjit::kInstId]
 // ============================================================================
 
 //! Instruction codes (stub).
-ASMJIT_ENUM(kInstCode) {
+ASMJIT_ENUM(kInstId) {
   //! No instruction.
-  kInstNone = 0
+  kInstIdNone = 0
 };
 
 // ============================================================================
@@ -132,7 +131,7 @@ struct RelocData {
 };
 
 // ============================================================================
-// [asmjit::BaseAssembler]
+// [asmjit::Assembler]
 // ============================================================================
 
 //! Base assembler.
@@ -140,30 +139,27 @@ struct RelocData {
 //! This class implements the base interface to an assembler. The architecture
 //! specific API is implemented by backends.
 //!
-//! @sa BaseCompiler.
-struct BaseAssembler : public CodeGen {
-  ASMJIT_NO_COPY(BaseAssembler)
+//! \sa Compiler.
+struct ASMJIT_VCLASS Assembler : public CodeGen {
+  ASMJIT_NO_COPY(Assembler)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new `BaseAssembler` instance.
-  ASMJIT_API BaseAssembler(Runtime* runtime);
-  //! Destroy the `BaseAssembler` instance.
-  ASMJIT_API virtual ~BaseAssembler();
+  //! Create a new `Assembler` instance.
+  ASMJIT_API Assembler(Runtime* runtime);
+  //! Destroy the `Assembler` instance.
+  ASMJIT_API virtual ~Assembler();
 
   // --------------------------------------------------------------------------
-  // [Clear / Reset]
+  // [Reset]
   // --------------------------------------------------------------------------
 
-  //! Clear everything, but not deallocate buffers.
-  ASMJIT_API void clear();
-  //! Reset everything (means also to free all buffers).
-  ASMJIT_API void reset();
-  //! Called by clear() and reset() to clear all data related to derived class
-  //! implementation.
-  ASMJIT_API virtual void _purge();
+  //! Reset the assembler.
+  //!
+  //! If `releaseMemory` is true all buffers will be released to the system.
+  ASMJIT_API void reset(bool releaseMemory = false);
 
   // --------------------------------------------------------------------------
   // [Buffer]
@@ -526,7 +522,7 @@ struct BaseAssembler : public CodeGen {
 // [Defined-Later]
 // ============================================================================
 
-ASMJIT_INLINE Label::Label(BaseAssembler& a) : Operand(NoInit) {
+ASMJIT_INLINE Label::Label(Assembler& a) : Operand(NoInit) {
   a._newLabel(this);
 }
 

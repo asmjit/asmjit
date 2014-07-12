@@ -28,8 +28,10 @@ namespace asmjit {
 
 //! Features of \ref CodeGen.
 ASMJIT_ENUM(kCodeGen) {
-  //! Emit optimized code-alignment sequences (true by default).
+  //! Emit optimized code-alignment sequences (`Assembler` and `Compiler`).
   //!
+  //! Default `true`.
+  //! 
   //! X86/X64
   //! -------
   //!
@@ -37,12 +39,14 @@ ASMJIT_ENUM(kCodeGen) {
   //! opcode that is mostly shown by disassemblers as nop. However there are
   //! more optimized align sequences for 2-11 bytes that may execute faster.
   //! If this feature is enabled asmjit will generate specialized sequences
-  //! for alignment between 1 to 11 bytes. Also when `x86x64::Compiler` is
-  //! used, it may add rex prefixes into the code to make some instructions
-  //! greater so no alignment sequences are needed.
+  //! for alignment between 1 to 11 bytes. Also when `X86Compiler` is used,
+  //! it can add REX prefixes into the code to make some instructions greater
+  //! so no alignment sequence is needed.
   kCodeGenOptimizedAlign = 0,
 
-  //! Emit jump-prediction hints (false by default).
+  //! Emit jump-prediction hints (`Assembler` and `Compiler`).
+  //!
+  //! Default `false`.
   //!
   //! X86/X64
   //! -------
@@ -55,9 +59,24 @@ ASMJIT_ENUM(kCodeGen) {
   //! If this option is enabled these hints will be emitted.
   //!
   //! This feature is disabled by default, because the only processor that
-  //! used to take into consideration prediction hints was P4 that is not used
-  //! anymore.
-  kCodeGenPredictedJumps = 1
+  //! used to take into consideration prediction hints was P4. Newer processors
+  //! implement heuristics for branch prediction that ignores any static hints.
+  kCodeGenPredictedJumps = 1,
+
+  //! Schedule instructions so they can be executed faster (`Compiler` only).
+  //!
+  //! Default `false`, has to be explicitly enabled because it scheduler needs
+  //! some time to run.
+  //!
+  //! X86/X64
+  //! -------
+  //!
+  //! If scheduling is enabled AsmJit will try to reorder instructions to
+  //! minimize dependency chain. Scheduler always runs after the registers are
+  //! allocated so it doesn't change count of register allocs/spills.
+  //!
+  //! This feature is highly experimental and untested.
+  kCodeGenEnableScheduler = 2
 };
 
 // ============================================================================
@@ -66,7 +85,9 @@ ASMJIT_ENUM(kCodeGen) {
 
 //! Code aligning mode.
 ASMJIT_ENUM(kAlignMode) {
+  //! Align by emitting a sequence that can be executed (code).
   kAlignCode = 0,
+  //! Align by emitting sequence that shouldn't be executed (data).
   kAlignData = 1
 };
 
@@ -86,8 +107,8 @@ ASMJIT_ENUM(kRelocMode) {
 // [asmjit::CodeGen]
 // ============================================================================
 
-//! Abstract class defining basics of \ref Assembler and \ref BaseCompiler.
-struct CodeGen {
+//! Abstract class defining basics of \ref Assembler and \ref Compiler.
+struct ASMJIT_VCLASS CodeGen {
   ASMJIT_NO_COPY(CodeGen)
 
   // --------------------------------------------------------------------------
@@ -154,7 +175,7 @@ struct CodeGen {
   ASMJIT_API Error setError(Error error, const char* message = NULL);
 
   //! Clear the last error code.
-  ASMJIT_INLINE void clearError() {
+  ASMJIT_INLINE void resetError() {
     _error = kErrorOk;
   }
 
@@ -167,7 +188,7 @@ struct CodeGen {
   ASMJIT_API Error setErrorHandler(ErrorHandler* handler);
 
   //! Clear error handler.
-  ASMJIT_INLINE Error clearErrorHandler() {
+  ASMJIT_INLINE Error resetErrorHandler() {
     return setErrorHandler(NULL);
   }
 
@@ -194,20 +215,12 @@ struct CodeGen {
     _options = options;
   }
 
-  //! Get options of the next instruction and clear them.
-  ASMJIT_INLINE uint32_t getOptionsAndClear() {
+  //! Get options of the next instruction and reset them.
+  ASMJIT_INLINE uint32_t getOptionsAndReset() {
     uint32_t options = _options;
     _options = 0;
     return options;
   };
-
-  // --------------------------------------------------------------------------
-  // [Purge]
-  // --------------------------------------------------------------------------
-
-  //! Called by \ref clear() and \ref reset() to clear all data used by the
-  //! code generator.
-  virtual void _purge() = 0;
 
   // --------------------------------------------------------------------------
   // [Make]

@@ -62,15 +62,15 @@ uint32_t JitRuntime::getStackAlignment() {
   return alignment;
 }
 
-const BaseCpuInfo* JitRuntime::getCpuInfo() {
-  return BaseCpuInfo::getHost();
+const CpuInfo* JitRuntime::getCpuInfo() {
+  return CpuInfo::getHost();
 }
 
 // ============================================================================
 // [asmjit::JitRuntime - Add]
 // ============================================================================
 
-Error JitRuntime::add(void** dst, BaseAssembler* assembler) {
+Error JitRuntime::add(void** dst, Assembler* assembler) {
   // Disallow empty code generation.
   size_t codeSize = assembler->getCodeSize();
 

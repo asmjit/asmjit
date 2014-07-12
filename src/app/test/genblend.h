@@ -13,29 +13,31 @@
 
 namespace asmgen {
 
+enum { kGenBlendInstCount = 65 };
+
 // Generate a typical alpha blend function using SSE2 instruction set. Used
 // for benchmarking and also in test86. The generated code should be stable
 // and fully functional.
-static void blend(asmjit::host::Compiler& c) {
+static void blend(asmjit::X86Compiler& c) {
   using namespace asmjit;
-  using namespace asmjit::host;
+  using namespace asmjit::x86;
 
-  GpVar dst(c, kVarTypeIntPtr, "dst");
-  GpVar src(c, kVarTypeIntPtr, "src");
+  X86GpVar dst(c, kVarTypeIntPtr, "dst");
+  X86GpVar src(c, kVarTypeIntPtr, "src");
 
-  GpVar i(c, kVarTypeIntPtr, "i");
-  GpVar j(c, kVarTypeIntPtr, "j");
-  GpVar t(c, kVarTypeIntPtr, "t");
+  X86GpVar i(c, kVarTypeIntPtr, "i");
+  X86GpVar j(c, kVarTypeIntPtr, "j");
+  X86GpVar t(c, kVarTypeIntPtr, "t");
 
-  XmmVar cZero(c, kVarTypeXmm, "cZero");
-  XmmVar cMul255A(c, kVarTypeXmm, "cMul255A");
-  XmmVar cMul255M(c, kVarTypeXmm, "cMul255M");
+  X86XmmVar cZero(c, kX86VarTypeXmm, "cZero");
+  X86XmmVar cMul255A(c, kX86VarTypeXmm, "cMul255A");
+  X86XmmVar cMul255M(c, kX86VarTypeXmm, "cMul255M");
 
-  XmmVar x0(c, kVarTypeXmm, "x0");
-  XmmVar x1(c, kVarTypeXmm, "x1");
-  XmmVar y0(c, kVarTypeXmm, "y0");
-  XmmVar a0(c, kVarTypeXmm, "a0");
-  XmmVar a1(c, kVarTypeXmm, "a1");
+  X86XmmVar x0(c, kX86VarTypeXmm, "x0");
+  X86XmmVar x1(c, kX86VarTypeXmm, "x1");
+  X86XmmVar y0(c, kX86VarTypeXmm, "y0");
+  X86XmmVar a0(c, kX86VarTypeXmm, "a0");
+  X86XmmVar a1(c, kX86VarTypeXmm, "a1");
 
   Label L_SmallLoop(c);
   Label L_SmallEnd(c);
@@ -45,7 +47,7 @@ static void blend(asmjit::host::Compiler& c) {
 
   Label L_Data(c);
 
-  c.addFunc(kFuncConvHost, FuncBuilder3<FnVoid, void*, const void*, size_t>());
+  c.addFunc(kFuncConvHost, FuncBuilder3<Void, void*, const void*, size_t>());
 
   c.setArg(0, dst);
   c.setArg(1, src);
@@ -168,8 +170,8 @@ static void blend(asmjit::host::Compiler& c) {
   // Data.
   c.align(kAlignData, 16);
   c.bind(L_Data);
-  c.dxmm(XmmData::fromSw(0x0080));
-  c.dxmm(XmmData::fromSw(0x0101));
+  c.dxmm(Vec128::fromSw(0x0080));
+  c.dxmm(Vec128::fromSw(0x0101));
 }
 
 } // asmgen namespace

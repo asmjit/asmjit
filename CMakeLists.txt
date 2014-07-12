@@ -82,7 +82,7 @@ Set(ASMJIT_CFLAGS_REL)
 Set(ASMJIT_DEFINE "-D")
 
 # MSVC.
-If(MSVC)
+If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   Message("-- Using MSVC")
 
   Set(ASMJIT_DEFINE "/D")
@@ -91,35 +91,46 @@ If(MSVC)
   Set(ASMJIT_CFLAGS_DBG /DASMJIT_DEBUG /GS /GR-)
   Set(ASMJIT_CFLAGS_REL /DASMJIT_RELEASE /Oi /Oy /GS- /GR-)
 
-  # Use Unicode by default on Windows target.
-  If(WIN32)
-    List(APPEND ASMJIT_CFLAGS /D_UNICODE)
-  EndIf()
-
   # Enable multi-process compilation.
   If(NOT MSVC60 AND NOT MSVC70 AND NOT MSVC71)
      List(APPEND ASMJIT_CFLAGS /MP)
   EndIf()
 EndIf()
 
-# GCC.
-If(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+# GCC
+If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   Message("-- Using GCC")
 
   Set(ASMJIT_CFLAGS
     -fno-exceptions)
-  Set(ASMJIT_CFLAGS_DBG -DASMJIT_DEBUG -O0
-    -fno-inline-functions)
-  Set(ASMJIT_CFLAGS_REL -DASMJIT_RELEASE -O2
+  Set(ASMJIT_CFLAGS_DBG
+    -DASMJIT_DEBUG -O0)
+  Set(ASMJIT_CFLAGS_REL
+    -DASMJIT_RELEASE -O2
     -finline-functions
     -fomit-frame-pointer
     -fmerge-all-constants
     -fno-keep-static-consts)
+EndIf()
 
-  # Use Unicode by default on Windows target.
-  If(WIN32)
-    List(APPEND ASMJIT_CFLAGS -D_UNICODE)
-  EndIf()
+# Clang.
+If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  Message("-- Using Clang")
+
+  Set(ASMJIT_CFLAGS
+    -fno-exceptions)
+  Set(ASMJIT_CFLAGS_DBG
+    -DASMJIT_DEBUG -O0)
+  Set(ASMJIT_CFLAGS_REL
+    -DASMJIT_RELEASE -O2
+    -finline-functions
+    -fomit-frame-pointer
+    -fmerge-all-constants)
+EndIf()
+
+# Use Unicode by default on Windows target.
+If(WIN32)
+  List(APPEND ASMJIT_CFLAGS "${ASMJIT_DEFINE}_UNICODE")
 EndIf()
 
 # Static library.
@@ -228,6 +239,8 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   compiler.h
   constpool.cpp
   constpool.h
+  containers.cpp
+  containers.h
   context.cpp
   context_p.h
   cpuinfo.cpp
@@ -236,8 +249,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   cputicks.h
   error.cpp
   error.h
-  func.cpp
-  func.h
   globals.cpp
   globals.h
   intutil.cpp
@@ -247,9 +258,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   logger.h
   operand.cpp
   operand.h
-  podlist.h
-  podvector.cpp
-  podvector.h
   runtime.cpp
   runtime.h
   string.cpp
@@ -270,16 +278,13 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
   x86context_p.h
   x86cpuinfo.cpp
   x86cpuinfo.h
-  x86func.cpp
-  x86func.h
   x86inst.cpp
   x86inst.h
   x86operand.cpp
+  x86operand_regs.cpp
   x86operand.h
-  x86regs.cpp
-  x86regs.h
-  x86util.cpp
-  x86util.h
+  x86scheduler.cpp
+  x86scheduler_p.h
 )
 
 If(ASMJIT_BUILD_CONTRIB)
@@ -327,10 +332,7 @@ EndIf()
 # AsmJit library is always embedded into the tests executable. This way it's
 # much easier to test private functions compared to just linking to AsmJit.
 If(ASMJIT_BUILD_TEST)
-  AsmJit_AddSource(ASMJIT_TEST_SRC asmjit/test
-    main.cpp
-    test.cpp
-    test.h)
+  AsmJit_AddSource(ASMJIT_TEST_SRC asmjit/test broken.cpp broken.h main.cpp)
 
   Set(ASMJIT_TEST_CFLAGS
     ${ASMJIT_CFLAGS}
