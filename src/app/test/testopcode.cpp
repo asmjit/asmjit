@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
   logger.setOption(kLoggerOptionBinaryForm, true);
 
   JitRuntime runtime;
-  Assembler a(&runtime);
+  X86Assembler a(&runtime);
 
   a.setLogger(&logger);
   asmgen::opcode(a);

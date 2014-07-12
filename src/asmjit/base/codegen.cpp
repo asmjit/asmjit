@@ -57,12 +57,20 @@ Error CodeGen::setError(Error error, const char* message) {
     return kErrorOk;
   }
 
-  if (message == NULL)
+  if (message == NULL) {
+#if !defined(ASMJIT_DISABLE_NAMES)
     message = ErrorUtil::asString(error);
+#else
+    static const char noMessage[] = "";
+    message = noMessage;
+#endif // ASMJIT_DISABLE_NAMES
+  }
 
   // Error handler is called before logger so logging can be skipped if error
   // has been handled.
   ErrorHandler* handler = _errorHandler;
+  ASMJIT_TLOG("[ERROR] %s %s\n", message, !handler ? "(Possibly unhandled?)" : "");
+
   if (handler != NULL && handler->handleError(error, message))
     return error;
 

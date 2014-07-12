@@ -109,7 +109,7 @@ typedef uint32_t Error;
 //! Please note that `addRef` and `release` functions are used, but there is
 //! no reference counting implemented by default, reimplement to change the
 //! default behavior.
-struct ErrorHandler {
+struct ASMJIT_VCLASS ErrorHandler {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -141,8 +141,8 @@ struct ErrorHandler {
   //! Error handler (pure).
   //!
   //! Error handler is called when an error happened. An error can happen in
-  //! many places, but error handler is mostly used by `BaseAssembler` and
-  //! `BaseCompiler` classes to report anything that may cause incorrect code
+  //! many places, but error handler is mostly used by `Assembler` and
+  //! `Compiler` classes to report anything that may cause incorrect code
   //! generation. There are multiple ways how the error handler can be used
   //! and each has it's pros/cons.
   //!
@@ -151,23 +151,23 @@ struct ErrorHandler {
   //! exceptions it is exception-safe and handleError() can report an incoming
   //! error by throwing an exception of any type. It's guaranteed that the
   //! exception won't be catched by AsmJit and will be propagated to the code
-  //! calling AsmJit `BaseAssembler` or `BaseCompiler` methods. Alternative to
+  //! calling AsmJit `Assembler` or `Compiler` methods. Alternative to
   //! throwing an exception is using `setjmp()` and `longjmp()` pair available
   //! in the standard C library.
   //!
   //! If the exception or setjmp() / longjmp() mechanism is used, the state of
-  //! the `BaseAssember` or `BaseCompiler` is unchanged and if it's possible the
+  //! the `BaseAssember` or `Compiler` is unchanged and if it's possible the
   //! execution (instruction serialization) can continue. However if the error
   //! happened during any phase that translates or modifies the stored code
-  //! (for example relocation done by `BaseAssembler` or analysis/translation
-  //! done by `BaseCompiler`) the execution can't continue and the error will
-  //! be also stored in `BaseAssembler` or `BaseCompiler`.
+  //! (for example relocation done by `Assembler` or analysis/translation
+  //! done by `Compiler`) the execution can't continue and the error will
+  //! be also stored in `Assembler` or `Compiler`.
   //!
   //! Finally, if no exceptions nor setjmp() / longjmp() mechanisms were used,
   //! you can still implement a compatible handling by returning from your
   //! error handler. Returning `true` means that error was reported and AsmJit
   //! should continue execution, but `false` sets the rror immediately to the
-  //! `BaseAssembler` or `BaseCompiler` and execution shouldn't continue (this
+  //! `Assembler` or `Compiler` and execution shouldn't continue (this
   //! is the default behavior in case no error handler is used).
   virtual bool handleError(Error code, const char* message) = 0;
 };
@@ -178,8 +178,10 @@ struct ErrorHandler {
 
 //! Error utilities.
 struct ErrorUtil {
+#if !defined(ASMJIT_DISABLE_NAMES)
   //! Get printable version of AsmJit `kError` code.
   static ASMJIT_API const char* asString(Error code);
+#endif // ASMJIT_DISABLE_NAMES
 };
 
 //! \}

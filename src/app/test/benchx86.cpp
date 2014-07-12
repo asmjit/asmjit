@@ -53,17 +53,21 @@ struct Performance {
 // [Main]
 // ============================================================================
 
+static uint32_t instPerMs(uint32_t time, uint32_t numIterations, uint32_t instPerIteration) {
+  return static_cast<uint32_t>(
+    static_cast<uint64_t>(numIterations) * instPerIteration * 1000 / time);
+}
+
 int main(int argc, char* argv[]) {
   using namespace asmjit;
-  using namespace asmjit::host;
 
   Performance perf;
   uint32_t kNumRepeats = 10;
-  uint32_t kNumIterations = 100000;
+  uint32_t kNumIterations = 10000;
 
   JitRuntime runtime;
-  Assembler a(&runtime);
-  Compiler c(&runtime);
+  X86Assembler a(&runtime);
+  X86Compiler c(&runtime);
 
   uint32_t r, i;
 
@@ -80,11 +84,13 @@ int main(int argc, char* argv[]) {
       void *p = a.make();
       runtime.release(p);
 
-      a.clear();
+      a.reset();
     }
     perf.end();
   }
-  printf("Opcode   | Time: %u [ms]\n", perf.best);
+
+  printf("Opcode   | Time: %-6u [ms] | Speed: %-9u [inst/s]\n",
+    perf.best, instPerMs(perf.best, kNumIterations, asmgen::kGenOpCodeInstCount));
 
   // --------------------------------------------------------------------------
   // [Bench - Blend]
@@ -99,11 +105,13 @@ int main(int argc, char* argv[]) {
       void* p = c.make();
       runtime.release(p);
 
-      c.clear();
+      c.reset();
     }
     perf.end();
   }
-  printf("Blend    | Time: %u [ms]\n", perf.best);
+
+  printf("Blend    | Time: %-6u [ms] | Speed: %-9u [inst/s]\n",
+    perf.best, instPerMs(perf.best, kNumIterations, asmgen::kGenBlendInstCount));
 
   return 0;
 }

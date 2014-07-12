@@ -35,10 +35,10 @@ static const char noName[1] = { '\0' };
 enum { kBaseCompilerDefaultLookAhead = 64 };
 
 // ============================================================================
-// [asmjit::BaseCompiler - Construction / Destruction]
+// [asmjit::Compiler - Construction / Destruction]
 // ============================================================================
 
-BaseCompiler::BaseCompiler(Runtime* runtime) :
+Compiler::Compiler(Runtime* runtime) :
   CodeGen(runtime),
   _nodeFlowId(0),
   _nodeFlags(0),
@@ -54,40 +54,23 @@ BaseCompiler::BaseCompiler(Runtime* runtime) :
   _localConstPool(&_localConstZone),
   _globalConstPool(&_baseZone) {}
 
-BaseCompiler::~BaseCompiler() {
+Compiler::~Compiler() {
   reset();
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Clear / Reset]
+// [asmjit::Compiler - Clear / Reset]
 // ============================================================================
 
-void BaseCompiler::clear() {
-  _purge();
-}
-
-void BaseCompiler::reset() {
-  _purge();
-
-  _localConstPool.reset();
-  _globalConstPool.reset();
-
-  _targets.reset();
-  _vars.reset();
-
-  _baseZone.reset();
-  _varZone.reset();
-  _stringZone.reset();
-  _localConstZone.reset();
-}
-
-void BaseCompiler::_purge() {
-  _baseZone.clear();
-
-  _varZone.clear();
-  _stringZone.clear();
-
+void Compiler::reset(bool releaseMemory) {
+  // CodeGen members.
+  _error = kErrorOk;
   _options = 0;
+  _baseZone.reset(releaseMemory);
+
+  // Compiler members.
+  _nodeFlowId = 0;
+  _nodeFlags = 0;
 
   _firstNode = NULL;
   _lastNode = NULL;
@@ -95,23 +78,31 @@ void BaseCompiler::_purge() {
   _cursor = NULL;
   _func = NULL;
 
-  _targets.clear();
-  _vars.clear();
+  _localConstPool.reset();
+  _globalConstPool.reset();
 
-  clearError();
+  _localConstPoolLabel.reset();
+  _globalConstPoolLabel.reset();
+
+  _varZone.reset(releaseMemory);
+  _stringZone.reset(releaseMemory);
+  _localConstZone.reset(releaseMemory);
+
+  _targets.reset(releaseMemory);
+  _vars.reset(releaseMemory);
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Node Management]
+// [asmjit::Compiler - Node Management]
 // ============================================================================
 
-Node* BaseCompiler::setCursor(Node* node) {
+Node* Compiler::setCursor(Node* node) {
   Node* old = _cursor;
   _cursor = node;
   return old;
 }
 
-Node* BaseCompiler::addNode(Node* node) {
+Node* Compiler::addNode(Node* node) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
@@ -145,7 +136,7 @@ Node* BaseCompiler::addNode(Node* node) {
   return node;
 }
 
-Node* BaseCompiler::addNodeBefore(Node* node, Node* ref) {
+Node* Compiler::addNodeBefore(Node* node, Node* ref) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
@@ -166,7 +157,7 @@ Node* BaseCompiler::addNodeBefore(Node* node, Node* ref) {
   return node;
 }
 
-Node* BaseCompiler::addNodeAfter(Node* node, Node* ref) {
+Node* Compiler::addNodeAfter(Node* node, Node* ref) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
@@ -187,7 +178,7 @@ Node* BaseCompiler::addNodeAfter(Node* node, Node* ref) {
   return node;
 }
 
-static ASMJIT_INLINE void BaseCompiler_nodeRemoved(BaseCompiler* self, Node* node_) {
+static ASMJIT_INLINE void BaseCompiler_nodeRemoved(Compiler* self, Node* node_) {
   if (node_->isJmpOrJcc()) {
     JumpNode* node = static_cast<JumpNode*>(node_);
     TargetNode* target = node->getTarget();
@@ -213,7 +204,7 @@ static ASMJIT_INLINE void BaseCompiler_nodeRemoved(BaseCompiler* self, Node* nod
   }
 }
 
-Node* BaseCompiler::removeNode(Node* node) {
+Node* Compiler::removeNode(Node* node) {
   Node* prev = node->_prev;
   Node* next = node->_next;
 
@@ -237,7 +228,7 @@ Node* BaseCompiler::removeNode(Node* node) {
   return node;
 }
 
-void BaseCompiler::removeNodes(Node* first, Node* last) {
+void Compiler::removeNodes(Node* first, Node* last) {
   if (first == last) {
     removeNode(first);
     return;
@@ -275,10 +266,10 @@ void BaseCompiler::removeNodes(Node* first, Node* last) {
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Align]
+// [asmjit::Compiler - Align]
 // ============================================================================
 
-AlignNode* BaseCompiler::newAlign(uint32_t mode, uint32_t offset) {
+AlignNode* Compiler::newAlign(uint32_t mode, uint32_t offset) {
   AlignNode* node = newNode<AlignNode>(mode, offset);
   if (node == NULL)
     goto _NoMemory;
@@ -289,7 +280,7 @@ _NoMemory:
   return NULL;
 }
 
-AlignNode* BaseCompiler::addAlign(uint32_t mode, uint32_t offset) {
+AlignNode* Compiler::addAlign(uint32_t mode, uint32_t offset) {
   AlignNode* node = newAlign(mode, offset);
   if (node == NULL)
     return NULL;
@@ -297,10 +288,10 @@ AlignNode* BaseCompiler::addAlign(uint32_t mode, uint32_t offset) {
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Target]
+// [asmjit::Compiler - Target]
 // ============================================================================
 
-TargetNode* BaseCompiler::newTarget() {
+TargetNode* Compiler::newTarget() {
   TargetNode* node = newNode<TargetNode>(
     OperandUtil::makeLabelId(static_cast<uint32_t>(_targets.getLength())));
 
@@ -313,7 +304,7 @@ _NoMemory:
   return NULL;
 }
 
-TargetNode* BaseCompiler::addTarget() {
+TargetNode* Compiler::addTarget() {
   TargetNode* node = newTarget();
   if (node == NULL)
     return NULL;
@@ -321,10 +312,10 @@ TargetNode* BaseCompiler::addTarget() {
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Label]
+// [asmjit::Compiler - Label]
 // ============================================================================
 
-Error BaseCompiler::_newLabel(Label* dst) {
+Error Compiler::_newLabel(Label* dst) {
   dst->_init_packed_op_sz_b0_b1_id(kOperandTypeLabel, 0, 0, 0, kInvalidValue);
   dst->_init_packed_d2_d3(0, 0);
 
@@ -339,7 +330,7 @@ _NoMemory:
   return setError(kErrorNoHeapMemory);
 }
 
-void BaseCompiler::bind(const Label& label) {
+void Compiler::bind(const Label& label) {
   uint32_t index = label.getId();
   ASMJIT_ASSERT(index < _targets.getLength());
 
@@ -347,10 +338,10 @@ void BaseCompiler::bind(const Label& label) {
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Embed]
+// [asmjit::Compiler - Embed]
 // ============================================================================
 
-EmbedNode* BaseCompiler::newEmbed(const void* data, uint32_t size) {
+EmbedNode* Compiler::newEmbed(const void* data, uint32_t size) {
   EmbedNode* node;
 
   if (size > EmbedNode::kInlineBufferSize) {
@@ -373,7 +364,7 @@ _NoMemory:
   return NULL;
 }
 
-EmbedNode* BaseCompiler::addEmbed(const void* data, uint32_t size) {
+EmbedNode* Compiler::addEmbed(const void* data, uint32_t size) {
   EmbedNode* node = newEmbed(data, size);
   if (node == NULL)
     return node;
@@ -381,10 +372,10 @@ EmbedNode* BaseCompiler::addEmbed(const void* data, uint32_t size) {
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Comment]
+// [asmjit::Compiler - Comment]
 // ============================================================================
 
-CommentNode* BaseCompiler::newComment(const char* str) {
+CommentNode* Compiler::newComment(const char* str) {
   CommentNode* node;
 
   if (str != NULL && str[0]) {
@@ -403,14 +394,14 @@ _NoMemory:
   return NULL;
 }
 
-CommentNode* BaseCompiler::addComment(const char* str) {
+CommentNode* Compiler::addComment(const char* str) {
   CommentNode* node = newComment(str);
   if (node == NULL)
     return NULL;
   return static_cast<CommentNode*>(addNode(node));
 }
 
-CommentNode* BaseCompiler::comment(const char* fmt, ...) {
+CommentNode* Compiler::comment(const char* fmt, ...) {
   char buf[256];
   char* p = buf;
 
@@ -431,10 +422,10 @@ CommentNode* BaseCompiler::comment(const char* fmt, ...) {
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Hint]
+// [asmjit::Compiler - Hint]
 // ============================================================================
 
-HintNode* BaseCompiler::newHint(BaseVar& var, uint32_t hint, uint32_t value) {
+HintNode* Compiler::newHint(Var& var, uint32_t hint, uint32_t value) {
   if (var.getId() == kInvalidValue)
     return NULL;
   VarData* vd = getVd(var);
@@ -449,7 +440,7 @@ _NoMemory:
   return NULL;
 }
 
-HintNode* BaseCompiler::addHint(BaseVar& var, uint32_t hint, uint32_t value) {
+HintNode* Compiler::addHint(Var& var, uint32_t hint, uint32_t value) {
   if (var.getId() == kInvalidValue)
     return NULL;
 
@@ -460,10 +451,10 @@ HintNode* BaseCompiler::addHint(BaseVar& var, uint32_t hint, uint32_t value) {
 }
 
 // ============================================================================
-// [asmjit::BaseCompiler - Vars]
+// [asmjit::Compiler - Vars]
 // ============================================================================
 
-VarData* BaseCompiler:: _newVd(uint32_t type, uint32_t size, uint32_t c, const char* name) {
+VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* name) {
   VarData* vd = reinterpret_cast<VarData*>(_varZone.alloc(sizeof(VarData)));
   if (vd == NULL)
     goto _NoMemory;
@@ -492,6 +483,7 @@ VarData* BaseCompiler:: _newVd(uint32_t type, uint32_t size, uint32_t c, const c
   vd->_alignment = static_cast<uint8_t>(IntUtil::iMin<uint32_t>(size, 64));
 
   vd->_size = size;
+  vd->_homeMask = 0;
 
   vd->_memOffset = 0;
   vd->_memCell = NULL;
@@ -512,31 +504,31 @@ _NoMemory:
   return NULL;
 }
 
-void BaseCompiler::alloc(BaseVar& var) {
+void Compiler::alloc(Var& var) {
   addHint(var, kVarHintAlloc, kInvalidValue);
 }
 
-void BaseCompiler::alloc(BaseVar& var, uint32_t regIndex) {
+void Compiler::alloc(Var& var, uint32_t regIndex) {
   addHint(var, kVarHintAlloc, regIndex);
 }
 
-void BaseCompiler::alloc(BaseVar& var, const BaseReg& reg) {
+void Compiler::alloc(Var& var, const Reg& reg) {
   addHint(var, kVarHintAlloc, reg.getRegIndex());
 }
 
-void BaseCompiler::save(BaseVar& var) {
+void Compiler::save(Var& var) {
   addHint(var, kVarHintSave, kInvalidValue);
 }
 
-void BaseCompiler::spill(BaseVar& var) {
+void Compiler::spill(Var& var) {
   addHint(var, kVarHintSpill, kInvalidValue);
 }
 
-void BaseCompiler::unuse(BaseVar& var) {
+void Compiler::unuse(Var& var) {
   addHint(var, kVarHintUnuse, kInvalidValue);
 }
 
-uint32_t BaseCompiler::getPriority(BaseVar& var) const {
+uint32_t Compiler::getPriority(Var& var) const {
   if (var.getId() == kInvalidValue)
     return kInvalidValue;
 
@@ -544,7 +536,7 @@ uint32_t BaseCompiler::getPriority(BaseVar& var) const {
   return vd->getPriority();
 }
 
-void BaseCompiler::setPriority(BaseVar& var, uint32_t priority) {
+void Compiler::setPriority(Var& var, uint32_t priority) {
   if (var.getId() == kInvalidValue)
     return;
 
@@ -555,7 +547,7 @@ void BaseCompiler::setPriority(BaseVar& var, uint32_t priority) {
   vd->_priority = static_cast<uint8_t>(priority);
 }
 
-bool BaseCompiler::getSaveOnUnuse(BaseVar& var) const {
+bool Compiler::getSaveOnUnuse(Var& var) const {
   if (var.getId() == kInvalidValue)
     return false;
 
@@ -563,7 +555,7 @@ bool BaseCompiler::getSaveOnUnuse(BaseVar& var) const {
   return static_cast<bool>(vd->_saveOnUnuse);
 }
 
-void BaseCompiler::setSaveOnUnuse(BaseVar& var, bool value) {
+void Compiler::setSaveOnUnuse(Var& var, bool value) {
   if (var.getId() == kInvalidValue)
     return;
 
@@ -571,7 +563,7 @@ void BaseCompiler::setSaveOnUnuse(BaseVar& var, bool value) {
   vd->_saveOnUnuse = value;
 }
 
-void BaseCompiler::rename(BaseVar& var, const char* name) {
+void Compiler::rename(Var& var, const char* name) {
   if (var.getId() == kInvalidValue)
     return;
 

@@ -4,8 +4,7 @@
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
-// [Dependencies - MiniUnit]
-#include "./test.h"
+// [Dependencies - AsmJit]
 #include "../asmjit.h"
 
 using namespace asmjit;
@@ -19,22 +18,22 @@ struct DumpCpuFeature {
   const char* name;
 };
 
-static void dumpCpuFeatures(const BaseCpuInfo* cpuInfo, const DumpCpuFeature* data, size_t count) {
+static void dumpCpuFeatures(const CpuInfo* cpuInfo, const DumpCpuFeature* data, size_t count) {
   for (size_t i = 0; i < count; i++)
     if (cpuInfo->hasFeature(data[i].feature))
       INFO("  %s", data[i].name);
 }
 
-static void dumpCpu() {
-  const BaseCpuInfo* cpuInfo_ = BaseCpuInfo::getHost();
+static void dumpCpu(void) {
+  const CpuInfo* cpu = CpuInfo::getHost();
 
   INFO("Host CPU Info:");
-  INFO("  Vendor string         : %s", cpuInfo_->getVendorString());
-  INFO("  Brand string          : %s", cpuInfo_->getBrandString());
-  INFO("  Family                : %u", cpuInfo_->getFamily());
-  INFO("  Model                 : %u", cpuInfo_->getModel());
-  INFO("  Stepping              : %u", cpuInfo_->getStepping());
-  INFO("  Cores Count           : %u", cpuInfo_->getCoresCount());
+  INFO("  Vendor string         : %s", cpu->getVendorString());
+  INFO("  Brand string          : %s", cpu->getBrandString());
+  INFO("  Family                : %u", cpu->getFamily());
+  INFO("  Model                 : %u", cpu->getModel());
+  INFO("  Stepping              : %u", cpu->getStepping());
+  INFO("  HW-Threads Count      : %u", cpu->getHwThreadsCount());
   INFO("");
 
   // --------------------------------------------------------------------------
@@ -42,63 +41,63 @@ static void dumpCpu() {
   // --------------------------------------------------------------------------
 
 #if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
-  const x86x64::CpuInfo* cpuInfo = static_cast<const x86x64::CpuInfo*>(cpuInfo_);
+  const X86CpuInfo* x86Cpu = static_cast<const X86CpuInfo*>(cpu);
 
-  static const DumpCpuFeature featuresList[] = {
-    { x86x64::kCpuFeatureMultithreading     , "Multithreading"      },
-    { x86x64::kCpuFeatureExecuteDisableBit  , "Execute-Disable Bit" },
-    { x86x64::kCpuFeatureRdtsc              , "Rdtsc"               },
-    { x86x64::kCpuFeatureRdtscp             , "Rdtscp"              },
-    { x86x64::kCpuFeatureCmov               , "Cmov"                },
-    { x86x64::kCpuFeatureCmpXchg8B          , "Cmpxchg8b"           },
-    { x86x64::kCpuFeatureCmpXchg16B         , "Cmpxchg16b"          },
-    { x86x64::kCpuFeatureClflush            , "Clflush"             },
-    { x86x64::kCpuFeaturePrefetch           , "Prefetch"            },
-    { x86x64::kCpuFeatureLahfSahf           , "Lahf/Sahf"           },
-    { x86x64::kCpuFeatureFxsr               , "Fxsave/Fxrstor"      },
-    { x86x64::kCpuFeatureFfxsr              , "Fxsave/Fxrstor Opt." },
-    { x86x64::kCpuFeatureMmx                , "Mmx"                 },
-    { x86x64::kCpuFeatureMmxExt             , "MmxExt"              },
-    { x86x64::kCpuFeature3dNow              , "3dnow"               },
-    { x86x64::kCpuFeature3dNowExt           , "3dnowExt"            },
-    { x86x64::kCpuFeatureSse                , "Sse"                 },
-    { x86x64::kCpuFeatureSse2               , "Sse2"                },
-    { x86x64::kCpuFeatureSse3               , "Sse3"                },
-    { x86x64::kCpuFeatureSsse3              , "Ssse3"               },
-    { x86x64::kCpuFeatureSse4A              , "Sse4a"               },
-    { x86x64::kCpuFeatureSse41              , "Sse4.1"              },
-    { x86x64::kCpuFeatureSse42              , "Sse4.2"              },
-    { x86x64::kCpuFeatureMsse               , "Misaligned SSE"      },
-    { x86x64::kCpuFeatureMonitorMWait       , "Monitor/MWait"       },
-    { x86x64::kCpuFeatureMovbe              , "Movbe"               },
-    { x86x64::kCpuFeaturePopcnt             , "Popcnt"              },
-    { x86x64::kCpuFeatureLzcnt              , "Lzcnt"               },
-    { x86x64::kCpuFeatureAesni              , "AesNI"               },
-    { x86x64::kCpuFeaturePclmulqdq          , "Pclmulqdq"           },
-    { x86x64::kCpuFeatureRdrand             , "Rdrand"              },
-    { x86x64::kCpuFeatureAvx                , "Avx"                 },
-    { x86x64::kCpuFeatureAvx2               , "Avx2"                },
-    { x86x64::kCpuFeatureF16C               , "F16C"                },
-    { x86x64::kCpuFeatureFma3               , "Fma3"                },
-    { x86x64::kCpuFeatureFma4               , "Fma4"                },
-    { x86x64::kCpuFeatureXop                , "Xop"                 },
-    { x86x64::kCpuFeatureBmi                , "Bmi"                 },
-    { x86x64::kCpuFeatureBmi2               , "Bmi2"                },
-    { x86x64::kCpuFeatureHle                , "Hle"                 },
-    { x86x64::kCpuFeatureRtm                , "Rtm"                 },
-    { x86x64::kCpuFeatureFsGsBase           , "FsGsBase"            },
-    { x86x64::kCpuFeatureRepMovsbStosbExt   , "RepMovsbStosbExt"    }
+  static const DumpCpuFeature x86FeaturesList[] = {
+    { kX86CpuFeatureMultithreading     , "Multithreading"      },
+    { kX86CpuFeatureExecuteDisableBit  , "Execute-Disable Bit" },
+    { kX86CpuFeatureRdtsc              , "Rdtsc"               },
+    { kX86CpuFeatureRdtscp             , "Rdtscp"              },
+    { kX86CpuFeatureCmov               , "Cmov"                },
+    { kX86CpuFeatureCmpXchg8B          , "Cmpxchg8b"           },
+    { kX86CpuFeatureCmpXchg16B         , "Cmpxchg16b"          },
+    { kX86CpuFeatureClflush            , "Clflush"             },
+    { kX86CpuFeaturePrefetch           , "Prefetch"            },
+    { kX86CpuFeatureLahfSahf           , "Lahf/Sahf"           },
+    { kX86CpuFeatureFxsr               , "Fxsave/Fxrstor"      },
+    { kX86CpuFeatureFfxsr              , "Fxsave/Fxrstor Opt." },
+    { kX86CpuFeatureMmx                , "Mmx"                 },
+    { kX86CpuFeatureMmxExt             , "MmxExt"              },
+    { kX86CpuFeature3dNow              , "3dnow"               },
+    { kX86CpuFeature3dNowExt           , "3dnowExt"            },
+    { kX86CpuFeatureSse                , "Sse"                 },
+    { kX86CpuFeatureSse2               , "Sse2"                },
+    { kX86CpuFeatureSse3               , "Sse3"                },
+    { kX86CpuFeatureSsse3              , "Ssse3"               },
+    { kX86CpuFeatureSse4A              , "Sse4a"               },
+    { kX86CpuFeatureSse41              , "Sse4.1"              },
+    { kX86CpuFeatureSse42              , "Sse4.2"              },
+    { kX86CpuFeatureMsse               , "Misaligned SSE"      },
+    { kX86CpuFeatureMonitorMWait       , "Monitor/MWait"       },
+    { kX86CpuFeatureMovbe              , "Movbe"               },
+    { kX86CpuFeaturePopcnt             , "Popcnt"              },
+    { kX86CpuFeatureLzcnt              , "Lzcnt"               },
+    { kX86CpuFeatureAesni              , "AesNI"               },
+    { kX86CpuFeaturePclmulqdq          , "Pclmulqdq"           },
+    { kX86CpuFeatureRdrand             , "Rdrand"              },
+    { kX86CpuFeatureAvx                , "Avx"                 },
+    { kX86CpuFeatureAvx2               , "Avx2"                },
+    { kX86CpuFeatureF16C               , "F16C"                },
+    { kX86CpuFeatureFma3               , "Fma3"                },
+    { kX86CpuFeatureFma4               , "Fma4"                },
+    { kX86CpuFeatureXop                , "Xop"                 },
+    { kX86CpuFeatureBmi                , "Bmi"                 },
+    { kX86CpuFeatureBmi2               , "Bmi2"                },
+    { kX86CpuFeatureHle                , "Hle"                 },
+    { kX86CpuFeatureRtm                , "Rtm"                 },
+    { kX86CpuFeatureFsGsBase           , "FsGsBase"            },
+    { kX86CpuFeatureRepMovsbStosbExt   , "RepMovsbStosbExt"    }
   };
 
   INFO("Host CPU Info (X86/X64):");
-  INFO("  Processor Type        : %u", cpuInfo->getProcessorType());
-  INFO("  Brand Index           : %u", cpuInfo->getBrandIndex());
-  INFO("  CL Flush Cache Line   : %u", cpuInfo->getFlushCacheLineSize());
-  INFO("  Max logical Processors: %u", cpuInfo->getMaxLogicalProcessors());
+  INFO("  Processor Type        : %u", x86Cpu->getProcessorType());
+  INFO("  Brand Index           : %u", x86Cpu->getBrandIndex());
+  INFO("  CL Flush Cache Line   : %u", x86Cpu->getFlushCacheLineSize());
+  INFO("  Max logical Processors: %u", x86Cpu->getMaxLogicalProcessors());
   INFO("");
 
   INFO("Host CPU Features (X86/X64):");
-  dumpCpuFeatures(cpuInfo, featuresList, ASMJIT_ARRAY_SIZE(featuresList));
+  dumpCpuFeatures(x86Cpu, x86FeaturesList, ASMJIT_ARRAY_SIZE(x86FeaturesList));
   INFO("");
 #endif // ASMJIT_HOST || ASMJIT_HOST_X64
 }
@@ -107,68 +106,68 @@ static void dumpCpu() {
 // [DumpSizeOf]
 // ============================================================================
 
-#define DUMP_SIZE(_Type_) \
+#define DUMP_TYPE(_Type_) \
   INFO("  %-31s: %u", #_Type_, static_cast<uint32_t>(sizeof(_Type_)))
 
-static void dumpSizeOf() {
+static void dumpSizeOf(void) {
   INFO("SizeOf Types:");
-  DUMP_SIZE(int8_t);
-  DUMP_SIZE(int16_t);
-  DUMP_SIZE(int32_t);
-  DUMP_SIZE(int64_t);
-  DUMP_SIZE(int);
-  DUMP_SIZE(long);
-  DUMP_SIZE(size_t);
-  DUMP_SIZE(intptr_t);
-  DUMP_SIZE(float);
-  DUMP_SIZE(double);
-  DUMP_SIZE(void*);
-  DUMP_SIZE(asmjit::Ptr);
-  DUMP_SIZE(asmjit::SignedPtr);
+  DUMP_TYPE(int8_t);
+  DUMP_TYPE(int16_t);
+  DUMP_TYPE(int32_t);
+  DUMP_TYPE(int64_t);
+  DUMP_TYPE(int);
+  DUMP_TYPE(long);
+  DUMP_TYPE(size_t);
+  DUMP_TYPE(intptr_t);
+  DUMP_TYPE(float);
+  DUMP_TYPE(double);
+  DUMP_TYPE(void*);
   INFO("");
 
   INFO("SizeOf Base:");
-  DUMP_SIZE(asmjit::CodeGen);
-  DUMP_SIZE(asmjit::ConstPool);
-  DUMP_SIZE(asmjit::Runtime);
-  DUMP_SIZE(asmjit::Zone);
+  DUMP_TYPE(asmjit::CodeGen);
+  DUMP_TYPE(asmjit::ConstPool);
+  DUMP_TYPE(asmjit::Runtime);
+  DUMP_TYPE(asmjit::Zone);
+  DUMP_TYPE(asmjit::Ptr);
+  DUMP_TYPE(asmjit::SignedPtr);
   INFO("");
 
   INFO("SizeOf Operand:");
-  DUMP_SIZE(asmjit::Operand);
-  DUMP_SIZE(asmjit::BaseReg);
-  DUMP_SIZE(asmjit::BaseVar);
-  DUMP_SIZE(asmjit::BaseMem);
-  DUMP_SIZE(asmjit::Imm);
-  DUMP_SIZE(asmjit::Label);
+  DUMP_TYPE(asmjit::Operand);
+  DUMP_TYPE(asmjit::Reg);
+  DUMP_TYPE(asmjit::Var);
+  DUMP_TYPE(asmjit::BaseMem);
+  DUMP_TYPE(asmjit::Imm);
+  DUMP_TYPE(asmjit::Label);
   INFO("");
 
   INFO("SizeOf Assembler:");
-  DUMP_SIZE(asmjit::BaseAssembler);
-  DUMP_SIZE(asmjit::LabelData);
-  DUMP_SIZE(asmjit::RelocData);
+  DUMP_TYPE(asmjit::Assembler);
+  DUMP_TYPE(asmjit::LabelData);
+  DUMP_TYPE(asmjit::RelocData);
   INFO("");
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
   INFO("SizeOf Compiler:");
-  DUMP_SIZE(asmjit::BaseCompiler);
-  DUMP_SIZE(asmjit::Node);
-  DUMP_SIZE(asmjit::AlignNode);
-  DUMP_SIZE(asmjit::CallNode);
-  DUMP_SIZE(asmjit::CommentNode);
-  DUMP_SIZE(asmjit::EmbedNode);
-  DUMP_SIZE(asmjit::FuncNode);
-  DUMP_SIZE(asmjit::EndNode);
-  DUMP_SIZE(asmjit::InstNode);
-  DUMP_SIZE(asmjit::JumpNode);
-  DUMP_SIZE(asmjit::TargetNode);
-  DUMP_SIZE(asmjit::FuncDecl);
-  DUMP_SIZE(asmjit::FuncInOut);
-  DUMP_SIZE(asmjit::FuncPrototype);
-  DUMP_SIZE(asmjit::VarAttr);
-  DUMP_SIZE(asmjit::VarData);
-  DUMP_SIZE(asmjit::BaseVarInst);
-  DUMP_SIZE(asmjit::BaseVarState);
+  DUMP_TYPE(asmjit::Compiler);
+  DUMP_TYPE(asmjit::Node);
+  DUMP_TYPE(asmjit::AlignNode);
+  DUMP_TYPE(asmjit::CallNode);
+  DUMP_TYPE(asmjit::CommentNode);
+  DUMP_TYPE(asmjit::EmbedNode);
+  DUMP_TYPE(asmjit::FuncNode);
+  DUMP_TYPE(asmjit::EndNode);
+  DUMP_TYPE(asmjit::InstNode);
+  DUMP_TYPE(asmjit::JumpNode);
+  DUMP_TYPE(asmjit::TargetNode);
+  DUMP_TYPE(asmjit::FuncDecl);
+  DUMP_TYPE(asmjit::FuncInOut);
+  DUMP_TYPE(asmjit::FuncPrototype);
+  DUMP_TYPE(asmjit::VarAttr);
+  DUMP_TYPE(asmjit::VarData);
+  DUMP_TYPE(asmjit::VarMap);
+  DUMP_TYPE(asmjit::VarState);
   INFO("");
 #endif // !ASMJIT_DISABLE_COMPILER
 
@@ -178,30 +177,33 @@ static void dumpSizeOf() {
 
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
   INFO("SizeOf X86/X64:");
-  DUMP_SIZE(asmjit::x86x64::X86X64Assembler);
-  DUMP_SIZE(asmjit::x86x64::X86X64Compiler);
-  DUMP_SIZE(asmjit::x86x64::X86X64CallNode);
-  DUMP_SIZE(asmjit::x86x64::X86X64FuncNode);
-  DUMP_SIZE(asmjit::x86x64::X86X64FuncDecl);
-  DUMP_SIZE(asmjit::x86x64::VarInst);
-  DUMP_SIZE(asmjit::x86x64::VarState);
-  DUMP_SIZE(asmjit::x86x64::InstInfo);
-  DUMP_SIZE(asmjit::x86x64::VarInfo);
+  DUMP_TYPE(asmjit::X86Assembler);
+#if !defined(ASMJIT_DISABLE_COMPILER)
+  DUMP_TYPE(asmjit::X86Compiler);
+  DUMP_TYPE(asmjit::X86CallNode);
+  DUMP_TYPE(asmjit::X86FuncNode);
+  DUMP_TYPE(asmjit::X86FuncDecl);
+  DUMP_TYPE(asmjit::X86InstInfo);
+  DUMP_TYPE(asmjit::X86VarMap);
+  DUMP_TYPE(asmjit::X86VarInfo);
+  DUMP_TYPE(asmjit::X86VarState);
+#endif // !ASMJIT_DISABLE_COMPILER
   INFO("");
 #endif // ASMJIT_BUILD_X86
 }
+
+#undef DUMP_TYPE
 
 // ============================================================================
 // [Main]
 // ============================================================================
 
+static void onBeforeRun(void) {
+  dumpCpu();
+  dumpSizeOf();
+}
+
 int main(int argc, const char* argv[]) {
-  if (MiniUnit::init(argc, argv)) {
-    dumpCpu();
-    dumpSizeOf();
-
-    MiniUnit::run();
-  }
-
-  return 0;
+  INFO("AsmJit Unit-Test\n\n");
+  return BrokenAPI::run(argc, argv, onBeforeRun);
 }

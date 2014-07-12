@@ -37,7 +37,6 @@ WinRemoteRuntime::~WinRemoteRuntime() {}
 uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
   // Disallow generation of no code.
   size_t codeSize = assembler->getCodeSize();
-
   if (codeSize == 0) {
     *dest = NULL;
     return kErrorInvalidState;
@@ -45,15 +44,13 @@ uint32_t WinRemoteRuntime::add(void** dest, BaseAssembler* assembler) {
 
   // Allocate temporary memory where the code will be stored and relocated.
   void* codeData = ASMJIT_ALLOC(codeSize);
-
   if (codeData == NULL) {
     *dest = NULL;
     return kErrorNoHeapMemory;
   }
 
-  // Allocate a pernament remote process memory.
+  // Allocate a permanent remote process memory.
   void* processMemPtr = _memMgr.alloc(codeSize, kVMemAllocPermanent);
-
   if (processMemPtr == NULL) {
     ASMJIT_FREE(codeData);
     *dest = NULL;

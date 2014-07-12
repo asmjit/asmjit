@@ -37,6 +37,8 @@ ASMJIT_ENUM(kGlobals) {
 
   //! Invalid register index.
   kInvalidReg = 0xFF,
+  //! Invalid variable type.
+  kInvalidVar = 0xFF,
 
   //! Host memory allocator overhead.
   //!

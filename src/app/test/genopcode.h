@@ -13,10 +13,21 @@
 
 namespace asmgen {
 
+enum { kGenOpCodeInstCount = 2640 };
+
 // Generate all instructions asmjit can emit.
-static void opcode(asmjit::host::Assembler& a) {
+static void opcode(asmjit::X86Assembler& a) {
   using namespace asmjit;
-  using namespace asmjit::host;
+  using namespace asmjit::x86;
+
+  const X86GpReg& zax = a.zax;
+  const X86GpReg& zdx = a.zdx;
+  const X86GpReg& zcx = a.zcx;
+  const X86GpReg& zbx = a.zbx;
+  const X86GpReg& zsp = a.zsp;
+  const X86GpReg& zbp = a.zbp;
+  const X86GpReg& zsi = a.zsi;
+  const X86GpReg& zdi = a.zdi;
 
   // Prevent crashing when the generated function is called (for debugging to
   // see disassembly).
@@ -24,18 +35,18 @@ static void opcode(asmjit::host::Assembler& a) {
 
   // When any problem is found this section can be used to customize the index
   // of the registers used.
-  GpReg gp0 = zax;
-  GpReg gp1 = zsi;
-  FpReg fpx = fp6;
+  X86GpReg gp0 = zax;
+  X86GpReg gp1 = zsi;
+  X86FpReg fpx = fp6;
 
-  Mem ptr_gp0 = ptr(gp0);
-  Mem ptr_gp1 = ptr(gp1);
+  X86Mem ptr_gp0 = ptr(gp0);
+  X86Mem ptr_gp1 = ptr(gp1);
 
-  Mem vm32x = ptr(gp0, xmm1);
-  Mem vm32y = ptr(gp0, ymm1);
+  X86Mem vm32x = ptr(gp0, xmm1);
+  X86Mem vm32y = ptr(gp0, ymm1);
 
-  Mem intptr_gp0 = intptr_ptr(gp0);
-  Mem intptr_gp1 = intptr_ptr(gp1);
+  X86Mem intptr_gp0 = a.intptr_ptr(gp0);
+  X86Mem intptr_gp1 = a.intptr_ptr(gp1);
 
   // Base.
   a.adc(al, 1);
@@ -267,6 +278,49 @@ static void opcode(asmjit::host::Assembler& a) {
   a.xor_(gp0, 0);
   a.xor_(intptr_gp0, gp1);
   a.xor_(intptr_gp0, 0);
+
+  a.nop();
+
+  a.lodsb();
+  a.lodsd();
+  a.lodsw();
+  a.rep_lodsb();
+  a.rep_lodsd();
+  a.rep_lodsw();
+
+  a.movsb();
+  a.movsd();
+  a.movsw();
+  a.rep_movsb();
+  a.rep_movsd();
+  a.rep_movsw();
+
+  a.stosb();
+  a.stosd();
+  a.stosw();
+  a.rep_stosb();
+  a.rep_stosd();
+  a.rep_stosw();
+
+  a.cmpsb();
+  a.cmpsd();
+  a.cmpsw();
+  a.repe_cmpsb();
+  a.repe_cmpsd();
+  a.repe_cmpsw();
+  a.repne_cmpsb();
+  a.repne_cmpsd();
+  a.repne_cmpsw();
+
+  a.scasb();
+  a.scasd();
+  a.scasw();
+  a.repe_scasb();
+  a.repe_scasd();
+  a.repe_scasw();
+  a.repne_scasb();
+  a.repne_scasd();
+  a.repne_scasw();
 
   // Label...Jcc/Jecxz/Jmp.
   {
