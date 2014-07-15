@@ -60,7 +60,7 @@ Project Organization
     * `src`         - Source code
       * `asmjit`    - Public header files (always include from here)
         * `base`    - Base files, used by the AsmJit and all backends
-        * `contrib` - Contributions that extends base functionality
+        * `contrib` - Contributions that extend the base functionality
         * `test`    - Unit testing support (don't include in your project)
         * `x86`     - X86/X64 specific files, used only by X86/X64 backend
     * `tools`       - Tools used for configuring, documenting and generating files
@@ -74,7 +74,7 @@ The second concept, also referred as the high level concept, is called `Compiler
 
 In addition, Compiler understands functions and function calling conventions. It has been designed in a way that the code generated is always a function having a prototype like in a programming language. By having a function prototype the Compiler is able to insert prolog and epilog to a function being generated and it is able to call a function inside a generated one.
 
-There is no conclusion on which concept is better. Assembler brings full control on how the code is generated, while Compiler makes the generation easier and more portable. However, Compiler does sometimes relatively bad job when it comes to register allocation, so for projects where there is already an analysis perfored, pure Assembler code generator is the preffered way.
+There is no conclusion on which concept is better. Assembler brings full control on how the code is generated, while Compiler makes the generation easier and more portable. However, Compiler does sometimes relatively bad job when it comes to register allocation, so for projects where there is already an analysis performed, pure Assembler code generator is the preferred way.
 
 Configuring & Building
 ----------------------
@@ -96,12 +96,11 @@ AsmJit is designed to be easy embeddable in any kind project. However, it has so
 
   * By default none of these is defined, AsmJit detects mode based on compile-time macros (useful when using IDE that has switches for Debug/Release/etc...).
 
-
 ### Architectures
 
   * `ASMJIT_BUILD_X86` - Always build x86 backend regardless of host architecture.
   * `ASMJIT_BUILD_X64` - Always build x64 backend regardless of host architecture.
-  * `ASMJIT_BUILD_HOST` - Always build host backand, if only `ASMJIT_BUILD_HOST` is used only the host architecture detected at compile-time will be included.
+  * `ASMJIT_BUILD_HOST` - Always build host backend, if only `ASMJIT_BUILD_HOST` is used only the host architecture detected at compile-time will be included.
 
   * By default only `ASMJIT_BUILD_HOST` is defined.
 
@@ -111,7 +110,7 @@ AsmJit is designed to be easy embeddable in any kind project. However, it has so
 
   * `ASMJIT_DISABLE_LOGGER` - Disable `Logger` completely. Use this flag if you don't need `Logger` functionality and want slimmer binary. AsmJit compiled with or without `Logger` support is binary compatible (all classes that use Logger pointer will simply use `void*`), but the Logger interface and in general instruction dumps are not available.
 
-  * `ASMJIT_DISABLE_NAMES` = Disable everything that uses strings and that causes that certain strings are stored in the resulting binary. For example when this flag is enabled instruction or error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGER`.
+  * `ASMJIT_DISABLE_NAMES` - Disable everything that uses strings and that causes certain strings to be stored in the resulting binary. For example when this flag is enabled instruction or error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGER`.
 
 Using AsmJit
 ------------
@@ -124,17 +123,17 @@ AsmJit contains two classes that are required to generate a machine code. `Runti
 
 ### Instruction Operands
 
-Operand is a part of CPU instruction which specifices the data the instruction will operate on. There are five types of operands in AsmJit:
+Operand is a part of CPU instruction which specifies the data the instruction will operate on. There are five types of operands in AsmJit:
 
-  * `Reg` - Physical register, used only by `Assember`
+  * `Reg` - Physical register, used only by `Assembler`
   * `Var` - Virtual register, used only by `Compiler`
   * `Mem` - Used to reference memory location
   * `Label` - Used to reference a location in code
   * `Imm` - Immediate value that is encoded with the instruction itself
 
-Base class for all operands is `Operand`. It contains interface that can be used by all types of operands only and it is typically pased by value, not as a pointer. The classes `Reg`, `Var`, `BaseMem`, `Label` and `Imm` all inherit `Operand` and provide an operand specific functionality. Architecture specific operands are prefixed by the architecture like `X86Reg` or `X86Mem`. Most of the architectures provide several types of registers, for example x86/x64 architecture has `X86GpReg`, `X86MmReg`, `X86FpReg`, `X86XmmReg` and `X86YmmReg` registers plus some extras including segment registers and `rip` (relative instruction pointer).
+Base class for all operands is `Operand`. It contains interface that can be used by all types of operands only and it is typically passed by value, not as a pointer. The classes `Reg`, `Var`, `BaseMem`, `Label` and `Imm` all inherit `Operand` and provide an operand specific functionality. Architecture specific operands are prefixed by the architecture like `X86Reg` or `X86Mem`. Most of the architectures provide several types of registers, for example x86/x64 architecture has `X86GpReg`, `X86MmReg`, `X86FpReg`, `X86XmmReg` and `X86YmmReg` registers plus some extras including segment registers and `rip` (relative instruction pointer).
 
-When using a code-generator some operands have to be created explicitly by using its interface. For example labels are created by using `newLabel()` method of the code-generator and variables are used by using architecture specific methods like `newGpVar()`, `newMmVar()` or `newXmmVar()`.
+When using a code-generator some operands have to be created explicitly by using its interface. For example labels are created by using `newLabel()` method of the code-generator and variables are created by using architecture specific methods like `newGpVar()`, `newMmVar()` or `newXmmVar()`.
 
 ### Function Prototypes
 
@@ -148,10 +147,9 @@ Let's put all together and generate a first function that sums its two arguments
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
-using namespace asmjit::host;
 
 int main(int argc, char* argv[]) {
-  // Create JitRuntime and host specific Compiler.
+  // Create JitRuntime and X86 Compiler.
   JitRuntime runtime;
   X86Compiler c(&runtime);
 
@@ -228,7 +226,6 @@ Labels are essential for making jumps, function calls or to refer to a data that
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
-using namespace asmjit::host;
 
 int main(int argc, char* argv[]) {
   JitRuntime runtime;
@@ -286,21 +283,20 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-In this example conditional and uncondition jumps were used with labels together. Labels are created explicitly by the Compiler by passing a Compiler instance to a `Label` constructor or by using a `Label l = c.newLabel()` form. Each label as an unique ID that identifies it, however it's not a string and there is no way to query for a Label instance that already exists. Label is like any other operand moved by value so the copy of the label will still reference the same label and changing a copied will not change the original label.
+In this example conditional and unconditional jumps were used with labels together. Labels are created explicitly by the `Compiler` by passing a `Compiler` instance to a `Label` constructor or by using a `Label l = c.newLabel()` form. Each label as an unique ID that identifies it, however it's not a string and there is no way to query for a `Label` instance that already exists. Label is like any other operand moved by value, so the copy of the label will still reference the same label and changing a copied label will not change the original label.
 
 Each label has to be bound to the location in the code by using `c.bind()`; however, it can be only bound once! Trying to bind the same label multiple times has undefined behavior - it will trigger an assertion failure in the best case.
 
 ### Memory Addressing
 
-X86/X64 architectures have several memory addressing modes which can be used to combine base register, index register and a displacement. In addition, index register can be shifted by a constant from 1 to 3 that can help with addressing elements up to 8-byte long in an array. AsmJit supports all forms of memory addressing. Memory operand can be created by using `asmjit::host::Mem` or by using related non-member functions like `asmjit::host::ptr` or `asmjit::host::ptr_abs`. Use `ptr` to create a memory operand having a base register with optional index register and a displacement and `ptr_abs` to create a memory operand refering to an absolute address in memory and optionally having an index register.
+X86/X64 architectures have several memory addressing modes which can be used to combine base register, index register and a displacement. In addition, index register can be shifted by a constant from 1 to 3 that can help with addressing elements up to 8-byte long in an array. AsmJit supports all forms of memory addressing. Memory operand can be created by using `asmjit::X86Mem` or by using related non-member functions like `asmjit::x86::ptr` or `asmjit::x86::ptr_abs`. Use `ptr` to create a memory operand having a base register with optional index register and a displacement; use and `ptr_abs` to create a memory operand referring to an absolute address in memory (32-bit) and optionally having an index register.
 
-In the following example various memory addressing modes are used to demonstrate how to construct and use memory operands. It creates a function that accepts an array and two indexes which specify which elements to sum and return.
+In the following example various memory addressing modes are used to demonstrate how to construct and use them. It creates a function that accepts an array and two indexes which specify which elements to sum and return.
 
 ```C++
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
-using namespace asmjit::host;
 
 int main(int argc, char* argv[]) {
   JitRuntime runtime;
@@ -369,7 +365,6 @@ In the following example a stack of 256 bytes size is allocated, filled by bytes
 #include <asmjit/asmjit.h>
 
 using namespace asmjit;
-using namespace asmjit::host;
 
 int main(int argc, char* argv[]) {
   JitRuntime runtime;
