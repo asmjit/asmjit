@@ -29,7 +29,7 @@ option(BUILD_SHARED_LIBS "build shared/static libraries" ON)
 
 
 If(ASMJIT_EMBED)
-  Set(BUILD_SHARED_LIBS ON)
+  Set(BUILD_SHARED_LIBS OFF)
 EndIf()
 
 If(NOT CMAKE_PROJECT_NAME)
