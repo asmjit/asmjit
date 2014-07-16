@@ -3,13 +3,8 @@ AsmJit
 
 Complete x86/x64 JIT and Remote Assembler for C++.
 
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](
-  https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=QDRM6SRNG7378&lc=EN;&item_name=asmjit&currency_code=EUR)
-
-Official Repository
--------------------
-
-https://github.com/kobalicek/asmjit
+  * [Official Repository (kobalicek/asmjit)](https://github.com/kobalicek/asmjit)
+  * [Zlib Licensed] (http://www.opensource.org/licenses/zlib-license.php)
 
 Introduction
 ------------
@@ -526,14 +521,18 @@ c.mov(a, 1);
 c.mov(b, 2);
 ```
 
-License
+Support
 -------
 
-AsmJit can be distributed under zlib license:
+Please consider a donation if you use the project and would like to keep it active in the future.
 
-  * <http://www.opensource.org/licenses/zlib-license.php>
+  * [Donate by PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=QDRM6SRNG7378&lc=EN;&item_name=asmjit&currency_code=EUR)
 
-Contact Authors & Maintainers
------------------------------
+Received From:
+
+  * [PeLock - Software copy protection and license key system](http://www.pelock.com)
+
+Authors & Maintainers
+---------------------
 
   * Petr Kobalicek <kobalicek.petr@gmail.com>
