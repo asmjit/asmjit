@@ -12,7 +12,7 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # Set(ASMJIT_EMBED FALSE)
 
 # Whether to build static library (default FALSE).
-# Set(ASMJIT_STATIC FALSE)
+option(BUILD_SHARED_LIBS "build shared/static libraries" ON)
 
 # Whether to build contribution together with AsmJit (default FALSE)
 # Set(ASMJIT_BUILD_CONTRIB)
@@ -27,8 +27,9 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # [AsmJit - Build]
 # =============================================================================
 
+
 If(ASMJIT_EMBED)
-  Set(ASMJIT_STATIC TRUE)
+  Set(BUILD_SHARED_LIBS ON)
 EndIf()
 
 If(NOT CMAKE_PROJECT_NAME)
@@ -40,7 +41,7 @@ Else()
   Set(ASMJIT_PROJECT_STR "Include")
 EndIf()
 
-If(ASMJIT_STATIC)
+If(NOT BUILD_SHARED_LIBS)
   Set(ASMJIT_PROJECT_STR "${ASMJIT_PROJECT_STR}|Static")
 Else()
   Set(ASMJIT_PROJECT_STR "${ASMJIT_PROJECT_STR}|Shared")
@@ -134,7 +135,7 @@ If(WIN32)
 EndIf()
 
 # Static library.
-If(ASMJIT_STATIC)
+If(NOT BUILD_SHARED_LIBS)
   List(APPEND ASMJIT_CFLAGS "${ASMJIT_DEFINE}ASMJIT_STATIC")
 EndIf()
 
@@ -176,13 +177,8 @@ Macro(AsmJit_AddSource in_dst in_path)
 EndMacro()
 
 Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags_rel)
-  If(NOT ASMJIT_STATIC)
-    Set(__type "SHARED")
-  Else()
-    Set(__type "STATIC")
-  EndIf()
 
-  Add_Library(${in_name} ${__type} ${in_src})
+  Add_Library(${in_name} ${in_src})
 
   # Dependencies.
   Target_Link_Libraries(${in_name} ${in_deps})
@@ -204,9 +200,9 @@ Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags
   Set_Target_Properties(${in_name} PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
 
   # Install Instructions.
-  If(NOT ASMJIT_STATIC)
-    Install(TARGETS ${in_name} DESTINATION lib)
-  EndIf()
+  Install(TARGETS ${in_name} LIBRARY DESTINATION lib${LIB_SUFFIX}
+                             ARCHIVE DESTINATION lib${LIB_SUFFIX}
+                             RUNTIME DESTINATION bin)
 
   Unset(__type)
 EndMacro()
@@ -298,18 +294,16 @@ EndIf()
 # [AsmJit - Headers]
 # =============================================================================
 
-If(NOT ASMJIT_STATIC)
-  ForEach(i ${ASMJIT_SRC})
-    Get_Filename_Component(path ${i} PATH)
-    Get_Filename_Component(name ${i} NAME)
-    String(REGEX REPLACE "^${ASMJIT_SRC_DIR}/" "" targetpath "${path}")
-    If(name MATCHES ".h$")
-      If(NOT name MATCHES "_p.h$")
-        Install(FILES ${i} DESTINATION "include/${targetpath}")
-      EndIf()
+ForEach(i ${ASMJIT_SRC})
+  Get_Filename_Component(path ${i} PATH)
+  Get_Filename_Component(name ${i} NAME)
+  String(REGEX REPLACE "^${ASMJIT_SRC_DIR}/" "" targetpath "${path}")
+  If(name MATCHES ".h$")
+    If(NOT name MATCHES "_p.h$")
+      Install(FILES ${i} DESTINATION "include/${targetpath}")
     EndIf()
-  EndForEach()
-EndIf()
+  EndIf()
+EndForEach()
 
 # =============================================================================
 # [Asmjit - Library]
