@@ -205,7 +205,9 @@ Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags
 
   # Install Instructions.
   If(NOT ASMJIT_EMBED)
-    Install(TARGETS ${in_name} DESTINATION lib)
+    Install(TARGETS ${in_name} LIBRARY DESTINATION lib${LIB_SUFFIX}
+                               ARCHIVE DESTINATION lib${LIB_SUFFIX}
+                               RUNTIME DESTINATION bin)
   EndIf()
 
   Unset(__type)
