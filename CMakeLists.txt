@@ -204,8 +204,10 @@ Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags
   Set_Target_Properties(${in_name} PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
 
   # Install Instructions.
-  If(NOT ASMJIT_STATIC)
-    Install(TARGETS ${in_name} DESTINATION lib)
+  If(NOT ASMJIT_EMBED)
+    Install(TARGETS ${in_name} LIBRARY DESTINATION lib${LIB_SUFFIX}
+                               ARCHIVE DESTINATION lib${LIB_SUFFIX}
+                               RUNTIME DESTINATION bin)
   EndIf()
 
   Unset(__type)
@@ -298,7 +300,7 @@ EndIf()
 # [AsmJit - Headers]
 # =============================================================================
 
-If(NOT ASMJIT_STATIC)
+If(NOT ASMJIT_EMBED)
   ForEach(i ${ASMJIT_SRC})
     Get_Filename_Component(path ${i} PATH)
     Get_Filename_Component(name ${i} NAME)
