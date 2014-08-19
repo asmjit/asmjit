@@ -404,8 +404,10 @@ configure_package_config_file (
   NO_CHECK_REQUIRED_COMPONENTS_MACRO
 )
 
-install ( FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/asmjit-config.cmake
-            asmjit-use.cmake
-          DESTINATION ${ASMJIT_CMAKE_CONFIG_DIR}
-        )
+If(NOT ASMJIT_EMBED)
+  install ( FILES
+              ${CMAKE_CURRENT_BINARY_DIR}/asmjit-config.cmake
+              asmjit-use.cmake
+            DESTINATION ${ASMJIT_CMAKE_CONFIG_DIR}
+          )
+endif ()
