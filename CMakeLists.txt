@@ -8,30 +8,21 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # [AsmJit - Configuration]
 # =============================================================================
 
-# Whether not to build anything (default FALSE).
-# Set(ASMJIT_EMBED FALSE)
+option(ASMJIT_EMBED "Whether not to build anything" OFF)
 
-# Whether to build static library (default FALSE).
-# Set(ASMJIT_STATIC FALSE)
+option(ASMJIT_STATIC "Whether to build static library" ASMJIT_EMBED)
 
-# Whether to build contribution together with AsmJit (default FALSE)
-# Set(ASMJIT_BUILD_CONTRIB)
+option(ASMJIT_BUILD_CONTRIB "Whether to build contribution together with AsmJit" OFF)
 
-# Whether to build tests (default FALSE).
-# Set(ASMJIT_BUILD_TEST FALSE)
+option(ASMJIT_BUILD_TEST "Whether to build tests" OFF)
 
-# Whether to build samples (default FALSE).
-# Set(ASMJIT_BUILD_SAMPLES FALSE)
+option(ASMJIT_BUILD_SAMPLES "Whether to build samples" OFF)
 
 # =============================================================================
 # [AsmJit - Build]
 # =============================================================================
 
-If(ASMJIT_EMBED)
-  Set(ASMJIT_STATIC TRUE)
-EndIf()
-
-If(NOT CMAKE_PROJECT_NAME)
+If(NOT ASMJIT_EMBED)
   Project(asmjit C CXX)
   Set(ASMJIT_PROJECT_STR "Project")
 Else()
