@@ -2023,6 +2023,7 @@ struct TargetNode : public Node {
   ASMJIT_INLINE TargetNode(Compiler* compiler, uint32_t labelId) : Node(compiler, kNodeTypeTarget) {
     _id = labelId;
     _numRefs = 0;
+    _offset = -1;
     _from = NULL;
   }
 
@@ -2058,6 +2059,14 @@ struct TargetNode : public Node {
   //! Subtract number of jumps to this target.
   ASMJIT_INLINE void subNumRefs(uint32_t i = 1) { _numRefs -= i; }
 
+  //! Get the label offset.
+  //!
+  //! \note Only valid after the content has been serialized to the `Assembler`.
+  ASMJIT_INLINE intptr_t getOffset() const { return _offset; }
+
+  //! Set the label offset.
+  ASMJIT_INLINE void setOffset(intptr_t offset) { _offset = offset; }
+
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
@@ -2067,6 +2076,8 @@ struct TargetNode : public Node {
   //! Count of jumps here.
   uint32_t _numRefs;
 
+  //! Label offset, after serialization.
+  intptr_t _offset;
   //! First jump instruction that points to this target (label).
   JumpNode* _from;
 };
@@ -2454,16 +2465,15 @@ struct FuncNode : public Node {
   //! Required stack alignment (usually for multimedia instructions).
   uint32_t _requiredStackAlignment;
 
-  //! The "Red Zone" suze - count of bytes which might be accessed
-  //! without adjusting the stack pointer.
+  //! The "Red Zone" size - count of bytes which might be accessed without
+  //! adjusting the stack pointer.
   uint16_t _redZoneSize;
   //! Spill zone size (zone used by WIN64ABI).
   uint16_t _spillZoneSize;
 
   //! Stack size needed for function arguments.
   uint32_t _argStackSize;
-  //! Stack size needed for all variables and memory allocated on
-  //! the stack.
+  //! Stack size needed for all variables and memory allocated on the stack.
   uint32_t _memStackSize;
   //! Stack size needed to call other functions.
   uint32_t _callStackSize;
@@ -2683,9 +2693,14 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   // --------------------------------------------------------------------------
 
   //! Get maximum look ahead.
-  ASMJIT_INLINE uint32_t getMaxLookAhead() const { return _maxLookAhead; }
+  ASMJIT_INLINE uint32_t getMaxLookAhead() const {
+    return _maxLookAhead;
+  }
+
   //! Set maximum look ahead to `val`.
-  ASMJIT_INLINE void setMaxLookAhead(uint32_t val) { _maxLookAhead = val; }
+  ASMJIT_INLINE void setMaxLookAhead(uint32_t val) {
+    _maxLookAhead = val;
+  }
 
   // --------------------------------------------------------------------------
   // [Clear / Reset]
@@ -2787,9 +2802,9 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   //! Get `TargetNode` by `id`.
   ASMJIT_INLINE TargetNode* getTargetById(uint32_t id) {
     ASMJIT_ASSERT(OperandUtil::isLabelId(id));
-    ASMJIT_ASSERT(id < _targets.getLength());
+    ASMJIT_ASSERT(id < _targetList.getLength());
 
-    return _targets[id];
+    return _targetList[id];
   }
 
   //! Get `TargetNode` by `label`.
@@ -2803,12 +2818,43 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
 
   //! Get count of created labels.
   ASMJIT_INLINE size_t getLabelsCount() const {
-    return _targets.getLength();
+    return _targetList.getLength();
   }
 
   //! Get whether `label` is created.
-  ASMJIT_INLINE bool isLabelCreated(const Label& label) const {
-    return static_cast<size_t>(label.getId()) < _targets.getLength();
+  ASMJIT_INLINE bool isLabelValid(const Label& label) const {
+    return isLabelValid(label.getId());
+  }
+
+  //! \overload
+  ASMJIT_INLINE bool isLabelValid(uint32_t id) const {
+    return static_cast<size_t>(id) < _targetList.getLength();
+  }
+
+  //! Get `TargetNode` by `label`.
+  ASMJIT_INLINE TargetNode* getTargetByLabel(const Label& label) {
+    return getTargetByLabel(label.getId());
+  }
+
+  //! \overload
+  ASMJIT_INLINE TargetNode* getTargetByLabel(uint32_t id) {
+    ASMJIT_ASSERT(isLabelValid(id));
+    return _targetList[id];
+  }
+
+  //! Get `label` offset or -1 if the label is not bound.
+  //!
+  //! This method can be only called after the code has been serialized to the
+  //! `Assembler`, otherwise the offset returned will be -1 (even if the label
+  //! has been bound).
+  ASMJIT_INLINE intptr_t getLabelOffset(const Label& label) const {
+    return getLabelOffset(label.getId());
+  }
+
+  //! \overload
+  ASMJIT_INLINE intptr_t getLabelOffset(uint32_t id) const {
+    ASMJIT_ASSERT(isLabelValid(id));
+    return _targetList[id]->getOffset();
   }
 
   //! \internal
@@ -2826,7 +2872,7 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   //! Bind label to the current offset.
   //!
   //! \note Label can be bound only once!
-  ASMJIT_API void bind(const Label& label);
+  ASMJIT_API Error bind(const Label& label);
 
   // --------------------------------------------------------------------------
   // [Embed]
@@ -2868,8 +2914,8 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   // --------------------------------------------------------------------------
 
   //! Get whether variable `var` is created.
-  ASMJIT_INLINE bool isVarCreated(const Var& var) const {
-    return static_cast<size_t>(var.getId() & kOperandIdNum) < _vars.getLength();
+  ASMJIT_INLINE bool isVarValid(const Var& var) const {
+    return static_cast<size_t>(var.getId() & kOperandIdNum) < _varList.getLength();
   }
 
   //! \internal
@@ -2884,16 +2930,16 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   //! Get `VarData` by `id`.
   ASMJIT_INLINE VarData* getVdById(uint32_t id) const {
     ASMJIT_ASSERT(id != kInvalidValue);
-    ASMJIT_ASSERT(static_cast<size_t>(id & kOperandIdNum) < _vars.getLength());
+    ASMJIT_ASSERT(static_cast<size_t>(id & kOperandIdNum) < _varList.getLength());
 
-    return _vars[id & kOperandIdNum];
+    return _varList[id & kOperandIdNum];
   }
 
   //! \internal
   //!
   //! Get an array of 'VarData*'.
   ASMJIT_INLINE VarData** _getVdArray() const {
-    return const_cast<VarData**>(_vars.getData());
+    return const_cast<VarData**>(_varList.getData());
   }
 
   //! \internal
@@ -2951,15 +2997,34 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) = 0;
 
   // --------------------------------------------------------------------------
+  // [Assembler]
+  // --------------------------------------------------------------------------
+
+  //! Get an assembler instance that is associated with the compiler.
+  //!
+  //! \note One instance of `Assembler` is shared and has lifetime same as the
+  //! compiler, however, each call to `getAssembler()` resets the assembler so
+  //! new code can be serialized into it.
+  ASMJIT_API Assembler* getAssembler();
+
+  //! \internal
+  //!
+  //! Create a new `Assembler` instance associated with the compiler.
+  virtual Assembler* _newAssembler() = 0;
+
+  // --------------------------------------------------------------------------
   // [Serialize]
   // --------------------------------------------------------------------------
 
-  //! Send assembled code to `assembler`.
-  virtual Error serialize(Assembler& assembler) = 0;
+  //! Serialize a compiled code to `assembler`.
+  virtual Error serialize(Assembler* assembler) = 0;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
+
+  //! Internal assembler.
+  Assembler* _assembler;
 
   //! Flow id added to each node created (used only by `Context)`.
   uint32_t _nodeFlowId;
@@ -2990,10 +3055,10 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   //! Local constant pool zone.
   Zone _localConstZone;
 
-  //! Targets.
-  PodVector<TargetNode*> _targets;
-  //! Variables.
-  PodVector<VarData*> _vars;
+  //! TargetNode list.
+  PodVector<TargetNode*> _targetList;
+  //! VarData list.
+  PodVector<VarData*> _varList;
 
   //! Local constant pool, flushed at the end of each function.
   ConstPool _localConstPool;

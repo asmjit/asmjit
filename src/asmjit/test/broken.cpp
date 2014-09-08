@@ -4,6 +4,7 @@
 // [License]
 // Public Domain (Unlicense)
 
+// [Dependencies - Broken]
 #include "./broken.h"
 
 // ============================================================================
@@ -125,30 +126,24 @@ static void BrokenAPI_runUnit(BrokenAPI::Unit* unit) {
 static void BrokenAPI_runAll() {
   BrokenAPI::Unit* unit = _brokenGlobal._unitList;
 
-  if (unit != NULL) {
-    size_t count = 0;
+  bool hasUnits = unit != NULL;
+  size_t count = 0;
 
-    do {
-      if (BrokenAPI_canRun(unit)) {
-        BrokenAPI_runUnit(unit);
-        count++;
-      }
-
-      unit = unit->next; 
-    } while (unit != NULL);
-
-    if (count) {
-      INFO("\nSuccess:");
-      INFO("  All tests passed!");
+  while (unit != NULL) {
+    if (BrokenAPI_canRun(unit)) {
+      BrokenAPI_runUnit(unit);
+      count++;
     }
-    else {
-      INFO("\nWarning:");
-      INFO("  No units matched the filter!");
-    }
+    unit = unit->next;
+  }
+
+  if (count) {
+    INFO("\nSuccess:");
+    INFO("  All tests passed!");
   }
   else {
     INFO("\nWarning:");
-    INFO("  No units defined!");
+    INFO("  No units %s!", hasUnits ? "matched the filter" : "defined");
   }
 }
 
@@ -159,7 +154,7 @@ static void BrokenAPI_listAll() {
     INFO("Units:");
     do {
       INFO("  %s", unit->name);
-      unit = unit->next; 
+      unit = unit->next;
     } while (unit != NULL);
   }
   else {
@@ -192,11 +187,13 @@ void BrokenAPI::setOutputFile(FILE* file) {
   global._file = file;
 }
 
-void BrokenAPI::setContext(const char* file, int line) {
+int BrokenAPI::setContext(const char* file, int line) {
   BrokenGlobal& global = _brokenGlobal;
 
   global._currentFile = file;
   global._currentLine = line;
+
+  return 1;
 }
 
 int BrokenAPI::run(int argc, const char* argv[],
@@ -234,7 +231,7 @@ int BrokenAPI::run(int argc, const char* argv[],
   return 0;
 }
 
-void BrokenAPI::info(const char* fmt, ...) {
+int BrokenAPI::info(const char* fmt, ...) {
   BrokenGlobal& global = _brokenGlobal;
   FILE* dst = global.getFile();
 
@@ -253,9 +250,10 @@ void BrokenAPI::info(const char* fmt, ...) {
     ::fputs("\n", dst);
 
   ::fflush(dst);
+  return 1;
 }
 
-void BrokenAPI::fail(const char* fmt, va_list ap) {
+int BrokenAPI::fail(const char* fmt, va_list ap) {
   BrokenGlobal& global = _brokenGlobal;
   FILE* dst = global.getFile();
 
@@ -276,4 +274,5 @@ void BrokenAPI::fail(const char* fmt, va_list ap) {
   ::fflush(dst);
 
   ::exit(1);
+  return 1;
 }

@@ -42,11 +42,25 @@ ASMJIT_ENUM(kError) {
   //! Invalid state.
   kErrorInvalidState = 4,
 
-  //! Unknown instruction. This happens only if instruction code is
-  //! out of bounds. Shouldn't happen.
-  kErrorUnknownInst = 5,
+  //! No code generated.
+  //!
+  //! Returned by runtime if the code-generator contains no code.
+  kErrorNoCodeGenerated = 5,
 
-  //! Illegal instruction (Assembler).
+  //! Code generated is too large to fit in memory reserved.
+  //!
+  //! Returned by `StaticRuntime` in case that the code generated is too large
+  //! to fit in the memory already reserved for it.
+  kErrorCodeTooLarge = 6,
+
+  //! Label is already bound.
+  kErrorLabelAlreadyBound = 7,
+
+  //! Unknown instruction (an instruction ID is out of bounds or instruction
+  //! name is invalid).
+  kErrorUnknownInst = 8,
+
+  //! Illegal instruction.
   //!
   //! This status code can also be returned in X64 mode if AH, BH, CH or DH
   //! registers have been used together with a REX prefix. The instruction
@@ -64,30 +78,25 @@ ASMJIT_ENUM(kError) {
   //! ~~~
   //!
   //! \note In debug mode assertion is raised instead of returning an error.
-  kErrorIllegalInst = 6,
+  kErrorIllegalInst = 9,
 
-  //! Illegal (unencodable) addressing used (Assembler).
-  kErrorIllegalAddresing = 7,
+  //! Illegal (unencodable) addressing used.
+  kErrorIllegalAddresing = 10,
 
-  //! Illegal (unencodable) displacement used (Assembler).
+  //! Illegal (unencodable) displacement used.
   //!
   //! X86/X64
   //! -------
   //!
   //! Short form of jump instruction has been used, but the displacement is out
   //! of bounds.
-  kErrorIllegalDisplacement = 8,
-
-  //! Invalid function (Compiler).
-  //!
-  //! Returned if no function is defined, but `make()` has been called.
-  kErrorInvalidFunction = 9,
+  kErrorIllegalDisplacement = 11,
 
   //! A variable has been assigned more than once to a function argument (Compiler).
-  kErrorOverlappedArgs = 10,
+  kErrorOverlappedArgs = 12,
 
-  //! Count of AsmJit status codes. Can grow in future.
-  kErrorCount = 11
+  //! Count of AsmJit error codes.
+  kErrorCount = 13
 };
 
 // ============================================================================

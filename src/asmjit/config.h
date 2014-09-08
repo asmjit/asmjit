@@ -11,7 +11,7 @@
 // This file can be used to modify built-in features of AsmJit. AsmJit is by
 // default compiled only for host processor to enable JIT compilation. Both
 // Assembler and Compiler code generators are compiled by default.
-// 
+//
 // ASMJIT_BUILD_... flags can be defined to build additional backends that can
 // be used for remote code generation.
 //

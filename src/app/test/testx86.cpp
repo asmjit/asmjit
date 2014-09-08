@@ -84,8 +84,6 @@ struct X86Test_AlignBase : public X86Test {
     // Alloc, use and spill preserved registers.
     if (_varCount) {
       uint32_t gpCount = c.getRegCount().getGp();
-      c.comment("Var");
-
       uint32_t varIndex = 0;
       uint32_t regIndex = 0;
       uint32_t regMask = 0x1;
@@ -107,12 +105,8 @@ struct X86Test_AlignBase : public X86Test {
 
     // Do a sum of arguments to verify possible relocation when misaligned.
     if (_argCount) {
-      uint32_t argIndex;
-
-      c.comment("Arg");
       c.xor_(gpSum, gpSum);
-
-      for (argIndex = 0; argIndex < _argCount; argIndex++) {
+      for (uint32_t argIndex = 0; argIndex < _argCount; argIndex++) {
         X86GpVar gpArg(c, kVarTypeInt32);
 
         c.setArg(argIndex, gpArg);
@@ -121,7 +115,6 @@ struct X86Test_AlignBase : public X86Test {
     }
 
     // Check alignment of xmmVar (has to be 16).
-    c.comment("Ret");
     c.lea(gpVar, xmmVar.m());
     c.shl(gpVar.r32(), 28);
 
@@ -1660,7 +1653,7 @@ struct X86Test_AllocBlend : public X86Test {
     // Has to be aligned.
     uint32_t* dstBuffer = (uint32_t*)IntUtil::alignTo<intptr_t>((intptr_t)_dstBuffer, 16);
     uint32_t* srcBuffer = (uint32_t*)IntUtil::alignTo<intptr_t>((intptr_t)_srcBuffer, 16);
-    
+
     ::memcpy(dstBuffer, dstConstData, sizeof(dstConstData));
     ::memcpy(srcBuffer, srcConstData, sizeof(srcConstData));
 

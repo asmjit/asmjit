@@ -814,7 +814,7 @@ InstNode* X86Compiler::newInst(uint32_t code) {
   if (inst == NULL)
     goto _NoMemory;
 
-  return X86Compiler_newInst(this, inst, code, getOptionsAndReset(), NULL, 0);
+  return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), NULL, 0);
 
 _NoMemory:
   setError(kErrorNoHeapMemory);
@@ -832,7 +832,7 @@ InstNode* X86Compiler::newInst(uint32_t code, const Operand& o0) {
     Operand* opList = reinterpret_cast<Operand*>(reinterpret_cast<uint8_t*>(inst) + size);
     opList[0] = o0;
     ASMJIT_ASSERT_UNINITIALIZED(o0);
-    return X86Compiler_newInst(this, inst, code, getOptionsAndReset(), opList, 1);
+    return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), opList, 1);
   }
 
 _NoMemory:
@@ -853,7 +853,7 @@ InstNode* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& 
     opList[1] = o1;
     ASMJIT_ASSERT_UNINITIALIZED(o0);
     ASMJIT_ASSERT_UNINITIALIZED(o1);
-    return X86Compiler_newInst(this, inst, code, getOptionsAndReset(), opList, 2);
+    return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), opList, 2);
   }
 
 _NoMemory:
@@ -876,7 +876,7 @@ InstNode* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& 
     ASMJIT_ASSERT_UNINITIALIZED(o0);
     ASMJIT_ASSERT_UNINITIALIZED(o1);
     ASMJIT_ASSERT_UNINITIALIZED(o2);
-    return X86Compiler_newInst(this, inst, code, getOptionsAndReset(), opList, 3);
+    return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), opList, 3);
   }
 
 _NoMemory:
@@ -901,7 +901,7 @@ InstNode* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& 
     ASMJIT_ASSERT_UNINITIALIZED(o1);
     ASMJIT_ASSERT_UNINITIALIZED(o2);
     ASMJIT_ASSERT_UNINITIALIZED(o3);
-    return X86Compiler_newInst(this, inst, code, getOptionsAndReset(), opList, 4);
+    return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), opList, 4);
   }
 
 _NoMemory:
@@ -928,7 +928,7 @@ InstNode* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& 
     ASMJIT_ASSERT_UNINITIALIZED(o2);
     ASMJIT_ASSERT_UNINITIALIZED(o3);
     ASMJIT_ASSERT_UNINITIALIZED(o4);
-    return X86Compiler_newInst(this, inst, code, getOptionsAndReset(), opList, 5);
+    return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), opList, 5);
   }
 
 _NoMemory:
@@ -1189,7 +1189,7 @@ Error X86Compiler::setArg(uint32_t argIndex, Var& var) {
   if (func == NULL)
     return kErrorInvalidArgument;
 
-  if (!isVarCreated(var))
+  if (!isVarValid(var))
     return kErrorInvalidState;
 
   VarData* vd = getVd(var);
@@ -1293,45 +1293,38 @@ _OnError:
 // ============================================================================
 
 void* X86Compiler::make() {
-  // Flush global constant pool
-  X86Compiler_emitConstPool(this, _globalConstPoolLabel, _globalConstPool);
-
-  X86Assembler assembler(_runtime, _arch);
-
-#if !defined(ASMJIT_DISABLE_LOGGER)
-  Logger* logger = _logger;
-  if (logger)
-    assembler.setLogger(logger);
-#endif // !ASMJIT_DISABLE_LOGGER
-
-  assembler._features = _features;
-  if (serialize(assembler) != kErrorOk)
-    return NULL;
-
-  if (assembler.getError() != kErrorOk) {
-    setError(assembler.getError());
+  Assembler* assembler = getAssembler();
+  if (assembler == NULL) {
+    setError(kErrorNoHeapMemory);
     return NULL;
   }
 
-  void* result = assembler.make();
+  Error error = serialize(assembler);
+  if (error != kErrorOk) {
+    setError(error);
+    return NULL;
+  }
 
-#if !defined(ASMJIT_DISABLE_LOGGER)
-  if (logger)
-    logger->logFormat(kLoggerStyleComment,
-      "*** COMPILER SUCCESS - Wrote %u bytes, code: %u, trampolines: %u.\n\n",
-      static_cast<unsigned int>(assembler.getCodeSize()),
-      static_cast<unsigned int>(assembler.getOffset()),
-      static_cast<unsigned int>(assembler.getTrampolineSize()));
-#endif // !ASMJIT_DISABLE_LOGGER
-
+  void* result = assembler->make();
   return result;
 }
 
 // ============================================================================
-// [asmjit::X86Compiler - Assemble]
+// [asmjit::X86Compiler - Assembler]
 // ============================================================================
 
-Error X86Compiler::serialize(Assembler& assembler) {
+Assembler* X86Compiler::_newAssembler() {
+  return new(std::nothrow) X86Assembler(_runtime, _arch);
+}
+
+// ============================================================================
+// [asmjit::X86Compiler - Serialize]
+// ============================================================================
+
+Error X86Compiler::serialize(Assembler* assembler) {
+  // Flush the global constant pool.
+  X86Compiler_emitConstPool(this, _globalConstPoolLabel, _globalConstPool);
+
   if (_firstNode == NULL)
     return kErrorOk;
 
@@ -1357,7 +1350,7 @@ Error X86Compiler::serialize(Assembler& assembler) {
       node = node->getNext();
     } while (node != NULL && node->getType() != kNodeTypeFunc);
 
-    error = context.serialize(&assembler, start, node);
+    error = context.serialize(assembler, start, node);
     if (error != kErrorOk)
       goto _Error;
     context.cleanup();

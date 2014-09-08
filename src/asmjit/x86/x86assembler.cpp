@@ -105,6 +105,10 @@ static const uint8_t x86SegmentPrefix[8] = { 0x00, 0x26, 0x2E, 0x36, 0x3E, 0x64,
 static const uint8_t x86OpCodePushSeg[8] = { 0x00, 0x06, 0x0E, 0x16, 0x1E, 0xA0, 0xA8 };
 static const uint8_t x86OpCodePopSeg[8]  = { 0x00, 0x07, 0x00, 0x17, 0x1F, 0xA1, 0xA9 };
 
+// ============================================================================
+// [Utils]
+// ============================================================================
+
 //! Encode MODR/M.
 static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) {
   return (m << 6) + (o << 3) + rm;
@@ -113,6 +117,13 @@ static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) 
 //! Encode SIB.
 static ASMJIT_INLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) {
   return (s << 6) + (i << 3) + b;
+}
+
+//! Get whether the two pointers `a` and `b` can be encoded by using relative
+//! displacement, which fits into a signed 32-bit integer.
+static ASMJIT_INLINE bool x64IsRelative(Ptr a, Ptr b) {
+  SignedPtr diff = static_cast<SignedPtr>(a) - static_cast<SignedPtr>(b);
+  return IntUtil::isInt32(diff);
 }
 
 // ============================================================================
@@ -292,76 +303,6 @@ Error X86Assembler::setArch(uint32_t arch) {
 }
 
 // ============================================================================
-// [asmjit::X86Assembler - Label]
-// ============================================================================
-
-void X86Assembler::_bind(const Label& label) {
-  // Get label data based on label id.
-  uint32_t index = label.getId();
-  LabelData* data = getLabelDataById(index);
-
-  // Label can be bound only once.
-  ASMJIT_ASSERT(data->offset == -1);
-
-#if !defined(ASMJIT_DISABLE_LOGGER)
-  if (_logger)
-    _logger->logFormat(kLoggerStyleLabel, "L%u:\n", index);
-#endif // !ASMJIT_DISABLE_LOGGER
-
-  size_t pos = getOffset();
-
-  LabelLink* link = data->links;
-  LabelLink* prev = NULL;
-
-  while (link) {
-    intptr_t offset = link->offset;
-
-    if (link->relocId != -1) {
-      // If linked label points to RelocData then instead of writing relative
-      // displacement to assembler stream, we will write it to RelocData.
-      _relocData[link->relocId].data += static_cast<Ptr>(pos);
-    }
-    else {
-      // Not using relocId, this means that we overwriting real displacement
-      // in assembler stream.
-      int32_t patchedValue = static_cast<int32_t>(
-        static_cast<intptr_t>(pos) - offset + link->displacement);
-
-      // Size of the value we are going to patch. Only BYTE/DWORD is allowed.
-      uint32_t size = getByteAt(offset);
-      ASMJIT_ASSERT(size == 1 || size == 4);
-
-      if (size == 4) {
-        setInt32At(offset, patchedValue);
-      }
-      else { // if (size) == 1
-        if (IntUtil::isInt8(patchedValue))
-          setByteAt(offset, static_cast<uint8_t>(patchedValue & 0xFF));
-        else
-          setError(kErrorIllegalDisplacement);
-      }
-    }
-
-    prev = link->prev;
-    link = prev;
-  }
-
-  // Chain unused links.
-  link = data->links;
-  if (link) {
-    if (prev == NULL)
-      prev = link;
-
-    prev->prev = _unusedLinks;
-    _unusedLinks = link;
-  }
-
-  // Unlink label if it was linked.
-  data->offset = pos;
-  data->links = NULL;
-}
-
-// ============================================================================
 // [asmjit::X86Assembler - Embed]
 // ============================================================================
 
@@ -374,7 +315,7 @@ Error X86Assembler::embedLabel(const Label& op) {
 
   uint8_t* cursor = getCursor();
 
-  LabelData* label = getLabelDataById(op.getId());
+  LabelData* label = getLabelData(op.getId());
   RelocData reloc;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
@@ -398,12 +339,12 @@ Error X86Assembler::embedLabel(const Label& op) {
     link->prev = (LabelLink*)label->links;
     link->offset = getOffset();
     link->displacement = 0;
-    link->relocId = _relocData.getLength();
+    link->relocId = _relocList.getLength();
 
     label->links = link;
   }
 
-  if (_relocData.append(reloc) != kErrorOk)
+  if (_relocList.append(reloc) != kErrorOk)
     return setError(kErrorNoHeapMemory);
 
   // Emit dummy intptr_t (4 or 8 bytes; depends on the address size).
@@ -420,7 +361,7 @@ Error X86Assembler::embedLabel(const Label& op) {
 // [asmjit::X86Assembler - Align]
 // ============================================================================
 
-Error X86Assembler::_align(uint32_t mode, uint32_t offset) {
+Error X86Assembler::align(uint32_t mode, uint32_t offset) {
 #if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
     _logger->logFormat(kLoggerStyleDirective,
@@ -443,7 +384,7 @@ Error X86Assembler::_align(uint32_t mode, uint32_t offset) {
   if (mode == kAlignCode) {
     alignPattern = 0x90;
 
-    if (IntUtil::hasBit(_features, kCodeGenOptimizedAlign)) {
+    if (hasFeature(kCodeGenOptimizedAlign)) {
       const X86CpuInfo* cpuInfo = static_cast<const X86CpuInfo*>(getRuntime()->getCpuInfo());
 
       // NOPs optimized for Intel:
@@ -534,7 +475,7 @@ Error X86Assembler::_align(uint32_t mode, uint32_t offset) {
 // [asmjit::X86Assembler - Reloc]
 // ============================================================================
 
-size_t X86Assembler::_relocCode(void* _dst, Ptr base) const {
+size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
   uint32_t arch = getArch();
   uint8_t* dst = static_cast<uint8_t*>(_dst);
 
@@ -542,48 +483,49 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr base) const {
   Logger* logger = getLogger();
 #endif // ASMJIT_DISABLE_LOGGER
 
-  size_t codeOffset = getOffset();
-  size_t codeSize = getCodeSize();
+  size_t minCodeSize = getOffset();   // Current offset is the minimum code size.
+  size_t maxCodeSize = getCodeSize(); // Includes all possible trampolines.
 
   // We will copy the exact size of the generated code. Extra code for trampolines
   // is generated on-the-fly by the relocator (this code doesn't exist at the moment).
-  ::memcpy(dst, _buffer, codeOffset);
+  ::memcpy(dst, _buffer, minCodeSize);
 
   // Trampoline pointer.
-  uint8_t* tramp = dst + codeOffset;
+  uint8_t* tramp = dst + minCodeSize;
 
   // Relocate all recorded locations.
-  size_t relocIndex;
-  size_t relocCount = _relocData.getLength();
-  const RelocData* relocData = _relocData.getData();
+  size_t relocCount = _relocList.getLength();
+  const RelocData* relocData = _relocList.getData();
 
-  for (relocIndex = 0; relocIndex < relocCount; relocIndex++) {
-    const RelocData& r = relocData[relocIndex];
-    Ptr ptr;
+  for (size_t i = 0; i < relocCount; i++) {
+    const RelocData& r = relocData[i];
+
+    // Make sure that the `RelocData` is correct.
+    Ptr ptr = r.data;
+
+    size_t offset = static_cast<size_t>(r.from);
+    ASMJIT_ASSERT(offset + r.size <= static_cast<Ptr>(maxCodeSize));
 
     // Whether to use trampoline, can be only used if relocation type is
     // kRelocAbsToRel on 64-bit.
     bool useTrampoline = false;
 
-    // Be sure that reloc data structure is correct.
-    size_t offset = static_cast<size_t>(r.from);
-    ASMJIT_ASSERT(offset + r.size <= static_cast<Ptr>(codeSize));
-
     switch (r.type) {
       case kRelocAbsToAbs:
-        ptr = r.data;
         break;
 
       case kRelocRelToAbs:
-        ptr = r.data + base;
+        ptr += baseAddress;
         break;
 
       case kRelocAbsToRel:
-      case kRelocTrampoline:
-        ptr = r.data - (base + r.from + 4);
+        ptr -= baseAddress + r.from + 4;
+        break;
 
-        if (arch == kArchX64 && r.type == kRelocTrampoline && !IntUtil::isInt32(ptr)) {
-          ptr = (Ptr)tramp - (base + r.from + 4);
+      case kRelocTrampoline:
+        ptr -= baseAddress + r.from + 4;
+        if (!IntUtil::isInt32(static_cast<SignedPtr>(ptr))) {
+          ptr = (Ptr)tramp - (baseAddress + r.from + 4);
           useTrampoline = true;
         }
         break;
@@ -593,26 +535,30 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr base) const {
     }
 
     switch (r.size) {
-      case 4: *reinterpret_cast<int32_t*>(dst + offset) = static_cast<int32_t>(ptr); break;
-      case 8: *reinterpret_cast<int64_t*>(dst + offset) = static_cast<int64_t>(ptr); break;
+      case 8:
+        *reinterpret_cast<int64_t*>(dst + offset) = static_cast<int64_t>(ptr);
+        break;
+
+      case 4:
+        *reinterpret_cast<int32_t*>(dst + offset) = static_cast<int32_t>(static_cast<SignedPtr>(ptr));
+        break;
 
       default:
         ASMJIT_ASSERT(!"Reached");
     }
 
-    // Patch `jmp/call` to use trampoline.
-    if (arch == kArchX64 && useTrampoline) {
+    // Handle the case where trampoline has been used.
+    if (useTrampoline) {
+      // Bytes that replace [REX, OPCODE] bytes.
       uint32_t byte0 = 0xFF;
       uint32_t byte1 = dst[offset - 1];
 
-      if (byte1 == 0xE8) {
-        // Call, path to FF/2 (-> 0x15).
+      // Call, patch to FF/2 (-> 0x15).
+      if (byte1 == 0xE8)
         byte1 = x86EncodeMod(0, 2, 5);
-      }
-      else if (byte1 == 0xE9) {
-        // Jmp, path to FF/4 (-> 0x25).
+      // Jmp, patch to FF/4 (-> 0x25).
+      else if (byte1 == 0xE9)
         byte1 = x86EncodeMod(0, 4, 5);
-      }
 
       // Patch `jmp/call` instruction.
       ASMJIT_ASSERT(offset >= 2);
@@ -635,7 +581,7 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr base) const {
   if (arch == kArchX64)
     return (size_t)(tramp - dst);
   else
-    return (size_t)(codeOffset);
+    return (size_t)(minCodeSize);
 }
 
 // ============================================================================
@@ -993,7 +939,7 @@ static Error ASMJIT_CDECL X86Assembler_emit(Assembler* self_, uint32_t code, con
 
   uint8_t* cursor = self->getCursor();
   uint32_t encoded = o0->getOp() + (o1->getOp() << 3) + (o2->getOp() << 6);
-  uint32_t options = self->getOptionsAndReset();
+  uint32_t options = self->getInstOptionsAndReset();
 
   // Invalid instruction.
   if (code >= _kX86InstIdCount) {
@@ -1355,11 +1301,11 @@ _Prepare:
 
       if (encoded == ENC_OPS(Imm, None, None)) {
         imVal = static_cast<const Imm*>(o0)->getInt64();
-        goto _EmitJmpOrCallImm;
+        goto _EmitJmpOrCallAbs;
       }
 
       if (encoded == ENC_OPS(Label, None, None)) {
-        label = self->getLabelDataById(static_cast<const Label*>(o0)->getId());
+        label = self->getLabelData(static_cast<const Label*>(o0)->getId());
         if (label->offset != -1) {
           // Bound label.
           static const intptr_t kRel32Size = 5;
@@ -1529,9 +1475,9 @@ _Prepare:
 
     case kX86InstGroupX86Jcc:
       if (encoded == ENC_OPS(Label, None, None)) {
-        label = self->getLabelDataById(static_cast<const Label*>(o0)->getId());
+        label = self->getLabelData(static_cast<const Label*>(o0)->getId());
 
-        if (IntUtil::hasBit(self->_features, kCodeGenPredictedJumps)) {
+        if (self->hasFeature(kCodeGenPredictedJumps)) {
           if (options & kInstOptionTaken)
             EMIT_BYTE(0x3E);
           if (options & kInstOptionNotTaken)
@@ -1593,7 +1539,7 @@ _Prepare:
         }
 
         EMIT_BYTE(0xE3);
-        label = self->getLabelDataById(static_cast<const Label*>(o1)->getId());
+        label = self->getLabelData(static_cast<const Label*>(o1)->getId());
 
         if (label->offset != -1) {
           // Bound label.
@@ -1630,11 +1576,11 @@ _Prepare:
 
       if (encoded == ENC_OPS(Imm, None, None)) {
         imVal = static_cast<const Imm*>(o0)->getInt64();
-        goto _EmitJmpOrCallImm;
+        goto _EmitJmpOrCallAbs;
       }
 
       if (encoded == ENC_OPS(Label, None, None)) {
-        label = self->getLabelDataById(static_cast<const Label*>(o0)->getId());
+        label = self->getLabelData(static_cast<const Label*>(o0)->getId());
         if (label->offset != -1) {
           // Bound label.
           const intptr_t kRel8Size = 2;
@@ -3706,8 +3652,8 @@ _EmitSib:
 
     if (rmMem->getMemType() == kMemTypeLabel) {
       // Relative->Absolute [x86 mode].
-      label = self->getLabelDataById(rmMem->_vmem.base);
-      relocId = self->_relocData.getLength();
+      label = self->getLabelData(rmMem->_vmem.base);
+      relocId = self->_relocList.getLength();
 
       RelocData reloc;
       reloc.type = kRelocRelToAbs;
@@ -3715,7 +3661,7 @@ _EmitSib:
       reloc.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
       reloc.data = static_cast<SignedPtr>(dispOffset);
 
-      if (self->_relocData.append(reloc) != kErrorOk)
+      if (self->_relocList.append(reloc) != kErrorOk)
         return self->setError(kErrorNoHeapMemory);
 
       if (label->offset != -1) {
@@ -3738,7 +3684,7 @@ _EmitSib:
   else /* if (Arch === kArchX64) */ {
     if (rmMem->getMemType() == kMemTypeLabel) {
       // [RIP + Disp32].
-      label = self->getLabelDataById(rmMem->_vmem.base);
+      label = self->getLabelData(rmMem->_vmem.base);
 
       // Indexing is invalid.
       if (mIndex < kInvalidReg)
@@ -3976,8 +3922,8 @@ _EmitAvxV:
         goto _IllegalAddr;
 
       // Relative->Absolute [x86 mode].
-      label = self->getLabelDataById(rmMem->_vmem.base);
-      relocId = self->_relocData.getLength();
+      label = self->getLabelData(rmMem->_vmem.base);
+      relocId = self->_relocList.getLength();
 
       RelocData reloc;
       reloc.type = kRelocRelToAbs;
@@ -3985,7 +3931,7 @@ _EmitAvxV:
       reloc.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
       reloc.data = static_cast<SignedPtr>(dispOffset);
 
-      if (self->_relocData.append(reloc) != kErrorOk)
+      if (self->_relocList.append(reloc) != kErrorOk)
         return self->setError(kErrorNoHeapMemory);
 
       if (label->offset != -1) {
@@ -4090,43 +4036,55 @@ _EmitXopM:
   // --------------------------------------------------------------------------
 
   // 64-bit mode requires a trampoline if a relative displacement doesn't fit
-  // into 32-bit integer. Old version of AsmJit used to emit jump to a section
+  // into a 32-bit address. Old version of AsmJit used to emit jump to a section
   // which contained another jump followed by an address (it worked well for
   // both `jmp` and `call`), but it required to reserve 14-bytes for a possible
   // trampoline.
   //
   // Instead of using 5-byte `jmp/call` and reserving 14 bytes required by the
   // trampoline, it's better to use 6-byte `jmp/call` (prefixing it with REX
-  // prefix) and to patch the `jmp/call` instruction itself.
-_EmitJmpOrCallImm:
+  // prefix) and to patch the `jmp/call` instruction to read the address from
+  // a memory in case the trampoline is needed.
+  //
+_EmitJmpOrCallAbs:
   {
-    // Emit REX prefix (64-bit).
-    //
-    // Does nothing, but allows to path the instruction in case a trampoline is
-    // needed.
-    if (Arch == kArchX64) {
-      EMIT_OP(0x40);
-    }
-
-    // Both `jmp` and `call` instructions have a single-byte opcode.
-    EMIT_OP(opCode);
-
     RelocData rd;
-    rd.type = kRelocTrampoline;
+    rd.type = kRelocAbsToRel;
     rd.size = 4;
-    rd.from = (intptr_t)(cursor - self->_buffer);
+    rd.from = (intptr_t)(cursor - self->_buffer) + 1;
     rd.data = static_cast<SignedPtr>(imVal);
 
-    if (self->_relocData.append(rd) != kErrorOk)
-      return self->setError(kErrorNoHeapMemory);
+    uint32_t trampolineSize = 0;
 
-    // Emit dummy 32-bit integer; will be overwritten by `relocCode()`.
+    if (Arch == kArchX64) {
+      Ptr baseAddress = self->getBaseAddress();
+      Ptr diff = rd.data - (baseAddress + rd.from + 4);
+
+      // If the base address of the output is known, it's possible to determine
+      // the need for a trampoline here. This saves possible REX prefix in
+      // 64-bit mode and prevents reserving space needed for an absolute address.
+      if (baseAddress == kNoBaseAddress || !x64IsRelative(rd.data, baseAddress + rd.from + 4)) {
+        // Emit REX prefix so the instruction can be patched later on. The REX
+        // prefix does nothing if not patched after, but allows to patch the
+        // instruction in case where the trampoline is needed.
+        rd.type = kRelocTrampoline;
+        rd.from++;
+
+        EMIT_OP(0x40);
+        trampolineSize = 8;
+      }
+    }
+
+    // Both `jmp` and `call` instructions have a single-byte opcode and are
+    // followed by a 32-bit displacement.
+    EMIT_OP(opCode);
     EMIT_DWORD(0);
 
-    // Trampoline has to be reserved, even if it's not used.
-    if (Arch == kArchX64) {
-      self->_trampolineSize += 8;
-    }
+    if (self->_relocList.append(rd) != kErrorOk)
+      return self->setError(kErrorNoHeapMemory);
+
+    // Reserve space for a possible trampoline.
+    self->_trampolineSize += trampolineSize;
   }
   goto _EmitDone;
 

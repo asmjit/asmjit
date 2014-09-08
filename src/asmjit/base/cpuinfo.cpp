@@ -30,7 +30,7 @@
 namespace asmjit {
 
 // ============================================================================
-// [asmjit::CpuInfo - DetectNumberOfCores]
+// [asmjit::CpuInfo - DetectHwThreadsCount]
 // ============================================================================
 
 uint32_t CpuInfo::detectHwThreadsCount() {

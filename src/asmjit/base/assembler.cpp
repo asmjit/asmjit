@@ -43,8 +43,10 @@ Assembler::~Assembler() {
 
 void Assembler::reset(bool releaseMemory) {
   // CodeGen members.
+  _baseAddress = kNoBaseAddress;
+  _instOptions = 0;
   _error = kErrorOk;
-  _options = 0;
+
   _baseZone.reset(releaseMemory);
 
   // Assembler members.
@@ -60,8 +62,8 @@ void Assembler::reset(bool releaseMemory) {
   _comment = NULL;
   _unusedLinks = NULL;
 
-  _labels.reset(releaseMemory);
-  _relocData.reset(releaseMemory);
+  _labelList.reset(releaseMemory);
+  _relocList.reset(releaseMemory);
 }
 
 // ============================================================================
@@ -131,11 +133,11 @@ Error Assembler::_reserve(size_t n) {
 // ============================================================================
 
 Error Assembler::_registerIndexedLabels(size_t index) {
-  size_t i = _labels.getLength();
+  size_t i = _labelList.getLength();
   if (index < i)
     return kErrorOk;
 
-  if (_labels._grow(index - i) != kErrorOk)
+  if (_labelList._grow(index - i) != kErrorOk)
     return setError(kErrorNoHeapMemory);
 
   LabelData data;
@@ -143,7 +145,7 @@ Error Assembler::_registerIndexedLabels(size_t index) {
   data.links = NULL;
 
   do {
-    _labels.append(data);
+    _labelList.append(data);
   } while (++i < index);
 
   return kErrorOk;
@@ -152,13 +154,13 @@ Error Assembler::_registerIndexedLabels(size_t index) {
 Error Assembler::_newLabel(Label* dst) {
   dst->_label.op = kOperandTypeLabel;
   dst->_label.size = 0;
-  dst->_label.id = OperandUtil::makeLabelId(static_cast<uint32_t>(_labels.getLength()));
+  dst->_label.id = OperandUtil::makeLabelId(static_cast<uint32_t>(_labelList.getLength()));
 
   LabelData data;
   data.offset = -1;
   data.links = NULL;
 
-  if (_labels.append(data) != kErrorOk)
+  if (_labelList.append(data) != kErrorOk)
     goto _NoMemory;
   return kErrorOk;
 
@@ -187,6 +189,80 @@ LabelLink* Assembler::_newLabelLink() {
   return link;
 }
 
+Error Assembler::bind(const Label& label) {
+  // Get label data based on label id.
+  uint32_t index = label.getId();
+  LabelData* data = getLabelData(index);
+
+  // Label can be bound only once.
+  if (data->offset != -1)
+    return setError(kErrorLabelAlreadyBound);
+
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (_logger)
+    _logger->logFormat(kLoggerStyleLabel, "L%u:\n", index);
+#endif // !ASMJIT_DISABLE_LOGGER
+
+  Error error = kErrorOk;
+  size_t pos = getOffset();
+
+  LabelLink* link = data->links;
+  LabelLink* prev = NULL;
+
+  while (link) {
+    intptr_t offset = link->offset;
+
+    if (link->relocId != -1) {
+      // Handle RelocData - We have to update RelocData information instead of
+      // patching the displacement in LabelData.
+      _relocList[link->relocId].data += static_cast<Ptr>(pos);
+    }
+    else {
+      // Not using relocId, this means that we are overwriting a real
+      // displacement in the binary stream.
+      int32_t patchedValue = static_cast<int32_t>(
+        static_cast<intptr_t>(pos) - offset + link->displacement);
+
+      // Size of the value we are going to patch. Only BYTE/DWORD is allowed.
+      uint32_t size = getByteAt(offset);
+      ASMJIT_ASSERT(size == 1 || size == 4);
+
+      if (size == 4) {
+        setInt32At(offset, patchedValue);
+      }
+      else {
+        ASMJIT_ASSERT(size == 1);
+        if (IntUtil::isInt8(patchedValue))
+          setByteAt(offset, static_cast<uint8_t>(patchedValue & 0xFF));
+        else
+          error = kErrorIllegalDisplacement;
+      }
+    }
+
+    prev = link->prev;
+    link = prev;
+  }
+
+  // Chain unused links.
+  link = data->links;
+  if (link) {
+    if (prev == NULL)
+      prev = link;
+
+    prev->prev = _unusedLinks;
+    _unusedLinks = link;
+  }
+
+  // Set as bound (offset is zero or greater and no links).
+  data->offset = pos;
+  data->links = NULL;
+
+  if (error != kErrorOk)
+    return setError(error);
+
+  return error;
+}
+
 // ============================================================================
 // [asmjit::Assembler - Embed]
 // ============================================================================
@@ -211,6 +287,19 @@ Error Assembler::embed(const void* data, uint32_t size) {
 }
 
 // ============================================================================
+// [asmjit::Assembler - Reloc]
+// ============================================================================
+
+size_t Assembler::relocCode(void* dst, Ptr baseAddress) const {
+  if (baseAddress == kNoBaseAddress)
+    baseAddress = hasBaseAddress() ? getBaseAddress() : static_cast<Ptr>((uintptr_t)dst);
+  else if (getBaseAddress() != baseAddress)
+    return 0;
+
+  return _relocCode(dst, baseAddress);
+}
+
+// ============================================================================
 // [asmjit::Assembler - Make]
 // ============================================================================
 
@@ -232,52 +321,52 @@ void* Assembler::make() {
 // [asmjit::Assembler - Emit (Helpers)]
 // ============================================================================
 
-#define no noOperand
+#define NA noOperand
 
 Error Assembler::emit(uint32_t code) {
-  return _emit(code, no, no, no, no);
+  return _emit(code, NA, NA, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0) {
-  return _emit(code, o0, no, no, no);
+  return _emit(code, o0, NA, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1) {
-  return _emit(code, o0, o1, no, no);
+  return _emit(code, o0, o1, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) {
-  return _emit(code, o0, o1, o2, no);
+  return _emit(code, o0, o1, o2, NA);
 }
 
 Error Assembler::emit(uint32_t code, int o0) {
   Imm imm(o0);
-  return _emit(code, imm, no, no, no);
+  return _emit(code, imm, NA, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, uint64_t o0) {
   Imm imm(o0);
-  return _emit(code, imm, no, no, no);
+  return _emit(code, imm, NA, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, int o1) {
   Imm imm(o1);
-  return _emit(code, o0, imm, no, no);
+  return _emit(code, o0, imm, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, uint64_t o1) {
   Imm imm(o1);
-  return _emit(code, o0, imm, no, no);
+  return _emit(code, o0, imm, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, int o2) {
   Imm imm(o2);
-  return _emit(code, o0, o1, imm, no);
+  return _emit(code, o0, o1, imm, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2) {
   Imm imm(o2);
-  return _emit(code, o0, o1, imm, no);
+  return _emit(code, o0, o1, imm, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3) {
@@ -290,7 +379,7 @@ Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const
   return _emit(code, o0, o1, o2, imm);
 }
 
-#undef no
+#undef NA
 
 } // asmjit namespace
 

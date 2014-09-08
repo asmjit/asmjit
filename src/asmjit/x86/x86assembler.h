@@ -29,43 +29,43 @@ namespace asmjit {
 #define ASMJIT_X86_EMIT_OPTIONS(_Class_) \
   /*! Force short form of jmp/jcc instruction. */ \
   ASMJIT_INLINE _Class_& short_() { \
-    _options |= kInstOptionShortForm; \
+    _instOptions |= kInstOptionShortForm; \
     return *this; \
   } \
   \
   /*! Force long form of jmp/jcc instruction. */ \
   ASMJIT_INLINE _Class_& long_() { \
-    _options |= kInstOptionLongForm; \
+    _instOptions |= kInstOptionLongForm; \
     return *this; \
   } \
   \
   /*! Condition is likely to be taken (has only benefit on P4). */ \
   ASMJIT_INLINE _Class_& taken() { \
-    _options |= kInstOptionTaken; \
+    _instOptions |= kInstOptionTaken; \
     return *this; \
   } \
   \
   /*! Condition is unlikely to be taken (has only benefit on P4). */ \
   ASMJIT_INLINE _Class_& notTaken() { \
-    _options |= kInstOptionNotTaken; \
+    _instOptions |= kInstOptionNotTaken; \
     return *this; \
   } \
   \
   /*! Use LOCK prefix. */ \
   ASMJIT_INLINE _Class_& lock() { \
-    _options |= kX86InstOptionLock; \
+    _instOptions |= kX86InstOptionLock; \
     return *this; \
   } \
   \
   /*! Force REX prefix. */ \
   ASMJIT_INLINE _Class_& rex() { \
-    _options |= kX86InstOptionRex; \
+    _instOptions |= kX86InstOptionRex; \
     return *this; \
   } \
   \
   /*! Force 3-byte VEX prefix. */ \
   ASMJIT_INLINE _Class_& vex3() { \
-    _options |= kX86InstOptionVex3; \
+    _instOptions |= kX86InstOptionVex3; \
     return *this; \
   }
 
@@ -378,12 +378,6 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   ASMJIT_API Error setArch(uint32_t arch);
 
   // --------------------------------------------------------------------------
-  // [Label]
-  // --------------------------------------------------------------------------
-
-  ASMJIT_API virtual void _bind(const Label& label);
-
-  // --------------------------------------------------------------------------
   // [Embed]
   // --------------------------------------------------------------------------
 
@@ -439,13 +433,13 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   // [Align]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error _align(uint32_t mode, uint32_t offset);
+  ASMJIT_API virtual Error align(uint32_t mode, uint32_t offset);
 
   // --------------------------------------------------------------------------
   // [Reloc]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual size_t _relocCode(void* dst, Ptr base) const;
+  ASMJIT_API virtual size_t _relocCode(void* dst, Ptr baseAddress) const;
 
   // --------------------------------------------------------------------------
   // [Emit]

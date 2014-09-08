@@ -105,7 +105,7 @@ struct VMemMgr {
 #if !defined(ASMJIT_OS_WINDOWS)
   //! Create a `VMemMgr` instance.
   ASMJIT_API VMemMgr();
-#else 
+#else
   //! Create a `VMemMgr` instance.
   //!
   //! \note When running on Windows it's possible to specify a `hProcess` to

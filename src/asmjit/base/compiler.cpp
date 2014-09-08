@@ -44,6 +44,7 @@ Compiler::Compiler(Runtime* runtime) :
   _nodeFlags(0),
   _maxLookAhead(kBaseCompilerDefaultLookAhead),
   _targetVarMapping(NULL),
+  _assembler(NULL),
   _firstNode(NULL),
   _lastNode(NULL),
   _cursor(NULL),
@@ -55,7 +56,10 @@ Compiler::Compiler(Runtime* runtime) :
   _globalConstPool(&_baseZone) {}
 
 Compiler::~Compiler() {
-  reset();
+  reset(true);
+
+  if (_assembler != NULL)
+    delete _assembler;
 }
 
 // ============================================================================
@@ -64,13 +68,18 @@ Compiler::~Compiler() {
 
 void Compiler::reset(bool releaseMemory) {
   // CodeGen members.
+  _baseAddress = kNoBaseAddress;
+  _instOptions = 0;
   _error = kErrorOk;
-  _options = 0;
+
   _baseZone.reset(releaseMemory);
 
   // Compiler members.
   _nodeFlowId = 0;
   _nodeFlags = 0;
+
+  if (_assembler != NULL)
+    _assembler->reset(releaseMemory);
 
   _firstNode = NULL;
   _lastNode = NULL;
@@ -88,8 +97,8 @@ void Compiler::reset(bool releaseMemory) {
   _stringZone.reset(releaseMemory);
   _localConstZone.reset(releaseMemory);
 
-  _targets.reset(releaseMemory);
-  _vars.reset(releaseMemory);
+  _targetList.reset(releaseMemory);
+  _varList.reset(releaseMemory);
 }
 
 // ============================================================================
@@ -293,9 +302,9 @@ AlignNode* Compiler::addAlign(uint32_t mode, uint32_t offset) {
 
 TargetNode* Compiler::newTarget() {
   TargetNode* node = newNode<TargetNode>(
-    OperandUtil::makeLabelId(static_cast<uint32_t>(_targets.getLength())));
+    OperandUtil::makeLabelId(static_cast<uint32_t>(_targetList.getLength())));
 
-  if (node == NULL || _targets.append(node) != kErrorOk)
+  if (node == NULL || _targetList.append(node) != kErrorOk)
     goto _NoMemory;
   return node;
 
@@ -330,11 +339,12 @@ _NoMemory:
   return setError(kErrorNoHeapMemory);
 }
 
-void Compiler::bind(const Label& label) {
+Error Compiler::bind(const Label& label) {
   uint32_t index = label.getId();
-  ASMJIT_ASSERT(index < _targets.getLength());
+  ASMJIT_ASSERT(index < _targetList.getLength());
 
-  addNode(_targets[index]);
+  addNode(_targetList[index]);
+  return kErrorOk;
 }
 
 // ============================================================================
@@ -460,7 +470,7 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
     goto _NoMemory;
 
   vd->_name = noName;
-  vd->_id = OperandUtil::makeVarId(static_cast<uint32_t>(_vars.getLength()));
+  vd->_id = OperandUtil::makeVarId(static_cast<uint32_t>(_varList.getLength()));
   vd->_contextId = kInvalidValue;
 
   if (name != NULL && name[0] != '\0') {
@@ -495,7 +505,7 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
 
   vd->_va = NULL;
 
-  if (_vars.append(vd) != kErrorOk)
+  if (_varList.append(vd) != kErrorOk)
     goto _NoMemory;
   return vd;
 
@@ -573,6 +583,33 @@ void Compiler::rename(Var& var, const char* name) {
   if (name != NULL && name[0] != '\0') {
     vd->_name = _stringZone.sdup(name);
   }
+}
+
+// ============================================================================
+// [asmjit::Compiler - Assembler]
+// ============================================================================
+
+Assembler* Compiler::getAssembler() {
+  Assembler* a = _assembler;
+
+  if (a != NULL) {
+    a->reset(false);
+  }
+  else {
+    a = _newAssembler();
+    _assembler = a;
+  }
+
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  Logger* logger = _logger;
+  if (logger != NULL)
+    a->setLogger(logger);
+#endif // !ASMJIT_DISABLE_LOGGER
+
+  a->setBaseAddress(_baseAddress);
+  a->setFeatures(_features);
+
+  return a;
 }
 
 } // asmjit namespace

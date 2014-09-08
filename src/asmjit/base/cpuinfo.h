@@ -102,7 +102,7 @@ struct CpuInfo {
   // [Statics]
   // --------------------------------------------------------------------------
 
-  //! Detect number of cores (or sum of all cores of all processors).
+  //! Detect the number of hardware threads.
   static ASMJIT_API uint32_t detectHwThreadsCount();
 
   //! Get host cpu.

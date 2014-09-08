@@ -37,7 +37,7 @@ struct X86VarState;
 // ============================================================================
 
 //! X86/X64 variable type.
-ASMJIT_ENUM(k86VarType) {
+ASMJIT_ENUM(kX86VarType) {
   //! Variable is SP-FP (x87).
   kX86VarTypeFp32 = kVarTypeFp32,
   //! Variable is DP-FP (x87).
@@ -1547,7 +1547,7 @@ ASMJIT_TYPE_ID(X86YmmVar, kX86VarTypeYmm);
 //!
 //! // Final step - generate code. asmjit::Compiler::serialize() will send all
 //! // instructions into Assembler and this ensures generating real machine code.
-//! c.serialize(a);
+//! c.serialize(&a);
 //!
 //! // Your function
 //! void* fn = a.make();
@@ -2402,10 +2402,16 @@ struct ASMJIT_VCLASS X86Compiler : public Compiler {
   ASMJIT_API virtual void* make();
 
   // -------------------------------------------------------------------------
+  // [Assembler]
+  // -------------------------------------------------------------------------
+
+  ASMJIT_API virtual Assembler* _newAssembler();
+
+  // -------------------------------------------------------------------------
   // [Serialize]
   // -------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error serialize(Assembler& assembler);
+  ASMJIT_API virtual Error serialize(Assembler* assembler);
 
   // -------------------------------------------------------------------------
   // [Options]

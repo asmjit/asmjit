@@ -263,12 +263,13 @@
 // ASMJIT_TRACE is only used by sources and private headers. It's safe to make
 // it unavailable outside of AsmJit.
 #if defined(ASMJIT_EXPORTS)
+namespace asmjit { static inline int disabledTrace(...) {} }
 # if defined(ASMJIT_TRACE)
 #  define ASMJIT_TSEC(_Section_) _Section_
-#  define ASMJIT_TLOG(...) ::printf(__VA_ARGS__)
+#  define ASMJIT_TLOG ::printf(__VA_ARGS__)
 # else
 #  define ASMJIT_TSEC(_Section_) do {} while(0)
-#  define ASMJIT_TLOG(...) do {} while(0)
+#  define ASMJIT_TLOG 0 && ::asmjit::disabledTrace
 # endif // ASMJIT_TRACE
 #endif // ASMJIT_EXPORTS
 
@@ -347,16 +348,26 @@ typedef unsigned __int64 uint64_t;
 
 #if defined(ASMJIT_OS_WINDOWS) && !defined(ASMJIT_SUPRESS_WINDOWS_H)
 
+# if !defined(WIN32_LEAN_AND_MEAN)
+#  define WIN32_LEAN_AND_MEAN
+#  define ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
+# endif // !WIN32_LEAN_AND_MEAN
+
 # if !defined(NOMINMAX)
 #  define NOMINMAX
 #  define ASMJIT_UNDEF_NOMINMAX
-# endif
+# endif // !NOMINMAX
 
 # include <windows.h>
 
 # if defined(ASMJIT_UNDEF_NOMINMAX)
 #  undef NOMINMAX
 #  undef ASMJIT_UNDEF_NOMINMAX
+# endif
+
+# if defined(ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN)
+#  undef WIN32_LEAN_AND_MEAN
+#  undef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
 # endif
 
 #endif // ASMJIT_OS_WINDOWS  && !ASMJIT_SUPRESS_WINDOWS_H

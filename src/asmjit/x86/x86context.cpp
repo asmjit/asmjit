@@ -891,14 +891,14 @@ void X86Context::emitPopSequence(uint32_t regs) {
   if (regs == 0)
     return;
 
-  int32_t i = static_cast<int32_t>(_regCount.getGp()) - 1;
-  uint32_t mask = 0x1 << static_cast<uint32_t>(i);
+  uint32_t i = static_cast<int32_t>(_regCount.getGp());
+  uint32_t mask = 0x1 << static_cast<uint32_t>(i - 1);
 
   X86GpReg gpReg(_zsp);
-  while (i >= 0) {
+  while (i) {
+    i--;
     if ((regs & mask) != 0)
       compiler->emit(kX86InstIdPop, gpReg.setIndex(i));
-    i--;
     mask >>= 1;
   }
 }
@@ -931,7 +931,7 @@ void X86Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32
     case kX86VarTypeXmmSs:
       if (srcType == kX86VarTypeXmmSd || srcType == kX86VarTypeXmmPd || srcType == kX86VarTypeYmmPd) {
         compiler->emit(kX86InstIdCvtsd2ss, x86::xmm(dstIndex), x86::xmm(srcIndex));
-        break;
+        return;
       }
 
       if (IntUtil::inInterval<uint32_t>(srcType, _kVarTypeIntStart, _kVarTypeIntEnd)) {
@@ -973,8 +973,7 @@ void X86Context::emitMoveVarOnStack(
   X86Compiler* compiler = getCompiler();
 
   X86Mem m0(*dst);
-  X86Reg r0;
-  X86Reg r1;
+  X86Reg r0, r1;
 
   uint32_t regSize = compiler->getRegSize();
   uint32_t instCode;
@@ -1271,14 +1270,12 @@ void X86Context::emitMoveImmOnStack(uint32_t dstType, const X86Mem* dst, const I
     case kVarTypeInt8:
     case kVarTypeUInt8:
       imm.truncateTo8Bits();
-      compiler->emit(kX86InstIdMov, mem, imm);
-      break;
+      goto _Move32;
 
     case kVarTypeInt16:
     case kVarTypeUInt16:
       imm.truncateTo16Bits();
-      compiler->emit(kX86InstIdMov, mem, imm);
-      break;
+      goto _Move32;
 
     case kVarTypeInt32:
     case kVarTypeUInt32:
@@ -1294,13 +1291,11 @@ _Move64:
         uint32_t hi = imm.getUInt32Hi();
 
         // Lo-Part.
-        imm.truncateTo32Bits();
-        compiler->emit(kX86InstIdMov, mem, imm);
+        compiler->emit(kX86InstIdMov, mem, imm.truncateTo32Bits());
+        mem.adjust(regSize);
 
         // Hi-Part.
-        mem.adjust(regSize);
-        imm.setUInt32(hi);
-        compiler->emit(kX86InstIdMov, mem, imm);
+        compiler->emit(kX86InstIdMov, mem, imm.setUInt32(hi));
       }
       else {
         compiler->emit(kX86InstIdMov, mem, imm);
@@ -1324,33 +1319,27 @@ _Move64:
       if (regSize == 4) {
         uint32_t hi = imm.getUInt32Hi();
 
-        // Lo-Part.
-        imm.truncateTo32Bits();
-        compiler->emit(kX86InstIdMov, mem, imm);
-
-        // Hi-Part.
+        // Lo part.
+        compiler->emit(kX86InstIdMov, mem, imm.truncateTo32Bits());
         mem.adjust(regSize);
-        imm.setUInt32(hi);
-        compiler->emit(kX86InstIdMov, mem, imm);
 
-        // Zero part - performing AND should generate shorter code, because
-        // 8-bit immediate can be used instead of 32-bit immediate required
-        // by MOV instruction.
+        // Hi part.
+        compiler->emit(kX86InstIdMov, mem, imm.setUInt32(hi));
         mem.adjust(regSize);
-        imm.setUInt32(0);
-        compiler->emit(kX86InstIdAnd, mem, imm);
-
-        mem.adjust(regSize);
-        compiler->emit(kX86InstIdAnd, mem, imm);
-      }
-      else {
-        // Lo-Hi parts.
-        compiler->emit(kX86InstIdMov, mem, imm);
 
         // Zero part.
+        compiler->emit(kX86InstIdMov, mem, imm.setUInt32(0));
         mem.adjust(regSize);
-        imm.setUInt32(0);
-        compiler->emit(kX86InstIdAnd, mem, imm);
+
+        compiler->emit(kX86InstIdMov, mem, imm);
+      }
+      else {
+        // Lo/Hi parts.
+        compiler->emit(kX86InstIdMov, mem, imm);
+        mem.adjust(regSize);
+
+        // Zero part.
+        compiler->emit(kX86InstIdMov, mem, imm.setUInt32(0));
       }
       break;
 
@@ -5345,8 +5334,7 @@ _NextGroup:
             goto _Advance;
         }
 
-        // Remove informative nodes if we are in a middle of instruction
-        // stream.
+        // Remove informative nodes if we are in a middle of instruction stream.
         //
         // TODO: Shouldn't be there an option for this? Maybe it can be useful
         // to stop if there is a comment or something. I'm not sure if it's
@@ -5422,7 +5410,7 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
 
   // Create labels on Assembler side.
   ASMJIT_PROPAGATE_ERROR(
-    assembler->_registerIndexedLabels(self->getCompiler()->_targets.getLength()));
+    assembler->_registerIndexedLabels(self->getCompiler()->_targetList.getLength()));
 
   do {
 #if !defined(ASMJIT_DISABLE_LOGGER)
@@ -5506,6 +5494,8 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
 
       case kNodeTypeTarget: {
         TargetNode* node = static_cast<TargetNode*>(node_);
+
+        node->setOffset(assembler->getOffset());
         assembler->bind(node->getLabel());
         break;
       }
@@ -5517,7 +5507,7 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
         uint32_t opCount = node->getOpCount();
 
         const Operand* opList = node->getOpList();
-        assembler->_options = node->getOptions();
+        assembler->_instOptions = node->getOptions();
 
         const Operand* o0 = &noOperand;
         const Operand* o1 = &noOperand;

@@ -14,8 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-// If using Doxygen to document a source-code hide everything. Ideally this
-// can be also done by a macro, but there is no global and widely used one.
+// Hide everything when using Doxygen. Ideally this can be protected by a macro,
+// but there is not globally and widely used one across multiple projects.
 
 //! \internal
 //! \{
@@ -25,10 +25,10 @@
 // ============================================================================
 
 struct BrokenAPI {
-  //! Test entry point.
+  //! Entry point of a unit test defined by `UNIT` macro.
   typedef void (*Entry)(void);
 
-  //! Test unit.
+  //! Test defined by `UNIT` macro.
   struct Unit {
     const char* name;
     Entry entry;
@@ -48,14 +48,18 @@ struct BrokenAPI {
     }
   };
 
-  //! Register a new test (called automatically by `AutoUnit` and `UNIT`).
+  //! Register a new unit test (called automatically by `AutoUnit` and `UNIT`).
   static void add(Unit* unit);
 
-  //! Set output file to `file`.
+  //! Set output file to a `file`.
   static void setOutputFile(FILE* file);
 
-  //! Set the current context.
-  static void setContext(const char* file, int line);
+  //! Set the current context to `file` and `line`.
+  //!
+  //! This is called by `EXPECT` macro to set the correct `file` and `line`,
+  //! because `EXPECT` macro internally calls `expect()` function, which does
+  //! change the original file & line to non-interesting `broken.h`.
+  static int setContext(const char* file, int line);
 
   //! Initialize `Broken` framework.
   //!
@@ -64,29 +68,30 @@ struct BrokenAPI {
     Entry onBeforeRun = (Entry)NULL,
     Entry onAfterRun = (Entry)NULL);
 
-  //! 
+  //! Used internally by `EXPECT` macro.
   template<typename T>
-  static void expect(const T& exp, const char* fmt = NULL, ...) {
+  static int expect(const T& exp, const char* fmt = NULL, ...) {
     if (exp)
-      return;
+      return 1;
 
     va_list ap;
     va_start(ap, fmt);
     fail(fmt, ap);
     va_end(ap);
+    return 0;
   }
 
   //! Log message, adds automatically new line if not present.
-  static void info(const char* fmt, ...);
+  static int info(const char* fmt, ...);
   //! Called on `EXPECT()` failure.
-  static void fail(const char* fmt, va_list ap);
+  static int fail(const char* fmt, va_list ap);
 };
 
 // ============================================================================
 // [Broken - Macros]
 // ============================================================================
 
-//! Define a unit.
+//! Define a unit test.
 //!
 //! `_Name_` can only contain ASCII characters, numbers and underscore. It has
 //! the same rules as identifiers in C and C++.
@@ -98,16 +103,15 @@ struct BrokenAPI {
   \
   static void unit_##_Name_##_entry(void)
 
-//! Informative message printed to stdout.
-#define INFO(...) \
-  ::BrokenAPI::info(__VA_ARGS__)
+//! #define INFO(...)
+//!
+//! Informative message printed to `stdout`.
+#define INFO ::BrokenAPI::setContext(__FILE__, __LINE__) && ::BrokenAPI::info
 
-//! Expect `_Exp_` to be truthy, fail otherwise.
-#define EXPECT(...) \
-  do { \
-    ::BrokenAPI::setContext(__FILE__, __LINE__); \
-    ::BrokenAPI::expect(__VA_ARGS__); \
-  } while(0)
+//! #define INFO(_Exp_ [, _Format_ [, ...]])
+//!
+//! Expect `_Exp_` to be true or evaluates to true, fail otherwise.
+#define EXPECT ::BrokenAPI::setContext(__FILE__, __LINE__) && ::BrokenAPI::expect
 
 //! \}
 
