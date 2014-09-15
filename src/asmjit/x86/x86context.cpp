@@ -1409,6 +1409,10 @@ _Move32:
     case kX86VarTypeXmmPd:
       // TODO: [COMPILER] EmitMoveImmToReg.
       break;
+
+    default:
+      ASMJIT_ASSERT(!"Reached");
+      break;
   }
 }
 
@@ -4181,13 +4185,14 @@ ASMJIT_INLINE void X86CallAlloc::allocImmsOnStack() {
 
     const Imm& imm = static_cast<const Imm&>(op);
     const FuncInOut& arg = decl->getArg(i);
+    uint32_t varType = arg.getVarType();
 
     if (arg.hasStackOffset()) {
       X86Mem dst = x86::ptr(_context->_zsp, -static_cast<int>(_context->getRegSize()) + arg.getStackOffset());
-      _context->emitMoveImmOnStack(arg.getVarType(), &dst, &imm);
+      _context->emitMoveImmOnStack(varType, &dst, &imm);
     }
     else {
-      _context->emitMoveImmToReg(arg.getVarType(), arg.getRegIndex(), &imm);
+      _context->emitMoveImmToReg(varType, arg.getRegIndex(), &imm);
     }
   }
 }

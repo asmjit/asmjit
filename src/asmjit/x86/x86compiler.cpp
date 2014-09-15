@@ -125,7 +125,6 @@ const uint8_t _x64VarMapping[kX86VarTypeCount] = {
 };
 #endif // ASMJIT_BUILD_X64
 
-
 // ============================================================================
 // [asmjit::X86FuncDecl - Helpers]
 // ============================================================================
@@ -335,7 +334,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
 
   for (i = 0; i < static_cast<int32_t>(argCount); i++) {
     FuncInOut& arg = self->getArg(i);
-    arg._varType = static_cast<uint8_t>(argList[i]);
+    arg._varType = static_cast<uint8_t>(varMapping[argList[i]]);
     arg._regIndex = kInvalidReg;
     arg._stackOffset = kFuncStackInvalid;
   }

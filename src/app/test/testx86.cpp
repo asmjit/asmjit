@@ -1982,6 +1982,72 @@ struct X86Test_CallImmArgs : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_CallPtrArgs]
+// ============================================================================
+
+struct X86Test_CallPtrArgs : public X86Test {
+  X86Test_CallPtrArgs() : X86Test("[Call] Ptr Args") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_CallPtrArgs());
+  }
+
+  static int calledFunc(void* a, void* b, void* c, void* d, void* e, void* f, void* g, void* h, void* i, void* j) {
+    return static_cast<int>((intptr_t)a) +
+           static_cast<int>((intptr_t)b) +
+           static_cast<int>((intptr_t)c) +
+           static_cast<int>((intptr_t)d) +
+           static_cast<int>((intptr_t)e) +
+           static_cast<int>((intptr_t)f) +
+           static_cast<int>((intptr_t)g) +
+           static_cast<int>((intptr_t)h) +
+           static_cast<int>((intptr_t)i) +
+           static_cast<int>((intptr_t)j) ;
+  }
+
+  virtual void compile(X86Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+
+    // Prepare.
+    X86GpVar fn(c, kVarTypeIntPtr, "fn");
+    X86GpVar rv(c, kVarTypeInt32, "rv");
+
+    c.mov(fn, imm_ptr((void*)calledFunc));
+
+    // Call function.
+    X86CallNode* call = c.call(fn, kFuncConvHost,
+      FuncBuilder10<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>());
+    call->setArg(0, imm(0x01));
+    call->setArg(1, imm(0x02));
+    call->setArg(2, imm(0x03));
+    call->setArg(3, imm(0x04));
+    call->setArg(4, imm(0x05));
+    call->setArg(5, imm(0x06));
+    call->setArg(6, imm(0x07));
+    call->setArg(7, imm(0x08));
+    call->setArg(8, imm(0x09));
+    call->setArg(9, imm(0x0A));
+    call->setRet(0, rv);
+
+    c.ret(rv);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func();
+    int expectRet = 55;
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_CallFloatAsXmmRet]
 // ============================================================================
 
@@ -2466,6 +2532,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallManyArgs);
   ADD_TEST(X86Test_CallDuplicateArgs);
   ADD_TEST(X86Test_CallImmArgs);
+  ADD_TEST(X86Test_CallPtrArgs);
   ADD_TEST(X86Test_CallFloatAsXmmRet);
   ADD_TEST(X86Test_CallDoubleAsXmmRet);
   ADD_TEST(X86Test_CallConditional);
