@@ -26,12 +26,11 @@ struct Operand {
   uint8_t reserved_2_1;
   uint8_t reserved_3_1;
   uint32_t id;
-  uint32_t reserved_8_4;
-  uint32_t reserved_12_4;
+  uint64_t reserved_8_8;
 };
 
 ASMJIT_VAR const Operand noOperand;
-const Operand noOperand = { 0, 0, 0, 0, kInvalidValue, 0, 0 };
+const Operand noOperand = { 0, 0, 0, 0, kInvalidValue, 0 };
 
 } // asmjit namespace
 
