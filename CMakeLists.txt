@@ -8,30 +8,21 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # [AsmJit - Configuration]
 # =============================================================================
 
-# Whether not to build anything (default FALSE).
-# Set(ASMJIT_EMBED FALSE)
+option(ASMJIT_EMBED "Whether not to build anything" OFF)
 
-# Whether to build static library (default FALSE).
-# Set(ASMJIT_STATIC FALSE)
+option(ASMJIT_STATIC "Whether to build static library" ASMJIT_EMBED)
 
-# Whether to build contribution together with AsmJit (default FALSE)
-# Set(ASMJIT_BUILD_CONTRIB)
+option(ASMJIT_BUILD_CONTRIB "Whether to build contribution together with AsmJit" OFF)
 
-# Whether to build tests (default FALSE).
-# Set(ASMJIT_BUILD_TEST FALSE)
+option(ASMJIT_BUILD_TEST "Whether to build tests" OFF)
 
-# Whether to build samples (default FALSE).
-# Set(ASMJIT_BUILD_SAMPLES FALSE)
+option(ASMJIT_BUILD_SAMPLES "Whether to build samples" OFF)
 
 # =============================================================================
 # [AsmJit - Build]
 # =============================================================================
 
-If(ASMJIT_EMBED)
-  Set(ASMJIT_STATIC TRUE)
-EndIf()
-
-If(NOT CMAKE_PROJECT_NAME)
+If(NOT ASMJIT_EMBED)
   Project(asmjit C CXX)
   Set(ASMJIT_PROJECT_STR "Project")
 Else()
@@ -375,3 +366,39 @@ If(ASMJIT_BUILD_SAMPLES)
     Target_Link_Libraries(${file} asmjit ${ASMJIT_DEPS})
   EndForEach(file)
 EndIf()
+
+# =============================================================================
+# [Asmjit - Config]
+# =============================================================================
+
+set(ASMJIT_CMAKE_CONFIG_DIR lib/cmake/asmjit CACHE PATH "config dir")
+set(ASMJIT_USE_FILE ${CMAKE_INSTALL_PREFIX}/${ASMJIT_CMAKE_CONFIG_DIR}/asmjit-use.cmake)
+set(ASMJIT_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
+set(ASMJIT_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
+set(ASMJIT_INCLUDE_DIRS ${ASMJIT_INCLUDE_DIR})
+set(ASMJIT_LIBRARY_DIRS ${CMAKE_INSTALL_PREFIX}/lib)
+set(ASMJIT_LIBRARY asmjit)
+set(ASMJIT_LIBRARIES ${ASMJIT_LIBRARY})
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file (
+  asmjit-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/asmjit-config.cmake
+  INSTALL_DESTINATION ASMJIT_CMAKE_CONFIG_DIR
+  PATH_VARS
+    ASMJIT_USE_FILE
+    ASMJIT_ROOT_DIR
+    ASMJIT_INCLUDE_DIR
+    ASMJIT_INCLUDE_DIRS
+    ASMJIT_LIBRARY_DIRS
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+If(NOT ASMJIT_EMBED)
+  install ( FILES
+              ${CMAKE_CURRENT_BINARY_DIR}/asmjit-config.cmake
+              asmjit-use.cmake
+            DESTINATION ${ASMJIT_CMAKE_CONFIG_DIR}
+          )
+endif ()
