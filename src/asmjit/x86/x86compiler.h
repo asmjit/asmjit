@@ -526,12 +526,6 @@ struct X86Var : public Var {
     return X86Var(*this);
   }
 
-  //! Reset X86Var operand.
-  ASMJIT_INLINE void reset() {
-    _init_packed_op_sz_b0_b1_id(kOperandTypeVar, 0, kInvalidReg, kInvalidReg, kInvalidValue);
-    _init_packed_d2_d3(kInvalidValue, kInvalidValue);
-  }
-
   // --------------------------------------------------------------------------
   // [Type]
   // --------------------------------------------------------------------------

@@ -558,6 +558,12 @@ struct Var : public Operand {
     return Var(*this);
   }
 
+  //! Reset Var operand.
+  ASMJIT_INLINE void reset() {
+    _init_packed_op_sz_b0_b1_id(kOperandTypeVar, 0, kInvalidReg, kInvalidReg, kInvalidValue);
+    _init_packed_d2_d3(kInvalidValue, kInvalidValue);
+  }
+
   //! Get whether the variable has been initialized by `Compiler`.
   ASMJIT_INLINE bool isInitialized() const {
     return _vreg.id != kInvalidValue;
@@ -2954,14 +2960,50 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   ASMJIT_API void alloc(Var& var);
   //! Alloc variable `var` using `regIndex` as a register index.
   ASMJIT_API void alloc(Var& var, uint32_t regIndex);
-  //! Alloc variable `var` using `reg` as a demanded register.
+  //! Alloc variable `var` using `reg` as a register operand.
   ASMJIT_API void alloc(Var& var, const Reg& reg);
   //! Spill variable `var`.
   ASMJIT_API void spill(Var& var);
-  //! Save variable `var` if modified.
+  //! Save variable `var` if the status is `modified` at this point.
   ASMJIT_API void save(Var& var);
   //! Unuse variable `var`.
   ASMJIT_API void unuse(Var& var);
+
+  //! Alloc variable `var` (if initialized), but only if it's initialized.
+  ASMJIT_INLINE void allocUnsafe(Var& var) {
+    if (var.isInitialized())
+      alloc(var);
+  }
+
+  //! Alloc variable `var` (if initialized) using `regIndex` as a register index
+  ASMJIT_INLINE void allocUnsafe(Var& var, uint32_t regIndex) {
+    if (var.isInitialized())
+      alloc(var, regIndex);
+  }
+
+  //! Alloc variable `var` (if initialized) using `reg` as a register operand.
+  ASMJIT_INLINE void allocUnsafe(Var& var, const Reg& reg) {
+    if (var.isInitialized())
+      alloc(var, reg);
+  }
+
+  //! Spill variable `var` (if initialized).
+  ASMJIT_INLINE void spillUnsafe(Var& var) {
+    if (var.isInitialized())
+      spill(var);
+  }
+
+  //! Save variable `var` (if initialized) if the status is `modified` at this point.
+  ASMJIT_INLINE void saveUnsafe(Var& var) {
+    if (var.isInitialized())
+      save(var);
+  }
+
+  //! Unuse variable `var` (if initialized).
+  ASMJIT_INLINE void unuseUnsafe(Var& var) {
+    if (var.isInitialized())
+      unuse(var);
+  }
 
   //! Get priority of variable `var`.
   ASMJIT_API uint32_t getPriority(Var& var) const;

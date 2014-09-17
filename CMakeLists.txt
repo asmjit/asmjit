@@ -14,9 +14,6 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # Whether to build static library (default FALSE).
 # Set(ASMJIT_STATIC FALSE)
 
-# Whether to build contribution together with AsmJit (default FALSE)
-# Set(ASMJIT_BUILD_CONTRIB)
-
 # Whether to build tests (default FALSE).
 # Set(ASMJIT_BUILD_TEST FALSE)
 
@@ -227,7 +224,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit
   base.h
   build.h
   config.h
-  contrib.h
   host.h
   x86.h
 )
@@ -288,13 +284,6 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
   x86scheduler.cpp
   x86scheduler_p.h
 )
-
-If(ASMJIT_BUILD_CONTRIB)
-AsmJit_AddSource(ASMJIT_SRC asmjit/contrib
-  winremoteruntime.cpp
-  winremoteruntime.h
-)
-EndIf()
 
 # =============================================================================
 # [AsmJit - Headers]
