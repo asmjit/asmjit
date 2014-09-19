@@ -64,7 +64,9 @@ static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) 
   while (i < id) {
     while (p[0])
       p++;
+
     p++;
+    i++;
   }
 
   return p;
