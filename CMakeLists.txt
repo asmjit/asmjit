@@ -20,6 +20,9 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # Whether to build samples (default FALSE).
 # Set(ASMJIT_BUILD_SAMPLES FALSE)
 
+# Whether to install anything (default FALSE).
+# Set(ASMJIT_INSTALL FALSE)
+
 # =============================================================================
 # [AsmJit - Build]
 # =============================================================================
@@ -201,7 +204,7 @@ Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags
   Set_Target_Properties(${in_name} PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
 
   # Install Instructions.
-  If(NOT ASMJIT_EMBED)
+  If(NOT ASMJIT_EMBED AND ASMJIT_INSTALL)
     Install(TARGETS ${in_name} LIBRARY DESTINATION lib${LIB_SUFFIX}
                                ARCHIVE DESTINATION lib${LIB_SUFFIX}
                                RUNTIME DESTINATION bin)
@@ -289,7 +292,7 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
 # [AsmJit - Headers]
 # =============================================================================
 
-If(NOT ASMJIT_EMBED)
+If(NOT ASMJIT_EMBED AND ASMJIT_INSTALL)
   ForEach(i ${ASMJIT_SRC})
     Get_Filename_Component(path ${i} PATH)
     Get_Filename_Component(name ${i} NAME)
