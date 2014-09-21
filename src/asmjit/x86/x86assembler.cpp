@@ -3661,18 +3661,19 @@ _EmitSib:
       reloc.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
       reloc.data = static_cast<SignedPtr>(dispOffset);
 
-      if (self->_relocList.append(reloc) != kErrorOk)
-        return self->setError(kErrorNoHeapMemory);
-
       if (label->offset != -1) {
         // Bound label.
         reloc.data += static_cast<SignedPtr>(label->offset);
         EMIT_DWORD(0);
+        if (self->_relocList.append(reloc) != kErrorOk)
+          return self->setError(kErrorNoHeapMemory);
       }
       else {
         // Non-bound label.
         dispOffset = -4 - imLen;
         dispSize = 4;
+        if (self->_relocList.append(reloc) != kErrorOk)
+          return self->setError(kErrorNoHeapMemory);
         goto _EmitDisplacement;
       }
     }
