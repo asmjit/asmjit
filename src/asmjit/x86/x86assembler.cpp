@@ -316,21 +316,21 @@ Error X86Assembler::embedLabel(const Label& op) {
   uint8_t* cursor = getCursor();
 
   LabelData* label = getLabelData(op.getId());
-  RelocData reloc;
+  RelocData rd;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
     _logger->logFormat(kLoggerStyleData, regSize == 4 ? ".dd L%u\n" : ".dq L%u\n", op.getId());
 #endif // !ASMJIT_DISABLE_LOGGER
 
-  reloc.type = kRelocRelToAbs;
-  reloc.size = regSize;
-  reloc.from = static_cast<Ptr>(getOffset());
-  reloc.data = 0;
+  rd.type = kRelocRelToAbs;
+  rd.size = regSize;
+  rd.from = static_cast<Ptr>(getOffset());
+  rd.data = 0;
 
   if (label->offset != -1) {
     // Bound label.
-    reloc.data = static_cast<Ptr>(static_cast<SignedPtr>(label->offset));
+    rd.data = static_cast<Ptr>(static_cast<SignedPtr>(label->offset));
   }
   else {
     // Non-bound label. Need to chain.
@@ -344,7 +344,7 @@ Error X86Assembler::embedLabel(const Label& op) {
     label->links = link;
   }
 
-  if (_relocList.append(reloc) != kErrorOk)
+  if (_relocList.append(rd) != kErrorOk)
     return setError(kErrorNoHeapMemory);
 
   // Emit dummy intptr_t (4 or 8 bytes; depends on the address size).
@@ -495,22 +495,22 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
 
   // Relocate all recorded locations.
   size_t relocCount = _relocList.getLength();
-  const RelocData* relocData = _relocList.getData();
+  const RelocData* rdList = _relocList.getData();
 
   for (size_t i = 0; i < relocCount; i++) {
-    const RelocData& r = relocData[i];
+    const RelocData& rd = rdList[i];
 
     // Make sure that the `RelocData` is correct.
-    Ptr ptr = r.data;
+    Ptr ptr = rd.data;
 
-    size_t offset = static_cast<size_t>(r.from);
-    ASMJIT_ASSERT(offset + r.size <= static_cast<Ptr>(maxCodeSize));
+    size_t offset = static_cast<size_t>(rd.from);
+    ASMJIT_ASSERT(offset + rd.size <= static_cast<Ptr>(maxCodeSize));
 
     // Whether to use trampoline, can be only used if relocation type is
     // kRelocAbsToRel on 64-bit.
     bool useTrampoline = false;
 
-    switch (r.type) {
+    switch (rd.type) {
       case kRelocAbsToAbs:
         break;
 
@@ -519,13 +519,13 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
         break;
 
       case kRelocAbsToRel:
-        ptr -= baseAddress + r.from + 4;
+        ptr -= baseAddress + rd.from + 4;
         break;
 
       case kRelocTrampoline:
-        ptr -= baseAddress + r.from + 4;
+        ptr -= baseAddress + rd.from + 4;
         if (!IntUtil::isInt32(static_cast<SignedPtr>(ptr))) {
-          ptr = (Ptr)tramp - (baseAddress + r.from + 4);
+          ptr = (Ptr)tramp - (baseAddress + rd.from + 4);
           useTrampoline = true;
         }
         break;
@@ -534,7 +534,7 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
         ASMJIT_ASSERT(!"Reached");
     }
 
-    switch (r.size) {
+    switch (rd.size) {
       case 8:
         *reinterpret_cast<int64_t*>(dst + offset) = static_cast<int64_t>(ptr);
         break;
@@ -566,14 +566,14 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
       dst[offset - 1] = byte1;
 
       // Absolute address.
-      ((uint64_t*)tramp)[0] = static_cast<uint64_t>(r.data);
+      ((uint64_t*)tramp)[0] = static_cast<uint64_t>(rd.data);
 
       // Advance trampoline pointer.
       tramp += 8;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
       if (logger)
-        logger->logFormat(kLoggerStyleComment, "; Trampoline %llX\n", r.data);
+        logger->logFormat(kLoggerStyleComment, "; Trampoline %llX\n", rd.data);
 #endif // !ASMJIT_DISABLE_LOGGER
     }
   }
@@ -3655,18 +3655,20 @@ _EmitSib:
       label = self->getLabelData(rmMem->_vmem.base);
       relocId = self->_relocList.getLength();
 
-      RelocData reloc;
-      reloc.type = kRelocRelToAbs;
-      reloc.size = 4;
-      reloc.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
-      reloc.data = static_cast<SignedPtr>(dispOffset);
+      {
+        RelocData rd;
+        rd.type = kRelocRelToAbs;
+        rd.size = 4;
+        rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
+        rd.data = static_cast<SignedPtr>(dispOffset);
 
-      if (self->_relocList.append(reloc) != kErrorOk)
-        return self->setError(kErrorNoHeapMemory);
+        if (self->_relocList.append(rd) != kErrorOk)
+          return self->setError(kErrorNoHeapMemory);
+      }
 
       if (label->offset != -1) {
         // Bound label.
-        reloc.data += static_cast<SignedPtr>(label->offset);
+        self->_relocList[relocId].data += static_cast<SignedPtr>(label->offset);
         EMIT_DWORD(0);
       }
       else {
@@ -3925,18 +3927,20 @@ _EmitAvxV:
       label = self->getLabelData(rmMem->_vmem.base);
       relocId = self->_relocList.getLength();
 
-      RelocData reloc;
-      reloc.type = kRelocRelToAbs;
-      reloc.size = 4;
-      reloc.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
-      reloc.data = static_cast<SignedPtr>(dispOffset);
+      {
+        RelocData rd;
+        rd.type = kRelocRelToAbs;
+        rd.size = 4;
+        rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
+        rd.data = static_cast<SignedPtr>(dispOffset);
 
-      if (self->_relocList.append(reloc) != kErrorOk)
-        return self->setError(kErrorNoHeapMemory);
+        if (self->_relocList.append(rd) != kErrorOk)
+          return self->setError(kErrorNoHeapMemory);
+      }
 
       if (label->offset != -1) {
         // Bound label.
-        reloc.data += static_cast<SignedPtr>(label->offset);
+        self->_relocList[relocId].data += static_cast<SignedPtr>(label->offset);
         EMIT_DWORD(0);
       }
       else {
