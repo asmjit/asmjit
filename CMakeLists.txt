@@ -8,8 +8,7 @@ CMake_Minimum_Required(VERSION 2.8.12)
 # [AsmJit - Configuration]
 # =============================================================================
 
-# Whether not to build anything (default FALSE).
-# Set(ASMJIT_EMBED FALSE)
+option(ASMJIT_EMBED "Whether not to build anything" FALSE)
 
 # Whether to build static library (default FALSE).
 # Set(ASMJIT_STATIC FALSE)
@@ -28,7 +27,7 @@ If(ASMJIT_EMBED)
   Set(ASMJIT_STATIC TRUE)
 EndIf()
 
-If(NOT CMAKE_PROJECT_NAME OR ${CMAKE_PROJECT_NAME} STREQUAL "asmjit")
+If(NOT ASMJIT_EMBED)
   Project(asmjit C CXX)
   Set(ASMJIT_PROJECT_STR "Project")
 Else()
