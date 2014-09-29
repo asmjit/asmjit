@@ -869,22 +869,22 @@ static bool X86Assembler_dumpInstruction(StringBuilder& sb,
   return true;
 }
 
-static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_t* binData, size_t binLength, size_t dispSize, const char* comment) {
-  size_t currentLength = len;
-  size_t commentLength = comment ? StringUtil::nlen(comment, kMaxCommentLength) : 0;
+static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) {
+  size_t currentLen = len;
+  size_t commentLen = comment ? StringUtil::nlen(comment, kMaxCommentLength) : 0;
 
-  ASMJIT_ASSERT(binLength >= dispSize);
+  ASMJIT_ASSERT(binLen >= dispLen);
 
-  if (binLength || commentLength) {
+  if (binLen || commentLen) {
     size_t align = 36;
     char sep = ';';
 
-    for (size_t i = (binLength == 0); i < 2; i++) {
+    for (size_t i = (binLen == 0); i < 2; i++) {
       size_t begin = sb.getLength();
 
       // Append align.
-      if (currentLength < align) {
-        if (!sb.appendChars(' ', align - currentLength))
+      if (currentLen < align) {
+        if (!sb.appendChars(' ', align - currentLen))
           return false;
       }
 
@@ -896,19 +896,21 @@ static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_
 
       // Append binary data or comment.
       if (i == 0) {
-        if (!sb.appendHex(binData, binLength - dispSize))
+        if (!sb.appendHex(binData, binLen - dispLen - imLen))
           return false;
-        if (!sb.appendChars('.', dispSize * 2))
+        if (!sb.appendChars('.', dispLen * 2))
           return false;
-        if (commentLength == 0)
+        if (!sb.appendHex(binData + binLen - imLen, imLen))
+          return false;
+        if (commentLen == 0)
           break;
       }
       else {
-        if (!sb.appendString(comment, commentLength))
+        if (!sb.appendString(comment, commentLen))
           return false;
       }
 
-      currentLength += sb.getLength() - begin;
+      currentLen += sb.getLength() - begin;
       align += 22;
       sep = '|';
     }
@@ -4114,6 +4116,9 @@ _EmitDisplacement:
       EMIT_BYTE(0x01);
     else // if (dispSize == 4)
       EMIT_DWORD(0x04040404);
+
+    if (imLen != 0)
+      goto _EmitImm;
   }
 
   // --------------------------------------------------------------------------
@@ -4138,9 +4143,9 @@ _EmitDone:
     X86Assembler_dumpInstruction(sb, Arch, code, options, o0, o1, o2, o3, loggerOptions);
 
     if ((loggerOptions & (1 << kLoggerOptionBinaryForm)) != 0)
-      X86Assembler_dumpComment(sb, sb.getLength(), self->_cursor, (intptr_t)(cursor - self->_cursor), dispSize, self->_comment);
+      X86Assembler_dumpComment(sb, sb.getLength(), self->_cursor, (intptr_t)(cursor - self->_cursor), dispSize, imLen, self->_comment);
     else
-      X86Assembler_dumpComment(sb, sb.getLength(), NULL, 0, 0, self->_comment);
+      X86Assembler_dumpComment(sb, sb.getLength(), NULL, 0, 0, 0, self->_comment);
 
 # if defined(ASMJIT_DEBUG)
     if (self->_logger)
