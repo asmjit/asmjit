@@ -263,7 +263,7 @@
 // ASMJIT_TRACE is only used by sources and private headers. It's safe to make
 // it unavailable outside of AsmJit.
 #if defined(ASMJIT_EXPORTS)
-namespace asmjit { static inline int disabledTrace(...) {} }
+namespace asmjit { static inline int disabledTrace(...) { return 0; } }
 # if defined(ASMJIT_TRACE)
 #  define ASMJIT_TSEC(_Section_) _Section_
 #  define ASMJIT_TLOG ::printf(__VA_ARGS__)
