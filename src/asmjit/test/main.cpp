@@ -44,49 +44,64 @@ static void dumpCpu(void) {
   const X86CpuInfo* x86Cpu = static_cast<const X86CpuInfo*>(cpu);
 
   static const DumpCpuFeature x86FeaturesList[] = {
-    { kX86CpuFeatureMultithreading     , "Multithreading"      },
-    { kX86CpuFeatureExecuteDisableBit  , "Execute-Disable Bit" },
-    { kX86CpuFeatureRdtsc              , "Rdtsc"               },
-    { kX86CpuFeatureRdtscp             , "Rdtscp"              },
-    { kX86CpuFeatureCmov               , "Cmov"                },
-    { kX86CpuFeatureCmpXchg8B          , "Cmpxchg8b"           },
-    { kX86CpuFeatureCmpXchg16B         , "Cmpxchg16b"          },
-    { kX86CpuFeatureClflush            , "Clflush"             },
-    { kX86CpuFeaturePrefetch           , "Prefetch"            },
-    { kX86CpuFeatureLahfSahf           , "Lahf/Sahf"           },
-    { kX86CpuFeatureFxsr               , "Fxsave/Fxrstor"      },
-    { kX86CpuFeatureFfxsr              , "Fxsave/Fxrstor Opt." },
-    { kX86CpuFeatureMmx                , "Mmx"                 },
-    { kX86CpuFeatureMmxExt             , "MmxExt"              },
-    { kX86CpuFeature3dNow              , "3dnow"               },
-    { kX86CpuFeature3dNowExt           , "3dnowExt"            },
-    { kX86CpuFeatureSse                , "Sse"                 },
-    { kX86CpuFeatureSse2               , "Sse2"                },
-    { kX86CpuFeatureSse3               , "Sse3"                },
-    { kX86CpuFeatureSsse3              , "Ssse3"               },
-    { kX86CpuFeatureSse4A              , "Sse4a"               },
-    { kX86CpuFeatureSse41              , "Sse4.1"              },
-    { kX86CpuFeatureSse42              , "Sse4.2"              },
-    { kX86CpuFeatureMsse               , "Misaligned SSE"      },
-    { kX86CpuFeatureMonitorMWait       , "Monitor/MWait"       },
-    { kX86CpuFeatureMovbe              , "Movbe"               },
-    { kX86CpuFeaturePopcnt             , "Popcnt"              },
-    { kX86CpuFeatureLzcnt              , "Lzcnt"               },
-    { kX86CpuFeatureAesni              , "AesNI"               },
-    { kX86CpuFeaturePclmulqdq          , "Pclmulqdq"           },
-    { kX86CpuFeatureRdrand             , "Rdrand"              },
-    { kX86CpuFeatureAvx                , "Avx"                 },
-    { kX86CpuFeatureAvx2               , "Avx2"                },
-    { kX86CpuFeatureF16C               , "F16C"                },
-    { kX86CpuFeatureFma3               , "Fma3"                },
-    { kX86CpuFeatureFma4               , "Fma4"                },
-    { kX86CpuFeatureXop                , "Xop"                 },
-    { kX86CpuFeatureBmi                , "Bmi"                 },
-    { kX86CpuFeatureBmi2               , "Bmi2"                },
-    { kX86CpuFeatureHle                , "Hle"                 },
-    { kX86CpuFeatureRtm                , "Rtm"                 },
-    { kX86CpuFeatureFsGsBase           , "FsGsBase"            },
-    { kX86CpuFeatureRepMovsbStosbExt   , "RepMovsbStosbExt"    }
+    { kX86CpuFeatureNX                 , "NX (Non-Execute Bit)"  },
+    { kX86CpuFeatureMT                 , "MT (Multi-Threading)"  },
+    { kX86CpuFeatureRDTSC              , "RDTSC"                 },
+    { kX86CpuFeatureRDTSCP             , "RDTSCP"                },
+    { kX86CpuFeatureCMOV               , "CMOV"                  },
+    { kX86CpuFeatureCMPXCHG8B          , "CMPXCHG8B"             },
+    { kX86CpuFeatureCMPXCHG16B         , "CMPXCHG16B"            },
+    { kX86CpuFeatureCLFLUSH            , "CLFLUSH"               },
+    { kX86CpuFeatureCLFLUSHOpt         , "CLFLUSH (Opt)"         },
+    { kX86CpuFeaturePREFETCH           , "PREFETCH"              },
+    { kX86CpuFeaturePREFETCHWT1        , "PREFETCHWT1"           },
+    { kX86CpuFeatureLahfSahf           , "LAHF/SAHF"             },
+    { kX86CpuFeatureFXSR               , "FXSR"                  },
+    { kX86CpuFeatureFXSROpt            , "FXSR (Opt)"            },
+    { kX86CpuFeatureMMX                , "MMX"                   },
+    { kX86CpuFeatureMMX2               , "MMX2"                  },
+    { kX86CpuFeature3DNOW              , "3DNOW"                 },
+    { kX86CpuFeature3DNOW2             , "3DNOW2"                },
+    { kX86CpuFeatureSSE                , "SSE"                   },
+    { kX86CpuFeatureSSE2               , "SSE2"                  },
+    { kX86CpuFeatureSSE3               , "SSE3"                  },
+    { kX86CpuFeatureSSSE3              , "SSSE3"                 },
+    { kX86CpuFeatureSSE4A              , "SSE4A"                 },
+    { kX86CpuFeatureSSE4_1             , "SSE4.1"                },
+    { kX86CpuFeatureSSE4_2             , "SSE4.2"                },
+    { kX86CpuFeatureMSSE               , "Misaligned SSE"        },
+    { kX86CpuFeatureMONITOR            , "MONITOR/MWAIT"         },
+    { kX86CpuFeatureMOVBE              , "MOVBE"                 },
+    { kX86CpuFeaturePOPCNT             , "POPCNT"                },
+    { kX86CpuFeatureLZCNT              , "LZCNT"                 },
+    { kX86CpuFeatureAESNI              , "AESNI"                 },
+    { kX86CpuFeaturePCLMULQDQ          , "PCLMULQDQ"             },
+    { kX86CpuFeatureRDRAND             , "RDRAND"                },
+    { kX86CpuFeatureRDSEED             , "RDSEED"                },
+    { kX86CpuFeatureSHA                , "SHA"                   },
+    { kX86CpuFeatureXSave              , "XSAVE"                 },
+    { kX86CpuFeatureXSaveOS            , "XSAVE (OS)"            },
+    { kX86CpuFeatureAVX                , "AVX"                   },
+    { kX86CpuFeatureAVX2               , "AVX2"                  },
+    { kX86CpuFeatureF16C               , "F16C"                  },
+    { kX86CpuFeatureFMA3               , "FMA3"                  },
+    { kX86CpuFeatureFMA4               , "FMA4"                  },
+    { kX86CpuFeatureXOP                , "XOP"                   },
+    { kX86CpuFeatureBMI                , "BMI"                   },
+    { kX86CpuFeatureBMI2               , "BMI2"                  },
+    { kX86CpuFeatureHLE                , "HLE"                   },
+    { kX86CpuFeatureRTM                , "RTM"                   },
+    { kX86CpuFeatureADX                , "ADX"                   },
+    { kX86CpuFeatureMPX                , "MPX"                   },
+    { kX86CpuFeatureFSGSBase           , "FS/GS Base"            },
+    { kX86CpuFeatureMOVSBSTOSBOpt      , "REP MOVSB/STOSB (Opt)" },
+    { kX86CpuFeatureAVX512F            , "AVX512F"               },
+    { kX86CpuFeatureAVX512CD           , "AVX512CD"              },
+    { kX86CpuFeatureAVX512PF           , "AVX512PF"              },
+    { kX86CpuFeatureAVX512ER           , "AVX512ER"              },
+    { kX86CpuFeatureAVX512DQ           , "AVX512DQ"              },
+    { kX86CpuFeatureAVX512BW           , "AVX512BW"              },
+    { kX86CpuFeatureAVX512VL           , "AVX512VL"              }
   };
 
   INFO("Host CPU Info (X86/X64):");
@@ -178,16 +193,19 @@ static void dumpSizeOf(void) {
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
   INFO("SizeOf X86/X64:");
   DUMP_TYPE(asmjit::X86Assembler);
+  DUMP_TYPE(asmjit::X86InstInfo);
+  DUMP_TYPE(asmjit::X86InstExtendedInfo);
+
 #if !defined(ASMJIT_DISABLE_COMPILER)
   DUMP_TYPE(asmjit::X86Compiler);
   DUMP_TYPE(asmjit::X86CallNode);
   DUMP_TYPE(asmjit::X86FuncNode);
   DUMP_TYPE(asmjit::X86FuncDecl);
-  DUMP_TYPE(asmjit::X86InstInfo);
   DUMP_TYPE(asmjit::X86VarMap);
   DUMP_TYPE(asmjit::X86VarInfo);
   DUMP_TYPE(asmjit::X86VarState);
 #endif // !ASMJIT_DISABLE_COMPILER
+
   INFO("");
 #endif // ASMJIT_BUILD_X86
 }

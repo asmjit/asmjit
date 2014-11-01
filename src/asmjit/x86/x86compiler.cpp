@@ -60,14 +60,18 @@ const X86VarInfo _x86VarInfo[] = {
   /* 10: kVarTypeFp32     */ { kX86RegTypeFp   , 4 , C(Fp) , D(Sp)            , "fp"  },
   /* 11: kVarTypeFp64     */ { kX86RegTypeFp   , 8 , C(Fp) , D(Dp)            , "fp"  },
   /* 12: kX86VarTypeMm    */ { kX86RegTypeMm   , 8 , C(Mm) , 0                , "mm"  },
-  /* 13: kX86VarTypeXmm   */ { kX86RegTypeXmm  , 16, C(Xyz), 0                , "xmm" },
-  /* 14: kX86VarTypeXmmSs */ { kX86RegTypeXmm  , 4 , C(Xyz), D(Sp)            , "xmm" },
-  /* 15: kX86VarTypeXmmPs */ { kX86RegTypeXmm  , 16, C(Xyz), D(Sp) | D(Packed), "xmm" },
-  /* 16: kX86VarTypeXmmSd */ { kX86RegTypeXmm  , 8 , C(Xyz), D(Dp)            , "xmm" },
-  /* 17: kX86VarTypeXmmPd */ { kX86RegTypeXmm  , 16, C(Xyz), D(Dp) | D(Packed), "xmm" },
-  /* 18: kX86VarTypeYmm   */ { kX86RegTypeYmm  , 32, C(Xyz), 0                , "ymm" },
-  /* 19: kX86VarTypeYmmPs */ { kX86RegTypeYmm  , 32, C(Xyz), D(Sp) | D(Packed), "ymm" },
-  /* 20: kX86VarTypeYmmPd */ { kX86RegTypeYmm  , 32, C(Xyz), D(Dp) | D(Packed), "ymm" }
+  /* 13: kX86VarTypeK     */ { kX86RegTypeK    , 8 , C(K)  , 0                , "k"   },
+  /* 14: kX86VarTypeXmm   */ { kX86RegTypeXmm  , 16, C(Xyz), 0                , "xmm" },
+  /* 15: kX86VarTypeXmmSs */ { kX86RegTypeXmm  , 4 , C(Xyz), D(Sp)            , "xmm" },
+  /* 16: kX86VarTypeXmmPs */ { kX86RegTypeXmm  , 16, C(Xyz), D(Sp) | D(Packed), "xmm" },
+  /* 17: kX86VarTypeXmmSd */ { kX86RegTypeXmm  , 8 , C(Xyz), D(Dp)            , "xmm" },
+  /* 18: kX86VarTypeXmmPd */ { kX86RegTypeXmm  , 16, C(Xyz), D(Dp) | D(Packed), "xmm" },
+  /* 19: kX86VarTypeYmm   */ { kX86RegTypeYmm  , 32, C(Xyz), 0                , "ymm" },
+  /* 20: kX86VarTypeYmmPs */ { kX86RegTypeYmm  , 32, C(Xyz), D(Sp) | D(Packed), "ymm" },
+  /* 21: kX86VarTypeYmmPd */ { kX86RegTypeYmm  , 32, C(Xyz), D(Dp) | D(Packed), "ymm" },
+  /* 22: kX86VarTypeZmm   */ { kX86RegTypeZmm  , 64, C(Xyz), 0                , "zmm" },
+  /* 23: kX86VarTypeZmmPs */ { kX86RegTypeZmm  , 64, C(Xyz), D(Sp) | D(Packed), "zmm" },
+  /* 24: kX86VarTypeZmmPd */ { kX86RegTypeZmm  , 64, C(Xyz), D(Dp) | D(Packed), "zmm" }
 };
 
 #undef D
@@ -88,14 +92,18 @@ const uint8_t _x86VarMapping[kX86VarTypeCount] = {
   /* 10: kVarTypeFp32     */ kVarTypeFp32,
   /* 11: kVarTypeFp64     */ kVarTypeFp64,
   /* 12: kX86VarTypeMm    */ kX86VarTypeMm,
-  /* 13: kX86VarTypeXmm   */ kX86VarTypeXmm,
-  /* 14: kX86VarTypeXmmSs */ kX86VarTypeXmmSs,
-  /* 15: kX86VarTypeXmmPs */ kX86VarTypeXmmPs,
-  /* 16: kX86VarTypeXmmSd */ kX86VarTypeXmmSd,
-  /* 17: kX86VarTypeXmmPd */ kX86VarTypeXmmPd,
-  /* 18: kX86VarTypeYmm   */ kX86VarTypeYmm,
-  /* 19: kX86VarTypeYmmPs */ kX86VarTypeYmmPs,
-  /* 20: kX86VarTypeYmmPd */ kX86VarTypeYmmPd
+  /* 13: kX86VarTypeK     */ kX86VarTypeK,
+  /* 14: kX86VarTypeXmm   */ kX86VarTypeXmm,
+  /* 15: kX86VarTypeXmmSs */ kX86VarTypeXmmSs,
+  /* 16: kX86VarTypeXmmPs */ kX86VarTypeXmmPs,
+  /* 17: kX86VarTypeXmmSd */ kX86VarTypeXmmSd,
+  /* 18: kX86VarTypeXmmPd */ kX86VarTypeXmmPd,
+  /* 19: kX86VarTypeYmm   */ kX86VarTypeYmm,
+  /* 20: kX86VarTypeYmmPs */ kX86VarTypeYmmPs,
+  /* 21: kX86VarTypeYmmPd */ kX86VarTypeYmmPd,
+  /* 22: kX86VarTypeZmm   */ kX86VarTypeZmm,
+  /* 23: kX86VarTypeZmmPs */ kX86VarTypeZmmPs,
+  /* 24: kX86VarTypeZmmPd */ kX86VarTypeZmmPd
 };
 #endif // ASMJIT_BUILD_X86
 
@@ -114,14 +122,18 @@ const uint8_t _x64VarMapping[kX86VarTypeCount] = {
   /* 10: kVarTypeFp32     */ kVarTypeFp32,
   /* 11: kVarTypeFp64     */ kVarTypeFp64,
   /* 12: kX86VarTypeMm    */ kX86VarTypeMm,
-  /* 13: kX86VarTypeXmm   */ kX86VarTypeXmm,
-  /* 14: kX86VarTypeXmmSs */ kX86VarTypeXmmSs,
-  /* 15: kX86VarTypeXmmPs */ kX86VarTypeXmmPs,
-  /* 16: kX86VarTypeXmmSd */ kX86VarTypeXmmSd,
-  /* 17: kX86VarTypeXmmPd */ kX86VarTypeXmmPd,
-  /* 18: kX86VarTypeYmm   */ kX86VarTypeYmm,
-  /* 19: kX86VarTypeYmmPs */ kX86VarTypeYmmPs,
-  /* 20: kX86VarTypeYmmPd */ kX86VarTypeYmmPd
+  /* 13: kX86VarTypeK     */ kX86VarTypeK,
+  /* 14: kX86VarTypeXmm   */ kX86VarTypeXmm,
+  /* 15: kX86VarTypeXmmSs */ kX86VarTypeXmmSs,
+  /* 16: kX86VarTypeXmmPs */ kX86VarTypeXmmPs,
+  /* 17: kX86VarTypeXmmSd */ kX86VarTypeXmmSd,
+  /* 18: kX86VarTypeXmmPd */ kX86VarTypeXmmPd,
+  /* 19: kX86VarTypeYmm   */ kX86VarTypeYmm,
+  /* 20: kX86VarTypeYmmPs */ kX86VarTypeYmmPs,
+  /* 21: kX86VarTypeYmmPd */ kX86VarTypeYmmPd,
+  /* 22: kX86VarTypeZmm   */ kX86VarTypeZmm,
+  /* 23: kX86VarTypeZmmPs */ kX86VarTypeZmmPs,
+  /* 24: kX86VarTypeZmmPd */ kX86VarTypeZmmPd
 };
 #endif // ASMJIT_BUILD_X64
 
@@ -482,14 +494,14 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
 
         if (x86ArgIsInt(varType) && i < ASMJIT_ARRAY_SIZE(self->_passedOrderGp)) {
           arg._regIndex = self->_passedOrderGp[i];
-          self->_used.add(kX86RegClassGp, IntUtil::mask(arg.getRegIndex()));
+          self->_used.or_(kX86RegClassGp, IntUtil::mask(arg.getRegIndex()));
           continue;
         }
 
         if (x86ArgIsFp(varType) && i < ASMJIT_ARRAY_SIZE(self->_passedOrderXmm)) {
           arg._varType = static_cast<uint8_t>(x86ArgTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[i];
-          self->_used.add(kX86RegClassXyz, IntUtil::mask(arg.getRegIndex()));
+          self->_used.or_(kX86RegClassXyz, IntUtil::mask(arg.getRegIndex()));
         }
       }
 
@@ -527,7 +539,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
           continue;
 
         arg._regIndex = self->_passedOrderGp[gpPos++];
-        self->_used.add(kX86RegClassGp, IntUtil::mask(arg.getRegIndex()));
+        self->_used.or_(kX86RegClassGp, IntUtil::mask(arg.getRegIndex()));
       }
 
       // Register arguments (Xmm), always left-to-right.
@@ -538,7 +550,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
         if (x86ArgIsFp(varType)) {
           arg._varType = static_cast<uint8_t>(x86ArgTypeToXmmType(varType));
           arg._regIndex = self->_passedOrderXmm[xmmPos++];
-          self->_used.add(kX86RegClassXyz, IntUtil::mask(arg.getRegIndex()));
+          self->_used.or_(kX86RegClassXyz, IntUtil::mask(arg.getRegIndex()));
         }
       }
 
@@ -721,10 +733,10 @@ Error X86Compiler::setArch(uint32_t arch) {
     _regSize = 4;
 
     _regCount.reset();
-    _regCount._gp = 8;
-    _regCount._fp = 8;
-    _regCount._mm = 8;
-    _regCount._xy = 8;
+    _regCount._gp  = 8;
+    _regCount._mm  = 8;
+    _regCount._k   = 8;
+    _regCount._xyz = 8;
 
     zax = x86::eax;
     zcx = x86::ecx;
@@ -746,10 +758,10 @@ Error X86Compiler::setArch(uint32_t arch) {
     _regSize = 8;
 
     _regCount.reset();
-    _regCount._gp = 16;
-    _regCount._fp = 8;
-    _regCount._mm = 8;
-    _regCount._xy = 16;
+    _regCount._gp  = 16;
+    _regCount._mm  = 8;
+    _regCount._k   = 8;
+    _regCount._xyz = 16;
 
     zax = x86::rax;
     zcx = x86::rcx;
@@ -783,7 +795,7 @@ static InstNode* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, 
     JumpNode* node = new(p) JumpNode(self, code, options, opList, opCount);
     TargetNode* jTarget = self->getTargetById(opList[0].getId());
 
-    node->addFlags(code == kX86InstIdJmp ? kNodeFlagIsJmp | kNodeFlagIsTaken : kNodeFlagIsJcc);
+    node->orFlags(code == kX86InstIdJmp ? kNodeFlagIsJmp | kNodeFlagIsTaken : kNodeFlagIsJcc);
     node->_target = jTarget;
     node->_jumpNext = static_cast<JumpNode*>(jTarget->_from);
 
@@ -792,9 +804,9 @@ static InstNode* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, 
 
     // The 'jmp' is always taken, conditional jump can contain hint, we detect it.
     if (code == kX86InstIdJmp)
-      node->addFlags(kNodeFlagIsTaken);
+      node->orFlags(kNodeFlagIsTaken);
     else if (options & kInstOptionTaken)
-      node->addFlags(kNodeFlagIsTaken);
+      node->orFlags(kNodeFlagIsTaken);
 
     node->addOptions(options);
     return node;
@@ -1020,6 +1032,22 @@ InstNode* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1,
 InstNode* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2_) {
   Imm o2(o2_);
   InstNode* node = newInst(code, o0, o1, o2);
+  if (node == NULL)
+    return NULL;
+  return static_cast<InstNode*>(addNode(node));
+}
+
+InstNode* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3_) {
+  Imm o3(o3_);
+  InstNode* node = newInst(code, o0, o1, o2, o3);
+  if (node == NULL)
+    return NULL;
+  return static_cast<InstNode*>(addNode(node));
+}
+
+InstNode* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3_) {
+  Imm o3(o3_);
+  InstNode* node = newInst(code, o0, o1, o2, o3);
   if (node == NULL)
     return NULL;
   return static_cast<InstNode*>(addNode(node));

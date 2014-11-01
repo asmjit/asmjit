@@ -993,11 +993,11 @@ struct VarAttr {
   //! Get whether `flag` is on.
   ASMJIT_INLINE bool hasFlag(uint32_t flag) { return (_flags & flag) != 0; }
   //! Add `flags`.
-  ASMJIT_INLINE void addFlags(uint32_t flags) { _flags |= flags; }
+  ASMJIT_INLINE void orFlags(uint32_t flags) { _flags |= flags; }
   //! Mask `flags`.
   ASMJIT_INLINE void andFlags(uint32_t flags) { _flags &= flags; }
   //! Clear `flags`.
-  ASMJIT_INLINE void delFlags(uint32_t flags) { _flags &= ~flags; }
+  ASMJIT_INLINE void andNotFlags(uint32_t flags) { _flags &= ~flags; }
 
   //! Get how many times the variable is used by the instruction/node.
   ASMJIT_INLINE uint32_t getVarCount() const { return _varCount; }
@@ -1642,7 +1642,7 @@ struct Node {
   // [Accessors - Type and Flags]
   // --------------------------------------------------------------------------
 
-  //! Get type of node, see `kNodeType`.
+  //! Get node type, see `kNodeType`.
   ASMJIT_INLINE uint32_t getType() const {
     return _type;
   }
@@ -1652,24 +1652,29 @@ struct Node {
     return _flags;
   }
 
-  //! Set node flags to `flags`.
-  ASMJIT_INLINE void setFlags(uint32_t flags) {
-    _flags = static_cast<uint16_t>(flags);
-  }
-
   //! Get whether the instruction has flag `flag`.
   ASMJIT_INLINE bool hasFlag(uint32_t flag) const {
     return (static_cast<uint32_t>(_flags) & flag) != 0;
   }
 
+  //! Set node flags to `flags`.
+  ASMJIT_INLINE void setFlags(uint32_t flags) {
+    _flags = static_cast<uint16_t>(flags);
+  }
+
   //! Add instruction `flags`.
-  ASMJIT_INLINE void addFlags(uint32_t flags) {
+  ASMJIT_INLINE void orFlags(uint32_t flags) {
     _flags |= static_cast<uint16_t>(flags);
   }
 
+  //! And instruction `flags`.
+  ASMJIT_INLINE void andFlags(uint32_t flags) {
+    _flags &= static_cast<uint16_t>(flags);
+  }
+
   //! Clear instruction `flags`.
-  ASMJIT_INLINE void delFlags(uint32_t flags) {
-    _flags &= static_cast<uint16_t>(~flags);
+  ASMJIT_INLINE void andNotFlags(uint32_t flags) {
+    _flags &= ~static_cast<uint16_t>(flags);
   }
 
   //! Get whether the node has beed fetched.
@@ -1695,18 +1700,18 @@ struct Node {
     return hasFlag(kNodeFlagIsInformative);
   }
 
-  //! Whether the instruction is an unconditional jump.
+  //! Whether the node is `InstNode` and unconditional jump.
   ASMJIT_INLINE bool isJmp() const { return hasFlag(kNodeFlagIsJmp); }
-  //! Whether the instruction is a conditional jump.
+  //! Whether the node is `InstNode` and conditional jump.
   ASMJIT_INLINE bool isJcc() const { return hasFlag(kNodeFlagIsJcc); }
-  //! Whether the instruction is an unconditional or conditional jump.
+  //! Whether the node is `InstNode` and conditional/unconditional jump.
   ASMJIT_INLINE bool isJmpOrJcc() const { return hasFlag(kNodeFlagIsJmp | kNodeFlagIsJcc); }
-  //! Whether the instruction is a return.
+  //! Whether the node is `InstNode` and return.
   ASMJIT_INLINE bool isRet() const { return hasFlag(kNodeFlagIsRet); }
 
-  //! Get whether the instruction is special.
+  //! Get whether the node is `InstNode` and the instruction is special.
   ASMJIT_INLINE bool isSpecial() const { return hasFlag(kNodeFlagIsSpecial); }
-  //! Get whether the instruction accesses FPU.
+  //! Get whether the node is `InstNode` and the instruction uses x87-FPU.
   ASMJIT_INLINE bool isFp() const { return hasFlag(kNodeFlagIsFp); }
 
   // --------------------------------------------------------------------------
@@ -1897,7 +1902,9 @@ struct EmbedNode : public Node {
   // --------------------------------------------------------------------------
 
   //! Create a new `EmbedNode` instance.
-  ASMJIT_INLINE EmbedNode(Compiler* compiler, void* data, uint32_t size) : Node(compiler, kNodeTypeEmbed) {
+  ASMJIT_INLINE EmbedNode(Compiler* compiler, void* data, uint32_t size) :
+    Node(compiler, kNodeTypeEmbed) {
+
     _size = size;
     if (size <= kInlineBufferSize) {
       if (data != NULL)
@@ -1953,7 +1960,7 @@ struct CommentNode : public Node {
 
   //! Create a new `CommentNode` instance.
   ASMJIT_INLINE CommentNode(Compiler* compiler, const char* comment) : Node(compiler, kNodeTypeComment) {
-    addFlags(kNodeFlagIsInformative);
+    orFlags(kNodeFlagIsInformative);
     _comment = comment;
   }
 
@@ -1974,8 +1981,10 @@ struct HintNode : public Node {
   // --------------------------------------------------------------------------
 
   //! Create a new `HintNode` instance.
-  ASMJIT_INLINE HintNode(Compiler* compiler, VarData* vd, uint32_t hint, uint32_t value) : Node(compiler, kNodeTypeHint) {
-    addFlags(kNodeFlagIsInformative);
+  ASMJIT_INLINE HintNode(Compiler* compiler, VarData* vd, uint32_t hint, uint32_t value) :
+    Node(compiler, kNodeTypeHint) {
+
+    orFlags(kNodeFlagIsInformative);
     _vd = vd;
     _hint = hint;
     _value = value;
@@ -2101,9 +2110,12 @@ struct InstNode : public Node {
   // --------------------------------------------------------------------------
 
   //! Create a new `InstNode` instance.
-  ASMJIT_INLINE InstNode(Compiler* compiler, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) : Node(compiler, kNodeTypeInst) {
-    _code = static_cast<uint16_t>(code);
-    _options = static_cast<uint8_t>(options);
+  ASMJIT_INLINE InstNode(Compiler* compiler, uint32_t instId, uint32_t instOptions, Operand* opList, uint32_t opCount) :
+    Node(compiler, kNodeTypeInst) {
+
+    _instId = static_cast<uint16_t>(instId);
+    _reserved = 0;
+    _instOptions = instOptions;
 
     _opCount = static_cast<uint8_t>(opCount);
     _opList = opList;
@@ -2118,18 +2130,17 @@ struct InstNode : public Node {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get instruction code, see `kX86InstId`.
-  ASMJIT_INLINE uint32_t getCode() const {
-    return _code;
+  //! Get instruction ID, see `kX86InstId`.
+  ASMJIT_INLINE uint32_t getInstId() const {
+    return _instId;
   }
 
-  //! Set instruction code to `code`.
+  //! Set instruction ID to `instId`.
   //!
-  //! Please do not modify instruction code if you are not know what you are
-  //! doing. Incorrect instruction code or operands can raise assertion() at
-  //! runtime.
-  ASMJIT_INLINE void setCode(uint32_t code) {
-    _code = static_cast<uint16_t>(code);
+  //! Please do not modify instruction code if you don't know what are you
+  //! doing. Incorrect instruction code or operands can cause assertion failure.
+  ASMJIT_INLINE void setInstId(uint32_t instId) {
+    _instId = static_cast<uint16_t>(instId);
   }
 
   //! Whether the instruction is an unconditional jump or whether the
@@ -2140,23 +2151,23 @@ struct InstNode : public Node {
 
   //! Get emit options.
   ASMJIT_INLINE uint32_t getOptions() const {
-    return _options;
+    return _instOptions;
   }
   //! Set emit options.
   ASMJIT_INLINE void setOptions(uint32_t options) {
-    _options = static_cast<uint8_t>(options);
+    _instOptions = options;
   }
   //! Add emit options.
   ASMJIT_INLINE void addOptions(uint32_t options) {
-    _options |= static_cast<uint8_t>(options);
+    _instOptions |= options;
   }
   //! Mask emit options.
   ASMJIT_INLINE void andOptions(uint32_t options) {
-    _options &= static_cast<uint8_t>(options);
+    _instOptions &= options;
   }
   //! Clear emit options.
   ASMJIT_INLINE void delOptions(uint32_t options) {
-    _options &= static_cast<uint8_t>(~options);
+    _instOptions &= ~options;
   }
 
   //! Get operands list.
@@ -2225,12 +2236,14 @@ _Update:
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Instruction code, see `kInstId`.
-  uint16_t _code;
-  //! Instruction options, see `kInstOptions`.
-  uint8_t _options;
+  //! Instruction ID, see `kInstId`.
+  uint16_t _instId;
   //! \internal
   uint8_t _memOpIndex;
+  //! \internal
+  uint8_t _reserved;
+  //! Instruction options, see `kInstOptions`.
+  uint32_t _instOptions;
 
   //! Operands list.
   Operand* _opList;
@@ -2474,7 +2487,7 @@ struct FuncNode : public Node {
   //! The "Red Zone" size - count of bytes which might be accessed without
   //! adjusting the stack pointer.
   uint16_t _redZoneSize;
-  //! Spill zone size (zone used by WIN64ABI).
+  //! Spill zone size (used by WIN64 ABI).
   uint16_t _spillZoneSize;
 
   //! Stack size needed for function arguments.

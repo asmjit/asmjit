@@ -31,92 +31,123 @@ struct X86CpuInfo;
 
 //! X86 CPU features.
 ASMJIT_ENUM(kX86CpuFeature) {
+  //! Cpu has Not-Execute-Bit.
+  kX86CpuFeatureNX = 0,
   //! Cpu has multithreading.
-  kX86CpuFeatureMultithreading = 1,
-  //! Cpu has execute disable bit.
-  kX86CpuFeatureExecuteDisableBit,
+  kX86CpuFeatureMT,
   //! Cpu has RDTSC.
-  kX86CpuFeatureRdtsc,
+  kX86CpuFeatureRDTSC,
   //! Cpu has RDTSCP.
-  kX86CpuFeatureRdtscp,
+  kX86CpuFeatureRDTSCP,
   //! Cpu has CMOV.
-  kX86CpuFeatureCmov,
+  kX86CpuFeatureCMOV,
   //! Cpu has CMPXCHG8B.
-  kX86CpuFeatureCmpXchg8B,
-  //! Cpu has CMPXCHG16B (x64).
-  kX86CpuFeatureCmpXchg16B,
+  kX86CpuFeatureCMPXCHG8B,
+  //! Cpu has CMPXCHG16B (X64).
+  kX86CpuFeatureCMPXCHG16B,
   //! Cpu has CLFUSH.
-  kX86CpuFeatureClflush,
+  kX86CpuFeatureCLFLUSH,
+  //! Cpu has CLFUSH (Optimized).
+  kX86CpuFeatureCLFLUSHOpt,
   //! Cpu has PREFETCH.
-  kX86CpuFeaturePrefetch,
+  kX86CpuFeaturePREFETCH,
+  //! Cpu has PREFETCHWT1.
+  kX86CpuFeaturePREFETCHWT1,
   //! Cpu has LAHF/SAHF.
   kX86CpuFeatureLahfSahf,
   //! Cpu has FXSAVE/FXRSTOR.
-  kX86CpuFeatureFxsr,
-  //! Cpu has FXSAVE/FXRSTOR optimizations.
-  kX86CpuFeatureFfxsr,
+  kX86CpuFeatureFXSR,
+  //! Cpu has FXSAVE/FXRSTOR (Optimized).
+  kX86CpuFeatureFXSROpt,
   //! Cpu has MMX.
-  kX86CpuFeatureMmx,
+  kX86CpuFeatureMMX,
   //! Cpu has extended MMX.
-  kX86CpuFeatureMmxExt,
+  kX86CpuFeatureMMX2,
   //! Cpu has 3dNow!
-  kX86CpuFeature3dNow,
+  kX86CpuFeature3DNOW,
   //! Cpu has enchanced 3dNow!
-  kX86CpuFeature3dNowExt,
+  kX86CpuFeature3DNOW2,
   //! Cpu has SSE.
-  kX86CpuFeatureSse,
+  kX86CpuFeatureSSE,
   //! Cpu has SSE2.
-  kX86CpuFeatureSse2,
+  kX86CpuFeatureSSE2,
   //! Cpu has SSE3.
-  kX86CpuFeatureSse3,
-  //! Cpu has Supplemental SSE3 (SSSE3).
-  kX86CpuFeatureSsse3,
+  kX86CpuFeatureSSE3,
+  //! Cpu has SSSE3.
+  kX86CpuFeatureSSSE3,
   //! Cpu has SSE4.A.
-  kX86CpuFeatureSse4A,
+  kX86CpuFeatureSSE4A,
   //! Cpu has SSE4.1.
-  kX86CpuFeatureSse41,
+  kX86CpuFeatureSSE4_1,
   //! Cpu has SSE4.2.
-  kX86CpuFeatureSse42,
+  kX86CpuFeatureSSE4_2,
   //! Cpu has Misaligned SSE (MSSE).
-  kX86CpuFeatureMsse,
+  kX86CpuFeatureMSSE,
   //! Cpu has MONITOR and MWAIT.
-  kX86CpuFeatureMonitorMWait,
+  kX86CpuFeatureMONITOR,
   //! Cpu has MOVBE.
-  kX86CpuFeatureMovbe,
+  kX86CpuFeatureMOVBE,
   //! Cpu has POPCNT.
-  kX86CpuFeaturePopcnt,
+  kX86CpuFeaturePOPCNT,
   //! Cpu has LZCNT.
-  kX86CpuFeatureLzcnt,
+  kX86CpuFeatureLZCNT,
   //! Cpu has AESNI.
-  kX86CpuFeatureAesni,
+  kX86CpuFeatureAESNI,
   //! Cpu has PCLMULQDQ.
-  kX86CpuFeaturePclmulqdq,
+  kX86CpuFeaturePCLMULQDQ,
   //! Cpu has RDRAND.
-  kX86CpuFeatureRdrand,
+  kX86CpuFeatureRDRAND,
+  //! Cpu has RDSEED.
+  kX86CpuFeatureRDSEED,
+  //! Cpu has SHA-1 and SHA-256.
+  kX86CpuFeatureSHA,
+  //! Cpu has XSAVE support - XSAVE/XRSTOR, XSETBV/XGETBV, and XCR0.
+  kX86CpuFeatureXSave,
+  //! OS has enabled XSAVE, you can call XGETBV to get value of XCR0.
+  kX86CpuFeatureXSaveOS,
   //! Cpu has AVX.
-  kX86CpuFeatureAvx,
+  kX86CpuFeatureAVX,
   //! Cpu has AVX2.
-  kX86CpuFeatureAvx2,
+  kX86CpuFeatureAVX2,
   //! Cpu has F16C.
   kX86CpuFeatureF16C,
   //! Cpu has FMA3.
-  kX86CpuFeatureFma3,
+  kX86CpuFeatureFMA3,
   //! Cpu has FMA4.
-  kX86CpuFeatureFma4,
+  kX86CpuFeatureFMA4,
   //! Cpu has XOP.
-  kX86CpuFeatureXop,
+  kX86CpuFeatureXOP,
   //! Cpu has BMI.
-  kX86CpuFeatureBmi,
+  kX86CpuFeatureBMI,
   //! Cpu has BMI2.
-  kX86CpuFeatureBmi2,
+  kX86CpuFeatureBMI2,
   //! Cpu has HLE.
-  kX86CpuFeatureHle,
+  kX86CpuFeatureHLE,
   //! Cpu has RTM.
-  kX86CpuFeatureRtm,
+  kX86CpuFeatureRTM,
+  //! Cpu has ADX.
+  kX86CpuFeatureADX,
+  //! Cpu has MPX (Memory Protection Extensions).
+  kX86CpuFeatureMPX,
   //! Cpu has FSGSBASE.
-  kX86CpuFeatureFsGsBase,
-  //! Cpu has enhanced REP MOVSB/STOSB.
-  kX86CpuFeatureRepMovsbStosbExt,
+  kX86CpuFeatureFSGSBase,
+  //! Cpu has optimized REP MOVSB/STOSB.
+  kX86CpuFeatureMOVSBSTOSBOpt,
+
+  //! Cpu has AVX-512F (Foundation).
+  kX86CpuFeatureAVX512F,
+  //! Cpu has AVX-512CD (Conflict Detection).
+  kX86CpuFeatureAVX512CD,
+  //! Cpu has AVX-512PF (Prefetch Instructions).
+  kX86CpuFeatureAVX512PF,
+  //! Cpu has AVX-512ER (Exponential and Reciprocal Instructions).
+  kX86CpuFeatureAVX512ER,
+  //! Cpu has AVX-512DQ (DWord/QWord).
+  kX86CpuFeatureAVX512DQ,
+  //! Cpu has AVX-512BW (Byte/Word).
+  kX86CpuFeatureAVX512BW,
+  //! Cpu has AVX VL (Vector Length Excensions).
+  kX86CpuFeatureAVX512VL,
 
   //! Count of X86/X64 Cpu features.
   kX86CpuFeatureCount

@@ -42,7 +42,7 @@ ASMJIT_ENUM(kInstId) {
 //! Instruction options (stub).
 ASMJIT_ENUM(kInstOptions) {
   //! No instruction options.
-  kInstOptionNone = 0x00,
+  kInstOptionNone = 0x00000000,
 
   //! Emit short form of the instruction.
   //!
@@ -53,7 +53,8 @@ ASMJIT_ENUM(kInstOptions) {
   //! can be dangerous if the short jmp/jcc is required, but not encodable due
   //! to large displacement, in such case an error happens and the whole
   //! assembler/compiler stream is unusable.
-  kInstOptionShortForm = 0x01,
+  kInstOptionShortForm = 0x00000001,
+
   //! Emit long form of the instruction.
   //!
   //! X86/X64:
@@ -61,12 +62,13 @@ ASMJIT_ENUM(kInstOptions) {
   //! Long form is mosrlt related to jmp and jcc instructions, but like the
   //! `kInstOptionShortForm` option it can be used by other instructions
   //! supporting both 8-bit and 32-bit immediates.
-  kInstOptionLongForm = 0x02,
+  kInstOptionLongForm = 0x00000002,
 
   //! Condition is likely to be taken.
-  kInstOptionTaken = 0x04,
+  kInstOptionTaken = 0x00000004,
+
   //! Condition is unlikely to be taken.
-  kInstOptionNotTaken = 0x08
+  kInstOptionNotTaken = 0x00000008
 };
 
 // ============================================================================

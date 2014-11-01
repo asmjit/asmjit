@@ -150,8 +150,8 @@ struct X86Context : public Context {
     vd->setModified(modified);
 
     _x86State.getListByClass(C)[regIndex] = vd;
-    _x86State._occupied.add(C, regMask);
-    _x86State._modified.add(C, static_cast<uint32_t>(modified) << regIndex);
+    _x86State._occupied.or_(C, regMask);
+    _x86State._modified.or_(C, static_cast<uint32_t>(modified) << regIndex);
 
     ASMJIT_X86_CHECK_STATE
   }
@@ -174,8 +174,8 @@ struct X86Context : public Context {
     vd->setModified(false);
 
     _x86State.getListByClass(C)[regIndex] = NULL;
-    _x86State._occupied.del(C, regMask);
-    _x86State._modified.del(C, regMask);
+    _x86State._occupied.andNot(C, regMask);
+    _x86State._modified.andNot(C, regMask);
 
     ASMJIT_X86_CHECK_STATE
   }
@@ -244,7 +244,7 @@ struct X86Context : public Context {
     emitSave(vd, regIndex, "Save");
 
     vd->setModified(false);
-    _x86State._modified.del(C, regMask);
+    _x86State._modified.andNot(C, regMask);
 
     ASMJIT_X86_CHECK_STATE
   }
@@ -381,7 +381,7 @@ struct X86Context : public Context {
     uint32_t regMask = IntUtil::mask(regIndex);
 
     vd->setModified(true);
-    _x86State._modified.add(C, regMask);
+    _x86State._modified.or_(C, regMask);
 
     ASMJIT_X86_CHECK_STATE
   }

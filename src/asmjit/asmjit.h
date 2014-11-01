@@ -235,15 +235,15 @@
 //! `BaseMem` class. These functions are used to make operands that represents
 //! memory addresses:
 //!
-//! - `asmjit::ptr()`
-//! - `asmjit::byte_ptr()`
-//! - `asmjit::word_ptr()`
-//! - `asmjit::dword_ptr()`
-//! - `asmjit::qword_ptr()`
-//! - `asmjit::tword_ptr()`
-//! - `asmjit::oword_ptr()`
-//! - `asmjit::yword_ptr()`
-//! - `asmjit::zword_ptr()`
+//! - `asmjit::ptr()`       - Address size not specified.
+//! - `asmjit::byte_ptr()`  - 1 byte.
+//! - `asmjit::word_ptr()`  - 2 bytes (Gpw size).
+//! - `asmjit::dword_ptr()` - 4 bytes (Gpd size).
+//! - `asmjit::qword_ptr()` - 8 bytes (Gpq/Mm size).
+//! - `asmjit::tword_ptr()` - 10 bytes (FPU).
+//! - `asmjit::oword_ptr()` - 16 bytes (Xmm size).
+//! - `asmjit::yword_ptr()` - 32 bytes (Ymm size).
+//! - `asmjit::zword_ptr()` - 64 bytes (Zmm size).
 //!
 //! Most useful function to make pointer should be `asmjit::ptr()`. It creates
 //! pointer to the target with unspecified size. Unspecified size works in all
@@ -298,10 +298,10 @@
 //! // Get `X86CpuInfo` global instance.
 //! const X86CpuInfo* cpuInfo = X86CpuInfo::getHost();
 //!
-//! if (cpuInfo->hasFeature(kX86CpuFeatureSse2)) {
+//! if (cpuInfo->hasFeature(kX86CpuFeatureSSE2)) {
 //!   // Processor has SSE2.
 //! }
-//! else if (cpuInfo->hasFeature(kX86CpuFeatureMmx)) {
+//! else if (cpuInfo->hasFeature(kX86CpuFeatureMMX)) {
 //!   // Processor doesn't have SSE2, but has MMX.
 //! }
 //! else {

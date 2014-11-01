@@ -13,7 +13,7 @@
 
 namespace asmgen {
 
-enum { kGenOpCodeInstCount = 2640 };
+enum { kGenOpCodeInstCount = 2656 };
 
 // Generate all instructions asmjit can emit.
 static void opcode(asmjit::X86Assembler& a) {
@@ -1275,9 +1275,25 @@ static void opcode(asmjit::X86Assembler& a) {
   a.pcmpistrm(xmm0, ptr_gp0, 0);
   a.pcmpgtq(xmm0, xmm7);
   a.pcmpgtq(xmm0, ptr_gp0);
+
+  // SSE4a.
+  a.nop();
+
+  a.extrq(xmm0, xmm1);
+  a.extrq(xmm0, 0x1, 0x2);
+  a.insertq(xmm0, xmm1);
+  a.insertq(xmm0, xmm1, 0x1, 0x2);
+  a.movntsd(ptr_gp0, xmm0);
+  a.movntss(ptr_gp0, xmm0);
+
+  // POPCNT.
+  a.nop();
+
   a.popcnt(gp0, ptr_gp0);
 
   // AESNI.
+  a.nop();
+
   a.aesdec(xmm0, xmm7);
   a.aesdec(xmm0, ptr_gp0);
   a.aesdeclast(xmm0, xmm7);
@@ -1292,10 +1308,24 @@ static void opcode(asmjit::X86Assembler& a) {
   a.aeskeygenassist(xmm0, ptr_gp0, 0);
 
   // PCLMULQDQ.
+  a.nop();
+
   a.pclmulqdq(xmm0, xmm7, 0);
   a.pclmulqdq(xmm0, ptr_gp0, 0);
 
+  // XSAVE.
+  a.nop();
+
+  a.xgetbv();
+  a.xsetbv();
+
+  a.xsave(ptr_gp0);
+  a.xsaveopt(ptr_gp0);
+  a.xrstor(ptr_gp0);
+
   // AVX.
+  a.nop();
+
   a.vaddpd(xmm0, xmm1, xmm2);
   a.vaddpd(xmm0, xmm1, ptr_gp0);
   a.vaddpd(ymm0, ymm1, ymm2);
@@ -1946,6 +1976,8 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vzeroupper();
 
   // AVX+AESNI.
+  a.nop();
+
   a.vaesdec(xmm0, xmm1, xmm2);
   a.vaesdec(xmm0, xmm1, ptr_gp0);
   a.vaesdeclast(xmm0, xmm1, xmm2);
@@ -1960,10 +1992,14 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vaeskeygenassist(xmm0, ptr_gp0, 0);
 
   // AVX+PCLMULQDQ.
+  a.nop();
+
   a.vpclmulqdq(xmm0, xmm1, xmm2, 0);
   a.vpclmulqdq(xmm0, xmm1, ptr_gp0, 0);
 
   // AVX2.
+  a.nop();
+
   a.vbroadcasti128(ymm0, ptr_gp0);
   a.vbroadcastsd(ymm0, xmm1);
   a.vbroadcastss(xmm0, xmm1);
@@ -2268,6 +2304,8 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vpxor(ymm0, ymm1, ymm2);
 
   // FMA3.
+  a.nop();
+
   a.vfmadd132pd(xmm0, xmm1, ptr_gp0);
   a.vfmadd132pd(xmm0, xmm1, xmm2);
   a.vfmadd132pd(ymm0, ymm1, ptr_gp0);
@@ -2462,6 +2500,8 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vfnmsub231ss(xmm0, xmm1, xmm2);
 
   // FMA4.
+  a.nop();
+
   a.vfmaddpd(xmm0, xmm1, xmm2, xmm3);
   a.vfmaddpd(xmm0, xmm1, ptr_gp0, xmm3);
   a.vfmaddpd(xmm0, xmm1, xmm2, ptr_gp0);
@@ -2560,6 +2600,8 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vfnmsubss(xmm0, xmm1, xmm2, ptr_gp0);
 
   // XOP.
+  a.nop();
+
   a.vfrczpd(xmm0, xmm1);
   a.vfrczpd(xmm0, ptr_gp0);
   a.vfrczpd(ymm0, ymm1);
@@ -2709,6 +2751,8 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vpshlw(xmm0, xmm1, ptr_gp0);
 
   // BMI.
+  a.nop();
+
   a.andn(gp0, gp1, zcx);
   a.andn(gp0, gp1, ptr_gp1);
   a.bextr(gp0, gp1, zcx);
@@ -2721,14 +2765,20 @@ static void opcode(asmjit::X86Assembler& a) {
   a.blsr(gp0, ptr_gp1);
 
   // LZCNT.
+  a.nop();
+
   a.lzcnt(gp0, gp1);
   a.lzcnt(gp0, ptr_gp1);
 
   // TZCNT.
+  a.nop();
+
   a.tzcnt(gp0, gp1);
   a.tzcnt(gp0, ptr_gp1);
 
   // BMI2.
+  a.nop();
+
   a.bzhi(gp0, gp1, zcx);
   a.bzhi(gp0, ptr_gp1, zcx);
   a.mulx(gp0, gp1, zcx);
@@ -2747,9 +2797,13 @@ static void opcode(asmjit::X86Assembler& a) {
   a.shrx(gp0, ptr_gp1, zcx);
 
   // RDRAND.
+  a.nop();
+
   a.rdrand(gp0);
 
   // F16C.
+  a.nop();
+
   a.vcvtph2ps(xmm0, xmm1);
   a.vcvtph2ps(xmm0, ptr_gp1);
   a.vcvtph2ps(ymm0, xmm1);
@@ -2758,6 +2812,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vcvtps2ph(ptr_gp0, xmm1, 0);
   a.vcvtps2ph(xmm0, ymm1, 0);
   a.vcvtps2ph(ptr_gp0, ymm1, 0);
+
+  // Mark the end of the stream.
+  a.nop();
 }
 
 } // asmgen namespace

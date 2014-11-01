@@ -396,7 +396,7 @@ UNIT(base_constpool) {
       EXPECT(prevOffset + 8 == curOffset,
         "pool.add() - Returned incorrect curOffset.");
       EXPECT(pool.getSize() == (i + 1) * 8,
-        "pool.getSize() - Reports incorrect size.");
+        "pool.getSize() - Reported incorrect size.");
       prevOffset = curOffset;
     }
 

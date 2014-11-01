@@ -12,20 +12,26 @@ var fs = require("fs");
 // [Utilities]
 // ----------------------------------------------------------------------------
 
-var upFirst = function(s) {
+function upFirst(s) {
   if (!s)
     return s;
   return s[0].toUpperCase() + s.substr(1);
-};
+}
 
-var trimLeft = function(s) {
+function trimLeft(s) {
   return s.replace(/^\s+/, "");
 }
 
-var inject = function(s, start, end, code) {
+function padLeft(s, n) {
+  while (s.length < n)
+    s += " ";
+  return s;
+}
+
+function inject(s, start, end, code) {
   var iStart = s.indexOf(start);
   var iEnd   = s.indexOf(end);
-  
+
   if (iStart === -1)
     throw new Error("Couldn't locate start mark.");
 
@@ -33,7 +39,7 @@ var inject = function(s, start, end, code) {
     throw new Error("Couldn't locate end mark.");
 
   return s.substr(0, iStart + start.length) + code + s.substr(iEnd);
-};
+}
 
 // ----------------------------------------------------------------------------
 // [Database]
@@ -109,7 +115,7 @@ var Database = (function() {
 
     var extendedData = this.extendedData;
     var extendedMap = this.extendedMap;
-    
+
     for (var name in instMap) {
       var inst = instMap[name];
 
@@ -171,67 +177,101 @@ var generate = function(fileName, arch) {
   var data = oldData;
   var code = "";
   var disclaimer = "// Automatically generated, do not edit.\n";
-  
+
+  var instCount = 0;
+  var sizeof_X86InstInfo = 8;
+  var sizeof_X86InstExtendedInfo = 24;
+
   // Create database.
   var db = new Database();
   var re = new RegExp(
-    "INST\\(([A-Za-z0-9_]+)\\s*," +       // [01] Inst-Code.
-    "\\s*\\\"([A-Za-z0-9_ ]*)\\\"\\s*," + // [02] Inst-Name.
-    "([^,]+)," +                          // [03] Inst-Group.
-    "([^,]+)," +                          // [04] Inst-Flags.
-    "([^,]+)," +                          // [05] Move-Size.
-    "([^,]+)," +                          // [06] Operand-Flags[0].
-    "([^,]+)," +                          // [07] Operand-Flags[1].
-    "([^,]+)," +                          // [08] Operand-Flags[2].
-    "([^,]+)," +                          // [09] Operand-Flags[3].
-    "\\s*E\\(([A-Z_]+)\\)\\s*," +         // [10] EFLAGS.
-    "(.{17}[^,]*)," +                     // [11] OpCode[0].
-    "(.{17}[^\\)]*)\\)",                  // [12] OpCode[1].
+    "INST\\(([A-Za-z0-9_]+)\\s*," +       // [01] Id.
+    "\\s*\\\"([A-Za-z0-9_ ]*)\\\"\\s*," + // [02] Name.
+    "(.{20}[^,]*)," +                     // [03] Opcode[0].
+    "(.{20}[^,]*)," +                     // [04] Opcode[1].
+    "([^,]+)," +                          // [05] Encoding.
+    "([^,]+)," +                          // [06] IFLAGS.
+    "\\s*EF\\(([A-Z_]+)\\)\\s*," +        // [07] EFLAGS.
+    "([^,]+)," +                          // [08] Write-Index.
+    "([^,]+)," +                          // [09] Write-Size.
+    "([^,]+)," +                          // [10] Operand-Flags[0].
+    "([^,]+)," +                          // [11] Operand-Flags[1].
+    "([^,]+)," +                          // [12] Operand-Flags[2].
+    "([^,]+)," +                          // [13] Operand-Flags[3].
+    "([^\\)]+)\\)",                       // [14] Operand-Flags[4].
     "g");
+
+  var i, k, m;
+  var srcForm = "";
 
   while (m = re.exec(data)) {
     // Extract instruction ID and Name.
     var id = m[1];
     var name = m[2];
 
-    // Extract data that goes to the secondary table (ExtendedInfo).
-    var instGroup = trimLeft(m[3]);
-    var instFlags = trimLeft(m[4]);
-    var moveSize = trimLeft(m[5]);
-    
-    var opFlags0 = trimLeft(m[6]);
-    var opFlags1 = trimLeft(m[7]);
-    var opFlags2 = trimLeft(m[8]);
-    var opFlags3 = trimLeft(m[9]);
-    var eflags = m[10];
-    var opCode1 = trimLeft(m[12]);
+    // Extract data that goes to the secondary table (X86InstExtendedInfo).
+    var opcode0    = trimLeft(m[3]);
+    var opcode1    = trimLeft(m[4]);
+    var encoding   = trimLeft(m[5]);
+    var iflags     = trimLeft(m[6]);
+    var eflags     = m[7];
+    var writeIndex = trimLeft(m[8]);
+    var writeSize  = trimLeft(m[9]);
+    var oflags0    = trimLeft(m[10]);
+    var oflags1    = trimLeft(m[11]);
+    var oflags2    = trimLeft(m[12]);
+    var oflags3    = trimLeft(m[13]);
+    var oflags4    = trimLeft(m[14]);
 
     // Generate EFlags-In and EFlags-Out.
-    var eflagsIn = decToHex(getEFlagsMask(eflags, "RX"), 2);
-    var eflagsOut = decToHex(getEFlagsMask(eflags, "WXU"), 2);
+    var eflagsIn   = decToHex(getEFlagsMask(eflags, "RX" ), 2);
+    var eflagsOut  = decToHex(getEFlagsMask(eflags, "WXU"), 2);
 
-    var extData = "" +
-      instGroup + ", " +
-      moveSize  + ", " +
-      eflagsIn  + ", " +
-      eflagsOut + ", " +
-      instFlags + ", " + 
-      "{ " + opFlags0 + ", " + opFlags1 + ", " + opFlags2 + ", " + opFlags3 + ", U }, " +
-      opCode1;
+    var extData =
+      encoding   + ", " +
+      writeIndex + ", " +
+      writeSize  + ", " +
+      eflagsIn   + ", " +
+      eflagsOut  + ", " +
+      "0"        + ", " +
+      "{ "       + oflags0 + ", " + oflags1 + ", " + oflags2 + ", " + oflags3 + ", " + oflags4 + " }, " +
+      iflags     + ", " +
+      opcode1;
+
+    srcForm += "  INST(" +
+      padLeft(id, 27) + ", " +
+      padLeft('"' + name + '"', 19) + ", " +
+      opcode0    + ", " +
+      opcode1    + ", " +
+      encoding   + ", " +
+      iflags     + ", " +
+      "EF(" + eflags + "), " +
+      writeIndex + ", " +
+      writeSize  + ", " +
+      oflags0    + ", " +
+      oflags1    + ", " +
+      oflags2    + ", " +
+      oflags3    + ", " +
+      oflags4    + "),\n";
 
     db.add(name, id, extData);
+    instCount++;
   }
+  // fs.writeFileSync("srcform.cpp", srcForm, "utf8");
   db.index();
 
-  console.log("Number of instructions: " + db.instNames.array.length);
-  console.log("Instruction names size: " + db.instNames.getSize());
-  console.log("Extended-info length  : " + db.extendedData.length);
+  var instDataSize = instCount * sizeof_X86InstInfo + db.extendedData.length * sizeof_X86InstExtendedInfo;
+
+  console.log("Number of Instructions  : " + instCount);
+  console.log("Number of ExtInfo Rows  : " + db.extendedData.length);
+  console.log("Instructions' Data  Size: " + instDataSize);
+  console.log("Instructions' Names Size: " + db.instNames.getSize());
 
   // Generate InstName[] string.
   code += disclaimer;
-  code += "#if !defined(ASMJIT_DISABLE_INST_NAMES)\n";
+  code += "#if !defined(ASMJIT_DISABLE_NAMES)\n";
   code += "const char _" + arch + "InstName[] =\n";
-  for (var k in db.instMap) {
+  for (k in db.instMap) {
     var inst = db.instMap[k];
     code += "  \"" + k + "\\0\"\n";
   }
@@ -248,7 +288,7 @@ var generate = function(fileName, arch) {
 
   code += disclaimer;
   code += "static const uint16_t _" + arch + "InstAlphaIndex[26] = {\n";
-  for (var i = 0; i < db.instAlpha.length; i++) {
+  for (i = 0; i < db.instAlpha.length; i++) {
     var id = db.instAlpha[i];
     code += "  " + (id === undefined ? "0xFFFF" : id);
     if (i !== db.instAlpha.length - 1)
@@ -260,18 +300,18 @@ var generate = function(fileName, arch) {
   // Generate NameIndex.
   code += disclaimer;
   code += "enum k" + Arch + "InstData_NameIndex {\n";
-  for (var k in db.instMap) {
+  for (k in db.instMap) {
     var inst = db.instMap[k];
     code += "  " + inst.id + "_NameIndex = " + inst.nameIndex + ",\n";
   }
   code = code.substr(0, code.length - 2) + "\n};\n";
-  code += "#endif // !ASMJIT_DISABLE_INST_NAMES\n"
+  code += "#endif // !ASMJIT_DISABLE_NAMES\n"
   code += "\n";
 
   // Generate ExtendedInfo.
   code += disclaimer;
   code += "const " + Arch + "InstExtendedInfo _" + arch + "InstExtendedInfo[] = {\n";
-  for (var i = 0; i < db.extendedData.length; i++) {
+  for (i = 0; i < db.extendedData.length; i++) {
     code += "  { " + db.extendedData[i] + " }";
     if (i !== db.extendedData.length - 1)
       code += ",";
@@ -282,7 +322,7 @@ var generate = function(fileName, arch) {
 
   code += disclaimer;
   code += "enum k" + Arch + "InstData_ExtendedIndex {\n";
-  for (var k in db.instMap) {
+  for (k in db.instMap) {
     var inst = db.instMap[k];
     code += "  " + inst.id + "_ExtendedIndex = " + inst.extendedIndex + ",\n";
   }

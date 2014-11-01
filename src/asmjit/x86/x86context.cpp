@@ -143,9 +143,9 @@ static void X86Context_annotateOperand(X86Context* self,
 }
 
 static bool X86Context_annotateInstruction(X86Context* self,
-  StringBuilder& sb, uint32_t code, const Operand* opList, uint32_t opCount) {
+  StringBuilder& sb, uint32_t instId, const Operand* opList, uint32_t opCount) {
 
-  sb.appendString(_x86InstInfo[code].getInstName());
+  sb.appendString(_x86InstInfo[instId].getInstName());
   for (uint32_t i = 0; i < opCount; i++) {
     if (i == 0)
       sb.appendChar(' ');
@@ -207,7 +207,7 @@ static void X86Context_traceNode(X86Context* self, Node* node_) {
     case kNodeTypeInst: {
       InstNode* node = static_cast<InstNode*>(node_);
       X86Context_annotateInstruction(self, sb,
-        node->getCode(), node->getOpList(), node->getOpCount());
+        node->getInstId(), node->getOpList(), node->getOpCount());
       break;
     }
 
@@ -287,8 +287,8 @@ void X86Context::reset() {
 
   _stackFrameCell = NULL;
   _gaRegs[kX86RegClassGp ] = IntUtil::bits(_regCount.getGp()) & ~IntUtil::mask(kX86RegIndexSp);
-  _gaRegs[kX86RegClassFp ] = IntUtil::bits(_regCount.getFp());
   _gaRegs[kX86RegClassMm ] = IntUtil::bits(_regCount.getMm());
+  _gaRegs[kX86RegClassK  ] = IntUtil::bits(_regCount.getK());
   _gaRegs[kX86RegClassXyz] = IntUtil::bits(_regCount.getXyz());
 
   _argBaseReg = kInvalidReg; // Used by patcher.
@@ -426,8 +426,26 @@ static const X86SpecialInst x86SpecialInstBlend[] = {
   { 0             , kInvalidReg   , kVarAttrInReg     }
 };
 
-static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t code, const Operand* opList, uint32_t opCount) {
-  switch (code) {
+static const X86SpecialInst x86SpecialInstXsaveXrstor[] = {
+  { kInvalidReg   , kInvalidReg   , 0                 },
+  { kX86RegIndexDx, kInvalidReg   , kVarAttrInReg     },
+  { kX86RegIndexAx, kInvalidReg   , kVarAttrInReg     }
+};
+
+static const X86SpecialInst x86SpecialInstXgetbv[] = {
+  { kX86RegIndexCx, kInvalidReg   , kVarAttrInReg     },
+  { kInvalidReg   , kX86RegIndexDx, kVarAttrOutReg    },
+  { kInvalidReg   , kX86RegIndexAx, kVarAttrOutReg    }
+};
+
+static const X86SpecialInst x86SpecialInstXsetbv[] = {
+  { kX86RegIndexCx, kInvalidReg   , kVarAttrInReg     },
+  { kX86RegIndexDx, kInvalidReg   , kVarAttrInReg     },
+  { kX86RegIndexAx, kInvalidReg   , kVarAttrInReg     }
+};
+
+static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, const Operand* opList, uint32_t opCount) {
+  switch (instId) {
     case kX86InstIdCpuid:
       return x86SpecialInstCpuid;
 
@@ -599,6 +617,20 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t code, con
     case kX86InstIdBlendvps:
     case kX86InstIdPblendvb:
       return x86SpecialInstBlend;
+
+    case kX86InstIdXrstor:
+    case kX86InstIdXrstor64:
+    case kX86InstIdXsave:
+    case kX86InstIdXsave64:
+    case kX86InstIdXsaveopt:
+    case kX86InstIdXsaveopt64:
+      return x86SpecialInstXsaveXrstor;
+
+    case kX86InstIdXgetbv:
+      return x86SpecialInstXgetbv;
+
+    case kX86InstIdXsetbv:
+      return x86SpecialInstXsetbv;
 
     default:
       return NULL;
@@ -976,7 +1008,7 @@ void X86Context::emitMoveVarOnStack(
   X86Reg r0, r1;
 
   uint32_t regSize = compiler->getRegSize();
-  uint32_t instCode;
+  uint32_t instId;
 
   switch (dstType) {
     case kVarTypeInt8:
@@ -1002,7 +1034,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
 
-        instCode = (dstType == kVarTypeInt16 && srcType == kVarTypeInt8) ? kX86InstIdMovsx : kX86InstIdMovzx;
+        instId = (dstType == kVarTypeInt16 && srcType == kVarTypeInt8) ? kX86InstIdMovsx : kX86InstIdMovzx;
         goto _ExtendMovGpD;
       }
 
@@ -1027,7 +1059,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
 
-        instCode = (dstType == kVarTypeInt32 && srcType == kVarTypeInt8) ? kX86InstIdMovsx : kX86InstIdMovzx;
+        instId = (dstType == kVarTypeInt32 && srcType == kVarTypeInt8) ? kX86InstIdMovsx : kX86InstIdMovzx;
         goto _ExtendMovGpD;
       }
 
@@ -1036,7 +1068,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(2);
         r1.setCode(kX86RegTypeGpw, srcIndex);
 
-        instCode = (dstType == kVarTypeInt32 && srcType == kVarTypeInt16) ? kX86InstIdMovsx : kX86InstIdMovzx;
+        instId = (dstType == kVarTypeInt32 && srcType == kVarTypeInt16) ? kX86InstIdMovsx : kX86InstIdMovzx;
         goto _ExtendMovGpD;
       }
 
@@ -1060,7 +1092,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
 
-        instCode = (dstType == kVarTypeInt64 && srcType == kVarTypeInt8) ? kX86InstIdMovsx : kX86InstIdMovzx;
+        instId = (dstType == kVarTypeInt64 && srcType == kVarTypeInt8) ? kX86InstIdMovsx : kX86InstIdMovzx;
         goto _ExtendMovGpXQ;
       }
 
@@ -1069,7 +1101,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(2);
         r1.setCode(kX86RegTypeGpw, srcIndex);
 
-        instCode = (dstType == kVarTypeInt64 && srcType == kVarTypeInt16) ? kX86InstIdMovsx : kX86InstIdMovzx;
+        instId = (dstType == kVarTypeInt64 && srcType == kVarTypeInt16) ? kX86InstIdMovsx : kX86InstIdMovzx;
         goto _ExtendMovGpXQ;
       }
 
@@ -1078,7 +1110,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(4);
         r1.setCode(kX86RegTypeGpd, srcIndex);
 
-        instCode = kX86InstIdMovsxd;
+        instId = kX86InstIdMovsxd;
         if (dstType == kVarTypeInt64 && srcType == kVarTypeInt32)
           goto _ExtendMovGpXQ;
         else
@@ -1104,7 +1136,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
 
-        instCode = kX86InstIdMovzx;
+        instId = kX86InstIdMovzx;
         goto _ExtendMovGpXQ;
       }
 
@@ -1113,7 +1145,7 @@ void X86Context::emitMoveVarOnStack(
         r1.setSize(2);
         r1.setCode(kX86RegTypeGpw, srcIndex);
 
-        instCode = kX86InstIdMovzx;
+        instId = kX86InstIdMovzx;
         goto _ExtendMovGpXQ;
       }
 
@@ -1175,7 +1207,7 @@ _ExtendMovGpD:
   r0.setSize(4);
   r0.setCode(kX86RegTypeGpd, srcIndex);
 
-  compiler->emit(instCode, r0, r1);
+  compiler->emit(instId, r0, r1);
   compiler->emit(kX86InstIdMov, m0, r0);
   return;
 
@@ -1185,7 +1217,7 @@ _ExtendMovGpXQ:
     r0.setSize(8);
     r0.setCode(kX86RegTypeGpq, srcIndex);
 
-    compiler->emit(instCode, r0, r1);
+    compiler->emit(instId, r0, r1);
     compiler->emit(kX86InstIdMov, m0, r0);
   }
   else {
@@ -1193,7 +1225,7 @@ _ExtendMovGpXQ:
     r0.setSize(4);
     r0.setCode(kX86RegTypeGpd, srcIndex);
 
-    compiler->emit(instCode, r0, r1);
+    compiler->emit(instId, r0, r1);
 
 _ExtendMovGpDQ:
     compiler->emit(kX86InstIdMov, m0, r0);
@@ -1749,8 +1781,8 @@ static ASMJIT_INLINE Node* X86Context_getOppositeJccFlow(JumpNode* jNode) {
 // ============================================================================
 
 //! \internal
-static void X86Context_prepareSingleVarInst(uint32_t code, VarAttr* va) {
-  switch (code) {
+static void X86Context_prepareSingleVarInst(uint32_t instId, VarAttr* va) {
+  switch (instId) {
     // - andn     reg, reg ; Set all bits in reg to 0.
     // - xor/pxor reg, reg ; Set all bits in reg to 0.
     // - sub/psub reg, reg ; Set all bits in reg to 0.
@@ -1763,7 +1795,7 @@ static void X86Context_prepareSingleVarInst(uint32_t code, VarAttr* va) {
     case kX86InstIdPsubsb    : case kX86InstIdPsubsw    : case kX86InstIdPsubusb   : case kX86InstIdPsubusw   :
     case kX86InstIdPcmpeqb   : case kX86InstIdPcmpeqw   : case kX86InstIdPcmpeqd   : case kX86InstIdPcmpeqq   :
     case kX86InstIdPcmpgtb   : case kX86InstIdPcmpgtw   : case kX86InstIdPcmpgtd   : case kX86InstIdPcmpgtq   :
-      va->delFlags(kVarAttrInReg);
+      va->andNotFlags(kVarAttrInReg);
       break;
 
     // - and      reg, reg ; Nop.
@@ -1772,7 +1804,7 @@ static void X86Context_prepareSingleVarInst(uint32_t code, VarAttr* va) {
     case kX86InstIdAnd       : case kX86InstIdAndpd     : case kX86InstIdAndps     : case kX86InstIdPand      :
     case kX86InstIdOr        : case kX86InstIdOrpd      : case kX86InstIdOrps      : case kX86InstIdPor       :
     case kX86InstIdXchg      :
-      va->delFlags(kVarAttrOutReg);
+      va->andNotFlags(kVarAttrOutReg);
       break;
   }
 }
@@ -1824,7 +1856,7 @@ static ASMJIT_INLINE X86RegMask X86Context_getUsedArgs(X86Context* self, X86Call
     const FuncInOut& arg = decl->getArg(i);
     if (!arg.hasRegIndex())
       continue;
-    regs.add(x86VarTypeToClass(arg.getVarType()), IntUtil::mask(arg.getRegIndex()));
+    regs.or_(x86VarTypeToClass(arg.getVarType()), IntUtil::mask(arg.getRegIndex()));
   }
 
   return regs;
@@ -2117,7 +2149,7 @@ Error X86Context::fetch() {
       goto _NoMemory; \
     \
     X86RegCount vaIndex; \
-    vaIndex.makeIndex(regCount); \
+    vaIndex.indexFromRegCount(regCount); \
     \
     map->_vaCount = vaCount; \
     map->_count = regCount; \
@@ -2181,7 +2213,7 @@ Error X86Context::fetch() {
       regCount.add(_Vd_->getClass()); \
     } \
     \
-    _Va_->addFlags(_Flags_); \
+    _Va_->orFlags(_Flags_); \
     _Va_->addVarCount(1); \
   } while (0)
 
@@ -2230,18 +2262,13 @@ _NextGroup:
         VI_BEGIN();
 
         if (node->getHint() == kVarHintAlloc) {
-          uint32_t remain[kX86RegClassCount];
+          uint32_t remain[_kX86RegClassManagedCount];
           HintNode* cur = node;
 
           remain[kX86RegClassGp ] = _regCount.getGp() - 1 - func->hasFuncFlag(kFuncFlagIsNaked);
-          remain[kX86RegClassFp ] = _regCount.getFp();
           remain[kX86RegClassMm ] = _regCount.getMm();
-
-          // Correct. Instead of using `getXyz()` which may be 32 in 64-bit
-          // mode we use `getGp()`. The reason is that not all registers are
-          // accessible by all instructions when using AVX512, this makes the
-          // algorithm safe.
-          remain[kX86RegClassXyz] = _regCount.getGp();
+          remain[kX86RegClassK  ] = _regCount.getK();
+          remain[kX86RegClassXyz] = _regCount.getXyz();
 
           // Merge as many alloc-hints as possible.
           for (;;) {
@@ -2333,14 +2360,14 @@ _NextGroup:
       case kNodeTypeInst: {
         InstNode* node = static_cast<InstNode*>(node_);
 
-        uint32_t code = node->getCode();
+        uint32_t instId = node->getInstId();
         uint32_t flags = node->getFlags();
 
         Operand* opList = node->getOpList();
         uint32_t opCount = node->getOpCount();
 
         if (opCount) {
-          const X86InstExtendedInfo& extendedInfo = _x86InstInfo[code].getExtendedInfo();
+          const X86InstExtendedInfo& extendedInfo = _x86InstInfo[instId].getExtendedInfo();
           const X86SpecialInst* special = NULL;
           VI_BEGIN();
 
@@ -2348,7 +2375,7 @@ _NextGroup:
           if (extendedInfo.isFp())
             flags |= kNodeFlagIsFp;
 
-          if (extendedInfo.isSpecial() && (special = X86SpecialInst_get(code, opList, opCount)) != NULL)
+          if (extendedInfo.isSpecial() && (special = X86SpecialInst_get(instId, opList, opCount)) != NULL)
             flags |= kNodeFlagIsSpecial;
 
           uint32_t gpAllowedMask = 0xFFFFFFFF;
@@ -2363,7 +2390,7 @@ _NextGroup:
               VI_MERGE_VAR(vd, va, 0, gaRegs[vd->getClass()] & gpAllowedMask);
 
               if (static_cast<X86Var*>(op)->isGpb()) {
-                va->addFlags(static_cast<X86GpVar*>(op)->isGpbLo() ? kX86VarAttrGpbLo : kX86VarAttrGpbHi);
+                va->orFlags(static_cast<X86GpVar*>(op)->isGpbLo() ? kX86VarAttrGpbLo : kX86VarAttrGpbHi);
                 if (arch == kArchX86) {
                   // If a byte register is accessed in 32-bit mode we have to limit
                   // all allocable registers for that variable to eax/ebx/ecx/edx.
@@ -2401,17 +2428,17 @@ _NextGroup:
 
                 if (inReg != kInvalidReg) {
                   uint32_t mask = IntUtil::mask(inReg);
-                  inRegs.add(c, mask);
+                  inRegs.or_(c, mask);
                   va->addInRegs(mask);
                 }
 
                 if (outReg != kInvalidReg) {
                   uint32_t mask = IntUtil::mask(outReg);
-                  outRegs.add(c, mask);
+                  outRegs.or_(c, mask);
                   va->setOutRegIndex(outReg);
                 }
 
-                va->addFlags(special[i].flags);
+                va->orFlags(special[i].flags);
               }
               else {
                 uint32_t inFlags = kVarAttrInReg;
@@ -2426,7 +2453,7 @@ _NextGroup:
                   // but there are some exceptions based on the operands' size
                   // and type.
                   if (extendedInfo.isMove()) {
-                    uint32_t movSize = extendedInfo.getMoveSize();
+                    uint32_t movSize = extendedInfo.getWriteSize();
                     uint32_t varSize = vd->getSize();
 
                     // Exception - If the source operand is a memory location
@@ -2461,7 +2488,7 @@ _NextGroup:
                     combinedFlags = inFlags;
                   }
                   // Imul.
-                  else if (code == kX86InstIdImul && opCount == 3) {
+                  else if (instId == kX86InstIdImul && opCount == 3) {
                     combinedFlags = outFlags;
                   }
                 }
@@ -2470,13 +2497,13 @@ _NextGroup:
                   combinedFlags = inFlags;
 
                   // Idiv is a special instruction, never handled here.
-                  ASMJIT_ASSERT(code != kX86InstIdIdiv);
+                  ASMJIT_ASSERT(instId != kX86InstIdIdiv);
 
                   // Xchg/Xadd/Imul.
-                  if (extendedInfo.isXchg() || (code == kX86InstIdImul && opCount == 3 && i == 1))
+                  if (extendedInfo.isXchg() || (instId == kX86InstIdImul && opCount == 3 && i == 1))
                     combinedFlags = inFlags | outFlags;
                 }
-                va->addFlags(combinedFlags);
+                va->orFlags(combinedFlags);
               }
             }
             else if (op->isMem()) {
@@ -2488,7 +2515,7 @@ _NextGroup:
                 if (!vd->isStack()) {
                   VI_MERGE_VAR(vd, va, 0, gaRegs[vd->getClass()] & gpAllowedMask);
                   if (m->getMemType() == kMemTypeBaseIndex) {
-                    va->addFlags(kVarAttrInReg);
+                    va->orFlags(kVarAttrInReg);
                   }
                   else {
                     uint32_t inFlags = kVarAttrInMem;
@@ -2503,7 +2530,7 @@ _NextGroup:
                       // as if it's just move to the register. It's just a bit
                       // simpler as there are no special cases.
                       if (extendedInfo.isMove()) {
-                        uint32_t movSize = IntUtil::iMax<uint32_t>(extendedInfo.getMoveSize(), m->getSize());
+                        uint32_t movSize = IntUtil::iMax<uint32_t>(extendedInfo.getWriteSize(), m->getSize());
                         uint32_t varSize = vd->getSize();
 
                         if (movSize >= varSize)
@@ -2523,7 +2550,7 @@ _NextGroup:
                         combinedFlags = inFlags | outFlags;
                     }
 
-                    va->addFlags(combinedFlags);
+                    va->orFlags(combinedFlags);
                   }
                 }
               }
@@ -2533,7 +2560,7 @@ _NextGroup:
                 vd = compiler->getVdById(m->getIndex());
                 VI_MERGE_VAR(vd, va, 0, gaRegs[kX86RegClassGp] & gpAllowedMask);
                 va->andAllocableRegs(indexMask);
-                va->addFlags(kVarAttrInReg);
+                va->orFlags(kVarAttrInReg);
               }
             }
           }
@@ -2543,7 +2570,7 @@ _NextGroup:
             // Handle instructions which result in zeros/ones or nop if used with the
             // same destination and source operand.
             if (vaCount == 1 && opCount >= 2 && opList[0].isVar() && opList[1].isVar() && !node->hasMemOp())
-              X86Context_prepareSingleVarInst(code, &vaTmpList[0]);
+              X86Context_prepareSingleVarInst(instId, &vaTmpList[0]);
           }
 
           VI_END(node_);
@@ -2577,7 +2604,7 @@ _NextGroup:
               // backward jump. This behavior can be overridden by using
               // `kInstOptionTaken` when the instruction is created.
               if (!jNode->isTaken() && opCount == 1 && jTargetFlowId <= flowId) {
-                jNode->addFlags(kNodeFlagIsTaken);
+                jNode->orFlags(kNodeFlagIsTaken);
               }
             }
             else if (jNext->isFetched()) {
@@ -2623,18 +2650,18 @@ _NextGroup:
 
           if (arg.hasRegIndex()) {
             if (x86VarTypeToClass(aType) == vd->getClass()) {
-              va->addFlags(kVarAttrOutReg);
+              va->orFlags(kVarAttrOutReg);
               va->setOutRegIndex(arg.getRegIndex());
             }
             else {
-              va->addFlags(kVarAttrOutConv);
+              va->orFlags(kVarAttrOutConv);
             }
           }
           else {
             if ((x86VarTypeToClass(aType) == vd->getClass()) ||
                 (vType == kX86VarTypeXmmSs && aType == kVarTypeFp32) ||
                 (vType == kX86VarTypeXmmSd && aType == kVarTypeFp64)) {
-              va->addFlags(kVarAttrOutMem);
+              va->orFlags(kVarAttrOutMem);
             }
             else {
               // TODO: [COMPILER] Not implemented.
@@ -2678,8 +2705,8 @@ _NextGroup:
                 // TODO: [COMPILER] Fix RetNode fetch.
                 VI_MERGE_VAR(vd, va, 0, 0);
                 va->setInRegs(i == 0 ? IntUtil::mask(kX86RegIndexAx) : IntUtil::mask(kX86RegIndexDx));
-                va->addFlags(kVarAttrInReg);
-                inRegs.add(retClass, va->getInRegs());
+                va->orFlags(kVarAttrInReg);
+                inRegs.or_(retClass, va->getInRegs());
               }
             }
           }
@@ -2719,7 +2746,7 @@ _NextGroup:
           vd = compiler->getVdById(target->getId());
           VI_MERGE_VAR(vd, va, 0, 0);
 
-          va->addFlags(kVarAttrInReg | kVarAttrInCall);
+          va->orFlags(kVarAttrInReg | kVarAttrInCall);
           if (va->getInRegs() == 0)
             va->addAllocableRegs(gpAllocableMask);
         }
@@ -2731,12 +2758,12 @@ _NextGroup:
             if (!vd->isStack()) {
               VI_MERGE_VAR(vd, va, 0, 0);
               if (m->getMemType() == kMemTypeBaseIndex) {
-                va->addFlags(kVarAttrInReg | kVarAttrInCall);
+                va->orFlags(kVarAttrInReg | kVarAttrInCall);
                 if (va->getInRegs() == 0)
                   va->addAllocableRegs(gpAllocableMask);
               }
               else {
-                va->addFlags(kVarAttrInMem | kVarAttrInCall);
+                va->orFlags(kVarAttrInMem | kVarAttrInCall);
               }
             }
           }
@@ -2746,7 +2773,7 @@ _NextGroup:
             vd = compiler->getVdById(m->getIndex());
             VI_MERGE_VAR(vd, va, 0, 0);
 
-            va->addFlags(kVarAttrInReg | kVarAttrInCall);
+            va->orFlags(kVarAttrInReg | kVarAttrInCall);
             if ((va->getInRegs() & ~indexMask) == 0)
               va->andAllocableRegs(gpAllocableMask & indexMask);
           }
@@ -2769,10 +2796,10 @@ _NextGroup:
 
             if (vd->getClass() == argClass) {
               va->addInRegs(IntUtil::mask(arg.getRegIndex()));
-              va->addFlags(kVarAttrInReg | kVarAttrInArg);
+              va->orFlags(kVarAttrInReg | kVarAttrInArg);
             }
             else {
-              va->addFlags(kVarAttrInConv | kVarAttrInArg);
+              va->orFlags(kVarAttrInConv | kVarAttrInArg);
             }
           }
           // If this is a stack-based argument we insert SArgNode instead of
@@ -2803,18 +2830,18 @@ _NextGroup:
 
             if (vd->getClass() == retClass) {
               va->setOutRegIndex(ret.getRegIndex());
-              va->addFlags(kVarAttrOutReg | kVarAttrOutRet);
+              va->orFlags(kVarAttrOutReg | kVarAttrOutRet);
             }
             else {
-              va->addFlags(kVarAttrOutConv | kVarAttrOutRet);
+              va->orFlags(kVarAttrOutConv | kVarAttrOutRet);
             }
           }
         }
 
         // Init clobbered.
-        clobberedRegs.set(kX86RegClassGp , IntUtil::bits(_regCount.getGp()) & (~decl->getPreserved(kX86RegClassGp)));
-        clobberedRegs.set(kX86RegClassFp , IntUtil::bits(_regCount.getFp()));
-        clobberedRegs.set(kX86RegClassMm , IntUtil::bits(_regCount.getMm()) & (~decl->getPreserved(kX86RegClassMm)));
+        clobberedRegs.set(kX86RegClassGp , IntUtil::bits(_regCount.getGp())  & (~decl->getPreserved(kX86RegClassGp )));
+        clobberedRegs.set(kX86RegClassMm , IntUtil::bits(_regCount.getMm())  & (~decl->getPreserved(kX86RegClassMm )));
+        clobberedRegs.set(kX86RegClassK  , IntUtil::bits(_regCount.getK())   & (~decl->getPreserved(kX86RegClassK  )));
         clobberedRegs.set(kX86RegClassXyz, IntUtil::bits(_regCount.getXyz()) & (~decl->getPreserved(kX86RegClassXyz)));
 
         VI_END(node_);
@@ -2860,7 +2887,7 @@ Error X86Context::annotate() {
     if (node_->getComment() == NULL) {
       if (node_->getType() == kNodeTypeInst) {
         InstNode* node = static_cast<InstNode*>(node_);
-        X86Context_annotateInstruction(this, sb, node->getCode(), node->getOpList(), node->getOpCount());
+        X86Context_annotateInstruction(this, sb, node->getInstId(), node->getOpList(), node->getOpCount());
 
         node_->setComment(static_cast<char*>(sa.dup(sb.getData(), sb.getLength() + 1)));
         maxLen = IntUtil::iMax<uint32_t>(maxLen, static_cast<uint32_t>(sb.getLength()));
@@ -2962,7 +2989,7 @@ protected:
   //! Variable map.
   X86VarMap* _map;
   //! VarAttr list (per register class).
-  VarAttr* _vaList[4];
+  VarAttr* _vaList[_kX86RegClassManagedCount];
 
   //! Count of all VarAttr's.
   uint32_t _vaCount;
@@ -2990,8 +3017,8 @@ ASMJIT_INLINE void X86BaseAlloc::init(Node* node, X86VarMap* map) {
   {
     VarAttr* va = map->getVaList();
     _vaList[kX86RegClassGp ] = va;
-    _vaList[kX86RegClassFp ] = va + map->getVaStart(kX86RegClassFp );
     _vaList[kX86RegClassMm ] = va + map->getVaStart(kX86RegClassMm );
+    _vaList[kX86RegClassK  ] = va + map->getVaStart(kX86RegClassK  );
     _vaList[kX86RegClassXyz] = va + map->getVaStart(kX86RegClassXyz);
   }
 
@@ -3223,8 +3250,8 @@ ASMJIT_INLINE Error X86VarAlloc::run(Node* node_) {
   cleanup();
 
   // Update clobbered mask.
-  _context->_clobberedRegs.add(_willAlloc);
-  _context->_clobberedRegs.add(map->_clobberedRegs);
+  _context->_clobberedRegs.or_(_willAlloc);
+  _context->_clobberedRegs.or_(map->_clobberedRegs);
 
   // Unuse.
   unuseAfter<kX86RegClassGp >();
@@ -3245,7 +3272,7 @@ ASMJIT_INLINE void X86VarAlloc::init(Node* node, X86VarMap* map) {
   // add more registers when assigning registers to variables that don't need
   // any specific register.
   _willAlloc = map->_inRegs;
-  _willAlloc.add(map->_outRegs);
+  _willAlloc.or_(map->_outRegs);
   _willSpill.reset();
 }
 
@@ -3308,7 +3335,7 @@ ASMJIT_INLINE void X86VarAlloc::plan() {
 
           if ((mandatoryRegs | allocableRegs) & regMask) {
             va->setOutRegIndex(regIndex);
-            va->addFlags(kVarAttrAllocOutDone);
+            va->orFlags(kVarAttrAllocOutDone);
 
             if (mandatoryRegs & regMask) {
               // Case 'a' - 'willAlloc' contains initially all inRegs from all VarAttr's.
@@ -3329,7 +3356,7 @@ ASMJIT_INLINE void X86VarAlloc::plan() {
         else {
           if ((mandatoryRegs | allocableRegs) & regMask) {
             va->setInRegIndex(regIndex);
-            va->addFlags(kVarAttrAllocInDone);
+            va->orFlags(kVarAttrAllocInDone);
 
             if (mandatoryRegs & regMask) {
               // Case 'a' - 'willAlloc' contains initially all inRegs from all VarAttr's.
@@ -3377,7 +3404,7 @@ ASMJIT_INLINE void X86VarAlloc::plan() {
       }
       else {
         ASMJIT_TLOG("[RA-PLAN ] Done\n");
-        va->addFlags(kVarAttrAllocInDone);
+        va->orFlags(kVarAttrAllocInDone);
         addVaDone(C);
         continue;
       }
@@ -3563,12 +3590,12 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
           VarAttr* bVa = bVd->getVa();
           _context->swapGp(aVd, bVd);
 
-          aVa->addFlags(kVarAttrAllocInDone);
+          aVa->orFlags(kVarAttrAllocInDone);
           addVaDone(C);
 
           // Doublehit, two registers allocated by a single swap.
           if (bVa != NULL && bVa->getInRegIndex() == aIndex) {
-            bVa->addFlags(kVarAttrAllocInDone);
+            bVa->orFlags(kVarAttrAllocInDone);
             addVaDone(C);
           }
 
@@ -3579,7 +3606,7 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
       else if (aIndex != kInvalidReg) {
         _context->move<C>(aVd, bIndex);
 
-        aVa->addFlags(kVarAttrAllocInDone);
+        aVa->orFlags(kVarAttrAllocInDone);
         addVaDone(C);
 
         didWork = true;
@@ -3588,7 +3615,7 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
       else {
         _context->alloc<C>(aVd, bIndex);
 
-        aVa->addFlags(kVarAttrAllocInDone);
+        aVa->orFlags(kVarAttrAllocInDone);
         addVaDone(C);
 
         didWork = true;
@@ -3613,7 +3640,7 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
       _context->attach<C>(vd, regIndex, false);
     }
 
-    va->addFlags(kVarAttrAllocOutDone);
+    va->orFlags(kVarAttrAllocOutDone);
     addVaDone(C);
   }
 }
@@ -3730,7 +3757,7 @@ ASMJIT_INLINE void X86VarAlloc::modified() {
       uint32_t regMask = IntUtil::mask(regIndex);
 
       vd->setModified(true);
-      _context->_x86State._modified.add(C, regMask);
+      _context->_x86State._modified.or_(C, regMask);
     }
   }
 }
@@ -3972,7 +3999,7 @@ ASMJIT_INLINE void X86CallAlloc::plan() {
       // is not clobbered (i.e. it will survive function call).
       if ((regMask & inRegs) != 0 || ((regMask & ~clobbered) != 0 && (vaFlags & kVarAttrUnuse) == 0)) {
         va->setInRegIndex(regIndex);
-        va->addFlags(kVarAttrAllocInDone);
+        va->orFlags(kVarAttrAllocInDone);
         addVaDone(C);
       }
       else {
@@ -3985,7 +4012,7 @@ ASMJIT_INLINE void X86CallAlloc::plan() {
         willFree |= regMask;
       }
       else {
-        va->addFlags(kVarAttrAllocInDone);
+        va->orFlags(kVarAttrAllocInDone);
         addVaDone(C);
       }
     }
@@ -4131,12 +4158,12 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
         if (C == kX86RegClassGp) {
           _context->swapGp(aVd, bVd);
 
-          aVa->addFlags(kVarAttrAllocInDone);
+          aVa->orFlags(kVarAttrAllocInDone);
           addVaDone(C);
 
           // Doublehit, two registers allocated by a single swap.
           if (bVa != NULL && bVa->getInRegIndex() == aIndex) {
-            bVa->addFlags(kVarAttrAllocInDone);
+            bVa->orFlags(kVarAttrAllocInDone);
             addVaDone(C);
           }
 
@@ -4147,7 +4174,7 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
       else if (aIndex != kInvalidReg) {
         _context->move<C>(aVd, bIndex);
 
-        aVa->addFlags(kVarAttrAllocInDone);
+        aVa->orFlags(kVarAttrAllocInDone);
         addVaDone(C);
 
         didWork = true;
@@ -4156,7 +4183,7 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
       else {
         _context->alloc<C>(aVd, bIndex);
 
-        aVa->addFlags(kVarAttrAllocInDone);
+        aVa->orFlags(kVarAttrAllocInDone);
         addVaDone(C);
 
         didWork = true;
@@ -4227,7 +4254,7 @@ ASMJIT_INLINE void X86CallAlloc::duplicate() {
     for (uint32_t dupIndex = 0; inRegs != 0; dupIndex++, inRegs >>= 1) {
       if (inRegs & 0x1) {
         _context->emitMove(vd, dupIndex, regIndex, "Duplicate");
-        _context->_clobberedRegs.add(C, IntUtil::mask(dupIndex));
+        _context->_clobberedRegs.or_(C, IntUtil::mask(dupIndex));
       }
     }
   }
@@ -4467,8 +4494,8 @@ static Error X86Context_initFunc(X86Context* self, X86FuncNode* func) {
 
   // Setup "Save-Restore" registers.
   func->_saveRestoreRegs.set(kX86RegClassGp , clobberedRegs.get(kX86RegClassGp ) & decl->getPreserved(kX86RegClassGp ));
-  func->_saveRestoreRegs.set(kX86RegClassFp , 0);
   func->_saveRestoreRegs.set(kX86RegClassMm , clobberedRegs.get(kX86RegClassMm ) & decl->getPreserved(kX86RegClassMm ));
+  func->_saveRestoreRegs.set(kX86RegClassK  , 0);
   func->_saveRestoreRegs.set(kX86RegClassXyz, clobberedRegs.get(kX86RegClassXyz) & decl->getPreserved(kX86RegClassXyz));
 
   ASMJIT_ASSERT(!func->_saveRestoreRegs.has(kX86RegClassGp, IntUtil::mask(kX86RegIndexSp)));
@@ -4540,7 +4567,7 @@ static Error X86Context_initFunc(X86Context* self, X86FuncNode* func) {
     // from '_saveRestoreRegs' in case that it is preserved.
     fRegMask = IntUtil::mask(fRegIndex);
     if ((fRegMask & decl->getPreserved(kX86RegClassGp)) != 0) {
-      func->_saveRestoreRegs.del(kX86RegClassGp, fRegMask);
+      func->_saveRestoreRegs.andNot(kX86RegClassGp, fRegMask);
       func->_isStackFrameRegPreserved = true;
     }
 
@@ -4556,7 +4583,7 @@ static Error X86Context_initFunc(X86Context* self, X86FuncNode* func) {
       else
         stackFrameCopyRegs = IntUtil::keepNOnesFromRight(stackFrameCopyRegs, IntUtil::iMin<uint32_t>(maxRegs, 2));
 
-      func->_saveRestoreRegs.add(kX86RegClassGp, stackFrameCopyRegs & decl->getPreserved(kX86RegClassGp));
+      func->_saveRestoreRegs.or_(kX86RegClassGp, stackFrameCopyRegs & decl->getPreserved(kX86RegClassGp));
       IntUtil::indexNOnesFromRight(func->_stackFrameCopyGpIndex, stackFrameCopyRegs, maxRegs);
     }
   }
@@ -5096,7 +5123,7 @@ _NextGroup:
     }
 
     next = node_->getNext();
-    node_->addFlags(kNodeFlagIsTranslated);
+    node_->orFlags(kNodeFlagIsTranslated);
 
     ASMJIT_TSEC({
       X86Context_traceNode(this, node_);
@@ -5143,7 +5170,7 @@ _NextGroup:
               VarData* vd = va->getVd();
 
               if (!liveness->getBit(vd->getContextId()))
-                va->addFlags(kVarAttrUnuse);
+                va->orFlags(kVarAttrUnuse);
             }
           }
         }
@@ -5321,7 +5348,7 @@ _NextGroup:
 
     for (;;) {
       Node* next = node_->getNext();
-      node_->addFlags(kNodeFlagIsScheduled);
+      node_->orFlags(kNodeFlagIsScheduled);
 
       // Shouldn't happen here, investigate if hit.
       ASMJIT_ASSERT(node_ != stop);
@@ -5508,7 +5535,7 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
       case kNodeTypeInst: {
         InstNode* node = static_cast<InstNode*>(node_);
 
-        uint32_t code = node->getCode();
+        uint32_t instId = node->getInstId();
         uint32_t opCount = node->getOpCount();
 
         const Operand* opList = node->getOpList();
@@ -5517,9 +5544,10 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
         const Operand* o0 = &noOperand;
         const Operand* o1 = &noOperand;
         const Operand* o2 = &noOperand;
+        const Operand* o3 = &noOperand;
 
         if (node->isSpecial()) {
-          switch (code) {
+          switch (instId) {
             case kX86InstIdCpuid:
               break;
 
@@ -5632,6 +5660,19 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
             case kX86InstIdRepneScasB: case kX86InstIdRepneScasD: case kX86InstIdRepneScasQ: case kX86InstIdRepneScasW:
               break;
 
+            case kX86InstIdXrstor:
+            case kX86InstIdXrstor64:
+            case kX86InstIdXsave:
+            case kX86InstIdXsave64:
+            case kX86InstIdXsaveopt:
+            case kX86InstIdXsaveopt64:
+              o0 = &opList[0];
+              break;
+
+            case kX86InstIdXgetbv:
+            case kX86InstIdXsetbv:
+              break;
+
             default:
               ASMJIT_ASSERT(!"Reached");
           }
@@ -5640,10 +5681,11 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
           if (opCount > 0) o0 = &opList[0];
           if (opCount > 1) o1 = &opList[1];
           if (opCount > 2) o2 = &opList[2];
+          if (opCount > 3) o3 = &opList[3];
         }
 
-        // We use this form, because it is the main one.
-        assembler->emit(code, *o0, *o1, *o2);
+        // Should call _emit() directly as 4 operand form is the main form.
+        assembler->emit(instId, *o0, *o1, *o2, *o3);
         break;
       }
 

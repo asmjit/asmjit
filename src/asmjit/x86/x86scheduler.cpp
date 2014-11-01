@@ -76,7 +76,7 @@ Error X86Scheduler::run(Node* start, Node* stop) {
     Node* next = node_->getNext();
     ASMJIT_ASSERT(node_->getType() == kNodeTypeInst);
 
-    printf("  %s\n", X86Util::getInstInfo(static_cast<InstNode*>(node_)->getCode()).getInstName());
+    printf("  %s\n", X86Util::getInstInfo(static_cast<InstNode*>(node_)->getInstId()).getInstName());
     node_ = next;
   }
 
