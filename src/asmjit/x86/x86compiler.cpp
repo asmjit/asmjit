@@ -448,7 +448,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
         continue;
 
       arg._regIndex = self->_passedOrderGp[gpPos++];
-      self->_used.add(kX86RegClassGp, IntUtil::mask(arg.getRegIndex()));
+      self->_used.or_(kX86RegClassGp, IntUtil::mask(arg.getRegIndex()));
     }
 
     // Stack arguments.
