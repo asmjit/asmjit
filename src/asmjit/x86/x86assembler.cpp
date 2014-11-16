@@ -968,16 +968,18 @@ static bool X86Assembler_dumpComment(StringBuilder& sb, size_t len, const uint8_
 // [asmjit::X86Assembler - Emit]
 // ============================================================================
 
+#define HI_REG(_Index_) ((_kX86RegTypePatchedGpbHi << 8) | _Index_)
 //! \internal
 static const Operand::VRegOp x86PatchedHiRegs[4] = {
-  // --------------+---+--------------------------------+--------------+------+
-  // Operand       | S | Register Code                  | OperandId    |Unused|
-  // --------------+---+--------------------------------+--------------+------+
-  { kOperandTypeReg, 1 , (_kX86RegTypePatchedGpbHi << 8) | 4, kInvalidValue, 0, 0 },
-  { kOperandTypeReg, 1 , (_kX86RegTypePatchedGpbHi << 8) | 5, kInvalidValue, 0, 0 },
-  { kOperandTypeReg, 1 , (_kX86RegTypePatchedGpbHi << 8) | 6, kInvalidValue, 0, 0 },
-  { kOperandTypeReg, 1 , (_kX86RegTypePatchedGpbHi << 8) | 7, kInvalidValue, 0, 0 }
+  // --------------+---+--------------+--------------+------------+
+  // Operand       | S | Reg. Code    | OperandId    |   Unused   |
+  // --------------+---+--------------+--------------+------------+
+  { kOperandTypeReg, 1 , { HI_REG(4) }, kInvalidValue, {{ 0, 0 }} },
+  { kOperandTypeReg, 1 , { HI_REG(5) }, kInvalidValue, {{ 0, 0 }} },
+  { kOperandTypeReg, 1 , { HI_REG(6) }, kInvalidValue, {{ 0, 0 }} },
+  { kOperandTypeReg, 1 , { HI_REG(7) }, kInvalidValue, {{ 0, 0 }} }
 };
+#undef HI_REG
 
 template<int Arch>
 static Error ASMJIT_CDECL X86Assembler_emit(Assembler* self_, uint32_t code, const Operand* o0, const Operand* o1, const Operand* o2, const Operand* o3) {
@@ -4108,7 +4110,6 @@ _EmitJmpOrCallAbs:
 
     if (Arch == kArchX64) {
       Ptr baseAddress = self->getBaseAddress();
-      Ptr diff = rd.data - (baseAddress + rd.from + 4);
 
       // If the base address of the output is known, it's possible to determine
       // the need for a trampoline here. This saves possible REX prefix in

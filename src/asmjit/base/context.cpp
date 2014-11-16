@@ -217,7 +217,7 @@ Error Context::resolveCellOffsets() {
   // Vars - Allocated according to alignment/width.
   while (varCell != NULL) {
     uint32_t size = varCell->getSize();
-    uint32_t offset;
+    uint32_t offset = 0;
 
     switch (size) {
       case  1: offset = pos1 ; pos1  += 1 ; break;

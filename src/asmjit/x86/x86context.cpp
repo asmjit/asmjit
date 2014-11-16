@@ -279,8 +279,8 @@ X86Context::~X86Context() {}
 // [asmjit::X86Context - Reset]
 // ============================================================================
 
-void X86Context::reset() {
-  Context::reset();
+void X86Context::reset(bool releaseMemory) {
+  Context::reset(releaseMemory);
 
   _x86State.reset(0);
   _clobberedRegs.reset();
@@ -2090,7 +2090,6 @@ Error X86Context::fetch() {
   Node* next = NULL;
   Node* stop = getStop();
 
-  uint32_t groupId = 1;
   uint32_t flowId = 0;
 
   VarAttr vaTmpList[80];
@@ -4432,8 +4431,6 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
 //! \internal
 static Error X86Context_translateOperands(X86Context* self, Operand* opList, uint32_t opCount) {
   X86Compiler* compiler = self->getCompiler();
-  const X86VarInfo* varInfo = _x86VarInfo;
-
   uint32_t hasGpdBase = compiler->getRegSize() == 4;
 
   // Translate variables into registers.

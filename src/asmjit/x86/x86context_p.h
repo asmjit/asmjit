@@ -59,7 +59,7 @@ struct X86Context : public Context {
   // [Reset]
   // --------------------------------------------------------------------------
 
-  virtual void reset();
+  virtual void reset(bool releaseMemory = false);
 
   // --------------------------------------------------------------------------
   // [Arch]

@@ -162,19 +162,6 @@ void ConstPool::reset() {
 // [asmjit::ConstPool - Ops]
 // ============================================================================
 
-static ASMJIT_INLINE size_t ConstPool_getGapIndex(size_t size) {
-  if (size <=  1)
-    return ConstPool::kIndex1;
-  else if (size <=  3)
-    return ConstPool::kIndex2;
-  else if (size <=  7)
-    return ConstPool::kIndex4;
-  else if (size <= 15)
-    return ConstPool::kIndex8;
-  else
-    return ConstPool::kIndex16;
-}
-
 static ASMJIT_INLINE ConstPoolGap* ConstPool_allocGap(ConstPool* self) {
   ConstPoolGap* gap = self->_gapPool;
   if (gap == NULL)
@@ -481,7 +468,6 @@ UNIT(base_constpool) {
   INFO("Checking pool alignment when combined constants are added.");
   {
     uint8_t bytes[32] = { 0 };
-    uint64_t c = 0;
     size_t offset;
 
     pool.add(bytes, 1, offset);
