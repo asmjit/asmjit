@@ -2539,10 +2539,8 @@ _EmitMmMovD:
       }
 
       if (Arch == kArchX64) {
-        // Movq in other case is simply a promoted MOVD instruction to 64-bit.
-        ADD_REX_W(true);
-
-        opCode = kX86InstOpCode_PP_00 | kX86InstOpCode_MM_0F | 0x6E;
+        // Movq in other case is simply a MOVD instruction promoted to 64-bit.
+        opCode |= kX86InstOpCode_W;
         goto _EmitMmMovD;
       }
       break;
