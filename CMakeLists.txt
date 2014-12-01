@@ -120,7 +120,6 @@ If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -DASMJIT_DEBUG -O0)
   Set(ASMJIT_CFLAGS_REL
     -DASMJIT_RELEASE -O2
-    -finline-functions
     -fomit-frame-pointer
     -fmerge-all-constants)
 EndIf()
