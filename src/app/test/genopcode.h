@@ -815,7 +815,6 @@ static void opcode(asmjit::X86Assembler& a) {
   a.unpcklps(xmm0, xmm7);
   a.unpcklps(xmm0, ptr_gp0);
   a.xorps(xmm0, xmm7);
-  a.xorps(xmm0, ptr_gp0);
 
   // SSE2.
   a.nop();
@@ -1065,7 +1064,6 @@ static void opcode(asmjit::X86Assembler& a) {
   a.unpcklpd(xmm0, xmm7);
   a.unpcklpd(xmm0, ptr_gp0);
   a.xorpd(xmm0, xmm7);
-  a.xorpd(xmm0, ptr_gp0);
 
   // SSE3.
   a.nop();
@@ -1965,13 +1963,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vunpcklps(ymm0, ymm1, ymm2);
   a.vunpcklps(ymm0, ymm1, ptr_gp0);
   a.vxorpd(xmm0, xmm1, xmm2);
-  a.vxorpd(xmm0, xmm1, ptr_gp0);
   a.vxorpd(ymm0, ymm1, ymm2);
-  a.vxorpd(ymm0, ymm1, ptr_gp0);
   a.vxorps(xmm0, xmm1, xmm2);
-  a.vxorps(xmm0, xmm1, ptr_gp0);
   a.vxorps(ymm0, ymm1, ymm2);
-  a.vxorps(ymm0, ymm1, ptr_gp0);
   a.vzeroall();
   a.vzeroupper();
 
