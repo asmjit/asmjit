@@ -3036,8 +3036,6 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
 
   //! Packed DP-FP bitwise xor (SSE2).
   INST_2x(xorpd, kX86InstIdXorpd, X86XmmReg, X86XmmReg)
-  //! \overload
-  INST_2x(xorpd, kX86InstIdXorpd, X86XmmReg, X86Mem)
 
   // --------------------------------------------------------------------------
   // [SSE3]
@@ -5203,20 +5201,12 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   //! Packed DP-FP bitwise xor (AVX).
   INST_3x(vxorpd, kX86InstIdVxorpd, X86XmmReg, X86XmmReg, X86XmmReg)
   //! \overload
-  INST_3x(vxorpd, kX86InstIdVxorpd, X86XmmReg, X86XmmReg, X86Mem)
-  //! \overload
   INST_3x(vxorpd, kX86InstIdVxorpd, X86YmmReg, X86YmmReg, X86YmmReg)
-  //! \overload
-  INST_3x(vxorpd, kX86InstIdVxorpd, X86YmmReg, X86YmmReg, X86Mem)
 
   //! Packed SP-FP bitwise xor (AVX).
   INST_3x(vxorps, kX86InstIdVxorps, X86XmmReg, X86XmmReg, X86XmmReg)
   //! \overload
-  INST_3x(vxorps, kX86InstIdVxorps, X86XmmReg, X86XmmReg, X86Mem)
-  //! \overload
   INST_3x(vxorps, kX86InstIdVxorps, X86YmmReg, X86YmmReg, X86YmmReg)
-  //! \overload
-  INST_3x(vxorps, kX86InstIdVxorps, X86YmmReg, X86YmmReg, X86Mem)
 
   //! Zero all Ymm registers.
   INST_0x(vzeroall, kX86InstIdVzeroall)
