@@ -45,8 +45,11 @@ void Logger::logFormat(uint32_t style, const char* fmt, ...) {
 
   va_list ap;
   va_start(ap, fmt);
-  len = vsnprintf(buf, 1023, fmt, ap);
+  len = vsnprintf(buf, sizeof(buf), fmt, ap);
   va_end(ap);
+
+  if (len >= sizeof(buf))
+    len = sizeof(buf) - 1;
 
   logString(style, buf, len);
 }
