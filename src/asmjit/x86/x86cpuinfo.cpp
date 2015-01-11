@@ -109,7 +109,7 @@ void X86CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* result) {
   __cpuidex(reinterpret_cast<int*>(result->i), inEax, inEcx);
 # else // _MSC_VER < 1400
   uint32_t cpuid_eax = inEax;
-  uint32_t cpuid_ecx = inCax;
+  uint32_t cpuid_ecx = inEcx;
   uint32_t* cpuid_out = result->i;
 
   __asm {
