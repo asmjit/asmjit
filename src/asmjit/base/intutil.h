@@ -11,8 +11,9 @@
 // [Dependencies - AsmJit]
 #include "../base/globals.h"
 
-#if defined(_MSC_VER)
-#pragma intrinsic(_BitScanForward)
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+# include <intrin.h>
+# pragma intrinsic(_BitScanForward)
 #endif // ASMJIT_OS_WINDOWS
 
 // [Api-Begin]
@@ -336,7 +337,7 @@ struct IntUtil {
 
   //! Find a first bit in `mask`.
   static ASMJIT_INLINE uint32_t findFirstBit(uint32_t mask) {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && _MSC_VER >= 1400
     DWORD i;
     if (_BitScanForward(&i, mask)) {
       ASMJIT_ASSERT(findFirstBitSlow(mask) == i);
