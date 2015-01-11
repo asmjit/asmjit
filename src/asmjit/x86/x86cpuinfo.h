@@ -200,8 +200,7 @@ struct X86CpuInfo : public CpuInfo {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE X86CpuInfo(uint32_t size = sizeof(X86CpuInfo)) :
-    CpuInfo(size) {}
+  ASMJIT_INLINE X86CpuInfo();
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -251,6 +250,9 @@ struct X86CpuInfo : public CpuInfo {
   //! Maximum number of addressable IDs for logical processors.
   uint32_t _maxLogicalProcessors;
 };
+
+ASMJIT_INLINE X86CpuInfo::X86CpuInfo() :
+  CpuInfo(sizeof(X86CpuInfo)) {}
 
 //! \}
 

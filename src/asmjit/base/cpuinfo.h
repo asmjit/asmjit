@@ -59,7 +59,7 @@ struct CpuInfo {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE CpuInfo(uint32_t size = sizeof(CpuInfo)) : _size(size) {}
+  ASMJIT_INLINE CpuInfo(uint32_t size) : _size(size) {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
