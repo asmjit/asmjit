@@ -45,7 +45,7 @@ enum {
 //! \internal
 //!
 //! Combined flags.
-enum kX86InstOpInternal {
+enum X86InstOpInternal {
   kX86InstOpI        = kX86InstOpImm,
   kX86InstOpL        = kX86InstOpLabel,
   kX86InstOpLbImm    = kX86InstOpLabel | kX86InstOpImm,
@@ -84,7 +84,7 @@ enum kX86InstOpInternal {
 //! \internal
 //!
 //! X86/X64 Instruction AVX-512 flags (combined).
-ASMJIT_ENUM(kX86InstFlagsInternal) {
+ASMJIT_ENUM(X86InstFlagsInternal) {
   // FPU.
   kX86InstFlagMem2_4           = kX86InstFlagMem2        | kX86InstFlagMem4,
   kX86InstFlagMem2_4_8         = kX86InstFlagMem2_4      | kX86InstFlagMem8,
@@ -1223,7 +1223,7 @@ const char _x86InstName[] =
   "xsetbv\0";
 
 // Automatically generated, do not edit.
-enum kX86InstAlphaIndex {
+enum X86InstAlphaIndex {
   kX86InstAlphaIndexFirst = 'a',
   kX86InstAlphaIndexLast = 'z',
   kX86InstAlphaIndexInvalid = 0xFFFF
@@ -1260,7 +1260,7 @@ static const uint16_t _x86InstAlphaIndex[26] = {
 };
 
 // Automatically generated, do not edit.
-enum kX86InstData_NameIndex {
+enum X86InstData_NameIndex {
   kInstIdNone_NameIndex = 0,
   kX86InstIdAdc_NameIndex = 1,
   kX86InstIdAdd_NameIndex = 5,
@@ -2613,7 +2613,7 @@ const X86InstExtendedInfo _x86InstExtendedInfo[] = {
 };
 
 // Automatically generated, do not edit.
-enum kX86InstData_ExtendedIndex {
+enum X86InstData_ExtendedIndex {
   kInstIdNone_ExtendedIndex = 0,
   kX86InstIdAdc_ExtendedIndex = 1,
   kX86InstIdAdd_ExtendedIndex = 2,

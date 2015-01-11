@@ -27,11 +27,11 @@ struct Compiler;
 //! \{
 
 // ============================================================================
-// [asmjit::kOperandType]
+// [asmjit::OperandType]
 // ============================================================================
 
 //! Operand types that can be encoded in `Operand`.
-ASMJIT_ENUM(kOperandType) {
+ASMJIT_ENUM(OperandType) {
   //! Invalid operand, used only internally (not initialized Operand).
   kOperandTypeNone = 0,
   //! Operand is a register.
@@ -47,11 +47,11 @@ ASMJIT_ENUM(kOperandType) {
 };
 
 // ============================================================================
-// [asmjit::kOperandId]
+// [asmjit::OperandId]
 // ============================================================================
 
 //! Operand id masks used to determine the operand type.
-ASMJIT_ENUM(kOperandId) {
+ASMJIT_ENUM(OperandId) {
   //! Operand id refers to `Var`.
   kOperandIdVar = 0x80000000U,
   //! Operand id to real index mask.
@@ -59,21 +59,21 @@ ASMJIT_ENUM(kOperandId) {
 };
 
 // ============================================================================
-// [asmjit::kRegClass]
+// [asmjit::RegClass]
 // ============================================================================
 
 //! Register class.
-ASMJIT_ENUM(kRegClass) {
+ASMJIT_ENUM(RegClass) {
   //! Gp register class, compatible with all architectures.
   kRegClassGp = 0
 };
 
 // ============================================================================
-// [asmjit::kSize]
+// [asmjit::SizeDefs]
 // ============================================================================
 
 //! Common size of registers and pointers.
-ASMJIT_ENUM(kSize) {
+ASMJIT_ENUM(SizeDefs) {
   //! 1 byte size (BYTE).
   kSizeByte = 1,
   //! 2 bytes size (WORD).
@@ -91,11 +91,11 @@ ASMJIT_ENUM(kSize) {
 };
 
 // ============================================================================
-// [asmjit::kMemType]
+// [asmjit::MemType]
 // ============================================================================
 
 //! Type of memory operand.
-ASMJIT_ENUM(kMemType) {
+ASMJIT_ENUM(MemType) {
   //! Memory operand is a combination of base register and optional index register
   //! and displacement.
   //!
@@ -135,7 +135,7 @@ struct Operand {
   //!
   //! Base operand data.
   struct BaseOp {
-    //! Type of operand, see `kOperandType`.
+    //! Type of operand, see \ref OperandType.
     uint8_t op;
     //! Size of operand (register, address, immediate, or variable).
     uint8_t size;
@@ -170,7 +170,7 @@ struct Operand {
 
       //! Register type and index access.
       struct {
-#if defined(ASMJIT_HOST_LE)
+#if defined(ASMJIT_ARCH_LE)
         //! Register index.
         uint8_t index;
         //! Register type.
@@ -212,10 +212,10 @@ struct Operand {
     uint8_t op;
     //! Size of the pointer in bytes.
     uint8_t size;
-    //! Type of the memory operand, see `kMemType`.
+    //! Type of the memory operand, see `MemType`.
     uint8_t type;
     //! X86/X64 layout:
-    //!   - segment  [3 bits], see `kX86Seg`.
+    //!   - segment  [3 bits], see `X86Seg`.
     //!   - shift    [2 bits], index register shift (0 to 3).
     uint8_t flags;
 
@@ -378,7 +378,7 @@ struct Operand {
   // [Type]
   // --------------------------------------------------------------------------
 
-  //! Get type of the operand, see `kOperandType`.
+  //! Get type of the operand, see \ref OperandType.
   ASMJIT_INLINE uint32_t getOp() const { return _base.op; }
 
   //! Get whether the operand is none - `kOperandTypeNone`.
@@ -659,7 +659,7 @@ struct BaseMem : public Operand {
     _init_packed_d2_d3(kInvalidValue, 0);
   }
 
-  //! Get the type of the memory operand, see `kMemType`.
+  //! Get the type of the memory operand, see `MemType`.
   ASMJIT_INLINE uint32_t getMemType() const {
     return _vmem.type;
   }
@@ -774,17 +774,17 @@ struct Imm : public Operand {
   ASMJIT_INLINE bool isUInt32() const { return IntUtil::isUInt32(_imm.value._i64[0]); }
 
   //! Get immediate value as 8-bit signed integer.
-  ASMJIT_INLINE int8_t getInt8() const { return _imm.value._i8[_ASMJIT_HOST_INDEX(8, 0)]; }
+  ASMJIT_INLINE int8_t getInt8() const { return _imm.value._i8[_ASMJIT_ARCH_INDEX(8, 0)]; }
   //! Get immediate value as 8-bit unsigned integer.
-  ASMJIT_INLINE uint8_t getUInt8() const { return _imm.value._u8[_ASMJIT_HOST_INDEX(8, 0)]; }
+  ASMJIT_INLINE uint8_t getUInt8() const { return _imm.value._u8[_ASMJIT_ARCH_INDEX(8, 0)]; }
   //! Get immediate value as 16-bit signed integer.
-  ASMJIT_INLINE int16_t getInt16() const { return _imm.value._i16[_ASMJIT_HOST_INDEX(4, 0)]; }
+  ASMJIT_INLINE int16_t getInt16() const { return _imm.value._i16[_ASMJIT_ARCH_INDEX(4, 0)]; }
   //! Get immediate value as 16-bit unsigned integer.
-  ASMJIT_INLINE uint16_t getUInt16() const { return _imm.value._u16[_ASMJIT_HOST_INDEX(4, 0)]; }
+  ASMJIT_INLINE uint16_t getUInt16() const { return _imm.value._u16[_ASMJIT_ARCH_INDEX(4, 0)]; }
   //! Get immediate value as 32-bit signed integer.
-  ASMJIT_INLINE int32_t getInt32() const { return _imm.value._i32[_ASMJIT_HOST_INDEX(2, 0)]; }
+  ASMJIT_INLINE int32_t getInt32() const { return _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 0)]; }
   //! Get immediate value as 32-bit unsigned integer.
-  ASMJIT_INLINE uint32_t getUInt32() const { return _imm.value._u32[_ASMJIT_HOST_INDEX(2, 0)]; }
+  ASMJIT_INLINE uint32_t getUInt32() const { return _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 0)]; }
   //! Get immediate value as 64-bit signed integer.
   ASMJIT_INLINE int64_t getInt64() const { return _imm.value._i64[0]; }
   //! Get immediate value as 64-bit unsigned integer.
@@ -807,13 +807,13 @@ struct Imm : public Operand {
   }
 
   //! Get low 32-bit signed integer.
-  ASMJIT_INLINE int32_t getInt32Lo() const { return _imm.value._i32[_ASMJIT_HOST_INDEX(2, 0)]; }
+  ASMJIT_INLINE int32_t getInt32Lo() const { return _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 0)]; }
   //! Get low 32-bit signed integer.
-  ASMJIT_INLINE uint32_t getUInt32Lo() const { return _imm.value._u32[_ASMJIT_HOST_INDEX(2, 0)]; }
+  ASMJIT_INLINE uint32_t getUInt32Lo() const { return _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 0)]; }
   //! Get high 32-bit signed integer.
-  ASMJIT_INLINE int32_t getInt32Hi() const { return _imm.value._i32[_ASMJIT_HOST_INDEX(2, 1)]; }
+  ASMJIT_INLINE int32_t getInt32Hi() const { return _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 1)]; }
   //! Get high 32-bit signed integer.
-  ASMJIT_INLINE uint32_t getUInt32Hi() const { return _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)]; }
+  ASMJIT_INLINE uint32_t getUInt32Hi() const { return _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)]; }
 
   //! Set immediate value to 8-bit signed integer `val`.
   ASMJIT_INLINE Imm& setInt8(int8_t val) {
@@ -822,8 +822,8 @@ struct Imm : public Operand {
     }
     else {
       int32_t val32 = static_cast<int32_t>(val);
-      _imm.value._i32[_ASMJIT_HOST_INDEX(2, 0)] = val32;
-      _imm.value._i32[_ASMJIT_HOST_INDEX(2, 1)] = val32 >> 31;
+      _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 0)] = val32;
+      _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 1)] = val32 >> 31;
     }
     return *this;
   }
@@ -834,8 +834,8 @@ struct Imm : public Operand {
       _imm.value._u64[0] = static_cast<uint64_t>(val);
     }
     else {
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 0)] = static_cast<uint32_t>(val);
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)] = 0;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 0)] = static_cast<uint32_t>(val);
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)] = 0;
     }
     return *this;
   }
@@ -847,8 +847,8 @@ struct Imm : public Operand {
     }
     else {
       int32_t val32 = static_cast<int32_t>(val);
-      _imm.value._i32[_ASMJIT_HOST_INDEX(2, 0)] = val32;
-      _imm.value._i32[_ASMJIT_HOST_INDEX(2, 1)] = val32 >> 31;
+      _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 0)] = val32;
+      _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 1)] = val32 >> 31;
     }
     return *this;
   }
@@ -859,8 +859,8 @@ struct Imm : public Operand {
       _imm.value._u64[0] = static_cast<uint64_t>(val);
     }
     else {
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 0)] = static_cast<uint32_t>(val);
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)] = 0;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 0)] = static_cast<uint32_t>(val);
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)] = 0;
     }
     return *this;
   }
@@ -871,8 +871,8 @@ struct Imm : public Operand {
       _imm.value._i64[0] = static_cast<int64_t>(val);
     }
     else {
-      _imm.value._i32[_ASMJIT_HOST_INDEX(2, 0)] = val;
-      _imm.value._i32[_ASMJIT_HOST_INDEX(2, 1)] = val >> 31;
+      _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 0)] = val;
+      _imm.value._i32[_ASMJIT_ARCH_INDEX(2, 1)] = val >> 31;
     }
     return *this;
   }
@@ -883,8 +883,8 @@ struct Imm : public Operand {
       _imm.value._u64[0] = static_cast<uint64_t>(val);
     }
     else {
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 0)] = val;
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)] = 0;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 0)] = val;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)] = 0;
     }
     return *this;
   }
@@ -921,8 +921,8 @@ struct Imm : public Operand {
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE Imm& setFloat(float f) {
-    _imm.value._f32[_ASMJIT_HOST_INDEX(2, 0)] = f;
-    _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)] = 0;
+    _imm.value._f32[_ASMJIT_ARCH_INDEX(2, 0)] = f;
+    _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)] = 0;
     return *this;
   }
 
@@ -940,8 +940,8 @@ struct Imm : public Operand {
       _imm.value._u64[0] &= static_cast<uint64_t>(0x000000FFU);
     }
     else {
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 0)] &= 0x000000FFU;
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)] = 0;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 0)] &= 0x000000FFU;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)] = 0;
     }
     return *this;
   }
@@ -951,14 +951,14 @@ struct Imm : public Operand {
       _imm.value._u64[0] &= static_cast<uint64_t>(0x0000FFFFU);
     }
     else {
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 0)] &= 0x0000FFFFU;
-      _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)] = 0;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 0)] &= 0x0000FFFFU;
+      _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)] = 0;
     }
     return *this;
   }
 
   ASMJIT_INLINE Imm& truncateTo32Bits() {
-    _imm.value._u32[_ASMJIT_HOST_INDEX(2, 1)] = 0;
+    _imm.value._u32[_ASMJIT_ARCH_INDEX(2, 1)] = 0;
     return *this;
   }
 

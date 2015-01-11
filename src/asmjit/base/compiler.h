@@ -43,14 +43,14 @@ struct InstNode;
 struct JumpNode;
 
 // ============================================================================
-// [asmjit::kConstScope]
+// [asmjit::ConstScope]
 // ============================================================================
 
 //! \addtogroup asmjit_base_compiler
 //! \{
 
 //! Scope of the constant.
-ASMJIT_ENUM(kConstScope) {
+ASMJIT_ENUM(ConstScope) {
   //! Local constant, always embedded right after the current function.
   kConstScopeLocal = 0,
   //! Global constant, embedded at the end of the currently compiled code.
@@ -58,10 +58,10 @@ ASMJIT_ENUM(kConstScope) {
 };
 
 // ============================================================================
-// [asmjit::kVarType]
+// [asmjit::VarType]
 // ============================================================================
 
-ASMJIT_ENUM(kVarType) {
+ASMJIT_ENUM(VarType) {
   //! Variable is 8-bit signed integer.
   kVarTypeInt8 = 0,
   //! Variable is 8-bit unsigned integer.
@@ -101,13 +101,13 @@ ASMJIT_ENUM(kVarType) {
 };
 
 // ============================================================================
-// [asmjit::kVarFlags]
+// [asmjit::VarFlags]
 // ============================================================================
 
 //! \internal
 //!
 //! X86/X64 variable flags.
-ASMJIT_ENUM(kVarFlags) {
+ASMJIT_ENUM(VarFlags) {
   //! Variable contains single-precision floating-point(s).
   kVarFlagSp = 0x10,
   //! Variable contains double-precision floating-point(s).
@@ -117,11 +117,11 @@ ASMJIT_ENUM(kVarFlags) {
 };
 
 // ============================================================================
-// [asmjit::kVarAttrFlags]
+// [asmjit::VarAttrFlags]
 // ============================================================================
 
 //! Variable attribute flags.
-ASMJIT_ENUM(kVarAttrFlags) {
+ASMJIT_ENUM(VarAttrFlags) {
   //! Variable is accessed through register on input.
   kVarAttrInReg = 0x00000001,
   //! Variable is accessed through register on output.
@@ -188,13 +188,13 @@ ASMJIT_ENUM(kVarAttrFlags) {
 };
 
 // ============================================================================
-// [asmjit::kVarHint]
+// [asmjit::VarHint]
 // ============================================================================
 
 //! Variable hint (used by `Compiler)`.
 //!
 //! \sa Compiler.
-ASMJIT_ENUM(kVarHint) {
+ASMJIT_ENUM(VarHint) {
   //! Alloc variable.
   kVarHintAlloc = 0,
   //! Spill variable.
@@ -211,35 +211,29 @@ ASMJIT_ENUM(kVarHint) {
 // [asmjit::kVarState]
 // ============================================================================
 
+// TODO: Rename `kVarState` or `VarState`.
+
 //! State of variable.
 //!
-//! \note State of variable is used only during make process and it's not
-//! visible to the developer.
+//! \note Variable states are used only during register allocation.
 ASMJIT_ENUM(kVarState) {
   //! Variable is currently not used.
-  kVarStateUnused = 0,
-
-  //! Variable is in register.
-  //!
+  kVarStateNone = 0,
   //! Variable is currently allocated in register.
   kVarStateReg = 1,
-
-  //! Variable is in memory location or spilled.
-  //!
-  //! Variable was spilled from register to memory or variable is used for
-  //! memory only storage.
+  //! Variable is currently allocated in memory (or has been spilled).
   kVarStateMem = 2
 };
 
 // ============================================================================
-// [asmjit::kFuncConv]
+// [asmjit::FuncConv]
 // ============================================================================
 
 //! Function calling convention.
 //!
 //! For a platform specific calling conventions, see:
-//!   - `kX86FuncConv` - X86/X64 calling conventions.
-ASMJIT_ENUM(kFuncConv) {
+//!   - `X86FuncConv` - X86/X64 calling conventions.
+ASMJIT_ENUM(FuncConv) {
   //! Calling convention is invalid (can't be used).
   kFuncConvNone = 0,
 
@@ -267,14 +261,14 @@ ASMJIT_ENUM(kFuncConv) {
 };
 
 // ============================================================================
-// [asmjit::kFuncHint]
+// [asmjit::FuncHint]
 // ============================================================================
 
 //! Function hints.
 //!
 //! For a platform specific calling conventions, see:
-//!   - `kX86FuncHint` - X86/X64 function hints.
-ASMJIT_ENUM(kFuncHint) {
+//!   - `X86FuncHint` - X86/X64 function hints.
+ASMJIT_ENUM(FuncHint) {
   //! Make a naked function (default true).
   //!
   //! Naked function is function without using standard prolog/epilog sequence).
@@ -325,14 +319,14 @@ ASMJIT_ENUM(kFuncHint) {
 };
 
 // ============================================================================
-// [asmjit::kFuncFlags]
+// [asmjit::FuncFlags]
 // ============================================================================
 
 //! Function flags.
 //!
 //! For a platform specific calling conventions, see:
-//!   - `kX86FuncFlags` - X86/X64 function flags.
-ASMJIT_ENUM(kFuncFlags) {
+//!   - `X86FuncFlags` - X86/X64 function flags.
+ASMJIT_ENUM(FuncFlags) {
   //! Whether the function is using naked (minimal) prolog / epilog.
   kFuncFlagIsNaked = 0x00000001,
 
@@ -360,11 +354,11 @@ ASMJIT_ENUM(kFuncFlags) {
 };
 
 // ============================================================================
-// [asmjit::kFuncDir]
+// [asmjit::FuncDir]
 // ============================================================================
 
 //! Function arguments direction.
-ASMJIT_ENUM(kFuncDir) {
+ASMJIT_ENUM(FuncDir) {
   //! Arguments are passed left to right.
   //!
   //! This arguments direction is unusual in C, however it's used in Pascal.
@@ -377,11 +371,11 @@ ASMJIT_ENUM(kFuncDir) {
 };
 
 // ============================================================================
-// [asmjit::kFuncArg]
+// [asmjit::FuncArgIndex]
 // ============================================================================
 
-//! Function argument (lo/hi) specification.
-ASMJIT_ENUM(kFuncArg) {
+//! Function argument index (lo/hi).
+ASMJIT_ENUM(FuncArgIndex) {
   //! Maxumum number of function arguments supported by AsmJit.
   kFuncArgCount = 16,
   //! Extended maximum number of arguments (used internally).
@@ -401,11 +395,11 @@ ASMJIT_ENUM(kFuncArg) {
 };
 
 // ============================================================================
-// [asmjit::kFuncRet]
+// [asmjit::FuncRet]
 // ============================================================================
 
 //! Function return value (lo/hi) specification.
-ASMJIT_ENUM(kFuncRet) {
+ASMJIT_ENUM(FuncRet) {
   //! Index to the LO part of function return value.
   kFuncRetLo = 0,
   //! Index to the HI part of function return value.
@@ -416,17 +410,17 @@ ASMJIT_ENUM(kFuncRet) {
 // [asmjit::kFuncStackInvalid]
 // ============================================================================
 
-enum kFuncMisc {
+enum {
   //! Invalid stack offset in function or function parameter.
   kFuncStackInvalid = -1
 };
 
 // ============================================================================
-// [asmjit::kNodeType]
+// [asmjit::NodeType]
 // ============================================================================
 
 //! Type of node, see \ref Node.
-ASMJIT_ENUM(kNodeType) {
+ASMJIT_ENUM(NodeType) {
   //! Invalid node (internal, can't be used).
   kNodeTypeNone = 0,
   //! Node is an .align directive, see \ref AlignNode.
@@ -454,10 +448,10 @@ ASMJIT_ENUM(kNodeType) {
 };
 
 // ============================================================================
-// [asmjit::kNodeFlags]
+// [asmjit::NodeFlags]
 // ============================================================================
 
-ASMJIT_ENUM(kNodeFlags) {
+ASMJIT_ENUM(NodeFlags) {
   //! Whether the node has been translated, thus contains only registers.
   kNodeFlagIsTranslated = 0x0001,
 
@@ -1262,7 +1256,7 @@ struct FuncInOut {
 
   union {
     struct {
-      //! Variable type, see `kVarType`.
+      //! Variable type, see `VarType`.
       uint8_t _varType;
       //! Register index if argument / return value is a register.
       uint8_t _regIndex;
@@ -1488,7 +1482,7 @@ struct FuncDecl {
   // [Accessors - Calling Convention]
   // --------------------------------------------------------------------------
 
-  //! Get function calling convention, see `kFuncConv`.
+  //! Get function calling convention, see `FuncConv`.
   ASMJIT_INLINE uint32_t getConvention() const { return _convention; }
 
   //! Get whether the callee pops the stack.
@@ -1556,7 +1550,7 @@ struct FuncDecl {
   uint8_t _convention;
   //! Whether a callee pops stack.
   uint8_t _calleePopsStack : 1;
-  //! Direction for arguments passed on the stack, see `kFuncDir`.
+  //! Direction for arguments passed on the stack, see `FuncDir`.
   uint8_t _direction : 1;
   //! Reserved #0 (alignment).
   uint8_t _reserved0 : 6;
@@ -1642,7 +1636,7 @@ struct Node {
   // [Accessors - Type and Flags]
   // --------------------------------------------------------------------------
 
-  //! Get node type, see `kNodeType`.
+  //! Get node type, see `NodeType`.
   ASMJIT_INLINE uint32_t getType() const {
     return _type;
   }
@@ -1796,7 +1790,7 @@ struct Node {
   //! Next node.
   Node* _next;
 
-  //! Node type, see `kNodeType`.
+  //! Node type, see `NodeType`.
   uint8_t _type;
   //! Operands count (if the node has operands, otherwise zero).
   uint8_t _opCount;
@@ -1874,7 +1868,7 @@ struct AlignNode : public Node {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Alignment mode, see \ref kAlignMode.
+  //! Alignment mode, see \ref AlignMode.
   uint32_t _mode;
   //! Alignment offset in bytes.
   uint32_t _offset;
@@ -2130,7 +2124,7 @@ struct InstNode : public Node {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get instruction ID, see `kX86InstId`.
+  //! Get instruction ID, see `X86InstId`.
   ASMJIT_INLINE uint32_t getInstId() const {
     return _instId;
   }
@@ -2236,13 +2230,13 @@ _Update:
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Instruction ID, see `kInstId`.
+  //! Instruction ID, see `InstId`.
   uint16_t _instId;
   //! \internal
   uint8_t _memOpIndex;
   //! \internal
   uint8_t _reserved;
-  //! Instruction options, see `kInstOptions`.
+  //! Instruction options, see `InstOptions`.
   uint32_t _instOptions;
 
   //! Operands list.
@@ -3090,7 +3084,7 @@ struct ASMJIT_VCLASS Compiler : public CodeGen {
   //! registers.
   uint32_t _maxLookAhead;
 
-  //! Variable mapping (translates incoming kVarType into target).
+  //! Variable mapping (translates incoming VarType into target).
   const uint8_t* _targetVarMapping;
 
   //! First node.

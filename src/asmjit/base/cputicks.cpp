@@ -24,7 +24,7 @@
 // [Dependencies - Windows]
 #if defined(ASMJIT_OS_WINDOWS)
 // `_InterlockedCompareExchange` is only available as intrinsic (MS Compiler).
-# if defined(_MSC_VER)
+# if defined(_MSC_VER) && _MSC_VER >= 1400
 #  include <intrin.h>
 #  pragma intrinsic(_InterlockedCompareExchange)
 # else

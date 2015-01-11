@@ -35,7 +35,7 @@ enum { kX86RexNoRexMask = kX86InstOptionRex | _kX86InstOptionNoRex };
 //! \internal
 //!
 //! X86/X64 bytes used to encode important prefixes.
-enum kX86Byte {
+enum X86Byte {
   //! 1-byte REX prefix
   kX86ByteRex = 0x40,
 
@@ -85,7 +85,7 @@ enum kX86Byte {
 };
 
 // AsmJit specific (used to encode VVVV field in XOP/VEX).
-enum kVexVVVV {
+enum VexVVVV {
   kVexVVVVShift = 12,
   kVexVVVVMask = 0xF << kVexVVVVShift
 };

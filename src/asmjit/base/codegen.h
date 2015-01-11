@@ -23,11 +23,11 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kCodeGen]
+// [asmjit::CodeGenFeatures]
 // ============================================================================
 
 //! Features of \ref CodeGen.
-ASMJIT_ENUM(kCodeGen) {
+ASMJIT_ENUM(CodeGenFeatures) {
   //! Emit optimized code-alignment sequences (`Assembler` and `Compiler`).
   //!
   //! Default `true`.
@@ -80,11 +80,11 @@ ASMJIT_ENUM(kCodeGen) {
 };
 
 // ============================================================================
-// [asmjit::kAlignMode]
+// [asmjit::AlignMode]
 // ============================================================================
 
 //! Code aligning mode.
-ASMJIT_ENUM(kAlignMode) {
+ASMJIT_ENUM(AlignMode) {
   //! Align by emitting a sequence that can be executed (code).
   kAlignCode = 0,
   //! Align by emitting sequence that shouldn't be executed (data).
@@ -92,11 +92,11 @@ ASMJIT_ENUM(kAlignMode) {
 };
 
 // ============================================================================
-// [asmjit::kRelocMode]
+// [asmjit::RelocMode]
 // ============================================================================
 
 //! Relocation mode.
-ASMJIT_ENUM(kRelocMode) {
+ASMJIT_ENUM(RelocMode) {
   //! Relocate an absolute address to an absolute address.
   kRelocAbsToAbs = 0,
   //! Relocate a relative address to an absolute address.

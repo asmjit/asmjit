@@ -8,14 +8,14 @@
 #ifndef _ASMJIT_BUILD_H
 #define _ASMJIT_BUILD_H
 
-// [Include]
+// [Config]
 #if defined(ASMJIT_CONFIG_FILE)
 # include ASMJIT_CONFIG_FILE
 #else
 # include "./config.h"
 #endif // ASMJIT_CONFIG_FILE
 
-// Turn off deprecation warnings when compiling AsmJit.
+// [MSC - Turn off deprecation warnings when compiling AsmJit]
 #if defined(ASMJIT_EXPORTS) && defined(_MSC_VER)
 # if !defined(_CRT_SECURE_NO_DEPRECATE)
 #  define _CRT_SECURE_NO_DEPRECATE
@@ -26,6 +26,7 @@
 #endif // ASMJIT_EXPORTS
 
 // [Dependencies - C]
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +35,7 @@
 #include <new>
 
 // ============================================================================
-// [asmjit::build - Sanity]
+// [asmjit::Build - Sanity]
 // ============================================================================
 
 #if defined(ASMJIT_DISABLE_NAMES) && !defined(ASMJIT_DISABLE_LOGGER)
@@ -42,7 +43,7 @@
 #endif // ASMJIT_DISABLE_NAMES && !ASMJIT_DISABLE_LOGGER
 
 // ============================================================================
-// [asmjit::build - OS]
+// [asmjit::Build - OS]
 // ============================================================================
 
 #if defined(_WINDOWS) || defined(__WINDOWS__) || defined(_WIN32) || defined(_WIN64)
@@ -57,34 +58,41 @@
 # define ASMJIT_OS_POSIX
 # define ASMJIT_OS_MAC
 #else
-# warning "AsmJit - Unable to detect host operating system, using ASMJIT_OS_POSIX"
+# pragma message("AsmJit - Unable to detect host operating system, using ASMJIT_OS_POSIX.")
 # define ASMJIT_OS_POSIX
 #endif
 
 // ============================================================================
-// [asmjit::build - Arch]
+// [asmjit::Build - Arch]
 // ============================================================================
 
-#if defined(_M_X64    ) || \
-    defined(_M_AMD64  ) || \
-    defined(_WIN64    ) || \
+// [X64]
+#if defined(__x86_64__) || \
     defined(__amd64__ ) || \
     defined(__LP64    ) || \
-    defined(__x86_64__)
-# define ASMJIT_HOST_X64
-# define ASMJIT_HOST_LE
-# define ASMJIT_HOST_UNALIGNED_16
-# define ASMJIT_HOST_UNALIGNED_32
-# define ASMJIT_HOST_UNALIGNED_64
+    defined(_M_X64    ) || \
+    defined(_M_AMD64  ) || \
+    defined(_WIN64    )
+
+# define ASMJIT_ARCH_X64
+# define ASMJIT_ARCH_LE
+# define ASMJIT_ARCH_UNALIGNED_16
+# define ASMJIT_ARCH_UNALIGNED_32
+# define ASMJIT_ARCH_UNALIGNED_64
+
+// [X86]
 #elif \
     defined(_M_IX86  ) || \
     defined(__INTEL__) || \
     defined(__i386__ )
-# define ASMJIT_HOST_X86
-# define ASMJIT_HOST_LE
-# define ASMJIT_HOST_UNALIGNED_16
-# define ASMJIT_HOST_UNALIGNED_32
-# define ASMJIT_HOST_UNALIGNED_64
+
+# define ASMJIT_ARCH_X86
+# define ASMJIT_ARCH_LE
+# define ASMJIT_ARCH_UNALIGNED_16
+# define ASMJIT_ARCH_UNALIGNED_32
+# define ASMJIT_ARCH_UNALIGNED_64
+
+// [Arm]
 #elif \
     defined(_ARM               ) || \
     defined(_M_ARM_FP          ) || \
@@ -94,14 +102,17 @@
     defined(__TARGET_ARCH_ARM  ) || \
     defined(__TARGET_ARCH_THUMB) || \
     defined(__thumb__          )
-# define ASMJIT_HOST_ARM
-# define ASMJIT_HOST_LE
+
+# define ASMJIT_ARCH_ARM
+# define ASMJIT_ARCH_LE
+
+// [Unknown]
 #else
-# warning "AsmJit - Unable to detect host architecture"
+# error "AsmJit - Unable to detect host architecture."
 #endif
 
 // ============================================================================
-// [asmjit::build - Build]
+// [asmjit::Build - Build]
 // ============================================================================
 
 // Build host architecture if no architecture is selected.
@@ -113,16 +124,16 @@
 
 // Autodetect host architecture if enabled.
 #if defined(ASMJIT_BUILD_HOST)
-# if defined(ASMJIT_HOST_X86) && !defined(ASMJIT_BUILD_X86)
+# if defined(ASMJIT_ARCH_X86) && !defined(ASMJIT_BUILD_X86)
 #  define ASMJIT_BUILD_X86
-# endif // ASMJIT_HOST_X86 && !ASMJIT_BUILD_X86
-# if defined(ASMJIT_HOST_X64) && !defined(ASMJIT_BUILD_X64)
+# endif // ASMJIT_ARCH_X86 && !ASMJIT_BUILD_X86
+# if defined(ASMJIT_ARCH_X64) && !defined(ASMJIT_BUILD_X64)
 #  define ASMJIT_BUILD_X64
-# endif // ASMJIT_HOST_X64 && !ASMJIT_BUILD_X64
+# endif // ASMJIT_ARCH_X64 && !ASMJIT_BUILD_X64
 #endif // ASMJIT_BUILD_HOST
 
 // ============================================================================
-// [asmjit::build - Decorators]
+// [asmjit::Build - Decorators]
 // ============================================================================
 
 #if defined(ASMJIT_EMBED) && !defined(ASMJIT_STATIC)
@@ -179,7 +190,7 @@
 # define ASMJIT_INLINE inline
 #endif
 
-#if defined(ASMJIT_HOST_X86)
+#if defined(ASMJIT_ARCH_X86)
 # if defined(__GNUC__) || defined(__clang__)
 #  define ASMJIT_REGPARM_1 __attribute__((regparm(1)))
 #  define ASMJIT_REGPARM_2 __attribute__((regparm(2)))
@@ -196,20 +207,20 @@
 # define ASMJIT_FASTCALL
 # define ASMJIT_STDCALL
 # define ASMJIT_CDECL
-#endif // ASMJIT_HOST_X86
+#endif // ASMJIT_ARCH_X86
 
 // ============================================================================
-// [asmjit::build - Enum]
+// [asmjit::Build - Enum]
 // ============================================================================
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && _MSC_VER >= 1400
 # define ASMJIT_ENUM(_Name_) enum _Name_ : uint32_t
 #else
 # define ASMJIT_ENUM(_Name_) enum _Name_
 #endif
 
 // ============================================================================
-// [asmjit::build - Memory Management]
+// [asmjit::Build - Memory Management]
 // ============================================================================
 
 #if !defined(ASMJIT_ALLOC) && !defined(ASMJIT_REALLOC) && !defined(ASMJIT_FREE)
@@ -223,17 +234,17 @@
 #endif // !ASMJIT_ALLOC && !ASMJIT_REALLOC && !ASMJIT_FREE
 
 // ============================================================================
-// [asmjit::build - _ASMJIT_HOST_INDEX]
+// [asmjit::Build - _ASMJIT_ARCH_INDEX]
 // ============================================================================
 
-#if defined(ASMJIT_HOST_LE)
-# define _ASMJIT_HOST_INDEX(_Total_, _Index_) (_Index_)
+#if defined(ASMJIT_ARCH_LE)
+# define _ASMJIT_ARCH_INDEX(_Total_, _Index_) (_Index_)
 #else
-# define _ASMJIT_HOST_INDEX(_Total_, _Index_) ((_Total_) - 1 - (_Index_))
+# define _ASMJIT_ARCH_INDEX(_Total_, _Index_) ((_Total_) - 1 - (_Index_))
 #endif
 
 // ============================================================================
-// [asmjit::build - BLEND_OFFSET_OF]
+// [asmjit::Build - BLEND_OFFSET_OF]
 // ============================================================================
 
 //! Cross-platform solution to get offset of `_Field_` in `_Struct_`.
@@ -241,14 +252,14 @@
   static_cast<int>((intptr_t) ((const uint8_t*) &((const _Struct_*)0x1)->_Field_) - 1)
 
 // ============================================================================
-// [asmjit::build - ASMJIT_ARRAY_SIZE]
+// [asmjit::Build - ASMJIT_ARRAY_SIZE]
 // ============================================================================
 
 #define ASMJIT_ARRAY_SIZE(_Array_) \
   (sizeof(_Array_) / sizeof(*_Array_))
 
 // ============================================================================
-// [asmjit::build - ASMJIT_DEBUG / ASMJIT_TRACE]
+// [asmjit::Build - ASMJIT_DEBUG / ASMJIT_TRACE]
 // ============================================================================
 
 // If ASMJIT_DEBUG and ASMJIT_RELEASE is not defined ASMJIT_DEBUG will be
@@ -274,7 +285,7 @@ namespace asmjit { static inline int disabledTrace(...) { return 0; } }
 #endif // ASMJIT_EXPORTS
 
 // ============================================================================
-// [asmjit::build - ASMJIT_UNUSED]
+// [asmjit::Build - ASMJIT_UNUSED]
 // ============================================================================
 
 #if !defined(ASMJIT_UNUSED)
@@ -282,7 +293,7 @@ namespace asmjit { static inline int disabledTrace(...) { return 0; } }
 #endif // ASMJIT_UNUSED
 
 // ============================================================================
-// [asmjit::build - ASMJIT_NOP]
+// [asmjit::Build - ASMJIT_NOP]
 // ============================================================================
 
 #if !defined(ASMJIT_NOP)
@@ -290,7 +301,7 @@ namespace asmjit { static inline int disabledTrace(...) { return 0; } }
 #endif // ASMJIT_NOP
 
 // ============================================================================
-// [asmjit::build - ASMJIT_NO_COPY]
+// [asmjit::Build - ASMJIT_NO_COPY]
 // ============================================================================
 
 #define ASMJIT_NO_COPY(_Type_) \
@@ -300,7 +311,7 @@ private: \
 public:
 
 // ============================================================================
-// [asmjit::build - StdInt]
+// [asmjit::Build - StdInt]
 // ============================================================================
 
 #if defined(__MINGW32__)
@@ -308,7 +319,7 @@ public:
 #endif // __MINGW32__
 
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
-# if !defined(ASMJIT_SUPRESS_STD_TYPES)
+# if !defined(ASMJIT_SUPPRESS_STD_TYPES)
 #  if (_MSC_VER < 1300)
 typedef signed char int8_t;
 typedef signed short int16_t;
@@ -328,7 +339,7 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 #  endif // _MSC_VER
-# endif // ASMJIT_SUPRESS_STD_TYPES
+# endif // ASMJIT_SUPPRESS_STD_TYPES
 #else
 # include <stdint.h>
 # include <limits.h>
@@ -343,10 +354,10 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 // ============================================================================
-// [asmjit::build - Windows]
+// [asmjit::Build - Windows]
 // ============================================================================
 
-#if defined(ASMJIT_OS_WINDOWS) && !defined(ASMJIT_SUPRESS_WINDOWS_H)
+#if defined(ASMJIT_OS_WINDOWS) && !defined(ASMJIT_SUPPRESS_WINDOWS_H)
 
 # if !defined(WIN32_LEAN_AND_MEAN)
 #  define WIN32_LEAN_AND_MEAN
@@ -370,10 +381,10 @@ typedef unsigned __int64 uint64_t;
 #  undef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
 # endif
 
-#endif // ASMJIT_OS_WINDOWS  && !ASMJIT_SUPRESS_WINDOWS_H
+#endif // ASMJIT_OS_WINDOWS  && !ASMJIT_SUPPRESS_WINDOWS_H
 
 // ============================================================================
-// [asmjit::build - Test]
+// [asmjit::Build - Test]
 // ============================================================================
 
 // Include a unit testing package if this is a `asmjit_test` build.

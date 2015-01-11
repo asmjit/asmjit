@@ -46,12 +46,12 @@
 @define asmjit::kVarTypeFpEx (0xA)
 @define asmjit::kVarTypeInvalid (0xFF)
 @
-@define asmjit::x86x64::kVarTypeMm (0xB)
-@define asmjit::x86x64::kVarTypeXmm (0xC)
-@define asmjit::x86x64::kVarTypeXmmSs (0xD)
-@define asmjit::x86x64::kVarTypeXmmPs (0xE)
-@define asmjit::x86x64::kVarTypeXmmSd (0xF)
-@define asmjit::x86x64::kVarTypeXmmPd (0x10)
+@define asmjit::x86::kVarTypeMm (0xB)
+@define asmjit::x86::kVarTypeXmm (0xC)
+@define asmjit::x86::kVarTypeXmmSs (0xD)
+@define asmjit::x86::kVarTypeXmmPs (0xE)
+@define asmjit::x86::kVarTypeXmmSd (0xF)
+@define asmjit::x86::kVarTypeXmmPd (0x10)
 @
 @define asmjit::kVarStateUnused (0x0)
 @define asmjit::kVarStateReg (0x1)

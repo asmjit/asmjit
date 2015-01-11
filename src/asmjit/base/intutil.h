@@ -82,7 +82,7 @@ struct IntUtil {
   //! Pack two 8-bit integer and one 16-bit integer into a 32-bit integer as it
   //! is an array of `{u0,u1,w2}`.
   static ASMJIT_INLINE uint32_t pack32_2x8_1x16(uint32_t u0, uint32_t u1, uint32_t w2) {
-#if defined(ASMJIT_HOST_LE)
+#if defined(ASMJIT_ARCH_LE)
     return u0 + (u1 << 8) + (w2 << 16);
 #else
     return (u0 << 24) + (u1 << 16) + (w2);
@@ -91,7 +91,7 @@ struct IntUtil {
 
   //! Pack four 8-bit integer into a 32-bit integer as it is an array of `{u0,u1,u2,u3}`.
   static ASMJIT_INLINE uint32_t pack32_4x8(uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) {
-#if defined(ASMJIT_HOST_LE)
+#if defined(ASMJIT_ARCH_LE)
     return u0 + (u1 << 8) + (u2 << 16) + (u3 << 24);
 #else
     return (u0 << 24) + (u1 << 16) + (u2 << 8) + u3;
@@ -100,7 +100,7 @@ struct IntUtil {
 
   //! Pack two 32-bit integer into a 64-bit integer as it is an array of `{u0,u1}`.
   static ASMJIT_INLINE uint64_t pack64_2x32(uint32_t u0, uint32_t u1) {
-#if defined(ASMJIT_HOST_LE)
+#if defined(ASMJIT_ARCH_LE)
     return (static_cast<uint64_t>(u1) << 32) + u0;
 #else
     return (static_cast<uint64_t>(u0) << 32) + u1;
@@ -694,11 +694,11 @@ union UInt64 {
   uint8_t u8[8];
 
   struct {
-#if defined(ASMJIT_HOST_LE)
+#if defined(ASMJIT_ARCH_LE)
     uint32_t lo, hi;
 #else
     uint32_t hi, lo;
-#endif // ASMJIT_HOST_LE
+#endif // ASMJIT_ARCH_LE
   };
 };
 

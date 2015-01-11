@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_VMEM_H
 #define _ASMJIT_BASE_VMEM_H
 
-// [Dependencies]
+// [Dependencies - AsmJit]
 #include "../base/error.h"
 #include "../base/lock.h"
 
@@ -21,11 +21,11 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kVMemAlloc]
+// [asmjit::VMemAllocType]
 // ============================================================================
 
 //! Type of virtual memory allocation, see `VMemMgr::alloc()`.
-ASMJIT_ENUM(kVMemAlloc) {
+ASMJIT_ENUM(VMemAllocType) {
   //! Normal memory allocation, has to be freed by `VMemMgr::release()`.
   kVMemAllocFreeable = 0,
   //! Allocate permanent memory, can't be freed.
@@ -33,11 +33,11 @@ ASMJIT_ENUM(kVMemAlloc) {
 };
 
 // ============================================================================
-// [asmjit::kVMemFlags]
+// [asmjit::VMemFlags]
 // ============================================================================
 
 //! Type of virtual memory allocation, see `VMemMgr::alloc()`.
-ASMJIT_ENUM(kVMemFlags) {
+ASMJIT_ENUM(VMemFlags) {
   //! Memory is writable.
   kVMemFlagWritable = 0x00000001,
   //! Memory is executable.

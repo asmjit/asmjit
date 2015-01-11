@@ -10,11 +10,11 @@
 // [Dependencies - AsmJit]
 #include "../base/cpuinfo.h"
 
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
 #include "../x86/x86cpuinfo.h"
 #else
 // ?
-#endif // ASMJIT_HOST || ASMJIT_HOST_X64
+#endif // ASMJIT_HOST || ASMJIT_ARCH_X64
 
 // [Dependencies - Posix]
 #if defined(ASMJIT_OS_POSIX)
@@ -54,7 +54,7 @@ uint32_t CpuInfo::detectHwThreadsCount() {
 // [asmjit::CpuInfo - GetHost]
 // ============================================================================
 
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
 struct AutoX86CpuInfo : public X86CpuInfo {
   ASMJIT_INLINE AutoX86CpuInfo() : X86CpuInfo() {
     X86CpuUtil::detect(this);
@@ -62,14 +62,14 @@ struct AutoX86CpuInfo : public X86CpuInfo {
 };
 #else
 #error "AsmJit - Unsupported CPU."
-#endif // ASMJIT_HOST || ASMJIT_HOST_X64
+#endif // ASMJIT_HOST || ASMJIT_ARCH_X64
 
 const CpuInfo* CpuInfo::getHost() {
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
   static AutoX86CpuInfo cpuInfo;
 #else
 #error "AsmJit - Unsupported CPU."
-#endif // ASMJIT_HOST || ASMJIT_HOST_X64
+#endif // ASMJIT_HOST || ASMJIT_ARCH_X64
   return &cpuInfo;
 }
 

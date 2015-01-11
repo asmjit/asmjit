@@ -37,7 +37,7 @@ struct X86VarState;
 // ============================================================================
 
 //! X86/X64 variable type.
-ASMJIT_ENUM(kX86VarType) {
+ASMJIT_ENUM(X86VarType) {
   //! Variable is SP-FP (x87).
   kX86VarTypeFp32 = kVarTypeFp32,
   //! Variable is DP-FP (x87).
@@ -94,17 +94,17 @@ ASMJIT_ENUM(kX86VarType) {
 };
 
 // ============================================================================
-// [asmjit::kX86VarAttr]
+// [asmjit::X86VarAttr]
 // ============================================================================
 
 //! X86/X64 VarAttr flags.
-ASMJIT_ENUM(kX86VarAttr) {
+ASMJIT_ENUM(X86VarAttr) {
   kX86VarAttrGpbLo = 0x10000000,
   kX86VarAttrGpbHi = 0x20000000
 };
 
 // ============================================================================
-// [asmjit::kX86FuncConv]
+// [asmjit::X86FuncConv]
 // ============================================================================
 
 //! X86 function calling conventions.
@@ -135,7 +135,7 @@ ASMJIT_ENUM(kX86VarAttr) {
 //! convention.
 //!
 //! These types are used together with `Compiler::addFunc()` method.
-ASMJIT_ENUM(kX86FuncConv) {
+ASMJIT_ENUM(X86FuncConv) {
   // --------------------------------------------------------------------------
   // [X64]
   // --------------------------------------------------------------------------
@@ -362,7 +362,7 @@ ASMJIT_ENUM(kX86FuncConv) {
 
 #if !defined(ASMJIT_DOCGEN)
 // X86/X64 Host Support - documented in base/compiler.h.
-#if defined(ASMJIT_HOST_X86)
+#if defined(ASMJIT_ARCH_X86)
 enum {
   // X86.
   kFuncConvHost = kX86FuncConvCDecl,
@@ -375,12 +375,12 @@ enum {
 #elif defined(__BORLANDC__)
   kFuncConvHostFastCall = kX86FuncConvBorlandFastCall
 #else
-#error "kFuncConvHostFastCall not determined."
+#error "AsmJit - kFuncConvHostFastCall not determined."
 #endif
 };
-#endif // ASMJIT_HOST_X86
+#endif // ASMJIT_ARCH_X86
 
-#if defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X64)
 enum {
 #if defined(ASMJIT_OS_WINDOWS)
   kFuncConvHost = kX86FuncConvW64,
@@ -391,15 +391,15 @@ enum {
   kFuncConvHostStdCall = kFuncConvHost,
   kFuncConvHostFastCall = kFuncConvHost
 };
-#endif // ASMJIT_HOST_X64
+#endif // ASMJIT_ARCH_X64
 #endif // !ASMJIT_DOCGEN
 
 // ============================================================================
-// [asmjit::kX86FuncHint]
+// [asmjit::X86FuncHint]
 // ============================================================================
 
 //! X86 function hints.
-ASMJIT_ENUM(kX86FuncHint) {
+ASMJIT_ENUM(X86FuncHint) {
   //! Use push/pop sequences instead of mov sequences in function prolog
   //! and epilog.
   kX86FuncHintPushPop = 16,
@@ -412,11 +412,11 @@ ASMJIT_ENUM(kX86FuncHint) {
 };
 
 // ============================================================================
-// [asmjit::kX86FuncFlags]
+// [asmjit::X86FuncFlags]
 // ============================================================================
 
 //! X86 function flags.
-ASMJIT_ENUM(kX86FuncFlags) {
+ASMJIT_ENUM(X86FuncFlags) {
   //! Whether to emit register load/save sequence using push/pop pairs.
   kX86FuncFlagPushPop = 0x00010000,
 
@@ -458,13 +458,13 @@ struct X86VarInfo {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get register type, see `kX86RegType`.
+  //! Get register type, see `X86RegType`.
   ASMJIT_INLINE uint32_t getReg() const { return _reg; }
   //! Get register size in bytes.
   ASMJIT_INLINE uint32_t getSize() const { return _size; }
-  //! Get variable class, see `kRegClass`.
+  //! Get variable class, see `RegClass`.
   ASMJIT_INLINE uint32_t getClass() const { return _class; }
-  //! Get variable description, see `kVarFlag`.
+  //! Get variable description, see `VarFlag`.
   ASMJIT_INLINE uint32_t getDesc() const { return _desc; }
   //! Get variable type name.
   ASMJIT_INLINE const char* getName() const { return _name; }
@@ -473,13 +473,13 @@ struct X86VarInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Register type, see `kX86RegType`.
+  //! Register type, see `X86RegType`.
   uint8_t _reg;
   //! Register size in bytes.
   uint8_t _size;
-  //! Register class, see `kRegClass`.
+  //! Register class, see `RegClass`.
   uint8_t _class;
-  //! Variable flags, see `kVarFlag`.
+  //! Variable flags, see `VarFlag`.
   uint8_t _desc;
   //! Variable type name.
   char _name[4];
@@ -1427,7 +1427,7 @@ struct X86CallNode : public CallNode {
 };
 
 // ============================================================================
-// [asmjit::X86TypeId / VarMapping]
+// [asmjit::X86VarId / VarMapping]
 // ============================================================================
 
 #if !defined(ASMJIT_DOCGEN)
@@ -1688,14 +1688,14 @@ ASMJIT_TYPE_ID(X86YmmVar, kX86VarTypeYmm);
 //!
 //! Variable states:
 //!
-//! - `kVarStateUnused - State that is assigned to newly created variables or
+//! - `kVarStateNone - State that is assigned to newly created variables or
 //!    to not used variables (dereferenced to zero).
 //! - `kVarStateReg - State that means that variable is currently allocated in
 //!    register.
 //! - `kVarStateMem - State that means that variable is currently only in
 //!    memory location.
 //!
-//! When you create new variable, initial state is always `kVarStateUnused`,
+//! When you create new variable, initial state is always `kVarStateNone`,
 //! allocating it to register or spilling to memory changes this state to
 //! `kVarStateReg` or `kVarStateMem`, respectively. During variable lifetime
 //! it's usual that its state is changed multiple times. To generate better
@@ -2028,9 +2028,9 @@ struct ASMJIT_VCLASS X86Compiler : public Compiler {
 
   //! Create a `X86Compiler` instance.
   ASMJIT_API X86Compiler(Runtime* runtime, uint32_t arch
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
     = kArchHost
-#endif // ASMJIT_HOST_X86 || ASMJIT_HOST_X64
+#endif // ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
   );
 
   //! Destroy the `X86Compiler` instance.
@@ -2153,7 +2153,7 @@ struct ASMJIT_VCLASS X86Compiler : public Compiler {
 
   //! Add a new function.
   //!
-  //! \param conv Calling convention to use (see \ref kFuncConv enum)
+  //! \param conv Calling convention to use (see \ref FuncConv)
   //! \param params Function arguments prototype.
   //!
   //! This method is usually used as a first step when generating functions

@@ -73,7 +73,7 @@ ASMJIT_VAR const uint32_t _x86CondToJcc[20];
 ASMJIT_VAR const uint32_t _x86CondToSetcc[20];
 
 // ============================================================================
-// [asmjit::kX86InstId]
+// [asmjit::X86InstId]
 // ============================================================================
 
 //! X86/X64 instruction IDs.
@@ -85,7 +85,7 @@ ASMJIT_VAR const uint32_t _x86CondToSetcc[20];
 //! that these instructions are sorted as `jcc`, `jecxz` and `jmp`. Please use
 //! \ref X86Util::getInstIdByName() if you need instruction name to ID mapping
 //! and are not aware on how to handle such case.
-ASMJIT_ENUM(kX86InstId) {
+ASMJIT_ENUM(X86InstId) {
   kX86InstIdAdc = 1,         // X86/X64
   kX86InstIdAdd,             // X86/X64
   kX86InstIdAddpd,           // SSE2
@@ -1159,11 +1159,11 @@ ASMJIT_ENUM(kX86InstId) {
 };
 
 // ============================================================================
-// [asmjit::kX86InstOptions]
+// [asmjit::X86InstOptions]
 // ============================================================================
 
 //! X86/X64 instruction emit options, mainly for internal purposes.
-ASMJIT_ENUM(kX86InstOptions) {
+ASMJIT_ENUM(X86InstOptions) {
   //! Emit instruction with LOCK prefix.
   //!
   //! If this option is used and instruction doesn't support LOCK prefix an
@@ -1211,7 +1211,7 @@ ASMJIT_ENUM(kX86InstOptions) {
 };
 
 // ============================================================================
-// [asmjit::kX86InstEncodingId]
+// [asmjit::X86InstEncodingId]
 // ============================================================================
 
 //! \internal
@@ -1219,7 +1219,7 @@ ASMJIT_ENUM(kX86InstOptions) {
 //! X86/X64 instruction groups.
 //!
 //! This group is specific to AsmJit and only used by `X86Assembler`.
-ASMJIT_ENUM(kX86InstEncodingId) {
+ASMJIT_ENUM(X86InstEncodingId) {
   //! Never used.
   kX86InstEncodingIdNone = 0,
 
@@ -1450,7 +1450,7 @@ ASMJIT_ENUM(kX86InstEncodingId) {
 };
 
 // ============================================================================
-// [asmjit::kX86InstOpCode]
+// [asmjit::X86InstOpCodeFlags]
 // ============================================================================
 
 //! \internal
@@ -1502,7 +1502,7 @@ ASMJIT_ENUM(kX86InstEncodingId) {
 //!     of AVX-512 have matched AVX, but this is not the case.
 //!
 //! - `O` field is an extended opcode field (3) bytes used by ModR/M BYTE.
-ASMJIT_ENUM(kX86InstOpCode) {
+ASMJIT_ENUM(X86InstOpCodeFlags) {
   // `MMMMM` field in AVX/XOP/AVX-512 instruction (5 bits).
   //
   // `OpCode` leading bytes in legacy encoding.
@@ -1569,13 +1569,13 @@ ASMJIT_ENUM(kX86InstOpCode) {
 };
 
 // ============================================================================
-// [asmjit::kX86InstFlags]
+// [asmjit::X86InstFlags]
 // ============================================================================
 
 //! \internal
 //!
 //! X86/X64 instruction flags.
-ASMJIT_ENUM(kX86InstFlags) {
+ASMJIT_ENUM(X86InstFlags) {
   //! No flags.
   kX86InstFlagNone = 0x00000000,
 
@@ -1671,13 +1671,13 @@ ASMJIT_ENUM(kX86InstFlags) {
 };
 
 // ============================================================================
-// [asmjit::kX86InstOp]
+// [asmjit::X86InstOp]
 // ============================================================================
 
 //! \internal
 //!
 //! X86/X64 instruction operand flags.
-ASMJIT_ENUM(kX86InstOp) {
+ASMJIT_ENUM(X86InstOp) {
   //! Instruction operand can be 8-bit Gpb register.
   kX86InstOpGb = 0x0001,
   //! Instruction operand can be 16-bit Gpw register.
@@ -1719,11 +1719,11 @@ ASMJIT_ENUM(kX86InstOp) {
 };
 
 // ============================================================================
-// [asmjit::kX86Cond]
+// [asmjit::X86Cond]
 // ============================================================================
 
 //! X86/X64 Condition codes.
-ASMJIT_ENUM(kX86Cond) {
+ASMJIT_ENUM(X86Cond) {
   kX86CondA               = 0x07, // CF==0 & ZF==0          (unsigned)
   kX86CondAE              = 0x03, // CF==0                  (unsigned)
   kX86CondB               = 0x02, // CF==1                  (unsigned)
@@ -1791,7 +1791,7 @@ ASMJIT_ENUM(kX86Cond) {
 };
 
 // ============================================================================
-// [asmjit::kX86EFlags]
+// [asmjit::X86EFlags]
 // ============================================================================
 
 //! X86/X64 EFLAGs bits (AsmJit specific).
@@ -1805,10 +1805,10 @@ ASMJIT_ENUM(kX86Cond) {
 //! architecture, defined in Intel's Manual Section `3.4.3 - EFLAGS Register`.
 //!
 //! \note Flags are designed to fit in an 8-bit integer.
-ASMJIT_ENUM(kX86EFlags) {
+ASMJIT_ENUM(X86EFlags) {
   // --------------------------------------------------------------------------
   // src-gendefs.js relies on the values of these masks, the tool has to be
-  // changed as you plan to modify `kX86EFlags`.
+  // changed as you plan to modify `X86EFlags`.
   // --------------------------------------------------------------------------
 
   //! Overflow flag (OF).
@@ -1860,11 +1860,11 @@ ASMJIT_ENUM(kX86EFlags) {
 };
 
 // ============================================================================
-// [asmjit::kX86FpSw]
+// [asmjit::X86FpSw]
 // ============================================================================
 
 //! X86/X64 FPU status word.
-ASMJIT_ENUM(kX86FpSw) {
+ASMJIT_ENUM(X86FpSw) {
   kX86FpSw_Invalid        = 0x0001,
   kX86FpSw_Denormalized   = 0x0002,
   kX86FpSw_DivByZero      = 0x0004,
@@ -1882,11 +1882,11 @@ ASMJIT_ENUM(kX86FpSw) {
 };
 
 // ============================================================================
-// [asmjit::kX86FpCw]
+// [asmjit::X86FpCw]
 // ============================================================================
 
 //! X86/X64 FPU control word.
-ASMJIT_ENUM(kX86FpCw) {
+ASMJIT_ENUM(X86FpCw) {
   kX86FpCw_EM_Mask        = 0x003F, // Bits 0-5.
   kX86FpCw_EM_Invalid     = 0x0001,
   kX86FpCw_EM_Denormal    = 0x0002,
@@ -1913,11 +1913,11 @@ ASMJIT_ENUM(kX86FpCw) {
 };
 
 // ============================================================================
-// [asmjit::kX86Cmp]
+// [asmjit::X86Cmp]
 // ============================================================================
 
 //! X86/X64 Comparison predicate used by CMP[PD/PS/SD/SS] family instructions.
-ASMJIT_ENUM(kX86Cmp) {
+ASMJIT_ENUM(X86Cmp) {
   kX86CmpEQ        = 0x00, //!< Equal             (Quite).
   kX86CmpLT        = 0x01, //!< Less              (Signaling).
   kX86CmpLE        = 0x02, //!< Less/Equal        (Signaling).
@@ -1929,13 +1929,13 @@ ASMJIT_ENUM(kX86Cmp) {
 };
 
 // ============================================================================
-// [asmjit::kX86VCmp]
+// [asmjit::X86VCmp]
 // ============================================================================
 
 //! X86/X64 Comparison predicate used by VCMP[PD/PS/SD/SS] family instructions.
 //!
-//! The first 8 are compatible with \ref kX86Cmp.
-ASMJIT_ENUM(kX86VCmp) {
+//! The first 8 are compatible with \ref X86Cmp.
+ASMJIT_ENUM(X86VCmp) {
   kX86VCmpEQ_OQ    = 0x00, //!< Equal             (Quite, Ordered).
   kX86VCmpLT_OS    = 0x01, //!< Less              (Signaling, Ordered).
   kX86VCmpLE_OS    = 0x02, //!< Less/Equal        (Signaling, Ordered).
@@ -1972,11 +1972,11 @@ ASMJIT_ENUM(kX86VCmp) {
 };
 
 // ============================================================================
-// [asmjit::kX86Prefetch]
+// [asmjit::X86Prefetch]
 // ============================================================================
 
 //! X86/X64 Prefetch hints.
-ASMJIT_ENUM(kX86Prefetch) {
+ASMJIT_ENUM(X86Prefetch) {
   //! Prefetch using NT hint.
   kX86PrefetchNTA = 0,
   //! Prefetch to L0 cache.
@@ -2011,12 +2011,12 @@ struct X86InstExtendedInfo {
   // [Accessors - Instruction Flags]
   // --------------------------------------------------------------------------
 
-  //! Get whether the instruction has a `flag`, see `kX86InstFlags`.
+  //! Get whether the instruction has a `flag`, see `X86InstFlags`.
   ASMJIT_INLINE bool hasInstFlag(uint32_t flag) const {
     return (_instFlags & flag) != 0;
   }
 
-  //! Get all instruction flags, see `kX86InstFlags`.
+  //! Get all instruction flags, see `X86InstFlags`.
   ASMJIT_INLINE uint32_t getInstFlags() const {
     return _instFlags;
   }
@@ -2087,12 +2087,12 @@ struct X86InstExtendedInfo {
   // [Accessors - EFlags]
   // --------------------------------------------------------------------------
 
-  //! Get EFLAGS that the instruction reads, see \ref kX86EFlags.
+  //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
   ASMJIT_INLINE uint32_t getEFlagsIn() const {
     return _eflagsIn;
   }
 
-  //! Get EFLAGS that the instruction writes, see \ref kX86EFlags.
+  //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
   ASMJIT_INLINE uint32_t getEFlagsOut() const {
     return _eflagsOut;
   }
@@ -2127,7 +2127,7 @@ struct X86InstExtendedInfo {
   // [Accessors - OpCode]
   // --------------------------------------------------------------------------
 
-  //! Get the secondary instruction opcode, see \ref kX86InstOpCode.
+  //! Get the secondary instruction opcode, see \ref X86InstOpCodeFlags.
   //!
   //! See \ref X86InstInfo::getSecondaryOpCode() for more details.
   ASMJIT_INLINE uint32_t getSecondaryOpCode() const {
@@ -2215,7 +2215,7 @@ struct X86InstInfo {
   // [Accessors - Instruction Encoding]
   // --------------------------------------------------------------------------
 
-  //! Get instruction group, see \ref kX86InstEncodingId.
+  //! Get instruction group, see \ref X86InstEncodingId.
   ASMJIT_INLINE uint32_t getEncodingId() const {
     return getExtendedInfo().getEncodingId();
   }
@@ -2224,12 +2224,12 @@ struct X86InstInfo {
   // [Accessors - Instruction Flags]
   // --------------------------------------------------------------------------
 
-  //! Get instruction flags, see `kX86InstFlags`.
+  //! Get instruction flags, see `X86InstFlags`.
   ASMJIT_INLINE uint32_t getInstFlags() const {
     return getExtendedInfo().getInstFlags();
   }
 
-  //! Get whether the instruction has flag `flag`, see `kX86InstFlags`.
+  //! Get whether the instruction has flag `flag`, see `X86InstFlags`.
   ASMJIT_INLINE bool hasInstFlag(uint32_t flag) const {
     return (getInstFlags() & flag) != 0;
   }
@@ -2238,12 +2238,12 @@ struct X86InstInfo {
   // [Accessors - EFlags]
   // --------------------------------------------------------------------------
 
-  //! Get EFLAGS that the instruction reads, see \ref kX86EFlags.
+  //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
   ASMJIT_INLINE uint32_t getEFlagsIn() const {
     return getExtendedInfo().getEFlagsIn();
   }
 
-  //! Get EFLAGS that the instruction writes, see \ref kX86EFlags.
+  //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
   ASMJIT_INLINE uint32_t getEFlagsOut() const {
     return getExtendedInfo().getEFlagsOut();
   }
@@ -2275,12 +2275,12 @@ struct X86InstInfo {
   // [Accessors - OpCode]
   // --------------------------------------------------------------------------
 
-  //! Get the primary instruction opcode, see \ref kX86InstOpCode.
+  //! Get the primary instruction opcode, see \ref X86InstOpCodeFlags.
   ASMJIT_INLINE uint32_t getPrimaryOpCode() const {
     return _primaryOpCode;
   }
 
-  //! Get the secondary instruction opcode, see \ref kX86InstOpCode.
+  //! Get the secondary instruction opcode, see \ref X86InstOpCodeFlags.
   ASMJIT_INLINE uint32_t getSecondaryOpCode() const {
     return getExtendedInfo().getSecondaryOpCode();
   }
@@ -2340,25 +2340,25 @@ struct X86Util {
   //! Get the equivalent of negated condition code.
   static ASMJIT_INLINE uint32_t negateCond(uint32_t cond) {
     ASMJIT_ASSERT(cond < ASMJIT_ARRAY_SIZE(_x86ReverseCond));
-    return static_cast<kX86Cond>(cond ^ static_cast<uint32_t>(cond < kX86CondNone));
+    return cond ^ static_cast<uint32_t>(cond < kX86CondNone);
   }
 
   //! Translate condition code `cc` to `cmovcc` instruction code.
-  //! \sa \ref kX86InstId, \ref _kX86InstIdCmovcc.
+  //! \sa \ref X86InstId, \ref _kX86InstIdCmovcc.
   static ASMJIT_INLINE uint32_t condToCmovcc(uint32_t cond) {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToCmovcc));
     return _x86CondToCmovcc[cond];
   }
 
   //! Translate condition code `cc` to `jcc` instruction code.
-  //! \sa \ref kX86InstId, \ref _kX86InstIdJcc.
+  //! \sa \ref X86InstId, \ref _kX86InstIdJcc.
   static ASMJIT_INLINE uint32_t condToJcc(uint32_t cond) {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToJcc));
     return _x86CondToJcc[cond];
   }
 
   //! Translate condition code `cc` to `setcc` instruction code.
-  //! \sa \ref kX86InstId, \ref _kX86InstIdSetcc.
+  //! \sa \ref X86InstId, \ref _kX86InstIdSetcc.
   static ASMJIT_INLINE uint32_t condToSetcc(uint32_t cond) {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToSetcc));
     return _x86CondToSetcc[cond];

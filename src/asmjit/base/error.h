@@ -8,11 +8,11 @@
 #ifndef _ASMJIT_BASE_ERROR_H
 #define _ASMJIT_BASE_ERROR_H
 
-// [Api-Begin]
-#include "../apibegin.h"
-
 // [Dependencies - AsmJit]
 #include "../base/globals.h"
+
+// [Api-Begin]
+#include "../apibegin.h"
 
 namespace asmjit {
 
@@ -20,11 +20,11 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kError]
+// [asmjit::ErrorCode]
 // ============================================================================
 
 //! AsmJit error codes.
-ASMJIT_ENUM(kError) {
+ASMJIT_ENUM(ErrorCode) {
   //! No error (success).
   //!
   //! This is default state and state you want.
@@ -188,7 +188,7 @@ struct ASMJIT_VCLASS ErrorHandler {
 //! Error utilities.
 struct ErrorUtil {
 #if !defined(ASMJIT_DISABLE_NAMES)
-  //! Get printable version of AsmJit `kError` code.
+  //! Get a printable version of AsmJit `Error` code.
   static ASMJIT_API const char* asString(Error code);
 #endif // ASMJIT_DISABLE_NAMES
 };

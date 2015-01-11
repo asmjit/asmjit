@@ -482,7 +482,7 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
   vd->_flags = 0;
   vd->_priority = 10;
 
-  vd->_state = kVarStateUnused;
+  vd->_state = kVarStateNone;
   vd->_regIndex = kInvalidReg;
   vd->_isStack = false;
   vd->_isMemArg = false;

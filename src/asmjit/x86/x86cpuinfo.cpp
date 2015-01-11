@@ -98,13 +98,13 @@ union X86XCR {
 };
 
 // callCpuId() and detectCpuInfo() for x86 and x64 platforms begins here.
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
 void X86CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* result) {
 
 #if defined(_MSC_VER)
 // 2009-02-05: Thanks to Mike Tajmajer for supporting VC7.1 compiler.
-// ASMJIT_HOST_X64 is here only for readibility, only VS2005 can compile 64-bit code.
-# if _MSC_VER >= 1400 || defined(ASMJIT_HOST_X64)
+// ASMJIT_ARCH_X64 is here only for readibility, only VS2005 can compile 64-bit code.
+# if _MSC_VER >= 1400 || defined(ASMJIT_ARCH_X64)
   // Done by intrinsics.
   __cpuidex(reinterpret_cast<int*>(result->i), inEax, inEcx);
 # else // _MSC_VER < 1400
@@ -126,7 +126,7 @@ void X86CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* result) {
 
 #elif defined(__GNUC__)
 // Note, patched to preserve ebx/rbx register which is used by GCC.
-# if defined(ASMJIT_HOST_X86)
+# if defined(ASMJIT_ARCH_X86)
 #  define __myCpuId(inEax, inEcx, outEax, outEbx, outEcx, outEdx) \
   __asm__ __volatile__( \
     "mov %%ebx, %%edi\n"  \

@@ -23,13 +23,13 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kStringOp]
+// [asmjit::StringOp]
 // ============================================================================
 
 //! \internal
 //!
 //! String operation.
-ASMJIT_ENUM(kStringOp) {
+ASMJIT_ENUM(StringOp) {
   //! Replace the current string by a given content.
   kStringOpSet = 0,
   //! Append a given content to the current string.
@@ -37,13 +37,13 @@ ASMJIT_ENUM(kStringOp) {
 };
 
 // ============================================================================
-// [asmjit::kStringFormat]
+// [asmjit::StringFormatFlags]
 // ============================================================================
 
 //! \internal
 //!
 //! String format flags.
-ASMJIT_ENUM(kStringFormat) {
+ASMJIT_ENUM(StringFormatFlags) {
   kStringFormatShowSign  = 0x00000001,
   kStringFormatShowSpace = 0x00000002,
   kStringFormatAlternate = 0x00000004,

@@ -28,12 +28,11 @@ struct CpuInfo;
 //! \{
 
 // ============================================================================
-// [asmjit::kRuntimeType]
+// [asmjit::RuntimeType]
 // ============================================================================
 
-ASMJIT_ENUM(kRuntimeType) {
+ASMJIT_ENUM(RuntimeType) {
   kRuntimeTypeNone = 0,
-
   kRuntimeTypeJit = 1,
   kRuntimeTypeRemote = 2
 };
@@ -90,7 +89,7 @@ struct ASMJIT_VCLASS Runtime {
   //! relocate it to the target location.
   //!
   //! The beginning of the memory allocated for the function is returned in
-  //! `dst`. Returns Status code as \ref kError, on failure `dst` is set to
+  //! `dst`. Returns Status code as \ref ErrorCode, on failure `dst` is set to
   //! `NULL`.
   virtual Error add(void** dst, Assembler* assembler) = 0;
 

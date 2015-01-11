@@ -26,8 +26,8 @@ namespace asmjit {
 
 Context::Context(Compiler* compiler) :
   _compiler(compiler),
-  _varMapToVaListOffset(0),
-  _baseZone(8192 - kZoneOverhead) {
+  _baseZone(8192 - kZoneOverhead),
+  _varMapToVaListOffset(0) {
 
   Context::reset();
 }

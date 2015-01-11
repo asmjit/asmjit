@@ -26,11 +26,11 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kLoggerOption]
+// [asmjit::LoggerOption]
 // ============================================================================
 
 //! Logger options.
-ASMJIT_ENUM(kLoggerOption) {
+ASMJIT_ENUM(LoggerOption) {
   //! Whether to output instructions also in binary form.
   kLoggerOptionBinaryForm = 0,
 
@@ -44,11 +44,11 @@ ASMJIT_ENUM(kLoggerOption) {
 };
 
 // ============================================================================
-// [asmjit::kLoggerStyle]
+// [asmjit::LoggerStyle]
 // ============================================================================
 
 //! Logger style.
-ASMJIT_ENUM(kLoggerStyle) {
+ASMJIT_ENUM(LoggerStyle) {
   kLoggerStyleDefault = 0,
   kLoggerStyleDirective = 1,
   kLoggerStyleLabel = 2,
@@ -133,7 +133,7 @@ struct ASMJIT_VCLASS Logger {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Options, see `kLoggerOption`.
+  //! Options, see \ref LoggerOption.
   uint32_t _options;
 
   //! Indentation.

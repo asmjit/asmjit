@@ -393,9 +393,9 @@ struct X86Context : public Context {
   //! Unuse.
   //!
   //! Unuse variable, it will be detached it if it's allocated then its state
-  //! will be changed to kVarStateUnused.
+  //! will be changed to kVarStateNone.
   template<int C>
-  ASMJIT_INLINE void unuse(VarData* vd, uint32_t vState = kVarStateUnused) {
+  ASMJIT_INLINE void unuse(VarData* vd, uint32_t vState = kVarStateNone) {
     ASMJIT_ASSERT(vd->getClass() == C);
     ASMJIT_ASSERT(vState != kVarStateReg);
 

@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_HOST_H
-#define _ASMJIT_HOST_H
+#ifndef _ASMJIT_ARCH_H
+#define _ASMJIT_ARCH_H
 
 // [Dependencies - Core]
 #include "base.h"
@@ -15,7 +15,7 @@
 // [asmjit::host - X86 / X64]
 // ============================================================================
 
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
 #include "x86.h"
 
 namespace asmjit {
@@ -53,7 +53,7 @@ typedef X86YmmVar YmmVar;
 
 } // asmjit namespace
 
-#endif // ASMJIT_HOST_X86 || ASMJIT_HOST_X64
+#endif // ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 
 // [Guard]
-#endif // _ASMJIT_HOST_H
+#endif // _ASMJIT_ARCH_H

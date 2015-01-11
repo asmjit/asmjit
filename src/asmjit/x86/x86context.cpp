@@ -4372,7 +4372,7 @@ ASMJIT_INLINE void X86CallAlloc::clobber() {
       ASMJIT_ASSERT(vd != NULL);
 
       VarAttr* va = vd->getVa();
-      uint32_t vdState = kVarStateUnused;
+      uint32_t vdState = kVarStateNone;
 
       if (!vd->isModified() || (va != NULL && (va->getFlags() & (kVarAttrOutAll | kVarAttrUnuse)) != 0)) {
         vdState = kVarStateMem;

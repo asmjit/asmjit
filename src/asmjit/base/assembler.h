@@ -26,21 +26,21 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kInstId]
+// [asmjit::InstId]
 // ============================================================================
 
 //! Instruction codes (stub).
-ASMJIT_ENUM(kInstId) {
+ASMJIT_ENUM(InstId) {
   //! No instruction.
   kInstIdNone = 0
 };
 
 // ============================================================================
-// [asmjit::kInstOptions]
+// [asmjit::InstOptions]
 // ============================================================================
 
-//! Instruction options (stub).
-ASMJIT_ENUM(kInstOptions) {
+//! Instruction options.
+ASMJIT_ENUM(InstOptions) {
   //! No instruction options.
   kInstOptionNone = 0x00000000,
 

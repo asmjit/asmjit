@@ -385,9 +385,9 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   // --------------------------------------------------------------------------
 
   ASMJIT_API X86Assembler(Runtime* runtime, uint32_t arch
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
     = kArchHost
-#endif // ASMJIT_HOST_X86 || ASMJIT_HOST_X64
+#endif // ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
   );
   ASMJIT_API virtual ~X86Assembler();
 

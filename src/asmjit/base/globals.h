@@ -34,7 +34,7 @@ typedef uint64_t Ptr;
 typedef int64_t SignedPtr;
 
 // ============================================================================
-// [asmjit::kGlobals]
+// [asmjit::GlobalDefs]
 // ============================================================================
 
 //! Invalid index
@@ -48,7 +48,7 @@ static const size_t kInvalidIndex = ~static_cast<size_t>(0);
 static const Ptr kNoBaseAddress = static_cast<Ptr>(static_cast<SignedPtr>(-1));
 
 //! Global constants.
-ASMJIT_ENUM(kGlobals) {
+ASMJIT_ENUM(GlobalDefs) {
   //! Invalid value or operand id.
   kInvalidValue = 0xFFFFFFFF,
 
@@ -74,11 +74,11 @@ ASMJIT_ENUM(kGlobals) {
 };
 
 // ============================================================================
-// [asmjit::kArch]
+// [asmjit::ArchId]
 // ============================================================================
 
-//! Architecture.
-ASMJIT_ENUM(kArch) {
+//! CPU architecture identifier.
+ASMJIT_ENUM(ArchId) {
   //! No/Unknown architecture.
   kArchNone = 0,
 
@@ -90,17 +90,17 @@ ASMJIT_ENUM(kArch) {
   //! Arm architecture.
   kArchArm = 4,
 
-#if defined(ASMJIT_HOST_X86)
+#if defined(ASMJIT_ARCH_X86)
   kArchHost = kArchX86,
-#endif // ASMJIT_HOST_X86
+#endif // ASMJIT_ARCH_X86
 
-#if defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X64)
   kArchHost = kArchX64,
-#endif // ASMJIT_HOST_X64
+#endif // ASMJIT_ARCH_X64
 
-#if defined(ASMJIT_HOST_ARM)
+#if defined(ASMJIT_ARCH_ARM)
   kArchHost = kArchArm,
-#endif // ASMJIT_HOST_ARM
+#endif // ASMJIT_ARCH_ARM
 
   //! Whether the host is 64-bit.
   kArchHost64Bit = sizeof(intptr_t) >= 8

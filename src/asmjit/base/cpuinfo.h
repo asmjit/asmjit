@@ -20,7 +20,7 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::kCpuVendor]
+// [asmjit::CpuVendor]
 // ============================================================================
 
 //! Cpu vendor ID.
@@ -30,7 +30,7 @@ namespace asmjit {
 //! calls. Some manufacturers changed their vendor strings and AsmJit is aware
 //! of that - it checks multiple combinations and decides which vendor ID should
 //! be used.
-ASMJIT_ENUM(kCpuVendor) {
+ASMJIT_ENUM(CpuVendor) {
   //! No/Unknown vendor.
   kCpuVendorNone = 0,
 
@@ -120,7 +120,7 @@ struct CpuInfo {
   //! Cpu long vendor string (brand).
   char _brandString[64];
 
-  //! Cpu vendor id, see `asmjit::kCpuVendor`.
+  //! Cpu vendor id, see \ref CpuVendor.
   uint32_t _vendorId;
   //! Cpu family ID.
   uint32_t _family;
