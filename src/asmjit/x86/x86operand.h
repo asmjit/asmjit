@@ -666,7 +666,7 @@ struct X86Reg : public Reg {
   //! Get whether the register is Gp register.
   ASMJIT_INLINE bool isGp() const { return _vreg.type <= kX86RegTypeGpq; }
   //! Get whether the register is Gp byte (8-bit) register.
-  ASMJIT_INLINE bool isGpb() const { return _vreg.type <= kX86RegTypeGpbHi; }
+  ASMJIT_INLINE bool isGpb() const { return _vreg.type <= _kX86RegTypePatchedGpbHi; }
   //! Get whether the register is Gp lo-byte (8-bit) register.
   ASMJIT_INLINE bool isGpbLo() const { return _vreg.type == kX86RegTypeGpbLo; }
   //! Get whether the register is Gp hi-byte (8-bit) register.

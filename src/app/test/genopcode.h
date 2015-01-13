@@ -13,7 +13,7 @@
 
 namespace asmgen {
 
-enum { kGenOpCodeInstCount = 2656 };
+enum { kGenOpCodeInstCount = 2670 };
 
 // Generate all instructions asmjit can emit.
 static void opcode(asmjit::X86Assembler& a) {
@@ -50,7 +50,9 @@ static void opcode(asmjit::X86Assembler& a) {
 
   // Base.
   a.adc(al, 1);
+  a.adc(ah, 1);
   a.adc(bl, 1);
+  a.adc(bh, 1);
   a.adc(ax, 1);
   a.adc(bx, 1);
   a.adc(eax, 1);
@@ -61,7 +63,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.adc(intptr_gp0, gp1);
   a.adc(intptr_gp0, 0);
   a.add(al, 1);
+  a.add(ah, 1);
   a.add(bl, 1);
+  a.add(bh, 1);
   a.add(ax, 1);
   a.add(bx, 1);
   a.add(eax, 1);
@@ -72,7 +76,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.add(intptr_gp0, gp1);
   a.add(intptr_gp0, 0);
   a.and_(al, 1);
+  a.and_(ah, 1);
   a.and_(bl, 1);
+  a.and_(bh, 1);
   a.and_(ax, 1);
   a.and_(bx, 1);
   a.and_(eax, 1);
@@ -107,7 +113,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.cld();
   a.cmc();
   a.cmp(al, 1);
+  a.cmp(ah, 1);
   a.cmp(bl, 1);
+  a.cmp(bh, 1);
   a.cmp(ax, 1);
   a.cmp(bx, 1);
   a.cmp(eax, 1);
@@ -158,7 +166,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.not_(gp0);
   a.not_(intptr_gp0);
   a.or_(al, 1);
+  a.or_(ah, 1);
   a.or_(bl, 1);
+  a.or_(bh, 1);
   a.or_(ax, 1);
   a.or_(bx, 1);
   a.or_(eax, 1);
@@ -202,7 +212,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.ror(intptr_gp0, 0);
   a.ror(intptr_gp0, 1);
   a.sbb(al, 1);
+  a.sbb(ah, 1);
   a.sbb(bl, 1);
+  a.sbb(bh, 1);
   a.sbb(ax, 1);
   a.sbb(bx, 1);
   a.sbb(eax, 1);
@@ -247,7 +259,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.stc();
   a.std();
   a.sub(al, 1);
+  a.sub(ah, 1);
   a.sub(bl, 1);
+  a.sub(bh, 1);
   a.sub(ax, 1);
   a.sub(bx, 1);
   a.sub(eax, 1);
@@ -268,7 +282,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.xchg(intptr_gp0, gp1);
   a.xchg(gp0, intptr_gp1);
   a.xor_(al, 1);
+  a.xor_(ah, 1);
   a.xor_(bl, 1);
+  a.xor_(bh, 1);
   a.xor_(ax, 1);
   a.xor_(bx, 1);
   a.xor_(eax, 1);

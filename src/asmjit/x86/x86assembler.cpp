@@ -1192,7 +1192,7 @@ _Prepare:
 
     case kX86InstEncodingIdX86Arith:
       if (encoded == ENC_OPS(Reg, Reg, None)) {
-        opCode +=(o0->getSize() != 1) + 2;
+        opCode += (o0->getSize() != 1) + 2;
         ADD_66H_P_BY_SIZE(o0->getSize());
         ADD_REX_W_BY_SIZE(o0->getSize());
 
@@ -1202,7 +1202,7 @@ _Prepare:
       }
 
       if (encoded == ENC_OPS(Reg, Mem, None)) {
-        opCode +=(o0->getSize() != 1) + 2;
+        opCode += (o0->getSize() != 1) + 2;
         ADD_66H_P_BY_SIZE(o0->getSize());
         ADD_REX_W_BY_SIZE(o0->getSize());
 
@@ -3480,7 +3480,7 @@ _EmitX86Op:
   if (Arch == kArchX64) {
     uint32_t rex = x86RexFromOpCodeAndOptions(opCode, options);
 
-    if (rex) {
+    if (rex & ~static_cast<uint32_t>(_kX86InstOptionNoRex)) {
       rex |= kX86ByteRex;
       EMIT_BYTE(rex);
 
@@ -3508,7 +3508,7 @@ _EmitX86OpWithOpReg:
 
     rex += (opReg >> 3); // Rex.B (0x01).
 
-    if (rex) {
+    if (rex & ~static_cast<uint32_t>(_kX86InstOptionNoRex)) {
       rex |= kX86ByteRex;
       opReg &= 0x7;
       EMIT_BYTE(rex);
@@ -3539,7 +3539,7 @@ _EmitX86R:
     rex += static_cast<uint32_t>(opReg & 0x08) >> 1; // Rex.R (0x04).
     rex += static_cast<uint32_t>(rmReg) >> 3;        // Rex.B (0x01).
 
-    if (rex) {
+    if (rex & ~static_cast<uint32_t>(_kX86InstOptionNoRex)) {
       rex |= kX86ByteRex;
       opReg &= 0x7;
       rmReg &= 0x7;
@@ -3597,7 +3597,7 @@ _EmitX86M:
     rex += static_cast<uint32_t>(mIndex - 8 < 8) << 1; // Rex.X (0x02).
     rex += static_cast<uint32_t>(mBase  - 8 < 8);      // Rex.B (0x01).
 
-    if (rex) {
+    if (rex & ~static_cast<uint32_t>(_kX86InstOptionNoRex)) {
       rex |= kX86ByteRex;
       opReg &= 0x7;
       EMIT_BYTE(rex);
