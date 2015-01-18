@@ -710,6 +710,10 @@ struct X86GpVar : public X86Var {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
+protected:
+  ASMJIT_INLINE X86GpVar(const X86GpVar& other, uint32_t reg, uint32_t size) : X86Var(other, reg, size) {}
+
+public:
   //! Create a new uninitialized `X86GpVar` instance.
   ASMJIT_INLINE X86GpVar() : X86Var() {}
 
@@ -742,18 +746,18 @@ struct X86GpVar : public X86Var {
   // [X86GpVar Cast]
   // --------------------------------------------------------------------------
 
-  //! Cast this variable to 8-bit (LO) part of variable
+  //! Cast this variable to 8-bit (LO) part of variable.
   ASMJIT_INLINE X86GpVar r8() const { return X86GpVar(*this, kX86RegTypeGpbLo, 1); }
-  //! Cast this variable to 8-bit (LO) part of variable
+  //! Cast this variable to 8-bit (LO) part of variable.
   ASMJIT_INLINE X86GpVar r8Lo() const { return X86GpVar(*this, kX86RegTypeGpbLo, 1); }
-  //! Cast this variable to 8-bit (HI) part of variable
+  //! Cast this variable to 8-bit (HI) part of variable.
   ASMJIT_INLINE X86GpVar r8Hi() const { return X86GpVar(*this, kX86RegTypeGpbHi, 1); }
 
-  //! Cast this variable to 16-bit part of variable
+  //! Cast this variable to 16-bit part of variable.
   ASMJIT_INLINE X86GpVar r16() const { return X86GpVar(*this, kX86RegTypeGpw, 2); }
-  //! Cast this variable to 32-bit part of variable
+  //! Cast this variable to 32-bit part of variable.
   ASMJIT_INLINE X86GpVar r32() const { return X86GpVar(*this, kX86RegTypeGpd, 4); }
-  //! Cast this variable to 64-bit part of variable
+  //! Cast this variable to 64-bit part of variable.
   ASMJIT_INLINE X86GpVar r64() const { return X86GpVar(*this, kX86RegTypeGpq, 8); }
 
   // --------------------------------------------------------------------------
@@ -764,13 +768,6 @@ struct X86GpVar : public X86Var {
 
   ASMJIT_INLINE bool operator==(const X86GpVar& other) const { return X86Var::operator==(other); }
   ASMJIT_INLINE bool operator!=(const X86GpVar& other) const { return X86Var::operator!=(other); }
-
-  // --------------------------------------------------------------------------
-  // [Private]
-  // --------------------------------------------------------------------------
-
-protected:
-  ASMJIT_INLINE X86GpVar(const X86GpVar& other, uint32_t reg, uint32_t size) : X86Var(other, reg, size) {}
 };
 
 // ============================================================================
@@ -858,6 +855,12 @@ struct X86XmmVar : public X86Var {
   }
 
   // --------------------------------------------------------------------------
+  // [X86XmmVar Cast]
+  // --------------------------------------------------------------------------
+
+  // TODO:
+
+  // --------------------------------------------------------------------------
   // [Operator Overload]
   // --------------------------------------------------------------------------
 
@@ -903,6 +906,12 @@ struct X86YmmVar : public X86Var {
   ASMJIT_INLINE void reset() {
     X86Var::reset();
   }
+
+  // --------------------------------------------------------------------------
+  // [X86YmmVar Cast]
+  // --------------------------------------------------------------------------
+
+  // TODO:
 
   // --------------------------------------------------------------------------
   // [Operator Overload]

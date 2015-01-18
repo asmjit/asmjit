@@ -789,6 +789,24 @@ struct X86GpReg : public X86Reg {
   // --------------------------------------------------------------------------
 
   ASMJIT_REG_OP(X86GpReg)
+
+  // --------------------------------------------------------------------------
+  // [X86GpReg Cast]
+  // --------------------------------------------------------------------------
+
+  //! Cast this register to 8-bit (LO) part.
+  ASMJIT_INLINE X86GpReg r8() const { return X86GpReg(kX86RegTypeGpbLo, getRegIndex(), 1); }
+  //! Cast this register to 8-bit (LO) part.
+  ASMJIT_INLINE X86GpReg r8Lo() const { return X86GpReg(kX86RegTypeGpbLo, getRegIndex(), 1); }
+  //! Cast this register to 8-bit (HI) part.
+  ASMJIT_INLINE X86GpReg r8Hi() const { return X86GpReg(kX86RegTypeGpbHi, getRegIndex(), 1); }
+
+  //! Cast this register to 16-bit.
+  ASMJIT_INLINE X86GpReg r16() const { return X86GpReg(kX86RegTypeGpw, getRegIndex(), 2); }
+  //! Cast this register to 32-bit.
+  ASMJIT_INLINE X86GpReg r32() const { return X86GpReg(kX86RegTypeGpd, getRegIndex(), 4); }
+  //! Cast this register to 64-bit.
+  ASMJIT_INLINE X86GpReg r64() const { return X86GpReg(kX86RegTypeGpq, getRegIndex(), 8); }
 };
 
 // ============================================================================
@@ -979,6 +997,17 @@ struct X86XmmReg : public X86Reg {
   // --------------------------------------------------------------------------
 
   ASMJIT_REG_OP(X86XmmReg)
+
+  // --------------------------------------------------------------------------
+  // [X86XmmReg Cast]
+  // --------------------------------------------------------------------------
+
+  //! Cast this register to Xmm (clone).
+  ASMJIT_INLINE X86XmmReg xmm() const { return X86XmmReg(kX86RegTypeXmm, getRegIndex(), 16); }
+  //! Cast this register to Ymm.
+  ASMJIT_INLINE X86YmmReg ymm() const;
+  //! Cast this register to Zmm.
+  ASMJIT_INLINE X86ZmmReg zmm() const;
 };
 
 // ============================================================================
@@ -1029,7 +1058,20 @@ struct X86YmmReg : public X86Reg {
   // --------------------------------------------------------------------------
 
   ASMJIT_REG_OP(X86YmmReg)
+
+  // --------------------------------------------------------------------------
+  // [X86YmmReg Cast]
+  // --------------------------------------------------------------------------
+
+  //! Cast this register to Xmm.
+  ASMJIT_INLINE X86XmmReg xmm() const { return X86XmmReg(kX86RegTypeXmm, getRegIndex(), 16); }
+  //! Cast this register to Ymm (clone).
+  ASMJIT_INLINE X86YmmReg ymm() const { return X86YmmReg(kX86RegTypeYmm, getRegIndex(), 32); }
+  //! Cast this register to Zmm.
+  ASMJIT_INLINE X86ZmmReg zmm() const;
 };
+
+ASMJIT_INLINE X86YmmReg X86XmmReg::ymm() const { return X86YmmReg(kX86RegTypeYmm, getRegIndex(), 32); }
 
 // ============================================================================
 // [asmjit::X86ZmmReg]
@@ -1057,7 +1099,21 @@ struct X86ZmmReg : public X86Reg {
   // --------------------------------------------------------------------------
 
   ASMJIT_REG_OP(X86ZmmReg)
+
+  // --------------------------------------------------------------------------
+  // [X86ZmmReg Cast]
+  // --------------------------------------------------------------------------
+
+  //! Cast this register to Xmm.
+  ASMJIT_INLINE X86XmmReg xmm() const { return X86XmmReg(kX86RegTypeXmm, getRegIndex(), 16); }
+  //! Cast this register to Ymm.
+  ASMJIT_INLINE X86YmmReg ymm() const { return X86YmmReg(kX86RegTypeYmm, getRegIndex(), 32); }
+  //! Cast this register to Zmm (clone).
+  ASMJIT_INLINE X86ZmmReg zmm() const { return X86ZmmReg(kX86RegTypeZmm, getRegIndex(), 64); }
 };
+
+ASMJIT_INLINE X86ZmmReg X86XmmReg::zmm() const { return X86ZmmReg(kX86RegTypeZmm, getRegIndex(), 64); }
+ASMJIT_INLINE X86ZmmReg X86YmmReg::zmm() const { return X86ZmmReg(kX86RegTypeZmm, getRegIndex(), 64); }
 
 // ============================================================================
 // [asmjit::X86Mem]
