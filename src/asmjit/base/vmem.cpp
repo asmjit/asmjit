@@ -522,7 +522,8 @@ static void vMemMgrInsertNode(VMemMgr* self, MemNode* node) {
     RbNode* p = NULL;
     RbNode* q = t->node[1] = self->_root;
 
-    int dir = 0, last;
+    int dir = 0;
+    int last = 0; // Not needed to initialize, but makes some tools happy.
 
     // Search down the tree.
     for (;;) {
