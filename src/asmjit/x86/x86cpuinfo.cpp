@@ -99,15 +99,19 @@ union X86XCR {
 
 // callCpuId() and detectCpuInfo() for x86 and x64 platforms begins here.
 #if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
-void X86CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* result) {
+void X86CpuUtil::_docpuid(uint32_t inEcx, uint32_t inEax, X86CpuId* result) {
 
 #if defined(_MSC_VER)
-// 2009-02-05: Thanks to Mike Tajmajer for supporting VC7.1 compiler.
-// ASMJIT_ARCH_X64 is here only for readibility, only VS2005 can compile 64-bit code.
-# if _MSC_VER >= 1400 || defined(ASMJIT_ARCH_X64)
-  // Done by intrinsics.
+// __cpuidex was introduced by VS2008-SP1.
+# if _MSC_FULL_VER >= 150030729
   __cpuidex(reinterpret_cast<int*>(result->i), inEax, inEcx);
-# else // _MSC_VER < 1400
+# elif defined(ASMJIT_ARCH_X64)
+  // VS2008 or less, 64-bit mode - `__cpuidex` doesn't exist! However, 64-bit
+  // calling convention specifies parameter to be passed in ECX/RCX, so we may
+  // be lucky if compiler doesn't move the register, otherwise the result is
+  // undefined.
+  __cpuid(reinterpret_cast<int*>(result->i), inEax);
+# else
   uint32_t cpuid_eax = inEax;
   uint32_t cpuid_ecx = inEcx;
   uint32_t* cpuid_out = result->i;
@@ -122,7 +126,7 @@ void X86CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* result) {
     mov     dword ptr[edi +  8], ecx
     mov     dword ptr[edi + 12], edx
   }
-# endif // _MSC_VER < 1400
+# endif
 
 #elif defined(__GNUC__)
 // Note, patched to preserve ebx/rbx register which is used by GCC.
@@ -144,10 +148,13 @@ void X86CpuUtil::callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* result) {
       : "a" (inEax), "c" (inEcx))
 # endif
   __myCpuId(inEax, inEcx, result->eax, result->ebx, result->ecx, result->edx);
-#endif // COMPILER
+
+#else
+# error "asmjit::X86CpuUtil::_docpuid() unimplemented!"
+#endif
 }
 
-static void callXGetBV(uint32_t inEcx, X86XCR* result) {
+static void callXGetBV(X86XCR* result, uint32_t inEcx) {
 
 #if defined(_MSC_VER)
 
@@ -197,7 +204,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
   // --------------------------------------------------------------------------
 
   // Get vendor string/id.
-  callCpuId(0x0, 0x0, &regs);
+  callCpuId(&regs, 0x0);
 
   maxBaseId = regs.eax;
   ::memcpy(cpuInfo->_vendorString, &regs.ebx, 4);
@@ -217,7 +224,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
 
   if (maxBaseId >= 0x1) {
     // Get feature flags in ECX/EDX and family/model in EAX.
-    callCpuId(0x1, 0x0, &regs);
+    callCpuId(&regs, 0x1);
 
     // Fill family and model fields.
     cpuInfo->_family   = (regs.eax >> 8) & 0x0F;
@@ -266,7 +273,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
 
     // Get the content of XCR0 if supported by CPU and enabled by OS.
     if ((regs.ecx & 0x0C000000U) == 0x0C000000U) {
-      callXGetBV(0, &xcr0);
+      callXGetBV(&xcr0, 0);
     }
 
     // Detect AVX+.
@@ -290,7 +297,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
 
   // Detect new features if the processor supports CPUID-07.
   if (maxBaseId >= 0x7) {
-    callCpuId(0x7, 0x0, &regs);
+    callCpuId(&regs, 0x7);
 
     if (regs.ebx & 0x00000001U) cpuInfo->addFeature(kX86CpuFeatureFSGSBase);
     if (regs.ebx & 0x00000008U) cpuInfo->addFeature(kX86CpuFeatureBMI);
@@ -335,7 +342,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
   // --------------------------------------------------------------------------
 
   if (maxBaseId >= 0xD && maybeMPX) {
-    callCpuId(0xD, 0x0, &regs);
+    callCpuId(&regs, 0xD);
 
     // Both CPUID result and XCR0 has to be enabled to have support for MPX.
     if (((regs.eax & xcr0.eax) & 0x00000018U) == 0x00000018U) {
@@ -349,13 +356,13 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
 
   // Calling cpuid with 0x80000000 as the in argument gets the number of valid
   // extended IDs.
-  callCpuId(0x80000000, 0x0, &regs);
+  callCpuId(&regs, 0x80000000);
 
   uint32_t maxExtId = IntUtil::iMin<uint32_t>(regs.eax, 0x80000004);
   uint32_t* brand = reinterpret_cast<uint32_t*>(cpuInfo->_brandString);
 
   for (i = 0x80000001; i <= maxExtId; i++) {
-    callCpuId(i, 0x0, &regs);
+    callCpuId(&regs, i);
 
     switch (i) {
       case 0x80000001:

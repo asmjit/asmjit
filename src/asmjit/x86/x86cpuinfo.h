@@ -181,8 +181,16 @@ union X86CpuId {
 #if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
 //! CPU utilities available only if the host processor is X86/X64.
 struct X86CpuUtil {
+  //! \internal
+  //!
+  //! Designed to support VS2008 and less in 64-bit mode, even if this compiler
+  //! doesn't have `__cpuidex` intrinsic.
+  ASMJIT_API static void _docpuid(uint32_t inEcx, uint32_t inEax, X86CpuId* out);
+
   //! Get the result of calling CPUID instruction to `out`.
-  ASMJIT_API static void callCpuId(uint32_t inEax, uint32_t inEcx, X86CpuId* out);
+  static ASMJIT_INLINE void callCpuId(X86CpuId* out, uint32_t inEax, uint32_t inEcx = 0) {
+    return _docpuid(inEcx, inEax, out);
+  }
 
   //! Detect the Host CPU.
   ASMJIT_API static void detect(X86CpuInfo* cpuInfo);
