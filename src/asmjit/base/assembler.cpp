@@ -340,43 +340,35 @@ Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const
 }
 
 Error Assembler::emit(uint32_t code, int o0) {
-  Imm imm(o0);
-  return _emit(code, imm, NA, NA, NA);
-}
-
-Error Assembler::emit(uint32_t code, uint64_t o0) {
-  Imm imm(o0);
-  return _emit(code, imm, NA, NA, NA);
+  return _emit(code, Imm(o0), NA, NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, int o1) {
-  Imm imm(o1);
-  return _emit(code, o0, imm, NA, NA);
-}
-
-Error Assembler::emit(uint32_t code, const Operand& o0, uint64_t o1) {
-  Imm imm(o1);
-  return _emit(code, o0, imm, NA, NA);
+  return _emit(code, o0, Imm(o1), NA, NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, int o2) {
-  Imm imm(o2);
-  return _emit(code, o0, o1, imm, NA);
-}
-
-Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2) {
-  Imm imm(o2);
-  return _emit(code, o0, o1, imm, NA);
+  return _emit(code, o0, o1, Imm(o2), NA);
 }
 
 Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3) {
-  Imm imm(o3);
-  return _emit(code, o0, o1, o2, imm);
+  return _emit(code, o0, o1, o2, Imm(o3));
 }
 
-Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3) {
-  Imm imm(o3);
-  return _emit(code, o0, o1, o2, imm);
+Error Assembler::emit(uint32_t code, int64_t o0) {
+  return _emit(code, Imm(o0), NA, NA, NA);
+}
+
+Error Assembler::emit(uint32_t code, const Operand& o0, int64_t o1) {
+  return _emit(code, o0, Imm(o1), NA, NA);
+}
+
+Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, int64_t o2) {
+  return _emit(code, o0, o1, Imm(o2), NA);
+}
+
+Error Assembler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int64_t o3) {
+  return _emit(code, o0, o1, o2, Imm(o3));
 }
 
 #undef NA

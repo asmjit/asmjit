@@ -512,24 +512,24 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Count of registers depending on the current architecture.
+  //! Count of registers depending on the architecture selected.
   X86RegCount _regCount;
 
-  //! EAX or RAX register depending on the current architecture.
+  //! EAX or RAX register depending on the architecture selected.
   X86GpReg zax;
-  //! ECX or RCX register depending on the current architecture.
+  //! ECX or RCX register depending on the architecture selected.
   X86GpReg zcx;
-  //! EDX or RDX register depending on the current architecture.
+  //! EDX or RDX register depending on the architecture selected.
   X86GpReg zdx;
-  //! EBX or RBX register depending on the current architecture.
+  //! EBX or RBX register depending on the architecture selected.
   X86GpReg zbx;
-  //! ESP or RSP register depending on the current architecture.
+  //! ESP or RSP register depending on the architecture selected.
   X86GpReg zsp;
-  //! EBP or RBP register depending on the current architecture.
+  //! EBP or RBP register depending on the architecture selected.
   X86GpReg zbp;
-  //! ESI or RSI register depending on the current architecture.
+  //! ESI or RSI register depending on the architecture selected.
   X86GpReg zsi;
-  //! EDI or RDI register depending on the current architecture.
+  //! EDI or RDI register depending on the architecture selected.
   X86GpReg zdi;
 
   // --------------------------------------------------------------------------
@@ -553,25 +553,15 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   }
 
 #define INST_1i(_Inst_, _Code_, _Op0_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0) { \
-    return emit(_Code_, o0); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0) { return emit(_Code_, o0); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(int o0) { \
-    return emit(_Code_, o0); \
-  } \
+  ASMJIT_INLINE Error _Inst_(int o0) { return emit(_Code_, asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(unsigned int o0) { \
-    return emit(_Code_, static_cast<uint64_t>(o0)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(unsigned int o0) { return emit(_Code_, asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(int64_t o0) { \
-    return emit(_Code_, static_cast<uint64_t>(o0)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(int64_t o0) { return emit(_Code_, asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(uint64_t o0) { \
-    return emit(_Code_, o0); \
-  }
+  ASMJIT_INLINE Error _Inst_(uint64_t o0) { return emit(_Code_, asInt(o0)); }
 
 #define INST_1cc(_Inst_, _Code_, _Translate_, _Op0_) \
   ASMJIT_INLINE Error _Inst_(uint32_t cc, const _Op0_& o0) { \
@@ -621,25 +611,15 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   }
 
 #define INST_2i(_Inst_, _Code_, _Op0_, _Op1_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1) { \
-    return emit(_Code_, o0, o1); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_, o0, o1); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1) { \
-    return emit(_Code_, o0, o1); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1) { return emit(_Code_, o0, asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1) { \
-    return emit(_Code_, o0, static_cast<uint64_t>(o1)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1) { return emit(_Code_, o0, asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1) { \
-    return emit(_Code_, o0, static_cast<uint64_t>(o1)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1) { return emit(_Code_, o0, asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1) { \
-    return emit(_Code_, o0, o1); \
-  }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1) { return emit(_Code_, o0, asInt(o1)); }
 
 #define INST_2cc(_Inst_, _Code_, _Translate_, _Op0_, _Op1_) \
   ASMJIT_INLINE Error _Inst_(uint32_t cc, const _Op0_& o0, const _Op1_& o1) { \
@@ -678,117 +658,54 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   ASMJIT_INLINE Error _Inst_##z(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##z, o0, o1); }
 
 #define INST_3x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
-    return emit(_Code_, o0, o1, o2); \
-  }
-
-#define INST_3x_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Cond_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1, o2); \
-  }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); }
 
 #define INST_3i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
-    return emit(_Code_, o0, o1, o2); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
-    return emit(_Code_, o0, o1, o2); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { return emit(_Code_, o0, o1, asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) { \
-    return emit(_Code_, o0, o1, static_cast<uint64_t>(o2)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) { return emit(_Code_, o0, o1, asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
-    return emit(_Code_, o0, o1, static_cast<uint64_t>(o2)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { return emit(_Code_, o0, o1, asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) { \
-    return emit(_Code_, o0, o1, o2); \
-  }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) { return emit(_Code_, o0, o1, asInt(o2)); }
 
 #define INST_3ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
-    return emit(_Code_, o0, o1, o2); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1, int o2) { \
-    Imm o1Imm(o1); \
-    return emit(_Code_, o0, o1Imm, o2); \
-  } \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1, unsigned int o2) { \
-    Imm o1Imm(o1); \
-    return emit(_Code_, o0, o1Imm, static_cast<uint64_t>(o2)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1, int o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1, int64_t o2) { \
-    Imm o1Imm(o1); \
-    return emit(_Code_, o0, o1Imm, static_cast<uint64_t>(o2)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1, unsigned int o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1, uint64_t o2) { \
-    Imm o1Imm(o1); \
-    return emit(_Code_, o0, o1Imm, o2); \
-  }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1, int64_t o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); } \
+  /*! \overload */ \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1, uint64_t o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); }
 
 #define INST_4x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
-    return emit(_Code_, o0, o1, o2, o3); \
-  }
-
-#define INST_4x_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_, _Cond_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1, o2, o3); \
-  }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); }
 
 #define INST_4i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
-    return emit(_Code_, o0, o1, o2, o3); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { \
-    return emit(_Code_, o0, o1, o2, o3); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) { \
-    return emit(_Code_, o0, o1, o2, static_cast<uint64_t>(o3)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { \
-    return emit(_Code_, o0, o1, o2, static_cast<uint64_t>(o3)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) { \
-    return emit(_Code_, o0, o1, o2, o3); \
-  }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); }
 
 #define INST_4ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
-    return emit(_Code_, o0, o1, o2, o3); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2, int o3) { \
-    Imm o2Imm(o2); \
-    return emit(_Code_, o0, o1, o2Imm, o3); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2, int o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2, unsigned int o3) { \
-    Imm o2Imm(o2); \
-    return emit(_Code_, o0, o1, o2Imm, static_cast<uint64_t>(o3)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2, unsigned int o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2, int64_t o3) { \
-    Imm o2Imm(o2); \
-    return emit(_Code_, o0, o1, o2Imm, static_cast<uint64_t>(o3)); \
-  } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2, int64_t o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2, uint64_t o3) { \
-    Imm o2Imm(o2); \
-    return emit(_Code_, o0, o1, o2Imm, o3); \
-  }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2, uint64_t o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); }
 
   // --------------------------------------------------------------------------
   // [X86/X64]
@@ -6659,12 +6576,10 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
 #undef INST_2cc
 
 #undef INST_3x
-#undef INST_3x_
 #undef INST_3i
 #undef INST_3ii
 
 #undef INST_4x
-#undef INST_4x_
 #undef INST_4i
 #undef INST_4ii
 };

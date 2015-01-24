@@ -44,6 +44,31 @@ struct IntTraits {
   };
 };
 
+// \internal
+template<size_t Size, int IsSigned>
+struct AsInt_ { typedef int64_t Int; };
+
+template<> struct AsInt_<1, 0> { typedef int Int; };
+template<> struct AsInt_<1, 1> { typedef int Int; };
+template<> struct AsInt_<2, 0> { typedef int Int; };
+template<> struct AsInt_<2, 1> { typedef int Int; };
+template<> struct AsInt_<4, 1> { typedef int Int; };
+
+// \internal
+//
+// Map an integer `T` to an `int` or `int64_t`, depending on the type. Used
+// internally by AsmJit to dispatch an argument of arbitrary integer type into
+// a function that accepts either `int` or `int64_t`.
+template<typename T>
+struct AsInt {
+  typedef typename AsInt_<sizeof(T), IntTraits<T>::kIsSigned>::Int Int;
+};
+
+template<typename T>
+ASMJIT_INLINE typename AsInt<T>::Int asInt(T value) {
+  return static_cast<typename AsInt<T>::Int>(value);
+}
+
 // ============================================================================
 // [asmjit::IntUtil]
 // ============================================================================
