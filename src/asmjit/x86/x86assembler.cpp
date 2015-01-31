@@ -2293,7 +2293,7 @@ _EmitFpArith_Mem:
           goto _IllegalInst;
 
         opCode = extendedInfo.getSecondaryOpCode();
-        goto _EmitX86Op;
+        goto _EmitFpuOp;
       }
 
       if (encoded == ENC_OPS(Mem, None, None)) {
