@@ -63,18 +63,46 @@ Project Organization
 Code Generation Concepts
 ------------------------
 
-AsmJit has two completely different code generation concepts. The difference is in how the code is generated. The first concept, also referred as the low level concept, is called `Assembler` and it's the same as writing RAW assembly by using physical registers directly. In this case AsmJit does only instruction encoding, verification and optionally code-relocation.
+AsmJit has two completely different code generation concepts. The difference is
+in how the code is generated. The first concept, also referred as the low level
+concept, is called `Assembler` and it's the same as writing RAW assembly by
+using physical registers directly. In this case AsmJit does only instruction
+encoding, verification and optionally code-relocation.
 
-The second concept, also referred as the high level concept, is called `Compiler`. Compiler lets you use virtually unlimited number of registers (called variables) significantly simplifying the code generation process. Compiler allocates these virtual registers to physical registers after the code generation is done. This requires some extra effort - Compiler has to generate information for each node (instruction, function declaration, function call) in the code, perform a variable liveness analysis and translate the code having variables into code having only registers.
+The second concept, also referred as the high level concept, is called
+`Compiler`. Compiler lets you use virtually unlimited number of registers
+(called variables) significantly simplifying the code generation process.
+Compiler allocates these virtual registers to physical registers after the code
+generation is done. This requires some extra effort - Compiler has to generate
+information for each node (instruction, function declaration, function call) in
+the code, perform a variable liveness analysis and translate the code having
+variables into code having only registers.
 
-In addition, Compiler understands functions and function calling conventions. It has been designed in a way that the code generated is always a function having a prototype like in a programming language. By having a function prototype the Compiler is able to insert prolog and epilog to a function being generated and it is able to call a function inside a generated one.
+In addition, Compiler understands functions and function calling conventions.
+It has been designed in a way that the code generated is always a function
+having a prototype like in a programming language. By having a function
+prototype the Compiler is able to insert prolog and epilog to a function being
+generated and it is able to call a function inside a generated one.
 
-There is no conclusion on which concept is better. Assembler brings full control on how the code is generated, while Compiler makes the generation easier and more portable. However, Compiler does sometimes relatively bad job when it comes to register allocation, so for projects where there is already an analysis performed, pure Assembler code generator is the preferred way.
+There is no conclusion on which concept is better. Assembler brings full
+control on how the code is generated, while Compiler makes the generation
+easier and more portable. However, Compiler does sometimes relatively bad job
+when it comes to register allocation, so for projects where there is already an
+analysis performed, pure Assembler code generator is the preferred way.
 
 Configuring & Building
 ----------------------
 
-AsmJit is designed to be easy embeddable in any kind project. However, it has some compile-time flags that can be used to build a specific version of AsmJit including or omitting certain features. A typical way to build AsmJit is to use [cmake](http://www.cmake.org), but it's also possible to just include AsmJit source code in our project and build it with it optionally editing its `asmjit/config.h` file to turn on/off some specific features. The most easies way to include AsmJit in your project is to just copy AsmJit source somewhere into it and to define globally `ASMJIT_STATIC` macro. This way AsmJit can be just updated from time to time without any changes to it. Please do not include / compile AsmJit test files (`asmjit/test` directory) when embedding.
+AsmJit is designed to be easy embeddable in any kind project. However, it has
+some compile-time flags that can be used to build a specific version of AsmJit
+including or omitting certain features. A typical way to build AsmJit is to use
+[cmake](http://www.cmake.org), but it's also possible to just include AsmJit
+source code in our project and build it with it optionally editing its
+`asmjit/config.h` file to turn on/off some specific features. The most easies
+way to include AsmJit in your project is to just copy AsmJit source somewhere
+into it and to define globally `ASMJIT_STATIC` macro. This way AsmJit can be
+just updated from time to time without any changes to it. Please do not include
+/ compile AsmJit test files (`asmjit/test` directory) when embedding.
 
 ### Build Type
 
