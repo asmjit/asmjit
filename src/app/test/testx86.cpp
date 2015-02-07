@@ -1215,6 +1215,44 @@ struct X86Test_AllocIfElse4 : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_AllocInt8]
+// ============================================================================
+
+struct X86Test_AllocInt8 : public X86Test {
+  X86Test_AllocInt8() : X86Test("[Alloc] Int8") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocInt8());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    X86GpVar x(c, kVarTypeInt8, "x");
+    X86GpVar y(c, kVarTypeInt32, "y");
+
+    c.addFunc(kFuncConvHost, FuncBuilder1<int, char>());
+    c.setArg(0, x);
+
+    c.movsx(y, x);
+
+    c.ret(y);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(char);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func(-13);
+    int expectRet = -13;
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_AllocArgsIntPtr]
 // ============================================================================
 
@@ -2517,6 +2555,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_AllocIfElse2);
   ADD_TEST(X86Test_AllocIfElse3);
   ADD_TEST(X86Test_AllocIfElse4);
+  ADD_TEST(X86Test_AllocInt8);
   ADD_TEST(X86Test_AllocArgsIntPtr);
   ADD_TEST(X86Test_AllocArgsFloat);
   ADD_TEST(X86Test_AllocArgsDouble);
