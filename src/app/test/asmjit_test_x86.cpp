@@ -2518,7 +2518,7 @@ struct X86TestSuite {
   PodVector<X86Test*> tests;
   StringBuilder output;
 
-  int result;
+  int returnCode;
   int binSize;
   bool alwaysPrintLog;
 };
@@ -2527,7 +2527,7 @@ struct X86TestSuite {
   _Class_::add(tests)
 
 X86TestSuite::X86TestSuite() :
-  result(EXIT_SUCCESS),
+  returnCode(0),
   binSize(0),
   alwaysPrintLog(false) {
 
@@ -2646,6 +2646,7 @@ int X86TestSuite::run() {
       }
 
       runtime.release(func);
+      returnCode = 1;
     }
     else {
       if (!alwaysPrintLog) {
@@ -2655,6 +2656,8 @@ int X86TestSuite::run() {
       fprintf(file, "-------------------------------------------------------------------------------\n");
       fprintf(file, "[Failure] %s.\n", test->getName());
       fprintf(file, "===============================================================================\n");
+
+      returnCode = 1;
     }
 
     fflush(file);
@@ -2664,7 +2667,7 @@ int X86TestSuite::run() {
   fputs(output.getData(), file);
   fflush(file);
 
-  return result;
+  return returnCode;
 }
 
 // ============================================================================

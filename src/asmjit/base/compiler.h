@@ -1174,7 +1174,7 @@ struct DoubleType {};
 #if !defined(ASMJIT_DOCGEN)
 template<typename T>
 struct TypeId {
-  enum { kId = static_cast<int>(::asmjit::kInvalidVar) };
+  // Left empty to report any type, which is not known to asmjit.
 };
 
 template<typename T>
@@ -1186,38 +1186,30 @@ struct TypeId<T*> {
   template<> \
   struct TypeId<_T_> { enum { kId = _Id_ }; }
 
-ASMJIT_TYPE_ID(void, kInvalidVar);
-ASMJIT_TYPE_ID(Void, kInvalidVar);
+ASMJIT_TYPE_ID(void         , kInvalidVar);
+ASMJIT_TYPE_ID(char         , IntTraits<char>::kIsSigned ? kVarTypeInt8 : kVarTypeUInt8);
+ASMJIT_TYPE_ID(signed char  , kVarTypeInt8);
+ASMJIT_TYPE_ID(unsigned char, kVarTypeUInt8);
+ASMJIT_TYPE_ID(int16_t      , kVarTypeInt16);
+ASMJIT_TYPE_ID(uint16_t     , kVarTypeUInt16);
+ASMJIT_TYPE_ID(int32_t      , kVarTypeInt32);
+ASMJIT_TYPE_ID(uint32_t     , kVarTypeUInt32);
+ASMJIT_TYPE_ID(int64_t      , kVarTypeInt64);
+ASMJIT_TYPE_ID(uint64_t     , kVarTypeUInt64);
+ASMJIT_TYPE_ID(float        , kVarTypeFp32);
+ASMJIT_TYPE_ID(double       , kVarTypeFp64);
 
-ASMJIT_TYPE_ID(int8_t, kVarTypeInt8);
-ASMJIT_TYPE_ID(Int8Type, kVarTypeInt8);
-
-ASMJIT_TYPE_ID(uint8_t, kVarTypeUInt8);
-ASMJIT_TYPE_ID(UInt8Type, kVarTypeUInt8);
-
-ASMJIT_TYPE_ID(int16_t, kVarTypeInt16);
-ASMJIT_TYPE_ID(Int16Type, kVarTypeInt16);
-
-ASMJIT_TYPE_ID(uint16_t, kVarTypeUInt8);
-ASMJIT_TYPE_ID(UInt16Type, kVarTypeUInt8);
-
-ASMJIT_TYPE_ID(int32_t, kVarTypeInt32);
-ASMJIT_TYPE_ID(Int32Type, kVarTypeUInt8);
-
-ASMJIT_TYPE_ID(uint32_t, kVarTypeUInt32);
-ASMJIT_TYPE_ID(UInt32Type, kVarTypeUInt8);
-
-ASMJIT_TYPE_ID(int64_t, kVarTypeInt64);
-ASMJIT_TYPE_ID(Int64Type, kVarTypeUInt8);
-
-ASMJIT_TYPE_ID(uint64_t, kVarTypeUInt64);
-ASMJIT_TYPE_ID(UInt64Type, kVarTypeUInt8);
-
-ASMJIT_TYPE_ID(float, kVarTypeFp32);
-ASMJIT_TYPE_ID(FloatType, kVarTypeFp32);
-
-ASMJIT_TYPE_ID(double, kVarTypeFp64);
-ASMJIT_TYPE_ID(DoubleType, kVarTypeFp64);
+ASMJIT_TYPE_ID(Void         , kInvalidVar);
+ASMJIT_TYPE_ID(Int8Type     , kVarTypeInt8);
+ASMJIT_TYPE_ID(UInt8Type    , kVarTypeUInt8);
+ASMJIT_TYPE_ID(Int16Type    , kVarTypeInt16);
+ASMJIT_TYPE_ID(UInt16Type   , kVarTypeUInt16);
+ASMJIT_TYPE_ID(Int32Type    , kVarTypeUInt32);
+ASMJIT_TYPE_ID(UInt32Type   , kVarTypeUInt32);
+ASMJIT_TYPE_ID(Int64Type    , kVarTypeUInt64);
+ASMJIT_TYPE_ID(UInt64Type   , kVarTypeUInt64);
+ASMJIT_TYPE_ID(FloatType    , kVarTypeFp32);
+ASMJIT_TYPE_ID(DoubleType   , kVarTypeFp64);
 #endif // !ASMJIT_DOCGEN
 
 // ============================================================================

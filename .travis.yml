@@ -33,6 +33,9 @@ script:
   - ./build_dbg/asmjit_test
   - ./build_rel/asmjit_test
 
+  - ./build_dbg/asmjit_test_x86
+  - ./build_rel/asmjit_test_x86
+
 after_success:
   - valgrind --leak-check=full --show-reachable=yes ./build_dbg/asmjit_test
   - valgrind --leak-check=full --show-reachable=yes ./build_rel/asmjit_test

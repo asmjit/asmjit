@@ -353,9 +353,9 @@ EndIf()
 
 If(ASMJIT_BUILD_SAMPLES)
   Set(ASMJIT_SRC_SAMPLES
-    benchx86
-    testopcode
-    testx86
+    asmjit_bench_x86
+    asmjit_test_opcode
+    asmjit_test_x86
   )
 
   ForEach(file ${ASMJIT_SRC_SAMPLES})
