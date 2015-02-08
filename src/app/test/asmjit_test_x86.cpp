@@ -2643,10 +2643,11 @@ int X86TestSuite::run() {
         fprintf(file, "Result  : %s\n", result.getData());
         fprintf(file, "Expected: %s\n", expect.getData());
         fprintf(file, "===============================================================================\n");
+
+        returnCode = 1;
       }
 
       runtime.release(func);
-      returnCode = 1;
     }
     else {
       if (!alwaysPrintLog) {
