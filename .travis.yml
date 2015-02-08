@@ -1,41 +1,42 @@
 language: cpp
 
+os:
+  - linux
+  - osx
+
 compiler:
   - clang
   - gcc
 
+env:
+  matrix:
+    - BUILD_TYPE="Debug"
+    - BUILD_TYPE="Release"
+
+matrix:
+  exclude:
+    - os: osx
+    - compiler: gcc
+
 before_install:
-  - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
-  - sudo apt-get -qq update
-  - sudo apt-get -qq install cmake valgrind
+  - cmake --version
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo add-apt-repository ppa:kubuntu-ppa/backports -y; fi;
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get -qq update; fi;
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get -qq install cmake valgrind; fi;
 
 before_script:
-  - mkdir build_dbg
-  - mkdir build_rel
-
-  - cd build_dbg
-  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASMJIT_BUILD_TEST=1 -DASMJIT_BUILD_SAMPLES=1
-  - cd ..
-
-  - cd build_rel
-  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASMJIT_BUILD_TEST=1 -DASMJIT_BUILD_SAMPLES=1
+  - mkdir build
+  - cd build
+  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DASMJIT_BUILD_TEST=1 -DASMJIT_BUILD_SAMPLES=1
   - cd ..
 
 script:
-  - cd build_dbg
+  - cd build
   - make
   - cd ..
 
-  - cd build_rel
-  - make
-  - cd ..
-
-  - ./build_dbg/asmjit_test
-  - ./build_rel/asmjit_test
-
-  - ./build_dbg/asmjit_test_x86
-  - ./build_rel/asmjit_test_x86
+  - ./build/asmjit_test
+  - ./build/asmjit_test_x86
 
 after_success:
-  - valgrind --leak-check=full --show-reachable=yes ./build_dbg/asmjit_test
-  - valgrind --leak-check=full --show-reachable=yes ./build_rel/asmjit_test
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./build/asmjit_test; fi;
