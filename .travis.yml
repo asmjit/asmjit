@@ -10,8 +10,10 @@ compiler:
 
 env:
   matrix:
-    - BUILD_TYPE="Debug"
-    - BUILD_TYPE="Release"
+    - BUILD_TYPE=Debug   CFLAGS=-m32 CXXFLAGS=-m32
+    - BUILD_TYPE=Debug   CFLAGS=-m64 CXXFLAGS=-m64
+    - BUILD_TYPE=Release CFLAGS=-m32 CXXFLAGS=-m32
+    - BUILD_TYPE=Release CFLAGS=-m64 CXXFLAGS=-m64
 
 matrix:
   exclude:
@@ -21,7 +23,7 @@ matrix:
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo add-apt-repository ppa:kubuntu-ppa/backports -y; fi;
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get -qq update; fi;
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get -qq install cmake valgrind; fi;
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get -qq install cmake gcc-multilib g++-multilib valgrind; fi;
 
 before_script:
   - mkdir build
