@@ -14,7 +14,7 @@
 #include "../x86/x86cpuinfo.h"
 #else
 // ?
-#endif // ASMJIT_HOST || ASMJIT_ARCH_X64
+#endif
 
 // [Dependencies - Posix]
 #if defined(ASMJIT_OS_POSIX)
@@ -62,14 +62,14 @@ struct AutoX86CpuInfo : public X86CpuInfo {
 };
 #else
 #error "AsmJit - Unsupported CPU."
-#endif // ASMJIT_HOST || ASMJIT_ARCH_X64
+#endif
 
 const CpuInfo* CpuInfo::getHost() {
 #if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
   static AutoX86CpuInfo cpuInfo;
 #else
 #error "AsmJit - Unsupported CPU."
-#endif // ASMJIT_HOST || ASMJIT_ARCH_X64
+#endif
   return &cpuInfo;
 }
 

@@ -28,19 +28,19 @@ static void dumpCpu(void) {
   const CpuInfo* cpu = CpuInfo::getHost();
 
   INFO("Host CPU Info:");
-  INFO("  Vendor string         : %s", cpu->getVendorString());
-  INFO("  Brand string          : %s", cpu->getBrandString());
-  INFO("  Family                : %u", cpu->getFamily());
-  INFO("  Model                 : %u", cpu->getModel());
-  INFO("  Stepping              : %u", cpu->getStepping());
-  INFO("  HW-Threads Count      : %u", cpu->getHwThreadsCount());
+  INFO("  Vendor string              : %s", cpu->getVendorString());
+  INFO("  Brand string               : %s", cpu->getBrandString());
+  INFO("  Family                     : %u", cpu->getFamily());
+  INFO("  Model                      : %u", cpu->getModel());
+  INFO("  Stepping                   : %u", cpu->getStepping());
+  INFO("  HW-Threads Count           : %u", cpu->getHwThreadsCount());
   INFO("");
 
   // --------------------------------------------------------------------------
   // [X86]
   // --------------------------------------------------------------------------
 
-#if defined(ASMJIT_HOST_X86) || defined(ASMJIT_HOST_X64)
+#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
   const X86CpuInfo* x86Cpu = static_cast<const X86CpuInfo*>(cpu);
 
   static const DumpCpuFeature x86FeaturesList[] = {
@@ -105,16 +105,16 @@ static void dumpCpu(void) {
   };
 
   INFO("Host CPU Info (X86/X64):");
-  INFO("  Processor Type        : %u", x86Cpu->getProcessorType());
-  INFO("  Brand Index           : %u", x86Cpu->getBrandIndex());
-  INFO("  CL Flush Cache Line   : %u", x86Cpu->getFlushCacheLineSize());
-  INFO("  Max logical Processors: %u", x86Cpu->getMaxLogicalProcessors());
+  INFO("  Processor Type             : %u", x86Cpu->getProcessorType());
+  INFO("  Brand Index                : %u", x86Cpu->getBrandIndex());
+  INFO("  CL Flush Cache Line        : %u", x86Cpu->getFlushCacheLineSize());
+  INFO("  Max logical Processors     : %u", x86Cpu->getMaxLogicalProcessors());
   INFO("");
 
   INFO("Host CPU Features (X86/X64):");
   dumpCpuFeatures(x86Cpu, x86FeaturesList, ASMJIT_ARRAY_SIZE(x86FeaturesList));
   INFO("");
-#endif // ASMJIT_HOST || ASMJIT_HOST_X64
+#endif
 }
 
 // ============================================================================
@@ -122,7 +122,7 @@ static void dumpCpu(void) {
 // ============================================================================
 
 #define DUMP_TYPE(_Type_) \
-  INFO("  %-31s: %u", #_Type_, static_cast<uint32_t>(sizeof(_Type_)))
+  INFO("  %-27s: %u", #_Type_, static_cast<uint32_t>(sizeof(_Type_)))
 
 static void dumpSizeOf(void) {
   INFO("SizeOf Types:");

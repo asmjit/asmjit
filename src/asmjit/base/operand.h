@@ -180,7 +180,7 @@ struct Operand {
         uint8_t type;
         //! Register index.
         uint8_t index;
-#endif // ASMJIT_HOST
+#endif
       };
     };
 
