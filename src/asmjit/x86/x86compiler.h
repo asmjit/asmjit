@@ -100,7 +100,9 @@ ASMJIT_ENUM(X86VarType) {
 //! X86/X64 VarAttr flags.
 ASMJIT_ENUM(X86VarAttr) {
   kX86VarAttrGpbLo = 0x10000000,
-  kX86VarAttrGpbHi = 0x20000000
+  kX86VarAttrGpbHi = 0x20000000,
+  kX86VarAttrFld4  = 0x40000000,
+  kX86VarAttrFld8  = 0x80000000
 };
 
 // ============================================================================

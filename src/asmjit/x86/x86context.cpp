@@ -2700,12 +2700,21 @@ _NextGroup:
               VarData* vd = compiler->getVdById(op->getId());
               VarAttr* va;
 
-              if (vd->getClass() == retClass) {
+              VI_MERGE_VAR(vd, va, 0, 0);
+
+              if (retClass == vd->getClass()) {
                 // TODO: [COMPILER] Fix RetNode fetch.
-                VI_MERGE_VAR(vd, va, 0, 0);
-                va->setInRegs(i == 0 ? IntUtil::mask(kX86RegIndexAx) : IntUtil::mask(kX86RegIndexDx));
                 va->orFlags(kVarAttrInReg);
+                va->setInRegs(i == 0 ? IntUtil::mask(kX86RegIndexAx) : IntUtil::mask(kX86RegIndexDx));
                 inRegs.or_(retClass, va->getInRegs());
+              }
+              else if (retClass == kX86RegClassFp) {
+                uint32_t fldFlag = ret.getVarType() == kVarTypeFp32 ? kX86VarAttrFld4 : kX86VarAttrFld8;
+                va->orFlags(kVarAttrInMem | fldFlag);
+              }
+              else {
+                // TODO: Fix possible other return type conversions.
+                ASMJIT_ASSERT(!"Reached");
               }
             }
           }
@@ -4402,23 +4411,49 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
       continue;
 
     VarData* vd = _compiler->getVdById(op->getId());
+    uint32_t vf = _x86VarInfo[vd->getType()].getDesc();
     uint32_t regIndex = ret.getRegIndex();
 
     switch (vd->getClass()) {
       case kX86RegClassGp:
+        ASMJIT_ASSERT(x86VarTypeToClass(ret.getVarType()) == vd->getClass());
+
         if (vd->getRegIndex() != kInvalidReg)
           _context->unuse<kX86RegClassGp>(vd);
+
         _context->attach<kX86RegClassGp>(vd, regIndex, true);
         break;
+
       case kX86RegClassMm:
+        ASMJIT_ASSERT(x86VarTypeToClass(ret.getVarType()) == vd->getClass());
+
         if (vd->getRegIndex() != kInvalidReg)
           _context->unuse<kX86RegClassMm>(vd);
+
         _context->attach<kX86RegClassMm>(vd, regIndex, true);
         break;
+
       case kX86RegClassXyz:
-        if (vd->getRegIndex() != kInvalidReg)
-          _context->unuse<kX86RegClassXyz>(vd);
-        _context->attach<kX86RegClassXyz>(vd, regIndex, true);
+        if (ret.getVarType() == kVarTypeFp32 || ret.getVarType() == kVarTypeFp64) {
+          if (vd->getRegIndex() != kInvalidReg)
+            _context->unuse<kX86RegClassXyz>(vd, kVarStateMem);
+
+          X86Mem m = _context->getVarMem(vd);
+          m.setSize(
+            (vf & kVarFlagSp) ? 4 :
+            (vf & kVarFlagDp) ? 8 :
+            (ret.getVarType() == kVarTypeFp32) ? 4 : 8);
+
+          _compiler->fstp(m);
+        }
+        else {
+          ASMJIT_ASSERT(x86VarTypeToClass(ret.getVarType()) == vd->getClass());
+
+          if (vd->getRegIndex() != kInvalidReg)
+            _context->unuse<kX86RegClassXyz>(vd);
+
+          _context->attach<kX86RegClassXyz>(vd, regIndex, true);
+        }
         break;
     }
   }
@@ -5016,8 +5051,34 @@ static void X86Context_translateJump(X86Context* self, JumpNode* jNode, TargetNo
 // ============================================================================
 
 static Error X86Context_translateRet(X86Context* self, RetNode* rNode, TargetNode* exitTarget) {
+  X86Compiler* compiler = self->getCompiler();
   Node* node = rNode->getNext();
 
+  // 32-bit mode requires to push floating point return value(s), handle it
+  // here as it's a special case.
+  X86VarMap* map = rNode->getMap<X86VarMap>();
+  if (map != NULL) {
+    VarAttr* vaList = map->getVaList();
+    uint32_t vaCount = map->getVaCount();
+
+    for (uint32_t i = 0; i < vaCount; i++) {
+      VarAttr& va = vaList[i];
+      if (va.hasFlag(kX86VarAttrFld4 | kX86VarAttrFld8)) {
+        VarData* vd = va.getVd();
+        X86Mem m(self->getVarMem(vd));
+
+        uint32_t flags = _x86VarInfo[vd->getType()].getDesc();
+        m.setSize(
+          (flags & kVarFlagSp) ? 4 :
+          (flags & kVarFlagDp) ? 8 :
+          va.hasFlag(kX86VarAttrFld4) ? 4 : 8);
+
+        compiler->fld(m);
+      }
+    }
+  }
+
+  // Decide whether to `jmp` or not in case we are next to the return label.
   while (node != NULL) {
     switch (node->getType()) {
       // If we have found an exit label we just return, there is no need to
@@ -5053,8 +5114,6 @@ static Error X86Context_translateRet(X86Context* self, RetNode* rNode, TargetNod
 
 _EmitRet:
   {
-    X86Compiler* compiler = self->getCompiler();
-
     compiler->_setCursor(rNode);
     compiler->jmp(exitTarget->getLabel());
   }
