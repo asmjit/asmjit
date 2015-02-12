@@ -234,13 +234,13 @@ Error Context::resolveCellOffsets() {
     varCell = varCell->_next;
   }
 
-  // Stack - Allocated according to alignment and width.
+  // Stack - Allocated according to alignment/width.
   while (stackCell != NULL) {
     uint32_t size = stackCell->getSize();
     uint32_t alignment = stackCell->getAlignment();
     uint32_t offset;
 
-    // Try to fill the gap between variables / stack first.
+    // Try to fill the gap between variables/stack first.
     if (size <= gapSize && alignment <= gapAlignment) {
       offset = gapPos;
 

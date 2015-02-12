@@ -4562,7 +4562,7 @@ static Error X86Context_initFunc(X86Context* self, X86FuncNode* func) {
     // Get a memory cell where the original stack frame will be stored.
     MemCell* cell = self->_newStackCell(regSize, regSize);
     if (cell == NULL)
-      return self->getError();
+      return self->getError(); // The error has already been set.
 
     func->addFuncFlags(kFuncFlagIsStackAdjusted);
     self->_stackFrameCell = cell;
@@ -4738,16 +4738,14 @@ static Error X86Context_patchFuncMem(X86Context* self, X86FuncNode* func, Node* 
 
           if (vd->isMemArg()) {
             m->_vmem.base = self->_argBaseReg;
-            m->_vmem.displacement += vd->getMemOffset();
-            m->_vmem.displacement += self->_argBaseOffset;
+            m->_vmem.displacement += self->_argBaseOffset + vd->getMemOffset();
           }
           else {
             MemCell* cell = vd->getMemCell();
             ASMJIT_ASSERT(cell != NULL);
 
             m->_vmem.base = self->_varBaseReg;
-            m->_vmem.displacement += cell->getOffset();
-            m->_vmem.displacement += self->_varBaseOffset;
+            m->_vmem.displacement += self->_varBaseOffset + cell->getOffset();
           }
         }
       }
@@ -4812,7 +4810,7 @@ static Error X86Context_translatePrologEpilog(X86Context* self, X86FuncNode* fun
   if (func->isNaked()) {
     if (func->isStackMisaligned()) {
       fpReg.setIndex(func->getStackFrameRegIndex());
-      fpOffset = x86::ptr(self->_zsp, static_cast<int32_t>(self->_stackFrameCell->getOffset()));
+      fpOffset = x86::ptr(self->_zsp, self->_varBaseOffset + static_cast<int32_t>(self->_stackFrameCell->getOffset()));
 
       earlyPushPop = func->hasFuncFlag(kX86FuncFlagPushPop);
       if (earlyPushPop)
