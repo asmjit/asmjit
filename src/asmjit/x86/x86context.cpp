@@ -4414,6 +4414,8 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
     uint32_t vf = _x86VarInfo[vd->getType()].getDesc();
     uint32_t regIndex = ret.getRegIndex();
 
+    // TODO: Is it necessary to check for kInvalidReg when unusing if it's
+    // checked by unuse<> as well?
     switch (vd->getClass()) {
       case kX86RegClassGp:
         ASMJIT_ASSERT(x86VarTypeToClass(ret.getVarType()) == vd->getClass());
@@ -4435,15 +4437,13 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
 
       case kX86RegClassXyz:
         if (ret.getVarType() == kVarTypeFp32 || ret.getVarType() == kVarTypeFp64) {
-          if (vd->getRegIndex() != kInvalidReg)
-            _context->unuse<kX86RegClassXyz>(vd, kVarStateMem);
-
           X86Mem m = _context->getVarMem(vd);
           m.setSize(
             (vf & kVarFlagSp) ? 4 :
             (vf & kVarFlagDp) ? 8 :
             (ret.getVarType() == kVarTypeFp32) ? 4 : 8);
 
+          _context->unuse<kX86RegClassXyz>(vd, kVarStateMem);
           _compiler->fstp(m);
         }
         else {

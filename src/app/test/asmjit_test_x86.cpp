@@ -2501,9 +2501,58 @@ struct X86Test_CallMisc2 : public X86Test {
   static double op(double a) { return a * a; }
 };
 
-void test() {
-}
+// ============================================================================
+// [X86Test_CallMisc3]
+// ============================================================================
 
+struct X86Test_CallMisc3 : public X86Test {
+  X86Test_CallMisc3() : X86Test("[Call] Misc #3") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_CallMisc3());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    X86FuncNode* func = c.addFunc(kFuncConvHost, FuncBuilder1<double, const double*>());
+
+    X86GpVar p(c, kVarTypeIntPtr, "p");
+    X86GpVar fn(c, kVarTypeIntPtr, "fn");
+
+    X86XmmVar arg(c, kX86VarTypeXmmSd, "arg");
+    X86XmmVar ret(c, kX86VarTypeXmmSd, "ret");
+
+    c.setArg(0, p);
+    c.movsd(arg, x86::ptr(p));
+    c.mov(fn, imm_ptr((void*)op));
+
+    X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder1<double, double>());
+    call->setArg(0, arg);
+    call->setRet(0, ret);
+
+    c.xorps(arg, arg);
+    c.subsd(arg, ret);
+
+    c.ret(arg);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef double (*Func)(const double*);
+    Func func = asmjit_cast<Func>(_func);
+
+    double arg = 2;
+
+    double resultRet = func(&arg);
+    double expectRet = -op(arg);
+
+    result.setFormat("ret=%g", resultRet);
+    expect.setFormat("ret=%g", expectRet);
+
+    return resultRet == expectRet;
+  }
+
+  static double op(double a) { return a * a; }
+};
 
 // ============================================================================
 // [X86Test_ConstPoolBase]
@@ -2633,6 +2682,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallRecursive);
   ADD_TEST(X86Test_CallMisc1);
   ADD_TEST(X86Test_CallMisc2);
+  ADD_TEST(X86Test_CallMisc3);
   ADD_TEST(X86Test_ConstPoolBase);
 }
 
