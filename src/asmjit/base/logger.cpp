@@ -25,6 +25,60 @@
 namespace asmjit {
 
 // ============================================================================
+// [asmjit::LogUtil]
+// ============================================================================
+
+bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) {
+  size_t currentLen = sb.getLength();
+  size_t commentLen = comment ? StringUtil::nlen(comment, kMaxCommentLength) : 0;
+
+  ASMJIT_ASSERT(binLen >= dispLen);
+
+  if ((binLen != 0 && binLen != kInvalidIndex) || commentLen) {
+    size_t align = kMaxInstLength;
+    char sep = ';';
+
+    for (size_t i = (binLen == kInvalidIndex); i < 2; i++) {
+      size_t begin = sb.getLength();
+
+      // Append align.
+      if (currentLen < align) {
+        if (!sb.appendChars(' ', align - currentLen))
+          return false;
+      }
+
+      // Append separator.
+      if (sep) {
+        if (!(sb.appendChar(sep) & sb.appendChar(' ')))
+          return false;
+      }
+
+      // Append binary data or comment.
+      if (i == 0) {
+        if (!sb.appendHex(binData, binLen - dispLen - imLen))
+          return false;
+        if (!sb.appendChars('.', dispLen * 2))
+          return false;
+        if (!sb.appendHex(binData + binLen - imLen, imLen))
+          return false;
+        if (commentLen == 0)
+          break;
+      }
+      else {
+        if (!sb.appendString(comment, commentLen))
+          return false;
+      }
+
+      currentLen += sb.getLength() - begin;
+      align += kMaxBinaryLength;
+      sep = '|';
+    }
+  }
+
+  return sb.appendChar('\n');
+}
+
+// ============================================================================
 // [asmjit::Logger - Construction / Destruction]
 // ============================================================================
 

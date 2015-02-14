@@ -59,6 +59,23 @@ ASMJIT_ENUM(LoggerStyle) {
 };
 
 // ============================================================================
+// [asmjit::LogUtil]
+// ============================================================================
+
+// Only used by asmjit internals, not available to consumers.
+#if defined(ASMJIT_EXPORTS)
+struct LogUtil {
+  enum {
+    kMaxCommentLength = 80,
+    kMaxInstLength = 36,
+    kMaxBinaryLength = 22
+  };
+
+  static bool formatLine(StringBuilder& sb,  const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment);
+};
+#endif // ASMJIT_EXPORTS
+
+// ============================================================================
 // [asmjit::Logger]
 // ============================================================================
 

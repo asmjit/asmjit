@@ -648,73 +648,64 @@ void X86Context::emitLoad(VarData* vd, uint32_t regIndex, const char* reason) {
   X86Mem m = getVarMem(vd);
 
   Node* node = NULL;
-  bool comment = _emitComments;
 
   switch (vd->getType()) {
     case kVarTypeInt8:
     case kVarTypeUInt8:
       node = compiler->emit(kX86InstIdMov, x86::gpb_lo(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
     case kVarTypeInt16:
     case kVarTypeUInt16:
       node = compiler->emit(kX86InstIdMov, x86::gpw(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
     case kVarTypeInt32:
     case kVarTypeUInt32:
       node = compiler->emit(kX86InstIdMov, x86::gpd(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
 #if defined(ASMJIT_BUILD_X64)
     case kVarTypeInt64:
     case kVarTypeUInt64:
+      ASMJIT_ASSERT(_compiler->getArch() != kArchX86);
       node = compiler->emit(kX86InstIdMov, x86::gpq(regIndex), m);
-      if (comment) goto _Comment;
       break;
 #endif // ASMJIT_BUILD_X64
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-      // TODO: [COMPILER] FPU.
+      // Compiler doesn't manage FPU stack.
+      ASMJIT_ASSERT(!"Reached");
       break;
 
     case kX86VarTypeMm:
       node = compiler->emit(kX86InstIdMovq, x86::mm(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmm:
       node = compiler->emit(kX86InstIdMovdqa, x86::xmm(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmSs:
       node = compiler->emit(kX86InstIdMovss, x86::xmm(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmSd:
       node = compiler->emit(kX86InstIdMovsd, x86::xmm(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmPs:
       node = compiler->emit(kX86InstIdMovaps, x86::xmm(regIndex), m);
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmPd:
       node = compiler->emit(kX86InstIdMovapd, x86::xmm(regIndex), m);
-      if (comment) goto _Comment;
       break;
   }
-  return;
 
-_Comment:
+  if (!_emitComments)
+    return;
   node->setComment(compiler->_stringZone.sformat("[%s] %s", reason, vd->getName()));
 }
 
@@ -729,73 +720,63 @@ void X86Context::emitSave(VarData* vd, uint32_t regIndex, const char* reason) {
   X86Mem m = getVarMem(vd);
 
   Node* node = NULL;
-  bool comment = _emitComments;
 
   switch (vd->getType()) {
     case kVarTypeInt8:
     case kVarTypeUInt8:
       node = compiler->emit(kX86InstIdMov, m, x86::gpb_lo(regIndex));
-      if (comment) goto _Comment;
       break;
 
     case kVarTypeInt16:
     case kVarTypeUInt16:
       node = compiler->emit(kX86InstIdMov, m, x86::gpw(regIndex));
-      if (comment) goto _Comment;
       break;
 
     case kVarTypeInt32:
     case kVarTypeUInt32:
       node = compiler->emit(kX86InstIdMov, m, x86::gpd(regIndex));
-      if (comment) goto _Comment;
       break;
 
 #if defined(ASMJIT_BUILD_X64)
     case kVarTypeInt64:
     case kVarTypeUInt64:
       node = compiler->emit(kX86InstIdMov, m, x86::gpq(regIndex));
-      if (comment) goto _Comment;
       break;
 #endif // ASMJIT_BUILD_X64
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-      // TODO: [COMPILER] FPU.
+      // Compiler doesn't manage FPU stack.
+      ASMJIT_ASSERT(!"Reached");
       break;
 
     case kX86VarTypeMm:
       node = compiler->emit(kX86InstIdMovq, m, x86::mm(regIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmm:
       node = compiler->emit(kX86InstIdMovdqa, m, x86::xmm(regIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmSs:
       node = compiler->emit(kX86InstIdMovss, m, x86::xmm(regIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmSd:
       node = compiler->emit(kX86InstIdMovsd, m, x86::xmm(regIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmPs:
       node = compiler->emit(kX86InstIdMovaps, m, x86::xmm(regIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmPd:
       node = compiler->emit(kX86InstIdMovapd, m, x86::xmm(regIndex));
-      if (comment) goto _Comment;
       break;
   }
-  return;
 
-_Comment:
+  if (!_emitComments)
+    return;
   node->setComment(compiler->_stringZone.sformat("[%s] %s", reason, vd->getName()));
 }
 
@@ -804,13 +785,11 @@ _Comment:
 // ============================================================================
 
 void X86Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegIndex, const char* reason) {
-  ASMJIT_ASSERT(toRegIndex   != kInvalidReg);
+  ASMJIT_ASSERT(toRegIndex != kInvalidReg);
   ASMJIT_ASSERT(fromRegIndex != kInvalidReg);
 
   X86Compiler* compiler = getCompiler();
-
   Node* node = NULL;
-  bool comment = _emitComments;
 
   switch (vd->getType()) {
     case kVarTypeInt8:
@@ -820,51 +799,45 @@ void X86Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegInde
     case kVarTypeInt32:
     case kVarTypeUInt32:
       node = compiler->emit(kX86InstIdMov, x86::gpd(toRegIndex), x86::gpd(fromRegIndex));
-      if (comment) goto _Comment;
       break;
 
 #if defined(ASMJIT_BUILD_X64)
     case kVarTypeInt64:
     case kVarTypeUInt64:
       node = compiler->emit(kX86InstIdMov, x86::gpq(toRegIndex), x86::gpq(fromRegIndex));
-      if (comment) goto _Comment;
       break;
 #endif // ASMJIT_BUILD_X64
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-      // TODO: [COMPILER] FPU.
+      // Compiler doesn't manage FPU stack.
+      ASMJIT_ASSERT(!"Reached");
       break;
 
     case kX86VarTypeMm:
       node = compiler->emit(kX86InstIdMovq, x86::mm(toRegIndex), x86::mm(fromRegIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmm:
       node = compiler->emit(kX86InstIdMovaps, x86::xmm(toRegIndex), x86::xmm(fromRegIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmSs:
       node = compiler->emit(kX86InstIdMovss, x86::xmm(toRegIndex), x86::xmm(fromRegIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmSd:
       node = compiler->emit(kX86InstIdMovsd, x86::xmm(toRegIndex), x86::xmm(fromRegIndex));
-      if (comment) goto _Comment;
       break;
 
     case kX86VarTypeXmmPs:
     case kX86VarTypeXmmPd:
       node = compiler->emit(kX86InstIdMovaps, x86::xmm(toRegIndex), x86::xmm(fromRegIndex));
-      if (comment) goto _Comment;
       break;
   }
-  return;
 
-_Comment:
+  if (!_emitComments)
+    return;
   node->setComment(compiler->_stringZone.sformat("[%s] %s", reason, vd->getName()));
 }
 
@@ -877,25 +850,22 @@ void X86Context::emitSwapGp(VarData* aVd, VarData* bVd, uint32_t aIndex, uint32_
   ASMJIT_ASSERT(bIndex != kInvalidReg);
 
   X86Compiler* compiler = getCompiler();
-
   Node* node = NULL;
-  bool comment = _emitComments;
 
 #if defined(ASMJIT_BUILD_X64)
   uint32_t vType = IntUtil::iMax(aVd->getType(), bVd->getType());
-
   if (vType == kVarTypeInt64 || vType == kVarTypeUInt64) {
     node = compiler->emit(kX86InstIdXchg, x86::gpq(aIndex), x86::gpq(bIndex));
-    if (comment) goto _Comment;
-    return;
+  }
+  else {
+#endif // ASMJIT_BUILD_X64
+    node = compiler->emit(kX86InstIdXchg, x86::gpd(aIndex), x86::gpd(bIndex));
+#if defined(ASMJIT_BUILD_X64)
   }
 #endif // ASMJIT_BUILD_X64
 
-  node = compiler->emit(kX86InstIdXchg, x86::gpd(aIndex), x86::gpd(bIndex));
-  if (comment) goto _Comment;
-  return;
-
-_Comment:
+  if (!_emitComments)
+    return;
   node->setComment(compiler->_stringZone.sformat("[%s] %s, %s", reason, aVd->getName(), bVd->getName()));
 }
 
@@ -967,7 +937,7 @@ void X86Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32
       }
 
       if (IntUtil::inInterval<uint32_t>(srcType, _kVarTypeIntStart, _kVarTypeIntEnd)) {
-        // TODO:
+        // TODO: [COMPILER] Variable conversion not supported.
         ASMJIT_ASSERT(!"Reached");
       }
       break;
@@ -986,7 +956,7 @@ void X86Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32
       }
 
       if (IntUtil::inInterval<uint32_t>(srcType, _kVarTypeIntStart, _kVarTypeIntEnd)) {
-        // TODO:
+        // TODO: [COMPILER] Variable conversion not supported.
         ASMJIT_ASSERT(!"Reached");
       }
       break;
@@ -1427,7 +1397,8 @@ _Move32:
 
     case kVarTypeFp32:
     case kVarTypeFp64:
-      // TODO: [COMPILER] EmitMoveImmToReg.
+      // Compiler doesn't manage FPU stack.
+      ASMJIT_ASSERT(!"Reached");
       break;
 
     case kX86VarTypeMm:
@@ -1595,28 +1566,25 @@ template<int C>
 static ASMJIT_INLINE void X86Context_switchStateVars(X86Context* self, X86VarState* src) {
   X86VarState* dst = self->getState();
 
-  VarData** dstVars = dst->getListByClass(C);
-  VarData** srcVars = src->getListByClass(C);
-
-  uint32_t regIndex;
-  uint32_t regMask;
-  uint32_t regCount = self->_regCount.get(C);
+  VarData** dVars = dst->getListByClass(C);
+  VarData** sVars = src->getListByClass(C);
 
   X86StateCell* cells = src->_cells;
-
+  uint32_t regCount = self->_regCount.get(C);
   bool didWork;
+
   do {
     didWork = false;
 
-    for (regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
-      VarData* dVd = dstVars[regIndex];
-      VarData* sVd = srcVars[regIndex];
+    for (uint32_t regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
+      VarData* dVd = dVars[regIndex];
+      VarData* sVd = sVars[regIndex];
 
       if (dVd == sVd)
         continue;
 
       if (dVd != NULL) {
-        X86StateCell& cell = cells[dVd->getContextId()];
+        const X86StateCell& cell = cells[dVd->getContextId()];
 
         if (cell.getState() != kVarStateReg) {
           if (cell.getState() == kVarStateMem)
@@ -1643,66 +1611,66 @@ _MoveOrLoad:
         continue;
       }
 
-      if (dVd != NULL && sVd == NULL) {
-        X86StateCell& cell = cells[dVd->getContextId()];
-        if (cell.getState() == kVarStateReg)
+      if (dVd != NULL) {
+        const X86StateCell& cell = cells[dVd->getContextId()];
+        if (sVd == NULL) {
+          if (cell.getState() == kVarStateReg)
+            continue;
+
+          if (cell.getState() == kVarStateMem)
+            self->spill<C>(dVd);
+          else
+            self->unuse<C>(dVd);
+
+          didWork = true;
           continue;
+        }
+        else {
+          if (cell.getState() == kVarStateReg) {
+            if (dVd->getRegIndex() != kInvalidReg && sVd->getRegIndex() != kInvalidReg) {
+              if (C == kX86RegClassGp) {
+                self->swapGp(dVd, sVd);
+              }
+              else {
+                self->spill<C>(dVd);
+                self->move<C>(sVd, regIndex);
+              }
 
-        if (cell.getState() == kVarStateMem)
-          self->spill<C>(dVd);
-        else
-          self->unuse<C>(dVd);
-
-        didWork = true;
-        continue;
-      }
-      else {
-        X86StateCell& cell = cells[dVd->getContextId()];
-
-        if (cell.getState() == kVarStateReg) {
-          if (dVd->getRegIndex() != kInvalidReg && sVd->getRegIndex() != kInvalidReg) {
-            if (C == kX86RegClassGp) {
-              self->swapGp(dVd, sVd);
+              didWork = true;
+              continue;
             }
             else {
-              self->spill<C>(dVd);
-              self->move<C>(sVd, regIndex);
+              didWork = true;
+              continue;
             }
+          }
 
-            didWork = true;
-            continue;
-          }
-          else {
-            didWork = true;
-            continue;
-          }
+          if (cell.getState() == kVarStateMem)
+            self->spill<C>(dVd);
+          else
+            self->unuse<C>(dVd);
+          goto _MoveOrLoad;
         }
-
-        if (cell.getState() == kVarStateMem)
-          self->spill<C>(dVd);
-        else
-          self->unuse<C>(dVd);
-        goto _MoveOrLoad;
       }
     }
   } while (didWork);
 
-  uint32_t dstModified = dst->_modified.get(C);
-  uint32_t srcModified = src->_modified.get(C);
+  uint32_t dModified = dst->_modified.get(C);
+  uint32_t sModified = src->_modified.get(C);
 
-  if (dstModified != srcModified) {
-    for (regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
-      VarData* vd = dstVars[regIndex];
+  if (dModified != sModified) {
+    for (uint32_t regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
+      VarData* vd = dVars[regIndex];
 
       if (vd == NULL)
         continue;
 
-      if ((dstModified & regMask) && !(srcModified & regMask)) {
+      if ((dModified & regMask) && !(sModified & regMask)) {
         self->save<C>(vd);
         continue;
       }
 
-      if (!(dstModified & regMask) && (srcModified & regMask)) {
+      if (!(dModified & regMask) && (sModified & regMask)) {
         self->modify<C>(vd);
         continue;
       }
@@ -1732,9 +1700,9 @@ void X86Context::switchState(VarState* src_) {
   X86StateCell* cells = src->_cells;
   for (uint32_t i = 0; i < vdCount; i++) {
     VarData* vd = static_cast<VarData*>(vdArray[i]);
-    X86StateCell& cell = cells[i];
-
+    const X86StateCell& cell = cells[i];
     uint32_t vState = cell.getState();
+
     if (vState != kVarStateReg) {
       vd->setState(vState);
       vd->setModified(false);
@@ -1748,11 +1716,125 @@ void X86Context::switchState(VarState* src_) {
 // [asmjit::X86Context - State - Intersect]
 // ============================================================================
 
-void X86Context::intersectStates(VarState* a_, VarState* b_) {
-  X86VarState* aState = static_cast<X86VarState*>(a_);
-  X86VarState* bState = static_cast<X86VarState*>(b_);
+// The algorithm is actually not so smart, but tries to find an intersection od
+// `a` and `b` and tries to move/alloc a variable into that location if it's
+// possible. It also finds out which variables will be spilled/unused  by `a`
+// and `b` and performs that action here. It may improve the switch state code
+// in certain cases, but doesn't necessarily do the best job possible.
+template<int C>
+static ASMJIT_INLINE void X86Context_intersectStateVars(X86Context* self, X86VarState* a, X86VarState* b) {
+  X86VarState* dst = self->getState();
 
-  // TODO: [COMPILER] Intersect states.
+  VarData** dVars = dst->getListByClass(C);
+  VarData** aVars = a->getListByClass(C);
+  VarData** bVars = b->getListByClass(C);
+
+  X86StateCell* aCells = a->_cells;
+  X86StateCell* bCells = b->_cells;
+
+  uint32_t regCount = self->_regCount.get(C);
+  bool didWork;
+
+  // Similar to `switchStateVars()`, we iterate over and over until there is
+  // no work to be done.
+  do {
+    didWork = false;
+
+    for (uint32_t regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
+      VarData* dVd = dVars[regIndex];
+
+      VarData* aVd = aVars[regIndex];
+      VarData* bVd = bVars[regIndex];
+
+      if (dVd == aVd)
+        continue;
+
+      if (dVd != NULL) {
+        const X86StateCell& aCell = aCells[dVd->getContextId()];
+        const X86StateCell& bCell = bCells[dVd->getContextId()];
+
+        if (aCell.getState() != kVarStateReg && bCell.getState() != kVarStateReg) {
+          if (aCell.getState() == kVarStateMem || bCell.getState() == kVarStateMem)
+            self->spill<C>(dVd);
+          else
+            self->unuse<C>(dVd);
+
+          dVd = NULL;
+          didWork = true;
+
+          if (aVd == NULL)
+            continue;
+        }
+      }
+
+      if (dVd == NULL && aVd != NULL) {
+        if (aVd->getRegIndex() != kInvalidReg)
+          self->move<C>(aVd, regIndex);
+        else
+          self->load<C>(aVd, regIndex);
+
+        didWork = true;
+        continue;
+      }
+
+      if (dVd != NULL) {
+        const X86StateCell& aCell = aCells[dVd->getContextId()];
+        const X86StateCell& bCell = bCells[dVd->getContextId()];
+
+        if (aVd == NULL) {
+          if (aCell.getState() == kVarStateReg || bCell.getState() == kVarStateReg)
+            continue;
+
+          if (aCell.getState() == kVarStateMem || bCell.getState() == kVarStateMem)
+            self->spill<C>(dVd);
+          else
+            self->unuse<C>(dVd);
+
+          didWork = true;
+          continue;
+        }
+        else if (C == kX86RegClassGp) {
+          if (aCell.getState() == kVarStateReg) {
+            if (dVd->getRegIndex() != kInvalidReg && aVd->getRegIndex() != kInvalidReg) {
+              self->swapGp(dVd, aVd);
+
+              didWork = true;
+              continue;
+            }
+          }
+        }
+      }
+    }
+  } while (didWork);
+
+  uint32_t dModified = dst->_modified.get(C);
+  uint32_t aModified = a->_modified.get(C);
+
+  if (dModified != aModified) {
+    for (uint32_t regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
+      VarData* vd = dVars[regIndex];
+
+      if (vd == NULL)
+        continue;
+
+      const X86StateCell& aCell = aCells[vd->getContextId()];
+      if ((dModified & regMask) && !(aModified & regMask) && aCell.getState() == kVarStateReg)
+        self->save<C>(vd);
+    }
+  }
+}
+
+void X86Context::intersectStates(VarState* a_, VarState* b_) {
+  X86VarState* a = static_cast<X86VarState*>(a_);
+  X86VarState* b = static_cast<X86VarState*>(b_);
+
+  ASMJIT_ASSERT(a != NULL);
+  ASMJIT_ASSERT(b != NULL);
+
+  X86Context_intersectStateVars<kX86RegClassGp >(this, a, b);
+  X86Context_intersectStateVars<kX86RegClassMm >(this, a, b);
+  X86Context_intersectStateVars<kX86RegClassXyz>(this, a, b);
+
   ASMJIT_X86_CHECK_STATE
 }
 
@@ -4414,24 +4496,18 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
     uint32_t vf = _x86VarInfo[vd->getType()].getDesc();
     uint32_t regIndex = ret.getRegIndex();
 
-    // TODO: Is it necessary to check for kInvalidReg when unusing if it's
-    // checked by unuse<> as well?
     switch (vd->getClass()) {
       case kX86RegClassGp:
         ASMJIT_ASSERT(x86VarTypeToClass(ret.getVarType()) == vd->getClass());
 
-        if (vd->getRegIndex() != kInvalidReg)
-          _context->unuse<kX86RegClassGp>(vd);
-
+        _context->unuse<kX86RegClassGp>(vd);
         _context->attach<kX86RegClassGp>(vd, regIndex, true);
         break;
 
       case kX86RegClassMm:
         ASMJIT_ASSERT(x86VarTypeToClass(ret.getVarType()) == vd->getClass());
 
-        if (vd->getRegIndex() != kInvalidReg)
-          _context->unuse<kX86RegClassMm>(vd);
-
+        _context->unuse<kX86RegClassMm>(vd);
         _context->attach<kX86RegClassMm>(vd, regIndex, true);
         break;
 
@@ -4449,9 +4525,7 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
         else {
           ASMJIT_ASSERT(x86VarTypeToClass(ret.getVarType()) == vd->getClass());
 
-          if (vd->getRegIndex() != kInvalidReg)
-            _context->unuse<kX86RegClassXyz>(vd);
-
+          _context->unuse<kX86RegClassXyz>(vd);
           _context->attach<kX86RegClassXyz>(vd, regIndex, true);
         }
         break;
@@ -5017,7 +5091,6 @@ static void X86Context_translateJump(X86Context* self, JumpNode* jNode, TargetNo
   X86Compiler* compiler = self->getCompiler();
   Node* extNode = self->getExtraBlock();
 
-  // TODO: [COMPILER] State Change.
   compiler->_setCursor(extNode);
   self->switchState(jTarget->getState());
 
@@ -5039,7 +5112,7 @@ static void X86Context_translateJump(X86Context* self, JumpNode* jNode, TargetNo
     jNode->_target = jTrampolineTarget;
   }
 
-  // Store the extNode and load the state back.
+  // Store the `extNode` and load the state back.
   self->setExtraBlock(extNode);
   self->loadState(jNode->_state);
 }
@@ -5261,7 +5334,8 @@ _NextGroup:
             if (jTarget->isTranslated()) {
               if (jNext->isTranslated()) {
                 ASMJIT_ASSERT(jNext->getType() == kNodeTypeTarget);
-                // TODO: [COMPILER] State - Do intersection of two states if possible.
+                compiler->_setCursor(node->getPrev());
+                intersectStates(jTarget->getState(), jNext->getState());
               }
 
               VarState* savedState = saveState();
@@ -5278,7 +5352,6 @@ _NextGroup:
 
               compiler->_setCursor(node);
               switchState(static_cast<TargetNode*>(jNext)->getState());
-
               next = jTarget;
             }
             else {

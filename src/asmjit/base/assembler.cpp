@@ -199,8 +199,17 @@ Error Assembler::bind(const Label& label) {
     return setError(kErrorLabelAlreadyBound);
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
-  if (_logger)
-    _logger->logFormat(kLoggerStyleLabel, "L%u:\n", index);
+  if (_logger) {
+    StringBuilderT<256> sb;
+    sb.setFormat("L%u:", index);
+
+    size_t binSize = 0;
+    if ((_logger->getOptions() & (1 << kLoggerOptionBinaryForm)) == 0)
+      binSize = kInvalidIndex;
+
+    LogUtil::formatLine(sb, NULL, binSize, 0, 0, _comment);
+    _logger->logString(kLoggerStyleLabel, sb.getData(), sb.getLength());
+  }
 #endif // !ASMJIT_DISABLE_LOGGER
 
   Error error = kErrorOk;
@@ -260,6 +269,7 @@ Error Assembler::bind(const Label& label) {
   if (error != kErrorOk)
     return setError(error);
 
+  _comment = NULL;
   return error;
 }
 
