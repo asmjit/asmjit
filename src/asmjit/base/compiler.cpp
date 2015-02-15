@@ -416,19 +416,14 @@ CommentNode* Compiler::comment(const char* fmt, ...) {
   char* p = buf;
 
   if (fmt) {
-    *p++ = ';';
-    *p++ = ' ';
-
     va_list ap;
     va_start(ap, fmt);
     p += vsnprintf(p, 254, fmt, ap);
     va_end(ap);
   }
 
-  p[0] = '\n';
-  p[1] = '\0';
-
-  return addComment(fmt);
+  p[0] = '\0';
+  return addComment(buf);
 }
 
 // ============================================================================
