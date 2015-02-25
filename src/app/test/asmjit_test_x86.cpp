@@ -749,6 +749,51 @@ struct X86Test_AllocImul2 : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_AllocIdiv1]
+// ============================================================================
+
+struct X86Test_AllocIdiv1 : public X86Test {
+  X86Test_AllocIdiv1() : X86Test("[Alloc] Idiv #1") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocIdiv1());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+
+    X86GpVar a(c, kVarTypeIntPtr, "a");
+    X86GpVar b(c, kVarTypeIntPtr, "b");
+    X86GpVar dummy(c, kVarTypeInt32, "dummy");
+
+    c.setArg(0, a);
+    c.setArg(1, b);
+
+    c.xor_(dummy, dummy);
+    c.idiv(dummy, a, b);
+
+    c.ret(a);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(int, int);
+    Func func = asmjit_cast<Func>(_func);
+
+    int v0 = 2999;
+    int v1 = 245;
+
+    int resultRet = func(v0, v1);
+    int expectRet = 2999 / 245;
+
+    result.setFormat("result=%d", resultRet);
+    expect.setFormat("result=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_AllocSetz]
 // ============================================================================
 
@@ -2650,6 +2695,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_AllocMany2);
   ADD_TEST(X86Test_AllocImul1);
   ADD_TEST(X86Test_AllocImul2);
+  ADD_TEST(X86Test_AllocIdiv1);
   ADD_TEST(X86Test_AllocSetz);
   ADD_TEST(X86Test_AllocShlRor);
   ADD_TEST(X86Test_AllocGpLo);
