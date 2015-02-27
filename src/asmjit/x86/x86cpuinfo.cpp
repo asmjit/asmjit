@@ -167,11 +167,11 @@ static void callXGetBV(X86XCR* result, uint32_t inEcx) {
 #elif defined(__GNUC__)
 
   unsigned int eax, edx;
-# if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
-  __asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(inEcx));
-# else
+
+  // Removed, because the world is not perfect:
+  //   __asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(inEcx));
   __asm__ __volatile__(".byte 0x0F, 0x01, 0xd0" : "=a"(eax), "=d"(edx) : "c"(inEcx));
-# endif
+
   result->eax = eax;
   result->edx = edx;
 
