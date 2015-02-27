@@ -266,6 +266,7 @@ struct X86Test_JumpUnreachable1 : public X86Test {
     c.bind(L_7);
     c.add(v0, v1);
 
+    c.align(kAlignCode, 16);
     c.bind(L_1);
     c.ret();
     c.endFunc();

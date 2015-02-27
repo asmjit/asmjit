@@ -270,6 +270,8 @@ Error Context::resolveCellOffsets() {
 // ============================================================================
 
 Error Context::removeUnreachableCode() {
+  Compiler* compiler = getCompiler();
+
   PodList<Node*>::Link* link = _unreachableList.getFirst();
   Node* stop = getStop();
 
@@ -284,10 +286,16 @@ Error Context::removeUnreachableCode() {
         node = node->getNext();
       } while (node != stop);
 
-      // Remove.
+      // Remove unreachable nodes that are neither informative nor directives.
       if (node != first) {
-        Node* last = (node != NULL) ? node->getPrev() : getCompiler()->getLastNode();
-        getCompiler()->removeNodes(first, last);
+        Node* end = node;
+        node = first;
+        do {
+          Node* next = node->getNext();
+          if (!node->isInformative() && node->getType() != kNodeTypeAlign)
+            compiler->removeNode(node);
+          node = next;
+        } while (node != end);
       }
     }
 
