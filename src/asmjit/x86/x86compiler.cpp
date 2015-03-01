@@ -793,14 +793,24 @@ static ASMJIT_INLINE size_t X86Compiler_getInstSize(uint32_t code) {
 static InstNode* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) {
   if (IntUtil::inInterval<uint32_t>(code, _kX86InstIdJbegin, _kX86InstIdJend)) {
     JumpNode* node = new(p) JumpNode(self, code, options, opList, opCount);
-    TargetNode* jTarget = self->getTargetById(opList[0].getId());
+    TargetNode* jTarget = NULL;
+
+    if ((options & kInstOptionUnfollow) == 0) {
+      if (opList[0].isLabel())
+        jTarget = self->getTargetById(opList[0].getId());
+      else
+        options |= kInstOptionUnfollow;
+    }
 
     node->orFlags(code == kX86InstIdJmp ? kNodeFlagIsJmp | kNodeFlagIsTaken : kNodeFlagIsJcc);
     node->_target = jTarget;
-    node->_jumpNext = static_cast<JumpNode*>(jTarget->_from);
+    node->_jumpNext = NULL;
 
-    jTarget->_from = node;
-    jTarget->addNumRefs();
+    if (jTarget) {
+      node->_jumpNext = static_cast<JumpNode*>(jTarget->_from);
+      jTarget->_from = node;
+      jTarget->addNumRefs();
+    }
 
     // The 'jmp' is always taken, conditional jump can contain hint, we detect it.
     if (code == kX86InstIdJmp)

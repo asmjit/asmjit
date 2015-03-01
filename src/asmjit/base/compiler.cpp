@@ -192,24 +192,26 @@ static ASMJIT_INLINE void BaseCompiler_nodeRemoved(Compiler* self, Node* node_) 
     JumpNode* node = static_cast<JumpNode*>(node_);
     TargetNode* target = node->getTarget();
 
-    // Disconnect.
-    JumpNode** pPrev = &target->_from;
-    for (;;) {
-      ASMJIT_ASSERT(*pPrev != NULL);
-      JumpNode* current = *pPrev;
+    if (target != NULL) {
+      // Disconnect.
+      JumpNode** pPrev = &target->_from;
+      for (;;) {
+        ASMJIT_ASSERT(*pPrev != NULL);
+        JumpNode* current = *pPrev;
 
-      if (current == NULL)
-        break;
+        if (current == NULL)
+          break;
 
-      if (current == node) {
-        *pPrev = node->_jumpNext;
-        break;
+        if (current == node) {
+          *pPrev = node->_jumpNext;
+          break;
+        }
+
+        pPrev = &current->_jumpNext;
       }
 
-      pPrev = &current->_jumpNext;
+      target->subNumRefs();
     }
-
-    target->subNumRefs();
   }
 }
 

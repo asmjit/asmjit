@@ -160,11 +160,52 @@ struct Context {
   virtual Error fetch() = 0;
 
   // --------------------------------------------------------------------------
-  // [RemoveUnreachableCode]
+  // [Unreachable Code]
   // --------------------------------------------------------------------------
+
+  //! Add unreachable-flow data to the unreachable flow list.
+  ASMJIT_INLINE Error addUnreachableNode(Node* node) {
+    PodList<Node*>::Link* link = _baseZone.allocT<PodList<Node*>::Link>();
+    if (link == NULL)
+      return setError(kErrorNoHeapMemory);
+
+    link->setValue(node);
+    _unreachableList.append(link);
+
+    return kErrorOk;
+  }
 
   //! Remove unreachable code.
   virtual Error removeUnreachableCode();
+
+  // --------------------------------------------------------------------------
+  // [Code-Flow]
+  // --------------------------------------------------------------------------
+
+  //! Add returning node (i.e. node that returns and where liveness analysis
+  //! should start).
+  ASMJIT_INLINE Error addReturningNode(Node* node) {
+    PodList<Node*>::Link* link = _baseZone.allocT<PodList<Node*>::Link>();
+    if (link == NULL)
+      return setError(kErrorNoHeapMemory);
+
+    link->setValue(node);
+    _returningList.append(link);
+
+    return kErrorOk;
+  }
+
+  //! Add jump-flow data to the jcc flow list.
+  ASMJIT_INLINE Error addJccNode(Node* node) {
+    PodList<Node*>::Link* link = _baseZone.allocT<PodList<Node*>::Link>();
+    if (link == NULL)
+      return setError(kErrorNoHeapMemory);
+
+    link->setValue(node);
+    _jccList.append(link);
+
+    return kErrorOk;
+  }
 
   // --------------------------------------------------------------------------
   // [Analyze]
@@ -251,6 +292,8 @@ struct Context {
 
   //! Unreachable nodes.
   PodList<Node*> _unreachableList;
+  //! Returning nodes.
+  PodList<Node*> _returningList;
   //! Jump nodes.
   PodList<Node*> _jccList;
 

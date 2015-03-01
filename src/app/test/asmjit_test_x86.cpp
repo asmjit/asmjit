@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <setjmp.h>
 
 using namespace asmjit;
 
@@ -2601,14 +2602,14 @@ struct X86Test_CallMisc3 : public X86Test {
 };
 
 // ============================================================================
-// [X86Test_ConstPoolBase]
+// [X86Test_MiscConstPool]
 // ============================================================================
 
-struct X86Test_ConstPoolBase : public X86Test {
-  X86Test_ConstPoolBase() : X86Test("[ConstPool] Base") {}
+struct X86Test_MiscConstPool : public X86Test {
+  X86Test_MiscConstPool() : X86Test("[Misc] ConstPool") {}
 
   static void add(PodVector<X86Test*>& tests) {
-    tests.append(new X86Test_ConstPoolBase());
+    tests.append(new X86Test_MiscConstPool());
   }
 
   virtual void compile(X86Compiler& c) {
@@ -2640,6 +2641,156 @@ struct X86Test_ConstPoolBase : public X86Test {
 
     return resultRet == expectRet;
   }
+};
+
+// ============================================================================
+// [X86Test_MiscMultiRet]
+// ============================================================================
+
+struct X86Test_MiscMultiRet : public X86Test {
+  X86Test_MiscMultiRet() : X86Test("[Misc] MultiRet") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_MiscMultiRet());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder3<int, int, int, int>());
+
+    X86GpVar op(c, kVarTypeInt32, "op");
+    X86GpVar a(c, kVarTypeInt32, "a");
+    X86GpVar b(c, kVarTypeInt32, "b");
+
+    Label L_Zero(c);
+    Label L_Add(c);
+    Label L_Sub(c);
+    Label L_Mul(c);
+    Label L_Div(c);
+
+    c.setArg(0, op);
+    c.setArg(1, a);
+    c.setArg(2, b);
+
+    c.cmp(op, 0);
+    c.jz(L_Add);
+
+    c.cmp(op, 1);
+    c.jz(L_Sub);
+
+    c.cmp(op, 2);
+    c.jz(L_Mul);
+
+    c.cmp(op, 3);
+    c.jz(L_Div);
+
+    c.bind(L_Zero);
+    c.xor_(a, a);
+    c.ret(a);
+
+    c.bind(L_Add);
+    c.add(a, b);
+    c.ret(a);
+
+    c.bind(L_Sub);
+    c.sub(a, b);
+    c.ret(a);
+
+    c.bind(L_Mul);
+    c.imul(a, b);
+    c.ret(a);
+
+    c.bind(L_Div);
+    c.cmp(b, 0);
+    c.jz(L_Zero);
+
+    X86GpVar zero(c, kVarTypeInt32, "zero");
+    c.xor_(zero, zero);
+    c.idiv(zero, a, b);
+    c.ret(a);
+
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(int, int, int);
+
+    Func func = asmjit_cast<Func>(_func);
+
+    int a = 44;
+    int b = 3;
+
+    int r0 = func(0, a, b);
+    int r1 = func(1, a, b);
+    int r2 = func(2, a, b);
+    int r3 = func(3, a, b);
+    int e0 = a + b;
+    int e1 = a - b;
+    int e2 = a * b;
+    int e3 = a / b;
+
+    result.setFormat("ret={%d %d %d %d}", r0, r1, r2, r3);
+    expect.setFormat("ret={%d %d %d %d}", e0, e1, e2, e3);
+
+    return result.eq(expect);
+}
+};
+
+// ============================================================================
+// [X86Test_MiscUnfollow]
+// ============================================================================
+
+// Global (I didn't find better way to really test this).
+static jmp_buf globalJmpBuf;
+
+struct X86Test_MiscUnfollow : public X86Test {
+  X86Test_MiscUnfollow() : X86Test("[Misc] Unfollow") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_MiscUnfollow());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    c.addFunc(kFuncConvHost, FuncBuilder2<void, int, void*>());
+
+    X86GpVar a(c, kVarTypeInt32);
+    X86GpVar b(c, kVarTypeIntPtr);
+
+    Label tramp(c);
+
+    c.setArg(0, a);
+    c.setArg(1, b);
+
+    c.cmp(a, 0);
+    c.jz(tramp);
+
+    c.ret(a);
+
+    c.bind(tramp);
+    c.unfollow().jmp(b);
+
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(int, void*);
+
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = 0;
+    int expectRet = 1;
+
+    if (!setjmp(globalJmpBuf))
+      resultRet = func(0, (void*)handler);
+    else
+      resultRet = 1;
+
+    result.setFormat("ret={%d}", resultRet);
+    expect.setFormat("ret={%d}", expectRet);
+
+    return resultRet == expectRet;
+  }
+
+  static void handler() { longjmp(globalJmpBuf, 1); }
 };
 
 // ============================================================================
@@ -2730,7 +2881,11 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallMisc1);
   ADD_TEST(X86Test_CallMisc2);
   ADD_TEST(X86Test_CallMisc3);
-  ADD_TEST(X86Test_ConstPoolBase);
+
+  // Misc.
+  ADD_TEST(X86Test_MiscConstPool);
+  ADD_TEST(X86Test_MiscUnfollow);
+  ADD_TEST(X86Test_MiscMultiRet);
 }
 
 X86TestSuite::~X86TestSuite() {

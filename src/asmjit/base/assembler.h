@@ -68,7 +68,12 @@ ASMJIT_ENUM(InstOptions) {
   kInstOptionTaken = 0x00000004,
 
   //! Condition is unlikely to be taken.
-  kInstOptionNotTaken = 0x00000008
+  kInstOptionNotTaken = 0x00000008,
+
+  //! Don't follow the jump (Compiler-only).
+  //!
+  //! Prevents following the jump during compilation.
+  kInstOptionUnfollow = 0x00000010
 };
 
 // ============================================================================

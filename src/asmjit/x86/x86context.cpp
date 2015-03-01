@@ -1897,35 +1897,6 @@ static void X86Context_prepareSingleVarInst(uint32_t instId, VarAttr* va) {
 
 //! \internal
 //!
-//! Add unreachable-flow data to the unreachable flow list.
-static ASMJIT_INLINE Error X86Context_addUnreachableNode(X86Context* self, Node* node) {
-  PodList<Node*>::Link* link = self->_baseZone.allocT<PodList<Node*>::Link>();
-  if (link == NULL)
-    return self->setError(kErrorNoHeapMemory);
-
-  link->setValue(node);
-  self->_unreachableList.append(link);
-
-  return kErrorOk;
-}
-
-//! \internal
-//!
-//! Add jump-flow data to the jcc flow list.
-static ASMJIT_INLINE Error X86Context_addJccNode(X86Context* self, Node* node) {
-  PodList<Node*>::Link* link = self->_baseZone.allocT<PodList<Node*>::Link>();
-
-  if (link == NULL)
-    ASMJIT_PROPAGATE_ERROR(self->setError(kErrorNoHeapMemory));
-
-  link->setValue(node);
-  self->_jccList.append(link);
-
-  return kErrorOk;
-}
-
-//! \internal
-//!
 //! Get mask of all registers actually used to pass function arguments.
 static ASMJIT_INLINE X86RegMask X86Context_getUsedArgs(X86Context* self, X86CallNode* node, X86FuncDecl* decl) {
   X86RegMask regs;
@@ -2181,7 +2152,7 @@ Error X86Context::fetch() {
 
   // Function flags.
   func->clearFuncFlags(
-    kFuncFlagIsNaked |
+    kFuncFlagIsNaked    |
     kX86FuncFlagPushPop |
     kX86FuncFlagEmms    |
     kX86FuncFlagSFence  |
@@ -2660,8 +2631,6 @@ _NextGroup:
         // Handle conditional/unconditional jump.
         if (node->isJmpOrJcc()) {
           JumpNode* jNode = static_cast<JumpNode*>(node);
-
-          Node* jNext = jNode->getNext();
           TargetNode* jTarget = jNode->getTarget();
 
           // If this jump is unconditional we put next node to unreachable node
@@ -2671,13 +2640,23 @@ _NextGroup:
           // We also advance our node pointer to the target node to simulate
           // natural flow of the function.
           if (jNode->isJmp()) {
-            if (!jNext->isFetched())
-              ASMJIT_PROPAGATE_ERROR(X86Context_addUnreachableNode(this, jNext));
+            if (!next->isFetched())
+              ASMJIT_PROPAGATE_ERROR(addUnreachableNode(next));
+
+            // Jump not followed.
+            if (jTarget == NULL) {
+              ASMJIT_PROPAGATE_ERROR(addReturningNode(jNode));
+              goto _NextGroup;
+            }
 
             node_ = jTarget;
             goto _Do;
           }
           else {
+            // Jump not followed.
+            if (jTarget == NULL)
+              break;
+
             if (jTarget->isFetched()) {
               uint32_t jTargetFlowId = jTarget->getFlowId();
 
@@ -2688,13 +2667,12 @@ _NextGroup:
                 jNode->orFlags(kNodeFlagIsTaken);
               }
             }
-            else if (jNext->isFetched()) {
+            else if (next->isFetched()) {
               node_ = jTarget;
               goto _Do;
             }
             else {
-              ASMJIT_PROPAGATE_ERROR(X86Context_addJccNode(this, jNode));
-
+              ASMJIT_PROPAGATE_ERROR(addJccNode(jNode));
               node_ = X86Context_getJccFlow(jNode);
               goto _Do;
             }
@@ -2759,6 +2737,7 @@ _NextGroup:
       // ----------------------------------------------------------------------
 
       case kNodeTypeEnd: {
+        ASMJIT_PROPAGATE_ERROR(addReturningNode(node_));
         goto _NextGroup;
       }
 
@@ -2768,8 +2747,9 @@ _NextGroup:
 
       case kNodeTypeRet: {
         RetNode* node = static_cast<RetNode*>(node_);
-        X86FuncDecl* decl = func->getDecl();
+        ASMJIT_PROPAGATE_ERROR(addReturningNode(node));
 
+        X86FuncDecl* decl = func->getDecl();
         if (decl->hasRet()) {
           const FuncInOut& ret = decl->getRet(0);
           uint32_t retClass = x86VarTypeToClass(ret.getVarType());
@@ -2802,7 +2782,10 @@ _NextGroup:
           }
           VI_END(node_);
         }
-        break;
+
+        if (!next->isFetched())
+          ASMJIT_PROPAGATE_ERROR(addUnreachableNode(next));
+        goto _NextGroup;
       }
 
       // ----------------------------------------------------------------------
@@ -2946,6 +2929,14 @@ _NextGroup:
   } while (node_ != stop);
 
 _Done:
+  // Mark exit label and end node as fetched, otherwise they can be removed by
+  // `removeUnreachableCode()`, which would lead to crash in some later step.
+  node_ = func->getEnd();
+  if (!node_->isFetched()) {
+    func->getExitNode()->setFlowId(++flowId);
+    node_->setFlowId(++flowId);
+  }
+
   ASMJIT_TLOG("[Fetch] === Done ===\n\n");
   return kErrorOk;
 
@@ -3771,8 +3762,12 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
       break;
 
     // Advance on non-conditional jump.
-    if (node->hasFlag(kNodeFlagIsJmp))
+    if (node->hasFlag(kNodeFlagIsJmp)) {
       node = static_cast<JumpNode*>(node)->getTarget();
+      // Stop on jump that is not followed.
+      if (node == NULL)
+        break;
+    }
 
     node = node->getNext();
     ASMJIT_ASSERT(node != NULL);
@@ -4378,8 +4373,12 @@ ASMJIT_INLINE uint32_t X86CallAlloc::guessAlloc(VarData* vd, uint32_t allocableR
       break;
 
     // Advance on non-conditional jump.
-    if (node->hasFlag(kNodeFlagIsJmp))
+    if (node->hasFlag(kNodeFlagIsJmp)) {
       node = static_cast<JumpNode*>(node)->getTarget();
+      // Stop on jump that is not followed.
+      if (node == NULL)
+        break;
+    }
 
     node = node->getNext();
     ASMJIT_ASSERT(node != NULL);
@@ -5317,6 +5316,14 @@ _NextGroup:
           JumpNode* node = static_cast<JumpNode*>(node_);
           TargetNode* jTarget = node->getTarget();
 
+          // Target not followed.
+          if (jTarget == NULL) {
+            if (node->isJmp())
+              goto _NextGroup;
+            else
+              break;
+          }
+
           if (node->isJmp()) {
             if (jTarget->hasState()) {
               compiler->_setCursor(node->getPrev());
@@ -5526,7 +5533,10 @@ _NextGroup:
     // If node is `jmp` we follow it as well.
     if (node_->isJmp()) {
       node_ = static_cast<JumpNode*>(node_)->getTarget();
-      goto _Advance;
+      if (node_ == NULL)
+        goto _NextGroup;
+      else
+        goto _Advance;
     }
 
     // Handle stop nodes.

@@ -2448,6 +2448,12 @@ struct ASMJIT_VCLASS X86Compiler : public Compiler {
 
   ASMJIT_X86_EMIT_OPTIONS(X86Compiler)
 
+  //! Force the compiler to not follow the conditional or unconditional jump.
+  ASMJIT_INLINE X86Compiler& unfollow() {
+    _instOptions |= kInstOptionUnfollow;
+    return *this;
+  }
+
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------

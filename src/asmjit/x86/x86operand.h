@@ -282,7 +282,7 @@ struct X86ZmmReg { Operand::VRegOp data; };
 //! 16 Xmm/Ymm/Zmm registers. AVX512 instruction set doubles the number of SIMD
 //! registers (Xmm/Ymm/Zmm) to 32, this mode has to be explicitly enabled to
 //! take effect as it changes some assumptions.
-//! 
+//!
 //! `X86RegCount` is also used extensively by `X86Compiler`'s register allocator
 //! and data structures. Fp registers were omitted as they are never mapped to
 //! variables, thus, not needed to be managed.

@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_ARCH_H
-#define _ASMJIT_ARCH_H
+#ifndef _ASMJIT_HOST_H
+#define _ASMJIT_HOST_H
 
 // [Dependencies - Core]
 #include "base.h"
@@ -56,4 +56,4 @@ typedef X86YmmVar YmmVar;
 #endif // ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 
 // [Guard]
-#endif // _ASMJIT_ARCH_H
+#endif // _ASMJIT_HOST_H

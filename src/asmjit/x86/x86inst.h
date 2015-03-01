@@ -1164,12 +1164,6 @@ ASMJIT_ENUM(X86InstId) {
 
 //! X86/X64 instruction emit options, mainly for internal purposes.
 ASMJIT_ENUM(X86InstOptions) {
-  //! Emit instruction with LOCK prefix.
-  //!
-  //! If this option is used and instruction doesn't support LOCK prefix an
-  //! invalid instruction error is generated.
-  kX86InstOptionLock = 0x00000010,
-
   //! Force REX prefix (X64).
   //!
   //! This option should be used carefully as there are combinations of
@@ -1183,11 +1177,17 @@ ASMJIT_ENUM(X86InstOptions) {
   //! Reserved by `X86Assembler`, do not use!
   _kX86InstOptionNoRex = 0x00000080,
 
+  //! Emit instruction with LOCK prefix.
+  //!
+  //! If this option is used and instruction doesn't support LOCK prefix an
+  //! invalid instruction error is generated.
+  kX86InstOptionLock = 0x00000100,
+
   //! Force 3-byte VEX prefix even if the instruction is encodable by 2-byte
   //! VEX prefix (AVX).
   //!
   //! Ignored if the instruction is not AVX or `kX86InstOptionEVEX` is used.
-  kX86InstOptionVex3 = 0x00000100,
+  kX86InstOptionVex3 = 0x00001000,
 
   //! Force 4-byte EVEX prefix even if the instruction is encodable by using
   //! VEX prefix. Please note that all higher bits from `kX86InstOptionEvex`

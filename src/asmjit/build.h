@@ -277,7 +277,7 @@
 namespace asmjit { static inline int disabledTrace(...) { return 0; } }
 # if defined(ASMJIT_TRACE)
 #  define ASMJIT_TSEC(_Section_) _Section_
-#  define ASMJIT_TLOG ::printf(__VA_ARGS__)
+#  define ASMJIT_TLOG ::printf
 # else
 #  define ASMJIT_TSEC(_Section_) do {} while(0)
 #  define ASMJIT_TLOG 0 && ::asmjit::disabledTrace
