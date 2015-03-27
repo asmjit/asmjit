@@ -808,6 +808,15 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
         isAbsolute = true;
         sb.appendUInt(static_cast<uint32_t>(m->getDisplacement()), 16);
         break;
+
+      case kMemTypeRip:
+        // [rip + displacement]
+        sb.appendString("rip", 3);
+        break;
+
+      default:
+        sb.appendFormat("<invalid %d>", m->getMemType());
+        break;
     }
 
     if (m->hasIndex()) {
@@ -3645,21 +3654,23 @@ _EmitSib:
       EMIT_BYTE(x86EncodeSib(shift, mIndex, 5));
     }
 
-    if (rmMem->getMemType() == kMemTypeLabel) {
+    if (rmMem->getMemType() == kMemTypeAbsolute) {
+      // [Disp32].
+      EMIT_DWORD(static_cast<int32_t>(dispOffset));
+    }
+    else if (rmMem->getMemType() == kMemTypeLabel) {
       // Relative->Absolute [x86 mode].
       label = self->getLabelData(rmMem->_vmem.base);
       relocId = self->_relocList.getLength();
 
-      {
-        RelocData rd;
-        rd.type = kRelocRelToAbs;
-        rd.size = 4;
-        rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
-        rd.data = static_cast<SignedPtr>(dispOffset);
+      RelocData rd;
+      rd.type = kRelocRelToAbs;
+      rd.size = 4;
+      rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
+      rd.data = static_cast<SignedPtr>(dispOffset);
 
-        if (self->_relocList.append(rd) != kErrorOk)
-          return self->setError(kErrorNoHeapMemory);
-      }
+      if (self->_relocList.append(rd) != kErrorOk)
+        return self->setError(kErrorNoHeapMemory);
 
       if (label->offset != -1) {
         // Bound label.
@@ -3674,12 +3685,39 @@ _EmitSib:
       }
     }
     else {
-      // [Disp32].
-      EMIT_DWORD(static_cast<int32_t>(dispOffset));
+      // RIP->Absolute [x86 mode].
+      relocId = self->_relocList.getLength();
+
+      RelocData rd;
+      rd.type = kRelocRelToAbs;
+      rd.size = 4;
+      rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
+      rd.data = rd.from + static_cast<SignedPtr>(dispOffset);
+
+      if (self->_relocList.append(rd) != kErrorOk)
+        return self->setError(kErrorNoHeapMemory);
+
+      EMIT_DWORD(0);
     }
   }
   else /* if (Arch === kArchX64) */ {
-    if (rmMem->getMemType() == kMemTypeLabel) {
+    if (rmMem->getMemType() == kMemTypeAbsolute) {
+      EMIT_BYTE(x86EncodeMod(0, opReg, 4));
+      if (mIndex >= kInvalidReg) {
+        // [Disp32].
+        EMIT_BYTE(x86EncodeSib(0, 4, 5));
+      }
+      else {
+        // [Disp32 + Index * Scale].
+        mIndex &= 0x7;
+        ASMJIT_ASSERT(mIndex != kX86RegIndexSp);
+
+        uint32_t shift = rmMem->getShift();
+        EMIT_BYTE(x86EncodeSib(shift, mIndex, 5));
+      }
+      EMIT_DWORD(static_cast<int32_t>(dispOffset));
+    }
+    else if (rmMem->getMemType() == kMemTypeLabel) {
       // [RIP + Disp32].
       label = self->getLabelData(rmMem->_vmem.base);
 
@@ -3703,20 +3741,13 @@ _EmitSib:
       }
     }
     else {
-      EMIT_BYTE(x86EncodeMod(0, opReg, 4));
-      if (mIndex >= kInvalidReg) {
-        // [Disp32].
-        EMIT_BYTE(x86EncodeSib(0, 4, 5));
-      }
-      else {
-        // [Disp32 + Index * Scale].
-        mIndex &= 0x7;
-        ASMJIT_ASSERT(mIndex != kX86RegIndexSp);
+      // [RIP + Disp32].
 
-        uint32_t shift = rmMem->getShift();
-        EMIT_BYTE(x86EncodeSib(shift, mIndex, 5));
-      }
+      // Indexing is invalid.
+      if (mIndex < kInvalidReg)
+        goto _IllegalDisp;
 
+      EMIT_BYTE(x86EncodeMod(0, opReg, 5));
       EMIT_DWORD(static_cast<int32_t>(dispOffset));
     }
   }

@@ -422,6 +422,10 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
     return x86::ptr(label, index, shift, disp, _regSize);
   }
   //! \overload
+  ASMJIT_INLINE X86Mem intptr_ptr(const X86RipReg& rip, int32_t disp = 0) const {
+    return x86::ptr(rip, disp, _regSize);
+  }
+  //! \overload
   ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, int32_t disp = 0) const {
     return x86::ptr_abs(pAbs, disp, _regSize);
   }

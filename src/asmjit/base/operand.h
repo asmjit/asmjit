@@ -96,29 +96,33 @@ ASMJIT_ENUM(SizeDefs) {
 
 //! Type of memory operand.
 ASMJIT_ENUM(MemType) {
-  //! Memory operand is a combination of base register and optional index register
-  //! and displacement.
+  //! Memory operand is a combination of a base register, an optional index
+  //! register, and displacement.
   //!
   //! The `Assembler` interprets `kMemTypeBaseIndex` and `kMemTypeStackIndex`
-  //! types the same way, but `Compiler` interprets  `kMemTypeBaseIndex` as
+  //! types the same way, but `Compiler` interprets `kMemTypeBaseIndex` as
   //! `[base + index]` and `kMemTypeStackIndex` as `[stack(base) + index]`.
   kMemTypeBaseIndex = 0,
 
-  //! Memory operand is a combination of variable's memory location,
-  //! optional index register and displacement.
+  //! Memory operand is a combination of variable's memory location, an
+  //! optional index register, and displacement.
   //!
-  //! The `Assembler` interprets `kMemTypeBaseIndex` and  `kMemTypeStackIndex`
-  //! types in the same way, but `Compiler` interprets `kMemTypeBaseIndex` as
+  //! The `Assembler` interprets `kMemTypeBaseIndex` and `kMemTypeStackIndex`
+  //! types the same way, but `Compiler` interprets `kMemTypeBaseIndex` as
   //! `[base + index]` and `kMemTypeStackIndex` as `[stack(base) + index]`.
   kMemTypeStackIndex = 1,
 
-  //! Memory operand refers to the memory location specified by a label.
-  kMemTypeLabel = 2,
   //! Memory operand is an absolute memory location.
   //!
   //! Supported mostly by x86, truncated to a 32-bit value when running in
   //! 64-bit mode (x64).
-  kMemTypeAbsolute = 3
+  kMemTypeAbsolute = 2,
+
+  //! Memory operand refers to the memory location specified by a label.
+  kMemTypeLabel = 3,
+
+  //! Memory operand is an address specified by RIP.
+  kMemTypeRip = 4
 };
 
 // ============================================================================
