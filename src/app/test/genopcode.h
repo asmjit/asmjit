@@ -717,9 +717,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.andnps(xmm0, ptr_gp0);
   a.andps(xmm0, xmm7);
   a.andps(xmm0, ptr_gp0);
-  a.cmpps(xmm0, xmm0, 0);
+  a.cmpps(xmm0, xmm7, 0);
   a.cmpps(xmm0, ptr_gp0, 0);
-  a.cmpss(xmm0, xmm0, 0);
+  a.cmpss(xmm0, xmm7, 0);
   a.cmpss(xmm0, ptr_gp0, 0);
   a.comiss(xmm0, xmm7);
   a.comiss(xmm0, ptr_gp0);
@@ -813,7 +813,7 @@ static void opcode(asmjit::X86Assembler& a) {
   a.rsqrtss(xmm0, xmm7);
   a.rsqrtss(xmm0, ptr_gp0);
   a.sfence();
-  a.shufps(xmm0, xmm0, 0);
+  a.shufps(xmm0, xmm7, 0);
   a.shufps(xmm0, ptr_gp0, 0);
   a.sqrtps(xmm0, xmm7);
   a.sqrtps(xmm0, ptr_gp0);
@@ -845,9 +845,9 @@ static void opcode(asmjit::X86Assembler& a) {
   a.andpd(xmm0, xmm7);
   a.andpd(xmm0, ptr_gp0);
   a.clflush(ptr_gp0);
-  a.cmppd(xmm0, xmm0, 0);
+  a.cmppd(xmm0, xmm7, 0);
   a.cmppd(xmm0, ptr_gp0, 0);
-  a.cmpsd(xmm0, xmm0, 0);
+  a.cmpsd(xmm0, xmm7, 0);
   a.cmpsd(xmm0, ptr_gp0, 0);
   a.comisd(xmm0, xmm7);
   a.comisd(xmm0, ptr_gp0);
@@ -1024,11 +1024,11 @@ static void opcode(asmjit::X86Assembler& a) {
   a.psubq(xmm0, ptr_gp0);
   a.pmaddwd(xmm0, xmm7);
   a.pmaddwd(xmm0, ptr_gp0);
-  a.pshufd(xmm0, xmm0, 0);
+  a.pshufd(xmm0, xmm7, 0);
   a.pshufd(xmm0, ptr_gp0, 0);
-  a.pshufhw(xmm0, xmm0, 0);
+  a.pshufhw(xmm0, xmm7, 0);
   a.pshufhw(xmm0, ptr_gp0, 0);
-  a.pshuflw(xmm0, xmm0, 0);
+  a.pshuflw(xmm0, xmm7, 0);
   a.pshuflw(xmm0, ptr_gp0, 0);
   a.psrld(xmm0, xmm7);
   a.psrld(xmm0, ptr_gp0);
@@ -1174,47 +1174,47 @@ static void opcode(asmjit::X86Assembler& a) {
   a.pshufb(xmm0, ptr_gp0);
   a.palignr(mm0, mm7, 0);
   a.palignr(mm0, ptr_gp0, 0);
-  a.palignr(xmm0, xmm0, 0);
+  a.palignr(xmm0, xmm7, 0);
   a.palignr(xmm0, ptr_gp0, 0);
 
   // SSE4.1.
   a.nop();
 
-  a.blendpd(xmm0, xmm0, 0);
+  a.blendpd(xmm0, xmm7, 0);
   a.blendpd(xmm0, ptr_gp0, 0);
-  a.blendps(xmm0, xmm0, 0);
+  a.blendps(xmm0, xmm7, 0);
   a.blendps(xmm0, ptr_gp0, 0);
   a.blendvpd(xmm0, xmm7);
   a.blendvpd(xmm0, ptr_gp0);
   a.blendvps(xmm0, xmm7);
   a.blendvps(xmm0, ptr_gp0);
-  a.dppd(xmm0, xmm0, 0);
+  a.dppd(xmm0, xmm7, 0);
   a.dppd(xmm0, ptr_gp0, 0);
-  a.dpps(xmm0, xmm0, 0);
+  a.dpps(xmm0, xmm7, 0);
   a.dpps(xmm0, ptr_gp0, 0);
-  a.extractps(gp0, xmm0, 0);
-  a.extractps(ptr_gp0, xmm0, 0);
+  a.extractps(gp0, xmm7, 0);
+  a.extractps(ptr_gp0, xmm7, 0);
   a.insertps(xmm0, xmm1, 0);
   a.insertps(xmm0, ptr_gp0, 0);
   a.movntdqa(xmm0, ptr_gp0);
-  a.mpsadbw(xmm0, xmm0, 0);
+  a.mpsadbw(xmm0, xmm7, 0);
   a.mpsadbw(xmm0, ptr_gp0, 0);
   a.packusdw(xmm0, xmm7);
   a.packusdw(xmm0, ptr_gp0);
   a.pblendvb(xmm0, xmm7);
   a.pblendvb(xmm0, ptr_gp0);
-  a.pblendw(xmm0, xmm0, 0);
+  a.pblendw(xmm0, xmm7, 0);
   a.pblendw(xmm0, ptr_gp0, 0);
   a.pcmpeqq(xmm0, xmm7);
   a.pcmpeqq(xmm0, ptr_gp0);
   a.pextrb(gp0, xmm0, 0);
-  a.pextrb(ptr_gp0, xmm0, 0);
+  a.pextrb(ptr_gp0, xmm7, 0);
   a.pextrd(gp0, xmm0, 0);
-  a.pextrd(ptr_gp0, xmm0, 0);
+  a.pextrd(ptr_gp0, xmm7, 0);
   a.pextrq(gp0, xmm0, 0);
-  a.pextrq(ptr_gp0, xmm0, 0);
+  a.pextrq(ptr_gp0, xmm7, 0);
   a.pextrw(gp0, xmm0, 0);
-  a.pextrw(ptr_gp0, xmm0, 0);
+  a.pextrw(ptr_gp0, xmm7, 0);
   a.phminposuw(xmm0, xmm7);
   a.phminposuw(xmm0, ptr_gp0);
   a.pinsrb(xmm0, eax, 0);
@@ -1269,25 +1269,25 @@ static void opcode(asmjit::X86Assembler& a) {
   a.pmulld(xmm0, ptr_gp0);
   a.ptest(xmm0, xmm7);
   a.ptest(xmm0, ptr_gp0);
-  a.roundps(xmm0, xmm0, 0);
+  a.roundps(xmm0, xmm7, 0);
   a.roundps(xmm0, ptr_gp0, 0);
-  a.roundss(xmm0, xmm0, 0);
+  a.roundss(xmm0, xmm7, 0);
   a.roundss(xmm0, ptr_gp0, 0);
-  a.roundpd(xmm0, xmm0, 0);
+  a.roundpd(xmm0, xmm7, 0);
   a.roundpd(xmm0, ptr_gp0, 0);
-  a.roundsd(xmm0, xmm0, 0);
+  a.roundsd(xmm0, xmm7, 0);
   a.roundsd(xmm0, ptr_gp0, 0);
 
   // SSE4.2.
   a.nop();
 
-  a.pcmpestri(xmm0, xmm0, 0);
+  a.pcmpestri(xmm0, xmm7, 0);
   a.pcmpestri(xmm0, ptr_gp0, 0);
-  a.pcmpestrm(xmm0, xmm0, 0);
+  a.pcmpestrm(xmm0, xmm7, 0);
   a.pcmpestrm(xmm0, ptr_gp0, 0);
-  a.pcmpistri(xmm0, xmm0, 0);
+  a.pcmpistri(xmm0, xmm7, 0);
   a.pcmpistri(xmm0, ptr_gp0, 0);
-  a.pcmpistrm(xmm0, xmm0, 0);
+  a.pcmpistrm(xmm0, xmm7, 0);
   a.pcmpistrm(xmm0, ptr_gp0, 0);
   a.pcmpgtq(xmm0, xmm7);
   a.pcmpgtq(xmm0, ptr_gp0);
@@ -1299,8 +1299,8 @@ static void opcode(asmjit::X86Assembler& a) {
   a.extrq(xmm0, 0x1, 0x2);
   a.insertq(xmm0, xmm1);
   a.insertq(xmm0, xmm1, 0x1, 0x2);
-  a.movntsd(ptr_gp0, xmm0);
-  a.movntss(ptr_gp0, xmm0);
+  a.movntsd(ptr_gp0, xmm7);
+  a.movntss(ptr_gp0, xmm7);
 
   // POPCNT.
   a.nop();
@@ -1473,7 +1473,7 @@ static void opcode(asmjit::X86Assembler& a) {
   a.vdpps(xmm0, xmm1, ptr_gp0, 0);
   a.vdpps(ymm0, ymm1, ymm2, 0);
   a.vdpps(ymm0, ymm1, ptr_gp0, 0);
-  a.vextractf128(xmm0, ymm0, 0);
+  a.vextractf128(xmm0, ymm1, 0);
   a.vextractf128(ptr_gp0, ymm1, 0);
   a.vextractps(gp0, xmm1, 0);
   a.vextractps(ptr_gp0, xmm1, 0);

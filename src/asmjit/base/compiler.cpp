@@ -512,26 +512,38 @@ _NoMemory:
 }
 
 void Compiler::alloc(Var& var) {
+  if (var.getId() == kInvalidValue)
+    return;
   addHint(var, kVarHintAlloc, kInvalidValue);
 }
 
 void Compiler::alloc(Var& var, uint32_t regIndex) {
+  if (var.getId() == kInvalidValue)
+    return;
   addHint(var, kVarHintAlloc, regIndex);
 }
 
 void Compiler::alloc(Var& var, const Reg& reg) {
+  if (var.getId() == kInvalidValue)
+    return;
   addHint(var, kVarHintAlloc, reg.getRegIndex());
 }
 
 void Compiler::save(Var& var) {
+  if (var.getId() == kInvalidValue)
+    return;
   addHint(var, kVarHintSave, kInvalidValue);
 }
 
 void Compiler::spill(Var& var) {
+  if (var.getId() == kInvalidValue)
+    return;
   addHint(var, kVarHintSpill, kInvalidValue);
 }
 
 void Compiler::unuse(Var& var) {
+  if (var.getId() == kInvalidValue)
+    return;
   addHint(var, kVarHintUnuse, kInvalidValue);
 }
 

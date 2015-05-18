@@ -1176,12 +1176,12 @@ static void VMemTest_stats(VMemMgr& memmgr) {
   INFO("Allocated: %u", static_cast<unsigned int>(memmgr.getAllocatedBytes()));
 }
 
-static void VMemTest_shuffle(void **a, void **b, size_t count) {
+static void VMemTest_shuffle(void** a, void** b, size_t count) {
   for (size_t i = 0; i < count; ++i) {
     size_t si = (size_t)rand() % count;
 
-    void *ta = a[i];
-    void *tb = b[i];
+    void* ta = a[i];
+    void* tb = b[i];
 
     a[i] = a[si];
     b[i] = b[si];

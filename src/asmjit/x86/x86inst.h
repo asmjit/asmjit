@@ -1318,7 +1318,9 @@ ASMJIT_ENUM(X86InstEncodingId) {
   kX86InstEncodingIdExtRmi_P,
   //! Crc32.
   kX86InstEncodingIdExtCrc,
-  //! Pextrb/Pextrw/Pextrd/Pextrq/Extractps.
+  //! Pextrw.
+  kX86InstEncodingIdExtExtrW,
+  //! Pextrb/Pextrd/Pextrq/Extractps.
   kX86InstEncodingIdExtExtract,
   //! Lfence/Mfence/Sfence.
   kX86InstEncodingIdExtFence,

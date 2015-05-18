@@ -6,7 +6,7 @@
 
 // [Dependencies - AsmJit]
 #if !defined(_ASMJIT_BUILD_H)
-#include "build.h"
+#include "./build.h"
 #endif // !_ASMJIT_BUILD_H
 
 // [Guard]
@@ -39,7 +39,7 @@
 // ============================================================================
 
 #if defined(_MSC_VER)
-// Disable some warnings we know about
+
 # pragma warning(push)
 # pragma warning(disable: 4127) // conditional expression is constant
 # pragma warning(disable: 4201) // nameless struct/union
@@ -53,7 +53,8 @@
 # pragma warning(disable: 4480) // specifying underlying type for enum
 # pragma warning(disable: 4800) // forcing value to bool 'true' or 'false'
 
-// Rename symbols.
+// TODO: Check if these defins are needed and for which version of MSC. There are
+// news about these as they are part of C99.
 # if !defined(vsnprintf)
 #  define ASMJIT_UNDEF_VSNPRINTF
 #  define vsnprintf _vsnprintf
@@ -62,6 +63,7 @@
 #  define ASMJIT_UNDEF_SNPRINTF
 #  define snprintf _snprintf
 # endif // !snprintf
+
 #endif // _MSC_VER
 
 // ============================================================================

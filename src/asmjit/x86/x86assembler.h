@@ -2369,12 +2369,12 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   //! \overload
   INST_2x(comisd, kX86InstIdComisd, X86XmmReg, X86Mem)
 
-  //! Convert packed QWORDs to packed DP-FP (SSE2).
+  //! Convert packed DWORDs to packed DP-FP (SSE2).
   INST_2x(cvtdq2pd, kX86InstIdCvtdq2pd, X86XmmReg, X86XmmReg)
   //! \overload
   INST_2x(cvtdq2pd, kX86InstIdCvtdq2pd, X86XmmReg, X86Mem)
 
-  //! Convert packed QWORDs to packed SP-FP (SSE2).
+  //! Convert packed DWORDs to packed SP-FP (SSE2).
   INST_2x(cvtdq2ps, kX86InstIdCvtdq2ps, X86XmmReg, X86XmmReg)
   //! \overload
   INST_2x(cvtdq2ps, kX86InstIdCvtdq2ps, X86XmmReg, X86Mem)

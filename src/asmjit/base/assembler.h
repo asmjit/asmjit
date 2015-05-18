@@ -82,7 +82,7 @@ ASMJIT_ENUM(InstOptions) {
 
 //! \internal
 //!
-//! Data structure used to link linked-labels.
+//! Data structure used to link labels.
 struct LabelLink {
   //! Previous link.
   LabelLink* prev;
@@ -129,11 +129,9 @@ struct RelocData {
   //! Size of relocation (4 or 8 bytes).
   uint32_t size;
 
-  //! Offset from code begin address.
+  //! Offset from the initial code address.
   Ptr from;
-
-  //! Relative displacement from code begin address (not to `offset`) or
-  //! absolute address.
+  //! Relative displacement from the initial code address or from the absolute address.
   Ptr data;
 };
 
@@ -337,7 +335,6 @@ struct ASMJIT_VCLASS Assembler : public CodeGen {
   ASMJIT_INLINE bool isLabelValid(const Label& label) const {
     return isLabelValid(label.getId());
   }
-
   //! \overload
   ASMJIT_INLINE bool isLabelValid(uint32_t id) const {
     return static_cast<size_t>(id) < _labelList.getLength();
@@ -352,7 +349,6 @@ struct ASMJIT_VCLASS Assembler : public CodeGen {
   ASMJIT_INLINE bool isLabelBound(const Label& label) const {
     return isLabelBound(label.getId());
   }
-
   //! \overload
   ASMJIT_INLINE bool isLabelBound(uint32_t id) const {
     ASMJIT_ASSERT(isLabelValid(id));
@@ -364,7 +360,6 @@ struct ASMJIT_VCLASS Assembler : public CodeGen {
   ASMJIT_INLINE intptr_t getLabelOffset(const Label& label) const {
     return getLabelOffset(label.getId());
   }
-
   //! \overload
   ASMJIT_INLINE intptr_t getLabelOffset(uint32_t id) const {
     ASMJIT_ASSERT(isLabelValid(id));
@@ -375,7 +370,6 @@ struct ASMJIT_VCLASS Assembler : public CodeGen {
   ASMJIT_INLINE LabelData* getLabelData(const Label& label) const {
     return getLabelData(label.getId());
   }
-
   //! \overload
   ASMJIT_INLINE LabelData* getLabelData(uint32_t id) const {
     ASMJIT_ASSERT(isLabelValid(id));
@@ -535,9 +529,8 @@ struct ASMJIT_VCLASS Assembler : public CodeGen {
 // [Defined-Later]
 // ============================================================================
 
-ASMJIT_INLINE Label::Label(Assembler& a) : Operand(NoInit) {
-  a._newLabel(this);
-}
+ASMJIT_INLINE Label::Label(Assembler& a)
+  : Operand(NoInit) { a._newLabel(this); }
 
 } // asmjit namespace
 

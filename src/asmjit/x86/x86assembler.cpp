@@ -2289,6 +2289,32 @@ _EmitFpArith_Mem:
       }
       break;
 
+    case kX86InstEncodingIdExtExtrW:
+      if (encoded == ENC_OPS(Reg, Reg, Imm)) {
+        ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
+
+        imVal = static_cast<const Imm*>(o2)->getInt64();
+        imLen = 1;
+
+        opReg = x86OpReg(o0);
+        rmReg = x86OpReg(o1);
+        goto _EmitX86R;
+      }
+
+      if (encoded == ENC_OPS(Mem, Reg, Imm)) {
+        // Secondary opcode of 'pextrw' instruction (SSE4.1).
+        opCode = extendedInfo.getSecondaryOpCode();
+        ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
+
+        imVal = static_cast<const Imm*>(o2)->getInt64();
+        imLen = 1;
+
+        opReg = x86OpReg(o1);
+        rmMem = x86OpMem(o0);
+        goto _EmitX86M;
+      }
+      break;
+
     case kX86InstEncodingIdExtExtract:
       if (encoded == ENC_OPS(Reg, Reg, Imm)) {
         ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
@@ -2302,8 +2328,6 @@ _EmitFpArith_Mem:
       }
 
       if (encoded == ENC_OPS(Mem, Reg, Imm)) {
-        // Secondary opcode for 'pextrw' instruction (SSE2).
-        opCode = extendedInfo.getSecondaryOpCode();
         ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
 
         imVal = static_cast<const Imm*>(o2)->getInt64();

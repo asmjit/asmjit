@@ -244,7 +244,7 @@
 #endif
 
 // ============================================================================
-// [asmjit::Build - BLEND_OFFSET_OF]
+// [asmjit::Build - ASMJIT_OFFSET_OF]
 // ============================================================================
 
 //! Cross-platform solution to get offset of `_Field_` in `_Struct_`.
