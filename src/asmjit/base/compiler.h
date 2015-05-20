@@ -1206,10 +1206,12 @@ ASMJIT_TYPE_ID(Int8Type     , kVarTypeInt8);
 ASMJIT_TYPE_ID(UInt8Type    , kVarTypeUInt8);
 ASMJIT_TYPE_ID(Int16Type    , kVarTypeInt16);
 ASMJIT_TYPE_ID(UInt16Type   , kVarTypeUInt16);
-ASMJIT_TYPE_ID(Int32Type    , kVarTypeUInt32);
+ASMJIT_TYPE_ID(Int32Type    , kVarTypeInt32);
 ASMJIT_TYPE_ID(UInt32Type   , kVarTypeUInt32);
-ASMJIT_TYPE_ID(Int64Type    , kVarTypeUInt64);
+ASMJIT_TYPE_ID(Int64Type    , kVarTypeInt64);
 ASMJIT_TYPE_ID(UInt64Type   , kVarTypeUInt64);
+ASMJIT_TYPE_ID(IntPtrType   , kVarTypeIntPtr);
+ASMJIT_TYPE_ID(UIntPtrType  , kVarTypeUIntPtr);
 ASMJIT_TYPE_ID(FloatType    , kVarTypeFp32);
 ASMJIT_TYPE_ID(DoubleType   , kVarTypeFp64);
 #endif // !ASMJIT_DOCGEN

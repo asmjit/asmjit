@@ -1620,7 +1620,7 @@ namespace x86 {
   static const _Type_& _Name_ = x86RegData._Field_
 
 ASMJIT_DEF_REG(X86RipReg, rip, rip);        //!< RIP register.
-ASMJIT_DEF_REG(X86GpReg , noGpReg, noGp);   //!< No GP register (for `X86Mem` operand.).
+ASMJIT_DEF_REG(X86GpReg , noGpReg, noGp);   //!< No GP register (for `X86Mem` operand).
 
 ASMJIT_DEF_REG(X86SegReg, es   , seg[1]);   //!< Cs segment register.
 ASMJIT_DEF_REG(X86SegReg, cs   , seg[2]);   //!< Ss segment register.
