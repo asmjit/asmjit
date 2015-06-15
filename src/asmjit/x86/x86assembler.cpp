@@ -1192,7 +1192,8 @@ _Prepare:
 
         // Alternate Form - AL, AX, EAX, RAX.
         if (rmReg == 0 && (o0->getSize() == 1 || imLen != 1)) {
-          opCode = ((opReg << 3) | (0x04 + (o0->getSize() != 1)));
+          opCode &= kX86InstOpCode_PP_66 | kX86InstOpCode_W;
+          opCode |= ((opReg << 3) | (0x04 + (o0->getSize() != 1)));
           imLen = IntUtil::iMin<uint32_t>(o0->getSize(), 4);
           goto _EmitX86Op;
         }
