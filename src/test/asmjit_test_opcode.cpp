@@ -23,7 +23,8 @@ typedef void (*VoidFunc)(void);
 
 struct OpcodeDumpInfo {
   uint32_t arch;
-  bool useRex;
+  bool useRex1;
+  bool useRex2;
 };
 
 static const char* archIdToString(uint32_t archId) {
@@ -42,26 +43,29 @@ int main(int argc, char* argv[]) {
 
   OpcodeDumpInfo infoList[] = {
 # if defined(ASMJIT_BUILD_X86)
-    { asmjit::kArchX86, false },
+    { asmjit::kArchX86, false, false },
 # endif // ASMJIT_BUILD_X86
 # if defined(ASMJIT_BUILD_X64)
-    { asmjit::kArchX64, false },
-    { asmjit::kArchX64, true  }
+    { asmjit::kArchX64, false, false },
+    { asmjit::kArchX64, false, true  },
+    { asmjit::kArchX64, true , false },
+    { asmjit::kArchX64, true , true  }
 # endif // ASMJIT_BUILD_X64
   };
 
   for (int i = 0; i < ASMJIT_ARRAY_SIZE(infoList); i++) {
     const OpcodeDumpInfo& info = infoList[i];
 
-    printf("Opcodes [ARCH=%s REX=%s]\n",
+    printf("Opcodes [ARCH=%s REX1=%s REX2=%s]\n",
       archIdToString(info.arch),
-      info.useRex ? "true" : "false");
+      info.useRex1 ? "true" : "false",
+      info.useRex2 ? "true" : "false");
 
     asmjit::JitRuntime runtime;
     asmjit::X86Assembler a(&runtime, info.arch);
     a.setLogger(&logger);
 
-    asmgen::opcode(a, info.useRex);
+    asmgen::opcode(a, info.useRex1, info.useRex2);
     VoidFunc p = asmjit_cast<VoidFunc>(a.make());
 
     // Only run if disassembly makes sense.

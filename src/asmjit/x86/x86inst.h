@@ -1414,6 +1414,8 @@ ASMJIT_ENUM(X86InstEncodingId) {
   kX86InstEncodingIdAvxRvrmRvmr,
   //! AVX instruction encoded as 'RVRM' or 'RVMR' (Propagates AVX.L if Ymm used).
   kX86InstEncodingIdAvxRvrmRvmr_P,
+  //! Vmovd/Vmovq.
+  kX86InstEncodingIdAvxMovDQ,
   //! Vmovss/Vmovsd.
   kX86InstEncodingIdAvxMovSsSd,
   //! AVX2 gather family instructions (VSIB).

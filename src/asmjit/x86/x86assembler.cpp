@@ -2938,6 +2938,24 @@ _EmitAvxRvm:
       }
       break;
 
+    case kX86InstEncodingIdAvxMovDQ:
+      if (encoded == ENC_OPS(Reg, Reg, None)) {
+        if (static_cast<const X86Reg*>(o0)->isGp()) {
+          opCode = extendedInfo.getSecondaryOpCode();
+          opReg = x86OpReg(o1);
+          rmReg = x86OpReg(o0);
+          goto _EmitAvxR;
+        }
+
+        if (static_cast<const X86Reg*>(o1)->isGp()) {
+          opReg = x86OpReg(o0);
+          rmReg = x86OpReg(o1);
+          goto _EmitAvxR;
+        }
+      }
+
+      goto _AvxRmMr_AfterRegRegCheck;
+
     case kX86InstEncodingIdAvxRmMr_P:
       ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
       // ... Fall through ...
@@ -2949,6 +2967,7 @@ _EmitAvxRvm:
         goto _EmitAvxR;
       }
 
+_AvxRmMr_AfterRegRegCheck:
       if (encoded == ENC_OPS(Reg, Mem, None)) {
         opReg = x86OpReg(o0);
         rmMem = x86OpMem(o1);
@@ -3176,12 +3195,13 @@ _EmitAvxRvm:
       }
 
       if (encoded == ENC_OPS(Reg, Mem, None)) {
-        opReg = x86RegAndVvvv(opReg, x86OpReg(o0));
+        opReg = x86OpReg(o0);
         rmMem = x86OpMem(o1);
         goto _EmitAvxM;
       }
 
       if (encoded == ENC_OPS(Mem, Reg, None)) {
+        opCode = extendedInfo.getSecondaryOpCode();
         opReg = x86OpReg(o1);
         rmMem = x86OpMem(o0);
         goto _EmitAvxM;
@@ -3843,7 +3863,7 @@ _EmitFpuOp:
     vex_rxbmmmmm |= static_cast<uint32_t>(mBase  - 8 < 8) << 5; \
     vex_rxbmmmmm |= static_cast<uint32_t>(mIndex - 8 < 8) << 6; \
     \
-    if (vex_rxbmmmmm != 0x01 || vex_XvvvvLpp >= 0x80 || (options & kX86InstOptionVex3) != 0) { \
+    if ((vex_rxbmmmmm != 0x01) || (vex_XvvvvLpp >= 0x80) || ((options & kX86InstOptionVex3) != 0)) { \
       vex_rxbmmmmm |= static_cast<uint32_t>(opReg << 4) & 0x80; \
       vex_rxbmmmmm ^= 0xE0; \
       vex_XvvvvLpp ^= 0x78; \

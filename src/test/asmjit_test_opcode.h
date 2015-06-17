@@ -16,7 +16,7 @@ namespace asmgen {
 enum { kGenOpCodeInstCount = 2670 };
 
 // Generate all instructions asmjit can emit.
-static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
+static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 = false) {
   using namespace asmjit;
   using namespace asmjit::x86;
 
@@ -27,41 +27,44 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   // the `X86Assembler` is properly encoding all possible combinations. If the
   // `useRexRegs` argument is true the `A` version will in most cases contain
   // a register having index 8 (if encodable).
-  X86GpReg gLoA = useRex ? r8b : al;
-  X86GpReg gLoB = bl;
+  X86GpReg gLoA = useRex1 ? r8b : al;
+  X86GpReg gLoB = useRex2 ? r9b : bl;
 
   X86GpReg gHiA = ah;
   X86GpReg gHiB = bh;
 
-  X86GpReg gwA = useRex ? r8w : ax;
-  X86GpReg gwB = si;
+  X86GpReg gwA = useRex1 ? r8w : ax;
+  X86GpReg gwB = useRex2 ? r9w : bx;
 
-  X86GpReg gdA = useRex ? r8d : eax;
-  X86GpReg gdB = esi;
+  X86GpReg gdA = useRex1 ? r8d : eax;
+  X86GpReg gdB = useRex2 ? r9d : ebx;
 
-  X86GpReg gzA = useRex ? r8 : a.zax;
-  X86GpReg gzB = a.zsi;
-  X86GpReg gzC = a.zcx;
+  X86GpReg gzA = useRex1 ? r8  : a.zax;
+  X86GpReg gzB = useRex2 ? r9  : a.zbx;
+  X86GpReg gzC = useRex2 ? r10 : a.zcx;
+  X86GpReg gzD = useRex2 ? r11 : a.zdx;
 
   X86FpReg fpA = fp0;
   X86FpReg fpB = fp7;
 
   X86MmReg mmA = mm0;
-  X86MmReg mmB = mm7;
+  X86MmReg mmB = mm1;
 
-  X86XmmReg xmmA = useRex ? xmm8 : xmm0;
-  X86XmmReg xmmB = xmm1;
-  X86XmmReg xmmC = xmm2;
-  X86XmmReg xmmD = xmm3;
+  X86XmmReg xmmA = useRex1 ? xmm8  : xmm0;
+  X86XmmReg xmmB = useRex2 ? xmm9  : xmm1;
+  X86XmmReg xmmC = useRex2 ? xmm10 : xmm2;
+  X86XmmReg xmmD = useRex2 ? xmm11 : xmm3;
 
-  X86YmmReg ymmA = useRex ? ymm8 : ymm0;
-  X86YmmReg ymmB = ymm1;
-  X86YmmReg ymmC = ymm2;
-  X86YmmReg ymmD = ymm3;
+  X86YmmReg ymmA = useRex1 ? ymm8  : ymm0;
+  X86YmmReg ymmB = useRex2 ? ymm9  : ymm1;
+  X86YmmReg ymmC = useRex2 ? ymm10 : ymm2;
+  X86YmmReg ymmD = useRex2 ? ymm11 : ymm3;
 
   X86Mem anyptr_gpA = ptr(gzA);
   X86Mem anyptr_gpB = ptr(gzB);
   X86Mem anyptr_gpC = ptr(gzC);
+  X86Mem anyptr_gpD = ptr(gzD);
+
   X86Mem intptr_gpA = a.intptr_ptr(gzA);
   X86Mem intptr_gpB = a.intptr_ptr(gzB);
 
@@ -577,7 +580,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.movd(anyptr_gpA, mmB);
   a.movd(gdA, mmB);
   a.movd(mmA, anyptr_gpB);
-  a.movd(mmA, esi);
+  a.movd(mmA, gdB);
   a.movq(mmA, mmB);
   a.movq(anyptr_gpA, mmB);
   a.movq(mmA, anyptr_gpB);
@@ -747,7 +750,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.cvtpi2ps(xmmA, anyptr_gpB);
   a.cvtps2pi(mmA, xmmB);
   a.cvtps2pi(mmA, anyptr_gpB);
-  a.cvtsi2ss(xmmA, gzA);
+  a.cvtsi2ss(xmmA, gzB);
   a.cvtsi2ss(xmmA, anyptr_gpB);
   a.cvtss2si(gzA, xmmB);
   a.cvtss2si(gzA, anyptr_gpB);
@@ -759,7 +762,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.divps(xmmA, anyptr_gpB);
   a.divss(xmmA, xmmB);
   a.divss(xmmA, anyptr_gpB);
-  a.ldmxcsr(anyptr_gpB);
+  a.ldmxcsr(anyptr_gpA);
   a.maskmovq(mmA, mmB);
   a.maxps(xmmA, xmmB);
   a.maxps(xmmA, anyptr_gpB);
@@ -1227,13 +1230,13 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.pblendw(xmmA, anyptr_gpB, 0);
   a.pcmpeqq(xmmA, xmmB);
   a.pcmpeqq(xmmA, anyptr_gpB);
-  a.pextrb(gzA, xmmA, 0);
+  a.pextrb(gzA, xmmB, 0);
   a.pextrb(anyptr_gpA, xmmB, 0);
-  a.pextrd(gzA, xmmA, 0);
+  a.pextrd(gzA, xmmB, 0);
   a.pextrd(anyptr_gpA, xmmB, 0);
-  a.pextrq(gzA, xmmA, 0);
+  a.pextrq(gzA, xmmB, 0);
   a.pextrq(anyptr_gpA, xmmB, 0);
-  a.pextrw(gzA, xmmA, 0);
+  a.pextrw(gzA, xmmB, 0);
   a.pextrw(anyptr_gpA, xmmB, 0);
   a.phminposuw(xmmA, xmmB);
   a.phminposuw(xmmA, anyptr_gpB);
@@ -1456,9 +1459,9 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.vcvtsd2si(gzA, anyptr_gpB);
   a.vcvtsd2ss(xmmA, xmmB, xmmC);
   a.vcvtsd2ss(xmmA, xmmB, anyptr_gpC);
-  a.vcvtsi2sd(xmmA, xmmB, gzA);
+  a.vcvtsi2sd(xmmA, xmmB, gzC);
   a.vcvtsi2sd(xmmA, xmmB, anyptr_gpC);
-  a.vcvtsi2ss(xmmA, xmmB, gzA);
+  a.vcvtsi2ss(xmmA, xmmB, gzC);
   a.vcvtsi2ss(xmmA, xmmB, anyptr_gpC);
   a.vcvtss2sd(xmmA, xmmB, xmmC);
   a.vcvtss2sd(xmmA, xmmB, anyptr_gpC);
@@ -1523,12 +1526,12 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.vmaskmovdqu(xmmA, xmmB);
   a.vmaskmovps(xmmA, xmmB, anyptr_gpC);
   a.vmaskmovps(ymmA, ymmB, anyptr_gpC);
+  a.vmaskmovps(anyptr_gpA, xmmB, xmmC);
+  a.vmaskmovps(anyptr_gpA, ymmB, ymmC);
   a.vmaskmovpd(xmmA, xmmB, anyptr_gpC);
   a.vmaskmovpd(ymmA, ymmB, anyptr_gpC);
-  a.vmaskmovps(anyptr_gpA, xmmA, xmmB);
-  a.vmaskmovps(anyptr_gpA, ymmA, ymmB);
-  a.vmaskmovpd(anyptr_gpA, xmmA, xmmB);
-  a.vmaskmovpd(anyptr_gpA, ymmA, ymmB);
+  a.vmaskmovpd(anyptr_gpA, xmmB, xmmC);
+  a.vmaskmovpd(anyptr_gpA, ymmB, ymmC);
   a.vmaxpd(xmmA, xmmB, xmmC);
   a.vmaxpd(xmmA, xmmB, anyptr_gpC);
   a.vmaxpd(ymmA, ymmB, ymmC);
@@ -1565,7 +1568,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.vmovaps(ymmA, ymmB);
   a.vmovaps(ymmA, anyptr_gpB);
   a.vmovaps(anyptr_gpA, ymmB);
-  a.vmovd(xmmA, gzA);
+  a.vmovd(xmmA, gzB);
   a.vmovd(xmmA, anyptr_gpB);
   a.vmovd(gzA, xmmB);
   a.vmovd(anyptr_gpA, xmmB);
@@ -1760,11 +1763,11 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.vphsubsw(xmmA, xmmB, anyptr_gpC);
   a.vphsubw(xmmA, xmmB, xmmC);
   a.vphsubw(xmmA, xmmB, anyptr_gpC);
-  a.vpinsrb(xmmA, xmmB, gzA, 0);
+  a.vpinsrb(xmmA, xmmB, gzC, 0);
   a.vpinsrb(xmmA, xmmB, anyptr_gpC, 0);
-  a.vpinsrd(xmmA, xmmB, gzA, 0);
+  a.vpinsrd(xmmA, xmmB, gzC, 0);
   a.vpinsrd(xmmA, xmmB, anyptr_gpC, 0);
-  a.vpinsrw(xmmA, xmmB, gzA, 0);
+  a.vpinsrw(xmmA, xmmB, gzC, 0);
   a.vpinsrw(xmmA, xmmB, anyptr_gpC, 0);
   a.vpmaddubsw(xmmA, xmmB, xmmC);
   a.vpmaddubsw(xmmA, xmmB, anyptr_gpC);
@@ -2540,100 +2543,100 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
 
   a.vfmaddpd(xmmA, xmmB, xmmC, xmmD);
   a.vfmaddpd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmaddpd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmaddpd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmaddpd(ymmA, ymmB, ymmC, ymmD);
   a.vfmaddpd(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmaddpd(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmaddpd(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmaddps(xmmA, xmmB, xmmC, xmmD);
   a.vfmaddps(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmaddps(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmaddps(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmaddps(ymmA, ymmB, ymmC, ymmD);
   a.vfmaddps(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmaddps(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmaddps(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmaddsd(xmmA, xmmB, xmmC, xmmD);
   a.vfmaddsd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmaddsd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmaddsd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmaddss(xmmA, xmmB, xmmC, xmmD);
   a.vfmaddss(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmaddss(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmaddss(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmaddsubpd(xmmA, xmmB, xmmC, xmmD);
   a.vfmaddsubpd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmaddsubpd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmaddsubpd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmaddsubpd(ymmA, ymmB, ymmC, ymmD);
   a.vfmaddsubpd(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmaddsubpd(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmaddsubpd(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmaddsubps(xmmA, xmmB, xmmC, xmmD);
   a.vfmaddsubps(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmaddsubps(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmaddsubps(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmaddsubps(ymmA, ymmB, ymmC, ymmD);
   a.vfmaddsubps(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmaddsubps(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmaddsubps(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmsubaddpd(xmmA, xmmB, xmmC, xmmD);
   a.vfmsubaddpd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmsubaddpd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmsubaddpd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmsubaddpd(ymmA, ymmB, ymmC, ymmD);
   a.vfmsubaddpd(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmsubaddpd(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmsubaddpd(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmsubaddps(xmmA, xmmB, xmmC, xmmD);
   a.vfmsubaddps(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmsubaddps(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmsubaddps(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmsubaddps(ymmA, ymmB, ymmC, ymmD);
   a.vfmsubaddps(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmsubaddps(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmsubaddps(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmsubpd(xmmA, xmmB, xmmC, xmmD);
   a.vfmsubpd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmsubpd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmsubpd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmsubpd(ymmA, ymmB, ymmC, ymmD);
   a.vfmsubpd(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmsubpd(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmsubpd(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmsubps(xmmA, xmmB, xmmC, xmmD);
   a.vfmsubps(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmsubps(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmsubps(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmsubps(ymmA, ymmB, ymmC, ymmD);
   a.vfmsubps(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfmsubps(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfmsubps(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfmsubsd(xmmA, xmmB, xmmC, xmmD);
   a.vfmsubsd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmsubsd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmsubsd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfmsubss(xmmA, xmmB, xmmC, xmmD);
   a.vfmsubss(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfmsubss(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfmsubss(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmaddpd(xmmA, xmmB, xmmC, xmmD);
   a.vfnmaddpd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmaddpd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmaddpd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmaddpd(ymmA, ymmB, ymmC, ymmD);
   a.vfnmaddpd(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfnmaddpd(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfnmaddpd(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfnmaddps(xmmA, xmmB, xmmC, xmmD);
   a.vfnmaddps(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmaddps(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmaddps(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmaddps(ymmA, ymmB, ymmC, ymmD);
   a.vfnmaddps(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfnmaddps(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfnmaddps(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfnmaddsd(xmmA, xmmB, xmmC, xmmD);
   a.vfnmaddsd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmaddsd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmaddsd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmaddss(xmmA, xmmB, xmmC, xmmD);
   a.vfnmaddss(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmaddss(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmaddss(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmsubpd(xmmA, xmmB, xmmC, xmmD);
   a.vfnmsubpd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmsubpd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmsubpd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmsubpd(ymmA, ymmB, ymmC, ymmD);
   a.vfnmsubpd(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfnmsubpd(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfnmsubpd(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfnmsubps(xmmA, xmmB, xmmC, xmmD);
   a.vfnmsubps(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmsubps(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmsubps(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmsubps(ymmA, ymmB, ymmC, ymmD);
   a.vfnmsubps(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vfnmsubps(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vfnmsubps(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vfnmsubsd(xmmA, xmmB, xmmC, xmmD);
   a.vfnmsubsd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmsubsd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmsubsd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vfnmsubss(xmmA, xmmB, xmmC, xmmD);
   a.vfnmsubss(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vfnmsubss(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vfnmsubss(xmmA, xmmB, xmmC, anyptr_gpD);
 
   // XOP.
   a.nop();
@@ -2652,10 +2655,10 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.vfrczss(xmmA, anyptr_gpB);
   a.vpcmov(xmmA, xmmB, xmmC, xmmD);
   a.vpcmov(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vpcmov(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vpcmov(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vpcmov(ymmA, ymmB, ymmC, ymmD);
   a.vpcmov(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vpcmov(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vpcmov(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vpcomb(xmmA, xmmB, xmmC, 0);
   a.vpcomb(xmmA, xmmB, anyptr_gpC, 0);
   a.vpcomd(xmmA, xmmB, xmmC, 0);
@@ -2674,16 +2677,16 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.vpcomuw(xmmA, xmmB, anyptr_gpC, 0);
   a.vpermil2pd(xmmA, xmmB, xmmC, xmmD);
   a.vpermil2pd(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vpermil2pd(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vpermil2pd(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vpermil2pd(ymmA, ymmB, ymmC, ymmD);
   a.vpermil2pd(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vpermil2pd(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vpermil2pd(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vpermil2ps(xmmA, xmmB, xmmC, xmmD);
   a.vpermil2ps(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vpermil2ps(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vpermil2ps(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vpermil2ps(ymmA, ymmB, ymmC, ymmD);
   a.vpermil2ps(ymmA, ymmB, anyptr_gpC, ymmD);
-  a.vpermil2ps(ymmA, ymmB, ymmC, anyptr_gpA);
+  a.vpermil2ps(ymmA, ymmB, ymmC, anyptr_gpD);
   a.vphaddbd(xmmA, xmmB);
   a.vphaddbd(xmmA, anyptr_gpB);
   a.vphaddbq(xmmA, xmmB);
@@ -2740,7 +2743,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.vpmadcswd(xmmA, xmmB, anyptr_gpC, xmmD);
   a.vpperm(xmmA, xmmB, xmmC, xmmD);
   a.vpperm(xmmA, xmmB, anyptr_gpC, xmmD);
-  a.vpperm(xmmA, xmmB, xmmC, anyptr_gpA);
+  a.vpperm(xmmA, xmmB, xmmC, anyptr_gpD);
   a.vprotb(xmmA, xmmB, xmmC);
   a.vprotb(xmmA, anyptr_gpB, xmmC);
   a.vprotb(xmmA, xmmB, anyptr_gpC);
@@ -2790,7 +2793,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.nop();
 
   a.andn(gzA, gzB, gzC);
-  a.andn(gzA, gzB, anyptr_gpB);
+  a.andn(gzA, gzB, anyptr_gpC);
   a.bextr(gzA, gzB, gzC);
   a.bextr(gzA, anyptr_gpB, gzC);
   a.blsi(gzA, gzB);
@@ -2818,11 +2821,11 @@ static void opcode(asmjit::X86Assembler& a, bool useRex = false) {
   a.bzhi(gzA, gzB, gzC);
   a.bzhi(gzA, anyptr_gpB, gzC);
   a.mulx(gzA, gzB, gzC);
-  a.mulx(gzA, gzB, anyptr_gpB);
+  a.mulx(gzA, gzB, anyptr_gpC);
   a.pdep(gzA, gzB, gzC);
-  a.pdep(gzA, gzB, anyptr_gpB);
+  a.pdep(gzA, gzB, anyptr_gpC);
   a.pext(gzA, gzB, gzC);
-  a.pext(gzA, gzB, anyptr_gpB);
+  a.pext(gzA, gzB, anyptr_gpC);
   a.rorx(gzA, gzB, 0);
   a.rorx(gzA, anyptr_gpB, 0);
   a.sarx(gzA, gzB, gzC);

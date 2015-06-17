@@ -1223,7 +1223,7 @@ const char _x86InstName[] =
   "xsetbv\0";
 
 // Automatically generated, do not edit.
-enum X86InstAlphaIndex {
+enum kX86InstAlphaIndex {
   kX86InstAlphaIndexFirst = 'a',
   kX86InstAlphaIndexLast = 'z',
   kX86InstAlphaIndexInvalid = 0xFFFF
@@ -1260,7 +1260,7 @@ static const uint16_t _x86InstAlphaIndex[26] = {
 };
 
 // Automatically generated, do not edit.
-enum X86InstData_NameIndex {
+enum kX86InstData_NameIndex {
   kInstIdNone_NameIndex = 0,
   kX86InstIdAdc_NameIndex = 1,
   kX86InstIdAdd_NameIndex = 5,
@@ -2552,7 +2552,7 @@ const X86InstExtendedInfo _x86InstExtendedInfo[] = {
   { Enc(AvxRvmMvr_P)  , 0 , 0 , 0x00, 0x00, 0, { O(XyMem)          , O(Xy)             , O(XyMem)          , U                 , U                  }, F(Avx)                             , O_660F38(2E,U,_,_,_) },
   { Enc(AvxRmMr_P)    , 0 , 0 , 0x00, 0x00, 0, { O(XyMem)          , O(XyMem)          , U                 , U                 , U                  }, F(Avx)                             , O_660F00(29,U,_,_,_) },
   { Enc(AvxRmMr_P)    , 0 , 0 , 0x00, 0x00, 0, { O(XyMem)          , O(XyMem)          , U                 , U                 , U                  }, F(Avx)                             , O_000F00(29,U,_,_,_) },
-  { Enc(AvxRmMr)      , 0 , 0 , 0x00, 0x00, 0, { O(XmmMem)         , O(XmmMem)         , U                 , U                 , U                  }, F(Avx)                             , O_660F00(7E,U,_,_,_) },
+  { Enc(AvxMovDQ)     , 0 , 0 , 0x00, 0x00, 0, { O(XmmMem)         , O(XmmMem)         , U                 , U                 , U                  }, F(Avx)                             , O_660F00(7E,U,_,_,_) },
   { Enc(AvxRmMr_P)    , 0 , 0 , 0x00, 0x00, 0, { O(XyMem)          , O(XyMem)          , U                 , U                 , U                  }, F(Avx)                             , O_660F00(7F,U,_,_,_) },
   { Enc(AvxRmMr_P)    , 0 , 0 , 0x00, 0x00, 0, { O(XyMem)          , O(XyMem)          , U                 , U                 , U                  }, F(Avx)                             , O_F30F00(7F,U,_,_,_) },
   { Enc(AvxRvm)       , 0 , 0 , 0x00, 0x00, 0, { O(Xmm)            , O(Xmm)            , O(Xmm)            , U                 , U                  }, F(Avx)                             , U                    },
@@ -2612,7 +2612,7 @@ const X86InstExtendedInfo _x86InstExtendedInfo[] = {
 };
 
 // Automatically generated, do not edit.
-enum X86InstData_ExtendedIndex {
+enum kX86InstData_ExtendedIndex {
   kInstIdNone_ExtendedIndex = 0,
   kX86InstIdAdc_ExtendedIndex = 1,
   kX86InstIdAdd_ExtendedIndex = 2,
@@ -4475,7 +4475,7 @@ const X86InstInfo _x86InstInfo[] = {
   INST(kX86InstIdVminss           , "vminss"           , O_F30F00(5D,U,_,_,_), U                   , Enc(AvxRvm_P)     , F(Avx)                             , EF(________), 0 , 0 , O(Xy)             , O(Xy)             , O(XyMem)          , U                 , U                 ),
   INST(kX86InstIdVmovapd          , "vmovapd"          , O_660F00(28,U,_,_,_), O_660F00(29,U,_,_,_), Enc(AvxRmMr_P)    , F(Avx)                             , EF(________), 0 , 0 , O(XyMem)          , O(XyMem)          , U                 , U                 , U                 ),
   INST(kX86InstIdVmovaps          , "vmovaps"          , O_000F00(28,U,_,_,_), O_000F00(29,U,_,_,_), Enc(AvxRmMr_P)    , F(Avx)                             , EF(________), 0 , 0 , O(XyMem)          , O(XyMem)          , U                 , U                 , U                 ),
-  INST(kX86InstIdVmovd            , "vmovd"            , O_660F00(6E,U,_,_,_), O_660F00(7E,U,_,_,_), Enc(AvxRmMr)      , F(Avx)                             , EF(________), 0 , 0 , O(XmmMem)         , O(XmmMem)         , U                 , U                 , U                 ),
+  INST(kX86InstIdVmovd            , "vmovd"            , O_660F00(6E,U,_,_,_), O_660F00(7E,U,_,_,_), Enc(AvxMovDQ)     , F(Avx)                             , EF(________), 0 , 0 , O(XmmMem)         , O(XmmMem)         , U                 , U                 , U                 ),
   INST(kX86InstIdVmovddup         , "vmovddup"         , O_F20F00(12,U,_,_,_), U                   , Enc(AvxRm_P)      , F(Avx)                             , EF(________), 0 , 0 , O(Xy)             , O(XyMem)          , U                 , U                 , U                 ),
   INST(kX86InstIdVmovdqa          , "vmovdqa"          , O_660F00(6F,U,_,_,_), O_660F00(7F,U,_,_,_), Enc(AvxRmMr_P)    , F(Avx)                             , EF(________), 0 , 0 , O(XyMem)          , O(XyMem)          , U                 , U                 , U                 ),
   INST(kX86InstIdVmovdqu          , "vmovdqu"          , O_F30F00(6F,U,_,_,_), O_F30F00(7F,U,_,_,_), Enc(AvxRmMr_P)    , F(Avx)                             , EF(________), 0 , 0 , O(XyMem)          , O(XyMem)          , U                 , U                 , U                 ),
@@ -4491,7 +4491,7 @@ const X86InstInfo _x86InstInfo[] = {
   INST(kX86InstIdVmovntdqa        , "vmovntdqa"        , O_660F38(2A,U,_,_,_), U                   , Enc(AvxRm_P)      , F(Avx)                             , EF(________), 0 , 0 , O(Xy)             , O(Mem)            , U                 , U                 , U                 ),
   INST(kX86InstIdVmovntpd         , "vmovntpd"         , O_660F00(2B,U,_,_,_), U                   , Enc(AvxMr_P)      , F(Avx)                             , EF(________), 0 , 0 , O(Mem)            , O(Xy)             , U                 , U                 , U                 ),
   INST(kX86InstIdVmovntps         , "vmovntps"         , O_000F00(2B,U,_,_,_), U                   , Enc(AvxMr_P)      , F(Avx)                             , EF(________), 0 , 0 , O(Mem)            , O(Xy)             , U                 , U                 , U                 ),
-  INST(kX86InstIdVmovq            , "vmovq"            , O_660F00(6E,U,_,W,_), O_660F00(7E,U,_,_,_), Enc(AvxRmMr)      , F(Avx)                             , EF(________), 0 , 0 , O(XmmMem)         , O(XmmMem)         , U                 , U                 , U                 ),
+  INST(kX86InstIdVmovq            , "vmovq"            , O_660F00(6E,U,_,W,_), O_660F00(7E,U,_,_,_), Enc(AvxMovDQ)     , F(Avx)                             , EF(________), 0 , 0 , O(XmmMem)         , O(XmmMem)         , U                 , U                 , U                 ),
   INST(kX86InstIdVmovsd           , "vmovsd"           , O_F20F00(10,U,_,_,_), O_F20F00(11,U,_,_,_), Enc(AvxMovSsSd)   , F(Avx)                             , EF(________), 0 , 0 , O(XmmMem)         , O(XmmMem)         , O(Xmm)            , U                 , U                 ),
   INST(kX86InstIdVmovshdup        , "vmovshdup"        , O_F30F00(16,U,_,_,_), U                   , Enc(AvxRm_P)      , F(Avx)                             , EF(________), 0 , 0 , O(Xy)             , O(XyMem)          , U                 , U                 , U                 ),
   INST(kX86InstIdVmovsldup        , "vmovsldup"        , O_F30F00(12,U,_,_,_), U                   , Enc(AvxRm_P)      , F(Avx)                             , EF(________), 0 , 0 , O(Xy)             , O(XyMem)          , U                 , U                 , U                 ),
