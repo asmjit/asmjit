@@ -5,11 +5,11 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Dependencies - AsmJit]
-#include <asmjit/asmjit.h>
+#include "../asmjit/asmjit.h"
 
 // [Dependencies - Test]
-#include "genblend.h"
-#include "genopcode.h"
+#include "./asmjit_test_opcode.h"
+#include "./genblend.h"
 
 // [Dependencies - C]
 #include <stdio.h>

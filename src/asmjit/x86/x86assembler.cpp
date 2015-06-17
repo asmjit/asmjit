@@ -155,11 +155,17 @@ static ASMJIT_INLINE bool x86RexIsInvalid(uint32_t rex) {
 
 //! Encode ModR/M.
 static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) {
+  ASMJIT_ASSERT(m <= 7);
+  ASMJIT_ASSERT(o <= 7);
+  ASMJIT_ASSERT(rm <= 7);
   return (m << 6) + (o << 3) + rm;
 }
 
 //! Encode SIB.
 static ASMJIT_INLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) {
+  ASMJIT_ASSERT(s <= 7);
+  ASMJIT_ASSERT(i <= 7);
+  ASMJIT_ASSERT(b <= 7);
   return (s << 6) + (i << 3) + b;
 }
 
@@ -187,7 +193,7 @@ static ASMJIT_INLINE uint32_t x86RegAndVvvv(uint32_t regIndex, uint32_t vvvvInde
 
 //! Get `O` field of `opCode`.
 static ASMJIT_INLINE uint32_t x86ExtractO(uint32_t opCode) {
-  return (opCode >> kX86InstOpCode_O_Shift) & 0x7;
+  return (opCode >> kX86InstOpCode_O_Shift) & 0x07;
 }
 
 // ============================================================================
@@ -1429,7 +1435,7 @@ _Prepare:
         // INC r16|r32 is not encodable in 64-bit mode.
         if (Arch == kArchX86 && (o0->getSize() == 2 || o0->getSize() == 4)) {
           opCode &= kX86InstOpCode_PP_66 | kX86InstOpCode_W;
-          opCode |= extendedInfo.getSecondaryOpCode() + (static_cast<uint32_t>(rmReg) & 0x7);
+          opCode |= extendedInfo.getSecondaryOpCode() + (static_cast<uint32_t>(rmReg) & 0x07);
           goto _EmitX86Op;
         }
         else {
@@ -3493,7 +3499,7 @@ _EmitX86OpWithOpReg:
 
     if (rex & ~static_cast<uint32_t>(_kX86InstOptionNoRex)) {
       rex |= kX86ByteRex;
-      opReg &= 0x7;
+      opReg &= 0x07;
       EMIT_BYTE(rex);
 
       if (x86RexIsInvalid(rex))
@@ -3524,8 +3530,8 @@ _EmitX86R:
 
     if (rex & ~static_cast<uint32_t>(_kX86InstOptionNoRex)) {
       rex |= kX86ByteRex;
-      opReg &= 0x7;
-      rmReg &= 0x7;
+      opReg &= 0x07;
+      rmReg &= 0x07;
       EMIT_BYTE(rex);
 
       if (x86RexIsInvalid(rex))
@@ -3582,14 +3588,14 @@ _EmitX86M:
 
     if (rex & ~static_cast<uint32_t>(_kX86InstOptionNoRex)) {
       rex |= kX86ByteRex;
-      opReg &= 0x7;
+      opReg &= 0x07;
       EMIT_BYTE(rex);
 
       if (x86RexIsInvalid(rex))
         goto _IllegalInst;
     }
 
-    mBase &= 0x7;
+    mBase &= 0x07;
   }
 
   // Instruction opcodes.
@@ -3643,7 +3649,7 @@ _EmitSib:
       uint32_t shift = rmMem->getShift();
 
       // Esp/Rsp/R12 register can't be used as an index.
-      mIndex &= 0x7;
+      mIndex &= 0x07;
       ASMJIT_ASSERT(mIndex != kX86RegIndexSp);
 
       if (mBase != kX86RegIndexBp && dispOffset == 0) {
@@ -3734,7 +3740,7 @@ _EmitSib:
       }
       else {
         // [Disp32 + Index * Scale].
-        mIndex &= 0x7;
+        mIndex &= 0x07;
         ASMJIT_ASSERT(mIndex != kX86RegIndexSp);
 
         uint32_t shift = rmMem->getShift();
@@ -3857,8 +3863,8 @@ _EmitFpuOp:
     } \
   } \
   \
-  mBase &= 0x7; \
-  opReg &= 0x7;
+  mBase &= 0x07; \
+  opReg &= 0x07;
 
 _EmitAvxOp:
   {
@@ -3920,7 +3926,7 @@ _EmitAvxR:
     }
   }
 
-  EMIT_BYTE(x86EncodeMod(3, opReg, static_cast<uint32_t>(rmReg)));
+  EMIT_BYTE(x86EncodeMod(3, opReg & 0x07, static_cast<uint32_t>(rmReg)));
 
   if (imLen == 0)
     goto _EmitDone;
@@ -3939,7 +3945,7 @@ _EmitAvxV:
     goto _IllegalInst;
 
   if (Arch == kArchX64)
-    mIndex &= 0x7;
+    mIndex &= 0x07;
 
   dispOffset = rmMem->getDisplacement();
   if (rmMem->isBaseIndexType()) {
@@ -4046,8 +4052,8 @@ _EmitAvxV:
     EMIT_OP(opCode); \
   } \
   \
-  mBase &= 0x7; \
-  opReg &= 0x7;
+  mBase &= 0x07; \
+  opReg &= 0x07;
 
 _EmitXopR:
   {
@@ -4074,7 +4080,7 @@ _EmitXopR:
     rmReg &= 0x07;
   }
 
-  EMIT_BYTE(x86EncodeMod(3, opReg, static_cast<uint32_t>(rmReg)));
+  EMIT_BYTE(x86EncodeMod(3, opReg & 0x07, static_cast<uint32_t>(rmReg)));
 
   if (imLen == 0)
     goto _EmitDone;

@@ -365,15 +365,15 @@
 //! \brief Contributions.
 
 // [Dependencies - Base]
-#include "base.h"
+#include "./base.h"
 
 // [Dependencies - X86/X64]
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
-#include "x86.h"
+#include "./x86.h"
 #endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64
 
 // [Dependencies - Host]
-#include "host.h"
+#include "./host.h"
 
 // [Guard]
 #endif // _ASMJIT_ASMJIT_H

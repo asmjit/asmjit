@@ -320,31 +320,31 @@ EndIf()
 # =============================================================================
 
 # AsmJit library is always embedded into the tests executable. This way it's
-# much easier to test private functions compared to just linking to AsmJit.
+# much easier to test private functions than just linking to `libasmjit.so`.
 If(ASMJIT_BUILD_TEST)
-  AsmJit_AddSource(ASMJIT_TEST_SRC asmjit/test broken.cpp broken.h main.cpp)
+  AsmJit_AddSource(ASMJIT_TEST_SRC test asmjit_test_unit.cpp broken.cpp broken.h)
 
   Set(ASMJIT_TEST_CFLAGS
     ${ASMJIT_CFLAGS}
     ${ASMJIT_DEFINE}ASMJIT_STATIC
     ${ASMJIT_DEFINE}ASMJIT_TEST)
 
-  Add_Executable(asmjit_test ${ASMJIT_SRC} ${ASMJIT_TEST_SRC})
-  Target_Link_Libraries(asmjit_test ${ASMJIT_DEPS})
+  Add_Executable(asmjit_test_unit ${ASMJIT_SRC} ${ASMJIT_TEST_SRC})
+  Target_Link_Libraries(asmjit_test_unit ${ASMJIT_DEPS})
 
   If(${CMAKE_BUILD_TYPE})
     If(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      Set_Target_Properties(asmjit_test PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_DBG})
+      Set_Target_Properties(asmjit_test_unit PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_DBG})
     Else()
-      Set_Target_Properties(asmjit_test PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_REL})
+      Set_Target_Properties(asmjit_test_unit PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_REL})
     EndIf()
   Else()
-    Target_Compile_Options(asmjit_test PUBLIC ${ASMJIT_TEST_CFLAGS}
+    Target_Compile_Options(asmjit_test_unit PUBLIC ${ASMJIT_TEST_CFLAGS}
       $<$<CONFIG:Debug>:${ASMJIT_CFLAGS_DBG}>
       $<$<NOT:$<CONFIG:Debug>>:${ASMJIT_CFLAGS_REL}>)
   EndIf()
 
-  Set_Target_Properties(asmjit_test PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
+  Set_Target_Properties(asmjit_test_unit PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
 EndIf()
 
 # =============================================================================
@@ -359,7 +359,7 @@ If(ASMJIT_BUILD_SAMPLES)
   )
 
   ForEach(file ${ASMJIT_SRC_SAMPLES})
-    Add_Executable(${file} src/app/test/${file}.cpp)
+    Add_Executable(${file} src/test/${file}.cpp)
     Target_Link_Libraries(${file} asmjit ${ASMJIT_DEPS})
   EndForEach(file)
 EndIf()

@@ -9,14 +9,14 @@
 #define _ASMJIT_HOST_H
 
 // [Dependencies - Core]
-#include "base.h"
+#include "./base.h"
 
 // ============================================================================
 // [asmjit::host - X86 / X64]
 // ============================================================================
 
 #if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
-#include "x86.h"
+#include "./x86.h"
 
 namespace asmjit {
 

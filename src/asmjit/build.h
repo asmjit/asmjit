@@ -389,7 +389,7 @@ typedef unsigned __int64 uint64_t;
 
 // Include a unit testing package if this is a `asmjit_test` build.
 #if defined(ASMJIT_TEST)
-#include "./test/broken.h"
+#include "../test/broken.h"
 #endif // ASMJIT_TEST
 
 // [Guard]

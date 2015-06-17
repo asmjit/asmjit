@@ -1887,7 +1887,7 @@ static ASMJIT_INLINE X86Mem ptr(const Label& label, const X86GpReg& index, uint3
 
 //! Create `[RIP + disp]` memory operand with no/custom size information.
 static ASMJIT_INLINE X86Mem ptr(const X86RipReg& rip, int32_t disp = 0, uint32_t size = 0) {
-  return X86Mem(rip, disp, size); 
+  return X86Mem(rip, disp, size);
 }
 
 //! Create `[pAbs + disp]` absolute memory operand with no/custom size information.

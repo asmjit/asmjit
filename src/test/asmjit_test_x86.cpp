@@ -5,10 +5,10 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Dependencies - AsmJit]
-#include <asmjit/asmjit.h>
+#include "../asmjit/asmjit.h"
 
 // [Dependencies - Test]
-#include "genblend.h"
+#include "./genblend.h"
 
 // [Dependencies - C]
 #include <stdio.h>
@@ -1799,7 +1799,7 @@ struct X86Test_CallBase : public X86Test {
 
     // Call function.
     X86GpVar fn(c, kVarTypeIntPtr, "fn");
-    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(fn, imm_ptr(calledFunc));
 
     X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder3<int, int, int, int>());
     call->setArg(0, v2);
@@ -1845,7 +1845,7 @@ struct X86Test_CallFast : public X86Test {
     c.addFunc(kFuncConvHost, FuncBuilder1<int, int>());
     c.setArg(0, var);
 
-    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(fn, imm_ptr(calledFunc));
     X86CallNode* call;
 
     call = c.call(fn, kFuncConvHostFastCall, FuncBuilder1<int, int>());
@@ -1910,7 +1910,7 @@ struct X86Test_CallManyArgs : public X86Test {
     X86GpVar vi(c, kVarTypeInt32, "vi");
     X86GpVar vj(c, kVarTypeInt32, "vj");
 
-    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(fn, imm_ptr(calledFunc));
     c.mov(va, 0x03);
     c.mov(vb, 0x12);
     c.mov(vc, 0xA0);
@@ -1977,7 +1977,7 @@ struct X86Test_CallDuplicateArgs : public X86Test {
     X86GpVar fn(c, kVarTypeIntPtr, "fn");
     X86GpVar a(c, kVarTypeInt32, "a");
 
-    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(fn, imm_ptr(calledFunc));
     c.mov(a, 3);
 
     // Call function.
@@ -2031,7 +2031,7 @@ struct X86Test_CallImmArgs : public X86Test {
     X86GpVar fn(c, kVarTypeIntPtr, "fn");
     X86GpVar rv(c, kVarTypeInt32, "rv");
 
-    c.mov(fn, imm_ptr((void*)X86Test_CallManyArgs::calledFunc));
+    c.mov(fn, imm_ptr(X86Test_CallManyArgs::calledFunc));
 
     // Call function.
     X86CallNode* call = c.call(fn, kFuncConvHost,
@@ -2097,7 +2097,7 @@ struct X86Test_CallPtrArgs : public X86Test {
     X86GpVar fn(c, kVarTypeIntPtr, "fn");
     X86GpVar rv(c, kVarTypeInt32, "rv");
 
-    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(fn, imm_ptr(calledFunc));
 
     // Call function.
     X86CallNode* call = c.call(fn, kFuncConvHost,
@@ -2159,7 +2159,7 @@ struct X86Test_CallFloatAsXmmRet : public X86Test {
 
     // Prepare.
     X86GpVar fn(c);
-    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(fn, imm_ptr(calledFunc));
 
     // Call function.
     X86CallNode* call = c.call(fn, kFuncConvHost,
@@ -2213,7 +2213,7 @@ struct X86Test_CallDoubleAsXmmRet : public X86Test {
     c.setArg(1, b);
 
     X86GpVar fn(c);
-    c.mov(fn, imm_ptr((void*)calledFunc));
+    c.mov(fn, imm_ptr(calledFunc));
 
     X86CallNode* call = c.call(fn, kFuncConvHost,
       FuncBuilder2<double, double, double>());
@@ -2474,7 +2474,7 @@ struct X86Test_CallMisc1 : public X86Test {
     c.alloc(a, x86::eax);
     c.alloc(b, x86::ebx);
 
-    X86CallNode* call = c.call(imm_ptr((void*)dummy), kFuncConvHost, FuncBuilder2<void, int, int>());
+    X86CallNode* call = c.call(imm_ptr(dummy), kFuncConvHost, FuncBuilder2<void, int, int>());
     call->setArg(0, a);
     call->setArg(1, b);
 
@@ -2520,7 +2520,7 @@ struct X86Test_CallMisc2 : public X86Test {
 
     c.setArg(0, p);
     c.movsd(arg, x86::ptr(p));
-    c.mov(fn, imm_ptr((void*)op));
+    c.mov(fn, imm_ptr(op));
 
     X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder1<double, double>());
     call->setArg(0, arg);
@@ -2570,7 +2570,7 @@ struct X86Test_CallMisc3 : public X86Test {
 
     c.setArg(0, p);
     c.movsd(arg, x86::ptr(p));
-    c.mov(fn, imm_ptr((void*)op));
+    c.mov(fn, imm_ptr(op));
 
     X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder1<double, double>());
     call->setArg(0, arg);
@@ -2599,6 +2599,49 @@ struct X86Test_CallMisc3 : public X86Test {
   }
 
   static double op(double a) { return a * a; }
+};
+
+// ============================================================================
+// [X86Test_CallMisc4]
+// ============================================================================
+
+struct X86Test_CallMisc4 : public X86Test {
+  X86Test_CallMisc4() : X86Test("[Call] Misc #4") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_CallMisc4());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    FuncBuilderX funcPrototype;
+    funcPrototype.setRet(kVarTypeFp64);
+    X86FuncNode* func = c.addFunc(kFuncConvHost, funcPrototype);
+
+    FuncBuilderX callPrototype;
+    callPrototype.setRet(kVarTypeFp64);
+    X86CallNode* call = c.call(imm_ptr(calledFunc), kFuncConvHost, callPrototype);
+
+    X86XmmVar ret(c, kX86VarTypeXmmSd, "ret");
+    call->setRet(0, ret);
+    c.ret(ret);
+
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef double (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    double resultRet = func();
+    double expectRet = 3.14;
+
+    result.setFormat("ret=%g", resultRet);
+    expect.setFormat("ret=%g", expectRet);
+
+    return resultRet == expectRet;
+  }
+
+  static double calledFunc() { return 3.14; }
 };
 
 // ============================================================================
@@ -2732,14 +2775,14 @@ struct X86Test_MiscMultiRet : public X86Test {
     expect.setFormat("ret={%d %d %d %d}", e0, e1, e2, e3);
 
     return result.eq(expect);
-}
+  }
 };
 
 // ============================================================================
 // [X86Test_MiscUnfollow]
 // ============================================================================
 
-// Global (I didn't find better way to really test this).
+// Global (I didn't find a better way to test this).
 static jmp_buf globalJmpBuf;
 
 struct X86Test_MiscUnfollow : public X86Test {
@@ -2881,6 +2924,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallMisc1);
   ADD_TEST(X86Test_CallMisc2);
   ADD_TEST(X86Test_CallMisc3);
+  ADD_TEST(X86Test_CallMisc4);
 
   // Misc.
   ADD_TEST(X86Test_MiscConstPool);

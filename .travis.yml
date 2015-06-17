@@ -37,8 +37,8 @@ script:
   - make
   - cd ..
 
-  - ./build/asmjit_test
+  - ./build/asmjit_test_unit
   - ./build/asmjit_test_x86
 
 after_success:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./build/asmjit_test; fi;
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./build/asmjit_test_unit; fi;

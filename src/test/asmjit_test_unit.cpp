@@ -5,9 +5,7 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Dependencies - AsmJit]
-#include "../asmjit.h"
-
-using namespace asmjit;
+#include "../asmjit/asmjit.h"
 
 // ============================================================================
 // [DumpCpu]
@@ -18,14 +16,14 @@ struct DumpCpuFeature {
   const char* name;
 };
 
-static void dumpCpuFeatures(const CpuInfo* cpuInfo, const DumpCpuFeature* data, size_t count) {
+static void dumpCpuFeatures(const asmjit::CpuInfo* cpuInfo, const DumpCpuFeature* data, size_t count) {
   for (size_t i = 0; i < count; i++)
     if (cpuInfo->hasFeature(data[i].feature))
       INFO("  %s", data[i].name);
 }
 
 static void dumpCpu(void) {
-  const CpuInfo* cpu = CpuInfo::getHost();
+  const asmjit::CpuInfo* cpu = asmjit::CpuInfo::getHost();
 
   INFO("Host CPU Info:");
   INFO("  Vendor string              : %s", cpu->getVendorString());
@@ -41,67 +39,67 @@ static void dumpCpu(void) {
   // --------------------------------------------------------------------------
 
 #if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
-  const X86CpuInfo* x86Cpu = static_cast<const X86CpuInfo*>(cpu);
+  const asmjit::X86CpuInfo* x86Cpu = static_cast<const asmjit::X86CpuInfo*>(cpu);
 
   static const DumpCpuFeature x86FeaturesList[] = {
-    { kX86CpuFeatureNX                 , "NX (Non-Execute Bit)"  },
-    { kX86CpuFeatureMT                 , "MT (Multi-Threading)"  },
-    { kX86CpuFeatureRDTSC              , "RDTSC"                 },
-    { kX86CpuFeatureRDTSCP             , "RDTSCP"                },
-    { kX86CpuFeatureCMOV               , "CMOV"                  },
-    { kX86CpuFeatureCMPXCHG8B          , "CMPXCHG8B"             },
-    { kX86CpuFeatureCMPXCHG16B         , "CMPXCHG16B"            },
-    { kX86CpuFeatureCLFLUSH            , "CLFLUSH"               },
-    { kX86CpuFeatureCLFLUSHOpt         , "CLFLUSH (Opt)"         },
-    { kX86CpuFeaturePREFETCH           , "PREFETCH"              },
-    { kX86CpuFeaturePREFETCHWT1        , "PREFETCHWT1"           },
-    { kX86CpuFeatureLahfSahf           , "LAHF/SAHF"             },
-    { kX86CpuFeatureFXSR               , "FXSR"                  },
-    { kX86CpuFeatureFXSROpt            , "FXSR (Opt)"            },
-    { kX86CpuFeatureMMX                , "MMX"                   },
-    { kX86CpuFeatureMMX2               , "MMX2"                  },
-    { kX86CpuFeature3DNOW              , "3DNOW"                 },
-    { kX86CpuFeature3DNOW2             , "3DNOW2"                },
-    { kX86CpuFeatureSSE                , "SSE"                   },
-    { kX86CpuFeatureSSE2               , "SSE2"                  },
-    { kX86CpuFeatureSSE3               , "SSE3"                  },
-    { kX86CpuFeatureSSSE3              , "SSSE3"                 },
-    { kX86CpuFeatureSSE4A              , "SSE4A"                 },
-    { kX86CpuFeatureSSE4_1             , "SSE4.1"                },
-    { kX86CpuFeatureSSE4_2             , "SSE4.2"                },
-    { kX86CpuFeatureMSSE               , "Misaligned SSE"        },
-    { kX86CpuFeatureMONITOR            , "MONITOR/MWAIT"         },
-    { kX86CpuFeatureMOVBE              , "MOVBE"                 },
-    { kX86CpuFeaturePOPCNT             , "POPCNT"                },
-    { kX86CpuFeatureLZCNT              , "LZCNT"                 },
-    { kX86CpuFeatureAESNI              , "AESNI"                 },
-    { kX86CpuFeaturePCLMULQDQ          , "PCLMULQDQ"             },
-    { kX86CpuFeatureRDRAND             , "RDRAND"                },
-    { kX86CpuFeatureRDSEED             , "RDSEED"                },
-    { kX86CpuFeatureSHA                , "SHA"                   },
-    { kX86CpuFeatureXSave              , "XSAVE"                 },
-    { kX86CpuFeatureXSaveOS            , "XSAVE (OS)"            },
-    { kX86CpuFeatureAVX                , "AVX"                   },
-    { kX86CpuFeatureAVX2               , "AVX2"                  },
-    { kX86CpuFeatureF16C               , "F16C"                  },
-    { kX86CpuFeatureFMA3               , "FMA3"                  },
-    { kX86CpuFeatureFMA4               , "FMA4"                  },
-    { kX86CpuFeatureXOP                , "XOP"                   },
-    { kX86CpuFeatureBMI                , "BMI"                   },
-    { kX86CpuFeatureBMI2               , "BMI2"                  },
-    { kX86CpuFeatureHLE                , "HLE"                   },
-    { kX86CpuFeatureRTM                , "RTM"                   },
-    { kX86CpuFeatureADX                , "ADX"                   },
-    { kX86CpuFeatureMPX                , "MPX"                   },
-    { kX86CpuFeatureFSGSBase           , "FS/GS Base"            },
-    { kX86CpuFeatureMOVSBSTOSBOpt      , "REP MOVSB/STOSB (Opt)" },
-    { kX86CpuFeatureAVX512F            , "AVX512F"               },
-    { kX86CpuFeatureAVX512CD           , "AVX512CD"              },
-    { kX86CpuFeatureAVX512PF           , "AVX512PF"              },
-    { kX86CpuFeatureAVX512ER           , "AVX512ER"              },
-    { kX86CpuFeatureAVX512DQ           , "AVX512DQ"              },
-    { kX86CpuFeatureAVX512BW           , "AVX512BW"              },
-    { kX86CpuFeatureAVX512VL           , "AVX512VL"              }
+    { asmjit::kX86CpuFeatureNX            , "NX (Non-Execute Bit)"  },
+    { asmjit::kX86CpuFeatureMT            , "MT (Multi-Threading)"  },
+    { asmjit::kX86CpuFeatureRDTSC         , "RDTSC"                 },
+    { asmjit::kX86CpuFeatureRDTSCP        , "RDTSCP"                },
+    { asmjit::kX86CpuFeatureCMOV          , "CMOV"                  },
+    { asmjit::kX86CpuFeatureCMPXCHG8B     , "CMPXCHG8B"             },
+    { asmjit::kX86CpuFeatureCMPXCHG16B    , "CMPXCHG16B"            },
+    { asmjit::kX86CpuFeatureCLFLUSH       , "CLFLUSH"               },
+    { asmjit::kX86CpuFeatureCLFLUSHOpt    , "CLFLUSH (Opt)"         },
+    { asmjit::kX86CpuFeaturePREFETCH      , "PREFETCH"              },
+    { asmjit::kX86CpuFeaturePREFETCHWT1   , "PREFETCHWT1"           },
+    { asmjit::kX86CpuFeatureLahfSahf      , "LAHF/SAHF"             },
+    { asmjit::kX86CpuFeatureFXSR          , "FXSR"                  },
+    { asmjit::kX86CpuFeatureFXSROpt       , "FXSR (Opt)"            },
+    { asmjit::kX86CpuFeatureMMX           , "MMX"                   },
+    { asmjit::kX86CpuFeatureMMX2          , "MMX2"                  },
+    { asmjit::kX86CpuFeature3DNOW         , "3DNOW"                 },
+    { asmjit::kX86CpuFeature3DNOW2        , "3DNOW2"                },
+    { asmjit::kX86CpuFeatureSSE           , "SSE"                   },
+    { asmjit::kX86CpuFeatureSSE2          , "SSE2"                  },
+    { asmjit::kX86CpuFeatureSSE3          , "SSE3"                  },
+    { asmjit::kX86CpuFeatureSSSE3         , "SSSE3"                 },
+    { asmjit::kX86CpuFeatureSSE4A         , "SSE4A"                 },
+    { asmjit::kX86CpuFeatureSSE4_1        , "SSE4.1"                },
+    { asmjit::kX86CpuFeatureSSE4_2        , "SSE4.2"                },
+    { asmjit::kX86CpuFeatureMSSE          , "Misaligned SSE"        },
+    { asmjit::kX86CpuFeatureMONITOR       , "MONITOR/MWAIT"         },
+    { asmjit::kX86CpuFeatureMOVBE         , "MOVBE"                 },
+    { asmjit::kX86CpuFeaturePOPCNT        , "POPCNT"                },
+    { asmjit::kX86CpuFeatureLZCNT         , "LZCNT"                 },
+    { asmjit::kX86CpuFeatureAESNI         , "AESNI"                 },
+    { asmjit::kX86CpuFeaturePCLMULQDQ     , "PCLMULQDQ"             },
+    { asmjit::kX86CpuFeatureRDRAND        , "RDRAND"                },
+    { asmjit::kX86CpuFeatureRDSEED        , "RDSEED"                },
+    { asmjit::kX86CpuFeatureSHA           , "SHA"                   },
+    { asmjit::kX86CpuFeatureXSave         , "XSAVE"                 },
+    { asmjit::kX86CpuFeatureXSaveOS       , "XSAVE (OS)"            },
+    { asmjit::kX86CpuFeatureAVX           , "AVX"                   },
+    { asmjit::kX86CpuFeatureAVX2          , "AVX2"                  },
+    { asmjit::kX86CpuFeatureF16C          , "F16C"                  },
+    { asmjit::kX86CpuFeatureFMA3          , "FMA3"                  },
+    { asmjit::kX86CpuFeatureFMA4          , "FMA4"                  },
+    { asmjit::kX86CpuFeatureXOP           , "XOP"                   },
+    { asmjit::kX86CpuFeatureBMI           , "BMI"                   },
+    { asmjit::kX86CpuFeatureBMI2          , "BMI2"                  },
+    { asmjit::kX86CpuFeatureHLE           , "HLE"                   },
+    { asmjit::kX86CpuFeatureRTM           , "RTM"                   },
+    { asmjit::kX86CpuFeatureADX           , "ADX"                   },
+    { asmjit::kX86CpuFeatureMPX           , "MPX"                   },
+    { asmjit::kX86CpuFeatureFSGSBase      , "FS/GS Base"            },
+    { asmjit::kX86CpuFeatureMOVSBSTOSBOpt , "REP MOVSB/STOSB (Opt)" },
+    { asmjit::kX86CpuFeatureAVX512F       , "AVX512F"               },
+    { asmjit::kX86CpuFeatureAVX512CD      , "AVX512CD"              },
+    { asmjit::kX86CpuFeatureAVX512PF      , "AVX512PF"              },
+    { asmjit::kX86CpuFeatureAVX512ER      , "AVX512ER"              },
+    { asmjit::kX86CpuFeatureAVX512DQ      , "AVX512DQ"              },
+    { asmjit::kX86CpuFeatureAVX512BW      , "AVX512BW"              },
+    { asmjit::kX86CpuFeatureAVX512VL      , "AVX512VL"              }
   };
 
   INFO("Host CPU Info (X86/X64):");
