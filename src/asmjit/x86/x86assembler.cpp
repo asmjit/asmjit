@@ -2697,8 +2697,7 @@ _EmitMmMovD:
                 (static_cast<const Imm*>(o2)->getUInt32() << 8) ;
         imLen = 2;
 
-        rmReg = opReg;
-        opReg  = x86ExtractO(opCode);
+        rmReg = x86ExtractO(opCode);
         goto _EmitX86R;
       }
       break;

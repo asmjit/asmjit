@@ -1320,6 +1320,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
 
   a.extrq(xmmA, xmmB);
   a.extrq(xmmA, 0x1, 0x2);
+  a.extrq(xmmB, 0x1, 0x2);
   a.insertq(xmmA, xmmB);
   a.insertq(xmmA, xmmB, 0x1, 0x2);
   a.movntsd(anyptr_gpA, xmmB);
