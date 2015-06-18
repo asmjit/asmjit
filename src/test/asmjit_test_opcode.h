@@ -1329,6 +1329,7 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   // POPCNT.
   a.nop();
 
+  a.popcnt(gzA, gzB);
   a.popcnt(gzA, anyptr_gpB);
 
   // AESNI.
