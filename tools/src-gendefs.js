@@ -6,7 +6,10 @@
 // by a linker to make all pointers the binary application/library uses valid.
 // This approach decreases the final size of AsmJit binary and relocation data.
 
+"use strict";
+
 var fs = require("fs");
+var hasOwn = Object.prototype.hasOwnProperty;
 
 // ----------------------------------------------------------------------------
 // [Utilities]
@@ -42,110 +45,214 @@ function inject(s, start, end, code) {
 }
 
 // ----------------------------------------------------------------------------
+// [IndexedString]
+// ----------------------------------------------------------------------------
+
+var IndexedString = function() {
+  this.map = {};
+  this.size = -1;
+  this.array = [];
+};
+
+IndexedString.prototype.add = function(s) {
+  this.map[s] = -1;
+};
+
+IndexedString.prototype.index = function() {
+  var map = this.map;
+  var array = this.array;
+
+  var partialMap = {};
+  var k, kp;
+  var i, len;
+
+  // Create a map that will contain all keys and partial keys.
+  for (k in map) {
+    if (!k) {
+      partialMap[k] = k;
+    }
+    else {
+      for (i = 0, len = k.length; i < len; i++) {
+        var kp = k.substr(i);
+        if (!hasOwn.call(partialMap, kp) || partialMap[kp].length < len)
+          partialMap[kp] = k;
+      }
+    }
+  }
+
+  // Create an array that will only contain keys that are needed.
+  for (k in map) {
+    if (partialMap[k] === k)
+      array.push(k);
+  }
+  array.sort();
+
+  // Create valid offsets to the `array`.
+  var offMap = {};
+  var offset = 0;
+
+  for (i = 0, len = array.length; i < len; i++) {
+    k = array[i];
+
+    offMap[k] = offset;
+    offset += k.length + 1;
+  }
+  this.size = offset;
+
+  // Assign valid offsets to `map`.
+  for (kp in map) {
+    k = partialMap[kp];
+    map[kp] = offMap[k] + k.length - kp.length;
+  }
+
+  /*
+  (function() {
+    // Testing code to experiment with eliminating suffixes from instruction names.
+    var suffixList = [
+      "ss", "ps", "sd", "pd",
+      "bw", "bd", "bq",
+      "ww", "wd", "wq",
+      "dq", "b", "w", "d", "q"
+    ];
+    var reducedMap = {};
+    var reducedSize = 0;
+
+    var xMap = {};
+    var xArr = [];
+    
+    for (i = 0, len = array.length; i < len; i++) {
+      k = array[i];
+
+      var suffix = null;
+      var after = k;
+
+      for (var j = 0; j < suffixList.length; j++) {
+        suffix = suffixList[j];
+        if (k.lastIndexOf(suffix) === k.length - suffix.length) {
+          after = k.substr(0, k.length - suffix.length);
+          break;
+        }
+      }
+
+      reducedMap[after] = true;
+    }
+
+    // Testing code to get which suffixes are the most used.
+    for (k in map) {
+      for (i = 1; i < k.length; i++) {
+        var xKey = k.substr(i);
+        if (hasOwn.call(xMap, xKey)) {
+          xMap[xKey]++;
+        }
+        else {
+          xMap[xKey] = 1;
+          xArr.push(xKey);
+        }
+      }
+    }
+
+    xArr.sort(function(a, b) {
+      return xMap[a] - xMap[b];
+    });
+    for (i = 0; i < xArr.length; i++) {
+      console.log(xArr[i] + " " + xMap[xArr[i]]);
+    }
+
+    for (k in reducedMap)
+      reducedSize += k.length + 1;
+    console.log("ReducedSize=" + reducedSize);
+  })();
+  */
+};
+
+IndexedString.prototype.format = function(indent) {
+  if (this.size === -1)
+    throw new Error("IndexedString not indexed yet, call index()");
+
+  var s = "";
+  var array = this.array;
+
+  for (var i = 0; i < array.length; i++) {
+    s += indent + "\"" + array[i];
+    s += (i !== array.length - 1) ? "\\0\"" : "\";";
+    s += "\n";
+  }
+
+  return s;
+};
+
+IndexedString.prototype.getSize = function() {
+  if (this.size === -1)
+    throw new Error("IndexedString not indexed yet, call index()");
+  return this.size;
+};
+
+IndexedString.prototype.getIndex = function(k) {
+  if (this.size === -1)
+    throw new Error("IndexedString not indexed yet, call index()");
+
+  if (!hasOwn.call(this.map, k))
+    throw new Error("Key '" + k + "' not found in IndexedString.");
+
+  return this.map[k];
+};
+
+// ----------------------------------------------------------------------------
 // [Database]
 // ----------------------------------------------------------------------------
 
-var Database = (function() {
-  // `IndexedString` class.
-  var IndexedString = function() {
-    this.array = [];
-    this.index = 0;
-    this.map = {};
+var Database = function() {
+  this.instMap = {};
+  this.instNames = new IndexedString();
+  this.instAlpha = new Array(26);
+
+  this.extendedData = [];
+  this.extendedMap = {};
+};
+
+Database.prototype.add = function(name, id, extendedData) {
+  this.instMap[name] = {
+    id            : id, // Instruction ID.
+    nameIndex     : -1, // Instruction name-index.
+    extendedData  : extendedData,
+    extendedIndex : ""
   };
+  this.instNames.add(name);
+};
 
-  IndexedString.prototype.add = function(s) {
-    var index = this.map[s];
+Database.prototype.index = function() {
+  var instMap = this.instMap;
+  var instNames = this.instNames;
+  var instAlpha = this.instAlpha;
 
-    if (typeof index === "number")
-      return index;
+  var extendedData = this.extendedData;
+  var extendedMap = this.extendedMap;
 
-    index = this.index;
-    this.array.push(s);
-    this.index += s.length + 1;
-    this.map[s] = index;
-    return index;
-  };
+  instNames.index();
 
-  IndexedString.prototype.get = function(s) {
-    return this.map[s];
-  };
+  for (var name in instMap) {
+    var inst = instMap[name];
 
-  IndexedString.prototype.format = function(indent) {
-    var s = "";
-    var array = this.array;
+    var nameIndex = instNames.getIndex(name);
+    var extendedIndex = extendedMap[inst.extendedData];
 
-    for (var i = 0; i < array.length; i++) {
-      s += indent + "\"" + array[i] + "\\0\"";
-      if (i === array.length - 1)
-        s += ";";
-      s += "\n";
+    if (typeof extendedIndex !== "number") {
+      extendedIndex = extendedData.length;
+      extendedMap[inst.extendedData] = extendedIndex;
+      extendedData.push(inst.extendedData);
     }
 
-    return s;
-  };
+    inst.nameIndex = nameIndex;
+    inst.extendedIndex = extendedIndex;
 
-  IndexedString.prototype.getSize = function() {
-    return this.index;
-  };
+    var aIndex = name.charCodeAt(0) - 'a'.charCodeAt(0);
+    if (aIndex < 0 || aIndex >= 26)
+      throw new Error("Alphabetical index error");
 
-  // `Database` class.
-  var Database = function() {
-    this.instMap = {};
-    this.instNames = new IndexedString();
-    this.instAlpha = new Array(26);
-
-    this.extendedData = [];
-    this.extendedMap = {};
-  };
-
-  Database.prototype.add = function(name, id, extendedData) {
-    this.instMap[name] = {
-      id            : id, // Instruction ID.
-      nameIndex     : 0,  // Instruction name-index, used directly by AsmJit.
-      vPrefix       : 0,  // Instruction starts with 'v', not used at this point.
-      extendedData  : extendedData,
-      extendedIndex : ""
-    };
-  };
-
-  Database.prototype.index = function() {
-    var instMap = this.instMap;
-    var instNames = this.instNames;
-    var instAlpha = this.instAlpha;
-
-    var extendedData = this.extendedData;
-    var extendedMap = this.extendedMap;
-
-    for (var name in instMap) {
-      var inst = instMap[name];
-
-      var nameIndex = instNames.add(name);
-      var extendedIndex = extendedMap[inst.extendedData];
-
-      if (typeof extendedIndex !== "number") {
-        extendedIndex = extendedData.length;
-        extendedMap[inst.extendedData] = extendedIndex;
-        extendedData.push(inst.extendedData);
-      }
-
-      inst.nameIndex = nameIndex;
-      inst.extendedIndex = extendedIndex;
-
-      var aIndex = name.charCodeAt(0) - 'a'.charCodeAt(0);
-      if (aIndex < 0 || aIndex >= 26)
-        throw new Error("Alphabetical index error");
-
-      if (instAlpha[aIndex] === undefined)
-        instAlpha[aIndex] = inst.id;
-
-      if (name.indexOf("v") === 0) {
-        inst.vPrefix = 1;
-      }
-    }
-  };
-
-  return Database;
-})();
+    if (instAlpha[aIndex] === undefined)
+      instAlpha[aIndex] = inst.id;
+  }
+};
 
 // ----------------------------------------------------------------------------
 // [Generate]
@@ -271,15 +378,11 @@ var generate = function(fileName, arch) {
   code += disclaimer;
   code += "#if !defined(ASMJIT_DISABLE_NAMES)\n";
   code += "const char _" + arch + "InstName[] =\n";
-  for (k in db.instMap) {
-    var inst = db.instMap[k];
-    code += "  \"" + k + "\\0\"\n";
-  }
-  code = code.substr(code, code.length - 1) + ";\n\n";
+  code += db.instNames.format("  ") + "\n";
 
   // Generate AlphaIndex.
   code += disclaimer;
-  code += "enum k" + Arch + "InstAlphaIndex {\n";
+  code += "enum " + Arch + "InstAlphaIndex {\n";
   code += "  k" + Arch + "InstAlphaIndexFirst = 'a',\n";
   code += "  k" + Arch + "InstAlphaIndexLast = 'z',\n";
   code += "  k" + Arch + "InstAlphaIndexInvalid = 0xFFFF\n";
@@ -299,7 +402,7 @@ var generate = function(fileName, arch) {
 
   // Generate NameIndex.
   code += disclaimer;
-  code += "enum k" + Arch + "InstData_NameIndex {\n";
+  code += "enum " + Arch + "InstData_NameIndex {\n";
   for (k in db.instMap) {
     var inst = db.instMap[k];
     code += "  " + inst.id + "_NameIndex = " + inst.nameIndex + ",\n";
@@ -321,7 +424,7 @@ var generate = function(fileName, arch) {
   code += "\n";
 
   code += disclaimer;
-  code += "enum k" + Arch + "InstData_ExtendedIndex {\n";
+  code += "enum " + Arch + "InstData_ExtendedIndex {\n";
   for (k in db.instMap) {
     var inst = db.instMap[k];
     code += "  " + inst.id + "_ExtendedIndex = " + inst.extendedIndex + ",\n";
