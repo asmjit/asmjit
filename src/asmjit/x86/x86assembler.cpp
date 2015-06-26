@@ -196,6 +196,12 @@ static ASMJIT_INLINE uint32_t x86ExtractO(uint32_t opCode) {
   return (opCode >> kX86InstOpCode_O_Shift) & 0x07;
 }
 
+static ASMJIT_INLINE bool x86IsXmm(const Operand* op) { return op->isRegType(kX86RegTypeXmm); }
+static ASMJIT_INLINE bool x86IsXmm(const X86Reg* reg) { return reg->isXmm(); }
+
+static ASMJIT_INLINE bool x86IsYmm(const Operand* op) { return op->isRegType(kX86RegTypeYmm); }
+static ASMJIT_INLINE bool x86IsYmm(const X86Reg* reg) { return reg->isYmm(); }
+
 // ============================================================================
 // [Macros]
 // ============================================================================
@@ -409,7 +415,7 @@ Error X86Assembler::embedLabel(const Label& op) {
 // [asmjit::X86Assembler - Align]
 // ============================================================================
 
-Error X86Assembler::align(uint32_t mode, uint32_t offset) {
+Error X86Assembler::align(uint32_t alignMode, uint32_t offset) {
 #if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
     _logger->logFormat(kLoggerStyleDirective,
@@ -429,7 +435,7 @@ Error X86Assembler::align(uint32_t mode, uint32_t offset) {
   uint8_t* cursor = getCursor();
   uint8_t alignPattern = 0xCC;
 
-  if (mode == kAlignCode) {
+  if (alignMode == kAlignCode) {
     alignPattern = 0x90;
 
     if (hasFeature(kCodeGenOptimizedAlign)) {
@@ -2298,7 +2304,7 @@ _EmitFpArith_Mem:
 
     case kX86InstEncodingIdExtExtrW:
       if (encoded == ENC_OPS(Reg, Reg, Imm)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o1)));
 
         imVal = static_cast<const Imm*>(o2)->getInt64();
         imLen = 1;
@@ -2311,7 +2317,7 @@ _EmitFpArith_Mem:
       if (encoded == ENC_OPS(Mem, Reg, Imm)) {
         // Secondary opcode of 'pextrw' instruction (SSE4.1).
         opCode = extendedInfo.getSecondaryOpCode();
-        ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o1)));
 
         imVal = static_cast<const Imm*>(o2)->getInt64();
         imLen = 1;
@@ -2324,7 +2330,7 @@ _EmitFpArith_Mem:
 
     case kX86InstEncodingIdExtExtract:
       if (encoded == ENC_OPS(Reg, Reg, Imm)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o1)));
 
         imVal = static_cast<const Imm*>(o2)->getInt64();
         imLen = 1;
@@ -2335,7 +2341,7 @@ _EmitFpArith_Mem:
       }
 
       if (encoded == ENC_OPS(Mem, Reg, Imm)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o1)));
 
         imVal = static_cast<const Imm*>(o2)->getInt64();
         imLen = 1;
@@ -2431,7 +2437,7 @@ _EmitFpArith_Mem:
     case kX86InstEncodingIdExtMovD:
 _EmitMmMovD:
       opReg = x86OpReg(o0);
-      ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm());
+      ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)));
 
       // Mm/Xmm <- Gp
       if (encoded == ENC_OPS(Reg, Reg, None) && static_cast<const X86Reg*>(o1)->isGp()) {
@@ -2448,7 +2454,7 @@ _EmitMmMovD:
       // The following instructions use the secondary opcode.
       opCode = extendedInfo.getSecondaryOpCode();
       opReg = x86OpReg(o1);
-      ADD_66H_P(static_cast<const X86Reg*>(o1)->isXmm());
+      ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o1)));
 
       // Gp <- Mm/Xmm
       if (encoded == ENC_OPS(Reg, Reg, None) && static_cast<const X86Reg*>(o0)->isGp()) {
@@ -2566,7 +2572,7 @@ _EmitMmMovD:
 
     case kX86InstEncodingIdExtRm_P:
       if (encoded == ENC_OPS(Reg, Reg, None)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm() | static_cast<const X86Reg*>(o1)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)) | x86IsXmm(static_cast<const X86Reg*>(o1)));
 
         opReg = x86OpReg(o0);
         rmReg = x86OpReg(o1);
@@ -2574,7 +2580,7 @@ _EmitMmMovD:
       }
 
       if (encoded == ENC_OPS(Reg, Mem, None)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)));
 
         opReg = x86OpReg(o0);
         rmMem = x86OpMem(o1);
@@ -2610,7 +2616,7 @@ _EmitMmMovD:
 
     case kX86InstEncodingIdExtRmRi_P:
       if (encoded == ENC_OPS(Reg, Reg, None)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm() | static_cast<const X86Reg*>(o1)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)) | x86IsXmm(static_cast<const X86Reg*>(o1)));
 
         opReg = x86OpReg(o0);
         rmReg = x86OpReg(o1);
@@ -2618,7 +2624,7 @@ _EmitMmMovD:
       }
 
       if (encoded == ENC_OPS(Reg, Mem, None)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)));
 
         opReg = x86OpReg(o0);
         rmMem = x86OpMem(o1);
@@ -2630,7 +2636,7 @@ _EmitMmMovD:
       opReg  = x86ExtractO(opCode);
 
       if (encoded == ENC_OPS(Reg, Imm, None)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)));
 
         imVal = static_cast<const Imm*>(o1)->getInt64();
         imLen = 1;
@@ -2662,7 +2668,7 @@ _EmitMmMovD:
       imLen = 1;
 
       if (encoded == ENC_OPS(Reg, Reg, Imm)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm() | static_cast<const X86Reg*>(o1)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)) | x86IsXmm(static_cast<const X86Reg*>(o1)));
 
         opReg = x86OpReg(o0);
         rmReg = x86OpReg(o1);
@@ -2670,7 +2676,7 @@ _EmitMmMovD:
       }
 
       if (encoded == ENC_OPS(Reg, Mem, Imm)) {
-        ADD_66H_P(static_cast<const X86Reg*>(o0)->isXmm());
+        ADD_66H_P(x86IsXmm(static_cast<const X86Reg*>(o0)));
 
         opReg = x86OpReg(o0);
         rmMem = x86OpMem(o1);
@@ -2759,7 +2765,7 @@ _EmitMmMovD:
       break;
 
     case kX86InstEncodingIdAvxMr_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(o0) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxMr:
@@ -2777,7 +2783,7 @@ _EmitMmMovD:
       break;
 
     case kX86InstEncodingIdAvxMri_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(o0) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxMri:
@@ -2798,7 +2804,7 @@ _EmitMmMovD:
       break;
 
     case kX86InstEncodingIdAvxRm_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRm:
@@ -2816,7 +2822,7 @@ _EmitMmMovD:
       break;
 
     case kX86InstEncodingIdAvxRmi_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRmi:
@@ -2837,7 +2843,7 @@ _EmitMmMovD:
       break;
 
     case kX86InstEncodingIdAvxRvm_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRvm:
@@ -2856,7 +2862,7 @@ _EmitAvxRvm:
       break;
 
     case kX86InstEncodingIdAvxRvmr_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRvmr:
@@ -2880,7 +2886,7 @@ _EmitAvxRvm:
       break;
 
     case kX86InstEncodingIdAvxRvmi_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRvmi:
@@ -2956,7 +2962,7 @@ _EmitAvxRvm:
       goto _AvxRmMr_AfterRegRegCheck;
 
     case kX86InstEncodingIdAvxRmMr_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(o0) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRmMr:
@@ -2985,7 +2991,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdAvxRvmRmi_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRvmRmi:
@@ -3051,7 +3057,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdAvxRvmMvr_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(o0) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRvmMvr:
@@ -3079,7 +3085,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdAvxRvmVmi_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRvmVmi:
@@ -3131,7 +3137,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdAvxVmi_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxVmi:
@@ -3152,7 +3158,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdAvxRvrmRvmr_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdAvxRvrmRvmr:
@@ -3230,7 +3236,7 @@ _AvxRmMr_AfterRegRegCheck:
         if (vSib == kX86MemVSibGpz)
           goto _IllegalInst;
 
-        ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o2)->isYmm());
+        ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o2)));
         goto _EmitAvxV;
       }
       break;
@@ -3241,7 +3247,7 @@ _AvxRmMr_AfterRegRegCheck:
 
     case kX86InstEncodingIdFma4_P:
       // It's fine to just check the first operand, second is just for sanity.
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdFma4:
@@ -3282,7 +3288,7 @@ _AvxRmMr_AfterRegRegCheck:
     // ------------------------------------------------------------------------
 
     case kX86InstEncodingIdXopRm_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(o1));
       // ... Fall through ...
 
     case kX86InstEncodingIdXopRm:
@@ -3366,7 +3372,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdXopRvmr_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdXopRvmr:
@@ -3390,7 +3396,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdXopRvmi_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdXopRvmi:
@@ -3414,7 +3420,7 @@ _AvxRmMr_AfterRegRegCheck:
       break;
 
     case kX86InstEncodingIdXopRvrmRvmr_P:
-      ADD_VEX_L(static_cast<const X86Reg*>(o0)->isYmm() | static_cast<const X86Reg*>(o1)->isYmm());
+      ADD_VEX_L(x86IsYmm(static_cast<const X86Reg*>(o0)) | x86IsYmm(static_cast<const X86Reg*>(o1)));
       // ... Fall through ...
 
     case kX86InstEncodingIdXopRvrmRvmr:
