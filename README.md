@@ -530,7 +530,7 @@ Please consider a donation if you use the project and would like to keep it acti
 
 Received From:
 
-  * [PeLock - Software copy protection and license key system](http://www.pelock.com)
+  * [PELock - Software copy protection and license key system](https://www.pelock.com)
 
 Authors & Maintainers
 ---------------------
