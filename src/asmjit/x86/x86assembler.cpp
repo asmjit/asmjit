@@ -1639,23 +1639,37 @@ _Prepare:
         opReg = x86OpReg(o0);
         rmReg = x86OpReg(o1);
 
+        // Asmjit uses segment registers indexed from 1 to 6, leaving zero as
+        // "no segment register used". We have to fix this (decrement the index
+        // of the register) when emitting MOV instructions which move to/from
+        // a segment register. The segment register is always `opReg`, because
+        // the MOV instruction uses RM or MR encoding.
+
         // Sreg <- Reg
         if (static_cast<const X86Reg*>(o0)->isSeg()) {
           ASMJIT_ASSERT(static_cast<const X86Reg*>(o1)->isGpw() ||
                         static_cast<const X86Reg*>(o1)->isGpd() ||
                         static_cast<const X86Reg*>(o1)->isGpq() );
+
+          // `opReg` is the segment register.
+          opReg--;
           opCode = 0x8E;
+
           ADD_66H_P_BY_SIZE(o1->getSize());
           ADD_REX_W_BY_SIZE(o1->getSize());
           goto _EmitX86R;
         }
-
         // Reg <- Sreg
-        if (static_cast<const X86Reg*>(o1)->isSeg()) {
+        else if (static_cast<const X86Reg*>(o1)->isSeg()) {
           ASMJIT_ASSERT(static_cast<const X86Reg*>(o0)->isGpw() ||
                         static_cast<const X86Reg*>(o0)->isGpd() ||
                         static_cast<const X86Reg*>(o0)->isGpq() );
+
+          // `opReg` is the segment register.
+          opReg = static_cast<uint32_t>(rmReg) - 1;
+          rmReg = x86OpReg(o0);
           opCode = 0x8C;
+
           ADD_66H_P_BY_SIZE(o0->getSize());
           ADD_REX_W_BY_SIZE(o0->getSize());
           goto _EmitX86R;
@@ -1666,6 +1680,7 @@ _Prepare:
                         static_cast<const X86Reg*>(o0)->isGpw() ||
                         static_cast<const X86Reg*>(o0)->isGpd() ||
                         static_cast<const X86Reg*>(o0)->isGpq() );
+
           opCode = 0x8A + (o0->getSize() != 1);
           ADD_66H_P_BY_SIZE(o0->getSize());
           ADD_REX_W_BY_SIZE(o0->getSize());

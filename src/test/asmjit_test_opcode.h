@@ -13,7 +13,7 @@
 
 namespace asmgen {
 
-enum { kGenOpCodeInstCount = 2670 };
+enum { kGenOpCodeInstCount = 2690 };
 
 // Generate all instructions asmjit can emit.
 static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 = false) {
@@ -70,6 +70,8 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
 
   X86Mem vmxptr_gpB = ptr(gzB, xmmB);
   X86Mem vmyptr_gpB = ptr(gzB, ymmB);
+
+  Label L;
 
   // Base.
   a.adc(gLoA, 1);
@@ -318,6 +320,42 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.xor_(intptr_gpA, 1);
   a.xor_(intptr_gpA, gzB);
 
+  // Segment registers.
+  a.nop();
+
+  if (a.getArch() == kArchX86) {
+    a.mov(es, ax);
+    a.mov(es, bx);
+    a.mov(ax, es);
+    a.mov(bx, es);
+
+    a.mov(cs, ax);
+    a.mov(cs, bx);
+    a.mov(ax, cs);
+    a.mov(bx, cs);
+
+    a.mov(ss, ax);
+    a.mov(ss, bx);
+    a.mov(ax, ss);
+    a.mov(bx, ss);
+
+    a.mov(ds, ax);
+    a.mov(ds, bx);
+    a.mov(ax, ds);
+    a.mov(bx, ds);
+  }
+
+  a.mov(fs, ax);
+  a.mov(fs, bx);
+  a.mov(ax, fs);
+  a.mov(bx, fs);
+
+  a.mov(gs, ax);
+  a.mov(gs, bx);
+  a.mov(ax, gs);
+  a.mov(bx, gs);
+
+  // Instructions using REP prefix.
   a.nop();
 
   a.lodsb();
@@ -362,87 +400,82 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.repne_scasw();
 
   // Label...Jcc/Jecxz/Jmp.
-  {
-    a.nop();
+  a.nop();
 
-    Label L(a);
-    a.bind(L);
-
-    a.ja(L);
-    a.jae(L);
-    a.jb(L);
-    a.jbe(L);
-    a.jc(L);
-    a.je(L);
-    a.jg(L);
-    a.jge(L);
-    a.jl(L);
-    a.jle(L);
-    a.jna(L);
-    a.jnae(L);
-    a.jnb(L);
-    a.jnbe(L);
-    a.jnc(L);
-    a.jne(L);
-    a.jng(L);
-    a.jnge(L);
-    a.jnl(L);
-    a.jnle(L);
-    a.jno(L);
-    a.jnp(L);
-    a.jns(L);
-    a.jnz(L);
-    a.jo(L);
-    a.jp(L);
-    a.jpe(L);
-    a.jpo(L);
-    a.js(L);
-    a.jz(L);
-    a.jecxz(ecx, L);
-    a.jmp(L);
-  }
+  L = a.newLabel();
+  a.bind(L);
+  a.ja(L);
+  a.jae(L);
+  a.jb(L);
+  a.jbe(L);
+  a.jc(L);
+  a.je(L);
+  a.jg(L);
+  a.jge(L);
+  a.jl(L);
+  a.jle(L);
+  a.jna(L);
+  a.jnae(L);
+  a.jnb(L);
+  a.jnbe(L);
+  a.jnc(L);
+  a.jne(L);
+  a.jng(L);
+  a.jnge(L);
+  a.jnl(L);
+  a.jnle(L);
+  a.jno(L);
+  a.jnp(L);
+  a.jns(L);
+  a.jnz(L);
+  a.jo(L);
+  a.jp(L);
+  a.jpe(L);
+  a.jpo(L);
+  a.js(L);
+  a.jz(L);
+  a.jecxz(ecx, L);
+  a.jmp(L);
 
   // Jcc/Jecxz/Jmp...Label.
-  {
-    a.nop();
+  a.nop();
 
-    Label L(a);
-    a.ja(L);
-    a.jae(L);
-    a.jb(L);
-    a.jbe(L);
-    a.jc(L);
-    a.je(L);
-    a.jg(L);
-    a.jge(L);
-    a.jl(L);
-    a.jle(L);
-    a.jna(L);
-    a.jnae(L);
-    a.jnb(L);
-    a.jnbe(L);
-    a.jnc(L);
-    a.jne(L);
-    a.jng(L);
-    a.jnge(L);
-    a.jnl(L);
-    a.jnle(L);
-    a.jno(L);
-    a.jnp(L);
-    a.jns(L);
-    a.jnz(L);
-    a.jo(L);
-    a.jp(L);
-    a.jpe(L);
-    a.jpo(L);
-    a.js(L);
-    a.jz(L);
-    a.jecxz(ecx, L);
-    a.jmp(L);
-    a.bind(L);
-  }
+  L = a.newLabel();
+  a.ja(L);
+  a.jae(L);
+  a.jb(L);
+  a.jbe(L);
+  a.jc(L);
+  a.je(L);
+  a.jg(L);
+  a.jge(L);
+  a.jl(L);
+  a.jle(L);
+  a.jna(L);
+  a.jnae(L);
+  a.jnb(L);
+  a.jnbe(L);
+  a.jnc(L);
+  a.jne(L);
+  a.jng(L);
+  a.jnge(L);
+  a.jnl(L);
+  a.jnle(L);
+  a.jno(L);
+  a.jnp(L);
+  a.jns(L);
+  a.jnz(L);
+  a.jo(L);
+  a.jp(L);
+  a.jpe(L);
+  a.jpo(L);
+  a.js(L);
+  a.jz(L);
+  a.jecxz(ecx, L);
+  a.jmp(L);
+  a.bind(L);
 
-  // Fpu.
+  // FPU.
   a.nop();
 
   a.f2xm1();
