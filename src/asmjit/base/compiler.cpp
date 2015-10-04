@@ -621,6 +621,78 @@ Assembler* Compiler::getAssembler() {
   return a;
 }
 
+// ============================================================================
+// [asmjit::Compiler - Test]
+// ============================================================================
+
+#if !defined(ASMJIT_DOCGEN)
+#if defined(ASMJIT_TEST)
+UNIT(base_compiler) {
+  INFO("Checking TypeId::kId for fundamental types");
+  {
+    EXPECT(
+      TypeId<short int>::kId == kVarTypeInt16 ||
+      TypeId<short int>::kId == kVarTypeInt32 ||
+      TypeId<short int>::kId == kVarTypeInt64,
+      "Unexpected Id for <short int>");
+    EXPECT(
+      TypeId<unsigned short int>::kId == kVarTypeUInt16 ||
+      TypeId<unsigned short int>::kId == kVarTypeUInt32 ||
+      TypeId<unsigned short int>::kId == kVarTypeUInt64,
+      "Unexpected Id for <unsigned short int>");
+    EXPECT(
+      TypeId<int>::kId == kVarTypeInt16 ||
+      TypeId<int>::kId == kVarTypeInt32 ||
+      TypeId<int>::kId == kVarTypeInt64,
+      "Unexpected Id for <int>");
+    EXPECT(
+      TypeId<unsigned int>::kId == kVarTypeUInt16 ||
+      TypeId<unsigned int>::kId == kVarTypeUInt32 ||
+      TypeId<unsigned int>::kId == kVarTypeUInt64,
+      "Unexpected Id for <unsigned int>");
+    EXPECT(
+      TypeId<long int>::kId == kVarTypeInt32 ||
+      TypeId<long int>::kId == kVarTypeInt64,
+      "Unexpected Id for <long int>");
+    EXPECT(
+      TypeId<unsigned long int>::kId == kVarTypeUInt32 ||
+      TypeId<unsigned long int>::kId == kVarTypeUInt64,
+      "Unexpected Id for <unsigned long int>");
+#if __cplusplus >= 201103L
+    EXPECT(
+      TypeId<long long int>::kId == kVarTypeInt64,
+      "Unexpected Id for <long long int>");
+    EXPECT(
+      TypeId<unsigned long long int>::kId == kVarTypeUInt64,
+      "Unexpected Id for <unsigned long long int>");
+#endif  // __cplusplus >= 201103L
+  }
+
+  INFO("Checking TypeId::kId for fixed width integer types");
+  {
+    EXPECT(
+      TypeId<int16_t>::kId == kVarTypeInt16,
+      "Unexpected Id for <int16_t>");
+    EXPECT(
+      TypeId<uint16_t>::kId == kVarTypeUInt16,
+      "Unexpected Id for <uint16_t>");
+    EXPECT(
+      TypeId<int32_t>::kId == kVarTypeInt32,
+      "Unexpected Id for <int32_t>");
+    EXPECT(
+      TypeId<uint32_t>::kId == kVarTypeUInt32,
+      "Unexpected Id for <uint32_t>");
+    EXPECT(
+      TypeId<int64_t>::kId == kVarTypeInt64,
+      "Unexpected Id for <int64_t>");
+    EXPECT(
+      TypeId<uint64_t>::kId == kVarTypeUInt64,
+      "Unexpected Id for <uint64_t>");
+  }
+}
+#endif // ASMJIT_TEST
+#endif // ASMJIT_DOCGEN
+
 } // asmjit namespace
 
 // [Api-End]
