@@ -668,6 +668,7 @@ UNIT(base_compiler) {
 #endif  // __cplusplus >= 201103L
   }
 
+#if __cplusplus >= 201103L
   INFO("Checking TypeId::kId for fixed width integer types");
   {
     EXPECT(
@@ -689,6 +690,7 @@ UNIT(base_compiler) {
       TypeId<uint64_t>::kId == kVarTypeUInt64,
       "Unexpected Id for <uint64_t>");
   }
+#endif  // __cplusplus >= 201103L
 }
 #endif // ASMJIT_TEST
 #endif // ASMJIT_DOCGEN

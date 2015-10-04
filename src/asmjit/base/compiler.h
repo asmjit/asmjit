@@ -1229,9 +1229,6 @@ ASMJIT_TYPE_ID(unsigned long, \
 #if __cplusplus >= 201103L
 ASMJIT_TYPE_ID(long long, kVarTypeInt64);
 ASMJIT_TYPE_ID(unsigned long long, kVarTypeUInt64);
-#else
-ASMJIT_TYPE_ID(int64_t, kVarTypeInt64);
-ASMJIT_TYPE_ID(uint64_t, kVarTypeUInt64);
 #endif
 
 ASMJIT_TYPE_ID(float        , kVarTypeFp32);
