@@ -93,7 +93,7 @@ static mach_timebase_info_data_t CpuTicks_machTime;
 uint32_t CpuTicks::now() {
   // Initialize the first time CpuTicks::now() is called (See Apple's QA1398).
   if (CpuTicks_machTime.denom == 0) {
-    if (mach_timebase_info(&CpuTicks_machTime) != KERN_SUCCESS);
+    if (mach_timebase_info(&CpuTicks_machTime) != KERN_SUCCESS)
       return 0;
   }
 
