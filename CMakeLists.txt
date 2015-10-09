@@ -314,18 +314,22 @@ If(ASMJIT_BUILD_TEST)
   AsmJit_AddSource(ASMJIT_TEST_SRC test asmjit_test_unit.cpp broken.cpp broken.h)
 
   Set(ASMJIT_TEST_CFLAGS
-    ${ASMJIT_CFLAGS}
-    ${ASMJIT_DEFINE}ASMJIT_STATIC
-    ${ASMJIT_DEFINE}ASMJIT_TEST)
+    "${ASMJIT_CFLAGS} ${ASMJIT_DEFINE}ASMJIT_STATIC ${ASMJIT_DEFINE}ASMJIT_TEST")
 
   Add_Executable(asmjit_test_unit ${ASMJIT_SRC} ${ASMJIT_TEST_SRC})
   Target_Link_Libraries(asmjit_test_unit ${ASMJIT_DEPS})
 
-  If(${CMAKE_BUILD_TYPE})
+  If(CMAKE_BUILD_TYPE)
     If(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      Set_Target_Properties(asmjit_test_unit PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_DBG})
+      Set_Property(
+        TARGET asmjit_test_unit
+        APPEND_STRING
+        PROPERTY COMPILE_FLAGS "${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_DBG}")
     Else()
-      Set_Target_Properties(asmjit_test_unit PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_REL})
+      Set_Property(
+        TARGET asmjit_test_unit
+        APPEND_STRING
+        PROPERTY COMPILE_FLAGS "${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_REL}")
     EndIf()
   Else()
     Target_Compile_Options(asmjit_test_unit PUBLIC ${ASMJIT_TEST_CFLAGS}
