@@ -98,30 +98,19 @@ EndIf()
 If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   Message("-- Using GCC")
 
-  Set(ASMJIT_CFLAGS
-    -fno-exceptions)
-  Set(ASMJIT_CFLAGS_DBG
-    -DASMJIT_DEBUG -O0)
+  Set(ASMJIT_CFLAGS "-fno-exceptions")
+  Set(ASMJIT_CFLAGS_DBG "-DASMJIT_DEBUG")
   Set(ASMJIT_CFLAGS_REL
-    -DASMJIT_RELEASE -O2
-    -finline-functions
-    -fomit-frame-pointer
-    -fmerge-all-constants
-    -fno-keep-static-consts)
+    "-DASMJIT_RELEASE -finline-functions -fomit-frame-pointer -fmerge-all-constants -fno-keep-static-consts")
 EndIf()
 
 # Clang.
 If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   Message("-- Using Clang")
 
-  Set(ASMJIT_CFLAGS
-    -fno-exceptions)
-  Set(ASMJIT_CFLAGS_DBG
-    -DASMJIT_DEBUG -O0)
-  Set(ASMJIT_CFLAGS_REL
-    -DASMJIT_RELEASE -O2
-    -fomit-frame-pointer
-    -fmerge-all-constants)
+  Set(ASMJIT_CFLAGS "-fno-exceptions")
+  Set(ASMJIT_CFLAGS_DBG "-DASMJIT_DEBUG")
+  Set(ASMJIT_CFLAGS_REL "-DASMJIT_RELEASE -fomit-frame-pointer -fmerge-all-constants")
 EndIf()
 
 # Use Unicode by default on Windows target.
@@ -144,8 +133,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   LIST(APPEND ASMJIT_DEPS rt)
 ENDIF()
 
-Set(ASMJIT_CFLAGS_DBG ${ASMJIT_CFLAGS} ${ASMJIT_CFLAGS_DBG})
-Set(ASMJIT_CFLAGS_REL ${ASMJIT_CFLAGS} ${ASMJIT_CFLAGS_REL})
+Set(ASMJIT_CFLAGS_DBG "${ASMJIT_CFLAGS} ${ASMJIT_CFLAGS_DBG}")
+Set(ASMJIT_CFLAGS_REL "${ASMJIT_CFLAGS} ${ASMJIT_CFLAGS_REL}")
 
 # =============================================================================
 # [AsmJit - Macros]
@@ -184,11 +173,11 @@ Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags
   Target_Link_Libraries(${in_name} ${in_deps})
 
   # Compiler Flags.
-  If(${CMAKE_BUILD_TYPE})
+  If(DEFINED CMAKE_BUILD_TYPE)
     If(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags} ${in_cflags_dbg})
+      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags_dbg})
     Else()
-      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags} ${in_cflags_rel})
+      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags_rel})
     EndIf()
   Else()
     Target_Compile_Options(${in_name} PUBLIC ${in_cflags}
