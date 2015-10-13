@@ -1756,6 +1756,7 @@ _Prepare:
           opCode = 0xB0 + (static_cast<uint32_t>(o0->getSize() != 1) << 3);
           opReg = rmReg;
 
+          ADD_66H_P_BY_SIZE(imLen);
           ADD_REX_W_BY_SIZE(imLen);
           goto _EmitX86OpWithOpReg;
         }
