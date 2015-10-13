@@ -4962,9 +4962,10 @@ static Error X86Context_translatePrologEpilog(X86Context* self, X86FuncNode* fun
     X86GpReg r[8];
     uint32_t numRegs = 0;
 
-    for (i = 0; i < 6; i++)
+    for (i = 0; i < ASMJIT_ARRAY_SIZE(func->_stackFrameCopyGpIndex); i++)
       if (func->_stackFrameCopyGpIndex[i] != kInvalidReg)
         r[numRegs++] = gpReg.setIndex(func->_stackFrameCopyGpIndex[i]);
+    ASMJIT_ASSERT(numRegs > 0);
 
     int32_t dSrc = func->getPushPopStackSize() + regSize;
     int32_t dDst = func->getAlignStackSize() +

@@ -382,7 +382,7 @@ struct IntUtil {
     uint32_t m = 0x1;
 
     do {
-      nBits -= (mask & m) == 0;
+      nBits -= (mask & m) != 0;
       m <<= 1;
       if (nBits == 0) {
         m -= 1;

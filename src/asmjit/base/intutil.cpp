@@ -175,6 +175,13 @@ UNIT(base_intutil) {
       "IntUtil::findFirstBit(%X) should return %u.", (1 << i), i);
   }
 
+  INFO("IntUtil::keepNOnesFromRight().");
+  EXPECT(IntUtil::keepNOnesFromRight(0xF, 1) == 0x1, "");
+  EXPECT(IntUtil::keepNOnesFromRight(0xF, 2) == 0x3, "");
+  EXPECT(IntUtil::keepNOnesFromRight(0xF, 3) == 0x7, "");
+  EXPECT(IntUtil::keepNOnesFromRight(0x5, 2) == 0x5, "");
+  EXPECT(IntUtil::keepNOnesFromRight(0xD, 2) == 0x5, "");
+
   INFO("IntUtil::isAligned().");
   EXPECT(IntUtil::isAligned<size_t>(0xFFFF,  4) == false, "");
   EXPECT(IntUtil::isAligned<size_t>(0xFFF4,  4) == true , "");

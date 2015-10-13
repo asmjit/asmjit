@@ -1265,12 +1265,9 @@ struct X86FuncNode : public FuncNode {
 
     _stackFrameRegIndex = kInvalidReg;
     _isStackFrameRegPreserved = false;
-    _stackFrameCopyGpIndex[0] = kInvalidReg;
-    _stackFrameCopyGpIndex[1] = kInvalidReg;
-    _stackFrameCopyGpIndex[2] = kInvalidReg;
-    _stackFrameCopyGpIndex[3] = kInvalidReg;
-    _stackFrameCopyGpIndex[4] = kInvalidReg;
-    _stackFrameCopyGpIndex[5] = kInvalidReg;
+
+    for (uint32_t i = 0; i < ASMJIT_ARRAY_SIZE(_stackFrameCopyGpIndex); i++)
+      _stackFrameCopyGpIndex[i] = static_cast<uint8_t>(kInvalidReg);
   }
 
   //! Destroy the `X86FuncNode` instance.
