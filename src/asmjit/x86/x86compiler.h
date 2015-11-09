@@ -384,7 +384,7 @@ enum {
 
 #if defined(ASMJIT_ARCH_X64)
 enum {
-#if defined(ASMJIT_OS_WINDOWS)
+#if defined(ASMJIT_OS_WINDOWS) || defined(ASMJIT_OS_CYGWIN)
   kFuncConvHost = kX86FuncConvW64,
 #else
   kFuncConvHost = kX86FuncConvU64,
