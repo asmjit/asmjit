@@ -57,6 +57,9 @@
 #elif defined(__APPLE__)
 # define ASMJIT_OS_POSIX
 # define ASMJIT_OS_MAC
+#elif defined(__CYGWIN__)
+# define ASMJIT_OS_POSIX
+# define ASMJIT_OS_CYGWIN
 #else
 # pragma message("AsmJit - Unable to detect host operating system, using ASMJIT_OS_POSIX.")
 # define ASMJIT_OS_POSIX
