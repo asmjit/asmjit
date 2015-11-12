@@ -329,7 +329,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
   int32_t xmmPos = 0;
   int32_t stackOffset = 0;
 
-  const uint8_t* varMapping;
+  const uint8_t* varMapping = NULL;
 
 #if defined(ASMJIT_BUILD_X86)
   if (arch == kArchX86)
