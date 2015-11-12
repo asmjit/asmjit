@@ -21,6 +21,11 @@
 #include "../base/operand.h"
 #include "../base/zone.h"
 
+// [Dependencies - C]
+#if !defined(ASMJIT_DOCGEN)
+#include <limits.h>  // CHAR_BIT
+#endif
+
 // [Api-Begin]
 #include "../apibegin.h"
 
@@ -1189,15 +1194,43 @@ struct TypeId<T*> {
   struct TypeId<_T_> { enum { kId = _Id_ }; }
 
 ASMJIT_TYPE_ID(void         , kInvalidVar);
+
+#if __cplusplus >= 201103L
+static_assert(CHAR_BIT == 8, "sizeof(char) must be exactly 8 bits");
+#else
+typedef int static_assert_size_of_char_8_bits[CHAR_BIT == 8 ? 1 : -1];
+#endif
+
 ASMJIT_TYPE_ID(char         , IntTraits<char>::kIsSigned ? kVarTypeInt8 : kVarTypeUInt8);
 ASMJIT_TYPE_ID(signed char  , kVarTypeInt8);
 ASMJIT_TYPE_ID(unsigned char, kVarTypeUInt8);
-ASMJIT_TYPE_ID(int16_t      , kVarTypeInt16);
-ASMJIT_TYPE_ID(uint16_t     , kVarTypeUInt16);
-ASMJIT_TYPE_ID(int32_t      , kVarTypeInt32);
-ASMJIT_TYPE_ID(uint32_t     , kVarTypeUInt32);
-ASMJIT_TYPE_ID(int64_t      , kVarTypeInt64);
-ASMJIT_TYPE_ID(uint64_t     , kVarTypeUInt64);
+
+ASMJIT_TYPE_ID(short, \
+  IntTraits<short>::kIs16Bit ? kVarTypeInt16 \
+  : IntTraits<short>::kIs32Bit ? kVarTypeInt32 \
+  : kVarTypeInt64);
+ASMJIT_TYPE_ID(unsigned short, \
+  IntTraits<unsigned short>::kIs16Bit ? kVarTypeUInt16 \
+  : IntTraits<unsigned short>::kIs32Bit ? kVarTypeUInt32 \
+  : kVarTypeUInt64);
+ASMJIT_TYPE_ID(int, \
+  IntTraits<int>::kIs16Bit ? kVarTypeInt16 \
+  : IntTraits<int>::kIs32Bit ? kVarTypeInt32 \
+  : kVarTypeInt64);
+ASMJIT_TYPE_ID(unsigned, \
+  IntTraits<unsigned>::kIs16Bit ? kVarTypeUInt16 \
+  : IntTraits<unsigned>::kIs32Bit ? kVarTypeUInt32 \
+  : kVarTypeUInt64);
+ASMJIT_TYPE_ID(long, \
+  IntTraits<long>::kIs32Bit ? kVarTypeInt32 : kVarTypeInt64);
+ASMJIT_TYPE_ID(unsigned long, \
+  IntTraits<unsigned long>::kIs32Bit ? kVarTypeUInt32 : kVarTypeUInt64);
+
+#if __cplusplus >= 201103L
+ASMJIT_TYPE_ID(long long, kVarTypeInt64);
+ASMJIT_TYPE_ID(unsigned long long, kVarTypeUInt64);
+#endif
+
 ASMJIT_TYPE_ID(float        , kVarTypeFp32);
 ASMJIT_TYPE_ID(double       , kVarTypeFp64);
 
