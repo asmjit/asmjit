@@ -328,8 +328,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
   int32_t gpPos = 0;
   int32_t xmmPos = 0;
   int32_t stackOffset = 0;
-
-  const uint8_t* varMapping;
+  const uint8_t* varMapping = NULL;
 
 #if defined(ASMJIT_BUILD_X86)
   if (arch == kArchX86)
@@ -341,6 +340,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
     varMapping = _x64VarMapping;
 #endif // ASMJIT_BUILD_X64
 
+  ASMJIT_ASSERT(varMapping != NULL);
   self->_argCount = static_cast<uint8_t>(argCount);
   self->_retCount = 0;
 
