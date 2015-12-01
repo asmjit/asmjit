@@ -1,0 +1,38 @@
+#                                               -*- cmake -*-
+#
+#  asmjit-config.cmake(.in)
+#
+
+# Use the following variables to compile and link against AsmJit:
+#  ASMJIT_FOUND              - True if AsmJit was found on your system
+#  ASMJIT_USE_FILE           - The file making AsmJit usable
+#  ASMJIT_DEFINITIONS        - Definitions needed to build with AsmJit
+#  ASMJIT_INCLUDE_DIR        - Directory where asmjit/asmjit.h can be found
+#  ASMJIT_INCLUDE_DIRS       - List of directories of AsmJit and it's dependencies
+#  ASMJIT_LIBRARY            - AsmJit library location
+#  ASMJIT_LIBRARIES          - List of libraries to link against AsmJit library
+#  ASMJIT_LIBRARY_DIRS       - List of directories containing AsmJit' libraries
+#  ASMJIT_ROOT_DIR           - The base directory of AsmJit
+#  ASMJIT_VERSION_STRING     - A human-readable string containing the version
+#  ASMJIT_VERSION_MAJOR      - The major version of AsmJit
+#  ASMJIT_VERSION_MINOR      - The minor version of AsmJit
+#  ASMJIT_VERSION_PATCH      - The patch version of AsmJit
+
+@PACKAGE_INIT@
+
+set ( ASMJIT_FOUND 1 )
+set ( ASMJIT_USE_FILE     "@ASMJIT_USE_FILE@" )
+
+set ( ASMJIT_DEFINITIONS  "@ASMJIT_DEFINITIONS@" )
+set ( ASMJIT_INCLUDE_DIR  "@ASMJIT_INCLUDE_DIR@" )
+set ( ASMJIT_INCLUDE_DIRS "@ASMJIT_INCLUDE_DIRS@" )
+set ( ASMJIT_LIBRARY      "@ASMJIT_LIBRARY@" )
+set ( ASMJIT_LIBRARIES    "@ASMJIT_LIBRARIES@" )
+set ( ASMJIT_LIBRARY_DIRS "@ASMJIT_LIBRARY_DIRS@" )
+set ( ASMJIT_ROOT_DIR     "@ASMJIT_ROOT_DIR@" )
+
+set ( ASMJIT_VERSION_STRING "@ASMJIT_VERSION_STRING@" )
+set ( ASMJIT_VERSION_MAJOR  "@ASMJIT_VERSION_MAJOR@" )
+set ( ASMJIT_VERSION_MINOR  "@ASMJIT_VERSION_MINOR@" )
+set ( ASMJIT_VERSION_PATCH  "@ASMJIT_VERSION_PATCH@" )
+
