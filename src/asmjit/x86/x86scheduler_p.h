@@ -13,7 +13,7 @@
 
 // [Dependencies - AsmJit]
 #include "../x86/x86compiler.h"
-#include "../x86/x86context_p.h"
+#include "../x86/x86compilercontext_p.h"
 #include "../x86/x86cpuinfo.h"
 #include "../x86/x86inst.h"
 
@@ -41,7 +41,7 @@ struct X86Scheduler {
   // [Run]
   // --------------------------------------------------------------------------
 
-  Error run(Node* start, Node* stop);
+  Error run(HLNode* start, HLNode* stop);
 
   // --------------------------------------------------------------------------
   // [Members]

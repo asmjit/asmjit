@@ -22,7 +22,7 @@ namespace asmjit {
 
 struct X86CpuInfo;
 
-//! \addtogroup asmjit_x86_general
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -48,7 +48,7 @@ ASMJIT_ENUM(X86CpuFeature) {
   //! Cpu has CLFUSH.
   kX86CpuFeatureCLFLUSH,
   //! Cpu has CLFUSH (Optimized).
-  kX86CpuFeatureCLFLUSHOpt,
+  kX86CpuFeatureCLFLUSH_OPT,
   //! Cpu has PREFETCH.
   kX86CpuFeaturePREFETCH,
   //! Cpu has PREFETCHWT1.
@@ -58,7 +58,7 @@ ASMJIT_ENUM(X86CpuFeature) {
   //! Cpu has FXSAVE/FXRSTOR.
   kX86CpuFeatureFXSR,
   //! Cpu has FXSAVE/FXRSTOR (Optimized).
-  kX86CpuFeatureFXSROpt,
+  kX86CpuFeatureFXSR_OPT,
   //! Cpu has MMX.
   kX86CpuFeatureMMX,
   //! Cpu has extended MMX.
@@ -102,9 +102,9 @@ ASMJIT_ENUM(X86CpuFeature) {
   //! Cpu has SHA-1 and SHA-256.
   kX86CpuFeatureSHA,
   //! Cpu has XSAVE support - XSAVE/XRSTOR, XSETBV/XGETBV, and XCR0.
-  kX86CpuFeatureXSave,
+  kX86CpuFeatureXSAVE,
   //! OS has enabled XSAVE, you can call XGETBV to get value of XCR0.
-  kX86CpuFeatureXSaveOS,
+  kX86CpuFeatureXSAVE_OS,
   //! Cpu has AVX.
   kX86CpuFeatureAVX,
   //! Cpu has AVX2.
@@ -130,9 +130,9 @@ ASMJIT_ENUM(X86CpuFeature) {
   //! Cpu has MPX (Memory Protection Extensions).
   kX86CpuFeatureMPX,
   //! Cpu has FSGSBASE.
-  kX86CpuFeatureFSGSBase,
+  kX86CpuFeatureFSGSBASE,
   //! Cpu has optimized REP MOVSB/STOSB.
-  kX86CpuFeatureMOVSBSTOSBOpt,
+  kX86CpuFeatureMOVSBSTOSB_OPT,
 
   //! Cpu has AVX-512F (Foundation).
   kX86CpuFeatureAVX512F,
@@ -178,7 +178,7 @@ union X86CpuId {
 // [asmjit::X86CpuUtil]
 // ============================================================================
 
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 //! CPU utilities available only if the host processor is X86/X64.
 struct X86CpuUtil {
   //! \internal
@@ -238,7 +238,7 @@ struct X86CpuInfo : public CpuInfo {
   // [Statics]
   // --------------------------------------------------------------------------
 
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
   //! Get global instance of `X86CpuInfo`.
   static ASMJIT_INLINE const X86CpuInfo* getHost() {
     return static_cast<const X86CpuInfo*>(CpuInfo::getHost());

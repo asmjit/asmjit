@@ -5,8 +5,8 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_BASE_INTUTIL_H
-#define _ASMJIT_BASE_INTUTIL_H
+#ifndef _ASMJIT_BASE_UTILS_H
+#define _ASMJIT_BASE_UTILS_H
 
 // [Dependencies - AsmJit]
 #include "../base/globals.h"
@@ -21,12 +21,31 @@
 
 namespace asmjit {
 
-//! \addtogroup asmjit_base_util
+//! \addtogroup asmjit_base
 //! \{
 
 // ============================================================================
 // [asmjit::IntTraits]
 // ============================================================================
+
+//! \internal
+//! \{
+template<size_t Size, int IsSigned>
+struct IntTraitsPrivate {
+  // Let it fail if not specialized!
+};
+
+template<> struct IntTraitsPrivate<1, 0> { typedef int     IntType; typedef int8_t  SignedType; typedef uint8_t  UnsignedType; };
+template<> struct IntTraitsPrivate<1, 1> { typedef int     IntType; typedef int8_t  SignedType; typedef uint8_t  UnsignedType; };
+
+template<> struct IntTraitsPrivate<2, 0> { typedef int     IntType; typedef int16_t SignedType; typedef uint16_t UnsignedType; };
+template<> struct IntTraitsPrivate<2, 1> { typedef int     IntType; typedef int16_t SignedType; typedef uint16_t UnsignedType; };
+
+template<> struct IntTraitsPrivate<4, 0> { typedef int64_t IntType; typedef int32_t SignedType; typedef uint32_t UnsignedType; };
+template<> struct IntTraitsPrivate<4, 1> { typedef int     IntType; typedef int32_t SignedType; typedef uint32_t UnsignedType; };
+
+template<> struct IntTraitsPrivate<8, 0> { typedef int64_t IntType; typedef int64_t SignedType; typedef uint64_t UnsignedType; };
+template<> struct IntTraitsPrivate<8, 1> { typedef int64_t IntType; typedef int64_t SignedType; typedef uint64_t UnsignedType; };
 
 //! \internal
 template<typename T>
@@ -42,99 +61,87 @@ struct IntTraits {
 
     kIsIntPtr = sizeof(T) == sizeof(intptr_t)
   };
+
+  typedef typename IntTraitsPrivate<sizeof(T), kIsSigned>::IntType IntType;
+  typedef typename IntTraitsPrivate<sizeof(T), kIsSigned>::SignedType SignedType;
+  typedef typename IntTraitsPrivate<sizeof(T), kIsSigned>::UnsignedType UnsignedType;
+
+  //! Get a minimum value of `T`.
+  static ASMJIT_INLINE T minValue() {
+    if (kIsSigned)
+      return static_cast<T>((~static_cast<UnsignedType>(0) >> 1) + static_cast<UnsignedType>(1));
+    else
+      return static_cast<T>(0);
+  }
+
+  //! Get a maximum value of `T`.
+  static ASMJIT_INLINE T maxValue() {
+    if (kIsSigned)
+      return static_cast<T>(~static_cast<UnsignedType>(0) >> 1);
+    else
+      return ~static_cast<T>(0);
+  }
 };
 
-// \internal
-template<size_t Size, int IsSigned>
-struct AsInt_ { typedef int64_t Int; };
-
-template<> struct AsInt_<1, 0> { typedef int Int; };
-template<> struct AsInt_<1, 1> { typedef int Int; };
-template<> struct AsInt_<2, 0> { typedef int Int; };
-template<> struct AsInt_<2, 1> { typedef int Int; };
-template<> struct AsInt_<4, 1> { typedef int Int; };
-
-// \internal
-//
-// Map an integer `T` to an `int` or `int64_t`, depending on the type. Used
-// internally by AsmJit to dispatch an argument of arbitrary integer type into
-// a function that accepts either `int` or `int64_t`.
-template<typename T>
-struct AsInt {
-  typedef typename AsInt_<sizeof(T), IntTraits<T>::kIsSigned>::Int Int;
-};
-
-template<typename T>
-ASMJIT_INLINE typename AsInt<T>::Int asInt(T value) {
-  return static_cast<typename AsInt<T>::Int>(value);
-}
+//! \}
 
 // ============================================================================
-// [asmjit::IntUtil]
+// [asmjit::Utils]
 // ============================================================================
 
-//! Integer utilities.
-struct IntUtil {
+//! AsmJit utilities - integer, string, etc...
+struct Utils {
   // --------------------------------------------------------------------------
   // [Float <-> Int]
   // --------------------------------------------------------------------------
 
   //! \internal
-  union Float {
+  union FloatBits {
     int32_t i;
     float f;
   };
 
   //! \internal
-  union Double {
+  union DoubleBits {
     int64_t i;
     double d;
   };
 
   //! Bit-cast `float` to 32-bit integer.
-  static ASMJIT_INLINE int32_t floatAsInt(float f) { Float m; m.f = f; return m.i; }
+  static ASMJIT_INLINE int32_t floatAsInt(float f) { FloatBits m; m.f = f; return m.i; }
   //! Bit-cast 32-bit integer to `float`.
-  static ASMJIT_INLINE float intAsFloat(int32_t i) { Float m; m.i = i; return m.f; }
+  static ASMJIT_INLINE float intAsFloat(int32_t i) { FloatBits m; m.i = i; return m.f; }
 
   //! Bit-cast `double` to 64-bit integer.
-  static ASMJIT_INLINE int64_t doubleAsInt(double d) { Double m; m.d = d; return m.i; }
+  static ASMJIT_INLINE int64_t doubleAsInt(double d) { DoubleBits m; m.d = d; return m.i; }
   //! Bit-cast 64-bit integer to `double`.
-  static ASMJIT_INLINE double intAsDouble(int64_t i) { Double m; m.i = i; return m.d; }
+  static ASMJIT_INLINE double intAsDouble(int64_t i) { DoubleBits m; m.i = i; return m.d; }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - Pack / Unpack]
+  // [Pack / Unpack]
   // --------------------------------------------------------------------------
 
   //! Pack two 8-bit integer and one 16-bit integer into a 32-bit integer as it
   //! is an array of `{u0,u1,w2}`.
   static ASMJIT_INLINE uint32_t pack32_2x8_1x16(uint32_t u0, uint32_t u1, uint32_t w2) {
-#if defined(ASMJIT_ARCH_LE)
-    return u0 + (u1 << 8) + (w2 << 16);
-#else
-    return (u0 << 24) + (u1 << 16) + (w2);
-#endif
+    return ASMJIT_ARCH_LE ? u0 + (u1 << 8) + (w2 << 16)
+                          : (u0 << 24) + (u1 << 16) + w2;
   }
 
   //! Pack four 8-bit integer into a 32-bit integer as it is an array of `{u0,u1,u2,u3}`.
   static ASMJIT_INLINE uint32_t pack32_4x8(uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) {
-#if defined(ASMJIT_ARCH_LE)
-    return u0 + (u1 << 8) + (u2 << 16) + (u3 << 24);
-#else
-    return (u0 << 24) + (u1 << 16) + (u2 << 8) + u3;
-#endif
+    return ASMJIT_ARCH_LE ? u0 + (u1 << 8) + (u2 << 16) + (u3 << 24)
+                          : (u0 << 24) + (u1 << 16) + (u2 << 8) + u3;
   }
 
   //! Pack two 32-bit integer into a 64-bit integer as it is an array of `{u0,u1}`.
   static ASMJIT_INLINE uint64_t pack64_2x32(uint32_t u0, uint32_t u1) {
-#if defined(ASMJIT_ARCH_LE)
-    return (static_cast<uint64_t>(u1) << 32) + u0;
-#else
-    return (static_cast<uint64_t>(u0) << 32) + u1;
-#endif
+    return ASMJIT_ARCH_LE ? (static_cast<uint64_t>(u1) << 32) + u0
+                          : (static_cast<uint64_t>(u0) << 32) + u1;
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - Min/Max]
+  // [Min/Max]
   // --------------------------------------------------------------------------
 
   // NOTE: Because some environments declare min() and max() as macros, it has
@@ -149,83 +156,118 @@ struct IntUtil {
   static ASMJIT_INLINE T iMax(const T& a, const T& b) { return a > b ? a : b; }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - MaxUInt]
+  // [InInterval]
   // --------------------------------------------------------------------------
 
-  //! Get maximum unsigned value of `T`.
+  //! Get whether `x` is greater than or equal to `a` and lesses than or equal to `b`.
   template<typename T>
-  static ASMJIT_INLINE T maxUInt() { return ~T(0); }
-
-  // --------------------------------------------------------------------------
-  // [AsmJit - InInterval]
-  // --------------------------------------------------------------------------
-
-  //! Get whether `x` is greater or equal than `start` and less or equal than `end`.
-  template<typename T>
-  static ASMJIT_INLINE bool inInterval(const T& x, const T& start, const T& end) {
-    return x >= start && x <= end;
+  static ASMJIT_INLINE bool inInterval(T x, T a, T b) {
+    return x >= a && x <= b;
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - IsInt/IsUInt]
+  // [AsInt]
   // --------------------------------------------------------------------------
 
-  //! Get whether the given integer `x` can be casted to 8-bit signed integer.
+  //! Map an integer `x` of type `T` to an `int` or `int64_t`, depending on the
+  //! type. Used internally by AsmJit to dispatch an argument that can be an
+  //! arbitrary integer type into a function that accepts either `int` or
+  //! `int64_t`.
+  template<typename T>
+  static ASMJIT_INLINE typename IntTraits<T>::IntType asInt(T x) {
+    return static_cast<typename IntTraits<T>::IntType>(x);
+  }
+
+  // --------------------------------------------------------------------------
+  // [IsInt / IsUInt]
+  // --------------------------------------------------------------------------
+
+  //! Get whether the given integer `x` can be casted to an 8-bit signed integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt8(T x) {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
     if (IntTraits<T>::kIsSigned)
-      return sizeof(T) <= sizeof(int8_t) ? true : x >= T(-128) && x <= T(127);
+      return sizeof(T) <= 1 || inInterval<SignedType>(SignedType(x), -128, 127);
     else
-      return x <= T(127);
+      return UnsignedType(x) <= UnsignedType(127U);
   }
 
-  //! Get whether the given integer `x` can be casted to 8-bit unsigned integer.
-  template<typename T>
-  static ASMJIT_INLINE bool isUInt8(T x) {
-    if (IntTraits<T>::kIsSigned)
-      return x >= T(0) && (sizeof(T) <= sizeof(uint8_t) ? true : x <= T(255));
-    else
-      return sizeof(T) <= sizeof(uint8_t) ? true : x <= T(255);
-  }
-
-  //! Get whether the given integer `x` can be casted to 16-bit signed integer.
+  //! Get whether the given integer `x` can be casted to a 16-bit signed integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt16(T x) {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
     if (IntTraits<T>::kIsSigned)
-      return sizeof(T) <= sizeof(int16_t) ? true : x >= T(-32768) && x <= T(32767);
+      return sizeof(T) <= 2 || inInterval<SignedType>(SignedType(x), -32768, 32767);
     else
-      return x >= T(0) && (sizeof(T) <= sizeof(int16_t) ? true : x <= T(32767));
+      return sizeof(T) <= 1 || UnsignedType(x) <= UnsignedType(32767U);
   }
 
-  //! Get whether the given integer `x` can be casted to 16-bit unsigned integer.
-  template<typename T>
-  static ASMJIT_INLINE bool isUInt16(T x) {
-    if (IntTraits<T>::kIsSigned)
-      return x >= T(0) && (sizeof(T) <= sizeof(uint16_t) ? true : x <= T(65535));
-    else
-      return sizeof(T) <= sizeof(uint16_t) ? true : x <= T(65535);
-  }
-
-  //! Get whether the given integer `x` can be casted to 32-bit signed integer.
+  //! Get whether the given integer `x` can be casted to a 32-bit signed integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt32(T x) {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
     if (IntTraits<T>::kIsSigned)
-      return sizeof(T) <= sizeof(int32_t) ? true : x >= T(-2147483647) - 1 && x <= T(2147483647);
+      return sizeof(T) <= 4 || inInterval<SignedType>(SignedType(x), -2147483647 - 1, 2147483647);
     else
-      return x >= T(0) && (sizeof(T) <= sizeof(int32_t) ? true : x <= T(2147483647));
+      return sizeof(T) <= 2 || UnsignedType(x) <= UnsignedType(2147483647U);
   }
 
-  //! Get whether the given integer `x` can be casted to 32-bit unsigned integer.
+  //! Get whether the given integer `x` can be casted to an 8-bit unsigned integer.
+  template<typename T>
+  static ASMJIT_INLINE bool isUInt8(T x) {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
+    if (IntTraits<T>::kIsSigned)
+      return x >= T(0) && (sizeof(T) <= 1 ? true : x <= T(255));
+    else
+      return sizeof(T) <= 1 || UnsignedType(x) <= UnsignedType(255U);
+  }
+
+  //! Get whether the given integer `x` can be casted to a 12-bit unsigned integer (ARM specific).
+  template<typename T>
+  static ASMJIT_INLINE bool isUInt12(T x) {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
+    if (IntTraits<T>::kIsSigned)
+      return x >= T(0) && (sizeof(T) <= 1 ? true : x <= T(4095));
+    else
+      return sizeof(T) <= 1 || UnsignedType(x) <= UnsignedType(4095U);
+  }
+
+  //! Get whether the given integer `x` can be casted to a 16-bit unsigned integer.
+  template<typename T>
+  static ASMJIT_INLINE bool isUInt16(T x) {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
+    if (IntTraits<T>::kIsSigned)
+      return x >= T(0) && (sizeof(T) <= 2 ? true : x <= T(65535));
+    else
+      return sizeof(T) <= 2 || UnsignedType(x) <= UnsignedType(65535U);
+  }
+
+  //! Get whether the given integer `x` can be casted to a 32-bit unsigned integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt32(T x) {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
     if (IntTraits<T>::kIsSigned)
-      return x >= T(0) && (sizeof(T) <= sizeof(uint32_t) ? true : x <= T(4294967295U));
+      return x >= T(0) && (sizeof(T) <= 4 ? true : x <= T(4294967295U));
     else
-      return sizeof(T) <= sizeof(uint32_t) ? true : x <= T(4294967295U);
+      return sizeof(T) <= 4 || UnsignedType(x) <= UnsignedType(4294967295U);
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - IsPowerOf2]
+  // [IsPowerOf2]
   // --------------------------------------------------------------------------
 
   //! Get whether the `n` value is a power of two (only one bit is set).
@@ -235,13 +277,13 @@ struct IntUtil {
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - Mask]
+  // [Mask]
   // --------------------------------------------------------------------------
 
   //! Generate a bit-mask that has `x` bit set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x) {
     ASMJIT_ASSERT(x < 32);
-    return (1U << x);
+    return static_cast<uint32_t>(1) << x;
   }
 
   //! Generate a bit-mask that has `x0` and `x1` bits set.
@@ -261,44 +303,36 @@ struct IntUtil {
 
   //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3` and `x4` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4) {
-    return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
-           mask(x4) ;
+    return mask(x0) | mask(x1) | mask(x2) | mask(x3) | mask(x4) ;
   }
 
   //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4` and `x5` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5) {
-    return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
-           mask(x4) | mask(x5) ;
+    return mask(x0) | mask(x1) | mask(x2) | mask(x3) | mask(x4) | mask(x5) ;
   }
 
   //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5` and `x6` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6) {
-    return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
-           mask(x4) | mask(x5) | mask(x6) ;
+    return mask(x0) | mask(x1) | mask(x2) | mask(x3) | mask(x4) | mask(x5) | mask(x6) ;
   }
 
   //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5`, `x6` and `x7` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7) {
-    return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
-           mask(x4) | mask(x5) | mask(x6) | mask(x7) ;
+    return mask(x0) | mask(x1) | mask(x2) | mask(x3) | mask(x4) | mask(x5) | mask(x6) | mask(x7) ;
   }
 
   //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5`, `x6`, `x7` and `x8` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7, uint32_t x8) {
-    return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
-           mask(x4) | mask(x5) | mask(x6) | mask(x7) |
-           mask(x8) ;
+    return mask(x0) | mask(x1) | mask(x2) | mask(x3) | mask(x4) | mask(x5) | mask(x6) | mask(x7) | mask(x8) ;
   }
 
   //! Generate a bit-mask that has `x0`, `x1`, `x2`, `x3`, `x4`, `x5`, `x6`, `x7`, `x8` and `x9` bits set.
   static ASMJIT_INLINE uint32_t mask(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7, uint32_t x8, uint32_t x9) {
-    return mask(x0) | mask(x1) | mask(x2) | mask(x3) |
-           mask(x4) | mask(x5) | mask(x6) | mask(x7) |
-           mask(x8) | mask(x9) ;
+    return mask(x0) | mask(x1) | mask(x2) | mask(x3) | mask(x4) | mask(x5) | mask(x6) | mask(x7) | mask(x8) | mask(x9) ;
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - Bits]
+  // [Bits]
   // --------------------------------------------------------------------------
 
   //! Generate a bit-mask that has `x` most significant bits set.
@@ -316,16 +350,16 @@ struct IntUtil {
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - HasBit]
+  // [HasBit]
   // --------------------------------------------------------------------------
 
   //! Get whether `x` has bit `n` set.
   static ASMJIT_INLINE bool hasBit(uint32_t x, uint32_t n) {
-    return static_cast<bool>((x >> n) & 0x1);
+    return (x & (static_cast<uint32_t>(1) << n)) != 0;
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - BitCount]
+  // [BitCount]
   // --------------------------------------------------------------------------
 
   //! Get count of bits in `x`.
@@ -338,14 +372,14 @@ struct IntUtil {
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - FindFirstBit]
+  // [FindFirstBit]
   // --------------------------------------------------------------------------
 
   //! \internal
   static ASMJIT_INLINE uint32_t findFirstBitSlow(uint32_t mask) {
-    // This is a reference (slow) implementation of findFirstBit(), used when
-    // we don't have compiler support for this task. The implementation speed
-    // has been improved to check for 2 bits per iteration.
+    // This is a reference (slow) implementation of `findFirstBit()`, used when
+    // we don't have a C++ compiler support. The implementation speed has been
+    // improved to check for 2 bits per iteration.
     uint32_t i = 1;
 
     while (mask != 0) {
@@ -375,7 +409,7 @@ struct IntUtil {
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - Misc]
+  // [Misc]
   // --------------------------------------------------------------------------
 
   static ASMJIT_INLINE uint32_t keepNOnesFromRight(uint32_t mask, uint32_t nBits) {
@@ -414,7 +448,7 @@ struct IntUtil {
   }
 
   // --------------------------------------------------------------------------
-  // [AsmJit - Alignment]
+  // [Alignment]
   // --------------------------------------------------------------------------
 
   template<typename T>
@@ -457,9 +491,28 @@ struct IntUtil {
 
   //! Get delta required to align `base` to `alignment`.
   template<typename T>
-  static ASMJIT_INLINE T deltaTo(T base, T alignment) {
+  static ASMJIT_INLINE T alignDiff(T base, T alignment) {
     return alignTo(base, alignment) - base;
   }
+
+  // --------------------------------------------------------------------------
+  // [String]
+  // --------------------------------------------------------------------------
+
+  static ASMJIT_INLINE size_t strLen(const char* s, size_t maxlen) {
+    size_t i;
+    for (i = 0; i < maxlen; i++)
+      if (!s[i])
+        break;
+    return i;
+  }
+
+  // --------------------------------------------------------------------------
+  // [CpuTicks]
+  // --------------------------------------------------------------------------
+
+  //! Get the current CPU tick count, used for benchmarking (1ms resolution).
+  static ASMJIT_API uint32_t getTickCount();
 };
 
 // ============================================================================
@@ -523,7 +576,7 @@ union UInt64 {
 
   ASMJIT_INLINE UInt64& setPacked_2x32(uint32_t u0, uint32_t u1) {
     if (kArchHost64Bit) {
-      u64 = IntUtil::pack64_2x32(u0, u1);
+      u64 = Utils::pack64_2x32(u0, u1);
     }
     else {
       u32[0] = u0;
@@ -713,6 +766,7 @@ union UInt64 {
   // [Members]
   // --------------------------------------------------------------------------
 
+  //! 64-bit unsigned value.
   uint64_t u64;
 
   uint32_t u32[2];
@@ -720,12 +774,93 @@ union UInt64 {
   uint8_t u8[8];
 
   struct {
-#if defined(ASMJIT_ARCH_LE)
+#if ASMJIT_ARCH_LE
     uint32_t lo, hi;
 #else
     uint32_t hi, lo;
 #endif // ASMJIT_ARCH_LE
   };
+};
+
+// ============================================================================
+// [asmjit::Lock]
+// ============================================================================
+
+//! \internal
+//!
+//! Lock.
+struct Lock {
+  ASMJIT_NO_COPY(Lock)
+
+  // --------------------------------------------------------------------------
+  // [Windows]
+  // --------------------------------------------------------------------------
+
+#if ASMJIT_OS_WINDOWS
+  typedef CRITICAL_SECTION Handle;
+
+  //! Create a new `Lock` instance.
+  ASMJIT_INLINE Lock() { InitializeCriticalSection(&_handle); }
+  //! Destroy the `Lock` instance.
+  ASMJIT_INLINE ~Lock() { DeleteCriticalSection(&_handle); }
+
+  //! Lock.
+  ASMJIT_INLINE void lock() { EnterCriticalSection(&_handle); }
+  //! Unlock.
+  ASMJIT_INLINE void unlock() { LeaveCriticalSection(&_handle); }
+#endif // ASMJIT_OS_WINDOWS
+
+  // --------------------------------------------------------------------------
+  // [Posix]
+  // --------------------------------------------------------------------------
+
+#if ASMJIT_OS_POSIX
+  typedef pthread_mutex_t Handle;
+
+  //! Create a new `Lock` instance.
+  ASMJIT_INLINE Lock() { pthread_mutex_init(&_handle, NULL); }
+  //! Destroy the `Lock` instance.
+  ASMJIT_INLINE ~Lock() { pthread_mutex_destroy(&_handle); }
+
+  //! Lock.
+  ASMJIT_INLINE void lock() { pthread_mutex_lock(&_handle); }
+  //! Unlock.
+  ASMJIT_INLINE void unlock() { pthread_mutex_unlock(&_handle); }
+#endif // ASMJIT_OS_POSIX
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  //! Native handle.
+  Handle _handle;
+};
+
+// ============================================================================
+// [asmjit::AutoLock]
+// ============================================================================
+
+//! \internal
+//!
+//! Scoped lock.
+struct AutoLock {
+  ASMJIT_NO_COPY(AutoLock)
+
+  // --------------------------------------------------------------------------
+  // [Construction / Destruction]
+  // --------------------------------------------------------------------------
+
+  //! Lock `target`, scoped.
+  ASMJIT_INLINE AutoLock(Lock& target) : _target(target) { _target.lock(); }
+  //! Unlock `target`.
+  ASMJIT_INLINE ~AutoLock() { _target.unlock(); }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  //! Reference to the `Lock`.
+  Lock& _target;
 };
 
 //! \}
@@ -736,4 +871,4 @@ union UInt64 {
 #include "../apiend.h"
 
 // [Guard]
-#endif // _ASMJIT_BASE_INTUTIL_H
+#endif // _ASMJIT_BASE_UTILS_H

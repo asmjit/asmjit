@@ -40,50 +40,43 @@ struct X86Test {
 // ============================================================================
 
 struct X86Test_AlignBase : public X86Test {
-  X86Test_AlignBase(uint32_t argCount, uint32_t varCount, bool naked, bool pushPop) :
-    _argCount(argCount),
-    _varCount(varCount),
-    _naked(naked),
-    _pushPop(pushPop) {
+  X86Test_AlignBase(uint32_t numArgs, uint32_t numVars, bool naked) :
+    _numArgs(numArgs),
+    _numVars(numVars),
+    _naked(naked) {
 
-    _name.setFormat("[Align] Args=%u Vars=%u Naked=%c PushPop=%c",
-      argCount,
-      varCount,
-      naked   ? 'Y' : 'N',
-      pushPop ? 'Y' : 'N');
+    _name.setFormat("[Align] NumArgs=%u NumVars=%u Naked=%c",
+      numArgs, numVars, naked ? 'Y' : 'N');
   }
 
   static void add(PodVector<X86Test*>& tests) {
     for (unsigned int i = 0; i <= 6; i++) {
       for (unsigned int j = 0; j <= 4; j++) {
-        tests.append(new X86Test_AlignBase(i, j, false, false));
-        tests.append(new X86Test_AlignBase(i, j, false, true ));
-        tests.append(new X86Test_AlignBase(i, j, true , false));
-        tests.append(new X86Test_AlignBase(i, j, true , true ));
+        tests.append(new X86Test_AlignBase(i, j, false));
+        tests.append(new X86Test_AlignBase(i, j, true));
       }
     }
   }
 
   virtual void compile(X86Compiler& c) {
-    switch (_argCount) {
-      case 0: c.addFunc(kFuncConvHost, FuncBuilder0<int>()); break;
-      case 1: c.addFunc(kFuncConvHost, FuncBuilder1<int, int>()); break;
-      case 2: c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>()); break;
-      case 3: c.addFunc(kFuncConvHost, FuncBuilder3<int, int, int, int>()); break;
-      case 4: c.addFunc(kFuncConvHost, FuncBuilder4<int, int, int, int, int>()); break;
-      case 5: c.addFunc(kFuncConvHost, FuncBuilder5<int, int, int, int, int, int>()); break;
-      case 6: c.addFunc(kFuncConvHost, FuncBuilder6<int, int, int, int, int, int, int>()); break;
+    switch (_numArgs) {
+      case 0: c.addFunc(FuncBuilder0<int>(kCallConvHost)); break;
+      case 1: c.addFunc(FuncBuilder1<int, int>(kCallConvHost)); break;
+      case 2: c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost)); break;
+      case 3: c.addFunc(FuncBuilder3<int, int, int, int>(kCallConvHost)); break;
+      case 4: c.addFunc(FuncBuilder4<int, int, int, int, int>(kCallConvHost)); break;
+      case 5: c.addFunc(FuncBuilder5<int, int, int, int, int, int>(kCallConvHost)); break;
+      case 6: c.addFunc(FuncBuilder6<int, int, int, int, int, int, int>(kCallConvHost)); break;
     }
 
     c.getFunc()->setHint(kFuncHintNaked, _naked);
-    c.getFunc()->setHint(kX86FuncHintPushPop, _pushPop);
 
-    X86GpVar gpVar(c, kVarTypeIntPtr);
-    X86GpVar gpSum(c, kVarTypeInt32);
-    X86XmmVar xmmVar(c, kX86VarTypeXmm);
+    X86GpVar gpVar = c.newIntPtr("gpVar");
+    X86GpVar gpSum = c.newInt32("gpSum");
+    X86XmmVar xmmVar = c.newXmm("xmmVar");
 
     // Alloc, use and spill preserved registers.
-    if (_varCount) {
+    if (_numVars) {
       uint32_t gpCount = c.getRegCount().getGp();
       uint32_t varIndex = 0;
       uint32_t regIndex = 0;
@@ -92,7 +85,7 @@ struct X86Test_AlignBase : public X86Test {
 
       do {
         if ((preservedMask & regMask) != 0 && (regIndex != kX86RegIndexSp && regIndex != kX86RegIndexBp)) {
-          X86GpVar tmp(c, kVarTypeInt32);
+          X86GpVar tmp = c.newInt32("tmp");
           c.alloc(tmp, regIndex);
           c.xor_(tmp, tmp);
           c.spill(tmp);
@@ -101,14 +94,14 @@ struct X86Test_AlignBase : public X86Test {
 
         regIndex++;
         regMask <<= 1;
-      } while (varIndex < _varCount && regIndex < gpCount);
+      } while (varIndex < _numVars && regIndex < gpCount);
     }
 
     // Do a sum of arguments to verify possible relocation when misaligned.
-    if (_argCount) {
+    if (_numArgs) {
       c.xor_(gpSum, gpSum);
-      for (uint32_t argIndex = 0; argIndex < _argCount; argIndex++) {
-        X86GpVar gpArg(c, kVarTypeInt32);
+      for (uint32_t argIndex = 0; argIndex < _numArgs; argIndex++) {
+        X86GpVar gpArg = c.newInt32("gpArg%u", argIndex);
 
         c.setArg(argIndex, gpArg);
         c.add(gpSum, gpArg);
@@ -120,7 +113,7 @@ struct X86Test_AlignBase : public X86Test {
     c.shl(gpVar.r32(), 28);
 
     // Add a sum of arguments to check whether they are correct.
-    if (_argCount)
+    if (_numArgs)
       c.or_(gpVar.r32(), gpSum);
 
     c.ret(gpVar);
@@ -139,7 +132,7 @@ struct X86Test_AlignBase : public X86Test {
     unsigned int resultRet = 0;
     unsigned int expectRet = 0;
 
-    switch (_argCount) {
+    switch (_numArgs) {
       case 0:
         resultRet = asmjit_cast<Func0>(_func)();
         expectRet = 0;
@@ -176,11 +169,10 @@ struct X86Test_AlignBase : public X86Test {
     return resultRet == expectRet;
   }
 
-  unsigned int _argCount;
-  unsigned int _varCount;
+  unsigned int _numArgs;
+  unsigned int _numVars;
 
   bool _naked;
-  bool _pushPop;
 };
 
 // ============================================================================
@@ -195,7 +187,7 @@ struct X86Test_JumpCross : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<Void>());
+    c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 
     Label L_1(c);
     Label L_2(c);
@@ -236,7 +228,7 @@ struct X86Test_JumpUnreachable1 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<Void>());
+    c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 
     Label L_1(c);
     Label L_2(c);
@@ -246,8 +238,8 @@ struct X86Test_JumpUnreachable1 : public X86Test {
     Label L_6(c);
     Label L_7(c);
 
-    X86GpVar v0(c, kVarTypeUInt32, "v0");
-    X86GpVar v1(c, kVarTypeUInt32, "v1");
+    X86GpVar v0 = c.newUInt32("v0");
+    X86GpVar v1 = c.newUInt32("v1");
 
     c.bind(L_2);
     c.bind(L_3);
@@ -298,13 +290,13 @@ struct X86Test_JumpUnreachable2 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<Void>());
+    c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 
     Label L_1(c);
     Label L_2(c);
 
-    X86GpVar v0(c, kVarTypeUInt32, "v0");
-    X86GpVar v1(c, kVarTypeUInt32, "v1");
+    X86GpVar v0 = c.newUInt32("v0");
+    X86GpVar v1 = c.newUInt32("v1");
 
     c.jmp(L_1);
     c.bind(L_2);
@@ -344,13 +336,13 @@ struct X86Test_AllocBase : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
-    X86GpVar v0(c, kVarTypeInt32, "v0");
-    X86GpVar v1(c, kVarTypeInt32, "v1");
-    X86GpVar v2(c, kVarTypeInt32, "v2");
-    X86GpVar v3(c, kVarTypeInt32, "v3");
-    X86GpVar v4(c, kVarTypeInt32, "v4");
+    X86GpVar v0 = c.newInt32("v0");
+    X86GpVar v1 = c.newInt32("v1");
+    X86GpVar v2 = c.newInt32("v2");
+    X86GpVar v3 = c.newInt32("v3");
+    X86GpVar v4 = c.newInt32("v4");
 
     c.xor_(v0, v0);
 
@@ -394,11 +386,11 @@ struct X86Test_AllocManual : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
-    X86GpVar v0(c, kVarTypeInt32, "v0");
-    X86GpVar v1(c, kVarTypeInt32, "v1");
-    X86GpVar cnt(c, kVarTypeInt32, "cnt");
+    X86GpVar v0  = c.newInt32("v0");
+    X86GpVar v1  = c.newInt32("v1");
+    X86GpVar cnt = c.newInt32("cnt");
 
     c.xor_(v0, v0);
     c.xor_(v1, v1);
@@ -449,13 +441,13 @@ struct X86Test_AllocUseMem : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+    c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
-    X86GpVar iIdx(c, kVarTypeInt32);
-    X86GpVar iEnd(c, kVarTypeInt32);
+    X86GpVar iIdx = c.newInt32("iIdx");
+    X86GpVar iEnd = c.newInt32("iEnd");
 
-    X86GpVar aIdx(c, kVarTypeInt32);
-    X86GpVar aEnd(c, kVarTypeInt32);
+    X86GpVar aIdx = c.newInt32("aIdx");
+    X86GpVar aEnd = c.newInt32("aEnd");
 
     Label L_1(c);
 
@@ -503,21 +495,21 @@ struct X86Test_AllocMany1 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<Void, int*, int*>());
+    c.addFunc(FuncBuilder2<Void, int*, int*>(kCallConvHost));
 
-    X86GpVar a0(c, kVarTypeIntPtr, "a0");
-    X86GpVar a1(c, kVarTypeIntPtr, "a1");
+    X86GpVar a0 = c.newIntPtr("a0");
+    X86GpVar a1 = c.newIntPtr("a1");
 
     c.setArg(0, a0);
     c.setArg(1, a1);
 
     // Create some variables.
-    X86GpVar t(c, kVarTypeInt32);
+    X86GpVar t = c.newInt32("t");
     X86GpVar x[kCount];
 
     uint32_t i;
     for (i = 0; i < kCount; i++) {
-      x[i] = c.newGpVar(kVarTypeInt32);
+      x[i] = c.newInt32("x%u", i);
     }
 
     // Setup variables (use mov with reg/imm to se if register allocator works).
@@ -580,23 +572,23 @@ struct X86Test_AllocMany2 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder1<Void, int*>());
+    c.addFunc(FuncBuilder1<Void, int*>(kCallConvHost));
 
     X86GpVar var[32];
-    X86GpVar a(c, kVarTypeIntPtr, "a");
+    X86GpVar a = c.newIntPtr("a");
 
     c.setArg(0, a);
 
     int i;
     for (i = 0; i < ASMJIT_ARRAY_SIZE(var); i++) {
-      var[i] = c.newGpVar(kVarTypeInt32);
+      var[i] = c.newInt32("var[%d]", i);
     }
 
     for (i = 0; i < ASMJIT_ARRAY_SIZE(var); i++) {
       c.xor_(var[i], var[i]);
     }
 
-    X86GpVar v0(c, kVarTypeInt32);
+    X86GpVar v0 = c.newInt32("v0");
     Label L(c);
 
     c.mov(v0, 32);
@@ -654,14 +646,14 @@ struct X86Test_AllocImul1 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder4<Void, int*, int*, int, int>());
+    c.addFunc(FuncBuilder4<Void, int*, int*, int, int>(kCallConvHost));
 
-    X86GpVar dstHi(c, kVarTypeIntPtr, "dstHi");
-    X86GpVar dstLo(c, kVarTypeIntPtr, "dstLo");
+    X86GpVar dstHi = c.newIntPtr("dstHi");
+    X86GpVar dstLo = c.newIntPtr("dstLo");
 
-    X86GpVar vHi(c, kVarTypeInt32, "vHi");
-    X86GpVar vLo(c, kVarTypeInt32, "vLo");
-    X86GpVar src(c, kVarTypeInt32, "src");
+    X86GpVar vHi = c.newInt32("vHi");
+    X86GpVar vLo = c.newInt32("vLo");
+    X86GpVar src = c.newInt32("src");
 
     c.setArg(0, dstHi);
     c.setArg(1, dstLo);
@@ -709,18 +701,18 @@ struct X86Test_AllocImul2 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<Void, int*, const int*>());
+    c.addFunc(FuncBuilder2<Void, int*, const int*>(kCallConvHost));
 
-    X86GpVar dst(c, kVarTypeIntPtr, "dst");
-    X86GpVar src(c, kVarTypeIntPtr, "src");
+    X86GpVar dst = c.newIntPtr("dst");
+    X86GpVar src = c.newIntPtr("src");
 
     c.setArg(0, dst);
     c.setArg(1, src);
 
     for (unsigned int i = 0; i < 4; i++) {
-      X86GpVar x(c, kVarTypeInt32, "x");
-      X86GpVar y(c, kVarTypeInt32, "y");
-      X86GpVar hi(c, kVarTypeInt32, "hi");
+      X86GpVar x  = c.newInt32("x");
+      X86GpVar y  = c.newInt32("y");
+      X86GpVar hi = c.newInt32("hi");
 
       c.mov(x, x86::dword_ptr(src, 0));
       c.mov(y, x86::dword_ptr(src, 4));
@@ -762,11 +754,11 @@ struct X86Test_AllocIdiv1 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+    c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
-    X86GpVar a(c, kVarTypeIntPtr, "a");
-    X86GpVar b(c, kVarTypeIntPtr, "b");
-    X86GpVar dummy(c, kVarTypeInt32, "dummy");
+    X86GpVar a = c.newIntPtr("a");
+    X86GpVar b = c.newIntPtr("b");
+    X86GpVar dummy = c.newInt32("dummy");
 
     c.setArg(0, a);
     c.setArg(1, b);
@@ -807,11 +799,11 @@ struct X86Test_AllocSetz : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder3<Void, int, int, char*>());
+    c.addFunc(FuncBuilder3<Void, int, int, char*>(kCallConvHost));
 
-    X86GpVar src0(c, kVarTypeInt32, "src0");
-    X86GpVar src1(c, kVarTypeInt32, "src1");
-    X86GpVar dst0(c, kVarTypeIntPtr, "dst0");
+    X86GpVar src0 = c.newInt32("src0");
+    X86GpVar src1 = c.newInt32("src1");
+    X86GpVar dst0 = c.newIntPtr("dst0");
 
     c.setArg(0, src0);
     c.setArg(1, src1);
@@ -857,12 +849,12 @@ struct X86Test_AllocShlRor : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder4<Void, int*, int, int, int>());
+    c.addFunc(FuncBuilder4<Void, int*, int, int, int>(kCallConvHost));
 
-    X86GpVar dst(c, kVarTypeIntPtr, "dst");
-    X86GpVar var(c, kVarTypeInt32, "var");
-    X86GpVar vShlParam(c, kVarTypeInt32, "vShlParam");
-    X86GpVar vRorParam(c, kVarTypeInt32, "vRorParam");
+    X86GpVar dst = c.newIntPtr("dst");
+    X86GpVar var = c.newInt32("var");
+    X86GpVar vShlParam = c.newInt32("vShlParam");
+    X86GpVar vRorParam = c.newInt32("vRorParam");
 
     c.setArg(0, dst);
     c.setArg(1, var);
@@ -908,10 +900,10 @@ struct X86Test_AllocGpLo : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder1<uint32_t, uint32_t*>());
+    c.addFunc(FuncBuilder1<uint32_t, uint32_t*>(kCallConvHost));
 
-    X86GpVar rPtr(c, kVarTypeUIntPtr);
-    X86GpVar rSum(c, kVarTypeUInt32);
+    X86GpVar rPtr = c.newUIntPtr("rPtr");
+    X86GpVar rSum = c.newUInt32("rSum");
 
     c.setArg(0, rPtr);
 
@@ -919,7 +911,7 @@ struct X86Test_AllocGpLo : public X86Test {
     uint32_t i;
 
     for (i = 0; i < kCount; i++) {
-      rVar[i] = c.newGpVar(kVarTypeUInt32);
+      rVar[i] = c.newUInt32("rVar[%u]", i);
     }
 
     // Init pseudo-regs with values from our array.
@@ -996,11 +988,11 @@ struct X86Test_AllocRepMovsb : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder3<Void, void*, void*, size_t>());
+    c.addFunc(FuncBuilder3<Void, void*, void*, size_t>(kCallConvHost));
 
-    X86GpVar dst(c, kVarTypeIntPtr, "dst");
-    X86GpVar src(c, kVarTypeIntPtr, "src");
-    X86GpVar cnt(c, kVarTypeIntPtr, "cnt");
+    X86GpVar dst = c.newIntPtr("dst");
+    X86GpVar src = c.newIntPtr("src");
+    X86GpVar cnt = c.newIntPtr("cnt");
 
     c.setArg(0, dst);
     c.setArg(1, src);
@@ -1037,10 +1029,10 @@ struct X86Test_AllocIfElse1 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+    c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
-    X86GpVar v1(c, kVarTypeInt32);
-    X86GpVar v2(c, kVarTypeInt32);
+    X86GpVar v1 = c.newInt32("v1");
+    X86GpVar v2 = c.newInt32("v2");
 
     Label L_1(c);
     Label L_2(c);
@@ -1088,10 +1080,10 @@ struct X86Test_AllocIfElse2 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+    c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
-    X86GpVar v1(c, kVarTypeInt32);
-    X86GpVar v2(c, kVarTypeInt32);
+    X86GpVar v1 = c.newInt32("v1");
+    X86GpVar v2 = c.newInt32("v2");
 
     Label L_1(c);
     Label L_2(c);
@@ -1148,11 +1140,11 @@ struct X86Test_AllocIfElse3 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+    c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
-    X86GpVar v1(c, kVarTypeInt32);
-    X86GpVar v2(c, kVarTypeInt32);
-    X86GpVar counter(c, kVarTypeInt32);
+    X86GpVar v1 = c.newInt32("v1");
+    X86GpVar v2 = c.newInt32("v2");
+    X86GpVar counter = c.newInt32("counter");
 
     Label L_1(c);
     Label L_Loop(c);
@@ -1208,11 +1200,11 @@ struct X86Test_AllocIfElse4 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+    c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
-    X86GpVar v1(c, kVarTypeInt32);
-    X86GpVar v2(c, kVarTypeInt32);
-    X86GpVar counter(c, kVarTypeInt32);
+    X86GpVar v1 = c.newInt32("v1");
+    X86GpVar v2 = c.newInt32("v2");
+    X86GpVar counter = c.newInt32("counter");
 
     Label L_1(c);
     Label L_Loop1(c);
@@ -1273,10 +1265,10 @@ struct X86Test_AllocInt8 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86GpVar x(c, kVarTypeInt8, "x");
-    X86GpVar y(c, kVarTypeInt32, "y");
+    X86GpVar x = c.newInt8("x");
+    X86GpVar y = c.newInt32("y");
 
-    c.addFunc(kFuncConvHost, FuncBuilder1<int, char>());
+    c.addFunc(FuncBuilder1<int, char>(kCallConvHost));
     c.setArg(0, x);
 
     c.movsx(y, x);
@@ -1311,14 +1303,13 @@ struct X86Test_AllocArgsIntPtr : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost,
-      FuncBuilder8<Void, void*, void*, void*, void*, void*, void*, void*, void*>());
+    c.addFunc(FuncBuilder8<Void, void*, void*, void*, void*, void*, void*, void*, void*>(kCallConvHost));
 
     uint32_t i;
     X86GpVar var[8];
 
     for (i = 0; i < 8; i++) {
-      var[i] = c.newGpVar();
+      var[i] = c.newIntPtr("var%u", i);
       c.setArg(i, var[i]);
     }
 
@@ -1370,16 +1361,15 @@ struct X86Test_AllocArgsFloat : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost,
-      FuncBuilder8<Void, float, float, float, float, float, float, float, void*>());
+    c.addFunc(FuncBuilder8<Void, float, float, float, float, float, float, float, void*>(kCallConvHost));
 
     uint32_t i;
 
+    X86GpVar p = c.newIntPtr("p");
     X86XmmVar xv[7];
-    X86GpVar p(c);
 
     for (i = 0; i < 7; i++) {
-      xv[i] = c.newXmmVar(kX86VarTypeXmmSs);
+      xv[i] = c.newXmmSs("xv%u", i);
       c.setArg(i, xv[i]);
     }
 
@@ -1424,16 +1414,15 @@ struct X86Test_AllocArgsDouble : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost,
-      FuncBuilder8<Void, double, double, double, double, double, double, double, void*>());
+    c.addFunc(FuncBuilder8<Void, double, double, double, double, double, double, double, void*>(kCallConvHost));
 
     uint32_t i;
 
+    X86GpVar p = c.newIntPtr("p");
     X86XmmVar xv[7];
-    X86GpVar p(c);
 
     for (i = 0; i < 7; i++) {
-      xv[i] = c.newXmmVar(kX86VarTypeXmmSd);
+      xv[i] = c.newXmmSd("xv%u", i);
       c.setArg(i, xv[i]);
     }
 
@@ -1478,10 +1467,10 @@ struct X86Test_AllocRetFloat : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<float, float, float>());
+    c.addFunc(FuncBuilder2<float, float, float>(kCallConvHost));
 
-    X86XmmVar a(c, kX86VarTypeXmmSs);
-    X86XmmVar b(c, kX86VarTypeXmmSs);
+    X86XmmVar a = c.newXmmSs("a");
+    X86XmmVar b = c.newXmmSs("b");
 
     c.setArg(0, a);
     c.setArg(1, b);
@@ -1518,10 +1507,10 @@ struct X86Test_AllocRetDouble : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<double, double, double>());
+    c.addFunc(FuncBuilder2<double, double, double>(kCallConvHost));
 
-    X86XmmVar a(c, kX86VarTypeXmmSd);
-    X86XmmVar b(c, kX86VarTypeXmmSd);
+    X86XmmVar a = c.newXmmSd("a");
+    X86XmmVar b = c.newXmmSd("b");
 
     c.setArg(0, a);
     c.setArg(1, b);
@@ -1560,12 +1549,12 @@ struct X86Test_AllocStack : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
     X86Mem stack = c.newStack(kSize, 1).setSize(1);
-    X86GpVar i(c, kVarTypeIntPtr, "i");
-    X86GpVar a(c, kVarTypeInt32, "a");
-    X86GpVar b(c, kVarTypeInt32, "b");
+    X86GpVar i = c.newIntPtr("i");
+    X86GpVar a = c.newInt32("a");
+    X86GpVar b = c.newInt32("b");
 
     Label L_1(c);
     Label L_2(c);
@@ -1622,14 +1611,14 @@ struct X86Test_AllocMemcpy : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86GpVar dst(c, kVarTypeIntPtr, "dst");
-    X86GpVar src(c, kVarTypeIntPtr, "src");
-    X86GpVar cnt(c, kVarTypeUIntPtr, "cnt");
+    X86GpVar dst = c.newIntPtr("dst");
+    X86GpVar src = c.newIntPtr("src");
+    X86GpVar cnt = c.newUIntPtr("cnt");
 
     Label L_Loop(c);                               // Create base labels we use
     Label L_Exit(c);                               // in our function.
 
-    c.addFunc(kFuncConvHost, FuncBuilder3<Void, uint32_t*, const uint32_t*, size_t>());
+    c.addFunc(FuncBuilder3<Void, uint32_t*, const uint32_t*, size_t>(kCallConvHost));
     c.setArg(0, dst);
     c.setArg(1, src);
     c.setArg(2, cnt);
@@ -1643,7 +1632,7 @@ struct X86Test_AllocMemcpy : public X86Test {
 
     c.bind(L_Loop);                                // Bind the loop label here.
 
-    X86GpVar tmp(c, kVarTypeInt32);                // Copy a single dword (4 bytes).
+    X86GpVar tmp = c.newInt32("tmp");              // Copy a single dword (4 bytes).
     c.mov(tmp, x86::dword_ptr(src));
     c.mov(x86::dword_ptr(dst), tmp);
 
@@ -1736,8 +1725,8 @@ struct X86Test_AllocBlend : public X86Test {
     uint32_t _srcBuffer[kCount + 3];
 
     // Has to be aligned.
-    uint32_t* dstBuffer = (uint32_t*)IntUtil::alignTo<intptr_t>((intptr_t)_dstBuffer, 16);
-    uint32_t* srcBuffer = (uint32_t*)IntUtil::alignTo<intptr_t>((intptr_t)_srcBuffer, 16);
+    uint32_t* dstBuffer = (uint32_t*)Utils::alignTo<intptr_t>((intptr_t)_dstBuffer, 16);
+    uint32_t* srcBuffer = (uint32_t*)Utils::alignTo<intptr_t>((intptr_t)_srcBuffer, 16);
 
     ::memcpy(dstBuffer, dstConstData, sizeof(dstConstData));
     ::memcpy(srcBuffer, srcConstData, sizeof(srcConstData));
@@ -1783,11 +1772,11 @@ struct X86Test_CallBase : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86GpVar v0(c, kVarTypeInt32, "v0");
-    X86GpVar v1(c, kVarTypeInt32, "v1");
-    X86GpVar v2(c, kVarTypeInt32, "v2");
+    X86GpVar v0 = c.newInt32("v0");
+    X86GpVar v1 = c.newInt32("v1");
+    X86GpVar v2 = c.newInt32("v2");
 
-    c.addFunc(kFuncConvHost, FuncBuilder3<int, int, int, int>());
+    c.addFunc(FuncBuilder3<int, int, int, int>(kCallConvHost));
     c.setArg(0, v0);
     c.setArg(1, v1);
     c.setArg(2, v2);
@@ -1798,10 +1787,10 @@ struct X86Test_CallBase : public X86Test {
     c.shl(v2, 1);
 
     // Call function.
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
+    X86GpVar fn = c.newIntPtr("fn");
     c.mov(fn, imm_ptr(calledFunc));
 
-    X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder3<int, int, int, int>());
+    X86CallNode* call = c.call(fn, FuncBuilder3<int, int, int, int>(kCallConvHost));
     call->setArg(0, v2);
     call->setArg(1, v1);
     call->setArg(2, v0);
@@ -1839,20 +1828,20 @@ struct X86Test_CallFast : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86GpVar var(c, kVarTypeInt32, "var");
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
+    X86GpVar var = c.newInt32("var");
+    X86GpVar fn = c.newIntPtr("fn");
 
-    c.addFunc(kFuncConvHost, FuncBuilder1<int, int>());
+    c.addFunc(FuncBuilder1<int, int>(kCallConvHost));
     c.setArg(0, var);
 
     c.mov(fn, imm_ptr(calledFunc));
     X86CallNode* call;
 
-    call = c.call(fn, kFuncConvHostFastCall, FuncBuilder1<int, int>());
+    call = c.call(fn, FuncBuilder1<int, int>(kCallConvHostFastCall));
     call->setArg(0, var);
     call->setRet(0, var);
 
-    call = c.call(fn, kFuncConvHostFastCall, FuncBuilder1<int, int>());
+    call = c.call(fn, FuncBuilder1<int, int>(kCallConvHostFastCall));
     call->setArg(0, var);
     call->setRet(0, var);
 
@@ -1895,20 +1884,20 @@ struct X86Test_CallManyArgs : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
     // Prepare.
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
-    X86GpVar va(c, kVarTypeInt32, "va");
-    X86GpVar vb(c, kVarTypeInt32, "vb");
-    X86GpVar vc(c, kVarTypeInt32, "vc");
-    X86GpVar vd(c, kVarTypeInt32, "vd");
-    X86GpVar ve(c, kVarTypeInt32, "ve");
-    X86GpVar vf(c, kVarTypeInt32, "vf");
-    X86GpVar vg(c, kVarTypeInt32, "vg");
-    X86GpVar vh(c, kVarTypeInt32, "vh");
-    X86GpVar vi(c, kVarTypeInt32, "vi");
-    X86GpVar vj(c, kVarTypeInt32, "vj");
+    X86GpVar fn = c.newIntPtr("fn");
+    X86GpVar va = c.newInt32("va");
+    X86GpVar vb = c.newInt32("vb");
+    X86GpVar vc = c.newInt32("vc");
+    X86GpVar vd = c.newInt32("vd");
+    X86GpVar ve = c.newInt32("ve");
+    X86GpVar vf = c.newInt32("vf");
+    X86GpVar vg = c.newInt32("vg");
+    X86GpVar vh = c.newInt32("vh");
+    X86GpVar vi = c.newInt32("vi");
+    X86GpVar vj = c.newInt32("vj");
 
     c.mov(fn, imm_ptr(calledFunc));
     c.mov(va, 0x03);
@@ -1923,8 +1912,7 @@ struct X86Test_CallManyArgs : public X86Test {
     c.mov(vj, 0x1E);
 
     // Call function.
-    X86CallNode* call = c.call(fn, kFuncConvHost,
-      FuncBuilder10<int, int, int, int, int, int, int, int, int, int, int>());
+    X86CallNode* call = c.call(fn, FuncBuilder10<int, int, int, int, int, int, int, int, int, int, int>(kCallConvHost));
     call->setArg(0, va);
     call->setArg(1, vb);
     call->setArg(2, vc);
@@ -1971,18 +1959,17 @@ struct X86Test_CallDuplicateArgs : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
     // Prepare.
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
-    X86GpVar a(c, kVarTypeInt32, "a");
+    X86GpVar fn = c.newIntPtr("fn");
+    X86GpVar a = c.newInt32("a");
 
     c.mov(fn, imm_ptr(calledFunc));
     c.mov(a, 3);
 
     // Call function.
-    X86CallNode* call = c.call(fn, kFuncConvHost,
-      FuncBuilder10<int, int, int, int, int, int, int, int, int, int, int>());
+    X86CallNode* call = c.call(fn, FuncBuilder10<int, int, int, int, int, int, int, int, int, int, int>(kCallConvHost));
     call->setArg(0, a);
     call->setArg(1, a);
     call->setArg(2, a);
@@ -2025,17 +2012,16 @@ struct X86Test_CallImmArgs : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
     // Prepare.
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
-    X86GpVar rv(c, kVarTypeInt32, "rv");
+    X86GpVar fn = c.newIntPtr("fn");
+    X86GpVar rv = c.newInt32("rv");
 
     c.mov(fn, imm_ptr(X86Test_CallManyArgs::calledFunc));
 
     // Call function.
-    X86CallNode* call = c.call(fn, kFuncConvHost,
-      FuncBuilder10<int, int, int, int, int, int, int, int, int, int, int>());
+    X86CallNode* call = c.call(fn, FuncBuilder10<int, int, int, int, int, int, int, int, int, int, int>(kCallConvHost));
     call->setArg(0, imm(0x03));
     call->setArg(1, imm(0x12));
     call->setArg(2, imm(0xA0));
@@ -2091,17 +2077,16 @@ struct X86Test_CallPtrArgs : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
     // Prepare.
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
-    X86GpVar rv(c, kVarTypeInt32, "rv");
+    X86GpVar fn = c.newIntPtr("fn");
+    X86GpVar rv = c.newInt32("rv");
 
     c.mov(fn, imm_ptr(calledFunc));
 
     // Call function.
-    X86CallNode* call = c.call(fn, kFuncConvHost,
-      FuncBuilder10<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>());
+    X86CallNode* call = c.call(fn, FuncBuilder10<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>(kCallConvHost));
     call->setArg(0, imm(0x01));
     call->setArg(1, imm(0x02));
     call->setArg(2, imm(0x03));
@@ -2148,22 +2133,21 @@ struct X86Test_CallFloatAsXmmRet : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<float, float, float>());
+    c.addFunc(FuncBuilder2<float, float, float>(kCallConvHost));
 
-    X86XmmVar a(c, kX86VarTypeXmmSs, "a");
-    X86XmmVar b(c, kX86VarTypeXmmSs, "b");
-    X86XmmVar ret(c, kX86VarTypeXmmSs, "ret");
+    X86XmmVar a = c.newXmmSs("a");
+    X86XmmVar b = c.newXmmSs("b");
+    X86XmmVar ret = c.newXmmSs("ret");
 
     c.setArg(0, a);
     c.setArg(1, b);
 
     // Prepare.
-    X86GpVar fn(c);
+    X86GpVar fn = c.newIntPtr("fn");
     c.mov(fn, imm_ptr(calledFunc));
 
     // Call function.
-    X86CallNode* call = c.call(fn, kFuncConvHost,
-      FuncBuilder2<float, float, float>());
+    X86CallNode* call = c.call(fn, FuncBuilder2<float, float, float>(kCallConvHost));
 
     call->setArg(0, a);
     call->setArg(1, b);
@@ -2203,20 +2187,19 @@ struct X86Test_CallDoubleAsXmmRet : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<double, double, double>());
+    c.addFunc(FuncBuilder2<double, double, double>(kCallConvHost));
 
-    X86XmmVar a(c, kX86VarTypeXmmSd, "a");
-    X86XmmVar b(c, kX86VarTypeXmmSd, "b");
-    X86XmmVar ret(c, kX86VarTypeXmmSd, "ret");
+    X86XmmVar a = c.newXmmSd("a");
+    X86XmmVar b = c.newXmmSd("b");
+    X86XmmVar ret = c.newXmmSd("ret");
 
     c.setArg(0, a);
     c.setArg(1, b);
 
-    X86GpVar fn(c);
+    X86GpVar fn = c.newIntPtr("fn");
     c.mov(fn, imm_ptr(calledFunc));
 
-    X86CallNode* call = c.call(fn, kFuncConvHost,
-      FuncBuilder2<double, double, double>());
+    X86CallNode* call = c.call(fn, FuncBuilder2<double, double, double>(kCallConvHost));
 
     call->setArg(0, a);
     call->setArg(1, b);
@@ -2252,14 +2235,14 @@ struct X86Test_CallConditional : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86GpVar x(c, kVarTypeInt32, "x");
-    X86GpVar y(c, kVarTypeInt32, "y");
-    X86GpVar op(c, kVarTypeInt32, "op");
+    X86GpVar x = c.newInt32("x");
+    X86GpVar y = c.newInt32("y");
+    X86GpVar op = c.newInt32("op");
 
     X86CallNode* call;
     X86GpVar result;
 
-    c.addFunc(kFuncConvHost, FuncBuilder3<int, int, int, int>());
+    c.addFunc(FuncBuilder3<int, int, int, int>(kCallConvHost));
     c.setArg(0, x);
     c.setArg(1, y);
     c.setArg(2, op);
@@ -2272,23 +2255,23 @@ struct X86Test_CallConditional : public X86Test {
     c.cmp(op, 1);
     c.jz(opMul);
 
-    result = c.newGpVar(kVarTypeInt32, "result");
+    result = c.newInt32("result_0");
     c.mov(result, 0);
     c.ret(result);
 
     c.bind(opAdd);
-    result = c.newGpVar(kVarTypeInt32, "result");
+    result = c.newInt32("result_1");
 
-    call = c.call((Ptr)calledFuncAdd, kFuncConvHost, FuncBuilder2<int, int, int>());
+    call = c.call((Ptr)calledFuncAdd, FuncBuilder2<int, int, int>(kCallConvHost));
     call->setArg(0, x);
     call->setArg(1, y);
     call->setRet(0, result);
     c.ret(result);
 
     c.bind(opMul);
-    result = c.newGpVar(kVarTypeInt32, "result");
+    result = c.newInt32("result_2");
 
-    call = c.call((Ptr)calledFuncMul, kFuncConvHost, FuncBuilder2<int, int, int>());
+    call = c.call((Ptr)calledFuncMul, FuncBuilder2<int, int, int>(kCallConvHost));
     call->setArg(0, x);
     call->setArg(1, y);
     call->setRet(0, result);
@@ -2338,26 +2321,26 @@ struct X86Test_CallMultiple : public X86Test {
   virtual void compile(X86Compiler& c) {
     unsigned int i;
 
-    X86GpVar buf(c, kVarTypeIntPtr, "buf");
-    X86GpVar acc0(c, kVarTypeInt32, "acc0");
-    X86GpVar acc1(c, kVarTypeInt32, "acc1");
+    X86GpVar buf = c.newIntPtr("buf");
+    X86GpVar acc0 = c.newInt32("acc0");
+    X86GpVar acc1 = c.newInt32("acc1");
 
-    c.addFunc(kFuncConvHost, FuncBuilder1<int, int*>());
+    c.addFunc(FuncBuilder1<int, int*>(kCallConvHost));
     c.setArg(0, buf);
 
     c.mov(acc0, 0);
     c.mov(acc1, 0);
 
     for (i = 0; i < 4; i++) {
-      X86GpVar ret(c, kVarTypeInt32);
-      X86GpVar ptr(c, kVarTypeIntPtr);
-      X86GpVar idx(c, kVarTypeInt32);
+      X86GpVar ret = c.newInt32("ret");
+      X86GpVar ptr = c.newIntPtr("ptr");
+      X86GpVar idx = c.newInt32("idx");
       X86CallNode* call;
 
       c.mov(ptr, buf);
       c.mov(idx, static_cast<int>(i));
 
-      call = c.call((Ptr)calledFunc, kFuncConvHostFastCall, FuncBuilder2<int, int*, int>());
+      call = c.call((Ptr)calledFunc, FuncBuilder2<int, int*, int>(kCallConvHostFastCall));
       call->setArg(0, ptr);
       call->setArg(1, idx);
       call->setRet(0, ret);
@@ -2367,7 +2350,7 @@ struct X86Test_CallMultiple : public X86Test {
       c.mov(ptr, buf);
       c.mov(idx, static_cast<int>(i));
 
-      call = c.call((Ptr)calledFunc, kFuncConvHostFastCall, FuncBuilder2<int, int*, int>());
+      call = c.call((Ptr)calledFunc, FuncBuilder2<int, int*, int>(kCallConvHostFastCall));
       call->setArg(0, ptr);
       call->setArg(1, idx);
       call->setRet(0, ret);
@@ -2408,23 +2391,23 @@ struct X86Test_CallRecursive : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86GpVar val(c, kVarTypeInt32, "val");
+    X86GpVar val = c.newInt32("val");
     Label skip(c);
 
-    X86FuncNode* func = c.addFunc(kFuncConvHost, FuncBuilder1<int, int>());
+    X86FuncNode* func = c.addFunc(FuncBuilder1<int, int>(kCallConvHost));
     c.setArg(0, val);
 
     c.cmp(val, 1);
     c.jle(skip);
 
-    X86GpVar tmp(c, kVarTypeInt32, "tmp");
+    X86GpVar tmp = c.newInt32("tmp");
     c.mov(tmp, val);
     c.dec(tmp);
 
-    X86CallNode* call = c.call(func->getEntryLabel(), kFuncConvHost, FuncBuilder1<int, int>());
+    X86CallNode* call = c.call(func->getEntryLabel(), FuncBuilder1<int, int>(kCallConvHost));
     call->setArg(0, tmp);
     call->setRet(0, tmp);
-    c.mul(c.newGpVar(kVarTypeInt32), val, tmp);
+    c.mul(c.newInt32(), val, tmp);
 
     c.bind(skip);
     c.ret(val);
@@ -2459,14 +2442,14 @@ struct X86Test_CallMisc1 : public X86Test {
   static void dummy(int a, int b) {}
 
   virtual void compile(X86Compiler& c) {
-    X86GpVar val(c, kVarTypeInt32, "val");
+    X86GpVar val = c.newInt32("val");
     Label skip(c);
 
-    X86FuncNode* func = c.addFunc(kFuncConvHost, FuncBuilder2<int, int, int>());
+    X86FuncNode* func = c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
-    X86GpVar a(c, kVarTypeInt32, "a");
-    X86GpVar b(c, kVarTypeInt32, "b");
-    X86GpVar r(c, kVarTypeInt32, "r");
+    X86GpVar a = c.newInt32("a");
+    X86GpVar b = c.newInt32("b");
+    X86GpVar r = c.newInt32("r");
 
     c.setArg(0, a);
     c.setArg(1, b);
@@ -2474,7 +2457,7 @@ struct X86Test_CallMisc1 : public X86Test {
     c.alloc(a, x86::eax);
     c.alloc(b, x86::ebx);
 
-    X86CallNode* call = c.call(imm_ptr(dummy), kFuncConvHost, FuncBuilder2<void, int, int>());
+    X86CallNode* call = c.call(imm_ptr(dummy), FuncBuilder2<void, int, int>(kCallConvHost));
     call->setArg(0, a);
     call->setArg(1, b);
 
@@ -2510,19 +2493,19 @@ struct X86Test_CallMisc2 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86FuncNode* func = c.addFunc(kFuncConvHost, FuncBuilder1<double, const double*>());
+    X86FuncNode* func = c.addFunc(FuncBuilder1<double, const double*>(kCallConvHost));
 
-    X86GpVar p(c, kVarTypeIntPtr, "p");
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
+    X86GpVar p = c.newIntPtr("p");
+    X86GpVar fn = c.newIntPtr("fn");
 
-    X86XmmVar arg(c, kX86VarTypeXmmSd, "arg");
-    X86XmmVar ret(c, kX86VarTypeXmmSd, "ret");
+    X86XmmVar arg = c.newXmmSd("arg");
+    X86XmmVar ret = c.newXmmSd("ret");
 
     c.setArg(0, p);
     c.movsd(arg, x86::ptr(p));
     c.mov(fn, imm_ptr(op));
 
-    X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder1<double, double>());
+    X86CallNode* call = c.call(fn, FuncBuilder1<double, double>(kCallConvHost));
     call->setArg(0, arg);
     call->setRet(0, ret);
 
@@ -2560,19 +2543,19 @@ struct X86Test_CallMisc3 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86FuncNode* func = c.addFunc(kFuncConvHost, FuncBuilder1<double, const double*>());
+    X86FuncNode* func = c.addFunc(FuncBuilder1<double, const double*>(kCallConvHost));
 
-    X86GpVar p(c, kVarTypeIntPtr, "p");
-    X86GpVar fn(c, kVarTypeIntPtr, "fn");
+    X86GpVar p = c.newIntPtr("p");
+    X86GpVar fn = c.newIntPtr("fn");
 
-    X86XmmVar arg(c, kX86VarTypeXmmSd, "arg");
-    X86XmmVar ret(c, kX86VarTypeXmmSd, "ret");
+    X86XmmVar arg = c.newXmmSd("arg");
+    X86XmmVar ret = c.newXmmSd("ret");
 
     c.setArg(0, p);
     c.movsd(arg, x86::ptr(p));
     c.mov(fn, imm_ptr(op));
 
-    X86CallNode* call = c.call(fn, kFuncConvHost, FuncBuilder1<double, double>());
+    X86CallNode* call = c.call(fn, FuncBuilder1<double, double>(kCallConvHost));
     call->setArg(0, arg);
     call->setRet(0, ret);
 
@@ -2614,14 +2597,17 @@ struct X86Test_CallMisc4 : public X86Test {
 
   virtual void compile(X86Compiler& c) {
     FuncBuilderX funcPrototype;
+
+    funcPrototype.setCallConv(kCallConvHost);
     funcPrototype.setRet(kVarTypeFp64);
-    X86FuncNode* func = c.addFunc(kFuncConvHost, funcPrototype);
+    X86FuncNode* func = c.addFunc(funcPrototype);
 
     FuncBuilderX callPrototype;
+    callPrototype.setCallConv(kCallConvHost);
     callPrototype.setRet(kVarTypeFp64);
-    X86CallNode* call = c.call(imm_ptr(calledFunc), kFuncConvHost, callPrototype);
+    X86CallNode* call = c.call(imm_ptr(calledFunc), callPrototype);
 
-    X86XmmVar ret(c, kX86VarTypeXmmSd, "ret");
+    X86XmmVar ret = c.newXmmSd("ret");
     call->setRet(0, ret);
     c.ret(ret);
 
@@ -2656,13 +2642,13 @@ struct X86Test_MiscConstPool : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder0<int>());
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
-    X86GpVar v0(c, kVarTypeInt32, "v0");
-    X86GpVar v1(c, kVarTypeInt32, "v1");
+    X86GpVar v0 = c.newInt32("v0");
+    X86GpVar v1 = c.newInt32("v1");
 
-    X86Mem c0(c.newInt32Const(kConstScopeLocal, 200));
-    X86Mem c1(c.newInt32Const(kConstScopeLocal, 33));
+    X86Mem c0 = c.newInt32Const(kConstScopeLocal, 200);
+    X86Mem c1 = c.newInt32Const(kConstScopeLocal, 33);
 
     c.mov(v0, c0);
     c.mov(v1, c1);
@@ -2698,11 +2684,11 @@ struct X86Test_MiscMultiRet : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder3<int, int, int, int>());
+    c.addFunc(FuncBuilder3<int, int, int, int>(kCallConvHost));
 
-    X86GpVar op(c, kVarTypeInt32, "op");
-    X86GpVar a(c, kVarTypeInt32, "a");
-    X86GpVar b(c, kVarTypeInt32, "b");
+    X86GpVar op = c.newInt32("op");
+    X86GpVar a = c.newInt32("a");
+    X86GpVar b = c.newInt32("b");
 
     Label L_Zero(c);
     Label L_Add(c);
@@ -2746,7 +2732,7 @@ struct X86Test_MiscMultiRet : public X86Test {
     c.cmp(b, 0);
     c.jz(L_Zero);
 
-    X86GpVar zero(c, kVarTypeInt32, "zero");
+    X86GpVar zero = c.newInt32("zero");
     c.xor_(zero, zero);
     c.idiv(zero, a, b);
     c.ret(a);
@@ -2793,10 +2779,14 @@ struct X86Test_MiscUnfollow : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    c.addFunc(kFuncConvHost, FuncBuilder2<void, int, void*>());
+    // NOTE: Fastcall calling convention is the most appropriate here, as all
+    // arguments will be passed in registers and there won't be any stack
+    // misalignment when we call the `handler()`. This was failing on OSX
+    // when targetting 32-bit.
+    c.addFunc(FuncBuilder2<void, int, void*>(kCallConvHostFastCall));
 
-    X86GpVar a(c, kVarTypeInt32);
-    X86GpVar b(c, kVarTypeIntPtr);
+    X86GpVar a = c.newInt32("a");
+    X86GpVar b = c.newIntPtr("b");
 
     Label tramp(c);
 
@@ -2815,7 +2805,7 @@ struct X86Test_MiscUnfollow : public X86Test {
   }
 
   virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
-    typedef int (*Func)(int, void*);
+    typedef int (ASMJIT_FASTCALL *Func)(int, void*);
 
     Func func = asmjit_cast<Func>(_func);
 
@@ -2833,7 +2823,7 @@ struct X86Test_MiscUnfollow : public X86Test {
     return resultRet == expectRet;
   }
 
-  static void handler() { longjmp(globalJmpBuf, 1); }
+  static ASMJIT_FASTCALL void handler() { longjmp(globalJmpBuf, 1); }
 };
 
 // ============================================================================
@@ -2956,25 +2946,25 @@ int X86TestSuite::run() {
 
   for (i = 0; i < count; i++) {
     JitRuntime runtime;
-    X86Compiler compiler(&runtime);
+    X86Assembler a(&runtime);
+    X86Compiler c(&a);
 
     if (alwaysPrintLog) {
       fprintf(file, "\n");
-      compiler.setLogger(&fileLogger);
+      a.setLogger(&fileLogger);
     }
     else {
       stringLogger.clearString();
-      compiler.setLogger(&stringLogger);
+      a.setLogger(&stringLogger);
     }
 
     X86Test* test = tests[i];
-    test->compile(compiler);
+    test->compile(c);
+    c.finalize();
 
-    void* func = compiler.make();
-
-    if (alwaysPrintLog) {
+    void* func = a.make();
+    if (alwaysPrintLog)
       fflush(file);
-    }
 
     if (func != NULL) {
       StringBuilder result;

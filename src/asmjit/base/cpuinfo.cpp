@@ -10,14 +10,14 @@
 // [Dependencies - AsmJit]
 #include "../base/cpuinfo.h"
 
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 #include "../x86/x86cpuinfo.h"
 #else
 // ?
 #endif
 
 // [Dependencies - Posix]
-#if defined(ASMJIT_OS_POSIX)
+#if ASMJIT_OS_POSIX
 # include <errno.h>
 # include <sys/statvfs.h>
 # include <sys/utsname.h>
@@ -34,11 +34,11 @@ namespace asmjit {
 // ============================================================================
 
 uint32_t CpuInfo::detectHwThreadsCount() {
-#if defined(ASMJIT_OS_WINDOWS)
+#if ASMJIT_OS_WINDOWS
   SYSTEM_INFO info;
   ::GetSystemInfo(&info);
   return info.dwNumberOfProcessors;
-#elif defined(ASMJIT_OS_POSIX) && defined(_SC_NPROCESSORS_ONLN)
+#elif ASMJIT_OS_POSIX && defined(_SC_NPROCESSORS_ONLN)
   // It seems that sysconf returns the number of "logical" processors on both
   // mac and linux.  So we get the number of "online logical" processors.
   long res = ::sysconf(_SC_NPROCESSORS_ONLN);
@@ -54,21 +54,21 @@ uint32_t CpuInfo::detectHwThreadsCount() {
 // [asmjit::CpuInfo - GetHost]
 // ============================================================================
 
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 struct AutoX86CpuInfo : public X86CpuInfo {
   ASMJIT_INLINE AutoX86CpuInfo() : X86CpuInfo() {
     X86CpuUtil::detect(this);
   }
 };
 #else
-#error "AsmJit - Unsupported CPU."
+#error "[asmjit] Unsupported CPU."
 #endif
 
 const CpuInfo* CpuInfo::getHost() {
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
   static AutoX86CpuInfo cpuInfo;
 #else
-#error "AsmJit - Unsupported CPU."
+#error "[asmjit] Unsupported CPU."
 #endif
   return &cpuInfo;
 }

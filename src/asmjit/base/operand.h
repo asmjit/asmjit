@@ -9,7 +9,7 @@
 #define _ASMJIT_BASE_OPERAND_H
 
 // [Dependencies - AsmJit]
-#include "../base/intutil.h"
+#include "../base/utils.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -23,7 +23,7 @@ namespace asmjit {
 struct Assembler;
 struct Compiler;
 
-//! \addtogroup asmjit_base_general
+//! \addtogroup asmjit_base
 //! \{
 
 // ============================================================================
@@ -126,6 +126,49 @@ ASMJIT_ENUM(MemType) {
 };
 
 // ============================================================================
+// [asmjit::VarType]
+// ============================================================================
+
+ASMJIT_ENUM(VarType) {
+  //! Variable is 8-bit signed integer.
+  kVarTypeInt8 = 0,
+  //! Variable is 8-bit unsigned integer.
+  kVarTypeUInt8 = 1,
+  //! Variable is 16-bit signed integer.
+  kVarTypeInt16 = 2,
+  //! Variable is 16-bit unsigned integer.
+  kVarTypeUInt16 = 3,
+  //! Variable is 32-bit signed integer.
+  kVarTypeInt32 = 4,
+  //! Variable is 32-bit unsigned integer.
+  kVarTypeUInt32 = 5,
+  //! Variable is 64-bit signed integer.
+  kVarTypeInt64 = 6,
+  //! Variable is 64-bit unsigned integer.
+  kVarTypeUInt64 = 7,
+
+  //! Variable is target `intptr_t`, compatible with the target's `intptr_t` (not hosts).
+  kVarTypeIntPtr = 8,
+  //! Variable is target `uintptr_t`, compatible with the target's `uintptr_t` (not hosts).
+  kVarTypeUIntPtr = 9,
+
+  //! Variable is 32-bit floating point (single precision).
+  kVarTypeFp32 = 10,
+  //! Variable is 64-bit floating point (double precision).
+  kVarTypeFp64 = 11,
+
+  //! \internal
+  _kVarTypeIntStart = kVarTypeInt8,
+  //! \internal
+  _kVarTypeIntEnd = kVarTypeUIntPtr,
+
+  //! \internal
+  _kVarTypeFpStart = kVarTypeFp32,
+  //! \internal
+  _kVarTypeFpEnd = kVarTypeFp64
+};
+
+// ============================================================================
 // [asmjit::Operand]
 // ============================================================================
 
@@ -174,7 +217,7 @@ struct Operand {
 
       //! Register type and index access.
       struct {
-#if defined(ASMJIT_ARCH_LE)
+#if ASMJIT_ARCH_LE
         //! Register index.
         uint8_t index;
         //! Register type.
@@ -202,8 +245,7 @@ struct Operand {
       //! \internal
       //!
       //! This is not needed or used, it's just to force compiler to always
-      //! align this struct to 8-bytes (so the struct is compatible to others
-      //! when it comes to alignment). It should fix VS linker warning as well.
+      //! align this struct to 8-bytes (it should fix LTO warning as well).
       uint64_t reserved8_8;
     };
   };
@@ -319,10 +361,8 @@ struct Operand {
   // [Operand]
   // --------------------------------------------------------------------------
 
-  //! Clone `Operand`.
-  ASMJIT_INLINE Operand clone() const {
-    return Operand(*this);
-  }
+  //! Clone the `Operand`.
+  ASMJIT_INLINE Operand clone() const { return Operand(*this); }
 
   // --------------------------------------------------------------------------
   // [Init & Copy]
@@ -342,11 +382,11 @@ struct Operand {
     // write. Because the 'a', 'b', 'c' and 'd' variables are usually compile
     // time constants the compiler can do a really nice job if they are joined
     // by using bitwise operations.
-    _packed[0].setPacked_2x32(IntUtil::pack32_4x8(op, sz, r0, r1), id);
+    _packed[0].setPacked_2x32(Utils::pack32_4x8(op, sz, r0, r1), id);
   }
 
   ASMJIT_INLINE void _init_packed_op_sz_w0_id(uint32_t op, uint32_t sz, uint32_t w0, uint32_t id) {
-    _packed[0].setPacked_2x32(IntUtil::pack32_2x8_1x16(op, sz, w0), id);
+    _packed[0].setPacked_2x32(Utils::pack32_2x8_1x16(op, sz, w0), id);
   }
 
   ASMJIT_INLINE void _init_packed_d0_d1(uint32_t u0, uint32_t u1) {
@@ -369,14 +409,10 @@ struct Operand {
   // --------------------------------------------------------------------------
 
   template<typename T>
-  ASMJIT_INLINE T& getData() {
-    return reinterpret_cast<T&>(_base);
-  }
+  ASMJIT_INLINE T& getData() { return reinterpret_cast<T&>(_base); }
 
   template<typename T>
-  ASMJIT_INLINE const T& getData() const {
-    return reinterpret_cast<const T&>(_base);
-  }
+  ASMJIT_INLINE const T& getData() const { return reinterpret_cast<const T&>(_base); }
 
   // --------------------------------------------------------------------------
   // [Type]
@@ -403,23 +439,18 @@ struct Operand {
   // --------------------------------------------------------------------------
 
   //! Get register type.
-  ASMJIT_INLINE uint32_t getRegType() const {
-    return _vreg.type;
-  }
-
+  ASMJIT_INLINE uint32_t getRegType() const { return _vreg.type; }
   //! Get register index.
-  ASMJIT_INLINE uint32_t getRegIndex() const {
-    return _vreg.index;
-  }
+  ASMJIT_INLINE uint32_t getRegIndex() const { return _vreg.index; }
 
   //! Get whether the operand is register of `type`.
   ASMJIT_INLINE bool isRegType(uint32_t type) const {
-    return (_packed[0].u32[0] & IntUtil::pack32_2x8_1x16(0xFF, 0, 0xFF00)) == IntUtil::pack32_2x8_1x16(kOperandTypeReg, 0, (type << 8));
+    return (_packed[0].u32[0] & Utils::pack32_2x8_1x16(0xFF, 0, 0xFF00)) == Utils::pack32_2x8_1x16(kOperandTypeReg, 0, (type << 8));
   }
 
   //! Get whether the operand is register and of `type` and `index`.
   ASMJIT_INLINE bool isRegCode(uint32_t type, uint32_t index) const {
-    return (_packed[0].u32[0] & IntUtil::pack32_2x8_1x16(0xFF, 0, 0xFFFF)) == IntUtil::pack32_2x8_1x16(kOperandTypeReg, 0, (type << 8) + index);
+    return (_packed[0].u32[0] & Utils::pack32_2x8_1x16(0xFF, 0, 0xFFFF)) == Utils::pack32_2x8_1x16(kOperandTypeReg, 0, (type << 8) + index);
   }
 
   //! Get whether the operand is a register or memory.
@@ -441,9 +472,7 @@ struct Operand {
   // --------------------------------------------------------------------------
 
   //! Get size of the operand in bytes.
-  ASMJIT_INLINE uint32_t getSize() const {
-    return _base.size;
-  }
+  ASMJIT_INLINE uint32_t getSize() const { return _base.size; }
 
   // --------------------------------------------------------------------------
   // [Id]
@@ -455,9 +484,7 @@ struct Operand {
   //!
   //! There is no way to change or remove operand id. Unneeded operands can be
   //! simply reassigned by `operator=`.
-  ASMJIT_INLINE uint32_t getId() const {
-    return _base.id;
-  }
+  ASMJIT_INLINE uint32_t getId() const { return _base.id; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -763,19 +790,19 @@ struct Imm : public Operand {
   }
 
   //! Get whether the immediate can be casted to 8-bit signed integer.
-  ASMJIT_INLINE bool isInt8() const { return IntUtil::isInt8(_imm.value._i64[0]); }
+  ASMJIT_INLINE bool isInt8() const { return Utils::isInt8(_imm.value._i64[0]); }
   //! Get whether the immediate can be casted to 8-bit unsigned integer.
-  ASMJIT_INLINE bool isUInt8() const { return IntUtil::isUInt8(_imm.value._i64[0]); }
+  ASMJIT_INLINE bool isUInt8() const { return Utils::isUInt8(_imm.value._i64[0]); }
 
   //! Get whether the immediate can be casted to 16-bit signed integer.
-  ASMJIT_INLINE bool isInt16() const { return IntUtil::isInt16(_imm.value._i64[0]); }
+  ASMJIT_INLINE bool isInt16() const { return Utils::isInt16(_imm.value._i64[0]); }
   //! Get whether the immediate can be casted to 16-bit unsigned integer.
-  ASMJIT_INLINE bool isUInt16() const { return IntUtil::isUInt16(_imm.value._i64[0]); }
+  ASMJIT_INLINE bool isUInt16() const { return Utils::isUInt16(_imm.value._i64[0]); }
 
   //! Get whether the immediate can be casted to 32-bit signed integer.
-  ASMJIT_INLINE bool isInt32() const { return IntUtil::isInt32(_imm.value._i64[0]); }
+  ASMJIT_INLINE bool isInt32() const { return Utils::isInt32(_imm.value._i64[0]); }
   //! Get whether the immediate can be casted to 32-bit unsigned integer.
-  ASMJIT_INLINE bool isUInt32() const { return IntUtil::isUInt32(_imm.value._i64[0]); }
+  ASMJIT_INLINE bool isUInt32() const { return Utils::isUInt32(_imm.value._i64[0]); }
 
   //! Get immediate value as 8-bit signed integer.
   ASMJIT_INLINE int8_t getInt8() const { return _imm.value._i8[_ASMJIT_ARCH_INDEX(8, 0)]; }
@@ -1046,9 +1073,7 @@ struct Label : public Operand {
   // --------------------------------------------------------------------------
 
   //! Get whether the label has been initialized by `Assembler` or `Compiler`.
-  ASMJIT_INLINE bool isInitialized() const {
-    return _label.id != kInvalidValue;
-  }
+  ASMJIT_INLINE bool isInitialized() const { return _label.id != kInvalidValue; }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -1061,28 +1086,69 @@ struct Label : public Operand {
 };
 
 // ============================================================================
+// [asmjit::Var]
+// ============================================================================
+
+#if !defined(ASMJIT_DISABLE_COMPILER)
+//! Base class for all variables.
+struct Var : public Operand {
+  // --------------------------------------------------------------------------
+  // [Construction / Destruction]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE Var() : Operand(NoInit) {
+    _init_packed_op_sz_b0_b1_id(kOperandTypeVar, 0, 0, 0, kInvalidValue);
+    _init_packed_d2_d3(kInvalidValue, kInvalidValue);
+  }
+
+  ASMJIT_INLINE Var(const Var& other) : Operand(other) {}
+
+  explicit ASMJIT_INLINE Var(const _NoInit&) : Operand(NoInit) {}
+
+  // --------------------------------------------------------------------------
+  // [Var Specific]
+  // --------------------------------------------------------------------------
+
+  //! Clone `Var` operand.
+  ASMJIT_INLINE Var clone() const { return Var(*this); }
+
+  //! Reset Var operand.
+  ASMJIT_INLINE void reset() {
+    _init_packed_op_sz_b0_b1_id(kOperandTypeVar, 0, kInvalidReg, kInvalidReg, kInvalidValue);
+    _init_packed_d2_d3(kInvalidValue, kInvalidValue);
+  }
+
+  //! Get whether the variable has been initialized by `Compiler`.
+  ASMJIT_INLINE bool isInitialized() const { return _vreg.id != kInvalidValue; }
+  //! Get variable type.
+  ASMJIT_INLINE uint32_t getVarType() const { return _vreg.vType; }
+
+  // --------------------------------------------------------------------------
+  // [Operator Overload]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE Var& operator=(const Var& other) { _copy(other); return *this; }
+
+  ASMJIT_INLINE bool operator==(const Var& other) const { return _packed[0] == other._packed[0]; }
+  ASMJIT_INLINE bool operator!=(const Var& other) const { return !operator==(other); }
+};
+#endif // !ASMJIT_DISABLE_COMPILER
+
+// ============================================================================
 // [asmjit::Operand - Globals]
 // ============================================================================
 
 //! No operand, can be used to reset an operand by assignment or to refer to an
 //! operand that doesn't exist.
-ASMJIT_VAR const Operand noOperand;
+ASMJIT_VARAPI const Operand noOperand;
 
-//! Create signed immediate value operand.
-static ASMJIT_INLINE Imm imm(int64_t val) {
-  return Imm(val);
-}
-
-//! Create unsigned immediate value operand.
-static ASMJIT_INLINE Imm imm_u(uint64_t val) {
-  return Imm(static_cast<int64_t>(val));
-}
-
-//! Create a `void*` immediate value operand.
+//! Create a signed immediate operand.
+static ASMJIT_INLINE Imm imm(int64_t val) { return Imm(val); }
+//! Create an unsigned immediate operand.
+static ASMJIT_INLINE Imm imm_u(uint64_t val) { return Imm(static_cast<int64_t>(val)); }
+//! Create a `void*` immediate operand.
 template<typename T>
-static ASMJIT_INLINE Imm imm_ptr(T p) {
-  return Imm(static_cast<int64_t>((intptr_t)p));
-}
+static ASMJIT_INLINE Imm imm_ptr(T p) { return Imm(static_cast<int64_t>((intptr_t)p)); }
 
 //! \}
 

@@ -22,7 +22,7 @@
 
 struct Performance {
   static inline uint32_t now() {
-    return asmjit::CpuTicks::now();
+    return asmjit::Utils::getTickCount();
   }
 
   inline void reset() {
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
   JitRuntime runtime;
   X86Assembler a(&runtime);
-  X86Compiler c(&runtime);
+  X86Compiler c;
 
   uint32_t r, i;
 
@@ -100,12 +100,12 @@ int main(int argc, char* argv[]) {
   for (r = 0; r < kNumRepeats; r++) {
     perf.start();
     for (i = 0; i < kNumIterations; i++) {
+      c.attach(&a);
       asmgen::blend(c);
+      c.finalize();
 
-      void* p = c.make();
+      void* p = a.make();
       runtime.release(p);
-
-      c.reset();
     }
     perf.end();
   }

@@ -15,7 +15,7 @@
 // [asmjit::host - X86 / X64]
 // ============================================================================
 
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 #include "./x86.h"
 
 namespace asmjit {

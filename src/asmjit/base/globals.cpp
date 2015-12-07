@@ -16,11 +16,75 @@
 namespace asmjit {
 
 // ============================================================================
-// [asmjit::Assert]
+// [asmjit::DebugUtils]
 // ============================================================================
 
-void assertionFailed(const char* exp, const char* file, int line) {
-  ::fprintf(stderr, "Assertion failed: %s\n, file %s, line %d\n", exp, file, line);
+#if !defined(ASMJIT_DISABLE_NAMES)
+static const char errorMessages[] = {
+  "Ok\0"
+  "No heap memory\0"
+  "No virtual memory\0"
+  "Invalid argument\0"
+  "Invalid state\0"
+  "Invalid architecture\0"
+  "Not initialized\0"
+  "No code generated\0"
+  "Code too large\0"
+  "Label already bound\0"
+  "Unknown instruction\0"
+  "Illegal instruction\0"
+  "Illegal addressing\0"
+  "Illegal displacement\0"
+  "Overlapped arguments\0"
+  "Unknown error\0"
+};
+
+static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) {
+  uint32_t i = 0;
+
+  if (id > maxId)
+    id = maxId;
+
+  while (i < id) {
+    while (p[0])
+      p++;
+
+    p++;
+    i++;
+  }
+
+  return p;
+}
+#endif // ASMJIT_DISABLE_NAMES
+
+const char* DebugUtils::errorAsString(Error e) {
+#if !defined(ASMJIT_DISABLE_NAMES)
+  return findPackedString(errorMessages, e, kErrorCount);
+#else
+  static const char noMessage[] = "";
+  return noMessage;
+#endif
+}
+
+void DebugUtils::debugOutput(const char* str) {
+#if ASMJIT_OS_WINDOWS
+  ::OutputDebugStringA(str);
+#else
+  ::fputs(str, stderr);
+#endif
+}
+
+void DebugUtils::assertionFailed(const char* file, int line, const char* msg) {
+  char str[1024];
+
+  snprintf(str, 1024,
+    "[asmjit] Assertion failed at %s (line %d):\n"
+    "[asmjit] %s\n", file, line, msg);
+
+  // Support buggy `snprintf` implementations.
+  str[1023] = '\0';
+
+  debugOutput(str);
   ::abort();
 }
 

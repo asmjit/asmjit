@@ -16,7 +16,7 @@
 
 namespace asmjit {
 
-//! \addtogroup asmjit_base_general
+//! \addtogroup asmjit_base
 //! \{
 
 // ============================================================================
@@ -37,9 +37,9 @@ ASMJIT_ENUM(CpuVendor) {
   //! Intel vendor.
   kCpuVendorIntel = 1,
   //! AMD vendor.
-  kCpuVendorAmd = 2,
+  kCpuVendorAMD = 2,
   //! VIA vendor.
-  kCpuVendorVia = 3
+  kCpuVendorVIA = 3
 };
 
 // ============================================================================

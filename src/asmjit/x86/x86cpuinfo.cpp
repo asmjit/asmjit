@@ -12,7 +12,7 @@
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
 
 // [Dependencies - AsmJit]
-#include "../base/intutil.h"
+#include "../base/utils.h"
 #include "../x86/x86cpuinfo.h"
 
 // 2009-02-05: Thanks to Mike Tajmajer for VC7.1 compiler support. It shouldn't
@@ -37,9 +37,9 @@ struct X86CpuVendor {
 
 static const X86CpuVendor x86CpuVendorList[] = {
   { kCpuVendorIntel    , { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'I', 'n', 't', 'e', 'l' } },
-  { kCpuVendorAmd      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
-  { kCpuVendorVia      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } },
-  { kCpuVendorVia      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } }
+  { kCpuVendorAMD      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
+  { kCpuVendorVIA      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } },
+  { kCpuVendorVIA      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } }
 };
 
 static ASMJIT_INLINE bool x86CpuVendorEq(const X86CpuVendor& info, const char* vendorString) {
@@ -98,14 +98,14 @@ union X86XCR {
 };
 
 // callCpuId() and detectCpuInfo() for x86 and x64 platforms begins here.
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 void X86CpuUtil::_docpuid(uint32_t inEcx, uint32_t inEax, X86CpuId* result) {
 
 #if defined(_MSC_VER)
 // __cpuidex was introduced by VS2008-SP1.
 # if _MSC_FULL_VER >= 150030729
   __cpuidex(reinterpret_cast<int*>(result->i), inEax, inEcx);
-# elif defined(ASMJIT_ARCH_X64)
+# elif ASMJIT_ARCH_X64
   // VS2008 or less, 64-bit mode - `__cpuidex` doesn't exist! However, 64-bit
   // calling convention specifies parameter to be passed in ECX/RCX, so we may
   // be lucky if compiler doesn't move the register, otherwise the result is
@@ -130,7 +130,7 @@ void X86CpuUtil::_docpuid(uint32_t inEcx, uint32_t inEax, X86CpuId* result) {
 
 #elif defined(__GNUC__)
 // Note, patched to preserve ebx/rbx register which is used by GCC.
-# if defined(ASMJIT_ARCH_X86)
+# if ASMJIT_ARCH_X86
 #  define __myCpuId(inEax, inEcx, outEax, outEbx, outEcx, outEdx) \
   __asm__ __volatile__( \
     "mov %%ebx, %%edi\n"  \
@@ -150,22 +150,18 @@ void X86CpuUtil::_docpuid(uint32_t inEcx, uint32_t inEax, X86CpuId* result) {
   __myCpuId(inEax, inEcx, result->eax, result->ebx, result->ecx, result->edx);
 
 #else
-# error "asmjit::X86CpuUtil::_docpuid() unimplemented!"
+# error "[asmjit] X86CpuUtil::_docpuid() unimplemented!"
 #endif
 }
 
 static void callXGetBV(X86XCR* result, uint32_t inEcx) {
-
 #if defined(_MSC_VER)
-
 # if (_MSC_FULL_VER >= 160040219) // 2010SP1+
   result->value = _xgetbv(inEcx);
 # else
   result->value = 0;
 # endif
-
 #elif defined(__GNUC__)
-
   unsigned int eax, edx;
 
   // Removed, because the world is not perfect:
@@ -174,21 +170,16 @@ static void callXGetBV(X86XCR* result, uint32_t inEcx) {
 
   result->eax = eax;
   result->edx = edx;
-
 #else
-
   result->value = 0;
-
 #endif // COMPILER
 }
 
 void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
-  X86CpuId regs;
-
   uint32_t i;
   uint32_t maxBaseId;
 
-  bool maybeMPX = false;
+  X86CpuId regs;
   X86XCR xcr0;
   xcr0.value = 0;
 
@@ -252,8 +243,8 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
     if (regs.ecx & 0x00400000U) cpuInfo->addFeature(kX86CpuFeatureMOVBE);
     if (regs.ecx & 0x00800000U) cpuInfo->addFeature(kX86CpuFeaturePOPCNT);
     if (regs.ecx & 0x02000000U) cpuInfo->addFeature(kX86CpuFeatureAESNI);
-    if (regs.ecx & 0x04000000U) cpuInfo->addFeature(kX86CpuFeatureXSave);
-    if (regs.ecx & 0x08000000U) cpuInfo->addFeature(kX86CpuFeatureXSaveOS);
+    if (regs.ecx & 0x04000000U) cpuInfo->addFeature(kX86CpuFeatureXSAVE);
+    if (regs.ecx & 0x08000000U) cpuInfo->addFeature(kX86CpuFeatureXSAVE_OS);
     if (regs.ecx & 0x40000000U) cpuInfo->addFeature(kX86CpuFeatureRDRAND);
 
     if (regs.edx & 0x00000010U) cpuInfo->addFeature(kX86CpuFeatureRDTSC);
@@ -267,7 +258,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
     if (regs.edx & 0x10000000U) cpuInfo->addFeature(kX86CpuFeatureMT);
 
     // AMD sets Multithreading to ON if it has two or more cores.
-    if (cpuInfo->_hwThreadsCount == 1 && cpuInfo->_vendorId == kCpuVendorAmd && (regs.edx & 0x10000000U)) {
+    if (cpuInfo->_hwThreadsCount == 1 && cpuInfo->_vendorId == kCpuVendorAMD && (regs.edx & 0x10000000U)) {
       cpuInfo->_hwThreadsCount = 2;
     }
 
@@ -296,19 +287,20 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
   // --------------------------------------------------------------------------
 
   // Detect new features if the processor supports CPUID-07.
+  bool maybeMPX = false;
   if (maxBaseId >= 0x7) {
     callCpuId(&regs, 0x7);
 
-    if (regs.ebx & 0x00000001U) cpuInfo->addFeature(kX86CpuFeatureFSGSBase);
+    if (regs.ebx & 0x00000001U) cpuInfo->addFeature(kX86CpuFeatureFSGSBASE);
     if (regs.ebx & 0x00000008U) cpuInfo->addFeature(kX86CpuFeatureBMI);
     if (regs.ebx & 0x00000010U) cpuInfo->addFeature(kX86CpuFeatureHLE);
     if (regs.ebx & 0x00000100U) cpuInfo->addFeature(kX86CpuFeatureBMI2);
-    if (regs.ebx & 0x00000200U) cpuInfo->addFeature(kX86CpuFeatureMOVSBSTOSBOpt);
+    if (regs.ebx & 0x00000200U) cpuInfo->addFeature(kX86CpuFeatureMOVSBSTOSB_OPT);
     if (regs.ebx & 0x00000800U) cpuInfo->addFeature(kX86CpuFeatureRTM);
     if (regs.ebx & 0x00004000U) maybeMPX = true;
     if (regs.ebx & 0x00040000U) cpuInfo->addFeature(kX86CpuFeatureRDSEED);
     if (regs.ebx & 0x00080000U) cpuInfo->addFeature(kX86CpuFeatureADX);
-    if (regs.ebx & 0x00800000U) cpuInfo->addFeature(kX86CpuFeatureCLFLUSHOpt);
+    if (regs.ebx & 0x00800000U) cpuInfo->addFeature(kX86CpuFeatureCLFLUSH_OPT);
     if (regs.ebx & 0x20000000U) cpuInfo->addFeature(kX86CpuFeatureSHA);
 
     if (regs.ecx & 0x00000001U) cpuInfo->addFeature(kX86CpuFeaturePREFETCHWT1);
@@ -358,7 +350,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
   // extended IDs.
   callCpuId(&regs, 0x80000000);
 
-  uint32_t maxExtId = IntUtil::iMin<uint32_t>(regs.eax, 0x80000004);
+  uint32_t maxExtId = Utils::iMin<uint32_t>(regs.eax, 0x80000004);
   uint32_t* brand = reinterpret_cast<uint32_t*>(cpuInfo->_brandString);
 
   for (i = 0x80000001; i <= maxExtId; i++) {
@@ -373,7 +365,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
         if (regs.ecx & 0x00000100U) cpuInfo->addFeature(kX86CpuFeaturePREFETCH);
 
         if (regs.edx & 0x00100000U) cpuInfo->addFeature(kX86CpuFeatureNX);
-        if (regs.edx & 0x00200000U) cpuInfo->addFeature(kX86CpuFeatureFXSROpt);
+        if (regs.edx & 0x00200000U) cpuInfo->addFeature(kX86CpuFeatureFXSR_OPT);
         if (regs.edx & 0x00400000U) cpuInfo->addFeature(kX86CpuFeatureMMX2);
         if (regs.edx & 0x08000000U) cpuInfo->addFeature(kX86CpuFeatureRDTSCP);
         if (regs.edx & 0x40000000U) cpuInfo->addFeature(kX86CpuFeature3DNOW2).addFeature(kX86CpuFeatureMMX2);
@@ -395,7 +387,7 @@ void X86CpuUtil::detect(X86CpuInfo* cpuInfo) {
     }
   }
 
-  // Simplify the brand string (remove unnecessary spaces to make printing nicer).
+  // Simplify the brand string (remove unnecessary spaces to make printing prettier).
   x86SimplifyBrandString(cpuInfo->_brandString);
 }
 #endif

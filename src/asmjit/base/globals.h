@@ -16,21 +16,24 @@
 
 namespace asmjit {
 
-//! \addtogroup asmjit_base_general
+//! \addtogroup asmjit_base
 //! \{
 
 // ============================================================================
-// [asmjit::Ptr / SignedPtr]
+// [asmjit::TypeDefs]
 // ============================================================================
+
+//! AsmJit error core (unsigned integer).
+typedef uint32_t Error;
 
 //! 64-bit unsigned pointer, compatible with JIT and non-JIT generators.
 //!
 //! This is the preferred pointer type to use with AsmJit library. It has a
 //! capability to hold any pointer for any architecture making it an ideal
-//! candidate for cross-platform code generation.
+//! candidate for a cross-platform code generator.
 typedef uint64_t Ptr;
 
-//! 64-bit signed pointer, like \ref Ptr, but made signed.
+//! like \ref Ptr, but signed.
 typedef int64_t SignedPtr;
 
 // ============================================================================
@@ -60,8 +63,8 @@ ASMJIT_ENUM(GlobalDefs) {
   //! Host memory allocator overhead.
   //!
   //! The overhead is decremented from all zone allocators so the operating
-  //! system doesn't have allocate extra virtual page to keep tract of the
-  //! requested memory block.
+  //! system doesn't have to allocate one extra virtual page to keep tract of
+  //! the requested memory block.
   //!
   //! The number is actually a guess.
   kMemAllocOverhead = sizeof(intptr_t) * 4,
@@ -82,28 +85,117 @@ ASMJIT_ENUM(ArchId) {
   //! No/Unknown architecture.
   kArchNone = 0,
 
-  //! X86 architecture.
+  //! X86 architecture (32-bit).
   kArchX86 = 1,
-  //! X64 architecture, also called AMD64.
+  //! X64 architecture (64-bit), also called AMD64.
   kArchX64 = 2,
 
-  //! Arm architecture.
+  //! X32 architecture (64-bit with 32-bit pointers) (NOT USED ATM).
+  kArchX32 = 3,
+
+  //! Arm architecture (32-bit).
   kArchArm = 4,
+  //! Arm64 architecture (64-bit).
+  kArchArm64 = 5,
 
-#if defined(ASMJIT_ARCH_X86)
+#if ASMJIT_ARCH_X86
   kArchHost = kArchX86,
-#endif // ASMJIT_ARCH_X86
-
-#if defined(ASMJIT_ARCH_X64)
+#elif ASMJIT_ARCH_X64
   kArchHost = kArchX64,
-#endif // ASMJIT_ARCH_X64
-
-#if defined(ASMJIT_ARCH_ARM)
+#elif ASMJIT_ARCH_ARM
   kArchHost = kArchArm,
-#endif // ASMJIT_ARCH_ARM
+#elif ASMJIT_ARCH_ARM64
+  kArchHost = kArchArm64,
+#endif
 
   //! Whether the host is 64-bit.
   kArchHost64Bit = sizeof(intptr_t) >= 8
+};
+
+// ============================================================================
+// [asmjit::ErrorCode]
+// ============================================================================
+
+//! AsmJit error codes.
+ASMJIT_ENUM(ErrorCode) {
+  //! No error (success).
+  //!
+  //! This is default state and state you want.
+  kErrorOk = 0,
+
+  //! Heap memory allocation failed.
+  kErrorNoHeapMemory,
+
+  //! Virtual memory allocation failed.
+  kErrorNoVirtualMemory,
+
+  //! Invalid argument.
+  kErrorInvalidArgument,
+
+  //! Invalid state.
+  kErrorInvalidState,
+
+  //! Invalid architecture.
+  kErrorInvalidArch,
+
+  //! The object is not initialized.
+  kErrorNotInitialized,
+
+  //! No code generated.
+  //!
+  //! Returned by runtime if the code-generator contains no code.
+  kErrorNoCodeGenerated,
+
+  //! Code generated is too large to fit in memory reserved.
+  //!
+  //! Returned by `StaticRuntime` in case that the code generated is too large
+  //! to fit in the memory already reserved for it.
+  kErrorCodeTooLarge,
+
+  //! Label is already bound.
+  kErrorLabelAlreadyBound,
+
+  //! Unknown instruction (an instruction ID is out of bounds or instruction
+  //! name is invalid).
+  kErrorUnknownInst,
+
+  //! Illegal instruction.
+  //!
+  //! This status code can also be returned in X64 mode if AH, BH, CH or DH
+  //! registers have been used together with a REX prefix. The instruction
+  //! is not encodable in such case.
+  //!
+  //! Example of raising `kErrorIllegalInst` error.
+  //!
+  //! ~~~
+  //! // Invalid address size.
+  //! a.mov(dword_ptr(eax), al);
+  //!
+  //! // Undecodable instruction - AH used with R10, however R10 can only be
+  //! // encoded by using REX prefix, which conflicts with AH.
+  //! a.mov(byte_ptr(r10), ah);
+  //! ~~~
+  //!
+  //! \note In debug mode assertion is raised instead of returning an error.
+  kErrorIllegalInst,
+
+  //! Illegal (unencodable) addressing used.
+  kErrorIllegalAddresing,
+
+  //! Illegal (unencodable) displacement used.
+  //!
+  //! X86/X64
+  //! -------
+  //!
+  //! Short form of jump instruction has been used, but the displacement is out
+  //! of bounds.
+  kErrorIllegalDisplacement,
+
+  //! A variable has been assigned more than once to a function argument (Compiler).
+  kErrorOverlappedArgs,
+
+  //! Count of AsmJit error codes.
+  kErrorCount
 };
 
 //! \}
@@ -121,41 +213,74 @@ static const _NoInit NoInit = {};
 #endif // !ASMJIT_DOCGEN
 
 // ============================================================================
-// [asmjit::Assert]
+// [asmjit::DebugUtils]
 // ============================================================================
 
-//! \addtogroup asmjit_base_general
+namespace DebugUtils {
+
+//! Get a printable version of AsmJit `Error` code.
+ASMJIT_API const char* errorAsString(Error code);
+
+//! \addtogroup asmjit_base
 //! \{
+
+//! Called in debug build to output a debugging message caused by assertion
+//! failure or tracing.
+ASMJIT_API void debugOutput(const char* str);
 
 //! Called in debug build on assertion failure.
 //!
-//! \param exp Expression that failed.
 //! \param file Source file name where it happened.
 //! \param line Line in the source file.
+//! \param msg Message to display.
 //!
 //! If you have problems with assertions put a breakpoint at assertionFailed()
 //! function (asmjit/base/globals.cpp) and check the call stack to locate the
 //! failing code.
-ASMJIT_API void assertionFailed(const char* exp, const char* file, int line);
-
-#if defined(ASMJIT_DEBUG)
-#define ASMJIT_ASSERT(_Exp_) \
-  do { \
-    if (!(_Exp_)) ::asmjit::assertionFailed(#_Exp_, __FILE__, __LINE__); \
-  } while (0)
-#else
-#define ASMJIT_ASSERT(_Exp_) ASMJIT_NOP()
-#endif // DEBUG
+ASMJIT_API void assertionFailed(const char* file, int line, const char* msg);
 
 //! \}
 
+} // DebugUtils namespace
 } // asmjit namespace
+
+// ============================================================================
+// [ASMJIT_ASSERT]
+// ============================================================================
+
+#if defined(ASMJIT_DEBUG)
+# define ASMJIT_ASSERT(exp) \
+  do { \
+    if (!(exp)) { \
+      ::asmjit::DebugUtils::assertionFailed( \
+        __FILE__ + ::asmjit::DebugUtils::kSourceRelativePathOffset, \
+        __LINE__, \
+        #exp); \
+    } \
+  } while (0)
+#else
+# define ASMJIT_ASSERT(exp) ASMJIT_NOP
+#endif // DEBUG
+
+// ============================================================================
+// [ASMJIT_PROPAGATE_ERROR]
+// ============================================================================
+
+//! \internal
+//!
+//! Used by AsmJit to return the `_Exp_` result if it's an error.
+#define ASMJIT_PROPAGATE_ERROR(_Exp_) \
+  do { \
+    ::asmjit::Error _errval = (_Exp_); \
+    if (_errval != ::asmjit::kErrorOk) \
+      return _errval; \
+  } while (0)
 
 // ============================================================================
 // [asmjit_cast<>]
 // ============================================================================
 
-//! \addtogroup asmjit_base_util
+//! \addtogroup asmjit_base
 //! \{
 
 //! Cast used to cast pointer to function. It's like reinterpret_cast<>,

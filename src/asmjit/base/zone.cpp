@@ -8,7 +8,7 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies - AsmJit]
-#include "../base/intutil.h"
+#include "../base/utils.h"
 #include "../base/zone.h"
 
 // [Dependencies - C]
@@ -82,7 +82,7 @@ void Zone::reset(bool releaseMemory) {
 
 void* Zone::_alloc(size_t size) {
   Block* curBlock = _block;
-  size_t blockSize = IntUtil::iMax<size_t>(_blockSize, size);
+  size_t blockSize = Utils::iMax<size_t>(_blockSize, size);
 
   // The `_alloc()` method can only be called if there is not enough space
   // in the current block, see `alloc()` implementation for more details.

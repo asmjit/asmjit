@@ -12,9 +12,9 @@
 #if !defined(ASMJIT_DISABLE_LOGGER)
 
 // [Dependencies - AsmJit]
-#include "../base/intutil.h"
+#include "../base/containers.h"
 #include "../base/logger.h"
-#include "../base/string.h"
+#include "../base/utils.h"
 
 // [Dependencies - C]
 #include <stdarg.h>
@@ -30,7 +30,7 @@ namespace asmjit {
 
 bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) {
   size_t currentLen = sb.getLength();
-  size_t commentLen = comment ? StringUtil::nlen(comment, kMaxCommentLength) : 0;
+  size_t commentLen = comment ? Utils::strLen(comment, kMaxCommentLength) : 0;
 
   ASMJIT_ASSERT(binLen >= dispLen);
 
@@ -119,7 +119,7 @@ void Logger::logBinary(uint32_t style, const void* data, size_t size) {
   ::memcpy(buffer, prefix, ASMJIT_ARRAY_SIZE(prefix) - 1);
 
   while (i) {
-    uint32_t n = static_cast<uint32_t>(IntUtil::iMin<size_t>(i, 16));
+    uint32_t n = static_cast<uint32_t>(Utils::iMin<size_t>(i, 16));
     char* p = buffer + ASMJIT_ARRAY_SIZE(prefix) - 1;
 
     i -= n;
@@ -163,7 +163,7 @@ void Logger::setIndentation(const char* indentation) {
   if (!indentation)
     return;
 
-  size_t length = StringUtil::nlen(indentation, ASMJIT_ARRAY_SIZE(_indentation) - 1);
+  size_t length = Utils::strLen(indentation, ASMJIT_ARRAY_SIZE(_indentation) - 1);
   ::memcpy(_indentation, indentation, length);
 }
 

@@ -8,14 +8,11 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies - AsmJit]
-#include "../base/error.h"
 #include "../base/globals.h"
-#include "../base/intutil.h"
-#include "../base/lock.h"
 #include "../base/vmem.h"
 
 // [Dependencies - Posix]
-#if defined(ASMJIT_OS_POSIX)
+#if ASMJIT_OS_POSIX
 # include <sys/types.h>
 # include <sys/mman.h>
 # include <unistd.h>
@@ -70,7 +67,7 @@ namespace asmjit {
 // ============================================================================
 
 // Windows specific implementation using `VirtualAllocEx` and `VirtualFree`.
-#if defined(ASMJIT_OS_WINDOWS)
+#if ASMJIT_OS_WINDOWS
 struct VMemLocal {
   // AsmJit allows to pass a `NULL` handle to `VMemUtil`. This function is just
   // a convenient way to convert such handle to the current process one.
@@ -91,7 +88,7 @@ static const VMemLocal& vMemGet() {
     SYSTEM_INFO info;
     ::GetSystemInfo(&info);
 
-    vMem.pageSize = IntUtil::alignToPowerOf2<uint32_t>(info.dwPageSize);
+    vMem.pageSize = Utils::alignToPowerOf2<uint32_t>(info.dwPageSize);
     vMem.pageGranularity = info.dwAllocationGranularity;
 
     vMem.hProcess = ::GetCurrentProcess();
@@ -122,7 +119,7 @@ void* VMemUtil::allocProcessMemory(HANDLE hProcess, size_t length, size_t* alloc
   hProcess = vMem.getSafeProcessHandle(hProcess);
 
   // VirtualAlloc rounds allocated size to a page size automatically.
-  size_t mSize = IntUtil::alignTo(length, vMem.pageSize);
+  size_t mSize = Utils::alignTo(length, vMem.pageSize);
 
   // Windows XP SP2 / Vista allow Data Excution Prevention (DEP).
   DWORD protectFlags = 0;
@@ -136,7 +133,7 @@ void* VMemUtil::allocProcessMemory(HANDLE hProcess, size_t length, size_t* alloc
   if (mBase == NULL)
     return NULL;
 
-  ASMJIT_ASSERT(IntUtil::isAligned<size_t>(
+  ASMJIT_ASSERT(Utils::isAligned<size_t>(
     reinterpret_cast<size_t>(mBase), vMem.pageSize));
 
   if (allocated != NULL)
@@ -161,7 +158,7 @@ Error VMemUtil::releaseProcessMemory(HANDLE hProcess, void* addr, size_t /* leng
 // ============================================================================
 
 // Posix specific implementation using `mmap` and `munmap`.
-#if defined(ASMJIT_OS_POSIX)
+#if ASMJIT_OS_POSIX
 
 // MacOS uses MAP_ANON instead of MAP_ANONYMOUS.
 #if !defined(MAP_ANONYMOUS)
@@ -180,7 +177,7 @@ static const VMemLocal& vMemGet() {
   if (!vMem.pageSize) {
     size_t pageSize = ::getpagesize();
     vMem.pageSize = pageSize;
-    vMem.pageGranularity = IntUtil::iMax<size_t>(pageSize, 65536);
+    vMem.pageGranularity = Utils::iMax<size_t>(pageSize, 65536);
   }
 
   return vMem;
@@ -198,7 +195,7 @@ size_t VMemUtil::getPageGranularity() {
 
 void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) {
   const VMemLocal& vMem = vMemGet();
-  size_t msize = IntUtil::alignTo<size_t>(length, vMem.pageSize);
+  size_t msize = Utils::alignTo<size_t>(length, vMem.pageSize);
   int protection = PROT_READ;
 
   if (flags & kVMemFlagWritable  ) protection |= PROT_WRITE;
@@ -430,7 +427,7 @@ struct VMemMgr::PermanentNode {
 //! Helper to avoid `#ifdef`s in the code.
 ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* self, size_t size, size_t* vSize) {
   uint32_t flags = kVMemFlagWritable | kVMemFlagExecutable;
-#if !defined(ASMJIT_OS_WINDOWS)
+#if !ASMJIT_OS_WINDOWS
   return static_cast<uint8_t*>(VMemUtil::alloc(size, vSize, flags));
 #else
   return static_cast<uint8_t*>(VMemUtil::allocProcessMemory(self->_hProcess, size, vSize, flags));
@@ -441,7 +438,7 @@ ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* self, size_t size, size_t* vSiz
 //!
 //! Helper to avoid `#ifdef`s in the code.
 ASMJIT_INLINE Error vMemMgrReleaseVMem(VMemMgr* self, void* p, size_t vSize) {
-#if !defined(ASMJIT_OS_WINDOWS)
+#if !ASMJIT_OS_WINDOWS
   return VMemUtil::release(p, vSize);
 #else
   return VMemUtil::releaseProcessMemory(self->_hProcess, p, vSize);
@@ -717,7 +714,7 @@ static void* vMemMgrAllocPermanent(VMemMgr* self, size_t vSize) {
   static const size_t permanentAlignment = 32;
   static const size_t permanentNodeSize  = 32768;
 
-  vSize = IntUtil::alignTo<size_t>(vSize, permanentAlignment);
+  vSize = Utils::alignTo<size_t>(vSize, permanentAlignment);
 
   AutoLock locked(self->_lock);
   PermanentNode* node = self->_permanent;
@@ -772,7 +769,7 @@ static void* vMemMgrAllocFreeable(VMemMgr* self, size_t vSize) {
   size_t minVSize;
 
   // Align to 32 bytes by default.
-  vSize = IntUtil::alignTo<size_t>(vSize, 32);
+  vSize = Utils::alignTo<size_t>(vSize, 32);
   if (vSize == 0)
     return NULL;
 
@@ -923,7 +920,7 @@ static void vMemMgrReset(VMemMgr* self, bool keepVirtualMemory) {
 // [asmjit::VMemMgr - Construction / Destruction]
 // ============================================================================
 
-#if !defined(ASMJIT_OS_WINDOWS)
+#if !ASMJIT_OS_WINDOWS
 VMemMgr::VMemMgr()
 #else
 VMemMgr::VMemMgr(HANDLE hProcess) :

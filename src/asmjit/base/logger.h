@@ -12,7 +12,7 @@
 #if !defined(ASMJIT_DISABLE_LOGGER)
 
 // [Dependencies - AsmJit]
-#include "../base/string.h"
+#include "../base/containers.h"
 
 // [Dependencies - C]
 #include <stdarg.h>
@@ -22,7 +22,7 @@
 
 namespace asmjit {
 
-//! \addtogroup asmjit_base_util
+//! \addtogroup asmjit_base
 //! \{
 
 // ============================================================================
@@ -87,7 +87,7 @@ struct LogUtil {
 //!
 //! This class also contain `_enabled` member that can be used to enable
 //! or disable logging.
-struct ASMJIT_VCLASS Logger {
+struct ASMJIT_VIRTAPI Logger {
   ASMJIT_NO_COPY(Logger)
 
   // --------------------------------------------------------------------------
@@ -162,7 +162,7 @@ struct ASMJIT_VCLASS Logger {
 // ============================================================================
 
 //! Logger that can log to standard C `FILE*` stream.
-struct ASMJIT_VCLASS FileLogger : public Logger {
+struct ASMJIT_VIRTAPI FileLogger : public Logger {
   ASMJIT_NO_COPY(FileLogger)
 
   // --------------------------------------------------------------------------
@@ -211,7 +211,7 @@ struct ASMJIT_VCLASS FileLogger : public Logger {
 // ============================================================================
 
 //! String logger.
-struct ASMJIT_VCLASS StringLogger : public Logger {
+struct ASMJIT_VIRTAPI StringLogger : public Logger {
   ASMJIT_NO_COPY(StringLogger)
 
   // --------------------------------------------------------------------------

@@ -9,7 +9,7 @@
 
 // [Dependencies - AsmJit]
 #include "../base/constpool.h"
-#include "../base/intutil.h"
+#include "../base/utils.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -21,14 +21,14 @@ namespace asmjit {
 // get, insert and traverse.
 
 // ============================================================================
-// [asmjit::ConstPoolTree - Ops]
+// [asmjit::ConstPool::Tree - Ops]
 // ============================================================================
 
 //! \internal
 //!
 //! Remove left horizontal links.
-static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) {
-  ConstPoolNode* link = node->_link[0];
+static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_skewNode(ConstPool::Node* node) {
+  ConstPool::Node* link = node->_link[0];
   uint32_t level = node->_level;
 
   if (level != 0 && link != NULL && link->_level == level) {
@@ -44,8 +44,8 @@ static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_skewNode(ConstPoolNode* node) 
 //! \internal
 //!
 //! Remove consecutive horizontal links.
-static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_splitNode(ConstPoolNode* node) {
-  ConstPoolNode* link = node->_link[1];
+static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_splitNode(ConstPool::Node* node) {
+  ConstPool::Node* link = node->_link[1];
   uint32_t level = node->_level;
 
   if (level != 0 && link != NULL && link->_link[1] != NULL && link->_link[1]->_level == level) {
@@ -59,8 +59,8 @@ static ASMJIT_INLINE ConstPoolNode* ConstPoolTree_splitNode(ConstPoolNode* node)
   return node;
 }
 
-ConstPoolNode* ConstPoolTree::get(const void* data) {
-  ConstPoolNode* node = _root;
+ConstPool::Node* ConstPool::Tree::get(const void* data) {
+  ConstPool::Node* node = _root;
   size_t dataSize = _dataSize;
 
   while (node != NULL) {
@@ -73,7 +73,7 @@ ConstPoolNode* ConstPoolTree::get(const void* data) {
   return NULL;
 }
 
-void ConstPoolTree::put(ConstPoolNode* newNode) {
+void ConstPool::Tree::put(ConstPool::Node* newNode) {
   size_t dataSize = _dataSize;
 
   _length++;
@@ -82,8 +82,8 @@ void ConstPoolTree::put(ConstPoolNode* newNode) {
     return;
   }
 
-  ConstPoolNode* node = _root;
-  ConstPoolNode* stack[kHeightLimit];
+  ConstPool::Node* node = _root;
+  ConstPool::Node* stack[kHeightLimit];
 
   unsigned int top = 0;
   unsigned int dir;
@@ -93,7 +93,7 @@ void ConstPoolTree::put(ConstPoolNode* newNode) {
     stack[top++] = node;
     dir = ::memcmp(node->getData(), newNode->getData(), dataSize) < 0;
 
-    ConstPoolNode* link = node->_link[dir];
+    ConstPool::Node* link = node->_link[dir];
     if (link == NULL)
       break;
 
@@ -162,16 +162,16 @@ void ConstPool::reset() {
 // [asmjit::ConstPool - Ops]
 // ============================================================================
 
-static ASMJIT_INLINE ConstPoolGap* ConstPool_allocGap(ConstPool* self) {
-  ConstPoolGap* gap = self->_gapPool;
+static ASMJIT_INLINE ConstPool::Gap* ConstPool_allocGap(ConstPool* self) {
+  ConstPool::Gap* gap = self->_gapPool;
   if (gap == NULL)
-    return self->_zone->allocT<ConstPoolGap>();
+    return self->_zone->allocT<ConstPool::Gap>();
 
   self->_gapPool = gap->_next;
   return gap;
 }
 
-static ASMJIT_INLINE void ConstPool_freeGap(ConstPool* self,  ConstPoolGap* gap) {
+static ASMJIT_INLINE void ConstPool_freeGap(ConstPool* self,  ConstPool::Gap* gap) {
   gap->_next = self->_gapPool;
   self->_gapPool = gap;
 }
@@ -183,19 +183,19 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) {
     size_t gapIndex;
     size_t gapLength;
 
-    if (length >= 16 && IntUtil::isAligned<size_t>(offset, 16)) {
+    if (length >= 16 && Utils::isAligned<size_t>(offset, 16)) {
       gapIndex = ConstPool::kIndex16;
       gapLength = 16;
     }
-    else if (length >= 8 && IntUtil::isAligned<size_t>(offset, 8)) {
+    else if (length >= 8 && Utils::isAligned<size_t>(offset, 8)) {
       gapIndex = ConstPool::kIndex8;
       gapLength = 8;
     }
-    else if (length >= 4 && IntUtil::isAligned<size_t>(offset, 4)) {
+    else if (length >= 4 && Utils::isAligned<size_t>(offset, 4)) {
       gapIndex = ConstPool::kIndex4;
       gapLength = 4;
     }
-    else if (length >= 2 && IntUtil::isAligned<size_t>(offset, 2)) {
+    else if (length >= 2 && Utils::isAligned<size_t>(offset, 2)) {
       gapIndex = ConstPool::kIndex2;
       gapLength = 2;
     }
@@ -207,7 +207,7 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) {
     // We don't have to check for errors here, if this failed nothing really
     // happened (just the gap won't be visible) and it will fail again at
     // place where checking will cause kErrorNoHeapMemory.
-    ConstPoolGap* gap = ConstPool_allocGap(self);
+    ConstPool::Gap* gap = ConstPool_allocGap(self);
     if (gap == NULL)
       return;
 
@@ -240,7 +240,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
   else
     return kErrorInvalidArgument;
 
-  ConstPoolNode* node = _tree[treeIndex].get(data);
+  ConstPool::Node* node = _tree[treeIndex].get(data);
   if (node != NULL) {
     dstOffset = node->_offset;
     return kErrorOk;
@@ -252,7 +252,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
   size_t gapIndex = treeIndex;
 
   while (gapIndex != kIndexCount - 1) {
-    ConstPoolGap* gap = _gaps[treeIndex];
+    ConstPool::Gap* gap = _gaps[treeIndex];
 
     // Check if there is a gap.
     if (gap != NULL) {
@@ -264,7 +264,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
       ConstPool_freeGap(this, gap);
 
       offset = gapOffset;
-      ASMJIT_ASSERT(IntUtil::isAligned<size_t>(offset, size));
+      ASMJIT_ASSERT(Utils::isAligned<size_t>(offset, size));
 
       gapLength -= size;
       if (gapLength > 0)
@@ -277,11 +277,11 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
   if (offset == ~static_cast<size_t>(0)) {
     // Get how many bytes have to be skipped so the address is aligned accordingly
     // to the 'size'.
-    size_t deltaTo = IntUtil::deltaTo<size_t>(_size, size);
+    size_t diff = Utils::alignDiff<size_t>(_size, size);
 
-    if (deltaTo != 0) {
-      ConstPool_addGap(this, _size, deltaTo);
-      _size += deltaTo;
+    if (diff != 0) {
+      ConstPool_addGap(this, _size, diff);
+      _size += diff;
     }
 
     offset = _size;
@@ -289,12 +289,12 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
   }
 
   // Add the initial node to the right index.
-  node = ConstPoolTree::_newNode(_zone, data, size, offset, false);
+  node = ConstPool::Tree::_newNode(_zone, data, size, offset, false);
   if (node == NULL)
     return kErrorNoHeapMemory;
 
   _tree[treeIndex].put(node);
-  _alignment = IntUtil::iMax<size_t>(_alignment, size);
+  _alignment = Utils::iMax<size_t>(_alignment, size);
 
   dstOffset = offset;
 
@@ -316,7 +316,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
       if (node != NULL)
         continue;
 
-      node = ConstPoolTree::_newNode(_zone, pData, size, offset + (i * size), true);
+      node = ConstPool::Tree::_newNode(_zone, pData, size, offset + (i * size), true);
       _tree[treeIndex].put(node);
     }
   }
@@ -333,7 +333,7 @@ struct ConstPoolFill {
     _dst(dst),
     _dataSize(dataSize) {}
 
-  ASMJIT_INLINE void visit(const ConstPoolNode* node) {
+  ASMJIT_INLINE void visit(const ConstPool::Node* node) {
     if (!node->_shared)
       ::memcpy(_dst + node->_offset, node->getData(), _dataSize);
   }
@@ -342,7 +342,7 @@ struct ConstPoolFill {
   size_t _dataSize;
 };
 
-void ConstPool::fill(void* dst) {
+void ConstPool::fill(void* dst) const {
   // Clears possible gaps, asmjit should never emit garbage to the output.
   ::memset(dst, 0, _size);
 
@@ -359,7 +359,7 @@ void ConstPool::fill(void* dst) {
 
 #if defined(ASMJIT_TEST)
 UNIT(base_constpool) {
-  Zone zone(32384 - kZoneOverhead);
+  Zone zone(32384 - Zone::kZoneOverhead);
   ConstPool pool(&zone);
 
   uint32_t i;

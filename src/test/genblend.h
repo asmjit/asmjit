@@ -22,22 +22,22 @@ static void blend(asmjit::X86Compiler& c) {
   using namespace asmjit;
   using namespace asmjit::x86;
 
-  X86GpVar dst(c, kVarTypeIntPtr, "dst");
-  X86GpVar src(c, kVarTypeIntPtr, "src");
+  X86GpVar dst = c.newIntPtr("dst");
+  X86GpVar src = c.newIntPtr("src");
 
-  X86GpVar i(c, kVarTypeIntPtr, "i");
-  X86GpVar j(c, kVarTypeIntPtr, "j");
-  X86GpVar t(c, kVarTypeIntPtr, "t");
+  X86GpVar i = c.newIntPtr("i");
+  X86GpVar j = c.newIntPtr("j");
+  X86GpVar t = c.newIntPtr("t");
 
-  X86XmmVar cZero(c, kX86VarTypeXmm, "cZero");
-  X86XmmVar cMul255A(c, kX86VarTypeXmm, "cMul255A");
-  X86XmmVar cMul255M(c, kX86VarTypeXmm, "cMul255M");
+  X86XmmVar cZero    = c.newXmm("cZero");
+  X86XmmVar cMul255A = c.newXmm("cMul255A");
+  X86XmmVar cMul255M = c.newXmm("cMul255M");
 
-  X86XmmVar x0(c, kX86VarTypeXmm, "x0");
-  X86XmmVar x1(c, kX86VarTypeXmm, "x1");
-  X86XmmVar y0(c, kX86VarTypeXmm, "y0");
-  X86XmmVar a0(c, kX86VarTypeXmm, "a0");
-  X86XmmVar a1(c, kX86VarTypeXmm, "a1");
+  X86XmmVar x0 = c.newXmm("x0");
+  X86XmmVar x1 = c.newXmm("x1");
+  X86XmmVar y0 = c.newXmm("y0");
+  X86XmmVar a0 = c.newXmm("a0");
+  X86XmmVar a1 = c.newXmm("a1");
 
   Label L_SmallLoop(c);
   Label L_SmallEnd(c);
@@ -47,7 +47,7 @@ static void blend(asmjit::X86Compiler& c) {
 
   Label L_Data(c);
 
-  c.addFunc(kFuncConvHost, FuncBuilder3<Void, void*, const void*, size_t>());
+  c.addFunc(FuncBuilder3<Void, void*, const void*, size_t>(kCallConvHost));
 
   c.setArg(0, dst);
   c.setArg(1, src);
@@ -90,7 +90,7 @@ static void blend(asmjit::X86Compiler& c) {
   c.psrlw(a0, 8);
   c.punpcklbw(x0, cZero);
 
-  c.pshuflw(a0, a0, X86Util::mmShuffle(1, 1, 1, 1));
+  c.pshuflw(a0, a0, X86Util::shuffle(1, 1, 1, 1));
   c.punpcklbw(y0, cZero);
 
   c.pmullw(x0, a0);
@@ -138,8 +138,8 @@ static void blend(asmjit::X86Compiler& c) {
   c.punpckhbw(x1, cZero);
   c.punpckhwd(a1, a1);
 
-  c.pshufd(a0, a0, X86Util::mmShuffle(3, 3, 1, 1));
-  c.pshufd(a1, a1, X86Util::mmShuffle(3, 3, 1, 1));
+  c.pshufd(a0, a0, X86Util::shuffle(3, 3, 1, 1));
+  c.pshufd(a1, a1, X86Util::shuffle(3, 3, 1, 1));
 
   c.pmullw(x0, a0);
   c.pmullw(x1, a1);

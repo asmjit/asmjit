@@ -25,21 +25,22 @@ namespace asmjit {
 
 //! \internal
 enum {
-  kX86InstTable_L__ = (0) << kX86InstOpCode_L_Shift,
-  kX86InstTable_L_I = (0) << kX86InstOpCode_L_Shift,
-  kX86InstTable_L_0 = (0) << kX86InstOpCode_L_Shift,
-  kX86InstTable_L_L = (1) << kX86InstOpCode_L_Shift,
+  // REX/VEX.
+  kX86InstTable_L__ = (0) << kX86InstOpCode_L_Shift,  // L is operand-based or unspecified.
+  kX86InstTable_L_I = (0) << kX86InstOpCode_L_Shift,  // L is ignored (LIG).
+  kX86InstTable_L_0 = (0) << kX86InstOpCode_L_Shift,  // L has to be zero.
+  kX86InstTable_L_L = (1) << kX86InstOpCode_L_Shift,  // L has to be set.
 
-  kX86InstTable_W__ = (0) << kX86InstOpCode_W_Shift,
-  kX86InstTable_W_I = (0) << kX86InstOpCode_W_Shift,
-  kX86InstTable_W_0 = (0) << kX86InstOpCode_W_Shift,
-  kX86InstTable_W_1 = (1) << kX86InstOpCode_W_Shift,
-  kX86InstTable_W_W = (1) << kX86InstOpCode_W_Shift,
+  kX86InstTable_W__ = (0) << kX86InstOpCode_W_Shift,  // W is operand-based or unspecified.
+  kX86InstTable_W_I = (0) << kX86InstOpCode_W_Shift,  // W is ignored (WIG).
+  kX86InstTable_W_0 = (0) << kX86InstOpCode_W_Shift,  // W has to be zero.
+  kX86InstTable_W_W = (1) << kX86InstOpCode_W_Shift,  // W has to be set.
 
-  kX86InstTable_E__ = (0) << kX86InstOpCode_EW_Shift,
-  kX86InstTable_E_I = (0) << kX86InstOpCode_EW_Shift,
-  kX86InstTable_E_0 = (0) << kX86InstOpCode_EW_Shift,
-  kX86InstTable_E_1 = (1) << kX86InstOpCode_EW_Shift
+  // EVEX.
+  kX86InstTable_E__ = (0) << kX86InstOpCode_EW_Shift, // EVEX.W is operand-based or unspecified.
+  kX86InstTable_E_I = (0) << kX86InstOpCode_EW_Shift, // EVEX.W is ignored (WIG).
+  kX86InstTable_E_0 = (0) << kX86InstOpCode_EW_Shift, // EVEX.W has to be zero.
+  kX86InstTable_E_1 = (1) << kX86InstOpCode_EW_Shift  // EVEX.W has to be set.
 };
 
 //! \internal
@@ -47,8 +48,9 @@ enum {
 //! Combined flags.
 enum X86InstOpInternal {
   kX86InstOpI        = kX86InstOpImm,
+
   kX86InstOpL        = kX86InstOpLabel,
-  kX86InstOpLbImm    = kX86InstOpLabel | kX86InstOpImm,
+  kX86InstOpLImm     = kX86InstOpLabel | kX86InstOpImm,
 
   kX86InstOpGwb      = kX86InstOpGw    | kX86InstOpGb,
   kX86InstOpGqd      = kX86InstOpGq    | kX86InstOpGd,
@@ -2044,7 +2046,7 @@ const X86InstExtendedInfo _x86InstExtendedInfo[] = {
   { Enc(X86BTest)     , 0 , 0 , 0x00, 0x3B, 0, { O(GqdwMem)        , O(Gqdw)|O(Imm)    , U                 , U                 , U                  }, F(Lock)                            , O_000F00(BA,7,_,_,_) },
   { Enc(X86BTest)     , 0 , 0 , 0x00, 0x3B, 0, { O(GqdwMem)        , O(Gqdw)|O(Imm)    , U                 , U                 , U                  }, F(Lock)                            , O_000F00(BA,6,_,_,_) },
   { Enc(X86BTest)     , 0 , 0 , 0x00, 0x3B, 0, { O(GqdwMem)        , O(Gqdw)|O(Imm)    , U                 , U                 , U                  }, F(Lock)                            , O_000F00(BA,5,_,_,_) },
-  { Enc(X86Call)      , 0 , 0 , 0x00, 0x00, 0, { O(GqdMem)|O(LbImm), U                 , U                 , U                 , U                  }, F(Flow)                            , O_000000(E8,U,_,_,_) },
+  { Enc(X86Call)      , 0 , 0 , 0x00, 0x00, 0, { O(GqdMem)|O(LImm) , U                 , U                 , U                 , U                  }, F(Flow)                            , O_000000(E8,U,_,_,_) },
   { Enc(X86Op)        , 0 , 0 , 0x00, 0x00, 0, { U                 , U                 , U                 , U                 , U                  }, F(None)|F(Special)                 , U                    },
   { Enc(X86Op)        , 0 , 0 , 0x00, 0x20, 0, { U                 , U                 , U                 , U                 , U                  }, F(None)                            , U                    },
   { Enc(X86Op)        , 0 , 0 , 0x00, 0x40, 0, { U                 , U                 , U                 , U                 , U                  }, F(None)                            , U                    },
@@ -3377,12 +3379,12 @@ enum X86InstData_ExtendedIndex {
 };
 // ${X86InstData:End}
 
-// Please run tools/src-gendefs.js (by using just node.js, without any dependencies) to regenerate the code above.
+// Please run tools/src-gendefs.js (by using just node.js, without any dependencies) to regenerate the code enclosed with ${X86InstData...}.
 const X86InstInfo _x86InstInfo[] = {
   // <----------------------------+--------------------+-------------------------------------------+-------------------+------------------------------------+-------------+-------+---------------------------------------------------------------------------------------------------+
   //                              |                    |           Instruction Opcodes             |                   |         Instruction Flags          |   E-FLAGS   | Write |              Operands (Gp/Fp/Mm/K/Xmm/Ymm/Zmm Regs, Mem, Imm, Label, None/Undefined)              |
   //        Instruction Id        |  Instruction Name  +---------------------+---------------------+  Instruction Enc. +---------------+--------------------+-------------+---+---+-------------------+-------------------+-------------------+-------------------+-------------------+
-  //                              |                    | 0:PP-MMM OP/O L/W/EW| 1:PP-MMM OP/O L/W/EW|                   | Global Flags  |A512(ID|VL|kz|rnd|b)| EF:OSZAPCDX |Idx| Sz|  [0] 1st Operand  |  [1] 2nd Operand  |  [2] 3rd Operand  |  [3] 4th Operand  |  [4] 5th Operand  |
+  //                              |                    | O-PP-MMM OP/O L/W/EW| 1:PP-MMM OP/O L/W/EW|                   | Global Flags  |A512(ID|VL|kz|rnd|b)| EF:OSZAPCDX |Idx| Sz|  [0] 1st Operand  |  [1] 2nd Operand  |  [2] 3rd Operand  |  [3] 4th Operand  |  [4] 5th Operand  |
   // <----------------------------+--------------------+---------------------+---------------------+-------------------+---------------+--------------------+-------------+---+---+-------------------+-------------------+-------------------+-------------------+-------------------+
   INST(kInstIdNone                , ""                 , U                   , U                   , Enc(None)         , F(None)                            , EF(________), 0 , 0 , U                 , U                 , U                 , U                 , U                 ),
   INST(kX86InstIdAdc              , "adc"              , O_000000(10,2,_,_,_), U                   , Enc(X86Arith)     , F(Lock)                            , EF(WWWWWX__), 0 , 0 , O(GqdwbMem)       , O(GqdwbMem)|O(Imm), U                 , U                 , U                 ),
@@ -3421,7 +3423,7 @@ const X86InstInfo _x86InstInfo[] = {
   INST(kX86InstIdBtr              , "btr"              , O_000F00(B3,U,_,_,_), O_000F00(BA,6,_,_,_), Enc(X86BTest)     , F(Lock)                            , EF(UU_UUW__), 0 , 0 , O(GqdwMem)        , O(Gqdw)|O(Imm)    , U                 , U                 , U                 ),
   INST(kX86InstIdBts              , "bts"              , O_000F00(AB,U,_,_,_), O_000F00(BA,5,_,_,_), Enc(X86BTest)     , F(Lock)                            , EF(UU_UUW__), 0 , 0 , O(GqdwMem)        , O(Gqdw)|O(Imm)    , U                 , U                 , U                 ),
   INST(kX86InstIdBzhi             , "bzhi"             , O_000F38(F5,U,_,_,_), U                   , Enc(AvxRmv)       , F(None)                            , EF(WWWUUW__), 0 , 0 , O(Gqd)            , O(GqdMem)         , O(Gqd)            , U                 , U                 ),
-  INST(kX86InstIdCall             , "call"             , O_000000(FF,2,_,_,_), O_000000(E8,U,_,_,_), Enc(X86Call)      , F(Flow)                            , EF(________), 0 , 0 , O(GqdMem)|O(LbImm), U                 , U                 , U                 , U                 ),
+  INST(kX86InstIdCall             , "call"             , O_000000(FF,2,_,_,_), O_000000(E8,U,_,_,_), Enc(X86Call)      , F(Flow)                            , EF(________), 0 , 0 , O(GqdMem)|O(LImm) , U                 , U                 , U                 , U                 ),
   INST(kX86InstIdCbw              , "cbw"              , O_660000(98,U,_,_,_), U                   , Enc(X86Op)        , F(None)|F(Special)                 , EF(________), 0 , 0 , U                 , U                 , U                 , U                 , U                 ),
   INST(kX86InstIdCdq              , "cdq"              , O_000000(99,U,_,_,_), U                   , Enc(X86Op)        , F(None)|F(Special)                 , EF(________), 0 , 0 , U                 , U                 , U                 , U                 , U                 ),
   INST(kX86InstIdCdqe             , "cdqe"             , O_000000(98,U,_,W,_), U                   , Enc(X86Op)        , F(None)|F(Special)                 , EF(________), 0 , 0 , U                 , U                 , U                 , U                 , U                 ),
@@ -4490,52 +4492,19 @@ const X86InstInfo _x86InstInfo[] = {
 // ============================================================================
 
 #define CC_TO_INST(_Inst_) { \
-  _Inst_##o,  \
-  _Inst_##no, \
-  _Inst_##b,  \
-  _Inst_##ae, \
-  _Inst_##e,  \
-  _Inst_##ne, \
-  _Inst_##be, \
-  _Inst_##a,  \
-  _Inst_##s,  \
-  _Inst_##ns, \
-  _Inst_##pe, \
-  _Inst_##po, \
-  _Inst_##l,  \
-  _Inst_##ge, \
-  _Inst_##le, \
-  _Inst_##g,  \
-  \
-  kInstIdNone,  \
-  kInstIdNone,  \
-  kInstIdNone,  \
-  kInstIdNone   \
+  _Inst_##o  , _Inst_##no , _Inst_##b  , _Inst_##ae , \
+  _Inst_##e  , _Inst_##ne , _Inst_##be , _Inst_##a  , \
+  _Inst_##s  , _Inst_##ns , _Inst_##pe , _Inst_##po , \
+  _Inst_##l  , _Inst_##ge , _Inst_##le , _Inst_##g  , \
+  kInstIdNone, kInstIdNone, kInstIdNone, kInstIdNone  \
 }
 
 const uint32_t _x86ReverseCond[20] = {
-  /* kX86CondO  -> */ kX86CondO,
-  /* kX86CondNO -> */ kX86CondNO,
-  /* kX86CondB  -> */ kX86CondA,
-  /* kX86CondAE -> */ kX86CondBE,
-  /* kX86CondE  -> */ kX86CondE,
-  /* kX86CondNE -> */ kX86CondNE,
-  /* kX86CondBE -> */ kX86CondAE,
-  /* kX86CondA  -> */ kX86CondB,
-  /* kX86CondS  -> */ kX86CondS,
-  /* kX86CondNS -> */ kX86CondNS,
-  /* kX86CondPE -> */ kX86CondPE,
-  /* kX86CondPO -> */ kX86CondPO,
-  /* kX86CondL  -> */ kX86CondG,
-  /* kX86CondGE -> */ kX86CondLE,
-  /* kX86CondLE -> */ kX86CondGE,
-  /* kX86CondG  -> */ kX86CondL,
-
-  /* kX86CondFpuUnordered    -> */ kX86CondFpuUnordered,
-  /* kX86CondFpuNotUnordered -> */ kX86CondFpuNotUnordered,
-
-  0x12,
-  0x13
+  /* O|NO|B|AE    -> */ kX86CondO, kX86CondNO, kX86CondA , kX86CondBE,
+  /* E|NE|BE|A    -> */ kX86CondE, kX86CondNE, kX86CondAE, kX86CondB ,
+  /* S|NS|PE|PO   -> */ kX86CondS, kX86CondNS, kX86CondPE, kX86CondPO,
+  /* L|GE|LE|G    -> */ kX86CondG, kX86CondLE, kX86CondGE, kX86CondL ,
+  /* Unord|!Unord -> */ kX86CondFpuUnordered , kX86CondFpuNotUnordered, 0x12, 0x13
 };
 
 const uint32_t _x86CondToCmovcc[20] = CC_TO_INST(kX86InstIdCmov);
@@ -4549,10 +4518,12 @@ const uint32_t _x86CondToSetcc [20] = CC_TO_INST(kX86InstIdSet );
 // ============================================================================
 
 #if !defined(ASMJIT_DISABLE_NAMES)
-// Compare two instruction names.
-//
-// `a` is null terminated instruction name from `_x86InstName[]` table.
-// `b` is non-null terminated instruction name passed to `getInstIdByName()`.
+//! \internal
+//!
+//! Compare two instruction names.
+//!
+//! `a` is null terminated instruction name from `_x86InstName[]` table.
+//! `b` is non-null terminated instruction name passed to `getInstIdByName()`.
 static ASMJIT_INLINE int X86Util_cmpInstName(const char* a, const char* b, size_t len) {
   for (size_t i = 0; i < len; i++) {
     int c = static_cast<int>(static_cast<uint8_t>(a[i])) -

@@ -16,8 +16,7 @@ var hasOwn = Object.prototype.hasOwnProperty;
 // ----------------------------------------------------------------------------
 
 function upFirst(s) {
-  if (!s)
-    return s;
+  if (!s) return "";
   return s[0].toUpperCase() + s.substr(1);
 }
 
@@ -167,7 +166,7 @@ IndexedString.prototype.index = function() {
 
 IndexedString.prototype.format = function(indent) {
   if (this.size === -1)
-    throw new Error("IndexedString not indexed yet, call index()");
+    throw new Error("IndexedString - not indexed yet, call index()");
 
   var s = "";
   var array = this.array;
@@ -183,16 +182,16 @@ IndexedString.prototype.format = function(indent) {
 
 IndexedString.prototype.getSize = function() {
   if (this.size === -1)
-    throw new Error("IndexedString not indexed yet, call index()");
+    throw new Error("IndexedString - not indexed yet, call index()");
   return this.size;
 };
 
 IndexedString.prototype.getIndex = function(k) {
   if (this.size === -1)
-    throw new Error("IndexedString not indexed yet, call index()");
+    throw new Error("IndexedString - not indexed yet, call index()");
 
   if (!hasOwn.call(this.map, k))
-    throw new Error("Key '" + k + "' not found in IndexedString.");
+    throw new Error("IndexedString - key '" + k + "' not found.");
 
   return this.map[k];
 };

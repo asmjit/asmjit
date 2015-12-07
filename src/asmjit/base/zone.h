@@ -16,7 +16,7 @@
 
 namespace asmjit {
 
-//! \addtogroup asmjit_base_util
+//! \addtogroup asmjit_base
 //! \{
 
 // ============================================================================
@@ -73,6 +73,15 @@ struct Zone {
 
     //! Data.
     uint8_t data[sizeof(void*)];
+  };
+
+  // --------------------------------------------------------------------------
+  // [Enums]
+  // --------------------------------------------------------------------------
+
+  enum {
+    //! Zone allocator overhead.
+    kZoneOverhead = static_cast<int>(sizeof(Block) - sizeof(void*)) + kMemAllocOverhead
   };
 
   // --------------------------------------------------------------------------
@@ -203,11 +212,6 @@ struct Zone {
   Block* _block;
   //! Default block size.
   size_t _blockSize;
-};
-
-enum {
-  //! Zone allocator overhead.
-  kZoneOverhead = static_cast<int>(sizeof(Zone::Block) - sizeof(void*)) + kMemAllocOverhead
 };
 
 //! \}

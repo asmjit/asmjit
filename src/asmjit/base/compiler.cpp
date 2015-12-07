@@ -14,10 +14,10 @@
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
 #include "../base/compiler.h"
-#include "../base/context_p.h"
+#include "../base/compilercontext_p.h"
 #include "../base/cpuinfo.h"
-#include "../base/intutil.h"
 #include "../base/logger.h"
+#include "../base/utils.h"
 
 // [Dependencies - C]
 #include <stdarg.h>
@@ -32,54 +32,54 @@ namespace asmjit {
 // ============================================================================
 
 static const char noName[1] = { '\0' };
-enum { kBaseCompilerDefaultLookAhead = 64 };
+enum { kCompilerDefaultLookAhead = 64 };
 
 // ============================================================================
 // [asmjit::Compiler - Construction / Destruction]
 // ============================================================================
 
-Compiler::Compiler(Runtime* runtime) :
-  CodeGen(runtime),
-  _assembler(NULL),
+Compiler::Compiler() :
+  _features(0),
+  _maxLookAhead(kCompilerDefaultLookAhead),
+  _instOptions(0),
+  _tokenGenerator(0),
   _nodeFlowId(0),
   _nodeFlags(0),
-  _maxLookAhead(kBaseCompilerDefaultLookAhead),
   _targetVarMapping(NULL),
   _firstNode(NULL),
   _lastNode(NULL),
   _cursor(NULL),
   _func(NULL),
-  _varZone(4096 - kZoneOverhead),
-  _stringZone(4096 - kZoneOverhead),
-  _localConstZone(4096 - kZoneOverhead),
-  _localConstPool(&_localConstZone),
-  _globalConstPool(&_baseZone) {}
-
-Compiler::~Compiler() {
-  reset(true);
-
-  if (_assembler != NULL)
-    delete _assembler;
-}
+  _zoneAllocator(8192 - Zone::kZoneOverhead),
+  _varAllocator(4096 - Zone::kZoneOverhead),
+  _stringAllocator(4096 - Zone::kZoneOverhead),
+  _constAllocator(4096 - Zone::kZoneOverhead),
+  _localConstPool(&_constAllocator),
+  _globalConstPool(&_zoneAllocator) {}
+Compiler::~Compiler() {}
 
 // ============================================================================
-// [asmjit::Compiler - Clear / Reset]
+// [asmjit::Compiler - Attach / Reset]
 // ============================================================================
 
 void Compiler::reset(bool releaseMemory) {
-  // CodeGen members.
-  _baseAddress = kNoBaseAddress;
+  Assembler* assembler = getAssembler();
+  if (assembler != NULL)
+    assembler->_detached(this);
+
+  _arch = kArchNone;
+  _regSize = 0;
+  _finalized = false;
+  _lastError = kErrorNotInitialized;
+
+  _features = 0;
+  _maxLookAhead = kCompilerDefaultLookAhead;
+
   _instOptions = 0;
-  _error = kErrorOk;
+  _tokenGenerator = 0;
 
-  _baseZone.reset(releaseMemory);
-
-  // Compiler members.
   _nodeFlowId = 0;
   _nodeFlags = 0;
-
-  if (_assembler != NULL)
-    _assembler->reset(releaseMemory);
 
   _firstNode = NULL;
   _lastNode = NULL;
@@ -93,25 +93,79 @@ void Compiler::reset(bool releaseMemory) {
   _localConstPoolLabel.reset();
   _globalConstPoolLabel.reset();
 
-  _varZone.reset(releaseMemory);
-  _stringZone.reset(releaseMemory);
-  _localConstZone.reset(releaseMemory);
+  _zoneAllocator.reset(releaseMemory);
+  _varAllocator.reset(releaseMemory);
+  _stringAllocator.reset(releaseMemory);
+  _constAllocator.reset(releaseMemory);
 
-  _targetList.reset(releaseMemory);
   _varList.reset(releaseMemory);
 }
 
 // ============================================================================
-// [asmjit::Compiler - Node Management]
+// [asmjit::Compiler - Node-Factory]
 // ============================================================================
 
-Node* Compiler::setCursor(Node* node) {
-  Node* old = _cursor;
-  _cursor = node;
-  return old;
+HLData* Compiler::newDataNode(const void* data, uint32_t size) {
+  if (size > HLData::kInlineBufferSize) {
+    void* clonedData = _stringAllocator.alloc(size);
+    if (clonedData == NULL)
+      return NULL;
+
+    if (data != NULL)
+      ::memcpy(clonedData, data, size);
+    data = clonedData;
+  }
+
+  return newNode<HLData>(const_cast<void*>(data), size);
 }
 
-Node* Compiler::addNode(Node* node) {
+HLAlign* Compiler::newAlignNode(uint32_t alignMode, uint32_t offset) {
+  return newNode<HLAlign>(alignMode, offset);
+}
+
+HLLabel* Compiler::newLabelNode() {
+  Assembler* assembler = getAssembler();
+  if (assembler == NULL) return NULL;
+
+  uint32_t id = assembler->_newLabelId();
+  LabelData* ld = assembler->getLabelData(id);
+
+  HLLabel* node = newNode<HLLabel>(id);
+  if (node == NULL) return NULL;
+
+  // These have to be zero now.
+  ASMJIT_ASSERT(ld->hlId == 0);
+  ASMJIT_ASSERT(ld->hlData == NULL);
+
+  ld->hlId = _hlId;
+  ld->hlData = node;
+
+  return node;
+}
+
+HLComment* Compiler::newCommentNode(const char* str) {
+  if (str != NULL && str[0]) {
+    str = _stringAllocator.sdup(str);
+    if (str == NULL)
+      return NULL;
+  }
+
+  return newNode<HLComment>(str);
+}
+
+HLHint* Compiler::newHintNode(Var& var, uint32_t hint, uint32_t value) {
+  if (var.getId() == kInvalidValue)
+    return NULL;
+
+  VarData* vd = getVd(var);
+  return newNode<HLHint>(vd, hint, value);
+}
+
+// ============================================================================
+// [asmjit::Compiler - Code-Stream]
+// ============================================================================
+
+HLNode* Compiler::addNode(HLNode* node) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
@@ -128,8 +182,8 @@ Node* Compiler::addNode(Node* node) {
     }
   }
   else {
-    Node* prev = _cursor;
-    Node* next = _cursor->_next;
+    HLNode* prev = _cursor;
+    HLNode* next = _cursor->_next;
 
     node->_prev = prev;
     node->_next = next;
@@ -145,14 +199,14 @@ Node* Compiler::addNode(Node* node) {
   return node;
 }
 
-Node* Compiler::addNodeBefore(Node* node, Node* ref) {
+HLNode* Compiler::addNodeBefore(HLNode* node, HLNode* ref) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
   ASMJIT_ASSERT(ref != NULL);
 
-  Node* prev = ref->_prev;
-  Node* next = ref;
+  HLNode* prev = ref->_prev;
+  HLNode* next = ref;
 
   node->_prev = prev;
   node->_next = next;
@@ -166,14 +220,14 @@ Node* Compiler::addNodeBefore(Node* node, Node* ref) {
   return node;
 }
 
-Node* Compiler::addNodeAfter(Node* node, Node* ref) {
+HLNode* Compiler::addNodeAfter(HLNode* node, HLNode* ref) {
   ASMJIT_ASSERT(node != NULL);
   ASMJIT_ASSERT(node->_prev == NULL);
   ASMJIT_ASSERT(node->_next == NULL);
   ASMJIT_ASSERT(ref != NULL);
 
-  Node* prev = ref;
-  Node* next = ref->_next;
+  HLNode* prev = ref;
+  HLNode* next = ref->_next;
 
   node->_prev = prev;
   node->_next = next;
@@ -187,17 +241,17 @@ Node* Compiler::addNodeAfter(Node* node, Node* ref) {
   return node;
 }
 
-static ASMJIT_INLINE void BaseCompiler_nodeRemoved(Compiler* self, Node* node_) {
+static ASMJIT_INLINE void Compiler_nodeRemoved(Compiler* self, HLNode* node_) {
   if (node_->isJmpOrJcc()) {
-    JumpNode* node = static_cast<JumpNode*>(node_);
-    TargetNode* target = node->getTarget();
+    HLJump* node = static_cast<HLJump*>(node_);
+    HLLabel* label = node->getTarget();
 
-    if (target != NULL) {
+    if (label != NULL) {
       // Disconnect.
-      JumpNode** pPrev = &target->_from;
+      HLJump** pPrev = &label->_from;
       for (;;) {
         ASMJIT_ASSERT(*pPrev != NULL);
-        JumpNode* current = *pPrev;
+        HLJump* current = *pPrev;
 
         if (current == NULL)
           break;
@@ -210,14 +264,14 @@ static ASMJIT_INLINE void BaseCompiler_nodeRemoved(Compiler* self, Node* node_) 
         pPrev = &current->_jumpNext;
       }
 
-      target->subNumRefs();
+      label->subNumRefs();
     }
   }
 }
 
-Node* Compiler::removeNode(Node* node) {
-  Node* prev = node->_prev;
-  Node* next = node->_next;
+HLNode* Compiler::removeNode(HLNode* node) {
+  HLNode* prev = node->_prev;
+  HLNode* next = node->_next;
 
   if (_firstNode == node)
     _firstNode = next;
@@ -234,19 +288,19 @@ Node* Compiler::removeNode(Node* node) {
 
   if (_cursor == node)
     _cursor = prev;
-  BaseCompiler_nodeRemoved(this, node);
+  Compiler_nodeRemoved(this, node);
 
   return node;
 }
 
-void Compiler::removeNodes(Node* first, Node* last) {
+void Compiler::removeNodes(HLNode* first, HLNode* last) {
   if (first == last) {
     removeNode(first);
     return;
   }
 
-  Node* prev = first->_prev;
-  Node* next = last->_next;
+  HLNode* prev = first->_prev;
+  HLNode* next = last->_next;
 
   if (_firstNode == first)
     _firstNode = next;
@@ -258,9 +312,9 @@ void Compiler::removeNodes(Node* first, Node* last) {
   else
     next->_prev = prev;
 
-  Node* node = first;
+  HLNode* node = first;
   for (;;) {
-    Node* next = node->getNext();
+    HLNode* next = node->getNext();
     ASMJIT_ASSERT(next != NULL);
 
     node->_prev = NULL;
@@ -268,7 +322,7 @@ void Compiler::removeNodes(Node* first, Node* last) {
 
     if (_cursor == node)
       _cursor = prev;
-    BaseCompiler_nodeRemoved(this, node);
+    Compiler_nodeRemoved(this, node);
 
     if (node == last)
       break;
@@ -276,76 +330,62 @@ void Compiler::removeNodes(Node* first, Node* last) {
   }
 }
 
+HLNode* Compiler::setCursor(HLNode* node) {
+  HLNode* old = _cursor;
+  _cursor = node;
+  return old;
+}
+
 // ============================================================================
 // [asmjit::Compiler - Align]
 // ============================================================================
 
-AlignNode* Compiler::newAlign(uint32_t mode, uint32_t offset) {
-  AlignNode* node = newNode<AlignNode>(mode, offset);
+Error Compiler::align(uint32_t alignMode, uint32_t offset) {
+  HLAlign* node = newAlignNode(alignMode, offset);
   if (node == NULL)
-    goto _NoMemory;
-  return node;
+    return setLastError(kErrorNoHeapMemory);
 
-_NoMemory:
-  setError(kErrorNoHeapMemory);
-  return NULL;
-}
-
-AlignNode* Compiler::addAlign(uint32_t mode, uint32_t offset) {
-  AlignNode* node = newAlign(mode, offset);
-  if (node == NULL)
-    return NULL;
-  return static_cast<AlignNode*>(addNode(node));
-}
-
-// ============================================================================
-// [asmjit::Compiler - Target]
-// ============================================================================
-
-TargetNode* Compiler::newTarget() {
-  TargetNode* node = newNode<TargetNode>(
-    OperandUtil::makeLabelId(static_cast<uint32_t>(_targetList.getLength())));
-
-  if (node == NULL || _targetList.append(node) != kErrorOk)
-    goto _NoMemory;
-  return node;
-
-_NoMemory:
-  setError(kErrorNoHeapMemory);
-  return NULL;
-}
-
-TargetNode* Compiler::addTarget() {
-  TargetNode* node = newTarget();
-  if (node == NULL)
-    return NULL;
-  return static_cast<TargetNode*>(addNode(node));
+  addNode(node);
+  return kErrorOk;
 }
 
 // ============================================================================
 // [asmjit::Compiler - Label]
 // ============================================================================
 
-Error Compiler::_newLabel(Label* dst) {
-  dst->_init_packed_op_sz_b0_b1_id(kOperandTypeLabel, 0, 0, 0, kInvalidValue);
-  dst->_init_packed_d2_d3(0, 0);
+HLLabel* Compiler::getHLLabel(uint32_t id) const {
+  Assembler* assembler = getAssembler();
+  if (assembler == NULL) return NULL;
 
-  TargetNode* node = newTarget();
-  if (node == NULL)
-    goto _NoMemory;
+  LabelData* ld = assembler->getLabelData(id);
+  if (ld->hlId == _hlId)
+    return static_cast<HLLabel*>(ld->hlData);
+  else
+    return NULL;
+}
 
-  dst->_label.id = node->getLabelId();
-  return kErrorOk;
+bool Compiler::isLabelValid(uint32_t id) const {
+  Assembler* assembler = getAssembler();
+  if (assembler == NULL) return false;
 
-_NoMemory:
-  return setError(kErrorNoHeapMemory);
+  return static_cast<size_t>(id) < assembler->getLabelsCount();
+}
+
+uint32_t Compiler::_newLabelId() {
+  HLLabel* node = newLabelNode();
+  if (node == NULL) {
+    setLastError(kErrorNoHeapMemory);
+    return kInvalidValue;
+  }
+
+  return node->getLabelId();
 }
 
 Error Compiler::bind(const Label& label) {
-  uint32_t index = label.getId();
-  ASMJIT_ASSERT(index < _targetList.getLength());
-
-  addNode(_targetList[index]);
+  HLLabel* node = getHLLabel(label);
+  if (node == NULL)
+    return setLastError(kErrorInvalidState);
+  addNode(node);
   return kErrorOk;
 }
 
@@ -353,67 +393,37 @@ Error Compiler::bind(const Label& label) {
 // [asmjit::Compiler - Embed]
 // ============================================================================
 
-EmbedNode* Compiler::newEmbed(const void* data, uint32_t size) {
-  EmbedNode* node;
-
-  if (size > EmbedNode::kInlineBufferSize) {
-    void* clonedData = _stringZone.alloc(size);
-    if (clonedData == NULL)
-      goto _NoMemory;
-
-    if (data != NULL)
-      ::memcpy(clonedData, data, size);
-    data = clonedData;
-  }
-
-  node = newNode<EmbedNode>(const_cast<void*>(data), size);
+Error Compiler::embed(const void* data, uint32_t size) {
+  HLData* node = newDataNode(data, size);
   if (node == NULL)
-    goto _NoMemory;
-  return node;
+    return setLastError(kErrorNoHeapMemory);
 
-_NoMemory:
-  setError(kErrorNoHeapMemory);
-  return NULL;
+  addNode(node);
+  return kErrorOk;
 }
 
-EmbedNode* Compiler::addEmbed(const void* data, uint32_t size) {
-  EmbedNode* node = newEmbed(data, size);
-  if (node == NULL)
-    return node;
-  return static_cast<EmbedNode*>(addNode(node));
+Error Compiler::embedConstPool(const Label& label, const ConstPool& pool) {
+  if (label.getId() == kInvalidValue)
+    return kErrorInvalidState;
+
+  align(kAlignData, static_cast<uint32_t>(pool.getAlignment()));
+  bind(label);
+
+  HLData* embedNode = newDataNode(NULL, static_cast<uint32_t>(pool.getSize()));
+  if (embedNode == NULL)
+    return kErrorNoHeapMemory;
+
+  pool.fill(embedNode->getData());
+  addNode(embedNode);
+
+  return kErrorOk;
 }
 
 // ============================================================================
 // [asmjit::Compiler - Comment]
 // ============================================================================
 
-CommentNode* Compiler::newComment(const char* str) {
-  CommentNode* node;
-
-  if (str != NULL && str[0]) {
-    str = _stringZone.sdup(str);
-    if (str == NULL)
-      goto _NoMemory;
-  }
-
-  node = newNode<CommentNode>(str);
-  if (node == NULL)
-    goto _NoMemory;
-  return node;
-
-_NoMemory:
-  setError(kErrorNoHeapMemory);
-  return NULL;
-}
-
-CommentNode* Compiler::addComment(const char* str) {
-  CommentNode* node = newComment(str);
-  if (node == NULL)
-    return NULL;
-  return static_cast<CommentNode*>(addNode(node));
-}
-
-CommentNode* Compiler::comment(const char* fmt, ...) {
+Error Compiler::comment(const char* fmt, ...) {
   char buf[256];
   char* p = buf;
 
@@ -425,36 +435,29 @@ CommentNode* Compiler::comment(const char* fmt, ...) {
   }
 
   p[0] = '\0';
-  return addComment(buf);
+
+  HLComment* node = newCommentNode(buf);
+  if (node == NULL)
+    return setLastError(kErrorNoHeapMemory);
+
+  addNode(node);
+  return kErrorOk;
 }
 
 // ============================================================================
 // [asmjit::Compiler - Hint]
 // ============================================================================
 
-HintNode* Compiler::newHint(Var& var, uint32_t hint, uint32_t value) {
-  if (var.getId() == kInvalidValue)
-    return NULL;
-  VarData* vd = getVd(var);
-
-  HintNode* node = newNode<HintNode>(vd, hint, value);
-  if (node == NULL)
-    goto _NoMemory;
-  return node;
-
-_NoMemory:
-  setError(kErrorNoHeapMemory);
-  return NULL;
-}
-
-HintNode* Compiler::addHint(Var& var, uint32_t hint, uint32_t value) {
+Error Compiler::_hint(Var& var, uint32_t hint, uint32_t value) {
   if (var.getId() == kInvalidValue)
     return NULL;
 
-  HintNode* node = newHint(var, hint, value);
+  HLHint* node = newHintNode(var, hint, value);
   if (node == NULL)
-    return NULL;
-  return static_cast<HintNode*>(addNode(node));
+    return setLastError(kErrorNoHeapMemory);
+
+  addNode(node);
+  return kErrorOk;
 }
 
 // ============================================================================
@@ -462,17 +465,19 @@ HintNode* Compiler::addHint(Var& var, uint32_t hint, uint32_t value) {
 // ============================================================================
 
 VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* name) {
-  VarData* vd = reinterpret_cast<VarData*>(_varZone.alloc(sizeof(VarData)));
+  VarData* vd = reinterpret_cast<VarData*>(_varAllocator.alloc(sizeof(VarData)));
   if (vd == NULL)
     goto _NoMemory;
 
   vd->_name = noName;
   vd->_id = OperandUtil::makeVarId(static_cast<uint32_t>(_varList.getLength()));
-  vd->_contextId = kInvalidValue;
+  vd->_localId = kInvalidValue;
 
+#if !defined(ASMJIT_DISABLE_LOGGER)
   if (name != NULL && name[0] != '\0') {
-    vd->_name = _stringZone.sdup(name);
+    vd->_name = _stringAllocator.sdup(name);
   }
+#endif // !ASMJIT_DISABLE_LOGGER
 
   vd->_type = static_cast<uint8_t>(type);
   vd->_class = static_cast<uint8_t>(c);
@@ -487,7 +492,7 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
   vd->_saveOnUnuse = false;
   vd->_modified = false;
   vd->_reserved0 = 0;
-  vd->_alignment = static_cast<uint8_t>(IntUtil::iMin<uint32_t>(size, 64));
+  vd->_alignment = static_cast<uint8_t>(Utils::iMin<uint32_t>(size, 64));
 
   vd->_size = size;
   vd->_homeMask = 0;
@@ -507,44 +512,44 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
   return vd;
 
 _NoMemory:
-  setError(kErrorNoHeapMemory);
+  setLastError(kErrorNoHeapMemory);
   return NULL;
 }
 
-void Compiler::alloc(Var& var) {
+Error Compiler::alloc(Var& var) {
   if (var.getId() == kInvalidValue)
-    return;
-  addHint(var, kVarHintAlloc, kInvalidValue);
+    return kErrorOk;
+  return _hint(var, kVarHintAlloc, kInvalidValue);
 }
 
-void Compiler::alloc(Var& var, uint32_t regIndex) {
+Error Compiler::alloc(Var& var, uint32_t regIndex) {
   if (var.getId() == kInvalidValue)
-    return;
-  addHint(var, kVarHintAlloc, regIndex);
+    return kErrorOk;
+  return _hint(var, kVarHintAlloc, regIndex);
 }
 
-void Compiler::alloc(Var& var, const Reg& reg) {
+Error Compiler::alloc(Var& var, const Reg& reg) {
   if (var.getId() == kInvalidValue)
-    return;
-  addHint(var, kVarHintAlloc, reg.getRegIndex());
+    return kErrorOk;
+  return _hint(var, kVarHintAlloc, reg.getRegIndex());
 }
 
-void Compiler::save(Var& var) {
+Error Compiler::save(Var& var) {
   if (var.getId() == kInvalidValue)
-    return;
-  addHint(var, kVarHintSave, kInvalidValue);
+    return kErrorOk;
+  return _hint(var, kVarHintSave, kInvalidValue);
 }
 
-void Compiler::spill(Var& var) {
+Error Compiler::spill(Var& var) {
   if (var.getId() == kInvalidValue)
-    return;
-  addHint(var, kVarHintSpill, kInvalidValue);
+    return kErrorOk;
+  return _hint(var, kVarHintSpill, kInvalidValue);
 }
 
-void Compiler::unuse(Var& var) {
+Error Compiler::unuse(Var& var) {
   if (var.getId() == kInvalidValue)
-    return;
-  addHint(var, kVarHintUnuse, kInvalidValue);
+    return kErrorOk;
+  return _hint(var, kVarHintUnuse, kInvalidValue);
 }
 
 uint32_t Compiler::getPriority(Var& var) const {
@@ -582,43 +587,25 @@ void Compiler::setSaveOnUnuse(Var& var, bool value) {
   vd->_saveOnUnuse = value;
 }
 
-void Compiler::rename(Var& var, const char* name) {
+void Compiler::rename(Var& var, const char* fmt, ...) {
   if (var.getId() == kInvalidValue)
     return;
 
   VarData* vd = getVdById(var.getId());
   vd->_name = noName;
 
-  if (name != NULL && name[0] != '\0') {
-    vd->_name = _stringZone.sdup(name);
+  if (fmt != NULL && fmt[0] != '\0') {
+    char buf[64];
+
+    va_list ap;
+    va_start(ap, fmt);
+
+    vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);
+    buf[ASMJIT_ARRAY_SIZE(buf) - 1] = '\0';
+
+    vd->_name = _stringAllocator.sdup(buf);
+    va_end(ap);
   }
-}
-
-// ============================================================================
-// [asmjit::Compiler - Assembler]
-// ============================================================================
-
-Assembler* Compiler::getAssembler() {
-  Assembler* a = _assembler;
-
-  if (a != NULL) {
-    a->reset(false);
-  }
-  else {
-    a = _newAssembler();
-    _assembler = a;
-  }
-
-#if !defined(ASMJIT_DISABLE_LOGGER)
-  Logger* logger = _logger;
-  if (logger != NULL)
-    a->setLogger(logger);
-#endif // !ASMJIT_DISABLE_LOGGER
-
-  a->setBaseAddress(_baseAddress);
-  a->setFeatures(_features);
-
-  return a;
 }
 
 } // asmjit namespace

@@ -12,57 +12,57 @@
 // [asmjit_mainpage]
 // ============================================================================
 
-//! @mainpage
+//! \mainpage
 //!
 //! AsmJit - Complete x86/x64 JIT and Remote Assembler for C++.
 //!
-//! AsmJit is a complete JIT and remote assembler for C++ language. It can
-//! generate native code for x86 and x64 architectures having support for
-//! a full instruction set, from legacy MMX to the newest AVX2. It has a
-//! type-safe API that allows C++ compiler to do a semantic checks at
-//! compile-time even before the assembled code is generated or run.
+//! A complete JIT and remote assembler for C++ language. It can generate native
+//! code for x86 and x64 architectures and supports the whole x86/x64 instruction
+//! set - from legacy MMX to the newest AVX2. It has a type-safe API that allows
+//! C++ compiler to do semantic checks at compile-time even before the assembled
+//! code is generated and executed.
 //!
 //! AsmJit is not a virtual machine (VM). It doesn't have functionality to
 //! implement VM out of the box; however, it can be be used as a JIT backend
-//! for your own VM. The usage of AsmJit is not limited at all; it's suitable
-//! for multimedia, VM backends or remote code generation.
+//! of your own VM. The usage of AsmJit is not limited at all; it's suitable
+//! for multimedia, VM backends, remote code generation, and many other tasks.
 //!
-//! @section AsmJit_Concepts Code Generation Concepts
+//! \section AsmJit_Main_Concepts Code Generation Concepts
 //!
 //! AsmJit has two completely different code generation concepts. The difference
-//! is in how the code is generated. The first concept, also referred as the low
-//! level concept, is called 'Assembler' and it's the same as writing RAW
-//! assembly by using physical registers directly. In this case AsmJit does only
-//! instruction encoding, verification and relocation.
+//! is in how the code is generated. The first concept, also referred as a low
+//! level concept, is called `Assembler` and it's the same as writing RAW
+//! assembly by inserting instructions that use physical registers directly. In
+//! this case AsmJit does only instruction encoding, verification and final code
+//! relocation.
 //!
-//! The second concept, also referred as the high level concept, is called
-//! 'Compiler'. Compiler lets you use virtually unlimited number of registers
-//! (called variables) significantly simplifying the code generation process.
-//! Compiler allocates these virtual registers to physical registers after the
-//! code generation is done. This requires some extra effort - Compiler has to
-//! generate information for each node (instruction, function declaration,
-//! function call) in the code, perform a variable liveness analysis and
-//! translate the code having variables into code having only registers.
+//! The second concept, also referred as a high level concept, is called
+//! `Compiler`. Compiler lets you use virtually unlimited number of registers
+//! (it calls them variables), which significantly simplifies the code generation
+//! process. Compiler allocates these virtual registers to physical registers
+//! after the code generation is done. This requires some extra effort - Compiler
+//! has to generate information for each node (instruction, function declaration,
+//! function call, etc...) in the code, perform a variable liveness analysis and
+//! translate the code using variables to a code that uses only physical registers.
 //!
-//! In addition, Compiler understands functions and function calling conventions.
+//! In addition, Compiler understands functions and their calling conventions.
 //! It has been designed in a way that the code generated is always a function
-//! having prototype like in a programming language. By having a function
-//! prototype the Compiler is able to insert prolog and epilog to a function
-//! being generated and it is able to call a function inside a generated one.
+//! having a prototype like a real programming language. By having a function
+//! prototype the Compiler is able to insert prolog and epilog sequence to the
+//! function being generated and it's able to also generate a necessary code
+//! to call other function from your own code.
 //!
-//! There is no conclusion on which concept is better. Assembler brings full
-//! control on how the code is generated, while Compiler makes the generation
-//! more portable.
+//! There is no conclusion on which concept is better. `Assembler` brings full
+//! control and the best performance, while `Compiler` makes the code-generation
+//! more fun and more portable.
 //!
-//! @section AsmJit_Main_CodeGeneration Code Generation
+//! \section AsmJit_Main_Sections Documentation Sections
 //!
-//! - \ref asmjit_base_general "Assembler core" - Operands, intrinsics and low-level assembler.
-//! - \ref asmjit_compiler "Compiler" - High level code generation.
-//! - \ref asmjit_cpuinfo "Cpu Information" - Get information about host processor.
-//! - \ref asmjit_logging "Logging" - Logging and error handling.
-//! - \ref AsmJit_MemoryManagement "Memory Management" - Virtual memory management.
+//! AsmJit documentation is structured into the following sections:
+//! - \ref asmjit_base "Base" - Base API (architecture independent).
+//! - \ref asmjit_x86 "X86/X64" - X86/X64 API.
 //!
-//! @section AsmJit_Main_HomePage AsmJit Homepage
+//! \section AsmJit_Main_HomePage AsmJit Homepage
 //!
 //! - https://github.com/kobalicek/asmjit
 
@@ -70,89 +70,116 @@
 // [asmjit_base]
 // ============================================================================
 
-//! \defgroup asmjit_base AsmJit
+//! \defgroup asmjit_base AsmJit Base API (architecture independent)
 //!
-//! \brief AsmJit.
-
-// ============================================================================
-// [asmjit_base_general]
-// ============================================================================
-
-//! \defgroup asmjit_base_general AsmJit General API
-//! \ingroup asmjit_base
+//! \brief Base API.
 //!
-//! \brief AsmJit general API.
+//! Base API contains all classes that are platform and architecture independent.
 //!
-//! Contains all `asmjit` classes and helper functions that are architecture
-//! independent or abstract. Abstract classes are implemented by the backend,
-//! for example `Assembler` is implemented by `X86Assembler`.
+//! Code-Generation and Operands
+//! ----------------------------
+//! 
+//! List of the most useful code-generation and operand classes:
+//! - \ref asmjit::Assembler - Low-level code-generation.
+//! - \ref asmjit::CodeGen - Astract code-generation that serializes to `Assembler`:
+//!   - \ref asmjit::Compiler - High-level code-generation.
+//! - \ref asmjit::Runtime - Describes where the code is stored and how it's executed:
+//!   - \ref asmjit::HostRuntime - Runtime that runs on the host machine:
+//!     - \ref asmjit::JitRuntime - Runtime designed for JIT code generation and execution.
+//!     - \ref asmjit::StaticRuntime - Runtime for code that starts at a specific address.
+//! - \ref asmjit::Stream - Stream is a list of \ref HLNode objects stored as a double
+//!   linked list:
+//!   - \ref asmjit::HLNode - Base node interface:
+//!     - \ref asmjit::HLInst - Instruction node.
+//!     - \ref asmjit::HLData - Data node.
+//!     - \ref asmjit::HLAlign - Align directive node.
+//!     - \ref asmjit::HLLabel - Label node.
+//!     - \ref asmjit::HLComment - Comment node.
+//!     - \ref asmjit::HLSentinel - Sentinel node.
+//!     - \ref asmjit::HLHint - Instruction node.
+//!     - \ref asmjit::HLFunc - Function declaration node.
+//!     - \ref asmjit::HLRet - Function return node.
+//!     - \ref asmjit::HLCall - Function call node.
+//!     - \ref asmjit::HLCallArg - Function call argument node.
+//! - \ref asmjit::Operand - base class for all operands:
+//!   - \ref asmjit::Reg - Register operand (`Assembler` only).
+//!   - \ref asmjit::Var - Variable operand (`Compiler` only).
+//!   - \ref asmjit::Mem - Memory operand.
+//!   - \ref asmjit::Imm - Immediate operand.
+//!   - \ref asmjit::Label - Label operand.
 //!
-//! - See `Assembler` for low level code generation documentation.
-//! - See `Compiler` for high level code generation documentation.
-//! - See `Operand` for operand's overview.
+//! The following snippet shows how to setup a basic JIT code generation:
+//!
+//! ~~~
+//! using namespace asmjit;
+//!
+//! int main(int argc, char* argv[]) {
+//!   // JIT runtime is designed for JIT code generation and execution.
+//!   JitRuntime runtime;
+//!
+//!   // Assembler instance requires to know the runtime to function.
+//!   X86Assembler a(&runtime);
+//!
+//!   // Compiler (if you indend to use it) requires an assembler instance.
+//!   X86Compiler c(&a);
+//!
+//!   return 0;
+//! }
+//! ~~~
 //!
 //! Logging and Error Handling
 //! --------------------------
 //!
-//! AsmJit contains robust interface that can be used to log the generated code
-//! and to handle possible errors. Base logging interface is defined in `Logger`
-//! class that is abstract and can be overridden. AsmJit contains two loggers
-//! that can be used out of the box - `FileLogger` that logs into a pure C
-//! `FILE*` stream and `StringLogger` that just concatenates all log messages
-//! by using a `StringBuilder` class.
+//! AsmJit contains a robust interface that can be used to log the generated code
+//! and to handle possible errors. Base logging interface is provided by \ref
+//! Logger, which is abstract and can be used as a base for your own logger.
+//! AsmJit also implements some trivial logging concepts out of the box to
+//! simplify the development. \ref FileLogger logs into a C `FILE*` stream and
+//! \ref StringLogger concatenates all log messages into a single string.
 //!
-//! The following snippet shows how to setup a logger that logs to `stderr`:
+//! The following snippet shows how to setup a basic logger and error handler:
 //!
 //! ~~~
-//! // `FileLogger` instance.
-//! FileLogger logger(stderr);
+//! using namespace asmjit;
 //!
-//! // `Compiler` or any other `CodeGen` interface.
-//! host::Compiler c;
+//! struct MyErrorHandler : public ErrorHandler {
+//!   virtual bool handleError(Error code, const char* message, void* origin) {
+//!     printf("Error 0x%0.8X: %s\n", code, message);
 //!
-//! // use `setLogger` to replace the `CodeGen` logger.
-//! c.setLogger(&logger);
+//!     // True  - error handled and code generation can continue.
+//!     // False - error not handled, code generation should stop.
+//!     return false;
+//!   }
+//! }
+//!
+//! int main(int argc, char* argv[]) {
+//!   JitRuntime runtime;
+//!   FileLogger logger(stderr);
+//!   MyErrorHandler eh;
+//!
+//!   X86Assembler a(&runtime);
+//!   a.setLogger(&logger);
+//!   a.setErrorHandler(&eh);
+//!
+//!   ...
+//!
+//!   return 0;
+//! }
 //! ~~~
 //!
-//! \sa \ref Logger, \ref FileLogger, \ref StringLogger.
-
-// ============================================================================
-// [asmjit_base_compiler]
-// ============================================================================
-
-//! \defgroup asmjit_base_compiler AsmJit Compiler
-//! \ingroup asmjit_base
+//! AsmJit also contains an \ref ErrorHandler, which is an abstract class that
+//! can be used to implement your own error handling. It can be associated with
+//! \ref Assembler and used to report all errors. It's a very convenient way to
+//! be aware of any error that happens during the code generation without making
+//! the error handling complicated.
 //!
-//! \brief AsmJit code-tree used by Compiler.
-//!
-//! AsmJit intermediate code-tree is a double-linked list that is made of nodes
-//! that represent assembler instructions, directives, labels and high-level
-//! constructs compiler is using to represent functions and function calls. The
-//! node list can only be used together with \ref Compiler.
-//!
-//! TODO
-
-// ============================================================================
-// [asmjit_base_util]
-// ============================================================================
-
-//! \defgroup asmjit_base_util AsmJit Utilities
-//! \ingroup asmjit_base
-//!
-//! \brief AsmJit utility classes.
-//!
-//! AsmJit contains numerous utility classes that are needed by the library
-//! itself. The most useful ones have been made public and are now exported.
-//!
-//! POD Containers
-//! --------------
-//!
-//! POD containers are used by AsmJit to manage its own data structures. The
-//! following classes can be used by AsmJit consumers:
-//!
-//!   - \ref PodVector - Simple growing array-like container for POD data.
-//!   - \ref StringBuilder - Simple string builder that can append string
-//!     and integers.
+//! List of the most useful logging and error handling classes:
+//! - \ref asmjit::Logger - abstract logging interface:
+//!   - \ref asmjit::FileLogger - A logger that logs to `FILE*`.
+//!   - \ref asmjit::StringLogger - A logger that concatenates to a single string.
+//! - \ref asmjit::ErrorHandler - Easy way to handle \ref Assembler and \ref
+//!   Compiler
+//!   errors.
 //!
 //! Zone Memory Allocator
 //! ---------------------
@@ -163,51 +190,60 @@
 //! is to increment a pointer and return its previous address. See \ref Zone
 //! for more details.
 //!
-//! CPU Ticks
-//! ---------
+//! The whole AsmJit library is based on zone memory allocation for performance
+//! reasons. It has many other benefits, but the performance was the main one
+//! when designing the library.
 //!
-//! CPU Ticks is a simple helper that can be used to do basic benchmarks. See
-//! \ref CpuTicks class for more details.
+//! POD Containers
+//! --------------
 //!
-//! Integer Utilities
+//! POD containers are used by AsmJit to manage its own data structures. The
+//! following classes can be used by AsmJit consumers:
+//!
+//!   - \ref asmjit::BitArray - A fixed bit-array that is used internally.
+//!   - \ref asmjit::PodVector<T> - A simple array-like container for storing
+//!     POD data.
+//!   - \ref asmjit::PodList<T> - A single linked list.
+//!   - \ref asmjit::StringBuilder - A string builder that can append strings
+//!     and integers.
+//!
+//! Utility Functions
 //! -----------------
 //!
-//! Integer utilities are all implemented by a static class \ref IntUtil.
-//! There are utilities for bit manipulation and bit counting, utilities to get
-//! an integer minimum / maximum and various other helpers required to perform
-//! alignment checks and binary casting from float to integer and vica versa.
+//! Utility functions are implementated static class \ref Utils. There are
+//! utilities for bit manipulation and bit counting, utilities to get an
+//! integer minimum / maximum and various other helpers required to perform
+//! alignment checks and binary casting from float to integer and vice versa.
 //!
-//! Vector Utilities
-//! ----------------
+//! String utilities are also implemented by a static class \ref Utils. They
+//! are mostly used by AsmJit internals and not really important to end users.
+//!
+//! SIMD Utilities
+//! --------------
 //!
 //! SIMD code generation often requires to embed constants after each function
-//! or a block of functions generated. AsmJit contains classes `Vec64`,
-//! `Vec128` and `Vec256` that can be used to prepare data useful when
-//! generating SIMD code.
+//! or at the end of the whole code block. AsmJit contains `Vec64`, `Vec128`
+//! and `Vec256` classes that can be used to prepare data useful when generating
+//! SIMD code.
 //!
-//! X86/X64 code generator contains member functions `dmm`, `dxmm` and `dymm`
+//! X86/X64 code generators contain member functions `dmm`, `dxmm`, and `dymm`,
 //! which can be used to embed 64-bit, 128-bit and 256-bit data structures into
-//! machine code (both assembler and compiler are supported).
-//!
-//! \note Compiler contains a constant pool, which should be used instead of
-//! embedding constants manually after the function body.
+//! the machine code.
 
 // ============================================================================
 // [asmjit_x86]
 // ============================================================================
 
-//! \defgroup asmjit_x86 X86/X64
+//! \defgroup asmjit_x86 AsmJit X86/X64 API
 //!
-//! \brief X86/X64 module
-
-// ============================================================================
-// [asmjit_x86_general]
-// ============================================================================
-
-//! \defgroup asmjit_x86_general X86/X64 General API
-//! \ingroup asmjit_x86
+//! \brief X86/X64 API
 //!
-//! \brief X86/X64 general API.
+//! X86/X64 Code Generation
+//! -----------------------
+//!
+//! X86/X64 code generation is realized throught:
+//! - \ref X86Assembler - low-level code generation.
+//! - \ref X86Compiler - high-level code generation.
 //!
 //! X86/X64 Registers
 //! -----------------
@@ -216,16 +252,17 @@
 //! be used directly (like `eax`, `mm`, `xmm`, ...) or created through
 //! these functions:
 //!
-//! - `asmjit::gpb_lo()` - Get Gpb-lo register.
-//! - `asmjit::gpb_hi()` - Get Gpb-hi register.
-//! - `asmjit::gpw()` - Get Gpw register.
-//! - `asmjit::gpd()` - Get Gpd register.
-//! - `asmjit::gpq()` - Get Gpq Gp register.
-//! - `asmjit::gpz()` - Get Gpd/Gpq register.
-//! - `asmjit::fp()`  - Get Fp register.
-//! - `asmjit::mm()`  - Get Mm register.
-//! - `asmjit::xmm()` - Get Xmm register.
-//! - `asmjit::ymm()` - Get Ymm register.
+//! - `asmjit::x86::gpb_lo()` - Get an 8-bit Gpb low register.
+//! - `asmjit::x86::gpb_hi()` - Get an 8-hi Gpb hugh register.
+//! - `asmjit::x86::gpw()` - Get a 16-bit Gpw register.
+//! - `asmjit::x86::gpd()` - Get a 32-bit Gpd register.
+//! - `asmjit::x86::gpq()` - Get a 64-bit Gpq Gp register.
+//! - `asmjit::x86::gpz()` - Get a 32-bit or 64-bit Gpd/Gpq register.
+//! - `asmjit::x86::fp()`  - Get a 80-bit Fp register.
+//! - `asmjit::x86::mm()`  - Get a 64-bit Mm register.
+//! - `asmjit::x86::xmm()` - Get a 128-bit Xmm register.
+//! - `asmjit::x86::ymm()` - Get a 256-bit Ymm register.
+//! - `asmjit::x86::amm()` - Get a 512-bit Zmm register.
 //!
 //! X86/X64 Addressing
 //! ------------------
@@ -235,32 +272,33 @@
 //! `BaseMem` class. These functions are used to make operands that represents
 //! memory addresses:
 //!
-//! - `asmjit::ptr()`       - Address size not specified.
-//! - `asmjit::byte_ptr()`  - 1 byte.
-//! - `asmjit::word_ptr()`  - 2 bytes (Gpw size).
-//! - `asmjit::dword_ptr()` - 4 bytes (Gpd size).
-//! - `asmjit::qword_ptr()` - 8 bytes (Gpq/Mm size).
-//! - `asmjit::tword_ptr()` - 10 bytes (FPU).
-//! - `asmjit::oword_ptr()` - 16 bytes (Xmm size).
-//! - `asmjit::yword_ptr()` - 32 bytes (Ymm size).
-//! - `asmjit::zword_ptr()` - 64 bytes (Zmm size).
+//! - `asmjit::x86::ptr()`       - Address size not specified.
+//! - `asmjit::x86::byte_ptr()`  - 1 byte.
+//! - `asmjit::x86::word_ptr()`  - 2 bytes (Gpw size).
+//! - `asmjit::x86::dword_ptr()` - 4 bytes (Gpd size).
+//! - `asmjit::x86::qword_ptr()` - 8 bytes (Gpq/Mm size).
+//! - `asmjit::x86::tword_ptr()` - 10 bytes (FPU size).
+//! - `asmjit::x86::oword_ptr()` - 16 bytes (Xmm size).
+//! - `asmjit::x86::yword_ptr()` - 32 bytes (Ymm size).
+//! - `asmjit::x86::zword_ptr()` - 64 bytes (Zmm size).
 //!
-//! Most useful function to make pointer should be `asmjit::ptr()`. It creates
-//! pointer to the target with unspecified size. Unspecified size works in all
-//! intrinsics where are used registers (this means that size is specified by
-//! register operand or by instruction itself). For example `asmjit::ptr()`
-//! can't be used with `Assembler::inc()` instruction. In this case size must
-//! be specified and it's also reason to make difference between pointer sizes.
+//! Most useful function to make pointer should be `asmjit::x86::ptr()`. It
+//! creates a pointer to the target with an unspecified size. Unspecified size
+//! works in all intrinsics where are used registers (this means that size is
+//! specified by register operand or by instruction itself). For example
+//! `asmjit::x86::ptr()` can't be used with `Assembler::inc()` instruction. In
+//! this case the size must be specified and it's also reason to differentiate
+//! between pointer sizes.
 //!
-//! Supported are simple address forms `[base + displacement]` and complex
-//! address forms `[base + index * scale + displacement]`.
+//! X86 and X86 support simple address forms like `[base + displacement]` and
+//! also complex address forms like `[base + index * scale + displacement]`.
 //!
 //! X86/X64 Immediates
 //! ------------------
 //!
 //! Immediate values are constants thats passed directly after instruction
-//! opcode. To create such value use `imm()` or `imm_u()` methods to create
-//! signed or unsigned immediate value.
+//! opcode. To create such value use `asmjit::imm()` or `asmjit::imm_u()`
+//! methods to create a signed or unsigned immediate value.
 //!
 //! X86/X64 CPU Information
 //! -----------------------
@@ -290,7 +328,7 @@
 //! use certain CPU features. For example there used to be a SSE/SSE2 detection
 //! in the past and today there is often AVX/AVX2 detection.
 //!
-//! The example below shows how to detect SSE2:
+//! The example below shows how to detect SSE4.1:
 //!
 //! ~~~
 //! using namespace asmjit;
@@ -298,11 +336,11 @@
 //! // Get `X86CpuInfo` global instance.
 //! const X86CpuInfo* cpuInfo = X86CpuInfo::getHost();
 //!
-//! if (cpuInfo->hasFeature(kX86CpuFeatureSSE2)) {
-//!   // Processor has SSE2.
+//! if (cpuInfo->hasFeature(kX86CpuFeatureSSE4_1)) {
+//!   // Processor has SSE4.1.
 //! }
-//! else if (cpuInfo->hasFeature(kX86CpuFeatureMMX)) {
-//!   // Processor doesn't have SSE2, but has MMX.
+//! else if (cpuInfo->hasFeature(kX86CpuFeatureSSE2)) {
+//!   // Processor doesn't have SSE4.1, but has SSE2.
 //! }
 //! else {
 //!   // Processor is archaic; it's a wonder AsmJit works here!
@@ -314,55 +352,20 @@
 //! ~~~
 //! using namespace asmjit;
 //!
-//! // Call cpuid, first two arguments are passed in Eax/Ecx.
+//! // Call CPUID, first two arguments are passed in EAX/ECX.
 //! X86CpuId out;
 //! X86CpuUtil::callCpuId(0, 0, &out);
 //!
-//! // If Eax argument is 0, Ebx, Ecx and Edx registers are filled with a cpu vendor.
+//! // If EAX argument is 0, EBX, ECX and EDX registers are filled with a CPU vendor.
 //! char cpuVendor[13];
 //! ::memcpy(cpuVendor, &out.ebx, 4);
 //! ::memcpy(cpuVendor + 4, &out.edx, 4);
 //! ::memcpy(cpuVendor + 8, &out.ecx, 4);
 //! vendor[12] = '\0';
 //!
-//! // Print a CPU vendor retrieved from CPUID.
-//! ::printf("%s", cpuVendor);
+//! // Print the CPU vendor retrieved from CPUID.
+//! ::printf("CPU Vendor: %s\n", cpuVendor);
 //! ~~~
-
-// ============================================================================
-// [asmjit_x86_compiler]
-// ============================================================================
-
-//! \defgroup asmjit_x86_compiler X86/X64 Code-Tree
-//! \ingroup asmjit_x86
-//!
-//! \brief X86/X64 code-tree and helpers.
-
-// ============================================================================
-// [asmjit_x86_inst]
-// ============================================================================
-
-//! \defgroup asmjit_x86_inst X86/X64 Instructions
-//! \ingroup asmjit_x86
-//!
-//! \brief X86/X64 low-level instruction definitions.
-
-// ============================================================================
-// [asmjit_x86_util]
-// ============================================================================
-
-//! \defgroup asmjit_x86_util X86/X64 Utilities
-//! \ingroup asmjit_x86
-//!
-//! \brief X86/X64 utility classes.
-
-// ============================================================================
-// [asmjit_contrib]
-// ============================================================================
-
-//! \defgroup asmjit_contrib Contributions
-//!
-//! \brief Contributions.
 
 // [Dependencies - Base]
 #include "./base.h"

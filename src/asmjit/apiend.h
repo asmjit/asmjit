@@ -8,7 +8,7 @@
 #if defined(ASMJIT_API_SCOPE)
 # undef ASMJIT_API_SCOPE
 #else
-# error "AsmJit - Api-Scope not active, forgot to include apibegin.h?"
+# error "[asmjit] Api-Scope not active, forgot to include apibegin.h?"
 #endif // ASMJIT_API_SCOPE
 
 // ============================================================================

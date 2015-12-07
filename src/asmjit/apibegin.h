@@ -13,14 +13,14 @@
 #if !defined(ASMJIT_API_SCOPE)
 # define ASMJIT_API_SCOPE
 #else
-# error "AsmJit - Api-Scope is already active, previous scope not closed by apiend.h?"
+# error "[asmjit] Api-Scope is already active, previous scope not closed by apiend.h?"
 #endif // ASMJIT_API_SCOPE
 
 // ============================================================================
 // [Override]
 // ============================================================================
 
-#if !defined(ASMJIT_CC_HAS_OVERRIDE) && !defined(override)
+#if !ASMJIT_CC_HAS_OVERRIDE && !defined(override)
 # define override
 # define ASMJIT_UNDEF_OVERRIDE
 #endif // !ASMJIT_CC_HAS_OVERRIDE && !override
@@ -29,7 +29,7 @@
 // [NoExcept]
 // ============================================================================
 
-#if !defined(ASMJIT_CC_HAS_NOEXCEPT) && !defined(noexcept)
+#if !ASMJIT_CC_HAS_NOEXCEPT && !defined(noexcept)
 # define noexcept ASMJIT_NOEXCEPT
 # define ASMJIT_UNDEF_NOEXCEPT
 #endif // !ASMJIT_CC_HAS_NOEXCEPT && !noexcept

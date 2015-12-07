@@ -6,6 +6,8 @@
 
 // [Dependencies - AsmJit]
 #include "../asmjit/asmjit.h"
+#include "../asmjit/base/compilercontext_p.h"
+#include "../asmjit/x86/x86compilercontext_p.h"
 
 // ============================================================================
 // [DumpCpu]
@@ -38,7 +40,7 @@ static void dumpCpu(void) {
   // [X86]
   // --------------------------------------------------------------------------
 
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
   const asmjit::X86CpuInfo* x86Cpu = static_cast<const asmjit::X86CpuInfo*>(cpu);
 
   static const DumpCpuFeature x86FeaturesList[] = {
@@ -50,12 +52,12 @@ static void dumpCpu(void) {
     { asmjit::kX86CpuFeatureCMPXCHG8B     , "CMPXCHG8B"             },
     { asmjit::kX86CpuFeatureCMPXCHG16B    , "CMPXCHG16B"            },
     { asmjit::kX86CpuFeatureCLFLUSH       , "CLFLUSH"               },
-    { asmjit::kX86CpuFeatureCLFLUSHOpt    , "CLFLUSH (Opt)"         },
+    { asmjit::kX86CpuFeatureCLFLUSH_OPT   , "CLFLUSH (Opt)"         },
     { asmjit::kX86CpuFeaturePREFETCH      , "PREFETCH"              },
     { asmjit::kX86CpuFeaturePREFETCHWT1   , "PREFETCHWT1"           },
     { asmjit::kX86CpuFeatureLahfSahf      , "LAHF/SAHF"             },
     { asmjit::kX86CpuFeatureFXSR          , "FXSR"                  },
-    { asmjit::kX86CpuFeatureFXSROpt       , "FXSR (Opt)"            },
+    { asmjit::kX86CpuFeatureFXSR_OPT      , "FXSR (Opt)"            },
     { asmjit::kX86CpuFeatureMMX           , "MMX"                   },
     { asmjit::kX86CpuFeatureMMX2          , "MMX2"                  },
     { asmjit::kX86CpuFeature3DNOW         , "3DNOW"                 },
@@ -77,8 +79,8 @@ static void dumpCpu(void) {
     { asmjit::kX86CpuFeatureRDRAND        , "RDRAND"                },
     { asmjit::kX86CpuFeatureRDSEED        , "RDSEED"                },
     { asmjit::kX86CpuFeatureSHA           , "SHA"                   },
-    { asmjit::kX86CpuFeatureXSave         , "XSAVE"                 },
-    { asmjit::kX86CpuFeatureXSaveOS       , "XSAVE (OS)"            },
+    { asmjit::kX86CpuFeatureXSAVE         , "XSAVE"                 },
+    { asmjit::kX86CpuFeatureXSAVE_OS      , "XSAVE (OS)"            },
     { asmjit::kX86CpuFeatureAVX           , "AVX"                   },
     { asmjit::kX86CpuFeatureAVX2          , "AVX2"                  },
     { asmjit::kX86CpuFeatureF16C          , "F16C"                  },
@@ -91,8 +93,8 @@ static void dumpCpu(void) {
     { asmjit::kX86CpuFeatureRTM           , "RTM"                   },
     { asmjit::kX86CpuFeatureADX           , "ADX"                   },
     { asmjit::kX86CpuFeatureMPX           , "MPX"                   },
-    { asmjit::kX86CpuFeatureFSGSBase      , "FS/GS Base"            },
-    { asmjit::kX86CpuFeatureMOVSBSTOSBOpt , "REP MOVSB/STOSB (Opt)" },
+    { asmjit::kX86CpuFeatureFSGSBASE      , "FS/GS Base"            },
+    { asmjit::kX86CpuFeatureMOVSBSTOSB_OPT, "REP MOVSB/STOSB (Opt)" },
     { asmjit::kX86CpuFeatureAVX512F       , "AVX512F"               },
     { asmjit::kX86CpuFeatureAVX512CD      , "AVX512CD"              },
     { asmjit::kX86CpuFeatureAVX512PF      , "AVX512PF"              },
@@ -138,7 +140,6 @@ static void dumpSizeOf(void) {
   INFO("");
 
   INFO("SizeOf Base:");
-  DUMP_TYPE(asmjit::CodeGen);
   DUMP_TYPE(asmjit::ConstPool);
   DUMP_TYPE(asmjit::Runtime);
   DUMP_TYPE(asmjit::Zone);
@@ -164,23 +165,23 @@ static void dumpSizeOf(void) {
 #if !defined(ASMJIT_DISABLE_COMPILER)
   INFO("SizeOf Compiler:");
   DUMP_TYPE(asmjit::Compiler);
-  DUMP_TYPE(asmjit::Node);
-  DUMP_TYPE(asmjit::AlignNode);
-  DUMP_TYPE(asmjit::CallNode);
-  DUMP_TYPE(asmjit::CommentNode);
-  DUMP_TYPE(asmjit::EmbedNode);
-  DUMP_TYPE(asmjit::FuncNode);
-  DUMP_TYPE(asmjit::EndNode);
-  DUMP_TYPE(asmjit::InstNode);
-  DUMP_TYPE(asmjit::JumpNode);
-  DUMP_TYPE(asmjit::TargetNode);
+  DUMP_TYPE(asmjit::VarMap);
+  DUMP_TYPE(asmjit::VarAttr);
+  DUMP_TYPE(asmjit::VarData);
+  DUMP_TYPE(asmjit::VarState);
+  DUMP_TYPE(asmjit::HLNode);
+  DUMP_TYPE(asmjit::HLInst);
+  DUMP_TYPE(asmjit::HLJump);
+  DUMP_TYPE(asmjit::HLData);
+  DUMP_TYPE(asmjit::HLAlign);
+  DUMP_TYPE(asmjit::HLLabel);
+  DUMP_TYPE(asmjit::HLComment);
+  DUMP_TYPE(asmjit::HLSentinel);
+  DUMP_TYPE(asmjit::HLFunc);
+  DUMP_TYPE(asmjit::HLCall);
   DUMP_TYPE(asmjit::FuncDecl);
   DUMP_TYPE(asmjit::FuncInOut);
   DUMP_TYPE(asmjit::FuncPrototype);
-  DUMP_TYPE(asmjit::VarAttr);
-  DUMP_TYPE(asmjit::VarData);
-  DUMP_TYPE(asmjit::VarMap);
-  DUMP_TYPE(asmjit::VarState);
   INFO("");
 #endif // !ASMJIT_DISABLE_COMPILER
 
@@ -196,12 +197,12 @@ static void dumpSizeOf(void) {
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
   DUMP_TYPE(asmjit::X86Compiler);
-  DUMP_TYPE(asmjit::X86CallNode);
-  DUMP_TYPE(asmjit::X86FuncNode);
-  DUMP_TYPE(asmjit::X86FuncDecl);
   DUMP_TYPE(asmjit::X86VarMap);
   DUMP_TYPE(asmjit::X86VarInfo);
   DUMP_TYPE(asmjit::X86VarState);
+  DUMP_TYPE(asmjit::X86CallNode);
+  DUMP_TYPE(asmjit::X86FuncNode);
+  DUMP_TYPE(asmjit::X86FuncDecl);
 #endif // !ASMJIT_DISABLE_COMPILER
 
   INFO("");

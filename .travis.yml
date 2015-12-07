@@ -21,15 +21,26 @@ matrix:
       compiler: gcc
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo add-apt-repository ppa:kubuntu-ppa/backports -y; fi;
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get -qq update; fi;
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get -qq install cmake gcc-multilib g++-multilib valgrind; fi;
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+         CMAKE_PACKAGE="cmake-3.3.2-Linux-x86_64"
+      && wget https://www.cmake.org/files/v3.3/${CMAKE_PACKAGE}.tar.gz --no-check-certificate
+      && sudo apt-get -qq update
+      && sudo apt-get -qq install gcc-multilib g++-multilib valgrind
+      && tar -xzf ${CMAKE_PACKAGE}.tar.gz
+      && sudo cp -fR ${CMAKE_PACKAGE}/* /usr
+      ;
+    else
+         brew update
+      && brew unlink cmake
+      && brew install -v cmake
+      ;
+    fi
 
 before_script:
   - mkdir build
   - cd build
   - cmake --version
-  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DASMJIT_BUILD_TEST=1 -DASMJIT_BUILD_SAMPLES=1
+  - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DASMJIT_BUILD_TEST=1
   - cd ..
 
 script:

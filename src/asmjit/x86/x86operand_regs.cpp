@@ -20,9 +20,9 @@
 
 namespace asmjit {
 
-#define REG(_Type_, _Index_, _Size_) {{ \
+#define REG(_Type_, _Index_, _Size_) {{{ \
   kOperandTypeReg, _Size_, { ((_Type_) << 8) + _Index_ }, kInvalidValue, {{ kInvalidVar, 0 }} \
-}}
+}}}
 
 const X86RegData x86RegData = {
   // RIP.

@@ -379,13 +379,13 @@ namespace asmjit {
 //! functions available that return a new register operand.
 //!
 //! \sa X86Compiler.
-struct ASMJIT_VCLASS X86Assembler : public Assembler {
+struct ASMJIT_VIRTAPI X86Assembler : public Assembler {
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
   ASMJIT_API X86Assembler(Runtime* runtime, uint32_t arch
-#if defined(ASMJIT_ARCH_X86) || defined(ASMJIT_ARCH_X64)
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
     = kArchHost
 #endif // ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
   );
@@ -395,17 +395,18 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   // [Arch]
   // --------------------------------------------------------------------------
 
+  //! \internal
+  //!
+  //! Set the assembler architecture to `kArchX86` or `kArchX64`.
+  ASMJIT_API Error _setArch(uint32_t arch);
+
   //! Get count of registers of the current architecture and mode.
-  ASMJIT_INLINE const X86RegCount& getRegCount() const {
-    return _regCount;
-  }
+  ASMJIT_INLINE const X86RegCount& getRegCount() const { return _regCount; }
 
-  //! Get Gpd or Gpq register depending on the current architecture.
-  ASMJIT_INLINE X86GpReg gpz(uint32_t index) const {
-    return X86GpReg(zax, index);
-  }
+  //! Get DWORD or QWORD register depending on the current architecture.
+  ASMJIT_INLINE X86GpReg gpz(uint32_t index) const { return X86GpReg(zax, index); }
 
-  //! Create an architecture dependent intptr_t memory operand.
+  //! Create an `intptr_t` memory operand depending on the current architecture.
   ASMJIT_INLINE X86Mem intptr_ptr(const X86GpReg& base, int32_t disp = 0) const {
     return x86::ptr(base, disp, _regSize);
   }
@@ -433,8 +434,6 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, const X86GpReg& index, uint32_t shift, int32_t disp = 0) const {
     return x86::ptr_abs(pAbs, index, shift, disp, _regSize);
   }
-
-  ASMJIT_API Error setArch(uint32_t arch);
 
   // --------------------------------------------------------------------------
   // [Embed]
@@ -492,7 +491,7 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
   // [Align]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error align(uint32_t mode, uint32_t offset);
+  ASMJIT_API virtual Error align(uint32_t alignMode, uint32_t offset);
 
   // --------------------------------------------------------------------------
   // [Reloc]
@@ -559,13 +558,13 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
 #define INST_1i(_Inst_, _Code_, _Op0_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0) { return emit(_Code_, o0); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(int o0) { return emit(_Code_, asInt(o0)); } \
+  ASMJIT_INLINE Error _Inst_(int o0) { return emit(_Code_, Utils::asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(unsigned int o0) { return emit(_Code_, asInt(o0)); } \
+  ASMJIT_INLINE Error _Inst_(unsigned int o0) { return emit(_Code_, Utils::asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(int64_t o0) { return emit(_Code_, asInt(o0)); } \
+  ASMJIT_INLINE Error _Inst_(int64_t o0) { return emit(_Code_, Utils::asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(uint64_t o0) { return emit(_Code_, asInt(o0)); }
+  ASMJIT_INLINE Error _Inst_(uint64_t o0) { return emit(_Code_, Utils::asInt(o0)); }
 
 #define INST_1cc(_Inst_, _Code_, _Translate_, _Op0_) \
   ASMJIT_INLINE Error _Inst_(uint32_t cc, const _Op0_& o0) { \
@@ -617,13 +616,13 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
 #define INST_2i(_Inst_, _Code_, _Op0_, _Op1_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_, o0, o1); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1) { return emit(_Code_, o0, asInt(o1)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1) { return emit(_Code_, o0, Utils::asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1) { return emit(_Code_, o0, asInt(o1)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1) { return emit(_Code_, o0, Utils::asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1) { return emit(_Code_, o0, asInt(o1)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1) { return emit(_Code_, o0, Utils::asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1) { return emit(_Code_, o0, asInt(o1)); }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1) { return emit(_Code_, o0, Utils::asInt(o1)); }
 
 #define INST_2cc(_Inst_, _Code_, _Translate_, _Op0_, _Op1_) \
   ASMJIT_INLINE Error _Inst_(uint32_t cc, const _Op0_& o0, const _Op1_& o1) { \
@@ -667,24 +666,24 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
 #define INST_3i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { return emit(_Code_, o0, o1, asInt(o2)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) { return emit(_Code_, o0, o1, asInt(o2)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { return emit(_Code_, o0, o1, asInt(o2)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) { return emit(_Code_, o0, o1, asInt(o2)); }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); }
 
 #define INST_3ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1, int o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1, int o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1, unsigned int o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1, unsigned int o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1, int64_t o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1, int64_t o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1, uint64_t o2) { return emit(_Code_, o0, Imm(o1), asInt(o2)); }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1, uint64_t o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); }
 
 #define INST_4x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); }
@@ -692,24 +691,24 @@ struct ASMJIT_VCLASS X86Assembler : public Assembler {
 #define INST_4i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) { return emit(_Code_, o0, o1, o2, asInt(o3)); }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); }
 
 #define INST_4ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
   ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2, int o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2, int o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2, unsigned int o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2, unsigned int o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2, int64_t o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); } \
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2, int64_t o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2, uint64_t o3) { return emit(_Code_, o0, o1, Imm(o2), asInt(o3)); }
+  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2, uint64_t o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); }
 
   // --------------------------------------------------------------------------
   // [X86/X64]

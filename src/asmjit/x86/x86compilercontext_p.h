@@ -5,16 +5,16 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_X86_X86CONTEXT_P_H
-#define _ASMJIT_X86_X86CONTEXT_P_H
+#ifndef _ASMJIT_X86_X86COMPILERCONTEXT_P_H
+#define _ASMJIT_X86_X86COMPILERCONTEXT_P_H
 
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_COMPILER)
 
 // [Dependencies - AsmJit]
 #include "../base/compiler.h"
-#include "../base/context_p.h"
-#include "../base/intutil.h"
+#include "../base/compilercontext_p.h"
+#include "../base/utils.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86compiler.h"
 
@@ -23,8 +23,227 @@
 
 namespace asmjit {
 
-//! \addtogroup asmjit_x86_compiler
+//! \addtogroup asmjit_x86
 //! \{
+
+// ============================================================================
+// [asmjit::X86VarMap]
+// ============================================================================
+
+struct X86VarMap : public VarMap {
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  //! Get variable-attributes list as VarAttr data.
+  ASMJIT_INLINE VarAttr* getVaList() const {
+    return const_cast<VarAttr*>(_list);
+  }
+
+  //! Get variable-attributes list as VarAttr data (by class).
+  ASMJIT_INLINE VarAttr* getVaListByClass(uint32_t rc) const {
+    return const_cast<VarAttr*>(_list) + _start.get(rc);
+  }
+
+  //! Get position of variables (by class).
+  ASMJIT_INLINE uint32_t getVaStart(uint32_t rc) const {
+    return _start.get(rc);
+  }
+
+  //! Get count of variables (by class).
+  ASMJIT_INLINE uint32_t getVaCountByClass(uint32_t rc) const {
+    return _count.get(rc);
+  }
+
+  //! Get VarAttr at `index`.
+  ASMJIT_INLINE VarAttr* getVa(uint32_t index) const {
+    ASMJIT_ASSERT(index < _vaCount);
+    return getVaList() + index;
+  }
+
+  //! Get VarAttr of `c` class at `index`.
+  ASMJIT_INLINE VarAttr* getVaByClass(uint32_t rc, uint32_t index) const {
+    ASMJIT_ASSERT(index < _count._regs[rc]);
+    return getVaListByClass(rc) + index;
+  }
+
+  // --------------------------------------------------------------------------
+  // [Utils]
+  // --------------------------------------------------------------------------
+
+  //! Find VarAttr.
+  ASMJIT_INLINE VarAttr* findVa(VarData* vd) const {
+    VarAttr* list = getVaList();
+    uint32_t count = getVaCount();
+
+    for (uint32_t i = 0; i < count; i++)
+      if (list[i].getVd() == vd)
+        return &list[i];
+
+    return NULL;
+  }
+
+  //! Find VarAttr (by class).
+  ASMJIT_INLINE VarAttr* findVaByClass(uint32_t rc, VarData* vd) const {
+    VarAttr* list = getVaListByClass(rc);
+    uint32_t count = getVaCountByClass(rc);
+
+    for (uint32_t i = 0; i < count; i++)
+      if (list[i].getVd() == vd)
+        return &list[i];
+
+    return NULL;
+  }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  //! Special registers on input.
+  //!
+  //! Special register(s) restricted to one or more physical register. If there
+  //! is more than one special register it means that we have to duplicate the
+  //! variable content to all of them (it means that the same varible was used
+  //! by two or more operands). We forget about duplicates after the register
+  //! allocation finishes and marks all duplicates as non-assigned.
+  X86RegMask _inRegs;
+
+  //! Special registers on output.
+  //!
+  //! Special register(s) used on output. Each variable can have only one
+  //! special register on the output, 'X86VarMap' contains all registers from
+  //! all 'VarAttr's.
+  X86RegMask _outRegs;
+
+  //! Clobbered registers (by a function call).
+  X86RegMask _clobberedRegs;
+
+  //! Start indexes of variables per register class.
+  X86RegCount _start;
+  //! Count of variables per register class.
+  X86RegCount _count;
+
+  //! VarAttr list.
+  VarAttr _list[1];
+};
+
+// ============================================================================
+// [asmjit::X86StateCell]
+// ============================================================================
+
+//! X86/X64 state-cell.
+union X86StateCell {
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE uint32_t getState() const {
+    return _state;
+  }
+
+  ASMJIT_INLINE void setState(uint32_t state) {
+    _state = static_cast<uint8_t>(state);
+  }
+
+  // --------------------------------------------------------------------------
+  // [Reset]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE void reset() { _packed = 0; }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  uint8_t _packed;
+
+  struct {
+    uint8_t _state : 2;
+    uint8_t _unused : 6;
+  };
+};
+
+// ============================================================================
+// [asmjit::X86VarState]
+// ============================================================================
+
+//! X86/X64 state.
+struct X86VarState : VarState {
+  enum {
+    //! Base index of Gp registers.
+    kGpIndex = 0,
+    //! Count of Gp registers.
+    kGpCount = 16,
+
+    //! Base index of Mm registers.
+    kMmIndex = kGpIndex + kGpCount,
+    //! Count of Mm registers.
+    kMmCount = 8,
+
+    //! Base index of Xmm registers.
+    kXmmIndex = kMmIndex + kMmCount,
+    //! Count of Xmm registers.
+    kXmmCount = 16,
+
+    //! Count of all registers in `X86VarState`.
+    kAllCount = kXmmIndex + kXmmCount
+  };
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE VarData** getList() {
+    return _list;
+  }
+
+  ASMJIT_INLINE VarData** getListByClass(uint32_t rc) {
+    switch (rc) {
+      case kX86RegClassGp : return _listGp;
+      case kX86RegClassMm : return _listMm;
+      case kX86RegClassXyz: return _listXmm;
+
+      default:
+        return NULL;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // [Clear]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE void reset(size_t numCells) {
+    ::memset(this, 0, kAllCount * sizeof(VarData*) +
+                      2         * sizeof(X86RegMask) +
+                      numCells  * sizeof(X86StateCell));
+  }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  union {
+    //! List of all allocated variables in one array.
+    VarData* _list[kAllCount];
+
+    struct {
+      //! Allocated Gp registers.
+      VarData* _listGp[kGpCount];
+      //! Allocated Mm registers.
+      VarData* _listMm[kMmCount];
+      //! Allocated Xmm registers.
+      VarData* _listXmm[kXmmCount];
+    };
+  };
+
+  //! Occupied registers (mask).
+  X86RegMask _occupied;
+  //! Modified registers (mask).
+  X86RegMask _modified;
+
+  //! Variables data, the length is stored in `X86Context`.
+  X86StateCell _cells[1];
+};
 
 // ============================================================================
 // [asmjit::X86Context]
@@ -38,11 +257,13 @@ namespace asmjit {
 
 //! \internal
 //!
-//! Compiler context is used by `X86Compiler`.
+//! Compiler context, used by `X86Compiler`.
 //!
-//! Compiler context is used during compilation and normally developer doesn't
-//! need access to it. The context is user per function (it's reset after each
-//! function is generated).
+//! Compiler context takes care of generating function prolog and epilog, and
+//! also performs register allocation. It's used during the compilation phase
+//! and considered an implementation detail and asmjit consumers don't have
+//! access to it. The context is used once per function and it's reset after
+//! the function is processed.
 struct X86Context : public Context {
   ASMJIT_NO_COPY(X86Context)
 
@@ -65,28 +286,19 @@ struct X86Context : public Context {
   // [Arch]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE bool isX64() const {
-    return _zsp.getSize() == 16;
-  }
+  ASMJIT_INLINE bool isX64() const { return _zsp.getSize() == 16; }
+  ASMJIT_INLINE uint32_t getRegSize() const { return _zsp.getSize(); }
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
   //! Get compiler as `X86Compiler`.
-  ASMJIT_INLINE X86Compiler* getCompiler() const {
-    return static_cast<X86Compiler*>(_compiler);
-  }
-
+  ASMJIT_INLINE X86Compiler* getCompiler() const { return static_cast<X86Compiler*>(_compiler); }
   //! Get function as `X86FuncNode`.
-  ASMJIT_INLINE X86FuncNode* getFunc() const {
-    return reinterpret_cast<X86FuncNode*>(_func);
-  }
-
+  ASMJIT_INLINE X86FuncNode* getFunc() const { return reinterpret_cast<X86FuncNode*>(_func); }
   //! Get clobbered registers (global).
-  ASMJIT_INLINE uint32_t getClobberedRegs(uint32_t c) {
-    return _clobberedRegs.get(c);
-  }
+  ASMJIT_INLINE uint32_t getClobberedRegs(uint32_t rc) { return _clobberedRegs.get(rc); }
 
   // --------------------------------------------------------------------------
   // [Helpers]
@@ -94,7 +306,7 @@ struct X86Context : public Context {
 
   ASMJIT_INLINE X86VarMap* newVarMap(uint32_t vaCount) {
     return static_cast<X86VarMap*>(
-      _baseZone.alloc(sizeof(X86VarMap) + vaCount * sizeof(VarAttr)));
+      _zoneAllocator.alloc(sizeof(X86VarMap) + vaCount * sizeof(VarAttr)));
   }
 
   // --------------------------------------------------------------------------
@@ -121,10 +333,6 @@ struct X86Context : public Context {
 
   void _checkState();
 
-  ASMJIT_INLINE uint32_t getRegSize() const {
-    return _zsp.getSize();
-  }
-
   // --------------------------------------------------------------------------
   // [Attach / Detach]
   // --------------------------------------------------------------------------
@@ -142,12 +350,12 @@ struct X86Context : public Context {
     // Prevent Esp allocation if C==Gp.
     ASMJIT_ASSERT(C != kX86RegClassGp || regIndex != kX86RegIndexSp);
 
-    uint32_t regMask = IntUtil::mask(regIndex);
+    uint32_t regMask = Utils::mask(regIndex);
 
     vd->setState(kVarStateReg);
+    vd->setModified(modified);
     vd->setRegIndex(regIndex);
     vd->addHomeIndex(regIndex);
-    vd->setModified(modified);
 
     _x86State.getListByClass(C)[regIndex] = vd;
     _x86State._occupied.or_(C, regMask);
@@ -167,7 +375,7 @@ struct X86Context : public Context {
     ASMJIT_ASSERT(vd->getRegIndex() == regIndex);
     ASMJIT_ASSERT(vState != kVarStateReg);
 
-    uint32_t regMask = IntUtil::mask(regIndex);
+    uint32_t regMask = Utils::mask(regIndex);
 
     vd->setState(vState);
     vd->resetRegIndex();
@@ -188,13 +396,13 @@ struct X86Context : public Context {
   //!
   //! Change the register of the 'VarData' changing also the current 'X86VarState'.
   //! Rebase is nearly identical to 'Detach' and 'Attach' sequence, but doesn't
-  // change the 'VarData' modified flag.
+  //! change the `VarData`s modified flag.
   template<int C>
   ASMJIT_INLINE void rebase(VarData* vd, uint32_t newRegIndex, uint32_t oldRegIndex) {
     ASMJIT_ASSERT(vd->getClass() == C);
 
-    uint32_t newRegMask = IntUtil::mask(newRegIndex);
-    uint32_t oldRegMask = IntUtil::mask(oldRegIndex);
+    uint32_t newRegMask = Utils::mask(newRegIndex);
+    uint32_t oldRegMask = Utils::mask(oldRegIndex);
     uint32_t bothRegMask = newRegMask ^ oldRegMask;
 
     vd->setRegIndex(newRegIndex);
@@ -239,7 +447,7 @@ struct X86Context : public Context {
     ASMJIT_ASSERT(vd->getRegIndex() != kInvalidReg);
 
     uint32_t regIndex = vd->getRegIndex();
-    uint32_t regMask = IntUtil::mask(regIndex);
+    uint32_t regMask = Utils::mask(regIndex);
 
     emitSave(vd, regIndex, "Save");
 
@@ -315,7 +523,7 @@ struct X86Context : public Context {
 
     uint32_t oldRegIndex = vd->getRegIndex();
     uint32_t oldState = vd->getState();
-    uint32_t regMask = IntUtil::mask(regIndex);
+    uint32_t regMask = Utils::mask(regIndex);
 
     ASMJIT_ASSERT(_x86State.getListByClass(C)[regIndex] == NULL || regIndex == oldRegIndex);
 
@@ -328,7 +536,7 @@ struct X86Context : public Context {
       emitMove(vd, regIndex, oldRegIndex, "Alloc");
 
       _x86State.getListByClass(C)[oldRegIndex] = NULL;
-      regMask ^= IntUtil::mask(oldRegIndex);
+      regMask ^= Utils::mask(oldRegIndex);
     }
     else {
       ASMJIT_X86_CHECK_STATE
@@ -337,6 +545,7 @@ struct X86Context : public Context {
 
     vd->setState(kVarStateReg);
     vd->setRegIndex(regIndex);
+    vd->addHomeIndex(regIndex);
 
     _x86State.getListByClass(C)[regIndex] = vd;
     _x86State._occupied.xor_(C, regMask);
@@ -378,7 +587,7 @@ struct X86Context : public Context {
     ASMJIT_ASSERT(vd->getClass() == C);
 
     uint32_t regIndex = vd->getRegIndex();
-    uint32_t regMask = IntUtil::mask(regIndex);
+    uint32_t regMask = Utils::mask(regIndex);
 
     vd->setModified(true);
     _x86State._modified.or_(C, regMask);
@@ -463,7 +672,7 @@ struct X86Context : public Context {
   // [Serialize]
   // --------------------------------------------------------------------------
 
-  virtual Error serialize(Assembler* assembler, Node* start, Node* stop);
+  virtual Error serialize(Assembler* assembler, HLNode* start, HLNode* stop);
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -485,7 +694,7 @@ struct X86Context : public Context {
 
   //! Memory cell where is stored address used to restore manually
   //! aligned stack.
-  MemCell* _stackFrameCell;
+  VarCell* _stackFrameCell;
 
   //! Global allocable registers mask.
   uint32_t _gaRegs[kX86RegClassCount];
@@ -508,7 +717,7 @@ struct X86Context : public Context {
   int32_t _varActualDisp;
 
   //! Temporary string builder used for logging.
-  StringBuilderT<256> _stringBuilder;
+  StringBuilderTmp<256> _stringBuilder;
 };
 
 //! \}
@@ -520,4 +729,4 @@ struct X86Context : public Context {
 
 // [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER
-#endif // _ASMJIT_X86_X86CONTEXT_P_H
+#endif // _ASMJIT_X86_X86COMPILERCONTEXT_P_H

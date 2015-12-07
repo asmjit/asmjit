@@ -10,10 +10,9 @@
 
 // [Dependencies - AsmJit]
 #include "../base/assembler.h"
-#include "../base/compiler.h"
 #include "../base/globals.h"
-#include "../base/intutil.h"
 #include "../base/operand.h"
+#include "../base/utils.h"
 #include "../base/vectypes.h"
 
 // [Api-Begin]
@@ -28,7 +27,7 @@ namespace asmjit {
 struct X86InstInfo;
 struct X86InstExtendedInfo;
 
-//! \addtogroup asmjit_x86_inst
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -39,38 +38,38 @@ struct X86InstExtendedInfo;
 //! \internal
 //!
 //! X86/X64 instructions' names, accessible through `X86InstInfo`.
-ASMJIT_VAR const char _x86InstName[];
+ASMJIT_VARAPI const char _x86InstName[];
 #endif // !ASMJIT_DISABLE_NAMES
 
 //! \internal
 //!
 //! X86/X64 instructions' extended information, accessible through `X86InstInfo`.
-ASMJIT_VAR const X86InstExtendedInfo _x86InstExtendedInfo[];
+ASMJIT_VARAPI const X86InstExtendedInfo _x86InstExtendedInfo[];
 
 //! \internal
 //!
 //! X86/X64 instructions' information.
-ASMJIT_VAR const X86InstInfo _x86InstInfo[];
+ASMJIT_VARAPI const X86InstInfo _x86InstInfo[];
 
 //! \internal
 //!
 //! X86/X64 condition codes to reversed condition codes map.
-ASMJIT_VAR const uint32_t _x86ReverseCond[20];
+ASMJIT_VARAPI const uint32_t _x86ReverseCond[20];
 
 //! \internal
 //!
 //! X86/X64 condition codes to "cmovcc" group map.
-ASMJIT_VAR const uint32_t _x86CondToCmovcc[20];
+ASMJIT_VARAPI const uint32_t _x86CondToCmovcc[20];
 
 //! \internal
 //!
 //! X86/X64 condition codes to "jcc" group map.
-ASMJIT_VAR const uint32_t _x86CondToJcc[20];
+ASMJIT_VARAPI const uint32_t _x86CondToJcc[20];
 
 //! \internal
 //!
 //! X86/X64 condition codes to "setcc" group map.
-ASMJIT_VAR const uint32_t _x86CondToSetcc[20];
+ASMJIT_VARAPI const uint32_t _x86CondToSetcc[20];
 
 // ============================================================================
 // [asmjit::X86InstId]
@@ -1624,8 +1623,8 @@ ASMJIT_ENUM(X86InstFlags) {
   //! Instruction always performs memory access.
   //!
   //! This flag is always combined with `kX86InstFlagSpecial` and describes
-  //! that there is an implicit address which is accessed (usually EDI/RDI or
-  //! ESI/EDI).
+  //! that there is an implicit address which is accessed (usually EDI/RDI
+  //! and/or ESI/RSI).
   kX86InstFlagSpecialMem = 0x00000080,
 
   //! Instruction memory operand can refer to 16-bit address (used by FPU).
@@ -1667,7 +1666,7 @@ ASMJIT_ENUM(X86InstFlags) {
   //! Instruction supports zeroing of elements {k0z..k7z}.
   kX86InstFlagAvx512KZero = 0x10000000,
   //! Instruction supports broadcast {1toN}.
-  kX86InstFlagAvx512Broadcast  = 0x20000000,
+  kX86InstFlagAvx512BCast = 0x20000000,
   //! Instruction supports suppressing all exceptions {sae}.
   kX86InstFlagAvx512Sae = 0x40000000,
   //! Instruction supports static rounding control with SAE {rnd-sae},
@@ -1885,9 +1884,9 @@ ASMJIT_ENUM(X86FpSw) {
   kX86FpSw_Busy           = 0x8000
 };
 
-// ============================================================================
+//  ============================================================================
 // [asmjit::X86FpCw]
-// ============================================================================
+//  ============================================================================
 
 //! X86/X64 FPU control word.
 ASMJIT_ENUM(X86FpCw) {
@@ -1916,63 +1915,84 @@ ASMJIT_ENUM(X86FpCw) {
   kX86FpCw_IC_Affine      = 0x1000
 };
 
-// ============================================================================
+//  ============================================================================
 // [asmjit::X86Cmp]
-// ============================================================================
+//  ============================================================================
 
 //! X86/X64 Comparison predicate used by CMP[PD/PS/SD/SS] family instructions.
 ASMJIT_ENUM(X86Cmp) {
-  kX86CmpEQ        = 0x00, //!< Equal             (Quite).
-  kX86CmpLT        = 0x01, //!< Less              (Signaling).
-  kX86CmpLE        = 0x02, //!< Less/Equal        (Signaling).
-  kX86CmpUNORD     = 0x03, //!< Unordered         (Quite).
-  kX86CmpNEQ       = 0x04, //!< Not Equal         (Quite).
-  kX86CmpNLT       = 0x05, //!< Not Less          (Signaling).
-  kX86CmpNLE       = 0x06, //!< Not Less/Equal    (Signaling).
-  kX86CmpORD       = 0x07  //!< Ordered           (Quite).
+  kX86CmpEQ               = 0x00, //!< Equal             (Quite).
+  kX86CmpLT               = 0x01, //!< Less              (Signaling).
+  kX86CmpLE               = 0x02, //!< Less/Equal        (Signaling).
+  kX86CmpUNORD            = 0x03, //!< Unordered         (Quite).
+  kX86CmpNEQ              = 0x04, //!< Not Equal         (Quite).
+  kX86CmpNLT              = 0x05, //!< Not Less          (Signaling).
+  kX86CmpNLE              = 0x06, //!< Not Less/Equal    (Signaling).
+  kX86CmpORD              = 0x07  //!< Ordered           (Quite).
 };
 
-// ============================================================================
+//  ============================================================================
 // [asmjit::X86VCmp]
-// ============================================================================
+//  ============================================================================
 
 //! X86/X64 Comparison predicate used by VCMP[PD/PS/SD/SS] family instructions.
 //!
 //! The first 8 are compatible with \ref X86Cmp.
 ASMJIT_ENUM(X86VCmp) {
-  kX86VCmpEQ_OQ    = 0x00, //!< Equal             (Quite, Ordered).
-  kX86VCmpLT_OS    = 0x01, //!< Less              (Signaling, Ordered).
-  kX86VCmpLE_OS    = 0x02, //!< Less/Equal        (Signaling, Ordered).
-  kX86VCmpUNORD_Q  = 0x03, //!< Unordered         (Quite).
-  kX86VCmpNEQ_UQ   = 0x04, //!< Not Equal         (Quite, Unordered).
-  kX86VCmpNLT_US   = 0x05, //!< Not Less          (Signaling, Unordered).
-  kX86VCmpNLE_US   = 0x06, //!< Not Less/Equal    (Signaling, Unordered).
-  kX86VCmpORD_Q    = 0x07, //!< Ordered           (Quite).
+  kX86VCmpEQ_OQ           = 0x00, //!< Equal             (Quite, Ordered).
+  kX86VCmpLT_OS           = 0x01, //!< Less              (Signaling, Ordered).
+  kX86VCmpLE_OS           = 0x02, //!< Less/Equal        (Signaling, Ordered).
+  kX86VCmpUNORD_Q         = 0x03, //!< Unordered         (Quite).
+  kX86VCmpNEQ_UQ          = 0x04, //!< Not Equal         (Quite, Unordered).
+  kX86VCmpNLT_US          = 0x05, //!< Not Less          (Signaling, Unordered).
+  kX86VCmpNLE_US          = 0x06, //!< Not Less/Equal    (Signaling, Unordered).
+  kX86VCmpORD_Q           = 0x07, //!< Ordered           (Quite).
 
-  kX86VCmpEQ_UQ    = 0x08, //!< Equal             (Quite, Unordered).
-  kX86VCmpNGE_US   = 0x09, //!< Not Greater/Equal (Signaling, Unordered).
-  kX86VCmpNGT_US   = 0x0A, //!< Not Greater       (Signaling, Unordered).
-  kX86VCmpFALSE_OQ = 0x0B, //!< False             (Quite, Ordered).
-  kX86VCmpNEQ_OQ   = 0x0C, //!< Not Equal         (Quite, Ordered).
-  kX86VCmpGE_OS    = 0x0D, //!< Greater/Equal     (Signaling, Ordered).
-  kX86VCmpGT_OS    = 0x0E, //!< Greater           (Signaling, Ordered).
-  kX86VCmpTRUE_UQ  = 0x0F, //!< True              (Quite, Unordered).
-  kX86VCmpEQ_OS    = 0x10, //!< Equal             (Signaling, Ordered).
-  kX86VCmpLT_OQ    = 0x11, //!< Less              (Quite, Ordered).
-  kX86VCmpLE_OQ    = 0x12, //!< Less/Equal        (Quite, Ordered).
-  kX86VCmpUNORD_S  = 0x13, //!< Unordered         (Signaling).
-  kX86VCmpNEQ_US   = 0x14, //!< Not Equal         (Signaling, Unordered).
-  kX86VCmpNLT_UQ   = 0x15, //!< Not Less          (Quite, Unordered).
-  kX86VCmpNLE_UQ   = 0x16, //!< Not Less/Equal    (Quite, Unordered).
-  kX86VCmpORD_S    = 0x17, //!< Ordered           (Signaling).
-  kX86VCmpEQ_US    = 0x18, //!< Equal             (Signaling, Unordered).
-  kX86VCmpNGE_UQ   = 0x19, //!< Not Greater/Equal (Quite, Unordered).
-  kX86VCmpNGT_UQ   = 0x1A, //!< Not Greater       (Quite, Unordered).
-  kX86VCmpFALSE_OS = 0x1B, //!< False             (Signaling, Ordered).
-  kX86VCmpNEQ_OS   = 0x1C, //!< Not Equal         (Signaling, Ordered).
-  kX86VCmpGE_OQ    = 0x1D, //!< Greater/Equal     (Quite, Ordered).
-  kX86VCmpGT_OQ    = 0x1E, //!< Greater           (Quite, Ordered).
-  kX86VCmpTRUE_US  = 0x1F  //!< True              (Signaling, Unordered).
+  kX86VCmpEQ_UQ           = 0x08, //!< Equal             (Quite, Unordered).
+  kX86VCmpNGE_US          = 0x09, //!< Not Greater/Equal (Signaling, Unordered).
+  kX86VCmpNGT_US          = 0x0A, //!< Not Greater       (Signaling, Unordered).
+  kX86VCmpFALSE_OQ        = 0x0B, //!< False             (Quite, Ordered).
+  kX86VCmpNEQ_OQ          = 0x0C, //!< Not Equal         (Quite, Ordered).
+  kX86VCmpGE_OS           = 0x0D, //!< Greater/Equal     (Signaling, Ordered).
+  kX86VCmpGT_OS           = 0x0E, //!< Greater           (Signaling, Ordered).
+  kX86VCmpTRUE_UQ         = 0x0F, //!< True              (Quite, Unordered).
+  kX86VCmpEQ_OS           = 0x10, //!< Equal             (Signaling, Ordered).
+  kX86VCmpLT_OQ           = 0x11, //!< Less              (Quite, Ordered).
+  kX86VCmpLE_OQ           = 0x12, //!< Less/Equal        (Quite, Ordered).
+  kX86VCmpUNORD_S         = 0x13, //!< Unordered         (Signaling).
+  kX86VCmpNEQ_US          = 0x14, //!< Not Equal         (Signaling, Unordered).
+  kX86VCmpNLT_UQ          = 0x15, //!< Not Less          (Quite, Unordered).
+  kX86VCmpNLE_UQ          = 0x16, //!< Not Less/Equal    (Quite, Unordered).
+  kX86VCmpORD_S           = 0x17, //!< Ordered           (Signaling).
+  kX86VCmpEQ_US           = 0x18, //!< Equal             (Signaling, Unordered).
+  kX86VCmpNGE_UQ          = 0x19, //!< Not Greater/Equal (Quite, Unordered).
+  kX86VCmpNGT_UQ          = 0x1A, //!< Not Greater       (Quite, Unordered).
+  kX86VCmpFALSE_OS        = 0x1B, //!< False             (Signaling, Ordered).
+  kX86VCmpNEQ_OS          = 0x1C, //!< Not Equal         (Signaling, Ordered).
+  kX86VCmpGE_OQ           = 0x1D, //!< Greater/Equal     (Quite, Ordered).
+  kX86VCmpGT_OQ           = 0x1E, //!< Greater           (Quite, Ordered).
+  kX86VCmpTRUE_US         = 0x1F  //!< True              (Signaling, Unordered).
+};
+
+//  ============================================================================
+// [asmjit::X86Round]
+//  ============================================================================
+
+//! X86/X64 round encoding used by ROUND[PD/PS/SD/SS] family instructions.
+ASMJIT_ENUM(X86Round) {
+  //! Round control - round to nearest (even).
+  kX86RoundNearest        = 0x0,
+  //! Round control - round to down toward -INF (floor),
+  kX86RoundDown           = 0x1,
+  //! Round control - round to up toward +INF (ceil).
+  kX86RoundUp             = 0x2,
+  //! Round control - round toward zero (truncate).
+  kX86RoundTrunc          = 0x3,
+  //! Rounding select - if set it will use the the current rounding mode
+  //! according to MXCS and  ignore the round control (RC) bits.
+  kX86RoundCurrent        = 0x4,
+  //! Precision mask - if set it avoids an inexact exception.
+  kX86RoundInexact        = 0x8
 };
 
 // ============================================================================
@@ -2327,8 +2347,7 @@ struct X86Util {
   //! `kInstIdNone` (zero) is returned.
   //!
   //! The given `name` doesn't have to be null-terminated if `len` is provided.
-  ASMJIT_API static uint32_t getInstIdByName(
-    const char* name, size_t len = kInvalidIndex);
+  ASMJIT_API static uint32_t getInstIdByName(const char* name, size_t len = kInvalidIndex);
 #endif // !ASMJIT_DISABLE_NAMES
 
   // --------------------------------------------------------------------------
@@ -2369,35 +2388,39 @@ struct X86Util {
   }
 
   // --------------------------------------------------------------------------
-  // [MmShuffle]
+  // [Shuffle (SIMD)]
   // --------------------------------------------------------------------------
 
   //! Pack a shuffle constant to be used with multimedia instrutions (2 values).
   //!
-  //! \param x First component position, number at interval [0, 1] inclusive.
-  //! \param y Second component position, number at interval [0, 1] inclusive.
+  //! \param a Position of the first component [0, 1], inclusive.
+  //! \param b Position of the second component [0, 1], inclusive.
   //!
-  //! Shuffle constants can be used to make immediate value for these intrinsics:
+  //! Shuffle constants can be used to encode an immediate for these instructions:
   //! - `X86Assembler::shufpd()` and `X86Compiler::shufpd()`
-  static ASMJIT_INLINE int mmShuffle(uint32_t x, uint32_t y) {
-    return static_cast<int>((x << 1) | y);
+  static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b) {
+    uint32_t result = (a << 1) | b;
+    ASMJIT_ASSERT(result <= 0xFF);
+    return static_cast<int>(result);
   }
 
   //! Pack a shuffle constant to be used with multimedia instrutions (4 values).
   //!
-  //! \param z First component position, number at interval [0, 3] inclusive.
-  //! \param x Second component position, number at interval [0, 3] inclusive.
-  //! \param y Third component position, number at interval [0, 3] inclusive.
-  //! \param w Fourth component position, number at interval [0, 3] inclusive.
+  //! \param a Position of the first component [0, 3], inclusive.
+  //! \param b Position of the second component [0, 3], inclusive.
+  //! \param c Position of the third component [0, 3], inclusive.
+  //! \param d Position of the fourth component [0, 3], inclusive.
   //!
-  //! Shuffle constants can be used to make immediate value for these intrinsics:
-  //! - `X86Assembler::pshufw()`  and `X86Compiler::pshufw()`
-  //! - `X86Assembler::pshufd()`  and `X86Compiler::pshufd()`
-  //! - `X86Assembler::pshufhw()` and `X86Compiler::pshufhw()`
-  //! - `X86Assembler::pshuflw()` and `X86Compiler::pshuflw()`
-  //! - `X86Assembler::shufps()`  and `X86Compiler::shufps()`
-  static ASMJIT_INLINE int mmShuffle(uint32_t z, uint32_t y, uint32_t x, uint32_t w) {
-    return static_cast<int>((z << 6) | (y << 4) | (x << 2) | w);
+  //! Shuffle constants can be used to encode an immediate for these instructions:
+  //! - `X86Assembler::pshufw()`  and `X86Compiler::pshufw()`.
+  //! - `X86Assembler::pshufd()`  and `X86Compiler::pshufd()`.
+  //! - `X86Assembler::pshufhw()` and `X86Compiler::pshufhw()`.
+  //! - `X86Assembler::pshuflw()` and `X86Compiler::pshuflw()`.
+  //! - `X86Assembler::shufps()`  and `X86Compiler::shufps()`.
+  static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
+    uint32_t result = (a << 6) | (b << 4) | (c << 2) | d;
+    ASMJIT_ASSERT(result <= 0xFF);
+    return static_cast<int>(result);
   }
 };
 

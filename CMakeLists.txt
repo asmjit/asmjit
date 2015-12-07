@@ -1,264 +1,202 @@
-# =============================================================================
-# [AsmJit - CMakeLists.txt]
-# =============================================================================
-
-CMake_Minimum_Required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 
 # =============================================================================
 # [AsmJit - Configuration]
 # =============================================================================
 
-# Whether not to build anything (default FALSE).
-# Set(ASMJIT_EMBED FALSE)
+# Embedding mode, asmjit will not create any targets (default FALSE).
+# set(ASMJIT_EMBED FALSE)
 
-# Whether to build static library (default FALSE).
-# Set(ASMJIT_STATIC FALSE)
+# Whether to build a static library (default FALSE).
+# set(ASMJIT_STATIC FALSE)
 
-# Whether to build tests (default FALSE).
-# Set(ASMJIT_BUILD_TEST FALSE)
-
-# Whether to build samples (default FALSE).
-# Set(ASMJIT_BUILD_SAMPLES FALSE)
+# Whether to build tests and samples (default FALSE).
+# set(ASMJIT_BUILD_TEST FALSE)
 
 # =============================================================================
-# [AsmJit - Build]
+# [AsmJit - Build / Embed]
 # =============================================================================
 
-If(ASMJIT_EMBED)
-  Set(ASMJIT_STATIC TRUE)
-EndIf()
+# Do not create a project if this CMakeLists.txt is included from another
+# project. This makes it easy to embed or create a static library.
+if(NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" MATCHES "^asmjit$")
+  project(asmjit C CXX)
+  set(ASMJIT_SIGNATURE "Standalone")
+else()
+  set(ASMJIT_SIGNATURE "Included")
+endif()
 
-If(NOT CMAKE_PROJECT_NAME OR CMAKE_PROJECT_NAME MATCHES "^asmjit$")
-  Project(asmjit C CXX)
-  Set(ASMJIT_PROJECT_STR "Project")
-Else()
-  # Do not create a project if this CMakeLists.txt is included by a different
-  # project. This allows easy static library build including debugger support.
-  Set(ASMJIT_PROJECT_STR "Include")
-EndIf()
+if(ASMJIT_EMBED)
+  set(ASMJIT_SIGNATURE "${ASMJIT_SIGNATURE} | Mode=Embed")
+  set(ASMJIT_STATIC TRUE) # Implies ASMJIT_STATIC.
+elseif(ASMJIT_STATIC)
+  set(ASMJIT_SIGNATURE "${ASMJIT_SIGNATURE} | Mode=Static")
+else()
+  set(ASMJIT_SIGNATURE "${ASMJIT_SIGNATURE} | Mode=Shared")
+endif()
 
-If(ASMJIT_STATIC)
-  Set(ASMJIT_PROJECT_STR "${ASMJIT_PROJECT_STR}|Static")
-Else()
-  Set(ASMJIT_PROJECT_STR "${ASMJIT_PROJECT_STR}|Shared")
-EndIf()
+if(ASMJIT_BUILD_TEST)
+  set(ASMJIT_SIGNATURE "${ASMJIT_SIGNATURE} | Test=On")
+else()
+  set(ASMJIT_SIGNATURE "${ASMJIT_SIGNATURE} | Test=Off")
+endif()
 
-Message("")
-Message("== ====================================================")
-Message("== [AsmJit ${ASMJIT_PROJECT_STR}]")
-Message("== ====================================================")
-Message("")
+if(NOT ASMJIT_DIR)
+  set(ASMJIT_DIR ${CMAKE_CURRENT_LIST_DIR})
+endif()
 
-# =============================================================================
-# [AsmJit - Directories]
-# =============================================================================
-
-If(NOT ASMJIT_DIR)
-  Set(ASMJIT_DIR ${CMAKE_CURRENT_LIST_DIR})
-  Message("-- Initializing ASMJIT_DIR=${ASMJIT_DIR}")
-Else()
-  Message("-- Using Custom ASMJIT_DIR=${ASMJIT_DIR}")
-EndIf()
-
-Set(ASMJIT_SRC_DIR "${ASMJIT_DIR}/src")
-Set(ASMJIT_INC_DIR "${ASMJIT_SRC_DIR}")
-
-Include_Directories(${ASMJIT_SRC_DIR})
+message("-- [asmjit] ${ASMJIT_SIGNATURE}")
+message("-- [asmjit] ASMJIT_DIR=${ASMJIT_DIR}")
 
 # =============================================================================
-# [AsmJit - Flags/Deps]
+# [AsmJit - Flags / Deps]
 # =============================================================================
 
-Set(ASMJIT_DEPS)
-Set(ASMJIT_LFLAGS)
+set(ASMJIT_SOURCE_DIR "${ASMJIT_DIR}/src")      # Asmjit source directory.
+set(ASMJIT_INCLUDE_DIR "${ASMJIT_SOURCE_DIR}")  # Asmjit include directory.
 
-Set(ASMJIT_CFLAGS)
-Set(ASMJIT_CFLAGS_DBG)
-Set(ASMJIT_CFLAGS_REL)
+set(ASMJIT_DEPS)                                # Asmjit dependencies (list of libraries) for the linker.
+set(ASMJIT_LIBS)                                # Asmjit dependencies with asmjit included, for consumers.
 
-Set(ASMJIT_DEFINE "-D")
+# Internal, never use.
+set(ASMJIT_D "-D")                              # Used to define a C/C++ preprocessor parameter (-D or /D).
+set(ASMJIT_PRIVATE_CFLAGS)                      # Compiler flags independent of build type.
+set(ASMJIT_PRIVATE_LFLAGS "")                   # Linker flags used by the library and tests.
 
-# MSVC.
-If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  Message("-- Using MSVC")
+set(ASMJIT_PRIVATE_CFLAGS_DBG)                  # Compiler flags used only by debug build.
+set(ASMJIT_PRIVATE_CFLAGS_REL)                  # Compiler flags used only by release build.
 
-  Set(ASMJIT_DEFINE "/D")
-  Set(ASMJIT_LFLAGS "/OPT:REF /OPT:ICF")
-  Set(ASMJIT_CFLAGS /GF)
-  Set(ASMJIT_CFLAGS_DBG /DASMJIT_DEBUG /GS /GR-)
-  Set(ASMJIT_CFLAGS_REL /DASMJIT_RELEASE /Oi /Oy /GS- /GR-)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set(ASMJIT_D "/D")
+  set(ASMJIT_PRIVATE_LFLAGS "/OPT:REF /OPT:ICF")
 
-  # Enable multi-process compilation.
-  If(NOT MSVC60 AND NOT MSVC70 AND NOT MSVC71)
-     List(APPEND ASMJIT_CFLAGS /MP)
-  EndIf()
-EndIf()
+  list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)
+  list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS /GR-)
+  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Oi /Oy /GS- /GR-)
+  if(NOT MSVC60 AND NOT MSVC70 AND NOT MSVC71)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)      # Enable multi-process compilation.
+  endif()
+endif()
 
-# GCC
-If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  Message("-- Using GCC")
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
+  list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-exceptions)
+  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -fmerge-all-constants)
+endif()
 
-  Set(ASMJIT_CFLAGS
-    -fno-exceptions)
-  Set(ASMJIT_CFLAGS_DBG
-    -DASMJIT_DEBUG -O0)
-  Set(ASMJIT_CFLAGS_REL
-    -DASMJIT_RELEASE -O2
-    -finline-functions
-    -fomit-frame-pointer
-    -fmerge-all-constants
-    -fno-keep-static-consts)
-EndIf()
+if(ASMJIT_EMBED)
+  list(APPEND ASMJIT_PRIVATE_CFLAGS "${ASMJIT_D}ASMJIT_EMBED")
+elseif(ASMJIT_STATIC)
+  list(APPEND ASMJIT_PRIVATE_CFLAGS "${ASMJIT_D}ASMJIT_STATIC")
+endif()
 
-# Clang.
-If("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  Message("-- Using Clang")
+if(WIN32)
+  list(APPEND ASMJIT_PRIVATE_CFLAGS "${ASMJIT_D}_UNICODE")
+else()
+  list(APPEND ASMJIT_DEPS pthread)
+endif()
 
-  Set(ASMJIT_CFLAGS
-    -fno-exceptions)
-  Set(ASMJIT_CFLAGS_DBG
-    -DASMJIT_DEBUG -O0)
-  Set(ASMJIT_CFLAGS_REL
-    -DASMJIT_RELEASE -O2
-    -fomit-frame-pointer
-    -fmerge-all-constants)
-EndIf()
+if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+  list(APPEND ASMJIT_DEPS rt)
+endif()
 
-# Use Unicode by default on Windows target.
-If(WIN32)
-  List(APPEND ASMJIT_CFLAGS "${ASMJIT_DEFINE}_UNICODE")
-EndIf()
+set(ASMJIT_LIBS ${ASMJIT_DEPS})
+if(NOT ASMJIT_EMBED)
+  list(INSERT ASMJIT_LIBS 0 asmjit)
+endif()
 
-# Static library.
-If(ASMJIT_STATIC)
-  List(APPEND ASMJIT_CFLAGS "${ASMJIT_DEFINE}ASMJIT_STATIC")
-EndIf()
+set(ASMJIT_PRIVATE_CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_DBG})
+set(ASMJIT_PRIVATE_CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_REL})
 
-# Dependencies - pthread (Unix).
-If(NOT WIN32)
-  List(APPEND ASMJIT_DEPS pthread)
-EndIf()
-
-# Dependencies - librt (Linux).
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  LIST(APPEND ASMJIT_DEPS rt)
-ENDIF()
-
-Set(ASMJIT_CFLAGS_DBG ${ASMJIT_CFLAGS} ${ASMJIT_CFLAGS_DBG})
-Set(ASMJIT_CFLAGS_REL ${ASMJIT_CFLAGS} ${ASMJIT_CFLAGS_REL})
+message("-- [asmjit] ASMJIT_DEPS=${ASMJIT_DEPS}")
+message("-- [asmjit] ASMJIT_LIBS=${ASMJIT_LIBS}")
 
 # =============================================================================
 # [AsmJit - Macros]
 # =============================================================================
 
-Macro(AsmJit_AddSource in_dst in_path)
-  Set(__list "")
-  Set(__path "${ASMJIT_SRC_DIR}/${in_path}")
+macro(asmjit_add_source _out_dst _src_dir)
+  set(_src_path "${ASMJIT_SOURCE_DIR}/${_src_dir}")
+  set(_src_list)
 
-  ForEach(__name ${ARGN})
-    Set(__file "${__path}/${__name}")
-    Set(__cflags ${ASMJIT_CFLAGS})
+  foreach(_arg ${ARGN})
+    set(_src_file "${_src_path}/${_arg}")
+    list(APPEND _src_list ${_src_file})
+  endforeach()
 
-    If(__name MATCHES "\\.cpp|\\.h")
-      If("${__cflags}")
-        Set_Source_Files_Properties(${__name} PROPERTIES COMPILE_FLAGS ${__cflags})
-      EndIf()
-      List(APPEND __list ${__file})
-    EndIf()
-  EndForEach()
+  list(APPEND "${_out_dst}" ${_src_list})
+  source_group(${_src_dir} FILES ${_src_list})
+endmacro()
 
-  List(APPEND "${in_dst}" ${__list})
-  Source_Group(${in_path} FILES ${__list})
-EndMacro()
+macro(asmjit_add_library _target _src _deps _cflags _cflags_dbg _cflags_rel)
+  if(NOT ASMJIT_STATIC)
+    add_library(${_target} SHARED ${_src})
+  else()
+    add_library(${_target} STATIC ${_src})
+  endif()
 
-Macro(AsmJit_AddLibrary in_name in_src in_deps in_cflags in_cflags_dbg in_cflags_rel)
-  If(NOT ASMJIT_STATIC)
-    Set(__type "SHARED")
-  Else()
-    Set(__type "STATIC")
-  EndIf()
+  target_link_libraries(${_target} ${_deps})
+  set_target_properties(${_target} PROPERTIES LINK_FLAGS "${ASMJIT_PRIVATE_LFLAGS}")
 
-  Add_Library(${in_name} ${__type} ${in_src})
+  if(CMAKE_BUILD_TYPE)
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+      target_compile_options(${_target} PRIVATE ${_cflags} ${_cflags_dbg})
+    else()
+      target_compile_options(${_target} PRIVATE ${_cflags} ${_cflags_rel})
+    endif()
+  else()
+    target_compile_options(${_target} PRIVATE ${_cflags}
+      $<$<CONFIG:Debug>:${_cflags_dbg}>
+      $<$<NOT:$<CONFIG:Debug>>:${_cflags_rel}>)
+  endif()
 
-  # Dependencies.
-  Target_Link_Libraries(${in_name} ${in_deps})
-
-  # Compiler Flags.
-  If(${CMAKE_BUILD_TYPE})
-    If(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags} ${in_cflags_dbg})
-    Else()
-      Set_Target_Properties(${in_name} PROPERTIES COMPILE_FLAGS ${in_cflags} ${in_cflags_rel})
-    EndIf()
-  Else()
-    Target_Compile_Options(${in_name} PUBLIC ${in_cflags}
-      $<$<CONFIG:Debug>:${in_cflags_dbg}>
-      $<$<NOT:$<CONFIG:Debug>>:${in_cflags_rel}>)
-  EndIf()
-
-  # Linker Flags.
-  Set_Target_Properties(${in_name} PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
-
-  # Install Instructions.
-  If(NOT ASMJIT_EMBED)
-    Install(TARGETS ${in_name} LIBRARY DESTINATION lib${LIB_SUFFIX}
-                               ARCHIVE DESTINATION lib${LIB_SUFFIX}
-                               RUNTIME DESTINATION bin)
-  EndIf()
-
-  Unset(__type)
-EndMacro()
+  if(NOT ASMJIT_STATIC)
+    install(TARGETS ${_target} DESTINATION "lib${LIB_SUFFIX}")
+  endif()
+endmacro()
 
 # =============================================================================
 # [AsmJit - Source]
 # =============================================================================
 
-Set(ASMJIT_SRC "")
+set(ASMJIT_SRC "")
 
-AsmJit_AddSource(ASMJIT_SRC asmjit
+asmjit_add_source(ASMJIT_SRC asmjit
   apibegin.h
   apiend.h
 
   asmjit.h
   base.h
   build.h
-  config.h
   host.h
   x86.h
 )
 
-AsmJit_AddSource(ASMJIT_SRC asmjit/base
+asmjit_add_source(ASMJIT_SRC asmjit/base
   assembler.cpp
   assembler.h
-  codegen.cpp
-  codegen.h
   compiler.cpp
   compiler.h
+  compilercontext.cpp
+  compilercontext_p.h
+  compilerfunc.h
   constpool.cpp
   constpool.h
   containers.cpp
   containers.h
-  context.cpp
-  context_p.h
   cpuinfo.cpp
   cpuinfo.h
-  cputicks.cpp
-  cputicks.h
-  error.cpp
-  error.h
   globals.cpp
   globals.h
-  intutil.cpp
-  intutil.h
-  lock.h
+  hlstream.cpp
+  hlstream.h
   logger.cpp
   logger.h
   operand.cpp
   operand.h
   runtime.cpp
   runtime.h
-  string.cpp
-  string.h
+  utils.cpp
+  utils.h
   vectypes.h
   vmem.cpp
   vmem.h
@@ -266,13 +204,15 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/base
   zone.h
 )
 
-AsmJit_AddSource(ASMJIT_SRC asmjit/x86
+asmjit_add_source(ASMJIT_SRC asmjit/x86
   x86assembler.cpp
   x86assembler.h
   x86compiler.cpp
   x86compiler.h
-  x86context.cpp
-  x86context_p.h
+  x86compilercontext.cpp
+  x86compilercontext_p.h
+  x86compilerfunc.cpp
+  x86compilerfunc.h
   x86cpuinfo.cpp
   x86cpuinfo.h
   x86inst.cpp
@@ -285,81 +225,55 @@ AsmJit_AddSource(ASMJIT_SRC asmjit/x86
 )
 
 # =============================================================================
-# [AsmJit - Headers]
+# [AsmJit - Targets]
 # =============================================================================
 
-If(NOT ASMJIT_EMBED)
-  ForEach(i ${ASMJIT_SRC})
-    Get_Filename_Component(path ${i} PATH)
-    Get_Filename_Component(name ${i} NAME)
-    String(REGEX REPLACE "^${ASMJIT_SRC_DIR}/" "" targetpath "${path}")
-    If(name MATCHES ".h$")
-      If(NOT name MATCHES "_p.h$")
-        Install(FILES ${i} DESTINATION "include/${targetpath}")
-      EndIf()
-    EndIf()
-  EndForEach()
-EndIf()
-
-# =============================================================================
-# [Asmjit - Library]
-# =============================================================================
-
-If(NOT ASMJIT_EMBED)
-  AsmJit_AddLibrary(asmjit
+if(NOT ASMJIT_EMBED)
+  # Add `asmjit` library.
+  asmjit_add_library(asmjit
     "${ASMJIT_SRC}"
     "${ASMJIT_DEPS}"
-    "${ASMJIT_CFLAGS}"
-    "${ASMJIT_CFLAGS_DBG}"
-    "${ASMJIT_CFLAGS_REL}"
-  )
-EndIf()
-
-# =============================================================================
-# [Asmjit - Testing]
-# =============================================================================
-
-# AsmJit library is always embedded into the tests executable. This way it's
-# much easier to test private functions than just linking to `libasmjit.so`.
-If(ASMJIT_BUILD_TEST)
-  AsmJit_AddSource(ASMJIT_TEST_SRC test asmjit_test_unit.cpp broken.cpp broken.h)
-
-  Set(ASMJIT_TEST_CFLAGS
-    ${ASMJIT_CFLAGS}
-    ${ASMJIT_DEFINE}ASMJIT_STATIC
-    ${ASMJIT_DEFINE}ASMJIT_TEST)
-
-  Add_Executable(asmjit_test_unit ${ASMJIT_SRC} ${ASMJIT_TEST_SRC})
-  Target_Link_Libraries(asmjit_test_unit ${ASMJIT_DEPS})
-
-  If(${CMAKE_BUILD_TYPE})
-    If(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      Set_Target_Properties(asmjit_test_unit PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_DBG})
-    Else()
-      Set_Target_Properties(asmjit_test_unit PROPERTIES COMPILE_FLAGS ${ASMJIT_TEST_CFLAGS} ${ASMJIT_CFLAGS_REL})
-    EndIf()
-  Else()
-    Target_Compile_Options(asmjit_test_unit PUBLIC ${ASMJIT_TEST_CFLAGS}
-      $<$<CONFIG:Debug>:${ASMJIT_CFLAGS_DBG}>
-      $<$<NOT:$<CONFIG:Debug>>:${ASMJIT_CFLAGS_REL}>)
-  EndIf()
-
-  Set_Target_Properties(asmjit_test_unit PROPERTIES LINK_FLAGS "${ASMJIT_LFLAGS}")
-EndIf()
-
-# =============================================================================
-# [Asmjit - Samples]
-# =============================================================================
-
-If(ASMJIT_BUILD_SAMPLES)
-  Set(ASMJIT_SRC_SAMPLES
-    asmjit_bench_x86
-    asmjit_test_opcode
-    asmjit_test_x86
+    ""
+    "${ASMJIT_PRIVATE_CFLAGS_DBG}"
+    "${ASMJIT_PRIVATE_CFLAGS_REL}"
   )
 
-  ForEach(file ${ASMJIT_SRC_SAMPLES})
-    Add_Executable(${file} src/test/${file}.cpp)
-    Target_Link_Libraries(${file} asmjit ${ASMJIT_DEPS})
-  EndForEach(file)
-EndIf()
+  foreach(_src_file ${ASMJIT_SRC})
+    get_filename_component(_src_dir ${_src_file} PATH)
+    get_filename_component(_src_name ${_src_file} NAME)
+    string(REGEX REPLACE "^${ASMJIT_SOURCE_DIR}/" "" targetpath "${_src_dir}")
+    if("${_src_name}" MATCHES ".h$")
+      if(NOT "${_src_name}" MATCHES "_p.h$")
+        install(FILES ${_src_file} DESTINATION "include/${targetpath}")
+      endif()
+    endif()
+  endforeach()
+
+  # Add `asmjit` tests and samples.
+  if(ASMJIT_BUILD_TEST)
+    set(ASMJIT_TEST_SRC "")
+    set(ASMJIT_TEST_CFLAGS ${ASMJIT_D}ASMJIT_TEST ${ASMJIT_D}ASMJIT_EMBED)
+    asmjit_add_source(ASMJIT_TEST_SRC test asmjit_test_unit.cpp broken.cpp broken.h)
+
+    add_executable(asmjit_test_unit ${ASMJIT_SRC} ${ASMJIT_TEST_SRC})
+    target_link_libraries(asmjit_test_unit ${ASMJIT_DEPS})
+    set_target_properties(asmjit_test_unit PROPERTIES LINK_FLAGS "${ASMJIT_PRIVATE_LFLAGS}")
+
+    if(CMAKE_BUILD_TYPE)
+      if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        target_compile_options(asmjit_test_unit PRIVATE ${ASMJIT_TEST_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_DBG})
+      else()
+        target_compile_options(asmjit_test_unit PRIVATE ${ASMJIT_TEST_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_REL})
+      endif()
+    else()
+      target_compile_options(asmjit_test_unit PRIVATE ${ASMJIT_TEST_CFLAGS}
+        $<$<CONFIG:Debug>:${ASMJIT_PRIVATE_CFLAGS_DBG}>
+        $<$<NOT:$<CONFIG:Debug>>:${ASMJIT_PRIVATE_CFLAGS_REL}>)
+    endif()
+
+    foreach(_target asmjit_bench_x86 asmjit_test_opcode asmjit_test_x86)
+      add_executable(${_target} "src/test/${_target}.cpp")
+      target_link_libraries(${_target} ${ASMJIT_LIBS})
+    endforeach()
+  endif()
+endif()

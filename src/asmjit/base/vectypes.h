@@ -16,7 +16,7 @@
 
 namespace asmjit {
 
-//! \addtogroup asmjit_base_util
+//! \addtogroup asmjit_base
 //! \{
 
 // ============================================================================
