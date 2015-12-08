@@ -444,7 +444,7 @@ struct X86CallNode : public HLCall {
 //! MyFunc func = asmjit_cast<MyFunc>(a.make());
 //! ~~~
 //!
-//! The snippet uses methods to create variables, to associate them with 
+//! The snippet uses methods to create variables, to associate them with
 //! function arguments, and to use them to return from the generated function.
 //!
 //! When a variable is created, the initial state is `kVarStateNone`, when
@@ -521,7 +521,7 @@ struct X86CallNode : public HLCall {
 //! generate in some cases a block at the end of the function that changes
 //! the state of one branch. Usually the "taken" branch is embedded directly
 //! before the jump, and "not-taken" branch has the separate code block.
-//! 
+//!
 //! The next example shows to the extra code block generated for a state change:
 //!
 //! ~~~
@@ -1041,7 +1041,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     _newVar(&var, typeId, NULL, NULL); \
     return var; \
   }
-#endif 
+#endif
 
   ASMJIT_NEW_VAR_TYPE(newGpVar  , X86GpVar , _kVarTypeIntStart   , _kVarTypeIntEnd   )
   ASMJIT_NEW_VAR_TYPE(newMmVar  , X86MmVar , _kX86VarTypeMmStart , _kX86VarTypeMmEnd )

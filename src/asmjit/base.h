@@ -25,9 +25,9 @@
 #include "./base/zone.h"
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
-#include "./base/hlstream.h"
 #include "./base/compiler.h"
 #include "./base/compilerfunc.h"
+#include "./base/hlstream.h"
 #endif // !ASMJIT_DISABLE_COMPILER
 
 // [Guard]

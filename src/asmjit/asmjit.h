@@ -78,7 +78,7 @@
 //!
 //! Code-Generation and Operands
 //! ----------------------------
-//! 
+//!
 //! List of the most useful code-generation and operand classes:
 //! - \ref asmjit::Assembler - Low-level code-generation.
 //! - \ref asmjit::CodeGen - Astract code-generation that serializes to `Assembler`:

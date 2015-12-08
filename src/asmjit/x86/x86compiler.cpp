@@ -666,7 +666,7 @@ HLSentinel* X86Compiler::endFunc() {
 
   // Add local constant pool at the end of the function (if exist).
   setCursor(func->getExitNode());
-  
+
   if (_localConstPoolLabel.isInitialized()) {
     embedConstPool(_localConstPoolLabel, _localConstPool);
     _localConstPoolLabel.reset();
