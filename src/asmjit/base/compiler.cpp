@@ -450,7 +450,7 @@ Error Compiler::comment(const char* fmt, ...) {
 
 Error Compiler::_hint(Var& var, uint32_t hint, uint32_t value) {
   if (var.getId() == kInvalidValue)
-    return NULL;
+    return kErrorOk;
 
   HLHint* node = newHintNode(var, hint, value);
   if (node == NULL)

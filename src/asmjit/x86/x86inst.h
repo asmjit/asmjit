@@ -1989,7 +1989,7 @@ ASMJIT_ENUM(X86Round) {
   //! Round control - round toward zero (truncate).
   kX86RoundTrunc          = 0x3,
   //! Rounding select - if set it will use the the current rounding mode
-  //! according to MXCS and  ignore the round control (RC) bits.
+  //! according to MXCS and ignore the round control (RC) bits.
   kX86RoundCurrent        = 0x4,
   //! Precision mask - if set it avoids an inexact exception.
   kX86RoundInexact        = 0x8
