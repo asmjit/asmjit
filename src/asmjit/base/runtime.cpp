@@ -53,7 +53,7 @@ uint32_t HostRuntime::getStackAlignment() {
   // not sure about all other UNIX operating systems, because 16-byte alignment
   // is addition to an older specification.
 #if (ASMJIT_ARCH_X64) || \
-    (ASMJIT_ARCH_X86 && (ASMJIT_OS_LINUX || ASMJIT_OS_BSD || ASMJIT_OS_MAC))
+    (ASMJIT_ARCH_X86 && (ASMJIT_OS_LINUX || ASMJIT_OS_BSD || ASMJIT_OS_MAC || ASMJIT_OS_ANDROID))
   alignment = 16;
 #endif
 

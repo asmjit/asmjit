@@ -4856,6 +4856,7 @@ static Error X86Context_initFunc(X86Context* self, X86FuncNode* func) {
   // Adjust stack pointer if function is caller.
   if (func->isCaller()) {
     func->addFuncFlags(kFuncFlagIsStackAdjusted);
+    func->_callStackSize = Utils::alignTo<uint32_t>(func->getCallStackSize(), func->getRequiredStackAlignment());
   }
 
   // Adjust stack pointer if manual stack alignment is needed.
@@ -4962,13 +4963,19 @@ static Error X86Context_initFunc(X86Context* self, X86FuncNode* func) {
     // Count push/pop sequence.
     v += func->getPushPopStackSize();
 
+    // Count save/restore sequence for XMM registers (should be already aligned).
+    v += func->getMoveStackSize();
+
+    // Maximum memory required to call all functions within this function.
+    v += func->getCallStackSize();
+
     // Calculate the final offset to keep stack alignment.
     func->_alignStackSize = Utils::alignDiff<uint32_t>(v, func->getRequiredStackAlignment());
   }
 
   // Memory stack size.
   func->_memStackSize = self->_memAllTotal;
-  func->_alignedMemStackSize = Utils::alignTo<uint32_t>(func->_memStackSize, func->_requiredStackAlignment);
+  func->_alignedMemStackSize = Utils::alignTo<uint32_t>(func->_memStackSize, func->getRequiredStackAlignment());
 
   if (func->isNaked()) {
     self->_argBaseReg = kX86RegIndexSp;
