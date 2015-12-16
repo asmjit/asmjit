@@ -346,8 +346,7 @@ struct Operand {
 
   //! Create an uninitialized operand.
   ASMJIT_INLINE Operand() {
-    _init_packed_op_sz_b0_b1_id(kOperandTypeNone, 0, 0, 0, kInvalidValue);
-    _init_packed_d2_d3(0, 0);
+    reset();
   }
 
   //! Create a reference to `other` operand.
@@ -358,11 +357,17 @@ struct Operand {
   explicit ASMJIT_INLINE Operand(const _NoInit&) {}
 
   // --------------------------------------------------------------------------
-  // [Operand]
+  // [Base]
   // --------------------------------------------------------------------------
 
   //! Clone the `Operand`.
   ASMJIT_INLINE Operand clone() const { return Operand(*this); }
+
+  //! Reset the `Operand`.
+  ASMJIT_INLINE void reset() {
+    _init_packed_op_sz_b0_b1_id(kOperandTypeNone, 0, 0, 0, kInvalidValue);
+    _init_packed_d2_d3(0, 0);
+  }
 
   // --------------------------------------------------------------------------
   // [Init & Copy]

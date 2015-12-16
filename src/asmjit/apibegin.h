@@ -53,7 +53,7 @@
 # pragma warning(disable: 4480) // specifying underlying type for enum
 # pragma warning(disable: 4800) // forcing value to bool 'true' or 'false'
 
-// TODO: Check if these defins are needed and for which version of MSC. There are
+// TODO: Check if these defines are needed and for which version of MSC. There are
 // news about these as they are part of C99.
 # if !defined(vsnprintf)
 #  define ASMJIT_UNDEF_VSNPRINTF
