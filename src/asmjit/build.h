@@ -91,7 +91,7 @@
 #endif
 
 // ============================================================================
-// [asmjit::Build - Version]
+// [asmjit::Build - VERSION]
 // ============================================================================
 
 // [@VERSION{@]
@@ -102,7 +102,7 @@
 // [@VERSION}@]
 
 // ============================================================================
-// [asmjit::Build - CxxTool]
+// [asmjit::Build - WIN32]
 // ============================================================================
 
 // [@WIN32_CRT_NO_DEPRECATE{@]
@@ -115,12 +115,6 @@
 # endif
 #endif
 // [@WIN32_CRT_NO_DEPRECATE}@]
-
-#include <new>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // [@WIN32_LEAN_AND_MEAN{@]
 #if (defined(_WIN32) || defined(_WINDOWS)) && !defined(_WINDOWS_)
@@ -143,6 +137,10 @@
 # endif
 #endif
 // [@WIN32_LEAN_AND_MEAN}@]
+
+// ============================================================================
+// [asmjit::Build - OS]
+// ============================================================================
 
 // [@OS{@]
 #if defined(_WIN32) || defined(_WINDOWS)
@@ -223,216 +221,183 @@
 #define ASMJIT_OS_POSIX         (!ASMJIT_OS_WINDOWS)
 // [@OS}@]
 
-#if ASMJIT_OS_POSIX
-# include <pthread.h>
-#endif // ASMJIT_OS_POSIX
+// ============================================================================
+// [asmjit::Build - ARCH]
+// ============================================================================
 
 // [@ARCH{@]
 // \def ASMJIT_ARCH_ARM
-// Defined if the target architecture is a 32-bit ARM.
+// True if the target architecture is a 32-bit ARM.
 //
 // \def ASMJIT_ARCH_ARM64
-// Defined if the target architecture is a 64-bit ARM.
-//
-// \def ASMJIT_ARCH_X64
-// Defined if the target architecture is a 64-bit X64/AMD64
+// True if the target architecture is a 64-bit ARM.
 //
 // \def ASMJIT_ARCH_X86
-// Defined if the target architecture is a 32-bit X86/IA32
+// True if the target architecture is a 32-bit X86/IA32
+//
+// \def ASMJIT_ARCH_X64
+// True if the target architecture is a 64-bit X64/AMD64
+//
+// \def ASMJIT_ARCH_LE
+// True if the target architecture is little endian.
+//
+// \def ASMJIT_ARCH_BE
+// True if the target architecture is big endian.
+//
+// \def ASMJIT_ARCH_64BIT
+// True if the target architecture is 64-bit.
+
 #if (defined(_M_X64  ) || defined(__x86_64) || defined(__x86_64__) || \
      defined(_M_AMD64) || defined(__amd64 ) || defined(__amd64__ ))
-# define ASMJIT_ARCH_X64          (1)
+# define ASMJIT_ARCH_X64 1
 #else
-# define ASMJIT_ARCH_X64          (0)
+# define ASMJIT_ARCH_X64 0
 #endif
+
 #if (defined(_M_IX86 ) || defined(__X86__ ) || defined(__i386  ) || \
      defined(__IA32__) || defined(__I86__ ) || defined(__i386__) || \
      defined(__i486__) || defined(__i586__) || defined(__i686__))
-# define ASMJIT_ARCH_X86          (!ASMJIT_ARCH_X64)
+# define ASMJIT_ARCH_X86 (!ASMJIT_ARCH_X64)
 #else
-# define ASMJIT_ARCH_X86          (0)
+# define ASMJIT_ARCH_X86 0
 #endif
-#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
-# define ASMJIT_ARCH_64BIT        (ASMJIT_ARCH_X64)
-# define ASMJIT_ARCH_BE           (0)
-# define ASMJIT_ARCH_LE           (1)
-# define ASMJIT_ARCH_UNALIGNED_16 (1)
-# define ASMJIT_ARCH_UNALIGNED_32 (1)
-# define ASMJIT_ARCH_UNALIGNED_64 (1)
-# if !defined(ASMJIT_ARCH_MMX) && (!ASMJIT_ARCH_X64 && (defined(__MMX__) || defined(__i686__)))
-#  define ASMJIT_ARCH_MMX         (1)
-# endif
-# if !defined(ASMJIT_ARCH_SSE) && (ASMJIT_ARCH_X64 || (defined(_M_IX86_FP) && _M_IX86_FP >= 1) || defined(__SSE__))
-#  define ASMJIT_ARCH_SSE         (1)
-# endif
-# if !defined(ASMJIT_ARCH_SSE2) && (ASMJIT_ARCH_X64 || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || defined(__SSE2__))
-#  define ASMJIT_ARCH_SSE2        (1)
-# endif
-# if !defined(ASMJIT_ARCH_SSE3) && (defined(__SSE3__))
-#  define ASMJIT_ARCH_SSE3        (1)
-# endif
-# if !defined(ASMJIT_ARCH_SSSE3) && (defined(__SSSE3__))
-#  define ASMJIT_ARCH_SSSE3       (1)
-# endif
-# if !defined(ASMJIT_ARCH_SSE4_1) && (defined(__SSE4_1__))
-#  define ASMJIT_ARCH_SSE4_1      (1)
-# endif
-# if !defined(ASMJIT_ARCH_SSE4_2) && (defined(__SSE4_2__))
-#  define ASMJIT_ARCH_SSE4_2      (1)
-# endif
-# if !defined(ASMJIT_ARCH_AVX) && (defined(__AVX__))
-#  define ASMJIT_ARCH_AVX         (1)
-# endif
-# if !defined(ASMJIT_ARCH_AVX2) && (defined(__AVX2__))
-#  define ASMJIT_ARCH_AVX2        (1)
-# endif
-#endif
-#if !defined(ASMJIT_ARCH_AVX2)
-# define ASMJIT_ARCH_AVX2         (0)
-#endif
-#if !defined(ASMJIT_ARCH_AVX)
-# define ASMJIT_ARCH_AVX          (ASMJIT_ARCH_AVX2)
-#endif
-#if !defined(ASMJIT_ARCH_SSE4_2)
-# define ASMJIT_ARCH_SSE4_2       (ASMJIT_ARCH_AVX)
-#endif
-#if !defined(ASMJIT_ARCH_SSE4_1)
-# define ASMJIT_ARCH_SSE4_1       (ASMJIT_ARCH_SSE4_2)
-#endif
-#if !defined(ASMJIT_ARCH_SSSE3)
-# define ASMJIT_ARCH_SSSE3        (ASMJIT_ARCH_SSE4_1)
-#endif
-#if !defined(ASMJIT_ARCH_SSE3)
-# define ASMJIT_ARCH_SSE3         (ASMJIT_ARCH_SSSE3)
-#endif
-#if !defined(ASMJIT_ARCH_SSE2)
-# define ASMJIT_ARCH_SSE2         (ASMJIT_ARCH_SSE3)
-#endif
-#if !defined(ASMJIT_ARCH_SSE)
-# define ASMJIT_ARCH_SSE          (ASMJIT_ARCH_SSE2)
-#endif
-#if !defined(ASMJIT_ARCH_MMX)
-# define ASMJIT_ARCH_MMX          (0)
+
+#if defined(__aarch64__)
+# define ASMJIT_ARCH_ARM64 1
+#else
+# define ASMJIT_ARCH_ARM64 0
 #endif
 
 #if (defined(_M_ARM  ) || defined(__arm__ ) || defined(__arm) || \
      defined(_M_ARMT ) || defined(__thumb__))
-# define ASMJIT_ARCH_ARM          (1)
-# define ASMJIT_ARCH_ARM64        (0)
+# define ASMJIT_ARCH_ARM (!ASMJIT_ARCH_ARM64)
 #else
-# define ASMJIT_ARCH_ARM          (0)
-# define ASMJIT_ARCH_ARM64        (0)
+# define ASMJIT_ARCH_ARM 0
 #endif
-#if ASMJIT_ARCH_ARM || ASMJIT_ARCH_ARM64
-# define ASMJIT_ARCH_64BIT        (ASMJIT_ARCH_ARM64)
-# define ASMJIT_ARCH_BE           (0)
-# define ASMJIT_ARCH_LE           (1)
-# define ASMJIT_ARCH_UNALIGNED_16 (0)
-# define ASMJIT_ARCH_UNALIGNED_32 (0)
-# define ASMJIT_ARCH_UNALIGNED_64 (0)
-# if !defined(ASMJIT_ARCH_NEON) && defined(__ARM_NEON__)
-#  define ASMJIT_ARCH_NEON        (1)
-# endif
-#endif
-#if !defined(ASMJIT_ARCH_NEON)
-# define ASMJIT_ARCH_NEON         (0)
-#endif
+
+#define ASMJIT_ARCH_LE ( \
+        ASMJIT_ARCH_X86 || \
+        ASMJIT_ARCH_X64 || \
+        ASMJIT_ARCH_ARM || \
+        ASMJIT_ARCH_ARM64)
+#define ASMJIT_ARCH_BE (!(ASMJIT_ARCH_LE))
+#define ASMJIT_ARCH_64BIT (ASMJIT_ARCH_X64 || ASMJIT_ARCH_ARM64)
 // [@ARCH}@]
 
-// [@ARCH_INCLUDE{@]
-#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(__CODEGEARC__)
-# include <intrin.h>
-#endif
+// [@ARCH_UNALIGNED_RW{@]
+// \def ASMJIT_ARCH_UNALIGNED_16
+// True if the target architecture allows unaligned 16-bit reads and writes.
+//
+// \def ASMJIT_ARCH_UNALIGNED_32
+// True if the target architecture allows unaligned 32-bit reads and writes.
+//
+// \def ASMJIT_ARCH_UNALIGNED_64
+// True if the target architecture allows unaligned 64-bit reads and writes.
 
-#if ASMJIT_ARCH_SSE
-# include <xmmintrin.h>
-#endif
-#if ASMJIT_ARCH_SSE2
-# include <emmintrin.h>
-#endif
-#if ASMJIT_ARCH_SSE3 && !defined(_MSC_VER)
-# include <pmmintrin.h>
-#endif
-#if ASMJIT_ARCH_SSSE3
-# include <tmmintrin.h>
-#endif
-#if ASMJIT_ARCH_SSE4_1
-# include <smmintrin.h>
-#endif
-#if ASMJIT_ARCH_SSE4_2
-# include <nmmintrin.h>
-#endif
-#if ASMJIT_ARCH_AVX || ASMJIT_ARCH_AVX2
-# include <immintrin.h>
-#endif
+#define ASMJIT_ARCH_UNALIGNED_16 (ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64)
+#define ASMJIT_ARCH_UNALIGNED_32 (ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64)
+#define ASMJIT_ARCH_UNALIGNED_64 (ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64)
+// [@ARCH_UNALIGNED_RW}@]
 
-#if ASMJIT_ARCH_NEON
-# include <arm_neon.h>
-#endif
-// [@ARCH_INCLUDE}@]
+// ============================================================================
+// [asmjit::Build - CC]
+// ============================================================================
 
 // [@CC{@]
-// \def ASMJIT_CC_CODEGEAR
-// Defined if the detected C++ compiler is CodeGear or Borland (defined to __CODEGEARC__ or __BORLANDC__ version).
-//
 // \def ASMJIT_CC_CLANG
-// Defined if the detected C++ compiler is CLANG (defined to __clang__ version).
+// True if the detected C++ compiler is CLANG (contains normalized CLANG version).
+//
+// \def ASMJIT_CC_CODEGEAR
+// True if the detected C++ compiler is CODEGEAR or BORLAND (version not normalized).
 //
 // \def ASMJIT_CC_GCC
-// Defined if the detected C++ compiler is GCC (defined to __GNUC__ value).
+// True if the detected C++ compiler is GCC (contains normalized GCC version).
 //
 // \def ASMJIT_CC_MSC
-// Defined if the detected C++ compiler is MSC (defined to _MSC_VER version).
+// True if the detected C++ compiler is MSC (contains normalized MSC version).
 //
-// \def ASMJIT_CC_HAS_NATIVE_CHAR
-// Defined if the C++ compiler treats char as a native type.
-//
-// \def ASMJIT_CC_HAS_NATIVE_WCHAR_T
-// Defined if the C++ compiler treats wchar_t as a native type.
-//
-// \def ASMJIT_CC_HAS_NATIVE_CHAR16_T
-// Defined if the C++ compiler treats char16_t as a native type.
-//
-// \def ASMJIT_CC_HAS_NATIVE_CHAR32_T
-// Defined if the C++ compiler treats char32_t as a native type.
-//
-// \def ASMJIT_CC_HAS_OVERRIDE
-// Defined if the C++ compiler supports override keyword.
-//
-// \def ASMJIT_CC_HAS_NOEXCEPT
-// Defined if the C++ compiler supports noexcept keyword.
-#define ASMJIT_CC_CLANG                        (0)
-#define ASMJIT_CC_CODEGEAR                     (0)
-#define ASMJIT_CC_GCC                          (0)
-#define ASMJIT_CC_MSC                          (0)
+// \def ASMJIT_CC_MINGW
+// Defined to 32 or 64 in case this is a MINGW, otherwise 0.
 
-#if defined(__BORLANDC__) || defined(__CODEGEARC__)
+#define ASMJIT_CC_CLANG 0
+#define ASMJIT_CC_CODEGEAR 0
+#define ASMJIT_CC_GCC 0
+#define ASMJIT_CC_MSC 0
+
+#if defined(__CODEGEARC__)
 # undef  ASMJIT_CC_CODEGEAR
-# if defined(__CODEGEARC__)
-#  define ASMJIT_CC_CODEGEAR                   (__CODEGEARC__)
-# else
-#  define ASMJIT_CC_CODEGEAR                   (__BORLANDC__)
-# endif
-# define ASMJIT_CC_HAS_ASSUME                  (0)
-# define ASMJIT_CC_HAS_ATTRIBUTE               (0)
-# define ASMJIT_CC_HAS_BUILTIN                 (0)
-# define ASMJIT_CC_HAS_DECLSPEC                (1)
-# define ASMJIT_CC_HAS_DECLSPEC_ALIGN          (ASMJIT_CC_CODEGEAR >= 0x0610)
-# define ASMJIT_CC_HAS_DECLSPEC_FORCEINLINE    (0)
-# define ASMJIT_CC_HAS_DECLSPEC_NOINLINE       (0)
-# define ASMJIT_CC_HAS_DECLSPEC_NORETURN       (ASMJIT_CC_CODEGEAR >= 0x0610)
-# define ASMJIT_CC_HAS_DECLTYPE                (ASMJIT_CC_CODEGEAR >= 0x0610)
-# define ASMJIT_CC_HAS_NATIVE_CHAR             (1)
-# define ASMJIT_CC_HAS_NATIVE_WCHAR_T          (1)
-# define ASMJIT_CC_HAS_RVALUE                  (ASMJIT_CC_CODEGEAR >= 0x0610)
-# define ASMJIT_CC_HAS_STATIC_ASSERT           (ASMJIT_CC_CODEGEAR >= 0x0610)
+# define ASMJIT_CC_CODEGEAR (__CODEGEARC__)
+#elif defined(__BORLANDC__)
+# undef  ASMJIT_CC_CODEGEAR
+# define ASMJIT_CC_CODEGEAR (__BORLANDC__)
 #elif defined(__clang__) && defined(__clang_minor__)
 # undef  ASMJIT_CC_CLANG
-# define ASMJIT_CC_CLANG                       (__clang__)
-# define ASMJIT_CC_CLANG_VERSION_EQ(x, y, z)   (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__ >= x * 10000 + y * 100 + z)
-# define ASMJIT_CC_CLANG_VERSION_GE(x, y, z)   (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__ >= x * 10000 + y * 100 + z)
-# define ASMJIT_CC_HAS_ASSUME                  (0)
+# define ASMJIT_CC_CLANG (__clang_major__ * 10000000 + __clang_minor__ * 100000 + __clang_patchlevel__)
+#elif defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
+# undef  ASMJIT_CC_GCC
+# define ASMJIT_CC_GCC (__GNUC__ * 10000000 + __GNUC_MINOR__ * 100000 + __GNUC_PATCHLEVEL__)
+#elif defined(_MSC_VER) && defined(_MSC_FULL_VER)
+# undef  ASMJIT_CC_MSC
+# if _MSC_VER == _MSC_FULL_VER / 10000
+#  define ASMJIT_CC_MSC (_MSC_VER * 100000 + (_MSC_FULL_VER % 10000))
+# else
+#  define ASMJIT_CC_MSC (_MSC_VER * 100000 + (_MSC_FULL_VER % 100000))
+# endif
+#else
+# error "[asmjit] Unable to detect the C/C++ compiler."
+#endif
+
+#if ASMJIT_CC_GCC && defined(__GXX_EXPERIMENTAL_CXX0X__)
+# define ASMJIT_CC_GCC_CXX0X 1
+#else
+# define ASMJIT_CC_GCC_CXX0X 0
+#endif
+
+#if defined(__MINGW64__)
+# define ASMJIT_CC_MINGW 64
+#elif defined(__MINGW32__)
+# define ASMJIT_CC_MINGW 32
+#else
+# define ASMJIT_CC_MINGW 0
+#endif
+
+#define ASMJIT_CC_CODEGEAR_EQ(x, y, z) (ASMJIT_CC_CODEGEAR == (x << 8) + y)
+#define ASMJIT_CC_CODEGEAR_GE(x, y, z) (ASMJIT_CC_CODEGEAR >= (x << 8) + y)
+
+#define ASMJIT_CC_CLANG_EQ(x, y, z) (ASMJIT_CC_CLANG == x * 10000000 + y * 100000 + z)
+#define ASMJIT_CC_CLANG_GE(x, y, z) (ASMJIT_CC_CLANG >= x * 10000000 + y * 100000 + z)
+
+#define ASMJIT_CC_GCC_EQ(x, y, z) (ASMJIT_CC_GCC == x * 10000000 + y * 100000 + z)
+#define ASMJIT_CC_GCC_GE(x, y, z) (ASMJIT_CC_GCC >= x * 10000000 + y * 100000 + z)
+
+#define ASMJIT_CC_MSC_EQ(x, y, z) (ASMJIT_CC_MSC == x * 10000000 + y * 100000 + z)
+#define ASMJIT_CC_MSC_GE(x, y, z) (ASMJIT_CC_MSC >= x * 10000000 + y * 100000 + z)
+// [@CC}@]
+
+// [@CC_FEATURES{@]
+// \def ASMJIT_CC_HAS_NATIVE_CHAR
+// True if the C++ compiler treats char as a native type.
+//
+// \def ASMJIT_CC_HAS_NATIVE_WCHAR_T
+// True if the C++ compiler treats wchar_t as a native type.
+//
+// \def ASMJIT_CC_HAS_NATIVE_CHAR16_T
+// True if the C++ compiler treats char16_t as a native type.
+//
+// \def ASMJIT_CC_HAS_NATIVE_CHAR32_T
+// True if the C++ compiler treats char32_t as a native type.
+//
+// \def ASMJIT_CC_HAS_OVERRIDE
+// True if the C++ compiler supports override keyword.
+//
+// \def ASMJIT_CC_HAS_NOEXCEPT
+// True if the C++ compiler supports noexcept keyword.
+
+#if ASMJIT_CC_CLANG
 # define ASMJIT_CC_HAS_ATTRIBUTE               (1)
+# define ASMJIT_CC_HAS_DECLSPEC                (0)
+
+# define ASMJIT_CC_HAS_ASSUME                  (0)
 # define ASMJIT_CC_HAS_ATTRIBUTE_ALIGNED       (__has_attribute(__aligned__))
 # define ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(__always_inline__))
 # define ASMJIT_CC_HAS_ATTRIBUTE_NOINLINE      (__has_attribute(__noinline__))
@@ -442,7 +407,6 @@
 # define ASMJIT_CC_HAS_BUILTIN_EXPECT          (__has_builtin(__builtin_expect))
 # define ASMJIT_CC_HAS_BUILTIN_UNREACHABLE     (__has_builtin(__builtin_unreachable))
 # define ASMJIT_CC_HAS_CONSTEXPR               (__has_extension(__cxx_constexpr__))
-# define ASMJIT_CC_HAS_DECLSPEC                (0)
 # define ASMJIT_CC_HAS_DECLTYPE                (__has_extension(__cxx_decltype__))
 # define ASMJIT_CC_HAS_DEFAULT_FUNCTION        (__has_extension(__cxx_defaulted_functions__))
 # define ASMJIT_CC_HAS_DELETE_FUNCTION         (__has_extension(__cxx_deleted_functions__))
@@ -458,61 +422,74 @@
 # define ASMJIT_CC_HAS_OVERRIDE                (__has_extension(__cxx_override_control__))
 # define ASMJIT_CC_HAS_RVALUE                  (__has_extension(__cxx_rvalue_references__))
 # define ASMJIT_CC_HAS_STATIC_ASSERT           (__has_extension(__cxx_static_assert__))
-#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
-# undef  ASMJIT_CC_GCC
-# define ASMJIT_CC_GCC                         (__GNUC__)
-# define ASMJIT_CC_GCC_VERSION_EQ(x, y, z)     (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ >= x * 10000 + y * 100 + z)
-# define ASMJIT_CC_GCC_VERSION_GE(x, y, z)     (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ >= x * 10000 + y * 100 + z)
-# if defined(__GXX_EXPERIMENTAL_CXX0X__)
-#  define ASMJIT_CC_GCC_CXX0X                  (1)
-# else
-#  define ASMJIT_CC_GCC_CXX0X                  (0)
-# endif
+#endif
+
+#if ASMJIT_CC_CODEGEAR
+# define ASMJIT_CC_HAS_ATTRIBUTE               (0)
+# define ASMJIT_CC_HAS_DECLSPEC                (1)
+
 # define ASMJIT_CC_HAS_ASSUME                  (0)
+# define ASMJIT_CC_HAS_BUILTIN                 (0)
+# define ASMJIT_CC_HAS_CONSTEXPR               (0)
+# define ASMJIT_CC_HAS_DECLSPEC_ALIGN          (ASMJIT_CC_CODEGEAR >= 0x0610)
+# define ASMJIT_CC_HAS_DECLSPEC_FORCEINLINE    (0)
+# define ASMJIT_CC_HAS_DECLSPEC_NOINLINE       (0)
+# define ASMJIT_CC_HAS_DECLSPEC_NORETURN       (ASMJIT_CC_CODEGEAR >= 0x0610)
+# define ASMJIT_CC_HAS_DECLTYPE                (ASMJIT_CC_CODEGEAR >= 0x0610)
+# define ASMJIT_CC_HAS_NATIVE_CHAR             (1)
+# define ASMJIT_CC_HAS_NATIVE_WCHAR_T          (1)
+# define ASMJIT_CC_HAS_RVALUE                  (ASMJIT_CC_CODEGEAR >= 0x0610)
+# define ASMJIT_CC_HAS_STATIC_ASSERT           (ASMJIT_CC_CODEGEAR >= 0x0610)
+#endif
+
+#if ASMJIT_CC_GCC
 # define ASMJIT_CC_HAS_ATTRIBUTE               (1)
-# define ASMJIT_CC_HAS_ATTRIBUTE_ALIGNED       (ASMJIT_CC_GCC_VERSION_GE(2, 7, 0))
-# define ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE (ASMJIT_CC_GCC_VERSION_GE(4, 4, 0) && !defined(__MINGW32__))
-# define ASMJIT_CC_HAS_ATTRIBUTE_NOINLINE      (ASMJIT_CC_GCC_VERSION_GE(3, 4, 0) && !defined(__MINGW32__))
-# define ASMJIT_CC_HAS_ATTRIBUTE_NORETURN      (ASMJIT_CC_GCC_VERSION_GE(2, 5, 0))
+# define ASMJIT_CC_HAS_DECLSPEC                (0)
+
+# define ASMJIT_CC_HAS_ASSUME                  (0)
+# define ASMJIT_CC_HAS_ATTRIBUTE_ALIGNED       (ASMJIT_CC_GCC_GE(2, 7, 0))
+# define ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE (ASMJIT_CC_GCC_GE(4, 4, 0) && !ASMJIT_CC_MINGW)
+# define ASMJIT_CC_HAS_ATTRIBUTE_NOINLINE      (ASMJIT_CC_GCC_GE(3, 4, 0) && !ASMJIT_CC_MINGW)
+# define ASMJIT_CC_HAS_ATTRIBUTE_NORETURN      (ASMJIT_CC_GCC_GE(2, 5, 0))
 # define ASMJIT_CC_HAS_BUILTIN                 (1)
 # define ASMJIT_CC_HAS_BUILTIN_ASSUME          (0)
 # define ASMJIT_CC_HAS_BUILTIN_EXPECT          (1)
-# define ASMJIT_CC_HAS_BUILTIN_UNREACHABLE     (ASMJIT_CC_GCC_VERSION_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_CONSTEXPR               (ASMJIT_CC_GCC_VERSION_GE(4, 6, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_DECLSPEC                (0)
-# define ASMJIT_CC_HAS_DECLTYPE                (ASMJIT_CC_GCC_VERSION_GE(4, 3, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_DEFAULT_FUNCTION        (ASMJIT_CC_GCC_VERSION_GE(4, 4, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_DELETE_FUNCTION         (ASMJIT_CC_GCC_VERSION_GE(4, 4, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_FINAL                   (ASMJIT_CC_GCC_VERSION_GE(4, 7, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_INITIALIZER_LIST        (ASMJIT_CC_GCC_VERSION_GE(4, 4, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_LAMBDA                  (ASMJIT_CC_GCC_VERSION_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_BUILTIN_UNREACHABLE     (ASMJIT_CC_GCC_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_CONSTEXPR               (ASMJIT_CC_GCC_GE(4, 6, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_DECLTYPE                (ASMJIT_CC_GCC_GE(4, 3, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_DEFAULT_FUNCTION        (ASMJIT_CC_GCC_GE(4, 4, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_DELETE_FUNCTION         (ASMJIT_CC_GCC_GE(4, 4, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_FINAL                   (ASMJIT_CC_GCC_GE(4, 7, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_INITIALIZER_LIST        (ASMJIT_CC_GCC_GE(4, 4, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_LAMBDA                  (ASMJIT_CC_GCC_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
 # define ASMJIT_CC_HAS_NATIVE_CHAR             (1)
-# define ASMJIT_CC_HAS_NATIVE_CHAR16_T         (ASMJIT_CC_GCC_VERSION_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_NATIVE_CHAR32_T         (ASMJIT_CC_GCC_VERSION_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_NATIVE_CHAR16_T         (ASMJIT_CC_GCC_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_NATIVE_CHAR32_T         (ASMJIT_CC_GCC_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
 # define ASMJIT_CC_HAS_NATIVE_WCHAR_T          (1)
-# define ASMJIT_CC_HAS_NOEXCEPT                (ASMJIT_CC_GCC_VERSION_GE(4, 6, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_NULLPTR                 (ASMJIT_CC_GCC_VERSION_GE(4, 6, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_OVERRIDE                (ASMJIT_CC_GCC_VERSION_GE(4, 7, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_RVALUE                  (ASMJIT_CC_GCC_VERSION_GE(4, 3, 0) && ASMJIT_CC_GCC_CXX0X)
-# define ASMJIT_CC_HAS_STATIC_ASSERT           (ASMJIT_CC_GCC_VERSION_GE(4, 3, 0) && ASMJIT_CC_GCC_CXX0X)
-#elif defined(_MSC_VER)
-# undef  ASMJIT_CC_MSC
-# define ASMJIT_CC_MSC                         (_MSC_VER)
-# define ASMJIT_CC_HAS_ASSUME                  (1)
+# define ASMJIT_CC_HAS_NOEXCEPT                (ASMJIT_CC_GCC_GE(4, 6, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_NULLPTR                 (ASMJIT_CC_GCC_GE(4, 6, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_OVERRIDE                (ASMJIT_CC_GCC_GE(4, 7, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_RVALUE                  (ASMJIT_CC_GCC_GE(4, 3, 0) && ASMJIT_CC_GCC_CXX0X)
+# define ASMJIT_CC_HAS_STATIC_ASSERT           (ASMJIT_CC_GCC_GE(4, 3, 0) && ASMJIT_CC_GCC_CXX0X)
+#endif
+
+#if ASMJIT_CC_MSC
 # define ASMJIT_CC_HAS_ATTRIBUTE               (0)
+# define ASMJIT_CC_HAS_DECLSPEC                (1)
+
+# define ASMJIT_CC_HAS_ASSUME                  (1)
 # define ASMJIT_CC_HAS_BUILTIN                 (0)
 # define ASMJIT_CC_HAS_CONSTEXPR               (0)
-# define ASMJIT_CC_HAS_DECLSPEC                (1)
 # define ASMJIT_CC_HAS_DECLSPEC_ALIGN          (1)
 # define ASMJIT_CC_HAS_DECLSPEC_FORCEINLINE    (1)
 # define ASMJIT_CC_HAS_DECLSPEC_NOINLINE       (1)
 # define ASMJIT_CC_HAS_DECLSPEC_NORETURN       (1)
-# define ASMJIT_CC_HAS_DECLTYPE                (_MSC_VER >= 1600)
-# define ASMJIT_CC_HAS_DEFAULT_FUNCTION        (_MSC_VER >= 1800)
-# define ASMJIT_CC_HAS_DELETE_FUNCTION         (_MSC_VER >= 1800)
-# define ASMJIT_CC_HAS_FINAL                   (_MSC_VER >= 1400)
-# define ASMJIT_CC_HAS_INITIALIZER_LIST        (_MSC_VER >= 1800)
-# define ASMJIT_CC_HAS_LAMBDA                  (_MSC_VER >= 1600)
+# define ASMJIT_CC_HAS_DECLTYPE                (ASMJIT_CC_MSC_GE(16, 0, 0))
+# define ASMJIT_CC_HAS_DEFAULT_FUNCTION        (ASMJIT_CC_MSC_GE(18, 0, 0))
+# define ASMJIT_CC_HAS_DELETE_FUNCTION         (ASMJIT_CC_MSC_GE(18, 0, 0))
+# define ASMJIT_CC_HAS_FINAL                   (ASMJIT_CC_MSC_GE(14, 0, 0))
+# define ASMJIT_CC_HAS_INITIALIZER_LIST        (ASMJIT_CC_MSC_GE(18, 0, 0))
+# define ASMJIT_CC_HAS_LAMBDA                  (ASMJIT_CC_MSC_GE(16, 0, 0))
 # define ASMJIT_CC_HAS_NATIVE_CHAR             (1)
 # define ASMJIT_CC_HAS_NATIVE_CHAR16_T         (0)
 # define ASMJIT_CC_HAS_NATIVE_CHAR32_T         (0)
@@ -521,23 +498,11 @@
 # else
 #  define ASMJIT_CC_HAS_NATIVE_WCHAR_T         (0)
 # endif
-# define ASMJIT_CC_HAS_NOEXCEPT                (_MSC_FULL_VER >= 180021114)
-# define ASMJIT_CC_HAS_NULLPTR                 (_MSC_VER >= 1600)
-# define ASMJIT_CC_HAS_OVERRIDE                (_MSC_VER >= 1400)
-# define ASMJIT_CC_HAS_RVALUE                  (_MSC_VER >= 1600)
-# define ASMJIT_CC_HAS_STATIC_ASSERT           (_MSC_VER >= 1600)
-#else
-# error "[asmjit] Unable to detect the C/C++ compiler."
-#endif
-
-#if !defined(ASMJIT_CC_GCC_VERSION_EQ)
-# define ASMJIT_CC_GCC_VERSION_EQ(x, y, z)     (0)
-# define ASMJIT_CC_GCC_VERSION_GE(x, y, z)     (0)
-#endif
-
-#if !defined(ASMJIT_CC_CLANG_VERSION_EQ)
-# define ASMJIT_CC_CLANG_VERSION_EQ(x, y, z)   (0)
-# define ASMJIT_CC_CLANG_VERSION_GE(x, y, z)   (0)
+# define ASMJIT_CC_HAS_NOEXCEPT                (ASMJIT_CC_MSC_GE(18, 0, 21114))
+# define ASMJIT_CC_HAS_NULLPTR                 (ASMJIT_CC_MSC_GE(16, 0, 0))
+# define ASMJIT_CC_HAS_OVERRIDE                (ASMJIT_CC_MSC_GE(14, 0, 0))
+# define ASMJIT_CC_HAS_RVALUE                  (ASMJIT_CC_MSC_GE(16, 0, 0))
+# define ASMJIT_CC_HAS_STATIC_ASSERT           (ASMJIT_CC_MSC_GE(16, 0, 0))
 #endif
 
 #if !ASMJIT_CC_HAS_ATTRIBUTE
@@ -559,7 +524,7 @@
 # define ASMJIT_CC_HAS_DECLSPEC_NOINLINE       (0)
 # define ASMJIT_CC_HAS_DECLSPEC_NORETURN       (0)
 #endif
-// [@CC}@]
+// [@CC_FEATURES}@]
 
 // [@CC_API{@]
 // \def ASMJIT_API
@@ -568,7 +533,7 @@
 # if defined(ASMJIT_STATIC)
 #  define ASMJIT_API
 # elif ASMJIT_OS_WINDOWS
-#  if (ASMJIT_CC_GCC || ASMJIT_CC_CLANG) && !defined(__MINGW32__)
+#  if (ASMJIT_CC_GCC || ASMJIT_CC_CLANG) && !ASMJIT_CC_MINGW
 #   if defined(ASMJIT_EXPORTS)
 #    define ASMJIT_API __attribute__((__dllexport__))
 #   else
@@ -582,7 +547,7 @@
 #   endif
 #  endif
 # else
-#  if ASMJIT_CC_CLANG || ASMJIT_CC_GCC_VERSION_GE(4, 0, 0)
+#  if ASMJIT_CC_CLANG || ASMJIT_CC_GCC_GE(4, 0, 0)
 #   define ASMJIT_API __attribute__((__visibility__("default")))
 #  endif
 # endif
@@ -733,6 +698,10 @@
 #define ASMJIT_ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 // [@CC_ARRAY_SIZE}@]
 
+// ============================================================================
+// [asmjit::Build - STDTYPES]
+// ============================================================================
+
 // [@STDTYPES{@]
 #if defined(__MINGW32__) || defined(__MINGW64__)
 # include <sys/types.h>
@@ -769,6 +738,20 @@ typedef unsigned __int64 uint64_t;
 # define ASMJIT_UINT64_C(x) (x##ull)
 #endif
 // [@STDTYPES}@]
+
+// ============================================================================
+// [asmjit::Build - Dependencies]
+// ============================================================================
+
+#include <new>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if ASMJIT_OS_POSIX
+# include <pthread.h>
+#endif // ASMJIT_OS_POSIX
 
 // ============================================================================
 // [asmjit::Build - Additional]
