@@ -358,7 +358,7 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   ASMJIT_API VarData* _newVd(uint32_t type, uint32_t size, uint32_t c, const char* name);
 
   //! Create a new `Var`.
-  virtual Error _newVar(Var* var, uint32_t type, const char* name, va_list ap) = 0;
+  virtual Error _newVar(Var* var, uint32_t vType, const char* name, va_list ap) = 0;
 
   //! Alloc variable `var`.
   ASMJIT_API Error alloc(Var& var);

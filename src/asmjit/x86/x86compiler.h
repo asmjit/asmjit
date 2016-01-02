@@ -987,19 +987,11 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // [Vars]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error _newVar(Var* var, uint32_t type, const char* name, va_list ap);
+  ASMJIT_API virtual Error _newVar(Var* var, uint32_t vType, const char* name, va_list ap);
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
-#define ASMJIT_NEW_VAR_TYPE(func, type, typeFirst, typeLast) \
-  ASMJIT_INLINE type func(uint32_t vType) { \
-    ASMJIT_ASSERT(vType < kX86VarTypeCount); \
-    ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
-    \
-    type var(NoInit); \
-    _newVar(&var, vType, NULL, NULL); \
-    return var; \
-  } \
-  ASMJIT_NOINLINE type func(uint32_t vType, const char* name, ...) { \
+#define ASMJIT_NEW_VAR_TYPE_EX(func, type, typeFirst, typeLast) \
+  ASMJIT_NOINLINE type new##func(uint32_t vType, const char* name, ...) { \
     ASMJIT_ASSERT(vType < kX86VarTypeCount); \
     ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
     \
@@ -1012,14 +1004,8 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     va_end(ap); \
     return var; \
   }
-#define ASMJIT_NEW_VAR_AUTO(func, type, typeId) \
-  ASMJIT_INLINE type func() { \
-    type var(NoInit); \
-    _newVar(&var, typeId, NULL, NULL); \
-    return var; \
-  } \
-  \
-  ASMJIT_NOINLINE type func(const char* name, ...) { \
+#define ASMJIT_NEW_VAR_AUTO_EX(func, type, typeId) \
+  ASMJIT_NOINLINE type new##func(const char* name, ...) { \
     type var(NoInit); \
     va_list ap; \
     va_start(ap, name); \
@@ -1030,43 +1016,91 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     return var; \
   }
 #else
-  ASMJIT_INLINE type func() { \
+#define ASMJIT_NEW_VAR_TYPE_EX(func, type, typeFirst, typeLast) \
+  ASMJIT_NOINLINE type new##func(uint32_t vType, const char* name, ...) { \
+    ASMJIT_ASSERT(vType < kX86VarTypeCount); \
+    ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
+    \
     type var(NoInit); \
-    _newVar(&var, typeId, NULL, NULL); \
+    _newVar(&var, vType, NULL, NULL); \
     return var; \
-  } \
-  \
-  ASMJIT_NOINLINE type func(const char* name, ...) { \
+  }
+#define ASMJIT_NEW_VAR_AUTO_EX(func, type, typeId) \
+  ASMJIT_NOINLINE type new##func(const char* name, ...) { \
     type var(NoInit); \
     _newVar(&var, typeId, NULL, NULL); \
     return var; \
   }
 #endif
 
-  ASMJIT_NEW_VAR_TYPE(newGpVar  , X86GpVar , _kVarTypeIntStart   , _kVarTypeIntEnd   )
-  ASMJIT_NEW_VAR_TYPE(newMmVar  , X86MmVar , _kX86VarTypeMmStart , _kX86VarTypeMmEnd )
-  ASMJIT_NEW_VAR_TYPE(newXmmVar , X86XmmVar, _kX86VarTypeXmmStart, _kX86VarTypeXmmEnd)
-  ASMJIT_NEW_VAR_TYPE(newYmmVar , X86YmmVar, _kX86VarTypeYmmStart, _kX86VarTypeYmmEnd)
+#define ASMJIT_REGISTER_VAR_TYPE(func, type, typeFirst, typeLast) \
+  ASMJIT_INLINE type get##func##ById(uint32_t vType, uint32_t id) { \
+    ASMJIT_ASSERT(vType < kX86VarTypeCount); \
+    ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
+    \
+    type var(NoInit); \
+    \
+    const X86VarInfo& vInfo = _x86VarInfo[vType]; \
+    var._init_packed_op_sz_w0_id(kOperandTypeVar, vInfo.getSize(), vInfo.getReg() << 8, id); \
+    var._vreg.vType = vType; \
+    \
+    return var; \
+  } \
+  \
+  ASMJIT_INLINE type new##func(uint32_t vType) { \
+    ASMJIT_ASSERT(vType < kX86VarTypeCount); \
+    ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
+    \
+    type var(NoInit); \
+    _newVar(&var, vType, NULL, NULL); \
+    return var; \
+  } \
+  \
+  ASMJIT_NEW_VAR_TYPE_EX(func, type, typeFirst, typeLast)
 
-  ASMJIT_NEW_VAR_AUTO(newInt8   , X86GpVar , kVarTypeInt8    )
-  ASMJIT_NEW_VAR_AUTO(newInt16  , X86GpVar , kVarTypeInt16   )
-  ASMJIT_NEW_VAR_AUTO(newInt32  , X86GpVar , kVarTypeInt32   )
-  ASMJIT_NEW_VAR_AUTO(newInt64  , X86GpVar , kVarTypeInt64   )
-  ASMJIT_NEW_VAR_AUTO(newIntPtr , X86GpVar , kVarTypeIntPtr  )
-  ASMJIT_NEW_VAR_AUTO(newUInt8  , X86GpVar , kVarTypeUInt8   )
-  ASMJIT_NEW_VAR_AUTO(newUInt16 , X86GpVar , kVarTypeUInt16  )
-  ASMJIT_NEW_VAR_AUTO(newUInt32 , X86GpVar , kVarTypeUInt32  )
-  ASMJIT_NEW_VAR_AUTO(newUInt64 , X86GpVar , kVarTypeUInt64  )
-  ASMJIT_NEW_VAR_AUTO(newUIntPtr, X86GpVar , kVarTypeUIntPtr )
-  ASMJIT_NEW_VAR_AUTO(newMm     , X86MmVar , kX86VarTypeMm   )
-  ASMJIT_NEW_VAR_AUTO(newXmm    , X86XmmVar, kX86VarTypeXmm  )
-  ASMJIT_NEW_VAR_AUTO(newXmmSs  , X86XmmVar, kX86VarTypeXmmSs)
-  ASMJIT_NEW_VAR_AUTO(newXmmSd  , X86XmmVar, kX86VarTypeXmmSd)
-  ASMJIT_NEW_VAR_AUTO(newXmmPs  , X86XmmVar, kX86VarTypeXmmPs)
-  ASMJIT_NEW_VAR_AUTO(newXmmPd  , X86XmmVar, kX86VarTypeXmmPd)
-  ASMJIT_NEW_VAR_AUTO(newYmm    , X86YmmVar, kX86VarTypeYmm  )
-  ASMJIT_NEW_VAR_AUTO(newYmmPs  , X86YmmVar, kX86VarTypeYmmPs)
-  ASMJIT_NEW_VAR_AUTO(newYmmPd  , X86YmmVar, kX86VarTypeYmmPd)
+#define ASMJIT_REGISTER_VAR_AUTO(func, type, typeId) \
+  ASMJIT_INLINE type get##func##ById(uint32_t id) { \
+    type var(NoInit); \
+    \
+    const X86VarInfo& vInfo = _x86VarInfo[typeId]; \
+    var._init_packed_op_sz_w0_id(kOperandTypeVar, vInfo.getSize(), vInfo.getReg() << 8, id); \
+    var._vreg.vType = typeId; \
+    \
+    return var; \
+  } \
+  \
+  ASMJIT_INLINE type new##func() { \
+    type var(NoInit); \
+    _newVar(&var, typeId, NULL, NULL); \
+    return var; \
+  } \
+  \
+  ASMJIT_NEW_VAR_AUTO_EX(func, type, typeId)
+
+  ASMJIT_REGISTER_VAR_TYPE(GpVar  , X86GpVar , _kVarTypeIntStart   , _kVarTypeIntEnd   )
+  ASMJIT_REGISTER_VAR_TYPE(MmVar  , X86MmVar , _kX86VarTypeMmStart , _kX86VarTypeMmEnd )
+  ASMJIT_REGISTER_VAR_TYPE(XmmVar , X86XmmVar, _kX86VarTypeXmmStart, _kX86VarTypeXmmEnd)
+  ASMJIT_REGISTER_VAR_TYPE(YmmVar , X86YmmVar, _kX86VarTypeYmmStart, _kX86VarTypeYmmEnd)
+
+  ASMJIT_REGISTER_VAR_AUTO(Int8   , X86GpVar , kVarTypeInt8    )
+  ASMJIT_REGISTER_VAR_AUTO(Int16  , X86GpVar , kVarTypeInt16   )
+  ASMJIT_REGISTER_VAR_AUTO(Int32  , X86GpVar , kVarTypeInt32   )
+  ASMJIT_REGISTER_VAR_AUTO(Int64  , X86GpVar , kVarTypeInt64   )
+  ASMJIT_REGISTER_VAR_AUTO(IntPtr , X86GpVar , kVarTypeIntPtr  )
+  ASMJIT_REGISTER_VAR_AUTO(UInt8  , X86GpVar , kVarTypeUInt8   )
+  ASMJIT_REGISTER_VAR_AUTO(UInt16 , X86GpVar , kVarTypeUInt16  )
+  ASMJIT_REGISTER_VAR_AUTO(UInt32 , X86GpVar , kVarTypeUInt32  )
+  ASMJIT_REGISTER_VAR_AUTO(UInt64 , X86GpVar , kVarTypeUInt64  )
+  ASMJIT_REGISTER_VAR_AUTO(UIntPtr, X86GpVar , kVarTypeUIntPtr )
+  ASMJIT_REGISTER_VAR_AUTO(Mm     , X86MmVar , kX86VarTypeMm   )
+  ASMJIT_REGISTER_VAR_AUTO(Xmm    , X86XmmVar, kX86VarTypeXmm  )
+  ASMJIT_REGISTER_VAR_AUTO(XmmSs  , X86XmmVar, kX86VarTypeXmmSs)
+  ASMJIT_REGISTER_VAR_AUTO(XmmSd  , X86XmmVar, kX86VarTypeXmmSd)
+  ASMJIT_REGISTER_VAR_AUTO(XmmPs  , X86XmmVar, kX86VarTypeXmmPs)
+  ASMJIT_REGISTER_VAR_AUTO(XmmPd  , X86XmmVar, kX86VarTypeXmmPd)
+  ASMJIT_REGISTER_VAR_AUTO(Ymm    , X86YmmVar, kX86VarTypeYmm  )
+  ASMJIT_REGISTER_VAR_AUTO(YmmPs  , X86YmmVar, kX86VarTypeYmmPs)
+  ASMJIT_REGISTER_VAR_AUTO(YmmPd  , X86YmmVar, kX86VarTypeYmmPd)
 
 #undef ASMJIT_NEW_VAR_AUTO
 #undef ASMJIT_NEW_VAR_TYPE

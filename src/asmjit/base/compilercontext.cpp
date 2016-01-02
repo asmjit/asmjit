@@ -129,7 +129,9 @@ VarCell* Context::_newVarCell(VarData* vd) {
       case 16: _mem16ByteVarsUsed++; break;
       case 32: _mem32ByteVarsUsed++; break;
       case 64: _mem64ByteVarsUsed++; break;
-      default: ASMJIT_ASSERT(!"Reached");
+
+      default:
+        ASMJIT_NOT_REACHED();
     }
   }
 
@@ -229,7 +231,9 @@ Error Context::resolveCellOffsets() {
       case 16: offset = pos16; pos16 += 16; break;
       case 32: offset = pos32; pos32 += 32; break;
       case 64: offset = pos64; pos64 += 64; break;
-      default: ASMJIT_ASSERT(!"Reached");
+
+      default:
+        ASMJIT_NOT_REACHED();
     }
 
     varCell->setOffset(static_cast<int32_t>(offset));

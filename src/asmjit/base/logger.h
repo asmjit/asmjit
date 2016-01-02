@@ -235,6 +235,11 @@ struct ASMJIT_VIRTAPI StringLogger : public Logger {
     return _stringBuilder.getData();
   }
 
+  //! Get the length of the string returned by `getString()`.
+  ASMJIT_INLINE size_t getLength() const {
+    return _stringBuilder.getLength();
+  }
+
   //! Clear the resulting string.
   ASMJIT_INLINE void clearString() {
     _stringBuilder.clear();

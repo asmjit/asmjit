@@ -237,7 +237,7 @@ ASMJIT_API void debugOutput(const char* str);
 //! If you have problems with assertions put a breakpoint at assertionFailed()
 //! function (asmjit/base/globals.cpp) and check the call stack to locate the
 //! failing code.
-ASMJIT_API void assertionFailed(const char* file, int line, const char* msg);
+ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, const char* msg);
 
 //! \}
 
@@ -258,8 +258,14 @@ ASMJIT_API void assertionFailed(const char* file, int line, const char* msg);
         #exp); \
     } \
   } while (0)
+# define ASMJIT_NOT_REACHED() \
+  ::asmjit::DebugUtils::assertionFailed( \
+    __FILE__ + ::asmjit::DebugUtils::kSourceRelativePathOffset, \
+    __LINE__, \
+    "MUST NOT BE REACHED")
 #else
 # define ASMJIT_ASSERT(exp) ASMJIT_NOP
+# define ASMJIT_NOT_REACHED() ASMJIT_ASSUME(0)
 #endif // DEBUG
 
 // ============================================================================

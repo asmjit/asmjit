@@ -790,7 +790,7 @@ Error X86Compiler::_newVar(Var* var, uint32_t vType, const char* name, va_list a
     return getLastError();
   }
 
-  var->_init_packed_op_sz_w0_id(kOperandTypeVar, vd->getSize(), vInfo.getReg() << 8, vd->getId());
+  var->_init_packed_op_sz_w0_id(kOperandTypeVar, vInfo.getSize(), vInfo.getReg() << 8, vd->getId());
   var->_vreg.vType = vType;
   return kErrorOk;
 }

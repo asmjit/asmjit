@@ -352,7 +352,6 @@ Error X86Assembler::_setArch(uint32_t arch) {
   }
 #endif // ASMJIT_BUILD_X64
 
-  ASMJIT_ASSERT(!"Reached");
   return kErrorInvalidArgument;
 }
 
@@ -548,7 +547,7 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
         break;
 
       default:
-        ASMJIT_ASSERT(!"Reached");
+        ASMJIT_NOT_REACHED();
     }
 
     switch (rd.size) {
@@ -561,7 +560,7 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
         break;
 
       default:
-        ASMJIT_ASSERT(!"Reached");
+        ASMJIT_NOT_REACHED();
     }
 
     // Handle the trampoline case.
@@ -3814,7 +3813,7 @@ _EmitImm:
     case 8: EMIT_QWORD(imVal             ); break;
 
     default:
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
   }
   goto _EmitDone;
 

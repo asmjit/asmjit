@@ -2823,7 +2823,7 @@ struct X86Test_MiscUnfollow : public X86Test {
     return resultRet == expectRet;
   }
 
-  static ASMJIT_FASTCALL void handler() { longjmp(globalJmpBuf, 1); }
+  static void ASMJIT_FASTCALL handler() { longjmp(globalJmpBuf, 1); }
 };
 
 // ============================================================================

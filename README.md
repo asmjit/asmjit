@@ -40,8 +40,8 @@ Supported Environments
   * CLang (tested by Travis-CI)
   * GCC (tested by Travis-CI)
   * MinGW (tested manually)
-  * MSVC (tested manually)
-  * Other compilers require some testing and support in `asmjit/build.h` header
+  * MSVC (tested manually, at least Visual Studio 2003 required)
+  * Other compilers require some testing and support in `asmjit/build.h`
 
 ### Backends
 

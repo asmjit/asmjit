@@ -672,12 +672,6 @@ void X86Context::emitLoad(VarData* vd, uint32_t regIndex, const char* reason) {
       break;
 #endif // ASMJIT_BUILD_X64
 
-    case kVarTypeFp32:
-    case kVarTypeFp64:
-      // Compiler doesn't manage FPU stack.
-      ASMJIT_ASSERT(!"Reached");
-      break;
-
     case kX86VarTypeMm:
       node = compiler->emit(kX86InstIdMovq, x86::mm(regIndex), m);
       break;
@@ -701,6 +695,12 @@ void X86Context::emitLoad(VarData* vd, uint32_t regIndex, const char* reason) {
     case kX86VarTypeXmmPd:
       node = compiler->emit(kX86InstIdMovapd, x86::xmm(regIndex), m);
       break;
+
+    // Compiler doesn't manage FPU stack.
+    case kVarTypeFp32:
+    case kVarTypeFp64:
+    default:
+      ASMJIT_NOT_REACHED();
   }
 
   if (!_emitComments)
@@ -743,12 +743,6 @@ void X86Context::emitSave(VarData* vd, uint32_t regIndex, const char* reason) {
       break;
 #endif // ASMJIT_BUILD_X64
 
-    case kVarTypeFp32:
-    case kVarTypeFp64:
-      // Compiler doesn't manage FPU stack.
-      ASMJIT_ASSERT(!"Reached");
-      break;
-
     case kX86VarTypeMm:
       node = compiler->emit(kX86InstIdMovq, m, x86::mm(regIndex));
       break;
@@ -772,6 +766,12 @@ void X86Context::emitSave(VarData* vd, uint32_t regIndex, const char* reason) {
     case kX86VarTypeXmmPd:
       node = compiler->emit(kX86InstIdMovapd, m, x86::xmm(regIndex));
       break;
+
+    // Compiler doesn't manage FPU stack.
+    case kVarTypeFp32:
+    case kVarTypeFp64:
+    default:
+      ASMJIT_NOT_REACHED();
   }
 
   if (!_emitComments)
@@ -807,12 +807,6 @@ void X86Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegInde
       break;
 #endif // ASMJIT_BUILD_X64
 
-    case kVarTypeFp32:
-    case kVarTypeFp64:
-      // Compiler doesn't manage FPU stack.
-      ASMJIT_ASSERT(!"Reached");
-      break;
-
     case kX86VarTypeMm:
       node = compiler->emit(kX86InstIdMovq, x86::mm(toRegIndex), x86::mm(fromRegIndex));
       break;
@@ -833,6 +827,12 @@ void X86Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegInde
     case kX86VarTypeXmmPd:
       node = compiler->emit(kX86InstIdMovaps, x86::xmm(toRegIndex), x86::xmm(fromRegIndex));
       break;
+
+    case kVarTypeFp32:
+    case kVarTypeFp64:
+    default:
+      // Compiler doesn't manage FPU stack.
+      ASMJIT_NOT_REACHED();
   }
 
   if (!_emitComments)
@@ -937,7 +937,7 @@ void X86Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32
 
       if (Utils::inInterval<uint32_t>(srcType, _kVarTypeIntStart, _kVarTypeIntEnd)) {
         // TODO: [COMPILER] Variable conversion not supported.
-        ASMJIT_ASSERT(!"Reached");
+        ASMJIT_NOT_REACHED();
       }
       break;
 
@@ -956,7 +956,7 @@ void X86Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32
 
       if (Utils::inInterval<uint32_t>(srcType, _kVarTypeIntStart, _kVarTypeIntEnd)) {
         // TODO: [COMPILER] Variable conversion not supported.
-        ASMJIT_ASSERT(!"Reached");
+        ASMJIT_NOT_REACHED();
       }
       break;
   }
@@ -1139,7 +1139,7 @@ void X86Context::emitMoveVarOnStack(
       if (srcType == kX86VarTypeXmmSs || srcType == kX86VarTypeXmmPs || srcType == kX86VarTypeXmm)
         goto _MovXmmD;
 
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
 
     case kVarTypeFp64:
@@ -1148,22 +1148,22 @@ void X86Context::emitMoveVarOnStack(
       if (srcType == kX86VarTypeXmmSd || srcType == kX86VarTypeXmmPd || srcType == kX86VarTypeXmm)
         goto _MovXmmQ;
 
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
 
     case kX86VarTypeXmm:
       // TODO: [COMPILER].
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
 
     case kX86VarTypeXmmPs:
       // TODO: [COMPILER].
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
 
     case kX86VarTypeXmmPd:
       // TODO: [COMPILER].
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
   }
   return;
@@ -1343,7 +1343,7 @@ _Move64:
       break;
 
     default:
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
   }
 }
@@ -1395,7 +1395,7 @@ _Move32:
     case kVarTypeFp32:
     case kVarTypeFp64:
       // Compiler doesn't manage FPU stack.
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
 
     case kX86VarTypeMm:
@@ -1411,7 +1411,7 @@ _Move32:
       break;
 
     default:
-      ASMJIT_ASSERT(!"Reached");
+      ASMJIT_NOT_REACHED();
       break;
   }
 }
@@ -1969,19 +1969,9 @@ static ASMJIT_INLINE uint32_t X86Context_typeOfConvertedSArg(X86Context* self, u
   if (Utils::inInterval<uint32_t>(aType, _kVarTypeIntStart, _kVarTypeIntEnd))
     return aType;
 
-  if (aType == kVarTypeFp32)
-    return kX86VarTypeXmmSs;
+  if (aType == kVarTypeFp32) return kX86VarTypeXmmSs;
+  if (aType == kVarTypeFp64) return kX86VarTypeXmmSd;
 
-  if (aType == kVarTypeFp64)
-    return kX86VarTypeXmmSd;
-
-  if (Utils::inInterval<uint32_t>(aType, _kX86VarTypeXmmStart, _kX86VarTypeXmmEnd))
-    return aType;
-
-  if (Utils::inInterval<uint32_t>(aType, _kX86VarTypeYmmStart, _kX86VarTypeYmmEnd))
-    return aType;
-
-  ASMJIT_ASSERT(!"Reached");
   return aType;
 }
 
@@ -2775,7 +2765,7 @@ _NextGroup:
               }
               else {
                 // TODO: Fix possible other return type conversions.
-                ASMJIT_ASSERT(!"Reached");
+                ASMJIT_NOT_REACHED();
               }
             }
           }
@@ -5623,7 +5613,7 @@ _NextGroup:
             }
             else if (va->hasFlag(kVarAttrWConv)) {
               // TODO: [COMPILER] Function Argument Conversion.
-              ASMJIT_ASSERT(!"Reached");
+              ASMJIT_NOT_REACHED();
             }
             else {
               vd->_isMemArg = true;
@@ -6018,7 +6008,7 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
               break;
 
             default:
-              ASMJIT_ASSERT(!"Reached");
+              ASMJIT_NOT_REACHED();
           }
         }
         else {

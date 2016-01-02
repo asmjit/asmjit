@@ -605,6 +605,18 @@
 #endif
 // [@CC_NOINLINE}@]
 
+// [@CC_NORETURN{@]
+// \def ASMJIT_NORETURN
+// The decorated function never returns (exit, assertion failure, etc...).
+#if ASMJIT_CC_HAS_ATTRIBUTE_NORETURN
+# define ASMJIT_NORETURN __attribute__((__noreturn__))
+#elif ASMJIT_CC_HAS_DECLSPEC_NORETURN
+# define ASMJIT_NORETURN __declspec(noreturn)
+#else
+# define ASMJIT_NORETURN
+#endif
+// [@CC_NORETURN}@]
+
 // [@CC_CDECL{@]
 // \def ASMJIT_CDECL
 // Standard C function calling convention decorator (__cdecl).
@@ -664,6 +676,20 @@
 # define ASMJIT_NOP ((void)0)
 #endif
 // [@CC_NOP}@]
+
+// [@CC_ASSUME{@]
+// \def ASMJIT_ASSUME(exp)
+// Assume that the expression exp is always true.
+#if ASMJIT_CC_HAS_ASSUME
+# define ASMJIT_ASSUME(exp) __assume(exp)
+#elif ASMJIT_CC_HAS_BUILTIN_ASSUME
+# define ASMJIT_ASSUME(exp) __builtin_assume(exp)
+#elif ASMJIT_CC_HAS_BUILTIN_UNREACHABLE
+# define ASMJIT_ASSUME(exp) do { if (!(exp)) __builtin_unreachable(); } while (0)
+#else
+# define ASMJIT_ASSUME(exp) ((void)0)
+#endif
+// [@CC_ASSUME}@]
 
 // [@CC_EXPECT{@]
 // \def ASMJIT_LIKELY(exp)
@@ -775,31 +801,31 @@ typedef unsigned __int64 uint64_t;
 #endif // ASMJIT_BUILD_HOST
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
-# define ASMJIT_ENUM(_Name_) enum _Name_ : uint32_t
+# define ASMJIT_ENUM(name) enum name : uint32_t
 #else
-# define ASMJIT_ENUM(_Name_) enum _Name_
+# define ASMJIT_ENUM(name) enum name
 #endif
 
 #if ASMJIT_ARCH_LE
-# define _ASMJIT_ARCH_INDEX(_Total_, _Index_) (_Index_)
+# define _ASMJIT_ARCH_INDEX(total, index) (index)
 #else
-# define _ASMJIT_ARCH_INDEX(_Total_, _Index_) ((_Total_) - 1 - (_Index_))
+# define _ASMJIT_ARCH_INDEX(total, index) ((total) - 1 - (index))
 #endif
 
 #if !defined(ASMJIT_ALLOC) && !defined(ASMJIT_REALLOC) && !defined(ASMJIT_FREE)
-# define ASMJIT_ALLOC(_Size_) ::malloc(_Size_)
-# define ASMJIT_REALLOC(_Ptr_, _Size_) ::realloc(_Ptr_, _Size_)
-# define ASMJIT_FREE(_Ptr_) ::free(_Ptr_)
+# define ASMJIT_ALLOC(size) ::malloc(size)
+# define ASMJIT_REALLOC(ptr, size) ::realloc(ptr, size)
+# define ASMJIT_FREE(ptr) ::free(ptr)
 #else
 # if !defined(ASMJIT_ALLOC) || !defined(ASMJIT_REALLOC) || !defined(ASMJIT_FREE)
-#  error "[asmjit] You must redefine ASMJIT_ALLOC, ASMJIT_REALLOC and ASMJIT_FREE."
+#  error "[asmjit] You must provide ASMJIT_ALLOC, ASMJIT_REALLOC and ASMJIT_FREE."
 # endif
 #endif // !ASMJIT_ALLOC && !ASMJIT_REALLOC && !ASMJIT_FREE
 
-#define ASMJIT_NO_COPY(_Type_) \
+#define ASMJIT_NO_COPY(Self) \
 private: \
-  ASMJIT_INLINE _Type_(const _Type_& other); \
-  ASMJIT_INLINE _Type_& operator=(const _Type_& other); \
+  ASMJIT_INLINE Self(const Self& other); \
+  ASMJIT_INLINE Self& operator=(const Self& other); \
 public:
 
 // ============================================================================
