@@ -1186,7 +1186,7 @@ ASMJIT_ENUM(X86InstOptions) {
   //! VEX prefix (AVX).
   //!
   //! Ignored if the instruction is not AVX or `kX86InstOptionEVEX` is used.
-  kX86InstOptionVex3 = 0x00001000,
+  kX86InstOptionVex3 = 0x00000200,
 
   //! Force 4-byte EVEX prefix even if the instruction is encodable by using
   //! VEX prefix. Please note that all higher bits from `kX86InstOptionEvex`

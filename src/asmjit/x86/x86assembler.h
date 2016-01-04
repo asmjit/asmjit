@@ -26,93 +26,93 @@ namespace asmjit {
 // ============================================================================
 
 // \internal
-#define ASMJIT_X86_EMIT_OPTIONS(_Class_) \
+#define ASMJIT_X86_EMIT_OPTIONS(T) \
   /*! Force short form of jmp/jcc instruction. */ \
-  ASMJIT_INLINE _Class_& short_() { \
+  ASMJIT_INLINE T& short_() { \
     _instOptions |= kInstOptionShortForm; \
     return *this; \
   } \
   \
   /*! Force long form of jmp/jcc instruction. */ \
-  ASMJIT_INLINE _Class_& long_() { \
+  ASMJIT_INLINE T& long_() { \
     _instOptions |= kInstOptionLongForm; \
     return *this; \
   } \
   \
   /*! Condition is likely to be taken (has only benefit on P4). */ \
-  ASMJIT_INLINE _Class_& taken() { \
+  ASMJIT_INLINE T& taken() { \
     _instOptions |= kInstOptionTaken; \
     return *this; \
   } \
   \
   /*! Condition is unlikely to be taken (has only benefit on P4). */ \
-  ASMJIT_INLINE _Class_& notTaken() { \
+  ASMJIT_INLINE T& notTaken() { \
     _instOptions |= kInstOptionNotTaken; \
     return *this; \
   } \
   \
   /*! Use LOCK prefix. */ \
-  ASMJIT_INLINE _Class_& lock() { \
+  ASMJIT_INLINE T& lock() { \
     _instOptions |= kX86InstOptionLock; \
     return *this; \
   } \
   \
   /*! Force REX prefix (X64). */ \
-  ASMJIT_INLINE _Class_& rex() { \
+  ASMJIT_INLINE T& rex() { \
     _instOptions |= kX86InstOptionRex; \
     return *this; \
   } \
   \
   /*! Force 3-byte VEX prefix (AVX+). */ \
-  ASMJIT_INLINE _Class_& vex3() { \
+  ASMJIT_INLINE T& vex3() { \
     _instOptions |= kX86InstOptionVex3; \
     return *this; \
   } \
   \
   /*! Force 4-byte EVEX prefix (AVX512+). */ \
-  ASMJIT_INLINE _Class_& evex() { \
+  ASMJIT_INLINE T& evex() { \
     _instOptions |= kX86InstOptionEvex; \
     return *this; \
   } \
   \
   /*! Use zeroing instead of merging (AVX512+). */ \
-  ASMJIT_INLINE _Class_& z() { \
+  ASMJIT_INLINE T& z() { \
     _instOptions |= kX86InstOptionEvexZero; \
     return *this; \
   } \
   \
   /*! Broadcast one element to all other elements (AVX512+). */ \
-  ASMJIT_INLINE _Class_& _1ToN() { \
+  ASMJIT_INLINE T& _1ToN() { \
     _instOptions |= kX86InstOptionEvexOneN; \
     return *this; \
   } \
   \
   /*! Suppress all exceptions (AVX512+). */ \
-  ASMJIT_INLINE _Class_& sae() { \
+  ASMJIT_INLINE T& sae() { \
     _instOptions |= kX86InstOptionEvexSae; \
     return *this; \
   } \
   \
   /*! Static rounding mode `round-to-nearest` (even) and `SAE` (AVX512+). */ \
-  ASMJIT_INLINE _Class_& rn_sae() { \
+  ASMJIT_INLINE T& rn_sae() { \
     _instOptions |= kX86InstOptionEvexRnSae; \
     return *this; \
   } \
   \
   /*! Static rounding mode `round-down` (toward -inf) and `SAE` (AVX512+). */ \
-  ASMJIT_INLINE _Class_& rd_sae() { \
+  ASMJIT_INLINE T& rd_sae() { \
     _instOptions |= kX86InstOptionEvexRdSae; \
     return *this; \
   } \
   \
   /*! Static rounding mode `round-up` (toward +inf) and `SAE` (AVX512+). */ \
-  ASMJIT_INLINE _Class_& ru_sae() { \
+  ASMJIT_INLINE T& ru_sae() { \
     _instOptions |= kX86InstOptionEvexRuSae; \
     return *this; \
   } \
   \
   /*! Static rounding mode `round-toward-zero` (truncate) and `SAE` (AVX512+). */ \
-  ASMJIT_INLINE _Class_& rz_sae() { \
+  ASMJIT_INLINE T& rz_sae() { \
     _instOptions |= kX86InstOptionEvexRzSae; \
     return *this; \
   }
@@ -3558,9 +3558,9 @@ struct ASMJIT_VIRTAPI X86Assembler : public Assembler {
   INST_1x(xsave64, kX86InstIdXsave64, X86Mem)
 
   //! Save Processor Extended States specified by `EDX:EAX` (Optimized) (XSAVEOPT).
-  INST_1x(xsaveopt, kX86InstIdXsave, X86Mem)
+  INST_1x(xsaveopt, kX86InstIdXsaveopt, X86Mem)
   //! Save Processor Extended States specified by `EDX:EAX` (Optimized) (XSAVEOPT&X64).
-  INST_1x(xsaveopt64, kX86InstIdXsave64, X86Mem)
+  INST_1x(xsaveopt64, kX86InstIdXsaveopt64, X86Mem)
 
   //! Get XCR - `EDX:EAX <- XCR[ECX]` (XSAVE).
   INST_0x(xgetbv, kX86InstIdXgetbv)

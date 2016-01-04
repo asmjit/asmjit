@@ -123,10 +123,50 @@ ASMJIT_ENUM(InstOptions) {
   //! conditional hints after P4 and AMD has never supported them.
   kInstOptionNotTaken = 0x00000008,
 
-  //! Don't follow the jump (Compiler-only).
+  //! Don't follow the jump (Compiler only).
   //!
   //! Prevents following the jump during compilation.
-  kInstOptionUnfollow = 0x00000010
+  kInstOptionUnfollow = 0x00000010,
+
+  //! Overwrite the destination operand (Compiler only).
+  //!
+  //! Hint that is important for variable liveness analysis. It tells the
+  //! compiler that the destination operand will be overwritten now or by
+  //! adjacent instructions. Compiler knows when a variable is overwritten by
+  //! a single instruction, for example you don't have to mark "movaps" or
+  //! "pxor x, x" instructions, however, if a pair of instructions is used,
+  //! and the first of them doesn't completely overwrite the content of the
+  //! destination, then the compiler fails to mark that variable as dead in.
+  //!
+  //! X86/X64 Specific
+  //! ----------------
+  //!
+  //!   - All instructions that always overwrite at least the size of the
+  //!     register that the variable uses, for example "mov", "movq", "movaps"
+  //!     don't need the overwrite modifier to be used - conversion, shuffle,
+  //!     and other miscellaneous instructions included.
+  //!
+  //!   - All instructions that clear the destination register if all operands
+  //!     are the same, for example "xor x, x", "pcmpeqb", etc...
+  //!     
+  //!   - Consecutive instructions that partially overwrite the variable until
+  //!     there is no old content require the `overwrite()` to be used. Some
+  //!     examples (not always the best use cases thought):
+  //!
+  //!     - `movlps xmm0, ?` followed by `movhps xmm0, ?` and vice versa
+  //!     - `movlpd xmm0, ?` followed by `movhpd xmm0, ?` and vice versa
+  //!     - `mov al, ?` followed by `and ax, 0xFF`
+  //!     - `mov al, ?` followed by `mov ah, al`
+  //!     - `pinsrq xmm0, ?, 0` followed by `pinsrq xmm0, ?, 1`
+  //!
+  //!   - If allocated variable is used temporarily for scalar operations. For
+  //!     example if you allocate a full vector like `X86Compiler::newXmm()`
+  //!     and then use that vector for scalar operations you should use
+  //!     `overwrite()` directive:
+  //!
+  //!     - `sqrtss x, y` - only LO element of `x` is changed, if you don't use
+  //!       HI elements, use `X86Compiler.overwrite().sqrtss(x, y)`.
+  kInstOptionOverwrite = 0x00000020
 };
 
 // ============================================================================

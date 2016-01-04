@@ -1226,6 +1226,12 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     return *this;
   }
 
+  //! Tell the compiler that the destination variable will be overwritten.
+  ASMJIT_INLINE X86Compiler& overwrite() {
+    _instOptions |= kInstOptionOverwrite;
+    return *this;
+  }
+
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
@@ -4367,9 +4373,9 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_3x(xsave64, kX86InstIdXsave64, X86Mem, X86GpVar, X86GpVar)
 
   //! Save Processor Extended States specified by `o1:o2` (Optimized) (XSAVEOPT).
-  INST_3x(xsaveopt, kX86InstIdXsave, X86Mem, X86GpVar, X86GpVar)
+  INST_3x(xsaveopt, kX86InstIdXsaveopt, X86Mem, X86GpVar, X86GpVar)
   //! Save Processor Extended States specified by `o1:o2` (Optimized) (XSAVEOPT&X64).
-  INST_3x(xsaveopt64, kX86InstIdXsave64, X86Mem, X86GpVar, X86GpVar)
+  INST_3x(xsaveopt64, kX86InstIdXsaveopt64, X86Mem, X86GpVar, X86GpVar)
 
   //! Get XCR - `o1:o2 <- XCR[o0]` (`EDX:EAX <- XCR[ECX]`) (XSAVE).
   INST_3x(xgetbv, kX86InstIdXgetbv, X86GpVar, X86GpVar, X86GpVar)

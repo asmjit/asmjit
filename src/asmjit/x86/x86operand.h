@@ -2224,21 +2224,21 @@ ASMJIT_DEF_REG(X86GpReg , r14d , gpd[14])  //!< 32-bit Gpd register (X64).
 ASMJIT_DEF_REG(X86GpReg , r15d , gpd[15])  //!< 32-bit Gpd register (X64).
 
 ASMJIT_DEF_REG(X86GpReg , rax  , gpq[0])   //!< 64-bit Gpq register (X64).
-ASMJIT_DEF_REG(X86GpReg , rcx  , gpq[1])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , rdx  , gpq[2])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , rbx  , gpq[3])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , rsp  , gpq[4])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , rbp  , gpq[5])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , rsi  , gpq[6])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , rdi  , gpq[7])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r8   , gpq[8])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r9   , gpq[9])   //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r10  , gpq[10])  //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r11  , gpq[11])  //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r12  , gpq[12])  //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r13  , gpq[13])  //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r14  , gpq[14])  //!< 64-bit Gpq register (X64)
-ASMJIT_DEF_REG(X86GpReg , r15  , gpq[15])  //!< 64-bit Gpq register (X64)
+ASMJIT_DEF_REG(X86GpReg , rcx  , gpq[1])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , rdx  , gpq[2])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , rbx  , gpq[3])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , rsp  , gpq[4])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , rbp  , gpq[5])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , rsi  , gpq[6])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , rdi  , gpq[7])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r8   , gpq[8])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r9   , gpq[9])   //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r10  , gpq[10])  //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r11  , gpq[11])  //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r12  , gpq[12])  //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r13  , gpq[13])  //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r14  , gpq[14])  //!< 64-bit Gpq register (X64).
+ASMJIT_DEF_REG(X86GpReg , r15  , gpq[15])  //!< 64-bit Gpq register (X64).
 
 ASMJIT_DEF_REG(X86FpReg , fp0  , fp[0])    //!< 80-bit Fp register.
 ASMJIT_DEF_REG(X86FpReg , fp1  , fp[1])    //!< 80-bit Fp register.
