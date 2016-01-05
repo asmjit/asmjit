@@ -669,6 +669,16 @@
 #endif
 // [@CC_REGPARM}@]
 
+// [@CC_NOEXCEPT{@]
+// \def ASMJIT_NOEXCEPT
+// The decorated function never throws an exception (noexcept).
+#if ASMJIT_HAS_NOEXCEPT
+# define ASMJIT_NOEXCEPT noexcept
+#else
+# define ASMJIT_NOEXCEPT
+#endif
+// [@CC_NOEXCEPT}@]
+
 // [@CC_NOP{@]
 // \def ASMJIT_NOP
 // No operation.

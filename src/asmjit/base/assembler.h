@@ -148,7 +148,7 @@ ASMJIT_ENUM(InstOptions) {
   //!
   //!   - All instructions that clear the destination register if all operands
   //!     are the same, for example "xor x, x", "pcmpeqb", etc...
-  //!     
+  //!
   //!   - Consecutive instructions that partially overwrite the variable until
   //!     there is no old content require the `overwrite()` to be used. Some
   //!     examples (not always the best use cases thought):

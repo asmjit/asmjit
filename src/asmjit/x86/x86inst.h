@@ -2399,8 +2399,8 @@ struct X86Util {
   //! Shuffle constants can be used to encode an immediate for these instructions:
   //! - `X86Assembler::shufpd()` and `X86Compiler::shufpd()`
   static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b) {
+    ASMJIT_ASSERT(a <= 0x1 && b <= 0x1);
     uint32_t result = (a << 1) | b;
-    ASMJIT_ASSERT(result <= 0xFF);
     return static_cast<int>(result);
   }
 
@@ -2418,8 +2418,8 @@ struct X86Util {
   //! - `X86Assembler::pshuflw()` and `X86Compiler::pshuflw()`.
   //! - `X86Assembler::shufps()`  and `X86Compiler::shufps()`.
   static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
+    ASMJIT_ASSERT(a <= 0x3 && b <= 0x3 && c <= 0x3 && d <= 0x3);
     uint32_t result = (a << 6) | (b << 4) | (c << 2) | d;
-    ASMJIT_ASSERT(result <= 0xFF);
     return static_cast<int>(result);
   }
 };

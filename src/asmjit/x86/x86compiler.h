@@ -29,7 +29,7 @@ namespace asmjit {
 struct X86CallNode;
 struct X86FuncNode;
 
-//! \addtogroup asmjit_x86_compiler
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -45,15 +45,15 @@ struct X86VarInfo {
   // --------------------------------------------------------------------------
 
   //! Get register type, see `X86RegType`.
-  ASMJIT_INLINE uint32_t getReg() const { return _reg; }
+  ASMJIT_INLINE uint32_t getReg() const noexcept { return _reg; }
   //! Get register size in bytes.
-  ASMJIT_INLINE uint32_t getSize() const { return _size; }
+  ASMJIT_INLINE uint32_t getSize() const noexcept { return _size; }
   //! Get variable class, see `RegClass`.
-  ASMJIT_INLINE uint32_t getClass() const { return _class; }
+  ASMJIT_INLINE uint32_t getClass() const noexcept { return _class; }
   //! Get variable description, see `VarFlag`.
-  ASMJIT_INLINE uint32_t getDesc() const { return _desc; }
+  ASMJIT_INLINE uint32_t getDesc() const noexcept { return _desc; }
   //! Get variable type name.
-  ASMJIT_INLINE const char* getName() const { return _name; }
+  ASMJIT_INLINE const char* getName() const noexcept { return _name; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -453,55 +453,58 @@ struct X86CallNode : public HLCall {
 //! during the variable that its state is changed multiple times. To generate
 //! a better code, you can control explicitely the allocation and spilling:
 //!
-//! - `alloc()` - Explicit method to alloc variable into register. It can be
-//!   used to force allocation a variable before a loop for example.
+//!   - `alloc()` - Explicit method to alloc variable into register. It can be
+//!     used to force allocation a variable before a loop for example.
 //!
-//! - `spill()` - Explicit method to spill variable. If variable is in
-//!   register and you call this method, it's moved to its home memory
-//!   location. If the variable is not in register no operation is performed.
+//!   - `spill()` - Explicit method to spill variable. If variable is in
+//!     register and you call this method, it's moved to its home memory
+//!     location. If the variable is not in register no operation is performed.
 //!
-//! - `unuse()` - Unuse variable (you can use this to end the variable scope
-//!   or sub-scope).
+//!   - `unuse()` - Unuse variable (you can use this to end the variable scope
+//!     or sub-scope).
 //!
 //! List of X86/X64 variable types:
-//! - `kVarTypeInt8`     - Signed 8-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - `kVarTypeUInt8`    - Unsigned 8-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - `kVarTypeInt16`    - Signed 16-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - `kVarTypeUInt16`   - Unsigned 16-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - `kVarTypeInt32`    - Signed 32-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - `kVarTypeUInt32`   - Unsigned 32-bit integer, mapped to Gpd register (eax, ebx, ...).
-//! - `kVarTypeInt64`    - Signed 64-bit integer, mapped to Gpq register (rax, rbx, ...).
-//! - `kVarTypeUInt64`   - Unsigned 64-bit integer, mapped to Gpq register (rax, rbx, ...).
-//! - `kVarTypeIntPtr`   - intptr_t, mapped to Gpd/Gpq register; depends on target, not host!
-//! - `kVarTypeUIntPtr`  - uintptr_t, mapped to Gpd/Gpq register; depends on target, not host!
-//! - `kX86VarTypeMm`    - 64-bit Mm register (mm0, mm1, ...).
-//! - `kX86VarTypeXmm`   - 128-bit SSE register.
-//! - `kX86VarTypeXmmSs` - 128-bit SSE register that contains a scalar 32-bit SP-FP value.
-//! - `kX86VarTypeXmmSd` - 128-bit SSE register that contains a scalar 64-bit DP-FP value.
-//! - `kX86VarTypeXmmPs` - 128-bit SSE register that contains 4 packed 32-bit SP-FP values.
-//! - `kX86VarTypeXmmPd` - 128-bit SSE register that contains 2 packed 64-bit DP-FP values.
-//! - `kX86VarTypeYmm`   - 256-bit AVX register.
-//! - `kX86VarTypeYmmPs` - 256-bit AVX register that contains 4 packed 32-bit SP-FP values.
-//! - `kX86VarTypeYmmPd` - 256-bit AVX register that contains 2 packed 64-bit DP-FP values.
+//!   - `kVarTypeInt8`     - Signed 8-bit integer, mapped to Gpd register (eax, ebx, ...).
+//!   - `kVarTypeUInt8`    - Unsigned 8-bit integer, mapped to Gpd register (eax, ebx, ...).
+//!   - `kVarTypeInt16`    - Signed 16-bit integer, mapped to Gpd register (eax, ebx, ...).
+//!   - `kVarTypeUInt16`   - Unsigned 16-bit integer, mapped to Gpd register (eax, ebx, ...).
+//!   - `kVarTypeInt32`    - Signed 32-bit integer, mapped to Gpd register (eax, ebx, ...).
+//!   - `kVarTypeUInt32`   - Unsigned 32-bit integer, mapped to Gpd register (eax, ebx, ...).
+//!   - `kVarTypeInt64`    - Signed 64-bit integer, mapped to Gpq register (rax, rbx, ...).
+//!   - `kVarTypeUInt64`   - Unsigned 64-bit integer, mapped to Gpq register (rax, rbx, ...).
+//!   - `kVarTypeIntPtr`   - intptr_t, mapped to Gpd/Gpq register; depends on target, not host!
+//!   - `kVarTypeUIntPtr`  - uintptr_t, mapped to Gpd/Gpq register; depends on target, not host!
+//!   - `kX86VarTypeMm`    - 64-bit MMX register (mm0, mm1, ...).
+//!   - `kX86VarTypeXmm`   - 128-bit XMM register.
+//!   - `kX86VarTypeXmmSs` - 128-bit XMM register that contains a scalar float.
+//!   - `kX86VarTypeXmmSd` - 128-bit XMM register that contains a scalar double.
+//!   - `kX86VarTypeXmmPs` - 128-bit XMM register that contains 4 packed floats.
+//!   - `kX86VarTypeXmmPd` - 128-bit XMM register that contains 2 packed doubles.
+//!   - `kX86VarTypeYmm`   - 256-bit YMM register.
+//!   - `kX86VarTypeYmmPs` - 256-bit YMM register that contains 8 packed floats.
+//!   - `kX86VarTypeYmmPd` - 256-bit YMM register that contains 4 packed doubles.
+//!   - `kX86VarTypeZmm`   - 512-bit ZMM register.
+//!   - `kX86VarTypeZmmPs` - 512-bit ZMM register that contains 16 packed floats.
+//!   - `kX86VarTypeZmmPd` - 512-bit ZMM register that contains 8 packed doubles.
 //!
 //! List of X86/X64 variable states:
-//! - `kVarStateNone - State that is assigned to newly created variables or to
-//!    not used variables (dereferenced to zero).
-//! - `kVarStateReg - State that means that variable is currently allocated in
-//!    register.
-//! - `kVarStateMem - State that means that variable is currently only in
-//!    memory location.
+//!   - `kVarStateNone - State that is assigned to newly created variables or to
+//!      not used variables (dereferenced to zero).
+//!   - `kVarStateReg - State that means that variable is currently allocated in
+//!      register.
+//!   - `kVarStateMem - State that means that variable is currently only in
+//!      memory location.
 //!
 //! Memory Management
 //! -----------------
 //!
 //! Compiler Memory management follows these rules:
 //!
-//! - Everything created by `X86Compiler` is always freed by `X86Compiler`.
-//! - To get a decent performance, compiler always uses large memory buffers
-//!   to allocate objects. When the compiler is destroyed, it invalidates all
-//!   objects that it created.
-//! - This type of memory management is called 'zone memory management'.
+//!   - Everything created by `X86Compiler` is always freed by `X86Compiler`.
+//!   - To get a decent performance, compiler always uses large memory buffers
+//!     to allocate objects. When the compiler is destroyed, it invalidates all
+//!     objects that it created.
+//!   - This type of memory management is called 'zone memory management'.
 //!
 //! In other words, anything that returns a pointer to something cannot be
 //! used after the compiler was destroyed. However, since compiler integrates

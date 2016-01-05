@@ -1111,7 +1111,8 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
       ADD_REX_W_BY_SIZE(o0->getSize());
 
       if (encoded == ENC_OPS(Reg, Reg, None)) {
-        ASMJIT_ASSERT(o0->getSize() != 1);
+        if (o0->getSize() == 1 || o0->getSize() != o1->getSize())
+          goto _IllegalInst;
 
         opReg = x86OpReg(o0);
         rmReg = x86OpReg(o1);
@@ -1119,7 +1120,8 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
       }
 
       if (encoded == ENC_OPS(Reg, Mem, None)) {
-        ASMJIT_ASSERT(o0->getSize() != 1);
+        if (o0->getSize() == 1)
+          goto _IllegalInst;
 
         opReg = x86OpReg(o0);
         rmMem = x86OpMem(o1);
@@ -1208,6 +1210,9 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
 
     case kX86InstEncodingIdX86BSwap:
       if (encoded == ENC_OPS(Reg, None, None)) {
+        if (o0->getSize() < 4)
+          goto _IllegalInst;
+
         opReg = x86OpReg(o0);
         ADD_REX_W_BY_SIZE(o0->getSize());
         goto _EmitX86OpWithOpReg;
@@ -1505,7 +1510,8 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
 
     case kX86InstEncodingIdX86Jecxz:
       if (encoded == ENC_OPS(Reg, Label, None)) {
-        ASMJIT_ASSERT(x86OpReg(o0) == kX86RegIndexCx);
+        if (x86OpReg(o0) != kX86RegIndexCx)
+          goto _IllegalInst;
 
         if ((Arch == kArchX86 && o0->getSize() == 2) ||
             (Arch == kArchX64 && o0->getSize() == 4)) {
@@ -1797,7 +1803,8 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
 
     case kX86InstEncodingIdX86MovPtr:
       if (encoded == ENC_OPS(Reg, Imm, None)) {
-        ASMJIT_ASSERT(x86OpReg(o0) == 0);
+        if (x86OpReg(o0) != 0)
+          goto _IllegalInst;
 
         opCode += o0->getSize() != 1;
         ADD_66H_P_BY_SIZE(o0->getSize());
@@ -1812,7 +1819,8 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
       opCode = extendedInfo.getSecondaryOpCode();
 
       if (encoded == ENC_OPS(Imm, Reg, None)) {
-        ASMJIT_ASSERT(x86OpReg(o1) == 0);
+        if (x86OpReg(o1) != 0)
+          goto _IllegalInst;
 
         opCode += o1->getSize() != 1;
         ADD_66H_P_BY_SIZE(o1->getSize());
@@ -1828,7 +1836,8 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
       if (encoded == ENC_OPS(Reg, None, None)) {
         if (o0->isRegType(kX86RegTypeSeg)) {
           uint32_t segment = x86OpReg(o0);
-          ASMJIT_ASSERT(segment < kX86SegCount);
+          if (segment >= kX86SegCount)
+            goto _IllegalInst;
 
           if (segment >= kX86SegFs)
             EMIT_BYTE(0x0F);
@@ -1854,7 +1863,8 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
       if (encoded == ENC_OPS(Reg, None, None)) {
         if (o0->isRegType(kX86RegTypeSeg)) {
           uint32_t segment = x86OpReg(o0);
-          ASMJIT_ASSERT(segment < kX86SegCount);
+          if (segment == kX86SegCs || segment >= kX86SegCount)
+            goto _IllegalInst;
 
           if (segment >= kX86SegFs)
             EMIT_BYTE(0x0F);
@@ -1864,8 +1874,11 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
         }
         else {
 _GroupPop_Gp:
-          ASMJIT_ASSERT(static_cast<const X86Reg*>(o0)->getSize() == 2 ||
-                        static_cast<const X86Reg*>(o0)->getSize() == self->_regSize);
+          // We allow 2 byte, 4 byte, and 8 byte register sizes, althought PUSH
+          // and POP only allows 2 bytes or register width. On 64-bit we simply
+          // PUSH/POP 64-bit register even if 32-bit register was given.
+          if (o0->getSize() < 1)
+            goto _IllegalInst;
 
           opCode = extendedInfo.getSecondaryOpCode();
           opReg = x86OpReg(o0);
@@ -1876,8 +1889,10 @@ _GroupPop_Gp:
       }
 
       if (encoded == ENC_OPS(Mem, None, None)) {
-        ADD_66H_P_BY_SIZE(o0->getSize());
+        if (o0->getSize() != 2 && o0->getSize() != 8)
+          goto _IllegalInst;
 
+        ADD_66H_P_BY_SIZE(o0->getSize());
         rmMem = x86OpMem(o0);
         goto _EmitX86M;
       }
@@ -2142,9 +2157,12 @@ _EmitFpArith_Reg:
           opCode = 0xD800 + ((opCode >> 8) & 0xFF) + static_cast<uint32_t>(rmReg);
           goto _EmitFpuOp;
         }
-        else {
+        else if (rmReg == 0) {
           opCode = 0xDC00 + ((opCode >> 0) & 0xFF) + static_cast<uint32_t>(rmReg);
           goto _EmitFpuOp;
+        }
+        else {
+          goto _IllegalInst;
         }
       }
 
@@ -2272,8 +2290,8 @@ _EmitFpArith_Mem:
       ADD_REX_W_BY_SIZE(o0->getSize());
 
       if (encoded == ENC_OPS(Reg, Reg, None)) {
-        ASMJIT_ASSERT(static_cast<const Reg*>(o0)->getRegType() == kX86RegTypeGpd ||
-                      static_cast<const Reg*>(o0)->getRegType() == kX86RegTypeGpq);
+        if (!Utils::inInterval<uint32_t>(static_cast<const X86Reg*>(o0)->getRegType(), kX86RegTypeGpd, kX86RegTypeGpq))
+          goto _IllegalInst;
 
         opCode += o0->getSize() != 1;
         opReg = x86OpReg(o0);
@@ -2282,8 +2300,8 @@ _EmitFpArith_Mem:
       }
 
       if (encoded == ENC_OPS(Reg, Mem, None)) {
-        ASMJIT_ASSERT(static_cast<const Reg*>(o0)->getRegType() == kX86RegTypeGpd ||
-                      static_cast<const Reg*>(o0)->getRegType() == kX86RegTypeGpq);
+        if (!Utils::inInterval<uint32_t>(static_cast<const X86Reg*>(o0)->getRegType(), kX86RegTypeGpd, kX86RegTypeGpq))
+          goto _IllegalInst;
 
         opCode += o0->getSize() != 1;
         opReg = x86OpReg(o0);
@@ -2403,6 +2421,9 @@ _EmitFpArith_Mem:
 
     case kX86InstEncodingIdExtMovBe:
       if (encoded == ENC_OPS(Reg, Mem, None)) {
+        if (o0->getSize() == 1)
+          goto _IllegalInst;
+
         ADD_66H_P_BY_SIZE(o0->getSize());
         ADD_REX_W_BY_SIZE(o0->getSize());
 
@@ -2415,6 +2436,9 @@ _EmitFpArith_Mem:
       opCode = extendedInfo.getSecondaryOpCode();
 
       if (encoded == ENC_OPS(Mem, Reg, None)) {
+        if (o1->getSize() == 1)
+          goto _IllegalInst;
+
         ADD_66H_P_BY_SIZE(o1->getSize());
         ADD_REX_W_BY_SIZE(o1->getSize());
 
