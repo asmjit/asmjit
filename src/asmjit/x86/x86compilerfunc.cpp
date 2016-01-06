@@ -265,7 +265,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
           self->_rets[1]._varType = static_cast<uint8_t>(ret - 2);
           self->_rets[1]._regIndex = kX86RegIndexDx;
         }
-        ASMJIT_FALL_THROUGH;
+        ASMJIT_FALLTHROUGH;
 #endif // ASMJIT_BUILD_X86
 
       case kVarTypeInt8:

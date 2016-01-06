@@ -716,15 +716,15 @@
 #endif
 // [@CC_EXPECT}@]
 
-// [@CC_FALL_THROUGH{@]
-// \def ASMJIT_FALL_THROUGH
+// [@CC_FALLTHROUGH{@]
+// \def ASMJIT_FALLTHROUGH
 // The code falls through annotation (switch / case).
-#if ASMJIT_CC_CLANG_GE(3, 3, 0)
-# define ASMJIT_FALL_THROUGH [[clang::fallthrough]]
+#if ASMJIT_CC_CLANG && __cplusplus >= 201103L
+# define ASMJIT_FALLTHROUGH [[clang::fallthrough]]
 #else
-# define ASMJIT_FALL_THROUGH (void)0
+# define ASMJIT_FALLTHROUGH (void)0
 #endif
-// [@CC_FALL_THROUGH}@]
+// [@CC_FALLTHROUGH}@]
 
 // [@CC_UNUSED{@]
 // \def ASMJIT_UNUSED(x)

@@ -495,7 +495,7 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
         return NULL;
       if (opCount == 3 && !(opList[0].isVar() && opList[1].isVar() && opList[2].isVarOrMem()))
         return NULL;
-      ASMJIT_FALL_THROUGH;
+      ASMJIT_FALLTHROUGH;
 
     case kX86InstIdMul:
       return x86SpecialInstMul;
@@ -928,7 +928,7 @@ void X86Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32
         compiler->emit(kX86InstIdCvtpd2ps, x86::xmm(dstIndex), x86::xmm(srcIndex));
         return;
       }
-      ASMJIT_FALL_THROUGH;
+      ASMJIT_FALLTHROUGH;
 
     case kX86VarTypeXmmSs:
       if (srcType == kX86VarTypeXmmSd || srcType == kX86VarTypeXmmPd || srcType == kX86VarTypeYmmPd) {
@@ -947,7 +947,7 @@ void X86Context::emitConvertVarToVar(uint32_t dstType, uint32_t dstIndex, uint32
         compiler->emit(kX86InstIdCvtps2pd, x86::xmm(dstIndex), x86::xmm(srcIndex));
         return;
       }
-      ASMJIT_FALL_THROUGH;
+      ASMJIT_FALLTHROUGH;
 
     case kX86VarTypeXmmSd:
       if (srcType == kX86VarTypeXmmSs || srcType == kX86VarTypeXmmPs || srcType == kX86VarTypeYmmPs) {
@@ -5514,7 +5514,7 @@ _NextGroup:
           ASMJIT_PROPAGATE_ERROR(cAlloc.run(static_cast<X86CallNode*>(node_)));
           break;
         }
-        ASMJIT_FALL_THROUGH;
+        ASMJIT_FALLTHROUGH;
 
       case kHLNodeTypeHint:
       case kHLNodeTypeRet: {
