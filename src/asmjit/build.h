@@ -716,6 +716,16 @@
 #endif
 // [@CC_EXPECT}@]
 
+// [@CC_FALL_THROUGH{@]
+// \def ASMJIT_FALL_THROUGH
+// The code falls through annotation (switch / case).
+#if ASMJIT_CC_CLANG_GE(3, 3, 0)
+# define ASMJIT_FALL_THROUGH [[clang::fallthrough]]
+#else
+# define ASMJIT_FALL_THROUGH (void)0
+#endif
+// [@CC_FALL_THROUGH}@]
+
 // [@CC_UNUSED{@]
 // \def ASMJIT_UNUSED(x)
 // Mark a variable x as unused.

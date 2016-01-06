@@ -1273,12 +1273,6 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     return emit(_Code_, o0); \
   }
 
-#define INST_1x_(_Inst_, _Code_, _Op0_, _Cond_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0); \
-  }
-
 #define INST_1i(_Inst_, _Code_, _Op0_) \
   ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0) { \
     return emit(_Code_, o0); \
@@ -1338,12 +1332,6 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
 
 #define INST_2x(_Inst_, _Code_, _Op0_, _Op1_) \
   ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1) { \
-    return emit(_Code_, o0, o1); \
-  }
-
-#define INST_2x_(_Inst_, _Code_, _Op0_, _Op1_, _Cond_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1) { \
-    ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1); \
   }
 
@@ -1409,12 +1397,6 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     return emit(_Code_, o0, o1, o2); \
   }
 
-#define INST_3x_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Cond_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
-    ASMJIT_ASSERT(_Cond_); \
-    return emit(_Code_, o0, o1, o2); \
-  }
-
 #define INST_3i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
   ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
     return emit(_Code_, o0, o1, o2); \
@@ -1463,12 +1445,6 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
 
 #define INST_4x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
   ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
-    return emit(_Code_, o0, o1, o2, o3); \
-  }
-
-#define INST_4x_(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Cond_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
-    ASMJIT_ASSERT(_Cond_); \
     return emit(_Code_, o0, o1, o2, o3); \
   }
 
@@ -1556,17 +1532,17 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_2i(and_, kX86InstIdAnd, X86Mem, Imm)
 
   //! Bit scan forward.
-  INST_2x_(bsf, kX86InstIdBsf, X86GpVar, X86GpVar, !o0.isGpb())
+  INST_2x(bsf, kX86InstIdBsf, X86GpVar, X86GpVar)
   //! \overload
-  INST_2x_(bsf, kX86InstIdBsf, X86GpVar, X86Mem, !o0.isGpb())
+  INST_2x(bsf, kX86InstIdBsf, X86GpVar, X86Mem)
 
   //! Bit scan reverse.
-  INST_2x_(bsr, kX86InstIdBsr, X86GpVar, X86GpVar, !o0.isGpb())
+  INST_2x(bsr, kX86InstIdBsr, X86GpVar, X86GpVar)
   //! \overload
-  INST_2x_(bsr, kX86InstIdBsr, X86GpVar, X86Mem, !o0.isGpb())
+  INST_2x(bsr, kX86InstIdBsr, X86GpVar, X86Mem)
 
   //! Byte swap (32-bit or 64-bit registers only) (i486).
-  INST_1x_(bswap, kX86InstIdBswap, X86GpVar, o0.getSize() >= 4)
+  INST_1x(bswap, kX86InstIdBswap, X86GpVar)
 
   //! Bit test.
   INST_2x(bt, kX86InstIdBt, X86GpVar, X86GpVar)
@@ -1694,17 +1670,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   }
 
   //! CPU identification (i486).
-  ASMJIT_INLINE HLInst* cpuid(
-    const X86GpVar& x_eax,
-    const X86GpVar& w_ebx,
-    const X86GpVar& x_ecx,
-    const X86GpVar& w_edx) {
-
-    // Destination variables must be different.
-    ASMJIT_ASSERT(x_eax.getId() != w_ebx.getId() &&
-                  w_ebx.getId() != x_ecx.getId() &&
-                  x_ecx.getId() != w_edx.getId());
-
+  ASMJIT_INLINE HLInst* cpuid(const X86GpVar& x_eax, const X86GpVar& w_ebx, const X86GpVar& x_ecx, const X86GpVar& w_edx) {
     return emit(kX86InstIdCpuid, x_eax, w_ebx, x_ecx, w_edx);
   }
 
@@ -1721,23 +1687,23 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   //! Unsigned divide (o0:o1 <- o0:o1 / o2).
   //!
   //! Remainder is stored in `o0`, quotient is stored in `o1`.
-  INST_3x_(div, kX86InstIdDiv, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId())
+  INST_3x(div, kX86InstIdDiv, X86GpVar, X86GpVar, X86GpVar)
   //! \overload
-  INST_3x_(div, kX86InstIdDiv, X86GpVar, X86GpVar, X86Mem, o0.getId() != o1.getId())
+  INST_3x(div, kX86InstIdDiv, X86GpVar, X86GpVar, X86Mem)
 
   //! Signed divide (o0:o1 <- o0:o1 / o2).
   //!
   //! Remainder is stored in `o0`, quotient is stored in `o1`.
-  INST_3x_(idiv, kX86InstIdIdiv, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId())
+  INST_3x(idiv, kX86InstIdIdiv, X86GpVar, X86GpVar, X86GpVar)
   //! \overload
-  INST_3x_(idiv, kX86InstIdIdiv, X86GpVar, X86GpVar, X86Mem, o0.getId() != o1.getId())
+  INST_3x(idiv, kX86InstIdIdiv, X86GpVar, X86GpVar, X86Mem)
 
   //! Signed multiply (o0:o1 <- o1 * o2).
   //!
   //! Hi value is stored in `o0`, lo value is stored in `o1`.
-  INST_3x_(imul, kX86InstIdImul, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId())
+  INST_3x(imul, kX86InstIdImul, X86GpVar, X86GpVar, X86GpVar)
   //! \overload
-  INST_3x_(imul, kX86InstIdImul, X86GpVar, X86GpVar, X86Mem, o0.getId() != o1.getId())
+  INST_3x(imul, kX86InstIdImul, X86GpVar, X86GpVar, X86Mem)
 
   //! Signed multiply.
   INST_2x(imul, kX86InstIdImul, X86GpVar, X86GpVar)
@@ -1830,9 +1796,9 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   }
 
   //! Move data after swapping bytes (SSE3 - Atom).
-  INST_2x_(movbe, kX86InstIdMovbe, X86GpVar, X86Mem, !o0.isGpb());
+  INST_2x(movbe, kX86InstIdMovbe, X86GpVar, X86Mem);
   //! \overload
-  INST_2x_(movbe, kX86InstIdMovbe, X86Mem, X86GpVar, !o1.isGpb());
+  INST_2x(movbe, kX86InstIdMovbe, X86Mem, X86GpVar);
 
   //! Load BYTE from DS:`o1` to ES:`o0`.
   INST_2x(movsb, kX86InstIdMovsB, X86GpVar, X86GpVar)
@@ -1859,9 +1825,9 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_2x(movzx, kX86InstIdMovzx, X86GpVar, X86Mem)
 
   //! Unsigned multiply (o0:o1 <- o1 * o2).
-  INST_3x_(mul, kX86InstIdMul, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId())
+  INST_3x(mul, kX86InstIdMul, X86GpVar, X86GpVar, X86GpVar)
   //! \overload
-  INST_3x_(mul, kX86InstIdMul, X86GpVar, X86GpVar, X86Mem, o0.getId() != o1.getId())
+  INST_3x(mul, kX86InstIdMul, X86GpVar, X86GpVar, X86Mem)
 
   //! Two's complement negation.
   INST_1x(neg, kX86InstIdNeg, X86GpVar)
@@ -1888,17 +1854,17 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_2i(or_, kX86InstIdOr, X86Mem, Imm)
 
   //! Pop a value from the stack.
-  INST_1x_(pop, kX86InstIdPop, X86GpVar, o0.getSize() == 2 || o0.getSize() == _regSize)
+  INST_1x(pop, kX86InstIdPop, X86GpVar)
   //! \overload
-  INST_1x_(pop, kX86InstIdPop, X86Mem, o0.getSize() == 2 || o0.getSize() == _regSize)
+  INST_1x(pop, kX86InstIdPop, X86Mem)
 
   //! Pop stack into EFLAGS Register (32-bit or 64-bit).
   INST_0x(popf, kX86InstIdPopf)
 
   //! Push WORD or DWORD/QWORD on the stack.
-  INST_1x_(push, kX86InstIdPush, X86GpVar, o0.getSize() == 2 || o0.getSize() == _regSize)
+  INST_1x(push, kX86InstIdPush, X86GpVar)
   //! Push WORD or DWORD/QWORD on the stack.
-  INST_1x_(push, kX86InstIdPush, X86Mem, o0.getSize() == 2 || o0.getSize() == _regSize)
+  INST_1x(push, kX86InstIdPush, X86Mem)
   //! Push segment register on the stack.
   INST_1x(push, kX86InstIdPush, X86SegReg)
   //! Push WORD or DWORD/QWORD on the stack.
@@ -1926,72 +1892,72 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_2i(rcr, kX86InstIdRcr, X86Mem, Imm)
 
   //! Read time-stamp counter (Pentium).
-  INST_2x_(rdtsc, kX86InstIdRdtsc, X86GpVar, X86GpVar, o0.getId() != o1.getId())
+  INST_2x(rdtsc, kX86InstIdRdtsc, X86GpVar, X86GpVar)
   //! Read time-stamp counter and processor id (Pentium).
-  INST_3x_(rdtscp, kX86InstIdRdtscp, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rdtscp, kX86InstIdRdtscp, X86GpVar, X86GpVar, X86GpVar)
 
   //! Repeated load ECX/RCX BYTEs from DS:[ESI/RSI] to AL.
-  INST_3x_(rep_lodsb, kX86InstIdRepLodsB, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_lodsb, kX86InstIdRepLodsB, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated load ECX/RCX DWORDs from DS:[ESI/RSI] to AL.
-  INST_3x_(rep_lodsd, kX86InstIdRepLodsD, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_lodsd, kX86InstIdRepLodsD, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated load ECX/RCX QWORDs from DS:[RSI] to RAX (X64 Only).
-  INST_3x_(rep_lodsq, kX86InstIdRepLodsQ, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_lodsq, kX86InstIdRepLodsQ, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated load ECX/RCX WORDs from DS:[ESI/RSI] to AX.
-  INST_3x_(rep_lodsw, kX86InstIdRepLodsW, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_lodsw, kX86InstIdRepLodsW, X86GpVar, X86GpVar, X86GpVar)
 
   //! Repeated move ECX/RCX BYTEs from DS:[ESI/RSI] to ES:[EDI/RDI].
-  INST_3x_(rep_movsb, kX86InstIdRepMovsB, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_movsb, kX86InstIdRepMovsB, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated move ECX/RCX DWORDs from DS:[ESI/RSI] to ES:[EDI/RDI].
-  INST_3x_(rep_movsd, kX86InstIdRepMovsD, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_movsd, kX86InstIdRepMovsD, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated move ECX/RCX QWORDs from DS:[RSI] to ES:[RDI] (X64 Only).
-  INST_3x_(rep_movsq, kX86InstIdRepMovsQ, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_movsq, kX86InstIdRepMovsQ, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated move ECX/RCX DWORDs from DS:[ESI/RSI] to ES:[EDI/RDI].
-  INST_3x_(rep_movsw, kX86InstIdRepMovsW, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_movsw, kX86InstIdRepMovsW, X86GpVar, X86GpVar, X86GpVar)
 
   //! Repeated fill ECX/RCX BYTEs at ES:[EDI/RDI] with AL.
-  INST_3x_(rep_stosb, kX86InstIdRepStosB, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_stosb, kX86InstIdRepStosB, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated fill ECX/RCX DWORDs at ES:[EDI/RDI] with EAX.
-  INST_3x_(rep_stosd, kX86InstIdRepStosD, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_stosd, kX86InstIdRepStosD, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated fill ECX/RCX QWORDs at ES:[RDI] with RAX (X64 Only).
-  INST_3x_(rep_stosq, kX86InstIdRepStosQ, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_stosq, kX86InstIdRepStosQ, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated fill ECX/RCX WORDs at ES:[EDI/RDI] with AX.
-  INST_3x_(rep_stosw, kX86InstIdRepStosW, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(rep_stosw, kX86InstIdRepStosW, X86GpVar, X86GpVar, X86GpVar)
 
   //! Repeated find non-AL BYTEs in ES:[EDI/RDI] and DS:[ESI/RDI].
-  INST_3x_(repe_cmpsb, kX86InstIdRepeCmpsB, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_cmpsb, kX86InstIdRepeCmpsB, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find non-EAX DWORDs in ES:[EDI/RDI] and DS:[ESI/RDI].
-  INST_3x_(repe_cmpsd, kX86InstIdRepeCmpsD, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_cmpsd, kX86InstIdRepeCmpsD, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find non-RAX QWORDs in ES:[RDI] and DS:[RDI] (X64 Only).
-  INST_3x_(repe_cmpsq, kX86InstIdRepeCmpsQ, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_cmpsq, kX86InstIdRepeCmpsQ, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find non-AX WORDs in ES:[EDI/RDI] and DS:[ESI/RDI].
-  INST_3x_(repe_cmpsw, kX86InstIdRepeCmpsW, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_cmpsw, kX86InstIdRepeCmpsW, X86GpVar, X86GpVar, X86GpVar)
 
   //! Repeated find non-AL BYTE starting at ES:[EDI/RDI].
-  INST_3x_(repe_scasb, kX86InstIdRepeScasB, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_scasb, kX86InstIdRepeScasB, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find non-EAX DWORD starting at ES:[EDI/RDI].
-  INST_3x_(repe_scasd, kX86InstIdRepeScasD, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_scasd, kX86InstIdRepeScasD, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find non-RAX QWORD starting at ES:[RDI] (X64 Only).
-  INST_3x_(repe_scasq, kX86InstIdRepeScasQ, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_scasq, kX86InstIdRepeScasQ, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find non-AX WORD starting at ES:[EDI/RDI].
-  INST_3x_(repe_scasw, kX86InstIdRepeScasW, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repe_scasw, kX86InstIdRepeScasW, X86GpVar, X86GpVar, X86GpVar)
 
   //! Repeated find AL BYTEs in [RDI] and [RSI].
-  INST_3x_(repne_cmpsb, kX86InstIdRepneCmpsB, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_cmpsb, kX86InstIdRepneCmpsB, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find EAX DWORDs in [RDI] and [RSI].
-  INST_3x_(repne_cmpsd, kX86InstIdRepneCmpsD, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_cmpsd, kX86InstIdRepneCmpsD, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find RAX QWORDs in [RDI] and [RSI] (X64 Only).
-  INST_3x_(repne_cmpsq, kX86InstIdRepneCmpsQ, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_cmpsq, kX86InstIdRepneCmpsQ, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find AX WORDs in [RDI] and [RSI].
-  INST_3x_(repne_cmpsw, kX86InstIdRepneCmpsW, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_cmpsw, kX86InstIdRepneCmpsW, X86GpVar, X86GpVar, X86GpVar)
 
   //! Repeated Find AL BYTEs, starting at ES:[EDI/RDI].
-  INST_3x_(repne_scasb, kX86InstIdRepneScasB, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_scasb, kX86InstIdRepneScasB, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find EAX DWORDs, starting at ES:[EDI/RDI].
-  INST_3x_(repne_scasd, kX86InstIdRepneScasD, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_scasd, kX86InstIdRepneScasD, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find RAX QWORDs, starting at ES:[RDI] (X64 Only).
-  INST_3x_(repne_scasq, kX86InstIdRepneScasQ, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_scasq, kX86InstIdRepneScasQ, X86GpVar, X86GpVar, X86GpVar)
   //! Repeated find AX WORDs, starting at ES:[EDI/RDI].
-  INST_3x_(repne_scasw, kX86InstIdRepneScasW, X86GpVar, X86GpVar, X86GpVar, o0.getId() != o1.getId() && o1.getId() != o2.getId())
+  INST_3x(repne_scasw, kX86InstIdRepneScasW, X86GpVar, X86GpVar, X86GpVar)
 
   //! Return.
   ASMJIT_INLINE HLRet* ret() { return addRet(noOperand, noOperand); }
@@ -2174,7 +2140,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_0x(fabs, kX86InstIdFabs)
 
   //! Add `o0 = o0 + o1` (one operand has to be `fp0`) (FPU).
-  INST_2x_(fadd, kX86InstIdFadd, X86FpReg, X86FpReg, o0.getRegIndex() == 0 || o1.getRegIndex() == 0)
+  INST_2x(fadd, kX86InstIdFadd, X86FpReg, X86FpReg)
   //! Add `fp0 = fp0 + float_or_double[o0]` (FPU).
   INST_1x(fadd, kX86InstIdFadd, X86Mem)
   //! Add `o0 = o0 + fp0` and POP (FPU).
@@ -2236,7 +2202,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_0x(fdecstp, kX86InstIdFdecstp)
 
   //! Divide `o0 = o0 / o1` (one has to be `fp0`) (FPU).
-  INST_2x_(fdiv, kX86InstIdFdiv, X86FpReg, X86FpReg, o0.getRegIndex() == 0 || o1.getRegIndex() == 0)
+  INST_2x(fdiv, kX86InstIdFdiv, X86FpReg, X86FpReg)
   //! Divide `fp0 = fp0 / float_or_double[o0]` (FPU).
   INST_1x(fdiv, kX86InstIdFdiv, X86Mem)
   //! Divide `o0 = o0 / fp0` and POP (FPU).
@@ -2245,7 +2211,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_0x(fdivp, kX86InstIdFdivp)
 
   //! Reverse divide `o0 = o1 / o0` (one has to be `fp0`) (FPU).
-  INST_2x_(fdivr, kX86InstIdFdivr, X86FpReg, X86FpReg, o0.getRegIndex() == 0 || o1.getRegIndex() == 0)
+  INST_2x(fdivr, kX86InstIdFdivr, X86FpReg, X86FpReg)
   //! Reverse divide `fp0 = float_or_double[o0] / fp0` (FPU).
   INST_1x(fdivr, kX86InstIdFdivr, X86Mem)
   //! Reverse divide `o0 = fp0 / o0` and POP (FPU).
@@ -2257,20 +2223,20 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_1x(ffree, kX86InstIdFfree, X86FpReg)
 
   //! Add `fp0 = fp0 + short_or_int[o0]` (FPU).
-  INST_1x_(fiadd, kX86InstIdFiadd, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(fiadd, kX86InstIdFiadd, X86Mem)
   //! Compare `fp0` with `short_or_int[o0]` (FPU).
-  INST_1x_(ficom, kX86InstIdFicom, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(ficom, kX86InstIdFicom, X86Mem)
   //! Compare `fp0` with `short_or_int[o0]` and POP (FPU).
-  INST_1x_(ficomp, kX86InstIdFicomp, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(ficomp, kX86InstIdFicomp, X86Mem)
   //! Divide `fp0 = fp0 / short_or_int[o0]` (FPU).
-  INST_1x_(fidiv, kX86InstIdFidiv, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(fidiv, kX86InstIdFidiv, X86Mem)
   //! Reverse divide `fp0 = short_or_int[o0] / fp0` (FPU).
-  INST_1x_(fidivr, kX86InstIdFidivr, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(fidivr, kX86InstIdFidivr, X86Mem)
 
   //! Load `short_or_int_or_long[o0]` and PUSH (FPU).
-  INST_1x_(fild, kX86InstIdFild, X86Mem, o0.getSize() == 2 || o0.getSize() == 4 || o0.getSize() == 8)
+  INST_1x(fild, kX86InstIdFild, X86Mem)
   //! Multiply `fp0 *= short_or_int[o0]` (FPU).
-  INST_1x_(fimul, kX86InstIdFimul, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(fimul, kX86InstIdFimul, X86Mem)
 
   //! Increment FPU stack pointer (FPU).
   INST_0x(fincstp, kX86InstIdFincstp)
@@ -2278,20 +2244,20 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_0x(finit, kX86InstIdFinit)
 
   //! Subtract `fp0 = fp0 - short_or_int[o0]` (FPU).
-  INST_1x_(fisub, kX86InstIdFisub, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(fisub, kX86InstIdFisub, X86Mem)
   //! Reverse subtract `fp0 = short_or_int[o0] - fp0` (FPU).
-  INST_1x_(fisubr, kX86InstIdFisubr, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(fisubr, kX86InstIdFisubr, X86Mem)
 
   //! Initialize FPU without checking for pending unmasked exceptions (FPU).
   INST_0x(fninit, kX86InstIdFninit)
 
   //! Store `fp0` as `short_or_int[o0]` (FPU).
-  INST_1x_(fist, kX86InstIdFist, X86Mem, o0.getSize() == 2 || o0.getSize() == 4)
+  INST_1x(fist, kX86InstIdFist, X86Mem)
   //! Store `fp0` as `short_or_int_or_long[o0]` and POP (FPU).
-  INST_1x_(fistp, kX86InstIdFistp, X86Mem, o0.getSize() == 2 || o0.getSize() == 4 || o0.getSize() == 8)
+  INST_1x(fistp, kX86InstIdFistp, X86Mem)
 
   //! Load `float_or_double_or_extended[o0]` and PUSH (FPU).
-  INST_1x_(fld, kX86InstIdFld, X86Mem, o0.getSize() == 4 || o0.getSize() == 8 || o0.getSize() == 10)
+  INST_1x(fld, kX86InstIdFld, X86Mem)
   //! PUSH `o0` (FPU).
   INST_1x(fld, kX86InstIdFld, X86FpReg)
 
@@ -2316,7 +2282,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_1x(fldenv, kX86InstIdFldenv, X86Mem)
 
   //! Multiply `o0 = o0  * o1` (one has to be `fp0`) (FPU).
-  INST_2x_(fmul, kX86InstIdFmul, X86FpReg, X86FpReg, o0.getRegIndex() == 0 || o1.getRegIndex() == 0)
+  INST_2x(fmul, kX86InstIdFmul, X86FpReg, X86FpReg)
   //! Multiply `fp0 = fp0 * float_or_double[o0]` (FPU).
   INST_1x(fmul, kX86InstIdFmul, X86Mem)
   //! Multiply `o0 = o0 * fp0` and POP (FPU).
@@ -2366,11 +2332,11 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_0x(fsqrt, kX86InstIdFsqrt)
 
   //! Store floating point value to `float_or_double[o0]` (FPU).
-  INST_1x_(fst, kX86InstIdFst, X86Mem, o0.getSize() == 4 || o0.getSize() == 8)
+  INST_1x(fst, kX86InstIdFst, X86Mem)
   //! Copy `o0 = fp0` (FPU).
   INST_1x(fst, kX86InstIdFst, X86FpReg)
   //! Store floating point value to `float_or_double_or_extended[o0]` and POP (FPU).
-  INST_1x_(fstp, kX86InstIdFstp, X86Mem, o0.getSize() == 4 || o0.getSize() == 8 || o0.getSize() == 10)
+  INST_1x(fstp, kX86InstIdFstp, X86Mem)
   //! Copy `o0 = fp0` and POP (FPU).
   INST_1x(fstp, kX86InstIdFstp, X86FpReg)
 
@@ -2384,18 +2350,18 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   INST_1x(fstsw, kX86InstIdFstsw, X86Mem)
 
   //! Subtract `o0 = o0 - o1` (one has to be `fp0`) (FPU).
-  INST_2x_(fsub, kX86InstIdFsub, X86FpReg, X86FpReg, o0.getRegIndex() == 0 || o1.getRegIndex() == 0)
+  INST_2x(fsub, kX86InstIdFsub, X86FpReg, X86FpReg)
   //! Subtract `fp0 = fp0 - float_or_double[o0]` (FPU).
-  INST_1x_(fsub, kX86InstIdFsub, X86Mem, o0.getSize() == 4 || o0.getSize() == 8)
+  INST_1x(fsub, kX86InstIdFsub, X86Mem)
   //! Subtract `o0 = o0 - fp0` and POP (FPU).
   INST_1x(fsubp, kX86InstIdFsubp, X86FpReg)
   //! Subtract `fp1 = fp1 - fp0` and POP (FPU).
   INST_0x(fsubp, kX86InstIdFsubp)
 
   //! Reverse subtract `o0 = o1 - o0` (one has to be `fp0`) (FPU).
-  INST_2x_(fsubr, kX86InstIdFsubr, X86FpReg, X86FpReg, o0.getRegIndex() == 0 || o1.getRegIndex() == 0)
+  INST_2x(fsubr, kX86InstIdFsubr, X86FpReg, X86FpReg)
   //! Reverse subtract `fp0 = fp0 - float_or_double[o0]` (FPU).
-  INST_1x_(fsubr, kX86InstIdFsubr, X86Mem, o0.getSize() == 4 || o0.getSize() == 8)
+  INST_1x(fsubr, kX86InstIdFsubr, X86Mem)
   //! Reverse subtract `o0 = o0 - fp0` and POP (FPU).
   INST_1x(fsubrp, kX86InstIdFsubrp, X86FpReg)
   //! Reverse subtract `fp1 = fp1 - fp0` and POP (FPU).
@@ -4252,9 +4218,9 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
   //! Accumulate crc32 value (polynomial 0x11EDC6F41) (SSE4.2).
-  INST_2x_(crc32, kX86InstIdCrc32, X86GpVar, X86GpVar, o0.isRegType(kX86RegTypeGpd) || o0.isRegType(kX86RegTypeGpq))
+  INST_2x(crc32, kX86InstIdCrc32, X86GpVar, X86GpVar)
   //! \overload
-  INST_2x_(crc32, kX86InstIdCrc32, X86GpVar, X86Mem, o0.isRegType(kX86RegTypeGpd) || o0.isRegType(kX86RegTypeGpq))
+  INST_2x(crc32, kX86InstIdCrc32, X86GpVar, X86Mem)
 
   //! Packed compare explicit length strings, return index (SSE4.2).
   INST_3i(pcmpestri, kX86InstIdPcmpestri, X86XmmVar, X86XmmVar, Imm)
@@ -4305,9 +4271,9 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
   //! Return the count of number of bits set to 1 (POPCNT).
-  INST_2x_(popcnt, kX86InstIdPopcnt, X86GpVar, X86GpVar, !o0.isGpb() && o0.getSize() == o1.getSize())
+  INST_2x(popcnt, kX86InstIdPopcnt, X86GpVar, X86GpVar)
   //! \overload
-  INST_2x_(popcnt, kX86InstIdPopcnt, X86GpVar, X86Mem, !o0.isGpb())
+  INST_2x(popcnt, kX86InstIdPopcnt, X86GpVar, X86Mem)
 
   // --------------------------------------------------------------------------
   // [LZCNT]
@@ -4392,22 +4358,18 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
 #undef INST_0x
 
 #undef INST_1x
-#undef INST_1x_
 #undef INST_1i
 #undef INST_1cc
 
 #undef INST_2x
-#undef INST_2x_
 #undef INST_2i
 #undef INST_2cc
 
 #undef INST_3x
-#undef INST_3x_
 #undef INST_3i
 #undef INST_3ii
 
 #undef INST_4x
-#undef INST_4x_
 #undef INST_4i
 #undef INST_4ii
 };
