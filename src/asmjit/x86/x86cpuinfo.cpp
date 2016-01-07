@@ -51,7 +51,7 @@ static ASMJIT_INLINE bool x86CpuVendorEq(const X86CpuVendor& info, const char* v
 
 static ASMJIT_INLINE void x86SimplifyBrandString(char* s) {
   // Always clear the current character in the buffer. It ensures that there
-  // is no garbage after the string NULL terminator.
+  // is no garbage after the string zero terminator.
   char* d = s;
 
   char prev = 0;

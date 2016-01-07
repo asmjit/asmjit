@@ -41,19 +41,19 @@ Context::~Context() {}
 void Context::reset(bool releaseMemory) {
   _zoneAllocator.reset(releaseMemory);
 
-  _func = NULL;
-  _start = NULL;
-  _end = NULL;
-  _extraBlock = NULL;
-  _stop = NULL;
+  _func = nullptr;
+  _start = nullptr;
+  _end = nullptr;
+  _extraBlock = nullptr;
+  _stop = nullptr;
 
   _unreachableList.reset();
   _returningList.reset();
   _jccList.reset();
   _contextVd.reset(releaseMemory);
 
-  _memVarCells = NULL;
-  _memStackCells = NULL;
+  _memVarCells = nullptr;
+  _memStackCells = nullptr;
 
   _mem1ByteVarsUsed = 0;
   _mem2ByteVarsUsed = 0;
@@ -70,7 +70,7 @@ void Context::reset(bool releaseMemory) {
   _memAllTotal = 0;
   _annotationLength = 12;
 
-  _state = NULL;
+  _state = nullptr;
 }
 
 // ============================================================================
@@ -95,7 +95,7 @@ static ASMJIT_INLINE uint32_t BaseContext_getDefaultAlignment(uint32_t size) {
 }
 
 VarCell* Context::_newVarCell(VarData* vd) {
-  ASMJIT_ASSERT(vd->_memCell == NULL);
+  ASMJIT_ASSERT(vd->_memCell == nullptr);
 
   VarCell* cell;
   uint32_t size = vd->getSize();
@@ -103,12 +103,12 @@ VarCell* Context::_newVarCell(VarData* vd) {
   if (vd->isStack()) {
     cell = _newStackCell(size, vd->getAlignment());
 
-    if (cell == NULL)
-      return NULL;
+    if (cell == nullptr)
+      return nullptr;
   }
   else {
     cell = static_cast<VarCell*>(_zoneAllocator.alloc(sizeof(VarCell)));
-    if (cell == NULL)
+    if (cell == nullptr)
       goto _NoMemory;
 
     cell->_next = _memVarCells;
@@ -140,12 +140,12 @@ VarCell* Context::_newVarCell(VarData* vd) {
 
 _NoMemory:
   _compiler->setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 VarCell* Context::_newStackCell(uint32_t size, uint32_t alignment) {
   VarCell* cell = static_cast<VarCell*>(_zoneAllocator.alloc(sizeof(VarCell)));
-  if (cell == NULL)
+  if (cell == nullptr)
     goto _NoMemory;
 
   if (alignment == 0)
@@ -162,7 +162,7 @@ VarCell* Context::_newStackCell(uint32_t size, uint32_t alignment) {
     VarCell** pPrev = &_memStackCells;
     VarCell* cur = *pPrev;
 
-    for (cur = *pPrev; cur != NULL; cur = cur->_next) {
+    for (cur = *pPrev; cur != nullptr; cur = cur->_next) {
       if (cur->getAlignment() > alignment)
         continue;
       if (cur->getAlignment() == alignment && cur->getSize() > size)
@@ -186,7 +186,7 @@ VarCell* Context::_newStackCell(uint32_t size, uint32_t alignment) {
 
 _NoMemory:
   _compiler->setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 Error Context::resolveCellOffsets() {
@@ -194,7 +194,7 @@ Error Context::resolveCellOffsets() {
   VarCell* stackCell = _memStackCells;
 
   uint32_t stackAlignment = 0;
-  if (stackCell != NULL)
+  if (stackCell != nullptr)
     stackAlignment = stackCell->getAlignment();
 
   uint32_t pos64 = 0;
@@ -219,7 +219,7 @@ Error Context::resolveCellOffsets() {
   uint32_t allTotal = stackPos;
 
   // Vars - Allocated according to alignment/width.
-  while (varCell != NULL) {
+  while (varCell != nullptr) {
     uint32_t size = varCell->getSize();
     uint32_t offset = 0;
 
@@ -241,7 +241,7 @@ Error Context::resolveCellOffsets() {
   }
 
   // Stack - Allocated according to alignment/width.
-  while (stackCell != NULL) {
+  while (stackCell != nullptr) {
     uint32_t size = stackCell->getSize();
     uint32_t alignment = stackCell->getAlignment();
     uint32_t offset;
@@ -281,9 +281,9 @@ Error Context::removeUnreachableCode() {
   PodList<HLNode*>::Link* link = _unreachableList.getFirst();
   HLNode* stop = getStop();
 
-  while (link != NULL) {
+  while (link != nullptr) {
     HLNode* node = link->getValue();
-    if (node != NULL && node->getPrev() != NULL && node != stop) {
+    if (node != nullptr && node->getPrev() != nullptr && node != stop) {
       // Locate all unreachable nodes.
       HLNode* first = node;
       do {
@@ -337,20 +337,20 @@ Error Context::livenessAnalysis() {
     return kErrorOk;
 
   HLFunc* func = getFunc();
-  HLJump* from = NULL;
+  HLJump* from = nullptr;
 
-  LivenessTarget* ltCur = NULL;
-  LivenessTarget* ltUnused = NULL;
+  LivenessTarget* ltCur = nullptr;
+  LivenessTarget* ltUnused = nullptr;
 
   PodList<HLNode*>::Link* retPtr = _returningList.getFirst();
-  ASMJIT_ASSERT(retPtr != NULL);
+  ASMJIT_ASSERT(retPtr != nullptr);
 
   HLNode* node = retPtr->getValue();
 
   size_t varMapToVaListOffset = _varMapToVaListOffset;
   BitArray* bCur = newBits(bLen);
 
-  if (bCur == NULL)
+  if (bCur == nullptr)
     goto _NoMemory;
 
   // Allocate bits for code visited first time.
@@ -364,13 +364,13 @@ _OnVisit:
     }
 
     BitArray* bTmp = copyBits(bCur, bLen);
-    if (bTmp == NULL)
+    if (bTmp == nullptr)
       goto _NoMemory;
 
     node->setLiveness(bTmp);
     VarMap* map = node->getMap();
 
-    if (map != NULL) {
+    if (map != nullptr) {
       uint32_t vaCount = map->getVaCount();
       VarAttr* vaList = reinterpret_cast<VarAttr*>(((uint8_t*)map) + varMapToVaListOffset);
 
@@ -425,18 +425,18 @@ _OnPatch:
 _OnTarget:
   if (static_cast<HLLabel*>(node)->getNumRefs() != 0) {
     // Push a new LivenessTarget onto the stack if needed.
-    if (ltCur == NULL || ltCur->node != node) {
+    if (ltCur == nullptr || ltCur->node != node) {
       // Allocate a new LivenessTarget object (from pool or zone).
       LivenessTarget* ltTmp = ltUnused;
 
-      if (ltTmp != NULL) {
+      if (ltTmp != nullptr) {
         ltUnused = ltUnused->prev;
       }
       else {
         ltTmp = _zoneAllocator.allocT<LivenessTarget>(
           sizeof(LivenessTarget) - sizeof(BitArray) + bLen * sizeof(uintptr_t));
 
-        if (ltTmp == NULL)
+        if (ltTmp == nullptr)
           goto _NoMemory;
       }
 
@@ -446,7 +446,7 @@ _OnTarget:
       ltCur = ltTmp;
 
       from = static_cast<HLLabel*>(node)->getFrom();
-      ASMJIT_ASSERT(from != NULL);
+      ASMJIT_ASSERT(from != nullptr);
     }
     else {
       from = ltCur->from;
@@ -472,7 +472,7 @@ _OnJumpNext:
       }
 
       from = from->getJumpNext();
-    } while (from != NULL);
+    } while (from != nullptr);
 
     // Pop the current LivenessTarget from the stack.
     {
@@ -497,7 +497,7 @@ _OnJumpNext:
     goto _OnPatch;
 
 _OnDone:
-  if (ltCur != NULL) {
+  if (ltCur != nullptr) {
     node = ltCur->node;
     from = ltCur->from;
 
@@ -505,7 +505,7 @@ _OnDone:
   }
 
   retPtr = retPtr->getNext();
-  if (retPtr != NULL) {
+  if (retPtr != nullptr) {
     node = retPtr->getValue();
     goto _OnVisit;
   }
@@ -540,7 +540,7 @@ void Context::cleanup() {
   }
 
   _contextVd.reset(false);
-  _extraBlock = NULL;
+  _extraBlock = nullptr;
 }
 
 // ============================================================================
@@ -574,7 +574,7 @@ Error Context::compile(HLFunc* func) {
   // We alter the compiler cursor, because it doesn't make sense to reference
   // it after compilation - some nodes may disappear and it's forbidden to add
   // new code after the compilation is done.
-  compiler->_setCursor(NULL);
+  compiler->_setCursor(nullptr);
 
   return kErrorOk;
 }

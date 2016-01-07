@@ -792,7 +792,7 @@ struct FuncBuilderX : public FuncPrototype {
 template<typename RET>
 struct FuncBuilder0 : public FuncPrototype {
   ASMJIT_INLINE FuncBuilder0(uint32_t callConv = kCallConvHost) {
-    setup(callConv, T(RET), NULL, 0);
+    setup(callConv, T(RET), nullptr, 0);
   }
 };
 

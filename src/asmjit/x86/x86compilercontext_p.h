@@ -80,7 +80,7 @@ struct X86VarMap : public VarMap {
       if (list[i].getVd() == vd)
         return &list[i];
 
-    return NULL;
+    return nullptr;
   }
 
   //! Find VarAttr (by class).
@@ -92,7 +92,7 @@ struct X86VarMap : public VarMap {
       if (list[i].getVd() == vd)
         return &list[i];
 
-    return NULL;
+    return nullptr;
   }
 
   // --------------------------------------------------------------------------
@@ -204,7 +204,7 @@ struct X86VarState : VarState {
       case kX86RegClassXyz: return _listXmm;
 
       default:
-        return NULL;
+        return nullptr;
     }
   }
 
@@ -381,7 +381,7 @@ struct X86Context : public Context {
     vd->resetRegIndex();
     vd->setModified(false);
 
-    _x86State.getListByClass(C)[regIndex] = NULL;
+    _x86State.getListByClass(C)[regIndex] = nullptr;
     _x86State._occupied.andNot(C, regMask);
     _x86State._modified.andNot(C, regMask);
 
@@ -407,7 +407,7 @@ struct X86Context : public Context {
 
     vd->setRegIndex(newRegIndex);
 
-    _x86State.getListByClass(C)[oldRegIndex] = NULL;
+    _x86State.getListByClass(C)[oldRegIndex] = nullptr;
     _x86State.getListByClass(C)[newRegIndex] = vd;
 
     _x86State._occupied.xor_(C, bothRegMask);
@@ -525,7 +525,7 @@ struct X86Context : public Context {
     uint32_t oldState = vd->getState();
     uint32_t regMask = Utils::mask(regIndex);
 
-    ASMJIT_ASSERT(_x86State.getListByClass(C)[regIndex] == NULL || regIndex == oldRegIndex);
+    ASMJIT_ASSERT(_x86State.getListByClass(C)[regIndex] == nullptr || regIndex == oldRegIndex);
 
     if (oldState != kVarStateReg) {
       if (oldState == kVarStateMem)
@@ -535,7 +535,7 @@ struct X86Context : public Context {
     else if (oldRegIndex != regIndex) {
       emitMove(vd, regIndex, oldRegIndex, "Alloc");
 
-      _x86State.getListByClass(C)[oldRegIndex] = NULL;
+      _x86State.getListByClass(C)[oldRegIndex] = nullptr;
       regMask ^= Utils::mask(oldRegIndex);
     }
     else {

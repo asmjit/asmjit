@@ -226,7 +226,7 @@ struct HLNode {
   // --------------------------------------------------------------------------
 
   //! Get whether node contains variable allocation instructions.
-  ASMJIT_INLINE bool hasMap() const { return _map != NULL; }
+  ASMJIT_INLINE bool hasMap() const { return _map != nullptr; }
   //! Get variable allocation instructions.
   ASMJIT_INLINE VarMap* getMap() const { return _map; }
   //! Get variable allocation instructions casted to `T*`.
@@ -240,7 +240,7 @@ struct HLNode {
   // --------------------------------------------------------------------------
 
   //! Get whether the node has an associated `VarState`.
-  ASMJIT_INLINE bool hasState() const { return _state != NULL; }
+  ASMJIT_INLINE bool hasState() const { return _state != nullptr; }
   //! Get node state.
   ASMJIT_INLINE VarState* getState() const { return _state; }
   //! Get node state casted to `T*`.
@@ -254,7 +254,7 @@ struct HLNode {
   // --------------------------------------------------------------------------
 
   //! Get whether the node has variable liveness bits.
-  ASMJIT_INLINE bool hasLiveness() const { return _liveness != NULL; }
+  ASMJIT_INLINE bool hasLiveness() const { return _liveness != nullptr; }
   //! Get variable liveness bits.
   ASMJIT_INLINE BitArray* getLiveness() const { return _liveness; }
   //! Set variable liveness bits.
@@ -291,19 +291,19 @@ struct HLNode {
 
   // TODO: 32-bit gap
 
-  //! Inline comment string, initially set to NULL.
+  //! Inline comment string, initially set to nullptr.
   const char* _comment;
 
-  //! Variable mapping (VarAttr to VarData), initially NULL, filled during
+  //! Variable mapping (VarAttr to VarData), initially nullptr, filled during
   //! fetch phase.
   VarMap* _map;
 
-  //! Variable liveness bits (initially NULL, filled by analysis phase).
+  //! Variable liveness bits (initially nullptr, filled by analysis phase).
   BitArray* _liveness;
 
   //! Saved state.
   //!
-  //! Initially NULL, not all nodes have saved state, only branch/flow control
+  //! Initially nullptr, not all nodes have saved state, only branch/flow control
   //! nodes.
   VarState* _state;
 };
@@ -491,7 +491,7 @@ struct HLData : public HLNode {
 
     _size = size;
     if (size <= kInlineBufferSize) {
-      if (data != NULL)
+      if (data != nullptr)
         ::memcpy(_data.buf, data, size);
     }
     else {
@@ -593,7 +593,7 @@ struct HLLabel : public HLNode {
 
     _id = labelId;
     _numRefs = 0;
-    _from = NULL;
+    _from = nullptr;
   }
 
   //! Destroy the `HLLabel` instance.
@@ -612,7 +612,7 @@ struct HLLabel : public HLNode {
   ASMJIT_INLINE HLJump* getFrom() const { return _from; }
 
   //! Get whether the node has assigned state.
-  ASMJIT_INLINE bool hasState() const { return _state != NULL; }
+  ASMJIT_INLINE bool hasState() const { return _state != nullptr; }
   //! Get state for this target.
   ASMJIT_INLINE VarState* getState() const { return _state; }
   //! Set state for this target.
@@ -758,11 +758,11 @@ struct HLFunc : public HLNode {
   //! Always use `Compiler::addFunc()` to create an `HLFunc` instance.
   ASMJIT_INLINE HLFunc(Compiler* compiler)
     : HLNode(compiler, kHLNodeTypeFunc),
-      _entryNode(NULL),
-      _exitNode(NULL),
-      _decl(NULL),
-      _end(NULL),
-      _args(NULL),
+      _entryNode(nullptr),
+      _exitNode(nullptr),
+      _decl(nullptr),
+      _end(nullptr),
+      _args(nullptr),
       _funcHints(Utils::mask(kFuncHintNaked)),
       _funcFlags(0),
       _expectedStackAlignment(0),
@@ -815,7 +815,7 @@ struct HLFunc : public HLNode {
   //! Reset argument at `i`.
   ASMJIT_INLINE void resetArg(uint32_t i) {
     ASMJIT_ASSERT(i < getNumArgs());
-    _args[i] = NULL;
+    _args[i] = nullptr;
   }
 
   //! Get function hints.
@@ -1012,9 +1012,9 @@ struct HLCall : public HLNode {
   //! Create a new `HLCall` instance.
   ASMJIT_INLINE HLCall(Compiler* compiler, const Operand& target)
     : HLNode(compiler, kHLNodeTypeCall),
-      _decl(NULL),
+      _decl(nullptr),
       _target(target),
-      _args(NULL) {}
+      _args(nullptr) {}
 
   //! Destroy the `HLCall` instance.
   ASMJIT_INLINE ~HLCall() {}
@@ -1110,7 +1110,7 @@ struct HLCallArg : public HLNode {
   HLCall* _call;
   //! Source variable.
   VarData* _sVd;
-  //! Temporary variable used for conversion (or NULL).
+  //! Temporary variable used for conversion (or nullptr).
   VarData* _cVd;
 
   //! Affected arguments bit-array.

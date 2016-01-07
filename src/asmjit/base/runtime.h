@@ -80,7 +80,7 @@ struct ASMJIT_VIRTAPI Runtime {
   //!
   //! The beginning of the memory allocated for the function is returned in
   //! `dst`. Returns Status code as \ref ErrorCode, on failure `dst` is set to
-  //! `NULL`.
+  //! `nullptr`.
   virtual Error add(void** dst, Assembler* assembler) = 0;
 
   //! Release memory allocated by `add`.

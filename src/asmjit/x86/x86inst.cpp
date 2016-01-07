@@ -4536,7 +4536,7 @@ static ASMJIT_INLINE int X86Util_cmpInstName(const char* a, const char* b, size_
 }
 
 uint32_t X86Util::getInstIdByName(const char* name, size_t len) {
-  if (name == NULL)
+  if (name == nullptr)
     return kInstIdNone;
 
   if (len == kInvalidIndex)
@@ -4617,8 +4617,8 @@ UNIT(x86_inst_name) {
 
   // Everything else should return kInstIdNone
   INFO("Trying to look-up instructions that don't exist.");
-  EXPECT(X86Util::getInstIdByName(NULL) == kInstIdNone,
-    "Should return kInstIdNone for NULL input.");
+  EXPECT(X86Util::getInstIdByName(nullptr) == kInstIdNone,
+    "Should return kInstIdNone for `nullptr` input.");
 
   EXPECT(X86Util::getInstIdByName("") == kInstIdNone,
     "Should return kInstIdNone for empty string.");

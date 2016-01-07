@@ -91,12 +91,12 @@ Error StaticRuntime::add(void** dst, Assembler* assembler) {
   size_t sizeLimit = _sizeLimit;
 
   if (codeSize == 0) {
-    *dst = NULL;
+    *dst = nullptr;
     return kErrorNoCodeGenerated;
   }
 
   if (sizeLimit != 0 && sizeLimit < codeSize) {
-    *dst = NULL;
+    *dst = nullptr;
     return kErrorCodeTooLarge;
   }
 
@@ -108,7 +108,7 @@ Error StaticRuntime::add(void** dst, Assembler* assembler) {
   // silently.
   size_t relocSize = assembler->relocCode(p, baseAddress);
   if (relocSize == 0 || codeSize != relocSize) {
-    *dst = NULL;
+    *dst = nullptr;
     return kErrorInvalidState;
   }
 
@@ -142,13 +142,13 @@ JitRuntime::~JitRuntime() {}
 Error JitRuntime::add(void** dst, Assembler* assembler) {
   size_t codeSize = assembler->getCodeSize();
   if (codeSize == 0) {
-    *dst = NULL;
+    *dst = nullptr;
     return kErrorNoCodeGenerated;
   }
 
   void* p = _memMgr.alloc(codeSize, getAllocType());
-  if (p == NULL) {
-    *dst = NULL;
+  if (p == nullptr) {
+    *dst = nullptr;
     return kErrorNoVirtualMemory;
   }
 

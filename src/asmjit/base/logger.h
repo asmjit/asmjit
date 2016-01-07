@@ -143,7 +143,7 @@ struct ASMJIT_VIRTAPI Logger {
 
   //! Reset indentation.
   ASMJIT_INLINE void resetIndentation() {
-    setIndentation(NULL);
+    setIndentation(nullptr);
   }
 
   // --------------------------------------------------------------------------
@@ -170,7 +170,7 @@ struct ASMJIT_VIRTAPI FileLogger : public Logger {
   // --------------------------------------------------------------------------
 
   //! Create a new `FileLogger` that logs to a `FILE` stream.
-  ASMJIT_API FileLogger(FILE* stream = NULL);
+  ASMJIT_API FileLogger(FILE* stream = nullptr);
 
   //! Destroy the `FileLogger`.
   ASMJIT_API virtual ~FileLogger();
@@ -181,12 +181,12 @@ struct ASMJIT_VIRTAPI FileLogger : public Logger {
 
   //! Get `FILE*` stream.
   //!
-  //! \note Return value can be `NULL`.
+  //! \note Return value can be `nullptr`.
   ASMJIT_INLINE FILE* getStream() const {
     return _stream;
   }
 
-  //! Set `FILE*` stream, can be set to `NULL` to disable logging, although
+  //! Set `FILE*` stream, can be set to `nullptr` to disable logging, although
   //! the `CodeGen` will still call `logString` even if there is no stream.
   ASMJIT_INLINE void setStream(FILE* stream) {
     _stream = stream;

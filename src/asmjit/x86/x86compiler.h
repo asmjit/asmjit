@@ -750,7 +750,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
   //! Create a `X86Compiler` instance.
-  ASMJIT_API X86Compiler(X86Assembler* assembler = NULL);
+  ASMJIT_API X86Compiler(X86Assembler* assembler = nullptr);
   //! Destroy the `X86Compiler` instance.
   ASMJIT_API ~X86Compiler();
 
@@ -1025,13 +1025,13 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
     \
     type var(NoInit); \
-    _newVar(&var, vType, NULL, NULL); \
+    _newVar(&var, vType, nullptr, nullptr); \
     return var; \
   }
 #define ASMJIT_NEW_VAR_AUTO_EX(func, type, typeId) \
   ASMJIT_NOINLINE type new##func(const char* name, ...) { \
     type var(NoInit); \
-    _newVar(&var, typeId, NULL, NULL); \
+    _newVar(&var, typeId, nullptr, nullptr); \
     return var; \
   }
 #endif
@@ -1055,7 +1055,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
     \
     type var(NoInit); \
-    _newVar(&var, vType, NULL, NULL); \
+    _newVar(&var, vType, nullptr, nullptr); \
     return var; \
   } \
   \
@@ -1074,7 +1074,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   \
   ASMJIT_INLINE type new##func() { \
     type var(NoInit); \
-    _newVar(&var, typeId, NULL, NULL); \
+    _newVar(&var, typeId, nullptr, nullptr); \
     return var; \
   } \
   \
@@ -1115,7 +1115,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   ASMJIT_API virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name);
 
   //! Create a new memory chunk allocated on the current function's stack.
-  ASMJIT_INLINE X86Mem newStack(uint32_t size, uint32_t alignment, const char* name = NULL) {
+  ASMJIT_INLINE X86Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
     X86Mem m(NoInit);
     _newStack(&m, size, alignment, name);
     return m;

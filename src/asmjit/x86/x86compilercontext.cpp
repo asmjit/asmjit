@@ -53,7 +53,7 @@ static void X86Context_annotateVariable(X86Context* self,
   StringBuilder& sb, const VarData* vd) {
 
   const char* name = vd->getName();
-  if (name != NULL && name[0] != '\0') {
+  if (name != nullptr && name[0] != '\0') {
     sb.appendString(name);
   }
   else {
@@ -284,7 +284,7 @@ void X86Context::reset(bool releaseMemory) {
   _x86State.reset(0);
   _clobberedRegs.reset();
 
-  _stackFrameCell = NULL;
+  _stackFrameCell = nullptr;
   _gaRegs[kX86RegClassGp ] = Utils::bits(_regCount.getGp()) & ~Utils::mask(kX86RegIndexSp);
   _gaRegs[kX86RegClassMm ] = Utils::bits(_regCount.getMm());
   _gaRegs[kX86RegClassK  ] = Utils::bits(_regCount.getK());
@@ -492,9 +492,9 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
 
     case kX86InstIdImul:
       if (opCount == 2)
-        return NULL;
+        return nullptr;
       if (opCount == 3 && !(opList[0].isVar() && opList[1].isVar() && opList[2].isVarOrMem()))
-        return NULL;
+        return nullptr;
       ASMJIT_FALLTHROUGH;
 
     case kX86InstIdMul:
@@ -536,34 +536,34 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
     // Not supported.
     case kX86InstIdEnter:
     case kX86InstIdLeave:
-      return NULL;
+      return nullptr;
 
     // Not supported.
     case kX86InstIdRet:
-      return NULL;
+      return nullptr;
 
     case kX86InstIdMonitor:
     case kX86InstIdMwait:
       // TODO: [COMPILER] Monitor/MWait.
-      return NULL;
+      return nullptr;
 
     case kX86InstIdPop:
       // TODO: [COMPILER] Pop.
-      return NULL;
+      return nullptr;
 
     // Not supported.
     case kX86InstIdPopa:
     case kX86InstIdPopf:
-      return NULL;
+      return nullptr;
 
     case kX86InstIdPush:
       // TODO: [COMPILER] Push.
-      return NULL;
+      return nullptr;
 
     // Not supported.
     case kX86InstIdPusha:
     case kX86InstIdPushf:
-      return NULL;
+      return nullptr;
 
     // Rot instruction is special only if the last operand is a variable.
     case kX86InstIdRcl:
@@ -575,14 +575,14 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
     case kX86InstIdShl:
     case kX86InstIdShr:
       if (!opList[1].isVar())
-        return NULL;
+        return nullptr;
       return x86SpecialInstRot;
 
     // Shld/Shrd instruction is special only if the last operand is a variable.
     case kX86InstIdShld:
     case kX86InstIdShrd:
       if (!opList[2].isVar())
-        return NULL;
+        return nullptr;
       return x86SpecialInstShlrd;
 
     case kX86InstIdRdtsc:
@@ -633,7 +633,7 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
       return x86SpecialInstXsetbv;
 
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -647,7 +647,7 @@ void X86Context::emitLoad(VarData* vd, uint32_t regIndex, const char* reason) {
   X86Compiler* compiler = getCompiler();
   X86Mem m = getVarMem(vd);
 
-  HLNode* node = NULL;
+  HLNode* node = nullptr;
 
   switch (vd->getType()) {
     case kVarTypeInt8:
@@ -719,7 +719,7 @@ void X86Context::emitSave(VarData* vd, uint32_t regIndex, const char* reason) {
   X86Compiler* compiler = getCompiler();
   X86Mem m = getVarMem(vd);
 
-  HLNode* node = NULL;
+  HLNode* node = nullptr;
 
   switch (vd->getType()) {
     case kVarTypeInt8:
@@ -789,7 +789,7 @@ void X86Context::emitMove(VarData* vd, uint32_t toRegIndex, uint32_t fromRegInde
   ASMJIT_ASSERT(fromRegIndex != kInvalidReg);
 
   X86Compiler* compiler = getCompiler();
-  HLNode* node = NULL;
+  HLNode* node = nullptr;
 
   switch (vd->getType()) {
     case kVarTypeInt8:
@@ -850,7 +850,7 @@ void X86Context::emitSwapGp(VarData* aVd, VarData* bVd, uint32_t aIndex, uint32_
   ASMJIT_ASSERT(bIndex != kInvalidReg);
 
   X86Compiler* compiler = getCompiler();
-  HLNode* node = NULL;
+  HLNode* node = nullptr;
 
 #if defined(ASMJIT_BUILD_X64)
   uint32_t vType = Utils::iMax(aVd->getType(), bVd->getType());
@@ -1437,7 +1437,7 @@ static ASMJIT_INLINE void X86Context_checkStateVars(X86Context* self) {
   for (regIndex = 0, regMask = 1; regIndex < regCount; regIndex++, regMask <<= 1) {
     VarData* vd = sVars[regIndex];
 
-    if (vd == NULL) {
+    if (vd == nullptr) {
       ASMJIT_ASSERT((occupied & regMask) == 0);
       ASMJIT_ASSERT((modified & regMask) == 0);
     }
@@ -1480,7 +1480,7 @@ static ASMJIT_INLINE void X86Context_loadStateVars(X86Context* self, X86VarState
     VarData* vd = sVars[regIndex];
     cVars[regIndex] = vd;
 
-    if (vd == NULL)
+    if (vd == nullptr)
       continue;
 
     vd->setState(kVarStateReg);
@@ -1534,8 +1534,8 @@ VarState* X86Context::saveState() {
   X86VarState* cur = getState();
   X86VarState* dst = _zoneAllocator.allocT<X86VarState>(size);
 
-  if (dst == NULL)
-    return NULL;
+  if (dst == nullptr)
+    return nullptr;
 
   // Store links.
   ::memcpy(dst->_list, cur->_list, X86VarState::kAllCount * sizeof(VarData*));
@@ -1581,7 +1581,7 @@ static ASMJIT_INLINE void X86Context_switchStateVars(X86Context* self, X86VarSta
       if (dVd == sVd)
         continue;
 
-      if (dVd != NULL) {
+      if (dVd != nullptr) {
         const X86StateCell& cell = cells[dVd->getLocalId()];
 
         if (cell.getState() != kVarStateReg) {
@@ -1590,15 +1590,15 @@ static ASMJIT_INLINE void X86Context_switchStateVars(X86Context* self, X86VarSta
           else
             self->unuse<C>(dVd);
 
-          dVd = NULL;
+          dVd = nullptr;
           didWork = true;
 
-          if (sVd == NULL)
+          if (sVd == nullptr)
             continue;
         }
       }
 
-      if (dVd == NULL && sVd != NULL) {
+      if (dVd == nullptr && sVd != nullptr) {
 _MoveOrLoad:
         if (sVd->getRegIndex() != kInvalidReg)
           self->move<C>(sVd, regIndex);
@@ -1609,9 +1609,9 @@ _MoveOrLoad:
         continue;
       }
 
-      if (dVd != NULL) {
+      if (dVd != nullptr) {
         const X86StateCell& cell = cells[dVd->getLocalId()];
-        if (sVd == NULL) {
+        if (sVd == nullptr) {
           if (cell.getState() == kVarStateReg)
             continue;
 
@@ -1660,7 +1660,7 @@ _MoveOrLoad:
     for (uint32_t regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
       VarData* vd = dVars[regIndex];
 
-      if (vd == NULL)
+      if (vd == nullptr)
         continue;
 
       if ((dModified & regMask) && !(sModified & regMask)) {
@@ -1677,7 +1677,7 @@ _MoveOrLoad:
 }
 
 void X86Context::switchState(VarState* src_) {
-  ASMJIT_ASSERT(src_ != NULL);
+  ASMJIT_ASSERT(src_ != nullptr);
 
   X86VarState* cur = getState();
   X86VarState* src = static_cast<X86VarState*>(src_);
@@ -1747,7 +1747,7 @@ static ASMJIT_INLINE void X86Context_intersectStateVars(X86Context* self, X86Var
       if (dVd == aVd)
         continue;
 
-      if (dVd != NULL) {
+      if (dVd != nullptr) {
         const X86StateCell& aCell = aCells[dVd->getLocalId()];
         const X86StateCell& bCell = bCells[dVd->getLocalId()];
 
@@ -1757,15 +1757,15 @@ static ASMJIT_INLINE void X86Context_intersectStateVars(X86Context* self, X86Var
           else
             self->unuse<C>(dVd);
 
-          dVd = NULL;
+          dVd = nullptr;
           didWork = true;
 
-          if (aVd == NULL)
+          if (aVd == nullptr)
             continue;
         }
       }
 
-      if (dVd == NULL && aVd != NULL) {
+      if (dVd == nullptr && aVd != nullptr) {
         if (aVd->getRegIndex() != kInvalidReg)
           self->move<C>(aVd, regIndex);
         else
@@ -1775,11 +1775,11 @@ static ASMJIT_INLINE void X86Context_intersectStateVars(X86Context* self, X86Var
         continue;
       }
 
-      if (dVd != NULL) {
+      if (dVd != nullptr) {
         const X86StateCell& aCell = aCells[dVd->getLocalId()];
         const X86StateCell& bCell = bCells[dVd->getLocalId()];
 
-        if (aVd == NULL) {
+        if (aVd == nullptr) {
           if (aCell.getState() == kVarStateReg || bCell.getState() == kVarStateReg)
             continue;
 
@@ -1812,7 +1812,7 @@ static ASMJIT_INLINE void X86Context_intersectStateVars(X86Context* self, X86Var
     for (uint32_t regIndex = 0, regMask = 0x1; regIndex < regCount; regIndex++, regMask <<= 1) {
       VarData* vd = dVars[regIndex];
 
-      if (vd == NULL)
+      if (vd == nullptr)
         continue;
 
       const X86StateCell& aCell = aCells[vd->getLocalId()];
@@ -1826,8 +1826,8 @@ void X86Context::intersectStates(VarState* a_, VarState* b_) {
   X86VarState* a = static_cast<X86VarState*>(a_);
   X86VarState* b = static_cast<X86VarState*>(b_);
 
-  ASMJIT_ASSERT(a != NULL);
-  ASMJIT_ASSERT(b != NULL);
+  ASMJIT_ASSERT(a != nullptr);
+  ASMJIT_ASSERT(b != nullptr);
 
   X86Context_intersectStateVars<kX86RegClassGp >(this, a, b);
   X86Context_intersectStateVars<kX86RegClassMm >(this, a, b);
@@ -1992,7 +1992,7 @@ static ASMJIT_INLINE Error X86Context_insertHLCallArg(
 
   // First locate or create sArgBase.
   for (i = 0; i < sArgCount; i++) {
-    if (sArgList[i].sVd == sVd && sArgList[i].cVd == NULL)
+    if (sArgList[i].sVd == sVd && sArgList[i].cVd == nullptr)
       break;
   }
 
@@ -2000,8 +2000,8 @@ static ASMJIT_INLINE Error X86Context_insertHLCallArg(
 
   if (i == sArgCount) {
     sArgData->sVd = sVd;
-    sArgData->cVd = NULL;
-    sArgData->sArg = NULL;
+    sArgData->cVd = nullptr;
+    sArgData->sArg = nullptr;
     sArgData->aType = 0xFF;
     sArgCount++;
   }
@@ -2027,16 +2027,16 @@ static ASMJIT_INLINE Error X86Context_insertHLCallArg(
       return kErrorOk;
     }
 
-    VarData* cVd = compiler->_newVd(cType, cInfo.getSize(), cInfo.getClass(), NULL);
-    if (cVd == NULL)
+    VarData* cVd = compiler->_newVd(cType, cInfo.getSize(), cInfo.getClass(), nullptr);
+    if (cVd == nullptr)
       return kErrorNoHeapMemory;
 
     HLCallArg* sArg = compiler->newNode<HLCallArg>(call, sVd, cVd);
-    if (sArg == NULL)
+    if (sArg == nullptr)
       return kErrorNoHeapMemory;
 
     X86VarMap* map = self->newVarMap(2);
-    if (map == NULL)
+    if (map == nullptr)
       return kErrorNoHeapMemory;
 
     ASMJIT_PROPAGATE_ERROR(self->_registerContextVar(cVd));
@@ -2081,13 +2081,13 @@ static ASMJIT_INLINE Error X86Context_insertHLCallArg(
     HLCallArg* sArg = sArgData->sArg;
     ASMJIT_PROPAGATE_ERROR(self->_registerContextVar(sVd));
 
-    if (sArg == NULL) {
-      sArg = compiler->newNode<HLCallArg>(call, sVd, (VarData*)NULL);
-      if (sArg == NULL)
+    if (sArg == nullptr) {
+      sArg = compiler->newNode<HLCallArg>(call, sVd, (VarData*)nullptr);
+      if (sArg == nullptr)
         return kErrorNoHeapMemory;
 
       X86VarMap* map = self->newVarMap(1);
-      if (map == NULL)
+      if (map == nullptr)
         return kErrorNoHeapMemory;
 
       map->_vaCount = 1;
@@ -2130,7 +2130,7 @@ Error X86Context::fetch() {
   uint32_t arch = compiler->getArch();
 
   HLNode* node_ = func;
-  HLNode* next = NULL;
+  HLNode* next = nullptr;
   HLNode* stop = getStop();
 
   uint32_t flowId = 0;
@@ -2138,7 +2138,7 @@ Error X86Context::fetch() {
   VarAttr vaTmpList[80];
   SArgData sArgList[80];
 
-  PodList<HLNode*>::Link* jLink = NULL;
+  PodList<HLNode*>::Link* jLink = nullptr;
 
   // Function flags.
   func->clearFuncFlags(
@@ -2185,7 +2185,7 @@ Error X86Context::fetch() {
       break; \
     \
     X86VarMap* map = newVarMap(vaCount); \
-    if (map == NULL) \
+    if (map == nullptr) \
       goto _NoMemory; \
     \
     X86RegCount vaIndex; \
@@ -2215,7 +2215,7 @@ Error X86Context::fetch() {
       else \
         va->_allocableRegs &= ~inRegs.get(class_); \
       \
-      vd->_va = NULL; \
+      vd->_va = nullptr; \
       map->getVa(index)[0] = va[0]; \
       \
       va++; \
@@ -2227,7 +2227,7 @@ Error X86Context::fetch() {
 
 #define VI_ADD_VAR(_Vd_, _Va_, _Flags_, _NewAllocable_) \
   do { \
-    ASMJIT_ASSERT(_Vd_->_va == NULL); \
+    ASMJIT_ASSERT(_Vd_->_va == nullptr); \
     \
     _Va_ = &vaTmpList[vaCount++]; \
     _Va_->setup(_Vd_, _Flags_, 0, _NewAllocable_); \
@@ -2243,7 +2243,7 @@ Error X86Context::fetch() {
   do { \
     _Va_ = _Vd_->getVa(); \
     \
-    if (_Va_ == NULL) { \
+    if (_Va_ == nullptr) { \
       _Va_ = &vaTmpList[vaCount++]; \
       _Va_->setup(_Vd_, 0, 0, _NewAllocable_); \
       _Vd_->setVa(_Va_); \
@@ -2265,12 +2265,12 @@ Error X86Context::fetch() {
 _Do:
     while (node_->isFetched()) {
 _NextGroup:
-      if (jLink == NULL)
+      if (jLink == nullptr)
         jLink = _jccList.getFirst();
       else
         jLink = jLink->getNext();
 
-      if (jLink == NULL)
+      if (jLink == nullptr)
         goto _Done;
       node_ = X86Context_getOppositeJccFlow(static_cast<HLJump*>(jLink->getValue()));
     }
@@ -2323,7 +2323,7 @@ _NextGroup:
             if (regIndex < kInvalidReg)
               regMask = Utils::mask(regIndex);
 
-            if (va == NULL) {
+            if (va == nullptr) {
               if (inRegs.has(regClass, regMask))
                 break;
               if (remain[regClass] == 0)
@@ -2351,7 +2351,7 @@ _NextGroup:
               compiler->removeNode(cur);
 
             cur = static_cast<HLHint*>(node->getNext());
-            if (cur == NULL || cur->getType() != kHLNodeTypeHint || cur->getHint() != kVarHintAlloc)
+            if (cur == nullptr || cur->getType() != kHLNodeTypeHint || cur->getHint() != kVarHintAlloc)
               break;
           }
 
@@ -2412,14 +2412,14 @@ _NextGroup:
 
         if (opCount) {
           const X86InstExtendedInfo& extendedInfo = _x86InstInfo[instId].getExtendedInfo();
-          const X86SpecialInst* special = NULL;
+          const X86SpecialInst* special = nullptr;
           VI_BEGIN();
 
           // Collect instruction flags and merge all 'VarAttr's.
           if (extendedInfo.isFp())
             flags |= kHLNodeFlagIsFp;
 
-          if (extendedInfo.isSpecial() && (special = X86SpecialInst_get(instId, opList, opCount)) != NULL)
+          if (extendedInfo.isSpecial() && (special = X86SpecialInst_get(instId, opList, opCount)) != nullptr)
             flags |= kHLNodeFlagIsSpecial;
 
           uint32_t gpAllowedMask = 0xFFFFFFFF;
@@ -2460,7 +2460,7 @@ _NextGroup:
                 }
               }
 
-              if (special != NULL) {
+              if (special != nullptr) {
                 uint32_t inReg = special[i].inReg;
                 uint32_t outReg = special[i].outReg;
                 uint32_t c;
@@ -2640,7 +2640,7 @@ _NextGroup:
               ASMJIT_PROPAGATE_ERROR(addUnreachableNode(next));
 
             // Jump not followed.
-            if (jTarget == NULL) {
+            if (jTarget == nullptr) {
               ASMJIT_PROPAGATE_ERROR(addReturningNode(jNode));
               goto _NextGroup;
             }
@@ -2650,7 +2650,7 @@ _NextGroup:
           }
           else {
             // Jump not followed.
-            if (jTarget == NULL)
+            if (jTarget == nullptr)
               break;
 
             if (jTarget->isFetched()) {
@@ -2692,11 +2692,11 @@ _NextGroup:
           VarData* vd = func->getArg(i);
           VarAttr* va;
 
-          if (vd == NULL)
+          if (vd == nullptr)
             continue;
 
           // Overlapped function arguments.
-          if (vd->getVa() != NULL)
+          if (vd->getVa() != nullptr)
             return compiler->setLastError(kErrorOverlappedArgs);
           VI_ADD_VAR(vd, va, 0, 0);
 
@@ -2961,7 +2961,7 @@ Error X86Context::annotate() {
 
   uint32_t maxLen = 0;
   while (node_ != end) {
-    if (node_->getComment() == NULL) {
+    if (node_->getComment() == nullptr) {
       if (node_->getType() == kHLNodeTypeInst) {
         HLInst* node = static_cast<HLInst*>(node_);
         X86Context_annotateInstruction(this, sb, node->getInstId(), node->getOpList(), node->getOpCount());
@@ -3120,7 +3120,7 @@ ASMJIT_INLINE void X86BaseAlloc::cleanup() {
     VarAttr* va = &_vaList[0][i];
     VarData* vd = va->getVd();
 
-    vd->setVa(NULL);
+    vd->setVa(nullptr);
   }
 }
 
@@ -3249,7 +3249,7 @@ protected:
 ASMJIT_INLINE Error X86VarAlloc::run(HLNode* node_) {
   // Initialize.
   X86VarMap* map = node_->getMap<X86VarMap>();
-  if (map == NULL)
+  if (map == nullptr)
     return kErrorOk;
 
   // Initialize the allocator; connect Vd->Va.
@@ -3296,7 +3296,7 @@ ASMJIT_INLINE Error X86VarAlloc::run(HLNode* node_) {
     // Convert first.
     ASMJIT_ASSERT(sVd->getRegIndex() != kInvalidReg);
 
-    if (cVd != NULL) {
+    if (cVd != nullptr) {
       ASMJIT_ASSERT(cVd->getRegIndex() != kInvalidReg);
       _context->emitConvertVarToVar(
         cVd->getType(), cVd->getRegIndex(),
@@ -3603,14 +3603,14 @@ ASMJIT_INLINE void X86VarAlloc::spill() {
     m >>= bitIndex;
 
     VarData* vd = sVars[i];
-    ASMJIT_ASSERT(vd != NULL);
+    ASMJIT_ASSERT(vd != nullptr);
 
     VarAttr* va = vd->getVa();
-    ASMJIT_ASSERT(va == NULL || !va->hasFlag(kVarAttrXReg));
+    ASMJIT_ASSERT(va == nullptr || !va->hasFlag(kVarAttrXReg));
 
     if (vd->isModified() && availableRegs) {
       // Don't check for alternatives if the variable has to be spilled.
-      if (va == NULL || !va->hasFlag(kVarAttrSpill)) {
+      if (va == nullptr || !va->hasFlag(kVarAttrSpill)) {
         uint32_t altRegs = guessSpill<C>(vd, availableRegs);
 
         if (altRegs != 0) {
@@ -3659,7 +3659,7 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
       ASMJIT_ASSERT(aIndex != bIndex);
 
       VarData* bVd = getState()->getListByClass(C)[bIndex];
-      if (bVd != NULL) {
+      if (bVd != nullptr) {
         // Gp registers only - Swap two registers if we can solve two
         // allocation tasks by a single 'xchg' instruction, swapping
         // two registers required by the instruction/node or one register
@@ -3672,7 +3672,7 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
           addVaDone(C);
 
           // Doublehit, two registers allocated by a single swap.
-          if (bVa != NULL && bVa->getInRegIndex() == aIndex) {
+          if (bVa != nullptr && bVa->getInRegIndex() == aIndex) {
             bVa->orFlags(kVarAttrAllocRDone);
             addVaDone(C);
           }
@@ -3714,7 +3714,7 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
     ASMJIT_ASSERT(regIndex != kInvalidReg);
 
     if (vd->getRegIndex() != regIndex) {
-      ASMJIT_ASSERT(sVars[regIndex] == NULL);
+      ASMJIT_ASSERT(sVars[regIndex] == nullptr);
       _context->attach<C>(vd, regIndex, false);
     }
 
@@ -3814,7 +3814,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
         uint32_t vdCount = _compiler->getRegCount().get(C);
 
         for (uint32_t vdIndex = 0; vdIndex < vdCount; vdIndex++) {
-          if (vdArray[vdIndex] != NULL)
+          if (vdArray[vdIndex] != nullptr)
             tempRegs |= Utils::mask(vdIndex);
 
           if (vdArray[vdIndex] == vd)
@@ -3836,7 +3836,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
       else {
         // Process the current node if it has any variables associated in.
         X86VarMap* map = node->getMap<X86VarMap>();
-        if (map != NULL) {
+        if (map != nullptr) {
           VarAttr* vaList = map->getVaListByClass(C);
           uint32_t vaCount = map->getVaCountByClass(C);
 
@@ -3908,7 +3908,7 @@ _Advance:
       if (node->hasFlag(kHLNodeFlagIsJmp)) {
         // Stop on a jump that is not followed.
         node = static_cast<HLJump*>(node)->getTarget();
-        if (node == NULL)
+        if (node == nullptr)
           break;
         continue;
       }
@@ -3917,17 +3917,17 @@ _Advance:
       if (node->hasFlag(kHLNodeFlagIsJcc)) {
         // Put the next node on the stack and follow the target if possible.
         HLNode* next = node->getNext();
-        if (next != NULL && gfIndex < kMaxGuessFlow)
+        if (next != nullptr && gfIndex < kMaxGuessFlow)
           gfArray[gfIndex++].init(next, counter, safeRegs);
 
         node = static_cast<HLJump*>(node)->getTarget();
-        if (node == NULL)
+        if (node == nullptr)
           break;
         continue;
       }
 
       node = node->getNext();
-      ASMJIT_ASSERT(node != NULL);
+      ASMJIT_ASSERT(node != nullptr);
     } while (counter < maxInst);
 
 _Done:
@@ -3974,7 +3974,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
     BitArray* liveness = node->getLiveness();
 
     // If the variable becomes dead it doesn't make sense to continue.
-    if (liveness != NULL && !liveness->getBit(cId))
+    if (liveness != nullptr && !liveness->getBit(cId))
       break;
 
     // Stop on `HLSentinel` and `HLRet`.
@@ -3989,19 +3989,19 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
     if (node->hasFlag(kHLNodeFlagIsJmp)) {
       node = static_cast<HLJump*>(node)->getTarget();
       // Stop on jump that is not followed.
-      if (node == NULL)
+      if (node == nullptr)
         break;
     }
 
     node = node->getNext();
-    ASMJIT_ASSERT(node != NULL);
+    ASMJIT_ASSERT(node != nullptr);
 
     X86VarMap* map = node->getMap<X86VarMap>();
-    if (map != NULL) {
+    if (map != nullptr) {
       VarAttr* va = map->findVaByClass(C, vd);
       uint32_t mask;
 
-      if (va != NULL) {
+      if (va != nullptr) {
         // If the variable is overwritten it doesn't mase sense to continue.
         if (!(va->getFlags() & kVarAttrRAll))
           break;
@@ -4183,7 +4183,7 @@ protected:
 ASMJIT_INLINE Error X86CallAlloc::run(X86CallNode* node) {
   // Initialize.
   X86VarMap* map = node->getMap<X86VarMap>();
-  if (map == NULL)
+  if (map == nullptr)
     return kErrorOk;
 
   // Initialize the allocator; prepare basics and connect Vd->Va.
@@ -4408,8 +4408,8 @@ ASMJIT_INLINE void X86CallAlloc::spill() {
     m >>= bitIndex;
 
     VarData* vd = sVars[i];
-    ASMJIT_ASSERT(vd != NULL);
-    ASMJIT_ASSERT(vd->getVa() == NULL);
+    ASMJIT_ASSERT(vd != nullptr);
+    ASMJIT_ASSERT(vd->getVa() == nullptr);
 
     if (vd->isModified() && availableRegs) {
       uint32_t m = guessSpill<C>(vd, availableRegs);
@@ -4458,7 +4458,7 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
       ASMJIT_ASSERT(aIndex != bIndex);
 
       VarData* bVd = getState()->getListByClass(C)[bIndex];
-      if (bVd != NULL) {
+      if (bVd != nullptr) {
         VarAttr* bVa = bVd->getVa();
 
         // Gp registers only - Swap two registers if we can solve two
@@ -4472,7 +4472,7 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
           addVaDone(C);
 
           // Doublehit, two registers allocated by a single swap.
-          if (bVa != NULL && bVa->getInRegIndex() == aIndex) {
+          if (bVa != nullptr && bVa->getInRegIndex() == aIndex) {
             bVa->orFlags(kVarAttrAllocRDone);
             addVaDone(C);
           }
@@ -4601,17 +4601,17 @@ ASMJIT_INLINE uint32_t X86CallAlloc::guessAlloc(VarData* vd, uint32_t allocableR
     if (node->hasFlag(kHLNodeFlagIsJmp)) {
       node = static_cast<HLJump*>(node)->getTarget();
       // Stop on jump that is not followed.
-      if (node == NULL)
+      if (node == nullptr)
         break;
     }
 
     node = node->getNext();
-    ASMJIT_ASSERT(node != NULL);
+    ASMJIT_ASSERT(node != nullptr);
 
     X86VarMap* map = node->getMap<X86VarMap>();
-    if (map != NULL) {
+    if (map != nullptr) {
       VarAttr* va = map->findVaByClass(C, vd);
-      if (va != NULL) {
+      if (va != nullptr) {
         uint32_t inRegs = va->getInRegs();
         if (inRegs != 0) {
           safeRegs = allocableRegs;
@@ -4658,11 +4658,11 @@ ASMJIT_INLINE void X86CallAlloc::save() {
   for (i = 0; affected != 0; i++, affected >>= 1) {
     if (affected & 0x1) {
       VarData* vd = sVars[i];
-      ASMJIT_ASSERT(vd != NULL);
+      ASMJIT_ASSERT(vd != nullptr);
       ASMJIT_ASSERT(vd->isModified());
 
       VarAttr* va = vd->getVa();
-      if (va == NULL || (va->getFlags() & (kVarAttrWReg | kVarAttrUnuse)) == 0) {
+      if (va == nullptr || (va->getFlags() & (kVarAttrWReg | kVarAttrUnuse)) == 0) {
         _context->save<C>(vd);
       }
     }
@@ -4684,12 +4684,12 @@ ASMJIT_INLINE void X86CallAlloc::clobber() {
   for (i = 0; affected != 0; i++, affected >>= 1) {
     if (affected & 0x1) {
       VarData* vd = sVars[i];
-      ASMJIT_ASSERT(vd != NULL);
+      ASMJIT_ASSERT(vd != nullptr);
 
       VarAttr* va = vd->getVa();
       uint32_t vdState = kVarStateNone;
 
-      if (!vd->isModified() || (va != NULL && (va->getFlags() & (kVarAttrWAll | kVarAttrUnuse)) != 0)) {
+      if (!vd->isModified() || (va != nullptr && (va->getFlags() & (kVarAttrWAll | kVarAttrUnuse)) != 0)) {
         vdState = kVarStateMem;
       }
 
@@ -4772,7 +4772,7 @@ static Error X86Context_translateOperands(X86Context* self, Operand* opList, uin
 
     if (op->isVar()) {
       VarData* vd = compiler->getVdById(op->getId());
-      ASMJIT_ASSERT(vd != NULL);
+      ASMJIT_ASSERT(vd != nullptr);
       ASMJIT_ASSERT(vd->getRegIndex() != kInvalidReg);
 
       op->_vreg.op = kOperandTypeReg;
@@ -4860,7 +4860,7 @@ static Error X86Context_initFunc(X86Context* self, X86FuncNode* func) {
   if (func->isStackMisaligned() && func->isNaked()) {
     // Get a memory cell where the original stack frame will be stored.
     VarCell* cell = self->_newStackCell(regSize, regSize);
-    if (cell == NULL)
+    if (cell == nullptr)
       return self->getLastError(); // The error has already been set.
 
     func->addFuncFlags(kFuncFlagIsStackAdjusted);
@@ -5033,7 +5033,7 @@ static Error X86Context_patchFuncMem(X86Context* self, X86FuncNode* func, HLNode
 
         if (m->getMemType() == kMemTypeStackIndex && OperandUtil::isVarId(m->getBase())) {
           VarData* vd = compiler->getVdById(m->getBase());
-          ASMJIT_ASSERT(vd != NULL);
+          ASMJIT_ASSERT(vd != nullptr);
 
           if (vd->isMemArg()) {
             m->_vmem.base = self->_argBaseReg;
@@ -5041,7 +5041,7 @@ static Error X86Context_patchFuncMem(X86Context* self, X86FuncNode* func, HLNode
           }
           else {
             VarCell* cell = vd->getMemCell();
-            ASMJIT_ASSERT(cell != NULL);
+            ASMJIT_ASSERT(cell != nullptr);
 
             m->_vmem.base = self->_varBaseReg;
             m->_vmem.displacement += self->_varBaseOffset + cell->getOffset();
@@ -5336,7 +5336,7 @@ static Error X86Context_translateRet(X86Context* self, HLRet* rNode, HLLabel* ex
   // 32-bit mode requires to push floating point return value(s), handle it
   // here as it's a special case.
   X86VarMap* map = rNode->getMap<X86VarMap>();
-  if (map != NULL) {
+  if (map != nullptr) {
     VarAttr* vaList = map->getVaList();
     uint32_t vaCount = map->getVaCount();
 
@@ -5358,7 +5358,7 @@ static Error X86Context_translateRet(X86Context* self, HLRet* rNode, HLLabel* ex
   }
 
   // Decide whether to `jmp` or not in case we are next to the return label.
-  while (node != NULL) {
+  while (node != nullptr) {
     switch (node->getType()) {
       // If we have found an exit label we just return, there is no need to
       // emit jump to that.
@@ -5415,7 +5415,7 @@ Error X86Context::translate() {
 
   // Flow.
   HLNode* node_ = func;
-  HLNode* next = NULL;
+  HLNode* next = nullptr;
   HLNode* stop = getStop();
 
   PodList<HLNode*>::Link* jLink = _jccList.getFirst();
@@ -5430,7 +5430,7 @@ Error X86Context::translate() {
       }
 
 _NextGroup:
-      if (jLink == NULL) {
+      if (jLink == nullptr) {
         goto _Done;
       }
       else {
@@ -5496,7 +5496,7 @@ _NextGroup:
           X86VarMap* map = static_cast<X86VarMap*>(node_->getMap());
           BitArray* liveness;
 
-          if (map != NULL && next != NULL && (liveness = next->getLiveness()) != NULL) {
+          if (map != nullptr && next != nullptr && (liveness = next->getLiveness()) != nullptr) {
             VarAttr* vaList = map->getVaList();
             uint32_t vaCount = map->getVaCount();
 
@@ -5526,7 +5526,7 @@ _NextGroup:
           HLLabel* jTarget = node->getTarget();
 
           // Target not followed.
-          if (jTarget == NULL) {
+          if (jTarget == nullptr) {
             if (node->isJmp())
               goto _NextGroup;
             else
@@ -5593,7 +5593,7 @@ _NextGroup:
         X86FuncDecl* decl = func->getDecl();
         X86VarMap* map = func->getMap<X86VarMap>();
 
-        if (map != NULL) {
+        if (map != nullptr) {
           uint32_t i;
           uint32_t argCount = func->_x86Decl.getNumArgs();
 
@@ -5601,11 +5601,11 @@ _NextGroup:
             const FuncInOut& arg = decl->getArg(i);
 
             VarData* vd = func->getArg(i);
-            if (vd == NULL)
+            if (vd == nullptr)
               continue;
 
             VarAttr* va = map->findVa(vd);
-            ASMJIT_ASSERT(va != NULL);
+            ASMJIT_ASSERT(va != nullptr);
 
             if (va->getFlags() & kVarAttrUnuse)
               continue;
@@ -5679,7 +5679,7 @@ Error X86Context::schedule() {
 _Advance:
   while (node_->isScheduled()) {
 _NextGroup:
-    if (jLink == NULL)
+    if (jLink == nullptr)
       goto _Done;
 
     // We always go to the next instruction in the main loop so we have to
@@ -5745,7 +5745,7 @@ _NextGroup:
     // If node is `jmp` we follow it as well.
     if (node_->isJmp()) {
       node_ = static_cast<HLJump*>(node_)->getTarget();
-      if (node_ == NULL)
+      if (node_ == nullptr)
         goto _NextGroup;
       else
         goto _Advance;
@@ -5814,7 +5814,7 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
             sb.getData()[offset + i] = '.';
         }
 
-        if (map != NULL) {
+        if (map != nullptr) {
           uint32_t vaCount = map->getVaCount();
 
           for (i = 0; i < vaCount; i++) {

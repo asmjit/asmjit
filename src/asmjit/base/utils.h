@@ -818,7 +818,7 @@ struct Lock {
   typedef pthread_mutex_t Handle;
 
   //! Create a new `Lock` instance.
-  ASMJIT_INLINE Lock() { pthread_mutex_init(&_handle, NULL); }
+  ASMJIT_INLINE Lock() { pthread_mutex_init(&_handle, nullptr); }
   //! Destroy the `Lock` instance.
   ASMJIT_INLINE ~Lock() { pthread_mutex_destroy(&_handle); }
 

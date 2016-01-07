@@ -31,7 +31,7 @@ static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_skewNode(ConstPool::Node* no
   ConstPool::Node* link = node->_link[0];
   uint32_t level = node->_level;
 
-  if (level != 0 && link != NULL && link->_level == level) {
+  if (level != 0 && link != nullptr && link->_level == level) {
     node->_link[0] = link->_link[1];
     link->_link[1] = node;
 
@@ -48,7 +48,7 @@ static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_splitNode(ConstPool::Node* n
   ConstPool::Node* link = node->_link[1];
   uint32_t level = node->_level;
 
-  if (level != 0 && link != NULL && link->_link[1] != NULL && link->_link[1]->_level == level) {
+  if (level != 0 && link != nullptr && link->_link[1] != nullptr && link->_link[1]->_level == level) {
     node->_link[1] = link->_link[0];
     link->_link[0] = node;
 
@@ -63,21 +63,21 @@ ConstPool::Node* ConstPool::Tree::get(const void* data) {
   ConstPool::Node* node = _root;
   size_t dataSize = _dataSize;
 
-  while (node != NULL) {
+  while (node != nullptr) {
     int c = ::memcmp(node->getData(), data, dataSize);
     if (c == 0)
       return node;
     node = node->_link[c < 0];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void ConstPool::Tree::put(ConstPool::Node* newNode) {
   size_t dataSize = _dataSize;
 
   _length++;
-  if (_root == NULL) {
+  if (_root == nullptr) {
     _root = newNode;
     return;
   }
@@ -94,7 +94,7 @@ void ConstPool::Tree::put(ConstPool::Node* newNode) {
     dir = ::memcmp(node->getData(), newNode->getData(), dataSize) < 0;
 
     ConstPool::Node* link = node->_link[dir];
-    if (link == NULL)
+    if (link == nullptr)
       break;
 
     node = link;
@@ -132,11 +132,11 @@ ConstPool::ConstPool(Zone* zone) {
   size_t dataSize = 1;
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {
     _tree[i].setDataSize(dataSize);
-    _gaps[i] = NULL;
+    _gaps[i] = nullptr;
     dataSize <<= 1;
   }
 
-  _gapPool = NULL;
+  _gapPool = nullptr;
   _size = 0;
   _alignment = 0;
 }
@@ -150,10 +150,10 @@ ConstPool::~ConstPool() {}
 void ConstPool::reset() {
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {
     _tree[i].reset();
-    _gaps[i] = NULL;
+    _gaps[i] = nullptr;
   }
 
-  _gapPool = NULL;
+  _gapPool = nullptr;
   _size = 0;
   _alignment = 0;
 }
@@ -164,7 +164,7 @@ void ConstPool::reset() {
 
 static ASMJIT_INLINE ConstPool::Gap* ConstPool_allocGap(ConstPool* self) {
   ConstPool::Gap* gap = self->_gapPool;
-  if (gap == NULL)
+  if (gap == nullptr)
     return self->_zone->allocT<ConstPool::Gap>();
 
   self->_gapPool = gap->_next;
@@ -208,7 +208,7 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) {
     // happened (just the gap won't be visible) and it will fail again at
     // place where checking will cause kErrorNoHeapMemory.
     ConstPool::Gap* gap = ConstPool_allocGap(self);
-    if (gap == NULL)
+    if (gap == nullptr)
       return;
 
     gap->_next = self->_gaps[gapIndex];
@@ -241,7 +241,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
     return kErrorInvalidArgument;
 
   ConstPool::Node* node = _tree[treeIndex].get(data);
-  if (node != NULL) {
+  if (node != nullptr) {
     dstOffset = node->_offset;
     return kErrorOk;
   }
@@ -255,7 +255,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
     ConstPool::Gap* gap = _gaps[treeIndex];
 
     // Check if there is a gap.
-    if (gap != NULL) {
+    if (gap != nullptr) {
       size_t gapOffset = gap->_offset;
       size_t gapLength = gap->_length;
 
@@ -290,7 +290,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
 
   // Add the initial node to the right index.
   node = ConstPool::Tree::_newNode(_zone, data, size, offset, false);
-  if (node == NULL)
+  if (node == nullptr)
     return kErrorNoHeapMemory;
 
   _tree[treeIndex].put(node);
@@ -313,7 +313,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
     for (size_t i = 0; i < pCount; i++, pData += size) {
       node = _tree[treeIndex].get(pData);
 
-      if (node != NULL)
+      if (node != nullptr)
         continue;
 
       node = ConstPool::Tree::_newNode(_zone, pData, size, offset + (i * size), true);

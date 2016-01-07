@@ -37,7 +37,7 @@ void ErrorHandler::release() {}
 // ============================================================================
 
 CodeGen::CodeGen()
-  : _assembler(NULL),
+  : _assembler(nullptr),
     _hlId(0),
     _arch(kArchNone),
     _regSize(0),
@@ -55,10 +55,10 @@ Error CodeGen::setLastError(Error error, const char* message) {
 
   // Don't do anything if the code-generator doesn't have associated assembler.
   Assembler* assembler = getAssembler();
-  if (assembler == NULL)
+  if (assembler == nullptr)
     return error;
 
-  if (message == NULL)
+  if (message == nullptr)
     message = DebugUtils::errorAsString(error);
 
   // Logging is skipped if the error is handled by `ErrorHandler.
@@ -67,12 +67,12 @@ Error CodeGen::setLastError(Error error, const char* message) {
     static_cast<unsigned int>(error),
     !eh ? "(Possibly unhandled?)" : "");
 
-  if (eh != NULL && eh->handleError(error, message, this))
+  if (eh != nullptr && eh->handleError(error, message, this))
     return error;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
   Logger* logger = assembler->getLogger();
-  if (logger != NULL)
+  if (logger != nullptr)
     logger->logFormat(kLoggerStyleComment,
       "*** ERROR (CodeGen): %s (0x%0.8u).\n", message,
       static_cast<unsigned int>(error));
@@ -91,8 +91,8 @@ Error CodeGen::setLastError(Error error, const char* message) {
 
 Assembler::Assembler(Runtime* runtime)
   : _runtime(runtime),
-    _logger(NULL),
-    _errorHandler(NULL),
+    _logger(nullptr),
+    _errorHandler(nullptr),
     _arch(kArchNone),
     _regSize(0),
     _reserved(0),
@@ -102,19 +102,19 @@ Assembler::Assembler(Runtime* runtime)
     _hlIdGenerator(0),
     _hlAttachedCount(0),
     _zoneAllocator(8192 - Zone::kZoneOverhead),
-    _buffer(NULL),
-    _end(NULL),
-    _cursor(NULL),
+    _buffer(nullptr),
+    _end(nullptr),
+    _cursor(nullptr),
     _trampolinesSize(0),
-    _comment(NULL),
-    _unusedLinks(NULL),
+    _comment(nullptr),
+    _unusedLinks(nullptr),
     _labelList(),
     _relocList() {}
 
 Assembler::~Assembler() {
   reset(true);
 
-  if (_errorHandler != NULL)
+  if (_errorHandler != nullptr)
     _errorHandler->release();
 }
 
@@ -131,17 +131,17 @@ void Assembler::reset(bool releaseMemory) {
 
   _zoneAllocator.reset(releaseMemory);
 
-  if (releaseMemory && _buffer != NULL) {
+  if (releaseMemory && _buffer != nullptr) {
     ASMJIT_FREE(_buffer);
-    _buffer = NULL;
-    _end = NULL;
+    _buffer = nullptr;
+    _end = nullptr;
   }
 
   _cursor = _buffer;
   _trampolinesSize = 0;
 
-  _comment = NULL;
-  _unusedLinks = NULL;
+  _comment = nullptr;
+  _unusedLinks = nullptr;
 
   _labelList.reset(releaseMemory);
   _relocList.reset(releaseMemory);
@@ -158,7 +158,7 @@ Error Assembler::setLastError(Error error, const char* message) {
     return kErrorOk;
   }
 
-  if (message == NULL)
+  if (message == nullptr)
     message = DebugUtils::errorAsString(error);
 
   // Logging is skipped if the error is handled by `ErrorHandler.
@@ -167,12 +167,12 @@ Error Assembler::setLastError(Error error, const char* message) {
     static_cast<unsigned int>(error),
     !eh ? "(Possibly unhandled?)" : "");
 
-  if (eh != NULL && eh->handleError(error, message, this))
+  if (eh != nullptr && eh->handleError(error, message, this))
     return error;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
   Logger* logger = _logger;
-  if (logger != NULL)
+  if (logger != nullptr)
     logger->logFormat(kLoggerStyleComment,
       "*** ERROR (Assembler): %s (0x%0.8u).\n", message,
       static_cast<unsigned int>(error));
@@ -188,10 +188,10 @@ Error Assembler::setLastError(Error error, const char* message) {
 Error Assembler::setErrorHandler(ErrorHandler* handler) {
   ErrorHandler* oldHandler = _errorHandler;
 
-  if (oldHandler != NULL)
+  if (oldHandler != nullptr)
     oldHandler->release();
 
-  if (handler != NULL)
+  if (handler != nullptr)
     handler = handler->addRef();
 
   _errorHandler = handler;
@@ -243,12 +243,12 @@ Error Assembler::_reserve(size_t n) {
     return kErrorOk;
 
   uint8_t* newBuffer;
-  if (_buffer == NULL)
+  if (_buffer == nullptr)
     newBuffer = static_cast<uint8_t*>(ASMJIT_ALLOC(n));
   else
     newBuffer = static_cast<uint8_t*>(ASMJIT_REALLOC(_buffer, n));
 
-  if (newBuffer == NULL)
+  if (newBuffer == nullptr)
     return setLastError(kErrorNoHeapMemory);
 
   size_t offset = getOffset();
@@ -268,9 +268,9 @@ Error Assembler::_newLabelId() {
   LabelData* data = _zoneAllocator.allocT<LabelData>();
 
   data->offset = -1;
-  data->links = NULL;
+  data->links = nullptr;
   data->hlId = 0;
-  data->hlData = NULL;
+  data->hlData = nullptr;
 
   uint32_t id = OperandUtil::makeLabelId(static_cast<uint32_t>(_labelList.getLength()));
   Error error = _labelList.append(data);
@@ -291,11 +291,11 @@ LabelLink* Assembler::_newLabelLink() {
   }
   else {
     link = _zoneAllocator.allocT<LabelLink>();
-    if (link == NULL)
-      return NULL;
+    if (link == nullptr)
+      return nullptr;
   }
 
-  link->prev = NULL;
+  link->prev = nullptr;
   link->offset = 0;
   link->displacement = 0;
   link->relocId = -1;
@@ -321,7 +321,7 @@ Error Assembler::bind(const Label& label) {
     if ((_logger->getOptions() & (1 << kLoggerOptionBinaryForm)) == 0)
       binSize = kInvalidIndex;
 
-    LogUtil::formatLine(sb, NULL, binSize, 0, 0, _comment);
+    LogUtil::formatLine(sb, nullptr, binSize, 0, 0, _comment);
     _logger->logString(kLoggerStyleLabel, sb.getData(), sb.getLength());
   }
 #endif // !ASMJIT_DISABLE_LOGGER
@@ -330,7 +330,7 @@ Error Assembler::bind(const Label& label) {
   size_t pos = getOffset();
 
   LabelLink* link = data->links;
-  LabelLink* prev = NULL;
+  LabelLink* prev = nullptr;
 
   while (link) {
     intptr_t offset = link->offset;
@@ -369,7 +369,7 @@ Error Assembler::bind(const Label& label) {
   // Chain unused links.
   link = data->links;
   if (link) {
-    if (prev == NULL)
+    if (prev == nullptr)
       prev = link;
 
     prev->prev = _unusedLinks;
@@ -378,12 +378,12 @@ Error Assembler::bind(const Label& label) {
 
   // Set as bound (offset is zero or greater and no links).
   data->offset = pos;
-  data->links = NULL;
+  data->links = nullptr;
 
   if (error != kErrorOk)
     return setLastError(error);
 
-  _comment = NULL;
+  _comment = nullptr;
   return error;
 }
 
@@ -427,7 +427,7 @@ size_t Assembler::relocCode(void* dst, Ptr baseAddress) const {
 void* Assembler::make() {
   // Do nothing on error condition or if no instruction has been emitted.
   if (_lastError != kErrorOk || getCodeSize() == 0)
-    return NULL;
+    return nullptr;
 
   void* p;
   Error error = _runtime->add(&p, this);

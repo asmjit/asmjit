@@ -101,7 +101,7 @@ struct ConstPool {
     // --------------------------------------------------------------------------
 
     ASMJIT_INLINE Tree(size_t dataSize = 0)
-      : _root(NULL),
+      : _root(nullptr),
         _length(0),
         _dataSize(dataSize) {}
     ASMJIT_INLINE ~Tree() {}
@@ -111,7 +111,7 @@ struct ConstPool {
     // --------------------------------------------------------------------------
 
     ASMJIT_INLINE void reset() {
-      _root = NULL;
+      _root = nullptr;
       _length = 0;
     }
 
@@ -145,7 +145,7 @@ struct ConstPool {
 
       Node* stack[kHeightLimit];
 
-      if (node == NULL)
+      if (node == nullptr)
         return;
 
       size_t top = 0;
@@ -153,7 +153,7 @@ struct ConstPool {
       for (;;) {
         link = node->_link[0];
 
-        if (link != NULL) {
+        if (link != nullptr) {
           ASMJIT_ASSERT(top != kHeightLimit);
           stack[top++] = node;
 
@@ -165,7 +165,7 @@ struct ConstPool {
         visitor.visit(node);
         link = node->_link[1];
 
-        if (link != NULL) {
+        if (link != nullptr) {
           node = link;
           continue;
         }
@@ -184,11 +184,11 @@ struct ConstPool {
 
     static ASMJIT_INLINE Node* _newNode(Zone* zone, const void* data, size_t size, size_t offset, bool shared) {
       Node* node = zone->allocT<Node>(sizeof(Node) + size);
-      if (node == NULL)
-        return NULL;
+      if (node == nullptr)
+        return nullptr;
 
-      node->_link[0] = NULL;
-      node->_link[1] = NULL;
+      node->_link[0] = nullptr;
+      node->_link[1] = nullptr;
       node->_level = 1;
       node->_shared = shared;
       node->_offset = static_cast<uint32_t>(offset);

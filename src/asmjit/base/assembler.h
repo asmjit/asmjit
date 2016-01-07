@@ -406,7 +406,7 @@ struct ASMJIT_VIRTAPI CodeGen {
   //! Get the last error code.
   ASMJIT_INLINE Error getLastError() const { return _lastError; }
   //! Set the last error code and propagate it through the error handler.
-  ASMJIT_API Error setLastError(Error error, const char* message = NULL);
+  ASMJIT_API Error setLastError(Error error, const char* message = nullptr);
   //! Clear the last error code.
   ASMJIT_INLINE void resetLastError() { _lastError = kErrorOk; }
 
@@ -501,7 +501,7 @@ struct ASMJIT_VIRTAPI Assembler {
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
   //! Get whether the assembler has a logger.
-  ASMJIT_INLINE bool hasLogger() const { return _logger != NULL; }
+  ASMJIT_INLINE bool hasLogger() const { return _logger != nullptr; }
   //! Get the logger.
   ASMJIT_INLINE Logger* getLogger() const { return _logger; }
   //! Set the logger to `logger`.
@@ -517,12 +517,12 @@ struct ASMJIT_VIRTAPI Assembler {
   //! Set the error handler.
   ASMJIT_API Error setErrorHandler(ErrorHandler* handler);
   //! Clear the error handler.
-  ASMJIT_INLINE Error resetErrorHandler() { return setErrorHandler(NULL); }
+  ASMJIT_INLINE Error resetErrorHandler() { return setErrorHandler(nullptr); }
 
   //! Get the last error code.
   ASMJIT_INLINE Error getLastError() const { return _lastError; }
   //! Set the last error code and propagate it through the error handler.
-  ASMJIT_API Error setLastError(Error error, const char* message = NULL);
+  ASMJIT_API Error setLastError(Error error, const char* message = nullptr);
   //! Clear the last error code.
   ASMJIT_INLINE void resetLastError() { _lastError = kErrorOk; }
 
@@ -544,8 +544,8 @@ struct ASMJIT_VIRTAPI Assembler {
   //!
   //! Called after the code generator `cg` has been detached from the assembler.
   ASMJIT_INLINE void _detached(CodeGen* cg) {
-    cg->_runtime = NULL;
-    cg->_assembler = NULL;
+    cg->_runtime = nullptr;
+    cg->_assembler = nullptr;
     cg->_hlId = 0;
     _hlAttachedCount--;
   }
@@ -929,7 +929,7 @@ struct ASMJIT_VIRTAPI Assembler {
   //! Size of all possible trampolines.
   uint32_t _trampolinesSize;
 
-  //! Inline comment that will be logged by the next instruction and set to NULL.
+  //! Inline comment that will be logged by the next instruction and set to nullptr.
   const char* _comment;
   //! Unused `LabelLink` structures pool.
   LabelLink* _unusedLinks;

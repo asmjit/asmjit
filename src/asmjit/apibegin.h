@@ -17,15 +17,6 @@
 #endif // ASMJIT_API_SCOPE
 
 // ============================================================================
-// [Override]
-// ============================================================================
-
-#if !ASMJIT_CC_HAS_OVERRIDE && !defined(override)
-# define override
-# define ASMJIT_UNDEF_OVERRIDE
-#endif // !ASMJIT_CC_HAS_OVERRIDE && !override
-
-// ============================================================================
 // [NoExcept]
 // ============================================================================
 
@@ -33,6 +24,24 @@
 # define noexcept ASMJIT_NOEXCEPT
 # define ASMJIT_UNDEF_NOEXCEPT
 #endif // !ASMJIT_CC_HAS_NOEXCEPT && !noexcept
+
+// ============================================================================
+// [NullPtr]
+// ============================================================================
+
+#if !ASMJIT_CC_HAS_NULLPTR && !defined(nullptr)
+# define nullptr NULL
+# define ASMJIT_UNDEF_NULLPTR
+#endif // !ASMJIT_CC_HAS_NULLPTR && !nullptr
+
+// ============================================================================
+// [Override]
+// ============================================================================
+
+#if !ASMJIT_CC_HAS_OVERRIDE && !defined(override)
+# define override
+# define ASMJIT_UNDEF_OVERRIDE
+#endif // !ASMJIT_CC_HAS_OVERRIDE && !override
 
 // ============================================================================
 // [MSC]

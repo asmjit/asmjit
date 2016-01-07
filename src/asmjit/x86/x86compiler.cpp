@@ -182,7 +182,7 @@ X86Compiler::X86Compiler(X86Assembler* assembler)
   zsi = x86::noGpReg;
   zdi = x86::noGpReg;
 
-  if (assembler != NULL)
+  if (assembler != nullptr)
     attach(assembler);
 }
 
@@ -195,9 +195,9 @@ X86Compiler::~X86Compiler() {
 // ============================================================================
 
 Error X86Compiler::attach(Assembler* assembler) {
-  ASMJIT_ASSERT(assembler != NULL);
+  ASMJIT_ASSERT(assembler != nullptr);
 
-  if (_assembler != NULL)
+  if (_assembler != nullptr)
     return kErrorInvalidState;
 
   uint32_t arch = assembler->getArch();
@@ -257,7 +257,7 @@ void X86Compiler::reset(bool releaseMemory) {
 
 Error X86Compiler::finalize() {
   X86Assembler* assembler = getAssembler();
-  if (assembler == NULL)
+  if (assembler == nullptr)
     return kErrorOk;
 
   // Flush the global constant pool.
@@ -268,7 +268,7 @@ Error X86Compiler::finalize() {
     _globalConstPool.reset();
   }
 
-  if (_firstNode == NULL)
+  if (_firstNode == nullptr)
     return kErrorOk;
 
   X86Context context(this);
@@ -292,14 +292,14 @@ Error X86Compiler::finalize() {
 
     do {
       node = node->getNext();
-    } while (node != NULL && node->getType() != kHLNodeTypeFunc);
+    } while (node != nullptr && node->getType() != kHLNodeTypeFunc);
 
     error = context.serialize(assembler, start, node);
     context.cleanup();
 
     if (error != kErrorOk)
       break;
-  } while (node != NULL);
+  } while (node != nullptr);
 
   reset(false);
   return error;
@@ -317,7 +317,7 @@ static ASMJIT_INLINE size_t X86Compiler_getInstSize(uint32_t code) {
 static HLInst* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) {
   if (Utils::inInterval<uint32_t>(code, _kX86InstIdJbegin, _kX86InstIdJend)) {
     HLJump* node = new(p) HLJump(self, code, options, opList, opCount);
-    HLLabel* jTarget = NULL;
+    HLLabel* jTarget = nullptr;
 
     if ((options & kInstOptionUnfollow) == 0) {
       if (opList[0].isLabel())
@@ -328,7 +328,7 @@ static HLInst* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, ui
 
     node->orFlags(code == kX86InstIdJmp ? kHLNodeFlagIsJmp | kHLNodeFlagIsTaken : kHLNodeFlagIsJcc);
     node->_target = jTarget;
-    node->_jumpNext = NULL;
+    node->_jumpNext = nullptr;
 
     if (jTarget) {
       node->_jumpNext = static_cast<HLJump*>(jTarget->_from);
@@ -356,21 +356,21 @@ HLInst* X86Compiler::newInst(uint32_t code) {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size));
 
-  if (inst == NULL)
+  if (inst == nullptr)
     goto _NoMemory;
 
-  return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), NULL, 0);
+  return X86Compiler_newInst(this, inst, code, getInstOptionsAndReset(), nullptr, 0);
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0) {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 1 * sizeof(Operand)));
 
-  if (inst == NULL)
+  if (inst == nullptr)
     goto _NoMemory;
 
   {
@@ -382,14 +382,14 @@ HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0) {
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1) {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 2 * sizeof(Operand)));
 
-  if (inst == NULL)
+  if (inst == nullptr)
     goto _NoMemory;
 
   {
@@ -403,14 +403,14 @@ HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 3 * sizeof(Operand)));
 
-  if (inst == NULL)
+  if (inst == nullptr)
     goto _NoMemory;
 
   {
@@ -426,14 +426,14 @@ HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 4 * sizeof(Operand)));
 
-  if (inst == NULL)
+  if (inst == nullptr)
     goto _NoMemory;
 
   {
@@ -451,14 +451,14 @@ HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 5 * sizeof(Operand)));
 
-  if (inst == NULL)
+  if (inst == nullptr)
     goto _NoMemory;
 
   {
@@ -478,112 +478,112 @@ HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 HLInst* X86Compiler::emit(uint32_t code) {
   HLInst* node = newInst(code);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0) {
   HLInst* node = newInst(code, o0);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1){
   HLInst* node = newInst(code, o0, o1);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) {
   HLInst* node = newInst(code, o0, o1, o2);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3){
   HLInst* node = newInst(code, o0, o1, o2, o3);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) {
   HLInst* node = newInst(code, o0, o1, o2, o3, o4);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, int o0_) {
   Imm o0(o0_);
   HLInst* node = newInst(code, o0);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, uint64_t o0_) {
   Imm o0(o0_);
   HLInst* node = newInst(code, o0);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, int o1_) {
   Imm o1(o1_);
   HLInst* node = newInst(code, o0, o1);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, uint64_t o1_) {
   Imm o1(o1_);
   HLInst* node = newInst(code, o0, o1);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, int o2_) {
   Imm o2(o2_);
   HLInst* node = newInst(code, o0, o1, o2);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2_) {
   Imm o2(o2_);
   HLInst* node = newInst(code, o0, o1, o2);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3_) {
   Imm o3(o3_);
   HLInst* node = newInst(code, o0, o1, o2, o3);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
 HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3_) {
   Imm o3(o3_);
   HLInst* node = newInst(code, o0, o1, o2, o3);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
@@ -595,7 +595,7 @@ X86FuncNode* X86Compiler::newFunc(const FuncPrototype& p) {
   X86FuncNode* func = newNode<X86FuncNode>();
   Error error;
 
-  if (func == NULL)
+  if (func == nullptr)
     goto _NoMemory;
 
   // Create helper nodes.
@@ -603,13 +603,13 @@ X86FuncNode* X86Compiler::newFunc(const FuncPrototype& p) {
   func->_exitNode = newLabelNode();
   func->_end = newNode<HLSentinel>();
 
-  if (func->_entryNode == NULL || func->_exitNode == NULL || func->_end == NULL)
+  if (func->_entryNode == nullptr || func->_exitNode == nullptr || func->_end == nullptr)
     goto _NoMemory;
 
   // Function prototype.
   if ((error = func->_x86Decl.setPrototype(p)) != kErrorOk) {
     setLastError(error);
-    return NULL;
+    return nullptr;
   }
 
   // Function arguments stack size. Since function requires _argStackSize to be
@@ -623,10 +623,10 @@ X86FuncNode* X86Compiler::newFunc(const FuncPrototype& p) {
   func->_requiredStackAlignment = 0;
 
   // Allocate space for function arguments.
-  func->_args = NULL;
+  func->_args = nullptr;
   if (func->getNumArgs() != 0) {
     func->_args = _zoneAllocator.allocT<VarData*>(func->getNumArgs() * sizeof(VarData*));
-    if (func->_args == NULL)
+    if (func->_args == nullptr)
       goto _NoMemory;
     ::memset(func->_args, 0, func->getNumArgs() * sizeof(VarData*));
   }
@@ -635,18 +635,18 @@ X86FuncNode* X86Compiler::newFunc(const FuncPrototype& p) {
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 X86FuncNode* X86Compiler::addFunc(const FuncPrototype& p) {
   X86FuncNode* func = newFunc(p);
 
-  if (func == NULL) {
+  if (func == nullptr) {
     setLastError(kErrorNoHeapMemory);
-    return NULL;
+    return nullptr;
   }
 
-  ASMJIT_ASSERT(_func == NULL);
+  ASMJIT_ASSERT(_func == nullptr);
   _func = func;
 
   addNode(func);                 // Add function node.
@@ -662,7 +662,7 @@ X86FuncNode* X86Compiler::addFunc(const FuncPrototype& p) {
 
 HLSentinel* X86Compiler::endFunc() {
   X86FuncNode* func = getFunc();
-  ASMJIT_ASSERT(func != NULL);
+  ASMJIT_ASSERT(func != nullptr);
 
   // Add local constant pool at the end of the function (if exist).
   setCursor(func->getExitNode());
@@ -675,7 +675,7 @@ HLSentinel* X86Compiler::endFunc() {
 
   // Finalize.
   func->addFuncFlags(kFuncFlagIsFinished);
-  _func = NULL;
+  _func = nullptr;
 
   setCursor(func->getEnd());
   return func->getEnd();
@@ -687,18 +687,18 @@ HLSentinel* X86Compiler::endFunc() {
 
 HLRet* X86Compiler::newRet(const Operand& o0, const Operand& o1) {
   HLRet* node = newNode<HLRet>(o0, o1);
-  if (node == NULL)
+  if (node == nullptr)
     goto _NoMemory;
   return node;
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 HLRet* X86Compiler::addRet(const Operand& o0, const Operand& o1) {
   HLRet* node = newRet(o0, o1);
-  if (node == NULL)
+  if (node == nullptr)
     return node;
   return static_cast<HLRet*>(addNode(node));
 }
@@ -712,12 +712,12 @@ X86CallNode* X86Compiler::newCall(const Operand& o0, const FuncPrototype& p) {
   Error error;
   uint32_t nArgs;
 
-  if (node == NULL)
+  if (node == nullptr)
     goto _NoMemory;
 
   if ((error = node->_x86Decl.setPrototype(p)) != kErrorOk) {
     setLastError(error);
-    return NULL;
+    return nullptr;
   }
 
   // If there are no arguments skip the allocation.
@@ -725,7 +725,7 @@ X86CallNode* X86Compiler::newCall(const Operand& o0, const FuncPrototype& p) {
     return node;
 
   node->_args = static_cast<Operand*>(_zoneAllocator.alloc(nArgs * sizeof(Operand)));
-  if (node->_args == NULL)
+  if (node->_args == nullptr)
     goto _NoMemory;
 
   ::memset(node->_args, 0, nArgs * sizeof(Operand));
@@ -733,13 +733,13 @@ X86CallNode* X86Compiler::newCall(const Operand& o0, const FuncPrototype& p) {
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 X86CallNode* X86Compiler::addCall(const Operand& o0, const FuncPrototype& p) {
   X86CallNode* node = newCall(o0, p);
-  if (node == NULL)
-    return NULL;
+  if (node == nullptr)
+    return nullptr;
   return static_cast<X86CallNode*>(addNode(node));
 }
 
@@ -750,7 +750,7 @@ X86CallNode* X86Compiler::addCall(const Operand& o0, const FuncPrototype& p) {
 Error X86Compiler::setArg(uint32_t argIndex, const Var& var) {
   X86FuncNode* func = getFunc();
 
-  if (func == NULL)
+  if (func == nullptr)
     return kErrorInvalidArgument;
 
   if (!isVarValid(var))
@@ -785,7 +785,7 @@ Error X86Compiler::_newVar(Var* var, uint32_t vType, const char* name, va_list a
   }
 
   VarData* vd = _newVd(vType, vInfo.getSize(), vInfo.getClass(), name);
-  if (vd == NULL) {
+  if (vd == nullptr) {
     static_cast<X86Var*>(var)->reset();
     return getLastError();
   }
@@ -807,7 +807,7 @@ Error X86Compiler::_newStack(BaseMem* mem, uint32_t size, uint32_t alignment, co
     alignment = 64;
 
   VarData* vd = _newVd(kInvalidVar, size, kInvalidReg, name);
-  if (vd == NULL) {
+  if (vd == nullptr) {
     static_cast<X86Mem*>(mem)->reset();
     return getLastError();
   }

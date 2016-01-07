@@ -384,14 +384,14 @@ struct PodList {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE PodList() : _first(NULL), _last(NULL) {}
+  ASMJIT_INLINE PodList() : _first(nullptr), _last(nullptr) {}
   ASMJIT_INLINE ~PodList() {}
 
   // --------------------------------------------------------------------------
   // [Data]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE bool isEmpty() const { return _first != NULL; }
+  ASMJIT_INLINE bool isEmpty() const { return _first != nullptr; }
 
   ASMJIT_INLINE Link* getFirst() const { return _first; }
   ASMJIT_INLINE Link* getLast() const { return _last; }
@@ -401,20 +401,20 @@ struct PodList {
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE void reset() {
-    _first = NULL;
-    _last = NULL;
+    _first = nullptr;
+    _last = nullptr;
   }
 
   ASMJIT_INLINE void prepend(Link* link) {
     link->_next = _first;
-    if (_first == NULL)
+    if (_first == nullptr)
       _last = link;
     _first = link;
   }
 
   ASMJIT_INLINE void append(Link* link) {
-    link->_next = NULL;
-    if (_first == NULL)
+    link->_next = nullptr;
+    if (_first == nullptr)
       _first = link;
     else
       _last->_next = link;

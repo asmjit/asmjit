@@ -94,13 +94,13 @@ Error PodVectorBase::_reserve(size_t n, size_t sizeOfT) {
 
   if (d == &_nullData) {
     d = static_cast<PodVectorData*>(ASMJIT_ALLOC(nBytes));
-    if (d == NULL)
+    if (d == nullptr)
       return kErrorNoHeapMemory;
     d->length = 0;
   }
   else {
     d = static_cast<PodVectorData*>(ASMJIT_REALLOC(d, nBytes));
-    if (d == NULL)
+    if (d == nullptr)
       return kErrorNoHeapMemory;
   }
 
@@ -138,7 +138,7 @@ char* StringBuilder::prepare(uint32_t op, size_t len) {
   // --------------------------------------------------------------------------
 
   if (op == kStringOpSet) {
-    // We don't care here, but we can't return a NULL pointer since it indicates
+    // We don't care here, but we can't return a nullptr pointer since it indicates
     // failure in memory allocation.
     if (len == 0) {
       if (_data != StringBuilder_empty)
@@ -150,16 +150,16 @@ char* StringBuilder::prepare(uint32_t op, size_t len) {
 
     if (_capacity < len) {
       if (len >= IntTraits<size_t>::maxValue() - sizeof(intptr_t) * 2)
-        return NULL;
+        return nullptr;
 
       size_t to = Utils::alignTo<size_t>(len, sizeof(intptr_t));
       if (to < 256 - sizeof(intptr_t))
         to = 256 - sizeof(intptr_t);
 
       char* newData = static_cast<char*>(ASMJIT_ALLOC(to + sizeof(intptr_t)));
-      if (newData == NULL) {
+      if (newData == nullptr) {
         clear();
-        return NULL;
+        return nullptr;
       }
 
       if (_canFree)
@@ -182,14 +182,14 @@ char* StringBuilder::prepare(uint32_t op, size_t len) {
   // --------------------------------------------------------------------------
 
   else {
-    // We don't care here, but we can't return a NULL pointer since it indicates
+    // We don't care here, but we can't return a nullptr pointer since it indicates
     // failure in memory allocation.
     if (len == 0)
       return _data + _length;
 
     // Overflow.
     if (IntTraits<size_t>::maxValue() - sizeof(intptr_t) * 2 - _length < len)
-      return NULL;
+      return nullptr;
 
     size_t after = _length + len;
     if (_capacity < after) {
@@ -210,8 +210,8 @@ char* StringBuilder::prepare(uint32_t op, size_t len) {
       to = Utils::alignTo<size_t>(to, sizeof(intptr_t));
       char* newData = static_cast<char*>(ASMJIT_ALLOC(to + sizeof(intptr_t)));
 
-      if (newData == NULL)
-        return NULL;
+      if (newData == nullptr)
+        return nullptr;
 
       ::memcpy(newData, _data, _length);
       if (_canFree)
@@ -241,7 +241,7 @@ bool StringBuilder::reserve(size_t to) {
   to = Utils::alignTo<size_t>(to, sizeof(intptr_t));
 
   char* newData = static_cast<char*>(ASMJIT_ALLOC(to + sizeof(intptr_t)));
-  if (newData == NULL)
+  if (newData == nullptr)
     return false;
 
   ::memcpy(newData, _data, _length + 1);
@@ -270,10 +270,10 @@ void StringBuilder::clear() {
 
 bool StringBuilder::_opString(uint32_t op, const char* str, size_t len) {
   if (len == kInvalidIndex)
-    len = str != NULL ? ::strlen(str) : static_cast<size_t>(0);
+    len = str != nullptr ? ::strlen(str) : static_cast<size_t>(0);
 
   char* p = prepare(op, len);
-  if (p == NULL)
+  if (p == nullptr)
     return false;
 
   ::memcpy(p, str, len);
@@ -282,7 +282,7 @@ bool StringBuilder::_opString(uint32_t op, const char* str, size_t len) {
 
 bool StringBuilder::_opChar(uint32_t op, char c) {
   char* p = prepare(op, 1);
-  if (p == NULL)
+  if (p == nullptr)
     return false;
 
   *p = c;
@@ -291,7 +291,7 @@ bool StringBuilder::_opChar(uint32_t op, char c) {
 
 bool StringBuilder::_opChars(uint32_t op, char c, size_t len) {
   char* p = prepare(op, len);
-  if (p == NULL)
+  if (p == nullptr)
     return false;
 
   ::memset(p, c, len);
@@ -376,7 +376,7 @@ bool StringBuilder::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t wid
   size_t prefixLength = (size_t)(buf + ASMJIT_ARRAY_SIZE(buf) - p) - numberLength;
   char* data = prepare(op, prefixLength + width + numberLength);
 
-  if (data == NULL)
+  if (data == nullptr)
     return false;
 
   ::memcpy(data, p, prefixLength);
@@ -394,7 +394,7 @@ bool StringBuilder::_opHex(uint32_t op, const void* data, size_t len) {
     return false;
 
   char* dst = prepare(op, len * 2);
-  if (dst == NULL)
+  if (dst == nullptr)
     return false;
 
   const char* src = static_cast<const char*>(data);

@@ -69,7 +69,7 @@ struct VMemUtil {
   //!
   //! Pages are readable/writeable, but they are not guaranteed to be
   //! executable unless 'canExecute' is true. Returns the address of
-  //! allocated memory, or NULL on failure.
+  //! allocated memory, or `nullptr` on failure.
   static ASMJIT_API void* alloc(size_t length, size_t* allocated, uint32_t flags);
   //! Free memory allocated by `alloc()`.
   static ASMJIT_API Error release(void* addr, size_t length);

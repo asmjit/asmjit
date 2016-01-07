@@ -313,7 +313,7 @@ struct VarData {
   //! Set temporary VarAttr.
   ASMJIT_INLINE void setVa(VarAttr* va) { _va = va; }
   //! Reset temporary VarAttr.
-  ASMJIT_INLINE void resetVa() { _va = NULL; }
+  ASMJIT_INLINE void resetVa() { _va = nullptr; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -368,7 +368,7 @@ struct VarData {
 
   //! Home memory offset.
   int32_t _memOffset;
-  //! Home memory cell, used by `Context` (initially NULL).
+  //! Home memory cell, used by `Context` (initially nullptr).
   VarCell* _memCell;
 
   //! Register read access statistics.
@@ -390,12 +390,12 @@ struct VarData {
 
   union {
     //! Temporary link to VarAttr* used by the `Context` used in
-    //! various phases, but always set back to NULL when finished.
+    //! various phases, but always set back to nullptr when finished.
     //!
     //! This temporary data is designed to be used by algorithms that need to
     //! store some data into variables themselves during compilation. But it's
     //! expected that after variable is compiled & translated the data is set
-    //! back to zero/null. Initial value is NULL.
+    //! back to zero/null. Initial value is nullptr.
     VarAttr* _va;
 
     //! \internal
@@ -646,7 +646,7 @@ struct Context {
   }
 
   //! Set the last error code and propagate it through the error handler.
-  ASMJIT_INLINE Error setLastError(Error error, const char* message = NULL) {
+  ASMJIT_INLINE Error setLastError(Error error, const char* message = nullptr) {
     return getCompiler()->setLastError(error, message);
   }
 
@@ -730,7 +730,7 @@ struct Context {
   //! Add unreachable-flow data to the unreachable flow list.
   ASMJIT_INLINE Error addUnreachableNode(HLNode* node) {
     PodList<HLNode*>::Link* link = _zoneAllocator.allocT<PodList<HLNode*>::Link>();
-    if (link == NULL)
+    if (link == nullptr)
       return setLastError(kErrorNoHeapMemory);
 
     link->setValue(node);
@@ -750,7 +750,7 @@ struct Context {
   //! should start).
   ASMJIT_INLINE Error addReturningNode(HLNode* node) {
     PodList<HLNode*>::Link* link = _zoneAllocator.allocT<PodList<HLNode*>::Link>();
-    if (link == NULL)
+    if (link == nullptr)
       return setLastError(kErrorNoHeapMemory);
 
     link->setValue(node);
@@ -762,7 +762,7 @@ struct Context {
   //! Add jump-flow data to the jcc flow list.
   ASMJIT_INLINE Error addJccNode(HLNode* node) {
     PodList<HLNode*>::Link* link = _zoneAllocator.allocT<PodList<HLNode*>::Link>();
-    if (link == NULL)
+    if (link == nullptr)
       return setLastError(kErrorNoHeapMemory);
 
     link->setValue(node);

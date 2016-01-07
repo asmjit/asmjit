@@ -45,11 +45,11 @@ Compiler::Compiler() :
   _tokenGenerator(0),
   _nodeFlowId(0),
   _nodeFlags(0),
-  _targetVarMapping(NULL),
-  _firstNode(NULL),
-  _lastNode(NULL),
-  _cursor(NULL),
-  _func(NULL),
+  _targetVarMapping(nullptr),
+  _firstNode(nullptr),
+  _lastNode(nullptr),
+  _cursor(nullptr),
+  _func(nullptr),
   _zoneAllocator(8192 - Zone::kZoneOverhead),
   _varAllocator(4096 - Zone::kZoneOverhead),
   _stringAllocator(4096 - Zone::kZoneOverhead),
@@ -64,7 +64,7 @@ Compiler::~Compiler() {}
 
 void Compiler::reset(bool releaseMemory) {
   Assembler* assembler = getAssembler();
-  if (assembler != NULL)
+  if (assembler != nullptr)
     assembler->_detached(this);
 
   _arch = kArchNone;
@@ -81,11 +81,11 @@ void Compiler::reset(bool releaseMemory) {
   _nodeFlowId = 0;
   _nodeFlags = 0;
 
-  _firstNode = NULL;
-  _lastNode = NULL;
+  _firstNode = nullptr;
+  _lastNode = nullptr;
 
-  _cursor = NULL;
-  _func = NULL;
+  _cursor = nullptr;
+  _func = nullptr;
 
   _localConstPool.reset();
   _globalConstPool.reset();
@@ -108,10 +108,10 @@ void Compiler::reset(bool releaseMemory) {
 HLData* Compiler::newDataNode(const void* data, uint32_t size) {
   if (size > HLData::kInlineBufferSize) {
     void* clonedData = _stringAllocator.alloc(size);
-    if (clonedData == NULL)
-      return NULL;
+    if (clonedData == nullptr)
+      return nullptr;
 
-    if (data != NULL)
+    if (data != nullptr)
       ::memcpy(clonedData, data, size);
     data = clonedData;
   }
@@ -125,17 +125,17 @@ HLAlign* Compiler::newAlignNode(uint32_t alignMode, uint32_t offset) {
 
 HLLabel* Compiler::newLabelNode() {
   Assembler* assembler = getAssembler();
-  if (assembler == NULL) return NULL;
+  if (assembler == nullptr) return nullptr;
 
   uint32_t id = assembler->_newLabelId();
   LabelData* ld = assembler->getLabelData(id);
 
   HLLabel* node = newNode<HLLabel>(id);
-  if (node == NULL) return NULL;
+  if (node == nullptr) return nullptr;
 
   // These have to be zero now.
   ASMJIT_ASSERT(ld->hlId == 0);
-  ASMJIT_ASSERT(ld->hlData == NULL);
+  ASMJIT_ASSERT(ld->hlData == nullptr);
 
   ld->hlId = _hlId;
   ld->hlData = node;
@@ -144,10 +144,10 @@ HLLabel* Compiler::newLabelNode() {
 }
 
 HLComment* Compiler::newCommentNode(const char* str) {
-  if (str != NULL && str[0]) {
+  if (str != nullptr && str[0]) {
     str = _stringAllocator.sdup(str);
-    if (str == NULL)
-      return NULL;
+    if (str == nullptr)
+      return nullptr;
   }
 
   return newNode<HLComment>(str);
@@ -155,7 +155,7 @@ HLComment* Compiler::newCommentNode(const char* str) {
 
 HLHint* Compiler::newHintNode(Var& var, uint32_t hint, uint32_t value) {
   if (var.getId() == kInvalidValue)
-    return NULL;
+    return nullptr;
 
   VarData* vd = getVd(var);
   return newNode<HLHint>(vd, hint, value);
@@ -166,12 +166,12 @@ HLHint* Compiler::newHintNode(Var& var, uint32_t hint, uint32_t value) {
 // ============================================================================
 
 HLNode* Compiler::addNode(HLNode* node) {
-  ASMJIT_ASSERT(node != NULL);
-  ASMJIT_ASSERT(node->_prev == NULL);
-  ASMJIT_ASSERT(node->_next == NULL);
+  ASMJIT_ASSERT(node != nullptr);
+  ASMJIT_ASSERT(node->_prev == nullptr);
+  ASMJIT_ASSERT(node->_next == nullptr);
 
-  if (_cursor == NULL) {
-    if (_firstNode == NULL) {
+  if (_cursor == nullptr) {
+    if (_firstNode == nullptr) {
       _firstNode = node;
       _lastNode = node;
     }
@@ -200,10 +200,10 @@ HLNode* Compiler::addNode(HLNode* node) {
 }
 
 HLNode* Compiler::addNodeBefore(HLNode* node, HLNode* ref) {
-  ASMJIT_ASSERT(node != NULL);
-  ASMJIT_ASSERT(node->_prev == NULL);
-  ASMJIT_ASSERT(node->_next == NULL);
-  ASMJIT_ASSERT(ref != NULL);
+  ASMJIT_ASSERT(node != nullptr);
+  ASMJIT_ASSERT(node->_prev == nullptr);
+  ASMJIT_ASSERT(node->_next == nullptr);
+  ASMJIT_ASSERT(ref != nullptr);
 
   HLNode* prev = ref->_prev;
   HLNode* next = ref;
@@ -221,10 +221,10 @@ HLNode* Compiler::addNodeBefore(HLNode* node, HLNode* ref) {
 }
 
 HLNode* Compiler::addNodeAfter(HLNode* node, HLNode* ref) {
-  ASMJIT_ASSERT(node != NULL);
-  ASMJIT_ASSERT(node->_prev == NULL);
-  ASMJIT_ASSERT(node->_next == NULL);
-  ASMJIT_ASSERT(ref != NULL);
+  ASMJIT_ASSERT(node != nullptr);
+  ASMJIT_ASSERT(node->_prev == nullptr);
+  ASMJIT_ASSERT(node->_next == nullptr);
+  ASMJIT_ASSERT(ref != nullptr);
 
   HLNode* prev = ref;
   HLNode* next = ref->_next;
@@ -246,14 +246,14 @@ static ASMJIT_INLINE void Compiler_nodeRemoved(Compiler* self, HLNode* node_) {
     HLJump* node = static_cast<HLJump*>(node_);
     HLLabel* label = node->getTarget();
 
-    if (label != NULL) {
+    if (label != nullptr) {
       // Disconnect.
       HLJump** pPrev = &label->_from;
       for (;;) {
-        ASMJIT_ASSERT(*pPrev != NULL);
+        ASMJIT_ASSERT(*pPrev != nullptr);
         HLJump* current = *pPrev;
 
-        if (current == NULL)
+        if (current == nullptr)
           break;
 
         if (current == node) {
@@ -283,8 +283,8 @@ HLNode* Compiler::removeNode(HLNode* node) {
   else
     next->_prev = prev;
 
-  node->_prev = NULL;
-  node->_next = NULL;
+  node->_prev = nullptr;
+  node->_next = nullptr;
 
   if (_cursor == node)
     _cursor = prev;
@@ -315,10 +315,10 @@ void Compiler::removeNodes(HLNode* first, HLNode* last) {
   HLNode* node = first;
   for (;;) {
     HLNode* next = node->getNext();
-    ASMJIT_ASSERT(next != NULL);
+    ASMJIT_ASSERT(next != nullptr);
 
-    node->_prev = NULL;
-    node->_next = NULL;
+    node->_prev = nullptr;
+    node->_next = nullptr;
 
     if (_cursor == node)
       _cursor = prev;
@@ -342,7 +342,7 @@ HLNode* Compiler::setCursor(HLNode* node) {
 
 Error Compiler::align(uint32_t alignMode, uint32_t offset) {
   HLAlign* node = newAlignNode(alignMode, offset);
-  if (node == NULL)
+  if (node == nullptr)
     return setLastError(kErrorNoHeapMemory);
 
   addNode(node);
@@ -355,25 +355,25 @@ Error Compiler::align(uint32_t alignMode, uint32_t offset) {
 
 HLLabel* Compiler::getHLLabel(uint32_t id) const {
   Assembler* assembler = getAssembler();
-  if (assembler == NULL) return NULL;
+  if (assembler == nullptr) return nullptr;
 
   LabelData* ld = assembler->getLabelData(id);
   if (ld->hlId == _hlId)
     return static_cast<HLLabel*>(ld->hlData);
   else
-    return NULL;
+    return nullptr;
 }
 
 bool Compiler::isLabelValid(uint32_t id) const {
   Assembler* assembler = getAssembler();
-  if (assembler == NULL) return false;
+  if (assembler == nullptr) return false;
 
   return static_cast<size_t>(id) < assembler->getLabelsCount();
 }
 
 uint32_t Compiler::_newLabelId() {
   HLLabel* node = newLabelNode();
-  if (node == NULL) {
+  if (node == nullptr) {
     setLastError(kErrorNoHeapMemory);
     return kInvalidValue;
   }
@@ -383,7 +383,7 @@ uint32_t Compiler::_newLabelId() {
 
 Error Compiler::bind(const Label& label) {
   HLLabel* node = getHLLabel(label);
-  if (node == NULL)
+  if (node == nullptr)
     return setLastError(kErrorInvalidState);
   addNode(node);
   return kErrorOk;
@@ -395,7 +395,7 @@ Error Compiler::bind(const Label& label) {
 
 Error Compiler::embed(const void* data, uint32_t size) {
   HLData* node = newDataNode(data, size);
-  if (node == NULL)
+  if (node == nullptr)
     return setLastError(kErrorNoHeapMemory);
 
   addNode(node);
@@ -409,8 +409,8 @@ Error Compiler::embedConstPool(const Label& label, const ConstPool& pool) {
   align(kAlignData, static_cast<uint32_t>(pool.getAlignment()));
   bind(label);
 
-  HLData* embedNode = newDataNode(NULL, static_cast<uint32_t>(pool.getSize()));
-  if (embedNode == NULL)
+  HLData* embedNode = newDataNode(nullptr, static_cast<uint32_t>(pool.getSize()));
+  if (embedNode == nullptr)
     return kErrorNoHeapMemory;
 
   pool.fill(embedNode->getData());
@@ -437,7 +437,7 @@ Error Compiler::comment(const char* fmt, ...) {
   p[0] = '\0';
 
   HLComment* node = newCommentNode(buf);
-  if (node == NULL)
+  if (node == nullptr)
     return setLastError(kErrorNoHeapMemory);
 
   addNode(node);
@@ -453,7 +453,7 @@ Error Compiler::_hint(Var& var, uint32_t hint, uint32_t value) {
     return kErrorOk;
 
   HLHint* node = newHintNode(var, hint, value);
-  if (node == NULL)
+  if (node == nullptr)
     return setLastError(kErrorNoHeapMemory);
 
   addNode(node);
@@ -466,7 +466,7 @@ Error Compiler::_hint(Var& var, uint32_t hint, uint32_t value) {
 
 VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* name) {
   VarData* vd = reinterpret_cast<VarData*>(_varAllocator.alloc(sizeof(VarData)));
-  if (vd == NULL)
+  if (vd == nullptr)
     goto _NoMemory;
 
   vd->_name = noName;
@@ -474,7 +474,7 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
   vd->_localId = kInvalidValue;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
-  if (name != NULL && name[0] != '\0') {
+  if (name != nullptr && name[0] != '\0') {
     vd->_name = _stringAllocator.sdup(name);
   }
 #endif // !ASMJIT_DISABLE_LOGGER
@@ -498,14 +498,14 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
   vd->_homeMask = 0;
 
   vd->_memOffset = 0;
-  vd->_memCell = NULL;
+  vd->_memCell = nullptr;
 
   vd->rReadCount = 0;
   vd->rWriteCount = 0;
   vd->mReadCount = 0;
   vd->mWriteCount = 0;
 
-  vd->_va = NULL;
+  vd->_va = nullptr;
 
   if (_varList.append(vd) != kErrorOk)
     goto _NoMemory;
@@ -513,7 +513,7 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
 
 _NoMemory:
   setLastError(kErrorNoHeapMemory);
-  return NULL;
+  return nullptr;
 }
 
 Error Compiler::alloc(Var& var) {
@@ -594,7 +594,7 @@ void Compiler::rename(Var& var, const char* fmt, ...) {
   VarData* vd = getVdById(var.getId());
   vd->_name = noName;
 
-  if (fmt != NULL && fmt[0] != '\0') {
+  if (fmt != nullptr && fmt[0] != '\0') {
     char buf[64];
 
     va_list ap;

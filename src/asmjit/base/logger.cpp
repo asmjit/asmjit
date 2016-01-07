@@ -171,7 +171,7 @@ void Logger::setIndentation(const char* indentation) {
 // [asmjit::FileLogger - Construction / Destruction]
 // ============================================================================
 
-FileLogger::FileLogger(FILE* stream) : _stream(NULL) {
+FileLogger::FileLogger(FILE* stream) : _stream(nullptr) {
   setStream(stream);
 }
 

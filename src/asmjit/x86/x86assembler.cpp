@@ -606,25 +606,19 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
 // Logging helpers.
-static const char* AssemblerX86_operandSize[] = {
-  "",
-  "byte ptr ",
-  "word ptr ",
-  NULL,
-  "dword ptr ",
-  NULL,
-  NULL,
-  NULL,
-  "qword ptr ",
-  NULL,
-  "tword ptr ",
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  "oword ptr "
-};
+static const char* AssemblerX86_getAddressSizeString(uint32_t size) {
+  switch (size) {
+    case 1 : return " byte ptr ";
+    case 2 : return " word ptr ";
+    case 4 : return " dword ptr ";
+    case 8 : return " qword ptr ";
+    case 10: return " tword ptr ";
+    case 16: return " oword ptr ";
+    case 32: return " yword ptr ";
+    case 64: return " zword ptr ";
+    default: return "";
+  }
+}
 
 static const char X86Assembler_segName[] =
   "\0\0\0\0"
@@ -766,8 +760,7 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
         type = kX86RegTypeGpq;
     }
 
-    if (op->getSize() <= 16)
-      sb._appendString(AssemblerX86_operandSize[op->getSize()]);
+    sb._appendString(AssemblerX86_getAddressSizeString(op->getSize()));
 
     if (seg < kX86SegCount)
       sb._appendString(&X86Assembler_segName[seg * 4]);
@@ -928,7 +921,7 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
 
   // Invalid instruction.
   if (code >= _kX86InstIdCount) {
-    self->_comment = NULL;
+    self->_comment = nullptr;
     return self->setLastError(kErrorUnknownInst);
   }
 
@@ -3591,7 +3584,7 @@ _EmitX86R:
     goto _EmitDone;
 
 _EmitX86M:
-  ASMJIT_ASSERT(rmMem != NULL);
+  ASMJIT_ASSERT(rmMem != nullptr);
   ASMJIT_ASSERT(rmMem->getOp() == kOperandTypeMem);
 
   mBase = rmMem->getBase();
@@ -3859,7 +3852,7 @@ _EmitFpuOp:
   // --------------------------------------------------------------------------
 
 #define EMIT_AVX_M \
-  ASMJIT_ASSERT(rmMem != NULL); \
+  ASMJIT_ASSERT(rmMem != nullptr); \
   ASMJIT_ASSERT(rmMem->getOp() == kOperandTypeMem); \
   \
   if (rmMem->hasSegment()) { \
@@ -4058,7 +4051,7 @@ _EmitAvxV:
   // --------------------------------------------------------------------------
 
 #define EMIT_XOP_M \
-  ASMJIT_ASSERT(rmMem != NULL); \
+  ASMJIT_ASSERT(rmMem != nullptr); \
   ASMJIT_ASSERT(rmMem->getOp() == kOperandTypeMem); \
   \
   if (rmMem->hasSegment()) { \
@@ -4237,7 +4230,7 @@ _EmitDone:
     if ((loggerOptions & (1 << kLoggerOptionBinaryForm)) != 0)
       LogUtil::formatLine(sb, self->_cursor, (intptr_t)(cursor - self->_cursor), dispSize, imLen, self->_comment);
     else
-      LogUtil::formatLine(sb, NULL, kInvalidIndex, 0, 0, self->_comment);
+      LogUtil::formatLine(sb, nullptr, kInvalidIndex, 0, 0, self->_comment);
 
 # if defined(ASMJIT_DEBUG)
     if (self->_logger)
@@ -4256,7 +4249,7 @@ _EmitDone:
 # endif // ASMJIT_DEBUG
 #endif // !ASMJIT_DISABLE_LOGGER
 
-  self->_comment = NULL;
+  self->_comment = nullptr;
   self->setCursor(cursor);
 
   return kErrorOk;

@@ -233,8 +233,8 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
 
   //! Get current node.
   //!
-  //! \note If this method returns `NULL` it means that nothing has been emitted
-  //! yet.
+  //! \note If this method returns `nullptr` it means that nothing has been
+  //! emitted yet.
   ASMJIT_INLINE HLNode* getCursor() const { return _cursor; }
   //! \internal
   //!
@@ -477,17 +477,17 @@ ASMJIT_INLINE Label::Label(Compiler& c) : Operand(NoInit) {
 }
 
 ASMJIT_INLINE HLNode::HLNode(Compiler* compiler, uint32_t type) {
-  _prev = NULL;
-  _next = NULL;
+  _prev = nullptr;
+  _next = nullptr;
   _type = static_cast<uint8_t>(type);
   _opCount = 0;
   _flags = static_cast<uint16_t>(compiler->_nodeFlags);
   _flowId = compiler->_nodeFlowId;
   _tokenId = 0;
-  _comment = NULL;
-  _map = NULL;
-  _liveness = NULL;
-  _state = NULL;
+  _comment = nullptr;
+  _map = nullptr;
+  _liveness = nullptr;
+  _state = nullptr;
 }
 
 } // asmjit namespace

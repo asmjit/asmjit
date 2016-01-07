@@ -145,7 +145,7 @@ struct Zone {
   //! // Create your objects using zone object allocating, for example:
   //! Object* obj = static_cast<Object*>( zone.alloc(sizeof(SomeClass)) );
   //
-  //! if (obj == NULL) {
+  //! if (obj == nullptr) {
   //!   // Handle out of memory error.
   //! }
   //!
