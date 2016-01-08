@@ -2142,7 +2142,6 @@ _GroupPop_Gp:
       if (encoded == ENC_OPS(Reg, Reg, None)) {
         opReg = x86OpReg(o0);
         rmReg = x86OpReg(o1);
-        rmReg += opReg;
 
         // We switch to the alternative opcode if the first operand is zero.
         if (opReg == 0) {
@@ -2151,6 +2150,7 @@ _EmitFpArith_Reg:
           goto _EmitFpuOp;
         }
         else if (rmReg == 0) {
+          rmReg = opReg;
           opCode = 0xDC00 + ((opCode >> 0) & 0xFF) + static_cast<uint32_t>(rmReg);
           goto _EmitFpuOp;
         }

@@ -106,6 +106,8 @@ int main(int argc, char* argv[]) {
 
       void* p = a.make();
       runtime.release(p);
+
+      a.reset();
     }
     perf.end();
   }
