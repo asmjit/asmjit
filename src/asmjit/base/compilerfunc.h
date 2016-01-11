@@ -589,7 +589,7 @@ ASMJIT_TYPE_ID(char16_t          , TypeIdOfInt<char16_t>::kId);
 ASMJIT_TYPE_ID(char32_t          , TypeIdOfInt<char32_t>::kId);
 #endif
 
-#if ASMJIT_CC_MSC && ASMJIT_CC_MSC < 1600
+#if ASMJIT_CC_MSC && !ASMJIT_CC_MSC_GE(16, 0, 0)
 ASMJIT_TYPE_ID(__int64           , TypeIdOfInt<__int64>::kId);
 ASMJIT_TYPE_ID(unsigned __int64  , TypeIdOfInt<unsigned __int64>::kId);
 #else
