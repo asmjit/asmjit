@@ -63,12 +63,13 @@ uint32_t HostRuntime::getStackAlignment() {
 void HostRuntime::flush(void* p, size_t size) {
   // Only useful on non-x86 architectures.
 #if !ASMJIT_ARCH_X86 && !ASMJIT_ARCH_X64
-
+# if ASMJIT_OS_WINDOWS
   // Windows has built-in support in kernel32.dll.
-#if ASMJIT_OS_WINDOWS
   ::FlushInstructionCache(_memMgr.getProcessHandle(), p, size);
-#endif // ASMJIT_OS_WINDOWS
-
+# endif // ASMJIT_OS_WINDOWS
+#else
+  ASMJIT_UNUSED(p);
+  ASMJIT_UNUSED(size);
 #endif // !ASMJIT_ARCH_X86 && !ASMJIT_ARCH_X64
 }
 

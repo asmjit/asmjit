@@ -1219,6 +1219,7 @@ struct X86Mem : public BaseMem {
   }
 
   ASMJIT_INLINE X86Mem(const X86RipReg& rip, int32_t disp, uint32_t size = 0) : BaseMem(NoInit) {
+    ASMJIT_UNUSED(rip);
     _init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeRip, 0, kInvalidValue);
     _init_packed_d2_d3(kInvalidValue, disp);
   }
@@ -1606,7 +1607,7 @@ struct X86Mem : public BaseMem {
   }
 
   //! Reset memory operand relative displacement.
-  ASMJIT_INLINE X86Mem& resetDisplacement(int32_t disp) {
+  ASMJIT_INLINE X86Mem& resetDisplacement() {
     _vmem.displacement = 0;
     return *this;
   }
@@ -2421,8 +2422,8 @@ static ASMJIT_INLINE X86Mem ptr(const Label& label, const X86GpReg& index, uint3
 }
 
 //! Create `[RIP + disp]` memory operand with no/custom size information.
-static ASMJIT_INLINE X86Mem ptr(const X86RipReg& rip, int32_t disp = 0, uint32_t size = 0) {
-  return X86Mem(rip, disp, size);
+static ASMJIT_INLINE X86Mem ptr(const X86RipReg& rip_, int32_t disp = 0, uint32_t size = 0) {
+  return X86Mem(rip_, disp, size);
 }
 
 //! Create `[pAbs + disp]` absolute memory operand with no/custom size information.
@@ -2457,8 +2458,8 @@ ASMJIT_API X86Mem ptr_abs(Ptr pAbs, const X86Reg& index, uint32_t shift = 0, int
     return ptr(label, index, shift, disp, _Size_); \
   } \
   /*! Create `[RIP + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##ptr(const X86RipReg& rip, int32_t disp = 0) { \
-    return ptr(rip, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem _Prefix_##ptr(const X86RipReg& rip_, int32_t disp = 0) { \
+    return ptr(rip_, disp, _Size_); \
   } \
   /*! Create `[pAbs + disp]` memory operand. */ \
   static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr pAbs, int32_t disp = 0) { \

@@ -2184,45 +2184,45 @@ Error X86Context::fetch() {
     if (vaCount == 0 && clobberedRegs.isEmpty()) \
       break; \
     \
-    X86VarMap* map = newVarMap(vaCount); \
-    if (map == nullptr) \
+    X86RegCount _vaIndex; \
+    _vaIndex.indexFromRegCount(regCount); \
+    \
+    X86VarMap* _map = newVarMap(vaCount); \
+    if (_map == nullptr) \
       goto _NoMemory; \
     \
-    X86RegCount vaIndex; \
-    vaIndex.indexFromRegCount(regCount); \
+    _map->_vaCount = vaCount; \
+    _map->_count = regCount; \
+    _map->_start = _vaIndex; \
     \
-    map->_vaCount = vaCount; \
-    map->_count = regCount; \
-    map->_start = vaIndex; \
+    _map->_inRegs = inRegs; \
+    _map->_outRegs = outRegs; \
+    _map->_clobberedRegs = clobberedRegs; \
     \
-    map->_inRegs = inRegs; \
-    map->_outRegs = outRegs; \
-    map->_clobberedRegs = clobberedRegs; \
-    \
-    VarAttr* va = vaTmpList; \
+    VarAttr* _va = vaTmpList; \
     while (vaCount) { \
-      VarData* vd = va->getVd(); \
+      VarData* _vd = _va->getVd(); \
       \
-      uint32_t class_ = vd->getClass(); \
-      uint32_t index = vaIndex.get(class_); \
+      uint32_t _class = _vd->getClass(); \
+      uint32_t _index = _vaIndex.get(_class); \
       \
-      vaIndex.add(class_); \
+      _vaIndex.add(_class); \
       \
-      if (va->_inRegs) \
-        va->_allocableRegs = va->_inRegs; \
-      else if (va->_outRegIndex != kInvalidReg) \
-        va->_allocableRegs = Utils::mask(va->_outRegIndex); \
+      if (_va->_inRegs) \
+        _va->_allocableRegs = _va->_inRegs; \
+      else if (_va->_outRegIndex != kInvalidReg) \
+        _va->_allocableRegs = Utils::mask(_va->_outRegIndex); \
       else \
-        va->_allocableRegs &= ~inRegs.get(class_); \
+        _va->_allocableRegs &= ~inRegs.get(_class); \
       \
-      vd->_va = nullptr; \
-      map->getVa(index)[0] = va[0]; \
+      _vd->_va = nullptr; \
+      _map->getVa(_index)[0] = _va[0]; \
       \
-      va++; \
+      _va++; \
       vaCount--; \
     } \
     \
-    _Node_->setMap(map); \
+    _Node_->setMap(_map); \
   } while (0)
 
 #define VI_ADD_VAR(_Vd_, _Va_, _Flags_, _NewAllocable_) \
@@ -3367,15 +3367,12 @@ ASMJIT_INLINE void X86VarAlloc::plan() {
     return;
 
   uint32_t i;
-
   uint32_t willAlloc = _willAlloc.get(C);
   uint32_t willFree = 0;
 
   VarAttr* list = getVaListByClass(C);
   uint32_t count = getVaCountByClass(C);
-
   X86VarState* state = getState();
-  VarData** sVars = state->getListByClass(C);
 
   // Calculate 'willAlloc' and 'willFree' masks based on mandatory masks.
   for (i = 0; i < count; i++) {
@@ -3633,14 +3630,11 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
   if (isVaDone(C))
     return;
 
-  VarAttr* list = getVaListByClass(C);
-  uint32_t count = getVaCountByClass(C);
-
-  X86VarState* state = getState();
-  VarData** sVars = state->getListByClass(C);
-
   uint32_t i;
   bool didWork;
+
+  VarAttr* list = getVaListByClass(C);
+  uint32_t count = getVaCountByClass(C);
 
   // Alloc 'in' regs.
   do {
@@ -3714,7 +3708,7 @@ ASMJIT_INLINE void X86VarAlloc::alloc() {
     ASMJIT_ASSERT(regIndex != kInvalidReg);
 
     if (vd->getRegIndex() != regIndex) {
-      ASMJIT_ASSERT(sVars[regIndex] == nullptr);
+      ASMJIT_ASSERT(getState()->getListByClass(C)[regIndex] == nullptr);
       _context->attach<C>(vd, regIndex, false);
     }
 
@@ -4040,7 +4034,6 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
   return safeRegs;
 }
 
-
 template<int C>
 ASMJIT_INLINE uint32_t X86VarAlloc::guessSpill(VarData* vd, uint32_t allocableRegs) {
   ASMJIT_ASSERT(allocableRegs != 0);
@@ -4106,7 +4099,6 @@ struct X86CallAlloc : public X86BaseAlloc {
 
 protected:
   // Just to prevent calling these methods from X86Context::translate().
-
   ASMJIT_INLINE void init(X86CallNode* node, X86VarMap* map);
   ASMJIT_INLINE void cleanup();
 
@@ -4282,7 +4274,6 @@ ASMJIT_INLINE void X86CallAlloc::plan() {
   uint32_t count = getVaCountByClass(C);
 
   X86VarState* state = getState();
-  VarData** sVars = state->getListByClass(C);
 
   // Calculate 'willAlloc' and 'willFree' masks based on mandatory masks.
   for (i = 0; i < count; i++) {
@@ -4412,10 +4403,9 @@ ASMJIT_INLINE void X86CallAlloc::spill() {
     ASMJIT_ASSERT(vd->getVa() == nullptr);
 
     if (vd->isModified() && availableRegs) {
-      uint32_t m = guessSpill<C>(vd, availableRegs);
-
-      if (m != 0) {
-        uint32_t regIndex = Utils::findFirstBit(m);
+      uint32_t available = guessSpill<C>(vd, availableRegs);
+      if (available != 0) {
+        uint32_t regIndex = Utils::findFirstBit(available);
         uint32_t regMask = Utils::mask(regIndex);
 
         _context->move<C>(vd, regIndex);
@@ -5669,6 +5659,7 @@ Error X86Context::schedule() {
 
   HLNode* node_ = getFunc();
   HLNode* stop = getStop();
+  ASMJIT_UNUSED(stop); // Unused in release mode.
 
   PodList<HLNode*>::Link* jLink = _jccList.getFirst();
 

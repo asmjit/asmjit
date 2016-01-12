@@ -89,7 +89,8 @@ int main(int argc, char* argv[]) {
     perf.end();
   }
 
-  printf("Opcode   | Time: %-6u [ms] | Speed: %-9u [inst/s]\n",
+  printf("%-22s | Time: %-6u [ms] | Speed: %-9u [inst/s]\n",
+    "Assembler [GenOpCode]",
     perf.best, instPerMs(perf.best, kNumIterations, asmgen::kGenOpCodeInstCount));
 
   // --------------------------------------------------------------------------
@@ -112,7 +113,8 @@ int main(int argc, char* argv[]) {
     perf.end();
   }
 
-  printf("Blend    | Time: %-6u [ms] | Speed: %-9u [inst/s]\n",
+  printf("%-22s | Time: %-6u [ms] | Speed: %-9u [inst/s]\n",
+    "Compiler [GenBlend]",
     perf.best, instPerMs(perf.best, kNumIterations, asmgen::kGenBlendInstCount));
 
   return 0;
