@@ -23,10 +23,8 @@
 
 // [Dependencies - Windows]
 #if ASMJIT_OS_WINDOWS
-// `_InterlockedCompareExchange` is only available as intrinsic (MS Compiler).
 # if defined(_MSC_VER) && _MSC_VER >= 1400
 #  include <intrin.h>
-#  pragma intrinsic(_InterlockedCompareExchange)
 # else
 #  define _InterlockedCompareExchange InterlockedCompareExchange
 # endif // _MSC_VER
@@ -70,7 +68,6 @@ uint32_t Utils::getTickCount() {
       }
 
       double freqDouble = double(qpf.QuadPart) / 1000.0;
-
       Utils_hiResFreq = freqDouble;
       _InterlockedCompareExchange((LONG*)&Utils_hiResTicks, 1, 0);
 

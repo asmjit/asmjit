@@ -13,7 +13,6 @@
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
 # include <intrin.h>
-# pragma intrinsic(_BitScanForward)
 #endif // ASMJIT_OS_WINDOWS
 
 // [Api-Begin]
