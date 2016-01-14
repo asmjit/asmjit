@@ -66,9 +66,11 @@ ASMJIT_ENUM(LoggerStyle) {
 #if defined(ASMJIT_EXPORTS)
 struct LogUtil {
   enum {
-    kMaxCommentLength = 80,
-    kMaxInstLength = 36,
-    kMaxBinaryLength = 22
+    // Has to be big to be able to hold all metadata compiler can assign to a
+    // single instruction.
+    kMaxCommentLength = 512,
+    kMaxInstLength = 40,
+    kMaxBinaryLength = 26
   };
 
   static bool formatLine(StringBuilder& sb,  const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment);

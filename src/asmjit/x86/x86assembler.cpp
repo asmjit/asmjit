@@ -608,14 +608,14 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
 // Logging helpers.
 static const char* AssemblerX86_getAddressSizeString(uint32_t size) {
   switch (size) {
-    case 1 : return " byte ptr ";
-    case 2 : return " word ptr ";
-    case 4 : return " dword ptr ";
-    case 8 : return " qword ptr ";
-    case 10: return " tword ptr ";
-    case 16: return " oword ptr ";
-    case 32: return " yword ptr ";
-    case 64: return " zword ptr ";
+    case 1 : return "byte ptr ";
+    case 2 : return "word ptr ";
+    case 4 : return "dword ptr ";
+    case 8 : return "qword ptr ";
+    case 10: return "tword ptr ";
+    case 16: return "oword ptr ";
+    case 32: return "yword ptr ";
+    case 64: return "zword ptr ";
     default: return "";
   }
 }

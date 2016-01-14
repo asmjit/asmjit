@@ -379,17 +379,17 @@ _OnVisit:
         VarData* vd = va->getVd();
 
         uint32_t flags = va->getFlags();
-        uint32_t ctxId = vd->getLocalId();
+        uint32_t localId = vd->getLocalId();
 
         if ((flags & kVarAttrWAll) && !(flags & kVarAttrRAll)) {
           // Write-Only.
-          bTmp->setBit(ctxId);
-          bCur->delBit(ctxId);
+          bTmp->setBit(localId);
+          bCur->delBit(localId);
         }
         else {
           // Read-Only or Read/Write.
-          bTmp->setBit(ctxId);
-          bCur->setBit(ctxId);
+          bTmp->setBit(localId);
+          bCur->setBit(localId);
         }
       }
     }
@@ -514,6 +514,64 @@ _OnDone:
 
 _NoMemory:
   return setLastError(kErrorNoHeapMemory);
+}
+
+// ============================================================================
+// [asmjit::Context - Annotate]
+// ============================================================================
+
+Error Context::formatInlineComment(StringBuilder& dst, HLNode* node) {
+#if !defined(ASMJIT_DISABLE_LOGGER)
+  if (node->getComment())
+    dst.appendString(node->getComment());
+
+  if (node->hasLiveness()) {
+    if (dst.getLength() < _annotationLength)
+      dst.appendChars(' ', _annotationLength - dst.getLength());
+
+    uint32_t vdCount = static_cast<uint32_t>(_contextVd.getLength());
+    size_t offset = dst.getLength() + 1;
+
+    dst.appendChar('[');
+    dst.appendChars(' ', vdCount);
+    dst.appendChar(']');
+
+    BitArray* liveness = node->getLiveness();
+    VarMap* map = node->getMap();
+
+    uint32_t i;
+    for (i = 0; i < vdCount; i++) {
+      if (liveness->getBit(i))
+        dst.getData()[offset + i] = '.';
+    }
+
+    if (map != nullptr) {
+      uint32_t vaCount = map->getVaCount();
+      VarAttr* vaList = reinterpret_cast<VarAttr*>(((uint8_t*)map) + _varMapToVaListOffset);
+
+      for (i = 0; i < vaCount; i++) {
+        VarAttr* va = &vaList[i];
+        VarData* vd = va->getVd();
+
+        uint32_t flags = va->getFlags();
+        char c = 'u';
+
+        if ( (flags & kVarAttrRAll) && !(flags & kVarAttrWAll)) c = 'r';
+        if (!(flags & kVarAttrRAll) &&  (flags & kVarAttrWAll)) c = 'w';
+        if ( (flags & kVarAttrRAll) &&  (flags & kVarAttrWAll)) c = 'x';
+
+        // Uppercase if unused.
+        if ((flags & kVarAttrUnuse))
+          c -= 'a' - 'A';
+
+        ASMJIT_ASSERT(offset + vd->getLocalId() < dst.getLength());
+        dst._data[offset + vd->getLocalId()] = c;
+      }
+    }
+  }
+#endif // !ASMJIT_DISABLE_LOGGER
+
+  return kErrorOk;
 }
 
 // ============================================================================

@@ -792,6 +792,7 @@ struct Context {
   // --------------------------------------------------------------------------
 
   virtual Error annotate() = 0;
+  virtual Error formatInlineComment(StringBuilder& dst, HLNode* node);
 
   // --------------------------------------------------------------------------
   // [Translate]

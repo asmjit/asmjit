@@ -2509,13 +2509,7 @@ _NextGroup:
                     if (extendedInfo.isZeroIfMem() && opList[1].isMem())
                       movSize = 16;
 
-                    if (movSize >= varSize) {
-                      // If move size is greater than or equal to the size of
-                      // the variable there is nothing to do, because the move
-                      // will overwrite the variable in all cases.
-                      combinedFlags = outFlags;
-                    }
-                    else if (static_cast<const X86Var*>(op)->isGp()) {
+                    if (static_cast<const X86Var*>(op)->isGp()) {
                       uint32_t opSize = static_cast<const X86Var*>(op)->getSize();
 
                       // Move size is zero in case that it should be determined
@@ -2529,6 +2523,12 @@ _NextGroup:
                       // equal to the size of the variable.
                       if (movSize >= 4 || movSize >= varSize)
                         combinedFlags = outFlags;
+                    }
+                    else if (movSize >= varSize) {
+                      // If move size is greater than or equal to the size of
+                      // the variable there is nothing to do, because the move
+                      // will overwrite the variable in all cases.
+                      combinedFlags = outFlags;
                     }
                   }
                   // Comparison/Test instructions don't modify any operand.
@@ -3760,7 +3760,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
   uint32_t counter = 0;
   uint32_t maxInst = _compiler->getMaxLookAhead();
 
-  uint32_t cId = vd->getLocalId();
+  uint32_t localId = vd->getLocalId();
   uint32_t localToken = _compiler->_generateUniqueToken();
 
   uint32_t gfIndex = 0;
@@ -3790,7 +3790,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
       counter++;
 
       // Terminate if the variable is dead here.
-      if (node->hasLiveness() && !node->getLiveness()->getBit(cId)) {
+      if (node->hasLiveness() && !node->getLiveness()->getBit(localId)) {
         ASMJIT_TLOG("[RA-GUESS] %s (Terminating, Not alive here)\n", vd->getName());
         break;
       }
@@ -3956,7 +3956,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
   if (Utils::isPowerOf2(allocableRegs))
     return allocableRegs;
 
-  uint32_t cId = vd->getLocalId();
+  uint32_t localId = vd->getLocalId();
   uint32_t safeRegs = allocableRegs;
 
   uint32_t i;
@@ -3968,7 +3968,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
     BitArray* liveness = node->getLiveness();
 
     // If the variable becomes dead it doesn't make sense to continue.
-    if (liveness != nullptr && !liveness->getBit(cId))
+    if (liveness != nullptr && !liveness->getBit(localId))
       break;
 
     // Stop on `HLSentinel` and `HLRet`.
@@ -5761,73 +5761,20 @@ _Done:
 // [asmjit::X86Context - Serialize]
 // ============================================================================
 
-template<int LoggingEnabled>
-static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* assembler, HLNode* start, HLNode* stop) {
+Error X86Context::serialize(Assembler* assembler_, HLNode* start, HLNode* stop) {
+  X86Assembler* assembler = static_cast<X86Assembler*>(assembler_);
   HLNode* node_ = start;
-  StringBuilder& sb = self->_stringBuilder;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
-  uint32_t vdCount;
-  uint32_t annotationLength;
-
-  Logger* logger;
-
-  if (LoggingEnabled) {
-    logger = assembler->getLogger();
-
-    vdCount = static_cast<uint32_t>(self->_contextVd.getLength());
-    annotationLength = self->_annotationLength;
-  }
+  Logger* logger = assembler->getLogger();
 #endif // !ASMJIT_DISABLE_LOGGER
 
   do {
 #if !defined(ASMJIT_DISABLE_LOGGER)
-    if (LoggingEnabled) {
-      sb.clear();
-
-      if (node_->getComment()) {
-        sb.appendString(node_->getComment());
-      }
-
-      if (sb.getLength() < annotationLength)
-        sb.appendChars(' ', annotationLength - sb.getLength());
-
-      size_t offset = sb.getLength();
-      sb.appendChars(' ', vdCount);
-
-      if (node_->hasLiveness()) {
-        BitArray* liveness = node_->getLiveness();
-        X86VarMap* map = static_cast<X86VarMap*>(node_->getMap());
-
-        uint32_t i;
-        for (i = 0; i < vdCount; i++) {
-          if (liveness->getBit(i))
-            sb.getData()[offset + i] = '.';
-        }
-
-        if (map != nullptr) {
-          uint32_t vaCount = map->getVaCount();
-
-          for (i = 0; i < vaCount; i++) {
-            VarAttr* va = map->getVa(i);
-            VarData* vd = va->getVd();
-
-            uint32_t flags = va->getFlags();
-            char c = 'u';
-
-            if ( (flags & kVarAttrRAll) && !(flags & kVarAttrWAll)) c  = 'r';
-            if (!(flags & kVarAttrRAll) &&  (flags & kVarAttrWAll)) c  = 'w';
-            if ( (flags & kVarAttrRAll) &&  (flags & kVarAttrWAll)) c  = 'x';
-
-            if ((flags & kVarAttrUnuse))
-              c -= 'a' - 'A';
-
-            sb.getData()[offset + vd->getLocalId()] = c;
-          }
-        }
-      }
-
-      assembler->_comment = sb.getData();
+    if (logger) {
+      _stringBuilder.clear();
+      formatInlineComment(_stringBuilder, node_);
+      assembler->_comment = _stringBuilder.getData();
     }
 #endif // !ASMJIT_DISABLE_LOGGER
 
@@ -5847,7 +5794,7 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
       case kHLNodeTypeComment: {
 #if !defined(ASMJIT_DISABLE_LOGGER)
         HLComment* node = static_cast<HLComment*>(node_);
-        if (LoggingEnabled)
+        if (logger)
           logger->logFormat(kLoggerStyleComment,
             "%s; %s\n", logger->getIndentation(), node->getComment());
 #endif // !ASMJIT_DISABLE_LOGGER
@@ -5896,7 +5843,7 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
               o1 = &opList[2];
               break;
 
-            case kX86InstIdCmpxchg8b :
+            case kX86InstIdCmpxchg8b:
             case kX86InstIdCmpxchg16b:
               o0 = &opList[4];
               break;
@@ -5983,11 +5930,11 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
             case kX86InstIdRdtscp:
               break;
 
-            case kX86InstIdRepLodsB  : case kX86InstIdRepLodsD  : case kX86InstIdRepLodsQ  : case kX86InstIdRepLodsW  :
-            case kX86InstIdRepMovsB  : case kX86InstIdRepMovsD  : case kX86InstIdRepMovsQ  : case kX86InstIdRepMovsW  :
-            case kX86InstIdRepStosB  : case kX86InstIdRepStosD  : case kX86InstIdRepStosQ  : case kX86InstIdRepStosW  :
-            case kX86InstIdRepeCmpsB : case kX86InstIdRepeCmpsD : case kX86InstIdRepeCmpsQ : case kX86InstIdRepeCmpsW :
-            case kX86InstIdRepeScasB : case kX86InstIdRepeScasD : case kX86InstIdRepeScasQ : case kX86InstIdRepeScasW :
+            case kX86InstIdRepLodsB: case kX86InstIdRepLodsD: case kX86InstIdRepLodsQ: case kX86InstIdRepLodsW:
+            case kX86InstIdRepMovsB: case kX86InstIdRepMovsD: case kX86InstIdRepMovsQ: case kX86InstIdRepMovsW:
+            case kX86InstIdRepStosB: case kX86InstIdRepStosD: case kX86InstIdRepStosQ: case kX86InstIdRepStosW:
+            case kX86InstIdRepeCmpsB: case kX86InstIdRepeCmpsD: case kX86InstIdRepeCmpsQ: case kX86InstIdRepeCmpsW:
+            case kX86InstIdRepeScasB: case kX86InstIdRepeScasD: case kX86InstIdRepeScasQ: case kX86InstIdRepeScasW:
             case kX86InstIdRepneCmpsB: case kX86InstIdRepneCmpsD: case kX86InstIdRepneCmpsQ: case kX86InstIdRepneCmpsW:
             case kX86InstIdRepneScasB: case kX86InstIdRepneScasD: case kX86InstIdRepneScasQ: case kX86InstIdRepneScasW:
               break;
@@ -6045,15 +5992,6 @@ static ASMJIT_INLINE Error X86Context_serialize(X86Context* self, X86Assembler* 
   } while (node_ != stop);
 
   return kErrorOk;
-}
-
-Error X86Context::serialize(Assembler* assembler, HLNode* start, HLNode* stop) {
-#if !defined(ASMJIT_DISABLE_LOGGER)
-  if (assembler->hasLogger())
-    return X86Context_serialize<1>(this, static_cast<X86Assembler*>(assembler), start, stop);
-#endif // !ASMJIT_DISABLE_LOGGER
-
-  return X86Context_serialize<0>(this, static_cast<X86Assembler*>(assembler), start, stop);
 }
 
 } // asmjit namespace
