@@ -1882,7 +1882,7 @@ _GroupPop_Gp:
       }
 
       if (encoded == ENC_OPS(Mem, None, None)) {
-        if (o0->getSize() != 2 && o0->getSize() != 8)
+        if (o0->getSize() != 2 && o0->getSize() != self->getRegSize())
           goto _IllegalInst;
 
         ADD_66H_P_BY_SIZE(o0->getSize());
