@@ -224,7 +224,7 @@ Error X86Compiler::attach(Assembler* assembler) {
   _regSize = static_cast<uint8_t>(assembler->getRegSize());
   _regCount = static_cast<X86Assembler*>(assembler)->getRegCount();
   _finalized = false;
-  // _lastError = kErrorOk;
+  _lastError = kErrorOk;
 
   zax = static_cast<X86Assembler*>(assembler)->zax;
   zcx = static_cast<X86Assembler*>(assembler)->zcx;
