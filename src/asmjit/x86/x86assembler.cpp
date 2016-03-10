@@ -454,7 +454,7 @@ Error X86Assembler::align(uint32_t alignMode, uint32_t offset) {
 
         do {
           uint32_t n = Utils::iMin<uint32_t>(i, kMaxNopSize);
-          const uint8_t* p = nopData[(n - 1) * kMaxNopSize];
+          const uint8_t* p = nopData[(n - 1)];
 
           i -= n;
           do {
