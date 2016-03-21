@@ -13,8 +13,6 @@
 
 namespace asmgen {
 
-enum { kGenOpCodeInstCount = 2690 };
-
 // Generate all instructions asmjit can emit.
 static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 = false) {
   using namespace asmjit;

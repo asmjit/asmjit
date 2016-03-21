@@ -1,3 +1,23 @@
+2016-03-21
+
+CpuInfo has been completely redesigned. It now supports multiple CPUs without having to inherit it to support a specific architecture. Also all CpuInfo-related constants have been moved to CpuInfo.
+
+Change:
+
+```
+const X86CpuInfo* cpu = X86CpuInfo::getHost();
+cpu->hasFeature(kX86CpuFeatureSSE4_1);
+```
+
+to
+
+```
+const CpuInfo& cpu = CpuInfo::getHost();
+cpu.hasFeature(CpuInfo::kX86FeatureSSE4_1);
+```
+
+The whole code-base now uses `noexcept` keyword to inform API users that these functions won't throw an exception. Moreover, the possibility to throw exception through `ErrorHandler` has been removed as it seems that nobody has ever used it. `Assembler::emit()` and friends are still not marked as `noexcept` in case this decision is taken back. If there is no complaint even `emit()` functions will be marked `noexcept` in the near future.
+
 2015-12-07
 ----------
 

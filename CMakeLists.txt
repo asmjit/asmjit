@@ -10,6 +10,18 @@ cmake_minimum_required(VERSION 3.1)
 # Whether to build a static library (default FALSE).
 # set(ASMJIT_STATIC FALSE)
 
+# Whether to build ARM32 backend (TRUE if building for ARM32).
+# set(ASMJIT_BUILD_ARM32 FALSE)
+
+# Whether to build ARM64 backend (TRUE if building for ARM64).
+# set(ASMJIT_BUILD_ARM64 FALSE)
+
+# Whether to build X86 backend (TRUE if building for X86).
+# set(ASMJIT_BUILD_X86 FALSE)
+
+# Whether to build X64 backend (TRUE if building for X64).
+# set(ASMJIT_BUILD_X64 FALSE)
+
 # Whether to build tests and samples (default FALSE).
 # set(ASMJIT_BUILD_TEST FALSE)
 
@@ -55,6 +67,7 @@ message("-- [asmjit] ASMJIT_DIR=${ASMJIT_DIR}")
 set(ASMJIT_SOURCE_DIR "${ASMJIT_DIR}/src")      # Asmjit source directory.
 set(ASMJIT_INCLUDE_DIR "${ASMJIT_SOURCE_DIR}")  # Asmjit include directory.
 
+set(ASMJIT_CFLAGS)                              # Asmjit CFLAGS / CXXFLAGS.
 set(ASMJIT_DEPS)                                # Asmjit dependencies (list of libraries) for the linker.
 set(ASMJIT_LIBS)                                # Asmjit dependencies with asmjit included, for consumers.
 
@@ -104,11 +117,28 @@ if(NOT ASMJIT_EMBED)
   list(INSERT ASMJIT_LIBS 0 asmjit)
 endif()
 
-set(ASMJIT_PRIVATE_CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_DBG})
-set(ASMJIT_PRIVATE_CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_REL})
+if(ASMJIT_BUILD_ARM32)
+  List(APPEND ASMJIT_CFLAGS "${ASMJIT_D}ASMJIT_BUILD_ARM32")
+endif()
+
+if(ASMJIT_BUILD_ARM64)
+  List(APPEND ASMJIT_CFLAGS "${ASMJIT_D}ASMJIT_BUILD_ARM64")
+endif()
+
+if(ASMJIT_BUILD_X86)
+  List(APPEND ASMJIT_CFLAGS "${ASMJIT_D}ASMJIT_BUILD_X86")
+endif()
+
+if(ASMJIT_BUILD_X64)
+  List(APPEND ASMJIT_CFLAGS "${ASMJIT_D}ASMJIT_BUILD_X64")
+endif()
+
+set(ASMJIT_PRIVATE_CFLAGS_DBG ${ASMJIT_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_DBG})
+set(ASMJIT_PRIVATE_CFLAGS_REL ${ASMJIT_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_PRIVATE_CFLAGS_REL})
 
 message("-- [asmjit] ASMJIT_DEPS=${ASMJIT_DEPS}")
 message("-- [asmjit] ASMJIT_LIBS=${ASMJIT_LIBS}")
+message("-- [asmjit] ASMJIT_CFLAGS=${ASMJIT_CFLAGS}")
 
 # =============================================================================
 # [AsmJit - Macros]
@@ -168,6 +198,8 @@ asmjit_add_source(ASMJIT_SRC asmjit
   base.h
   build.h
   host.h
+
+  arm.h
   x86.h
 )
 
@@ -193,6 +225,8 @@ asmjit_add_source(ASMJIT_SRC asmjit/base
   logger.h
   operand.cpp
   operand.h
+  podvector.cpp
+  podvector.h
   runtime.cpp
   runtime.h
   utils.cpp
@@ -204,6 +238,18 @@ asmjit_add_source(ASMJIT_SRC asmjit/base
   zone.h
 )
 
+if(0)
+asmjit_add_source(ASMJIT_SRC asmjit/arm
+  armassembler.cpp
+  armassembler.h
+  arminst.cpp
+  arminst.h
+  armoperand.cpp
+  armoperand_regs.cpp
+  armoperand.h
+)
+endif()
+
 asmjit_add_source(ASMJIT_SRC asmjit/x86
   x86assembler.cpp
   x86assembler.h
@@ -213,15 +259,11 @@ asmjit_add_source(ASMJIT_SRC asmjit/x86
   x86compilercontext_p.h
   x86compilerfunc.cpp
   x86compilerfunc.h
-  x86cpuinfo.cpp
-  x86cpuinfo.h
   x86inst.cpp
   x86inst.h
   x86operand.cpp
   x86operand_regs.cpp
   x86operand.h
-  x86scheduler.cpp
-  x86scheduler_p.h
 )
 
 # =============================================================================
@@ -252,7 +294,7 @@ if(NOT ASMJIT_EMBED)
   # Add `asmjit` tests and samples.
   if(ASMJIT_BUILD_TEST)
     set(ASMJIT_TEST_SRC "")
-    set(ASMJIT_TEST_CFLAGS ${ASMJIT_D}ASMJIT_TEST ${ASMJIT_D}ASMJIT_EMBED)
+    set(ASMJIT_TEST_CFLAGS ${ASMJIT_CFLAGS} ${ASMJIT_D}ASMJIT_TEST ${ASMJIT_D}ASMJIT_EMBED)
     asmjit_add_source(ASMJIT_TEST_SRC test asmjit_test_unit.cpp broken.cpp broken.h)
 
     add_executable(asmjit_test_unit ${ASMJIT_SRC} ${ASMJIT_TEST_SRC})
@@ -273,6 +315,7 @@ if(NOT ASMJIT_EMBED)
 
     foreach(_target asmjit_bench_x86 asmjit_test_opcode asmjit_test_x86)
       add_executable(${_target} "src/test/${_target}.cpp")
+      target_compile_options(${_target} PRIVATE ${ASMJIT_CFLAGS})
       target_link_libraries(${_target} ${ASMJIT_LIBS})
     endforeach()
   endif()

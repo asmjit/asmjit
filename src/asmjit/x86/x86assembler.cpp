@@ -13,12 +13,12 @@
 
 // [Dependencies - AsmJit]
 #include "../base/containers.h"
+#include "../base/cpuinfo.h"
 #include "../base/logger.h"
 #include "../base/runtime.h"
 #include "../base/utils.h"
 #include "../base/vmem.h"
 #include "../x86/x86assembler.h"
-#include "../x86/x86cpuinfo.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -99,17 +99,10 @@ struct X86OpCodeMM {
 
 //! \internal
 //!
-//! Mandatory prefixes encoded in 'asmjit' opcode [66, F3, F2] and asmjit
+//! Mandatory prefixes encoded in 'asmjit' opcode [66, F3, F2] and AsmJit
 //! extensions
 static const uint8_t x86OpCodePP[8] = {
-  0x00,
-  0x66,
-  0xF3,
-  0xF2,
-  0x00,
-  0x00,
-  0x00,
-  0x9B
+  0x00, 0x66, 0xF3, 0xF2, 0x00, 0x00, 0x00, 0x9B
 };
 
 //! \internal
@@ -206,68 +199,63 @@ static ASMJIT_INLINE bool x86IsYmm(const X86Reg* reg) { return reg->isYmm(); }
 // [Macros]
 // ============================================================================
 
-#define ENC_OPS(_Op0_, _Op1_, _Op2_) \
-  ((kOperandType##_Op0_) + ((kOperandType##_Op1_) << 3) + ((kOperandType##_Op2_) << 6))
+#define ENC_OPS(op0, op1, op2) \
+  ((Operand::kType##op0) + ((Operand::kType##op1) << 3) + ((Operand::kType##op2) << 6))
 
-#define ADD_66H_P(_Exp_) \
+#define ADD_66H_P(exp) \
   do { \
-    opCode |= (static_cast<uint32_t>(_Exp_) << kX86InstOpCode_PP_Shift); \
+    opCode |= (static_cast<uint32_t>(exp) << kX86InstOpCode_PP_Shift); \
   } while (0)
 
-#define ADD_66H_P_BY_SIZE(_Size_) \
+#define ADD_66H_P_BY_SIZE(sz) \
   do { \
-    opCode |= (static_cast<uint32_t>(_Size_) & 0x02) << (kX86InstOpCode_PP_Shift - 1); \
+    opCode |= (static_cast<uint32_t>(sz) & 0x02) << (kX86InstOpCode_PP_Shift - 1); \
   } while (0)
 
-#define ADD_REX_W(_Exp_) \
+#define ADD_REX_W(exp) \
   do { \
     if (Arch == kArchX64) \
-      opCode |= static_cast<uint32_t>(_Exp_) << kX86InstOpCode_W_Shift; \
+      opCode |= static_cast<uint32_t>(exp) << kX86InstOpCode_W_Shift; \
   } while (0)
 
-#define ADD_REX_W_BY_SIZE(_Size_) \
+#define ADD_REX_W_BY_SIZE(sz) \
   do { \
-    if (Arch == kArchX64 && (_Size_) == 8) \
+    if (Arch == kArchX64 && (sz) == 8) \
       opCode |= kX86InstOpCode_W; \
   } while (0)
 
-#define ADD_VEX_W(_Exp_) \
+#define ADD_VEX_W(exp) \
   do { \
-    opCode |= static_cast<uint32_t>(_Exp_) << kX86InstOpCode_W_Shift; \
+    opCode |= static_cast<uint32_t>(exp) << kX86InstOpCode_W_Shift; \
   } while (0)
 
-#define ADD_VEX_L(_Exp_) \
+#define ADD_VEX_L(exp) \
   do { \
-    opCode |= static_cast<uint32_t>(_Exp_) << kX86InstOpCode_L_Shift; \
+    opCode |= static_cast<uint32_t>(exp) << kX86InstOpCode_L_Shift; \
   } while (0)
 
 #define EMIT_BYTE(_Val_) \
   do { \
-    cursor[0] = static_cast<uint8_t>(_Val_); \
+    cursor[0] = static_cast<uint8_t>((_Val_) & 0xFF); \
     cursor += 1; \
   } while (0)
 
 #define EMIT_WORD(_Val_) \
   do { \
-    reinterpret_cast<uint16_t*>(cursor)[0] = static_cast<uint16_t>(_Val_); \
+    Utils::writeU16uLE(cursor, static_cast<uint32_t>(_Val_)); \
     cursor += 2; \
   } while (0)
 
 #define EMIT_DWORD(_Val_) \
   do { \
-    reinterpret_cast<uint32_t*>(cursor)[0] = static_cast<uint32_t>(_Val_); \
+    Utils::writeU32uLE(cursor, static_cast<uint32_t>(_Val_)); \
     cursor += 4; \
   } while (0)
 
 #define EMIT_QWORD(_Val_) \
   do { \
-    reinterpret_cast<uint64_t*>(cursor)[0] = static_cast<uint64_t>(_Val_); \
+    Utils::writeU64uLE(cursor, static_cast<uint64_t>(_Val_)); \
     cursor += 8; \
-  } while (0)
-
-#define EMIT_OP(_Val_) \
-  do { \
-    EMIT_BYTE((_Val_) & 0xFF); \
   } while (0)
 
 #define EMIT_PP(_Val_) \
@@ -309,6 +297,7 @@ X86Assembler::X86Assembler(Runtime* runtime, uint32_t arch)
     zbp(NoInit),
     zsi(NoInit),
     zdi(NoInit) {
+
   ASMJIT_ASSERT(arch == kArchX86 || arch == kArchX64);
   _setArch(arch);
 }
@@ -367,13 +356,12 @@ Error X86Assembler::embedLabel(const Label& op) {
     ASMJIT_PROPAGATE_ERROR(_grow(regSize));
 
   uint8_t* cursor = getCursor();
-
   LabelData* label = getLabelData(op.getId());
   RelocData rd;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
-    _logger->logFormat(kLoggerStyleData, regSize == 4 ? ".dd L%u\n" : ".dq L%u\n", op.getId());
+    _logger->logFormat(Logger::kStyleData, regSize == 4 ? ".dd L%u\n" : ".dq L%u\n", op.getId());
 #endif // !ASMJIT_DISABLE_LOGGER
 
   rd.type = kRelocRelToAbs;
@@ -392,19 +380,18 @@ Error X86Assembler::embedLabel(const Label& op) {
     link->prev = (LabelLink*)label->links;
     link->offset = getOffset();
     link->displacement = 0;
-    link->relocId = _relocList.getLength();
+    link->relocId = _relocations.getLength();
 
     label->links = link;
   }
 
-  if (_relocList.append(rd) != kErrorOk)
+  if (_relocations.append(rd) != kErrorOk)
     return setLastError(kErrorNoHeapMemory);
 
   // Emit dummy intptr_t (4 or 8 bytes; depends on the address size).
-  if (regSize == 4)
+  EMIT_DWORD(0);
+  if (regSize == 8)
     EMIT_DWORD(0);
-  else
-    EMIT_QWORD(0);
 
   setCursor(cursor);
   return kErrorOk;
@@ -414,10 +401,10 @@ Error X86Assembler::embedLabel(const Label& op) {
 // [asmjit::X86Assembler - Align]
 // ============================================================================
 
-Error X86Assembler::align(uint32_t alignMode, uint32_t offset) {
+Error X86Assembler::align(uint32_t alignMode, uint32_t offset) noexcept {
 #if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
-    _logger->logFormat(kLoggerStyleDirective,
+    _logger->logFormat(Logger::kStyleDirective,
       "%s.align %u\n", _logger->getIndentation(), static_cast<unsigned int>(offset));
 #endif // !ASMJIT_DISABLE_LOGGER
 
@@ -436,7 +423,7 @@ Error X86Assembler::align(uint32_t alignMode, uint32_t offset) {
 
   switch (alignMode) {
     case kAlignCode: {
-      if (hasFeature(kAssemblerFeatureOptimizedAlign)) {
+      if (hasAsmOption(kOptionOptimizedAlign)) {
         // Intel 64 and IA-32 Architectures Software Developer's Manual - Volume 2B (NOP).
         enum { kMaxNopSize = 9 };
 
@@ -454,7 +441,7 @@ Error X86Assembler::align(uint32_t alignMode, uint32_t offset) {
 
         do {
           uint32_t n = Utils::iMin<uint32_t>(i, kMaxNopSize);
-          const uint8_t* p = nopData[(n - 1)];
+          const uint8_t* p = nopData[n - 1];
 
           i -= n;
           do {
@@ -491,7 +478,7 @@ Error X86Assembler::align(uint32_t alignMode, uint32_t offset) {
 // [asmjit::X86Assembler - Reloc]
 // ============================================================================
 
-size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
+size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const noexcept {
   uint32_t arch = getArch();
   uint8_t* dst = static_cast<uint8_t*>(_dst);
 
@@ -510,8 +497,8 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
   uint8_t* tramp = dst + minCodeSize;
 
   // Relocate all recorded locations.
-  size_t relocCount = _relocList.getLength();
-  const RelocData* rdList = _relocList.getData();
+  size_t relocCount = _relocations.getLength();
+  const RelocData* rdList = _relocations.getData();
 
   for (size_t i = 0; i < relocCount; i++) {
     const RelocData& rd = rdList[i];
@@ -551,12 +538,12 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
     }
 
     switch (rd.size) {
-      case 8:
-        *reinterpret_cast<int64_t*>(dst + offset) = static_cast<int64_t>(ptr);
+      case 4:
+        Utils::writeU32u(dst + offset, static_cast<int32_t>(static_cast<SignedPtr>(ptr)));
         break;
 
-      case 4:
-        *reinterpret_cast<int32_t*>(dst + offset) = static_cast<int32_t>(static_cast<SignedPtr>(ptr));
+      case 8:
+        Utils::writeI64u(dst + offset, static_cast<int64_t>(ptr));
         break;
 
       default:
@@ -582,14 +569,14 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
       dst[offset - 1] = byte1;
 
       // Absolute address.
-      ((uint64_t*)tramp)[0] = static_cast<uint64_t>(rd.data);
+      Utils::writeU64u(tramp, static_cast<uint64_t>(rd.data));
 
       // Advance trampoline pointer.
       tramp += 8;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
       if (logger)
-        logger->logFormat(kLoggerStyleComment, "; Trampoline %llX\n", rd.data);
+        logger->logFormat(Logger::kStyleComment, "; Trampoline %llX\n", rd.data);
 #endif // !ASMJIT_DISABLE_LOGGER
     }
   }
@@ -606,7 +593,7 @@ size_t X86Assembler::_relocCode(void* _dst, Ptr baseAddress) const {
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
 // Logging helpers.
-static const char* AssemblerX86_getAddressSizeString(uint32_t size) {
+static const char* AssemblerX86_getAddressSizeString(uint32_t size) noexcept {
   switch (size) {
     case 1 : return "byte ptr ";
     case 2 : return "word ptr ";
@@ -820,7 +807,7 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
       }
 
       sb._appendChar(prefix);
-      if ((loggerOptions & (1 << kLoggerOptionHexDisplacement)) != 0 && dispOffset > 9) {
+      if ((loggerOptions & Logger::kOptionHexDisplacement) != 0 && dispOffset > 9) {
         sb._appendString("0x", 2);
         base = 16;
       }
@@ -833,7 +820,7 @@ static void X86Assembler_dumpOperand(StringBuilder& sb, uint32_t arch, const Ope
     const Imm* i = static_cast<const Imm*>(op);
     int64_t val = i->getInt64();
 
-    if ((loggerOptions & (1 << kLoggerOptionHexImmediate)) && static_cast<uint64_t>(val) > 9)
+    if ((loggerOptions & Logger::kOptionHexImmediate) != 0 && static_cast<uint64_t>(val) > 9)
       sb.appendUInt(static_cast<uint64_t>(val), 16);
     else
       sb.appendInt(val, 10);
@@ -904,13 +891,13 @@ static bool X86Assembler_dumpInstruction(StringBuilder& sb,
 #define HI_REG(_Index_) ((_kX86RegTypePatchedGpbHi << 8) | _Index_)
 //! \internal
 static const Operand::VRegOp x86PatchedHiRegs[4] = {
-  // --------------+---+--------------+--------------+------------+
-  // Operand       | S | Reg. Code    | OperandId    |   Unused   |
-  // --------------+---+--------------+--------------+------------+
-  { kOperandTypeReg, 1 , { HI_REG(4) }, kInvalidValue, {{ 0, 0 }} },
-  { kOperandTypeReg, 1 , { HI_REG(5) }, kInvalidValue, {{ 0, 0 }} },
-  { kOperandTypeReg, 1 , { HI_REG(6) }, kInvalidValue, {{ 0, 0 }} },
-  { kOperandTypeReg, 1 , { HI_REG(7) }, kInvalidValue, {{ 0, 0 }} }
+  // ----------------+---+--------------+--------------+------------+
+  // Operand         | S | Reg. Code    | OperandId    |   Unused   |
+  // ----------------+---+--------------+--------------+------------+
+  { Operand::kTypeReg, 1 , { HI_REG(4) }, kInvalidValue, {{ 0, 0 }} },
+  { Operand::kTypeReg, 1 , { HI_REG(5) }, kInvalidValue, {{ 0, 0 }} },
+  { Operand::kTypeReg, 1 , { HI_REG(6) }, kInvalidValue, {{ 0, 0 }} },
+  { Operand::kTypeReg, 1 , { HI_REG(7) }, kInvalidValue, {{ 0, 0 }} }
 };
 #undef HI_REG
 
@@ -997,8 +984,7 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
   }
   else {
     // `W` field.
-    ASMJIT_ASSERT(static_cast<uint32_t>(kX86InstOptionRex) ==
-                  static_cast<uint32_t>(kX86ByteRex));
+    ASMJIT_ASSERT(static_cast<uint32_t>(kX86InstOptionRex) == static_cast<uint32_t>(kX86ByteRex));
 
     // Check if one or more register operand is one of BPL, SPL, SIL, DIL and
     // force a REX prefix to be emitted in such case.
@@ -1282,12 +1268,12 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
           intptr_t offs = label->offset - (intptr_t)(cursor - self->_buffer);
 
           ASMJIT_ASSERT(offs <= 0);
-          EMIT_OP(opCode);
+          EMIT_BYTE(opCode);
           EMIT_DWORD(static_cast<int32_t>(offs - kRel32Size));
         }
         else {
           // Non-bound label.
-          EMIT_OP(opCode);
+          EMIT_BYTE(opCode);
           dispOffset = -4;
           dispSize = 4;
           relocId = -1;
@@ -1435,10 +1421,10 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
         uint8_t imm8 = static_cast<uint8_t>(imVal & 0xFF);
 
         if (imm8 == 0x03) {
-          EMIT_OP(opCode);
+          EMIT_BYTE(opCode);
         }
         else {
-          EMIT_OP(opCode + 1);
+          EMIT_BYTE(opCode + 1);
           EMIT_BYTE(imm8);
         }
         goto _EmitDone;
@@ -1449,7 +1435,7 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
       if (encoded == ENC_OPS(Label, None, None)) {
         label = self->getLabelData(static_cast<const Label*>(o0)->getId());
 
-        if (self->hasFeature(kAssemblerFeaturePredictedJumps)) {
+        if (self->hasAsmOption(Assembler::kOptionPredictedJumps)) {
           if (options & kInstOptionTaken)
             EMIT_BYTE(0x3E);
           if (options & kInstOptionNotTaken)
@@ -1465,7 +1451,7 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
           ASMJIT_ASSERT(offs <= 0);
 
           if ((options & kInstOptionLongForm) == 0 && Utils::isInt8(offs - kRel8Size)) {
-            EMIT_OP(opCode);
+            EMIT_BYTE(opCode);
             EMIT_BYTE(offs - kRel8Size);
 
             options |= kInstOptionShortForm;
@@ -1473,7 +1459,7 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
           }
           else {
             EMIT_BYTE(0x0F);
-            EMIT_OP(opCode + 0x10);
+            EMIT_BYTE(opCode + 0x10);
             EMIT_DWORD(static_cast<int32_t>(offs - kRel32Size));
 
             options &= ~kInstOptionShortForm;
@@ -1483,7 +1469,7 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
         else {
           // Non-bound label.
           if (options & kInstOptionShortForm) {
-            EMIT_OP(opCode);
+            EMIT_BYTE(opCode);
             dispOffset = -1;
             dispSize = 1;
             relocId = -1;
@@ -1491,7 +1477,7 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
           }
           else {
             EMIT_BYTE(0x0F);
-            EMIT_OP(opCode + 0x10);
+            EMIT_BYTE(opCode + 0x10);
             dispOffset = -4;
             dispSize = 4;
             relocId = -1;
@@ -1868,9 +1854,9 @@ static ASMJIT_INLINE Error X86Assembler_emit(Assembler* self_, uint32_t code, co
         else {
 _GroupPop_Gp:
           // We allow 2 byte, 4 byte, and 8 byte register sizes, althought PUSH
-          // and POP only allows 2 bytes or register width. On 64-bit we simply
+          // and POP only allow 2 bytes or native size. On 64-bit we simply
           // PUSH/POP 64-bit register even if 32-bit register was given.
-          if (o0->getSize() < 1)
+          if (o0->getSize() < 2)
             goto _IllegalInst;
 
           opCode = extendedInfo.getSecondaryOpCode();
@@ -2359,7 +2345,7 @@ _EmitFpArith_Mem:
       }
 
       EMIT_BYTE(0x0F);
-      EMIT_OP(opCode);
+      EMIT_BYTE(opCode);
       EMIT_BYTE(0xC0 | (opReg << 3));
       goto _EmitDone;
 
@@ -3512,7 +3498,7 @@ _EmitX86Op:
 
   // Instruction opcodes.
   EMIT_MM(opCode);
-  EMIT_OP(opCode);
+  EMIT_BYTE(opCode);
 
   if (imLen != 0)
     goto _EmitImm;
@@ -3542,7 +3528,7 @@ _EmitX86OpWithOpReg:
   // Instruction opcodes.
   opCode += opReg;
   EMIT_MM(opCode);
-  EMIT_OP(opCode);
+  EMIT_BYTE(opCode);
 
   if (imLen != 0)
     goto _EmitImm;
@@ -3573,7 +3559,7 @@ _EmitX86R:
 
   // Instruction opcodes.
   EMIT_MM(opCode);
-  EMIT_OP(opCode);
+  EMIT_BYTE(opCode);
 
   // ModR.
   EMIT_BYTE(x86EncodeMod(3, opReg, static_cast<uint32_t>(rmReg)));
@@ -3585,7 +3571,7 @@ _EmitX86R:
 
 _EmitX86M:
   ASMJIT_ASSERT(rmMem != nullptr);
-  ASMJIT_ASSERT(rmMem->getOp() == kOperandTypeMem);
+  ASMJIT_ASSERT(rmMem->getOp() == Operand::kTypeMem);
 
   mBase = rmMem->getBase();
   mIndex = rmMem->getIndex();
@@ -3632,7 +3618,7 @@ _EmitX86M:
 
   // Instruction opcodes.
   EMIT_MM(opCode);
-  EMIT_OP(opCode);
+  EMIT_BYTE(opCode);
   // ... Fall through ...
 
   // --------------------------------------------------------------------------
@@ -3724,7 +3710,7 @@ _EmitSib:
     else if (rmMem->getMemType() == kMemTypeLabel) {
       // Relative->Absolute [x86 mode].
       label = self->getLabelData(rmMem->_vmem.base);
-      relocId = self->_relocList.getLength();
+      relocId = self->_relocations.getLength();
 
       RelocData rd;
       rd.type = kRelocRelToAbs;
@@ -3732,12 +3718,12 @@ _EmitSib:
       rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
       rd.data = static_cast<SignedPtr>(dispOffset);
 
-      if (self->_relocList.append(rd) != kErrorOk)
+      if (self->_relocations.append(rd) != kErrorOk)
         return self->setLastError(kErrorNoHeapMemory);
 
       if (label->offset != -1) {
         // Bound label.
-        self->_relocList[relocId].data += static_cast<SignedPtr>(label->offset);
+        self->_relocations[relocId].data += static_cast<SignedPtr>(label->offset);
         EMIT_DWORD(0);
       }
       else {
@@ -3749,7 +3735,7 @@ _EmitSib:
     }
     else {
       // RIP->Absolute [x86 mode].
-      relocId = self->_relocList.getLength();
+      relocId = self->_relocations.getLength();
 
       RelocData rd;
       rd.type = kRelocRelToAbs;
@@ -3757,7 +3743,7 @@ _EmitSib:
       rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
       rd.data = rd.from + static_cast<SignedPtr>(dispOffset);
 
-      if (self->_relocList.append(rd) != kErrorOk)
+      if (self->_relocations.append(rd) != kErrorOk)
         return self->setLastError(kErrorNoHeapMemory);
 
       EMIT_DWORD(0);
@@ -3843,8 +3829,8 @@ _EmitFpuOp:
   EMIT_PP(opCode);
 
   // Instruction opcodes.
-  EMIT_OP(opCode >> 8);
-  EMIT_OP(opCode);
+  EMIT_BYTE(opCode >> 8);
+  EMIT_BYTE(opCode);
   goto _EmitDone;
 
   // --------------------------------------------------------------------------
@@ -3853,7 +3839,7 @@ _EmitFpuOp:
 
 #define EMIT_AVX_M \
   ASMJIT_ASSERT(rmMem != nullptr); \
-  ASMJIT_ASSERT(rmMem->getOp() == kOperandTypeMem); \
+  ASMJIT_ASSERT(rmMem->getOp() == Operand::kTypeMem); \
   \
   if (rmMem->hasSegment()) { \
     EMIT_BYTE(x86SegmentPrefix[rmMem->getSegment()]); \
@@ -3883,7 +3869,7 @@ _EmitFpuOp:
       EMIT_BYTE(kX86ByteVex3); \
       EMIT_BYTE(vex_rxbmmmmm); \
       EMIT_BYTE(vex_XvvvvLpp); \
-      EMIT_OP(opCode); \
+      EMIT_BYTE(opCode); \
     } \
     else { \
       vex_XvvvvLpp |= static_cast<uint32_t>(opReg << 4) & 0x80; \
@@ -3891,7 +3877,7 @@ _EmitFpuOp:
       \
       EMIT_BYTE(kX86ByteVex2); \
       EMIT_BYTE(vex_XvvvvLpp); \
-      EMIT_OP(opCode); \
+      EMIT_BYTE(opCode); \
     } \
   } \
   \
@@ -3911,14 +3897,14 @@ _EmitAvxOp:
       uint32_t vex_rxbmmmmm = (opCode >> kX86InstOpCode_MM_Shift) | 0xE0;
 
       EMIT_BYTE(kX86ByteVex3);
-      EMIT_OP(vex_rxbmmmmm);
-      EMIT_OP(vex_XvvvvLpp);
-      EMIT_OP(opCode);
+      EMIT_BYTE(vex_rxbmmmmm);
+      EMIT_BYTE(vex_XvvvvLpp);
+      EMIT_BYTE(opCode);
     }
     else {
       EMIT_BYTE(kX86ByteVex2);
-      EMIT_OP(vex_XvvvvLpp);
-      EMIT_OP(opCode);
+      EMIT_BYTE(vex_XvvvvLpp);
+      EMIT_BYTE(opCode);
     }
   }
   goto _EmitDone;
@@ -3942,9 +3928,9 @@ _EmitAvxR:
       vex_XvvvvLpp ^= 0x78;
 
       EMIT_BYTE(kX86ByteVex3);
-      EMIT_OP(vex_rxbmmmmm);
-      EMIT_OP(vex_XvvvvLpp);
-      EMIT_OP(opCode);
+      EMIT_BYTE(vex_rxbmmmmm);
+      EMIT_BYTE(vex_XvvvvLpp);
+      EMIT_BYTE(opCode);
 
       rmReg &= 0x07;
     }
@@ -3953,8 +3939,8 @@ _EmitAvxR:
       vex_XvvvvLpp ^= 0xF8;
 
       EMIT_BYTE(kX86ByteVex2);
-      EMIT_OP(vex_XvvvvLpp);
-      EMIT_OP(opCode);
+      EMIT_BYTE(vex_XvvvvLpp);
+      EMIT_BYTE(opCode);
     }
   }
 
@@ -4014,7 +4000,7 @@ _EmitAvxV:
 
       // Relative->Absolute [x86 mode].
       label = self->getLabelData(rmMem->_vmem.base);
-      relocId = self->_relocList.getLength();
+      relocId = self->_relocations.getLength();
 
       {
         RelocData rd;
@@ -4023,13 +4009,13 @@ _EmitAvxV:
         rd.from = static_cast<Ptr>((uintptr_t)(cursor - self->_buffer));
         rd.data = static_cast<SignedPtr>(dispOffset);
 
-        if (self->_relocList.append(rd) != kErrorOk)
+        if (self->_relocations.append(rd) != kErrorOk)
           return self->setLastError(kErrorNoHeapMemory);
       }
 
       if (label->offset != -1) {
         // Bound label.
-        self->_relocList[relocId].data += static_cast<SignedPtr>(label->offset);
+        self->_relocations[relocId].data += static_cast<SignedPtr>(label->offset);
         EMIT_DWORD(0);
       }
       else {
@@ -4052,7 +4038,7 @@ _EmitAvxV:
 
 #define EMIT_XOP_M \
   ASMJIT_ASSERT(rmMem != nullptr); \
-  ASMJIT_ASSERT(rmMem->getOp() == kOperandTypeMem); \
+  ASMJIT_ASSERT(rmMem->getOp() == Operand::kTypeMem); \
   \
   if (rmMem->hasSegment()) { \
     EMIT_BYTE(x86SegmentPrefix[rmMem->getSegment()]); \
@@ -4081,7 +4067,7 @@ _EmitAvxV:
     EMIT_BYTE(kX86ByteXop3); \
     EMIT_BYTE(vex_rxbmmmmm); \
     EMIT_BYTE(vex_XvvvvLpp); \
-    EMIT_OP(opCode); \
+    EMIT_BYTE(opCode); \
   } \
   \
   mBase &= 0x07; \
@@ -4105,9 +4091,9 @@ _EmitXopR:
     xop_XvvvvLpp ^= 0x78;
 
     EMIT_BYTE(kX86ByteXop3);
-    EMIT_OP(xop_rxbmmmmm);
-    EMIT_OP(xop_XvvvvLpp);
-    EMIT_OP(opCode);
+    EMIT_BYTE(xop_rxbmmmmm);
+    EMIT_BYTE(xop_XvvvvLpp);
+    EMIT_BYTE(opCode);
 
     rmReg &= 0x07;
   }
@@ -4168,10 +4154,10 @@ _EmitJmpOrCallAbs:
 
     // Both `jmp` and `call` instructions have a single-byte opcode and are
     // followed by a 32-bit displacement.
-    EMIT_OP(opCode);
+    EMIT_BYTE(opCode);
     EMIT_DWORD(0);
 
-    if (self->_relocList.append(rd) != kErrorOk)
+    if (self->_relocations.append(rd) != kErrorOk)
       return self->setLastError(kErrorNoHeapMemory);
 
     // Reserve space for a possible trampoline.
@@ -4227,7 +4213,7 @@ _EmitDone:
 
     X86Assembler_dumpInstruction(sb, Arch, code, options, o0, o1, o2, o3, loggerOptions);
 
-    if ((loggerOptions & (1 << kLoggerOptionBinaryForm)) != 0)
+    if ((loggerOptions & Logger::kOptionBinaryForm) != 0)
       LogUtil::formatLine(sb, self->_cursor, (intptr_t)(cursor - self->_cursor), dispSize, imLen, self->_comment);
     else
       LogUtil::formatLine(sb, nullptr, kInvalidIndex, 0, 0, self->_comment);
@@ -4235,7 +4221,7 @@ _EmitDone:
 # if defined(ASMJIT_DEBUG)
     if (self->_logger)
 # endif // ASMJIT_DEBUG
-      self->_logger->logString(kLoggerStyleDefault, sb.getData(), sb.getLength());
+      self->_logger->logString(Logger::kStyleDefault, sb.getData(), sb.getLength());
 
 # if defined(ASMJIT_DEBUG)
     // This shouldn't happen.
@@ -4257,8 +4243,10 @@ _EmitDone:
 
 Error X86Assembler::_emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) {
 #if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_BUILD_X64)
+  ASMJIT_ASSERT(_arch == kArchX86);
   return X86Assembler_emit<kArchX86>(this, code, &o0, &o1, &o2, &o3);
 #elif !defined(ASMJIT_BUILD_X86) && defined(ASMJIT_BUILD_X64)
+  ASMJIT_ASSERT(_arch == kArchX64);
   return X86Assembler_emit<kArchX64>(this, code, &o0, &o1, &o2, &o3);
 #else
   if (_arch == kArchX86)

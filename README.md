@@ -37,15 +37,16 @@ Supported Environments
 
 ### C++ Compilers
 
-  * BorlandC++ (not tested regularly)
-  * CLang (tested by Travis-CI)
+  * Clang (tested by Travis-CI)
+  * CodeGear (including BorlandC++, not tested regularly)
   * GCC (tested by Travis-CI)
   * MinGW (tested manually)
-  * MSVC (tested manually, at least Visual Studio 2003 required)
+  * MSVC (tested manually, at least VS2003 is required)
   * Other compilers require some testing and support in `asmjit/build.h`
 
 ### Backends
 
+  * ARM (work-in-progress)
   * X86 (tested by Travis-CI)
   * X64 (tested by Travis-CI)
 
@@ -54,9 +55,10 @@ Project Organization
 
   * `/`             - Project root
     * `src`         - Source code
-      * `asmjit`    - Public header files (always include from here)
-        * `base`    - Base files, used by AsmJit and all backends
-        * `x86`     - X86/X64 specific files, used only by X86/X64 backend
+      * `asmjit`    - Source code and headers (always point include path in here)
+        * `base`    - Generic API and interfaces, used by all backends
+        * `arm`     - ARM/ARM64 specific API, used only by ARM and ARM64 backends
+        * `x86`     - X86/X64 specific API, used only by X86 and X64 backends
       * `test`      - Unit and integration tests (don't embed in your project)
     * `tools`       - Tools used for configuring, documenting and generating files
 
@@ -93,9 +95,11 @@ AsmJit is designed to be easy embeddable in any kind project. However, it has so
 
 ### Architectures
 
-  * `ASMJIT_BUILD_X86` - Always build x86 backend regardless of host architecture.
-  * `ASMJIT_BUILD_X64` - Always build x64 backend regardless of host architecture.
-  * `ASMJIT_BUILD_HOST` - Always build host backend, if only `ASMJIT_BUILD_HOST` is used only the host architecture detected at compile-time will be included.
+  * `ASMJIT_BUILD_ARM` - Build ARM backend.
+  * `ASMJIT_BUILD_ARM64` - Build ARM64 backend.
+  * `ASMJIT_BUILD_X86` - Build x86 backend.
+  * `ASMJIT_BUILD_X64` - Build x64 backend.
+  * `ASMJIT_BUILD_HOST` - Build host backend, if only `ASMJIT_BUILD_HOST` is used only the host architecture detected at compile-time will be included.
 
   * By default only `ASMJIT_BUILD_HOST` is defined.
 

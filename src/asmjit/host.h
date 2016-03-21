@@ -35,9 +35,6 @@ typedef X86YmmReg YmmReg;
 typedef X86SegReg SegReg;
 typedef X86Mem Mem;
 
-// Define host utilities.
-typedef X86CpuInfo HostCpuInfo;
-
 // Define host compiler and related.
 #if !defined(ASMJIT_DISABLE_COMPILER)
 typedef X86Compiler HostCompiler;

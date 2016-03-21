@@ -14,7 +14,6 @@
 #include "./x86/x86assembler.h"
 #include "./x86/x86compiler.h"
 #include "./x86/x86compilerfunc.h"
-#include "./x86/x86cpuinfo.h"
 #include "./x86/x86inst.h"
 #include "./x86/x86operand.h"
 

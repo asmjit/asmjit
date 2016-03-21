@@ -162,10 +162,10 @@ namespace asmjit {
 //! a.ret();
 //! ~~~
 //!
-//! You can see that syntax is very close to Intel one. Only difference is that
-//! you are calling functions that emit binary code for you. All registers are
-//! in `asmjit::x86` namespace, so it's very comfortable to use it (look at the
-//! `use namespace` section). Without importing `asmjit::x86` registers would
+//! You can see that syntax is very close to the Intel one. Only difference is
+//! that you are calling functions that emit binary code for you. All registers
+//! are in `asmjit::x86` namespace, so it's very comfortable to use it (look at
+//! the `use namespace` section). Without importing `asmjit::x86` registers would
 //! have to be written as `x86::eax`, `x86::esp`, and so on.
 //!
 //! There is also possibility to use memory addresses and immediates. Use
@@ -278,7 +278,7 @@ namespace asmjit {
 //! code with labels. Labels are fully supported and you can call `jmp` or
 //! `je` (and similar) instructions to initialized or yet uninitialized label.
 //! Each label expects to be bound into offset. To bind label to specific
-//! offset, use `CodeGen::bind()` method.
+//! offset, use `Assembler::bind()` function.
 //!
 //! See next example that contains complete code that creates simple memory
 //! copy function (in DWord entities).
@@ -292,14 +292,14 @@ namespace asmjit {
 //!
 //! // Assembler instance.
 //! JitRuntime runtime;
-//! Assembler a(&runtime);
+//! X86Assembler a(&runtime);
 //!
 //! // Constants.
 //! const int arg_offset = 8; // Arguments offset (STDCALL EBP).
 //! const int arg_size = 12;  // Arguments size.
 //!
 //! // Labels.
-//! Label L_Loop(a);
+//! Label L_Loop = a.newLabel();
 //!
 //! // Prolog.
 //! a.push(ebp);
@@ -491,13 +491,13 @@ struct ASMJIT_VIRTAPI X86Assembler : public Assembler {
   // [Align]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error align(uint32_t alignMode, uint32_t offset);
+  ASMJIT_API virtual Error align(uint32_t alignMode, uint32_t offset) noexcept;
 
   // --------------------------------------------------------------------------
   // [Reloc]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual size_t _relocCode(void* dst, Ptr baseAddress) const;
+  ASMJIT_API virtual size_t _relocCode(void* dst, Ptr baseAddress) const noexcept;
 
   // --------------------------------------------------------------------------
   // [Emit]
@@ -539,164 +539,164 @@ struct ASMJIT_VIRTAPI X86Assembler : public Assembler {
   // [Emit]
   // --------------------------------------------------------------------------
 
-#define INST_0x(_Inst_, _Code_) \
-  ASMJIT_INLINE Error _Inst_() { \
-    return emit(_Code_); \
+#define INST_0x(inst, code) \
+  ASMJIT_INLINE Error inst() { \
+    return emit(code); \
   }
 
-#define INST_1x(_Inst_, _Code_, _Op0_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0) { \
-    return emit(_Code_, o0); \
+#define INST_1x(inst, code, T0) \
+  ASMJIT_INLINE Error inst(const T0& o0) { \
+    return emit(code, o0); \
   }
 
-#define INST_1i(_Inst_, _Code_, _Op0_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0) { return emit(_Code_, o0); } \
+#define INST_1i(inst, code, T0) \
+  ASMJIT_INLINE Error inst(const T0& o0) { return emit(code, o0); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(int o0) { return emit(_Code_, Utils::asInt(o0)); } \
+  ASMJIT_INLINE Error inst(int o0) { return emit(code, Utils::asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(unsigned int o0) { return emit(_Code_, Utils::asInt(o0)); } \
+  ASMJIT_INLINE Error inst(unsigned int o0) { return emit(code, Utils::asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(int64_t o0) { return emit(_Code_, Utils::asInt(o0)); } \
+  ASMJIT_INLINE Error inst(int64_t o0) { return emit(code, Utils::asInt(o0)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(uint64_t o0) { return emit(_Code_, Utils::asInt(o0)); }
+  ASMJIT_INLINE Error inst(uint64_t o0) { return emit(code, Utils::asInt(o0)); }
 
-#define INST_1cc(_Inst_, _Code_, _Translate_, _Op0_) \
-  ASMJIT_INLINE Error _Inst_(uint32_t cc, const _Op0_& o0) { \
+#define INST_1cc(inst, code, _Translate_, T0) \
+  ASMJIT_INLINE Error inst(uint32_t cc, const T0& o0) { \
     return emit(_Translate_(cc), o0); \
   } \
   \
-  ASMJIT_INLINE Error _Inst_##a(const _Op0_& o0) { return emit(_Code_##a, o0); } \
-  ASMJIT_INLINE Error _Inst_##ae(const _Op0_& o0) { return emit(_Code_##ae, o0); } \
-  ASMJIT_INLINE Error _Inst_##b(const _Op0_& o0) { return emit(_Code_##b, o0); } \
-  ASMJIT_INLINE Error _Inst_##be(const _Op0_& o0) { return emit(_Code_##be, o0); } \
-  ASMJIT_INLINE Error _Inst_##c(const _Op0_& o0) { return emit(_Code_##c, o0); } \
-  ASMJIT_INLINE Error _Inst_##e(const _Op0_& o0) { return emit(_Code_##e, o0); } \
-  ASMJIT_INLINE Error _Inst_##g(const _Op0_& o0) { return emit(_Code_##g, o0); } \
-  ASMJIT_INLINE Error _Inst_##ge(const _Op0_& o0) { return emit(_Code_##ge, o0); } \
-  ASMJIT_INLINE Error _Inst_##l(const _Op0_& o0) { return emit(_Code_##l, o0); } \
-  ASMJIT_INLINE Error _Inst_##le(const _Op0_& o0) { return emit(_Code_##le, o0); } \
-  ASMJIT_INLINE Error _Inst_##na(const _Op0_& o0) { return emit(_Code_##na, o0); } \
-  ASMJIT_INLINE Error _Inst_##nae(const _Op0_& o0) { return emit(_Code_##nae, o0); } \
-  ASMJIT_INLINE Error _Inst_##nb(const _Op0_& o0) { return emit(_Code_##nb, o0); } \
-  ASMJIT_INLINE Error _Inst_##nbe(const _Op0_& o0) { return emit(_Code_##nbe, o0); } \
-  ASMJIT_INLINE Error _Inst_##nc(const _Op0_& o0) { return emit(_Code_##nc, o0); } \
-  ASMJIT_INLINE Error _Inst_##ne(const _Op0_& o0) { return emit(_Code_##ne, o0); } \
-  ASMJIT_INLINE Error _Inst_##ng(const _Op0_& o0) { return emit(_Code_##ng, o0); } \
-  ASMJIT_INLINE Error _Inst_##nge(const _Op0_& o0) { return emit(_Code_##nge, o0); } \
-  ASMJIT_INLINE Error _Inst_##nl(const _Op0_& o0) { return emit(_Code_##nl, o0); } \
-  ASMJIT_INLINE Error _Inst_##nle(const _Op0_& o0) { return emit(_Code_##nle, o0); } \
-  ASMJIT_INLINE Error _Inst_##no(const _Op0_& o0) { return emit(_Code_##no, o0); } \
-  ASMJIT_INLINE Error _Inst_##np(const _Op0_& o0) { return emit(_Code_##np, o0); } \
-  ASMJIT_INLINE Error _Inst_##ns(const _Op0_& o0) { return emit(_Code_##ns, o0); } \
-  ASMJIT_INLINE Error _Inst_##nz(const _Op0_& o0) { return emit(_Code_##nz, o0); } \
-  ASMJIT_INLINE Error _Inst_##o(const _Op0_& o0) { return emit(_Code_##o, o0); } \
-  ASMJIT_INLINE Error _Inst_##p(const _Op0_& o0) { return emit(_Code_##p, o0); } \
-  ASMJIT_INLINE Error _Inst_##pe(const _Op0_& o0) { return emit(_Code_##pe, o0); } \
-  ASMJIT_INLINE Error _Inst_##po(const _Op0_& o0) { return emit(_Code_##po, o0); } \
-  ASMJIT_INLINE Error _Inst_##s(const _Op0_& o0) { return emit(_Code_##s, o0); } \
-  ASMJIT_INLINE Error _Inst_##z(const _Op0_& o0) { return emit(_Code_##z, o0); }
+  ASMJIT_INLINE Error inst##a(const T0& o0) { return emit(code##a, o0); } \
+  ASMJIT_INLINE Error inst##ae(const T0& o0) { return emit(code##ae, o0); } \
+  ASMJIT_INLINE Error inst##b(const T0& o0) { return emit(code##b, o0); } \
+  ASMJIT_INLINE Error inst##be(const T0& o0) { return emit(code##be, o0); } \
+  ASMJIT_INLINE Error inst##c(const T0& o0) { return emit(code##c, o0); } \
+  ASMJIT_INLINE Error inst##e(const T0& o0) { return emit(code##e, o0); } \
+  ASMJIT_INLINE Error inst##g(const T0& o0) { return emit(code##g, o0); } \
+  ASMJIT_INLINE Error inst##ge(const T0& o0) { return emit(code##ge, o0); } \
+  ASMJIT_INLINE Error inst##l(const T0& o0) { return emit(code##l, o0); } \
+  ASMJIT_INLINE Error inst##le(const T0& o0) { return emit(code##le, o0); } \
+  ASMJIT_INLINE Error inst##na(const T0& o0) { return emit(code##na, o0); } \
+  ASMJIT_INLINE Error inst##nae(const T0& o0) { return emit(code##nae, o0); } \
+  ASMJIT_INLINE Error inst##nb(const T0& o0) { return emit(code##nb, o0); } \
+  ASMJIT_INLINE Error inst##nbe(const T0& o0) { return emit(code##nbe, o0); } \
+  ASMJIT_INLINE Error inst##nc(const T0& o0) { return emit(code##nc, o0); } \
+  ASMJIT_INLINE Error inst##ne(const T0& o0) { return emit(code##ne, o0); } \
+  ASMJIT_INLINE Error inst##ng(const T0& o0) { return emit(code##ng, o0); } \
+  ASMJIT_INLINE Error inst##nge(const T0& o0) { return emit(code##nge, o0); } \
+  ASMJIT_INLINE Error inst##nl(const T0& o0) { return emit(code##nl, o0); } \
+  ASMJIT_INLINE Error inst##nle(const T0& o0) { return emit(code##nle, o0); } \
+  ASMJIT_INLINE Error inst##no(const T0& o0) { return emit(code##no, o0); } \
+  ASMJIT_INLINE Error inst##np(const T0& o0) { return emit(code##np, o0); } \
+  ASMJIT_INLINE Error inst##ns(const T0& o0) { return emit(code##ns, o0); } \
+  ASMJIT_INLINE Error inst##nz(const T0& o0) { return emit(code##nz, o0); } \
+  ASMJIT_INLINE Error inst##o(const T0& o0) { return emit(code##o, o0); } \
+  ASMJIT_INLINE Error inst##p(const T0& o0) { return emit(code##p, o0); } \
+  ASMJIT_INLINE Error inst##pe(const T0& o0) { return emit(code##pe, o0); } \
+  ASMJIT_INLINE Error inst##po(const T0& o0) { return emit(code##po, o0); } \
+  ASMJIT_INLINE Error inst##s(const T0& o0) { return emit(code##s, o0); } \
+  ASMJIT_INLINE Error inst##z(const T0& o0) { return emit(code##z, o0); }
 
-#define INST_2x(_Inst_, _Code_, _Op0_, _Op1_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1) { \
-    return emit(_Code_, o0, o1); \
+#define INST_2x(inst, code, T0, T1) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1) { \
+    return emit(code, o0, o1); \
   }
 
-#define INST_2i(_Inst_, _Code_, _Op0_, _Op1_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_, o0, o1); } \
+#define INST_2i(inst, code, T0, T1) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1) { return emit(code, o0, o1); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1) { return emit(_Code_, o0, Utils::asInt(o1)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, int o1) { return emit(code, o0, Utils::asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1) { return emit(_Code_, o0, Utils::asInt(o1)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, unsigned int o1) { return emit(code, o0, Utils::asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1) { return emit(_Code_, o0, Utils::asInt(o1)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, int64_t o1) { return emit(code, o0, Utils::asInt(o1)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1) { return emit(_Code_, o0, Utils::asInt(o1)); }
+  ASMJIT_INLINE Error inst(const T0& o0, uint64_t o1) { return emit(code, o0, Utils::asInt(o1)); }
 
-#define INST_2cc(_Inst_, _Code_, _Translate_, _Op0_, _Op1_) \
-  ASMJIT_INLINE Error _Inst_(uint32_t cc, const _Op0_& o0, const _Op1_& o1) { \
+#define INST_2cc(inst, code, _Translate_, T0, T1) \
+  ASMJIT_INLINE Error inst(uint32_t cc, const T0& o0, const T1& o1) { \
     return emit(_Translate_(cc), o0, o1); \
   } \
   \
-  ASMJIT_INLINE Error _Inst_##a(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##a, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##ae(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ae, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##b(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##b, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##be(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##be, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##c(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##c, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##e(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##e, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##g(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##g, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##ge(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ge, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##l(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##l, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##le(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##le, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##na(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##na, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nae(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nae, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nb(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nb, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nbe(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nbe, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nc(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nc, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##ne(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ne, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##ng(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ng, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nge(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nge, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nl(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nl, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nle(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nle, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##no(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##no, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##np(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##np, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##ns(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ns, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##nz(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nz, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##o(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##o, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##p(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##p, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##pe(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##pe, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##po(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##po, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##s(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##s, o0, o1); } \
-  ASMJIT_INLINE Error _Inst_##z(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##z, o0, o1); }
+  ASMJIT_INLINE Error inst##a(const T0& o0, const T1& o1) { return emit(code##a, o0, o1); } \
+  ASMJIT_INLINE Error inst##ae(const T0& o0, const T1& o1) { return emit(code##ae, o0, o1); } \
+  ASMJIT_INLINE Error inst##b(const T0& o0, const T1& o1) { return emit(code##b, o0, o1); } \
+  ASMJIT_INLINE Error inst##be(const T0& o0, const T1& o1) { return emit(code##be, o0, o1); } \
+  ASMJIT_INLINE Error inst##c(const T0& o0, const T1& o1) { return emit(code##c, o0, o1); } \
+  ASMJIT_INLINE Error inst##e(const T0& o0, const T1& o1) { return emit(code##e, o0, o1); } \
+  ASMJIT_INLINE Error inst##g(const T0& o0, const T1& o1) { return emit(code##g, o0, o1); } \
+  ASMJIT_INLINE Error inst##ge(const T0& o0, const T1& o1) { return emit(code##ge, o0, o1); } \
+  ASMJIT_INLINE Error inst##l(const T0& o0, const T1& o1) { return emit(code##l, o0, o1); } \
+  ASMJIT_INLINE Error inst##le(const T0& o0, const T1& o1) { return emit(code##le, o0, o1); } \
+  ASMJIT_INLINE Error inst##na(const T0& o0, const T1& o1) { return emit(code##na, o0, o1); } \
+  ASMJIT_INLINE Error inst##nae(const T0& o0, const T1& o1) { return emit(code##nae, o0, o1); } \
+  ASMJIT_INLINE Error inst##nb(const T0& o0, const T1& o1) { return emit(code##nb, o0, o1); } \
+  ASMJIT_INLINE Error inst##nbe(const T0& o0, const T1& o1) { return emit(code##nbe, o0, o1); } \
+  ASMJIT_INLINE Error inst##nc(const T0& o0, const T1& o1) { return emit(code##nc, o0, o1); } \
+  ASMJIT_INLINE Error inst##ne(const T0& o0, const T1& o1) { return emit(code##ne, o0, o1); } \
+  ASMJIT_INLINE Error inst##ng(const T0& o0, const T1& o1) { return emit(code##ng, o0, o1); } \
+  ASMJIT_INLINE Error inst##nge(const T0& o0, const T1& o1) { return emit(code##nge, o0, o1); } \
+  ASMJIT_INLINE Error inst##nl(const T0& o0, const T1& o1) { return emit(code##nl, o0, o1); } \
+  ASMJIT_INLINE Error inst##nle(const T0& o0, const T1& o1) { return emit(code##nle, o0, o1); } \
+  ASMJIT_INLINE Error inst##no(const T0& o0, const T1& o1) { return emit(code##no, o0, o1); } \
+  ASMJIT_INLINE Error inst##np(const T0& o0, const T1& o1) { return emit(code##np, o0, o1); } \
+  ASMJIT_INLINE Error inst##ns(const T0& o0, const T1& o1) { return emit(code##ns, o0, o1); } \
+  ASMJIT_INLINE Error inst##nz(const T0& o0, const T1& o1) { return emit(code##nz, o0, o1); } \
+  ASMJIT_INLINE Error inst##o(const T0& o0, const T1& o1) { return emit(code##o, o0, o1); } \
+  ASMJIT_INLINE Error inst##p(const T0& o0, const T1& o1) { return emit(code##p, o0, o1); } \
+  ASMJIT_INLINE Error inst##pe(const T0& o0, const T1& o1) { return emit(code##pe, o0, o1); } \
+  ASMJIT_INLINE Error inst##po(const T0& o0, const T1& o1) { return emit(code##po, o0, o1); } \
+  ASMJIT_INLINE Error inst##s(const T0& o0, const T1& o1) { return emit(code##s, o0, o1); } \
+  ASMJIT_INLINE Error inst##z(const T0& o0, const T1& o1) { return emit(code##z, o0, o1); }
 
-#define INST_3x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); }
+#define INST_3x(inst, code, T0, T1, T2) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2) { return emit(code, o0, o1, o2); }
 
-#define INST_3i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); } \
+#define INST_3i(inst, code, T0, T1, T2) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2) { return emit(code, o0, o1, o2); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, int o2) { return emit(code, o0, o1, Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, unsigned int o2) { return emit(code, o0, o1, Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, int64_t o2) { return emit(code, o0, o1, Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) { return emit(_Code_, o0, o1, Utils::asInt(o2)); }
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, uint64_t o2) { return emit(code, o0, o1, Utils::asInt(o2)); }
 
-#define INST_3ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { return emit(_Code_, o0, o1, o2); } \
+#define INST_3ii(inst, code, T0, T1, T2) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2) { return emit(code, o0, o1, o2); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int o1, int o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, int o1, int o2) { return emit(code, o0, Imm(o1), Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, unsigned int o1, unsigned int o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, unsigned int o1, unsigned int o2) { return emit(code, o0, Imm(o1), Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, int64_t o1, int64_t o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, int64_t o1, int64_t o2) { return emit(code, o0, Imm(o1), Utils::asInt(o2)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, uint64_t o1, uint64_t o2) { return emit(_Code_, o0, Imm(o1), Utils::asInt(o2)); }
+  ASMJIT_INLINE Error inst(const T0& o0, uint64_t o1, uint64_t o2) { return emit(code, o0, Imm(o1), Utils::asInt(o2)); }
 
-#define INST_4x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); }
+#define INST_4x(inst, code, T0, T1, T2, T3) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return emit(code, o0, o1, o2, o3); }
 
-#define INST_4i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); } \
+#define INST_4i(inst, code, T0, T1, T2, T3) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return emit(code, o0, o1, o2, o3); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2, int o3) { return emit(code, o0, o1, o2, Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2, unsigned int o3) { return emit(code, o0, o1, o2, Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2, int64_t o3) { return emit(code, o0, o1, o2, Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) { return emit(_Code_, o0, o1, o2, Utils::asInt(o3)); }
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2, uint64_t o3) { return emit(code, o0, o1, o2, Utils::asInt(o3)); }
 
-#define INST_4ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { return emit(_Code_, o0, o1, o2, o3); } \
+#define INST_4ii(inst, code, T0, T1, T2, T3) \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return emit(code, o0, o1, o2, o3); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int o2, int o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, int o2, int o3) { return emit(code, o0, o1, Imm(o2), Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2, unsigned int o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, unsigned int o2, unsigned int o3) { return emit(code, o0, o1, Imm(o2), Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2, int64_t o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); } \
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, int64_t o2, int64_t o3) { return emit(code, o0, o1, Imm(o2), Utils::asInt(o3)); } \
   /*! \overload */ \
-  ASMJIT_INLINE Error _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2, uint64_t o3) { return emit(_Code_, o0, o1, Imm(o2), Utils::asInt(o3)); }
+  ASMJIT_INLINE Error inst(const T0& o0, const T1& o1, uint64_t o2, uint64_t o3) { return emit(code, o0, o1, Imm(o2), Utils::asInt(o3)); }
 
   // --------------------------------------------------------------------------
   // [X86/X64]

@@ -81,7 +81,7 @@
 //!
 //! List of the most useful code-generation and operand classes:
 //! - \ref asmjit::Assembler - Low-level code-generation.
-//! - \ref asmjit::CodeGen - Astract code-generation that serializes to `Assembler`:
+//! - \ref asmjit::ExternalTool - An external tool that can serialize to `Assembler`:
 //!   - \ref asmjit::Compiler - High-level code-generation.
 //! - \ref asmjit::Runtime - Describes where the code is stored and how it's executed:
 //!   - \ref asmjit::HostRuntime - Runtime that runs on the host machine:
@@ -307,68 +307,46 @@
 //! the host X86/X64 processor. AsmJit contains utilities that can get the most
 //! important information related to the features supported by the CPU and the
 //! host operating system, in addition to host processor name and number of
-//! cores. Class `X86CpuInfo` extends `CpuInfo` and provides functionality
-//! specific to X86 and X64.
+//! cores. Class `CpuInfo` provides generic information about a host or target
+//! processor and contains also a specific X86/X64 information.
 //!
 //! By default AsmJit queries the CPU information after the library is loaded
 //! and the queried information is reused by all instances of `JitRuntime`.
-//! The global instance of `X86CpuInfo` can't be changed, because it will affect
+//! The global instance of `CpuInfo` can't be changed, because it will affect
 //! the code generation of all `Runtime`s. If there is a need to have a
 //! specific CPU information which contains modified features or processor
-//! vendor it's possible by creating a new instance of `X86CpuInfo` and setting
-//! up its members. `X86CpuUtil::detect` can be used to detect CPU features into
-//! an existing `X86CpuInfo` instance - it may become handly if only one property
-//! has to be turned on/off.
-//!
-//! If the high-level interface `X86CpuInfo` offers is not enough there is also
-//! `X86CpuUtil::callCpuId` helper that can be used to call CPUID instruction
-//! with a given parameters and to consume the output.
+//! vendor it's possible by creating a new instance of the `CpuInfo` and setting
+//! up its members.
 //!
 //! Cpu detection is important when generating a JIT code that may or may not
 //! use certain CPU features. For example there used to be a SSE/SSE2 detection
 //! in the past and today there is often AVX/AVX2 detection.
 //!
-//! The example below shows how to detect SSE4.1:
+//! The example below shows how to detect a SSE4.1 instruction set:
 //!
 //! ~~~
 //! using namespace asmjit;
 //!
-//! // Get `X86CpuInfo` global instance.
-//! const X86CpuInfo* cpuInfo = X86CpuInfo::getHost();
+//! const CpuInfo& cpuInfo = CpuInfo::getHost();
 //!
-//! if (cpuInfo->hasFeature(kX86CpuFeatureSSE4_1)) {
+//! if (cpuInfo.hasFeature(CpuInfo::kX86FeatureSSE4_1)) {
 //!   // Processor has SSE4.1.
 //! }
-//! else if (cpuInfo->hasFeature(kX86CpuFeatureSSE2)) {
+//! else if (cpuInfo.hasFeature(CpuInfo::kX86FeatureSSE2)) {
 //!   // Processor doesn't have SSE4.1, but has SSE2.
 //! }
 //! else {
 //!   // Processor is archaic; it's a wonder AsmJit works here!
 //! }
 //! ~~~
-//!
-//! The next example shows how to call `CPUID` directly:
-//!
-//! ~~~
-//! using namespace asmjit;
-//!
-//! // Call CPUID, first two arguments are passed in EAX/ECX.
-//! X86CpuId out;
-//! X86CpuUtil::callCpuId(0, 0, &out);
-//!
-//! // If EAX argument is 0, EBX, ECX and EDX registers are filled with a CPU vendor.
-//! char cpuVendor[13];
-//! ::memcpy(cpuVendor, &out.ebx, 4);
-//! ::memcpy(cpuVendor + 4, &out.edx, 4);
-//! ::memcpy(cpuVendor + 8, &out.ecx, 4);
-//! vendor[12] = '\0';
-//!
-//! // Print the CPU vendor retrieved from CPUID.
-//! ::printf("CPU Vendor: %s\n", cpuVendor);
-//! ~~~
 
 // [Dependencies - Base]
 #include "./base.h"
+
+// [Dependencies - ARM/ARM64]
+#if defined(ASMJIT_BUILD_ARM32) || defined(ASMJIT_BUILD_ARM64)
+#include "./arm.h"
+#endif // ASMJIT_BUILD_ARM32 || ASMJIT_BUILD_ARM64
 
 // [Dependencies - X86/X64]
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)

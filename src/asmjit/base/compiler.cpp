@@ -38,7 +38,7 @@ enum { kCompilerDefaultLookAhead = 64 };
 // [asmjit::Compiler - Construction / Destruction]
 // ============================================================================
 
-Compiler::Compiler() :
+Compiler::Compiler() noexcept :
   _features(0),
   _maxLookAhead(kCompilerDefaultLookAhead),
   _instOptions(0),
@@ -56,13 +56,13 @@ Compiler::Compiler() :
   _constAllocator(4096 - Zone::kZoneOverhead),
   _localConstPool(&_constAllocator),
   _globalConstPool(&_zoneAllocator) {}
-Compiler::~Compiler() {}
+Compiler::~Compiler() noexcept {}
 
 // ============================================================================
 // [asmjit::Compiler - Attach / Reset]
 // ============================================================================
 
-void Compiler::reset(bool releaseMemory) {
+void Compiler::reset(bool releaseMemory) noexcept {
   Assembler* assembler = getAssembler();
   if (assembler != nullptr)
     assembler->_detached(this);
@@ -105,7 +105,7 @@ void Compiler::reset(bool releaseMemory) {
 // [asmjit::Compiler - Node-Factory]
 // ============================================================================
 
-HLData* Compiler::newDataNode(const void* data, uint32_t size) {
+HLData* Compiler::newDataNode(const void* data, uint32_t size) noexcept {
   if (size > HLData::kInlineBufferSize) {
     void* clonedData = _stringAllocator.alloc(size);
     if (clonedData == nullptr)
@@ -119,11 +119,11 @@ HLData* Compiler::newDataNode(const void* data, uint32_t size) {
   return newNode<HLData>(const_cast<void*>(data), size);
 }
 
-HLAlign* Compiler::newAlignNode(uint32_t alignMode, uint32_t offset) {
+HLAlign* Compiler::newAlignNode(uint32_t alignMode, uint32_t offset) noexcept {
   return newNode<HLAlign>(alignMode, offset);
 }
 
-HLLabel* Compiler::newLabelNode() {
+HLLabel* Compiler::newLabelNode() noexcept {
   Assembler* assembler = getAssembler();
   if (assembler == nullptr) return nullptr;
 
@@ -134,16 +134,16 @@ HLLabel* Compiler::newLabelNode() {
   if (node == nullptr) return nullptr;
 
   // These have to be zero now.
-  ASMJIT_ASSERT(ld->hlId == 0);
-  ASMJIT_ASSERT(ld->hlData == nullptr);
+  ASMJIT_ASSERT(ld->exId == 0);
+  ASMJIT_ASSERT(ld->exData == nullptr);
 
-  ld->hlId = _hlId;
-  ld->hlData = node;
+  ld->exId = _exId;
+  ld->exData = node;
 
   return node;
 }
 
-HLComment* Compiler::newCommentNode(const char* str) {
+HLComment* Compiler::newCommentNode(const char* str) noexcept {
   if (str != nullptr && str[0]) {
     str = _stringAllocator.sdup(str);
     if (str == nullptr)
@@ -153,7 +153,7 @@ HLComment* Compiler::newCommentNode(const char* str) {
   return newNode<HLComment>(str);
 }
 
-HLHint* Compiler::newHintNode(Var& var, uint32_t hint, uint32_t value) {
+HLHint* Compiler::newHintNode(Var& var, uint32_t hint, uint32_t value) noexcept {
   if (var.getId() == kInvalidValue)
     return nullptr;
 
@@ -165,7 +165,7 @@ HLHint* Compiler::newHintNode(Var& var, uint32_t hint, uint32_t value) {
 // [asmjit::Compiler - Code-Stream]
 // ============================================================================
 
-HLNode* Compiler::addNode(HLNode* node) {
+HLNode* Compiler::addNode(HLNode* node) noexcept {
   ASMJIT_ASSERT(node != nullptr);
   ASMJIT_ASSERT(node->_prev == nullptr);
   ASMJIT_ASSERT(node->_next == nullptr);
@@ -199,7 +199,7 @@ HLNode* Compiler::addNode(HLNode* node) {
   return node;
 }
 
-HLNode* Compiler::addNodeBefore(HLNode* node, HLNode* ref) {
+HLNode* Compiler::addNodeBefore(HLNode* node, HLNode* ref) noexcept {
   ASMJIT_ASSERT(node != nullptr);
   ASMJIT_ASSERT(node->_prev == nullptr);
   ASMJIT_ASSERT(node->_next == nullptr);
@@ -220,7 +220,7 @@ HLNode* Compiler::addNodeBefore(HLNode* node, HLNode* ref) {
   return node;
 }
 
-HLNode* Compiler::addNodeAfter(HLNode* node, HLNode* ref) {
+HLNode* Compiler::addNodeAfter(HLNode* node, HLNode* ref) noexcept {
   ASMJIT_ASSERT(node != nullptr);
   ASMJIT_ASSERT(node->_prev == nullptr);
   ASMJIT_ASSERT(node->_next == nullptr);
@@ -241,7 +241,7 @@ HLNode* Compiler::addNodeAfter(HLNode* node, HLNode* ref) {
   return node;
 }
 
-static ASMJIT_INLINE void Compiler_nodeRemoved(Compiler* self, HLNode* node_) {
+static ASMJIT_INLINE void Compiler_nodeRemoved(Compiler* self, HLNode* node_) noexcept {
   if (node_->isJmpOrJcc()) {
     HLJump* node = static_cast<HLJump*>(node_);
     HLLabel* label = node->getTarget();
@@ -269,7 +269,7 @@ static ASMJIT_INLINE void Compiler_nodeRemoved(Compiler* self, HLNode* node_) {
   }
 }
 
-HLNode* Compiler::removeNode(HLNode* node) {
+HLNode* Compiler::removeNode(HLNode* node) noexcept {
   HLNode* prev = node->_prev;
   HLNode* next = node->_next;
 
@@ -293,7 +293,7 @@ HLNode* Compiler::removeNode(HLNode* node) {
   return node;
 }
 
-void Compiler::removeNodes(HLNode* first, HLNode* last) {
+void Compiler::removeNodes(HLNode* first, HLNode* last) noexcept {
   if (first == last) {
     removeNode(first);
     return;
@@ -330,7 +330,7 @@ void Compiler::removeNodes(HLNode* first, HLNode* last) {
   }
 }
 
-HLNode* Compiler::setCursor(HLNode* node) {
+HLNode* Compiler::setCursor(HLNode* node) noexcept {
   HLNode* old = _cursor;
   _cursor = node;
   return old;
@@ -340,7 +340,7 @@ HLNode* Compiler::setCursor(HLNode* node) {
 // [asmjit::Compiler - Align]
 // ============================================================================
 
-Error Compiler::align(uint32_t alignMode, uint32_t offset) {
+Error Compiler::align(uint32_t alignMode, uint32_t offset) noexcept {
   HLAlign* node = newAlignNode(alignMode, offset);
   if (node == nullptr)
     return setLastError(kErrorNoHeapMemory);
@@ -353,25 +353,25 @@ Error Compiler::align(uint32_t alignMode, uint32_t offset) {
 // [asmjit::Compiler - Label]
 // ============================================================================
 
-HLLabel* Compiler::getHLLabel(uint32_t id) const {
+HLLabel* Compiler::getHLLabel(uint32_t id) const noexcept {
   Assembler* assembler = getAssembler();
   if (assembler == nullptr) return nullptr;
 
   LabelData* ld = assembler->getLabelData(id);
-  if (ld->hlId == _hlId)
-    return static_cast<HLLabel*>(ld->hlData);
+  if (ld->exId == _exId)
+    return static_cast<HLLabel*>(ld->exData);
   else
     return nullptr;
 }
 
-bool Compiler::isLabelValid(uint32_t id) const {
+bool Compiler::isLabelValid(uint32_t id) const noexcept {
   Assembler* assembler = getAssembler();
   if (assembler == nullptr) return false;
 
   return static_cast<size_t>(id) < assembler->getLabelsCount();
 }
 
-uint32_t Compiler::_newLabelId() {
+uint32_t Compiler::_newLabelId() noexcept {
   HLLabel* node = newLabelNode();
   if (node == nullptr) {
     setLastError(kErrorNoHeapMemory);
@@ -381,7 +381,7 @@ uint32_t Compiler::_newLabelId() {
   return node->getLabelId();
 }
 
-Error Compiler::bind(const Label& label) {
+Error Compiler::bind(const Label& label) noexcept {
   HLLabel* node = getHLLabel(label);
   if (node == nullptr)
     return setLastError(kErrorInvalidState);
@@ -393,7 +393,7 @@ Error Compiler::bind(const Label& label) {
 // [asmjit::Compiler - Embed]
 // ============================================================================
 
-Error Compiler::embed(const void* data, uint32_t size) {
+Error Compiler::embed(const void* data, uint32_t size) noexcept {
   HLData* node = newDataNode(data, size);
   if (node == nullptr)
     return setLastError(kErrorNoHeapMemory);
@@ -402,7 +402,7 @@ Error Compiler::embed(const void* data, uint32_t size) {
   return kErrorOk;
 }
 
-Error Compiler::embedConstPool(const Label& label, const ConstPool& pool) {
+Error Compiler::embedConstPool(const Label& label, const ConstPool& pool) noexcept {
   if (label.getId() == kInvalidValue)
     return kErrorInvalidState;
 
@@ -423,7 +423,7 @@ Error Compiler::embedConstPool(const Label& label, const ConstPool& pool) {
 // [asmjit::Compiler - Comment]
 // ============================================================================
 
-Error Compiler::comment(const char* fmt, ...) {
+Error Compiler::comment(const char* fmt, ...) noexcept {
   char buf[256];
   char* p = buf;
 
@@ -448,7 +448,7 @@ Error Compiler::comment(const char* fmt, ...) {
 // [asmjit::Compiler - Hint]
 // ============================================================================
 
-Error Compiler::_hint(Var& var, uint32_t hint, uint32_t value) {
+Error Compiler::_hint(Var& var, uint32_t hint, uint32_t value) noexcept {
   if (var.getId() == kInvalidValue)
     return kErrorOk;
 
@@ -464,9 +464,9 @@ Error Compiler::_hint(Var& var, uint32_t hint, uint32_t value) {
 // [asmjit::Compiler - Vars]
 // ============================================================================
 
-VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* name) {
+VarData* Compiler::_newVd(const VarInfo& vi, const char* name) noexcept {
   VarData* vd = reinterpret_cast<VarData*>(_varAllocator.alloc(sizeof(VarData)));
-  if (vd == nullptr)
+  if (ASMJIT_UNLIKELY(vd == nullptr))
     goto _NoMemory;
 
   vd->_name = noName;
@@ -479,8 +479,8 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
   }
 #endif // !ASMJIT_DISABLE_LOGGER
 
-  vd->_type = static_cast<uint8_t>(type);
-  vd->_class = static_cast<uint8_t>(c);
+  vd->_type = static_cast<uint8_t>(vi.getTypeId());
+  vd->_class = static_cast<uint8_t>(vi.getRegClass());
   vd->_flags = 0;
   vd->_priority = 10;
 
@@ -492,9 +492,9 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
   vd->_saveOnUnuse = false;
   vd->_modified = false;
   vd->_reserved0 = 0;
-  vd->_alignment = static_cast<uint8_t>(Utils::iMin<uint32_t>(size, 64));
+  vd->_alignment = static_cast<uint8_t>(Utils::iMin<uint32_t>(vi.getSize(), 64));
 
-  vd->_size = size;
+  vd->_size = vi.getSize();
   vd->_homeMask = 0;
 
   vd->_memOffset = 0;
@@ -507,7 +507,7 @@ VarData* Compiler::_newVd(uint32_t type, uint32_t size, uint32_t c, const char* 
 
   vd->_va = nullptr;
 
-  if (_varList.append(vd) != kErrorOk)
+  if (ASMJIT_UNLIKELY(_varList.append(vd) != kErrorOk))
     goto _NoMemory;
   return vd;
 
@@ -516,43 +516,43 @@ _NoMemory:
   return nullptr;
 }
 
-Error Compiler::alloc(Var& var) {
+Error Compiler::alloc(Var& var) noexcept {
   if (var.getId() == kInvalidValue)
     return kErrorOk;
   return _hint(var, kVarHintAlloc, kInvalidValue);
 }
 
-Error Compiler::alloc(Var& var, uint32_t regIndex) {
+Error Compiler::alloc(Var& var, uint32_t regIndex) noexcept {
   if (var.getId() == kInvalidValue)
     return kErrorOk;
   return _hint(var, kVarHintAlloc, regIndex);
 }
 
-Error Compiler::alloc(Var& var, const Reg& reg) {
+Error Compiler::alloc(Var& var, const Reg& reg) noexcept {
   if (var.getId() == kInvalidValue)
     return kErrorOk;
   return _hint(var, kVarHintAlloc, reg.getRegIndex());
 }
 
-Error Compiler::save(Var& var) {
+Error Compiler::save(Var& var) noexcept {
   if (var.getId() == kInvalidValue)
     return kErrorOk;
   return _hint(var, kVarHintSave, kInvalidValue);
 }
 
-Error Compiler::spill(Var& var) {
+Error Compiler::spill(Var& var) noexcept {
   if (var.getId() == kInvalidValue)
     return kErrorOk;
   return _hint(var, kVarHintSpill, kInvalidValue);
 }
 
-Error Compiler::unuse(Var& var) {
+Error Compiler::unuse(Var& var) noexcept {
   if (var.getId() == kInvalidValue)
     return kErrorOk;
   return _hint(var, kVarHintUnuse, kInvalidValue);
 }
 
-uint32_t Compiler::getPriority(Var& var) const {
+uint32_t Compiler::getPriority(Var& var) const noexcept {
   if (var.getId() == kInvalidValue)
     return kInvalidValue;
 
@@ -560,7 +560,7 @@ uint32_t Compiler::getPriority(Var& var) const {
   return vd->getPriority();
 }
 
-void Compiler::setPriority(Var& var, uint32_t priority) {
+void Compiler::setPriority(Var& var, uint32_t priority) noexcept {
   if (var.getId() == kInvalidValue)
     return;
 
@@ -571,7 +571,7 @@ void Compiler::setPriority(Var& var, uint32_t priority) {
   vd->_priority = static_cast<uint8_t>(priority);
 }
 
-bool Compiler::getSaveOnUnuse(Var& var) const {
+bool Compiler::getSaveOnUnuse(Var& var) const noexcept {
   if (var.getId() == kInvalidValue)
     return false;
 
@@ -579,7 +579,7 @@ bool Compiler::getSaveOnUnuse(Var& var) const {
   return static_cast<bool>(vd->_saveOnUnuse);
 }
 
-void Compiler::setSaveOnUnuse(Var& var, bool value) {
+void Compiler::setSaveOnUnuse(Var& var, bool value) noexcept {
   if (var.getId() == kInvalidValue)
     return;
 
@@ -587,7 +587,7 @@ void Compiler::setSaveOnUnuse(Var& var, bool value) {
   vd->_saveOnUnuse = value;
 }
 
-void Compiler::rename(Var& var, const char* fmt, ...) {
+void Compiler::rename(Var& var, const char* fmt, ...) noexcept {
   if (var.getId() == kInvalidValue)
     return;
 

@@ -71,7 +71,7 @@ namespace asmjit {
 struct VMemLocal {
   // AsmJit allows to pass a `nullptr` handle to `VMemUtil`. This function is
   // just a convenient way to convert such handle to the current process one.
-  ASMJIT_INLINE HANDLE getSafeProcessHandle(HANDLE hParam) const {
+  ASMJIT_INLINE HANDLE getSafeProcessHandle(HANDLE hParam) const noexcept {
     return hParam != nullptr ? hParam : hProcess;
   }
 
@@ -81,7 +81,7 @@ struct VMemLocal {
 };
 static VMemLocal vMemLocal;
 
-static const VMemLocal& vMemGet() {
+static const VMemLocal& vMemGet() noexcept {
   VMemLocal& vMem = vMemLocal;
 
   if (!vMem.hProcess) {
@@ -97,21 +97,21 @@ static const VMemLocal& vMemGet() {
   return vMem;
 };
 
-size_t VMemUtil::getPageSize() {
+size_t VMemUtil::getPageSize() noexcept {
   const VMemLocal& vMem = vMemGet();
   return vMem.pageSize;
 }
 
-size_t VMemUtil::getPageGranularity() {
+size_t VMemUtil::getPageGranularity() noexcept {
   const VMemLocal& vMem = vMemGet();
   return vMem.pageGranularity;
 }
 
-void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) {
+void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) noexcept {
   return allocProcessMemory(static_cast<HANDLE>(0), length, allocated, flags);
 }
 
-void* VMemUtil::allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, uint32_t flags) {
+void* VMemUtil::allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, uint32_t flags) noexcept {
   if (length == 0)
     return nullptr;
 
@@ -141,11 +141,11 @@ void* VMemUtil::allocProcessMemory(HANDLE hProcess, size_t length, size_t* alloc
   return mBase;
 }
 
-Error VMemUtil::release(void* addr, size_t length) {
+Error VMemUtil::release(void* addr, size_t length) noexcept {
   return releaseProcessMemory(static_cast<HANDLE>(0), addr, length);
 }
 
-Error VMemUtil::releaseProcessMemory(HANDLE hProcess, void* addr, size_t /* length */) {
+Error VMemUtil::releaseProcessMemory(HANDLE hProcess, void* addr, size_t /* length */) noexcept {
   hProcess = vMemGet().getSafeProcessHandle(hProcess);
   if (!::VirtualFreeEx(hProcess, addr, 0, MEM_RELEASE))
     return kErrorInvalidState;
@@ -171,7 +171,7 @@ struct VMemLocal {
 };
 static VMemLocal vMemLocal;
 
-static const VMemLocal& vMemGet() {
+static const VMemLocal& vMemGet() noexcept {
   VMemLocal& vMem = vMemLocal;
 
   if (!vMem.pageSize) {
@@ -183,17 +183,17 @@ static const VMemLocal& vMemGet() {
   return vMem;
 };
 
-size_t VMemUtil::getPageSize() {
+size_t VMemUtil::getPageSize() noexcept {
   const VMemLocal& vMem = vMemGet();
   return vMem.pageSize;
 }
 
-size_t VMemUtil::getPageGranularity() {
+size_t VMemUtil::getPageGranularity() noexcept {
   const VMemLocal& vMem = vMemGet();
   return vMem.pageGranularity;
 }
 
-void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) {
+void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) noexcept {
   const VMemLocal& vMem = vMemGet();
   size_t msize = Utils::alignTo<size_t>(length, vMem.pageSize);
   int protection = PROT_READ;
@@ -210,7 +210,7 @@ void* VMemUtil::alloc(size_t length, size_t* allocated, uint32_t flags) {
   return mbase;
 }
 
-Error VMemUtil::release(void* addr, size_t length) {
+Error VMemUtil::release(void* addr, size_t length) noexcept {
   if (::munmap(addr, length) != 0)
     return kErrorInvalidState;
 
@@ -233,7 +233,7 @@ enum {
 //! \internal
 //!
 //! Set `len` bits in `buf` starting at `index` bit index.
-static void _SetBits(size_t* buf, size_t index, size_t len) {
+static void _SetBits(size_t* buf, size_t index, size_t len) noexcept {
   if (len == 0)
     return;
 
@@ -290,14 +290,14 @@ struct VMemMgr::RbNode {
 //! \internal
 //!
 //! Get whether the node is red (nullptr or node with red flag).
-static ASMJIT_INLINE bool rbIsRed(RbNode* node) {
+static ASMJIT_INLINE bool rbIsRed(RbNode* node) noexcept {
   return node != nullptr && node->red;
 }
 
 //! \internal
 //!
 //! Check whether the RB tree is valid.
-static int rbAssert(RbNode* root) {
+static int rbAssert(RbNode* root) noexcept {
   if (root == nullptr)
     return 1;
 
@@ -327,7 +327,7 @@ static int rbAssert(RbNode* root) {
 //! \internal
 //!
 //! Single rotation.
-static ASMJIT_INLINE RbNode* rbRotateSingle(RbNode* root, int dir) {
+static ASMJIT_INLINE RbNode* rbRotateSingle(RbNode* root, int dir) noexcept {
   RbNode* save = root->node[!dir];
 
   root->node[!dir] = save->node[dir];
@@ -342,7 +342,7 @@ static ASMJIT_INLINE RbNode* rbRotateSingle(RbNode* root, int dir) {
 //! \internal
 //!
 //! Double rotation.
-static ASMJIT_INLINE RbNode* rbRotateDouble(RbNode* root, int dir) {
+static ASMJIT_INLINE RbNode* rbRotateDouble(RbNode* root, int dir) noexcept {
   root->node[!dir] = rbRotateSingle(root->node[!dir], !dir);
   return rbRotateSingle(root, dir);
 }
@@ -357,11 +357,11 @@ struct VMemMgr::MemNode : public RbNode {
   // --------------------------------------------------------------------------
 
   // Get available space.
-  ASMJIT_INLINE size_t getAvailable() const {
+  ASMJIT_INLINE size_t getAvailable() const noexcept {
     return size - used;
   }
 
-  ASMJIT_INLINE void fillData(MemNode* other) {
+  ASMJIT_INLINE void fillData(MemNode* other) noexcept {
     mem = other->mem;
 
     size = other->size;
@@ -404,7 +404,7 @@ struct VMemMgr::PermanentNode {
   // --------------------------------------------------------------------------
 
   //! Get available space.
-  ASMJIT_INLINE size_t getAvailable() const {
+  ASMJIT_INLINE size_t getAvailable() const noexcept {
     return size - used;
   }
 
@@ -425,7 +425,7 @@ struct VMemMgr::PermanentNode {
 //! \internal
 //!
 //! Helper to avoid `#ifdef`s in the code.
-ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* self, size_t size, size_t* vSize) {
+ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* self, size_t size, size_t* vSize) noexcept {
   uint32_t flags = kVMemFlagWritable | kVMemFlagExecutable;
 #if !ASMJIT_OS_WINDOWS
   return static_cast<uint8_t*>(VMemUtil::alloc(size, vSize, flags));
@@ -437,7 +437,7 @@ ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* self, size_t size, size_t* vSiz
 //! \internal
 //!
 //! Helper to avoid `#ifdef`s in the code.
-ASMJIT_INLINE Error vMemMgrReleaseVMem(VMemMgr* self, void* p, size_t vSize) {
+ASMJIT_INLINE Error vMemMgrReleaseVMem(VMemMgr* self, void* p, size_t vSize) noexcept {
 #if !ASMJIT_OS_WINDOWS
   return VMemUtil::release(p, vSize);
 #else
@@ -448,7 +448,7 @@ ASMJIT_INLINE Error vMemMgrReleaseVMem(VMemMgr* self, void* p, size_t vSize) {
 //! \internal
 //!
 //! Check whether the Red-Black tree is valid.
-static bool vMemMgrCheckTree(VMemMgr* self) {
+static bool vMemMgrCheckTree(VMemMgr* self) noexcept {
   return rbAssert(self->_root) > 0;
 }
 
@@ -457,7 +457,7 @@ static bool vMemMgrCheckTree(VMemMgr* self) {
 //! Alloc virtual memory including a heap memory needed for `MemNode` data.
 //!
 //! Returns set-up `MemNode*` or nullptr if allocation failed.
-static MemNode* vMemMgrCreateNode(VMemMgr* self, size_t size, size_t density) {
+static MemNode* vMemMgrCreateNode(VMemMgr* self, size_t size, size_t density) noexcept {
   size_t vSize;
   uint8_t* vmem = vMemMgrAllocVMem(self, size, &vSize);
 
@@ -502,7 +502,7 @@ static MemNode* vMemMgrCreateNode(VMemMgr* self, size_t size, size_t density) {
   return node;
 }
 
-static void vMemMgrInsertNode(VMemMgr* self, MemNode* node) {
+static void vMemMgrInsertNode(VMemMgr* self, MemNode* node) noexcept {
   if (self->_root == nullptr) {
     // Empty tree case.
     self->_root = node;
@@ -586,7 +586,7 @@ static void vMemMgrInsertNode(VMemMgr* self, MemNode* node) {
 //!
 //! Returns node that should be freed, but it doesn't have to be necessarily
 //! the `node` passed.
-static MemNode* vMemMgrRemoveNode(VMemMgr* self, MemNode* node) {
+static MemNode* vMemMgrRemoveNode(VMemMgr* self, MemNode* node) noexcept {
   // False tree root.
   RbNode head = { { nullptr, nullptr }, 0, 0 };
 
@@ -686,7 +686,7 @@ static MemNode* vMemMgrRemoveNode(VMemMgr* self, MemNode* node) {
   return static_cast<MemNode*>(q);
 }
 
-static MemNode* vMemMgrFindNodeByPtr(VMemMgr* self, uint8_t* mem) {
+static MemNode* vMemMgrFindNodeByPtr(VMemMgr* self, uint8_t* mem) noexcept {
   MemNode* node = self->_root;
   while (node != nullptr) {
     uint8_t* nodeMem = node->mem;
@@ -710,7 +710,7 @@ static MemNode* vMemMgrFindNodeByPtr(VMemMgr* self, uint8_t* mem) {
   return node;
 }
 
-static void* vMemMgrAllocPermanent(VMemMgr* self, size_t vSize) {
+static void* vMemMgrAllocPermanent(VMemMgr* self, size_t vSize) noexcept {
   static const size_t permanentAlignment = 32;
   static const size_t permanentNodeSize  = 32768;
 
@@ -760,7 +760,7 @@ static void* vMemMgrAllocPermanent(VMemMgr* self, size_t vSize) {
   return static_cast<void*>(result);
 }
 
-static void* vMemMgrAllocFreeable(VMemMgr* self, size_t vSize) {
+static void* vMemMgrAllocFreeable(VMemMgr* self, size_t vSize) noexcept {
   // Current index.
   size_t i;
 
@@ -892,7 +892,7 @@ _Found:
 //! Reset the whole `VMemMgr` instance, freeing all heap memory allocated an
 //! virtual memory allocated unless `keepVirtualMemory` is true (and this is
 //! only used when writing data to a remote process).
-static void vMemMgrReset(VMemMgr* self, bool keepVirtualMemory) {
+static void vMemMgrReset(VMemMgr* self, bool keepVirtualMemory) noexcept {
   MemNode* node = self->_first;
 
   while (node != nullptr) {
@@ -921,13 +921,12 @@ static void vMemMgrReset(VMemMgr* self, bool keepVirtualMemory) {
 // ============================================================================
 
 #if !ASMJIT_OS_WINDOWS
-VMemMgr::VMemMgr()
+VMemMgr::VMemMgr() noexcept
 #else
-VMemMgr::VMemMgr(HANDLE hProcess) :
+VMemMgr::VMemMgr(HANDLE hProcess) noexcept :
   _hProcess(vMemGet().getSafeProcessHandle(hProcess))
 #endif // ASMJIT_OS_WINDOWS
 {
-
   _blockSize = VMemUtil::getPageGranularity();
   _blockDensity = 64;
 
@@ -943,7 +942,7 @@ VMemMgr::VMemMgr(HANDLE hProcess) :
   _keepVirtualMemory = false;
 }
 
-VMemMgr::~VMemMgr() {
+VMemMgr::~VMemMgr() noexcept {
   // Freeable memory cleanup - Also frees the virtual memory if configured to.
   vMemMgrReset(this, _keepVirtualMemory);
 
@@ -960,7 +959,7 @@ VMemMgr::~VMemMgr() {
 // [asmjit::VMemMgr - Reset]
 // ============================================================================
 
-void VMemMgr::reset() {
+void VMemMgr::reset() noexcept {
   vMemMgrReset(this, false);
 }
 
@@ -968,14 +967,14 @@ void VMemMgr::reset() {
 // [asmjit::VMemMgr - Alloc / Release]
 // ============================================================================
 
-void* VMemMgr::alloc(size_t size, uint32_t type) {
+void* VMemMgr::alloc(size_t size, uint32_t type) noexcept {
   if (type == kVMemAllocPermanent)
     return vMemMgrAllocPermanent(this, size);
   else
     return vMemMgrAllocFreeable(this, size);
 }
 
-Error VMemMgr::release(void* p) {
+Error VMemMgr::release(void* p) noexcept {
   if (p == nullptr)
     return kErrorOk;
 
@@ -1062,7 +1061,7 @@ Error VMemMgr::release(void* p) {
   return kErrorOk;
 }
 
-Error VMemMgr::shrink(void* p, size_t used) {
+Error VMemMgr::shrink(void* p, size_t used) noexcept {
   if (p == nullptr)
     return kErrorOk;
 
@@ -1149,7 +1148,7 @@ _EnterFreeLoop:
 // ============================================================================
 
 #if defined(ASMJIT_TEST)
-static void VMemTest_fill(void* a, void* b, int i) {
+static void VMemTest_fill(void* a, void* b, int i) noexcept {
   int pattern = rand() % 256;
   *(int *)a = i;
   *(int *)b = i;
@@ -1157,7 +1156,7 @@ static void VMemTest_fill(void* a, void* b, int i) {
   ::memset((char*)b + sizeof(int), pattern, i - sizeof(int));
 }
 
-static void VMemTest_verify(void* a, void* b) {
+static void VMemTest_verify(void* a, void* b) noexcept {
   int ai = *(int*)a;
   int bi = *(int*)b;
 
@@ -1168,12 +1167,12 @@ static void VMemTest_verify(void* a, void* b) {
     "Pattern (%p) doesn't match", a);
 }
 
-static void VMemTest_stats(VMemMgr& memmgr) {
+static void VMemTest_stats(VMemMgr& memmgr) noexcept {
   INFO("Used     : %u", static_cast<unsigned int>(memmgr.getUsedBytes()));
   INFO("Allocated: %u", static_cast<unsigned int>(memmgr.getAllocatedBytes()));
 }
 
-static void VMemTest_shuffle(void** a, void** b, size_t count) {
+static void VMemTest_shuffle(void** a, void** b, size_t count) noexcept {
   for (size_t i = 0; i < count; ++i) {
     size_t si = (size_t)rand() % count;
 

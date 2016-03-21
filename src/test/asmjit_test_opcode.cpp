@@ -29,17 +29,18 @@ struct OpcodeDumpInfo {
 
 static const char* archIdToString(uint32_t archId) {
   switch (archId) {
-    case asmjit::kArchNone: return "None";
-    case asmjit::kArchX86: return "X86";
-    case asmjit::kArchX64: return "X64";
-    case asmjit::kArchArm: return "ARM";
+    case asmjit::kArchNone : return "None";
+    case asmjit::kArchX86  : return "X86";
+    case asmjit::kArchX64  : return "X64";
+    case asmjit::kArchArm32: return "ARM32";
+    case asmjit::kArchArm64: return "ARM64";
     default: return "<unknown>";
   }
 }
 
 int main(int argc, char* argv[]) {
   asmjit::FileLogger logger(stdout);
-  logger.setOption(asmjit::kLoggerOptionBinaryForm, true);
+  logger.addOptions(asmjit::Logger::kOptionBinaryForm);
 
   OpcodeDumpInfo infoList[] = {
 # if defined(ASMJIT_BUILD_X86)

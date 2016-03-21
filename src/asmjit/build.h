@@ -70,13 +70,13 @@
 // AsmJit features are enabled by default.
 // #define ASMJIT_DISABLE_COMPILER   // Disable Compiler (completely).
 // #define ASMJIT_DISABLE_LOGGER     // Disable Logger (completely).
-// #define ASMJIT_DISABLE_NAMES      // Disable everything that uses strings
-//                                   // (instruction names, error names, ...).
+// #define ASMJIT_DISABLE_TEXT       // Disable everything that contains text
+//                                   // representation (instructions, errors, ...).
 
 // Prevent compile-time errors caused by misconfiguration.
-#if defined(ASMJIT_DISABLE_NAMES) && !defined(ASMJIT_DISABLE_LOGGER)
-# error "[asmjit] ASMJIT_DISABLE_NAMES requires ASMJIT_DISABLE_LOGGER to be defined."
-#endif // ASMJIT_DISABLE_NAMES && !ASMJIT_DISABLE_LOGGER
+#if defined(ASMJIT_DISABLE_TEXT) && !defined(ASMJIT_DISABLE_LOGGER)
+# error "[asmjit] ASMJIT_DISABLE_TEXT requires ASMJIT_DISABLE_LOGGER to be defined."
+#endif // ASMJIT_DISABLE_TEXT && !ASMJIT_DISABLE_LOGGER
 
 // Detect ASMJIT_DEBUG and ASMJIT_RELEASE if not forced from outside.
 #if !defined(ASMJIT_DEBUG) && !defined(ASMJIT_RELEASE) && !defined(NDEBUG)
@@ -226,7 +226,7 @@
 // ============================================================================
 
 // [@ARCH{@]
-// \def ASMJIT_ARCH_ARM
+// \def ASMJIT_ARCH_ARM32
 // True if the target architecture is a 32-bit ARM.
 //
 // \def ASMJIT_ARCH_ARM64
@@ -268,18 +268,18 @@
 # define ASMJIT_ARCH_ARM64 0
 #endif
 
-#if (defined(_M_ARM  ) || defined(__arm__ ) || defined(__arm) || \
-     defined(_M_ARMT ) || defined(__thumb__))
-# define ASMJIT_ARCH_ARM (!ASMJIT_ARCH_ARM64)
+#if (defined(_M_ARM  ) || defined(__arm    ) || defined(__thumb__ ) || \
+     defined(_M_ARMT ) || defined(__arm__  ) || defined(__thumb2__))
+# define ASMJIT_ARCH_ARM32 (!ASMJIT_ARCH_ARM64)
 #else
-# define ASMJIT_ARCH_ARM 0
+# define ASMJIT_ARCH_ARM32 0
 #endif
 
-#define ASMJIT_ARCH_LE ( \
-        ASMJIT_ARCH_X86 || \
-        ASMJIT_ARCH_X64 || \
-        ASMJIT_ARCH_ARM || \
-        ASMJIT_ARCH_ARM64)
+#define ASMJIT_ARCH_LE    (  \
+        ASMJIT_ARCH_X86   || \
+        ASMJIT_ARCH_X64   || \
+        ASMJIT_ARCH_ARM32 || \
+        ASMJIT_ARCH_ARM64 )
 #define ASMJIT_ARCH_BE (!(ASMJIT_ARCH_LE))
 #define ASMJIT_ARCH_64BIT (ASMJIT_ARCH_X64 || ASMJIT_ARCH_ARM64)
 // [@ARCH}@]
@@ -690,7 +690,7 @@
 // [@CC_NOEXCEPT{@]
 // \def ASMJIT_NOEXCEPT
 // The decorated function never throws an exception (noexcept).
-#if ASMJIT_HAS_NOEXCEPT
+#if ASMJIT_CC_HAS_NOEXCEPT
 # define ASMJIT_NOEXCEPT noexcept
 #else
 # define ASMJIT_NOEXCEPT
@@ -860,10 +860,10 @@ typedef unsigned __int64 uint64_t;
 # endif
 #endif // !ASMJIT_ALLOC && !ASMJIT_REALLOC && !ASMJIT_FREE
 
-#define ASMJIT_NO_COPY(Self) \
+#define ASMJIT_NO_COPY(...) \
 private: \
-  ASMJIT_INLINE Self(const Self& other); \
-  ASMJIT_INLINE Self& operator=(const Self& other); \
+  ASMJIT_INLINE __VA_ARGS__(const __VA_ARGS__& other); \
+  ASMJIT_INLINE __VA_ARGS__& operator=(const __VA_ARGS__& other); \
 public:
 
 // ============================================================================

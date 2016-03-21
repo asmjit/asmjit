@@ -13,8 +13,6 @@
 
 namespace asmgen {
 
-enum { kGenBlendInstCount = 65 };
-
 // Generate a typical alpha blend function using SSE2 instruction set. Used
 // for benchmarking and also in test86. The generated code should be stable
 // and fully functional.
@@ -29,25 +27,25 @@ static void blend(asmjit::X86Compiler& c) {
   X86GpVar j = c.newIntPtr("j");
   X86GpVar t = c.newIntPtr("t");
 
-  X86XmmVar cZero    = c.newXmm("cZero");
-  X86XmmVar cMul255A = c.newXmm("cMul255A");
-  X86XmmVar cMul255M = c.newXmm("cMul255M");
-
   X86XmmVar x0 = c.newXmm("x0");
   X86XmmVar x1 = c.newXmm("x1");
   X86XmmVar y0 = c.newXmm("y0");
   X86XmmVar a0 = c.newXmm("a0");
   X86XmmVar a1 = c.newXmm("a1");
 
-  Label L_SmallLoop(c);
-  Label L_SmallEnd(c);
+  X86XmmVar cZero    = c.newXmm("cZero");
+  X86XmmVar cMul255A = c.newXmm("cMul255A");
+  X86XmmVar cMul255M = c.newXmm("cMul255M");
 
-  Label L_LargeLoop(c);
-  Label L_LargeEnd(c);
+  Label L_SmallLoop = c.newLabel();
+  Label L_SmallEnd = c.newLabel();
 
-  Label L_Data(c);
+  Label L_LargeLoop = c.newLabel();
+  Label L_LargeEnd = c.newLabel();
 
-  c.addFunc(FuncBuilder3<Void, void*, const void*, size_t>(kCallConvHost));
+  Label L_Data = c.newLabel();
+
+  c.addFunc(FuncBuilder3<Void, void*, const void*, size_t>(c.getRuntime()->getCdeclConv()));
 
   c.setArg(0, dst);
   c.setArg(1, src);
@@ -170,8 +168,8 @@ static void blend(asmjit::X86Compiler& c) {
   // Data.
   c.align(kAlignData, 16);
   c.bind(L_Data);
-  c.dxmm(Vec128::fromSw(0x0080));
-  c.dxmm(Vec128::fromSw(0x0101));
+  c.dxmm(Vec128::fromSW(0x0080));
+  c.dxmm(Vec128::fromSW(0x0101));
 }
 
 } // asmgen namespace

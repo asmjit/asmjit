@@ -18,6 +18,7 @@
 #include "../base/containers.h"
 #include "../base/hlstream.h"
 #include "../base/operand.h"
+#include "../base/podvector.h"
 #include "../base/utils.h"
 #include "../base/zone.h"
 
@@ -48,8 +49,8 @@ ASMJIT_ENUM(CompilerFeatures) {
   //! Default `false` - has to be explicitly enabled as the scheduler needs
   //! some time to run.
   //!
-  //! X86/X64
-  //! -------
+  //! X86/X64 Specific
+  //! ----------------
   //!
   //! If scheduling is enabled AsmJit will try to reorder instructions to
   //! minimize the dependency chain. Scheduler always runs after the registers
@@ -72,13 +73,72 @@ ASMJIT_ENUM(ConstScope) {
 };
 
 // ============================================================================
+// [asmjit::VarInfo]
+// ============================================================================
+
+struct VarInfo {
+  // ============================================================================
+  // [Flags]
+  // ============================================================================
+
+  //! \internal
+  //!
+  //! Variable flags.
+  ASMJIT_ENUM(Flags) {
+    //! Variable contains one or more single-precision floating point.
+    kFlagSP = 0x10,
+    //! Variable contains one or more double-precision floating point.
+    kFlagDP = 0x20,
+    //! Variable is a vector, contains packed data.
+    kFlagSIMD = 0x80
+  };
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  //! Get type id.
+  ASMJIT_INLINE uint32_t getTypeId() const noexcept { return _typeId; }
+  //! Get type name.
+  ASMJIT_INLINE const char* getTypeName() const noexcept { return _typeName; }
+
+  //! Get register size in bytes.
+  ASMJIT_INLINE uint32_t getSize() const noexcept { return _size; }
+  //! Get variable class, see \ref RegClass.
+  ASMJIT_INLINE uint32_t getRegClass() const noexcept { return _regClass; }
+  //! Get register type, see `X86RegType`.
+  ASMJIT_INLINE uint32_t getRegType() const noexcept { return _regType; }
+  //! Get type flags, see `VarFlag`.
+  ASMJIT_INLINE uint32_t getFlags() const noexcept { return _flags; }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  //! Variable type id.
+  uint8_t _typeId;
+  //! Variable and register size (in bytes).
+  uint8_t _size;
+  //! Register class, see `RegClass`.
+  uint8_t _regClass;
+  //! Register type the variable is mapped to.
+  uint8_t _regType;
+
+  //! Variable info flags, see \ref Flags.
+  uint32_t _flags;
+
+  //! Variable type name.
+  char _typeName[8];
+};
+
+// ============================================================================
 // [asmjit::Compiler]
 // ============================================================================
 
 //! Compiler interface.
 //!
 //! \sa Assembler.
-struct ASMJIT_VIRTAPI Compiler : public CodeGen {
+struct ASMJIT_VIRTAPI Compiler : public ExternalTool {
   ASMJIT_NO_COPY(Compiler)
 
   // --------------------------------------------------------------------------
@@ -86,43 +146,51 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   // --------------------------------------------------------------------------
 
   //! Create a new `Compiler` instance.
-  ASMJIT_API Compiler();
+  ASMJIT_API Compiler() noexcept;
   //! Destroy the `Compiler` instance.
-  ASMJIT_API virtual ~Compiler();
+  ASMJIT_API virtual ~Compiler() noexcept;
 
   // --------------------------------------------------------------------------
   // [Reset]
   // --------------------------------------------------------------------------
 
   //! \override
-  ASMJIT_API virtual void reset(bool releaseMemory);
+  ASMJIT_API virtual void reset(bool releaseMemory) noexcept;
 
   // --------------------------------------------------------------------------
   // [Compiler Features]
   // --------------------------------------------------------------------------
 
   //! Get code-generator features.
-  ASMJIT_INLINE uint32_t getFeatures() const { return _features; }
+  ASMJIT_INLINE uint32_t getFeatures() const noexcept {
+    return _features;
+  }
   //! Set code-generator features.
-  ASMJIT_INLINE void setFeatures(uint32_t features) { _features = features; }
+  ASMJIT_INLINE void setFeatures(uint32_t features) noexcept {
+    _features = features;
+  }
 
   //! Get code-generator `feature`.
-  ASMJIT_INLINE bool hasFeature(uint32_t feature) const {
+  ASMJIT_INLINE bool hasFeature(uint32_t feature) const noexcept {
     ASMJIT_ASSERT(feature < 32);
     return (_features & (1 << feature)) != 0;
   }
 
   //! Set code-generator `feature` to `value`.
-  ASMJIT_INLINE void setFeature(uint32_t feature, bool value) {
+  ASMJIT_INLINE void setFeature(uint32_t feature, bool value) noexcept {
     ASMJIT_ASSERT(feature < 32);
     feature = static_cast<uint32_t>(value) << feature;
     _features = (_features & ~feature) | feature;
   }
 
   //! Get maximum look ahead.
-  ASMJIT_INLINE uint32_t getMaxLookAhead() const { return _maxLookAhead; }
+  ASMJIT_INLINE uint32_t getMaxLookAhead() const noexcept {
+    return _maxLookAhead;
+  }
   //! Set maximum look ahead to `val`.
-  ASMJIT_INLINE void setMaxLookAhead(uint32_t val) { _maxLookAhead = val; }
+  ASMJIT_INLINE void setMaxLookAhead(uint32_t val) noexcept {
+    _maxLookAhead = val;
+  }
 
   // --------------------------------------------------------------------------
   // [Token ID]
@@ -131,21 +199,29 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   //! \internal
   //!
   //! Reset the token-id generator.
-  ASMJIT_INLINE void _resetTokenGenerator() { _tokenGenerator = 0; }
+  ASMJIT_INLINE void _resetTokenGenerator() noexcept {
+    _tokenGenerator = 0;
+  }
 
   //! \internal
   //!
   //! Generate a new unique token id.
-  ASMJIT_INLINE uint32_t _generateUniqueToken() { return ++_tokenGenerator; }
+  ASMJIT_INLINE uint32_t _generateUniqueToken() noexcept {
+    return ++_tokenGenerator;
+  }
 
   // --------------------------------------------------------------------------
   // [Instruction Options]
   // --------------------------------------------------------------------------
 
   //! Get options of the next instruction.
-  ASMJIT_INLINE uint32_t getInstOptions() const { return _instOptions; }
+  ASMJIT_INLINE uint32_t getInstOptions() const noexcept {
+    return _instOptions;
+  }
   //! Set options of the next instruction.
-  ASMJIT_INLINE void setInstOptions(uint32_t instOptions) { _instOptions = instOptions; }
+  ASMJIT_INLINE void setInstOptions(uint32_t instOptions) noexcept {
+    _instOptions = instOptions;
+  }
 
   //! Get options of the next instruction and reset them.
   ASMJIT_INLINE uint32_t getInstOptionsAndReset() {
@@ -160,28 +236,28 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
 
   //! \internal
   template<typename T>
-  ASMJIT_INLINE T* newNode() {
+  ASMJIT_INLINE T* newNode() noexcept {
     void* p = _zoneAllocator.alloc(sizeof(T));
     return new(p) T(this);
   }
 
   //! \internal
   template<typename T, typename P0>
-  ASMJIT_INLINE T* newNode(P0 p0) {
+  ASMJIT_INLINE T* newNode(P0 p0) noexcept {
     void* p = _zoneAllocator.alloc(sizeof(T));
     return new(p) T(this, p0);
   }
 
   //! \internal
   template<typename T, typename P0, typename P1>
-  ASMJIT_INLINE T* newNode(P0 p0, P1 p1) {
+  ASMJIT_INLINE T* newNode(P0 p0, P1 p1) noexcept {
     void* p = _zoneAllocator.alloc(sizeof(T));
     return new(p) T(this, p0, p1);
   }
 
   //! \internal
   template<typename T, typename P0, typename P1, typename P2>
-  ASMJIT_INLINE T* newNode(P0 p0, P1 p1, P2 p2) {
+  ASMJIT_INLINE T* newNode(P0 p0, P1 p1, P2 p2) noexcept {
     void* p = _zoneAllocator.alloc(sizeof(T));
     return new(p) T(this, p0, p1, p2);
   }
@@ -189,66 +265,66 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   //! \internal
   //!
   //! Create a new `HLData` node.
-  ASMJIT_API HLData* newDataNode(const void* data, uint32_t size);
+  ASMJIT_API HLData* newDataNode(const void* data, uint32_t size) noexcept;
 
   //! \internal
   //!
   //! Create a new `HLAlign` node.
-  ASMJIT_API HLAlign* newAlignNode(uint32_t alignMode, uint32_t offset);
+  ASMJIT_API HLAlign* newAlignNode(uint32_t alignMode, uint32_t offset) noexcept;
 
   //! \internal
   //!
   //! Create a new `HLLabel` node.
-  ASMJIT_API HLLabel* newLabelNode();
+  ASMJIT_API HLLabel* newLabelNode() noexcept;
 
   //! \internal
   //!
   //! Create a new `HLComment`.
-  ASMJIT_API HLComment* newCommentNode(const char* str);
+  ASMJIT_API HLComment* newCommentNode(const char* str) noexcept;
 
   //! \internal
   //!
   //! Create a new `HLHint`.
-  ASMJIT_API HLHint* newHintNode(Var& var, uint32_t hint, uint32_t value);
+  ASMJIT_API HLHint* newHintNode(Var& var, uint32_t hint, uint32_t value) noexcept;
 
   // --------------------------------------------------------------------------
   // [Code-Stream]
   // --------------------------------------------------------------------------
 
   //! Add node `node` after current and set current to `node`.
-  ASMJIT_API HLNode* addNode(HLNode* node);
+  ASMJIT_API HLNode* addNode(HLNode* node) noexcept;
   //! Insert `node` before `ref`.
-  ASMJIT_API HLNode* addNodeBefore(HLNode* node, HLNode* ref);
+  ASMJIT_API HLNode* addNodeBefore(HLNode* node, HLNode* ref) noexcept;
   //! Insert `node` after `ref`.
-  ASMJIT_API HLNode* addNodeAfter(HLNode* node, HLNode* ref);
+  ASMJIT_API HLNode* addNodeAfter(HLNode* node, HLNode* ref) noexcept;
   //! Remove `node`.
-  ASMJIT_API HLNode* removeNode(HLNode* node);
+  ASMJIT_API HLNode* removeNode(HLNode* node) noexcept;
   //! Remove multiple nodes.
-  ASMJIT_API void removeNodes(HLNode* first, HLNode* last);
+  ASMJIT_API void removeNodes(HLNode* first, HLNode* last) noexcept;
 
   //! Get the first node.
-  ASMJIT_INLINE HLNode* getFirstNode() const { return _firstNode; }
+  ASMJIT_INLINE HLNode* getFirstNode() const noexcept { return _firstNode; }
   //! Get the last node.
-  ASMJIT_INLINE HLNode* getLastNode() const { return _lastNode; }
+  ASMJIT_INLINE HLNode* getLastNode() const noexcept { return _lastNode; }
 
   //! Get current node.
   //!
   //! \note If this method returns `nullptr` it means that nothing has been
   //! emitted yet.
-  ASMJIT_INLINE HLNode* getCursor() const { return _cursor; }
+  ASMJIT_INLINE HLNode* getCursor() const noexcept { return _cursor; }
   //! \internal
   //!
   //! Set the current node without returning the previous node.
-  ASMJIT_INLINE void _setCursor(HLNode* node) { _cursor = node; }
+  ASMJIT_INLINE void _setCursor(HLNode* node) noexcept { _cursor = node; }
   //! Set the current node to `node` and return the previous one.
-  ASMJIT_API HLNode* setCursor(HLNode* node);
+  ASMJIT_API HLNode* setCursor(HLNode* node) noexcept;
 
   // --------------------------------------------------------------------------
   // [Func]
   // --------------------------------------------------------------------------
 
   //! Get current function.
-  ASMJIT_INLINE HLFunc* getFunc() const { return _func; }
+  ASMJIT_INLINE HLFunc* getFunc() const noexcept { return _func; }
 
   // --------------------------------------------------------------------------
   // [Align]
@@ -258,7 +334,7 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   //!
   //! The sequence that is used to fill the gap between the aligned location
   //! and the current depends on `alignMode`, see \ref AlignMode.
-  ASMJIT_API Error align(uint32_t alignMode, uint32_t offset);
+  ASMJIT_API Error align(uint32_t alignMode, uint32_t offset) noexcept;
 
   // --------------------------------------------------------------------------
   // [Label]
@@ -267,126 +343,127 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   //! Get `HLLabel` by `id`.
   //!
   //! NOTE: The label has to be valid, see `isLabelValid()`.
-  ASMJIT_API HLLabel* getHLLabel(uint32_t id) const;
+  ASMJIT_API HLLabel* getHLLabel(uint32_t id) const noexcept;
 
   //! Get `HLLabel` by `label`.
   //!
   //! NOTE: The label has to be valid, see `isLabelValid()`.
-  ASMJIT_INLINE HLLabel* getHLLabel(const Label& label) { return getHLLabel(label.getId()); }
+  ASMJIT_INLINE HLLabel* getHLLabel(const Label& label) noexcept {
+    return getHLLabel(label.getId());
+  }
 
   //! Get whether the label `id` is valid.
-  ASMJIT_API bool isLabelValid(uint32_t id) const;
+  ASMJIT_API bool isLabelValid(uint32_t id) const noexcept;
   //! Get whether the `label` is valid.
-  ASMJIT_INLINE bool isLabelValid(const Label& label) const { return isLabelValid(label.getId()); }
+  ASMJIT_INLINE bool isLabelValid(const Label& label) const noexcept {
+    return isLabelValid(label.getId());
+  }
 
   //! \internal
   //!
   //! Create a new label and return its ID.
-  ASMJIT_API uint32_t _newLabelId();
+  ASMJIT_API uint32_t _newLabelId() noexcept;
 
   //! Create and return a new `Label`.
-  ASMJIT_INLINE Label newLabel() { return Label(_newLabelId()); }
+  ASMJIT_INLINE Label newLabel() noexcept { return Label(_newLabelId()); }
 
   //! Bind label to the current offset.
   //!
   //! \note Label can be bound only once!
-  ASMJIT_API Error bind(const Label& label);
+  ASMJIT_API Error bind(const Label& label) noexcept;
 
   // --------------------------------------------------------------------------
   // [Embed]
   // --------------------------------------------------------------------------
 
   //! Embed data.
-  ASMJIT_API Error embed(const void* data, uint32_t size);
+  ASMJIT_API Error embed(const void* data, uint32_t size) noexcept;
 
   //! Embed a constant pool data, adding the following in order:
   //!   1. Data alignment.
   //!   2. Label.
   //!   3. Constant pool data.
-  ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool);
+  ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool) noexcept;
 
   // --------------------------------------------------------------------------
   // [Comment]
   // --------------------------------------------------------------------------
 
   //! Emit a single comment line.
-  ASMJIT_API Error comment(const char* fmt, ...);
+  ASMJIT_API Error comment(const char* fmt, ...) noexcept;
 
   // --------------------------------------------------------------------------
   // [Hint]
   // --------------------------------------------------------------------------
 
   //! Emit a new hint (purery informational node).
-  ASMJIT_API Error _hint(Var& var, uint32_t hint, uint32_t value);
+  ASMJIT_API Error _hint(Var& var, uint32_t hint, uint32_t value) noexcept;
 
   // --------------------------------------------------------------------------
   // [Vars]
   // --------------------------------------------------------------------------
 
   //! Get whether variable `var` is created.
-  ASMJIT_INLINE bool isVarValid(const Var& var) const {
-    return static_cast<size_t>(var.getId() & kOperandIdNum) < _varList.getLength();
+  ASMJIT_INLINE bool isVarValid(const Var& var) const noexcept {
+    return static_cast<size_t>(var.getId() & Operand::kIdIndexMask) < _varList.getLength();
   }
 
   //! \internal
   //!
   //! Get `VarData` by `var`.
-  ASMJIT_INLINE VarData* getVd(const Var& var) const {
+  ASMJIT_INLINE VarData* getVd(const Var& var) const noexcept {
     return getVdById(var.getId());
   }
 
   //! \internal
   //!
   //! Get `VarData` by `id`.
-  ASMJIT_INLINE VarData* getVdById(uint32_t id) const {
+  ASMJIT_INLINE VarData* getVdById(uint32_t id) const noexcept {
     ASMJIT_ASSERT(id != kInvalidValue);
-    ASMJIT_ASSERT(static_cast<size_t>(id & kOperandIdNum) < _varList.getLength());
+    ASMJIT_ASSERT(static_cast<size_t>(id & Operand::kIdIndexMask) < _varList.getLength());
 
-    return _varList[id & kOperandIdNum];
+    return _varList[id & Operand::kIdIndexMask];
   }
 
   //! \internal
   //!
   //! Get an array of 'VarData*'.
-  ASMJIT_INLINE VarData** _getVdArray() const {
+  ASMJIT_INLINE VarData** _getVdArray() const noexcept {
     return const_cast<VarData**>(_varList.getData());
   }
 
   //! \internal
   //!
   //! Create a new `VarData`.
-  ASMJIT_API VarData* _newVd(uint32_t type, uint32_t size, uint32_t c, const char* name);
-
-  //! Create a new `Var`.
-  virtual Error _newVar(Var* var, uint32_t vType, const char* name, va_list ap) = 0;
+  ASMJIT_API VarData* _newVd(const VarInfo& vi, const char* name) noexcept;
 
   //! Alloc variable `var`.
-  ASMJIT_API Error alloc(Var& var);
+  ASMJIT_API Error alloc(Var& var) noexcept;
   //! Alloc variable `var` using `regIndex` as a register index.
-  ASMJIT_API Error alloc(Var& var, uint32_t regIndex);
+  ASMJIT_API Error alloc(Var& var, uint32_t regIndex) noexcept;
   //! Alloc variable `var` using `reg` as a register operand.
-  ASMJIT_API Error alloc(Var& var, const Reg& reg);
+  ASMJIT_API Error alloc(Var& var, const Reg& reg) noexcept;
   //! Spill variable `var`.
-  ASMJIT_API Error spill(Var& var);
+  ASMJIT_API Error spill(Var& var) noexcept;
   //! Save variable `var` if the status is `modified` at this point.
-  ASMJIT_API Error save(Var& var);
+  ASMJIT_API Error save(Var& var) noexcept;
   //! Unuse variable `var`.
-  ASMJIT_API Error unuse(Var& var);
+  ASMJIT_API Error unuse(Var& var) noexcept;
 
   //! Get priority of variable `var`.
-  ASMJIT_API uint32_t getPriority(Var& var) const;
+  ASMJIT_API uint32_t getPriority(Var& var) const noexcept;
   //! Set priority of variable `var` to `priority`.
-  ASMJIT_API void setPriority(Var& var, uint32_t priority);
+  ASMJIT_API void setPriority(Var& var, uint32_t priority) noexcept;
 
   //! Get save-on-unuse `var` property.
-  ASMJIT_API bool getSaveOnUnuse(Var& var) const;
+  ASMJIT_API bool getSaveOnUnuse(Var& var) const noexcept;
   //! Set save-on-unuse `var` property to `value`.
-  ASMJIT_API void setSaveOnUnuse(Var& var, bool value);
+  ASMJIT_API void setSaveOnUnuse(Var& var, bool value) noexcept;
 
   //! Rename variable `var` to `name`.
   //!
   //! \note Only new name will appear in the logger.
-  ASMJIT_API void rename(Var& var, const char* fmt, ...);
+  ASMJIT_API void rename(Var& var, const char* fmt, ...) noexcept;
 
   // --------------------------------------------------------------------------
   // [Stack]
@@ -395,7 +472,7 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   //! \internal
   //!
   //! Create a new memory chunk allocated on the current function's stack.
-  virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) = 0;
+  virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) noexcept = 0;
 
   // --------------------------------------------------------------------------
   // [Const]
@@ -404,7 +481,7 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
   //! \internal
   //!
   //! Put data to a constant-pool and get a memory reference to it.
-  virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) = 0;
+  virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) noexcept = 0;
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -471,12 +548,7 @@ struct ASMJIT_VIRTAPI Compiler : public CodeGen {
 // [Defined-Later]
 // ============================================================================
 
-ASMJIT_INLINE Label::Label(Compiler& c) : Operand(NoInit) {
-  reset();
-  _label.id = c._newLabelId();
-}
-
-ASMJIT_INLINE HLNode::HLNode(Compiler* compiler, uint32_t type) {
+ASMJIT_INLINE HLNode::HLNode(Compiler* compiler, uint32_t type) noexcept {
   _prev = nullptr;
   _next = nullptr;
   _type = static_cast<uint8_t>(type);

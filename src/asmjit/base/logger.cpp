@@ -28,7 +28,7 @@ namespace asmjit {
 // [asmjit::LogUtil]
 // ============================================================================
 
-bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) {
+bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) noexcept {
   size_t currentLen = sb.getLength();
   size_t commentLen = comment ? Utils::strLen(comment, kMaxCommentLength) : 0;
 
@@ -82,18 +82,18 @@ bool LogUtil::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binLe
 // [asmjit::Logger - Construction / Destruction]
 // ============================================================================
 
-Logger::Logger() {
+Logger::Logger() noexcept {
   _options = 0;
   ::memset(_indentation, 0, ASMJIT_ARRAY_SIZE(_indentation));
 }
 
-Logger::~Logger() {}
+Logger::~Logger() noexcept {}
 
 // ============================================================================
 // [asmjit::Logger - Logging]
 // ============================================================================
 
-void Logger::logFormat(uint32_t style, const char* fmt, ...) {
+void Logger::logFormat(uint32_t style, const char* fmt, ...) noexcept {
   char buf[1024];
   size_t len;
 
@@ -108,7 +108,7 @@ void Logger::logFormat(uint32_t style, const char* fmt, ...) {
   logString(style, buf, len);
 }
 
-void Logger::logBinary(uint32_t style, const void* data, size_t size) {
+void Logger::logBinary(uint32_t style, const void* data, size_t size) noexcept {
   static const char prefix[] = ".data ";
   static const char hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
@@ -139,26 +139,10 @@ void Logger::logBinary(uint32_t style, const void* data, size_t size) {
 }
 
 // ============================================================================
-// [asmjit::Logger - LogBinary]
-// ============================================================================
-
-void Logger::setOption(uint32_t id, bool value) {
-  if (id >= kLoggerOptionCount)
-    return;
-
-  uint32_t mask = 1 << id;
-
-  if (value)
-    _options |= mask;
-  else
-    _options &= ~mask;
-}
-
-// ============================================================================
 // [asmjit::Logger - Indentation]
 // ============================================================================
 
-void Logger::setIndentation(const char* indentation) {
+void Logger::setIndentation(const char* indentation) noexcept {
   ::memset(_indentation, 0, ASMJIT_ARRAY_SIZE(_indentation));
   if (!indentation)
     return;
@@ -171,17 +155,14 @@ void Logger::setIndentation(const char* indentation) {
 // [asmjit::FileLogger - Construction / Destruction]
 // ============================================================================
 
-FileLogger::FileLogger(FILE* stream) : _stream(nullptr) {
-  setStream(stream);
-}
-
-FileLogger::~FileLogger() {}
+FileLogger::FileLogger(FILE* stream) noexcept : _stream(nullptr) { setStream(stream); }
+FileLogger::~FileLogger() noexcept {}
 
 // ============================================================================
 // [asmjit::FileLogger - Logging]
 // ============================================================================
 
-void FileLogger::logString(uint32_t style, const char* buf, size_t len) {
+void FileLogger::logString(uint32_t style, const char* buf, size_t len) noexcept {
   if (!_stream)
     return;
 
@@ -195,14 +176,14 @@ void FileLogger::logString(uint32_t style, const char* buf, size_t len) {
 // [asmjit::StringLogger - Construction / Destruction]
 // ============================================================================
 
-StringLogger::StringLogger() {}
-StringLogger::~StringLogger() {}
+StringLogger::StringLogger() noexcept {}
+StringLogger::~StringLogger() noexcept {}
 
 // ============================================================================
 // [asmjit::StringLogger - Logging]
 // ============================================================================
 
-void StringLogger::logString(uint32_t style, const char* buf, size_t len) {
+void StringLogger::logString(uint32_t style, const char* buf, size_t len) noexcept {
   _stringBuilder.appendString(buf, len);
 }
 

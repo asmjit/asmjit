@@ -24,17 +24,17 @@ namespace x86 {
 // [asmjit::X86Mem - abs[]]
 // ============================================================================
 
-X86Mem ptr_abs(Ptr pAbs, int32_t disp, uint32_t size) {
+X86Mem ptr_abs(Ptr p, int32_t disp, uint32_t size) noexcept {
   X86Mem m(NoInit);
 
-  m._init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeAbsolute, 0, kInvalidValue);
+  m._init_packed_op_sz_b0_b1_id(Operand::kTypeMem, size, kMemTypeAbsolute, 0, kInvalidValue);
   m._vmem.index = kInvalidValue;
-  m._vmem.displacement = static_cast<int32_t>((intptr_t)(pAbs + disp));
+  m._vmem.displacement = static_cast<int32_t>((intptr_t)(p + disp));
 
   return m;
 }
 
-X86Mem ptr_abs(Ptr pAbs, const X86Reg& index, uint32_t shift, int32_t disp, uint32_t size) {
+X86Mem ptr_abs(Ptr p, const X86Reg& index, uint32_t shift, int32_t disp, uint32_t size) noexcept {
   X86Mem m(NoInit);
   uint32_t flags = shift << kX86MemShiftIndex;
 
@@ -45,15 +45,15 @@ X86Mem ptr_abs(Ptr pAbs, const X86Reg& index, uint32_t shift, int32_t disp, uint
   else if (index.isYmm())
     flags |= kX86MemVSibYmm << kX86MemVSibIndex;
 
-  m._init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeAbsolute, flags, kInvalidValue);
+  m._init_packed_op_sz_b0_b1_id(Operand::kTypeMem, size, kMemTypeAbsolute, flags, kInvalidValue);
   m._vmem.index = index.getRegIndex();
-  m._vmem.displacement = static_cast<int32_t>((intptr_t)(pAbs + disp));
+  m._vmem.displacement = static_cast<int32_t>((intptr_t)(p + disp));
 
   return m;
 }
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
-X86Mem ptr_abs(Ptr pAbs, const X86Var& index, uint32_t shift, int32_t disp, uint32_t size) {
+X86Mem ptr_abs(Ptr p, const X86Var& index, uint32_t shift, int32_t disp, uint32_t size) noexcept {
   X86Mem m(NoInit);
   uint32_t flags = shift << kX86MemShiftIndex;
 
@@ -67,9 +67,9 @@ X86Mem ptr_abs(Ptr pAbs, const X86Var& index, uint32_t shift, int32_t disp, uint
   else if (indexRegType == kX86RegTypeYmm)
     flags |= kX86MemVSibYmm << kX86MemVSibIndex;
 
-  m._init_packed_op_sz_b0_b1_id(kOperandTypeMem, size, kMemTypeAbsolute, flags, kInvalidValue);
+  m._init_packed_op_sz_b0_b1_id(Operand::kTypeMem, size, kMemTypeAbsolute, flags, kInvalidValue);
   m._vmem.index = index_.getId();
-  m._vmem.displacement = static_cast<int32_t>((intptr_t)(pAbs + disp));
+  m._vmem.displacement = static_cast<int32_t>((intptr_t)(p + disp));
 
   return m;
 }

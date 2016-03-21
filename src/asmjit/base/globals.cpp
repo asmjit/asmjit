@@ -19,7 +19,7 @@ namespace asmjit {
 // [asmjit::DebugUtils]
 // ============================================================================
 
-#if !defined(ASMJIT_DISABLE_NAMES)
+#if !defined(ASMJIT_DISABLE_TEXT)
 static const char errorMessages[] = {
   "Ok\0"
   "No heap memory\0"
@@ -39,7 +39,7 @@ static const char errorMessages[] = {
   "Unknown error\0"
 };
 
-static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) {
+static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) noexcept {
   uint32_t i = 0;
 
   if (id > maxId)
@@ -55,10 +55,10 @@ static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) 
 
   return p;
 }
-#endif // ASMJIT_DISABLE_NAMES
+#endif // ASMJIT_DISABLE_TEXT
 
-const char* DebugUtils::errorAsString(Error e) {
-#if !defined(ASMJIT_DISABLE_NAMES)
+const char* DebugUtils::errorAsString(Error e) noexcept {
+#if !defined(ASMJIT_DISABLE_TEXT)
   return findPackedString(errorMessages, e, kErrorCount);
 #else
   static const char noMessage[] = "";
@@ -66,7 +66,7 @@ const char* DebugUtils::errorAsString(Error e) {
 #endif
 }
 
-void DebugUtils::debugOutput(const char* str) {
+void DebugUtils::debugOutput(const char* str) noexcept {
 #if ASMJIT_OS_WINDOWS
   ::OutputDebugStringA(str);
 #else
@@ -74,7 +74,7 @@ void DebugUtils::debugOutput(const char* str) {
 #endif
 }
 
-void DebugUtils::assertionFailed(const char* file, int line, const char* msg) {
+void DebugUtils::assertionFailed(const char* file, int line, const char* msg) noexcept {
   char str[1024];
 
   snprintf(str, 1024,

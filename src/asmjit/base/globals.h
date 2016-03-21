@@ -89,27 +89,25 @@ ASMJIT_ENUM(ArchId) {
   kArchX86 = 1,
   //! X64 architecture (64-bit), also called AMD64.
   kArchX64 = 2,
-
   //! X32 architecture (64-bit with 32-bit pointers) (NOT USED ATM).
   kArchX32 = 3,
 
   //! Arm architecture (32-bit).
-  kArchArm = 4,
+  kArchArm32 = 4,
   //! Arm64 architecture (64-bit).
   kArchArm64 = 5,
 
 #if ASMJIT_ARCH_X86
-  kArchHost = kArchX86,
+  kArchHost = kArchX86
 #elif ASMJIT_ARCH_X64
-  kArchHost = kArchX64,
-#elif ASMJIT_ARCH_ARM
-  kArchHost = kArchArm,
+  kArchHost = kArchX64
+#elif ASMJIT_ARCH_ARM32
+  kArchHost = kArchArm32
 #elif ASMJIT_ARCH_ARM64
-  kArchHost = kArchArm64,
+  kArchHost = kArchArm64
+#else
+# error "[asmjit] Unsupported host architecture."
 #endif
-
-  //! Whether the host is 64-bit.
-  kArchHost64Bit = sizeof(intptr_t) >= 8
 };
 
 // ============================================================================
@@ -184,8 +182,8 @@ ASMJIT_ENUM(ErrorCode) {
 
   //! Illegal (unencodable) displacement used.
   //!
-  //! X86/X64
-  //! -------
+  //! X86/X64 Specific
+  //! ----------------
   //!
   //! Short form of jump instruction has been used, but the displacement is out
   //! of bounds.
@@ -219,14 +217,14 @@ static const _NoInit NoInit = {};
 namespace DebugUtils {
 
 //! Get a printable version of AsmJit `Error` code.
-ASMJIT_API const char* errorAsString(Error code);
+ASMJIT_API const char* errorAsString(Error code) noexcept;
 
 //! \addtogroup asmjit_base
 //! \{
 
 //! Called in debug build to output a debugging message caused by assertion
 //! failure or tracing.
-ASMJIT_API void debugOutput(const char* str);
+ASMJIT_API void debugOutput(const char* str) noexcept;
 
 //! Called in debug build on assertion failure.
 //!
@@ -237,7 +235,7 @@ ASMJIT_API void debugOutput(const char* str);
 //! If you have problems with assertions put a breakpoint at assertionFailed()
 //! function (asmjit/base/globals.cpp) and check the call stack to locate the
 //! failing code.
-ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, const char* msg);
+ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, const char* msg) noexcept;
 
 //! \}
 
@@ -297,7 +295,7 @@ ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, cons
 //! cross-platform software with various compiler support, consider using
 //! `asmjit_cast<>` instead of `reinterpret_cast<>`.
 template<typename T, typename Z>
-static ASMJIT_INLINE T asmjit_cast(Z* p) { return (T)p; }
+static ASMJIT_INLINE T asmjit_cast(Z* p) noexcept { return (T)p; }
 
 //! \}
 

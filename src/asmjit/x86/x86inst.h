@@ -34,12 +34,12 @@ struct X86InstExtendedInfo;
 // [asmjit::X86Inst/X86Cond - Globals]
 // ============================================================================
 
-#if !defined(ASMJIT_DISABLE_NAMES)
+#if !defined(ASMJIT_DISABLE_TEXT)
 //! \internal
 //!
 //! X86/X64 instructions' names, accessible through `X86InstInfo`.
 ASMJIT_VARAPI const char _x86InstName[];
-#endif // !ASMJIT_DISABLE_NAMES
+#endif // !ASMJIT_DISABLE_TEXT
 
 //! \internal
 //!
@@ -2209,7 +2209,7 @@ struct X86InstInfo {
   // [Accessors - Instruction Name]
   // --------------------------------------------------------------------------
 
-#if !defined(ASMJIT_DISABLE_NAMES)
+#if !defined(ASMJIT_DISABLE_TEXT)
   //! Get instruction name string (null terminated).
   ASMJIT_INLINE const char* getInstName() const {
     return _x86InstName + static_cast<uint32_t>(_nameIndex);
@@ -2219,7 +2219,7 @@ struct X86InstInfo {
   ASMJIT_INLINE uint32_t _getNameIndex() const {
     return _nameIndex;
   }
-#endif // !ASMJIT_DISABLE_NAMES
+#endif // !ASMJIT_DISABLE_TEXT
 
   // --------------------------------------------------------------------------
   // [Accessors - Extended-Info]
@@ -2335,54 +2335,54 @@ struct X86Util {
   //!
   //! \note `instId` has to be valid instruction ID, it can't be greater than
   //! or equal to `_kX86InstIdCount`. It asserts in debug mode.
-  static ASMJIT_INLINE const X86InstInfo& getInstInfo(uint32_t instId) {
+  static ASMJIT_INLINE const X86InstInfo& getInstInfo(uint32_t instId) noexcept {
     ASMJIT_ASSERT(instId < _kX86InstIdCount);
     return _x86InstInfo[instId];
   }
 
-#if !defined(ASMJIT_DISABLE_NAMES)
+#if !defined(ASMJIT_DISABLE_TEXT)
   //! Get an instruction ID from a given instruction `name`.
   //!
   //! If there is an exact match the instruction id is returned, otherwise
   //! `kInstIdNone` (zero) is returned.
   //!
   //! The given `name` doesn't have to be null-terminated if `len` is provided.
-  ASMJIT_API static uint32_t getInstIdByName(const char* name, size_t len = kInvalidIndex);
-#endif // !ASMJIT_DISABLE_NAMES
+  ASMJIT_API static uint32_t getInstIdByName(const char* name, size_t len = kInvalidIndex) noexcept;
+#endif // !ASMJIT_DISABLE_TEXT
 
   // --------------------------------------------------------------------------
   // [Condition Codes]
   // --------------------------------------------------------------------------
 
   //! Corresponds to transposing the operands of a comparison.
-  static ASMJIT_INLINE uint32_t reverseCond(uint32_t cond) {
+  static ASMJIT_INLINE uint32_t reverseCond(uint32_t cond) noexcept {
     ASMJIT_ASSERT(cond < ASMJIT_ARRAY_SIZE(_x86ReverseCond));
     return _x86ReverseCond[cond];
   }
 
   //! Get the equivalent of negated condition code.
-  static ASMJIT_INLINE uint32_t negateCond(uint32_t cond) {
+  static ASMJIT_INLINE uint32_t negateCond(uint32_t cond) noexcept {
     ASMJIT_ASSERT(cond < ASMJIT_ARRAY_SIZE(_x86ReverseCond));
     return cond ^ static_cast<uint32_t>(cond < kX86CondNone);
   }
 
   //! Translate condition code `cc` to `cmovcc` instruction code.
   //! \sa \ref X86InstId, \ref _kX86InstIdCmovcc.
-  static ASMJIT_INLINE uint32_t condToCmovcc(uint32_t cond) {
+  static ASMJIT_INLINE uint32_t condToCmovcc(uint32_t cond) noexcept {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToCmovcc));
     return _x86CondToCmovcc[cond];
   }
 
   //! Translate condition code `cc` to `jcc` instruction code.
   //! \sa \ref X86InstId, \ref _kX86InstIdJcc.
-  static ASMJIT_INLINE uint32_t condToJcc(uint32_t cond) {
+  static ASMJIT_INLINE uint32_t condToJcc(uint32_t cond) noexcept {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToJcc));
     return _x86CondToJcc[cond];
   }
 
   //! Translate condition code `cc` to `setcc` instruction code.
   //! \sa \ref X86InstId, \ref _kX86InstIdSetcc.
-  static ASMJIT_INLINE uint32_t condToSetcc(uint32_t cond) {
+  static ASMJIT_INLINE uint32_t condToSetcc(uint32_t cond) noexcept {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToSetcc));
     return _x86CondToSetcc[cond];
   }
@@ -2397,8 +2397,8 @@ struct X86Util {
   //! \param b Position of the second component [0, 1], inclusive.
   //!
   //! Shuffle constants can be used to encode an immediate for these instructions:
-  //! - `X86Assembler::shufpd()` and `X86Compiler::shufpd()`
-  static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b) {
+  //!   - `shufpd`
+  static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b) noexcept {
     ASMJIT_ASSERT(a <= 0x1 && b <= 0x1);
     uint32_t result = (a << 1) | b;
     return static_cast<int>(result);
@@ -2412,12 +2412,12 @@ struct X86Util {
   //! \param d Position of the fourth component [0, 3], inclusive.
   //!
   //! Shuffle constants can be used to encode an immediate for these instructions:
-  //! - `X86Assembler::pshufw()`  and `X86Compiler::pshufw()`.
-  //! - `X86Assembler::pshufd()`  and `X86Compiler::pshufd()`.
-  //! - `X86Assembler::pshufhw()` and `X86Compiler::pshufhw()`.
-  //! - `X86Assembler::pshuflw()` and `X86Compiler::pshuflw()`.
-  //! - `X86Assembler::shufps()`  and `X86Compiler::shufps()`.
-  static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
+  //!   - `pshufw()`
+  //!   - `pshufd()`
+  //!   - `pshuflw()`
+  //!   - `pshufhw()`
+  //!   - `shufps()`
+  static ASMJIT_INLINE int shuffle(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
     ASMJIT_ASSERT(a <= 0x3 && b <= 0x3 && c <= 0x3 && d <= 0x3);
     uint32_t result = (a << 6) | (b << 4) | (c << 2) | d;
     return static_cast<int>(result);

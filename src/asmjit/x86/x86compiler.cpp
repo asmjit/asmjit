@@ -43,39 +43,35 @@ namespace asmjit {
 // [asmjit::X86VarInfo]
 // ============================================================================
 
-#define C(_Class_) kX86RegClass##_Class_
-#define D(_Desc_) kVarFlag##_Desc_
-
-const X86VarInfo _x86VarInfo[] = {
-  /* 00: kVarTypeInt8     */ { kX86RegTypeGpbLo, 1 , C(Gp) , 0                , "gpb" },
-  /* 01: kVarTypeUInt8    */ { kX86RegTypeGpbLo, 1 , C(Gp) , 0                , "gpb" },
-  /* 02: kVarTypeInt16    */ { kX86RegTypeGpw  , 2 , C(Gp) , 0                , "gpw" },
-  /* 03: kVarTypeUInt16   */ { kX86RegTypeGpw  , 2 , C(Gp) , 0                , "gpw" },
-  /* 04: kVarTypeInt32    */ { kX86RegTypeGpd  , 4 , C(Gp) , 0                , "gpd" },
-  /* 05: kVarTypeUInt32   */ { kX86RegTypeGpd  , 4 , C(Gp) , 0                , "gpd" },
-  /* 06: kVarTypeInt64    */ { kX86RegTypeGpq  , 8 , C(Gp) , 0                , "gpq" },
-  /* 07: kVarTypeUInt64   */ { kX86RegTypeGpq  , 8 , C(Gp) , 0                , "gpq" },
-  /* 08: kVarTypeIntPtr   */ { 0               , 0 , C(Gp) , 0                , ""    }, // Remapped.
-  /* 09: kVarTypeUIntPtr  */ { 0               , 0 , C(Gp) , 0                , ""    }, // Remapped.
-  /* 10: kVarTypeFp32     */ { kX86RegTypeFp   , 4 , C(Fp) , D(Sp)            , "fp"  },
-  /* 11: kVarTypeFp64     */ { kX86RegTypeFp   , 8 , C(Fp) , D(Dp)            , "fp"  },
-  /* 12: kX86VarTypeMm    */ { kX86RegTypeMm   , 8 , C(Mm) , 0                , "mm"  },
-  /* 13: kX86VarTypeK     */ { kX86RegTypeK    , 8 , C(K)  , 0                , "k"   },
-  /* 14: kX86VarTypeXmm   */ { kX86RegTypeXmm  , 16, C(Xyz), 0                , "xmm" },
-  /* 15: kX86VarTypeXmmSs */ { kX86RegTypeXmm  , 4 , C(Xyz), D(Sp)            , "xmm" },
-  /* 16: kX86VarTypeXmmPs */ { kX86RegTypeXmm  , 16, C(Xyz), D(Sp) | D(Packed), "xmm" },
-  /* 17: kX86VarTypeXmmSd */ { kX86RegTypeXmm  , 8 , C(Xyz), D(Dp)            , "xmm" },
-  /* 18: kX86VarTypeXmmPd */ { kX86RegTypeXmm  , 16, C(Xyz), D(Dp) | D(Packed), "xmm" },
-  /* 19: kX86VarTypeYmm   */ { kX86RegTypeYmm  , 32, C(Xyz), 0                , "ymm" },
-  /* 20: kX86VarTypeYmmPs */ { kX86RegTypeYmm  , 32, C(Xyz), D(Sp) | D(Packed), "ymm" },
-  /* 21: kX86VarTypeYmmPd */ { kX86RegTypeYmm  , 32, C(Xyz), D(Dp) | D(Packed), "ymm" },
-  /* 22: kX86VarTypeZmm   */ { kX86RegTypeZmm  , 64, C(Xyz), 0                , "zmm" },
-  /* 23: kX86VarTypeZmmPs */ { kX86RegTypeZmm  , 64, C(Xyz), D(Sp) | D(Packed), "zmm" },
-  /* 24: kX86VarTypeZmmPd */ { kX86RegTypeZmm  , 64, C(Xyz), D(Dp) | D(Packed), "zmm" }
+#define F(flag) VarInfo::kFlag##flag
+const VarInfo _x86VarInfo[] = {
+  { kVarTypeInt8    , 1 , kX86RegClassGp , kX86RegTypeGpbLo, 0              , "gpb" },
+  { kVarTypeUInt8   , 1 , kX86RegClassGp , kX86RegTypeGpbLo, 0              , "gpb" },
+  { kVarTypeInt16   , 2 , kX86RegClassGp , kX86RegTypeGpw  , 0              , "gpw" },
+  { kVarTypeUInt16  , 2 , kX86RegClassGp , kX86RegTypeGpw  , 0              , "gpw" },
+  { kVarTypeInt32   , 4 , kX86RegClassGp , kX86RegTypeGpd  , 0              , "gpd" },
+  { kVarTypeUInt32  , 4 , kX86RegClassGp , kX86RegTypeGpd  , 0              , "gpd" },
+  { kVarTypeInt64   , 8 , kX86RegClassGp , kX86RegTypeGpq  , 0              , "gpq" },
+  { kVarTypeUInt64  , 8 , kX86RegClassGp , kX86RegTypeGpq  , 0              , "gpq" },
+  { kVarTypeIntPtr  , 0 , kX86RegClassGp , 0               , 0              , ""    }, // Abstract.
+  { kVarTypeUIntPtr , 0 , kX86RegClassGp , 0               , 0              , ""    }, // Abstract.
+  { kVarTypeFp32    , 4 , kX86RegClassFp , kX86RegTypeFp   , F(SP)          , "fp"  },
+  { kVarTypeFp64    , 8 , kX86RegClassFp , kX86RegTypeFp   , F(DP)          , "fp"  },
+  { kX86VarTypeMm   , 8 , kX86RegClassMm , kX86RegTypeMm   , 0     | F(SIMD), "mm"  },
+  { kX86VarTypeK    , 8 , kX86RegClassK  , kX86RegTypeK    , 0              , "k"   },
+  { kX86VarTypeXmm  , 16, kX86RegClassXyz, kX86RegTypeXmm  , 0     | F(SIMD), "xmm" },
+  { kX86VarTypeXmmSs, 4 , kX86RegClassXyz, kX86RegTypeXmm  , F(SP)          , "xmm" },
+  { kX86VarTypeXmmPs, 16, kX86RegClassXyz, kX86RegTypeXmm  , F(SP) | F(SIMD), "xmm" },
+  { kX86VarTypeXmmSd, 8 , kX86RegClassXyz, kX86RegTypeXmm  , F(DP)          , "xmm" },
+  { kX86VarTypeXmmPd, 16, kX86RegClassXyz, kX86RegTypeXmm  , F(DP) | F(SIMD), "xmm" },
+  { kX86VarTypeYmm  , 32, kX86RegClassXyz, kX86RegTypeYmm  , 0     | F(SIMD), "ymm" },
+  { kX86VarTypeYmmPs, 32, kX86RegClassXyz, kX86RegTypeYmm  , F(SP) | F(SIMD), "ymm" },
+  { kX86VarTypeYmmPd, 32, kX86RegClassXyz, kX86RegTypeYmm  , F(DP) | F(SIMD), "ymm" },
+  { kX86VarTypeZmm  , 64, kX86RegClassXyz, kX86RegTypeZmm  , 0     | F(SIMD), "zmm" },
+  { kX86VarTypeZmmPs, 64, kX86RegClassXyz, kX86RegTypeZmm  , F(SP) | F(SIMD), "zmm" },
+  { kX86VarTypeZmmPd, 64, kX86RegClassXyz, kX86RegTypeZmm  , F(DP) | F(SIMD), "zmm" }
 };
-
-#undef D
-#undef C
+#undef F
 
 #if defined(ASMJIT_BUILD_X86)
 const uint8_t _x86VarMapping[kX86VarTypeCount] = {
@@ -141,7 +137,7 @@ const uint8_t _x64VarMapping[kX86VarTypeCount] = {
 // [asmjit::X86CallNode - Arg / Ret]
 // ============================================================================
 
-bool X86CallNode::_setArg(uint32_t i, const Operand& op) {
+bool X86CallNode::_setArg(uint32_t i, const Operand& op) noexcept {
   if ((i & ~kFuncArgHi) >= _x86Decl.getNumArgs())
     return false;
 
@@ -149,7 +145,7 @@ bool X86CallNode::_setArg(uint32_t i, const Operand& op) {
   return true;
 }
 
-bool X86CallNode::_setRet(uint32_t i, const Operand& op) {
+bool X86CallNode::_setRet(uint32_t i, const Operand& op) noexcept {
   if (i >= 2)
     return false;
 
@@ -161,7 +157,7 @@ bool X86CallNode::_setRet(uint32_t i, const Operand& op) {
 // [asmjit::X86Compiler - Construction / Destruction]
 // ============================================================================
 
-X86Compiler::X86Compiler(X86Assembler* assembler)
+X86Compiler::X86Compiler(X86Assembler* assembler) noexcept
   : Compiler(),
     zax(NoInit),
     zcx(NoInit),
@@ -186,7 +182,7 @@ X86Compiler::X86Compiler(X86Assembler* assembler)
     attach(assembler);
 }
 
-X86Compiler::~X86Compiler() {
+X86Compiler::~X86Compiler() noexcept {
   reset(true);
 }
 
@@ -194,7 +190,7 @@ X86Compiler::~X86Compiler() {
 // [asmjit::X86Compiler - Attach / Reset]
 // ============================================================================
 
-Error X86Compiler::attach(Assembler* assembler) {
+Error X86Compiler::attach(Assembler* assembler) noexcept {
   ASMJIT_ASSERT(assembler != nullptr);
 
   if (_assembler != nullptr)
@@ -224,7 +220,6 @@ Error X86Compiler::attach(Assembler* assembler) {
   _regSize = static_cast<uint8_t>(assembler->getRegSize());
   _regCount = static_cast<X86Assembler*>(assembler)->getRegCount();
   _finalized = false;
-  _lastError = kErrorOk;
 
   zax = static_cast<X86Assembler*>(assembler)->zax;
   zcx = static_cast<X86Assembler*>(assembler)->zcx;
@@ -238,7 +233,7 @@ Error X86Compiler::attach(Assembler* assembler) {
   return kErrorOk;
 }
 
-void X86Compiler::reset(bool releaseMemory) {
+void X86Compiler::reset(bool releaseMemory) noexcept {
   Compiler::reset(releaseMemory);
 
   _regCount.reset();
@@ -256,7 +251,7 @@ void X86Compiler::reset(bool releaseMemory) {
 // [asmjit::X86Compiler - Finalize]
 // ============================================================================
 
-Error X86Compiler::finalize() {
+Error X86Compiler::finalize() noexcept {
   X86Assembler* assembler = getAssembler();
   if (assembler == nullptr)
     return kErrorOk;
@@ -283,7 +278,7 @@ Error X86Compiler::finalize() {
     start = node;
     _resetTokenGenerator();
 
-    if (node->getType() == kHLNodeTypeFunc) {
+    if (node->getType() == HLNode::kTypeFunc) {
       node = static_cast<X86FuncNode*>(start)->getEnd();
       error = context.compile(static_cast<X86FuncNode*>(start));
 
@@ -293,7 +288,7 @@ Error X86Compiler::finalize() {
 
     do {
       node = node->getNext();
-    } while (node != nullptr && node->getType() != kHLNodeTypeFunc);
+    } while (node != nullptr && node->getType() != HLNode::kTypeFunc);
 
     error = context.serialize(assembler, start, node);
     context.cleanup();
@@ -311,11 +306,11 @@ Error X86Compiler::finalize() {
 // ============================================================================
 
 //! Get compiler instruction item size without operands assigned.
-static ASMJIT_INLINE size_t X86Compiler_getInstSize(uint32_t code) {
+static ASMJIT_INLINE size_t X86Compiler_getInstSize(uint32_t code) noexcept {
   return Utils::inInterval<uint32_t>(code, _kX86InstIdJbegin, _kX86InstIdJend) ? sizeof(HLJump) : sizeof(HLInst);
 }
 
-static HLInst* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) {
+static HLInst* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) noexcept {
   if (Utils::inInterval<uint32_t>(code, _kX86InstIdJbegin, _kX86InstIdJend)) {
     HLJump* node = new(p) HLJump(self, code, options, opList, opCount);
     HLLabel* jTarget = nullptr;
@@ -327,7 +322,7 @@ static HLInst* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, ui
         options |= kInstOptionUnfollow;
     }
 
-    node->orFlags(code == kX86InstIdJmp ? kHLNodeFlagIsJmp | kHLNodeFlagIsTaken : kHLNodeFlagIsJcc);
+    node->orFlags(code == kX86InstIdJmp ? HLNode::kFlagIsJmp | HLNode::kFlagIsTaken : HLNode::kFlagIsJcc);
     node->_target = jTarget;
     node->_jumpNext = nullptr;
 
@@ -339,9 +334,9 @@ static HLInst* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, ui
 
     // The 'jmp' is always taken, conditional jump can contain hint, we detect it.
     if (code == kX86InstIdJmp)
-      node->orFlags(kHLNodeFlagIsTaken);
+      node->orFlags(HLNode::kFlagIsTaken);
     else if (options & kInstOptionTaken)
-      node->orFlags(kHLNodeFlagIsTaken);
+      node->orFlags(HLNode::kFlagIsTaken);
 
     node->addOptions(options);
     return node;
@@ -353,7 +348,7 @@ static HLInst* X86Compiler_newInst(X86Compiler* self, void* p, uint32_t code, ui
   }
 }
 
-HLInst* X86Compiler::newInst(uint32_t code) {
+HLInst* X86Compiler::newInst(uint32_t code) noexcept {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size));
 
@@ -367,7 +362,7 @@ _NoMemory:
   return nullptr;
 }
 
-HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0) {
+HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0) noexcept {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 1 * sizeof(Operand)));
 
@@ -386,7 +381,7 @@ _NoMemory:
   return nullptr;
 }
 
-HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1) {
+HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1) noexcept {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 2 * sizeof(Operand)));
 
@@ -407,7 +402,7 @@ _NoMemory:
   return nullptr;
 }
 
-HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) {
+HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) noexcept {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 3 * sizeof(Operand)));
 
@@ -430,7 +425,7 @@ _NoMemory:
   return nullptr;
 }
 
-HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) {
+HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) noexcept {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 4 * sizeof(Operand)));
 
@@ -455,7 +450,7 @@ _NoMemory:
   return nullptr;
 }
 
-HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) {
+HLInst* X86Compiler::newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) noexcept {
   size_t size = X86Compiler_getInstSize(code);
   HLInst* inst = static_cast<HLInst*>(_zoneAllocator.alloc(size + 5 * sizeof(Operand)));
 
@@ -482,49 +477,49 @@ _NoMemory:
   return nullptr;
 }
 
-HLInst* X86Compiler::emit(uint32_t code) {
+HLInst* X86Compiler::emit(uint32_t code) noexcept {
   HLInst* node = newInst(code);
   if (node == nullptr)
     return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0) noexcept {
   HLInst* node = newInst(code, o0);
   if (node == nullptr)
     return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1){
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1) noexcept {
   HLInst* node = newInst(code, o0, o1);
   if (node == nullptr)
     return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) noexcept {
   HLInst* node = newInst(code, o0, o1, o2);
   if (node == nullptr)
     return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3){
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) noexcept {
   HLInst* node = newInst(code, o0, o1, o2, o3);
   if (node == nullptr)
     return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) noexcept {
   HLInst* node = newInst(code, o0, o1, o2, o3, o4);
   if (node == nullptr)
     return nullptr;
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, int o0_) {
+HLInst* X86Compiler::emit(uint32_t code, int o0_) noexcept {
   Imm o0(o0_);
   HLInst* node = newInst(code, o0);
   if (node == nullptr)
@@ -532,7 +527,7 @@ HLInst* X86Compiler::emit(uint32_t code, int o0_) {
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, uint64_t o0_) {
+HLInst* X86Compiler::emit(uint32_t code, uint64_t o0_) noexcept {
   Imm o0(o0_);
   HLInst* node = newInst(code, o0);
   if (node == nullptr)
@@ -540,7 +535,7 @@ HLInst* X86Compiler::emit(uint32_t code, uint64_t o0_) {
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, int o1_) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, int o1_) noexcept {
   Imm o1(o1_);
   HLInst* node = newInst(code, o0, o1);
   if (node == nullptr)
@@ -548,7 +543,7 @@ HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, int o1_) {
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, uint64_t o1_) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, uint64_t o1_) noexcept {
   Imm o1(o1_);
   HLInst* node = newInst(code, o0, o1);
   if (node == nullptr)
@@ -556,7 +551,7 @@ HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, uint64_t o1_) {
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, int o2_) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, int o2_) noexcept {
   Imm o2(o2_);
   HLInst* node = newInst(code, o0, o1, o2);
   if (node == nullptr)
@@ -564,7 +559,7 @@ HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, i
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2_) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2_) noexcept {
   Imm o2(o2_);
   HLInst* node = newInst(code, o0, o1, o2);
   if (node == nullptr)
@@ -572,7 +567,7 @@ HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, u
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3_) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3_) noexcept {
   Imm o3(o3_);
   HLInst* node = newInst(code, o0, o1, o2, o3);
   if (node == nullptr)
@@ -580,7 +575,7 @@ HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, c
   return static_cast<HLInst*>(addNode(node));
 }
 
-HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3_) {
+HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3_) noexcept {
   Imm o3(o3_);
   HLInst* node = newInst(code, o0, o1, o2, o3);
   if (node == nullptr)
@@ -592,7 +587,7 @@ HLInst* X86Compiler::emit(uint32_t code, const Operand& o0, const Operand& o1, c
 // [asmjit::X86Compiler - Func]
 // ============================================================================
 
-X86FuncNode* X86Compiler::newFunc(const FuncPrototype& p) {
+X86FuncNode* X86Compiler::newFunc(const FuncPrototype& p) noexcept {
   X86FuncNode* func = newNode<X86FuncNode>();
   Error error;
 
@@ -639,7 +634,7 @@ _NoMemory:
   return nullptr;
 }
 
-X86FuncNode* X86Compiler::addFunc(const FuncPrototype& p) {
+X86FuncNode* X86Compiler::addFunc(const FuncPrototype& p) noexcept {
   X86FuncNode* func = newFunc(p);
 
   if (func == nullptr) {
@@ -661,7 +656,7 @@ X86FuncNode* X86Compiler::addFunc(const FuncPrototype& p) {
   return func;
 }
 
-HLSentinel* X86Compiler::endFunc() {
+HLSentinel* X86Compiler::endFunc() noexcept {
   X86FuncNode* func = getFunc();
   ASMJIT_ASSERT(func != nullptr);
 
@@ -686,7 +681,7 @@ HLSentinel* X86Compiler::endFunc() {
 // [asmjit::X86Compiler - Ret]
 // ============================================================================
 
-HLRet* X86Compiler::newRet(const Operand& o0, const Operand& o1) {
+HLRet* X86Compiler::newRet(const Operand& o0, const Operand& o1) noexcept {
   HLRet* node = newNode<HLRet>(o0, o1);
   if (node == nullptr)
     goto _NoMemory;
@@ -697,7 +692,7 @@ _NoMemory:
   return nullptr;
 }
 
-HLRet* X86Compiler::addRet(const Operand& o0, const Operand& o1) {
+HLRet* X86Compiler::addRet(const Operand& o0, const Operand& o1) noexcept {
   HLRet* node = newRet(o0, o1);
   if (node == nullptr)
     return node;
@@ -708,7 +703,7 @@ HLRet* X86Compiler::addRet(const Operand& o0, const Operand& o1) {
 // [asmjit::X86Compiler - Call]
 // ============================================================================
 
-X86CallNode* X86Compiler::newCall(const Operand& o0, const FuncPrototype& p) {
+X86CallNode* X86Compiler::newCall(const Operand& o0, const FuncPrototype& p) noexcept {
   X86CallNode* node = newNode<X86CallNode>(o0);
   Error error;
   uint32_t nArgs;
@@ -737,7 +732,7 @@ _NoMemory:
   return nullptr;
 }
 
-X86CallNode* X86Compiler::addCall(const Operand& o0, const FuncPrototype& p) {
+X86CallNode* X86Compiler::addCall(const Operand& o0, const FuncPrototype& p) noexcept {
   X86CallNode* node = newCall(o0, p);
   if (node == nullptr)
     return nullptr;
@@ -748,7 +743,7 @@ X86CallNode* X86Compiler::addCall(const Operand& o0, const FuncPrototype& p) {
 // [asmjit::X86Compiler - Vars]
 // ============================================================================
 
-Error X86Compiler::setArg(uint32_t argIndex, const Var& var) {
+Error X86Compiler::setArg(uint32_t argIndex, const Var& var) noexcept {
   X86FuncNode* func = getFunc();
 
   if (func == nullptr)
@@ -763,7 +758,7 @@ Error X86Compiler::setArg(uint32_t argIndex, const Var& var) {
   return kErrorOk;
 }
 
-Error X86Compiler::_newVar(Var* var, uint32_t vType, const char* name, va_list ap) {
+Error X86Compiler::_newVar(Var* var, uint32_t vType, const char* name) noexcept {
   ASMJIT_ASSERT(vType < kX86VarTypeCount);
   vType = _targetVarMapping[vType];
   ASMJIT_ASSERT(vType != kInvalidVar);
@@ -775,44 +770,47 @@ Error X86Compiler::_newVar(Var* var, uint32_t vType, const char* name, va_list a
     return kErrorInvalidArgument;
   }
 
-  const X86VarInfo& vInfo = _x86VarInfo[vType];
-  char buf[64];
+  const VarInfo& vInfo = _x86VarInfo[vType];
+  VarData* vd = _newVd(vInfo, name);
 
-  // Format the name if `ap` is given.
-  if (ap) {
-    vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), name, ap);
-    buf[ASMJIT_ARRAY_SIZE(buf) - 1] = '\0';
-    name = buf;
-  }
-
-  VarData* vd = _newVd(vType, vInfo.getSize(), vInfo.getClass(), name);
   if (vd == nullptr) {
     static_cast<X86Var*>(var)->reset();
     return getLastError();
   }
 
-  var->_init_packed_op_sz_w0_id(kOperandTypeVar, vInfo.getSize(), vInfo.getReg() << 8, vd->getId());
+  var->_init_packed_op_sz_w0_id(Operand::kTypeVar, vInfo.getSize(), vInfo.getRegType() << 8, vd->getId());
   var->_vreg.vType = vType;
   return kErrorOk;
+}
+
+Error X86Compiler::_newVar(Var* var, uint32_t vType, const char* fmt, va_list ap) noexcept {
+  char name[64];
+
+  vsnprintf(name, ASMJIT_ARRAY_SIZE(name), fmt, ap);
+  name[ASMJIT_ARRAY_SIZE(name) - 1] = '\0';
+  return _newVar(var, vType, name);
 }
 
 // ============================================================================
 // [asmjit::X86Compiler - Stack]
 // ============================================================================
 
-Error X86Compiler::_newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) {
+Error X86Compiler::_newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) noexcept {
   if (size == 0)
     return kErrorInvalidArgument;
 
   if (alignment > 64)
     alignment = 64;
 
-  VarData* vd = _newVd(kInvalidVar, size, kInvalidReg, name);
+  VarInfo vi = { kInvalidVar, 0, kInvalidReg , kInvalidReg, 0, "" };
+  VarData* vd = _newVd(vi, name);
+
   if (vd == nullptr) {
     static_cast<X86Mem*>(mem)->reset();
     return getLastError();
   }
 
+  vd->_size = size;
   vd->_isStack = true;
   vd->_alignment = static_cast<uint8_t>(alignment);
 
@@ -824,7 +822,7 @@ Error X86Compiler::_newStack(BaseMem* mem, uint32_t size, uint32_t alignment, co
 // [asmjit::X86Compiler - Const]
 // ============================================================================
 
-Error X86Compiler::_newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) {
+Error X86Compiler::_newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) noexcept {
   Error error = kErrorOk;
   size_t offset;
 

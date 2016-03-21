@@ -28,12 +28,12 @@ static const Zone::Block Zone_zeroBlock = {
 // [asmjit::Zone - Construction / Destruction]
 // ============================================================================
 
-Zone::Zone(size_t blockSize) {
+Zone::Zone(size_t blockSize) noexcept {
   _block = const_cast<Zone::Block*>(&Zone_zeroBlock);
   _blockSize = blockSize;
 }
 
-Zone::~Zone() {
+Zone::~Zone() noexcept {
   reset(true);
 }
 
@@ -41,7 +41,7 @@ Zone::~Zone() {
 // [asmjit::Zone - Reset]
 // ============================================================================
 
-void Zone::reset(bool releaseMemory) {
+void Zone::reset(bool releaseMemory) noexcept {
   Block* cur = _block;
 
   // Can't be altered.
@@ -80,7 +80,7 @@ void Zone::reset(bool releaseMemory) {
 // [asmjit::Zone - Alloc]
 // ============================================================================
 
-void* Zone::_alloc(size_t size) {
+void* Zone::_alloc(size_t size) noexcept {
   Block* curBlock = _block;
   size_t blockSize = Utils::iMax<size_t>(_blockSize, size);
 
@@ -129,14 +129,14 @@ void* Zone::_alloc(size_t size) {
   return static_cast<void*>(newBlock->data);
 }
 
-void* Zone::allocZeroed(size_t size) {
+void* Zone::allocZeroed(size_t size) noexcept {
   void* p = alloc(size);
   if (p != nullptr)
     ::memset(p, 0, size);
   return p;
 }
 
-void* Zone::dup(const void* data, size_t size) {
+void* Zone::dup(const void* data, size_t size) noexcept {
   if (data == nullptr)
     return nullptr;
 
@@ -151,7 +151,7 @@ void* Zone::dup(const void* data, size_t size) {
   return m;
 }
 
-char* Zone::sdup(const char* str) {
+char* Zone::sdup(const char* str) noexcept {
   if (str == nullptr)
     return nullptr;
 
@@ -172,7 +172,7 @@ char* Zone::sdup(const char* str) {
   return m;
 }
 
-char* Zone::sformat(const char* fmt, ...) {
+char* Zone::sformat(const char* fmt, ...) noexcept {
   if (fmt == nullptr)
     return nullptr;
 

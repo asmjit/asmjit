@@ -17,113 +17,19 @@
 namespace asmjit {
 
 // ============================================================================
-// [asmjit::PodVectorBase - NullData]
+// [asmjit::StringBuilder - Construction / Destruction]
 // ============================================================================
-
-const PodVectorData PodVectorBase::_nullData = { 0, 0 };
-
-// ============================================================================
-// [asmjit::PodVectorBase - Reset]
-// ============================================================================
-
-//! Clear vector data and free internal buffer.
-void PodVectorBase::reset(bool releaseMemory) {
-  PodVectorData* d = _d;
-
-  if (d == &_nullData)
-    return;
-
-  if (releaseMemory) {
-    ASMJIT_FREE(d);
-    _d = const_cast<PodVectorData*>(&_nullData);
-    return;
-  }
-
-  d->length = 0;
-}
-
-// ============================================================================
-// [asmjit::PodVectorBase - Helpers]
-// ============================================================================
-
-Error PodVectorBase::_grow(size_t n, size_t sizeOfT) {
-  PodVectorData* d = _d;
-
-  size_t threshold = kMemAllocGrowMax / sizeOfT;
-  size_t capacity = d->capacity;
-  size_t after = d->length;
-
-  if (IntTraits<size_t>::maxValue() - n < after)
-    return kErrorNoHeapMemory;
-
-  after += n;
-
-  if (capacity >= after)
-    return kErrorOk;
-
-  // PodVector is used as a linear array for some data structures used by
-  // AsmJit code generation. The purpose of this agressive growing schema
-  // is to minimize memory reallocations, because AsmJit code generation
-  // classes live short life and will be freed or reused soon.
-  if (capacity < 32)
-    capacity = 32;
-  else if (capacity < 128)
-    capacity = 128;
-  else if (capacity < 512)
-    capacity = 512;
-
-  while (capacity < after) {
-    if (capacity < threshold)
-      capacity *= 2;
-    else
-      capacity += threshold;
-  }
-
-  return _reserve(capacity, sizeOfT);
-}
-
-Error PodVectorBase::_reserve(size_t n, size_t sizeOfT) {
-  PodVectorData* d = _d;
-
-  if (d->capacity >= n)
-    return kErrorOk;
-
-  size_t nBytes = sizeof(PodVectorData) + n * sizeOfT;
-  if (nBytes < n)
-    return kErrorNoHeapMemory;
-
-  if (d == &_nullData) {
-    d = static_cast<PodVectorData*>(ASMJIT_ALLOC(nBytes));
-    if (d == nullptr)
-      return kErrorNoHeapMemory;
-    d->length = 0;
-  }
-  else {
-    d = static_cast<PodVectorData*>(ASMJIT_REALLOC(d, nBytes));
-    if (d == nullptr)
-      return kErrorNoHeapMemory;
-  }
-
-  d->capacity = n;
-  _d = d;
-
-  return kErrorOk;
-}
 
 // Should be placed in read-only memory.
 static const char StringBuilder_empty[4] = { 0 };
 
-// ============================================================================
-// [asmjit::StringBuilder - Construction / Destruction]
-// ============================================================================
-
-StringBuilder::StringBuilder()
+StringBuilder::StringBuilder() noexcept
   : _data(const_cast<char*>(StringBuilder_empty)),
     _length(0),
     _capacity(0),
     _canFree(false) {}
 
-StringBuilder::~StringBuilder() {
+StringBuilder::~StringBuilder() noexcept {
   if (_canFree)
     ASMJIT_FREE(_data);
 }
@@ -132,7 +38,7 @@ StringBuilder::~StringBuilder() {
 // [asmjit::StringBuilder - Prepare / Reserve]
 // ============================================================================
 
-char* StringBuilder::prepare(uint32_t op, size_t len) {
+char* StringBuilder::prepare(uint32_t op, size_t len) noexcept {
   // --------------------------------------------------------------------------
   // [Set]
   // --------------------------------------------------------------------------
@@ -231,7 +137,7 @@ char* StringBuilder::prepare(uint32_t op, size_t len) {
   }
 }
 
-bool StringBuilder::reserve(size_t to) {
+bool StringBuilder::reserve(size_t to) noexcept {
   if (_capacity >= to)
     return true;
 
@@ -258,7 +164,7 @@ bool StringBuilder::reserve(size_t to) {
 // [asmjit::StringBuilder - Clear]
 // ============================================================================
 
-void StringBuilder::clear() {
+void StringBuilder::clear() noexcept {
   if (_data != StringBuilder_empty)
     _data[0] = 0;
   _length = 0;
@@ -268,7 +174,7 @@ void StringBuilder::clear() {
 // [asmjit::StringBuilder - Methods]
 // ============================================================================
 
-bool StringBuilder::_opString(uint32_t op, const char* str, size_t len) {
+bool StringBuilder::_opString(uint32_t op, const char* str, size_t len) noexcept {
   if (len == kInvalidIndex)
     len = str != nullptr ? ::strlen(str) : static_cast<size_t>(0);
 
@@ -280,7 +186,7 @@ bool StringBuilder::_opString(uint32_t op, const char* str, size_t len) {
   return true;
 }
 
-bool StringBuilder::_opChar(uint32_t op, char c) {
+bool StringBuilder::_opChar(uint32_t op, char c) noexcept {
   char* p = prepare(op, 1);
   if (p == nullptr)
     return false;
@@ -289,7 +195,7 @@ bool StringBuilder::_opChar(uint32_t op, char c) {
   return true;
 }
 
-bool StringBuilder::_opChars(uint32_t op, char c, size_t len) {
+bool StringBuilder::_opChars(uint32_t op, char c, size_t len) noexcept {
   char* p = prepare(op, len);
   if (p == nullptr)
     return false;
@@ -300,7 +206,7 @@ bool StringBuilder::_opChars(uint32_t op, char c, size_t len) {
 
 static const char StringBuilder_numbers[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-bool StringBuilder::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t width, uint32_t flags) {
+bool StringBuilder::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t width, uint32_t flags) noexcept {
   if (base < 2 || base > 36)
     base = 10;
 
@@ -389,7 +295,7 @@ bool StringBuilder::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t wid
   return true;
 }
 
-bool StringBuilder::_opHex(uint32_t op, const void* data, size_t len) {
+bool StringBuilder::_opHex(uint32_t op, const void* data, size_t len) noexcept {
   if (len >= IntTraits<size_t>::maxValue() / 2)
     return false;
 
@@ -407,7 +313,7 @@ bool StringBuilder::_opHex(uint32_t op, const void* data, size_t len) {
   return true;
 }
 
-bool StringBuilder::_opVFormat(uint32_t op, const char* fmt, va_list ap) {
+bool StringBuilder::_opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept {
   char buf[1024];
 
   vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);
@@ -416,7 +322,7 @@ bool StringBuilder::_opVFormat(uint32_t op, const char* fmt, va_list ap) {
   return _opString(op, buf);
 }
 
-bool StringBuilder::setFormat(const char* fmt, ...) {
+bool StringBuilder::setFormat(const char* fmt, ...) noexcept {
   bool result;
 
   va_list ap;
@@ -427,7 +333,7 @@ bool StringBuilder::setFormat(const char* fmt, ...) {
   return result;
 }
 
-bool StringBuilder::appendFormat(const char* fmt, ...) {
+bool StringBuilder::appendFormat(const char* fmt, ...) noexcept {
   bool result;
 
   va_list ap;
@@ -438,7 +344,7 @@ bool StringBuilder::appendFormat(const char* fmt, ...) {
   return result;
 }
 
-bool StringBuilder::eq(const char* str, size_t len) const {
+bool StringBuilder::eq(const char* str, size_t len) const noexcept {
   const char* aData = _data;
   const char* bData = str;
 

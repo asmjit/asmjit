@@ -48,12 +48,12 @@ struct Zone {
     // ------------------------------------------------------------------------
 
     //! Get the size of the block.
-    ASMJIT_INLINE size_t getBlockSize() const {
+    ASMJIT_INLINE size_t getBlockSize() const noexcept {
       return (size_t)(end - data);
     }
 
     //! Get count of remaining bytes in the block.
-    ASMJIT_INLINE size_t getRemainingSize() const {
+    ASMJIT_INLINE size_t getRemainingSize() const noexcept {
       return (size_t)(end - pos);
     }
 
@@ -98,13 +98,13 @@ struct Zone {
   //! It's not required, but it's good practice to set `blockSize` to a
   //! reasonable value that depends on the usage of `Zone`. Greater block sizes
   //! are generally safer and performs better than unreasonably low values.
-  ASMJIT_API Zone(size_t blockSize);
+  ASMJIT_API Zone(size_t blockSize) noexcept;
 
   //! Destroy the `Zone` instance.
   //!
   //! This will destroy the `Zone` instance and release all blocks of memory
   //! allocated by it. It performs implicit `reset(true)`.
-  ASMJIT_API ~Zone();
+  ASMJIT_API ~Zone() noexcept;
 
   // --------------------------------------------------------------------------
   // [Reset]
@@ -113,14 +113,14 @@ struct Zone {
   //! Reset the `Zone` invalidating all blocks allocated.
   //!
   //! If `releaseMemory` is true all buffers will be released to the system.
-  ASMJIT_API void reset(bool releaseMemory = false);
+  ASMJIT_API void reset(bool releaseMemory = false) noexcept;
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
   //! Get the default block size.
-  ASMJIT_INLINE size_t getBlockSize() const {
+  ASMJIT_INLINE size_t getBlockSize() const noexcept {
     return _blockSize;
   }
 
@@ -160,7 +160,7 @@ struct Zone {
   //! // Reset of destroy `Zone`.
   //! zone.reset();
   //! ~~~
-  ASMJIT_INLINE void* alloc(size_t size) {
+  ASMJIT_INLINE void* alloc(size_t size) noexcept {
     Block* cur = _block;
 
     uint8_t* ptr = cur->pos;
@@ -178,31 +178,31 @@ struct Zone {
   //! Allocate `size` bytes of zeroed memory.
   //!
   //! See \ref alloc() for more details.
-  ASMJIT_API void* allocZeroed(size_t size);
+  ASMJIT_API void* allocZeroed(size_t size) noexcept;
 
   //! Like `alloc()`, but the return pointer is casted to `T*`.
   template<typename T>
-  ASMJIT_INLINE T* allocT(size_t size = sizeof(T)) {
+  ASMJIT_INLINE T* allocT(size_t size = sizeof(T)) noexcept {
     return static_cast<T*>(alloc(size));
   }
 
   //! Like `allocZeroed()`, but the return pointer is casted to `T*`.
   template<typename T>
-  ASMJIT_INLINE T* allocZeroedT(size_t size = sizeof(T)) {
+  ASMJIT_INLINE T* allocZeroedT(size_t size = sizeof(T)) noexcept {
     return static_cast<T*>(allocZeroed(size));
   }
 
   //! \internal
-  ASMJIT_API void* _alloc(size_t size);
+  ASMJIT_API void* _alloc(size_t size) noexcept;
 
   //! Helper to duplicate data.
-  ASMJIT_API void* dup(const void* data, size_t size);
+  ASMJIT_API void* dup(const void* data, size_t size) noexcept;
 
   //! Helper to duplicate string.
-  ASMJIT_API char* sdup(const char* str);
+  ASMJIT_API char* sdup(const char* str) noexcept;
 
   //! Helper to duplicate formatted string, maximum length is 256 bytes.
-  ASMJIT_API char* sformat(const char* str, ...);
+  ASMJIT_API char* sformat(const char* str, ...) noexcept;
 
   // --------------------------------------------------------------------------
   // [Members]

@@ -37,28 +37,37 @@ namespace asmjit {
 //! Platform Independent Conventions
 //! --------------------------------
 //!
-//! - `kCallConvHost` - Should match the current C++ compiler native calling
-//!   convention.
+//!   - `kCallConvHost` - Should match the current C++ compiler native calling
+//!     convention.
 //!
 //! X86/X64 Specific Conventions
 //! ----------------------------
 //!
 //! List of calling conventions for 32-bit x86 mode:
-//! - `kCallConvX86CDecl` - Calling convention for C runtime.
-//! - `kCallConvX86StdCall` - Calling convention for WinAPI functions.
-//! - `kCallConvX86MsThisCall` - Calling convention for C++ members under
-//!    Windows (produced by MSVC and all MSVC compatible compilers).
-//! - `kCallConvX86MsFastCall` - Fastest calling convention that can be used
-//!    by MSVC compiler.
-//! - `kCallConvX86BorlandFastCall` - Borland fastcall convention.
-//! - `kCallConvX86GccFastCall` - GCC fastcall convention (2 register arguments).
-//! - `kCallConvX86GccRegParm1` - GCC regparm(1) convention.
-//! - `kCallConvX86GccRegParm2` - GCC regparm(2) convention.
-//! - `kCallConvX86GccRegParm3` - GCC regparm(3) convention.
+//!   - `kCallConvX86CDecl` - Calling convention for C runtime.
+//!   - `kCallConvX86StdCall` - Calling convention for WinAPI functions.
+//!   - `kCallConvX86MsThisCall` - Calling convention for C++ members under
+//!      Windows (produced by MSVC and all MSVC compatible compilers).
+//!   - `kCallConvX86MsFastCall` - Fastest calling convention that can be used
+//!      by MSVC compiler.
+//!   - `kCallConvX86BorlandFastCall` - Borland fastcall convention.
+//!   - `kCallConvX86GccFastCall` - GCC fastcall convention (2 register arguments).
+//!   - `kCallConvX86GccRegParm1` - GCC regparm(1) convention.
+//!   - `kCallConvX86GccRegParm2` - GCC regparm(2) convention.
+//!   - `kCallConvX86GccRegParm3` - GCC regparm(3) convention.
 //!
 //! List of calling conventions for 64-bit x86 mode (x64):
-//! - `kCallConvX64Win` - Windows 64-bit calling convention (WIN64 ABI).
-//! - `kCallConvX64Unix` - Unix 64-bit calling convention (AMD64 ABI).
+//!   - `kCallConvX64Win` - Windows 64-bit calling convention (WIN64 ABI).
+//!   - `kCallConvX64Unix` - Unix 64-bit calling convention (AMD64 ABI).
+//!
+//! ARM Specific Conventions
+//! ------------------------
+//!
+//! List of ARM calling conventions:
+//!   - `kCallConvArm32SoftFP` - Legacy calling convention, floating point
+//!     arguments are passed via GP registers.
+//!   - `kCallConvArm32HardFP` - Modern calling convention, uses VFP registers
+//!     to pass floating point arguments.
 ASMJIT_ENUM(CallConv) {
   //! Calling convention is invalid (can't be used).
   kCallConvNone = 0,
@@ -290,6 +299,13 @@ ASMJIT_ENUM(CallConv) {
   kCallConvX64Unix = 11,
 
   // --------------------------------------------------------------------------
+  // [ARM]
+  // --------------------------------------------------------------------------
+
+  kCallConvArm32SoftFP = 16,
+  kCallConvArm32HardFP = 17,
+
+  // --------------------------------------------------------------------------
   // [Internal]
   // --------------------------------------------------------------------------
 
@@ -303,6 +319,11 @@ ASMJIT_ENUM(CallConv) {
   //! \internal
   _kCallConvX64End = 11,
 
+  //! \internal
+  _kCallConvArmStart = 16,
+  //! \internal
+  _kCallConvArmEnd = 17,
+
   // --------------------------------------------------------------------------
   // [Host]
   // --------------------------------------------------------------------------
@@ -313,16 +334,16 @@ ASMJIT_ENUM(CallConv) {
   //! NOTE: This should be always the same as `kCallConvHostCDecl`, but some
   //! compilers allow to override the default calling convention. Overriding
   //! is not detected at the moment.
-  kCallConvHost = DETECTED_AT_COMPILE_TIME,
+  kCallConvHost         = DETECTED_AT_COMPILE_TIME,
   //! Default C calling convention based on the current compiler's settings.
-  kCallConvHostCDecl = DETECTED_AT_COMPILE_TIME,
+  kCallConvHostCDecl    = DETECTED_AT_COMPILE_TIME,
   //! Compatibility for `__stdcall` calling convention.
   //!
   //! NOTE: This enumeration is always set to a value which is compatible with
   //! the current compiler's `__stdcall` calling convention. In 64-bit mode
   //! there is no such convention and the value is mapped to `kCallConvX64Win`
   //! or `kCallConvX64Unix`, depending on the host architecture.
-  kCallConvHostStdCall = DETECTED_AT_COMPILE_TIME,
+  kCallConvHostStdCall  = DETECTED_AT_COMPILE_TIME,
   //! Compatibility for `__fastcall` calling convention.
   //!
   //! NOTE: This enumeration is always set to a value which is compatible with
@@ -344,6 +365,16 @@ ASMJIT_ENUM(CallConv) {
   // X64 Host Support.
   kCallConvHost         = ASMJIT_OS_WINDOWS ? kCallConvX64Win : kCallConvX64Unix,
   // These don't exist in 64-bit mode.
+  kCallConvHostCDecl    = kCallConvHost,
+  kCallConvHostStdCall  = kCallConvHost,
+  kCallConvHostFastCall = kCallConvHost
+#elif ASMJIT_ARCH_ARM32
+# if defined(__SOFTFP__)
+  kCallConvHost         = kCallConvArm32SoftFP,
+# else
+  kCallConvHost         = kCallConvArm32HardFP,
+# endif
+  // These don't exist on ARM.
   kCallConvHostCDecl    = kCallConvHost,
   kCallConvHostStdCall  = kCallConvHost,
   kCallConvHostFastCall = kCallConvHost
@@ -484,6 +515,7 @@ ASMJIT_ENUM(FuncArgIndex) {
   //! This value is typically omitted and added only if there is HI argument
   //! accessed.
   kFuncArgLo = 0,
+
   //! Index to the HI part of function argument.
   //!
   //! HI part of function argument depends on target architecture. On x86 it's

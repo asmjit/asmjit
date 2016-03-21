@@ -189,9 +189,9 @@ struct X86Test_JumpCross : public X86Test {
   virtual void compile(X86Compiler& c) {
     c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 
-    Label L_1(c);
-    Label L_2(c);
-    Label L_3(c);
+    Label L_1 = c.newLabel();
+    Label L_2 = c.newLabel();
+    Label L_3 = c.newLabel();
 
     c.jmp(L_2);
 
@@ -230,13 +230,13 @@ struct X86Test_JumpUnreachable1 : public X86Test {
   virtual void compile(X86Compiler& c) {
     c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 
-    Label L_1(c);
-    Label L_2(c);
-    Label L_3(c);
-    Label L_4(c);
-    Label L_5(c);
-    Label L_6(c);
-    Label L_7(c);
+    Label L_1 = c.newLabel();
+    Label L_2 = c.newLabel();
+    Label L_3 = c.newLabel();
+    Label L_4 = c.newLabel();
+    Label L_5 = c.newLabel();
+    Label L_6 = c.newLabel();
+    Label L_7 = c.newLabel();
 
     X86GpVar v0 = c.newUInt32("v0");
     X86GpVar v1 = c.newUInt32("v1");
@@ -292,8 +292,8 @@ struct X86Test_JumpUnreachable2 : public X86Test {
   virtual void compile(X86Compiler& c) {
     c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 
-    Label L_1(c);
-    Label L_2(c);
+    Label L_1 = c.newLabel();
+    Label L_2 = c.newLabel();
 
     X86GpVar v0 = c.newUInt32("v0");
     X86GpVar v1 = c.newUInt32("v1");
@@ -397,7 +397,7 @@ struct X86Test_AllocManual : public X86Test {
     c.spill(v0);
     c.spill(v1);
 
-    Label L(c);
+    Label L = c.newLabel();
     c.mov(cnt, 32);
     c.bind(L);
 
@@ -449,7 +449,7 @@ struct X86Test_AllocUseMem : public X86Test {
     X86GpVar aIdx = c.newInt32("aIdx");
     X86GpVar aEnd = c.newInt32("aEnd");
 
-    Label L_1(c);
+    Label L_1 = c.newLabel();
 
     c.setArg(0, aIdx);
     c.setArg(1, aEnd);
@@ -589,7 +589,7 @@ struct X86Test_AllocMany2 : public X86Test {
     }
 
     X86GpVar v0 = c.newInt32("v0");
-    Label L(c);
+    Label L = c.newLabel();
 
     c.mov(v0, 32);
     c.bind(L);
@@ -1034,8 +1034,8 @@ struct X86Test_AllocIfElse1 : public X86Test {
     X86GpVar v1 = c.newInt32("v1");
     X86GpVar v2 = c.newInt32("v2");
 
-    Label L_1(c);
-    Label L_2(c);
+    Label L_1 = c.newLabel();
+    Label L_2 = c.newLabel();
 
     c.setArg(0, v1);
     c.setArg(1, v2);
@@ -1085,10 +1085,10 @@ struct X86Test_AllocIfElse2 : public X86Test {
     X86GpVar v1 = c.newInt32("v1");
     X86GpVar v2 = c.newInt32("v2");
 
-    Label L_1(c);
-    Label L_2(c);
-    Label L_3(c);
-    Label L_4(c);
+    Label L_1 = c.newLabel();
+    Label L_2 = c.newLabel();
+    Label L_3 = c.newLabel();
+    Label L_4 = c.newLabel();
 
     c.setArg(0, v1);
     c.setArg(1, v2);
@@ -1146,9 +1146,9 @@ struct X86Test_AllocIfElse3 : public X86Test {
     X86GpVar v2 = c.newInt32("v2");
     X86GpVar counter = c.newInt32("counter");
 
-    Label L_1(c);
-    Label L_Loop(c);
-    Label L_Exit(c);
+    Label L_1 = c.newLabel();
+    Label L_Loop = c.newLabel();
+    Label L_Exit = c.newLabel();
 
     c.setArg(0, v1);
     c.setArg(1, v2);
@@ -1206,10 +1206,10 @@ struct X86Test_AllocIfElse4 : public X86Test {
     X86GpVar v2 = c.newInt32("v2");
     X86GpVar counter = c.newInt32("counter");
 
-    Label L_1(c);
-    Label L_Loop1(c);
-    Label L_Loop2(c);
-    Label L_Exit(c);
+    Label L_1 = c.newLabel();
+    Label L_Loop1 = c.newLabel();
+    Label L_Loop2 = c.newLabel();
+    Label L_Exit = c.newLabel();
 
     c.mov(counter, 0);
 
@@ -1556,8 +1556,8 @@ struct X86Test_AllocStack : public X86Test {
     X86GpVar a = c.newInt32("a");
     X86GpVar b = c.newInt32("b");
 
-    Label L_1(c);
-    Label L_2(c);
+    Label L_1 = c.newLabel();
+    Label L_2 = c.newLabel();
 
     // Fill stack by sequence [0, 1, 2, 3 ... 255].
     c.xor_(i, i);
@@ -1615,8 +1615,8 @@ struct X86Test_AllocMemcpy : public X86Test {
     X86GpVar src = c.newIntPtr("src");
     X86GpVar cnt = c.newUIntPtr("cnt");
 
-    Label L_Loop(c);                               // Create base labels we use
-    Label L_Exit(c);                               // in our function.
+    Label L_Loop = c.newLabel();                   // Create base labels we use
+    Label L_Exit = c.newLabel();                   // in our function.
 
     c.addFunc(FuncBuilder3<Void, uint32_t*, const uint32_t*, size_t>(kCallConvHost));
     c.setArg(0, dst);
@@ -2247,8 +2247,8 @@ struct X86Test_CallConditional : public X86Test {
     c.setArg(1, y);
     c.setArg(2, op);
 
-    Label opAdd(c);
-    Label opMul(c);
+    Label opAdd = c.newLabel();
+    Label opMul = c.newLabel();
 
     c.cmp(op, 0);
     c.jz(opAdd);
@@ -2392,7 +2392,7 @@ struct X86Test_CallRecursive : public X86Test {
 
   virtual void compile(X86Compiler& c) {
     X86GpVar val = c.newInt32("val");
-    Label skip(c);
+    Label skip = c.newLabel();
 
     X86FuncNode* func = c.addFunc(FuncBuilder1<int, int>(kCallConvHost));
     c.setArg(0, val);
@@ -2443,7 +2443,7 @@ struct X86Test_CallMisc1 : public X86Test {
 
   virtual void compile(X86Compiler& c) {
     X86GpVar val = c.newInt32("val");
-    Label skip(c);
+    Label skip = c.newLabel();
 
     X86FuncNode* func = c.addFunc(FuncBuilder2<int, int, int>(kCallConvHost));
 
@@ -2690,11 +2690,11 @@ struct X86Test_MiscMultiRet : public X86Test {
     X86GpVar a = c.newInt32("a");
     X86GpVar b = c.newInt32("b");
 
-    Label L_Zero(c);
-    Label L_Add(c);
-    Label L_Sub(c);
-    Label L_Mul(c);
-    Label L_Div(c);
+    Label L_Zero = c.newLabel();
+    Label L_Add = c.newLabel();
+    Label L_Sub = c.newLabel();
+    Label L_Mul = c.newLabel();
+    Label L_Div = c.newLabel();
 
     c.setArg(0, op);
     c.setArg(1, a);
@@ -2788,7 +2788,7 @@ struct X86Test_MiscUnfollow : public X86Test {
     X86GpVar a = c.newInt32("a");
     X86GpVar b = c.newIntPtr("b");
 
-    Label tramp(c);
+    Label tramp = c.newLabel();
 
     c.setArg(0, a);
     c.setArg(1, b);
@@ -2939,10 +2939,10 @@ int X86TestSuite::run() {
   FILE* file = stdout;
 
   FileLogger fileLogger(file);
-  fileLogger.setOption(kLoggerOptionBinaryForm, true);
+  fileLogger.addOptions(Logger::kOptionBinaryForm);
 
   StringLogger stringLogger;
-  stringLogger.setOption(kLoggerOptionBinaryForm, true);
+  stringLogger.addOptions(Logger::kOptionBinaryForm);
 
   for (i = 0; i < count; i++) {
     JitRuntime runtime;

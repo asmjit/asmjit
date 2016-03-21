@@ -6,7 +6,7 @@
 
 // [Export]
 #define ASMJIT_EXPORTS
-#define ASMJIT_EXPORTS_X86OPERAND_REGS
+#define ASMJIT_EXPORTS_X86_REGS
 
 // [Guard]
 #include "../build.h"
@@ -21,24 +21,48 @@
 namespace asmjit {
 
 #define REG(_Type_, _Index_, _Size_) {{{ \
-  kOperandTypeReg, _Size_, { ((_Type_) << 8) + _Index_ }, kInvalidValue, {{ kInvalidVar, 0 }} \
+  Operand::kTypeReg, _Size_, { ((_Type_) << 8) + _Index_ }, kInvalidValue, {{ kInvalidVar, 0 }} \
 }}}
 
 const X86RegData x86RegData = {
-  // RIP.
-  REG(kX86RegTypeRip, 0, 0),
-  // NpGp.
-  REG(kInvalidReg, kInvalidReg, 0),
-
-  // Segments.
+  // Gpd.
   {
-    REG(kX86RegTypeSeg, 0, 2), // Default.
-    REG(kX86RegTypeSeg, 1, 2), // ES.
-    REG(kX86RegTypeSeg, 2, 2), // CS.
-    REG(kX86RegTypeSeg, 3, 2), // SS.
-    REG(kX86RegTypeSeg, 4, 2), // DS.
-    REG(kX86RegTypeSeg, 5, 2), // FS.
-    REG(kX86RegTypeSeg, 6, 2)  // GS.
+    REG(kX86RegTypeGpd, 0 , 4),
+    REG(kX86RegTypeGpd, 1 , 4),
+    REG(kX86RegTypeGpd, 2 , 4),
+    REG(kX86RegTypeGpd, 3 , 4),
+    REG(kX86RegTypeGpd, 4 , 4),
+    REG(kX86RegTypeGpd, 5 , 4),
+    REG(kX86RegTypeGpd, 6 , 4),
+    REG(kX86RegTypeGpd, 7 , 4),
+    REG(kX86RegTypeGpd, 8 , 4),
+    REG(kX86RegTypeGpd, 9 , 4),
+    REG(kX86RegTypeGpd, 10, 4),
+    REG(kX86RegTypeGpd, 11, 4),
+    REG(kX86RegTypeGpd, 12, 4),
+    REG(kX86RegTypeGpd, 13, 4),
+    REG(kX86RegTypeGpd, 14, 4),
+    REG(kX86RegTypeGpd, 15, 4)
+  },
+
+  // Gpq.
+  {
+    REG(kX86RegTypeGpq, 0 , 8),
+    REG(kX86RegTypeGpq, 1 , 8),
+    REG(kX86RegTypeGpq, 2 , 8),
+    REG(kX86RegTypeGpq, 3 , 8),
+    REG(kX86RegTypeGpq, 4 , 8),
+    REG(kX86RegTypeGpq, 5 , 8),
+    REG(kX86RegTypeGpq, 6 , 8),
+    REG(kX86RegTypeGpq, 7 , 8),
+    REG(kX86RegTypeGpq, 8 , 8),
+    REG(kX86RegTypeGpq, 9 , 8),
+    REG(kX86RegTypeGpq, 10, 8),
+    REG(kX86RegTypeGpq, 11, 8),
+    REG(kX86RegTypeGpq, 12, 8),
+    REG(kX86RegTypeGpq, 13, 8),
+    REG(kX86RegTypeGpq, 14, 8),
+    REG(kX86RegTypeGpq, 15, 8)
   },
 
   // GpbLo.
@@ -71,16 +95,16 @@ const X86RegData x86RegData = {
 
   // Gpw.
   {
-    REG(kX86RegTypeGpw, 0, 2),
-    REG(kX86RegTypeGpw, 1, 2),
-    REG(kX86RegTypeGpw, 2, 2),
-    REG(kX86RegTypeGpw, 3, 2),
-    REG(kX86RegTypeGpw, 4, 2),
-    REG(kX86RegTypeGpw, 5, 2),
-    REG(kX86RegTypeGpw, 6, 2),
-    REG(kX86RegTypeGpw, 7, 2),
-    REG(kX86RegTypeGpw, 8, 2),
-    REG(kX86RegTypeGpw, 9, 2),
+    REG(kX86RegTypeGpw, 0 , 2),
+    REG(kX86RegTypeGpw, 1 , 2),
+    REG(kX86RegTypeGpw, 2 , 2),
+    REG(kX86RegTypeGpw, 3 , 2),
+    REG(kX86RegTypeGpw, 4 , 2),
+    REG(kX86RegTypeGpw, 5 , 2),
+    REG(kX86RegTypeGpw, 6 , 2),
+    REG(kX86RegTypeGpw, 7 , 2),
+    REG(kX86RegTypeGpw, 8 , 2),
+    REG(kX86RegTypeGpw, 9 , 2),
     REG(kX86RegTypeGpw, 10, 2),
     REG(kX86RegTypeGpw, 11, 2),
     REG(kX86RegTypeGpw, 12, 2),
@@ -89,94 +113,18 @@ const X86RegData x86RegData = {
     REG(kX86RegTypeGpw, 15, 2)
   },
 
-  // Gpd.
-  {
-    REG(kX86RegTypeGpd, 0, 4),
-    REG(kX86RegTypeGpd, 1, 4),
-    REG(kX86RegTypeGpd, 2, 4),
-    REG(kX86RegTypeGpd, 3, 4),
-    REG(kX86RegTypeGpd, 4, 4),
-    REG(kX86RegTypeGpd, 5, 4),
-    REG(kX86RegTypeGpd, 6, 4),
-    REG(kX86RegTypeGpd, 7, 4),
-    REG(kX86RegTypeGpd, 8, 4),
-    REG(kX86RegTypeGpd, 9, 4),
-    REG(kX86RegTypeGpd, 10, 4),
-    REG(kX86RegTypeGpd, 11, 4),
-    REG(kX86RegTypeGpd, 12, 4),
-    REG(kX86RegTypeGpd, 13, 4),
-    REG(kX86RegTypeGpd, 14, 4),
-    REG(kX86RegTypeGpd, 15, 4)
-  },
-
-  // Gpq.
-  {
-    REG(kX86RegTypeGpq, 0, 8),
-    REG(kX86RegTypeGpq, 1, 8),
-    REG(kX86RegTypeGpq, 2, 8),
-    REG(kX86RegTypeGpq, 3, 8),
-    REG(kX86RegTypeGpq, 4, 8),
-    REG(kX86RegTypeGpq, 5, 8),
-    REG(kX86RegTypeGpq, 6, 8),
-    REG(kX86RegTypeGpq, 7, 8),
-    REG(kX86RegTypeGpq, 8, 8),
-    REG(kX86RegTypeGpq, 9, 8),
-    REG(kX86RegTypeGpq, 10, 8),
-    REG(kX86RegTypeGpq, 11, 8),
-    REG(kX86RegTypeGpq, 12, 8),
-    REG(kX86RegTypeGpq, 13, 8),
-    REG(kX86RegTypeGpq, 14, 8),
-    REG(kX86RegTypeGpq, 15, 8)
-  },
-
-  // Fp.
-  {
-    REG(kX86RegTypeFp, 0, 10),
-    REG(kX86RegTypeFp, 1, 10),
-    REG(kX86RegTypeFp, 2, 10),
-    REG(kX86RegTypeFp, 3, 10),
-    REG(kX86RegTypeFp, 4, 10),
-    REG(kX86RegTypeFp, 5, 10),
-    REG(kX86RegTypeFp, 6, 10),
-    REG(kX86RegTypeFp, 7, 10)
-  },
-
-  // Mm.
-  {
-    REG(kX86RegTypeMm, 0, 8),
-    REG(kX86RegTypeMm, 1, 8),
-    REG(kX86RegTypeMm, 2, 8),
-    REG(kX86RegTypeMm, 3, 8),
-    REG(kX86RegTypeMm, 4, 8),
-    REG(kX86RegTypeMm, 5, 8),
-    REG(kX86RegTypeMm, 6, 8),
-    REG(kX86RegTypeMm, 7, 8)
-  },
-
-  // K.
-  {
-    REG(kX86RegTypeK, 0, 8),
-    REG(kX86RegTypeK, 1, 8),
-    REG(kX86RegTypeK, 2, 8),
-    REG(kX86RegTypeK, 3, 8),
-    REG(kX86RegTypeK, 4, 8),
-    REG(kX86RegTypeK, 5, 8),
-    REG(kX86RegTypeK, 6, 8),
-    REG(kX86RegTypeK, 7, 8)
-  },
-
   // Xmm.
   {
-    REG(kX86RegTypeXmm, 0, 16),
-    REG(kX86RegTypeXmm, 1, 16),
-    REG(kX86RegTypeXmm, 2, 16),
-    REG(kX86RegTypeXmm, 3, 16),
-    REG(kX86RegTypeXmm, 4, 16),
-    REG(kX86RegTypeXmm, 5, 16),
-    REG(kX86RegTypeXmm, 6, 16),
-    REG(kX86RegTypeXmm, 7, 16),
-    REG(kX86RegTypeXmm, 8, 16),
-    REG(kX86RegTypeXmm, 9, 16),
+    REG(kX86RegTypeXmm, 0 , 16),
+    REG(kX86RegTypeXmm, 1 , 16),
+    REG(kX86RegTypeXmm, 2 , 16),
+    REG(kX86RegTypeXmm, 3 , 16),
+    REG(kX86RegTypeXmm, 4 , 16),
+    REG(kX86RegTypeXmm, 5 , 16),
+    REG(kX86RegTypeXmm, 6 , 16),
+    REG(kX86RegTypeXmm, 7 , 16),
+    REG(kX86RegTypeXmm, 8 , 16),
+    REG(kX86RegTypeXmm, 9 , 16),
     REG(kX86RegTypeXmm, 10, 16),
     REG(kX86RegTypeXmm, 11, 16),
     REG(kX86RegTypeXmm, 12, 16),
@@ -203,16 +151,16 @@ const X86RegData x86RegData = {
 
   // Ymm.
   {
-    REG(kX86RegTypeYmm, 0, 32),
-    REG(kX86RegTypeYmm, 1, 32),
-    REG(kX86RegTypeYmm, 2, 32),
-    REG(kX86RegTypeYmm, 3, 32),
-    REG(kX86RegTypeYmm, 4, 32),
-    REG(kX86RegTypeYmm, 5, 32),
-    REG(kX86RegTypeYmm, 6, 32),
-    REG(kX86RegTypeYmm, 7, 32),
-    REG(kX86RegTypeYmm, 8, 32),
-    REG(kX86RegTypeYmm, 9, 32),
+    REG(kX86RegTypeYmm, 0 , 32),
+    REG(kX86RegTypeYmm, 1 , 32),
+    REG(kX86RegTypeYmm, 2 , 32),
+    REG(kX86RegTypeYmm, 3 , 32),
+    REG(kX86RegTypeYmm, 4 , 32),
+    REG(kX86RegTypeYmm, 5 , 32),
+    REG(kX86RegTypeYmm, 6 , 32),
+    REG(kX86RegTypeYmm, 7 , 32),
+    REG(kX86RegTypeYmm, 8 , 32),
+    REG(kX86RegTypeYmm, 9 , 32),
     REG(kX86RegTypeYmm, 10, 32),
     REG(kX86RegTypeYmm, 11, 32),
     REG(kX86RegTypeYmm, 12, 32),
@@ -239,16 +187,16 @@ const X86RegData x86RegData = {
 
   // Zmm.
   {
-    REG(kX86RegTypeZmm, 0, 64),
-    REG(kX86RegTypeZmm, 1, 64),
-    REG(kX86RegTypeZmm, 2, 64),
-    REG(kX86RegTypeZmm, 3, 64),
-    REG(kX86RegTypeZmm, 4, 64),
-    REG(kX86RegTypeZmm, 5, 64),
-    REG(kX86RegTypeZmm, 6, 64),
-    REG(kX86RegTypeZmm, 7, 64),
-    REG(kX86RegTypeZmm, 8, 64),
-    REG(kX86RegTypeZmm, 9, 64),
+    REG(kX86RegTypeZmm, 0 , 64),
+    REG(kX86RegTypeZmm, 1 , 64),
+    REG(kX86RegTypeZmm, 2 , 64),
+    REG(kX86RegTypeZmm, 3 , 64),
+    REG(kX86RegTypeZmm, 4 , 64),
+    REG(kX86RegTypeZmm, 5 , 64),
+    REG(kX86RegTypeZmm, 6 , 64),
+    REG(kX86RegTypeZmm, 7 , 64),
+    REG(kX86RegTypeZmm, 8 , 64),
+    REG(kX86RegTypeZmm, 9 , 64),
     REG(kX86RegTypeZmm, 10, 64),
     REG(kX86RegTypeZmm, 11, 64),
     REG(kX86RegTypeZmm, 12, 64),
@@ -271,7 +219,59 @@ const X86RegData x86RegData = {
     REG(kX86RegTypeZmm, 29, 64),
     REG(kX86RegTypeZmm, 30, 64),
     REG(kX86RegTypeZmm, 31, 64)
-  }
+  },
+
+  // K.
+  {
+    REG(kX86RegTypeK, 0, 8),
+    REG(kX86RegTypeK, 1, 8),
+    REG(kX86RegTypeK, 2, 8),
+    REG(kX86RegTypeK, 3, 8),
+    REG(kX86RegTypeK, 4, 8),
+    REG(kX86RegTypeK, 5, 8),
+    REG(kX86RegTypeK, 6, 8),
+    REG(kX86RegTypeK, 7, 8)
+  },
+
+  // Fp.
+  {
+    REG(kX86RegTypeFp, 0, 10),
+    REG(kX86RegTypeFp, 1, 10),
+    REG(kX86RegTypeFp, 2, 10),
+    REG(kX86RegTypeFp, 3, 10),
+    REG(kX86RegTypeFp, 4, 10),
+    REG(kX86RegTypeFp, 5, 10),
+    REG(kX86RegTypeFp, 6, 10),
+    REG(kX86RegTypeFp, 7, 10)
+  },
+
+  // Mm.
+  {
+    REG(kX86RegTypeMm, 0, 8),
+    REG(kX86RegTypeMm, 1, 8),
+    REG(kX86RegTypeMm, 2, 8),
+    REG(kX86RegTypeMm, 3, 8),
+    REG(kX86RegTypeMm, 4, 8),
+    REG(kX86RegTypeMm, 5, 8),
+    REG(kX86RegTypeMm, 6, 8),
+    REG(kX86RegTypeMm, 7, 8)
+  },
+
+  // Segments.
+  {
+    REG(kX86RegTypeSeg, 0, 2), // Default.
+    REG(kX86RegTypeSeg, 1, 2), // ES.
+    REG(kX86RegTypeSeg, 2, 2), // CS.
+    REG(kX86RegTypeSeg, 3, 2), // SS.
+    REG(kX86RegTypeSeg, 4, 2), // DS.
+    REG(kX86RegTypeSeg, 5, 2), // FS.
+    REG(kX86RegTypeSeg, 6, 2)  // GS.
+  },
+
+  // NoGp.
+  REG(kInvalidReg, kInvalidReg, 0),
+  // RIP.
+  REG(kX86RegTypeRip, 0, 0),
 };
 
 #undef REG

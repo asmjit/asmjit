@@ -43,7 +43,7 @@ namespace asmjit {
 static volatile uint32_t Utils_hiResTicks;
 static volatile double Utils_hiResFreq;
 
-uint32_t Utils::getTickCount() {
+uint32_t Utils::getTickCount() noexcept {
   do {
     uint32_t hiResOk = Utils_hiResTicks;
 
@@ -87,7 +87,7 @@ uint32_t Utils::getTickCount() {
 #elif ASMJIT_OS_MAC
 static mach_timebase_info_data_t CpuTicks_machTime;
 
-uint32_t Utils::getTickCount() {
+uint32_t Utils::getTickCount() noexcept {
   // Initialize the first time CpuTicks::now() is called (See Apple's QA1398).
   if (CpuTicks_machTime.denom == 0) {
     if (mach_timebase_info(&CpuTicks_machTime) != KERN_SUCCESS)
@@ -106,7 +106,7 @@ uint32_t Utils::getTickCount() {
 // ============================================================================
 
 #else
-uint32_t Utils::getTickCount() {
+uint32_t Utils::getTickCount() noexcept {
 #if defined(_POSIX_MONOTONIC_CLOCK) && _POSIX_MONOTONIC_CLOCK >= 0
   struct timespec ts;
 
@@ -121,6 +121,10 @@ uint32_t Utils::getTickCount() {
 #endif  // _POSIX_MONOTONIC_CLOCK
 }
 #endif // ASMJIT_OS
+
+// ============================================================================
+// [asmjit::Utils - Unit]
+// ============================================================================
 
 #if defined(ASMJIT_TEST)
 UNIT(base_utils) {

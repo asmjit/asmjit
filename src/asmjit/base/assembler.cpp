@@ -24,29 +24,29 @@ namespace asmjit {
 // [asmjit::ErrorHandler]
 // ============================================================================
 
-ErrorHandler::ErrorHandler() {}
-ErrorHandler::~ErrorHandler() {}
+ErrorHandler::ErrorHandler() noexcept {}
+ErrorHandler::~ErrorHandler() noexcept {}
 
-ErrorHandler* ErrorHandler::addRef() const {
+ErrorHandler* ErrorHandler::addRef() const noexcept {
   return const_cast<ErrorHandler*>(this);
 }
-void ErrorHandler::release() {}
+void ErrorHandler::release() noexcept {}
 
 // ============================================================================
-// [asmjit::CodeGen]
+// [asmjit::ExternalTool]
 // ============================================================================
 
-CodeGen::CodeGen()
+ExternalTool::ExternalTool() noexcept
   : _assembler(nullptr),
-    _hlId(0),
+    _exId(0),
     _arch(kArchNone),
     _regSize(0),
     _finalized(false),
     _reserved(0),
     _lastError(kErrorNotInitialized) {}
-CodeGen::~CodeGen() {}
+ExternalTool::~ExternalTool() noexcept {}
 
-Error CodeGen::setLastError(Error error, const char* message) {
+Error ExternalTool::setLastError(Error error, const char* message) noexcept {
   // Special case, reset the last error the error is `kErrorOk`.
   if (error == kErrorOk)  {
     _lastError = kErrorOk;
@@ -63,7 +63,7 @@ Error CodeGen::setLastError(Error error, const char* message) {
 
   // Logging is skipped if the error is handled by `ErrorHandler.
   ErrorHandler* eh = assembler->getErrorHandler();
-  ASMJIT_TLOG("[ERROR (CodeGen)] %s (0x%0.8u) %s\n", message,
+  ASMJIT_TLOG("[ERROR (ExternalTool)] %s (0x%0.8u) %s\n", message,
     static_cast<unsigned int>(error),
     !eh ? "(Possibly unhandled?)" : "");
 
@@ -73,8 +73,8 @@ Error CodeGen::setLastError(Error error, const char* message) {
 #if !defined(ASMJIT_DISABLE_LOGGER)
   Logger* logger = assembler->getLogger();
   if (logger != nullptr)
-    logger->logFormat(kLoggerStyleComment,
-      "*** ERROR (CodeGen): %s (0x%0.8u).\n", message,
+    logger->logFormat(Logger::kStyleComment,
+      "*** ERROR (ExternalTool): %s (0x%0.8u).\n", message,
       static_cast<unsigned int>(error));
 #endif // !ASMJIT_DISABLE_LOGGER
 
@@ -89,18 +89,18 @@ Error CodeGen::setLastError(Error error, const char* message) {
 // [asmjit::Assembler - Construction / Destruction]
 // ============================================================================
 
-Assembler::Assembler(Runtime* runtime)
+Assembler::Assembler(Runtime* runtime) noexcept
   : _runtime(runtime),
     _logger(nullptr),
     _errorHandler(nullptr),
     _arch(kArchNone),
     _regSize(0),
     _reserved(0),
-    _features(Utils::mask(kAssemblerFeatureOptimizedAlign)),
+    _asmOptions(0),
     _instOptions(0),
     _lastError(runtime ? kErrorOk : kErrorNotInitialized),
-    _hlIdGenerator(0),
-    _hlAttachedCount(0),
+    _exIdGenerator(0),
+    _exCountAttached(0),
     _zoneAllocator(8192 - Zone::kZoneOverhead),
     _buffer(nullptr),
     _end(nullptr),
@@ -108,10 +108,10 @@ Assembler::Assembler(Runtime* runtime)
     _trampolinesSize(0),
     _comment(nullptr),
     _unusedLinks(nullptr),
-    _labelList(),
-    _relocList() {}
+    _labels(),
+    _relocations() {}
 
-Assembler::~Assembler() {
+Assembler::~Assembler() noexcept {
   reset(true);
 
   if (_errorHandler != nullptr)
@@ -122,12 +122,12 @@ Assembler::~Assembler() {
 // [asmjit::Assembler - Reset]
 // ============================================================================
 
-void Assembler::reset(bool releaseMemory) {
-  _features = Utils::mask(kAssemblerFeatureOptimizedAlign);
+void Assembler::reset(bool releaseMemory) noexcept {
+  _asmOptions = 0;
   _instOptions = 0;
   _lastError = kErrorOk;
-  _hlIdGenerator = 0;
-  _hlAttachedCount = 0;
+  _exIdGenerator = 0;
+  _exCountAttached = 0;
 
   _zoneAllocator.reset(releaseMemory);
 
@@ -143,15 +143,16 @@ void Assembler::reset(bool releaseMemory) {
   _comment = nullptr;
   _unusedLinks = nullptr;
 
-  _labelList.reset(releaseMemory);
-  _relocList.reset(releaseMemory);
+  _sections.reset(releaseMemory);
+  _labels.reset(releaseMemory);
+  _relocations.reset(releaseMemory);
 }
 
 // ============================================================================
 // [asmjit::Assembler - Logging & Error Handling]
 // ============================================================================
 
-Error Assembler::setLastError(Error error, const char* message) {
+Error Assembler::setLastError(Error error, const char* message) noexcept {
   // Special case, reset the last error the error is `kErrorOk`.
   if (error == kErrorOk)  {
     _lastError = kErrorOk;
@@ -173,7 +174,7 @@ Error Assembler::setLastError(Error error, const char* message) {
 #if !defined(ASMJIT_DISABLE_LOGGER)
   Logger* logger = _logger;
   if (logger != nullptr)
-    logger->logFormat(kLoggerStyleComment,
+    logger->logFormat(Logger::kStyleComment,
       "*** ERROR (Assembler): %s (0x%0.8u).\n", message,
       static_cast<unsigned int>(error));
 #endif // !ASMJIT_DISABLE_LOGGER
@@ -185,7 +186,7 @@ Error Assembler::setLastError(Error error, const char* message) {
   return error;
 }
 
-Error Assembler::setErrorHandler(ErrorHandler* handler) {
+Error Assembler::setErrorHandler(ErrorHandler* handler) noexcept {
   ErrorHandler* oldHandler = _errorHandler;
 
   if (oldHandler != nullptr)
@@ -202,7 +203,7 @@ Error Assembler::setErrorHandler(ErrorHandler* handler) {
 // [asmjit::Assembler - Buffer]
 // ============================================================================
 
-Error Assembler::_grow(size_t n) {
+Error Assembler::_grow(size_t n) noexcept {
   size_t capacity = getCapacity();
   size_t after = getOffset() + n;
 
@@ -237,7 +238,7 @@ Error Assembler::_grow(size_t n) {
   return _reserve(capacity);
 }
 
-Error Assembler::_reserve(size_t n) {
+Error Assembler::_reserve(size_t n) noexcept {
   size_t capacity = getCapacity();
   if (n <= capacity)
     return kErrorOk;
@@ -264,16 +265,16 @@ Error Assembler::_reserve(size_t n) {
 // [asmjit::Assembler - Label]
 // ============================================================================
 
-Error Assembler::_newLabelId() {
+Error Assembler::_newLabelId() noexcept {
   LabelData* data = _zoneAllocator.allocT<LabelData>();
 
   data->offset = -1;
   data->links = nullptr;
-  data->hlId = 0;
-  data->hlData = nullptr;
+  data->exId = 0;
+  data->exData = nullptr;
 
-  uint32_t id = OperandUtil::makeLabelId(static_cast<uint32_t>(_labelList.getLength()));
-  Error error = _labelList.append(data);
+  uint32_t id = OperandUtil::makeLabelId(static_cast<uint32_t>(_labels.getLength()));
+  Error error = _labels.append(data);
 
   if (error != kErrorOk) {
     setLastError(kErrorNoHeapMemory);
@@ -283,7 +284,7 @@ Error Assembler::_newLabelId() {
   return id;
 }
 
-LabelLink* Assembler::_newLabelLink() {
+LabelLink* Assembler::_newLabelLink() noexcept {
   LabelLink* link = _unusedLinks;
 
   if (link) {
@@ -303,7 +304,7 @@ LabelLink* Assembler::_newLabelLink() {
   return link;
 }
 
-Error Assembler::bind(const Label& label) {
+Error Assembler::bind(const Label& label) noexcept {
   // Get label data based on label id.
   uint32_t index = label.getId();
   LabelData* data = getLabelData(index);
@@ -318,11 +319,11 @@ Error Assembler::bind(const Label& label) {
     sb.setFormat("L%u:", index);
 
     size_t binSize = 0;
-    if ((_logger->getOptions() & (1 << kLoggerOptionBinaryForm)) == 0)
+    if (!_logger->hasOption(Logger::kOptionBinaryForm))
       binSize = kInvalidIndex;
 
     LogUtil::formatLine(sb, nullptr, binSize, 0, 0, _comment);
-    _logger->logString(kLoggerStyleLabel, sb.getData(), sb.getLength());
+    _logger->logString(Logger::kStyleLabel, sb.getData(), sb.getLength());
   }
 #endif // !ASMJIT_DISABLE_LOGGER
 
@@ -338,7 +339,7 @@ Error Assembler::bind(const Label& label) {
     if (link->relocId != -1) {
       // Handle RelocData - We have to update RelocData information instead of
       // patching the displacement in LabelData.
-      _relocList[link->relocId].data += static_cast<Ptr>(pos);
+      _relocations[link->relocId].data += static_cast<Ptr>(pos);
     }
     else {
       // Not using relocId, this means that we are overwriting a real
@@ -347,16 +348,16 @@ Error Assembler::bind(const Label& label) {
         static_cast<intptr_t>(pos) - offset + link->displacement);
 
       // Size of the value we are going to patch. Only BYTE/DWORD is allowed.
-      uint32_t size = getByteAt(offset);
+      uint32_t size = readU8At(offset);
       ASMJIT_ASSERT(size == 1 || size == 4);
 
       if (size == 4) {
-        setInt32At(offset, patchedValue);
+        writeI32At(offset, patchedValue);
       }
       else {
         ASMJIT_ASSERT(size == 1);
         if (Utils::isInt8(patchedValue))
-          setByteAt(offset, static_cast<uint8_t>(patchedValue & 0xFF));
+          writeU8At(offset, static_cast<uint32_t>(patchedValue) & 0xFF);
         else
           error = kErrorIllegalDisplacement;
       }
@@ -391,7 +392,7 @@ Error Assembler::bind(const Label& label) {
 // [asmjit::Assembler - Embed]
 // ============================================================================
 
-Error Assembler::embed(const void* data, uint32_t size) {
+Error Assembler::embed(const void* data, uint32_t size) noexcept {
   if (getRemainingSpace() < size) {
     Error error = _grow(size);
     if (error != kErrorOk)
@@ -404,7 +405,7 @@ Error Assembler::embed(const void* data, uint32_t size) {
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
   if (_logger)
-    _logger->logBinary(kLoggerStyleData, data, size);
+    _logger->logBinary(Logger::kStyleData, data, size);
 #endif // !ASMJIT_DISABLE_LOGGER
 
   return kErrorOk;
@@ -414,7 +415,7 @@ Error Assembler::embed(const void* data, uint32_t size) {
 // [asmjit::Assembler - Reloc]
 // ============================================================================
 
-size_t Assembler::relocCode(void* dst, Ptr baseAddress) const {
+size_t Assembler::relocCode(void* dst, Ptr baseAddress) const noexcept {
   if (baseAddress == kNoBaseAddress)
     baseAddress = static_cast<Ptr>((uintptr_t)dst);
   return _relocCode(dst, baseAddress);
@@ -424,7 +425,7 @@ size_t Assembler::relocCode(void* dst, Ptr baseAddress) const {
 // [asmjit::Assembler - Make]
 // ============================================================================
 
-void* Assembler::make() {
+void* Assembler::make() noexcept {
   // Do nothing on error condition or if no instruction has been emitted.
   if (_lastError != kErrorOk || getCodeSize() == 0)
     return nullptr;

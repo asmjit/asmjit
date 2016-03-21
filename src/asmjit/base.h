@@ -18,6 +18,7 @@
 #include "./base/globals.h"
 #include "./base/logger.h"
 #include "./base/operand.h"
+#include "./base/podvector.h"
 #include "./base/runtime.h"
 #include "./base/utils.h"
 #include "./base/vectypes.h"

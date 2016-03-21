@@ -32,52 +32,13 @@ struct X86FuncNode;
 //! \addtogroup asmjit_x86
 //! \{
 
-// ============================================================================
-// [asmjit::X86VarInfo]
-// ============================================================================
-
 //! \internal
-//!
-//! X86 variable information.
-struct X86VarInfo {
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
-
-  //! Get register type, see `X86RegType`.
-  ASMJIT_INLINE uint32_t getReg() const noexcept { return _reg; }
-  //! Get register size in bytes.
-  ASMJIT_INLINE uint32_t getSize() const noexcept { return _size; }
-  //! Get variable class, see `RegClass`.
-  ASMJIT_INLINE uint32_t getClass() const noexcept { return _class; }
-  //! Get variable description, see `VarFlag`.
-  ASMJIT_INLINE uint32_t getDesc() const noexcept { return _desc; }
-  //! Get variable type name.
-  ASMJIT_INLINE const char* getName() const noexcept { return _name; }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Register type, see `X86RegType`.
-  uint8_t _reg;
-  //! Register size in bytes.
-  uint8_t _size;
-  //! Register class, see `RegClass`.
-  uint8_t _class;
-  //! Variable flags, see `VarFlag`.
-  uint8_t _desc;
-  //! Variable type name.
-  char _name[4];
-};
-
-//! \internal
-ASMJIT_VARAPI const X86VarInfo _x86VarInfo[];
+ASMJIT_VARAPI const VarInfo _x86VarInfo[];
 
 #if defined(ASMJIT_BUILD_X86)
 //! \internal
 //!
-//! Mapping of x86 variables into their real IDs.
+//! Mapping of x86 variable types, including all abstract types, into their real types.
 //!
 //! This mapping translates the following:
 //! - `kVarTypeInt64` to `kInvalidVar`.
@@ -90,7 +51,7 @@ ASMJIT_VARAPI const uint8_t _x86VarMapping[kX86VarTypeCount];
 #if defined(ASMJIT_BUILD_X64)
 //! \internal
 //!
-//! Mapping of x64 variables into their real IDs.
+//! Mapping of x64 variable types, including all abstract types, into their real types.
 //!
 //! This mapping translates the following:
 //! - `kVarTypeIntPtr` to `kVarTypeInt64`.
@@ -111,7 +72,7 @@ struct X86FuncNode : public HLFunc {
   // --------------------------------------------------------------------------
 
   //! Create a new `X86FuncNode` instance.
-  ASMJIT_INLINE X86FuncNode(Compiler* compiler) : HLFunc(compiler) {
+  ASMJIT_INLINE X86FuncNode(Compiler* compiler) noexcept : HLFunc(compiler) {
     _decl = &_x86Decl;
     _saveRestoreRegs.reset();
 
@@ -129,48 +90,48 @@ struct X86FuncNode : public HLFunc {
   }
 
   //! Destroy the `X86FuncNode` instance.
-  ASMJIT_INLINE ~X86FuncNode() {}
+  ASMJIT_INLINE ~X86FuncNode() noexcept {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
   //! Get function declaration as `X86FuncDecl`.
-  ASMJIT_INLINE X86FuncDecl* getDecl() const {
+  ASMJIT_INLINE X86FuncDecl* getDecl() const noexcept {
     return const_cast<X86FuncDecl*>(&_x86Decl);
   }
 
   //! Get argument.
-  ASMJIT_INLINE VarData* getArg(uint32_t i) const {
+  ASMJIT_INLINE VarData* getArg(uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _x86Decl.getNumArgs());
     return static_cast<VarData*>(_args[i]);
   }
 
   //! Get registers which have to be saved in prolog/epilog.
-  ASMJIT_INLINE uint32_t getSaveRestoreRegs(uint32_t rc) { return _saveRestoreRegs.get(rc); }
+  ASMJIT_INLINE uint32_t getSaveRestoreRegs(uint32_t rc) noexcept { return _saveRestoreRegs.get(rc); }
 
   //! Get stack size needed to align stack back to the nature alignment.
-  ASMJIT_INLINE uint32_t getAlignStackSize() const { return _alignStackSize; }
+  ASMJIT_INLINE uint32_t getAlignStackSize() const noexcept { return _alignStackSize; }
   //! Set stack size needed to align stack back to the nature alignment.
-  ASMJIT_INLINE void setAlignStackSize(uint32_t s) { _alignStackSize = s; }
+  ASMJIT_INLINE void setAlignStackSize(uint32_t s) noexcept { _alignStackSize = s; }
 
   //! Get aligned stack size used by variables and memory allocated on the stack.
-  ASMJIT_INLINE uint32_t getAlignedMemStackSize() const { return _alignedMemStackSize; }
+  ASMJIT_INLINE uint32_t getAlignedMemStackSize() const noexcept { return _alignedMemStackSize; }
 
   //! Get stack size used by push/pop sequences in prolog/epilog.
-  ASMJIT_INLINE uint32_t getPushPopStackSize() const { return _pushPopStackSize; }
+  ASMJIT_INLINE uint32_t getPushPopStackSize() const noexcept { return _pushPopStackSize; }
   //! Set stack size used by push/pop sequences in prolog/epilog.
-  ASMJIT_INLINE void setPushPopStackSize(uint32_t s) { _pushPopStackSize = s; }
+  ASMJIT_INLINE void setPushPopStackSize(uint32_t s) noexcept { _pushPopStackSize = s; }
 
   //! Get stack size used by mov sequences in prolog/epilog.
-  ASMJIT_INLINE uint32_t getMoveStackSize() const { return _moveStackSize; }
+  ASMJIT_INLINE uint32_t getMoveStackSize() const noexcept { return _moveStackSize; }
   //! Set stack size used by mov sequences in prolog/epilog.
-  ASMJIT_INLINE void setMoveStackSize(uint32_t s) { _moveStackSize = s; }
+  ASMJIT_INLINE void setMoveStackSize(uint32_t s) noexcept { _moveStackSize = s; }
 
   //! Get extra stack size.
-  ASMJIT_INLINE uint32_t getExtraStackSize() const { return _extraStackSize; }
+  ASMJIT_INLINE uint32_t getExtraStackSize() const noexcept { return _extraStackSize; }
   //! Set extra stack size.
-  ASMJIT_INLINE void setExtraStackSize(uint32_t s) { _extraStackSize  = s; }
+  ASMJIT_INLINE void setExtraStackSize(uint32_t s) noexcept { _extraStackSize  = s; }
 
   //! Get whether the function has stack frame register.
   //!
@@ -178,15 +139,23 @@ struct X86FuncNode : public HLFunc {
   //! generating standard prolog/epilog sequence.
   //!
   //! \note Used only when stack is misaligned.
-  ASMJIT_INLINE bool hasStackFrameReg() const { return _stackFrameRegIndex != kInvalidReg; }
+  ASMJIT_INLINE bool hasStackFrameReg() const noexcept {
+    return _stackFrameRegIndex != kInvalidReg;
+  }
+
   //! Get stack frame register index.
   //!
   //! \note Used only when stack is misaligned.
-  ASMJIT_INLINE uint32_t getStackFrameRegIndex() const { return _stackFrameRegIndex; }
+  ASMJIT_INLINE uint32_t getStackFrameRegIndex() const noexcept {
+    return _stackFrameRegIndex;
+  }
+
   //! Get whether the stack frame register is preserved.
   //!
   //! \note Used only when stack is misaligned.
-  ASMJIT_INLINE bool isStackFrameRegPreserved() const { return static_cast<bool>(_isStackFrameRegPreserved); }
+  ASMJIT_INLINE bool isStackFrameRegPreserved() const noexcept {
+    return static_cast<bool>(_isStackFrameRegPreserved);
+  }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -233,20 +202,20 @@ struct X86CallNode : public HLCall {
   // --------------------------------------------------------------------------
 
   //! Create a new `X86CallNode` instance.
-  ASMJIT_INLINE X86CallNode(Compiler* compiler, const Operand& target) : HLCall(compiler, target) {
+  ASMJIT_INLINE X86CallNode(Compiler* compiler, const Operand& target) noexcept : HLCall(compiler, target) {
     _decl = &_x86Decl;
     _usedArgs.reset();
   }
 
   //! Destroy the `X86CallNode` instance.
-  ASMJIT_INLINE ~X86CallNode() {}
+  ASMJIT_INLINE ~X86CallNode() noexcept {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
   //! Get the function prototype.
-  ASMJIT_INLINE X86FuncDecl* getDecl() const {
+  ASMJIT_INLINE X86FuncDecl* getDecl() const noexcept {
     return const_cast<X86FuncDecl*>(&_x86Decl);
   }
 
@@ -255,7 +224,7 @@ struct X86CallNode : public HLCall {
   // --------------------------------------------------------------------------
 
   //! Set function prototype.
-  ASMJIT_INLINE Error setPrototype(const FuncPrototype& p) {
+  ASMJIT_INLINE Error setPrototype(const FuncPrototype& p) noexcept {
     return _x86Decl.setPrototype(p);
   }
 
@@ -264,21 +233,21 @@ struct X86CallNode : public HLCall {
   // --------------------------------------------------------------------------
 
   //! Set argument at `i` to `op`.
-  ASMJIT_API bool _setArg(uint32_t i, const Operand& op);
+  ASMJIT_API bool _setArg(uint32_t i, const Operand& op) noexcept;
   //! Set return at `i` to `op`.
-  ASMJIT_API bool _setRet(uint32_t i, const Operand& op);
+  ASMJIT_API bool _setRet(uint32_t i, const Operand& op) noexcept;
 
   //! Set argument at `i` to `var`.
-  ASMJIT_INLINE bool setArg(uint32_t i, const Var& var) { return _setArg(i, var); }
+  ASMJIT_INLINE bool setArg(uint32_t i, const Var& var) noexcept { return _setArg(i, var); }
   //! Set argument at `i` to `reg` (FP registers only).
-  ASMJIT_INLINE bool setArg(uint32_t i, const X86FpReg& reg) { return _setArg(i, reg); }
+  ASMJIT_INLINE bool setArg(uint32_t i, const X86FpReg& reg) noexcept { return _setArg(i, reg); }
   //! Set argument at `i` to `imm`.
-  ASMJIT_INLINE bool setArg(uint32_t i, const Imm& imm) { return _setArg(i, imm); }
+  ASMJIT_INLINE bool setArg(uint32_t i, const Imm& imm) noexcept { return _setArg(i, imm); }
 
   //! Set return at `i` to `var`.
-  ASMJIT_INLINE bool setRet(uint32_t i, const Var& var) { return _setRet(i, var); }
+  ASMJIT_INLINE bool setRet(uint32_t i, const Var& var) noexcept { return _setRet(i, var); }
   //! Set return at `i` to `reg` (FP registers only).
-  ASMJIT_INLINE bool setRet(uint32_t i, const X86FpReg& reg) { return _setRet(i, reg); }
+  ASMJIT_INLINE bool setRet(uint32_t i, const X86FpReg& reg) noexcept { return _setRet(i, reg); }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -534,9 +503,9 @@ struct X86CallNode : public HLCall {
 //!
 //! c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 //!
+//! Label L0 = c.newLabel();
 //! X86GpVar x = c.newInt32("x");
 //! X86GpVar y = c.newInt32("y");
-//! Label L0(c);
 //!
 //! // After these two lines, `x` and `y` will be always stored in registers:
 //! //   x - register.
@@ -618,9 +587,9 @@ struct X86CallNode : public HLCall {
 //!
 //! c.addFunc(FuncBuilder0<Void>(kCallConvHost));
 //!
+//! Label L0 = c.newLabel();
 //! X86GpVar x = c.newInt32("x");
 //! X86GpVar y = c.newInt32("y");
-//! Label L0(c);
 //!
 //! // After these two lines, `x` and `y` will be always stored in registers.
 //! //   `x` - register.
@@ -750,30 +719,30 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
   //! Create a `X86Compiler` instance.
-  ASMJIT_API X86Compiler(X86Assembler* assembler = nullptr);
+  ASMJIT_API X86Compiler(X86Assembler* assembler = nullptr) noexcept;
   //! Destroy the `X86Compiler` instance.
-  ASMJIT_API ~X86Compiler();
+  ASMJIT_API ~X86Compiler() noexcept;
 
   // --------------------------------------------------------------------------
   // [Attach / Reset]
   // --------------------------------------------------------------------------
 
   //! \override
-  ASMJIT_API virtual Error attach(Assembler* assembler);
+  ASMJIT_API virtual Error attach(Assembler* assembler) noexcept;
   //! \override
-  ASMJIT_API virtual void reset(bool releaseMemory);
+  ASMJIT_API virtual void reset(bool releaseMemory) noexcept;
 
   // -------------------------------------------------------------------------
   // [Finalize]
   // -------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error finalize();
+  ASMJIT_API virtual Error finalize() noexcept;
 
   // --------------------------------------------------------------------------
   // [Assembler]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE X86Assembler* getAssembler() const {
+  ASMJIT_INLINE X86Assembler* getAssembler() const noexcept {
     return static_cast<X86Assembler*>(_assembler);
   }
 
@@ -782,54 +751,54 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
   //! Get count of registers of the current architecture and mode.
-  ASMJIT_INLINE const X86RegCount& getRegCount() const { return _regCount; }
+  ASMJIT_INLINE const X86RegCount& getRegCount() const noexcept { return _regCount; }
 
   //! Get Gpd or Gpq register depending on the current architecture.
-  ASMJIT_INLINE X86GpReg gpz(uint32_t index) const { return X86GpReg(zax, index); }
+  ASMJIT_INLINE X86GpReg gpz(uint32_t index) const noexcept { return X86GpReg(zax, index); }
 
   //! Create an architecture dependent intptr_t memory operand.
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpReg& base, int32_t disp = 0) const {
+  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpReg& base, int32_t disp = 0) const noexcept {
     return x86::ptr(base, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpReg& base, const X86GpReg& index, uint32_t shift = 0, int32_t disp = 0) const {
+  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpReg& base, const X86GpReg& index, uint32_t shift = 0, int32_t disp = 0) const noexcept {
     return x86::ptr(base, index, shift, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const Label& label, int32_t disp = 0) const {
+  ASMJIT_INLINE X86Mem intptr_ptr(const Label& label, int32_t disp = 0) const noexcept {
     return x86::ptr(label, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const Label& label, const X86GpReg& index, uint32_t shift, int32_t disp = 0) const {
+  ASMJIT_INLINE X86Mem intptr_ptr(const Label& label, const X86GpReg& index, uint32_t shift, int32_t disp = 0) const noexcept {
     return x86::ptr(label, index, shift, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86RipReg& rip, int32_t disp = 0) const {
+  ASMJIT_INLINE X86Mem intptr_ptr(const X86RipReg& rip, int32_t disp = 0) const noexcept {
     return x86::ptr(rip, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, int32_t disp = 0) const {
+  ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, int32_t disp = 0) const noexcept {
     return x86::ptr_abs(pAbs, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, const X86GpReg& index, uint32_t shift, int32_t disp = 0) const {
+  ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, const X86GpReg& index, uint32_t shift, int32_t disp = 0) const noexcept {
     return x86::ptr_abs(pAbs, index, shift, disp, zax.getSize());
   }
 
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpVar& base, int32_t disp = 0) {
+  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpVar& base, int32_t disp = 0) noexcept {
     return x86::ptr(base, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpVar& base, const X86GpVar& index, uint32_t shift = 0, int32_t disp = 0) {
+  ASMJIT_INLINE X86Mem intptr_ptr(const X86GpVar& base, const X86GpVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept {
     return x86::ptr(base, index, shift, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const Label& label, const X86GpVar& index, uint32_t shift, int32_t disp = 0) {
+  ASMJIT_INLINE X86Mem intptr_ptr(const Label& label, const X86GpVar& index, uint32_t shift, int32_t disp = 0) noexcept {
     return x86::ptr(label, index, shift, disp, zax.getSize());
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, const X86GpVar& index, uint32_t shift, int32_t disp = 0) {
+  ASMJIT_INLINE X86Mem intptr_ptr_abs(Ptr pAbs, const X86GpVar& index, uint32_t shift, int32_t disp = 0) noexcept {
     return x86::ptr_abs(pAbs, index, shift, disp, zax.getSize());
   }
 
@@ -838,54 +807,54 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
   //! Create a new `HLInst`.
-  ASMJIT_API HLInst* newInst(uint32_t code);
+  ASMJIT_API HLInst* newInst(uint32_t code) noexcept;
   //! \overload
-  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0);
+  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0) noexcept;
   //! \overload
-  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1);
+  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1) noexcept;
   //! \overload
-  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2);
+  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) noexcept;
   //! \overload
-  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3);
+  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) noexcept;
   //! \overload
-  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4);
+  ASMJIT_API HLInst* newInst(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) noexcept;
 
   //! Add a new `HLInst`.
-  ASMJIT_API HLInst* emit(uint32_t code);
+  ASMJIT_API HLInst* emit(uint32_t code) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, const Operand& o3, const Operand& o4) noexcept;
 
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, int o0);
+  ASMJIT_API HLInst* emit(uint32_t code, int o0) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, uint64_t o0);
+  ASMJIT_API HLInst* emit(uint32_t code, uint64_t o0) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, int o1);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, int o1) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, uint64_t o1);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, uint64_t o1) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, int o2);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, int o2) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, uint64_t o2) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, int o3) noexcept;
   //! \overload
-  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3);
+  ASMJIT_API HLInst* emit(uint32_t code, const Operand& o0, const Operand& o1, const Operand& o2, uint64_t o3) noexcept;
 
   // --------------------------------------------------------------------------
   // [Func]
   // --------------------------------------------------------------------------
 
   //! Create a new `X86FuncNode`.
-  ASMJIT_API X86FuncNode* newFunc(const FuncPrototype& p);
+  ASMJIT_API X86FuncNode* newFunc(const FuncPrototype& p) noexcept;
 
   //! Add a new function.
   //!
@@ -946,18 +915,18 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   //! \note To get the current function use `getFunc()` method.
   //!
   //! \sa \ref FuncBuilder0, \ref FuncBuilder1, \ref FuncBuilder2.
-  ASMJIT_API X86FuncNode* addFunc(const FuncPrototype& p);
+  ASMJIT_API X86FuncNode* addFunc(const FuncPrototype& p) noexcept;
 
   //! Emit a sentinel that marks the end of the current function.
-  ASMJIT_API HLSentinel* endFunc();
+  ASMJIT_API HLSentinel* endFunc() noexcept;
 
   //! Get the current function node casted to `X86FuncNode`.
   //!
   //! This method can be called within `addFunc()` and `endFunc()` block to get
   //! current function you are working with. It's recommended to store `HLFunc`
   //! pointer returned by `addFunc<>` method, because this allows you in future
-  //! implement function sections outside of function itself.
-  ASMJIT_INLINE X86FuncNode* getFunc() const {
+  //! implement function sections outside of the function itself.
+  ASMJIT_INLINE X86FuncNode* getFunc() const noexcept {
     return static_cast<X86FuncNode*>(_func);
   }
 
@@ -966,31 +935,32 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
   //! Create a new `HLRet`.
-  ASMJIT_API HLRet* newRet(const Operand& o0, const Operand& o1);
+  ASMJIT_API HLRet* newRet(const Operand& o0, const Operand& o1) noexcept;
   //! Add a new `HLRet`.
-  ASMJIT_API HLRet* addRet(const Operand& o0, const Operand& o1);
+  ASMJIT_API HLRet* addRet(const Operand& o0, const Operand& o1) noexcept;
 
   // --------------------------------------------------------------------------
   // [Call]
   // --------------------------------------------------------------------------
 
   //! Create a new `X86CallNode`.
-  ASMJIT_API X86CallNode* newCall(const Operand& o0, const FuncPrototype& p);
+  ASMJIT_API X86CallNode* newCall(const Operand& o0, const FuncPrototype& p) noexcept;
   //! Add a new `X86CallNode`.
-  ASMJIT_API X86CallNode* addCall(const Operand& o0, const FuncPrototype& p);
+  ASMJIT_API X86CallNode* addCall(const Operand& o0, const FuncPrototype& p) noexcept;
 
   // --------------------------------------------------------------------------
   // [Args]
   // --------------------------------------------------------------------------
 
   //! Set function argument to `var`.
-  ASMJIT_API Error setArg(uint32_t argIndex, const Var& var);
+  ASMJIT_API Error setArg(uint32_t argIndex, const Var& var) noexcept;
 
   // --------------------------------------------------------------------------
   // [Vars]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error _newVar(Var* var, uint32_t vType, const char* name, va_list ap);
+  ASMJIT_API Error _newVar(Var* var, uint32_t vType, const char* name) noexcept;
+  ASMJIT_API Error _newVar(Var* var, uint32_t vType, const char* fmt, va_list ap) noexcept;
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
 #define ASMJIT_NEW_VAR_TYPE_EX(func, type, typeFirst, typeLast) \
@@ -1025,13 +995,13 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
     \
     type var(NoInit); \
-    _newVar(&var, vType, nullptr, nullptr); \
+    _newVar(&var, vType, nullptr); \
     return var; \
   }
 #define ASMJIT_NEW_VAR_AUTO_EX(func, type, typeId) \
   ASMJIT_NOINLINE type new##func(const char* name, ...) { \
     type var(NoInit); \
-    _newVar(&var, typeId, nullptr, nullptr); \
+    _newVar(&var, typeId, nullptr); \
     return var; \
   }
 #endif
@@ -1043,8 +1013,8 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     \
     type var(NoInit); \
     \
-    const X86VarInfo& vInfo = _x86VarInfo[vType]; \
-    var._init_packed_op_sz_w0_id(kOperandTypeVar, vInfo.getSize(), vInfo.getReg() << 8, id); \
+    const VarInfo& vInfo = _x86VarInfo[vType]; \
+    var._init_packed_op_sz_w0_id(Operand::kTypeVar, vInfo.getSize(), vInfo.getRegType() << 8, id); \
     var._vreg.vType = vType; \
     \
     return var; \
@@ -1055,7 +1025,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     ASMJIT_ASSERT(Utils::inInterval<uint32_t>(vType, typeFirst, typeLast)); \
     \
     type var(NoInit); \
-    _newVar(&var, vType, nullptr, nullptr); \
+    _newVar(&var, vType, nullptr); \
     return var; \
   } \
   \
@@ -1065,8 +1035,8 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   ASMJIT_INLINE type get##func##ById(uint32_t id) { \
     type var(NoInit); \
     \
-    const X86VarInfo& vInfo = _x86VarInfo[typeId]; \
-    var._init_packed_op_sz_w0_id(kOperandTypeVar, vInfo.getSize(), vInfo.getReg() << 8, id); \
+    const VarInfo& vInfo = _x86VarInfo[typeId]; \
+    var._init_packed_op_sz_w0_id(Operand::kTypeVar, vInfo.getSize(), vInfo.getRegType() << 8, id); \
     var._vreg.vType = typeId; \
     \
     return var; \
@@ -1074,7 +1044,7 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   \
   ASMJIT_INLINE type new##func() { \
     type var(NoInit); \
-    _newVar(&var, typeId, nullptr, nullptr); \
+    _newVar(&var, typeId, nullptr); \
     return var; \
   } \
   \
@@ -1112,10 +1082,10 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // [Stack]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name);
+  ASMJIT_API virtual Error _newStack(BaseMem* mem, uint32_t size, uint32_t alignment, const char* name) noexcept;
 
   //! Create a new memory chunk allocated on the current function's stack.
-  ASMJIT_INLINE X86Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
+  ASMJIT_INLINE X86Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) noexcept {
     X86Mem m(NoInit);
     _newStack(&m, size, alignment, name);
     return m;
@@ -1125,97 +1095,97 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // [Const]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size);
+  ASMJIT_API virtual Error _newConst(BaseMem* mem, uint32_t scope, const void* data, size_t size) noexcept;
 
   //! Put data to a constant-pool and get a memory reference to it.
-  ASMJIT_INLINE X86Mem newConst(uint32_t scope, const void* data, size_t size) {
+  ASMJIT_INLINE X86Mem newConst(uint32_t scope, const void* data, size_t size) noexcept {
     X86Mem m(NoInit);
     _newConst(&m, scope, data, size);
     return m;
   }
 
   //! Put a BYTE `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newByteConst(uint32_t scope, uint8_t val) { return newConst(scope, &val, 1); }
+  ASMJIT_INLINE X86Mem newByteConst(uint32_t scope, uint8_t val) noexcept { return newConst(scope, &val, 1); }
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newWordConst(uint32_t scope, uint16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE X86Mem newWordConst(uint32_t scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newDWordConst(uint32_t scope, uint32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE X86Mem newDWordConst(uint32_t scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newQWordConst(uint32_t scope, uint64_t val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE X86Mem newQWordConst(uint32_t scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
 
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newInt16Const(uint32_t scope, int16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE X86Mem newInt16Const(uint32_t scope, int16_t val) noexcept { return newConst(scope, &val, 2); }
   //! Put a WORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newUInt16Const(uint32_t scope, uint16_t val) { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE X86Mem newUInt16Const(uint32_t scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newInt32Const(uint32_t scope, int32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE X86Mem newInt32Const(uint32_t scope, int32_t val) noexcept { return newConst(scope, &val, 4); }
   //! Put a DWORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newUInt32Const(uint32_t scope, uint32_t val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE X86Mem newUInt32Const(uint32_t scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newInt64Const(uint32_t scope, int64_t val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE X86Mem newInt64Const(uint32_t scope, int64_t val) noexcept { return newConst(scope, &val, 8); }
   //! Put a QWORD `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newUInt64Const(uint32_t scope, uint64_t val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE X86Mem newUInt64Const(uint32_t scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
 
   //! Put a SP-FP `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newFloatConst(uint32_t scope, float val) { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE X86Mem newFloatConst(uint32_t scope, float val) noexcept { return newConst(scope, &val, 4); }
   //! Put a DP-FP `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newDoubleConst(uint32_t scope, double val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE X86Mem newDoubleConst(uint32_t scope, double val) noexcept { return newConst(scope, &val, 8); }
 
   //! Put a MMX `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newMmConst(uint32_t scope, const Vec64& val) { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE X86Mem newMmConst(uint32_t scope, const Vec64& val) noexcept { return newConst(scope, &val, 8); }
   //! Put a XMM `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newXmmConst(uint32_t scope, const Vec128& val) { return newConst(scope, &val, 16); }
+  ASMJIT_INLINE X86Mem newXmmConst(uint32_t scope, const Vec128& val) noexcept { return newConst(scope, &val, 16); }
   //! Put a YMM `val` to a constant-pool.
-  ASMJIT_INLINE X86Mem newYmmConst(uint32_t scope, const Vec256& val) { return newConst(scope, &val, 32); }
+  ASMJIT_INLINE X86Mem newYmmConst(uint32_t scope, const Vec256& val) noexcept { return newConst(scope, &val, 32); }
 
   // --------------------------------------------------------------------------
   // [Embed]
   // --------------------------------------------------------------------------
 
   //! Add 8-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error db(uint8_t x) { return embed(&x, 1); }
+  ASMJIT_INLINE Error db(uint8_t x) noexcept { return embed(&x, 1); }
   //! Add 16-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dw(uint16_t x) { return embed(&x, 2); }
+  ASMJIT_INLINE Error dw(uint16_t x) noexcept { return embed(&x, 2); }
   //! Add 32-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dd(uint32_t x) { return embed(&x, 4); }
+  ASMJIT_INLINE Error dd(uint32_t x) noexcept { return embed(&x, 4); }
   //! Add 64-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dq(uint64_t x) { return embed(&x, 8); }
+  ASMJIT_INLINE Error dq(uint64_t x) noexcept { return embed(&x, 8); }
 
   //! Add 8-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint8(int8_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int8_t))); }
+  ASMJIT_INLINE Error dint8(int8_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(int8_t))); }
   //! Add 8-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint8(uint8_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint8_t))); }
+  ASMJIT_INLINE Error duint8(uint8_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(uint8_t))); }
 
   //! Add 16-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint16(int16_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int16_t))); }
+  ASMJIT_INLINE Error dint16(int16_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(int16_t))); }
   //! Add 16-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint16(uint16_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint16_t))); }
+  ASMJIT_INLINE Error duint16(uint16_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(uint16_t))); }
 
   //! Add 32-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint32(int32_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int32_t))); }
+  ASMJIT_INLINE Error dint32(int32_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(int32_t))); }
   //! Add 32-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint32(uint32_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint32_t))); }
+  ASMJIT_INLINE Error duint32(uint32_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(uint32_t))); }
 
   //! Add 64-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint64(int64_t x) { return embed(&x, static_cast<uint32_t>(sizeof(int64_t))); }
+  ASMJIT_INLINE Error dint64(int64_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(int64_t))); }
   //! Add 64-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint64(uint64_t x) { return embed(&x, static_cast<uint32_t>(sizeof(uint64_t))); }
+  ASMJIT_INLINE Error duint64(uint64_t x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(uint64_t))); }
 
   //! Add float data to the instruction stream.
-  ASMJIT_INLINE Error dfloat(float x) { return embed(&x, static_cast<uint32_t>(sizeof(float))); }
+  ASMJIT_INLINE Error dfloat(float x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(float))); }
   //! Add double data to the instruction stream.
-  ASMJIT_INLINE Error ddouble(double x) { return embed(&x, static_cast<uint32_t>(sizeof(double))); }
+  ASMJIT_INLINE Error ddouble(double x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(double))); }
 
   //! Add Mm data to the instruction stream.
-  ASMJIT_INLINE Error dmm(const Vec64& x) { return embed(&x, static_cast<uint32_t>(sizeof(Vec64))); }
+  ASMJIT_INLINE Error dmm(const Vec64& x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(Vec64))); }
   //! Add Xmm data to the instruction stream.
-  ASMJIT_INLINE Error dxmm(const Vec128& x) { return embed(&x, static_cast<uint32_t>(sizeof(Vec128))); }
+  ASMJIT_INLINE Error dxmm(const Vec128& x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(Vec128))); }
   //! Add Ymm data to the instruction stream.
-  ASMJIT_INLINE Error dymm(const Vec256& x) { return embed(&x, static_cast<uint32_t>(sizeof(Vec256))); }
+  ASMJIT_INLINE Error dymm(const Vec256& x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(Vec256))); }
 
   //! Add data in a given structure instance to the instruction stream.
   template<typename T>
-  ASMJIT_INLINE Error dstruct(const T& x) { return embed(&x, static_cast<uint32_t>(sizeof(T))); }
+  ASMJIT_INLINE Error dstruct(const T& x) noexcept { return embed(&x, static_cast<uint32_t>(sizeof(T))); }
 
   // -------------------------------------------------------------------------
   // [Instruction Options]
@@ -1224,13 +1194,13 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   ASMJIT_X86_EMIT_OPTIONS(X86Compiler)
 
   //! Force the compiler to not follow the conditional or unconditional jump.
-  ASMJIT_INLINE X86Compiler& unfollow() {
+  ASMJIT_INLINE X86Compiler& unfollow() noexcept {
     _instOptions |= kInstOptionUnfollow;
     return *this;
   }
 
   //! Tell the compiler that the destination variable will be overwritten.
-  ASMJIT_INLINE X86Compiler& overwrite() {
+  ASMJIT_INLINE X86Compiler& overwrite() noexcept {
     _instOptions |= kInstOptionOverwrite;
     return *this;
   }
@@ -1264,232 +1234,232 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   // --------------------------------------------------------------------------
 
 #define INST_0x(_Inst_, _Code_) \
-  ASMJIT_INLINE HLInst* _Inst_() { \
+  ASMJIT_INLINE HLInst* _Inst_() noexcept { \
     return emit(_Code_); \
   }
 
 #define INST_1x(_Inst_, _Code_, _Op0_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0) noexcept { \
     return emit(_Code_, o0); \
   }
 
 #define INST_1i(_Inst_, _Code_, _Op0_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0) noexcept { \
     return emit(_Code_, o0); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(int o0) { \
+  ASMJIT_INLINE HLInst* _Inst_(int o0) noexcept { \
     return emit(_Code_, o0); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(unsigned int o0) { \
+  ASMJIT_INLINE HLInst* _Inst_(unsigned int o0) noexcept { \
     return emit(_Code_, static_cast<uint64_t>(o0)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(int64_t o0) { \
+  ASMJIT_INLINE HLInst* _Inst_(int64_t o0) noexcept { \
     return emit(_Code_, static_cast<uint64_t>(o0)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(uint64_t o0) { \
+  ASMJIT_INLINE HLInst* _Inst_(uint64_t o0) noexcept { \
     return emit(_Code_, o0); \
   }
 
 #define INST_1cc(_Inst_, _Code_, _Translate_, _Op0_) \
-  ASMJIT_INLINE HLInst* _Inst_(uint32_t cc, const _Op0_& o0) { \
+  ASMJIT_INLINE HLInst* _Inst_(uint32_t cc, const _Op0_& o0) noexcept { \
     return emit(_Translate_(cc), o0); \
   } \
   \
-  ASMJIT_INLINE HLInst* _Inst_##a(const _Op0_& o0) { return emit(_Code_##a, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##ae(const _Op0_& o0) { return emit(_Code_##ae, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##b(const _Op0_& o0) { return emit(_Code_##b, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##be(const _Op0_& o0) { return emit(_Code_##be, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##c(const _Op0_& o0) { return emit(_Code_##c, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##e(const _Op0_& o0) { return emit(_Code_##e, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##g(const _Op0_& o0) { return emit(_Code_##g, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##ge(const _Op0_& o0) { return emit(_Code_##ge, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##l(const _Op0_& o0) { return emit(_Code_##l, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##le(const _Op0_& o0) { return emit(_Code_##le, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##na(const _Op0_& o0) { return emit(_Code_##na, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nae(const _Op0_& o0) { return emit(_Code_##nae, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nb(const _Op0_& o0) { return emit(_Code_##nb, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nbe(const _Op0_& o0) { return emit(_Code_##nbe, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nc(const _Op0_& o0) { return emit(_Code_##nc, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##ne(const _Op0_& o0) { return emit(_Code_##ne, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##ng(const _Op0_& o0) { return emit(_Code_##ng, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nge(const _Op0_& o0) { return emit(_Code_##nge, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nl(const _Op0_& o0) { return emit(_Code_##nl, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nle(const _Op0_& o0) { return emit(_Code_##nle, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##no(const _Op0_& o0) { return emit(_Code_##no, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##np(const _Op0_& o0) { return emit(_Code_##np, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##ns(const _Op0_& o0) { return emit(_Code_##ns, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##nz(const _Op0_& o0) { return emit(_Code_##nz, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##o(const _Op0_& o0) { return emit(_Code_##o, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##p(const _Op0_& o0) { return emit(_Code_##p, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##pe(const _Op0_& o0) { return emit(_Code_##pe, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##po(const _Op0_& o0) { return emit(_Code_##po, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##s(const _Op0_& o0) { return emit(_Code_##s, o0); } \
-  ASMJIT_INLINE HLInst* _Inst_##z(const _Op0_& o0) { return emit(_Code_##z, o0); }
+  ASMJIT_INLINE HLInst* _Inst_##a(const _Op0_& o0) noexcept { return emit(_Code_##a, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##ae(const _Op0_& o0) noexcept { return emit(_Code_##ae, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##b(const _Op0_& o0) noexcept { return emit(_Code_##b, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##be(const _Op0_& o0) noexcept { return emit(_Code_##be, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##c(const _Op0_& o0) noexcept { return emit(_Code_##c, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##e(const _Op0_& o0) noexcept { return emit(_Code_##e, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##g(const _Op0_& o0) noexcept { return emit(_Code_##g, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##ge(const _Op0_& o0) noexcept { return emit(_Code_##ge, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##l(const _Op0_& o0) noexcept { return emit(_Code_##l, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##le(const _Op0_& o0) noexcept { return emit(_Code_##le, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##na(const _Op0_& o0) noexcept { return emit(_Code_##na, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nae(const _Op0_& o0) noexcept { return emit(_Code_##nae, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nb(const _Op0_& o0) noexcept { return emit(_Code_##nb, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nbe(const _Op0_& o0) noexcept { return emit(_Code_##nbe, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nc(const _Op0_& o0) noexcept { return emit(_Code_##nc, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##ne(const _Op0_& o0) noexcept { return emit(_Code_##ne, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##ng(const _Op0_& o0) noexcept { return emit(_Code_##ng, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nge(const _Op0_& o0) noexcept { return emit(_Code_##nge, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nl(const _Op0_& o0) noexcept { return emit(_Code_##nl, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nle(const _Op0_& o0) noexcept { return emit(_Code_##nle, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##no(const _Op0_& o0) noexcept { return emit(_Code_##no, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##np(const _Op0_& o0) noexcept { return emit(_Code_##np, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##ns(const _Op0_& o0) noexcept { return emit(_Code_##ns, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##nz(const _Op0_& o0) noexcept { return emit(_Code_##nz, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##o(const _Op0_& o0) noexcept { return emit(_Code_##o, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##p(const _Op0_& o0) noexcept { return emit(_Code_##p, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##pe(const _Op0_& o0) noexcept { return emit(_Code_##pe, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##po(const _Op0_& o0) noexcept { return emit(_Code_##po, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##s(const _Op0_& o0) noexcept { return emit(_Code_##s, o0); } \
+  ASMJIT_INLINE HLInst* _Inst_##z(const _Op0_& o0) noexcept { return emit(_Code_##z, o0); }
 
 #define INST_2x(_Inst_, _Code_, _Op0_, _Op1_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1) noexcept { \
     return emit(_Code_, o0, o1); \
   }
 
 #define INST_2i(_Inst_, _Code_, _Op0_, _Op1_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1) noexcept { \
     return emit(_Code_, o0, o1); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int o1) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int o1) noexcept { \
     return emit(_Code_, o0, o1); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, unsigned int o1) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, unsigned int o1) noexcept { \
     return emit(_Code_, o0, static_cast<uint64_t>(o1)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int64_t o1) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int64_t o1) noexcept { \
     return emit(_Code_, o0, static_cast<uint64_t>(o1)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, uint64_t o1) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, uint64_t o1) noexcept { \
     return emit(_Code_, o0, o1); \
   }
 
 #define INST_2cc(_Inst_, _Code_, _Translate_, _Op0_, _Op1_) \
-  ASMJIT_INLINE HLInst* _Inst_(uint32_t cc, const _Op0_& o0, const _Op1_& o1) { \
+  ASMJIT_INLINE HLInst* _Inst_(uint32_t cc, const _Op0_& o0, const _Op1_& o1) noexcept { \
     return emit(_Translate_(cc), o0, o1); \
   } \
   \
-  ASMJIT_INLINE HLInst* _Inst_##a(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##a, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##ae(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ae, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##b(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##b, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##be(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##be, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##c(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##c, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##e(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##e, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##g(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##g, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##ge(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ge, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##l(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##l, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##le(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##le, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##na(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##na, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nae(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nae, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nb(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nb, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nbe(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nbe, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nc(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nc, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##ne(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ne, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##ng(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ng, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nge(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nge, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nl(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nl, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nle(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nle, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##no(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##no, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##np(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##np, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##ns(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##ns, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##nz(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##nz, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##o(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##o, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##p(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##p, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##pe(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##pe, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##po(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##po, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##s(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##s, o0, o1); } \
-  ASMJIT_INLINE HLInst* _Inst_##z(const _Op0_& o0, const _Op1_& o1) { return emit(_Code_##z, o0, o1); }
+  ASMJIT_INLINE HLInst* _Inst_##a(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##a, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##ae(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##ae, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##b(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##b, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##be(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##be, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##c(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##c, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##e(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##e, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##g(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##g, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##ge(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##ge, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##l(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##l, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##le(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##le, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##na(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##na, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nae(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nae, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nb(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nb, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nbe(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nbe, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nc(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nc, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##ne(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##ne, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##ng(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##ng, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nge(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nge, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nl(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nl, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nle(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nle, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##no(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##no, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##np(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##np, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##ns(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##ns, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##nz(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##nz, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##o(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##o, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##p(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##p, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##pe(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##pe, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##po(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##po, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##s(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##s, o0, o1); } \
+  ASMJIT_INLINE HLInst* _Inst_##z(const _Op0_& o0, const _Op1_& o1) noexcept { return emit(_Code_##z, o0, o1); }
 
 #define INST_3x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) noexcept { \
     return emit(_Code_, o0, o1, o2); \
   }
 
 #define INST_3i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) noexcept { \
     return emit(_Code_, o0, o1, o2); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2) noexcept { \
     return emit(_Code_, o0, o1, o2); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2) noexcept { \
     return emit(_Code_, o0, o1, static_cast<uint64_t>(o2)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2) noexcept { \
     return emit(_Code_, o0, o1, static_cast<uint64_t>(o2)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2) noexcept { \
     return emit(_Code_, o0, o1, o2); \
   }
 
 #define INST_3ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2) noexcept { \
     return emit(_Code_, o0, o1, o2); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int o1, int o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int o1, int o2) noexcept { \
     Imm o1Imm(o1); \
     return emit(_Code_, o0, o1Imm, o2); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, unsigned int o1, unsigned int o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, unsigned int o1, unsigned int o2) noexcept { \
     Imm o1Imm(o1); \
     return emit(_Code_, o0, o1Imm, static_cast<uint64_t>(o2)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int64_t o1, int64_t o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, int64_t o1, int64_t o2) noexcept { \
     Imm o1Imm(o1); \
     return emit(_Code_, o0, o1Imm, static_cast<uint64_t>(o2)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, uint64_t o1, uint64_t o2) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, uint64_t o1, uint64_t o2) noexcept { \
     Imm o1Imm(o1); \
     return emit(_Code_, o0, o1Imm, o2); \
   }
 
 #define INST_4x(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) noexcept { \
     return emit(_Code_, o0, o1, o2, o3); \
   }
 
 #define INST_4i(_Inst_, _Code_, _Op0_, _Op1_, _Op2_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) noexcept { \
     return emit(_Code_, o0, o1, o2, o3); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int o3) noexcept { \
     return emit(_Code_, o0, o1, o2, o3); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, unsigned int o3) noexcept { \
     return emit(_Code_, o0, o1, o2, static_cast<uint64_t>(o3)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, int64_t o3) noexcept { \
     return emit(_Code_, o0, o1, o2, static_cast<uint64_t>(o3)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, uint64_t o3) noexcept { \
     return emit(_Code_, o0, o1, o2, o3); \
   }
 
 #define INST_4ii(_Inst_, _Code_, _Op0_, _Op1_, _Op2_, _Op3_) \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, const _Op2_& o2, const _Op3_& o3) noexcept { \
     return emit(_Code_, o0, o1, o2, o3); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2, int o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int o2, int o3) noexcept { \
     Imm o2Imm(o2); \
     return emit(_Code_, o0, o1, o2Imm, o3); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2, unsigned int o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, unsigned int o2, unsigned int o3) noexcept { \
     Imm o2Imm(o2); \
     return emit(_Code_, o0, o1, o2Imm, static_cast<uint64_t>(o3)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2, int64_t o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, int64_t o2, int64_t o3) noexcept { \
     Imm o2Imm(o2); \
     return emit(_Code_, o0, o1, o2Imm, static_cast<uint64_t>(o3)); \
   } \
   /*! \overload */ \
-  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2, uint64_t o3) { \
+  ASMJIT_INLINE HLInst* _Inst_(const _Op0_& o0, const _Op1_& o1, uint64_t o2, uint64_t o3) noexcept { \
     Imm o2Imm(o2); \
     return emit(_Code_, o0, o1, o2Imm, o3); \
   }

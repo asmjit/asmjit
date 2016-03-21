@@ -13,12 +13,11 @@
 
 // [Dependencies - AsmJit]
 #include "../base/containers.h"
+#include "../base/cpuinfo.h"
 #include "../base/utils.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86compiler.h"
 #include "../x86/x86compilercontext_p.h"
-#include "../x86/x86cpuinfo.h"
-#include "../x86/x86scheduler_p.h"
 
 // [Api-Begin]
 #include "../apibegin.h"
@@ -38,9 +37,9 @@ static Error X86Context_translateOperands(X86Context* self, Operand* opList, uin
 // Getting `VarClass` is the only safe operation when dealing with denormalized
 // `varType`. Any other property would require to map vType to the architecture
 // specific type.
-static ASMJIT_INLINE uint32_t x86VarTypeToClass(uint32_t vType) {
+static ASMJIT_INLINE uint32_t x86VarTypeToClass(uint32_t vType) noexcept {
   ASMJIT_ASSERT(vType < kX86VarTypeCount);
-  return _x86VarInfo[vType].getClass();
+  return _x86VarInfo[vType].getRegClass();
 }
 
 // ============================================================================
@@ -58,7 +57,7 @@ static void X86Context_annotateVariable(X86Context* self,
   }
   else {
     sb.appendChar('v');
-    sb.appendUInt(vd->getId() & kOperandIdNum);
+    sb.appendUInt(vd->getId() & Operand::kIdIndexMask);
   }
 }
 
@@ -114,7 +113,7 @@ static void X86Context_annotateOperand(X86Context* self,
 
       sb.appendChar(prefix);
       // TODO: Enable again:
-      // if ((loggerOptions & (1 << kLoggerOptionHexDisplacement)) != 0 && dispOffset > 9) {
+      // if ((loggerOptions & (Logger::kOptionHexDisplacement)) != 0 && dispOffset > 9) {
       //   sb.appendString("0x", 2);
       //   base = 16;
       // }
@@ -128,7 +127,7 @@ static void X86Context_annotateOperand(X86Context* self,
     int64_t val = i->getInt64();
 
     /*
-    if ((loggerOptions & (1 << kLoggerOptionHexImmediate)) && static_cast<uint64_t>(val) > 9)
+    if ((loggerOptions & (1 << Logger::kOptionHexImmediate)) && static_cast<uint64_t>(val) > 9)
       sb.appendUInt(static_cast<uint64_t>(val), 16);
     else*/
       sb.appendInt(val, 10);
@@ -161,7 +160,7 @@ static void X86Context_traceNode(X86Context* self, HLNode* node_, const char* pr
   StringBuilderTmp<256> sb;
 
   switch (node_->getType()) {
-    case kHLNodeTypeAlign: {
+    case HLNode::kTypeAlign: {
       HLAlign* node = static_cast<HLAlign*>(node_);
       sb.appendFormat(".align %u (%s)",
         node->getOffset(),
@@ -169,19 +168,19 @@ static void X86Context_traceNode(X86Context* self, HLNode* node_, const char* pr
       break;
     }
 
-    case kHLNodeTypeData: {
+    case HLNode::kTypeData: {
       HLData* node = static_cast<HLData*>(node_);
       sb.appendFormat(".embed (%u bytes)", node->getSize());
       break;
     }
 
-    case kHLNodeTypeComment: {
+    case HLNode::kTypeComment: {
       HLComment* node = static_cast<HLComment*>(node_);
       sb.appendFormat("; %s", node->getComment());
       break;
     }
 
-    case kHLNodeTypeHint: {
+    case HLNode::kTypeHint: {
       HLHint* node = static_cast<HLHint*>(node_);
       static const char* hint[16] = {
         "alloc",
@@ -195,7 +194,7 @@ static void X86Context_traceNode(X86Context* self, HLNode* node_, const char* pr
       break;
     }
 
-    case kHLNodeTypeLabel: {
+    case HLNode::kTypeLabel: {
       HLLabel* node = static_cast<HLLabel*>(node_);
       sb.appendFormat("L%u: (NumRefs=%u)",
         node->getLabelId(),
@@ -203,38 +202,38 @@ static void X86Context_traceNode(X86Context* self, HLNode* node_, const char* pr
       break;
     }
 
-    case kHLNodeTypeInst: {
+    case HLNode::kTypeInst: {
       HLInst* node = static_cast<HLInst*>(node_);
       X86Context_annotateInstruction(self, sb,
         node->getInstId(), node->getOpList(), node->getOpCount());
       break;
     }
 
-    case kHLNodeTypeFunc: {
+    case HLNode::kTypeFunc: {
       HLFunc* node = static_cast<HLFunc*>(node_);
       sb.appendFormat("[func]");
       break;
     }
 
-    case kHLNodeTypeSentinel: {
+    case HLNode::kTypeSentinel: {
       HLSentinel* node = static_cast<HLSentinel*>(node_);
       sb.appendFormat("[end]");
       break;
     }
 
-    case kHLNodeTypeRet: {
+    case HLNode::kTypeRet: {
       HLRet* node = static_cast<HLRet*>(node_);
       sb.appendFormat("[ret]");
       break;
     }
 
-    case kHLNodeTypeCall: {
+    case HLNode::kTypeCall: {
       HLCall* node = static_cast<HLCall*>(node_);
       sb.appendFormat("[call]");
       break;
     }
 
-    case kHLNodeTypeCallArg: {
+    case HLNode::kTypeCallArg: {
       HLCallArg* node = static_cast<HLCallArg*>(node_);
       sb.appendFormat("[sarg]");
       break;
@@ -2006,14 +2005,14 @@ static ASMJIT_INLINE Error X86Context_insertHLCallArg(
     sArgCount++;
   }
 
-  const X86VarInfo& sInfo = _x86VarInfo[sType];
-  uint32_t sClass = sInfo.getClass();
+  const VarInfo& sInfo = _x86VarInfo[sType];
+  uint32_t sClass = sInfo.getRegClass();
 
   if (X86Context_mustConvertSArg(self, aType, sType)) {
     uint32_t cType = X86Context_typeOfConvertedSArg(self, aType, sType);
 
-    const X86VarInfo& cInfo = _x86VarInfo[cType];
-    uint32_t cClass = cInfo.getClass();
+    const VarInfo& cInfo = _x86VarInfo[cType];
+    uint32_t cClass = cInfo.getRegClass();
 
     while (++i < sArgCount) {
       sArgData = &sArgList[i];
@@ -2027,7 +2026,7 @@ static ASMJIT_INLINE Error X86Context_insertHLCallArg(
       return kErrorOk;
     }
 
-    VarData* cVd = compiler->_newVd(cType, cInfo.getSize(), cInfo.getClass(), nullptr);
+    VarData* cVd = compiler->_newVd(cInfo, nullptr);
     if (cVd == nullptr)
       return kErrorNoHeapMemory;
 
@@ -2289,15 +2288,15 @@ _NextGroup:
       // [Align/Embed]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeAlign:
-      case kHLNodeTypeData:
+      case HLNode::kTypeAlign:
+      case HLNode::kTypeData:
         break;
 
       // ----------------------------------------------------------------------
       // [Hint]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeHint: {
+      case HLNode::kTypeHint: {
         HLHint* node = static_cast<HLHint*>(node_);
         VI_BEGIN();
 
@@ -2351,7 +2350,7 @@ _NextGroup:
               compiler->removeNode(cur);
 
             cur = static_cast<HLHint*>(node->getNext());
-            if (cur == nullptr || cur->getType() != kHLNodeTypeHint || cur->getHint() != kVarHintAlloc)
+            if (cur == nullptr || cur->getType() != HLNode::kTypeHint || cur->getHint() != kVarHintAlloc)
               break;
           }
 
@@ -2389,7 +2388,7 @@ _NextGroup:
       // [Target]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeLabel: {
+      case HLNode::kTypeLabel: {
         if (node_ == func->getExitNode()) {
           ASMJIT_PROPAGATE_ERROR(addReturningNode(node_));
           goto _NextGroup;
@@ -2401,7 +2400,7 @@ _NextGroup:
       // [Inst]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeInst: {
+      case HLNode::kTypeInst: {
         HLInst* node = static_cast<HLInst*>(node_);
 
         uint32_t instId = node->getInstId();
@@ -2417,10 +2416,10 @@ _NextGroup:
 
           // Collect instruction flags and merge all 'VarAttr's.
           if (extendedInfo.isFp())
-            flags |= kHLNodeFlagIsFp;
+            flags |= HLNode::kFlagIsFp;
 
           if (extendedInfo.isSpecial() && (special = X86SpecialInst_get(instId, opList, opCount)) != nullptr)
-            flags |= kHLNodeFlagIsSpecial;
+            flags |= HLNode::kFlagIsSpecial;
 
           uint32_t gpAllowedMask = 0xFFFFFFFF;
 
@@ -2656,11 +2655,11 @@ _NextGroup:
             if (jTarget->isFetched()) {
               uint32_t jTargetFlowId = jTarget->getFlowId();
 
-              // Update kHLNodeFlagIsTaken flag to true if this is a conditional
-              // backward jump. This behavior can be overridden by using
-              // `kInstOptionTaken` when the instruction is created.
+              // Update HLNode::kFlagIsTaken flag to true if this is a
+              // conditional backward jump. This behavior can be overridden
+              // by using `kInstOptionTaken` when the instruction is created.
               if (!jNode->isTaken() && opCount == 1 && jTargetFlowId <= flowId) {
-                jNode->orFlags(kHLNodeFlagIsTaken);
+                jNode->orFlags(HLNode::kFlagIsTaken);
               }
             }
             else if (next->isFetched()) {
@@ -2681,7 +2680,7 @@ _NextGroup:
       // [Func]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeFunc: {
+      case HLNode::kTypeFunc: {
         ASMJIT_ASSERT(node_ == func);
         X86FuncDecl* decl = func->getDecl();
 
@@ -2732,7 +2731,7 @@ _NextGroup:
       // [End]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeSentinel: {
+      case HLNode::kTypeSentinel: {
         ASMJIT_PROPAGATE_ERROR(addReturningNode(node_));
         goto _NextGroup;
       }
@@ -2741,7 +2740,7 @@ _NextGroup:
       // [Ret]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeRet: {
+      case HLNode::kTypeRet: {
         HLRet* node = static_cast<HLRet*>(node_);
         ASMJIT_PROPAGATE_ERROR(addReturningNode(node));
 
@@ -2788,7 +2787,7 @@ _NextGroup:
       // [Call]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeCall: {
+      case HLNode::kTypeCall: {
         X86CallNode* node = static_cast<X86CallNode*>(node_);
         X86FuncDecl* decl = node->getDecl();
 
@@ -2962,7 +2961,7 @@ Error X86Context::annotate() {
   uint32_t maxLen = 0;
   while (node_ != end) {
     if (node_->getComment() == nullptr) {
-      if (node_->getType() == kHLNodeTypeInst) {
+      if (node_->getType() == HLNode::kTypeInst) {
         HLInst* node = static_cast<HLInst*>(node_);
         X86Context_annotateInstruction(this, sb, node->getInstId(), node->getOpList(), node->getOpCount());
 
@@ -3277,11 +3276,11 @@ ASMJIT_INLINE Error X86VarAlloc::run(HLNode* node_) {
   alloc<kX86RegClassXyz>();
 
   // Translate node operands.
-  if (node_->getType() == kHLNodeTypeInst) {
+  if (node_->getType() == HLNode::kTypeInst) {
     HLInst* node = static_cast<HLInst*>(node_);
     ASMJIT_PROPAGATE_ERROR(X86Context_translateOperands(_context, node->getOpList(), node->getOpCount()));
   }
-  else if (node_->getType() == kHLNodeTypeCallArg) {
+  else if (node_->getType() == HLNode::kTypeCallArg) {
     HLCallArg* node = static_cast<HLCallArg*>(node_);
 
     X86CallNode* call = static_cast<X86CallNode*>(node->getCall());
@@ -3895,11 +3894,11 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
 
 _Advance:
       // Terminate if this is a return node.
-      if (node->hasFlag(kHLNodeFlagIsRet))
+      if (node->hasFlag(HLNode::kFlagIsRet))
         goto _Done;
 
       // Advance on non-conditional jump.
-      if (node->hasFlag(kHLNodeFlagIsJmp)) {
+      if (node->hasFlag(HLNode::kFlagIsJmp)) {
         // Stop on a jump that is not followed.
         node = static_cast<HLJump*>(node)->getTarget();
         if (node == nullptr)
@@ -3908,7 +3907,7 @@ _Advance:
       }
 
       // Split flow on a conditional jump.
-      if (node->hasFlag(kHLNodeFlagIsJcc)) {
+      if (node->hasFlag(HLNode::kFlagIsJcc)) {
         // Put the next node on the stack and follow the target if possible.
         HLNode* next = node->getNext();
         if (next != nullptr && gfIndex < kMaxGuessFlow)
@@ -3972,15 +3971,15 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
       break;
 
     // Stop on `HLSentinel` and `HLRet`.
-    if (node->hasFlag(kHLNodeFlagIsRet))
+    if (node->hasFlag(HLNode::kFlagIsRet))
       break;
 
     // Stop on conditional jump, we don't follow them.
-    if (node->hasFlag(kHLNodeFlagIsJcc))
+    if (node->hasFlag(HLNode::kFlagIsJcc))
       break;
 
     // Advance on non-conditional jump.
-    if (node->hasFlag(kHLNodeFlagIsJmp)) {
+    if (node->hasFlag(HLNode::kFlagIsJmp)) {
       node = static_cast<HLJump*>(node)->getTarget();
       // Stop on jump that is not followed.
       if (node == nullptr)
@@ -4580,15 +4579,15 @@ ASMJIT_INLINE uint32_t X86CallAlloc::guessAlloc(VarData* vd, uint32_t allocableR
   HLNode* node = _node;
   for (i = 0; i < maxLookAhead; i++) {
     // Stop on 'HLRet' and 'HLSentinel.
-    if (node->hasFlag(kHLNodeFlagIsRet))
+    if (node->hasFlag(HLNode::kFlagIsRet))
       break;
 
     // Stop on conditional jump, we don't follow them.
-    if (node->hasFlag(kHLNodeFlagIsJcc))
+    if (node->hasFlag(HLNode::kFlagIsJcc))
       break;
 
     // Advance on non-conditional jump.
-    if (node->hasFlag(kHLNodeFlagIsJmp)) {
+    if (node->hasFlag(HLNode::kFlagIsJmp)) {
       node = static_cast<HLJump*>(node)->getTarget();
       // Stop on jump that is not followed.
       if (node == nullptr)
@@ -4707,7 +4706,7 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
       continue;
 
     VarData* vd = _compiler->getVdById(op->getId());
-    uint32_t vf = _x86VarInfo[vd->getType()].getDesc();
+    uint32_t vf = _x86VarInfo[vd->getType()].getFlags();
     uint32_t regIndex = ret.getRegIndex();
 
     switch (vd->getClass()) {
@@ -4729,8 +4728,8 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
         if (ret.getVarType() == kVarTypeFp32 || ret.getVarType() == kVarTypeFp64) {
           X86Mem m = _context->getVarMem(vd);
           m.setSize(
-            (vf & kVarFlagSp) ? 4 :
-            (vf & kVarFlagDp) ? 8 :
+            (vf & VarInfo::kFlagSP) ? 4 :
+            (vf & VarInfo::kFlagDP) ? 8 :
             (ret.getVarType() == kVarTypeFp32) ? 4 : 8);
 
           _context->unuse<kX86RegClassXyz>(vd, kVarStateMem);
@@ -4765,7 +4764,7 @@ static Error X86Context_translateOperands(X86Context* self, Operand* opList, uin
       ASMJIT_ASSERT(vd != nullptr);
       ASMJIT_ASSERT(vd->getRegIndex() != kInvalidReg);
 
-      op->_vreg.op = kOperandTypeReg;
+      op->_vreg.op = Operand::kTypeReg;
       op->_vreg.index = vd->getRegIndex();
     }
     else if (op->isMem()) {
@@ -5015,7 +5014,7 @@ static Error X86Context_patchFuncMem(X86Context* self, X86FuncNode* func, HLNode
   HLNode* node = func;
 
   do {
-    if (node->getType() == kHLNodeTypeInst) {
+    if (node->getType() == HLNode::kTypeInst) {
       HLInst* iNode = static_cast<HLInst*>(node);
 
       if (iNode->hasMemOp()) {
@@ -5336,10 +5335,10 @@ static Error X86Context_translateRet(X86Context* self, HLRet* rNode, HLLabel* ex
         VarData* vd = va.getVd();
         X86Mem m(self->getVarMem(vd));
 
-        uint32_t flags = _x86VarInfo[vd->getType()].getDesc();
+        uint32_t flags = _x86VarInfo[vd->getType()].getFlags();
         m.setSize(
-          (flags & kVarFlagSp) ? 4 :
-          (flags & kVarFlagDp) ? 8 :
+          (flags & VarInfo::kFlagSP) ? 4 :
+          (flags & VarInfo::kFlagDP) ? 8 :
           va.hasFlag(kVarAttrX86Fld4) ? 4 : 8);
 
         compiler->fld(m);
@@ -5352,29 +5351,29 @@ static Error X86Context_translateRet(X86Context* self, HLRet* rNode, HLLabel* ex
     switch (node->getType()) {
       // If we have found an exit label we just return, there is no need to
       // emit jump to that.
-      case kHLNodeTypeLabel:
+      case HLNode::kTypeLabel:
         if (static_cast<HLLabel*>(node) == exitTarget)
           return kErrorOk;
         goto _EmitRet;
 
-      case kHLNodeTypeData:
-      case kHLNodeTypeInst:
-      case kHLNodeTypeCall:
-      case kHLNodeTypeRet:
+      case HLNode::kTypeData:
+      case HLNode::kTypeInst:
+      case HLNode::kTypeCall:
+      case HLNode::kTypeRet:
         goto _EmitRet;
 
       // Continue iterating.
-      case kHLNodeTypeComment:
-      case kHLNodeTypeAlign:
-      case kHLNodeTypeHint:
+      case HLNode::kTypeComment:
+      case HLNode::kTypeAlign:
+      case HLNode::kTypeHint:
         break;
 
       // Invalid node to be here.
-      case kHLNodeTypeFunc:
+      case HLNode::kTypeFunc:
         return self->getCompiler()->setLastError(kErrorInvalidState);
 
       // We can't go forward from here.
-      case kHLNodeTypeSentinel:
+      case HLNode::kTypeSentinel:
         return kErrorOk;
     }
 
@@ -5413,7 +5412,7 @@ Error X86Context::translate() {
   for (;;) {
     while (node_->isTranslated()) {
       // Switch state if we went to the already translated node.
-      if (node_->getType() == kHLNodeTypeLabel) {
+      if (node_->getType() == HLNode::kTypeLabel) {
         HLLabel* node = static_cast<HLLabel*>(node_);
         compiler->_setCursor(node->getPrev());
         switchState(node->getState());
@@ -5448,7 +5447,7 @@ _NextGroup:
     }
 
     next = node_->getNext();
-    node_->orFlags(kHLNodeFlagIsTranslated);
+    node_->orFlags(HLNode::kFlagIsTranslated);
 
     ASMJIT_TSEC({
       X86Context_traceNode(this, node_, "[T] ");
@@ -5459,15 +5458,15 @@ _NextGroup:
       // [Align / Embed]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeAlign:
-      case kHLNodeTypeData:
+      case HLNode::kTypeAlign:
+      case HLNode::kTypeData:
         break;
 
       // ----------------------------------------------------------------------
       // [Target]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeLabel: {
+      case HLNode::kTypeLabel: {
         HLLabel* node = static_cast<HLLabel*>(node_);
         ASMJIT_ASSERT(!node->hasState());
         node->setState(saveState());
@@ -5478,9 +5477,9 @@ _NextGroup:
       // [Inst/Call/SArg/Ret]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeInst:
-      case kHLNodeTypeCall:
-      case kHLNodeTypeCallArg:
+      case HLNode::kTypeInst:
+      case HLNode::kTypeCall:
+      case HLNode::kTypeCallArg:
         // Update VarAttr's unuse flags based on liveness of the next node.
         if (!node_->isJcc()) {
           X86VarMap* map = static_cast<X86VarMap*>(node_->getMap());
@@ -5500,14 +5499,14 @@ _NextGroup:
           }
         }
 
-        if (node_->getType() == kHLNodeTypeCall) {
+        if (node_->getType() == HLNode::kTypeCall) {
           ASMJIT_PROPAGATE_ERROR(cAlloc.run(static_cast<X86CallNode*>(node_)));
           break;
         }
         ASMJIT_FALLTHROUGH;
 
-      case kHLNodeTypeHint:
-      case kHLNodeTypeRet: {
+      case HLNode::kTypeHint:
+      case HLNode::kTypeRet: {
         ASMJIT_PROPAGATE_ERROR(vAlloc.run(node_));
 
         // Handle conditional/unconditional jump.
@@ -5539,7 +5538,7 @@ _NextGroup:
 
             if (jTarget->isTranslated()) {
               if (jNext->isTranslated()) {
-                ASMJIT_ASSERT(jNext->getType() == kHLNodeTypeLabel);
+                ASMJIT_ASSERT(jNext->getType() == HLNode::kTypeLabel);
                 compiler->_setCursor(node->getPrev());
                 intersectStates(jTarget->getState(), jNext->getState());
               }
@@ -5551,7 +5550,7 @@ _NextGroup:
               next = jNext;
             }
             else if (jNext->isTranslated()) {
-              ASMJIT_ASSERT(jNext->getType() == kHLNodeTypeLabel);
+              ASMJIT_ASSERT(jNext->getType() == HLNode::kTypeLabel);
 
               VarState* savedState = saveState();
               node->setState(savedState);
@@ -5577,7 +5576,7 @@ _NextGroup:
       // [Func]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeFunc: {
+      case HLNode::kTypeFunc: {
         ASMJIT_ASSERT(node_ == func);
 
         X86FuncDecl* decl = func->getDecl();
@@ -5626,7 +5625,7 @@ _NextGroup:
       // [End]
       // ----------------------------------------------------------------------
 
-      case kHLNodeTypeSentinel: {
+      case HLNode::kTypeSentinel: {
         goto _NextGroup;
       }
 
@@ -5645,115 +5644,6 @@ _Done:
   ASMJIT_PROPAGATE_ERROR(X86Context_translatePrologEpilog(this, func));
 
   ASMJIT_TLOG("[T] ======= Translate (End)\n");
-  return kErrorOk;
-}
-
-// ============================================================================
-// [asmjit::X86Context - Schedule]
-// ============================================================================
-
-Error X86Context::schedule() {
-  X86Compiler* compiler = getCompiler();
-  X86Scheduler scheduler(compiler,
-    static_cast<const X86CpuInfo*>(compiler->getRuntime()->getCpuInfo()));
-
-  HLNode* node_ = getFunc();
-  HLNode* stop = getStop();
-  ASMJIT_UNUSED(stop); // Unused in release mode.
-
-  PodList<HLNode*>::Link* jLink = _jccList.getFirst();
-
-  // --------------------------------------------------------------------------
-  // [Loop]
-  // --------------------------------------------------------------------------
-
-_Advance:
-  while (node_->isScheduled()) {
-_NextGroup:
-    if (jLink == nullptr)
-      goto _Done;
-
-    // We always go to the next instruction in the main loop so we have to
-    // jump to the `jcc` target here.
-    node_ = static_cast<HLJump*>(jLink->getValue())->getTarget();
-    jLink = jLink->getNext();
-  }
-
-  // Find interval that can be passed to scheduler.
-  for (;;) {
-    HLNode* schedStart = node_;
-
-    for (;;) {
-      HLNode* next = node_->getNext();
-      node_->orFlags(kHLNodeFlagIsScheduled);
-
-      // Shouldn't happen here, investigate if hit.
-      ASMJIT_ASSERT(node_ != stop);
-
-      uint32_t nodeType = node_->getType();
-      if (nodeType != kHLNodeTypeInst) {
-        // If we didn't reach any instruction node we simply advance. In this
-        // case no informative nodes will be removed and everything else just
-        // skipped.
-        if (schedStart == node_) {
-          node_ = next;
-          if (nodeType == kHLNodeTypeSentinel || nodeType == kHLNodeTypeRet)
-            goto _NextGroup;
-          else
-            goto _Advance;
-        }
-
-        // Remove informative nodes if we are in a middle of instruction stream.
-        //
-        // TODO: Shouldn't be there an option for this? Maybe it can be useful
-        // to stop if there is a comment or something. I'm not sure if it's
-        // good to always remove.
-        if (node_->isInformative()) {
-          compiler->removeNode(node_);
-          node_ = next;
-          continue;
-        }
-
-        break;
-      }
-
-      // Stop if `node_` is `jmp` or `jcc`.
-      if (node_->isJmpOrJcc())
-        break;
-
-      node_ = next;
-    }
-
-    // If the stream is less than 3 instructions it will not be passed to
-    // scheduler.
-    if (schedStart != node_ &&
-        schedStart->getNext() != node_ &&
-        schedStart->getNext() != node_->getPrev()) {
-
-      scheduler.run(schedStart, node_);
-    }
-
-    // If node is `jmp` we follow it as well.
-    if (node_->isJmp()) {
-      node_ = static_cast<HLJump*>(node_)->getTarget();
-      if (node_ == nullptr)
-        goto _NextGroup;
-      else
-        goto _Advance;
-    }
-
-    // Handle stop nodes.
-    {
-      uint32_t nodeType = node_->getType();
-      if (nodeType == kHLNodeTypeSentinel || nodeType == kHLNodeTypeRet)
-        goto _NextGroup;
-    }
-
-    node_ = node_->getNext();
-    goto _Advance;
-  }
-
-_Done:
   return kErrorOk;
 }
 
@@ -5779,39 +5669,39 @@ Error X86Context::serialize(Assembler* assembler_, HLNode* start, HLNode* stop) 
 #endif // !ASMJIT_DISABLE_LOGGER
 
     switch (node_->getType()) {
-      case kHLNodeTypeAlign: {
+      case HLNode::kTypeAlign: {
         HLAlign* node = static_cast<HLAlign*>(node_);
         assembler->align(node->getAlignMode(), node->getOffset());
         break;
       }
 
-      case kHLNodeTypeData: {
+      case HLNode::kTypeData: {
         HLData* node = static_cast<HLData*>(node_);
         assembler->embed(node->getData(), node->getSize());
         break;
       }
 
-      case kHLNodeTypeComment: {
+      case HLNode::kTypeComment: {
 #if !defined(ASMJIT_DISABLE_LOGGER)
         HLComment* node = static_cast<HLComment*>(node_);
         if (logger)
-          logger->logFormat(kLoggerStyleComment,
+          logger->logFormat(Logger::kStyleComment,
             "%s; %s\n", logger->getIndentation(), node->getComment());
 #endif // !ASMJIT_DISABLE_LOGGER
         break;
       }
 
-      case kHLNodeTypeHint: {
+      case HLNode::kTypeHint: {
         break;
       }
 
-      case kHLNodeTypeLabel: {
+      case HLNode::kTypeLabel: {
         HLLabel* node = static_cast<HLLabel*>(node_);
         assembler->bind(node->getLabel());
         break;
       }
 
-      case kHLNodeTypeInst: {
+      case HLNode::kTypeInst: {
         HLInst* node = static_cast<HLInst*>(node_);
 
         uint32_t instId = node->getInstId();
@@ -5970,15 +5860,15 @@ Error X86Context::serialize(Assembler* assembler_, HLNode* start, HLNode* stop) 
 
       // Function scope and return is translated to another nodes, no special
       // handling is required at this point.
-      case kHLNodeTypeFunc:
-      case kHLNodeTypeSentinel:
-      case kHLNodeTypeRet: {
+      case HLNode::kTypeFunc:
+      case HLNode::kTypeSentinel:
+      case HLNode::kTypeRet: {
         break;
       }
 
       // Function call adds nodes before and after, but it's required to emit
       // the call instruction by itself.
-      case kHLNodeTypeCall: {
+      case HLNode::kTypeCall: {
         X86CallNode* node = static_cast<X86CallNode*>(node_);
         assembler->emit(kX86InstIdCall, node->_target, noOperand, noOperand);
         break;

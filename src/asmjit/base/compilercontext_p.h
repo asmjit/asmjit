@@ -13,6 +13,7 @@
 
 // [Dependencies - AsmJit]
 #include "../base/compiler.h"
+#include "../base/podvector.h"
 #include "../base/zone.h"
 
 // [Api-Begin]
@@ -22,22 +23,6 @@ namespace asmjit {
 
 //! \addtogroup asmjit_base
 //! \{
-
-// ============================================================================
-// [asmjit::VarFlags]
-// ============================================================================
-
-//! \internal
-//!
-//! X86/X64 variable flags.
-ASMJIT_ENUM(VarFlags) {
-  //! Variable contains single-precision floating-point(s).
-  kVarFlagSp = 0x10,
-  //! Variable contains double-precision floating-point(s).
-  kVarFlagDp = 0x20,
-  //! Variable is packed, i.e. packed floats, doubles, ...
-  kVarFlagPacked = 0x40
-};
 
 // ============================================================================
 // [asmjit::VarAttrFlags]
@@ -800,12 +785,6 @@ struct Context {
 
   //! Translate code by allocating registers and handling state changes.
   virtual Error translate() = 0;
-
-  // --------------------------------------------------------------------------
-  // [Schedule]
-  // --------------------------------------------------------------------------
-
-  virtual Error schedule();
 
   // --------------------------------------------------------------------------
   // [Cleanup]

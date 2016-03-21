@@ -298,7 +298,7 @@ Error Context::removeUnreachableCode() {
         node = first;
         do {
           HLNode* next = node->getNext();
-          if (!node->isInformative() && node->getType() != kHLNodeTypeAlign) {
+          if (!node->isInformative() && node->getType() != HLNode::kTypeAlign) {
             ASMJIT_TLOG("[%05d] Unreachable\n", node->getFlowId());
             compiler->removeNode(node);
           }
@@ -394,7 +394,7 @@ _OnVisit:
       }
     }
 
-    if (node->getType() == kHLNodeTypeLabel)
+    if (node->getType() == HLNode::kTypeLabel)
       goto _OnTarget;
 
     if (node == func)
@@ -413,7 +413,7 @@ _OnPatch:
     if (!bNode->_addBitsDelSource(bCur, bLen))
       goto _OnDone;
 
-    if (node->getType() == kHLNodeTypeLabel)
+    if (node->getType() == HLNode::kTypeLabel)
       goto _OnTarget;
 
     if (node == func)
@@ -575,15 +575,6 @@ Error Context::formatInlineComment(StringBuilder& dst, HLNode* node) {
 }
 
 // ============================================================================
-// [asmjit::Context - Schedule]
-// ============================================================================
-
-Error Context::schedule() {
-  // By default there is no instruction scheduler implemented.
-  return kErrorOk;
-}
-
-// ============================================================================
 // [asmjit::Context - Cleanup]
 // ============================================================================
 
@@ -625,9 +616,6 @@ Error Context::compile(HLFunc* func) {
 #endif // !ASMJIT_DISABLE_LOGGER
 
   ASMJIT_PROPAGATE_ERROR(translate());
-
-  if (compiler->hasFeature(kCompilerFeatureEnableScheduler))
-    ASMJIT_PROPAGATE_ERROR(schedule());
 
   // We alter the compiler cursor, because it doesn't make sense to reference
   // it after compilation - some nodes may disappear and it's forbidden to add

@@ -27,7 +27,7 @@ namespace asmjit {
 //! \internal
 //!
 //! Remove left horizontal links.
-static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_skewNode(ConstPool::Node* node) {
+static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_skewNode(ConstPool::Node* node) noexcept {
   ConstPool::Node* link = node->_link[0];
   uint32_t level = node->_level;
 
@@ -44,7 +44,7 @@ static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_skewNode(ConstPool::Node* no
 //! \internal
 //!
 //! Remove consecutive horizontal links.
-static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_splitNode(ConstPool::Node* node) {
+static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_splitNode(ConstPool::Node* node) noexcept {
   ConstPool::Node* link = node->_link[1];
   uint32_t level = node->_level;
 
@@ -59,7 +59,7 @@ static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_splitNode(ConstPool::Node* n
   return node;
 }
 
-ConstPool::Node* ConstPool::Tree::get(const void* data) {
+ConstPool::Node* ConstPool::Tree::get(const void* data) noexcept {
   ConstPool::Node* node = _root;
   size_t dataSize = _dataSize;
 
@@ -73,7 +73,7 @@ ConstPool::Node* ConstPool::Tree::get(const void* data) {
   return nullptr;
 }
 
-void ConstPool::Tree::put(ConstPool::Node* newNode) {
+void ConstPool::Tree::put(ConstPool::Node* newNode) noexcept {
   size_t dataSize = _dataSize;
 
   _length++;
@@ -126,7 +126,7 @@ void ConstPool::Tree::put(ConstPool::Node* newNode) {
 // [asmjit::ConstPool - Construction / Destruction]
 // ============================================================================
 
-ConstPool::ConstPool(Zone* zone) {
+ConstPool::ConstPool(Zone* zone) noexcept {
   _zone = zone;
 
   size_t dataSize = 1;
@@ -141,13 +141,13 @@ ConstPool::ConstPool(Zone* zone) {
   _alignment = 0;
 }
 
-ConstPool::~ConstPool() {}
+ConstPool::~ConstPool() noexcept {}
 
 // ============================================================================
 // [asmjit::ConstPool - Reset]
 // ============================================================================
 
-void ConstPool::reset() {
+void ConstPool::reset() noexcept {
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {
     _tree[i].reset();
     _gaps[i] = nullptr;
@@ -162,7 +162,7 @@ void ConstPool::reset() {
 // [asmjit::ConstPool - Ops]
 // ============================================================================
 
-static ASMJIT_INLINE ConstPool::Gap* ConstPool_allocGap(ConstPool* self) {
+static ASMJIT_INLINE ConstPool::Gap* ConstPool_allocGap(ConstPool* self) noexcept {
   ConstPool::Gap* gap = self->_gapPool;
   if (gap == nullptr)
     return self->_zone->allocT<ConstPool::Gap>();
@@ -171,12 +171,12 @@ static ASMJIT_INLINE ConstPool::Gap* ConstPool_allocGap(ConstPool* self) {
   return gap;
 }
 
-static ASMJIT_INLINE void ConstPool_freeGap(ConstPool* self,  ConstPool::Gap* gap) {
+static ASMJIT_INLINE void ConstPool_freeGap(ConstPool* self,  ConstPool::Gap* gap) noexcept {
   gap->_next = self->_gapPool;
   self->_gapPool = gap;
 }
 
-static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) {
+static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) noexcept {
   ASMJIT_ASSERT(length > 0);
 
   while (length > 0) {
@@ -222,7 +222,7 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) {
   }
 }
 
-Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
+Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept {
   size_t treeIndex;
 
   if (size == 32)
@@ -329,11 +329,11 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) {
 // ============================================================================
 
 struct ConstPoolFill {
-  ASMJIT_INLINE ConstPoolFill(uint8_t* dst, size_t dataSize) :
+  ASMJIT_INLINE ConstPoolFill(uint8_t* dst, size_t dataSize) noexcept :
     _dst(dst),
     _dataSize(dataSize) {}
 
-  ASMJIT_INLINE void visit(const ConstPool::Node* node) {
+  ASMJIT_INLINE void visit(const ConstPool::Node* node) noexcept {
     if (!node->_shared)
       ::memcpy(_dst + node->_offset, node->getData(), _dataSize);
   }
@@ -342,7 +342,7 @@ struct ConstPoolFill {
   size_t _dataSize;
 };
 
-void ConstPool::fill(void* dst) const {
+void ConstPool::fill(void* dst) const noexcept {
   // Clears possible gaps, asmjit should never emit garbage to the output.
   ::memset(dst, 0, _size);
 
