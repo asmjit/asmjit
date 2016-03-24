@@ -862,8 +862,8 @@ typedef unsigned __int64 uint64_t;
 
 #define ASMJIT_NO_COPY(...) \
 private: \
-  ASMJIT_INLINE __VA_ARGS__(const __VA_ARGS__& other); \
-  ASMJIT_INLINE __VA_ARGS__& operator=(const __VA_ARGS__& other); \
+  ASMJIT_INLINE __VA_ARGS__(const __VA_ARGS__& other) ASMJIT_NOEXCEPT; \
+  ASMJIT_INLINE __VA_ARGS__& operator=(const __VA_ARGS__& other) ASMJIT_NOEXCEPT; \
 public:
 
 // ============================================================================

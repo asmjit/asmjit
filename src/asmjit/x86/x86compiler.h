@@ -1013,7 +1013,9 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
     \
     type var(NoInit); \
     \
+    vType = _targetVarMapping[vType]; \
     const VarInfo& vInfo = _x86VarInfo[vType]; \
+    \
     var._init_packed_op_sz_w0_id(Operand::kTypeVar, vInfo.getSize(), vInfo.getRegType() << 8, id); \
     var._vreg.vType = vType; \
     \
@@ -1035,9 +1037,11 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   ASMJIT_INLINE type get##func##ById(uint32_t id) { \
     type var(NoInit); \
     \
-    const VarInfo& vInfo = _x86VarInfo[typeId]; \
+    uint32_t vType = _targetVarMapping[typeId]; \
+    const VarInfo& vInfo = _x86VarInfo[vType]; \
+    \
     var._init_packed_op_sz_w0_id(Operand::kTypeVar, vInfo.getSize(), vInfo.getRegType() << 8, id); \
-    var._vreg.vType = typeId; \
+    var._vreg.vType = vType; \
     \
     return var; \
   } \

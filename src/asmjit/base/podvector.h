@@ -249,7 +249,7 @@ struct PodVectorTmp : public PodVector<T> {
   };
 
   // --------------------------------------------------------------------------
-  // [Data]
+  // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
   //! Create a new instance of `PodVectorTmp<T>`.

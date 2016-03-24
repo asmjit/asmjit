@@ -159,7 +159,7 @@ char* Zone::sdup(const char* str) noexcept {
   if (len == 0)
     return nullptr;
 
-  // Include nullptr terminator and limit string length.
+  // Include NULL terminator and limit string length.
   if (++len > 256)
     len = 256;
 
