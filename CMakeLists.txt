@@ -10,6 +10,9 @@ cmake_minimum_required(VERSION 3.1)
 # Whether to build a static library (default FALSE).
 # set(ASMJIT_STATIC FALSE)
 
+# Used for debugging asmjit itself (default FALSE).
+# set(ASMJIT_TRACE FALSE)
+
 # Whether to build ARM32 backend (TRUE if building for ARM32).
 # set(ASMJIT_BUILD_ARM32 FALSE)
 
@@ -100,6 +103,10 @@ if(ASMJIT_EMBED)
   list(APPEND ASMJIT_PRIVATE_CFLAGS "${ASMJIT_D}ASMJIT_EMBED")
 elseif(ASMJIT_STATIC)
   list(APPEND ASMJIT_PRIVATE_CFLAGS "${ASMJIT_D}ASMJIT_STATIC")
+endif()
+
+if(ASMJIT_TRACE)
+  list(APPEND ASMJIT_PRIVATE_CFLAGS "${ASMJIT_D}ASMJIT_TRACE")
 endif()
 
 if(WIN32)
