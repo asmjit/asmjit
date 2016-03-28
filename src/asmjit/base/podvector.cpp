@@ -109,9 +109,9 @@ Error PodVectorBase::_reserve(size_t n, size_t sizeOfT) noexcept {
       if (ASMJIT_UNLIKELY(d == nullptr))
         return kErrorNoHeapMemory;
 
-      size_t len = d->length;
+      size_t len = oldD->length;
       d->length = len;
-      ::memcpy(d, oldD->getData(), len * sizeOfT);
+      ::memcpy(d->getData(), oldD->getData(), len * sizeOfT);
     }
     else {
       d = static_cast<Data*>(ASMJIT_REALLOC(d, nBytes));

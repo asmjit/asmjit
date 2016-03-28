@@ -217,6 +217,46 @@ struct X86Test_JumpCross : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_JumpMany]
+// ============================================================================
+
+struct X86Test_JumpMany : public X86Test {
+  X86Test_JumpMany() : X86Test("[Misc] Jump Many") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_JumpMany());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
+    for (uint32_t i = 0; i < 1000; i++) {
+      Label L = c.newLabel();
+      c.jmp(L);
+      c.bind(L);
+    }
+
+    X86GpVar ret = c.newInt32("ret");
+    c.xor_(ret, ret);
+    c.ret(ret);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(void);
+
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func();
+    int expectRet = 0;
+
+    result.setFormat("ret={%d}", resultRet);
+    expect.setFormat("ret={%d}", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_JumpUnreachable1]
 // ============================================================================
 
@@ -2869,6 +2909,7 @@ X86TestSuite::X86TestSuite() :
 
   // Jump.
   ADD_TEST(X86Test_JumpCross);
+  ADD_TEST(X86Test_JumpMany);
   ADD_TEST(X86Test_JumpUnreachable1);
   ADD_TEST(X86Test_JumpUnreachable2);
 
