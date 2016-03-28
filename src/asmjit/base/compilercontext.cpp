@@ -296,12 +296,26 @@ Error Context::removeUnreachableCode() {
       if (node != first) {
         HLNode* end = node;
         node = first;
+
+        // NOTE: The strategy is as follows:
+        // 1. The algorithm removes everything until it finds a first label.
+        // 2. After the first label is found it removes only removable nodes.
+        bool removeEverything = true;
         do {
           HLNode* next = node->getNext();
-          if (!node->isInformative() && node->getType() != HLNode::kTypeAlign) {
-            ASMJIT_TLOG("[%05d] Unreachable\n", node->getFlowId());
+          bool remove = node->isRemovable();
+
+          if (!remove) {
+            if (node->isLabel())
+              removeEverything = false;
+            remove = removeEverything;
+          }
+
+          if (remove) {
+            ASMJIT_TLOG("[%05d] Removing unreachable node\n", node->getFlowId());
             compiler->removeNode(node);
           }
+
           node = next;
         } while (node != end);
       }

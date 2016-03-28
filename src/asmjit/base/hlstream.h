@@ -105,28 +105,32 @@ struct HLNode {
     //! is a mark that is set by scheduler after the node has been visited.
     kFlagIsScheduled = 0x0002,
 
+    //! Whether the node can be safely removed by the `Compiler` in case it's
+    //! unreachable.
+    kFlagIsRemovable = 0x0004,
+
     //! Whether the node is informative only and can be safely removed.
-    kFlagIsInformative = 0x0004,
+    kFlagIsInformative = 0x0008,
 
     //! Whether the `HLInst` is a jump.
-    kFlagIsJmp = 0x0008,
+    kFlagIsJmp = 0x0010,
     //! Whether the `HLInst` is a conditional jump.
-    kFlagIsJcc = 0x0010,
+    kFlagIsJcc = 0x0020,
 
     //! Whether the `HLInst` is an unconditinal jump or conditional jump that is
     //! likely to be taken.
-    kFlagIsTaken = 0x0020,
+    kFlagIsTaken = 0x0040,
 
     //! Whether the `HLNode` will return from a function.
     //!
     //! This flag is used by both `HLSentinel` and `HLRet`.
-    kFlagIsRet = 0x0040,
+    kFlagIsRet = 0x0080,
 
     //! Whether the instruction is special.
-    kFlagIsSpecial = 0x0080,
+    kFlagIsSpecial = 0x0100,
 
     //! Whether the instruction is an FPU instruction.
-    kFlagIsFp = 0x0100
+    kFlagIsFp = 0x0200
   };
 
   // --------------------------------------------------------------------------
@@ -187,9 +191,14 @@ struct HLNode {
   ASMJIT_INLINE bool isTranslated() const noexcept { return hasFlag(kFlagIsTranslated); }
   //! Get whether the node has been translated.
   ASMJIT_INLINE bool isScheduled() const noexcept { return hasFlag(kFlagIsScheduled); }
+
+  //! Get whether the node is removable if it's in unreachable code block.
+  ASMJIT_INLINE bool isRemovable() const noexcept { return hasFlag(kFlagIsRemovable); }
   //! Get whether the node is informative only (comment, hint).
   ASMJIT_INLINE bool isInformative() const noexcept { return hasFlag(kFlagIsInformative); }
 
+  //! Whether the node is `HLLabel`.
+  ASMJIT_INLINE bool isLabel() const noexcept { return _type == kTypeLabel; }
   //! Whether the `HLInst` node is an unconditional jump.
   ASMJIT_INLINE bool isJmp() const noexcept { return hasFlag(kFlagIsJmp); }
   //! Whether the `HLInst` node is a conditional jump.
@@ -326,6 +335,7 @@ struct HLInst : public HLNode {
   ASMJIT_INLINE HLInst(Compiler* compiler, uint32_t instId, uint32_t instOptions, Operand* opList, uint32_t opCount) noexcept
     : HLNode(compiler, kTypeInst) {
 
+    orFlags(kFlagIsRemovable);
     _instId = static_cast<uint16_t>(instId);
     _reserved = 0;
     _instOptions = instOptions;
@@ -446,8 +456,10 @@ struct HLJump : public HLInst {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE HLJump(Compiler* compiler, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) noexcept :
-    HLInst(compiler, code, options, opList, opCount) {}
+  ASMJIT_INLINE HLJump(Compiler* compiler, uint32_t code, uint32_t options, Operand* opList, uint32_t opCount) noexcept
+    : HLInst(compiler, code, options, opList, opCount),
+      _target(nullptr),
+      _jumpNext(nullptr) {}
   ASMJIT_INLINE ~HLJump() noexcept {}
 
   // --------------------------------------------------------------------------
@@ -657,7 +669,7 @@ struct HLComment : public HLNode {
   ASMJIT_INLINE HLComment(Compiler* compiler, const char* comment) noexcept
     : HLNode(compiler, kTypeComment) {
 
-    orFlags(kFlagIsInformative);
+    orFlags(kFlagIsRemovable | kFlagIsInformative);
     _comment = comment;
   }
 
@@ -680,7 +692,7 @@ struct HLSentinel : public HLNode {
   //! Create a new `HLSentinel` instance.
   ASMJIT_INLINE HLSentinel(Compiler* compiler) noexcept
     : HLNode(compiler, kTypeSentinel) {
-    _flags |= kFlagIsRet;
+    orFlags(kFlagIsRet);
   }
 
   //! Destroy the `HLSentinel` instance.
@@ -703,7 +715,7 @@ struct HLHint : public HLNode {
   ASMJIT_INLINE HLHint(Compiler* compiler, VarData* vd, uint32_t hint, uint32_t value) noexcept
     : HLNode(compiler, kTypeHint) {
 
-    orFlags(kFlagIsInformative);
+    orFlags(kFlagIsRemovable | kFlagIsInformative);
     _vd = vd;
     _hint = hint;
     _value = value;
@@ -977,7 +989,7 @@ struct HLRet : public HLNode {
   ASMJIT_INLINE HLRet(Compiler* compiler, const Operand& o0, const Operand& o1) noexcept
     : HLNode(compiler, kTypeRet) {
 
-    _flags |= kFlagIsRet;
+    orFlags(kFlagIsRet);
     _ret[0] = o0;
     _ret[1] = o1;
   }
@@ -1024,7 +1036,9 @@ struct HLCall : public HLNode {
     : HLNode(compiler, kTypeCall),
       _decl(nullptr),
       _target(target),
-      _args(nullptr) {}
+      _args(nullptr) {
+    orFlags(kFlagIsRemovable);
+  }
 
   //! Destroy the `HLCall` instance.
   ASMJIT_INLINE ~HLCall() noexcept {}
@@ -1096,7 +1110,9 @@ struct HLCallArg : public HLNode {
       _call(call),
       _sVd(sVd),
       _cVd(cVd),
-      _args(0) {}
+      _args(0) {
+    orFlags(kFlagIsRemovable);
+  }
 
   //! Destroy the `HLCallArg` instance.
   ASMJIT_INLINE ~HLCallArg() noexcept {}
