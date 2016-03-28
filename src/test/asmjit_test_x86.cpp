@@ -2805,6 +2805,67 @@ struct X86Test_MiscMultiRet : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_MiscMultiFunc]
+// ============================================================================
+
+struct X86Test_MiscMultiFunc : public X86Test {
+  X86Test_MiscMultiFunc() : X86Test("[Misc] MultiFunc") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_MiscMultiFunc());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    X86FuncNode* f1 = c.newFunc(FuncBuilder2<int, int, int>(kCallConvHost));
+    X86FuncNode* f2 = c.newFunc(FuncBuilder2<int, int, int>(kCallConvHost));
+
+    {
+      X86GpVar a = c.newInt32("a");
+      X86GpVar b = c.newInt32("b");
+
+      c.addFunc(f1);
+      c.setArg(0, a);
+      c.setArg(1, b);
+
+      X86CallNode* call = c.call(f2->getEntryLabel(), FuncBuilder2<int, int, int>(kCallConvHost));
+      call->setArg(0, a);
+      call->setArg(1, b);
+      call->setRet(0, a);
+
+      c.ret(a);
+      c.endFunc();
+    }
+
+    {
+      X86GpVar a = c.newInt32("a");
+      X86GpVar b = c.newInt32("b");
+
+      c.addFunc(f2);
+      c.setArg(0, a);
+      c.setArg(1, b);
+
+      c.add(a, b);
+      c.ret(a);
+      c.endFunc();
+    }
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(int, int);
+
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func(56, 22);
+    int expectRet = 56 + 22;
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return result.eq(expect);
+  }
+};
+
+// ============================================================================
 // [X86Test_MiscUnfollow]
 // ============================================================================
 
@@ -2959,8 +3020,9 @@ X86TestSuite::X86TestSuite() :
 
   // Misc.
   ADD_TEST(X86Test_MiscConstPool);
-  ADD_TEST(X86Test_MiscUnfollow);
   ADD_TEST(X86Test_MiscMultiRet);
+  ADD_TEST(X86Test_MiscMultiFunc);
+  ADD_TEST(X86Test_MiscUnfollow);
 }
 
 X86TestSuite::~X86TestSuite() {

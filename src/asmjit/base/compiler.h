@@ -291,6 +291,9 @@ struct ASMJIT_VIRTAPI Compiler : public ExternalTool {
   // [Code-Stream]
   // --------------------------------------------------------------------------
 
+  //! Add a function `node` to the stream.
+  ASMJIT_API HLNode* addFunc(HLFunc* func) noexcept;
+
   //! Add node `node` after current and set current to `node`.
   ASMJIT_API HLNode* addNode(HLNode* node) noexcept;
   //! Insert `node` before `ref`.

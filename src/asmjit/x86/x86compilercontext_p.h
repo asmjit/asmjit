@@ -280,7 +280,7 @@ struct X86Context : public Context {
   // [Reset]
   // --------------------------------------------------------------------------
 
-  virtual void reset(bool releaseMemory = false);
+  virtual void reset(bool releaseMemory = false) override;
 
   // --------------------------------------------------------------------------
   // [Arch]

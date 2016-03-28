@@ -292,6 +292,7 @@ Error X86Compiler::finalize() noexcept {
 
     error = context.serialize(assembler, start, node);
     context.cleanup();
+    context.reset(false);
 
     if (error != kErrorOk)
       break;
@@ -642,18 +643,7 @@ X86FuncNode* X86Compiler::addFunc(const FuncPrototype& p) noexcept {
     return nullptr;
   }
 
-  ASMJIT_ASSERT(_func == nullptr);
-  _func = func;
-
-  addNode(func);                 // Add function node.
-  addNode(func->getEntryNode()); // Add function entry.
-  HLNode* cursor = getCursor();
-
-  addNode(func->getExitNode());  // Add function exit / epilog marker.
-  addNode(func->getEnd());       // Add function end.
-  setCursor(cursor);
-
-  return func;
+  return static_cast<X86FuncNode*>(addFunc(func));
 }
 
 HLSentinel* X86Compiler::endFunc() noexcept {

@@ -856,6 +856,8 @@ struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
   //! Create a new `X86FuncNode`.
   ASMJIT_API X86FuncNode* newFunc(const FuncPrototype& p) noexcept;
 
+  using Compiler::addFunc;
+
   //! Add a new function.
   //!
   //! \param p Function prototype.

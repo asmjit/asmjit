@@ -165,6 +165,21 @@ HLHint* Compiler::newHintNode(Var& var, uint32_t hint, uint32_t value) noexcept 
 // [asmjit::Compiler - Code-Stream]
 // ============================================================================
 
+HLNode* Compiler::addFunc(HLFunc* func) noexcept {
+  ASMJIT_ASSERT(_func == nullptr);
+  _func = func;
+
+  addNode(func);                 // Add function node.
+  addNode(func->getEntryNode()); // Add function entry.
+  HLNode* cursor = getCursor();
+
+  addNode(func->getExitNode());  // Add function exit / epilog marker.
+  addNode(func->getEnd());       // Add function end.
+  setCursor(cursor);
+
+  return func;
+}
+
 HLNode* Compiler::addNode(HLNode* node) noexcept {
   ASMJIT_ASSERT(node != nullptr);
   ASMJIT_ASSERT(node->_prev == nullptr);

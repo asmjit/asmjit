@@ -3293,7 +3293,7 @@ struct ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! Packed DWORD unsigned maximum (SSE4.1).
   INST_2x(pmaxud, kX86InstIdPmaxud, X86XmmReg, X86XmmReg)
   //! \overload
-  INST_2x(pmaxud,kX86InstIdPmaxud , X86XmmReg, X86Mem)
+  INST_2x(pmaxud, kX86InstIdPmaxud, X86XmmReg, X86Mem)
 
   //! Packed WORD unsigned maximum (SSE4.1).
   INST_2x(pmaxuw, kX86InstIdPmaxuw, X86XmmReg, X86XmmReg)

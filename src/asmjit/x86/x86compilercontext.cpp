@@ -270,7 +270,6 @@ X86Context::X86Context(X86Compiler* compiler) : Context(compiler) {
   _state = &_x86State;
   reset();
 }
-
 X86Context::~X86Context() {}
 
 // ============================================================================
