@@ -156,7 +156,7 @@ static bool X86Context_annotateInstruction(X86Context* self,
 #endif // !ASMJIT_DISABLE_LOGGER
 
 #if defined(ASMJIT_TRACE)
-static void X86Context_traceNode(X86Context* self, HLNode* node_, const char* prefix) {
+static void ASMJIT_CDECL X86Context_traceNode(X86Context* self, HLNode* node_, const char* prefix) {
   StringBuilderTmp<256> sb;
 
   switch (node_->getType()) {
@@ -262,6 +262,10 @@ X86Context::X86Context(X86Compiler* compiler) : Context(compiler) {
 
   _memSlot._vmem.type = kMemTypeStackIndex;
   _memSlot.setGpdBase(compiler->getArch() == kArchX86);
+
+#if defined(ASMJIT_TRACE)
+  _traceNode = (TraceNodeFunc)X86Context_traceNode;
+#endif // ASMJIT_TRACE
 
 #if !defined(ASMJIT_DISABLE_LOGGER)
   _emitComments = compiler->getAssembler()->hasLogger();
@@ -2279,7 +2283,7 @@ _NextGroup:
     node_->setFlowId(flowId);
 
     ASMJIT_TSEC({
-      X86Context_traceNode(this, node_, "[F] ");
+      this->_traceNode(this, node_, "[F] ");
     });
 
     switch (node_->getType()) {
@@ -3777,7 +3781,7 @@ ASMJIT_INLINE uint32_t X86VarAlloc::guessAlloc(VarData* vd, uint32_t allocableRe
   for (;;) {
     do {
       ASMJIT_TSEC({
-        X86Context_traceNode(_context, node, "  ");
+        _context->_traceNode(_context, node, "  ");
       });
 
       // Terminate if we have seen this node already.
@@ -5449,7 +5453,7 @@ _NextGroup:
     node_->orFlags(HLNode::kFlagIsTranslated);
 
     ASMJIT_TSEC({
-      X86Context_traceNode(this, node_, "[T] ");
+      this->_traceNode(this, node_, "[T] ");
     });
 
     switch (node_->getType()) {

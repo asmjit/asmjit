@@ -27,11 +27,11 @@ namespace asmjit {
 Context::Context(Compiler* compiler) :
   _compiler(compiler),
   _zoneAllocator(8192 - Zone::kZoneOverhead),
+  _traceNode(nullptr),
   _varMapToVaListOffset(0) {
 
   Context::reset();
 }
-
 Context::~Context() {}
 
 // ============================================================================
@@ -312,7 +312,9 @@ Error Context::removeUnreachableCode() {
           }
 
           if (remove) {
-            ASMJIT_TLOG("[%05d] Removing unreachable node\n", node->getFlowId());
+            ASMJIT_TSEC({
+              this->_traceNode(this, node, "[REMOVED UNREACHABLE] ");
+            });
             compiler->removeNode(node);
           }
 

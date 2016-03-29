@@ -817,6 +817,13 @@ struct Context {
   Zone _zoneAllocator;
 
   //! \internal
+  typedef void (ASMJIT_CDECL* TraceNodeFunc)(Context* self, HLNode* node_, const char* prefix);
+  //! \internal
+  //!
+  //! Only non-NULL when ASMJIT_TRACE is enabled.
+  TraceNodeFunc _traceNode;
+
+  //! \internal
   //!
   //! Offset (how many bytes to add) to `VarMap` to get `VarAttr` array. Used
   //! by liveness analysis shared across all backends. This is needed because
