@@ -532,7 +532,7 @@ struct Utils {
   // [BSwap]
   // --------------------------------------------------------------------------
 
-  static ASMJIT_INLINE uint32_t bswap32(uint32_t x) noexcept {
+  static ASMJIT_INLINE uint32_t byteswap32(uint32_t x) noexcept {
 #if ASMJIT_CC_MSC
     return static_cast<uint32_t>(_byteswap_ulong(x));
 #elif ASMJIT_CC_GCC_GE(4, 3, 0) || ASMJIT_CC_CLANG_GE(2, 6, 0)
@@ -637,7 +637,7 @@ struct Utils {
   static ASMJIT_INLINE uint32_t readU32xLE(const void* p) noexcept {
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
       uint32_t x = static_cast<const uint32_t*>(p)[0];
-      return ASMJIT_ARCH_LE ? x : bswap32(x);
+      return ASMJIT_ARCH_LE ? x : byteswap32(x);
     }
     else {
       uint32_t x = readU16xLE<Alignment>(static_cast<const uint8_t*>(p) + 0);
@@ -650,7 +650,7 @@ struct Utils {
   static ASMJIT_INLINE uint32_t readU32xBE(const void* p) noexcept {
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
       uint32_t x = static_cast<const uint32_t*>(p)[0];
-      return ASMJIT_ARCH_BE ? x : bswap32(x);
+      return ASMJIT_ARCH_BE ? x : byteswap32(x);
     }
     else {
       uint32_t x = readU16xBE<Alignment>(static_cast<const uint8_t*>(p) + 0);
@@ -837,7 +837,7 @@ struct Utils {
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU32xLE(void* p, uint32_t x) noexcept {
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
-      static_cast<uint32_t*>(p)[0] = ASMJIT_ARCH_LE ? x : bswap32(x);
+      static_cast<uint32_t*>(p)[0] = ASMJIT_ARCH_LE ? x : byteswap32(x);
     }
     else {
       writeU16xLE<Alignment>(static_cast<uint8_t*>(p) + 0, x >> 16);
@@ -848,7 +848,7 @@ struct Utils {
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU32xBE(void* p, uint32_t x) noexcept {
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
-      static_cast<uint32_t*>(p)[0] = ASMJIT_ARCH_BE ? x : bswap32(x);
+      static_cast<uint32_t*>(p)[0] = ASMJIT_ARCH_BE ? x : byteswap32(x);
     }
     else {
       writeU16xBE<Alignment>(static_cast<uint8_t*>(p) + 0, x);
