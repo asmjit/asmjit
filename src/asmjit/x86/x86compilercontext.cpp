@@ -4475,6 +4475,7 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
       }
       else if (aIndex != kInvalidReg) {
         _context->move<C>(aVd, bIndex);
+        _context->_clobberedRegs.or_(C, Utils::mask(bIndex));
 
         aVa->orFlags(kVarAttrAllocRDone);
         addVaDone(C);
@@ -4484,6 +4485,7 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
       }
       else {
         _context->alloc<C>(aVd, bIndex);
+        _context->_clobberedRegs.or_(C, Utils::mask(bIndex));
 
         aVa->orFlags(kVarAttrAllocRDone);
         addVaDone(C);

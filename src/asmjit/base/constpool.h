@@ -161,7 +161,7 @@ struct ConstPool {
           continue;
         }
 
-  _Visit:
+_Visit:
         visitor.visit(node);
         link = node->_link[1];
 

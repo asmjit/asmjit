@@ -2671,6 +2671,59 @@ struct X86Test_CallMisc4 : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_CallMisc5]
+// ============================================================================
+
+// The register allocator should clobber the register used by the `call` itself.
+struct X86Test_CallMisc5 : public X86Test {
+  X86Test_CallMisc5() : X86Test("[Call] Misc #5") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_CallMisc5());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    X86FuncNode* func = c.addFunc(FuncBuilder1<int, void>(kCallConvHost));
+
+    X86GpVar vars[16];
+    uint32_t i, regCount = c.getRegCount().getGp();
+
+    for (i = 0; i < regCount; i++) {
+      if (i == kX86RegIndexBp || i == kX86RegIndexSp)
+        continue;
+
+      vars[i] = c.newInt32("v%u", static_cast<unsigned int>(i));
+      c.mov(vars[i], 1);
+    }
+
+    X86CallNode* call = c.call(imm_ptr(calledFunc), FuncBuilder0<void>(kCallConvHost));
+
+    for (i = 1; i < regCount; i++) {
+      if (vars[i].isInitialized())
+        c.add(vars[0], vars[i]);
+    }
+
+    c.ret(vars[0]);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func();
+    int expectRet = sizeof(void*) == 4 ? 6 : 14;
+
+    result.setFormat("ret=%d", resultRet);
+    expect.setFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+
+  static void calledFunc() {}
+};
+
+// ============================================================================
 // [X86Test_MiscConstPool]
 // ============================================================================
 
@@ -3017,6 +3070,7 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_CallMisc2);
   ADD_TEST(X86Test_CallMisc3);
   ADD_TEST(X86Test_CallMisc4);
+  ADD_TEST(X86Test_CallMisc5);
 
   // Misc.
   ADD_TEST(X86Test_MiscConstPool);
