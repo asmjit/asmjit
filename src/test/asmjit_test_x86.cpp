@@ -2683,16 +2683,19 @@ struct X86Test_CallMisc5 : public X86Test {
   }
 
   virtual void compile(X86Compiler& c) {
-    X86FuncNode* func = c.addFunc(FuncBuilder1<int, void>(kCallConvHost));
+    X86FuncNode* func = c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
     X86GpVar vars[16];
+
     uint32_t i, regCount = c.getRegCount().getGp();
+    ASMJIT_ASSERT(regCount <= ASMJIT_ARRAY_SIZE(vars));
 
     for (i = 0; i < regCount; i++) {
       if (i == kX86RegIndexBp || i == kX86RegIndexSp)
         continue;
 
       vars[i] = c.newInt32("v%u", static_cast<unsigned int>(i));
+      c.alloc(vars[i], i);
       c.mov(vars[i], 1);
     }
 
