@@ -24,366 +24,6 @@ namespace asmjit {
 //! \{
 
 // ============================================================================
-// [asmjit::CallConv]
-// ============================================================================
-
-//! Function calling convention.
-//!
-//! Calling convention is a scheme that defines how function arguments are
-//! passed and how the return value handled. In assembler programming it's
-//! always needed to comply with function calling conventions, because even
-//! small inconsistency can cause undefined behavior or application's crash.
-//!
-//! Platform Independent Conventions
-//! --------------------------------
-//!
-//!   - `kCallConvHost` - Should match the current C++ compiler native calling
-//!     convention.
-//!
-//! X86/X64 Specific Conventions
-//! ----------------------------
-//!
-//! List of calling conventions for 32-bit x86 mode:
-//!   - `kCallConvX86CDecl` - Calling convention for C runtime.
-//!   - `kCallConvX86StdCall` - Calling convention for WinAPI functions.
-//!   - `kCallConvX86MsThisCall` - Calling convention for C++ members under
-//!      Windows (produced by MSVC and all MSVC compatible compilers).
-//!   - `kCallConvX86MsFastCall` - Fastest calling convention that can be used
-//!      by MSVC compiler.
-//!   - `kCallConvX86BorlandFastCall` - Borland fastcall convention.
-//!   - `kCallConvX86GccFastCall` - GCC fastcall convention (2 register arguments).
-//!   - `kCallConvX86GccRegParm1` - GCC regparm(1) convention.
-//!   - `kCallConvX86GccRegParm2` - GCC regparm(2) convention.
-//!   - `kCallConvX86GccRegParm3` - GCC regparm(3) convention.
-//!
-//! List of calling conventions for 64-bit x86 mode (x64):
-//!   - `kCallConvX64Win` - Windows 64-bit calling convention (WIN64 ABI).
-//!   - `kCallConvX64Unix` - Unix 64-bit calling convention (AMD64 ABI).
-//!
-//! ARM Specific Conventions
-//! ------------------------
-//!
-//! List of ARM calling conventions:
-//!   - `kCallConvArm32SoftFP` - Legacy calling convention, floating point
-//!     arguments are passed via GP registers.
-//!   - `kCallConvArm32HardFP` - Modern calling convention, uses VFP registers
-//!     to pass floating point arguments.
-ASMJIT_ENUM(CallConv) {
-  //! Calling convention is invalid (can't be used).
-  kCallConvNone = 0,
-
-  // --------------------------------------------------------------------------
-  // [X86]
-  // --------------------------------------------------------------------------
-
-  //! X86 `__cdecl` calling convention (used by C runtime and libraries).
-  //!
-  //! Compatible across MSVC and GCC.
-  //!
-  //! Arguments direction:
-  //! - Right to left.
-  //!
-  //! Stack is cleaned by:
-  //! - Caller.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  kCallConvX86CDecl = 1,
-
-  //! X86 `__stdcall` calling convention (used mostly by WinAPI).
-  //!
-  //! Compatible across MSVC and GCC.
-  //!
-  //! Arguments direction:
-  //! - Right to left.
-  //!
-  //! Stack is cleaned by:
-  //! - Callee.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  kCallConvX86StdCall = 2,
-
-  //! X86 `__thiscall` calling convention (MSVC/Intel specific).
-  //!
-  //! This is MSVC (and Intel) specific calling convention used when targetting
-  //! Windows platform for C++ class methods. Implicit `this` pointer (defined
-  //! as the first argument) is stored in `ecx` register instead of storing it
-  //! on the stack.
-  //!
-  //! This calling convention is implicitly used by MSVC for class functions.
-  //!
-  //! C++ class functions that have variable number of arguments use `__cdecl`
-  //! calling convention instead.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for the first argument passed in `ecx`).
-  //!
-  //! Stack is cleaned by:
-  //! - Callee.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  kCallConvX86MsThisCall = 3,
-
-  //! X86 `__fastcall` convention (MSVC/Intel specific).
-  //!
-  //! The first two arguments (evaluated from the left to the right) are passed
-  //! in `ecx` and `edx` registers, all others on the stack from the right to
-  //! the left.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for the first two integers passed in `ecx` and `edx`).
-  //!
-  //! Stack is cleaned by:
-  //! - Callee.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  //!
-  //! NOTE: This calling convention differs from GCC's one.
-  kCallConvX86MsFastCall = 4,
-
-  //! X86 `__fastcall` convention (Borland specific).
-  //!
-  //! The first two arguments (evaluated from the left to the right) are passed
-  //! in `ecx` and `edx` registers, all others on the stack from the left to
-  //! the right.
-  //!
-  //! Arguments direction:
-  //! - Left to right (except for the first two integers passed in `ecx` and `edx`).
-  //!
-  //! Stack is cleaned by:
-  //! - Callee.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  //!
-  //! NOTE: Arguments on the stack are in passed in left to right order, which
-  //! is really Borland specific, all other `__fastcall` calling conventions
-  //! use right to left order.
-  kCallConvX86BorlandFastCall = 5,
-
-  //! X86 `__fastcall` convention (GCC specific).
-  //!
-  //! The first two arguments (evaluated from the left to the right) are passed
-  //! in `ecx` and `edx` registers, all others on the stack from the right to
-  //! the left.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for the first two integers passed in `ecx` and `edx`).
-  //!
-  //! Stack is cleaned by:
-  //! - Callee.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  //!
-  //! NOTE: This calling convention should be compatible with `kCallConvX86MsFastCall`.
-  kCallConvX86GccFastCall = 6,
-
-  //! X86 `regparm(1)` convention (GCC specific).
-  //!
-  //! The first argument (evaluated from the left to the right) is passed in
-  //! `eax` register, all others on the stack from the right to the left.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for the first integer passed in `eax`).
-  //!
-  //! Stack is cleaned by:
-  //! - Caller.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  kCallConvX86GccRegParm1 = 7,
-
-  //! X86 `regparm(2)` convention (GCC specific).
-  //!
-  //! The first two arguments (evaluated from the left to the right) are passed
-  //! in `ecx` and `edx` registers, all others on the stack from the right to
-  //! the left.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for the first two integers passed in `ecx` and `edx`).
-  //!
-  //! Stack is cleaned by:
-  //! - Caller.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  kCallConvX86GccRegParm2 = 8,
-
-  //! X86 `regparm(3)` convention (GCC specific).
-  //!
-  //! Three first parameters (evaluated from left-to-right) are in
-  //! EAX:EDX:ECX registers, all others on the stack in right-to-left direction.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for the first three integers passed in `ecx`,
-  //!   `edx`, and `ecx`).
-  //!
-  //! Stack is cleaned by:
-  //! - Caller.
-  //!
-  //! Return value:
-  //! - Integer types - `eax:edx` registers.
-  //! - Floating point - `fp0` register.
-  kCallConvX86GccRegParm3 = 9,
-
-  // --------------------------------------------------------------------------
-  // [X64]
-  // --------------------------------------------------------------------------
-
-  //! X64 calling convention used by Windows platform (WIN64-ABI).
-  //!
-  //! The first 4 arguments are passed in the following registers:
-  //! - 1. 32/64-bit integer in `rcx` and floating point argument in `xmm0`
-  //! - 2. 32/64-bit integer in `rdx` and floating point argument in `xmm1`
-  //! - 3. 32/64-bit integer in `r8` and floating point argument in `xmm2`
-  //! - 4. 32/64-bit integer in `r9` and floating point argument in `xmm3`
-  //!
-  //! If one or more argument from the first four doesn't match the list above
-  //! it is simply skipped. WIN64-ABI is very specific about this.
-  //!
-  //! All other arguments are pushed on the stack from the right to the left.
-  //! Stack has to be aligned by 16 bytes, always. There is also a 32-byte
-  //! shadow space on the stack that can be used to save up to four 64-bit
-  //! registers.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for all parameters passed in registers).
-  //!
-  //! Stack cleaned by:
-  //! - Caller.
-  //!
-  //! Return value:
-  //! - Integer types - `rax`.
-  //! - Floating point - `xmm0`.
-  //!
-  //! Stack is always aligned to 16 bytes.
-  //!
-  //! More information about this calling convention can be found on MSDN
-  //!   <http://msdn.microsoft.com/en-us/library/9b372w95.aspx>.
-  kCallConvX64Win = 10,
-
-  //! X64 calling convention used by Unix platforms (AMD64-ABI).
-  //!
-  //! First six 32 or 64-bit integer arguments are passed in `rdi`, `rsi`,
-  //! `rdx`, `rcx`, `r8`, and `r9` registers. First eight floating point or xmm
-  //! arguments are passed in `xmm0`, `xmm1`, `xmm2`, `xmm3`, `xmm4`, `xmm5`,
-  //! `xmm6`, and `xmm7` registers.
-  //!
-  //! There is also a red zene below the stack pointer that can be used by the
-  //! function. The red zone is typically from [rsp-128] to [rsp-8], however,
-  //! red zone can also be disabled.
-  //!
-  //! Arguments direction:
-  //! - Right to left (except for all arguments passed in registers).
-  //!
-  //! Stack cleaned by:
-  //! - Caller.
-  //!
-  //! Return value:
-  //! - Integer types - `rax`.
-  //! - Floating point - `xmm0`.
-  //!
-  //! Stack is always aligned to 16 bytes.
-  kCallConvX64Unix = 11,
-
-  // --------------------------------------------------------------------------
-  // [ARM]
-  // --------------------------------------------------------------------------
-
-  kCallConvArm32SoftFP = 16,
-  kCallConvArm32HardFP = 17,
-
-  // --------------------------------------------------------------------------
-  // [Internal]
-  // --------------------------------------------------------------------------
-
-  //! \internal
-  _kCallConvX86Start = 1,
-  //! \internal
-  _kCallConvX86End = 9,
-
-  //! \internal
-  _kCallConvX64Start = 10,
-  //! \internal
-  _kCallConvX64End = 11,
-
-  //! \internal
-  _kCallConvArmStart = 16,
-  //! \internal
-  _kCallConvArmEnd = 17,
-
-  // --------------------------------------------------------------------------
-  // [Host]
-  // --------------------------------------------------------------------------
-
-#if defined(ASMJIT_DOCGEN)
-  //! Default calling convention based on the current compiler's settings.
-  //!
-  //! NOTE: This should be always the same as `kCallConvHostCDecl`, but some
-  //! compilers allow to override the default calling convention. Overriding
-  //! is not detected at the moment.
-  kCallConvHost         = DETECTED_AT_COMPILE_TIME,
-  //! Default C calling convention based on the current compiler's settings.
-  kCallConvHostCDecl    = DETECTED_AT_COMPILE_TIME,
-  //! Compatibility for `__stdcall` calling convention.
-  //!
-  //! NOTE: This enumeration is always set to a value which is compatible with
-  //! the current compiler's `__stdcall` calling convention. In 64-bit mode
-  //! there is no such convention and the value is mapped to `kCallConvX64Win`
-  //! or `kCallConvX64Unix`, depending on the host architecture.
-  kCallConvHostStdCall  = DETECTED_AT_COMPILE_TIME,
-  //! Compatibility for `__fastcall` calling convention.
-  //!
-  //! NOTE: This enumeration is always set to a value which is compatible with
-  //! the current compiler's `__fastcall` calling convention. In 64-bit mode
-  //! there is no such convention and the value is mapped to `kCallConvX64Win`
-  //! or `kCallConvX64Unix`, depending on the host architecture.
-  kCallConvHostFastCall = DETECTED_AT_COMPILE_TIME
-#elif ASMJIT_ARCH_X86
-  // X86 Host Support.
-  kCallConvHost         = kCallConvX86CDecl,
-  kCallConvHostCDecl    = kCallConvX86CDecl,
-  kCallConvHostStdCall  = kCallConvX86StdCall,
-  kCallConvHostFastCall =
-    ASMJIT_CC_MSC       ? kCallConvX86MsFastCall      :
-    ASMJIT_CC_GCC       ? kCallConvX86GccFastCall     :
-    ASMJIT_CC_CLANG     ? kCallConvX86GccFastCall     :
-    ASMJIT_CC_CODEGEAR  ? kCallConvX86BorlandFastCall : kCallConvNone
-#elif ASMJIT_ARCH_X64
-  // X64 Host Support.
-  kCallConvHost         = ASMJIT_OS_WINDOWS ? kCallConvX64Win : kCallConvX64Unix,
-  // These don't exist in 64-bit mode.
-  kCallConvHostCDecl    = kCallConvHost,
-  kCallConvHostStdCall  = kCallConvHost,
-  kCallConvHostFastCall = kCallConvHost
-#elif ASMJIT_ARCH_ARM32
-# if defined(__SOFTFP__)
-  kCallConvHost         = kCallConvArm32SoftFP,
-# else
-  kCallConvHost         = kCallConvArm32HardFP,
-# endif
-  // These don't exist on ARM.
-  kCallConvHostCDecl    = kCallConvHost,
-  kCallConvHostStdCall  = kCallConvHost,
-  kCallConvHostFastCall = kCallConvHost
-#else
-# error "[asmjit] Couldn't determine the target's calling convention."
-#endif
-};
-
-// ============================================================================
 // [asmjit::FuncHint]
 // ============================================================================
 
@@ -654,16 +294,16 @@ struct FuncInOut {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE uint32_t getVarType() const { return _varType; }
+  ASMJIT_INLINE uint32_t getVarType() const noexcept { return _varType; }
 
-  ASMJIT_INLINE bool hasRegIndex() const { return _regIndex != kInvalidReg; }
-  ASMJIT_INLINE uint32_t getRegIndex() const { return _regIndex; }
+  ASMJIT_INLINE bool hasRegIndex() const noexcept { return _regIndex != kInvalidReg; }
+  ASMJIT_INLINE uint32_t getRegIndex() const noexcept { return _regIndex; }
 
-  ASMJIT_INLINE bool hasStackOffset() const { return _stackOffset != kFuncStackInvalid; }
-  ASMJIT_INLINE int32_t getStackOffset() const { return static_cast<int32_t>(_stackOffset); }
+  ASMJIT_INLINE bool hasStackOffset() const noexcept { return _stackOffset != kFuncStackInvalid; }
+  ASMJIT_INLINE int32_t getStackOffset() const noexcept { return static_cast<int32_t>(_stackOffset); }
 
   //! Get whether the argument / return value is assigned.
-  ASMJIT_INLINE bool isSet() const {
+  ASMJIT_INLINE bool isSet() const noexcept {
     return (_regIndex != kInvalidReg) | (_stackOffset != kFuncStackInvalid);
   }
 
@@ -672,7 +312,7 @@ struct FuncInOut {
   // --------------------------------------------------------------------------
 
   //! Reset the function argument to "unassigned state".
-  ASMJIT_INLINE void reset() { _packed = 0xFFFFFFFFU; }
+  ASMJIT_INLINE void reset() noexcept { _packed = 0xFFFFFFFFU; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -712,7 +352,7 @@ struct FuncPrototype {
   ASMJIT_INLINE void setup(
     uint32_t callConv,
     uint32_t ret,
-    const uint32_t* args, uint32_t numArgs) {
+    const uint32_t* args, uint32_t numArgs) noexcept {
 
     ASMJIT_ASSERT(callConv <= 0xFF);
     ASMJIT_ASSERT(numArgs <= 0xFF);
@@ -731,21 +371,21 @@ struct FuncPrototype {
   // --------------------------------------------------------------------------
 
   //! Get the function's calling convention.
-  ASMJIT_INLINE uint32_t getCallConv() const { return _callConv; }
+  ASMJIT_INLINE uint32_t getCallConv() const noexcept { return _callConv; }
   //! Get the variable arguments `...` index, `kFuncNoVarArgs` if none.
-  ASMJIT_INLINE uint32_t getVarArgs() const { return _varArgs; }
+  ASMJIT_INLINE uint32_t getVarArgs() const noexcept { return _varArgs; }
   //! Get the number of function arguments.
-  ASMJIT_INLINE uint32_t getNumArgs() const { return _numArgs; }
+  ASMJIT_INLINE uint32_t getNumArgs() const noexcept { return _numArgs; }
 
   //! Get the return value type.
-  ASMJIT_INLINE uint32_t getRet() const { return _ret; }
+  ASMJIT_INLINE uint32_t getRet() const noexcept { return _ret; }
   //! Get the type of the argument at index `i`.
-  ASMJIT_INLINE uint32_t getArg(uint32_t i) const {
+  ASMJIT_INLINE uint32_t getArg(uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _numArgs);
     return _args[i];
   }
   //! Get the array of function arguments' types.
-  ASMJIT_INLINE const uint32_t* getArgs() const { return _args; }
+  ASMJIT_INLINE const uint32_t* getArgs() const noexcept { return _args; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -771,7 +411,7 @@ struct FuncBuilderX : public FuncPrototype {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE FuncBuilderX(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilderX(uint32_t callConv = kCallConvHost) noexcept {
     setup(callConv, kInvalidVar, _builderArgList, 0);
   }
 
@@ -779,36 +419,36 @@ struct FuncBuilderX : public FuncPrototype {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void setCallConv(uint32_t callConv) {
+  ASMJIT_INLINE void setCallConv(uint32_t callConv) noexcept {
     ASMJIT_ASSERT(callConv <= 0xFF);
     _callConv = static_cast<uint8_t>(callConv);
   }
 
   //! Set the return type to `retType`.
-  ASMJIT_INLINE void setRet(uint32_t retType) {
+  ASMJIT_INLINE void setRet(uint32_t retType) noexcept {
     _ret = retType;
   }
   //! Set the return type based on `T`.
   template<typename T>
-  ASMJIT_INLINE void setRetT() { setRet(TypeId<T>::kId); }
+  ASMJIT_INLINE void setRetT() noexcept { setRet(TypeId<T>::kId); }
 
   //! Set the argument at index `i` to the `type`
-  ASMJIT_INLINE void setArg(uint32_t i, uint32_t type) {
+  ASMJIT_INLINE void setArg(uint32_t i, uint32_t type) noexcept {
     ASMJIT_ASSERT(i < _numArgs);
     _builderArgList[i] = type;
   }
   //! Set the argument at index `i` to the type based on `T`.
   template<typename T>
-  ASMJIT_INLINE void setArgT(uint32_t i) { setArg(i, TypeId<T>::kId); }
+  ASMJIT_INLINE void setArgT(uint32_t i) noexcept { setArg(i, TypeId<T>::kId); }
 
   //! Append an argument of `type` to the function prototype.
-  ASMJIT_INLINE void addArg(uint32_t type) {
+  ASMJIT_INLINE void addArg(uint32_t type) noexcept {
     ASMJIT_ASSERT(_numArgs < kFuncArgCount);
     _builderArgList[_numArgs++] = type;
   }
   //! Append an argument of type based on `T` to the function prototype.
   template<typename T>
-  ASMJIT_INLINE void addArgT() { addArg(TypeId<T>::kId); }
+  ASMJIT_INLINE void addArgT() noexcept { addArg(TypeId<T>::kId); }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -823,7 +463,7 @@ struct FuncBuilderX : public FuncPrototype {
 //! Function prototype (no args).
 template<typename RET>
 struct FuncBuilder0 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder0(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder0(uint32_t callConv = kCallConvHost) noexcept {
     setup(callConv, T(RET), nullptr, 0);
   }
 };
@@ -831,7 +471,7 @@ struct FuncBuilder0 : public FuncPrototype {
 //! Function prototype (1 argument).
 template<typename RET, typename P0>
 struct FuncBuilder1 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder1(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder1(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -840,7 +480,7 @@ struct FuncBuilder1 : public FuncPrototype {
 //! Function prototype (2 arguments).
 template<typename RET, typename P0, typename P1>
 struct FuncBuilder2 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder2(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder2(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -849,7 +489,7 @@ struct FuncBuilder2 : public FuncPrototype {
 //! Function prototype (3 arguments).
 template<typename RET, typename P0, typename P1, typename P2>
 struct FuncBuilder3 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder3(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder3(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -858,7 +498,7 @@ struct FuncBuilder3 : public FuncPrototype {
 //! Function prototype (4 arguments).
 template<typename RET, typename P0, typename P1, typename P2, typename P3>
 struct FuncBuilder4 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder4(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder4(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2), T(P3) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -867,7 +507,7 @@ struct FuncBuilder4 : public FuncPrototype {
 //! Function prototype (5 arguments).
 template<typename RET, typename P0, typename P1, typename P2, typename P3, typename P4>
 struct FuncBuilder5 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder5(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder5(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2), T(P3), T(P4) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -876,7 +516,7 @@ struct FuncBuilder5 : public FuncPrototype {
 //! Function prototype (6 arguments).
 template<typename RET, typename P0, typename P1, typename P2, typename P3, typename P4, typename P5>
 struct FuncBuilder6 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder6(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder6(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2), T(P3), T(P4), T(P5) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -885,7 +525,7 @@ struct FuncBuilder6 : public FuncPrototype {
 //! Function prototype (7 arguments).
 template<typename RET, typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 struct FuncBuilder7 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder7(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder7(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2), T(P3), T(P4), T(P5), T(P6) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -894,7 +534,7 @@ struct FuncBuilder7 : public FuncPrototype {
 //! Function prototype (8 arguments).
 template<typename RET, typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 struct FuncBuilder8 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder8(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder8(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2), T(P3), T(P4), T(P5), T(P6), T(P7) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -903,7 +543,7 @@ struct FuncBuilder8 : public FuncPrototype {
 //! Function prototype (9 arguments).
 template<typename RET, typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8>
 struct FuncBuilder9 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder9(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder9(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2), T(P3), T(P4), T(P5), T(P6), T(P7), T(P8) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -912,7 +552,7 @@ struct FuncBuilder9 : public FuncPrototype {
 //! Function prototype (10 arguments).
 template<typename RET, typename P0, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
 struct FuncBuilder10 : public FuncPrototype {
-  ASMJIT_INLINE FuncBuilder10(uint32_t callConv = kCallConvHost) {
+  ASMJIT_INLINE FuncBuilder10(uint32_t callConv = kCallConvHost) noexcept {
     static const uint32_t args[] = { T(P0), T(P1), T(P2), T(P3), T(P4), T(P5), T(P6), T(P7), T(P8), T(P9) };
     setup(callConv, T(RET), args, ASMJIT_ARRAY_SIZE(args));
   }
@@ -930,10 +570,10 @@ struct FuncDecl {
   // --------------------------------------------------------------------------
 
   //! Get the function's calling convention, see `CallConv`.
-  ASMJIT_INLINE uint32_t getCallConv() const { return _callConv; }
+  ASMJIT_INLINE uint32_t getCallConv() const noexcept { return _callConv; }
 
   //! Get whether the callee pops the stack.
-  ASMJIT_INLINE uint32_t getCalleePopsStack() const { return _calleePopsStack; }
+  ASMJIT_INLINE uint32_t getCalleePopsStack() const noexcept { return _calleePopsStack; }
 
   //! Get direction of arguments passed on the stack.
   //!
@@ -941,50 +581,50 @@ struct FuncDecl {
   //!
   //! \note This is related to used calling convention, it's not affected by
   //! number of function arguments or their types.
-  ASMJIT_INLINE uint32_t getDirection() const { return _direction; }
+  ASMJIT_INLINE uint32_t getArgsDirection() const noexcept { return _argsDirection; }
 
   //! Get stack size needed for function arguments passed on the stack.
-  ASMJIT_INLINE uint32_t getArgStackSize() const { return _argStackSize; }
+  ASMJIT_INLINE uint32_t getArgStackSize() const noexcept { return _argStackSize; }
   //! Get size of "Red Zone".
-  ASMJIT_INLINE uint32_t getRedZoneSize() const { return _redZoneSize; }
+  ASMJIT_INLINE uint32_t getRedZoneSize() const noexcept { return _redZoneSize; }
   //! Get size of "Spill Zone".
-  ASMJIT_INLINE uint32_t getSpillZoneSize() const { return _spillZoneSize; }
+  ASMJIT_INLINE uint32_t getSpillZoneSize() const noexcept { return _spillZoneSize; }
 
   // --------------------------------------------------------------------------
   // [Accessors - Arguments and Return]
   // --------------------------------------------------------------------------
 
   //! Get whether the function has a return value.
-  ASMJIT_INLINE bool hasRet() const { return _retCount != 0; }
+  ASMJIT_INLINE bool hasRet() const noexcept { return _retCount != 0; }
   //! Get count of function return values.
-  ASMJIT_INLINE uint32_t getRetCount() const { return _retCount; }
+  ASMJIT_INLINE uint32_t getRetCount() const noexcept { return _retCount; }
 
   //! Get function return value.
-  ASMJIT_INLINE FuncInOut& getRet(uint32_t index = kFuncRetLo) { return _rets[index]; }
+  ASMJIT_INLINE FuncInOut& getRet(uint32_t index = kFuncRetLo) noexcept { return _rets[index]; }
   //! Get function return value.
-  ASMJIT_INLINE const FuncInOut& getRet(uint32_t index = kFuncRetLo) const { return _rets[index]; }
+  ASMJIT_INLINE const FuncInOut& getRet(uint32_t index = kFuncRetLo) const noexcept { return _rets[index]; }
 
   //! Get the number of function arguments.
-  ASMJIT_INLINE uint32_t getNumArgs() const { return _numArgs; }
+  ASMJIT_INLINE uint32_t getNumArgs() const noexcept { return _numArgs; }
 
   //! Get function arguments array.
-  ASMJIT_INLINE FuncInOut* getArgs() { return _args; }
+  ASMJIT_INLINE FuncInOut* getArgs() noexcept { return _args; }
   //! Get function arguments array (const).
-  ASMJIT_INLINE const FuncInOut* getArgs() const { return _args; }
+  ASMJIT_INLINE const FuncInOut* getArgs() const noexcept { return _args; }
 
   //! Get function argument at index `index`.
-  ASMJIT_INLINE FuncInOut& getArg(size_t index) {
+  ASMJIT_INLINE FuncInOut& getArg(size_t index) noexcept {
     ASMJIT_ASSERT(index < kFuncArgCountLoHi);
     return _args[index];
   }
 
   //! Get function argument at index `index`.
-  ASMJIT_INLINE const FuncInOut& getArg(size_t index) const {
+  ASMJIT_INLINE const FuncInOut& getArg(size_t index) const noexcept {
     ASMJIT_ASSERT(index < kFuncArgCountLoHi);
     return _args[index];
   }
 
-  ASMJIT_INLINE void resetArg(size_t index) {
+  ASMJIT_INLINE void resetArg(size_t index) noexcept {
     ASMJIT_ASSERT(index < kFuncArgCountLoHi);
     _args[index].reset();
   }
@@ -998,7 +638,7 @@ struct FuncDecl {
   //! Whether a callee pops stack.
   uint8_t _calleePopsStack : 1;
   //! Direction for arguments passed on the stack, see `FuncDir`.
-  uint8_t _direction : 1;
+  uint8_t _argsDirection : 1;
   //! Reserved #0 (alignment).
   uint8_t _reserved0 : 6;
 

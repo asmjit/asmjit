@@ -57,9 +57,9 @@ static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) 
 }
 #endif // ASMJIT_DISABLE_TEXT
 
-const char* DebugUtils::errorAsString(Error e) noexcept {
+const char* DebugUtils::errorAsString(Error err) noexcept {
 #if !defined(ASMJIT_DISABLE_TEXT)
-  return findPackedString(errorMessages, e, kErrorCount);
+  return findPackedString(errorMessages, err, kErrorCount);
 #else
   static const char noMessage[] = "";
   return noMessage;

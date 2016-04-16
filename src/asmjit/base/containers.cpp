@@ -44,7 +44,7 @@ char* StringBuilder::prepare(uint32_t op, size_t len) noexcept {
   // --------------------------------------------------------------------------
 
   if (op == kStringOpSet) {
-    // We don't care here, but we can't return a nullptr pointer since it indicates
+    // We don't care here, but we can't return a NULL pointer since it indicates
     // failure in memory allocation.
     if (len == 0) {
       if (_data != StringBuilder_empty)

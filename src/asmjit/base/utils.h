@@ -558,6 +558,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE uint32_t readU16xLE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_LE && (ASMJIT_ARCH_UNALIGNED_16 || Alignment >= 2)) {
       return static_cast<uint32_t>(static_cast<const uint16_t*>(p)[0]);
     }
@@ -570,6 +571,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE uint32_t readU16xBE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_BE && (ASMJIT_ARCH_UNALIGNED_16 || Alignment >= 2)) {
       return static_cast<uint32_t>(static_cast<const uint16_t*>(p)[0]);
     }
@@ -587,6 +589,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE int32_t readI16xLE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_LE && (ASMJIT_ARCH_UNALIGNED_16 || Alignment >= 2)) {
       return static_cast<int32_t>(static_cast<const int16_t*>(p)[0]);
     }
@@ -599,6 +602,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE int32_t readI16xBE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_BE && (ASMJIT_ARCH_UNALIGNED_16 || Alignment >= 2)) {
       return static_cast<int32_t>(static_cast<const int16_t*>(p)[0]);
     }
@@ -634,6 +638,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE uint32_t readU32xLE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
       uint32_t x = static_cast<const uint32_t*>(p)[0];
       return ASMJIT_ARCH_LE ? x : byteswap32(x);
@@ -647,6 +652,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE uint32_t readU32xBE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
       uint32_t x = static_cast<const uint32_t*>(p)[0];
       return ASMJIT_ARCH_BE ? x : byteswap32(x);
@@ -698,24 +704,26 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE uint64_t readU64xLE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_LE && (ASMJIT_ARCH_UNALIGNED_64 || Alignment >= 8)) {
       return static_cast<const uint64_t*>(p)[0];
     }
     else {
-      uint32_t x = readU32xLE<Alignment>(static_cast<const uint8_t*>(p) + 0);
-      uint32_t y = readU32xLE<Alignment>(static_cast<const uint8_t*>(p) + 4);
+      uint32_t x = readU32xLE<Alignment / 2U>(static_cast<const uint8_t*>(p) + 0);
+      uint32_t y = readU32xLE<Alignment / 2U>(static_cast<const uint8_t*>(p) + 4);
       return static_cast<uint64_t>(x) + (static_cast<uint64_t>(y) << 32);
     }
   }
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE uint64_t readU64xBE(const void* p) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_BE && (ASMJIT_ARCH_UNALIGNED_64 || Alignment >= 8)) {
       return static_cast<const uint64_t*>(p)[0];
     }
     else {
-      uint32_t x = readU32xLE<Alignment>(static_cast<const uint8_t*>(p) + 0);
-      uint32_t y = readU32xLE<Alignment>(static_cast<const uint8_t*>(p) + 4);
+      uint32_t x = readU32xLE<Alignment / 2U>(static_cast<const uint8_t*>(p) + 0);
+      uint32_t y = readU32xLE<Alignment / 2U>(static_cast<const uint8_t*>(p) + 4);
       return (static_cast<uint64_t>(x) << 32) + static_cast<uint64_t>(y);
     }
   }
@@ -772,6 +780,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU16xLE(void* p, uint32_t x) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_LE && (ASMJIT_ARCH_UNALIGNED_16 || Alignment >= 2)) {
       static_cast<uint16_t*>(p)[0] = static_cast<uint16_t>(x & 0xFFFFU);
     }
@@ -783,6 +792,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU16xBE(void* p, uint32_t x) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_BE && (ASMJIT_ARCH_UNALIGNED_16 || Alignment >= 2)) {
       static_cast<uint16_t*>(p)[0] = static_cast<uint16_t>(x & 0xFFFFU);
     }
@@ -835,6 +845,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU32xLE(void* p, uint32_t x) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
       static_cast<uint32_t*>(p)[0] = ASMJIT_ARCH_LE ? x : byteswap32(x);
     }
@@ -846,6 +857,7 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU32xBE(void* p, uint32_t x) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_UNALIGNED_32 || Alignment >= 4) {
       static_cast<uint32_t*>(p)[0] = ASMJIT_ARCH_BE ? x : byteswap32(x);
     }
@@ -898,23 +910,25 @@ struct Utils {
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU64xLE(void* p, uint64_t x) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_LE && (ASMJIT_ARCH_UNALIGNED_64 || Alignment >= 8)) {
       static_cast<uint64_t*>(p)[0] = x;
     }
     else {
-      writeU32xLE<Alignment>(static_cast<uint8_t*>(p) + 0, static_cast<uint32_t>(x >> 32));
-      writeU32xLE<Alignment>(static_cast<uint8_t*>(p) + 4, static_cast<uint32_t>(x & 0xFFFFFFFFU));
+      writeU32xLE<Alignment / 2U>(static_cast<uint8_t*>(p) + 0, static_cast<uint32_t>(x >> 32));
+      writeU32xLE<Alignment / 2U>(static_cast<uint8_t*>(p) + 4, static_cast<uint32_t>(x & 0xFFFFFFFFU));
     }
   }
 
   template<unsigned int Alignment>
   static ASMJIT_INLINE void writeU64xBE(void* p, uint64_t x) noexcept {
+    ASMJIT_ASSUME_ALIGNED(p, Alignment > 1 ? Alignment : 1U);
     if (ASMJIT_ARCH_BE && (ASMJIT_ARCH_UNALIGNED_64 || Alignment >= 8)) {
       static_cast<uint64_t*>(p)[0] = x;
     }
     else {
-      writeU32xBE<Alignment>(static_cast<uint8_t*>(p) + 0, static_cast<uint32_t>(x & 0xFFFFFFFFU));
-      writeU32xBE<Alignment>(static_cast<uint8_t*>(p) + 4, static_cast<uint32_t>(x >> 32));
+      writeU32xBE<Alignment / 2U>(static_cast<uint8_t*>(p) + 0, static_cast<uint32_t>(x & 0xFFFFFFFFU));
+      writeU32xBE<Alignment / 2U>(static_cast<uint8_t*>(p) + 4, static_cast<uint32_t>(x >> 32));
     }
   }
 

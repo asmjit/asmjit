@@ -176,6 +176,33 @@ struct X86Test_AlignBase : public X86Test {
 };
 
 // ============================================================================
+// [X86Test_AlignNone]
+// ============================================================================
+
+struct X86Test_AlignNone : public X86Test {
+  X86Test_AlignNone() : X86Test("[Align] None") {}
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AlignNone());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    c.addFunc(FuncBuilder0<void>(kCallConvHost));
+    c.align(kAlignCode, 0);
+    c.align(kAlignCode, 1);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef void (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    func();
+    return true;
+  }
+};
+
+// ============================================================================
 // [X86Test_JumpCross]
 // ============================================================================
 
@@ -2685,10 +2712,14 @@ struct X86Test_CallMisc5 : public X86Test {
   virtual void compile(X86Compiler& c) {
     X86FuncNode* func = c.addFunc(FuncBuilder0<int>(kCallConvHost));
 
+    X86GpVar pFn = c.newIntPtr("pFn");
     X86GpVar vars[16];
 
     uint32_t i, regCount = c.getRegCount().getGp();
     ASMJIT_ASSERT(regCount <= ASMJIT_ARRAY_SIZE(vars));
+
+    c.mov(pFn, imm_ptr(calledFunc));
+    c.spill(pFn);
 
     for (i = 0; i < regCount; i++) {
       if (i == kX86RegIndexBp || i == kX86RegIndexSp)
@@ -2699,7 +2730,7 @@ struct X86Test_CallMisc5 : public X86Test {
       c.mov(vars[i], 1);
     }
 
-    X86CallNode* call = c.call(imm_ptr(calledFunc), FuncBuilder0<void>(kCallConvHost));
+    X86CallNode* call = c.call(pFn, FuncBuilder0<void>(kCallConvHost));
 
     for (i = 1; i < regCount; i++) {
       if (vars[i].isInitialized())
@@ -2939,7 +2970,7 @@ struct X86Test_MiscUnfollow : public X86Test {
     // NOTE: Fastcall calling convention is the most appropriate here, as all
     // arguments will be passed in registers and there won't be any stack
     // misalignment when we call the `handler()`. This was failing on OSX
-    // when targetting 32-bit.
+    // when targeting 32-bit.
     c.addFunc(FuncBuilder2<void, int, void*>(kCallConvHostFastCall));
 
     X86GpVar a = c.newInt32("a");
@@ -3023,6 +3054,7 @@ X86TestSuite::X86TestSuite() :
 
   // Align.
   ADD_TEST(X86Test_AlignBase);
+  ADD_TEST(X86Test_AlignNone);
 
   // Jump.
   ADD_TEST(X86Test_JumpCross);

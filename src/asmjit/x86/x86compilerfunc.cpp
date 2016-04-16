@@ -63,7 +63,7 @@ static uint32_t X86FuncDecl_initConv(X86FuncDecl* self, uint32_t arch, uint32_t 
 
   self->_callConv = static_cast<uint8_t>(callConv);
   self->_calleePopsStack = false;
-  self->_direction = kFuncDirRTL;
+  self->_argsDirection = kFuncDirRTL;
 
   self->_passed.reset();
   self->_preserved.reset();
@@ -103,7 +103,7 @@ static uint32_t X86FuncDecl_initConv(X86FuncDecl* self, uint32_t arch, uint32_t 
 
         case kCallConvX86BorlandFastCall:
           self->_calleePopsStack = true;
-          self->_direction = kFuncDirLTR;
+          self->_argsDirection = kFuncDirLTR;
           self->_passed.set(kX86RegClassGp, Utils::mask(R(Ax), R(Dx), R(Cx)));
           self->_passedOrderGp[0] = R(Ax);
           self->_passedOrderGp[1] = R(Dx);
@@ -347,7 +347,7 @@ static Error X86FuncDecl_initFunc(X86FuncDecl* self, uint32_t arch,
     int32_t iEnd   = -1;
     int32_t iStep  = -1;
 
-    if (self->_direction == kFuncDirLTR) {
+    if (self->_argsDirection == kFuncDirLTR) {
       iStart = 0;
       iEnd   = static_cast<int32_t>(numArgs);
       iStep  = 1;
@@ -518,7 +518,7 @@ void X86FuncDecl::reset() {
 
   _callConv = kCallConvNone;
   _calleePopsStack = false;
-  _direction = kFuncDirRTL;
+  _argsDirection = kFuncDirRTL;
   _reserved0 = 0;
 
   _numArgs = 0;

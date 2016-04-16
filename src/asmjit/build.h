@@ -401,11 +401,13 @@
 # define ASMJIT_CC_HAS_ALIGNAS                 (__has_extension(__cxx_alignas__))
 # define ASMJIT_CC_HAS_ALIGNOF                 (__has_extension(__cxx_alignof__))
 # define ASMJIT_CC_HAS_ASSUME                  (0)
+# define ASMJIT_CC_HAS_ASSUME_ALIGNED          (0)
 # define ASMJIT_CC_HAS_ATTRIBUTE_ALIGNED       (__has_attribute(__aligned__))
 # define ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(__always_inline__))
 # define ASMJIT_CC_HAS_ATTRIBUTE_NOINLINE      (__has_attribute(__noinline__))
 # define ASMJIT_CC_HAS_ATTRIBUTE_NORETURN      (__has_attribute(__noreturn__))
 # define ASMJIT_CC_HAS_BUILTIN_ASSUME          (__has_builtin(__builtin_assume))
+# define ASMJIT_CC_HAS_BUILTIN_ASSUME_ALIGNED  (__has_builtin(__builtin_assume_aligned))
 # define ASMJIT_CC_HAS_BUILTIN_EXPECT          (__has_builtin(__builtin_expect))
 # define ASMJIT_CC_HAS_BUILTIN_UNREACHABLE     (__has_builtin(__builtin_unreachable))
 # define ASMJIT_CC_HAS_CONSTEXPR               (__has_extension(__cxx_constexpr__))
@@ -434,6 +436,7 @@
 # define ASMJIT_CC_HAS_ALIGNAS                 (0)
 # define ASMJIT_CC_HAS_ALIGNOF                 (0)
 # define ASMJIT_CC_HAS_ASSUME                  (0)
+# define ASMJIT_CC_HAS_ASSUME_ALIGNED          (0)
 # define ASMJIT_CC_HAS_CONSTEXPR               (0)
 # define ASMJIT_CC_HAS_DECLSPEC_ALIGN          (ASMJIT_CC_CODEGEAR >= 0x0610)
 # define ASMJIT_CC_HAS_DECLSPEC_FORCEINLINE    (0)
@@ -464,11 +467,13 @@
 # define ASMJIT_CC_HAS_ALIGNAS                 (ASMJIT_CC_GCC_GE(4, 8, 0) && ASMJIT_CC_GCC_CXX0X)
 # define ASMJIT_CC_HAS_ALIGNOF                 (ASMJIT_CC_GCC_GE(4, 8, 0) && ASMJIT_CC_GCC_CXX0X)
 # define ASMJIT_CC_HAS_ASSUME                  (0)
+# define ASMJIT_CC_HAS_ASSUME_ALIGNED          (0)
 # define ASMJIT_CC_HAS_ATTRIBUTE_ALIGNED       (ASMJIT_CC_GCC_GE(2, 7, 0))
 # define ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE (ASMJIT_CC_GCC_GE(4, 4, 0) && !ASMJIT_CC_MINGW)
 # define ASMJIT_CC_HAS_ATTRIBUTE_NOINLINE      (ASMJIT_CC_GCC_GE(3, 4, 0) && !ASMJIT_CC_MINGW)
 # define ASMJIT_CC_HAS_ATTRIBUTE_NORETURN      (ASMJIT_CC_GCC_GE(2, 5, 0))
 # define ASMJIT_CC_HAS_BUILTIN_ASSUME          (0)
+# define ASMJIT_CC_HAS_BUILTIN_ASSUME_ALIGNED  (ASMJIT_CC_GCC_GE(4, 7, 0))
 # define ASMJIT_CC_HAS_BUILTIN_EXPECT          (1)
 # define ASMJIT_CC_HAS_BUILTIN_UNREACHABLE     (ASMJIT_CC_GCC_GE(4, 5, 0) && ASMJIT_CC_GCC_CXX0X)
 # define ASMJIT_CC_HAS_CONSTEXPR               (ASMJIT_CC_GCC_GE(4, 6, 0) && ASMJIT_CC_GCC_CXX0X)
@@ -497,6 +502,7 @@
 # define ASMJIT_CC_HAS_ALIGNAS                 (ASMJIT_CC_MSC_GE(19, 0, 0))
 # define ASMJIT_CC_HAS_ALIGNOF                 (ASMJIT_CC_MSC_GE(19, 0, 0))
 # define ASMJIT_CC_HAS_ASSUME                  (1)
+# define ASMJIT_CC_HAS_ASSUME_ALIGNED          (0)
 # define ASMJIT_CC_HAS_CONSTEXPR               (ASMJIT_CC_MSC_GE(19, 0, 0))
 # define ASMJIT_CC_HAS_DECLSPEC_ALIGN          (1)
 # define ASMJIT_CC_HAS_DECLSPEC_FORCEINLINE    (1)
@@ -532,6 +538,7 @@
 
 #if !ASMJIT_CC_HAS_BUILTIN
 # define ASMJIT_CC_HAS_BUILTIN_ASSUME          (0)
+# define ASMJIT_CC_HAS_BUILTIN_ASSUME_ALIGNED  (0)
 # define ASMJIT_CC_HAS_BUILTIN_EXPECT          (0)
 # define ASMJIT_CC_HAS_BUILTIN_UNREACHABLE     (0)
 #endif
@@ -718,6 +725,18 @@
 # define ASMJIT_ASSUME(exp) ((void)0)
 #endif
 // [@CC_ASSUME}@]
+
+// [@CC_ASSUME_ALIGNED{@]
+// \def ASMJIT_ASSUME_ALIGNED(p, alignment)
+// Assume that the pointer 'p' is aligned to at least 'alignment' bytes.
+#if ASMJIT_CC_HAS_ASSUME_ALIGNED
+# define ASMJIT_ASSUME_ALIGNED(p, alignment) __assume_aligned(p, alignment)
+#elif ASMJIT_CC_HAS_BUILTIN_ASSUME_ALIGNED
+# define ASMJIT_ASSUME_ALIGNED(p, alignment) p = __builtin_assume_aligned(p, alignment)
+#else
+# define ASMJIT_ASSUME_ALIGNED(p, alignment) ((void)0)
+#endif
+// [@CC_ASSUME_ALIGNED}@]
 
 // [@CC_EXPECT{@]
 // \def ASMJIT_LIKELY(exp)

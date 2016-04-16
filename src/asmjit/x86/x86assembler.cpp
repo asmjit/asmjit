@@ -408,7 +408,13 @@ Error X86Assembler::align(uint32_t alignMode, uint32_t offset) noexcept {
       "%s.align %u\n", _logger->getIndentation(), static_cast<unsigned int>(offset));
 #endif // !ASMJIT_DISABLE_LOGGER
 
-  if (alignMode > kAlignZero || offset <= 1 || !Utils::isPowerOf2(offset) || offset > 64)
+  if (alignMode > kAlignZero)
+    return setLastError(kErrorInvalidArgument);
+
+  if (offset <= 1)
+    return kErrorOk;
+
+  if (!Utils::isPowerOf2(offset) || offset > 64)
     return setLastError(kErrorInvalidArgument);
 
   uint32_t i = static_cast<uint32_t>(Utils::alignDiff<size_t>(getOffset(), offset));
