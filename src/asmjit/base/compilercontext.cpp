@@ -162,11 +162,14 @@ VarCell* Context::_newStackCell(uint32_t size, uint32_t alignment) {
     VarCell** pPrev = &_memStackCells;
     VarCell* cur = *pPrev;
 
-    for (cur = *pPrev; cur != nullptr; cur = cur->_next) {
-      if (cur->getAlignment() > alignment)
+    while (cur != nullptr) {
+      if ((cur->getAlignment() > alignment) ||
+          (cur->getAlignment() == alignment && cur->getSize() > size)) {
+        pPrev = &cur->_next;
+        cur = *pPrev;
         continue;
-      if (cur->getAlignment() == alignment && cur->getSize() > size)
-        continue;
+      }
+
       break;
     }
 

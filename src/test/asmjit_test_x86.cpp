@@ -1603,16 +1603,16 @@ struct X86Test_AllocRetDouble : public X86Test {
 };
 
 // ============================================================================
-// [X86Test_AllocStack]
+// [X86Test_AllocStack1]
 // ============================================================================
 
-struct X86Test_AllocStack : public X86Test {
-  X86Test_AllocStack() : X86Test("[Alloc] Stack") {}
+struct X86Test_AllocStack1 : public X86Test {
+  X86Test_AllocStack1() : X86Test("[Alloc] Stack #1") {}
 
   enum { kSize = 256 };
 
   static void add(PodVector<X86Test*>& tests) {
-    tests.append(new X86Test_AllocStack());
+    tests.append(new X86Test_AllocStack1());
   }
 
   virtual void compile(X86Compiler& c) {
@@ -1656,6 +1656,87 @@ struct X86Test_AllocStack : public X86Test {
 
     int resultRet = func();
     int expectRet = 32640;
+
+    result.setInt(resultRet);
+    expect.setInt(expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocStack2]
+// ============================================================================
+
+struct X86Test_AllocStack2 : public X86Test {
+  X86Test_AllocStack2() : X86Test("[Alloc] Stack #2") {}
+
+  enum { kSize = 256 };
+
+  static void add(PodVector<X86Test*>& tests) {
+    tests.append(new X86Test_AllocStack2());
+  }
+
+  virtual void compile(X86Compiler& c) {
+    c.addFunc(FuncBuilder0<int>(kCallConvHost));
+
+    const int kTokenSize = 32;
+
+    X86Mem s1 = c.newStack(kTokenSize, 32);
+    X86Mem s2 = c.newStack(kTokenSize, 32);
+
+    X86GpVar p1 = c.newIntPtr("p1");
+    X86GpVar p2 = c.newIntPtr("p2");
+
+    X86GpVar ret = c.newInt32("ret");
+    Label L_Exit = c.newLabel();
+
+    static const char token[kTokenSize] = "-+:|abcdefghijklmnopqrstuvwxyz|";
+    X86CallNode* call;
+
+    c.lea(p1, s1);
+    c.lea(p2, s2);
+
+    // Try to corrupt the stack if wrongly allocated.
+    call = c.call(imm_ptr((void*)memcpy), FuncBuilder3<void*, void*, void*, size_t>(kCallConvHostCDecl));
+    call->setArg(0, p1);
+    call->setArg(1, imm_ptr(token));
+    call->setArg(2, imm(kTokenSize));
+    call->setRet(0, p1);
+
+    call = c.call(imm_ptr((void*)memcpy), FuncBuilder3<void*, void*, void*, size_t>(kCallConvHostCDecl));
+    call->setArg(0, p2);
+    call->setArg(1, imm_ptr(token));
+    call->setArg(2, imm(kTokenSize));
+    call->setRet(0, p2);
+
+    call = c.call(imm_ptr((void*)memcmp), FuncBuilder3<int, void*, void*, size_t>(kCallConvHostCDecl));
+    call->setArg(0, p1);
+    call->setArg(1, p2);
+    call->setArg(2, imm(kTokenSize));
+    call->setRet(0, ret);
+
+    // This should be 0 on success, however, if both `p1` and `p2` were
+    // allocated in the same address this check will still pass.
+    c.cmp(ret, 0);
+    c.jnz(L_Exit);
+
+    // Checks whether `p1` and `p2` are different (must be).
+    c.xor_(ret, ret);
+    c.cmp(p1, p2);
+    c.setz(ret.r8());
+
+    c.bind(L_Exit);
+    c.ret(ret);
+    c.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef int (*Func)(void);
+    Func func = asmjit_cast<Func>(_func);
+
+    int resultRet = func();
+    int expectRet = 0; // Must be zero, stack addresses must be different.
 
     result.setInt(resultRet);
     expect.setInt(expectRet);
@@ -2762,7 +2843,7 @@ struct X86Test_CallMisc5 : public X86Test {
 // ============================================================================
 
 struct X86Test_MiscConstPool : public X86Test {
-  X86Test_MiscConstPool() : X86Test("[Misc] ConstPool") {}
+  X86Test_MiscConstPool() : X86Test("[Misc] ConstPool #1") {}
 
   static void add(PodVector<X86Test*>& tests) {
     tests.append(new X86Test_MiscConstPool());
@@ -3085,7 +3166,8 @@ X86TestSuite::X86TestSuite() :
   ADD_TEST(X86Test_AllocArgsDouble);
   ADD_TEST(X86Test_AllocRetFloat);
   ADD_TEST(X86Test_AllocRetDouble);
-  ADD_TEST(X86Test_AllocStack);
+  ADD_TEST(X86Test_AllocStack1);
+  ADD_TEST(X86Test_AllocStack2);
   ADD_TEST(X86Test_AllocMemcpy);
   ADD_TEST(X86Test_AllocBlend);
 
