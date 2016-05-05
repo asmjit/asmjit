@@ -607,9 +607,7 @@
 // [@CC_INLINE{@]
 // \def ASMJIT_INLINE
 // Always inline the decorated function.
-#if ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE && ASMJIT_CC_CLANG
-# define ASMJIT_INLINE inline __attribute__((__always_inline__, __visibility__("hidden")))
-#elif ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE
+#if ASMJIT_CC_HAS_ATTRIBUTE_ALWAYS_INLINE
 # define ASMJIT_INLINE inline __attribute__((__always_inline__))
 #elif ASMJIT_CC_HAS_DECLSPEC_FORCEINLINE
 # define ASMJIT_INLINE __forceinline

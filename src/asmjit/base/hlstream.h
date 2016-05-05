@@ -418,10 +418,10 @@ struct HLInst : public HLNode {
     uint32_t i;
     for (i = 0; i < opCount; i++)
       if (opList[i].isMem())
-        goto _Update;
+        goto L_Update;
     i = 0xFF;
 
-_Update:
+L_Update:
     setMemOpIndex(i);
   }
 

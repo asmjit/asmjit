@@ -357,14 +357,14 @@ static ASMJIT_INLINE void x86SimplifyBrandString(char* s) noexcept {
 
     if (curr == ' ') {
       if (prev == '@' || s[1] == ' ' || s[1] == '@')
-        goto _Skip;
+        goto L_Skip;
     }
 
     d[0] = curr;
     d++;
     prev = curr;
 
-_Skip:
+L_Skip:
     curr = *++s;
     s[0] = '\0';
   }

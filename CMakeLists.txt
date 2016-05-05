@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
+include(CheckCXXCompilerFlag)
 
 # =============================================================================
 # [AsmJit - Configuration]
@@ -64,6 +65,22 @@ message("-- [asmjit] ${ASMJIT_SIGNATURE}")
 message("-- [asmjit] ASMJIT_DIR=${ASMJIT_DIR}")
 
 # =============================================================================
+# [NP-Utilities]
+# =============================================================================
+
+function(np_detect_options out)
+  set(out_array)
+  foreach(flag ${ARGN})
+    check_cxx_compiler_flag("${flag}" ok)
+    if(ok)
+      list(APPEND out_array "${flag}")
+    endif()
+    unset(ok)
+  endforeach()
+  set(${out} "${out_array}" PARENT_SCOPE)
+endfunction()
+
+# =============================================================================
 # [AsmJit - Flags / Deps]
 # =============================================================================
 
@@ -95,8 +112,25 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
-  list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-exceptions)
+  # Keep only the first option detected.
+  np_detect_options(ASMJIT_CC_OPTIONS
+    "-std=c++14"
+    "-std=c++11"
+    "-std=c++0x")
+  if(ASMJIT_CC_OPTIONS)
+    list(GET ASMJIT_CC_OPTIONS 0 ASMJIT_CC_OPTIONS)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS ${ASMJIT_CC_OPTIONS})
+  endif()
+
+  np_detect_options(ASMJIT_CC_OPTIONS
+    "-fno-exceptions"
+    "-fno-tree-vectorize"
+    "-fvisibility=hidden")
+
+  list(APPEND ASMJIT_PRIVATE_CFLAGS ${ASMJIT_CC_OPTIONS})
   list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -fmerge-all-constants)
+
+  unset(ASMJIT_CC_OPTIONS)
 endif()
 
 if(ASMJIT_EMBED)

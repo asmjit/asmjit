@@ -38,24 +38,24 @@ enum { kCompilerDefaultLookAhead = 64 };
 // [asmjit::Compiler - Construction / Destruction]
 // ============================================================================
 
-Compiler::Compiler() noexcept :
-  _features(0),
-  _maxLookAhead(kCompilerDefaultLookAhead),
-  _instOptions(0),
-  _tokenGenerator(0),
-  _nodeFlowId(0),
-  _nodeFlags(0),
-  _targetVarMapping(nullptr),
-  _firstNode(nullptr),
-  _lastNode(nullptr),
-  _cursor(nullptr),
-  _func(nullptr),
-  _zoneAllocator(8192 - Zone::kZoneOverhead),
-  _varAllocator(4096 - Zone::kZoneOverhead),
-  _stringAllocator(4096 - Zone::kZoneOverhead),
-  _constAllocator(4096 - Zone::kZoneOverhead),
-  _localConstPool(&_constAllocator),
-  _globalConstPool(&_zoneAllocator) {}
+Compiler::Compiler() noexcept
+  : _features(0),
+    _maxLookAhead(kCompilerDefaultLookAhead),
+    _instOptions(0),
+    _tokenGenerator(0),
+    _nodeFlowId(0),
+    _nodeFlags(0),
+    _targetVarMapping(nullptr),
+    _firstNode(nullptr),
+    _lastNode(nullptr),
+    _cursor(nullptr),
+    _func(nullptr),
+    _zoneAllocator(8192 - Zone::kZoneOverhead),
+    _varAllocator(4096 - Zone::kZoneOverhead),
+    _stringAllocator(4096 - Zone::kZoneOverhead),
+    _constAllocator(4096 - Zone::kZoneOverhead),
+    _localConstPool(&_constAllocator),
+    _globalConstPool(&_zoneAllocator) {}
 Compiler::~Compiler() noexcept {}
 
 // ============================================================================

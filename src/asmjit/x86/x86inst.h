@@ -1980,19 +1980,12 @@ ASMJIT_ENUM(X86VCmp) {
 
 //! X86/X64 round encoding used by ROUND[PD/PS/SD/SS] family instructions.
 ASMJIT_ENUM(X86Round) {
-  //! Round control - round to nearest (even).
-  kX86RoundNearest        = 0x0,
-  //! Round control - round to down toward -INF (floor),
-  kX86RoundDown           = 0x1,
-  //! Round control - round to up toward +INF (ceil).
-  kX86RoundUp             = 0x2,
-  //! Round control - round toward zero (truncate).
-  kX86RoundTrunc          = 0x3,
-  //! Rounding select - if set it will use the the current rounding mode
-  //! according to MXCS and ignore the round control (RC) bits.
-  kX86RoundCurrent        = 0x4,
-  //! Precision mask - if set it avoids an inexact exception.
-  kX86RoundInexact        = 0x8
+  kX86RoundNearest        = 0x00, //!< Round to nearest (even).
+  kX86RoundDown           = 0x01, //!< Round to down toward -INF (floor),
+  kX86RoundUp             = 0x02, //!< Round to up toward +INF (ceil).
+  kX86RoundTrunc          = 0x03, //!< Round toward zero (truncate).
+  kX86RoundCurrent        = 0x04, //!< Round to the current rounding mode set (ignores other RC bits).
+  kX86RoundInexact        = 0x08  //!< Avoid the inexact exception, if set.
 };
 
 // ============================================================================
@@ -2001,14 +1994,10 @@ ASMJIT_ENUM(X86Round) {
 
 //! X86/X64 Prefetch hints.
 ASMJIT_ENUM(X86Prefetch) {
-  //! Prefetch using NT hint.
-  kX86PrefetchNTA = 0,
-  //! Prefetch to L0 cache.
-  kX86PrefetchT0 = 1,
-  //! Prefetch to L1 cache.
-  kX86PrefetchT1 = 2,
-  //! Prefetch to L2 cache.
-  kX86PrefetchT2 = 3
+  kX86PrefetchNTA         = 0,    //!< Prefetch using NT hint.
+  kX86PrefetchT0          = 1,    //!< Prefetch to L0 cache.
+  kX86PrefetchT1          = 2,    //!< Prefetch to L1 cache.
+  kX86PrefetchT2          = 3     //!< Prefetch to L2 cache.
 };
 
 // ============================================================================
@@ -2045,7 +2034,7 @@ struct X86InstExtendedInfo {
     return _instFlags;
   }
 
-  //! Get whether the instruction is a control-flow intruction.
+  //! Get whether the instruction is a control-flow instruction.
   //!
   //! Control flow instruction is instruction that can perform a branch,
   //! typically `jmp`, `jcc`, `call`, or `ret`.
@@ -2053,7 +2042,7 @@ struct X86InstExtendedInfo {
     return (getInstFlags() & kX86InstFlagFlow) != 0;
   }
 
-  //! Get whether the instruction is a compare/test like intruction.
+  //! Get whether the instruction is a compare/test like instruction.
   ASMJIT_INLINE bool isTest() const {
     return (getInstFlags() & kX86InstFlagTest) != 0;
   }
@@ -2073,7 +2062,7 @@ struct X86InstExtendedInfo {
 
   //! Get whether the instruction is a typical Exchange instruction.
   //!
-  //! Exchange instructios are 'xchg' and 'xadd'.
+  //! Exchange instructions are 'xchg' and 'xadd'.
   ASMJIT_INLINE bool isXchg() const {
     return (getInstFlags() & kX86InstFlagXchg) != 0;
   }
@@ -2177,7 +2166,7 @@ struct X86InstExtendedInfo {
   //! this is the size of the register (and of Ymm/Zmm registers). This means
   //! that 16-bytes of the register are changed, the rest remains unchanged.
   //! However, AVX instructions should use the size of Zmm register as every
-  //! AVX instruction zeroes the rest of the register (AVX/AVX2 instructions
+  //! AVX instruction clears the rest of the register (AVX/AVX2 instructions
   //! zero the HI part of Zmm if available).
   uint8_t _writeSize;
 
@@ -2391,7 +2380,7 @@ struct X86Util {
   // [Shuffle (SIMD)]
   // --------------------------------------------------------------------------
 
-  //! Pack a shuffle constant to be used with multimedia instrutions (2 values).
+  //! Pack a shuffle constant to be used with multimedia instructions (2 values).
   //!
   //! \param a Position of the first component [0, 1], inclusive.
   //! \param b Position of the second component [0, 1], inclusive.
@@ -2404,7 +2393,7 @@ struct X86Util {
     return static_cast<int>(result);
   }
 
-  //! Pack a shuffle constant to be used with multimedia instrutions (4 values).
+  //! Pack a shuffle constant to be used with multimedia instructions (4 values).
   //!
   //! \param a Position of the first component [0, 3], inclusive.
   //! \param b Position of the second component [0, 3], inclusive.

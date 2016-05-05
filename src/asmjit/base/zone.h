@@ -34,11 +34,8 @@ namespace asmjit {
 //! data used by `Assembler` and `Compiler` has a very short lifetime, thus, is
 //! allocated by `Zone`. The advantage is that `Zone` can free all of the data
 //! allocated at once by calling `reset()` or by `Zone` destructor.
-struct Zone {
-  // --------------------------------------------------------------------------
-  // [Block]
-  // --------------------------------------------------------------------------
-
+class Zone {
+ public:
   //! \internal
   //!
   //! A single block of memory.
@@ -75,13 +72,11 @@ struct Zone {
     uint8_t data[sizeof(void*)];
   };
 
-  // --------------------------------------------------------------------------
-  // [Enums]
-  // --------------------------------------------------------------------------
-
   enum {
     //! Zone allocator overhead.
-    kZoneOverhead = static_cast<int>(sizeof(Block) - sizeof(void*)) + kMemAllocOverhead
+    kZoneOverhead =
+      kMemAllocOverhead
+        + static_cast<int>(sizeof(Block) - sizeof(void*))
   };
 
   // --------------------------------------------------------------------------
@@ -137,19 +132,19 @@ struct Zone {
   //! ~~~
   //! using namespace asmjit;
   //!
-  //! class SomeObject { ... };
+  //! class Object { ... };
   //!
-  //! // Create Zone with default block size of 65536 bytes.
-  //! Zone zone(65536);
+  //! // Create Zone with default block size of approximately 65536 bytes.
+  //! Zone zone(65536 - Zone::kZoneOverhead);
   //!
   //! // Create your objects using zone object allocating, for example:
-  //! Object* obj = static_cast<Object*>( zone.alloc(sizeof(SomeClass)) );
+  //! Object* obj = static_cast<Object*>( zone.alloc(sizeof(Object)) );
   //
   //! if (obj == nullptr) {
   //!   // Handle out of memory error.
   //! }
   //!
-  //! // To instantiate class placement `new` and `delete` operators can be used.
+  //! // Placement `new` and `delete` operators can be used to instantiate it.
   //! new(obj) Object();
   //!
   //! // ... lifetime of your objects ...
@@ -157,7 +152,7 @@ struct Zone {
   //! // To destroy the instance (if required).
   //! obj->~Object();
   //!
-  //! // Reset of destroy `Zone`.
+  //! // Reset or destroy `Zone`.
   //! zone.reset();
   //! ~~~
   ASMJIT_INLINE void* alloc(size_t size) noexcept {

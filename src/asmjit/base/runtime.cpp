@@ -115,7 +115,7 @@ StaticRuntime::StaticRuntime(void* baseAddress, size_t sizeLimit) noexcept {
   _sizeLimit = sizeLimit;
   _baseAddress = static_cast<Ptr>((uintptr_t)baseAddress);
 }
-StaticRuntime::~StaticRuntime() {}
+StaticRuntime::~StaticRuntime() noexcept {}
 
 // ============================================================================
 // [asmjit::StaticRuntime - Interface]

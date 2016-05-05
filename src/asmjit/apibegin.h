@@ -16,38 +16,38 @@
 # error "[asmjit] Api-Scope is already active, previous scope not closed by apiend.h?"
 #endif // ASMJIT_API_SCOPE
 
-// ============================================================================
 // [NoExcept]
-// ============================================================================
-
 #if !ASMJIT_CC_HAS_NOEXCEPT && !defined(noexcept)
 # define noexcept ASMJIT_NOEXCEPT
 # define ASMJIT_UNDEF_NOEXCEPT
 #endif // !ASMJIT_CC_HAS_NOEXCEPT && !noexcept
 
-// ============================================================================
 // [NullPtr]
-// ============================================================================
-
 #if !ASMJIT_CC_HAS_NULLPTR && !defined(nullptr)
 # define nullptr NULL
 # define ASMJIT_UNDEF_NULLPTR
 #endif // !ASMJIT_CC_HAS_NULLPTR && !nullptr
 
-// ============================================================================
 // [Override]
-// ============================================================================
-
 #if !ASMJIT_CC_HAS_OVERRIDE && !defined(override)
 # define override
 # define ASMJIT_UNDEF_OVERRIDE
 #endif // !ASMJIT_CC_HAS_OVERRIDE && !override
 
-// ============================================================================
-// [MSC]
-// ============================================================================
+// [CLang]
+#if ASMJIT_CC_CLANG
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wunnamed-type-template-args"
+#endif // ASMJIT_CC_CLANG
 
-#if defined(_MSC_VER)
+// [GCC]
+#if ASMJIT_CC_GCC
+# pragma GCC diagnostic push
+# pragma GCC diagnostic warning "-Winline"
+#endif // ASMJIT_CC_GCC
+
+// [MSC]
+#if ASMJIT_CC_MSC
 
 # pragma warning(push)
 # pragma warning(disable: 4127) // conditional expression is constant
@@ -73,23 +73,4 @@
 #  define snprintf _snprintf
 # endif // !snprintf
 
-#endif // _MSC_VER
-
-// ============================================================================
-// [CLang]
-// ============================================================================
-
-#if defined(__clang__)
-# pragma clang diagnostic push
-# pragma clang diagnostic ignored "-Wunnamed-type-template-args"
-#endif // __clang__
-
-// ============================================================================
-// [GCC]
-// ============================================================================
-
-#if defined(__GNUC__) && !defined(__clang__)
-# if __GNUC__ >= 4 && !defined(__MINGW32__)
-#  pragma GCC visibility push(hidden)
-# endif // GCC 4+
-#endif // __GNUC__
+#endif // ASMJIT_CC_MSC

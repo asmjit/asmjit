@@ -825,7 +825,7 @@ static void* vMemMgrAllocFreeable(VMemMgr* self, size_t vSize) noexcept {
           if (++cont == need) {
             i += j;
             i -= cont;
-            goto _Found;
+            goto L_Found;
           }
 
           continue;
@@ -868,7 +868,7 @@ static void* vMemMgrAllocFreeable(VMemMgr* self, size_t vSize) noexcept {
     self->_allocatedBytes += node->size;
   }
 
-_Found:
+L_Found:
   // Update bits.
   _SetBits(node->baUsed, i, need);
   _SetBits(node->baCont, i, need - 1);
@@ -923,8 +923,8 @@ static void vMemMgrReset(VMemMgr* self, bool keepVirtualMemory) noexcept {
 #if !ASMJIT_OS_WINDOWS
 VMemMgr::VMemMgr() noexcept
 #else
-VMemMgr::VMemMgr(HANDLE hProcess) noexcept :
-  _hProcess(vMemGet().getSafeProcessHandle(hProcess))
+VMemMgr::VMemMgr(HANDLE hProcess) noexcept
+  : _hProcess(vMemGet().getSafeProcessHandle(hProcess))
 #endif // ASMJIT_OS_WINDOWS
 {
   _blockSize = VMemUtil::getPageGranularity();
