@@ -7,11 +7,10 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/globals.h"
 #include "../base/vmem.h"
 
-// [Dependencies - Posix]
 #if ASMJIT_OS_POSIX
 # include <sys/types.h>
 # include <sys/mman.h>

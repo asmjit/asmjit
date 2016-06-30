@@ -11,7 +11,7 @@
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_COMPILER)
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/compiler.h"
 #include "../base/podvector.h"
 #include "../base/zone.h"

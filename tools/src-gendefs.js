@@ -451,9 +451,7 @@ var main = function(files) {
   });
 };
 
-main([
-  {
-    name: "../src/asmjit/x86/x86inst.cpp",
-    arch: "x86"
-  }
-]);
+main([{
+  name: "../src/asmjit/x86/x86inst.cpp",
+  arch: "x86"
+}]);

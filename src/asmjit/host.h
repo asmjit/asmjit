@@ -8,13 +8,10 @@
 #ifndef _ASMJIT_HOST_H
 #define _ASMJIT_HOST_H
 
-// [Dependencies - Core]
+// [Dependencies]
 #include "./base.h"
 
-// ============================================================================
-// [asmjit::host - X86 / X64]
-// ============================================================================
-
+// [X86 / X64]
 #if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
 #include "./x86.h"
 

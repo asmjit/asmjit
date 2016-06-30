@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_RUNTIME_H
 #define _ASMJIT_BASE_RUNTIME_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/cpuinfo.h"
 #include "../base/vmem.h"
 
@@ -21,8 +21,8 @@ namespace asmjit {
 // [Forward Declarations]
 // ============================================================================
 
-struct Assembler;
-struct CpuInfo;
+class Assembler;
+class CpuInfo;
 
 //! \addtogroup asmjit_base
 //! \{
@@ -32,7 +32,8 @@ struct CpuInfo;
 // ============================================================================
 
 //! Base runtime.
-struct ASMJIT_VIRTAPI Runtime {
+class ASMJIT_VIRTAPI Runtime {
+ public:
   ASMJIT_NO_COPY(Runtime)
 
   // --------------------------------------------------------------------------
@@ -132,7 +133,8 @@ struct ASMJIT_VIRTAPI Runtime {
 // ============================================================================
 
 //! Base runtime for JIT code generation.
-struct ASMJIT_VIRTAPI HostRuntime : public Runtime {
+class ASMJIT_VIRTAPI HostRuntime : public Runtime {
+ public:
   ASMJIT_NO_COPY(HostRuntime)
 
   // --------------------------------------------------------------------------
@@ -170,7 +172,8 @@ struct ASMJIT_VIRTAPI HostRuntime : public Runtime {
 //!
 //! JIT static runtime can be used to generate code to a memory location that
 //! is known.
-struct ASMJIT_VIRTAPI StaticRuntime : public HostRuntime {
+class ASMJIT_VIRTAPI StaticRuntime : public HostRuntime {
+ public:
   ASMJIT_NO_COPY(StaticRuntime)
 
   // --------------------------------------------------------------------------
@@ -212,7 +215,8 @@ struct ASMJIT_VIRTAPI StaticRuntime : public HostRuntime {
 // ============================================================================
 
 //! JIT runtime.
-struct ASMJIT_VIRTAPI JitRuntime : public HostRuntime {
+class ASMJIT_VIRTAPI JitRuntime : public HostRuntime {
+ public:
   ASMJIT_NO_COPY(JitRuntime)
 
   // --------------------------------------------------------------------------

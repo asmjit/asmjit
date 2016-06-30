@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_OPERAND_H
 #define _ASMJIT_BASE_OPERAND_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/utils.h"
 
 // [Api-Begin]
@@ -143,7 +143,8 @@ ASMJIT_ENUM(VarType) {
 // ============================================================================
 
 //! Operand can contain register, memory location, immediate, or label.
-struct Operand {
+class Operand {
+ public:
   // --------------------------------------------------------------------------
   // [Type]
   // --------------------------------------------------------------------------
@@ -563,7 +564,8 @@ struct OperandUtil {
 // ============================================================================
 
 //! Base class for all register operands.
-struct Reg : public Operand {
+class Reg : public Operand {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -683,7 +685,8 @@ struct Reg : public Operand {
 // ============================================================================
 
 //! Base class for all memory operands.
-struct BaseMem : public Operand {
+class BaseMem : public Operand {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -778,7 +781,8 @@ struct BaseMem : public Operand {
 //!
 //! To create immediate operand use `imm()` or `imm_u()` non-members or `Imm`
 //! constructors.
-struct Imm : public Operand {
+class Imm : public Operand {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1056,7 +1060,8 @@ struct Imm : public Operand {
 //! // Bind label to the current position, see `Assembler::bind()`.
 //! a.bind(L1);
 //! ~~~
-struct Label : public Operand {
+class Label : public Operand {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1108,7 +1113,8 @@ struct Label : public Operand {
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Base class for all variables.
-struct Var : public Operand {
+class Var : public Operand {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------

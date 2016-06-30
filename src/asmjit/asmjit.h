@@ -340,20 +340,20 @@
 //! }
 //! ~~~
 
-// [Dependencies - Base]
+// [Dependencies]
 #include "./base.h"
 
-// [Dependencies - ARM/ARM64]
+// [ARM/ARM64]
 #if defined(ASMJIT_BUILD_ARM32) || defined(ASMJIT_BUILD_ARM64)
 #include "./arm.h"
 #endif // ASMJIT_BUILD_ARM32 || ASMJIT_BUILD_ARM64
 
-// [Dependencies - X86/X64]
+// [X86/X64]
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
 #include "./x86.h"
 #endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64
 
-// [Dependencies - Host]
+// [Host]
 #include "./host.h"
 
 // [Guard]

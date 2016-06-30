@@ -8,13 +8,10 @@
 // disassembled in your IDE or by your favourite disassembler. Instructions
 // are grouped by category and then sorted alphabetically.
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../asmjit/asmjit.h"
-
-// [Dependencies - Test]
 #include "./asmjit_test_opcode.h"
 
-// [Dependencies - C]
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

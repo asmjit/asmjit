@@ -7,11 +7,9 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/utils.h"
 #include "../base/zone.h"
-
-// [Dependencies - C]
 #include <stdarg.h>
 
 // [Api-Begin]

@@ -7,7 +7,7 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../base/runtime.h"
 

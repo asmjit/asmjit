@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_X86_X86ASSEMBLER_H
 #define _ASMJIT_X86_X86ASSEMBLER_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../x86/x86inst.h"
 #include "../x86/x86operand.h"
@@ -379,7 +379,8 @@ namespace asmjit {
 //! functions available that return a new register operand.
 //!
 //! \sa X86Compiler.
-struct ASMJIT_VIRTAPI X86Assembler : public Assembler {
+class ASMJIT_VIRTAPI X86Assembler : public Assembler {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------

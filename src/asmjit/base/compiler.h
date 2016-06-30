@@ -11,7 +11,7 @@
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_COMPILER)
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../base/compilerfunc.h"
 #include "../base/constpool.h"
@@ -138,7 +138,8 @@ struct VarInfo {
 //! Compiler interface.
 //!
 //! \sa Assembler.
-struct ASMJIT_VIRTAPI Compiler : public ExternalTool {
+class ASMJIT_VIRTAPI Compiler : public ExternalTool {
+ public:
   ASMJIT_NO_COPY(Compiler)
 
   // --------------------------------------------------------------------------

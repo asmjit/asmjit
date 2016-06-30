@@ -11,12 +11,10 @@
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_LOGGER)
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/containers.h"
 #include "../base/logger.h"
 #include "../base/utils.h"
-
-// [Dependencies - C]
 #include <stdarg.h>
 
 // [Api-Begin]

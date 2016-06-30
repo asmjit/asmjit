@@ -7,12 +7,10 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../base/utils.h"
 #include "../base/vmem.h"
-
-// [Dependenceis - C]
 #include <stdarg.h>
 
 // [Api-Begin]
@@ -162,7 +160,7 @@ Error Assembler::setLastError(Error error, const char* message) noexcept {
   if (message == nullptr)
     message = DebugUtils::errorAsString(error);
 
-  // Logging is skipped if the error is handled by `ErrorHandler.
+  // Logging is skipped if the error is handled by `ErrorHandler`.
   ErrorHandler* eh = _errorHandler;
   ASMJIT_TLOG("[ERROR (Assembler)] %s (0x%0.8u) %s\n", message,
     static_cast<unsigned int>(error),

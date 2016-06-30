@@ -11,7 +11,7 @@
 #include "../build.h"
 #if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../x86/x86operand.h"
 
 // [Api-Begin]

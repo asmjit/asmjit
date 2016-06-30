@@ -8,7 +8,7 @@
 #ifndef BROKEN_INTERNAL_H
 #define BROKEN_INTERNAL_H
 
-// [Dependencies - C]
+// [Dependencies]
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

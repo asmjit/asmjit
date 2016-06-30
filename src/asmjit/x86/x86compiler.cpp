@@ -11,7 +11,7 @@
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_COMPILER) && (defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64))
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/containers.h"
 #include "../base/utils.h"
 #include "../x86/x86assembler.h"

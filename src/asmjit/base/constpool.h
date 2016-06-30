@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_CONSTPOOL_H
 #define _ASMJIT_BASE_CONSTPOOL_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/zone.h"
 
 // [Api-Begin]
@@ -24,7 +24,8 @@ namespace asmjit {
 // ============================================================================
 
 //! Constant pool.
-struct ConstPool {
+class ConstPool {
+ public:
   ASMJIT_NO_COPY(ConstPool)
 
   enum {

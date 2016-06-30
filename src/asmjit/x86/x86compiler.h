@@ -11,7 +11,7 @@
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_COMPILER)
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/compiler.h"
 #include "../base/vectypes.h"
 #include "../x86/x86assembler.h"
@@ -26,8 +26,8 @@ namespace asmjit {
 // [Forward Declarations]
 // ============================================================================
 
-struct X86CallNode;
-struct X86FuncNode;
+class X86CallNode;
+class X86FuncNode;
 
 //! \addtogroup asmjit_x86
 //! \{
@@ -64,7 +64,8 @@ ASMJIT_VARAPI const uint8_t _x64VarMapping[kX86VarTypeCount];
 // ============================================================================
 
 //! X86/X64 function node.
-struct X86FuncNode : public HLFunc {
+class X86FuncNode : public HLFunc {
+ public:
   ASMJIT_NO_COPY(X86FuncNode)
 
   // --------------------------------------------------------------------------
@@ -194,7 +195,8 @@ struct X86FuncNode : public HLFunc {
 // ============================================================================
 
 //! X86/X64 function-call node.
-struct X86CallNode : public HLCall {
+class X86CallNode : public HLCall {
+ public:
   ASMJIT_NO_COPY(X86CallNode)
 
   // --------------------------------------------------------------------------
@@ -711,7 +713,8 @@ struct X86CallNode : public HLCall {
 //! Other use cases are waiting for you! Be sure that instruction that are
 //! being emitted are correct and encodable, otherwise the Assembler will
 //! fail and set the status code to `kErrorUnknownInst`.
-struct ASMJIT_VIRTAPI X86Compiler : public Compiler {
+class ASMJIT_VIRTAPI X86Compiler : public Compiler {
+ public:
   ASMJIT_NO_COPY(X86Compiler)
 
   // --------------------------------------------------------------------------

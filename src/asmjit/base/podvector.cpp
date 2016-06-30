@@ -7,7 +7,7 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/podvector.h"
 #include "../base/utils.h"
 

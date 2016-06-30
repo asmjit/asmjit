@@ -11,15 +11,13 @@
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_COMPILER)
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../base/compiler.h"
 #include "../base/compilercontext_p.h"
 #include "../base/cpuinfo.h"
 #include "../base/logger.h"
 #include "../base/utils.h"
-
-// [Dependencies - C]
 #include <stdarg.h>
 
 // [Api-Begin]

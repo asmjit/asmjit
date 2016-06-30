@@ -10,10 +10,8 @@
 
 #include "../build.h"
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/containers.h"
-
-// [Dependencies - C]
 #include <stdarg.h>
 
 // [Api-Begin]
@@ -59,7 +57,8 @@ struct LogUtil {
 //!
 //! This class also contain `_enabled` member that can be used to enable
 //! or disable logging.
-struct ASMJIT_VIRTAPI Logger {
+class ASMJIT_VIRTAPI Logger {
+ public:
   ASMJIT_NO_COPY(Logger)
 
   // --------------------------------------------------------------------------
@@ -68,16 +67,9 @@ struct ASMJIT_VIRTAPI Logger {
 
   //! Logger options.
   ASMJIT_ENUM(Options) {
-    //! Whether to output instructions also in binary form.
-    kOptionBinaryForm = 0,
-
-    //! Whether to output immediates as hexadecimal numbers.
-    kOptionHexImmediate = 1,
-    //! Whether to output displacements as hexadecimal numbers.
-    kOptionHexDisplacement = 2,
-
-    //! Count of logger options.
-    kOptionCount = 3
+    kOptionBinaryForm      = 0x00000001, //! Output instructions also in binary form.
+    kOptionHexImmediate    = 0x00000002, //! Output immediates as hexadecimal numbers.
+    kOptionHexDisplacement = 0x00000004  //! Output displacements as hexadecimal numbers.
   };
 
   // --------------------------------------------------------------------------
@@ -163,7 +155,8 @@ struct ASMJIT_VIRTAPI Logger {
 // ============================================================================
 
 //! Logger that can log to standard C `FILE*` stream.
-struct ASMJIT_VIRTAPI FileLogger : public Logger {
+class ASMJIT_VIRTAPI FileLogger : public Logger {
+ public:
   ASMJIT_NO_COPY(FileLogger)
 
   // --------------------------------------------------------------------------
@@ -212,7 +205,8 @@ struct ASMJIT_VIRTAPI FileLogger : public Logger {
 // ============================================================================
 
 //! String logger.
-struct ASMJIT_VIRTAPI StringLogger : public Logger {
+class ASMJIT_VIRTAPI StringLogger : public Logger {
+ public:
   ASMJIT_NO_COPY(StringLogger)
 
   // --------------------------------------------------------------------------

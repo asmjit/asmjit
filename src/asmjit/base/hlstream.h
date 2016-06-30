@@ -11,7 +11,7 @@
 #include "../build.h"
 #if !defined(ASMJIT_DISABLE_COMPILER)
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../base/operand.h"
 
@@ -27,15 +27,15 @@ namespace asmjit {
 // [Forward Declarations]
 // ============================================================================
 
-struct Compiler;
+class Compiler;
 struct VarData;
 struct VarState;
 struct VarMap;
 
-struct HLInst;
-struct HLJump;
-struct HLLabel;
-struct HLSentinel;
+class HLInst;
+class HLJump;
+class HLLabel;
+class HLSentinel;
 
 //! \addtogroup asmjit_base
 //! \{
@@ -48,7 +48,8 @@ struct HLSentinel;
 //!
 //! Every node represents an abstract instruction, directive, label, or macro
 //! instruction that can be serialized to `Assembler`.
-struct HLNode {
+class HLNode {
+ public:
   ASMJIT_NO_COPY(HLNode)
 
   // --------------------------------------------------------------------------
@@ -324,7 +325,8 @@ struct HLNode {
 //! Instruction (HL).
 //!
 //! Wraps an instruction with its options and operands.
-struct HLInst : public HLNode {
+class HLInst : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLInst)
 
   // --------------------------------------------------------------------------
@@ -449,7 +451,8 @@ L_Update:
 //! Conditional or direct jump (HL).
 //!
 //! Extension of `HLInst` node, which stores more information about the jump.
-struct HLJump : public HLInst {
+class HLJump : public HLInst {
+ public:
   ASMJIT_NO_COPY(HLJump)
 
   // --------------------------------------------------------------------------
@@ -488,7 +491,8 @@ struct HLJump : public HLInst {
 //! Wraps `.data` directive. The node contains data that will be placed at the
 //! node's position in the assembler stream. The data is considered to be RAW;
 //! no analysis nor byte-order conversion is performed on RAW data.
-struct HLData : public HLNode {
+class HLData : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLData)
 
   // --------------------------------------------------------------------------
@@ -545,7 +549,8 @@ struct HLData : public HLNode {
 //! Align directive (HL).
 //!
 //! Wraps `.align` directive.
-struct HLAlign : public HLNode {
+class HLAlign : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLAlign)
 
   // --------------------------------------------------------------------------
@@ -592,7 +597,8 @@ struct HLAlign : public HLNode {
 // ============================================================================
 
 //! label (HL).
-struct HLLabel : public HLNode {
+class HLLabel : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLLabel)
 
   // --------------------------------------------------------------------------
@@ -658,7 +664,8 @@ struct HLLabel : public HLNode {
 // ============================================================================
 
 //! Comment (HL).
-struct HLComment : public HLNode {
+class HLComment : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLComment)
 
   // --------------------------------------------------------------------------
@@ -682,7 +689,8 @@ struct HLComment : public HLNode {
 // ============================================================================
 
 //! Sentinel (HL).
-struct HLSentinel : public HLNode {
+class HLSentinel : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLSentinel)
 
   // --------------------------------------------------------------------------
@@ -704,7 +712,8 @@ struct HLSentinel : public HLNode {
 // ============================================================================
 
 //! Hint node.
-struct HLHint : public HLNode {
+class HLHint : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLHint)
 
   // --------------------------------------------------------------------------
@@ -758,7 +767,8 @@ struct HLHint : public HLNode {
 // ============================================================================
 
 //! Function (HL).
-struct HLFunc : public HLNode {
+class HLFunc : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLFunc)
 
   // --------------------------------------------------------------------------
@@ -978,7 +988,8 @@ struct HLFunc : public HLNode {
 // ============================================================================
 
 //! Function return (HL).
-struct HLRet : public HLNode {
+class HLRet : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLRet)
 
   // --------------------------------------------------------------------------
@@ -1024,7 +1035,8 @@ struct HLRet : public HLNode {
 // ============================================================================
 
 //! Function call (HL).
-struct HLCall : public HLNode {
+class HLCall : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLCall)
 
   // --------------------------------------------------------------------------
@@ -1097,7 +1109,8 @@ struct HLCall : public HLNode {
 // ============================================================================
 
 //! Function call's argument (HL).
-struct HLCallArg : public HLNode {
+class HLCallArg : public HLNode {
+ public:
   ASMJIT_NO_COPY(HLCallArg)
 
   // --------------------------------------------------------------------------

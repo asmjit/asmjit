@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_PODVECTOR_H
 #define _ASMJIT_BASE_PODVECTOR_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/globals.h"
 
 // [Api-Begin]
@@ -24,7 +24,8 @@ namespace asmjit {
 // ============================================================================
 
 //! \internal
-struct PodVectorBase {
+class PodVectorBase {
+ public:
   // --------------------------------------------------------------------------
   // [Data]
   // --------------------------------------------------------------------------
@@ -95,7 +96,8 @@ public:
 //! - Optimized for working only with POD types
 //! - Uses ASMJIT_... memory management macros
 template <typename T>
-struct PodVector : PodVectorBase {
+class PodVector : public PodVectorBase {
+ public:
   ASMJIT_NO_COPY(PodVector<T>)
 
   // --------------------------------------------------------------------------
@@ -237,7 +239,8 @@ public:
 // ============================================================================
 
 template<typename T, size_t N>
-struct PodVectorTmp : public PodVector<T> {
+class PodVectorTmp : public PodVector<T> {
+ public:
   ASMJIT_NO_COPY(PodVectorTmp<T, N>)
 
   // --------------------------------------------------------------------------

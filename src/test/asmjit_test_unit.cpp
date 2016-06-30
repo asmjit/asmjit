@@ -4,7 +4,7 @@
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../asmjit/asmjit.h"
 
 // ============================================================================

@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_CONTAINERS_H
 #define _ASMJIT_BASE_CONTAINERS_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/globals.h"
 
 // [Api-Begin]
@@ -141,7 +141,8 @@ struct BitArray {
 
 //! \internal
 template <typename T>
-struct PodList {
+class PodList {
+ public:
   ASMJIT_NO_COPY(PodList<T>)
 
   // --------------------------------------------------------------------------
@@ -230,7 +231,8 @@ struct PodList {
 //!
 //! String builder contains method specific to AsmJit functionality, used for
 //! logging or HTML output.
-struct StringBuilder {
+class StringBuilder {
+ public:
   ASMJIT_NO_COPY(StringBuilder)
 
   // --------------------------------------------------------------------------
@@ -511,7 +513,8 @@ struct StringBuilder {
 
 //! Temporary string builder, has statically allocated `N` bytes.
 template<size_t N>
-struct StringBuilderTmp : public StringBuilder {
+class StringBuilderTmp : public StringBuilder {
+ public:
   ASMJIT_NO_COPY(StringBuilderTmp<N>)
 
   // --------------------------------------------------------------------------

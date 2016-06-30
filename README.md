@@ -497,11 +497,11 @@ printf("Logger Content:\n%s", logger.getString());
 // You can use `logger.clearString()` if the intend is to reuse the logger.
 ```
 
-Logger can be configured to show more information by using `logger.setOption()` method. The following options are available:
+Logger can be configured to show more information by using `logger.addOptions()` method. The following options are available:
 
-  * `kLoggerOptionBinaryForm` - Log also binary sequence for each instruction generated.
-  * `kLoggerOptionHexImmediate` - Format immediate values to base16 (hex) form.
-  * `kLoggerOptionHexDisplacement` - Format memory displacements to base16 (hex) form.
+  * `Logger::kOptionBinaryForm` - Log also binary sequence for each instruction generated.
+  * `Logger::kOptionHexImmediate` - Log immediate values as hexadecimal.
+  * `Logger::kOptionHexDisplacement` - Log memory displacements as hexadecimal.
 
 TODO: Liveness analysis and instruction scheduling options.
 

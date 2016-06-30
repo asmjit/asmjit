@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_X86_X86INST_H
 #define _ASMJIT_X86_X86INST_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../base/globals.h"
 #include "../base/operand.h"
@@ -1163,54 +1163,22 @@ ASMJIT_ENUM(X86InstId) {
 
 //! X86/X64 instruction emit options, mainly for internal purposes.
 ASMJIT_ENUM(X86InstOptions) {
-  //! Force REX prefix (X64).
-  //!
-  //! This option should be used carefully as there are combinations of
-  //! instructions and their operands that are not encodable. The REX prefix
-  //! can't be used together with AH, BH, CH, and DH registers. AsmJit reports
-  //! \ref kErrorIllegalInstruction in such case.
-  kX86InstOptionRex = 0x00000040,
-
-  //! \internal
-  //!
-  //! Reserved by `X86Assembler`, do not use!
-  _kX86InstOptionNoRex = 0x00000080,
-
-  //! Emit instruction with LOCK prefix.
-  //!
-  //! If this option is used and instruction doesn't support LOCK prefix an
-  //! invalid instruction error is generated.
-  kX86InstOptionLock = 0x00000100,
-
-  //! Force 3-byte VEX prefix even if the instruction is encodable by 2-byte
-  //! VEX prefix (AVX).
-  //!
-  //! Ignored if the instruction is not AVX or `kX86InstOptionEVEX` is used.
-  kX86InstOptionVex3 = 0x00000200,
-
-  //! Force 4-byte EVEX prefix even if the instruction is encodable by using
-  //! VEX prefix. Please note that all higher bits from `kX86InstOptionEvex`
-  //! are reserved for EVEX and forces EVEX encoding to be used implicitly.
-  kX86InstOptionEvex = 0x00010000,
-  //! Use zeroing instead of merging (AVX512+).
-  kX86InstOptionEvexZero = 0x00020000,
-  //! Broadcast one element to all other elements (AVX512+).
-  kX86InstOptionEvexOneN = 0x00040000,
-  //! Suppress all exceptions (AVX512+).
-  kX86InstOptionEvexSae = 0x00080000,
-
-  //! Static rounding mode `round-to-nearest` (even) and `SAE` (AVX512+).
-  kX86InstOptionEvexRnSae = 0x00100000,
-  //! Static rounding mode `round-down` (toward -inf) and `SAE` (AVX512+).
-  kX86InstOptionEvexRdSae = 0x00200000,
-  //! Static rounding mode `round-up` (toward +inf) and `SAE` (AVX512+).
-  kX86InstOptionEvexRuSae = 0x00400000,
-  //! Static rounding mode `round-toward-zero` (truncate) and `SAE` (AVX512+).
-  kX86InstOptionEvexRzSae = 0x00800000
+  kX86InstOptionRex       = 0x00000040,  //!< Force REX prefix (X64)
+  _kX86InstOptionNoRex    = 0x00000080,  //!< Do not use, internal of `X86Assembler`.
+  kX86InstOptionLock      = 0x00000100,  //!< Force LOCK prefix (lock-enabled instructions).
+  kX86InstOptionVex3      = 0x00000200,  //!< Force 3-byte VEX prefix (AVX)
+  kX86InstOptionEvex      = 0x00010000,  //!< Force 4-byte EVEX prefix (AVX-512).
+  kX86InstOptionEvexZero  = 0x00020000,  //!< EVEX use zeroing instead of merging.
+  kX86InstOptionEvexOneN  = 0x00040000,  //!< EVEX broadcast the first element to all.
+  kX86InstOptionEvexSae   = 0x00080000,  //!< EVEX suppress all exceptions (SAE).
+  kX86InstOptionEvexRnSae = 0x00100000,  //!< EVEX 'round-to-nearest' (even) and `SAE`.
+  kX86InstOptionEvexRdSae = 0x00200000,  //!< EVEX 'round-down' (toward -inf) and 'SAE'.
+  kX86InstOptionEvexRuSae = 0x00400000,  //!< EVEX 'round-up' (toward +inf) and 'SAE'.
+  kX86InstOptionEvexRzSae = 0x00800000   //!< EVEX 'round-toward-zero' (truncate) and 'SAE'.
 };
 
 // ============================================================================
-// [asmjit::X86InstEncodingId]
+// [asmjit::X86InstEncoding]
 // ============================================================================
 
 //! \internal
@@ -1218,238 +1186,125 @@ ASMJIT_ENUM(X86InstOptions) {
 //! X86/X64 instruction groups.
 //!
 //! This group is specific to AsmJit and only used by `X86Assembler`.
-ASMJIT_ENUM(X86InstEncodingId) {
-  //! Never used.
-  kX86InstEncodingIdNone = 0,
+ASMJIT_ENUM(X86InstEncoding) {
+  kX86InstEncodingNone = 0,              //!< Never used.
 
-  kX86InstEncodingIdX86Op,
-  kX86InstEncodingIdX86Op_66H,
-  kX86InstEncodingIdX86Rm,
-  kX86InstEncodingIdX86Rm_B,
-  kX86InstEncodingIdX86RmReg,
-  kX86InstEncodingIdX86RegRm,
-  kX86InstEncodingIdX86M,
-  //! Adc/Add/And/Cmp/Or/Sbb/Sub/Xor.
-  kX86InstEncodingIdX86Arith,
-  //! Bswap.
-  kX86InstEncodingIdX86BSwap,
-  //! Bt/Btc/Btr/Bts.
-  kX86InstEncodingIdX86BTest,
-  //! Call.
-  kX86InstEncodingIdX86Call,
-  //! Enter.
-  kX86InstEncodingIdX86Enter,
-  //! Imul.
-  kX86InstEncodingIdX86Imul,
-  //! Inc/Dec.
-  kX86InstEncodingIdX86IncDec,
-  //! Int.
-  kX86InstEncodingIdX86Int,
-  //! Jcc.
-  kX86InstEncodingIdX86Jcc,
-  //! Jcxz/Jecxz/Jrcxz.
-  kX86InstEncodingIdX86Jecxz,
-  //! Jmp.
-  kX86InstEncodingIdX86Jmp,
-  //! Lea.
-  kX86InstEncodingIdX86Lea,
-  //! Mov.
-  kX86InstEncodingIdX86Mov,
-  //! Movsx/Movzx.
-  kX86InstEncodingIdX86MovSxZx,
-  //! Movsxd.
-  kX86InstEncodingIdX86MovSxd,
-  //! Mov having absolute memory operand (x86/x64).
-  kX86InstEncodingIdX86MovPtr,
-  //! Push.
-  kX86InstEncodingIdX86Push,
-  //! Pop.
-  kX86InstEncodingIdX86Pop,
-  //! Rep/Repe/Repne LodsX/MovsX/StosX/CmpsX/ScasX.
-  kX86InstEncodingIdX86Rep,
-  //! Ret.
-  kX86InstEncodingIdX86Ret,
-  //! Rcl/Rcr/Rol/Ror/Sal/Sar/Shl/Shr.
-  kX86InstEncodingIdX86Rot,
-  //! Setcc.
-  kX86InstEncodingIdX86Set,
-  //! Shld/Rhrd.
-  kX86InstEncodingIdX86Shlrd,
-  //! Test.
-  kX86InstEncodingIdX86Test,
-  //! Xadd.
-  kX86InstEncodingIdX86Xadd,
-  //! Xchg.
-  kX86InstEncodingIdX86Xchg,
+  kX86InstEncodingX86Op,
+  kX86InstEncodingX86Op_66H,
+  kX86InstEncodingX86Rm,
+  kX86InstEncodingX86Rm_B,
+  kX86InstEncodingX86RmReg,
+  kX86InstEncodingX86RegRm,
+  kX86InstEncodingX86M,
+  kX86InstEncodingX86Arith,              //!< X86 encoding - adc, add, and, cmp, or, sbb, sub, xor.
+  kX86InstEncodingX86BSwap,              //!< X86 encoding - bswap.
+  kX86InstEncodingX86BTest,              //!< X86 encoding - bt, btc, btr, bts.
+  kX86InstEncodingX86Call,               //!< X86 encoding - call.
+  kX86InstEncodingX86Enter,              //!< X86 encoding - enter.
+  kX86InstEncodingX86Imul,               //!< X86 encoding - imul.
+  kX86InstEncodingX86IncDec,             //!< X86 encoding - inc, dec.
+  kX86InstEncodingX86Int,                //!< X86 encoding - int (interrupt).
+  kX86InstEncodingX86Jcc,                //!< X86 encoding - jcc.
+  kX86InstEncodingX86Jecxz,              //!< X86 encoding - jcxz, jecxz, jrcxz.
+  kX86InstEncodingX86Jmp,                //!< X86 encoding - jmp.
+  kX86InstEncodingX86Lea,                //!< X86 encoding - lea.
+  kX86InstEncodingX86Mov,                //!< X86 encoding - mov.
+  kX86InstEncodingX86MovSxZx,            //!< X86 encoding - movsx, movzx.
+  kX86InstEncodingX86MovSxd,             //!< X86 encoding - movsxd.
+  kX86InstEncodingX86MovPtr,             //!< X86 encoding - mov with absolute memory operand (x86/x64).
+  kX86InstEncodingX86Push,               //!< X86 encoding - push.
+  kX86InstEncodingX86Pop,                //!< X86 encoding - pop.
+  kX86InstEncodingX86Rep,                //!< X86 encoding - rep|repe|repne lods?, movs?, stos?, cmps?, scas?.
+  kX86InstEncodingX86Ret,                //!< X86 encoding - ret.
+  kX86InstEncodingX86Rot,                //!< X86 encoding - rcl, rcr, rol, ror, sal, sar, shl, shr.
+  kX86InstEncodingX86Set,                //!< X86 encoding - setcc.
+  kX86InstEncodingX86Shlrd,              //!< X86 encoding - shld, shrd.
+  kX86InstEncodingX86Test,               //!< X86 encoding - test.
+  kX86InstEncodingX86Xadd,               //!< X86 encoding - xadd.
+  kX86InstEncodingX86Xchg,               //!< X86 encoding - xchg.
+  kX86InstEncodingX86Crc,                //!< X86 encoding - crc32.
+  kX86InstEncodingX86Prefetch,           //!< X86 encoding - prefetch.
+  kX86InstEncodingX86Fence,              //!< X86 encoding - lfence, mfence, sfence.
+  kX86InstEncodingFpuOp,                 //!< FPU encoding - [OP].
+  kX86InstEncodingFpuArith,              //!< FPU encoding - fadd, fdiv, fdivr, fmul, fsub, fsubr.
+  kX86InstEncodingFpuCom,                //!< FPU encoding - fcom, fcomp.
+  kX86InstEncodingFpuFldFst,             //!< FPU encoding - fld, fst, fstp.
+  kX86InstEncodingFpuM,                  //!< FPU encoding - fiadd, ficom, ficomp, fidiv, fidivr, fild, fimul, fist, fistp, fisttp, fisub, fisubr.
+  kX86InstEncodingFpuR,                  //!< FPU encoding - fcmov, fcomi, fcomip, ffree, fucom, fucomi, fucomip, fucomp, fxch.
+  kX86InstEncodingFpuRDef,               //!< FPU encoding - faddp, fdivp, fdivrp, fmulp, fsubp, fsubrp.
+  kX86InstEncodingFpuStsw,               //!< FPU encoding - fnstsw, Fstsw.
+  kX86InstEncodingSimdRm,                //!< SIMD encoding - [RM].
+  kX86InstEncodingSimdRm_P,              //!< SIMD encoding - [RM] (propagates 66H if the instruction uses Xmm register).
+  kX86InstEncodingSimdRm_Q,              //!< SIMD encoding - [RM] (propagates REX.W if GPQ is used).
+  kX86InstEncodingSimdRm_PQ,             //!< SIMD encoding - [RM] (propagates 66H and REX.W).
+  kX86InstEncodingSimdRmRi,              //!< SIMD encoding - [RM|RI].
+  kX86InstEncodingSimdRmRi_P,            //!< SIMD encoding - [RM|RI] (propagates 66H if the instruction uses Xmm register).
+  kX86InstEncodingSimdRmi,               //!< SIMD encoding - [RMI].
+  kX86InstEncodingSimdRmi_P,             //!< SIMD encoding - [RMI] (propagates 66H if the instruction uses Xmm register).
+  kX86InstEncodingSimdPextrw,            //!< SIMD encoding - pextrw.
+  kX86InstEncodingSimdExtract,           //!< SIMD encoding - pextrb, pextrd, pextrq, extractps.
+  kX86InstEncodingSimdMov,               //!< SIMD encoding - mov - primary opcode means `(X)Mm <- (X)Mm/X86Mem`, secondary `(X)Mm/X86Mem <- (X)Mm format`.
+  kX86InstEncodingSimdMovNoRexW,         //!< SIMD encoding - movmskpd, movmskps.
+  kX86InstEncodingSimdMovBe,             //!< Used by movbe.
+  kX86InstEncodingSimdMovD,              //!< SIMD encoding - movd.
+  kX86InstEncodingSimdMovQ,              //!< SIMD encoding - movq.
+  kX86InstEncodingSimdExtrq,             //!< SIMD encoding - extrq (SSE4a).
+  kX86InstEncodingSimdInsertq,           //!< SIMD encoding - insrq (SSE4a).
+  kX86InstEncodingSimd3dNow,             //!< SIMD encoding - 3dnow instructions.
+  kX86InstEncodingAvxOp,                 //!< AVX encoding - [OP].
+  kX86InstEncodingAvxM,                  //!< AVX encoding - [M].
+  kX86InstEncodingAvxMr,                 //!< AVX encoding - [MR].
+  kX86InstEncodingAvxMr_OptL,            //!< AVX encoding - [MR] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxMri,                //!< AVX encoding - [MRI].
+  kX86InstEncodingAvxMri_OptL,           //!< AVX encoding - [MRI] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRm,                 //!< AVX encoding - [RM].
+  kX86InstEncodingAvxRm_OptL,            //!< AVX encoding - [RM] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRmi,                //!< AVX encoding - [RMI].
+  kX86InstEncodingAvxRmi_OptW,           //!< AVX encoding - [RMI] (Propagates AVX.W if Gpq used).
+  kX86InstEncodingAvxRmi_OptL,           //!< AVX encoding - [RMI] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRvm,                //!< AVX encoding - [RVM].
+  kX86InstEncodingAvxRvm_OptW,           //!< AVX encoding - [RVM] (Propagates AVX.W if Gpq used).
+  kX86InstEncodingAvxRvm_OptL,           //!< AVX encoding - [RVM] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRvmr,               //!< AVX encoding - [RVMR].
+  kX86InstEncodingAvxRvmr_OptL,          //!< AVX encoding - [RVMR] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRvmi,               //!< AVX encoding - [RVMI].
+  kX86InstEncodingAvxRvmi_OptL,          //!< AVX encoding - [RVMI] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRmv,                //!< AVX encoding - [RMV].
+  kX86InstEncodingAvxRmv_OptW,           //!< AVX encoding - [RMV] (Propagates AVX.W if Gpq used).
+  kX86InstEncodingAvxRmvi,               //!< AVX encoding - [RMVI].
+  kX86InstEncodingAvxRmMr,               //!< AVX encoding - [RM|MR].
+  kX86InstEncodingAvxRmMr_OptL,          //!< AVX encoding - [RM|MR] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRvmRmi,             //!< AVX encoding - [RVM|RMI].
+  kX86InstEncodingAvxRvmRmi_OptL,        //!< AVX encoding - [RVM|RMI] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRvmMr,              //!< AVX encoding - [RVM|MR].
+  kX86InstEncodingAvxRvmMvr,             //!< AVX encoding - [RVM|MVR].
+  kX86InstEncodingAvxRvmMvr_OptL,        //!< AVX encoding - [RVM|MVR] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRvmVmi,             //!< AVX encoding - [RVM|VMI].
+  kX86InstEncodingAvxRvmVmi_OptL,        //!< AVX encoding - [RVM|VMI] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxVm,                 //!< AVX encoding - [VM].
+  kX86InstEncodingAvxVm_OptW,            //!< AVX encoding - [VM] (Propagates AVX.W if Gpq used).
+  kX86InstEncodingAvxVmi,                //!< AVX encoding - [VMI].
+  kX86InstEncodingAvxVmi_OptL,           //!< AVX encoding - [VMI] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxRvrmRvmr,           //!< AVX encoding - [RVRM|RVMR].
+  kX86InstEncodingAvxRvrmRvmr_OptL,      //!< AVX encoding - [RVRM|RVMR] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingAvxMovDQ,              //!< AVX encoding - vmovd, vmovq.
+  kX86InstEncodingAvxMovSsSd,            //!< AVX encoding - vmovss, vmovsd.
+  kX86InstEncodingAvxGather,             //!< AVX encoding - gather (VSIB).
+  kX86InstEncodingAvxGatherEx,           //!< AVX encoding - gather (VSIB), differs only in mem operand.
+  kX86InstEncodingFma4,                  //!< FMA4 encoding - [R, R, R/M, R/M].
+  kX86InstEncodingFma4_OptL,             //!< FMA4 encoding - [R, R, R/M, R/M] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingXopRm,                 //!< XOP encoding - [RM].
+  kX86InstEncodingXopRm_OptL,            //!< XOP encoding - [RM] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingXopRvmRmv,             //!< XOP encoding - [RVM | RMV].
+  kX86InstEncodingXopRvmRmi,             //!< XOP encoding - [RVM | RMI].
+  kX86InstEncodingXopRvmr,               //!< XOP encoding - [RVMR].
+  kX86InstEncodingXopRvmr_OptL,          //!< XOP encoding - [RVMR] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingXopRvmi,               //!< XOP encoding - [RVMI].
+  kX86InstEncodingXopRvmi_OptL,          //!< XOP encoding - [RVMI] (Propagates AVX.L if Ymm used).
+  kX86InstEncodingXopRvrmRvmr,           //!< XOP encoding - [RVRM | RVMR].
+  kX86InstEncodingXopRvrmRvmr_OptL,      //!< XOP encoding - [RVRM | RVMR] (Propagates AVX.L if Ymm used).
 
-  //! Fincstp/Finit/FldX/Fnclex/Fninit/Fnop/Fpatan/Fprem/Fprem1/Fptan/Frndint/Fscale/Fsin/Fsincos/Fsqrt/Ftst/Fucompp/Fxam/Fxtract/Fyl2x/Fyl2xp1.
-  kX86InstEncodingIdFpuOp,
-  //! Fadd/Fdiv/Fdivr/Fmul/Fsub/Fsubr.
-  kX86InstEncodingIdFpuArith,
-  //! Fcom/Fcomp.
-  kX86InstEncodingIdFpuCom,
-  //! Fld/Fst/Fstp.
-  kX86InstEncodingIdFpuFldFst,
-  //! Fiadd/Ficom/Ficomp/Fidiv/Fidivr/Fild/Fimul/Fist/Fistp/Fisttp/Fisub/Fisubr.
-  kX86InstEncodingIdFpuM,
-  //! Fcmov/Fcomi/Fcomip/Ffree/Fucom/Fucomi/Fucomip/Fucomp/Fxch.
-  kX86InstEncodingIdFpuR,
-  //! Faddp/Fdivp/Fdivrp/Fmulp/Fsubp/Fsubrp.
-  kX86InstEncodingIdFpuRDef,
-  //! Fnstsw/Fstsw.
-  kX86InstEncodingIdFpuStsw,
-
-  //! Mm/Xmm instruction.
-  kX86InstEncodingIdExtRm,
-  //! Mm/Xmm instruction (propagates 66H if the instruction uses Xmm register).
-  kX86InstEncodingIdExtRm_P,
-  //! Mm/Xmm instruction (propagates REX.W if GPQ is used).
-  kX86InstEncodingIdExtRm_Q,
-  //! Mm/Xmm instruction (propagates 66H and REX.W).
-  kX86InstEncodingIdExtRm_PQ,
-  //! Mm/Xmm instruction having Rm/Ri encodings.
-  kX86InstEncodingIdExtRmRi,
-  //! Mm/Xmm instruction having Rm/Ri encodings (propagates 66H if the instruction uses Xmm register).
-  kX86InstEncodingIdExtRmRi_P,
-  //! Mm/Xmm instruction having Rmi encoding.
-  kX86InstEncodingIdExtRmi,
-  //! Mm/Xmm instruction having Rmi encoding (propagates 66H if the instruction uses Xmm register).
-  kX86InstEncodingIdExtRmi_P,
-  //! Crc32.
-  kX86InstEncodingIdExtCrc,
-  //! Pextrw.
-  kX86InstEncodingIdExtExtrW,
-  //! Pextrb/Pextrd/Pextrq/Extractps.
-  kX86InstEncodingIdExtExtract,
-  //! Lfence/Mfence/Sfence.
-  kX86InstEncodingIdExtFence,
-  //! Mov Mm/Xmm.
-  //!
-  //! 0x66 prefix must be set manually in opcodes.
-  //!
-  //! - Primary opcode is used for instructions in (X)Mm <- (X)Mm/X86Mem format,
-  //! - Secondary opcode is used for instructions in (X)Mm/X86Mem <- (X)Mm format.
-  kX86InstEncodingIdExtMov,
-  //! Mov Mm/Xmm.
-  kX86InstEncodingIdExtMovNoRexW,
-  //! Movbe.
-  kX86InstEncodingIdExtMovBe,
-  //! Movd.
-  kX86InstEncodingIdExtMovD,
-  //! Movq.
-  kX86InstEncodingIdExtMovQ,
-  //! Prefetch.
-  kX86InstEncodingIdExtPrefetch,
-
-  //! Extrq (SSE4a).
-  kX86InstEncodingIdExtExtrq,
-  //! Insrq (SSE4a).
-  kX86InstEncodingIdExtInsertq,
-
-  //! 3dNow instruction.
-  kX86InstEncodingId3dNow,
-
-  //! AVX instruction without operands.
-  kX86InstEncodingIdAvxOp,
-  //! AVX instruction encoded as 'M'.
-  kX86InstEncodingIdAvxM,
-  //! AVX instruction encoded as 'MR'.
-  kX86InstEncodingIdAvxMr,
-  //! AVX instruction encoded as 'MR' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxMr_P,
-  //! AVX instruction encoded as 'MRI'.
-  kX86InstEncodingIdAvxMri,
-  //! AVX instruction encoded as 'MRI' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxMri_P,
-  //! AVX instruction encoded as 'RM'.
-  kX86InstEncodingIdAvxRm,
-  //! AVX instruction encoded as 'RM' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRm_P,
-  //! AVX instruction encoded as 'RMI'.
-  kX86InstEncodingIdAvxRmi,
-  //! AVX instruction encoded as 'RMI' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRmi_P,
-  //! AVX instruction encoded as 'RVM'.
-  kX86InstEncodingIdAvxRvm,
-  //! AVX instruction encoded as 'RVM' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRvm_P,
-  //! AVX instruction encoded as 'RVMR'.
-  kX86InstEncodingIdAvxRvmr,
-  //! AVX instruction encoded as 'RVMR' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRvmr_P,
-  //! AVX instruction encoded as 'RVMI'.
-  kX86InstEncodingIdAvxRvmi,
-  //! AVX instruction encoded as 'RVMI' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRvmi_P,
-  //! AVX instruction encoded as 'RMV'.
-  kX86InstEncodingIdAvxRmv,
-  //! AVX instruction encoded as 'RMVI'.
-  kX86InstEncodingIdAvxRmvi,
-  //! AVX instruction encoded as 'RM' or 'MR'.
-  kX86InstEncodingIdAvxRmMr,
-  //! AVX instruction encoded as 'RM' or 'MR' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRmMr_P,
-  //! AVX instruction encoded as 'RVM' or 'RMI'.
-  kX86InstEncodingIdAvxRvmRmi,
-  //! AVX instruction encoded as 'RVM' or 'RMI' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRvmRmi_P,
-  //! AVX instruction encoded as 'RVM' or 'MR'.
-  kX86InstEncodingIdAvxRvmMr,
-  //! AVX instruction encoded as 'RVM' or 'MVR'.
-  kX86InstEncodingIdAvxRvmMvr,
-  //! AVX instruction encoded as 'RVM' or 'MVR' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRvmMvr_P,
-  //! AVX instruction encoded as 'RVM' or 'VMI'.
-  kX86InstEncodingIdAvxRvmVmi,
-  //! AVX instruction encoded as 'RVM' or 'VMI' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRvmVmi_P,
-  //! AVX instruction encoded as 'VM'.
-  kX86InstEncodingIdAvxVm,
-  //! AVX instruction encoded as 'VMI'.
-  kX86InstEncodingIdAvxVmi,
-  //! AVX instruction encoded as 'VMI' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxVmi_P,
-  //! AVX instruction encoded as 'RVRM' or 'RVMR'.
-  kX86InstEncodingIdAvxRvrmRvmr,
-  //! AVX instruction encoded as 'RVRM' or 'RVMR' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdAvxRvrmRvmr_P,
-  //! Vmovd/Vmovq.
-  kX86InstEncodingIdAvxMovDQ,
-  //! Vmovss/Vmovsd.
-  kX86InstEncodingIdAvxMovSsSd,
-  //! AVX2 gather family instructions (VSIB).
-  kX86InstEncodingIdAvxGather,
-  //! AVX2 gather family instructions (VSIB), differs only in mem operand.
-  kX86InstEncodingIdAvxGatherEx,
-
-  //! FMA4 instruction in form [R, R, R/M, R/M].
-  kX86InstEncodingIdFma4,
-  //! FMA4 instruction in form [R, R, R/M, R/M] (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdFma4_P,
-
-  //! XOP instruction encoded as 'RM'.
-  kX86InstEncodingIdXopRm,
-  //! XOP instruction encoded as 'RM' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdXopRm_P,
-  //! XOP instruction encoded as 'RVM' or 'RMV'.
-  kX86InstEncodingIdXopRvmRmv,
-  //! XOP instruction encoded as 'RVM' or 'RMI'.
-  kX86InstEncodingIdXopRvmRmi,
-  //! XOP instruction encoded as 'RVMR'.
-  kX86InstEncodingIdXopRvmr,
-  //! XOP instruction encoded as 'RVMR' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdXopRvmr_P,
-  //! XOP instruction encoded as 'RVMI'.
-  kX86InstEncodingIdXopRvmi,
-  //! XOP instruction encoded as 'RVMI' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdXopRvmi_P,
-  //! XOP instruction encoded as 'RVRM' or 'RVMR'.
-  kX86InstEncodingIdXopRvrmRvmr,
-  //! XOP instruction encoded as 'RVRM' or 'RVMR' (Propagates AVX.L if Ymm used).
-  kX86InstEncodingIdXopRvrmRvmr_P,
-
-  //! Count of X86 instruction groups.
-  _kX86InstEncodingIdCount
+  _kX86InstEncodingCount                 //!< Count of X86 instruction encodings.
 };
 
 // ============================================================================
@@ -1579,16 +1434,15 @@ ASMJIT_ENUM(X86InstOpCodeFlags) {
 //!
 //! X86/X64 instruction flags.
 ASMJIT_ENUM(X86InstFlags) {
-  //! No flags.
-  kX86InstFlagNone = 0x00000000,
+  kX86InstFlagNone        = 0x00000000,  //! No flags.
 
   //! Instruction is a control-flow instruction.
   //!
   //! Control flow instructions are jmp, jcc, call and ret.
-  kX86InstFlagFlow = 0x00000001,
+  kX86InstFlagFlow        = 0x00000001,
 
   //! Instruction is a compare/test like instruction.
-  kX86InstFlagTest = 0x00000002,
+  kX86InstFlagTest        = 0x00000002,
 
   //! Instruction is a move like instruction.
   //!
@@ -1603,63 +1457,63 @@ ASMJIT_ENUM(X86InstFlags) {
   //! There are some MOV instructions that do only a partial move (for example
   //! 'cvtsi2ss'), register allocator has to know the variable size and use
   //! the flag accordingly to it.
-  kX86InstFlagMove = 0x00000004,
+  kX86InstFlagMove        = 0x00000004,
 
   //! Instruction is an exchange like instruction.
   //!
   //! Exchange instruction typically overwrite first and second operand. So
   //! far only the instructions 'xchg' and 'xadd' are considered.
-  kX86InstFlagXchg = 0x00000008,
+  kX86InstFlagXchg        = 0x00000008,
 
   //! Instruction accesses Fp register(s).
-  kX86InstFlagFp = 0x00000010,
+  kX86InstFlagFp          = 0x00000010,
 
   //! Instruction can be prefixed by using the LOCK prefix.
-  kX86InstFlagLock = 0x00000020,
+  kX86InstFlagLock        = 0x00000020,
 
   //! Instruction requires special handling, used by \ref Compiler.
-  kX86InstFlagSpecial = 0x00000040,
+  kX86InstFlagSpecial     = 0x00000040,
 
   //! Instruction always performs memory access.
   //!
   //! This flag is always combined with `kX86InstFlagSpecial` and describes
   //! that there is an implicit address which is accessed (usually EDI/RDI
   //! and/or ESI/RSI).
-  kX86InstFlagSpecialMem = 0x00000080,
+  kX86InstFlagSpecialMem  = 0x00000080,
 
   //! Instruction memory operand can refer to 16-bit address (used by FPU).
-  kX86InstFlagMem2 = 0x00000100,
+  kX86InstFlagMem2        = 0x00000100,
   //! Instruction memory operand can refer to 32-bit address (used by FPU).
-  kX86InstFlagMem4 = 0x00000200,
+  kX86InstFlagMem4        = 0x00000200,
   //! Instruction memory operand can refer to 64-bit address (used by FPU).
-  kX86InstFlagMem8 = 0x00000400,
+  kX86InstFlagMem8        = 0x00000400,
   //! Instruction memory operand can refer to 80-bit address (used by FPU).
-  kX86InstFlagMem10 = 0x00000800,
+  kX86InstFlagMem10       = 0x00000800,
 
-  //! Zeroes the rest of the register if the source operand is memory.
+  //! Cleans the rest of the register if the source operand is memory.
   //!
   //! Special behavior related to some SIMD load instructions.
-  kX86InstFlagZ = 0x00001000,
+  kX86InstFlagZ           = 0x00001000,
 
   //! Instruction is supported by AVX.
-  kX86InstFlagAvx = 0x00010000,
+  kX86InstFlagAvx         = 0x00010000,
   //! Instruction is supported by XOP.
-  kX86InstFlagXop = 0x00020000,
+  kX86InstFlagXop         = 0x00020000,
 
   //! Instruction is supported by AVX-512 F (Zmm).
-  kX86InstFlagAvx512F  = 0x00100000,
+  kX86InstFlagAvx512F     = 0x00100000,
   //! Instruction is supported by AVX-512 CD (Zmm).
-  kX86InstFlagAvx512CD = 0x00200000,
+  kX86InstFlagAvx512CD    = 0x00200000,
   //! Instruction is supported by AVX-512 PF (Zmm).
-  kX86InstFlagAvx512PF = 0x00400000,
+  kX86InstFlagAvx512PF    = 0x00400000,
   //! Instruction is supported by AVX-512 ER (Zmm).
-  kX86InstFlagAvx512ER = 0x00800000,
+  kX86InstFlagAvx512ER    = 0x00800000,
   //! Instruction is supported by AVX-512 DQ (Zmm).
-  kX86InstFlagAvx512DQ = 0x01000000,
+  kX86InstFlagAvx512DQ    = 0x01000000,
   //! Instruction is supported by AVX-512 BW (Zmm).
-  kX86InstFlagAvx512BW = 0x02000000,
+  kX86InstFlagAvx512BW    = 0x02000000,
   //! Instruction is supported by AVX-512 VL (Xmm/Ymm).
-  kX86InstFlagAvx512VL = 0x04000000,
+  kX86InstFlagAvx512VL    = 0x04000000,
 
   //! Instruction supports masking {k0..k7}.
   kX86InstFlagAvx512KMask = 0x08000000,
@@ -1668,9 +1522,9 @@ ASMJIT_ENUM(X86InstFlags) {
   //! Instruction supports broadcast {1toN}.
   kX86InstFlagAvx512BCast = 0x20000000,
   //! Instruction supports suppressing all exceptions {sae}.
-  kX86InstFlagAvx512Sae = 0x40000000,
+  kX86InstFlagAvx512Sae   = 0x40000000,
   //! Instruction supports static rounding control with SAE {rnd-sae},
-  kX86InstFlagAvx512Rnd = 0x80000000
+  kX86InstFlagAvx512Rnd   = 0x80000000
 };
 
 // ============================================================================
@@ -1681,36 +1535,22 @@ ASMJIT_ENUM(X86InstFlags) {
 //!
 //! X86/X64 instruction operand flags.
 ASMJIT_ENUM(X86InstOp) {
-  //! Instruction operand can be 8-bit Gpb register.
-  kX86InstOpGb = 0x0001,
-  //! Instruction operand can be 16-bit Gpw register.
-  kX86InstOpGw = 0x0002,
-  //! Instruction operand can be 32-bit Gpd register.
-  kX86InstOpGd = 0x0004,
-  //! Instruction operand can be 64-bit Gpq register.
-  kX86InstOpGq = 0x0008,
+  kX86InstOpGb            = 0x0001,      //!< Operand can be 8-bit Gpb register.
+  kX86InstOpGw            = 0x0002,      //!< Operand can be 16-bit Gpw register.
+  kX86InstOpGd            = 0x0004,      //!< Operand operand can be 32-bit Gpd register.
+  kX86InstOpGq            = 0x0008,      //!< Operand can be 64-bit Gpq register.
+  kX86InstOpFp            = 0x0010,      //!< Operand can be Fp register.
+  kX86InstOpMm            = 0x0020,      //!< Operand can be 64-bit Mm register.
+  kX86InstOpK             = 0x0040,      //!< Operand can be 64-bit K register.
 
-  //! Instruction operand can be Fp register.
-  kX86InstOpFp = 0x0010,
-  //! Instruction operand can be 64-bit Mm register.
-  kX86InstOpMm = 0x0020,
+  kX86InstOpXmm           = 0x0100,      //!< Operand can be 128-bit Xmm register.
+  kX86InstOpYmm           = 0x0200,      //!< Operand can be 256-bit Ymm register.
+  kX86InstOpZmm           = 0x0400,      //!< Operand can be 512-bit Zmm register.
 
-  //! Instruction operand can be 64-bit K register.
-  kX86InstOpK = 0x0040,
+  kX86InstOpMem           = 0x1000,      //!< Operand can be memory.
+  kX86InstOpImm           = 0x2000,      //!< Operand can be immediate.
+  kX86InstOpLabel         = 0x4000,      //!< Operand can be label.
 
-  //! Instruction operand can be 128-bit Xmm register.
-  kX86InstOpXmm = 0x0100,
-  //! Instruction operand can be 256-bit Ymm register.
-  kX86InstOpYmm = 0x0200,
-  //! Instruction operand can be 512-bit Zmm register.
-  kX86InstOpZmm = 0x0400,
-
-  //! Instruction operand can be memory.
-  kX86InstOpMem = 0x1000,
-  //! Instruction operand can be immediate.
-  kX86InstOpImm = 0x2000,
-  //! Instruction operand can be label.
-  kX86InstOpLabel = 0x4000,
   //! Instruction operand doesn't have to be used.
   //!
   //! \note If no operand is specified the meaning is clear (the operand at the
@@ -1718,7 +1558,7 @@ ASMJIT_ENUM(X86InstOp) {
   //! specified, it's not clear whether the operand can be omitted or not. When
   //! `kX86InstOpNone` is used it means that the operand is not used in some
   //! cases.
-  kX86InstOpNone = 0x8000
+  kX86InstOpNone          = 0x8000
 };
 
 // ============================================================================
@@ -1727,54 +1567,54 @@ ASMJIT_ENUM(X86InstOp) {
 
 //! X86/X64 Condition codes.
 ASMJIT_ENUM(X86Cond) {
-  kX86CondA               = 0x07, // CF==0 & ZF==0          (unsigned)
-  kX86CondAE              = 0x03, // CF==0                  (unsigned)
-  kX86CondB               = 0x02, // CF==1                  (unsigned)
-  kX86CondBE              = 0x06, // CF==1 | ZF==1          (unsigned)
-  kX86CondC               = 0x02, // CF==1
-  kX86CondE               = 0x04, //         ZF==1          (signed/unsigned)
-  kX86CondG               = 0x0F, //         ZF==0 & SF==OF (signed)
-  kX86CondGE              = 0x0D, //                 SF==OF (signed)
-  kX86CondL               = 0x0C, //                 SF!=OF (signed)
-  kX86CondLE              = 0x0E, //         ZF==1 | SF!=OF (signed)
-  kX86CondNA              = 0x06, // CF==1 | ZF==1          (unsigned)
-  kX86CondNAE             = 0x02, // CF==1                  (unsigned)
-  kX86CondNB              = 0x03, // CF==0                  (unsigned)
-  kX86CondNBE             = 0x07, // CF==0 & ZF==0          (unsigned)
-  kX86CondNC              = 0x03, // CF==0
-  kX86CondNE              = 0x05, //         ZF==0          (signed/unsigned)
-  kX86CondNG              = 0x0E, //         ZF==1 | SF!=OF (signed)
-  kX86CondNGE             = 0x0C, //                 SF!=OF (signed)
-  kX86CondNL              = 0x0D, //                 SF==OF (signed)
-  kX86CondNLE             = 0x0F, //         ZF==0 & SF==OF (signed)
-  kX86CondNO              = 0x01, //                 OF==0
-  kX86CondNP              = 0x0B, // PF==0
-  kX86CondNS              = 0x09, //                 SF==0
-  kX86CondNZ              = 0x05, //         ZF==0
-  kX86CondO               = 0x00, //                 OF==1
-  kX86CondP               = 0x0A, // PF==1
-  kX86CondPE              = 0x0A, // PF==1
-  kX86CondPO              = 0x0B, // PF==0
-  kX86CondS               = 0x08, //                 SF==1
-  kX86CondZ               = 0x04, //         ZF==1
+  kX86CondA               = 0x07,        // CF==0 & ZF==0          (unsigned)
+  kX86CondAE              = 0x03,        // CF==0                  (unsigned)
+  kX86CondB               = 0x02,        // CF==1                  (unsigned)
+  kX86CondBE              = 0x06,        // CF==1 | ZF==1          (unsigned)
+  kX86CondC               = 0x02,        // CF==1
+  kX86CondE               = 0x04,        //         ZF==1          (signed/unsigned)
+  kX86CondG               = 0x0F,        //         ZF==0 & SF==OF (signed)
+  kX86CondGE              = 0x0D,        //                 SF==OF (signed)
+  kX86CondL               = 0x0C,        //                 SF!=OF (signed)
+  kX86CondLE              = 0x0E,        //         ZF==1 | SF!=OF (signed)
+  kX86CondNA              = 0x06,        // CF==1 | ZF==1          (unsigned)
+  kX86CondNAE             = 0x02,        // CF==1                  (unsigned)
+  kX86CondNB              = 0x03,        // CF==0                  (unsigned)
+  kX86CondNBE             = 0x07,        // CF==0 & ZF==0          (unsigned)
+  kX86CondNC              = 0x03,        // CF==0
+  kX86CondNE              = 0x05,        //         ZF==0          (signed/unsigned)
+  kX86CondNG              = 0x0E,        //         ZF==1 | SF!=OF (signed)
+  kX86CondNGE             = 0x0C,        //                 SF!=OF (signed)
+  kX86CondNL              = 0x0D,        //                 SF==OF (signed)
+  kX86CondNLE             = 0x0F,        //         ZF==0 & SF==OF (signed)
+  kX86CondNO              = 0x01,        //                 OF==0
+  kX86CondNP              = 0x0B,        // PF==0
+  kX86CondNS              = 0x09,        //                 SF==0
+  kX86CondNZ              = 0x05,        //         ZF==0
+  kX86CondO               = 0x00,        //                 OF==1
+  kX86CondP               = 0x0A,        // PF==1
+  kX86CondPE              = 0x0A,        // PF==1
+  kX86CondPO              = 0x0B,        // PF==0
+  kX86CondS               = 0x08,        //                 SF==1
+  kX86CondZ               = 0x04,        //         ZF==1
 
   // Simplified condition codes.
-  kX86CondSign            = kX86CondS , //!< Sign (S).
-  kX86CondNotSign         = kX86CondNS, //!< Not Sign (NS).
+  kX86CondSign            = kX86CondS,   //!< Sign (S).
+  kX86CondNotSign         = kX86CondNS,  //!< Not Sign (NS).
 
-  kX86CondOverflow        = kX86CondO , //!< Signed  Overflow (O)
-  kX86CondNotOverflow     = kX86CondNO, //!< Not Signed Overflow (NO)
+  kX86CondOverflow        = kX86CondO,   //!< Signed  Overflow (O)
+  kX86CondNotOverflow     = kX86CondNO,  //!< Not Signed Overflow (NO)
 
-  kX86CondLess            = kX86CondL , //!< Signed     `a <  b` (L  or NGE).
-  kX86CondLessEqual       = kX86CondLE, //!< Signed     `a <= b` (LE or NG ).
-  kX86CondGreater         = kX86CondG , //!< Signed     `a >  b` (G  or NLE).
-  kX86CondGreaterEqual    = kX86CondGE, //!< Signed     `a >= b` (GE or NL ).
-  kX86CondBelow           = kX86CondB , //!< Unsigned   `a <  b` (B  or NAE).
-  kX86CondBelowEqual      = kX86CondBE, //!< Unsigned   `a <= b` (BE or NA ).
-  kX86CondAbove           = kX86CondA , //!< Unsigned   `a >  b` (A  or NBE).
-  kX86CondAboveEqual      = kX86CondAE, //!< Unsigned   `a >= b` (AE or NB ).
-  kX86CondEqual           = kX86CondE , //!< Equal      `a == b` (E  or Z  ).
-  kX86CondNotEqual        = kX86CondNE, //!< Not Equal  `a != b` (NE or NZ ).
+  kX86CondLess            = kX86CondL,   //!< Signed     `a <  b` (L  or NGE).
+  kX86CondLessEqual       = kX86CondLE,  //!< Signed     `a <= b` (LE or NG ).
+  kX86CondGreater         = kX86CondG,   //!< Signed     `a >  b` (G  or NLE).
+  kX86CondGreaterEqual    = kX86CondGE,  //!< Signed     `a >= b` (GE or NL ).
+  kX86CondBelow           = kX86CondB,   //!< Unsigned   `a <  b` (B  or NAE).
+  kX86CondBelowEqual      = kX86CondBE,  //!< Unsigned   `a <= b` (BE or NA ).
+  kX86CondAbove           = kX86CondA,   //!< Unsigned   `a >  b` (A  or NBE).
+  kX86CondAboveEqual      = kX86CondAE,  //!< Unsigned   `a >= b` (AE or NB ).
+  kX86CondEqual           = kX86CondE,   //!< Equal      `a == b` (E  or Z  ).
+  kX86CondNotEqual        = kX86CondNE,  //!< Not Equal  `a != b` (NE or NZ ).
 
   kX86CondParityEven      = kX86CondP,
   kX86CondParityOdd       = kX86CondPO,
@@ -1814,52 +1654,14 @@ ASMJIT_ENUM(X86EFlags) {
   // changed as you plan to modify `X86EFlags`.
   // --------------------------------------------------------------------------
 
-  //! Overflow flag (OF).
-  //!
-  //! Set if the integer result is too large a positive number or too small a
-  //! negative number (excluding the sign-bit) to fit in the destination
-  //! operand; cleared otherwise. This flag indicates an overflow condition for
-  //! signed-integer arithmetic.
-  kX86EFlagO = 0x01,
-
-  //! Sign flag (SF).
-  //!
-  //! Set equal to the most-significant bit of the result, which is the sign
-  //! bit of a signed integer (0 == positive value, 1 == negative value).
-  kX86EFlagS = 0x02,
-
-  //! Zero flag (ZF).
-  //!
-  //! Set if the result is zero; cleared otherwise.
-  kX86EFlagZ = 0x04,
-
-  //! Adjust flag (AF).
-  //!
-  //! Set if an arithmetic operation generates a carry or a borrow out of bit
-  //! 3 of the result; cleared otherwise. This flag is used in binary-coded
-  //! decimal (BCD) arithmetic.
-  kX86EFlagA = 0x08,
-
-  //! Parity flag (PF).
-  //!
-  //! Set if the least-significant byte of the result contains an even number
-  //! of 1 bits; cleared otherwise.
-  kX86EFlagP = 0x10,
-
-  //! Carry flag (CF).
-  //!
-  //! Set if an arithmetic operation generates a carry or a borrow out of the
-  //! mostsignificant bit of the result; cleared otherwise.
-  kX86EFlagC = 0x20,
-
-  //! Direction flag (DF).
-  //!
-  //! The direction flag controls string instructions `movs`, `cmps`, `scas,
-  //! `lods` and `stos`.
-  kX86EFlagD = 0x40,
-
-  //! Any other flag that AsmJit doesn't use to keep track of.
-  kX86EFlagX = 0x80
+  kX86EFlagO              = 0x01,        //!< Overflow flag (OF).
+  kX86EFlagS              = 0x02,        //!< Sign flag (SF).
+  kX86EFlagZ              = 0x04,        //!< Zero flag (ZF).
+  kX86EFlagA              = 0x08,        //!< Adjust flag (AF).
+  kX86EFlagP              = 0x10,        //!< Parity flag (PF).
+  kX86EFlagC              = 0x20,        //!< Carry flag (CF).
+  kX86EFlagD              = 0x40,        //!< Direction flag (DF).
+  kX86EFlagX              = 0x80         //!< Any other flag that AsmJit doesn't use.
 };
 
 // ============================================================================
@@ -1890,7 +1692,8 @@ ASMJIT_ENUM(X86FpSw) {
 
 //! X86/X64 FPU control word.
 ASMJIT_ENUM(X86FpCw) {
-  kX86FpCw_EM_Mask        = 0x003F, // Bits 0-5.
+  // Bits 0-5.
+  kX86FpCw_EM_Mask        = 0x003F,
   kX86FpCw_EM_Invalid     = 0x0001,
   kX86FpCw_EM_Denormal    = 0x0002,
   kX86FpCw_EM_DivByZero   = 0x0004,
@@ -1898,19 +1701,22 @@ ASMJIT_ENUM(X86FpCw) {
   kX86FpCw_EM_Underflow   = 0x0010,
   kX86FpCw_EM_Inexact     = 0x0020,
 
-  kX86FpCw_PC_Mask        = 0x0300, // Bits 8-9.
+  // Bits 8-9.
+  kX86FpCw_PC_Mask        = 0x0300,
   kX86FpCw_PC_Float       = 0x0000,
   kX86FpCw_PC_Reserved    = 0x0100,
   kX86FpCw_PC_Double      = 0x0200,
   kX86FpCw_PC_Extended    = 0x0300,
 
-  kX86FpCw_RC_Mask        = 0x0C00, // Bits 10-11.
+  // Bits 10-11.
+  kX86FpCw_RC_Mask        = 0x0C00,
   kX86FpCw_RC_Nearest     = 0x0000,
   kX86FpCw_RC_Down        = 0x0400,
   kX86FpCw_RC_Up          = 0x0800,
   kX86FpCw_RC_Truncate    = 0x0C00,
 
-  kX86FpCw_IC_Mask        = 0x1000, // Bit 12.
+  // Bit 12.
+  kX86FpCw_IC_Mask        = 0x1000,
   kX86FpCw_IC_Projective  = 0x0000,
   kX86FpCw_IC_Affine      = 0x1000
 };
@@ -1921,14 +1727,14 @@ ASMJIT_ENUM(X86FpCw) {
 
 //! X86/X64 Comparison predicate used by CMP[PD/PS/SD/SS] family instructions.
 ASMJIT_ENUM(X86Cmp) {
-  kX86CmpEQ               = 0x00, //!< Equal             (Quite).
-  kX86CmpLT               = 0x01, //!< Less              (Signaling).
-  kX86CmpLE               = 0x02, //!< Less/Equal        (Signaling).
-  kX86CmpUNORD            = 0x03, //!< Unordered         (Quite).
-  kX86CmpNEQ              = 0x04, //!< Not Equal         (Quite).
-  kX86CmpNLT              = 0x05, //!< Not Less          (Signaling).
-  kX86CmpNLE              = 0x06, //!< Not Less/Equal    (Signaling).
-  kX86CmpORD              = 0x07  //!< Ordered           (Quite).
+  kX86CmpEQ               = 0x00,        //!< Equal             (Quite).
+  kX86CmpLT               = 0x01,        //!< Less              (Signaling).
+  kX86CmpLE               = 0x02,        //!< Less/Equal        (Signaling).
+  kX86CmpUNORD            = 0x03,        //!< Unordered         (Quite).
+  kX86CmpNEQ              = 0x04,        //!< Not Equal         (Quite).
+  kX86CmpNLT              = 0x05,        //!< Not Less          (Signaling).
+  kX86CmpNLE              = 0x06,        //!< Not Less/Equal    (Signaling).
+  kX86CmpORD              = 0x07         //!< Ordered           (Quite).
 };
 
 //  ============================================================================
@@ -1939,39 +1745,39 @@ ASMJIT_ENUM(X86Cmp) {
 //!
 //! The first 8 are compatible with \ref X86Cmp.
 ASMJIT_ENUM(X86VCmp) {
-  kX86VCmpEQ_OQ           = 0x00, //!< Equal             (Quite, Ordered).
-  kX86VCmpLT_OS           = 0x01, //!< Less              (Signaling, Ordered).
-  kX86VCmpLE_OS           = 0x02, //!< Less/Equal        (Signaling, Ordered).
-  kX86VCmpUNORD_Q         = 0x03, //!< Unordered         (Quite).
-  kX86VCmpNEQ_UQ          = 0x04, //!< Not Equal         (Quite, Unordered).
-  kX86VCmpNLT_US          = 0x05, //!< Not Less          (Signaling, Unordered).
-  kX86VCmpNLE_US          = 0x06, //!< Not Less/Equal    (Signaling, Unordered).
-  kX86VCmpORD_Q           = 0x07, //!< Ordered           (Quite).
+  kX86VCmpEQ_OQ           = 0x00,        //!< Equal             (Quite, Ordered).
+  kX86VCmpLT_OS           = 0x01,        //!< Less              (Signaling, Ordered).
+  kX86VCmpLE_OS           = 0x02,        //!< Less/Equal        (Signaling, Ordered).
+  kX86VCmpUNORD_Q         = 0x03,        //!< Unordered         (Quite).
+  kX86VCmpNEQ_UQ          = 0x04,        //!< Not Equal         (Quite, Unordered).
+  kX86VCmpNLT_US          = 0x05,        //!< Not Less          (Signaling, Unordered).
+  kX86VCmpNLE_US          = 0x06,        //!< Not Less/Equal    (Signaling, Unordered).
+  kX86VCmpORD_Q           = 0x07,        //!< Ordered           (Quite).
 
-  kX86VCmpEQ_UQ           = 0x08, //!< Equal             (Quite, Unordered).
-  kX86VCmpNGE_US          = 0x09, //!< Not Greater/Equal (Signaling, Unordered).
-  kX86VCmpNGT_US          = 0x0A, //!< Not Greater       (Signaling, Unordered).
-  kX86VCmpFALSE_OQ        = 0x0B, //!< False             (Quite, Ordered).
-  kX86VCmpNEQ_OQ          = 0x0C, //!< Not Equal         (Quite, Ordered).
-  kX86VCmpGE_OS           = 0x0D, //!< Greater/Equal     (Signaling, Ordered).
-  kX86VCmpGT_OS           = 0x0E, //!< Greater           (Signaling, Ordered).
-  kX86VCmpTRUE_UQ         = 0x0F, //!< True              (Quite, Unordered).
-  kX86VCmpEQ_OS           = 0x10, //!< Equal             (Signaling, Ordered).
-  kX86VCmpLT_OQ           = 0x11, //!< Less              (Quite, Ordered).
-  kX86VCmpLE_OQ           = 0x12, //!< Less/Equal        (Quite, Ordered).
-  kX86VCmpUNORD_S         = 0x13, //!< Unordered         (Signaling).
-  kX86VCmpNEQ_US          = 0x14, //!< Not Equal         (Signaling, Unordered).
-  kX86VCmpNLT_UQ          = 0x15, //!< Not Less          (Quite, Unordered).
-  kX86VCmpNLE_UQ          = 0x16, //!< Not Less/Equal    (Quite, Unordered).
-  kX86VCmpORD_S           = 0x17, //!< Ordered           (Signaling).
-  kX86VCmpEQ_US           = 0x18, //!< Equal             (Signaling, Unordered).
-  kX86VCmpNGE_UQ          = 0x19, //!< Not Greater/Equal (Quite, Unordered).
-  kX86VCmpNGT_UQ          = 0x1A, //!< Not Greater       (Quite, Unordered).
-  kX86VCmpFALSE_OS        = 0x1B, //!< False             (Signaling, Ordered).
-  kX86VCmpNEQ_OS          = 0x1C, //!< Not Equal         (Signaling, Ordered).
-  kX86VCmpGE_OQ           = 0x1D, //!< Greater/Equal     (Quite, Ordered).
-  kX86VCmpGT_OQ           = 0x1E, //!< Greater           (Quite, Ordered).
-  kX86VCmpTRUE_US         = 0x1F  //!< True              (Signaling, Unordered).
+  kX86VCmpEQ_UQ           = 0x08,        //!< Equal             (Quite, Unordered).
+  kX86VCmpNGE_US          = 0x09,        //!< Not Greater/Equal (Signaling, Unordered).
+  kX86VCmpNGT_US          = 0x0A,        //!< Not Greater       (Signaling, Unordered).
+  kX86VCmpFALSE_OQ        = 0x0B,        //!< False             (Quite, Ordered).
+  kX86VCmpNEQ_OQ          = 0x0C,        //!< Not Equal         (Quite, Ordered).
+  kX86VCmpGE_OS           = 0x0D,        //!< Greater/Equal     (Signaling, Ordered).
+  kX86VCmpGT_OS           = 0x0E,        //!< Greater           (Signaling, Ordered).
+  kX86VCmpTRUE_UQ         = 0x0F,        //!< True              (Quite, Unordered).
+  kX86VCmpEQ_OS           = 0x10,        //!< Equal             (Signaling, Ordered).
+  kX86VCmpLT_OQ           = 0x11,        //!< Less              (Quite, Ordered).
+  kX86VCmpLE_OQ           = 0x12,        //!< Less/Equal        (Quite, Ordered).
+  kX86VCmpUNORD_S         = 0x13,        //!< Unordered         (Signaling).
+  kX86VCmpNEQ_US          = 0x14,        //!< Not Equal         (Signaling, Unordered).
+  kX86VCmpNLT_UQ          = 0x15,        //!< Not Less          (Quite, Unordered).
+  kX86VCmpNLE_UQ          = 0x16,        //!< Not Less/Equal    (Quite, Unordered).
+  kX86VCmpORD_S           = 0x17,        //!< Ordered           (Signaling).
+  kX86VCmpEQ_US           = 0x18,        //!< Equal             (Signaling, Unordered).
+  kX86VCmpNGE_UQ          = 0x19,        //!< Not Greater/Equal (Quite, Unordered).
+  kX86VCmpNGT_UQ          = 0x1A,        //!< Not Greater       (Quite, Unordered).
+  kX86VCmpFALSE_OS        = 0x1B,        //!< False             (Signaling, Ordered).
+  kX86VCmpNEQ_OS          = 0x1C,        //!< Not Equal         (Signaling, Ordered).
+  kX86VCmpGE_OQ           = 0x1D,        //!< Greater/Equal     (Quite, Ordered).
+  kX86VCmpGT_OQ           = 0x1E,        //!< Greater           (Quite, Ordered).
+  kX86VCmpTRUE_US         = 0x1F         //!< True              (Signaling, Unordered).
 };
 
 //  ============================================================================
@@ -1980,12 +1786,12 @@ ASMJIT_ENUM(X86VCmp) {
 
 //! X86/X64 round encoding used by ROUND[PD/PS/SD/SS] family instructions.
 ASMJIT_ENUM(X86Round) {
-  kX86RoundNearest        = 0x00, //!< Round to nearest (even).
-  kX86RoundDown           = 0x01, //!< Round to down toward -INF (floor),
-  kX86RoundUp             = 0x02, //!< Round to up toward +INF (ceil).
-  kX86RoundTrunc          = 0x03, //!< Round toward zero (truncate).
-  kX86RoundCurrent        = 0x04, //!< Round to the current rounding mode set (ignores other RC bits).
-  kX86RoundInexact        = 0x08  //!< Avoid the inexact exception, if set.
+  kX86RoundNearest        = 0x00,        //!< Round to nearest (even).
+  kX86RoundDown           = 0x01,        //!< Round to down toward -INF (floor),
+  kX86RoundUp             = 0x02,        //!< Round to up toward +INF (ceil).
+  kX86RoundTrunc          = 0x03,        //!< Round toward zero (truncate).
+  kX86RoundCurrent        = 0x04,        //!< Round to the current rounding mode set (ignores other RC bits).
+  kX86RoundInexact        = 0x08         //!< Avoid the inexact exception, if set.
 };
 
 // ============================================================================
@@ -1994,10 +1800,10 @@ ASMJIT_ENUM(X86Round) {
 
 //! X86/X64 Prefetch hints.
 ASMJIT_ENUM(X86Prefetch) {
-  kX86PrefetchNTA         = 0,    //!< Prefetch using NT hint.
-  kX86PrefetchT0          = 1,    //!< Prefetch to L0 cache.
-  kX86PrefetchT1          = 2,    //!< Prefetch to L1 cache.
-  kX86PrefetchT2          = 3     //!< Prefetch to L2 cache.
+  kX86PrefetchNTA         = 0,           //!< Prefetch by using NT hint.
+  kX86PrefetchT0          = 1,           //!< Prefetch to L0 cache.
+  kX86PrefetchT1          = 2,           //!< Prefetch to L1 cache.
+  kX86PrefetchT2          = 3            //!< Prefetch to L2 cache.
 };
 
 // ============================================================================
@@ -2016,8 +1822,8 @@ struct X86InstExtendedInfo {
   // --------------------------------------------------------------------------
 
   //! Get instruction encoding, see \ref kX86InstEncoding.
-  ASMJIT_INLINE uint32_t getEncodingId() const {
-    return _encodingId;
+  ASMJIT_INLINE uint32_t getEncoding() const noexcept {
+    return _encoding;
   }
 
   // --------------------------------------------------------------------------
@@ -2025,12 +1831,12 @@ struct X86InstExtendedInfo {
   // --------------------------------------------------------------------------
 
   //! Get whether the instruction has a `flag`, see `X86InstFlags`.
-  ASMJIT_INLINE bool hasInstFlag(uint32_t flag) const {
+  ASMJIT_INLINE bool hasInstFlag(uint32_t flag) const noexcept {
     return (_instFlags & flag) != 0;
   }
 
   //! Get all instruction flags, see `X86InstFlags`.
-  ASMJIT_INLINE uint32_t getInstFlags() const {
+  ASMJIT_INLINE uint32_t getInstFlags() const noexcept {
     return _instFlags;
   }
 
@@ -2038,12 +1844,12 @@ struct X86InstExtendedInfo {
   //!
   //! Control flow instruction is instruction that can perform a branch,
   //! typically `jmp`, `jcc`, `call`, or `ret`.
-  ASMJIT_INLINE bool isFlow() const {
+  ASMJIT_INLINE bool isFlow() const noexcept {
     return (getInstFlags() & kX86InstFlagFlow) != 0;
   }
 
   //! Get whether the instruction is a compare/test like instruction.
-  ASMJIT_INLINE bool isTest() const {
+  ASMJIT_INLINE bool isTest() const noexcept {
     return (getInstFlags() & kX86InstFlagTest) != 0;
   }
 
@@ -2056,35 +1862,35 @@ struct X86InstExtendedInfo {
   //!
   //! All AVX/XOP instructions that have 3 or more operands are considered to
   //! have move semantics move by default.
-  ASMJIT_INLINE bool isMove() const {
+  ASMJIT_INLINE bool isMove() const noexcept {
     return (getInstFlags() & kX86InstFlagMove) != 0;
   }
 
   //! Get whether the instruction is a typical Exchange instruction.
   //!
   //! Exchange instructions are 'xchg' and 'xadd'.
-  ASMJIT_INLINE bool isXchg() const {
+  ASMJIT_INLINE bool isXchg() const noexcept {
     return (getInstFlags() & kX86InstFlagXchg) != 0;
   }
 
   //! Get whether the instruction accesses Fp register(s).
-  ASMJIT_INLINE bool isFp() const {
+  ASMJIT_INLINE bool isFp() const noexcept {
     return (getInstFlags() & kX86InstFlagFp) != 0;
   }
 
   //! Get whether the instruction can be prefixed by LOCK prefix.
-  ASMJIT_INLINE bool isLockable() const {
+  ASMJIT_INLINE bool isLockable() const noexcept {
     return (getInstFlags() & kX86InstFlagLock) != 0;
   }
 
   //! Get whether the instruction is special type (this is used by `Compiler`
   //! to manage additional variables or functionality).
-  ASMJIT_INLINE bool isSpecial() const {
+  ASMJIT_INLINE bool isSpecial() const noexcept {
     return (getInstFlags() & kX86InstFlagSpecial) != 0;
   }
 
   //! Get whether the instruction is special type and it performs memory access.
-  ASMJIT_INLINE bool isSpecialMem() const {
+  ASMJIT_INLINE bool isSpecialMem() const noexcept {
     return (getInstFlags() & kX86InstFlagSpecialMem) != 0;
   }
 
@@ -2092,7 +1898,7 @@ struct X86InstExtendedInfo {
   //! if the source is memory operand.
   //!
   //! Basically flag needed only to support `movsd` and `movss` instructions.
-  ASMJIT_INLINE bool isZeroIfMem() const {
+  ASMJIT_INLINE bool isZeroIfMem() const noexcept {
     return (getInstFlags() & kX86InstFlagZ) != 0;
   }
 
@@ -2101,12 +1907,12 @@ struct X86InstExtendedInfo {
   // --------------------------------------------------------------------------
 
   //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsIn() const {
+  ASMJIT_INLINE uint32_t getEFlagsIn() const noexcept {
     return _eflagsIn;
   }
 
   //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsOut() const {
+  ASMJIT_INLINE uint32_t getEFlagsOut() const noexcept {
     return _eflagsOut;
   }
 
@@ -2115,12 +1921,12 @@ struct X86InstExtendedInfo {
   // --------------------------------------------------------------------------
 
   //! Get the destination index of WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteIndex() const {
+  ASMJIT_INLINE uint32_t getWriteIndex() const noexcept {
     return _writeIndex;
   }
 
   //! Get the number of bytes that will be written by a WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteSize() const {
+  ASMJIT_INLINE uint32_t getWriteSize() const noexcept {
     return _writeSize;
   }
 
@@ -2131,7 +1937,7 @@ struct X86InstExtendedInfo {
   //! Get flags of operand at index `index`.
   //!
   //! See \ref X86InstInfo::getOperandFlags() for more details.
-  ASMJIT_INLINE uint16_t getOperandFlags(uint32_t index) const {
+  ASMJIT_INLINE uint16_t getOperandFlags(uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_opFlags));
     return _opFlags[index];
   }
@@ -2143,7 +1949,7 @@ struct X86InstExtendedInfo {
   //! Get the secondary instruction opcode, see \ref X86InstOpCodeFlags.
   //!
   //! See \ref X86InstInfo::getSecondaryOpCode() for more details.
-  ASMJIT_INLINE uint32_t getSecondaryOpCode() const {
+  ASMJIT_INLINE uint32_t getSecondaryOpCode() const noexcept {
     return _secondaryOpCode;
   }
 
@@ -2151,14 +1957,14 @@ struct X86InstExtendedInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Instruction encoding ID.
-  uint8_t _encodingId;
+  //! Instruction encoding.
+  uint8_t _encoding;
 
   //! Destination index of WRITE operation, default 0.
   uint8_t _writeIndex;
 
   //! Count of bytes affected by a write operation, needed by analysis for all
-  //! instructions that do not read the register overwritten. Only used with
+  //! instructions that do not read the overwritten register. Only used with
   //! `kX86InstFlagMove` flag. If `_writeSize` is zero it is automatically
   //! deduced from the size of the destination register.
   //!
@@ -2200,12 +2006,12 @@ struct X86InstInfo {
 
 #if !defined(ASMJIT_DISABLE_TEXT)
   //! Get instruction name string (null terminated).
-  ASMJIT_INLINE const char* getInstName() const {
+  ASMJIT_INLINE const char* getInstName() const noexcept {
     return _x86InstName + static_cast<uint32_t>(_nameIndex);
   }
 
   //! Get instruction name index to `_x86InstName` array.
-  ASMJIT_INLINE uint32_t _getNameIndex() const {
+  ASMJIT_INLINE uint32_t _getNameIndex() const noexcept {
     return _nameIndex;
   }
 #endif // !ASMJIT_DISABLE_TEXT
@@ -2215,12 +2021,12 @@ struct X86InstInfo {
   // --------------------------------------------------------------------------
 
   //! Get `X86InstExtendedInfo` for this instruction.
-  ASMJIT_INLINE const X86InstExtendedInfo& getExtendedInfo() const {
+  ASMJIT_INLINE const X86InstExtendedInfo& getExtendedInfo() const noexcept {
     return _x86InstExtendedInfo[_extendedIndex];
   }
 
   //! Get index to the `_x86InstExtendedInfo` table.
-  ASMJIT_INLINE uint32_t _getExtendedIndex() const {
+  ASMJIT_INLINE uint32_t _getExtendedIndex() const noexcept {
     return _extendedIndex;
   }
 
@@ -2228,9 +2034,9 @@ struct X86InstInfo {
   // [Accessors - Instruction Encoding]
   // --------------------------------------------------------------------------
 
-  //! Get instruction group, see \ref X86InstEncodingId.
-  ASMJIT_INLINE uint32_t getEncodingId() const {
-    return getExtendedInfo().getEncodingId();
+  //! Get instruction group, see \ref X86InstEncoding.
+  ASMJIT_INLINE uint32_t getEncoding() const noexcept {
+    return getExtendedInfo().getEncoding();
   }
 
   // --------------------------------------------------------------------------
@@ -2238,12 +2044,12 @@ struct X86InstInfo {
   // --------------------------------------------------------------------------
 
   //! Get instruction flags, see `X86InstFlags`.
-  ASMJIT_INLINE uint32_t getInstFlags() const {
+  ASMJIT_INLINE uint32_t getInstFlags() const noexcept {
     return getExtendedInfo().getInstFlags();
   }
 
   //! Get whether the instruction has flag `flag`, see `X86InstFlags`.
-  ASMJIT_INLINE bool hasInstFlag(uint32_t flag) const {
+  ASMJIT_INLINE bool hasInstFlag(uint32_t flag) const noexcept {
     return (getInstFlags() & flag) != 0;
   }
 
@@ -2252,12 +2058,12 @@ struct X86InstInfo {
   // --------------------------------------------------------------------------
 
   //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsIn() const {
+  ASMJIT_INLINE uint32_t getEFlagsIn() const noexcept {
     return getExtendedInfo().getEFlagsIn();
   }
 
   //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsOut() const {
+  ASMJIT_INLINE uint32_t getEFlagsOut() const noexcept {
     return getExtendedInfo().getEFlagsOut();
   }
 
@@ -2266,12 +2072,12 @@ struct X86InstInfo {
   // --------------------------------------------------------------------------
 
   //! Get the destination index of WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteIndex() const {
+  ASMJIT_INLINE uint32_t getWriteIndex() const noexcept {
     return getExtendedInfo().getWriteIndex();
   }
 
   //! Get the number of bytes that will be written by a WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteSize() const {
+  ASMJIT_INLINE uint32_t getWriteSize() const noexcept {
     return getExtendedInfo().getWriteSize();
   }
 
@@ -2280,7 +2086,7 @@ struct X86InstInfo {
   // --------------------------------------------------------------------------
 
   //! Get flags of operand at index `index`.
-  ASMJIT_INLINE uint32_t getOperandFlags(uint32_t index) const {
+  ASMJIT_INLINE uint32_t getOperandFlags(uint32_t index) const noexcept {
     return getExtendedInfo().getOperandFlags(index);
   }
 
@@ -2289,12 +2095,12 @@ struct X86InstInfo {
   // --------------------------------------------------------------------------
 
   //! Get the primary instruction opcode, see \ref X86InstOpCodeFlags.
-  ASMJIT_INLINE uint32_t getPrimaryOpCode() const {
+  ASMJIT_INLINE uint32_t getPrimaryOpCode() const noexcept {
     return _primaryOpCode;
   }
 
   //! Get the secondary instruction opcode, see \ref X86InstOpCodeFlags.
-  ASMJIT_INLINE uint32_t getSecondaryOpCode() const {
+  ASMJIT_INLINE uint32_t getSecondaryOpCode() const noexcept {
     return getExtendedInfo().getSecondaryOpCode();
   }
 

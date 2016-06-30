@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_X86_X86OPERAND_H
 #define _ASMJIT_X86_X86OPERAND_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/assembler.h"
 #include "../base/compiler.h"
 #include "../base/operand.h"
@@ -30,26 +30,26 @@ namespace asmjit {
 // [Forward Declarations]
 // ============================================================================
 
-struct X86Reg;
-struct X86GpReg;
-struct X86FpReg;
-struct X86MmReg;
-struct X86KReg;
-struct X86XmmReg;
-struct X86YmmReg;
-struct X86ZmmReg;
+class X86Reg;
+class X86GpReg;
+class X86FpReg;
+class X86MmReg;
+class X86KReg;
+class X86XmmReg;
+class X86YmmReg;
+class X86ZmmReg;
 
-struct X86SegReg;
-struct X86RipReg;
+class X86SegReg;
+class X86RipReg;
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
-struct X86Var;
-struct X86GpVar;
-struct X86MmVar;
-struct X86KVar;
-struct X86XmmVar;
-struct X86YmmVar;
-struct X86ZmmVar;
+class X86Var;
+class X86GpVar;
+class X86MmVar;
+class X86KVar;
+class X86XmmVar;
+class X86YmmVar;
+class X86ZmmVar;
 #endif // !ASMJIT_DISABLE_COMPILER
 
 //! \addtogroup asmjit_x86
@@ -680,15 +680,15 @@ struct X86RegMask {
 // without calling a constructor. Compiler will store these in .DATA section.
 //
 // Kept in union to prevent LTO warnings.
-struct X86RipReg { union { Operand::VRegOp _vreg; }; };
-struct X86SegReg { union { Operand::VRegOp _vreg; }; };
-struct X86GpReg  { union { Operand::VRegOp _vreg; }; };
-struct X86FpReg  { union { Operand::VRegOp _vreg; }; };
-struct X86KReg   { union { Operand::VRegOp _vreg; }; };
-struct X86MmReg  { union { Operand::VRegOp _vreg; }; };
-struct X86XmmReg { union { Operand::VRegOp _vreg; }; };
-struct X86YmmReg { union { Operand::VRegOp _vreg; }; };
-struct X86ZmmReg { union { Operand::VRegOp _vreg; }; };
+class X86RipReg { public: union { Operand::VRegOp _vreg; }; };
+class X86SegReg { public: union { Operand::VRegOp _vreg; }; };
+class X86GpReg  { public: union { Operand::VRegOp _vreg; }; };
+class X86FpReg  { public: union { Operand::VRegOp _vreg; }; };
+class X86KReg   { public: union { Operand::VRegOp _vreg; }; };
+class X86MmReg  { public: union { Operand::VRegOp _vreg; }; };
+class X86XmmReg { public: union { Operand::VRegOp _vreg; }; };
+class X86YmmReg { public: union { Operand::VRegOp _vreg; }; };
+class X86ZmmReg { public: union { Operand::VRegOp _vreg; }; };
 
 #else
 
@@ -697,7 +697,8 @@ struct X86ZmmReg { union { Operand::VRegOp _vreg; }; };
 // ============================================================================
 
 //! X86/X86 register base class.
-struct X86Reg : public Reg {
+class X86Reg : public Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -772,7 +773,8 @@ struct X86Reg : public Reg {
 // ============================================================================
 
 //! X86/X64 RIP register.
-struct X86RipReg : public X86Reg {
+class X86RipReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -796,7 +798,8 @@ struct X86RipReg : public X86Reg {
 // ============================================================================
 
 //! X86/X64 segment register.
-struct X86SegReg : public X86Reg {
+class X86SegReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -824,7 +827,8 @@ struct X86SegReg : public X86Reg {
 // ============================================================================
 
 //! X86/X64 Gpb/Gpw/Gpd/Gpq register.
-struct X86GpReg : public X86Reg {
+class X86GpReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -879,7 +883,8 @@ struct X86GpReg : public X86Reg {
 // ============================================================================
 
 //! X86/X64 80-bit Fp register.
-struct X86FpReg : public X86Reg {
+class X86FpReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -932,7 +937,8 @@ struct X86FpReg : public X86Reg {
 //!
 //!   - `movd` - writes 4-bytes in `LO-DWord` and zeroes `HI-DWord`.
 //!   - `movq` - writes 8-bytes in `QWord`.
-struct X86MmReg : public X86Reg {
+class X86MmReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -960,7 +966,8 @@ struct X86MmReg : public X86Reg {
 // ============================================================================
 
 //! X86/X64 64-bit K register (AVX512+).
-struct X86KReg : public X86Reg {
+class X86KReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1041,7 +1048,8 @@ struct X86KReg : public X86Reg {
 //!   - `movddup`,
 //!   - `movsldup`,
 //!   - `movshdup` - writes 16 bytes in `OWord`.
-struct X86XmmReg : public X86Reg {
+class X86XmmReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1102,7 +1110,8 @@ struct X86XmmReg : public X86Reg {
 //! |31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|15|14|13|12|11|10|09|08|07|06|05|04|03|02|01|00|
 //! +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 //! ~~~
-struct X86YmmReg : public X86Reg {
+class X86YmmReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1143,7 +1152,8 @@ ASMJIT_INLINE X86YmmReg X86XmmReg::ymm() const noexcept { return X86YmmReg(kX86R
 // ============================================================================
 
 //! X86/X64 512-bit Zmm register (AVX512+).
-struct X86ZmmReg : public X86Reg {
+class X86ZmmReg : public X86Reg {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1185,7 +1195,8 @@ ASMJIT_INLINE X86ZmmReg X86YmmReg::zmm() const noexcept { return X86ZmmReg(kX86R
 // ============================================================================
 
 //! X86 memory operand.
-struct X86Mem : public BaseMem {
+class X86Mem : public BaseMem {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1649,7 +1660,8 @@ struct X86Mem : public BaseMem {
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Base class for all X86 variables.
-struct X86Var : public Var {
+class X86Var : public Var {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1836,7 +1848,8 @@ protected:
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Gp variable.
-struct X86GpVar : public X86Var {
+class X86GpVar : public X86Var {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1906,7 +1919,8 @@ public:
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Mm variable.
-struct X86MmVar : public X86Var {
+class X86MmVar : public X86Var {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1945,7 +1959,8 @@ struct X86MmVar : public X86Var {
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Xmm variable.
-struct X86XmmVar : public X86Var {
+class X86XmmVar : public X86Var {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1954,8 +1969,8 @@ protected:
   ASMJIT_INLINE X86XmmVar(const X86Var& other, uint32_t reg, uint32_t size) noexcept
     : X86Var(other, reg, size) {}
 
-  friend struct X86YmmVar;
-  friend struct X86ZmmVar;
+  friend class X86YmmVar;
+  friend class X86ZmmVar;
 
 public:
   //! Create a new uninitialized `X86XmmVar` instance.
@@ -1999,7 +2014,8 @@ public:
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Ymm variable.
-struct X86YmmVar : public X86Var {
+class  X86YmmVar : public X86Var {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -2008,8 +2024,8 @@ protected:
   ASMJIT_INLINE X86YmmVar(const X86Var& other, uint32_t reg, uint32_t size) noexcept
     : X86Var(other, reg, size) {}
 
-  friend struct X86XmmVar;
-  friend struct X86ZmmVar;
+  friend class X86XmmVar;
+  friend class X86ZmmVar;
 
 public:
   //! Create a new uninitialized `X86YmmVar` instance.
@@ -2055,7 +2071,8 @@ ASMJIT_INLINE X86YmmVar X86XmmVar::ymm() const noexcept { return X86YmmVar(*this
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Zmm variable.
-struct X86ZmmVar : public X86Var {
+class X86ZmmVar : public X86Var {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -2064,8 +2081,8 @@ protected:
   ASMJIT_INLINE X86ZmmVar(const X86Var& other, uint32_t reg, uint32_t size) noexcept
     : X86Var(other, reg, size) {}
 
-  friend struct X86XmmVar;
-  friend struct X86YmmVar;
+  friend class X86XmmVar;
+  friend class X86YmmVar;
 
 public:
   //! Create a new uninitialized `X86ZmmVar` instance.

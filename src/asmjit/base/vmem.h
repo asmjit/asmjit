@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_VMEM_H
 #define _ASMJIT_BASE_VMEM_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/utils.h"
 
 // [Api-Begin]
@@ -89,7 +89,8 @@ struct VMemUtil {
 
 //! Reference implementation of memory manager that uses `VMemUtil` to allocate
 //! chunks of virtual memory and bit arrays to manage it.
-struct VMemMgr {
+class VMemMgr {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -101,8 +102,8 @@ struct VMemMgr {
   //! Create a `VMemMgr` instance.
   //!
   //! \note When running on Windows it's possible to specify a `hProcess` to
-  //! be used for memory allocation. This allows to allocate memory of remote
-  //! process.
+  //! be used for memory allocation. Using `hProcess` allows to allocate memory
+  //! of a remote process.
   ASMJIT_API VMemMgr(HANDLE hProcess = static_cast<HANDLE>(0)) noexcept;
 #endif // ASMJIT_OS_WINDOWS
 

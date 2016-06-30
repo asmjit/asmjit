@@ -7,21 +7,18 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/utils.h"
 
-// [Dependencies - Posix]
 #if ASMJIT_OS_POSIX
 # include <time.h>
 # include <unistd.h>
 #endif // ASMJIT_OS_POSIX
 
-// [Dependencies - Mac]
 #if ASMJIT_OS_MAC
 # include <mach/mach_time.h>
 #endif // ASMJIT_OS_MAC
 
-// [Dependencies - Windows]
 #if ASMJIT_OS_WINDOWS
 # if defined(_MSC_VER) && _MSC_VER >= 1400
 #  include <intrin.h>

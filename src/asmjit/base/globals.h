@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_GLOBALS_H
 #define _ASMJIT_BASE_GLOBALS_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../build.h"
 
 // [Api-Begin]

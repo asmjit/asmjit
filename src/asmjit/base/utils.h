@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_UTILS_H
 #define _ASMJIT_BASE_UTILS_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/globals.h"
 
 #if ASMJIT_CC_MSC_GE(14, 0, 0)

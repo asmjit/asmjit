@@ -4,7 +4,7 @@
 // [License]
 // Public Domain (Unlicense)
 
-// [Dependencies - Broken]
+// [Dependencies]
 #include "./broken.h"
 
 // ============================================================================

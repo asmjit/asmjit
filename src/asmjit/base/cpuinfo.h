@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_CPUINFO_H
 #define _ASMJIT_BASE_CPUINFO_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/globals.h"
 
 // [Api-Begin]
@@ -24,7 +24,8 @@ namespace asmjit {
 // ============================================================================
 
 //! CPU information.
-struct CpuInfo {
+class CpuInfo {
+ public:
   // --------------------------------------------------------------------------
   // [Vendor]
   // --------------------------------------------------------------------------

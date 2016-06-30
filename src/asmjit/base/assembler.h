@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_ASSEMBLER_H
 #define _ASMJIT_BASE_ASSEMBLER_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "../base/containers.h"
 #include "../base/logger.h"
 #include "../base/operand.h"
@@ -235,7 +235,8 @@ struct RelocData {
 //! Please note that `addRef` and `release` functions are used, but there is
 //! no reference counting implemented by default, reimplement to change the
 //! default behavior.
-struct ASMJIT_VIRTAPI ErrorHandler {
+class ASMJIT_VIRTAPI ErrorHandler {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -297,7 +298,8 @@ struct ASMJIT_VIRTAPI ErrorHandler {
 // ============================================================================
 
 //! An external tool (i.e. `Stream` or `Compiler`) that can serialize to `Assembler`
-struct ASMJIT_VIRTAPI ExternalTool {
+class ASMJIT_VIRTAPI ExternalTool {
+ public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -404,7 +406,8 @@ struct ASMJIT_VIRTAPI ExternalTool {
 //! specific assemblers.
 //!
 //! \sa Compiler.
-struct ASMJIT_VIRTAPI Assembler {
+class ASMJIT_VIRTAPI Assembler {
+ public:
   ASMJIT_NO_COPY(Assembler)
 
   // --------------------------------------------------------------------------

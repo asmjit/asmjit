@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_ARM_H
 #define _ASMJIT_ARM_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "./base.h"
 
 #include "./arm/armassembler.h"

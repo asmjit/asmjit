@@ -8,7 +8,7 @@
 #ifndef _ASMJIT_BASE_H
 #define _ASMJIT_BASE_H
 
-// [Dependencies - AsmJit]
+// [Dependencies]
 #include "./build.h"
 
 #include "./base/assembler.h"
