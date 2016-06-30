@@ -2842,7 +2842,7 @@ CaseAvxRmi:
       break;
 
     case kX86InstEncodingAvxRmi_OptW:
-      ADD_VEX_L(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(o1));
+      ADD_REX_W(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(o1));
       goto CaseAvxRmi;
 
     case kX86InstEncodingAvxRmi_OptL:
@@ -2866,7 +2866,7 @@ _EmitAvxRvm_Reg:
       break;
 
     case kX86InstEncodingAvxRvm_OptW:
-      ADD_VEX_L(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(static_cast<const X86Reg*>(o1)));
+      ADD_REX_W(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(static_cast<const X86Reg*>(o1)));
       goto _EmitAvxRvm;
 
     case kX86InstEncodingAvxRvm_OptL:
@@ -2937,7 +2937,7 @@ CaseAvxRmv:
       break;
 
     case kX86InstEncodingAvxRmv_OptW:
-      ADD_VEX_W(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(static_cast<const X86Reg*>(o2)));
+      ADD_REX_W(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(static_cast<const X86Reg*>(o2)));
       goto CaseAvxRmv;
 
     case kX86InstEncodingAvxRmvi:
@@ -3155,7 +3155,7 @@ CaseAvxVm:
       break;
 
     case kX86InstEncodingAvxVm_OptW:
-      ADD_VEX_W(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(o1));
+      ADD_REX_W(x86IsGpq(static_cast<const X86Reg*>(o0)) | x86IsGpq(o1));
       goto CaseAvxVm;
 
     case kX86InstEncodingAvxVmi_OptL:

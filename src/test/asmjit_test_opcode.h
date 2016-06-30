@@ -31,16 +31,17 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   X86GpReg gHiA = ah;
   X86GpReg gHiB = bh;
 
-  X86GpReg gwA = useRex1 ? r8w : ax;
-  X86GpReg gwB = useRex2 ? r9w : bx;
+  X86GpReg gwA = useRex1 ? r8w  : ax;
+  X86GpReg gwB = useRex2 ? r9w  : bx;
 
-  X86GpReg gdA = useRex1 ? r8d : eax;
-  X86GpReg gdB = useRex2 ? r9d : ebx;
+  X86GpReg gdA = useRex1 ? r8d  : eax;
+  X86GpReg gdB = useRex2 ? r9d  : ebx;
+  X86GpReg gdC = useRex2 ? r10d : ecx;
 
-  X86GpReg gzA = useRex1 ? r8  : a.zax;
-  X86GpReg gzB = useRex2 ? r9  : a.zbx;
-  X86GpReg gzC = useRex2 ? r10 : a.zcx;
-  X86GpReg gzD = useRex2 ? r11 : a.zdx;
+  X86GpReg gzA = useRex1 ? r8   : a.zax;
+  X86GpReg gzB = useRex2 ? r9   : a.zbx;
+  X86GpReg gzC = useRex2 ? r10  : a.zcx;
+  X86GpReg gzD = useRex2 ? r11  : a.zdx;
 
   X86FpReg fpA = fp0;
   X86FpReg fpB = fp7;
@@ -2825,47 +2826,77 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   // BMI.
   a.nop();
 
+  a.andn(gdA, gdB, gdC);
   a.andn(gzA, gzB, gzC);
+  a.andn(gdA, gdB, anyptr_gpC);
   a.andn(gzA, gzB, anyptr_gpC);
+  a.bextr(gdA, gdB, gdC);
   a.bextr(gzA, gzB, gzC);
+  a.bextr(gdA, anyptr_gpB, gdC);
   a.bextr(gzA, anyptr_gpB, gzC);
+  a.blsi(gdA, gdB);
   a.blsi(gzA, gzB);
+  a.blsi(gdA, anyptr_gpB);
   a.blsi(gzA, anyptr_gpB);
+  a.blsmsk(gdA, gdB);
   a.blsmsk(gzA, gzB);
+  a.blsmsk(gdA, anyptr_gpB);
   a.blsmsk(gzA, anyptr_gpB);
+  a.blsr(gdA, gdB);
   a.blsr(gzA, gzB);
+  a.blsr(gdA, anyptr_gpB);
   a.blsr(gzA, anyptr_gpB);
 
   // LZCNT.
   a.nop();
 
+  a.lzcnt(gdA, gdB);
   a.lzcnt(gzA, gzB);
+  a.lzcnt(gdA, anyptr_gpB);
   a.lzcnt(gzA, anyptr_gpB);
 
   // TZCNT.
   a.nop();
 
+  a.tzcnt(gdA, gdB);
   a.tzcnt(gzA, gzB);
+  a.tzcnt(gdA, anyptr_gpB);
   a.tzcnt(gzA, anyptr_gpB);
 
   // BMI2.
   a.nop();
 
+  a.bzhi(gdA, gdB, gdC);
   a.bzhi(gzA, gzB, gzC);
+  a.bzhi(gdA, anyptr_gpB, gdC);
   a.bzhi(gzA, anyptr_gpB, gzC);
+  a.mulx(gdA, gdB, gdC);
   a.mulx(gzA, gzB, gzC);
+  a.mulx(gdA, gdB, anyptr_gpC);
   a.mulx(gzA, gzB, anyptr_gpC);
+  a.pdep(gdA, gdB, gdC);
   a.pdep(gzA, gzB, gzC);
+  a.pdep(gdA, gdB, anyptr_gpC);
   a.pdep(gzA, gzB, anyptr_gpC);
+  a.pext(gdA, gdB, gdC);
   a.pext(gzA, gzB, gzC);
+  a.pext(gdA, gdB, anyptr_gpC);
   a.pext(gzA, gzB, anyptr_gpC);
+  a.rorx(gdA, gdB, 0);
   a.rorx(gzA, gzB, 0);
+  a.rorx(gdA, anyptr_gpB, 0);
   a.rorx(gzA, anyptr_gpB, 0);
+  a.sarx(gdA, gdB, gdC);
   a.sarx(gzA, gzB, gzC);
+  a.sarx(gdA, anyptr_gpB, gdC);
   a.sarx(gzA, anyptr_gpB, gzC);
+  a.shlx(gdA, gdB, gdC);
   a.shlx(gzA, gzB, gzC);
+  a.shlx(gdA, anyptr_gpB, gdC);
   a.shlx(gzA, anyptr_gpB, gzC);
+  a.shrx(gdA, gdB, gdC);
   a.shrx(gzA, gzB, gzC);
+  a.shrx(gdA, anyptr_gpB, gdC);
   a.shrx(gzA, anyptr_gpB, gzC);
 
   // RDRAND.
