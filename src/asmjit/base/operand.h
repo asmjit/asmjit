@@ -20,8 +20,8 @@ namespace asmjit {
 // [Forward Declarations]
 // ============================================================================
 
-struct Assembler;
-struct Compiler;
+class Assembler;
+class Compiler;
 
 //! \addtogroup asmjit_base
 //! \{

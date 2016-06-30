@@ -20,7 +20,8 @@ namespace asmjit {
 // ============================================================================
 
 // Prevent static initialization.
-struct Operand {
+class Operand {
+ public:
   struct BaseOp {
     uint8_t op;
     uint8_t size;
