@@ -120,7 +120,7 @@ ASMJIT_ENUM(VarHint) {
 //!
 //! State of variable.
 //!
-//! \note Variable states are used only during register allocation.
+//! NOTE: Variable states are used only during register allocation.
 ASMJIT_ENUM(kVarState) {
   //! Variable is currently not used.
   kVarStateNone = 0,

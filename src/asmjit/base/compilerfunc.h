@@ -579,7 +579,7 @@ struct FuncDecl {
   //!
   //! Direction should be always `kFuncDirRTL`.
   //!
-  //! \note This is related to used calling convention, it's not affected by
+  //! NOTE: This is related to used calling convention, it's not affected by
   //! number of function arguments or their types.
   ASMJIT_INLINE uint32_t getArgsDirection() const noexcept { return _argsDirection; }
 
@@ -652,12 +652,12 @@ struct FuncDecl {
 
   //! Size of "Red Zone".
   //!
-  //! \note Used by AMD64-ABI (128 bytes).
+  //! NOTE: Used by AMD64-ABI (128 bytes).
   uint16_t _redZoneSize;
 
   //! Size of "Spill Zone".
   //!
-  //! \note Used by WIN64-ABI (32 bytes).
+  //! NOTE: Used by WIN64-ABI (32 bytes).
   uint16_t _spillZoneSize;
 
   //! Function arguments (LO & HI) mapped to physical registers and stack.

@@ -431,7 +431,6 @@ static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
     if (regs.ecx & 0x04000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureXSAVE);
     if (regs.ecx & 0x08000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureXSAVE_OS);
     if (regs.ecx & 0x40000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureRDRAND);
-
     if (regs.edx & 0x00000010U) cpuInfo->addFeature(CpuInfo::kX86FeatureRDTSC);
     if (regs.edx & 0x00000100U) cpuInfo->addFeature(CpuInfo::kX86FeatureCMPXCHG8B);
     if (regs.edx & 0x00008000U) cpuInfo->addFeature(CpuInfo::kX86FeatureCMOV);
@@ -444,15 +443,13 @@ static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
                                         .addFeature(CpuInfo::kX86FeatureSSE2);
     if (regs.edx & 0x10000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureMT);
 
-    // AMD sets Multithreading to ON if it has two or more cores.
-    if (cpuInfo->_hwThreadsCount == 1 && cpuInfo->_vendorId == CpuInfo::kVendorAMD && (regs.edx & 0x10000000U)) {
+    // AMD sets multi-threading ON if it has two or more cores.
+    if (cpuInfo->_hwThreadsCount == 1 && cpuInfo->_vendorId == CpuInfo::kVendorAMD && (regs.edx & 0x10000000U))
       cpuInfo->_hwThreadsCount = 2;
-    }
 
     // Get the content of XCR0 if supported by CPU and enabled by OS.
-    if ((regs.ecx & 0x0C000000U) == 0x0C000000U) {
+    if ((regs.ecx & 0x0C000000U) == 0x0C000000U)
       x86CallXGetBV(&xcr0, 0);
-    }
 
     // Detect AVX+.
     if (regs.ecx & 0x10000000U) {
@@ -461,9 +458,7 @@ static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
       if ((xcr0.eax & 0x00000006U) == 0x00000006U) {
         cpuInfo->addFeature(CpuInfo::kX86FeatureAVX);
 
-        if (regs.ecx & 0x00000800U) cpuInfo->addFeature(CpuInfo::kX86FeatureXOP);
         if (regs.ecx & 0x00004000U) cpuInfo->addFeature(CpuInfo::kX86FeatureFMA3);
-        if (regs.ecx & 0x00010000U) cpuInfo->addFeature(CpuInfo::kX86FeatureFMA4);
         if (regs.ecx & 0x20000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureF16C);
       }
     }
@@ -475,43 +470,48 @@ static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
 
   // Detect new features if the processor supports CPUID-07.
   bool maybeMPX = false;
+
   if (maxId >= 0x7) {
     x86CallCpuId(&regs, 0x7);
 
     if (regs.ebx & 0x00000001U) cpuInfo->addFeature(CpuInfo::kX86FeatureFSGSBASE);
     if (regs.ebx & 0x00000008U) cpuInfo->addFeature(CpuInfo::kX86FeatureBMI);
     if (regs.ebx & 0x00000010U) cpuInfo->addFeature(CpuInfo::kX86FeatureHLE);
+    if (regs.ebx & 0x00000080U) cpuInfo->addFeature(CpuInfo::kX86FeatureSMEP);
     if (regs.ebx & 0x00000100U) cpuInfo->addFeature(CpuInfo::kX86FeatureBMI2);
-    if (regs.ebx & 0x00000200U) cpuInfo->addFeature(CpuInfo::kX86FeatureMOVSBSTOSB_OPT);
+    if (regs.ebx & 0x00000200U) cpuInfo->addFeature(CpuInfo::kX86FeatureERMS);
     if (regs.ebx & 0x00000800U) cpuInfo->addFeature(CpuInfo::kX86FeatureRTM);
     if (regs.ebx & 0x00004000U) maybeMPX = true;
     if (regs.ebx & 0x00040000U) cpuInfo->addFeature(CpuInfo::kX86FeatureRDSEED);
     if (regs.ebx & 0x00080000U) cpuInfo->addFeature(CpuInfo::kX86FeatureADX);
+    if (regs.ebx & 0x00100000U) cpuInfo->addFeature(CpuInfo::kX86FeatureSMAP);
+    if (regs.ebx & 0x00400000U) cpuInfo->addFeature(CpuInfo::kX86FeaturePCOMMIT);
     if (regs.ebx & 0x00800000U) cpuInfo->addFeature(CpuInfo::kX86FeatureCLFLUSH_OPT);
+    if (regs.ebx & 0x01000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureCLWB);
     if (regs.ebx & 0x20000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureSHA);
-
     if (regs.ecx & 0x00000001U) cpuInfo->addFeature(CpuInfo::kX86FeaturePREFETCHWT1);
 
     // Detect AVX2.
-    if (cpuInfo->hasFeature(CpuInfo::kX86FeatureAVX)) {
+    if (cpuInfo->hasFeature(CpuInfo::kX86FeatureAVX))
       if (regs.ebx & 0x00000020U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX2);
-    }
 
     // Detect AVX-512+.
     if (regs.ebx & 0x00010000U) {
       // - XCR0[2:1] == 11b
       //   XMM/YMM states need to be enabled by OS.
       // - XCR0[7:5] == 111b
-      //   Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by OS.
+      //   Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by the OS.
       if ((xcr0.eax & 0x00000076U) == 0x00000076U) {
         cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512F);
 
         if (regs.ebx & 0x00020000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512DQ);
+        if (regs.ebx & 0x00200000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512IFMA);
         if (regs.ebx & 0x04000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512PF);
         if (regs.ebx & 0x08000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512ER);
         if (regs.ebx & 0x10000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512CD);
         if (regs.ebx & 0x40000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512BW);
         if (regs.ebx & 0x80000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512VL);
+        if (regs.ecx & 0x00000002U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512VBMI);
       }
     }
   }
@@ -551,7 +551,7 @@ static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
         if (regs.ecx & 0x00000040U) cpuInfo->addFeature(CpuInfo::kX86FeatureSSE4A);
         if (regs.ecx & 0x00000080U) cpuInfo->addFeature(CpuInfo::kX86FeatureMSSE);
         if (regs.ecx & 0x00000100U) cpuInfo->addFeature(CpuInfo::kX86FeaturePREFETCH);
-
+        if (regs.ecx & 0x00200000U) cpuInfo->addFeature(CpuInfo::kX86FeatureTBM);
         if (regs.edx & 0x00100000U) cpuInfo->addFeature(CpuInfo::kX86FeatureNX);
         if (regs.edx & 0x00200000U) cpuInfo->addFeature(CpuInfo::kX86FeatureFXSR_OPT);
         if (regs.edx & 0x00400000U) cpuInfo->addFeature(CpuInfo::kX86FeatureMMX2);
@@ -559,6 +559,11 @@ static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
         if (regs.edx & 0x40000000U) cpuInfo->addFeature(CpuInfo::kX86Feature3DNOW2)
                                             .addFeature(CpuInfo::kX86FeatureMMX2);
         if (regs.edx & 0x80000000U) cpuInfo->addFeature(CpuInfo::kX86Feature3DNOW);
+
+        if (cpuInfo->hasFeature(CpuInfo::kX86FeatureAVX)) {
+          if (regs.ecx & 0x00000800U) cpuInfo->addFeature(CpuInfo::kX86FeatureXOP);
+          if (regs.ecx & 0x00010000U) cpuInfo->addFeature(CpuInfo::kX86FeatureFMA4);
+        }
         break;
 
       case 0x80000002U:

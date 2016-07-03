@@ -12,290 +12,303 @@ var fs = require("fs");
 var hasOwn = Object.prototype.hasOwnProperty;
 
 // ----------------------------------------------------------------------------
-// [Utilities]
+// [Misc]
 // ----------------------------------------------------------------------------
 
-function upFirst(s) {
-  if (!s) return "";
-  return s[0].toUpperCase() + s.substr(1);
-}
+const kIndent = "  ";
+const kJustify = 79;
 
-function trimLeft(s) {
-  return s.replace(/^\s+/, "");
-}
+const kDisclaimerStart = "// ------------------- Automatically generated, do not edit -------------------\n";
+const kDisclaimerEnd   = "// ----------------------------------------------------------------------------\n";
 
-function padLeft(s, n) {
-  while (s.length < n)
-    s += " ";
-  return s;
-}
+// ----------------------------------------------------------------------------
+// [Utils]
+// ----------------------------------------------------------------------------
 
-function inject(s, start, end, code) {
-  var iStart = s.indexOf(start);
-  var iEnd   = s.indexOf(end);
+class Utils {
+  static upFirst(s) {
+    if (!s) return "";
+    return s[0].toUpperCase() + s.substr(1);
+  }
 
-  if (iStart === -1)
-    throw new Error("Couldn't locate start mark.");
+  static trimLeft(s) {
+    return s.replace(/^\s+/, "");
+  }
 
-  if (iEnd === -1)
-    throw new Error("Couldn't locate end mark.");
+  static padLeft(s, n) {
+    while (s.length < n)
+      s += " ";
+    return s;
+  }
 
-  return s.substr(0, iStart + start.length) + code + s.substr(iEnd);
+  static inject(s, start, end, code) {
+    var iStart = s.indexOf(start);
+    var iEnd   = s.indexOf(end);
+
+    if (iStart === -1)
+      throw new Error(`Couldn't locate start mark.`);
+
+    if (iEnd === -1)
+      throw new Error(`Couldn't locate end mark.`);
+
+    return s.substr(0, iStart + start.length) + code + s.substr(iEnd);
+  }
 }
 
 // ----------------------------------------------------------------------------
 // [IndexedString]
 // ----------------------------------------------------------------------------
 
-var IndexedString = function() {
-  this.map = {};
-  this.size = -1;
-  this.array = [];
-};
+class IndexedString {
+  constructor() {
+    this.map = Object.create(null);
+    this.size = -1;
+    this.array = [];
+  }
 
-IndexedString.prototype.add = function(s) {
-  this.map[s] = -1;
-};
+  add(s) {
+    this.map[s] = -1;
+  }
 
-IndexedString.prototype.index = function() {
-  var map = this.map;
-  var array = this.array;
+  index() {
+    const map = this.map;
+    const array = this.array;
+    const partialMap = Object.create(null);
 
-  var partialMap = {};
-  var k, kp;
-  var i, len;
+    var k, kp;
+    var i, len;
 
-  // Create a map that will contain all keys and partial keys.
-  for (k in map) {
-    if (!k) {
-      partialMap[k] = k;
-    }
-    else {
-      for (i = 0, len = k.length; i < len; i++) {
-        var kp = k.substr(i);
-        if (!hasOwn.call(partialMap, kp) || partialMap[kp].length < len)
-          partialMap[kp] = k;
+    // Create a map that will contain all keys and partial keys.
+    for (k in map) {
+      if (!k) {
+        partialMap[k] = k;
+      }
+      else {
+        for (i = 0, len = k.length; i < len; i++) {
+          kp = k.substr(i);
+          if (!hasOwn.call(partialMap, kp) || partialMap[kp].length < len)
+            partialMap[kp] = k;
+        }
       }
     }
-  }
 
-  // Create an array that will only contain keys that are needed.
-  for (k in map) {
-    if (partialMap[k] === k)
-      array.push(k);
-  }
-  array.sort();
+    // Create an array that will only contain keys that are needed.
+    for (k in map)
+      if (partialMap[k] === k)
+        array.push(k);
+    array.sort();
 
-  // Create valid offsets to the `array`.
-  var offMap = {};
-  var offset = 0;
+    // Create valid offsets to the `array`.
+    var offMap = {};
+    var offset = 0;
 
-  for (i = 0, len = array.length; i < len; i++) {
-    k = array[i];
-
-    offMap[k] = offset;
-    offset += k.length + 1;
-  }
-  this.size = offset;
-
-  // Assign valid offsets to `map`.
-  for (kp in map) {
-    k = partialMap[kp];
-    map[kp] = offMap[k] + k.length - kp.length;
-  }
-
-  /*
-  (function() {
-    // Testing code to experiment with eliminating suffixes from instruction names.
-    var suffixList = [
-      "ss", "ps", "sd", "pd",
-      "bw", "bd", "bq",
-      "ww", "wd", "wq",
-      "dq", "b", "w", "d", "q"
-    ];
-    var reducedMap = {};
-    var reducedSize = 0;
-
-    var xMap = {};
-    var xArr = [];
-    
     for (i = 0, len = array.length; i < len; i++) {
       k = array[i];
 
-      var suffix = null;
-      var after = k;
-
-      for (var j = 0; j < suffixList.length; j++) {
-        suffix = suffixList[j];
-        if (k.lastIndexOf(suffix) === k.length - suffix.length) {
-          after = k.substr(0, k.length - suffix.length);
-          break;
-        }
-      }
-
-      reducedMap[after] = true;
+      offMap[k] = offset;
+      offset += k.length + 1;
     }
+    this.size = offset;
 
-    // Testing code to get which suffixes are the most used.
-    for (k in map) {
-      for (i = 1; i < k.length; i++) {
-        var xKey = k.substr(i);
-        if (hasOwn.call(xMap, xKey)) {
-          xMap[xKey]++;
-        }
-        else {
-          xMap[xKey] = 1;
-          xArr.push(xKey);
-        }
-      }
+    // Assign valid offsets to `map`.
+    for (kp in map) {
+      k = partialMap[kp];
+      map[kp] = offMap[k] + k.length - kp.length;
     }
-
-    xArr.sort(function(a, b) {
-      return xMap[a] - xMap[b];
-    });
-    for (i = 0; i < xArr.length; i++) {
-      console.log(xArr[i] + " " + xMap[xArr[i]]);
-    }
-
-    for (k in reducedMap)
-      reducedSize += k.length + 1;
-    console.log("ReducedSize=" + reducedSize);
-  })();
-  */
-};
-
-IndexedString.prototype.format = function(indent) {
-  if (this.size === -1)
-    throw new Error("IndexedString - not indexed yet, call index()");
-
-  var s = "";
-  var array = this.array;
-
-  for (var i = 0; i < array.length; i++) {
-    s += indent + "\"" + array[i];
-    s += (i !== array.length - 1) ? "\\0\"" : "\";";
-    s += "\n";
   }
 
-  return s;
-};
+  format(indent, justify) {
+    if (this.size === -1)
+      throw new Error(`IndexedString - not indexed yet, call index()`);
 
-IndexedString.prototype.getSize = function() {
-  if (this.size === -1)
-    throw new Error("IndexedString - not indexed yet, call index()");
-  return this.size;
-};
+    const array = this.array;
+    if (!justify) justify = 0;
 
-IndexedString.prototype.getIndex = function(k) {
-  if (this.size === -1)
-    throw new Error("IndexedString - not indexed yet, call index()");
+    var i;
+    var s = "";
+    var line = "";
 
-  if (!hasOwn.call(this.map, k))
-    throw new Error("IndexedString - key '" + k + "' not found.");
+    for (i = 0; i < array.length; i++) {
+      const item = "\"" + array[i] + ((i !== array.length - 1) ? "\\0\"" : "\";");
+      const newl = line + (line ? " " : indent) + item;
 
-  return this.map[k];
-};
+      if (newl.length <= justify) {
+        line = newl;
+        continue;
+      }
+      else {
+        s += line + "\n";
+        line = indent + item;
+      }
+    }
+
+    s += line + "\n";
+    return s;
+  }
+
+  getSize() {
+    if (this.size === -1)
+      throw new Error(`IndexedString - not indexed yet, call index()`);
+    return this.size;
+  }
+
+  getIndex(k) {
+    if (this.size === -1)
+      throw new Error(`IndexedString - not indexed yet, call index()`);
+
+    if (!hasOwn.call(this.map, k))
+      throw new Error(`IndexedString - key '${k}' not found.`);
+
+    return this.map[k];
+  }
+}
 
 // ----------------------------------------------------------------------------
 // [Database]
 // ----------------------------------------------------------------------------
 
-var Database = function() {
-  this.instMap = {};
-  this.instNames = new IndexedString();
-  this.instAlpha = new Array(26);
+class Database {
+  constructor() {
+    this.instMap = Object.create(null);
+    this.instArray = [];
 
-  this.extendedData = [];
-  this.extendedMap = {};
-};
+    this.instNames = new IndexedString();
+    this.instAlpha = new Array(26);
 
-Database.prototype.add = function(name, id, extendedData) {
-  this.instMap[name] = {
-    id            : id, // Instruction ID.
-    nameIndex     : -1, // Instruction name-index.
-    extendedData  : extendedData,
-    extendedIndex : ""
-  };
-  this.instNames.add(name);
-};
+    this.extendedData = [];
+    this.extendedMap = {};
+  }
 
-Database.prototype.index = function() {
-  var instMap = this.instMap;
-  var instNames = this.instNames;
-  var instAlpha = this.instAlpha;
+  add(name, enum_, id, extendedData) {
+    const inst = {
+      id            : id,           // Instruction index (number).
+      name          : name,         // Instruction name.
+      enum          : enum_,        // Instruction enum string.
+      nameIndex     : -1,           // Instruction name-index.
+      extendedData  : extendedData,
+      extendedIndex : ""
+    };
 
-  var extendedData = this.extendedData;
-  var extendedMap = this.extendedMap;
+    this.instMap[name] = inst;
+    this.instArray[id] = inst;
 
-  instNames.index();
+    this.instNames.add(name);
+  }
 
-  for (var name in instMap) {
-    var inst = instMap[name];
+  index() {
+    const instMap = this.instMap;
+    const instNames = this.instNames;
+    const instAlpha = this.instAlpha;
 
-    var nameIndex = instNames.getIndex(name);
-    var extendedIndex = extendedMap[inst.extendedData];
+    var extendedData = this.extendedData;
+    var extendedMap = this.extendedMap;
 
-    if (typeof extendedIndex !== "number") {
-      extendedIndex = extendedData.length;
-      extendedMap[inst.extendedData] = extendedIndex;
-      extendedData.push(inst.extendedData);
+    instNames.index();
+
+    for (var name in instMap) {
+      var inst = instMap[name];
+
+      var nameIndex = instNames.getIndex(name);
+      var extendedIndex = extendedMap[inst.extendedData];
+
+      if (typeof extendedIndex !== "number") {
+        extendedIndex = extendedData.length;
+        extendedMap[inst.extendedData] = extendedIndex;
+        extendedData.push(inst.extendedData);
+      }
+
+      inst.nameIndex = nameIndex;
+      inst.extendedIndex = extendedIndex;
+
+      var aIndex = name.charCodeAt(0) - 'a'.charCodeAt(0);
+      if (aIndex < 0 || aIndex >= 26)
+        throw new Error("Alphabetical index error");
+
+      if (instAlpha[aIndex] === undefined)
+        instAlpha[aIndex] = inst.enum;
+    }
+  }
+
+  formatInstNameIndex(indent, justify) {
+    const instArray = this.instArray;
+    if (!justify) justify = 0;
+
+    for (var i = 0; i < instArray; i++) {
+      const inst = instArray[i];
+      if (inst === undefined)
+        throw new Error(`Database - no instruction #${i}`);
     }
 
-    inst.nameIndex = nameIndex;
-    inst.extendedIndex = extendedIndex;
+    var i;
+    var s = "";
+    var line = "";
 
-    var aIndex = name.charCodeAt(0) - 'a'.charCodeAt(0);
-    if (aIndex < 0 || aIndex >= 26)
-      throw new Error("Alphabetical index error");
+    for (i = 0; i < instArray.length; i++) {
+      const inst = instArray[i];
+      if (inst === undefined)
+        throw new Error(`Database - no instruction #${i}`);
 
-    if (instAlpha[aIndex] === undefined)
-      instAlpha[aIndex] = inst.id;
+      const item = String(inst.nameIndex) + ((i !== instArray.length - 1) ? "," : "");
+      const newl = line + (line ? " " : indent) + item;
+
+      if (newl.length <= justify) {
+        line = newl;
+        continue;
+      }
+      else {
+        s += line + "\n";
+        line = indent + item;
+      }
+    }
+
+    s += line + "\n";
+    return s;
   }
-};
+}
 
 // ----------------------------------------------------------------------------
 // [Generate]
 // ----------------------------------------------------------------------------
 
-var decToHex = function(n, nPad) {
+function decToHex(n, nPad) {
   var hex = Number(n < 0 ? 0x100000000 + n : n).toString(16);
   while (nPad > hex.length)
     hex = "0" + hex;
   return "0x" + hex.toUpperCase();
-};
+}
 
-var getEFlagsMask = function(eflags, passing) {
+function getEFlagsMask(eflags, passing) {
   var msk = 0x0;
   var bit = 0x1;
 
-  for (var i = 0; i < 8; i++, bit <<= 1) {
+  for (var i = 0; i < 8; i++, bit <<= 1)
     if (passing.indexOf(eflags[i]) !== -1)
       msk |= bit;
-  }
 
   return msk;
-};
+}
 
-var generate = function(fileName, arch) {
-  var Arch = upFirst(arch);
-  var oldData = fs.readFileSync(fileName, "utf8").replace(/\r\n/g, "\n");
+function generate(fileName, arch) {
+  const Arch = Utils.upFirst(arch);
+  const oldData = fs.readFileSync(fileName, "utf8").replace(/\r\n/g, "\n");
 
   var data = oldData;
   var code = "";
-  var disclaimer = "// Automatically generated, do not edit.\n";
 
   var instCount = 0;
   var sizeof_X86InstInfo = 8;
   var sizeof_X86InstExtendedInfo = 24;
+
+  var kX86InstPrefix = "kX86InstId";
 
   // Create database.
   var db = new Database();
   var re = new RegExp(
     "INST\\(([A-Za-z0-9_]+)\\s*," +       // [01] Id.
     "\\s*\\\"([A-Za-z0-9_ ]*)\\\"\\s*," + // [02] Name.
-    "(.{20}[^,]*)," +                     // [03] Opcode[0].
-    "(.{20}[^,]*)," +                     // [04] Opcode[1].
-    "([^,]+)," +                          // [05] Encoding.
+    "([^,]+)," +                          // [03] Encoding.
+    "(.{20}[^,]*)," +                     // [04] Opcode[0].
+    "(.{20}[^,]*)," +                     // [05] Opcode[1].
     "([^,]+)," +                          // [06] IFLAGS.
     "\\s*EF\\(([A-Z_]+)\\)\\s*," +        // [07] EFLAGS.
     "([^,]+)," +                          // [08] Write-Index.
@@ -308,62 +321,41 @@ var generate = function(fileName, arch) {
     "g");
 
   var i, k, m;
-  var srcForm = "";
+  var opCombinations = {};
 
   while (m = re.exec(data)) {
     // Extract instruction ID and Name.
-    var id = m[1];
-    var name = m[2];
+    const enum_ = kX86InstPrefix + m[1];
+    const name = m[2];
 
     // Extract data that goes to the secondary table (X86InstExtendedInfo).
-    var opcode0    = trimLeft(m[3]);
-    var opcode1    = trimLeft(m[4]);
-    var encoding   = trimLeft(m[5]);
-    var iflags     = trimLeft(m[6]);
-    var eflags     = m[7];
-    var writeIndex = trimLeft(m[8]);
-    var writeSize  = trimLeft(m[9]);
-    var oflags0    = trimLeft(m[10]);
-    var oflags1    = trimLeft(m[11]);
-    var oflags2    = trimLeft(m[12]);
-    var oflags3    = trimLeft(m[13]);
-    var oflags4    = trimLeft(m[14]);
+    const encoding   = Utils.trimLeft(m[3]);
+    const opcode0    = Utils.trimLeft(m[4]);
+    const opcode1    = Utils.trimLeft(m[5]);
+    const iflags     = Utils.trimLeft(m[6]);
+    const eflags     = m[7];
+    const writeIndex = Utils.trimLeft(m[8]);
+    const writeSize  = Utils.trimLeft(m[9]);
+    const oflags0    = Utils.trimLeft(m[10]);
+    const oflags1    = Utils.trimLeft(m[11]);
+    const oflags2    = Utils.trimLeft(m[12]);
+    const oflags3    = Utils.trimLeft(m[13]);
+    const oflags4    = Utils.trimLeft(m[14]);
 
     // Generate EFlags-In and EFlags-Out.
     var eflagsIn   = decToHex(getEFlagsMask(eflags, "RX" ), 2);
     var eflagsOut  = decToHex(getEFlagsMask(eflags, "WXU"), 2);
 
-    var extData =
-      encoding   + ", " +
-      writeIndex + ", " +
-      writeSize  + ", " +
-      eflagsIn   + ", " +
-      eflagsOut  + ", " +
-      "0"        + ", " +
-      "{ "       + oflags0 + ", " + oflags1 + ", " + oflags2 + ", " + oflags3 + ", " + oflags4 + " }, " +
-      iflags     + ", " +
-      opcode1;
+    var ops = `{ ${oflags0}, ${oflags1}, ${oflags2}, ${oflags3}, ${oflags4} }`;
+    var extData = `${encoding}, ${writeIndex}, ${writeSize}, ${eflagsIn}, ${eflagsOut}, 0, ${ops}, ${iflags}, ${opcode1}`;
 
-    srcForm += "  INST(" +
-      padLeft(id, 27) + ", " +
-      padLeft('"' + name + '"', 19) + ", " +
-      opcode0    + ", " +
-      opcode1    + ", " +
-      encoding   + ", " +
-      iflags     + ", " +
-      "EF(" + eflags + "), " +
-      writeIndex + ", " +
-      writeSize  + ", " +
-      oflags0    + ", " +
-      oflags1    + ", " +
-      oflags2    + ", " +
-      oflags3    + ", " +
-      oflags4    + "),\n";
+    if (!opCombinations[ops]) opCombinations[ops] = 0;
+    opCombinations[ops]++;
 
-    db.add(name, id, extData);
+    db.add(name, enum_, instCount, extData);
     instCount++;
   }
-  // fs.writeFileSync("srcform.cpp", srcForm, "utf8");
+
   db.index();
 
   var instDataSize = instCount * sizeof_X86InstInfo + db.extendedData.length * sizeof_X86InstExtendedInfo;
@@ -373,83 +365,83 @@ var generate = function(fileName, arch) {
   console.log("Instructions' Data  Size: " + instDataSize);
   console.log("Instructions' Names Size: " + db.instNames.getSize());
 
-  // Generate InstName[] string.
-  code += disclaimer;
-  code += "#if !defined(ASMJIT_DISABLE_NAMES)\n";
-  code += "const char _" + arch + "InstName[] =\n";
-  code += db.instNames.format("  ") + "\n";
+  // Generate _x86InstNameData[].
+  code += kDisclaimerStart;
+  code += `#if !defined(ASMJIT_DISABLE_NAMES)\n`;
+
+  code += `static const char _${arch}InstNameData[] =\n`;
+  code += db.instNames.format(kIndent, kJustify);
+  code += kDisclaimerEnd;
+  code += `\n`;
+
+  // Generate _x86InstNameIndex[].
+  code += `static const uint16_t _${arch}InstNameIndex[] = {\n`;
+  code += db.formatInstNameIndex(kIndent, kJustify);
+  code += `};\n`;
+  code += `\n`;
 
   // Generate AlphaIndex.
-  code += disclaimer;
-  code += "enum " + Arch + "InstAlphaIndex {\n";
-  code += "  k" + Arch + "InstAlphaIndexFirst = 'a',\n";
-  code += "  k" + Arch + "InstAlphaIndexLast = 'z',\n";
-  code += "  k" + Arch + "InstAlphaIndexInvalid = 0xFFFF\n";
-  code += "};\n";
-  code += "\n";
+  code += `enum ${Arch}InstAlphaIndex {\n`;
+  code += `  k${Arch}InstAlphaIndexFirst = 'a',\n`;
+  code += `  k${Arch}InstAlphaIndexLast = 'z',\n`;
+  code += `  k${Arch}InstAlphaIndexInvalid = 0xFFFF\n`;
+  code += `};\n`;
+  code += `\n`;
 
-  code += disclaimer;
-  code += "static const uint16_t _" + arch + "InstAlphaIndex[26] = {\n";
+  code += `static const uint16_t _${arch}InstAlphaIndex[26] = {\n`;
   for (i = 0; i < db.instAlpha.length; i++) {
     var id = db.instAlpha[i];
-    code += "  " + (id === undefined ? "0xFFFF" : id);
+    code += kIndent + (id === undefined ? "0xFFFF" : id);
     if (i !== db.instAlpha.length - 1)
-      code += ",";
-    code += "\n";
+      code += `,`;
+    code += `\n`;
   }
-  code += "};\n\n";
+  code += `};\n`;
 
-  // Generate NameIndex.
-  code += disclaimer;
-  code += "enum " + Arch + "InstData_NameIndex {\n";
-  for (k in db.instMap) {
-    var inst = db.instMap[k];
-    code += "  " + inst.id + "_NameIndex = " + inst.nameIndex + ",\n";
-  }
-  code = code.substr(0, code.length - 2) + "\n};\n";
-  code += "#endif // !ASMJIT_DISABLE_NAMES\n"
-  code += "\n";
+  code += `#endif // !ASMJIT_DISABLE_NAMES\n`;
+  code += kDisclaimerEnd;
+  code += `\n`;
 
   // Generate ExtendedInfo.
-  code += disclaimer;
-  code += "const " + Arch + "InstExtendedInfo _" + arch + "InstExtendedInfo[] = {\n";
+  code += kDisclaimerStart;
+  code += `const ${Arch}InstExtendedInfo _${arch}InstExtendedInfo[] = {\n`;
   for (i = 0; i < db.extendedData.length; i++) {
-    code += "  { " + db.extendedData[i] + " }";
-    if (i !== db.extendedData.length - 1)
-      code += ",";
-    code += "\n";
+    code += `${kIndent}{ ${db.extendedData[i]} }`;
+    if (i !== db.extendedData.length - 1) code += `,`;
+    code += `\n`;
   }
-  code += "};\n";
-  code += "\n";
+  code += `};\n`;
+  code += kDisclaimerEnd;
+  code += `\n`;
 
-  code += disclaimer;
-  code += "enum " + Arch + "InstData_ExtendedIndex {\n";
+  code += kDisclaimerStart;
+  code += `enum ${Arch}InstData_ExtendedIndex {\n`;
   for (k in db.instMap) {
     var inst = db.instMap[k];
-    code += "  " + inst.id + "_ExtendedIndex = " + inst.extendedIndex + ",\n";
+    code += `${kIndent}  ${inst.enum}_ExtendedIndex = ${inst.extendedIndex},\n`;
   }
   code = code.substr(0, code.length - 2) + "\n};\n";
+  code += kDisclaimerEnd;
 
   // Inject.
-  data = inject(data,
+  data = Utils.inject(data,
     "// ${" + Arch + "InstData:Begin}\n",
-    "// ${" + Arch + "InstData:End}\n",
-    code);
+    "// ${" + Arch + "InstData:End}\n", code);
 
   // Save only if modified.
   if (data !== oldData)
     fs.writeFileSync(fileName, data, "utf8");
-};
+}
 
 // ----------------------------------------------------------------------------
 // [Main]
 // ----------------------------------------------------------------------------
 
-var main = function(files) {
+function main(files) {
   files.forEach(function(file) {
     generate(file.name, file.arch);
   });
-};
+}
 
 main([{
   name: "../src/asmjit/x86/x86inst.cpp",

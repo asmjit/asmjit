@@ -101,7 +101,7 @@ class VMemMgr {
 #else
   //! Create a `VMemMgr` instance.
   //!
-  //! \note When running on Windows it's possible to specify a `hProcess` to
+  //! NOTE: When running on Windows it's possible to specify a `hProcess` to
   //! be used for memory allocation. Using `hProcess` allows to allocate memory
   //! of a remote process.
   ASMJIT_API VMemMgr(HANDLE hProcess = static_cast<HANDLE>(0)) noexcept;
@@ -154,7 +154,7 @@ class VMemMgr {
   //! VMemMgr destructor. After destruction all internal
   //! structures are freed, only the process virtual memory remains.
   //!
-  //! \note Memory allocated with kVMemAllocPermanent is always kept.
+  //! NOTE: Memory allocated with kVMemAllocPermanent is always kept.
   //!
   //! \sa \ref getKeepVirtualMemory.
   ASMJIT_INLINE void setKeepVirtualMemory(bool keepVirtualMemory) noexcept {

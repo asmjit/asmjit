@@ -231,7 +231,6 @@ struct Utils {
   //! Get whether the given integer `x` can be casted to an 8-bit unsigned integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt8(T x) noexcept {
-    typedef typename IntTraits<T>::SignedType SignedType;
     typedef typename IntTraits<T>::UnsignedType UnsignedType;
 
     if (IntTraits<T>::kIsSigned)
@@ -243,7 +242,6 @@ struct Utils {
   //! Get whether the given integer `x` can be casted to a 12-bit unsigned integer (ARM specific).
   template<typename T>
   static ASMJIT_INLINE bool isUInt12(T x) noexcept {
-    typedef typename IntTraits<T>::SignedType SignedType;
     typedef typename IntTraits<T>::UnsignedType UnsignedType;
 
     if (IntTraits<T>::kIsSigned)
@@ -255,7 +253,6 @@ struct Utils {
   //! Get whether the given integer `x` can be casted to a 16-bit unsigned integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt16(T x) noexcept {
-    typedef typename IntTraits<T>::SignedType SignedType;
     typedef typename IntTraits<T>::UnsignedType UnsignedType;
 
     if (IntTraits<T>::kIsSigned)
@@ -267,7 +264,6 @@ struct Utils {
   //! Get whether the given integer `x` can be casted to a 32-bit unsigned integer.
   template<typename T>
   static ASMJIT_INLINE bool isUInt32(T x) noexcept {
-    typedef typename IntTraits<T>::SignedType SignedType;
     typedef typename IntTraits<T>::UnsignedType UnsignedType;
 
     if (IntTraits<T>::kIsSigned)

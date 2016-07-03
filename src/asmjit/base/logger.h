@@ -175,7 +175,7 @@ class ASMJIT_VIRTAPI FileLogger : public Logger {
 
   //! Get `FILE*` stream.
   //!
-  //! \note Return value can be `nullptr`.
+  //! NOTE: Return value can be `nullptr`.
   ASMJIT_INLINE FILE* getStream() const noexcept {
     return _stream;
   }

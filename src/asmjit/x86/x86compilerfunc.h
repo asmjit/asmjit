@@ -58,32 +58,32 @@ struct X86FuncDecl : public FuncDecl {
 
   //! Get used registers mask for the given register class `rc`.
   //!
-  //! \note The result depends on the function calling convention AND the
+  //! NOTE: The result depends on the function calling convention AND the
   //! function prototype. Returned mask contains only registers actually used
   //! to pass function arguments.
   ASMJIT_INLINE uint32_t getUsed(uint32_t rc) const { return _used.get(rc); }
 
   //! Get passed registers mask for the given register class `rc`.
   //!
-  //! \note The result depends on the function calling convention used; the
+  //! NOTE: The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE uint32_t getPassed(uint32_t rc) const { return _passed.get(rc); }
 
   //! Get preserved registers mask for the given register class `rc`.
   //!
-  //! \note The result depends on the function calling convention used; the
+  //! NOTE: The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE uint32_t getPreserved(uint32_t rc) const { return _preserved.get(rc); }
 
-  //! Get ther order of passed registers (Gp).
+  //! Get ther order of passed registers (GP).
   //!
-  //! \note The result depends on the function calling convention used; the
+  //! NOTE: The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE const uint8_t* getPassedOrderGp() const { return _passedOrderGp; }
 
-  //! Get ther order of passed registers (Xmm/Ymm/Zmm).
+  //! Get ther order of passed registers (XMM/YMM/ZMM).
   //!
-  //! \note The result depends on the function calling convention used; the
+  //! NOTE: The result depends on the function calling convention used; the
   //! prototype of the function doesn't affect the mask returned.
   ASMJIT_INLINE const uint8_t* getPassedOrderXyz() const { return _passedOrderXyz; }
 
@@ -95,7 +95,7 @@ struct X86FuncDecl : public FuncDecl {
   //!
   //! This will set function calling convention and setup arguments variables.
   //!
-  //! \note This function will allocate variables, it can be called only once.
+  //! NOTE: This function will allocate variables, it can be called only once.
   ASMJIT_API Error setPrototype(const FuncPrototype& p);
 
   // --------------------------------------------------------------------------
@@ -115,9 +115,9 @@ struct X86FuncDecl : public FuncDecl {
   //! Preserved registers (defined by the calling convention).
   X86RegMask _preserved;
 
-  //! Order of registers used to pass Gp function arguments.
+  //! Order of registers used to pass GP function arguments.
   uint8_t _passedOrderGp[8];
-  //! Order of registers used to pass Xmm function arguments.
+  //! Order of registers used to pass XMM/YMM/ZMM function arguments.
   uint8_t _passedOrderXyz[8];
 };
 

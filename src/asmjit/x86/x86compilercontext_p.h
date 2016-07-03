@@ -170,19 +170,19 @@ union X86StateCell {
 //! X86/X64 state.
 struct X86VarState : VarState {
   enum {
-    //! Base index of Gp registers.
+    //! Base index of GP registers.
     kGpIndex = 0,
-    //! Count of Gp registers.
+    //! Count of GP registers.
     kGpCount = 16,
 
-    //! Base index of Mm registers.
+    //! Base index of MMX registers.
     kMmIndex = kGpIndex + kGpCount,
     //! Count of Mm registers.
     kMmCount = 8,
 
-    //! Base index of Xmm registers.
+    //! Base index of XMM registers.
     kXmmIndex = kMmIndex + kMmCount,
-    //! Count of Xmm registers.
+    //! Count of XMM registers.
     kXmmCount = 16,
 
     //! Count of all registers in `X86VarState`.
@@ -227,11 +227,11 @@ struct X86VarState : VarState {
     VarData* _list[kAllCount];
 
     struct {
-      //! Allocated Gp registers.
+      //! Allocated GP registers.
       VarData* _listGp[kGpCount];
-      //! Allocated Mm registers.
+      //! Allocated MMX registers.
       VarData* _listMm[kMmCount];
-      //! Allocated Xmm registers.
+      //! Allocated XMM registers.
       VarData* _listXmm[kXmmCount];
     };
   };

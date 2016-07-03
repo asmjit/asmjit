@@ -143,7 +143,7 @@ static void X86Context_annotateOperand(X86Context* self,
 static bool X86Context_annotateInstruction(X86Context* self,
   StringBuilder& sb, uint32_t instId, const Operand* opList, uint32_t opCount) {
 
-  sb.appendString(_x86InstInfo[instId].getInstName());
+  sb.appendString(X86Util::getInstNameById(instId));
   for (uint32_t i = 0; i < opCount; i++) {
     if (i == 0)
       sb.appendChar(' ');
@@ -409,7 +409,7 @@ static const X86SpecialInst x86SpecialInstScas[] = {
   { kX86RegIndexCx, kX86RegIndexCx, kVarAttrXReg }
 };
 
-static const X86SpecialInst x86SpecialInstShlrd[] = {
+static const X86SpecialInst x86SpecialInstShldShrd[] = {
   { kInvalidReg   , kInvalidReg   , kVarAttrXReg },
   { kInvalidReg   , kInvalidReg   , kVarAttrRReg },
   { kX86RegIndexCx, kInvalidReg   , kVarAttrRReg }
@@ -421,10 +421,21 @@ static const X86SpecialInst x86SpecialInstStos[] = {
   { kX86RegIndexCx, kX86RegIndexCx, kVarAttrXReg }
 };
 
-static const X86SpecialInst x86SpecialInstBlend[] = {
+static const X86SpecialInst x86SpecialInstThirdXMM0[] = {
   { kInvalidReg   , kInvalidReg   , kVarAttrWReg },
   { kInvalidReg   , kInvalidReg   , kVarAttrRReg },
   { 0             , kInvalidReg   , kVarAttrRReg }
+};
+
+static const X86SpecialInst x86SpecialInstPcmpistri[] = {
+  { kInvalidReg   , kX86RegIndexCx, kVarAttrWReg },
+  { kInvalidReg   , kInvalidReg   , kVarAttrRReg },
+  { kInvalidReg   , kInvalidReg   , kVarAttrRReg }
+};
+static const X86SpecialInst x86SpecialInstPcmpistrm[] = {
+  { kInvalidReg   , 0             , kVarAttrWReg },
+  { kInvalidReg   , kInvalidReg   , kVarAttrRReg },
+  { kInvalidReg   , kInvalidReg   , kVarAttrRReg }
 };
 
 static const X86SpecialInst x86SpecialInstXsaveXrstor[] = {
@@ -533,6 +544,7 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
 
     case kX86InstIdMaskmovq:
     case kX86InstIdMaskmovdqu:
+    case kX86InstIdVmaskmovdqu:
       return x86SpecialInstMaskmovqMaskmovdqu;
 
     // Not supported.
@@ -585,7 +597,7 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
     case kX86InstIdShrd:
       if (!opList[2].isVar())
         return nullptr;
-      return x86SpecialInstShlrd;
+      return x86SpecialInstShldShrd;
 
     case kX86InstIdRdtsc:
     case kX86InstIdRdtscp:
@@ -618,7 +630,20 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
     case kX86InstIdBlendvpd:
     case kX86InstIdBlendvps:
     case kX86InstIdPblendvb:
-      return x86SpecialInstBlend;
+    case kX86InstIdSha256rnds2:
+      return x86SpecialInstThirdXMM0;
+
+    case kX86InstIdPcmpestri:
+    case kX86InstIdPcmpistri:
+    case kX86InstIdVpcmpestri:
+    case kX86InstIdVpcmpistri:
+      return x86SpecialInstPcmpistri;
+
+    case kX86InstIdPcmpestrm:
+    case kX86InstIdPcmpistrm:
+    case kX86InstIdVpcmpestrm:
+    case kX86InstIdVpcmpistrm:
+      return x86SpecialInstPcmpistrm;
 
     case kX86InstIdXrstor:
     case kX86InstIdXrstor64:
@@ -985,22 +1010,22 @@ void X86Context::emitMoveVarOnStack(
   switch (dstType) {
     case kVarTypeInt8:
     case kVarTypeUInt8:
-      // Move DWORD (Gp).
+      // Move DWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt8, kVarTypeUInt64))
         goto _MovGpD;
 
-      // Move DWORD (Mm).
+      // Move DWORD (MMX).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeMm, kX86VarTypeMm))
         goto _MovMmD;
 
-      // Move DWORD (Xmm).
+      // Move DWORD (XMM).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeXmm, kX86VarTypeXmmPd))
         goto _MovXmmD;
       break;
 
     case kVarTypeInt16:
     case kVarTypeUInt16:
-      // Extend BYTE->WORD (Gp).
+      // Extend BYTE->WORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt8, kVarTypeUInt8)) {
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
@@ -1009,22 +1034,22 @@ void X86Context::emitMoveVarOnStack(
         goto _ExtendMovGpD;
       }
 
-      // Move DWORD (Gp).
+      // Move DWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt16, kVarTypeUInt64))
         goto _MovGpD;
 
-      // Move DWORD (Mm).
+      // Move DWORD (MMX).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeMm, kX86VarTypeMm))
         goto _MovMmD;
 
-      // Move DWORD (Xmm).
+      // Move DWORD (XMM).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeXmm, kX86VarTypeXmmPd))
         goto _MovXmmD;
       break;
 
     case kVarTypeInt32:
     case kVarTypeUInt32:
-      // Extend BYTE->DWORD (Gp).
+      // Extend BYTE->DWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt8, kVarTypeUInt8)) {
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
@@ -1033,7 +1058,7 @@ void X86Context::emitMoveVarOnStack(
         goto _ExtendMovGpD;
       }
 
-      // Extend WORD->DWORD (Gp).
+      // Extend WORD->DWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt16, kVarTypeUInt16)) {
         r1.setSize(2);
         r1.setCode(kX86RegTypeGpw, srcIndex);
@@ -1042,22 +1067,22 @@ void X86Context::emitMoveVarOnStack(
         goto _ExtendMovGpD;
       }
 
-      // Move DWORD (Gp).
+      // Move DWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt32, kVarTypeUInt64))
         goto _MovGpD;
 
-      // Move DWORD (Mm).
+      // Move DWORD (MMX).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeMm, kX86VarTypeMm))
         goto _MovMmD;
 
-      // Move DWORD (Xmm).
+      // Move DWORD (XMM).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeXmm, kX86VarTypeXmmPd))
         goto _MovXmmD;
       break;
 
     case kVarTypeInt64:
     case kVarTypeUInt64:
-      // Extend BYTE->QWORD (Gp).
+      // Extend BYTE->QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt8, kVarTypeUInt8)) {
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
@@ -1066,7 +1091,7 @@ void X86Context::emitMoveVarOnStack(
         goto _ExtendMovGpXQ;
       }
 
-      // Extend WORD->QWORD (Gp).
+      // Extend WORD->QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt16, kVarTypeUInt16)) {
         r1.setSize(2);
         r1.setCode(kX86RegTypeGpw, srcIndex);
@@ -1075,7 +1100,7 @@ void X86Context::emitMoveVarOnStack(
         goto _ExtendMovGpXQ;
       }
 
-      // Extend DWORD->QWORD (Gp).
+      // Extend DWORD->QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt32, kVarTypeUInt32)) {
         r1.setSize(4);
         r1.setCode(kX86RegTypeGpd, srcIndex);
@@ -1087,21 +1112,21 @@ void X86Context::emitMoveVarOnStack(
           goto _ZeroExtendGpDQ;
       }
 
-      // Move QWORD (Gp).
+      // Move QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt64, kVarTypeUInt64))
         goto _MovGpQ;
 
-      // Move QWORD (Mm).
+      // Move QWORD (MMX).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeMm, kX86VarTypeMm))
         goto _MovMmQ;
 
-      // Move QWORD (Xmm).
+      // Move QWORD (XMM).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeXmm, kX86VarTypeXmmPd))
         goto _MovXmmQ;
       break;
 
     case kX86VarTypeMm:
-      // Extend BYTE->QWORD (Gp).
+      // Extend BYTE->QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt8, kVarTypeUInt8)) {
         r1.setSize(1);
         r1.setCode(kX86RegTypeGpbLo, srcIndex);
@@ -1110,7 +1135,7 @@ void X86Context::emitMoveVarOnStack(
         goto _ExtendMovGpXQ;
       }
 
-      // Extend WORD->QWORD (Gp).
+      // Extend WORD->QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt16, kVarTypeUInt16)) {
         r1.setSize(2);
         r1.setCode(kX86RegTypeGpw, srcIndex);
@@ -1119,19 +1144,19 @@ void X86Context::emitMoveVarOnStack(
         goto _ExtendMovGpXQ;
       }
 
-      // Extend DWORD->QWORD (Gp).
+      // Extend DWORD->QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt32, kVarTypeUInt32))
         goto _ExtendMovGpDQ;
 
-      // Move QWORD (Gp).
+      // Move QWORD (GP).
       if (Utils::inInterval<uint32_t>(srcType, kVarTypeInt64, kVarTypeUInt64))
         goto _MovGpQ;
 
-      // Move QWORD (Mm).
+      // Move QWORD (MMX).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeMm, kX86VarTypeMm))
         goto _MovMmQ;
 
-      // Move QWORD (Xmm).
+      // Move QWORD (XMM).
       if (Utils::inInterval<uint32_t>(srcType, kX86VarTypeXmm, kX86VarTypeXmmPd))
         goto _MovXmmQ;
       break;
@@ -1240,7 +1265,7 @@ _MovMmQ:
   compiler->emit(kX86InstIdMovq, m0, r0);
   return;
 
-  // Move Xmm.
+  // Move XMM.
 _MovXmmD:
   m0.setSize(4);
   r0.setSize(16);
@@ -1385,7 +1410,7 @@ _Move32:
 
     case kVarTypeInt64:
     case kVarTypeUInt64:
-      // Move to Gpd register will also clear high DWORD of Gpq register in
+      // Move to GPD register will also clear high DWORD of GPQ register in
       // 64-bit mode.
       if (imm.isUInt32())
         goto _Move32Truncate;
@@ -2161,7 +2186,7 @@ Error X86Context::fetch() {
   if (!func->hasFuncFlag(kFuncFlagIsNaked))
     gaRegs[kX86RegClassGp] &= ~Utils::mask(kX86RegIndexBp);
 
-  // Allowed index registers (Gp/Xmm/Ymm).
+  // Allowed index registers (GP/XMM/YMM).
   const uint32_t indexMask = Utils::bits(_regCount.getGp()) & ~(Utils::mask(4, 12));
 
   // --------------------------------------------------------------------------
@@ -2446,7 +2471,7 @@ _NextGroup:
                 else {
                   // It's fine if lo-byte register is accessed in 64-bit mode;
                   // however, hi-byte has to be checked and if it's used all
-                  // registers (Gp/Xmm) could be only allocated in the lower eight
+                  // registers (GP/XMM) could be only allocated in the lower eight
                   // half. To do that, we patch 'allocableRegs' of all variables
                   // we collected until now and change the allocable restriction
                   // for variables that come after.
@@ -2492,17 +2517,15 @@ _NextGroup:
                 uint32_t combinedFlags;
 
                 if (i == 0) {
-                  // Read/Write is usualy the combination of the first operand.
+                  // Read/Write is usually the combination of the first operand.
                   combinedFlags = inFlags | outFlags;
 
-                  // Handle overwrite option.
                   if (node->getOptions() & kInstOptionOverwrite) {
+                    // Manually forcing write-only.
                     combinedFlags = outFlags;
                   }
-                  // Move instructions typically overwrite the first operand,
-                  // but there are some exceptions based on the operands' size
-                  // and type.
-                  else if (extendedInfo.isMove()) {
+                  else if (extendedInfo.isWO()) {
+                    // Write-only instruction.
                     uint32_t movSize = extendedInfo.getWriteSize();
                     uint32_t varSize = vd->getSize();
 
@@ -2520,7 +2543,7 @@ _NextGroup:
                         movSize = opSize;
 
                       // Handle the case that a 32-bit operation in 64-bit mode
-                      // always zeroes the rest of the destination register and
+                      // always clears the rest of the destination register and
                       // the case that move size is actually greater than or
                       // equal to the size of the variable.
                       if (movSize >= 4 || movSize >= varSize)
@@ -2533,12 +2556,12 @@ _NextGroup:
                       combinedFlags = outFlags;
                     }
                   }
-                  // Comparison/Test instructions don't modify any operand.
-                  else if (extendedInfo.isTest()) {
+                  else if (extendedInfo.isRO()) {
+                    // Comparison/Test instructions don't modify any operand.
                     combinedFlags = inFlags;
                   }
-                  // Imul.
                   else if (instId == kX86InstIdImul && opCount == 3) {
+                    // Imul.
                     combinedFlags = outFlags;
                   }
                 }
@@ -2576,18 +2599,18 @@ _NextGroup:
                       // Default for the first operand.
                       combinedFlags = inFlags | outFlags;
 
-                      // Move to memory - setting the right flags is important
-                      // as if it's just move to the register. It's just a bit
-                      // simpler as there are no special cases.
-                      if (extendedInfo.isMove()) {
+                      if (extendedInfo.isWO()) {
+                        // Move to memory - setting the right flags is important
+                        // as if it's just move to the register. It's just a bit
+                        // simpler as there are no special cases.
                         uint32_t movSize = Utils::iMax<uint32_t>(extendedInfo.getWriteSize(), m->getSize());
                         uint32_t varSize = vd->getSize();
 
                         if (movSize >= varSize)
                           combinedFlags = outFlags;
                       }
-                      // Comparison/Test instructions don't modify any operand.
-                      else if (extendedInfo.isTest()) {
+                      else if (extendedInfo.isRO()) {
+                        // Comparison/Test instructions don't modify any operand.
                         combinedFlags = inFlags;
                       }
                     }
@@ -5142,7 +5165,7 @@ static Error X86Context_translatePrologEpilog(X86Context* self, X86FuncNode* fun
     stackBase = -static_cast<int32_t>(func->getAlignStackSize() + func->getMoveStackSize());
   }
 
-  // Save Xmm/Mm/Gp (Mov).
+  // Save XMM/MMX/GP (Mov).
   stackPtr = stackBase;
   for (i = 0, mask = regsXmm; mask != 0; i++, mask >>= 1) {
     if (mask & 0x1) {
@@ -5208,7 +5231,7 @@ static Error X86Context_translatePrologEpilog(X86Context* self, X86FuncNode* fun
 
   compiler->_setCursor(func->getExitNode());
 
-  // Restore Xmm/Mm/Gp (Mov).
+  // Restore XMM/MMX/GP (Mov).
   stackPtr = stackBase;
   for (i = 0, mask = regsXmm; mask != 0; i++, mask >>= 1) {
     if (mask & 0x1) {

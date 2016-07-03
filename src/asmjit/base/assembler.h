@@ -252,7 +252,7 @@ class ASMJIT_VIRTAPI ErrorHandler {
 
   //! Reference this error handler.
   //!
-  //! \note This member function is provided for convenience. The default
+  //! NOTE: This member function is provided for convenience. The default
   //! implementation does nothing. If you are working in environment where
   //! multiple `ErrorHandler` instances are used by a different code generators
   //! you may provide your own functionality for reference counting. In that
@@ -261,7 +261,7 @@ class ASMJIT_VIRTAPI ErrorHandler {
 
   //! Release this error handler.
   //!
-  //! \note This member function is provided for convenience. See `addRef()`
+  //! NOTE: This member function is provided for convenience. See `addRef()`
   //! for more detailed information related to reference counting.
   ASMJIT_API virtual void release() noexcept;
 
@@ -817,7 +817,7 @@ class ASMJIT_VIRTAPI Assembler {
 
   //! Get whether the `label` is bound.
   //!
-  //! \note It's an error to pass label that is not valid. Check the validity
+  //! NOTE: It's an error to pass label that is not valid. Check the validity
   //! of the label by using `isLabelValid()` method before the bound check if
   //! you are not sure about its validity, otherwise you may hit an assertion
   //! failure in debug mode, and undefined behavior in release mode.
@@ -865,7 +865,7 @@ class ASMJIT_VIRTAPI Assembler {
 
   //! Bind the `label` to the current offset.
   //!
-  //! \note Label can be bound only once!
+  //! NOTE: Label can be bound only once!
   ASMJIT_API virtual Error bind(const Label& label) noexcept;
 
   // --------------------------------------------------------------------------

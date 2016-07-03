@@ -140,7 +140,7 @@ class HLNode {
 
   //! Create a new `HLNode`.
   //!
-  //! \note Always use compiler to create nodes.
+  //! NOTE: Always use compiler to create nodes.
   ASMJIT_INLINE HLNode(Compiler* compiler, uint32_t type) noexcept; // Defined-Later.
 
   //! Destroy the `HLNode`.
@@ -961,7 +961,7 @@ class HLFunc : public HLNode {
 
   //! Expected stack alignment (we depend on this value).
   //!
-  //! \note It can be global alignment given by the OS or described by the
+  //! NOTE: It can be global alignment given by the OS or described by the
   //! target platform ABI.
   uint32_t _expectedStackAlignment;
   //! Required stack alignment (required by SIMD instructions).

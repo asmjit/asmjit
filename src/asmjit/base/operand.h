@@ -52,8 +52,8 @@ ASMJIT_ENUM(SizeDefs) {
   kSizeQWord = 8,
   //! 10 bytes size (TWORD).
   kSizeTWord = 10,
-  //! 16 bytes size (OWORD / DQWORD).
-  kSizeOWord = 16,
+  //! 16 bytes size (DQWORD).
+  kSizeDQWord = 16,
   //! 32 bytes size (YWORD / QQWORD).
   kSizeYWord = 32,
   //! 64 bytes size (ZWORD / DQQWORD).
@@ -198,7 +198,7 @@ class Operand {
 
     //! Operand id, identifier used by `Assembler` and `Compiler`.
     //!
-    //! \note Uninitialized operand has always set id to `kInvalidValue`.
+    //! NOTE: Uninitialized operand has always set id to `kInvalidValue`.
     uint32_t id;
 
     //! \internal
@@ -544,7 +544,7 @@ struct OperandUtil {
 
   //! Get whether the id refers to `Var`.
   //!
-  //! \note The function will never return `true` if the id is `kInvalidValue`.
+  //! NOTE: The function will never return `true` if the id is `kInvalidValue`.
   //! The trick is to compare a given id to -1 (kInvalidValue) so we check both
   //! using only one comparison.
   static ASMJIT_INLINE bool isVarId(uint32_t id) noexcept {
@@ -553,7 +553,7 @@ struct OperandUtil {
 
   //! Get whether the id refers to `Label`.
   //!
-  //! \note The function will never return `true` if the id is `kInvalidValue`.
+  //! NOTE: The function will never return `true` if the id is `kInvalidValue`.
   static ASMJIT_INLINE bool isLabelId(uint32_t id) noexcept {
     return static_cast<int32_t>(id) >= 0;
   }

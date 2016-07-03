@@ -600,11 +600,181 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.fucomp(fpB);
   a.fucompp();
   a.fxam();
-  a.fxrstor(anyptr_gpA);
-  a.fxsave(anyptr_gpA);
   a.fxtract();
   a.fyl2x();
   a.fyl2xp1();
+
+  // FXSR.
+  a.fxrstor(anyptr_gpA);
+  a.fxsave(anyptr_gpA);
+
+  // XSAVE.
+  a.nop();
+
+  a.xgetbv();
+  a.xsetbv();
+
+  a.xsave(anyptr_gpA);
+  a.xsaveopt(anyptr_gpA);
+  a.xrstor(anyptr_gpA);
+
+  // POPCNT.
+  a.nop();
+
+  a.popcnt(gdA, gdB);
+  a.popcnt(gzA, gzB);
+  a.popcnt(gdA, anyptr_gpB);
+  a.popcnt(gzA, anyptr_gpB);
+
+  // LZCNT.
+  a.nop();
+
+  a.lzcnt(gdA, gdB);
+  a.lzcnt(gzA, gzB);
+  a.lzcnt(gdA, anyptr_gpB);
+  a.lzcnt(gzA, anyptr_gpB);
+
+  // BMI.
+  a.nop();
+
+  a.andn(gdA, gdB, gdC);
+  a.andn(gzA, gzB, gzC);
+  a.andn(gdA, gdB, anyptr_gpC);
+  a.andn(gzA, gzB, anyptr_gpC);
+  a.bextr(gdA, gdB, gdC);
+  a.bextr(gzA, gzB, gzC);
+  a.bextr(gdA, anyptr_gpB, gdC);
+  a.bextr(gzA, anyptr_gpB, gzC);
+  a.blsi(gdA, gdB);
+  a.blsi(gzA, gzB);
+  a.blsi(gdA, anyptr_gpB);
+  a.blsi(gzA, anyptr_gpB);
+  a.blsmsk(gdA, gdB);
+  a.blsmsk(gzA, gzB);
+  a.blsmsk(gdA, anyptr_gpB);
+  a.blsmsk(gzA, anyptr_gpB);
+  a.blsr(gdA, gdB);
+  a.blsr(gzA, gzB);
+  a.blsr(gdA, anyptr_gpB);
+  a.blsr(gzA, anyptr_gpB);
+  a.tzcnt(gdA, gdB);
+  a.tzcnt(gzA, gzB);
+  a.tzcnt(gdA, anyptr_gpB);
+  a.tzcnt(gzA, anyptr_gpB);
+
+  // BMI2.
+  a.nop();
+
+  a.bzhi(gdA, gdB, gdC);
+  a.bzhi(gzA, gzB, gzC);
+  a.bzhi(gdA, anyptr_gpB, gdC);
+  a.bzhi(gzA, anyptr_gpB, gzC);
+  a.mulx(gdA, gdB, gdC);
+  a.mulx(gzA, gzB, gzC);
+  a.mulx(gdA, gdB, anyptr_gpC);
+  a.mulx(gzA, gzB, anyptr_gpC);
+  a.pdep(gdA, gdB, gdC);
+  a.pdep(gzA, gzB, gzC);
+  a.pdep(gdA, gdB, anyptr_gpC);
+  a.pdep(gzA, gzB, anyptr_gpC);
+  a.pext(gdA, gdB, gdC);
+  a.pext(gzA, gzB, gzC);
+  a.pext(gdA, gdB, anyptr_gpC);
+  a.pext(gzA, gzB, anyptr_gpC);
+  a.rorx(gdA, gdB, 0);
+  a.rorx(gzA, gzB, 0);
+  a.rorx(gdA, anyptr_gpB, 0);
+  a.rorx(gzA, anyptr_gpB, 0);
+  a.sarx(gdA, gdB, gdC);
+  a.sarx(gzA, gzB, gzC);
+  a.sarx(gdA, anyptr_gpB, gdC);
+  a.sarx(gzA, anyptr_gpB, gzC);
+  a.shlx(gdA, gdB, gdC);
+  a.shlx(gzA, gzB, gzC);
+  a.shlx(gdA, anyptr_gpB, gdC);
+  a.shlx(gzA, anyptr_gpB, gzC);
+  a.shrx(gdA, gdB, gdC);
+  a.shrx(gzA, gzB, gzC);
+  a.shrx(gdA, anyptr_gpB, gdC);
+  a.shrx(gzA, anyptr_gpB, gzC);
+
+  // ADX.
+  a.nop();
+
+  a.adcx(gdA, gdB);
+  a.adcx(gzA, gzB);
+  a.adcx(gdA, anyptr_gpB);
+  a.adcx(gzA, anyptr_gpB);
+  a.adox(gdA, gdB);
+  a.adox(gzA, gzB);
+  a.adox(gdA, anyptr_gpB);
+  a.adox(gzA, anyptr_gpB);
+
+  // TBM.
+  a.nop();
+
+  a.blcfill(gdA, gdB);
+  a.blcfill(gzA, gzB);
+  a.blcfill(gdA, anyptr_gpB);
+  a.blcfill(gzA, anyptr_gpB);
+
+  a.blci(gdA, gdB);
+  a.blci(gzA, gzB);
+  a.blci(gdA, anyptr_gpB);
+  a.blci(gzA, anyptr_gpB);
+
+  a.blcic(gdA, gdB);
+  a.blcic(gzA, gzB);
+  a.blcic(gdA, anyptr_gpB);
+  a.blcic(gzA, anyptr_gpB);
+
+  a.blcmsk(gdA, gdB);
+  a.blcmsk(gzA, gzB);
+  a.blcmsk(gdA, anyptr_gpB);
+  a.blcmsk(gzA, anyptr_gpB);
+
+  a.blcs(gdA, gdB);
+  a.blcs(gzA, gzB);
+  a.blcs(gdA, anyptr_gpB);
+  a.blcs(gzA, anyptr_gpB);
+
+  a.blsfill(gdA, gdB);
+  a.blsfill(gzA, gzB);
+  a.blsfill(gdA, anyptr_gpB);
+  a.blsfill(gzA, anyptr_gpB);
+
+  a.blsic(gdA, gdB);
+  a.blsic(gzA, gzB);
+  a.blsic(gdA, anyptr_gpB);
+  a.blsic(gzA, anyptr_gpB);
+
+  a.t1mskc(gdA, gdB);
+  a.t1mskc(gzA, gzB);
+  a.t1mskc(gdA, anyptr_gpB);
+  a.t1mskc(gzA, anyptr_gpB);
+
+  a.tzmsk(gdA, gdB);
+  a.tzmsk(gzA, gzB);
+  a.tzmsk(gdA, anyptr_gpB);
+  a.tzmsk(gzA, anyptr_gpB);
+
+  // CLFLUSH / CLFLUSH_OPT.
+  a.nop();
+  a.clflush(anyptr_gpA);
+  a.clflushopt(anyptr_gpA);
+
+  // PREFETCHW / PREFETCHWT1.
+  a.nop();
+  a.prefetchw(anyptr_gpA);
+  a.prefetchwt1(anyptr_gpA);
+
+  // RDRAND / RDSEED.
+  a.nop();
+
+  a.rdrand(gdA);
+  a.rdrand(gzA);
+  a.rdseed(gdA);
+  a.rdseed(gzA);
 
   // MMX/MMX-EXT.
   a.nop();
@@ -713,6 +883,8 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   // 3DNOW!
   a.nop();
 
+  a.pavgusb(mmA, mmB);
+  a.pavgusb(mmA, anyptr_gpB);
   a.pf2id(mmA, mmB);
   a.pf2id(mmA, anyptr_gpB);
   a.pf2iw(mmA, mmB);
@@ -755,10 +927,11 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.pi2fd(mmA, anyptr_gpB);
   a.pi2fw(mmA, mmB);
   a.pi2fw(mmA, anyptr_gpB);
+  a.pmulhrw(mmA, mmB);
+  a.pmulhrw(mmA, anyptr_gpB);
   a.pswapd(mmA, mmB);
   a.pswapd(mmA, anyptr_gpB);
   a.prefetch3dnow(anyptr_gpA);
-  a.prefetchw3dnow(anyptr_gpA);
   a.femms();
 
   // SSE.
@@ -899,7 +1072,6 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.andnpd(xmmA, anyptr_gpB);
   a.andpd(xmmA, xmmB);
   a.andpd(xmmA, anyptr_gpB);
-  a.clflush(anyptr_gpA);
   a.cmppd(xmmA, xmmB, 0);
   a.cmppd(xmmA, anyptr_gpB, 0);
   a.cmpsd(xmmA, xmmB, 0);
@@ -1358,12 +1530,6 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.movntsd(anyptr_gpA, xmmB);
   a.movntss(anyptr_gpA, xmmB);
 
-  // POPCNT.
-  a.nop();
-
-  a.popcnt(gzA, gzB);
-  a.popcnt(gzA, anyptr_gpB);
-
   // AESNI.
   a.nop();
 
@@ -1380,21 +1546,29 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.aeskeygenassist(xmmA, xmmB, 0);
   a.aeskeygenassist(xmmA, anyptr_gpB, 0);
 
+  // SHA.
+  a.nop();
+
+  a.sha1msg1(xmmA, xmmB);
+  a.sha1msg1(xmmA, anyptr_gpB);
+  a.sha1msg2(xmmA, xmmB);
+  a.sha1msg2(xmmA, anyptr_gpB);
+  a.sha1nexte(xmmA, xmmB);
+  a.sha1nexte(xmmA, anyptr_gpB);
+  a.sha1rnds4(xmmA, xmmB, 0);
+  a.sha1rnds4(xmmA, anyptr_gpB, 0);
+  a.sha256msg1(xmmA, xmmB);
+  a.sha256msg1(xmmA, anyptr_gpB);
+  a.sha256msg2(xmmA, xmmB);
+  a.sha256msg2(xmmA, anyptr_gpB);
+  a.sha256rnds2(xmmA, xmmB);
+  a.sha256rnds2(xmmA, anyptr_gpB);
+
   // PCLMULQDQ.
   a.nop();
 
   a.pclmulqdq(xmmA, xmmB, 0);
   a.pclmulqdq(xmmA, anyptr_gpB, 0);
-
-  // XSAVE.
-  a.nop();
-
-  a.xgetbv();
-  a.xsetbv();
-
-  a.xsave(anyptr_gpA);
-  a.xsaveopt(anyptr_gpA);
-  a.xrstor(anyptr_gpA);
 
   // AVX.
   a.nop();
@@ -2822,87 +2996,6 @@ static void opcode(asmjit::X86Assembler& a, bool useRex1 = false, bool useRex2 =
   a.vpshlw(xmmA, xmmB, xmmC);
   a.vpshlw(xmmA, anyptr_gpB, xmmC);
   a.vpshlw(xmmA, xmmB, anyptr_gpC);
-
-  // BMI.
-  a.nop();
-
-  a.andn(gdA, gdB, gdC);
-  a.andn(gzA, gzB, gzC);
-  a.andn(gdA, gdB, anyptr_gpC);
-  a.andn(gzA, gzB, anyptr_gpC);
-  a.bextr(gdA, gdB, gdC);
-  a.bextr(gzA, gzB, gzC);
-  a.bextr(gdA, anyptr_gpB, gdC);
-  a.bextr(gzA, anyptr_gpB, gzC);
-  a.blsi(gdA, gdB);
-  a.blsi(gzA, gzB);
-  a.blsi(gdA, anyptr_gpB);
-  a.blsi(gzA, anyptr_gpB);
-  a.blsmsk(gdA, gdB);
-  a.blsmsk(gzA, gzB);
-  a.blsmsk(gdA, anyptr_gpB);
-  a.blsmsk(gzA, anyptr_gpB);
-  a.blsr(gdA, gdB);
-  a.blsr(gzA, gzB);
-  a.blsr(gdA, anyptr_gpB);
-  a.blsr(gzA, anyptr_gpB);
-
-  // LZCNT.
-  a.nop();
-
-  a.lzcnt(gdA, gdB);
-  a.lzcnt(gzA, gzB);
-  a.lzcnt(gdA, anyptr_gpB);
-  a.lzcnt(gzA, anyptr_gpB);
-
-  // TZCNT.
-  a.nop();
-
-  a.tzcnt(gdA, gdB);
-  a.tzcnt(gzA, gzB);
-  a.tzcnt(gdA, anyptr_gpB);
-  a.tzcnt(gzA, anyptr_gpB);
-
-  // BMI2.
-  a.nop();
-
-  a.bzhi(gdA, gdB, gdC);
-  a.bzhi(gzA, gzB, gzC);
-  a.bzhi(gdA, anyptr_gpB, gdC);
-  a.bzhi(gzA, anyptr_gpB, gzC);
-  a.mulx(gdA, gdB, gdC);
-  a.mulx(gzA, gzB, gzC);
-  a.mulx(gdA, gdB, anyptr_gpC);
-  a.mulx(gzA, gzB, anyptr_gpC);
-  a.pdep(gdA, gdB, gdC);
-  a.pdep(gzA, gzB, gzC);
-  a.pdep(gdA, gdB, anyptr_gpC);
-  a.pdep(gzA, gzB, anyptr_gpC);
-  a.pext(gdA, gdB, gdC);
-  a.pext(gzA, gzB, gzC);
-  a.pext(gdA, gdB, anyptr_gpC);
-  a.pext(gzA, gzB, anyptr_gpC);
-  a.rorx(gdA, gdB, 0);
-  a.rorx(gzA, gzB, 0);
-  a.rorx(gdA, anyptr_gpB, 0);
-  a.rorx(gzA, anyptr_gpB, 0);
-  a.sarx(gdA, gdB, gdC);
-  a.sarx(gzA, gzB, gzC);
-  a.sarx(gdA, anyptr_gpB, gdC);
-  a.sarx(gzA, anyptr_gpB, gzC);
-  a.shlx(gdA, gdB, gdC);
-  a.shlx(gzA, gzB, gzC);
-  a.shlx(gdA, anyptr_gpB, gdC);
-  a.shlx(gzA, anyptr_gpB, gzC);
-  a.shrx(gdA, gdB, gdC);
-  a.shrx(gzA, gzB, gzC);
-  a.shrx(gdA, anyptr_gpB, gdC);
-  a.shrx(gzA, anyptr_gpB, gzC);
-
-  // RDRAND.
-  a.nop();
-
-  a.rdrand(gzA);
 
   // F16C.
   a.nop();

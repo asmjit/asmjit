@@ -252,17 +252,17 @@
 //! be used directly (like `eax`, `mm`, `xmm`, ...) or created through
 //! these functions:
 //!
-//! - `asmjit::x86::gpb_lo()` - Get an 8-bit Gpb low register.
-//! - `asmjit::x86::gpb_hi()` - Get an 8-hi Gpb hugh register.
-//! - `asmjit::x86::gpw()` - Get a 16-bit Gpw register.
-//! - `asmjit::x86::gpd()` - Get a 32-bit Gpd register.
-//! - `asmjit::x86::gpq()` - Get a 64-bit Gpq Gp register.
-//! - `asmjit::x86::gpz()` - Get a 32-bit or 64-bit Gpd/Gpq register.
-//! - `asmjit::x86::fp()`  - Get a 80-bit Fp register.
-//! - `asmjit::x86::mm()`  - Get a 64-bit Mm register.
-//! - `asmjit::x86::xmm()` - Get a 128-bit Xmm register.
-//! - `asmjit::x86::ymm()` - Get a 256-bit Ymm register.
-//! - `asmjit::x86::amm()` - Get a 512-bit Zmm register.
+//! - `asmjit::x86::gpb_lo()` - Get an 8-bit low GPB register.
+//! - `asmjit::x86::gpb_hi()` - Get an 8-bit high GPB register.
+//! - `asmjit::x86::gpw()` - Get a 16-bit GPW register.
+//! - `asmjit::x86::gpd()` - Get a 32-bit GPD register.
+//! - `asmjit::x86::gpq()` - Get a 64-bit GPQ Gp register.
+//! - `asmjit::x86::gpz()` - Get a 32-bit or 64-bit GPD/GPQ register.
+//! - `asmjit::x86::fp()`  - Get a 80-bit FPU register.
+//! - `asmjit::x86::mm()`  - Get a 64-bit MMX register.
+//! - `asmjit::x86::xmm()` - Get a 128-bit XMM register.
+//! - `asmjit::x86::ymm()` - Get a 256-bit YMM register.
+//! - `asmjit::x86::amm()` - Get a 512-bit ZMM register.
 //!
 //! X86/X64 Addressing
 //! ------------------
@@ -272,15 +272,15 @@
 //! `BaseMem` class. These functions are used to make operands that represents
 //! memory addresses:
 //!
-//! - `asmjit::x86::ptr()`       - Address size not specified.
-//! - `asmjit::x86::byte_ptr()`  - 1 byte.
-//! - `asmjit::x86::word_ptr()`  - 2 bytes (Gpw size).
-//! - `asmjit::x86::dword_ptr()` - 4 bytes (Gpd size).
-//! - `asmjit::x86::qword_ptr()` - 8 bytes (Gpq/Mm size).
-//! - `asmjit::x86::tword_ptr()` - 10 bytes (FPU size).
-//! - `asmjit::x86::oword_ptr()` - 16 bytes (Xmm size).
-//! - `asmjit::x86::yword_ptr()` - 32 bytes (Ymm size).
-//! - `asmjit::x86::zword_ptr()` - 64 bytes (Zmm size).
+//! - `asmjit::x86::ptr()`        - Address size not specified.
+//! - `asmjit::x86::byte_ptr()`   - 1 byte.
+//! - `asmjit::x86::word_ptr()`   - 2 bytes (GPW size).
+//! - `asmjit::x86::dword_ptr()`  - 4 bytes (GPD size).
+//! - `asmjit::x86::qword_ptr()`  - 8 bytes (GPQ/MMX size).
+//! - `asmjit::x86::tword_ptr()`  - 10 bytes (FPU size).
+//! - `asmjit::x86::dqword_ptr()` - 16 bytes (XMM size).
+//! - `asmjit::x86::yword_ptr()`  - 32 bytes (YMM size).
+//! - `asmjit::x86::zword_ptr()`  - 64 bytes (ZMM size).
 //!
 //! Most useful function to make pointer should be `asmjit::x86::ptr()`. It
 //! creates a pointer to the target with an unspecified size. Unspecified size

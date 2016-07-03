@@ -122,7 +122,7 @@ namespace asmjit {
 //! Assembler is the main class in AsmJit that can encode instructions and their
 //! operands to a binary stream runnable by CPU. It creates internal buffer
 //! where the encodes instructions are stored and it contains intrinsics that
-//! can be used to emit the code in a convenent way. Code generation is in
+//! can be used to emit the code in a convenient way. Code generation is in
 //! general safe, because the intrinsics uses method overloading so even the
 //! code is emitted it can be checked by a C++ compiler. It's nearly impossible
 //! to create invalid instruction, for example `mov [eax], [eax]`, because such
@@ -281,12 +281,12 @@ namespace asmjit {
 //! offset, use `Assembler::bind()` function.
 //!
 //! See next example that contains complete code that creates simple memory
-//! copy function (in DWord entities).
+//! copy function (in DWORD entities).
 //!
 //! ~~~
 //! // Example: Usage of Label (32-bit code).
 //! //
-//! // Create simple DWord memory copy function:
+//! // Create simple DWORD memory copy function:
 //! // ASMJIT_STDCALL void copy32(uint32_t* dst, const uint32_t* src, size_t count);
 //! using namespace asmjit;
 //!
@@ -354,14 +354,14 @@ namespace asmjit {
 //! Let's define function which can be used to generate some abstract code:
 //!
 //! ~~~
-//! // Simple function that generates dword copy.
-//! void genCopyDWord(Assembler& a, const X86GpReg& dst, const X86GpReg& src, const X86GpReg& tmp) {
+//! // Simple function that generates a DWORD copy.
+//! void genDWordCopy(Assembler& a, const X86GpReg& dst, const X86GpReg& src, const X86GpReg& tmp) {
 //!   a.mov(tmp, dword_ptr(src));
 //!   a.mov(dword_ptr(dst), tmp);
 //! }
 //! ~~~
 //!
-//! This function can be called like `genCopyDWord(a, edi, esi, ebx)` or by
+//! This function can be called like `genDWordCopy(a, edi, esi, ebx)` or by
 //! using existing `X86GpReg` instances. This abstraction allows to join more
 //! code sections together without rewriting each to use specific registers.
 //! You need to take care only about implicit registers which may be used by
@@ -369,9 +369,9 @@ namespace asmjit {
 //!
 //! Next, more advanced, but often needed technique is that you can build your
 //! own registers allocator. X86 architecture contains 8 general purpose
-//! registers, 8 Mm registers and 8 Xmm/Ymm/Zmm registers. X64 architecture
-//! extends the count of Gp registers and Xmm/Ymm/Zmm registers to 16. AVX-512
-//! architecture extends Xmm/Ymm/Zmm SIMD registers to 32.
+//! registers, 8 Mm registers and 8 XMM/YMM/XMM registers. X64 architecture
+//! extends the count of GP registers and XMM/YMM/ZMM registers to 16. AVX-512
+//! architecture extends XMM/YMM/ZMM SIMD registers to 32.
 //!
 //! To create a general purpose register operand from register index use
 //! `gpb_lo()`, `gpb_hi()`, `gpw()`, `gpd()`, `gpq()`. To create registers of
@@ -474,11 +474,11 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! Add double data to the instruction stream.
   ASMJIT_INLINE void ddouble(double x) { embed(&x, sizeof(double)); }
 
-  //! Add Mm data to the instruction stream.
+  //! Add MMX data to the instruction stream.
   ASMJIT_INLINE void dmm(const Vec64& x) { embed(&x, sizeof(Vec64)); }
-  //! Add Xmm data to the instruction stream.
+  //! Add XMM data to the instruction stream.
   ASMJIT_INLINE void dxmm(const Vec128& x) { embed(&x, sizeof(Vec128)); }
-  //! Add Ymm data to the instruction stream.
+  //! Add YMM data to the instruction stream.
   ASMJIT_INLINE void dymm(const Vec256& x) { embed(&x, sizeof(Vec256)); }
 
   //! Add data in a given structure instance to the instruction stream.
@@ -809,7 +809,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   INST_0x(cdq, kX86InstIdCdq)
   //! Convert DWORD to QWORD (RAX <- Sign Extend EAX) (X64 Only).
   INST_0x(cdqe, kX86InstIdCdqe)
-  //! Convert QWORD to OWORD (RDX:RAX <- Sign Extend RAX) (X64 Only).
+  //! Convert QWORD to DQWORD (RDX:RAX <- Sign Extend RAX) (X64 Only).
   INST_0x(cqo, kX86InstIdCqo)
   //! Convert WORD to DWORD (DX:AX <- Sign Extend AX).
   INST_0x(cwd, kX86InstIdCwd)
@@ -1038,7 +1038,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Pop a segment register from the stack.
   //!
-  //! \note There is no instruction to pop a cs segment register.
+  //! NOTE: There is no instruction to pop a cs segment register.
   INST_1x(pop, kX86InstIdPop, X86SegReg);
 
   //! Pop all Gp registers - EDI|ESI|EBP|Ign|EBX|EDX|ECX|EAX (X86 Only).
@@ -1064,7 +1064,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Rotate bits left.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(rcl, kX86InstIdRcl, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(rcl, kX86InstIdRcl, X86Mem, X86GpReg)
@@ -1075,7 +1075,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Rotate bits right.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(rcr, kX86InstIdRcr, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(rcr, kX86InstIdRcr, X86Mem, X86GpReg)
@@ -1159,7 +1159,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Rotate bits left.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(rol, kX86InstIdRol, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(rol, kX86InstIdRol, X86Mem, X86GpReg)
@@ -1170,7 +1170,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Rotate bits right.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(ror, kX86InstIdRor, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(ror, kX86InstIdRor, X86Mem, X86GpReg)
@@ -1195,7 +1195,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Shift bits left.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(sal, kX86InstIdSal, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(sal, kX86InstIdSal, X86Mem, X86GpReg)
@@ -1206,7 +1206,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Shift bits right.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(sar, kX86InstIdSar, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(sar, kX86InstIdSar, X86Mem, X86GpReg)
@@ -1231,7 +1231,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Shift bits left.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(shl, kX86InstIdShl, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(shl, kX86InstIdShl, X86Mem, X86GpReg)
@@ -1242,7 +1242,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Shift bits right.
   //!
-  //! \note `o1` register can be only `cl`.
+  //! NOTE: `o1` register can be only `cl`.
   INST_2x(shr, kX86InstIdShr, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(shr, kX86InstIdShr, X86Mem, X86GpReg)
@@ -1253,7 +1253,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Double precision shift left.
   //!
-  //! \note `o2` register can be only `cl` register.
+  //! NOTE: `o2` register can be only `cl` register.
   INST_3x(shld, kX86InstIdShld, X86GpReg, X86GpReg, X86GpReg)
   //! \overload
   INST_3x(shld, kX86InstIdShld, X86Mem, X86GpReg, X86GpReg)
@@ -1264,7 +1264,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
 
   //! Double precision shift right.
   //!
-  //! \note `o2` register can be only `cl` register.
+  //! NOTE: `o2` register can be only `cl` register.
   INST_3x(shrd, kX86InstIdShrd, X86GpReg, X86GpReg, X86GpReg)
   //! \overload
   INST_3x(shrd, kX86InstIdShrd, X86Mem, X86GpReg, X86GpReg)
@@ -1595,10 +1595,6 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! Exchange `fp0` with `o0` (FPU).
   INST_1x(fxch, kX86InstIdFxch, X86FpReg)
 
-  //! Restore FP/MMX/SIMD extension states to `o0` (512 bytes) (FPU, MMX, SSE).
-  INST_1x(fxrstor, kX86InstIdFxrstor, X86Mem)
-  //! Store FP/MMX/SIMD extension states to `o0` (512 bytes) (FPU, MMX, SSE).
-  INST_1x(fxsave, kX86InstIdFxsave, X86Mem)
   //! Extract `fp0 = exponent(fp0)` and PUSH `significant(fp0)` (FPU).
   INST_0x(fxtract, kX86InstIdFxtract)
 
@@ -1606,6 +1602,241 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   INST_0x(fyl2x, kX86InstIdFyl2x)
   //! Compute `fp1 = fp1 * log2(fp0 + 1)` and POP (FPU).
   INST_0x(fyl2xp1, kX86InstIdFyl2xp1)
+
+  // --------------------------------------------------------------------------
+  // [FXSR]
+  // --------------------------------------------------------------------------
+
+  //! Restore FP/MMX/SIMD extension states to `o0` (512 bytes) (FXSR).
+  INST_1x(fxrstor, kX86InstIdFxrstor, X86Mem)
+  //! Restore FP/MMX/SIMD extension states to `o0` (512 bytes) (FXSR & X64).
+  INST_1x(fxrstor64, kX86InstIdFxrstor64, X86Mem)
+  //! Store FP/MMX/SIMD extension states to `o0` (512 bytes) (FXSR).
+  INST_1x(fxsave, kX86InstIdFxsave, X86Mem)
+  //! Store FP/MMX/SIMD extension states to `o0` (512 bytes) (FXSR & X46).
+  INST_1x(fxsave64, kX86InstIdFxsave64, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [XSAVE]
+  // --------------------------------------------------------------------------
+
+  //! Restore Processor Extended States specified by `EDX:EAX` (XSAVE).
+  INST_1x(xrstor, kX86InstIdXrstor, X86Mem)
+  //! Restore Processor Extended States specified by `EDX:EAX` (XSAVE & X64).
+  INST_1x(xrstor64, kX86InstIdXrstor64, X86Mem)
+
+  //! Save Processor Extended States specified by `EDX:EAX` (XSAVE).
+  INST_1x(xsave, kX86InstIdXsave, X86Mem)
+  //! Save Processor Extended States specified by `EDX:EAX` (XSAVE & X64).
+  INST_1x(xsave64, kX86InstIdXsave64, X86Mem)
+
+  //! Save Processor Extended States specified by `EDX:EAX` (Optimized) (XSAVEOPT).
+  INST_1x(xsaveopt, kX86InstIdXsaveopt, X86Mem)
+  //! Save Processor Extended States specified by `EDX:EAX` (Optimized) (XSAVEOPT & X64).
+  INST_1x(xsaveopt64, kX86InstIdXsaveopt64, X86Mem)
+
+  //! Get XCR - `EDX:EAX <- XCR[ECX]` (XSAVE).
+  INST_0x(xgetbv, kX86InstIdXgetbv)
+  //! Set XCR - `XCR[ECX] <- EDX:EAX` (XSAVE).
+  INST_0x(xsetbv, kX86InstIdXsetbv)
+
+  // --------------------------------------------------------------------------
+  // [POPCNT]
+  // --------------------------------------------------------------------------
+
+  //! Return the count of number of bits set to 1 (POPCNT).
+  INST_2x(popcnt, kX86InstIdPopcnt, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(popcnt, kX86InstIdPopcnt, X86GpReg, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [LZCNT]
+  // --------------------------------------------------------------------------
+
+  //! Count the number of leading zero bits (LZCNT).
+  INST_2x(lzcnt, kX86InstIdLzcnt, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(lzcnt, kX86InstIdLzcnt, X86GpReg, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [BMI]
+  // --------------------------------------------------------------------------
+
+  //! Bitwise and-not (BMI).
+  INST_3x(andn, kX86InstIdAndn, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(andn, kX86InstIdAndn, X86GpReg, X86GpReg, X86Mem)
+
+  //! Bit field extract (BMI).
+  INST_3x(bextr, kX86InstIdBextr, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(bextr, kX86InstIdBextr, X86GpReg, X86Mem, X86GpReg)
+
+  //! Extract lower set isolated bit (BMI).
+  INST_2x(blsi, kX86InstIdBlsi, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blsi, kX86InstIdBlsi, X86GpReg, X86Mem)
+
+  //! Get mask up to lowest set bit (BMI).
+  INST_2x(blsmsk, kX86InstIdBlsmsk, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blsmsk, kX86InstIdBlsmsk, X86GpReg, X86Mem)
+
+  //! Reset lowest set bit (BMI).
+  INST_2x(blsr, kX86InstIdBlsr, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blsr, kX86InstIdBlsr, X86GpReg, X86Mem)
+
+  //! Count the number of trailing zero bits (BMI).
+  INST_2x(tzcnt, kX86InstIdTzcnt, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(tzcnt, kX86InstIdTzcnt, X86GpReg, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [BMI2]
+  // --------------------------------------------------------------------------
+
+  //! Zero high bits starting with specified bit position (BMI2).
+  INST_3x(bzhi, kX86InstIdBzhi, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(bzhi, kX86InstIdBzhi, X86GpReg, X86Mem, X86GpReg)
+
+  //! Unsigned multiply without affecting flags (BMI2).
+  INST_3x(mulx, kX86InstIdMulx, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(mulx, kX86InstIdMulx, X86GpReg, X86GpReg, X86Mem)
+
+  //! Parallel bits deposit (BMI2).
+  INST_3x(pdep, kX86InstIdPdep, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(pdep, kX86InstIdPdep, X86GpReg, X86GpReg, X86Mem)
+
+  //! Parallel bits extract (BMI2).
+  INST_3x(pext, kX86InstIdPext, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(pext, kX86InstIdPext, X86GpReg, X86GpReg, X86Mem)
+
+  //! Rotate right without affecting flags (BMI2).
+  INST_3i(rorx, kX86InstIdRorx, X86GpReg, X86GpReg, Imm)
+  //! \overload
+  INST_3i(rorx, kX86InstIdRorx, X86GpReg, X86Mem, Imm)
+
+  //! Shift arithmetic right without affecting flags (BMI2).
+  INST_3x(sarx, kX86InstIdSarx, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(sarx, kX86InstIdSarx, X86GpReg, X86Mem, X86GpReg)
+
+  //! Shift logical left without affecting flags (BMI2).
+  INST_3x(shlx, kX86InstIdShlx, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(shlx, kX86InstIdShlx, X86GpReg, X86Mem, X86GpReg)
+
+  //! Shift logical right without affecting flags (BMI2).
+  INST_3x(shrx, kX86InstIdShrx, X86GpReg, X86GpReg, X86GpReg)
+  //! \overload
+  INST_3x(shrx, kX86InstIdShrx, X86GpReg, X86Mem, X86GpReg)
+
+  // --------------------------------------------------------------------------
+  // [ADX]
+  // --------------------------------------------------------------------------
+
+  //! Unsigned integer addition of two operands with carry flag (ADX).
+  INST_2x(adcx, kX86InstIdAdcx, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(adcx, kX86InstIdAdcx, X86GpReg, X86Mem)
+
+  //! Unsigned integer addition of two operands with overflow flag (ADX).
+  INST_2x(adox, kX86InstIdAdox, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(adox, kX86InstIdAdox, X86GpReg, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [TBM]
+  // --------------------------------------------------------------------------
+
+  //! Fill from lowest clear bit (TBM).
+  INST_2x(blcfill, kX86InstIdBlcfill, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blcfill, kX86InstIdBlcfill, X86GpReg, X86Mem)
+
+  //! Isolate lowest clear bit (TBM).
+  INST_2x(blci, kX86InstIdBlci, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blci, kX86InstIdBlci, X86GpReg, X86Mem)
+
+  //! Isolate lowest clear bit and complement (TBM).
+  INST_2x(blcic, kX86InstIdBlcic, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blcic, kX86InstIdBlcic, X86GpReg, X86Mem)
+
+  //! Mask from lowest clear bit (TBM).
+  INST_2x(blcmsk, kX86InstIdBlcmsk, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blcmsk, kX86InstIdBlcmsk, X86GpReg, X86Mem)
+
+  //! Set lowest clear bit (TBM).
+  INST_2x(blcs, kX86InstIdBlcs, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blcs, kX86InstIdBlcs, X86GpReg, X86Mem)
+
+  //! Fill from lowest set bit (TBM).
+  INST_2x(blsfill, kX86InstIdBlsfill, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blsfill, kX86InstIdBlsfill, X86GpReg, X86Mem)
+
+  //! Isolate lowest set bit and complement (TBM).
+  INST_2x(blsic, kX86InstIdBlsic, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(blsic, kX86InstIdBlsic, X86GpReg, X86Mem)
+
+  //! Inverse mask from trailing ones (TBM)
+  INST_2x(t1mskc, kX86InstIdT1mskc, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(t1mskc, kX86InstIdT1mskc, X86GpReg, X86Mem)
+
+  //! Mask from trailing zeros (TBM)
+  INST_2x(tzmsk, kX86InstIdTzmsk, X86GpReg, X86GpReg)
+  //! \overload
+  INST_2x(tzmsk, kX86InstIdTzmsk, X86GpReg, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [CLFLUSH / CLFLUSH_OPT]
+  // --------------------------------------------------------------------------
+
+  //! Flush cache line (CLFLUSH).
+  INST_1x(clflush, kX86InstIdClflush, X86Mem)
+
+  //! Flush cache line (CLFLUSH_OPT).
+  INST_1x(clflushopt, kX86InstIdClflushopt, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [PREFETCHW / PREFETCHW1]
+  // --------------------------------------------------------------------------
+
+  //! Prefetch data into caches in anticipation of a write (3DNOW / PREFETCHW).
+  INST_1x(prefetchw, kX86InstIdPrefetchw, X86Mem)
+
+  //! Prefetch vector data into caches with intent to write and T1 hint (PREFETCHWT1).
+  INST_1x(prefetchwt1, kX86InstIdPrefetchwt1, X86Mem)
+
+  // --------------------------------------------------------------------------
+  // [RDRAND / RDSEED]
+  // --------------------------------------------------------------------------
+
+  //! Store a pseudo-random number in destination register (crypto-unsafe) (RDRAND).
+  INST_1x(rdrand, kX86InstIdRdrand, X86GpReg)
+
+  //! Store a random seed in destination register (crypto-unsafe) (RDSEED).
+  INST_1x(rdseed, kX86InstIdRdseed, X86GpReg)
+
+  // --------------------------------------------------------------------------
+  // [FSGSBASE]
+  // --------------------------------------------------------------------------
+
+  INST_1x(rdfsbase, kX86InstIdRdfsbase, X86GpReg)
+  INST_1x(rdgsbase, kX86InstIdRdgsbase, X86GpReg)
+  INST_1x(wrfsbase, kX86InstIdWrfsbase, X86GpReg)
+  INST_1x(wrgsbase, kX86InstIdWrgsbase, X86GpReg)
 
   // --------------------------------------------------------------------------
   // [MMX]
@@ -1875,123 +2106,130 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   // [3dNow]
   // -------------------------------------------------------------------------
 
-  //! Packed SP-FP to DWORD convert (3dNow!).
+  //! Packed unsigned BYTE average (3DNOW).
+  INST_2x(pavgusb, kX86InstIdPavgusb, X86MmReg, X86MmReg)
+  //! \overload
+  INST_2x(pavgusb, kX86InstIdPavgusb, X86MmReg, X86Mem)
+
+  //! Packed SP-FP to DWORD convert (3DNOW).
   INST_2x(pf2id, kX86InstIdPf2id, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pf2id, kX86InstIdPf2id, X86MmReg, X86Mem)
 
-  //!  Packed SP-FP to WORD convert (3dNow!).
+  //!  Packed SP-FP to WORD convert (3DNOW).
   INST_2x(pf2iw, kX86InstIdPf2iw, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pf2iw, kX86InstIdPf2iw, X86MmReg, X86Mem)
 
-  //! Packed SP-FP accumulate (3dNow!).
+  //! Packed SP-FP accumulate (3DNOW).
   INST_2x(pfacc, kX86InstIdPfacc, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfacc, kX86InstIdPfacc, X86MmReg, X86Mem)
 
-  //! Packed SP-FP addition (3dNow!).
+  //! Packed SP-FP addition (3DNOW).
   INST_2x(pfadd, kX86InstIdPfadd, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfadd, kX86InstIdPfadd, X86MmReg, X86Mem)
 
-  //! Packed SP-FP compare - dst == src (3dNow!).
+  //! Packed SP-FP compare - dst == src (3DNOW).
   INST_2x(pfcmpeq, kX86InstIdPfcmpeq, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfcmpeq, kX86InstIdPfcmpeq, X86MmReg, X86Mem)
 
-  //! Packed SP-FP compare - dst >= src (3dNow!).
+  //! Packed SP-FP compare - dst >= src (3DNOW).
   INST_2x(pfcmpge, kX86InstIdPfcmpge, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfcmpge, kX86InstIdPfcmpge, X86MmReg, X86Mem)
 
-  //! Packed SP-FP compare - dst > src (3dNow!).
+  //! Packed SP-FP compare - dst > src (3DNOW).
   INST_2x(pfcmpgt, kX86InstIdPfcmpgt, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfcmpgt, kX86InstIdPfcmpgt, X86MmReg, X86Mem)
 
-  //! Packed SP-FP maximum (3dNow!).
+  //! Packed SP-FP maximum (3DNOW).
   INST_2x(pfmax, kX86InstIdPfmax, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfmax, kX86InstIdPfmax, X86MmReg, X86Mem)
 
-  //! Packed SP-FP minimum (3dNow!).
+  //! Packed SP-FP minimum (3DNOW).
   INST_2x(pfmin, kX86InstIdPfmin, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfmin, kX86InstIdPfmin, X86MmReg, X86Mem)
 
-  //! Packed SP-FP multiply (3dNow!).
+  //! Packed SP-FP multiply (3DNOW).
   INST_2x(pfmul, kX86InstIdPfmul, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfmul, kX86InstIdPfmul, X86MmReg, X86Mem)
 
-  //! Packed SP-FP negative accumulate (3dNow!).
+  //! Packed SP-FP negative accumulate (3DNOW).
   INST_2x(pfnacc, kX86InstIdPfnacc, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfnacc, kX86InstIdPfnacc, X86MmReg, X86Mem)
 
-  //! Packed SP-FP mixed accumulate (3dNow!).
+  //! Packed SP-FP mixed accumulate (3DNOW).
   INST_2x(pfpnacc, kX86InstIdPfpnacc, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfpnacc, kX86InstIdPfpnacc, X86MmReg, X86Mem)
 
-  //! Packed SP-FP reciprocal Approximation (3dNow!).
+  //! Packed SP-FP reciprocal Approximation (3DNOW).
   INST_2x(pfrcp, kX86InstIdPfrcp, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfrcp, kX86InstIdPfrcp, X86MmReg, X86Mem)
 
-  //! Packed SP-FP reciprocal, first iteration step (3dNow!).
+  //! Packed SP-FP reciprocal, first iteration step (3DNOW).
   INST_2x(pfrcpit1, kX86InstIdPfrcpit1, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfrcpit1, kX86InstIdPfrcpit1, X86MmReg, X86Mem)
 
-  //! Packed SP-FP reciprocal, second iteration step (3dNow!).
+  //! Packed SP-FP reciprocal, second iteration step (3DNOW).
   INST_2x(pfrcpit2, kX86InstIdPfrcpit2, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfrcpit2, kX86InstIdPfrcpit2, X86MmReg, X86Mem)
 
-  //! Packed SP-FP reciprocal square root, first iteration step (3dNow!).
+  //! Packed SP-FP reciprocal square root, first iteration step (3DNOW).
   INST_2x(pfrsqit1, kX86InstIdPfrsqit1, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfrsqit1, kX86InstIdPfrsqit1, X86MmReg, X86Mem)
 
-  //! Packed SP-FP reciprocal square root approximation (3dNow!).
+  //! Packed SP-FP reciprocal square root approximation (3DNOW).
   INST_2x(pfrsqrt, kX86InstIdPfrsqrt, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfrsqrt, kX86InstIdPfrsqrt, X86MmReg, X86Mem)
 
-  //! Packed SP-FP subtract (3dNow!).
+  //! Packed SP-FP subtract (3DNOW).
   INST_2x(pfsub, kX86InstIdPfsub, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfsub, kX86InstIdPfsub, X86MmReg, X86Mem)
 
-  //! Packed SP-FP reverse subtract (3dNow!).
+  //! Packed SP-FP reverse subtract (3DNOW).
   INST_2x(pfsubr, kX86InstIdPfsubr, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pfsubr, kX86InstIdPfsubr, X86MmReg, X86Mem)
 
-  //! Packed DWORDs to SP-FP (3dNow!).
+  //! Packed DWORDs to SP-FP (3DNOW).
   INST_2x(pi2fd, kX86InstIdPi2fd, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pi2fd, kX86InstIdPi2fd, X86MmReg, X86Mem)
 
-  //! Packed WORDs to SP-FP (3dNow!).
+  //! Packed WORDs to SP-FP (3DNOW).
   INST_2x(pi2fw, kX86InstIdPi2fw, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pi2fw, kX86InstIdPi2fw, X86MmReg, X86Mem)
 
-  //! Packed swap DWORDs (3dNow!)
+  //! Packed multiply WORD with rounding (3DNOW).
+  INST_2x(pmulhrw, kX86InstIdPmulhrw, X86MmReg, X86MmReg)
+  //! \overload
+  INST_2x(pmulhrw, kX86InstIdPmulhrw, X86MmReg, X86Mem)
+
+  //! Packed swap DWORDs (3DNOW).
   INST_2x(pswapd, kX86InstIdPswapd, X86MmReg, X86MmReg)
   //! \overload
   INST_2x(pswapd, kX86InstIdPswapd, X86MmReg, X86Mem)
 
-  //! Prefetch (3dNow!).
+  //! Prefetch (3DNOW).
   INST_1x(prefetch3dnow, kX86InstIdPrefetch3dNow, X86Mem)
 
-  //! Prefetch and set cache to modified (3dNow!).
-  INST_1x(prefetchw3dnow, kX86InstIdPrefetchw3dNow, X86Mem)
-
-  //! Faster EMMS (3dNow!).
+  //! Faster EMMS (3DNOW).
   INST_0x(femms, kX86InstIdFemms)
 
   // --------------------------------------------------------------------------
@@ -2337,9 +2575,6 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2x(andpd, kX86InstIdAndpd, X86XmmReg, X86Mem)
 
-  //! Flush cache line (SSE2).
-  INST_1x(clflush, kX86InstIdClflush, X86Mem)
-
   //! Packed DP-FP compare (SSE2).
   INST_3i(cmppd, kX86InstIdCmppd, X86XmmReg, X86XmmReg, Imm)
   //! \overload
@@ -2448,7 +2683,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! Load fence (SSE2).
   INST_0x(lfence, kX86InstIdLfence)
 
-  //! Store selected bytes of OWORD to DS:EDI/RDI (SSE2).
+  //! Store selected bytes of DQWORD to DS:EDI/RDI (SSE2).
   INST_2x(maskmovdqu, kX86InstIdMaskmovdqu, X86XmmReg, X86XmmReg)
 
   //! Packed DP-FP maximum (SSE2).
@@ -2474,14 +2709,14 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2x(minsd, kX86InstIdMinsd, X86XmmReg, X86Mem)
 
-  //! Move aligned OWORD (SSE2).
+  //! Move aligned DQWORD (SSE2).
   INST_2x(movdqa, kX86InstIdMovdqa, X86XmmReg, X86XmmReg)
   //! \overload
   INST_2x(movdqa, kX86InstIdMovdqa, X86XmmReg, X86Mem)
   //! \overload
   INST_2x(movdqa, kX86InstIdMovdqa, X86Mem, X86XmmReg)
 
-  //! Move unaligned OWORD (SSE2).
+  //! Move unaligned DQWORD (SSE2).
   INST_2x(movdqu, kX86InstIdMovdqu, X86XmmReg, X86XmmReg)
   //! \overload
   INST_2x(movdqu, kX86InstIdMovdqu, X86XmmReg, X86Mem)
@@ -2508,10 +2743,10 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2x(movapd, kX86InstIdMovapd, X86Mem, X86XmmReg)
 
-  //! Move QWORD from Xmm to Mm register (SSE2).
+  //! Move QWORD from XMM to MMX register (SSE2).
   INST_2x(movdq2q, kX86InstIdMovdq2q, X86MmReg, X86XmmReg)
 
-  //! Move QWORD from Mm to Xmm register (SSE2).
+  //! Move QWORD from MMX to XMM register (SSE2).
   INST_2x(movq2dq, kX86InstIdMovq2dq, X86XmmReg, X86MmReg)
 
   //! Move high packed DP-FP (SSE2).
@@ -2524,7 +2759,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2x(movlpd, kX86InstIdMovlpd, X86Mem, X86XmmReg)
 
-  //! Store OWORD using NT hint (SSE2).
+  //! Store DQWORD using NT hint (SSE2).
   INST_2x(movntdq, kX86InstIdMovntdq, X86Mem, X86XmmReg)
 
   //! Store DWORD using NT hint (SSE2).
@@ -2750,7 +2985,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2i(psllw, kX86InstIdPsllw, X86XmmReg, Imm)
 
-  //! Packed OWORD shift left logical (SSE2).
+  //! Packed DQWORD shift left logical (SSE2).
   INST_2i(pslldq, kX86InstIdPslldq, X86XmmReg, Imm)
 
   //! Packed DWORD shift right arithmetic (SSE2).
@@ -2826,7 +3061,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2i(psrlq, kX86InstIdPsrlq, X86XmmReg, Imm)
 
-  //! Scalar OWORD shift right logical (SSE2).
+  //! Scalar DQWORD shift right logical (SSE2).
   INST_2i(psrldq, kX86InstIdPsrldq, X86XmmReg, Imm)
 
   //! Packed WORD shift right logical (SSE2).
@@ -2866,7 +3101,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2x(punpckhdq, kX86InstIdPunpckhdq, X86XmmReg, X86Mem)
 
-  //! Unpack high packed QWORDs to OWORD (SSE2).
+  //! Unpack high packed QWORDs to DQWORD (SSE2).
   INST_2x(punpckhqdq, kX86InstIdPunpckhqdq, X86XmmReg, X86XmmReg)
   //! \overload
   INST_2x(punpckhqdq, kX86InstIdPunpckhqdq, X86XmmReg, X86Mem)
@@ -2886,7 +3121,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_2x(punpckldq, kX86InstIdPunpckldq, X86XmmReg, X86Mem)
 
-  //! Unpack low packed QWORDs to OWORD (SSE2).
+  //! Unpack low packed QWORDs to DQWORD (SSE2).
   INST_2x(punpcklqdq, kX86InstIdPunpcklqdq, X86XmmReg, X86XmmReg)
   //! \overload
   INST_2x(punpcklqdq, kX86InstIdPunpcklqdq, X86XmmReg, X86Mem)
@@ -3215,7 +3450,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3i(insertps, kX86InstIdInsertps, X86XmmReg, X86Mem, Imm)
 
-  //! Load OWORD aligned using NT hint (SSE4.1).
+  //! Load DQWORD aligned using NT hint (SSE4.1).
   INST_2x(movntdqa, kX86InstIdMovntdqa, X86XmmReg, X86Mem)
 
   //! Packed WORD sums of absolute difference (SSE4.1).
@@ -3420,27 +3655,27 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   // [SSE4.2]
   // --------------------------------------------------------------------------
 
-  //! Accumulate crc32 value (polynomial 0x11EDC6F41) (SSE4.2).
+  //! Accumulate CRC32 value (polynomial 0x11EDC6F41) (SSE4.2).
   INST_2x(crc32, kX86InstIdCrc32, X86GpReg, X86GpReg)
   //! \overload
   INST_2x(crc32, kX86InstIdCrc32, X86GpReg, X86Mem)
 
-  //! Packed compare explicit length strings, return index (SSE4.2).
+  //! Packed compare explicit length strings, return index in ECX  (SSE4.2).
   INST_3i(pcmpestri, kX86InstIdPcmpestri, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(pcmpestri, kX86InstIdPcmpestri, X86XmmReg, X86Mem, Imm)
 
-  //! Packed compare explicit length strings, return mask (SSE4.2).
+  //! Packed compare explicit length strings, return mask in XMM0 (SSE4.2).
   INST_3i(pcmpestrm, kX86InstIdPcmpestrm, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(pcmpestrm, kX86InstIdPcmpestrm, X86XmmReg, X86Mem, Imm)
 
-  //! Packed compare implicit length strings, return index (SSE4.2).
+  //! Packed compare implicit length strings, return index in ECX (SSE4.2).
   INST_3i(pcmpistri, kX86InstIdPcmpistri, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(pcmpistri, kX86InstIdPcmpistri, X86XmmReg, X86Mem, Imm)
 
-  //! Packed compare implicit length strings, return mask (SSE4.2).
+  //! Packed compare implicit length strings, return mask in XMM0 (SSE4.2).
   INST_3i(pcmpistrm, kX86InstIdPcmpistrm, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(pcmpistrm, kX86InstIdPcmpistrm, X86XmmReg, X86Mem, Imm)
@@ -3468,24 +3703,6 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   INST_2x(movntsd, kX86InstIdMovntsd, X86Mem, X86XmmReg)
   //! Move Non-Temporal Scalar SP-FP (SSE4a).
   INST_2x(movntss, kX86InstIdMovntss, X86Mem, X86XmmReg)
-
-  // --------------------------------------------------------------------------
-  // [POPCNT]
-  // --------------------------------------------------------------------------
-
-  //! Return the count of number of bits set to 1 (POPCNT).
-  INST_2x(popcnt, kX86InstIdPopcnt, X86GpReg, X86GpReg)
-  //! \overload
-  INST_2x(popcnt, kX86InstIdPopcnt, X86GpReg, X86Mem)
-
-  // --------------------------------------------------------------------------
-  // [LZCNT]
-  // --------------------------------------------------------------------------
-
-  //! Count the number of leading zero bits (LZCNT).
-  INST_2x(lzcnt, kX86InstIdLzcnt, X86GpReg, X86GpReg)
-  //! \overload
-  INST_2x(lzcnt, kX86InstIdLzcnt, X86GpReg, X86Mem)
 
   // --------------------------------------------------------------------------
   // [AESNI]
@@ -3522,37 +3739,52 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   INST_3i(aeskeygenassist, kX86InstIdAeskeygenassist, X86XmmReg, X86Mem, Imm)
 
   // --------------------------------------------------------------------------
+  // [SHA]
+  // --------------------------------------------------------------------------
+
+  //! Perform an intermediate calculation for the next four SHA1 message DWORDs (SHA).
+  INST_2x(sha1msg1, kX86InstIdSha1msg1, X86XmmReg, X86XmmReg)
+  //! \overload
+  INST_2x(sha1msg1, kX86InstIdSha1msg1, X86XmmReg, X86Mem)
+
+  //! Perform a final calculation for the next four SHA1 message DWORDs (SHA).
+  INST_2x(sha1msg2, kX86InstIdSha1msg2, X86XmmReg, X86XmmReg)
+  //! \overload
+  INST_2x(sha1msg2, kX86InstIdSha1msg2, X86XmmReg, X86Mem)
+
+  //! Calculate SHA1 state variable E after four rounds (SHA).
+  INST_2x(sha1nexte, kX86InstIdSha1nexte, X86XmmReg, X86XmmReg)
+  //! \overload
+  INST_2x(sha1nexte, kX86InstIdSha1nexte, X86XmmReg, X86Mem)
+
+  //! Perform four rounds of SHA1 operation (SHA).
+  INST_3i(sha1rnds4, kX86InstIdSha1rnds4, X86XmmReg, X86XmmReg, Imm)
+  //! \overload
+  INST_3i(sha1rnds4, kX86InstIdSha1rnds4, X86XmmReg, X86Mem, Imm)
+
+  //! Perform an intermediate calculation for the next four SHA256 message DWORDs (SHA).
+  INST_2x(sha256msg1, kX86InstIdSha256msg1, X86XmmReg, X86XmmReg)
+  //! \overload
+  INST_2x(sha256msg1, kX86InstIdSha256msg1, X86XmmReg, X86Mem)
+
+  //! Perform a final calculation for the next four SHA256 message DWORDs (SHA).
+  INST_2x(sha256msg2, kX86InstIdSha256msg2, X86XmmReg, X86XmmReg)
+  //! \overload
+  INST_2x(sha256msg2, kX86InstIdSha256msg2, X86XmmReg, X86Mem)
+
+  //! Perform two rounds of SHA256 operation (SHA).
+  INST_2x(sha256rnds2, kX86InstIdSha256rnds2, X86XmmReg, X86XmmReg)
+  //! \overload
+  INST_2x(sha256rnds2, kX86InstIdSha256rnds2, X86XmmReg, X86Mem)
+
+  // --------------------------------------------------------------------------
   // [PCLMULQDQ]
   // --------------------------------------------------------------------------
 
-  //! Packed QWORD to OWORD carry-less multiply (PCLMULQDQ).
+  //! Packed QWORD to DQWORD carry-less multiply (PCLMULQDQ).
   INST_3i(pclmulqdq, kX86InstIdPclmulqdq, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(pclmulqdq, kX86InstIdPclmulqdq, X86XmmReg, X86Mem, Imm)
-
-  // --------------------------------------------------------------------------
-  // [XSAVE]
-  // --------------------------------------------------------------------------
-
-  //! Restore Processor Extended States specified by `EDX:EAX` (XSAVE).
-  INST_1x(xrstor, kX86InstIdXrstor, X86Mem)
-  //! Restore Processor Extended States specified by `EDX:EAX` (XSAVE&X64).
-  INST_1x(xrstor64, kX86InstIdXrstor64, X86Mem)
-
-  //! Save Processor Extended States specified by `EDX:EAX` (XSAVE).
-  INST_1x(xsave, kX86InstIdXsave, X86Mem)
-  //! Save Processor Extended States specified by `EDX:EAX` (XSAVE&X64).
-  INST_1x(xsave64, kX86InstIdXsave64, X86Mem)
-
-  //! Save Processor Extended States specified by `EDX:EAX` (Optimized) (XSAVEOPT).
-  INST_1x(xsaveopt, kX86InstIdXsaveopt, X86Mem)
-  //! Save Processor Extended States specified by `EDX:EAX` (Optimized) (XSAVEOPT&X64).
-  INST_1x(xsaveopt64, kX86InstIdXsaveopt64, X86Mem)
-
-  //! Get XCR - `EDX:EAX <- XCR[ECX]` (XSAVE).
-  INST_0x(xgetbv, kX86InstIdXgetbv)
-  //! Set XCR - `XCR[ECX] <- EDX:EAX` (XSAVE).
-  INST_0x(xsetbv, kX86InstIdXsetbv)
 
   // --------------------------------------------------------------------------
   // [AVX]
@@ -3935,7 +4167,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! Load streaming SIMD extension control/status (AVX).
   INST_1x(vldmxcsr, kX86InstIdVldmxcsr, X86Mem)
 
-  //! Store selected bytes of OWORD to DS:EDI/RDI (AVX).
+  //! Store selected bytes of DQWORD to DS:EDI/RDI (AVX).
   INST_2x(vmaskmovdqu, kX86InstIdVmaskmovdqu, X86XmmReg, X86XmmReg)
 
   //! Conditionally load packed DP-FP from `o2` using mask in `o1 and store in `o0` (AVX).
@@ -4407,22 +4639,22 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3x(vpcmpgtw, kX86InstIdVpcmpgtw, X86XmmReg, X86XmmReg, X86Mem)
 
-  //! Packed compare explicit length strings, return index (AVX).
+  //! Packed compare explicit length strings, return index in ECX (AVX).
   INST_3i(vpcmpestri, kX86InstIdVpcmpestri, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(vpcmpestri, kX86InstIdVpcmpestri, X86XmmReg, X86Mem, Imm)
 
-  //! Packed compare explicit length strings, return mask (AVX).
+  //! Packed compare explicit length strings, return mask in XMM0 (AVX).
   INST_3i(vpcmpestrm, kX86InstIdVpcmpestrm, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(vpcmpestrm, kX86InstIdVpcmpestrm, X86XmmReg, X86Mem, Imm)
 
-  //! Packed compare implicit length strings, return index (AVX).
+  //! Packed compare implicit length strings, return index in ECX (AVX).
   INST_3i(vpcmpistri, kX86InstIdVpcmpistri, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(vpcmpistri, kX86InstIdVpcmpistri, X86XmmReg, X86Mem, Imm)
 
-  //! Packed compare implicit length strings, return mask (AVX).
+  //! Packed compare implicit length strings, return mask in XMM0 (AVX).
   INST_3i(vpcmpistrm, kX86InstIdVpcmpistrm, X86XmmReg, X86XmmReg, Imm)
   //! \overload
   INST_3i(vpcmpistrm, kX86InstIdVpcmpistrm, X86XmmReg, X86Mem, Imm)
@@ -4761,7 +4993,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3i(vpslld, kX86InstIdVpslld, X86XmmReg, X86XmmReg, Imm)
 
-  //! Packed OWORD shift left logical (AVX).
+  //! Packed DQWORD shift left logical (AVX).
   INST_3i(vpslldq, kX86InstIdVpslldq, X86XmmReg, X86XmmReg, Imm)
 
   //! Packed QWORD shift left logical (AVX).
@@ -4799,7 +5031,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3i(vpsrld, kX86InstIdVpsrld, X86XmmReg, X86XmmReg, Imm)
 
-  //! Scalar OWORD shift right logical (AVX).
+  //! Scalar DQWORD shift right logical (AVX).
   INST_3i(vpsrldq, kX86InstIdVpsrldq, X86XmmReg, X86XmmReg, Imm)
 
   //! Packed QWORD shift right logical (AVX).
@@ -4875,7 +5107,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3x(vpunpckhdq, kX86InstIdVpunpckhdq, X86XmmReg, X86XmmReg, X86Mem)
 
-  //! Unpack high packed QWORDs to OWORD (AVX).
+  //! Unpack high packed QWORDs to DQWORD (AVX).
   INST_3x(vpunpckhqdq, kX86InstIdVpunpckhqdq, X86XmmReg, X86XmmReg, X86XmmReg)
   //! \overload
   INST_3x(vpunpckhqdq, kX86InstIdVpunpckhqdq, X86XmmReg, X86XmmReg, X86Mem)
@@ -4895,7 +5127,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3x(vpunpckldq, kX86InstIdVpunpckldq, X86XmmReg, X86XmmReg, X86Mem)
 
-  //! Unpack low packed QWORDs to OWORD (AVX).
+  //! Unpack low packed QWORDs to DQWORD (AVX).
   INST_3x(vpunpcklqdq, kX86InstIdVpunpcklqdq, X86XmmReg, X86XmmReg, X86XmmReg)
   //! \overload
   INST_3x(vpunpcklqdq, kX86InstIdVpunpcklqdq, X86XmmReg, X86XmmReg, X86Mem)
@@ -5125,9 +5357,9 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3x(vxorps, kX86InstIdVxorps, X86YmmReg, X86YmmReg, X86Mem)
 
-  //! Zero all Ymm registers.
+  //! Zero all YMM registers.
   INST_0x(vzeroall, kX86InstIdVzeroall)
-  //! Zero upper 128-bits of all Ymm registers.
+  //! Zero upper 128-bits of all YMM registers.
   INST_0x(vzeroupper, kX86InstIdVzeroupper)
 
   // --------------------------------------------------------------------------
@@ -5191,22 +5423,22 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3i(vextracti128, kX86InstIdVextracti128, X86Mem, X86YmmReg, Imm)
 
-  //! Gather DP-FP from DWORD indicies specified in `o1`s VSIB (AVX2).
+  //! Gather DP-FP from DWORD indexes specified in `o1`s VSIB (AVX2).
   INST_3x(vgatherdpd, kX86InstIdVgatherdpd, X86XmmReg, X86Mem, X86XmmReg)
   //! \overload
   INST_3x(vgatherdpd, kX86InstIdVgatherdpd, X86YmmReg, X86Mem, X86YmmReg)
 
-  //! Gather SP-FP from DWORD indicies specified in `o1`s VSIB (AVX2).
+  //! Gather SP-FP from DWORD indexes specified in `o1`s VSIB (AVX2).
   INST_3x(vgatherdps, kX86InstIdVgatherdps, X86XmmReg, X86Mem, X86XmmReg)
   //! \overload
   INST_3x(vgatherdps, kX86InstIdVgatherdps, X86YmmReg, X86Mem, X86YmmReg)
 
-  //! Gather DP-FP from QWORD indicies specified in `o1`s VSIB (AVX2).
+  //! Gather DP-FP from QWORD indexes specified in `o1`s VSIB (AVX2).
   INST_3x(vgatherqpd, kX86InstIdVgatherqpd, X86XmmReg, X86Mem, X86XmmReg)
   //! \overload
   INST_3x(vgatherqpd, kX86InstIdVgatherqpd, X86YmmReg, X86Mem, X86YmmReg)
 
-  //! Gather SP-FP from QWORD indicies specified in `o1`s VSIB (AVX2).
+  //! Gather SP-FP from QWORD indexes specified in `o1`s VSIB (AVX2).
   INST_3x(vgatherqps, kX86InstIdVgatherqps, X86XmmReg, X86Mem, X86XmmReg)
 
   //! Insert 128-bit of packed data based on selector (AVX2).
@@ -5417,7 +5649,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3x(vpcmpgtw, kX86InstIdVpcmpgtw, X86YmmReg, X86YmmReg, X86Mem)
 
-  //! Packed OWORD permute (AVX2).
+  //! Packed DQWORD permute (AVX2).
   INST_4i(vperm2i128, kX86InstIdVperm2i128, X86YmmReg, X86YmmReg, X86YmmReg, Imm)
   //! \overload
   INST_4i(vperm2i128, kX86InstIdVperm2i128, X86YmmReg, X86YmmReg, X86Mem, Imm)
@@ -5713,7 +5945,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3i(vpslld, kX86InstIdVpslld, X86YmmReg, X86YmmReg, Imm)
 
-  //! Packed OWORD shift left logical (AVX2).
+  //! Packed DQWORD shift left logical (AVX2).
   INST_3i(vpslldq, kX86InstIdVpslldq, X86YmmReg, X86YmmReg, Imm)
 
   //! Packed QWORD shift left logical (AVX2).
@@ -5766,7 +5998,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3i(vpsrld, kX86InstIdVpsrld, X86YmmReg, X86YmmReg, Imm)
 
-  //! Scalar OWORD shift right logical (AVX2).
+  //! Scalar DQWORD shift right logical (AVX2).
   INST_3i(vpsrldq, kX86InstIdVpsrldq, X86YmmReg, X86YmmReg, Imm)
 
   //! Packed QWORD shift right logical (AVX2).
@@ -5842,7 +6074,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3x(vpunpckhdq, kX86InstIdVpunpckhdq, X86YmmReg, X86YmmReg, X86YmmReg)
 
-  //! Unpack high packed QWORDs to OWORD (AVX2).
+  //! Unpack high packed QWORDs to DQWORD (AVX2).
   INST_3x(vpunpckhqdq, kX86InstIdVpunpckhqdq, X86YmmReg, X86YmmReg, X86Mem)
   //! \overload
   INST_3x(vpunpckhqdq, kX86InstIdVpunpckhqdq, X86YmmReg, X86YmmReg, X86YmmReg)
@@ -5862,7 +6094,7 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   //! \overload
   INST_3x(vpunpckldq, kX86InstIdVpunpckldq, X86YmmReg, X86YmmReg, X86YmmReg)
 
-  //! Unpack low packed QWORDs to OWORD (AVX2).
+  //! Unpack low packed QWORDs to DQWORD (AVX2).
   INST_3x(vpunpcklqdq, kX86InstIdVpunpcklqdq, X86YmmReg, X86YmmReg, X86Mem)
   //! \overload
   INST_3x(vpunpcklqdq, kX86InstIdVpunpcklqdq, X86YmmReg, X86YmmReg, X86YmmReg)
@@ -6434,95 +6666,6 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   INST_3x(vpshlw, kX86InstIdVpshlw, X86XmmReg, X86XmmReg, X86Mem)
 
   // --------------------------------------------------------------------------
-  // [BMI]
-  // --------------------------------------------------------------------------
-
-  //! Bitwise and-not (BMI).
-  INST_3x(andn, kX86InstIdAndn, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(andn, kX86InstIdAndn, X86GpReg, X86GpReg, X86Mem)
-
-  //! Bit field extract (BMI).
-  INST_3x(bextr, kX86InstIdBextr, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(bextr, kX86InstIdBextr, X86GpReg, X86Mem, X86GpReg)
-
-  //! Extract lower set isolated bit (BMI).
-  INST_2x(blsi, kX86InstIdBlsi, X86GpReg, X86GpReg)
-  //! \overload
-  INST_2x(blsi, kX86InstIdBlsi, X86GpReg, X86Mem)
-
-  //! Get mask up to lowest set bit (BMI).
-  INST_2x(blsmsk, kX86InstIdBlsmsk, X86GpReg, X86GpReg)
-  //! \overload
-  INST_2x(blsmsk, kX86InstIdBlsmsk, X86GpReg, X86Mem)
-
-  //! Reset lowest set bit (BMI).
-  INST_2x(blsr, kX86InstIdBlsr, X86GpReg, X86GpReg)
-  //! \overload
-  INST_2x(blsr, kX86InstIdBlsr, X86GpReg, X86Mem)
-
-  //! Count the number of trailing zero bits (BMI).
-  INST_2x(tzcnt, kX86InstIdTzcnt, X86GpReg, X86GpReg)
-  //! \overload
-  INST_2x(tzcnt, kX86InstIdTzcnt, X86GpReg, X86Mem)
-
-  // --------------------------------------------------------------------------
-  // [BMI2]
-  // --------------------------------------------------------------------------
-
-  //! Zero high bits starting with specified bit position (BMI2).
-  INST_3x(bzhi, kX86InstIdBzhi, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(bzhi, kX86InstIdBzhi, X86GpReg, X86Mem, X86GpReg)
-
-  //! Unsigned multiply without affecting flags (BMI2).
-  INST_3x(mulx, kX86InstIdMulx, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(mulx, kX86InstIdMulx, X86GpReg, X86GpReg, X86Mem)
-
-  //! Parallel bits deposit (BMI2).
-  INST_3x(pdep, kX86InstIdPdep, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(pdep, kX86InstIdPdep, X86GpReg, X86GpReg, X86Mem)
-
-  //! Parallel bits extract (BMI2).
-  INST_3x(pext, kX86InstIdPext, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(pext, kX86InstIdPext, X86GpReg, X86GpReg, X86Mem)
-
-  //! Rotate right without affecting flags (BMI2).
-  INST_3i(rorx, kX86InstIdRorx, X86GpReg, X86GpReg, Imm)
-  //! \overload
-  INST_3i(rorx, kX86InstIdRorx, X86GpReg, X86Mem, Imm)
-
-  //! Shift arithmetic right without affecting flags (BMI2).
-  INST_3x(sarx, kX86InstIdSarx, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(sarx, kX86InstIdSarx, X86GpReg, X86Mem, X86GpReg)
-
-  //! Shift logical left without affecting flags (BMI2).
-  INST_3x(shlx, kX86InstIdShlx, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(shlx, kX86InstIdShlx, X86GpReg, X86Mem, X86GpReg)
-
-  //! Shift logical right without affecting flags (BMI2).
-  INST_3x(shrx, kX86InstIdShrx, X86GpReg, X86GpReg, X86GpReg)
-  //! \overload
-  INST_3x(shrx, kX86InstIdShrx, X86GpReg, X86Mem, X86GpReg)
-
-  // --------------------------------------------------------------------------
-  // [RDRAND]
-  // --------------------------------------------------------------------------
-
-  //! Store a random number in destination register (RDRAND).
-  //!
-  //! Please do not use this instruction in cryptographic software. The result
-  //! doesn't necessarily have to be random, which may cause a major security
-  //! hole in the software.
-  INST_1x(rdrand, kX86InstIdRdrand, X86GpReg)
-
-  // --------------------------------------------------------------------------
   // [F16C]
   // --------------------------------------------------------------------------
 
@@ -6543,15 +6686,6 @@ class ASMJIT_VIRTAPI X86Assembler : public Assembler {
   INST_3i(vcvtps2ph, kX86InstIdVcvtps2ph, X86XmmReg, X86YmmReg, Imm)
   //! \overload
   INST_3i(vcvtps2ph, kX86InstIdVcvtps2ph, X86Mem, X86YmmReg, Imm)
-
-  // --------------------------------------------------------------------------
-  // [FSGSBASE]
-  // --------------------------------------------------------------------------
-
-  INST_1x(rdfsbase, kX86InstIdRdfsbase, X86GpReg)
-  INST_1x(rdgsbase, kX86InstIdRdgsbase, X86GpReg)
-  INST_1x(wrfsbase, kX86InstIdWrfsbase, X86GpReg)
-  INST_1x(wrgsbase, kX86InstIdWrgsbase, X86GpReg)
 
 #undef INST_0x
 
