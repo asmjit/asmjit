@@ -698,7 +698,7 @@ class X86ZmmReg { public: union { Operand::VRegOp _vreg; }; };
 
 //! X86/X86 register base class.
 class X86Reg : public Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -774,7 +774,7 @@ class X86Reg : public Reg {
 
 //! X86/X64 RIP register.
 class X86RipReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -799,7 +799,7 @@ class X86RipReg : public X86Reg {
 
 //! X86/X64 segment register.
 class X86SegReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -828,7 +828,7 @@ class X86SegReg : public X86Reg {
 
 //! X86/X64 general purpose register (GPB, GPW, GPD, GPQ).
 class X86GpReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -884,7 +884,7 @@ class X86GpReg : public X86Reg {
 
 //! X86/X64 80-bit Fp register.
 class X86FpReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -938,7 +938,7 @@ class X86FpReg : public X86Reg {
 //!   - `movd` - writes 4-bytes in low DWORD and clears high DWORD.
 //!   - `movq` - writes 8-bytes in `QWORD`.
 class X86MmReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -967,7 +967,7 @@ class X86MmReg : public X86Reg {
 
 //! X86/X64 64-bit K register (AVX512+).
 class X86KReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1049,7 +1049,7 @@ class X86KReg : public X86Reg {
 //!   - `movsldup`,
 //!   - `movshdup` - writes 16 bytes in DQWORD.
 class X86XmmReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1111,7 +1111,7 @@ class X86XmmReg : public X86Reg {
 //! +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 //! ~~~
 class X86YmmReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1153,7 +1153,7 @@ ASMJIT_INLINE X86YmmReg X86XmmReg::ymm() const noexcept { return X86YmmReg(kX86R
 
 //! X86/X64 512-bit ZMM register (AVX512+).
 class X86ZmmReg : public X86Reg {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1196,7 +1196,7 @@ ASMJIT_INLINE X86ZmmReg X86YmmReg::zmm() const noexcept { return X86ZmmReg(kX86R
 
 //! X86 memory operand.
 class X86Mem : public BaseMem {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1661,7 +1661,7 @@ class X86Mem : public BaseMem {
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Base class for all X86 variables.
 class X86Var : public Var {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1849,7 +1849,7 @@ protected:
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Gp variable.
 class X86GpVar : public X86Var {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1920,7 +1920,7 @@ public:
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! Mm variable.
 class X86MmVar : public X86Var {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -1960,7 +1960,7 @@ class X86MmVar : public X86Var {
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! XMM variable.
 class X86XmmVar : public X86Var {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -2015,7 +2015,7 @@ public:
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! YMM variable.
 class  X86YmmVar : public X86Var {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -2072,7 +2072,7 @@ ASMJIT_INLINE X86YmmVar X86XmmVar::ymm() const noexcept { return X86YmmVar(*this
 #if !defined(ASMJIT_DISABLE_COMPILER)
 //! ZMM variable.
 class X86ZmmVar : public X86Var {
- public:
+public:
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -2442,50 +2442,50 @@ ASMJIT_API X86Mem ptr_abs(Ptr p, int32_t disp = 0, uint32_t size = 0) noexcept;
 ASMJIT_API X86Mem ptr_abs(Ptr p, const X86Reg& index, uint32_t shift = 0, int32_t disp = 0, uint32_t size = 0) noexcept;
 
 //! \internal
-#define ASMJIT_EXPAND_PTR_REG(_Prefix_, _Size_) \
+#define ASMJIT_EXPAND_PTR_REG(prefix, size) \
   /*! Create `[base.reg + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpReg& base, int32_t disp = 0) noexcept { \
-    return X86Mem(base, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpReg& base, int32_t disp = 0) noexcept { \
+    return X86Mem(base, disp, size); \
   } \
   /*! Create `[base.reg + (index.reg << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpReg& base, const X86GpReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr(base, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpReg& base, const X86GpReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr(base, index, shift, disp, size); \
   } \
   /*! Create `[base.reg + (xmm.reg << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpReg& base, const X86XmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr(base, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpReg& base, const X86XmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr(base, index, shift, disp, size); \
   } \
   /*! Create `[base.reg + (ymm.reg << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpReg& base, const X86YmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr(base, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpReg& base, const X86YmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr(base, index, shift, disp, size); \
   } \
   /*! Create `[label + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const Label& label, int32_t disp = 0) noexcept { \
-    return ptr(label, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const Label& label, int32_t disp = 0) noexcept { \
+    return ptr(label, disp, size); \
   } \
   /*! Create `[label + (index.reg << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const Label& label, const X86GpReg& index, uint32_t shift, int32_t disp = 0) noexcept { \
-    return ptr(label, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const Label& label, const X86GpReg& index, uint32_t shift, int32_t disp = 0) noexcept { \
+    return ptr(label, index, shift, disp, size); \
   } \
   /*! Create `[RIP + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##ptr(const X86RipReg& rip_, int32_t disp = 0) noexcept { \
-    return ptr(rip_, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86RipReg& rip_, int32_t disp = 0) noexcept { \
+    return ptr(rip_, disp, size); \
   } \
   /*! Create `[p + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr p, int32_t disp = 0) noexcept { \
-    return ptr_abs(p, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr##_abs(Ptr p, int32_t disp = 0) noexcept { \
+    return ptr_abs(p, disp, size); \
   } \
   /*! Create `[p + (index.reg << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr p, const X86GpReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr_abs(p, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr##_abs(Ptr p, const X86GpReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr_abs(p, index, shift, disp, size); \
   } \
   /*! Create `[p + (xmm.reg << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr p, const X86XmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr_abs(p, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr##_abs(Ptr p, const X86XmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr_abs(p, index, shift, disp, size); \
   } \
   /*! Create `[p + (ymm.reg << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr p, const X86YmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr_abs(p, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr##_abs(Ptr p, const X86YmmReg& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr_abs(p, index, shift, disp, size); \
   }
 
 ASMJIT_EXPAND_PTR_REG(byte, 1)
@@ -2528,38 +2528,38 @@ static ASMJIT_INLINE X86Mem ptr(const Label& label, const X86GpVar& index, uint3
 ASMJIT_API X86Mem ptr_abs(Ptr p, const X86Var& index, uint32_t shift = 0, int32_t disp = 0, uint32_t size = 0) noexcept;
 
 //! \internal
-#define ASMJIT_EXPAND_PTR_VAR(_Prefix_, _Size_) \
+#define ASMJIT_EXPAND_PTR_VAR(prefix, size) \
   /*! Create `[base.var + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpVar& base, int32_t disp = 0) noexcept { \
-    return X86Mem(base, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpVar& base, int32_t disp = 0) noexcept { \
+    return X86Mem(base, disp, size); \
   } \
   /*! Create `[base.var + (index.var << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpVar& base, const X86GpVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr(base, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpVar& base, const X86GpVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr(base, index, shift, disp, size); \
   } \
   /*! Create `[base.var + (xmm.var << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpVar& base, const X86XmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr(base, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpVar& base, const X86XmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr(base, index, shift, disp, size); \
   } \
   /*! Create `[base.var + (ymm.var << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const X86GpVar& base, const X86YmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr(base, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const X86GpVar& base, const X86YmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr(base, index, shift, disp, size); \
   } \
   /*! Create `[label + (index.var << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr(const Label& label, const X86GpVar& index, uint32_t shift, int32_t disp = 0) noexcept { \
-    return ptr(label, index, shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr(const Label& label, const X86GpVar& index, uint32_t shift, int32_t disp = 0) noexcept { \
+    return ptr(label, index, shift, disp, size); \
   } \
   /*! Create `[p + (index.var << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr p, const X86GpVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr_abs(p, reinterpret_cast<const X86Var&>(index), shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr##_abs(Ptr p, const X86GpVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr_abs(p, reinterpret_cast<const X86Var&>(index), shift, disp, size); \
   } \
   /*! Create `[p + (xmm.var << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr p, const X86XmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr_abs(p, reinterpret_cast<const X86Var&>(index), shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr##_abs(Ptr p, const X86XmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr_abs(p, reinterpret_cast<const X86Var&>(index), shift, disp, size); \
   } \
   /*! Create `[p + (ymm.var << shift) + disp]` memory operand. */ \
-  static ASMJIT_INLINE X86Mem _Prefix_##_ptr##_abs(Ptr p, const X86YmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
-    return ptr_abs(p, reinterpret_cast<const X86Var&>(index), shift, disp, _Size_); \
+  static ASMJIT_INLINE X86Mem prefix##_ptr##_abs(Ptr p, const X86YmmVar& index, uint32_t shift = 0, int32_t disp = 0) noexcept { \
+    return ptr_abs(p, reinterpret_cast<const X86Var&>(index), shift, disp, size); \
   }
 
 ASMJIT_EXPAND_PTR_VAR(byte, 1)
