@@ -8,6 +8,11 @@ Complete x86/x64 JIT and Remote Assembler for C++.
   * [Official Chat (gitter)](https://gitter.im/kobalicek/asmjit)
   * [Permissive ZLIB license](./LICENSE.md)
 
+News
+----
+
+For all new users - please use asmjit:next branch instead of asmjit:master if you are starting with AsmJit and want to use a new API, which is not backward compatible with current master. Asmjit:next is still in development, but the main refactorization already happened, so if it breaks it will be minor changes.
+
 Introduction
 ------------
 
