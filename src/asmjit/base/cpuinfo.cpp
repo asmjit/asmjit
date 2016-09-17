@@ -501,7 +501,7 @@ static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
       //   XMM/YMM states need to be enabled by OS.
       // - XCR0[7:5] == 111b
       //   Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by the OS.
-      if ((xcr0.eax & 0x00000076U) == 0x00000076U) {
+      if ((xcr0.eax & 0x000000E6U) == 0x000000E6U) {
         cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512F);
 
         if (regs.ebx & 0x00020000U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX512DQ);
