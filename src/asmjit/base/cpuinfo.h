@@ -1,4 +1,4 @@
-// [AsmJit]
+ // [AsmJit]
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
@@ -9,10 +9,10 @@
 #define _ASMJIT_BASE_CPUINFO_H
 
 // [Dependencies]
-#include "../base/globals.h"
+#include "../base/arch.h"
 
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
 
@@ -25,11 +25,7 @@ namespace asmjit {
 
 //! CPU information.
 class CpuInfo {
- public:
-  // --------------------------------------------------------------------------
-  // [Vendor]
-  // --------------------------------------------------------------------------
-
+public:
   //! CPU vendor ID.
   ASMJIT_ENUM(Vendor) {
     kVendorNone  = 0,                    //!< Generic or unknown.
@@ -37,10 +33,6 @@ class CpuInfo {
     kVendorAMD   = 2,                    //!< AMD vendor.
     kVendorVIA   = 3                     //!< VIA vendor.
   };
-
-  // --------------------------------------------------------------------------
-  // [ArmFeatures]
-  // --------------------------------------------------------------------------
 
   //! ARM/ARM64 CPU features.
   ASMJIT_ENUM(ArmFeatures) {
@@ -66,10 +58,6 @@ class CpuInfo {
     kArmFeaturesCount                    //!< Count of ARM/ARM64 CPU features.
   };
 
-  // --------------------------------------------------------------------------
-  // [X86Features]
-  // --------------------------------------------------------------------------
-
   //! X86/X64 CPU features.
   ASMJIT_ENUM(X86Features) {
     kX86FeatureNX = 0,                   //!< CPU has Not-Execute-Bit.
@@ -82,6 +70,7 @@ class CpuInfo {
     kX86FeatureCLFLUSH,                  //!< CPU has CLFUSH.
     kX86FeatureCLFLUSH_OPT,              //!< CPU has CLFUSH (optimized).
     kX86FeatureCLWB,                     //!< CPU has CLWB.
+    kX86FeatureCLZERO,                   //!< CPU has CLZERO.
     kX86FeaturePCOMMIT,                  //!< CPU has PCOMMIT.
     kX86FeaturePREFETCH,                 //!< CPU has PREFETCH.
     kX86FeaturePREFETCHWT1,              //!< CPU has PREFETCHWT1.
@@ -129,9 +118,9 @@ class CpuInfo {
     kX86FeatureERMS,                     //!< CPU has ERMS (enhanced REP MOVSB/STOSB).
     kX86FeatureFSGSBASE,                 //!< CPU has FSGSBASE.
     kX86FeatureAVX512F,                  //!< CPU has AVX-512F (foundation).
-    kX86FeatureAVX512CD,                 //!< CPU has AVX-512CD (conflict detection).
-    kX86FeatureAVX512PF,                 //!< CPU has AVX-512PF (prefetch instructions).
-    kX86FeatureAVX512ER,                 //!< CPU has AVX-512ER (exponential and reciprocal instructions).
+    kX86FeatureAVX512CDI,                //!< CPU has AVX-512CDI (conflict detection instructions).
+    kX86FeatureAVX512PFI,                //!< CPU has AVX-512PFI (prefetch instructions).
+    kX86FeatureAVX512ERI,                //!< CPU has AVX-512ERI (exponential and reciprocal instructions).
     kX86FeatureAVX512DQ,                 //!< CPU has AVX-512DQ (DWORD/QWORD).
     kX86FeatureAVX512BW,                 //!< CPU has AVX-512BW (BYTE/WORD).
     kX86FeatureAVX512VL,                 //!< CPU has AVX VL (vector length extensions).
@@ -140,10 +129,6 @@ class CpuInfo {
 
     kX86FeaturesCount                    //!< Count of X86/X64 CPU features.
   };
-
-  // --------------------------------------------------------------------------
-  // [Other]
-  // --------------------------------------------------------------------------
 
   //! \internal
   enum {
@@ -175,8 +160,13 @@ class CpuInfo {
   ASMJIT_INLINE CpuInfo() noexcept { reset(); }
 
   // --------------------------------------------------------------------------
-  // [Reset]
+  // [Init / Reset]
   // --------------------------------------------------------------------------
+
+  //! Initialize CpuInfo to the given architecture, see \ArchInfo.
+  ASMJIT_INLINE void initArch(uint32_t archType, uint32_t archMode = 0) noexcept {
+    _archInfo.init(archType, archMode);
+  }
 
   ASMJIT_INLINE void reset() noexcept { ::memset(this, 0, sizeof(CpuInfo)); }
 
@@ -190,10 +180,12 @@ class CpuInfo {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get CPU architecture, see \Arch.
-  ASMJIT_INLINE uint32_t getArch() const noexcept { return _arch; }
-  //! Set CPU architecture, see \Arch.
-  ASMJIT_INLINE void setArch(uint32_t arch) noexcept { _arch = static_cast<uint8_t>(arch); }
+  //! Get generic architecture information.
+  ASMJIT_INLINE const ArchInfo& getArchInfo() const noexcept { return _archInfo; }
+  //! Get CPU architecture type, see \ArchInfo::Type.
+  ASMJIT_INLINE uint32_t getArchType() const noexcept { return _archInfo.getType(); }
+  //! Get CPU architecture sub-type, see \ArchInfo::SubType.
+  ASMJIT_INLINE uint32_t getArchSubType() const noexcept { return _archInfo.getSubType(); }
 
   //! Get CPU vendor string.
   ASMJIT_INLINE const char* getVendorString() const noexcept { return _vendorString; }
@@ -274,29 +266,15 @@ class CpuInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! CPU vendor string.
-  char _vendorString[16];
-  //! CPU brand string.
-  char _brandString[64];
-
-  //! CPU architecture, see \ref Arch.
-  uint8_t _arch;
-  //! \internal
-  uint8_t _reserved[3];
-  //! CPU vendor id, see \ref CpuVendor.
-  uint32_t _vendorId;
-  //! CPU family ID.
-  uint32_t _family;
-  //! CPU model ID.
-  uint32_t _model;
-  //! CPU stepping.
-  uint32_t _stepping;
-
-  //! Number of hardware threads.
-  uint32_t _hwThreadsCount;
-
-  //! CPU features (bit-array).
-  uint32_t _features[8];
+  ArchInfo _archInfo;                    //!< CPU architecture information.
+  char _vendorString[16];                //!< CPU vendor string.
+  char _brandString[64];                 //!< CPU brand string.
+  uint32_t _vendorId;                    //!< CPU vendor id, see \ref Vendor.
+  uint32_t _family;                      //!< CPU family ID.
+  uint32_t _model;                       //!< CPU model ID.
+  uint32_t _stepping;                    //!< CPU stepping.
+  uint32_t _hwThreadsCount;              //!< Number of hardware threads.
+  uint32_t _features[8];                 //!< CPU features (bit-array).
 
   // Architecture specific data.
   union {
@@ -310,7 +288,7 @@ class CpuInfo {
 } // asmjit namespace
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_CPUINFO_H

@@ -11,7 +11,7 @@
 #include "../base/globals.h"
 
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
 
@@ -20,7 +20,7 @@ namespace asmjit {
 // ============================================================================
 
 #if !defined(ASMJIT_DISABLE_TEXT)
-static const char errorMessages[] = {
+static const char errorMessages[] =
   "Ok\0"
   "No heap memory\0"
   "No virtual memory\0"
@@ -28,18 +28,47 @@ static const char errorMessages[] = {
   "Invalid state\0"
   "Invalid architecture\0"
   "Not initialized\0"
+  "Already initialized\0"
+  "Slot occupied\0"
   "No code generated\0"
   "Code too large\0"
+  "Invalid label\0"
+  "Label index overflow\0"
   "Label already bound\0"
-  "Unknown instruction\0"
-  "Illegal instruction\0"
-  "Illegal addressing\0"
-  "Illegal displacement\0"
-  "Overlapped arguments\0"
-  "Unknown error\0"
-};
+  "Label already defined\0"
+  "Label name too long\0"
+  "Invalid label name\0"
+  "Invalid parent label\0"
+  "Non-local label can't have parent\0"
+  "Invalid relocation entry\0"
+  "Invalid instruction\0"
+  "Invalid register type\0"
+  "Invalid register's physical id\0"
+  "Invalid register's virtual id\0"
+  "Invalid rex prefix\0"
+  "Invalid mask, expected {k}\0"
+  "Invalid use of {k}\0"
+  "Invalid use of {k}{z}\0"
+  "Invalid broadcast {1tox}\0"
+  "Invalid {sae} or {rc} option\0"
+  "Invalid address\0"
+  "Invalid address index\0"
+  "Invalid address scale\0"
+  "Invalid use of 64-bit address\0"
+  "Invalid displacement\0"
+  "Invalid segment\0"
+  "Operand size mismatch\0"
+  "Ambiguous operand size\0"
+  "Invalid type-info\0"
+  "Invalid use of a low 8-bit GPB register\0"
+  "Invalid use of a 64-bit GPQ register in 32-bit mode\0"
+  "Invalid use of an 80-bit float\0"
+  "No more physical registers\0"
+  "Overlapping register arguments\0"
+  "Overlapping register and arguments base-address register\0"
+  "Unknown error\0";
 
-static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) noexcept {
+ASMJIT_FAVOR_SIZE static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) noexcept {
   uint32_t i = 0;
 
   if (id > maxId)
@@ -57,7 +86,7 @@ static const char* findPackedString(const char* p, uint32_t id, uint32_t maxId) 
 }
 #endif // ASMJIT_DISABLE_TEXT
 
-const char* DebugUtils::errorAsString(Error err) noexcept {
+ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
 #if !defined(ASMJIT_DISABLE_TEXT)
   return findPackedString(errorMessages, err, kErrorCount);
 #else
@@ -66,7 +95,7 @@ const char* DebugUtils::errorAsString(Error err) noexcept {
 #endif
 }
 
-void DebugUtils::debugOutput(const char* str) noexcept {
+ASMJIT_FAVOR_SIZE void DebugUtils::debugOutput(const char* str) noexcept {
 #if ASMJIT_OS_WINDOWS
   ::OutputDebugStringA(str);
 #else
@@ -74,7 +103,7 @@ void DebugUtils::debugOutput(const char* str) noexcept {
 #endif
 }
 
-void DebugUtils::assertionFailed(const char* file, int line, const char* msg) noexcept {
+ASMJIT_FAVOR_SIZE void DebugUtils::assertionFailed(const char* file, int line, const char* msg) noexcept {
   char str[1024];
 
   snprintf(str, 1024,
@@ -91,4 +120,4 @@ void DebugUtils::assertionFailed(const char* file, int line, const char* msg) no
 } // asmjit namespace
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"

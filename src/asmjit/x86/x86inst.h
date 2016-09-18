@@ -13,36 +13,18 @@
 #include "../base/globals.h"
 #include "../base/operand.h"
 #include "../base/utils.h"
-#include "../base/vectypes.h"
 
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
-
-// ============================================================================
-// [Forward Declarations]
-// ============================================================================
-
-struct X86InstInfo;
-struct X86InstExtendedInfo;
 
 //! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
-// [asmjit::X86Inst/X86Cond - Globals]
+// [asmjit::X86Cond - Globals]
 // ============================================================================
-
-//! \internal
-//!
-//! X86/X64 instructions' extended information, accessible through `X86InstInfo`.
-ASMJIT_VARAPI const X86InstExtendedInfo _x86InstExtendedInfo[];
-
-//! \internal
-//!
-//! X86/X64 instructions' information.
-ASMJIT_VARAPI const X86InstInfo _x86InstInfo[];
 
 //! \internal
 //!
@@ -65,1547 +47,6 @@ ASMJIT_VARAPI const uint32_t _x86CondToJcc[20];
 ASMJIT_VARAPI const uint32_t _x86CondToSetcc[20];
 
 // ============================================================================
-// [asmjit::X86InstId]
-// ============================================================================
-
-//! X86/X64 instruction IDs.
-//!
-//! Note that these instruction codes are AsmJit specific. Each instruction has
-//! a unique ID that is used as an index to AsmJit instruction table. The list
-//! is sorted alphabetically except instructions starting with `j`, because the
-//! `jcc` instruction is composition of an opcode and condition code. It means
-//! that these instructions are sorted as `jcc`, `jecxz` and `jmp`. Please use
-//! \ref X86Util::getInstIdByName() if you need instruction name to ID mapping
-//! and are not aware on how to handle such case.
-ASMJIT_ENUM(X86InstId) {
-  kX86InstIdNone = 0,
-  kX86InstIdAdc,                         // X86/X64
-  kX86InstIdAdcx,                        // ADX
-  kX86InstIdAdd,                         // X86/X64
-  kX86InstIdAddpd,                       // SSE2
-  kX86InstIdAddps,                       // SSE
-  kX86InstIdAddsd,                       // SSE2
-  kX86InstIdAddss,                       // SSE
-  kX86InstIdAddsubpd,                    // SSE3
-  kX86InstIdAddsubps,                    // SSE3
-  kX86InstIdAdox,                        // ADX
-  kX86InstIdAesdec,                      // AESNI
-  kX86InstIdAesdeclast,                  // AESNI
-  kX86InstIdAesenc,                      // AESNI
-  kX86InstIdAesenclast,                  // AESNI
-  kX86InstIdAesimc,                      // AESNI
-  kX86InstIdAeskeygenassist,             // AESNI
-  kX86InstIdAnd,                         // X86/X64
-  kX86InstIdAndn,                        // BMI
-  kX86InstIdAndnpd,                      // SSE2
-  kX86InstIdAndnps,                      // SSE
-  kX86InstIdAndpd,                       // SSE2
-  kX86InstIdAndps,                       // SSE
-  kX86InstIdBextr,                       // BMI
-  kX86InstIdBlcfill,                     // TBM
-  kX86InstIdBlci,                        // TBM
-  kX86InstIdBlcic,                       // TBM
-  kX86InstIdBlcmsk,                      // TBM
-  kX86InstIdBlcs,                        // TBM
-  kX86InstIdBlendpd,                     // SSE4.1
-  kX86InstIdBlendps,                     // SSE4.1
-  kX86InstIdBlendvpd,                    // SSE4.1
-  kX86InstIdBlendvps,                    // SSE4.1
-  kX86InstIdBlsfill,                     // TBM
-  kX86InstIdBlsi,                        // BMI
-  kX86InstIdBlsic,                       // TBM
-  kX86InstIdBlsmsk,                      // BMI
-  kX86InstIdBlsr,                        // BMI
-  kX86InstIdBsf,                         // X86/X64
-  kX86InstIdBsr,                         // X86/X64
-  kX86InstIdBswap,                       // X86/X64 (i486+)
-  kX86InstIdBt,                          // X86/X64
-  kX86InstIdBtc,                         // X86/X64
-  kX86InstIdBtr,                         // X86/X64
-  kX86InstIdBts,                         // X86/X64
-  kX86InstIdBzhi,                        // BMI2
-  kX86InstIdCall,                        // X86/X64
-  kX86InstIdCbw,                         // X86/X64
-  kX86InstIdCdq,                         // X86/X64
-  kX86InstIdCdqe,                        // X64 only
-  kX86InstIdClc,                         // X86/X64
-  kX86InstIdCld,                         // X86/X64
-  kX86InstIdClflush,                     // CLFLUSH
-  kX86InstIdClflushopt,                  // CLFLUSH_OPT
-  kX86InstIdCmc,                         // X86/X64
-  kX86InstIdCmova,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovae,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovb,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovbe,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovc,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmove,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovg,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovge,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovl,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovle,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovna,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnae,                     // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnb,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnbe,                     // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnc,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovne,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovng,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnge,                     // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnl,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnle,                     // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovno,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnp,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovns,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovnz,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovo,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovp,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovpe,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovpo,                      // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovs,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmovz,                       // X86/X64 (cmovcc) (i586+)
-  kX86InstIdCmp,                         // X86/X64
-  kX86InstIdCmppd,                       // SSE2
-  kX86InstIdCmpps,                       // SSE
-  kX86InstIdCmpsB,                       // CMPS
-  kX86InstIdCmpsD,                       // CMPS
-  kX86InstIdCmpsQ,                       // CMPS (X64)
-  kX86InstIdCmpsW,                       // CMPS
-  kX86InstIdCmpsd,                       // SSE2
-  kX86InstIdCmpss,                       // SSE
-  kX86InstIdCmpxchg,                     // X86/X64 (i486+)
-  kX86InstIdCmpxchg16b,                  // X64 only
-  kX86InstIdCmpxchg8b,                   // X86/X64 (i586+)
-  kX86InstIdComisd,                      // SSE2
-  kX86InstIdComiss,                      // SSE
-  kX86InstIdCpuid,                       // X86/X64 (i486/i586+)
-  kX86InstIdCqo,                         // X64 only
-  kX86InstIdCrc32,                       // SSE4.2
-  kX86InstIdCvtdq2pd,                    // SSE2
-  kX86InstIdCvtdq2ps,                    // SSE2
-  kX86InstIdCvtpd2dq,                    // SSE2
-  kX86InstIdCvtpd2pi,                    // SSE2
-  kX86InstIdCvtpd2ps,                    // SSE2
-  kX86InstIdCvtpi2pd,                    // SSE2
-  kX86InstIdCvtpi2ps,                    // SSE
-  kX86InstIdCvtps2dq,                    // SSE2
-  kX86InstIdCvtps2pd,                    // SSE2
-  kX86InstIdCvtps2pi,                    // SSE
-  kX86InstIdCvtsd2si,                    // SSE2
-  kX86InstIdCvtsd2ss,                    // SSE2
-  kX86InstIdCvtsi2sd,                    // SSE2
-  kX86InstIdCvtsi2ss,                    // SSE
-  kX86InstIdCvtss2sd,                    // SSE2
-  kX86InstIdCvtss2si,                    // SSE
-  kX86InstIdCvttpd2dq,                   // SSE2
-  kX86InstIdCvttpd2pi,                   // SSE2
-  kX86InstIdCvttps2dq,                   // SSE2
-  kX86InstIdCvttps2pi,                   // SSE
-  kX86InstIdCvttsd2si,                   // SSE2
-  kX86InstIdCvttss2si,                   // SSE
-  kX86InstIdCwd,                         // X86/X64
-  kX86InstIdCwde,                        // X86/X64
-  kX86InstIdDaa,                         // X86 only
-  kX86InstIdDas,                         // X86 only
-  kX86InstIdDec,                         // X86/X64
-  kX86InstIdDiv,                         // X86/X64
-  kX86InstIdDivpd,                       // SSE2
-  kX86InstIdDivps,                       // SSE
-  kX86InstIdDivsd,                       // SSE2
-  kX86InstIdDivss,                       // SSE
-  kX86InstIdDppd,                        // SSE4.1
-  kX86InstIdDpps,                        // SSE4.1
-  kX86InstIdEmms,                        // MMX
-  kX86InstIdEnter,                       // X86/X64
-  kX86InstIdExtractps,                   // SSE4.1
-  kX86InstIdExtrq,                       // SSE4a
-  kX86InstIdF2xm1,                       // FPU
-  kX86InstIdFabs,                        // FPU
-  kX86InstIdFadd,                        // FPU
-  kX86InstIdFaddp,                       // FPU
-  kX86InstIdFbld,                        // FPU
-  kX86InstIdFbstp,                       // FPU
-  kX86InstIdFchs,                        // FPU
-  kX86InstIdFclex,                       // FPU
-  kX86InstIdFcmovb,                      // FPU
-  kX86InstIdFcmovbe,                     // FPU
-  kX86InstIdFcmove,                      // FPU
-  kX86InstIdFcmovnb,                     // FPU
-  kX86InstIdFcmovnbe,                    // FPU
-  kX86InstIdFcmovne,                     // FPU
-  kX86InstIdFcmovnu,                     // FPU
-  kX86InstIdFcmovu,                      // FPU
-  kX86InstIdFcom,                        // FPU
-  kX86InstIdFcomi,                       // FPU
-  kX86InstIdFcomip,                      // FPU
-  kX86InstIdFcomp,                       // FPU
-  kX86InstIdFcompp,                      // FPU
-  kX86InstIdFcos,                        // FPU
-  kX86InstIdFdecstp,                     // FPU
-  kX86InstIdFdiv,                        // FPU
-  kX86InstIdFdivp,                       // FPU
-  kX86InstIdFdivr,                       // FPU
-  kX86InstIdFdivrp,                      // FPU
-  kX86InstIdFemms,                       // 3DNOW
-  kX86InstIdFfree,                       // FPU
-  kX86InstIdFiadd,                       // FPU
-  kX86InstIdFicom,                       // FPU
-  kX86InstIdFicomp,                      // FPU
-  kX86InstIdFidiv,                       // FPU
-  kX86InstIdFidivr,                      // FPU
-  kX86InstIdFild,                        // FPU
-  kX86InstIdFimul,                       // FPU
-  kX86InstIdFincstp,                     // FPU
-  kX86InstIdFinit,                       // FPU
-  kX86InstIdFist,                        // FPU
-  kX86InstIdFistp,                       // FPU
-  kX86InstIdFisttp,                      // SSE3
-  kX86InstIdFisub,                       // FPU
-  kX86InstIdFisubr,                      // FPU
-  kX86InstIdFld,                         // FPU
-  kX86InstIdFld1,                        // FPU
-  kX86InstIdFldcw,                       // FPU
-  kX86InstIdFldenv,                      // FPU
-  kX86InstIdFldl2e,                      // FPU
-  kX86InstIdFldl2t,                      // FPU
-  kX86InstIdFldlg2,                      // FPU
-  kX86InstIdFldln2,                      // FPU
-  kX86InstIdFldpi,                       // FPU
-  kX86InstIdFldz,                        // FPU
-  kX86InstIdFmul,                        // FPU
-  kX86InstIdFmulp,                       // FPU
-  kX86InstIdFnclex,                      // FPU
-  kX86InstIdFninit,                      // FPU
-  kX86InstIdFnop,                        // FPU
-  kX86InstIdFnsave,                      // FPU
-  kX86InstIdFnstcw,                      // FPU
-  kX86InstIdFnstenv,                     // FPU
-  kX86InstIdFnstsw,                      // FPU
-  kX86InstIdFpatan,                      // FPU
-  kX86InstIdFprem,                       // FPU
-  kX86InstIdFprem1,                      // FPU
-  kX86InstIdFptan,                       // FPU
-  kX86InstIdFrndint,                     // FPU
-  kX86InstIdFrstor,                      // FPU
-  kX86InstIdFsave,                       // FPU
-  kX86InstIdFscale,                      // FPU
-  kX86InstIdFsin,                        // FPU
-  kX86InstIdFsincos,                     // FPU
-  kX86InstIdFsqrt,                       // FPU
-  kX86InstIdFst,                         // FPU
-  kX86InstIdFstcw,                       // FPU
-  kX86InstIdFstenv,                      // FPU
-  kX86InstIdFstp,                        // FPU
-  kX86InstIdFstsw,                       // FPU
-  kX86InstIdFsub,                        // FPU
-  kX86InstIdFsubp,                       // FPU
-  kX86InstIdFsubr,                       // FPU
-  kX86InstIdFsubrp,                      // FPU
-  kX86InstIdFtst,                        // FPU
-  kX86InstIdFucom,                       // FPU
-  kX86InstIdFucomi,                      // FPU
-  kX86InstIdFucomip,                     // FPU
-  kX86InstIdFucomp,                      // FPU
-  kX86InstIdFucompp,                     // FPU
-  kX86InstIdFwait,                       // FPU
-  kX86InstIdFxam,                        // FPU
-  kX86InstIdFxch,                        // FPU
-  kX86InstIdFxrstor,                     // FPU
-  kX86InstIdFxrstor64,                   // FPU (X64)
-  kX86InstIdFxsave,                      // FPU
-  kX86InstIdFxsave64,                    // FPU (X64)
-  kX86InstIdFxtract,                     // FPU
-  kX86InstIdFyl2x,                       // FPU
-  kX86InstIdFyl2xp1,                     // FPU
-  kX86InstIdHaddpd,                      // SSE3
-  kX86InstIdHaddps,                      // SSE3
-  kX86InstIdHsubpd,                      // SSE3
-  kX86InstIdHsubps,                      // SSE3
-  kX86InstIdIdiv,                        // X86/X64
-  kX86InstIdImul,                        // X86/X64
-  kX86InstIdInc,                         // X86/X64
-  kX86InstIdInsertps,                    // SSE4.1
-  kX86InstIdInsertq,                     // SSE4a
-  kX86InstIdInt,                         // X86/X64
-  kX86InstIdJa,                          // X86/X64 (jcc)
-  kX86InstIdJae,                         // X86/X64 (jcc)
-  kX86InstIdJb,                          // X86/X64 (jcc)
-  kX86InstIdJbe,                         // X86/X64 (jcc)
-  kX86InstIdJc,                          // X86/X64 (jcc)
-  kX86InstIdJe,                          // X86/X64 (jcc)
-  kX86InstIdJg,                          // X86/X64 (jcc)
-  kX86InstIdJge,                         // X86/X64 (jcc)
-  kX86InstIdJl,                          // X86/X64 (jcc)
-  kX86InstIdJle,                         // X86/X64 (jcc)
-  kX86InstIdJna,                         // X86/X64 (jcc)
-  kX86InstIdJnae,                        // X86/X64 (jcc)
-  kX86InstIdJnb,                         // X86/X64 (jcc)
-  kX86InstIdJnbe,                        // X86/X64 (jcc)
-  kX86InstIdJnc,                         // X86/X64 (jcc)
-  kX86InstIdJne,                         // X86/X64 (jcc)
-  kX86InstIdJng,                         // X86/X64 (jcc)
-  kX86InstIdJnge,                        // X86/X64 (jcc)
-  kX86InstIdJnl,                         // X86/X64 (jcc)
-  kX86InstIdJnle,                        // X86/X64 (jcc)
-  kX86InstIdJno,                         // X86/X64 (jcc)
-  kX86InstIdJnp,                         // X86/X64 (jcc)
-  kX86InstIdJns,                         // X86/X64 (jcc)
-  kX86InstIdJnz,                         // X86/X64 (jcc)
-  kX86InstIdJo,                          // X86/X64 (jcc)
-  kX86InstIdJp,                          // X86/X64 (jcc)
-  kX86InstIdJpe,                         // X86/X64 (jcc)
-  kX86InstIdJpo,                         // X86/X64 (jcc)
-  kX86InstIdJs,                          // X86/X64 (jcc)
-  kX86InstIdJz,                          // X86/X64 (jcc)
-  kX86InstIdJecxz,                       // X86/X64 (jcxz/jecxz/jrcxz)
-  kX86InstIdJmp,                         // X86/X64 (jmp)
-  kX86InstIdLahf,                        // X86/X64 (LAHF/SAHF)
-  kX86InstIdLddqu,                       // SSE3
-  kX86InstIdLdmxcsr,                     // SSE
-  kX86InstIdLea,                         // X86/X64
-  kX86InstIdLeave,                       // X86/X64
-  kX86InstIdLfence,                      // SSE2
-  kX86InstIdLodsB,                       // LODS
-  kX86InstIdLodsD,                       // LODS
-  kX86InstIdLodsQ,                       // LODS (X64)
-  kX86InstIdLodsW,                       // LODS
-  kX86InstIdLzcnt,                       // LZCNT
-  kX86InstIdMaskmovdqu,                  // SSE2
-  kX86InstIdMaskmovq,                    // MMX2
-  kX86InstIdMaxpd,                       // SSE2
-  kX86InstIdMaxps,                       // SSE
-  kX86InstIdMaxsd,                       // SSE2
-  kX86InstIdMaxss,                       // SSE
-  kX86InstIdMfence,                      // SSE2
-  kX86InstIdMinpd,                       // SSE2
-  kX86InstIdMinps,                       // SSE
-  kX86InstIdMinsd,                       // SSE2
-  kX86InstIdMinss,                       // SSE
-  kX86InstIdMonitor,                     // SSE3
-  kX86InstIdMov,                         // X86/X64
-  kX86InstIdMovPtr,                      // X86/X64
-  kX86InstIdMovapd,                      // SSE2
-  kX86InstIdMovaps,                      // SSE
-  kX86InstIdMovbe,                       // SSE3 (Atom)
-  kX86InstIdMovd,                        // MMX/SSE2
-  kX86InstIdMovddup,                     // SSE3
-  kX86InstIdMovdq2q,                     // SSE2
-  kX86InstIdMovdqa,                      // SSE2
-  kX86InstIdMovdqu,                      // SSE2
-  kX86InstIdMovhlps,                     // SSE
-  kX86InstIdMovhpd,                      // SSE2
-  kX86InstIdMovhps,                      // SSE
-  kX86InstIdMovlhps,                     // SSE
-  kX86InstIdMovlpd,                      // SSE2
-  kX86InstIdMovlps,                      // SSE
-  kX86InstIdMovmskpd,                    // SSE2
-  kX86InstIdMovmskps,                    // SSE2
-  kX86InstIdMovntdq,                     // SSE2
-  kX86InstIdMovntdqa,                    // SSE4.1
-  kX86InstIdMovnti,                      // SSE2
-  kX86InstIdMovntpd,                     // SSE2
-  kX86InstIdMovntps,                     // SSE
-  kX86InstIdMovntq,                      // MMX2
-  kX86InstIdMovntsd,                     // SSE4a
-  kX86InstIdMovntss,                     // SSE4a
-  kX86InstIdMovq,                        // MMX/SSE/SSE2
-  kX86InstIdMovq2dq,                     // SSE2
-  kX86InstIdMovsB,                       // MOVS
-  kX86InstIdMovsD,                       // MOVS
-  kX86InstIdMovsQ,                       // MOVS (X64)
-  kX86InstIdMovsW,                       // MOVS
-  kX86InstIdMovsd,                       // SSE2
-  kX86InstIdMovshdup,                    // SSE3
-  kX86InstIdMovsldup,                    // SSE3
-  kX86InstIdMovss,                       // SSE
-  kX86InstIdMovsx,                       // X86/X64
-  kX86InstIdMovsxd,                      // X86/X64
-  kX86InstIdMovupd,                      // SSE2
-  kX86InstIdMovups,                      // SSE
-  kX86InstIdMovzx,                       // X86/X64
-  kX86InstIdMpsadbw,                     // SSE4.1
-  kX86InstIdMul,                         // X86/X64
-  kX86InstIdMulpd,                       // SSE2
-  kX86InstIdMulps,                       // SSE
-  kX86InstIdMulsd,                       // SSE2
-  kX86InstIdMulss,                       // SSE
-  kX86InstIdMulx,                        // BMI2
-  kX86InstIdMwait,                       // SSE3
-  kX86InstIdNeg,                         // X86/X64
-  kX86InstIdNop,                         // X86/X64
-  kX86InstIdNot,                         // X86/X64
-  kX86InstIdOr,                          // X86/X64
-  kX86InstIdOrpd,                        // SSE2
-  kX86InstIdOrps,                        // SSE
-  kX86InstIdPabsb,                       // SSSE3
-  kX86InstIdPabsd,                       // SSSE3
-  kX86InstIdPabsw,                       // SSSE3
-  kX86InstIdPackssdw,                    // MMX/SSE2
-  kX86InstIdPacksswb,                    // MMX/SSE2
-  kX86InstIdPackusdw,                    // SSE4.1
-  kX86InstIdPackuswb,                    // MMX/SSE2
-  kX86InstIdPaddb,                       // MMX/SSE2
-  kX86InstIdPaddd,                       // MMX/SSE2
-  kX86InstIdPaddq,                       // SSE2
-  kX86InstIdPaddsb,                      // MMX/SSE2
-  kX86InstIdPaddsw,                      // MMX/SSE2
-  kX86InstIdPaddusb,                     // MMX/SSE2
-  kX86InstIdPaddusw,                     // MMX/SSE2
-  kX86InstIdPaddw,                       // MMX/SSE2
-  kX86InstIdPalignr,                     // SSSE3
-  kX86InstIdPand,                        // MMX/SSE2
-  kX86InstIdPandn,                       // MMX/SSE2
-  kX86InstIdPause,                       // SSE2.
-  kX86InstIdPavgb,                       // MMX2
-  kX86InstIdPavgusb,                     // 3DNOW
-  kX86InstIdPavgw,                       // MMX2
-  kX86InstIdPblendvb,                    // SSE4.1
-  kX86InstIdPblendw,                     // SSE4.1
-  kX86InstIdPclmulqdq,                   // PCLMULQDQ
-  kX86InstIdPcmpeqb,                     // MMX/SSE2
-  kX86InstIdPcmpeqd,                     // MMX/SSE2
-  kX86InstIdPcmpeqq,                     // SSE4.1
-  kX86InstIdPcmpeqw,                     // MMX/SSE2
-  kX86InstIdPcmpestri,                   // SSE4.2
-  kX86InstIdPcmpestrm,                   // SSE4.2
-  kX86InstIdPcmpgtb,                     // MMX/SSE2
-  kX86InstIdPcmpgtd,                     // MMX/SSE2
-  kX86InstIdPcmpgtq,                     // SSE4.2
-  kX86InstIdPcmpgtw,                     // MMX/SSE2
-  kX86InstIdPcmpistri,                   // SSE4.2
-  kX86InstIdPcmpistrm,                   // SSE4.2
-  kX86InstIdPdep,                        // BMI2
-  kX86InstIdPext,                        // BMI2
-  kX86InstIdPextrb,                      // SSE4.1
-  kX86InstIdPextrd,                      // SSE4.1
-  kX86InstIdPextrq,                      // SSE4.1
-  kX86InstIdPextrw,                      // MMX2/SSE2
-  kX86InstIdPf2id,                       // 3DNOW
-  kX86InstIdPf2iw,                       // 3DNOW2
-  kX86InstIdPfacc,                       // 3DNOW
-  kX86InstIdPfadd,                       // 3DNOW
-  kX86InstIdPfcmpeq,                     // 3DNOW
-  kX86InstIdPfcmpge,                     // 3DNOW
-  kX86InstIdPfcmpgt,                     // 3DNOW
-  kX86InstIdPfmax,                       // 3DNOW
-  kX86InstIdPfmin,                       // 3DNOW
-  kX86InstIdPfmul,                       // 3DNOW
-  kX86InstIdPfnacc,                      // 3DNOW2
-  kX86InstIdPfpnacc,                     // 3DNOW2
-  kX86InstIdPfrcp,                       // 3DNOW
-  kX86InstIdPfrcpit1,                    // 3DNOW
-  kX86InstIdPfrcpit2,                    // 3DNOW
-  kX86InstIdPfrsqit1,                    // 3DNOW
-  kX86InstIdPfrsqrt,                     // 3DNOW
-  kX86InstIdPfsub,                       // 3DNOW
-  kX86InstIdPfsubr,                      // 3DNOW
-  kX86InstIdPhaddd,                      // SSSE3
-  kX86InstIdPhaddsw,                     // SSSE3
-  kX86InstIdPhaddw,                      // SSSE3
-  kX86InstIdPhminposuw,                  // SSE4.1
-  kX86InstIdPhsubd,                      // SSSE3
-  kX86InstIdPhsubsw,                     // SSSE3
-  kX86InstIdPhsubw,                      // SSSE3
-  kX86InstIdPi2fd,                       // 3DNOW
-  kX86InstIdPi2fw,                       // 3DNOW2
-  kX86InstIdPinsrb,                      // SSE4.1
-  kX86InstIdPinsrd,                      // SSE4.1
-  kX86InstIdPinsrq,                      // SSE4.1
-  kX86InstIdPinsrw,                      // MMX2
-  kX86InstIdPmaddubsw,                   // SSSE3
-  kX86InstIdPmaddwd,                     // MMX/SSE2
-  kX86InstIdPmaxsb,                      // SSE4.1
-  kX86InstIdPmaxsd,                      // SSE4.1
-  kX86InstIdPmaxsw,                      // MMX2
-  kX86InstIdPmaxub,                      // MMX2
-  kX86InstIdPmaxud,                      // SSE4.1
-  kX86InstIdPmaxuw,                      // SSE4.1
-  kX86InstIdPminsb,                      // SSE4.1
-  kX86InstIdPminsd,                      // SSE4.1
-  kX86InstIdPminsw,                      // MMX2
-  kX86InstIdPminub,                      // MMX2
-  kX86InstIdPminud,                      // SSE4.1
-  kX86InstIdPminuw,                      // SSE4.1
-  kX86InstIdPmovmskb,                    // MMX2
-  kX86InstIdPmovsxbd,                    // SSE4.1
-  kX86InstIdPmovsxbq,                    // SSE4.1
-  kX86InstIdPmovsxbw,                    // SSE4.1
-  kX86InstIdPmovsxdq,                    // SSE4.1
-  kX86InstIdPmovsxwd,                    // SSE4.1
-  kX86InstIdPmovsxwq,                    // SSE4.1
-  kX86InstIdPmovzxbd,                    // SSE4.1
-  kX86InstIdPmovzxbq,                    // SSE4.1
-  kX86InstIdPmovzxbw,                    // SSE4.1
-  kX86InstIdPmovzxdq,                    // SSE4.1
-  kX86InstIdPmovzxwd,                    // SSE4.1
-  kX86InstIdPmovzxwq,                    // SSE4.1
-  kX86InstIdPmuldq,                      // SSE4.1
-  kX86InstIdPmulhrsw,                    // SSSE3
-  kX86InstIdPmulhrw,                     // 3DNOW
-  kX86InstIdPmulhuw,                     // MMX2
-  kX86InstIdPmulhw,                      // MMX/SSE2
-  kX86InstIdPmulld,                      // SSE4.1
-  kX86InstIdPmullw,                      // MMX/SSE2
-  kX86InstIdPmuludq,                     // SSE2
-  kX86InstIdPop,                         // X86/X64
-  kX86InstIdPopa,                        // X86 only
-  kX86InstIdPopcnt,                      // SSE4.2
-  kX86InstIdPopf,                        // X86/X64
-  kX86InstIdPor,                         // MMX/SSE2
-  kX86InstIdPrefetch,                    // MMX2/SSE
-  kX86InstIdPrefetch3dNow,               // 3DNOW
-  kX86InstIdPrefetchw,                   // PREFETCHW
-  kX86InstIdPrefetchwt1,                 // PREFETCHWT1
-  kX86InstIdPsadbw,                      // MMX2
-  kX86InstIdPshufb,                      // SSSE3
-  kX86InstIdPshufd,                      // SSE2
-  kX86InstIdPshufhw,                     // SSE2
-  kX86InstIdPshuflw,                     // SSE2
-  kX86InstIdPshufw,                      // MMX2
-  kX86InstIdPsignb,                      // SSSE3
-  kX86InstIdPsignd,                      // SSSE3
-  kX86InstIdPsignw,                      // SSSE3
-  kX86InstIdPslld,                       // MMX/SSE2
-  kX86InstIdPslldq,                      // SSE2
-  kX86InstIdPsllq,                       // MMX/SSE2
-  kX86InstIdPsllw,                       // MMX/SSE2
-  kX86InstIdPsrad,                       // MMX/SSE2
-  kX86InstIdPsraw,                       // MMX/SSE2
-  kX86InstIdPsrld,                       // MMX/SSE2
-  kX86InstIdPsrldq,                      // SSE2
-  kX86InstIdPsrlq,                       // MMX/SSE2
-  kX86InstIdPsrlw,                       // MMX/SSE2
-  kX86InstIdPsubb,                       // MMX/SSE2
-  kX86InstIdPsubd,                       // MMX/SSE2
-  kX86InstIdPsubq,                       // SSE2
-  kX86InstIdPsubsb,                      // MMX/SSE2
-  kX86InstIdPsubsw,                      // MMX/SSE2
-  kX86InstIdPsubusb,                     // MMX/SSE2
-  kX86InstIdPsubusw,                     // MMX/SSE2
-  kX86InstIdPsubw,                       // MMX/SSE2
-  kX86InstIdPswapd,                      // 3DNOW2
-  kX86InstIdPtest,                       // SSE4.1
-  kX86InstIdPunpckhbw,                   // MMX/SSE2
-  kX86InstIdPunpckhdq,                   // MMX/SSE2
-  kX86InstIdPunpckhqdq,                  // SSE2
-  kX86InstIdPunpckhwd,                   // MMX/SSE2
-  kX86InstIdPunpcklbw,                   // MMX/SSE2
-  kX86InstIdPunpckldq,                   // MMX/SSE2
-  kX86InstIdPunpcklqdq,                  // SSE2
-  kX86InstIdPunpcklwd,                   // MMX/SSE2
-  kX86InstIdPush,                        // X86/X64
-  kX86InstIdPusha,                       // X86 only
-  kX86InstIdPushf,                       // X86/X64
-  kX86InstIdPxor,                        // MMX/SSE2
-  kX86InstIdRcl,                         // X86/X64
-  kX86InstIdRcpps,                       // SSE
-  kX86InstIdRcpss,                       // SSE
-  kX86InstIdRcr,                         // X86/X64
-  kX86InstIdRdfsbase,                    // FSGSBASE (X64)
-  kX86InstIdRdgsbase,                    // FSGSBASE (X64)
-  kX86InstIdRdrand,                      // RDRAND (RDRAND)
-  kX86InstIdRdseed,                      // RDSEED (RDSEED)
-  kX86InstIdRdtsc,                       // X86/X64
-  kX86InstIdRdtscp,                      // X86/X64
-  kX86InstIdRepLodsB,                    // X86/X64 (REP)
-  kX86InstIdRepLodsD,                    // X86/X64 (REP)
-  kX86InstIdRepLodsQ,                    // X64 only (REP)
-  kX86InstIdRepLodsW,                    // X86/X64 (REP)
-  kX86InstIdRepMovsB,                    // X86/X64 (REP)
-  kX86InstIdRepMovsD,                    // X86/X64 (REP)
-  kX86InstIdRepMovsQ,                    // X64 only (REP)
-  kX86InstIdRepMovsW,                    // X86/X64 (REP)
-  kX86InstIdRepStosB,                    // X86/X64 (REP)
-  kX86InstIdRepStosD,                    // X86/X64 (REP)
-  kX86InstIdRepStosQ,                    // X64 only (REP)
-  kX86InstIdRepStosW,                    // X86/X64 (REP)
-  kX86InstIdRepeCmpsB,                   // X86/X64 (REP)
-  kX86InstIdRepeCmpsD,                   // X86/X64 (REP)
-  kX86InstIdRepeCmpsQ,                   // X64 only (REP)
-  kX86InstIdRepeCmpsW,                   // X86/X64 (REP)
-  kX86InstIdRepeScasB,                   // X86/X64 (REP)
-  kX86InstIdRepeScasD,                   // X86/X64 (REP)
-  kX86InstIdRepeScasQ,                   // X64 only (REP)
-  kX86InstIdRepeScasW,                   // X86/X64 (REP)
-  kX86InstIdRepneCmpsB,                  // X86/X64 (REP)
-  kX86InstIdRepneCmpsD,                  // X86/X64 (REP)
-  kX86InstIdRepneCmpsQ,                  // X64 only (REP)
-  kX86InstIdRepneCmpsW,                  // X86/X64 (REP)
-  kX86InstIdRepneScasB,                  // X86/X64 (REP)
-  kX86InstIdRepneScasD,                  // X86/X64 (REP)
-  kX86InstIdRepneScasQ,                  // X64 only (REP)
-  kX86InstIdRepneScasW,                  // X86/X64 (REP)
-  kX86InstIdRet,                         // X86/X64
-  kX86InstIdRol,                         // X86/X64
-  kX86InstIdRor,                         // X86/X64
-  kX86InstIdRorx,                        // BMI2
-  kX86InstIdRoundpd,                     // SSE4.1
-  kX86InstIdRoundps,                     // SSE4.1
-  kX86InstIdRoundsd,                     // SSE4.1
-  kX86InstIdRoundss,                     // SSE4.1
-  kX86InstIdRsqrtps,                     // SSE
-  kX86InstIdRsqrtss,                     // SSE
-  kX86InstIdSahf,                        // X86/X64 (LAHF/SAHF)
-  kX86InstIdSal,                         // X86/X64
-  kX86InstIdSar,                         // X86/X64
-  kX86InstIdSarx,                        // BMI2
-  kX86InstIdSbb,                         // X86/X64
-  kX86InstIdScasB,                       // SCAS
-  kX86InstIdScasD,                       // SCAS
-  kX86InstIdScasQ,                       // SCAS (X64)
-  kX86InstIdScasW,                       // SCAS
-  kX86InstIdSeta,                        // X86/X64 (setcc)
-  kX86InstIdSetae,                       // X86/X64 (setcc)
-  kX86InstIdSetb,                        // X86/X64 (setcc)
-  kX86InstIdSetbe,                       // X86/X64 (setcc)
-  kX86InstIdSetc,                        // X86/X64 (setcc)
-  kX86InstIdSete,                        // X86/X64 (setcc)
-  kX86InstIdSetg,                        // X86/X64 (setcc)
-  kX86InstIdSetge,                       // X86/X64 (setcc)
-  kX86InstIdSetl,                        // X86/X64 (setcc)
-  kX86InstIdSetle,                       // X86/X64 (setcc)
-  kX86InstIdSetna,                       // X86/X64 (setcc)
-  kX86InstIdSetnae,                      // X86/X64 (setcc)
-  kX86InstIdSetnb,                       // X86/X64 (setcc)
-  kX86InstIdSetnbe,                      // X86/X64 (setcc)
-  kX86InstIdSetnc,                       // X86/X64 (setcc)
-  kX86InstIdSetne,                       // X86/X64 (setcc)
-  kX86InstIdSetng,                       // X86/X64 (setcc)
-  kX86InstIdSetnge,                      // X86/X64 (setcc)
-  kX86InstIdSetnl,                       // X86/X64 (setcc)
-  kX86InstIdSetnle,                      // X86/X64 (setcc)
-  kX86InstIdSetno,                       // X86/X64 (setcc)
-  kX86InstIdSetnp,                       // X86/X64 (setcc)
-  kX86InstIdSetns,                       // X86/X64 (setcc)
-  kX86InstIdSetnz,                       // X86/X64 (setcc)
-  kX86InstIdSeto,                        // X86/X64 (setcc)
-  kX86InstIdSetp,                        // X86/X64 (setcc)
-  kX86InstIdSetpe,                       // X86/X64 (setcc)
-  kX86InstIdSetpo,                       // X86/X64 (setcc)
-  kX86InstIdSets,                        // X86/X64 (setcc)
-  kX86InstIdSetz,                        // X86/X64 (setcc)
-  kX86InstIdSfence,                      // MMX2/SSE
-  kX86InstIdSha1msg1,                    // SHA
-  kX86InstIdSha1msg2,                    // SHA
-  kX86InstIdSha1nexte,                   // SHA
-  kX86InstIdSha1rnds4,                   // SHA
-  kX86InstIdSha256msg1,                  // SHA
-  kX86InstIdSha256msg2,                  // SHA
-  kX86InstIdSha256rnds2,                 // SHA
-  kX86InstIdShl,                         // X86/X64
-  kX86InstIdShld,                        // X86/X64
-  kX86InstIdShlx,                        // BMI2
-  kX86InstIdShr,                         // X86/X64
-  kX86InstIdShrd,                        // X86/X64
-  kX86InstIdShrx,                        // BMI2
-  kX86InstIdShufpd,                      // SSE2
-  kX86InstIdShufps,                      // SSE
-  kX86InstIdSqrtpd,                      // SSE2
-  kX86InstIdSqrtps,                      // SSE
-  kX86InstIdSqrtsd,                      // SSE2
-  kX86InstIdSqrtss,                      // SSE
-  kX86InstIdStc,                         // X86/X64
-  kX86InstIdStd,                         // X86/X64
-  kX86InstIdStmxcsr,                     // SSE
-  kX86InstIdStosB,                       // STOS
-  kX86InstIdStosD,                       // STOS
-  kX86InstIdStosQ,                       // STOS (X64)
-  kX86InstIdStosW,                       // STOS
-  kX86InstIdSub,                         // X86/X64
-  kX86InstIdSubpd,                       // SSE2
-  kX86InstIdSubps,                       // SSE
-  kX86InstIdSubsd,                       // SSE2
-  kX86InstIdSubss,                       // SSE
-  kX86InstIdT1mskc,                      // TBM
-  kX86InstIdTest,                        // X86/X64
-  kX86InstIdTzcnt,                       // TZCNT
-  kX86InstIdTzmsk,                       // TBM
-  kX86InstIdUcomisd,                     // SSE2
-  kX86InstIdUcomiss,                     // SSE
-  kX86InstIdUd2,                         // X86/X64
-  kX86InstIdUnpckhpd,                    // SSE2
-  kX86InstIdUnpckhps,                    // SSE
-  kX86InstIdUnpcklpd,                    // SSE2
-  kX86InstIdUnpcklps,                    // SSE
-  kX86InstIdVaddpd,                      // AVX
-  kX86InstIdVaddps,                      // AVX
-  kX86InstIdVaddsd,                      // AVX
-  kX86InstIdVaddss,                      // AVX
-  kX86InstIdVaddsubpd,                   // AVX
-  kX86InstIdVaddsubps,                   // AVX
-  kX86InstIdVaesdec,                     // AVX+AESNI
-  kX86InstIdVaesdeclast,                 // AVX+AESNI
-  kX86InstIdVaesenc,                     // AVX+AESNI
-  kX86InstIdVaesenclast,                 // AVX+AESNI
-  kX86InstIdVaesimc,                     // AVX+AESNI
-  kX86InstIdVaeskeygenassist,            // AVX+AESNI
-  kX86InstIdVandnpd,                     // AVX
-  kX86InstIdVandnps,                     // AVX
-  kX86InstIdVandpd,                      // AVX
-  kX86InstIdVandps,                      // AVX
-  kX86InstIdVblendpd,                    // AVX
-  kX86InstIdVblendps,                    // AVX
-  kX86InstIdVblendvpd,                   // AVX
-  kX86InstIdVblendvps,                   // AVX
-  kX86InstIdVbroadcastf128,              // AVX
-  kX86InstIdVbroadcasti128,              // AVX2
-  kX86InstIdVbroadcastsd,                // AVX/AVX2
-  kX86InstIdVbroadcastss,                // AVX/AVX2
-  kX86InstIdVcmppd,                      // AVX
-  kX86InstIdVcmpps,                      // AVX
-  kX86InstIdVcmpsd,                      // AVX
-  kX86InstIdVcmpss,                      // AVX
-  kX86InstIdVcomisd,                     // AVX
-  kX86InstIdVcomiss,                     // AVX
-  kX86InstIdVcvtdq2pd,                   // AVX
-  kX86InstIdVcvtdq2ps,                   // AVX
-  kX86InstIdVcvtpd2dq,                   // AVX
-  kX86InstIdVcvtpd2ps,                   // AVX
-  kX86InstIdVcvtph2ps,                   // F16C
-  kX86InstIdVcvtps2dq,                   // AVX
-  kX86InstIdVcvtps2pd,                   // AVX
-  kX86InstIdVcvtps2ph,                   // F16C
-  kX86InstIdVcvtsd2si,                   // AVX
-  kX86InstIdVcvtsd2ss,                   // AVX
-  kX86InstIdVcvtsi2sd,                   // AVX
-  kX86InstIdVcvtsi2ss,                   // AVX
-  kX86InstIdVcvtss2sd,                   // AVX
-  kX86InstIdVcvtss2si,                   // AVX
-  kX86InstIdVcvttpd2dq,                  // AVX
-  kX86InstIdVcvttps2dq,                  // AVX
-  kX86InstIdVcvttsd2si,                  // AVX
-  kX86InstIdVcvttss2si,                  // AVX
-  kX86InstIdVdivpd,                      // AVX
-  kX86InstIdVdivps,                      // AVX
-  kX86InstIdVdivsd,                      // AVX
-  kX86InstIdVdivss,                      // AVX
-  kX86InstIdVdppd,                       // AVX
-  kX86InstIdVdpps,                       // AVX
-  kX86InstIdVextractf128,                // AVX
-  kX86InstIdVextracti128,                // AVX2
-  kX86InstIdVextractps,                  // AVX
-  kX86InstIdVfmadd132pd,                 // FMA3
-  kX86InstIdVfmadd132ps,                 // FMA3
-  kX86InstIdVfmadd132sd,                 // FMA3
-  kX86InstIdVfmadd132ss,                 // FMA3
-  kX86InstIdVfmadd213pd,                 // FMA3
-  kX86InstIdVfmadd213ps,                 // FMA3
-  kX86InstIdVfmadd213sd,                 // FMA3
-  kX86InstIdVfmadd213ss,                 // FMA3
-  kX86InstIdVfmadd231pd,                 // FMA3
-  kX86InstIdVfmadd231ps,                 // FMA3
-  kX86InstIdVfmadd231sd,                 // FMA3
-  kX86InstIdVfmadd231ss,                 // FMA3
-  kX86InstIdVfmaddpd,                    // FMA4
-  kX86InstIdVfmaddps,                    // FMA4
-  kX86InstIdVfmaddsd,                    // FMA4
-  kX86InstIdVfmaddss,                    // FMA4
-  kX86InstIdVfmaddsub132pd,              // FMA3
-  kX86InstIdVfmaddsub132ps,              // FMA3
-  kX86InstIdVfmaddsub213pd,              // FMA3
-  kX86InstIdVfmaddsub213ps,              // FMA3
-  kX86InstIdVfmaddsub231pd,              // FMA3
-  kX86InstIdVfmaddsub231ps,              // FMA3
-  kX86InstIdVfmaddsubpd,                 // FMA4
-  kX86InstIdVfmaddsubps,                 // FMA4
-  kX86InstIdVfmsub132pd,                 // FMA3
-  kX86InstIdVfmsub132ps,                 // FMA3
-  kX86InstIdVfmsub132sd,                 // FMA3
-  kX86InstIdVfmsub132ss,                 // FMA3
-  kX86InstIdVfmsub213pd,                 // FMA3
-  kX86InstIdVfmsub213ps,                 // FMA3
-  kX86InstIdVfmsub213sd,                 // FMA3
-  kX86InstIdVfmsub213ss,                 // FMA3
-  kX86InstIdVfmsub231pd,                 // FMA3
-  kX86InstIdVfmsub231ps,                 // FMA3
-  kX86InstIdVfmsub231sd,                 // FMA3
-  kX86InstIdVfmsub231ss,                 // FMA3
-  kX86InstIdVfmsubadd132pd,              // FMA3
-  kX86InstIdVfmsubadd132ps,              // FMA3
-  kX86InstIdVfmsubadd213pd,              // FMA3
-  kX86InstIdVfmsubadd213ps,              // FMA3
-  kX86InstIdVfmsubadd231pd,              // FMA3
-  kX86InstIdVfmsubadd231ps,              // FMA3
-  kX86InstIdVfmsubaddpd,                 // FMA4
-  kX86InstIdVfmsubaddps,                 // FMA4
-  kX86InstIdVfmsubpd,                    // FMA4
-  kX86InstIdVfmsubps,                    // FMA4
-  kX86InstIdVfmsubsd,                    // FMA4
-  kX86InstIdVfmsubss,                    // FMA4
-  kX86InstIdVfnmadd132pd,                // FMA3
-  kX86InstIdVfnmadd132ps,                // FMA3
-  kX86InstIdVfnmadd132sd,                // FMA3
-  kX86InstIdVfnmadd132ss,                // FMA3
-  kX86InstIdVfnmadd213pd,                // FMA3
-  kX86InstIdVfnmadd213ps,                // FMA3
-  kX86InstIdVfnmadd213sd,                // FMA3
-  kX86InstIdVfnmadd213ss,                // FMA3
-  kX86InstIdVfnmadd231pd,                // FMA3
-  kX86InstIdVfnmadd231ps,                // FMA3
-  kX86InstIdVfnmadd231sd,                // FMA3
-  kX86InstIdVfnmadd231ss,                // FMA3
-  kX86InstIdVfnmaddpd,                   // FMA4
-  kX86InstIdVfnmaddps,                   // FMA4
-  kX86InstIdVfnmaddsd,                   // FMA4
-  kX86InstIdVfnmaddss,                   // FMA4
-  kX86InstIdVfnmsub132pd,                // FMA3
-  kX86InstIdVfnmsub132ps,                // FMA3
-  kX86InstIdVfnmsub132sd,                // FMA3
-  kX86InstIdVfnmsub132ss,                // FMA3
-  kX86InstIdVfnmsub213pd,                // FMA3
-  kX86InstIdVfnmsub213ps,                // FMA3
-  kX86InstIdVfnmsub213sd,                // FMA3
-  kX86InstIdVfnmsub213ss,                // FMA3
-  kX86InstIdVfnmsub231pd,                // FMA3
-  kX86InstIdVfnmsub231ps,                // FMA3
-  kX86InstIdVfnmsub231sd,                // FMA3
-  kX86InstIdVfnmsub231ss,                // FMA3
-  kX86InstIdVfnmsubpd,                   // FMA4
-  kX86InstIdVfnmsubps,                   // FMA4
-  kX86InstIdVfnmsubsd,                   // FMA4
-  kX86InstIdVfnmsubss,                   // FMA4
-  kX86InstIdVfrczpd,                     // XOP
-  kX86InstIdVfrczps,                     // XOP
-  kX86InstIdVfrczsd,                     // XOP
-  kX86InstIdVfrczss,                     // XOP
-  kX86InstIdVgatherdpd,                  // AVX2
-  kX86InstIdVgatherdps,                  // AVX2
-  kX86InstIdVgatherqpd,                  // AVX2
-  kX86InstIdVgatherqps,                  // AVX2
-  kX86InstIdVhaddpd,                     // AVX
-  kX86InstIdVhaddps,                     // AVX
-  kX86InstIdVhsubpd,                     // AVX
-  kX86InstIdVhsubps,                     // AVX
-  kX86InstIdVinsertf128,                 // AVX
-  kX86InstIdVinserti128,                 // AVX2
-  kX86InstIdVinsertps,                   // AVX
-  kX86InstIdVlddqu,                      // AVX
-  kX86InstIdVldmxcsr,                    // AVX
-  kX86InstIdVmaskmovdqu,                 // AVX
-  kX86InstIdVmaskmovpd,                  // AVX
-  kX86InstIdVmaskmovps,                  // AVX
-  kX86InstIdVmaxpd,                      // AVX
-  kX86InstIdVmaxps,                      // AVX
-  kX86InstIdVmaxsd,                      // AVX
-  kX86InstIdVmaxss,                      // AVX
-  kX86InstIdVminpd,                      // AVX
-  kX86InstIdVminps,                      // AVX
-  kX86InstIdVminsd,                      // AVX
-  kX86InstIdVminss,                      // AVX
-  kX86InstIdVmovapd,                     // AVX
-  kX86InstIdVmovaps,                     // AVX
-  kX86InstIdVmovd,                       // AVX
-  kX86InstIdVmovddup,                    // AVX
-  kX86InstIdVmovdqa,                     // AVX
-  kX86InstIdVmovdqu,                     // AVX
-  kX86InstIdVmovhlps,                    // AVX
-  kX86InstIdVmovhpd,                     // AVX
-  kX86InstIdVmovhps,                     // AVX
-  kX86InstIdVmovlhps,                    // AVX
-  kX86InstIdVmovlpd,                     // AVX
-  kX86InstIdVmovlps,                     // AVX
-  kX86InstIdVmovmskpd,                   // AVX
-  kX86InstIdVmovmskps,                   // AVX
-  kX86InstIdVmovntdq,                    // AVX
-  kX86InstIdVmovntdqa,                   // AVX/AVX2
-  kX86InstIdVmovntpd,                    // AVX
-  kX86InstIdVmovntps,                    // AVX
-  kX86InstIdVmovq,                       // AVX
-  kX86InstIdVmovsd,                      // AVX
-  kX86InstIdVmovshdup,                   // AVX
-  kX86InstIdVmovsldup,                   // AVX
-  kX86InstIdVmovss,                      // AVX
-  kX86InstIdVmovupd,                     // AVX
-  kX86InstIdVmovups,                     // AVX
-  kX86InstIdVmpsadbw,                    // AVX/AVX2
-  kX86InstIdVmulpd,                      // AVX
-  kX86InstIdVmulps,                      // AVX
-  kX86InstIdVmulsd,                      // AVX
-  kX86InstIdVmulss,                      // AVX
-  kX86InstIdVorpd,                       // AVX
-  kX86InstIdVorps,                       // AVX
-  kX86InstIdVpabsb,                      // AVX2
-  kX86InstIdVpabsd,                      // AVX2
-  kX86InstIdVpabsw,                      // AVX2
-  kX86InstIdVpackssdw,                   // AVX2
-  kX86InstIdVpacksswb,                   // AVX2
-  kX86InstIdVpackusdw,                   // AVX2
-  kX86InstIdVpackuswb,                   // AVX2
-  kX86InstIdVpaddb,                      // AVX2
-  kX86InstIdVpaddd,                      // AVX2
-  kX86InstIdVpaddq,                      // AVX2
-  kX86InstIdVpaddsb,                     // AVX2
-  kX86InstIdVpaddsw,                     // AVX2
-  kX86InstIdVpaddusb,                    // AVX2
-  kX86InstIdVpaddusw,                    // AVX2
-  kX86InstIdVpaddw,                      // AVX2
-  kX86InstIdVpalignr,                    // AVX2
-  kX86InstIdVpand,                       // AVX2
-  kX86InstIdVpandn,                      // AVX2
-  kX86InstIdVpavgb,                      // AVX2
-  kX86InstIdVpavgw,                      // AVX2
-  kX86InstIdVpblendd,                    // AVX2
-  kX86InstIdVpblendvb,                   // AVX2
-  kX86InstIdVpblendw,                    // AVX2
-  kX86InstIdVpbroadcastb,                // AVX2
-  kX86InstIdVpbroadcastd,                // AVX2
-  kX86InstIdVpbroadcastq,                // AVX2
-  kX86InstIdVpbroadcastw,                // AVX2
-  kX86InstIdVpclmulqdq,                  // AVX+PCLMULQDQ
-  kX86InstIdVpcmov,                      // XOP
-  kX86InstIdVpcmpeqb,                    // AVX2
-  kX86InstIdVpcmpeqd,                    // AVX2
-  kX86InstIdVpcmpeqq,                    // AVX2
-  kX86InstIdVpcmpeqw,                    // AVX2
-  kX86InstIdVpcmpestri,                  // AVX
-  kX86InstIdVpcmpestrm,                  // AVX
-  kX86InstIdVpcmpgtb,                    // AVX2
-  kX86InstIdVpcmpgtd,                    // AVX2
-  kX86InstIdVpcmpgtq,                    // AVX2
-  kX86InstIdVpcmpgtw,                    // AVX2
-  kX86InstIdVpcmpistri,                  // AVX
-  kX86InstIdVpcmpistrm,                  // AVX
-  kX86InstIdVpcomb,                      // XOP
-  kX86InstIdVpcomd,                      // XOP
-  kX86InstIdVpcomq,                      // XOP
-  kX86InstIdVpcomub,                     // XOP
-  kX86InstIdVpcomud,                     // XOP
-  kX86InstIdVpcomuq,                     // XOP
-  kX86InstIdVpcomuw,                     // XOP
-  kX86InstIdVpcomw,                      // XOP
-  kX86InstIdVperm2f128,                  // AVX
-  kX86InstIdVperm2i128,                  // AVX2
-  kX86InstIdVpermd,                      // AVX2
-  kX86InstIdVpermil2pd,                  // XOP
-  kX86InstIdVpermil2ps,                  // XOP
-  kX86InstIdVpermilpd,                   // AVX
-  kX86InstIdVpermilps,                   // AVX
-  kX86InstIdVpermpd,                     // AVX2
-  kX86InstIdVpermps,                     // AVX2
-  kX86InstIdVpermq,                      // AVX2
-  kX86InstIdVpextrb,                     // AVX
-  kX86InstIdVpextrd,                     // AVX
-  kX86InstIdVpextrq,                     // AVX (X64)
-  kX86InstIdVpextrw,                     // AVX
-  kX86InstIdVpgatherdd,                  // AVX2
-  kX86InstIdVpgatherdq,                  // AVX2
-  kX86InstIdVpgatherqd,                  // AVX2
-  kX86InstIdVpgatherqq,                  // AVX2
-  kX86InstIdVphaddbd,                    // XOP
-  kX86InstIdVphaddbq,                    // XOP
-  kX86InstIdVphaddbw,                    // XOP
-  kX86InstIdVphaddd,                     // AVX2
-  kX86InstIdVphadddq,                    // XOP
-  kX86InstIdVphaddsw,                    // AVX2
-  kX86InstIdVphaddubd,                   // XOP
-  kX86InstIdVphaddubq,                   // XOP
-  kX86InstIdVphaddubw,                   // XOP
-  kX86InstIdVphaddudq,                   // XOP
-  kX86InstIdVphadduwd,                   // XOP
-  kX86InstIdVphadduwq,                   // XOP
-  kX86InstIdVphaddw,                     // AVX2
-  kX86InstIdVphaddwd,                    // XOP
-  kX86InstIdVphaddwq,                    // XOP
-  kX86InstIdVphminposuw,                 // AVX
-  kX86InstIdVphsubbw,                    // XOP
-  kX86InstIdVphsubd,                     // AVX2
-  kX86InstIdVphsubdq,                    // XOP
-  kX86InstIdVphsubsw,                    // AVX2
-  kX86InstIdVphsubw,                     // AVX2
-  kX86InstIdVphsubwd,                    // XOP
-  kX86InstIdVpinsrb,                     // AVX
-  kX86InstIdVpinsrd,                     // AVX
-  kX86InstIdVpinsrq,                     // AVX (X64)
-  kX86InstIdVpinsrw,                     // AVX
-  kX86InstIdVpmacsdd,                    // XOP
-  kX86InstIdVpmacsdqh,                   // XOP
-  kX86InstIdVpmacsdql,                   // XOP
-  kX86InstIdVpmacssdd,                   // XOP
-  kX86InstIdVpmacssdqh,                  // XOP
-  kX86InstIdVpmacssdql,                  // XOP
-  kX86InstIdVpmacsswd,                   // XOP
-  kX86InstIdVpmacssww,                   // XOP
-  kX86InstIdVpmacswd,                    // XOP
-  kX86InstIdVpmacsww,                    // XOP
-  kX86InstIdVpmadcsswd,                  // XOP
-  kX86InstIdVpmadcswd,                   // XOP
-  kX86InstIdVpmaddubsw,                  // AVX/AVX2
-  kX86InstIdVpmaddwd,                    // AVX/AVX2
-  kX86InstIdVpmaskmovd,                  // AVX2
-  kX86InstIdVpmaskmovq,                  // AVX2
-  kX86InstIdVpmaxsb,                     // AVX/AVX2
-  kX86InstIdVpmaxsd,                     // AVX/AVX2
-  kX86InstIdVpmaxsw,                     // AVX/AVX2
-  kX86InstIdVpmaxub,                     // AVX/AVX2
-  kX86InstIdVpmaxud,                     // AVX/AVX2
-  kX86InstIdVpmaxuw,                     // AVX/AVX2
-  kX86InstIdVpminsb,                     // AVX/AVX2
-  kX86InstIdVpminsd,                     // AVX/AVX2
-  kX86InstIdVpminsw,                     // AVX/AVX2
-  kX86InstIdVpminub,                     // AVX/AVX2
-  kX86InstIdVpminud,                     // AVX/AVX2
-  kX86InstIdVpminuw,                     // AVX/AVX2
-  kX86InstIdVpmovmskb,                   // AVX/AVX2
-  kX86InstIdVpmovsxbd,                   // AVX/AVX2
-  kX86InstIdVpmovsxbq,                   // AVX/AVX2
-  kX86InstIdVpmovsxbw,                   // AVX/AVX2
-  kX86InstIdVpmovsxdq,                   // AVX/AVX2
-  kX86InstIdVpmovsxwd,                   // AVX/AVX2
-  kX86InstIdVpmovsxwq,                   // AVX/AVX2
-  kX86InstIdVpmovzxbd,                   // AVX/AVX2
-  kX86InstIdVpmovzxbq,                   // AVX/AVX2
-  kX86InstIdVpmovzxbw,                   // AVX/AVX2
-  kX86InstIdVpmovzxdq,                   // AVX/AVX2
-  kX86InstIdVpmovzxwd,                   // AVX/AVX2
-  kX86InstIdVpmovzxwq,                   // AVX/AVX2
-  kX86InstIdVpmuldq,                     // AVX/AVX2
-  kX86InstIdVpmulhrsw,                   // AVX/AVX2
-  kX86InstIdVpmulhuw,                    // AVX/AVX2
-  kX86InstIdVpmulhw,                     // AVX/AVX2
-  kX86InstIdVpmulld,                     // AVX/AVX2
-  kX86InstIdVpmullw,                     // AVX/AVX2
-  kX86InstIdVpmuludq,                    // AVX/AVX2
-  kX86InstIdVpor,                        // AVX/AVX2
-  kX86InstIdVpperm,                      // XOP
-  kX86InstIdVprotb,                      // XOP
-  kX86InstIdVprotd,                      // XOP
-  kX86InstIdVprotq,                      // XOP
-  kX86InstIdVprotw,                      // XOP
-  kX86InstIdVpsadbw,                     // AVX/AVX2
-  kX86InstIdVpshab,                      // XOP
-  kX86InstIdVpshad,                      // XOP
-  kX86InstIdVpshaq,                      // XOP
-  kX86InstIdVpshaw,                      // XOP
-  kX86InstIdVpshlb,                      // XOP
-  kX86InstIdVpshld,                      // XOP
-  kX86InstIdVpshlq,                      // XOP
-  kX86InstIdVpshlw,                      // XOP
-  kX86InstIdVpshufb,                     // AVX/AVX2
-  kX86InstIdVpshufd,                     // AVX/AVX2
-  kX86InstIdVpshufhw,                    // AVX/AVX2
-  kX86InstIdVpshuflw,                    // AVX/AVX2
-  kX86InstIdVpsignb,                     // AVX/AVX2
-  kX86InstIdVpsignd,                     // AVX/AVX2
-  kX86InstIdVpsignw,                     // AVX/AVX2
-  kX86InstIdVpslld,                      // AVX/AVX2
-  kX86InstIdVpslldq,                     // AVX/AVX2
-  kX86InstIdVpsllq,                      // AVX/AVX2
-  kX86InstIdVpsllvd,                     // AVX2
-  kX86InstIdVpsllvq,                     // AVX2
-  kX86InstIdVpsllw,                      // AVX/AVX2
-  kX86InstIdVpsrad,                      // AVX/AVX2
-  kX86InstIdVpsravd,                     // AVX2
-  kX86InstIdVpsraw,                      // AVX/AVX2
-  kX86InstIdVpsrld,                      // AVX/AVX2
-  kX86InstIdVpsrldq,                     // AVX/AVX2
-  kX86InstIdVpsrlq,                      // AVX/AVX2
-  kX86InstIdVpsrlvd,                     // AVX2
-  kX86InstIdVpsrlvq,                     // AVX2
-  kX86InstIdVpsrlw,                      // AVX/AVX2
-  kX86InstIdVpsubb,                      // AVX/AVX2
-  kX86InstIdVpsubd,                      // AVX/AVX2
-  kX86InstIdVpsubq,                      // AVX/AVX2
-  kX86InstIdVpsubsb,                     // AVX/AVX2
-  kX86InstIdVpsubsw,                     // AVX/AVX2
-  kX86InstIdVpsubusb,                    // AVX/AVX2
-  kX86InstIdVpsubusw,                    // AVX/AVX2
-  kX86InstIdVpsubw,                      // AVX/AVX2
-  kX86InstIdVptest,                      // AVX
-  kX86InstIdVpunpckhbw,                  // AVX/AVX2
-  kX86InstIdVpunpckhdq,                  // AVX/AVX2
-  kX86InstIdVpunpckhqdq,                 // AVX/AVX2
-  kX86InstIdVpunpckhwd,                  // AVX/AVX2
-  kX86InstIdVpunpcklbw,                  // AVX/AVX2
-  kX86InstIdVpunpckldq,                  // AVX/AVX2
-  kX86InstIdVpunpcklqdq,                 // AVX/AVX2
-  kX86InstIdVpunpcklwd,                  // AVX/AVX2
-  kX86InstIdVpxor,                       // AVX/AVX2
-  kX86InstIdVrcpps,                      // AVX
-  kX86InstIdVrcpss,                      // AVX
-  kX86InstIdVroundpd,                    // AVX
-  kX86InstIdVroundps,                    // AVX
-  kX86InstIdVroundsd,                    // AVX
-  kX86InstIdVroundss,                    // AVX
-  kX86InstIdVrsqrtps,                    // AVX
-  kX86InstIdVrsqrtss,                    // AVX
-  kX86InstIdVshufpd,                     // AVX
-  kX86InstIdVshufps,                     // AVX
-  kX86InstIdVsqrtpd,                     // AVX
-  kX86InstIdVsqrtps,                     // AVX
-  kX86InstIdVsqrtsd,                     // AVX
-  kX86InstIdVsqrtss,                     // AVX
-  kX86InstIdVstmxcsr,                    // AVX
-  kX86InstIdVsubpd,                      // AVX
-  kX86InstIdVsubps,                      // AVX
-  kX86InstIdVsubsd,                      // AVX
-  kX86InstIdVsubss,                      // AVX
-  kX86InstIdVtestpd,                     // AVX
-  kX86InstIdVtestps,                     // AVX
-  kX86InstIdVucomisd,                    // AVX
-  kX86InstIdVucomiss,                    // AVX
-  kX86InstIdVunpckhpd,                   // AVX
-  kX86InstIdVunpckhps,                   // AVX
-  kX86InstIdVunpcklpd,                   // AVX
-  kX86InstIdVunpcklps,                   // AVX
-  kX86InstIdVxorpd,                      // AVX
-  kX86InstIdVxorps,                      // AVX
-  kX86InstIdVzeroall,                    // AVX
-  kX86InstIdVzeroupper,                  // AVX
-  kX86InstIdWrfsbase,                    // FSGSBASE (X64)
-  kX86InstIdWrgsbase,                    // FSGSBASE (X64)
-  kX86InstIdXadd,                        // X86/X64 (i486+)
-  kX86InstIdXchg,                        // X86/X64
-  kX86InstIdXgetbv,                      // XSAVE
-  kX86InstIdXor,                         // X86/X64
-  kX86InstIdXorpd,                       // SSE2
-  kX86InstIdXorps,                       // SSE
-  kX86InstIdXrstor,                      // XSAVE
-  kX86InstIdXrstor64,                    // XSAVE
-  kX86InstIdXsave,                       // XSAVE
-  kX86InstIdXsave64,                     // XSAVE
-  kX86InstIdXsaveopt,                    // XSAVE
-  kX86InstIdXsaveopt64,                  // XSAVE
-  kX86InstIdXsetbv,                      // XSAVE
-
-  _kX86InstIdCount,
-
-  _kX86InstIdCmovcc = kX86InstIdCmova,
-  _kX86InstIdJcc = kX86InstIdJa,
-  _kX86InstIdSetcc = kX86InstIdSeta,
-
-  _kX86InstIdJbegin = kX86InstIdJa,
-  _kX86InstIdJend = kX86InstIdJmp
-};
-
-// ============================================================================
-// [asmjit::X86InstOptions]
-// ============================================================================
-
-//! X86/X64 instruction emit options, mainly for internal purposes.
-ASMJIT_ENUM(X86InstOptions) {
-  kX86InstOptionRex       = 0x00000040,  //!< Force REX prefix (X64)
-  _kX86InstOptionNoRex    = 0x00000080,  //!< Do not use, internal of `X86Assembler`.
-  kX86InstOptionLock      = 0x00000100,  //!< Force LOCK prefix (lock-enabled instructions).
-  kX86InstOptionVex3      = 0x00000200,  //!< Force 3-byte VEX prefix (AVX)
-  kX86InstOptionEvex      = 0x00010000,  //!< Force 4-byte EVEX prefix (AVX-512).
-  kX86InstOptionEvexZero  = 0x00020000,  //!< EVEX use zeroing instead of merging.
-  kX86InstOptionEvexOneN  = 0x00040000,  //!< EVEX broadcast the first element to all.
-  kX86InstOptionEvexSae   = 0x00080000,  //!< EVEX suppress all exceptions (SAE).
-  kX86InstOptionEvexRnSae = 0x00100000,  //!< EVEX 'round-to-nearest' (even) and `SAE`.
-  kX86InstOptionEvexRdSae = 0x00200000,  //!< EVEX 'round-down' (toward -inf) and 'SAE'.
-  kX86InstOptionEvexRuSae = 0x00400000,  //!< EVEX 'round-up' (toward +inf) and 'SAE'.
-  kX86InstOptionEvexRzSae = 0x00800000   //!< EVEX 'round-toward-zero' (truncate) and 'SAE'.
-};
-
-// ============================================================================
-// [asmjit::X86InstEncoding]
-// ============================================================================
-
-//! \internal
-//!
-//! X86/X64 instruction groups.
-//!
-//! This group is specific to AsmJit and only used by `X86Assembler`.
-ASMJIT_ENUM(X86InstEncoding) {
-  kX86InstEncodingNone = 0,              //!< Never used.
-
-  kX86InstEncodingX86Op,
-  kX86InstEncodingX86Op_66H,
-  kX86InstEncodingX86Rm,
-  kX86InstEncodingX86Rm_B,
-  kX86InstEncodingX86RmReg,
-  kX86InstEncodingX86RegRm,
-  kX86InstEncodingX86M,
-  kX86InstEncodingX86Arith,              //!< X86 encoding - adc, add, and, cmp, or, sbb, sub, xor.
-  kX86InstEncodingX86BSwap,              //!< X86 encoding - bswap.
-  kX86InstEncodingX86BTest,              //!< X86 encoding - bt, btc, btr, bts.
-  kX86InstEncodingX86Call,               //!< X86 encoding - call.
-  kX86InstEncodingX86Enter,              //!< X86 encoding - enter.
-  kX86InstEncodingX86Imul,               //!< X86 encoding - imul.
-  kX86InstEncodingX86IncDec,             //!< X86 encoding - inc, dec.
-  kX86InstEncodingX86Int,                //!< X86 encoding - int (interrupt).
-  kX86InstEncodingX86Jcc,                //!< X86 encoding - jcc.
-  kX86InstEncodingX86Jecxz,              //!< X86 encoding - jcxz, jecxz, jrcxz.
-  kX86InstEncodingX86Jmp,                //!< X86 encoding - jmp.
-  kX86InstEncodingX86Lea,                //!< X86 encoding - lea.
-  kX86InstEncodingX86Mov,                //!< X86 encoding - mov.
-  kX86InstEncodingX86MovsxMovzx,         //!< X86 encoding - movsx, movzx.
-  kX86InstEncodingX86Movsxd,             //!< X86 encoding - movsxd.
-  kX86InstEncodingX86MovPtr,             //!< X86 encoding - mov with absolute memory operand (x86/x64).
-  kX86InstEncodingX86Push,               //!< X86 encoding - push.
-  kX86InstEncodingX86Pop,                //!< X86 encoding - pop.
-  kX86InstEncodingX86Rep,                //!< X86 encoding - rep|repe|repne lods?, movs?, stos?, cmps?, scas?.
-  kX86InstEncodingX86Ret,                //!< X86 encoding - ret.
-  kX86InstEncodingX86Rot,                //!< X86 encoding - rcl, rcr, rol, ror, sal, sar, shl, shr.
-  kX86InstEncodingX86Set,                //!< X86 encoding - setcc.
-  kX86InstEncodingX86ShldShrd,           //!< X86 encoding - shld, shrd.
-  kX86InstEncodingX86Test,               //!< X86 encoding - test.
-  kX86InstEncodingX86Xadd,               //!< X86 encoding - xadd.
-  kX86InstEncodingX86Xchg,               //!< X86 encoding - xchg.
-  kX86InstEncodingX86Crc,                //!< X86 encoding - crc32.
-  kX86InstEncodingX86Prefetch,           //!< X86 encoding - prefetch.
-  kX86InstEncodingX86Fence,              //!< X86 encoding - lfence, mfence, sfence.
-  kX86InstEncodingFpuOp,                 //!< FPU encoding - [OP].
-  kX86InstEncodingFpuArith,              //!< FPU encoding - fadd, fdiv, fdivr, fmul, fsub, fsubr.
-  kX86InstEncodingFpuCom,                //!< FPU encoding - fcom, fcomp.
-  kX86InstEncodingFpuFldFst,             //!< FPU encoding - fld, fst, fstp.
-  kX86InstEncodingFpuM,                  //!< FPU encoding - fiadd, ficom, ficomp, fidiv, fidivr, fild, fimul, fist, fistp, fisttp, fisub, fisubr.
-  kX86InstEncodingFpuR,                  //!< FPU encoding - fcmov, fcomi, fcomip, ffree, fucom, fucomi, fucomip, fucomp, fxch.
-  kX86InstEncodingFpuRDef,               //!< FPU encoding - faddp, fdivp, fdivrp, fmulp, fsubp, fsubrp.
-  kX86InstEncodingFpuStsw,               //!< FPU encoding - fnstsw, Fstsw.
-  kX86InstEncodingSimdRm,                //!< SIMD encoding - [RM].
-  kX86InstEncodingSimdRm_P,              //!< SIMD encoding - [RM] (propagates 66H if the instruction uses XMM register).
-  kX86InstEncodingSimdRm_Q,              //!< SIMD encoding - [RM] (propagates REX.W if GPQ is used).
-  kX86InstEncodingSimdRm_PQ,             //!< SIMD encoding - [RM] (propagates 66H and REX.W).
-  kX86InstEncodingSimdRmRi,              //!< SIMD encoding - [RM|RI].
-  kX86InstEncodingSimdRmRi_P,            //!< SIMD encoding - [RM|RI] (propagates 66H if the instruction uses XMM register).
-  kX86InstEncodingSimdRmi,               //!< SIMD encoding - [RMI].
-  kX86InstEncodingSimdRmi_P,             //!< SIMD encoding - [RMI] (propagates 66H if the instruction uses XMM register).
-  kX86InstEncodingSimdPextrw,            //!< SIMD encoding - pextrw.
-  kX86InstEncodingSimdExtract,           //!< SIMD encoding - pextrb, pextrd, pextrq, extractps.
-  kX86InstEncodingSimdMov,               //!< SIMD encoding - mov - primary opcode means `(X)MM <- (X)MM/Mem`, secondary `(X)Mm/Mem <- (X)Mm format`.
-  kX86InstEncodingSimdMovNoRexW,         //!< SIMD encoding - movmskpd, movmskps.
-  kX86InstEncodingSimdMovBe,             //!< Used by movbe.
-  kX86InstEncodingSimdMovD,              //!< SIMD encoding - movd.
-  kX86InstEncodingSimdMovQ,              //!< SIMD encoding - movq.
-  kX86InstEncodingSimdExtrq,             //!< SIMD encoding - extrq (SSE4a).
-  kX86InstEncodingSimdInsertq,           //!< SIMD encoding - insrq (SSE4a).
-  kX86InstEncodingSimd3dNow,             //!< SIMD encoding - 3dnow instructions.
-  kX86InstEncodingAvxOp,                 //!< AVX encoding - [OP].
-  kX86InstEncodingAvxM,                  //!< AVX encoding - [M].
-  kX86InstEncodingAvxMr,                 //!< AVX encoding - [MR].
-  kX86InstEncodingAvxMr_OptL,            //!< AVX encoding - [MR] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxMri,                //!< AVX encoding - [MRI].
-  kX86InstEncodingAvxMri_OptL,           //!< AVX encoding - [MRI] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRm,                 //!< AVX encoding - [RM].
-  kX86InstEncodingAvxRm_OptL,            //!< AVX encoding - [RM] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRmi,                //!< AVX encoding - [RMI].
-  kX86InstEncodingAvxRmi_OptW,           //!< AVX encoding - [RMI] (Propagates AVX.W if GPQ used).
-  kX86InstEncodingAvxRmi_OptL,           //!< AVX encoding - [RMI] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRvm,                //!< AVX encoding - [RVM].
-  kX86InstEncodingAvxRvm_OptW,           //!< AVX encoding - [RVM] (Propagates AVX.W if GPQ used).
-  kX86InstEncodingAvxRvm_OptL,           //!< AVX encoding - [RVM] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRvmr,               //!< AVX encoding - [RVMR].
-  kX86InstEncodingAvxRvmr_OptL,          //!< AVX encoding - [RVMR] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRvmi,               //!< AVX encoding - [RVMI].
-  kX86InstEncodingAvxRvmi_OptL,          //!< AVX encoding - [RVMI] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRmv,                //!< AVX encoding - [RMV].
-  kX86InstEncodingAvxRmv_OptW,           //!< AVX encoding - [RMV] (Propagates AVX.W if GPQ used).
-  kX86InstEncodingAvxRmvi,               //!< AVX encoding - [RMVI].
-  kX86InstEncodingAvxRmMr,               //!< AVX encoding - [RM|MR].
-  kX86InstEncodingAvxRmMr_OptL,          //!< AVX encoding - [RM|MR] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRvmRmi,             //!< AVX encoding - [RVM|RMI].
-  kX86InstEncodingAvxRvmRmi_OptL,        //!< AVX encoding - [RVM|RMI] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRvmMr,              //!< AVX encoding - [RVM|MR].
-  kX86InstEncodingAvxRvmMvr,             //!< AVX encoding - [RVM|MVR].
-  kX86InstEncodingAvxRvmMvr_OptL,        //!< AVX encoding - [RVM|MVR] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRvmVmi,             //!< AVX encoding - [RVM|VMI].
-  kX86InstEncodingAvxRvmVmi_OptL,        //!< AVX encoding - [RVM|VMI] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxVm,                 //!< AVX encoding - [VM].
-  kX86InstEncodingAvxVm_OptW,            //!< AVX encoding - [VM] (Propagates AVX.W if GPQ used).
-  kX86InstEncodingAvxVmi,                //!< AVX encoding - [VMI].
-  kX86InstEncodingAvxVmi_OptL,           //!< AVX encoding - [VMI] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxRvrmRvmr,           //!< AVX encoding - [RVRM|RVMR].
-  kX86InstEncodingAvxRvrmRvmr_OptL,      //!< AVX encoding - [RVRM|RVMR] (Propagates AVX.L if YMM used).
-  kX86InstEncodingAvxMovDQ,              //!< AVX encoding - vmovd, vmovq.
-  kX86InstEncodingAvxMovSsSd,            //!< AVX encoding - vmovss, vmovsd.
-  kX86InstEncodingAvxGather,             //!< AVX encoding - gather (VSIB).
-  kX86InstEncodingAvxGatherEx,           //!< AVX encoding - gather (VSIB), differs only in MEM operand.
-  kX86InstEncodingFma4,                  //!< FMA4 encoding - [R, R, R/M, R/M].
-  kX86InstEncodingFma4_OptL,             //!< FMA4 encoding - [R, R, R/M, R/M] (Propagates AVX.L if YMM used).
-  kX86InstEncodingXopRm,                 //!< XOP encoding - [RM].
-  kX86InstEncodingXopRm_OptL,            //!< XOP encoding - [RM] (Propagates AVX.L if YMM used).
-  kX86InstEncodingXopRvmRmv,             //!< XOP encoding - [RVM | RMV].
-  kX86InstEncodingXopRvmRmi,             //!< XOP encoding - [RVM | RMI].
-  kX86InstEncodingXopRvmr,               //!< XOP encoding - [RVMR].
-  kX86InstEncodingXopRvmr_OptL,          //!< XOP encoding - [RVMR] (Propagates AVX.L if YMM used).
-  kX86InstEncodingXopRvmi,               //!< XOP encoding - [RVMI].
-  kX86InstEncodingXopRvmi_OptL,          //!< XOP encoding - [RVMI] (Propagates AVX.L if YMM used).
-  kX86InstEncodingXopRvrmRvmr,           //!< XOP encoding - [RVRM | RVMR].
-  kX86InstEncodingXopRvrmRvmr_OptL,      //!< XOP encoding - [RVRM | RVMR] (Propagates AVX.L if YMM used).
-  kX86InstEncodingXopVm_OptW,            //!< XOP encoding - [VM].
-
-  _kX86InstEncodingCount                 //!< Count of X86 instruction encodings.
-};
-
-// ============================================================================
-// [asmjit::X86InstOpCodeFlags]
-// ============================================================================
-
-//! \internal
-//!
-//! X86/X64 Instruction opcode encoding used by asmjit 'X86InstInfo' table.
-//!
-//! This schema is AsmJit specific and has been designed to allow encoding of
-//! all X86 instructions available. X86, MMX, and SSE+ instructions always use
-//! `MMMMM` and `PP` fields, which are encoded to corresponding prefixes needed
-//! by X86 or SIMD instructions. AVX+ instructions embed `MMMMM` and `PP` fields
-//! in a VEX prefix.
-//!
-//! The instruction opcode definition uses 1 or 2 bytes as an opcode value. 1
-//! byte is needed by most of the instructions, 2 bytes are only used by legacy
-//! X87-FPU instructions. This means that a second byte is free to by used by
-//! AVX and AVX-512 instructions.
-//!
-//! The fields description:
-//!
-//! - `MMMMM` field is used to encode prefixes needed by the instruction or as
-//!   a part of VEX/EVEX prefix.
-//!
-//! - `PP` field is used to encode prefixes needed by the instruction or as a
-//!   part of VEX/EVEX prefix.
-//!
-//! - `L` field is used exclusively by AVX+ and AVX512+ instruction sets. It
-//!   describes vector size, which is 128-bit for XMM register `L_128`, 256
-//!   for YMM register `L_256` and 512-bit for ZMM register `L_512`. The `L`
-//!   field is omitted in case that instruction supports multiple vector lengths,
-//!   however, if the instruction requires specific `L` value it's specified as
-//!   a part of the opcode.
-//!
-//! - `W` field is the most complicated. It was added by 64-bit architecture
-//!   to promote default operation width (instructions that perform 32-bit
-//!   operation by default require to override the width to 64-bit explicitly).
-//!   There is nothing wrong on this, however, some instructions introduced
-//!   implicit `W` override, for example a `cdqe` instruction is basically a
-//!   `cwde` instruction with overridden `W` (set to 1). There are some others
-//!   in the base X86 instruction set. More recent instruction sets started
-//!   using `W` field more often:
-//!
-//!   - AVX instructions started using `W` field as an extended opcode for FMA,
-//!     GATHER, PERM, and other instructions. It also uses `W` field to override
-//!     the default operation width in instructions like `vmovq`.
-//!
-//!   - AVX-512 instructions started using `W` field as an extended opcode for
-//!     all new instructions. This wouldn't have been an issue if the `W` field
-//!     of AVX-512 have matched AVX, but this is not always the case.
-//!
-//! - `O` field is an extended opcode field (3) bytes used by ModR/M BYTE.
-ASMJIT_ENUM(X86InstOpCodeFlags) {
-  // `MMMMM` field in AVX/XOP/AVX-512 instruction (5 bits).
-  //
-  // `OpCode` leading bytes in legacy encoding.
-  //
-  // AVX reserves 5 bits for `MMMMM` field, however AVX instructions only use
-  // 2 bits and XOP 4 bits. AVX-512 shrinks `MMMMM` field into `MM` so it's
-  // safe to assume that `MM` field won't grow in the future as EVEX doesn't
-  // use more than 2 bits. There is always a way how a fifth bit can be stored
-  // if needed.
-  kX86InstOpCode_MM_Shift  = 16,
-  kX86InstOpCode_MM_Mask   = 0x0FU << kX86InstOpCode_MM_Shift,
-  kX86InstOpCode_MM_00     = 0x00U << kX86InstOpCode_MM_Shift,
-  kX86InstOpCode_MM_0F     = 0x01U << kX86InstOpCode_MM_Shift,
-  kX86InstOpCode_MM_0F38   = 0x02U << kX86InstOpCode_MM_Shift,
-  kX86InstOpCode_MM_0F3A   = 0x03U << kX86InstOpCode_MM_Shift,
-  kX86InstOpCode_MM_00011  = 0x03U << kX86InstOpCode_MM_Shift, // XOP.
-  kX86InstOpCode_MM_01000  = 0x08U << kX86InstOpCode_MM_Shift, // XOP.
-  kX86InstOpCode_MM_01001  = 0x09U << kX86InstOpCode_MM_Shift, // XOP.
-  kX86InstOpCode_MM_0F01   = 0x0FU << kX86InstOpCode_MM_Shift, // AsmJit specific, not part of AVX.
-
-  // `PP` field in AVX/XOP/AVX-512 instruction.
-  //
-  // `Mandatory Prefix` in legacy encoding.
-  //
-  // AVX reserves 2 bits for `PP` field, but AsmJit extends the storage by 1
-  // more bit that is used to emit 9B prefix for some X87-FPU instructions.
-  kX86InstOpCode_PP_Shift  = 20,
-  kX86InstOpCode_PP_Mask   = 0x07U << kX86InstOpCode_PP_Shift,
-  kX86InstOpCode_PP_00     = 0x00U << kX86InstOpCode_PP_Shift,
-  kX86InstOpCode_PP_66     = 0x01U << kX86InstOpCode_PP_Shift,
-  kX86InstOpCode_PP_F3     = 0x02U << kX86InstOpCode_PP_Shift,
-  kX86InstOpCode_PP_F2     = 0x03U << kX86InstOpCode_PP_Shift,
-  kX86InstOpCode_PP_9B     = 0x07U << kX86InstOpCode_PP_Shift, // AsmJit specific, not part of AVX.
-
-  // `L` field in AVX/XOP/AVX-512 instruction.
-  //
-  // AVX/XOP can only use the first bit `L.128` or `L.256`. AVX-512 makes it
-  // possible to use also `L.512`.
-
-  // NOTE: If the instruction set manual describes an instruction by using `LIG`
-  // it means that the `L` field is ignored. AsmJit emits `0` in such case.
-  kX86InstOpCode_L_Shift   = 23,
-  kX86InstOpCode_L_Mask    = 0x03U << kX86InstOpCode_L_Shift,
-  kX86InstOpCode_L_128     = 0x00U << kX86InstOpCode_L_Shift,
-  kX86InstOpCode_L_256     = 0x01U << kX86InstOpCode_L_Shift,
-  kX86InstOpCode_L_512     = 0x02U << kX86InstOpCode_L_Shift,
-
-  // `O` field (ModR/M).
-  kX86InstOpCode_O_Shift   = 25,
-  kX86InstOpCode_O_Mask    = 0x07U << kX86InstOpCode_O_Shift,
-
-  // `W` field used by EVEX instruction encoding.
-  kX86InstOpCode_EW_Shift  = 30,
-  kX86InstOpCode_EW_Mask   = 0x01U << kX86InstOpCode_EW_Shift,
-  kX86InstOpCode_EW        = 0x01U << kX86InstOpCode_EW_Shift,
-
-  // `W` field used by REX/VEX instruction encoding.
-  //
-  // NOTE: If the instruction set manual describes an instruction by using `WIG`
-  // it means that the `W` field is ignored. AsmJit emits `0` in such case.
-  kX86InstOpCode_W_Shift   = 31,
-  kX86InstOpCode_W_Mask    = 0x01U << kX86InstOpCode_W_Shift,
-  kX86InstOpCode_W         = 0x01U << kX86InstOpCode_W_Shift,
-};
-
-// ============================================================================
-// [asmjit::X86InstFlags]
-// ============================================================================
-
-//! \internal
-//!
-//! X86/X64 instruction flags.
-ASMJIT_ENUM(X86InstFlags) {
-  kX86InstFlagNone        = 0x00000000,  //!< No flags.
-
-  kX86InstFlagRO          = 0x00000001,  //!< The first operand is read (read-only without `kX86InstFlagWO`).
-  kX86InstFlagWO          = 0x00000002,  //!< The first operand is written (write-only without `kX86InstFlagRO`).
-  kX86InstFlagRW          = 0x00000003,  //!< The first operand is read-write.
-
-  kX86InstFlagXchg        = 0x00000004,  //!< Instruction is an exchange like instruction (xchg, xadd).
-  kX86InstFlagFlow        = 0x00000008,  //!< Control-flow instruction (jmp, jcc, call, ret).
-
-  kX86InstFlagFp          = 0x00000010,  //!< Instruction accesses FPU register(s).
-  kX86InstFlagLock        = 0x00000020,  //!< Instruction can be prefixed by using the LOCK prefix.
-  kX86InstFlagSpecial     = 0x00000040,  //!< Instruction requires special handling (implicit operands), used by \ref Compiler.
-
-  //! Instruction always performs memory access.
-  //!
-  //! This flag is always combined with `kX86InstFlagSpecial` and describes
-  //! that there is an implicit address which is accessed (usually EDI/RDI
-  //! and/or ESI/RSI).
-  kX86InstFlagSpecialMem  = 0x00000080,
-
-  kX86InstFlagMem2        = 0x00000100,  //!< Instruction memory operand can refer to 16-bit address (used by FPU).
-  kX86InstFlagMem4        = 0x00000200,  //!< Instruction memory operand can refer to 32-bit address (used by FPU).
-  kX86InstFlagMem8        = 0x00000400,  //!< Instruction memory operand can refer to 64-bit address (used by FPU).
-  kX86InstFlagMem10       = 0x00000800,  //!< Instruction memory operand can refer to 80-bit address (used by FPU).
-
-  kX86InstFlagZeroIfMem   = 0x00001000,  //!< Cleans the rest of destination if source is memory (movss, movsd).
-  kX86InstFlagVolatile    = 0x00002000,  //!< Hint for instruction scheduler to not reorder this instruction.
-
-  kX86InstFlagAvx         = 0x00010000,  //!< AVX/AVX2 instruction.
-  kX86InstFlagXop         = 0x00020000,  //!< XOP instruction.
-
-  kX86InstFlagAvx512F     = 0x00100000,  //!< Supported by AVX-512 F (ZMM).
-  kX86InstFlagAvx512CD    = 0x00200000,  //!< Supported by AVX-512 CD (ZMM).
-  kX86InstFlagAvx512PF    = 0x00400000,  //!< Supported by AVX-512 PF (ZMM).
-  kX86InstFlagAvx512ER    = 0x00800000,  //!< Supported by AVX-512 ER (ZMM).
-  kX86InstFlagAvx512DQ    = 0x01000000,  //!< Supported by AVX-512 DQ (ZMM).
-  kX86InstFlagAvx512BW    = 0x02000000,  //!< Supported by AVX-512 BW (ZMM).
-  kX86InstFlagAvx512VL    = 0x04000000,  //!< Supported by AVX-512 VL (XMM/YMM).
-
-  kX86InstFlagAvx512KMask = 0x08000000,  //!< Supports masking {k0..k7}.
-  kX86InstFlagAvx512KZero = 0x10000000,  //!< Supports zeroing of elements {k0z..k7z}.
-  kX86InstFlagAvx512BCast = 0x20000000,  //!< Supports broadcast {1..N}.
-  kX86InstFlagAvx512Sae   = 0x40000000,  //!< Supports suppressing all exceptions {sae}.
-  kX86InstFlagAvx512Rnd   = 0x80000000   //!< Supports static rounding control & SAE {rnd-sae},
-};
-
-// ============================================================================
-// [asmjit::X86InstOp]
-// ============================================================================
-
-//! \internal
-//!
-//! X86/X64 instruction operand flags.
-ASMJIT_ENUM(X86InstOp) {
-  kX86InstOpGb            = 0x0001,      //!< Operand can be 8-bit GPB register.
-  kX86InstOpGw            = 0x0002,      //!< Operand can be 16-bit GPW register.
-  kX86InstOpGd            = 0x0004,      //!< Operand operand can be 32-bit GPD register.
-  kX86InstOpGq            = 0x0008,      //!< Operand can be 64-bit GPQ register.
-  kX86InstOpFp            = 0x0010,      //!< Operand can be FPU register.
-  kX86InstOpMm            = 0x0020,      //!< Operand can be 64-bit MMX register.
-  kX86InstOpK             = 0x0040,      //!< Operand can be 64-bit K register.
-
-  kX86InstOpXmm           = 0x0100,      //!< Operand can be 128-bit XMM register.
-  kX86InstOpYmm           = 0x0200,      //!< Operand can be 256-bit YMM register.
-  kX86InstOpZmm           = 0x0400,      //!< Operand can be 512-bit ZMM register.
-
-  kX86InstOpMem           = 0x1000,      //!< Operand can be memory.
-  kX86InstOpImm           = 0x2000,      //!< Operand can be immediate.
-  kX86InstOpLabel         = 0x4000,      //!< Operand can be label.
-
-  //! Instruction operand doesn't have to be used.
-  //!
-  //! NOTE: If no operand is specified the meaning is clear (the operand at the
-  //! particular index doesn't exist), however, when one or more operand is
-  //! specified, it's not clear whether the operand can be omitted or not. When
-  //! `kX86InstOpNone` is used it means that the operand is not used in some
-  //! cases.
-  kX86InstOpNone          = 0x8000
-};
-
-// ============================================================================
-// [asmjit::X86Cond]
-// ============================================================================
-
-//! X86/X64 Condition codes.
-ASMJIT_ENUM(X86Cond) {
-  kX86CondA               = 0x07,        // CF==0 & ZF==0          (unsigned)
-  kX86CondAE              = 0x03,        // CF==0                  (unsigned)
-  kX86CondB               = 0x02,        // CF==1                  (unsigned)
-  kX86CondBE              = 0x06,        // CF==1 | ZF==1          (unsigned)
-  kX86CondC               = 0x02,        // CF==1
-  kX86CondE               = 0x04,        //         ZF==1          (signed/unsigned)
-  kX86CondG               = 0x0F,        //         ZF==0 & SF==OF (signed)
-  kX86CondGE              = 0x0D,        //                 SF==OF (signed)
-  kX86CondL               = 0x0C,        //                 SF!=OF (signed)
-  kX86CondLE              = 0x0E,        //         ZF==1 | SF!=OF (signed)
-  kX86CondNA              = 0x06,        // CF==1 | ZF==1          (unsigned)
-  kX86CondNAE             = 0x02,        // CF==1                  (unsigned)
-  kX86CondNB              = 0x03,        // CF==0                  (unsigned)
-  kX86CondNBE             = 0x07,        // CF==0 & ZF==0          (unsigned)
-  kX86CondNC              = 0x03,        // CF==0
-  kX86CondNE              = 0x05,        //         ZF==0          (signed/unsigned)
-  kX86CondNG              = 0x0E,        //         ZF==1 | SF!=OF (signed)
-  kX86CondNGE             = 0x0C,        //                 SF!=OF (signed)
-  kX86CondNL              = 0x0D,        //                 SF==OF (signed)
-  kX86CondNLE             = 0x0F,        //         ZF==0 & SF==OF (signed)
-  kX86CondNO              = 0x01,        //                 OF==0
-  kX86CondNP              = 0x0B,        // PF==0
-  kX86CondNS              = 0x09,        //                 SF==0
-  kX86CondNZ              = 0x05,        //         ZF==0
-  kX86CondO               = 0x00,        //                 OF==1
-  kX86CondP               = 0x0A,        // PF==1
-  kX86CondPE              = 0x0A,        // PF==1
-  kX86CondPO              = 0x0B,        // PF==0
-  kX86CondS               = 0x08,        //                 SF==1
-  kX86CondZ               = 0x04,        //         ZF==1
-
-  // Simplified condition codes.
-  kX86CondSign            = kX86CondS,   //!< Sign (S).
-  kX86CondNotSign         = kX86CondNS,  //!< Not Sign (NS).
-
-  kX86CondOverflow        = kX86CondO,   //!< Signed  Overflow (O)
-  kX86CondNotOverflow     = kX86CondNO,  //!< Not Signed Overflow (NO)
-
-  kX86CondLess            = kX86CondL,   //!< Signed     `a <  b` (L  or NGE).
-  kX86CondLessEqual       = kX86CondLE,  //!< Signed     `a <= b` (LE or NG ).
-  kX86CondGreater         = kX86CondG,   //!< Signed     `a >  b` (G  or NLE).
-  kX86CondGreaterEqual    = kX86CondGE,  //!< Signed     `a >= b` (GE or NL ).
-  kX86CondBelow           = kX86CondB,   //!< Unsigned   `a <  b` (B  or NAE).
-  kX86CondBelowEqual      = kX86CondBE,  //!< Unsigned   `a <= b` (BE or NA ).
-  kX86CondAbove           = kX86CondA,   //!< Unsigned   `a >  b` (A  or NBE).
-  kX86CondAboveEqual      = kX86CondAE,  //!< Unsigned   `a >= b` (AE or NB ).
-  kX86CondEqual           = kX86CondE,   //!< Equal      `a == b` (E  or Z  ).
-  kX86CondNotEqual        = kX86CondNE,  //!< Not Equal  `a != b` (NE or NZ ).
-
-  kX86CondParityEven      = kX86CondP,
-  kX86CondParityOdd       = kX86CondPO,
-
-  // Aliases.
-  kX86CondZero            = kX86CondZ,
-  kX86CondNotZero         = kX86CondNZ,
-  kX86CondNegative        = kX86CondS,
-  kX86CondPositive        = kX86CondNS,
-
-  // FPU-only.
-  kX86CondFpuUnordered    = 0x10,
-  kX86CondFpuNotUnordered = 0x11,
-
-  //! No condition code.
-  kX86CondNone            = 0x12
-};
-
-// ============================================================================
 // [asmjit::X86EFlags]
 // ============================================================================
 
@@ -1622,7 +63,8 @@ ASMJIT_ENUM(X86Cond) {
 //! NOTE: Flags are designed to fit in an 8-bit integer.
 ASMJIT_ENUM(X86EFlags) {
   // --------------------------------------------------------------------------
-  // src-gendefs.js relies on the values of these masks, the tool has to be
+  // TODO: This is wrong.
+  // generate-x86.js relies on the values of these masks, the tool has to be
   // changed as you plan to modify `X86EFlags`.
   // --------------------------------------------------------------------------
 
@@ -1693,463 +135,2515 @@ ASMJIT_ENUM(X86FpCw) {
   kX86FpCw_IC_Affine      = 0x1000
 };
 
-//  ============================================================================
-// [asmjit::X86Cmp]
-//  ============================================================================
-
-//! X86/X64 Comparison predicate used by CMP[PD/PS/SD/SS] family instructions.
-ASMJIT_ENUM(X86Cmp) {
-  kX86CmpEQ               = 0x00,        //!< Equal             (Quite).
-  kX86CmpLT               = 0x01,        //!< Less              (Signaling).
-  kX86CmpLE               = 0x02,        //!< Less/Equal        (Signaling).
-  kX86CmpUNORD            = 0x03,        //!< Unordered         (Quite).
-  kX86CmpNEQ              = 0x04,        //!< Not Equal         (Quite).
-  kX86CmpNLT              = 0x05,        //!< Not Less          (Signaling).
-  kX86CmpNLE              = 0x06,        //!< Not Less/Equal    (Signaling).
-  kX86CmpORD              = 0x07         //!< Ordered           (Quite).
-};
-
-//  ============================================================================
-// [asmjit::X86VCmp]
-//  ============================================================================
-
-//! X86/X64 Comparison predicate used by VCMP[PD/PS/SD/SS] family instructions.
-//!
-//! The first 8 are compatible with \ref X86Cmp.
-ASMJIT_ENUM(X86VCmp) {
-  kX86VCmpEQ_OQ           = 0x00,        //!< Equal             (Quite, Ordered).
-  kX86VCmpLT_OS           = 0x01,        //!< Less              (Signaling, Ordered).
-  kX86VCmpLE_OS           = 0x02,        //!< Less/Equal        (Signaling, Ordered).
-  kX86VCmpUNORD_Q         = 0x03,        //!< Unordered         (Quite).
-  kX86VCmpNEQ_UQ          = 0x04,        //!< Not Equal         (Quite, Unordered).
-  kX86VCmpNLT_US          = 0x05,        //!< Not Less          (Signaling, Unordered).
-  kX86VCmpNLE_US          = 0x06,        //!< Not Less/Equal    (Signaling, Unordered).
-  kX86VCmpORD_Q           = 0x07,        //!< Ordered           (Quite).
-
-  kX86VCmpEQ_UQ           = 0x08,        //!< Equal             (Quite, Unordered).
-  kX86VCmpNGE_US          = 0x09,        //!< Not Greater/Equal (Signaling, Unordered).
-  kX86VCmpNGT_US          = 0x0A,        //!< Not Greater       (Signaling, Unordered).
-  kX86VCmpFALSE_OQ        = 0x0B,        //!< False             (Quite, Ordered).
-  kX86VCmpNEQ_OQ          = 0x0C,        //!< Not Equal         (Quite, Ordered).
-  kX86VCmpGE_OS           = 0x0D,        //!< Greater/Equal     (Signaling, Ordered).
-  kX86VCmpGT_OS           = 0x0E,        //!< Greater           (Signaling, Ordered).
-  kX86VCmpTRUE_UQ         = 0x0F,        //!< True              (Quite, Unordered).
-  kX86VCmpEQ_OS           = 0x10,        //!< Equal             (Signaling, Ordered).
-  kX86VCmpLT_OQ           = 0x11,        //!< Less              (Quite, Ordered).
-  kX86VCmpLE_OQ           = 0x12,        //!< Less/Equal        (Quite, Ordered).
-  kX86VCmpUNORD_S         = 0x13,        //!< Unordered         (Signaling).
-  kX86VCmpNEQ_US          = 0x14,        //!< Not Equal         (Signaling, Unordered).
-  kX86VCmpNLT_UQ          = 0x15,        //!< Not Less          (Quite, Unordered).
-  kX86VCmpNLE_UQ          = 0x16,        //!< Not Less/Equal    (Quite, Unordered).
-  kX86VCmpORD_S           = 0x17,        //!< Ordered           (Signaling).
-  kX86VCmpEQ_US           = 0x18,        //!< Equal             (Signaling, Unordered).
-  kX86VCmpNGE_UQ          = 0x19,        //!< Not Greater/Equal (Quite, Unordered).
-  kX86VCmpNGT_UQ          = 0x1A,        //!< Not Greater       (Quite, Unordered).
-  kX86VCmpFALSE_OS        = 0x1B,        //!< False             (Signaling, Ordered).
-  kX86VCmpNEQ_OS          = 0x1C,        //!< Not Equal         (Signaling, Ordered).
-  kX86VCmpGE_OQ           = 0x1D,        //!< Greater/Equal     (Quite, Ordered).
-  kX86VCmpGT_OQ           = 0x1E,        //!< Greater           (Quite, Ordered).
-  kX86VCmpTRUE_US         = 0x1F         //!< True              (Signaling, Unordered).
-};
-
-//  ============================================================================
-// [asmjit::X86Round]
-//  ============================================================================
-
-//! X86/X64 round encoding used by ROUND[PD/PS/SD/SS] family instructions.
-ASMJIT_ENUM(X86Round) {
-  kX86RoundNearest        = 0x00,        //!< Round to nearest (even).
-  kX86RoundDown           = 0x01,        //!< Round to down toward -INF (floor),
-  kX86RoundUp             = 0x02,        //!< Round to up toward +INF (ceil).
-  kX86RoundTrunc          = 0x03,        //!< Round toward zero (truncate).
-  kX86RoundCurrent        = 0x04,        //!< Round to the current rounding mode set (ignores other RC bits).
-  kX86RoundInexact        = 0x08         //!< Avoid the inexact exception, if set.
-};
-
 // ============================================================================
-// [asmjit::X86Prefetch]
+// [asmjit::X86Inst]
 // ============================================================================
 
-//! X86/X64 Prefetch hints.
-ASMJIT_ENUM(X86Prefetch) {
-  kX86PrefetchNTA         = 0,           //!< Prefetch by using NT hint.
-  kX86PrefetchT0          = 1,           //!< Prefetch to L0 cache.
-  kX86PrefetchT1          = 2,           //!< Prefetch to L1 cache.
-  kX86PrefetchT2          = 3            //!< Prefetch to L2 cache.
-};
-
-// ============================================================================
-// [asmjit::X86InstExtendedInfo]
-// ============================================================================
-
-//! X86/X64 instruction extended information.
-//!
-//! Extended information has been introduced to minimize data needed for a
-//! single instruction, because two or more instructions can share the common
-//! data, for example operands definition or secondary opcode, which is only
-//! used by few instructions.
-struct X86InstExtendedInfo {
-  // --------------------------------------------------------------------------
-  // [Accessors - Instruction Encoding]
-  // --------------------------------------------------------------------------
-
-  //! Get instruction encoding, see \ref kX86InstEncoding.
-  ASMJIT_INLINE uint32_t getEncoding() const noexcept {
-    return _encoding;
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - Instruction Flags]
-  // --------------------------------------------------------------------------
-
-  //! Get whether the instruction has a `flag`, see `X86InstFlags`.
-  ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept {
-    return (_instFlags & flag) != 0;
-  }
-
-  //! Get all instruction flags, see `X86InstFlags`.
-  ASMJIT_INLINE uint32_t getFlags() const noexcept {
-    return _instFlags;
-  }
-
-  //! Get if the first operand is read-only.
-  ASMJIT_INLINE bool isRO() const noexcept {
-    return (getFlags() & kX86InstFlagRW) == kX86InstFlagRO;
-  }
-
-  //! Get if the first operand is write-only.
-  ASMJIT_INLINE bool isWO() const noexcept {
-    return (getFlags() & kX86InstFlagRW) == kX86InstFlagWO;
-  }
-
-  //! Get if the first operand is read-write.
-  ASMJIT_INLINE bool isRW() const noexcept {
-    return (getFlags() & kX86InstFlagRW) == kX86InstFlagRW;
-  }
-
-  //! Get whether the instruction is a typical Exchange instruction.
+//! X86/X64 instruction data.
+struct X86Inst {
+  //! Instruction id.
   //!
-  //! Exchange instructions are 'xchg' and 'xadd'.
-  ASMJIT_INLINE bool isXchg() const noexcept {
-    return hasFlag(kX86InstFlagXchg);
-  }
+  //! Note that these instruction codes are AsmJit specific. Each instruction
+  //! has a unique ID that is used as an index to AsmJit instruction table. The
+  //! list is sorted alphabetically except instructions starting with `j`,
+  //! because the `jcc` instruction is a composition of an opcode and condition
+  //! code. It means that these instructions are sorted as `jcc`, `jecxz` and
+  //! `jmp`. Please use \ref `X86Inst::getIdByName()` if you need instruction
+  //! name to ID mapping and are not aware on how to handle such case.
+  ASMJIT_ENUM(Id) {
+    kIdNone = 0,
+    kIdAaa,                              // X86
+    kIdAad,                              // X86
+    kIdAam,                              // X86
+    kIdAas,                              // X86
+    kIdAdc,                              // ANY
+    kIdAdcx,                             // ADX
+    kIdAdd,                              // ANY
+    kIdAddpd,                            // SSE2
+    kIdAddps,                            // SSE
+    kIdAddsd,                            // SSE2
+    kIdAddss,                            // SSE
+    kIdAddsubpd,                         // SSE3
+    kIdAddsubps,                         // SSE3
+    kIdAdox,                             // ADX
+    kIdAesdec,                           // AESNI
+    kIdAesdeclast,                       // AESNI
+    kIdAesenc,                           // AESNI
+    kIdAesenclast,                       // AESNI
+    kIdAesimc,                           // AESNI
+    kIdAeskeygenassist,                  // AESNI
+    kIdAnd,                              // ANY
+    kIdAndn,                             // BMI
+    kIdAndnpd,                           // SSE2
+    kIdAndnps,                           // SSE
+    kIdAndpd,                            // SSE2
+    kIdAndps,                            // SSE
+    kIdBextr,                            // BMI
+    kIdBlcfill,                          // TBM
+    kIdBlci,                             // TBM
+    kIdBlcic,                            // TBM
+    kIdBlcmsk,                           // TBM
+    kIdBlcs,                             // TBM
+    kIdBlendpd,                          // SSE4.1
+    kIdBlendps,                          // SSE4.1
+    kIdBlendvpd,                         // SSE4.1
+    kIdBlendvps,                         // SSE4.1
+    kIdBlsfill,                          // TBM
+    kIdBlsi,                             // BMI
+    kIdBlsic,                            // TBM
+    kIdBlsmsk,                           // BMI
+    kIdBlsr,                             // BMI
+    kIdBsf,                              // ANY
+    kIdBsr,                              // ANY
+    kIdBswap,                            // I486+
+    kIdBt,                               // ANY
+    kIdBtc,                              // ANY
+    kIdBtr,                              // ANY
+    kIdBts,                              // ANY
+    kIdBzhi,                             // BMI2
+    kIdCall,                             // ANY
+    kIdCbw,                              // ANY
+    kIdCdq,                              // ANY
+    kIdCdqe,                             // X64
+    kIdClac,                             // SMAP
+    kIdClc,                              // ANY
+    kIdCld,                              // ANY
+    kIdClflush,                          // CLFLUSH
+    kIdClflushopt,                       // CLFLUSH_OPT
+    kIdClwb,                             // CLWB
+    kIdClzero,                           // CLZERO
+    kIdCmc,                              // ANY
+    kIdCmova,                            // I586+ (cmovcc)
+    kIdCmovae,                           // I586+ (cmovcc)
+    kIdCmovb,                            // I586+ (cmovcc)
+    kIdCmovbe,                           // I586+ (cmovcc)
+    kIdCmovc,                            // I586+ (cmovcc)
+    kIdCmove,                            // I586+ (cmovcc)
+    kIdCmovg,                            // I586+ (cmovcc)
+    kIdCmovge,                           // I586+ (cmovcc)
+    kIdCmovl,                            // I586+ (cmovcc)
+    kIdCmovle,                           // I586+ (cmovcc)
+    kIdCmovna,                           // I586+ (cmovcc)
+    kIdCmovnae,                          // I586+ (cmovcc)
+    kIdCmovnb,                           // I586+ (cmovcc)
+    kIdCmovnbe,                          // I586+ (cmovcc)
+    kIdCmovnc,                           // I586+ (cmovcc)
+    kIdCmovne,                           // I586+ (cmovcc)
+    kIdCmovng,                           // I586+ (cmovcc)
+    kIdCmovnge,                          // I586+ (cmovcc)
+    kIdCmovnl,                           // I586+ (cmovcc)
+    kIdCmovnle,                          // I586+ (cmovcc)
+    kIdCmovno,                           // I586+ (cmovcc)
+    kIdCmovnp,                           // I586+ (cmovcc)
+    kIdCmovns,                           // I586+ (cmovcc)
+    kIdCmovnz,                           // I586+ (cmovcc)
+    kIdCmovo,                            // I586+ (cmovcc)
+    kIdCmovp,                            // I586+ (cmovcc)
+    kIdCmovpe,                           // I586+ (cmovcc)
+    kIdCmovpo,                           // I586+ (cmovcc)
+    kIdCmovs,                            // I586+ (cmovcc)
+    kIdCmovz,                            // I586+ (cmovcc)
+    kIdCmp,                              // ANY
+    kIdCmppd,                            // SSE2
+    kIdCmpps,                            // SSE
+    kIdCmps,                             // ANY
+    kIdCmpsd,                            // SSE2
+    kIdCmpss,                            // SSE
+    kIdCmpxchg,                          // I486+
+    kIdCmpxchg16b,                       // X64
+    kIdCmpxchg8b,                        // I586+
+    kIdComisd,                           // SSE2
+    kIdComiss,                           // SSE
+    kIdCpuid,                            // I486+
+    kIdCqo,                              // X64
+    kIdCrc32,                            // SSE4.2
+    kIdCvtdq2pd,                         // SSE2
+    kIdCvtdq2ps,                         // SSE2
+    kIdCvtpd2dq,                         // SSE2
+    kIdCvtpd2pi,                         // SSE2
+    kIdCvtpd2ps,                         // SSE2
+    kIdCvtpi2pd,                         // SSE2
+    kIdCvtpi2ps,                         // SSE
+    kIdCvtps2dq,                         // SSE2
+    kIdCvtps2pd,                         // SSE2
+    kIdCvtps2pi,                         // SSE
+    kIdCvtsd2si,                         // SSE2
+    kIdCvtsd2ss,                         // SSE2
+    kIdCvtsi2sd,                         // SSE2
+    kIdCvtsi2ss,                         // SSE
+    kIdCvtss2sd,                         // SSE2
+    kIdCvtss2si,                         // SSE
+    kIdCvttpd2dq,                        // SSE2
+    kIdCvttpd2pi,                        // SSE2
+    kIdCvttps2dq,                        // SSE2
+    kIdCvttps2pi,                        // SSE
+    kIdCvttsd2si,                        // SSE2
+    kIdCvttss2si,                        // SSE
+    kIdCwd,                              // ANY
+    kIdCwde,                             // ANY
+    kIdDaa,                              // X86
+    kIdDas,                              // X86
+    kIdDec,                              // ANY
+    kIdDiv,                              // ANY
+    kIdDivpd,                            // SSE2
+    kIdDivps,                            // SSE
+    kIdDivsd,                            // SSE2
+    kIdDivss,                            // SSE
+    kIdDppd,                             // SSE4.1
+    kIdDpps,                             // SSE4.1
+    kIdEmms,                             // MMX
+    kIdEnter,                            // ANY
+    kIdExtractps,                        // SSE4.1
+    kIdExtrq,                            // SSE4A
+    kIdF2xm1,                            // FPU
+    kIdFabs,                             // FPU
+    kIdFadd,                             // FPU
+    kIdFaddp,                            // FPU
+    kIdFbld,                             // FPU
+    kIdFbstp,                            // FPU
+    kIdFchs,                             // FPU
+    kIdFclex,                            // FPU
+    kIdFcmovb,                           // FPU
+    kIdFcmovbe,                          // FPU
+    kIdFcmove,                           // FPU
+    kIdFcmovnb,                          // FPU
+    kIdFcmovnbe,                         // FPU
+    kIdFcmovne,                          // FPU
+    kIdFcmovnu,                          // FPU
+    kIdFcmovu,                           // FPU
+    kIdFcom,                             // FPU
+    kIdFcomi,                            // FPU
+    kIdFcomip,                           // FPU
+    kIdFcomp,                            // FPU
+    kIdFcompp,                           // FPU
+    kIdFcos,                             // FPU
+    kIdFdecstp,                          // FPU
+    kIdFdiv,                             // FPU
+    kIdFdivp,                            // FPU
+    kIdFdivr,                            // FPU
+    kIdFdivrp,                           // FPU
+    kIdFemms,                            // 3DNOW
+    kIdFfree,                            // FPU
+    kIdFiadd,                            // FPU
+    kIdFicom,                            // FPU
+    kIdFicomp,                           // FPU
+    kIdFidiv,                            // FPU
+    kIdFidivr,                           // FPU
+    kIdFild,                             // FPU
+    kIdFimul,                            // FPU
+    kIdFincstp,                          // FPU
+    kIdFinit,                            // FPU
+    kIdFist,                             // FPU
+    kIdFistp,                            // FPU
+    kIdFisttp,                           // SSE3
+    kIdFisub,                            // FPU
+    kIdFisubr,                           // FPU
+    kIdFld,                              // FPU
+    kIdFld1,                             // FPU
+    kIdFldcw,                            // FPU
+    kIdFldenv,                           // FPU
+    kIdFldl2e,                           // FPU
+    kIdFldl2t,                           // FPU
+    kIdFldlg2,                           // FPU
+    kIdFldln2,                           // FPU
+    kIdFldpi,                            // FPU
+    kIdFldz,                             // FPU
+    kIdFmul,                             // FPU
+    kIdFmulp,                            // FPU
+    kIdFnclex,                           // FPU
+    kIdFninit,                           // FPU
+    kIdFnop,                             // FPU
+    kIdFnsave,                           // FPU
+    kIdFnstcw,                           // FPU
+    kIdFnstenv,                          // FPU
+    kIdFnstsw,                           // FPU
+    kIdFpatan,                           // FPU
+    kIdFprem,                            // FPU
+    kIdFprem1,                           // FPU
+    kIdFptan,                            // FPU
+    kIdFrndint,                          // FPU
+    kIdFrstor,                           // FPU
+    kIdFsave,                            // FPU
+    kIdFscale,                           // FPU
+    kIdFsin,                             // FPU
+    kIdFsincos,                          // FPU
+    kIdFsqrt,                            // FPU
+    kIdFst,                              // FPU
+    kIdFstcw,                            // FPU
+    kIdFstenv,                           // FPU
+    kIdFstp,                             // FPU
+    kIdFstsw,                            // FPU
+    kIdFsub,                             // FPU
+    kIdFsubp,                            // FPU
+    kIdFsubr,                            // FPU
+    kIdFsubrp,                           // FPU
+    kIdFtst,                             // FPU
+    kIdFucom,                            // FPU
+    kIdFucomi,                           // FPU
+    kIdFucomip,                          // FPU
+    kIdFucomp,                           // FPU
+    kIdFucompp,                          // FPU
+    kIdFwait,                            // FPU
+    kIdFxam,                             // FPU
+    kIdFxch,                             // FPU
+    kIdFxrstor,                          // FPU
+    kIdFxrstor64,                        // FPU & X64
+    kIdFxsave,                           // FPU
+    kIdFxsave64,                         // FPU & X64
+    kIdFxtract,                          // FPU
+    kIdFyl2x,                            // FPU
+    kIdFyl2xp1,                          // FPU
+    kIdHaddpd,                           // SSE3
+    kIdHaddps,                           // SSE3
+    kIdHsubpd,                           // SSE3
+    kIdHsubps,                           // SSE3
+    kIdIdiv,                             // ANY
+    kIdImul,                             // ANY
+    kIdIn,                               // ANY
+    kIdInc,                              // ANY
+    kIdIns,                              // ANY
+    kIdInsertps,                         // SSE4.1
+    kIdInsertq,                          // SSE4A
+    kIdInt,                              // ANY
+    kIdInt3,                             // ANY
+    kIdInto,                             // ANY
+    kIdJa,                               // ANY (jcc)
+    kIdJae,                              // ANY (jcc)
+    kIdJb,                               // ANY (jcc)
+    kIdJbe,                              // ANY (jcc)
+    kIdJc,                               // ANY (jcc)
+    kIdJe,                               // ANY (jcc)
+    kIdJg,                               // ANY (jcc)
+    kIdJge,                              // ANY (jcc)
+    kIdJl,                               // ANY (jcc)
+    kIdJle,                              // ANY (jcc)
+    kIdJna,                              // ANY (jcc)
+    kIdJnae,                             // ANY (jcc)
+    kIdJnb,                              // ANY (jcc)
+    kIdJnbe,                             // ANY (jcc)
+    kIdJnc,                              // ANY (jcc)
+    kIdJne,                              // ANY (jcc)
+    kIdJng,                              // ANY (jcc)
+    kIdJnge,                             // ANY (jcc)
+    kIdJnl,                              // ANY (jcc)
+    kIdJnle,                             // ANY (jcc)
+    kIdJno,                              // ANY (jcc)
+    kIdJnp,                              // ANY (jcc)
+    kIdJns,                              // ANY (jcc)
+    kIdJnz,                              // ANY (jcc)
+    kIdJo,                               // ANY (jcc)
+    kIdJp,                               // ANY (jcc)
+    kIdJpe,                              // ANY (jcc)
+    kIdJpo,                              // ANY (jcc)
+    kIdJs,                               // ANY (jcc)
+    kIdJz,                               // ANY (jcc)
+    kIdJecxz,                            // ANY (jcxz/jecxz/jrcxz)
+    kIdJmp,                              // ANY (jmp)
+    kIdKaddb,                            // AVX512DQ
+    kIdKaddd,                            // AVX512BW
+    kIdKaddq,                            // AVX512BW
+    kIdKaddw,                            // AVX512DQ
+    kIdKandb,                            // AVX512DQ
+    kIdKandd,                            // AVX512BW
+    kIdKandnb,                           // AVX512DQ
+    kIdKandnd,                           // AVX512BW
+    kIdKandnq,                           // AVX512BW
+    kIdKandnw,                           // AVX512F
+    kIdKandq,                            // AVX512BW
+    kIdKandw,                            // AVX512F
+    kIdKmovb,                            // AVX512DQ
+    kIdKmovd,                            // AVX512BW
+    kIdKmovq,                            // AVX512BW
+    kIdKmovw,                            // AVX512F
+    kIdKnotb,                            // AVX512DQ
+    kIdKnotd,                            // AVX512BW
+    kIdKnotq,                            // AVX512BW
+    kIdKnotw,                            // AVX512F
+    kIdKorb,                             // AVX512DQ
+    kIdKord,                             // AVX512BW
+    kIdKorq,                             // AVX512BW
+    kIdKortestb,                         // AVX512DQ
+    kIdKortestd,                         // AVX512BW
+    kIdKortestq,                         // AVX512BW
+    kIdKortestw,                         // AVX512F
+    kIdKorw,                             // AVX512F
+    kIdKshiftlb,                         // AVX512DQ
+    kIdKshiftld,                         // AVX512BW
+    kIdKshiftlq,                         // AVX512BW
+    kIdKshiftlw,                         // AVX512F
+    kIdKshiftrb,                         // AVX512DQ
+    kIdKshiftrd,                         // AVX512BW
+    kIdKshiftrq,                         // AVX512BW
+    kIdKshiftrw,                         // AVX512F
+    kIdKtestb,                           // AVX512DQ
+    kIdKtestd,                           // AVX512BW
+    kIdKtestq,                           // AVX512BW
+    kIdKtestw,                           // AVX512DQ
+    kIdKunpckbw,                         // AVX512F
+    kIdKunpckdq,                         // AVX512BW
+    kIdKunpckwd,                         // AVX512BW
+    kIdKxnorb,                           // AVX512DQ
+    kIdKxnord,                           // AVX512BW
+    kIdKxnorq,                           // AVX512BW
+    kIdKxnorw,                           // AVX512F
+    kIdKxorb,                            // AVX512DQ
+    kIdKxord,                            // AVX512BW
+    kIdKxorq,                            // AVX512BW
+    kIdKxorw,                            // AVX512F
+    kIdLahf,                             // LAHF_SAHF
+    kIdLddqu,                            // SSE3
+    kIdLdmxcsr,                          // SSE
+    kIdLea,                              // ANY
+    kIdLeave,                            // ANY
+    kIdLfence,                           // SSE2
+    kIdLods,                             // ANY
+    kIdLoop,                             // ANY
+    kIdLoope,                            // ANY
+    kIdLoopne,                           // ANY
+    kIdLzcnt,                            // LZCNT
+    kIdMaskmovdqu,                       // SSE2
+    kIdMaskmovq,                         // MMX2
+    kIdMaxpd,                            // SSE2
+    kIdMaxps,                            // SSE
+    kIdMaxsd,                            // SSE2
+    kIdMaxss,                            // SSE
+    kIdMfence,                           // SSE2
+    kIdMinpd,                            // SSE2
+    kIdMinps,                            // SSE
+    kIdMinsd,                            // SSE2
+    kIdMinss,                            // SSE
+    kIdMonitor,                          // SSE3
+    kIdMov,                              // ANY
+    kIdMovapd,                           // SSE2
+    kIdMovaps,                           // SSE
+    kIdMovbe,                            // MOVBE
+    kIdMovd,                             // MMX|SSE2
+    kIdMovddup,                          // SSE3
+    kIdMovdq2q,                          // SSE2
+    kIdMovdqa,                           // SSE2
+    kIdMovdqu,                           // SSE2
+    kIdMovhlps,                          // SSE
+    kIdMovhpd,                           // SSE2
+    kIdMovhps,                           // SSE
+    kIdMovlhps,                          // SSE
+    kIdMovlpd,                           // SSE2
+    kIdMovlps,                           // SSE
+    kIdMovmskpd,                         // SSE2
+    kIdMovmskps,                         // SSE2
+    kIdMovntdq,                          // SSE2
+    kIdMovntdqa,                         // SSE4.1
+    kIdMovnti,                           // SSE2
+    kIdMovntpd,                          // SSE2
+    kIdMovntps,                          // SSE
+    kIdMovntq,                           // MMX2
+    kIdMovntsd,                          // SSE4A
+    kIdMovntss,                          // SSE4A
+    kIdMovq,                             // MMX|SSE|SSE2
+    kIdMovq2dq,                          // SSE2
+    kIdMovs,                             // ANY
+    kIdMovsd,                            // SSE2
+    kIdMovshdup,                         // SSE3
+    kIdMovsldup,                         // SSE3
+    kIdMovss,                            // SSE
+    kIdMovsx,                            // ANY
+    kIdMovsxd,                           // ANY
+    kIdMovupd,                           // SSE2
+    kIdMovups,                           // SSE
+    kIdMovzx,                            // ANY
+    kIdMpsadbw,                          // SSE4.1
+    kIdMul,                              // ANY
+    kIdMulpd,                            // SSE2
+    kIdMulps,                            // SSE
+    kIdMulsd,                            // SSE2
+    kIdMulss,                            // SSE
+    kIdMulx,                             // BMI2
+    kIdMwait,                            // SSE3
+    kIdNeg,                              // ANY
+    kIdNop,                              // ANY
+    kIdNot,                              // ANY
+    kIdOr,                               // ANY
+    kIdOrpd,                             // SSE2
+    kIdOrps,                             // SSE
+    kIdOut,                              // ANY
+    kIdOuts,                             // ANY
+    kIdPabsb,                            // SSSE3
+    kIdPabsd,                            // SSSE3
+    kIdPabsw,                            // SSSE3
+    kIdPackssdw,                         // MMX|SSE2
+    kIdPacksswb,                         // MMX|SSE2
+    kIdPackusdw,                         // SSE4.1
+    kIdPackuswb,                         // MMX|SSE2
+    kIdPaddb,                            // MMX|SSE2
+    kIdPaddd,                            // MMX|SSE2
+    kIdPaddq,                            // SSE2
+    kIdPaddsb,                           // MMX|SSE2
+    kIdPaddsw,                           // MMX|SSE2
+    kIdPaddusb,                          // MMX|SSE2
+    kIdPaddusw,                          // MMX|SSE2
+    kIdPaddw,                            // MMX|SSE2
+    kIdPalignr,                          // SSSE3
+    kIdPand,                             // MMX|SSE2
+    kIdPandn,                            // MMX|SSE2
+    kIdPause,                            // SSE2.
+    kIdPavgb,                            // MMX2
+    kIdPavgusb,                          // 3DNOW
+    kIdPavgw,                            // MMX2
+    kIdPblendvb,                         // SSE4.1
+    kIdPblendw,                          // SSE4.1
+    kIdPclmulqdq,                        // PCLMULQDQ
+    kIdPcmpeqb,                          // MMX|SSE2
+    kIdPcmpeqd,                          // MMX|SSE2
+    kIdPcmpeqq,                          // SSE4.1
+    kIdPcmpeqw,                          // MMX|SSE2
+    kIdPcmpestri,                        // SSE4.2
+    kIdPcmpestrm,                        // SSE4.2
+    kIdPcmpgtb,                          // MMX|SSE2
+    kIdPcmpgtd,                          // MMX|SSE2
+    kIdPcmpgtq,                          // SSE4.2
+    kIdPcmpgtw,                          // MMX|SSE2
+    kIdPcmpistri,                        // SSE4.2
+    kIdPcmpistrm,                        // SSE4.2
+    kIdPcommit,                          // PCOMMIT
+    kIdPdep,                             // BMI2
+    kIdPext,                             // BMI2
+    kIdPextrb,                           // SSE4.1
+    kIdPextrd,                           // SSE4.1
+    kIdPextrq,                           // SSE4.1
+    kIdPextrw,                           // MMX2|SSE2
+    kIdPf2id,                            // 3DNOW
+    kIdPf2iw,                            // 3DNOW2
+    kIdPfacc,                            // 3DNOW
+    kIdPfadd,                            // 3DNOW
+    kIdPfcmpeq,                          // 3DNOW
+    kIdPfcmpge,                          // 3DNOW
+    kIdPfcmpgt,                          // 3DNOW
+    kIdPfmax,                            // 3DNOW
+    kIdPfmin,                            // 3DNOW
+    kIdPfmul,                            // 3DNOW
+    kIdPfnacc,                           // 3DNOW2
+    kIdPfpnacc,                          // 3DNOW2
+    kIdPfrcp,                            // 3DNOW
+    kIdPfrcpit1,                         // 3DNOW
+    kIdPfrcpit2,                         // 3DNOW
+    kIdPfrcpv,                           // GEODE
+    kIdPfrsqit1,                         // 3DNOW
+    kIdPfrsqrt,                          // 3DNOW
+    kIdPfrsqrtv,                         // GEODE
+    kIdPfsub,                            // 3DNOW
+    kIdPfsubr,                           // 3DNOW
+    kIdPhaddd,                           // SSSE3
+    kIdPhaddsw,                          // SSSE3
+    kIdPhaddw,                           // SSSE3
+    kIdPhminposuw,                       // SSE4.1
+    kIdPhsubd,                           // SSSE3
+    kIdPhsubsw,                          // SSSE3
+    kIdPhsubw,                           // SSSE3
+    kIdPi2fd,                            // 3DNOW
+    kIdPi2fw,                            // 3DNOW2
+    kIdPinsrb,                           // SSE4.1
+    kIdPinsrd,                           // SSE4.1
+    kIdPinsrq,                           // SSE4.1
+    kIdPinsrw,                           // MMX2
+    kIdPmaddubsw,                        // SSSE3
+    kIdPmaddwd,                          // MMX|SSE2
+    kIdPmaxsb,                           // SSE4.1
+    kIdPmaxsd,                           // SSE4.1
+    kIdPmaxsw,                           // MMX2
+    kIdPmaxub,                           // MMX2
+    kIdPmaxud,                           // SSE4.1
+    kIdPmaxuw,                           // SSE4.1
+    kIdPminsb,                           // SSE4.1
+    kIdPminsd,                           // SSE4.1
+    kIdPminsw,                           // MMX2
+    kIdPminub,                           // MMX2
+    kIdPminud,                           // SSE4.1
+    kIdPminuw,                           // SSE4.1
+    kIdPmovmskb,                         // MMX2
+    kIdPmovsxbd,                         // SSE4.1
+    kIdPmovsxbq,                         // SSE4.1
+    kIdPmovsxbw,                         // SSE4.1
+    kIdPmovsxdq,                         // SSE4.1
+    kIdPmovsxwd,                         // SSE4.1
+    kIdPmovsxwq,                         // SSE4.1
+    kIdPmovzxbd,                         // SSE4.1
+    kIdPmovzxbq,                         // SSE4.1
+    kIdPmovzxbw,                         // SSE4.1
+    kIdPmovzxdq,                         // SSE4.1
+    kIdPmovzxwd,                         // SSE4.1
+    kIdPmovzxwq,                         // SSE4.1
+    kIdPmuldq,                           // SSE4.1
+    kIdPmulhrsw,                         // SSSE3
+    kIdPmulhrw,                          // 3DNOW
+    kIdPmulhuw,                          // MMX2
+    kIdPmulhw,                           // MMX|SSE2
+    kIdPmulld,                           // SSE4.1
+    kIdPmullw,                           // MMX|SSE2
+    kIdPmuludq,                          // SSE2
+    kIdPop,                              // ANY
+    kIdPopa,                             // X86
+    kIdPopad,                            // X86
+    kIdPopcnt,                           // SSE4.2
+    kIdPopf,                             // ANY
+    kIdPopfd,                            // X86
+    kIdPopfq,                            // X64
+    kIdPor,                              // MMX|SSE2
+    kIdPrefetch,                         // 3DNOW
+    kIdPrefetchnta,                      // MMX2|SSE
+    kIdPrefetcht0,                       // MMX2|SSE
+    kIdPrefetcht1,                       // MMX2|SSE
+    kIdPrefetcht2,                       // MMX2|SSE
+    kIdPrefetchw,                        // PREFETCHW
+    kIdPrefetchwt1,                      // PREFETCHWT1
+    kIdPsadbw,                           // MMX2
+    kIdPshufb,                           // SSSE3
+    kIdPshufd,                           // SSE2
+    kIdPshufhw,                          // SSE2
+    kIdPshuflw,                          // SSE2
+    kIdPshufw,                           // MMX2
+    kIdPsignb,                           // SSSE3
+    kIdPsignd,                           // SSSE3
+    kIdPsignw,                           // SSSE3
+    kIdPslld,                            // MMX|SSE2
+    kIdPslldq,                           // SSE2
+    kIdPsllq,                            // MMX|SSE2
+    kIdPsllw,                            // MMX|SSE2
+    kIdPsrad,                            // MMX|SSE2
+    kIdPsraw,                            // MMX|SSE2
+    kIdPsrld,                            // MMX|SSE2
+    kIdPsrldq,                           // SSE2
+    kIdPsrlq,                            // MMX|SSE2
+    kIdPsrlw,                            // MMX|SSE2
+    kIdPsubb,                            // MMX|SSE2
+    kIdPsubd,                            // MMX|SSE2
+    kIdPsubq,                            // SSE2
+    kIdPsubsb,                           // MMX|SSE2
+    kIdPsubsw,                           // MMX|SSE2
+    kIdPsubusb,                          // MMX|SSE2
+    kIdPsubusw,                          // MMX|SSE2
+    kIdPsubw,                            // MMX|SSE2
+    kIdPswapd,                           // 3DNOW2
+    kIdPtest,                            // SSE4.1
+    kIdPunpckhbw,                        // MMX|SSE2
+    kIdPunpckhdq,                        // MMX|SSE2
+    kIdPunpckhqdq,                       // SSE2
+    kIdPunpckhwd,                        // MMX|SSE2
+    kIdPunpcklbw,                        // MMX|SSE2
+    kIdPunpckldq,                        // MMX|SSE2
+    kIdPunpcklqdq,                       // SSE2
+    kIdPunpcklwd,                        // MMX|SSE2
+    kIdPush,                             // ANY
+    kIdPusha,                            // X86
+    kIdPushad,                           // X86
+    kIdPushf,                            // ANY
+    kIdPushfd,                           // X86
+    kIdPushfq,                           // X64
+    kIdPxor,                             // MMX|SSE2
+    kIdRcl,                              // ANY
+    kIdRcpps,                            // SSE
+    kIdRcpss,                            // SSE
+    kIdRcr,                              // ANY
+    kIdRdfsbase,                         // FSGSBASE & X64
+    kIdRdgsbase,                         // FSGSBASE & X64
+    kIdRdrand,                           // RDRAND
+    kIdRdseed,                           // RDSEED
+    kIdRdtsc,                            // ANY
+    kIdRdtscp,                           // ANY
+    kIdRet,                              // ANY
+    kIdRol,                              // ANY
+    kIdRor,                              // ANY
+    kIdRorx,                             // BMI2
+    kIdRoundpd,                          // SSE4.1
+    kIdRoundps,                          // SSE4.1
+    kIdRoundsd,                          // SSE4.1
+    kIdRoundss,                          // SSE4.1
+    kIdRsqrtps,                          // SSE
+    kIdRsqrtss,                          // SSE
+    kIdSahf,                             // LAHF_SAHF
+    kIdSal,                              // ANY
+    kIdSar,                              // ANY
+    kIdSarx,                             // BMI2
+    kIdSbb,                              // ANY
+    kIdScas,                             // ANY
+    kIdSeta,                             // ANY (setcc)
+    kIdSetae,                            // ANY (setcc)
+    kIdSetb,                             // ANY (setcc)
+    kIdSetbe,                            // ANY (setcc)
+    kIdSetc,                             // ANY (setcc)
+    kIdSete,                             // ANY (setcc)
+    kIdSetg,                             // ANY (setcc)
+    kIdSetge,                            // ANY (setcc)
+    kIdSetl,                             // ANY (setcc)
+    kIdSetle,                            // ANY (setcc)
+    kIdSetna,                            // ANY (setcc)
+    kIdSetnae,                           // ANY (setcc)
+    kIdSetnb,                            // ANY (setcc)
+    kIdSetnbe,                           // ANY (setcc)
+    kIdSetnc,                            // ANY (setcc)
+    kIdSetne,                            // ANY (setcc)
+    kIdSetng,                            // ANY (setcc)
+    kIdSetnge,                           // ANY (setcc)
+    kIdSetnl,                            // ANY (setcc)
+    kIdSetnle,                           // ANY (setcc)
+    kIdSetno,                            // ANY (setcc)
+    kIdSetnp,                            // ANY (setcc)
+    kIdSetns,                            // ANY (setcc)
+    kIdSetnz,                            // ANY (setcc)
+    kIdSeto,                             // ANY (setcc)
+    kIdSetp,                             // ANY (setcc)
+    kIdSetpe,                            // ANY (setcc)
+    kIdSetpo,                            // ANY (setcc)
+    kIdSets,                             // ANY (setcc)
+    kIdSetz,                             // ANY (setcc)
+    kIdSfence,                           // MMX2|SSE
+    kIdSha1msg1,                         // SHA
+    kIdSha1msg2,                         // SHA
+    kIdSha1nexte,                        // SHA
+    kIdSha1rnds4,                        // SHA
+    kIdSha256msg1,                       // SHA
+    kIdSha256msg2,                       // SHA
+    kIdSha256rnds2,                      // SHA
+    kIdShl,                              // ANY
+    kIdShld,                             // ANY
+    kIdShlx,                             // BMI2
+    kIdShr,                              // ANY
+    kIdShrd,                             // ANY
+    kIdShrx,                             // BMI2
+    kIdShufpd,                           // SSE2
+    kIdShufps,                           // SSE
+    kIdSqrtpd,                           // SSE2
+    kIdSqrtps,                           // SSE
+    kIdSqrtsd,                           // SSE2
+    kIdSqrtss,                           // SSE
+    kIdStac,                             // SMAP
+    kIdStc,                              // ANY
+    kIdStd,                              // ANY
+    kIdSti,                              // ANY
+    kIdStmxcsr,                          // SSE
+    kIdStos,                             // ANY
+    kIdSub,                              // ANY
+    kIdSubpd,                            // SSE2
+    kIdSubps,                            // SSE
+    kIdSubsd,                            // SSE2
+    kIdSubss,                            // SSE
+    kIdSwapgs,                           // X64
+    kIdT1mskc,                           // TBM
+    kIdTest,                             // ANY
+    kIdTzcnt,                            // TZCNT
+    kIdTzmsk,                            // TBM
+    kIdUcomisd,                          // SSE2
+    kIdUcomiss,                          // SSE
+    kIdUd2,                              // ANY
+    kIdUnpckhpd,                         // SSE2
+    kIdUnpckhps,                         // SSE
+    kIdUnpcklpd,                         // SSE2
+    kIdUnpcklps,                         // SSE
+    kIdVaddpd,                           // AVX|AVX512F-VL
+    kIdVaddps,                           // AVX|AVX512F-VL
+    kIdVaddsd,                           // AVX|AVX512F
+    kIdVaddss,                           // AVX|AVX512F
+    kIdVaddsubpd,                        // AVX
+    kIdVaddsubps,                        // AVX
+    kIdVaesdec,                          // AVX|AES
+    kIdVaesdeclast,                      // AVX|AES
+    kIdVaesenc,                          // AVX|AES
+    kIdVaesenclast,                      // AVX|AES
+    kIdVaesimc,                          // AVX|AES
+    kIdVaeskeygenassist,                 // AVX|AES
+    kIdValignd,                          // AVX512F-VL
+    kIdValignq,                          // AVX512F-VL
+    kIdVandnpd,                          // AVX|AVX512DQ-VL
+    kIdVandnps,                          // AVX|AVX512DQ-VL
+    kIdVandpd,                           // AVX|AVX512DQ-VL
+    kIdVandps,                           // AVX|AVX512DQ-VL
+    kIdVblendmb,                         // AVX512BW-VL
+    kIdVblendmd,                         // AVX512F-VL
+    kIdVblendmpd,                        // AVX512F-VL
+    kIdVblendmps,                        // AVX512F-VL
+    kIdVblendmq,                         // AVX512F-VL
+    kIdVblendmw,                         // AVX512BW-VL
+    kIdVblendpd,                         // AVX
+    kIdVblendps,                         // AVX
+    kIdVblendvpd,                        // AVX
+    kIdVblendvps,                        // AVX
+    kIdVbroadcastf128,                   // AVX
+    kIdVbroadcastf32x2,                  // AVX512DQ-VL
+    kIdVbroadcastf32x4,                  // AVX512F
+    kIdVbroadcastf32x8,                  // AVX512DQ
+    kIdVbroadcastf64x2,                  // AVX512DQ-VL
+    kIdVbroadcastf64x4,                  // AVX512F
+    kIdVbroadcasti128,                   // AVX2
+    kIdVbroadcasti32x2,                  // AVX512DQ-VL
+    kIdVbroadcasti32x4,                  // AVX512F-VL
+    kIdVbroadcasti32x8,                  // AVX512DQ
+    kIdVbroadcasti64x2,                  // AVX512DQ-VL
+    kIdVbroadcasti64x4,                  // AVX512F
+    kIdVbroadcastsd,                     // AVX|AVX2|AVX512F-VL
+    kIdVbroadcastss,                     // AVX|AVX2|AVX512F-VL
+    kIdVcmppd,                           // AVX|AVX512F-VL
+    kIdVcmpps,                           // AVX|AVX512F-VL
+    kIdVcmpsd,                           // AVX|AVX512F
+    kIdVcmpss,                           // AVX|AVX512F
+    kIdVcomisd,                          // AVX|AVX512F
+    kIdVcomiss,                          // AVX|AVX512F
+    kIdVcompresspd,                      // AVX512F-VL
+    kIdVcompressps,                      // AVX512F-VL
+    kIdVcvtdq2pd,                        // AVX|AVX512F-VL
+    kIdVcvtdq2ps,                        // AVX|AVX512F-VL
+    kIdVcvtpd2dq,                        // AVX|AVX512F-VL
+    kIdVcvtpd2ps,                        // AVX
+    kIdVcvtpd2qq,                        // AVX512DQ-VL
+    kIdVcvtpd2udq,                       // AVX512F-VL
+    kIdVcvtpd2uqq,                       // AVX512DQ-VL
+    kIdVcvtph2ps,                        // F16C|AVX512F-VL
+    kIdVcvtps2dq,                        // AVX|AVX512F-VL
+    kIdVcvtps2pd,                        // AVX|AVX512F-VL
+    kIdVcvtps2ph,                        // F16C|AVX512F-VL
+    kIdVcvtps2qq,                        // AVX512DQ-VL
+    kIdVcvtps2udq,                       // AVX512F-VL
+    kIdVcvtps2uqq,                       // AVX512DQ-VL
+    kIdVcvtqq2pd,                        // AVX512DQ-VL
+    kIdVcvtqq2ps,                        // AVX512DQ-VL
+    kIdVcvtsd2si,                        // AVX|AVX512F
+    kIdVcvtsd2ss,                        // AVX|AVX512F
+    kIdVcvtsd2usi,                       // AVX512F
+    kIdVcvtsi2sd,                        // AVX|AVX512F
+    kIdVcvtsi2ss,                        // AVX|AVX512F
+    kIdVcvtss2sd,                        // AVX|AVX512F
+    kIdVcvtss2si,                        // AVX|AVX512F
+    kIdVcvtss2usi,                       // AVX512F
+    kIdVcvttpd2dq,                       // AVX|AVX512F-VL
+    kIdVcvttpd2qq,                       // AVX512F-VL
+    kIdVcvttpd2udq,                      // AVX512F-VL
+    kIdVcvttpd2uqq,                      // AVX512DQ-VL
+    kIdVcvttps2dq,                       // AVX|AVX512F-VL
+    kIdVcvttps2qq,                       // AVX512DQ-VL
+    kIdVcvttps2udq,                      // AVX512F-VL
+    kIdVcvttps2uqq,                      // AVX512DQ-VL
+    kIdVcvttsd2si,                       // AVX|AVX512F
+    kIdVcvttsd2usi,                      // AVX512F
+    kIdVcvttss2si,                       // AVX|AVX512F
+    kIdVcvttss2usi,                      // AVX512F
+    kIdVcvtudq2pd,                       // AVX512F-VL
+    kIdVcvtudq2ps,                       // AVX512F-VL
+    kIdVcvtuqq2pd,                       // AVX512DQ-VL
+    kIdVcvtuqq2ps,                       // AVX512DQ-VL
+    kIdVcvtusi2sd,                       // AVX512F
+    kIdVcvtusi2ss,                       // AVX512F
+    kIdVdbpsadbw,                        // AVX512BW-VL
+    kIdVdivpd,                           // AVX|AVX512F-VL
+    kIdVdivps,                           // AVX|AVX512F-VL
+    kIdVdivsd,                           // AVX|AVX512F
+    kIdVdivss,                           // AVX|AVX512F
+    kIdVdppd,                            // AVX
+    kIdVdpps,                            // AVX
+    kIdVexp2pd,                          // AVX512ER
+    kIdVexp2ps,                          // AVX512ER
+    kIdVexpandpd,                        // AVX512F-VL
+    kIdVexpandps,                        // AVX512F-VL
+    kIdVextractf128,                     // AVX
+    kIdVextractf32x4,                    // AVX512F-VL
+    kIdVextractf32x8,                    // AVX512DQ
+    kIdVextractf64x2,                    // AVX512DQ-VL
+    kIdVextractf64x4,                    // AVX512F
+    kIdVextracti128,                     // AVX2
+    kIdVextracti32x4,                    // AVX512F-VL
+    kIdVextracti32x8,                    // AVX512DQ
+    kIdVextracti64x2,                    // AVX512DQ-VL
+    kIdVextracti64x4,                    // AVX512F
+    kIdVextractps,                       // AVX|AVX512F
+    kIdVfixupimmpd,                      // AVX512F-VL
+    kIdVfixupimmps,                      // AVX512F-VL
+    kIdVfixupimmsd,                      // AVX512F
+    kIdVfixupimmss,                      // AVX512F
+    kIdVfmadd132pd,                      // FMA3|AVX512F-VL
+    kIdVfmadd132ps,                      // FMA3|AVX512F-VL
+    kIdVfmadd132sd,                      // FMA3|AVX512F
+    kIdVfmadd132ss,                      // FMA3|AVX512F
+    kIdVfmadd213pd,                      // FMA3|AVX512F-VL
+    kIdVfmadd213ps,                      // FMA3|AVX512F-VL
+    kIdVfmadd213sd,                      // FMA3|AVX512F
+    kIdVfmadd213ss,                      // FMA3|AVX512F
+    kIdVfmadd231pd,                      // FMA3|AVX512F-VL
+    kIdVfmadd231ps,                      // FMA3|AVX512F-VL
+    kIdVfmadd231sd,                      // FMA3|AVX512F
+    kIdVfmadd231ss,                      // FMA3|AVX512F
+    kIdVfmaddpd,                         // FMA4
+    kIdVfmaddps,                         // FMA4
+    kIdVfmaddsd,                         // FMA4
+    kIdVfmaddss,                         // FMA4
+    kIdVfmaddsub132pd,                   // FMA3|AVX512F-VL
+    kIdVfmaddsub132ps,                   // FMA3|AVX512F-VL
+    kIdVfmaddsub213pd,                   // FMA3|AVX512F-VL
+    kIdVfmaddsub213ps,                   // FMA3|AVX512F-VL
+    kIdVfmaddsub231pd,                   // FMA3|AVX512F-VL
+    kIdVfmaddsub231ps,                   // FMA3|AVX512F-VL
+    kIdVfmaddsubpd,                      // FMA4
+    kIdVfmaddsubps,                      // FMA4
+    kIdVfmsub132pd,                      // FMA3|AVX512F-VL
+    kIdVfmsub132ps,                      // FMA3|AVX512F-VL
+    kIdVfmsub132sd,                      // FMA3|AVX512F
+    kIdVfmsub132ss,                      // FMA3|AVX512F
+    kIdVfmsub213pd,                      // FMA3|AVX512F-VL
+    kIdVfmsub213ps,                      // FMA3|AVX512F-VL
+    kIdVfmsub213sd,                      // FMA3|AVX512F
+    kIdVfmsub213ss,                      // FMA3|AVX512F
+    kIdVfmsub231pd,                      // FMA3|AVX512F-VL
+    kIdVfmsub231ps,                      // FMA3|AVX512F-VL
+    kIdVfmsub231sd,                      // FMA3|AVX512F
+    kIdVfmsub231ss,                      // FMA3|AVX512F
+    kIdVfmsubadd132pd,                   // FMA3|AVX512F-VL
+    kIdVfmsubadd132ps,                   // FMA3|AVX512F-VL
+    kIdVfmsubadd213pd,                   // FMA3|AVX512F-VL
+    kIdVfmsubadd213ps,                   // FMA3|AVX512F-VL
+    kIdVfmsubadd231pd,                   // FMA3|AVX512F-VL
+    kIdVfmsubadd231ps,                   // FMA3|AVX512F-VL
+    kIdVfmsubaddpd,                      // FMA4
+    kIdVfmsubaddps,                      // FMA4
+    kIdVfmsubpd,                         // FMA4
+    kIdVfmsubps,                         // FMA4
+    kIdVfmsubsd,                         // FMA4
+    kIdVfmsubss,                         // FMA4
+    kIdVfnmadd132pd,                     // FMA3|AVX512F-VL
+    kIdVfnmadd132ps,                     // FMA3|AVX512F-VL
+    kIdVfnmadd132sd,                     // FMA3|AVX512F
+    kIdVfnmadd132ss,                     // FMA3|AVX512F
+    kIdVfnmadd213pd,                     // FMA3|AVX512F-VL
+    kIdVfnmadd213ps,                     // FMA3|AVX512F-VL
+    kIdVfnmadd213sd,                     // FMA3|AVX512F
+    kIdVfnmadd213ss,                     // FMA3|AVX512F
+    kIdVfnmadd231pd,                     // FMA3|AVX512F-VL
+    kIdVfnmadd231ps,                     // FMA3|AVX512F-VL
+    kIdVfnmadd231sd,                     // FMA3|AVX512F
+    kIdVfnmadd231ss,                     // FMA3|AVX512F
+    kIdVfnmaddpd,                        // FMA4
+    kIdVfnmaddps,                        // FMA4
+    kIdVfnmaddsd,                        // FMA4
+    kIdVfnmaddss,                        // FMA4
+    kIdVfnmsub132pd,                     // FMA3|AVX512F-VL
+    kIdVfnmsub132ps,                     // FMA3|AVX512F-VL
+    kIdVfnmsub132sd,                     // FMA3|AVX512F
+    kIdVfnmsub132ss,                     // FMA3|AVX512F
+    kIdVfnmsub213pd,                     // FMA3|AVX512F-VL
+    kIdVfnmsub213ps,                     // FMA3|AVX512F-VL
+    kIdVfnmsub213sd,                     // FMA3|AVX512F
+    kIdVfnmsub213ss,                     // FMA3|AVX512F
+    kIdVfnmsub231pd,                     // FMA3|AVX512F-VL
+    kIdVfnmsub231ps,                     // FMA3|AVX512F-VL
+    kIdVfnmsub231sd,                     // FMA3|AVX512F
+    kIdVfnmsub231ss,                     // FMA3|AVX512F
+    kIdVfnmsubpd,                        // FMA4
+    kIdVfnmsubps,                        // FMA4
+    kIdVfnmsubsd,                        // FMA4
+    kIdVfnmsubss,                        // FMA4
+    kIdVfpclasspd,                       // AVX512DQ-VL
+    kIdVfpclassps,                       // AVX512DQ-VL
+    kIdVfpclasssd,                       // AVX512DQ
+    kIdVfpclassss,                       // AVX512DQ
+    kIdVfrczpd,                          // XOP
+    kIdVfrczps,                          // XOP
+    kIdVfrczsd,                          // XOP
+    kIdVfrczss,                          // XOP
+    kIdVgatherdpd,                       // AVX2|AVX512F-VL
+    kIdVgatherdps,                       // AVX2|AVX512F-VL
+    kIdVgatherpf0dpd,                    // AVX512PF
+    kIdVgatherpf0dps,                    // AVX512PF
+    kIdVgatherpf0qpd,                    // AVX512PF
+    kIdVgatherpf0qps,                    // AVX512PF
+    kIdVgatherpf1dpd,                    // AVX512PF
+    kIdVgatherpf1dps,                    // AVX512PF
+    kIdVgatherpf1qpd,                    // AVX512PF
+    kIdVgatherpf1qps,                    // AVX512PF
+    kIdVgatherqpd,                       // AVX2|AVX512F-VL
+    kIdVgatherqps,                       // AVX2|AVX512F-VL
+    kIdVgetexppd,                        // AVX512F-VL
+    kIdVgetexpps,                        // AVX512F-VL
+    kIdVgetexpsd,                        // AVX512F
+    kIdVgetexpss,                        // AVX512F
+    kIdVgetmantpd,                       // AVX512F-VL
+    kIdVgetmantps,                       // AVX512F-VL
+    kIdVgetmantsd,                       // AVX512F
+    kIdVgetmantss,                       // AVX512F
+    kIdVhaddpd,                          // AVX
+    kIdVhaddps,                          // AVX
+    kIdVhsubpd,                          // AVX
+    kIdVhsubps,                          // AVX
+    kIdVinsertf128,                      // AVX
+    kIdVinsertf32x4,                     // AVX512F-VL
+    kIdVinsertf32x8,                     // AVX512DQ
+    kIdVinsertf64x2,                     // AVX512DQ-VL
+    kIdVinsertf64x4,                     // AVX512F
+    kIdVinserti128,                      // AVX2
+    kIdVinserti32x4,                     // AVX512F-VL
+    kIdVinserti32x8,                     // AVX512DQ
+    kIdVinserti64x2,                     // AVX512DQ-VL
+    kIdVinserti64x4,                     // AVX512F
+    kIdVinsertps,                        // AVX|AVX512F
+    kIdVlddqu,                           // AVX
+    kIdVldmxcsr,                         // AVX
+    kIdVmaskmovdqu,                      // AVX
+    kIdVmaskmovpd,                       // AVX
+    kIdVmaskmovps,                       // AVX
+    kIdVmaxpd,                           // AVX|AVX512F-VL
+    kIdVmaxps,                           // AVX|AVX512F-VL
+    kIdVmaxsd,                           // AVX|AVX512F-VL
+    kIdVmaxss,                           // AVX|AVX512F-VL
+    kIdVminpd,                           // AVX|AVX512F-VL
+    kIdVminps,                           // AVX|AVX512F-VL
+    kIdVminsd,                           // AVX|AVX512F-VL
+    kIdVminss,                           // AVX|AVX512F-VL
+    kIdVmovapd,                          // AVX|AVX512F-VL
+    kIdVmovaps,                          // AVX|AVX512F-VL
+    kIdVmovd,                            // AVX|AVX512F
+    kIdVmovddup,                         // AVX|AVX512F-VL
+    kIdVmovdqa,                          // AVX
+    kIdVmovdqa32,                        // AVX512F-VL
+    kIdVmovdqa64,                        // AVX512F-VL
+    kIdVmovdqu,                          // AVX
+    kIdVmovdqu16,                        // AVX512BW-VL
+    kIdVmovdqu32,                        // AVX512F-VL
+    kIdVmovdqu64,                        // AVX512F-VL
+    kIdVmovdqu8,                         // AVX512BW-VL
+    kIdVmovhlps,                         // AVX|AVX512F
+    kIdVmovhpd,                          // AVX|AVX512F
+    kIdVmovhps,                          // AVX|AVX512F
+    kIdVmovlhps,                         // AVX|AVX512F
+    kIdVmovlpd,                          // AVX|AVX512F
+    kIdVmovlps,                          // AVX|AVX512F
+    kIdVmovmskpd,                        // AVX
+    kIdVmovmskps,                        // AVX
+    kIdVmovntdq,                         // AVX|AVX512F-VL
+    kIdVmovntdqa,                        // AVX|AVX2|AVX512F-VL
+    kIdVmovntpd,                         // AVX|AVX512F-VL
+    kIdVmovntps,                         // AVX|AVX512F-VL
+    kIdVmovq,                            // AVX|AVX512F
+    kIdVmovsd,                           // AVX|AVX512F
+    kIdVmovshdup,                        // AVX|AVX512F-VL
+    kIdVmovsldup,                        // AVX|AVX512F-VL
+    kIdVmovss,                           // AVX|AVX512F
+    kIdVmovupd,                          // AVX|AVX512F-VL
+    kIdVmovups,                          // AVX|AVX512F-VL
+    kIdVmpsadbw,                         // AVX|AVX2
+    kIdVmulpd,                           // AVX|AVX2|AVX512F-VL
+    kIdVmulps,                           // AVX|AVX2|AVX512F-VL
+    kIdVmulsd,                           // AVX|AVX512F
+    kIdVmulss,                           // AVX|AVX512F
+    kIdVorpd,                            // AVX|AVX512DQ-VL
+    kIdVorps,                            // AVX|AVX512F-VL
+    kIdVpabsb,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpabsd,                           // AVX|AVX2|AVX512F-VL
+    kIdVpabsq,                           // AVX512F-VL
+    kIdVpabsw,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpackssdw,                        // AVX|AVX2|AVX512BW-VL
+    kIdVpacksswb,                        // AVX|AVX2|AVX512BW-VL
+    kIdVpackusdw,                        // AVX|AVX2|AVX512BW-VL
+    kIdVpackuswb,                        // AVX|AVX2|AVX512BW-VL
+    kIdVpaddb,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpaddd,                           // AVX|AVX2|AVX512F-VL
+    kIdVpaddq,                           // AVX|AVX2|AVX512F-VL
+    kIdVpaddsb,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpaddsw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpaddusb,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpaddusw,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpaddw,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpalignr,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpand,                            // AVX|AVX2
+    kIdVpandd,                           // AVX512F-VL
+    kIdVpandn,                           // AVX|AVX2
+    kIdVpandnd,                          // AVX512F-VL
+    kIdVpandnq,                          // AVX512F-VL
+    kIdVpandq,                           // AVX512F-VL
+    kIdVpavgb,                           // AVX|AVX512BW-VL
+    kIdVpavgw,                           // AVX2|AVX512BW-VL
+    kIdVpblendd,                         // AVX2
+    kIdVpblendvb,                        // AVX|AVX2
+    kIdVpblendw,                         // AVX|AVX2
+    kIdVpbroadcastb,                     // AVX2|AVX512BW-VL
+    kIdVpbroadcastd,                     // AVX2|AVX512F-VL
+    kIdVpbroadcastmb2d,                  // AVX512CD-VL
+    kIdVpbroadcastmb2q,                  // AVX512CD-VL
+    kIdVpbroadcastq,                     // AVX2|AVX512F-VL
+    kIdVpbroadcastw,                     // AVX2|AVX512BW-VL
+    kIdVpclmulqdq,                       // AVX|PCLMULQDQ
+    kIdVpcmov,                           // XOP
+    kIdVpcmpb,                           // AVX512BW-VL
+    kIdVpcmpd,                           // AVX512F-VL
+    kIdVpcmpeqb,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpcmpeqd,                         // AVX|AVX2|AVX512F-VL
+    kIdVpcmpeqq,                         // AVX|AVX2|AVX512F-VL
+    kIdVpcmpeqw,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpcmpestri,                       // AVX
+    kIdVpcmpestrm,                       // AVX
+    kIdVpcmpgtb,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpcmpgtd,                         // AVX|AVX2|AVX512F-VL
+    kIdVpcmpgtq,                         // AVX|AVX2|AVX512F-VL
+    kIdVpcmpgtw,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpcmpistri,                       // AVX
+    kIdVpcmpistrm,                       // AVX
+    kIdVpcmpq,                           // AVX512F-VL
+    kIdVpcmpub,                          // AVX512BW-VL
+    kIdVpcmpud,                          // AVX512F-VL
+    kIdVpcmpuq,                          // AVX512F-VL
+    kIdVpcmpuw,                          // AVX512BW-VL
+    kIdVpcmpw,                           // AVX512BW-VL
+    kIdVpcomb,                           // XOP
+    kIdVpcomd,                           // XOP
+    kIdVpcompressd,                      // AVX512F-VL
+    kIdVpcompressq,                      // AVX512F-VL
+    kIdVpcomq,                           // XOP
+    kIdVpcomub,                          // XOP
+    kIdVpcomud,                          // XOP
+    kIdVpcomuq,                          // XOP
+    kIdVpcomuw,                          // XOP
+    kIdVpcomw,                           // XOP
+    kIdVpconflictd,                      // AVX512CD-VL
+    kIdVpconflictq,                      // AVX512CD-VL
+    kIdVperm2f128,                       // AVX
+    kIdVperm2i128,                       // AVX2
+    kIdVpermb,                           // AVX512VBMI-VL
+    kIdVpermd,                           // AVX2|AVX512F-VL
+    kIdVpermi2b,                         // AVX512VBMI-VL
+    kIdVpermi2d,                         // AVX512F-VL
+    kIdVpermi2pd,                        // AVX512F-VL
+    kIdVpermi2ps,                        // AVX512F-VL
+    kIdVpermi2q,                         // AVX512F-VL
+    kIdVpermi2w,                         // AVX512BW-VL
+    kIdVpermil2pd,                       // XOP
+    kIdVpermil2ps,                       // XOP
+    kIdVpermilpd,                        // AVX|AVX512F-VL
+    kIdVpermilps,                        // AVX|AVX512F-VL
+    kIdVpermpd,                          // AVX2
+    kIdVpermps,                          // AVX2
+    kIdVpermq,                           // AVX2|AVX512F-VL
+    kIdVpermt2b,                         // AVX512VBMI-VL
+    kIdVpermt2d,                         // AVX512F-VL
+    kIdVpermt2pd,                        // AVX512F-VL
+    kIdVpermt2ps,                        // AVX512F-VL
+    kIdVpermt2q,                         // AVX512F-VL
+    kIdVpermt2w,                         // AVX512BW-VL
+    kIdVpermw,                           // AVX512BW-VL
+    kIdVpexpandd,                        // AVX512F-VL
+    kIdVpexpandq,                        // AVX512F-VL
+    kIdVpextrb,                          // AVX|AVX512BW
+    kIdVpextrd,                          // AVX|AVX512DQ
+    kIdVpextrq,                          // AVX|AVX512DQ
+    kIdVpextrw,                          // AVX|AVX512BW
+    kIdVpgatherdd,                       // AVX2|AVX512F-VL
+    kIdVpgatherdq,                       // AVX2|AVX512F-VL
+    kIdVpgatherqd,                       // AVX2|AVX512F-VL
+    kIdVpgatherqq,                       // AVX2|AVX512F-VL
+    kIdVphaddbd,                         // XOP
+    kIdVphaddbq,                         // XOP
+    kIdVphaddbw,                         // XOP
+    kIdVphaddd,                          // AVX|AVX2
+    kIdVphadddq,                         // XOP
+    kIdVphaddsw,                         // AVX|AVX2
+    kIdVphaddubd,                        // XOP
+    kIdVphaddubq,                        // XOP
+    kIdVphaddubw,                        // XOP
+    kIdVphaddudq,                        // XOP
+    kIdVphadduwd,                        // XOP
+    kIdVphadduwq,                        // XOP
+    kIdVphaddw,                          // AVX|AVX2
+    kIdVphaddwd,                         // XOP
+    kIdVphaddwq,                         // XOP
+    kIdVphminposuw,                      // AVX
+    kIdVphsubbw,                         // XOP
+    kIdVphsubd,                          // AVX|AVX2
+    kIdVphsubdq,                         // XOP
+    kIdVphsubsw,                         // AVX|AVX2
+    kIdVphsubw,                          // AVX|AVX2
+    kIdVphsubwd,                         // XOP
+    kIdVpinsrb,                          // AVX|AVX512BW
+    kIdVpinsrd,                          // AVX|AVX512DQ
+    kIdVpinsrq,                          // AVX|AVX512DQ
+    kIdVpinsrw,                          // AVX|AVX512BW
+    kIdVplzcntd,                         // AVX512CD-VL
+    kIdVplzcntq,                         // AVX512CD-VL
+    kIdVpmacsdd,                         // XOP
+    kIdVpmacsdqh,                        // XOP
+    kIdVpmacsdql,                        // XOP
+    kIdVpmacssdd,                        // XOP
+    kIdVpmacssdqh,                       // XOP
+    kIdVpmacssdql,                       // XOP
+    kIdVpmacsswd,                        // XOP
+    kIdVpmacssww,                        // XOP
+    kIdVpmacswd,                         // XOP
+    kIdVpmacsww,                         // XOP
+    kIdVpmadcsswd,                       // XOP
+    kIdVpmadcswd,                        // XOP
+    kIdVpmadd52huq,                      // AVX512IFMA-VL
+    kIdVpmadd52luq,                      // AVX512IFMA-VL
+    kIdVpmaddubsw,                       // AVX|AVX2|AVX512BW-VL
+    kIdVpmaddwd,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpmaskmovd,                       // AVX2
+    kIdVpmaskmovq,                       // AVX2
+    kIdVpmaxsb,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpmaxsd,                          // AVX|AVX2|AVX512F-VL
+    kIdVpmaxsq,                          // AVX512F-VL
+    kIdVpmaxsw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpmaxub,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpmaxud,                          // AVX|AVX2|AVX512F-VL
+    kIdVpmaxuq,                          // AVX512F-VL
+    kIdVpmaxuw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpminsb,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpminsd,                          // AVX|AVX2|AVX512F-VL
+    kIdVpminsq,                          // AVX512F-VL
+    kIdVpminsw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpminub,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpminud,                          // AVX|AVX2|AVX512F-VL
+    kIdVpminuq,                          // AVX512F-VL
+    kIdVpminuw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpmovb2m,                         // AVX512BW-VL
+    kIdVpmovd2m,                         // AVX512DQ-VL
+    kIdVpmovdb,                          // AVX512F-VL
+    kIdVpmovdw,                          // AVX512F-VL
+    kIdVpmovm2b,                         // AVX512BW-VL
+    kIdVpmovm2d,                         // AVX512DQ-VL
+    kIdVpmovm2q,                         // AVX512DQ-VL
+    kIdVpmovm2w,                         // AVX512BW-VL
+    kIdVpmovmskb,                        // AVX|AVX2
+    kIdVpmovq2m,                         // AVX512DQ-VL
+    kIdVpmovqb,                          // AVX512F-VL
+    kIdVpmovqd,                          // AVX512F-VL
+    kIdVpmovqw,                          // AVX512F-VL
+    kIdVpmovsdb,                         // AVX512F-VL
+    kIdVpmovsdw,                         // AVX512F-VL
+    kIdVpmovsqb,                         // AVX512F-VL
+    kIdVpmovsqd,                         // AVX512F-VL
+    kIdVpmovsqw,                         // AVX512F-VL
+    kIdVpmovswb,                         // AVX512BW-VL
+    kIdVpmovsxbd,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovsxbq,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovsxbw,                        // AVX|AVX2|AVX512BW-VL
+    kIdVpmovsxdq,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovsxwd,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovsxwq,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovusdb,                        // AVX512F-VL
+    kIdVpmovusdw,                        // AVX512F-VL
+    kIdVpmovusqb,                        // AVX512F-VL
+    kIdVpmovusqd,                        // AVX512F-VL
+    kIdVpmovusqw,                        // AVX512F-VL
+    kIdVpmovuswb,                        // AVX512BW-VL
+    kIdVpmovw2m,                         // AVX512BW-VL
+    kIdVpmovwb,                          // AVX512BW-VL
+    kIdVpmovzxbd,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovzxbq,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovzxbw,                        // AVX|AVX2|AVX512BW-VL
+    kIdVpmovzxdq,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovzxwd,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmovzxwq,                        // AVX|AVX2|AVX512F-VL
+    kIdVpmuldq,                          // AVX|AVX2|AVX512F-VL
+    kIdVpmulhrsw,                        // AVX|AVX2|AVX512BW-VL
+    kIdVpmulhuw,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpmulhw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpmulld,                          // AVX|AVX2|AVX512F-VL
+    kIdVpmullq,                          // AVX512DQ-VL
+    kIdVpmullw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpmultishiftqb,                   // AVX512VBMI-VL
+    kIdVpmuludq,                         // AVX|AVX2|AVX512F-VL
+    kIdVpor,                             // AVX|AVX2
+    kIdVpord,                            // AVX512F-VL
+    kIdVporq,                            // AVX512F-VL
+    kIdVpperm,                           // XOP
+    kIdVprold,                           // AVX512F-VL
+    kIdVprolq,                           // AVX512F-VL
+    kIdVprolvd,                          // AVX512F-VL
+    kIdVprolvq,                          // AVX512F-VL
+    kIdVprord,                           // AVX512F-VL
+    kIdVprorq,                           // AVX512F-VL
+    kIdVprorvd,                          // AVX512F-VL
+    kIdVprorvq,                          // AVX512F-VL
+    kIdVprotb,                           // XOP
+    kIdVprotd,                           // XOP
+    kIdVprotq,                           // XOP
+    kIdVprotw,                           // XOP
+    kIdVpsadbw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpscatterdd,                      // AVX512F-VL
+    kIdVpscatterdq,                      // AVX512F-VL
+    kIdVpscatterqd,                      // AVX512F-VL
+    kIdVpscatterqq,                      // AVX512F-VL
+    kIdVpshab,                           // XOP
+    kIdVpshad,                           // XOP
+    kIdVpshaq,                           // XOP
+    kIdVpshaw,                           // XOP
+    kIdVpshlb,                           // XOP
+    kIdVpshld,                           // XOP
+    kIdVpshlq,                           // XOP
+    kIdVpshlw,                           // XOP
+    kIdVpshufb,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpshufd,                          // AVX|AVX2|AVX512F-VL
+    kIdVpshufhw,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpshuflw,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpsignb,                          // AVX|AVX2
+    kIdVpsignd,                          // AVX|AVX2
+    kIdVpsignw,                          // AVX|AVX2
+    kIdVpslld,                           // AVX|AVX2|AVX512F-VL
+    kIdVpslldq,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpsllq,                           // AVX|AVX2|AVX512F-VL
+    kIdVpsllvd,                          // AVX2|AVX512F-VL
+    kIdVpsllvq,                          // AVX2|AVX512F-VL
+    kIdVpsllvw,                          // AVX512BW-VL
+    kIdVpsllw,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpsrad,                           // AVX|AVX2|AVX512F-VL
+    kIdVpsraq,                           // AVX512F-VL
+    kIdVpsravd,                          // AVX2|AVX512F-VL
+    kIdVpsravq,                          // AVX512F-VL
+    kIdVpsravw,                          // AVX512BW-VL
+    kIdVpsraw,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpsrld,                           // AVX|AVX2|AVX512F-VL
+    kIdVpsrldq,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpsrlq,                           // AVX|AVX2|AVX512F-VL
+    kIdVpsrlvd,                          // AVX2|AVX512F-VL
+    kIdVpsrlvq,                          // AVX2|AVX512F-VL
+    kIdVpsrlvw,                          // AVX512BW-VL
+    kIdVpsrlw,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpsubb,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpsubd,                           // AVX|AVX2|AVX512F-VL
+    kIdVpsubq,                           // AVX|AVX2|AVX512F-VL
+    kIdVpsubsb,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpsubsw,                          // AVX|AVX2|AVX512BW-VL
+    kIdVpsubusb,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpsubusw,                         // AVX|AVX2|AVX512BW-VL
+    kIdVpsubw,                           // AVX|AVX2|AVX512BW-VL
+    kIdVpternlogd,                       // AVX512F-VL
+    kIdVpternlogq,                       // AVX512F-VL
+    kIdVptest,                           // AVX
+    kIdVptestmb,                         // AVX512BW-VL
+    kIdVptestmd,                         // AVX512F-VL
+    kIdVptestmq,                         // AVX512F-VL
+    kIdVptestmw,                         // AVX512BW-VL
+    kIdVptestnmb,                        // AVX512BW-VL
+    kIdVptestnmd,                        // AVX512F-VL
+    kIdVptestnmq,                        // AVX512F-VL
+    kIdVptestnmw,                        // AVX512BW-VL
+    kIdVpunpckhbw,                       // AVX|AVX2|AVX512BW-VL
+    kIdVpunpckhdq,                       // AVX|AVX2|AVX512F-VL
+    kIdVpunpckhqdq,                      // AVX|AVX2|AVX512F-VL
+    kIdVpunpckhwd,                       // AVX|AVX2|AVX512BW-VL
+    kIdVpunpcklbw,                       // AVX|AVX2|AVX512BW-VL
+    kIdVpunpckldq,                       // AVX|AVX2|AVX512F-VL
+    kIdVpunpcklqdq,                      // AVX|AVX2|AVX512F-VL
+    kIdVpunpcklwd,                       // AVX|AVX2|AVX512BW-VL
+    kIdVpxor,                            // AVX|AVX2
+    kIdVpxord,                           // AVX512F-VL
+    kIdVpxorq,                           // AVX512F-VL
+    kIdVrangepd,                         // AVX512DQ-VL
+    kIdVrangeps,                         // AVX512DQ-VL
+    kIdVrangesd,                         // AVX512DQ
+    kIdVrangess,                         // AVX512DQ
+    kIdVrcp14pd,                         // AVX512F-VL
+    kIdVrcp14ps,                         // AVX512F-VL
+    kIdVrcp14sd,                         // AVX512F
+    kIdVrcp14ss,                         // AVX512F
+    kIdVrcp28pd,                         // AVX512ER
+    kIdVrcp28ps,                         // AVX512ER
+    kIdVrcp28sd,                         // AVX512ER
+    kIdVrcp28ss,                         // AVX512ER
+    kIdVrcpps,                           // AVX
+    kIdVrcpss,                           // AVX
+    kIdVreducepd,                        // AVX512DQ-VL
+    kIdVreduceps,                        // AVX512DQ-VL
+    kIdVreducesd,                        // AVX512DQ
+    kIdVreducess,                        // AVX512DQ
+    kIdVrndscalepd,                      // AVX512F-VL
+    kIdVrndscaleps,                      // AVX512F-VL
+    kIdVrndscalesd,                      // AVX512F
+    kIdVrndscaless,                      // AVX512F
+    kIdVroundpd,                         // AVX
+    kIdVroundps,                         // AVX
+    kIdVroundsd,                         // AVX
+    kIdVroundss,                         // AVX
+    kIdVrsqrt14pd,                       // AVX512F-VL
+    kIdVrsqrt14ps,                       // AVX512F-VL
+    kIdVrsqrt14sd,                       // AVX512F
+    kIdVrsqrt14ss,                       // AVX512F
+    kIdVrsqrt28pd,                       // AVX512ER
+    kIdVrsqrt28ps,                       // AVX512ER
+    kIdVrsqrt28sd,                       // AVX512ER
+    kIdVrsqrt28ss,                       // AVX512ER
+    kIdVrsqrtps,                         // AVX
+    kIdVrsqrtss,                         // AVX
+    kIdVscalefpd,                        // AVX512F-VL
+    kIdVscalefps,                        // AVX512F-VL
+    kIdVscalefsd,                        // AVX512F
+    kIdVscalefss,                        // AVX512F
+    kIdVscatterdpd,                      // AVX512F-VL
+    kIdVscatterdps,                      // AVX512F-VL
+    kIdVscatterpf0dpd,                   // AVX512PF
+    kIdVscatterpf0dps,                   // AVX512PF
+    kIdVscatterpf0qpd,                   // AVX512PF
+    kIdVscatterpf0qps,                   // AVX512PF
+    kIdVscatterpf1dpd,                   // AVX512PF
+    kIdVscatterpf1dps,                   // AVX512PF
+    kIdVscatterpf1qpd,                   // AVX512PF
+    kIdVscatterpf1qps,                   // AVX512PF
+    kIdVscatterqpd,                      // AVX512F-VL
+    kIdVscatterqps,                      // AVX512F-VL
+    kIdVshuff32x4,                       // AVX512F-VL
+    kIdVshuff64x2,                       // AVX512F-VL
+    kIdVshufi32x4,                       // AVX512F-VL
+    kIdVshufi64x2,                       // AVX512F-VL
+    kIdVshufpd,                          // AVX|AVX512F-VL
+    kIdVshufps,                          // AVX|AVX512F-VL
+    kIdVsqrtpd,                          // AVX|AVX512F-VL
+    kIdVsqrtps,                          // AVX|AVX512F-VL
+    kIdVsqrtsd,                          // AVX|AVX512F
+    kIdVsqrtss,                          // AVX|AVX512F
+    kIdVstmxcsr,                         // AVX
+    kIdVsubpd,                           // AVX|AVX2|AVX512F-VL
+    kIdVsubps,                           // AVX|AVX2|AVX512F-VL
+    kIdVsubsd,                           // AVX|AVX512F
+    kIdVsubss,                           // AVX|AVX512F
+    kIdVtestpd,                          // AVX
+    kIdVtestps,                          // AVX
+    kIdVucomisd,                         // AVX|AVX512F
+    kIdVucomiss,                         // AVX|AVX512F
+    kIdVunpckhpd,                        // AVX|AVX512F-VL
+    kIdVunpckhps,                        // AVX|AVX512F-VL
+    kIdVunpcklpd,                        // AVX|AVX512F-VL
+    kIdVunpcklps,                        // AVX|AVX512F-VL
+    kIdVxorpd,                           // AVX|AVX512DQ-VL
+    kIdVxorps,                           // AVX|AVX512DQ-VL
+    kIdVzeroall,                         // AVX
+    kIdVzeroupper,                       // AVX
+    kIdWrfsbase,                         // FSGSBASE & X64
+    kIdWrgsbase,                         // FSGSBASE & X64
+    kIdXadd,                             // I486+
+    kIdXchg,                             // ANY
+    kIdXgetbv,                           // XSAVE
+    kIdXor,                              // ANY
+    kIdXorpd,                            // SSE2
+    kIdXorps,                            // SSE
+    kIdXrstor,                           // XSAVE
+    kIdXrstor64,                         // XSAVE
+    kIdXrstors,                          // XSAVE
+    kIdXrstors64,                        // XSAVE
+    kIdXsave,                            // XSAVE
+    kIdXsave64,                          // XSAVE
+    kIdXsavec,                           // XSAVE
+    kIdXsavec64,                         // XSAVE
+    kIdXsaveopt,                         // XSAVE
+    kIdXsaveopt64,                       // XSAVE
+    kIdXsaves,                           // XSAVE
+    kIdXsaves64,                         // XSAVE
+    kIdXsetbv,                           // XSAVE
 
-  //! Get whether the instruction is a control-flow instruction.
+    _kIdCount,
+
+    _kIdCmovcc = kIdCmova,
+    _kIdJcc    = kIdJa,
+    _kIdSetcc  = kIdSeta,
+
+    _kIdJbegin = kIdJa,
+    _kIdJend   = kIdJmp
+  };
+
+  //! Instruction encodings, used by \ref X86Assembler.
+  ASMJIT_ENUM(EncodingType) {
+    kEncodingNone = 0,                   //!< Never used.
+    kEncodingX86Op,                      //!< X86 [OP].
+    kEncodingX86Op_O,                    //!< X86 [OP] (opcode and /0-7).
+    kEncodingX86Op_xAX,                  //!< X86 [OP] (implicit or explicit '?AX' form).
+    kEncodingX86Op_xDX_xAX,              //!< X86 [OP] (implicit or explicit '?DX, ?AX' form).
+    kEncodingX86Op_ZAX,                  //!< X86 [OP] (implicit or explicit '[EAX|RDX]' form).
+    kEncodingX86I_xAX,                   //!< X86 [I] (implicit or explicit '?AX' form).
+    kEncodingX86M,                       //!< X86 [M] (handles 2|4|8-bytes size).
+    kEncodingX86M_GPB,                   //!< X86 [M] (handles single-byte size).
+    kEncodingX86M_GPB_MulDiv,            //!< X86 [M] (like GPB, handles implicit|explicit MUL|DIV|IDIV).
+    kEncodingX86M_Only,                  //!< X86 [M] (restricted to memory operand of any size).
+    kEncodingX86Rm,                      //!< X86 [RM] (doesn't handle single-byte size).
+    kEncodingX86Arith,                   //!< X86 adc, add, and, cmp, or, sbb, sub, xor.
+    kEncodingX86Bswap,                   //!< X86 bswap.
+    kEncodingX86Bt,                      //!< X86 bt, btc, btr, bts.
+    kEncodingX86Call,                    //!< X86 call.
+    kEncodingX86Cmpxchg,                 //!< X86 [MR] cmpxchg.
+    kEncodingX86Crc,                     //!< X86 crc32.
+    kEncodingX86Enter,                   //!< X86 enter.
+    kEncodingX86Imul,                    //!< X86 imul.
+    kEncodingX86In,                      //!< X86 in.
+    kEncodingX86Ins,                     //!< X86 ins[b|q|d].
+    kEncodingX86IncDec,                  //!< X86 inc, dec.
+    kEncodingX86Int,                     //!< X86 int (interrupt).
+    kEncodingX86Jcc,                     //!< X86 jcc.
+    kEncodingX86JecxzLoop,               //!< X86 jcxz, jecxz, jrcxz, loop, loope, loopne.
+    kEncodingX86Jmp,                     //!< X86 jmp.
+    kEncodingX86Lea,                     //!< X86 lea.
+    kEncodingX86Mov,                     //!< X86 mov (all possible cases).
+    kEncodingX86MovsxMovzx,              //!< X86 movsx, movzx.
+    kEncodingX86Out,                     //!< X86 out.
+    kEncodingX86Outs,                    //!< X86 out[b|q|d].
+    kEncodingX86Push,                    //!< X86 push.
+    kEncodingX86Pop,                     //!< X86 pop.
+    kEncodingX86Ret,                     //!< X86 ret.
+    kEncodingX86Rot,                     //!< X86 rcl, rcr, rol, ror, sal, sar, shl, shr.
+    kEncodingX86Set,                     //!< X86 setcc.
+    kEncodingX86ShldShrd,                //!< X86 shld, shrd.
+    kEncodingX86StrRm,                   //!< X86 lods.
+    kEncodingX86StrMr,                   //!< X86 scas, stos.
+    kEncodingX86StrMm,                   //!< X86 cmps, movs.
+    kEncodingX86Test,                    //!< X86 test.
+    kEncodingX86Xadd,                    //!< X86 xadd.
+    kEncodingX86Xchg,                    //!< X86 xchg.
+    kEncodingX86Fence,                   //!< X86 lfence, mfence, sfence.
+    kEncodingFpuOp,                      //!< FPU [OP].
+    kEncodingFpuArith,                   //!< FPU fadd, fdiv, fdivr, fmul, fsub, fsubr.
+    kEncodingFpuCom,                     //!< FPU fcom, fcomp.
+    kEncodingFpuFldFst,                  //!< FPU fld, fst, fstp.
+    kEncodingFpuM,                       //!< FPU fiadd, ficom, ficomp, fidiv, fidivr, fild, fimul, fist, fistp, fisttp, fisub, fisubr.
+    kEncodingFpuR,                       //!< FPU fcmov, fcomi, fcomip, ffree, fucom, fucomi, fucomip, fucomp, fxch.
+    kEncodingFpuRDef,                    //!< FPU faddp, fdivp, fdivrp, fmulp, fsubp, fsubrp.
+    kEncodingFpuStsw,                    //!< FPU fnstsw, Fstsw.
+    kEncodingExtRm,                      //!< EXT [RM].
+    kEncodingExtRm_XMM0,                 //!< EXT [RM<XMM0>].
+    kEncodingExtRm_ZDI,                  //!< EXT [RM<ZDI>].
+    kEncodingExtRm_P,                    //!< EXT [RM] (propagates 66H if the instruction uses XMM register).
+    kEncodingExtRm_Wx,                   //!< EXT [RM] (propagates REX.W if GPQ is used).
+    kEncodingExtRmRi,                    //!< EXT [RM|RI].
+    kEncodingExtRmRi_P,                  //!< EXT [RM|RI] (propagates 66H if the instruction uses XMM register).
+    kEncodingExtRmi,                     //!< EXT [RMI].
+    kEncodingExtRmi_P,                   //!< EXT [RMI] (propagates 66H if the instruction uses XMM register).
+    kEncodingExtPextrw,                  //!< EXT pextrw.
+    kEncodingExtExtract,                 //!< EXT pextrb, pextrd, pextrq, extractps.
+    kEncodingExtMov,                     //!< EXT mov?? - #1:[MM|XMM, MM|XMM|Mem] #2:[MM|XMM|Mem, MM|XMM].
+    kEncodingExtMovnti,                  //!< EXT movnti.
+    kEncodingExtMovbe,                   //!< EXT movbe.
+    kEncodingExtMovd,                    //!< EXT movd.
+    kEncodingExtMovq,                    //!< EXT movq.
+    kEncodingExtExtrq,                   //!< EXT extrq (SSE4A).
+    kEncodingExtInsertq,                 //!< EXT insrq (SSE4A).
+    kEncodingExt3dNow,                   //!< EXT [RMI] (3DNOW specific).
+    kEncodingVexOp,                      //!< VEX [OP].
+    kEncodingVexKmov,                    //!< VEX [RM|MR] (used by kmov[b|w|d|q]).
+    kEncodingVexM,                       //!< VEX|EVEX [M].
+    kEncodingVexM_VM,                    //!< VEX|EVEX [M] (propagates VEX|EVEX.L, VSIB support).
+    kEncodingVexMr_Lx,                   //!< VEX|EVEX [MR] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexMr_VM,                   //!< VEX|EVEX [MR] (propagates VEX|EVEX.L, VSIB support).
+    kEncodingVexMri,                     //!< VEX|EVEX [MRI].
+    kEncodingVexMri_Lx,                  //!< VEX|EVEX [MRI] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRm,                      //!< VEX|EVEX [RM].
+    kEncodingVexRm_ZDI,                  //!< VEX|EVEX [RM<ZDI>].
+    kEncodingVexRm_Lx,                   //!< VEX|EVEX [RM] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRm_VM,                   //!< VEX|EVEX [RM] (propagates VEX|EVEX.L, VSIB support).
+    kEncodingVexRmi,                     //!< VEX|EVEX [RMI].
+    kEncodingVexRmi_Wx,                  //!< VEX|EVEX [RMI] (propagates VEX|EVEX.W if GPQ used).
+    kEncodingVexRmi_Lx,                  //!< VEX|EVEX [RMI] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRvm,                     //!< VEX|EVEX [RVM].
+    kEncodingVexRvm_Wx,                  //!< VEX|EVEX [RVM] (propagates VEX|EVEX.W if GPQ used).
+    kEncodingVexRvm_ZDX_Wx,              //!< VEX|EVEX [RVM<ZDX>] (propagates VEX|EVEX.W if GPQ used).
+    kEncodingVexRvm_Lx,                  //!< VEX|EVEX [RVM] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRvmr,                    //!< VEX|EVEX [RVMR].
+    kEncodingVexRvmr_Lx,                 //!< VEX|EVEX [RVMR] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRvmi,                    //!< VEX|EVEX [RVMI].
+    kEncodingVexRvmi_Lx,                 //!< VEX|EVEX [RVMI] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRmv,                     //!< VEX|EVEX [RMV].
+    kEncodingVexRmv_Wx,                  //!< VEX|EVEX [RMV] (propagates VEX|EVEX.W if GPQ used).
+    kEncodingVexRmv_VM,                  //!< VEX|EVEX [RMV] (propagates VEX|EVEX.L, VSIB support).
+    kEncodingVexRmvRm_VM,                //!< VEX|EVEX [RMV|RM] (propagates VEX|EVEX.L, VSIB support).
+    kEncodingVexRmvi,                    //!< VEX|EVEX [RMVI].
+    kEncodingVexRmMr,                    //!< VEX|EVEX [RM|MR].
+    kEncodingVexRmMr_Lx,                 //!< VEX|EVEX [RM|MR] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRvmRmv,                  //!< VEX|EVEX [RVM|RMV].
+    kEncodingVexRvmRmi,                  //!< VEX|EVEX [RVM|RMI].
+    kEncodingVexRvmRmi_Lx,               //!< VEX|EVEX [RVM|RMI] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRvmRmvRmi,               //!< VEX|EVEX [RVM|RMV|RMI].
+    kEncodingVexRvmMr,                   //!< VEX|EVEX [RVM|MR].
+    kEncodingVexRvmMvr,                  //!< VEX|EVEX [RVM|MVR].
+    kEncodingVexRvmMvr_Lx,               //!< VEX|EVEX [RVM|MVR] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRvmVmi,                  //!< VEX|EVEX [RVM|VMI].
+    kEncodingVexRvmVmi_Lx,               //!< VEX|EVEX [RVM|VMI] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexVm,                      //!< VEX|EVEX [VM].
+    kEncodingVexVm_Wx,                   //!< VEX|EVEX [VM] (propagates VEX|EVEX.W if GPQ used).
+    kEncodingVexVmi,                     //!< VEX|EVEX [VMI].
+    kEncodingVexVmi_Lx,                  //!< VEX|EVEX [VMI] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexEvexVmi_Lx,              //!< VEX|EVEX [VMI] (special, used by vpsrldq and vpslldq)
+    kEncodingVexRvrmRvmr,                //!< VEX|EVEX [RVRM|RVMR].
+    kEncodingVexRvrmRvmr_Lx,             //!< VEX|EVEX [RVRM|RVMR] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexRvrmiRvmri_Lx,           //!< VEX|EVEX [RVRMI|RVMRI] (propagates VEX|EVEX.L if YMM used).
+    kEncodingVexMovdMovq,                //!< VEX|EVEX vmovd, vmovq.
+    kEncodingVexMovssMovsd,              //!< VEX|EVEX vmovss, vmovsd.
+    kEncodingFma4,                       //!< FMA4 [R, R, R/M, R/M].
+    kEncodingFma4_Lx,                    //!< FMA4 [R, R, R/M, R/M] (propagates AVX.L if YMM used).
+    _kEncodingCount                      //!< Count of instruction encodings.
+  };
+
+  //! Instruction family.
   //!
-  //! Control flow instruction is instruction that can perform a branch,
-  //! typically `jmp`, `jcc`, `call`, or `ret`.
-  ASMJIT_INLINE bool isFlow() const noexcept {
-    return hasFlag(kX86InstFlagFlow);
-  }
-
-  //! Get whether the instruction accesses Fp register(s).
-  ASMJIT_INLINE bool isFp() const noexcept {
-    return hasFlag(kX86InstFlagFp);
-  }
-
-  //! Get whether the instruction can be prefixed by LOCK prefix.
-  ASMJIT_INLINE bool isLockable() const noexcept {
-    return hasFlag(kX86InstFlagLock);
-  }
-
-  //! Get whether the instruction is special type (this is used by `Compiler`
-  //! to manage additional variables or functionality).
-  ASMJIT_INLINE bool isSpecial() const noexcept {
-    return hasFlag(kX86InstFlagSpecial);
-  }
-
-  //! Get whether the instruction is special type and it performs memory access.
-  ASMJIT_INLINE bool isSpecialMem() const noexcept {
-    return hasFlag(kX86InstFlagSpecialMem);
-  }
-
-  //! Get whether the move instruction zeroes the rest of the register
-  //! if the source is memory operand.
-  //!
-  //! Basically flag needed only to support `movsd` and `movss` instructions.
-  ASMJIT_INLINE bool isZeroIfMem() const noexcept {
-    return hasFlag(kX86InstFlagZeroIfMem);
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - EFlags]
-  // --------------------------------------------------------------------------
-
-  //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsIn() const noexcept {
-    return _eflagsIn;
-  }
-
-  //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsOut() const noexcept {
-    return _eflagsOut;
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - Write Index/Size]
-  // --------------------------------------------------------------------------
-
-  //! Get the destination index of WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteIndex() const noexcept {
-    return _writeIndex;
-  }
-
-  //! Get the number of bytes that will be written by a WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteSize() const noexcept {
-    return _writeSize;
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - Operand-Flags]
-  // --------------------------------------------------------------------------
-
-  //! Get flags of operand at index `index`.
-  //!
-  //! See \ref X86InstInfo::getOperandFlags() for more details.
-  ASMJIT_INLINE uint16_t getOperandFlags(uint32_t index) const noexcept {
-    ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_opFlags));
-    return _opFlags[index];
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - OpCode]
-  // --------------------------------------------------------------------------
-
-  //! Get the secondary instruction opcode, see \ref X86InstOpCodeFlags.
-  //!
-  //! See \ref X86InstInfo::getSecondaryOpCode() for more details.
-  ASMJIT_INLINE uint32_t getSecondaryOpCode() const noexcept {
-    return _secondaryOpCode;
-  }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Instruction encoding.
-  uint8_t _encoding;
-
-  //! Destination byte of WRITE operation, default 0.
-  uint8_t _writeIndex;
-
-  //! Count of bytes affected by a write operation, needed by analysis for all
-  //! instructions that do not read the overwritten register. Only used with
-  //! `kX86InstFlagWO` flag. If `_writeSize` is zero it is automatically deduced
-  //! from the size of the destination register.
-  //!
-  //! In general most of SSE write-only instructions should use 16 bytes as
-  //! this is the size of the register (and of YMM/ZMM registers). This means
-  //! that 16-bytes of the register are changed, the rest remains unchanged.
-  //! However, AVX instructions should use the size of ZMM register as every
-  //! AVX instruction clears the rest of the register (AVX/AVX2 instructions
-  //! zero the HI part of ZMM if available).
-  uint8_t _writeSize;
-
-  //! EFlags read by the instruction.
-  uint8_t _eflagsIn;
-  //! EFlags written by the instruction.
-  uint8_t _eflagsOut;
+  //! Specifies which table should be used to interpret `_familyDataIndex`.
+  ASMJIT_ENUM(FamilyType) {
+    kFamilyNone           = 0,           //!< General purpose or special instruction.
+    kFamilyFpu            = 1,           //!< FPU family instruction.
+    kFamilySse            = 2,           //!< MMX+/SSE+ family instruction (including SHA/SSE4A).
+    kFamilyAvx            = 3            //!< AVX+/FMA+ family instruction (including AVX-512).
+  };
 
   //! \internal
-  uint8_t _reserved;
-
-  //! Operands' flags, up to 5 operands.
-  uint16_t _opFlags[5];
-
+  //!
   //! Instruction flags.
-  uint32_t _instFlags;
+  ASMJIT_ENUM(InstFlags) {
+    kInstFlagNone         = 0x00000000U, //!< No flags.
 
-  //! Secondary opcode.
-  uint32_t _secondaryOpCode;
-};
+    kInstFlagRO           = 0x00000001U, //!< The first operand is read (read-only without `kInstFlagWO`).
+    kInstFlagWO           = 0x00000002U, //!< The first operand is written (write-only without `kInstFlagRO`).
+    kInstFlagRW           = 0x00000003U, //!< The first operand is read-write.
 
-// ============================================================================
-// [asmjit::X86InstInfo]
-// ============================================================================
+    kInstFlagXchg         = 0x00000004U, //!< Instruction is an exchange like instruction (xchg, xadd).
+    kInstFlagFlow         = 0x00000008U, //!< Control-flow instruction (jmp, jcc, call, ret).
 
-//! X86/X64 instruction information.
-struct X86InstInfo {
+    kInstFlagVolatile     = 0x00000010U, //!< Volatile instruction, never reorder.
+    kInstFlagLock         = 0x00000020U, //!< Instruction can be prefixed by using the LOCK prefix.
+    kInstFlagRep          = 0x00000040U, //!< Instruction can be prefixed by using the REP/REPZ/REPNZ prefix.
+    kInstFlagRepnz        = 0x00000080U, //!< Instruction can be prefixed by using the REPNZ prefix.
+
+    kInstFlagFp           = 0x00000100U, //!< Instruction accesses FPU register(s).
+    kInstFlagSpecial      = 0x00000200U, //!< Instruction requires special handling (implicit operands), used by \ref X86Compiler.
+
+    //! Instruction always performs memory access.
+    //!
+    //! This flag is always combined with `kInstFlagSpecial` and describes
+    //! that there is an implicit address which is accessed (usually EDI/RDI
+    //! and/or ESI/RSI).
+    kInstFlagSpecialMem   = 0x00000400U,
+    kInstFlagZeroIfMem    = 0x00000800U, //!< Cleans the rest of destination if source is memory (movss, movsd).
+
+    kInstFlagFPU_M10      = 0x00001000U, //!< FPU instruction can address tword_ptr (shared with M2).
+    kInstFlagFPU_M2       = 0x00001000U, //!< FPU instruction can address word_ptr (shared with M10).
+    kInstFlagFPU_M4       = 0x00002000U, //!< FPU instruction can address dword_ptr.
+    kInstFlagFPU_M8       = 0x00004000U, //!< FPU instruction can address qword_ptr.
+
+    // ------------------------------------------------------------------------
+    // [VEX/EVEX VSIB]
+    // ------------------------------------------------------------------------
+
+    // NOTE: If both `kInstFlagVex` and `kInstFlagEvex` flags are specified it
+    // means that the instructions is defined by both AVX and AVX512, and can be
+    // encoded by either VEX or EVEX prefix. In that case AsmJit checks global
+    // options and also instruction options to decide whether to emit EVEX prefix
+    // or not.
+
+    kInstFlagVM           = 0x00010000U, //!< Instruction uses a vector memory index (VSIB).
+    kInstFlagVex          = 0x00020000U, //!< Instruction can be encoded by VEX (AVX|AVX2|BMI|...).
+    kInstFlagVex_VM       = 0x00030000U, //!< Combination of `kInstFlagVex` and `kInstFlagVM`.
+
+    kInstFlagEvex         = 0x00040000U, //!< Instruction can be encoded by EVEX (AVX-512).
+    /*
+    kInstFlagEvex0        = 0U,          //!< Used inside macros.
+
+    kInstFlagEvexK_       = 0x00100000U, //!< Supports masking {k0..k7}.
+    kInstFlagEvexKZ       = 0x00200000U, //!< Supports zeroing of elements {k0..k7}{z}.
+    kInstFlagEvexB0       = 0x00000000U, //!< No broadcast (used by instruction tables).
+    kInstFlagEvexB4       = 0x00400000U, //!< Supports broadcast 'b32'.
+    kInstFlagEvexB8       = 0x00800000U, //!< Supports broadcast 'b64'.
+    kInstFlagEvexSAE      = 0x01000000U, //!< Supports 'suppress-all-exceptions' {sae}.
+    kInstFlagEvexER       = 0x02000000U, //!< Supports 'embedded-rounding-control' {rc} with implicit {sae},
+    kInstFlagEvexVL       = 0x04000000U, //!< Supports access to XMM|YMM registers (AVX512-VL).
+
+    kInstFlagEvexSet_Shift= 28,
+    kInstFlagEvexSet_Mask = 0xF0000000U, //!< AVX-512 feature set required to execute the instruction.
+    kInstFlagEvexSet_F_   = 0x00000000U, //!< Supported by AVX512-F (no extra requirements).
+    kInstFlagEvexSet_CDI  = 0x10000000U, //!< Supported by AVX512-CDI.
+    kInstFlagEvexSet_PFI  = 0x20000000U, //!< Supported by AVX512-PFI.
+    kInstFlagEvexSet_ERI  = 0x30000000U, //!< Supported by AVX512-ERI.
+    kInstFlagEvexSet_DQ   = 0x40000000U, //!< Supported by AVX512-DQ.
+    kInstFlagEvexSet_BW   = 0x50000000U, //!< Supported by AVX512-BW.
+    kInstFlagEvexSet_IFMA = 0x60000000U, //!< Supported by AVX512-IFMA.
+    kInstFlagEvexSet_VBMI = 0x70000000U  //!< Supported by AVX512-VBMI.
+    */
+  };
+
+  //! Specifies meaning of all bits in an opcode (AsmJit specific).
+  //!
+  //! This schema is AsmJit specific and has been designed to allow encoding of
+  //! all X86 instructions available. X86, MMX, and SSE+ instructions always use
+  //! 'MM' and 'PP' fields, which are encoded to corresponding prefixes needed
+  //! by X86 or SIMD instructions. AVX+ instructions embed 'MMMMM' and 'PP' fields
+  //! in a VEX prefix, and AVX-512 instructions embed 'MM' and 'PP' in EVEX prefix.
+  //!
+  //! The instruction opcode definition uses 1 or 2 bytes as an opcode value. 1
+  //! byte is needed by most of the instructions, 2 bytes are only used by legacy
+  //! X87-FPU instructions. This means that a second byte is free to by used by
+  //! instructions encoded by using VEX and/or EVEX prefix.
+  //!
+  //! The fields description:
+  //!
+  //! - 'MM' field is used to encode prefixes needed by the instruction or as
+  //!   a part of VEX/EVEX prefix. Described as 'mm' and 'mmmmm' in instruction
+  //!   manuals.
+  //!
+  //!   NOTE: Since 'MM' field is defined as 'mmmmm' (5 bits), but only 2 least
+  //!   significant bits are used by VEX and EVEX prefixes, and additional 4th
+  //!   bit is used by XOP prefix, AsmJit uses the 3rd and 5th bit for it's own
+  //!   purposes. These bits will probably never be used in future encodings as
+  //!   AVX512 uses only '000mm' from 'mmmmm'.
+  //!
+  //! - 'PP' field is used to encode prefixes needed by the instruction or as a
+  //!   part of VEX/EVEX prefix. Described as 'pp' in instruction manuals.
+  //!
+  //! - 'LL' field is used exclusively by AVX+ and AVX512+ instruction sets. It
+  //!   describes vector size, which is 'L.128' for XMM register, 'L.256' for
+  //!   for YMM register, and 'L.512' for ZMM register. The 'LL' field is omitted
+  //!   in case that instruction supports multiple vector lengths, however, if the
+  //!   instruction requires specific `L` value it must be specified as a part of
+  //!   the opcode.
+  //!
+  //!   NOTE: 'LL' having value '11' is not defined yet.
+  //!
+  //! - 'W' field is the most complicated. It was added by 64-bit architecture
+  //!   to promote default operation width (instructions that perform 32-bit
+  //!   operation by default require to override the width to 64-bit explicitly).
+  //!   There is nothing wrong on this, however, some instructions introduced
+  //!   implicit 'W' override, for example a 'cdqe' instruction is basically a
+  //!   'cwde' instruction with overridden 'W' (set to 1). There are some others
+  //!   in the base X86 instruction set. More recent instruction sets started
+  //!   using 'W' field more often:
+  //!
+  //!   - AVX instructions started using 'W' field as an extended opcode for FMA,
+  //!     GATHER, PERM, and other instructions. It also uses 'W' field to override
+  //!     the default operation width in instructions like 'vmovq'.
+  //!
+  //!   - AVX-512 instructions started using 'W' field as an extended opcode for
+  //!     all new instructions. This wouldn't have been an issue if the 'W' field
+  //!     of AVX-512 have matched AVX, but this is not always the case.
+  //!
+  //! - 'O' field is an extended opcode field (3 bits) embedded in ModR/M BYTE.
+  //!
+  //! - 'CDSHL' and 'CDTT' fields describe 'compressed-displacement'. 'CDSHL' is
+  //!   defined for each instruction that is AVX-512 encodable (EVEX) and contains
+  //!   a base N shift (base shift to perform the calculation). The 'CDTT' field
+  //!   is derived from instruction specification and describes additional shift
+  //!   to calculate the final 'CDSHL' that will be used in SIB byte.
+  //!
+  //! NOTE: Don't reorder any fields here, the shifts and masks were defined
+  //! carefully to make encoding of X86|X64 instructions fast, especially to
+  //! construct REX, VEX, and EVEX prefixes in the most efficient way. Changing
+  //! values defined by these enums many cause AsmJit to emit invalid binary
+  //! representations of instructions passed to `X86Assembler::_emit`.
+  ASMJIT_ENUM(OpCodeBits) {
+    // ------------------------------------------------------------------------
+    // [MM|VEX|EVEX|XOP]
+    // ------------------------------------------------------------------------
+
+    // Two meanings:
+    //  * "MMMMM field in AVX/XOP/AVX-512 instruction.
+    //  * Part of the opcode in legacy encoding (bytes emitted before the main
+    //    opcode byte).
+    //
+    // AVX reserves 5 bits for `MMMMM` field, however AVX instructions only use
+    // 2 bits and XOP 3 bits. AVX-512 shrinks `MMMMM` field into `MM` so it's
+    // safe to assume that bits [4:2] of `MM` field won't be used in future
+    // extensions, which will most probably use EVEX encoding. AsmJit divides
+    // MM field into this layout:
+    //
+    // [1:0] - Used to describe 0F, 0F38 and 0F3A legacy prefix bytes and
+    //         2 bits of MM field.
+    // [2]   - Used to force 3-BYTE VEX prefix, but then cleared to zero before
+    //         the prefix is emitted. This bit is not used by any instruction
+    //         so it can be used for any purpose by AsmJit. Also, this bit is
+    //         used as an extension to MM field describing 0F|0F38|0F3A to also
+    //         describe 0F01 as used by some legacy instructions (instructions
+    //         not using VEX/EVEX prefix).
+    // [3]   - Required by XOP instructions, so we use this bit also to indicate
+    //         that this is a XOP opcode.
+    kOpCode_MM_Shift      = 8,
+    kOpCode_MM_Mask       = 0x1FU << kOpCode_MM_Shift,
+    kOpCode_MM_00         = 0x00U << kOpCode_MM_Shift,
+    kOpCode_MM_0F         = 0x01U << kOpCode_MM_Shift,
+    kOpCode_MM_0F38       = 0x02U << kOpCode_MM_Shift,
+    kOpCode_MM_0F3A       = 0x03U << kOpCode_MM_Shift, // Described also as XOP.M3 in AMD manuals.
+    kOpCode_MM_0F01       = 0x04U << kOpCode_MM_Shift, // AsmJit way to describe 0F01 (never VEX/EVEX).
+
+    // `XOP` field is only used to force XOP prefix instead of VEX3 prefix. We
+    // know that only XOP encoding uses bit 0b1000 of MM field and that no VEX
+    // and EVEX instruction uses such bit, so we can use this bit to force XOP
+    // prefix to be emitted instead of VEX3 prefix. See `x86VEXPrefix` defined
+    // in `x86assembler.cpp`.
+    kOpCode_MM_XOP08      = 0x08U << kOpCode_MM_Shift, // XOP.M8.
+    kOpCode_MM_XOP09      = 0x09U << kOpCode_MM_Shift, // XOP.M9.
+
+    kOpCode_MM_IsXOP_Shift= kOpCode_MM_Shift + 3,
+    kOpCode_MM_IsXOP      = kOpCode_MM_XOP08,
+
+    // NOTE: Force VEX3 allows to force to emit VEX3 instead of VEX2 in some
+    // cases (similar to forcing REX prefix). Force EVEX will force emitting
+    // EVEX prefix instead of VEX2|VEX3. EVEX-only instructions will have
+    // ForceEvex always set, however. instructions that can be encoded by
+    // either VEX or EVEX prefix shall not have ForceEvex set.
+
+    kOpCode_MM_ForceVex3  = 0x04U << kOpCode_MM_Shift, // Force 3-BYTE VEX prefix.
+    kOpCode_MM_ForceEvex  = 0x10U << kOpCode_MM_Shift, // Force 4-BYTE EVEX prefix.
+
+    // ------------------------------------------------------------------------
+    // [FPU_2B (Second-Byte of OpCode used by FPU)]
+    // ------------------------------------------------------------------------
+
+    // Second byte opcode. This BYTE is ONLY used by FPU instructions and
+    // collides with 3 bits from 'MM' and 5 bits from 'CDSHL' and 'CDTT'.
+    // It's fine as FPU and AVX512 flags are never used at the same time.
+    kOpCode_FPU_2B_Shift  = 10,
+    kOpCode_FPU_2B_Mask   = 0xFF << kOpCode_FPU_2B_Shift,
+
+    // ------------------------------------------------------------------------
+    // [CDSHL | CDTT]
+    // ------------------------------------------------------------------------
+
+    // Compressed displacement bits.
+    //
+    // Each opcode defines the base size (N) shift:
+    //   0: BYTE  (1 byte).
+    //   1: WORD  (2 bytes).
+    //   2: DWORD (4 bytes - float/int32).
+    //   3: QWORD (8 bytes - double/int64).
+    //   4: OWORD (16 bytes - used by FV|FVM|M128).
+    // Which is then scaled by the instruction's TT (TupleType) into possible:
+    //   5: YWORD (32 bytes)
+    //   6: ZWORD (64 bytes)
+    //
+    // These bits are then adjusted before calling EmitModSib or EmitModVSib.
+    kOpCode_CDSHL_Shift   = 13,
+    kOpCode_CDSHL_Mask    = 0x7 << kOpCode_CDSHL_Shift,
+
+    // Compressed displacement tuple-type (specific to AsmJit).
+    //
+    // Since we store the base offset independently of CDTT we can simplify the
+    // number of 'TUPLE_TYPE' kinds significantly and just handle special cases.
+    kOpCode_CDTT_Shift    = 16,
+    kOpCode_CDTT_Mask     = 0x3 << kOpCode_CDTT_Shift,
+    kOpCode_CDTT_None     = 0x0 << kOpCode_CDTT_Shift, // Does nothing.
+    kOpCode_CDTT_ByLL     = 0x1 << kOpCode_CDTT_Shift, // Scales by LL (1x 2x 4x).
+    kOpCode_CDTT_T1W      = 0x2 << kOpCode_CDTT_Shift, // Used to add 'W' to the shift.
+    kOpCode_CDTT_DUP      = 0x3 << kOpCode_CDTT_Shift, // Special 'VMOVDDUP' case.
+
+    // Aliases that match names used in instruction manuals.
+    kOpCode_CDTT_FV       = kOpCode_CDTT_ByLL,
+    kOpCode_CDTT_HV       = kOpCode_CDTT_ByLL,
+    kOpCode_CDTT_FVM      = kOpCode_CDTT_ByLL,
+    kOpCode_CDTT_T1S      = kOpCode_CDTT_None,
+    kOpCode_CDTT_T1F      = kOpCode_CDTT_None,
+    kOpCode_CDTT_T2       = kOpCode_CDTT_None,
+    kOpCode_CDTT_T4       = kOpCode_CDTT_None,
+    kOpCode_CDTT_T8       = kOpCode_CDTT_None,
+    kOpCode_CDTT_HVM      = kOpCode_CDTT_ByLL,
+    kOpCode_CDTT_QVM      = kOpCode_CDTT_ByLL,
+    kOpCode_CDTT_OVM      = kOpCode_CDTT_ByLL,
+    kOpCode_CDTT_128      = kOpCode_CDTT_None,
+
+    // ------------------------------------------------------------------------
+    // [O]
+    // ------------------------------------------------------------------------
+
+    // "O' field in ModR/M.
+    kOpCode_O_Shift       = 18,
+    kOpCode_O_Mask        = 0x07U << kOpCode_O_Shift,
+
+    // ------------------------------------------------------------------------
+    // [PP and L]
+    // ------------------------------------------------------------------------
+
+    // These fields are stored deliberately right after each other as it makes
+    // it easier to construct VEX prefix from the opcode value stored in the
+    // instruction database.
+
+    // Two meanings:
+    //   * "PP" field in AVX/XOP/AVX-512 instruction.
+    //   * Mandatory Prefix in legacy encoding.
+    //
+    // AVX reserves 2 bits for `PP` field, but AsmJit extends the storage by 1
+    // more bit that is used to emit 9B prefix for some X87-FPU instructions.
+    kOpCode_PP_Shift      = 21,
+    kOpCode_PP_VEXMask    = 0x03U << kOpCode_PP_Shift, // PP field mask used by VEX/EVEX.
+    kOpCode_PP_FPUMask    = 0x07U << kOpCode_PP_Shift, // Mask used by EMIT_PP, also includes 0x9B.
+    kOpCode_PP_00         = 0x00U << kOpCode_PP_Shift,
+    kOpCode_PP_66         = 0x01U << kOpCode_PP_Shift,
+    kOpCode_PP_F3         = 0x02U << kOpCode_PP_Shift,
+    kOpCode_PP_F2         = 0x03U << kOpCode_PP_Shift,
+
+    // AsmJit specific to emit FPU's 9B byte.
+    kOpCode_PP_9B         = 0x07U << kOpCode_PP_Shift,
+
+    // ------------------------------------------------------------------------
+    // [EVEX.W]
+    // ------------------------------------------------------------------------
+
+    // `W` field used by EVEX instruction encoding.
+    kOpCode_EW_Shift      = 24,
+    kOpCode_EW            = 0x01U << kOpCode_EW_Shift,
+
+    // ------------------------------------------------------------------------
+    // [REX BXRW bits (part of REX prefix)]
+    //
+    // NOTE: REX.[B|X|R] are never stored within the opcode itself, they are
+    // reserved by AsmJit are are added dynamically to the opcode to represent
+    // [REX|VEX|EVEX].[B|X|R] bits. REX.W can be stored in DB as it's sometimes
+    // part of the opcode itself.
+    // ------------------------------------------------------------------------
+
+    // These must be binary compatible with instruction options.
+    kOpCode_REX_Shift     = 25,
+    kOpCode_REX_Mask      = 0x0FU << kOpCode_REX_Shift,
+    kOpCode_B             = 0x01U << kOpCode_REX_Shift, // Never stored in DB.
+    kOpCode_X             = 0x02U << kOpCode_REX_Shift, // Never stored in DB.
+    kOpCode_R             = 0x04U << kOpCode_REX_Shift, // Never stored in DB.
+    kOpCode_W             = 0x08U << kOpCode_REX_Shift,
+    kOpCode_W_Shift       = kOpCode_REX_Shift + 3,
+
+    // `L` field in AVX/XOP/AVX-512 instruction.
+    //
+    // VEX/XOP prefix can only use the first bit `L.128` or `L.256`. EVEX prefix
+    // prefix makes it possible to use also `L.512`.
+    //
+    // If the instruction set manual describes an instruction by `LIG` it means
+    // that the `L` field is ignored and AsmJit defaults to `0` in such case.
+    kOpCode_LL_Shift      = 29,
+    kOpCode_LL_Mask       = 0x03U << kOpCode_LL_Shift,
+    kOpCode_LL_128        = 0x00U << kOpCode_LL_Shift,
+    kOpCode_LL_256        = 0x01U << kOpCode_LL_Shift,
+    kOpCode_LL_512        = 0x02U << kOpCode_LL_Shift
+  };
+
+  //! Instruction options.
+  ASMJIT_ENUM(Options) {
+    // NOTE: Don't collide with reserved bits used by CodeEmitter (0x000000FF).
+
+    kOptionOp4            = CodeEmitter::kOptionOp4,
+    kOptionOp5            = CodeEmitter::kOptionOp5,
+    kOptionOpExtra        = CodeEmitter::kOptionOpExtra,
+
+    kOptionShortForm      = 0x00000100U, //!< Emit short-form of the instruction.
+    kOptionLongForm       = 0x00000200U, //!< Emit long-form of the instruction.
+
+    kOptionVex3           = 0x00000400U, //!< Use 3-byte VEX prefix if possible (AVX) (must be 0x00000400).
+    kOptionModMR          = 0x00000800U, //!< Use ModMR instead of ModRM when it's available.
+    kOptionEvex           = 0x00001000U, //!< Use 4-byte EVEX prefix if possible (AVX-512) (must be 0x00001000).
+
+    kOptionLock           = 0x00002000U, //!< LOCK prefix (lock-enabled instructions only).
+    kOptionRep            = 0x00004000U, //!< REP/REPZ prefix (string instructions only).
+    kOptionRepnz          = 0x00008000U, //!< REPNZ prefix (string instructions only).
+
+    kOptionTaken          = 0x00010000U, //!< JCC likely to be taken (historic, only takes effect on P4).
+    kOptionNotTaken       = 0x00020000U, //!< JCC unlikely to be taken (historic, only takes effect on P4).
+
+    kOptionSAE            = 0x00040000U, //!< AVX-512: 'suppress-all-exceptions' {sae}.
+    kOptionER             = 0x00080000U, //!< AVX-512: 'rounding-control' {rc} and {sae}.
+
+    kOption1ToX           = 0x00100000U, //!< AVX-512: broadcast the first element to all {1tox}.
+    kOptionRN_SAE         = 0x00000000U, //!< AVX-512: round-to-nearest (even)      {rn-sae} (bits 00).
+    kOptionRD_SAE         = 0x00200000U, //!< AVX-512: round-down (toward -inf)     {rd-sae} (bits 01).
+    kOptionRU_SAE         = 0x00400000U, //!< AVX-512: round-up (toward +inf)       {ru-sae} (bits 10).
+    kOptionRZ_SAE         = 0x00600000U, //!< AVX-512: round-toward-zero (truncate) {rz-sae} (bits 11).
+    kOptionKZ             = 0x00800000U, //!< AVX-512: Use zeroing {k}{z} instead of merging {k}.
+
+    _kOptionInvalidRex    = 0x01000000U, //!< REX prefix can't be emitted (internal).
+    kOptionOpCodeB        = 0x02000000U, //!< REX.B and/or VEX.B field (X64).
+    kOptionOpCodeX        = 0x04000000U, //!< REX.X and/or VEX.X field (X64).
+    kOptionOpCodeR        = 0x08000000U, //!< REX.R and/or VEX.R field (X64).
+    kOptionOpCodeW        = 0x10000000U, //!< REX.W and/or VEX.W field (X64).
+    kOptionRex            = 0x80000000U  //!< Use REX prefix (X64) (must be 0x80000000).
+  };
+
+  //! Condition codes.
+  ASMJIT_ENUM(Cond) {
+    kCondA                = 0x07U,       // CF==0 & ZF==0          (unsigned)
+    kCondAE               = 0x03U,       // CF==0                  (unsigned)
+    kCondB                = 0x02U,       // CF==1                  (unsigned)
+    kCondBE               = 0x06U,       // CF==1 | ZF==1          (unsigned)
+    kCondC                = 0x02U,       // CF==1
+    kCondE                = 0x04U,       //         ZF==1          (signed/unsigned)
+    kCondG                = 0x0FU,       //         ZF==0 & SF==OF (signed)
+    kCondGE               = 0x0DU,       //                 SF==OF (signed)
+    kCondL                = 0x0CU,       //                 SF!=OF (signed)
+    kCondLE               = 0x0EU,       //         ZF==1 | SF!=OF (signed)
+    kCondNA               = 0x06U,       // CF==1 | ZF==1          (unsigned)
+    kCondNAE              = 0x02U,       // CF==1                  (unsigned)
+    kCondNB               = 0x03U,       // CF==0                  (unsigned)
+    kCondNBE              = 0x07U,       // CF==0 & ZF==0          (unsigned)
+    kCondNC               = 0x03U,       // CF==0
+    kCondNE               = 0x05U,       //         ZF==0          (signed/unsigned)
+    kCondNG               = 0x0EU,       //         ZF==1 | SF!=OF (signed)
+    kCondNGE              = 0x0CU,       //                 SF!=OF (signed)
+    kCondNL               = 0x0DU,       //                 SF==OF (signed)
+    kCondNLE              = 0x0FU,       //         ZF==0 & SF==OF (signed)
+    kCondNO               = 0x01U,       //                 OF==0
+    kCondNP               = 0x0BU,       // PF==0
+    kCondNS               = 0x09U,       //                 SF==0
+    kCondNZ               = 0x05U,       //         ZF==0
+    kCondO                = 0x00U,       //                 OF==1
+    kCondP                = 0x0AU,       // PF==1
+    kCondPE               = 0x0AU,       // PF==1
+    kCondPO               = 0x0BU,       // PF==0
+    kCondS                = 0x08U,       //                 SF==1
+    kCondZ                = 0x04U,       //         ZF==1
+
+    // Simplified condition codes.
+    kCondSign             = kCondS,      //!< Sign (S).
+    kCondNotSign          = kCondNS,     //!< Not Sign (NS).
+
+    kCondOverflow         = kCondO,      //!< Signed  Overflow (O)
+    kCondNotOverflow      = kCondNO,     //!< Not Signed Overflow (NO)
+
+    kCondLess             = kCondL,      //!< Signed     `a <  b` (L  or NGE).
+    kCondLessEqual        = kCondLE,     //!< Signed     `a <= b` (LE or NG ).
+    kCondGreater          = kCondG,      //!< Signed     `a >  b` (G  or NLE).
+    kCondGreaterEqual     = kCondGE,     //!< Signed     `a >= b` (GE or NL ).
+    kCondBelow            = kCondB,      //!< Unsigned   `a <  b` (B  or NAE).
+    kCondBelowEqual       = kCondBE,     //!< Unsigned   `a <= b` (BE or NA ).
+    kCondAbove            = kCondA,      //!< Unsigned   `a >  b` (A  or NBE).
+    kCondAboveEqual       = kCondAE,     //!< Unsigned   `a >= b` (AE or NB ).
+    kCondEqual            = kCondE,      //!< Equal      `a == b` (E  or Z  ).
+    kCondNotEqual         = kCondNE,     //!< Not Equal  `a != b` (NE or NZ ).
+
+    kCondParityEven       = kCondP,
+    kCondParityOdd        = kCondPO,
+
+    kCondZero             = kCondZ,
+    kCondNotZero          = kCondNZ,
+    kCondNegative         = kCondS,
+    kCondPositive         = kCondNS,
+
+    // FPU-only.
+    kCondFpuUnordered     = 0x10,
+    kCondFpuNotUnordered  = 0x11,
+
+    //! No condition code.
+    kCondNone             = 0x12
+  };
+
+  //! Comparison predicate used by CMP[PD|PS|SD|SS] instructions.
+  ASMJIT_ENUM(CmpPredicate) {
+    kCmpEQ                = 0x00,        //!< Equal             (Quiet).
+    kCmpLT                = 0x01,        //!< Less              (Signaling).
+    kCmpLE                = 0x02,        //!< Less/Equal        (Signaling).
+    kCmpUNORD             = 0x03,        //!< Unordered         (Quiet).
+    kCmpNEQ               = 0x04,        //!< Not Equal         (Quiet).
+    kCmpNLT               = 0x05,        //!< Not Less          (Signaling).
+    kCmpNLE               = 0x06,        //!< Not Less/Equal    (Signaling).
+    kCmpORD               = 0x07         //!< Ordered           (Quiet).
+  };
+
+  //! Comparison predicate used by VCMP[PD|PS|SD|SS] instructions.
+  //!
+  //! The first 8 values are compatible with \ref CmpPredicate.
+  ASMJIT_ENUM(VCmpPredicate) {
+    kVCmpEQ_OQ            = 0x00,        //!< Equal             (Quiet    , Ordered).
+    kVCmpLT_OS            = 0x01,        //!< Less              (Signaling, Ordered).
+    kVCmpLE_OS            = 0x02,        //!< Less/Equal        (Signaling, Ordered).
+    kVCmpUNORD_Q          = 0x03,        //!< Unordered         (Quiet).
+    kVCmpNEQ_UQ           = 0x04,        //!< Not Equal         (Quiet    , Unordered).
+    kVCmpNLT_US           = 0x05,        //!< Not Less          (Signaling, Unordered).
+    kVCmpNLE_US           = 0x06,        //!< Not Less/Equal    (Signaling, Unordered).
+    kVCmpORD_Q            = 0x07,        //!< Ordered           (Quiet).
+    kVCmpEQ_UQ            = 0x08,        //!< Equal             (Quiet    , Unordered).
+    kVCmpNGE_US           = 0x09,        //!< Not Greater/Equal (Signaling, Unordered).
+    kVCmpNGT_US           = 0x0A,        //!< Not Greater       (Signaling, Unordered).
+    kVCmpFALSE_OQ         = 0x0B,        //!< False             (Quiet    , Ordered).
+    kVCmpNEQ_OQ           = 0x0C,        //!< Not Equal         (Quiet    , Ordered).
+    kVCmpGE_OS            = 0x0D,        //!< Greater/Equal     (Signaling, Ordered).
+    kVCmpGT_OS            = 0x0E,        //!< Greater           (Signaling, Ordered).
+    kVCmpTRUE_UQ          = 0x0F,        //!< True              (Quiet    , Unordered).
+    kVCmpEQ_OS            = 0x10,        //!< Equal             (Signaling, Ordered).
+    kVCmpLT_OQ            = 0x11,        //!< Less              (Quiet    , Ordered).
+    kVCmpLE_OQ            = 0x12,        //!< Less/Equal        (Quiet    , Ordered).
+    kVCmpUNORD_S          = 0x13,        //!< Unordered         (Signaling).
+    kVCmpNEQ_US           = 0x14,        //!< Not Equal         (Signaling, Unordered).
+    kVCmpNLT_UQ           = 0x15,        //!< Not Less          (Quiet    , Unordered).
+    kVCmpNLE_UQ           = 0x16,        //!< Not Less/Equal    (Quiet    , Unordered).
+    kVCmpORD_S            = 0x17,        //!< Ordered           (Signaling).
+    kVCmpEQ_US            = 0x18,        //!< Equal             (Signaling, Unordered).
+    kVCmpNGE_UQ           = 0x19,        //!< Not Greater/Equal (Quiet    , Unordered).
+    kVCmpNGT_UQ           = 0x1A,        //!< Not Greater       (Quiet    , Unordered).
+    kVCmpFALSE_OS         = 0x1B,        //!< False             (Signaling, Ordered).
+    kVCmpNEQ_OS           = 0x1C,        //!< Not Equal         (Signaling, Ordered).
+    kVCmpGE_OQ            = 0x1D,        //!< Greater/Equal     (Quiet    , Ordered).
+    kVCmpGT_OQ            = 0x1E,        //!< Greater           (Quiet    , Ordered).
+    kVCmpTRUE_US          = 0x1F         //!< True              (Signaling, Unordered).
+  };
+
+  //! Round predicate used by ROUND[PD|PS|SD|SS] instructions.
+  ASMJIT_ENUM(RoundPredicate) {
+    kRoundNearest         = 0x00,        //!< Round to nearest (even).
+    kRoundDown            = 0x01,        //!< Round to down toward -INF (floor),
+    kRoundUp              = 0x02,        //!< Round to up toward +INF (ceil).
+    kRoundTrunc           = 0x03,        //!< Round toward zero (truncate).
+    kRoundCurrent         = 0x04,        //!< Round to the current rounding mode set (ignores other RC bits).
+    kRoundInexact         = 0x08         //!< Avoids inexact exception, if set.
+  };
+
+  //! Supported architectures.
+  ASMJIT_ENUM(ArchMask) {
+    kArchMaskX86          = 0x01,        //!< X86 mode supported.
+    kArchMaskX64          = 0x02         //!< X64 mode supported.
+  };
+
+  //! Instruction's operand flags.
+  enum OpFlags {
+    kOpNone               = 0x00000000U, //!< No operand.
+
+    kOpGpbLo              = 0x00000001U, //!< Operand can be a low 8-bit GPB register.
+    kOpGpbHi              = 0x00000002U, //!< Operand can be a high 8-bit GPB register.
+    kOpGpw                = 0x00000004U, //!< Operand can be a 16-bit GPW register.
+    kOpGpd                = 0x00000008U, //!< Operand can be a 32-bit GPD register.
+    kOpGpq                = 0x00000010U, //!< Operand can be a 64-bit GPQ register.
+    kOpFp                 = 0x00000020U, //!< Operand can be an FPU register.
+    kOpMm                 = 0x00000040U, //!< Operand can be a 64-bit MM register.
+    kOpK                  = 0x00000080U, //!< Operand can be a 64-bit K register.
+    kOpCr                 = 0x00000100U, //!< Operand can be a control register.
+    kOpDr                 = 0x00000200U, //!< Operand can be a debug register.
+    kOpBnd                = 0x00000400U, //!< Operand can be a BND register.
+    kOpSeg                = 0x00000800U, //!< Operand can be a segment register.
+    kOpXmm                = 0x00001000U, //!< Operand can be a 128-bit XMM register.
+    kOpYmm                = 0x00002000U, //!< Operand can be a 256-bit YMM register.
+    kOpZmm                = 0x00004000U, //!< Operand can be a 512-bit ZMM register.
+
+    kOpAllRegs            = 0x00007FFFU, //!< Combination of all possible registers.
+
+    kOpMem                = 0x00010000U, //!< Operand can be a scalar memory pointer.
+    kOpVm                 = 0x00020000U, //!< Operand can be a vector memory pointer.
+    kOpI4                 = 0x00040000U, //!< Operand can be a 4-bit immediate.
+    kOpI8                 = 0x00080000U, //!< Operand can be an 8-bit immediate.
+    kOpI16                = 0x00100000U, //!< Operand can be a 16-bit immediate.
+    kOpI32                = 0x00200000U, //!< Operand can be a 32-bit immediate.
+    kOpI64                = 0x00400000U, //!< Operand can be a 64-bit immediate.
+    kOpRel8               = 0x01000000U, //!< Operand can be an 8-bit displacement.
+    kOpRel32              = 0x02000000U, //!< Operand can be a 32-bit displacement.
+
+    kOpR                  = 0x10000000U, //!< Operand is read.
+    kOpW                  = 0x20000000U, //!< Operand is written.
+    kOpX                  = 0x30000000U, //!< Operand is read & written.
+    kOpImplicit           = 0x80000000U  //!< Operand is implicit.
+  };
+
+  //! Instruction's memory operand flags.
+  enum MemOpFlags {
+    // NOTE: Instruction uses either scalar or vector memory operands, they
+    // never collide, this is the reason "M" and "Vm" can share bits here.
+
+    kMemOpM8              = 0x0001U,     //!< Operand can be an 8-bit memory pointer.
+    kMemOpM16             = 0x0002U,     //!< Operand can be a 16-bit memory pointer.
+    kMemOpM32             = 0x0004U,     //!< Operand can be a 32-bit memory pointer.
+    kMemOpM64             = 0x0008U,     //!< Operand can be a 64-bit memory pointer.
+    kMemOpM80             = 0x0010U,     //!< Operand can be an 80-bit memory pointer.
+    kMemOpM128            = 0x0020U,     //!< Operand can be a 128-bit memory pointer.
+    kMemOpM256            = 0x0040U,     //!< Operand can be a 256-bit memory pointer.
+    kMemOpM512            = 0x0080U,     //!< Operand can be a 512-bit memory pointer.
+    kMemOpM1024           = 0x0100U,     //!< Operand can be a 1024-bit memory pointer.
+
+    kMemOpVm32x           = 0x0001U,     //!< Operand can be a vm32x (vector) pointer.
+    kMemOpVm32y           = 0x0002U,     //!< Operand can be a vm32y (vector) pointer.
+    kMemOpVm32z           = 0x0004U,     //!< Operand can be a vm32z (vector) pointer.
+    kMemOpVm64x           = 0x0010U,     //!< Operand can be a vm64x (vector) pointer.
+    kMemOpVm64y           = 0x0020U,     //!< Operand can be a vm64y (vector) pointer.
+    kMemOpVm64z           = 0x0040U,     //!< Operand can be a vm64z (vector) pointer.
+
+    kMemOpBaseOnly        = 0x0200U,     //!< Only memory base is allowed (no index, no offset).
+    kMemOpDs              = 0x0400U,     //!< Implicit memory operand's DS segment.
+    kMemOpEs              = 0x0800U,     //!< Implicit memory operand's ES segment.
+
+    kMemOpMib             = 0x4000U,     //!< Operand must be MIB (base+index) pointer.
+    kMemOpAny             = 0x8000U      //!< Operand can be any scalar memory pointer.
+  };
+
+  //! Common data - aggregated data that is shared across many instructions.
+  struct CommonData {
+    // ------------------------------------------------------------------------
+    // [Accessors]
+    // ------------------------------------------------------------------------
+
+    //! Get all instruction flags, see \ref InstFlags.
+    ASMJIT_INLINE uint32_t getFlags() const noexcept { return _flags; }
+    //! Get whether the instruction has a `flag`, see `InstFlags`.
+    ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
+
+    //! Get if the first operand is read-only.
+    ASMJIT_INLINE bool isRO() const noexcept { return (getFlags() & kInstFlagRW) == kInstFlagRO; }
+    //! Get if the first operand is write-only.
+    ASMJIT_INLINE bool isWO() const noexcept { return (getFlags() & kInstFlagRW) == kInstFlagWO; }
+    //! Get if the first operand is read-write.
+    ASMJIT_INLINE bool isRW() const noexcept { return (getFlags() & kInstFlagRW) == kInstFlagRW; }
+
+    //! Get whether the instruction is a typical Exchange instruction.
+    //!
+    //! Exchange instructions are 'xchg' and 'xadd'.
+    ASMJIT_INLINE bool isXchg() const noexcept { return hasFlag(kInstFlagXchg); }
+
+    //! Get whether the instruction is a control-flow instruction.
+    //!
+    //! Control flow instruction is instruction that can perform a branch,
+    //! typically `jmp`, `jcc`, `call`, or `ret`.
+    ASMJIT_INLINE bool isFlow() const noexcept { return hasFlag(kInstFlagFlow); }
+
+    //! Get whether the instruction accesses Fp register(s).
+    ASMJIT_INLINE bool isFp() const noexcept { return hasFlag(kInstFlagFp); }
+
+    //! Get whether the instruction can be prefixed by LOCK prefix.
+    ASMJIT_INLINE bool isLockable() const noexcept { return hasFlag(kInstFlagLock); }
+
+    //! Get whether the instruction is special type (this is used by `Compiler`
+    //! to manage additional variables or functionality).
+    ASMJIT_INLINE bool isSpecial() const noexcept { return hasFlag(kInstFlagSpecial); }
+
+    //! Get whether the instruction is special type and it performs memory access.
+    ASMJIT_INLINE bool isSpecialMem() const noexcept { return hasFlag(kInstFlagSpecialMem); }
+
+    //! Get whether the move instruction clears the rest of the register
+    //! if the source is memory operand.
+    //!
+    //! Basically flag needed only to support `movsd` and `movss` instructions.
+    ASMJIT_INLINE bool isZeroIfMem() const noexcept { return hasFlag(kInstFlagZeroIfMem); }
+
+    //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
+    ASMJIT_INLINE uint32_t getEFlagsIn() const noexcept { return _eflagsIn; }
+    //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
+    ASMJIT_INLINE uint32_t getEFlagsOut() const noexcept { return _eflagsOut; }
+
+    //! Get the destination index of WRITE operation.
+    ASMJIT_INLINE uint32_t getWriteIndex() const noexcept { return _writeIndex; }
+    //! Get the number of bytes that will be written by a WRITE operation.
+    //!
+    //! This information is required by a liveness analysis to mark virtual
+    //! registers dead even if the instruction doesn't completely overwrite
+    //! the whole register. If the analysis keeps which bytes are completely
+    //! overwritten by the instruction it can find the where a register becomes
+    //! dead by simply checking if the instruction overwrites all remaining
+    //! bytes.
+    ASMJIT_INLINE uint32_t getWriteSize() const noexcept { return _writeSize; }
+
+    //! Get if the instruction has alternative opcode.
+    ASMJIT_INLINE bool hasAltOpCode() const noexcept { return _altOpCodeIndex != 0; }
+    //! Get alternative opcode, see \ref OpCodeBits.
+    ASMJIT_INLINE uint32_t getAltOpCode() const noexcept;
+
+    // ------------------------------------------------------------------------
+    // [Members]
+    // ------------------------------------------------------------------------
+
+    uint32_t _flags;                     //!< Instruction flags.
+
+    uint32_t _writeIndex      : 8;       //!< First DST byte of a WRITE operation (default 0).
+    uint32_t _writeSize       : 8;       //!< number of bytes to be written in DST.
+    uint32_t _eflagsIn        : 8;       //!< EFLAGS read by the instruction.
+    uint32_t _eflagsOut       : 8;       //!< EFLAGS modified by the instruction.
+
+    uint32_t _altOpCodeIndex  : 8;       //!< Index to table with alternative opcodes.
+    uint32_t _iSignatureIndex : 9;       //!< First `ISignature` entry in the database.
+    uint32_t _iSignatureCount : 4;       //!< Number of relevant `ISignature` entries.
+    uint32_t _reserved        : 19;      //!< \internal
+  };
+
+  //! Data specific to FPU family instructions that access FPU stack.
+  struct FpuData {
+  };
+
+  //! Data specific to MMX+ and SSE+ family instructions.
+  struct SseData {
+    enum Features {
+      kFeatureMMX             = 0x0001U, //!< Supported by MMX.
+      kFeatureMMX2            = 0x0002U, //!< Supported by MMX2 (MMX-Ext).
+      kFeature3DNOW           = 0x0004U, //!< Supported by 3DNOW.
+      kFeature3DNOW2          = 0x0008U, //!< Supported by 3DNOW2 (Enhanced).
+      kFeatureGEODE           = 0x0010U, //!< Supported by GEODE (deprecated).
+      kFeatureSSE             = 0x0020U, //!< Supported by SSE.
+      kFeatureSSE2            = 0x0040U, //!< Supported by SSE2.
+      kFeatureSSE3            = 0x0080U, //!< Supported by SSE3.
+      kFeatureSSSE3           = 0x0100U, //!< Supported by SSSE3.
+      kFeatureSSE4_1          = 0x0200U, //!< Supported by SSE4.1.
+      kFeatureSSE4_2          = 0x0400U, //!< Supported by SSE4.2.
+      kFeatureSSE4A           = 0x0800U, //!< Supported by SSE4A.
+      kFeaturePCLMULQDQ       = 0x1000U, //!< Supported by PCLMULQDQ.
+      kFeatureAES             = 0x2000U, //!< Supported by AES.
+      kFeatureSHA             = 0x4000U  //!< Supported by SHA.
+    };
+
+    //! SSE to AVX conversion mode.
+    enum AvxConvMode {
+      kAvxConvNone            = 0,       //!< No translation possible (MMX/SSE4A/SHA instruction).
+      kAvxConvNonDestructive  = 1,       //!< The first SSE operand becomes first and second AVX operand.
+      kAvxConvMove            = 2,       //!< No change (no operands changed).
+      kAvxConvMoveIfMem       = 3,       //!< No change if second operand is a memory, otherwise NonDestructive.
+      kAvxConvBlend           = 4        //!< Special case for 'vblendvpd', 'vblendvps', and 'vpblendvb'.
+    };
+
+    uint32_t features         : 16;      //!< CPU features.
+    uint32_t avxConvMode      :  3;      //!< SSE to AVX conversion mode, see \ref AvxConvMode.
+    int32_t avxConvDelta      : 13;      //!< Delta to get a corresponding AVX instruction.
+  };
+
+  //! Data specific to AVX+ and FMA+ family instructions.
+  struct AvxData {
+    //! AVX/AVX512 features.
+    enum Features {
+      kFeatureAVX         = 0x00000001U, //!< Supported by AVX.
+      kFeatureAVX2        = 0x00000002U, //!< Supported by AVX2.
+      kFeatureAES         = 0x00000004U, //!< Supported by AVX & AES.
+      kFeatureF16C        = 0x00000008U, //!< Supported by F16C.
+      kFeatureFMA         = 0x00000010U, //!< Supported by FMA.
+      kFeatureFMA4        = 0x00000020U, //!< Supported by FMA4.
+      kFeaturePCLMULQDQ   = 0x00000040U, //!< Supported by PCLMULQDQ & AVX.
+      kFeatureXOP         = 0x00000080U, //!< Supported by XOP.
+      kFeatureAVX512F     = 0x00001000U, //!< Supported by AVX512-F (foundation).
+      kFeatureAVX512VL    = 0x00002000U, //!< Supports access to XMM|YMM registers if AVX512VL is present.
+      kFeatureAVX512CDI   = 0x00004000U, //!< Supported by AVX512-CDI (conflict detection).
+      kFeatureAVX512PFI   = 0x00008000U, //!< Supported by AVX512-PFI (prefetch).
+      kFeatureAVX512ERI   = 0x00010000U, //!< Supported by AVX512-ERI (exponential and reciprocal).
+      kFeatureAVX512DQ    = 0x00020000U, //!< Supported by AVX512-DQ (dword/qword).
+      kFeatureAVX512BW    = 0x00040000U, //!< Supported by AVX512-BW (byte/word).
+      kFeatureAVX512IFMA  = 0x00080000U, //!< Supported by AVX512-IFMA (integer fused-multiply-add).
+      kFeatureAVX512VBMI  = 0x00100000U  //!< Supported by AVX512-VBMI (vector byte manipulation).
+    };
+
+    //!< Additional flags (AVX512).
+    enum Flags {
+      kFlagMasking            = 0x0010U, //!< Supports masking {k0..k7}.
+      kFlagZeroing            = 0x0020U, //!< Supports zeroing of elements {k0..k7}{z} (must be used together with 'K').
+      kFlagBroadcast32        = 0x0040U, //!< Supports 32-bit broadcast 'b32'.
+      kFlagBroadcast64        = 0x0080U, //!< Supports 64-bit broadcast 'b64'.
+      kFlagER                 = 0x0100U, //!< Supports 'embedded-rounding-control' {rc} with implicit {sae},
+      kFlagSAE                = 0x0200U, //!< Supports 'suppress-all-exceptions' {sae}.
+    };
+
+    ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return (flags & flag) != 0; }
+    ASMJIT_INLINE bool hasMasking() const noexcept { return hasFlag(kFlagMasking); }
+    ASMJIT_INLINE bool hasZeroing() const noexcept { return hasFlag(kFlagZeroing); }
+
+    ASMJIT_INLINE bool hasER() const noexcept { return hasFlag(kFlagER); }
+    ASMJIT_INLINE bool hasSAE() const noexcept { return hasFlag(kFlagSAE); }
+    ASMJIT_INLINE bool hasEROrSAE() const noexcept { return hasFlag(kFlagER | kFlagSAE); }
+
+    ASMJIT_INLINE bool hasBroadcast32() const noexcept { return hasFlag(kFlagBroadcast32); }
+    ASMJIT_INLINE bool hasBroadcast64() const noexcept { return hasFlag(kFlagBroadcast64); }
+    ASMJIT_INLINE bool hasBroadcast() const noexcept { return hasFlag(kFlagBroadcast32 | kFlagBroadcast64); }
+
+    uint32_t features;                   //!< CPU features.
+    uint32_t flags;                      //!< Flags (AVX-512).
+  };
+
+  //! Instruction signature.
+  //!
+  //! Contains a sequence of operands' combinations and other metadata that defines
+  //! a single instruction. This data is used by instruction validator.
+  struct ISignature {
+    uint8_t opCount           : 3;       //!< Count of operands in `opIndex` (0..6).
+    uint8_t archMask          : 2;       //!< Architecture mask of this record.
+    uint8_t implicit          : 3;       //!< Number of implicit operands.
+    uint8_t reserved;                    //!< Reserved for future use.
+    uint8_t operands[6];                 //!< Indexes to `OSignature` table.
+  };
+
+  //! Operand signature, used by \ref ISignature.
+  //!
+  //! Contains all possible operand combinations, memory size information,
+  //! and register index (or \ref kInvalidReg if not mandatory).
+  struct OSignature {
+    uint32_t flags;                      //!< Operand flags.
+    uint16_t memFlags;                   //!< Memory flags.
+    uint8_t extFlags;                    //!< Extra flags.
+    uint8_t regMask;                     //!< Mask of possible register IDs.
+  };
+
   // --------------------------------------------------------------------------
-  // [Accessors - Extended-Info]
+  // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get `X86InstExtendedInfo` for this instruction.
-  ASMJIT_INLINE const X86InstExtendedInfo& getExtendedInfo() const noexcept {
-    return _x86InstExtendedInfo[_extendedIndex];
+  //! Get instruction's name (null terminated).
+  //!
+  //! NOTE: If AsmJit was compiled with `ASMJIT_DISABLE_TEXT` then this will
+  //! return an empty string (null terminated string of zero length).
+  ASMJIT_INLINE const char* getName() const noexcept;
+  //! Get index to `X86InstDB::nameData` of this instruction.
+  //!
+  //! NOTE: If AsmJit was compiled with `ASMJIT_DISABLE_TEXT` then this will
+  //! always return zero.
+  ASMJIT_INLINE uint32_t getNameDataIndex() const noexcept { return _nameDataIndex; }
+
+  //! Get \ref CommonData of the instruction.
+  ASMJIT_INLINE const CommonData& getCommonData() const noexcept;
+  //! Get index to `X86InstDB::commonData` of this instruction.
+  ASMJIT_INLINE uint32_t getCommonDataIndex() const noexcept { return _commonDataIndex; }
+
+  //! Get instruction encoding, see \ref EncodingType.
+  ASMJIT_INLINE uint32_t getEncodingType() const noexcept { return _encodingType; }
+
+  //! Get instruction family, see \ref FamilyType.
+  ASMJIT_INLINE uint32_t getFamilyType() const noexcept { return _familyType; }
+  //! Get index to an instruction family dependent data.
+  ASMJIT_INLINE uint32_t getFamilyDataIndex() const noexcept { return _familyDataIndex; }
+
+  //! Get if the instruction's family is \ref kFamilyFpu.
+  ASMJIT_INLINE bool isFpuFamily() const noexcept { return _familyType == kFamilyFpu; }
+  //! Get if the instruction's family is \ref kFamilySse.
+  ASMJIT_INLINE bool isSseFamily() const noexcept { return _familyType == kFamilySse; }
+  //! Get if the instruction's family is \ref kFamilyAvx.
+  ASMJIT_INLINE bool isAvxFamily() const noexcept { return _familyType == kFamilyAvx; }
+
+  //! Get data specific to MMX/SSE instructions.
+  //!
+  //! NOTE: Always check the instruction family, it will assert if it's not an SSE instruction.
+  ASMJIT_INLINE const SseData& getSseData() const noexcept;
+
+  //! Get data specific to AVX instructions.
+  //!
+  //! NOTE: Always check the instruction family, it will assert if it's not an AVX instruction.
+  ASMJIT_INLINE const AvxData& getAvxData() const noexcept;
+
+  //! Get if the instruction has main opcode (rare, but it's possible it doesn't have).
+  ASMJIT_INLINE bool hasMainOpCode() const noexcept { return _mainOpCode != 0; }
+  //! Get main opcode, see \ref OpCodeBits.
+  ASMJIT_INLINE uint32_t getMainOpCode() const noexcept { return _mainOpCode; }
+
+  //! Get if the instruction has alternative opcode.
+  ASMJIT_INLINE bool hasAltOpCode() const noexcept { return getCommonData().hasAltOpCode(); }
+  //! Get alternative opcode, see \ref OpCodeBits.
+  ASMJIT_INLINE uint32_t getAltOpCode() const noexcept { return getCommonData().getAltOpCode(); }
+
+  //! Get whether the instruction has flag `flag`, see \ref InstFlags.
+  ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return getCommonData().hasFlag(flag); }
+  //! Get instruction flags, see \ref InstFlags.
+  ASMJIT_INLINE uint32_t getFlags() const noexcept { return getCommonData().getFlags(); }
+
+  // --------------------------------------------------------------------------
+  // [Get]
+  // --------------------------------------------------------------------------
+
+  //! Get if the `instId` is defined (counts also kInvalidInst, which is zero).
+  static ASMJIT_INLINE bool isDefinedId(uint32_t instId) noexcept { return instId < _kIdCount; }
+
+  //! Get instruction information based on the instruction `instId`.
+  //!
+  //! NOTE: `instId` has to be a valid instruction ID, it can't be greater than
+  //! or equal to `X86Inst::_kIdCount`. It asserts in debug mode.
+  static ASMJIT_INLINE const X86Inst& getInst(uint32_t instId) noexcept;
+
+  // --------------------------------------------------------------------------
+  // [Utilities]
+  // --------------------------------------------------------------------------
+
+  //! Get a 'kmov?' instruction by register `size`.
+  static ASMJIT_INLINE uint32_t kmovIdFromSize(uint32_t size) noexcept {
+    return size == 1 ? X86Inst::kIdKmovb :
+           size == 2 ? X86Inst::kIdKmovw :
+           size == 4 ? X86Inst::kIdKmovd : X86Inst::kIdKmovq;
   }
 
-  //! Get index to the `_x86InstExtendedInfo` table.
-  ASMJIT_INLINE uint32_t _getExtendedIndex() const noexcept {
-    return _extendedIndex;
-  }
-
   // --------------------------------------------------------------------------
-  // [Accessors - Instruction Encoding]
-  // --------------------------------------------------------------------------
-
-  //! Get instruction group, see \ref X86InstEncoding.
-  ASMJIT_INLINE uint32_t getEncoding() const noexcept {
-    return getExtendedInfo().getEncoding();
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - Instruction Flags]
-  // --------------------------------------------------------------------------
-
-  //! Get whether the instruction has flag `flag`, see `X86InstFlags`.
-  ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept {
-    return (getFlags() & flag) != 0;
-  }
-
-  //! Get instruction flags, see `X86InstFlags`.
-  ASMJIT_INLINE uint32_t getFlags() const noexcept {
-    return getExtendedInfo().getFlags();
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - EFlags]
-  // --------------------------------------------------------------------------
-
-  //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsIn() const noexcept {
-    return getExtendedInfo().getEFlagsIn();
-  }
-
-  //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
-  ASMJIT_INLINE uint32_t getEFlagsOut() const noexcept {
-    return getExtendedInfo().getEFlagsOut();
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - Write Index/Size]
-  // --------------------------------------------------------------------------
-
-  //! Get the destination index of WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteIndex() const noexcept {
-    return getExtendedInfo().getWriteIndex();
-  }
-
-  //! Get the number of bytes that will be written by a WRITE operation.
-  ASMJIT_INLINE uint32_t getWriteSize() const noexcept {
-    return getExtendedInfo().getWriteSize();
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - Operand-Flags]
-  // --------------------------------------------------------------------------
-
-  //! Get flags of operand at index `index`.
-  ASMJIT_INLINE uint32_t getOperandFlags(uint32_t index) const noexcept {
-    return getExtendedInfo().getOperandFlags(index);
-  }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - OpCode]
-  // --------------------------------------------------------------------------
-
-  //! Get the primary instruction opcode, see \ref X86InstOpCodeFlags.
-  ASMJIT_INLINE uint32_t getPrimaryOpCode() const noexcept {
-    return _primaryOpCode;
-  }
-
-  //! Get the secondary instruction opcode, see \ref X86InstOpCodeFlags.
-  ASMJIT_INLINE uint32_t getSecondaryOpCode() const noexcept {
-    return getExtendedInfo().getSecondaryOpCode();
-  }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! \internal
-  uint16_t _reserved;
-  //! Extended information name index in `_x86InstExtendedInfo[]` array.
-  uint16_t _extendedIndex;
-
-  //! Primary opcode, secondary opcode is stored in `X86InstExtendedInfo` table.
-  uint32_t _primaryOpCode;
-};
-
-// ============================================================================
-// [asmjit::X86Util]
-// ============================================================================
-
-struct X86Util {
-  // --------------------------------------------------------------------------
-  // [Instruction Id <-> Name]
+  // [Id <-> Name]
   // --------------------------------------------------------------------------
 
 #if !defined(ASMJIT_DISABLE_TEXT)
   //! Get an instruction ID from a given instruction `name`.
   //!
-  //! If there is an exact match the instruction id is returned, otherwise
-  //! `kInstIdNone` (zero) is returned.
-  //!
-  //! The given `name` doesn't have to be null-terminated if `len` is provided.
-  ASMJIT_API static uint32_t getInstIdByName(const char* name, size_t len = kInvalidIndex) noexcept;
+  //! NOTE: Instruction name MUST BE in lowercase, otherwise there will be no
+  //! match. If there is an exact match the instruction id is returned, otherwise
+  //! `kInvalidInst` (zero) is returned instead. The given `name` doesn't have to
+  //! be null-terminated if `len` is provided.
+  ASMJIT_API static uint32_t getIdByName(const char* name, size_t len = kInvalidIndex) noexcept;
 
-  //! Get an instruction name from a given instruction `id`.
-  ASMJIT_API static const char* getInstNameById(uint32_t id) noexcept;
+  //! Get an instruction name from a given instruction id `instId`.
+  ASMJIT_API static const char* getNameById(uint32_t instId) noexcept;
 #endif // !ASMJIT_DISABLE_TEXT
-
-  // --------------------------------------------------------------------------
-  // [Instruction Info]
-  // --------------------------------------------------------------------------
-
-  //! Get instruction information based on `instId`.
-  //!
-  //! NOTE: `instId` has to be valid instruction ID, it can't be greater than
-  //! or equal to `_kX86InstIdCount`. It asserts in debug mode.
-  static ASMJIT_INLINE const X86InstInfo& getInstInfo(uint32_t instId) noexcept {
-    ASMJIT_ASSERT(instId < _kX86InstIdCount);
-    return _x86InstInfo[instId];
-  }
 
   // --------------------------------------------------------------------------
   // [Condition Codes]
   // --------------------------------------------------------------------------
 
-  //! Corresponds to transposing the operands of a comparison.
+  //! Convert a condition code into a condition code that reverses the
+  //! corresponding operands of a comparison.
   static ASMJIT_INLINE uint32_t reverseCond(uint32_t cond) noexcept {
     ASMJIT_ASSERT(cond < ASMJIT_ARRAY_SIZE(_x86ReverseCond));
     return _x86ReverseCond[cond];
   }
 
-  //! Get the equivalent of negated condition code.
+  //! Get the equivalent of a negated condition code.
   static ASMJIT_INLINE uint32_t negateCond(uint32_t cond) noexcept {
     ASMJIT_ASSERT(cond < ASMJIT_ARRAY_SIZE(_x86ReverseCond));
-    return cond ^ static_cast<uint32_t>(cond < kX86CondNone);
+    return cond ^ static_cast<uint32_t>(cond < X86Inst::kCondNone);
   }
 
-  //! Translate condition code `cc` to `cmovcc` instruction code.
-  //! \sa \ref X86InstId, \ref _kX86InstIdCmovcc.
+  //! Translate a condition code `cc` to a "cmovcc" instruction id.
   static ASMJIT_INLINE uint32_t condToCmovcc(uint32_t cond) noexcept {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToCmovcc));
     return _x86CondToCmovcc[cond];
   }
 
-  //! Translate condition code `cc` to `jcc` instruction code.
-  //! \sa \ref X86InstId, \ref _kX86InstIdJcc.
+  //! Translate a condition code `cc` to a "jcc" instruction id.
   static ASMJIT_INLINE uint32_t condToJcc(uint32_t cond) noexcept {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToJcc));
     return _x86CondToJcc[cond];
   }
 
-  //! Translate condition code `cc` to `setcc` instruction code.
-  //! \sa \ref X86InstId, \ref _kX86InstIdSetcc.
+  //! Translate a condition code `cc` to a "setcc" instruction id.
   static ASMJIT_INLINE uint32_t condToSetcc(uint32_t cond) noexcept {
     ASMJIT_ASSERT(static_cast<uint32_t>(cond) < ASMJIT_ARRAY_SIZE(_x86CondToSetcc));
     return _x86CondToSetcc[cond];
   }
 
   // --------------------------------------------------------------------------
-  // [Shuffle (SIMD)]
+  // [Validation]
   // --------------------------------------------------------------------------
 
-  //! Pack a shuffle constant to be used with multimedia instructions (2 values).
+#if !defined(ASMJIT_DISABLE_VALIDATION)
+  ASMJIT_API static Error validate(
+    uint32_t archType, uint32_t instId, uint32_t options,
+    const Operand_& opExtra,
+    const Operand_* opArray, uint32_t opCount) noexcept;
+#endif // !ASMJIT_DISABLE_VALIDATION
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  uint32_t _encodingType    : 8;         //!< Instruction encoding.
+  uint32_t _nameDataIndex   : 14;        //!< Index to `X86InstDB::nameData` table.
+  uint32_t _commonDataIndex : 10;        //!< Index to `X86InstDB::commonData` table.
+  uint32_t _familyType      : 2;         //!< Instruction family type.
+  uint32_t _familyDataIndex : 8;         //!< Index to `fpuData`, `sseData`, or `avxData`.
+  uint32_t _reserved        : 22;
+  uint32_t _mainOpCode;                  //!< Instruction's primary opcode.
+};
+
+//! X86 instruction data under a single namespace.
+struct X86InstDB {
+  ASMJIT_API static const X86Inst instData[];
+  ASMJIT_API static const X86Inst::CommonData commonData[];
+  ASMJIT_API static const X86Inst::FpuData fpuData[];
+  ASMJIT_API static const X86Inst::SseData sseData[];
+  ASMJIT_API static const X86Inst::AvxData avxData[];
+  ASMJIT_API static const uint32_t altOpCodeData[];
+  ASMJIT_API static const char nameData[];
+};
+
+ASMJIT_INLINE const X86Inst& X86Inst::getInst(uint32_t instId) noexcept {
+  ASMJIT_ASSERT(instId < X86Inst::_kIdCount);
+  return X86InstDB::instData[instId];
+}
+
+ASMJIT_INLINE const char* X86Inst::getName() const noexcept {
+  return &X86InstDB::nameData[_nameDataIndex];
+}
+
+ASMJIT_INLINE const X86Inst::CommonData& X86Inst::getCommonData() const noexcept {
+  return X86InstDB::commonData[_commonDataIndex];
+}
+
+ASMJIT_INLINE const X86Inst::SseData& X86Inst::getSseData() const noexcept {
+  ASMJIT_ASSERT(isSseFamily());
+  return X86InstDB::sseData[_familyDataIndex];
+}
+
+ASMJIT_INLINE const X86Inst::AvxData& X86Inst::getAvxData() const noexcept {
+  ASMJIT_ASSERT(isAvxFamily());
+  return X86InstDB::avxData[_familyDataIndex];
+}
+
+ASMJIT_INLINE uint32_t X86Inst::CommonData::getAltOpCode() const noexcept {
+  return X86InstDB::altOpCodeData[_altOpCodeIndex];
+}
+
+// ============================================================================
+// [asmjit::X86Util]
+// ============================================================================
+
+struct X86Util {
+  //! Pack a shuffle constant to be used with SSE/AVX instruction (2 values).
   //!
-  //! \param a Position of the first component [0, 1], inclusive.
-  //! \param b Position of the second component [0, 1], inclusive.
+  //! \param a Position of the first  component [0, 1].
+  //! \param b Position of the second component [0, 1].
   //!
   //! Shuffle constants can be used to encode an immediate for these instructions:
   //!   - `shufpd`
@@ -2159,12 +2653,12 @@ struct X86Util {
     return static_cast<int>(result);
   }
 
-  //! Pack a shuffle constant to be used with multimedia instructions (4 values).
+  //! Pack a shuffle constant to be used with SSE/AVX instruction (4 values).
   //!
-  //! \param a Position of the first component [0, 3], inclusive.
-  //! \param b Position of the second component [0, 3], inclusive.
-  //! \param c Position of the third component [0, 3], inclusive.
-  //! \param d Position of the fourth component [0, 3], inclusive.
+  //! \param a Position of the first  component [0, 3].
+  //! \param b Position of the second component [0, 3].
+  //! \param c Position of the third  component [0, 3].
+  //! \param d Position of the fourth component [0, 3].
   //!
   //! Shuffle constants can be used to encode an immediate for these instructions:
   //!   - `pshufw()`
@@ -2186,7 +2680,7 @@ struct X86Util {
 #undef _OP_ID
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_X86_X86INST_H
