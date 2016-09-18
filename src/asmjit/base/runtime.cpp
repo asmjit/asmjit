@@ -9,52 +9,15 @@
 
 // [Dependencies]
 #include "../base/assembler.h"
+#include "../base/cpuinfo.h"
 #include "../base/runtime.h"
 
-// TODO: Rename this, or make call conv independent of CompilerFunc.
-#include "../base/compilerfunc.h"
-
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
 
-// ============================================================================
-// [asmjit::Runtime - Utilities]
-// ============================================================================
-
-static ASMJIT_INLINE uint32_t hostStackAlignment() noexcept {
-  // By default a pointer-size stack alignment is assumed.
-  uint32_t alignment = sizeof(intptr_t);
-
-  // ARM & ARM64
-  // -----------
-  //
-  //   - 32-bit ARM requires stack to be aligned to 8 bytes.
-  //   - 64-bit ARM requires stack to be aligned to 16 bytes.
-#if ASMJIT_ARCH_ARM32 || ASMJIT_ARCH_ARM64
-  alignment = ASMJIT_ARCH_ARM32 ? 8 : 16;
-#endif
-
-  // X86 & X64
-  // ---------
-  //
-  //   - 32-bit X86 requires stack to be aligned to 4 bytes. Modern Linux, APPLE
-  //     and UNIX guarantees 16-byte stack alignment even in 32-bit, but I'm
-  //     not sure about all other UNIX operating systems, because 16-byte alignment
-  //     is addition to an older specification.
-  //   - 64-bit X86 requires stack to be aligned to 16 bytes.
-#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
-  int modernOS = ASMJIT_OS_LINUX  || // Linux & ANDROID.
-                 ASMJIT_OS_MAC    || // OSX and iOS.
-                 ASMJIT_OS_BSD;      // BSD variants.
-  alignment = ASMJIT_ARCH_X64 || modernOS ? 16 : 4;
-#endif
-
-  return alignment;
-}
-
-static ASMJIT_INLINE void hostFlushInstructionCache(void* p, size_t size) noexcept {
+static ASMJIT_INLINE void hostFlushInstructionCache(const void* p, size_t size) noexcept {
   // Only useful on non-x86 architectures.
 #if !ASMJIT_ARCH_X86 && !ASMJIT_ARCH_X64
 # if ASMJIT_OS_WINDOWS
@@ -67,22 +30,46 @@ static ASMJIT_INLINE void hostFlushInstructionCache(void* p, size_t size) noexce
 #endif // !ASMJIT_ARCH_X86 && !ASMJIT_ARCH_X64
 }
 
+static ASMJIT_INLINE uint32_t hostDetectNaturalStackAlignment() noexcept {
+  // Alignment is assumed to match the pointer-size by default.
+  uint32_t alignment = sizeof(intptr_t);
+
+  // X86 & X64
+  // ---------
+  //
+  //   - 32-bit X86 requires stack to be aligned to 4 bytes. Modern Linux, Mac
+  //     and UNIX guarantees 16-byte stack alignment even on 32-bit. I'm not
+  //     sure about all other UNIX operating systems, because 16-byte alignment
+  //!    is addition to an older specification.
+  //   - 64-bit X86 requires stack to be aligned to at least 16 bytes.
+#if ASMJIT_ARCH_X86 || ASMJIT_ARCH_X64
+  int kIsModernOS = ASMJIT_OS_LINUX  || // Linux & ANDROID.
+                    ASMJIT_OS_MAC    || // OSX and iOS.
+                    ASMJIT_OS_BSD    ;  // BSD variants.
+  alignment = ASMJIT_ARCH_X64 || kIsModernOS ? 16 : 4;
+#endif
+
+  // ARM32 & ARM64
+  // -------------
+  //
+  //   - 32-bit ARM requires stack to be aligned to 8 bytes.
+  //   - 64-bit ARM requires stack to be aligned to 16 bytes.
+#if ASMJIT_ARCH_ARM32 || ASMJIT_ARCH_ARM64
+  alignment = ASMJIT_ARCH_ARM32 ? 8 : 16;
+#endif
+
+  return alignment;
+}
+
+
 // ============================================================================
 // [asmjit::Runtime - Construction / Destruction]
 // ============================================================================
 
 Runtime::Runtime() noexcept
-  : _runtimeType(kTypeNone),
-    _allocType(kVMemAllocFreeable),
-    _cpuInfo(),
-    _stackAlignment(0),
-    _cdeclConv(kCallConvNone),
-    _stdCallConv(kCallConvNone),
-    _baseAddress(kNoBaseAddress),
-    _sizeLimit(0) {
-
-  ::memset(_reserved, 0, sizeof(_reserved));
-}
+  : _codeInfo(),
+    _runtimeType(kRuntimeNone),
+    _allocType(VMemMgr::kAllocFreeable) {}
 Runtime::~Runtime() noexcept {}
 
 // ============================================================================
@@ -90,12 +77,14 @@ Runtime::~Runtime() noexcept {}
 // ============================================================================
 
 HostRuntime::HostRuntime() noexcept {
-  _runtimeType = kTypeJit;
-  _cpuInfo = CpuInfo::getHost();
+  _runtimeType = kRuntimeJit;
 
-  _stackAlignment = hostStackAlignment();
-  _cdeclConv = kCallConvHostCDecl;
-  _stdCallConv = kCallConvHostStdCall;
+  // Setup the CodeInfo of this Runtime.
+  _codeInfo._archInfo       = CpuInfo::getHost().getArchInfo();
+  _codeInfo._stackAlignment = static_cast<uint8_t>(hostDetectNaturalStackAlignment());
+  _codeInfo._cdeclCallConv  = CallConv::kIdHostCDecl;
+  _codeInfo._stdCallConv    = CallConv::kIdHostStdCall;
+  _codeInfo._fastCallConv   = CallConv::kIdHostFastCall;
 }
 HostRuntime::~HostRuntime() noexcept {}
 
@@ -103,64 +92,8 @@ HostRuntime::~HostRuntime() noexcept {}
 // [asmjit::HostRuntime - Interface]
 // ============================================================================
 
-void HostRuntime::flush(void* p, size_t size) noexcept {
+void HostRuntime::flush(const void* p, size_t size) noexcept {
   hostFlushInstructionCache(p, size);
-}
-
-// ============================================================================
-// [asmjit::StaticRuntime - Construction / Destruction]
-// ============================================================================
-
-StaticRuntime::StaticRuntime(void* baseAddress, size_t sizeLimit) noexcept {
-  _sizeLimit = sizeLimit;
-  _baseAddress = static_cast<Ptr>((uintptr_t)baseAddress);
-}
-StaticRuntime::~StaticRuntime() noexcept {}
-
-// ============================================================================
-// [asmjit::StaticRuntime - Interface]
-// ============================================================================
-
-Error StaticRuntime::add(void** dst, Assembler* assembler) noexcept {
-  size_t codeSize = assembler->getCodeSize();
-  size_t sizeLimit = _sizeLimit;
-
-  if (codeSize == 0) {
-    *dst = nullptr;
-    return kErrorNoCodeGenerated;
-  }
-
-  if (sizeLimit != 0 && sizeLimit < codeSize) {
-    *dst = nullptr;
-    return kErrorCodeTooLarge;
-  }
-
-  Ptr baseAddress = _baseAddress;
-  uint8_t* p = static_cast<uint8_t*>((void*)static_cast<uintptr_t>(baseAddress));
-
-  // Since the base address is known the `relocSize` returned should be equal
-  // to `codeSize`. It's better to fail if they don't match instead of passsing
-  // silently.
-  size_t relocSize = assembler->relocCode(p, baseAddress);
-  if (relocSize == 0 || codeSize != relocSize) {
-    *dst = nullptr;
-    return kErrorInvalidState;
-  }
-
-  _baseAddress += codeSize;
-  if (sizeLimit)
-    sizeLimit -= codeSize;
-
-  flush(p, codeSize);
-  *dst = p;
-
-  return kErrorOk;
-}
-
-Error StaticRuntime::release(void* p) noexcept {
-  // There is nothing to release as `StaticRuntime` doesn't manage any memory.
-  ASMJIT_UNUSED(p);
-  return kErrorOk;
 }
 
 // ============================================================================
@@ -174,25 +107,25 @@ JitRuntime::~JitRuntime() noexcept {}
 // [asmjit::JitRuntime - Interface]
 // ============================================================================
 
-Error JitRuntime::add(void** dst, Assembler* assembler) noexcept {
-  size_t codeSize = assembler->getCodeSize();
-  if (codeSize == 0) {
+Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
+  size_t codeSize = code->getCodeSize();
+  if (ASMJIT_UNLIKELY(codeSize == 0)) {
     *dst = nullptr;
-    return kErrorNoCodeGenerated;
+    return DebugUtils::errored(kErrorNoCodeGenerated);
   }
 
   void* p = _memMgr.alloc(codeSize, getAllocType());
-  if (p == nullptr) {
+  if (ASMJIT_UNLIKELY(!p)) {
     *dst = nullptr;
-    return kErrorNoVirtualMemory;
+    return DebugUtils::errored(kErrorNoVirtualMemory);
   }
 
   // Relocate the code and release the unused memory back to `VMemMgr`.
-  size_t relocSize = assembler->relocCode(p);
-  if (relocSize == 0) {
+  size_t relocSize = code->relocate(p);
+  if (ASMJIT_UNLIKELY(relocSize == 0)) {
     *dst = nullptr;
     _memMgr.release(p);
-    return kErrorInvalidState;
+    return DebugUtils::errored(kErrorInvalidState);
   }
 
   if (relocSize < codeSize)
@@ -204,11 +137,11 @@ Error JitRuntime::add(void** dst, Assembler* assembler) noexcept {
   return kErrorOk;
 }
 
-Error JitRuntime::release(void* p) noexcept {
+Error JitRuntime::_release(void* p) noexcept {
   return _memMgr.release(p);
 }
 
 } // asmjit namespace
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"

@@ -12,7 +12,7 @@
 #include "../base/utils.h"
 
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
 
@@ -31,7 +31,7 @@ static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_skewNode(ConstPool::Node* no
   ConstPool::Node* link = node->_link[0];
   uint32_t level = node->_level;
 
-  if (level != 0 && link != nullptr && link->_level == level) {
+  if (level != 0 && link && link->_level == level) {
     node->_link[0] = link->_link[1];
     link->_link[1] = node;
 
@@ -48,7 +48,7 @@ static ASMJIT_INLINE ConstPool::Node* ConstPoolTree_splitNode(ConstPool::Node* n
   ConstPool::Node* link = node->_link[1];
   uint32_t level = node->_level;
 
-  if (level != 0 && link != nullptr && link->_link[1] != nullptr && link->_link[1]->_level == level) {
+  if (level != 0 && link && link->_link[1] && link->_link[1]->_level == level) {
     node->_link[1] = link->_link[0];
     link->_link[0] = node;
 
@@ -63,7 +63,7 @@ ConstPool::Node* ConstPool::Tree::get(const void* data) noexcept {
   ConstPool::Node* node = _root;
   size_t dataSize = _dataSize;
 
-  while (node != nullptr) {
+  while (node) {
     int c = ::memcmp(node->getData(), data, dataSize);
     if (c == 0)
       return node;
@@ -75,9 +75,9 @@ ConstPool::Node* ConstPool::Tree::get(const void* data) noexcept {
 
 void ConstPool::Tree::put(ConstPool::Node* newNode) noexcept {
   size_t dataSize = _dataSize;
-
   _length++;
-  if (_root == nullptr) {
+
+  if (!_root) {
     _root = newNode;
     return;
   }
@@ -94,8 +94,7 @@ void ConstPool::Tree::put(ConstPool::Node* newNode) noexcept {
     dir = ::memcmp(node->getData(), newNode->getData(), dataSize) < 0;
 
     ConstPool::Node* link = node->_link[dir];
-    if (link == nullptr)
-      break;
+    if (!link) break;
 
     node = link;
   }
@@ -126,31 +125,22 @@ void ConstPool::Tree::put(ConstPool::Node* newNode) noexcept {
 // [asmjit::ConstPool - Construction / Destruction]
 // ============================================================================
 
-ConstPool::ConstPool(Zone* zone) noexcept {
-  _zone = zone;
-
-  size_t dataSize = 1;
-  for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {
-    _tree[i].setDataSize(dataSize);
-    _gaps[i] = nullptr;
-    dataSize <<= 1;
-  }
-
-  _gapPool = nullptr;
-  _size = 0;
-  _alignment = 0;
-}
-
+ConstPool::ConstPool(Zone* zone) noexcept { reset(zone); }
 ConstPool::~ConstPool() noexcept {}
 
 // ============================================================================
 // [asmjit::ConstPool - Reset]
 // ============================================================================
 
-void ConstPool::reset() noexcept {
+void ConstPool::reset(Zone* zone) noexcept {
+  _zone = zone;
+
+  size_t dataSize = 1;
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {
     _tree[i].reset();
+    _tree[i].setDataSize(dataSize);
     _gaps[i] = nullptr;
+    dataSize <<= 1;
   }
 
   _gapPool = nullptr;
@@ -164,8 +154,7 @@ void ConstPool::reset() noexcept {
 
 static ASMJIT_INLINE ConstPool::Gap* ConstPool_allocGap(ConstPool* self) noexcept {
   ConstPool::Gap* gap = self->_gapPool;
-  if (gap == nullptr)
-    return self->_zone->allocT<ConstPool::Gap>();
+  if (!gap) return self->_zone->allocT<ConstPool::Gap>();
 
   self->_gapPool = gap->_next;
   return gap;
@@ -183,8 +172,8 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) noex
     size_t gapIndex;
     size_t gapLength;
 
-    if (length >= 16 && Utils::isAligned<size_t>(offset, 16)) {
       gapIndex = ConstPool::kIndex16;
+    if (length >= 16 && Utils::isAligned<size_t>(offset, 16)) {
       gapLength = 16;
     }
     else if (length >= 8 && Utils::isAligned<size_t>(offset, 8)) {
@@ -208,8 +197,7 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) noex
     // happened (just the gap won't be visible) and it will fail again at
     // place where checking will cause kErrorNoHeapMemory.
     ConstPool::Gap* gap = ConstPool_allocGap(self);
-    if (gap == nullptr)
-      return;
+    if (!gap) return;
 
     gap->_next = self->_gaps[gapIndex];
     self->_gaps[gapIndex] = gap;
@@ -238,10 +226,10 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
   else if (size == 1)
     treeIndex = kIndex1;
   else
-    return kErrorInvalidArgument;
+    return DebugUtils::errored(kErrorInvalidArgument);
 
   ConstPool::Node* node = _tree[treeIndex].get(data);
-  if (node != nullptr) {
+  if (node) {
     dstOffset = node->_offset;
     return kErrorOk;
   }
@@ -255,7 +243,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
     ConstPool::Gap* gap = _gaps[treeIndex];
 
     // Check if there is a gap.
-    if (gap != nullptr) {
+    if (gap) {
       size_t gapOffset = gap->_offset;
       size_t gapLength = gap->_length;
 
@@ -290,8 +278,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
 
   // Add the initial node to the right index.
   node = ConstPool::Tree::_newNode(_zone, data, size, offset, false);
-  if (node == nullptr)
-    return kErrorNoHeapMemory;
+  if (!node) return DebugUtils::errored(kErrorNoHeapMemory);
 
   _tree[treeIndex].put(node);
   _alignment = Utils::iMax<size_t>(_alignment, size);
@@ -312,9 +299,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
     const uint8_t* pData = static_cast<const uint8_t*>(data);
     for (size_t i = 0; i < pCount; i++, pData += size) {
       node = _tree[treeIndex].get(pData);
-
-      if (node != nullptr)
-        continue;
+      if (node) continue;
 
       node = ConstPool::Tree::_newNode(_zone, pData, size, offset + (i * size), true);
       _tree[treeIndex].put(node);
@@ -457,7 +442,8 @@ UNIT(base_constpool) {
 
   INFO("Checking reset functionality.");
   {
-    pool.reset();
+    pool.reset(&zone);
+    zone.reset();
 
     EXPECT(pool.getSize() == 0,
       "pool.getSize() - Expected pool size to be zero.");
@@ -520,4 +506,4 @@ UNIT(base_constpool) {
 } // asmjit namespace
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"
