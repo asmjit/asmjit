@@ -179,12 +179,11 @@ static void dumpSizeOf(void) {
   DUMP_TYPE(CodeBuffer);
   DUMP_TYPE(CodeEmitter);
   DUMP_TYPE(CodeHolder);
-  DUMP_TYPE(CodeHolder::LabelEntry);
-  DUMP_TYPE(CodeHolder::RelocEntry);
-  DUMP_TYPE(CodeHolder::SectionEntry);
-  DUMP_TYPE(CodeSection);
   DUMP_TYPE(ConstPool);
+  DUMP_TYPE(LabelEntry);
+  DUMP_TYPE(RelocEntry);
   DUMP_TYPE(Runtime);
+  DUMP_TYPE(SectionEntry);
   DUMP_TYPE(StringBuilder);
   DUMP_TYPE(Zone);
   DUMP_TYPE(ZoneHeap);

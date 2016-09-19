@@ -134,6 +134,8 @@ ASMJIT_ENUM(ErrorCode) {
   //! Parent id specified for a non-local (global) label.
   kErrorNonLocalLabelCantHaveParent,
 
+  //! Relocation index overflow.
+  kErrorRelocIndexOverflow,
   //! Invalid relocation entry.
   kErrorInvalidRelocEntry,
 

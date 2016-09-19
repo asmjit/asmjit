@@ -453,7 +453,7 @@ Error X86Assembler::align(uint32_t mode, uint32_t alignment) {
     return kErrorOk;
 
   if (getRemainingSpace() < i) {
-    Error err = _code->growBuffer(&_section->buffer, i);
+    Error err = _code->growBuffer(&_section->_buffer, i);
     if (ASMJIT_UNLIKELY(err)) return setLastError(err);
   }
 
@@ -513,7 +513,7 @@ Error X86Assembler::align(uint32_t mode, uint32_t alignment) {
 #if !defined(ASMJIT_DISABLE_LOGGING)
 static void X86Assembler_logInstruction(X86Assembler* self,
   uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3,
-  uint32_t dispSize, uint32_t imLen, uint8_t* afterCursor) {
+  uint32_t relSize, uint32_t imLen, uint8_t* afterCursor) {
 
   Logger* logger = self->_code->getLogger();
   ASMJIT_ASSERT(logger != nullptr);
@@ -540,7 +540,7 @@ static void X86Assembler_logInstruction(X86Assembler* self,
   self->_formatter.formatInstruction(sb, logOptions, instId, options, self->_opExtra, opArray, 6);
 
   if ((logOptions & Logger::kOptionBinaryForm) != 0)
-    LogUtil::formatLine(sb, self->_bufferPtr, emittedSize, dispSize, imLen, self->getInlineComment());
+    LogUtil::formatLine(sb, self->_bufferPtr, emittedSize, relSize, imLen, self->getInlineComment());
   else
     LogUtil::formatLine(sb, nullptr, kInvalidIndex, 0, 0, self->getInlineComment());
 
@@ -706,10 +706,10 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
   uint32_t opReg;                // ModR/M opcode or register id.
   uint32_t opCode;               // Instruction opcode.
 
-  CodeHolder::LabelEntry* label; // Label entry.
-  int32_t dispOffset;            // Displacement offset
-  intptr_t relocId;              // Displacement relocation id.
-  FastUInt8 dispSize = 0;        // Displacement size.
+  LabelEntry* label;             // Label entry.
+  RelocEntry* re = nullptr;      // Relocation entry.
+  int32_t relOffset;             // Relative offset
+  FastUInt8 relSize = 0;         // Relative size.
 
   int64_t imVal;                 // Immediate value (must be 64-bit).
   FastUInt8 imLen = 0;           // Immediate length.
@@ -748,7 +748,7 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
 
       // Grow request, happens rarely.
       if ((size_t)(_bufferEnd - cursor) < 16) {
-        err = _code->growBuffer(&_section->buffer, 16);
+        err = _code->growBuffer(&_section->_buffer, 16);
         if (ASMJIT_UNLIKELY(err)) goto Failed;
 
         cursor = _bufferPtr;
@@ -3698,21 +3698,21 @@ EmitModSib:
     // ==========|> [BASE + DISP8|DISP32].
     if (rmInfo & kX86MemInfo_BaseGp) {
       rbReg &= 0x7;
-      dispOffset = rmRel->as<X86Mem>().getOffsetLo32();
+      relOffset = rmRel->as<X86Mem>().getOffsetLo32();
 
       uint32_t mod = x86EncodeMod(0, opReg, rbReg);
       if (rbReg == X86Gp::kIdSp) {
         // [XSP|R12].
-        if (dispOffset == 0) {
+        if (relOffset == 0) {
           EMIT_BYTE(mod);
           EMIT_BYTE(x86EncodeSib(0, 4, 4));
         }
         // [XSP|R12 + DISP8|DISP32].
         else {
           uint32_t cdShift = (opCode & X86Inst::kOpCode_CDSHL_Mask) >> X86Inst::kOpCode_CDSHL_Shift;
-          int32_t cdOffset = dispOffset >> cdShift;
+          int32_t cdOffset = relOffset >> cdShift;
 
-          if (Utils::isInt8(cdOffset) && dispOffset == (cdOffset << cdShift)) {
+          if (Utils::isInt8(cdOffset) && relOffset == (cdOffset << cdShift)) {
             EMIT_BYTE(mod + 0x40); // <- MOD(1, opReg, rbReg).
             EMIT_BYTE(x86EncodeSib(0, 4, 4));
             EMIT_BYTE(cdOffset & 0xFF);
@@ -3720,42 +3720,42 @@ EmitModSib:
           else {
             EMIT_BYTE(mod + 0x80); // <- MOD(2, opReg, rbReg).
             EMIT_BYTE(x86EncodeSib(0, 4, 4));
-            EMIT_DWORD(dispOffset);
+            EMIT_DWORD(relOffset);
           }
         }
       }
-      else if (rbReg != X86Gp::kIdBp && dispOffset == 0) {
+      else if (rbReg != X86Gp::kIdBp && relOffset == 0) {
         // [BASE].
         EMIT_BYTE(mod);
       }
       else {
         // [BASE + DISP8|DISP32].
         uint32_t cdShift = (opCode & X86Inst::kOpCode_CDSHL_Mask) >> X86Inst::kOpCode_CDSHL_Shift;
-        int32_t cdOffset = dispOffset >> cdShift;
+        int32_t cdOffset = relOffset >> cdShift;
 
-        if (Utils::isInt8(cdOffset) && dispOffset == (cdOffset << cdShift)) {
+        if (Utils::isInt8(cdOffset) && relOffset == (cdOffset << cdShift)) {
           EMIT_BYTE(mod + 0x40);
           EMIT_BYTE(cdOffset & 0xFF);
         }
         else {
           EMIT_BYTE(mod + 0x80);
-          EMIT_DWORD(dispOffset);
+          EMIT_DWORD(relOffset);
         }
       }
     }
     // ==========|> [ABSOLUTE | DISP32].
     else if (!(rmInfo & (kX86MemInfo_BaseLabel | kX86MemInfo_BaseRip))) {
       if (is32Bit()) {
-        dispOffset = rmRel->as<X86Mem>().getOffsetLo32();
+        relOffset = rmRel->as<X86Mem>().getOffsetLo32();
         EMIT_BYTE(x86EncodeMod(0, opReg, 5));
-        EMIT_DWORD(dispOffset);
+        EMIT_DWORD(relOffset);
       }
       else {
         uint64_t baseAddress = getCodeInfo().getBaseAddress();
-        dispOffset = rmRel->as<X86Mem>().getOffsetLo32();
+        relOffset = rmRel->as<X86Mem>().getOffsetLo32();
 
         // Prefer absolute addressing mode if FS|GS segment override is present.
-        bool absoluteValid = rmRel->as<X86Mem>().getOffsetHi32() == (dispOffset >> 31);
+        bool absoluteValid = rmRel->as<X86Mem>().getOffsetHi32() == (relOffset >> 31);
         bool preferAbsolute = (rmRel->as<X86Mem>().getSegmentId() >= X86Seg::kIdFs) || rmRel->as<X86Mem>().isAbs();
 
         // If we know the base address and the memory operand points to an
@@ -3782,7 +3782,7 @@ EmitModSib:
 
         EMIT_BYTE(x86EncodeMod(0, opReg, 4));
         EMIT_BYTE(x86EncodeSib(0, 4, 5));
-        EMIT_DWORD(dispOffset);
+        EMIT_DWORD(relOffset);
       }
     }
     // ==========|> [LABEL|RIP + DISP32]
@@ -3794,69 +3794,63 @@ EmitModSib_LabelRip_X86:
         if (ASMJIT_UNLIKELY(_code->_relocations.willGrow(1) != kErrorOk))
           goto NoHeapMemory;
 
-        dispOffset = rmRel->as<X86Mem>().getOffsetLo32();
+        relOffset = rmRel->as<X86Mem>().getOffsetLo32();
         if (rmInfo & kX86MemInfo_BaseLabel) {
           // [LABEL->ABS].
           label = _code->getLabelEntry(rmRel->as<X86Mem>().getBaseId());
           if (!label) goto InvalidLabel;
 
-          relocId = _code->_relocations.getLength();
-          CodeHolder::RelocEntry re;
-          re.type = kRelocRelToAbs;
-          re.size = 4;
-          re.from = static_cast<uint64_t>((uintptr_t)(cursor - _bufferData));
-          re.data = static_cast<int64_t>(dispOffset);
-          _code->_relocations.appendUnsafe(re);
+          err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, 4);
+          if (ASMJIT_UNLIKELY(err)) goto Failed;
+
+          re->_sourceOffset = static_cast<uint64_t>((uintptr_t)(cursor - _bufferData));
+          re->_data = static_cast<int64_t>(relOffset);
 
           if (label->isBound()) {
             // Bound label.
-            _code->_relocations[relocId].data += static_cast<int64_t>(label->getOffset());
+            re->_data += static_cast<uint64_t>(label->getOffset());
             EMIT_DWORD(0);
           }
           else {
             // Non-bound label.
-            dispOffset = -4 - imLen;
-            dispSize = 4;
-            goto EmitDisplacement;
+            relOffset = -4 - imLen;
+            relSize = 4;
+            goto EmitRel;
           }
         }
         else {
           // [RIP->ABS].
-          relocId = _code->_relocations.getLength();
+          err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, 4);
+          if (ASMJIT_UNLIKELY(err)) goto Failed;
 
-          CodeHolder::RelocEntry re;
-          re.type = kRelocRelToAbs;
-          re.size = 4;
-          re.from = static_cast<uint64_t>((uintptr_t)(cursor - _bufferData));
-          re.data = re.from + static_cast<int64_t>(dispOffset);
-          _code->_relocations.appendUnsafe(re);
-
+          re->_sourceOffset = static_cast<uint64_t>((uintptr_t)(cursor - _bufferData));
+          re->_data = re->_sourceOffset +
+                      static_cast<uint64_t>(static_cast<int64_t>(relOffset));
           EMIT_DWORD(0);
         }
       }
       else {
-        dispOffset = rmRel->as<X86Mem>().getOffsetLo32();
+        relOffset = rmRel->as<X86Mem>().getOffsetLo32();
         if (rmInfo & kX86MemInfo_BaseLabel) {
           // [RIP].
           label = _code->getLabelEntry(rmRel->as<X86Mem>().getBaseId());
           if (!label) goto InvalidLabel;
 
-          dispOffset -= (4 + imLen);
+          relOffset -= (4 + imLen);
           if (label->isBound()) {
             // Bound label.
-            dispOffset += label->getOffset() - static_cast<int32_t>((intptr_t)(cursor - _bufferData));
-            EMIT_DWORD(static_cast<int32_t>(dispOffset));
+            relOffset += label->getOffset() - static_cast<int32_t>((intptr_t)(cursor - _bufferData));
+            EMIT_DWORD(static_cast<int32_t>(relOffset));
           }
           else {
             // Non-bound label.
-            dispSize = 4;
-            relocId = -1;
-            goto EmitDisplacement;
+            relSize = 4;
+            goto EmitRel;
           }
         }
         else {
           // [RIP].
-          EMIT_DWORD(static_cast<int32_t>(dispOffset));
+          EMIT_DWORD(static_cast<int32_t>(relOffset));
         }
       }
     }
@@ -3872,21 +3866,21 @@ EmitModVSib:
     // ==========|> [BASE + INDEX + DISP8|DISP16|DISP32].
     if (rmInfo & kX86MemInfo_BaseGp) {
       rbReg &= 0x7;
-      dispOffset = rmRel->as<X86Mem>().getOffsetLo32();
+      relOffset = rmRel->as<X86Mem>().getOffsetLo32();
 
       uint32_t mod = x86EncodeMod(0, opReg, 4);
       uint32_t sib = x86EncodeSib(rmRel->as<X86Mem>().getShift(), rxReg, rbReg);
 
-      if (dispOffset == 0 && rbReg != X86Gp::kIdBp) {
+      if (relOffset == 0 && rbReg != X86Gp::kIdBp) {
         // [BASE + INDEX << SHIFT].
         EMIT_BYTE(mod);
         EMIT_BYTE(sib);
       }
       else {
         uint32_t cdShift = (opCode & X86Inst::kOpCode_CDSHL_Mask) >> X86Inst::kOpCode_CDSHL_Shift;
-        int32_t cdOffset = dispOffset >> cdShift;
+        int32_t cdOffset = relOffset >> cdShift;
 
-        if (Utils::isInt8(cdOffset) && dispOffset == (cdOffset << cdShift)) {
+        if (Utils::isInt8(cdOffset) && relOffset == (cdOffset << cdShift)) {
           // [BASE + INDEX << SHIFT + DISP8].
           EMIT_BYTE(mod + 0x40); // <- MOD(1, opReg, 4).
           EMIT_BYTE(sib);
@@ -3896,7 +3890,7 @@ EmitModVSib:
           // [BASE + INDEX << SHIFT + DISP16|DISP32].
           EMIT_BYTE(mod + 0x80); // <- MOD(2, opReg, 4).
           EMIT_BYTE(sib);
-          EMIT_DWORD(dispOffset);
+          EMIT_DWORD(relOffset);
         }
       }
     }
@@ -3906,8 +3900,8 @@ EmitModVSib:
       EMIT_BYTE(x86EncodeMod(0, opReg, 4));
       EMIT_BYTE(x86EncodeSib(rmRel->as<X86Mem>().getShift(), rxReg, 5));
 
-      dispOffset = rmRel->as<X86Mem>().getOffsetLo32();
-      EMIT_DWORD(dispOffset);
+      relOffset = rmRel->as<X86Mem>().getOffsetLo32();
+      EMIT_DWORD(relOffset);
     }
     // ==========|> [LABEL|RIP + INDEX + DISP32].
     else {
@@ -3923,12 +3917,12 @@ EmitModVSib:
   }
   else {
     // 16-bit address mode (32-bit mode with 67 override prefix).
-    dispOffset = (static_cast<int32_t>(rmRel->as<X86Mem>().getOffsetLo32()) << 16) >> 16;
+    relOffset = (static_cast<int32_t>(rmRel->as<X86Mem>().getOffsetLo32()) << 16) >> 16;
 
     // NOTE: 16-bit addresses don't use SIB byte and their encoding differs. We
     // use a table-based approach to calculate the proper MOD byte as it's easier.
-    // Also, not all BASE [+ INDEX] combinations are supported in 16-bit address,
-    // so this may fail.
+    // Also, not all BASE [+ INDEX] combinations are supported in 16-bit mode, so
+    // this may fail.
     const uint32_t kBaseGpIdx = (kX86MemInfo_BaseGp | kX86MemInfo_Index);
 
     if (rmInfo & kBaseGpIdx) {
@@ -3954,16 +3948,16 @@ EmitModVSib:
         goto InvalidAddress;
 
       mod += opReg << 3;
-      if (dispOffset == 0 && mod != 0x06) {
+      if (relOffset == 0 && mod != 0x06) {
         EMIT_BYTE(mod);
       }
-      else if (Utils::isInt8(dispOffset)) {
+      else if (Utils::isInt8(relOffset)) {
         EMIT_BYTE(mod + 0x40);
-        EMIT_BYTE(dispOffset);
+        EMIT_BYTE(relOffset);
       }
       else {
         EMIT_BYTE(mod + 0x80);
-        EMIT_WORD(dispOffset);
+        EMIT_WORD(relOffset);
       }
     }
     else {
@@ -3973,7 +3967,7 @@ EmitModVSib:
 
       // ==========|> [DISP16].
       EMIT_BYTE(opReg | 0x06);
-      EMIT_WORD(dispOffset);
+      EMIT_WORD(relOffset);
     }
   }
 
@@ -4287,10 +4281,9 @@ EmitJmpCall:
         // Non-bound label.
         if (opCode8 && (!opCode || (options & X86Inst::kOptionShortForm))) {
           EMIT_BYTE(opCode8);
-          dispOffset = -1;
-          dispSize = 1;
-          relocId = -1;
-          goto EmitDisplacement;
+          relOffset = -1;
+          relSize = 1;
+          goto EmitRel;
         }
         else {
           if (!opCode)
@@ -4298,10 +4291,9 @@ EmitJmpCall:
 
           if (opCode & X86Inst::kOpCode_MM_Mask) EMIT_BYTE(0x0F);
           EMIT_BYTE(opCode);
-          dispOffset = -4;
-          dispSize = 4;
-          relocId = -1;
-          goto EmitDisplacement;
+          relOffset = -4;
+          relSize = 4;
+          goto EmitRel;
         }
       }
     }
@@ -4330,25 +4322,25 @@ EmitJmpCall:
       if (ASMJIT_UNLIKELY(_code->_relocations.willGrow(1) != kErrorOk))
         goto NoHeapMemory;
 
-      CodeHolder::RelocEntry re;
-      re.type = kRelocAbsToRel;
-      re.data = static_cast<int64_t>(jumpAddress);
+      err = _code->newRelocEntry(&re, RelocEntry::kTypeAbsToRel, 0);
+      if (ASMJIT_UNLIKELY(err)) goto Failed;
 
+      re->_data = static_cast<int64_t>(jumpAddress);
       if (ASMJIT_LIKELY(opCode)) {
         // 64-bit: Emit REX prefix so the instruction can be patched later.
         // REX prefix does nothing if not patched, but allows to patch the
         // instruction to use MOD/M and to point to a memory where the final
         // 64-bit address is stored.
-        re.size = 4;
-        re.from = ip + inst32Size - 4;
+        re->_size = 4;
+        re->_sourceOffset = ip + inst32Size - 4;
 
         if (getArchType() != ArchInfo::kTypeX86 && x86IsJmpOrCall(instId)) {
           if (!rex) {
-            re.from++;
+            re->_sourceOffset++;
             EMIT_BYTE(kX86ByteRex);
           }
 
-          re.type = kRelocTrampoline;
+          re->_type = RelocEntry::kTypeTrampoline;
           _code->_trampolinesSize += 8;
         }
 
@@ -4360,15 +4352,13 @@ EmitJmpCall:
         EMIT_DWORD(0);
       }
       else {
-        re.size = 1;
-        re.from = ip + inst8Size - 1;
+        re->_size = 1;
+        re->_sourceOffset = ip + inst8Size - 1;
 
         // Emit OPCODE + DISP8.
         EMIT_BYTE(opCode8);
         EMIT_BYTE(0);
       }
-
-      _code->_relocations.appendUnsafe(re);
       goto EmitDone;
     }
 
@@ -4398,28 +4388,28 @@ EmitJmpCall_Rel:
   }
 
   // --------------------------------------------------------------------------
-  // [Emit - Displacement]
+  // [Emit - Relative]
   // --------------------------------------------------------------------------
 
-EmitDisplacement:
+EmitRel:
   {
     ASMJIT_ASSERT(!label->isBound());
-    ASMJIT_ASSERT(dispSize == 1 || dispSize == 4);
+    ASMJIT_ASSERT(relSize == 1 || relSize == 4);
 
     // Chain with label.
-    CodeHolder::LabelLink* link = _code->newLabelLink();
-    if (ASMJIT_UNLIKELY(!link)) goto NoHeapMemory;
+    size_t offset = (size_t)(cursor - _bufferData);
+    LabelLink* link = _code->newLabelLink(label, _section->getId(), offset, relOffset);
 
-    link->prev = label->_links;
-    link->offset = (intptr_t)(cursor - _bufferData);
-    link->displacement = dispOffset;
-    link->relocId = relocId;
-    label->_links = link;
+    if (ASMJIT_UNLIKELY(!link))
+      goto NoHeapMemory;
+
+    if (re)
+      link->relocId = re->getId();
 
     // Emit label size as dummy data.
-    if (dispSize == 1)
+    if (relSize == 1)
       EMIT_BYTE(0x01);
-    else // if (dispSize == 4)
+    else // if (relSize == 4)
       EMIT_DWORD(0x04040404);
   }
 
@@ -4468,7 +4458,7 @@ EmitDone:
 #if !defined(ASMJIT_DISABLE_LOGGING)
   // Logging is a performance hit anyway, so make it the unlikely case.
   if (ASMJIT_UNLIKELY(options & CodeEmitter::kOptionLoggingEnabled))
-    X86Assembler_logInstruction(this, instId, options, o0, o1, o2, o3, dispSize, imLen, cursor);
+    X86Assembler_logInstruction(this, instId, options, o0, o1, o2, o3, relSize, imLen, cursor);
 #endif // !ASMJIT_DISABLE_LOGGING
 
   resetOptions();
