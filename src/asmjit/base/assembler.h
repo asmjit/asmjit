@@ -96,7 +96,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  CodeHolder::SectionEntry* _section;    //!< Current section where the assembling happens.
+  SectionEntry* _section;                //!< Current section where the assembling happens.
   uint8_t* _bufferData;                  //!< Start of the CodeBuffer of the current section.
   uint8_t* _bufferEnd;                   //!< End (first invalid byte) of the current section.
   uint8_t* _bufferPtr;                   //!< Pointer in the CodeBuffer of the current section.

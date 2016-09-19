@@ -47,18 +47,6 @@ ASMJIT_ENUM(AlignMode) {
 };
 
 // ============================================================================
-// [asmjit::RelocMode]
-// ============================================================================
-
-//! Relocation mode.
-ASMJIT_ENUM(RelocMode) {
-  kRelocAbsToAbs = 0,                    //!< Relocate absolute to absolute.
-  kRelocRelToAbs = 1,                    //!< Relocate relative to absolute.
-  kRelocAbsToRel = 2,                    //!< Relocate absolute to relative.
-  kRelocTrampoline = 3                   //!< Relocate absolute to relative or use trampoline.
-};
-
-// ============================================================================
 // [asmjit::ErrorHandler]
 // ============================================================================
 
@@ -234,36 +222,245 @@ public:
 };
 
 // ============================================================================
-// [asmjit::CodeSection]
-// ============================================================================
-
-//! Code or data section.
-struct CodeSection {
-  //! Section flags.
-  ASMJIT_ENUM(Flags) {
-    kFlagExec        = 0x00000001U,      //!< Executable (.text sections).
-    kFlagConst       = 0x00000002U,      //!< Read-only (.text and .data sections).
-    kFlagZero        = 0x00000004U,      //!< Zero initialized by the loader (BSS).
-    kFlagInfo        = 0x00000008U       //!< Info / comment flag.
-  };
-
-  uint32_t id;                           //!< Section id.
-  uint32_t flags;                        //!< Section flags.
-  uint32_t alignment;                    //!< Section alignment requirements (0 if no requirements).
-  char name[36];                         //!< Section name (max 35 characters, PE allows max 8).
-};
-
-// ============================================================================
 // [asmjit::CodeBuffer]
 // ============================================================================
 
 //! Code or data buffer.
 struct CodeBuffer {
-  uint8_t* data;                         //!< The content of the buffer (data).
-  size_t length;                         //!< Number of bytes of `data` used.
-  size_t capacity;                       //!< Buffer capacity (in bytes).
-  bool isExternal;                       //!< True if this is external buffer.
-  bool isFixedSize;                      //!< True if this buffer cannot grow.
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE bool hasData() const noexcept { return _data != nullptr; }
+  ASMJIT_INLINE uint8_t* getData() noexcept { return _data; }
+  ASMJIT_INLINE const uint8_t* getData() const noexcept { return _data; }
+
+  ASMJIT_INLINE size_t getLength() const noexcept { return _length; }
+  ASMJIT_INLINE size_t getCapacity() const noexcept { return _capacity; }
+
+  ASMJIT_INLINE bool isExternal() const noexcept { return _isExternal; }
+  ASMJIT_INLINE bool isFixedSize() const noexcept { return _isFixedSize; }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  uint8_t* _data;                        //!< The content of the buffer (data).
+  size_t _length;                        //!< Number of bytes of `data` used.
+  size_t _capacity;                      //!< Buffer capacity (in bytes).
+  bool _isExternal;                      //!< True if this is external buffer.
+  bool _isFixedSize;                     //!< True if this buffer cannot grow.
+};
+
+// ============================================================================
+// [asmjit::SectionEntry]
+// ============================================================================
+
+//! Section entry.
+class SectionEntry {
+public:
+  ASMJIT_ENUM(Id) {
+    kInvalidId       = 0xFFFFFFFFU       //!< Invalid section id.
+  };
+
+  //! Section flags.
+  ASMJIT_ENUM(Flags) {
+    kFlagExec        = 0x00000001U,      //!< Executable (.text sections).
+    kFlagConst       = 0x00000002U,      //!< Read-only (.text and .data sections).
+    kFlagZero        = 0x00000004U,      //!< Zero initialized by the loader (BSS).
+    kFlagInfo        = 0x00000008U,      //!< Info / comment flag.
+    kFlagImplicit    = 0x80000000U       //!< Section created implicitly (can be deleted by the Runtime).
+  };
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE uint32_t getId() const noexcept { return _id; }
+  ASMJIT_INLINE const char* getName() const noexcept { return _name; }
+
+  ASMJIT_INLINE void _setDefaultName(
+      char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
+      char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
+    reinterpret_cast<uint32_t*>(_name)[0] = Utils::pack32_4x8(c0, c1, c2, c3);
+    reinterpret_cast<uint32_t*>(_name)[1] = Utils::pack32_4x8(c4, c5, c6, c7);
+  }
+
+  ASMJIT_INLINE uint32_t getFlags() const noexcept { return _flags; }
+  ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
+  ASMJIT_INLINE void addFlags(uint32_t flags) noexcept { _flags |= flags; }
+  ASMJIT_INLINE void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
+
+  ASMJIT_INLINE uint32_t getAlignment() const noexcept { return _alignment; }
+  ASMJIT_INLINE void setAlignment(uint32_t alignment) noexcept { _alignment = alignment; }
+
+  ASMJIT_INLINE size_t getPhysicalSize() const noexcept { return _buffer.getLength(); }
+
+  ASMJIT_INLINE size_t getVirtualSize() const noexcept { return _virtualSize; }
+  ASMJIT_INLINE void setVirtualSize(uint32_t size) noexcept { _virtualSize = size; }
+
+  ASMJIT_INLINE CodeBuffer& getBuffer() noexcept { return _buffer; }
+  ASMJIT_INLINE const CodeBuffer& getBuffer() const noexcept { return _buffer; }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  uint32_t _id;                          //!< Section id.
+  uint32_t _flags;                       //!< Section flags.
+  uint32_t _alignment;                   //!< Section alignment requirements (0 if no requirements).
+  uint32_t _virtualSize;                 //!< Virtual size of the section (zero initialized mostly).
+  char _name[36];                        //!< Section name (max 35 characters, PE allows max 8).
+  CodeBuffer _buffer;                    //!< Code or data buffer.
+};
+
+// ============================================================================
+// [asmjit::LabelLink]
+// ============================================================================
+
+//! Data structure used to link labels.
+struct LabelLink {
+  LabelLink* prev;                       //!< Previous link (single-linked list).
+  uint32_t sectionId;                    //!< Section id.
+  uint32_t relocId;                      //!< Relocation id or RelocEntry::kInvalidId.
+  size_t offset;                         //!< Label offset relative to the start of the section.
+  intptr_t rel;                          //!< Inlined rel8/rel32.
+};
+
+// ============================================================================
+// [asmjit::LabelEntry]
+// ============================================================================
+
+//! Label entry.
+//!
+//! Contains the following properties:
+//!   * Label id - This is the only thing that is set to the `Label` operand.
+//!   * Label name - Optional, used mostly to create executables and libraries.
+//!   * Label type - Type of the label, default `Label::kTypeAnonymous`.
+//!   * Label parent id - Derived from many assemblers that allow to define a
+//!       local label that falls under a global label. This allows to define
+//!       many labels of the same name that have different parent (global) label.
+//!   * Offset - offset of the label bound by `Assembler`.
+//!   * Links - single-linked list that contains locations of code that has
+//!       to be patched when the label gets bound. Every use of unbound label
+//!       adds one link to `_links` list.
+//!   * HVal - Hash value of label's name and optionally parentId.
+//!   * HashNext - Hash-table implementation detail.
+class LabelEntry : public ZoneHashNode {
+public:
+  // NOTE: Label id is stored in `_customData`, which is provided by ZoneHashNode
+  // to fill a padding that a C++ compiler targeting 64-bit CPU will add to align
+  // the structure to 64-bits.
+
+  //! Get label id.
+  ASMJIT_INLINE uint32_t getId() const noexcept { return _customData; }
+  //! Set label id (internal, used only by \ref CodeHolder).
+  ASMJIT_INLINE void _setId(uint32_t id) noexcept { _customData = id; }
+
+  //! Get label type, see \ref Label::Type.
+  ASMJIT_INLINE uint32_t getType() const noexcept { return _type; }
+  //! Get label flags, returns 0 at the moment.
+  ASMJIT_INLINE uint32_t getFlags() const noexcept { return _flags; }
+
+  //! Get label's parent id.
+  ASMJIT_INLINE uint32_t getParentId() const noexcept { return _parentId; }
+
+  //! Get label's section id where it's bound to (or `SectionEntry::kInvalidId` if it's not bound yet).
+  ASMJIT_INLINE uint32_t getSectionId() const noexcept { return _sectionId; }
+
+  //! Get if the label has name.
+  ASMJIT_INLINE bool hasName() const noexcept { return !_name.isEmpty(); }
+
+  //! Get the label's name.
+  //!
+  //! NOTE: Local labels will return their local name without their parent
+  //! part, for example ".L1".
+  ASMJIT_INLINE const char* getName() const noexcept { return _name.getData(); }
+
+  //! Get length of label's name.
+  //!
+  //! NOTE: Label name is always null terminated, so you can use `strlen()` to
+  //! get it, however, it's also cached in `LabelEntry`, so if you want to know
+  //! the length the easiest way is to use `LabelEntry::getNameLength()`.
+  ASMJIT_INLINE size_t getNameLength() const noexcept { return _name.getLength(); }
+
+  //! Get if the label is bound.
+  ASMJIT_INLINE bool isBound() const noexcept { return _sectionId != SectionEntry::kInvalidId; }
+  //! Get the label offset (only useful if the label is bound).
+  ASMJIT_INLINE intptr_t getOffset() const noexcept { return _offset; }
+
+  //! Get the hash-value of label's name and its parent label (if any).
+  //!
+  //! Label hash is calculated as `HASH(Name) ^ ParentId`. The hash function
+  //! is implemented in `Utils::hashString()` and `Utils::hashRound()`.
+  ASMJIT_INLINE uint32_t getHVal() const noexcept { return _hVal; }
+
+  // ------------------------------------------------------------------------
+  // [Members]
+  // ------------------------------------------------------------------------
+
+  // Let's round the size of `LabelEntry` to 64 bytes (as ZoneHeap has 32
+  // bytes granularity anyway). This gives `_name` the remaining space, which
+  // is roughly 16 bytes on 64-bit and 28 bytes on 32-bit architectures.
+  enum { kNameBytes = 64 - (sizeof(ZoneHashNode) + 16 + sizeof(intptr_t) + sizeof(LabelLink*)) };
+
+  uint8_t _type;                         //!< Label type, see Label::Type.
+  uint8_t _flags;                        //!< Must be zero.
+  uint16_t _reserved16;                  //!< Reserved.
+  uint32_t _parentId;                    //!< Label parent id or `kInvalidValue`.
+  uint32_t _sectionId;                   //!< Section id or `SectionEntry::kInvalidId`.
+  uint32_t _reserved32;                  //!< Reserved.
+  intptr_t _offset;                      //!< Label offset.
+  LabelLink* _links;                     //!< Label links.
+  SmallString<kNameBytes> _name;         //!< Label name.
+};
+
+// ============================================================================
+// [asmjit::RelocEntry]
+// ============================================================================
+
+//! Relocation entry.
+struct RelocEntry {
+  ASMJIT_ENUM(Id) {
+    kInvalidId       = 0xFFFFFFFFU       //!< Invalid relocation id.
+  };
+
+  //! Relocation type.
+  ASMJIT_ENUM(Type) {
+    kTypeNone        = 0,                //!< Deleted entry (no relocation).
+    kTypeAbsToAbs    = 1,                //!< Relocate absolute to absolute.
+    kTypeRelToAbs    = 2,                //!< Relocate relative to absolute.
+    kTypeAbsToRel    = 3,                //!< Relocate absolute to relative.
+    kTypeTrampoline  = 4                 //!< Relocate absolute to relative or use trampoline.
+  };
+
+  // ------------------------------------------------------------------------
+  // [Accessors]
+  // ------------------------------------------------------------------------
+
+  ASMJIT_INLINE uint32_t getId() const noexcept { return _id; }
+
+  ASMJIT_INLINE uint32_t getType() const noexcept { return _type; }
+  ASMJIT_INLINE uint32_t getSize() const noexcept { return _size; }
+
+  ASMJIT_INLINE uint32_t getSourceSectionId() const noexcept { return _sourceSectionId; }
+  ASMJIT_INLINE uint32_t getTargetSectionId() const noexcept { return _targetSectionId; }
+
+  ASMJIT_INLINE uint64_t getSourceOffset() const noexcept { return _sourceOffset; }
+  ASMJIT_INLINE uint64_t getData() const noexcept { return _data; }
+
+  // ------------------------------------------------------------------------
+  // [Members]
+  // ------------------------------------------------------------------------
+
+  uint32_t _id;                          //!< Relocation id.
+  uint8_t _type;                         //!< Type of the relocation.
+  uint8_t _size;                         //!< Size of the relocation (1, 2, 4 or 8 bytes).
+  uint8_t _reserved[2];                  //!< Reserved.
+  uint32_t _sourceSectionId;             //!< Source section id.
+  uint32_t _targetSectionId;             //!< Destination section id.
+  uint64_t _sourceOffset;                //!< Source offset (relative to start of the section).
+  uint64_t _data;                        //!< Relocation data (target offset, target address, etc).
 };
 
 // ============================================================================
@@ -281,129 +478,6 @@ struct CodeBuffer {
 class ASMJIT_VIRTAPI CodeHolder {
 public:
   ASMJIT_NONCOPYABLE(CodeHolder)
-
-  // --------------------------------------------------------------------------
-  // [SectionEntry]
-  // --------------------------------------------------------------------------
-
-  //! Code or data section entry.
-  struct SectionEntry {
-    CodeSection info;                    //!< Section information (name, flags, alignment).
-    CodeBuffer buffer;                   //!< Machine code & data of this section.
-  };
-
-  // --------------------------------------------------------------------------
-  // [LabelLink]
-  // --------------------------------------------------------------------------
-
-  //! Data structure used to link labels.
-  struct LabelLink {
-    LabelLink* prev;                     //!< Previous link (single-linked list).
-    intptr_t offset;                     //!< Label offset relative to the start of the section.
-    intptr_t displacement;               //!< Inlined displacement.
-    intptr_t relocId;                    //!< Relocation id (in case it's needed).
-  };
-
-  // --------------------------------------------------------------------------
-  // [LabelEntry]
-  // --------------------------------------------------------------------------
-
-  //! Label entry.
-  //!
-  //! Contains the following properties:
-  //!   * Label id - This is the only thing that is set to the `Label` operand.
-  //!   * Label name - Optional, used mostly to create executables and libraries.
-  //!   * Label type - Type of the label, default `Label::kTypeAnonymous`.
-  //!   * Label parent id - Derived from many assemblers that allow to define a
-  //!       local label that falls under a global label. This allows to define
-  //!       many labels of the same name that have different parent (global) label.
-  //!   * Offset - offset of the label bound by `Assembler`.
-  //!   * Links - single-linked list that contains locations of code that has
-  //!       to be patched when the label gets bound. Every use of unbound label
-  //!       adds one link to `_links` list.
-  //!   * HVal - Hash value of label's name and optionally parentId.
-  //!   * HashNext - Hash-table implementation detail.
-  class LabelEntry : public ZoneHashNode {
-  public:
-    // NOTE: Label id is stored in `_customData`, which is provided by ZoneHashNode
-    // to fill a padding that a C++ compiler targeting 64-bit CPU will add to align
-    // the structure to 64-bits.
-
-    //! Get label id.
-    ASMJIT_INLINE uint32_t getId() const noexcept { return _customData; }
-    //! Set label id (internal, used only by \ref CodeHolder).
-    ASMJIT_INLINE void _setId(uint32_t id) noexcept { _customData = id; }
-
-    //! Get label type, see \ref Label::Type.
-    ASMJIT_INLINE uint32_t getType() const noexcept { return _type; }
-    //! Get label flags, returns 0 at the moment.
-    ASMJIT_INLINE uint32_t getFlags() const noexcept { return _flags; }
-
-    //! Get label's parent id.
-    ASMJIT_INLINE uint32_t getParentId() const noexcept { return _parentId; }
-
-    //! Get if the label has name.
-    ASMJIT_INLINE bool hasName() const noexcept { return !_name.isEmpty(); }
-
-    //! Get the label's name.
-    //!
-    //! NOTE: Local labels will return their local name without their parent
-    //! part, for example ".L1".
-    ASMJIT_INLINE const char* getName() const noexcept { return _name.getData(); }
-
-    //! Get length of label's name.
-    //!
-    //! NOTE: Label name is always null terminated, so you can use `strlen()` to
-    //! get it, however, it's also cached in `LabelEntry`, so if you want to know
-    //! the length the easiest way is to use `LabelEntry::getNameLength()`.
-    ASMJIT_INLINE size_t getNameLength() const noexcept { return _name.getLength(); }
-
-    //! Get if the label is bound.
-    ASMJIT_INLINE bool isBound() const noexcept { return _offset != -1; }
-    //! Get the label offset (only useful if the label is bound).
-    ASMJIT_INLINE intptr_t getOffset() const noexcept { return _offset; }
-
-    //! Get the hash-value of label's name and its parent label (if any).
-    //!
-    //! Label hash is calculated as `HASH(Name) ^ ParentId`. The hash function
-    //! is implemented in `Utils::hashString()` and `Utils::hashRound()`.
-    ASMJIT_INLINE uint32_t getHVal() const noexcept { return _hVal; }
-
-    // ------------------------------------------------------------------------
-    // [Members]
-    // ------------------------------------------------------------------------
-
-    // Let's round the size of `LabelEntry` to 64 bytes (as ZoneHeap has 32
-    // bytes granularity anyway). This gives `_name` the remaining space, which
-    // is roughly 24 bytes on 64-bit and 36 bytes on 32-bit architectures.
-    enum { kNameBytes = 64 - (sizeof(ZoneHashNode) + 8 + sizeof(intptr_t) + sizeof(LabelLink*)) };
-
-    uint8_t _type;                       //!< Label type, see Label::Type.
-    uint8_t _flags;                      //!< Must be zero.
-    uint16_t _reserved;                  //!< Reserved.
-    uint32_t _parentId;                  //!< Label parent id or `kInvalidValue`.
-    intptr_t _offset;                    //!< Label offset.
-    LabelLink* _links;                   //!< Label links.
-    SmallString<kNameBytes> _name;       //!< Label name.
-  };
-
-  // --------------------------------------------------------------------------
-  // [RelocEntry]
-  // --------------------------------------------------------------------------
-
-  //! Code relocation entry.
-  //!
-  //! X86/X64 Specific
-  //! ----------------
-  //!
-  //! X86 architecture uses 32-bit absolute addressing model encoded in memory
-  //! operands, but 64-bit mode uses relative addressing model (RIP + displacement).
-  struct RelocEntry {
-    uint32_t type;                       //!< Type of the relocation.
-    uint32_t size;                       //!< Size of the relocation (4 or 8 bytes).
-    uint64_t from;                       //!< Offset from the initial address.
-    uint64_t data;                       //!< Displacement from the initial/absolute address.
-  };
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -451,9 +525,9 @@ public:
 
   //! Get code/target information, see \ref CodeInfo.
   ASMJIT_INLINE const CodeInfo& getCodeInfo() const noexcept { return _codeInfo; }
-
   //! Get architecture information, see \ref ArchInfo.
   ASMJIT_INLINE const ArchInfo& getArchInfo() const noexcept { return _codeInfo.getArchInfo(); }
+
   //! Get the target's architecture type.
   ASMJIT_INLINE uint32_t getArchType() const noexcept { return getArchInfo().getType(); }
   //! Get the target's architecture sub-type.
@@ -545,13 +619,16 @@ public:
   //! Create a new label-link used to store information about yet unbound labels.
   //!
   //! Returns `null` if the allocation failed.
-  ASMJIT_API LabelLink* newLabelLink() noexcept;
+  ASMJIT_API LabelLink* newLabelLink(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel) noexcept;
 
   //! Get array of `LabelEntry*` records.
-  ASMJIT_INLINE const ZoneVector<LabelEntry*>& getLabels() const noexcept { return _labels; }
+  ASMJIT_INLINE const ZoneVector<LabelEntry*>& getLabelEntries() const noexcept { return _labels; }
 
   //! Get number of labels created.
   ASMJIT_INLINE size_t getLabelsCount() const noexcept { return _labels.getLength(); }
+
+  //! Get number of label references, which are unresolved at the moment.
+  ASMJIT_INLINE size_t getUnresolvedLabelsCount() const noexcept { return _unresolvedLabelsCount; }
 
   //! Get if the `label` is valid (i.e. created by `newLabelId()`).
   ASMJIT_INLINE bool isLabelValid(const Label& label) const noexcept {
@@ -596,8 +673,20 @@ public:
   }
 
   // --------------------------------------------------------------------------
-  // [Relocate]
+  // [Relocations]
   // --------------------------------------------------------------------------
+
+  //! Create a new relocation entry of type `type` and size `size`.
+  //!
+  //! Additional fields can be set after the relocation entry was created.
+  ASMJIT_API Error newRelocEntry(RelocEntry** dst, uint32_t type, uint32_t size) noexcept;
+
+  //! Get if the code contains relocations.
+  ASMJIT_INLINE bool hasRelocations() const noexcept { return !_relocations.isEmpty(); }
+  //! Get array of `RelocEntry*` records.
+  ASMJIT_INLINE const ZoneVector<RelocEntry*>& getRelocEntries() const noexcept { return _relocations; }
+
+  ASMJIT_INLINE RelocEntry* getRelocEntry(uint32_t id) const noexcept { return _relocations[id]; }
 
   //! Relocate the code to `baseAddress` and copy it to `dst`.
   //!
@@ -632,6 +721,7 @@ public:
   Logger* _logger;                       //!< Attached \ref Logger, used by all consumers.
   ErrorHandler* _errorHandler;           //!< Attached \ref ErrorHandler.
 
+  uint32_t _unresolvedLabelsCount;       //!< Count of label references which were not resolved.
   uint32_t _trampolinesSize;             //!< Size of all possible trampolines.
 
   Zone _baseZone;                        //!< Base zone (used to allocate core structures).
@@ -640,7 +730,7 @@ public:
 
   ZoneVector<SectionEntry*> _sections;   //!< Section entries.
   ZoneVector<LabelEntry*> _labels;       //!< Label entries (each label is stored here).
-  ZoneVector<RelocEntry> _relocations;   //!< Relocation entries.
+  ZoneVector<RelocEntry*> _relocations;  //!< Relocation entries.
   ZoneHash<LabelEntry> _namedLabels;     //!< Label name -> LabelEntry (only named labels).
 };
 

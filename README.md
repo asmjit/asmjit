@@ -474,7 +474,7 @@ int main(int argc, char* argv[]) {
   code.sync();                            // So let's sync, it's easy.
 
   // We have no Runtime this time, it's on us what we do with the code.
-  // CodeHolder stores code in CodeHolder::SectionEntry, which embeds CodeSection
+  // CodeHolder stores code in SectionEntry, which embeds CodeSection
   // and CodeBuffer structures. We are interested in section's CodeBuffer only.
   //
   // NOTE: The first section is always '.text', so it's safe to just use 0 index.

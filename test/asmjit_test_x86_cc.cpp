@@ -246,19 +246,19 @@ public:
   virtual void compile(X86Compiler& cc) {
     cc.addFunc(FuncSignature0<void>(CallConv::kIdHost));
 
-    Label L_1 = cc.newLabel();
-    Label L_2 = cc.newLabel();
-    Label L_3 = cc.newLabel();
+    Label L1 = cc.newLabel();
+    Label L2 = cc.newLabel();
+    Label L3 = cc.newLabel();
 
-    cc.jmp(L_2);
+    cc.jmp(L2);
 
-    cc.bind(L_1);
-    cc.jmp(L_3);
+    cc.bind(L1);
+    cc.jmp(L3);
 
-    cc.bind(L_2);
-    cc.jmp(L_1);
+    cc.bind(L2);
+    cc.jmp(L1);
 
-    cc.bind(L_3);
+    cc.bind(L3);
 
     cc.ret();
     cc.endFunc();

@@ -51,16 +51,18 @@ static void CodeHolder_resetInternal(CodeHolder* self, bool releaseMemory) noexc
   self->_globalOptions = 0;
   self->_logger = nullptr;
   self->_errorHandler = nullptr;
+
+  self->_unresolvedLabelsCount = 0;
   self->_trampolinesSize = 0;
 
   // Reset all sections.
   size_t numSections = self->_sections.getLength();
   for (size_t i = 0; i < numSections; i++) {
-    CodeHolder::SectionEntry* section = self->_sections[i];
-    if (section->buffer.data && !section->buffer.isExternal)
-      ASMJIT_FREE(section->buffer.data);
-    section->buffer.data = nullptr;
-    section->buffer.capacity = 0;
+    SectionEntry* section = self->_sections[i];
+    if (section->_buffer.hasData() && !section->_buffer.isExternal())
+      ASMJIT_FREE(section->_buffer._data);
+    section->_buffer._data = nullptr;
+    section->_buffer._capacity = 0;
   }
 
   // Reset zone allocator and all containers using it.
@@ -105,7 +107,7 @@ CodeHolder::~CodeHolder() noexcept {
 // ============================================================================
 
 Error CodeHolder::init(const CodeInfo& info) noexcept {
-  // Cannot reinitialize if it's locked or there one or more CodeEmitter
+  // Cannot reinitialize if it's locked or there is one or more CodeEmitter
   // attached.
   if (isInitialized())
     return DebugUtils::errored(kErrorAlreadyInitialized);
@@ -114,14 +116,19 @@ Error CodeHolder::init(const CodeInfo& info) noexcept {
   ASMJIT_ASSERT(_emitters == nullptr);
 
   // Create the default section and insert it to the `_sections` array.
-  SectionEntry* text = _baseZone.allocZeroedT<SectionEntry>();
-  if (ASMJIT_UNLIKELY(!text)) return DebugUtils::errored(kErrorNoHeapMemory);
+  Error err = _sections.willGrow(1);
+  if (err == kErrorOk) {
+    SectionEntry* se = _baseZone.allocZeroedT<SectionEntry>();
+    if (ASMJIT_LIKELY(se)) {
+      se->_flags = SectionEntry::kFlagExec | SectionEntry::kFlagConst;
+      se->_setDefaultName('.', 't', 'e', 'x', 't');
+      _sections.appendUnsafe(se);
+    }
+    else {
+      err = DebugUtils::errored(kErrorNoHeapMemory);
+    }
+  }
 
-  text->info.flags = CodeSection::kFlagExec | CodeSection::kFlagConst;
-  reinterpret_cast<uint32_t*>(text->info.name)[0] = Utils::pack32_4x8('.', 't' , 'e' , 'x' );
-  reinterpret_cast<uint32_t*>(text->info.name)[1] = Utils::pack32_4x8('t', '\0', '\0', '\0');
-
-  Error err = _sections.append(text);
   if (ASMJIT_UNLIKELY(err)) {
     _baseZone.reset(false);
     return err;
@@ -228,10 +235,11 @@ void CodeHolder::sync() noexcept {
 // ============================================================================
 
 size_t CodeHolder::getCodeSize() const noexcept {
-  if (_cgAsm) _cgAsm->sync();
+  // Reflect all changes first.
+  const_cast<CodeHolder*>(this)->sync();
 
   // TODO: Support sections.
-  return _sections[0]->buffer.length + getTrampolinesSize();
+  return _sections[0]->_buffer._length + getTrampolinesSize();
 }
 
 // ============================================================================
@@ -249,8 +257,6 @@ void CodeHolder::setLogger(Logger* logger) noexcept {
 #endif // !ASMJIT_DISABLE_LOGGING
 
 Error CodeHolder::setErrorHandler(ErrorHandler* handler) noexcept {
-  ErrorHandler* oldHandler = _errorHandler;
-
   _errorHandler = handler;
   return kErrorOk;
 }
@@ -260,10 +266,10 @@ Error CodeHolder::setErrorHandler(ErrorHandler* handler) noexcept {
 // ============================================================================
 
 static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t n) noexcept {
-  uint8_t* oldData = cb->data;
+  uint8_t* oldData = cb->_data;
   uint8_t* newData;
 
-  if (oldData && !cb->isExternal)
+  if (oldData && !cb->isExternal())
     newData = static_cast<uint8_t*>(ASMJIT_REALLOC(oldData, n));
   else
     newData = static_cast<uint8_t*>(ASMJIT_ALLOC(n));
@@ -271,14 +277,14 @@ static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t
   if (ASMJIT_UNLIKELY(!newData))
     return DebugUtils::errored(kErrorNoHeapMemory);
 
-  cb->data = newData;
-  cb->capacity = n;
+  cb->_data = newData;
+  cb->_capacity = n;
 
   // Update the `Assembler` pointers if attached. Maybe we should introduce an
   // event for this, but since only one Assembler can be attached at a time it
   // should not matter how these pointers are updated.
   Assembler* a = self->_cgAsm;
-  if (a && &a->_section->buffer == cb) {
+  if (a && &a->_section->_buffer == cb) {
     size_t offset = a->getOffset();
 
     a->_bufferData = newData;
@@ -297,17 +303,17 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
   if (_cgAsm) _cgAsm->sync();
 
   // Now the length of the section must be valid.
-  size_t length = cb->length;
+  size_t length = cb->getLength();
   if (ASMJIT_UNLIKELY(n > IntTraits<uintptr_t>::maxValue() - length))
     return DebugUtils::errored(kErrorNoHeapMemory);
 
   // We can now check if growing the buffer is really necessary. It's unlikely
   // that this function is called while there is still room for `n` bytes.
-  size_t capacity = cb->capacity;
-  size_t required = cb->length + n;
+  size_t capacity = cb->getCapacity();
+  size_t required = cb->getLength() + n;
   if (ASMJIT_UNLIKELY(required <= capacity)) return kErrorOk;
 
-  if (cb->isFixedSize)
+  if (cb->isFixedSize())
     return DebugUtils::errored(kErrorCodeTooLarge);
 
   if (capacity < 8096)
@@ -336,10 +342,10 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
 }
 
 Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
-  size_t capacity = cb->capacity;
+  size_t capacity = cb->getCapacity();
   if (n <= capacity) return kErrorOk;
 
-  if (cb->isFixedSize)
+  if (cb->isFixedSize())
     return DebugUtils::errored(kErrorCodeTooLarge);
 
   // We must sync, as mentioned in `growBuffer()` as well.
@@ -363,7 +369,7 @@ public:
     : name(name),
       nameLength(static_cast<uint32_t>(nameLength)) {}
 
-  ASMJIT_INLINE bool matches(const CodeHolder::LabelEntry* entry) const noexcept {
+  ASMJIT_INLINE bool matches(const LabelEntry* entry) const noexcept {
     return static_cast<uint32_t>(entry->getNameLength()) == nameLength &&
            ::memcmp(entry->getName(), name, nameLength) == 0;
   }
@@ -398,15 +404,19 @@ static uint32_t CodeHolder_hashNameAndFixLen(const char* name, size_t& nameLengt
 
 } // anonymous namespace
 
-CodeHolder::LabelLink* CodeHolder::newLabelLink() noexcept {
+LabelLink* CodeHolder::newLabelLink(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel) noexcept {
   LabelLink* link = _baseHeap.allocT<LabelLink>();
   if (ASMJIT_UNLIKELY(!link)) return nullptr;
 
-  link->prev = nullptr;
-  link->offset = 0;
-  link->displacement = 0;
-  link->relocId = -1;
+  link->prev = le->_links;
+  le->_links = link;
 
+  link->sectionId = sectionId;
+  link->relocId = RelocEntry::kInvalidId;
+  link->offset = offset;
+  link->rel = rel;
+
+  _unresolvedLabelsCount++;
   return link;
 }
 
@@ -426,7 +436,8 @@ Error CodeHolder::newLabelId(uint32_t& idOut) noexcept {
   uint32_t id = Operand::packId(static_cast<uint32_t>(index));
   le->_setId(id);
   le->_parentId = kInvalidValue;
-  le->_offset = -1;
+  le->_sectionId = SectionEntry::kInvalidId;
+  le->_offset = 0;
 
   _labels.appendUnsafe(le);
   idOut = id;
@@ -485,7 +496,8 @@ Error CodeHolder::newNamedLabelId(uint32_t& idOut, const char* name, size_t name
   le->_setId(id);
   le->_type = static_cast<uint8_t>(type);
   le->_parentId = kInvalidValue;
-  le->_offset = -1;
+  le->_sectionId = SectionEntry::kInvalidId;
+  le->_offset = 0;
 
   if (le->_name.mustEmbed(nameLength)) {
     le->_name.setEmbedded(name, nameLength);
@@ -513,12 +525,34 @@ uint32_t CodeHolder::getLabelIdByName(const char* name, size_t nameLength, uint3
 }
 
 // ============================================================================
-// [asmjit::CodeEmitter - Relocate]
+// [asmjit::CodeEmitter - Relocations]
 // ============================================================================
 
 //! Encode MOD byte.
 static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) noexcept {
   return (m << 6) | (o << 3) | rm;
+}
+
+Error CodeHolder::newRelocEntry(RelocEntry** dst, uint32_t type, uint32_t size) noexcept {
+  ASMJIT_PROPAGATE(_relocations.willGrow(1));
+
+  size_t index = _relocations.getLength();
+  if (ASMJIT_UNLIKELY(index > size_t(0xFFFFFFFFU)))
+    return DebugUtils::errored(kErrorRelocIndexOverflow);
+
+  RelocEntry* re = _baseHeap.allocZeroedT<RelocEntry>();
+  if (ASMJIT_UNLIKELY(!re))
+    return DebugUtils::errored(kErrorNoHeapMemory);
+
+  re->_id = static_cast<uint32_t>(index);
+  re->_type = static_cast<uint8_t>(type);
+  re->_size = static_cast<uint8_t>(size);
+  re->_sourceSectionId = SectionEntry::kInvalidId;
+  re->_targetSectionId = SectionEntry::kInvalidId;
+  _relocations.appendUnsafe(re);
+
+  *dst = re;
+  return kErrorOk;
 }
 
 // TODO: Support multiple sections, this only relocates the first.
@@ -538,56 +572,60 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
   Logger* logger = getLogger();
 #endif // ASMJIT_DISABLE_LOGGING
 
-  size_t minCodeSize = section->buffer.length; // Minimum code size.
-  size_t maxCodeSize = getCodeSize();          // Includes all possible trampolines.
+  size_t minCodeSize = section->getBuffer().getLength(); // Minimum code size.
+  size_t maxCodeSize = getCodeSize();                    // Includes all possible trampolines.
 
   // We will copy the exact size of the generated code. Extra code for trampolines
   // is generated on-the-fly by the relocator (this code doesn't exist at the moment).
-  ::memcpy(dst, section->buffer.data, minCodeSize);
+  ::memcpy(dst, section->_buffer._data, minCodeSize);
 
   // Trampoline offset from the beginning of dst/baseAddress.
   size_t trampOffset = minCodeSize;
 
   // Relocate all recorded locations.
   size_t numRelocs = _relocations.getLength();
-  const CodeHolder::RelocEntry* relocs = _relocations.getData();
+  const RelocEntry* const* reArray = _relocations.getData();
 
   for (size_t i = 0; i < numRelocs; i++) {
-    const CodeHolder::RelocEntry& re = relocs[i];
+    const RelocEntry* re = reArray[i];
 
-    uint64_t ptr = re.data;
-    size_t codeOffset = static_cast<size_t>(re.from);
+    // Possibly deleted or optimized out relocation entry.
+    if (re->getType() == RelocEntry::kTypeNone)
+      continue;
+
+    uint64_t ptr = re->getData();
+    size_t codeOffset = static_cast<size_t>(re->getSourceOffset());
 
     // Make sure that the `RelocEntry` is correct, we don't want to write
     // out of bounds in `dst`.
-    if (ASMJIT_UNLIKELY(codeOffset + re.size > maxCodeSize))
+    if (ASMJIT_UNLIKELY(codeOffset + re->getSize() > maxCodeSize))
       return DebugUtils::errored(kErrorInvalidRelocEntry);
 
     // Whether to use trampoline, can be only used if relocation type is `kRelocTrampoline`.
     bool useTrampoline = false;
 
-    switch (re.type) {
-      case kRelocAbsToAbs: {
+    switch (re->getType()) {
+      case RelocEntry::kTypeAbsToAbs: {
         break;
       }
 
-      case kRelocRelToAbs: {
+      case RelocEntry::kTypeRelToAbs: {
         ptr += baseAddress;
         break;
       }
 
-      case kRelocAbsToRel: {
-        ptr -= baseAddress + re.from + re.size;
+      case RelocEntry::kTypeAbsToRel: {
+        ptr -= baseAddress + re->getSourceOffset() + re->getSize();
         break;
       }
 
-      case kRelocTrampoline: {
-        if (re.size != 4)
+      case RelocEntry::kTypeTrampoline: {
+        if (re->getSize() != 4)
           return DebugUtils::errored(kErrorInvalidRelocEntry);
 
-        ptr -= baseAddress + re.from + re.size;
+        ptr -= baseAddress + re->getSourceOffset() + re->getSize();
         if (!Utils::isInt32(static_cast<int64_t>(ptr))) {
-          ptr = (uint64_t)trampOffset - re.from - re.size;
+          ptr = (uint64_t)trampOffset - re->getSourceOffset() - re->getSize();
           useTrampoline = true;
         }
         break;
@@ -597,7 +635,7 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
         return DebugUtils::errored(kErrorInvalidRelocEntry);
     }
 
-    switch (re.size) {
+    switch (re->getSize()) {
       case 1:
         Utils::writeU8(dst + codeOffset, static_cast<uint32_t>(ptr & 0xFFU));
         break;
@@ -638,12 +676,12 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
       dst[codeOffset - 1] = static_cast<uint8_t>(byte1);
 
       // Store absolute address and advance the trampoline pointer.
-      Utils::writeU64u(dst + trampOffset, re.data);
+      Utils::writeU64u(dst + trampOffset, re->getData());
       trampOffset += 8;
 
 #if !defined(ASMJIT_DISABLE_LOGGING)
       if (logger)
-        logger->logf("[reloc] dq 0x%016llX ; Trampoline\n", re.data);
+        logger->logf("[reloc] dq 0x%016llX ; Trampoline\n", re->getData());
 #endif // !ASMJIT_DISABLE_LOGGING
     }
   }

@@ -40,6 +40,7 @@ static const char errorMessages[] =
   "Invalid label name\0"
   "Invalid parent label\0"
   "Non-local label can't have parent\0"
+  "Relocation index overflow\0"
   "Invalid relocation entry\0"
   "Invalid instruction\0"
   "Invalid register type\0"
