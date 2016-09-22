@@ -218,6 +218,11 @@ public:
   //! Realloc internal array to fit at least `n` items.
   ASMJIT_INLINE Error reserve(size_t n) noexcept { return ZoneVectorBase::_reserve(sizeof(T), n); }
 
+  ASMJIT_INLINE void truncate(size_t n) noexcept {
+    ASMJIT_ASSERT(n <= _length);
+    _length = n;
+  }
+
   ASMJIT_INLINE Error willGrow(size_t n) noexcept {
     return _capacity - _length < n ? grow(n) : static_cast<Error>(kErrorOk);
   }
