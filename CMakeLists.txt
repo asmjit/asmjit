@@ -16,6 +16,12 @@ cmake_minimum_required(VERSION 3.1)
 # [AsmJit - Project]
 # =============================================================================
 
+# Don't create a project if it was already created by another CMakeLists.txt.
+# This allows one library to embed another library without a project collision.
+if(NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
+  project(asmjit C CXX)
+endif()
+
 if(NOT ASMJIT_DIR)
   set(ASMJIT_DIR ${CMAKE_CURRENT_LIST_DIR})
 endif()
