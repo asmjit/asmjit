@@ -143,12 +143,6 @@ endif()
 function(cxx_project product)
   string(TOUPPER "${product}" PRODUCT)
 
-  # Don't create project if already created. This allows one library to simply
-  # embed another library without `project` collision. Match `product` exactly.
-  if(NOT CMAKE_PROJECT OR "${CMAKE_PROJECT}" MATCHES "^${product}$")
-    project("${product}" C CXX)
-  endif()
-
   set(MODE_EMBED ${${PRODUCT}_EMBED})
   set(MODE_STATIC ${${PRODUCT}_STATIC})
 
