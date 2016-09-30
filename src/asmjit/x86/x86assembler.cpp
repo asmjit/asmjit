@@ -2461,7 +2461,8 @@ CaseExtMovd:
       }
 
       // The following instructions use the secondary opcode.
-      opCode = commonData->getAltOpCode();
+      opCode &= X86Inst::kOpCode_W;
+      opCode |= commonData->getAltOpCode();
       opReg = o1.getId();
       ADD_66H_P(X86Reg::isXmm(o1));
 
