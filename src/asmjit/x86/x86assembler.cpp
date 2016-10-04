@@ -1480,7 +1480,7 @@ CaseX86M_GPB_MulDiv:
         // "no segment register used". We have to fix this (decrement the index
         // of the register) when emitting MOV instructions which move to/from
         // a segment register. The segment register is always `opReg`, because
-        // the MOV instruction uses RM or MR encoding.
+        // the MOV instruction uses either RM or MR encoding.
 
         // GP <- ??
         if (X86Reg::isGp(o0)) {
