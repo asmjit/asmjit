@@ -3183,8 +3183,8 @@ static const X86Inst::ISignature _x86InstISignatureData[] = {
   ISIGNATURE(1, 1, 1, 0, 142, 0  , 0  , 0  , 0  , 0  ), // #266 {X:m32|m64|fp}
   ISIGNATURE(2, 1, 1, 0, 118, 65 , 0  , 0  , 0  , 0  ), // #267 {X:xmm, R:xmm}
   ISIGNATURE(4, 1, 1, 0, 118, 65 , 27 , 27 , 0  , 0  ), //      {X:xmm, R:xmm, R:i8, R:i8}
-  ISIGNATURE(2, 1, 0, 0, 143, 144, 0  , 0  , 0  , 0  ), // #269 {R:cx|ecx, R:rel8}
-  ISIGNATURE(2, 0, 1, 0, 145, 144, 0  , 0  , 0  , 0  ), //      {R:ecx|rcx, R:rel8}
+  ISIGNATURE(2, 1, 0, 1, 143, 144, 0  , 0  , 0  , 0  ), // #269 {R:<cx|ecx>, R:rel8}
+  ISIGNATURE(2, 0, 1, 1, 145, 144, 0  , 0  , 0  , 0  ), //      {R:<ecx|rcx>, R:rel8}
   ISIGNATURE(1, 1, 1, 0, 146, 0  , 0  , 0  , 0  , 0  ), // #271 {X:rel8|rel32|r64|m64}
   ISIGNATURE(1, 1, 0, 0, 39 , 0  , 0  , 0  , 0  , 0  ), //      {R:r32|m32}
   ISIGNATURE(2, 1, 1, 0, 116, 147, 0  , 0  , 0  , 0  ), // #273 {W:k, R:k|m8|r32|r64|r8lo|r8hi|r16}
@@ -3195,8 +3195,8 @@ static const X86Inst::ISignature _x86InstISignatureData[] = {
   ISIGNATURE(2, 1, 1, 0, 7  , 149, 0  , 0  , 0  , 0  ), //      {W:m64|r64, R:k}
   ISIGNATURE(2, 1, 1, 0, 116, 153, 0  , 0  , 0  , 0  ), // #279 {W:k, R:k|m16|r32|r64|r16}
   ISIGNATURE(2, 1, 1, 0, 154, 149, 0  , 0  , 0  , 0  ), //      {W:m16|r32|r64|r16, R:k}
-  ISIGNATURE(2, 1, 0, 0, 155, 144, 0  , 0  , 0  , 0  ), // #281 {X:cx|ecx, R:rel8}
-  ISIGNATURE(2, 0, 1, 0, 156, 144, 0  , 0  , 0  , 0  ), //      {X:ecx|rcx, R:rel8}
+  ISIGNATURE(2, 1, 0, 1, 155, 144, 0  , 0  , 0  , 0  ), // #281 {X:<cx|ecx>, R:rel8}
+  ISIGNATURE(2, 0, 1, 1, 156, 144, 0  , 0  , 0  , 0  ), //      {X:<ecx|rcx>, R:rel8}
   ISIGNATURE(2, 1, 1, 0, 157, 158, 0  , 0  , 0  , 0  ), // #283 {W:mm|xmm, R:r32|m32|r64}
   ISIGNATURE(2, 1, 1, 0, 151, 159, 0  , 0  , 0  , 0  ), //      {W:r32|m32|r64, R:mm|xmm}
   ISIGNATURE(2, 1, 1, 0, 66 , 67 , 0  , 0  , 0  , 0  ), // #285 {W:xmm, R:xmm|m64}
@@ -3537,9 +3537,9 @@ static const X86Inst::OSignature _x86InstOSignatureData[] = {
   OSIGNATURE(FLAG(R) | FLAG(GpbLo) | FLAG(GpbHi) | FLAG(Gpq) | FLAG(Mem), MEM(M8) | MEM(M64), 0, 0x00),
   OSIGNATURE(FLAG(X) | FLAG(Gpw) | FLAG(Gpd), 0, 0, 0x00),
   OSIGNATURE(FLAG(X) | FLAG(Fp) | FLAG(Mem), MEM(M32) | MEM(M64), 0, 0x00),
-  OSIGNATURE(FLAG(R) | FLAG(Gpw) | FLAG(Gpd), 0, 0, 0x02),
+  OSIGNATURE(FLAG(R) | FLAG(Implicit) | FLAG(Gpw) | FLAG(Gpd), 0, 0, 0x02),
   OSIGNATURE(FLAG(R) | FLAG(I32) | FLAG(I64) | FLAG(Rel8), 0, 0, 0x00),
-  OSIGNATURE(FLAG(R) | FLAG(Gpd) | FLAG(Gpq), 0, 0, 0x02),
+  OSIGNATURE(FLAG(R) | FLAG(Implicit) | FLAG(Gpd) | FLAG(Gpq), 0, 0, 0x02),
   OSIGNATURE(FLAG(X) | FLAG(Gpq) | FLAG(Mem) | FLAG(I32) | FLAG(I64) | FLAG(Rel8) | FLAG(Rel32), MEM(M64), 0, 0x00),
   OSIGNATURE(FLAG(R) | FLAG(GpbLo) | FLAG(GpbHi) | FLAG(Gpw) | FLAG(Gpd) | FLAG(Gpq) | FLAG(K) | FLAG(Mem), MEM(M8), 0, 0x00),
   OSIGNATURE(FLAG(W) | FLAG(GpbLo) | FLAG(GpbHi) | FLAG(Gpw) | FLAG(Gpd) | FLAG(Gpq) | FLAG(Mem), MEM(M8), 0, 0x00),
@@ -3549,8 +3549,8 @@ static const X86Inst::OSignature _x86InstOSignatureData[] = {
   OSIGNATURE(FLAG(R) | FLAG(Gpq) | FLAG(K) | FLAG(Mem), MEM(M64), 0, 0x00),
   OSIGNATURE(FLAG(R) | FLAG(Gpw) | FLAG(Gpd) | FLAG(Gpq) | FLAG(K) | FLAG(Mem), MEM(M16), 0, 0x00),
   OSIGNATURE(FLAG(W) | FLAG(Gpw) | FLAG(Gpd) | FLAG(Gpq) | FLAG(Mem), MEM(M16), 0, 0x00),
-  OSIGNATURE(FLAG(X) | FLAG(Gpw) | FLAG(Gpd), 0, 0, 0x02),
-  OSIGNATURE(FLAG(X) | FLAG(Gpd) | FLAG(Gpq), 0, 0, 0x02),
+  OSIGNATURE(FLAG(X) | FLAG(Implicit) | FLAG(Gpw) | FLAG(Gpd), 0, 0, 0x02),
+  OSIGNATURE(FLAG(X) | FLAG(Implicit) | FLAG(Gpd) | FLAG(Gpq), 0, 0, 0x02),
   OSIGNATURE(FLAG(W) | FLAG(Mm) | FLAG(Xmm), 0, 0, 0x00),
   OSIGNATURE(FLAG(R) | FLAG(Gpd) | FLAG(Gpq) | FLAG(Mem), MEM(M32), 0, 0x00),
   OSIGNATURE(FLAG(R) | FLAG(Mm) | FLAG(Xmm), 0, 0, 0x00),
