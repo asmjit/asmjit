@@ -1,3 +1,5 @@
 .kdev4
 *.kdev4
 build_*
+tools/x86data.js
+tools/x86util.js
