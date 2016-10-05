@@ -4287,10 +4287,13 @@ EmitJmpCall:
           goto EmitRel;
         }
         else {
-          if (!opCode)
+          // Refuse also 'short' prefix, if specified.
+          if (ASMJIT_UNLIKELY(!opCode || (options & X86Inst::kOptionShortForm) != 0))
             goto InvalidDisplacement;
 
-          if (opCode & X86Inst::kOpCode_MM_Mask) EMIT_BYTE(0x0F);
+          if (opCode & X86Inst::kOpCode_MM_Mask)
+            EMIT_BYTE(0x0F);
+
           EMIT_BYTE(opCode);
           relOffset = -4;
           relSize = 4;
@@ -4377,7 +4380,7 @@ EmitJmpCall_Rel:
       goto EmitDone;
     }
     else {
-      if (ASMJIT_UNLIKELY(!opCode))
+      if (ASMJIT_UNLIKELY(!opCode || (options & X86Inst::kOptionShortForm) != 0))
         goto InvalidDisplacement;
 
       options &= ~X86Inst::kOptionShortForm;
