@@ -161,7 +161,7 @@ void ZoneHashBase::_rehash(uint32_t newCount) noexcept {
 
   ZoneHashNode** oldData = _data;
   ZoneHashNode** newData = reinterpret_cast<ZoneHashNode**>(
-    _heap->alloc(static_cast<size_t>(newCount) * sizeof(ZoneHashNode*)));
+    _heap->allocZeroed(static_cast<size_t>(newCount) * sizeof(ZoneHashNode*)));
 
   // We can still store nodes into the table, but it will degrade.
   if (ASMJIT_UNLIKELY(newData == nullptr))
