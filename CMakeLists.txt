@@ -1,30 +1,26 @@
 cmake_minimum_required(VERSION 3.1)
 
-# =============================================================================
-# [AsmJit - Configuration]
-# =============================================================================
-
-# set(ASMJIT_EMBED FALSE)                       # Embed (no targets, just project).
-# set(ASMJIT_STATIC FALSE)                      # Whether to build a static library.
-# set(ASMJIT_TRACE FALSE)                       # Used for debugging asmjit itself.
-
-# set(ASMJIT_BUILD_ARM FALSE)                   # Whether to build ARM backend.
-# set(ASMJIT_BUILD_X86 FALSE)                   # Whether to build X86 backend.
-# set(ASMJIT_BUILD_TEST FALSE)                  # Whether to build tests and samples.
-
-# =============================================================================
-# [AsmJit - Project]
-# =============================================================================
-
 # Don't create a project if it was already created by another CMakeLists.txt.
 # This allows one library to embed another library without a project collision.
 if(NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
   project(asmjit C CXX)
 endif()
 
-if(NOT ASMJIT_DIR)
-  set(ASMJIT_DIR ${CMAKE_CURRENT_LIST_DIR})
-endif()
+# =============================================================================
+# [AsmJit - Configuration]
+# =============================================================================
+
+set(ASMJIT_DIR        "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
+
+set(ASMJIT_EMBED      FALSE CACHE BOOLEAN "Embed 'asmjit' library (no targets)")
+set(ASMJIT_STATIC     FALSE CACHE BOOLEAN "Build 'asmjit' library as static")
+set(ASMJIT_BUILD_ARM  FALSE CACHE BOOLEAN "Build ARM32/ARM64 backends")
+set(ASMJIT_BUILD_X86  FALSE CACHE BOOLEAN "Build X86/X64 backends")
+set(ASMJIT_BUILD_TEST FALSE CACHE BOOLEAN "Build 'asmjit_test' applications")
+
+# =============================================================================
+# [AsmJit - Project]
+# =============================================================================
 
 include("${ASMJIT_DIR}/CxxProject.cmake")
 cxx_project(asmjit)
@@ -35,8 +31,10 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)
   list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS /GR-)
   list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Oi /Oy /GS- /GR-)
+
+  # Enable multi-process compilation.
   if(NOT MSVC60 AND NOT MSVC70 AND NOT MSVC71)
-    list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)      # Enable multi-process compilation.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)
   endif()
 endif()
 
