@@ -163,7 +163,7 @@ static void armDetectCpuInfoOnLinux(CpuInfo* cpuInfo) noexcept {
     { /* HWCAP2_SHA1   */ (1 <<  2), CpuInfo::kArmFeatureSHA1      },
     { /* HWCAP2_SHA2   */ (1 <<  3), CpuInfo::kArmFeatureSHA256    }
   };
-  armDetectHWCaps(cpuInfo, AT_HWCAP2, hwCap2Mapping, ASMJIT_ARRAY_SIZE(hwCapMapping2));
+  armDetectHWCaps(cpuInfo, AT_HWCAP2, hwCap2Mapping, ASMJIT_ARRAY_SIZE(hwCap2Mapping));
 
   if (cpuInfo->hasFeature(CpuInfo::kArmFeatureAES   ) ||
       cpuInfo->hasFeature(CpuInfo::kArmFeatureCRC32 ) ||
