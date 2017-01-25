@@ -1,1 +1,5 @@
+.kdev4
+*.kdev4
+build
 build_*
+tools/asmdb

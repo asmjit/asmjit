@@ -6,79 +6,117 @@
 
 // [Export]
 #define ASMJIT_EXPORTS
-#define ASMJIT_EXPORTS_X86_REGS
+#define ASMJIT_EXPORTS_X86_OPERAND
 
 // [Guard]
-#include "../build.h"
-#if defined(ASMJIT_BUILD_X86) || defined(ASMJIT_BUILD_X64)
+#include "../asmjit_build.h"
+#if defined(ASMJIT_BUILD_X86)
 
 // [Dependencies]
+#include "../base/misc_p.h"
 #include "../x86/x86operand.h"
 
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
 
-#define REG(type, index, size) {{{ \
-  Operand::kTypeReg, size, { ((type) << 8) + index }, kInvalidValue, {{ kInvalidVar, 0 }} \
+// ============================================================================
+// [asmjit::X86OpData]
+// ============================================================================
+
+// Register Operand {
+//   uint32_t signature;
+//   uint32_t id;
+//   uint32_t reserved8_4;
+//   uint32_t reserved12_4;
+// }
+#define ASMJIT_X86_REG_01(TYPE, ID)         \
+{{{                                         \
+  uint32_t(X86RegTraits<TYPE>::kSignature), \
+  uint32_t(ID),                             \
+  uint32_t(0),                              \
+  uint32_t(0)                               \
 }}}
 
-#define REG_LIST_04(type, start, size) \
-  REG(type, start + 0, size), \
-  REG(type, start + 1, size), \
-  REG(type, start + 2, size), \
-  REG(type, start + 3, size)
+#define ASMJIT_X86_REG_04(TYPE, ID) \
+  ASMJIT_X86_REG_01(TYPE, ID + 0 ), \
+  ASMJIT_X86_REG_01(TYPE, ID + 1 ), \
+  ASMJIT_X86_REG_01(TYPE, ID + 2 ), \
+  ASMJIT_X86_REG_01(TYPE, ID + 3 )
 
-#define REG_LIST_08(type, start, size) \
-  REG_LIST_04(type, start + 0, size), \
-  REG_LIST_04(type, start + 4, size)
+#define ASMJIT_X86_REG_07(TYPE, ID) \
+  ASMJIT_X86_REG_04(TYPE, ID + 0 ), \
+  ASMJIT_X86_REG_01(TYPE, ID + 4 ), \
+  ASMJIT_X86_REG_01(TYPE, ID + 5 ), \
+  ASMJIT_X86_REG_01(TYPE, ID + 6 )
 
-#define REG_LIST_16(type, start, size) \
-  REG_LIST_08(type, start + 0, size), \
-  REG_LIST_08(type, start + 8, size)
+#define ASMJIT_X86_REG_08(TYPE, ID) \
+  ASMJIT_X86_REG_04(TYPE, ID + 0 ), \
+  ASMJIT_X86_REG_04(TYPE, ID + 4 )
 
-#define REG_LIST_32(type, start, size) \
-  REG_LIST_16(type, start + 0, size), \
-  REG_LIST_16(type, start + 16, size)
+#define ASMJIT_X86_REG_16(TYPE, ID) \
+  ASMJIT_X86_REG_08(TYPE, ID + 0 ), \
+  ASMJIT_X86_REG_08(TYPE, ID + 8 )
 
-const X86RegData x86RegData = {
-  { REG_LIST_16(kX86RegTypeGpd  , 0,  4) },
-  { REG_LIST_16(kX86RegTypeGpq  , 0,  8) },
-  { REG_LIST_16(kX86RegTypeGpbLo, 0,  1) },
-  { REG_LIST_04(kX86RegTypeGpbHi, 0,  1) },
-  { REG_LIST_16(kX86RegTypeGpw  , 0,  2) },
-  { REG_LIST_32(kX86RegTypeXmm  , 0, 16) },
-  { REG_LIST_32(kX86RegTypeYmm  , 0, 32) },
-  { REG_LIST_32(kX86RegTypeZmm  , 0, 64) },
-  { REG_LIST_08(kX86RegTypeK    , 0,  8) },
-  { REG_LIST_08(kX86RegTypeFp   , 0, 10) },
-  { REG_LIST_08(kX86RegTypeMm   , 0,  8) },
+#define ASMJIT_X86_REG_32(TYPE, ID) \
+  ASMJIT_X86_REG_16(TYPE, ID + 0 ), \
+  ASMJIT_X86_REG_16(TYPE, ID + 16)
+
+const X86OpData x86OpData = {
+  // --------------------------------------------------------------------------
+  // [ArchRegs]
+  // --------------------------------------------------------------------------
 
   {
-    REG(kX86RegTypeSeg, 0, 2), // Default.
-    REG(kX86RegTypeSeg, 1, 2), // ES.
-    REG(kX86RegTypeSeg, 2, 2), // CS.
-    REG(kX86RegTypeSeg, 3, 2), // SS.
-    REG(kX86RegTypeSeg, 4, 2), // DS.
-    REG(kX86RegTypeSeg, 5, 2), // FS.
-    REG(kX86RegTypeSeg, 6, 2)  // GS.
+    {
+#define ASMJIT_X86_REG_SIGNATURE(TYPE) { X86RegTraits<TYPE>::kSignature }
+      ASMJIT_TABLE_16(ASMJIT_X86_REG_SIGNATURE,  0),
+      ASMJIT_TABLE_16(ASMJIT_X86_REG_SIGNATURE, 16)
+#undef ASMJIT_X86_REG_SIGNATURE
+    },
+
+    // RegCount[]
+    { ASMJIT_TABLE_T_32(X86RegTraits, kCount, 0) },
+
+    // RegTypeToTypeId[]
+    { ASMJIT_TABLE_T_32(X86RegTraits, kTypeId, 0) }
   },
 
-  REG(kInvalidReg, kInvalidReg, 0), // NoGp.
-  REG(kX86RegTypeRip, 0, 0),        // RIP.
+  // --------------------------------------------------------------------------
+  // [Registers]
+  // --------------------------------------------------------------------------
+
+  { ASMJIT_X86_REG_01(X86Reg::kRegRip  , 0) },
+  { ASMJIT_X86_REG_07(X86Reg::kRegSeg  , 0) },
+  { ASMJIT_X86_REG_16(X86Reg::kRegGpbLo, 0) },
+  { ASMJIT_X86_REG_04(X86Reg::kRegGpbHi, 0) },
+  { ASMJIT_X86_REG_16(X86Reg::kRegGpw  , 0) },
+  { ASMJIT_X86_REG_16(X86Reg::kRegGpd  , 0) },
+  { ASMJIT_X86_REG_16(X86Reg::kRegGpq  , 0) },
+  { ASMJIT_X86_REG_08(X86Reg::kRegFp   , 0) },
+  { ASMJIT_X86_REG_08(X86Reg::kRegMm   , 0) },
+  { ASMJIT_X86_REG_08(X86Reg::kRegK    , 0) },
+  { ASMJIT_X86_REG_32(X86Reg::kRegXmm  , 0) },
+  { ASMJIT_X86_REG_32(X86Reg::kRegYmm  , 0) },
+  { ASMJIT_X86_REG_32(X86Reg::kRegZmm  , 0) },
+  { ASMJIT_X86_REG_04(X86Reg::kRegBnd  , 0) },
+  { ASMJIT_X86_REG_16(X86Reg::kRegCr   , 0) },
+  { ASMJIT_X86_REG_16(X86Reg::kRegDr   , 0) }
 };
 
-#undef REG_LIST_32
-#undef REG_LIST_16
-#undef REG_LIST_08
-#undef REG_LIST_04
-#undef REG
+#undef ASMJIT_X86_REG_32
+#undef ASMJIT_X86_REG_16
+#undef ASMJIT_X86_REG_08
+#undef ASMJIT_X86_REG_04
+#undef ASMJIT_X86_REG_01
+
+#undef ASMJIT_X86_REG_SIGNATURE
 
 } // asmjit namespace
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"
 
 // [Guard]
-#endif // ASMJIT_BUILD_X86 || ASMJIT_BUILD_X64
+#endif // ASMJIT_BUILD_X86

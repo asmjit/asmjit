@@ -16,7 +16,7 @@
 #endif // ASMJIT_OS_WINDOWS
 
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
 
@@ -30,9 +30,7 @@ namespace asmjit {
 //! \internal
 //! \{
 template<size_t Size, int IsSigned>
-struct IntTraitsPrivate {
-  // Let it fail if not specialized!
-};
+struct IntTraitsPrivate {}; // Let it fail if not specialized!
 
 template<> struct IntTraitsPrivate<1, 0> { typedef int     IntType; typedef int8_t  SignedType; typedef uint8_t  UnsignedType; };
 template<> struct IntTraitsPrivate<1, 1> { typedef int     IntType; typedef int8_t  SignedType; typedef uint8_t  UnsignedType; };
@@ -50,15 +48,13 @@ template<> struct IntTraitsPrivate<8, 1> { typedef int64_t IntType; typedef int6
 template<typename T>
 struct IntTraits {
   enum {
-    kIsSigned = static_cast<T>(~static_cast<T>(0)) < static_cast<T>(0),
+    kIsSigned   = static_cast<T>(~static_cast<T>(0)) < static_cast<T>(0),
     kIsUnsigned = !kIsSigned,
-
-    kIs8Bit = sizeof(T) == 1,
-    kIs16Bit = sizeof(T) == 2,
-    kIs32Bit = sizeof(T) == 4,
-    kIs64Bit = sizeof(T) == 8,
-
-    kIsIntPtr = sizeof(T) == sizeof(intptr_t)
+    kIs8Bit     = sizeof(T) == 1,
+    kIs16Bit    = sizeof(T) == 2,
+    kIs32Bit    = sizeof(T) == 4,
+    kIs64Bit    = sizeof(T) == 8,
+    kIsIntPtr   = sizeof(T) == sizeof(intptr_t)
   };
 
   typedef typename IntTraitsPrivate<sizeof(T), kIsSigned>::IntType IntType;
@@ -67,18 +63,12 @@ struct IntTraits {
 
   //! Get a minimum value of `T`.
   static ASMJIT_INLINE T minValue() noexcept {
-    if (kIsSigned)
-      return static_cast<T>((~static_cast<UnsignedType>(0) >> 1) + static_cast<UnsignedType>(1));
-    else
-      return static_cast<T>(0);
+    return kIsSigned ? T((~static_cast<UnsignedType>(0) >> 1) + static_cast<UnsignedType>(1)) : T(0);
   }
 
   //! Get a maximum value of `T`.
   static ASMJIT_INLINE T maxValue() noexcept {
-    if (kIsSigned)
-      return static_cast<T>(~static_cast<UnsignedType>(0) >> 1);
-    else
-      return ~static_cast<T>(0);
+    return kIsSigned ? T(~static_cast<UnsignedType>(0) >> 1) : ~T(0);
   }
 };
 
@@ -120,17 +110,9 @@ struct Utils {
   // [Pack / Unpack]
   // --------------------------------------------------------------------------
 
-  //! Pack two 8-bit integer and one 16-bit integer into a 32-bit integer as it
-  //! is an array of `{b0,b1,w2}`.
-  static ASMJIT_INLINE uint32_t pack32_2x8_1x16(uint32_t b0, uint32_t b1, uint32_t w2) noexcept {
-    return ASMJIT_ARCH_LE ? b0 + (b1 << 8) + (w2 << 16)
-                          : (b0 << 24) + (b1 << 16) + w2;
-  }
-
   //! Pack four 8-bit integer into a 32-bit integer as it is an array of `{b0,b1,b2,b3}`.
   static ASMJIT_INLINE uint32_t pack32_4x8(uint32_t b0, uint32_t b1, uint32_t b2, uint32_t b3) noexcept {
-    return ASMJIT_ARCH_LE ? b0 + (b1 << 8) + (b2 << 16) + (b3 << 24)
-                          : (b0 << 24) + (b1 << 16) + (b2 << 8) + b3;
+    return ASMJIT_PACK32_4x8(b0, b1, b2, b3);
   }
 
   //! Pack two 32-bit integer into a 64-bit integer as it is an array of `{u0,u1}`.
@@ -151,19 +133,41 @@ struct Utils {
   }
 
   // --------------------------------------------------------------------------
-  // [Min/Max]
+  // [Lower/Upper]
   // --------------------------------------------------------------------------
 
-  // Some environments declare `min()` and `max()` as preprocessor macros so it
-  // was decided to use different names to prevent such collision.
-
-  //! Get minimum value of `a` and `b`.
   template<typename T>
-  static ASMJIT_INLINE T iMin(const T& a, const T& b) noexcept { return a < b ? a : b; }
-
-  //! Get maximum value of `a` and `b`.
+  static ASMJIT_INLINE T toLower(T c) noexcept { return c ^ (static_cast<T>(c >= T('A') && c <= T('Z')) << 5); }
   template<typename T>
-  static ASMJIT_INLINE T iMax(const T& a, const T& b) noexcept { return a > b ? a : b; }
+  static ASMJIT_INLINE T toUpper(T c) noexcept { return c ^ (static_cast<T>(c >= T('a') && c <= T('z')) << 5); }
+
+  // --------------------------------------------------------------------------
+  // [Hash]
+  // --------------------------------------------------------------------------
+
+  // \internal
+  static ASMJIT_INLINE uint32_t hashRound(uint32_t hash, uint32_t c) noexcept { return hash * 65599 + c; }
+
+  // Get a hash of the given string `str` of `len` length. Length must be valid
+  // as this function doesn't check for a null terminator and allows it in the
+  // middle of the string.
+  static ASMJIT_INLINE uint32_t hashString(const char* str, size_t len) noexcept {
+    uint32_t hVal = 0;
+    for (uint32_t i = 0; i < len; i++)
+      hVal = hashRound(hVal, str[i]);
+    return hVal;
+  }
+
+  // --------------------------------------------------------------------------
+  // [Swap]
+  // --------------------------------------------------------------------------
+
+  template<typename T>
+  static ASMJIT_INLINE void swap(T& a, T& b) noexcept {
+    T tmp = a;
+    a = b;
+    b = tmp;
+  }
 
   // --------------------------------------------------------------------------
   // [InInterval]
@@ -179,9 +183,9 @@ struct Utils {
   // [AsInt]
   // --------------------------------------------------------------------------
 
-  //! Map an integer `x` of type `T` to an `int` or `int64_t`, depending on the
-  //! type. Used internally by AsmJit to dispatch an argument that can be an
-  //! arbitrary integer type into a function that accepts either `int` or
+  //! Map an integer `x` of type `T` to `int` or `int64_t` depending on the
+  //! type. Used internally by AsmJit to dispatch arguments that can be of
+  //! arbitrary integer type into a function argument that is either `int` or
   //! `int64_t`.
   template<typename T>
   static ASMJIT_INLINE typename IntTraits<T>::IntType asInt(T x) noexcept {
@@ -467,15 +471,22 @@ struct Utils {
   // [Alignment]
   // --------------------------------------------------------------------------
 
-  template<typename T>
-  static ASMJIT_INLINE bool isAligned(T base, T alignment) noexcept {
-    return (base % alignment) == 0;
+  template<typename X, typename Y>
+  static ASMJIT_INLINE bool isAligned(X base, Y alignment) noexcept {
+    typedef typename IntTraitsPrivate<sizeof(X), 0>::UnsignedType U;
+    return ((U)base % (U)alignment) == 0;
   }
 
-  //! Align `base` to `alignment`.
-  template<typename T>
-  static ASMJIT_INLINE T alignTo(T base, T alignment) noexcept {
-    return (base + (alignment - 1)) & ~(alignment - 1);
+  template<typename X, typename Y>
+  static ASMJIT_INLINE X alignTo(X x, Y alignment) noexcept {
+    typedef typename IntTraitsPrivate<sizeof(X), 0>::UnsignedType U;
+    return (X)( ((U)x + (U)(alignment - 1)) & ~(static_cast<U>(alignment) - 1) );
+  }
+
+  //! Get delta required to align `base` to `alignment`.
+  template<typename X, typename Y>
+  static ASMJIT_INLINE X alignDiff(X base, Y alignment) noexcept {
+    return alignTo(base, alignment) - base;
   }
 
   template<typename T>
@@ -505,12 +516,6 @@ struct Utils {
     return base + 1;
   }
 
-  //! Get delta required to align `base` to `alignment`.
-  template<typename T>
-  static ASMJIT_INLINE T alignDiff(T base, T alignment) noexcept {
-    return alignTo(base, alignment) - base;
-  }
-
   // --------------------------------------------------------------------------
   // [String]
   // --------------------------------------------------------------------------
@@ -521,6 +526,33 @@ struct Utils {
       if (!s[i])
         break;
     return i;
+  }
+
+  static ASMJIT_INLINE const char* findPackedString(const char* p, uint32_t id) noexcept {
+    uint32_t i = 0;
+    while (i < id) {
+      while (p[0])
+        p++;
+      p++;
+      i++;
+    }
+    return p;
+  }
+
+  //! \internal
+  //!
+  //! Compare two instruction names.
+  //!
+  //! `a` is a null terminated instruction name from `???InstDB::nameData[]` table.
+  //! `b` is a non-null terminated instruction name passed to `???Inst::getIdByName()`.
+  static ASMJIT_INLINE int cmpInstName(const char* a, const char* b, size_t len) noexcept {
+    for (size_t i = 0; i < len; i++) {
+      int c = static_cast<int>(static_cast<uint8_t>(a[i])) -
+              static_cast<int>(static_cast<uint8_t>(b[i])) ;
+      if (c != 0) return c;
+    }
+
+    return static_cast<int>(a[len]);
   }
 
   // --------------------------------------------------------------------------
@@ -968,13 +1000,6 @@ struct Utils {
 
   static ASMJIT_INLINE void writeI64a(void* p, int64_t x) noexcept { writeI64x<8>(p, x); }
   static ASMJIT_INLINE void writeI64u(void* p, int64_t x) noexcept { writeI64x<0>(p, x); }
-
-  // --------------------------------------------------------------------------
-  // [GetTickCount]
-  // --------------------------------------------------------------------------
-
-  //! Get the current CPU tick count, used for benchmarking (1ms resolution).
-  static ASMJIT_API uint32_t getTickCount() noexcept;
 };
 
 // ============================================================================
@@ -1237,104 +1262,30 @@ union UInt64 {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! 64-bit unsigned value.
-  uint64_t u64;
+  int8_t   i8[8];                        //!< 8-bit signed integer (8x).
+  uint8_t  u8[8];                        //!< 8-bit unsigned integer (8x).
 
-  uint32_t u32[2];
-  uint16_t u16[4];
-  uint8_t u8[8];
+  int16_t  i16[4];                       //!< 16-bit signed integer (4x).
+  uint16_t u16[4];                       //!< 16-bit unsigned integer (4x).
 
-  struct {
+  int32_t  i32[2];                       //!< 32-bit signed integer (2x).
+  uint32_t u32[2];                       //!< 32-bit unsigned integer (2x).
+
+  int64_t  i64;                          //!< 64-bit signed integer.
+  uint64_t u64;                          //!< 64-bit unsigned integer.
+
+  float    f32[2];                       //!< 32-bit floating point (2x).
+  double   f64;                          //!< 64-bit floating point.
+
 #if ASMJIT_ARCH_LE
-    uint32_t lo, hi;
+  struct { float    f32Lo, f32Hi; };
+  struct { int32_t  i32Lo, i32Hi; };
+  struct { uint32_t u32Lo, u32Hi; };
 #else
-    uint32_t hi, lo;
+  struct { float    f32Hi, f32Lo; };
+  struct { int32_t  i32Hi, i32Lo; };
+  struct { uint32_t u32Hi, u32Lo; };
 #endif // ASMJIT_ARCH_LE
-  };
-};
-
-// ============================================================================
-// [asmjit::Lock]
-// ============================================================================
-
-//! \internal
-//!
-//! Lock.
-struct Lock {
-  ASMJIT_NO_COPY(Lock)
-
-  // --------------------------------------------------------------------------
-  // [Windows]
-  // --------------------------------------------------------------------------
-
-#if ASMJIT_OS_WINDOWS
-  typedef CRITICAL_SECTION Handle;
-
-  //! Create a new `Lock` instance.
-  ASMJIT_INLINE Lock() noexcept { InitializeCriticalSection(&_handle); }
-  //! Destroy the `Lock` instance.
-  ASMJIT_INLINE ~Lock() noexcept { DeleteCriticalSection(&_handle); }
-
-  //! Lock.
-  ASMJIT_INLINE void lock() noexcept { EnterCriticalSection(&_handle); }
-  //! Unlock.
-  ASMJIT_INLINE void unlock() noexcept { LeaveCriticalSection(&_handle); }
-#endif // ASMJIT_OS_WINDOWS
-
-  // --------------------------------------------------------------------------
-  // [Posix]
-  // --------------------------------------------------------------------------
-
-#if ASMJIT_OS_POSIX
-  typedef pthread_mutex_t Handle;
-
-  //! Create a new `Lock` instance.
-  ASMJIT_INLINE Lock() noexcept { pthread_mutex_init(&_handle, nullptr); }
-  //! Destroy the `Lock` instance.
-  ASMJIT_INLINE ~Lock() noexcept { pthread_mutex_destroy(&_handle); }
-
-  //! Lock.
-  ASMJIT_INLINE void lock() noexcept { pthread_mutex_lock(&_handle); }
-  //! Unlock.
-  ASMJIT_INLINE void unlock() noexcept { pthread_mutex_unlock(&_handle); }
-#endif // ASMJIT_OS_POSIX
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Native handle.
-  Handle _handle;
-};
-
-// ============================================================================
-// [asmjit::AutoLock]
-// ============================================================================
-
-//! \internal
-//!
-//! Scoped lock.
-struct AutoLock {
-  ASMJIT_NO_COPY(AutoLock)
-
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
-
-  ASMJIT_INLINE AutoLock(Lock& target) noexcept : _target(target) {
-    _target.lock();
-  }
-
-  ASMJIT_INLINE ~AutoLock() noexcept {
-    _target.unlock();
-  }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Reference to the `Lock`.
-  Lock& _target;
 };
 
 //! \}
@@ -1342,7 +1293,7 @@ struct AutoLock {
 } // asmjit namespace
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_UTILS_H

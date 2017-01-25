@@ -1,12 +1,12 @@
 language: cpp
 
-os:
-  - linux
-  - osx
+os: [linux, osx]
+compiler: [gcc, clang]
 
-compiler:
-  - clang
-  - gcc
+addons:
+  apt:
+    packages: [cmake, gcc-multilib, g++-multilib, valgrind]
+    sources: [ubuntu-toolchain-r-test]
 
 env:
   matrix:
@@ -20,20 +20,16 @@ matrix:
     - os: osx
       compiler: gcc
 
-before_install:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-         CMAKE_PACKAGE="cmake-3.3.2-Linux-x86_64"
-      && wget https://www.cmake.org/files/v3.3/${CMAKE_PACKAGE}.tar.gz --no-check-certificate
-      && sudo apt-get -qq update
-      && sudo apt-get -qq install gcc-multilib g++-multilib valgrind
-      && tar -xzf ${CMAKE_PACKAGE}.tar.gz
-      && sudo cp -fR ${CMAKE_PACKAGE}/* /usr
-      ;
+install:
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_PACKAGE="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
+      mkdir -p deps/cmake
+      wget --no-check-certificate --quiet -O - ${CMAKE_PACKAGE} | tar --strip-components=1 -xz -C deps/cmake
+      export PATH=${TRAVIS_BUILD_DIR}/deps/cmake/bin:${PATH}
     else
-         brew update
-      && brew unlink cmake
-      && brew install -v cmake
-      ;
+      brew update
+      brew outdated cmake || brew upgrade cmake
     fi
 
 before_script:
@@ -49,7 +45,11 @@ script:
   - cd ..
 
   - ./build/asmjit_test_unit
-  - ./build/asmjit_test_x86
+  - ./build/asmjit_test_opcode > /dev/null
+  - ./build/asmjit_test_x86_asm
+  - ./build/asmjit_test_x86_cc
 
 after_success:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./build/asmjit_test_unit; fi;
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./build/asmjit_test_x86_asm; fi;
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./build/asmjit_test_x86_cc; fi;

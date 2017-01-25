@@ -12,6 +12,7 @@
 #include "./base.h"
 
 #include "./arm/armassembler.h"
+#include "./arm/armbuilder.h"
 #include "./arm/armcompiler.h"
 #include "./arm/arminst.h"
 #include "./arm/armoperand.h"
