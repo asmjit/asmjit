@@ -9,79 +9,16 @@
 #define _ASMJIT_BASE_VMEM_H
 
 // [Dependencies]
-#include "../base/utils.h"
+#include "../base/globals.h"
+#include "../base/osutils.h"
 
 // [Api-Begin]
-#include "../apibegin.h"
+#include "../asmjit_apibegin.h"
 
 namespace asmjit {
 
 //! \addtogroup asmjit_base
 //! \{
-
-// ============================================================================
-// [asmjit::VMemAllocType]
-// ============================================================================
-
-//! Type of virtual memory allocation, see `VMemMgr::alloc()`.
-ASMJIT_ENUM(VMemAllocType) {
-  //! Normal memory allocation, has to be freed by `VMemMgr::release()`.
-  kVMemAllocFreeable = 0,
-  //! Allocate permanent memory, can't be freed.
-  kVMemAllocPermanent = 1
-};
-
-// ============================================================================
-// [asmjit::VMemFlags]
-// ============================================================================
-
-//! Type of virtual memory allocation, see `VMemMgr::alloc()`.
-ASMJIT_ENUM(VMemFlags) {
-  //! Memory is writable.
-  kVMemFlagWritable = 0x00000001,
-  //! Memory is executable.
-  kVMemFlagExecutable = 0x00000002
-};
-
-// ============================================================================
-// [asmjit::VMemUtil]
-// ============================================================================
-
-//! Virtual memory utilities.
-//!
-//! Defines functions that provide facility to allocate and free memory that is
-//! executable in a platform independent manner. If both the processor and host
-//! operating system support data-execution-prevention then the only way how to
-//! run machine code is to allocate it to a memory that has marked as executable.
-//! VMemUtil is just unified interface to platform dependent APIs.
-//!
-//! `VirtualAlloc()` function is used on Windows operating system and `mmap()`
-//! on POSIX. `VirtualAlloc()` and `mmap()` documentation provide a detailed
-//! overview on how to use a platform specific APIs.
-struct VMemUtil {
-  //! Get a size/alignment of a single virtual memory page.
-  static ASMJIT_API size_t getPageSize() noexcept;
-
-  //! Get a recommended granularity for a single `alloc` call.
-  static ASMJIT_API size_t getPageGranularity() noexcept;
-
-  //! Allocate virtual memory.
-  //!
-  //! Pages are readable/writeable, but they are not guaranteed to be
-  //! executable unless 'canExecute' is true. Returns the address of
-  //! allocated memory, or `nullptr` on failure.
-  static ASMJIT_API void* alloc(size_t length, size_t* allocated, uint32_t flags) noexcept;
-  //! Free memory allocated by `alloc()`.
-  static ASMJIT_API Error release(void* addr, size_t length) noexcept;
-
-#if ASMJIT_OS_WINDOWS
-  //! Allocate virtual memory of `hProcess` (Windows only).
-  static ASMJIT_API void* allocProcessMemory(HANDLE hProcess, size_t length, size_t* allocated, uint32_t flags) noexcept;
-
-  //! Release virtual memory of `hProcess` (Windows only).
-  static ASMJIT_API Error releaseProcessMemory(HANDLE hProcess, void* addr, size_t length) noexcept;
-#endif // ASMJIT_OS_WINDOWS
-};
 
 // ============================================================================
 // [asmjit::VMemMgr]
@@ -90,7 +27,15 @@ struct VMemUtil {
 //! Reference implementation of memory manager that uses `VMemUtil` to allocate
 //! chunks of virtual memory and bit arrays to manage it.
 class VMemMgr {
- public:
+public:
+  //! Type of virtual memory allocation, see `VMemMgr::alloc()`.
+  ASMJIT_ENUM(AllocType) {
+    //! Normal memory allocation, has to be freed by `VMemMgr::release()`.
+    kAllocFreeable = 0,
+    //! Allocate permanent memory, can't be freed.
+    kAllocPermanent = 1
+  };
+
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -123,30 +68,19 @@ class VMemMgr {
 
 #if ASMJIT_OS_WINDOWS
   //! Get the handle of the process memory manager is bound to.
-  ASMJIT_INLINE HANDLE getProcessHandle() const noexcept {
-    return _hProcess;
-  }
+  ASMJIT_INLINE HANDLE getProcessHandle() const noexcept { return _hProcess; }
 #endif // ASMJIT_OS_WINDOWS
 
   //! Get how many bytes are currently allocated.
-  ASMJIT_INLINE size_t getAllocatedBytes() const noexcept {
-    return _allocatedBytes;
-  }
-
+  ASMJIT_INLINE size_t getAllocatedBytes() const noexcept { return _allocatedBytes; }
   //! Get how many bytes are currently used.
-  ASMJIT_INLINE size_t getUsedBytes() const noexcept {
-    return _usedBytes;
-  }
+  ASMJIT_INLINE size_t getUsedBytes() const noexcept { return _usedBytes; }
 
   //! Get whether to keep allocated memory after the `VMemMgr` is destroyed.
   //!
   //! \sa \ref setKeepVirtualMemory.
-  ASMJIT_INLINE bool getKeepVirtualMemory() const noexcept {
-    return _keepVirtualMemory;
-  }
-
-  //! Set whether to keep allocated memory after memory manager is
-  //! destroyed.
+  ASMJIT_INLINE bool getKeepVirtualMemory() const noexcept { return _keepVirtualMemory; }
+  //! Set whether to keep allocated memory after the memory manager is destroyed.
   //!
   //! This method is usable when patching code of remote process. You need to
   //! allocate process memory, store generated assembler into it and patch the
@@ -154,12 +88,10 @@ class VMemMgr {
   //! VMemMgr destructor. After destruction all internal
   //! structures are freed, only the process virtual memory remains.
   //!
-  //! NOTE: Memory allocated with kVMemAllocPermanent is always kept.
+  //! NOTE: Memory allocated with kAllocPermanent is always kept.
   //!
   //! \sa \ref getKeepVirtualMemory.
-  ASMJIT_INLINE void setKeepVirtualMemory(bool keepVirtualMemory) noexcept {
-    _keepVirtualMemory = keepVirtualMemory;
-  }
+  ASMJIT_INLINE void setKeepVirtualMemory(bool val) noexcept { _keepVirtualMemory = val; }
 
   // --------------------------------------------------------------------------
   // [Alloc / Release]
@@ -170,11 +102,9 @@ class VMemMgr {
   //! Note that if you are implementing your own virtual memory manager then you
   //! can quitly ignore type of allocation. This is mainly for AsmJit to memory
   //! manager that allocated memory will be never freed.
-  ASMJIT_API void* alloc(size_t size, uint32_t type = kVMemAllocFreeable) noexcept;
-
+  ASMJIT_API void* alloc(size_t size, uint32_t type = kAllocFreeable) noexcept;
   //! Free previously allocated memory at a given `address`.
   ASMJIT_API Error release(void* p) noexcept;
-
   //! Free extra memory allocated with `p`.
   ASMJIT_API Error shrink(void* p, size_t used) noexcept;
 
@@ -183,25 +113,16 @@ class VMemMgr {
   // --------------------------------------------------------------------------
 
 #if ASMJIT_OS_WINDOWS
-  //! Process passed to `VirtualAllocEx` and `VirtualFree`.
-  HANDLE _hProcess;
+  HANDLE _hProcess;                      //!< Process passed to `VirtualAllocEx` and `VirtualFree`.
 #endif // ASMJIT_OS_WINDOWS
+  Lock _lock;                            //!< Lock to enable thread-safe functionality.
 
-  //! Lock to enable thread-safe functionality.
-  Lock _lock;
+  size_t _blockSize;                     //!< Default block size.
+  size_t _blockDensity;                  //!< Default block density.
+  bool _keepVirtualMemory;               //!< Keep virtual memory after destroyed.
 
-  //! Default block size.
-  size_t _blockSize;
-  //! Default block density.
-  size_t _blockDensity;
-
-  // Whether to keep virtual memory after destroy.
-  bool _keepVirtualMemory;
-
-  //! How many bytes are currently allocated.
-  size_t _allocatedBytes;
-  //! How many bytes are currently used.
-  size_t _usedBytes;
+  size_t _allocatedBytes;                //!< How many bytes are currently allocated.
+  size_t _usedBytes;                     //!< How many bytes are currently used.
 
   //! \internal
   //! \{
@@ -227,7 +148,7 @@ class VMemMgr {
 } // asmjit namespace
 
 // [Api-End]
-#include "../apiend.h"
+#include "../asmjit_apiend.h"
 
 // [Guard]
 #endif // _ASMJIT_BASE_VMEM_H

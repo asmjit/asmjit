@@ -1,0 +1,78 @@
+version: "{build}"
+
+image: Visual Studio 2015
+clone_folder: c:\dev\asmjit
+
+environment:
+  matrix:
+    - BUILD_TYPE: Debug
+      MINGW_PATH: C:\msys64\mingw64
+      TOOLCHAIN: "MinGW Makefiles"
+
+    - BUILD_TYPE: Release
+      MINGW_PATH: C:\msys64\mingw64
+      TOOLCHAIN: "MinGW Makefiles"
+
+    - BUILD_TYPE: Debug
+      TOOLCHAIN: "Visual Studio 10 2010"
+
+    - BUILD_TYPE: Release
+      TOOLCHAIN: "Visual Studio 10 2010"
+
+    - BUILD_TYPE: Debug
+      TOOLCHAIN: "Visual Studio 10 2010 Win64"
+
+    - BUILD_TYPE: Release
+      TOOLCHAIN: "Visual Studio 10 2010 Win64"
+
+    - BUILD_TYPE: Debug
+      TOOLCHAIN: "Visual Studio 12 2013"
+
+    - BUILD_TYPE: Release
+      TOOLCHAIN: "Visual Studio 12 2013"
+
+    - BUILD_TYPE: Debug
+      TOOLCHAIN: "Visual Studio 12 2013 Win64"
+
+    - BUILD_TYPE: Release
+      TOOLCHAIN: "Visual Studio 12 2013 Win64"
+
+    - BUILD_TYPE: Debug
+      TOOLCHAIN: "Visual Studio 14 2015"
+
+    - BUILD_TYPE: Release
+      TOOLCHAIN: "Visual Studio 14 2015"
+
+    - BUILD_TYPE: Debug
+      TOOLCHAIN: "Visual Studio 14 2015 Win64"
+
+    - BUILD_TYPE: Release
+      TOOLCHAIN: "Visual Studio 14 2015 Win64"
+
+install:
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" set PATH=%MINGW_PATH%\bin;%PATH%
+
+build_script:
+  - cd c:\dev\asmjit
+  - md build
+  - cd build
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" (
+      cmake .. -G"%TOOLCHAIN%" -DCMAKE_PREFIX_PATH="%MINGW_PATH%" -DCMAKE_BUILD_TYPE="%BUILD_TYPE%" -DASMJIT_BUILD_TEST=1 &&
+      mingw32-make
+    )
+    else (
+      cmake .. -G"%TOOLCHAIN%" -DASMJIT_BUILD_TEST=1 &&
+      msbuild /m /nologo /v:quiet /p:Configuration=%BUILD_TYPE% asmjit.sln
+    )
+
+test_script:
+  - if "%TOOLCHAIN%"=="MinGW Makefiles" (
+      cd c:\dev\asmjit\build
+    )
+    else (
+      cd c:\dev\asmjit\build\%BUILD_TYPE%
+    )
+  - asmjit_test_unit.exe
+  - asmjit_test_x86_asm.exe
+  - asmjit_test_x86_cc.exe

@@ -9,27 +9,25 @@
 #define _ASMJIT_BASE_H
 
 // [Dependencies]
-#include "./build.h"
-
+#include "./base/arch.h"
 #include "./base/assembler.h"
+#include "./base/codebuilder.h"
+#include "./base/codecompiler.h"
+#include "./base/codeemitter.h"
+#include "./base/codeholder.h"
 #include "./base/constpool.h"
-#include "./base/containers.h"
 #include "./base/cpuinfo.h"
+#include "./base/func.h"
 #include "./base/globals.h"
-#include "./base/logger.h"
+#include "./base/logging.h"
 #include "./base/operand.h"
-#include "./base/podvector.h"
+#include "./base/osutils.h"
 #include "./base/runtime.h"
+#include "./base/simdtypes.h"
+#include "./base/string.h"
 #include "./base/utils.h"
-#include "./base/vectypes.h"
 #include "./base/vmem.h"
 #include "./base/zone.h"
-
-#if !defined(ASMJIT_DISABLE_COMPILER)
-#include "./base/compiler.h"
-#include "./base/compilerfunc.h"
-#include "./base/hlstream.h"
-#endif // !ASMJIT_DISABLE_COMPILER
 
 // [Guard]
 #endif // _ASMJIT_BASE_H
