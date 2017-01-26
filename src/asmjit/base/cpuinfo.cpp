@@ -287,7 +287,7 @@ static void ASMJIT_INLINE x86CallCpuId(CpuIdResult* result, uint32_t inEax, uint
       : "a"(inEax),
         "c"(inEcx)
   );
-#elif (ASMJIT_CC_GCC || ASMJIT_CC_CLANG) && ASMJIT_ARCH_X64
+#elif (ASMJIT_CC_GCC || ASMJIT_CC_CLANG || ASMJIT_CC_INTEL) && ASMJIT_ARCH_X64
   __asm__ __volatile__( \
     "mov %%rbx, %%rdi\n"
     "cpuid\n"
