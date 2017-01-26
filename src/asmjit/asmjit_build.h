@@ -637,7 +637,7 @@
 #   endif
 #  endif
 # else
-#  if ASMJIT_CC_CLANG || ASMJIT_CC_GCC_GE(4, 0, 0)
+#  if ASMJIT_CC_CLANG || ASMJIT_CC_GCC_GE(4, 0, 0) || ASMJIT_CC_INTEL
 #   define ASMJIT_API __attribute__((__visibility__("default")))
 #  endif
 # endif
