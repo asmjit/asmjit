@@ -178,7 +178,7 @@ CBSentinel* CodeCompiler::endFunc() {
     return nullptr;
   }
 
-  // Add the local constant pool at the end of the function (if exist).
+  // Add the local constant pool at the end of the function (if exists).
   setCursor(func->getExitNode());
 
   if (_localConstPool) {

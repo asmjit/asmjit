@@ -92,11 +92,7 @@ CodeHolder::CodeHolder() noexcept
     _trampolinesSize(0),
     _baseZone(16384 - Zone::kZoneOverhead),
     _dataZone(16384 - Zone::kZoneOverhead),
-    _baseHeap(&_baseZone),
-    _labels(),
-    _sections(),
-    _relocations() {
-}
+    _baseHeap(&_baseZone) {}
 
 CodeHolder::~CodeHolder() noexcept {
   CodeHolder_resetInternal(this, true);
@@ -562,9 +558,7 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
   SectionEntry* section = _sections[0];
   ASMJIT_ASSERT(section != nullptr);
 
-  uint32_t archType = getArchType();
   uint8_t* dst = static_cast<uint8_t*>(_dst);
-
   if (baseAddress == Globals::kNoBaseAddress)
     baseAddress = static_cast<uint64_t>((uintptr_t)dst);
 

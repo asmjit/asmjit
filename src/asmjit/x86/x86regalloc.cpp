@@ -1749,7 +1749,7 @@ _NextGroup:
           // We also advance our node pointer to the target node to simulate
           // natural flow of the function.
           if (jNode->isJmp()) {
-            if (!next->hasPassData())
+            if (next && !next->hasPassData())
               ASMJIT_PROPAGATE(addUnreachableNode(next));
 
             // Jump not followed.

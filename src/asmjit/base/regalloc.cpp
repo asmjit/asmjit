@@ -359,8 +359,8 @@ Error RAPass::removeUnreachableCode() {
 //! \internal
 struct LivenessTarget {
   LivenessTarget* prev;  //!< Previous target.
-  CBLabel* node;        //!< Target node.
-  CBJump* from;         //!< Jumped from.
+  CBLabel* node;         //!< Target node.
+  CBJump* from;          //!< Jumped from.
 };
 
 Error RAPass::livenessAnalysis() {

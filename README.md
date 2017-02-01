@@ -145,7 +145,7 @@ AsmJit is designed to be easy embeddable in any project. However, it depends on 
 ### Build Type:
 
   * **ASMJIT_DEBUG** - Define to always turn debugging on (regardless of compile-time options detected).
-  * **ASMJIT_RELEASE** - Define to always turn debugging off (regardless of compiler-time options detected).
+  * **ASMJIT_RELEASE** - Define to always turn debugging off (regardless of compile-time options detected).
 
 By default none of these is defined, AsmJit detects build-type based on compile-time macros and supports most IDE and compiler settings out of box.
 
@@ -154,7 +154,7 @@ By default none of these is defined, AsmJit detects build-type based on compile-
   * **ASMJIT_EMBED** - Define to embed AsmJit in another project. Embedding means that neither shared nor static library is created and AsmJit's source files and source files of the product that embeds AsmJit are part of the same target. This way of building AsmJit has certain advantages that are beyond this manual. **ASMJIT_EMBED** behaves similarly to **ASMJIT_STATIC** (no API exports).
   * **ASMJIT_STATIC** - Define to build AsmJit as a static library. No symbols are exported in such case.
 
-By default AsmJit build is configured to be built as a shared library, thus note of **ASMJIT_EMBED** and **ASMJIT_STATIC** is defined.
+By default AsmJit build is configured to be built as a shared library, thus none of **ASMJIT_EMBED** and **ASMJIT_STATIC** is defined.
 
 ### Build Backends:
 
@@ -170,7 +170,7 @@ If none of **ASMJIT_BUILD_...** is defined AsmJit bails to **ASMJIT_BUILD_HOST**
   * **ASMJIT_DISABLE_COMPILER** - Disables **CodeCompiler** emitter. For users that use **CodeBuilder**, but not **CodeCompiler**
   * **ASMJIT_DISABLE_LOGGING** - Disables logging (**Logger** and all classes that inherit it) and formatting features.
   * **ASMJIT_DISABLE_TEXT** - Disables everything that uses text-representation and that causes certain strings to be stored in the resulting binary. For example when this flag is enabled all instruction and error names (and related APIs) will not be available. This flag has to be disabled together with **ASMJIT_DISABLE_LOGGING**. This option is suitable for deployment builds or builds that don't want to reveal the use of AsmJit.
-  * **ASMJIT_DISABLE_VALIDATION** - Disables instruction validation. Saves around 5kB of space when used.
+  * **ASMJIT_DISABLE_VALIDATION** - Disables instruction validation feature. Saves around 5kB of space when used.
 
 NOTE: Please don't disable any features if you plan to build AsmJit as a shared library that will be used by multiple projects that you don't control (for example asmjit in a Linux distribution). The possibility to disable certain features exists mainly for static builds of AsmJit.
 

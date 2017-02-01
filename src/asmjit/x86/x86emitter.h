@@ -4934,9 +4934,7 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
   // [MONITOR|MWAIT]
   // --------------------------------------------------------------------------
 
-  //! Setup monitor address [IMPLICIT] (MONITOR|MWAIT).
   ASMJIT_INST_0x(monitor, Monitor)
-  //! Monitor wait  [IMPLICIT] (MONITOR|MWAIT).
   ASMJIT_INST_0x(mwait, Mwait)
 
   // --------------------------------------------------------------------------

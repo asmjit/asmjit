@@ -475,7 +475,7 @@ struct RelocEntry {
 //! NOTE: CodeHolder has ability to attach an \ref ErrorHandler, however, this
 //! error handler is not triggered by CodeHolder itself, it's only used by the
 //! attached code generators.
-class ASMJIT_VIRTAPI CodeHolder {
+class CodeHolder {
 public:
   ASMJIT_NONCOPYABLE(CodeHolder)
 
