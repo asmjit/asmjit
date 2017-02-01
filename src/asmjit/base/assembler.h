@@ -110,7 +110,7 @@ protected:
     Error err,
     uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3);
 #else
-  ASMJIT_INLINE _emitFailed(
+  ASMJIT_INLINE Error _emitFailed(
     uint32_t err,
     uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
 

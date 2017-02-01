@@ -536,6 +536,7 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatRegister(
   ASMJIT_UNUSED(archType);
 
   if (Operand::isPackedId(rId)) {
+#if !defined(ASMJIT_DISABLE_COMPILER)
     if (emitter && emitter->getType() == CodeEmitter::kTypeCompiler) {
       const CodeCompiler* cc = static_cast<const CodeCompiler*>(emitter);
 
@@ -550,6 +551,7 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatRegister(
           return sb.appendFormat("v%u", static_cast<unsigned int>(Operand::unpackId(rId)));
       }
     }
+#endif // !ASMJIT_DISABLE_COMPILER
 
     return sb.appendFormat("VirtReg<Type=%u Id=%u>", rType, rId);
   }

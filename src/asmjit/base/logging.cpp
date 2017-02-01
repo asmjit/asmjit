@@ -12,29 +12,34 @@
 #if !defined(ASMJIT_DISABLE_LOGGING)
 
 // [Dependencies]
+#include "../base/codeholder.h"
+#include "../base/codeemitter.h"
 #include "../base/logging.h"
 #include "../base/utils.h"
 
 #if !defined(ASMJIT_DISABLE_BUILDER)
-#include "../base/codebuilder.h"
+# include "../base/codebuilder.h"
 #endif // !ASMJIT_DISABLE_BUILDER
 
 #if !defined(ASMJIT_DISABLE_COMPILER)
-#include "../base/codecompiler.h"
+# include "../base/codecompiler.h"
+#else
+namespace asmjit { class VirtReg; }
 #endif // !ASMJIT_DISABLE_COMPILER
 
 #if defined(ASMJIT_BUILD_X86)
-#include "../x86/x86logging_p.h"
+# include "../x86/x86logging_p.h"
 #endif // ASMJIT_BUILD_X86
 
 #if defined(ASMJIT_BUILD_ARM)
-#include "../arm/armlogging_p.h"
+# include "../arm/armlogging_p.h"
 #endif // ASMJIT_BUILD_ARM
 
 // [Api-Begin]
 #include "../asmjit_apibegin.h"
 
 namespace asmjit {
+
 // ============================================================================
 // [asmjit::Logger - Construction / Destruction]
 // ============================================================================
@@ -323,8 +328,10 @@ static Error formatFuncRets(
     if (i) ASMJIT_PROPAGATE(sb.appendString(", "));
     ASMJIT_PROPAGATE(formatFuncDetailValue(sb, logOptions, emitter, fd.getRet(i)));
 
+#if !defined(ASMJIT_DISABLE_COMPILER)
     if (vRegs)
       ASMJIT_PROPAGATE(sb.appendFormat(" {%s}", vRegs[i]->getName()));
+#endif // !ASMJIT_DISABLE_COMPILER
   }
 
   return kErrorOk;
@@ -341,8 +348,10 @@ static Error formatFuncArgs(
     if (i) ASMJIT_PROPAGATE(sb.appendString(", "));
     ASMJIT_PROPAGATE(formatFuncDetailValue(sb, logOptions, emitter, fd.getArg(i)));
 
+#if !defined(ASMJIT_DISABLE_COMPILER)
     if (vRegs)
       ASMJIT_PROPAGATE(sb.appendFormat(" {%s}", vRegs[i]->getName()));
+#endif // !ASMJIT_DISABLE_COMPILER
   }
 
   return kErrorOk;
