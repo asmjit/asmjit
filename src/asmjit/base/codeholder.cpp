@@ -89,10 +89,12 @@ CodeHolder::CodeHolder() noexcept
     _cgAsm(nullptr),
     _logger(nullptr),
     _errorHandler(nullptr),
+    _unresolvedLabelsCount(0),
     _trampolinesSize(0),
     _baseZone(16384 - Zone::kZoneOverhead),
     _dataZone(16384 - Zone::kZoneOverhead),
-    _baseHeap(&_baseZone) {}
+    _baseHeap(&_baseZone),
+    _namedLabels(&_baseHeap) {}
 
 CodeHolder::~CodeHolder() noexcept {
   CodeHolder_resetInternal(this, true);
