@@ -292,7 +292,7 @@ public:
   //! Get function exit label.
   ASMJIT_INLINE Label getExitLabel() const noexcept { return _exitNode->getLabel(); }
 
-  //! Get the function end sentinel.
+  //! Get "End of Func" sentinel.
   ASMJIT_INLINE CBSentinel* getEnd() const noexcept { return _end; }
 
   //! Get function declaration.

@@ -100,7 +100,6 @@ Error RAPass::prepare(CCFunc* func) noexcept {
 
   _func = func;
   _stop = end->getNext();
-  _extraBlock = end;
 
   _unreachableList.reset();
   _returningList.reset();
@@ -139,7 +138,6 @@ void RAPass::cleanup() noexcept {
   }
 
   _contextVd.reset();
-  _extraBlock = nullptr;
 }
 
 // ============================================================================

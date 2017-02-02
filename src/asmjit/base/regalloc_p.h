@@ -360,11 +360,6 @@ public:
   //! Get stop node.
   ASMJIT_INLINE CBNode* getStop() const noexcept { return _stop; }
 
-  //! Get extra block.
-  ASMJIT_INLINE CBNode* getExtraBlock() const noexcept { return _extraBlock; }
-  //! Set extra block.
-  ASMJIT_INLINE void setExtraBlock(CBNode* node) noexcept { _extraBlock = node; }
-
   // --------------------------------------------------------------------------
   // [State]
   // --------------------------------------------------------------------------
@@ -524,7 +519,6 @@ public:
 
   CCFunc* _func;                         //!< Function being processed.
   CBNode* _stop;                         //!< Stop node.
-  CBNode* _extraBlock;                   //!< Node that is used to insert extra code after the function body.
 
   //! \internal
   //!

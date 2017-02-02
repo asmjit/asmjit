@@ -116,9 +116,11 @@ CCFunc* CodeCompiler::newFunc(const FuncSignature& sign) noexcept {
   }
 
   // Create helper nodes.
-  func->_end = newNodeT<CBSentinel>();
   func->_exitNode = newLabelNode();
-  if (!func->_exitNode || !func->_end) goto _NoMemory;
+  func->_end = newNodeT<CBSentinel>();
+
+  if (!func->_exitNode || !func->_end)
+    goto _NoMemory;
 
   // Function prototype.
   err = func->getDetail().init(sign);
@@ -179,9 +181,8 @@ CBSentinel* CodeCompiler::endFunc() {
   }
 
   // Add the local constant pool at the end of the function (if exists).
-  setCursor(func->getExitNode());
-
   if (_localConstPool) {
+    setCursor(func->getEnd()->getPrev());
     addNode(_localConstPool);
     _localConstPool = nullptr;
   }
@@ -190,8 +191,9 @@ CBSentinel* CodeCompiler::endFunc() {
   func->_isFinished = true;
   _func = nullptr;
 
-  setCursor(func->getEnd());
-  return func->getEnd();
+  CBSentinel* end = func->getEnd();
+  setCursor(end);
+  return end;
 }
 
 // ============================================================================

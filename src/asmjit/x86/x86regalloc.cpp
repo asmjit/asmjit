@@ -2072,7 +2072,7 @@ _NextGroup:
 
 _Done:
   // Mark exit label and end node as fetched, otherwise they can be removed by
-  // `removeUnreachableCode()`, which would lead to a crash in some later step.
+  // `removeUnreachableCode()`, which could lead to a crash in some later step.
   node_ = func->getEnd();
   if (!node_->hasPassData()) {
     CBLabel* fExit = func->getExitNode();
@@ -2107,7 +2107,7 @@ Error X86RAPass::annotate() {
   StringBuilderTmp<256> sb;
 
   uint32_t maxLen = 0;
-  while (node_ != end) {
+  while (node_ && node_ != end) {
     if (!node_->hasInlineComment()) {
       if (node_->getType() == CBNode::kNodeInst) {
         CBInst* node = static_cast<CBInst*>(node_);
@@ -3727,32 +3727,33 @@ static Error X86RAPass_patchFuncMem(X86RAPass* self, CCFunc* func, CBNode* stop,
 //! \internal
 static void X86RAPass_translateJump(X86RAPass* self, CBJump* jNode, CBLabel* jTarget) {
   X86Compiler* cc = self->cc();
-  CBNode* extNode = self->getExtraBlock();
 
-  cc->_setCursor(extNode);
+  CBNode* injectRef = self->getFunc()->getEnd()->getPrev();
+  CBNode* prevCursor = cc->setCursor(injectRef);
+
   self->switchState(jTarget->getPassData<RAData>()->state);
 
-  // If one or more instruction has been added during switchState() it will be
-  // moved at the end of the function body.
-  if (cc->getCursor() != extNode) {
+  // Any code necessary to `switchState()` will be added at the end of the function.
+  if (cc->getCursor() != injectRef) {
     // TODO: Can fail.
-    CBLabel* jTrampolineTarget = cc->newLabelNode();
+    CBLabel* injectLabel = cc->newLabelNode();
 
     // Add the jump to the target.
     cc->jmp(jTarget->getLabel());
 
-    // Add the trampoline-label we jump to change the state.
-    extNode = cc->setCursor(extNode);
-    cc->addNode(jTrampolineTarget);
+    // Inject the label.
+    cc->_setCursor(injectRef);
+    cc->addNode(injectLabel);
 
-    // Finally, patch the jump target.
+    // Finally, patch `jNode` target.
     ASMJIT_ASSERT(jNode->getOpCount() > 0);
-    jNode->_opArray[0] = jTrampolineTarget->getLabel();
-    jNode->_target = jTrampolineTarget;
+    jNode->_opArray[jNode->getOpCount() - 1] = injectLabel->getLabel();
+    jNode->_target = injectLabel;
+    // If we injected any code it may not satisfy short form anymore.
+    jNode->delOptions(X86Inst::kOptionShortForm);
   }
 
-  // Store the `extNode` and load the state back.
-  self->setExtraBlock(extNode);
+  cc->_setCursor(prevCursor);
   self->loadState(jNode->getPassData<RAData>()->state);
 }
 
@@ -3904,6 +3905,9 @@ _NextGroup:
           CBLabel* node = static_cast<CBLabel*>(node_);
           ASMJIT_ASSERT(node->getPassData<RAData>()->state == nullptr);
           node->getPassData<RAData>()->state = saveState();
+
+          if (node == func->getExitNode())
+            goto _NextGroup;
           break;
         }
 
