@@ -3821,6 +3821,13 @@ ASMJIT_FAVOR_SIZE Error X86Inst::validate(
           if (!indexType && !m.getOffsetLo32())
             memFlags |= X86Inst::kMemOpBaseOnly;
         }
+        else {
+          // Base is an address, make sure that the address doesn't overflow 32-bit
+          // integer (either int32_t or uint32_t) in 32-bit targets.
+          int64_t offset = m.getOffset();
+          if (archMask == X86Inst::kArchMaskX86 && !Utils::isInt32(offset) && !Utils::isUInt32(offset))
+            return DebugUtils::errored(kErrorInvalidAddress);
+        }
 
         if (indexType) {
           if (ASMJIT_UNLIKELY((vd->allowedMemIndexRegs & (1U << indexType)) == 0))
