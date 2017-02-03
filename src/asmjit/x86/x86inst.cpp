@@ -32,6 +32,7 @@
 
 // [Dependencies]
 #include "../base/utils.h"
+#include "../base/misc_p.h"
 #include "../x86/x86inst.h"
 #include "../x86/x86operand.h"
 
@@ -167,7 +168,7 @@ enum ODATA_ {
 }
 
 const X86Inst X86InstDB::instData[] = {
-  // <-----------------+------------------------+------------------+--------+------------------+--------+---------------------------------------+-------------+-------+-----------------+-----+----+
+  // <-----------------+--------------------+------------------+--------+------------------+--------+---------------------------------------+-------------+-------+-----------------+-----+----+
   //                   |                    |    Main OpCode   |#0 EVEX |Alternative OpCode|#1 EVEX |                                       |   E-FLAGS   | Write |                 |     |    |
   //    Instruction    |   Inst. Encoding   |                  +--------+                  +--------+          Instruction Flags            +-------------+---+---+ Family Type/Idx.+NameX|ComX|
   //                   |                    |#0:PP-MMM OP/O L|W|W|N|TT. |#1:PP-MMM OP/O L|W|W|N|TT. |                                       | EF:OSZAPCDX |Idx|Cnt|                 |     |    |
@@ -3598,99 +3599,92 @@ static const X86Inst::OSignature _x86InstOSignatureData[] = {
 // ----------------------------------------------------------------------------
 // ${signatureData:End}
 
-static const uint32_t _x86OpFlagFromRegType[X86Reg::kRegCount] = {
-  X86Inst::kOpNone,  // #00 None.
-  X86Inst::kOpNone,  // #01 Reserved (LabelTag).
-  X86Inst::kOpGpbLo, // #02 GPB-LO.
-  X86Inst::kOpGpbHi, // #03 GPB-HI.
-  X86Inst::kOpGpw,   // #04 GPW.
-  X86Inst::kOpGpd,   // #05 GPD.
-  X86Inst::kOpGpq,   // #06 GPQ.
-  X86Inst::kOpNone,  // #07 Reserved (VEC32).
-  X86Inst::kOpNone,  // #08 Reserved (VEC64).
-  X86Inst::kOpXmm,   // #09 XMM.
-  X86Inst::kOpYmm,   // #10 YMM.
-  X86Inst::kOpZmm,   // #11 ZMM.
-  X86Inst::kOpNone,  // #12 Reserved (VEC1024).
-  X86Inst::kOpNone,  // #13 Reserved (VEC2048).
-  X86Inst::kOpNone,  // #14 RIP.
-  X86Inst::kOpSeg,   // #15 SEG.
-  X86Inst::kOpFp,    // #16 FP.
-  X86Inst::kOpMm,    // #17 MM.
-  X86Inst::kOpK,     // #18 K.
-  X86Inst::kOpBnd,   // #20 BND.
-  X86Inst::kOpCr,    // #21 CR.
-  X86Inst::kOpDr     // #22 DR.
+template<uint32_t RegType>
+struct X86OpTypeFromRegTypeT {
+  enum {
+    kValue = (RegType == X86Reg::kRegGpbLo) ? X86Inst::kOpGpbLo :
+             (RegType == X86Reg::kRegGpbHi) ? X86Inst::kOpGpbHi :
+             (RegType == X86Reg::kRegGpw  ) ? X86Inst::kOpGpw   :
+             (RegType == X86Reg::kRegGpd  ) ? X86Inst::kOpGpd   :
+             (RegType == X86Reg::kRegGpq  ) ? X86Inst::kOpGpq   :
+             (RegType == X86Reg::kRegXmm  ) ? X86Inst::kOpXmm   :
+             (RegType == X86Reg::kRegYmm  ) ? X86Inst::kOpYmm   :
+             (RegType == X86Reg::kRegZmm  ) ? X86Inst::kOpZmm   :
+             (RegType == X86Reg::kRegRip  ) ? X86Inst::kOpNone  :
+             (RegType == X86Reg::kRegSeg  ) ? X86Inst::kOpSeg   :
+             (RegType == X86Reg::kRegFp   ) ? X86Inst::kOpFp    :
+             (RegType == X86Reg::kRegMm   ) ? X86Inst::kOpMm    :
+             (RegType == X86Reg::kRegK    ) ? X86Inst::kOpK     :
+             (RegType == X86Reg::kRegBnd  ) ? X86Inst::kOpBnd   :
+             (RegType == X86Reg::kRegCr   ) ? X86Inst::kOpCr    :
+             (RegType == X86Reg::kRegDr   ) ? X86Inst::kOpDr    : X86Inst::kOpNone
+  };
+};
+
+template<uint32_t RegType>
+struct X86RegMaskFromRegTypeT {
+  enum {
+    kMask = (RegType == X86Reg::kRegGpbLo) ? 0x0000000FU :
+            (RegType == X86Reg::kRegGpbHi) ? 0x0000000FU :
+            (RegType == X86Reg::kRegGpw  ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegGpd  ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegGpq  ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegXmm  ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegYmm  ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegZmm  ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegRip  ) ? 0x00000001U :
+            (RegType == X86Reg::kRegSeg  ) ? 0x0000007EU : // [ES|CS|SS|DS|FS|GS]
+            (RegType == X86Reg::kRegFp   ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegMm   ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegK    ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegBnd  ) ? 0x0000000FU :
+            (RegType == X86Reg::kRegCr   ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegDr   ) ? 0x000000FFU : X86Inst::kOpNone
+  };
+};
+
+template<uint32_t RegType>
+struct X64RegMaskFromRegTypeT {
+  enum {
+    kMask = (RegType == X86Reg::kRegGpbLo) ? 0x0000FFFFU :
+            (RegType == X86Reg::kRegGpbHi) ? 0x0000000FU :
+            (RegType == X86Reg::kRegGpw  ) ? 0x0000FFFFU :
+            (RegType == X86Reg::kRegGpd  ) ? 0x0000FFFFU :
+            (RegType == X86Reg::kRegGpq  ) ? 0x0000FFFFU :
+            (RegType == X86Reg::kRegXmm  ) ? 0xFFFFFFFFU :
+            (RegType == X86Reg::kRegYmm  ) ? 0xFFFFFFFFU :
+            (RegType == X86Reg::kRegZmm  ) ? 0xFFFFFFFFU :
+            (RegType == X86Reg::kRegRip  ) ? 0x00000001U :
+            (RegType == X86Reg::kRegSeg  ) ? 0x0000007EU : // [ES|CS|SS|DS|FS|GS]
+            (RegType == X86Reg::kRegFp   ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegMm   ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegK    ) ? 0x000000FFU :
+            (RegType == X86Reg::kRegBnd  ) ? 0x0000000FU :
+            (RegType == X86Reg::kRegCr   ) ? 0x0000FFFFU :
+            (RegType == X86Reg::kRegDr   ) ? 0x0000FFFFU : X86Inst::kOpNone
+  };
 };
 
 struct X86ValidationData {
   //! Allowed registers by reg-type (X86::kReg...).
-  uint32_t allowedRegMask[X86Reg::kRegCount];
+  uint32_t allowedRegMask[X86Reg::kRegMax + 1];
   uint32_t allowedMemBaseRegs;
   uint32_t allowedMemIndexRegs;
 };
 
-static const X86ValidationData _x86ValidationData = {
-  {
-    0x00000000U,       // #00 None.
-    0x00000000U,       // #01 Reserved (LabelTag).
-    0x0000000FU,       // #02 GPB-LO.
-    0x0000000FU,       // #03 GPB-HI.
-    0x000000FFU,       // #04 GPW.
-    0x000000FFU,       // #05 GPD.
-    0x000000FFU,       // #06 GPQ.
-    0x00000000U,       // #07 Reserved (VEC32).
-    0x00000000U,       // #08 Reserved (VEC64).
-    0x000000FFU,       // #09 XMM.
-    0x000000FFU,       // #10 YMM.
-    0x000000FFU,       // #11 ZMM.
-    0x00000000U,       // #12 Reserved (VEC1024).
-    0x00000000U,       // #13 Reserved (VEC2048).
-    0x00000001U,       // #14 RIP.
-    0x0000007EU,       // #15 SEG (ES|CS|SS|DS|FS|GS).
-    0x000000FFU,       // #16 FP.
-    0x000000FFU,       // #17 MM.
-    0x000000FFU,       // #18 K.
-    0x0000000FU,       // #19 BND
-    0x000000FFU,       // #20 CR.
-    0x000000FFU        // #21 DR.
-  },
+static const uint32_t _x86OpFlagFromRegType[X86Reg::kRegMax + 1] = {
+  ASMJIT_TABLE_T_32(X86OpTypeFromRegTypeT, kValue, 0)
+};
 
-  // AllowedMemBaseRegs:
+static const X86ValidationData _x86ValidationData = {
+  { ASMJIT_TABLE_T_32(X86RegMaskFromRegTypeT, kMask, 0) },
   (1U << X86Reg::kRegGpw) | (1U << X86Reg::kRegGpd) | (1U << X86Reg::kRegRip) | (1U << Label::kLabelTag),
-  // AllowedMemIndexRegs:
   (1U << X86Reg::kRegGpw) | (1U << X86Reg::kRegGpd) | (1U << X86Reg::kRegXmm) | (1U << X86Reg::kRegYmm) | (1U << X86Reg::kRegZmm)
 };
 
 static const X86ValidationData _x64ValidationData = {
-  {
-    0x00000000U,       // #00 None.
-    0x00000000U,       // #01 Reserved (LabelTag).
-    0x0000FFFFU,       // #02 GPB-LO.
-    0x0000000FU,       // #03 GPB-HI.
-    0x0000FFFFU,       // #04 GPW.
-    0x0000FFFFU,       // #05 GPD.
-    0x0000FFFFU,       // #06 GPQ.
-    0x00000000U,       // #07 Reserved (VEC32).
-    0x00000000U,       // #08 Reserved (VEC64).
-    0xFFFFFFFFU,       // #09 XMM (16 base regs, 32 regs only with EVEX encoding).
-    0xFFFFFFFFU,       // #10 YMM (16 base regs, 32 regs only with EVEX encoding).
-    0xFFFFFFFFU,       // #11 ZMM (16 base regs, 32 regs only with EVEX encoding).
-    0x00000000U,       // #12 Reserved (VEC1024).
-    0x00000000U,       // #13 Reserved (VEC2048).
-    0x00000001U,       // #14 RIP.
-    0x0000007EU,       // #15 SEG (FS|GS) (ES|CS|SS|DS defined, but ignored).
-    0x000000FFU,       // #16 FP.
-    0x000000FFU,       // #17 MM.
-    0x000000FFU,       // #18 K.
-    0x0000000FU,       // #19 BND.
-    0x0000FFFFU,       // #20 CR.
-    0x0000FFFFU        // #21 DR.
-  },
-
-  // AllowedMemBaseRegs:
+  { ASMJIT_TABLE_T_32(X64RegMaskFromRegTypeT, kMask, 0) },
   (1U << X86Reg::kRegGpd) | (1U << X86Reg::kRegGpq) | (1U << X86Reg::kRegRip) | (1U << Label::kLabelTag),
-  // AllowedMemIndexRegs:
   (1U << X86Reg::kRegGpd) | (1U << X86Reg::kRegGpq) | (1U << X86Reg::kRegXmm) | (1U << X86Reg::kRegYmm) | (1U << X86Reg::kRegZmm)
 };
 
