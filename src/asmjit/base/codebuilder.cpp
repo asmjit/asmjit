@@ -31,11 +31,11 @@ CodeBuilder::CodeBuilder() noexcept
     _cbHeap(&_cbBaseZone),
     _cbPasses(),
     _cbLabels(),
-    _position(0),
-    _nodeFlags(0),
     _firstNode(nullptr),
     _lastNode(nullptr),
-    _cursor(nullptr) {}
+    _cursor(nullptr),
+    _position(0),
+    _nodeFlags(0) {}
 CodeBuilder::~CodeBuilder() noexcept {}
 
 // ============================================================================

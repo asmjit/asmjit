@@ -3789,7 +3789,6 @@ ASMJIT_FAVOR_SIZE Error X86Inst::validate(
       // TODO: Validate base and index and combine with `combinedRegMask`.
       case Operand::kOpMem: {
         const X86Mem& m = static_cast<const X86Mem&>(op);
-        uint32_t memSize = m.getSize();
 
         uint32_t baseType = m.getBaseType();
         uint32_t indexType = m.getIndexType();

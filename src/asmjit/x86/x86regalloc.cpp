@@ -869,7 +869,6 @@ static ASMJIT_INLINE void X86RAPass_intersectStateVars(X86RAPass* self, X86RASta
 
   VirtReg** dVars = dst->getListByKind(C);
   VirtReg** aVars = a->getListByKind(C);
-  VirtReg** bVars = b->getListByKind(C);
 
   X86StateCell* aCells = a->_cells;
   X86StateCell* bCells = b->_cells;
@@ -885,7 +884,6 @@ static ASMJIT_INLINE void X86RAPass_intersectStateVars(X86RAPass* self, X86RASta
     for (uint32_t physId = 0, regMask = 0x1; physId < regCount; physId++, regMask <<= 1) {
       VirtReg* dVReg = dVars[physId]; // Destination reg.
       VirtReg* aVReg = aVars[physId]; // State-a reg.
-      VirtReg* bVReg = bVars[physId]; // State-b reg.
 
       if (dVReg == aVReg) continue;
 
@@ -1816,9 +1814,6 @@ _NextGroup:
           if (vReg->_tied)
             return DebugUtils::errored(kErrorOverlappedRegs);
 
-          uint32_t aTypeId = arg.getTypeId();
-          uint32_t vTypeId = vReg->getTypeId();
-
           uint32_t aKind = X86Reg::kindOf(arg.getRegType());
           uint32_t vKind = vReg->getKind();
 
@@ -2010,7 +2005,6 @@ _NextGroup:
           if (arg.byReg()) {
             RA_MERGE(vreg, tied, 0, 0);
 
-            uint32_t argType = arg.getTypeId();
             uint32_t argClass = X86Reg::kindOf(arg.getRegType());
 
             if (vreg->getKind() == argClass) {
@@ -2040,7 +2034,6 @@ _NextGroup:
 
           const FuncDetail::Value& ret = fd.getRet(i);
           if (ret.byReg()) {
-            uint32_t retType = ret.getTypeId();
             uint32_t retKind = X86Reg::kindOf(ret.getRegType());
 
             vreg = cc()->getVirtRegById(op->getId());
@@ -3314,9 +3307,6 @@ ASMJIT_INLINE void X86CallAlloc::alloc() {
   TiedReg* tiedArray = getTiedArrayByKind(C);
   uint32_t tiedCount = getTiedCountByKind(C);
 
-  X86RAState* state = getState();
-  VirtReg** sVars = state->getListByKind(C);
-
   uint32_t i;
   bool didWork;
 
@@ -3664,11 +3654,9 @@ static Error X86RAPass_translateOperands(X86RAPass* self, Operand_* opArray, uin
 
 //! \internal
 static Error X86RAPass_prepareFuncFrame(X86RAPass* self, CCFunc* func) {
-  FuncDetail& fd = func->getDetail();
   FuncFrameInfo& ffi = func->getFrameInfo();
 
   X86RegMask& clobberedRegs = self->_clobberedRegs;
-  uint32_t gpSize = self->cc()->getGpSize();
 
   // Initialize dirty registers.
   ffi.setDirtyRegs(X86Reg::kKindGp , clobberedRegs.get(X86Reg::kKindGp ));

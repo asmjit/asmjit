@@ -274,8 +274,6 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markStackArgsReg(FuncFrameInfo& ffi)
 
 ASMJIT_FAVOR_SIZE Error X86Internal::initCallConv(CallConv& cc, uint32_t ccId) noexcept {
   const uint32_t kKindGp  = X86Reg::kKindGp;
-  const uint32_t kKindMm  = X86Reg::kKindMm;
-  const uint32_t kKindK   = X86Reg::kKindK;
   const uint32_t kKindVec = X86Reg::kKindVec;
 
   const uint32_t kAx = X86Gp::kIdAx;
@@ -986,7 +984,6 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(X86Emitter* emitter, const FuncFrameLayout& layout) {
-  uint32_t gpSize = emitter->getGpSize();
   uint32_t gpSaved = layout.getSavedRegs(X86Reg::kKindGp);
 
   X86Gp zsp = emitter->zsp();   // ESP|RSP register.
