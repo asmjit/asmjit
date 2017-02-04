@@ -69,7 +69,6 @@ Error X86SseToAvxPass::process(Zone* zone) noexcept {
 
       if (!(regs & kProbeMmx)) {
         // This is the common case.
-        const X86Inst::SseData& sseData = instData.getSseData();
 
         // TODO: Wait for some fixes in CBInst first.
       }
