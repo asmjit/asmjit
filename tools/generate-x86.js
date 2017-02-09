@@ -6,302 +6,94 @@
 // by a linker to make all pointers the binary application/library uses valid.
 // This approach decreases the final size of AsmJit binary and relocation data.
 //
-// NOTE: This script now relies on 'asmdb' package. Either install it by using
-// node.js package manager (npm) or copy x86data.js and x86util.js files into
-// the asmjit/tools directory.
+// NOTE: This script relies on 'asmdb' package. Either install it by using
+// node.js package manager (npm) or by copying/symlinking the whole asmdb
+// directory as [asmjit]/tools/asmdb.
 "use strict";
 
-const fs = require("fs");
+const base = require("./generate-base.js");
 const hasOwn = Object.prototype.hasOwnProperty;
-
-const asmdb = (function() {
-  try {
-    // Prefer a local copy of 'asmdb' package if possible.
-    return {
-      x86data: require("./x86data.js"),
-      x86util: require("./x86util.js")
-    };
-  }
-  catch (ex) {
-    // Okay, so global then...
-    return require("asmdb.js");
-  }
-})();
-
-// Special cases.
-const x86db = new asmdb.x86util.X86DataBase().addDefault();
-x86db.addInstructions([
-  // Imul in [reg, imm] form is encoded as [reg, reg, imm].
-  ["imul"  , "r16, ib"    , "RM"   , "66 6B /r ib"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-  ["imul"  , "r32, ib"    , "RM"   , "6B /r ib"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-  ["imul"  , "r64, ib"    , "RM"   , "REX.W 6B /r ib"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
-  ["imul"  , "r16, iw"    , "RM"   , "66 69 /r iw"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-  ["imul"  , "r32, id"    , "RM"   , "69 /r id"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-  ["imul"  , "r64, id"    , "RM"   , "REX.W 69 /r id"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"]
-]);
+const kIndent = base.kIndent;
+const StringUtils = base.StringUtils;
 
 // ----------------------------------------------------------------------------
-// [Integration]
+// [X86DB]
 // ----------------------------------------------------------------------------
 
-const kFileName = "../src/asmjit/x86/x86inst.cpp";
-const kIndent = "  ";
-const kJustify = 79;
-const kX86InstPrefix = "X86Inst::kId";
+// Create the X86 database and add some special cases recognized by AsmJit.
+const x86 = base.asmdb.x86;
+const isa = new x86.ISA({
+  instructions: [
+    // Imul in [reg, imm] form is encoded as [reg, reg, imm].
+    ["imul"  , "r16, ib"    , "RM"   , "66 6B /r ib"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul"  , "r32, ib"    , "RM"   , "6B /r ib"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul"  , "r64, ib"    , "RM"   , "REX.W 6B /r ib"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul"  , "r16, iw"    , "RM"   , "66 69 /r iw"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul"  , "r32, id"    , "RM"   , "69 /r id"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul"  , "r64, id"    , "RM"   , "REX.W 69 /r id"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"]
+  ]
+});
 
-const kDisclaimerStart = "// ------------------- Automatically generated, do not edit -------------------\n";
-const kDisclaimerEnd   = "// ----------------------------------------------------------------------------\n";
-
-// ----------------------------------------------------------------------------
-// [Utils]
-// ----------------------------------------------------------------------------
-
-class Utils {
-  static upFirst(s) {
-    if (!s) return "";
-    return s[0].toUpperCase() + s.substr(1);
-  }
-
-  static trimLeft(s) {
-    return s.replace(/^\s+/, "");
-  }
-
-  static padLeft(s, n, x) {
-    if (!x) x = " ";
-
-    s = String(s);
-    if (s.length < n)
-      s += x.repeat(n - s.length);
-
-    return s;
-  }
-
-  static decToHex(n, nPad) {
-    var hex = Number(n < 0 ? 0x100000000 + n : n).toString(16);
-    while (nPad > hex.length)
-      hex = "0" + hex;
-    return "0x" + hex.toUpperCase();
-  }
-
-  static format(array, indent, showIndex, mapFn) {
-    if (!mapFn)
-      mapFn = function(x) { return String(x); }
-
-    const commentSize = showIndex ? String(array.length).length : 0;
-
-    var s = "";
-    for (var i = 0; i < array.length; i++) {
-      const last = i === array.length - 1;
-      s += `${indent}${mapFn(array[i])}`;
-
-      if (commentSize)
-        s += `${last ? " " : ","} // #${i}`;
-      else if (!last)
-        s += ",";
-
-      if (!last) s += "\n";
-    }
-    return s;
-  }
-
-  static inject(s, start, end, code) {
-    var iStart = s.indexOf(start);
-    var iEnd   = s.indexOf(end);
-
-    if (iStart === -1)
-      throw new Error(`Utils.inject(): Couldn't locate start mark '${start}'`);
-
-    if (iEnd === -1)
-      throw new Error(`Utils.inject(): Couldn't locate end mark '${end}'`);
-
-    return s.substr(0, iStart + start.length) + code + s.substr(iEnd);
-  }
-}
-
-// ----------------------------------------------------------------------------
-// [IndexedArray]
-// ----------------------------------------------------------------------------
-
-class IndexedArray extends Array {
-  constructor() {
-    super();
-    this._index = Object.create(null);
-  }
-
-  addIndexed(element) {
-    const key = typeof element === "string" ? element : JSON.stringify(element);
-    var idx = this._index[key];
-
-    if (idx !== undefined)
-      return idx;
-
-    idx = this.length;
-    this._index[key] = idx;
-    this.push(element);
-    return idx;
-  }
-}
-
-// ----------------------------------------------------------------------------
-// [IndexedString]
-// ----------------------------------------------------------------------------
-
-class IndexedString {
-  constructor() {
-    this.map = Object.create(null);
-    this.array = [];
-    this.size = -1;
-  }
-
-  add(s) {
-    this.map[s] = -1;
-  }
-
-  index() {
-    const map = this.map;
-    const array = this.array;
-    const partialMap = Object.create(null);
-
-    var k, kp;
-    var i, len;
-
-    // Create a map that will contain all keys and partial keys.
-    for (k in map) {
-      if (!k) {
-        partialMap[k] = k;
-      }
-      else {
-        for (i = 0, len = k.length; i < len; i++) {
-          kp = k.substr(i);
-          if (!hasOwn.call(partialMap, kp) || partialMap[kp].length < len)
-            partialMap[kp] = k;
-        }
-      }
-    }
-
-    // Create an array that will only contain keys that are needed.
-    for (k in map)
-      if (partialMap[k] === k)
-        array.push(k);
-    array.sort();
-
-    // Create valid offsets to the `array`.
-    var offMap = Object.create(null);
-    var offset = 0;
-
-    for (i = 0, len = array.length; i < len; i++) {
-      k = array[i];
-
-      offMap[k] = offset;
-      offset += k.length + 1;
-    }
-    this.size = offset;
-
-    // Assign valid offsets to `map`.
-    for (kp in map) {
-      k = partialMap[kp];
-      map[kp] = offMap[k] + k.length - kp.length;
-    }
-  }
-
-  format(indent, justify) {
-    if (this.size === -1)
-      throw new Error(`IndexedString.format(): not indexed yet, call index()`);
-
-    const array = this.array;
-    if (!justify) justify = 0;
-
-    var i;
-    var s = "";
-    var line = "";
-
-    for (i = 0; i < array.length; i++) {
-      const item = "\"" + array[i] + ((i !== array.length - 1) ? "\\0\"" : "\";");
-      const newl = line + (line ? " " : indent) + item;
-
-      if (newl.length <= justify) {
-        line = newl;
-        continue;
-      }
-      else {
-        s += line + "\n";
-        line = indent + item;
-      }
-    }
-
-    return s + line;
-  }
-
-  getSize() {
-    if (this.size === -1)
-      throw new Error(`IndexedString.getSize(): Not indexed yet, call index()`);
-    return this.size;
-  }
-
-  getIndex(k) {
-    if (this.size === -1)
-      throw new Error(`IndexedString.getIndex(): Not indexed yet, call index()`);
-
-    if (!hasOwn.call(this.map, k))
-      throw new Error(`IndexedString.getIndex(): Key '${k}' not found.`);
-
-    return this.map[k];
-  }
-}
+// var fs = require("fs");
+// fs.writeFileSync("X86.JSON", JSON.stringify(isa.instructionMap, null, 2));
 
 // ----------------------------------------------------------------------------
 // [GenUtils]
 // ----------------------------------------------------------------------------
 
+const RemappedInsts = {
+  __proto__: null,
+
+  "cmpsd": { names: ["cmpsd"]                           , rep: false },
+  "movsd": { names: ["movsd"]                           , rep: false },
+  "cmps" : { names: ["cmpsb", "cmpsw", "cmpsd", "cmpsq"], rep: true  },
+  "movs" : { names: ["movsb", "movsw", "movsd", "movsq"], rep: true  },
+  "lods" : { names: ["lodsb", "lodsw", "lodsd", "lodsq"], rep: null  },
+  "scas" : { names: ["scasb", "scasw", "scasd", "scasq"], rep: null  },
+  "stos" : { names: ["stosb", "stosw", "stosd", "stosq"], rep: null  },
+  "ins"  : { names: ["insb" , "insw" , "insd" ]         , rep: null  },
+  "outs" : { names: ["outsb", "outsw", "outsd"]         , rep: null  }
+};
+
 class GenUtils {
   // Get group of instructions having the same name as understood by AsmJit.
   static groupOf(name) {
-    var rep = null;
-    var names = null;
+    const remapped = RemappedInsts[name];
+    if (!remapped) return isa.query(name);
 
-    switch (name) {
-      // Remap / filter these instructions.
-      case "cmpsd": names = ["cmpsd"]; rep = false; break;
-      case "movsd": names = ["movsd"]; rep = false; break;
-      case "cmps" : names = ["cmpsb", "cmpsw", "cmpsd", "cmpsq"]; rep = true; break;
-      case "movs" : names = ["movsb", "movsw", "movsd", "movsq"]; rep = true; break;
-      case "lods" : names = ["lodsb", "lodsw", "lodsd", "lodsq"]; break;
-      case "scas" : names = ["scasb", "scasw", "scasd", "scasq"]; break;
-      case "stos" : names = ["stosb", "stosw", "stosd", "stosq"]; break;
-      case "ins"  : names = ["insb" , "insw" , "insd" ]; break;
-      case "outs" : names = ["outsb", "outsw", "outsd"]; break;
+    const insts = isa.query(remapped.names);
+    const rep = remapped.rep;
+    if (rep === null) return insts;
 
-      default:
-        return x86db.getGroup(name);
+    return insts.filter(function(inst) {
+      return rep === !!(inst.attributes.REP || inst.attributes.REPZ || inst.attributes.REPNZ);
+    });
+  }
+
+  static archOf(group) {
+    var anyArch = false;
+    var x86Arch = false;
+    var x64Arch = false;
+
+    for (var i = 0; i < group.length; i++) {
+      const inst = group[i];
+      if (inst.arch === "ANY") anyArch = true;
+      if (inst.arch === "X86") x86Arch = true;
+      if (inst.arch === "X64") x64Arch = true;
     }
 
-    const insts = [];
-    for (var i = 0; i < names.length; i++) {
-      insts.push.apply(insts, x86db.getGroup(names[i]));
-    }
-
-    if (rep === null)
-      return insts;
-
-    // Filter, if needed.
-    const output = [];
-    for (var i = 0; i < insts.length; i++) {
-      const inst = insts[i];
-      if (rep === !!(inst.rep || inst.repz || inst.repnz))
-        output.push(inst);
-    }
-    return output;
+    return anyArch || (x86Arch && x64Arch) ? "[ANY]" : x86Arch ? "[X86]" : "[X64]";
   }
 
   // Calculate a family of a group of instructions.
-  static familyOf(insts) {
+  static familyOf(group) {
     var i, j;
 
     var nSSE = 0;
     var nAVX = 0;
-    
-    for (i = 0; i < insts.length; i++) {
-      const inst = insts[i];
+
+    for (i = 0; i < group.length; i++) {
+      const inst = group[i];
       const ops = inst.operands;
 
       if (/^(VEX|XOP|EVEX)$/.test(inst.prefix)) {
@@ -322,24 +114,24 @@ class GenUtils {
       }
     }
 
-    if (nSSE === insts.length) return "Sse";
-    if (nAVX === insts.length) return "Avx";
-    
+    if (nSSE === group.length) return "Sse";
+    if (nAVX === group.length) return "Avx";
+
     return "General";
   }
 
-  static featuresOf(insts) {
+  static featuresOf(group) {
     const features = Object.create(null);
 
-    for (var i = 0; i < insts.length; i++)
-      for (var feature in insts[i].cpu)
+    for (var i = 0; i < group.length; i++)
+      for (var feature in group[i].extensions)
         features[feature] = true;
 
     const result = Object.getOwnPropertyNames(features);
     result.sort();
     return result;
   }
-  
+
   static eqOps(aOps, aFrom, bOps, bFrom) {
     var x = 0;
     for (;;) {
@@ -361,7 +153,92 @@ class GenUtils {
       x++;
     }
   }
-};
+
+  static singleRegCase(name) {
+    switch (name) {
+      case "xchg"    :
+
+      case "and"     :
+      case "pand"    : case "vpand"    : case "vpandd"  : case "vpandq"   :
+      case "andpd"   : case "vandpd"   :
+      case "andps"   : case "vandps"   :
+
+      case "or"      :
+      case "por"     : case "vpor"     : case "vpord"   : case "vporq"    :
+      case "orpd"    : case "vorpd"    :
+      case "orps"    : case "vorps"    :
+
+      case "pminsb"  : case "vpminsb"  : case "pmaxsb"  : case "vpmaxsb"  :
+      case "pminsw"  : case "vpminsw"  : case "pmaxsw"  : case "vpmaxsw"  :
+      case "pminsd"  : case "vpminsd"  : case "pmaxsd"  : case "vpmaxsd"  :
+      case "pminub"  : case "vpminub"  : case "pmaxub"  : case "vpmaxub"  :
+      case "pminuw"  : case "vpminuw"  : case "pmaxuw"  : case "vpmaxuw"  :
+      case "pminud"  : case "vpminud"  : case "pmaxud"  : case "vpmaxud"  :
+        return "RO";
+
+      case "pandn"   : case "vpandn"   : case "vpandnd" : case "vpandnq"  :
+
+      case "xor"     :
+      case "pxor"    : case "vpxor"    : case "vpxord"  : case "vpxorq"   :
+      case "xorpd"   : case "vxorpd"   :
+      case "xorps"   : case "vxorps"   :
+
+      case "sub"     :
+      case "psubb"   : case "vpsubb"   :
+      case "psubw"   : case "vpsubw"   :
+      case "psubd"   : case "vpsubd"   :
+      case "psubq"   : case "vpsubq"   :
+      case "psubsb"  : case "vpsubsb"  : case "psubusb" : case "vpsubusb" :
+      case "psubsw"  : case "vpsubsw"  : case "psubusw" : case "vpsubusw" :
+
+      case "vpcmpeqb": case "pcmpeqb"  : case "vpcmpgtb": case "pcmpgtb"  :
+      case "vpcmpeqw": case "pcmpeqw"  : case "vpcmpgtw": case "pcmpgtw"  :
+      case "vpcmpeqd": case "pcmpeqd"  : case "vpcmpgtd": case "pcmpgtd"  :
+      case "vpcmpeqq": case "pcmpeqq"  : case "vpcmpgtq": case "pcmpgtq"  :
+
+      case "vpcmpb"  : case "vpcmpub"  :
+      case "vpcmpd"  : case "vpcmpud"  :
+      case "vpcmpw"  : case "vpcmpuw"  :
+      case "vpcmpq"  : case "vpcmpuq"  :
+        return "WO";
+
+      default:
+        return "None";
+    }
+  }
+
+  static jumpType(name) {
+    switch (name) {
+      case "jo" :
+      case "jno":
+      case "jb" : case "jnae":
+      case "jae": case "jnb" :
+      case "je" : case "jz"  :
+      case "jne": case "jnz" :
+      case "jbe": case "jna" :
+      case "js" :
+      case "jns":
+      case "jp" : case "jpe" :
+      case "jnp": case "jpo" :
+      case "jl" : case "jnge":
+      case "jge": case "jnl" :
+      case "jle": case "jng" :
+      case "jg" : case "jnle":
+      case "jecxz":
+      case "loop":
+      case "loope":
+      case "loopne":
+        return "Conditional";
+
+      case "jmp" : return "Direct";
+      case "call": return "Call";
+      case "ret" : return "Return";
+
+      default:
+        return "None";
+    }
+  }
+}
 
 // ----------------------------------------------------------------------------
 // [Generate]
@@ -458,8 +335,8 @@ const OpToAsmJitOp = {
   "xmm"     : "FLAG(Xmm)",
   "ymm"     : "FLAG(Ymm)",
   "zmm"     : "FLAG(Zmm)",
-  "sreg"    : "FLAG(Seg)",
   "bnd"     : "FLAG(Bnd)",
+  "sreg"    : "FLAG(Seg)",
   "creg"    : "FLAG(Cr)",
   "dreg"    : "FLAG(Dr)",
 
@@ -554,8 +431,8 @@ class OSignature {
     var hasReg = false;
 
     for (k in af) {
-      const index = asmdb.x86util.misc.regIndexOf(k);
-      const kind = asmdb.x86util.misc.regKindOf(k);
+      const index = x86.Utils.regIndexOf(k);
+      const kind = x86.Utils.regKindOf(k);
 
       if (kind)
         hasReg = true;
@@ -566,9 +443,9 @@ class OSignature {
 
     if (hasReg) {
       for (k in bf) {
-        const index = asmdb.x86util.misc.regIndexOf(k);
+        const index = x86.Utils.regIndexOf(k);
         if (index !== null && index !== -1) {
-          const kind = asmdb.x86util.misc.regKindOf(k);
+          const kind = x86.Utils.regKindOf(k);
           if (indexKind !== kind) return false;
         }
       }
@@ -628,7 +505,6 @@ class OSignature {
   }
 
   toAsmJitOpData() {
-    var s = "";
     var oFlags = this.flags;
 
     var mFlags = Object.create(null);
@@ -751,7 +627,7 @@ class OSignature {
     const sMemFlags = StringifyArray(SortOpArray(Object.getOwnPropertyNames(mMemFlags)), OpToAsmJitOp);
     const sExtFlags = StringifyArray(SortOpArray(Object.getOwnPropertyNames(mExtFlags)), OpToAsmJitOp);
 
-    return `OSIGNATURE(${sFlags || 0}, ${sMemFlags || 0}, ${sExtFlags || 0}, ${Utils.decToHex(sRegMask, 2)})`;
+    return `OSIGNATURE(${sFlags || 0}, ${sMemFlags || 0}, ${sExtFlags || 0}, ${StringUtils.decToHex(sRegMask, 2)})`;
   }
 }
 
@@ -807,7 +683,7 @@ class ISignature extends Array {
         return false;
     }
 
-    // Bail if mergeWidth and operand-level failed.
+    // Bail if mergeWidth at operand-level failed.
     if (xorIndex !== -1 && !this[xorIndex].mergeWith(other[xorIndex]))
       return false;
 
@@ -817,7 +693,7 @@ class ISignature extends Array {
     return true;
   }
 
-  toString(ops) {
+  toString() {
     return "{" + this.join(", ") + "}";
   }
 }
@@ -842,7 +718,7 @@ class SignatureArray extends Array {
       this[i].simplify();
   }
 
-  toString(ops) {
+  toString() {
     return "[" + this.join(", ") + "]";
   }
 }
@@ -851,10 +727,9 @@ class SignatureArray extends Array {
 // [X86Generator]
 // ----------------------------------------------------------------------------
 
-class X86Generator {
+class X86Generator extends base.BaseGenerator {
   constructor() {
-    this.instMap = Object.create(null);
-    this.instArray = [];
+    super("X86");
 
     this.opCombinations = Object.create(null);
     this.maxOpRows = 0;
@@ -866,7 +741,10 @@ class X86Generator {
       "moff64": true
     };
 
-    this.sizeStats = Object.create(null);
+    this.load([
+      "src/asmjit/x86/x86inst.cpp",
+      "src/asmjit/x86/x86inst.h"
+    ]);
   }
 
   signaturesFromInsts(insts) {
@@ -955,165 +833,97 @@ class X86Generator {
   // [Parse]
   // --------------------------------------------------------------------------
 
-  parse(data) {
-    // Create database.
+  parse() {
+    const data = this.dataOf("src/asmjit/x86/x86inst.cpp");
     const re = new RegExp(
-      "INST\\(([A-Za-z0-9_]+)\\s*," +       // [01] Id.
-      "\\s*\\\"([A-Za-z0-9_ ]*)\\\"\\s*," + // [02] Name.
-      "([^,]+)," +                          // [03] Encoding.
-      "(.{26}[^,]*)," +                     // [04] Opcode[0].
-      "(.{26}[^,]*)," +                     // [05] Opcode[1].
-      "(.{38}[^,]*)," +                     // [06] IFLAGS.
-      "\\s*EF\\(([A-Z_]+)\\)\\s*," +        // [07] EFLAGS.
-      "([^,]+)," +                          // [08] Write-Index.
-      "([^,]+)," +                          // [09] Write-Size.
-      // --- autogenerated ---
-      "([^\\)]+)," +                        // [10] FamilyType.
-      "([^\\)]+)," +                        // [11] FamilyIndex.
-      "([^\\)]+)," +                        // [12] NameIndex.
-      "([^\\)]+)\\)",                       // [13] ExtIndex.
+      "INST\\(" +
+        "([A-Za-z0-9_]+)\\s*"              + "," + // [01] Instruction.
+        "([^,]+)"                          + "," + // [02] Encoding.
+        "(.{26}[^,]*)"                     + "," + // [03] Opcode[0].
+        "(.{26}[^,]*)"                     + "," + // [04] Opcode[1].
+        "(.{38}[^,]*)"                     + "," + // [05] IFLAGS.
+        "\\s*EF\\(([A-Z_]+)\\)\\s*"        + "," + // [06] EFLAGS.
+        "([^,]+)"                          + "," + // [07] Write-Index.
+        "([^,]+)"                          + "," + // [08] Write-Size.
+        // --- autogenerated fields ---
+        "([^\\)]+)"                        + "," + // [09] FamilyType.
+        "([^\\)]+)"                        + "," + // [10] FamilyIndex.
+        "([^\\)]+)"                        + "," + // [11] NameIndex.
+        "([^\\)]+)"                        + "\\)",// [12] ExtIndex.
       "g");
 
-    var id = 0;
     var m;
-
-    while (m = re.exec(data)) {
-      var enum_       = kX86InstPrefix + m[1];
-      var name        = m[2];
-      var encoding    = m[3].trim();
-      var opcode0     = m[4].trim();
-      var opcode1     = m[5].trim();
-      var iflags      = m[6].trim();
-      var eflags      = m[7];
-      var writeIndex  = Utils.trimLeft(m[8]);
-      var writeSize   = Utils.trimLeft(m[9]);
+    while ((m = re.exec(data)) !== null) {
+      var enum_       = m[1];
+      var name        = enum_ === "None" ? "" : enum_.toLowerCase();
+      var encoding    = m[2].trim();
+      var opcode0     = m[3].trim();
+      var opcode1     = m[4].trim();
+      var iflags      = m[5].trim();
+      var eflags      = m[6];
+      var writeIndex  = StringUtils.trimLeft(m[7]);
+      var writeSize   = StringUtils.trimLeft(m[8]);
 
       const insts = GenUtils.groupOf(name);
-      if (!insts)
+      if (!insts.length)
         console.log(`INSTRUCTION '${name}' not found in asmdb`);
 
-      const signatures = insts ? this.signaturesFromInsts(insts) : new SignatureArray();
-      const inst = {
-        id            : id,           // Instruction id.
-        name          : name,         // Instruction name.
-        enum          : enum_,        // Instruction enum-string (kX86InstId...).
-        encoding      : encoding,     // Instruction encoding.
-        opcode0       : opcode0,      // Primary opcode.
-        opcode1       : opcode1,      // Secondary opcode.
+      const signatures    = this.signaturesFromInsts(insts);
+      const singleRegCase = GenUtils.singleRegCase(name);
+      const jumpType      = GenUtils.jumpType(name);
+
+      this.addInst({
+        id            : 0,             // Instruction id (numeric value).
+        name          : name,          // Instruction name.
+        enum          : enum_,         // Instruction enum without `kId` prefix.
+        encoding      : encoding,      // Instruction encoding.
+        opcode0       : opcode0,       // Primary opcode.
+        opcode1       : opcode1,       // Secondary opcode.
         iflags        : iflags,
         eflags        : eflags,
         writeIndex    : writeIndex,
         writeSize     : writeSize,
-        signatures    : signatures,   // Rows containing instruction signatures.
+        signatures    : signatures,    // Rows containing instruction signatures.
+        singleRegCase : singleRegCase,
+        jumpType      : jumpType,
 
-        familyType    : "kFamilyNone",// Family type.
-        familyIndex   : 0,            // Index to a family-specific data.
+        familyType    : "kFamilyNone", // Family type.
+        familyIndex   : 0,             // Index to a family-specific data.
 
-        nameIndex     : -1,           // Instruction name-index.
-        altOpCodeIndex: -1,           // Index to X86InstDB::altOpCodeTable.
+        nameIndex     : -1,            // Instruction name-index.
+        altOpCodeIndex: -1,            // Index to X86InstDB::altOpCodeTable.
         commonIndex   : -1,
         signatureIndex: -1,
         signatureCount: -1
-      }
-
-      this.instMap[name] = inst;
-      this.instArray.push(inst);
+      });
       this.maxOpRows = Math.max(this.maxOpRows, signatures.length);
-
-      id++;
     }
+
+    if (this.instArray.length === 0)
+      throw new Error("X86Generator.parse(): Invalid parsing regexp (no data parsed)");
 
     console.log("Number of Instructions: " + this.instArray.length);
   }
 
   // --------------------------------------------------------------------------
-  // [Generate - All]
+  // [Generate]
   // --------------------------------------------------------------------------
 
-  generate(oldData) {
-    var data = oldData;
-
-    function myInject(key, str) {
-      data = Utils.inject(data,
-        "// ${" + key + ":Begin}\n",
-        "// ${" + key + ":End}\n", str);
-    }
-
+  generate() {
     // Order doesn't matter here.
-    myInject("nameData"      , this.generateNameData());
-    myInject("fpuData"       , this.generateFpuData());
-    myInject("sseData"       , this.generateSseData());
-    myInject("avxData"       , this.generateAvxData());
-    myInject("altOpCodeData" , this.generateAltOpCodeData());
-    myInject("signatureData" , this.generateSignatureData());
-    // These must be last.
-    myInject("commonData"    , this.generateCommonData());
-    myInject("instData"      , this.generateInstData());
+    this.generateIdData();
+    this.generateNameData();
+    this.generateFpuData();
+    this.generateSseData();
+    this.generateAvxData();
+    this.generateAltOpCodeData();
+    this.generateSignatureData();
 
-    return data;
-  }
+    // These must be last, and order matters.
+    this.generateCommonData();
+    this.generateInstData();
 
-  // --------------------------------------------------------------------------
-  // [Generate - NameData]
-  // --------------------------------------------------------------------------
-
-  generateNameData() {
-    const instArray = this.instArray;
-
-    const instNames = new IndexedString();
-    const instAlpha = new Array(26);
-
-    var maxLength = 0;
-
-    for (var i = 0; i < instArray.length; i++) {
-      const inst = instArray[i];
-      instNames.add(inst.name);
-      maxLength = Math.max(maxLength, inst.name.length);
-    }
-    instNames.index();
-
-    for (var i = 0; i < instArray.length; i++) {
-      const inst = instArray[i];
-      const name = inst.name;
-      const nameIndex = instNames.getIndex(name);
-
-      const aIndex = name.charCodeAt(0) - 'a'.charCodeAt(0);
-      if (aIndex < 0 || aIndex >= 26)
-        throw new Error("Alphabetical index error");
-
-      inst.nameIndex = nameIndex;
-      if (instAlpha[aIndex] === undefined)
-        instAlpha[aIndex] = inst.enum;
-    }
-
-    var s = "";
-    s += kDisclaimerStart;
-    s += `const char X86InstDB::nameData[] =\n${instNames.format(kIndent, kJustify)}\n`;
-    s += `\n`;
-    s += `enum {\n`;
-    s += `  kX86InstMaxLength = ${maxLength}\n`;
-    s += `};\n`;
-    s += `\n`;
-    s += `enum X86InstAlphaIndex {\n`;
-    s += `  kX86InstAlphaIndexFirst   = 'a',\n`;
-    s += `  kX86InstAlphaIndexLast    = 'z',\n`;
-    s += `  kX86InstAlphaIndexInvalid = 0xFFFF\n`;
-    s += `};\n`;
-    s += `\n`;
-
-    s += `static const uint16_t _x86InstAlphaIndex[26] = {\n`;
-    for (var i = 0; i < instAlpha.length; i++) {
-      const id = instAlpha[i];
-      s += kIndent + (id === undefined ? "0xFFFF" : id);
-      if (i !== instAlpha.length - 1)
-        s += `,`;
-      s += `\n`;
-    }
-    s += `};\n`;
-    s += kDisclaimerEnd;
-
-    this.sizeStats.NameData = instNames.getSize() + instAlpha.length * 2;
-    return s;
+    return this;
   }
 
   // --------------------------------------------------------------------------
@@ -1121,16 +931,14 @@ class X86Generator {
   // --------------------------------------------------------------------------
 
   generateAltOpCodeData() {
-    const table = new IndexedArray();
+    const table = new base.IndexedArray();
     for (var i = 0; i < this.instArray.length; i++) {
       const inst = this.instArray[i];
-      inst.altOpCodeIndex = table.addIndexed(Utils.padLeft(inst.opcode1, 26));
+      inst.altOpCodeIndex = table.addIndexed(StringUtils.padLeft(inst.opcode1, 26));
     }
-    this.sizeStats.AltOpCodeData = table.length * 4;
 
-    return kDisclaimerStart +
-           `const uint32_t X86InstDB::altOpCodeData[] = {\n${Utils.format(table, kIndent, true)}\n};\n` +
-           kDisclaimerEnd;
+    var s = `const uint32_t X86InstDB::altOpCodeData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n`;
+    return this.inject("altOpCodeData", StringUtils.disclaimer(s), table.length * 4);
   }
 
   // --------------------------------------------------------------------------
@@ -1138,7 +946,7 @@ class X86Generator {
   // --------------------------------------------------------------------------
 
   generateFpuData() {
-    return "";
+    return this;
   }
 
   // --------------------------------------------------------------------------
@@ -1150,7 +958,7 @@ class X86Generator {
     const instMap = this.instMap;
 
     const prefix = "X86Inst::SseData::";
-    const table = new IndexedArray();
+    const table = new base.IndexedArray();
 
     function getSseToAvxInsts(insts) {
       const combinations = [];
@@ -1188,7 +996,7 @@ class X86Generator {
       const avxName = "v" + sseName;
       const avxInsts = GenUtils.groupOf(avxName);
 
-      if (!avxInsts) {
+      if (!avxInsts.length) {
         console.log(`SseToAvx: Instruction '${sseName}' has no AVX counterpart`);
         return null;
       }
@@ -1229,7 +1037,7 @@ class X86Generator {
         }
 
         out.avxConvMode = (map.raw && !map.nds) ? "Move" :
-                          (map.raw &&  map.nds) ? "MoveIfMem" : "NonDestructive";
+                          (map.raw &&  map.nds) ? "MoveIfMem" : "Extend";
       }
       out.avxConvDelta = instMap[avxName].id - instMap[sseName].id;
     }
@@ -1237,7 +1045,9 @@ class X86Generator {
     for (var i = 0; i < instArray.length; i++) {
       const inst = instArray[i];
       const insts = GenUtils.groupOf(inst.name);
-      if (!insts) continue;
+
+      if (!insts.length)
+        continue;
 
       if (GenUtils.familyOf(insts) === "Sse") {
         const data = {
@@ -1246,26 +1056,24 @@ class X86Generator {
         };
         calcSseToAvxData(insts, data);
 
-        var features = GenUtils.featuresOf(insts).map(function(f) { return Utils.padLeft(`FEATURE(${f})`, 19); }).join(`|\n${kIndent}  `);
-        if (!features) features = Utils.padLeft("0", 19);
-        
+        var features = GenUtils.featuresOf(insts).map(function(f) { return StringUtils.padLeft(`FEATURE(${f})`, 19); }).join(`|\n${kIndent}  `);
+        if (!features) features = StringUtils.padLeft("0", 19);
+
         inst.familyType = "kFamilySse";
         inst.familyIndex = table.addIndexed(
           "{ " + features + ", " +
-                 Utils.padLeft(`CONV_MODE(${data.avxConvMode})`, 26) + ", " +
-                 Utils.padLeft(data.avxConvDelta          ,  4) + " }"
+                 StringUtils.padLeft(`AVX_CONV(${data.avxConvMode})`, 20) + ", " +
+                 StringUtils.padLeft(data.avxConvDelta              ,  4) + " }"
         );
       }
     }
-    this.sizeStats.SseData = table.length * 4;
 
-    return kDisclaimerStart +
-           `#define FEATURE(F) ${prefix}kFeature##F\n` +
-           `#define CONV_MODE(MODE) ${prefix}kAvxConv##MODE\n` +
-           `const X86Inst::SseData X86InstDB::sseData[] = {\n${Utils.format(table, kIndent, true)}\n};\n` +
-           `#undef CONV_MODE\n` +
-           `#undef FEATURE\n` +
-           kDisclaimerEnd;
+    var s = `#define FEATURE(F) ${prefix}kFeature##F\n` +
+            `#define AVX_CONV(MODE) ${prefix}kAvxConv##MODE\n` +
+            `const X86Inst::SseData X86InstDB::sseData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
+            `#undef AVX_CONV\n` +
+            `#undef FEATURE\n`;
+    return this.inject("sseData", StringUtils.disclaimer(s), table.length * 4);
   }
 
   // --------------------------------------------------------------------------
@@ -1276,13 +1084,9 @@ class X86Generator {
     const instArray = this.instArray;
 
     const prefix = "X86Inst::AvxData::";
-    const table = new IndexedArray();
+    const table = new base.IndexedArray();
 
     function fillFlags(insts, out) {
-      var broadcast = "0";
-      var masking = "0";
-      var er_sae = "0"
-
       for (var i = 0; i < insts.length; i++) {
         const inst = insts[i];
         if (inst.prefix === "EVEX") {
@@ -1298,11 +1102,13 @@ class X86Generator {
     for (var i = 0; i < instArray.length; i++) {
       const inst = instArray[i];
       const insts = GenUtils.groupOf(inst.name);
-      if (!insts) continue;
+
+      if (!insts.length)
+        continue;
 
       if (GenUtils.familyOf(insts) === "Avx") {
-        var features = GenUtils.featuresOf(insts).map(function(f) { return Utils.padLeft(`FEATURE(${f})`, 19); }).join(`|\n${kIndent}  `);
-        if (!features) features = Utils.padLeft("0", 19);
+        var features = GenUtils.featuresOf(insts).map(function(f) { return StringUtils.padLeft(`FEATURE(${f})`, 19); }).join(`|\n${kIndent}  `);
+        if (!features) features = StringUtils.padLeft("0", 19);
 
         const flagsMap = {};
         fillFlags(insts, flagsMap);
@@ -1317,16 +1123,13 @@ class X86Generator {
         inst.familyIndex = table.addIndexed("{ " + features + ", " + flags + " }");
       }
     }
-    this.sizeStats.AvxData = table.length * 8;
 
-    return kDisclaimerStart +
-           `#define FEATURE(F) ${prefix}kFeature##F\n` +
-           `#define FLAG(F) ${prefix}kFlag##F\n` +
-           `const X86Inst::AvxData X86InstDB::avxData[] = {\n${Utils.format(table, kIndent, true)}\n};\n` +
-           `#undef FLAG\n` +
-           `#undef FEATURE\n` +
-           kDisclaimerEnd;
-    return "";
+    var s = `#define FEATURE(F) ${prefix}kFeature##F\n` +
+            `#define FLAG(F) ${prefix}kFlag##F\n` +
+            `const X86Inst::AvxData X86InstDB::avxData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
+            `#undef FLAG\n` +
+            `#undef FEATURE\n`;
+    return this.inject("avxData", StringUtils.disclaimer(s), table.length * 8);
   }
 
   // --------------------------------------------------------------------------
@@ -1345,21 +1148,6 @@ class X86Generator {
     const noOperand = "OSIGNATURE(0, 0, 0, 0xFF)";
     opMap[noOperand] = [0];
     opArr.push(noOperand);
-
-    function makeCxxArray(array, code) {
-      return `${code} = {\n` +
-               kIndent + array.join(`,\n${kIndent}`) + "\n" +
-             `};\n`;
-    }
-
-    function makeCxxArrayWithComment(array, code) {
-      var s = "";
-      for (var i = 0; i < array.length; i++) {
-        const last = i === array.length - 1;
-        s += kIndent + array[i].data + (last ? "  // " : ", // ") + Utils.padLeft(array[i].refs ? "#" + String(i) : "", 5) + array[i].comment + "\n";
-      }
-      return `${code} = {\n${s}};\n`;
-    }
 
     function findSignaturesIndex(rows) {
       const len = rows.length;
@@ -1430,12 +1218,12 @@ class X86Generator {
               index = opMap[h];
             }
 
-            signatureEntry += `, ${Utils.padLeft(index, 3)}`;
+            signatureEntry += `, ${StringUtils.padLeft(index, 3)}`;
             x++;
           }
 
           while (x < 6) {
-            signatureEntry += `, ${Utils.padLeft(0, 3)}`;
+            signatureEntry += `, ${StringUtils.padLeft(0, 3)}`;
             x++;
           }
 
@@ -1455,31 +1243,25 @@ class X86Generator {
       }
     }
 
-    var s = "";
-
-    s += kDisclaimerStart;
-    s += "#define ISIGNATURE(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5) \\\n";
-    s += "  { count, (x86 ? uint8_t(X86Inst::kArchMaskX86) : uint8_t(0)) |      \\\n";
-    s += "           (x64 ? uint8_t(X86Inst::kArchMaskX64) : uint8_t(0)) ,      \\\n";
-    s += "    implicit,                                                         \\\n";
-    s += "    0,                                                                \\\n";
-    s += "    o0, o1, o2, o3, o4, o5                                            \\\n";
-    s += "  }\n";
-    s += makeCxxArrayWithComment(signatureArr, "static const X86Inst::ISignature _x86InstISignatureData[]");
-    s += "#undef ISIGNATURE\n";
-    s += "\n";
-    s += "#define FLAG(flag) X86Inst::kOp##flag\n";
-    s += "#define MEM(mem) X86Inst::kMemOp##mem\n";
-    s += "#define OSIGNATURE(flags, memFlags, extFlags, regId) \\\n";
-    s += "  { uint32_t(flags), uint16_t(memFlags), uint8_t(extFlags), uint8_t(regId) }\n";
-    s += makeCxxArray(opArr, "static const X86Inst::OSignature _x86InstOSignatureData[]");
-    s += "#undef OSIGNATURE\n";
-    s += "#undef MEM\n";
-    s += "#undef FLAG\n";
-    s += kDisclaimerEnd;
-
-    this.sizeStats.SignatureData = opArr.length * 8 + signatureArr.length * 8;
-    return s;
+    var s = "#define ISIGNATURE(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5) \\\n" +
+            "  { count, (x86 ? uint8_t(X86Inst::kArchMaskX86) : uint8_t(0)) |      \\\n" +
+            "           (x64 ? uint8_t(X86Inst::kArchMaskX64) : uint8_t(0)) ,      \\\n" +
+            "    implicit,                                                         \\\n" +
+            "    0,                                                                \\\n" +
+            "    { o0, o1, o2, o3, o4, o5 }                                        \\\n" +
+            "  }\n" +
+            StringUtils.makeCxxArrayWithComment(signatureArr, "static const X86Inst::ISignature _x86InstISignatureData[]") +
+            "#undef ISIGNATURE\n" +
+            "\n" +
+            "#define FLAG(flag) X86Inst::kOp##flag\n" +
+            "#define MEM(mem) X86Inst::kMemOp##mem\n" +
+            "#define OSIGNATURE(flags, memFlags, extFlags, regId) \\\n" +
+            "  { uint32_t(flags), uint16_t(memFlags), uint8_t(extFlags), uint8_t(regId) }\n" +
+                StringUtils.makeCxxArray(opArr, "static const X86Inst::OSignature _x86InstOSignatureData[]") +
+            "#undef OSIGNATURE\n" +
+            "#undef MEM\n" +
+            "#undef FLAG\n";
+    return this.inject("signatureData", StringUtils.disclaimer(s), opArr.length * 8 + signatureArr.length * 8);
   }
 
   // --------------------------------------------------------------------------
@@ -1487,28 +1269,34 @@ class X86Generator {
   // --------------------------------------------------------------------------
 
   generateCommonData() {
-    const table = new IndexedArray();
+    const table = new base.IndexedArray();
     for (var i = 0; i < this.instArray.length; i++) {
       const inst = this.instArray[i];
 
-      const eflagsIn    = Utils.decToHex(getEFlagsMask(inst.eflags, "RX" ), 2);
-      const eflagsOut   = Utils.decToHex(getEFlagsMask(inst.eflags, "WXU"), 2);
+      const eflagsIn      = StringUtils.decToHex(getEFlagsMask(inst.eflags, "RX" ), 2);
+      const eflagsOut     = StringUtils.decToHex(getEFlagsMask(inst.eflags, "WXU"), 2);
+      const singleRegCase = `SINGLE_REG(${inst.singleRegCase})`;
+      const jumpType      = `JUMP_TYPE(${inst.jumpType})`;
 
-      const item = "{ " + Utils.padLeft(inst.iflags        , 38) + ", " +
-                          Utils.padLeft(inst.writeIndex    ,  3) + ", " +
-                          Utils.padLeft(inst.writeSize     ,  3) + ", " +
-                          eflagsIn                               + ", " +
-                          eflagsOut                              + ", " +
-                          Utils.padLeft(inst.altOpCodeIndex,  3) + ", " +
-                          Utils.padLeft(inst.signatureIndex,  3) + ", " +
-                          Utils.padLeft(inst.signatureCount,  2) + ", 0 }";
+      const item = "{ " + StringUtils.padLeft(inst.iflags        , 38) + ", " +
+                          StringUtils.padLeft(inst.writeIndex    ,  3) + ", " +
+                          StringUtils.padLeft(inst.writeSize     ,  3) + ", " +
+                          eflagsIn                                     + ", " +
+                          eflagsOut                                    + ", " +
+                          StringUtils.padLeft(inst.altOpCodeIndex,  3) + ", " +
+                          StringUtils.padLeft(inst.signatureIndex,  3) + ", " +
+                          StringUtils.padLeft(inst.signatureCount,  2) + ", " +
+                          StringUtils.padLeft(jumpType           , 22) + ", " +
+                          StringUtils.padLeft(singleRegCase      , 16) + ", " + "0 }";
       inst.commonIndex = table.addIndexed(item);
     }
-    this.sizeStats.CommonData = table.length * 12;
 
-    return kDisclaimerStart +
-           `const X86Inst::CommonData X86InstDB::commonData[] = {\n${Utils.format(table, kIndent, true)}\n};\n` +
-           kDisclaimerEnd;
+    var s = `#define JUMP_TYPE(VAL) AnyInst::kJumpType##VAL\n` +
+            `#define SINGLE_REG(VAL) X86Inst::kSingleReg##VAL\n` +
+            `const X86Inst::CommonData X86InstDB::commonData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
+            `#undef SINGLE_REG\n` +
+            `#undef JUMP_TYPE\n`;
+    return this.inject("commonData", StringUtils.disclaimer(s), table.length * 12);
   }
 
   // --------------------------------------------------------------------------
@@ -1516,24 +1304,47 @@ class X86Generator {
   // --------------------------------------------------------------------------
 
   generateInstData() {
-    this.sizeStats.InstData = this.instArray.length * 12;
-
-    return Utils.format(this.instArray, kIndent, false, function(inst) {
+    var s = StringUtils.format(this.instArray, "", false, function(inst) {
       return "INST(" +
-        Utils.padLeft(inst.enum.substr(kX86InstPrefix.length), 16) + ", " +
-        Utils.padLeft(`"${inst.name}"`   , 18) + ", " +
-        Utils.padLeft(inst.encoding      , 23) + ", " +
-        Utils.padLeft(inst.opcode0       , 26) + ", " +
-        Utils.padLeft(inst.opcode1       , 26) + ", " +
-        Utils.padLeft(inst.iflags        , 38) + ", " +
+        StringUtils.padLeft(inst.enum       , 16) + ", " +
+        StringUtils.padLeft(inst.encoding   , 19) + ", " +
+        StringUtils.padLeft(inst.opcode0    , 26) + ", " +
+        StringUtils.padLeft(inst.opcode1    , 26) + ", " +
+        StringUtils.padLeft(inst.iflags     , 38) + ", " +
         "EF(" + inst.eflags + "), " +
-        Utils.padLeft(inst.writeIndex    ,  1) + ", " +
-        Utils.padLeft(inst.writeSize     ,  1) + ", " +
-        Utils.padLeft(inst.familyType    , 11) + ", " +
-        Utils.padLeft(inst.familyIndex   ,  3) + ", " +
-        Utils.padLeft(inst.nameIndex     ,  4) + ", " +
-        Utils.padLeft(inst.commonIndex   ,  3) + ")";
-    }) + "\n  ";
+        StringUtils.padLeft(inst.writeIndex ,  1) + ", " +
+        StringUtils.padLeft(inst.writeSize  ,  1) + ", " +
+        StringUtils.padLeft(inst.familyType , 11) + ", " +
+        StringUtils.padLeft(inst.familyIndex,  3) + ", " +
+        StringUtils.padLeft(inst.nameIndex  ,  4) + ", " +
+        StringUtils.padLeft(inst.commonIndex,  3) + ")";
+    }) + "\n";
+    return this.inject("instData", s, this.instArray.length * 12);
+  }
+
+  // --------------------------------------------------------------------------
+  // [Reimplement]
+  // --------------------------------------------------------------------------
+
+  getCommentOf(name) {
+    var insts = GenUtils.groupOf(name);
+    if (!insts.length) return "";
+
+    var features = GenUtils.featuresOf(insts);
+    var comment = GenUtils.archOf(insts);
+
+    if (features.length) {
+      comment += " {";
+
+      const vl = features.indexOf("AVX512_VL");
+      if (vl !== -1) features.splice(vl, 1);
+      comment += features.join("|");
+      if (vl !== -1) comment += " (VL)";
+
+      comment += "}";
+    }
+
+    return comment;
   }
 
   // --------------------------------------------------------------------------
@@ -1541,60 +1352,42 @@ class X86Generator {
   // --------------------------------------------------------------------------
 
   printMissing() {
-    const instArray = this.instArray;
-
     var out = "";
 
     function CPUFlags(insts) {
       var flags = {};
       for (var i = 0; i < insts.length; i++) {
         var inst = insts[i];
-        for (var k in inst.cpu)
+        for (var k in inst.extensions)
           flags[k] = true;
       }
       return Object.getOwnPropertyNames(flags).join("|");
     }
 
-    x86db.getInstructionNames().forEach(function(name) {
-      var insts = x86db.getGroup(name);
+    isa.instructionNames.forEach(function(name) {
+      var insts = isa.query(name);
       if (!this.instMap[name]) {
         console.log(`MISSING INSTRUCTION '${name}'`);
         var inst = this.newInstFromInsts(insts);
         if (inst) {
           out += "  INST(" +
-            Utils.padLeft(inst.enum.substr(kX86InstPrefix.length), 16) + ", " +
-            Utils.padLeft(`"${inst.name}"`   , 18) + ", " +
-            Utils.padLeft(inst.encoding      , 23) + ", " +
-            Utils.padLeft(inst.opcode0       , 26) + ", " +
-            Utils.padLeft(inst.opcode1       , 26) + ", " +
-            Utils.padLeft(inst.iflags        , 38) + ", " +
+            StringUtils.padLeft(inst.enum          , 16) + ", " +
+            StringUtils.padLeft(inst.encoding      , 23) + ", " +
+            StringUtils.padLeft(inst.opcode0       , 26) + ", " +
+            StringUtils.padLeft(inst.opcode1       , 26) + ", " +
+            StringUtils.padLeft(inst.iflags        , 38) + ", " +
             "EF(" + inst.eflags + "), " +
-            Utils.padLeft(inst.writeIndex    , 2) + ", " +
-            Utils.padLeft(inst.writeSize     , 2) + ", " +
-            Utils.padLeft(inst.signatureIndex, 3) + ", " +
-            Utils.padLeft(inst.signatureCount, 2) + ", " +
-            Utils.padLeft("0", 3) + ", " +
-            Utils.padLeft("0", 3) + ", " +
-            Utils.padLeft("0", 3) + "),\n";
+            StringUtils.padLeft(inst.writeIndex    , 2) + ", " +
+            StringUtils.padLeft(inst.writeSize     , 2) + ", " +
+            StringUtils.padLeft(inst.signatureIndex, 3) + ", " +
+            StringUtils.padLeft(inst.signatureCount, 2) + ", " +
+            StringUtils.padLeft("0", 3) + ", " +
+            StringUtils.padLeft("0", 3) + ", " +
+            StringUtils.padLeft("0", 3) + "),\n";
         }
       }
     }, this);
     console.log(out);
-  }
-
-  printStats() {
-    const stats = this.sizeStats;
-
-    var pad = 24;
-    var total = 0;
-
-    for (var k in stats) {
-      const size = stats[k];
-      total += size;
-      console.log(Utils.padLeft('Size of ' + k, pad) + ": " + size);
-    }
-
-    console.log(Utils.padLeft('Size of all tables', pad) + ": " + total);
   }
 }
 
@@ -1603,19 +1396,13 @@ class X86Generator {
 // ----------------------------------------------------------------------------
 
 function main() {
-  var g = new X86Generator();
-  var data = fs.readFileSync(kFileName, "utf8").replace(/\r\n/g, "\n");
+  const gen = new X86Generator();
 
-  g.parse(data);
-  // g.printMissing();
-  var newData = g.generate(data);
-  g.printStats();
-
-  // Save only if modified.
-  if (newData !== data) {
-    fs.writeFileSync(kFileName + ".backup", data, "utf8");
-    fs.writeFileSync(kFileName, newData, "utf8");
-  }
+  gen.parse();
+  gen.generate();
+  // gen.printMissing();
+  gen.dumpTableSizes();
+  gen.save();
 }
 main();
 
@@ -1662,7 +1449,7 @@ main();
 
     var id       = this.instArray.length;
     var name     = inst.name;
-    var enum_    = kX86InstPrefix + name[0].toUpperCase() + name.substr(1);
+    var enum_    = kX86InstId + name[0].toUpperCase() + name.substr(1);
 
     var opcode   = inst.opcode;
     var rm       = inst.rm;
@@ -1716,8 +1503,8 @@ main();
       evexW = obj.evexW;
     }
 
-    var ppmm = Utils.padLeft(pp, 2).replace(/ /g, "0") +
-               Utils.padLeft(mm, 4).replace(/ /g, "0") ;
+    var ppmm = StringUtils.padLeft(pp, 2).replace(/ /g, "0") +
+               StringUtils.padLeft(mm, 4).replace(/ /g, "0") ;
 
     var composed = composeOpCode({
       type  : prefix === "VEX" || prefix === "EVEX" ? "V" : "O",
@@ -1742,7 +1529,7 @@ main();
       id            : id,
       name          : name,
       enum          : enum_,
-      encoding      : "Enc(?" + encoding + "?)",
+      encoding      : encoding,
       opcode0       : composed,
       opcode1       : "0",
       iflags        : iflags.join(""),
@@ -1757,12 +1544,12 @@ main();
 
   function genAPI() {
     var asm = fs.readFileSync("../src/asmjit/x86/x86assembler.h", "utf8");
-    var list = ["AVX512F", "AVX512DQ", "AVX512BW", "AVX512CD", "AVX512ER", "AVX512PF", "AVX512IFMA", "AVX512VBMI"];
+    var list = ["AVX512_F", "AVX512_DQ", "AVX512_BW", "AVX512_CD", "AVX512_ER", "AVX512_PF", "AVX512_IFMA", "AVX512_VBMI"];
 
     function getAVX512Flag(inst) {
-      for (var cpu in inst.cpu) {
+      for (var cpu in inst.extensions) {
         if (list.indexOf(cpu) !== -1) {
-          return inst.cpu["AVX512VL"] ? cpu + "-VL" : cpu;
+          return inst.extensions["AVX512_VL"] ? cpu + "-VL" : cpu;
         }
       }
       return "";
@@ -1789,8 +1576,8 @@ main();
         "xmm0": "XMM0"
       }
 
-      x86db.forEach(function(name, inst) {
-        if (inst.cpu.AVX || inst.cpu.AVX2 || getAVX512Flag(inst)) {
+      isa.forEach(function(name, inst) {
+        if (inst.extensions.AVX || inst.extensions.AVX2 || getAVX512Flag(inst)) {
           var operands = inst.operands;
           var iops = [];
           var hasImm = -1;
@@ -1823,10 +1610,10 @@ main();
             else
               flags = flags + (avx512Flags.length ? "{" + avx512Flags.join("|") + "}" : "");
           }
-          else if (inst.cpu.AVX2) {
+          else if (inst.extensions.AVX2) {
             flags = "AVX2";
           }
-          else if (inst.cpu.AVX) {
+          else if (inst.extensions.AVX) {
             flags = "AVX";
           }
           else {
@@ -1905,11 +1692,11 @@ main();
 
         if (flags.length) {
           if (!fstr) fstr = "   ";
-          fstr = Utils.padLeft(fstr, 5);
+          fstr = StringUtils.padLeft(fstr, 5);
           fstr += flags.join(" ");
         }
 
-        line = Utils.padLeft(line, 72);
+        line = StringUtils.padLeft(line, 72);
         line += "// " + fstr;
       }
 
@@ -1922,12 +1709,12 @@ main();
 
   function genOpcodeH() {
     var asm = fs.readFileSync("../src/asmjit/x86/x86assembler.h", "utf8");
-    var list = ["AVX512F", "AVX512DQ", "AVX512BW", "AVX512CD", "AVX512ER", "AVX512PF", "AVX512IFMA", "AVX512VBMI"];
+    var list = ["AVX512_F", "AVX512_DQ", "AVX512_BW", "AVX512_CD", "AVX512_ER", "AVX512_PF", "AVX512_IFMA", "AVX512_VBMI"];
 
     function getAVX512Flag(inst) {
-      for (var cpu in inst.cpu) {
+      for (var cpu in inst.extensions) {
         if (list.indexOf(cpu) !== -1) {
-          return inst.cpu["AVX512VL"] ? cpu + "-VL" : cpu;
+          return inst.extensions["AVX512_VL"] ? cpu + "-VL" : cpu;
         }
       }
       return "";
@@ -1981,7 +1768,7 @@ main();
       "vm32z3": "vz_ptr"
     };
 
-    x86db.forEach(function(name, inst) {
+    isa.forEach(function(name, inst) {
       if (getAVX512Flag(inst)) {
         var operands = inst.operands;
         var iops = [];
@@ -2012,10 +1799,10 @@ main();
           else
             flags = flags + (avx512Flags.length ? "{" + avx512Flags.join("|") + "}" : "");
         }
-        else if (inst.cpu.AVX2) {
+        else if (inst.extensions.AVX2) {
           flags = "AVX2";
         }
-        else if (inst.cpu.AVX) {
+        else if (inst.extensions.AVX) {
           flags = "AVX";
         }
         else {

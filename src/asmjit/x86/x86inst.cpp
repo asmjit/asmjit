@@ -592,178 +592,178 @@ const X86Inst X86InstDB::instData[] = {
   INST(Pabsb           , ExtRm_P            , O(000F38,1C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 66 , 5714, 189),
   INST(Pabsd           , ExtRm_P            , O(000F38,1E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 66 , 5721, 189),
   INST(Pabsw           , ExtRm_P            , O(000F38,1D,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 67 , 5735, 189),
-  INST(Packssdw        , ExtRm_P            , O(000F00,6B,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5742, 189),
-  INST(Packsswb        , ExtRm_P            , O(000F00,63,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5752, 189),
+  INST(Packssdw        , ExtRm_P            , O(000F00,6B,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5742, 190),
+  INST(Packsswb        , ExtRm_P            , O(000F00,63,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5752, 190),
   INST(Packusdw        , ExtRm              , O(660F38,2B,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 69 , 5762, 6  ),
-  INST(Packuswb        , ExtRm_P            , O(000F00,67,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5772, 189),
-  INST(Paddb           , ExtRm_P            , O(000F00,FC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5782, 189),
-  INST(Paddd           , ExtRm_P            , O(000F00,FE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5789, 189),
-  INST(Paddq           , ExtRm_P            , O(000F00,D4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 70 , 5796, 189),
-  INST(Paddsb          , ExtRm_P            , O(000F00,EC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5803, 189),
-  INST(Paddsw          , ExtRm_P            , O(000F00,ED,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5811, 189),
-  INST(Paddusb         , ExtRm_P            , O(000F00,DC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5819, 189),
-  INST(Paddusw         , ExtRm_P            , O(000F00,DD,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5828, 189),
-  INST(Paddw           , ExtRm_P            , O(000F00,FD,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5837, 189),
-  INST(Palignr         , ExtRmi_P           , O(000F3A,0F,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 71 , 5844, 190),
-  INST(Pand            , ExtRm_P            , O(000F00,DB,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5853, 191),
-  INST(Pandn           , ExtRm_P            , O(000F00,DF,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 72 , 5866, 192),
-  INST(Pause           , X86Op              , O(F30000,90,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 1762, 193),
-  INST(Pavgb           , ExtRm_P            , O(000F00,E0,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 73 , 5896, 189),
-  INST(Pavgusb         , Ext3dNow           , O(000F0F,BF,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1768, 194),
-  INST(Pavgw           , ExtRm_P            , O(000F00,E3,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 75 , 5903, 189),
+  INST(Packuswb        , ExtRm_P            , O(000F00,67,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5772, 190),
+  INST(Paddb           , ExtRm_P            , O(000F00,FC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5782, 190),
+  INST(Paddd           , ExtRm_P            , O(000F00,FE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5789, 190),
+  INST(Paddq           , ExtRm_P            , O(000F00,D4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 70 , 5796, 190),
+  INST(Paddsb          , ExtRm_P            , O(000F00,EC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5803, 190),
+  INST(Paddsw          , ExtRm_P            , O(000F00,ED,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5811, 190),
+  INST(Paddusb         , ExtRm_P            , O(000F00,DC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5819, 190),
+  INST(Paddusw         , ExtRm_P            , O(000F00,DD,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5828, 190),
+  INST(Paddw           , ExtRm_P            , O(000F00,FD,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5837, 190),
+  INST(Palignr         , ExtRmi_P           , O(000F3A,0F,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 71 , 5844, 191),
+  INST(Pand            , ExtRm_P            , O(000F00,DB,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 68 , 5853, 192),
+  INST(Pandn           , ExtRm_P            , O(000F00,DF,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 72 , 5866, 193),
+  INST(Pause           , X86Op              , O(F30000,90,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 1762, 194),
+  INST(Pavgb           , ExtRm_P            , O(000F00,E0,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 73 , 5896, 190),
+  INST(Pavgusb         , Ext3dNow           , O(000F0F,BF,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1768, 195),
+  INST(Pavgw           , ExtRm_P            , O(000F00,E3,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 75 , 5903, 190),
   INST(Pblendvb        , ExtRm_XMM0         , O(660F38,10,_,_,_,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 76 , 5919, 18 ),
   INST(Pblendw         , ExtRmi             , O(660F3A,0E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 77 , 5929, 17 ),
   INST(Pclmulqdq       , ExtRmi             , O(660F3A,44,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 78 , 6022, 17 ),
-  INST(Pcmpeqb         , ExtRm_P            , O(000F00,74,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6054, 192),
-  INST(Pcmpeqd         , ExtRm_P            , O(000F00,76,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6063, 192),
-  INST(Pcmpeqq         , ExtRm              , O(660F38,29,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 80 , 6072, 195),
-  INST(Pcmpeqw         , ExtRm_P            , O(000F00,75,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6081, 192),
-  INST(Pcmpestri       , ExtRmi             , O(660F3A,61,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6090, 196),
-  INST(Pcmpestrm       , ExtRmi             , O(660F3A,60,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6101, 197),
-  INST(Pcmpgtb         , ExtRm_P            , O(000F00,64,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6112, 192),
-  INST(Pcmpgtd         , ExtRm_P            , O(000F00,66,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6121, 192),
-  INST(Pcmpgtq         , ExtRm              , O(660F38,37,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 80 , 6130, 195),
-  INST(Pcmpgtw         , ExtRm_P            , O(000F00,65,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6139, 192),
-  INST(Pcmpistri       , ExtRmi             , O(660F3A,63,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6148, 198),
-  INST(Pcmpistrm       , ExtRmi             , O(660F3A,62,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6159, 199),
+  INST(Pcmpeqb         , ExtRm_P            , O(000F00,74,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6054, 193),
+  INST(Pcmpeqd         , ExtRm_P            , O(000F00,76,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6063, 193),
+  INST(Pcmpeqq         , ExtRm              , O(660F38,29,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 80 , 6072, 196),
+  INST(Pcmpeqw         , ExtRm_P            , O(000F00,75,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6081, 193),
+  INST(Pcmpestri       , ExtRmi             , O(660F3A,61,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6090, 197),
+  INST(Pcmpestrm       , ExtRmi             , O(660F3A,60,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6101, 198),
+  INST(Pcmpgtb         , ExtRm_P            , O(000F00,64,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6112, 193),
+  INST(Pcmpgtd         , ExtRm_P            , O(000F00,66,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6121, 193),
+  INST(Pcmpgtq         , ExtRm              , O(660F38,37,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 82 , 6130, 196),
+  INST(Pcmpgtw         , ExtRm_P            , O(000F00,65,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 79 , 6139, 193),
+  INST(Pcmpistri       , ExtRmi             , O(660F3A,63,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6148, 199),
+  INST(Pcmpistrm       , ExtRmi             , O(660F3A,62,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 81 , 6159, 200),
   INST(Pcommit         , X86Op_O            , O(660F00,AE,7,_,_,_,_,_  ), 0                         , F(Volatile)                           , EF(________), 0 , 0 , kFamilyNone, 0  , 1776, 73 ),
-  INST(Pdep            , VexRvm_Wx          , V(F20F38,F5,_,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 1784, 200),
-  INST(Pext            , VexRvm_Wx          , V(F30F38,F5,_,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 1789, 200),
-  INST(Pextrb          , ExtExtract         , O(000F3A,14,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 82 , 6564, 201),
-  INST(Pextrd          , ExtExtract         , O(000F3A,16,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 82 , 6572, 75 ),
-  INST(Pextrq          , ExtExtract         , O(000F3A,16,_,_,1,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 82 , 6580, 202),
-  INST(Pextrw          , ExtPextrw          , O(000F00,C5,_,_,_,_,_,_  ), O(000F3A,15,_,_,_,_,_,_  ), F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 83 , 6588, 203),
-  INST(Pf2id           , Ext3dNow           , O(000F0F,1D,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 74 , 1794, 204),
-  INST(Pf2iw           , Ext3dNow           , O(000F0F,1C,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 84 , 1800, 204),
-  INST(Pfacc           , Ext3dNow           , O(000F0F,AE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1806, 194),
-  INST(Pfadd           , Ext3dNow           , O(000F0F,9E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1812, 194),
-  INST(Pfcmpeq         , Ext3dNow           , O(000F0F,B0,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1818, 194),
-  INST(Pfcmpge         , Ext3dNow           , O(000F0F,90,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1826, 194),
-  INST(Pfcmpgt         , Ext3dNow           , O(000F0F,A0,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1834, 194),
-  INST(Pfmax           , Ext3dNow           , O(000F0F,A4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1842, 194),
-  INST(Pfmin           , Ext3dNow           , O(000F0F,94,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1848, 194),
-  INST(Pfmul           , Ext3dNow           , O(000F0F,B4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1854, 194),
-  INST(Pfnacc          , Ext3dNow           , O(000F0F,8A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 84 , 1860, 194),
-  INST(Pfpnacc         , Ext3dNow           , O(000F0F,8E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 84 , 1867, 194),
-  INST(Pfrcp           , Ext3dNow           , O(000F0F,96,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 74 , 1875, 204),
-  INST(Pfrcpit1        , Ext3dNow           , O(000F0F,A6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1881, 194),
-  INST(Pfrcpit2        , Ext3dNow           , O(000F0F,B6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1890, 194),
-  INST(Pfrcpv          , Ext3dNow           , O(000F0F,86,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 85 , 1899, 194),
-  INST(Pfrsqit1        , Ext3dNow           , O(000F0F,A7,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1906, 205),
-  INST(Pfrsqrt         , Ext3dNow           , O(000F0F,97,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1915, 205),
-  INST(Pfrsqrtv        , Ext3dNow           , O(000F0F,87,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 85 , 1923, 194),
-  INST(Pfsub           , Ext3dNow           , O(000F0F,9A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1932, 194),
-  INST(Pfsubr          , Ext3dNow           , O(000F0F,AA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1938, 194),
-  INST(Phaddd          , ExtRm_P            , O(000F38,02,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 86 , 6667, 189),
-  INST(Phaddsw         , ExtRm_P            , O(000F38,03,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 87 , 6684, 189),
-  INST(Phaddw          , ExtRm_P            , O(000F38,01,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 88 , 6753, 189),
-  INST(Phminposuw      , ExtRm              , O(660F38,41,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 89 , 6779, 6  ),
-  INST(Phsubd          , ExtRm_P            , O(000F38,06,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 90 , 6800, 189),
-  INST(Phsubsw         , ExtRm_P            , O(000F38,07,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 91 , 6817, 189),
-  INST(Phsubw          , ExtRm_P            , O(000F38,05,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 91 , 6826, 189),
-  INST(Pi2fd           , Ext3dNow           , O(000F0F,0D,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 74 , 1945, 204),
-  INST(Pi2fw           , Ext3dNow           , O(000F0F,0C,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 84 , 1951, 204),
-  INST(Pinsrb          , ExtRmi             , O(660F3A,20,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 92 , 6843, 206),
-  INST(Pinsrd          , ExtRmi             , O(660F3A,22,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 92 , 6851, 207),
-  INST(Pinsrq          , ExtRmi             , O(660F3A,22,_,_,1,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 92 , 6859, 208),
-  INST(Pinsrw          , ExtRmi_P           , O(000F00,C4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 93 , 6867, 209),
-  INST(Pmaddubsw       , ExtRm_P            , O(000F38,04,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 94 , 7037, 189),
-  INST(Pmaddwd         , ExtRm_P            , O(000F00,F5,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 95 , 7048, 189),
-  INST(Pmaxsb          , ExtRm              , O(660F38,3C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 96 , 7079, 14 ),
-  INST(Pmaxsd          , ExtRm              , O(660F38,3D,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 96 , 7087, 14 ),
-  INST(Pmaxsw          , ExtRm_P            , O(000F00,EE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 97 , 7103, 191),
-  INST(Pmaxub          , ExtRm_P            , O(000F00,DE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 97 , 7111, 191),
-  INST(Pmaxud          , ExtRm              , O(660F38,3F,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 98 , 7119, 14 ),
-  INST(Pmaxuw          , ExtRm              , O(660F38,3E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 99 , 7135, 14 ),
-  INST(Pminsb          , ExtRm              , O(660F38,38,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 99 , 7143, 14 ),
-  INST(Pminsd          , ExtRm              , O(660F38,39,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 99 , 7151, 14 ),
-  INST(Pminsw          , ExtRm_P            , O(000F00,EA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 100, 7167, 191),
-  INST(Pminub          , ExtRm_P            , O(000F00,DA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 100, 7175, 191),
-  INST(Pminud          , ExtRm              , O(660F38,3B,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 101, 7183, 14 ),
-  INST(Pminuw          , ExtRm              , O(660F38,3A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 102, 7199, 14 ),
-  INST(Pmovmskb        , ExtRm_P            , O(000F00,D7,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 103, 7277, 210),
-  INST(Pmovsxbd        , ExtRm              , O(660F38,21,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 104, 7374, 211),
-  INST(Pmovsxbq        , ExtRm              , O(660F38,22,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 104, 7384, 212),
-  INST(Pmovsxbw        , ExtRm              , O(660F38,20,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 104, 7394, 56 ),
-  INST(Pmovsxdq        , ExtRm              , O(660F38,25,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 104, 7404, 56 ),
-  INST(Pmovsxwd        , ExtRm              , O(660F38,23,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 104, 7414, 56 ),
-  INST(Pmovsxwq        , ExtRm              , O(660F38,24,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 104, 7424, 211),
-  INST(Pmovzxbd        , ExtRm              , O(660F38,31,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7511, 211),
-  INST(Pmovzxbq        , ExtRm              , O(660F38,32,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7521, 212),
-  INST(Pmovzxbw        , ExtRm              , O(660F38,30,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7531, 56 ),
-  INST(Pmovzxdq        , ExtRm              , O(660F38,35,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7541, 56 ),
-  INST(Pmovzxwd        , ExtRm              , O(660F38,33,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7551, 56 ),
-  INST(Pmovzxwq        , ExtRm              , O(660F38,34,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7561, 211),
-  INST(Pmuldq          , ExtRm              , O(660F38,28,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 106, 7571, 6  ),
-  INST(Pmulhrsw        , ExtRm_P            , O(000F38,0B,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 107, 7579, 189),
-  INST(Pmulhrw         , Ext3dNow           , O(000F0F,B7,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1957, 194),
-  INST(Pmulhuw         , ExtRm_P            , O(000F00,E4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 108, 7589, 189),
-  INST(Pmulhw          , ExtRm_P            , O(000F00,E5,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 109, 7598, 189),
-  INST(Pmulld          , ExtRm              , O(660F38,40,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 110, 7606, 6  ),
-  INST(Pmullw          , ExtRm_P            , O(000F00,D5,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 111, 7622, 189),
-  INST(Pmuludq         , ExtRm_P            , O(000F00,F4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 112, 7645, 189),
-  INST(Pop             , X86Pop             , O(000000,8F,0,_,_,_,_,_  ), O(000000,58,_,_,_,_,_,_  ), F(WO)|F(Volatile)|F(Special)          , EF(________), 0 , 0 , kFamilyNone, 0  , 1965, 213),
-  INST(Popa            , X86Op              , O(660000,61,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 1969, 214),
-  INST(Popad           , X86Op              , O(000000,61,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 1974, 214),
-  INST(Popcnt          , X86Rm              , O(F30F00,B8,_,_,x,_,_,_  ), 0                         , F(WO)                                 , EF(WWWWWW__), 0 , 0 , kFamilyNone, 0  , 1980, 215),
-  INST(Popf            , X86Op              , O(660000,9D,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(WWWWWWWW), 0 , 0 , kFamilyNone, 0  , 1987, 216),
-  INST(Popfd           , X86Op              , O(000000,9D,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(WWWWWWWW), 0 , 0 , kFamilyNone, 0  , 1992, 217),
-  INST(Popfq           , X86Op              , O(000000,9D,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(WWWWWWWW), 0 , 0 , kFamilyNone, 0  , 1998, 218),
-  INST(Por             , ExtRm_P            , O(000F00,EB,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 113, 7654, 191),
+  INST(Pdep            , VexRvm_Wx          , V(F20F38,F5,_,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 1784, 201),
+  INST(Pext            , VexRvm_Wx          , V(F30F38,F5,_,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 1789, 201),
+  INST(Pextrb          , ExtExtract         , O(000F3A,14,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 83 , 6564, 202),
+  INST(Pextrd          , ExtExtract         , O(000F3A,16,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 83 , 6572, 75 ),
+  INST(Pextrq          , ExtExtract         , O(000F3A,16,_,_,1,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 83 , 6580, 203),
+  INST(Pextrw          , ExtPextrw          , O(000F00,C5,_,_,_,_,_,_  ), O(000F3A,15,_,_,_,_,_,_  ), F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 84 , 6588, 204),
+  INST(Pf2id           , Ext3dNow           , O(000F0F,1D,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 74 , 1794, 205),
+  INST(Pf2iw           , Ext3dNow           , O(000F0F,1C,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 85 , 1800, 205),
+  INST(Pfacc           , Ext3dNow           , O(000F0F,AE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1806, 195),
+  INST(Pfadd           , Ext3dNow           , O(000F0F,9E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1812, 195),
+  INST(Pfcmpeq         , Ext3dNow           , O(000F0F,B0,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1818, 195),
+  INST(Pfcmpge         , Ext3dNow           , O(000F0F,90,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1826, 195),
+  INST(Pfcmpgt         , Ext3dNow           , O(000F0F,A0,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1834, 195),
+  INST(Pfmax           , Ext3dNow           , O(000F0F,A4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1842, 195),
+  INST(Pfmin           , Ext3dNow           , O(000F0F,94,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1848, 195),
+  INST(Pfmul           , Ext3dNow           , O(000F0F,B4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1854, 195),
+  INST(Pfnacc          , Ext3dNow           , O(000F0F,8A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 85 , 1860, 195),
+  INST(Pfpnacc         , Ext3dNow           , O(000F0F,8E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 85 , 1867, 195),
+  INST(Pfrcp           , Ext3dNow           , O(000F0F,96,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 74 , 1875, 205),
+  INST(Pfrcpit1        , Ext3dNow           , O(000F0F,A6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1881, 195),
+  INST(Pfrcpit2        , Ext3dNow           , O(000F0F,B6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1890, 195),
+  INST(Pfrcpv          , Ext3dNow           , O(000F0F,86,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 86 , 1899, 195),
+  INST(Pfrsqit1        , Ext3dNow           , O(000F0F,A7,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1906, 206),
+  INST(Pfrsqrt         , Ext3dNow           , O(000F0F,97,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1915, 206),
+  INST(Pfrsqrtv        , Ext3dNow           , O(000F0F,87,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 86 , 1923, 195),
+  INST(Pfsub           , Ext3dNow           , O(000F0F,9A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1932, 195),
+  INST(Pfsubr          , Ext3dNow           , O(000F0F,AA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1938, 195),
+  INST(Phaddd          , ExtRm_P            , O(000F38,02,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 87 , 6667, 190),
+  INST(Phaddsw         , ExtRm_P            , O(000F38,03,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 88 , 6684, 190),
+  INST(Phaddw          , ExtRm_P            , O(000F38,01,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 89 , 6753, 190),
+  INST(Phminposuw      , ExtRm              , O(660F38,41,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 90 , 6779, 6  ),
+  INST(Phsubd          , ExtRm_P            , O(000F38,06,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 91 , 6800, 190),
+  INST(Phsubsw         , ExtRm_P            , O(000F38,07,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 92 , 6817, 190),
+  INST(Phsubw          , ExtRm_P            , O(000F38,05,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 92 , 6826, 190),
+  INST(Pi2fd           , Ext3dNow           , O(000F0F,0D,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 74 , 1945, 205),
+  INST(Pi2fw           , Ext3dNow           , O(000F0F,0C,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 85 , 1951, 205),
+  INST(Pinsrb          , ExtRmi             , O(660F3A,20,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 93 , 6843, 207),
+  INST(Pinsrd          , ExtRmi             , O(660F3A,22,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 93 , 6851, 208),
+  INST(Pinsrq          , ExtRmi             , O(660F3A,22,_,_,1,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 93 , 6859, 209),
+  INST(Pinsrw          , ExtRmi_P           , O(000F00,C4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 94 , 6867, 210),
+  INST(Pmaddubsw       , ExtRm_P            , O(000F38,04,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 95 , 7037, 190),
+  INST(Pmaddwd         , ExtRm_P            , O(000F00,F5,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 96 , 7048, 190),
+  INST(Pmaxsb          , ExtRm              , O(660F38,3C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 97 , 7079, 14 ),
+  INST(Pmaxsd          , ExtRm              , O(660F38,3D,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 97 , 7087, 14 ),
+  INST(Pmaxsw          , ExtRm_P            , O(000F00,EE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 98 , 7103, 192),
+  INST(Pmaxub          , ExtRm_P            , O(000F00,DE,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 98 , 7111, 192),
+  INST(Pmaxud          , ExtRm              , O(660F38,3F,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 99 , 7119, 14 ),
+  INST(Pmaxuw          , ExtRm              , O(660F38,3E,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 100, 7135, 14 ),
+  INST(Pminsb          , ExtRm              , O(660F38,38,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 100, 7143, 14 ),
+  INST(Pminsd          , ExtRm              , O(660F38,39,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 100, 7151, 14 ),
+  INST(Pminsw          , ExtRm_P            , O(000F00,EA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 101, 7167, 192),
+  INST(Pminub          , ExtRm_P            , O(000F00,DA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 101, 7175, 192),
+  INST(Pminud          , ExtRm              , O(660F38,3B,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 102, 7183, 14 ),
+  INST(Pminuw          , ExtRm              , O(660F38,3A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 103, 7199, 14 ),
+  INST(Pmovmskb        , ExtRm_P            , O(000F00,D7,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 104, 7277, 211),
+  INST(Pmovsxbd        , ExtRm              , O(660F38,21,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7374, 212),
+  INST(Pmovsxbq        , ExtRm              , O(660F38,22,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7384, 213),
+  INST(Pmovsxbw        , ExtRm              , O(660F38,20,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7394, 56 ),
+  INST(Pmovsxdq        , ExtRm              , O(660F38,25,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7404, 56 ),
+  INST(Pmovsxwd        , ExtRm              , O(660F38,23,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7414, 56 ),
+  INST(Pmovsxwq        , ExtRm              , O(660F38,24,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 105, 7424, 212),
+  INST(Pmovzxbd        , ExtRm              , O(660F38,31,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 106, 7511, 212),
+  INST(Pmovzxbq        , ExtRm              , O(660F38,32,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 106, 7521, 213),
+  INST(Pmovzxbw        , ExtRm              , O(660F38,30,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 106, 7531, 56 ),
+  INST(Pmovzxdq        , ExtRm              , O(660F38,35,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 106, 7541, 56 ),
+  INST(Pmovzxwd        , ExtRm              , O(660F38,33,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 106, 7551, 56 ),
+  INST(Pmovzxwq        , ExtRm              , O(660F38,34,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 106, 7561, 212),
+  INST(Pmuldq          , ExtRm              , O(660F38,28,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 107, 7571, 6  ),
+  INST(Pmulhrsw        , ExtRm_P            , O(000F38,0B,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 108, 7579, 190),
+  INST(Pmulhrw         , Ext3dNow           , O(000F0F,B7,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 74 , 1957, 195),
+  INST(Pmulhuw         , ExtRm_P            , O(000F00,E4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 109, 7589, 190),
+  INST(Pmulhw          , ExtRm_P            , O(000F00,E5,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 110, 7598, 190),
+  INST(Pmulld          , ExtRm              , O(660F38,40,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 111, 7606, 6  ),
+  INST(Pmullw          , ExtRm_P            , O(000F00,D5,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 112, 7622, 190),
+  INST(Pmuludq         , ExtRm_P            , O(000F00,F4,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 113, 7645, 190),
+  INST(Pop             , X86Pop             , O(000000,8F,0,_,_,_,_,_  ), O(000000,58,_,_,_,_,_,_  ), F(WO)|F(Volatile)|F(Special)          , EF(________), 0 , 0 , kFamilyNone, 0  , 1965, 214),
+  INST(Popa            , X86Op              , O(660000,61,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 1969, 215),
+  INST(Popad           , X86Op              , O(000000,61,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 1974, 215),
+  INST(Popcnt          , X86Rm              , O(F30F00,B8,_,_,x,_,_,_  ), 0                         , F(WO)                                 , EF(WWWWWW__), 0 , 0 , kFamilyNone, 0  , 1980, 216),
+  INST(Popf            , X86Op              , O(660000,9D,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(WWWWWWWW), 0 , 0 , kFamilyNone, 0  , 1987, 217),
+  INST(Popfd           , X86Op              , O(000000,9D,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(WWWWWWWW), 0 , 0 , kFamilyNone, 0  , 1992, 218),
+  INST(Popfq           , X86Op              , O(000000,9D,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(WWWWWWWW), 0 , 0 , kFamilyNone, 0  , 1998, 219),
+  INST(Por             , ExtRm_P            , O(000F00,EB,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 114, 7654, 192),
   INST(Prefetch        , X86M_Only          , O(000F00,0D,0,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(________), 0 , 0 , kFamilyNone, 0  , 2004, 33 ),
   INST(Prefetchnta     , X86M_Only          , O(000F00,18,0,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(________), 0 , 0 , kFamilyNone, 0  , 2013, 33 ),
   INST(Prefetcht0      , X86M_Only          , O(000F00,18,1,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(________), 0 , 0 , kFamilyNone, 0  , 2025, 33 ),
   INST(Prefetcht1      , X86M_Only          , O(000F00,18,2,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(________), 0 , 0 , kFamilyNone, 0  , 2036, 33 ),
   INST(Prefetcht2      , X86M_Only          , O(000F00,18,3,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(________), 0 , 0 , kFamilyNone, 0  , 2047, 33 ),
-  INST(Prefetchw       , X86M_Only          , O(000F00,0D,1,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(UUUUUU__), 0 , 0 , kFamilyNone, 0  , 2058, 219),
-  INST(Prefetchwt1     , X86M_Only          , O(000F00,0D,2,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(UUUUUU__), 0 , 0 , kFamilyNone, 0  , 2068, 219),
-  INST(Psadbw          , ExtRm_P            , O(000F00,F6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 114, 3543, 189),
-  INST(Pshufb          , ExtRm_P            , O(000F38,00,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 115, 7878, 220),
-  INST(Pshufd          , ExtRmi             , O(660F00,70,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 116, 7886, 221),
-  INST(Pshufhw         , ExtRmi             , O(F30F00,70,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 116, 7894, 221),
-  INST(Pshuflw         , ExtRmi             , O(F20F00,70,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 116, 7903, 221),
+  INST(Prefetchw       , X86M_Only          , O(000F00,0D,1,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(UUUUUU__), 0 , 0 , kFamilyNone, 0  , 2058, 220),
+  INST(Prefetchwt1     , X86M_Only          , O(000F00,0D,2,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)                     , EF(UUUUUU__), 0 , 0 , kFamilyNone, 0  , 2068, 220),
+  INST(Psadbw          , ExtRm_P            , O(000F00,F6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 115, 3543, 190),
+  INST(Pshufb          , ExtRm_P            , O(000F38,00,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 116, 7878, 189),
+  INST(Pshufd          , ExtRmi             , O(660F00,70,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 117, 7886, 221),
+  INST(Pshufhw         , ExtRmi             , O(F30F00,70,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 117, 7894, 221),
+  INST(Pshuflw         , ExtRmi             , O(F20F00,70,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 117, 7903, 221),
   INST(Pshufw          , ExtRmi_P           , O(000F00,70,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 37 , 2080, 222),
-  INST(Psignb          , ExtRm_P            , O(000F38,08,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 117, 7912, 189),
-  INST(Psignd          , ExtRm_P            , O(000F38,0A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 117, 7920, 189),
-  INST(Psignw          , ExtRm_P            , O(000F38,09,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 117, 7928, 189),
-  INST(Pslld           , ExtRmRi_P          , O(000F00,F2,_,_,_,_,_,_  ), O(000F00,72,6,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 118, 7936, 223),
-  INST(Pslldq          , ExtRmRi            , 0                         , O(660F00,73,7,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 119, 7943, 224),
-  INST(Psllq           , ExtRmRi_P          , O(000F00,F3,_,_,_,_,_,_  ), O(000F00,73,6,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 118, 7951, 225),
-  INST(Psllw           , ExtRmRi_P          , O(000F00,F1,_,_,_,_,_,_  ), O(000F00,71,6,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 120, 7982, 226),
-  INST(Psrad           , ExtRmRi_P          , O(000F00,E2,_,_,_,_,_,_  ), O(000F00,72,4,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 120, 7989, 227),
-  INST(Psraw           , ExtRmRi_P          , O(000F00,E1,_,_,_,_,_,_  ), O(000F00,71,4,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 121, 8027, 228),
-  INST(Psrld           , ExtRmRi_P          , O(000F00,D2,_,_,_,_,_,_  ), O(000F00,72,2,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 121, 8034, 229),
-  INST(Psrldq          , ExtRmRi            , 0                         , O(660F00,73,3,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 122, 8041, 230),
-  INST(Psrlq           , ExtRmRi_P          , O(000F00,D3,_,_,_,_,_,_  ), O(000F00,73,2,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 121, 8049, 231),
-  INST(Psrlw           , ExtRmRi_P          , O(000F00,D1,_,_,_,_,_,_  ), O(000F00,71,2,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8080, 232),
-  INST(Psubb           , ExtRm_P            , O(000F00,F8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8087, 192),
-  INST(Psubd           , ExtRm_P            , O(000F00,FA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8094, 192),
-  INST(Psubq           , ExtRm_P            , O(000F00,FB,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8101, 192),
-  INST(Psubsb          , ExtRm_P            , O(000F00,E8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8108, 192),
-  INST(Psubsw          , ExtRm_P            , O(000F00,E9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8116, 192),
-  INST(Psubusb         , ExtRm_P            , O(000F00,D8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8124, 192),
-  INST(Psubusw         , ExtRm_P            , O(000F00,D9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8133, 192),
-  INST(Psubw           , ExtRm_P            , O(000F00,F9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8142, 192),
-  INST(Pswapd          , Ext3dNow           , O(000F0F,BB,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 84 , 2087, 204),
-  INST(Ptest           , ExtRm              , O(660F38,17,_,_,_,_,_,_  ), 0                         , F(RO)                                 , EF(WWWWWW__), 0 , 0 , kFamilySse , 125, 8171, 233),
-  INST(Punpckhbw       , ExtRm_P            , O(000F00,68,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 126, 8254, 189),
-  INST(Punpckhdq       , ExtRm_P            , O(000F00,6A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 126, 8265, 189),
-  INST(Punpckhqdq      , ExtRm              , O(660F00,6D,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8276, 6  ),
-  INST(Punpckhwd       , ExtRm_P            , O(000F00,69,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 126, 8288, 189),
-  INST(Punpcklbw       , ExtRm_P            , O(000F00,60,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 126, 8299, 189),
-  INST(Punpckldq       , ExtRm_P            , O(000F00,62,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 126, 8310, 189),
-  INST(Punpcklqdq      , ExtRm              , O(660F00,6C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8321, 6  ),
-  INST(Punpcklwd       , ExtRm_P            , O(000F00,61,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 126, 8333, 189),
+  INST(Psignb          , ExtRm_P            , O(000F38,08,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 118, 7912, 190),
+  INST(Psignd          , ExtRm_P            , O(000F38,0A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 118, 7920, 190),
+  INST(Psignw          , ExtRm_P            , O(000F38,09,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 118, 7928, 190),
+  INST(Pslld           , ExtRmRi_P          , O(000F00,F2,_,_,_,_,_,_  ), O(000F00,72,6,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 119, 7936, 223),
+  INST(Pslldq          , ExtRmRi            , 0                         , O(660F00,73,7,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 120, 7943, 224),
+  INST(Psllq           , ExtRmRi_P          , O(000F00,F3,_,_,_,_,_,_  ), O(000F00,73,6,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 119, 7951, 225),
+  INST(Psllw           , ExtRmRi_P          , O(000F00,F1,_,_,_,_,_,_  ), O(000F00,71,6,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 121, 7982, 226),
+  INST(Psrad           , ExtRmRi_P          , O(000F00,E2,_,_,_,_,_,_  ), O(000F00,72,4,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 121, 7989, 227),
+  INST(Psraw           , ExtRmRi_P          , O(000F00,E1,_,_,_,_,_,_  ), O(000F00,71,4,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 122, 8027, 228),
+  INST(Psrld           , ExtRmRi_P          , O(000F00,D2,_,_,_,_,_,_  ), O(000F00,72,2,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 122, 8034, 229),
+  INST(Psrldq          , ExtRmRi            , 0                         , O(660F00,73,3,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 123, 8041, 230),
+  INST(Psrlq           , ExtRmRi_P          , O(000F00,D3,_,_,_,_,_,_  ), O(000F00,73,2,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 122, 8049, 231),
+  INST(Psrlw           , ExtRmRi_P          , O(000F00,D1,_,_,_,_,_,_  ), O(000F00,71,2,_,_,_,_,_  ), F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8080, 232),
+  INST(Psubb           , ExtRm_P            , O(000F00,F8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8087, 193),
+  INST(Psubd           , ExtRm_P            , O(000F00,FA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8094, 193),
+  INST(Psubq           , ExtRm_P            , O(000F00,FB,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 125, 8101, 193),
+  INST(Psubsb          , ExtRm_P            , O(000F00,E8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8108, 193),
+  INST(Psubsw          , ExtRm_P            , O(000F00,E9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8116, 193),
+  INST(Psubusb         , ExtRm_P            , O(000F00,D8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8124, 193),
+  INST(Psubusw         , ExtRm_P            , O(000F00,D9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8133, 193),
+  INST(Psubw           , ExtRm_P            , O(000F00,F9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 124, 8142, 193),
+  INST(Pswapd          , Ext3dNow           , O(000F0F,BB,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 85 , 2087, 205),
+  INST(Ptest           , ExtRm              , O(660F38,17,_,_,_,_,_,_  ), 0                         , F(RO)                                 , EF(WWWWWW__), 0 , 0 , kFamilySse , 126, 8171, 233),
+  INST(Punpckhbw       , ExtRm_P            , O(000F00,68,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8254, 190),
+  INST(Punpckhdq       , ExtRm_P            , O(000F00,6A,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8265, 190),
+  INST(Punpckhqdq      , ExtRm              , O(660F00,6D,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 128, 8276, 6  ),
+  INST(Punpckhwd       , ExtRm_P            , O(000F00,69,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8288, 190),
+  INST(Punpcklbw       , ExtRm_P            , O(000F00,60,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8299, 190),
+  INST(Punpckldq       , ExtRm_P            , O(000F00,62,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8310, 190),
+  INST(Punpcklqdq      , ExtRm              , O(660F00,6C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 128, 8321, 6  ),
+  INST(Punpcklwd       , ExtRm_P            , O(000F00,61,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 127, 8333, 190),
   INST(Push            , X86Push            , O(000000,FF,6,_,_,_,_,_  ), O(000000,50,_,_,_,_,_,_  ), F(RO)|F(Volatile)|F(Special)          , EF(________), 0 , 0 , kFamilyNone, 0  , 2094, 234),
-  INST(Pusha           , X86Op              , O(660000,60,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 2099, 214),
-  INST(Pushad          , X86Op              , O(000000,60,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 2105, 214),
+  INST(Pusha           , X86Op              , O(660000,60,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 2099, 215),
+  INST(Pushad          , X86Op              , O(000000,60,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(________), 0 , 0 , kFamilyNone, 0  , 2105, 215),
   INST(Pushf           , X86Op              , O(660000,9C,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(RRRRRRRR), 0 , 0 , kFamilyNone, 0  , 2112, 235),
   INST(Pushfd          , X86Op              , O(000000,9C,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(RRRRRRRR), 0 , 0 , kFamilyNone, 0  , 2118, 236),
   INST(Pushfq          , X86Op              , O(000000,9C,_,_,_,_,_,_  ), 0                         , F(Volatile)|F(Special)                , EF(RRRRRRRR), 0 , 0 , kFamilyNone, 0  , 2125, 237),
-  INST(Pxor            , ExtRm_P            , O(000F00,EF,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 128, 8344, 192),
+  INST(Pxor            , ExtRm_P            , O(000F00,EF,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 129, 8344, 193),
   INST(Rcl             , X86Rot             , O(000000,D0,2,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(W____X__), 0 , 0 , kFamilyNone, 0  , 2132, 238),
-  INST(Rcpps           , ExtRm              , O(000F00,53,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 129, 8472, 57 ),
-  INST(Rcpss           , ExtRm              , O(F30F00,53,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 130, 8479, 239),
+  INST(Rcpps           , ExtRm              , O(000F00,53,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 130, 8472, 57 ),
+  INST(Rcpss           , ExtRm              , O(F30F00,53,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 131, 8479, 239),
   INST(Rcr             , X86Rot             , O(000000,D0,3,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(W____X__), 0 , 0 , kFamilyNone, 0  , 2136, 238),
   INST(Rdfsbase        , X86M               , O(F30F00,AE,0,_,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilyNone, 0  , 2140, 240),
   INST(Rdgsbase        , X86M               , O(F30F00,AE,1,_,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilyNone, 0  , 2149, 240),
@@ -775,12 +775,12 @@ const X86Inst X86InstDB::instData[] = {
   INST(Rol             , X86Rot             , O(000000,D0,0,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(W____W__), 0 , 0 , kFamilyNone, 0  , 2189, 245),
   INST(Ror             , X86Rot             , O(000000,D0,1,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(W____W__), 0 , 0 , kFamilyNone, 0  , 2193, 245),
   INST(Rorx            , VexRmi_Wx          , V(F20F3A,F0,_,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 2197, 246),
-  INST(Roundpd         , ExtRmi             , O(660F3A,09,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 131, 8574, 221),
-  INST(Roundps         , ExtRmi             , O(660F3A,08,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 131, 8583, 221),
-  INST(Roundsd         , ExtRmi             , O(660F3A,0B,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 132, 8592, 247),
-  INST(Roundss         , ExtRmi             , O(660F3A,0A,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 132, 8601, 248),
-  INST(Rsqrtps         , ExtRm              , O(000F00,52,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 133, 8698, 57 ),
-  INST(Rsqrtss         , ExtRm              , O(F30F00,52,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 134, 8707, 239),
+  INST(Roundpd         , ExtRmi             , O(660F3A,09,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 132, 8574, 221),
+  INST(Roundps         , ExtRmi             , O(660F3A,08,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 132, 8583, 221),
+  INST(Roundsd         , ExtRmi             , O(660F3A,0B,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 133, 8592, 247),
+  INST(Roundss         , ExtRmi             , O(660F3A,0A,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 133, 8601, 248),
+  INST(Rsqrtps         , ExtRm              , O(000F00,52,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 134, 8698, 57 ),
+  INST(Rsqrtss         , ExtRm              , O(F30F00,52,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 135, 8707, 239),
   INST(Sahf            , X86Op              , O(000000,9E,_,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)|F(Special)          , EF(_WWWWW__), 0 , 0 , kFamilyNone, 0  , 2202, 249),
   INST(Sal             , X86Rot             , O(000000,D0,4,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(WWWUWW__), 0 , 0 , kFamilyNone, 0  , 2207, 250),
   INST(Sar             , X86Rot             , O(000000,D0,7,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(WWWUWW__), 0 , 0 , kFamilyNone, 0  , 2211, 250),
@@ -818,25 +818,25 @@ const X86Inst X86InstDB::instData[] = {
   INST(Sets            , X86Set             , O(000F00,98,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(_R______), 0 , 1 , kFamilyNone, 0  , 2393, 260),
   INST(Setz            , X86Set             , O(000F00,94,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(__R_____), 0 , 1 , kFamilyNone, 0  , 2398, 255),
   INST(Sfence          , X86Fence           , O(000F00,AE,7,_,_,_,_,_  ), 0                         , F(Volatile)                           , EF(________), 0 , 0 , kFamilyNone, 0  , 2403, 73 ),
-  INST(Sha1msg1        , ExtRm              , O(000F38,C9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 135, 2410, 6  ),
-  INST(Sha1msg2        , ExtRm              , O(000F38,CA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 135, 2419, 6  ),
-  INST(Sha1nexte       , ExtRm              , O(000F38,C8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 135, 2428, 6  ),
-  INST(Sha1rnds4       , ExtRmi             , O(000F3A,CC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 135, 2438, 17 ),
-  INST(Sha256msg1      , ExtRm              , O(000F38,CC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 135, 2448, 6  ),
-  INST(Sha256msg2      , ExtRm              , O(000F38,CD,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 135, 2459, 6  ),
-  INST(Sha256rnds2     , ExtRm_XMM0         , O(000F38,CB,_,_,_,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 135, 2470, 18 ),
+  INST(Sha1msg1        , ExtRm              , O(000F38,C9,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 136, 2410, 6  ),
+  INST(Sha1msg2        , ExtRm              , O(000F38,CA,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 136, 2419, 6  ),
+  INST(Sha1nexte       , ExtRm              , O(000F38,C8,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 136, 2428, 6  ),
+  INST(Sha1rnds4       , ExtRmi             , O(000F3A,CC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 136, 2438, 17 ),
+  INST(Sha256msg1      , ExtRm              , O(000F38,CC,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 136, 2448, 6  ),
+  INST(Sha256msg2      , ExtRm              , O(000F38,CD,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 136, 2459, 6  ),
+  INST(Sha256rnds2     , ExtRm_XMM0         , O(000F38,CB,_,_,_,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(________), 0 , 0 , kFamilySse , 136, 2470, 18 ),
   INST(Shl             , X86Rot             , O(000000,D0,4,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(WWWUWW__), 0 , 0 , kFamilyNone, 0  , 2482, 250),
   INST(Shld            , X86ShldShrd        , O(000F00,A4,_,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(UWWUWW__), 0 , 0 , kFamilyNone, 0  , 7858, 261),
   INST(Shlx            , VexRmv_Wx          , V(660F38,F7,_,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 2486, 251),
   INST(Shr             , X86Rot             , O(000000,D0,5,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(WWWUWW__), 0 , 0 , kFamilyNone, 0  , 2491, 250),
   INST(Shrd            , X86ShldShrd        , O(000F00,AC,_,_,x,_,_,_  ), 0                         , F(RW)|F(Special)                      , EF(UWWUWW__), 0 , 0 , kFamilyNone, 0  , 2495, 261),
   INST(Shrx            , VexRmv_Wx          , V(F20F38,F7,_,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 0 , kFamilyNone, 0  , 2500, 251),
-  INST(Shufpd          , ExtRmi             , O(660F00,C6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 136, 8968, 17 ),
-  INST(Shufps          , ExtRmi             , O(000F00,C6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 137, 8976, 17 ),
-  INST(Sqrtpd          , ExtRm              , O(660F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 116, 8984, 57 ),
-  INST(Sqrtps          , ExtRm              , O(000F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 138, 8699, 57 ),
-  INST(Sqrtsd          , ExtRm              , O(F20F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 136, 9000, 262),
-  INST(Sqrtss          , ExtRm              , O(F30F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 137, 8708, 239),
+  INST(Shufpd          , ExtRmi             , O(660F00,C6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 137, 8968, 17 ),
+  INST(Shufps          , ExtRmi             , O(000F00,C6,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 138, 8976, 17 ),
+  INST(Sqrtpd          , ExtRm              , O(660F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 117, 8984, 57 ),
+  INST(Sqrtps          , ExtRm              , O(000F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 16, kFamilySse , 139, 8699, 57 ),
+  INST(Sqrtsd          , ExtRm              , O(F20F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 8 , kFamilySse , 137, 9000, 262),
+  INST(Sqrtss          , ExtRm              , O(F30F00,51,_,_,_,_,_,_  ), 0                         , F(WO)                                 , EF(________), 0 , 4 , kFamilySse , 138, 8708, 239),
   INST(Stac            , X86Op              , O(000F01,CB,_,_,_,_,_,_  ), 0                         , F(Volatile)                           , EF(___W____), 0 , 0 , kFamilyNone, 0  , 2505, 30 ),
   INST(Stc             , X86Op              , O(000000,F9,_,_,_,_,_,_  ), 0                         , 0                                     , EF(_____W__), 0 , 0 , kFamilyNone, 0  , 2510, 263),
   INST(Std             , X86Op              , O(000000,FD,_,_,_,_,_,_  ), 0                         , 0                                     , EF(______W_), 0 , 0 , kFamilyNone, 0  , 5959, 264),
@@ -844,22 +844,22 @@ const X86Inst X86InstDB::instData[] = {
   INST(Stmxcsr         , X86M_Only          , O(000F00,AE,3,_,_,_,_,_  ), 0                         , F(Volatile)                           , EF(________), 0 , 0 , kFamilyNone, 0  , 9016, 266),
   INST(Stos            , X86StrMr           , O(000000,AA,_,_,_,_,_,_  ), 0                         , F(RW)|F(Special)|F(Rep)               , EF(______R_), 0 , 0 , kFamilyNone, 0  , 2518, 267),
   INST(Sub             , X86Arith           , O(000000,28,5,_,x,_,_,_  ), 0                         , F(RW)|F(Lock)                         , EF(WWWWWW__), 0 , 0 , kFamilyNone, 0  , 753 , 268),
-  INST(Subpd           , ExtRm              , O(660F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 139, 4099, 6  ),
-  INST(Subps           , ExtRm              , O(000F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 140, 4111, 6  ),
-  INST(Subsd           , ExtRm              , O(F20F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 139, 4787, 7  ),
-  INST(Subss           , ExtRm              , O(F30F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 140, 4797, 8  ),
+  INST(Subpd           , ExtRm              , O(660F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 140, 4099, 6  ),
+  INST(Subps           , ExtRm              , O(000F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 141, 4111, 6  ),
+  INST(Subsd           , ExtRm              , O(F20F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 140, 4787, 7  ),
+  INST(Subss           , ExtRm              , O(F30F00,5C,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 141, 4797, 8  ),
   INST(Swapgs          , X86Op              , O(000F01,F8,_,_,_,_,_,_  ), 0                         , 0                                     , EF(________), 0 , 0 , kFamilyNone, 0  , 2523, 269),
   INST(T1mskc          , VexVm_Wx           , V(XOP_M9,01,7,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(WWWUUW__), 0 , 0 , kFamilyNone, 0  , 2530, 16 ),
   INST(Test            , X86Test            , O(000000,84,_,_,x,_,_,_  ), O(000000,F6,_,_,x,_,_,_  ), F(RO)                                 , EF(WWWUWW__), 0 , 0 , kFamilyNone, 0  , 8172, 270),
-  INST(Tzcnt           , X86Rm              , O(F30F00,BC,_,_,x,_,_,_  ), 0                         , F(WO)                                 , EF(UUWUUW__), 0 , 0 , kFamilyNone, 0  , 2537, 215),
+  INST(Tzcnt           , X86Rm              , O(F30F00,BC,_,_,x,_,_,_  ), 0                         , F(WO)                                 , EF(UUWUUW__), 0 , 0 , kFamilyNone, 0  , 2537, 216),
   INST(Tzmsk           , VexVm_Wx           , V(XOP_M9,01,4,0,x,_,_,_  ), 0                         , F(WO)                                 , EF(WWWUUW__), 0 , 0 , kFamilyNone, 0  , 2543, 16 ),
-  INST(Ucomisd         , ExtRm              , O(660F00,2E,_,_,_,_,_,_  ), 0                         , F(RO)                                 , EF(WWWWWW__), 0 , 0 , kFamilySse , 141, 9069, 51 ),
-  INST(Ucomiss         , ExtRm              , O(000F00,2E,_,_,_,_,_,_  ), 0                         , F(RO)                                 , EF(WWWWWW__), 0 , 0 , kFamilySse , 142, 9078, 52 ),
+  INST(Ucomisd         , ExtRm              , O(660F00,2E,_,_,_,_,_,_  ), 0                         , F(RO)                                 , EF(WWWWWW__), 0 , 0 , kFamilySse , 142, 9069, 51 ),
+  INST(Ucomiss         , ExtRm              , O(000F00,2E,_,_,_,_,_,_  ), 0                         , F(RO)                                 , EF(WWWWWW__), 0 , 0 , kFamilySse , 143, 9078, 52 ),
   INST(Ud2             , X86Op              , O(000F00,0B,_,_,_,_,_,_  ), 0                         , 0                                     , EF(________), 0 , 0 , kFamilyNone, 0  , 2549, 271),
-  INST(Unpckhpd        , ExtRm              , O(660F00,15,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 143, 9087, 6  ),
-  INST(Unpckhps        , ExtRm              , O(000F00,15,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 144, 9097, 6  ),
-  INST(Unpcklpd        , ExtRm              , O(660F00,14,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 143, 9107, 6  ),
-  INST(Unpcklps        , ExtRm              , O(000F00,14,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 144, 9117, 6  ),
+  INST(Unpckhpd        , ExtRm              , O(660F00,15,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 144, 9087, 6  ),
+  INST(Unpckhps        , ExtRm              , O(000F00,15,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 145, 9097, 6  ),
+  INST(Unpcklpd        , ExtRm              , O(660F00,14,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 144, 9107, 6  ),
+  INST(Unpcklps        , ExtRm              , O(000F00,14,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 145, 9117, 6  ),
   INST(Vaddpd          , VexRvm_Lx          , V(660F00,58,_,x,I,1,4,FV ), 0                         , F(WO)|F(Vex)|F(Evex)                  , EF(________), 0 , 0 , kFamilyAvx , 0  , 2553, 272),
   INST(Vaddps          , VexRvm_Lx          , V(000F00,58,_,x,I,0,4,FV ), 0                         , F(WO)|F(Vex)|F(Evex)                  , EF(________), 0 , 0 , kFamilyAvx , 1  , 2560, 272),
   INST(Vaddsd          , VexRvm             , V(F20F00,58,_,I,I,1,3,T1S), 0                         , F(WO)|F(Vex)|F(Evex)                  , EF(________), 0 , 0 , kFamilyAvx , 2  , 2567, 273),
@@ -1535,8 +1535,8 @@ const X86Inst X86InstDB::instData[] = {
   INST(Xchg            , X86Xchg            , O(000000,86,_,_,x,_,_,_  ), 0                         , F(RW)|F(Xchg)|F(Lock)                 , EF(________), 0 , 0 , kFamilyNone, 0  , 374 , 461),
   INST(Xgetbv          , X86Op              , O(000F01,D0,_,_,_,_,_,_  ), 0                         , F(WO)|F(Special)                      , EF(________), 0 , 0 , kFamilyNone, 0  , 9183, 462),
   INST(Xor             , X86Arith           , O(000000,30,6,_,x,_,_,_  ), 0                         , F(RW)|F(Lock)                         , EF(WWWUWW__), 0 , 0 , kFamilyNone, 0  , 8345, 268),
-  INST(Xorpd           , ExtRm              , O(660F00,57,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 145, 9127, 195),
-  INST(Xorps           , ExtRm              , O(000F00,57,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 146, 9134, 195),
+  INST(Xorpd           , ExtRm              , O(660F00,57,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 146, 9127, 196),
+  INST(Xorps           , ExtRm              , O(000F00,57,_,_,_,_,_,_  ), 0                         , F(RW)                                 , EF(________), 0 , 0 , kFamilySse , 147, 9134, 196),
   INST(Xrstor          , X86M_Only          , O(000F00,AE,5,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)|F(Special)          , EF(________), 0 , 0 , kFamilyNone, 0  , 1051, 463),
   INST(Xrstor64        , X86M_Only          , O(000F00,AE,5,_,1,_,_,_  ), 0                         , F(RO)|F(Volatile)|F(Special)          , EF(________), 0 , 0 , kFamilyNone, 0  , 1059, 464),
   INST(Xrstors         , X86M_Only          , O(000F00,C7,3,_,_,_,_,_  ), 0                         , F(RO)|F(Volatile)|F(Special)          , EF(________), 0 , 0 , kFamilyNone, 0  , 9190, 463),
@@ -1567,7 +1567,7 @@ const X86Inst::CommonData X86InstDB::commonData[] = {
   { F(RW)|F(Lock)                         , 0  , 0  , 0x20, 0x3F, 0  , 14 , 10, JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #3
   { F(RW)                                 , 0  , 0  , 0x20, 0x20, 0  , 22 , 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #4
   { F(RW)|F(Lock)                         , 0  , 0  , 0x00, 0x3F, 0  , 14 , 10, JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #5
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 296, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #6
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 298, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #6
   { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 351, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #7
   { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 352, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #8
   { F(RW)                                 , 0  , 0  , 0x01, 0x01, 0  , 22 , 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #9
@@ -1575,10 +1575,10 @@ const X86Inst::CommonData X86InstDB::commonData[] = {
   { F(WO)                                 , 0  , 0  , 0x00, 0x00, 0  , 71 , 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #11
   { F(RW)|F(Lock)                         , 0  , 0  , 0x00, 0x3F, 0  , 14 , 10, JUMP_TYPE(None)       , SINGLE_REG(RO)  , 0 }, // #12
   { F(RW)                                 , 0  , 0  , 0x00, 0x3F, 0  , 251, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #13
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 296, 1 , JUMP_TYPE(None)       , SINGLE_REG(RO)  , 0 }, // #14
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 298, 1 , JUMP_TYPE(None)       , SINGLE_REG(RO)  , 0 }, // #14
   { F(RW)                                 , 0  , 0  , 0x00, 0x3F, 0  , 253, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #15
   { F(WO)                                 , 0  , 0  , 0x00, 0x3F, 0  , 162, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #16
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 298, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #17
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 300, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #17
   { F(RW)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 353, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #18
   { F(RW)                                 , 0  , 0  , 0x00, 0x3F, 0  , 162, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #19
   { F(RW)                                 , 0  , 0  , 0x00, 0x3F, 0  , 21 , 3 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #20
@@ -1752,36 +1752,36 @@ const X86Inst::CommonData X86InstDB::commonData[] = {
   { F(RO)|F(Volatile)|F(Special)|F(Rep)   , 0  , 0  , 0x00, 0x00, 0  , 409, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #188
   { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 295, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #189
   { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 297, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #190
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 295, 2 , JUMP_TYPE(None)       , SINGLE_REG(RO)  , 0 }, // #191
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 295, 2 , JUMP_TYPE(None)       , SINGLE_REG(WO)  , 0 }, // #192
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 263, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #193
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 295, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #194
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 296, 1 , JUMP_TYPE(None)       , SINGLE_REG(WO)  , 0 }, // #195
-  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 410, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #196
-  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 411, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #197
-  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 412, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #198
-  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 413, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #199
-  { F(WO)                                 , 0  , 0  , 0x00, 0x00, 0  , 251, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #200
-  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 414, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #201
-  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 415, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #202
-  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 64 , 299, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #203
-  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 301, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #204
-  { F(WO)                                 , 0  , 0  , 0x00, 0x00, 0  , 301, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #205
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 416, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #206
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 417, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #207
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 418, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #208
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 419, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #209
-  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 420, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #210
-  { F(WO)                                 , 0  , 16 , 0x00, 0x00, 0  , 233, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #211
-  { F(WO)                                 , 0  , 16 , 0x00, 0x00, 0  , 236, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #212
-  { F(WO)|F(Volatile)|F(Special)          , 0  , 0  , 0x00, 0x00, 65 , 120, 4 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #213
-  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0x00, 0  , 421, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #214
-  { F(WO)                                 , 0  , 0  , 0x00, 0x3F, 0  , 161, 3 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #215
-  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0xFF, 0  , 263, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #216
-  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0xFF, 0  , 421, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #217
-  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0xFF, 0  , 422, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #218
-  { F(RO)|F(Volatile)                     , 0  , 0  , 0x00, 0x3F, 0  , 358, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #219
-  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 301, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #220
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 299, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #191
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 297, 2 , JUMP_TYPE(None)       , SINGLE_REG(RO)  , 0 }, // #192
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 297, 2 , JUMP_TYPE(None)       , SINGLE_REG(WO)  , 0 }, // #193
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 263, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #194
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 297, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #195
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 298, 1 , JUMP_TYPE(None)       , SINGLE_REG(WO)  , 0 }, // #196
+  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 410, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #197
+  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 411, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #198
+  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 412, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #199
+  { F(WO)|F(Special)                      , 0  , 0  , 0x00, 0x00, 0  , 413, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #200
+  { F(WO)                                 , 0  , 0  , 0x00, 0x00, 0  , 251, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #201
+  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 414, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #202
+  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 415, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #203
+  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 64 , 301, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #204
+  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 295, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #205
+  { F(WO)                                 , 0  , 0  , 0x00, 0x00, 0  , 295, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #206
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 416, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #207
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 417, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #208
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 418, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #209
+  { F(RW)                                 , 0  , 0  , 0x00, 0x00, 0  , 419, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #210
+  { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 420, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #211
+  { F(WO)                                 , 0  , 16 , 0x00, 0x00, 0  , 233, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #212
+  { F(WO)                                 , 0  , 16 , 0x00, 0x00, 0  , 236, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #213
+  { F(WO)|F(Volatile)|F(Special)          , 0  , 0  , 0x00, 0x00, 65 , 120, 4 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #214
+  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0x00, 0  , 421, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #215
+  { F(WO)                                 , 0  , 0  , 0x00, 0x3F, 0  , 161, 3 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #216
+  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0xFF, 0  , 263, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #217
+  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0xFF, 0  , 421, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #218
+  { F(Volatile)|F(Special)                , 0  , 0  , 0x00, 0xFF, 0  , 422, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #219
+  { F(RO)|F(Volatile)                     , 0  , 0  , 0x00, 0x3F, 0  , 358, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #220
   { F(WO)                                 , 0  , 16 , 0x00, 0x00, 0  , 71 , 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #221
   { F(WO)                                 , 0  , 8  , 0x00, 0x00, 0  , 423, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #222
   { F(RW)                                 , 0  , 0  , 0x00, 0x00, 66 , 303, 2 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #223
@@ -1967,7 +1967,7 @@ const X86Inst::CommonData X86InstDB::commonData[] = {
   { F(WO)|F(Vex)|F(Evex)                  , 0  , 0  , 0x00, 0x00, 106, 144, 4 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #403
   { F(WO)|F(Vex)|F(Evex)                  , 0  , 0  , 0x00, 0x00, 0  , 414, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #404
   { F(WO)|F(Vex)|F(Evex)                  , 0  , 0  , 0x00, 0x00, 0  , 415, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #405
-  { F(WO)|F(Vex)|F(Evex)                  , 0  , 0  , 0x00, 0x00, 0  , 300, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #406
+  { F(WO)|F(Vex)|F(Evex)                  , 0  , 0  , 0x00, 0x00, 0  , 302, 1 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #406
   { F(RW)|F(Vex_VM)|F(Evex)               , 0  , 0  , 0x00, 0x00, 107, 98 , 5 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #407
   { F(RW)|F(Vex_VM)|F(Evex)               , 0  , 0  , 0x00, 0x00, 108, 93 , 5 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #408
   { F(RW)|F(Vex_VM)|F(Evex)               , 0  , 0  , 0x00, 0x00, 109, 132, 4 , JUMP_TYPE(None)       , SINGLE_REG(None), 0 }, // #409
@@ -2273,89 +2273,90 @@ const X86Inst::SseData X86InstDB::sseData[] = {
     FEATURE(SSE2)      , AVX_CONV(Extend)    , 576  }, // #79
   { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 576  }, // #80
   { FEATURE(SSE4_2)    , AVX_CONV(Move)      , 576  }, // #81
-  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 617  }, // #82
+  { FEATURE(SSE4_2)    , AVX_CONV(Extend)    , 576  }, // #82
+  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 617  }, // #83
   { FEATURE(MMX2)      |
     FEATURE(SSE2)      |
-    FEATURE(SSE4_1)    , AVX_CONV(Move)      , 617  }, // #83
-  { FEATURE(3DNOW2)    , AVX_CONV(None)      , 0    }, // #84
-  { FEATURE(GEODE)     , AVX_CONV(None)      , 0    }, // #85
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 603  }, // #86
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 604  }, // #87
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 610  }, // #88
-  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 612  }, // #89
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 613  }, // #90
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 614  }, // #91
-  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 613  }, // #92
+    FEATURE(SSE4_1)    , AVX_CONV(Move)      , 617  }, // #84
+  { FEATURE(3DNOW2)    , AVX_CONV(None)      , 0    }, // #85
+  { FEATURE(GEODE)     , AVX_CONV(None)      , 0    }, // #86
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 603  }, // #87
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 604  }, // #88
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 610  }, // #89
+  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 612  }, // #90
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 613  }, // #91
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 614  }, // #92
+  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 613  }, // #93
   { FEATURE(MMX2)      |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 613  }, // #93
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 629  }, // #94
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 613  }, // #94
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 629  }, // #95
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 629  }, // #95
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 631  }, // #96
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 629  }, // #96
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 631  }, // #97
   { FEATURE(MMX2)      |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 632  }, // #97
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 632  }, // #98
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 633  }, // #99
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 632  }, // #98
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 632  }, // #99
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 633  }, // #100
   { FEATURE(MMX2)      |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 634  }, // #100
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 634  }, // #101
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 635  }, // #102
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 634  }, // #101
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 634  }, // #102
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 635  }, // #103
   { FEATURE(MMX2)      |
-    FEATURE(SSE2)      , AVX_CONV(Move)      , 643  }, // #103
-  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 653  }, // #104
-  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 661  }, // #105
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 661  }, // #106
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 661  }, // #107
+    FEATURE(SSE2)      , AVX_CONV(Move)      , 643  }, // #104
+  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 653  }, // #105
+  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 661  }, // #106
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 661  }, // #107
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 661  }, // #108
   { FEATURE(MMX2)      |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 660  }, // #108
-  { FEATURE(MMX)       |
     FEATURE(SSE2)      , AVX_CONV(Extend)    , 660  }, // #109
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 660  }, // #110
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 661  }, // #111
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 662  }, // #112
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 660  }, // #110
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 660  }, // #111
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 655  }, // #113
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 661  }, // #112
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 662  }, // #113
+  { FEATURE(MMX)       |
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 655  }, // #114
   { FEATURE(MMX2)      |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 663  }, // #114
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 675  }, // #115
-  { FEATURE(SSE2)      , AVX_CONV(Move)      , 675  }, // #116
-  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 674  }, // #117
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 663  }, // #115
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 675  }, // #116
+  { FEATURE(SSE2)      , AVX_CONV(Move)      , 675  }, // #117
+  { FEATURE(SSSE3)     , AVX_CONV(Extend)    , 674  }, // #118
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 674  }, // #118
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 674  }, // #119
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 674  }, // #119
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 674  }, // #120
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 677  }, // #120
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 677  }, // #121
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 681  }, // #121
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 681  }, // #122
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 681  }, // #122
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 681  }, // #123
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 684  }, // #123
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 684  }, // #124
-  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 685  }, // #125
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 684  }, // #124
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 684  }, // #125
+  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 685  }, // #126
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 693  }, // #126
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 693  }, // #127
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 693  }, // #127
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 693  }, // #128
   { FEATURE(MMX)       |
-    FEATURE(SSE2)      , AVX_CONV(Extend)    , 687  }, // #128
-  { FEATURE(SSE)       , AVX_CONV(Move)      , 700  }, // #129
-  { FEATURE(SSE)       , AVX_CONV(Extend)    , 700  }, // #130
-  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 697  }, // #131
-  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 697  }, // #132
-  { FEATURE(SSE)       , AVX_CONV(Move)      , 705  }, // #133
-  { FEATURE(SSE)       , AVX_CONV(Extend)    , 705  }, // #134
-  { FEATURE(SHA)       , AVX_CONV(None)      , 0    }, // #135
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 675  }, // #136
-  { FEATURE(SSE)       , AVX_CONV(Extend)    , 675  }, // #137
-  { FEATURE(SSE)       , AVX_CONV(Move)      , 675  }, // #138
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 669  }, // #139
-  { FEATURE(SSE)       , AVX_CONV(Extend)    , 669  }, // #140
-  { FEATURE(SSE2)      , AVX_CONV(Move)      , 666  }, // #141
-  { FEATURE(SSE)       , AVX_CONV(Move)      , 666  }, // #142
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 665  }, // #143
-  { FEATURE(SSE)       , AVX_CONV(Extend)    , 665  }, // #144
-  { FEATURE(SSE2)      , AVX_CONV(Extend)    , -10  }, // #145
-  { FEATURE(SSE)       , AVX_CONV(Extend)    , -10  }  // #146
+    FEATURE(SSE2)      , AVX_CONV(Extend)    , 687  }, // #129
+  { FEATURE(SSE)       , AVX_CONV(Move)      , 700  }, // #130
+  { FEATURE(SSE)       , AVX_CONV(Extend)    , 700  }, // #131
+  { FEATURE(SSE4_1)    , AVX_CONV(Move)      , 697  }, // #132
+  { FEATURE(SSE4_1)    , AVX_CONV(Extend)    , 697  }, // #133
+  { FEATURE(SSE)       , AVX_CONV(Move)      , 705  }, // #134
+  { FEATURE(SSE)       , AVX_CONV(Extend)    , 705  }, // #135
+  { FEATURE(SHA)       , AVX_CONV(None)      , 0    }, // #136
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 675  }, // #137
+  { FEATURE(SSE)       , AVX_CONV(Extend)    , 675  }, // #138
+  { FEATURE(SSE)       , AVX_CONV(Move)      , 675  }, // #139
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 669  }, // #140
+  { FEATURE(SSE)       , AVX_CONV(Extend)    , 669  }, // #141
+  { FEATURE(SSE2)      , AVX_CONV(Move)      , 666  }, // #142
+  { FEATURE(SSE)       , AVX_CONV(Move)      , 666  }, // #143
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , 665  }, // #144
+  { FEATURE(SSE)       , AVX_CONV(Extend)    , 665  }, // #145
+  { FEATURE(SSE2)      , AVX_CONV(Extend)    , -10  }, // #146
+  { FEATURE(SSE)       , AVX_CONV(Extend)    , -10  }  // #147
 };
 #undef AVX_CONV
 #undef FEATURE
@@ -3185,15 +3186,15 @@ static const X86Inst::ISignature _x86InstISignatureData[] = {
   ISIGNATURE(4, 0, 1, 1, 19 , 19 , 16 , 163, 0  , 0  ), //      {W:r64, W:r64, R:r64|m64, R:<rdx>}
   ISIGNATURE(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #293 {}
   ISIGNATURE(1, 1, 1, 0, 164, 0  , 0  , 0  , 0  , 0  ), //      {R:r16|m16|r32|m32}
-  ISIGNATURE(2, 1, 1, 0, 165, 166, 0  , 0  , 0  , 0  ), // #295 {X:mm, R:mm|m64}
-  ISIGNATURE(2, 1, 1, 0, 118, 69 , 0  , 0  , 0  , 0  ), // #296 {X:xmm, R:xmm|m128}
-  ISIGNATURE(3, 1, 1, 0, 165, 166, 27 , 0  , 0  , 0  ), // #297 {X:mm, R:mm|m64, R:i8}
-  ISIGNATURE(3, 1, 1, 0, 118, 69 , 27 , 0  , 0  , 0  ), // #298 {X:xmm, R:xmm|m128, R:i8}
-  ISIGNATURE(3, 1, 1, 0, 161, 64 , 27 , 0  , 0  , 0  ), // #299 {W:r32|r64, R:mm, R:i8}
-  ISIGNATURE(3, 1, 1, 0, 154, 65 , 27 , 0  , 0  , 0  ), // #300 {W:r32|r64|m16|r16, R:xmm, R:i8}
-  ISIGNATURE(2, 1, 1, 0, 61 , 166, 0  , 0  , 0  , 0  ), // #301 {W:mm, R:mm|m64}
+  ISIGNATURE(2, 1, 1, 0, 61 , 165, 0  , 0  , 0  , 0  ), // #295 {W:mm, R:mm|m64}
   ISIGNATURE(2, 1, 1, 0, 66 , 69 , 0  , 0  , 0  , 0  ), //      {W:xmm, R:xmm|m128}
-  ISIGNATURE(2, 1, 1, 0, 165, 167, 0  , 0  , 0  , 0  ), // #303 {X:mm, R:i8|mm|m64}
+  ISIGNATURE(2, 1, 1, 0, 166, 165, 0  , 0  , 0  , 0  ), // #297 {X:mm, R:mm|m64}
+  ISIGNATURE(2, 1, 1, 0, 118, 69 , 0  , 0  , 0  , 0  ), // #298 {X:xmm, R:xmm|m128}
+  ISIGNATURE(3, 1, 1, 0, 166, 165, 27 , 0  , 0  , 0  ), // #299 {X:mm, R:mm|m64, R:i8}
+  ISIGNATURE(3, 1, 1, 0, 118, 69 , 27 , 0  , 0  , 0  ), // #300 {X:xmm, R:xmm|m128, R:i8}
+  ISIGNATURE(3, 1, 1, 0, 161, 64 , 27 , 0  , 0  , 0  ), // #301 {W:r32|r64, R:mm, R:i8}
+  ISIGNATURE(3, 1, 1, 0, 154, 65 , 27 , 0  , 0  , 0  ), // #302 {W:r32|r64|m16|r16, R:xmm, R:i8}
+  ISIGNATURE(2, 1, 1, 0, 166, 167, 0  , 0  , 0  , 0  ), // #303 {X:mm, R:i8|mm|m64}
   ISIGNATURE(2, 1, 1, 0, 118, 79 , 0  , 0  , 0  , 0  ), //      {X:xmm, R:i8|xmm|m128}
   ISIGNATURE(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #305 {}
   ISIGNATURE(1, 1, 1, 0, 168, 0  , 0  , 0  , 0  , 0  ), //      {X:i16}
@@ -3260,7 +3261,7 @@ static const X86Inst::ISignature _x86InstISignatureData[] = {
   ISIGNATURE(4, 1, 1, 4, 47 , 189, 190, 46 , 0  , 0  ), // #367 {X:<eax>, W:<ebx>, X:<ecx>, W:<edx>}
   ISIGNATURE(2, 0, 1, 2, 48 , 89 , 0  , 0  , 0  , 0  ), // #368 {W:<rdx>, R:<rax>}
   ISIGNATURE(2, 1, 1, 0, 61 , 69 , 0  , 0  , 0  , 0  ), // #369 {W:mm, R:xmm|m128}
-  ISIGNATURE(2, 1, 1, 0, 66 , 166, 0  , 0  , 0  , 0  ), // #370 {W:xmm, R:mm|m64}
+  ISIGNATURE(2, 1, 1, 0, 66 , 165, 0  , 0  , 0  , 0  ), // #370 {W:xmm, R:mm|m64}
   ISIGNATURE(2, 1, 1, 0, 61 , 67 , 0  , 0  , 0  , 0  ), // #371 {W:mm, R:xmm|m64}
   ISIGNATURE(2, 1, 1, 0, 161, 67 , 0  , 0  , 0  , 0  ), // #372 {W:r32|r64, R:xmm|m64}
   ISIGNATURE(2, 1, 1, 0, 66 , 42 , 0  , 0  , 0  , 0  ), // #373 {W:xmm, R:r32|m32|r64|m64}
@@ -3290,7 +3291,7 @@ static const X86Inst::ISignature _x86InstISignatureData[] = {
   ISIGNATURE(2, 1, 1, 0, 160, 179, 0  , 0  , 0  , 0  ), // #397 {W:r16|r32|r64, R:mem}
   ISIGNATURE(2, 1, 1, 2, 206, 181, 0  , 0  , 0  , 0  ), // #398 {W:<al|ax|eax|rax>, X:<ds:[zsi]>}
   ISIGNATURE(3, 1, 1, 1, 118, 65 , 207, 0  , 0  , 0  ), // #399 {X:xmm, R:xmm, R:<ds:[zdi]>}
-  ISIGNATURE(3, 1, 1, 1, 165, 64 , 207, 0  , 0  , 0  ), // #400 {X:mm, R:mm, R:<ds:[zdi]>}
+  ISIGNATURE(3, 1, 1, 1, 166, 64 , 207, 0  , 0  , 0  ), // #400 {X:mm, R:mm, R:<ds:[zdi]>}
   ISIGNATURE(2, 1, 1, 0, 61 , 65 , 0  , 0  , 0  , 0  ), // #401 {W:mm, R:xmm}
   ISIGNATURE(2, 1, 1, 0, 66 , 65 , 0  , 0  , 0  , 0  ), // #402 {W:xmm, R:xmm}
   ISIGNATURE(2, 1, 1, 0, 161, 65 , 0  , 0  , 0  , 0  ), // #403 {W:r32|r64, R:xmm}
@@ -3313,7 +3314,7 @@ static const X86Inst::ISignature _x86InstISignatureData[] = {
   ISIGNATURE(2, 1, 1, 0, 161, 159, 0  , 0  , 0  , 0  ), // #420 {W:r32|r64, R:mm|xmm}
   ISIGNATURE(0, 1, 0, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #421 {}
   ISIGNATURE(0, 0, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #422 {}
-  ISIGNATURE(3, 1, 1, 0, 61 , 166, 27 , 0  , 0  , 0  ), // #423 {W:mm, R:mm|m64, R:i8}
+  ISIGNATURE(3, 1, 1, 0, 61 , 165, 27 , 0  , 0  , 0  ), // #423 {W:mm, R:mm|m64, R:i8}
   ISIGNATURE(2, 1, 1, 0, 118, 27 , 0  , 0  , 0  , 0  ), // #424 {X:xmm, R:i8}
   ISIGNATURE(2, 1, 1, 0, 26 , 113, 0  , 0  , 0  , 0  ), // #425 {X:r8lo|r8hi|m8|r16|m16|r32|m32|r64|m64, R:cl|i8}
   ISIGNATURE(1, 0, 1, 0, 161, 0  , 0  , 0  , 0  , 0  ), // #426 {W:r32|r64}
@@ -3535,8 +3536,8 @@ static const X86Inst::OSignature _x86InstOSignatureData[] = {
   OSIGNATURE(FLAG(R) | FLAG(Implicit) | FLAG(Gpd), 0, 0, 0x04),
   OSIGNATURE(FLAG(R) | FLAG(Implicit) | FLAG(Gpq), 0, 0, 0x04),
   OSIGNATURE(FLAG(R) | FLAG(Gpw) | FLAG(Gpd) | FLAG(Mem), MEM(M16) | MEM(M32), 0, 0x00),
-  OSIGNATURE(FLAG(X) | FLAG(Mm), 0, 0, 0x00),
   OSIGNATURE(FLAG(R) | FLAG(Mm) | FLAG(Mem), MEM(M64), 0, 0x00),
+  OSIGNATURE(FLAG(X) | FLAG(Mm), 0, 0, 0x00),
   OSIGNATURE(FLAG(R) | FLAG(Mm) | FLAG(Mem) | FLAG(I8), MEM(M64), 0, 0x00),
   OSIGNATURE(FLAG(X) | FLAG(I16), 0, 0, 0x00),
   OSIGNATURE(FLAG(R) | FLAG(Xmm) | FLAG(Ymm) | FLAG(Mem), MEM(M128) | MEM(M256), 0, 0x00),

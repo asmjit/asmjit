@@ -122,7 +122,14 @@ public:
   }
 
   template<typename RegT>
-  RegT newSimilarReg(const RegT& ref, const char* nameFmt, ...) {
+  ASMJIT_INLINE RegT newSimilarReg(const RegT& ref) {
+    RegT reg(NoInit);
+    _newReg(reg, ref, nullptr);
+    return reg;
+  }
+
+  template<typename RegT>
+  ASMJIT_INLINE RegT newSimilarReg(const RegT& ref, const char* nameFmt, ...) {
     RegT reg(NoInit);
     ASMJIT_NEW_REG(reg, ref, nameFmt);
     return reg;

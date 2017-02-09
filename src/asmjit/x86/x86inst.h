@@ -482,7 +482,7 @@ struct X86Inst {
     kIdPcmpestrm,                        // [ANY] {SSE4_2}
     kIdPcmpgtb,                          // [ANY] {MMX|SSE2}
     kIdPcmpgtd,                          // [ANY] {MMX|SSE2}
-    kIdPcmpgtq,                          // [ANY] {SSE4_1}
+    kIdPcmpgtq,                          // [ANY] {SSE4_2}
     kIdPcmpgtw,                          // [ANY] {MMX|SSE2}
     kIdPcmpistri,                        // [ANY] {SSE4_2}
     kIdPcmpistrm,                        // [ANY] {SSE4_2}
