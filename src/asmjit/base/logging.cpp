@@ -407,7 +407,6 @@ Error Logging::formatNode(
     }
 
     case CBNode::kNodeSentinel: {
-      const CBSentinel* node = node_->as<CBSentinel>();
       ASMJIT_PROPAGATE(sb.appendString("[sentinel]"));
       break;
     }
@@ -428,7 +427,6 @@ Error Logging::formatNode(
     }
 
     case CBNode::kNodeFuncExit: {
-      const CCFuncRet* node = node_->as<CCFuncRet>();
       ASMJIT_PROPAGATE(sb.appendString("[ret]"));
       break;
     }

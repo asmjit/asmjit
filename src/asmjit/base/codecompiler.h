@@ -270,9 +270,9 @@ public:
   //! Always use `CodeCompiler::addFunc()` to create \ref CCFunc.
   ASMJIT_INLINE CCFunc(CodeBuilder* cb) noexcept
     : CBLabel(cb),
-      _exitNode(nullptr),
       _funcDetail(),
       _frameInfo(),
+      _exitNode(nullptr),
       _end(nullptr),
       _args(nullptr),
       _isFinished(false) {

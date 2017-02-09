@@ -518,7 +518,7 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
   int32_t relOffset;             // Relative offset
   FastUInt8 relSize = 0;         // Relative size.
 
-  int64_t imVal;                 // Immediate value (must be 64-bit).
+  int64_t imVal = 0;             // Immediate value (must be 64-bit).
   FastUInt8 imLen = 0;           // Immediate length.
 
   const uint32_t kSHR_W_PP = X86Inst::kOpCode_PP_Shift - 16;
