@@ -345,7 +345,7 @@ struct Utils {
   // [Bits]
   // --------------------------------------------------------------------------
 
-  //! Generate a bit-mask that has `x` most significant bits set.
+  //! Generate a bit-mask that has `x` least significant bits set.
   static ASMJIT_INLINE uint32_t bits(uint32_t x) noexcept {
     // Shifting more bits than the type has results in undefined behavior. In
     // such case asmjit trashes the result by ORing with `overflow` mask, which

@@ -224,7 +224,7 @@ public:
   //! Check for equality with other `str` of length `len`.
   ASMJIT_API bool eq(const char* str, size_t len = Globals::kInvalidIndex) const noexcept;
   //! Check for equality with `other`.
-  ASMJIT_INLINE bool eq(const StringBuilder& other) const noexcept { return eq(other._data); }
+  ASMJIT_INLINE bool eq(const StringBuilder& other) const noexcept { return eq(other._data, other._length); }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]

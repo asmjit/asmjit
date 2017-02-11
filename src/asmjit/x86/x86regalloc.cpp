@@ -2050,10 +2050,10 @@ _NextGroup:
         }
 
         // Init clobbered.
-        clobberedRegs.set(X86Reg::kKindGp , Utils::bits(_regCount.getGp())  & (~fd.getPreservedRegs(X86Reg::kKindGp )));
-        clobberedRegs.set(X86Reg::kKindMm , Utils::bits(_regCount.getMm())  & (~fd.getPreservedRegs(X86Reg::kKindMm )));
-        clobberedRegs.set(X86Reg::kKindK  , Utils::bits(_regCount.getK())   & (~fd.getPreservedRegs(X86Reg::kKindK  )));
-        clobberedRegs.set(X86Reg::kKindVec, Utils::bits(_regCount.getVec()) & (~fd.getPreservedRegs(X86Reg::kKindVec)));
+        clobberedRegs.set(X86Reg::kKindGp , Utils::bits(_regCount.getGp())  & (fd.getPassedRegs(X86Reg::kKindGp ) | ~fd.getPreservedRegs(X86Reg::kKindGp )));
+        clobberedRegs.set(X86Reg::kKindMm , Utils::bits(_regCount.getMm())  & (fd.getPassedRegs(X86Reg::kKindMm ) | ~fd.getPreservedRegs(X86Reg::kKindMm )));
+        clobberedRegs.set(X86Reg::kKindK  , Utils::bits(_regCount.getK())   & (fd.getPassedRegs(X86Reg::kKindK  ) | ~fd.getPreservedRegs(X86Reg::kKindK  )));
+        clobberedRegs.set(X86Reg::kKindVec, Utils::bits(_regCount.getVec()) & (fd.getPassedRegs(X86Reg::kKindVec) | ~fd.getPreservedRegs(X86Reg::kKindVec)));
 
         RA_FINALIZE(node_);
         break;

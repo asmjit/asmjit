@@ -46,55 +46,88 @@ struct CallConv {
     kIdNone = 0,
 
     // ------------------------------------------------------------------------
+    // [Universal]
+    // ------------------------------------------------------------------------
+
+    // TODO: To make this possible we need to know target ARCH and ABI.
+
+    /*
+
+    // Universal calling conventions are applicable to any target and are
+    // converted to target dependent conventions at runtime. The purpose of
+    // these conventions is to make using functions less target dependent.
+
+    kIdCDecl = 1,
+    kIdStdCall = 2,
+    kIdFastCall = 3,
+
+    //! AsmJit specific calling convention designed for calling functions
+    //! inside a multimedia code like that don't use many registers internally,
+    //! but are long enough to be called and not inlined. These functions are
+    //! usually used to calculate trigonometric functions, logarithms, etc...
+    kIdFastEval2 = 10,
+    kIdFastEval3 = 11,
+    kIdFastEval4 = 12,
+    */
+
+    // ------------------------------------------------------------------------
     // [X86]
     // ------------------------------------------------------------------------
 
     //! X86 `__cdecl` calling convention (used by C runtime and libraries).
-    kIdX86CDecl = 1,
+    kIdX86CDecl = 16,
     //! X86 `__stdcall` calling convention (used mostly by WinAPI).
-    kIdX86StdCall = 2,
+    kIdX86StdCall = 17,
     //! X86 `__thiscall` calling convention (MSVC/Intel).
-    kIdX86MsThisCall = 3,
+    kIdX86MsThisCall = 18,
     //! X86 `__fastcall` convention (MSVC/Intel).
-    kIdX86MsFastCall = 4,
+    kIdX86MsFastCall = 19,
     //! X86 `__fastcall` convention (GCC and Clang).
-    kIdX86GccFastCall = 5,
+    kIdX86GccFastCall = 20,
     //! X86 `regparm(1)` convention (GCC and Clang).
-    kIdX86GccRegParm1 = 6,
+    kIdX86GccRegParm1 = 21,
     //! X86 `regparm(2)` convention (GCC and Clang).
-    kIdX86GccRegParm2 = 7,
+    kIdX86GccRegParm2 = 22,
     //! X86 `regparm(3)` convention (GCC and Clang).
-    kIdX86GccRegParm3 = 8,
+    kIdX86GccRegParm3 = 23,
+
+    kIdX86FastEval2 = 29,
+    kIdX86FastEval3 = 30,
+    kIdX86FastEval4 = 31,
 
     //! X64 calling convention defined by WIN64-ABI.
     //!
     //! Links:
     //!   * <http://msdn.microsoft.com/en-us/library/9b372w95.aspx>.
-    kIdX86Win64 = 16,
+    kIdX86Win64 = 32,
     //! X64 calling convention used by Unix platforms (SYSV/AMD64-ABI).
-    kIdX86SysV64 = 17,
+    kIdX86SysV64 = 33,
+
+    kIdX64FastEval2 = 45,
+    kIdX64FastEval3 = 46,
+    kIdX64FastEval4 = 47,
 
     // ------------------------------------------------------------------------
     // [ARM]
     // ------------------------------------------------------------------------
 
     //! Legacy calling convention, floating point arguments are passed via GP registers.
-    kIdArm32SoftFP = 32,
+    kIdArm32SoftFP = 48,
     //! Modern calling convention, uses VFP registers to pass floating point arguments.
-    kIdArm32HardFP = 33,
+    kIdArm32HardFP = 49,
 
     // ------------------------------------------------------------------------
     // [Internal]
     // ------------------------------------------------------------------------
 
-    _kIdX86Start = 1,   //!< \internal
-    _kIdX86End = 8,     //!< \internal
+    _kIdX86Start = 16,   //!< \internal
+    _kIdX86End = 31,     //!< \internal
 
-    _kIdX64Start = 16,  //!< \internal
-    _kIdX64End = 17,    //!< \internal
+    _kIdX64Start = 32,  //!< \internal
+    _kIdX64End = 47,    //!< \internal
 
-    _kIdArmStart = 32,  //!< \internal
-    _kIdArmEnd = 33,    //!< \internal
+    _kIdArmStart = 48,  //!< \internal
+    _kIdArmEnd = 49,    //!< \internal
 
     // ------------------------------------------------------------------------
     // [Host]
@@ -106,42 +139,48 @@ struct CallConv {
     //! NOTE: This should be always the same as `kIdHostCDecl`, but some
     //! compilers allow to override the default calling convention. Overriding
     //! is not detected at the moment.
-    kIdHost         = DETECTED_AT_COMPILE_TIME,
+    kIdHost          = DETECTED_AT_COMPILE_TIME,
 
     //! Default CDECL calling convention based on the current C++ compiler's settings.
-    kIdHostCDecl    = DETECTED_AT_COMPILE_TIME,
+    kIdHostCDecl     = DETECTED_AT_COMPILE_TIME,
 
     //! Default STDCALL calling convention based on the current C++ compiler's settings.
     //!
     //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
-    kIdHostStdCall  = DETECTED_AT_COMPILE_TIME,
+    kIdHostStdCall   = DETECTED_AT_COMPILE_TIME,
 
     //! Compatibility for `__fastcall` calling convention.
     //!
     //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
-    kIdHostFastCall = DETECTED_AT_COMPILE_TIME
+    kIdHostFastCall  = DETECTED_AT_COMPILE_TIME
 #elif ASMJIT_ARCH_X86
-    kIdHost         = kIdX86CDecl,
-    kIdHostCDecl    = kIdX86CDecl,
-    kIdHostStdCall  = kIdX86StdCall,
-    kIdHostFastCall = ASMJIT_CC_MSC   ? kIdX86MsFastCall  :
-                      ASMJIT_CC_GCC   ? kIdX86GccFastCall :
-                      ASMJIT_CC_CLANG ? kIdX86GccFastCall : kIdNone
+    kIdHost          = kIdX86CDecl,
+    kIdHostCDecl     = kIdX86CDecl,
+    kIdHostStdCall   = kIdX86StdCall,
+    kIdHostFastCall  = ASMJIT_CC_MSC   ? kIdX86MsFastCall  :
+                       ASMJIT_CC_GCC   ? kIdX86GccFastCall :
+                       ASMJIT_CC_CLANG ? kIdX86GccFastCall : kIdNone,
+    kIdHostFastEval2 = kIdX86FastEval2,
+    kIdHostFastEval3 = kIdX86FastEval3,
+    kIdHostFastEval4 = kIdX86FastEval4
 #elif ASMJIT_ARCH_X64
-    kIdHost         = ASMJIT_OS_WINDOWS ? kIdX86Win64 : kIdX86SysV64,
-    kIdHostCDecl    = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostStdCall  = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostFastCall = kIdHost  // Doesn't exist, redirected to host.
+    kIdHost          = ASMJIT_OS_WINDOWS ? kIdX86Win64 : kIdX86SysV64,
+    kIdHostCDecl     = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostStdCall   = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostFastCall  = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostFastEval2 = kIdX64FastEval2,
+    kIdHostFastEval3 = kIdX64FastEval3,
+    kIdHostFastEval4 = kIdX64FastEval4
 #elif ASMJIT_ARCH_ARM32
 # if defined(__SOFTFP__)
-    kIdHost         = kIdArm32SoftFP,
+    kIdHost          = kIdArm32SoftFP,
 # else
-    kIdHost         = kIdArm32HardFP,
+    kIdHost          = kIdArm32HardFP,
 # endif
     // These don't exist on ARM.
-    kIdHostCDecl    = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostStdCall  = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostFastCall = kIdHost  // Doesn't exist, redirected to host.
+    kIdHostCDecl     = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostStdCall   = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostFastCall  = kIdHost  // Doesn't exist, redirected to host.
 #else
 # error "[asmjit] Couldn't determine the target's calling convention."
 #endif

@@ -275,15 +275,17 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markStackArgsReg(FuncFrameInfo& ffi)
 ASMJIT_FAVOR_SIZE Error X86Internal::initCallConv(CallConv& cc, uint32_t ccId) noexcept {
   const uint32_t kKindGp  = X86Reg::kKindGp;
   const uint32_t kKindVec = X86Reg::kKindVec;
+  const uint32_t kKindMm  = X86Reg::kKindMm;
+  const uint32_t kKindK   = X86Reg::kKindK;
 
-  const uint32_t kAx = X86Gp::kIdAx;
-  const uint32_t kBx = X86Gp::kIdBx;
-  const uint32_t kCx = X86Gp::kIdCx;
-  const uint32_t kDx = X86Gp::kIdDx;
-  const uint32_t kSp = X86Gp::kIdSp;
-  const uint32_t kBp = X86Gp::kIdBp;
-  const uint32_t kSi = X86Gp::kIdSi;
-  const uint32_t kDi = X86Gp::kIdDi;
+  const uint32_t kZax = X86Gp::kIdAx;
+  const uint32_t kZbx = X86Gp::kIdBx;
+  const uint32_t kZcx = X86Gp::kIdCx;
+  const uint32_t kZdx = X86Gp::kIdDx;
+  const uint32_t kZsp = X86Gp::kIdSp;
+  const uint32_t kZbp = X86Gp::kIdBp;
+  const uint32_t kZsi = X86Gp::kIdSi;
+  const uint32_t kZdi = X86Gp::kIdDi;
 
   switch (ccId) {
     case CallConv::kIdX86StdCall:
@@ -292,32 +294,32 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initCallConv(CallConv& cc, uint32_t ccId) n
 
     case CallConv::kIdX86MsThisCall:
       cc.setFlags(CallConv::kFlagCalleePopsStack);
-      cc.setPassedOrder(kKindGp, kCx);
+      cc.setPassedOrder(kKindGp, kZcx);
       goto X86CallConv;
 
     case CallConv::kIdX86MsFastCall:
     case CallConv::kIdX86GccFastCall:
       cc.setFlags(CallConv::kFlagCalleePopsStack);
-      cc.setPassedOrder(kKindGp, kCx, kDx);
+      cc.setPassedOrder(kKindGp, kZcx, kZdx);
       goto X86CallConv;
 
     case CallConv::kIdX86GccRegParm1:
-      cc.setPassedOrder(kKindGp, kAx);
+      cc.setPassedOrder(kKindGp, kZax);
       goto X86CallConv;
 
     case CallConv::kIdX86GccRegParm2:
-      cc.setPassedOrder(kKindGp, kAx, kDx);
+      cc.setPassedOrder(kKindGp, kZax, kZdx);
       goto X86CallConv;
 
     case CallConv::kIdX86GccRegParm3:
-      cc.setPassedOrder(kKindGp, kAx, kDx, kCx);
+      cc.setPassedOrder(kKindGp, kZax, kZdx, kZcx);
       goto X86CallConv;
 
     case CallConv::kIdX86CDecl:
 X86CallConv:
       cc.setNaturalStackAlignment(4);
       cc.setArchType(ArchInfo::kTypeX86);
-      cc.setPreservedRegs(kKindGp, Utils::mask(kBx, kSp, kBp, kSi, kDi));
+      cc.setPreservedRegs(kKindGp, Utils::mask(kZbx, kZsp, kZbp, kZsi, kZdi));
       break;
 
     case CallConv::kIdX86Win64:
@@ -326,9 +328,9 @@ X86CallConv:
       cc.setFlags(CallConv::kFlagPassFloatsByVec | CallConv::kFlagIndirectVecArgs);
       cc.setNaturalStackAlignment(16);
       cc.setSpillZoneSize(32);
-      cc.setPassedOrder(kKindGp, kCx, kDx, 8, 9);
+      cc.setPassedOrder(kKindGp, kZcx, kZdx, 8, 9);
       cc.setPassedOrder(kKindVec, 0, 1, 2, 3);
-      cc.setPreservedRegs(kKindGp, Utils::mask(kBx, kSp, kBp, kSi, kDi, 12, 13, 14, 15));
+      cc.setPreservedRegs(kKindGp, Utils::mask(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));
       cc.setPreservedRegs(kKindVec, Utils::mask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
       break;
 
@@ -337,10 +339,48 @@ X86CallConv:
       cc.setFlags(CallConv::kFlagPassFloatsByVec);
       cc.setNaturalStackAlignment(16);
       cc.setRedZoneSize(128);
-      cc.setPassedOrder(kKindGp, kDi, kSi, kDx, kCx, 8, 9);
+      cc.setPassedOrder(kKindGp, kZdi, kZsi, kZdx, kZcx, 8, 9);
       cc.setPassedOrder(kKindVec, 0, 1, 2, 3, 4, 5, 6, 7);
-      cc.setPreservedRegs(kKindGp, Utils::mask(kBx, kSp, kBp, 12, 13, 14, 15));
+      cc.setPreservedRegs(kKindGp, Utils::mask(kZbx, kZsp, kZbp, 12, 13, 14, 15));
       break;
+
+    case CallConv::kIdX86FastEval2:
+    case CallConv::kIdX86FastEval3:
+    case CallConv::kIdX86FastEval4: {
+      uint32_t n = ccId - CallConv::kIdX86FastEval2;
+
+      cc.setArchType(ArchInfo::kTypeX86);
+      cc.setFlags(CallConv::kFlagPassFloatsByVec);
+      cc.setNaturalStackAlignment(16);
+      cc.setPassedOrder(kKindGp, kZax, kZdx, kZcx, kZsi, kZdi);
+      cc.setPassedOrder(kKindMm, 0, 1, 2, 3, 4, 5, 6, 7);
+      cc.setPassedOrder(kKindVec, 0, 1, 2, 3, 4, 5, 6, 7);
+
+      cc.setPreservedRegs(kKindGp , Utils::bits(8));
+      cc.setPreservedRegs(kKindVec, Utils::bits(8) & ~Utils::bits(n));
+      cc.setPreservedRegs(kKindMm , Utils::bits(8));
+      cc.setPreservedRegs(kKindK  , Utils::bits(8));
+      break;
+    }
+
+    case CallConv::kIdX64FastEval2:
+    case CallConv::kIdX64FastEval3:
+    case CallConv::kIdX64FastEval4: {
+      uint32_t n = ccId - CallConv::kIdX64FastEval2;
+
+      cc.setArchType(ArchInfo::kTypeX64);
+      cc.setFlags(CallConv::kFlagPassFloatsByVec);
+      cc.setNaturalStackAlignment(16);
+      cc.setPassedOrder(kKindGp, kZax, kZdx, kZcx, kZsi, kZdi);
+      cc.setPassedOrder(kKindMm, 0, 1, 2, 3, 4, 5, 6, 7);
+      cc.setPassedOrder(kKindVec, 0, 1, 2, 3, 4, 5, 6, 7);
+
+      cc.setPreservedRegs(kKindGp , Utils::bits(16));
+      cc.setPreservedRegs(kKindVec,~Utils::bits(n));
+      cc.setPreservedRegs(kKindMm , Utils::bits(8));
+      cc.setPreservedRegs(kKindK  , Utils::bits(8));
+      break;
+    }
 
     default:
       return DebugUtils::errored(kErrorInvalidArgument);
@@ -532,7 +572,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFrameLayout(FuncFrameLayout& layout, co
 
   // Calculate a bit-mask of all registers that must be saved & restored.
   for (kind = 0; kind < Globals::kMaxVRegKinds; kind++)
-    layout._savedRegs[kind] = ffi.getDirtyRegs(kind) & func.getPreservedRegs(kind);
+    layout._savedRegs[kind] = (ffi.getDirtyRegs(kind) & ~func.getPassedRegs(kind)) & func.getPreservedRegs(kind);
 
   // Include EBP|RBP if the function preserves the frame-pointer.
   if (ffi.hasPreservedFP()) {

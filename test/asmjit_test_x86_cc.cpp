@@ -3261,6 +3261,104 @@ public:
 };
 
 // ============================================================================
+// [X86Test_MiscFastEval]
+// ============================================================================
+
+class X86Test_MiscFastEval : public X86Test {
+public:
+  X86Test_MiscFastEval() : X86Test("[Misc] FastEval (CConv)") {}
+
+  static void add(X86TestManager& mgr) {
+    mgr.add(new X86Test_MiscFastEval());
+  }
+
+  virtual void compile(X86Compiler& cc) {
+    FuncSignature5<void, const void*, const void*, const void*, const void*, void*> funcSig(CallConv::kIdHostCDecl);
+    FuncSignature2<X86Xmm, X86Xmm, X86Xmm> fastSig(CallConv::kIdHostFastEval2);
+
+    CCFunc* func = cc.newFunc(funcSig);
+    CCFunc* fast = cc.newFunc(fastSig);
+
+    {
+      X86Gp aPtr = cc.newIntPtr("aPtr");
+      X86Gp bPtr = cc.newIntPtr("bPtr");
+      X86Gp cPtr = cc.newIntPtr("cPtr");
+      X86Gp dPtr = cc.newIntPtr("dPtr");
+      X86Gp pOut = cc.newIntPtr("pOut");
+
+      X86Xmm aXmm = cc.newXmm("aXmm");
+      X86Xmm bXmm = cc.newXmm("bXmm");
+      X86Xmm cXmm = cc.newXmm("cXmm");
+      X86Xmm dXmm = cc.newXmm("dXmm");
+
+      cc.addFunc(func);
+
+      cc.setArg(0, aPtr);
+      cc.setArg(1, bPtr);
+      cc.setArg(2, cPtr);
+      cc.setArg(3, dPtr);
+      cc.setArg(4, pOut);
+
+      cc.movups(aXmm, x86::ptr(aPtr));
+      cc.movups(bXmm, x86::ptr(bPtr));
+      cc.movups(cXmm, x86::ptr(cPtr));
+      cc.movups(dXmm, x86::ptr(dPtr));
+
+      X86Xmm xXmm = cc.newXmm("xXmm");
+      X86Xmm yXmm = cc.newXmm("yXmm");
+
+      CCFuncCall* call1 = cc.call(fast->getLabel(), fastSig);
+      call1->setArg(0, aXmm);
+      call1->setArg(1, bXmm);
+      call1->setRet(0, xXmm);
+
+      CCFuncCall* call2 = cc.call(fast->getLabel(), fastSig);
+      call2->setArg(0, cXmm);
+      call2->setArg(1, dXmm);
+      call2->setRet(0, yXmm);
+
+      cc.pmullw(xXmm, yXmm);
+      cc.movups(x86::ptr(pOut), xXmm);
+
+      cc.endFunc();
+    }
+
+    {
+      X86Xmm aXmm = cc.newXmm("aXmm");
+      X86Xmm bXmm = cc.newXmm("bXmm");
+
+      cc.addFunc(fast);
+      cc.setArg(0, aXmm);
+      cc.setArg(1, bXmm);
+      cc.paddw(aXmm, bXmm);
+      cc.ret(aXmm);
+      cc.endFunc();
+    }
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef void (*Func)(const void*, const void*, const void*, const void*, void*);
+
+    Func func = ptr_as_func<Func>(_func);
+
+    int16_t a[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    int16_t b[8] = { 7, 6, 5, 4, 3, 2, 1, 0 };
+    int16_t c[8] = { 1, 3, 9, 7, 5, 4, 2, 1 };
+    int16_t d[8] = { 2, 0,-6,-4,-2,-1, 1, 2 };
+
+    int16_t o[8];
+    int oExp = 7 * 3;
+
+    func(a, b, c, d, o);
+
+    result.setFormat("ret={%02X %02X %02X %02X %02X %02X %02X %02X}", o[0], o[1], o[2], o[3], o[4], o[5], o[6], o[7]);
+    expect.setFormat("ret={%02X %02X %02X %02X %02X %02X %02X %02X}", oExp, oExp, oExp, oExp, oExp, oExp, oExp, oExp);
+
+    return result == expect;
+  }
+};
+
+// ============================================================================
 // [X86Test_MiscUnfollow]
 // ============================================================================
 
@@ -3423,6 +3521,7 @@ int main(int argc, char* argv[]) {
   ADD_TEST(X86Test_MiscConstPool);
   ADD_TEST(X86Test_MiscMultiRet);
   ADD_TEST(X86Test_MiscMultiFunc);
+  ADD_TEST(X86Test_MiscFastEval);
   ADD_TEST(X86Test_MiscUnfollow);
 
   return testMgr.run();
