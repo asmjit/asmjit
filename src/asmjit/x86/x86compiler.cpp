@@ -134,7 +134,17 @@ Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
       };
 
       Error err = X86Inst::validate(getArchType(), instId, options, _opExtra, opArray, opCount);
-      if (err) return setLastError(err);
+      if (err) {
+#if !defined(ASMJIT_DISABLE_LOGGING)
+        StringBuilderTmp<256> sb;
+        sb.appendString(DebugUtils::errorAsString(err));
+        sb.appendString(": ");
+        Logging::formatInstruction(sb, 0, this, getArchType(), instId, options, _opExtra, opArray, opCount);
+        return setLastError(err, sb.getData());
+#else
+        return setLastError(err);
+#endif
+      }
 
       // Clear it as it must be enabled explicitly on assembler side.
       options &= ~kOptionStrictValidation;

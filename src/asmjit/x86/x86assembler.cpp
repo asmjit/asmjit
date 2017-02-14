@@ -563,8 +563,10 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
 
     // Strict validation.
 #if !defined(ASMJIT_DISABLE_VALIDATION)
-    if (options & CodeEmitter::kOptionStrictValidation)
-      ASMJIT_PROPAGATE(_validate(instId, o0, o1, o2, o3));
+    if (options & CodeEmitter::kOptionStrictValidation) {
+      err = _validate(instId, o0, o1, o2, o3);
+      if (ASMJIT_UNLIKELY(err)) goto Failed;
+    }
 #endif // !ASMJIT_DISABLE_VALIDATION
 
     uint32_t instFlags = instData->getFlags();
