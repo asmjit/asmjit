@@ -1488,8 +1488,12 @@ _NextGroup:
 
         RA_DECLARE();
         if (opCount) {
-          const X86Inst::CommonData& commonData = X86Inst::getInst(instId).getCommonData();
+          const X86Inst& inst = X86Inst::getInst(instId);
+          const X86Inst::CommonData& commonData = inst.getCommonData();
           const X86SpecialInst* special = nullptr;
+
+          if (inst.isAvxFamily())
+            _avxEnabled = true;
 
           // Collect instruction flags and merge all 'TiedReg's.
           if (commonData.isFp())
@@ -1596,7 +1600,7 @@ _NextGroup:
                       if (movSize >= 4 || movSize >= regSize)
                         combinedFlags = outFlags;
                     }
-                    else if (movSize >= regSize) {
+                    else if (movSize == 0 || movSize >= regSize) {
                       // If move size is greater than or equal to the size of
                       // the variable there is nothing to do, because the move
                       // will overwrite the variable in all cases.
@@ -2439,7 +2443,7 @@ Error X86VarAlloc::run(CBNode* node_) {
         X86Reg srcOp(X86Reg::fromSignature(srcReg->getSignature(), srcReg->getId()));
 
         // Emit conversion after the prolog.
-        return X86Internal::emitArgMove(reinterpret_cast<X86Emitter*>(_context->cc()),
+        X86Internal::emitArgMove(reinterpret_cast<X86Emitter*>(_context->cc()),
           dstOp, cvtReg->getTypeId(),
           srcOp, srcReg->getTypeId(), _context->_avxEnabled);
         srcReg = cvtReg;
