@@ -2892,23 +2892,55 @@ CaseVexRvm_R:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
         if (X86Reg::isGp(o0)) {
           opCode = commonData->getAltOpCode();
+          ADD_REX_W_BY_SIZE(o0.getSize());
           opReg = o1.getId();
           rbReg = o0.getId();
           goto EmitVexEvexR;
         }
 
         if (X86Reg::isGp(o1)) {
+          ADD_REX_W_BY_SIZE(o1.getSize());
+          opReg = o0.getId();
+          rbReg = o1.getId();
+          goto EmitVexEvexR;
+        }
+
+        // If this is a 'W' version (movq) then allow also vmovq 'xmm|xmm' form.
+        if (opCode & X86Inst::kOpCode_EW) {
+          opCode &= ~(X86Inst::kOpCode_PP_VEXMask | X86Inst::kOpCode_MM_Mask | 0xFF);
+          opCode |=  (X86Inst::kOpCode_PP_F3      | X86Inst::kOpCode_MM_0F   | 0x7E);
+
           opReg = o0.getId();
           rbReg = o1.getId();
           goto EmitVexEvexR;
         }
       }
 
-      // If this is a 'W' version (movq) then allow also vmovq 'xmm|xmm' form.
-      if (opCode & X86Inst::kOpCode_EW)
-        goto CaseVexRmMr;
-      else
-        goto CaseVexRmMr_AfterRegReg;
+      if (isign3 == ENC_OPS2(Reg, Mem)) {
+        if (opCode & X86Inst::kOpCode_EW) {
+          opCode &= ~(X86Inst::kOpCode_PP_VEXMask | X86Inst::kOpCode_MM_Mask | 0xFF);
+          opCode |=  (X86Inst::kOpCode_PP_F3      | X86Inst::kOpCode_MM_0F   | 0x7E);
+        }
+
+        opReg = o0.getId();
+        rmRel = &o1;
+        goto EmitVexEvexM;
+      }
+
+      // The following instruction uses the secondary opcode.
+      opCode = commonData->getAltOpCode();
+
+      if (isign3 == ENC_OPS2(Mem, Reg)) {
+        if (opCode & X86Inst::kOpCode_EW) {
+          opCode &= ~(X86Inst::kOpCode_PP_VEXMask | X86Inst::kOpCode_MM_Mask | 0xFF);
+          opCode |=  (X86Inst::kOpCode_PP_66      | X86Inst::kOpCode_MM_0F   | 0xD6);
+        }
+
+        opReg = o1.getId();
+        rmRel = &o0;
+        goto EmitVexEvexM;
+      }
+      break;
 
     case X86Inst::kEncodingVexRmMr_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
