@@ -281,8 +281,8 @@ public:
   ASMJIT_INLINE void _setDefaultName(
       char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
       char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
-    reinterpret_cast<uint32_t*>(_name)[0] = Utils::pack32_4x8(c0, c1, c2, c3);
-    reinterpret_cast<uint32_t*>(_name)[1] = Utils::pack32_4x8(c4, c5, c6, c7);
+    _nameAsU32[0] = Utils::pack32_4x8(c0, c1, c2, c3);
+    _nameAsU32[1] = Utils::pack32_4x8(c4, c5, c6, c7);
   }
 
   ASMJIT_INLINE uint32_t getFlags() const noexcept { return _flags; }
@@ -309,7 +309,10 @@ public:
   uint32_t _flags;                       //!< Section flags.
   uint32_t _alignment;                   //!< Section alignment requirements (0 if no requirements).
   uint32_t _virtualSize;                 //!< Virtual size of the section (zero initialized mostly).
-  char _name[36];                        //!< Section name (max 35 characters, PE allows max 8).
+  union {
+    char _name[36];                      //!< Section name (max 35 characters, PE allows max 8).
+    uint32_t _nameAsU32[36 / 4];         //!< Section name as `uint32_t[]` (only optimization).
+  };
   CodeBuffer _buffer;                    //!< Code or data buffer.
 };
 
