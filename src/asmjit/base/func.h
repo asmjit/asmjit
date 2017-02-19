@@ -214,8 +214,9 @@ struct CallConv {
   };
 
   //! Passed registers' order.
-  struct RegOrder {
+  union RegOrder {
     uint8_t id[kNumRegArgsPerKind];      //!< Passed registers, ordered.
+    uint32_t packed[(kNumRegArgsPerKind + 3) / 4];
   };
 
   // --------------------------------------------------------------------------
@@ -304,8 +305,8 @@ struct CallConv {
   ASMJIT_INLINE void _setPassedPacked(uint32_t kind, uint32_t p0, uint32_t p1) noexcept {
     ASMJIT_ASSERT(kind < kMaxVRegKinds);
 
-    reinterpret_cast<uint32_t*>(_passedOrder[kind].id)[0] = p0;
-    reinterpret_cast<uint32_t*>(_passedOrder[kind].id)[1] = p1;
+    _passedOrder[kind].packed[0] = p0;
+    _passedOrder[kind].packed[1] = p1;
   }
 
   ASMJIT_INLINE void setPassedToNone(uint32_t kind) noexcept {

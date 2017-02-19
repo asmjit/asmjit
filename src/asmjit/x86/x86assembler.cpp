@@ -2947,14 +2947,12 @@ CaseVexRvm_R:
       ASMJIT_FALLTHROUGH;
 
     case X86Inst::kEncodingVexRmMr:
-CaseVexRmMr:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
         opReg = o0.getId();
         rbReg = o1.getId();
         goto EmitVexEvexR;
       }
 
-CaseVexRmMr_AfterRegReg:
       if (isign3 == ENC_OPS2(Reg, Mem)) {
         opReg = o0.getId();
         rmRel = &o1;

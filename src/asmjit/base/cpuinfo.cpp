@@ -285,10 +285,9 @@ static void ASMJIT_INLINE x86CallCpuId(CpuIdResult* result, uint32_t inEax, uint
         "=c"(result->ecx),
         "=d"(result->edx)
       : "a"(inEax),
-        "c"(inEcx)
-  );
+        "c"(inEcx));
 #elif (ASMJIT_CC_GCC || ASMJIT_CC_CLANG || ASMJIT_CC_INTEL) && ASMJIT_ARCH_X64
-  __asm__ __volatile__( \
+  __asm__ __volatile__(
     "mov %%rbx, %%rdi\n"
     "cpuid\n"
     "xchg %%rdi, %%rbx\n"
@@ -297,8 +296,7 @@ static void ASMJIT_INLINE x86CallCpuId(CpuIdResult* result, uint32_t inEax, uint
         "=c"(result->ecx),
         "=d"(result->edx)
       : "a"(inEax),
-        "c"(inEcx)
-  );
+        "c"(inEcx));
 #else
 # error "[asmjit] x86CallCpuid() - Unsupported compiler."
 #endif
