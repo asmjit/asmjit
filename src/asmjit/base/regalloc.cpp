@@ -248,9 +248,6 @@ Error RAPass::resolveCellOffsets() {
   RACell* varCell = _memVarCells;
   RACell* stackCell = _memStackCells;
 
-  uint32_t stackAlignment = 0;
-  if (stackCell) stackAlignment = stackCell->alignment;
-
   uint32_t pos64 = 0;
   uint32_t pos32 = pos64 + _mem64ByteVarsUsed * 64;
   uint32_t pos16 = pos32 + _mem32ByteVarsUsed * 32;

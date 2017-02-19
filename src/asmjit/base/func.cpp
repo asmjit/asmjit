@@ -64,7 +64,7 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& sign) {
   uint32_t deabstractDelta = TypeId::deabstractDeltaOfSize(gpSize);
 
   const uint8_t* args = sign.getArgs();
-  for (uint32_t i = 0; i < static_cast<int32_t>(argCount); i++) {
+  for (uint32_t i = 0; i < argCount; i++) {
     Value& arg = _args[i];
     arg.initTypeId(TypeId::deabstract(args[i], deabstractDelta));
   }

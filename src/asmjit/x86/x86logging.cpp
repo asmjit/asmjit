@@ -584,8 +584,6 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
   const Operand_& opExtra,
   const Operand_* opArray, uint32_t opCount) noexcept {
 
-  bool opExtraDone = false;
-
   // Format instruction options and instruction mnemonic.
   if (instId < X86Inst::_kIdCount) {
     const X86Inst& instInfo = X86Inst::getInst(instId);
@@ -608,7 +606,6 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
         ASMJIT_PROPAGATE(sb.appendChar('{'));
         ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, opExtra));
         ASMJIT_PROPAGATE(sb.appendString("} "));
-        opExtraDone = true;
       }
     }
 
@@ -658,10 +655,9 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
 
     // Support AVX-512 {k}{z}.
     if (i == 0) {
-      const uint32_t kExtMsk =
-        X86Inst::kOptionOpExtra |
-        X86Inst::kOptionRep     |
-        X86Inst::kOptionRepnz   ;
+      const uint32_t kExtMsk = X86Inst::kOptionOpExtra |
+                               X86Inst::kOptionRep     |
+                               X86Inst::kOptionRepnz   ;
 
       if ((options & kExtMsk) == X86Inst::kOptionOpExtra) {
         ASMJIT_PROPAGATE(sb.appendString(" {"));
