@@ -135,6 +135,7 @@ Error CodeEmitter::setLastError(Error error, const char* message) {
   // to terminate the execution of `setLastError()`. This is the reason why
   // we have delayed changing the `_error` member until now.
   _lastError = error;
+  _globalOptions |= kOptionMaybeFailureCase;
 
   return error;
 }
