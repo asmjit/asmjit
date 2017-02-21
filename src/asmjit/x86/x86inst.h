@@ -61,6 +61,7 @@ struct X86Inst {
     kIdAndnps,                           // [ANY] {SSE}
     kIdAndpd,                            // [ANY] {SSE2}
     kIdAndps,                            // [ANY] {SSE}
+    kIdArpl,                             // [X86]
     kIdBextr,                            // [ANY] {BMI}
     kIdBlcfill,                          // [ANY] {TBM}
     kIdBlci,                             // [ANY] {TBM}
@@ -76,6 +77,14 @@ struct X86Inst {
     kIdBlsic,                            // [ANY] {TBM}
     kIdBlsmsk,                           // [ANY] {BMI}
     kIdBlsr,                             // [ANY] {BMI}
+    kIdBndcl,                            // [ANY] {MPX}
+    kIdBndcn,                            // [ANY] {MPX}
+    kIdBndcu,                            // [ANY] {MPX}
+    kIdBndldx,                           // [ANY] {MPX}
+    kIdBndmk,                            // [ANY] {MPX}
+    kIdBndmov,                           // [ANY] {MPX}
+    kIdBndstx,                           // [ANY] {MPX}
+    kIdBound,                            // [X86]
     kIdBsf,                              // [ANY]
     kIdBsr,                              // [ANY]
     kIdBswap,                            // [ANY]
@@ -93,6 +102,8 @@ struct X86Inst {
     kIdCld,                              // [ANY]
     kIdClflush,                          // [ANY] {CLFLUSH}
     kIdClflushopt,                       // [ANY] {CLFLUSH_OPT}
+    kIdCli,                              // [ANY]
+    kIdClts,                             // [ANY]
     kIdClwb,                             // [ANY] {CLWB}
     kIdClzero,                           // [ANY] {CLZERO}
     kIdCmc,                              // [ANY]
@@ -278,6 +289,7 @@ struct X86Inst {
     kIdFyl2xp1,                          // [ANY]
     kIdHaddpd,                           // [ANY] {SSE3}
     kIdHaddps,                           // [ANY] {SSE3}
+    kIdHlt,                              // [ANY]
     kIdHsubpd,                           // [ANY] {SSE3}
     kIdHsubps,                           // [ANY] {SSE3}
     kIdIdiv,                             // [ANY]
@@ -290,6 +302,9 @@ struct X86Inst {
     kIdInt,                              // [ANY]
     kIdInt3,                             // [ANY]
     kIdInto,                             // [ANY]
+    kIdInvd,                             // [ANY] {I486}
+    kIdInvlpg,                           // [ANY] {I486}
+    kIdInvpcid,                          // [ANY] {I486}
     kIdJa,                               // [ANY]
     kIdJae,                              // [ANY]
     kIdJb,                               // [ANY]
@@ -374,15 +389,22 @@ struct X86Inst {
     kIdKxorq,                            // [ANY] {AVX512_BW}
     kIdKxorw,                            // [ANY] {AVX512_F}
     kIdLahf,                             // [ANY] {LAHFSAHF}
+    kIdLar,                              // [ANY]
     kIdLddqu,                            // [ANY] {SSE3}
     kIdLdmxcsr,                          // [ANY] {SSE}
     kIdLea,                              // [ANY]
     kIdLeave,                            // [ANY]
     kIdLfence,                           // [ANY] {SSE2}
+    kIdLgdt,                             // [ANY]
+    kIdLidt,                             // [ANY]
+    kIdLldt,                             // [ANY]
+    kIdLmsw,                             // [ANY]
     kIdLods,                             // [ANY]
     kIdLoop,                             // [ANY]
     kIdLoope,                            // [ANY]
     kIdLoopne,                           // [ANY]
+    kIdLsl,                              // [ANY]
+    kIdLtr,                              // [ANY]
     kIdLzcnt,                            // [ANY] {LZCNT}
     kIdMaskmovdqu,                       // [ANY] {SSE2}
     kIdMaskmovq,                         // [ANY] {MMX2}
@@ -395,7 +417,7 @@ struct X86Inst {
     kIdMinps,                            // [ANY] {SSE}
     kIdMinsd,                            // [ANY] {SSE2}
     kIdMinss,                            // [ANY] {SSE}
-    kIdMonitor,
+    kIdMonitor,                          // [ANY] {MONITOR}
     kIdMov,                              // [ANY]
     kIdMovapd,                           // [ANY] {SSE2}
     kIdMovaps,                           // [ANY] {SSE}
@@ -440,7 +462,7 @@ struct X86Inst {
     kIdMulsd,                            // [ANY] {SSE2}
     kIdMulss,                            // [ANY] {SSE}
     kIdMulx,                             // [ANY] {BMI2}
-    kIdMwait,
+    kIdMwait,                            // [ANY] {MONITOR}
     kIdNeg,                              // [ANY]
     kIdNop,                              // [ANY]
     kIdNot,                              // [ANY]
@@ -627,6 +649,8 @@ struct X86Inst {
     kIdRcr,                              // [ANY]
     kIdRdfsbase,                         // [X64] {FSGSBASE}
     kIdRdgsbase,                         // [X64] {FSGSBASE}
+    kIdRdmsr,                            // [ANY] {MSR}
+    kIdRdpmc,                            // [ANY]
     kIdRdrand,                           // [ANY] {RDRAND}
     kIdRdseed,                           // [ANY] {RDSEED}
     kIdRdtsc,                            // [ANY] {RDTSC}
@@ -678,6 +702,7 @@ struct X86Inst {
     kIdSets,                             // [ANY]
     kIdSetz,                             // [ANY]
     kIdSfence,                           // [ANY] {MMX2}
+    kIdSgdt,                             // [ANY]
     kIdSha1msg1,                         // [ANY] {SHA}
     kIdSha1msg2,                         // [ANY] {SHA}
     kIdSha1nexte,                        // [ANY] {SHA}
@@ -693,6 +718,9 @@ struct X86Inst {
     kIdShrx,                             // [ANY] {BMI2}
     kIdShufpd,                           // [ANY] {SSE2}
     kIdShufps,                           // [ANY] {SSE}
+    kIdSidt,                             // [ANY]
+    kIdSldt,                             // [ANY]
+    kIdSmsw,                             // [ANY]
     kIdSqrtpd,                           // [ANY] {SSE2}
     kIdSqrtps,                           // [ANY] {SSE}
     kIdSqrtsd,                           // [ANY] {SSE2}
@@ -703,12 +731,19 @@ struct X86Inst {
     kIdSti,                              // [ANY]
     kIdStmxcsr,                          // [ANY] {SSE}
     kIdStos,                             // [ANY]
+    kIdStr,                              // [ANY]
     kIdSub,                              // [ANY]
     kIdSubpd,                            // [ANY] {SSE2}
     kIdSubps,                            // [ANY] {SSE}
     kIdSubsd,                            // [ANY] {SSE2}
     kIdSubss,                            // [ANY] {SSE}
     kIdSwapgs,                           // [X64]
+    kIdSyscall,                          // [X64]
+    kIdSysenter,                         // [ANY]
+    kIdSysexit,                          // [ANY]
+    kIdSysexit64,                        // [ANY]
+    kIdSysret,                           // [X64]
+    kIdSysret64,                         // [X64]
     kIdT1mskc,                           // [ANY] {TBM}
     kIdTest,                             // [ANY]
     kIdTzcnt,                            // [ANY] {BMI}
@@ -720,6 +755,8 @@ struct X86Inst {
     kIdUnpckhps,                         // [ANY] {SSE}
     kIdUnpcklpd,                         // [ANY] {SSE2}
     kIdUnpcklps,                         // [ANY] {SSE}
+    kIdV4fmaddps,                        // [ANY] {AVX512_4FMAPS}
+    kIdV4fnmaddps,                       // [ANY] {AVX512_4FMAPS}
     kIdVaddpd,                           // [ANY] {AVX|AVX512_F (VL)}
     kIdVaddps,                           // [ANY] {AVX|AVX512_F (VL)}
     kIdVaddsd,                           // [ANY] {AVX|AVX512_F}
@@ -819,6 +856,8 @@ struct X86Inst {
     kIdVdivss,                           // [ANY] {AVX|AVX512_F}
     kIdVdppd,                            // [ANY] {AVX}
     kIdVdpps,                            // [ANY] {AVX}
+    kIdVerr,                             // [ANY]
+    kIdVerw,                             // [ANY]
     kIdVexp2pd,                          // [ANY] {AVX512_ERI}
     kIdVexp2ps,                          // [ANY] {AVX512_ERI}
     kIdVexpandpd,                        // [ANY] {AVX512_F (VL)}
@@ -1012,6 +1051,8 @@ struct X86Inst {
     kIdVmulss,                           // [ANY] {AVX|AVX512_F}
     kIdVorpd,                            // [ANY] {AVX|AVX512_DQ (VL)}
     kIdVorps,                            // [ANY] {AVX|AVX512_F (VL)}
+    kIdVp4dpwssd,                        // [ANY] {AVX512_4VNNIW}
+    kIdVp4dpwssds,                       // [ANY] {AVX512_4VNNIW}
     kIdVpabsb,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
     kIdVpabsd,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
     kIdVpabsq,                           // [ANY] {AVX512_F (VL)}
@@ -1224,6 +1265,8 @@ struct X86Inst {
     kIdVpmullw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
     kIdVpmultishiftqb,                   // [ANY] {AVX512_VBMI (VL)}
     kIdVpmuludq,                         // [ANY] {AVX|AVX2|AVX512_F (VL)}
+    kIdVpopcntd,                         // [ANY] {AVX512_VPOPCNTDQ}
+    kIdVpopcntq,                         // [ANY] {AVX512_VPOPCNTDQ}
     kIdVpor,                             // [ANY] {AVX|AVX2}
     kIdVpord,                            // [ANY] {AVX512_F (VL)}
     kIdVporq,                            // [ANY] {AVX512_F (VL)}
@@ -1389,8 +1432,10 @@ struct X86Inst {
     kIdVxorps,                           // [ANY] {AVX|AVX512_DQ (VL)}
     kIdVzeroall,                         // [ANY] {AVX}
     kIdVzeroupper,                       // [ANY] {AVX}
+    kIdWbinvd,                           // [ANY]
     kIdWrfsbase,                         // [X64] {FSGSBASE}
     kIdWrgsbase,                         // [X64] {FSGSBASE}
+    kIdWrmsr,                            // [ANY] {MSR}
     kIdXadd,                             // [ANY] {I486}
     kIdXchg,                             // [ANY]
     kIdXgetbv,                           // [ANY] {XSAVE}
@@ -1428,6 +1473,9 @@ struct X86Inst {
     kEncodingX86M_GPB_MulDiv,            //!< X86 [M] (like GPB, handles implicit|explicit MUL|DIV|IDIV).
     kEncodingX86M_Only,                  //!< X86 [M] (restricted to memory operand of any size).
     kEncodingX86Rm,                      //!< X86 [RM] (doesn't handle single-byte size).
+    kEncodingX86Rm_NoRexW,               //!< X86 [RM] (doesn't add REX.W prefix if 64-bit reg is used).
+    kEncodingX86Mr,                      //!< X86 [MR] (doesn't handle single-byte size).
+    kEncodingX86Mr_NoSize,               //!< X86 [MR] (doesn't handle any size).
     kEncodingX86Arith,                   //!< X86 adc, add, and, cmp, or, sbb, sub, xor.
     kEncodingX86Bswap,                   //!< X86 bswap.
     kEncodingX86Bt,                      //!< X86 bt, btc, btr, bts.
@@ -1461,6 +1509,7 @@ struct X86Inst {
     kEncodingX86Xadd,                    //!< X86 xadd.
     kEncodingX86Xchg,                    //!< X86 xchg.
     kEncodingX86Fence,                   //!< X86 lfence, mfence, sfence.
+    kEncodingX86Bndmov,                  //!< X86 [RM|MR] (used by BNDMOV).
     kEncodingFpuOp,                      //!< FPU [OP].
     kEncodingFpuArith,                   //!< FPU fadd, fdiv, fdivr, fmul, fsub, fsubr.
     kEncodingFpuCom,                     //!< FPU fcom, fcomp.
@@ -1500,6 +1549,7 @@ struct X86Inst {
     kEncodingVexRm_ZDI,                  //!< VEX|EVEX [RM<ZDI>].
     kEncodingVexRm_Lx,                   //!< VEX|EVEX [RM] (propagates VEX|EVEX.L if YMM used).
     kEncodingVexRm_VM,                   //!< VEX|EVEX [RM] (propagates VEX|EVEX.L, VSIB support).
+    kEncodingVexRm_T1_4X,                //!<     EVEX [RM] (used by NN instructions that use RM-T1_4X encoding).
     kEncodingVexRmi,                     //!< VEX|EVEX [RMI].
     kEncodingVexRmi_Wx,                  //!< VEX|EVEX [RMI] (propagates VEX|EVEX.W if GPQ used).
     kEncodingVexRmi_Lx,                  //!< VEX|EVEX [RMI] (propagates VEX|EVEX.L if YMM used).
@@ -1769,6 +1819,7 @@ struct X86Inst {
     kOpCode_CDTT_FVM      = kOpCode_CDTT_ByLL,
     kOpCode_CDTT_T1S      = kOpCode_CDTT_None,
     kOpCode_CDTT_T1F      = kOpCode_CDTT_None,
+    kOpCode_CDTT_T1_4X    = kOpCode_CDTT_None,
     kOpCode_CDTT_T2       = kOpCode_CDTT_None,
     kOpCode_CDTT_T4       = kOpCode_CDTT_None,
     kOpCode_CDTT_T8       = kOpCode_CDTT_None,
@@ -1970,6 +2021,29 @@ struct X86Inst {
     kMemOpAny             = 0x8000U      //!< Operand can be any scalar memory pointer.
   };
 
+  //! Instruction signature.
+  //!
+  //! Contains a sequence of operands' combinations and other metadata that defines
+  //! a single instruction. This data is used by instruction validator.
+  struct ISignature {
+    uint8_t opCount  : 3;                //!< Count of operands in `opIndex` (0..6).
+    uint8_t archMask : 2;                //!< Architecture mask of this record.
+    uint8_t implicit : 3;                //!< Number of implicit operands.
+    uint8_t reserved;                    //!< Reserved for future use.
+    uint8_t operands[6];                 //!< Indexes to `OSignature` table.
+  };
+
+  //! Operand signature, used by \ref ISignature.
+  //!
+  //! Contains all possible operand combinations, memory size information,
+  //! and register index (or \ref Globals::kInvalidRegId if not mandatory).
+  struct OSignature {
+    uint32_t flags;                      //!< Operand flags.
+    uint16_t memFlags;                   //!< Memory flags.
+    uint8_t extFlags;                    //!< Extra flags.
+    uint8_t regMask;                     //!< Mask of possible register IDs.
+  };
+
   //! Common data - aggregated data that is shared across many instructions.
   struct CommonData {
     //! Get all instruction flags, see \ref InstFlags.
@@ -2033,6 +2107,12 @@ struct X86Inst {
     //! Get alternative opcode, see \ref OpCodeBits.
     ASMJIT_INLINE uint32_t getAltOpCode() const noexcept;
 
+    ASMJIT_INLINE uint32_t getISignatureIndex() const noexcept { return _iSignatureIndex; }
+    ASMJIT_INLINE uint32_t getISignatureCount() const noexcept { return _iSignatureCount; }
+
+    ASMJIT_INLINE const ISignature* getISignatureData() const noexcept;
+    ASMJIT_INLINE const ISignature* getISignatureEnd() const noexcept;
+
     ASMJIT_INLINE uint32_t getJumpType() const noexcept { return _jumpType; }
     ASMJIT_INLINE uint32_t getSingleRegCase() const noexcept { return _singleRegCase; }
 
@@ -2093,23 +2173,26 @@ struct X86Inst {
   struct AvxData {
     //! AVX/AVX512 features.
     enum Features {
-      kFeatureAVX         = 0x00000001U, //!< Supported by AVX.
-      kFeatureAVX2        = 0x00000002U, //!< Supported by AVX2.
-      kFeatureAES         = 0x00000004U, //!< Supported by AVX & AES.
-      kFeatureF16C        = 0x00000008U, //!< Supported by F16C.
-      kFeatureFMA         = 0x00000010U, //!< Supported by FMA.
-      kFeatureFMA4        = 0x00000020U, //!< Supported by FMA4.
-      kFeaturePCLMULQDQ   = 0x00000040U, //!< Supported by PCLMULQDQ & AVX.
-      kFeatureXOP         = 0x00000080U, //!< Supported by XOP.
-      kFeatureAVX512_F    = 0x00001000U, //!< Supported by AVX512-F (foundation).
-      kFeatureAVX512_VL   = 0x00002000U, //!< Supports access to XMM|YMM registers if AVX512VL is present.
-      kFeatureAVX512_CDI  = 0x00004000U, //!< Supported by AVX512-CDI (conflict detection).
-      kFeatureAVX512_PFI  = 0x00008000U, //!< Supported by AVX512-PFI (prefetch).
-      kFeatureAVX512_ERI  = 0x00010000U, //!< Supported by AVX512-ERI (exponential and reciprocal).
-      kFeatureAVX512_DQ   = 0x00020000U, //!< Supported by AVX512-DQ (dword/qword).
-      kFeatureAVX512_BW   = 0x00040000U, //!< Supported by AVX512-BW (byte/word).
-      kFeatureAVX512_IFMA = 0x00080000U, //!< Supported by AVX512-IFMA (integer fused-multiply-add).
-      kFeatureAVX512_VBMI = 0x00100000U  //!< Supported by AVX512-VBMI (vector byte manipulation).
+      kFeatureAVX             = 0x00000001U, //!< Supported by AVX.
+      kFeatureAVX2            = 0x00000002U, //!< Supported by AVX2.
+      kFeatureAES             = 0x00000004U, //!< Supported by AVX & AES.
+      kFeatureF16C            = 0x00000008U, //!< Supported by F16C.
+      kFeatureFMA             = 0x00000010U, //!< Supported by FMA.
+      kFeatureFMA4            = 0x00000020U, //!< Supported by FMA4.
+      kFeaturePCLMULQDQ       = 0x00000040U, //!< Supported by PCLMULQDQ & AVX.
+      kFeatureXOP             = 0x00000080U, //!< Supported by XOP.
+      kFeatureAVX512_F        = 0x00001000U, //!< Supported by AVX512-F (foundation).
+      kFeatureAVX512_VL       = 0x00002000U, //!< Supports access to XMM|YMM registers if AVX512VL is present.
+      kFeatureAVX512_CDI      = 0x00004000U, //!< Supported by AVX512-CDI (conflict detection).
+      kFeatureAVX512_PFI      = 0x00008000U, //!< Supported by AVX512-PFI (prefetch).
+      kFeatureAVX512_ERI      = 0x00010000U, //!< Supported by AVX512-ERI (exponential and reciprocal).
+      kFeatureAVX512_DQ       = 0x00020000U, //!< Supported by AVX512-DQ (dword/qword).
+      kFeatureAVX512_BW       = 0x00040000U, //!< Supported by AVX512-BW (byte/word).
+      kFeatureAVX512_IFMA     = 0x00080000U, //!< Supported by AVX512-IFMA (integer fused-multiply-add).
+      kFeatureAVX512_VBMI     = 0x00100000U, //!< Supported by AVX512-VBMI (vector byte manipulation).
+      kFeatureAVX512_4FMAPS   = 0x00200000U, //!< Supported by AVX512-4FMAPS (NN floating-point single precision).
+      kFeatureAVX512_4VNNIW   = 0x00400000U, //!< Supported by AVX512-4VNNIW (NN enhanced word variable precision).
+      kFeatureAVX512_VPOPCNTDQ= 0x00800000U  //!< Supported by AVX512-VPOPCNTDQ (vector population count).
     };
 
     //!< Additional flags (AVX512).
@@ -2136,29 +2219,6 @@ struct X86Inst {
 
     uint32_t features;                   //!< CPU features.
     uint32_t flags;                      //!< Flags (AVX-512).
-  };
-
-  //! Instruction signature.
-  //!
-  //! Contains a sequence of operands' combinations and other metadata that defines
-  //! a single instruction. This data is used by instruction validator.
-  struct ISignature {
-    uint8_t opCount  : 3;                //!< Count of operands in `opIndex` (0..6).
-    uint8_t archMask : 2;                //!< Architecture mask of this record.
-    uint8_t implicit : 3;                //!< Number of implicit operands.
-    uint8_t reserved;                    //!< Reserved for future use.
-    uint8_t operands[6];                 //!< Indexes to `OSignature` table.
-  };
-
-  //! Operand signature, used by \ref ISignature.
-  //!
-  //! Contains all possible operand combinations, memory size information,
-  //! and register index (or \ref Globals::kInvalidRegId if not mandatory).
-  struct OSignature {
-    uint32_t flags;                      //!< Operand flags.
-    uint16_t memFlags;                   //!< Memory flags.
-    uint8_t extFlags;                    //!< Extra flags.
-    uint8_t regMask;                     //!< Mask of possible register IDs.
   };
 
   //! Data that is not related to a specific X86 instruction (not referenced by
@@ -2229,6 +2289,12 @@ struct X86Inst {
   ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return getCommonData().hasFlag(flag); }
   //! Get instruction flags, see \ref InstFlags.
   ASMJIT_INLINE uint32_t getFlags() const noexcept { return getCommonData().getFlags(); }
+
+  ASMJIT_INLINE uint32_t getISignatureIndex() const noexcept { return getCommonData().getISignatureIndex(); }
+  ASMJIT_INLINE uint32_t getISignatureCount() const noexcept { return getCommonData().getISignatureCount(); }
+
+  ASMJIT_INLINE const ISignature* getISignatureData() const noexcept { return getCommonData().getISignatureData(); }
+  ASMJIT_INLINE const ISignature* getISignatureEnd() const noexcept { return getCommonData().getISignatureEnd(); }
 
   // --------------------------------------------------------------------------
   // [Get]
@@ -2338,6 +2404,11 @@ struct X86InstDB {
   ASMJIT_API static const uint32_t altOpCodeData[];
   ASMJIT_API static const char nameData[];
   ASMJIT_API static const X86Inst::MiscData miscData;
+
+#if !defined(ASMJIT_DISABLE_VALIDATION)
+  ASMJIT_API static const X86Inst::ISignature iSignatureData[];
+  ASMJIT_API static const X86Inst::OSignature oSignatureData[];
+#endif // ASMJIT_DISABLE_VALIDATION
 };
 
 ASMJIT_INLINE const X86Inst& X86Inst::getInst(uint32_t instId) noexcept {
@@ -2370,6 +2441,22 @@ ASMJIT_INLINE uint32_t X86Inst::CommonData::getAltOpCode() const noexcept {
 ASMJIT_INLINE const X86Inst::MiscData& X86Inst::getMiscData() noexcept {
   return X86InstDB::miscData;
 }
+
+#if !defined(ASMJIT_DISABLE_VALIDATION)
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureData() const noexcept {
+  return X86InstDB::iSignatureData + _iSignatureIndex;
+}
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureEnd() const noexcept {
+  return X86InstDB::iSignatureData + _iSignatureIndex + _iSignatureCount;
+}
+#else
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureData() const noexcept {
+  return static_cast<const X86Inst::ISignature*>(nullptr);
+}
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureEnd() const noexcept {
+  return static_cast<const X86Inst::ISignature*>(nullptr);
+}
+#endif // ASMJIT_DISABLE_VALIDATION
 
 //! \}
 

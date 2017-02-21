@@ -752,7 +752,9 @@ CaseX86M_GPB_MulDiv:
 
     case X86Inst::kEncodingX86Rm:
       ADD_PREFIX_BY_SIZE(o0.getSize());
+      ASMJIT_FALLTHROUGH;
 
+    case X86Inst::kEncodingX86Rm_NoRexW:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
         opReg = o0.getId();
         rbReg = o1.getId();
@@ -762,6 +764,24 @@ CaseX86M_GPB_MulDiv:
       if (isign3 == ENC_OPS2(Reg, Mem)) {
         opReg = o0.getId();
         rmRel = &o1;
+        goto EmitX86M;
+      }
+      break;
+
+    case X86Inst::kEncodingX86Mr:
+      ADD_PREFIX_BY_SIZE(o0.getSize());
+      ASMJIT_FALLTHROUGH;
+
+    case X86Inst::kEncodingX86Mr_NoSize:
+      if (isign3 == ENC_OPS2(Reg, Reg)) {
+        rbReg = o0.getId();
+        opReg = o1.getId();
+        goto EmitX86R;
+      }
+
+      if (isign3 == ENC_OPS2(Mem, Reg)) {
+        rmRel = &o0;
+        opReg = o1.getId();
         goto EmitX86M;
       }
       break;
@@ -1989,6 +2009,36 @@ CaseX86Pop_Gp:
       rbReg = 0;
       goto EmitX86R;
 
+    case X86Inst::kEncodingX86Bndmov:
+      if (isign3 == ENC_OPS2(Reg, Reg)) {
+        opReg = o0.getId();
+        rbReg = o1.getId();
+
+        // ModRM encoding:
+        if (!(options & X86Inst::kOptionModMR))
+          goto EmitX86R;
+
+        // ModMR encoding:
+        opCode = commonData->getAltOpCode();
+        std::swap(opReg, rbReg);
+        goto EmitX86R;
+      }
+
+      if (isign3 == ENC_OPS2(Reg, Mem)) {
+        opReg = o0.getId();
+        rmRel = &o1;
+        goto EmitX86M;
+      }
+
+      if (isign3 == ENC_OPS2(Mem, Reg)) {
+        opCode = commonData->getAltOpCode();
+
+        rmRel = &o0;
+        opReg = o1.getId();
+        goto EmitX86M;
+      }
+      break;
+
     // ------------------------------------------------------------------------
     // [FPU]
     // ------------------------------------------------------------------------
@@ -2726,6 +2776,27 @@ CaseVexRm:
         goto EmitVexEvexM;
       }
       break;
+
+    case X86Inst::kEncodingVexRm_T1_4X: {
+      if (X86Reg::isZmm(o0  ) && X86Reg::isZmm(o1) &&
+          X86Reg::isZmm(o2  ) && X86Reg::isZmm(o3) &&
+          X86Reg::isZmm(_op4) && _op5.isMem()) {
+
+        // Registers [o1, o2, o3, _op4] must start aligned and must be consecutive.
+        uint32_t i1 = o1.getId();
+        uint32_t i2 = o2.getId();
+        uint32_t i3 = o3.getId();
+        uint32_t i4 = _op4.getId();
+
+        if (ASMJIT_UNLIKELY((i1 & 0x3) != 0 || i2 != i1 + 1 || i3 != i1 + 2 || i4 != i1 + 3))
+          goto NotConsecutiveRegs;
+
+        opReg = o0.getId();
+        rmRel = &_op5;
+        goto EmitVexEvexM;
+      }
+      break;
+    }
 
     case X86Inst::kEncodingVexRmi_Wx:
       ADD_REX_W(X86Reg::isGpq(o0) | X86Reg::isGpq(o1));
@@ -4331,6 +4402,7 @@ ERROR_HANDLER(InvalidDisplacement)
 ERROR_HANDLER(InvalidSegment)
 ERROR_HANDLER(OperandSizeMismatch)
 ERROR_HANDLER(AmbiguousOperandSize)
+ERROR_HANDLER(NotConsecutiveRegs)
 
 Failed:
   return _emitFailed(err, instId, options, o0, o1, o2, o3);

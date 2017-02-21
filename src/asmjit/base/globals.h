@@ -215,6 +215,8 @@ ASMJIT_ENUM(ErrorCode) {
   kErrorInvalidUseOfGpq,
   //! Invalid use of an 80-bit float (TypeId::kF80).
   kErrorInvalidUseOfF80,
+  //! Some registers in the instruction muse be consecutive (some ARM and AVX512 neural-net instructions).
+  kErrorNotConsecutiveRegs,
 
   //! AsmJit requires a physical register, but no one is available.
   kErrorNoMorePhysRegs,

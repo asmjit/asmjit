@@ -5356,6 +5356,10 @@ static void generateOpcodes(asmjit::X86Assembler& a, bool useRex1 = false, bool 
   a.vpmuludq(ymmA, ymmB, anyptr_gpC);
   a.vpmuludq(zmmA, zmmB, zmmC);
   a.vpmuludq(zmmA, zmmB, anyptr_gpC);
+  a.vpopcntd(zmmA, zmmB);
+  a.vpopcntd(zmmA, anyptr_gpB);
+  a.vpopcntq(zmmA, zmmB);
+  a.vpopcntq(zmmA, anyptr_gpB);
   a.vpord(xmmA, xmmB, xmmC);
   a.vpord(xmmA, xmmB, anyptr_gpC);
   a.vpord(ymmA, ymmB, ymmC);

@@ -67,6 +67,7 @@ static const char errorMessages[] =
   "Invalid use of a low 8-bit GPB register\0"
   "Invalid use of a 64-bit GPQ register in 32-bit mode\0"
   "Invalid use of an 80-bit float\0"
+  "Not consecutive registers\0"
   "No more physical registers\0"
   "Overlapped registers\0"
   "Overlapping register and arguments base-address register\0"

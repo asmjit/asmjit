@@ -194,11 +194,15 @@ Error CodeHolder::detach(CodeEmitter* emitter) noexcept {
   // NOTE: We always detach if we were asked to, if error happens during
   // `emitter->onDetach()` we just propagate it, but the CodeEmitter will
   // be detached.
-  if (!emitter->_destroyed)
+  if (!emitter->_destroyed) {
+    if (type == CodeEmitter::kTypeAssembler)
+      static_cast<Assembler*>(emitter)->sync();
     err = emitter->onDetach(this);
+  }
 
   // Special case - detach `Assembler`.
-  if (type == CodeEmitter::kTypeAssembler) _cgAsm = nullptr;
+  if (type == CodeEmitter::kTypeAssembler)
+    _cgAsm = nullptr;
 
   // Remove from a single-linked list of `CodeEmitter`s.
   CodeEmitter** pPrev = &_emitters;

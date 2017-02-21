@@ -1243,24 +1243,24 @@ class X86Generator extends base.BaseGenerator {
       }
     }
 
-    var s = "#define ISIGNATURE(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5) \\\n" +
+    var s = "#define FLAG(flag) X86Inst::kOp##flag\n" +
+            "#define MEM(mem) X86Inst::kMemOp##mem\n" +
+            "#define OSIGNATURE(flags, memFlags, extFlags, regId) \\\n" +
+            "  { uint32_t(flags), uint16_t(memFlags), uint8_t(extFlags), uint8_t(regId) }\n" +
+                StringUtils.makeCxxArray(opArr, "const X86Inst::OSignature X86InstDB::oSignatureData[]") +
+            "#undef OSIGNATURE\n" +
+            "#undef MEM\n" +
+            "#undef FLAG\n" +
+            "\n" +
+            "#define ISIGNATURE(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5) \\\n" +
             "  { count, (x86 ? uint8_t(X86Inst::kArchMaskX86) : uint8_t(0)) |      \\\n" +
             "           (x64 ? uint8_t(X86Inst::kArchMaskX64) : uint8_t(0)) ,      \\\n" +
             "    implicit,                                                         \\\n" +
             "    0,                                                                \\\n" +
             "    { o0, o1, o2, o3, o4, o5 }                                        \\\n" +
             "  }\n" +
-            StringUtils.makeCxxArrayWithComment(signatureArr, "static const X86Inst::ISignature _x86InstISignatureData[]") +
-            "#undef ISIGNATURE\n" +
-            "\n" +
-            "#define FLAG(flag) X86Inst::kOp##flag\n" +
-            "#define MEM(mem) X86Inst::kMemOp##mem\n" +
-            "#define OSIGNATURE(flags, memFlags, extFlags, regId) \\\n" +
-            "  { uint32_t(flags), uint16_t(memFlags), uint8_t(extFlags), uint8_t(regId) }\n" +
-                StringUtils.makeCxxArray(opArr, "static const X86Inst::OSignature _x86InstOSignatureData[]") +
-            "#undef OSIGNATURE\n" +
-            "#undef MEM\n" +
-            "#undef FLAG\n";
+            StringUtils.makeCxxArrayWithComment(signatureArr, "const X86Inst::ISignature X86InstDB::iSignatureData[]") +
+            "#undef ISIGNATURE\n";
     return this.inject("signatureData", StringUtils.disclaimer(s), opArr.length * 8 + signatureArr.length * 8);
   }
 
@@ -1354,19 +1354,40 @@ class X86Generator extends base.BaseGenerator {
   printMissing() {
     var out = "";
 
-    function CPUFlags(insts) {
-      var flags = {};
-      for (var i = 0; i < insts.length; i++) {
-        var inst = insts[i];
-        for (var k in inst.extensions)
-          flags[k] = true;
-      }
-      return Object.getOwnPropertyNames(flags).join("|");
-    }
+    // These are supported as `insb`, `lods`, ...
+    const ignored = {
+      "cmpsb": true,
+      "cmpsw": true,
+      "cmpsd": true,
+      "cmpsq": true,
+      "insb" : true,
+      "insw" : true,
+      "insd" : true,
+      "insq" : true,
+      "lodsb": true,
+      "lodsw": true,
+      "lodsd": true,
+      "lodsq": true,
+      "movsb": true,
+      "movsw": true,
+      "movsd": true,
+      "movsq": true,
+      "outsb": true,
+      "outsw": true,
+      "outsd": true,
+      "scasb": true,
+      "scasw": true,
+      "scasd": true,
+      "scasq": true,
+      "stosb": true,
+      "stosw": true,
+      "stosd": true,
+      "stosq": true
+    };
 
     isa.instructionNames.forEach(function(name) {
       var insts = isa.query(name);
-      if (!this.instMap[name]) {
+      if (!this.instMap[name] && ignored[name] !== true) {
         console.log(`MISSING INSTRUCTION '${name}'`);
         var inst = this.newInstFromInsts(insts);
         if (inst) {
@@ -1389,48 +1410,7 @@ class X86Generator extends base.BaseGenerator {
     }, this);
     console.log(out);
   }
-}
 
-// ----------------------------------------------------------------------------
-// [Main]
-// ----------------------------------------------------------------------------
-
-function main() {
-  const gen = new X86Generator();
-
-  gen.parse();
-  gen.generate();
-  // gen.printMissing();
-  gen.dumpTableSizes();
-  gen.save();
-}
-main();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
   newInstFromInsts(insts) {
     function GetAccess(inst) {
       var operands = inst.operands;
@@ -1449,9 +1429,9 @@ main();
 
     var id       = this.instArray.length;
     var name     = inst.name;
-    var enum_    = kX86InstId + name[0].toUpperCase() + name.substr(1);
+    var enum_    = name[0].toUpperCase() + name.substr(1);
 
-    var opcode   = inst.opcode;
+    var opcode   = inst.opcodeHex;
     var rm       = inst.rm;
     var mm       = inst.mm;
     var pp       = inst.pp;
@@ -1496,13 +1476,6 @@ main();
       if (access   !== GetAccess(inst)) return null;
     }
 
-    var obj = AVX512Flags(insts);
-    if (obj) {
-      vexL = obj.vexL;
-      vexW = obj.vexW;
-      evexW = obj.evexW;
-    }
-
     var ppmm = StringUtils.padLeft(pp, 2).replace(/ /g, "0") +
                StringUtils.padLeft(mm, 4).replace(/ /g, "0") ;
 
@@ -1541,7 +1514,7 @@ main();
       commonIndex   : -1
     };
   }
-
+/*
   function genAPI() {
     var asm = fs.readFileSync("../src/asmjit/x86/x86assembler.h", "utf8");
     var list = ["AVX512_F", "AVX512_DQ", "AVX512_BW", "AVX512_CD", "AVX512_ER", "AVX512_PF", "AVX512_IFMA", "AVX512_VBMI"];
@@ -1861,3 +1834,19 @@ main();
     console.log(out);
   }
 */
+}
+
+// ----------------------------------------------------------------------------
+// [Main]
+// ----------------------------------------------------------------------------
+
+function main() {
+  const gen = new X86Generator();
+
+  gen.parse();
+  gen.generate();
+  // gen.printMissing();
+  gen.dumpTableSizes();
+  gen.save();
+}
+main();

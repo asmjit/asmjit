@@ -1568,15 +1568,15 @@ int main(int argc, char* argv[]) {
 
 ### Error Handling
 
-AsmJit uses error codes to represent and return errors. Every function where error can occur returns **Error**. Exceptions are never thrown by AsmJit even in extreme conditions like out-of-memory. Errors should never be ignored, however, checking errors after each asmjit API call would simply be overcomplicate the whole code generation. To handle these errors AsmJit provides **ErrorHandler**, which contains **handleError()**:
+AsmJit uses error codes to represent and return errors. Every function where error can occur returns **Error**. Exceptions are never thrown by AsmJit even in extreme conditions like out-of-memory. Errors should never be ignored, however, checking errors after each asmjit API call would simply overcomplicate the whole code generation. To handle these errors AsmJit provides **ErrorHandler**, which contains **handleError()**:
 
     `virtual bool handleError(Error err, const char* message, CodeEmitter* origin) = 0;`
 
 That can be overridden by AsmJit users and do the following:
 
-  * 1. Return `true` or `false` from `handleError()`. If `true` is returned it means that error was handled and AsmJit can continue execution. The error code still be propagated to the caller, but won't put the origin into an error state (it won't set last-error). However, `false` reports to AsmJit that the error cannot be handled - in such case it stores the error, which can retrieved later by `getLastError()`. Returning `false` is the default behavior when no error handler is provided. To put the assembler into a non-error state again the `resetLastError()` must be called.
+  * 1. Return `true` or `false` from `handleError()`. If `true` is returned it means that error was handled and AsmJit can continue execution. The error code still be propagated to the caller, but the error origin (CodeEmitter) won't be put into an error state (last-error won't be set and `isInErrorState()` would return `true`). However, `false` reports to AsmJit that the error cannot be handled - in such case it stores the error, which can be retrieved later by `getLastError()`. Returning `false` is the default behavior when no error handler is provided. To put the assembler into a non-error state again `resetLastError()` must be called.
   * 2. Throw an exception. AsmJit doesn't use exceptions and is completely exception-safe, but you can throw exception from the error handler if this way is easier / preferred by you. Throwing an exception acts virtually as returning `true` - AsmJit won't store the error.
-  * 3. Use plain old C's `setjmp()` and `longjmp()`. Asmjit always puts `Assembler` and `Compiler` to a consistent state before calling the `handleError()` so `longjmp()` can be used without issues to cancel the code-generation if an error occurred.
+  * 3. Use plain old C's `setjmp()` and `longjmp()`. Asmjit always puts `Assembler` and `Compiler` to a consistent state before calling the `handleError()` so `longjmp()` can be used without issues to cancel the code-generation if an error occurred. This method can be used if exception handling in your project is turned off and you still want some comfort. In most cases it should be safe as AsmJit is based on Zone memory, so no memory leaks will occur if you jump back to a location where `CodeHolder` still exist.
 
 **ErrorHandler** is simply attached to **CodeHolder** and will be used by every emitter attached to it. The first example uses error handler that just prints the error, but lets AsmJit continue:
 

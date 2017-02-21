@@ -811,22 +811,22 @@ ASMJIT_X86_PHYS_REG(X86Xmm , xmm12, xmm[12]);   //!< 128-bit XMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Xmm , xmm13, xmm[13]);   //!< 128-bit XMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Xmm , xmm14, xmm[14]);   //!< 128-bit XMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Xmm , xmm15, xmm[15]);   //!< 128-bit XMM register (X64).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm16, xmm[16]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm17, xmm[17]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm18, xmm[18]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm19, xmm[19]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm20, xmm[20]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm21, xmm[21]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm22, xmm[22]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm23, xmm[23]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm24, xmm[24]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm25, xmm[25]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm26, xmm[26]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm27, xmm[27]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm28, xmm[28]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm29, xmm[29]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm30, xmm[30]);   //!< 128-bit XMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Xmm , xmm31, xmm[31]);   //!< 128-bit XMM register (X64 & AVX512VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm16, xmm[16]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm17, xmm[17]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm18, xmm[18]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm19, xmm[19]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm20, xmm[20]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm21, xmm[21]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm22, xmm[22]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm23, xmm[23]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm24, xmm[24]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm25, xmm[25]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm26, xmm[26]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm27, xmm[27]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm28, xmm[28]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm29, xmm[29]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm30, xmm[30]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Xmm , xmm31, xmm[31]);   //!< 128-bit XMM register (X64 & AVX512_VL+).
 
 ASMJIT_X86_PHYS_REG(X86Ymm , ymm0 , ymm[0]);    //!< 256-bit YMM register.
 ASMJIT_X86_PHYS_REG(X86Ymm , ymm1 , ymm[1]);    //!< 256-bit YMM register.
@@ -844,22 +844,22 @@ ASMJIT_X86_PHYS_REG(X86Ymm , ymm12, ymm[12]);   //!< 256-bit YMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Ymm , ymm13, ymm[13]);   //!< 256-bit YMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Ymm , ymm14, ymm[14]);   //!< 256-bit YMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Ymm , ymm15, ymm[15]);   //!< 256-bit YMM register (X64).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm16, ymm[16]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm17, ymm[17]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm18, ymm[18]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm19, ymm[19]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm20, ymm[20]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm21, ymm[21]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm22, ymm[22]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm23, ymm[23]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm24, ymm[24]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm25, ymm[25]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm26, ymm[26]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm27, ymm[27]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm28, ymm[28]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm29, ymm[29]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm30, ymm[30]);   //!< 256-bit YMM register (X64 & AVX512VL+).
-ASMJIT_X86_PHYS_REG(X86Ymm , ymm31, ymm[31]);   //!< 256-bit YMM register (X64 & AVX512VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm16, ymm[16]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm17, ymm[17]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm18, ymm[18]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm19, ymm[19]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm20, ymm[20]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm21, ymm[21]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm22, ymm[22]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm23, ymm[23]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm24, ymm[24]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm25, ymm[25]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm26, ymm[26]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm27, ymm[27]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm28, ymm[28]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm29, ymm[29]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm30, ymm[30]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
+ASMJIT_X86_PHYS_REG(X86Ymm , ymm31, ymm[31]);   //!< 256-bit YMM register (X64 & AVX512_VL+).
 
 ASMJIT_X86_PHYS_REG(X86Zmm , zmm0 , zmm[0]);    //!< 512-bit ZMM register.
 ASMJIT_X86_PHYS_REG(X86Zmm , zmm1 , zmm[1]);    //!< 512-bit ZMM register.
@@ -877,22 +877,22 @@ ASMJIT_X86_PHYS_REG(X86Zmm , zmm12, zmm[12]);   //!< 512-bit ZMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Zmm , zmm13, zmm[13]);   //!< 512-bit ZMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Zmm , zmm14, zmm[14]);   //!< 512-bit ZMM register (X64).
 ASMJIT_X86_PHYS_REG(X86Zmm , zmm15, zmm[15]);   //!< 512-bit ZMM register (X64).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm16, zmm[16]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm17, zmm[17]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm18, zmm[18]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm19, zmm[19]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm20, zmm[20]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm21, zmm[21]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm22, zmm[22]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm23, zmm[23]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm24, zmm[24]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm25, zmm[25]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm26, zmm[26]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm27, zmm[27]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm28, zmm[28]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm29, zmm[29]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm30, zmm[30]);   //!< 512-bit ZMM register (X64 & AVX512F+).
-ASMJIT_X86_PHYS_REG(X86Zmm , zmm31, zmm[31]);   //!< 512-bit ZMM register (X64 & AVX512F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm16, zmm[16]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm17, zmm[17]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm18, zmm[18]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm19, zmm[19]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm20, zmm[20]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm21, zmm[21]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm22, zmm[22]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm23, zmm[23]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm24, zmm[24]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm25, zmm[25]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm26, zmm[26]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm27, zmm[27]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm28, zmm[28]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm29, zmm[29]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm30, zmm[30]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
+ASMJIT_X86_PHYS_REG(X86Zmm , zmm31, zmm[31]);   //!< 512-bit ZMM register (X64 & AVX512_F+).
 
 ASMJIT_X86_PHYS_REG(X86Bnd , bnd0 , bnd[0]);    //!< 128-bit bound register.
 ASMJIT_X86_PHYS_REG(X86Bnd , bnd1 , bnd[1]);    //!< 128-bit bound register.
@@ -1068,14 +1068,14 @@ static ASMJIT_INLINE X86Mem ptr(uint64_t base, const X86Vec& index, uint32_t shi
   }
 
 // Define memory operand constructors that use platform independent naming.
-ASMJIT_X86_PTR_FN(ptr8, 1)
-ASMJIT_X86_PTR_FN(ptr16, 2)
-ASMJIT_X86_PTR_FN(ptr32, 4)
-ASMJIT_X86_PTR_FN(ptr64, 8)
-ASMJIT_X86_PTR_FN(ptr80, 10)
-ASMJIT_X86_PTR_FN(ptr128, 16)
-ASMJIT_X86_PTR_FN(ptr256, 32)
-ASMJIT_X86_PTR_FN(ptr512, 64)
+ASMJIT_X86_PTR_FN(ptr_8, 1)
+ASMJIT_X86_PTR_FN(ptr_16, 2)
+ASMJIT_X86_PTR_FN(ptr_32, 4)
+ASMJIT_X86_PTR_FN(ptr_64, 8)
+ASMJIT_X86_PTR_FN(ptr_80, 10)
+ASMJIT_X86_PTR_FN(ptr_128, 16)
+ASMJIT_X86_PTR_FN(ptr_256, 32)
+ASMJIT_X86_PTR_FN(ptr_512, 64)
 
 // Define memory operand constructors that use X86/X64 specific naming.
 ASMJIT_X86_PTR_FN(byte_ptr, 1)
