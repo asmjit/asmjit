@@ -79,7 +79,7 @@ struct IntTraits {
 // ============================================================================
 
 //! AsmJit utilities - integer, string, etc...
-struct Utils {
+namespace Utils {
   // --------------------------------------------------------------------------
   // [Float <-> Int]
   // --------------------------------------------------------------------------
@@ -196,6 +196,18 @@ struct Utils {
   // [IsInt / IsUInt]
   // --------------------------------------------------------------------------
 
+  //! Get whether the given integer `x` can be casted to a 4-bit signed integer.
+  template<typename T>
+  static ASMJIT_INLINE bool isInt4(T x) noexcept {
+    typedef typename IntTraits<T>::SignedType SignedType;
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
+    if (IntTraits<T>::kIsSigned)
+      return inInterval<SignedType>(SignedType(x), -8, 7);
+    else
+      return UnsignedType(x) <= UnsignedType(7U);
+  }
+
   //! Get whether the given integer `x` can be casted to an 8-bit signed integer.
   template<typename T>
   static ASMJIT_INLINE bool isInt8(T x) noexcept {
@@ -230,6 +242,17 @@ struct Utils {
       return sizeof(T) <= 4 || inInterval<SignedType>(SignedType(x), -2147483647 - 1, 2147483647);
     else
       return sizeof(T) <= 2 || UnsignedType(x) <= UnsignedType(2147483647U);
+  }
+
+  //! Get whether the given integer `x` can be casted to a 4-bit unsigned integer.
+  template<typename T>
+  static ASMJIT_INLINE bool isUInt4(T x) noexcept {
+    typedef typename IntTraits<T>::UnsignedType UnsignedType;
+
+    if (IntTraits<T>::kIsSigned)
+      return x >= T(0) && x <= T(15);
+    else
+      return UnsignedType(x) <= UnsignedType(15U);
   }
 
   //! Get whether the given integer `x` can be casted to an 8-bit unsigned integer.
@@ -385,6 +408,42 @@ struct Utils {
     return bitCountSlow(x);
 #endif
   }
+
+  // --------------------------------------------------------------------------
+  // [FirstBitOf]
+  // --------------------------------------------------------------------------
+
+  template<uint64_t In>
+  struct FirstBitOfTImpl {
+    enum {
+      _shift = (In & ASMJIT_UINT64_C(0x0000FFFFFFFFFFFF)) == 0 ? 48 :
+               (In & ASMJIT_UINT64_C(0x00000000FFFFFFFF)) == 0 ? 32 :
+               (In & ASMJIT_UINT64_C(0x000000000000FFFF)) == 0 ? 16 : 0,
+
+      kValue = ((In >> _shift) & 0x0001) ? (_shift +  0) :
+               ((In >> _shift) & 0x0002) ? (_shift +  1) :
+               ((In >> _shift) & 0x0004) ? (_shift +  2) :
+               ((In >> _shift) & 0x0008) ? (_shift +  3) :
+               ((In >> _shift) & 0x0010) ? (_shift +  4) :
+               ((In >> _shift) & 0x0020) ? (_shift +  5) :
+               ((In >> _shift) & 0x0040) ? (_shift +  6) :
+               ((In >> _shift) & 0x0080) ? (_shift +  7) :
+               ((In >> _shift) & 0x0100) ? (_shift +  8) :
+               ((In >> _shift) & 0x0200) ? (_shift +  9) :
+               ((In >> _shift) & 0x0400) ? (_shift + 10) :
+               ((In >> _shift) & 0x0800) ? (_shift + 11) :
+               ((In >> _shift) & 0x1000) ? (_shift + 12) :
+               ((In >> _shift) & 0x2000) ? (_shift + 13) :
+               ((In >> _shift) & 0x4000) ? (_shift + 14) :
+               ((In >> _shift) & 0x8000) ? (_shift + 15) : 0
+    };
+  };
+
+  template<>
+  struct FirstBitOfTImpl<0> {};
+
+  template<uint64_t In>
+  static ASMJIT_INLINE uint32_t firstBitOfT() noexcept { return FirstBitOfTImpl<In>::kValue; }
 
   // --------------------------------------------------------------------------
   // [FindFirstBit]
@@ -1000,7 +1059,7 @@ struct Utils {
 
   static ASMJIT_INLINE void writeI64a(void* p, int64_t x) noexcept { writeI64x<8>(p, x); }
   static ASMJIT_INLINE void writeI64u(void* p, int64_t x) noexcept { writeI64x<0>(p, x); }
-};
+} // Utils namespace
 
 // ============================================================================
 // [asmjit::UInt64]

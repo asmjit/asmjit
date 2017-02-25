@@ -196,8 +196,6 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/x86
   x86operand.h
   x86regalloc.cpp
   x86regalloc_p.h
-  x86ssetoavxpass.cpp
-  x86ssetoavxpass_p.h
 )
 
 # =============================================================================

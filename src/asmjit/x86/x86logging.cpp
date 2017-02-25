@@ -599,7 +599,7 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
     if (options & (X86Inst::kOptionRep | X86Inst::kOptionRepnz)) {
       const char* rep = "repnz ";
       if ((options & (X86Inst::kOptionRep | X86Inst::kOptionRepnz)) == X86Inst::kOptionRep)
-        rep = instInfo.hasFlag(X86Inst::kInstFlagRepnz) ? "repz " : "rep ";
+        rep = instInfo.hasFlag(X86Inst::kFlagRepnz) ? "repz " : "rep ";
 
       sb.appendString(rep);
       if (!opExtra.isNone()) {

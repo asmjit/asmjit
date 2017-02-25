@@ -34,35 +34,36 @@ namespace x86regs {}
 namespace x86defs {
 
 // ============================================================================
-// [asmjit::x86defs::SpecialRegFlags]
+// [asmjit::x86defs::SpecialRegs]
 // ============================================================================
 
 //! Flags describing special registers and/or their parts.
-ASMJIT_ENUM(SpecialRegFlags) {
-  kSpecialReg_Flags_CF    = 0x00000001U, //!< [R|E]FLAGS - Carry flag.
-  kSpecialReg_Flags_PF    = 0x00000002U, //!< [R|E]FLAGS - Parity flag.
-  kSpecialReg_Flags_AF    = 0x00000004U, //!< [R|E]FLAGS - Adjust flag.
-  kSpecialReg_Flags_ZF    = 0x00000008U, //!< [R|E]FLAGS - Zero flag.
-  kSpecialReg_Flags_SF    = 0x00000010U, //!< [R|E]FLAGS - Sign flag.
-  kSpecialReg_Flags_TF    = 0x00000020U, //!< [R|E]FLAGS - Trap flag.
-  kSpecialReg_Flags_IF    = 0x00000040U, //!< [R|E]FLAGS - Interrupt enable flag.
-  kSpecialReg_Flags_DF    = 0x00000080U, //!< [R|E]FLAGS - Direction flag.
-  kSpecialReg_Flags_OF    = 0x00000100U, //!< [R|E]FLAGS - Overflow flag.
-  kSpecialReg_Flags_AC    = 0x00000200U, //!< [R|E]FLAGS - Alignment check.
-  kSpecialReg_Flags_Sys   = 0x00000400U, //!< [R|E]FLAGS - System flags.
+ASMJIT_ENUM(SpecialRegs) {
+  kSpecialReg_FLAGS_CF    = 0x00000001U, //!< [R|E]FLAGS - Carry flag.
+  kSpecialReg_FLAGS_PF    = 0x00000002U, //!< [R|E]FLAGS - Parity flag.
+  kSpecialReg_FLAGS_AF    = 0x00000004U, //!< [R|E]FLAGS - Adjust flag.
+  kSpecialReg_FLAGS_ZF    = 0x00000008U, //!< [R|E]FLAGS - Zero flag.
+  kSpecialReg_FLAGS_SF    = 0x00000010U, //!< [R|E]FLAGS - Sign flag.
+  kSpecialReg_FLAGS_TF    = 0x00000020U, //!< [R|E]FLAGS - Trap flag.
+  kSpecialReg_FLAGS_IF    = 0x00000040U, //!< [R|E]FLAGS - Interrupt enable flag.
+  kSpecialReg_FLAGS_DF    = 0x00000080U, //!< [R|E]FLAGS - Direction flag.
+  kSpecialReg_FLAGS_OF    = 0x00000100U, //!< [R|E]FLAGS - Overflow flag.
+  kSpecialReg_FLAGS_AC    = 0x00000200U, //!< [R|E]FLAGS - Alignment check.
+  kSpecialReg_FLAGS_SYS   = 0x00000400U, //!< [R|E]FLAGS - System flags.
 
-  kSpecialReg_X87CW_Exc   = 0x00000800U, //!< X87 Control Word - Exception control.
+  kSpecialReg_X87CW_EXC   = 0x00000800U, //!< X87 Control Word - Exception control.
   kSpecialReg_X87CW_PC    = 0x00001000U, //!< X87 Control Word - Precision control.
   kSpecialReg_X87CW_RC    = 0x00002000U, //!< X87 Control Word - Rounding control.
 
-  kSpecialReg_X87SW_Exc   = 0x00004000U, //!< X87 Status Word - Exception flags.
+  kSpecialReg_X87SW_EXC   = 0x00004000U, //!< X87 Status Word - Exception flags.
   kSpecialReg_X87SW_C0    = 0x00008000U, //!< X87 Status Word - C0 flag.
   kSpecialReg_X87SW_C1    = 0x00010000U, //!< X87 Status Word - C1 flag.
   kSpecialReg_X87SW_C2    = 0x00020000U, //!< X87 Status Word - C2 flag.
-  kSpecialReg_X87SW_Top   = 0x00040000U, //!< X87 Status Word - Top of the FPU stack.
+  kSpecialReg_X87SW_TOP   = 0x00040000U, //!< X87 Status Word - Top of the FPU stack.
   kSpecialReg_X87SW_C3    = 0x00080000U, //!< X87 Status Word - C3 flag.
 
-  kSpecialReg_XCR         = 0x00100000U  //!< XCR register(s).
+  kSpecialReg_MSR         = 0x00100000U, //!< MSR register.
+  kSpecialReg_XCR         = 0x00200000U  //!< XCR register.
 };
 
 // ============================================================================

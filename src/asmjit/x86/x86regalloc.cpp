@@ -73,8 +73,8 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
   static const X86SpecialInst instPcmpistri[]    = { R(kAny), R(kAny), NONE(), W(X86Gp::kIdCx), R(X86Gp::kIdAx), R(X86Gp::kIdDx) };
   static const X86SpecialInst instPcmpistrm[]    = { R(kAny), R(kAny), NONE(), W(0)           , R(X86Gp::kIdAx), R(X86Gp::kIdDx) };
   static const X86SpecialInst instXsaveXrstor[]  = { W(kAny), R(X86Gp::kIdDx), R(X86Gp::kIdAx) };
-  static const X86SpecialInst instXgetbv[]       = { W(X86Gp::kIdDx), W(X86Gp::kIdAx), R(X86Gp::kIdCx) };
-  static const X86SpecialInst instXsetbv[]       = { R(X86Gp::kIdDx), R(X86Gp::kIdAx), R(X86Gp::kIdCx) };
+  static const X86SpecialInst instReadMR[]       = { W(X86Gp::kIdDx), W(X86Gp::kIdAx), R(X86Gp::kIdCx) };
+  static const X86SpecialInst instWriteMR[]      = { R(X86Gp::kIdDx), R(X86Gp::kIdAx), R(X86Gp::kIdCx) };
 
   static const X86SpecialInst instCmps[]         = { X(X86Gp::kIdSi), X(X86Gp::kIdDi) };
   static const X86SpecialInst instLods[]         = { W(X86Gp::kIdAx), X(X86Gp::kIdSi) };
@@ -160,8 +160,11 @@ static ASMJIT_INLINE const X86SpecialInst* X86SpecialInst_get(uint32_t instId, c
     case X86Inst::kIdXsave64    :
     case X86Inst::kIdXsaveopt   :
     case X86Inst::kIdXsaveopt64 : return instXsaveXrstor;
-    case X86Inst::kIdXgetbv     : return instXgetbv;
-    case X86Inst::kIdXsetbv     : return instXsetbv;
+    case X86Inst::kIdRdmsr      :
+    case X86Inst::kIdRdpmc      :
+    case X86Inst::kIdXgetbv     : return instReadMR;
+    case X86Inst::kIdWrmsr      :
+    case X86Inst::kIdXsetbv     : return instWriteMR;
     default                     : return nullptr;
   }
 }
@@ -1492,14 +1495,11 @@ _NextGroup:
           const X86Inst::CommonData& commonData = inst.getCommonData();
           const X86SpecialInst* special = nullptr;
 
-          if (inst.isAvxFamily())
-            _avxEnabled = true;
-
           // Collect instruction flags and merge all 'TiedReg's.
-          if (commonData.isFp())
+          if (commonData.isFpu())
             flags |= CBNode::kFlagIsFp;
 
-          if (commonData.isSpecial() && (special = X86SpecialInst_get(instId, opArray, opCount)) != nullptr)
+          if (commonData.hasFixedRM() && (special = X86SpecialInst_get(instId, opArray, opCount)) != nullptr)
             flags |= CBNode::kFlagIsSpecial;
 
           for (uint32_t i = 0; i < opCount; i++) {
@@ -1575,14 +1575,14 @@ _NextGroup:
                     // Manually forcing write-only.
                     combinedFlags = outFlags;
                   }
-                  else if (commonData.isWO()) {
+                  else if (commonData.isUseW()) {
                     // Write-only instruction.
                     uint32_t movSize = commonData.getWriteSize();
                     uint32_t regSize = vreg->getSize();
 
                     // Exception - If the source operand is a memory location
                     // promote move size into 16 bytes.
-                    if (commonData.isZeroIfMem() && opArray[1].isMem())
+                    if (opArray[1].isMem() && inst.getOperationData().isMovSsSd())
                       movSize = 16;
 
                     if (static_cast<const X86Reg*>(op)->isGp()) {
@@ -1607,7 +1607,7 @@ _NextGroup:
                       combinedFlags = outFlags;
                     }
                   }
-                  else if (commonData.isRO()) {
+                  else if (commonData.isUseR()) {
                     // Comparison/Test instructions don't modify any operand.
                     combinedFlags = inFlags;
                   }
@@ -1624,7 +1624,7 @@ _NextGroup:
                   ASMJIT_ASSERT(instId != X86Inst::kIdIdiv);
 
                   // Xchg/Xadd/Imul.
-                  if (commonData.isXchg() || (instId == X86Inst::kIdImul && opCount == 3 && i == 1))
+                  if (commonData.isUseXX() || (instId == X86Inst::kIdImul && opCount == 3 && i == 1))
                     combinedFlags = inFlags | outFlags;
                 }
                 tied->flags |= combinedFlags;
@@ -1651,7 +1651,7 @@ _NextGroup:
                         // Default for the first operand.
                         combinedFlags = inFlags | outFlags;
 
-                        if (commonData.isWO()) {
+                        if (commonData.isUseW()) {
                           // Move to memory - setting the right flags is important
                           // as if it's just move to the register. It's just a bit
                           // simpler as there are no special cases.
@@ -1661,7 +1661,7 @@ _NextGroup:
                           if (movSize >= regSize)
                             combinedFlags = outFlags;
                         }
-                        else if (commonData.isRO()) {
+                        else if (commonData.isUseR()) {
                           // Comparison/Test instructions don't modify any operand.
                           combinedFlags = inFlags;
                         }
@@ -1671,7 +1671,7 @@ _NextGroup:
                         combinedFlags = inFlags;
 
                         // Handle Xchg instruction (modifies both operands).
-                        if (commonData.isXchg())
+                        if (commonData.isUseXX())
                           combinedFlags = inFlags | outFlags;
                       }
 
@@ -1717,6 +1717,10 @@ _NextGroup:
             if (tiedTotal == 1 && opCount >= 2 && opArray[0].isVirtReg() && opArray[1].isVirtReg() && !node->hasMemOp())
               X86RAPass_prepareSingleVarInst(instId, &agTmp[0]);
           }
+
+          // Turn on AVX if the instruction operates on XMM|YMM|ZMM registers and uses VEX|EVEX prefix.
+          if (tiedCount.getVec() && commonData.hasFlag(X86Inst::kFlagVex | X86Inst::kFlagEvex))
+            _avxEnabled = true;
         }
 
         const Operand_& opExtra = node->getOpExtra();

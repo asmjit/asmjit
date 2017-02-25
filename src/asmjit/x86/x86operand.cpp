@@ -132,9 +132,9 @@ UNIT(x86_operand) {
   EXPECT(x86::zmm6.getKind() == X86Reg::kKindVec);
   EXPECT(x86::zmm6.isVec());
 
-  INFO("Checking XYZ register properties");
+  INFO("Checking VEC register properties");
   EXPECT(X86Vec().isReg() == false);
-  // Converts a XYZ register to a type of the passed register, but keeps the ID.
+  // Converts a VEC register to a type of the passed register, but keeps the ID.
   EXPECT(x86::xmm4.cloneAs(x86::ymm10) == x86::ymm4);
   EXPECT(x86::xmm4.cloneAs(x86::zmm11) == x86::zmm4);
   EXPECT(x86::ymm5.cloneAs(x86::xmm12) == x86::xmm5);

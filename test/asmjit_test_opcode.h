@@ -2899,7 +2899,7 @@ static void generateOpcodes(asmjit::X86Assembler& a, bool useRex1 = false, bool 
   a.vpxor(ymmA, ymmB, anyptr_gpC);
   a.vpxor(ymmA, ymmB, ymmC);
 
-  // FMA3.
+  // FMA.
   a.nop();
 
   a.vfmadd132pd(xmmA, xmmB, anyptr_gpC);

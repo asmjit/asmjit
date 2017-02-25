@@ -1270,7 +1270,7 @@ public:
     result.setFormat("ret=\"%s\"", dst);
     expect.setFormat("ret=\"%s\"", src);
 
-    return ::memcmp(dst, src, strlen(src) + 1) == 0;
+    return result == expect;
   }
 };
 
@@ -1608,7 +1608,7 @@ public:
       expectBuf[4], expectBuf[5], expectBuf[6], expectBuf[7],
       expectBuf[8]);
 
-    return ::memcmp(resultBuf, expectBuf, 9) == 0;
+    return result == expect;
   }
 };
 
@@ -2034,7 +2034,7 @@ public:
     result.appendString("}");
     expect.appendString("}");
 
-    return ::memcmp(dstBuffer, srcBuffer, kCount * sizeof(uint32_t)) == 0;
+    return result == expect;
   }
 };
 
@@ -2113,7 +2113,7 @@ public:
     result.appendString("}");
     expect.appendString("}");
 
-    return ::memcmp(expBuffer, dstBuffer, kCount * sizeof(uint32_t)) == 0;
+    return result == expect;
   }
 };
 
@@ -3422,6 +3422,67 @@ public:
 };
 
 // ============================================================================
+// [X86Test_Bug100]
+// ============================================================================
+
+class X86Test_Bug100 : public X86Test {
+public:
+  X86Test_Bug100() : X86Test("[Alloc] Bug#100") {}
+
+  static void add(X86TestManager& mgr) {
+    mgr.add(new X86Test_Bug100());
+  }
+
+  virtual void compile(X86Compiler& cc) {
+    cc.addFunc(FuncSignature4<void, void*, uint32_t, uint32_t, uint32_t>(CallConv::kIdHost));
+
+    Label L2 = cc.newLabel();
+    Label L3 = cc.newLabel();
+    Label L4 = cc.newLabel();
+
+    X86Gp dst = cc.newIntPtr("dst");
+    X86Gp v0 = cc.newU32("v0");
+    X86Gp v1 = cc.newU32("v1");
+    X86Gp v2 = cc.newU32("v2");
+
+    cc.setArg(0, dst);
+    cc.setArg(1, v0);
+    cc.setArg(2, v1);
+    cc.setArg(3, v2);
+
+    cc.cmp(v0, 65535);
+    cc.jne(L2);
+
+    cc.cmp(v0, v1);
+    cc.je(L3);
+
+    cc.mov(v0, v2);
+    cc.jmp(cc.getFunc()->getExitLabel());
+
+    cc.bind(L3);
+    cc.bind(L4);
+
+    cc.mov(v2, v1);
+    cc.cmp(v1, 65535);
+    cc.jne(L2);
+
+    cc.mov(v0, 128);
+
+    cc.bind(L2);
+    cc.mov(x86::ptr(dst), v0);
+
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    // TODO: This test is not complete.
+    // typedef void (*Func)(void*, const void*, size_t);
+    // Func func = ptr_as_func<Func>(_func);
+    return result == expect;
+  }
+};
+
+// ============================================================================
 // [CmdLine]
 // ============================================================================
 
@@ -3523,6 +3584,9 @@ int main(int argc, char* argv[]) {
   ADD_TEST(X86Test_MiscMultiFunc);
   ADD_TEST(X86Test_MiscFastEval);
   ADD_TEST(X86Test_MiscUnfollow);
+
+  // Bugs.
+  ADD_TEST(X86Test_Bug100);
 
   return testMgr.run();
 }

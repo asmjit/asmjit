@@ -36,7 +36,7 @@ public:
 
   //! ARM/ARM64 CPU features.
   ASMJIT_ENUM(ArmFeatures) {
-    kArmFeatureV6,                       //!< ARMv6 instruction set.
+    kArmFeatureV6 = 1,                   //!< ARMv6 instruction set.
     kArmFeatureV7,                       //!< ARMv7 instruction set.
     kArmFeatureV8,                       //!< ARMv8 instruction set.
     kArmFeatureTHUMB,                    //!< CPU provides THUMB v1 instruction set (THUMB mode).
@@ -61,27 +61,31 @@ public:
 
   //! X86/X64 CPU features.
   ASMJIT_ENUM(X86Features) {
-    kX86FeatureNX = 0,                   //!< CPU has Not-Execute-Bit.
+    kX86FeatureI486 = 1,                 //!< CPU is at least I486.
+    kX86FeatureNX,                       //!< CPU has Not-Execute-Bit.
     kX86FeatureMT,                       //!< CPU has multi-threading.
-    kX86FeatureRDTSC,                    //!< CPU has RDTSC.
-    kX86FeatureRDTSCP,                   //!< CPU has RDTSCP.
+    kX86FeatureALTMOVCR8,                //!< CPU supports `LOCK MOV CR8` (AMD CPUs).
     kX86FeatureCMOV,                     //!< CPU has CMOV.
     kX86FeatureCMPXCHG8B,                //!< CPU has CMPXCHG8B.
     kX86FeatureCMPXCHG16B,               //!< CPU has CMPXCHG16B (x64).
+    kX86FeatureMSR,                      //!< CPU has RDMSR/WRMSR.
+    kX86FeatureRDTSC,                    //!< CPU has RDTSC.
+    kX86FeatureRDTSCP,                   //!< CPU has RDTSCP.
     kX86FeatureCLFLUSH,                  //!< CPU has CLFUSH.
-    kX86FeatureCLFLUSH_OPT,              //!< CPU has CLFUSH (optimized).
+    kX86FeatureCLFLUSHOPT,               //!< CPU has CLFUSHOPT.
     kX86FeatureCLWB,                     //!< CPU has CLWB.
     kX86FeatureCLZERO,                   //!< CPU has CLZERO.
     kX86FeaturePCOMMIT,                  //!< CPU has PCOMMIT.
-    kX86FeaturePREFETCH,                 //!< CPU has PREFETCH.
+    kX86FeaturePREFETCHW,                //!< CPU has PREFETCHW.
     kX86FeaturePREFETCHWT1,              //!< CPU has PREFETCHWT1.
-    kX86FeatureLAHF_SAHF,                //!< CPU has LAHF/SAHF.
+    kX86FeatureLAHFSAHF,                 //!< CPU has LAHF/SAHF.
     kX86FeatureFXSR,                     //!< CPU has FXSAVE/FXRSTOR.
-    kX86FeatureFXSR_OPT,                 //!< CPU has FXSAVE/FXRSTOR (optimized).
+    kX86FeatureFXSROPT,                  //!< CPU has FXSAVE/FXRSTOR (optimized).
     kX86FeatureMMX,                      //!< CPU has MMX.
     kX86FeatureMMX2,                     //!< CPU has extended MMX.
-    kX86Feature3DNOW,                    //!< CPU has 3DNOW!
-    kX86Feature3DNOW2,                   //!< CPU has enhanced 3DNOW!
+    kX86Feature3DNOW,                    //!< CPU has 3DNOW.
+    kX86Feature3DNOW2,                   //!< CPU has 3DNOW2 (enhanced).
+    kX86FeatureGEODE,                    //!< CPU has GEODE extensions (few additions to 3DNOW).
     kX86FeatureSSE,                      //!< CPU has SSE.
     kX86FeatureSSE2,                     //!< CPU has SSE2.
     kX86FeatureSSE3,                     //!< CPU has SSE3.
@@ -101,12 +105,13 @@ public:
     kX86FeatureSMAP,                     //!< CPU has SMAP (supervisor-mode access prevention).
     kX86FeatureSMEP,                     //!< CPU has SMEP (supervisor-mode execution prevention).
     kX86FeatureSHA,                      //!< CPU has SHA-1 and SHA-256.
-    kX86FeatureXSAVE,                    //!< CPU has XSAVE support - XSAVE/XRSTOR, XSETBV/XGETBV, and XCR0.
-    kX86FeatureXSAVE_OS,                 //!< OS has enabled XSAVE, you can call XGETBV to get value of XCR0.
+    kX86FeatureXSAVE,                    //!< CPU has XSAVE support - XSAVE/XRSTOR, XSETBV/XGETBV, and XCR.
+    kX86FeatureXSAVEOPT,                 //!< CPU has XSAVEOPT support - XSAVEOPT/XSAVEOPT64.
+    kX86FeatureOSXSAVE,                  //!< OS has enabled XSAVE, you can call XGETBV to get XCR content.
     kX86FeatureAVX,                      //!< CPU has AVX.
     kX86FeatureAVX2,                     //!< CPU has AVX2.
     kX86FeatureF16C,                     //!< CPU has F16C.
-    kX86FeatureFMA3,                     //!< CPU has FMA3.
+    kX86FeatureFMA,                      //!< CPU has FMA.
     kX86FeatureFMA4,                     //!< CPU has FMA4.
     kX86FeatureXOP,                      //!< CPU has XOP.
     kX86FeatureBMI,                      //!< CPU has BMI (bit manipulation instructions #1).

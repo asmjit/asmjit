@@ -91,16 +91,6 @@ class StringUtils {
     return s;
   }
 
-  static arrayToMap(arr, value) {
-    if (value === undefined)
-      value = true;
-
-    const map = Object.create(null);
-    for (var i = 0; i < arr.length; i++)
-      map[arr[i]] = value;
-    return map;
-  }
-
   static makeCxxArray(array, code, indent) {
     if (!indent) indent = kIndent;
     return `${code} = {\n${indent}` + array.join(`,\n${indent}`) + `\n};\n`;
@@ -160,6 +150,65 @@ class StringUtils {
   }
 }
 exports.StringUtils = StringUtils;
+
+// ----------------------------------------------------------------------------
+// [MapUtils]
+// ----------------------------------------------------------------------------
+
+class MapUtils {
+  static arrayToMap(arr, value) {
+    if (value === undefined)
+      value = true;
+
+    const map = Object.create(null);
+    for (var i = 0; i < arr.length; i++)
+      map[arr[i]] = value;
+    return map;
+  }
+
+  static equals(a, b) {
+    for (var k in a) if (!hasOwn.call(b, k)) return false;
+    for (var k in b) if (!hasOwn.call(a, k)) return false;
+
+    return true;
+  }
+
+  static firstOf(map, flags) {
+    for (var k in flags)
+      if (hasOwn.call(map, k))
+        return k;
+    return undefined;
+  }
+
+  static anyOf(map, flags) {
+    for (var k in flags)
+      if (hasOwn.call(map, k))
+        return true;
+    return false;
+  }
+
+  static add(a, b) {
+    for (var k in b)
+      a[k] = b[k];
+    return a;
+  }
+
+  static and(a, b) {
+    const out = Object.create(null);
+    for (var k in a)
+      if (hasOwn.call(b, k))
+        out[k] = true;
+    return out;
+  }
+
+  static xor(a, b) {
+    const out = Object.create(null);
+    for (var k in a) if (!hasOwn.call(b, k)) out[k] = true;
+    for (var k in b) if (!hasOwn.call(a, k)) out[k] = true;
+    return out;
+  }
+};
+exports.MapUtils = MapUtils;
 
 // ----------------------------------------------------------------------------
 // [IndexedArray]

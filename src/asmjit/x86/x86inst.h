@@ -49,12 +49,12 @@ struct X86Inst {
     kIdAddsubpd,                         // [ANY] {SSE3}
     kIdAddsubps,                         // [ANY] {SSE3}
     kIdAdox,                             // [ANY] {ADX}
-    kIdAesdec,                           // [ANY] {AES}
-    kIdAesdeclast,                       // [ANY] {AES}
-    kIdAesenc,                           // [ANY] {AES}
-    kIdAesenclast,                       // [ANY] {AES}
-    kIdAesimc,                           // [ANY] {AES}
-    kIdAeskeygenassist,                  // [ANY] {AES}
+    kIdAesdec,                           // [ANY] {AESNI}
+    kIdAesdeclast,                       // [ANY] {AESNI}
+    kIdAesenc,                           // [ANY] {AESNI}
+    kIdAesenclast,                       // [ANY] {AESNI}
+    kIdAesimc,                           // [ANY] {AESNI}
+    kIdAeskeygenassist,                  // [ANY] {AESNI}
     kIdAnd,                              // [ANY]
     kIdAndn,                             // [ANY] {BMI}
     kIdAndnpd,                           // [ANY] {SSE2}
@@ -101,7 +101,7 @@ struct X86Inst {
     kIdClc,                              // [ANY]
     kIdCld,                              // [ANY]
     kIdClflush,                          // [ANY] {CLFLUSH}
-    kIdClflushopt,                       // [ANY] {CLFLUSH_OPT}
+    kIdClflushopt,                       // [ANY] {CLFLUSHOPT}
     kIdCli,                              // [ANY]
     kIdClts,                             // [ANY]
     kIdClwb,                             // [ANY] {CLWB}
@@ -757,72 +757,72 @@ struct X86Inst {
     kIdUnpcklps,                         // [ANY] {SSE}
     kIdV4fmaddps,                        // [ANY] {AVX512_4FMAPS}
     kIdV4fnmaddps,                       // [ANY] {AVX512_4FMAPS}
-    kIdVaddpd,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVaddps,                           // [ANY] {AVX|AVX512_F (VL)}
+    kIdVaddpd,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVaddps,                           // [ANY] {AVX|AVX512_F+VL}
     kIdVaddsd,                           // [ANY] {AVX|AVX512_F}
     kIdVaddss,                           // [ANY] {AVX|AVX512_F}
     kIdVaddsubpd,                        // [ANY] {AVX}
     kIdVaddsubps,                        // [ANY] {AVX}
-    kIdVaesdec,                          // [ANY] {AES|AVX}
-    kIdVaesdeclast,                      // [ANY] {AES|AVX}
-    kIdVaesenc,                          // [ANY] {AES|AVX}
-    kIdVaesenclast,                      // [ANY] {AES|AVX}
-    kIdVaesimc,                          // [ANY] {AES|AVX}
-    kIdVaeskeygenassist,                 // [ANY] {AES|AVX}
-    kIdValignd,                          // [ANY] {AVX512_F (VL)}
-    kIdValignq,                          // [ANY] {AVX512_F (VL)}
-    kIdVandnpd,                          // [ANY] {AVX|AVX512_DQ (VL)}
-    kIdVandnps,                          // [ANY] {AVX|AVX512_DQ (VL)}
-    kIdVandpd,                           // [ANY] {AVX|AVX512_DQ (VL)}
-    kIdVandps,                           // [ANY] {AVX|AVX512_DQ (VL)}
-    kIdVblendmb,                         // [ANY] {AVX512_BW (VL)}
-    kIdVblendmd,                         // [ANY] {AVX512_F (VL)}
-    kIdVblendmpd,                        // [ANY] {AVX512_F (VL)}
-    kIdVblendmps,                        // [ANY] {AVX512_F (VL)}
-    kIdVblendmq,                         // [ANY] {AVX512_F (VL)}
-    kIdVblendmw,                         // [ANY] {AVX512_BW (VL)}
+    kIdVaesdec,                          // [ANY] {AESNI|AVX}
+    kIdVaesdeclast,                      // [ANY] {AESNI|AVX}
+    kIdVaesenc,                          // [ANY] {AESNI|AVX}
+    kIdVaesenclast,                      // [ANY] {AESNI|AVX}
+    kIdVaesimc,                          // [ANY] {AESNI|AVX}
+    kIdVaeskeygenassist,                 // [ANY] {AESNI|AVX}
+    kIdValignd,                          // [ANY] {AVX512_F+VL}
+    kIdValignq,                          // [ANY] {AVX512_F+VL}
+    kIdVandnpd,                          // [ANY] {AVX|AVX512_DQ+VL}
+    kIdVandnps,                          // [ANY] {AVX|AVX512_DQ+VL}
+    kIdVandpd,                           // [ANY] {AVX|AVX512_DQ+VL}
+    kIdVandps,                           // [ANY] {AVX|AVX512_DQ+VL}
+    kIdVblendmb,                         // [ANY] {AVX512_BW+VL}
+    kIdVblendmd,                         // [ANY] {AVX512_F+VL}
+    kIdVblendmpd,                        // [ANY] {AVX512_F+VL}
+    kIdVblendmps,                        // [ANY] {AVX512_F+VL}
+    kIdVblendmq,                         // [ANY] {AVX512_F+VL}
+    kIdVblendmw,                         // [ANY] {AVX512_BW+VL}
     kIdVblendpd,                         // [ANY] {AVX}
     kIdVblendps,                         // [ANY] {AVX}
     kIdVblendvpd,                        // [ANY] {AVX}
     kIdVblendvps,                        // [ANY] {AVX}
     kIdVbroadcastf128,                   // [ANY] {AVX}
-    kIdVbroadcastf32x2,                  // [ANY] {AVX512_DQ (VL)}
+    kIdVbroadcastf32x2,                  // [ANY] {AVX512_DQ+VL}
     kIdVbroadcastf32x4,                  // [ANY] {AVX512_F}
     kIdVbroadcastf32x8,                  // [ANY] {AVX512_DQ}
-    kIdVbroadcastf64x2,                  // [ANY] {AVX512_DQ (VL)}
+    kIdVbroadcastf64x2,                  // [ANY] {AVX512_DQ+VL}
     kIdVbroadcastf64x4,                  // [ANY] {AVX512_F}
     kIdVbroadcasti128,                   // [ANY] {AVX2}
-    kIdVbroadcasti32x2,                  // [ANY] {AVX512_DQ (VL)}
-    kIdVbroadcasti32x4,                  // [ANY] {AVX512_F (VL)}
+    kIdVbroadcasti32x2,                  // [ANY] {AVX512_DQ+VL}
+    kIdVbroadcasti32x4,                  // [ANY] {AVX512_F+VL}
     kIdVbroadcasti32x8,                  // [ANY] {AVX512_DQ}
-    kIdVbroadcasti64x2,                  // [ANY] {AVX512_DQ (VL)}
+    kIdVbroadcasti64x2,                  // [ANY] {AVX512_DQ+VL}
     kIdVbroadcasti64x4,                  // [ANY] {AVX512_F}
-    kIdVbroadcastsd,                     // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVbroadcastss,                     // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVcmppd,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcmpps,                           // [ANY] {AVX|AVX512_F (VL)}
+    kIdVbroadcastsd,                     // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVbroadcastss,                     // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVcmppd,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVcmpps,                           // [ANY] {AVX|AVX512_F+VL}
     kIdVcmpsd,                           // [ANY] {AVX|AVX512_F}
     kIdVcmpss,                           // [ANY] {AVX|AVX512_F}
     kIdVcomisd,                          // [ANY] {AVX|AVX512_F}
     kIdVcomiss,                          // [ANY] {AVX|AVX512_F}
-    kIdVcompresspd,                      // [ANY] {AVX512_F (VL)}
-    kIdVcompressps,                      // [ANY] {AVX512_F (VL)}
-    kIdVcvtdq2pd,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvtdq2ps,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvtpd2dq,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvtpd2ps,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvtpd2qq,                        // [ANY] {AVX512_DQ (VL)}
-    kIdVcvtpd2udq,                       // [ANY] {AVX512_F (VL)}
-    kIdVcvtpd2uqq,                       // [ANY] {AVX512_DQ (VL)}
-    kIdVcvtph2ps,                        // [ANY] {AVX512_F|F16C (VL)}
-    kIdVcvtps2dq,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvtps2pd,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvtps2ph,                        // [ANY] {AVX512_F|F16C (VL)}
-    kIdVcvtps2qq,                        // [ANY] {AVX512_DQ (VL)}
-    kIdVcvtps2udq,                       // [ANY] {AVX512_F (VL)}
-    kIdVcvtps2uqq,                       // [ANY] {AVX512_DQ (VL)}
-    kIdVcvtqq2pd,                        // [ANY] {AVX512_DQ (VL)}
-    kIdVcvtqq2ps,                        // [ANY] {AVX512_DQ (VL)}
+    kIdVcompresspd,                      // [ANY] {AVX512_F+VL}
+    kIdVcompressps,                      // [ANY] {AVX512_F+VL}
+    kIdVcvtdq2pd,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvtdq2ps,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvtpd2dq,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvtpd2ps,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvtpd2qq,                        // [ANY] {AVX512_DQ+VL}
+    kIdVcvtpd2udq,                       // [ANY] {AVX512_F+VL}
+    kIdVcvtpd2uqq,                       // [ANY] {AVX512_DQ+VL}
+    kIdVcvtph2ps,                        // [ANY] {AVX512_F|F16C+VL}
+    kIdVcvtps2dq,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvtps2pd,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvtps2ph,                        // [ANY] {AVX512_F|F16C+VL}
+    kIdVcvtps2qq,                        // [ANY] {AVX512_DQ+VL}
+    kIdVcvtps2udq,                       // [ANY] {AVX512_F+VL}
+    kIdVcvtps2uqq,                       // [ANY] {AVX512_DQ+VL}
+    kIdVcvtqq2pd,                        // [ANY] {AVX512_DQ+VL}
+    kIdVcvtqq2ps,                        // [ANY] {AVX512_DQ+VL}
     kIdVcvtsd2si,                        // [ANY] {AVX|AVX512_F}
     kIdVcvtsd2ss,                        // [ANY] {AVX|AVX512_F}
     kIdVcvtsd2usi,                       // [ANY] {AVX512_F}
@@ -831,27 +831,27 @@ struct X86Inst {
     kIdVcvtss2sd,                        // [ANY] {AVX|AVX512_F}
     kIdVcvtss2si,                        // [ANY] {AVX|AVX512_F}
     kIdVcvtss2usi,                       // [ANY] {AVX512_F}
-    kIdVcvttpd2dq,                       // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvttpd2qq,                       // [ANY] {AVX512_F (VL)}
-    kIdVcvttpd2udq,                      // [ANY] {AVX512_F (VL)}
-    kIdVcvttpd2uqq,                      // [ANY] {AVX512_DQ (VL)}
-    kIdVcvttps2dq,                       // [ANY] {AVX|AVX512_F (VL)}
-    kIdVcvttps2qq,                       // [ANY] {AVX512_DQ (VL)}
-    kIdVcvttps2udq,                      // [ANY] {AVX512_F (VL)}
-    kIdVcvttps2uqq,                      // [ANY] {AVX512_DQ (VL)}
+    kIdVcvttpd2dq,                       // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvttpd2qq,                       // [ANY] {AVX512_F+VL}
+    kIdVcvttpd2udq,                      // [ANY] {AVX512_F+VL}
+    kIdVcvttpd2uqq,                      // [ANY] {AVX512_DQ+VL}
+    kIdVcvttps2dq,                       // [ANY] {AVX|AVX512_F+VL}
+    kIdVcvttps2qq,                       // [ANY] {AVX512_DQ+VL}
+    kIdVcvttps2udq,                      // [ANY] {AVX512_F+VL}
+    kIdVcvttps2uqq,                      // [ANY] {AVX512_DQ+VL}
     kIdVcvttsd2si,                       // [ANY] {AVX|AVX512_F}
     kIdVcvttsd2usi,                      // [ANY] {AVX512_F}
     kIdVcvttss2si,                       // [ANY] {AVX|AVX512_F}
     kIdVcvttss2usi,                      // [ANY] {AVX512_F}
-    kIdVcvtudq2pd,                       // [ANY] {AVX512_F (VL)}
-    kIdVcvtudq2ps,                       // [ANY] {AVX512_F (VL)}
-    kIdVcvtuqq2pd,                       // [ANY] {AVX512_DQ (VL)}
-    kIdVcvtuqq2ps,                       // [ANY] {AVX512_DQ (VL)}
+    kIdVcvtudq2pd,                       // [ANY] {AVX512_F+VL}
+    kIdVcvtudq2ps,                       // [ANY] {AVX512_F+VL}
+    kIdVcvtuqq2pd,                       // [ANY] {AVX512_DQ+VL}
+    kIdVcvtuqq2ps,                       // [ANY] {AVX512_DQ+VL}
     kIdVcvtusi2sd,                       // [ANY] {AVX512_F}
     kIdVcvtusi2ss,                       // [ANY] {AVX512_F}
-    kIdVdbpsadbw,                        // [ANY] {AVX512_BW (VL)}
-    kIdVdivpd,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVdivps,                           // [ANY] {AVX|AVX512_F (VL)}
+    kIdVdbpsadbw,                        // [ANY] {AVX512_BW+VL}
+    kIdVdivpd,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVdivps,                           // [ANY] {AVX|AVX512_F+VL}
     kIdVdivsd,                           // [ANY] {AVX|AVX512_F}
     kIdVdivss,                           // [ANY] {AVX|AVX512_F}
     kIdVdppd,                            // [ANY] {AVX}
@@ -860,113 +860,113 @@ struct X86Inst {
     kIdVerw,                             // [ANY]
     kIdVexp2pd,                          // [ANY] {AVX512_ERI}
     kIdVexp2ps,                          // [ANY] {AVX512_ERI}
-    kIdVexpandpd,                        // [ANY] {AVX512_F (VL)}
-    kIdVexpandps,                        // [ANY] {AVX512_F (VL)}
+    kIdVexpandpd,                        // [ANY] {AVX512_F+VL}
+    kIdVexpandps,                        // [ANY] {AVX512_F+VL}
     kIdVextractf128,                     // [ANY] {AVX}
-    kIdVextractf32x4,                    // [ANY] {AVX512_F (VL)}
+    kIdVextractf32x4,                    // [ANY] {AVX512_F+VL}
     kIdVextractf32x8,                    // [ANY] {AVX512_DQ}
-    kIdVextractf64x2,                    // [ANY] {AVX512_DQ (VL)}
+    kIdVextractf64x2,                    // [ANY] {AVX512_DQ+VL}
     kIdVextractf64x4,                    // [ANY] {AVX512_F}
     kIdVextracti128,                     // [ANY] {AVX2}
-    kIdVextracti32x4,                    // [ANY] {AVX512_F (VL)}
+    kIdVextracti32x4,                    // [ANY] {AVX512_F+VL}
     kIdVextracti32x8,                    // [ANY] {AVX512_DQ}
-    kIdVextracti64x2,                    // [ANY] {AVX512_DQ (VL)}
+    kIdVextracti64x2,                    // [ANY] {AVX512_DQ+VL}
     kIdVextracti64x4,                    // [ANY] {AVX512_F}
     kIdVextractps,                       // [ANY] {AVX|AVX512_F}
-    kIdVfixupimmpd,                      // [ANY] {AVX512_F (VL)}
-    kIdVfixupimmps,                      // [ANY] {AVX512_F (VL)}
+    kIdVfixupimmpd,                      // [ANY] {AVX512_F+VL}
+    kIdVfixupimmps,                      // [ANY] {AVX512_F+VL}
     kIdVfixupimmsd,                      // [ANY] {AVX512_F}
     kIdVfixupimmss,                      // [ANY] {AVX512_F}
-    kIdVfmadd132pd,                      // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmadd132ps,                      // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmadd132pd,                      // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmadd132ps,                      // [ANY] {AVX512_F|FMA+VL}
     kIdVfmadd132sd,                      // [ANY] {AVX512_F|FMA}
     kIdVfmadd132ss,                      // [ANY] {AVX512_F|FMA}
-    kIdVfmadd213pd,                      // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmadd213ps,                      // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmadd213pd,                      // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmadd213ps,                      // [ANY] {AVX512_F|FMA+VL}
     kIdVfmadd213sd,                      // [ANY] {AVX512_F|FMA}
     kIdVfmadd213ss,                      // [ANY] {AVX512_F|FMA}
-    kIdVfmadd231pd,                      // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmadd231ps,                      // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmadd231pd,                      // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmadd231ps,                      // [ANY] {AVX512_F|FMA+VL}
     kIdVfmadd231sd,                      // [ANY] {AVX512_F|FMA}
     kIdVfmadd231ss,                      // [ANY] {AVX512_F|FMA}
     kIdVfmaddpd,                         // [ANY] {FMA4}
     kIdVfmaddps,                         // [ANY] {FMA4}
     kIdVfmaddsd,                         // [ANY] {FMA4}
     kIdVfmaddss,                         // [ANY] {FMA4}
-    kIdVfmaddsub132pd,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmaddsub132ps,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmaddsub213pd,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmaddsub213ps,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmaddsub231pd,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmaddsub231ps,                   // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmaddsub132pd,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmaddsub132ps,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmaddsub213pd,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmaddsub213ps,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmaddsub231pd,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmaddsub231ps,                   // [ANY] {AVX512_F|FMA+VL}
     kIdVfmaddsubpd,                      // [ANY] {FMA4}
     kIdVfmaddsubps,                      // [ANY] {FMA4}
-    kIdVfmsub132pd,                      // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsub132ps,                      // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmsub132pd,                      // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsub132ps,                      // [ANY] {AVX512_F|FMA+VL}
     kIdVfmsub132sd,                      // [ANY] {AVX512_F|FMA}
     kIdVfmsub132ss,                      // [ANY] {AVX512_F|FMA}
-    kIdVfmsub213pd,                      // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsub213ps,                      // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmsub213pd,                      // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsub213ps,                      // [ANY] {AVX512_F|FMA+VL}
     kIdVfmsub213sd,                      // [ANY] {AVX512_F|FMA}
     kIdVfmsub213ss,                      // [ANY] {AVX512_F|FMA}
-    kIdVfmsub231pd,                      // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsub231ps,                      // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmsub231pd,                      // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsub231ps,                      // [ANY] {AVX512_F|FMA+VL}
     kIdVfmsub231sd,                      // [ANY] {AVX512_F|FMA}
     kIdVfmsub231ss,                      // [ANY] {AVX512_F|FMA}
-    kIdVfmsubadd132pd,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsubadd132ps,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsubadd213pd,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsubadd213ps,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsubadd231pd,                   // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfmsubadd231ps,                   // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfmsubadd132pd,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsubadd132ps,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsubadd213pd,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsubadd213ps,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsubadd231pd,                   // [ANY] {AVX512_F|FMA+VL}
+    kIdVfmsubadd231ps,                   // [ANY] {AVX512_F|FMA+VL}
     kIdVfmsubaddpd,                      // [ANY] {FMA4}
     kIdVfmsubaddps,                      // [ANY] {FMA4}
     kIdVfmsubpd,                         // [ANY] {FMA4}
     kIdVfmsubps,                         // [ANY] {FMA4}
     kIdVfmsubsd,                         // [ANY] {FMA4}
     kIdVfmsubss,                         // [ANY] {FMA4}
-    kIdVfnmadd132pd,                     // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfnmadd132ps,                     // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfnmadd132pd,                     // [ANY] {AVX512_F|FMA+VL}
+    kIdVfnmadd132ps,                     // [ANY] {AVX512_F|FMA+VL}
     kIdVfnmadd132sd,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmadd132ss,                     // [ANY] {AVX512_F|FMA}
-    kIdVfnmadd213pd,                     // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfnmadd213ps,                     // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfnmadd213pd,                     // [ANY] {AVX512_F|FMA+VL}
+    kIdVfnmadd213ps,                     // [ANY] {AVX512_F|FMA+VL}
     kIdVfnmadd213sd,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmadd213ss,                     // [ANY] {AVX512_F|FMA}
-    kIdVfnmadd231pd,                     // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfnmadd231ps,                     // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfnmadd231pd,                     // [ANY] {AVX512_F|FMA+VL}
+    kIdVfnmadd231ps,                     // [ANY] {AVX512_F|FMA+VL}
     kIdVfnmadd231sd,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmadd231ss,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmaddpd,                        // [ANY] {FMA4}
     kIdVfnmaddps,                        // [ANY] {FMA4}
     kIdVfnmaddsd,                        // [ANY] {FMA4}
     kIdVfnmaddss,                        // [ANY] {FMA4}
-    kIdVfnmsub132pd,                     // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfnmsub132ps,                     // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfnmsub132pd,                     // [ANY] {AVX512_F|FMA+VL}
+    kIdVfnmsub132ps,                     // [ANY] {AVX512_F|FMA+VL}
     kIdVfnmsub132sd,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmsub132ss,                     // [ANY] {AVX512_F|FMA}
-    kIdVfnmsub213pd,                     // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfnmsub213ps,                     // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfnmsub213pd,                     // [ANY] {AVX512_F|FMA+VL}
+    kIdVfnmsub213ps,                     // [ANY] {AVX512_F|FMA+VL}
     kIdVfnmsub213sd,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmsub213ss,                     // [ANY] {AVX512_F|FMA}
-    kIdVfnmsub231pd,                     // [ANY] {AVX512_F|FMA (VL)}
-    kIdVfnmsub231ps,                     // [ANY] {AVX512_F|FMA (VL)}
+    kIdVfnmsub231pd,                     // [ANY] {AVX512_F|FMA+VL}
+    kIdVfnmsub231ps,                     // [ANY] {AVX512_F|FMA+VL}
     kIdVfnmsub231sd,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmsub231ss,                     // [ANY] {AVX512_F|FMA}
     kIdVfnmsubpd,                        // [ANY] {FMA4}
     kIdVfnmsubps,                        // [ANY] {FMA4}
     kIdVfnmsubsd,                        // [ANY] {FMA4}
     kIdVfnmsubss,                        // [ANY] {FMA4}
-    kIdVfpclasspd,                       // [ANY] {AVX512_DQ (VL)}
-    kIdVfpclassps,                       // [ANY] {AVX512_DQ (VL)}
+    kIdVfpclasspd,                       // [ANY] {AVX512_DQ+VL}
+    kIdVfpclassps,                       // [ANY] {AVX512_DQ+VL}
     kIdVfpclasssd,                       // [ANY] {AVX512_DQ}
     kIdVfpclassss,                       // [ANY] {AVX512_DQ}
     kIdVfrczpd,                          // [ANY] {XOP}
     kIdVfrczps,                          // [ANY] {XOP}
     kIdVfrczsd,                          // [ANY] {XOP}
     kIdVfrczss,                          // [ANY] {XOP}
-    kIdVgatherdpd,                       // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVgatherdps,                       // [ANY] {AVX2|AVX512_F (VL)}
+    kIdVgatherdpd,                       // [ANY] {AVX2|AVX512_F+VL}
+    kIdVgatherdps,                       // [ANY] {AVX2|AVX512_F+VL}
     kIdVgatherpf0dpd,                    // [ANY] {AVX512_PFI}
     kIdVgatherpf0dps,                    // [ANY] {AVX512_PFI}
     kIdVgatherpf0qpd,                    // [ANY] {AVX512_PFI}
@@ -975,14 +975,14 @@ struct X86Inst {
     kIdVgatherpf1dps,                    // [ANY] {AVX512_PFI}
     kIdVgatherpf1qpd,                    // [ANY] {AVX512_PFI}
     kIdVgatherpf1qps,                    // [ANY] {AVX512_PFI}
-    kIdVgatherqpd,                       // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVgatherqps,                       // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVgetexppd,                        // [ANY] {AVX512_F (VL)}
-    kIdVgetexpps,                        // [ANY] {AVX512_F (VL)}
+    kIdVgatherqpd,                       // [ANY] {AVX2|AVX512_F+VL}
+    kIdVgatherqps,                       // [ANY] {AVX2|AVX512_F+VL}
+    kIdVgetexppd,                        // [ANY] {AVX512_F+VL}
+    kIdVgetexpps,                        // [ANY] {AVX512_F+VL}
     kIdVgetexpsd,                        // [ANY] {AVX512_F}
     kIdVgetexpss,                        // [ANY] {AVX512_F}
-    kIdVgetmantpd,                       // [ANY] {AVX512_F (VL)}
-    kIdVgetmantps,                       // [ANY] {AVX512_F (VL)}
+    kIdVgetmantpd,                       // [ANY] {AVX512_F+VL}
+    kIdVgetmantps,                       // [ANY] {AVX512_F+VL}
     kIdVgetmantsd,                       // [ANY] {AVX512_F}
     kIdVgetmantss,                       // [ANY] {AVX512_F}
     kIdVhaddpd,                          // [ANY] {AVX}
@@ -990,14 +990,14 @@ struct X86Inst {
     kIdVhsubpd,                          // [ANY] {AVX}
     kIdVhsubps,                          // [ANY] {AVX}
     kIdVinsertf128,                      // [ANY] {AVX}
-    kIdVinsertf32x4,                     // [ANY] {AVX512_F (VL)}
+    kIdVinsertf32x4,                     // [ANY] {AVX512_F+VL}
     kIdVinsertf32x8,                     // [ANY] {AVX512_DQ}
-    kIdVinsertf64x2,                     // [ANY] {AVX512_DQ (VL)}
+    kIdVinsertf64x2,                     // [ANY] {AVX512_DQ+VL}
     kIdVinsertf64x4,                     // [ANY] {AVX512_F}
     kIdVinserti128,                      // [ANY] {AVX2}
-    kIdVinserti32x4,                     // [ANY] {AVX512_F (VL)}
+    kIdVinserti32x4,                     // [ANY] {AVX512_F+VL}
     kIdVinserti32x8,                     // [ANY] {AVX512_DQ}
-    kIdVinserti64x2,                     // [ANY] {AVX512_DQ (VL)}
+    kIdVinserti64x2,                     // [ANY] {AVX512_DQ+VL}
     kIdVinserti64x4,                     // [ANY] {AVX512_F}
     kIdVinsertps,                        // [ANY] {AVX|AVX512_F}
     kIdVlddqu,                           // [ANY] {AVX}
@@ -1005,26 +1005,26 @@ struct X86Inst {
     kIdVmaskmovdqu,                      // [ANY] {AVX}
     kIdVmaskmovpd,                       // [ANY] {AVX}
     kIdVmaskmovps,                       // [ANY] {AVX}
-    kIdVmaxpd,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmaxps,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmaxsd,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmaxss,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVminpd,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVminps,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVminsd,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVminss,                           // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmovapd,                          // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmovaps,                          // [ANY] {AVX|AVX512_F (VL)}
+    kIdVmaxpd,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVmaxps,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVmaxsd,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVmaxss,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVminpd,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVminps,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVminsd,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVminss,                           // [ANY] {AVX|AVX512_F+VL}
+    kIdVmovapd,                          // [ANY] {AVX|AVX512_F+VL}
+    kIdVmovaps,                          // [ANY] {AVX|AVX512_F+VL}
     kIdVmovd,                            // [ANY] {AVX|AVX512_F}
-    kIdVmovddup,                         // [ANY] {AVX|AVX512_F (VL)}
+    kIdVmovddup,                         // [ANY] {AVX|AVX512_F+VL}
     kIdVmovdqa,                          // [ANY] {AVX}
-    kIdVmovdqa32,                        // [ANY] {AVX512_F (VL)}
-    kIdVmovdqa64,                        // [ANY] {AVX512_F (VL)}
+    kIdVmovdqa32,                        // [ANY] {AVX512_F+VL}
+    kIdVmovdqa64,                        // [ANY] {AVX512_F+VL}
     kIdVmovdqu,                          // [ANY] {AVX}
-    kIdVmovdqu16,                        // [ANY] {AVX512_BW (VL)}
-    kIdVmovdqu32,                        // [ANY] {AVX512_F (VL)}
-    kIdVmovdqu64,                        // [ANY] {AVX512_F (VL)}
-    kIdVmovdqu8,                         // [ANY] {AVX512_BW (VL)}
+    kIdVmovdqu16,                        // [ANY] {AVX512_BW+VL}
+    kIdVmovdqu32,                        // [ANY] {AVX512_F+VL}
+    kIdVmovdqu64,                        // [ANY] {AVX512_F+VL}
+    kIdVmovdqu8,                         // [ANY] {AVX512_BW+VL}
     kIdVmovhlps,                         // [ANY] {AVX|AVX512_F}
     kIdVmovhpd,                          // [ANY] {AVX|AVX512_F}
     kIdVmovhps,                          // [ANY] {AVX|AVX512_F}
@@ -1033,128 +1033,128 @@ struct X86Inst {
     kIdVmovlps,                          // [ANY] {AVX|AVX512_F}
     kIdVmovmskpd,                        // [ANY] {AVX}
     kIdVmovmskps,                        // [ANY] {AVX}
-    kIdVmovntdq,                         // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmovntdqa,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVmovntpd,                         // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmovntps,                         // [ANY] {AVX|AVX512_F (VL)}
+    kIdVmovntdq,                         // [ANY] {AVX|AVX512_F+VL}
+    kIdVmovntdqa,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVmovntpd,                         // [ANY] {AVX|AVX512_F+VL}
+    kIdVmovntps,                         // [ANY] {AVX|AVX512_F+VL}
     kIdVmovq,                            // [ANY] {AVX|AVX512_F}
     kIdVmovsd,                           // [ANY] {AVX|AVX512_F}
-    kIdVmovshdup,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmovsldup,                        // [ANY] {AVX|AVX512_F (VL)}
+    kIdVmovshdup,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVmovsldup,                        // [ANY] {AVX|AVX512_F+VL}
     kIdVmovss,                           // [ANY] {AVX|AVX512_F}
-    kIdVmovupd,                          // [ANY] {AVX|AVX512_F (VL)}
-    kIdVmovups,                          // [ANY] {AVX|AVX512_F (VL)}
+    kIdVmovupd,                          // [ANY] {AVX|AVX512_F+VL}
+    kIdVmovups,                          // [ANY] {AVX|AVX512_F+VL}
     kIdVmpsadbw,                         // [ANY] {AVX|AVX2}
-    kIdVmulpd,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVmulps,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
+    kIdVmulpd,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVmulps,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
     kIdVmulsd,                           // [ANY] {AVX|AVX512_F}
     kIdVmulss,                           // [ANY] {AVX|AVX512_F}
-    kIdVorpd,                            // [ANY] {AVX|AVX512_DQ (VL)}
-    kIdVorps,                            // [ANY] {AVX|AVX512_F (VL)}
+    kIdVorpd,                            // [ANY] {AVX|AVX512_DQ+VL}
+    kIdVorps,                            // [ANY] {AVX|AVX512_F+VL}
     kIdVp4dpwssd,                        // [ANY] {AVX512_4VNNIW}
     kIdVp4dpwssds,                       // [ANY] {AVX512_4VNNIW}
-    kIdVpabsb,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpabsd,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpabsq,                           // [ANY] {AVX512_F (VL)}
-    kIdVpabsw,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpackssdw,                        // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpacksswb,                        // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpackusdw,                        // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpackuswb,                        // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpaddb,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpaddd,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpaddq,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpaddsb,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpaddsw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpaddusb,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpaddusw,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpaddw,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpalignr,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
+    kIdVpabsb,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpabsd,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpabsq,                           // [ANY] {AVX512_F+VL}
+    kIdVpabsw,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpackssdw,                        // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpacksswb,                        // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpackusdw,                        // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpackuswb,                        // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpaddb,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpaddd,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpaddq,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpaddsb,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpaddsw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpaddusb,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpaddusw,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpaddw,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpalignr,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
     kIdVpand,                            // [ANY] {AVX|AVX2}
-    kIdVpandd,                           // [ANY] {AVX512_F (VL)}
+    kIdVpandd,                           // [ANY] {AVX512_F+VL}
     kIdVpandn,                           // [ANY] {AVX|AVX2}
-    kIdVpandnd,                          // [ANY] {AVX512_F (VL)}
-    kIdVpandnq,                          // [ANY] {AVX512_F (VL)}
-    kIdVpandq,                           // [ANY] {AVX512_F (VL)}
-    kIdVpavgb,                           // [ANY] {AVX|AVX512_BW (VL)}
-    kIdVpavgw,                           // [ANY] {AVX2|AVX512_BW (VL)}
+    kIdVpandnd,                          // [ANY] {AVX512_F+VL}
+    kIdVpandnq,                          // [ANY] {AVX512_F+VL}
+    kIdVpandq,                           // [ANY] {AVX512_F+VL}
+    kIdVpavgb,                           // [ANY] {AVX|AVX512_BW+VL}
+    kIdVpavgw,                           // [ANY] {AVX2|AVX512_BW+VL}
     kIdVpblendd,                         // [ANY] {AVX2}
     kIdVpblendvb,                        // [ANY] {AVX|AVX2}
     kIdVpblendw,                         // [ANY] {AVX|AVX2}
-    kIdVpbroadcastb,                     // [ANY] {AVX2|AVX512_BW (VL)}
-    kIdVpbroadcastd,                     // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpbroadcastmb2d,                  // [ANY] {AVX512_CDI (VL)}
-    kIdVpbroadcastmb2q,                  // [ANY] {AVX512_CDI (VL)}
-    kIdVpbroadcastq,                     // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpbroadcastw,                     // [ANY] {AVX2|AVX512_BW (VL)}
+    kIdVpbroadcastb,                     // [ANY] {AVX2|AVX512_BW+VL}
+    kIdVpbroadcastd,                     // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpbroadcastmb2d,                  // [ANY] {AVX512_CDI+VL}
+    kIdVpbroadcastmb2q,                  // [ANY] {AVX512_CDI+VL}
+    kIdVpbroadcastq,                     // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpbroadcastw,                     // [ANY] {AVX2|AVX512_BW+VL}
     kIdVpclmulqdq,                       // [ANY] {AVX|PCLMULQDQ}
     kIdVpcmov,                           // [ANY] {XOP}
-    kIdVpcmpb,                           // [ANY] {AVX512_BW (VL)}
-    kIdVpcmpd,                           // [ANY] {AVX512_F (VL)}
-    kIdVpcmpeqb,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpcmpeqd,                         // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpcmpeqq,                         // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpcmpeqw,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
+    kIdVpcmpb,                           // [ANY] {AVX512_BW+VL}
+    kIdVpcmpd,                           // [ANY] {AVX512_F+VL}
+    kIdVpcmpeqb,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpcmpeqd,                         // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpcmpeqq,                         // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpcmpeqw,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
     kIdVpcmpestri,                       // [ANY] {AVX}
     kIdVpcmpestrm,                       // [ANY] {AVX}
-    kIdVpcmpgtb,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpcmpgtd,                         // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpcmpgtq,                         // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpcmpgtw,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
+    kIdVpcmpgtb,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpcmpgtd,                         // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpcmpgtq,                         // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpcmpgtw,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
     kIdVpcmpistri,                       // [ANY] {AVX}
     kIdVpcmpistrm,                       // [ANY] {AVX}
-    kIdVpcmpq,                           // [ANY] {AVX512_F (VL)}
-    kIdVpcmpub,                          // [ANY] {AVX512_BW (VL)}
-    kIdVpcmpud,                          // [ANY] {AVX512_F (VL)}
-    kIdVpcmpuq,                          // [ANY] {AVX512_F (VL)}
-    kIdVpcmpuw,                          // [ANY] {AVX512_BW (VL)}
-    kIdVpcmpw,                           // [ANY] {AVX512_BW (VL)}
+    kIdVpcmpq,                           // [ANY] {AVX512_F+VL}
+    kIdVpcmpub,                          // [ANY] {AVX512_BW+VL}
+    kIdVpcmpud,                          // [ANY] {AVX512_F+VL}
+    kIdVpcmpuq,                          // [ANY] {AVX512_F+VL}
+    kIdVpcmpuw,                          // [ANY] {AVX512_BW+VL}
+    kIdVpcmpw,                           // [ANY] {AVX512_BW+VL}
     kIdVpcomb,                           // [ANY] {XOP}
     kIdVpcomd,                           // [ANY] {XOP}
-    kIdVpcompressd,                      // [ANY] {AVX512_F (VL)}
-    kIdVpcompressq,                      // [ANY] {AVX512_F (VL)}
+    kIdVpcompressd,                      // [ANY] {AVX512_F+VL}
+    kIdVpcompressq,                      // [ANY] {AVX512_F+VL}
     kIdVpcomq,                           // [ANY] {XOP}
     kIdVpcomub,                          // [ANY] {XOP}
     kIdVpcomud,                          // [ANY] {XOP}
     kIdVpcomuq,                          // [ANY] {XOP}
     kIdVpcomuw,                          // [ANY] {XOP}
     kIdVpcomw,                           // [ANY] {XOP}
-    kIdVpconflictd,                      // [ANY] {AVX512_CDI (VL)}
-    kIdVpconflictq,                      // [ANY] {AVX512_CDI (VL)}
+    kIdVpconflictd,                      // [ANY] {AVX512_CDI+VL}
+    kIdVpconflictq,                      // [ANY] {AVX512_CDI+VL}
     kIdVperm2f128,                       // [ANY] {AVX}
     kIdVperm2i128,                       // [ANY] {AVX2}
-    kIdVpermb,                           // [ANY] {AVX512_VBMI (VL)}
-    kIdVpermd,                           // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpermi2b,                         // [ANY] {AVX512_VBMI (VL)}
-    kIdVpermi2d,                         // [ANY] {AVX512_F (VL)}
-    kIdVpermi2pd,                        // [ANY] {AVX512_F (VL)}
-    kIdVpermi2ps,                        // [ANY] {AVX512_F (VL)}
-    kIdVpermi2q,                         // [ANY] {AVX512_F (VL)}
-    kIdVpermi2w,                         // [ANY] {AVX512_BW (VL)}
+    kIdVpermb,                           // [ANY] {AVX512_VBMI+VL}
+    kIdVpermd,                           // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpermi2b,                         // [ANY] {AVX512_VBMI+VL}
+    kIdVpermi2d,                         // [ANY] {AVX512_F+VL}
+    kIdVpermi2pd,                        // [ANY] {AVX512_F+VL}
+    kIdVpermi2ps,                        // [ANY] {AVX512_F+VL}
+    kIdVpermi2q,                         // [ANY] {AVX512_F+VL}
+    kIdVpermi2w,                         // [ANY] {AVX512_BW+VL}
     kIdVpermil2pd,                       // [ANY] {XOP}
     kIdVpermil2ps,                       // [ANY] {XOP}
-    kIdVpermilpd,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVpermilps,                        // [ANY] {AVX|AVX512_F (VL)}
+    kIdVpermilpd,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVpermilps,                        // [ANY] {AVX|AVX512_F+VL}
     kIdVpermpd,                          // [ANY] {AVX2}
     kIdVpermps,                          // [ANY] {AVX2}
-    kIdVpermq,                           // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpermt2b,                         // [ANY] {AVX512_VBMI (VL)}
-    kIdVpermt2d,                         // [ANY] {AVX512_F (VL)}
-    kIdVpermt2pd,                        // [ANY] {AVX512_F (VL)}
-    kIdVpermt2ps,                        // [ANY] {AVX512_F (VL)}
-    kIdVpermt2q,                         // [ANY] {AVX512_F (VL)}
-    kIdVpermt2w,                         // [ANY] {AVX512_BW (VL)}
-    kIdVpermw,                           // [ANY] {AVX512_BW (VL)}
-    kIdVpexpandd,                        // [ANY] {AVX512_F (VL)}
-    kIdVpexpandq,                        // [ANY] {AVX512_F (VL)}
+    kIdVpermq,                           // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpermt2b,                         // [ANY] {AVX512_VBMI+VL}
+    kIdVpermt2d,                         // [ANY] {AVX512_F+VL}
+    kIdVpermt2pd,                        // [ANY] {AVX512_F+VL}
+    kIdVpermt2ps,                        // [ANY] {AVX512_F+VL}
+    kIdVpermt2q,                         // [ANY] {AVX512_F+VL}
+    kIdVpermt2w,                         // [ANY] {AVX512_BW+VL}
+    kIdVpermw,                           // [ANY] {AVX512_BW+VL}
+    kIdVpexpandd,                        // [ANY] {AVX512_F+VL}
+    kIdVpexpandq,                        // [ANY] {AVX512_F+VL}
     kIdVpextrb,                          // [ANY] {AVX|AVX512_BW}
     kIdVpextrd,                          // [ANY] {AVX|AVX512_DQ}
     kIdVpextrq,                          // [X64] {AVX|AVX512_DQ}
     kIdVpextrw,                          // [ANY] {AVX|AVX512_BW}
-    kIdVpgatherdd,                       // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpgatherdq,                       // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpgatherqd,                       // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpgatherqq,                       // [ANY] {AVX2|AVX512_F (VL)}
+    kIdVpgatherdd,                       // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpgatherdq,                       // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpgatherqd,                       // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpgatherqq,                       // [ANY] {AVX2|AVX512_F+VL}
     kIdVphaddbd,                         // [ANY] {XOP}
     kIdVphaddbq,                         // [ANY] {XOP}
     kIdVphaddbw,                         // [ANY] {XOP}
@@ -1181,8 +1181,8 @@ struct X86Inst {
     kIdVpinsrd,                          // [ANY] {AVX|AVX512_DQ}
     kIdVpinsrq,                          // [X64] {AVX|AVX512_DQ}
     kIdVpinsrw,                          // [ANY] {AVX|AVX512_BW}
-    kIdVplzcntd,                         // [ANY] {AVX512_CDI (VL)}
-    kIdVplzcntq,                         // [ANY] {AVX512_CDI (VL)}
+    kIdVplzcntd,                         // [ANY] {AVX512_CDI+VL}
+    kIdVplzcntq,                         // [ANY] {AVX512_CDI+VL}
     kIdVpmacsdd,                         // [ANY] {XOP}
     kIdVpmacsdqh,                        // [ANY] {XOP}
     kIdVpmacsdql,                        // [ANY] {XOP}
@@ -1195,99 +1195,99 @@ struct X86Inst {
     kIdVpmacsww,                         // [ANY] {XOP}
     kIdVpmadcsswd,                       // [ANY] {XOP}
     kIdVpmadcswd,                        // [ANY] {XOP}
-    kIdVpmadd52huq,                      // [ANY] {AVX512_IFMA (VL)}
-    kIdVpmadd52luq,                      // [ANY] {AVX512_IFMA (VL)}
-    kIdVpmaddubsw,                       // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmaddwd,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
+    kIdVpmadd52huq,                      // [ANY] {AVX512_IFMA+VL}
+    kIdVpmadd52luq,                      // [ANY] {AVX512_IFMA+VL}
+    kIdVpmaddubsw,                       // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmaddwd,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
     kIdVpmaskmovd,                       // [ANY] {AVX2}
     kIdVpmaskmovq,                       // [ANY] {AVX2}
-    kIdVpmaxsb,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmaxsd,                          // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmaxsq,                          // [ANY] {AVX512_F (VL)}
-    kIdVpmaxsw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmaxub,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmaxud,                          // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmaxuq,                          // [ANY] {AVX512_F (VL)}
-    kIdVpmaxuw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpminsb,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpminsd,                          // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpminsq,                          // [ANY] {AVX512_F (VL)}
-    kIdVpminsw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpminub,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpminud,                          // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpminuq,                          // [ANY] {AVX512_F (VL)}
-    kIdVpminuw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmovb2m,                         // [ANY] {AVX512_BW (VL)}
-    kIdVpmovd2m,                         // [ANY] {AVX512_DQ (VL)}
-    kIdVpmovdb,                          // [ANY] {AVX512_F (VL)}
-    kIdVpmovdw,                          // [ANY] {AVX512_F (VL)}
-    kIdVpmovm2b,                         // [ANY] {AVX512_BW (VL)}
-    kIdVpmovm2d,                         // [ANY] {AVX512_DQ (VL)}
-    kIdVpmovm2q,                         // [ANY] {AVX512_DQ (VL)}
-    kIdVpmovm2w,                         // [ANY] {AVX512_BW (VL)}
+    kIdVpmaxsb,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmaxsd,                          // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmaxsq,                          // [ANY] {AVX512_F+VL}
+    kIdVpmaxsw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmaxub,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmaxud,                          // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmaxuq,                          // [ANY] {AVX512_F+VL}
+    kIdVpmaxuw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpminsb,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpminsd,                          // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpminsq,                          // [ANY] {AVX512_F+VL}
+    kIdVpminsw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpminub,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpminud,                          // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpminuq,                          // [ANY] {AVX512_F+VL}
+    kIdVpminuw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmovb2m,                         // [ANY] {AVX512_BW+VL}
+    kIdVpmovd2m,                         // [ANY] {AVX512_DQ+VL}
+    kIdVpmovdb,                          // [ANY] {AVX512_F+VL}
+    kIdVpmovdw,                          // [ANY] {AVX512_F+VL}
+    kIdVpmovm2b,                         // [ANY] {AVX512_BW+VL}
+    kIdVpmovm2d,                         // [ANY] {AVX512_DQ+VL}
+    kIdVpmovm2q,                         // [ANY] {AVX512_DQ+VL}
+    kIdVpmovm2w,                         // [ANY] {AVX512_BW+VL}
     kIdVpmovmskb,                        // [ANY] {AVX|AVX2}
-    kIdVpmovq2m,                         // [ANY] {AVX512_DQ (VL)}
-    kIdVpmovqb,                          // [ANY] {AVX512_F (VL)}
-    kIdVpmovqd,                          // [ANY] {AVX512_F (VL)}
-    kIdVpmovqw,                          // [ANY] {AVX512_F (VL)}
-    kIdVpmovsdb,                         // [ANY] {AVX512_F (VL)}
-    kIdVpmovsdw,                         // [ANY] {AVX512_F (VL)}
-    kIdVpmovsqb,                         // [ANY] {AVX512_F (VL)}
-    kIdVpmovsqd,                         // [ANY] {AVX512_F (VL)}
-    kIdVpmovsqw,                         // [ANY] {AVX512_F (VL)}
-    kIdVpmovswb,                         // [ANY] {AVX512_BW (VL)}
-    kIdVpmovsxbd,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovsxbq,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovsxbw,                        // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmovsxdq,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovsxwd,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovsxwq,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovusdb,                        // [ANY] {AVX512_F (VL)}
-    kIdVpmovusdw,                        // [ANY] {AVX512_F (VL)}
-    kIdVpmovusqb,                        // [ANY] {AVX512_F (VL)}
-    kIdVpmovusqd,                        // [ANY] {AVX512_F (VL)}
-    kIdVpmovusqw,                        // [ANY] {AVX512_F (VL)}
-    kIdVpmovuswb,                        // [ANY] {AVX512_BW (VL)}
-    kIdVpmovw2m,                         // [ANY] {AVX512_BW (VL)}
-    kIdVpmovwb,                          // [ANY] {AVX512_BW (VL)}
-    kIdVpmovzxbd,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovzxbq,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovzxbw,                        // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmovzxdq,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovzxwd,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmovzxwq,                        // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmuldq,                          // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmulhrsw,                        // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmulhuw,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmulhw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmulld,                          // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpmullq,                          // [ANY] {AVX512_DQ (VL)}
-    kIdVpmullw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpmultishiftqb,                   // [ANY] {AVX512_VBMI (VL)}
-    kIdVpmuludq,                         // [ANY] {AVX|AVX2|AVX512_F (VL)}
+    kIdVpmovq2m,                         // [ANY] {AVX512_DQ+VL}
+    kIdVpmovqb,                          // [ANY] {AVX512_F+VL}
+    kIdVpmovqd,                          // [ANY] {AVX512_F+VL}
+    kIdVpmovqw,                          // [ANY] {AVX512_F+VL}
+    kIdVpmovsdb,                         // [ANY] {AVX512_F+VL}
+    kIdVpmovsdw,                         // [ANY] {AVX512_F+VL}
+    kIdVpmovsqb,                         // [ANY] {AVX512_F+VL}
+    kIdVpmovsqd,                         // [ANY] {AVX512_F+VL}
+    kIdVpmovsqw,                         // [ANY] {AVX512_F+VL}
+    kIdVpmovswb,                         // [ANY] {AVX512_BW+VL}
+    kIdVpmovsxbd,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovsxbq,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovsxbw,                        // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmovsxdq,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovsxwd,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovsxwq,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovusdb,                        // [ANY] {AVX512_F+VL}
+    kIdVpmovusdw,                        // [ANY] {AVX512_F+VL}
+    kIdVpmovusqb,                        // [ANY] {AVX512_F+VL}
+    kIdVpmovusqd,                        // [ANY] {AVX512_F+VL}
+    kIdVpmovusqw,                        // [ANY] {AVX512_F+VL}
+    kIdVpmovuswb,                        // [ANY] {AVX512_BW+VL}
+    kIdVpmovw2m,                         // [ANY] {AVX512_BW+VL}
+    kIdVpmovwb,                          // [ANY] {AVX512_BW+VL}
+    kIdVpmovzxbd,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovzxbq,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovzxbw,                        // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmovzxdq,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovzxwd,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmovzxwq,                        // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmuldq,                          // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmulhrsw,                        // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmulhuw,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmulhw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmulld,                          // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpmullq,                          // [ANY] {AVX512_DQ+VL}
+    kIdVpmullw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpmultishiftqb,                   // [ANY] {AVX512_VBMI+VL}
+    kIdVpmuludq,                         // [ANY] {AVX|AVX2|AVX512_F+VL}
     kIdVpopcntd,                         // [ANY] {AVX512_VPOPCNTDQ}
     kIdVpopcntq,                         // [ANY] {AVX512_VPOPCNTDQ}
     kIdVpor,                             // [ANY] {AVX|AVX2}
-    kIdVpord,                            // [ANY] {AVX512_F (VL)}
-    kIdVporq,                            // [ANY] {AVX512_F (VL)}
+    kIdVpord,                            // [ANY] {AVX512_F+VL}
+    kIdVporq,                            // [ANY] {AVX512_F+VL}
     kIdVpperm,                           // [ANY] {XOP}
-    kIdVprold,                           // [ANY] {AVX512_F (VL)}
-    kIdVprolq,                           // [ANY] {AVX512_F (VL)}
-    kIdVprolvd,                          // [ANY] {AVX512_F (VL)}
-    kIdVprolvq,                          // [ANY] {AVX512_F (VL)}
-    kIdVprord,                           // [ANY] {AVX512_F (VL)}
-    kIdVprorq,                           // [ANY] {AVX512_F (VL)}
-    kIdVprorvd,                          // [ANY] {AVX512_F (VL)}
-    kIdVprorvq,                          // [ANY] {AVX512_F (VL)}
+    kIdVprold,                           // [ANY] {AVX512_F+VL}
+    kIdVprolq,                           // [ANY] {AVX512_F+VL}
+    kIdVprolvd,                          // [ANY] {AVX512_F+VL}
+    kIdVprolvq,                          // [ANY] {AVX512_F+VL}
+    kIdVprord,                           // [ANY] {AVX512_F+VL}
+    kIdVprorq,                           // [ANY] {AVX512_F+VL}
+    kIdVprorvd,                          // [ANY] {AVX512_F+VL}
+    kIdVprorvq,                          // [ANY] {AVX512_F+VL}
     kIdVprotb,                           // [ANY] {XOP}
     kIdVprotd,                           // [ANY] {XOP}
     kIdVprotq,                           // [ANY] {XOP}
     kIdVprotw,                           // [ANY] {XOP}
-    kIdVpsadbw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpscatterdd,                      // [ANY] {AVX512_F (VL)}
-    kIdVpscatterdq,                      // [ANY] {AVX512_F (VL)}
-    kIdVpscatterqd,                      // [ANY] {AVX512_F (VL)}
-    kIdVpscatterqq,                      // [ANY] {AVX512_F (VL)}
+    kIdVpsadbw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpscatterdd,                      // [ANY] {AVX512_F+VL}
+    kIdVpscatterdq,                      // [ANY] {AVX512_F+VL}
+    kIdVpscatterqd,                      // [ANY] {AVX512_F+VL}
+    kIdVpscatterqq,                      // [ANY] {AVX512_F+VL}
     kIdVpshab,                           // [ANY] {XOP}
     kIdVpshad,                           // [ANY] {XOP}
     kIdVpshaq,                           // [ANY] {XOP}
@@ -1296,69 +1296,69 @@ struct X86Inst {
     kIdVpshld,                           // [ANY] {XOP}
     kIdVpshlq,                           // [ANY] {XOP}
     kIdVpshlw,                           // [ANY] {XOP}
-    kIdVpshufb,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpshufd,                          // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpshufhw,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpshuflw,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
+    kIdVpshufb,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpshufd,                          // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpshufhw,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpshuflw,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
     kIdVpsignb,                          // [ANY] {AVX|AVX2}
     kIdVpsignd,                          // [ANY] {AVX|AVX2}
     kIdVpsignw,                          // [ANY] {AVX|AVX2}
-    kIdVpslld,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpslldq,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsllq,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpsllvd,                          // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpsllvq,                          // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpsllvw,                          // [ANY] {AVX512_BW (VL)}
-    kIdVpsllw,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsrad,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpsraq,                           // [ANY] {AVX512_F (VL)}
-    kIdVpsravd,                          // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpsravq,                          // [ANY] {AVX512_F (VL)}
-    kIdVpsravw,                          // [ANY] {AVX512_BW (VL)}
-    kIdVpsraw,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsrld,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpsrldq,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsrlq,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpsrlvd,                          // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpsrlvq,                          // [ANY] {AVX2|AVX512_F (VL)}
-    kIdVpsrlvw,                          // [ANY] {AVX512_BW (VL)}
-    kIdVpsrlw,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsubb,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsubd,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpsubq,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpsubsb,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsubsw,                          // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsubusb,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsubusw,                         // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpsubw,                           // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpternlogd,                       // [ANY] {AVX512_F (VL)}
-    kIdVpternlogq,                       // [ANY] {AVX512_F (VL)}
+    kIdVpslld,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpslldq,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsllq,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpsllvd,                          // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpsllvq,                          // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpsllvw,                          // [ANY] {AVX512_BW+VL}
+    kIdVpsllw,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsrad,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpsraq,                           // [ANY] {AVX512_F+VL}
+    kIdVpsravd,                          // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpsravq,                          // [ANY] {AVX512_F+VL}
+    kIdVpsravw,                          // [ANY] {AVX512_BW+VL}
+    kIdVpsraw,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsrld,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpsrldq,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsrlq,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpsrlvd,                          // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpsrlvq,                          // [ANY] {AVX2|AVX512_F+VL}
+    kIdVpsrlvw,                          // [ANY] {AVX512_BW+VL}
+    kIdVpsrlw,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsubb,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsubd,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpsubq,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpsubsb,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsubsw,                          // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsubusb,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsubusw,                         // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpsubw,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpternlogd,                       // [ANY] {AVX512_F+VL}
+    kIdVpternlogq,                       // [ANY] {AVX512_F+VL}
     kIdVptest,                           // [ANY] {AVX}
-    kIdVptestmb,                         // [ANY] {AVX512_BW (VL)}
-    kIdVptestmd,                         // [ANY] {AVX512_F (VL)}
-    kIdVptestmq,                         // [ANY] {AVX512_F (VL)}
-    kIdVptestmw,                         // [ANY] {AVX512_BW (VL)}
-    kIdVptestnmb,                        // [ANY] {AVX512_BW (VL)}
-    kIdVptestnmd,                        // [ANY] {AVX512_F (VL)}
-    kIdVptestnmq,                        // [ANY] {AVX512_F (VL)}
-    kIdVptestnmw,                        // [ANY] {AVX512_BW (VL)}
-    kIdVpunpckhbw,                       // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpunpckhdq,                       // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpunpckhqdq,                      // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpunpckhwd,                       // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpunpcklbw,                       // [ANY] {AVX|AVX2|AVX512_BW (VL)}
-    kIdVpunpckldq,                       // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpunpcklqdq,                      // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVpunpcklwd,                       // [ANY] {AVX|AVX2|AVX512_BW (VL)}
+    kIdVptestmb,                         // [ANY] {AVX512_BW+VL}
+    kIdVptestmd,                         // [ANY] {AVX512_F+VL}
+    kIdVptestmq,                         // [ANY] {AVX512_F+VL}
+    kIdVptestmw,                         // [ANY] {AVX512_BW+VL}
+    kIdVptestnmb,                        // [ANY] {AVX512_BW+VL}
+    kIdVptestnmd,                        // [ANY] {AVX512_F+VL}
+    kIdVptestnmq,                        // [ANY] {AVX512_F+VL}
+    kIdVptestnmw,                        // [ANY] {AVX512_BW+VL}
+    kIdVpunpckhbw,                       // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpunpckhdq,                       // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpunpckhqdq,                      // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpunpckhwd,                       // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpunpcklbw,                       // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpunpckldq,                       // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpunpcklqdq,                      // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVpunpcklwd,                       // [ANY] {AVX|AVX2|AVX512_BW+VL}
     kIdVpxor,                            // [ANY] {AVX|AVX2}
-    kIdVpxord,                           // [ANY] {AVX512_F (VL)}
-    kIdVpxorq,                           // [ANY] {AVX512_F (VL)}
-    kIdVrangepd,                         // [ANY] {AVX512_DQ (VL)}
-    kIdVrangeps,                         // [ANY] {AVX512_DQ (VL)}
+    kIdVpxord,                           // [ANY] {AVX512_F+VL}
+    kIdVpxorq,                           // [ANY] {AVX512_F+VL}
+    kIdVrangepd,                         // [ANY] {AVX512_DQ+VL}
+    kIdVrangeps,                         // [ANY] {AVX512_DQ+VL}
     kIdVrangesd,                         // [ANY] {AVX512_DQ}
     kIdVrangess,                         // [ANY] {AVX512_DQ}
-    kIdVrcp14pd,                         // [ANY] {AVX512_F (VL)}
-    kIdVrcp14ps,                         // [ANY] {AVX512_F (VL)}
+    kIdVrcp14pd,                         // [ANY] {AVX512_F+VL}
+    kIdVrcp14ps,                         // [ANY] {AVX512_F+VL}
     kIdVrcp14sd,                         // [ANY] {AVX512_F}
     kIdVrcp14ss,                         // [ANY] {AVX512_F}
     kIdVrcp28pd,                         // [ANY] {AVX512_ERI}
@@ -1367,20 +1367,20 @@ struct X86Inst {
     kIdVrcp28ss,                         // [ANY] {AVX512_ERI}
     kIdVrcpps,                           // [ANY] {AVX}
     kIdVrcpss,                           // [ANY] {AVX}
-    kIdVreducepd,                        // [ANY] {AVX512_DQ (VL)}
-    kIdVreduceps,                        // [ANY] {AVX512_DQ (VL)}
+    kIdVreducepd,                        // [ANY] {AVX512_DQ+VL}
+    kIdVreduceps,                        // [ANY] {AVX512_DQ+VL}
     kIdVreducesd,                        // [ANY] {AVX512_DQ}
     kIdVreducess,                        // [ANY] {AVX512_DQ}
-    kIdVrndscalepd,                      // [ANY] {AVX512_F (VL)}
-    kIdVrndscaleps,                      // [ANY] {AVX512_F (VL)}
+    kIdVrndscalepd,                      // [ANY] {AVX512_F+VL}
+    kIdVrndscaleps,                      // [ANY] {AVX512_F+VL}
     kIdVrndscalesd,                      // [ANY] {AVX512_F}
     kIdVrndscaless,                      // [ANY] {AVX512_F}
     kIdVroundpd,                         // [ANY] {AVX}
     kIdVroundps,                         // [ANY] {AVX}
     kIdVroundsd,                         // [ANY] {AVX}
     kIdVroundss,                         // [ANY] {AVX}
-    kIdVrsqrt14pd,                       // [ANY] {AVX512_F (VL)}
-    kIdVrsqrt14ps,                       // [ANY] {AVX512_F (VL)}
+    kIdVrsqrt14pd,                       // [ANY] {AVX512_F+VL}
+    kIdVrsqrt14ps,                       // [ANY] {AVX512_F+VL}
     kIdVrsqrt14sd,                       // [ANY] {AVX512_F}
     kIdVrsqrt14ss,                       // [ANY] {AVX512_F}
     kIdVrsqrt28pd,                       // [ANY] {AVX512_ERI}
@@ -1389,12 +1389,12 @@ struct X86Inst {
     kIdVrsqrt28ss,                       // [ANY] {AVX512_ERI}
     kIdVrsqrtps,                         // [ANY] {AVX}
     kIdVrsqrtss,                         // [ANY] {AVX}
-    kIdVscalefpd,                        // [ANY] {AVX512_F (VL)}
-    kIdVscalefps,                        // [ANY] {AVX512_F (VL)}
+    kIdVscalefpd,                        // [ANY] {AVX512_F+VL}
+    kIdVscalefps,                        // [ANY] {AVX512_F+VL}
     kIdVscalefsd,                        // [ANY] {AVX512_F}
     kIdVscalefss,                        // [ANY] {AVX512_F}
-    kIdVscatterdpd,                      // [ANY] {AVX512_F (VL)}
-    kIdVscatterdps,                      // [ANY] {AVX512_F (VL)}
+    kIdVscatterdpd,                      // [ANY] {AVX512_F+VL}
+    kIdVscatterdps,                      // [ANY] {AVX512_F+VL}
     kIdVscatterpf0dpd,                   // [ANY] {AVX512_PFI}
     kIdVscatterpf0dps,                   // [ANY] {AVX512_PFI}
     kIdVscatterpf0qpd,                   // [ANY] {AVX512_PFI}
@@ -1403,33 +1403,33 @@ struct X86Inst {
     kIdVscatterpf1dps,                   // [ANY] {AVX512_PFI}
     kIdVscatterpf1qpd,                   // [ANY] {AVX512_PFI}
     kIdVscatterpf1qps,                   // [ANY] {AVX512_PFI}
-    kIdVscatterqpd,                      // [ANY] {AVX512_F (VL)}
-    kIdVscatterqps,                      // [ANY] {AVX512_F (VL)}
-    kIdVshuff32x4,                       // [ANY] {AVX512_F (VL)}
-    kIdVshuff64x2,                       // [ANY] {AVX512_F (VL)}
-    kIdVshufi32x4,                       // [ANY] {AVX512_F (VL)}
-    kIdVshufi64x2,                       // [ANY] {AVX512_F (VL)}
-    kIdVshufpd,                          // [ANY] {AVX|AVX512_F (VL)}
-    kIdVshufps,                          // [ANY] {AVX|AVX512_F (VL)}
-    kIdVsqrtpd,                          // [ANY] {AVX|AVX512_F (VL)}
-    kIdVsqrtps,                          // [ANY] {AVX|AVX512_F (VL)}
+    kIdVscatterqpd,                      // [ANY] {AVX512_F+VL}
+    kIdVscatterqps,                      // [ANY] {AVX512_F+VL}
+    kIdVshuff32x4,                       // [ANY] {AVX512_F+VL}
+    kIdVshuff64x2,                       // [ANY] {AVX512_F+VL}
+    kIdVshufi32x4,                       // [ANY] {AVX512_F+VL}
+    kIdVshufi64x2,                       // [ANY] {AVX512_F+VL}
+    kIdVshufpd,                          // [ANY] {AVX|AVX512_F+VL}
+    kIdVshufps,                          // [ANY] {AVX|AVX512_F+VL}
+    kIdVsqrtpd,                          // [ANY] {AVX|AVX512_F+VL}
+    kIdVsqrtps,                          // [ANY] {AVX|AVX512_F+VL}
     kIdVsqrtsd,                          // [ANY] {AVX|AVX512_F}
     kIdVsqrtss,                          // [ANY] {AVX|AVX512_F}
     kIdVstmxcsr,                         // [ANY] {AVX}
-    kIdVsubpd,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
-    kIdVsubps,                           // [ANY] {AVX|AVX2|AVX512_F (VL)}
+    kIdVsubpd,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
+    kIdVsubps,                           // [ANY] {AVX|AVX2|AVX512_F+VL}
     kIdVsubsd,                           // [ANY] {AVX|AVX512_F}
     kIdVsubss,                           // [ANY] {AVX|AVX512_F}
     kIdVtestpd,                          // [ANY] {AVX}
     kIdVtestps,                          // [ANY] {AVX}
     kIdVucomisd,                         // [ANY] {AVX|AVX512_F}
     kIdVucomiss,                         // [ANY] {AVX|AVX512_F}
-    kIdVunpckhpd,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVunpckhps,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVunpcklpd,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVunpcklps,                        // [ANY] {AVX|AVX512_F (VL)}
-    kIdVxorpd,                           // [ANY] {AVX|AVX512_DQ (VL)}
-    kIdVxorps,                           // [ANY] {AVX|AVX512_DQ (VL)}
+    kIdVunpckhpd,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVunpckhps,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVunpcklpd,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVunpcklps,                        // [ANY] {AVX|AVX512_F+VL}
+    kIdVxorpd,                           // [ANY] {AVX|AVX512_DQ+VL}
+    kIdVxorps,                           // [ANY] {AVX|AVX512_DQ+VL}
     kIdVzeroall,                         // [ANY] {AVX}
     kIdVzeroupper,                       // [ANY] {AVX}
     kIdWbinvd,                           // [ANY]
@@ -1450,8 +1450,8 @@ struct X86Inst {
     kIdXsave64,                          // [X64] {XSAVE}
     kIdXsavec,                           // [ANY] {XSAVE}
     kIdXsavec64,                         // [X64] {XSAVE}
-    kIdXsaveopt,                         // [ANY] {XSAVE_OPT}
-    kIdXsaveopt64,                       // [X64] {XSAVE_OPT}
+    kIdXsaveopt,                         // [ANY] {XSAVEOPT}
+    kIdXsaveopt64,                       // [X64] {XSAVEOPT}
     kIdXsaves,                           // [ANY] {XSAVE}
     kIdXsaves64,                         // [X64] {XSAVE}
     kIdXsetbv,                           // [ANY] {XSAVE}
@@ -1473,6 +1473,7 @@ struct X86Inst {
     kEncodingX86M_GPB_MulDiv,            //!< X86 [M] (like GPB, handles implicit|explicit MUL|DIV|IDIV).
     kEncodingX86M_Only,                  //!< X86 [M] (restricted to memory operand of any size).
     kEncodingX86Rm,                      //!< X86 [RM] (doesn't handle single-byte size).
+    kEncodingX86Rm_Raw66H,               //!< X86 [RM] (used by LZCNT, POPCNT, and TZCNT).
     kEncodingX86Rm_NoRexW,               //!< X86 [RM] (doesn't add REX.W prefix if 64-bit reg is used).
     kEncodingX86Mr,                      //!< X86 [MR] (doesn't handle single-byte size).
     kEncodingX86Mr_NoSize,               //!< X86 [MR] (doesn't handle any size).
@@ -1592,64 +1593,6 @@ struct X86Inst {
     _kEncodingCount                      //!< Count of instruction encodings.
   };
 
-  //! Instruction family.
-  //!
-  //! Specifies which table should be used to interpret `_familyDataIndex`.
-  ASMJIT_ENUM(FamilyType) {
-    kFamilyNone           = 0,           //!< General purpose or special instruction.
-    kFamilyFpu            = 1,           //!< FPU family instruction.
-    kFamilySse            = 2,           //!< MMX+/SSE+ family instruction (including SHA/SSE4A).
-    kFamilyAvx            = 3            //!< AVX+/FMA+ family instruction (including AVX-512).
-  };
-
-  //! \internal
-  //!
-  //! Instruction flags (AsmJit specific).
-  ASMJIT_ENUM(InstFlags) {
-    kInstFlagNone         = 0x00000000U, //!< No flags.
-
-    kInstFlagRO           = 0x00000001U, //!< The first operand is read (read-only without `kInstFlagWO`).
-    kInstFlagWO           = 0x00000002U, //!< The first operand is written (write-only without `kInstFlagRO`).
-    kInstFlagRW           = 0x00000003U, //!< The first operand is read-write.
-    kInstFlagXchg         = 0x00000004U, //!< Instruction is an exchange like instruction (xchg, xadd).
-
-    kInstFlagVolatile     = 0x00000010U, //!< Volatile instruction, never reorder.
-    kInstFlagLock         = 0x00000020U, //!< Instruction can be prefixed by using the LOCK prefix.
-    kInstFlagRep          = 0x00000040U, //!< Instruction can be prefixed by using the REP/REPZ/REPNZ prefix.
-    kInstFlagRepnz        = 0x00000080U, //!< Instruction can be prefixed by using the REPNZ prefix.
-
-    kInstFlagFp           = 0x00000100U, //!< Instruction accesses FPU register(s).
-    kInstFlagSpecial      = 0x00000200U, //!< Instruction requires special handling (implicit operands), used by \ref X86Compiler.
-
-    //! Instruction always performs memory access.
-    //!
-    //! This flag is always combined with `kInstFlagSpecial` and describes
-    //! that there is an implicit address which is accessed (usually EDI/RDI
-    //! and/or ESI/RSI).
-    kInstFlagSpecialMem   = 0x00000400U,
-    kInstFlagZeroIfMem    = 0x00000800U, //!< Cleans the rest of destination if source is memory (movss, movsd).
-
-    kInstFlagFPU_M10      = 0x00001000U, //!< FPU instruction can address tword_ptr (shared with M2).
-    kInstFlagFPU_M2       = 0x00001000U, //!< FPU instruction can address word_ptr (shared with M10).
-    kInstFlagFPU_M4       = 0x00002000U, //!< FPU instruction can address dword_ptr.
-    kInstFlagFPU_M8       = 0x00004000U, //!< FPU instruction can address qword_ptr.
-
-    // ------------------------------------------------------------------------
-    // [VEX/EVEX VSIB]
-    // ------------------------------------------------------------------------
-
-    // NOTE: If both `kInstFlagVex` and `kInstFlagEvex` flags are specified it
-    // means that the instructions is defined by both AVX and AVX512, and can be
-    // encoded by either VEX or EVEX prefix. In that case AsmJit checks global
-    // options and also instruction options to decide whether to emit EVEX prefix
-    // or not.
-
-    kInstFlagVM           = 0x00010000U, //!< Instruction uses a vector memory index (VSIB).
-    kInstFlagVex          = 0x00020000U, //!< Instruction can be encoded by VEX (AVX|AVX2|BMI|...).
-    kInstFlagVex_VM       = 0x00030000U, //!< Combination of `kInstFlagVex` and `kInstFlagVM`.
-    kInstFlagEvex         = 0x00040000U  //!< Instruction can be encoded by EVEX (AVX-512).
-  };
-
   //! Describes a meaning of all bits of AsmJit's 32-bit opcode (AsmJit specific).
   //!
   //! This schema is AsmJit specific and has been designed to allow encoding of
@@ -1718,10 +1661,9 @@ struct X86Inst {
   //! values defined by these enums many cause AsmJit to emit invalid binary
   //! representations of instructions passed to `X86Assembler::_emit`.
   ASMJIT_ENUM(OpCodeBits) {
-    // ------------------------------------------------------------------------
-    // [MM|VEX|EVEX|XOP]
-    // ------------------------------------------------------------------------
-
+    // MM & VEX & EVEX & XOP
+    // ---------------------
+    //
     // Two meanings:
     //  * `MMMMM` field in AVX/XOP/AVX-512 instruction.
     //  * Part of the opcode in legacy encoding (bytes emitted before the main
@@ -1771,20 +1713,18 @@ struct X86Inst {
     kOpCode_MM_ForceVex3  = 0x04U << kOpCode_MM_Shift, // Force 3-BYTE VEX prefix.
     kOpCode_MM_ForceEvex  = 0x10U << kOpCode_MM_Shift, // Force 4-BYTE EVEX prefix.
 
-    // ------------------------------------------------------------------------
-    // [FPU_2B (Second-Byte of OpCode used by FPU)]
-    // ------------------------------------------------------------------------
-
+    // FPU_2B - Second-Byte of OpCode used by FPU
+    // ------------------------------------------
+    //
     // Second byte opcode. This BYTE is ONLY used by FPU instructions and
     // collides with 3 bits from `MM` and 5 bits from 'CDSHL' and 'CDTT'.
     // It's fine as FPU and AVX512 flags are never used at the same time.
     kOpCode_FPU_2B_Shift  = 10,
     kOpCode_FPU_2B_Mask   = 0xFF << kOpCode_FPU_2B_Shift,
 
-    // ------------------------------------------------------------------------
-    // [CDSHL | CDTT]
-    // ------------------------------------------------------------------------
-
+    // CDSHL & CDTT
+    // ------------
+    //
     // Compressed displacement bits.
     //
     // Each opcode defines the base size (N) shift:
@@ -1828,28 +1768,26 @@ struct X86Inst {
     kOpCode_CDTT_OVM      = kOpCode_CDTT_ByLL,
     kOpCode_CDTT_128      = kOpCode_CDTT_None,
 
-    // ------------------------------------------------------------------------
-    // [O]
-    // ------------------------------------------------------------------------
+    // `O` Field in MorR/M
+    // -------------------
 
-    // "O' field in ModR/M.
     kOpCode_O_Shift       = 18,
     kOpCode_O_Mask        = 0x07U << kOpCode_O_Shift,
 
-    // ------------------------------------------------------------------------
-    // [PP and L]
-    // ------------------------------------------------------------------------
-
+    // `PP` and `L` Fields
+    // -------------------
+    //
     // These fields are stored deliberately right after each other as it makes
     // it easier to construct VEX prefix from the opcode value stored in the
     // instruction database.
-
+    //
     // Two meanings:
     //   * "PP" field in AVX/XOP/AVX-512 instruction.
     //   * Mandatory Prefix in legacy encoding.
     //
     // AVX reserves 2 bits for `PP` field, but AsmJit extends the storage by 1
     // more bit that is used to emit 9B prefix for some X87-FPU instructions.
+
     kOpCode_PP_Shift      = 21,
     kOpCode_PP_VEXMask    = 0x03U << kOpCode_PP_Shift, // PP field mask used by VEX/EVEX.
     kOpCode_PP_FPUMask    = 0x07U << kOpCode_PP_Shift, // Mask used by EMIT_PP, also includes 0x9B.
@@ -1861,22 +1799,21 @@ struct X86Inst {
     // AsmJit specific to emit FPU's 9B byte.
     kOpCode_PP_9B         = 0x07U << kOpCode_PP_Shift,
 
-    // ------------------------------------------------------------------------
-    // [EVEX.W]
-    // ------------------------------------------------------------------------
-
+    // EVEX.W Field
+    // ------------
+    //
     // `W` field used by EVEX instruction encoding.
+
     kOpCode_EW_Shift      = 24,
     kOpCode_EW            = 0x01U << kOpCode_EW_Shift,
 
-    // ------------------------------------------------------------------------
-    // [REX BXRW bits (part of REX prefix)]
+    // REX B|X|R|W Bits
+    // ----------------
     //
     // NOTE: REX.[B|X|R] are never stored within the opcode itself, they are
     // reserved by AsmJit are are added dynamically to the opcode to represent
     // [REX|VEX|EVEX].[B|X|R] bits. REX.W can be stored in DB as it's sometimes
     // part of the opcode itself.
-    // ------------------------------------------------------------------------
 
     // These must be binary compatible with instruction options.
     kOpCode_REX_Shift     = 25,
@@ -1887,7 +1824,8 @@ struct X86Inst {
     kOpCode_W             = 0x08U << kOpCode_REX_Shift,
     kOpCode_W_Shift       = kOpCode_REX_Shift + 3,
 
-    // `L` field in AVX/XOP/AVX-512 instruction.
+    // `L` field in AVX/XOP/AVX-512
+    // ----------------------------
     //
     // VEX/XOP prefix can only use the first bit `L.128` or `L.256`. EVEX prefix
     // prefix makes it possible to use also `L.512`.
@@ -1899,6 +1837,120 @@ struct X86Inst {
     kOpCode_LL_128        = 0x00U << kOpCode_LL_Shift,
     kOpCode_LL_256        = 0x01U << kOpCode_LL_Shift,
     kOpCode_LL_512        = 0x02U << kOpCode_LL_Shift
+  };
+
+  //! Instruction flags.
+  //!
+  //! Details about instruction encoding, operation, features, and some limitations.
+  ASMJIT_ENUM(Flags) {
+    kFlagNone             = 0x00000000U, //!< No flags.
+
+    // Operand's Use
+    // -------------
+    //
+    // These flags describe the use of 1st and/or 1st+2nd operands. This allows
+    // to fast calculate which operands are read, written, or read and written.
+    //
+    // In some cases this information is not reliable, because AsmJit uses data
+    // generated by a script that merges usually more than one instruction into
+    // one AsmJit instruction as some X86 instructions uses more encodings to
+    // describe the same operation. In such case `kFlagUseComplex` is set and
+    // AsmJit will use different approach to calculate operand's use flags.
+
+    kFlagUseA             = 0x00000001U, //!< Use flags are 'A'mbiguous as USE information couldn't be flattened.
+    kFlagUseR             = 0x00000002U, //!< 1st operand is R (read), read-only if `kFlagOpW` isn't set.
+    kFlagUseW             = 0x00000004U, //!< 1st operand is W (written), write-only if `kFlagOpR` isn't set.
+    kFlagUseX             = 0x00000006U, //!< 1st operand is X (read-write).
+    kFlagUseXX            = 0x00000008U, //!< 1st and 2nd operands are XX (read & written) (XCHG, XADD).
+
+    kFlagFixedReg         = 0x00000010U, //!< Some operand uses fixed register.
+    kFlagFixedMem         = 0x00000020U, //!< Some operand uses fixed register to access memory (EAX|RAX, EDI|RDI, ESI|RSI).
+    kFlagFixedRM          = 0x00000030U, //!< Combination of `kFlagUseFixedReg` and `kFlagUseFixedMem`.
+
+    // Instruction Family
+    // ------------------
+    //
+    // Instruction family information.
+
+    kFlagFpu              = 0x00000100U, //!< Instruction that accesses FPU registers.
+    kFlagMmx              = 0x00000200U, //!< Instruction that accesses MMX registers (including 3DNOW and GEODE) and EMMS.
+    kFlagVec              = 0x00000400U, //!< Instruction that accesses XMM registers (SSE, AVX, AVX512).
+
+    // Prefixes and Encoding Flags
+    // ---------------------------
+    //
+    // These describe optional X86 prefixes that can be used to change the instruction's operation.
+
+    kFlagRep              = 0x00004000U, //!< Instruction can be prefixed by using the REP/REPZ/REPE prefix.
+    kFlagRepnz            = 0x00008000U, //!< Instruction can be prefixed by using the REPNZ/REPNE prefix.
+    kFlagLock             = 0x00010000U, //!< Instruction can be prefixed by using the LOCK prefix.
+    kFlagMib              = 0x00020000U, //!< Instruction uses MIB (BNDLDX|BNDSTX) to encode two registers.
+    kFlagVsib             = 0x00040000U, //!< Instruction uses VSIB instead of legacy SIB.
+    kFlagVex              = 0x00080000U, //!< Instruction can be encoded by VEX|XOP (AVX|AVX2|BMI|XOP|...).
+    kFlagEvex             = 0x00100000U, //!< Instruction can be encoded by EVEX (AVX512).
+
+    // FPU Flags
+    // ---------
+    //
+    // Used to tell the encoder which memory operand sizes are encodable.
+
+    kFlagFpuM16           = 0x00200000U, //!< FPU instruction can address `word_ptr` (shared with M10).
+    kFlagFpuM32           = 0x00400000U, //!< FPU instruction can address `dword_ptr`.
+    kFlagFpuM64           = 0x00800000U, //!< FPU instruction can address `qword_ptr`.
+    kFlagFpuM80           = 0x00200000U, //!< FPU instruction can address `tword_ptr` (shared with M2).
+
+    // AVX and AVX515 Flags
+    // --------------------
+    //
+    // If both `kFlagPrefixVex` and `kFlagPrefixEvex` flags are specified it
+    // means that the instructions can be encoded by either VEX or EVEX prefix.
+    // In that case AsmJit checks global options and also instruction options
+    // to decide whether to emit VEX or EVEX prefix.
+
+    kFlagAvx512_          = 0x00000000U, //!< Internally used in tables, has no meaning.
+    kFlagAvx512K          = 0x01000000U, //!< Supports masking {k0..k7}.
+    kFlagAvx512Z          = 0x02000000U, //!< Supports zeroing {z}, must be used together with `kAvx512k`.
+    kFlagAvx512ER         = 0x04000000U, //!< Supports 'embedded-rounding' {er} with implicit {sae},
+    kFlagAvx512SAE        = 0x08000000U, //!< Supports 'suppress-all-exceptions' {sae}.
+    kFlagAvx512B32        = 0x10000000U, //!< Supports 32-bit broadcast 'b32'.
+    kFlagAvx512B64        = 0x20000000U, //!< Supports 64-bit broadcast 'b64'.
+    kFlagAvx512T4X        = 0x80000000U, //!< Operates on a vector of consecutive registers (AVX512_4FMAPS and AVX512_4VNNIW).
+
+    // Combinations used by instruction tables to make AVX512 definitions more compact.
+    kFlagAvx512KZ            = kFlagAvx512K         | kFlagAvx512Z,
+    kFlagAvx512ER_SAE        = kFlagAvx512ER        | kFlagAvx512SAE,
+    kFlagAvx512KZ_SAE        = kFlagAvx512KZ        | kFlagAvx512SAE,
+    kFlagAvx512KZ_SAE_B32    = kFlagAvx512KZ_SAE    | kFlagAvx512B32,
+    kFlagAvx512KZ_SAE_B64    = kFlagAvx512KZ_SAE    | kFlagAvx512B64,
+
+    kFlagAvx512KZ_ER_SAE     = kFlagAvx512KZ        | kFlagAvx512ER_SAE,
+    kFlagAvx512KZ_ER_SAE_B32 = kFlagAvx512KZ_ER_SAE | kFlagAvx512B32,
+    kFlagAvx512KZ_ER_SAE_B64 = kFlagAvx512KZ_ER_SAE | kFlagAvx512B64,
+
+    kFlagAvx512K_B32         = kFlagAvx512K         | kFlagAvx512B32,
+    kFlagAvx512K_B64         = kFlagAvx512K         | kFlagAvx512B64,
+    kFlagAvx512KZ_B32        = kFlagAvx512KZ        | kFlagAvx512B32,
+    kFlagAvx512KZ_B64        = kFlagAvx512KZ        | kFlagAvx512B64
+  };
+
+  //! Used to describe what the instruction does and some of its quirks.
+  enum OperationFlags {
+    kOperationMovCrDr      = 0x00000001U, //!< `MOV REG <-> CREG|DREG` - OS|SF|ZF|AF|PF|CF flags are undefined.
+    kOperationMovSsSd      = 0x00000002U, //!< `MOVSS|MOVSD XMM, [MEM]` - Sestination operand is completely overwritten.
+
+    kOperationPrefetch     = 0x10000000U, //!< Instruction does hardware prefetch.
+    kOperationBarrier      = 0x20000000U, //!< Instruction acts as a barrier / fence.
+    kOperationVolatile     = 0x40000000U, //!< Hint for instruction schedulers to never reorder this instruction (side effects, memory barrier, etc).
+    kOperationPrivileged   = 0x80000000U  //!< This is a privileged operation that cannot run in user mode (system instruction).
+  };
+
+  //! SSE to AVX conversion mode.
+  enum SseToAvxMode {
+    kSseToAvxNone         = 0,           //!< No conversion possible.
+    kSseToAvxMove         = 1,           //!< No change (no operands changed).
+    kSseToAvxMoveIfMem    = 2,           //!< No change if the second operand is mem, extend otherwise.
+    kSseToAvxExtend       = 3,           //!< The first SSE operand becomes first and second AVX operand.
+    kSseToAvxBlend        = 4            //!< Special case for 'vblendvpd', 'vblendvps', and 'vpblendvb'.
   };
 
   //! Instruction options (AsmJit specific).
@@ -1977,17 +2029,24 @@ struct X86Inst {
 
     kOpMem                = 0x00010000U, //!< Operand can be a scalar memory pointer.
     kOpVm                 = 0x00020000U, //!< Operand can be a vector memory pointer.
-    kOpI4                 = 0x00040000U, //!< Operand can be a 4-bit immediate.
-    kOpI8                 = 0x00080000U, //!< Operand can be an 8-bit immediate.
-    kOpI16                = 0x00100000U, //!< Operand can be a 16-bit immediate.
-    kOpI32                = 0x00200000U, //!< Operand can be a 32-bit immediate.
-    kOpI64                = 0x00400000U, //!< Operand can be a 64-bit immediate.
-    kOpRel8               = 0x01000000U, //!< Operand can be an 8-bit displacement.
-    kOpRel32              = 0x02000000U, //!< Operand can be a 32-bit displacement.
 
-    kOpR                  = 0x10000000U, //!< Operand is read.
-    kOpW                  = 0x20000000U, //!< Operand is written.
-    kOpX                  = 0x30000000U, //!< Operand is read & written.
+    kOpU4                 = 0x00040000U, //!< Operand can be unsigned 4-bit  immediate.
+    kOpI8                 = 0x00080000U, //!< Operand can be signed   8-bit  immediate.
+    kOpU8                 = 0x00100000U, //!< Operand can be unsigned 8-bit  immediate.
+    kOpI16                = 0x00200000U, //!< Operand can be signed   16-bit immediate.
+    kOpU16                = 0x00400000U, //!< Operand can be unsigned 16-bit immediate.
+    kOpI32                = 0x00800000U, //!< Operand can be signed   32-bit immediate.
+    kOpU32                = 0x01000000U, //!< Operand can be unsigned 32-bit immediate.
+    kOpI64                = 0x02000000U, //!< Operand can be signed   64-bit immediate.
+    kOpU64                = 0x04000000U, //!< Operand can be unsigned 64-bit immediate.
+    kOpAllImm             = 0x07FC0000U, //!< Operand can be any immediate.
+
+    kOpRel8               = 0x08000000U, //!< Operand can be relative 8-bit  displacement.
+    kOpRel32              = 0x10000000U, //!< Operand can be relative 32-bit displacement.
+
+    kOpR                  = 0x20000000U, //!< Operand is read.
+    kOpW                  = 0x40000000U, //!< Operand is written.
+    kOpX                  = 0x60000000U, //!< Operand is read & written.
     kOpImplicit           = 0x80000000U  //!< Operand is implicit.
   };
 
@@ -2046,49 +2105,66 @@ struct X86Inst {
 
   //! Common data - aggregated data that is shared across many instructions.
   struct CommonData {
-    //! Get all instruction flags, see \ref InstFlags.
+    //! Get all instruction flags, see \ref X86Inst::Flags.
     ASMJIT_INLINE uint32_t getFlags() const noexcept { return _flags; }
-    //! Get whether the instruction has a `flag`, see `InstFlags`.
+    //! Get if the instruction has a `flag`, see \ref X86Inst::Flags.
     ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
-    //! Get if the first operand is read-only.
-    ASMJIT_INLINE bool isRO() const noexcept { return (getFlags() & kInstFlagRW) == kInstFlagRO; }
-    //! Get if the first operand is write-only.
-    ASMJIT_INLINE bool isWO() const noexcept { return (getFlags() & kInstFlagRW) == kInstFlagWO; }
-    //! Get if the first operand is read-write.
-    ASMJIT_INLINE bool isRW() const noexcept { return (getFlags() & kInstFlagRW) == kInstFlagRW; }
+    //! Get if 1st operand is read-only.
+    ASMJIT_INLINE bool isUseR() const noexcept { return (getFlags() & kFlagUseX) == kFlagUseR; }
+    //! Get if 1st operand is write-only.
+    ASMJIT_INLINE bool isUseW() const noexcept { return (getFlags() & kFlagUseX) == kFlagUseW; }
+    //! Get if 1st operand is read-write.
+    ASMJIT_INLINE bool isUseX() const noexcept { return (getFlags() & kFlagUseX) == kFlagUseX; }
+    //! Get if 1st and 2nd operands are read-write.
+    ASMJIT_INLINE bool isUseXX() const noexcept { return hasFlag(kFlagUseXX); }
 
-    //! Get whether the instruction is a typical Exchange instruction.
-    //!
-    //! Exchange instructions are 'xchg' and 'xadd'.
-    ASMJIT_INLINE bool isXchg() const noexcept { return hasFlag(kInstFlagXchg); }
+    ASMJIT_INLINE bool hasFixedReg() const noexcept { return hasFlag(kFlagFixedReg); }
+    ASMJIT_INLINE bool hasFixedMem() const noexcept { return hasFlag(kFlagFixedMem); }
+    ASMJIT_INLINE bool hasFixedRM() const noexcept { return hasFlag(kFlagFixedRM); }
 
-    //! Get whether the instruction accesses Fp register(s).
-    ASMJIT_INLINE bool isFp() const noexcept { return hasFlag(kInstFlagFp); }
+    //! Get if the instruction is FPU instruction.
+    ASMJIT_INLINE bool isFpu() const noexcept { return hasFlag(kFlagFpu); }
+    //! Get if the instruction is MMX|3DNOW instruction that accesses MMX registers (includes EMMS).
+    ASMJIT_INLINE bool isMmx() const noexcept { return hasFlag(kFlagMmx); }
+    //! Get if the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers (includes VZEROALL|VZEROUPPER).
+    ASMJIT_INLINE bool isVec() const noexcept { return hasFlag(kFlagVec); }
 
-    //! Get whether the instruction can be prefixed by LOCK prefix.
-    ASMJIT_INLINE bool isLockable() const noexcept { return hasFlag(kInstFlagLock); }
+    //! Get if the instruction can be prefixed by LOCK prefix.
+    ASMJIT_INLINE bool isLockEnabled() const noexcept { return hasFlag(kFlagLock); }
+    //! Get if the instruction can be prefixed by REP prefix.
+    ASMJIT_INLINE bool isRepEnabled() const noexcept { return hasFlag(kFlagRep); }
+    //! Get if the instruction can be prefixed by REPZ prefix.
+    ASMJIT_INLINE bool isRepzEnabled() const noexcept { return hasFlag(kFlagRep); }
+    //! Get if the instruction can be prefixed by REPNZ prefix.
+    ASMJIT_INLINE bool isRepnzEnabled() const noexcept { return hasFlag(kFlagRepnz); }
 
-    //! Get whether the instruction is special type (this is used by `Compiler`
-    //! to manage additional variables or functionality).
-    ASMJIT_INLINE bool isSpecial() const noexcept { return hasFlag(kInstFlagSpecial); }
+    //! Get if the instruction uses MIB.
+    ASMJIT_INLINE bool isMibOp() const noexcept { return hasFlag(kFlagMib); }
+    //! Get if the instruction uses VSIB.
+    ASMJIT_INLINE bool isVsibOp() const noexcept { return hasFlag(kFlagVsib); }
+    //! Get if the instruction uses VEX (can be set together with EVEX if both are encodable).
+    ASMJIT_INLINE bool isVex() const noexcept { return hasFlag(kFlagVex); }
+    //! Get if the instruction uses EVEX (can be set together with VEX if both are encodable).
+    ASMJIT_INLINE bool isEvex() const noexcept { return hasFlag(kFlagEvex); }
 
-    //! Get whether the instruction is special type and it performs memory access.
-    ASMJIT_INLINE bool isSpecialMem() const noexcept { return hasFlag(kInstFlagSpecialMem); }
-
-    //! Get whether the move instruction clears the rest of the register
-    //! if the source is memory operand.
-    //!
-    //! Basically flag needed only to support `movsd` and `movss` instructions.
-    ASMJIT_INLINE bool isZeroIfMem() const noexcept { return hasFlag(kInstFlagZeroIfMem); }
+    //! Get if the instruction supports AVX512 masking {k}.
+    ASMJIT_INLINE bool hasAvx512K() const noexcept { return hasFlag(kFlagAvx512K); }
+    //! Get if the instruction supports AVX512 zeroing {k}{z}.
+    ASMJIT_INLINE bool hasAvx512Z() const noexcept { return hasFlag(kFlagAvx512Z); }
+    //! Get if the instruction supports AVX512 embedded-rounding {er}.
+    ASMJIT_INLINE bool hasAvx512ER() const noexcept { return hasFlag(kFlagAvx512ER); }
+    //! Get if the instruction supports AVX512 suppress-all-exceptions {sae}.
+    ASMJIT_INLINE bool hasAvx512SAE() const noexcept { return hasFlag(kFlagAvx512SAE); }
+    //! Get if the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
+    ASMJIT_INLINE bool hasAvx512B() const noexcept { return hasFlag(kFlagAvx512B32 | kFlagAvx512B64); }
+    //! Get if the instruction supports AVX512 broadcast (32-bit).
+    ASMJIT_INLINE bool hasAvx512B32() const noexcept { return hasFlag(kFlagAvx512B32); }
+    //! Get if the instruction supports AVX512 broadcast (64-bit).
+    ASMJIT_INLINE bool hasAvx512B64() const noexcept { return hasFlag(kFlagAvx512B64); }
 
     //! Get if the instruction may or will jump (returns true also for calls and returns).
     ASMJIT_INLINE bool doesJump() const noexcept { return _jumpType != AnyInst::kJumpTypeNone; }
-
-    //! Get EFLAGS that the instruction reads, see \ref X86EFlags.
-    ASMJIT_INLINE uint32_t getEFlagsIn() const noexcept { return _eflagsIn; }
-    //! Get EFLAGS that the instruction writes, see \ref X86EFlags.
-    ASMJIT_INLINE uint32_t getEFlagsOut() const noexcept { return _eflagsOut; }
 
     //! Get the destination index of WRITE operation.
     ASMJIT_INLINE uint32_t getWriteIndex() const noexcept { return _writeIndex; }
@@ -2117,108 +2193,56 @@ struct X86Inst {
     ASMJIT_INLINE uint32_t getSingleRegCase() const noexcept { return _singleRegCase; }
 
     uint32_t _flags;                     //!< Instruction flags.
+    uint32_t _writeIndex         : 8;    //!< First DST byte of a WRITE operation (default 0).
+    uint32_t _writeSize          :24;    //!< Number of bytes to be written in DST.
 
-    uint32_t _writeIndex      : 8;       //!< First DST byte of a WRITE operation (default 0).
-    uint32_t _writeSize       : 8;       //!< number of bytes to be written in DST.
-    uint32_t _eflagsIn        : 8;       //!< EFLAGS read by the instruction.
-    uint32_t _eflagsOut       : 8;       //!< EFLAGS modified by the instruction.
-
-    uint32_t _altOpCodeIndex  : 8;       //!< Index to table with alternative opcodes.
-    uint32_t _iSignatureIndex : 9;       //!< First `ISignature` entry in the database.
-    uint32_t _iSignatureCount : 4;       //!< Number of relevant `ISignature` entries.
-    uint32_t _jumpType        : 3;       //!< Jump type, see `AnyInst::JumpType`.
-    uint32_t _singleRegCase   : 2;       //!< Specifies what happens if all operands share the same register.
-    uint32_t _reserved        : 6;       //!< \internal
+    uint32_t _altOpCodeIndex     : 8;    //!< Index to table with alternative opcodes.
+    uint32_t _iSignatureIndex    :10;    //!< First `ISignature` entry in the database.
+    uint32_t _iSignatureCount    : 4;    //!< Number of relevant `ISignature` entries.
+    uint32_t _jumpType           : 3;    //!< Jump type, see `AnyInst::JumpType`.
+    uint32_t _singleRegCase      : 2;    //!< Specifies what happens if all source operands share the same register.
+    uint32_t _reserved           : 5;    //!< \internal
   };
 
-  //! Data specific to FPU family instructions that access FPU stack.
-  struct FpuData {
+  //! Detailed data about instruction's operation, requirements, and side-effects.
+  struct OperationData {
+    ASMJIT_INLINE uint32_t getOperationFlags() const noexcept { return _flags; }
+    ASMJIT_INLINE bool hasOperationFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
+
+    ASMJIT_INLINE bool isMovCrDr() const noexcept { return hasOperationFlag(kOperationMovCrDr); }
+    ASMJIT_INLINE bool isMovSsSd() const noexcept { return hasOperationFlag(kOperationMovSsSd); }
+
+    ASMJIT_INLINE bool isPrefetch() const noexcept { return hasOperationFlag(kOperationPrefetch); }
+    ASMJIT_INLINE bool isBarrier() const noexcept { return hasOperationFlag(kOperationBarrier); }
+    ASMJIT_INLINE bool isVolatile() const noexcept { return hasOperationFlag(kOperationVolatile); }
+    ASMJIT_INLINE bool isPrivileged() const noexcept { return hasOperationFlag(kOperationPrivileged); }
+
+    ASMJIT_INLINE bool hasFeature(uint32_t feature) const noexcept {
+      for (uint32_t i = 0; i < ASMJIT_ARRAY_SIZE(_features); i++)
+        if (feature == _features[i])
+          return true;
+      return false;
+    }
+
+    ASMJIT_INLINE uint32_t getSpecialRegsR() const noexcept { return _specialRegsR; }
+    ASMJIT_INLINE uint32_t getSpecialRegsW() const noexcept { return _specialRegsW; }
+
+    ASMJIT_INLINE const uint8_t* getFeaturesData() const noexcept { return _features; }
+    ASMJIT_INLINE const uint8_t* getFeaturesEnd() const noexcept { return _features + ASMJIT_ARRAY_SIZE(_features); }
+
+    uint32_t _flags;                     //!< Operation flags.
+    uint8_t _features[4];                //!< Features vector (max 4 features).
+    uint32_t _specialRegsR;              //!< Special registers read.
+    uint32_t _specialRegsW;              //!< Special registers written.
   };
 
-  //! Data specific to MMX+ and SSE+ family instructions.
-  struct SseData {
-    enum Features {
-      kFeatureMMX             = 0x0001U, //!< Supported by MMX.
-      kFeatureMMX2            = 0x0002U, //!< Supported by MMX2 (MMX-Ext).
-      kFeature3DNOW           = 0x0004U, //!< Supported by 3DNOW.
-      kFeature3DNOW2          = 0x0008U, //!< Supported by 3DNOW2 (Enhanced).
-      kFeatureGEODE           = 0x0010U, //!< Supported by GEODE (deprecated).
-      kFeatureSSE             = 0x0020U, //!< Supported by SSE.
-      kFeatureSSE2            = 0x0040U, //!< Supported by SSE2.
-      kFeatureSSE3            = 0x0080U, //!< Supported by SSE3.
-      kFeatureSSSE3           = 0x0100U, //!< Supported by SSSE3.
-      kFeatureSSE4_1          = 0x0200U, //!< Supported by SSE4.1.
-      kFeatureSSE4_2          = 0x0400U, //!< Supported by SSE4.2.
-      kFeatureSSE4A           = 0x0800U, //!< Supported by SSE4A.
-      kFeaturePCLMULQDQ       = 0x1000U, //!< Supported by PCLMULQDQ.
-      kFeatureAES             = 0x2000U, //!< Supported by AES.
-      kFeatureSHA             = 0x4000U  //!< Supported by SHA.
-    };
+  //! Contains data that can be used to convert SSE to AVX (or back).
+  struct SseToAvxData {
+    ASMJIT_INLINE uint32_t getMode() const noexcept { return _mode; }
+    ASMJIT_INLINE int32_t getDelta() const noexcept { return _delta; }
 
-    //! SSE to AVX conversion mode.
-    enum AvxConvMode {
-      kAvxConvNone            = 0,       //!< No translation possible (MMX/SSE4A/SHA instruction).
-      kAvxConvMove            = 1,       //!< No change (no operands changed).
-      kAvxConvMoveIfMem       = 2,       //!< No change if second operand is a memory, otherwise Extend.
-      kAvxConvExtend          = 3,       //!< The first SSE operand becomes first and second AVX operand.
-      kAvxConvBlend           = 4        //!< Special case for 'vblendvpd', 'vblendvps', and 'vpblendvb'.
-    };
-
-    uint32_t features         : 16;      //!< CPU features.
-    uint32_t avxConvMode      :  3;      //!< SSE to AVX conversion mode, see \ref AvxConvMode.
-    int32_t avxConvDelta      : 13;      //!< Delta to get a corresponding AVX instruction.
-  };
-
-  //! Data specific to AVX+ (including XOP and AVX-512), FMA+ (FMA3 and FMA4), and F16C instructions.
-  struct AvxData {
-    //! AVX/AVX512 features.
-    enum Features {
-      kFeatureAVX             = 0x00000001U, //!< Supported by AVX.
-      kFeatureAVX2            = 0x00000002U, //!< Supported by AVX2.
-      kFeatureAES             = 0x00000004U, //!< Supported by AVX & AES.
-      kFeatureF16C            = 0x00000008U, //!< Supported by F16C.
-      kFeatureFMA             = 0x00000010U, //!< Supported by FMA.
-      kFeatureFMA4            = 0x00000020U, //!< Supported by FMA4.
-      kFeaturePCLMULQDQ       = 0x00000040U, //!< Supported by PCLMULQDQ & AVX.
-      kFeatureXOP             = 0x00000080U, //!< Supported by XOP.
-      kFeatureAVX512_F        = 0x00001000U, //!< Supported by AVX512-F (foundation).
-      kFeatureAVX512_VL       = 0x00002000U, //!< Supports access to XMM|YMM registers if AVX512VL is present.
-      kFeatureAVX512_CDI      = 0x00004000U, //!< Supported by AVX512-CDI (conflict detection).
-      kFeatureAVX512_PFI      = 0x00008000U, //!< Supported by AVX512-PFI (prefetch).
-      kFeatureAVX512_ERI      = 0x00010000U, //!< Supported by AVX512-ERI (exponential and reciprocal).
-      kFeatureAVX512_DQ       = 0x00020000U, //!< Supported by AVX512-DQ (dword/qword).
-      kFeatureAVX512_BW       = 0x00040000U, //!< Supported by AVX512-BW (byte/word).
-      kFeatureAVX512_IFMA     = 0x00080000U, //!< Supported by AVX512-IFMA (integer fused-multiply-add).
-      kFeatureAVX512_VBMI     = 0x00100000U, //!< Supported by AVX512-VBMI (vector byte manipulation).
-      kFeatureAVX512_4FMAPS   = 0x00200000U, //!< Supported by AVX512-4FMAPS (NN floating-point single precision).
-      kFeatureAVX512_4VNNIW   = 0x00400000U, //!< Supported by AVX512-4VNNIW (NN enhanced word variable precision).
-      kFeatureAVX512_VPOPCNTDQ= 0x00800000U  //!< Supported by AVX512-VPOPCNTDQ (vector population count).
-    };
-
-    //!< Additional flags (AVX512).
-    enum Flags {
-      kFlagMasking            = 0x0010U, //!< Supports masking {k0..k7}.
-      kFlagZeroing            = 0x0020U, //!< Supports zeroing of elements {k0..k7}{z} (must be used together with 'K').
-      kFlagBroadcast32        = 0x0040U, //!< Supports 32-bit broadcast 'b32'.
-      kFlagBroadcast64        = 0x0080U, //!< Supports 64-bit broadcast 'b64'.
-      kFlagER                 = 0x0100U, //!< Supports 'embedded-rounding-control' {rc} with implicit {sae},
-      kFlagSAE                = 0x0200U, //!< Supports 'suppress-all-exceptions' {sae}.
-    };
-
-    ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return (flags & flag) != 0; }
-    ASMJIT_INLINE bool hasMasking() const noexcept { return hasFlag(kFlagMasking); }
-    ASMJIT_INLINE bool hasZeroing() const noexcept { return hasFlag(kFlagZeroing); }
-
-    ASMJIT_INLINE bool hasER() const noexcept { return hasFlag(kFlagER); }
-    ASMJIT_INLINE bool hasSAE() const noexcept { return hasFlag(kFlagSAE); }
-    ASMJIT_INLINE bool hasEROrSAE() const noexcept { return hasFlag(kFlagER | kFlagSAE); }
-
-    ASMJIT_INLINE bool hasBroadcast32() const noexcept { return hasFlag(kFlagBroadcast32); }
-    ASMJIT_INLINE bool hasBroadcast64() const noexcept { return hasFlag(kFlagBroadcast64); }
-    ASMJIT_INLINE bool hasBroadcast() const noexcept { return hasFlag(kFlagBroadcast32 | kFlagBroadcast64); }
-
-    uint32_t features;                   //!< CPU features.
-    uint32_t flags;                      //!< Flags (AVX-512).
+    uint16_t _mode :  3;                 //!< SSE to AVX conversion mode, see \ref AvxConvMode.
+    int16_t _delta : 13;                 //!< Delta to get a corresponding AVX instruction.
   };
 
   //! Data that is not related to a specific X86 instruction (not referenced by
@@ -2250,30 +2274,18 @@ struct X86Inst {
   //! Get index to `X86InstDB::commonData` of this instruction.
   ASMJIT_INLINE uint32_t getCommonDataIndex() const noexcept { return _commonDataIndex; }
 
+  //! Get \ref OperationData of the instruction.
+  ASMJIT_INLINE const OperationData& getOperationData() const noexcept;
+  //! Get index to `X86InstDB::operationData` of this instruction.
+  ASMJIT_INLINE uint32_t getOperationDataIndex() const noexcept { return _operationDataIndex; }
+
+  //! Get data that can be used to convert SSE instruction to AVX (or back).
+  ASMJIT_INLINE const SseToAvxData& getSseToAvxData() const noexcept;
+  //! Get index to `X86InstDB::sseToAvxData` of this instruction.
+  ASMJIT_INLINE uint32_t getSseToAvxDataIndex() const noexcept { return _sseToAvxDataIndex; }
+
   //! Get instruction encoding, see \ref EncodingType.
   ASMJIT_INLINE uint32_t getEncodingType() const noexcept { return _encodingType; }
-
-  //! Get instruction family, see \ref FamilyType.
-  ASMJIT_INLINE uint32_t getFamilyType() const noexcept { return _familyType; }
-  //! Get index to an instruction family dependent data.
-  ASMJIT_INLINE uint32_t getFamilyDataIndex() const noexcept { return _familyDataIndex; }
-
-  //! Get if the instruction's family is \ref kFamilyFpu.
-  ASMJIT_INLINE bool isFpuFamily() const noexcept { return _familyType == kFamilyFpu; }
-  //! Get if the instruction's family is \ref kFamilySse.
-  ASMJIT_INLINE bool isSseFamily() const noexcept { return _familyType == kFamilySse; }
-  //! Get if the instruction's family is \ref kFamilyAvx.
-  ASMJIT_INLINE bool isAvxFamily() const noexcept { return _familyType == kFamilyAvx; }
-
-  //! Get data specific to MMX/SSE instructions.
-  //!
-  //! NOTE: Always check the instruction family, it will assert if it's not an SSE instruction.
-  ASMJIT_INLINE const SseData& getSseData() const noexcept;
-
-  //! Get data specific to AVX instructions.
-  //!
-  //! NOTE: Always check the instruction family, it will assert if it's not an AVX instruction.
-  ASMJIT_INLINE const AvxData& getAvxData() const noexcept;
 
   //! Get if the instruction has main opcode (rare, but it's possible it doesn't have).
   ASMJIT_INLINE bool hasMainOpCode() const noexcept { return _mainOpCode != 0; }
@@ -2285,10 +2297,50 @@ struct X86Inst {
   //! Get alternative opcode, see \ref OpCodeBits.
   ASMJIT_INLINE uint32_t getAltOpCode() const noexcept { return getCommonData().getAltOpCode(); }
 
-  //! Get whether the instruction has flag `flag`, see \ref InstFlags.
+  //! Get if the instruction has flag `flag`, see \ref Flags.
   ASMJIT_INLINE bool hasFlag(uint32_t flag) const noexcept { return getCommonData().hasFlag(flag); }
-  //! Get instruction flags, see \ref InstFlags.
+  //! Get instruction flags, see \ref Flags.
   ASMJIT_INLINE uint32_t getFlags() const noexcept { return getCommonData().getFlags(); }
+
+  //! Get if the instruction is FPU instruction.
+  ASMJIT_INLINE bool isFpu() const noexcept { return getCommonData().isFpu(); }
+  //! Get if the instruction is MMX instruction that accesses MMX registersm, including EMMS.
+  ASMJIT_INLINE bool isMmx() const noexcept { return getCommonData().isMmx(); }
+  //! Get if the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers.
+  ASMJIT_INLINE bool isVec() const noexcept { return getCommonData().isVec(); }
+
+  //! Get if the instruction can be prefixed by LOCK prefix.
+  ASMJIT_INLINE bool isLockEnabled() const noexcept { return getCommonData().isLockEnabled(); }
+  //! Get if the instruction can be prefixed by REP prefix.
+  ASMJIT_INLINE bool isRepEnabled() const noexcept { return getCommonData().isRepEnabled(); }
+  //! Get if the instruction can be prefixed by REPZ prefix.
+  ASMJIT_INLINE bool isRepzEnabled() const noexcept { return getCommonData().isRepzEnabled(); }
+  //! Get if the instruction can be prefixed by REPNZ prefix.
+  ASMJIT_INLINE bool isRepnzEnabled() const noexcept { return getCommonData().isRepnzEnabled(); }
+
+  //! Get if the instruction uses MIB.
+  ASMJIT_INLINE bool isMibOp() const noexcept { return getCommonData().isMibOp(); }
+  //! Get if the instruction uses VSIB.
+  ASMJIT_INLINE bool isVsibOp() const noexcept { return getCommonData().isVsibOp(); }
+  //! Get if the instruction uses VEX (can be set together with EVEX if both are encodable).
+  ASMJIT_INLINE bool isVex() const noexcept { return getCommonData().isVex(); }
+  //! Get if the instruction uses EVEX (can be set together with VEX if both are encodable).
+  ASMJIT_INLINE bool isEvex() const noexcept { return getCommonData().isEvex(); }
+
+  //! Get if the instruction supports AVX512 masking {k}.
+  ASMJIT_INLINE bool hasAvx512K() const noexcept { return getCommonData().hasAvx512K(); }
+  //! Get if the instruction supports AVX512 zeroing {k}{z}.
+  ASMJIT_INLINE bool hasAvx512Z() const noexcept { return getCommonData().hasAvx512Z(); }
+  //! Get if the instruction supports AVX512 embedded-rounding {er}.
+  ASMJIT_INLINE bool hasAvx512ER() const noexcept { return getCommonData().hasAvx512ER(); }
+  //! Get if the instruction supports AVX512 suppress-all-exceptions {sae}.
+  ASMJIT_INLINE bool hasAvx512SAE() const noexcept { return getCommonData().hasAvx512SAE(); }
+  //! Get if the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
+  ASMJIT_INLINE bool hasAvx512B() const noexcept { return getCommonData().hasAvx512B(); }
+  //! Get if the instruction supports AVX512 broadcast (32-bit).
+  ASMJIT_INLINE bool hasAvx512B32() const noexcept { return getCommonData().hasAvx512B32(); }
+  //! Get if the instruction supports AVX512 broadcast (64-bit).
+  ASMJIT_INLINE bool hasAvx512B64() const noexcept { return getCommonData().hasAvx512B64(); }
 
   ASMJIT_INLINE uint32_t getISignatureIndex() const noexcept { return getCommonData().getISignatureIndex(); }
   ASMJIT_INLINE uint32_t getISignatureCount() const noexcept { return getCommonData().getISignatureCount(); }
@@ -2385,23 +2437,24 @@ struct X86Inst {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _encodingType    : 8;         //!< Instruction encoding.
-  uint32_t _nameDataIndex   : 14;        //!< Index to `X86InstDB::nameData` table.
-  uint32_t _commonDataIndex : 10;        //!< Index to `X86InstDB::commonData` table.
-  uint32_t _familyType      : 2;         //!< Instruction family type.
-  uint32_t _familyDataIndex : 8;         //!< Index to `fpuData`, `sseData`, or `avxData`.
-  uint32_t _reserved        : 22;
+  uint32_t _encodingType       : 8;      //!< Encoding type.
+  uint32_t _nameDataIndex      : 14;     //!< Index to `X86InstDB::nameData` table.
+  uint32_t _commonDataIndex    : 10;     //!< Index to `X86InstDB::commonData` table.
+  uint32_t _operationDataIndex : 8;      //!< Index to `X86InstDB::operationData` table.
+  uint32_t _sseToAvxDataIndex  : 7;      //!< Index to `X86InstDB::sseToAvxData` table.
+  uint32_t _reserved           : 17;     //!< \internal
   uint32_t _mainOpCode;                  //!< Instruction's primary opcode.
 };
 
 //! X86 instruction data under a single namespace.
 struct X86InstDB {
   ASMJIT_API static const X86Inst instData[];
-  ASMJIT_API static const X86Inst::CommonData commonData[];
-  ASMJIT_API static const X86Inst::FpuData fpuData[];
-  ASMJIT_API static const X86Inst::SseData sseData[];
-  ASMJIT_API static const X86Inst::AvxData avxData[];
   ASMJIT_API static const uint32_t altOpCodeData[];
+
+  ASMJIT_API static const X86Inst::CommonData commonData[];
+  ASMJIT_API static const X86Inst::OperationData operationData[];
+  ASMJIT_API static const X86Inst::SseToAvxData sseToAvxData[];
+
   ASMJIT_API static const char nameData[];
   ASMJIT_API static const X86Inst::MiscData miscData;
 
@@ -2416,46 +2469,19 @@ ASMJIT_INLINE const X86Inst& X86Inst::getInst(uint32_t instId) noexcept {
   return X86InstDB::instData[instId];
 }
 
-ASMJIT_INLINE const char* X86Inst::getName() const noexcept {
-  return &X86InstDB::nameData[_nameDataIndex];
-}
-
-ASMJIT_INLINE const X86Inst::CommonData& X86Inst::getCommonData() const noexcept {
-  return X86InstDB::commonData[_commonDataIndex];
-}
-
-ASMJIT_INLINE const X86Inst::SseData& X86Inst::getSseData() const noexcept {
-  ASMJIT_ASSERT(isSseFamily());
-  return X86InstDB::sseData[_familyDataIndex];
-}
-
-ASMJIT_INLINE const X86Inst::AvxData& X86Inst::getAvxData() const noexcept {
-  ASMJIT_ASSERT(isAvxFamily());
-  return X86InstDB::avxData[_familyDataIndex];
-}
-
-ASMJIT_INLINE uint32_t X86Inst::CommonData::getAltOpCode() const noexcept {
-  return X86InstDB::altOpCodeData[_altOpCodeIndex];
-}
-
-ASMJIT_INLINE const X86Inst::MiscData& X86Inst::getMiscData() noexcept {
-  return X86InstDB::miscData;
-}
+ASMJIT_INLINE const char* X86Inst::getName() const noexcept { return &X86InstDB::nameData[_nameDataIndex]; }
+ASMJIT_INLINE const X86Inst::CommonData& X86Inst::getCommonData() const noexcept { return X86InstDB::commonData[_commonDataIndex]; }
+ASMJIT_INLINE const X86Inst::OperationData& X86Inst::getOperationData() const noexcept { return X86InstDB::operationData[_operationDataIndex]; }
+ASMJIT_INLINE const X86Inst::SseToAvxData& X86Inst::getSseToAvxData() const noexcept { return X86InstDB::sseToAvxData[_sseToAvxDataIndex]; }
+ASMJIT_INLINE uint32_t X86Inst::CommonData::getAltOpCode() const noexcept { return X86InstDB::altOpCodeData[_altOpCodeIndex]; }
+ASMJIT_INLINE const X86Inst::MiscData& X86Inst::getMiscData() noexcept { return X86InstDB::miscData; }
 
 #if !defined(ASMJIT_DISABLE_VALIDATION)
-ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureData() const noexcept {
-  return X86InstDB::iSignatureData + _iSignatureIndex;
-}
-ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureEnd() const noexcept {
-  return X86InstDB::iSignatureData + _iSignatureIndex + _iSignatureCount;
-}
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureData() const noexcept { return X86InstDB::iSignatureData + _iSignatureIndex; }
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureEnd() const noexcept { return X86InstDB::iSignatureData + _iSignatureIndex + _iSignatureCount; }
 #else
-ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureData() const noexcept {
-  return static_cast<const X86Inst::ISignature*>(nullptr);
-}
-ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureEnd() const noexcept {
-  return static_cast<const X86Inst::ISignature*>(nullptr);
-}
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureData() const noexcept { return static_cast<const X86Inst::ISignature*>(nullptr); }
+ASMJIT_INLINE const X86Inst::ISignature* X86Inst::CommonData::getISignatureEnd() const noexcept { return static_cast<const X86Inst::ISignature*>(nullptr); }
 #endif // ASMJIT_DISABLE_VALIDATION
 
 //! \}
