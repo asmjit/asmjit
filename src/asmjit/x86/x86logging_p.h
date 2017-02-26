@@ -8,19 +8,17 @@
 #ifndef _ASMJIT_X86_X86LOGGING_P_H
 #define _ASMJIT_X86_X86LOGGING_P_H
 
-#include "../asmjit_build.h"
-#if !defined(ASMJIT_DISABLE_LOGGING)
+#include "../core/build.h"
+#ifndef ASMJIT_DISABLE_LOGGING
 
 // [Dependencies]
-#include "../base/logging.h"
+#include "../core/logging.h"
+#include "../core/stringbuilder.h"
 #include "../x86/x86globals.h"
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
+ASMJIT_BEGIN_NAMESPACE
 
-namespace asmjit {
-
-//! \addtogroup asmjit_base
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -48,15 +46,12 @@ struct X86Logging {
     uint32_t logOptions,
     const CodeEmitter* emitter,
     uint32_t archType,
-    const Inst::Detail& detail, const Operand_* opArray, uint32_t opCount) noexcept;
+    const Inst::Detail& detail, const Operand_* operands, uint32_t count) noexcept;
 };
 
 //! \}
 
-} // asmjit namespace
-
-// [Api-End]
-#include "../asmjit_apiend.h"
+ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // !ASMJIT_DISABLE_LOGGING

@@ -11,13 +11,14 @@
 // [Dependencies]
 #include "../x86/x86inst.h"
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
-
-namespace asmjit {
+ASMJIT_BEGIN_NAMESPACE
 
 //! \addtogroup asmjit_x86
 //! \{
+
+// ============================================================================
+// [asmjit::X86InstImpl]
+// ============================================================================
 
 //! \internal
 //!
@@ -25,21 +26,16 @@ namespace asmjit {
 //!
 //! The purpose of `X86InstImpl` is to move most of the logic out of `X86Inst`.
 struct X86InstImpl {
-  #if !defined(ASMJIT_DISABLE_VALIDATION)
+#ifndef ASMJIT_DISABLE_INST_API
   static Error validate(uint32_t archType, const Inst::Detail& detail, const Operand_* operands, uint32_t count) noexcept;
-  #endif
-
-  #if !defined(ASMJIT_DISABLE_EXTENSIONS)
-  static Error checkFeatures(uint32_t archType, const Inst::Detail& detail, const Operand_* operands, uint32_t count, CpuFeatures& out) noexcept;
-  #endif
+  static Error queryRWInfo(uint32_t archType, const Inst::Detail& detail, const Operand_* operands, uint32_t count, Inst::IRWInfo& out) noexcept;
+  static Error queryCpuFeatures(uint32_t archType, const Inst::Detail& detail, const Operand_* operands, uint32_t count, CpuFeatures& out) noexcept;
+#endif
 };
 
 //! \}
 
-} // asmjit namespace
-
-// [Api-End]
-#include "../asmjit_apiend.h"
+ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_X86_X86INSTIMPL_P_H

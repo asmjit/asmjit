@@ -9,11 +9,12 @@
 #define _ASMJIT_ARM_H
 
 // [Dependencies]
-#include "./base.h"
+#include "./core.h"
 
 #include "./arm/armassembler.h"
 #include "./arm/armbuilder.h"
 #include "./arm/armcompiler.h"
+#include "./arm/armemitter.h"
 #include "./arm/arminst.h"
 #include "./arm/armoperand.h"
 

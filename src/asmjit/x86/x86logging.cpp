@@ -8,89 +8,89 @@
 #define ASMJIT_EXPORTS
 
 // [Guard]
-#include "../asmjit_build.h"
-#if !defined(ASMJIT_DISABLE_LOGGING)
+#include "../core/build.h"
+#ifndef ASMJIT_DISABLE_LOGGING
 
 // [Dependencies]
-#include "../base/misc_p.h"
+#include "../core/misc_p.h"
+#include "../core/stringutils.h"
+
 #include "../x86/x86inst.h"
 #include "../x86/x86logging_p.h"
 #include "../x86/x86operand.h"
 
-#if !defined(ASMJIT_DISABLE_COMPILER)
-#include "../base/codecompiler.h"
-#endif // !ASMJIT_DISABLE_COMPILER
+#ifndef ASMJIT_DISABLE_COMPILER
+  #include "../core/codecompiler.h"
+#endif
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
-
-namespace asmjit {
+ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
 // [asmjit::X86Logging - Constants]
 // ============================================================================
 
-struct X86RegFormatInfo {
-  uint8_t count;
-  uint8_t formatIndex;
-  uint8_t specialIndex;
-  uint8_t specialCount;
+struct RegFormatInfo {
+  struct TypeEntry {
+    uint8_t index;
+  };
+
+  struct NameEntry {
+    uint8_t count;
+    uint8_t formatIndex;
+    uint8_t specialIndex;
+    uint8_t specialCount;
+  };
+
+  TypeEntry typeEntries[Reg::kRegMax + 1];
+  char typeStrings[128 - 32];
+
+  NameEntry nameEntries[Reg::kRegMax + 1];
+  char nameStrings[280];
 };
-
-static const char x86RegFormatStrings[] =
-  "r%ub"  "\0" // #0
-  "r%uh"  "\0" // #5
-  "r%uw"  "\0" // #10
-  "r%ud"  "\0" // #15
-  "r%u"   "\0" // #20
-  "xmm%u" "\0" // #24
-  "ymm%u" "\0" // #30
-  "zmm%u" "\0" // #36
-  "rip%u" "\0" // #42
-  "seg%u" "\0" // #48
-  "fp%u"  "\0" // #54
-  "mm%u"  "\0" // #59
-  "k%u"   "\0" // #64
-  "bnd%u" "\0" // #68
-  "cr%u"  "\0" // #74
-  "dr%u"  "\0" // #79
-
-  "rip\0"      // #84
-  "\0\0\0\0"   // #88
-  "\0\0\0\0"   // #92
-
-  "al\0\0" "cl\0\0" "dl\0\0" "bl\0\0" "spl\0"  "bpl\0"  "sil\0"  "dil\0"  // #96
-  "ah\0\0" "ch\0\0" "dh\0\0" "bh\0\0" "n/a\0"  "n/a\0"  "n/a\0"  "n/a\0"  // #128
-  "eax\0"  "ecx\0"  "edx\0"  "ebx\0"  "esp\0"  "ebp\0"  "esi\0"  "edi\0"  // #160
-  "rax\0"  "rcx\0"  "rdx\0"  "rbx\0"  "rsp\0"  "rbp\0"  "rsi\0"  "rdi\0"  // #192
-  "n/a\0"  "es\0\0" "cs\0\0" "ss\0\0" "ds\0\0" "fs\0\0" "gs\0\0" "n/a\0"; // #224
 
 template<uint32_t X>
 struct X86RegFormatInfo_T {
   enum {
-    kFormatIndex  = X == X86Reg::kRegGpbLo ? 0   :
-                    X == X86Reg::kRegGpbHi ? 5   :
-                    X == X86Reg::kRegGpw   ? 10  :
-                    X == X86Reg::kRegGpd   ? 15  :
-                    X == X86Reg::kRegGpq   ? 20  :
-                    X == X86Reg::kRegXmm   ? 24  :
-                    X == X86Reg::kRegYmm   ? 30  :
-                    X == X86Reg::kRegZmm   ? 36  :
-                    X == X86Reg::kRegRip   ? 42  :
-                    X == X86Reg::kRegSeg   ? 48  :
-                    X == X86Reg::kRegFp    ? 54  :
-                    X == X86Reg::kRegMm    ? 59  :
-                    X == X86Reg::kRegK     ? 64  :
-                    X == X86Reg::kRegBnd   ? 68  :
-                    X == X86Reg::kRegCr    ? 74  :
-                    X == X86Reg::kRegDr    ? 79  : 0,
+    kTypeIndex    = X == X86Reg::kRegGpbLo ? 1   :
+                    X == X86Reg::kRegGpbHi ? 8   :
+                    X == X86Reg::kRegGpw   ? 15  :
+                    X == X86Reg::kRegGpd   ? 19  :
+                    X == X86Reg::kRegGpq   ? 23  :
+                    X == X86Reg::kRegXmm   ? 27  :
+                    X == X86Reg::kRegYmm   ? 31  :
+                    X == X86Reg::kRegZmm   ? 35  :
+                    X == X86Reg::kRegRip   ? 39  :
+                    X == X86Reg::kRegSeg   ? 43  :
+                    X == X86Reg::kRegFp    ? 47  :
+                    X == X86Reg::kRegMm    ? 50  :
+                    X == X86Reg::kRegK     ? 53  :
+                    X == X86Reg::kRegBnd   ? 55  :
+                    X == X86Reg::kRegCr    ? 59  :
+                    X == X86Reg::kRegDr    ? 62  : 0,
+
+    kFormatIndex  = X == X86Reg::kRegGpbLo ? 1   :
+                    X == X86Reg::kRegGpbHi ? 6   :
+                    X == X86Reg::kRegGpw   ? 11  :
+                    X == X86Reg::kRegGpd   ? 16  :
+                    X == X86Reg::kRegGpq   ? 21  :
+                    X == X86Reg::kRegXmm   ? 25  :
+                    X == X86Reg::kRegYmm   ? 31  :
+                    X == X86Reg::kRegZmm   ? 37  :
+                    X == X86Reg::kRegRip   ? 43  :
+                    X == X86Reg::kRegSeg   ? 49  :
+                    X == X86Reg::kRegFp    ? 55  :
+                    X == X86Reg::kRegMm    ? 60  :
+                    X == X86Reg::kRegK     ? 65  :
+                    X == X86Reg::kRegBnd   ? 69  :
+                    X == X86Reg::kRegCr    ? 75  :
+                    X == X86Reg::kRegDr    ? 80  : 0,
 
     kSpecialIndex = X == X86Reg::kRegGpbLo ? 96  :
                     X == X86Reg::kRegGpbHi ? 128 :
                     X == X86Reg::kRegGpw   ? 161 :
                     X == X86Reg::kRegGpd   ? 160 :
                     X == X86Reg::kRegGpq   ? 192 :
-                    X == X86Reg::kRegRip   ? 84  :
+                    X == X86Reg::kRegRip   ? 85  :
                     X == X86Reg::kRegSeg   ? 224 : 0,
 
     kSpecialCount = X == X86Reg::kRegGpbLo ? 8   :
@@ -103,17 +103,71 @@ struct X86RegFormatInfo_T {
   };
 };
 
-#define ASMJIT_X86_REG_FORMAT(TYPE) {      \
+#define ASMJIT_REG_TYPE_ENTRY(TYPE) {      \
+  X86RegFormatInfo_T<TYPE>::kTypeIndex     \
+}
+
+#define ASMJIT_REG_NAME_ENTRY(TYPE) {      \
   X86RegTraits<TYPE>::kCount,              \
   X86RegFormatInfo_T<TYPE>::kFormatIndex,  \
   X86RegFormatInfo_T<TYPE>::kSpecialIndex, \
   X86RegFormatInfo_T<TYPE>::kSpecialCount  \
 }
 
-static const X86RegFormatInfo x86RegFormatInfo[] = {
-  ASMJIT_TABLE_16(ASMJIT_X86_REG_FORMAT, 0 ),
-  ASMJIT_TABLE_16(ASMJIT_X86_REG_FORMAT, 16)
+static const RegFormatInfo x86RegFormatInfo = {
+  // Register type entries and strings.
+  { ASMJIT_TABLE_32(ASMJIT_REG_TYPE_ENTRY, 0) },
+
+  "\0"             // #0
+  "gpb.lo\0"       // #1
+  "gpb.hi\0"       // #8
+  "gpw\0"          // #15
+  "gpd\0"          // #19
+  "gpq\0"          // #23
+  "xmm\0"          // #27
+  "ymm\0"          // #31
+  "zmm\0"          // #35
+  "rip\0"          // #39
+  "seg\0"          // #43
+  "fp\0"           // #47
+  "mm\0"           // #50
+  "k\0"            // #53
+  "bnd\0"          // #55
+  "cr\0"           // #59
+  "dr\0",          // #62
+
+  // Register name entries and strings.
+  { ASMJIT_TABLE_32(ASMJIT_REG_NAME_ENTRY, 0) },
+
+  "\0"
+  "r%ub\0"         // #1
+  "r%uh\0"         // #6
+  "r%uw\0"         // #11
+  "r%ud\0"         // #16
+  "r%u\0"          // #21
+  "xmm%u\0"        // #25
+  "ymm%u\0"        // #31
+  "zmm%u\0"        // #37
+  "rip%u\0"        // #43
+  "seg%u\0"        // #49
+  "fp%u\0"         // #55
+  "mm%u\0"         // #60
+  "k%u\0"          // #65
+  "bnd%u\0"        // #69
+  "cr%u\0"         // #75
+  "dr%u\0"         // #80
+
+  "rip\0"          // #85
+  "\0\0\0\0\0\0\0" // #89
+
+  "al\0\0" "cl\0\0" "dl\0\0" "bl\0\0" "spl\0"  "bpl\0"  "sil\0"  "dil\0" // #96
+  "ah\0\0" "ch\0\0" "dh\0\0" "bh\0\0" "n/a\0"  "n/a\0"  "n/a\0"  "n/a\0" // #128
+  "eax\0"  "ecx\0"  "edx\0"  "ebx\0"  "esp\0"  "ebp\0"  "esi\0"  "edi\0" // #160
+  "rax\0"  "rcx\0"  "rdx\0"  "rbx\0"  "rsp\0"  "rbp\0"  "rsi\0"  "rdi\0" // #192
+  "n/a\0"  "es\0\0" "cs\0\0" "ss\0\0" "ds\0\0" "fs\0\0" "gs\0\0" "n/a\0" // #224
 };
+#undef ASMJIT_REG_NAME_ENTRY
+#undef ASMJIT_REG_TYPE_ENTRY
 
 static const char* x86GetAddressSizeString(uint32_t size) noexcept {
   switch (size) {
@@ -151,45 +205,54 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatOperand(
     // Segment override prefix.
     uint32_t seg = m.getSegmentId();
     if (seg != X86Seg::kIdNone && seg < X86Seg::kIdCount)
-      ASMJIT_PROPAGATE(sb.appendFormat("%s:", x86RegFormatStrings + 224 + seg * 4));
+      ASMJIT_PROPAGATE(sb.appendFormat("%s:", x86RegFormatInfo.nameStrings + 224 + seg * 4));
 
     ASMJIT_PROPAGATE(sb.appendChar('['));
     if (m.isAbs())
       ASMJIT_PROPAGATE(sb.appendString("abs "));
 
+    char opSign = '\0';
     if (m.hasBase()) {
+      opSign = '+';
       if (m.hasBaseLabel()) {
         ASMJIT_PROPAGATE(Logging::formatLabel(sb, logOptions, emitter, m.getBaseId()));
       }
       else {
-        if (m.isArgHome()) ASMJIT_PROPAGATE(sb.appendString("$"));
-        if (m.isRegHome()) ASMJIT_PROPAGATE(sb.appendString("&"));
-        ASMJIT_PROPAGATE(formatRegister(sb, logOptions, emitter, archType, m.getBaseType(), m.getBaseId()));
+        uint32_t opt = logOptions;
+        if (m.isRegHome()) {
+          ASMJIT_PROPAGATE(sb.appendString("&"));
+          opt &= ~Logger::kOptionRegCasts;
+        }
+        ASMJIT_PROPAGATE(formatRegister(sb, opt, emitter, archType, m.getBaseType(), m.getBaseId()));
       }
     }
 
     if (m.hasIndex()) {
-      ASMJIT_PROPAGATE(sb.appendChar('+'));
+      if (opSign)
+        ASMJIT_PROPAGATE(sb.appendChar(opSign));
+
+      opSign = '+';
       ASMJIT_PROPAGATE(formatRegister(sb, logOptions, emitter, archType, m.getIndexType(), m.getIndexId()));
       if (m.hasShift())
         ASMJIT_PROPAGATE(sb.appendFormat("*%u", 1 << m.getShift()));
     }
 
-    uint64_t off = static_cast<uint64_t>(m.getOffset());
+    uint64_t off = uint64_t(m.getOffset());
     if (off) {
-      uint32_t base = 10;
-      char prefix = '+';
-
-      if (static_cast<int64_t>(off) < 0) {
+      if (int64_t(off) < 0) {
+        opSign = '-';
         off = ~off + 1;
-        prefix = '-';
       }
 
-      ASMJIT_PROPAGATE(sb.appendChar(prefix));
-      if ((logOptions & Logger::kOptionHexDisplacement) != 0 && off > 9) {
+      if (opSign)
+        ASMJIT_PROPAGATE(sb.appendChar(opSign));
+
+      uint32_t base = 10;
+      if ((logOptions & Logger::kOptionHexOffsets) != 0 && off > 9) {
         ASMJIT_PROPAGATE(sb.appendString("0x", 2));
         base = 16;
       }
+
       ASMJIT_PROPAGATE(sb.appendUInt(off, base));
     }
 
@@ -200,8 +263,8 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatOperand(
     const Imm& i = op.as<Imm>();
     int64_t val = i.getInt64();
 
-    if ((logOptions & Logger::kOptionHexImmediate) != 0 && static_cast<uint64_t>(val) > 9)
-      return sb.appendUInt(static_cast<uint64_t>(val), 16);
+    if ((logOptions & Logger::kOptionHexConsts) != 0 && uint64_t(val) > 9)
+      return sb.appendUInt(uint64_t(val), 16);
     else
       return sb.appendInt(val, 10);
   }
@@ -217,30 +280,35 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatOperand(
 // [asmjit::X86Logging - Format Immediate (Extension)]
 // ============================================================================
 
+static constexpr char kImmCharStart = '{';
+static constexpr char kImmCharEnd   = '}';
+static constexpr char kImmCharOr    = '|';
+
 struct ImmBits {
-  enum Mode {
-    kModeLookup = 0x0,
-    kModeFormat = 0x1
+  enum Mode : uint32_t {
+    kModeLookup = 0,
+    kModeFormat = 1
   };
 
   uint8_t mask;
   uint8_t shift;
   uint8_t mode;
-  char text[45];
+  char text[48 - 3];
 };
 
 ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmShuf(StringBuilder& sb, uint32_t u8, uint32_t bits, uint32_t count) noexcept {
-  ASMJIT_PROPAGATE(sb.appendChar('<'));
   uint32_t mask = (1 << bits) - 1;
 
   for (uint32_t i = 0; i < count; i++, u8 >>= bits) {
     uint32_t value = u8 & mask;
-    if (i != 0)
-      ASMJIT_PROPAGATE(sb.appendChar('|'));
+    ASMJIT_PROPAGATE(sb.appendChar(i == 0 ? kImmCharStart : kImmCharOr));
     ASMJIT_PROPAGATE(sb.appendUInt(value));
   }
 
-  return sb.appendChar('>');
+  if (kImmCharEnd)
+    ASMJIT_PROPAGATE(sb.appendChar(kImmCharEnd));
+
+  return kErrorOk;
 }
 
 ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmBits(StringBuilder& sb, uint32_t u8, const ImmBits* bits, uint32_t count) noexcept {
@@ -250,16 +318,16 @@ ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmBits(StringBuilder& sb, uint3
   for (uint32_t i = 0; i < count; i++) {
     const ImmBits& spec = bits[i];
 
-    uint32_t value = (u8 & static_cast<uint32_t>(spec.mask)) >> spec.shift;
+    uint32_t value = (u8 & uint32_t(spec.mask)) >> spec.shift;
     const char* str = nullptr;
 
     switch (spec.mode) {
       case ImmBits::kModeLookup:
-        str = Utils::findPackedString(spec.text, value);
+        str = StringUtils::findPackedString(spec.text, value);
         break;
 
       case ImmBits::kModeFormat:
-        snprintf(buf, sizeof(buf), spec.text, static_cast<unsigned int>(value));
+        std::snprintf(buf, sizeof(buf), spec.text, unsigned(value));
         str = buf;
         break;
 
@@ -270,90 +338,106 @@ ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmBits(StringBuilder& sb, uint3
     if (!str[0])
       continue;
 
-    ASMJIT_PROPAGATE(sb.appendChar(++n == 1 ? '<' : '|'));
+    ASMJIT_PROPAGATE(sb.appendChar(++n == 1 ? kImmCharStart : kImmCharOr));
     ASMJIT_PROPAGATE(sb.appendString(str));
   }
 
-  return n ? sb.appendChar('>') : static_cast<Error>(kErrorOk);
+  if (n && kImmCharEnd)
+    ASMJIT_PROPAGATE(sb.appendChar(kImmCharEnd));
+
+  return kErrorOk;
 }
 
 ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmText(StringBuilder& sb, uint32_t u8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
-  ASMJIT_PROPAGATE(sb.appendChar('<'));
-
-  uint32_t mask = (1 << bits) - 1;
+  uint32_t mask = (1U << bits) - 1;
   uint32_t pos = 0;
 
   for (uint32_t i = 0; i < count; i++, u8 >>= bits, pos += advance) {
     uint32_t value = (u8 & mask) + pos;
-    if (i != 0)
-      ASMJIT_PROPAGATE(sb.appendChar('|'));
-    ASMJIT_PROPAGATE(sb.appendString(Utils::findPackedString(text, value)));
+    ASMJIT_PROPAGATE(sb.appendChar(i == 0 ? kImmCharStart : kImmCharOr));
+    ASMJIT_PROPAGATE(sb.appendString(StringUtils::findPackedString(text, value)));
   }
 
-  return sb.appendChar('>');
+  if (kImmCharEnd)
+    ASMJIT_PROPAGATE(sb.appendChar(kImmCharEnd));
+
+  return kErrorOk;
 }
 
-ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmExtended(
+ASMJIT_FAVOR_SIZE static Error X86Logging_explainConst(
   StringBuilder& sb,
   uint32_t logOptions,
   uint32_t instId,
   uint32_t vecSize,
   const Imm& imm) noexcept {
 
+  ASMJIT_UNUSED(logOptions);
+
   static const char vcmpx[] =
-    "eq_oq\0" "lt_os\0"  "le_os\0"  "unord_q\0"  "neq_uq\0" "nlt_us\0" "nle_us\0" "ord_q\0"
-    "eq_uq\0" "nge_us\0" "ngt_us\0" "false_oq\0" "neq_oq\0" "ge_os\0"  "gt_os\0"  "true_uq\0"
-    "eq_os\0" "lt_oq\0"  "le_oq\0"  "unord_s\0"  "neq_us\0" "nlt_uq\0" "nle_uq\0" "ord_s\0"
-    "eq_us\0" "nge_uq\0" "ngt_uq\0" "false_os\0" "neq_os\0" "ge_oq\0"  "gt_oq\0"  "true_us\0";
+    "EQ_OQ\0" "LT_OS\0"  "LE_OS\0"  "UNORD_Q\0"  "NEQ_UQ\0" "NLT_US\0" "NLE_US\0" "ORD_Q\0"
+    "EQ_UQ\0" "NGE_US\0" "NGT_US\0" "FALSE_OQ\0" "NEQ_OQ\0" "GE_OS\0"  "GT_OS\0"  "TRUE_UQ\0"
+    "EQ_OS\0" "LT_OQ\0"  "LE_OQ\0"  "UNORD_S\0"  "NEQ_US\0" "NLT_UQ\0" "NLE_UQ\0" "ORD_S\0"
+    "EQ_US\0" "NGE_UQ\0" "NGT_UQ\0" "FALSE_OS\0" "NEQ_OS\0" "GE_OQ\0"  "GT_OQ\0"  "TRUE_US\0";
 
-  // Try to find 7 differences...
-  static const char vpcmpx[] = "eq\0" "lt\0" "le\0" "false\0" "neq\0" "ge\0"  "gt\0"    "true\0";
-  static const char vpcomx[] = "lt\0" "le\0" "gt\0" "ge\0"    "eq\0"  "neq\0" "false\0" "true\0";
+  // Why to make it compatible...
+  static const char vpcmpx[] = "EQ\0" "LT\0" "LE\0" "FALSE\0" "NEQ\0" "GE\0"  "GT\0"    "TRUE\0";
+  static const char vpcomx[] = "LT\0" "LE\0" "GT\0" "GE\0"    "EQ\0"  "NEQ\0" "FALSE\0" "TRUE\0";
 
-  static const char vshufpd[] = "a0\0a1\0b0\0b1\0a2\0a3\0b2\0b3\0a4\0a5\0b4\0b5\0a6\0a7\0b6\0b7\0";
-  static const char vshufps[] = "a0\0a1\0a2\0a3\0a0\0a1\0a2\0a3\0b0\0b1\0b2\0b3\0b0\0b1\0b2\0b3\0";
+  static const char vshufpd[] = "A0\0A1\0B0\0B1\0A2\0A3\0B2\0B3\0A4\0A5\0B4\0B5\0A6\0A7\0B6\0B7\0";
+  static const char vshufps[] = "A0\0A1\0A2\0A3\0A0\0A1\0A2\0A3\0B0\0B1\0B2\0B3\0B0\0B1\0B2\0B3\0";
 
   static const ImmBits vfpclassxx[] = {
-    { 0x07, 0, ImmBits::kModeLookup, "qnan\0" "+0\0" "-0\0" "+inf\0" "-inf\0" "denormal\0" "-finite\0" "snan\0" }
+    { 0x07U, 0, ImmBits::kModeLookup, "QNAN\0" "+0\0" "-0\0" "+INF\0" "-INF\0" "DENORMAL\0" "-FINITE\0" "SNAN\0" }
+  };
+
+  static const ImmBits vfixupimmxx[] = {
+    { 0x01U, 0, ImmBits::kModeLookup, "\0" "+INF_IE\0" },
+    { 0x02U, 1, ImmBits::kModeLookup, "\0" "-VE_IE\0"  },
+    { 0x04U, 2, ImmBits::kModeLookup, "\0" "-INF_IE\0" },
+    { 0x08U, 3, ImmBits::kModeLookup, "\0" "SNAN_IE\0" },
+    { 0x10U, 4, ImmBits::kModeLookup, "\0" "ONE_IE\0"  },
+    { 0x20U, 5, ImmBits::kModeLookup, "\0" "ONE_ZE\0"  },
+    { 0x40U, 6, ImmBits::kModeLookup, "\0" "ZERO_IE\0" },
+    { 0x80U, 7, ImmBits::kModeLookup, "\0" "ZERO_ZE\0" }
   };
 
   static const ImmBits vgetmantxx[] = {
-    { 0x03, 0, ImmBits::kModeLookup, "[1, 2)\0" "[1/2, 2)\0" "1/2, 1)\0" "[3/4, 3/2)\0" },
-    { 0x04, 2, ImmBits::kModeLookup, "\0" "no-sign\0" },
-    { 0x08, 3, ImmBits::kModeLookup, "\0" "qnan-if-sign\0" }
+    { 0x03U, 0, ImmBits::kModeLookup, "[1, 2)\0" "[.5, 2)\0" "[.5, 1)\0" "[.75, 1.5)\0" },
+    { 0x04U, 2, ImmBits::kModeLookup, "\0" "NO_SIGN\0" },
+    { 0x08U, 3, ImmBits::kModeLookup, "\0" "QNAN_IF_SIGN\0" }
   };
 
   static const ImmBits vmpsadbw[] = {
-    { 0x04, 2, ImmBits::kModeLookup, "blk1[0]\0" "blk1[1]\0" },
-    { 0x03, 0, ImmBits::kModeLookup, "blk2[0]\0" "blk2[1]\0" "blk2[2]\0" "blk2[3]\0" },
-    { 0x40, 6, ImmBits::kModeLookup, "blk1[4]\0" "blk1[5]\0" },
-    { 0x30, 4, ImmBits::kModeLookup, "blk2[4]\0" "blk2[5]\0" "blk2[6]\0" "blk2[7]\0" }
+    { 0x04U, 2, ImmBits::kModeLookup, "BLK1[0]\0" "BLK1[1]\0" },
+    { 0x03U, 0, ImmBits::kModeLookup, "BLK2[0]\0" "BLK2[1]\0" "BLK2[2]\0" "BLK2[3]\0" },
+    { 0x40U, 6, ImmBits::kModeLookup, "BLK1[4]\0" "BLK1[5]\0" },
+    { 0x30U, 4, ImmBits::kModeLookup, "BLK2[4]\0" "BLK2[5]\0" "BLK2[6]\0" "BLK2[7]\0" }
   };
 
   static const ImmBits vpclmulqdq[] = {
-    { 0x01, 0, ImmBits::kModeLookup, "lq\0" "hq\0" },
-    { 0x10, 4, ImmBits::kModeLookup, "lq\0" "hq\0" }
+    { 0x01U, 0, ImmBits::kModeLookup, "LQ\0" "HQ\0" },
+    { 0x10U, 4, ImmBits::kModeLookup, "LQ\0" "HQ\0" }
   };
 
   static const ImmBits vperm2x128[] = {
-    { 0x0B, 0, ImmBits::kModeLookup, "a0\0" "a1\0" "b0\0" "b1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" },
-    { 0xB0, 4, ImmBits::kModeLookup, "a0\0" "a1\0" "b0\0" "b1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" }
+    { 0x0BU, 0, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" },
+    { 0xB0U, 4, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" }
   };
 
   static const ImmBits vrangexx[] = {
-    { 0x03, 0, ImmBits::kModeLookup, "min\0" "max\0" "min-abs\0" "max-abs\0" },
-    { 0x0C, 2, ImmBits::kModeLookup, "sign=src1\0" "sign=src2\0" "sign=0\0" "sign=1\0" }
+    { 0x03U, 0, ImmBits::kModeLookup, "MIN\0" "MAX\0" "MIN_ABS\0" "MAX_ABS\0" },
+    { 0x0CU, 2, ImmBits::kModeLookup, "SIGN_A\0" "SIGN_B\0" "SIGN_0\0" "SIGN_1\0" }
   };
 
   static const ImmBits vreducexx_vrndscalexx[] = {
-    { 0x07, 0, ImmBits::kModeLookup, "\0" "\0" "\0" "\0" "round\0" "floor\0" "ceil\0" "truncate\0" },
-    { 0x08, 3, ImmBits::kModeLookup, "\0" "suppress\0" },
-    { 0xF0, 4, ImmBits::kModeFormat, "len=%d" }
+    { 0x07U, 0, ImmBits::kModeLookup, "\0" "\0" "\0" "\0" "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" },
+    { 0x08U, 3, ImmBits::kModeLookup, "\0" "SAE\0" },
+    { 0xF0U, 4, ImmBits::kModeFormat, "LEN=%d" }
   };
 
   static const ImmBits vroundxx[] = {
-    { 0x07, 0, ImmBits::kModeLookup, "round\0" "floor\0" "ceil\0" "truncate\0" "\0" "\0" "\0" "\0" },
-    { 0x08, 3, ImmBits::kModeLookup, "\0" "inexact\0" }
+    { 0x07U, 0, ImmBits::kModeLookup, "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" "\0" "\0" "\0" "\0" },
+    { 0x08U, 3, ImmBits::kModeLookup, "\0" "INEXACT\0" }
   };
 
   uint32_t u8 = imm.getUInt8();
@@ -444,12 +528,11 @@ ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmExtended(
     case X86Inst::kIdPshufw:
       return X86Logging_formatImmShuf(sb, u8, 2, 4);
 
-    // TODO: Maybe?
     case X86Inst::kIdVfixupimmpd:
     case X86Inst::kIdVfixupimmps:
     case X86Inst::kIdVfixupimmsd:
     case X86Inst::kIdVfixupimmss:
-      return kErrorOk;
+      return X86Logging_formatImmBits(sb, u8, vfixupimmxx, ASMJIT_ARRAY_SIZE(vfixupimmxx));
 
     case X86Inst::kIdVfpclasspd:
     case X86Inst::kIdVfpclassps:
@@ -471,7 +554,7 @@ ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmExtended(
     case X86Inst::kIdVpcmpud:
     case X86Inst::kIdVpcmpuq:
     case X86Inst::kIdVpcmpuw:
-      return X86Logging_formatImmText(sb, u8, 2, 4, vpcmpx, 4);
+      return X86Logging_formatImmText(sb, u8, 3, 0, vpcmpx);
 
     case X86Inst::kIdVpcomb:
     case X86Inst::kIdVpcomd:
@@ -481,7 +564,7 @@ ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmExtended(
     case X86Inst::kIdVpcomud:
     case X86Inst::kIdVpcomuq:
     case X86Inst::kIdVpcomuw:
-      return X86Logging_formatImmText(sb, u8, 2, 4, vpcomx, 4);
+      return X86Logging_formatImmText(sb, u8, 3, 0, vpcomx);
 
     case X86Inst::kIdVpermq:
     case X86Inst::kIdVpermpd:
@@ -511,8 +594,8 @@ ASMJIT_FAVOR_SIZE static Error X86Logging_formatImmExtended(
     case X86Inst::kIdVshuff64x2:
     case X86Inst::kIdVshufi32x4:
     case X86Inst::kIdVshufi64x2: {
-      uint32_t count = std::max<uint32_t>(vecSize / 16, 2);
-      uint32_t bits = count <= 2 ? 1 : 2;
+      uint32_t count = std::max<uint32_t>(vecSize / 16, 2U);
+      uint32_t bits = count <= 2 ? 1U : 2U;
       return X86Logging_formatImmShuf(sb, u8, bits, count);
     }
 
@@ -533,42 +616,52 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatRegister(
   uint32_t rType,
   uint32_t rId) noexcept {
 
-  ASMJIT_UNUSED(logOptions);
   ASMJIT_UNUSED(archType);
+  const RegFormatInfo& info = x86RegFormatInfo;
 
+#ifndef ASMJIT_DISABLE_COMPILER
   if (Operand::isPackedId(rId)) {
-#if !defined(ASMJIT_DISABLE_COMPILER)
-    if (emitter && emitter->getType() == CodeEmitter::kTypeCompiler) {
+    if (emitter && emitter->getEmitterType() == CodeEmitter::kTypeCompiler) {
       const CodeCompiler* cc = static_cast<const CodeCompiler*>(emitter);
-
-      if (cc->isVirtRegValid(rId)) {
+      if (cc->isVirtIdValid(rId)) {
         VirtReg* vReg = cc->getVirtRegById(rId);
         ASMJIT_ASSERT(vReg != nullptr);
 
         const char* name = vReg->getName();
         if (name && name[0] != '\0')
-          return sb.appendString(name);
+          ASMJIT_PROPAGATE(sb.appendString(name));
         else
-          return sb.appendFormat("v%u", static_cast<unsigned int>(Operand::unpackId(rId)));
+          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::unpackId(rId))));
+
+        if (vReg->getType() != rType && rType <= Reg::kRegMax && (logOptions & Logger::kOptionRegCasts) != 0) {
+          const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[rType];
+          if (typeEntry.index)
+            ASMJIT_PROPAGATE(sb.appendFormat("@%s", info.typeStrings + typeEntry.index));
+        }
+
+        return kErrorOk;
       }
     }
-#endif // !ASMJIT_DISABLE_COMPILER
-
-    return sb.appendFormat("VirtReg<Type=%u Id=%u>", rType, rId);
   }
-  else {
-    if (rType < ASMJIT_ARRAY_SIZE(x86RegFormatInfo)) {
-      const X86RegFormatInfo& rfi = x86RegFormatInfo[rType];
+#else
+  ASMJIT_UNUSED(logOptions);
+#endif
 
-      if (rId < rfi.specialCount)
-        return sb.appendString(x86RegFormatStrings + rfi.specialIndex + rId * 4);
+  if (ASMJIT_LIKELY(rType <= Reg::kRegMax)) {
+    const RegFormatInfo::NameEntry& nameEntry = info.nameEntries[rType];
 
-      if (rId < rfi.count)
-        return sb.appendFormat(x86RegFormatStrings + rfi.formatIndex, static_cast<unsigned int>(rId));
-    }
+    if (rId < nameEntry.specialCount)
+      return sb.appendString(info.nameStrings + nameEntry.specialIndex + rId * 4);
 
-    return sb.appendFormat("PhysReg<Type=%u Id=%u>", rType, rId);
+    if (rId < nameEntry.count)
+      return sb.appendFormat(info.nameStrings + nameEntry.formatIndex, unsigned(rId));
+
+    const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[rType];
+    if (typeEntry.index)
+      return sb.appendFormat("%s@%u", info.typeStrings + typeEntry.index, rId);
   }
+
+  return sb.appendFormat("Reg?%u@%u", rType, rId);
 }
 
 // ============================================================================
@@ -580,7 +673,7 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
   uint32_t logOptions,
   const CodeEmitter* emitter,
   uint32_t archType,
-  const Inst::Detail& detail, const Operand_* opArray, uint32_t opCount) noexcept {
+  const Inst::Detail& detail, const Operand_* operands, uint32_t count) noexcept {
 
   uint32_t instId = detail.instId;
   uint32_t options = detail.options;
@@ -599,7 +692,7 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
     if (options & X86Inst::kOptionLock) ASMJIT_PROPAGATE(sb.appendString("lock "));
 
     // REP|REPNZ options.
-    if (options & (X86Inst::kOptionRep | X86Inst::kOptionRepnz)) {
+    if (options & (X86Inst::kOptionRep | X86Inst::kOptionRepne)) {
       sb.appendString((options & X86Inst::kOptionRep) ? "rep " : "repnz ");
       if (detail.hasExtraReg()) {
         ASMJIT_PROPAGATE(sb.appendChar('{'));
@@ -634,27 +727,27 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
     ASMJIT_PROPAGATE(sb.appendString(instInfo.getName()));
   }
   else {
-    ASMJIT_PROPAGATE(sb.appendFormat("<unknown id=#%u>", static_cast<unsigned int>(instId)));
+    ASMJIT_PROPAGATE(sb.appendFormat("[InstId=#%u]", unsigned(instId)));
   }
 
-  for (uint32_t i = 0; i < opCount; i++) {
-    const Operand_& op = opArray[i];
+  for (uint32_t i = 0; i < count; i++) {
+    const Operand_& op = operands[i];
     if (op.isNone()) break;
 
     ASMJIT_PROPAGATE(sb.appendString(i == 0 ? " " : ", "));
     ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, op));
 
-    if (op.isImm() && (logOptions & Logger::kOptionImmExtended)) {
+    if (op.isImm() && (logOptions & Logger::kOptionExplainConsts)) {
       uint32_t vecSize = 16;
-      for (uint32_t j = 0; j < opCount; j++)
-        if (opArray[j].isReg())
-          vecSize = std::max<uint32_t>(vecSize, opArray[j].getSize());
-      ASMJIT_PROPAGATE(X86Logging_formatImmExtended(sb, logOptions, instId, vecSize, op.as<Imm>()));
+      for (uint32_t j = 0; j < count; j++)
+        if (operands[j].isReg())
+          vecSize = std::max<uint32_t>(vecSize, operands[j].getSize());
+      ASMJIT_PROPAGATE(X86Logging_explainConst(sb, logOptions, instId, vecSize, op.as<Imm>()));
     }
 
     // Support AVX-512 {k}{z}.
     if (i == 0) {
-      if (detail.extraReg.getKind() == X86Reg::kKindK) {
+      if (detail.extraReg.getGroup() == X86Reg::kGroupK) {
         ASMJIT_PROPAGATE(sb.appendString(" {"));
         ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, detail.extraReg.toReg<Reg>()));
         ASMJIT_PROPAGATE(sb.appendChar('}'));
@@ -675,10 +768,7 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
   return kErrorOk;
 }
 
-} // asmjit namespace
-
-// [Api-End]
-#include "../asmjit_apiend.h"
+ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // !ASMJIT_DISABLE_LOGGING

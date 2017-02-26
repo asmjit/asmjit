@@ -8,16 +8,14 @@
 #define ASMJIT_EXPORTS
 
 // [Guard]
-#include "../asmjit_build.h"
+#include "../core/build.h"
 #if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_DISABLE_COMPILER)
 
 // [Dependencies]
+#include "../x86/x86assembler.h"
 #include "../x86/x86builder.h"
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
-
-namespace asmjit {
+ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
 // [asmjit::X86Builder - Construction / Destruction]
@@ -30,6 +28,17 @@ X86Builder::X86Builder(CodeHolder* code) noexcept : CodeBuilder() {
 X86Builder::~X86Builder() noexcept {}
 
 // ============================================================================
+// [asmjit::X86Builder - Finalize]
+// ============================================================================
+
+Error X86Builder::finalize() {
+  ASMJIT_PROPAGATE(runPasses());
+
+  X86Assembler a(_code);
+  return serialize(&a);
+}
+
+// ============================================================================
 // [asmjit::X86Builder - Events]
 // ============================================================================
 
@@ -40,27 +49,11 @@ Error X86Builder::onAttach(CodeHolder* code) noexcept {
 
   ASMJIT_PROPAGATE(Base::onAttach(code));
 
-  if (archType == ArchInfo::kTypeX86)
-    _nativeGpArray = x86OpData.gpd;
-  else
-    _nativeGpArray = x86OpData.gpq;
-  _nativeGpReg = _nativeGpArray[0];
+  _gpRegInfo.setSignature(archType == ArchInfo::kTypeX86 ? uint32_t(X86Gpd::kSignature) : uint32_t(X86Gpq::kSignature));
   return kErrorOk;
 }
 
-// ============================================================================
-// [asmjit::X86Builder - Inst]
-// ============================================================================
-
-Error X86Builder::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
-  // TODO:
-  return kErrorOk;
-}
-
-} // asmjit namespace
-
-// [Api-End]
-#include "../asmjit_apiend.h"
+ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 && !ASMJIT_DISABLE_COMPILER

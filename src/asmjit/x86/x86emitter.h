@@ -9,14 +9,12 @@
 #define _ASMJIT_X86_X86EMITTER_H
 
 // [Dependencies]
-#include "../base/codeemitter.h"
+#include "../core/codeemitter.h"
+#include "../core/intutils.h"
 #include "../x86/x86inst.h"
 #include "../x86/x86operand.h"
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
-
-namespace asmjit {
+ASMJIT_BEGIN_NAMESPACE
 
 //! \addtogroup asmjit_x86
 //! \{
@@ -25,139 +23,135 @@ namespace asmjit {
 // [asmjit::X86EmitterExplicitT]
 // ============================================================================
 
-#define ASMJIT_EMIT static_cast<This*>(this)->emit
-
 #define ASMJIT_INST_0x(NAME, ID) \
-  ASMJIT_INLINE Error NAME() { return ASMJIT_EMIT(X86Inst::kId##ID); }
+  inline Error NAME() { return _emitter()->emit(X86Inst::kId##ID); }
 
 #define ASMJIT_INST_1x(NAME, ID, T0) \
-  ASMJIT_INLINE Error NAME(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID, o0); }
+  inline Error NAME(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID, o0); }
 
 #define ASMJIT_INST_1i(NAME, ID, T0) \
-  ASMJIT_INLINE Error NAME(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID, o0); } \
-  ASMJIT_INLINE Error NAME(int o0) { return ASMJIT_EMIT(X86Inst::kId##ID, Utils::asInt(o0)); } \
-  ASMJIT_INLINE Error NAME(unsigned int o0) { return ASMJIT_EMIT(X86Inst::kId##ID, Utils::asInt(o0)); } \
-  ASMJIT_INLINE Error NAME(int64_t o0) { return ASMJIT_EMIT(X86Inst::kId##ID, Utils::asInt(o0)); } \
-  ASMJIT_INLINE Error NAME(uint64_t o0) { return ASMJIT_EMIT(X86Inst::kId##ID, Utils::asInt(o0)); }
+  inline Error NAME(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID, o0); } \
+  inline Error NAME(int o0) { return _emitter()->emit(X86Inst::kId##ID, IntUtils::asInt(o0)); } \
+  inline Error NAME(unsigned int o0) { return _emitter()->emit(X86Inst::kId##ID, IntUtils::asInt(o0)); } \
+  inline Error NAME(int64_t o0) { return _emitter()->emit(X86Inst::kId##ID, IntUtils::asInt(o0)); } \
+  inline Error NAME(uint64_t o0) { return _emitter()->emit(X86Inst::kId##ID, IntUtils::asInt(o0)); }
 
 #define ASMJIT_INST_1c(NAME, ID, CONV, T0) \
-  ASMJIT_INLINE Error NAME(uint32_t cc, const T0& o0) { return ASMJIT_EMIT(CONV(cc), o0); } \
-  ASMJIT_INLINE Error NAME##a(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##a, o0); } \
-  ASMJIT_INLINE Error NAME##ae(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##ae, o0); } \
-  ASMJIT_INLINE Error NAME##b(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##b, o0); } \
-  ASMJIT_INLINE Error NAME##be(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##be, o0); } \
-  ASMJIT_INLINE Error NAME##c(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##c, o0); } \
-  ASMJIT_INLINE Error NAME##e(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##e, o0); } \
-  ASMJIT_INLINE Error NAME##g(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##g, o0); } \
-  ASMJIT_INLINE Error NAME##ge(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##ge, o0); } \
-  ASMJIT_INLINE Error NAME##l(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##l, o0); } \
-  ASMJIT_INLINE Error NAME##le(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##le, o0); } \
-  ASMJIT_INLINE Error NAME##na(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##na, o0); } \
-  ASMJIT_INLINE Error NAME##nae(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nae, o0); } \
-  ASMJIT_INLINE Error NAME##nb(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nb, o0); } \
-  ASMJIT_INLINE Error NAME##nbe(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nbe, o0); } \
-  ASMJIT_INLINE Error NAME##nc(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nc, o0); } \
-  ASMJIT_INLINE Error NAME##ne(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##ne, o0); } \
-  ASMJIT_INLINE Error NAME##ng(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##ng, o0); } \
-  ASMJIT_INLINE Error NAME##nge(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nge, o0); } \
-  ASMJIT_INLINE Error NAME##nl(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nl, o0); } \
-  ASMJIT_INLINE Error NAME##nle(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nle, o0); } \
-  ASMJIT_INLINE Error NAME##no(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##no, o0); } \
-  ASMJIT_INLINE Error NAME##np(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##np, o0); } \
-  ASMJIT_INLINE Error NAME##ns(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##ns, o0); } \
-  ASMJIT_INLINE Error NAME##nz(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##nz, o0); } \
-  ASMJIT_INLINE Error NAME##o(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##o, o0); } \
-  ASMJIT_INLINE Error NAME##p(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##p, o0); } \
-  ASMJIT_INLINE Error NAME##pe(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##pe, o0); } \
-  ASMJIT_INLINE Error NAME##po(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##po, o0); } \
-  ASMJIT_INLINE Error NAME##s(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##s, o0); } \
-  ASMJIT_INLINE Error NAME##z(const T0& o0) { return ASMJIT_EMIT(X86Inst::kId##ID##z, o0); }
+  inline Error NAME(uint32_t cc, const T0& o0) { return _emitter()->emit(CONV(cc), o0); } \
+  inline Error NAME##a(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##a, o0); } \
+  inline Error NAME##ae(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##ae, o0); } \
+  inline Error NAME##b(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##b, o0); } \
+  inline Error NAME##be(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##be, o0); } \
+  inline Error NAME##c(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##c, o0); } \
+  inline Error NAME##e(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##e, o0); } \
+  inline Error NAME##g(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##g, o0); } \
+  inline Error NAME##ge(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##ge, o0); } \
+  inline Error NAME##l(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##l, o0); } \
+  inline Error NAME##le(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##le, o0); } \
+  inline Error NAME##na(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##na, o0); } \
+  inline Error NAME##nae(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nae, o0); } \
+  inline Error NAME##nb(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nb, o0); } \
+  inline Error NAME##nbe(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nbe, o0); } \
+  inline Error NAME##nc(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nc, o0); } \
+  inline Error NAME##ne(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##ne, o0); } \
+  inline Error NAME##ng(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##ng, o0); } \
+  inline Error NAME##nge(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nge, o0); } \
+  inline Error NAME##nl(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nl, o0); } \
+  inline Error NAME##nle(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nle, o0); } \
+  inline Error NAME##no(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##no, o0); } \
+  inline Error NAME##np(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##np, o0); } \
+  inline Error NAME##ns(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##ns, o0); } \
+  inline Error NAME##nz(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##nz, o0); } \
+  inline Error NAME##o(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##o, o0); } \
+  inline Error NAME##p(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##p, o0); } \
+  inline Error NAME##pe(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##pe, o0); } \
+  inline Error NAME##po(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##po, o0); } \
+  inline Error NAME##s(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##s, o0); } \
+  inline Error NAME##z(const T0& o0) { return _emitter()->emit(X86Inst::kId##ID##z, o0); }
 
 #define ASMJIT_INST_2x(NAME, ID, T0, T1) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1) { \
-    return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1); \
-  }
+  inline Error NAME(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID, o0, o1); }
 
 #define ASMJIT_INST_2i(NAME, ID, T0, T1) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, int o1) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, Utils::asInt(o1)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, unsigned int o1) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, Utils::asInt(o1)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, int64_t o1) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, Utils::asInt(o1)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, uint64_t o1) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, Utils::asInt(o1)); }
+  inline Error NAME(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID, o0, o1); } \
+  inline Error NAME(const T0& o0, int o1) { return _emitter()->emit(X86Inst::kId##ID, o0, IntUtils::asInt(o1)); } \
+  inline Error NAME(const T0& o0, unsigned int o1) { return _emitter()->emit(X86Inst::kId##ID, o0, IntUtils::asInt(o1)); } \
+  inline Error NAME(const T0& o0, int64_t o1) { return _emitter()->emit(X86Inst::kId##ID, o0, IntUtils::asInt(o1)); } \
+  inline Error NAME(const T0& o0, uint64_t o1) { return _emitter()->emit(X86Inst::kId##ID, o0, IntUtils::asInt(o1)); }
 
 #define ASMJIT_INST_2c(NAME, ID, CONV, T0, T1) \
-  ASMJIT_INLINE Error NAME(uint32_t cc, const T0& o0, const T1& o1) { return ASMJIT_EMIT(CONV(cc), o0, o1); } \
-  ASMJIT_INLINE Error NAME##a(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##a, o0, o1); } \
-  ASMJIT_INLINE Error NAME##ae(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##ae, o0, o1); } \
-  ASMJIT_INLINE Error NAME##b(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##b, o0, o1); } \
-  ASMJIT_INLINE Error NAME##be(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##be, o0, o1); } \
-  ASMJIT_INLINE Error NAME##c(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##c, o0, o1); } \
-  ASMJIT_INLINE Error NAME##e(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##e, o0, o1); } \
-  ASMJIT_INLINE Error NAME##g(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##g, o0, o1); } \
-  ASMJIT_INLINE Error NAME##ge(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##ge, o0, o1); } \
-  ASMJIT_INLINE Error NAME##l(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##l, o0, o1); } \
-  ASMJIT_INLINE Error NAME##le(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##le, o0, o1); } \
-  ASMJIT_INLINE Error NAME##na(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##na, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nae(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nae, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nb(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nb, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nbe(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nbe, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nc(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nc, o0, o1); } \
-  ASMJIT_INLINE Error NAME##ne(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##ne, o0, o1); } \
-  ASMJIT_INLINE Error NAME##ng(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##ng, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nge(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nge, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nl(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nl, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nle(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nle, o0, o1); } \
-  ASMJIT_INLINE Error NAME##no(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##no, o0, o1); } \
-  ASMJIT_INLINE Error NAME##np(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##np, o0, o1); } \
-  ASMJIT_INLINE Error NAME##ns(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##ns, o0, o1); } \
-  ASMJIT_INLINE Error NAME##nz(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##nz, o0, o1); } \
-  ASMJIT_INLINE Error NAME##o(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##o, o0, o1); } \
-  ASMJIT_INLINE Error NAME##p(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##p, o0, o1); } \
-  ASMJIT_INLINE Error NAME##pe(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##pe, o0, o1); } \
-  ASMJIT_INLINE Error NAME##po(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##po, o0, o1); } \
-  ASMJIT_INLINE Error NAME##s(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##s, o0, o1); } \
-  ASMJIT_INLINE Error NAME##z(const T0& o0, const T1& o1) { return ASMJIT_EMIT(X86Inst::kId##ID##z, o0, o1); }
+  inline Error NAME(uint32_t cc, const T0& o0, const T1& o1) { return _emitter()->emit(CONV(cc), o0, o1); } \
+  inline Error NAME##a(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##a, o0, o1); } \
+  inline Error NAME##ae(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##ae, o0, o1); } \
+  inline Error NAME##b(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##b, o0, o1); } \
+  inline Error NAME##be(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##be, o0, o1); } \
+  inline Error NAME##c(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##c, o0, o1); } \
+  inline Error NAME##e(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##e, o0, o1); } \
+  inline Error NAME##g(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##g, o0, o1); } \
+  inline Error NAME##ge(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##ge, o0, o1); } \
+  inline Error NAME##l(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##l, o0, o1); } \
+  inline Error NAME##le(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##le, o0, o1); } \
+  inline Error NAME##na(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##na, o0, o1); } \
+  inline Error NAME##nae(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nae, o0, o1); } \
+  inline Error NAME##nb(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nb, o0, o1); } \
+  inline Error NAME##nbe(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nbe, o0, o1); } \
+  inline Error NAME##nc(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nc, o0, o1); } \
+  inline Error NAME##ne(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##ne, o0, o1); } \
+  inline Error NAME##ng(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##ng, o0, o1); } \
+  inline Error NAME##nge(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nge, o0, o1); } \
+  inline Error NAME##nl(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nl, o0, o1); } \
+  inline Error NAME##nle(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nle, o0, o1); } \
+  inline Error NAME##no(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##no, o0, o1); } \
+  inline Error NAME##np(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##np, o0, o1); } \
+  inline Error NAME##ns(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##ns, o0, o1); } \
+  inline Error NAME##nz(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##nz, o0, o1); } \
+  inline Error NAME##o(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##o, o0, o1); } \
+  inline Error NAME##p(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##p, o0, o1); } \
+  inline Error NAME##pe(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##pe, o0, o1); } \
+  inline Error NAME##po(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##po, o0, o1); } \
+  inline Error NAME##s(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##s, o0, o1); } \
+  inline Error NAME##z(const T0& o0, const T1& o1) { return _emitter()->emit(X86Inst::kId##ID##z, o0, o1); }
 
 #define ASMJIT_INST_3x(NAME, ID, T0, T1, T2) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2); }
 
 #define ASMJIT_INST_3i(NAME, ID, T0, T1, T2) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, int o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, Utils::asInt(o2)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, unsigned int o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, Utils::asInt(o2)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, int64_t o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, Utils::asInt(o2)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, uint64_t o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, Utils::asInt(o2)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2); } \
+  inline Error NAME(const T0& o0, const T1& o1, int o2) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); } \
+  inline Error NAME(const T0& o0, const T1& o1, unsigned int o2) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); } \
+  inline Error NAME(const T0& o0, const T1& o1, int64_t o2) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); } \
+  inline Error NAME(const T0& o0, const T1& o1, uint64_t o2) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); }
 
 #define ASMJIT_INST_3ii(NAME, ID, T0, T1, T2) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, int o1, int o2) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, Imm(o1), Utils::asInt(o2)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2); } \
+  inline Error NAME(const T0& o0, int o1, int o2) { return _emitter()->emit(X86Inst::kId##ID, o0, Imm(o1), IntUtils::asInt(o2)); }
 
 #define ASMJIT_INST_4x(NAME, ID, T0, T1, T2, T3) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3); }
 
 #define ASMJIT_INST_4i(NAME, ID, T0, T1, T2, T3) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, int o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, Utils::asInt(o3)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, unsigned int o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, Utils::asInt(o3)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, int64_t o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, Utils::asInt(o3)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, uint64_t o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, Utils::asInt(o3)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, unsigned int o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int64_t o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, uint64_t o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); }
 
 #define ASMJIT_INST_4ii(NAME, ID, T0, T1, T2, T3) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, int o2, int o3) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, Imm(o2), Utils::asInt(o3)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3); } \
+  inline Error NAME(const T0& o0, const T1& o1, int o2, int o3) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, Imm(o2), IntUtils::asInt(o3)); }
 
 #define ASMJIT_INST_5x(NAME, ID, T0, T1, T2, T3, T4) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3, o4); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3, o4); }
 
 #define ASMJIT_INST_5i(NAME, ID, T0, T1, T2, T3, T4) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3, o4); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int o4) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3, Utils::asInt(o4)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, unsigned int o4) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3, Utils::asInt(o4)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int64_t o4) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3, Utils::asInt(o4)); } \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, uint64_t o4) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3, Utils::asInt(o4)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3, o4); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int o4) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, unsigned int o4) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int64_t o4) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, uint64_t o4) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); }
 
 #define ASMJIT_INST_6x(NAME, ID, T0, T1, T2, T3, T4, T5) \
-  ASMJIT_INLINE Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4, const T5& o5) { return ASMJIT_EMIT(X86Inst::kId##ID, o0, o1, o2, o3, o4, o5); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4, const T5& o5) { return _emitter()->emit(X86Inst::kId##ID, o0, o1, o2, o3, o4, o5); }
 
 template<typename This>
 struct X86EmitterExplicitT {
@@ -194,93 +188,91 @@ struct X86EmitterExplicitT {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get GPD or GPQ register at index `id` depending on the current architecture.
-  ASMJIT_INLINE X86Gp gpz(uint32_t id) const noexcept {
-    return X86Gp(Init, static_cast<const This*>(this)->_nativeGpReg.getSignature(), id);
+  inline This* _emitter() noexcept { return static_cast<This*>(this); }
+  inline const This* _emitter() const noexcept { return static_cast<const This*>(this); }
+
+  //! Get either GPD or GPQ register of index `id` depending on the current architecture.
+  inline X86Gp gpz(uint32_t id) const noexcept {
+    return X86Gp(_emitter()->_gpRegInfo.getSignature(), id);
   }
 
-  ASMJIT_INLINE const X86Gp& gpzRef(uint32_t id) const noexcept {
-    ASMJIT_ASSERT(id < 16);
-    return static_cast<const X86Gp&>(static_cast<const This*>(this)->_nativeGpArray[id]);
-  }
-
-  ASMJIT_INLINE const X86Gp& zax() const noexcept { return gpzRef(X86Gp::kIdAx); }
-  ASMJIT_INLINE const X86Gp& zcx() const noexcept { return gpzRef(X86Gp::kIdCx); }
-  ASMJIT_INLINE const X86Gp& zdx() const noexcept { return gpzRef(X86Gp::kIdDx); }
-  ASMJIT_INLINE const X86Gp& zbx() const noexcept { return gpzRef(X86Gp::kIdBx); }
-  ASMJIT_INLINE const X86Gp& zsp() const noexcept { return gpzRef(X86Gp::kIdSp); }
-  ASMJIT_INLINE const X86Gp& zbp() const noexcept { return gpzRef(X86Gp::kIdBp); }
-  ASMJIT_INLINE const X86Gp& zsi() const noexcept { return gpzRef(X86Gp::kIdSi); }
-  ASMJIT_INLINE const X86Gp& zdi() const noexcept { return gpzRef(X86Gp::kIdDi); }
+  inline X86Gp zax() const noexcept { return gpz(X86Gp::kIdAx); }
+  inline X86Gp zcx() const noexcept { return gpz(X86Gp::kIdCx); }
+  inline X86Gp zdx() const noexcept { return gpz(X86Gp::kIdDx); }
+  inline X86Gp zbx() const noexcept { return gpz(X86Gp::kIdBx); }
+  inline X86Gp zsp() const noexcept { return gpz(X86Gp::kIdSp); }
+  inline X86Gp zbp() const noexcept { return gpz(X86Gp::kIdBp); }
+  inline X86Gp zsi() const noexcept { return gpz(X86Gp::kIdSi); }
+  inline X86Gp zdi() const noexcept { return gpz(X86Gp::kIdDi); }
 
   //! Create a target dependent pointer of which base register's id is `baseId`.
-  ASMJIT_INLINE X86Mem ptr_base(uint32_t baseId, int32_t off = 0, uint32_t size = 0) const noexcept {
-    uint32_t baseType = static_cast<const This*>(this)->_nativeGpReg.getType();
+  inline X86Mem ptr_base(uint32_t baseId, int32_t off = 0, uint32_t size = 0) const noexcept {
+    uint32_t baseType = _emitter()->_gpRegInfo.getType();
     uint32_t flags = 0;
-    return X86Mem(Init, baseType, baseId, 0, 0, off, size, flags);
+    return X86Mem(Globals::Init, baseType, baseId, 0, 0, off, size, flags);
   }
 
-  ASMJIT_INLINE X86Mem ptr_zax(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdAx, off, size); }
-  ASMJIT_INLINE X86Mem ptr_zcx(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdCx, off, size); }
-  ASMJIT_INLINE X86Mem ptr_zdx(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdDx, off, size); }
-  ASMJIT_INLINE X86Mem ptr_zbx(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdBx, off, size); }
-  ASMJIT_INLINE X86Mem ptr_zsp(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdSp, off, size); }
-  ASMJIT_INLINE X86Mem ptr_zbp(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdBp, off, size); }
-  ASMJIT_INLINE X86Mem ptr_zsi(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdSi, off, size); }
-  ASMJIT_INLINE X86Mem ptr_zdi(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdDi, off, size); }
+  inline X86Mem ptr_zax(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdAx, off, size); }
+  inline X86Mem ptr_zcx(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdCx, off, size); }
+  inline X86Mem ptr_zdx(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdDx, off, size); }
+  inline X86Mem ptr_zbx(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdBx, off, size); }
+  inline X86Mem ptr_zsp(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdSp, off, size); }
+  inline X86Mem ptr_zbp(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdBp, off, size); }
+  inline X86Mem ptr_zsi(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdSi, off, size); }
+  inline X86Mem ptr_zdi(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(X86Gp::kIdDi, off, size); }
 
   //! Create an `intptr_t` memory operand depending on the current architecture.
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86Gp& base, int32_t offset = 0) const noexcept {
+  inline X86Mem intptr_ptr(const X86Gp& base, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, offset, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86Gp& base, const X86Gp& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
+  inline X86Mem intptr_ptr(const X86Gp& base, const X86Gp& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86Gp& base, const X86Vec& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
+  inline X86Mem intptr_ptr(const X86Gp& base, const X86Vec& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const Label& base, int32_t offset = 0) const noexcept {
+  inline X86Mem intptr_ptr(const Label& base, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, offset, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const Label& base, const X86Gp& index, uint32_t shift, int32_t offset = 0) const noexcept {
+  inline X86Mem intptr_ptr(const Label& base, const X86Gp& index, uint32_t shift, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const Label& base, const X86Vec& index, uint32_t shift, int32_t offset = 0) const noexcept {
+  inline X86Mem intptr_ptr(const Label& base, const X86Vec& index, uint32_t shift, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(const X86Rip& rip, int32_t offset = 0) const noexcept {
+  inline X86Mem intptr_ptr(const X86Rip& rip, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(rip, offset, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(uint64_t base) const noexcept {
+  inline X86Mem intptr_ptr(uint64_t base) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr(uint64_t base, const X86Gp& index, uint32_t shift = 0) const noexcept {
+  inline X86Mem intptr_ptr(uint64_t base, const X86Gp& index, uint32_t shift = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, index, shift, nativeGpSize);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr_abs(uint64_t base) const noexcept {
+  inline X86Mem intptr_ptr_abs(uint64_t base) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, nativeGpSize, Mem::kSignatureMemAbs);
   }
   //! \overload
-  ASMJIT_INLINE X86Mem intptr_ptr_abs(uint64_t base, const X86Gp& index, uint32_t shift = 0) const noexcept {
+  inline X86Mem intptr_ptr_abs(uint64_t base, const X86Gp& index, uint32_t shift = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
     return X86Mem(base, index, shift, nativeGpSize, Mem::kSignatureMemAbs);
   }
@@ -290,132 +282,132 @@ struct X86EmitterExplicitT {
   // --------------------------------------------------------------------------
 
   //! Add 8-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error db(uint8_t x) { return static_cast<This*>(this)->embed(&x, 1); }
+  inline Error db(uint8_t x) { return static_cast<This*>(this)->embed(&x, 1); }
   //! Add 16-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dw(uint16_t x) { return static_cast<This*>(this)->embed(&x, 2); }
+  inline Error dw(uint16_t x) { return static_cast<This*>(this)->embed(&x, 2); }
   //! Add 32-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dd(uint32_t x) { return static_cast<This*>(this)->embed(&x, 4); }
+  inline Error dd(uint32_t x) { return static_cast<This*>(this)->embed(&x, 4); }
   //! Add 64-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dq(uint64_t x) { return static_cast<This*>(this)->embed(&x, 8); }
+  inline Error dq(uint64_t x) { return static_cast<This*>(this)->embed(&x, 8); }
 
   //! Add 8-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint8(int8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int8_t)); }
+  inline Error dint8(int8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int8_t)); }
   //! Add 8-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint8(uint8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint8_t)); }
+  inline Error duint8(uint8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint8_t)); }
 
   //! Add 16-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint16(int16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int16_t)); }
+  inline Error dint16(int16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int16_t)); }
   //! Add 16-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint16(uint16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint16_t)); }
+  inline Error duint16(uint16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint16_t)); }
 
   //! Add 32-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint32(int32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int32_t)); }
+  inline Error dint32(int32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int32_t)); }
   //! Add 32-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint32(uint32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint32_t)); }
+  inline Error duint32(uint32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint32_t)); }
 
   //! Add 64-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error dint64(int64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int64_t)); }
+  inline Error dint64(int64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int64_t)); }
   //! Add 64-bit integer data to the instruction stream.
-  ASMJIT_INLINE Error duint64(uint64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint64_t)); }
+  inline Error duint64(uint64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint64_t)); }
 
   //! Add float data to the instruction stream.
-  ASMJIT_INLINE Error dfloat(float x) { return static_cast<This*>(this)->embed(&x, sizeof(float)); }
+  inline Error dfloat(float x) { return static_cast<This*>(this)->embed(&x, sizeof(float)); }
   //! Add double data to the instruction stream.
-  ASMJIT_INLINE Error ddouble(double x) { return static_cast<This*>(this)->embed(&x, sizeof(double)); }
+  inline Error ddouble(double x) { return static_cast<This*>(this)->embed(&x, sizeof(double)); }
 
   //! Add MMX data to the instruction stream.
-  ASMJIT_INLINE Error dmm(const Data64& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data64)); }
+  inline Error dmm(const Data64& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data64)); }
   //! Add XMM data to the instruction stream.
-  ASMJIT_INLINE Error dxmm(const Data128& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data128)); }
+  inline Error dxmm(const Data128& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data128)); }
   //! Add YMM data to the instruction stream.
-  ASMJIT_INLINE Error dymm(const Data256& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data256)); }
+  inline Error dymm(const Data256& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data256)); }
 
   //! Add data in a given structure instance to the instruction stream.
   template<typename T>
-  ASMJIT_INLINE Error dstruct(const T& x) { return static_cast<This*>(this)->embed(&x, static_cast<uint32_t>(sizeof(T))); }
+  inline Error dstruct(const T& x) { return static_cast<This*>(this)->embed(&x, uint32_t(sizeof(T))); }
 
   // --------------------------------------------------------------------------
   // [Options]
   // --------------------------------------------------------------------------
 
 protected:
-  ASMJIT_INLINE This& _addOptions(uint32_t options) noexcept {
-    static_cast<This*>(this)->addOptions(options);
+  inline This& _addInstOptions(uint32_t options) noexcept {
+    static_cast<This*>(this)->addInstOptions(options);
     return *static_cast<This*>(this);
   }
 
 public:
   //! Force short form of jmp/jcc instruction.
-  ASMJIT_INLINE This& short_() noexcept { return _addOptions(X86Inst::kOptionShortForm); }
+  inline This& short_() noexcept { return _addInstOptions(X86Inst::kOptionShortForm); }
   //! Force long form of jmp/jcc instruction.
-  ASMJIT_INLINE This& long_() noexcept { return _addOptions(X86Inst::kOptionLongForm); }
+  inline This& long_() noexcept { return _addInstOptions(X86Inst::kOptionLongForm); }
 
   //! Condition is likely to be taken (has only benefit on P4).
-  ASMJIT_INLINE This& taken() noexcept { return _addOptions(X86Inst::kOptionTaken); }
+  inline This& taken() noexcept { return _addInstOptions(X86Inst::kOptionTaken); }
   //! Condition is unlikely to be taken (has only benefit on P4).
-  ASMJIT_INLINE This& notTaken() noexcept { return _addOptions(X86Inst::kOptionNotTaken); }
+  inline This& notTaken() noexcept { return _addInstOptions(X86Inst::kOptionNotTaken); }
 
   //! Use LOCK prefix.
-  ASMJIT_INLINE This& lock() noexcept { return _addOptions(X86Inst::kOptionLock); }
+  inline This& lock() noexcept { return _addInstOptions(X86Inst::kOptionLock); }
 
   //! Use REP/REPZ prefix.
-  ASMJIT_INLINE This& rep(const X86Gp& zcx) noexcept {
+  inline This& rep(const X86Gp& zcx) noexcept {
     static_cast<This*>(this)->_extraReg.init(zcx);
-    return _addOptions(X86Inst::kOptionRep);
+    return _addInstOptions(X86Inst::kOptionRep);
   }
-  //! Use REPNZ prefix.
-  ASMJIT_INLINE This& repnz(const X86Gp& zcx) noexcept {
-    static_cast<This*>(this)->_extraReg.init(zcx);
-    return _addOptions(X86Inst::kOptionRepnz);
-  }
+  //! Use REP/REPZ prefix.
+  inline This& repe(const X86Gp& zcx) noexcept { return rep(zcx); }
+  //! Use REP/REPZ prefix.
+  inline This& repz(const X86Gp& zcx) noexcept { return rep(zcx); }
 
-  //! Use REP/REPZ prefix.
-  ASMJIT_INLINE This& repe(const X86Gp& zcx) noexcept { return rep(zcx); }
-  //! Use REP/REPZ prefix.
-  ASMJIT_INLINE This& repz(const X86Gp& zcx) noexcept { return rep(zcx); }
   //! Use REPNZ prefix.
-  ASMJIT_INLINE This& repne(const X86Gp& zcx) noexcept { return repnz(zcx); }
+  inline This& repne(const X86Gp& zcx) noexcept {
+    static_cast<This*>(this)->_extraReg.init(zcx);
+    return _addInstOptions(X86Inst::kOptionRepne);
+  }
+  //! Use REPNZ prefix.
+  inline This& repnz(const X86Gp& zcx) noexcept { return repne(zcx); }
 
   //! Prefer MOD_MR encoding over MOD_RM (the default) when encoding instruction
   //! that allows both. This option is only applicable to legacy instructions
   //! where both operands are registers.
-  ASMJIT_INLINE This& mod_mr() noexcept { return _addOptions(X86Inst::kOptionModMR); }
+  inline This& mod_mr() noexcept { return _addInstOptions(X86Inst::kOptionModMR); }
 
   //! Force REX prefix to be emitted even when it's not needed (X64).
   //!
   //! NOTE: Don't use when using high 8-bit registers as REX prefix makes them
   //! inaccessible and \ref X86Assembler refuses to encode such instructions.
-  ASMJIT_INLINE This& rex() noexcept { return _addOptions(X86Inst::kOptionRex);}
+  inline This& rex() noexcept { return _addInstOptions(X86Inst::kOptionRex);}
 
   //! Force REX.B prefix (X64) [It exists for special purposes only].
-  ASMJIT_INLINE This& rex_b() noexcept { return _addOptions(X86Inst::kOptionOpCodeB); }
+  inline This& rex_b() noexcept { return _addInstOptions(X86Inst::kOptionOpCodeB); }
   //! Force REX.X prefix (X64) [It exists for special purposes only].
-  ASMJIT_INLINE This& rex_x() noexcept { return _addOptions(X86Inst::kOptionOpCodeX); }
+  inline This& rex_x() noexcept { return _addInstOptions(X86Inst::kOptionOpCodeX); }
   //! Force REX.R prefix (X64) [It exists for special purposes only].
-  ASMJIT_INLINE This& rex_r() noexcept { return _addOptions(X86Inst::kOptionOpCodeR); }
+  inline This& rex_r() noexcept { return _addInstOptions(X86Inst::kOptionOpCodeR); }
   //! Force REX.W prefix (X64) [It exists for special purposes only].
-  ASMJIT_INLINE This& rex_w() noexcept { return _addOptions(X86Inst::kOptionOpCodeW); }
+  inline This& rex_w() noexcept { return _addInstOptions(X86Inst::kOptionOpCodeW); }
 
   //! Force 3-byte VEX prefix (AVX+).
-  ASMJIT_INLINE This& vex3() noexcept { return _addOptions(X86Inst::kOptionVex3); }
+  inline This& vex3() noexcept { return _addInstOptions(X86Inst::kOptionVex3); }
   //! Force 4-byte EVEX prefix (AVX512+).
-  ASMJIT_INLINE This& evex() noexcept { return _addOptions(X86Inst::kOptionEvex); }
+  inline This& evex() noexcept { return _addInstOptions(X86Inst::kOptionEvex); }
 
   //! Use zeroing instead of merging (AVX512+).
-  ASMJIT_INLINE This& z() noexcept { return _addOptions(X86Inst::kOptionZMask); }
+  inline This& z() noexcept { return _addInstOptions(X86Inst::kOptionZMask); }
   //! Broadcast one element to all other elements (AVX512+).
-  ASMJIT_INLINE This& _1tox() noexcept { return _addOptions(X86Inst::kOption1ToX); }
+  inline This& _1tox() noexcept { return _addInstOptions(X86Inst::kOption1ToX); }
 
   //! Suppress all exceptions (AVX512+).
-  ASMJIT_INLINE This& sae() noexcept { return _addOptions(X86Inst::kOptionSAE); }
+  inline This& sae() noexcept { return _addInstOptions(X86Inst::kOptionSAE); }
   //! Static rounding mode {rn} (round-to-nearest even) and {sae} (AVX512+).
-  ASMJIT_INLINE This& rn_sae() noexcept { return _addOptions(X86Inst::kOptionER | X86Inst::kOptionRN_SAE); }
+  inline This& rn_sae() noexcept { return _addInstOptions(X86Inst::kOptionER | X86Inst::kOptionRN_SAE); }
   //! Static rounding mode {rd} (round-down, toward -inf) and {sae} (AVX512+).
-  ASMJIT_INLINE This& rd_sae() noexcept { return _addOptions(X86Inst::kOptionER | X86Inst::kOptionRD_SAE); }
+  inline This& rd_sae() noexcept { return _addInstOptions(X86Inst::kOptionER | X86Inst::kOptionRD_SAE); }
   //! Static rounding mode {ru} (round-up, toward +inf) and {sae} (AVX512+).
-  ASMJIT_INLINE This& ru_sae() noexcept { return _addOptions(X86Inst::kOptionER | X86Inst::kOptionRU_SAE); }
+  inline This& ru_sae() noexcept { return _addInstOptions(X86Inst::kOptionER | X86Inst::kOptionRU_SAE); }
   //! Static rounding mode {rz} (round-toward-zero, truncate) and {sae} (AVX512+).
-  ASMJIT_INLINE This& rz_sae() noexcept { return _addOptions(X86Inst::kOptionER | X86Inst::kOptionRZ_SAE); }
+  inline This& rz_sae() noexcept { return _addInstOptions(X86Inst::kOptionER | X86Inst::kOptionRZ_SAE); }
 
   // --------------------------------------------------------------------------
   // [General Purpose and Non-SIMD Instructions]
@@ -1779,7 +1771,9 @@ public:
   ASMJIT_INST_3x(kxorq, Kxorq, X86KReg, X86KReg, X86KReg)                     // AVX512_BW
   ASMJIT_INST_3x(kxorw, Kxorw, X86KReg, X86KReg, X86KReg)                     // AVX512_F
   ASMJIT_INST_6x(v4fmaddps, V4fmaddps, X86Zmm, X86Zmm, X86Zmm, X86Zmm, X86Zmm, X86Mem)   // AVX512_4FMAPS{kz}
+  ASMJIT_INST_6x(v4fmaddss, V4fmaddss, X86Xmm, X86Xmm, X86Xmm, X86Xmm, X86Xmm, X86Mem)   // AVX512_4FMAPS{kz}
   ASMJIT_INST_6x(v4fnmaddps, V4fnmaddps, X86Zmm, X86Zmm, X86Zmm, X86Zmm, X86Zmm, X86Mem) // AVX512_4FMAPS{kz}
+  ASMJIT_INST_6x(v4fnmaddss, V4fnmaddss, X86Xmm, X86Xmm, X86Xmm, X86Xmm, X86Xmm, X86Mem) // AVX512_4FMAPS{kz}
   ASMJIT_INST_3x(vaddpd, Vaddpd, X86Xmm, X86Xmm, X86Xmm)                      // AVX  AVX512_F{kz|b64}-VL
   ASMJIT_INST_3x(vaddpd, Vaddpd, X86Xmm, X86Xmm, X86Mem)                      // AVX  AVX512_F{kz|b64}-VL
   ASMJIT_INST_3x(vaddpd, Vaddpd, X86Ymm, X86Ymm, X86Ymm)                      // AVX  AVX512_F{kz|b64}-VL
@@ -1806,12 +1800,28 @@ public:
   ASMJIT_INST_3x(vaddsubps, Vaddsubps, X86Ymm, X86Ymm, X86Mem)                // AVX
   ASMJIT_INST_3x(vaesdec, Vaesdec, X86Xmm, X86Xmm, X86Xmm)                    // AVX
   ASMJIT_INST_3x(vaesdec, Vaesdec, X86Xmm, X86Xmm, X86Mem)                    // AVX
+  ASMJIT_INST_3x(vaesdec, Vaesdec, X86Ymm, X86Ymm, X86Ymm)                    // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesdec, Vaesdec, X86Ymm, X86Ymm, X86Mem)                    // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesdec, Vaesdec, X86Zmm, X86Zmm, X86Zmm)                    // VAES
+  ASMJIT_INST_3x(vaesdec, Vaesdec, X86Zmm, X86Zmm, X86Mem)                    // VAES
   ASMJIT_INST_3x(vaesdeclast, Vaesdeclast, X86Xmm, X86Xmm, X86Xmm)            // AVX
   ASMJIT_INST_3x(vaesdeclast, Vaesdeclast, X86Xmm, X86Xmm, X86Mem)            // AVX
+  ASMJIT_INST_3x(vaesdeclast, Vaesdeclast, X86Ymm, X86Ymm, X86Ymm)            // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesdeclast, Vaesdeclast, X86Ymm, X86Ymm, X86Mem)            // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesdeclast, Vaesdeclast, X86Zmm, X86Zmm, X86Zmm)            // VAES
+  ASMJIT_INST_3x(vaesdeclast, Vaesdeclast, X86Zmm, X86Zmm, X86Mem)            // VAES
   ASMJIT_INST_3x(vaesenc, Vaesenc, X86Xmm, X86Xmm, X86Xmm)                    // AVX
   ASMJIT_INST_3x(vaesenc, Vaesenc, X86Xmm, X86Xmm, X86Mem)                    // AVX
+  ASMJIT_INST_3x(vaesenc, Vaesenc, X86Ymm, X86Ymm, X86Ymm)                    // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesenc, Vaesenc, X86Ymm, X86Ymm, X86Mem)                    // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesenc, Vaesenc, X86Zmm, X86Zmm, X86Zmm)                    // VAES
+  ASMJIT_INST_3x(vaesenc, Vaesenc, X86Zmm, X86Zmm, X86Mem)                    // VAES
   ASMJIT_INST_3x(vaesenclast, Vaesenclast, X86Xmm, X86Xmm, X86Xmm)            // AVX
   ASMJIT_INST_3x(vaesenclast, Vaesenclast, X86Xmm, X86Xmm, X86Mem)            // AVX
+  ASMJIT_INST_3x(vaesenclast, Vaesenclast, X86Ymm, X86Ymm, X86Ymm)            // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesenclast, Vaesenclast, X86Ymm, X86Ymm, X86Mem)            // VAES AVX512_VL
+  ASMJIT_INST_3x(vaesenclast, Vaesenclast, X86Zmm, X86Zmm, X86Zmm)            // VAES
+  ASMJIT_INST_3x(vaesenclast, Vaesenclast, X86Zmm, X86Zmm, X86Mem)            // VAES
   ASMJIT_INST_2x(vaesimc, Vaesimc, X86Xmm, X86Xmm)                            // AVX
   ASMJIT_INST_2x(vaesimc, Vaesimc, X86Xmm, X86Mem)                            // AVX
   ASMJIT_INST_3i(vaeskeygenassist, Vaeskeygenassist, X86Xmm, X86Xmm, Imm)     // AVX
@@ -1922,11 +1932,8 @@ public:
   ASMJIT_INST_2x(vbroadcasti32x2, Vbroadcasti32x2, X86Ymm, X86Mem)            //      AVX512_DQ{kz}-VL
   ASMJIT_INST_2x(vbroadcasti32x2, Vbroadcasti32x2, X86Zmm, X86Xmm)            //      AVX512_DQ{kz}
   ASMJIT_INST_2x(vbroadcasti32x2, Vbroadcasti32x2, X86Zmm, X86Mem)            //      AVX512_DQ{kz}
-  ASMJIT_INST_2x(vbroadcasti32x4, Vbroadcasti32x4, X86Ymm, X86Xmm)            //      AVX512_F{kz}-VL
   ASMJIT_INST_2x(vbroadcasti32x4, Vbroadcasti32x4, X86Ymm, X86Mem)            //      AVX512_F{kz}-VL
-  ASMJIT_INST_2x(vbroadcasti32x4, Vbroadcasti32x4, X86Zmm, X86Xmm)            //      AVX512_F{kz}
   ASMJIT_INST_2x(vbroadcasti32x4, Vbroadcasti32x4, X86Zmm, X86Mem)            //      AVX512_F{kz}
-  ASMJIT_INST_2x(vbroadcasti32x8, Vbroadcasti32x8, X86Zmm, X86Xmm)            //      AVX512_DQ{kz}
   ASMJIT_INST_2x(vbroadcasti32x8, Vbroadcasti32x8, X86Zmm, X86Mem)            //      AVX512_DQ{kz}
   ASMJIT_INST_2x(vbroadcasti64x2, Vbroadcasti64x2, X86Ymm, X86Xmm)            //      AVX512_DQ{kz}-VL
   ASMJIT_INST_2x(vbroadcasti64x2, Vbroadcasti64x2, X86Ymm, X86Mem)            //      AVX512_DQ{kz}-VL
@@ -2005,9 +2012,11 @@ public:
   ASMJIT_INST_2x(vcvtpd2dq, Vcvtpd2dq, X86Xmm, X86Ymm)                        // AVX  AVX512_F{kz|b64}-VL
   ASMJIT_INST_2x(vcvtpd2dq, Vcvtpd2dq, X86Ymm, X86Zmm)                        //      AVX512_F{kz|er|b64}
   ASMJIT_INST_2x(vcvtpd2dq, Vcvtpd2dq, X86Ymm, X86Mem)                        //      AVX512_F{kz|er|b64}
-  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Xmm, X86Xmm)                        // AVX
-  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Xmm, X86Mem)                        // AVX
-  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Xmm, X86Ymm)                        // AVX
+  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Xmm, X86Xmm)                        // AVX  AVX512_F{kz|b64}-VL
+  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Xmm, X86Mem)                        // AVX  AVX512_F{kz|b64}-VL
+  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Xmm, X86Ymm)                        // AVX  AVX512_F{kz|b64}-VL
+  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Ymm, X86Zmm)                        //      AVX512_F{kz|er|b64}
+  ASMJIT_INST_2x(vcvtpd2ps, Vcvtpd2ps, X86Ymm, X86Mem)                        //      AVX512_F{kz|er|b64}
   ASMJIT_INST_2x(vcvtpd2qq, Vcvtpd2qq, X86Xmm, X86Xmm)                        //      AVX512_DQ{kz|b64}-VL
   ASMJIT_INST_2x(vcvtpd2qq, Vcvtpd2qq, X86Xmm, X86Mem)                        //      AVX512_DQ{kz|b64}-VL
   ASMJIT_INST_2x(vcvtpd2qq, Vcvtpd2qq, X86Ymm, X86Ymm)                        //      AVX512_DQ{kz|b64}-VL
@@ -2580,10 +2589,10 @@ public:
   ASMJIT_INST_2x(vgetexpps, Vgetexpps, X86Ymm, X86Mem)                        //      AVX512_F{kz|b32}-VL
   ASMJIT_INST_2x(vgetexpps, Vgetexpps, X86Zmm, X86Zmm)                        //      AVX512_F{kz|sae|b32}
   ASMJIT_INST_2x(vgetexpps, Vgetexpps, X86Zmm, X86Mem)                        //      AVX512_F{kz|sae|b32}
-  ASMJIT_INST_2x(vgetexpsd, Vgetexpsd, X86Xmm, X86Xmm)                        //      AVX512_F{kz|sae}
-  ASMJIT_INST_2x(vgetexpsd, Vgetexpsd, X86Xmm, X86Mem)                        //      AVX512_F{kz|sae}
-  ASMJIT_INST_2x(vgetexpss, Vgetexpss, X86Xmm, X86Xmm)                        //      AVX512_F{kz|sae}
-  ASMJIT_INST_2x(vgetexpss, Vgetexpss, X86Xmm, X86Mem)                        //      AVX512_F{kz|sae}
+  ASMJIT_INST_3x(vgetexpsd, Vgetexpsd, X86Xmm, X86Xmm, X86Xmm)                //      AVX512_F{kz|sae}
+  ASMJIT_INST_3x(vgetexpsd, Vgetexpsd, X86Xmm, X86Xmm, X86Mem)                //      AVX512_F{kz|sae}
+  ASMJIT_INST_3x(vgetexpss, Vgetexpss, X86Xmm, X86Xmm, X86Xmm)                //      AVX512_F{kz|sae}
+  ASMJIT_INST_3x(vgetexpss, Vgetexpss, X86Xmm, X86Xmm, X86Mem)                //      AVX512_F{kz|sae}
   ASMJIT_INST_3i(vgetmantpd, Vgetmantpd, X86Xmm, X86Xmm, Imm)                 //      AVX512_F{kz|b64}-VL
   ASMJIT_INST_3i(vgetmantpd, Vgetmantpd, X86Xmm, X86Mem, Imm)                 //      AVX512_F{kz|b64}-VL
   ASMJIT_INST_3i(vgetmantpd, Vgetmantpd, X86Ymm, X86Ymm, Imm)                 //      AVX512_F{kz|b64}-VL
@@ -2596,10 +2605,10 @@ public:
   ASMJIT_INST_3i(vgetmantps, Vgetmantps, X86Ymm, X86Mem, Imm)                 //      AVX512_F{kz|b32}-VL
   ASMJIT_INST_3i(vgetmantps, Vgetmantps, X86Zmm, X86Zmm, Imm)                 //      AVX512_F{kz|sae|b32}
   ASMJIT_INST_3i(vgetmantps, Vgetmantps, X86Zmm, X86Mem, Imm)                 //      AVX512_F{kz|sae|b32}
-  ASMJIT_INST_3i(vgetmantsd, Vgetmantsd, X86Xmm, X86Xmm, Imm)                 //      AVX512_F{kz|sae}
-  ASMJIT_INST_3i(vgetmantsd, Vgetmantsd, X86Xmm, X86Mem, Imm)                 //      AVX512_F{kz|sae}
-  ASMJIT_INST_3i(vgetmantss, Vgetmantss, X86Xmm, X86Xmm, Imm)                 //      AVX512_F{kz|sae}
-  ASMJIT_INST_3i(vgetmantss, Vgetmantss, X86Xmm, X86Mem, Imm)                 //      AVX512_F{kz|sae}
+  ASMJIT_INST_4i(vgetmantsd, Vgetmantsd, X86Xmm, X86Xmm, X86Xmm, Imm)         //      AVX512_F{kz|sae}
+  ASMJIT_INST_4i(vgetmantsd, Vgetmantsd, X86Xmm, X86Xmm, X86Mem, Imm)         //      AVX512_F{kz|sae}
+  ASMJIT_INST_4i(vgetmantss, Vgetmantss, X86Xmm, X86Xmm, X86Xmm, Imm)         //      AVX512_F{kz|sae}
+  ASMJIT_INST_4i(vgetmantss, Vgetmantss, X86Xmm, X86Xmm, X86Mem, Imm)         //      AVX512_F{kz|sae}
   ASMJIT_INST_3x(vhaddpd, Vhaddpd, X86Xmm, X86Xmm, X86Xmm)                    // AVX
   ASMJIT_INST_3x(vhaddpd, Vhaddpd, X86Xmm, X86Xmm, X86Mem)                    // AVX
   ASMJIT_INST_3x(vhaddpd, Vhaddpd, X86Ymm, X86Ymm, X86Ymm)                    // AVX
@@ -3085,8 +3094,12 @@ public:
   ASMJIT_INST_2x(vpbroadcastw, Vpbroadcastw, X86Zmm, X86Gp)                   //      AVX512_BW{kz}
   ASMJIT_INST_2x(vpbroadcastw, Vpbroadcastw, X86Zmm, X86Xmm)                  //      AVX512_BW{kz}
   ASMJIT_INST_2x(vpbroadcastw, Vpbroadcastw, X86Zmm, X86Mem)                  //      AVX512_BW{kz}
-  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Xmm, X86Xmm, X86Xmm, Imm)         // AVX
-  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Xmm, X86Xmm, X86Mem, Imm)         // AVX
+  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Xmm, X86Xmm, X86Xmm, Imm)         // AVX  AVX512_F-VL
+  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Xmm, X86Xmm, X86Mem, Imm)         // AVX  AVX512_F-VL
+  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Ymm, X86Ymm, X86Ymm, Imm)         //      AVX512_F-VL VPCLMULQDQ
+  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Ymm, X86Ymm, X86Mem, Imm)         //      AVX512_F-VL VPCLMULQDQ
+  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Zmm, X86Zmm, X86Zmm, Imm)         //      AVX512_F    VPCLMULQDQ
+  ASMJIT_INST_4i(vpclmulqdq, Vpclmulqdq, X86Zmm, X86Zmm, X86Mem, Imm)         //      AVX512_F    VPCLMULQDQ
   ASMJIT_INST_4i(vpcmpb, Vpcmpb, X86KReg, X86Xmm, X86Xmm, Imm)                //      AVX512_BW{k}-VL
   ASMJIT_INST_4i(vpcmpb, Vpcmpb, X86KReg, X86Xmm, X86Mem, Imm)                //      AVX512_BW{k}-VL
   ASMJIT_INST_4i(vpcmpb, Vpcmpb, X86KReg, X86Ymm, X86Ymm, Imm)                //      AVX512_BW{k}-VL
@@ -3223,6 +3236,12 @@ public:
   ASMJIT_INST_4i(vpcmpw, Vpcmpw, X86KReg, X86Ymm, X86Mem, Imm)                //      AVX512_BW{k|b64}-VL
   ASMJIT_INST_4i(vpcmpw, Vpcmpw, X86KReg, X86Zmm, X86Zmm, Imm)                //      AVX512_BW{k|b64}
   ASMJIT_INST_4i(vpcmpw, Vpcmpw, X86KReg, X86Zmm, X86Mem, Imm)                //      AVX512_BW{k|b64}
+  ASMJIT_INST_2x(vpcompressb, Vpcompressb, X86Xmm, X86Xmm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressb, Vpcompressb, X86Mem, X86Xmm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressb, Vpcompressb, X86Ymm, X86Ymm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressb, Vpcompressb, X86Mem, X86Ymm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressb, Vpcompressb, X86Zmm, X86Zmm)                    //      AVX512_VBMI2{kz}
+  ASMJIT_INST_2x(vpcompressb, Vpcompressb, X86Mem, X86Zmm)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_2x(vpcompressd, Vpcompressd, X86Xmm, X86Xmm)                    //      AVX512_F{kz}-VL
   ASMJIT_INST_2x(vpcompressd, Vpcompressd, X86Mem, X86Xmm)                    //      AVX512_F{kz}-VL
   ASMJIT_INST_2x(vpcompressd, Vpcompressd, X86Ymm, X86Ymm)                    //      AVX512_F{kz}-VL
@@ -3235,6 +3254,12 @@ public:
   ASMJIT_INST_2x(vpcompressq, Vpcompressq, X86Mem, X86Ymm)                    //      AVX512_F{kz}-VL
   ASMJIT_INST_2x(vpcompressq, Vpcompressq, X86Zmm, X86Zmm)                    //      AVX512_F{kz}
   ASMJIT_INST_2x(vpcompressq, Vpcompressq, X86Mem, X86Zmm)                    //      AVX512_F{kz}
+  ASMJIT_INST_2x(vpcompressw, Vpcompressw, X86Xmm, X86Xmm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressw, Vpcompressw, X86Mem, X86Xmm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressw, Vpcompressw, X86Ymm, X86Ymm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressw, Vpcompressw, X86Mem, X86Ymm)                    //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpcompressw, Vpcompressw, X86Zmm, X86Zmm)                    //      AVX512_VBMI2{kz}
+  ASMJIT_INST_2x(vpcompressw, Vpcompressw, X86Mem, X86Zmm)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_2x(vpconflictd, Vpconflictd, X86Xmm, X86Xmm)                    //      AVX512_CD{kz|b32}-VL
   ASMJIT_INST_2x(vpconflictd, Vpconflictd, X86Xmm, X86Mem)                    //      AVX512_CD{kz|b32}-VL
   ASMJIT_INST_2x(vpconflictd, Vpconflictd, X86Ymm, X86Ymm)                    //      AVX512_CD{kz|b32}-VL
@@ -3375,6 +3400,12 @@ public:
   ASMJIT_INST_3x(vpermw, Vpermw, X86Ymm, X86Ymm, X86Mem)                      //      AVX512_BW{kz}-VL
   ASMJIT_INST_3x(vpermw, Vpermw, X86Zmm, X86Zmm, X86Zmm)                      //      AVX512_BW{kz}
   ASMJIT_INST_3x(vpermw, Vpermw, X86Zmm, X86Zmm, X86Mem)                      //      AVX512_BW{kz}
+  ASMJIT_INST_2x(vpexpandb, Vpexpandb, X86Xmm, X86Xmm)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandb, Vpexpandb, X86Xmm, X86Mem)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandb, Vpexpandb, X86Ymm, X86Ymm)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandb, Vpexpandb, X86Ymm, X86Mem)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandb, Vpexpandb, X86Zmm, X86Zmm)                        //      AVX512_VBMI2{kz}
+  ASMJIT_INST_2x(vpexpandb, Vpexpandb, X86Zmm, X86Mem)                        //      AVX512_VBMI2{kz}
   ASMJIT_INST_2x(vpexpandd, Vpexpandd, X86Xmm, X86Xmm)                        //      AVX512_F{kz}-VL
   ASMJIT_INST_2x(vpexpandd, Vpexpandd, X86Xmm, X86Mem)                        //      AVX512_F{kz}-VL
   ASMJIT_INST_2x(vpexpandd, Vpexpandd, X86Ymm, X86Ymm)                        //      AVX512_F{kz}-VL
@@ -3387,6 +3418,12 @@ public:
   ASMJIT_INST_2x(vpexpandq, Vpexpandq, X86Ymm, X86Mem)                        //      AVX512_F{kz}-VL
   ASMJIT_INST_2x(vpexpandq, Vpexpandq, X86Zmm, X86Zmm)                        //      AVX512_F{kz}
   ASMJIT_INST_2x(vpexpandq, Vpexpandq, X86Zmm, X86Mem)                        //      AVX512_F{kz}
+  ASMJIT_INST_2x(vpexpandw, Vpexpandw, X86Xmm, X86Xmm)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandw, Vpexpandw, X86Xmm, X86Mem)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandw, Vpexpandw, X86Ymm, X86Ymm)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandw, Vpexpandw, X86Ymm, X86Mem)                        //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_2x(vpexpandw, Vpexpandw, X86Zmm, X86Zmm)                        //      AVX512_VBMI2{kz}
+  ASMJIT_INST_2x(vpexpandw, Vpexpandw, X86Zmm, X86Mem)                        //      AVX512_VBMI2{kz}
   ASMJIT_INST_3i(vpextrb, Vpextrb, X86Gp, X86Xmm, Imm)                        // AVX  AVX512_BW
   ASMJIT_INST_3i(vpextrb, Vpextrb, X86Mem, X86Xmm, Imm)                       // AVX  AVX512_BW
   ASMJIT_INST_3i(vpextrd, Vpextrd, X86Gp, X86Xmm, Imm)                        // AVX  AVX512_DQ
@@ -3440,18 +3477,12 @@ public:
   ASMJIT_INST_3x(vphsubw, Vphsubw, X86Xmm, X86Xmm, X86Mem)                    // AVX
   ASMJIT_INST_3x(vphsubw, Vphsubw, X86Ymm, X86Ymm, X86Ymm)                    // AVX2
   ASMJIT_INST_3x(vphsubw, Vphsubw, X86Ymm, X86Ymm, X86Mem)                    // AVX2
-  ASMJIT_INST_3i(vpinsrb, Vpinsrb, X86Xmm, X86Gp, Imm)                        // AVX
-  ASMJIT_INST_3i(vpinsrb, Vpinsrb, X86Xmm, X86Mem, Imm)                       // AVX
-  ASMJIT_INST_4i(vpinsrb, Vpinsrb, X86Xmm, X86Xmm, X86Gp, Imm)                //      AVX512_BW{kz}
-  ASMJIT_INST_4i(vpinsrb, Vpinsrb, X86Xmm, X86Xmm, X86Mem, Imm)               //      AVX512_BW{kz}
-  ASMJIT_INST_3i(vpinsrd, Vpinsrd, X86Xmm, X86Gp, Imm)                        // AVX
-  ASMJIT_INST_3i(vpinsrd, Vpinsrd, X86Xmm, X86Mem, Imm)                       // AVX
-  ASMJIT_INST_4i(vpinsrd, Vpinsrd, X86Xmm, X86Xmm, X86Gp, Imm)                //      AVX512_DQ{kz}
-  ASMJIT_INST_4i(vpinsrd, Vpinsrd, X86Xmm, X86Xmm, X86Mem, Imm)               //      AVX512_DQ{kz}
-  ASMJIT_INST_3i(vpinsrq, Vpinsrq, X86Xmm, X86Gp, Imm)                        // AVX
-  ASMJIT_INST_3i(vpinsrq, Vpinsrq, X86Xmm, X86Mem, Imm)                       // AVX
-  ASMJIT_INST_4i(vpinsrq, Vpinsrq, X86Xmm, X86Xmm, X86Gp, Imm)                //      AVX512_DQ{kz}
-  ASMJIT_INST_4i(vpinsrq, Vpinsrq, X86Xmm, X86Xmm, X86Mem, Imm)               //      AVX512_DQ{kz}
+  ASMJIT_INST_4i(vpinsrb, Vpinsrb, X86Xmm, X86Xmm, X86Gp, Imm)                // AVX  AVX512_BW{kz}
+  ASMJIT_INST_4i(vpinsrb, Vpinsrb, X86Xmm, X86Xmm, X86Mem, Imm)               // AVX  AVX512_BW{kz}
+  ASMJIT_INST_4i(vpinsrd, Vpinsrd, X86Xmm, X86Xmm, X86Gp, Imm)                // AVX  AVX512_DQ{kz}
+  ASMJIT_INST_4i(vpinsrd, Vpinsrd, X86Xmm, X86Xmm, X86Mem, Imm)               // AVX  AVX512_DQ{kz}
+  ASMJIT_INST_4i(vpinsrq, Vpinsrq, X86Xmm, X86Xmm, X86Gp, Imm)                // AVX  AVX512_DQ{kz}
+  ASMJIT_INST_4i(vpinsrq, Vpinsrq, X86Xmm, X86Xmm, X86Mem, Imm)               // AVX  AVX512_DQ{kz}
   ASMJIT_INST_4i(vpinsrw, Vpinsrw, X86Xmm, X86Xmm, X86Gp, Imm)                // AVX  AVX512_BW{kz}
   ASMJIT_INST_4i(vpinsrw, Vpinsrw, X86Xmm, X86Xmm, X86Mem, Imm)               // AVX  AVX512_BW{kz}
   ASMJIT_INST_2x(vplzcntd, Vplzcntd, X86Xmm, X86Xmm)                          //      AVX512_CD{kz|b32}-VL
@@ -3854,10 +3885,30 @@ public:
   ASMJIT_INST_3x(vpmuludq, Vpmuludq, X86Ymm, X86Ymm, X86Mem)                  // AVX2 AVX512_F{kz|b64}-VL
   ASMJIT_INST_3x(vpmuludq, Vpmuludq, X86Zmm, X86Zmm, X86Zmm)                  //      AVX512_F{kz|b64}
   ASMJIT_INST_3x(vpmuludq, Vpmuludq, X86Zmm, X86Zmm, X86Mem)                  //      AVX512_F{kz|b64}
+  ASMJIT_INST_2x(vpopcntb, Vpopcntb, X86Xmm, X86Xmm)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntb, Vpopcntb, X86Xmm, X86Mem)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntb, Vpopcntb, X86Ymm, X86Ymm)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntb, Vpopcntb, X86Ymm, X86Mem)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntb, Vpopcntb, X86Zmm, X86Zmm)                          //      AVX512_BITALG{kz|b32}
+  ASMJIT_INST_2x(vpopcntb, Vpopcntb, X86Zmm, X86Mem)                          //      AVX512_BITALG{kz|b32}
+  ASMJIT_INST_2x(vpopcntd, Vpopcntd, X86Xmm, X86Xmm)                          //      AVX512_VPOPCNTDQ{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntd, Vpopcntd, X86Xmm, X86Mem)                          //      AVX512_VPOPCNTDQ{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntd, Vpopcntd, X86Ymm, X86Ymm)                          //      AVX512_VPOPCNTDQ{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntd, Vpopcntd, X86Ymm, X86Mem)                          //      AVX512_VPOPCNTDQ{kz|b32}-VL
   ASMJIT_INST_2x(vpopcntd, Vpopcntd, X86Zmm, X86Zmm)                          //      AVX512_VPOPCNTDQ{kz|b32}
   ASMJIT_INST_2x(vpopcntd, Vpopcntd, X86Zmm, X86Mem)                          //      AVX512_VPOPCNTDQ{kz|b32}
+  ASMJIT_INST_2x(vpopcntq, Vpopcntq, X86Xmm, X86Xmm)                          //      AVX512_VPOPCNTDQ{kz|b64}-VL
+  ASMJIT_INST_2x(vpopcntq, Vpopcntq, X86Xmm, X86Mem)                          //      AVX512_VPOPCNTDQ{kz|b64}-VL
+  ASMJIT_INST_2x(vpopcntq, Vpopcntq, X86Ymm, X86Ymm)                          //      AVX512_VPOPCNTDQ{kz|b64}-VL
+  ASMJIT_INST_2x(vpopcntq, Vpopcntq, X86Ymm, X86Mem)                          //      AVX512_VPOPCNTDQ{kz|b64}-VL
   ASMJIT_INST_2x(vpopcntq, Vpopcntq, X86Zmm, X86Zmm)                          //      AVX512_VPOPCNTDQ{kz|b64}
   ASMJIT_INST_2x(vpopcntq, Vpopcntq, X86Zmm, X86Mem)                          //      AVX512_VPOPCNTDQ{kz|b64}
+  ASMJIT_INST_2x(vpopcntw, Vpopcntw, X86Xmm, X86Xmm)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntw, Vpopcntw, X86Xmm, X86Mem)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntw, Vpopcntw, X86Ymm, X86Ymm)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntw, Vpopcntw, X86Ymm, X86Mem)                          //      AVX512_BITALG{kz|b32}-VL
+  ASMJIT_INST_2x(vpopcntw, Vpopcntw, X86Zmm, X86Zmm)                          //      AVX512_BITALG{kz|b32}
+  ASMJIT_INST_2x(vpopcntw, Vpopcntw, X86Zmm, X86Mem)                          //      AVX512_BITALG{kz|b32}
   ASMJIT_INST_3x(vpor, Vpor, X86Xmm, X86Xmm, X86Xmm)                          // AVX
   ASMJIT_INST_3x(vpor, Vpor, X86Xmm, X86Xmm, X86Mem)                          // AVX
   ASMJIT_INST_3x(vpor, Vpor, X86Ymm, X86Ymm, X86Ymm)                          // AVX2
@@ -3939,12 +3990,72 @@ public:
   ASMJIT_INST_2x(vpscatterqq, Vpscatterqq, X86Mem, X86Xmm)                    //      AVX512_F{k}-VL
   ASMJIT_INST_2x(vpscatterqq, Vpscatterqq, X86Mem, X86Ymm)                    //      AVX512_F{k}-VL
   ASMJIT_INST_2x(vpscatterqq, Vpscatterqq, X86Mem, X86Zmm)                    //      AVX512_F{k}
+  ASMJIT_INST_4i(vpshldd, Vpshldd, X86Xmm, X86Xmm, X86Xmm, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshldd, Vpshldd, X86Xmm, X86Xmm, X86Mem, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshldd, Vpshldd, X86Ymm, X86Ymm, X86Ymm, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshldd, Vpshldd, X86Ymm, X86Ymm, X86Mem, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshldd, Vpshldd, X86Zmm, X86Zmm, X86Zmm, Imm)               //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4i(vpshldd, Vpshldd, X86Zmm, X86Zmm, X86Mem, Imm)               //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshldvd, Vpshldvd, X86Xmm, X86Xmm, X86Xmm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvd, Vpshldvd, X86Xmm, X86Xmm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvd, Vpshldvd, X86Ymm, X86Ymm, X86Ymm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvd, Vpshldvd, X86Ymm, X86Ymm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvd, Vpshldvd, X86Zmm, X86Zmm, X86Zmm)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshldvd, Vpshldvd, X86Zmm, X86Zmm, X86Mem)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshldvq, Vpshldvq, X86Xmm, X86Xmm, X86Xmm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvq, Vpshldvq, X86Xmm, X86Xmm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvq, Vpshldvq, X86Ymm, X86Ymm, X86Ymm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvq, Vpshldvq, X86Ymm, X86Ymm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvq, Vpshldvq, X86Zmm, X86Zmm, X86Zmm)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshldvq, Vpshldvq, X86Zmm, X86Zmm, X86Mem)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshldvw, Vpshldvw, X86Xmm, X86Xmm, X86Xmm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvw, Vpshldvw, X86Xmm, X86Xmm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvw, Vpshldvw, X86Ymm, X86Ymm, X86Ymm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvw, Vpshldvw, X86Ymm, X86Ymm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshldvw, Vpshldvw, X86Zmm, X86Zmm, X86Zmm)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshldvw, Vpshldvw, X86Zmm, X86Zmm, X86Mem)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4i(vpshrdd, Vpshrdd, X86Xmm, X86Xmm, X86Xmm, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdd, Vpshrdd, X86Xmm, X86Xmm, X86Mem, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdd, Vpshrdd, X86Ymm, X86Ymm, X86Ymm, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdd, Vpshrdd, X86Ymm, X86Ymm, X86Mem, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdd, Vpshrdd, X86Zmm, X86Zmm, X86Zmm, Imm)               //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4i(vpshrdd, Vpshrdd, X86Zmm, X86Zmm, X86Mem, Imm)               //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, X86Xmm, X86Xmm, X86Xmm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, X86Xmm, X86Xmm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, X86Ymm, X86Ymm, X86Ymm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, X86Ymm, X86Ymm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, X86Zmm, X86Zmm, X86Zmm)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, X86Zmm, X86Zmm, X86Mem)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshrdvq, Vpshrdvq, X86Xmm, X86Xmm, X86Xmm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvq, Vpshrdvq, X86Xmm, X86Xmm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvq, Vpshrdvq, X86Ymm, X86Ymm, X86Ymm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvq, Vpshrdvq, X86Ymm, X86Ymm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvq, Vpshrdvq, X86Zmm, X86Zmm, X86Zmm)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshrdvq, Vpshrdvq, X86Zmm, X86Zmm, X86Mem)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshrdvw, Vpshrdvw, X86Xmm, X86Xmm, X86Xmm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvw, Vpshrdvw, X86Xmm, X86Xmm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvw, Vpshrdvw, X86Ymm, X86Ymm, X86Ymm)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvw, Vpshrdvw, X86Ymm, X86Ymm, X86Mem)                  //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_3x(vpshrdvw, Vpshrdvw, X86Zmm, X86Zmm, X86Zmm)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_3x(vpshrdvw, Vpshrdvw, X86Zmm, X86Zmm, X86Mem)                  //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4i(vpshrdw, Vpshrdw, X86Xmm, X86Xmm, X86Xmm, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdw, Vpshrdw, X86Xmm, X86Xmm, X86Mem, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdw, Vpshrdw, X86Ymm, X86Ymm, X86Ymm, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdw, Vpshrdw, X86Ymm, X86Ymm, X86Mem, Imm)               //      AVX512_VBMI2{kz}-VL
+  ASMJIT_INST_4i(vpshrdw, Vpshrdw, X86Zmm, X86Zmm, X86Zmm, Imm)               //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4i(vpshrdw, Vpshrdw, X86Zmm, X86Zmm, X86Mem, Imm)               //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshufb, Vpshufb, X86Xmm, X86Xmm, X86Xmm)                    // AVX  AVX512_BW{kz}-VL
   ASMJIT_INST_3x(vpshufb, Vpshufb, X86Xmm, X86Xmm, X86Mem)                    // AVX  AVX512_BW{kz}-VL
   ASMJIT_INST_3x(vpshufb, Vpshufb, X86Ymm, X86Ymm, X86Ymm)                    // AVX2 AVX512_BW{kz}-VL
   ASMJIT_INST_3x(vpshufb, Vpshufb, X86Ymm, X86Ymm, X86Mem)                    // AVX2 AVX512_BW{kz}-VL
   ASMJIT_INST_3x(vpshufb, Vpshufb, X86Zmm, X86Zmm, X86Zmm)                    //      AVX512_BW{kz}
   ASMJIT_INST_3x(vpshufb, Vpshufb, X86Zmm, X86Zmm, X86Mem)                    //      AVX512_BW{kz}
+  ASMJIT_INST_3x(vpshufbitqmb, Vpshufbitqmb, X86KReg, X86Xmm, X86Xmm)         //      AVX512_BITALG{k}-VL
+  ASMJIT_INST_3x(vpshufbitqmb, Vpshufbitqmb, X86KReg, X86Xmm, X86Mem)         //      AVX512_BITALG{k}-VL
+  ASMJIT_INST_3x(vpshufbitqmb, Vpshufbitqmb, X86KReg, X86Ymm, X86Ymm)         //      AVX512_BITALG{k}-VL
+  ASMJIT_INST_3x(vpshufbitqmb, Vpshufbitqmb, X86KReg, X86Ymm, X86Mem)         //      AVX512_BITALG{k}-VL
+  ASMJIT_INST_3x(vpshufbitqmb, Vpshufbitqmb, X86KReg, X86Zmm, X86Zmm)         //      AVX512_BITALG{k}
+  ASMJIT_INST_3x(vpshufbitqmb, Vpshufbitqmb, X86KReg, X86Zmm, X86Mem)         //      AVX512_BITALG{k}
   ASMJIT_INST_3i(vpshufd, Vpshufd, X86Xmm, X86Xmm, Imm)                       // AVX  AVX512_F{kz|b32}-VL
   ASMJIT_INST_3i(vpshufd, Vpshufd, X86Xmm, X86Mem, Imm)                       // AVX  AVX512_F{kz|b32}-VL
   ASMJIT_INST_3i(vpshufd, Vpshufd, X86Ymm, X86Ymm, Imm)                       // AVX2 AVX512_F{kz|b32}-VL
@@ -4857,23 +4968,24 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
   // --------------------------------------------------------------------------
 
   //! Use REP/REPZ prefix.
-  ASMJIT_INLINE This& rep() noexcept { return X86EmitterExplicitT<This>::_addOptions(X86Inst::kOptionRep); }
+  inline This& rep() noexcept { return X86EmitterExplicitT<This>::_addInstOptions(X86Inst::kOptionRep); }
   //! Use REPNZ prefix.
-  ASMJIT_INLINE This& repnz() noexcept { return X86EmitterExplicitT<This>::_addOptions(X86Inst::kOptionRepnz); }
+  inline This& repnz() noexcept { return X86EmitterExplicitT<This>::_addInstOptions(X86Inst::kOptionRepne); }
 
   //! Use REP/REPZ prefix.
-  ASMJIT_INLINE This& repe() noexcept { return rep(); }
+  inline This& repe() noexcept { return rep(); }
   //! Use REP/REPZ prefix.
-  ASMJIT_INLINE This& repz() noexcept { return rep(); }
+  inline This& repz() noexcept { return rep(); }
   //! Use REPNZ prefix.
-  ASMJIT_INLINE This& repne() noexcept { return repnz(); }
+  inline This& repne() noexcept { return repnz(); }
 
   // --------------------------------------------------------------------------
   // [General Purpose and Non-SIMD Instructions]
   // --------------------------------------------------------------------------
 
-  // TODO: xrstor and xsave don't have explicit variants yet.
+  using X86EmitterExplicitT<This>::_emitter;
 
+  // TODO: xrstor and xsave don't have explicit variants yet.
   using X86EmitterExplicitT<This>::cbw;
   using X86EmitterExplicitT<This>::cdq;
   using X86EmitterExplicitT<This>::cdqe;
@@ -4975,37 +5087,39 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
   ASMJIT_INST_0x(xsetbv, Xsetbv)                                              // XSAVE     [IMPLICIT] XCR[ECX] <- EDX:EAX
 
   // String instructions aliases.
-  ASMJIT_INLINE Error cmpsb() { return ASMJIT_EMIT(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 1), X86EmitterExplicitT<This>::ptr_zdi(0, 1)); }
-  ASMJIT_INLINE Error cmpsd() { return ASMJIT_EMIT(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 4), X86EmitterExplicitT<This>::ptr_zdi(0, 4)); }
-  ASMJIT_INLINE Error cmpsq() { return ASMJIT_EMIT(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 8), X86EmitterExplicitT<This>::ptr_zdi(0, 8)); }
-  ASMJIT_INLINE Error cmpsw() { return ASMJIT_EMIT(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 2), X86EmitterExplicitT<This>::ptr_zdi(0, 2)); }
+  inline Error cmpsb() { return _emitter()->emit(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 1), X86EmitterExplicitT<This>::ptr_zdi(0, 1)); }
+  inline Error cmpsd() { return _emitter()->emit(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 4), X86EmitterExplicitT<This>::ptr_zdi(0, 4)); }
+  inline Error cmpsq() { return _emitter()->emit(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 8), X86EmitterExplicitT<This>::ptr_zdi(0, 8)); }
+  inline Error cmpsw() { return _emitter()->emit(X86Inst::kIdCmps, X86EmitterExplicitT<This>::ptr_zsi(0, 2), X86EmitterExplicitT<This>::ptr_zdi(0, 2)); }
 
-  ASMJIT_INLINE Error lodsb() { return ASMJIT_EMIT(X86Inst::kIdLods, x86::al , X86EmitterExplicitT<This>::ptr_zdi(0, 1)); }
-  ASMJIT_INLINE Error lodsd() { return ASMJIT_EMIT(X86Inst::kIdLods, x86::eax, X86EmitterExplicitT<This>::ptr_zdi(0, 4)); }
-  ASMJIT_INLINE Error lodsq() { return ASMJIT_EMIT(X86Inst::kIdLods, x86::rax, X86EmitterExplicitT<This>::ptr_zdi(0, 8)); }
-  ASMJIT_INLINE Error lodsw() { return ASMJIT_EMIT(X86Inst::kIdLods, x86::ax , X86EmitterExplicitT<This>::ptr_zdi(0, 2)); }
+  inline Error lodsb() { return _emitter()->emit(X86Inst::kIdLods, x86::al , X86EmitterExplicitT<This>::ptr_zdi(0, 1)); }
+  inline Error lodsd() { return _emitter()->emit(X86Inst::kIdLods, x86::eax, X86EmitterExplicitT<This>::ptr_zdi(0, 4)); }
+  inline Error lodsq() { return _emitter()->emit(X86Inst::kIdLods, x86::rax, X86EmitterExplicitT<This>::ptr_zdi(0, 8)); }
+  inline Error lodsw() { return _emitter()->emit(X86Inst::kIdLods, x86::ax , X86EmitterExplicitT<This>::ptr_zdi(0, 2)); }
 
-  ASMJIT_INLINE Error movsb() { return ASMJIT_EMIT(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 1), X86EmitterExplicitT<This>::ptr_zsi(0, 1)); }
-  ASMJIT_INLINE Error movsd() { return ASMJIT_EMIT(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 4), X86EmitterExplicitT<This>::ptr_zsi(0, 4)); }
-  ASMJIT_INLINE Error movsq() { return ASMJIT_EMIT(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 8), X86EmitterExplicitT<This>::ptr_zsi(0, 8)); }
-  ASMJIT_INLINE Error movsw() { return ASMJIT_EMIT(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 2), X86EmitterExplicitT<This>::ptr_zsi(0, 2)); }
+  inline Error movsb() { return _emitter()->emit(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 1), X86EmitterExplicitT<This>::ptr_zsi(0, 1)); }
+  inline Error movsd() { return _emitter()->emit(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 4), X86EmitterExplicitT<This>::ptr_zsi(0, 4)); }
+  inline Error movsq() { return _emitter()->emit(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 8), X86EmitterExplicitT<This>::ptr_zsi(0, 8)); }
+  inline Error movsw() { return _emitter()->emit(X86Inst::kIdMovs, X86EmitterExplicitT<This>::ptr_zdi(0, 2), X86EmitterExplicitT<This>::ptr_zsi(0, 2)); }
 
-  ASMJIT_INLINE Error scasb() { return ASMJIT_EMIT(X86Inst::kIdScas, x86::al , X86EmitterExplicitT<This>::ptr_zdi(0, 1)); }
-  ASMJIT_INLINE Error scasd() { return ASMJIT_EMIT(X86Inst::kIdScas, x86::eax, X86EmitterExplicitT<This>::ptr_zdi(0, 4)); }
-  ASMJIT_INLINE Error scasq() { return ASMJIT_EMIT(X86Inst::kIdScas, x86::rax, X86EmitterExplicitT<This>::ptr_zdi(0, 8)); }
-  ASMJIT_INLINE Error scasw() { return ASMJIT_EMIT(X86Inst::kIdScas, x86::ax , X86EmitterExplicitT<This>::ptr_zdi(0, 2)); }
+  inline Error scasb() { return _emitter()->emit(X86Inst::kIdScas, x86::al , X86EmitterExplicitT<This>::ptr_zdi(0, 1)); }
+  inline Error scasd() { return _emitter()->emit(X86Inst::kIdScas, x86::eax, X86EmitterExplicitT<This>::ptr_zdi(0, 4)); }
+  inline Error scasq() { return _emitter()->emit(X86Inst::kIdScas, x86::rax, X86EmitterExplicitT<This>::ptr_zdi(0, 8)); }
+  inline Error scasw() { return _emitter()->emit(X86Inst::kIdScas, x86::ax , X86EmitterExplicitT<This>::ptr_zdi(0, 2)); }
 
-  ASMJIT_INLINE Error stosb() { return ASMJIT_EMIT(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 1), x86::al ); }
-  ASMJIT_INLINE Error stosd() { return ASMJIT_EMIT(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 4), x86::eax); }
-  ASMJIT_INLINE Error stosq() { return ASMJIT_EMIT(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 8), x86::rax); }
-  ASMJIT_INLINE Error stosw() { return ASMJIT_EMIT(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 2), x86::ax ); }
+  inline Error stosb() { return _emitter()->emit(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 1), x86::al ); }
+  inline Error stosd() { return _emitter()->emit(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 4), x86::eax); }
+  inline Error stosq() { return _emitter()->emit(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 8), x86::rax); }
+  inline Error stosw() { return _emitter()->emit(X86Inst::kIdStos, X86EmitterExplicitT<This>::ptr_zdi(0, 2), x86::ax ); }
 
   // --------------------------------------------------------------------------
   // [MONITOR|MWAIT]
   // --------------------------------------------------------------------------
 
   ASMJIT_INST_0x(monitor, Monitor)
+  ASMJIT_INST_0x(monitorx, Monitorx)
   ASMJIT_INST_0x(mwait, Mwait)
+  ASMJIT_INST_0x(mwaitx, Mwaitx)
 
   // --------------------------------------------------------------------------
   // [MMX & SSE Instructions]
@@ -5084,7 +5198,6 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
 #undef ASMJIT_INST_5x
 #undef ASMJIT_INST_5i
 #undef ASMJIT_INST_6x
-#undef ASMJIT_EMIT
 
 // ============================================================================
 // [asmjit::X86Emitter]
@@ -5092,8 +5205,8 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
 
 //! X86/X64 emitter.
 //!
-//! NOTE: This class cannot be created, you can only cast to it and use it as
-//! emitter that emits to either X86Assembler, X86Builder, or X86Compiler (use
+//! NOTE: This class cannot be instantiated, you can only cast to it and use it
+//! as emitter that emits to either X86Assembler, X86Builder, or X86Compiler (use
 //! with caution with X86Compiler as it expects virtual registers to be used).
 class X86Emitter : public CodeEmitter, public X86EmitterImplicitT<X86Emitter> {
   ASMJIT_NONCONSTRUCTIBLE(X86Emitter)
@@ -5101,10 +5214,7 @@ class X86Emitter : public CodeEmitter, public X86EmitterImplicitT<X86Emitter> {
 
 //! \}
 
-} // asmjit namespace
-
-// [Api-End]
-#include "../asmjit_apiend.h"
+ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_X86_X86EMITTER_H

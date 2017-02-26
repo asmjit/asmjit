@@ -1,34 +1,129 @@
 language: cpp
 
-os: [linux, osx]
-compiler: [gcc, clang]
-
-addons:
-  apt:
-    packages: [cmake, gcc-multilib, g++-multilib, valgrind]
-    sources: [ubuntu-toolchain-r-test]
-
-env:
-  matrix:
-    - BUILD_TYPE=Debug   CFLAGS=-m32 CXXFLAGS=-m32
-    - BUILD_TYPE=Debug   CFLAGS=-m64 CXXFLAGS=-m64
-    - BUILD_TYPE=Release CFLAGS=-m32 CXXFLAGS=-m32
-    - BUILD_TYPE=Release CFLAGS=-m64 CXXFLAGS=-m64
-
 matrix:
-  exclude:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-4.8, g++-4.8-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8 && CXXFLAGS=-m32"
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-4.8, g++-4.8-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8 && CXXFLAGS=-m64"
+
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-4.9, g++-4.9-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9 && CXXFLAGS=-m32"
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-4.9, g++-4.9-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9 && CXXFLAGS=-m64"
+
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-5, g++-5-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5 && CXXFLAGS=-m32"
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-5, g++-5-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5 && CXXFLAGS=-m64"
+
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-6, g++-6-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6 && CXXFLAGS=-m32"
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-6, g++-6-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6 && CXXFLAGS=-m64"
+
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-7, g++-7-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7 && CXXFLAGS=-m32"
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-7, g++-7-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7 && CXXFLAGS=-m64"
+
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-7, g++-7-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-7 && CXX=g++-7 && CXXFLAGS=-m32"
+    - os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-7, g++-7-multilib]
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-7 && CXX=g++-7 && CXXFLAGS=-m64"
+
     - os: osx
+      osx_image: xcode7.3
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m32"
+    - os: osx
+      osx_image: xcode7.3
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m64"
+
+    - os: osx
+<<<<<<< HEAD
       compiler: gcc
     - os: linux
       compiler: clang # Clang requires standard library used by GCC 4.9+, which fails on Travis.
+=======
+      osx_image: xcode8
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m32"
+    - os: osx
+      osx_image: xcode8
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m64"
+
+    - os: osx
+      osx_image: xcode9
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m32"
+    - os: osx
+      osx_image: xcode9
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m64"
+
+    - os: osx
+      osx_image: xcode9
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CXXFLAGS=-m32"
+    - os: osx
+      osx_image: xcode9
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CXXFLAGS=-m64"
+
+before_install:
+  - eval "$BUILD_MATRIX"
+>>>>>>> 4fab3c7... Completely Updated AsmJit with new RA and many major changes.
 
 install:
   - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      CMAKE_PACKAGE="https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz"
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      CMAKE_PACKAGE="https://cmake.org/files/v3.9/cmake-3.9.4-Linux-x86_64.tar.gz"
       mkdir -p deps/cmake
-      wget --no-check-certificate --quiet -O - ${CMAKE_PACKAGE} | tar --strip-components=1 -xz -C deps/cmake
-      export PATH=${TRAVIS_BUILD_DIR}/deps/cmake/bin:${PATH}
+      wget --no-check-certificate --quiet -O - $CMAKE_PACKAGE | tar --strip-components=1 -xz -C deps/cmake
+      export PATH=$TRAVIS_BUILD_DIR/deps/cmake/bin:$PATH
     else
       brew update
       brew outdated cmake || brew upgrade cmake
@@ -37,7 +132,6 @@ install:
 before_script:
   - mkdir build
   - cd build
-  - cmake --version
   - cmake .. -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DASMJIT_BUILD_TEST=1
   - cd ..
 

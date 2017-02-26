@@ -8,19 +8,15 @@
 #ifndef _ASMJIT_X86_X86BUILDER_H
 #define _ASMJIT_X86_X86BUILDER_H
 
-#include "../asmjit_build.h"
-#if !defined(ASMJIT_DISABLE_BUILDER)
+#include "../core/build.h"
+#ifndef ASMJIT_DISABLE_BUILDER
 
 // [Dependencies]
-#include "../base/codebuilder.h"
-#include "../base/simdtypes.h"
+#include "../core/codebuilder.h"
+#include "../core/simdtypes.h"
 #include "../x86/x86emitter.h"
-#include "../x86/x86misc.h"
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
-
-namespace asmjit {
+ASMJIT_BEGIN_NAMESPACE
 
 //! \addtogroup asmjit_x86
 //! \{
@@ -33,7 +29,6 @@ namespace asmjit {
 class ASMJIT_VIRTAPI X86Builder
   : public CodeBuilder,
     public X86EmitterImplicitT<X86Builder> {
-
 public:
   ASMJIT_NONCOPYABLE(X86Builder)
   typedef CodeBuilder Base;
@@ -43,43 +38,26 @@ public:
   // --------------------------------------------------------------------------
 
   //! Create a `X86Builder` instance.
-  ASMJIT_API X86Builder(CodeHolder* code = nullptr) noexcept;
+  ASMJIT_API explicit X86Builder(CodeHolder* code = nullptr) noexcept;
   //! Destroy the `X86Builder` instance.
-  ASMJIT_API ~X86Builder() noexcept;
+  ASMJIT_API virtual ~X86Builder() noexcept;
 
   // --------------------------------------------------------------------------
-  // [Compatibility]
+  // [Finalize]
   // --------------------------------------------------------------------------
 
-  //! Explicit cast to `X86Emitter`.
-  ASMJIT_INLINE X86Emitter* asEmitter() noexcept { return reinterpret_cast<X86Emitter*>(this); }
-  //! Explicit cast to `X86Emitter` (const).
-  ASMJIT_INLINE const X86Emitter* asEmitter() const noexcept { return reinterpret_cast<const X86Emitter*>(this); }
-
-  //! Implicit cast to `X86Emitter`.
-  ASMJIT_INLINE operator X86Emitter&() noexcept { return *asEmitter(); }
-  //! Implicit cast to `X86Emitter` (const).
-  ASMJIT_INLINE operator const X86Emitter&() const noexcept { return *asEmitter(); }
+  ASMJIT_API Error finalize() override;
 
   // --------------------------------------------------------------------------
   // [Events]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API virtual Error onAttach(CodeHolder* code) noexcept override;
-
-  // --------------------------------------------------------------------------
-  // [Code-Generation]
-  // --------------------------------------------------------------------------
-
-  ASMJIT_API virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) override;
+  ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
 };
 
 //! \}
 
-} // asmjit namespace
-
-// [Api-End]
-#include "../asmjit_apiend.h"
+ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // !ASMJIT_DISABLE_BUILDER

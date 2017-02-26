@@ -1,6 +1,6 @@
 version: "{build}"
 
-image: Visual Studio 2015
+image: Visual Studio 2017
 clone_folder: c:\dev\asmjit
 
 environment:
@@ -14,40 +14,16 @@ environment:
       TOOLCHAIN: "MinGW Makefiles"
 
     - BUILD_TYPE: Debug
-      TOOLCHAIN: "Visual Studio 10 2010"
+      TOOLCHAIN: "Visual Studio 15 2017"
 
     - BUILD_TYPE: Release
-      TOOLCHAIN: "Visual Studio 10 2010"
+      TOOLCHAIN: "Visual Studio 15 2017"
 
     - BUILD_TYPE: Debug
-      TOOLCHAIN: "Visual Studio 10 2010 Win64"
+      TOOLCHAIN: "Visual Studio 15 2017 Win64"
 
     - BUILD_TYPE: Release
-      TOOLCHAIN: "Visual Studio 10 2010 Win64"
-
-    - BUILD_TYPE: Debug
-      TOOLCHAIN: "Visual Studio 12 2013"
-
-    - BUILD_TYPE: Release
-      TOOLCHAIN: "Visual Studio 12 2013"
-
-    - BUILD_TYPE: Debug
-      TOOLCHAIN: "Visual Studio 12 2013 Win64"
-
-    - BUILD_TYPE: Release
-      TOOLCHAIN: "Visual Studio 12 2013 Win64"
-
-    - BUILD_TYPE: Debug
-      TOOLCHAIN: "Visual Studio 14 2015"
-
-    - BUILD_TYPE: Release
-      TOOLCHAIN: "Visual Studio 14 2015"
-
-    - BUILD_TYPE: Debug
-      TOOLCHAIN: "Visual Studio 14 2015 Win64"
-
-    - BUILD_TYPE: Release
-      TOOLCHAIN: "Visual Studio 14 2015 Win64"
+      TOOLCHAIN: "Visual Studio 15 2017 Win64"
 
 install:
   - if "%TOOLCHAIN%"=="MinGW Makefiles" set PATH=%PATH:C:\Program Files\Git\usr\bin;=%

@@ -9,9 +9,8 @@
 // are grouped by category and then sorted alphabetically.
 
 // [Dependencies]
-#include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
-#include <string.h>
 
 #include "./asmjit.h"
 #include "./asmjit_test_opcode.h"
@@ -26,11 +25,11 @@ struct OpcodeDumpInfo {
 
 static const char* archTypeToString(uint32_t archType) {
   switch (archType) {
-    case ArchInfo::kTypeNone : return "None";
-    case ArchInfo::kTypeX86  : return "X86";
-    case ArchInfo::kTypeX64  : return "X64";
-    case ArchInfo::kTypeA32  : return "A32";
-    case ArchInfo::kTypeA64  : return "A64";
+    case ArchInfo::kTypeNone: return "None";
+    case ArchInfo::kTypeX86 : return "X86";
+    case ArchInfo::kTypeX64 : return "X64";
+    case ArchInfo::kTypeA32 : return "A32";
+    case ArchInfo::kTypeA64 : return "A64";
 
     default:
       return "<unknown>";
@@ -38,9 +37,8 @@ static const char* archTypeToString(uint32_t archType) {
 }
 
 struct TestErrorHandler : public ErrorHandler {
-  virtual bool handleError(Error err, const char* message, CodeEmitter* origin) {
-    printf("ERROR 0x%08X: %s\n", err, message);
-    return true;
+  virtual void handleError(Error err, const char* message, CodeEmitter* origin) {
+    std::printf("ERROR 0x%08X: %s\n", err, message);
   }
 };
 
@@ -60,7 +58,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < ASMJIT_ARRAY_SIZE(infoList); i++) {
     const OpcodeDumpInfo& info = infoList[i];
 
-    printf("Opcodes [ARCH=%s REX1=%s REX2=%s]\n",
+    std::printf("Opcodes [ARCH=%s REX1=%s REX2=%s]\n",
       archTypeToString(info.archType),
       info.useRex1 ? "true" : "false",
       info.useRex2 ? "true" : "false");
@@ -69,20 +67,21 @@ int main(int argc, char* argv[]) {
     code.init(CodeInfo(info.archType));
     code.setErrorHandler(&eh);
 
-#if !defined(ASMJIT_DISABLE_LOGGING)
+    #ifndef ASMJIT_DISABLE_LOGGING
     FileLogger logger(stdout);
     logger.addOptions(Logger::kOptionBinaryForm);
     code.setLogger(&logger);
-#endif // ASMJIT_DISABLE_LOGGING
+    #endif
 
     X86Assembler a(&code);
-    asmtest::generateOpcodes(a, info.useRex1, info.useRex2);
+    asmtest::generateOpcodes(a.as<X86Emitter>(), info.useRex1, info.useRex2);
 
     // If this is the host architecture the code generated can be executed
     // for debugging purposes (the first instruction is ret anyway).
     if (code.getArchType() == ArchInfo::kTypeHost) {
       JitRuntime runtime;
       VoidFunc p;
+
       Error err = runtime.add(&p, &code);
       if (err == kErrorOk) p();
     }

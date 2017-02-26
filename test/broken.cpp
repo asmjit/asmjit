@@ -70,8 +70,8 @@ static bool BrokenAPI_startsWith(const char* a, const char* b) {
 // `-` as `_`.
 static bool BrokenAPI_matchesFilter(const char* a, const char* b) {
   for (size_t i = 0; ; i++) {
-    unsigned char ca = static_cast<unsigned char>(a[i]);
-    unsigned char cb = static_cast<unsigned char>(b[i]);
+    unsigned int ca = static_cast<unsigned char>(a[i]);
+    unsigned int cb = static_cast<unsigned char>(b[i]);
 
     // If filter is defined as wildcard the rest automatically matches.
     if (cb == '*')
@@ -80,8 +80,8 @@ static bool BrokenAPI_matchesFilter(const char* a, const char* b) {
     if (ca == '-') ca = '_';
     if (cb == '-') cb = '_';
 
-    if (ca >= 'A' && ca <= 'Z') ca += 'a' - 'A';
-    if (cb >= 'A' && cb <= 'Z') cb += 'a' - 'A';
+    if (ca >= 'A' && ca <= 'Z') ca += unsigned('a' - 'A');
+    if (cb >= 'A' && cb <= 'Z') cb += unsigned('a' - 'A');
 
     if (ca != cb)
       return false;

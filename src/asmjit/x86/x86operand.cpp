@@ -8,24 +8,43 @@
 #define ASMJIT_EXPORTS
 
 // [Guard]
-#include "../asmjit_build.h"
-#if defined(ASMJIT_BUILD_X86)
+#include "../core/build.h"
+#ifdef ASMJIT_BUILD_X86
 
 // [Dependencies]
+#include "../core/misc_p.h"
 #include "../x86/x86operand.h"
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
-
-namespace asmjit {
+ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
-// [asmjit::X86Operand - Test]
+// [asmjit::X86OpData]
 // ============================================================================
 
-#if defined(ASMJIT_TEST)
+const X86OpData x86OpData = {
+  {
+    {
+#define ASMJIT_X86_REG_SIGNATURE(TYPE) { X86RegTraits<TYPE>::kSignature }
+      ASMJIT_TABLE_16(ASMJIT_X86_REG_SIGNATURE,  0),
+      ASMJIT_TABLE_16(ASMJIT_X86_REG_SIGNATURE, 16)
+#undef ASMJIT_X86_REG_SIGNATURE
+    },
+
+    // RegCount[]
+    { ASMJIT_TABLE_T_32(X86RegTraits, kCount, 0) },
+
+    // RegTypeToTypeId[]
+    { ASMJIT_TABLE_T_32(X86RegTraits, kTypeId, 0) }
+  }
+};
+
+// ============================================================================
+// [asmjit::X86Operand - Unit]
+// ============================================================================
+
+#if defined(ASMJIT_BUILD_TEST)
 UNIT(x86_operand) {
-  Label L;
+  Label L(1000); // Label with some ID.
 
   INFO("Checking basic properties of built-in X86 registers");
   EXPECT(x86::gpb(X86Gp::kIdAx) == x86::al);
@@ -79,7 +98,7 @@ UNIT(x86_operand) {
   EXPECT(x86::eax.getId() == 0);
   EXPECT(x86::eax.getSize() == 4);
   EXPECT(x86::eax.getType() == X86Reg::kRegGpd);
-  EXPECT(x86::eax.getKind() == X86Reg::kKindGp);
+  EXPECT(x86::eax.getGroup() == X86Reg::kGroupGp);
 
   INFO("Checking FP register properties");
   EXPECT(X86Fp().isReg() == false);
@@ -87,7 +106,7 @@ UNIT(x86_operand) {
   EXPECT(x86::fp1.getId() == 1);
   EXPECT(x86::fp1.getSize() == 10);
   EXPECT(x86::fp1.getType() == X86Reg::kRegFp);
-  EXPECT(x86::fp1.getKind() == X86Reg::kKindFp);
+  EXPECT(x86::fp1.getGroup() == X86Reg::kGroupFp);
 
   INFO("Checking MM register properties");
   EXPECT(X86Mm().isReg() == false);
@@ -95,7 +114,7 @@ UNIT(x86_operand) {
   EXPECT(x86::mm2.getId() == 2);
   EXPECT(x86::mm2.getSize() == 8);
   EXPECT(x86::mm2.getType() == X86Reg::kRegMm);
-  EXPECT(x86::mm2.getKind() == X86Reg::kKindMm);
+  EXPECT(x86::mm2.getGroup() == X86Reg::kGroupMm);
 
   INFO("Checking K register properties");
   EXPECT(X86KReg().isReg() == false);
@@ -103,7 +122,7 @@ UNIT(x86_operand) {
   EXPECT(x86::k3.getId() == 3);
   EXPECT(x86::k3.getSize() == 0);
   EXPECT(x86::k3.getType() == X86Reg::kRegK);
-  EXPECT(x86::k3.getKind() == X86Reg::kKindK);
+  EXPECT(x86::k3.getGroup() == X86Reg::kGroupK);
 
   INFO("Checking XMM register properties");
   EXPECT(X86Xmm().isReg() == false);
@@ -111,7 +130,7 @@ UNIT(x86_operand) {
   EXPECT(x86::xmm4.getId() == 4);
   EXPECT(x86::xmm4.getSize() == 16);
   EXPECT(x86::xmm4.getType() == X86Reg::kRegXmm);
-  EXPECT(x86::xmm4.getKind() == X86Reg::kKindVec);
+  EXPECT(x86::xmm4.getGroup() == X86Reg::kGroupVec);
   EXPECT(x86::xmm4.isVec());
 
   INFO("Checking YMM register properties");
@@ -120,7 +139,7 @@ UNIT(x86_operand) {
   EXPECT(x86::ymm5.getId() == 5);
   EXPECT(x86::ymm5.getSize() == 32);
   EXPECT(x86::ymm5.getType() == X86Reg::kRegYmm);
-  EXPECT(x86::ymm5.getKind() == X86Reg::kKindVec);
+  EXPECT(x86::ymm5.getGroup() == X86Reg::kGroupVec);
   EXPECT(x86::ymm5.isVec());
 
   INFO("Checking ZMM register properties");
@@ -129,7 +148,7 @@ UNIT(x86_operand) {
   EXPECT(x86::zmm6.getId() == 6);
   EXPECT(x86::zmm6.getSize() == 64);
   EXPECT(x86::zmm6.getType() == X86Reg::kRegZmm);
-  EXPECT(x86::zmm6.getKind() == X86Reg::kKindVec);
+  EXPECT(x86::zmm6.getGroup() == X86Reg::kGroupVec);
   EXPECT(x86::zmm6.isVec());
 
   INFO("Checking VEC register properties");
@@ -157,20 +176,64 @@ UNIT(x86_operand) {
   EXPECT(m == X86Mem(),
     "Two default constructed X86Mem operands must be equal");
 
-  X86Mem mL = x86::ptr(L);
-  EXPECT(mL.hasBase() == true,
-    "Memory constructed from Label must hasBase()");
-  EXPECT(mL.hasBaseReg() == false,
-    "Memory constructed from Label must not report hasBaseReg()");
-  EXPECT(mL.hasBaseLabel() == true,
-    "Memory constructed from Label must report hasBaseLabel()");
+  m = x86::ptr(L);
+  EXPECT(m.hasBase() == true);
+  EXPECT(m.hasBaseReg() == false);
+  EXPECT(m.hasBaseLabel() == true);
+  EXPECT(m.hasOffset() == false);
+  EXPECT(m.isOffset64Bit() == false);
+  EXPECT(m.getOffset() == 0);
+  EXPECT(m.getOffsetLo32() == 0);
+
+  m = x86::ptr(ASMJIT_UINT64_C(0x0123456789ABCDEF));
+  EXPECT(m.hasBase() == false);
+  EXPECT(m.hasBaseReg() == false);
+  EXPECT(m.hasIndex() == false);
+  EXPECT(m.hasIndexReg() == false);
+  EXPECT(m.hasOffset() == true);
+  EXPECT(m.isOffset64Bit() == true);
+  EXPECT(m.getOffset() == int64_t(ASMJIT_UINT64_C(0x0123456789ABCDEF)));
+  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEF));
+  m.addOffset(1);
+  EXPECT(m.getOffset() == int64_t(ASMJIT_UINT64_C(0x0123456789ABCDF0)));
+
+  m = x86::ptr(ASMJIT_UINT64_C(0x0123456789ABCDEF), x86::rdi, 4);
+  EXPECT(m.hasBase() == false);
+  EXPECT(m.hasBaseReg() == false);
+  EXPECT(m.hasIndex() == true);
+  EXPECT(m.hasIndexReg() == true);
+  EXPECT(m.getIndexType() == x86::rdi.getType());
+  EXPECT(m.getIndexId() == x86::rdi.getId());
+  EXPECT(m.hasOffset() == true);
+  EXPECT(m.isOffset64Bit() == true);
+  EXPECT(m.getOffset() == int64_t(ASMJIT_UINT64_C(0x0123456789ABCDEF)));
+  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEF));
+  m.resetIndex();
+  EXPECT(m.hasIndex() == false);
+  EXPECT(m.hasIndexReg() == false);
+
+  m = x86::ptr(x86::rax);
+  EXPECT(m.hasBase() == true);
+  EXPECT(m.hasBaseReg() == true);
+  EXPECT(m.getBaseType() == x86::rax.getType());
+  EXPECT(m.getBaseId() == x86::rax.getId());
+  EXPECT(m.hasIndex() == false);
+  EXPECT(m.hasIndexReg() == false);
+  EXPECT(m.getIndexType() == 0);
+  EXPECT(m.getIndexId() == 0);
+  EXPECT(m.hasOffset() == false);
+  EXPECT(m.isOffset64Bit() == false);
+  EXPECT(m.getOffset() == 0);
+  EXPECT(m.getOffsetLo32() == 0);
+  m.setIndex(x86::rsi);
+  EXPECT(m.hasIndex() == true);
+  EXPECT(m.hasIndexReg() == true);
+  EXPECT(m.getIndexType() == x86::rsi.getType());
+  EXPECT(m.getIndexId() == x86::rsi.getId());
 }
-#endif // ASMJIT_TEST
+#endif
 
-} // asmjit namespace
-
-// [Api-End]
-#include "../asmjit_apiend.h"
+ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86
