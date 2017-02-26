@@ -589,22 +589,18 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
   if (instId < X86Inst::_kIdCount) {
     const X86Inst& instInfo = X86Inst::getInst(instId);
 
-    // SHORT/LONG forms.
+    // SHORT|LONG options.
     if (options & X86Inst::kOptionShortForm) ASMJIT_PROPAGATE(sb.appendString("short "));
     if (options & X86Inst::kOptionLongForm) ASMJIT_PROPAGATE(sb.appendString("long "));
 
-    // LOCK/XACQUIRE/XRELEASE option.
+    // LOCK|XACQUIRE|XRELEASE options.
     if (options & X86Inst::kOptionXAcquire) ASMJIT_PROPAGATE(sb.appendString("xacquire "));
     if (options & X86Inst::kOptionXRelease) ASMJIT_PROPAGATE(sb.appendString("xrelease "));
     if (options & X86Inst::kOptionLock) ASMJIT_PROPAGATE(sb.appendString("lock "));
 
-    // REP options.
+    // REP|REPNZ options.
     if (options & (X86Inst::kOptionRep | X86Inst::kOptionRepnz)) {
-      const char* rep = "repnz ";
-      if ((options & (X86Inst::kOptionRep | X86Inst::kOptionRepnz)) == X86Inst::kOptionRep)
-        rep = instInfo.hasFlag(X86Inst::kFlagRepnz) ? "repz " : "rep ";
-
-      sb.appendString(rep);
+      sb.appendString((options & X86Inst::kOptionRep) ? "rep " : "repnz ");
       if (!extraOp.isNone()) {
         ASMJIT_PROPAGATE(sb.appendChar('{'));
         ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, extraOp));
@@ -631,9 +627,9 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
       }
     }
 
-    // VEX options.
-    if (options & X86Inst::kOptionVex3)
-      ASMJIT_PROPAGATE(sb.appendString("vex3 "));
+    // VEX|EVEX options.
+    if (options & X86Inst::kOptionVex3) ASMJIT_PROPAGATE(sb.appendString("vex3 "));
+    if (options & X86Inst::kOptionEvex) ASMJIT_PROPAGATE(sb.appendString("evex "));
 
     ASMJIT_PROPAGATE(sb.appendString(instInfo.getName()));
   }
