@@ -107,7 +107,7 @@ public:
     kX86FeatureSHA,                      //!< CPU has SHA-1 and SHA-256.
     kX86FeatureXSAVE,                    //!< CPU has XSAVE support - XSAVE/XRSTOR, XSETBV/XGETBV, and XCR.
     kX86FeatureXSAVEOPT,                 //!< CPU has XSAVEOPT support - XSAVEOPT/XSAVEOPT64.
-    kX86FeatureOSXSAVE,                  //!< OS has enabled XSAVE, you can call XGETBV to get XCR content.
+    kX86FeatureOSXSAVE,                  //!< CPU has XSAVE enabled by OS.
     kX86FeatureAVX,                      //!< CPU has AVX.
     kX86FeatureAVX2,                     //!< CPU has AVX2.
     kX86FeatureF16C,                     //!< CPU has F16C.
@@ -121,6 +121,7 @@ public:
     kX86FeatureMPX,                      //!< CPU has MPX (memory protection extensions).
     kX86FeatureHLE,                      //!< CPU has HLE.
     kX86FeatureRTM,                      //!< CPU has RTM.
+    kX86FeatureTSX,                      //!< CPU has TSX.
     kX86FeatureERMS,                     //!< CPU has ERMS (enhanced REP MOVSB/STOSB).
     kX86FeatureFSGSBASE,                 //!< CPU has FSGSBASE.
     kX86FeatureAVX512_F,                 //!< CPU has AVX512-F (foundation).

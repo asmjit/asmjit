@@ -235,15 +235,15 @@ Error Logging::formatInstruction(
   uint32_t archType,
   uint32_t instId,
   uint32_t options,
-  const Operand_& opExtra,
+  const Operand_& extraOp,
   const Operand_* opArray, uint32_t opCount) noexcept {
 
 #if defined(ASMJIT_BUILD_X86)
-  return X86Logging::formatInstruction(sb, logOptions, emitter, archType, instId, options, opExtra, opArray, opCount);
+  return X86Logging::formatInstruction(sb, logOptions, emitter, archType, instId, options, extraOp, opArray, opCount);
 #endif // ASMJIT_BUILD_X86
 
 #if defined(ASMJIT_BUILD_ARM)
-  return ArmLogging::formatInstruction(sb, logOptions, emitter, archType, instId, options, opExtra, opArray, opCount);
+  return ArmLogging::formatInstruction(sb, logOptions, emitter, archType, instId, options, extraOp, opArray, opCount);
 #endif // ASMJIT_BUILD_ARM
 
   return kErrorInvalidArch;
@@ -374,7 +374,7 @@ Error Logging::formatNode(
           cb->getArchType(),
           node->getInstId(),
           node->getOptions(),
-          node->getOpExtra(),
+          node->getExtraOp(),
           node->getOpArray(), node->getOpCount()));
       break;
     }
@@ -438,7 +438,7 @@ Error Logging::formatNode(
           cb->getArchType(),
           node->getInstId(),
           node->getOptions(),
-          node->getOpExtra(),
+          node->getExtraOp(),
           node->getOpArray(), node->getOpCount()));
       break;
     }

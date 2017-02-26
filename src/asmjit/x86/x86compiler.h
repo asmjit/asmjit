@@ -72,6 +72,7 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_API virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) override;
+  ASMJIT_API virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) override;
 
   // -------------------------------------------------------------------------
   // [Finalize]

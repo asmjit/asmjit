@@ -79,6 +79,8 @@ public:
   // [Code-Generation]
   // --------------------------------------------------------------------------
 
+  using CodeEmitter::_emit;
+
   ASMJIT_API Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) override;
   ASMJIT_API Error align(uint32_t mode, uint32_t alignment) override;
 };

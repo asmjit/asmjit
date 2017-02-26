@@ -101,15 +101,11 @@ public:
     //! NOTE: Reserved options should never appear in `CBInst` options.
     kOptionReservedMask = 0x00000007U,
 
-    //! Instruction has `_op4` (5th operand, indexed from zero).
-    kOptionOp4 = 0x0000008U,
-    //! Instruction has `_op5` (6th operand, indexed from zero).
-    kOptionOp5 = 0x0000010U,
-    //! Instruction has `_opExtra` operand (mask-op {k} operand when using AVX-512).
-    kOptionOpExtra = 0x00000020U,
+    //! Used only by Assembler to mark `_op4` and `_op5` are used.
+    kOptionOp4Op5Used = 0x00000008U,
 
     //! Prevents following a jump during compilation (CodeCompiler).
-    kOptionUnfollow = 0x00000040U,
+    kOptionUnfollow = 0x00000010U,
 
     //! Overwrite the destination operand (CodeCompiler).
     //!
@@ -149,7 +145,7 @@ public:
     //!
     //!     - `sqrtss x, y` - only LO element of `x` is changed, if you don't use
     //!       HI elements, use `X86Compiler.overwrite().sqrtss(x, y)`.
-    kOptionOverwrite = 0x00000080U
+    kOptionOverwrite = 0x00000020U
   };
 
   // --------------------------------------------------------------------------
@@ -172,8 +168,12 @@ public:
   // [Code-Generation]
   // --------------------------------------------------------------------------
 
-  //! Emit instruction.
+  //! Emit instruction having max 4 operands.
   virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) = 0;
+  //! Emit instruction having max 6 operands.
+  virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) = 0;
+  //! Emit instruction having operands stored in array.
+  virtual Error _emitOpArray(uint32_t instId, const Operand_* opArray, size_t opCount);
 
   //! Create a new label.
   virtual Label newLabel() = 0;
@@ -315,20 +315,12 @@ public:
   //! Reset options of the next instruction.
   ASMJIT_INLINE void resetOptions() noexcept { _options = 0; }
 
-  //! Get if the 5th operand (indexed from zero) of the next instruction is used.
-  ASMJIT_INLINE bool hasOp4() const noexcept { return (_options & kOptionOp4) != 0; }
-  //! Get if the 6th operand (indexed from zero) of the next instruction is used.
-  ASMJIT_INLINE bool hasOp5() const noexcept { return (_options & kOptionOp5) != 0; }
-  //! Get if the op-mask operand of the next instruction is used.
-  ASMJIT_INLINE bool hasOpExtra() const noexcept { return (_options & kOptionOpExtra) != 0; }
-
-  ASMJIT_INLINE const Operand& getOp4() const noexcept { return static_cast<const Operand&>(_op4); }
-  ASMJIT_INLINE const Operand& getOp5() const noexcept { return static_cast<const Operand&>(_op5); }
-  ASMJIT_INLINE const Operand& getOpExtra() const noexcept { return static_cast<const Operand&>(_opExtra); }
-
-  ASMJIT_INLINE void setOp4(const Operand_& op4) noexcept { _options |= kOptionOp4; _op4 = op4; }
-  ASMJIT_INLINE void setOp5(const Operand_& op5) noexcept { _options |= kOptionOp5; _op5 = op5; }
-  ASMJIT_INLINE void setOpExtra(const Operand_& opExtra) noexcept { _options |= kOptionOpExtra; _opExtra = opExtra; }
+  //! Get an extra operand that will be used by the next instruction (architecture specific).
+  ASMJIT_INLINE const Operand& getExtraOp() const noexcept { return static_cast<const Operand&>(_extraOp); }
+  //! Set an extra operand that will be used by the next instruction (architecture specific).
+  ASMJIT_INLINE void setExtraOp(const Operand_& extraOp) noexcept { _extraOp = extraOp; }
+  //! Reset an extra operand that will be used by the next instruction (architecture specific).
+  ASMJIT_INLINE void resetExtraOp() noexcept { _extraOp.setSignature(0); }
 
   //! Get annotation of the next instruction.
   ASMJIT_INLINE const char* getInlineComment() const noexcept { return _inlineComment; }
@@ -461,12 +453,16 @@ public:
     return emit(instId, o0, o1, o2, o3, o4, static_cast<int64_t>(o5));
   }
 
+  ASMJIT_INLINE Error emitOpArray(uint32_t instId, const Operand_* opArray, size_t opCount) {
+    return _emitOpArray(instId, opArray, opCount);
+  }
+
   // --------------------------------------------------------------------------
   // [Validation]
   // --------------------------------------------------------------------------
 
   //! Validate instruction with current options, called by `_emit()` if validation is enabled.
-  ASMJIT_API Error _validate(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) const noexcept;
+  ASMJIT_API Error _validate(uint32_t instId, const Operand_* opArray, uint32_t opCount) const noexcept;
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -488,10 +484,7 @@ public:
 
   uint32_t _options;                     //!< Used to pass instruction options       (affects the next instruction).
   const char* _inlineComment;            //!< Inline comment of the next instruction (affects the next instruction).
-  Operand_ _op4;                         //!< 5th operand data (indexed from zero)   (affects the next instruction).
-  Operand_ _op5;                         //!< 6th operand data (indexed from zero)   (affects the next instruction).
-  Operand_ _opExtra;                     //!< Extra operand (op-mask {k} on AVX-512) (affects the next instruction).
-
+  Operand_ _extraOp;                     //!< Extra operand (op-mask {k} on AVX-512) (affects the next instruction).
   Operand_ _none;                        //!< Used to pass unused operands to `_emit()` instead of passing null.
   Reg _nativeGpReg;                      //!< Native GP register with zero id.
   const Reg* _nativeGpArray;             //!< Array of native registers indexed from zero.

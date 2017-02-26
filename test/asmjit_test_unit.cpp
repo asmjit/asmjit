@@ -42,23 +42,23 @@ static void dumpCpu(void) {
 
 #if ASMJIT_ARCH_ARM32 || ASMJIT_ARCH_ARM64
   static const DumpCpuFeature armFeaturesList[] = {
-    { CpuInfo::kArmFeatureV6            , "ARMv6"                 },
-    { CpuInfo::kArmFeatureV7            , "ARMv7"                 },
-    { CpuInfo::kArmFeatureV8            , "ARMv8"                 },
-    { CpuInfo::kArmFeatureTHUMB         , "THUMB"                 },
-    { CpuInfo::kArmFeatureTHUMB2        , "THUMBv2"               },
-    { CpuInfo::kArmFeatureVFP2          , "VFPv2"                 },
-    { CpuInfo::kArmFeatureVFP3          , "VFPv3"                 },
-    { CpuInfo::kArmFeatureVFP4          , "VFPv4"                 },
-    { CpuInfo::kArmFeatureVFP_D32       , "VFP D32"               },
-    { CpuInfo::kArmFeatureNEON          , "NEON"                  },
-    { CpuInfo::kArmFeatureDSP           , "DSP"                   },
-    { CpuInfo::kArmFeatureIDIV          , "IDIV"                  },
-    { CpuInfo::kArmFeatureAES           , "AES"                   },
-    { CpuInfo::kArmFeatureCRC32         , "CRC32"                 },
-    { CpuInfo::kArmFeatureSHA1          , "SHA1"                  },
-    { CpuInfo::kArmFeatureSHA256        , "SHA256"                },
-    { CpuInfo::kArmFeatureAtomics64     , "64-bit atomics"        }
+    { CpuInfo::kArmFeatureV6              , "ARMv6"                },
+    { CpuInfo::kArmFeatureV7              , "ARMv7"                },
+    { CpuInfo::kArmFeatureV8              , "ARMv8"                },
+    { CpuInfo::kArmFeatureTHUMB           , "THUMB"                },
+    { CpuInfo::kArmFeatureTHUMB2          , "THUMBv2"              },
+    { CpuInfo::kArmFeatureVFP2            , "VFPv2"                },
+    { CpuInfo::kArmFeatureVFP3            , "VFPv3"                },
+    { CpuInfo::kArmFeatureVFP4            , "VFPv4"                },
+    { CpuInfo::kArmFeatureVFP_D32         , "VFP D32"              },
+    { CpuInfo::kArmFeatureNEON            , "NEON"                 },
+    { CpuInfo::kArmFeatureDSP             , "DSP"                  },
+    { CpuInfo::kArmFeatureIDIV            , "IDIV"                 },
+    { CpuInfo::kArmFeatureAES             , "AES"                  },
+    { CpuInfo::kArmFeatureCRC32           , "CRC32"                },
+    { CpuInfo::kArmFeatureSHA1            , "SHA1"                 },
+    { CpuInfo::kArmFeatureSHA256          , "SHA256"               },
+    { CpuInfo::kArmFeatureAtomics64       , "64-bit atomics"       }
   };
 
   INFO("ARM Features:");
@@ -129,6 +129,7 @@ static void dumpCpu(void) {
     { CpuInfo::kX86FeatureMPX             , "MPX"                  },
     { CpuInfo::kX86FeatureHLE             , "HLE"                  },
     { CpuInfo::kX86FeatureRTM             , "RTM"                  },
+    { CpuInfo::kX86FeatureTSX             , "TSX"                  },
     { CpuInfo::kX86FeatureERMS            , "ERMS"                 },
     { CpuInfo::kX86FeatureFSGSBASE        , "FSGSBASE"             },
     { CpuInfo::kX86FeatureAVX512_F        , "AVX512-F"             },

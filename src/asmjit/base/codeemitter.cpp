@@ -43,9 +43,7 @@ CodeEmitter::CodeEmitter(uint32_t type) noexcept
     _globalOptions(kOptionMaybeFailureCase),
     _options(0),
     _inlineComment(nullptr),
-    _op4(),
-    _op5(),
-    _opExtra(),
+    _extraOp(),
     _none(),
     _nativeGpReg(),
     _nativeGpArray(nullptr) {}
@@ -82,13 +80,32 @@ Error CodeEmitter::onDetach(CodeHolder* code) noexcept {
 
   _options = 0;
   _inlineComment = nullptr;
-  _op4.reset();
-  _op5.reset();
-  _opExtra.reset();
+
+  _extraOp.reset();
   _nativeGpReg.reset();
   _nativeGpArray = nullptr;
 
   return kErrorOk;
+}
+
+// ============================================================================
+// [asmjit::CodeEmitter - Code-Generation]
+// ============================================================================
+
+Error CodeEmitter::_emitOpArray(uint32_t instId, const Operand_* opArray, size_t opCount) {
+  const Operand_* op = opArray;
+  switch (opCount) {
+    case 0: return _emit(instId, _none, _none, _none, _none);
+    case 1: return _emit(instId, op[0], _none, _none, _none);
+    case 2: return _emit(instId, op[0], op[1], _none, _none);
+    case 3: return _emit(instId, op[0], op[1], op[2], _none);
+    case 4: return _emit(instId, op[0], op[1], op[2], op[3]);
+    case 5: return _emit(instId, op[0], op[1], op[2], op[3], op[4], _none);
+    case 6: return _emit(instId, op[0], op[1], op[2], op[3], op[4], op[5]);
+
+    default:
+      return DebugUtils::errored(kErrorInvalidArgument);
+  }
 }
 
 // ============================================================================
@@ -187,99 +204,49 @@ Error CodeEmitter::commentv(const char* fmt, va_list ap) {
 // ============================================================================
 
 #define OP const Operand_&
-#define NO _none
 
-Error CodeEmitter::emit(uint32_t instId) { return _emit(instId, NO, NO, NO, NO); }
-Error CodeEmitter::emit(uint32_t instId, OP o0) { return _emit(instId, o0, NO, NO, NO); }
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1) { return _emit(instId, o0, o1, NO, NO); }
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2) { return _emit(instId, o0, o1, o2, NO); }
+Error CodeEmitter::emit(uint32_t instId) { return _emit(instId, _none, _none, _none, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0) { return _emit(instId, o0, _none, _none, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1) { return _emit(instId, o0, o1, _none, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2) { return _emit(instId, o0, o1, o2, _none); }
 Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3) { return _emit(instId, o0, o1, o2, o3); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4) { return _emit(instId, o0, o1, o2, o3, o4, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4, OP o5) { return _emit(instId, o0, o1, o2, o3, o4, o5); }
 
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4) {
-  _op4 = o4;
-
-  if (!o4.isNone()) _options |= kOptionOp4;
-  return _emit(instId, o0, o1, o2, o3);
-}
-
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4, OP o5) {
-  _op4 = o4;
-  _op5 = o5;
-
-  if (!o4.isNone()) _options |= kOptionOp4;
-  if (!o5.isNone()) _options |= kOptionOp5;
-  return _emit(instId, o0, o1, o2, o3);
-}
-
-Error CodeEmitter::emit(uint32_t instId, int o0) { return _emit(instId, Imm(o0), NO, NO, NO); }
-Error CodeEmitter::emit(uint32_t instId, OP o0, int o1) { return _emit(instId, o0, Imm(o1), NO, NO); }
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, int o2) { return _emit(instId, o0, o1, Imm(o2), NO); }
+Error CodeEmitter::emit(uint32_t instId, int o0) { return _emit(instId, Imm(o0), _none, _none, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, int o1) { return _emit(instId, o0, Imm(o1), _none, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, int o2) { return _emit(instId, o0, o1, Imm(o2), _none); }
 Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, int o3) { return _emit(instId, o0, o1, o2, Imm(o3)); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, int o4) { return _emit(instId, o0, o1, o2, o3, Imm(o4), _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4, int o5) { return _emit(instId, o0, o1, o2, o3, o4, Imm(o5)); }
 
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, int o4) {
-  _options |= kOptionOp4;
-  _op4 = Imm(o4);
-  return _emit(instId, o0, o1, o2, o3);
-}
-
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4, int o5) {
-  _op4 = o4;
-  _op5 = Imm(o5);
-
-  _options |= kOptionOp4 | kOptionOp5;
-  return _emit(instId, o0, o1, o2, o3);
-}
-
-Error CodeEmitter::emit(uint32_t instId, int64_t o0) { return _emit(instId, Imm(o0), NO, NO, NO); }
-Error CodeEmitter::emit(uint32_t instId, OP o0, int64_t o1) { return _emit(instId, o0, Imm(o1), NO, NO); }
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, int64_t o2) { return _emit(instId, o0, o1, Imm(o2), NO); }
+Error CodeEmitter::emit(uint32_t instId, int64_t o0) { return _emit(instId, Imm(o0), _none, _none, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, int64_t o1) { return _emit(instId, o0, Imm(o1), _none, _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, int64_t o2) { return _emit(instId, o0, o1, Imm(o2), _none); }
 Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, int64_t o3) { return _emit(instId, o0, o1, o2, Imm(o3)); }
 
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, int64_t o4) {
-  _options |= kOptionOp4;
-  _op4 = Imm(o4);
-  return _emit(instId, o0, o1, o2, o3);
-}
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, int64_t o4) { return _emit(instId, o0, o1, o2, o3, Imm(o4), _none); }
+Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4, int64_t o5) { return _emit(instId, o0, o1, o2, o3, o4, Imm(o5)); }
 
-Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4, int64_t o5) {
-  _op4 = o4;
-  _op5 = Imm(o5);
-
-  _options |= kOptionOp4 | kOptionOp5;
-  return _emit(instId, o0, o1, o2, o3);
-}
-
-#undef NO
 #undef OP
 
 // ============================================================================
 // [asmjit::CodeEmitter - Validation]
 // ============================================================================
 
-Error CodeEmitter::_validate(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) const noexcept {
+Error CodeEmitter::_validate(uint32_t instId, const Operand_* opArray, uint32_t opCount) const noexcept {
 #if !defined(ASMJIT_DISABLE_VALIDATION)
-  Operand_ opArray[6];
-  opArray[0].copyFrom(o0);
-  opArray[1].copyFrom(o1);
-  opArray[2].copyFrom(o2);
-  opArray[3].copyFrom(o3);
-  opArray[4].copyFrom(_op4);
-  opArray[5].copyFrom(_op5);
-
   uint32_t archType = getArchType();
   uint32_t options = getGlobalOptions() | getOptions();
 
-  if (!(options & CodeEmitter::kOptionOp4)) opArray[4].reset();
-  if (!(options & CodeEmitter::kOptionOp5)) opArray[5].reset();
-
 #if defined(ASMJIT_BUILD_X86)
   if (ArchInfo::isX86Family(archType))
-    return X86Inst::validate(archType, instId, options, _opExtra, opArray, 6);
+    return X86Inst::validate(archType, instId, options, _extraOp, opArray, 6);
 #endif
 
 #if defined(ASMJIT_BUILD_ARM)
   if (ArchInfo::isArmFamily(archType))
-    return ArmInst::validate(archType, instId, options, _opExtra, opArray, 6);
+    return ArmInst::validate(archType, instId, options, _extraOp, opArray, 6);
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);

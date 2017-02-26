@@ -54,6 +54,15 @@ public:
   ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
 
   // --------------------------------------------------------------------------
+  // [Code-Generation]
+  // --------------------------------------------------------------------------
+
+  using CodeEmitter::_emit;
+
+  ASMJIT_API Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) override;
+  ASMJIT_API Error _emitOpArray(uint32_t instId, const Operand_* opArray, size_t opCount) override;
+
+  // --------------------------------------------------------------------------
   // [Code-Buffer]
   // --------------------------------------------------------------------------
 
@@ -129,6 +138,9 @@ public:
   uint8_t* _bufferData;                  //!< Start of the CodeBuffer of the current section.
   uint8_t* _bufferEnd;                   //!< End (first invalid byte) of the current section.
   uint8_t* _bufferPtr;                   //!< Pointer in the CodeBuffer of the current section.
+
+  Operand_ _op4;                         //!< 5th operand data, used only temporarily.
+  Operand_ _op5;                         //!< 6th operand data, used only temporarily.
 };
 
 //! \}

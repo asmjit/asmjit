@@ -305,6 +305,10 @@ struct X86Inst {
     kIdInvd,                             // [ANY] {I486}
     kIdInvlpg,                           // [ANY] {I486}
     kIdInvpcid,                          // [ANY] {I486}
+    kIdIret,                             // [ANY]
+    kIdIretd,                            // [ANY]
+    kIdIretq,                            // [X64]
+    kIdIretw,                            // [ANY]
     kIdJa,                               // [ANY]
     kIdJae,                              // [ANY]
     kIdJb,                               // [ANY]
@@ -392,10 +396,14 @@ struct X86Inst {
     kIdLar,                              // [ANY]
     kIdLddqu,                            // [ANY] {SSE3}
     kIdLdmxcsr,                          // [ANY] {SSE}
+    kIdLds,                              // [X86]
     kIdLea,                              // [ANY]
     kIdLeave,                            // [ANY]
+    kIdLes,                              // [X86]
     kIdLfence,                           // [ANY] {SSE2}
+    kIdLfs,                              // [ANY]
     kIdLgdt,                             // [ANY]
+    kIdLgs,                              // [ANY]
     kIdLidt,                             // [ANY]
     kIdLldt,                             // [ANY]
     kIdLmsw,                             // [ANY]
@@ -404,6 +412,7 @@ struct X86Inst {
     kIdLoope,                            // [ANY]
     kIdLoopne,                           // [ANY]
     kIdLsl,                              // [ANY]
+    kIdLss,                              // [ANY]
     kIdLtr,                              // [ANY]
     kIdLzcnt,                            // [ANY] {LZCNT}
     kIdMaskmovdqu,                       // [ANY] {SSE2}
@@ -663,6 +672,7 @@ struct X86Inst {
     kIdRoundps,                          // [ANY] {SSE4_1}
     kIdRoundsd,                          // [ANY] {SSE4_1}
     kIdRoundss,                          // [ANY] {SSE4_1}
+    kIdRsm,                              // [X86]
     kIdRsqrtps,                          // [ANY] {SSE}
     kIdRsqrtss,                          // [ANY] {SSE}
     kIdSahf,                             // [ANY] {LAHFSAHF}
@@ -1436,9 +1446,13 @@ struct X86Inst {
     kIdWrfsbase,                         // [X64] {FSGSBASE}
     kIdWrgsbase,                         // [X64] {FSGSBASE}
     kIdWrmsr,                            // [ANY] {MSR}
+    kIdXabort,                           // [ANY] {RTM}
     kIdXadd,                             // [ANY] {I486}
+    kIdXbegin,                           // [ANY] {RTM}
     kIdXchg,                             // [ANY]
+    kIdXend,                             // [ANY] {RTM}
     kIdXgetbv,                           // [ANY] {XSAVE}
+    kIdXlatb,                            // [ANY]
     kIdXor,                              // [ANY]
     kIdXorpd,                            // [ANY] {SSE2}
     kIdXorps,                            // [ANY] {SSE}
@@ -1455,6 +1469,7 @@ struct X86Inst {
     kIdXsaves,                           // [ANY] {XSAVE}
     kIdXsaves64,                         // [X64] {XSAVE}
     kIdXsetbv,                           // [ANY] {XSAVE}
+    kIdXtest,                            // [ANY] {TSX}
     _kIdCount
     // ${idData:End}
   };
@@ -1464,6 +1479,7 @@ struct X86Inst {
     kEncodingNone = 0,                   //!< Never used.
     kEncodingX86Op,                      //!< X86 [OP].
     kEncodingX86Op_O,                    //!< X86 [OP] (opcode and /0-7).
+    kEncodingX86Op_O_I8,                 //!< X86 [OP] (opcode and /0-7 + 8-bit immediate).
     kEncodingX86Op_xAX,                  //!< X86 [OP] (implicit or explicit '?AX' form).
     kEncodingX86Op_xDX_xAX,              //!< X86 [OP] (implicit or explicit '?DX, ?AX' form).
     kEncodingX86Op_ZAX,                  //!< X86 [OP] (implicit or explicit '[EAX|RDX]' form).
@@ -1492,6 +1508,7 @@ struct X86Inst {
     kEncodingX86Jcc,                     //!< X86 jcc.
     kEncodingX86JecxzLoop,               //!< X86 jcxz, jecxz, jrcxz, loop, loope, loopne.
     kEncodingX86Jmp,                     //!< X86 jmp.
+    kEncodingX86JmpRel,                  //!< X86 xbegin.
     kEncodingX86Lea,                     //!< X86 lea.
     kEncodingX86Mov,                     //!< X86 mov (all possible cases).
     kEncodingX86MovsxMovzx,              //!< X86 movsx, movzx.
@@ -1881,9 +1898,11 @@ struct X86Inst {
     //
     // These describe optional X86 prefixes that can be used to change the instruction's operation.
 
-    kFlagRep              = 0x00004000U, //!< Instruction can be prefixed by using the REP/REPZ/REPE prefix.
-    kFlagRepnz            = 0x00008000U, //!< Instruction can be prefixed by using the REPNZ/REPNE prefix.
-    kFlagLock             = 0x00010000U, //!< Instruction can be prefixed by using the LOCK prefix.
+    kFlagRep              = 0x00001000U, //!< Instruction can be prefixed by using the REP/REPZ/REPE prefix.
+    kFlagRepnz            = 0x00002000U, //!< Instruction can be prefixed by using the REPNZ/REPNE prefix.
+    kFlagLock             = 0x00004000U, //!< Instruction can be prefixed by using the LOCK prefix.
+    kFlagXAcquire         = 0x00008000U, //!< Instruction can be prefixed by using the XACQUIRE prefix.
+    kFlagXRelease         = 0x00010000U, //!< Instruction can be prefixed by using the XRELEASE prefix.
     kFlagMib              = 0x00020000U, //!< Instruction uses MIB (BNDLDX|BNDSTX) to encode two registers.
     kFlagVsib             = 0x00040000U, //!< Instruction uses VSIB instead of legacy SIB.
     kFlagVex              = 0x00080000U, //!< Instruction can be encoded by VEX|XOP (AVX|AVX2|BMI|XOP|...).
@@ -1955,14 +1974,14 @@ struct X86Inst {
 
   //! Instruction options (AsmJit specific).
   ASMJIT_ENUM(Options) {
-    // NOTE: Don't collide with reserved bits used by CodeEmitter (0x000000FF).
+    // NOTE: Don't collide with reserved bits used by CodeEmitter (0x0000003F).
+    kOptionOp4Op5Used     = CodeEmitter::kOptionOp4Op5Used,
 
-    kOptionOp4            = CodeEmitter::kOptionOp4,
-    kOptionOp5            = CodeEmitter::kOptionOp5,
-    kOptionOpExtra        = CodeEmitter::kOptionOpExtra,
+    kOptionShortForm      = 0x00000040U, //!< Emit short-form of the instruction.
+    kOptionLongForm       = 0x00000080U, //!< Emit long-form of the instruction.
 
-    kOptionShortForm      = 0x00000100U, //!< Emit short-form of the instruction.
-    kOptionLongForm       = 0x00000200U, //!< Emit long-form of the instruction.
+    kOptionTaken          = 0x00000100U, //!< Conditional jump is likely to be taken.
+    kOptionNotTaken       = 0x00000200U, //!< Conditional jump is unlikely to be taken.
 
     kOptionVex3           = 0x00000400U, //!< Use 3-byte VEX prefix if possible (AVX) (must be 0x00000400).
     kOptionModMR          = 0x00000800U, //!< Use ModMR instead of ModRM when it's available.
@@ -1972,18 +1991,18 @@ struct X86Inst {
     kOptionRep            = 0x00004000U, //!< REP/REPZ prefix (string instructions only).
     kOptionRepnz          = 0x00008000U, //!< REPNZ prefix (string instructions only).
 
-    kOptionTaken          = 0x00010000U, //!< JCC likely to be taken (historic, only takes effect on P4).
-    kOptionNotTaken       = 0x00020000U, //!< JCC unlikely to be taken (historic, only takes effect on P4).
+    kOptionXAcquire       = 0x00010000U, //!< XACQUIRE prefix (only allowed instructions).
+    kOptionXRelease       = 0x00020000U, //!< XRELEASE prefix (only allowed instructions).
 
-    kOptionSAE            = 0x00040000U, //!< AVX-512: 'suppress-all-exceptions' {sae}.
-    kOptionER             = 0x00080000U, //!< AVX-512: 'rounding-control' {rc} and {sae}.
+    kOptionER             = 0x00040000U, //!< AVX-512: 'embedded-rounding' {er} and {sae}.
+    kOptionSAE            = 0x00080000U, //!< AVX-512: 'suppress-all-exceptions' {sae}.
 
     kOption1ToX           = 0x00100000U, //!< AVX-512: broadcast the first element to all {1tox}.
     kOptionRN_SAE         = 0x00000000U, //!< AVX-512: round-to-nearest (even)      {rn-sae} (bits 00).
     kOptionRD_SAE         = 0x00200000U, //!< AVX-512: round-down (toward -inf)     {rd-sae} (bits 01).
     kOptionRU_SAE         = 0x00400000U, //!< AVX-512: round-up (toward +inf)       {ru-sae} (bits 10).
     kOptionRZ_SAE         = 0x00600000U, //!< AVX-512: round-toward-zero (truncate) {rz-sae} (bits 11).
-    kOptionKZ             = 0x00800000U, //!< AVX-512: Use zeroing {k}{z} instead of merging {k}.
+    kOptionZMask          = 0x00800000U, //!< AVX-512: Use zeroing {k}{z} instead of merging {k}.
 
     _kOptionInvalidRex    = 0x01000000U, //!< REX prefix can't be emitted (internal).
     kOptionOpCodeB        = 0x02000000U, //!< REX.B and/or VEX.B field (X64).
@@ -2058,12 +2077,13 @@ struct X86Inst {
     kMemOpM8              = 0x0001U,     //!< Operand can be an 8-bit memory pointer.
     kMemOpM16             = 0x0002U,     //!< Operand can be a 16-bit memory pointer.
     kMemOpM32             = 0x0004U,     //!< Operand can be a 32-bit memory pointer.
-    kMemOpM64             = 0x0008U,     //!< Operand can be a 64-bit memory pointer.
-    kMemOpM80             = 0x0010U,     //!< Operand can be an 80-bit memory pointer.
-    kMemOpM128            = 0x0020U,     //!< Operand can be a 128-bit memory pointer.
-    kMemOpM256            = 0x0040U,     //!< Operand can be a 256-bit memory pointer.
-    kMemOpM512            = 0x0080U,     //!< Operand can be a 512-bit memory pointer.
-    kMemOpM1024           = 0x0100U,     //!< Operand can be a 1024-bit memory pointer.
+    kMemOpM48             = 0x0008U,     //!< Operand can be a 32-bit memory pointer.
+    kMemOpM64             = 0x0010U,     //!< Operand can be a 64-bit memory pointer.
+    kMemOpM80             = 0x0020U,     //!< Operand can be an 80-bit memory pointer.
+    kMemOpM128            = 0x0040U,     //!< Operand can be a 128-bit memory pointer.
+    kMemOpM256            = 0x0080U,     //!< Operand can be a 256-bit memory pointer.
+    kMemOpM512            = 0x0100U,     //!< Operand can be a 512-bit memory pointer.
+    kMemOpM1024           = 0x0200U,     //!< Operand can be a 1024-bit memory pointer.
 
     kMemOpVm32x           = 0x0001U,     //!< Operand can be a vm32x (vector) pointer.
     kMemOpVm32y           = 0x0002U,     //!< Operand can be a vm32y (vector) pointer.
@@ -2072,9 +2092,9 @@ struct X86Inst {
     kMemOpVm64y           = 0x0020U,     //!< Operand can be a vm64y (vector) pointer.
     kMemOpVm64z           = 0x0040U,     //!< Operand can be a vm64z (vector) pointer.
 
-    kMemOpBaseOnly        = 0x0200U,     //!< Only memory base is allowed (no index, no offset).
-    kMemOpDs              = 0x0400U,     //!< Implicit memory operand's DS segment.
-    kMemOpEs              = 0x0800U,     //!< Implicit memory operand's ES segment.
+    kMemOpBaseOnly        = 0x0800U,     //!< Only memory base is allowed (no index, no offset).
+    kMemOpDs              = 0x1000U,     //!< Implicit memory operand's DS segment.
+    kMemOpEs              = 0x2000U,     //!< Implicit memory operand's ES segment.
 
     kMemOpMib             = 0x4000U,     //!< Operand must be MIB (base+index) pointer.
     kMemOpAny             = 0x8000U      //!< Operand can be any scalar memory pointer.
@@ -2429,7 +2449,7 @@ struct X86Inst {
 #if !defined(ASMJIT_DISABLE_VALIDATION)
   ASMJIT_API static Error validate(
     uint32_t archType, uint32_t instId, uint32_t options,
-    const Operand_& opExtra,
+    const Operand_& extraOp,
     const Operand_* opArray, uint32_t opCount) noexcept;
 #endif // !ASMJIT_DISABLE_VALIDATION
 

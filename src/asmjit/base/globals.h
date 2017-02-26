@@ -177,8 +177,14 @@ ASMJIT_ENUM(ErrorCode) {
   kErrorInvalidPhysId,
   //! Invalid register's virtual id.
   kErrorInvalidVirtId,
+  //! Invalid prefix combination.
+  kErrorInvalidPrefixCombination,
   //! Invalid LOCK prefix.
   kErrorInvalidLockPrefix,
+  //! Invalid XACQUIRE prefix.
+  kErrorInvalidXAcquirePrefix,
+  //! Invalid XACQUIRE prefix.
+  kErrorInvalidXReleasePrefix,
   //! Invalid REP prefix.
   kErrorInvalidRepPrefix,
   //! Invalid REX prefix.

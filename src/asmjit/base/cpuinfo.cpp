@@ -503,6 +503,9 @@ ASMJIT_FAVOR_SIZE static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
     if (regs.ebx & 0x20000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureSHA);
     if (regs.ecx & 0x00000001U) cpuInfo->addFeature(CpuInfo::kX86FeaturePREFETCHWT1);
 
+    // TSX is supported if at least one of `HLE` and `RTM` is supported.
+    if (regs.ebx & 0x00000810U) cpuInfo->addFeature(CpuInfo::kX86FeatureTSX);
+
     // Detect AVX2.
     if (cpuInfo->hasFeature(CpuInfo::kX86FeatureAVX)) {
       if (regs.ebx & 0x00000020U) cpuInfo->addFeature(CpuInfo::kX86FeatureAVX2);

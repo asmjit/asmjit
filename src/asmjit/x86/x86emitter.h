@@ -362,13 +362,13 @@ public:
 
   //! Use REP/REPZ prefix.
   ASMJIT_INLINE This& rep(const X86Gp& zcx) noexcept {
-    static_cast<This*>(this)->_opExtra = zcx;
-    return _addOptions(X86Inst::kOptionOpExtra | X86Inst::kOptionRep);
+    static_cast<This*>(this)->_extraOp = zcx;
+    return _addOptions(X86Inst::kOptionRep);
   }
   //! Use REPNZ prefix.
   ASMJIT_INLINE This& repnz(const X86Gp& zcx) noexcept {
-    static_cast<This*>(this)->_opExtra = zcx;
-    return _addOptions(X86Inst::kOptionOpExtra | X86Inst::kOptionRepnz);
+    static_cast<This*>(this)->_extraOp = zcx;
+    return _addOptions(X86Inst::kOptionRepnz);
   }
 
   //! Use REP/REPZ prefix.
@@ -404,7 +404,7 @@ public:
   ASMJIT_INLINE This& evex() noexcept { return _addOptions(X86Inst::kOptionEvex); }
 
   //! Use zeroing instead of merging (AVX512+).
-  ASMJIT_INLINE This& z() noexcept { return _addOptions(X86Inst::kOptionKZ); }
+  ASMJIT_INLINE This& z() noexcept { return _addOptions(X86Inst::kOptionZMask); }
   //! Broadcast one element to all other elements (AVX512+).
   ASMJIT_INLINE This& _1tox() noexcept { return _addOptions(X86Inst::kOption1ToX); }
 
@@ -591,10 +591,14 @@ public:
   ASMJIT_INST_2x(lar, Lar, X86Gp, X86Gp)                                      // ANY
   ASMJIT_INST_2x(lar, Lar, X86Gp, X86Mem)                                     // ANY
   ASMJIT_INST_1x(ldmxcsr, Ldmxcsr, X86Mem)                                    // SSE
+  ASMJIT_INST_2x(lds, Lds, X86Gp, X86Mem)                                     // X86
   ASMJIT_INST_2x(lea, Lea, X86Gp, X86Mem)                                     // ANY
   ASMJIT_INST_0x(leave, Leave)                                                // ANY
+  ASMJIT_INST_2x(les, Les, X86Gp, X86Mem)                                     // X86
   ASMJIT_INST_0x(lfence, Lfence)                                              // SSE2
+  ASMJIT_INST_2x(lfs, Lfs, X86Gp, X86Mem)                                     // ANY
   ASMJIT_INST_1x(lgdt, Lgdt, X86Mem)                                          // ANY
+  ASMJIT_INST_2x(lgs, Lgs, X86Gp, X86Mem)                                     // ANY
   ASMJIT_INST_1x(lidt, Lidt, X86Mem)                                          // ANY
   ASMJIT_INST_1x(lldt, Lldt, X86Gp)                                           // ANY
   ASMJIT_INST_1x(lldt, Lldt, X86Mem)                                          // ANY
@@ -612,6 +616,7 @@ public:
   ASMJIT_INST_2x(loopne, Loopne, ZCX, uint64_t)                               // ANY       [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 0.
   ASMJIT_INST_2x(lsl, Lsl, X86Gp, X86Gp)                                      // ANY
   ASMJIT_INST_2x(lsl, Lsl, X86Gp, X86Mem)                                     // ANY
+  ASMJIT_INST_2x(lss, Lss, X86Gp, X86Mem)                                     // ANY
   ASMJIT_INST_1x(ltr, Ltr, X86Gp)                                             // ANY
   ASMJIT_INST_1x(ltr, Ltr, X86Mem)                                            // ANY
   ASMJIT_INST_2x(lzcnt, Lzcnt, X86Gp, X86Gp)                                  // LZCNT
@@ -717,6 +722,7 @@ public:
   ASMJIT_INST_2i(ror, Ror, X86Mem, Imm)                                       // ANY
   ASMJIT_INST_3i(rorx, Rorx, X86Gp, X86Gp, Imm)                               // BMI2
   ASMJIT_INST_3i(rorx, Rorx, X86Gp, X86Mem, Imm)                              // BMI2
+  ASMJIT_INST_0x(rsm, Rsm)                                                    // X86
   ASMJIT_INST_2x(sbb, Sbb, X86Gp, X86Gp)                                      // ANY
   ASMJIT_INST_2x(sbb, Sbb, X86Gp, X86Mem)                                     // ANY
   ASMJIT_INST_2i(sbb, Sbb, X86Gp, Imm)                                        // ANY
@@ -795,11 +801,16 @@ public:
   ASMJIT_INST_1x(wrfsbase, Wrfsbase, X86Gp)                                   // FSGSBASE
   ASMJIT_INST_1x(wrgsbase, Wrgsbase, X86Gp)                                   // FSGSBASE
   ASMJIT_INST_3x(wrmsr, Wrmsr, EDX, EAX, ECX)                                 // MSR       [EXPLICIT] RDX:EAX     -> MSR[ECX]
+  ASMJIT_INST_0x(xabort, Xabort)                                              // RTM
   ASMJIT_INST_2x(xadd, Xadd, X86Gp, X86Gp)                                    // ANY
   ASMJIT_INST_2x(xadd, Xadd, X86Mem, X86Gp)                                   // ANY
+  ASMJIT_INST_1x(xbegin, Xbegin, Label)                                       // RTM
+  ASMJIT_INST_1x(xbegin, Xbegin, Imm)                                         // RTM
+  ASMJIT_INST_1x(xbegin, Xbegin, uint64_t)                                    // RTM
   ASMJIT_INST_2x(xchg, Xchg, X86Gp, X86Gp)                                    // ANY
   ASMJIT_INST_2x(xchg, Xchg, X86Mem, X86Gp)                                   // ANY
   ASMJIT_INST_2x(xchg, Xchg, X86Gp, X86Mem)                                   // ANY
+  ASMJIT_INST_0x(xend, Xend)                                                  // RTM
   ASMJIT_INST_3x(xgetbv, Xgetbv, EDX, EAX, ECX)                               // XSAVE     [EXPLICIT] EDX:EAX <- XCR[ECX]
   ASMJIT_INST_2x(xor_, Xor, X86Gp, X86Gp)                                     // ANY
   ASMJIT_INST_2x(xor_, Xor, X86Gp, X86Mem)                                    // ANY
@@ -807,6 +818,7 @@ public:
   ASMJIT_INST_2x(xor_, Xor, X86Mem, X86Gp)                                    // ANY
   ASMJIT_INST_2i(xor_, Xor, X86Mem, Imm)                                      // ANY
   ASMJIT_INST_3x(xsetbv, Xsetbv, EDX, EAX, ECX)                               // XSAVE     [EXPLICIT] XCR[ECX] <- EDX:EAX
+  ASMJIT_INST_0x(xtest, Xtest)                                                // TSX
 
   // --------------------------------------------------------------------------
   // [FPU Instructions]
@@ -4913,6 +4925,10 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
   ASMJIT_INST_1x(idiv, Idiv, X86Mem)                                          // ANY       [IMPLICIT] {AH[Rem]: AL[Quot] <- AX / m8} {xDX[Rem]:xAX[Quot] <- DX:AX / m16|m32|m64}
   ASMJIT_INST_1x(imul, Imul, X86Gp)                                           // ANY       [IMPLICIT] {AX <- AL * r8} {xAX:xDX <- xAX * r16|r32|r64}
   ASMJIT_INST_1x(imul, Imul, X86Mem)                                          // ANY       [IMPLICIT] {AX <- AL * m8} {xAX:xDX <- xAX * m16|m32|m64}
+  ASMJIT_INST_0x(iret, Iret)                                                  // ANY       [IMPLICIT]
+  ASMJIT_INST_0x(iretd, Iretd)                                                // ANY       [IMPLICIT]
+  ASMJIT_INST_0x(iretq, Iretq)                                                // X64       [IMPLICIT]
+  ASMJIT_INST_0x(iretw, Iretw)                                                // ANY       [IMPLICIT]
   ASMJIT_INST_1x(jecxz, Jecxz, Label)                                         // ANY       [IMPLICIT] Short jump if CX/ECX/RCX is zero.
   ASMJIT_INST_1x(jecxz, Jecxz, Imm)                                           // ANY       [IMPLICIT] Short jump if CX/ECX/RCX is zero.
   ASMJIT_INST_1x(jecxz, Jecxz, uint64_t)                                      // ANY       [IMPLICIT] Short jump if CX/ECX/RCX is zero.
@@ -4945,6 +4961,7 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
   ASMJIT_INST_0x(sysret64, Sysret64)                                          // X64       [IMPLICIT]
   ASMJIT_INST_0x(wrmsr, Wrmsr)                                                // ANY       [IMPLICIT]
   ASMJIT_INST_0x(xgetbv, Xgetbv)                                              // XSAVE     [IMPLICIT] EDX:EAX <- XCR[ECX]
+  ASMJIT_INST_0x(xlatb, Xlatb)                                                // ANY       [IMPLICIT]
   ASMJIT_INST_1x(xrstor, Xrstor, X86Mem)                                      // XSAVE     [IMPLICIT]
   ASMJIT_INST_1x(xrstor64, Xrstor64, X86Mem)                                  // XSAVE+X64 [IMPLICIT]
   ASMJIT_INST_1x(xrstors, Xrstors, X86Mem)                                    // XSAVE     [IMPLICIT]

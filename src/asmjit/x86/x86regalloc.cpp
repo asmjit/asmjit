@@ -1723,9 +1723,9 @@ _NextGroup:
             _avxEnabled = true;
         }
 
-        const Operand_& opExtra = node->getOpExtra();
-        if ((options & CodeEmitter::kOptionOpExtra) != 0 && opExtra.isReg()) {
-          uint32_t id = opExtra.as<Reg>().getId();
+        const Operand_& extraOp = node->getExtraOp();
+        if (extraOp.isReg()) {
+          uint32_t id = extraOp.as<Reg>().getId();
           if (cc()->isVirtRegValid(id)) {
             VirtReg* vreg = cc()->getVirtRegById(id);
             TiedReg* tied;
@@ -2119,7 +2119,7 @@ Error X86RAPass::annotate() {
           cc()->getArchType(),
           node->getInstId(),
           node->getOptions(),
-          node->getOpExtra(),
+          node->getExtraOp(),
           node->getOpArray(), node->getOpCount());
 
         node_->setInlineComment(
@@ -2423,6 +2423,8 @@ Error X86VarAlloc::run(CBNode* node_) {
     // Translate node operands.
     if (node_->getType() == CBNode::kNodeInst) {
       CBInst* node = static_cast<CBInst*>(node_);
+      if (node->hasExtraOp())
+        ASMJIT_PROPAGATE(X86RAPass_translateOperands(_context, &node->_extraOp, 1));
       ASMJIT_PROPAGATE(X86RAPass_translateOperands(_context, node->getOpArray(), node->getOpCount()));
     }
     else if (node_->getType() == CBNode::kNodePushArg) {
@@ -3622,7 +3624,7 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
 static Error X86RAPass_translateOperands(X86RAPass* self, Operand_* opArray, uint32_t opCount) {
   X86Compiler* cc = self->cc();
 
-  // Translate variables into isters.
+  // Translate variables into registers.
   for (uint32_t i = 0; i < opCount; i++) {
     Operand_* op = &opArray[i];
     if (op->isVirtReg()) {

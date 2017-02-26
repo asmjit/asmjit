@@ -538,7 +538,9 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
     CodeEmitter::kOptionStrictValidation | // Strict validation.
     X86Inst::kOptionRep                  | // REP/REPZ prefix.
     X86Inst::kOptionRepnz                | // REPNZ prefix.
-    X86Inst::kOptionLock                 ; // LOCK prefix.
+    X86Inst::kOptionLock                 | // LOCK prefix.
+    X86Inst::kOptionXAcquire             | // XACQUIRE prefix.
+    X86Inst::kOptionXRelease             ; // XRELEASE prefix.
 
   // Signature of the first 3 operands.
   uint32_t isign3 = o0.getOp() + (o1.getOp() << 3) + (o2.getOp() << 6);
@@ -564,26 +566,55 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
     // Strict validation.
 #if !defined(ASMJIT_DISABLE_VALIDATION)
     if (options & CodeEmitter::kOptionStrictValidation) {
-      err = _validate(instId, o0, o1, o2, o3);
+      Operand_ opArray[6];
+
+      opArray[0].copyFrom(o0);
+      opArray[1].copyFrom(o1);
+      opArray[2].copyFrom(o2);
+      opArray[3].copyFrom(o3);
+
+      if (options & kOptionOp4Op5Used) {
+        opArray[4].copyFrom(_op4);
+        opArray[5].copyFrom(_op5);
+      }
+      else {
+        opArray[4].reset();
+        opArray[5].reset();
+      }
+
+      err = _validate(instId, opArray, 6);
       if (ASMJIT_UNLIKELY(err)) goto Failed;
     }
 #endif // !ASMJIT_DISABLE_VALIDATION
 
-    uint32_t instFlags = instData->getFlags();
+    uint32_t iFlags = instData->getFlags();
 
-    // LOCK prefix.
+    // LOCK, XACQUIRE, and XRELEASE prefixes.
     if (options & X86Inst::kOptionLock) {
-      if (ASMJIT_UNLIKELY(!(instFlags & X86Inst::kFlagLock)))
+      bool xAcqRel = (options & (X86Inst::kOptionXAcquire | X86Inst::kOptionXRelease)) != 0;
+
+      if (ASMJIT_UNLIKELY(!(iFlags & (X86Inst::kFlagLock)) && !xAcqRel))
         goto InvalidLockPrefix;
+
+      if (xAcqRel) {
+        if (ASMJIT_UNLIKELY((options & X86Inst::kOptionXAcquire) && !(iFlags & X86Inst::kFlagXAcquire)))
+          goto InvalidXAcquirePrefix;
+
+        if (ASMJIT_UNLIKELY((options & X86Inst::kOptionXRelease) && !(iFlags & X86Inst::kFlagXRelease)))
+          goto InvalidXReleasePrefix;
+
+        EMIT_BYTE((options & X86Inst::kOptionXAcquire) ? 0xF2 : 0xF3);
+      }
+
       EMIT_BYTE(0xF0);
     }
 
-    // REP / REPNZ prefix.
+    // REP and REPNZ prefixes.
     if (options & (X86Inst::kOptionRep | X86Inst::kOptionRepnz)) {
-      if (ASMJIT_UNLIKELY(!(instFlags & (X86Inst::kFlagRep | X86Inst::kFlagRepnz))))
+      if (ASMJIT_UNLIKELY(!(iFlags & (X86Inst::kFlagRep | X86Inst::kFlagRepnz))))
         goto InvalidRepPrefix;
 
-      if (!_opExtra.isNone() && ASMJIT_UNLIKELY(!X86Reg::isGp(_opExtra, X86Gp::kIdCx)))
+      if (!_extraOp.isNone() && ASMJIT_UNLIKELY(!X86Reg::isGp(_extraOp, X86Gp::kIdCx)))
         goto InvalidRepPrefix;
 
       EMIT_BYTE((options & X86Inst::kOptionRepnz) ? 0xF2 : 0xF3);
@@ -608,6 +639,14 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
 
     case X86Inst::kEncodingX86Op:
       goto EmitX86Op;
+
+    case X86Inst::kEncodingX86Op_O_I8:
+      if (ASMJIT_UNLIKELY(isign3 != ENC_OPS1(Imm)))
+        goto InvalidInstruction;
+
+      imVal = o0.as<Imm>().getUInt8();
+      imLen = 1;
+      ASMJIT_FALLTHROUGH;
 
     case X86Inst::kEncodingX86Op_O:
       rbReg = 0;
@@ -1011,6 +1050,7 @@ CaseX86M_GPB_MulDiv:
       // displacement is not encodable so the alternative opcode field
       // in X86DB must be zero.
       opCode = 0xE8;
+      opReg = 0;
       goto EmitJmpCall;
 
     case X86Inst::kEncodingX86Cmpxchg: {
@@ -1282,6 +1322,7 @@ CaseX86M_GPB_MulDiv:
       }
 
       rmRel = &o0;
+      opReg = 0;
       goto EmitJmpCall;
 
     case X86Inst::kEncodingX86JecxzLoop:
@@ -1296,6 +1337,8 @@ CaseX86M_GPB_MulDiv:
 
         rmRel = &o1;
       }
+
+      opReg = 0;
       goto EmitJmpCall;
 
     case X86Inst::kEncodingX86Jmp:
@@ -1311,6 +1354,11 @@ CaseX86M_GPB_MulDiv:
       // Jump encoded with 32-bit displacement use 0xE9 opcode. Jump encoded
       // with 8-bit displacement's opcode is stored as an alternative opcode.
       opCode = 0xE9;
+      opReg = 0;
+      goto EmitJmpCall;
+
+    case X86Inst::kEncodingX86JmpRel:
+      rmRel = &o0;
       goto EmitJmpCall;
 
     case X86Inst::kEncodingX86Lea:
@@ -2815,6 +2863,9 @@ CaseVexRm:
       break;
 
     case X86Inst::kEncodingVexRm_T1_4X: {
+      if (!(options & kOptionOp4Op5Used))
+        goto InvalidInstruction;
+
       if (X86Reg::isZmm(o0  ) && X86Reg::isZmm(o1) &&
           X86Reg::isZmm(o2  ) && X86Reg::isZmm(o3) &&
           X86Reg::isZmm(_op4) && _op5.isMem()) {
@@ -3374,7 +3425,7 @@ CaseVexRvm_R:
     }
 
     case X86Inst::kEncodingVexRvrmiRvmri_Lx: {
-      if (!(options & CodeEmitter::kOptionOp4) || !_op4.isImm())
+      if (!(options & CodeEmitter::kOptionOp4Op5Used) || !_op4.isImm())
         goto InvalidInstruction;
 
       const uint32_t isign4 = isign3 + (o3.getOp() << 9);
@@ -3987,26 +4038,21 @@ EmitVexEvexR:
     // Mark invalid VEX (force EVEX) case:               // [@.......|.LL.....|Vvvvv..R|RBBmmmmm].
     x |= (~commonData->getFlags() & X86Inst::kFlagVex) << (31 - Utils::firstBitOfT<X86Inst::kFlagVex>());
 
+    if (X86Reg::isK(_extraOp))
+      x |= _extraOp.as<Reg>().getId() << 16;             // [@.......|.LL..aaa|Vvvvv..R|RBBmmmmm].
+
     // Handle AVX512 options by a single branch.
-    const uint32_t kAvx512Options = X86Inst::kOptionOpExtra        |
-                                    X86Inst::kOptionKZ             |
-                                    X86Inst::kOption1ToX           |
-                                    X86Inst::kOptionSAE            |
-                                    X86Inst::kOptionER             ;
+    const uint32_t kAvx512Options = X86Inst::kOptionZMask   |
+                                    X86Inst::kOption1ToX    |
+                                    X86Inst::kOptionSAE     |
+                                    X86Inst::kOptionER      ;
     if (options & kAvx512Options) {
       // Memory broadcast without a memory operand is invalid.
       if (ASMJIT_UNLIKELY(options & X86Inst::kOption1ToX))
         goto InvalidBroadcast;
 
       // TODO: {sae} and {er}
-
-      // NOTE: We consider a valid construct internally even when {kz} was
-      // specified without specifying the register. In that case it would be
-      // `k0` and basically everything should be zeroed. It's valid EVEX.
-      if (options & X86Inst::kOptionOpExtra)
-        x |= _opExtra.getId() << 16;
-
-      x |= options & X86Inst::kOptionKZ;                 // [@.......|zLL..aaa|Vvvvv..R|RBBmmmmm].
+      x |= options & X86Inst::kOptionZMask;              // [@.......|zLL..aaa|Vvvvv..R|RBBmmmmm].
     }
 
     // Check if EVEX is required by checking bits in `x` :  [@.......|xx...xxx|x......x|.x.x....].
@@ -4101,25 +4147,21 @@ EmitVexEvexM:
     // Mark invalid VEX (force EVEX) case:               // [@.......|.LL.X...|Vvvvv..R|RXBmmmmm].
     x |= (~commonData->getFlags() & X86Inst::kFlagVex) << (31 - Utils::firstBitOfT<X86Inst::kFlagVex>());
 
+    if (X86Reg::isK(_extraOp))
+      x |= _extraOp.as<Reg>().getId() << 16;             // [@.......|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
+
     // Handle AVX512 options by a single branch.
-    const uint32_t kAvx512Options = X86Inst::kOptionOpExtra        |
-                                    X86Inst::kOption1ToX           |
-                                    X86Inst::kOptionKZ             |
-                                    X86Inst::kOptionSAE            |
-                                    X86Inst::kOptionER             ;
+    const uint32_t kAvx512Options = X86Inst::kOption1ToX    |
+                                    X86Inst::kOptionZMask   |
+                                    X86Inst::kOptionSAE     |
+                                    X86Inst::kOptionER      ;
     if (options & kAvx512Options) {
       // {er} and {sae} are both invalid if memory operand is used.
       if (ASMJIT_UNLIKELY(options & (X86Inst::kOptionSAE | X86Inst::kOptionER)))
         goto InvalidEROrSAE;
 
-      // NOTE: We consider a valid construct internally even when {kz} was
-      // specified without specifying the register. In that case it would be
-      // `k0` and basically everything would be zeroed. It's a valid EVEX.
-      if (options & X86Inst::kOptionOpExtra)
-        x |= _opExtra.getId() << 16;
-
       x |= options & (X86Inst::kOption1ToX |             // [@.......|.LLbXaaa|Vvvvv..R|RXBmmmmm].
-                      X86Inst::kOptionKZ   );            // [@.......|zLLbXaaa|Vvvvv..R|RXBmmmmm].
+                      X86Inst::kOptionZMask);            // [@.......|zLLbXaaa|Vvvvv..R|RXBmmmmm].
     }
 
     // Check if EVEX is required by checking bits in `x` :  [@.......|xx.xxxxx|x......x|...x....].
@@ -4214,11 +4256,12 @@ EmitJmpCall:
     // Jcc instructions with 32-bit displacement use 0x0F prefix,
     // other instructions don't. No other prefixes are used by X86.
     ASMJIT_ASSERT((opCode8 & X86Inst::kOpCode_MM_Mask) == 0);
-    ASMJIT_ASSERT((opCode & X86Inst::kOpCode_MM_Mask) == 0 ||
-                  (opCode & X86Inst::kOpCode_MM_Mask) == X86Inst::kOpCode_MM_0F);
+    ASMJIT_ASSERT((opCode  & X86Inst::kOpCode_MM_Mask) == 0 ||
+                  (opCode  & X86Inst::kOpCode_MM_Mask) == X86Inst::kOpCode_MM_0F);
 
-    inst32Size += static_cast<uint32_t>(
-      (opCode & X86Inst::kOpCode_MM_Mask) == X86Inst::kOpCode_MM_0F);
+    // Only one of these should be used at the same time.
+    inst32Size += static_cast<uint32_t>(opReg != 0);
+    inst32Size += static_cast<uint32_t>((opCode & X86Inst::kOpCode_MM_Mask) == X86Inst::kOpCode_MM_0F);
 
     if (rmRel->isLabel()) {
       label = _code->getLabelEntry(rmRel->as<Label>());
@@ -4227,7 +4270,7 @@ EmitJmpCall:
       if (label->isBound()) {
         // Bound label.
         rel32 = static_cast<uint32_t>((static_cast<uint64_t>(label->getOffset()) - ip - inst32Size) & 0xFFFFFFFFU);
-        goto EmitJmpCall_Rel;
+        goto EmitJmpCallRel;
       }
       else {
         // Non-bound label.
@@ -4242,10 +4285,14 @@ EmitJmpCall:
           if (ASMJIT_UNLIKELY(!opCode || (options & X86Inst::kOptionShortForm) != 0))
             goto InvalidDisplacement;
 
+          // Emit [PREFIX] OPCODE [/X] <DISP32>.
           if (opCode & X86Inst::kOpCode_MM_Mask)
             EMIT_BYTE(0x0F);
 
           EMIT_BYTE(opCode);
+          if (opReg)
+            EMIT_BYTE(x86EncodeMod(3, opReg, 0));
+
           relOffset = -4;
           relSize = 4;
           goto EmitRel;
@@ -4264,7 +4311,7 @@ EmitJmpCall:
         uint64_t rel64 = jumpAddress - (ip + baseAddress) - inst32Size;
         if (getArchType() == ArchInfo::kTypeX86 || Utils::isInt32(static_cast<int64_t>(rel64))) {
           rel32 = static_cast<uint32_t>(rel64 & 0xFFFFFFFFU);
-          goto EmitJmpCall_Rel;
+          goto EmitJmpCallRel;
         }
         else {
           // Relative displacement exceeds 32-bits - relocator can only
@@ -4299,11 +4346,14 @@ EmitJmpCall:
           _code->_trampolinesSize += 8;
         }
 
-        // Emit [PREFIX] OPCODE + DISP32.
+        // Emit [PREFIX] OPCODE [/X] DISP32.
         if (opCode & X86Inst::kOpCode_MM_Mask)
           EMIT_BYTE(0x0F);
 
         EMIT_BYTE(opCode);
+        if (opReg)
+          EMIT_BYTE(x86EncodeMod(3, opReg, 0));
+
         EMIT_32(0);
       }
       else {
@@ -4323,7 +4373,7 @@ EmitJmpCall:
     // Emit jmp/call with relative displacement known at assembly-time. Decide
     // between 8-bit and 32-bit displacement encoding. Some instructions only
     // allow either 8-bit or 32-bit encoding, others allow both encodings.
-EmitJmpCall_Rel:
+EmitJmpCallRel:
     if (Utils::isInt8(static_cast<int32_t>(rel32 + inst32Size - inst8Size)) && opCode8 && !(options & X86Inst::kOptionLongForm)) {
       options |= X86Inst::kOptionShortForm;
       EMIT_BYTE(opCode8);
@@ -4335,8 +4385,13 @@ EmitJmpCall_Rel:
         goto InvalidDisplacement;
 
       options &= ~X86Inst::kOptionShortForm;
-      if (opCode & X86Inst::kOpCode_MM_Mask) EMIT_BYTE(0x0F);
+      if (opCode & X86Inst::kOpCode_MM_Mask)
+        EMIT_BYTE(0x0F);
+
       EMIT_BYTE(opCode);
+      if (opReg)
+        EMIT_BYTE(x86EncodeMod(3, opReg, 0));
+
       EMIT_32(rel32);
       goto EmitDone;
     }
@@ -4417,6 +4472,7 @@ EmitDone:
 #endif // !ASMJIT_DISABLE_LOGGING
 
   resetOptions();
+  resetExtraOp();
   resetInlineComment();
 
   _bufferPtr = cursor;
@@ -4436,6 +4492,8 @@ ERROR_HANDLER(InvalidArgument)
 ERROR_HANDLER(InvalidLabel)
 ERROR_HANDLER(InvalidInstruction)
 ERROR_HANDLER(InvalidLockPrefix)
+ERROR_HANDLER(InvalidXAcquirePrefix)
+ERROR_HANDLER(InvalidXReleasePrefix)
 ERROR_HANDLER(InvalidRepPrefix)
 ERROR_HANDLER(InvalidRexPrefix)
 ERROR_HANDLER(InvalidBroadcast)

@@ -27,7 +27,9 @@ Assembler::Assembler() noexcept
     _section(nullptr),
     _bufferData(nullptr),
     _bufferEnd(nullptr),
-    _bufferPtr(nullptr) {}
+    _bufferPtr(nullptr),
+    _op4(),
+    _op5() {}
 
 Assembler::~Assembler() noexcept {
   if (_code) sync();
@@ -45,6 +47,10 @@ Error Assembler::onAttach(CodeHolder* code) noexcept {
   _bufferData = p;
   _bufferEnd  = p + _section->_buffer._capacity;
   _bufferPtr  = p + _section->_buffer._length;
+
+  _op4.reset();
+  _op5.reset();
+
   return Base::onAttach(code);
 }
 
@@ -53,7 +59,48 @@ Error Assembler::onDetach(CodeHolder* code) noexcept {
   _bufferData = nullptr;
   _bufferEnd  = nullptr;
   _bufferPtr  = nullptr;
+
+  _op4.reset();
+  _op5.reset();
+
   return Base::onDetach(code);
+}
+
+// ============================================================================
+// [asmjit::Assembler - Code-Generation]
+// ============================================================================
+
+Error Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) {
+  _op4 = o4;
+  _op5 = o5;
+  _options |= kOptionOp4Op5Used;
+  return _emit(instId, o0, o1, o2, o3);
+}
+
+Error Assembler::_emitOpArray(uint32_t instId, const Operand_* opArray, size_t opCount) {
+  const Operand_* op = opArray;
+  switch (opCount) {
+    case 0: return _emit(instId, _none, _none, _none, _none);
+    case 1: return _emit(instId, op[0], _none, _none, _none);
+    case 2: return _emit(instId, op[0], op[1], _none, _none);
+    case 3: return _emit(instId, op[0], op[1], op[2], _none);
+    case 4: return _emit(instId, op[0], op[1], op[2], op[3]);
+
+    case 5:
+      _op4 = op[4];
+      _op5.reset();
+      _options |= kOptionOp4Op5Used;
+      return _emit(instId, op[0], op[1], op[2], op[3]);
+
+    case 6:
+      _op4 = op[4];
+      _op5 = op[5];
+      _options |= kOptionOp4Op5Used;
+      return _emit(instId, op[0], op[1], op[2], op[3]);
+
+    default:
+      return DebugUtils::errored(kErrorInvalidArgument);
+  }
 }
 
 // ============================================================================
@@ -333,15 +380,20 @@ void Assembler::_emitLog(
   opArray[1].copyFrom(o1);
   opArray[2].copyFrom(o2);
   opArray[3].copyFrom(o3);
-  opArray[4].copyFrom(_op4);
-  opArray[5].copyFrom(_op5);
-  if (!(options & CodeEmitter::kOptionOp4)) opArray[4].reset();
-  if (!(options & CodeEmitter::kOptionOp5)) opArray[5].reset();
+
+  if (options & kOptionOp4Op5Used) {
+    opArray[4].copyFrom(_op4);
+    opArray[5].copyFrom(_op5);
+  }
+  else {
+    opArray[4].reset();
+    opArray[5].reset();
+  }
 
   Logging::formatInstruction(
     sb, logOptions,
     this, getArchType(),
-    instId, options, _opExtra, opArray, 6);
+    instId, options, _extraOp, opArray, 6);
 
   if ((logOptions & Logger::kOptionBinaryForm) != 0)
     Logging::formatLine(sb, _bufferPtr, emittedSize, relSize, imLen, getInlineComment());
@@ -364,18 +416,23 @@ Error Assembler::_emitFailed(
   opArray[1].copyFrom(o1);
   opArray[2].copyFrom(o2);
   opArray[3].copyFrom(o3);
-  opArray[4].copyFrom(_op4);
-  opArray[5].copyFrom(_op5);
 
-  if (!(options & CodeEmitter::kOptionOp4)) opArray[4].reset();
-  if (!(options & CodeEmitter::kOptionOp5)) opArray[5].reset();
+  if (options & kOptionOp4Op5Used) {
+    opArray[4].copyFrom(_op4);
+    opArray[5].copyFrom(_op5);
+  }
+  else {
+    opArray[4].reset();
+    opArray[5].reset();
+  }
 
   Logging::formatInstruction(
     sb, 0,
     this, getArchType(),
-    instId, options, _opExtra, opArray, 6);
+    instId, options, _extraOp, opArray, 6);
 
   resetOptions();
+  resetExtraOp();
   resetInlineComment();
   return setLastError(err, sb.getData());
 }

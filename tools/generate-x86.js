@@ -272,12 +272,13 @@ class GenUtils {
     for (i = 0; i < group.length; i++) {
       const inst = group[i];
       const name = inst.name;
-
       const operands = inst.operands;
 
-      if (inst.attributes.LOCK ) f.Lock  = true;
-      if (inst.attributes.REP  ) f.Rep   = true;
-      if (inst.attributes.REPNZ) f.Repnz = true;
+      if (inst.attributes.LOCK    ) f.Lock     = true;
+      if (inst.attributes.REP     ) f.Rep      = true;
+      if (inst.attributes.REPNZ   ) f.Repnz    = true;
+      if (inst.attributes.XACQUIRE) f.XAcquire = true;
+      if (inst.attributes.XRELEASE) f.XRelease = true;
 
       if (inst.fpu) {
         for (var j = 0; j < operands.length; j++) {
@@ -458,6 +459,7 @@ class GenUtils {
       case "loop":
       case "loope":
       case "loopne":
+      case "xbegin":
         return "Conditional";
 
       case "jmp" : return "Direct";
@@ -480,7 +482,7 @@ const RegOp = MapUtils.arrayToMap([
 ]);
 
 const MemOp = MapUtils.arrayToMap([
-  "m8", "m16", "m32", "m64", "m80", "m128", "m256", "m512", "m1024"
+  "m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024"
 ]);
 
 const OpSortPriority = {
@@ -510,22 +512,23 @@ const OpSortPriority = {
   "m8"      : 32,
   "m16"     : 33,
   "m32"     : 34,
-  "m64"     : 35,
-  "m80"     : 36,
-  "m128"    : 37,
-  "m256"    : 38,
-  "m512"    : 39,
-  "m1024"   : 40,
-  "mib"     : 41,
-  "vm32x"   : 42,
-  "vm32y"   : 43,
-  "vm32z"   : 44,
-  "vm64x"   : 45,
-  "vm64y"   : 46,
-  "vm64z"   : 47,
-  "memBase" : 48,
-  "memES"   : 49,
-  "memDS"   : 50,
+  "m48"     : 35,
+  "m64"     : 36,
+  "m80"     : 37,
+  "m128"    : 38,
+  "m256"    : 39,
+  "m512"    : 40,
+  "m1024"   : 41,
+  "mib"     : 42,
+  "vm32x"   : 43,
+  "vm32y"   : 44,
+  "vm32z"   : 45,
+  "vm64x"   : 46,
+  "vm64y"   : 47,
+  "vm64z"   : 48,
+  "memBase" : 49,
+  "memES"   : 50,
+  "memDS"   : 51,
 
   "i4"      : 60,
   "u4"      : 61,
@@ -570,6 +573,7 @@ const OpToAsmJitOp = {
   "m8"      : "MEM(M8)",
   "m16"     : "MEM(M16)",
   "m32"     : "MEM(M32)",
+  "m48"     : "MEM(M48)",
   "m64"     : "MEM(M64)",
   "m80"     : "MEM(M80)",
   "m128"    : "MEM(M128)",
@@ -757,15 +761,16 @@ class OSignature {
         case "ymm"     :
         case "zmm"     : mFlags[k] = true; break;
 
-        case "m8"      : mFlags.mem = true; mMemFlags.m8    = true; break;
-        case "m16"     : mFlags.mem = true; mMemFlags.m16   = true; break;
-        case "m32"     : mFlags.mem = true; mMemFlags.m32   = true; break;
-        case "m64"     : mFlags.mem = true; mMemFlags.m64   = true; break;
-        case "m80"     : mFlags.mem = true; mMemFlags.m80   = true; break;
-        case "m128"    : mFlags.mem = true; mMemFlags.m128  = true; break;
-        case "m256"    : mFlags.mem = true; mMemFlags.m256  = true; break;
-        case "m512"    : mFlags.mem = true; mMemFlags.m512  = true; break;
-        case "m1024"   : mFlags.mem = true; mMemFlags.m1024 = true; break;
+        case "m8"      :
+        case "m16"     :
+        case "m32"     :
+        case "m48"     :
+        case "m64"     :
+        case "m80"     :
+        case "m128"    :
+        case "m256"    :
+        case "m512"    :
+        case "m1024"   : mFlags.mem = true; mMemFlags[k] = true; break;
         case "mib"     : mFlags.mem = true; mMemFlags.mib   = true; break;
         case "mem"     : mFlags.mem = true; mMemFlags.mAny  = true; break;
 
@@ -798,6 +803,12 @@ class OSignature {
           mFlags.i32 = true;
           mFlags.i64 = true;
           mFlags[k] = true;
+          break;
+
+        case "rel16"   :
+          mFlags.i32 = true;
+          mFlags.i64 = true;
+          mFlags.rel32 = true;
           break;
 
         default: {
@@ -1149,6 +1160,10 @@ class X86Generator extends base.BaseGenerator {
         if (mem === "m16int") mem = "m16";
         if (mem === "m32int") mem = "m32";
         if (mem === "m64int") mem = "m64";
+
+        if (mem === "m16_16") mem = "m32";
+        if (mem === "m16_32") mem = "m48";
+        if (mem === "m16_64") mem = "m80";
 
         const op = new OSignature();
 
@@ -1709,6 +1724,7 @@ class X86Generator extends base.BaseGenerator {
             StringUtils.padLeft(inst.opcode1       , 26) + ", " +
             StringUtils.padLeft(inst.writeIndex    ,  2) + ", " +
             StringUtils.padLeft(inst.writeSize     ,  2) + ", " +
+            StringUtils.padLeft("0", 4) + ", " +
             StringUtils.padLeft("0", 3) + ", " +
             StringUtils.padLeft("0", 3) + ", " +
             StringUtils.padLeft("0", 3) + "),\n";
@@ -1720,7 +1736,7 @@ class X86Generator extends base.BaseGenerator {
 
   newInstFromInsts(insts) {
     function composeOpCode(obj) {
-      return `${obj.type}(${obj.prefix},${obj.opcode},${obj.o},${obj.l},${obj.w},${obj.ew},${obj.en})`;
+      return `${obj.type}(${obj.prefix},${obj.opcode},${obj.o},${obj.l},${obj.w},${obj.ew},${obj.en},${obj.tt})`;
     }
 
     function GetAccess(inst) {
@@ -1778,7 +1794,8 @@ class X86Generator extends base.BaseGenerator {
       l     : vexL !== undefined ? vexL : "_",
       w     : vexW !== undefined ? vexW : "_",
       ew    : evexW !== undefined ? vexEW : "_",
-      en    : "_"
+      en    : "_",
+      tt    : "_  "
     });
 
     return {

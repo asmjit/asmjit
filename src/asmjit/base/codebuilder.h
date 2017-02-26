@@ -510,12 +510,14 @@ public:
   //! Clear emit options.
   ASMJIT_INLINE void delOptions(uint32_t options) noexcept { _options &= ~options; }
 
-  //! Get op-mask operand (used to represent AVX-512 op-mask selector).
-  ASMJIT_INLINE Operand& getOpExtra() noexcept { return _opExtra; }
+  //! Get if the node has extra operand.
+  ASMJIT_INLINE bool hasExtraOp() const noexcept { return !_extraOp.isNone(); }
+  //! Get extra operand operand.
+  ASMJIT_INLINE Operand& getExtraOp() noexcept { return _extraOp; }
   //! \overload
-  ASMJIT_INLINE const Operand& getOpExtra() const noexcept { return _opExtra; }
-  //1 Set op-mask operand.
-  ASMJIT_INLINE void setOpExtra(const Operand& opExtra) noexcept { _opExtra = opExtra; }
+  ASMJIT_INLINE const Operand& getExtraOp() const noexcept { return _extraOp; }
+  //! Set extra operand.
+  ASMJIT_INLINE void setExtraOp(const Operand& extraOp) noexcept { _extraOp = extraOp; }
 
   //! Get operands count.
   ASMJIT_INLINE uint32_t getOpCount() const noexcept { return _opCount; }
@@ -572,7 +574,7 @@ Update:
   uint8_t _memOpIndex;                   //!< \internal
   uint8_t _reserved;                     //!< \internal
   uint32_t _options;                     //!< Instruction options.
-  Operand _opExtra;                      //!< Extra operand (op-mask {k} on AVX-512).
+  Operand _extraOp;                      //!< Extra operand (REP {cx} or op-mask {k} on AVX-512).
   Operand* _opArray;                     //!< Instruction operands.
 };
 
@@ -583,7 +585,6 @@ Update:
 struct CBInstEx : public CBInst {
   Operand _op4;
   Operand _op5;
-  Operand _opExtra;
 };
 
 // ============================================================================

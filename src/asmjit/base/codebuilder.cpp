@@ -542,31 +542,10 @@ Error CodeBuilder::serialize(CodeEmitter* dst) {
 
       case CBNode::kNodeInst:
       case CBNode::kNodeFuncCall: {
-        CBInst* node = static_cast<CBInst*>(node_);
-
-        uint32_t instId = node->getInstId();
-        uint32_t options = node->getOptions();
-
-        const Operand* opArray = node->getOpArray();
-        uint32_t opCount = node->getOpCount();
-
-        const Operand_* o0 = &dst->_none;
-        const Operand_* o1 = &dst->_none;
-        const Operand_* o2 = &dst->_none;
-        const Operand_* o3 = &dst->_none;
-
-        switch (opCount) {
-          case 6: dst->_op5 = opArray[5]; options |= CodeEmitter::kOptionOp5; ASMJIT_FALLTHROUGH;
-          case 5: dst->_op4 = opArray[4]; options |= CodeEmitter::kOptionOp4; ASMJIT_FALLTHROUGH;
-          case 4: o3 = &opArray[3]; ASMJIT_FALLTHROUGH;
-          case 3: o2 = &opArray[2]; ASMJIT_FALLTHROUGH;
-          case 2: o1 = &opArray[1]; ASMJIT_FALLTHROUGH;
-          case 1: o0 = &opArray[0]; ASMJIT_FALLTHROUGH;
-          case 0: break;
-        }
-
-        dst->setOptions(options);
-        err = dst->_emit(instId, *o0, *o1, *o2, *o3);
+        CBInst* node = node_->as<CBInst>();
+        dst->setOptions(node->getOptions());
+        dst->setExtraOp(node->getExtraOp());
+        err = dst->emitOpArray(node->getInstId(), node->getOpArray(), node->getOpCount());
         break;
       }
 

@@ -50,7 +50,7 @@ struct X86Logging {
     uint32_t archType,
     uint32_t instId,
     uint32_t options,
-    const Operand_& opExtra,
+    const Operand_& extraOp,
     const Operand_* opArray, uint32_t opCount) noexcept;
 };
 
