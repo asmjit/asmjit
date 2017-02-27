@@ -3800,6 +3800,7 @@ EmitModSib_LabelRip_X86:
           err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, 4);
           if (ASMJIT_UNLIKELY(err)) goto Failed;
 
+          re->_sourceSectionId = _section->getId();
           re->_sourceOffset = static_cast<uint64_t>((uintptr_t)(cursor - _bufferData));
           re->_data = static_cast<int64_t>(relOffset);
 
@@ -3820,9 +3821,9 @@ EmitModSib_LabelRip_X86:
           err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, 4);
           if (ASMJIT_UNLIKELY(err)) goto Failed;
 
+          re->_sourceSectionId = _section->getId();
           re->_sourceOffset = static_cast<uint64_t>((uintptr_t)(cursor - _bufferData));
-          re->_data = re->_sourceOffset +
-                      static_cast<uint64_t>(static_cast<int64_t>(relOffset));
+          re->_data = re->_sourceOffset + static_cast<uint64_t>(static_cast<int64_t>(relOffset));
           EMIT_32(0);
         }
       }
@@ -4327,7 +4328,9 @@ EmitJmpCall:
       err = _code->newRelocEntry(&re, RelocEntry::kTypeAbsToRel, 0);
       if (ASMJIT_UNLIKELY(err)) goto Failed;
 
+      re->_sourceSectionId = _section->getId();
       re->_data = static_cast<int64_t>(jumpAddress);
+
       if (ASMJIT_LIKELY(opCode)) {
         // 64-bit: Emit REX prefix so the instruction can be patched later.
         // REX prefix does nothing if not patched, but allows to patch the
