@@ -58,11 +58,11 @@ class X86Mem : public Mem {
 public:
   //! Additional bits of operand's signature used by `X86Mem`.
   ASMJIT_ENUM(AdditionalBits) {
-    kSignatureMemShiftShift   = 16,
+    kSignatureMemShiftShift   = 19,
     kSignatureMemShiftBits    = 0x03U,
     kSignatureMemShiftMask    = kSignatureMemShiftBits << kSignatureMemShiftShift,
 
-    kSignatureMemSegmentShift = 18,
+    kSignatureMemSegmentShift = 21,
     kSignatureMemSegmentBits  = 0x07U,
     kSignatureMemSegmentMask  = kSignatureMemSegmentBits << kSignatureMemSegmentShift
   };
@@ -1052,7 +1052,7 @@ static ASMJIT_INLINE X86Mem ptr(uint64_t base, const X86Vec& index, uint32_t shi
   }                                                                                   \
   /*! Create a `[base + (vec_index << shift) + offset]` memory operand. */            \
   static ASMJIT_INLINE X86Mem FUNC(uint64_t base, const X86Vec& index, uint32_t shift = 0) noexcept { \
-    return X86Mem(base, index, shift, SIZE, Mem::kSignatureMemAbsoluteFlag);          \
+    return X86Mem(base, index, shift, SIZE, Mem::kSignatureMemAbs);                   \
   }                                                                                   \
   /*! Create a `[base + offset]` memory operand. */                                   \
   static ASMJIT_INLINE X86Mem FUNC##_abs(uint64_t base) noexcept {                    \
@@ -1060,17 +1060,18 @@ static ASMJIT_INLINE X86Mem ptr(uint64_t base, const X86Vec& index, uint32_t shi
   }                                                                                   \
   /*! Create a `[base + (index << shift) + offset]` memory operand. */                \
   static ASMJIT_INLINE X86Mem FUNC##_abs(uint64_t base, const X86Gp& index, uint32_t shift = 0) noexcept { \
-    return X86Mem(base, index, shift, SIZE, Mem::kSignatureMemAbsoluteFlag);          \
+    return X86Mem(base, index, shift, SIZE, Mem::kSignatureMemAbs);                   \
   }                                                                                   \
   /*! Create a `[base + (vec_index << shift) + offset]` memory operand. */            \
   static ASMJIT_INLINE X86Mem FUNC##_abs(uint64_t base, const X86Vec& index, uint32_t shift = 0) noexcept { \
-    return X86Mem(base, index, shift, SIZE, Mem::kSignatureMemAbsoluteFlag);          \
+    return X86Mem(base, index, shift, SIZE, Mem::kSignatureMemAbs);                   \
   }
 
 // Define memory operand constructors that use platform independent naming.
 ASMJIT_X86_PTR_FN(ptr_8, 1)
 ASMJIT_X86_PTR_FN(ptr_16, 2)
 ASMJIT_X86_PTR_FN(ptr_32, 4)
+ASMJIT_X86_PTR_FN(ptr_48, 6)
 ASMJIT_X86_PTR_FN(ptr_64, 8)
 ASMJIT_X86_PTR_FN(ptr_80, 10)
 ASMJIT_X86_PTR_FN(ptr_128, 16)

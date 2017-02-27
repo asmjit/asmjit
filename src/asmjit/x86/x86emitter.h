@@ -161,8 +161,6 @@ namespace asmjit {
 
 template<typename This>
 struct X86EmitterExplicitT {
-  ASMJIT_INLINE X86EmitterExplicitT() noexcept {}
-
   // These typedefs are used to describe implicit operands passed explicitly.
   typedef X86Gp AL;
   typedef X86Gp AH;
@@ -279,12 +277,12 @@ struct X86EmitterExplicitT {
   //! \overload
   ASMJIT_INLINE X86Mem intptr_ptr_abs(uint64_t base) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
-    return X86Mem(base, nativeGpSize, Mem::kSignatureMemAbsoluteFlag);
+    return X86Mem(base, nativeGpSize, Mem::kSignatureMemAbs);
   }
   //! \overload
   ASMJIT_INLINE X86Mem intptr_ptr_abs(uint64_t base, const X86Gp& index, uint32_t shift = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->getGpSize();
-    return X86Mem(base, index, shift, nativeGpSize, Mem::kSignatureMemAbsoluteFlag);
+    return X86Mem(base, index, shift, nativeGpSize, Mem::kSignatureMemAbs);
   }
 
   // --------------------------------------------------------------------------
@@ -5097,9 +5095,7 @@ struct X86EmitterImplicitT : public X86EmitterExplicitT<This> {
 //! NOTE: This class cannot be created, you can only cast to it and use it as
 //! emitter that emits to either X86Assembler, X86Builder, or X86Compiler (use
 //! with caution with X86Compiler as it expects virtual registers to be used).
-class X86Emitter
-  : public CodeEmitter,
-    public X86EmitterImplicitT<X86Emitter> {
+class X86Emitter : public CodeEmitter, public X86EmitterImplicitT<X86Emitter> {
   ASMJIT_NONCONSTRUCTIBLE(X86Emitter)
 };
 

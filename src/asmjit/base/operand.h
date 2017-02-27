@@ -90,20 +90,20 @@ struct Operand_ {
     kSignatureMemBaseIndexMask  = kSignatureMemBaseIndexBits << kSignatureMemBaseIndexShift,
 
     // Memory should be encoded as absolute immediate (X86|X64).
-    // |........|........|..X.....|........|
-    kSignatureMemAbsoluteShift  = 13,
-    kSignatureMemAbsoluteBits   = 0x01U,
-    kSignatureMemAbsoluteFlag   = kSignatureMemAbsoluteBits << kSignatureMemAbsoluteShift,
+    // |........|........|.XX.....|........|
+    kSignatureMemAddrTypeShift  = 13,
+    kSignatureMemAddrTypeBits   = 0x03U,
+    kSignatureMemAddrTypeMask   = kSignatureMemAddrTypeBits << kSignatureMemAddrTypeShift,
 
     // This memory operand represents a function argument's stack location (CodeCompiler)
     // |........|........|.X......|........|
-    kSignatureMemArgHomeShift   = 14,
+    kSignatureMemArgHomeShift   = 15,
     kSignatureMemArgHomeBits    = 0x01U,
     kSignatureMemArgHomeFlag    = kSignatureMemArgHomeBits << kSignatureMemArgHomeShift,
 
     // This memory operand represents a virtual register's home-slot (CodeCompiler).
     // |........|........|X.......|........|
-    kSignatureMemRegHomeShift   = 15,
+    kSignatureMemRegHomeShift   = 16,
     kSignatureMemRegHomeBits    = 0x01U,
     kSignatureMemRegHomeFlag    = kSignatureMemRegHomeBits << kSignatureMemRegHomeShift
   };
@@ -243,16 +243,12 @@ struct Operand_ {
   //! Improper use of `setSignature()` can lead to hard-to-debug errors.
   ASMJIT_INLINE void setSignature(uint32_t signature) noexcept { _signature = signature; }
 
-  ASMJIT_INLINE bool _hasSignatureData(uint32_t bits) const noexcept {
-    return (_signature & bits) != 0;
-  }
+  ASMJIT_INLINE bool _hasSignatureData(uint32_t bits) const noexcept { return (_signature & bits) != 0; }
 
   //! \internal
   //!
   //! Unpacks information from operand's signature.
-  ASMJIT_INLINE uint32_t _getSignatureData(uint32_t bits, uint32_t shift) const noexcept {
-    return (_signature >> shift) & bits;
-  }
+  ASMJIT_INLINE uint32_t _getSignatureData(uint32_t bits, uint32_t shift) const noexcept { return (_signature >> shift) & bits; }
 
   //! \internal
   //!
@@ -263,6 +259,9 @@ struct Operand_ {
   }
 
   ASMJIT_INLINE void _addSignatureData(uint32_t data) noexcept { _signature |= data; }
+
+  //! Clears specified bits in operand's signature.
+  ASMJIT_INLINE void _clearSignatureData(uint32_t bits, uint32_t shift) noexcept { _signature &= ~(bits << shift); }
 
   //! Get type of the operand, see \ref OpType.
   ASMJIT_INLINE uint32_t getOp() const noexcept { return _getSignatureData(kSignatureOpBits, kSignatureOpShift); }
@@ -818,6 +817,20 @@ public:
 //!          prefix and index shift (scale).
 class Mem : public Operand {
 public:
+  enum AddrType {
+    kAddrTypeDefault = 0,
+    kAddrTypeAbs     = 1,
+    kAddrTypeRel     = 2,
+    kAddrTypeWrt     = 3
+  };
+
+  // Shortcuts.
+  enum SignatureMem {
+    kSignatureMemAbs = kAddrTypeAbs << kSignatureMemAddrTypeShift,
+    kSignatureMemRel = kAddrTypeRel << kSignatureMemAddrTypeShift,
+    kSignatureMemWrt = kAddrTypeWrt << kSignatureMemAddrTypeShift
+  };
+
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -854,15 +867,25 @@ public:
     _init_packed_d2_d3(0, 0);
   }
 
-  ASMJIT_INLINE bool isAbs() const noexcept { return _hasSignatureData(kSignatureMemAbsoluteFlag); }
+  ASMJIT_INLINE bool hasAddrType() const noexcept { return _hasSignatureData(kSignatureMemAddrTypeMask); }
+  ASMJIT_INLINE uint32_t getAddrType() const noexcept { return _getSignatureData(kSignatureMemAddrTypeBits, kSignatureMemAddrTypeShift); }
+  ASMJIT_INLINE void setAddrType(uint32_t addrType) noexcept { return _setSignatureData(addrType, kSignatureMemAddrTypeBits, kSignatureMemAddrTypeShift); }
+  ASMJIT_INLINE void resetAddrType() noexcept { return _clearSignatureData(kSignatureMemAddrTypeBits, kSignatureMemAddrTypeShift); }
+
+  ASMJIT_INLINE bool isAbs() const noexcept { return getAddrType() == kAddrTypeAbs; }
+  ASMJIT_INLINE bool isRel() const noexcept { return getAddrType() == kAddrTypeRel; }
+  ASMJIT_INLINE bool isWrt() const noexcept { return getAddrType() == kAddrTypeWrt; }
+
+  ASMJIT_INLINE void setAbs() noexcept { setAddrType(kAddrTypeAbs); }
+  ASMJIT_INLINE void setRel() noexcept { setAddrType(kAddrTypeRel); }
+  ASMJIT_INLINE void setWrt() noexcept { setAddrType(kAddrTypeWrt); }
+
   ASMJIT_INLINE bool isArgHome() const noexcept { return _hasSignatureData(kSignatureMemArgHomeFlag); }
   ASMJIT_INLINE bool isRegHome() const noexcept { return _hasSignatureData(kSignatureMemRegHomeFlag); }
 
-  ASMJIT_INLINE void setAbs() noexcept { _signature |= kSignatureMemAbsoluteFlag; }
   ASMJIT_INLINE void setArgHome() noexcept { _signature |= kSignatureMemArgHomeFlag; }
   ASMJIT_INLINE void setRegHome() noexcept { _signature |= kSignatureMemRegHomeFlag; }
 
-  ASMJIT_INLINE void clearAbs() noexcept { _signature &= ~kSignatureMemAbsoluteFlag; }
   ASMJIT_INLINE void clearArgHome() noexcept { _signature &= ~kSignatureMemArgHomeFlag; }
   ASMJIT_INLINE void clearRegHome() noexcept { _signature &= ~kSignatureMemRegHomeFlag; }
 
@@ -873,46 +896,28 @@ public:
   //! Get whether the memory operand has BASE and INDEX register.
   ASMJIT_INLINE bool hasBaseOrIndex() const noexcept { return (_signature & kSignatureMemBaseIndexMask) != 0; }
   //! Get whether the memory operand has BASE and INDEX register.
-  ASMJIT_INLINE bool hasBaseAndIndex() const noexcept {
-    return (_signature & kSignatureMemBaseTypeMask) != 0 &&
-           (_signature & kSignatureMemIndexTypeMask) != 0;
-  }
+  ASMJIT_INLINE bool hasBaseAndIndex() const noexcept { return (_signature & kSignatureMemBaseTypeMask) != 0 && (_signature & kSignatureMemIndexTypeMask) != 0; }
 
-  //! Get if the BASE operand is a register.
-  ASMJIT_INLINE bool hasBaseReg() const noexcept {
-    // Registers start after kLabelTag.
-    return (_signature & kSignatureMemBaseTypeMask) > (Label::kLabelTag << kSignatureMemBaseTypeShift);
-  }
+  //! Get if the BASE operand is a register (registers start after `kLabelTag`).
+  ASMJIT_INLINE bool hasBaseReg() const noexcept { return (_signature & kSignatureMemBaseTypeMask) > (Label::kLabelTag << kSignatureMemBaseTypeShift); }
   //! Get if the BASE operand is a label.
-  ASMJIT_INLINE bool hasBaseLabel() const noexcept {
-    return (_signature & kSignatureMemBaseTypeMask) == (Label::kLabelTag << kSignatureMemBaseTypeShift);
-  }
-
-  //! Get if the INDEX operand is a register.
-  ASMJIT_INLINE bool hasIndexReg() const noexcept {
-    // Registers start after kLabelTag.
-    return (_signature & kSignatureMemIndexTypeMask) > (Label::kLabelTag << kSignatureMemIndexTypeShift);
-  }
+  ASMJIT_INLINE bool hasBaseLabel() const noexcept { return (_signature & kSignatureMemBaseTypeMask) == (Label::kLabelTag << kSignatureMemBaseTypeShift); }
+  //! Get if the INDEX operand is a register (registers start after `kLabelTag`).
+  ASMJIT_INLINE bool hasIndexReg() const noexcept { return (_signature & kSignatureMemIndexTypeMask) > (Label::kLabelTag << kSignatureMemIndexTypeShift); }
 
   //! Get type of a BASE register (0 if this memory operand doesn't use the BASE register).
   //!
   //! NOTE: If the returned type is one (a value never associated to a register
   //! type) the BASE is not register, but it's a label. One equals to `kLabelTag`.
   //! You should always check `hasBaseLabel()` before using `getBaseId()` result.
-  ASMJIT_INLINE uint32_t getBaseType() const noexcept {
-    return _getSignatureData(kSignatureMemBaseTypeBits, kSignatureMemBaseTypeShift);
-  }
+  ASMJIT_INLINE uint32_t getBaseType() const noexcept { return _getSignatureData(kSignatureMemBaseTypeBits, kSignatureMemBaseTypeShift); }
   //! Get type of an INDEX register (0 if this memory operand doesn't use the INDEX register).
-  ASMJIT_INLINE uint32_t getIndexType() const noexcept {
-    return _getSignatureData(kSignatureMemIndexTypeBits, kSignatureMemIndexTypeShift);
-  }
+  ASMJIT_INLINE uint32_t getIndexType() const noexcept { return _getSignatureData(kSignatureMemIndexTypeBits, kSignatureMemIndexTypeShift); }
 
   //! Get both BASE (4:0 bits) and INDEX (9:5 bits) types combined into a single integer.
   //!
   //! This is used internally for BASE+INDEX validation.
-  ASMJIT_INLINE uint32_t getBaseIndexType() const noexcept {
-    return _getSignatureData(kSignatureMemBaseIndexBits, kSignatureMemBaseIndexShift);
-  }
+  ASMJIT_INLINE uint32_t getBaseIndexType() const noexcept { return _getSignatureData(kSignatureMemBaseIndexBits, kSignatureMemBaseIndexShift); }
 
   //! Get id of the BASE register or label (if the BASE was specified as label).
   ASMJIT_INLINE uint32_t getBaseId() const noexcept { return _mem.base; }
