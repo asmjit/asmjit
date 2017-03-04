@@ -200,7 +200,10 @@ Error Assembler::bind(const Label& label) {
 #if !defined(ASMJIT_DISABLE_LOGGING)
   if (_globalOptions & kOptionLoggingEnabled) {
     StringBuilderTmp<256> sb;
-    sb.setFormat("L%u:", Operand::unpackId(label.getId()));
+    if (le->hasName())
+      sb.setFormat("%s:", le->getName());
+    else
+      sb.setFormat("L%u:", Operand::unpackId(label.getId()));
 
     size_t binSize = 0;
     if (!_code->_logger->hasOption(Logger::kOptionBinaryForm))
