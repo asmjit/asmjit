@@ -27,7 +27,12 @@ if (NOT __CXX_INCLUDED)
 
   function(cxx_detect_standard out)
     set(out_array)
-    cxx_detect_cflags(out_array "-std=c++14" "-std=c++11" "-std=c++0x")
+
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+      cxx_detect_cflags(out_array "/std:c++latest" "/std:c++14")
+    else()
+      cxx_detect_cflags(out_array "-std=c++17" "-std=c++14" "-std=c++11" "-std=c++0x")
+    endif()
 
     # Keep only the first flag detected, which keeps the highest version supported.
     if(out_array)

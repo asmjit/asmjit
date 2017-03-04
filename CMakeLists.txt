@@ -42,7 +42,9 @@ set(ASMJIT_BUILD_TEST ${ASMJIT_BUILD_TEST}        CACHE BOOLEAN "Build 'asmjit_t
 # =============================================================================
 
 include("${ASMJIT_DIR}/CxxProject.cmake")
+
 cxx_project(asmjit)
+cxx_detect_standard(ASMJIT_PRIVATE_CFLAGS)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(ASMJIT_PRIVATE_LFLAGS "/OPT:REF /OPT:ICF")
@@ -58,7 +60,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
-  cxx_detect_standard(ASMJIT_PRIVATE_CFLAGS)
   cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS
     "-fno-tree-vectorize"
     "-fvisibility=hidden"
@@ -67,10 +68,6 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
     "-O2" # CMake by default uses -O3, which does nothing useful.
     "-fno-keep-static-consts"
     "-fmerge-all-constants")
-endif()
-
-if(ASMJIT_TRACE)
-  list(APPEND ASMJIT_PRIVATE_CFLAGS "${CXX_DEFINE}ASMJIT_TRACE")
 endif()
 
 if(WIN32)
