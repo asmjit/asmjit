@@ -3861,7 +3861,7 @@ EmitModSib_LabelRip_X86:
 EmitModVSib:
     rxReg &= 0x7;
 
-    // ==========|> [BASE + INDEX + DISP8|DISP16|DISP32].
+    // ==========|> [BASE + INDEX + DISP8|DISP32].
     if (rmInfo & kX86MemInfo_BaseGp) {
       rbReg &= 0x7;
       relOffset = rmRel->as<X86Mem>().getOffsetLo32();
@@ -3885,14 +3885,14 @@ EmitModVSib:
           EMIT_BYTE(cdOffset);
         }
         else {
-          // [BASE + INDEX << SHIFT + DISP16|DISP32].
+          // [BASE + INDEX << SHIFT + DISP32].
           EMIT_BYTE(mod + 0x80); // <- MOD(2, opReg, 4).
           EMIT_BYTE(sib);
           EMIT_32(relOffset);
         }
       }
     }
-    // ==========|> [INDEX + DISP16|DISP32].
+    // ==========|> [INDEX + DISP32].
     else if (!(rmInfo & (kX86MemInfo_BaseLabel | kX86MemInfo_BaseRip))) {
       // [INDEX << SHIFT + DISP32].
       EMIT_BYTE(x86EncodeMod(0, opReg, 4));
@@ -3909,6 +3909,7 @@ EmitModVSib:
         goto EmitModSib_LabelRip_X86;
       }
       else {
+        // NOTE: This also handles VSIB+RIP, which is not allowed in 64-bit mode.
         goto InvalidAddress;
       }
     }

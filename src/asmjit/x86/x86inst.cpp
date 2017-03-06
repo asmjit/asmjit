@@ -3947,6 +3947,10 @@ ASMJIT_FAVOR_SIZE Error X86Inst::validate(
               memFlags |= X86Inst::kMemOpMib;
           }
 
+          // [RIP + {XMM|YMM|ZMM}] is not allowed.
+          if (baseType == X86Reg::kRegRip && (opFlags & X86Inst::kOpVm))
+            return DebugUtils::errored(kErrorInvalidAddress);
+
           uint32_t indexId = m.getIndexId();
           if (indexId < Operand::kPackedIdMin)
             combinedRegMask |= Utils::mask(indexId);
