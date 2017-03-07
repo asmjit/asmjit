@@ -1508,17 +1508,17 @@ CaseX86M_GPB_MulDiv:
             ADD_PREFIX_BY_SIZE(o0.getSize());
           }
 
-          // Handle a special form 'mov al|ax|eax|rax, [ptr64]' that doesn't use MOD.
+          // Handle a special form `mov al|ax|eax|rax, [ptr64]` that doesn't use MOD.
           if (o0.getId() == X86Gp::kIdAx && !rmRel->as<X86Mem>().hasBaseOrIndex()) {
-            opCode += 0xA0;
             imVal = rmRel->as<X86Mem>().getOffset();
-            imLen = getGpSize();
-            goto EmitX86Op;
+            if (!is64Bit() || (is64Bit() && ((options & X86Inst::kOptionLongForm) || !Utils::isInt32(imVal)))) {
+              opCode += 0xA0;
+              goto EmitX86OpMovAbs;
+            }
           }
-          else {
-            opCode += 0x8A;
-            goto EmitX86M;
-          }
+
+          opCode += 0x8A;
+          goto EmitX86M;
         }
       }
 
@@ -1543,17 +1543,17 @@ CaseX86M_GPB_MulDiv:
             ADD_PREFIX_BY_SIZE(o1.getSize());
           }
 
-          // Handle a special form 'mov [ptr64], al|ax|eax|rax' that doesn't use MOD.
-          if (!rmRel->as<X86Mem>().hasBaseOrIndex() && o1.getId() == X86Gp::kIdAx) {
-            opCode += 0xA2;
+          // Handle a special form `mov [ptr64], al|ax|eax|rax` that doesn't use MOD.
+          if (o1.getId() == X86Gp::kIdAx && !rmRel->as<X86Mem>().hasBaseOrIndex()) {
             imVal = rmRel->as<X86Mem>().getOffset();
-            imLen = getGpSize();
-            goto EmitX86Op;
+            if (!is64Bit() || (is64Bit() && ((options & X86Inst::kOptionLongForm) || !Utils::isInt32(imVal)))) {
+              opCode += 0xA2;
+              goto EmitX86OpMovAbs;
+            }
           }
-          else {
-            opCode += 0x88;
-            goto EmitX86M;
-          }
+
+          opCode += 0x88;
+          goto EmitX86M;
         }
       }
 
@@ -3530,6 +3530,13 @@ CaseVexRvm_R:
   // --------------------------------------------------------------------------
   // [Emit - X86]
   // --------------------------------------------------------------------------
+
+EmitX86OpMovAbs:
+  imLen = getGpSize();
+
+  // Segment-override prefix.
+  if (rmRel->as<X86Mem>().hasSegment())
+    EMIT_BYTE(x86SegmentPrefix[rmRel->as<X86Mem>().getSegmentId()]);
 
 EmitX86Op:
   // Emit mandatory instruction prefix.

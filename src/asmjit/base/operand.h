@@ -970,7 +970,7 @@ public:
   //! Get a higher part of a 64-bit offset or absolute address.
   //!
   //! NOTE: This function is UNSAFE and returns garbage if `has64BitOffset()`
-  //! returns false. Never use blindly without checking it.
+  //! returns false. Never use it blindly without checking it.
   ASMJIT_INLINE int32_t getOffsetHi32() const noexcept { return static_cast<int32_t>(_mem.base); }
 
   //! Set a 64-bit offset or an absolute address to `offset`.
