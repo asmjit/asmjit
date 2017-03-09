@@ -1639,7 +1639,7 @@ class X86Generator extends base.BaseGenerator {
     }
 
     var s = `#define F(VAL) X86Inst::kFlag##VAL\n` +
-            `#define JUMP_TYPE(VAL) AnyInst::kJumpType##VAL\n` +
+            `#define JUMP_TYPE(VAL) Inst::kJumpType##VAL\n` +
             `#define SINGLE_REG(VAL) X86Inst::kSingleReg##VAL\n` +
             `const X86Inst::CommonData X86InstDB::commonData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
             `#undef SINGLE_REG\n` +

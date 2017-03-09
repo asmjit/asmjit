@@ -138,6 +138,8 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/base
   func.h
   globals.cpp
   globals.h
+  inst.cpp
+  inst.h
   logging.cpp
   logging.h
   misc_p.h
@@ -185,6 +187,8 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/x86
   x86internal_p.h
   x86inst.cpp
   x86inst.h
+  x86instimpl.cpp
+  x86instimpl_p.h
   x86logging.cpp
   x86logging_p.h
   x86misc.h

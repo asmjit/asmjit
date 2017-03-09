@@ -580,10 +580,10 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
   uint32_t logOptions,
   const CodeEmitter* emitter,
   uint32_t archType,
-  uint32_t instId,
-  uint32_t options,
-  const Operand_& extraOp,
-  const Operand_* opArray, uint32_t opCount) noexcept {
+  const Inst::Detail& detail, const Operand_* opArray, uint32_t opCount) noexcept {
+
+  uint32_t instId = detail.instId;
+  uint32_t options = detail.options;
 
   // Format instruction options and instruction mnemonic.
   if (instId < X86Inst::_kIdCount) {
@@ -601,9 +601,9 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
     // REP|REPNZ options.
     if (options & (X86Inst::kOptionRep | X86Inst::kOptionRepnz)) {
       sb.appendString((options & X86Inst::kOptionRep) ? "rep " : "repnz ");
-      if (!extraOp.isNone()) {
+      if (detail.hasExtraReg()) {
         ASMJIT_PROPAGATE(sb.appendChar('{'));
-        ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, extraOp));
+        ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, detail.extraReg.toReg<Reg>()));
         ASMJIT_PROPAGATE(sb.appendString("} "));
       }
     }
@@ -654,9 +654,9 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
 
     // Support AVX-512 {k}{z}.
     if (i == 0) {
-      if (X86Reg::isK(extraOp)) {
+      if (detail.extraReg.getKind() == X86Reg::kKindK) {
         ASMJIT_PROPAGATE(sb.appendString(" {"));
-        ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, extraOp));
+        ASMJIT_PROPAGATE(formatOperand(sb, logOptions, emitter, archType, detail.extraReg.toReg<Reg>()));
         ASMJIT_PROPAGATE(sb.appendChar('}'));
 
         if (options & X86Inst::kOptionZMask)

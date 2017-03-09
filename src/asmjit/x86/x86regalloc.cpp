@@ -1723,9 +1723,9 @@ _NextGroup:
             _avxEnabled = true;
         }
 
-        const Operand_& extraOp = node->getExtraOp();
-        if (extraOp.isReg()) {
-          uint32_t id = extraOp.as<Reg>().getId();
+        const RegOnly& extraReg = node->getExtraReg();
+        if (extraReg.isValid()) {
+          uint32_t id = extraReg.getId();
           if (cc()->isVirtRegValid(id)) {
             VirtReg* vreg = cc()->getVirtRegById(id);
             TiedReg* tied;
@@ -2117,10 +2117,7 @@ Error X86RAPass::annotate() {
           0,
           cc(),
           cc()->getArchType(),
-          node->getInstId(),
-          node->getOptions(),
-          node->getExtraOp(),
-          node->getOpArray(), node->getOpCount());
+          node->getInstDetail(), node->getOpArray(), node->getOpCount());
 
         node_->setInlineComment(
           static_cast<char*>(dataZone.dup(sb.getData(), sb.getLength(), true)));
@@ -2423,8 +2420,11 @@ Error X86VarAlloc::run(CBNode* node_) {
     // Translate node operands.
     if (node_->getType() == CBNode::kNodeInst) {
       CBInst* node = static_cast<CBInst*>(node_);
-      if (node->hasExtraOp())
-        ASMJIT_PROPAGATE(X86RAPass_translateOperands(_context, &node->_extraOp, 1));
+      if (node->hasExtraOp()) {
+        Reg reg = node->getExtraReg().toReg<Reg>();
+        ASMJIT_PROPAGATE(X86RAPass_translateOperands(_context, &reg, 1));
+        node->setExtraReg(reg);
+      }
       ASMJIT_PROPAGATE(X86RAPass_translateOperands(_context, node->getOpArray(), node->getOpCount()));
     }
     else if (node_->getType() == CBNode::kNodePushArg) {

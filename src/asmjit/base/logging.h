@@ -8,9 +8,8 @@
 #ifndef _ASMJIT_BASE_LOGGING_H
 #define _ASMJIT_BASE_LOGGING_H
 
-#include "../asmjit_build.h"
-
 // [Dependencies]
+#include "../base/inst.h"
 #include "../base/string.h"
 
 // [Api-Begin]
@@ -249,10 +248,7 @@ struct Logging {
     uint32_t logOptions,
     const CodeEmitter* emitter,
     uint32_t archType,
-    uint32_t instId,
-    uint32_t options,
-    const Operand_& extraOp,
-    const Operand_* opArray, uint32_t opCount) noexcept;
+    const Inst::Detail& detail, const Operand_* opArray, uint32_t opCount) noexcept;
 
 #if !defined(ASMJIT_DISABLE_BUILDER)
   ASMJIT_API static Error formatNode(
@@ -262,7 +258,7 @@ struct Logging {
     const CBNode* node_) noexcept;
 #endif // !ASMJIT_DISABLE_BUILDER
 
-// Only used by AsmJit internals, not available for users.
+// Only used by AsmJit internals, not available to users.
 #if defined(ASMJIT_EXPORTS)
   enum {
     // Has to be big to be able to hold all metadata compiler can assign to a

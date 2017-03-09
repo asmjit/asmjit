@@ -360,12 +360,12 @@ public:
 
   //! Use REP/REPZ prefix.
   ASMJIT_INLINE This& rep(const X86Gp& zcx) noexcept {
-    static_cast<This*>(this)->_extraOp = zcx;
+    static_cast<This*>(this)->_extraReg.init(zcx);
     return _addOptions(X86Inst::kOptionRep);
   }
   //! Use REPNZ prefix.
   ASMJIT_INLINE This& repnz(const X86Gp& zcx) noexcept {
-    static_cast<This*>(this)->_extraOp = zcx;
+    static_cast<This*>(this)->_extraReg.init(zcx);
     return _addOptions(X86Inst::kOptionRepnz);
   }
 

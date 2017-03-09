@@ -725,7 +725,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
   Operand dst(dst_);
   Operand src(src_);
 
-  uint32_t instId = Globals::kInvalidInstId;
+  uint32_t instId = Inst::kIdNone;
   uint32_t memFlags = 0;
 
   enum MemFlags {
@@ -831,7 +831,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
   uint32_t dstSize = TypeId::sizeOf(dstTypeId);
   uint32_t srcSize = TypeId::sizeOf(srcTypeId);
 
-  int32_t instId = Globals::kInvalidInstId;
+  int32_t instId = Inst::kIdNone;
 
   // Not a real loop, just 'break' is nicer than 'goto'.
   for (;;) {

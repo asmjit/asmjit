@@ -396,7 +396,7 @@ void Assembler::_emitLog(
   Logging::formatInstruction(
     sb, logOptions,
     this, getArchType(),
-    instId, options, _extraOp, opArray, 6);
+    Inst::Detail(instId, options, _extraReg), opArray, 6);
 
   if ((logOptions & Logger::kOptionBinaryForm) != 0)
     Logging::formatLine(sb, _bufferPtr, emittedSize, relSize, imLen, getInlineComment());
@@ -432,10 +432,10 @@ Error Assembler::_emitFailed(
   Logging::formatInstruction(
     sb, 0,
     this, getArchType(),
-    instId, options, _extraOp, opArray, 6);
+    Inst::Detail(instId, options, _extraReg), opArray, 6);
 
   resetOptions();
-  resetExtraOp();
+  resetExtraReg();
   resetInlineComment();
   return setLastError(err, sb.getData());
 }

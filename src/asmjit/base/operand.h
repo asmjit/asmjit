@@ -709,10 +709,9 @@ public:
   //! some operands contains a garbage or other metadata in the upper 8 bytes
   //! then `isSame()` may return `true` in cases where `isEqual()` returns
   //! false. However. no such case is known at the moment.
-  ASMJIT_INLINE bool isSame(const Reg& other) const noexcept { return _packed[0] == _packed[1]; }
+  ASMJIT_INLINE bool isSame(const Reg& other) const noexcept { return _packed[0] == other._packed[0]; }
 
-  //! Get if the register type matches `rType`.
-  //! Same as `isReg(rType)`, provided for convenience.
+  //! Get if the register type matches `rType` - same as `isReg(rType)`, provided for convenience.
   ASMJIT_INLINE bool isType(uint32_t rType) const noexcept { return (_signature & kSignatureRegTypeMask) == (rType << kSignatureRegTypeShift); }
   //! Get if the register kind matches `rKind`.
   ASMJIT_INLINE bool isKind(uint32_t rKind) const noexcept { return (_signature & kSignatureRegKindMask) == (rKind << kSignatureRegKindShift); }
@@ -783,6 +782,77 @@ public:
 
   static ASMJIT_INLINE bool isGp(const Operand_& op, uint32_t rId) noexcept { return isGp(op) & (op.getId() == rId); }
   static ASMJIT_INLINE bool isVec(const Operand_& op, uint32_t rId) noexcept { return isVec(op) & (op.getId() == rId); }
+};
+
+// ============================================================================
+// [asmjit::RegOnly]
+// ============================================================================
+
+//! RegOnly is 8-byte version of `Reg` that only allows to store either `Reg`
+//! or nothing. This class was designed to decrease the space consumed by each
+//! extra "operand" in `CodeEmitter` and `CBInst` classes.
+struct RegOnly {
+  // --------------------------------------------------------------------------
+  // [Init / Reset]
+  // --------------------------------------------------------------------------
+
+  //! Initialize the `RegOnly` instance to hold register `signature` and `id`.
+  ASMJIT_INLINE void init(uint32_t signature, uint32_t id) noexcept {
+    _signature = signature;
+    _id = id;
+  }
+
+  ASMJIT_INLINE void init(const Reg& reg) noexcept { init(reg.getSignature(), reg.getId()); }
+  ASMJIT_INLINE void init(const RegOnly& reg) noexcept { init(reg.getSignature(), reg.getId()); }
+
+  //! Reset the `RegOnly` to none.
+  ASMJIT_INLINE void reset() noexcept { init(0, 0); }
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  //! Get if the `ExtraReg` is none (same as calling `Operand_::isNone()`).
+  ASMJIT_INLINE bool isNone() const noexcept { return _signature == 0; }
+  //! Get if the register is valid (either virtual or physical).
+  ASMJIT_INLINE bool isValid() const noexcept { return _signature != 0; }
+
+  //! Get if this is a physical register.
+  ASMJIT_INLINE bool isPhysReg() const noexcept { return _id < Globals::kInvalidRegId; }
+  //! Get if this is a virtual register (used by \ref CodeCompiler).
+  ASMJIT_INLINE bool isVirtReg() const noexcept { return Operand::isPackedId(_id); }
+
+  //! Get register signature or 0.
+  ASMJIT_INLINE uint32_t getSignature() const noexcept { return _signature; }
+  //! Get register id or 0.
+  ASMJIT_INLINE uint32_t getId() const noexcept { return _id; }
+
+  //! \internal
+  //!
+  //! Unpacks information from operand's signature.
+  ASMJIT_INLINE uint32_t _getSignatureData(uint32_t bits, uint32_t shift) const noexcept { return (_signature >> shift) & bits; }
+
+  //! Get the register type.
+  ASMJIT_INLINE uint32_t getType() const noexcept { return _getSignatureData(Operand::kSignatureRegTypeBits, Operand::kSignatureRegTypeShift); }
+  //! Get the register kind.
+  ASMJIT_INLINE uint32_t getKind() const noexcept { return _getSignatureData(Operand::kSignatureRegKindBits, Operand::kSignatureRegKindShift); }
+
+  // --------------------------------------------------------------------------
+  // [ToReg]
+  // --------------------------------------------------------------------------
+
+  //! Convert back to `RegT` operand.
+  template<typename RegT>
+  ASMJIT_INLINE RegT toReg() const noexcept { return RegT(Init, _signature, _id); }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  //! Type of the operand, either `kOpNone` or `kOpReg`.
+  uint32_t _signature;
+  //! Physical or virtual register id.
+  uint32_t _id;
 };
 
 // ============================================================================

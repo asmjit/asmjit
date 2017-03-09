@@ -15,6 +15,7 @@
 #include "../base/assembler.h"
 #include "../base/codeholder.h"
 #include "../base/constpool.h"
+#include "../base/inst.h"
 #include "../base/operand.h"
 #include "../base/utils.h"
 #include "../base/zone.h"
@@ -468,9 +469,8 @@ public:
     : CBNode(cb, kNodeInst) {
 
     orFlags(kFlagIsRemovable);
-    _instId = static_cast<uint16_t>(instId);
-    _reserved = 0;
-    _options = options;
+    _instDetail.instId = static_cast<uint16_t>(instId);
+    _instDetail.options = options;
 
     _opCount = static_cast<uint8_t>(opCount);
     _opArray = opArray;
@@ -485,39 +485,40 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get the instruction id, see \ref X86Inst::Id.
-  ASMJIT_INLINE uint32_t getInstId() const noexcept { return _instId; }
-  //! Set the instruction id to `instId`.
-  //!
-  //! NOTE: Please do not modify instruction code if you don't know what you
-  //! are doing. Incorrect instruction code and/or operands can cause random
-  //! errors in production builds and will most probably trigger assertion
-  //! failures in debug builds.
-  ASMJIT_INLINE void setInstId(uint32_t instId) noexcept { _instId = static_cast<uint16_t>(instId); }
+  ASMJIT_INLINE Inst::Detail& getInstDetail() noexcept { return _instDetail; }
+  ASMJIT_INLINE const Inst::Detail& getInstDetail() const noexcept { return _instDetail; }
 
-  //! Whether the instruction is either a jump or a conditional jump likely to
-  //! be taken.
+  //! Get the instruction id, see \ref Inst::Id.
+  ASMJIT_INLINE uint32_t getInstId() const noexcept { return _instDetail.instId; }
+  //! Set the instruction id to `instId`, see \ref Inst::Id.
+  ASMJIT_INLINE void setInstId(uint32_t instId) noexcept { _instDetail.instId = instId; }
+
+  //! Whether the instruction is either a jump or a conditional jump likely to be taken.
   ASMJIT_INLINE bool isTaken() const noexcept { return hasFlag(kFlagIsTaken); }
 
   //! Get emit options.
-  ASMJIT_INLINE uint32_t getOptions() const noexcept { return _options; }
+  ASMJIT_INLINE uint32_t getOptions() const noexcept { return _instDetail.options; }
   //! Set emit options.
-  ASMJIT_INLINE void setOptions(uint32_t options) noexcept { _options = options; }
+  ASMJIT_INLINE void setOptions(uint32_t options) noexcept { _instDetail.options = options; }
   //! Add emit options.
-  ASMJIT_INLINE void addOptions(uint32_t options) noexcept { _options |= options; }
+  ASMJIT_INLINE void addOptions(uint32_t options) noexcept { _instDetail.options |= options; }
   //! Mask emit options.
-  ASMJIT_INLINE void andOptions(uint32_t options) noexcept { _options &= options; }
+  ASMJIT_INLINE void andOptions(uint32_t options) noexcept { _instDetail.options &= options; }
   //! Clear emit options.
-  ASMJIT_INLINE void delOptions(uint32_t options) noexcept { _options &= ~options; }
+  ASMJIT_INLINE void delOptions(uint32_t options) noexcept { _instDetail.options &= ~options; }
 
-  //! Get if the node has extra operand.
-  ASMJIT_INLINE bool hasExtraOp() const noexcept { return !_extraOp.isNone(); }
-  //! Get extra operand operand.
-  ASMJIT_INLINE Operand& getExtraOp() noexcept { return _extraOp; }
+  //! Get if the node has an extra register operand.
+  ASMJIT_INLINE bool hasExtraOp() const noexcept { return !_instDetail.hasExtraReg(); }
+  //! Get extra register operand.
+  ASMJIT_INLINE RegOnly& getExtraReg() noexcept { return _instDetail.extraReg; }
   //! \overload
-  ASMJIT_INLINE const Operand& getExtraOp() const noexcept { return _extraOp; }
-  //! Set extra operand.
-  ASMJIT_INLINE void setExtraOp(const Operand& extraOp) noexcept { _extraOp = extraOp; }
+  ASMJIT_INLINE const RegOnly& getExtraReg() const noexcept { return _instDetail.extraReg; }
+  //! Set extra register operand to `reg`.
+  ASMJIT_INLINE void setExtraReg(const Reg& reg) noexcept { _instDetail.extraReg.init(reg); }
+  //! Set extra register operand to `reg`.
+  ASMJIT_INLINE void setExtraReg(const RegOnly& reg) noexcept { _instDetail.extraReg.init(reg); }
+  //! Reset extra register operand.
+  ASMJIT_INLINE void resetExtraReg() noexcept { _instDetail.extraReg.reset(); }
 
   //! Get operands count.
   ASMJIT_INLINE uint32_t getOpCount() const noexcept { return _opCount; }
@@ -570,11 +571,9 @@ Update:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint16_t _instId;                      //!< Instruction id (architecture dependent).
+  Inst::Detail _instDetail;              //!< Instruction id, options, and extra register.
   uint8_t _memOpIndex;                   //!< \internal
-  uint8_t _reserved;                     //!< \internal
-  uint32_t _options;                     //!< Instruction options.
-  Operand _extraOp;                      //!< Extra operand (REP {cx} or op-mask {k} on AVX-512).
+  uint8_t _reserved[7];                  //!< \internal
   Operand* _opArray;                     //!< Instruction operands.
 };
 

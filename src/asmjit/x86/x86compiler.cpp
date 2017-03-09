@@ -124,13 +124,15 @@ Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
         Operand(o3)
       };
 
-      Error err = X86Inst::validate(getArchType(), instId, options, _extraOp, opArray, opCount);
+      Inst::Detail instDetail(instId, options, _extraReg);
+      Error err = Inst::validate(getArchType(), instDetail, opArray, opCount);
+
       if (err) {
 #if !defined(ASMJIT_DISABLE_LOGGING)
         StringBuilderTmp<256> sb;
         sb.appendString(DebugUtils::errorAsString(err));
         sb.appendString(": ");
-        Logging::formatInstruction(sb, 0, this, getArchType(), instId, options, _extraOp, opArray, opCount);
+        Logging::formatInstruction(sb, 0, this, getArchType(), instDetail, opArray, opCount);
         return setLastError(err, sb.getData());
 #else
         return setLastError(err);
@@ -160,8 +162,8 @@ Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     if (opCount > 3) opArray[3].copyFrom(o3);
 
     new(node) CBJump(this, instId, options, opArray, opCount);
-    node->_extraOp = _extraOp;
-    _extraOp.reset();
+    node->_instDetail.extraReg = _extraReg;
+    _extraReg.reset();
 
     CBLabel* jTarget = nullptr;
     if (!(options & kOptionUnfollow)) {
@@ -212,8 +214,8 @@ Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     if (opCount > 3) opArray[3].copyFrom(o3);
 
     node = new(node) CBInst(this, instId, options, opArray, opCount);
-    node->_extraOp = _extraOp;
-    _extraOp.reset();
+    node->_instDetail.extraReg = _extraReg;
+    _extraReg.reset();
 
     if (inlineComment) {
       inlineComment = static_cast<char*>(_cbDataZone.dup(inlineComment, ::strlen(inlineComment), true));
@@ -258,13 +260,15 @@ Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
         Operand(o5)
       };
 
-      Error err = X86Inst::validate(getArchType(), instId, options, _extraOp, opArray, opCount);
+      Inst::Detail instDetail(instId, options, _extraReg);
+      Error err = Inst::validate(getArchType(), instDetail, opArray, opCount);
+
       if (err) {
 #if !defined(ASMJIT_DISABLE_LOGGING)
         StringBuilderTmp<256> sb;
         sb.appendString(DebugUtils::errorAsString(err));
         sb.appendString(": ");
-        Logging::formatInstruction(sb, 0, this, getArchType(), instId, options, _extraOp, opArray, opCount);
+        Logging::formatInstruction(sb, 0, this, getArchType(), instDetail, opArray, opCount);
         return setLastError(err, sb.getData());
 #else
         return setLastError(err);
@@ -296,8 +300,8 @@ Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     if (opCount > 5) opArray[5].copyFrom(o5);
 
     new(node) CBJump(this, instId, options, opArray, opCount);
-    node->_extraOp = _extraOp;
-    _extraOp.reset();
+    node->_instDetail.extraReg = _extraReg;
+    _extraReg.reset();
 
     CBLabel* jTarget = nullptr;
     if (!(options & kOptionUnfollow)) {
@@ -350,8 +354,8 @@ Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     if (opCount > 5) opArray[5].copyFrom(o5);
 
     node = new(node) CBInst(this, instId, options, opArray, opCount);
-    node->_extraOp = _extraOp;
-    _extraOp.reset();
+    node->_instDetail.extraReg = _extraReg;
+    _extraReg.reset();
 
     if (inlineComment) {
       inlineComment = static_cast<char*>(_cbDataZone.dup(inlineComment, ::strlen(inlineComment), true));

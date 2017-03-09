@@ -19,6 +19,7 @@
 #include "./base/cpuinfo.h"
 #include "./base/func.h"
 #include "./base/globals.h"
+#include "./base/inst.h"
 #include "./base/logging.h"
 #include "./base/operand.h"
 #include "./base/osutils.h"

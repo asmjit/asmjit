@@ -1,4 +1,4 @@
- // [AsmJit]
+// [AsmJit]
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
@@ -18,6 +18,90 @@ namespace asmjit {
 
 //! \addtogroup asmjit_base
 //! \{
+
+// ============================================================================
+// [asmjit::CpuFeatures]
+// ============================================================================
+
+class CpuFeatures {
+public:
+  typedef uintptr_t BitWord;
+
+  enum {
+    kMaxFeatures = 128,
+    kBitWordSize = static_cast<int>(sizeof(BitWord)) * 8,
+    kNumBitWords = kMaxFeatures / kBitWordSize
+  };
+
+  // --------------------------------------------------------------------------
+  // [Construction / Destruction]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE CpuFeatures() noexcept { reset(); }
+  ASMJIT_INLINE CpuFeatures(const CpuFeatures& other) noexcept { init(other); }
+
+  // --------------------------------------------------------------------------
+  // [Init / Reset]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE void init(const CpuFeatures& other) noexcept { ::memcpy(this, &other, sizeof(*this)); }
+  ASMJIT_INLINE void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
+
+  // --------------------------------------------------------------------------
+  // [Ops]
+  // --------------------------------------------------------------------------
+
+  //! Get all features as `BitWord` array.
+  ASMJIT_INLINE BitWord* getBits() noexcept { return _bits; }
+  //! Get all features as `BitWord` array (const).
+  ASMJIT_INLINE const BitWord* getBits() const noexcept { return _bits; }
+
+  //! Get if feature `feature` is present.
+  ASMJIT_INLINE bool has(uint32_t feature) const noexcept {
+    ASMJIT_ASSERT(feature < kMaxFeatures);
+
+    uint32_t idx = feature / kBitWordSize;
+    uint32_t bit = feature % kBitWordSize;
+
+    return static_cast<bool>((_bits[idx] >> bit) & 0x1);
+  }
+
+  //! Get if all features as defined by `other` are  present.
+  ASMJIT_INLINE bool hasAll(const CpuFeatures& other) const noexcept {
+    for (uint32_t i = 0; i < kNumBitWords; i++)
+      if ((_bits[i] & other._bits[i]) != other._bits[i])
+        return false;
+    return true;
+  }
+
+  //! Add a CPU `feature`.
+  ASMJIT_INLINE CpuFeatures& add(uint32_t feature) noexcept {
+    ASMJIT_ASSERT(feature < kMaxFeatures);
+
+    uint32_t idx = feature / kBitWordSize;
+    uint32_t bit = feature % kBitWordSize;
+
+    _bits[idx] |= static_cast<BitWord>(1) << bit;
+    return *this;
+  }
+
+  //! Remove a CPU `feature`.
+  ASMJIT_INLINE CpuFeatures& remove(uint32_t feature) noexcept {
+    ASMJIT_ASSERT(feature < kMaxFeatures);
+
+    uint32_t idx = feature / kBitWordSize;
+    uint32_t bit = feature % kBitWordSize;
+
+    _bits[idx] &= ~(static_cast<BitWord>(1) << bit);
+    return *this;
+  }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  BitWord _bits[kNumBitWords];
+};
 
 // ============================================================================
 // [asmjit::CpuInfo]
@@ -105,8 +189,10 @@ public:
     kX86FeatureSMAP,                     //!< CPU has SMAP (supervisor-mode access prevention).
     kX86FeatureSMEP,                     //!< CPU has SMEP (supervisor-mode execution prevention).
     kX86FeatureSHA,                      //!< CPU has SHA-1 and SHA-256.
-    kX86FeatureXSAVE,                    //!< CPU has XSAVE support - XSAVE/XRSTOR, XSETBV/XGETBV, and XCR.
-    kX86FeatureXSAVEOPT,                 //!< CPU has XSAVEOPT support - XSAVEOPT/XSAVEOPT64.
+    kX86FeatureXSAVE,                    //!< CPU has XSAVE support (XSAVE/XRSTOR, XSETBV/XGETBV, and XCR).
+    kX86FeatureXSAVEC,                   //!< CPU has XSAVEC support (XSAVEC).
+    kX86FeatureXSAVES,                   //!< CPU has XSAVES support (XSAVES/XRSTORS).
+    kX86FeatureXSAVEOPT,                 //!< CPU has XSAVEOPT support (XSAVEOPT/XSAVEOPT64).
     kX86FeatureOSXSAVE,                  //!< CPU has XSAVE enabled by OS.
     kX86FeatureAVX,                      //!< CPU has AVX.
     kX86FeatureAVX2,                     //!< CPU has AVX2.
@@ -140,11 +226,6 @@ public:
     kX86FeaturesCount                    //!< Count of X86/X64 CPU features.
   };
 
-  //! \internal
-  enum {
-    kFeaturesPerUInt32 = static_cast<int>(sizeof(uint32_t)) * 8
-  };
-
   // --------------------------------------------------------------------------
   // [ArmInfo]
   // --------------------------------------------------------------------------
@@ -168,6 +249,7 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE CpuInfo() noexcept { reset(); }
+  ASMJIT_INLINE CpuInfo(const CpuInfo& other) noexcept { init(other); }
 
   // --------------------------------------------------------------------------
   // [Init / Reset]
@@ -178,7 +260,8 @@ public:
     _archInfo.init(archType, archMode);
   }
 
-  ASMJIT_INLINE void reset() noexcept { ::memset(this, 0, sizeof(CpuInfo)); }
+  ASMJIT_INLINE void init(const CpuInfo& other) noexcept { ::memcpy(this, &other, sizeof(*this)); }
+  ASMJIT_INLINE void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
 
   // --------------------------------------------------------------------------
   // [Detect]
@@ -197,12 +280,7 @@ public:
   //! Get CPU architecture sub-type, see \ArchInfo::SubType.
   ASMJIT_INLINE uint32_t getArchSubType() const noexcept { return _archInfo.getSubType(); }
 
-  //! Get CPU vendor string.
-  ASMJIT_INLINE const char* getVendorString() const noexcept { return _vendorString; }
-  //! Get CPU brand string.
-  ASMJIT_INLINE const char* getBrandString() const noexcept { return _brandString; }
-
-  //! Get CPU vendor ID.
+    //! Get CPU vendor ID.
   ASMJIT_INLINE uint32_t getVendorId() const noexcept { return _vendorId; }
   //! Get CPU family ID.
   ASMJIT_INLINE uint32_t getFamily() const noexcept { return _family; }
@@ -216,26 +294,17 @@ public:
     return _hwThreadsCount;
   }
 
+  //! Get all CPU features.
+  ASMJIT_INLINE const CpuFeatures& getFeatures() const noexcept { return _features; }
   //! Get whether CPU has a `feature`.
-  ASMJIT_INLINE bool hasFeature(uint32_t feature) const noexcept {
-    ASMJIT_ASSERT(feature < sizeof(_features) * 8);
-
-    uint32_t pos = feature / kFeaturesPerUInt32;
-    uint32_t bit = feature % kFeaturesPerUInt32;
-
-    return static_cast<bool>((_features[pos] >> bit) & 0x1);
-  }
-
+  ASMJIT_INLINE bool hasFeature(uint32_t feature) const noexcept { return _features.has(feature); }
   //! Add a CPU `feature`.
-  ASMJIT_INLINE CpuInfo& addFeature(uint32_t feature) noexcept {
-    ASMJIT_ASSERT(feature < sizeof(_features) * 8);
+  ASMJIT_INLINE CpuInfo& addFeature(uint32_t feature) noexcept { _features.add(feature); return *this; }
 
-    uint32_t pos = feature / kFeaturesPerUInt32;
-    uint32_t bit = feature % kFeaturesPerUInt32;
-
-    _features[pos] |= static_cast<uint32_t>(1) << bit;
-    return *this;
-  }
+  //! Get CPU vendor string.
+  ASMJIT_INLINE const char* getVendorString() const noexcept { return _vendorString; }
+  //! Get CPU brand string.
+  ASMJIT_INLINE const char* getBrandString() const noexcept { return _brandString; }
 
   // --------------------------------------------------------------------------
   // [Accessors - ARM]
@@ -277,14 +346,14 @@ public:
   // --------------------------------------------------------------------------
 
   ArchInfo _archInfo;                    //!< CPU architecture information.
-  char _vendorString[16];                //!< CPU vendor string.
-  char _brandString[64];                 //!< CPU brand string.
   uint32_t _vendorId;                    //!< CPU vendor id, see \ref Vendor.
   uint32_t _family;                      //!< CPU family ID.
   uint32_t _model;                       //!< CPU model ID.
   uint32_t _stepping;                    //!< CPU stepping.
   uint32_t _hwThreadsCount;              //!< Number of hardware threads.
-  uint32_t _features[8];                 //!< CPU features (bit-array).
+  CpuFeatures _features;                 //!< CPU features.
+  char _vendorString[16];                //!< CPU vendor string.
+  char _brandString[64];                 //!< CPU brand string.
 
   // Architecture specific data.
   union {

@@ -40,8 +40,6 @@ static const uint64_t kNoBaseAddress = ~static_cast<uint64_t>(0);
 
 //! Global definitions.
 ASMJIT_ENUM(Defs) {
-  //! Invalid instruction id.
-  kInvalidInstId = 0,
   //! Invalid register id.
   kInvalidRegId = 0xFF,
 
@@ -74,23 +72,6 @@ ASMJIT_ENUM(Limits) {
 };
 
 } // Globals namespace
-
-// ============================================================================
-// [asmjit::AnyInst]
-// ============================================================================
-
-//! Definitions and utilities related to instructions used by all architectures.
-namespace AnyInst {
-
-ASMJIT_ENUM(JumpType) {
-  kJumpTypeNone        = 0,              //!< Instruction doesn't jump (regular instruction).
-  kJumpTypeDirect      = 1,              //!< Instruction is a unconditional (direct) jump.
-  kJumpTypeConditional = 2,              //!< Instruction is a conditional jump.
-  kJumpTypeCall        = 3,              //!< Instruction is a function call.
-  kJumpTypeReturn      = 4               //!< Instruction is a function return.
-};
-
-} // AnyInst namespace
 
 // ============================================================================
 // [asmjit::Error]

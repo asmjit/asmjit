@@ -548,6 +548,8 @@ ASMJIT_FAVOR_SIZE static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
 
     x86CallCpuId(&regs, 0xD, 1);
     if (regs.eax & 0x00000001U) cpuInfo->addFeature(CpuInfo::kX86FeatureXSAVEOPT);
+    if (regs.eax & 0x00000002U) cpuInfo->addFeature(CpuInfo::kX86FeatureXSAVEC);
+    if (regs.eax & 0x00000008U) cpuInfo->addFeature(CpuInfo::kX86FeatureXSAVES);
   }
 
   // --------------------------------------------------------------------------

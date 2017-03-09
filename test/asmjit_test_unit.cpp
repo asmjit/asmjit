@@ -114,6 +114,8 @@ static void dumpCpu(void) {
     { CpuInfo::kX86FeatureSMEP            , "SMEP"                 },
     { CpuInfo::kX86FeatureSHA             , "SHA"                  },
     { CpuInfo::kX86FeatureXSAVE           , "XSAVE"                },
+    { CpuInfo::kX86FeatureXSAVEC          , "XSAVEC"               },
+    { CpuInfo::kX86FeatureXSAVES          , "XSAVES"               },
     { CpuInfo::kX86FeatureXSAVEOPT        , "XSAVEOPT"             },
     { CpuInfo::kX86FeatureOSXSAVE         , "OSXSAVE"              },
     { CpuInfo::kX86FeatureAVX             , "AVX"                  },

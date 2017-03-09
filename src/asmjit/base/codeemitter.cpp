@@ -42,8 +42,8 @@ CodeEmitter::CodeEmitter(uint32_t type) noexcept
     _globalHints(0),
     _globalOptions(kOptionMaybeFailureCase),
     _options(0),
+    _extraReg(),
     _inlineComment(nullptr),
-    _extraOp(),
     _none(),
     _nativeGpReg(),
     _nativeGpArray(nullptr) {}
@@ -79,9 +79,9 @@ Error CodeEmitter::onDetach(CodeHolder* code) noexcept {
   _globalOptions = kOptionMaybeFailureCase;
 
   _options = 0;
+  _extraReg.reset();
   _inlineComment = nullptr;
 
-  _extraOp.reset();
   _nativeGpReg.reset();
   _nativeGpArray = nullptr;
 
@@ -230,30 +230,6 @@ Error CodeEmitter::emit(uint32_t instId, OP o0, OP o1, OP o2, OP o3, OP o4, int6
 
 #undef OP
 
-// ============================================================================
-// [asmjit::CodeEmitter - Validation]
-// ============================================================================
-
-Error CodeEmitter::_validate(uint32_t instId, const Operand_* opArray, uint32_t opCount) const noexcept {
-#if !defined(ASMJIT_DISABLE_VALIDATION)
-  uint32_t archType = getArchType();
-  uint32_t options = getGlobalOptions() | getOptions();
-
-#if defined(ASMJIT_BUILD_X86)
-  if (ArchInfo::isX86Family(archType))
-    return X86Inst::validate(archType, instId, options, _extraOp, opArray, 6);
-#endif
-
-#if defined(ASMJIT_BUILD_ARM)
-  if (ArchInfo::isArmFamily(archType))
-    return ArmInst::validate(archType, instId, options, _extraOp, opArray, 6);
-#endif
-
-  return DebugUtils::errored(kErrorInvalidArch);
-#else
-  return DebugUtils::errored(kErrorFeatureNotEnabled);
-#endif // !ASMJIT_DISABLE_VALIDATION
-}
 } // asmjit namespace
 
 // [Api-End]

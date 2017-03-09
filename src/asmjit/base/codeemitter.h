@@ -315,12 +315,16 @@ public:
   //! Reset options of the next instruction.
   ASMJIT_INLINE void resetOptions() noexcept { _options = 0; }
 
+  //! Get if the extra register operand is valid.
+  ASMJIT_INLINE bool hasExtraReg() const noexcept { return _extraReg.isValid(); }
   //! Get an extra operand that will be used by the next instruction (architecture specific).
-  ASMJIT_INLINE const Operand& getExtraOp() const noexcept { return static_cast<const Operand&>(_extraOp); }
+  ASMJIT_INLINE const RegOnly& getExtraReg() const noexcept { return _extraReg; }
   //! Set an extra operand that will be used by the next instruction (architecture specific).
-  ASMJIT_INLINE void setExtraOp(const Operand_& extraOp) noexcept { _extraOp = extraOp; }
+  ASMJIT_INLINE void setExtraReg(const Reg& reg) noexcept { _extraReg.init(reg); }
+  //! Set an extra operand that will be used by the next instruction (architecture specific).
+  ASMJIT_INLINE void setExtraReg(const RegOnly& reg) noexcept { _extraReg.init(reg); }
   //! Reset an extra operand that will be used by the next instruction (architecture specific).
-  ASMJIT_INLINE void resetExtraOp() noexcept { _extraOp.setSignature(0); }
+  ASMJIT_INLINE void resetExtraReg() noexcept { _extraReg.reset(); }
 
   //! Get annotation of the next instruction.
   ASMJIT_INLINE const char* getInlineComment() const noexcept { return _inlineComment; }
@@ -458,13 +462,6 @@ public:
   }
 
   // --------------------------------------------------------------------------
-  // [Validation]
-  // --------------------------------------------------------------------------
-
-  //! Validate instruction with current options, called by `_emit()` if validation is enabled.
-  ASMJIT_API Error _validate(uint32_t instId, const Operand_* opArray, uint32_t opCount) const noexcept;
-
-  // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
@@ -482,9 +479,10 @@ public:
   uint32_t _globalHints;                 //!< Global hints, always in sync with CodeHolder.
   uint32_t _globalOptions;               //!< Global options, combined with `_options` before used by each instruction.
 
-  uint32_t _options;                     //!< Used to pass instruction options       (affects the next instruction).
-  const char* _inlineComment;            //!< Inline comment of the next instruction (affects the next instruction).
-  Operand_ _extraOp;                     //!< Extra operand (op-mask {k} on AVX-512) (affects the next instruction).
+  uint32_t _options;                     //!< Used to pass instruction options        (affects the next instruction).
+  RegOnly _extraReg;                     //!< Extra register (op-mask {k} on AVX-512) (affects the next instruction).
+  const char* _inlineComment;            //!< Inline comment of the next instruction  (affects the next instruction).
+
   Operand_ _none;                        //!< Used to pass unused operands to `_emit()` instead of passing null.
   Reg _nativeGpReg;                      //!< Native GP register with zero id.
   const Reg* _nativeGpArray;             //!< Array of native registers indexed from zero.

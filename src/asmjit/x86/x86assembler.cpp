@@ -560,6 +560,7 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
         if (ASMJIT_UNLIKELY(err)) goto Failed;
 
         cursor = _bufferPtr;
+        options &= ~1;
       }
     }
 
@@ -582,7 +583,7 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
         opArray[5].reset();
       }
 
-      err = _validate(instId, opArray, 6);
+      err = Inst::validate(getArchType(), Inst::Detail(instId, options, _extraReg), opArray, 6);
       if (ASMJIT_UNLIKELY(err)) goto Failed;
     }
 #endif // !ASMJIT_DISABLE_VALIDATION
@@ -614,7 +615,7 @@ Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
       if (ASMJIT_UNLIKELY(!(iFlags & (X86Inst::kFlagRep | X86Inst::kFlagRepnz))))
         goto InvalidRepPrefix;
 
-      if (!_extraOp.isNone() && ASMJIT_UNLIKELY(!X86Reg::isGp(_extraOp, X86Gp::kIdCx)))
+      if (_extraReg.isValid() && ASMJIT_UNLIKELY(_extraReg.getKind() != X86Reg::kKindGp || _extraReg.getId() != X86Gp::kIdCx))
         goto InvalidRepPrefix;
 
       EMIT_BYTE((options & X86Inst::kOptionRepnz) ? 0xF2 : 0xF3);
@@ -4041,14 +4042,12 @@ EmitVexEvexR:
     // Construct `x` - a complete EVEX|VEX prefix.
     uint32_t x = ((opReg << 4) & 0xF980U) |              // [........|........|Vvvvv..R|R.......].
                  ((rbReg << 2) & 0x0060U) |              // [........|........|........|.BB.....].
-                 (x86ExtractLLMM(opCode, options));      // [........|.LL.....|Vvvvv..R|RBBmmmmm].
+                 (x86ExtractLLMM(opCode, options)) |     // [........|.LL.....|Vvvvv..R|RBBmmmmm].
+                 (_extraReg.getId() << 16);              // [........|.LL..aaa|Vvvvv..R|RBBmmmmm].
     opReg &= 0x7;
 
-    // Mark invalid VEX (force EVEX) case:               // [@.......|.LL.....|Vvvvv..R|RBBmmmmm].
+    // Mark invalid VEX (force EVEX) case:               // [@.......|.LL..aaa|Vvvvv..R|RBBmmmmm].
     x |= (~commonData->getFlags() & X86Inst::kFlagVex) << (31 - Utils::firstBitOfT<X86Inst::kFlagVex>());
-
-    if (X86Reg::isK(_extraOp))
-      x |= _extraOp.as<Reg>().getId() << 16;             // [@.......|.LL..aaa|Vvvvv..R|RBBmmmmm].
 
     // Handle AVX512 options by a single branch.
     const uint32_t kAvx512Options = X86Inst::kOptionZMask   |
@@ -4150,14 +4149,12 @@ EmitVexEvexM:
                  ((rxReg << 3 ) & 0x00000040U) |         // [........|........|........|.X......].
                  ((rxReg << 15) & 0x00080000U) |         // [........|....X...|........|........].
                  ((rbReg << 2 ) & 0x00000020U) |         // [........|........|........|..B.....].
-                 (x86ExtractLLMM(opCode, options));      // [........|.LL.X...|Vvvvv..R|RXBmmmmm].
+                 (x86ExtractLLMM(opCode, options)) |     // [........|.LL.X...|Vvvvv..R|RXBmmmmm].
+                 (_extraReg.getId() << 16)         ;     // [........|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
     opReg &= 0x07U;
 
-    // Mark invalid VEX (force EVEX) case:               // [@.......|.LL.X...|Vvvvv..R|RXBmmmmm].
+    // Mark invalid VEX (force EVEX) case:               // [@.......|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
     x |= (~commonData->getFlags() & X86Inst::kFlagVex) << (31 - Utils::firstBitOfT<X86Inst::kFlagVex>());
-
-    if (X86Reg::isK(_extraOp))
-      x |= _extraOp.as<Reg>().getId() << 16;             // [@.......|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
 
     // Handle AVX512 options by a single branch.
     const uint32_t kAvx512Options = X86Inst::kOption1ToX    |
@@ -4483,7 +4480,7 @@ EmitDone:
 #endif // !ASMJIT_DISABLE_LOGGING
 
   resetOptions();
-  resetExtraOp();
+  resetExtraReg();
   resetInlineComment();
 
   _bufferPtr = cursor;

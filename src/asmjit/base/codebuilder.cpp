@@ -544,7 +544,7 @@ Error CodeBuilder::serialize(CodeEmitter* dst) {
       case CBNode::kNodeFuncCall: {
         CBInst* node = node_->as<CBInst>();
         dst->setOptions(node->getOptions());
-        dst->setExtraOp(node->getExtraOp());
+        dst->setExtraReg(node->getExtraReg());
         err = dst->emitOpArray(node->getInstId(), node->getOpArray(), node->getOpCount());
         break;
       }
