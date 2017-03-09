@@ -508,7 +508,7 @@ public:
   ASMJIT_INLINE void delOptions(uint32_t options) noexcept { _instDetail.options &= ~options; }
 
   //! Get if the node has an extra register operand.
-  ASMJIT_INLINE bool hasExtraOp() const noexcept { return !_instDetail.hasExtraReg(); }
+  ASMJIT_INLINE bool hasExtraReg() const noexcept { return _instDetail.hasExtraReg(); }
   //! Get extra register operand.
   ASMJIT_INLINE RegOnly& getExtraReg() noexcept { return _instDetail.extraReg; }
   //! \overload

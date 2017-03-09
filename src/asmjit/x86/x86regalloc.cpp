@@ -2420,7 +2420,7 @@ Error X86VarAlloc::run(CBNode* node_) {
     // Translate node operands.
     if (node_->getType() == CBNode::kNodeInst) {
       CBInst* node = static_cast<CBInst*>(node_);
-      if (node->hasExtraOp()) {
+      if (node->hasExtraReg()) {
         Reg reg = node->getExtraReg().toReg<Reg>();
         ASMJIT_PROPAGATE(X86RAPass_translateOperands(_context, &reg, 1));
         node->setExtraReg(reg);
