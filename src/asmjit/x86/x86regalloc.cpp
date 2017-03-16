@@ -4007,6 +4007,7 @@ _NextGroup:
           else if (node_->isRet()) {
             ASMJIT_PROPAGATE(
               X86RAPass_translateRet(this, static_cast<CCFuncRet*>(node_), func->getExitNode()));
+            goto _NextGroup;
           }
           break;
         }
