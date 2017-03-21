@@ -484,11 +484,10 @@ Error X86Assembler::onDetach(CodeHolder* code) noexcept {
 //   - Disallow REX prefix.
 #define FIXUP_GPB(REG_OP, REG_ID, ...)                                   \
   do {                                                                   \
-    if (static_cast<const X86Gp&>(REG_OP).isGpbLo()) {                   \
+    if (!static_cast<const X86Gp&>(REG_OP).isGpbHi()) {                  \
       options |= (REG_ID >= 4) ? X86Inst::kOptionRex : 0;                \
     }                                                                    \
     else {                                                               \
-      ASMJIT_ASSERT(X86Reg::isGpbHi(REG_OP));                            \
       options |= X86Inst::_kOptionInvalidRex;                            \
       REG_ID += 4;                                                       \
     }                                                                    \
@@ -1840,6 +1839,7 @@ CaseX86Pop_Gp:
     case X86Inst::kEncodingX86Set:
       if (isign3 == ENC_OPS1(Reg)) {
         rbReg = o0.getId();
+        FIXUP_GPB(o0, rbReg);
         goto EmitX86R;
       }
 
