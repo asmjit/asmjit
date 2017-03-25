@@ -470,7 +470,7 @@ ASMJIT_FAVOR_SIZE static void x86DetectCpuInfo(CpuInfo* cpuInfo) noexcept {
       if ((xcr0.eax & 0x00000006U) == 0x00000006U) {
         cpuInfo->addFeature(CpuInfo::kX86FeatureAVX);
 
-        if (regs.ecx & 0x00004000U) cpuInfo->addFeature(CpuInfo::kX86FeatureFMA);
+        if (regs.ecx & 0x00001000U) cpuInfo->addFeature(CpuInfo::kX86FeatureFMA);
         if (regs.ecx & 0x20000000U) cpuInfo->addFeature(CpuInfo::kX86FeatureF16C);
       }
     }

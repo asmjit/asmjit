@@ -1087,8 +1087,8 @@ struct X86Inst {
     kIdVpandnd,                          // [ANY] {AVX512_F+VL}
     kIdVpandnq,                          // [ANY] {AVX512_F+VL}
     kIdVpandq,                           // [ANY] {AVX512_F+VL}
-    kIdVpavgb,                           // [ANY] {AVX|AVX512_BW+VL}
-    kIdVpavgw,                           // [ANY] {AVX2|AVX512_BW+VL}
+    kIdVpavgb,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
+    kIdVpavgw,                           // [ANY] {AVX|AVX2|AVX512_BW+VL}
     kIdVpblendd,                         // [ANY] {AVX2}
     kIdVpblendvb,                        // [ANY] {AVX|AVX2}
     kIdVpblendw,                         // [ANY] {AVX|AVX2}

@@ -1223,18 +1223,18 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpandnd         , VexRvm_Lx          , V(660F00,DF,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6155, 393, 120, 0 ),
   INST(Vpandnq         , VexRvm_Lx          , V(660F00,DF,_,x,_,1,4,FV ), 0                         , 0 , 0 , 6163, 394, 120, 0 ),
   INST(Vpandq          , VexRvm_Lx          , V(660F00,DB,_,x,_,1,4,FV ), 0                         , 0 , 0 , 6171, 395, 120, 0 ),
-  INST(Vpavgb          , VexRvm_Lx          , V(660F00,E0,_,x,I,I,4,FVM), 0                         , 0 , 0 , 6178, 388, 138, 44),
-  INST(Vpavgw          , VexRvm_Lx          , V(660F00,E3,_,x,I,I,4,FVM), 0                         , 0 , 0 , 6185, 388, 139, 45),
+  INST(Vpavgb          , VexRvm_Lx          , V(660F00,E0,_,x,I,I,4,FVM), 0                         , 0 , 0 , 6178, 388, 137, 44),
+  INST(Vpavgw          , VexRvm_Lx          , V(660F00,E3,_,x,I,I,4,FVM), 0                         , 0 , 0 , 6185, 388, 137, 45),
   INST(Vpblendd        , VexRvmi_Lx         , V(660F3A,02,_,x,0,_,_,_  ), 0                         , 0 , 0 , 6192, 263, 124, 0 ),
   INST(Vpblendvb       , VexRvmr            , V(660F3A,4C,_,x,0,_,_,_  ), 0                         , 0 , 0 , 6201, 264, 135, 46),
   INST(Vpblendw        , VexRvmi_Lx         , V(660F3A,0E,_,x,I,_,_,_  ), 0                         , 0 , 0 , 6211, 263, 135, 44),
-  INST(Vpbroadcastb    , VexRm_Lx           , V(660F38,78,_,x,0,0,0,T1S), 0                         , 0 , 0 , 6220, 396, 139, 0 ),
+  INST(Vpbroadcastb    , VexRm_Lx           , V(660F38,78,_,x,0,0,0,T1S), 0                         , 0 , 0 , 6220, 396, 138, 0 ),
   INST(Vpbroadcastd    , VexRm_Lx           , V(660F38,58,_,x,0,0,2,T1S), 0                         , 0 , 0 , 6233, 397, 133, 0 ),
-  INST(Vpbroadcastmb2d , VexRm_Lx           , V(F30F38,3A,_,x,_,0,_,_  ), 0                         , 0 , 0 , 6246, 398, 140, 0 ),
-  INST(Vpbroadcastmb2q , VexRm_Lx           , V(F30F38,2A,_,x,_,1,_,_  ), 0                         , 0 , 0 , 6262, 398, 140, 0 ),
+  INST(Vpbroadcastmb2d , VexRm_Lx           , V(F30F38,3A,_,x,_,0,_,_  ), 0                         , 0 , 0 , 6246, 398, 139, 0 ),
+  INST(Vpbroadcastmb2q , VexRm_Lx           , V(F30F38,2A,_,x,_,1,_,_  ), 0                         , 0 , 0 , 6262, 398, 139, 0 ),
   INST(Vpbroadcastq    , VexRm_Lx           , V(660F38,59,_,x,0,1,3,T1S), 0                         , 0 , 0 , 6278, 399, 133, 0 ),
-  INST(Vpbroadcastw    , VexRm_Lx           , V(660F38,79,_,x,0,0,1,T1S), 0                         , 0 , 0 , 6291, 400, 139, 0 ),
-  INST(Vpclmulqdq      , VexRvmi            , V(660F3A,44,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6304, 310, 141, 47),
+  INST(Vpbroadcastw    , VexRm_Lx           , V(660F38,79,_,x,0,0,1,T1S), 0                         , 0 , 0 , 6291, 400, 138, 0 ),
+  INST(Vpclmulqdq      , VexRvmi            , V(660F3A,44,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6304, 310, 140, 47),
   INST(Vpcmov          , VexRvrmRvmr_Lx     , V(XOP_M8,A2,_,x,x,_,_,_  ), 0                         , 0 , 0 , 6315, 326, 132, 0 ),
   INST(Vpcmpb          , VexRvm_Lx          , V(660F3A,3F,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6322, 401, 122, 0 ),
   INST(Vpcmpd          , VexRvm_Lx          , V(660F3A,1F,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6329, 402, 120, 0 ),
@@ -1242,14 +1242,14 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpcmpeqd        , VexRvm_Lx          , V(660F00,76,_,x,I,0,4,FVM), 0                         , 0 , 0 , 6345, 404, 125, 48),
   INST(Vpcmpeqq        , VexRvm_Lx          , V(660F38,29,_,x,I,1,4,FVM), 0                         , 0 , 0 , 6354, 405, 125, 48),
   INST(Vpcmpeqw        , VexRvm_Lx          , V(660F00,75,_,x,I,I,4,FV ), 0                         , 0 , 0 , 6363, 403, 137, 48),
-  INST(Vpcmpestri      , VexRmi             , V(660F3A,61,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6372, 406, 142, 49),
-  INST(Vpcmpestrm      , VexRmi             , V(660F3A,60,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6383, 407, 142, 49),
+  INST(Vpcmpestri      , VexRmi             , V(660F3A,61,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6372, 406, 141, 49),
+  INST(Vpcmpestrm      , VexRmi             , V(660F3A,60,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6383, 407, 141, 49),
   INST(Vpcmpgtb        , VexRvm_Lx          , V(660F00,64,_,x,I,I,4,FV ), 0                         , 0 , 0 , 6394, 403, 137, 48),
   INST(Vpcmpgtd        , VexRvm_Lx          , V(660F00,66,_,x,I,0,4,FVM), 0                         , 0 , 0 , 6403, 404, 125, 48),
   INST(Vpcmpgtq        , VexRvm_Lx          , V(660F38,37,_,x,I,1,4,FVM), 0                         , 0 , 0 , 6412, 405, 125, 48),
   INST(Vpcmpgtw        , VexRvm_Lx          , V(660F00,65,_,x,I,I,4,FV ), 0                         , 0 , 0 , 6421, 403, 137, 48),
-  INST(Vpcmpistri      , VexRmi             , V(660F3A,63,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6430, 408, 142, 49),
-  INST(Vpcmpistrm      , VexRmi             , V(660F3A,62,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6441, 409, 142, 49),
+  INST(Vpcmpistri      , VexRmi             , V(660F3A,63,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6430, 408, 141, 49),
+  INST(Vpcmpistrm      , VexRmi             , V(660F3A,62,_,0,I,_,_,_  ), 0                         , 0 , 0 , 6441, 409, 141, 49),
   INST(Vpcmpq          , VexRvm_Lx          , V(660F3A,1F,_,x,_,1,4,FV ), 0                         , 0 , 0 , 6452, 410, 120, 0 ),
   INST(Vpcmpub         , VexRvm_Lx          , V(660F3A,3E,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6459, 401, 122, 0 ),
   INST(Vpcmpud         , VexRvm_Lx          , V(660F3A,1E,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6467, 402, 120, 0 ),
@@ -1266,13 +1266,13 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpcomuq         , VexRvmi            , V(XOP_M8,EF,_,0,0,_,_,_  ), 0                         , 0 , 0 , 6559, 310, 132, 0 ),
   INST(Vpcomuw         , VexRvmi            , V(XOP_M8,ED,_,0,0,_,_,_  ), 0                         , 0 , 0 , 6567, 310, 132, 0 ),
   INST(Vpcomw          , VexRvmi            , V(XOP_M8,CD,_,0,0,_,_,_  ), 0                         , 0 , 0 , 6575, 310, 132, 0 ),
-  INST(Vpconflictd     , VexRm_Lx           , V(660F38,C4,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6582, 411, 140, 0 ),
-  INST(Vpconflictq     , VexRm_Lx           , V(660F38,C4,_,x,_,1,4,FV ), 0                         , 0 , 0 , 6594, 411, 140, 0 ),
+  INST(Vpconflictd     , VexRm_Lx           , V(660F38,C4,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6582, 411, 139, 0 ),
+  INST(Vpconflictq     , VexRm_Lx           , V(660F38,C4,_,x,_,1,4,FV ), 0                         , 0 , 0 , 6594, 411, 139, 0 ),
   INST(Vperm2f128      , VexRvmi            , V(660F3A,06,_,1,0,_,_,_  ), 0                         , 0 , 0 , 6606, 412, 118, 0 ),
   INST(Vperm2i128      , VexRvmi            , V(660F3A,46,_,1,0,_,_,_  ), 0                         , 0 , 0 , 6617, 412, 124, 0 ),
-  INST(Vpermb          , VexRvm_Lx          , V(660F38,8D,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6628, 260, 143, 0 ),
+  INST(Vpermb          , VexRvm_Lx          , V(660F38,8D,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6628, 260, 142, 0 ),
   INST(Vpermd          , VexRvm_Lx          , V(660F38,36,_,x,0,0,4,FV ), 0                         , 0 , 0 , 6635, 413, 133, 0 ),
-  INST(Vpermi2b        , VexRvm_Lx          , V(660F38,75,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6642, 260, 143, 0 ),
+  INST(Vpermi2b        , VexRvm_Lx          , V(660F38,75,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6642, 260, 142, 0 ),
   INST(Vpermi2d        , VexRvm_Lx          , V(660F38,76,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6651, 414, 120, 0 ),
   INST(Vpermi2pd       , VexRvm_Lx          , V(660F38,77,_,x,_,1,4,FV ), 0                         , 0 , 0 , 6660, 262, 120, 0 ),
   INST(Vpermi2ps       , VexRvm_Lx          , V(660F38,77,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6670, 261, 120, 0 ),
@@ -1285,7 +1285,7 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpermpd         , VexRmi             , V(660F3A,01,_,1,1,_,_,_  ), 0                         , 0 , 0 , 6740, 420, 124, 0 ),
   INST(Vpermps         , VexRvm             , V(660F38,16,_,1,0,_,_,_  ), 0                         , 0 , 0 , 6748, 421, 124, 0 ),
   INST(Vpermq          , VexRvmRmi_Lx       , V(660F38,36,_,x,_,1,4,FV ), V(660F3A,00,_,x,1,1,4,FV ), 0 , 0 , 6756, 422, 133, 0 ),
-  INST(Vpermt2b        , VexRvm_Lx          , V(660F38,7D,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6763, 260, 143, 0 ),
+  INST(Vpermt2b        , VexRvm_Lx          , V(660F38,7D,_,x,_,0,4,FVM), 0                         , 0 , 0 , 6763, 260, 142, 0 ),
   INST(Vpermt2d        , VexRvm_Lx          , V(660F38,7E,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6772, 414, 120, 0 ),
   INST(Vpermt2pd       , VexRvm_Lx          , V(660F38,7F,_,x,_,1,4,FV ), 0                         , 0 , 0 , 6781, 415, 120, 0 ),
   INST(Vpermt2ps       , VexRvm_Lx          , V(660F38,7F,_,x,_,0,4,FV ), 0                         , 0 , 0 , 6791, 414, 120, 0 ),
@@ -1294,10 +1294,10 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpermw          , VexRvm_Lx          , V(660F38,8D,_,x,_,1,4,FVM), 0                         , 0 , 0 , 6819, 260, 122, 0 ),
   INST(Vpexpandd       , VexRm_Lx           , V(660F38,89,_,x,_,0,2,T1S), 0                         , 0 , 0 , 6826, 313, 120, 0 ),
   INST(Vpexpandq       , VexRm_Lx           , V(660F38,89,_,x,_,1,3,T1S), 0                         , 0 , 0 , 6836, 313, 120, 0 ),
-  INST(Vpextrb         , VexMri             , V(660F3A,14,_,0,0,I,0,T1S), 0                         , 0 , 0 , 6846, 423, 144, 50),
-  INST(Vpextrd         , VexMri             , V(660F3A,16,_,0,0,0,2,T1S), 0                         , 0 , 0 , 6854, 317, 145, 50),
-  INST(Vpextrq         , VexMri             , V(660F3A,16,_,0,1,1,3,T1S), 0                         , 0 , 0 , 6862, 424, 145, 50),
-  INST(Vpextrw         , VexMri             , V(660F3A,15,_,0,0,I,1,T1S), 0                         , 0 , 0 , 6870, 425, 144, 50),
+  INST(Vpextrb         , VexMri             , V(660F3A,14,_,0,0,I,0,T1S), 0                         , 0 , 0 , 6846, 423, 143, 50),
+  INST(Vpextrd         , VexMri             , V(660F3A,16,_,0,0,0,2,T1S), 0                         , 0 , 0 , 6854, 317, 144, 50),
+  INST(Vpextrq         , VexMri             , V(660F3A,16,_,0,1,1,3,T1S), 0                         , 0 , 0 , 6862, 424, 144, 50),
+  INST(Vpextrw         , VexMri             , V(660F3A,15,_,0,0,I,1,T1S), 0                         , 0 , 0 , 6870, 425, 143, 50),
   INST(Vpgatherdd      , VexRmvRm_VM        , V(660F38,90,_,x,0,_,_,_  ), V(660F38,90,_,x,_,0,2,T1S), 0 , 0 , 6878, 426, 133, 0 ),
   INST(Vpgatherdq      , VexRmvRm_VM        , V(660F38,90,_,x,1,_,_,_  ), V(660F38,90,_,x,_,1,3,T1S), 0 , 0 , 6889, 427, 133, 0 ),
   INST(Vpgatherqd      , VexRmvRm_VM        , V(660F38,91,_,x,0,_,_,_  ), V(660F38,91,_,x,_,0,2,T1S), 0 , 0 , 6900, 428, 133, 0 ),
@@ -1324,12 +1324,12 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vphsubsw        , VexRvm_Lx          , V(660F38,07,_,x,I,_,_,_  ), 0                         , 0 , 0 , 7099, 250, 135, 56),
   INST(Vphsubw         , VexRvm_Lx          , V(660F38,05,_,x,I,_,_,_  ), 0                         , 0 , 0 , 7108, 250, 135, 56),
   INST(Vphsubwd        , VexRm              , V(XOP_M9,E2,_,0,0,_,_,_  ), 0                         , 0 , 0 , 7116, 252, 132, 0 ),
-  INST(Vpinsrb         , VexRvmi            , V(660F3A,20,_,0,0,I,0,T1S), 0                         , 0 , 0 , 7125, 430, 144, 57),
-  INST(Vpinsrd         , VexRvmi            , V(660F3A,22,_,0,0,0,2,T1S), 0                         , 0 , 0 , 7133, 431, 145, 57),
-  INST(Vpinsrq         , VexRvmi            , V(660F3A,22,_,0,1,1,3,T1S), 0                         , 0 , 0 , 7141, 432, 145, 57),
-  INST(Vpinsrw         , VexRvmi            , V(660F00,C4,_,0,0,I,1,T1S), 0                         , 0 , 0 , 7149, 433, 144, 55),
-  INST(Vplzcntd        , VexRm_Lx           , V(660F38,44,_,x,_,0,4,FV ), 0                         , 0 , 0 , 7157, 411, 140, 0 ),
-  INST(Vplzcntq        , VexRm_Lx           , V(660F38,44,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7166, 434, 140, 0 ),
+  INST(Vpinsrb         , VexRvmi            , V(660F3A,20,_,0,0,I,0,T1S), 0                         , 0 , 0 , 7125, 430, 143, 57),
+  INST(Vpinsrd         , VexRvmi            , V(660F3A,22,_,0,0,0,2,T1S), 0                         , 0 , 0 , 7133, 431, 144, 57),
+  INST(Vpinsrq         , VexRvmi            , V(660F3A,22,_,0,1,1,3,T1S), 0                         , 0 , 0 , 7141, 432, 144, 57),
+  INST(Vpinsrw         , VexRvmi            , V(660F00,C4,_,0,0,I,1,T1S), 0                         , 0 , 0 , 7149, 433, 143, 55),
+  INST(Vplzcntd        , VexRm_Lx           , V(660F38,44,_,x,_,0,4,FV ), 0                         , 0 , 0 , 7157, 411, 139, 0 ),
+  INST(Vplzcntq        , VexRm_Lx           , V(660F38,44,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7166, 434, 139, 0 ),
   INST(Vpmacsdd        , VexRvmr            , V(XOP_M8,9E,_,0,0,_,_,_  ), 0                         , 0 , 0 , 7175, 435, 132, 0 ),
   INST(Vpmacsdqh       , VexRvmr            , V(XOP_M8,9F,_,0,0,_,_,_  ), 0                         , 0 , 0 , 7184, 435, 132, 0 ),
   INST(Vpmacsdql       , VexRvmr            , V(XOP_M8,97,_,0,0,_,_,_  ), 0                         , 0 , 0 , 7194, 435, 132, 0 ),
@@ -1342,8 +1342,8 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpmacsww        , VexRvmr            , V(XOP_M8,95,_,0,0,_,_,_  ), 0                         , 0 , 0 , 7265, 435, 132, 0 ),
   INST(Vpmadcsswd      , VexRvmr            , V(XOP_M8,A6,_,0,0,_,_,_  ), 0                         , 0 , 0 , 7274, 435, 132, 0 ),
   INST(Vpmadcswd       , VexRvmr            , V(XOP_M8,B6,_,0,0,_,_,_  ), 0                         , 0 , 0 , 7285, 435, 132, 0 ),
-  INST(Vpmadd52huq     , VexRvm_Lx          , V(660F38,B5,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7295, 262, 146, 0 ),
-  INST(Vpmadd52luq     , VexRvm_Lx          , V(660F38,B4,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7307, 262, 146, 0 ),
+  INST(Vpmadd52huq     , VexRvm_Lx          , V(660F38,B5,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7295, 262, 145, 0 ),
+  INST(Vpmadd52luq     , VexRvm_Lx          , V(660F38,B4,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7307, 262, 145, 0 ),
   INST(Vpmaddubsw      , VexRvm_Lx          , V(660F38,04,_,x,I,I,4,FVM), 0                         , 0 , 0 , 7319, 388, 137, 58),
   INST(Vpmaddwd        , VexRvm_Lx          , V(660F00,F5,_,x,I,I,4,FVM), 0                         , 0 , 0 , 7330, 388, 137, 58),
   INST(Vpmaskmovd      , VexRvmMvr_Lx       , V(660F38,8C,_,x,0,_,_,_  ), V(660F38,8E,_,x,0,_,_,_  ), 0 , 0 , 7339, 436, 124, 0 ),
@@ -1410,10 +1410,10 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpmulld         , VexRvm_Lx          , V(660F38,40,_,x,I,0,4,FV ), 0                         , 0 , 0 , 7888, 257, 125, 66),
   INST(Vpmullq         , VexRvm_Lx          , V(660F38,40,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7896, 262, 123, 0 ),
   INST(Vpmullw         , VexRvm_Lx          , V(660F00,D5,_,x,I,I,4,FVM), 0                         , 0 , 0 , 7904, 388, 137, 19),
-  INST(Vpmultishiftqb  , VexRvm_Lx          , V(660F38,83,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7912, 262, 143, 0 ),
+  INST(Vpmultishiftqb  , VexRvm_Lx          , V(660F38,83,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7912, 262, 142, 0 ),
   INST(Vpmuludq        , VexRvm_Lx          , V(660F00,F4,_,x,I,1,4,FV ), 0                         , 0 , 0 , 7927, 256, 125, 67),
-  INST(Vpopcntd        , VexRm              , V(660F38,55,_,2,_,0,4,FVM), 0                         , 0 , 0 , 7936, 447, 147, 0 ),
-  INST(Vpopcntq        , VexRm              , V(660F38,55,_,2,_,1,4,FVM), 0                         , 0 , 0 , 7945, 448, 147, 0 ),
+  INST(Vpopcntd        , VexRm              , V(660F38,55,_,2,_,0,4,FVM), 0                         , 0 , 0 , 7936, 447, 146, 0 ),
+  INST(Vpopcntq        , VexRm              , V(660F38,55,_,2,_,1,4,FVM), 0                         , 0 , 0 , 7945, 448, 146, 0 ),
   INST(Vpor            , VexRvm_Lx          , V(660F00,EB,_,x,I,_,_,_  ), 0                         , 0 , 0 , 7954, 390, 135, 68),
   INST(Vpord           , VexRvm_Lx          , V(660F00,EB,_,x,_,0,4,FV ), 0                         , 0 , 0 , 7959, 391, 120, 0 ),
   INST(Vporq           , VexRvm_Lx          , V(660F00,EB,_,x,_,1,4,FV ), 0                         , 0 , 0 , 7965, 395, 120, 0 ),
@@ -1480,7 +1480,7 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vpsubw          , VexRvm_Lx          , V(660F00,F9,_,x,I,I,4,FVM), 0                         , 0 , 0 , 8442, 473, 137, 75),
   INST(Vpternlogd      , VexRvmi_Lx         , V(660F3A,25,_,x,_,0,4,FV ), 0                         , 0 , 0 , 8449, 476, 120, 0 ),
   INST(Vpternlogq      , VexRvmi_Lx         , V(660F3A,25,_,x,_,1,4,FV ), 0                         , 0 , 0 , 8460, 477, 120, 0 ),
-  INST(Vptest          , VexRm_Lx           , V(660F38,17,_,x,I,_,_,_  ), 0                         , 0 , 0 , 8471, 478, 142, 76),
+  INST(Vptest          , VexRm_Lx           , V(660F38,17,_,x,I,_,_,_  ), 0                         , 0 , 0 , 8471, 478, 141, 76),
   INST(Vptestmb        , VexRvm_Lx          , V(660F38,26,_,x,_,0,4,FVM), 0                         , 0 , 0 , 8478, 479, 122, 0 ),
   INST(Vptestmd        , VexRvm_Lx          , V(660F38,27,_,x,_,0,4,FV ), 0                         , 0 , 0 , 8487, 480, 120, 0 ),
   INST(Vptestmq        , VexRvm_Lx          , V(660F38,27,_,x,_,1,4,FV ), 0                         , 0 , 0 , 8496, 481, 120, 0 ),
@@ -1567,8 +1567,8 @@ const X86Inst X86InstDB::instData[] = {
   INST(Vsubps          , VexRvm_Lx          , V(000F00,5C,_,x,I,0,4,FV ), 0                         , 0 , 0 , 9332, 247, 116, 86),
   INST(Vsubsd          , VexRvm             , V(F20F00,5C,_,I,I,1,3,T1S), 0                         , 0 , 0 , 9339, 248, 117, 86),
   INST(Vsubss          , VexRvm             , V(F30F00,5C,_,I,I,0,2,T1S), 0                         , 0 , 0 , 9346, 249, 117, 86),
-  INST(Vtestpd         , VexRm_Lx           , V(660F38,0F,_,x,0,_,_,_  ), 0                         , 0 , 0 , 9353, 478, 142, 0 ),
-  INST(Vtestps         , VexRm_Lx           , V(660F38,0E,_,x,0,_,_,_  ), 0                         , 0 , 0 , 9361, 478, 142, 0 ),
+  INST(Vtestpd         , VexRm_Lx           , V(660F38,0F,_,x,0,_,_,_  ), 0                         , 0 , 0 , 9353, 478, 141, 0 ),
+  INST(Vtestps         , VexRm_Lx           , V(660F38,0E,_,x,0,_,_,_  ), 0                         , 0 , 0 , 9361, 478, 141, 0 ),
   INST(Vucomisd        , VexRm              , V(660F00,2E,_,I,I,1,3,T1S), 0                         , 0 , 0 , 9369, 277, 126, 15),
   INST(Vucomiss        , VexRm              , V(000F00,2E,_,I,I,0,2,T1S), 0                         , 0 , 0 , 9378, 278, 126, 15),
   INST(Vunpckhpd       , VexRvm_Lx          , V(660F00,15,_,x,I,1,4,FV ), 0                         , 0 , 0 , 9387, 256, 116, 13),
@@ -1582,31 +1582,31 @@ const X86Inst X86InstDB::instData[] = {
   INST(Wbinvd          , X86Op              , O(000F00,09,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9461, 34 , 23 , 0 ),
   INST(Wrfsbase        , X86M               , O(F30F00,AE,2,_,x,_,_,_  ), 0                         , 0 , 0 , 9468, 508, 98 , 0 ),
   INST(Wrgsbase        , X86M               , O(F30F00,AE,3,_,x,_,_,_  ), 0                         , 0 , 0 , 9477, 508, 98 , 0 ),
-  INST(Wrmsr           , X86Op              , O(000F00,30,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9486, 509, 148, 0 ),
-  INST(Xabort          , X86Op_O_I8         , O(000000,C6,7,_,_,_,_,_  ), 0                         , 0 , 0 , 9492, 98 , 149, 0 ),
+  INST(Wrmsr           , X86Op              , O(000F00,30,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9486, 509, 147, 0 ),
+  INST(Xabort          , X86Op_O_I8         , O(000000,C6,7,_,_,_,_,_  ), 0                         , 0 , 0 , 9492, 98 , 148, 0 ),
   INST(Xadd            , X86Xadd            , O(000F00,C0,_,_,x,_,_,_  ), 0                         , 0 , 0 , 9499, 510, 36 , 0 ),
-  INST(Xbegin          , X86JmpRel          , O(000000,C7,7,_,_,_,_,_  ), 0                         , 0 , 0 , 9504, 511, 149, 0 ),
+  INST(Xbegin          , X86JmpRel          , O(000000,C7,7,_,_,_,_,_  ), 0                         , 0 , 0 , 9504, 511, 148, 0 ),
   INST(Xchg            , X86Xchg            , O(000000,86,_,_,x,_,_,_  ), 0                         , 0 , 0 , 434 , 512, 0  , 0 ),
-  INST(Xend            , X86Op              , O(000F01,D5,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9511, 34 , 149, 0 ),
-  INST(Xgetbv          , X86Op              , O(000F01,D0,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9516, 227, 150, 0 ),
+  INST(Xend            , X86Op              , O(000F01,D5,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9511, 34 , 148, 0 ),
+  INST(Xgetbv          , X86Op              , O(000F01,D0,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9516, 227, 149, 0 ),
   INST(Xlatb           , X86Op              , O(000000,D7,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9523, 34 , 45 , 0 ),
   INST(Xor             , X86Arith           , O(000000,30,6,_,x,_,_,_  ), 0                         , 0 , 0 , 8646, 243, 1  , 0 ),
   INST(Xorpd           , ExtRm              , O(660F00,57,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9428, 192, 4  , 87),
   INST(Xorps           , ExtRm              , O(000F00,57,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9435, 192, 5  , 87),
-  INST(Xrstor          , X86M_Only          , O(000F00,AE,5,_,_,_,_,_  ), 0                         , 0 , 0 , 1105, 513, 150, 0 ),
-  INST(Xrstor64        , X86M_Only          , O(000F00,AE,5,_,1,_,_,_  ), 0                         , 0 , 0 , 1113, 514, 150, 0 ),
-  INST(Xrstors         , X86M_Only          , O(000F00,C7,3,_,_,_,_,_  ), 0                         , 0 , 0 , 9529, 513, 151, 0 ),
-  INST(Xrstors64       , X86M_Only          , O(000F00,C7,3,_,1,_,_,_  ), 0                         , 0 , 0 , 9537, 514, 151, 0 ),
-  INST(Xsave           , X86M_Only          , O(000F00,AE,4,_,_,_,_,_  ), 0                         , 0 , 0 , 1123, 515, 150, 0 ),
-  INST(Xsave64         , X86M_Only          , O(000F00,AE,4,_,1,_,_,_  ), 0                         , 0 , 0 , 1130, 516, 150, 0 ),
-  INST(Xsavec          , X86M_Only          , O(000F00,C7,4,_,_,_,_,_  ), 0                         , 0 , 0 , 9547, 515, 152, 0 ),
-  INST(Xsavec64        , X86M_Only          , O(000F00,C7,4,_,1,_,_,_  ), 0                         , 0 , 0 , 9554, 516, 152, 0 ),
-  INST(Xsaveopt        , X86M_Only          , O(000F00,AE,6,_,_,_,_,_  ), 0                         , 0 , 0 , 9563, 515, 153, 0 ),
-  INST(Xsaveopt64      , X86M_Only          , O(000F00,AE,6,_,1,_,_,_  ), 0                         , 0 , 0 , 9572, 516, 153, 0 ),
-  INST(Xsaves          , X86M_Only          , O(000F00,C7,5,_,_,_,_,_  ), 0                         , 0 , 0 , 9583, 515, 151, 0 ),
-  INST(Xsaves64        , X86M_Only          , O(000F00,C7,5,_,1,_,_,_  ), 0                         , 0 , 0 , 9590, 516, 151, 0 ),
-  INST(Xsetbv          , X86Op              , O(000F01,D1,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9599, 509, 154, 0 ),
-  INST(Xtest           , X86Op              , O(000F01,D6,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9606, 34 , 155, 0 )
+  INST(Xrstor          , X86M_Only          , O(000F00,AE,5,_,_,_,_,_  ), 0                         , 0 , 0 , 1105, 513, 149, 0 ),
+  INST(Xrstor64        , X86M_Only          , O(000F00,AE,5,_,1,_,_,_  ), 0                         , 0 , 0 , 1113, 514, 149, 0 ),
+  INST(Xrstors         , X86M_Only          , O(000F00,C7,3,_,_,_,_,_  ), 0                         , 0 , 0 , 9529, 513, 150, 0 ),
+  INST(Xrstors64       , X86M_Only          , O(000F00,C7,3,_,1,_,_,_  ), 0                         , 0 , 0 , 9537, 514, 150, 0 ),
+  INST(Xsave           , X86M_Only          , O(000F00,AE,4,_,_,_,_,_  ), 0                         , 0 , 0 , 1123, 515, 149, 0 ),
+  INST(Xsave64         , X86M_Only          , O(000F00,AE,4,_,1,_,_,_  ), 0                         , 0 , 0 , 1130, 516, 149, 0 ),
+  INST(Xsavec          , X86M_Only          , O(000F00,C7,4,_,_,_,_,_  ), 0                         , 0 , 0 , 9547, 515, 151, 0 ),
+  INST(Xsavec64        , X86M_Only          , O(000F00,C7,4,_,1,_,_,_  ), 0                         , 0 , 0 , 9554, 516, 151, 0 ),
+  INST(Xsaveopt        , X86M_Only          , O(000F00,AE,6,_,_,_,_,_  ), 0                         , 0 , 0 , 9563, 515, 152, 0 ),
+  INST(Xsaveopt64      , X86M_Only          , O(000F00,AE,6,_,1,_,_,_  ), 0                         , 0 , 0 , 9572, 516, 152, 0 ),
+  INST(Xsaves          , X86M_Only          , O(000F00,C7,5,_,_,_,_,_  ), 0                         , 0 , 0 , 9583, 515, 150, 0 ),
+  INST(Xsaves64        , X86M_Only          , O(000F00,C7,5,_,1,_,_,_  ), 0                         , 0 , 0 , 9590, 516, 150, 0 ),
+  INST(Xsetbv          , X86Op              , O(000F01,D1,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9599, 509, 153, 0 ),
+  INST(Xtest           , X86Op              , O(000F01,D6,_,_,_,_,_,_  ), 0                         , 0 , 0 , 9606, 34 , 154, 0 )
   // ${instData:End}
 };
 #undef NAME_DATA_INDEX
@@ -2424,24 +2424,23 @@ const X86Inst::OperationData X86InstDB::operationData[] = {
   { 0, { FEATURE(AVX), FEATURE(AVX2) }, 0, 0 }, // #135
   { 0, { FEATURE(AVX512_4VNNIW) }, 0, 0 }, // #136
   { 0, { FEATURE(AVX), FEATURE(AVX2), FEATURE(AVX512_BW), FEATURE(AVX512_VL) }, 0, 0 }, // #137
-  { 0, { FEATURE(AVX), FEATURE(AVX512_BW), FEATURE(AVX512_VL) }, 0, 0 }, // #138
-  { 0, { FEATURE(AVX2), FEATURE(AVX512_BW), FEATURE(AVX512_VL) }, 0, 0 }, // #139
-  { 0, { FEATURE(AVX512_CDI), FEATURE(AVX512_VL) }, 0, 0 }, // #140
-  { 0, { FEATURE(AVX), FEATURE(PCLMULQDQ) }, 0, 0 }, // #141
-  { 0, { FEATURE(AVX) }, 0, SPECIAL(FLAGS_AF) | SPECIAL(FLAGS_CF) | SPECIAL(FLAGS_OF) | SPECIAL(FLAGS_PF) | SPECIAL(FLAGS_SF) | SPECIAL(FLAGS_ZF) }, // #142
-  { 0, { FEATURE(AVX512_VBMI), FEATURE(AVX512_VL) }, 0, 0 }, // #143
-  { 0, { FEATURE(AVX), FEATURE(AVX512_BW) }, 0, 0 }, // #144
-  { 0, { FEATURE(AVX), FEATURE(AVX512_DQ) }, 0, 0 }, // #145
-  { 0, { FEATURE(AVX512_IFMA), FEATURE(AVX512_VL) }, 0, 0 }, // #146
-  { 0, { FEATURE(AVX512_VPOPCNTDQ) }, 0, 0 }, // #147
-  { OP_FLAG(Volatile) | OP_FLAG(Privileged), { FEATURE(MSR) }, 0, SPECIAL(MSR) }, // #148
-  { OP_FLAG(Volatile), { FEATURE(RTM) }, 0, 0 }, // #149
-  { OP_FLAG(Volatile), { FEATURE(XSAVE) }, SPECIAL(XCR), 0 }, // #150
-  { OP_FLAG(Volatile), { FEATURE(XSAVES) }, SPECIAL(XCR), 0 }, // #151
-  { OP_FLAG(Volatile), { FEATURE(XSAVEC) }, SPECIAL(XCR), 0 }, // #152
-  { OP_FLAG(Volatile), { FEATURE(XSAVEOPT) }, SPECIAL(XCR), 0 }, // #153
-  { OP_FLAG(Volatile) | OP_FLAG(Privileged), { FEATURE(XSAVE) }, 0, SPECIAL(XCR) }, // #154
-  { OP_FLAG(Volatile), { FEATURE(TSX) }, 0, SPECIAL(FLAGS_AF) | SPECIAL(FLAGS_CF) | SPECIAL(FLAGS_OF) | SPECIAL(FLAGS_PF) | SPECIAL(FLAGS_SF) | SPECIAL(FLAGS_ZF) }  // #155
+  { 0, { FEATURE(AVX2), FEATURE(AVX512_BW), FEATURE(AVX512_VL) }, 0, 0 }, // #138
+  { 0, { FEATURE(AVX512_CDI), FEATURE(AVX512_VL) }, 0, 0 }, // #139
+  { 0, { FEATURE(AVX), FEATURE(PCLMULQDQ) }, 0, 0 }, // #140
+  { 0, { FEATURE(AVX) }, 0, SPECIAL(FLAGS_AF) | SPECIAL(FLAGS_CF) | SPECIAL(FLAGS_OF) | SPECIAL(FLAGS_PF) | SPECIAL(FLAGS_SF) | SPECIAL(FLAGS_ZF) }, // #141
+  { 0, { FEATURE(AVX512_VBMI), FEATURE(AVX512_VL) }, 0, 0 }, // #142
+  { 0, { FEATURE(AVX), FEATURE(AVX512_BW) }, 0, 0 }, // #143
+  { 0, { FEATURE(AVX), FEATURE(AVX512_DQ) }, 0, 0 }, // #144
+  { 0, { FEATURE(AVX512_IFMA), FEATURE(AVX512_VL) }, 0, 0 }, // #145
+  { 0, { FEATURE(AVX512_VPOPCNTDQ) }, 0, 0 }, // #146
+  { OP_FLAG(Volatile) | OP_FLAG(Privileged), { FEATURE(MSR) }, 0, SPECIAL(MSR) }, // #147
+  { OP_FLAG(Volatile), { FEATURE(RTM) }, 0, 0 }, // #148
+  { OP_FLAG(Volatile), { FEATURE(XSAVE) }, SPECIAL(XCR), 0 }, // #149
+  { OP_FLAG(Volatile), { FEATURE(XSAVES) }, SPECIAL(XCR), 0 }, // #150
+  { OP_FLAG(Volatile), { FEATURE(XSAVEC) }, SPECIAL(XCR), 0 }, // #151
+  { OP_FLAG(Volatile), { FEATURE(XSAVEOPT) }, SPECIAL(XCR), 0 }, // #152
+  { OP_FLAG(Volatile) | OP_FLAG(Privileged), { FEATURE(XSAVE) }, 0, SPECIAL(XCR) }, // #153
+  { OP_FLAG(Volatile), { FEATURE(TSX) }, 0, SPECIAL(FLAGS_AF) | SPECIAL(FLAGS_CF) | SPECIAL(FLAGS_OF) | SPECIAL(FLAGS_PF) | SPECIAL(FLAGS_SF) | SPECIAL(FLAGS_ZF) }  // #154
 };
 #undef SPECIAL
 #undef FEATURE
