@@ -1721,15 +1721,51 @@ public:
 };
 
 // ============================================================================
-// [X86Test_AllocRetFloat]
+// [X86Test_AllocRetFloat1]
 // ============================================================================
 
-class X86Test_AllocRetFloat : public X86Test {
+class X86Test_AllocRetFloat1 : public X86Test {
 public:
-  X86Test_AllocRetFloat() : X86Test("[Alloc] Ret Float") {}
+  X86Test_AllocRetFloat1() : X86Test("[Alloc] Ret Float #1") {}
 
   static void add(X86TestManager& mgr) {
-    mgr.add(new X86Test_AllocRetFloat());
+    mgr.add(new X86Test_AllocRetFloat1());
+  }
+
+  virtual void compile(X86Compiler& cc) {
+    cc.addFunc(FuncSignature1<float, float>(CallConv::kIdHost));
+
+    X86Xmm a = cc.newXmmSs("a");
+    cc.setArg(0, a);
+    cc.ret(a);
+
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef float (*Func)(float);
+    Func func = ptr_as_func<Func>(_func);
+
+    float resultRet = func(2.5f);
+    float expectRet = 2.5f;
+
+    result.setFormat("ret={%g}", resultRet);
+    expect.setFormat("ret={%g}", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocRetFloat2]
+// ============================================================================
+
+class X86Test_AllocRetFloat2 : public X86Test {
+public:
+  X86Test_AllocRetFloat2() : X86Test("[Alloc] Ret Float #2") {}
+
+  static void add(X86TestManager& mgr) {
+    mgr.add(new X86Test_AllocRetFloat2());
   }
 
   virtual void compile(X86Compiler& cc) {
@@ -1762,15 +1798,51 @@ public:
 };
 
 // ============================================================================
-// [X86Test_AllocRetDouble]
+// [X86Test_AllocRetDouble1]
 // ============================================================================
 
-class X86Test_AllocRetDouble : public X86Test {
+class X86Test_AllocRetDouble1 : public X86Test {
 public:
-  X86Test_AllocRetDouble() : X86Test("[Alloc] Ret Double") {}
+  X86Test_AllocRetDouble1() : X86Test("[Alloc] Ret Double #1") {}
 
   static void add(X86TestManager& mgr) {
-    mgr.add(new X86Test_AllocRetDouble());
+    mgr.add(new X86Test_AllocRetDouble1());
+  }
+
+  virtual void compile(X86Compiler& cc) {
+    cc.addFunc(FuncSignature1<double, double>(CallConv::kIdHost));
+
+    X86Xmm a = cc.newXmmSd("a");
+    cc.setArg(0, a);
+    cc.ret(a);
+
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+    typedef double (*Func)(double);
+    Func func = ptr_as_func<Func>(_func);
+
+    double resultRet = func(2.5);
+    double expectRet = 2.5;
+
+    result.setFormat("ret={%g}", resultRet);
+    expect.setFormat("ret={%g}", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocRetDouble2]
+// ============================================================================
+
+class X86Test_AllocRetDouble2 : public X86Test {
+public:
+  X86Test_AllocRetDouble2() : X86Test("[Alloc] Ret Double #2") {}
+
+  static void add(X86TestManager& mgr) {
+    mgr.add(new X86Test_AllocRetDouble2());
   }
 
   virtual void compile(X86Compiler& cc) {
@@ -3553,8 +3625,10 @@ int main(int argc, char* argv[]) {
   ADD_TEST(X86Test_AllocArgsIntPtr);
   ADD_TEST(X86Test_AllocArgsFloat);
   ADD_TEST(X86Test_AllocArgsDouble);
-  ADD_TEST(X86Test_AllocRetFloat);
-  ADD_TEST(X86Test_AllocRetDouble);
+  ADD_TEST(X86Test_AllocRetFloat1);
+  ADD_TEST(X86Test_AllocRetFloat2);
+  ADD_TEST(X86Test_AllocRetDouble1);
+  ADD_TEST(X86Test_AllocRetDouble2);
   ADD_TEST(X86Test_AllocStack1);
   ADD_TEST(X86Test_AllocStack2);
   ADD_TEST(X86Test_AllocMemcpy);
