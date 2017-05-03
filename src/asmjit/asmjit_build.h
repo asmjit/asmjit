@@ -811,8 +811,8 @@
 # define ASMJIT_LIKELY(exp) __builtin_expect(!!(exp), 1)
 # define ASMJIT_UNLIKELY(exp) __builtin_expect(!!(exp), 0)
 #else
-# define ASMJIT_LIKELY(exp) exp
-# define ASMJIT_UNLIKELY(exp) exp
+# define ASMJIT_LIKELY(exp) (exp)
+# define ASMJIT_UNLIKELY(exp) (exp)
 #endif
 // [@CC_EXPECT}@]
 
