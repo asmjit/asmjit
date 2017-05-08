@@ -1307,7 +1307,7 @@ int main(int argc, char* argv[]) {
   X86Gp p = cc.newIntPtr("p");
   X86Gp i = cc.newIntPtr("i");
 
-  X86Mem stack = c.newStack(256, 4);      // Allocate 256 bytes on the stack aligned to 4 bytes.
+  X86Mem stack = cc.newStack(256, 4);      // Allocate 256 bytes on the stack aligned to 4 bytes.
   X86Mem stackIdx(stack);                 // Copy of `stack` with `i` added.
   stackIdx.setIndex(i);                   // stackIdx <- stack[i].
   stackIdx.setSize(1);                    // stackIdx <- byte ptr stack[i].
@@ -1352,14 +1352,14 @@ int main(int argc, char* argv[]) {
   cc.finalize();                          // Translate and assemble the whole `cc` content.
   // ----> X86Compiler is no longer needed from here and can be destroyed <----
 
-  Func fib;
-  Error err = rt.add(&fib, &code);        // Add the generated code to the runtime.
+  Func func;
+  Error err = rt.add(&func, &code);        // Add the generated code to the runtime.
   if (err) return 1;                      // Handle a possible error returned by AsmJit.
   // ----> CodeHolder is no longer needed from here and can be destroyed <----
 
-  printf("Func() -> %d\n, func());        // Test the generated code.
+  printf("Func() -> %d\n", func());        // Test the generated code.
 
-  rt.release(fib);                        // RAII, but let's make it explicit.
+  rt.release(func);                        // RAII, but let's make it explicit.
   return 0;
 }
 ```
