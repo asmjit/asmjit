@@ -109,6 +109,16 @@ Error CodeEmitter::_emitOpArray(uint32_t instId, const Operand_* opArray, size_t
 }
 
 // ============================================================================
+// [asmjit::CodeEmitter - Code-Generation-Events]
+// ============================================================================
+
+void CodeEmitter::onEmitMemoryAbsOp(uint32_t sectId, size_t sectOff, std::int64_t immVal, size_t immSize)
+{
+    // Override this to have special behavior for memory immediates.
+    return;
+}
+
+// ============================================================================
 // [asmjit::CodeEmitter - Finalize]
 // ============================================================================
 

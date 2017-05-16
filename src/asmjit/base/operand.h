@@ -182,7 +182,7 @@ struct Operand_ {
   //! Immediate operand data.
   struct ImmData {
     uint32_t signature;                  //!< Type of the operand (always \ref kOpImm) and other data.
-    uint32_t id;                         //!< Immediate id (always `0`).
+    uint32_t flags;                      //!< Immediate flags.
     UInt64 value;                        //!< Immediate value.
   };
 
@@ -1113,8 +1113,8 @@ public:
   }
 
   //! Create a new signed immediate value, assigning the value to `val`.
-  explicit Imm(int64_t val) noexcept : Operand(NoInit) {
-    _init_packed_d0_d1(kOpImm, 0);
+  explicit Imm(int64_t val, bool isMemOp = false) noexcept : Operand(NoInit) {
+    _init_packed_d0_d1(kOpImm, ( isMemOp ? 1 : 0 ));
     _imm.value.i64 = val;
   }
 
@@ -1257,6 +1257,12 @@ public:
   }
 
   ASMJIT_INLINE void truncateTo32Bits() noexcept { _imm.value.u32Hi = 0; }
+
+  // --------------------------------------------------------------------------
+  // [Memory Immediates]
+  // --------------------------------------------------------------------------
+
+  ASMJIT_INLINE bool isMemImm(void) const noexcept { return ( _imm.flags & 1 ) != 0; }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]

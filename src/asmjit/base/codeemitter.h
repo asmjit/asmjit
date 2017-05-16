@@ -175,6 +175,9 @@ public:
   //! Emit instruction having operands stored in array.
   virtual Error _emitOpArray(uint32_t instId, const Operand_* opArray, size_t opCount);
 
+  //! Notification of a new memory operand.
+  virtual void onEmitMemoryAbsOp(uint32_t sectId, size_t sectOff, std::int64_t immVal, size_t immSize);
+
   //! Create a new label.
   virtual Label newLabel() = 0;
   //! Create a new named label.
