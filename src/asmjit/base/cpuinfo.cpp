@@ -13,7 +13,6 @@
 
 #if ASMJIT_OS_POSIX
 # include <errno.h>
-# include <sys/statvfs.h>
 # include <sys/utsname.h>
 # include <unistd.h>
 #endif // ASMJIT_OS_POSIX
