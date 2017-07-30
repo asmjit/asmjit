@@ -310,7 +310,9 @@ if (NOT __CXX_INCLUDED)
     endif()
 
     if(NOT ${PRODUCT}_STATIC)
-      install(TARGETS ${target} DESTINATION "lib${LIB_SUFFIX}")
+      install(TARGETS ${target} LIBRARY DESTINATION lib${LIB_SUFFIX}
+                                ARCHIVE DESTINATION lib${LIB_SUFFIX}
+                                RUNTIME DESTINATION bin)
     endif()
   endfunction()
 
