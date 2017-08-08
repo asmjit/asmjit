@@ -1132,8 +1132,10 @@ CaseX86M_GPB_MulDiv:
 
     case X86Inst::kEncodingX86Enter:
       if (isign3 == ENC_OPS2(Imm, Imm)) {
-        imVal = (static_cast<uint32_t>(static_cast<const Imm&>(o1).getUInt16()) << 0) |
-                (static_cast<uint32_t>(static_cast<const Imm&>(o0).getUInt8()) << 16) ;
+        uint32_t iw = static_cast<const Imm&>(o0).getUInt16();
+        uint32_t ib = static_cast<const Imm&>(o1).getUInt8();
+
+        imVal = iw | (ib << 16);
         imLen = 3;
         goto EmitX86Op;
       }
