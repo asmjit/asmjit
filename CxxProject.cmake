@@ -15,7 +15,7 @@ if (NOT __CXX_INCLUDED)
     set(out_array ${${out}})
 
     foreach(flag ${ARGN})
-      string(REGEX REPLACE "[-=:;/.]" "_" flag_signature "${flag}")
+      string(REGEX REPLACE "[-=:;/.\+]" "_" flag_signature "${flag}")
       check_cxx_compiler_flag(${flag} "__CxxFlag_${flag_signature}")
       if(${__CxxFlag_${flag_signature}})
         list(APPEND out_array "${flag}")
@@ -76,41 +76,28 @@ if (NOT __CXX_INCLUDED)
     set(CXX_DEFINE "/D")
     set(CXX_INCLUDE "/I")
 
-    if(CMAKE_CL_64)
-      # 64-bit MSVC compiler doesn't like /arch:SSE[2] as it's implicit.
-      list(APPEND CXX_CFLAGS_SSE "${CXX_DEFINE}__SSE__=1")
-      list(APPEND CXX_CFLAGS_SSE2 "${CXX_DEFINE}__SSE__=1;${CXX_DEFINE}__SSE2__=1")
-    else()
-      cxx_detect_cflags(CXX_CFLAGS_SSE "/arch:SSE")
-      if(CXX_CFLAGS_SSE)
-        list(APPEND CXX_CFLAGS_SSE "${CXX_DEFINE}__SSE__=1")
-      endif()
-
-      cxx_detect_cflags(CXX_CFLAGS_SSE2 "/arch:SSE2")
-      if(CXX_CFLAGS_SSE2)
-        list(APPEND CXX_CFLAGS_SSE2 "${CXX_DEFINE}__SSE__=1;${CXX_DEFINE}__SSE2__=1")
-      endif()
+    # 64-bit MSVC compiler doesn't like /arch:SSE[2] as it's implicit.
+    if(NOT CMAKE_CL_64)
+      list(APPEND CXX_CFLAGS_SSE    "/arch:SSE")
+      list(APPEND CXX_CFLAGS_SSE2   "/arch:SSE2")
+      list(APPEND CXX_CFLAGS_SSE3   "/arch:SSE2")
+      list(APPEND CXX_CFLAGS_SSSE3  "/arch:SSE2")
+      list(APPEND CXX_CFLAGS_SSE4_1 "/arch:SSE2")
+      list(APPEND CXX_CFLAGS_SSE4_2 "/arch:SSE2")
     endif()
 
     # MSVC doesn't provide any preprocessor definitions to detect SSE3+,
-    # these unify MSVC with definitions defined by Clang|GCC|Intel.
-    if(CXX_CFLAGS_SSE2)
-      list(APPEND CXX_CFLAGS_SSE3   "${CXX_CFLAGS_SSE2};${CXX_DEFINE}__SSE3__=1")
-      list(APPEND CXX_CFLAGS_SSSE3  "${CXX_CFLAGS_SSE3};${CXX_DEFINE}__SSSE3__=1")
-      list(APPEND CXX_CFLAGS_SSE4_1 "${CXX_CFLAGS_SSSE3};${CXX_DEFINE}__SSE4_1__=1")
-      list(APPEND CXX_CFLAGS_SSE4_2 "${CXX_CFLAGS_SSE4_1};${CXX_DEFINE}__SSE4_2__=1")
-    endif()
+    # these unify MSVC with definitions defined by Intel|Clang|GCC.
+    list(APPEND CXX_CFLAGS_SSE    "${CXX_DEFINE}__SSE__")
+    list(APPEND CXX_CFLAGS_SSE2   "${CXX_DEFINE}__SSE2__")
+    list(APPEND CXX_CFLAGS_SSE3   "${CXX_DEFINE}__SSE3__")
+    list(APPEND CXX_CFLAGS_SSSE3  "${CXX_DEFINE}__SSSE3__")
+    list(APPEND CXX_CFLAGS_SSE4_1 "${CXX_DEFINE}__SSE4_1__")
+    list(APPEND CXX_CFLAGS_SSE4_2 "${CXX_DEFINE}__SSE4_2__")
 
-    # When using AVX and AVX2 MSVC does define '__AVX__' and '__AVX2__', respectively.
+    # AVX/AVX2 doesn't need custom defs as MSVC does define __AVX[2]__ by itself.
     cxx_detect_cflags(CXX_CFLAGS_AVX  "/arch:AVX")
     cxx_detect_cflags(CXX_CFLAGS_AVX2 "/arch:AVX2")
-
-    if(CXX_CFLAGS_AVX)
-      list(APPEND CXX_CFLAGS_AVX "${CXX_DEFINE}__SSE__=1;${CXX_DEFINE}__SSE2__=1;${CXX_DEFINE}__SSE3__=1;${CXX_DEFINE}__SSSE3__=1;${CXX_DEFINE}__SSE4_1__=1;${CXX_DEFINE}__SSE4_2__=1")
-    endif()
-    if(CXX_CFLAGS_AVX2)
-      list(APPEND CXX_CFLAGS_AVX2 "${CXX_DEFINE}__SSE__=1;${CXX_DEFINE}__SSE2__=1;${CXX_DEFINE}__SSE3__=1;${CXX_DEFINE}__SSSE3__=1;${CXX_DEFINE}__SSE4_1__=1;${CXX_DEFINE}__SSE4_2__=1")
-    endif()
   elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND WIN32)
     # Intel on Windows uses CL syntax.
     set(CXX_DEFINE "/D")
@@ -272,8 +259,14 @@ if (NOT __CXX_INCLUDED)
           list(APPEND src_cflags ${CXX_CFLAGS_AVX2})
         endif()
 
+        # HACK: Setting `COMPILE_FLAGS` property cannot be used when your input
+        # is LIST, even when you use `VALUE1 VALUE2 ...` as cmake would insert
+        # escaped semicolons instead of spaces. So let's make it the cmake way:
+        #   - nonituitive, verbose, and idiotic.
         if(NOT "${src_cflags}" STREQUAL "")
-          set_source_files_properties(${src_file} PROPERTIES COMPILE_FLAGS ${src_cflags})
+          foreach(src_cflag ${src_cflags})
+            set_property(SOURCE "${src_file}" APPEND_STRING PROPERTY COMPILE_FLAGS " ${src_cflag}")
+          endforeach()
         endif()
       endif()
       list(APPEND src_array ${src_file})
@@ -310,9 +303,9 @@ if (NOT __CXX_INCLUDED)
     endif()
 
     if(NOT ${PRODUCT}_STATIC)
-      install(TARGETS ${target} LIBRARY DESTINATION lib${LIB_SUFFIX}
-                                ARCHIVE DESTINATION lib${LIB_SUFFIX}
-                                RUNTIME DESTINATION bin)
+      install(TARGETS ${target} RUNTIME DESTINATION "bin"
+                                LIBRARY DESTINATION "lib${LIB_SUFFIX}"
+                                ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
     endif()
   endfunction()
 
