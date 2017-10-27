@@ -344,7 +344,7 @@ static void vMemMgrInsertNode(VMemMgr* self, MemNode* node) noexcept {
       }
 
       // Fix red violation.
-      if (rbIsRed(q) && rbIsRed(p)) {
+      if (rbIsRed(q) && rbIsRed(p) && g) {
         int dir2 = t->node[1] == g;
         t->node[dir2] = q == p->node[last] ? rbRotateSingle(g, !last) : rbRotateDouble(g, !last);
       }
@@ -437,7 +437,7 @@ static MemNode* vMemMgrRemoveNode(VMemMgr* self, MemNode* node) noexcept {
             s->red = 1;
             q->red = 1;
           }
-          else {
+          else if(g) {
             int dir2 = g->node[1] == p;
 
             if (rbIsRed(s->node[last]))

@@ -1100,7 +1100,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(X86Emitter* emitter, const FuncF
   uint32_t gpSaved = layout.getSavedRegs(X86Reg::kKindGp);
 
   X86Gp zsp = emitter->zsp();   // ESP|RSP register.
-  X86Gp zbp = emitter->zsp();   // EBP|RBP register.
+  X86Gp zbp = emitter->zbp();   // EBP|RBP register.
   zbp.setId(X86Gp::kIdBp);
 
   X86Gp gpReg = emitter->zsp(); // General purpose register (temporary).
