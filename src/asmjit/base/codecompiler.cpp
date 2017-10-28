@@ -129,9 +129,9 @@ CCFunc* CodeCompiler::newFunc(const FuncSignature& sign) noexcept {
     return nullptr;
   }
 
-  // Override the natural stack alignment of the calling convention to what's
-  // specified by CodeInfo.
-  func->_funcDetail._callConv.setNaturalStackAlignment(_codeInfo.getStackAlignment());
+  // If the CodeInfo guarantees higher alignment honor it.
+  if (_codeInfo.getStackAlignment() > func->_funcDetail._callConv.getNaturalStackAlignment())
+    func->_funcDetail._callConv.setNaturalStackAlignment(_codeInfo.getStackAlignment());
 
   // Allocate space for function arguments.
   func->_args = nullptr;
