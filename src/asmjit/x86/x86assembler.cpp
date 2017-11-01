@@ -1667,7 +1667,7 @@ CaseX86M_GPB_MulDiv:
 
     case X86Inst::kEncodingX86Outs:
       if (isign3 == ENC_OPS2(Reg, Mem)) {
-        if (ASMJIT_UNLIKELY(o0.getId() != X86Gp::kIdDx), !x86IsImplicitMem(o1, X86Gp::kIdSi))
+        if (ASMJIT_UNLIKELY(o0.getId() != X86Gp::kIdDx || !x86IsImplicitMem(o1, X86Gp::kIdSi)))
           goto InvalidInstruction;
 
         uint32_t size = o1.getSize();
