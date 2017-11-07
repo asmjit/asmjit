@@ -2941,7 +2941,7 @@ CaseVexRvm_R:
       ASMJIT_FALLTHROUGH;
 
     case X86Inst::kEncodingVexRvm_Wx:
-      ADD_REX_W(X86Reg::isGpq(o0) | X86Reg::isGpq(o1));
+      ADD_REX_W(X86Reg::isGpq(o0) | (o2.getSize() == 8));
       goto CaseVexRvm;
 
     case X86Inst::kEncodingVexRvm_Lx:
