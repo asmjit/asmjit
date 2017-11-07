@@ -2837,6 +2837,10 @@ CaseExtRm:
       isign3 &= 0x3F;
       goto CaseVexRm;
 
+    case X86Inst::kEncodingVexRm_Wx:
+      ADD_REX_W(X86Reg::isGpq(o0) | X86Reg::isGpq(o1));
+      goto CaseVexRm;
+
     case X86Inst::kEncodingVexRm_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;

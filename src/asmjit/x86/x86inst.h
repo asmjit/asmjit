@@ -1566,6 +1566,7 @@ struct X86Inst {
     kEncodingVexMri_Lx,                  //!< VEX|EVEX [MRI] (propagates VEX|EVEX.L if YMM used).
     kEncodingVexRm,                      //!< VEX|EVEX [RM].
     kEncodingVexRm_ZDI,                  //!< VEX|EVEX [RM<ZDI>].
+    kEncodingVexRm_Wx,                   //!< VEX|EVEX [RM] (propagates VEX|EVEX.W if GPQ used).
     kEncodingVexRm_Lx,                   //!< VEX|EVEX [RM] (propagates VEX|EVEX.L if YMM used).
     kEncodingVexRm_VM,                   //!< VEX|EVEX [RM] (propagates VEX|EVEX.L, VSIB support).
     kEncodingVexRm_T1_4X,                //!<     EVEX [RM] (used by NN instructions that use RM-T1_4X encoding).
