@@ -19,6 +19,8 @@ matrix:
   exclude:
     - os: osx
       compiler: gcc
+    - os: linux
+      compiler: clang # Clang requires standard library used by GCC 4.9+, which fails on Travis.
 
 install:
   - |
