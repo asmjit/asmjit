@@ -1524,6 +1524,7 @@ ASMJIT_DEFINE_TYPE_ID(unsigned __int64  , TypeIdOfInt< unsigned __int64   >::kTy
 ASMJIT_DEFINE_TYPE_ID(long long         , TypeIdOfInt< long long          >::kTypeId);
 ASMJIT_DEFINE_TYPE_ID(unsigned long long, TypeIdOfInt< unsigned long long >::kTypeId);
 #endif
+ASMJIT_DEFINE_TYPE_ID(bool              , TypeIdOfInt< bool               >::kTypeId);
 #if ASMJIT_CC_HAS_NATIVE_CHAR
 ASMJIT_DEFINE_TYPE_ID(char              , TypeIdOfInt< char               >::kTypeId);
 #endif
