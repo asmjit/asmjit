@@ -395,8 +395,6 @@ public:
 
   //! Use zeroing instead of merging (AVX512+).
   inline This& z() noexcept { return _addInstOptions(X86Inst::kOptionZMask); }
-  //! Broadcast one element to all other elements (AVX512+).
-  inline This& _1tox() noexcept { return _addInstOptions(X86Inst::kOption1ToX); }
 
   //! Suppress all exceptions (AVX512+).
   inline This& sae() noexcept { return _addInstOptions(X86Inst::kOptionSAE); }

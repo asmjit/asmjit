@@ -172,6 +172,8 @@ ASMJIT_FAVOR_SIZE Error X86InstImpl::validate(uint32_t archType, const Inst::Det
     return DebugUtils::errored(kErrorInvalidInstruction);
 
   const X86Inst* iData = &X86InstDB::instData[instId];
+  const X86Inst::CommonData* commonData = &iData->getCommonData();
+
   uint32_t iFlags = iData->getFlags();
 
   // --------------------------------------------------------------------------
@@ -268,14 +270,32 @@ ASMJIT_FAVOR_SIZE Error X86InstImpl::validate(uint32_t archType, const Inst::Det
       // TODO: Validate base and index and combine with `combinedRegMask`.
       case Operand::kOpMem: {
         const X86Mem& m = op.as<X86Mem>();
+        memOp = &m;
 
+        uint32_t memSize = m.getSize();
         uint32_t baseType = m.getBaseType();
         uint32_t indexType = m.getIndexType();
 
-        memOp = &m;
-
         if (m.getSegmentId() > 6)
           return DebugUtils::errored(kErrorInvalidSegment);
+
+        // Validate AVX-512 broadcast {1tox}.
+        if (m.hasBroadcast()) {
+          if (memSize != 0) {
+            // If the size is specified it has to match the broadcast size.
+            if (ASMJIT_UNLIKELY(commonData->hasAvx512B32() && memSize != 4))
+              return DebugUtils::errored(kErrorInvalidBroadcast);
+
+            if (ASMJIT_UNLIKELY(commonData->hasAvx512B64() && memSize != 8))
+              return DebugUtils::errored(kErrorInvalidBroadcast);
+          }
+          else {
+            // If there is no size we implicitly calculate it so we can validate N in {1toN} properly.
+            memSize = commonData->hasAvx512B32() ? 4 : 8;
+          }
+
+          memSize <<= m.getBroadcast();
+        }
 
         if (baseType) {
           uint32_t baseId = m.getBaseId();
@@ -352,7 +372,7 @@ ASMJIT_FAVOR_SIZE Error X86InstImpl::validate(uint32_t archType, const Inst::Det
           opFlags |= X86Inst::kOpMem;
         }
 
-        switch (m.getSize()) {
+        switch (memSize) {
           case  0: memFlags |= X86Inst::kMemOpAny ; break;
           case  1: memFlags |= X86Inst::kMemOpM8  ; break;
           case  2: memFlags |= X86Inst::kMemOpM16 ; break;
@@ -392,7 +412,7 @@ ASMJIT_FAVOR_SIZE Error X86InstImpl::validate(uint32_t archType, const Inst::Det
             immFlags = k32AndMore;
           else if (immValue <= 0xFFFFFFFFU)
             immFlags = X86Inst::kOpU32 | X86Inst::kOpI64 | X86Inst::kOpU64;
-          else if (immValue <= ASMJIT_UINT64_C(0x7FFFFFFFFFFFFFFF))
+          else if (immValue <= 0x7FFFFFFFFFFFFFFFU)
             immFlags = X86Inst::kOpI64 | X86Inst::kOpU64;
           else
             immFlags = X86Inst::kOpU64;
@@ -456,7 +476,6 @@ ASMJIT_FAVOR_SIZE Error X86InstImpl::validate(uint32_t archType, const Inst::Det
   // [Validate Instruction Signature by Comparing Against All `iSig` Rows]
   // --------------------------------------------------------------------------
 
-  const X86Inst::CommonData* commonData = &iData->getCommonData();
   const X86Inst::ISignature* iSig = X86InstDB::iSignatureData + commonData->_iSignatureIndex;
   const X86Inst::ISignature* iEnd = iSig                      + commonData->_iSignatureCount;
 
@@ -525,7 +544,6 @@ Next:
 
   const RegOnly& extraReg = detail.extraReg;
   const uint32_t kAvx512Options = X86Inst::kOptionZMask   |
-                                  X86Inst::kOption1ToX    |
                                   X86Inst::kOptionER      |
                                   X86Inst::kOptionSAE     ;
 
@@ -544,22 +562,6 @@ Next:
       if ((options & X86Inst::kOptionZMask)) {
         if (ASMJIT_UNLIKELY((options & X86Inst::kOptionZMask) != 0 && !commonData->hasAvx512Z()))
           return DebugUtils::errored(kErrorInvalidKZeroUse);
-      }
-
-      // Validate AVX-512 broadcast {1tox}.
-      if (options & X86Inst::kOption1ToX) {
-        if (ASMJIT_UNLIKELY(!memOp))
-          return DebugUtils::errored(kErrorInvalidBroadcast);
-
-        uint32_t size = memOp->getSize();
-        if (size != 0) {
-          // The the size is specified it has to match the broadcast size.
-          if (ASMJIT_UNLIKELY(commonData->hasAvx512B32() && size != 4))
-            return DebugUtils::errored(kErrorInvalidBroadcast);
-
-          if (ASMJIT_UNLIKELY(commonData->hasAvx512B64() && size != 8))
-            return DebugUtils::errored(kErrorInvalidBroadcast);
-        }
       }
 
       // Validate AVX-512 {sae} and {er}.

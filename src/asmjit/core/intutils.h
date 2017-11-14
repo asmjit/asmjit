@@ -24,19 +24,10 @@ ASMJIT_BEGIN_NAMESPACE
 namespace IntUtils {
 
 // ============================================================================
-// [asmjit::IntUtils::Types]
-// ============================================================================
-
-#if ASMJIT_ARCH_X86
-typedef uint8_t FastUInt8;
-#else
-typedef unsigned int FastUInt8;
-#endif
-
-// ============================================================================
 // [asmjit::IntUtils::IntBySize / Int32Or64]
 // ============================================================================
 
+//! \internal
 namespace Internal {
   // IntBySize - Make an int-type by size (signed or unsigned) that is the
   //             same as types defined by <stdint.h>.
@@ -74,6 +65,7 @@ constexpr typename Internal::Int32Or64<T, 0>::Type asUInt(T x) noexcept { return
 // [asmjit::IntUtils::BitCast]
 // ============================================================================
 
+//! \internal
 namespace Internal {
   template<typename SRC, typename DST>
   union BitCast {
@@ -190,6 +182,7 @@ constexpr DST maskFromBool(SRC b) noexcept {
   return DST(U(0) - U(b));
 }
 
+//! \internal
 namespace Internal {
   // Fill all trailing bits right from the first most significant bit set.
   constexpr uint8_t fillTrailingBitsImpl(uint8_t x) noexcept { return or_shr(or_shr(or_shr(x, 1), 2), 4); }
@@ -213,65 +206,59 @@ constexpr T fillTrailingBits(const T& x) noexcept {
 // ============================================================================
 
 //! \internal
-static ASMJIT_FORCEINLINE uint32_t _ctzGeneric(uint32_t x) noexcept {
-  x &= neg(x);
+namespace Internal {
+  constexpr uint32_t ctzGenericImpl(uint32_t xAndNegX) noexcept {
+    return 31 - ((xAndNegX & 0x0000FFFFU) ? 16 : 0)
+              - ((xAndNegX & 0x00FF00FFU) ?  8 : 0)
+              - ((xAndNegX & 0x0F0F0F0FU) ?  4 : 0)
+              - ((xAndNegX & 0x33333333U) ?  2 : 0)
+              - ((xAndNegX & 0x55555555U) ?  1 : 0);
+  }
 
-  uint32_t c = 31;
-  if (x & 0x0000FFFFU) c -= 16;
-  if (x & 0x00FF00FFU) c -= 8;
-  if (x & 0x0F0F0F0FU) c -= 4;
-  if (x & 0x33333333U) c -= 2;
-  if (x & 0x55555555U) c -= 1;
+  constexpr uint32_t ctzGenericImpl(uint64_t xAndNegX) noexcept {
+    return 63 - ((xAndNegX & 0x00000000FFFFFFFFU) ? 32 : 0)
+              - ((xAndNegX & 0x0000FFFF0000FFFFU) ? 16 : 0)
+              - ((xAndNegX & 0x00FF00FF00FF00FFU) ?  8 : 0)
+              - ((xAndNegX & 0x0F0F0F0F0F0F0F0FU) ?  4 : 0)
+              - ((xAndNegX & 0x3333333333333333U) ?  2 : 0)
+              - ((xAndNegX & 0x5555555555555555U) ?  1 : 0);
+  }
 
-  return c;
-}
+  template<typename T>
+  constexpr T ctzGeneric(T x) noexcept {
+    return ctzGenericImpl(x & neg(x));
+  }
 
-//! \internal
-static ASMJIT_FORCEINLINE uint32_t _ctzGeneric(uint64_t x) noexcept {
-  x &= uint64_t(0) - x;
+  static ASMJIT_FORCEINLINE uint32_t ctz(uint32_t x) noexcept {
+    #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 || ASMJIT_ARCH_ARM)
+    unsigned long i;
+    _BitScanForward(&i, x);
+    return uint32_t(i);
+    #elif ASMJIT_CXX_GNU
+    return uint32_t(__builtin_ctz(x));
+    #else
+    return ctzGeneric(x);
+    #endif
+  }
 
-  uint32_t c = 63;
-  if (x & ASMJIT_UINT64_C(0x00000000FFFFFFFF)) c -= 32;
-  if (x & ASMJIT_UINT64_C(0x0000FFFF0000FFFF)) c -= 16;
-  if (x & ASMJIT_UINT64_C(0x00FF00FF00FF00FF)) c -= 8;
-  if (x & ASMJIT_UINT64_C(0x0F0F0F0F0F0F0F0F)) c -= 4;
-  if (x & ASMJIT_UINT64_C(0x3333333333333333)) c -= 2;
-  if (x & ASMJIT_UINT64_C(0x5555555555555555)) c -= 1;
-
-  return c;
-}
-
-//! \internal
-static ASMJIT_FORCEINLINE uint32_t _ctzImpl(uint32_t x) noexcept {
-  #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 || ASMJIT_ARCH_ARM)
-  unsigned long i;
-  _BitScanForward(&i, x);
-  return uint32_t(i);
-  #elif ASMJIT_CXX_GNU
-  return uint32_t(__builtin_ctz(x));
-  #else
-  return _ctzGeneric(x);
-  #endif
-}
-
-//! \internal
-static ASMJIT_FORCEINLINE uint32_t _ctzImpl(uint64_t x) noexcept {
-  #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 == 64 || ASMJIT_ARCH_ARM == 64)
-  unsigned long i;
-  _BitScanForward64(&i, x);
-  return uint32_t(i);
-  #elif ASMJIT_CXX_GNU
-  return uint32_t(__builtin_ctzll(x));
-  #else
-  return _ctzGeneric(x);
-  #endif
+  static ASMJIT_FORCEINLINE uint32_t ctz(uint64_t x) noexcept {
+    #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 == 64 || ASMJIT_ARCH_ARM == 64)
+    unsigned long i;
+    _BitScanForward64(&i, x);
+    return uint32_t(i);
+    #elif ASMJIT_CXX_GNU
+    return uint32_t(__builtin_ctzll(x));
+    #else
+    return ctzGeneric(x);
+    #endif
+  }
 }
 
 //! Count trailing zeros in `x` (returns a position of a first bit set in `x`).
 //!
 //! NOTE: The input MUST NOT be zero, otherwise the result is undefined.
 template<typename T>
-static inline uint32_t ctz(T x) noexcept { return _ctzImpl(asUInt(x)); }
+static inline uint32_t ctz(T x) noexcept { return Internal::ctz(asUInt(x)); }
 
 template<uint64_t N>
 struct StaticCtz {
@@ -316,9 +303,9 @@ static inline uint32_t _popcntGeneric(uint32_t x) noexcept {
 //! \internal
 static inline uint32_t _popcntGeneric(uint64_t x) noexcept {
   if (ASMJIT_ARCH_BITS == 64) {
-    x = x - ((x >> 1) & ASMJIT_UINT64_C(0x5555555555555555));
-    x = (x & ASMJIT_UINT64_C(0x3333333333333333)) + ((x >> 2) & ASMJIT_UINT64_C(0x3333333333333333));
-    return uint32_t((((x + (x >> 4)) & ASMJIT_UINT64_C(0x0F0F0F0F0F0F0F0F)) * ASMJIT_UINT64_C(0x0101010101010101)) >> 56);
+    x = x - ((x >> 1) & 0x5555555555555555U);
+    x = (x & 0x3333333333333333U) + ((x >> 2) & 0x3333333333333333U);
+    return uint32_t((((x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FU) * 0x0101010101010101U) >> 56);
   }
   else {
     return _popcntGeneric(uint32_t(x >> 32)) +

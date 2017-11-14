@@ -59,14 +59,14 @@ AsmJit Summary
 --------------
 
   * Complete x86/x64 instruction set - MMX, SSEx, BMIx, ADX, TBM, XOP, AVXx, FMAx, and AVX512.
-  * Assembler, CodeBuilder, and CodeCompiler emitters - each suitable for different tasks.
+  * Different emitters providing various abstraction levels (Assembler, CodeBuilder, CodeCompiler).
   * Built-in CPU vendor and features detection.
   * Advanced logging/formatting and robust error handling.
-  * Virtual memory management similar to malloc/free for JIT code-generation and execution.
-  * Lightweight and embeddable - 200-250kB compiled with all built-in features.
-  * Modularity - unneeded features can be disabled at compile-time to make the library smaller.
+  * JIT memory allocator - interface similar to malloc/free for JIT code-generation and execution.
+  * Lightweight and easily embeddable - 200-250kB compiled with all built-in features.
+  * Modular - unneeded features can be disabled at compile-time to make the library even smaller.
   * Zero dependencies - no external libraries, no STL/RTTI - easy to embed and/or link statically.
-  * Doesn't use exceptions internally, but allows to attach a "throwable" error handler (your choice).
+  * Doesn't use exceptions internally, but allows to attach a "throwable" error handler of your choice.
 
 Advanced Features
 -----------------
@@ -97,13 +97,13 @@ Supported Environments
 
 ### C++ Compilers:
 
-  * Standard:
-    * AsmJit won't build without C++11 enabled. If you use older GCC and Clang you would have to enable it through compiler flags.
+  * Features:
+    * AsmJit won't build without C++11 enabled. If you use older GCC and Clang you would have to enable at least c++11 through compiler flags.
   * Tested:
     * **Clang** - tested by Travis-CI - Clang 3.9+ (with C++11 enabled) is officially supported (older Clang versions having C++11 support are probably fine, but are not regularly tested).
     * **GNU** - tested by Travis-CI - GCC 4.8+ (with C++11 enabled) is officially supported.
     * **MINGW** - tested by AppVeyor - Use the latest version if possible.
-    * **MSVC** - tested by AppVeyor - **MSVC2017+ only!** - there is a severe bug in MSVC2015's `constexpr` implementation that makes that compiler officially unsupported.
+    * **MSVC** - tested by AppVeyor - **MSVC2017+ only!** - there is a severe bug in MSVC2015's `constexpr` implementation that makes that compiler unusable.
   * Untested:
     * **Intel** - no maintainers, no CI environment to regularly test this compiler.
     * Other c++ compilers would require basic support in [core/build.h](./src/asmjit/core/build.h).
@@ -135,8 +135,8 @@ Project Organization
     * **test**     - Unit and integration tests (don't embed in your project).
     * **tools**    - Tools used for configuring, documenting and generating data files.
 
-Configuring & Building
-----------------------
+Configuring & Feature Selection
+-------------------------------
 
 AsmJit is designed to be easy embeddable in any project. However, it depends on some compile-time macros that can be used to build a specific version of AsmJit that includes or excludes certain features. A typical way of building AsmJit is to use [cmake](https://www.cmake.org), but it's also possible to just include AsmJit source code in your project and just build it. The easiest way to include AsmJit in your project is to just include **src** directory in your project and to define `ASMJIT_BUILD_STATIC` or `ASMJIT_BUILD_EMBED`. AsmJit can be just updated from time to time without any changes to this integration process. Do not embed AsmJit's [/test](./test) files in such case as these are used for testing.
 
@@ -145,7 +145,7 @@ AsmJit is designed to be easy embeddable in any project. However, it depends on 
   * `ASMJIT_BUILD_DEBUG` - Define to always turn debugging on (regardless of compile-time options detected).
   * `ASMJIT_BUILD_RELEASE` - Define to always turn debugging off (regardless of compile-time options detected).
 
-By default none of these is defined, AsmJit detects build-type based on compile-time macros and supports most IDE and compiler settings out of box.
+By default none of these is defined, AsmJit detects build-type based on compile-time macros and supports most IDE and compiler settings out of box. By default AsmJit switches to release mode when `NDEBUG` is defined.
 
 ### Build Mode:
 
@@ -164,14 +164,14 @@ If none of `ASMJIT_BUILD_...` is defined AsmJit bails to `ASMJIT_BUILD_HOST`, wh
 
 ### Disabling Features:
 
-  * `ASMJIT_DISABLE_BUILDER` - Disables both `CodeBuilder` and `CodeCompiler` emitters (only `Assembler` will be available). Ideal for users that don't use `CodeBuilder` concept and want to create smaller AsmJit.
+  * `ASMJIT_DISABLE_BUILDER` - Disables both `CodeBuilder` and `CodeCompiler` emitters (only `Assembler` will be available). Ideal for users that don't use `CodeBuilder` concept and want to have AsmJit a bit smaller.
   * `ASMJIT_DISABLE_COMPILER` - Disables `CodeCompiler` emitter. For users that use `CodeBuilder`, but not `CodeCompiler`.
   * `ASMJIT_DISABLE_JIT` - Disables JIT execution engine, which includes `JitUtils`, `JitAllocator`, and `JitRuntime`.
   * `ASMJIT_DISABLE_LOGGING` - Disables logging (`Logger` and all classes that inherit it) and instruction formatting.
   * `ASMJIT_DISABLE_TEXT` - Disables everything that uses text-representation and that causes certain strings to be stored in the resulting binary. For example when this flag is enabled all instruction and error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGING`. This option is suitable for deployment builds or builds that don't want to reveal the use of AsmJit.
   * `ASMJIT_DISABLE_INST_API` - Disables strict validation, read/write information, and all additional data and APIs that can output information about instructions.
 
-NOTE: Please don't disable any features if you plan to build AsmJit as a shared library that will be used by multiple projects that you don't control (for example asmjit in a Linux distribution). The possibility to disable certain features exists mainly for static builds of AsmJit.
+NOTE: Please don't disable any features if you plan to build AsmJit as a shared library that will be used by multiple projects that you don't control (for example asmjit in a Linux distribution). The possibility to disable certain features exists mainly for customized builds of AsmJit.
 
 Using AsmJit
 ------------
@@ -220,7 +220,7 @@ AsmJit's operands all inherit from a base class called `Operand` and then specia
   * **Immediate Value** (`Imm`) - Immediate values are usually part of instructions (encoded within the instruction itself) or data.
   * **Label** - used to reference a location in code or data. Labels must be created by the `CodeEmitter` or by `CodeHolder`. Each label has its unique id per `CodeHolder` instance.
 
-AsmJit allows to construct operands dynamically, to store them, and to query a complete information about them at run-time. Operands are small (always 16 bytes per `Operand`) and should be always copied if you intend to store them (don't create operands by using `new` keyword, it's not recommended). Operands are safe to be `memcpy()`ed and `memset()`ed if you need to work with arrays of operands.
+AsmJit allows to construct operands dynamically, to store them, and to query a complete information about them at run-time. Operands are small (always 16 bytes per `Operand`) and should be always copied (by value) if you intend to store them (don't create operands by using `new` keyword, it's not recommended). Operands are safe to be `memcpy()`ed and `memset()`ed if you need to work with arrays of operands.
 
 Small example of manipulating and using operands:
 

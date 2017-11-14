@@ -22,14 +22,14 @@ ASMJIT_BEGIN_NAMESPACE
 
 namespace Globals {
 
-struct Init_ {};
-struct NoInit_ {};
-
-constexpr Init_ Init {};
-constexpr NoInit_ NoInit {};
-
 //! Storage used to store a pack of bits (should by compatible with a machine word).
 typedef uintptr_t BitWord;
+
+#if ASMJIT_ARCH_X86
+typedef uint8_t FastUInt8;
+#else
+typedef unsigned int FastUInt8;
+#endif
 
 //! Number of bits stored in `BitWord`.
 constexpr uint32_t kBitWordSize = uint32_t(sizeof(BitWord)) * 8;
@@ -81,6 +81,12 @@ enum Link : uint32_t {
 
   kLinkCount = 2
 };
+
+struct Init_ {};
+struct NoInit_ {};
+
+constexpr Init_ Init {};
+constexpr NoInit_ NoInit {};
 
 } // Globals namespace
 

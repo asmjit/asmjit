@@ -2266,7 +2266,7 @@ public:
 
     // Call a function.
     X86Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
 
     CCFuncCall* call = cc.call(fn, FuncSignatureT<int, int, int, int>(CallConv::kIdHost));
     call->setArg(0, v2);
@@ -2329,19 +2329,19 @@ public:
     cc.lea(p2, s2);
 
     // Try to corrupt the stack if wrongly allocated.
-    call = cc.call(imm_ptr((void*)std::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm(std::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p1);
-    call->setArg(1, imm_ptr(token));
+    call->setArg(1, imm(token));
     call->setArg(2, imm(kTokenSize));
     call->setRet(0, p1);
 
-    call = cc.call(imm_ptr((void*)std::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm(std::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p2);
-    call->setArg(1, imm_ptr(token));
+    call->setArg(1, imm(token));
     call->setArg(2, imm(kTokenSize));
     call->setRet(0, p2);
 
-    call = cc.call(imm_ptr((void*)std::memcmp), FuncSignatureT<int, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm(std::memcmp), FuncSignatureT<int, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p1);
     call->setArg(1, p2);
     call->setArg(2, imm(kTokenSize));
@@ -2399,7 +2399,7 @@ public:
     cc.setArg(2, z);
 
     X86Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
 
     CCFuncCall* call = cc.call(fn, FuncSignatureT<int, int, int, int>(CallConv::kIdHostStdCall));
     call->setArg(0, x);
@@ -2451,7 +2451,7 @@ public:
     cc.addFunc(FuncSignatureT<int, int>(CallConv::kIdHost));
     cc.setArg(0, var);
 
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
     CCFuncCall* call;
 
     call = cc.call(fn, FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
@@ -2617,7 +2617,7 @@ public:
     X86Gp vi = cc.newInt32("vi");
     X86Gp vj = cc.newInt32("vj");
 
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
     cc.mov(va, 0x03);
     cc.mov(vb, 0x12);
     cc.mov(vc, 0xA0);
@@ -2684,7 +2684,7 @@ public:
     X86Gp fn = cc.newIntPtr("fn");
     X86Gp a = cc.newInt32("a");
 
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
     cc.mov(a, 3);
 
     // Call function.
@@ -2738,7 +2738,7 @@ public:
     X86Gp fn = cc.newIntPtr("fn");
     X86Gp rv = cc.newInt32("rv");
 
-    cc.mov(fn, imm_ptr(X86Test_FuncCallManyArgs::calledFunc));
+    cc.mov(fn, imm(X86Test_FuncCallManyArgs::calledFunc));
 
     // Call function.
     CCFuncCall* call = cc.call(fn, FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
@@ -2804,7 +2804,7 @@ public:
     X86Gp fn = cc.newIntPtr("fn");
     X86Gp rv = cc.newInt32("rv");
 
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
 
     // Call function.
     CCFuncCall* call = cc.call(fn, FuncSignatureT<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>(CallConv::kIdHost));
@@ -2866,7 +2866,7 @@ public:
 
     // Prepare.
     X86Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
 
     // Call function.
     CCFuncCall* call = cc.call(fn, FuncSignatureT<float, float, float>(CallConv::kIdHost));
@@ -2920,7 +2920,7 @@ public:
     cc.setArg(1, b);
 
     X86Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm_ptr(calledFunc));
+    cc.mov(fn, imm(calledFunc));
 
     CCFuncCall* call = cc.call(fn, FuncSignatureT<double, double, double>(CallConv::kIdHost));
 
@@ -3178,7 +3178,7 @@ public:
     cc.setArg(0, a);
     cc.setArg(1, b);
 
-    CCFuncCall* call = cc.call(imm_ptr(dummy), FuncSignatureT<void, int, int>(CallConv::kIdHost));
+    CCFuncCall* call = cc.call(imm(dummy), FuncSignatureT<void, int, int>(CallConv::kIdHost));
     call->setArg(0, a);
     call->setArg(1, b);
 
@@ -3225,7 +3225,7 @@ public:
 
     cc.setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
-    cc.mov(fn, imm_ptr(op));
+    cc.mov(fn, imm(op));
 
     CCFuncCall* call = cc.call(fn, FuncSignatureT<double, double>(CallConv::kIdHost));
     call->setArg(0, arg);
@@ -3276,7 +3276,7 @@ public:
 
     cc.setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
-    cc.mov(fn, imm_ptr(op));
+    cc.mov(fn, imm(op));
 
     CCFuncCall* call = cc.call(fn, FuncSignatureT<double, double>(CallConv::kIdHost));
     call->setArg(0, arg);
@@ -3328,7 +3328,7 @@ public:
     FuncSignatureBuilder callPrototype;
     callPrototype.setCallConv(CallConv::kIdHost);
     callPrototype.setRet(Type::kIdF64);
-    CCFuncCall* call = cc.call(imm_ptr(calledFunc), callPrototype);
+    CCFuncCall* call = cc.call(imm(calledFunc), callPrototype);
 
     X86Xmm ret = cc.newXmmSd("ret");
     call->setRet(0, ret);
@@ -3375,7 +3375,7 @@ public:
     uint32_t i, regCount = cc.getGpCount();
     ASMJIT_ASSERT(regCount <= ASMJIT_ARRAY_SIZE(vars));
 
-    cc.mov(pFn, imm_ptr(calledFunc));
+    cc.mov(pFn, imm(calledFunc));
 
     for (i = 0; i < regCount; i++) {
       if (i == X86Gp::kIdBp || i == X86Gp::kIdSp)

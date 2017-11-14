@@ -515,7 +515,7 @@ public:
   //! Get whether the label was created by CodeEmitter and has an assigned id.
   constexpr bool isValid() const noexcept { return _label.id != 0; }
   //! Set label id.
-  inline void setId(uint32_t id) { _label.id = id; }
+  inline void setId(uint32_t id) noexcept { _label.id = id; }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -530,7 +530,7 @@ public:
 
 #define ASMJIT_DEFINE_REG_TRAITS(TRAITS_T, REG_T, TYPE, GROUP, SIZE, COUNT, TYPE_ID) \
 template<>                                                                    \
-struct TRAITS_T < TYPE > {                                                    \
+struct TRAITS_T<TYPE> {                                                       \
   typedef REG_T RegT;                                                         \
                                                                               \
   enum : uint32_t {                                                           \
@@ -892,9 +892,16 @@ public:
   // --------------------------------------------------------------------------
 
   //! Construct a default `Mem` operand, that points to [0].
-  constexpr Mem() noexcept : Operand(Globals::Init, kOpMem, 0, 0, 0) {}
+  constexpr Mem() noexcept
+    : Operand(Globals::Init, kOpMem, 0, 0, 0) {}
+
   //! Construct a `Mem` operand that is a clone of `other`.
-  constexpr Mem(const Mem& other) noexcept : Operand(other) {}
+  constexpr Mem(const Mem& other) noexcept
+    : Operand(other) {}
+
+  //! Construct a `Mem` operand from `MemData`.
+  explicit constexpr Mem(const MemData& data) noexcept
+    : Operand(Globals::Init, data.signature, data.base, data.index, data.offsetLo32) {}
 
   constexpr Mem(Globals::Init_, uint32_t baseType, uint32_t baseId, uint32_t indexType, uint32_t indexId, int32_t off, uint32_t size, uint32_t flags) noexcept
     : Operand(Globals::Init,
@@ -905,14 +912,13 @@ public:
               baseId,
               indexId,
               uint32_t(off)) {}
-  explicit inline Mem(Globals::NoInit_) noexcept : Operand(Globals::NoInit) {}
+
+  explicit inline Mem(Globals::NoInit_) noexcept
+    : Operand(Globals::NoInit) {}
 
   // --------------------------------------------------------------------------
-  // [Mem Specific]
+  // [Init / Reset]
   // --------------------------------------------------------------------------
-
-  //! Clone `Mem` operand.
-  constexpr Mem clone() const noexcept { return Mem(*this); }
 
   //! Reset the memory operand - after reset the memory points to [0].
   inline void reset() noexcept {
@@ -920,6 +926,13 @@ public:
     _any.id = 0;
     _p64[1] = 0;
   }
+
+  // --------------------------------------------------------------------------
+  // [Mem Specific]
+  // --------------------------------------------------------------------------
+
+  //! Clone `Mem` operand.
+  constexpr Mem clone() const noexcept { return Mem(*this); }
 
   constexpr bool hasAddrType() const noexcept { return _hasSignatureData(kSignatureMemAddrTypeMask); }
   constexpr uint32_t getAddrType() const noexcept { return _getSignatureData(kSignatureMemAddrTypeBits, kSignatureMemAddrTypeShift); }
@@ -1085,8 +1098,8 @@ public:
 //! or before the instruction opcode. Immediates can be only signed or unsigned
 //! integers.
 //!
-//! To create immediate operand use `imm()` or `imm_u()` non-members or `Imm`
-//! constructors.
+//! To create an immediate operand use `asmjit::imm()` helper, which can be used
+//! with any type, not just the default 64-bit int.
 class Imm : public Operand {
 public:
   // --------------------------------------------------------------------------
@@ -1158,34 +1171,30 @@ public:
   constexpr uintptr_t getUIntPtr() const noexcept { return (sizeof(uintptr_t) == sizeof(uint64_t)) ? uintptr_t(getUInt64()) : uintptr_t(getUInt32()); }
 
   //! Set immediate value to 8-bit signed integer `val`.
-  inline void setInt8(int8_t val) noexcept { _imm.value.i64 = int64_t(val); }
+  inline void setI8(int8_t val) noexcept { _imm.value.i64 = int64_t(val); }
   //! Set immediate value to 8-bit unsigned integer `val`.
-  inline void setUInt8(uint8_t val) noexcept { _imm.value.u64 = uint64_t(val); }
-
+  inline void setU8(uint8_t val) noexcept { _imm.value.u64 = uint64_t(val); }
   //! Set immediate value to 16-bit signed integer `val`.
-  inline void setInt16(int16_t val) noexcept { _imm.value.i64 = int64_t(val); }
+  inline void setI16(int16_t val) noexcept { _imm.value.i64 = int64_t(val); }
   //! Set immediate value to 16-bit unsigned integer `val`.
-  inline void setUInt16(uint16_t val) noexcept { _imm.value.u64 = uint64_t(val); }
-
+  inline void setU16(uint16_t val) noexcept { _imm.value.u64 = uint64_t(val); }
   //! Set immediate value to 32-bit signed integer `val`.
-  inline void setInt32(int32_t val) noexcept { _imm.value.i64 = int64_t(val); }
+  inline void setI32(int32_t val) noexcept { _imm.value.i64 = int64_t(val); }
   //! Set immediate value to 32-bit unsigned integer `val`.
-  inline void setUInt32(uint32_t val) noexcept { _imm.value.u64 = uint64_t(val); }
-
+  inline void setU32(uint32_t val) noexcept { _imm.value.u64 = uint64_t(val); }
   //! Set immediate value to 64-bit signed integer `val`.
-  inline void setInt64(int64_t val) noexcept { _imm.value.i64 = val; }
+  inline void setI64(int64_t val) noexcept { _imm.value.i64 = val; }
   //! Set immediate value to 64-bit unsigned integer `val`.
-  inline void setUInt64(uint64_t val) noexcept { _imm.value.u64 = val; }
+  inline void setU64(uint64_t val) noexcept { _imm.value.u64 = val; }
+
   //! Set immediate value to intptr_t `val`.
   inline void setIntPtr(intptr_t val) noexcept { _imm.value.i64 = int64_t(val); }
   //! Set immediate value to uintptr_t `val`.
   inline void setUIntPtr(uintptr_t val) noexcept { _imm.value.u64 = uint64_t(val); }
 
-  //! Set immediate value as unsigned type to `val`.
-  inline void setPtr(void* p) noexcept { setUIntPtr((uintptr_t)p); }
   //! Set immediate value to `val`.
   template<typename T>
-  inline void setValue(T val) noexcept { setInt64((int64_t)val); }
+  inline void setValue(T val) noexcept { setI64(int64_t(IntUtils::asNormalized(val))); }
 
   // --------------------------------------------------------------------------
   // [Float]
@@ -1220,13 +1229,9 @@ public:
   inline Imm& operator=(const Imm& other) noexcept { copyFrom(other); return *this; }
 };
 
-//! Create a signed immediate operand.
-static constexpr Imm imm(int64_t val) noexcept { return Imm(val); }
-//! Create an unsigned immediate operand.
-static constexpr Imm imm_u(uint64_t val) noexcept { return Imm(int64_t(val)); }
-//! Create an immediate operand from `p`.
+//! Create an immediate operand.
 template<typename T>
-static constexpr Imm imm_ptr(T p) noexcept { return Imm(int64_t((intptr_t)p)); }
+constexpr Imm imm(T val) noexcept { return Imm(int64_t(IntUtils::asNormalized(val))); }
 
 //! \}
 

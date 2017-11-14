@@ -83,7 +83,7 @@ struct Inst {
   // --------------------------------------------------------------------------
 
   enum Options : uint32_t {
-    //! Reserved for use by CodeBuilder and CodeCompiler.
+    //! Used internally by emitters for handling errors and rare cases.
     kOptionReserved       = 0x00000001U,
 
     //! Used only by Assembler to mark that `_op4` and `_op5` are used (internal).

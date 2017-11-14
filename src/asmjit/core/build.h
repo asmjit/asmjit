@@ -67,7 +67,7 @@
 // [asmjit::Build - Globals - Deprecated]
 // ============================================================================
 
-// TODO: Remove starting v1.4
+// DEPRECATED: Will be removed from v1.4+.
 #if defined(ASMJIT_EMBED)
   #pragma message("'ASMJIT_EMBED' is deprecated, use 'ASMJIT_BUILD_EMBED'")
   #define ASMJIT_BUILD_EMBED
@@ -308,6 +308,14 @@
                         (ASMJIT_CXX_MSC_ONLY >= ASMJIT_CXX_MAKE_VER(19, 0, 0)) || \
                         (ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(4 , 5, 0) && __cplusplus >= 201103L) ))
 
+// SEVERE: VS2015 handles constexpr's incorrectly in case a struct contains a
+//         union. There is no workaround known other than rewriting the whole
+//         code.
+//         VS2017 has a similar bug, but it can be workarounded.
+#if ASMJIT_CXX_MSC_ONLY && ASMJIT_CXX_MSC_ONLY < ASMJIT_CXX_MAKE_VER(19, 10, 0)
+  #error "[asmjit] At least VS2017 is required due to a severe bug in VS2015's 'constexpr', please upgrade your compiler."
+#endif
+
 // ============================================================================
 // [asmjit::Build - Globals - API Decorators & Language Extensions]
 // ============================================================================
@@ -423,7 +431,6 @@
 #define ASMJIT_UNUSED(X) (void)(X)
 
 // Utilities.
-#define ASMJIT_UINT64_C(X) static_cast<uint64_t>(X##ull)
 #define ASMJIT_OFFSET_OF(STRUCT, MEMBER) ((int)(intptr_t)((const char*)&((const STRUCT*)0x1)->MEMBER) - 1)
 #define ASMJIT_ARRAY_SIZE(X) uint32_t(sizeof(X) / sizeof(X[0]))
 

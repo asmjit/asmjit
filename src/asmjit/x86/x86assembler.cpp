@@ -13,14 +13,20 @@
 
 // [Dependencies]
 #include "../core/cpuinfo.h"
-#include "../core/logging.h"
 #include "../core/intutils.h"
+#include "../core/logging.h"
 #include "../core/memutils.h"
 #include "../core/misc_p.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86logging_p.h"
 
 ASMJIT_BEGIN_NAMESPACE
+
+// ============================================================================
+// [TypeDefs]
+// ============================================================================
+
+typedef Globals::FastUInt8 FastUInt8;
 
 // ============================================================================
 // [Constants]
@@ -61,7 +67,7 @@ enum X86Byte : uint32_t {
   //!   - `[2]` - Payload1 or `P[15: 8]` - `[W  v  v  v  v  1  p  p]`.
   //!   - `[3]` - Payload2 or `P[23:16]` - `[z  L' L  b  V' a  a  a]`.
   //!
-  //! Groups:
+  //! Payload:
   //!   - `P[ 1: 0]` - OPCODE: EVEX.mmmmm, only lowest 2 bits [1:0] used.
   //!   - `P[ 3: 2]` - ______: Must be 0.
   //!   - `P[    4]` - REG-ID: EVEX.R' - 5th bit of 'RRRRR'.
@@ -446,7 +452,7 @@ public:
   ASMJIT_FORCEINLINE void emitSegmentOverride(uint32_t segmentId) noexcept {
     ASMJIT_ASSERT(segmentId < ASMJIT_ARRAY_SIZE(x86SegmentPrefix));
 
-    IntUtils::FastUInt8 prefix = x86SegmentPrefix[segmentId];
+    FastUInt8 prefix = x86SegmentPrefix[segmentId];
     emit8If(prefix, prefix != 0);
   }
 
@@ -455,7 +461,7 @@ public:
     emit8If(0x67, condition);
   }
 
-  ASMJIT_FORCEINLINE void emitImmediate(uint64_t imVal, IntUtils::FastUInt8 imLen) noexcept {
+  ASMJIT_FORCEINLINE void emitImmediate(uint64_t imVal, FastUInt8 imLen) noexcept {
     if (!imLen)
       return;
 
@@ -523,7 +529,17 @@ X86Assembler::~X86Assembler() noexcept {}
 // ============================================================================
 
 ASMJIT_FAVOR_SPEED Error X86Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
-  typedef IntUtils::FastUInt8 FastUInt8;
+  constexpr uint32_t kVSHR_W     = X86Inst::kOpCode_W_Shift  - 23;
+  constexpr uint32_t kVSHR_PP    = X86Inst::kOpCode_PP_Shift - 16;
+  constexpr uint32_t kVSHR_PP_EW = X86Inst::kOpCode_PP_Shift - 16;
+
+  constexpr uint32_t kRequiresSpecialHandling =
+    X86Inst::kOptionReserved | // Logging/Validation/Error.
+    X86Inst::kOptionRep      | // REP/REPZ prefix.
+    X86Inst::kOptionRepne    | // REPNZ prefix.
+    X86Inst::kOptionLock     | // LOCK prefix.
+    X86Inst::kOptionXAcquire | // XACQUIRE prefix.
+    X86Inst::kOptionXRelease ; // XRELEASE prefix.
 
   Error err;
 
@@ -542,10 +558,6 @@ ASMJIT_FAVOR_SPEED Error X86Assembler::_emit(uint32_t instId, const Operand_& o0
   int64_t imVal = 0;               // Immediate value (must be 64-bit).
   FastUInt8 imLen = 0;             // Immediate length.
 
-  const uint32_t kVSHR_W     = X86Inst::kOpCode_W_Shift  - 23;
-  const uint32_t kVSHR_PP    = X86Inst::kOpCode_PP_Shift - 16;
-  const uint32_t kVSHR_PP_EW = X86Inst::kOpCode_PP_Shift - 16;
-
   X86BufferWriter writer(this);
   uint32_t options;
 
@@ -556,17 +568,10 @@ ASMJIT_FAVOR_SPEED Error X86Assembler::_emit(uint32_t instId, const Operand_& o0
   const X86Inst* instData = X86InstDB::instData + instId;
   const X86Inst::CommonData* commonData;
 
-  // Handle failure and rare cases first.
-  const uint32_t kRequiresSpecialHandling = X86Inst::kOptionReserved | // Logging/Validation/Error.
-                                            X86Inst::kOptionRep      | // REP/REPZ prefix.
-                                            X86Inst::kOptionRepne    | // REPNZ prefix.
-                                            X86Inst::kOptionLock     | // LOCK prefix.
-                                            X86Inst::kOptionXAcquire | // XACQUIRE prefix.
-                                            X86Inst::kOptionXRelease ; // XRELEASE prefix.
-
   // Signature of the first 3 operands.
   uint32_t isign3 = o0.getOp() + (o1.getOp() << 3) + (o2.getOp() << 6);
 
+  // Handle failure and rare cases first.
   if (ASMJIT_UNLIKELY(options & kRequiresSpecialHandling)) {
     if (ASMJIT_UNLIKELY(!_code))
       return DebugUtils::errored(kErrorNotInitialized);
@@ -644,7 +649,6 @@ ASMJIT_FAVOR_SPEED Error X86Assembler::_emit(uint32_t instId, const Operand_& o0
 
   opcode = instData->getMainOpCode();
   opReg = opcode.extract_o();
-
   commonData = &instData->getCommonData();
 
   switch (instData->getEncodingType()) {
@@ -1692,7 +1696,7 @@ CaseX86M_GPB_MulDiv:
           goto EmitDone;
         }
         else {
-          goto CaseX86Pop_Gp;
+          goto CaseX86PushPop_Gp;
         }
       }
 
@@ -1720,7 +1724,7 @@ CaseX86M_GPB_MulDiv:
           goto EmitDone;
         }
         else {
-CaseX86Pop_Gp:
+CaseX86PushPop_Gp:
           // We allow 2 byte, 4 byte, and 8 byte register sizes, although PUSH
           // and POP only allow 2 bytes or native size. On 64-bit we simply
           // PUSH/POP 64-bit register even if 32-bit register was given.
@@ -1728,9 +1732,8 @@ CaseX86Pop_Gp:
             goto InvalidInstruction;
 
           opcode = commonData->getAltOpCode();
-          opReg = o0.getId();
-
           opcode.add_66h_by_size(o0.getSize());
+          opReg = o0.getId();
           goto EmitX86OpReg;
         }
       }
@@ -3967,10 +3970,9 @@ EmitVexEvexR:
     x |= (~commonData->getFlags() & X86Inst::kFlagVex) << (31 - IntUtils::staticCtz<X86Inst::kFlagVex>());
 
     // Handle AVX512 options by a single branch.
-    const uint32_t kAvx512Options = X86Inst::kOptionZMask   |
-                                    X86Inst::kOption1ToX    |
-                                    X86Inst::kOptionER      |
-                                    X86Inst::kOptionSAE     ;
+    const uint32_t kAvx512Options = X86Inst::kOptionZMask |
+                                    X86Inst::kOptionER    |
+                                    X86Inst::kOptionSAE   ;
     if (options & kAvx512Options) {
       uint32_t kBcstMask = 0x1 << 20;
       uint32_t kLLMask10 = 0x2 << 21;
@@ -3981,10 +3983,6 @@ EmitVexEvexR:
       ASMJIT_ASSERT(X86Inst::kOptionRZ_SAE == kLLMask11);
 
       x |= options & X86Inst::kOptionZMask;              // [@.......|zLLb.aaa|Vvvvv..R|RBBmmmmm].
-
-      // Broadcast without memory operand is invalid.
-      if (ASMJIT_UNLIKELY(options & X86Inst::kOption1ToX))
-        goto InvalidBroadcast;
 
       // Support embedded-rounding {er} and suppress-all-exceptions {sae}.
       if (options & (X86Inst::kOptionER | X86Inst::kOptionSAE)) {
@@ -4095,21 +4093,23 @@ EmitVexEvexM:
     // trigger from outside as `imLen` is always set before jumping to `EmitVexEvexM`.
     ASMJIT_ASSERT(imLen <= 1);
 
+    uint32_t broadcastBit = uint32_t(rmRel->as<X86Mem>().hasBroadcast());
+
     // Construct `x` - a complete EVEX|VEX prefix.
-    uint32_t x = ((opReg << 4 ) & 0x0000F980U) |         // [........|........|Vvvvv..R|R.......].
-                 ((rxReg << 3 ) & 0x00000040U) |         // [........|........|........|.X......].
+    uint32_t x = ((opReg <<  4) & 0x0000F980U) |         // [........|........|Vvvvv..R|R.......].
+                 ((rxReg <<  3) & 0x00000040U) |         // [........|........|........|.X......].
                  ((rxReg << 15) & 0x00080000U) |         // [........|....X...|........|........].
-                 ((rbReg << 2 ) & 0x00000020U) |         // [........|........|........|..B.....].
-                 (opcode.extract_ll_mm(options)) |       // [........|.LL.X...|Vvvvv..R|RXBmmmmm].
-                 (_extraReg.getId() << 16)         ;     // [........|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
+                 ((rbReg <<  2) & 0x00000020U) |         // [........|........|........|..B.....].
+                 opcode.extract_ll_mm(options) |         // [........|.LL.X...|Vvvvv..R|RXBmmmmm].
+                 (_extraReg.getId() << 16)     |         // [........|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
+                 (broadcastBit      << 20)     ;         // [........|.LLbXaaa|Vvvvv..R|RXBmmmmm].
     opReg &= 0x07U;
 
-    // Mark invalid VEX (force EVEX) case:               // [@.......|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
+    // Mark invalid VEX (force EVEX) case:               // [@.......|.LLbXaaa|Vvvvv..R|RXBmmmmm].
     x |= (~commonData->getFlags() & X86Inst::kFlagVex) << (31 - IntUtils::staticCtz<X86Inst::kFlagVex>());
 
     // Handle AVX512 options by a single branch.
-    const uint32_t kAvx512Options = X86Inst::kOption1ToX    |
-                                    X86Inst::kOptionZMask   |
+    const uint32_t kAvx512Options = X86Inst::kOptionZMask   |
                                     X86Inst::kOptionER      |
                                     X86Inst::kOptionSAE     ;
     if (options & kAvx512Options) {
@@ -4117,8 +4117,7 @@ EmitVexEvexM:
       if (ASMJIT_UNLIKELY(options & (X86Inst::kOptionER | X86Inst::kOptionSAE)))
         goto InvalidEROrSAE;
 
-      x |= options & (X86Inst::kOption1ToX |             // [@.......|.LLbXaaa|Vvvvv..R|RXBmmmmm].
-                      X86Inst::kOptionZMask);            // [@.......|zLLbXaaa|Vvvvv..R|RXBmmmmm].
+      x |= options & (X86Inst::kOptionZMask);            // [@.......|zLLbXaaa|Vvvvv..R|RXBmmmmm].
     }
 
     // Check if EVEX is required by checking bits in `x` :  [@.......|xx.xxxxx|x......x|...x....].

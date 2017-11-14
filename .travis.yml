@@ -88,11 +88,6 @@ matrix:
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m64"
 
     - os: osx
-<<<<<<< HEAD
-      compiler: gcc
-    - os: linux
-      compiler: clang # Clang requires standard library used by GCC 4.9+, which fails on Travis.
-=======
       osx_image: xcode8
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m32"
     - os: osx
@@ -115,7 +110,6 @@ matrix:
 
 before_install:
   - eval "$BUILD_MATRIX"
->>>>>>> 4fab3c7... Completely Updated AsmJit with new RA and many major changes.
 
 install:
   - |

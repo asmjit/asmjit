@@ -163,6 +163,11 @@ static constexpr bool isU32(uint32_t typeId) noexcept { return typeId == kIdU32;
 static constexpr bool isI64(uint32_t typeId) noexcept { return typeId == kIdI64; }
 static constexpr bool isU64(uint32_t typeId) noexcept { return typeId == kIdU64; }
 
+static constexpr bool isGp8(uint32_t typeId) noexcept { return typeId >= kIdI8 && typeId <= kIdU8; }
+static constexpr bool isGp16(uint32_t typeId) noexcept { return typeId >= kIdI16 && typeId <= kIdU16; }
+static constexpr bool isGp32(uint32_t typeId) noexcept { return typeId >= kIdI32 && typeId <= kIdU32; }
+static constexpr bool isGp64(uint32_t typeId) noexcept { return typeId >= kIdI64 && typeId <= kIdU64; }
+
 static constexpr bool isFloat(uint32_t typeId) noexcept { return typeId >= _kIdFloatStart && typeId <= _kIdFloatEnd; }
 static constexpr bool isF32(uint32_t typeId) noexcept { return typeId == kIdF32; }
 static constexpr bool isF64(uint32_t typeId) noexcept { return typeId == kIdF64; }
@@ -280,19 +285,19 @@ static constexpr uint32_t deabstract(uint32_t typeId, uint32_t deabstractDelta) 
   return isAbstract(typeId) ? typeId + deabstractDelta : typeId;
 }
 
-struct Bool    {};                       //!< bool as C++ type-name.
-struct Int8    {};                       //!< int8_t as C++ type-name.
-struct UInt8   {};                       //!< uint8_t as C++ type-name.
-struct Int16   {};                       //!< int16_t as C++ type-name.
-struct UInt16  {};                       //!< uint16_t as C++ type-name.
-struct Int32   {};                       //!< int32_t as C++ type-name.
-struct UInt32  {};                       //!< uint32_t as C++ type-name.
-struct Int64   {};                       //!< int64_t as C++ type-name.
-struct UInt64  {};                       //!< uint64_t as C++ type-name.
-struct IntPtr  {};                       //!< intptr_t as C++ type-name.
-struct UIntPtr {};                       //!< uintptr_t as C++ type-name.
-struct Float   {};                       //!< float as C++ type-name.
-struct Double  {};                       //!< double as C++ type-name.
+struct Bool {};                          //!< bool as C++ type-name.
+struct I8   {};                          //!< int8_t as C++ type-name.
+struct U8   {};                          //!< uint8_t as C++ type-name.
+struct I16  {};                          //!< int16_t as C++ type-name.
+struct U16  {};                          //!< uint16_t as C++ type-name.
+struct I32  {};                          //!< int32_t as C++ type-name.
+struct U32  {};                          //!< uint32_t as C++ type-name.
+struct I64  {};                          //!< int64_t as C++ type-name.
+struct U64  {};                          //!< uint64_t as C++ type-name.
+struct IPtr {};                          //!< intptr_t as C++ type-name.
+struct UPtr {};                          //!< uintptr_t as C++ type-name.
+struct F32  {};                          //!< float as C++ type-name.
+struct F64  {};                          //!< double as C++ type-name.
 
 } // Type namespace
 
@@ -334,19 +339,19 @@ ASMJIT_DEFINE_TYPE_ID(void              , kIdVoid);
 ASMJIT_DEFINE_TYPE_ID(float             , kIdF32);
 ASMJIT_DEFINE_TYPE_ID(double            , kIdF64);
 
-ASMJIT_DEFINE_TYPE_ID(Bool              , IdOfIntT<bool              >::kTypeId);
-ASMJIT_DEFINE_TYPE_ID(Int8              , kIdI8);
-ASMJIT_DEFINE_TYPE_ID(UInt8             , kIdU8);
-ASMJIT_DEFINE_TYPE_ID(Int16             , kIdI16);
-ASMJIT_DEFINE_TYPE_ID(UInt16            , kIdU16);
-ASMJIT_DEFINE_TYPE_ID(Int32             , kIdI32);
-ASMJIT_DEFINE_TYPE_ID(UInt32            , kIdU32);
-ASMJIT_DEFINE_TYPE_ID(Int64             , kIdI64);
-ASMJIT_DEFINE_TYPE_ID(UInt64            , kIdU64);
-ASMJIT_DEFINE_TYPE_ID(IntPtr            , kIdIntPtr);
-ASMJIT_DEFINE_TYPE_ID(UIntPtr           , kIdUIntPtr);
-ASMJIT_DEFINE_TYPE_ID(Float             , kIdF32);
-ASMJIT_DEFINE_TYPE_ID(Double            , kIdF64);
+ASMJIT_DEFINE_TYPE_ID(Bool              , kIdU8);
+ASMJIT_DEFINE_TYPE_ID(I8                , kIdI8);
+ASMJIT_DEFINE_TYPE_ID(U8                , kIdU8);
+ASMJIT_DEFINE_TYPE_ID(I16               , kIdI16);
+ASMJIT_DEFINE_TYPE_ID(U16               , kIdU16);
+ASMJIT_DEFINE_TYPE_ID(I32               , kIdI32);
+ASMJIT_DEFINE_TYPE_ID(U32               , kIdU32);
+ASMJIT_DEFINE_TYPE_ID(I64               , kIdI64);
+ASMJIT_DEFINE_TYPE_ID(U64               , kIdU64);
+ASMJIT_DEFINE_TYPE_ID(IPtr              , kIdIntPtr);
+ASMJIT_DEFINE_TYPE_ID(UPtr              , kIdUIntPtr);
+ASMJIT_DEFINE_TYPE_ID(F32               , kIdF32);
+ASMJIT_DEFINE_TYPE_ID(F64               , kIdF64);
 
 //! \}
 

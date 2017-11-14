@@ -745,7 +745,7 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
       ASMJIT_PROPAGATE(X86Logging_explainConst(sb, logOptions, instId, vecSize, op.as<Imm>()));
     }
 
-    // Support AVX-512 {k}{z}.
+    // Support AVX-512 masking - {k}{z}.
     if (i == 0) {
       if (detail.extraReg.getGroup() == X86Reg::kGroupK) {
         ASMJIT_PROPAGATE(sb.appendString(" {"));
@@ -760,9 +760,10 @@ ASMJIT_FAVOR_SIZE Error X86Logging::formatInstruction(
       }
     }
 
-    // Support AVX-512 {1tox}.
-    if (op.isMem() && (options & X86Inst::kOption1ToX))
-      ASMJIT_PROPAGATE(sb.appendString(" {1tox}"));
+    // Support AVX-512 broadcast - {1tox}.
+    if (op.isMem() && op.as<X86Mem>().hasBroadcast()) {
+      ASMJIT_PROPAGATE(sb.appendFormat(" {1to%u}", IntUtils::mask(op.as<X86Mem>().getBroadcast())));
+    }
   }
 
   return kErrorOk;

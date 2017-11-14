@@ -185,19 +185,19 @@ UNIT(x86_operand) {
   EXPECT(m.getOffset() == 0);
   EXPECT(m.getOffsetLo32() == 0);
 
-  m = x86::ptr(ASMJIT_UINT64_C(0x0123456789ABCDEF));
+  m = x86::ptr(0x0123456789ABCDEFU);
   EXPECT(m.hasBase() == false);
   EXPECT(m.hasBaseReg() == false);
   EXPECT(m.hasIndex() == false);
   EXPECT(m.hasIndexReg() == false);
   EXPECT(m.hasOffset() == true);
   EXPECT(m.isOffset64Bit() == true);
-  EXPECT(m.getOffset() == int64_t(ASMJIT_UINT64_C(0x0123456789ABCDEF)));
-  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEF));
+  EXPECT(m.getOffset() == int64_t(0x0123456789ABCDEFU));
+  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEFU));
   m.addOffset(1);
-  EXPECT(m.getOffset() == int64_t(ASMJIT_UINT64_C(0x0123456789ABCDF0)));
+  EXPECT(m.getOffset() == int64_t(0x0123456789ABCDF0U));
 
-  m = x86::ptr(ASMJIT_UINT64_C(0x0123456789ABCDEF), x86::rdi, 4);
+  m = x86::ptr(0x0123456789ABCDEFU, x86::rdi, 4);
   EXPECT(m.hasBase() == false);
   EXPECT(m.hasBaseReg() == false);
   EXPECT(m.hasIndex() == true);
@@ -206,8 +206,8 @@ UNIT(x86_operand) {
   EXPECT(m.getIndexId() == x86::rdi.getId());
   EXPECT(m.hasOffset() == true);
   EXPECT(m.isOffset64Bit() == true);
-  EXPECT(m.getOffset() == int64_t(ASMJIT_UINT64_C(0x0123456789ABCDEF)));
-  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEF));
+  EXPECT(m.getOffset() == int64_t(0x0123456789ABCDEFU));
+  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEFU));
   m.resetIndex();
   EXPECT(m.hasIndex() == false);
   EXPECT(m.hasIndexReg() == false);

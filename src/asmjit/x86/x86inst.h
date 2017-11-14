@@ -2016,7 +2016,6 @@ struct X86Inst {
 
     kOptionER             = 0x00040000U, //!< AVX-512: embedded-rounding {er} and implicit {sae}.
     kOptionSAE            = 0x00080000U, //!< AVX-512: suppress-all-exceptions {sae}.
-    kOption1ToX           = 0x00100000U, //!< AVX-512: broadcast the first element to all {1tox}.
     kOptionRN_SAE         = 0x00000000U, //!< AVX-512: round-to-nearest (even)      {rn-sae} (bits 00).
     kOptionRD_SAE         = 0x00200000U, //!< AVX-512: round-down (toward -inf)     {rd-sae} (bits 01).
     kOptionRU_SAE         = 0x00400000U, //!< AVX-512: round-up (toward +inf)       {ru-sae} (bits 10).

@@ -392,13 +392,27 @@ class X86Mem : public Mem {
 public:
   //! Additional bits of operand's signature used by `X86Mem`.
   enum AdditionalBits : uint32_t {
-    kSignatureMemShiftShift   = 19,
-    kSignatureMemShiftBits    = 0x03U,
-    kSignatureMemShiftMask    = kSignatureMemShiftBits << kSignatureMemShiftShift,
+    kSignatureMemSegmentShift   = 16,
+    kSignatureMemSegmentBits    = 0x07U,
+    kSignatureMemSegmentMask    = kSignatureMemSegmentBits << kSignatureMemSegmentShift,
 
-    kSignatureMemSegmentShift = 21,
-    kSignatureMemSegmentBits  = 0x07U,
-    kSignatureMemSegmentMask  = kSignatureMemSegmentBits << kSignatureMemSegmentShift
+    kSignatureMemShiftShift     = 19,
+    kSignatureMemShiftBits      = 0x03U,
+    kSignatureMemShiftMask      = kSignatureMemShiftBits << kSignatureMemShiftShift,
+
+    kSignatureMemBroadcastShift = 21,
+    kSignatureMemBroadcastBits  = 0x7U,
+    kSignatureMemBroadcastMask  = kSignatureMemBroadcastBits << kSignatureMemBroadcastShift
+  };
+
+  enum Broadcast : uint32_t {
+    kBroadcast1To1              = 0,
+    kBroadcast1To2              = 1,
+    kBroadcast1To4              = 2,
+    kBroadcast1To8              = 3,
+    kBroadcast1To16             = 4,
+    kBroadcast1To32             = 5,
+    kBroadcast1To64             = 6
   };
 
   // --------------------------------------------------------------------------
@@ -430,18 +444,19 @@ public:
   constexpr X86Mem(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0, uint32_t flags = 0) noexcept
     : Mem(Globals::Init, 0, uint32_t(base >> 32), index.getType(), index.getId(), int32_t(uint32_t(base & 0xFFFFFFFFU)), size, flags | (shift << kSignatureMemShiftShift)) {}
 
+  //! Construct a `X86Mem` operand from `MemData`.
+  explicit constexpr X86Mem(const MemData& data) noexcept
+    : Mem(data) {}
+
   constexpr X86Mem(Globals::Init_, uint32_t baseType, uint32_t baseId, uint32_t indexType, uint32_t indexId, int32_t off, uint32_t size, uint32_t flags) noexcept
     : Mem(Globals::Init, baseType, baseId, indexType, indexId, off, size, flags) {}
 
   explicit inline X86Mem(Globals::NoInit_) noexcept
     : Mem(Globals::NoInit) {}
 
-  // --------------------------------------------------------------------------
-  // [X86Mem]
-  // --------------------------------------------------------------------------
-
   //! Clone the memory operand.
   constexpr X86Mem clone() const noexcept { return X86Mem(*this); }
+
   //! Get new memory operand adjusted by `off`.
   inline X86Mem cloneAdjusted(int64_t off) const noexcept {
     X86Mem result(*this);
@@ -449,21 +464,24 @@ public:
     return result;
   }
 
+  constexpr X86Mem _1to1() const noexcept { return X86Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To1 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+  constexpr X86Mem _1to2() const noexcept { return X86Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To2 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+  constexpr X86Mem _1to4() const noexcept { return X86Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To4 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+  constexpr X86Mem _1to8() const noexcept { return X86Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To8 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+  constexpr X86Mem _1to16() const noexcept { return X86Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To16 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+  constexpr X86Mem _1to32() const noexcept { return X86Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To32 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+  constexpr X86Mem _1to64() const noexcept { return X86Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To64 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+
+  // --------------------------------------------------------------------------
+  // [X86Mem]
+  // --------------------------------------------------------------------------
+
   using Mem::setIndex;
 
   inline void setIndex(const Reg& index, uint32_t shift) noexcept {
     setIndex(index);
     setShift(shift);
   }
-
-  //! Get whether the memory operand has shift (aka scale) constant.
-  constexpr bool hasShift() const noexcept { return _hasSignatureData(kSignatureMemShiftMask); }
-  //! Get the memory operand's shift (aka scale) constant.
-  constexpr uint32_t getShift() const noexcept { return _getSignatureData(kSignatureMemShiftBits, kSignatureMemShiftShift); }
-  //! Set the memory operand's shift (aka scale) constant.
-  inline void setShift(uint32_t shift) noexcept { _setSignatureData(shift, kSignatureMemShiftBits, kSignatureMemShiftShift); }
-  //! Reset the memory operand's shift (aka scale) constant to zero.
-  inline void resetShift() noexcept { _any.signature &= ~kSignatureMemShiftMask; }
 
   //! Get whether the memory operand has a segment override.
   constexpr bool hasSegment() const noexcept { return _hasSignatureData(kSignatureMemSegmentMask); }
@@ -478,6 +496,24 @@ public:
   inline void setSegment(uint32_t rId) noexcept { _setSignatureData(rId, kSignatureMemSegmentBits, kSignatureMemSegmentShift); }
   //! Reset the segment override.
   inline void resetSegment() noexcept { _any.signature &= ~kSignatureMemSegmentMask; }
+
+  //! Get whether the memory operand has shift (aka scale) constant.
+  constexpr bool hasShift() const noexcept { return _hasSignatureData(kSignatureMemShiftMask); }
+  //! Get the memory operand's shift (aka scale) constant.
+  constexpr uint32_t getShift() const noexcept { return _getSignatureData(kSignatureMemShiftBits, kSignatureMemShiftShift); }
+  //! Set the memory operand's shift (aka scale) constant.
+  inline void setShift(uint32_t shift) noexcept { _setSignatureData(shift, kSignatureMemShiftBits, kSignatureMemShiftShift); }
+  //! Reset the memory operand's shift (aka scale) constant to zero.
+  inline void resetShift() noexcept { _any.signature &= ~kSignatureMemShiftMask; }
+
+  //! Get whether the memory operand has broadcast {1tox}.
+  constexpr bool hasBroadcast() const noexcept { return _hasSignatureData(kSignatureMemBroadcastMask); }
+  //! Get the memory operand's broadcast.
+  constexpr uint32_t getBroadcast() const noexcept { return _getSignatureData(kSignatureMemBroadcastBits, kSignatureMemBroadcastShift); }
+  //! Set the memory operand's broadcast.
+  inline void setBroadcast(uint32_t bcst) noexcept { _setSignatureData(bcst, kSignatureMemBroadcastBits, kSignatureMemBroadcastShift); }
+  //! Reset the memory operand's broadcast to none.
+  inline void resetBroadcast() noexcept { _any.signature &= ~kSignatureMemBroadcastMask; }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -533,24 +569,24 @@ static constexpr X86Gpw gpw(uint32_t rId) noexcept { return X86Gpw(rId); }
 static constexpr X86Gpd gpd(uint32_t rId) noexcept { return X86Gpd(rId); }
 //! Create a 64-bit GPQ register operand (X64).
 static constexpr X86Gpq gpq(uint32_t rId) noexcept { return X86Gpq(rId); }
-//! Create an 80-bit Fp register operand.
-static constexpr X86Fp fp(uint32_t rId) noexcept { return X86Fp(rId); }
-//! Create a 64-bit Mm register operand.
-static constexpr X86Mm mm(uint32_t rId) noexcept { return X86Mm(rId); }
-//! Create a 64-bit K register operand.
-static constexpr X86KReg k(uint32_t rId) noexcept { return X86KReg(rId); }
 //! Create a 128-bit XMM register operand.
 static constexpr X86Xmm xmm(uint32_t rId) noexcept { return X86Xmm(rId); }
 //! Create a 256-bit YMM register operand.
 static constexpr X86Ymm ymm(uint32_t rId) noexcept { return X86Ymm(rId); }
 //! Create a 512-bit ZMM register operand.
 static constexpr X86Zmm zmm(uint32_t rId) noexcept { return X86Zmm(rId); }
-//! Create a 128-bit bound register operand.
-static constexpr X86Bnd bnd(uint32_t rId) noexcept { return X86Bnd(rId); }
+//! Create a 64-bit Mm register operand.
+static constexpr X86Mm mm(uint32_t rId) noexcept { return X86Mm(rId); }
+//! Create a 64-bit K register operand.
+static constexpr X86KReg k(uint32_t rId) noexcept { return X86KReg(rId); }
 //! Create a 32-bit or 64-bit control register operand.
 static constexpr X86CReg cr(uint32_t rId) noexcept { return X86CReg(rId); }
 //! Create a 32-bit or 64-bit debug register operand.
 static constexpr X86DReg dr(uint32_t rId) noexcept { return X86DReg(rId); }
+//! Create an 80-bit Fp register operand.
+static constexpr X86Fp fp(uint32_t rId) noexcept { return X86Fp(rId); }
+//! Create a 128-bit bound register operand.
+static constexpr X86Bnd bnd(uint32_t rId) noexcept { return X86Bnd(rId); }
 
 static constexpr X86Gp al(X86GpbLo::kSignature, X86Gp::kIdAx);
 static constexpr X86Gp bl(X86GpbLo::kSignature, X86Gp::kIdBx);
@@ -625,104 +661,104 @@ static constexpr X86Gp r13(X86Gpq::kSignature, X86Gp::kIdR13);
 static constexpr X86Gp r14(X86Gpq::kSignature, X86Gp::kIdR14);
 static constexpr X86Gp r15(X86Gpq::kSignature, X86Gp::kIdR15);
 
-static constexpr X86Xmm xmm0(X86Xmm::kSignature, 0);
-static constexpr X86Xmm xmm1(X86Xmm::kSignature, 1);
-static constexpr X86Xmm xmm2(X86Xmm::kSignature, 2);
-static constexpr X86Xmm xmm3(X86Xmm::kSignature, 3);
-static constexpr X86Xmm xmm4(X86Xmm::kSignature, 4);
-static constexpr X86Xmm xmm5(X86Xmm::kSignature, 5);
-static constexpr X86Xmm xmm6(X86Xmm::kSignature, 6);
-static constexpr X86Xmm xmm7(X86Xmm::kSignature, 7);
-static constexpr X86Xmm xmm8(X86Xmm::kSignature, 8);
-static constexpr X86Xmm xmm9(X86Xmm::kSignature, 9);
-static constexpr X86Xmm xmm10(X86Xmm::kSignature, 10);
-static constexpr X86Xmm xmm11(X86Xmm::kSignature, 11);
-static constexpr X86Xmm xmm12(X86Xmm::kSignature, 12);
-static constexpr X86Xmm xmm13(X86Xmm::kSignature, 13);
-static constexpr X86Xmm xmm14(X86Xmm::kSignature, 14);
-static constexpr X86Xmm xmm15(X86Xmm::kSignature, 15);
-static constexpr X86Xmm xmm16(X86Xmm::kSignature, 16);
-static constexpr X86Xmm xmm17(X86Xmm::kSignature, 17);
-static constexpr X86Xmm xmm18(X86Xmm::kSignature, 18);
-static constexpr X86Xmm xmm19(X86Xmm::kSignature, 19);
-static constexpr X86Xmm xmm20(X86Xmm::kSignature, 20);
-static constexpr X86Xmm xmm21(X86Xmm::kSignature, 21);
-static constexpr X86Xmm xmm22(X86Xmm::kSignature, 22);
-static constexpr X86Xmm xmm23(X86Xmm::kSignature, 23);
-static constexpr X86Xmm xmm24(X86Xmm::kSignature, 24);
-static constexpr X86Xmm xmm25(X86Xmm::kSignature, 25);
-static constexpr X86Xmm xmm26(X86Xmm::kSignature, 26);
-static constexpr X86Xmm xmm27(X86Xmm::kSignature, 27);
-static constexpr X86Xmm xmm28(X86Xmm::kSignature, 28);
-static constexpr X86Xmm xmm29(X86Xmm::kSignature, 29);
-static constexpr X86Xmm xmm30(X86Xmm::kSignature, 30);
-static constexpr X86Xmm xmm31(X86Xmm::kSignature, 31);
+static constexpr X86Xmm xmm0(0);
+static constexpr X86Xmm xmm1(1);
+static constexpr X86Xmm xmm2(2);
+static constexpr X86Xmm xmm3(3);
+static constexpr X86Xmm xmm4(4);
+static constexpr X86Xmm xmm5(5);
+static constexpr X86Xmm xmm6(6);
+static constexpr X86Xmm xmm7(7);
+static constexpr X86Xmm xmm8(8);
+static constexpr X86Xmm xmm9(9);
+static constexpr X86Xmm xmm10(10);
+static constexpr X86Xmm xmm11(11);
+static constexpr X86Xmm xmm12(12);
+static constexpr X86Xmm xmm13(13);
+static constexpr X86Xmm xmm14(14);
+static constexpr X86Xmm xmm15(15);
+static constexpr X86Xmm xmm16(16);
+static constexpr X86Xmm xmm17(17);
+static constexpr X86Xmm xmm18(18);
+static constexpr X86Xmm xmm19(19);
+static constexpr X86Xmm xmm20(20);
+static constexpr X86Xmm xmm21(21);
+static constexpr X86Xmm xmm22(22);
+static constexpr X86Xmm xmm23(23);
+static constexpr X86Xmm xmm24(24);
+static constexpr X86Xmm xmm25(25);
+static constexpr X86Xmm xmm26(26);
+static constexpr X86Xmm xmm27(27);
+static constexpr X86Xmm xmm28(28);
+static constexpr X86Xmm xmm29(29);
+static constexpr X86Xmm xmm30(30);
+static constexpr X86Xmm xmm31(31);
 
-static constexpr X86Ymm ymm0(X86Ymm::kSignature, 0);
-static constexpr X86Ymm ymm1(X86Ymm::kSignature, 1);
-static constexpr X86Ymm ymm2(X86Ymm::kSignature, 2);
-static constexpr X86Ymm ymm3(X86Ymm::kSignature, 3);
-static constexpr X86Ymm ymm4(X86Ymm::kSignature, 4);
-static constexpr X86Ymm ymm5(X86Ymm::kSignature, 5);
-static constexpr X86Ymm ymm6(X86Ymm::kSignature, 6);
-static constexpr X86Ymm ymm7(X86Ymm::kSignature, 7);
-static constexpr X86Ymm ymm8(X86Ymm::kSignature, 8);
-static constexpr X86Ymm ymm9(X86Ymm::kSignature, 9);
-static constexpr X86Ymm ymm10(X86Ymm::kSignature, 10);
-static constexpr X86Ymm ymm11(X86Ymm::kSignature, 11);
-static constexpr X86Ymm ymm12(X86Ymm::kSignature, 12);
-static constexpr X86Ymm ymm13(X86Ymm::kSignature, 13);
-static constexpr X86Ymm ymm14(X86Ymm::kSignature, 14);
-static constexpr X86Ymm ymm15(X86Ymm::kSignature, 15);
-static constexpr X86Ymm ymm16(X86Ymm::kSignature, 16);
-static constexpr X86Ymm ymm17(X86Ymm::kSignature, 17);
-static constexpr X86Ymm ymm18(X86Ymm::kSignature, 18);
-static constexpr X86Ymm ymm19(X86Ymm::kSignature, 19);
-static constexpr X86Ymm ymm20(X86Ymm::kSignature, 20);
-static constexpr X86Ymm ymm21(X86Ymm::kSignature, 21);
-static constexpr X86Ymm ymm22(X86Ymm::kSignature, 22);
-static constexpr X86Ymm ymm23(X86Ymm::kSignature, 23);
-static constexpr X86Ymm ymm24(X86Ymm::kSignature, 24);
-static constexpr X86Ymm ymm25(X86Ymm::kSignature, 25);
-static constexpr X86Ymm ymm26(X86Ymm::kSignature, 26);
-static constexpr X86Ymm ymm27(X86Ymm::kSignature, 27);
-static constexpr X86Ymm ymm28(X86Ymm::kSignature, 28);
-static constexpr X86Ymm ymm29(X86Ymm::kSignature, 29);
-static constexpr X86Ymm ymm30(X86Ymm::kSignature, 30);
-static constexpr X86Ymm ymm31(X86Ymm::kSignature, 31);
+static constexpr X86Ymm ymm0(0);
+static constexpr X86Ymm ymm1(1);
+static constexpr X86Ymm ymm2(2);
+static constexpr X86Ymm ymm3(3);
+static constexpr X86Ymm ymm4(4);
+static constexpr X86Ymm ymm5(5);
+static constexpr X86Ymm ymm6(6);
+static constexpr X86Ymm ymm7(7);
+static constexpr X86Ymm ymm8(8);
+static constexpr X86Ymm ymm9(9);
+static constexpr X86Ymm ymm10(10);
+static constexpr X86Ymm ymm11(11);
+static constexpr X86Ymm ymm12(12);
+static constexpr X86Ymm ymm13(13);
+static constexpr X86Ymm ymm14(14);
+static constexpr X86Ymm ymm15(15);
+static constexpr X86Ymm ymm16(16);
+static constexpr X86Ymm ymm17(17);
+static constexpr X86Ymm ymm18(18);
+static constexpr X86Ymm ymm19(19);
+static constexpr X86Ymm ymm20(20);
+static constexpr X86Ymm ymm21(21);
+static constexpr X86Ymm ymm22(22);
+static constexpr X86Ymm ymm23(23);
+static constexpr X86Ymm ymm24(24);
+static constexpr X86Ymm ymm25(25);
+static constexpr X86Ymm ymm26(26);
+static constexpr X86Ymm ymm27(27);
+static constexpr X86Ymm ymm28(28);
+static constexpr X86Ymm ymm29(29);
+static constexpr X86Ymm ymm30(30);
+static constexpr X86Ymm ymm31(31);
 
-static constexpr X86Zmm zmm0(X86Zmm::kSignature, 0);
-static constexpr X86Zmm zmm1(X86Zmm::kSignature, 1);
-static constexpr X86Zmm zmm2(X86Zmm::kSignature, 2);
-static constexpr X86Zmm zmm3(X86Zmm::kSignature, 3);
-static constexpr X86Zmm zmm4(X86Zmm::kSignature, 4);
-static constexpr X86Zmm zmm5(X86Zmm::kSignature, 5);
-static constexpr X86Zmm zmm6(X86Zmm::kSignature, 6);
-static constexpr X86Zmm zmm7(X86Zmm::kSignature, 7);
-static constexpr X86Zmm zmm8(X86Zmm::kSignature, 8);
-static constexpr X86Zmm zmm9(X86Zmm::kSignature, 9);
-static constexpr X86Zmm zmm10(X86Zmm::kSignature, 10);
-static constexpr X86Zmm zmm11(X86Zmm::kSignature, 11);
-static constexpr X86Zmm zmm12(X86Zmm::kSignature, 12);
-static constexpr X86Zmm zmm13(X86Zmm::kSignature, 13);
-static constexpr X86Zmm zmm14(X86Zmm::kSignature, 14);
-static constexpr X86Zmm zmm15(X86Zmm::kSignature, 15);
-static constexpr X86Zmm zmm16(X86Zmm::kSignature, 16);
-static constexpr X86Zmm zmm17(X86Zmm::kSignature, 17);
-static constexpr X86Zmm zmm18(X86Zmm::kSignature, 18);
-static constexpr X86Zmm zmm19(X86Zmm::kSignature, 19);
-static constexpr X86Zmm zmm20(X86Zmm::kSignature, 20);
-static constexpr X86Zmm zmm21(X86Zmm::kSignature, 21);
-static constexpr X86Zmm zmm22(X86Zmm::kSignature, 22);
-static constexpr X86Zmm zmm23(X86Zmm::kSignature, 23);
-static constexpr X86Zmm zmm24(X86Zmm::kSignature, 24);
-static constexpr X86Zmm zmm25(X86Zmm::kSignature, 25);
-static constexpr X86Zmm zmm26(X86Zmm::kSignature, 26);
-static constexpr X86Zmm zmm27(X86Zmm::kSignature, 27);
-static constexpr X86Zmm zmm28(X86Zmm::kSignature, 28);
-static constexpr X86Zmm zmm29(X86Zmm::kSignature, 29);
-static constexpr X86Zmm zmm30(X86Zmm::kSignature, 30);
-static constexpr X86Zmm zmm31(X86Zmm::kSignature, 31);
+static constexpr X86Zmm zmm0(0);
+static constexpr X86Zmm zmm1(1);
+static constexpr X86Zmm zmm2(2);
+static constexpr X86Zmm zmm3(3);
+static constexpr X86Zmm zmm4(4);
+static constexpr X86Zmm zmm5(5);
+static constexpr X86Zmm zmm6(6);
+static constexpr X86Zmm zmm7(7);
+static constexpr X86Zmm zmm8(8);
+static constexpr X86Zmm zmm9(9);
+static constexpr X86Zmm zmm10(10);
+static constexpr X86Zmm zmm11(11);
+static constexpr X86Zmm zmm12(12);
+static constexpr X86Zmm zmm13(13);
+static constexpr X86Zmm zmm14(14);
+static constexpr X86Zmm zmm15(15);
+static constexpr X86Zmm zmm16(16);
+static constexpr X86Zmm zmm17(17);
+static constexpr X86Zmm zmm18(18);
+static constexpr X86Zmm zmm19(19);
+static constexpr X86Zmm zmm20(20);
+static constexpr X86Zmm zmm21(21);
+static constexpr X86Zmm zmm22(22);
+static constexpr X86Zmm zmm23(23);
+static constexpr X86Zmm zmm24(24);
+static constexpr X86Zmm zmm25(25);
+static constexpr X86Zmm zmm26(26);
+static constexpr X86Zmm zmm27(27);
+static constexpr X86Zmm zmm28(28);
+static constexpr X86Zmm zmm29(29);
+static constexpr X86Zmm zmm30(30);
+static constexpr X86Zmm zmm31(31);
 
 static constexpr X86Mm mm0(0);
 static constexpr X86Mm mm1(1);

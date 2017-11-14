@@ -37,8 +37,8 @@ UNIT(core_intutils) {
   INFO("IntUtils::ctz()");
   for (i = 0; i < 32; i++) EXPECT(IntUtils::ctz(uint32_t(1) << i) == i);
   for (i = 0; i < 64; i++) EXPECT(IntUtils::ctz(uint64_t(1) << i) == i);
-  for (i = 0; i < 32; i++) EXPECT(IntUtils::_ctzGeneric(uint32_t(1) << i) == i);
-  for (i = 0; i < 64; i++) EXPECT(IntUtils::_ctzGeneric(uint64_t(1) << i) == i);
+  for (i = 0; i < 32; i++) EXPECT(IntUtils::Internal::ctzGeneric(uint32_t(1) << i) == i);
+  for (i = 0; i < 64; i++) EXPECT(IntUtils::Internal::ctzGeneric(uint64_t(1) << i) == i);
 
   INFO("IntUtils::mask()");
   EXPECT(IntUtils::mask(0, 1, 7) == 0x83U);
@@ -136,9 +136,9 @@ UNIT(core_intutils) {
   INFO("IntUtils::isInt32()");
   EXPECT(IntUtils::isInt32( 2147483647    ) == true);
   EXPECT(IntUtils::isInt32(-2147483647 - 1) == true);
-  EXPECT(IntUtils::isInt32(ASMJIT_UINT64_C(2147483648)) == false);
-  EXPECT(IntUtils::isInt32(ASMJIT_UINT64_C(0xFFFFFFFF)) == false);
-  EXPECT(IntUtils::isInt32(ASMJIT_UINT64_C(0xFFFFFFFF) + 1) == false);
+  EXPECT(IntUtils::isInt32(uint64_t(2147483648U)) == false);
+  EXPECT(IntUtils::isInt32(uint64_t(0xFFFFFFFFU)) == false);
+  EXPECT(IntUtils::isInt32(uint64_t(0xFFFFFFFFU) + 1) == false);
 
   INFO("IntUtils::isUInt8()");
   EXPECT(IntUtils::isUInt8(0)   == true);
@@ -159,8 +159,8 @@ UNIT(core_intutils) {
   EXPECT(IntUtils::isUInt16(-1)    == false);
 
   INFO("IntUtils::isUInt32()");
-  EXPECT(IntUtils::isUInt32(ASMJIT_UINT64_C(0xFFFFFFFF)) == true);
-  EXPECT(IntUtils::isUInt32(ASMJIT_UINT64_C(0xFFFFFFFF) + 1) == false);
+  EXPECT(IntUtils::isUInt32(uint64_t(0xFFFFFFFF)) == true);
+  EXPECT(IntUtils::isUInt32(uint64_t(0xFFFFFFFF) + 1) == false);
   EXPECT(IntUtils::isUInt32(-1) == false);
 
   INFO("IntUtils::bitVectorOp");

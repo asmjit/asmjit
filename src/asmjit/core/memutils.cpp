@@ -30,10 +30,10 @@ UNIT(core_memutils) {
   EXPECT(MemUtils::readU32uLE(arr + 2) == 0x00040302U);
 
   MemUtils::writeU32uLE(arr + 5, 0x05060708U);
-  EXPECT(MemUtils::readU64uBE(arr + 1) == ASMJIT_UINT64_C(0x0102030408070605));
-  EXPECT(MemUtils::readU64uLE(arr + 1) == ASMJIT_UINT64_C(0x0506070804030201));
+  EXPECT(MemUtils::readU64uBE(arr + 1) == 0x0102030408070605U);
+  EXPECT(MemUtils::readU64uLE(arr + 1) == 0x0506070804030201U);
 
-  MemUtils::writeU64uLE(arr + 7, ASMJIT_UINT64_C(0x1122334455667788));
+  MemUtils::writeU64uLE(arr + 7, 0x1122334455667788U);
   EXPECT(MemUtils::readU32uBE(arr + 8) == 0x77665544U);
 }
 #endif
