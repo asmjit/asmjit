@@ -1,5 +1,4 @@
-AsmJit - Complete x86/x64 JIT and Remote Assembler for C++  
-Copyright (c) 2008-2016, Petr Kobalicek <kobalicek.petr@gmail.com>
+Copyright (c) 2008-2017, Petr Kobalicek
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
