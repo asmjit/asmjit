@@ -302,7 +302,7 @@ if (NOT __CXX_INCLUDED)
       target_compile_options(${target} PRIVATE ${cflags} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
     endif()
 
-    if(NOT ${PRODUCT}_STATIC)
+    if(NOT ${PRODUCT}_EMBED)
       install(TARGETS ${target} RUNTIME DESTINATION "bin"
                                 LIBRARY DESTINATION "lib${LIB_SUFFIX}"
                                 ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
