@@ -22,7 +22,9 @@ ASMJIT_BEGIN_NAMESPACE
 
 template<size_t N>
 union StaticString {
-  static constexpr uint32_t kNumU32 = uint32_t((N + sizeof(uint32_t) - 1) / sizeof(uint32_t));
+  enum : uint32_t {
+    kNumU32 = uint32_t((N + sizeof(uint32_t) - 1) / sizeof(uint32_t))
+  };
 
   inline bool test(const char* other) const noexcept { return std::strcmp(str, other) == 0; }
 

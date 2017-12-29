@@ -106,16 +106,12 @@ static inline void simplifyCpuBrand(char* s) noexcept {
     if (curr == 0)
       break;
 
-    if (curr == ' ') {
-      if (prev == '@' || s[1] == ' ' || s[1] == '@')
-        goto Skip;
+    if (!(curr == ' ' && (prev == '@' || s[1] == ' ' || s[1] == '@'))) {
+      d[0] = curr;
+      d++;
+      prev = curr;
     }
 
-    d[0] = curr;
-    d++;
-    prev = curr;
-
-Skip:
     curr = *++s;
     s[0] = '\0';
   }

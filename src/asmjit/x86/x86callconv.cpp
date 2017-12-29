@@ -21,6 +21,12 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::x86::CallConvInternal - Init]
 // ============================================================================
 
+static inline void CallConv_initX86Common(CallConv& cc) noexcept {
+  cc.setNaturalStackAlignment(4);
+  cc.setArchType(ArchInfo::kIdX86);
+  cc.setPreservedRegs(Reg::kGroupGp, IntUtils::mask(Gp::kIdBx, Gp::kIdSp, Gp::kIdBp, Gp::kIdSi, Gp::kIdDi));
+}
+
 ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noexcept {
   constexpr uint32_t kGroupGp   = Reg::kGroupGp;
   constexpr uint32_t kGroupVec  = Reg::kGroupVec;
@@ -39,36 +45,39 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
   switch (ccId) {
     case CallConv::kIdX86StdCall:
       cc.setFlags(CallConv::kFlagCalleePopsStack);
-      goto X86CallConv;
+      CallConv_initX86Common(cc);
+      break;
 
     case CallConv::kIdX86MsThisCall:
       cc.setFlags(CallConv::kFlagCalleePopsStack);
       cc.setPassedOrder(kGroupGp, kZcx);
-      goto X86CallConv;
+      CallConv_initX86Common(cc);
+      break;
 
     case CallConv::kIdX86MsFastCall:
     case CallConv::kIdX86GccFastCall:
       cc.setFlags(CallConv::kFlagCalleePopsStack);
       cc.setPassedOrder(kGroupGp, kZcx, kZdx);
-      goto X86CallConv;
+      CallConv_initX86Common(cc);
+      break;
 
     case CallConv::kIdX86GccRegParm1:
       cc.setPassedOrder(kGroupGp, kZax);
-      goto X86CallConv;
+      CallConv_initX86Common(cc);
+      break;
 
     case CallConv::kIdX86GccRegParm2:
       cc.setPassedOrder(kGroupGp, kZax, kZdx);
-      goto X86CallConv;
+      CallConv_initX86Common(cc);
+      break;
 
     case CallConv::kIdX86GccRegParm3:
       cc.setPassedOrder(kGroupGp, kZax, kZdx, kZcx);
-      goto X86CallConv;
+      CallConv_initX86Common(cc);
+      break;
 
     case CallConv::kIdX86CDecl:
-X86CallConv:
-      cc.setNaturalStackAlignment(4);
-      cc.setArchType(ArchInfo::kIdX86);
-      cc.setPreservedRegs(kGroupGp, IntUtils::mask(kZbx, kZsp, kZbp, kZsi, kZdi));
+      CallConv_initX86Common(cc);
       break;
 
     case CallConv::kIdX86Win64:

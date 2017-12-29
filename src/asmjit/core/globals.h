@@ -34,6 +34,19 @@ typedef uintptr_t BitWord;
 //! Number of bits stored in `BitWord`.
 constexpr uint32_t kBitWordSize = uint32_t(sizeof(BitWord)) * 8;
 
+//! Maximum height of RB-Tree is:
+//!
+//!   `2 * log2(n + 1)`.
+//!
+//! Size of RB node is at least two pointers (without data),
+//! so a theoretical architecture limit would be:
+//!
+//!   `2 * log2(addressableMemorySize / sizeof(Node) + 1)`
+//!
+//! Which yields 30 on 32-bit arch and 61 on 64-bit arch.
+//! The final value was adjusted by +1 for safety reasons.
+constexpr uint32_t kMaxTreeHeight = (ASMJIT_ARCH_BITS == 32 ? 30 : 61) + 1;
+
 //! Maximum number of operands per single instruction.
 constexpr uint32_t kMaxOpCount = 6;
 

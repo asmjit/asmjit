@@ -148,31 +148,31 @@ public:
       Node* node = _tree.root();
       if (!node) return;
 
-      static constexpr uint32_t kHeightLimit = 64;
-      Node* stack[kHeightLimit];
+      Node* stack[Globals::kMaxTreeHeight];
       size_t top = 0;
 
       for (;;) {
         Node* left = node->left();
         if (left != nullptr) {
-          ASMJIT_ASSERT(top != kHeightLimit);
+          ASMJIT_ASSERT(top != Globals::kMaxTreeHeight);
           stack[top++] = node;
 
           node = left;
           continue;
         }
 
-Visit:
-        visitor.visit(node);
-        node = node->right();
-        if (node != nullptr)
-          continue;
+        for (;;) {
+          visitor.visit(node);
+          node = node->right();
 
-        if (top == 0)
-          return;
+          if (node != nullptr)
+            break;
 
-        node = stack[--top];
-        goto Visit;
+          if (top == 0)
+            return;
+
+          node = stack[--top];
+        }
       }
     }
 
