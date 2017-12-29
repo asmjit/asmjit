@@ -93,7 +93,7 @@ uint32_t OSUtils::getTickCount() noexcept {
 
   #else
 
-  #pragma message("asmjit::OSUtils::getTickCount() doesn't have implementation for your target OS.")
+  #pragma message("asmjit::OSUtils::getTickCount() doesn't have implementation for the target OS.")
   return 0;
 
   #endif

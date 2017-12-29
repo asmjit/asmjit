@@ -14,7 +14,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
@@ -26,7 +26,16 @@ class ConstPool {
 public:
   ASMJIT_NONCOPYABLE(ConstPool)
 
-  enum {
+  //! Constant pool scope.
+  enum Scope : uint32_t {
+    //! Local constant, always embedded right after the current function.
+    kScopeLocal = 0,
+    //! Global constant, embedded at the end of the currently compiled code.
+    kScopeGlobal = 1
+  };
+
+  //! Index of a given size in const-pool table.
+  enum Index : uint32_t {
     kIndex1 = 0,
     kIndex2 = 1,
     kIndex4 = 2,
@@ -36,11 +45,11 @@ public:
     kIndexCount = 6
   };
 
-  //! Zone-allocated const-pool gap.
+  //! Zone-allocated const-pool gap created by two differently aligned constants.
   struct Gap {
     Gap* _next;                          //!< Pointer to the next gap
     size_t _offset;                      //!< Offset of the gap.
-    size_t _length;                      //!< Remaining bytes of the gap (basically a gap size).
+    size_t _size;                        //!< Remaining bytes of the gap (basically a gap size).
   };
 
   //! Zone-allocated const-pool node.
@@ -53,7 +62,7 @@ public:
         _shared(shared),
         _offset(uint32_t(offset)) {}
 
-    inline void* getData() const noexcept {
+    inline void* data() const noexcept {
       return static_cast<void*>(const_cast<ConstPool::Node*>(this) + 1);
     }
 
@@ -67,11 +76,11 @@ public:
       : _dataSize(dataSize) {}
 
     inline int operator()(const Node& a, const Node& b) const noexcept {
-      return std::memcmp(a.getData(), b.getData(), _dataSize);
+      return std::memcmp(a.data(), b.data(), _dataSize);
     }
 
     inline int operator()(const Node& a, const void* data) const noexcept {
-      return std::memcmp(a.getData(), data, _dataSize);
+      return std::memcmp(a.data(), data, _dataSize);
     }
 
     size_t _dataSize;
@@ -91,7 +100,7 @@ public:
 
     explicit inline Tree(size_t dataSize = 0) noexcept
       : _tree(),
-        _length(0),
+        _size(0),
         _dataSize(dataSize) {}
 
     // --------------------------------------------------------------------------
@@ -100,18 +109,18 @@ public:
 
     inline void reset() noexcept {
       _tree.reset();
-      _length = 0;
+      _size = 0;
     }
 
     // --------------------------------------------------------------------------
     // [Accessors]
     // --------------------------------------------------------------------------
 
-    inline bool isEmpty() const noexcept { return _length == 0; }
-    inline size_t getLength() const noexcept { return _length; }
+    inline bool empty() const noexcept { return _size == 0; }
+    inline size_t size() const noexcept { return _size; }
 
     inline void setDataSize(size_t dataSize) noexcept {
-      ASMJIT_ASSERT(isEmpty());
+      ASMJIT_ASSERT(empty());
       _dataSize = dataSize;
     }
 
@@ -127,7 +136,7 @@ public:
     inline void insert(Node* node) noexcept {
       Compare cmp(_dataSize);
       _tree.insert(node, cmp);
-      _length++;
+      _size++;
     }
 
     // --------------------------------------------------------------------------
@@ -136,7 +145,7 @@ public:
 
     template<typename Visitor>
     inline void iterate(Visitor& visitor) const noexcept {
-      Node* node = _tree.getRoot();
+      Node* node = _tree.root();
       if (!node) return;
 
       static constexpr uint32_t kHeightLimit = 64;
@@ -144,7 +153,7 @@ public:
       size_t top = 0;
 
       for (;;) {
-        Node* left = node->getLeft();
+        Node* left = node->left();
         if (left != nullptr) {
           ASMJIT_ASSERT(top != kHeightLimit);
           stack[top++] = node;
@@ -155,7 +164,7 @@ public:
 
 Visit:
         visitor.visit(node);
-        node = node->getRight();
+        node = node->right();
         if (node != nullptr)
           continue;
 
@@ -176,7 +185,7 @@ Visit:
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
 
       node = new(node) Node(offset, shared);
-      std::memcpy(node->getData(), data, size);
+      std::memcpy(node->data(), data, size);
       return node;
     }
 
@@ -185,7 +194,7 @@ Visit:
     // --------------------------------------------------------------------------
 
     ZoneRBTree<Node> _tree;              //!< RB tree.
-    size_t _length;                      //!< Length of the tree (count of nodes).
+    size_t _size;                        //!< Size of the tree (number of nodes).
     size_t _dataSize;                    //!< Size of the data.
   };
 
@@ -207,11 +216,11 @@ Visit:
   // --------------------------------------------------------------------------
 
   //! Get whether the constant-pool is empty.
-  inline bool isEmpty() const noexcept { return _size == 0; }
+  inline bool empty() const noexcept { return _size == 0; }
   //! Get the size of the constant-pool in bytes.
-  inline size_t getSize() const noexcept { return _size; }
+  inline size_t size() const noexcept { return _size; }
   //! Get minimum alignment.
-  inline size_t getAlignment() const noexcept { return _alignment; }
+  inline size_t alignment() const noexcept { return _alignment; }
 
   //! Add a constant to the constant pool.
   //!

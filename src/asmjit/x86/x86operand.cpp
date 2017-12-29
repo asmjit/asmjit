@@ -15,31 +15,33 @@
 #include "../core/misc_p.h"
 #include "../x86/x86operand.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 // ============================================================================
-// [asmjit::X86OpData]
+// [asmjit::x86::OpData]
 // ============================================================================
 
-const X86OpData x86OpData = {
+const OpData opData = {
   {
-    {
-#define ASMJIT_X86_REG_SIGNATURE(TYPE) { X86RegTraits<TYPE>::kSignature }
-      ASMJIT_TABLE_16(ASMJIT_X86_REG_SIGNATURE,  0),
-      ASMJIT_TABLE_16(ASMJIT_X86_REG_SIGNATURE, 16)
-#undef ASMJIT_X86_REG_SIGNATURE
-    },
+    // RegInfo[]
+    # define VALUE(X) { RegTraits<X>::kSignature }
+    { ASMJIT_TABLE_32(VALUE, 0) },
+    #undef VALUE
 
     // RegCount[]
-    { ASMJIT_TABLE_T_32(X86RegTraits, kCount, 0) },
+    # define VALUE(X) RegTraits<X>::kCount
+    { ASMJIT_TABLE_32(VALUE, 0) },
+    #undef VALUE
 
     // RegTypeToTypeId[]
-    { ASMJIT_TABLE_T_32(X86RegTraits, kTypeId, 0) }
+    #define VALUE(X) RegTraits<X>::kTypeId
+    { ASMJIT_TABLE_32(VALUE, 0) }
+    #undef VALUE
   }
 };
 
 // ============================================================================
-// [asmjit::X86Operand - Unit]
+// [asmjit::x86::Operand - Unit]
 // ============================================================================
 
 #if defined(ASMJIT_BUILD_TEST)
@@ -47,193 +49,200 @@ UNIT(x86_operand) {
   Label L(1000); // Label with some ID.
 
   INFO("Checking basic properties of built-in X86 registers");
-  EXPECT(x86::gpb(X86Gp::kIdAx) == x86::al);
-  EXPECT(x86::gpb(X86Gp::kIdBx) == x86::bl);
-  EXPECT(x86::gpb(X86Gp::kIdCx) == x86::cl);
-  EXPECT(x86::gpb(X86Gp::kIdDx) == x86::dl);
+  EXPECT(gpb(Gp::kIdAx) == al);
+  EXPECT(gpb(Gp::kIdBx) == bl);
+  EXPECT(gpb(Gp::kIdCx) == cl);
+  EXPECT(gpb(Gp::kIdDx) == dl);
 
-  EXPECT(x86::gpb_lo(X86Gp::kIdAx) == x86::al);
-  EXPECT(x86::gpb_lo(X86Gp::kIdBx) == x86::bl);
-  EXPECT(x86::gpb_lo(X86Gp::kIdCx) == x86::cl);
-  EXPECT(x86::gpb_lo(X86Gp::kIdDx) == x86::dl);
+  EXPECT(gpb_lo(Gp::kIdAx) == al);
+  EXPECT(gpb_lo(Gp::kIdBx) == bl);
+  EXPECT(gpb_lo(Gp::kIdCx) == cl);
+  EXPECT(gpb_lo(Gp::kIdDx) == dl);
 
-  EXPECT(x86::gpb_hi(X86Gp::kIdAx) == x86::ah);
-  EXPECT(x86::gpb_hi(X86Gp::kIdBx) == x86::bh);
-  EXPECT(x86::gpb_hi(X86Gp::kIdCx) == x86::ch);
-  EXPECT(x86::gpb_hi(X86Gp::kIdDx) == x86::dh);
+  EXPECT(gpb_hi(Gp::kIdAx) == ah);
+  EXPECT(gpb_hi(Gp::kIdBx) == bh);
+  EXPECT(gpb_hi(Gp::kIdCx) == ch);
+  EXPECT(gpb_hi(Gp::kIdDx) == dh);
 
-  EXPECT(x86::gpw(X86Gp::kIdAx) == x86::ax);
-  EXPECT(x86::gpw(X86Gp::kIdBx) == x86::bx);
-  EXPECT(x86::gpw(X86Gp::kIdCx) == x86::cx);
-  EXPECT(x86::gpw(X86Gp::kIdDx) == x86::dx);
+  EXPECT(gpw(Gp::kIdAx) == ax);
+  EXPECT(gpw(Gp::kIdBx) == bx);
+  EXPECT(gpw(Gp::kIdCx) == cx);
+  EXPECT(gpw(Gp::kIdDx) == dx);
 
-  EXPECT(x86::gpd(X86Gp::kIdAx) == x86::eax);
-  EXPECT(x86::gpd(X86Gp::kIdBx) == x86::ebx);
-  EXPECT(x86::gpd(X86Gp::kIdCx) == x86::ecx);
-  EXPECT(x86::gpd(X86Gp::kIdDx) == x86::edx);
+  EXPECT(gpd(Gp::kIdAx) == eax);
+  EXPECT(gpd(Gp::kIdBx) == ebx);
+  EXPECT(gpd(Gp::kIdCx) == ecx);
+  EXPECT(gpd(Gp::kIdDx) == edx);
 
-  EXPECT(x86::gpq(X86Gp::kIdAx) == x86::rax);
-  EXPECT(x86::gpq(X86Gp::kIdBx) == x86::rbx);
-  EXPECT(x86::gpq(X86Gp::kIdCx) == x86::rcx);
-  EXPECT(x86::gpq(X86Gp::kIdDx) == x86::rdx);
+  EXPECT(gpq(Gp::kIdAx) == rax);
+  EXPECT(gpq(Gp::kIdBx) == rbx);
+  EXPECT(gpq(Gp::kIdCx) == rcx);
+  EXPECT(gpq(Gp::kIdDx) == rdx);
 
-  EXPECT(x86::gpb(X86Gp::kIdAx) != x86::dl);
-  EXPECT(x86::gpw(X86Gp::kIdBx) != x86::cx);
-  EXPECT(x86::gpd(X86Gp::kIdCx) != x86::ebx);
-  EXPECT(x86::gpq(X86Gp::kIdDx) != x86::rax);
+  EXPECT(gpb(Gp::kIdAx) != dl);
+  EXPECT(gpw(Gp::kIdBx) != cx);
+  EXPECT(gpd(Gp::kIdCx) != ebx);
+  EXPECT(gpq(Gp::kIdDx) != rax);
 
   INFO("Checking if x86::reg(...) matches built-in IDs");
-  EXPECT(x86::fp(5)  == x86::fp5);
-  EXPECT(x86::mm(5)  == x86::mm5);
-  EXPECT(x86::k(5)   == x86::k5);
-  EXPECT(x86::cr(5)  == x86::cr5);
-  EXPECT(x86::dr(5)  == x86::dr5);
-  EXPECT(x86::xmm(5) == x86::xmm5);
-  EXPECT(x86::ymm(5) == x86::ymm5);
-  EXPECT(x86::zmm(5) == x86::zmm5);
+  EXPECT(gpb(5) == bpl);
+  EXPECT(gpw(5) == bp);
+  EXPECT(gpd(5) == ebp);
+  EXPECT(gpq(5) == rbp);
+  EXPECT(st(5)  == st5);
+  EXPECT(mm(5)  == mm5);
+  EXPECT(k(5)   == k5);
+  EXPECT(cr(5)  == cr5);
+  EXPECT(dr(5)  == dr5);
+  EXPECT(xmm(5) == xmm5);
+  EXPECT(ymm(5) == ymm5);
+  EXPECT(zmm(5) == zmm5);
 
-  INFO("Checking GP register properties");
-  EXPECT(X86Gp().isReg() == false);
-  EXPECT(x86::eax.isReg() == true);
-  EXPECT(x86::eax.getId() == 0);
-  EXPECT(x86::eax.getSize() == 4);
-  EXPECT(x86::eax.getType() == X86Reg::kRegGpd);
-  EXPECT(x86::eax.getGroup() == X86Reg::kGroupGp);
+  INFO("Checking x86::Gp register properties");
+  EXPECT(Gp().isReg() == true);
+  EXPECT(eax.isReg() == true);
+  EXPECT(eax.id() == 0);
+  EXPECT(eax.size() == 4);
+  EXPECT(eax.type() == Reg::kTypeGpd);
+  EXPECT(eax.group() == Reg::kGroupGp);
 
-  INFO("Checking FP register properties");
-  EXPECT(X86Fp().isReg() == false);
-  EXPECT(x86::fp1.isReg() == true);
-  EXPECT(x86::fp1.getId() == 1);
-  EXPECT(x86::fp1.getSize() == 10);
-  EXPECT(x86::fp1.getType() == X86Reg::kRegFp);
-  EXPECT(x86::fp1.getGroup() == X86Reg::kGroupFp);
+  INFO("Checking x86::Xmm register properties");
+  EXPECT(Xmm().isReg() == true);
+  EXPECT(xmm4.isReg() == true);
+  EXPECT(xmm4.id() == 4);
+  EXPECT(xmm4.size() == 16);
+  EXPECT(xmm4.type() == Reg::kTypeXmm);
+  EXPECT(xmm4.group() == Reg::kGroupVec);
+  EXPECT(xmm4.isVec());
 
-  INFO("Checking MM register properties");
-  EXPECT(X86Mm().isReg() == false);
-  EXPECT(x86::mm2.isReg() == true);
-  EXPECT(x86::mm2.getId() == 2);
-  EXPECT(x86::mm2.getSize() == 8);
-  EXPECT(x86::mm2.getType() == X86Reg::kRegMm);
-  EXPECT(x86::mm2.getGroup() == X86Reg::kGroupMm);
+  INFO("Checking x86::Ymm register properties");
+  EXPECT(Ymm().isReg() == true);
+  EXPECT(ymm5.isReg() == true);
+  EXPECT(ymm5.id() == 5);
+  EXPECT(ymm5.size() == 32);
+  EXPECT(ymm5.type() == Reg::kTypeYmm);
+  EXPECT(ymm5.group() == Reg::kGroupVec);
+  EXPECT(ymm5.isVec());
 
-  INFO("Checking K register properties");
-  EXPECT(X86KReg().isReg() == false);
-  EXPECT(x86::k3.isReg() == true);
-  EXPECT(x86::k3.getId() == 3);
-  EXPECT(x86::k3.getSize() == 0);
-  EXPECT(x86::k3.getType() == X86Reg::kRegK);
-  EXPECT(x86::k3.getGroup() == X86Reg::kGroupK);
+  INFO("Checking x86::Zmm register properties");
+  EXPECT(Zmm().isReg() == true);
+  EXPECT(zmm6.isReg() == true);
+  EXPECT(zmm6.id() == 6);
+  EXPECT(zmm6.size() == 64);
+  EXPECT(zmm6.type() == Reg::kTypeZmm);
+  EXPECT(zmm6.group() == Reg::kGroupVec);
+  EXPECT(zmm6.isVec());
 
-  INFO("Checking XMM register properties");
-  EXPECT(X86Xmm().isReg() == false);
-  EXPECT(x86::xmm4.isReg() == true);
-  EXPECT(x86::xmm4.getId() == 4);
-  EXPECT(x86::xmm4.getSize() == 16);
-  EXPECT(x86::xmm4.getType() == X86Reg::kRegXmm);
-  EXPECT(x86::xmm4.getGroup() == X86Reg::kGroupVec);
-  EXPECT(x86::xmm4.isVec());
-
-  INFO("Checking YMM register properties");
-  EXPECT(X86Ymm().isReg() == false);
-  EXPECT(x86::ymm5.isReg() == true);
-  EXPECT(x86::ymm5.getId() == 5);
-  EXPECT(x86::ymm5.getSize() == 32);
-  EXPECT(x86::ymm5.getType() == X86Reg::kRegYmm);
-  EXPECT(x86::ymm5.getGroup() == X86Reg::kGroupVec);
-  EXPECT(x86::ymm5.isVec());
-
-  INFO("Checking ZMM register properties");
-  EXPECT(X86Zmm().isReg() == false);
-  EXPECT(x86::zmm6.isReg() == true);
-  EXPECT(x86::zmm6.getId() == 6);
-  EXPECT(x86::zmm6.getSize() == 64);
-  EXPECT(x86::zmm6.getType() == X86Reg::kRegZmm);
-  EXPECT(x86::zmm6.getGroup() == X86Reg::kGroupVec);
-  EXPECT(x86::zmm6.isVec());
-
-  INFO("Checking VEC register properties");
-  EXPECT(X86Vec().isReg() == false);
+  INFO("Checking x86::Vec register properties");
+  EXPECT(Vec().isReg() == true);
   // Converts a VEC register to a type of the passed register, but keeps the ID.
-  EXPECT(x86::xmm4.cloneAs(x86::ymm10) == x86::ymm4);
-  EXPECT(x86::xmm4.cloneAs(x86::zmm11) == x86::zmm4);
-  EXPECT(x86::ymm5.cloneAs(x86::xmm12) == x86::xmm5);
-  EXPECT(x86::ymm5.cloneAs(x86::zmm13) == x86::zmm5);
-  EXPECT(x86::zmm6.cloneAs(x86::xmm14) == x86::xmm6);
-  EXPECT(x86::zmm6.cloneAs(x86::ymm15) == x86::ymm6);
+  EXPECT(xmm4.cloneAs(ymm10) == ymm4);
+  EXPECT(xmm4.cloneAs(zmm11) == zmm4);
+  EXPECT(ymm5.cloneAs(xmm12) == xmm5);
+  EXPECT(ymm5.cloneAs(zmm13) == zmm5);
+  EXPECT(zmm6.cloneAs(xmm14) == xmm6);
+  EXPECT(zmm6.cloneAs(ymm15) == ymm6);
+
+  INFO("Checking x86::FpMm register properties");
+  EXPECT(Mm().isReg() == true);
+  EXPECT(mm2.isReg() == true);
+  EXPECT(mm2.id() == 2);
+  EXPECT(mm2.size() == 8);
+  EXPECT(mm2.type() == Reg::kTypeMm);
+  EXPECT(mm2.group() == Reg::kGroupMm);
+
+  INFO("Checking x86::KReg register properties");
+  EXPECT(KReg().isReg() == true);
+  EXPECT(k3.isReg() == true);
+  EXPECT(k3.id() == 3);
+  EXPECT(k3.size() == 0);
+  EXPECT(k3.type() == Reg::kTypeKReg);
+  EXPECT(k3.group() == Reg::kGroupKReg);
+
+  INFO("Checking x86::St register properties");
+  EXPECT(St().isReg() == true);
+  EXPECT(st1.isReg() == true);
+  EXPECT(st1.id() == 1);
+  EXPECT(st1.size() == 10);
+  EXPECT(st1.type() == Reg::kTypeSt);
+  EXPECT(st1.group() == Reg::kGroupSt);
 
   INFO("Checking if default constructed regs behave as expected");
-  EXPECT(X86Reg().isValid() == false);
-  EXPECT(X86Gp().isValid() == false);
-  EXPECT(X86Fp().isValid() == false);
-  EXPECT(X86Mm().isValid() == false);
-  EXPECT(X86Xmm().isValid() == false);
-  EXPECT(X86Ymm().isValid() == false);
-  EXPECT(X86Zmm().isValid() == false);
-  EXPECT(X86KReg().isValid() == false);
+  EXPECT(Reg().isValid() == false);
+  EXPECT(Gp().isValid() == false);
+  EXPECT(Xmm().isValid() == false);
+  EXPECT(Ymm().isValid() == false);
+  EXPECT(Zmm().isValid() == false);
+  EXPECT(Mm().isValid() == false);
+  EXPECT(KReg().isValid() == false);
+  EXPECT(SReg().isValid() == false);
+  EXPECT(CReg().isValid() == false);
+  EXPECT(DReg().isValid() == false);
+  EXPECT(St().isValid() == false);
+  EXPECT(Bnd().isValid() == false);
 
-  INFO("Checking X86Mem operand");
-  X86Mem m;
-  EXPECT(m == X86Mem(),
-    "Two default constructed X86Mem operands must be equal");
+  INFO("Checking x86::Mem operand");
+  Mem m;
+  EXPECT(m == Mem(), "Two default constructed x86::Mem operands must be equal");
 
-  m = x86::ptr(L);
+  m = ptr(L);
   EXPECT(m.hasBase() == true);
   EXPECT(m.hasBaseReg() == false);
   EXPECT(m.hasBaseLabel() == true);
   EXPECT(m.hasOffset() == false);
   EXPECT(m.isOffset64Bit() == false);
-  EXPECT(m.getOffset() == 0);
-  EXPECT(m.getOffsetLo32() == 0);
+  EXPECT(m.offset() == 0);
+  EXPECT(m.offsetLo32() == 0);
 
-  m = x86::ptr(0x0123456789ABCDEFU);
+  m = ptr(0x0123456789ABCDEFU);
   EXPECT(m.hasBase() == false);
   EXPECT(m.hasBaseReg() == false);
   EXPECT(m.hasIndex() == false);
   EXPECT(m.hasIndexReg() == false);
   EXPECT(m.hasOffset() == true);
   EXPECT(m.isOffset64Bit() == true);
-  EXPECT(m.getOffset() == int64_t(0x0123456789ABCDEFU));
-  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEFU));
+  EXPECT(m.offset() == int64_t(0x0123456789ABCDEFU));
+  EXPECT(m.offsetLo32() == int32_t(0x89ABCDEFU));
   m.addOffset(1);
-  EXPECT(m.getOffset() == int64_t(0x0123456789ABCDF0U));
+  EXPECT(m.offset() == int64_t(0x0123456789ABCDF0U));
 
-  m = x86::ptr(0x0123456789ABCDEFU, x86::rdi, 4);
+  m = ptr(0x0123456789ABCDEFU, rdi, 4);
   EXPECT(m.hasBase() == false);
   EXPECT(m.hasBaseReg() == false);
   EXPECT(m.hasIndex() == true);
   EXPECT(m.hasIndexReg() == true);
-  EXPECT(m.getIndexType() == x86::rdi.getType());
-  EXPECT(m.getIndexId() == x86::rdi.getId());
+  EXPECT(m.indexType() == rdi.type());
+  EXPECT(m.indexId() == rdi.id());
   EXPECT(m.hasOffset() == true);
   EXPECT(m.isOffset64Bit() == true);
-  EXPECT(m.getOffset() == int64_t(0x0123456789ABCDEFU));
-  EXPECT(m.getOffsetLo32() == int32_t(0x89ABCDEFU));
+  EXPECT(m.offset() == int64_t(0x0123456789ABCDEFU));
+  EXPECT(m.offsetLo32() == int32_t(0x89ABCDEFU));
   m.resetIndex();
   EXPECT(m.hasIndex() == false);
   EXPECT(m.hasIndexReg() == false);
 
-  m = x86::ptr(x86::rax);
+  m = ptr(rax);
   EXPECT(m.hasBase() == true);
   EXPECT(m.hasBaseReg() == true);
-  EXPECT(m.getBaseType() == x86::rax.getType());
-  EXPECT(m.getBaseId() == x86::rax.getId());
+  EXPECT(m.baseType() == rax.type());
+  EXPECT(m.baseId() == rax.id());
   EXPECT(m.hasIndex() == false);
   EXPECT(m.hasIndexReg() == false);
-  EXPECT(m.getIndexType() == 0);
-  EXPECT(m.getIndexId() == 0);
+  EXPECT(m.indexType() == 0);
+  EXPECT(m.indexId() == 0);
   EXPECT(m.hasOffset() == false);
   EXPECT(m.isOffset64Bit() == false);
-  EXPECT(m.getOffset() == 0);
-  EXPECT(m.getOffsetLo32() == 0);
-  m.setIndex(x86::rsi);
+  EXPECT(m.offset() == 0);
+  EXPECT(m.offsetLo32() == 0);
+  m.setIndex(rsi);
   EXPECT(m.hasIndex() == true);
   EXPECT(m.hasIndexReg() == true);
-  EXPECT(m.getIndexType() == x86::rsi.getType());
-  EXPECT(m.getIndexId() == x86::rsi.getId());
+  EXPECT(m.indexType() == rsi.type());
+  EXPECT(m.indexId() == rsi.id());
 }
 #endif
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86

@@ -9,77 +9,72 @@
 #define _ASMJIT_CORE_ASSEMBLER_H
 
 // [Dependencies]
-#include "../core/codeemitter.h"
 #include "../core/codeholder.h"
+#include "../core/emitter.h"
 #include "../core/operand.h"
 #include "../core/simdtypes.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
-// [asmjit::Assembler]
+// [asmjit::BaseAssembler]
 // ============================================================================
 
-//! Base assembler.
-//!
-//! This class implements a base interface that is used by architecture
-//! specific assemblers.
-//!
-//! \sa CodeCompiler.
-class ASMJIT_VIRTAPI Assembler : public CodeEmitter {
+//! Base encoder (assembler).
+class ASMJIT_VIRTAPI BaseAssembler : public BaseEmitter {
 public:
-  ASMJIT_NONCOPYABLE(Assembler)
-  typedef CodeEmitter Base;
+  ASMJIT_NONCOPYABLE(BaseAssembler)
+  typedef BaseEmitter Base;
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new `Assembler` instance.
-  ASMJIT_API Assembler() noexcept;
-  //! Destroy the `Assembler` instance.
-  ASMJIT_API virtual ~Assembler() noexcept;
+  //! Create a new `BaseAssembler` instance.
+  ASMJIT_API BaseAssembler() noexcept;
+  //! Destroy the `BaseAssembler` instance.
+  ASMJIT_API virtual ~BaseAssembler() noexcept;
 
   // --------------------------------------------------------------------------
   // [Buffer Management]
   // --------------------------------------------------------------------------
 
   //! Get the capacity of the current CodeBuffer.
-  inline size_t getBufferCapacity() const noexcept { return (size_t)(_bufferEnd - _bufferData); }
+  inline size_t bufferCapacity() const noexcept { return (size_t)(_bufferEnd - _bufferData); }
   //! Get the number of remaining bytes in the current CodeBuffer.
-  inline size_t getRemainingSpace() const noexcept { return (size_t)(_bufferEnd - _bufferPtr); }
+  inline size_t remainingSpace() const noexcept { return (size_t)(_bufferEnd - _bufferPtr); }
 
   //! Get the current position in the CodeBuffer.
-  inline size_t getOffset() const noexcept { return (size_t)(_bufferPtr - _bufferData); }
+  inline size_t offset() const noexcept { return (size_t)(_bufferPtr - _bufferData); }
   //! Set the current position in the CodeBuffer to `offset`.
   //!
-  //! NOTE: The `offset` cannot be outside of the buffer length (even if it's
+  //! NOTE: The `offset` cannot be outside of the buffer size (even if it's
   //! within buffer's capacity).
   ASMJIT_API Error setOffset(size_t offset);
 
   //! Get start of the CodeBuffer of the current section.
-  inline uint8_t* getBufferData() const noexcept { return _bufferData; }
+  inline uint8_t* bufferData() const noexcept { return _bufferData; }
   //! Get end (first invalid byte) of the current section.
-  inline uint8_t* getBufferEnd() const noexcept { return _bufferEnd; }
+  inline uint8_t* bufferEnd() const noexcept { return _bufferEnd; }
   //! Get pointer in the CodeBuffer of the current section.
-  inline uint8_t* getBufferPtr() const noexcept { return _bufferPtr; }
+  inline uint8_t* bufferPtr() const noexcept { return _bufferPtr; }
 
   // --------------------------------------------------------------------------
   // [Label Management]
   // --------------------------------------------------------------------------
 
   ASMJIT_API Label newLabel() override;
-  ASMJIT_API Label newNamedLabel(const char* name, size_t length = Globals::kNullTerminated, uint32_t type = Label::kTypeGlobal, uint32_t parentId = 0) override;
+  ASMJIT_API Label newNamedLabel(const char* name, size_t nameSize = Globals::kNullTerminated, uint32_t type = Label::kTypeGlobal, uint32_t parentId = 0) override;
   ASMJIT_API Error bind(const Label& label) override;
 
   // --------------------------------------------------------------------------
   // [Emit (Low-Level)]
   // --------------------------------------------------------------------------
 
-  using CodeEmitter::_emit;
+  using BaseEmitter::_emit;
 
   ASMJIT_API Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) override;
   ASMJIT_API Error _emitOpArray(uint32_t instId, const Operand_* operands, size_t count) override;
@@ -88,7 +83,7 @@ protected:
   #ifndef ASMJIT_DISABLE_LOGGING
   void _emitLog(
     uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3,
-    uint32_t relSize, uint32_t imLen, uint8_t* afterCursor);
+    uint32_t relSize, uint32_t immSize, uint8_t* afterCursor);
 
   Error _emitFailed(
     Error err,
@@ -124,7 +119,7 @@ public:
   // [Comment]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error comment(const char* s, size_t len = Globals::kNullTerminated) override;
+  ASMJIT_API Error comment(const char* data, size_t size = Globals::kNullTerminated) override;
 
   // --------------------------------------------------------------------------
   // [Events]
@@ -152,10 +147,10 @@ public:
 // TODO: Better name, should not be here, maybe hide from public API completely?
 class AsmBufferWriter {
 public:
-  explicit ASMJIT_FORCEINLINE AsmBufferWriter(Assembler* a) noexcept
+  explicit ASMJIT_FORCEINLINE AsmBufferWriter(BaseAssembler* a) noexcept
     : _cursor(a->_bufferPtr) {}
 
-  ASMJIT_FORCEINLINE Error ensureSpace(Assembler* a, size_t n) noexcept {
+  ASMJIT_FORCEINLINE Error ensureSpace(BaseAssembler* a, size_t n) noexcept {
     size_t remainingSpace = (size_t)(a->_bufferEnd - _cursor);
     if (ASMJIT_UNLIKELY(remainingSpace < n)) {
       CodeBuffer& buffer = a->_section->_buffer;
@@ -167,11 +162,11 @@ public:
     return kErrorOk;
   }
 
-  ASMJIT_FORCEINLINE uint8_t* getCursor() const noexcept {
+  ASMJIT_FORCEINLINE uint8_t* cursor() const noexcept {
     return _cursor;
   }
 
-  ASMJIT_FORCEINLINE size_t getOffset(uint8_t* from) const noexcept {
+  ASMJIT_FORCEINLINE size_t offset(uint8_t* from) const noexcept {
     ASMJIT_ASSERT(_cursor >= from);
     return (size_t)(_cursor - from);
   }
@@ -236,13 +231,13 @@ public:
     _cursor += size;
   }
 
-  ASMJIT_FORCEINLINE void done(Assembler* a) noexcept {
+  ASMJIT_FORCEINLINE void done(BaseAssembler* a) noexcept {
     CodeBuffer& buffer = a->_section->_buffer;
-    size_t newLength = (size_t)(_cursor - a->_bufferData);
-    ASMJIT_ASSERT(newLength <= buffer.getCapacity());
+    size_t newSize = (size_t)(_cursor - a->_bufferData);
+    ASMJIT_ASSERT(newSize <= buffer.capacity());
 
     a->_bufferPtr = _cursor;
-    buffer._length = std::max(buffer._length, newLength);
+    buffer._size = std::max(buffer._size, newSize);
   }
 
   uint8_t* _cursor;

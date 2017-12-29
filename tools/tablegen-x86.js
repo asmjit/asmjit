@@ -23,12 +23,15 @@
 const commons = require("./tablegen.js");
 const asmdb = commons.asmdb;
 const kIndent = commons.kIndent;
+
 const MapUtils = commons.MapUtils;
-const IndexedArray = commons.IndexedArray;
+const ArrayUtils = commons.ArrayUtils;
 const StringUtils = commons.StringUtils;
+const IndexedArray = commons.IndexedArray;
 
 const hasOwn = Object.prototype.hasOwnProperty;
 const padLeft = StringUtils.padLeft;
+const disclaimer = StringUtils.disclaimer;
 
 const FAIL = commons.FAIL;
 const DEBUG = commons.DEBUG;
@@ -124,10 +127,7 @@ class GenUtils {
   }
 
   static cpuFeaturesOf(dbInsts) {
-    const features = dbInsts.unionCpuFeatures();
-    const result = Object.getOwnPropertyNames(features);
-    result.sort();
-    return result;
+    return ArrayUtils.sorted(dbInsts.unionCpuFeatures());
   }
 
   static specialsOf(dbInsts) {
@@ -165,13 +165,7 @@ class GenUtils {
       }
     }
 
-    const rArray = Object.getOwnPropertyNames(r);
-    const wArray = Object.getOwnPropertyNames(w);
-
-    rArray.sort();
-    wArray.sort();
-
-    return [rArray, wArray];
+    return [ArrayUtils.sorted(r), ArrayUtils.sorted(w)];
   }
 
   static flagsOf(dbInsts) {
@@ -215,6 +209,9 @@ class GenUtils {
         access = acc;
       else if (access !== acc)
         ambiguous = true;
+
+      if (dbInst.attributes.Volatile) f.Volatile = true;
+      if (dbInst.privilege !== "L3") f.Privileged = true;
     }
 
     // Default to "RO" if there is no access information nor operands.
@@ -328,15 +325,26 @@ class GenUtils {
       const dbInst = dbInsts[i];
       const name = dbInst.name;
       const operands = dbInst.operands;
+    }
+
+    return Object.getOwnPropertyNames(f);
+  }
+
+  static specialCasesOf(dbInsts) {
+    const f = Object.create(null);
+
+    for (var i = 0; i < dbInsts.length; i++) {
+      const dbInst = dbInsts[i];
+      const name = dbInst.name;
+      const operands = dbInst.operands;
 
       // Special case: MOV undefines flags if moving between GP and CR|DR registers.
-      if (name === "mov") f.MovCrDr = true;
+      if (name === "mov")
+        f.MovCrDr = true;
 
       // Special case: MOVSS|MOVSD zeroes the remaining part of destination if source operand is memory.
-      if ((name === "movss" || name === "movsd") && !dbInst.attributes.REP) f.MovSsSd = true;
-
-      if (dbInst.attributes.Volatile) f.Volatile = true;
-      if (dbInst.privilege !== "L3") f.Privileged = true;
+      if ((name === "movss" || name === "movsd") && !dbInst.attributes.REP)
+        f.MovSsSd = true;
     }
 
     return Object.getOwnPropertyNames(f);
@@ -422,7 +430,7 @@ class GenUtils {
     if (dbInsts.checkAttribute("Control", "Call")) return "Call";
     if (dbInsts.checkAttribute("Control", "Branch")) return "Branch";
     if (dbInsts.checkAttribute("Control", "Return")) return "Return";
-    return "Regular";
+    return "None";
   }
 }
 
@@ -448,7 +456,9 @@ class X86TableGen extends commons.TableGen {
     const rep = remapped.rep;
     if (rep === null) return dbInsts;
 
-    return dbInsts.filter((inst) => { return rep === !!(inst.attributes.REP || inst.attributes.REPNE); });
+    return dbInsts.filter((inst) => {
+      return rep === !!(inst.attributes.REP || inst.attributes.REPNE);
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -456,7 +466,7 @@ class X86TableGen extends commons.TableGen {
   // --------------------------------------------------------------------------
 
   parse() {
-    const data = this.dataOfFile("src/asmjit/x86/x86inst.cpp");
+    const data = this.dataOfFile("src/asmjit/x86/x86instdb.cpp");
     const re = new RegExp(
       "INST\\(" +
         "([A-Za-z0-9_]+)\\s*"              + "," + // [01] Instruction.
@@ -488,6 +498,7 @@ class X86TableGen extends commons.TableGen {
       const flags         = GenUtils.flagsOf(dbInsts);
       const controlType   = GenUtils.controlType(dbInsts);
       const singleRegCase = GenUtils.singleRegCase(name);
+      const specialCases  = GenUtils.specialCasesOf(dbInsts);
 
       this.addInst({
         id                : 0,             // Instruction id (numeric value).
@@ -503,12 +514,12 @@ class X86TableGen extends commons.TableGen {
         signatures        : null,          // Instruction signatures.
         controlType       : controlType,
         singleRegCase     : singleRegCase,
+        specialCases      : specialCases,
 
         nameIndex         : -1,            // Instruction name-index.
         altOpCodeIndex    : -1,            // Index to X86InstDB::altOpCodeTable.
         commonDataIndex   : -1,
         operationDataIndex: -1,
-        sseToAvxDataIndex : -1,
 
         rwInfoIndex       : -1,
         rwInfoCount       : -1,
@@ -535,10 +546,9 @@ class X86TableGen extends commons.TableGen {
         padLeft(inst.writeSize         ,  1) + ", " +
         padLeft(inst.nameIndex         ,  4) + ", " +
         padLeft(inst.commonDataIndex   ,  3) + ", " +
-        padLeft(inst.operationDataIndex,  3) + ", " +
-        padLeft(inst.sseToAvxDataIndex ,  2) + ")";
+        padLeft(inst.operationDataIndex,  3) + ")";
     }) + "\n";
-    return this.inject("instData", s, this.insts.length * 12);
+    this.inject("InstInfo", s, this.insts.length * 4);
   }
 
   // --------------------------------------------------------------------------
@@ -668,8 +678,10 @@ class X86TableGen extends commons.TableGen {
 
   onBeforeRun() {
     this.load([
-      "src/asmjit/x86/x86inst.cpp",
-      "src/asmjit/x86/x86inst.h"
+      "src/asmjit/x86/x86globals.h",
+      "src/asmjit/x86/x86instdb.cpp",
+      "src/asmjit/x86/x86instdb.h",
+      "src/asmjit/x86/x86ssetoavx.cpp"
     ]);
     this.parse();
   }
@@ -682,12 +694,12 @@ class X86TableGen extends commons.TableGen {
 }
 
 // ============================================================================
-// [tablegen.x86.X86IdEnum]
+// [tablegen.x86.IdEnum]
 // ============================================================================
 
-class X86IdEnum extends commons.IdEnum {
+class IdEnum extends commons.IdEnum {
   constructor() {
-    super("X86IdEnum");
+    super("IdEnum");
   }
 
   comment(inst) {
@@ -713,34 +725,78 @@ class X86IdEnum extends commons.IdEnum {
 }
 
 // ============================================================================
-// [tablegen.x86.X86NameTable]
+// [tablegen.x86.NameTable]
 // ============================================================================
 
-class X86NameTable extends commons.NameTable {
+class NameTable extends commons.NameTable {
   constructor() {
-    super("X86NameTable");
+    super("NameTable");
   }
 }
 
 // ============================================================================
-// [tablegen.x86.X86AltOpCodeTable]
+// [tablegen.x86.EncodingTable]
 // ============================================================================
 
-class X86AltOpCodeTable extends commons.Task {
+class EncodingTable extends commons.Task {
   constructor() {
-    super("X86AltOpCodeTable");
+    super("EncodingTable");
+  }
+
+  run() {
+    const insts = this.ctx.insts;
+    const table = insts.map((inst) => { return inst.encoding; });
+
+    function map(encoding) { return `E(${encoding})`; }
+
+    this.inject("EncodingTable",
+                disclaimer(`#define E(VAL) InstDB::kEncoding##VAL\n` +
+                           `const uint8_t InstDB::_encodingTable[] = {\n${StringUtils.format(table, kIndent, -1, map)}\n};\n` +
+                           `#undef E\n`),
+                table.length * 1);
+  }
+}
+
+// ============================================================================
+// [tablegen.x86.MainOpcodeTable]
+// ============================================================================
+
+class MainOpcodeTable extends commons.Task {
+  constructor() {
+    super("MainOpcodeTable");
+  }
+
+  run() {
+    const insts = this.ctx.insts;
+    const table = insts.map((inst) => { return padLeft(inst.opcode0, 26) });
+
+    this.inject("MainOpcodeTable",
+                disclaimer(`const uint32_t InstDB::_mainOpcodeTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n`),
+                table.length * 4);
+  }
+}
+
+// ============================================================================
+// [tablegen.x86.AltOpcodeTable]
+// ============================================================================
+
+class AltOpcodeTable extends commons.Task {
+  constructor() {
+    super("AltOpcodeTable");
   }
 
   run() {
     const insts = this.ctx.insts;
     const table = new IndexedArray();
+    const index = insts.map((inst) => { return table.addIndexed(padLeft(inst.opcode1, 26)); });
 
-    insts.forEach((inst) => {
-      inst.altOpCodeIndex = table.addIndexed(padLeft(inst.opcode1, 26));
-    });
+    this.inject("AltOpcodeIndex",
+                disclaimer(`const uint8_t InstDB::_altOpcodeIndex[] = {\n${StringUtils.format(index, kIndent, -1)}\n};\n`),
+                index.length * 1);
 
-    var s = `const uint32_t X86InstDB::altOpCodeData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n`;
-    return this.ctx.inject("altOpCodeData", StringUtils.disclaimer(s), table.length * 4);
+    this.inject("AltOpcodeTable",
+                disclaimer(`const uint32_t InstDB::_altOpcodeTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n`),
+                table.length * 4);
   }
 }
 
@@ -748,33 +804,45 @@ class X86AltOpCodeTable extends commons.Task {
 // [tablegen.x86.SseToAvxTable]
 // ============================================================================
 
-class X86SseToAvxTable extends commons.Task {
+class InstSseToAvxTable extends commons.Task {
   constructor() {
-    super("X86SseToAvxTable", [
-      "X86IdEnum"
-    ]);
+    super("InstSseToAvxTable", ["IdEnum"]);
   }
 
   run() {
     const insts = this.ctx.insts;
-    const table = new IndexedArray();
 
-    // This will receive a zero index, which means that no translation is possible.
-    table.addIndexed("{ " + padLeft(`X86Inst::kSseToAvxNone`, 27) + ", " + padLeft("0", 4) + " }");
+    const dataTable = new IndexedArray();
+    const indexTable = [];
+
+    function add(data) {
+      return dataTable.addIndexed("{ " + padLeft(`SseToAvxData::kMode${data.mode}`, 28) + ", " + padLeft(String(data.delta), 4) + " }");
+    }
+
+    // This will receive a zero index, which means that no SseToAvx or AvxToSSe translation is possible.
+    const kInvalidIndex = add({ mode: "None", delta: 0 });
+    insts.forEach((inst) => { indexTable.push(kInvalidIndex); });
 
     insts.forEach((inst) => {
-      // If it's not `-1` it's an AVX instruction that shares the SseToAvx
-      // data. So we won't touch it as it already has `sseToAvxDataIndex`.
-      if (inst.sseToAvxDataIndex === -1) {
+      // If it's not `kInvalidIndex` it's an AVX instruction that shares the
+      // SseToAvx data. We won't touch it as it already has the index assigned.
+      if (indexTable[inst.id] === kInvalidIndex) {
         const data = this.calcSseToAvxData(inst.dbInsts);
-        inst.sseToAvxDataIndex = table.addIndexed("{ " + padLeft(`X86Inst::kSseToAvx${data.mode}`, 27) + ", " + padLeft(data.delta, 4) + " }");
+        const index = add(data);
+
+        indexTable[inst.id] = index;
         if (data.delta !== 0)
-          this.ctx.instMap["v" + inst.name].sseToAvxDataIndex = inst.sseToAvxDataIndex;
+          indexTable[this.ctx.instMap["v" + inst.name].id] = index;
       }
     });
 
-    var s = `const X86Inst::SseToAvxData X86InstDB::sseToAvxData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n`;
-    return this.ctx.inject("sseToAvxData", StringUtils.disclaimer(s), table.length * 2);
+    this.inject("SseToAvxIndex",
+                disclaimer(`static const uint8_t sseToAvxIndex[] = {\n${StringUtils.format(indexTable, kIndent, -1)}\n};\n`),
+                indexTable.length * 1);
+
+    this.inject("SseToAvxTable",
+                disclaimer(`static const SseToAvxData sseToAvxData[] = {\n${StringUtils.format(dataTable, kIndent, true)}\n};\n`),
+                dataTable.length * 2);
   }
 
   filterSseToAvx(dbInsts) {
@@ -802,14 +870,14 @@ class X86SseToAvxTable extends commons.Task {
   }
 
   calcSseToAvxData(dbInsts) {
-    const row = {
+    const data = {
       mode : "None", // No conversion by default.
       delta: 0       // 0 if no conversion is possible.
     };
 
     const dbSseInsts = this.filterSseToAvx(dbInsts);
     if (!dbSseInsts.length)
-      return row;
+      return data;
 
     const sseName = dbSseInsts[0].name;
     const avxName = "v" + sseName;
@@ -817,12 +885,12 @@ class X86SseToAvxTable extends commons.Task {
     const dbAvxInsts = this.ctx.query(avxName);
     if (!dbAvxInsts.length) {
       DEBUG(`SseToAvx: Instruction '${sseName}' has no AVX counterpart`);
-      return row;
+      return data;
     }
 
     if (avxName === "vblendvpd" || avxName === "vblendvps" || avxName === "vpblendvb") {
       // Special cases first.
-      row.mode = "Blend";
+      data.mode = "Blend";
     }
     else {
       // Common case, deduce conversion mode by checking both SSE and AVX instructions.
@@ -851,155 +919,94 @@ class X86SseToAvxTable extends commons.Task {
         if (!match) {
           const signature = sseInst.operands.map(function(op) { return op.data; }).join(", ");
           console.log(`SseToAvx: Instruction '${sseName}(${signature})' has no AVX counterpart`);
-          return row;
+          return data;
         }
       }
 
-      row.mode = (map.raw && !map.nds) ? "Move" : (map.raw && map.nds) ? "MoveIfMem" : "Extend";
+      data.mode = (map.raw && !map.nds) ? "Move" : (map.raw && map.nds) ? "MoveIfMem" : "Extend";
     }
-    row.delta = this.ctx.instMap[avxName].id - this.ctx.instMap[sseName].id;
-    return row;
+    data.delta = this.ctx.instMap[avxName].id - this.ctx.instMap[sseName].id;
+    return data;
   }
 }
 
 // ============================================================================
-// [tablegen.x86.X86SignatureTable]
+// [tablegen.x86.InstSignatureTable]
 // ============================================================================
 
-const RegOp = MapUtils.arrayToMap(["al", "ah", "ax", "eax", "rax", "cl","r8lo", "r8hi", "r16", "r32", "r64", "fp", "mm", "k", "xmm", "ymm", "zmm", "bnd", "sreg", "creg", "dreg"]);
+const RegOp = MapUtils.arrayToMap(["al", "ah", "ax", "eax", "rax", "cl", "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st", "bnd"]);
 const MemOp = MapUtils.arrayToMap(["m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024"]);
 
-const OpSortPriority = {
-  "read"    :-9,
-  "write"   :-8,
-  "rw"      :-7,
-  "implicit":-6,
-
-  "r8lo"    : 1,
-  "r8hi"    : 2,
-  "r16"     : 3,
-  "r32"     : 4,
-  "r64"     : 5,
-  "fp"      : 6,
-  "mm"      : 7,
-  "k"       : 8,
-  "xmm"     : 9,
-  "ymm"     : 10,
-  "zmm"     : 11,
-  "sreg"    : 12,
-  "bnd"     : 13,
-  "creg"    : 14,
-  "dreg"    : 15,
-
-  "mem"     : 30,
-  "vm"      : 31,
-  "m8"      : 32,
-  "m16"     : 33,
-  "m32"     : 34,
-  "m48"     : 35,
-  "m64"     : 36,
-  "m80"     : 37,
-  "m128"    : 38,
-  "m256"    : 39,
-  "m512"    : 40,
-  "m1024"   : 41,
-  "mib"     : 42,
-  "vm32x"   : 43,
-  "vm32y"   : 44,
-  "vm32z"   : 45,
-  "vm64x"   : 46,
-  "vm64y"   : 47,
-  "vm64z"   : 48,
-  "memBase" : 49,
-  "memES"   : 50,
-  "memDS"   : 51,
-
-  "i4"      : 60,
-  "u4"      : 61,
-  "i8"      : 62,
-  "u8"      : 63,
-  "i16"     : 64,
-  "u16"     : 65,
-  "i32"     : 66,
-  "u32"     : 67,
-  "i64"     : 68,
-  "u64"     : 69,
-
-  "rel8"    : 70,
-  "rel32"   : 71
-};
+const cmpOp = StringUtils.makePriorityCompare([
+  "implicit",
+  "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st", "bnd",
+  "mem", "vm", "m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024",
+  "mib",
+  "vm32x", "vm32y", "vm32z", "vm64x", "vm64y", "vm64z",
+  "memBase", "memES", "memDS",
+  "i4", "u4", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
+  "rel8", "rel32"
+]);
 
 const OpToAsmJitOp = {
-  "read"    : "FLAG(R)",
-  "write"   : "FLAG(W)",
-  "rw"      : "FLAG(X)",
-  "implicit": "FLAG(Implicit)",
+  "implicit": "F(Implicit)",
 
-  "r8lo"    : "FLAG(GpbLo)",
-  "r8hi"    : "FLAG(GpbHi)",
-  "r16"     : "FLAG(Gpw)",
-  "r32"     : "FLAG(Gpd)",
-  "r64"     : "FLAG(Gpq)",
-  "fp"      : "FLAG(Fp)",
-  "mm"      : "FLAG(Mm)",
-  "k"       : "FLAG(K)",
-  "xmm"     : "FLAG(Xmm)",
-  "ymm"     : "FLAG(Ymm)",
-  "zmm"     : "FLAG(Zmm)",
-  "bnd"     : "FLAG(Bnd)",
-  "sreg"    : "FLAG(Seg)",
-  "creg"    : "FLAG(Cr)",
-  "dreg"    : "FLAG(Dr)",
+  "r8lo"    : "F(GpbLo)",
+  "r8hi"    : "F(GpbHi)",
+  "r16"     : "F(Gpw)",
+  "r32"     : "F(Gpd)",
+  "r64"     : "F(Gpq)",
+  "xmm"     : "F(Xmm)",
+  "ymm"     : "F(Ymm)",
+  "zmm"     : "F(Zmm)",
+  "mm"      : "F(Mm)",
+  "k"       : "F(KReg)",
+  "sreg"    : "F(SReg)",
+  "creg"    : "F(CReg)",
+  "dreg"    : "F(DReg)",
+  "st"      : "F(St)",
+  "bnd"     : "F(Bnd)",
 
-  "mem"     : "FLAG(Mem)",
-  "vm"      : "FLAG(Vm)",
+  "mem"     : "F(Mem)",
+  "vm"      : "F(Vm)",
 
-  "m8"      : "MEM(M8)",
-  "m16"     : "MEM(M16)",
-  "m32"     : "MEM(M32)",
-  "m48"     : "MEM(M48)",
-  "m64"     : "MEM(M64)",
-  "m80"     : "MEM(M80)",
-  "m128"    : "MEM(M128)",
-  "m256"    : "MEM(M256)",
-  "m512"    : "MEM(M512)",
-  "m1024"   : "MEM(M1024)",
-  "mib"     : "MEM(Mib)",
-  "mAny"    : "MEM(Any)",
-  "vm32x"   : "MEM(Vm32x)",
-  "vm32y"   : "MEM(Vm32y)",
-  "vm32z"   : "MEM(Vm32z)",
-  "vm64x"   : "MEM(Vm64x)",
-  "vm64y"   : "MEM(Vm64y)",
-  "vm64z"   : "MEM(Vm64z)",
+  "i4"      : "F(I4)",
+  "u4"      : "F(U4)",
+  "i8"      : "F(I8)",
+  "u8"      : "F(U8)",
+  "i16"     : "F(I16)",
+  "u16"     : "F(U16)",
+  "i32"     : "F(I32)",
+  "u32"     : "F(U32)",
+  "i64"     : "F(I64)",
+  "u64"     : "F(U64)",
 
-  "memBase" : "MEM(BaseOnly)",
-  "memDS"   : "MEM(Ds)",
-  "memES"   : "MEM(Es)",
+  "rel8"    : "F(Rel8)",
+  "rel32"   : "F(Rel32)",
 
-  "i4"      : "FLAG(I4)",
-  "u4"      : "FLAG(U4)",
-  "i8"      : "FLAG(I8)",
-  "u8"      : "FLAG(U8)",
-  "i16"     : "FLAG(I16)",
-  "u16"     : "FLAG(U16)",
-  "i32"     : "FLAG(I32)",
-  "u32"     : "FLAG(U32)",
-  "i64"     : "FLAG(I64)",
-  "u64"     : "FLAG(U64)",
+  "m8"      : "M(M8)",
+  "m16"     : "M(M16)",
+  "m32"     : "M(M32)",
+  "m48"     : "M(M48)",
+  "m64"     : "M(M64)",
+  "m80"     : "M(M80)",
+  "m128"    : "M(M128)",
+  "m256"    : "M(M256)",
+  "m512"    : "M(M512)",
+  "m1024"   : "M(M1024)",
+  "mib"     : "M(Mib)",
+  "mAny"    : "M(Any)",
+  "vm32x"   : "M(Vm32x)",
+  "vm32y"   : "M(Vm32y)",
+  "vm32z"   : "M(Vm32z)",
+  "vm64x"   : "M(Vm64x)",
+  "vm64y"   : "M(Vm64y)",
+  "vm64z"   : "M(Vm64z)",
 
-  "rel8"    : "FLAG(Rel8)",
-  "rel32"   : "FLAG(Rel32)"
+  "memBase" : "M(BaseOnly)",
+  "memDS"   : "M(Ds)",
+  "memES"   : "M(Es)"
 };
-
-function OpSortFunc(a, b) {
-  return (OpSortPriority[a] || 0) - (OpSortPriority[b] || 0);
-}
-
-function SortOpArray(a) {
-  a.sort(OpSortFunc);
-  return a;
-}
 
 function StringifyArray(a, map) {
   var s = "";
@@ -1086,7 +1093,6 @@ class OSignature {
   toString() {
     var s = "";
     var flags = this.flags;
-    var prefix = (flags.read && flags.write) ? "X:" : (flags.write) ? "W:" : "R:";
 
     for (var k in flags) {
       if (k === "read" || k === "write" || k === "implicit" || k === "memDS" || k === "memES")
@@ -1105,7 +1111,7 @@ class OSignature {
     if (flags.implicit)
       s = "<" + s + ">";
 
-    return prefix + s;
+    return s;
   }
 
   toAsmJitOpData() {
@@ -1116,18 +1122,8 @@ class OSignature {
     var mExtFlags = Object.create(null);
     var sRegMask = 0;
 
-    if (oFlags.read && oFlags.write)
-      mFlags.rw = true;
-    else if (oFlags.write)
-      mFlags.write = true;
-    else
-      mFlags.read = true;
-
     for (var k in oFlags) {
       switch (k) {
-        case "read"    : break;
-        case "write"   : break;
-
         case "implicit":
         case "r8lo"    :
         case "r8hi"    :
@@ -1138,7 +1134,7 @@ class OSignature {
         case "dreg"    :
         case "sreg"    :
         case "bnd"     :
-        case "fp"      :
+        case "st"      :
         case "k"       :
         case "mm"      :
         case "xmm"     :
@@ -1229,7 +1225,7 @@ class OSignature {
             case "di"    : mFlags.r16  = true; sRegMask |= 1 << 7; break;
             case "edi"   : mFlags.r32  = true; sRegMask |= 1 << 7; break;
             case "rdi"   : mFlags.r64  = true; sRegMask |= 1 << 7; break;
-            case "fp0"   : mFlags.fp   = true; sRegMask |= 1 << 0; break;
+            case "st0"   : mFlags.st   = true; sRegMask |= 1 << 0; break;
             case "xmm0"  : mFlags.xmm  = true; sRegMask |= 1 << 0; break;
             case "ymm0"  : mFlags.ymm  = true; sRegMask |= 1 << 0; break;
             default:
@@ -1239,11 +1235,11 @@ class OSignature {
       }
     }
 
-    const sFlags    = StringifyArray(SortOpArray(Object.getOwnPropertyNames(mFlags   )), OpToAsmJitOp);
-    const sMemFlags = StringifyArray(SortOpArray(Object.getOwnPropertyNames(mMemFlags)), OpToAsmJitOp);
-    const sExtFlags = StringifyArray(SortOpArray(Object.getOwnPropertyNames(mExtFlags)), OpToAsmJitOp);
+    const sFlags    = StringifyArray(ArrayUtils.sorted(mFlags   , cmpOp), OpToAsmJitOp);
+    const sMemFlags = StringifyArray(ArrayUtils.sorted(mMemFlags, cmpOp), OpToAsmJitOp);
+    const sExtFlags = StringifyArray(ArrayUtils.sorted(mExtFlags, cmpOp), OpToAsmJitOp);
 
-    return `OSIGNATURE(${sFlags || 0}, ${sMemFlags || 0}, ${sExtFlags || 0}, ${StringUtils.decToHex(sRegMask, 2)})`;
+    return `ROW(${sFlags || 0}, ${sMemFlags || 0}, ${sExtFlags || 0}, ${StringUtils.decToHex(sRegMask, 2)})`;
   }
 }
 
@@ -1323,11 +1319,8 @@ class SignatureArray extends Array {
       var s = "";
       for (var i = 0; i < inst.length; i++) {
         const op = inst[i];
-        if (regOps & (1 << i)) {
-          const props = Object.getOwnPropertyNames(MapUtils.and(op.flags, RegOp));
-          props.sort();
-          s += "{" + props.join("|") + "}";
-        }
+        if (regOps & (1 << i))
+          s += "{" + ArrayUtils.sorted(MapUtils.and(op.flags, RegOp)).join("|") + "}";
       }
       return s || "?";
     }
@@ -1479,9 +1472,9 @@ class SignatureArray extends Array {
   }
 }
 
-class X86SignatureTable extends commons.Task {
+class InstSignatureTable extends commons.Task {
   constructor() {
-    super("X86SignatureTable");
+    super("InstSignatureTable");
 
     this.maxOpRows = 0;
     this.opBlackList = {
@@ -1507,7 +1500,7 @@ class X86SignatureTable extends commons.Task {
     const oSignatureArr = [];
 
     // Must be first to be assigned to zero.
-    const oSignatureNone = "OSIGNATURE(0, 0, 0, 0xFF)";
+    const oSignatureNone = "ROW(0, 0, 0, 0xFF)";
     oSignatureMap[oSignatureNone] = [0];
     oSignatureArr.push(oSignatureNone);
 
@@ -1562,7 +1555,7 @@ class X86SignatureTable extends commons.Task {
           for (var j = 0; j < len; j++) {
             const signature = signatures[j];
 
-            var signatureEntry = `ISIGNATURE(${signature.length}, ${signature.x86 ? 1 : 0}, ${signature.x64 ? 1 : 0}, ${signature.implicit}`;
+            var signatureEntry = `ROW(${signature.length}, ${signature.x86 ? 1 : 0}, ${signature.x64 ? 1 : 0}, ${signature.implicit}`;
             var signatureComment = signature.toString();
 
             var x = 0;
@@ -1604,25 +1597,24 @@ class X86SignatureTable extends commons.Task {
       });
     }
 
-    var s = "#define FLAG(flag) X86Inst::kOp##flag\n" +
-            "#define MEM(mem) X86Inst::kMemOp##mem\n" +
-            "#define OSIGNATURE(flags, memFlags, extFlags, regId) \\\n" +
-            "  { uint32_t(flags), uint16_t(memFlags), uint8_t(extFlags), uint8_t(regId) }\n" +
-                StringUtils.makeCxxArray(oSignatureArr, "const X86Inst::OSignature X86InstDB::oSignatureData[]") +
-            "#undef OSIGNATURE\n" +
-            "#undef MEM\n" +
-            "#undef FLAG\n" +
-            "\n" +
-            "#define ISIGNATURE(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5) \\\n" +
-            "  { count, (x86 ? uint8_t(X86Inst::kArchMaskX86) : uint8_t(0)) |      \\\n" +
-            "           (x64 ? uint8_t(X86Inst::kArchMaskX64) : uint8_t(0)) ,      \\\n" +
-            "    implicit,                                                         \\\n" +
-            "    0,                                                                \\\n" +
-            "    { o0, o1, o2, o3, o4, o5 }                                        \\\n" +
-            "  }\n" +
-            StringUtils.makeCxxArrayWithComment(iSignatureArr, "const X86Inst::ISignature X86InstDB::iSignatureData[]") +
-            "#undef ISIGNATURE\n";
-    return this.ctx.inject("signatureData", StringUtils.disclaimer(s), oSignatureArr.length * 8 + iSignatureArr.length * 8);
+    var s = `#define ROW(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5)  \\\n` +
+            `  { count, (x86 ? uint8_t(InstDB::kArchMaskX86) : uint8_t(0)) | \\\n` +
+            `           (x64 ? uint8_t(InstDB::kArchMaskX64) : uint8_t(0)) , \\\n` +
+            `    implicit,                                                   \\\n` +
+            `    0,                                                          \\\n` +
+            `    { o0, o1, o2, o3, o4, o5 }                                  \\\n` +
+            `  }\n` +
+            StringUtils.makeCxxArrayWithComment(iSignatureArr, "const InstDB::InstSignature InstDB::_instSignatureTable[]") +
+            `#undef ROW\n` +
+            `\n` +
+            `#define ROW(flags, mFlags, extFlags, regId) { uint32_t(flags), uint16_t(mFlags), uint8_t(extFlags), uint8_t(regId) }\n` +
+            `#define F(VAL) InstDB::kOp##VAL\n` +
+            `#define M(VAL) InstDB::kMemOp##VAL\n` +
+            StringUtils.makeCxxArray(oSignatureArr, "const InstDB::OpSignature InstDB::_opSignatureTable[]") +
+            `#undef M\n` +
+            `#undef F\n` +
+            `#undef ROW\n`;
+    this.inject("InstSignatureTable", disclaimer(s), oSignatureArr.length * 8 + iSignatureArr.length * 8);
   }
 
   makeSignatures(dbInsts) {
@@ -1636,22 +1628,22 @@ class X86SignatureTable extends commons.Task {
       // NOTE: This changed from having reg|mem merged into creating two signatures
       // instead. Imagine two instructions in one `dbInsts` array:
       //
-      //   1. mov modrm reg, reg/mem
-      //   2. mov modmr reg/mem. reg
+      //   1. mov reg, reg/mem
+      //   2. mov reg/mem, reg
       //
       // If we merge them and then unmerge, we will have 4 signatures, when iterated:
       //
-      //   1a. mov modrm reg, reg
-      //   1b. mov modrm reg, mem
-      //   2a. mov modmr reg. reg
-      //   2b. mov modmr mem. reg
+      //   1a. mov reg, reg
+      //   1b. mov reg, mem
+      //   2a. mov reg, reg
+      //   2b. mov mem, reg
       //
-      // So, instead of merging here, we insert separated modr/m signatures and let
+      // So, instead of merging them here, we insert separated signatures and let
       // the tool merge them in a way that can be easily unmerged at runtime into:
       //
-      //   1a. mov modrm reg, reg
-      //   1b. mov modrm reg, mem
-      //   2b. mov modmr mem. reg
+      //   1a. mov reg, reg
+      //   1b. mov reg, mem
+      //   2b. mov mem, reg
       var modrmCount = 1;
       for (var modrm = 0; modrm < modrmCount; modrm++) {
         var row = new ISignature(inst.name);
@@ -1674,8 +1666,8 @@ class X86SignatureTable extends commons.Task {
 
           if (reg === "r8") reg = "r8lo";
           if (reg === "seg") reg = "sreg";
-          if (reg === "st(i)") reg = "fp";
-          if (reg === "st(0)") reg = "fp0";
+          if (reg === "st(i)") reg = "st";
+          if (reg === "st(0)") reg = "st0";
 
           if (mem === "m32fp") mem = "m32";
           if (mem === "m64fp") mem = "m64";
@@ -1701,9 +1693,6 @@ class X86SignatureTable extends commons.Task {
           }
 
           const op = new OSignature();
-          if (iop.read) op.flags.read = true;
-          if (iop.write) op.flags.write = true;
-
           if (iop.implicit) {
             row.implicit++;
             op.flags.implicit = true;
@@ -1752,12 +1741,12 @@ class X86SignatureTable extends commons.Task {
 }
 
 // ============================================================================
-// [tablegen.x86.X86OperationTable]
+// [tablegen.x86.InstExecutionTable]
 // ============================================================================
 
-class X86OperationTable extends commons.Task {
+class InstExecutionTable extends commons.Task {
   constructor() {
-    super("X86OperationTable");
+    super("InstExecutionTable");
   }
 
   run() {
@@ -1767,7 +1756,7 @@ class X86OperationTable extends commons.Task {
     insts.forEach((inst) => {
       const dbInsts = inst.dbInsts;
 
-      var opFlags = GenUtils.operationFlagsOf(dbInsts).map(function(f) { return `OP_FLAG(${f})`; });
+      var opFlags = GenUtils.operationFlagsOf(dbInsts).map(function(f) { return `F(${f})`; });
       if (!opFlags.length) opFlags.push("0");
 
       var features = GenUtils.cpuFeaturesOf(dbInsts).map(function(f) { return `FEATURE(${f})`; });
@@ -1785,24 +1774,24 @@ class X86OperationTable extends commons.Task {
       inst.operationDataIndex = table.addIndexed(`{ ${opFlagsStr}, { ${featuresStr} }, ${rStr}, ${wStr} }`);
     });
 
-    var s = `#define OP_FLAG(F) uint32_t(X86Inst::kOperation##F)\n` +
-            `#define FEATURE(F) uint32_t(CpuInfo::kX86Feature##F)\n` +
-            `#define SPECIAL(F) uint32_t(x86::kSpecialReg_##F)\n` +
-            `const X86Inst::OperationData X86InstDB::operationData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
+    var s = `#define OP_FLAG(VAL) uint32_t(InstInfo::kOperation##VAL)\n` +
+            `#define FEATURE(VAL) uint32_t(Features::k##VAL)\n` +
+            `#define SPECIAL(VAL) uint32_t(kSpecialReg_##VAL)\n` +
+            `const InstDB::ExecutionInfo InstDB::_executionInfoTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
             `#undef SPECIAL\n` +
             `#undef FEATURE\n` +
             `#undef OP_FLAG\n` ;
-    return this.ctx.inject("operationData", StringUtils.disclaimer(s), table.length * 16);
+    this.inject("InstExecutionTable", disclaimer(s), table.length * 16);
   }
 }
 
 // ============================================================================
-// [tablegen.x86.X86RWInfoTable]
+// [tablegen.x86.InstRWInfoTable]
 // ============================================================================
 
-class X86RWInfoTable extends commons.Task {
+class InstRWInfoTable extends commons.Task {
   constructor() {
-    super("X86RWInfoTable");
+    super("InstRWInfoTable");
   }
 
   run() {
@@ -1964,24 +1953,22 @@ class X86RWInfoTable extends commons.Task {
     });
 
     //var s = StringUtils.makeCxxArrayWithComment(iSignatureArr, "const Inst::IRWInfo X86InstDB::iRWInfoData[]");
-    //return this.ctx.inject("rwInfoData", StringUtils.disclaimer(s), 0);
+    //this.inject("rwInfoData", disclaimer(s), 0);
   }
 }
 
 // ============================================================================
-// [tablegen.x86.X86CommonTable]
+// [tablegen.x86.InstCommonTable]
 // ============================================================================
 
-class X86CommonTable extends commons.Task {
+class InstCommonTable extends commons.Task {
   constructor() {
-    super("X86CommonTable", [
-      "X86IdEnum",
-      "X86NameTable",
-      "X86AltOpCodeTable",
-      "X86SseToAvxTable",
-      "X86SignatureTable",
-      "X86OperationTable",
-      "X86RWInfoTable"
+    super("InstCommonTable", [
+      "IdEnum",
+      "NameTable",
+      "InstSignatureTable",
+      "InstExecutionTable",
+      "InstRWInfoTable"
     ]);
   }
 
@@ -1993,27 +1980,30 @@ class X86CommonTable extends commons.Task {
       const flags         = inst.flags.map(function(flag) { return `F(${flag})`; }).join("|") || "0";
       const singleRegCase = `SINGLE_REG(${inst.singleRegCase})`;
       const controlType   = `CONTROL(${inst.controlType})`;
+      const specialCases  = inst.specialCases.map(function(flag) { return `SPECIAL_CASE(${flag})`; }).join("|") || "0";
 
       const row = "{ " +
         padLeft(flags              , 54) + ", " +
         padLeft(inst.writeIndex    ,  3) + ", " +
         padLeft(inst.writeSize     ,  3) + ", " +
-        padLeft(inst.altOpCodeIndex,  3) + ", " +
         padLeft(inst.signatureIndex,  3) + ", " +
         padLeft(inst.signatureCount,  2) + ", " +
-        padLeft(controlType        , 22) + ", " +
-        padLeft(singleRegCase      , 16) + ", " + "0 }";
+        padLeft(controlType        , 16) + ", " +
+        padLeft(singleRegCase      , 16) + ", " +
+        padLeft(specialCases       , 20) + ", " + "0 }";
       inst.commonDataIndex = table.addIndexed(row);
     });
 
-    var s = `#define F(FLAG) X86Inst::kFlag##FLAG\n` +
-            `#define CONTROL(TYPE) Inst::kControl##TYPE\n` +
-            `#define SINGLE_REG(TYPE) X86Inst::kSingleReg##TYPE\n` +
-            `const X86Inst::CommonData X86InstDB::commonData[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
+    var s = `#define F(VAL) InstDB::kFlag##VAL\n` +
+            `#define CONTROL(VAL) Inst::kControl##VAL\n` +
+            `#define SINGLE_REG(VAL) InstDB::kSingleReg##VAL\n` +
+            `#define SPECIAL_CASE(VAL) InstDB::kSpecialCase##VAL\n` +
+            `const InstDB::CommonInfo InstDB::_commonInfoTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
+            `#undef SPECIAL_CASE\n` +
             `#undef SINGLE_REG\n` +
             `#undef CONTROL\n` +
             `#undef F\n`;
-    return this.ctx.inject("commonData", StringUtils.disclaimer(s), table.length * 12);
+    this.inject("InstCommonTable", disclaimer(s), table.length * 12);
   }
 }
 
@@ -2022,12 +2012,14 @@ class X86CommonTable extends commons.Task {
 // ============================================================================
 
 new X86TableGen()
-  .addTask(new X86IdEnum())
-  .addTask(new X86NameTable())
-  .addTask(new X86AltOpCodeTable())
-  .addTask(new X86SseToAvxTable())
-  .addTask(new X86SignatureTable())
-  .addTask(new X86OperationTable())
-  .addTask(new X86RWInfoTable())
-  .addTask(new X86CommonTable())
+  .addTask(new IdEnum())
+  .addTask(new NameTable())
+  .addTask(new EncodingTable())
+  .addTask(new MainOpcodeTable())
+  .addTask(new AltOpcodeTable())
+  .addTask(new InstSseToAvxTable())
+  .addTask(new InstSignatureTable())
+  .addTask(new InstExecutionTable())
+  .addTask(new InstRWInfoTable())
+  .addTask(new InstCommonTable())
   .run();

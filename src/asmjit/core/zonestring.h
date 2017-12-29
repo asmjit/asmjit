@@ -14,35 +14,35 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
-// [asmjit::SmallStringBase]
+// [asmjit::ZoneStringBase]
 // ============================================================================
 
-struct SmallStringBase {
+struct ZoneStringBase {
   inline void reset() noexcept {
     _dummy = nullptr;
     _external = nullptr;
   }
 
-  Error setData(Zone* zone, uint32_t maxEmbeddedLength, const char* str, size_t len) noexcept {
-    if (len == Globals::kNullTerminated)
-      len = std::strlen(str);
+  Error setData(Zone* zone, uint32_t maxEmbeddedSize, const char* str, size_t size) noexcept {
+    if (size == Globals::kNullTerminated)
+      size = std::strlen(str);
 
-    if (len <= maxEmbeddedLength) {
-      std::memcpy(_embedded, str, len);
-      _embedded[len] = '\0';
+    if (size <= maxEmbeddedSize) {
+      std::memcpy(_embedded, str, size);
+      _embedded[size] = '\0';
     }
     else {
-      char* external = static_cast<char*>(zone->dup(str, len, true));
+      char* external = static_cast<char*>(zone->dup(str, size, true));
       if (ASMJIT_UNLIKELY(!external))
         return DebugUtils::errored(kErrorNoHeapMemory);
       _external = external;
     }
 
-    _length = uint32_t(len);
+    _size = uint32_t(size);
     return kErrorOk;
   }
 
@@ -52,7 +52,7 @@ struct SmallStringBase {
 
   union {
     struct {
-      uint32_t _length;
+      uint32_t _size;
       char _embedded[sizeof(void*) * 2 - 4];
     };
     struct {
@@ -63,41 +63,40 @@ struct SmallStringBase {
 };
 
 // ============================================================================
-// [asmjit::SmallString<N>]
+// [asmjit::ZoneString<N>]
 // ============================================================================
 
 //! Small string is a template that helps to create strings that can be either
 //! statically allocated if they are small, or externally allocated in case
-//! their length exceeds the limit. The `N` represents the size of the whole
-//! `SmallString` structure, based on that size the maximum size of the internal
+//! their size exceeds the limit. The `N` represents the size of the whole
+//! `ZoneString` structure, based on that size the maximum size of the internal
 //! buffer is determined.
 template<size_t N>
-class SmallString {
+class ZoneString {
 public:
-  static constexpr uint32_t kWholeSize = 
-    (N > sizeof(SmallStringBase)) ? uint32_t(N)
-                                  : uint32_t(sizeof(SmallStringBase));
-  static constexpr uint32_t kMaxEmbeddedLength = kWholeSize - 5;
+  static constexpr uint32_t kWholeSize =
+    (N > sizeof(ZoneStringBase)) ? uint32_t(N) : uint32_t(sizeof(ZoneStringBase));
+  static constexpr uint32_t kMaxEmbeddedSize = kWholeSize - 5;
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  inline SmallString() noexcept { reset(); }
+  inline ZoneString() noexcept { reset(); }
   inline void reset() noexcept { _base.reset(); }
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline bool isEmpty() const noexcept { return _base._length == 0; }
-  inline bool isEmbedded() const noexcept { return _base._length <= kMaxEmbeddedLength; }
+  inline const char* data() const noexcept { return _base._size <= kMaxEmbeddedSize ? _base._embedded : _base._external; }
+  inline bool empty() const noexcept { return _base._size == 0; }
+  inline uint32_t size() const noexcept { return _base._size; }
 
-  inline uint32_t getLength() const noexcept { return _base._length; }
-  inline const char* getData() const noexcept { return _base._length <= kMaxEmbeddedLength ? _base._embedded : _base._external; }
+  inline bool isEmbedded() const noexcept { return _base._size <= kMaxEmbeddedSize; }
 
-  inline Error setData(Zone* zone, const char* data, size_t len) noexcept {
-    return _base.setData(zone, kMaxEmbeddedLength, data, len);
+  inline Error setData(Zone* zone, const char* data, size_t size) noexcept {
+    return _base.setData(zone, kMaxEmbeddedSize, data, size);
   }
 
   // --------------------------------------------------------------------------
@@ -105,7 +104,7 @@ public:
   // --------------------------------------------------------------------------
 
   union {
-    SmallStringBase _base;
+    ZoneStringBase _base;
     char _wholeData[kWholeSize];
   };
 };

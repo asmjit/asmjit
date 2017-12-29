@@ -15,7 +15,7 @@
 #include "../core/misc_p.h"
 #include "../arm/armoperand.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 
 // ============================================================================
 // [asmjit::ArmOpData]
@@ -23,17 +23,20 @@ ASMJIT_BEGIN_NAMESPACE
 
 const ArmOpData armOpData = {
   {
-    {
-      #define ASMJIT_ARM_REG_SIGNATURE(TYPE) { ArmRegTraits<TYPE>::kSignature }
-      ASMJIT_TABLE_32(ASMJIT_ARM_REG_SIGNATURE, 0)
-      #undef ASMJIT_ARM_REG_SIGNATURE
-    },
+    // RegInfo[]
+    # define VALUE(X) { RegTraits<X>::kSignature }
+    { ASMJIT_TABLE_32(VALUE, 0) },
+    #undef VALUE
 
     // RegCount[]
-    { ASMJIT_TABLE_T_32(ArmRegTraits, kCount, 0) },
+    # define VALUE(X) RegTraits<X>::kCount
+    { ASMJIT_TABLE_32(VALUE, 0) },
+    #undef VALUE
 
     // RegTypeToTypeId[]
-    { ASMJIT_TABLE_T_32(ArmRegTraits, kTypeId, 0) }
+    #define VALUE(X) RegTraits<X>::kTypeId
+    { ASMJIT_TABLE_32(VALUE, 0) }
+    #undef VALUE
   }
 };
 // ============================================================================
@@ -45,27 +48,27 @@ UNIT(arm_operand) {
   Label L;
 
   INFO("Checking if arm::reg(...) matches built-in IDs");
-  EXPECT(arm::w(5) == arm::w5);
-  EXPECT(arm::x(5) == arm::x5);
+  EXPECT(w(5) == w5);
+  EXPECT(x(5) == x5);
 
   INFO("Checking GP register properties");
-  EXPECT(ArmGp().isReg() == false);
-  EXPECT(arm::w0.isReg() == true);
-  EXPECT(arm::x0.isReg() == true);
-  EXPECT(arm::w0.getId() == 0);
-  EXPECT(arm::w31.getId() == 31);
-  EXPECT(arm::x0.getId() == 0);
-  EXPECT(arm::x31.getId() == 31);
-  EXPECT(arm::w0.getSize() == 4);
-  EXPECT(arm::x0.getSize() == 8);
-  EXPECT(arm::w0.getType() == ArmReg::kRegGpw);
-  EXPECT(arm::x0.getType() == ArmReg::kRegGpx);
-  EXPECT(arm::w0.getGroup() == ArmReg::kGroupGp);
-  EXPECT(arm::x0.getGroup() == ArmReg::kGroupGp);
+  EXPECT(Gp().isReg() == true);
+  EXPECT(w0.isReg() == true);
+  EXPECT(x0.isReg() == true);
+  EXPECT(w0.id() == 0);
+  EXPECT(w31.id() == 31);
+  EXPECT(x0.id() == 0);
+  EXPECT(x31.id() == 31);
+  EXPECT(w0.size() == 4);
+  EXPECT(x0.size() == 8);
+  EXPECT(w0.type() == Reg::kTypeGpw);
+  EXPECT(x0.type() == Reg::kTypeGpx);
+  EXPECT(w0.group() == Reg::kGroupGp);
+  EXPECT(x0.group() == Reg::kGroupGp);
 }
 #endif
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_ARM

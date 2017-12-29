@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
@@ -52,11 +52,11 @@ public:
   inline void _setRight(ZoneRBNode* node) noexcept { _rbNodeData[1] = (uintptr_t)node; }
 
   template<typename T = ZoneRBNode>
-  inline T* getChild(size_t i) const noexcept { return static_cast<T*>(_getChild(i)); }
+  inline T* child(size_t i) const noexcept { return static_cast<T*>(_getChild(i)); }
   template<typename T = ZoneRBNode>
-  inline T* getLeft() const noexcept { return static_cast<T*>(_getLeft()); }
+  inline T* left() const noexcept { return static_cast<T*>(_getLeft()); }
   template<typename T = ZoneRBNode>
-  inline T* getRight() const noexcept { return static_cast<T*>(_getRight()); }
+  inline T* right() const noexcept { return static_cast<T*>(_getRight()); }
 
   inline bool isRed() const noexcept { return static_cast<bool>(_rbNodeData[0] & kRedMask); }
   inline void _makeRed() noexcept { _rbNodeData[0] |= kRedMask; }
@@ -80,9 +80,9 @@ public:
   inline ZoneRBNodeT() noexcept
     : ZoneRBNode() {}
 
-  inline NODE_T* getChild(size_t i) const noexcept { return static_cast<NODE_T*>(_getChild(i)); }
-  inline NODE_T* getLeft() const noexcept { return static_cast<NODE_T*>(_getLeft()); }
-  inline NODE_T* getRight() const noexcept { return static_cast<NODE_T*>(_getRight()); }
+  inline NODE_T* child(size_t i) const noexcept { return static_cast<NODE_T*>(_getChild(i)); }
+  inline NODE_T* left() const noexcept { return static_cast<NODE_T*>(_getLeft()); }
+  inline NODE_T* right() const noexcept { return static_cast<NODE_T*>(_getRight()); }
 };
 
 // ============================================================================
@@ -110,8 +110,8 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline bool isEmpty() const noexcept { return _root == nullptr; }
-  inline NODE_T* getRoot() const noexcept { return static_cast<NODE_T*>(_root); }
+  inline bool empty() const noexcept { return _root == nullptr; }
+  inline NODE_T* root() const noexcept { return static_cast<NODE_T*>(_root); }
 
   // --------------------------------------------------------------------------
   // [Reset]

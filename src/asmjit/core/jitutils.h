@@ -16,13 +16,14 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_jit
 //! \{
 
 // ============================================================================
 // [asmjit::JitUtils]
 // ============================================================================
 
+//! JIT utilities that provide virtual memory allocation.
 namespace JitUtils {
 
 //! Memory access flags.
@@ -35,18 +36,18 @@ enum VirtMemFlags : uint32_t {
                             kVirtMemExecute
 };
 
-//! Information related to virtual memory.
+//! Virtual memory information.
 struct MemInfo {
   uint32_t pageSize;                     //!< Virtual memory page size.
   uint32_t pageGranularity;              //!< Virtual memory page granularity.
 };
 
-//! Get virtual memory information, see \ref JitUtils::MemInfo for more details.
-ASMJIT_API MemInfo getMemInfo() noexcept;
+//! Get virtual memory information, see `JitUtils::MemInfo` for more details.
+ASMJIT_API MemInfo memInfo() noexcept;
 
 //! Allocate virtual memory.
 //!
-//! NOTE: `size` should be aligned to page size, use `getMemInfo()` to obtain it.
+//! NOTE: `size` should be aligned to page size, use `memInfo()` to obtain it.
 ASMJIT_API void* virtualAlloc(size_t size, uint32_t vmFlags) noexcept;
 
 //! Release virtual memory previously allocated by `JitUtils::virtualAlloc()`.

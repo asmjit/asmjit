@@ -18,8 +18,8 @@ ASMJIT_BEGIN_NAMESPACE
 
 #if defined(ASMJIT_BUILD_TEST)
 template<typename T>
-static void testArrays(const T* a, const T* b, size_t len) noexcept {
-  for (size_t i = 0; i < len; i++)
+static void testArrays(const T* a, const T* b, size_t size) noexcept {
+  for (size_t i = 0; i < size; i++)
     EXPECT(a[i] == b[i], "Mismatch at %u", unsigned(i));
 }
 
@@ -48,17 +48,17 @@ UNIT(core_algorithm) {
     int arr2[kArraySize];
     int ref_[kArraySize];
 
-    for (size_t len = 2; len < kArraySize; len++) {
-      for (size_t i = 0; i < len; i++) {
-        arr1[i] = int(len - 1 - i);
-        arr2[i] = int(len - 1 - i);
+    for (size_t size = 2; size < kArraySize; size++) {
+      for (size_t i = 0; i < size; i++) {
+        arr1[i] = int(size - 1 - i);
+        arr2[i] = int(size - 1 - i);
         ref_[i] = int(i);
       }
 
-      Algorithm::iSort(arr1, len);
-      Algorithm::qSort(arr2, len);
-      testArrays(arr1, ref_, len);
-      testArrays(arr2, ref_, len);
+      Algorithm::iSort(arr1, size);
+      Algorithm::qSort(arr2, size);
+      testArrays(arr1, ref_, size);
+      testArrays(arr2, ref_, size);
     }
   }
 

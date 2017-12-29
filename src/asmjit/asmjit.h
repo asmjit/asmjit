@@ -14,21 +14,64 @@
 
 //! \mainpage
 //!
-//! AsmJit - Complete x86/x64 JIT and Remote Assembler for C++.
+//! AsmJit Reference Manual
 //!
 //! Introduction provided by the project page at https://github.com/asmjit/asmjit.
 
-//! \defgroup asmjit_core AsmJit Base API (architecture independent)
-//!
-//! \brief Backend Neutral API.
+// ============================================================================
+// [asmjit_core]
+// ============================================================================
 
-//! \defgroup asmjit_x86 AsmJit X86/X64 API
-//!
-//! \brief X86/X64 Backend API.
+//! \defgroup asmjit_core asmjit/core
+//! \brief AsmJit Core.
 
-//! \defgroup asmjit_arm AsmJit ARM32/ARM64 API
-//!
-//! \brief ARM32/ARM64 Backend API.
+//! \defgroup asmjit_core_api Core API
+//! \ingroup asmjit_core
+
+//! \defgroup asmjit_core_func Function API
+//! \ingroup asmjit_core
+
+//! \defgroup asmjit_core_jit JIT API
+//! \ingroup asmjit_core
+
+//! \defgroup asmjit_core_support Support API
+//! \ingroup asmjit_core
+
+//! \defgroup asmjit_core_ra RA Internals
+//! \ingroup asmjit_core
+
+// ============================================================================
+// [asmjit_x86]
+// ============================================================================
+
+//! \defgroup asmjit_x86 asmjit/x86
+//! \brief AsmJit X86 backend.
+
+//! \defgroup asmjit_x86_api X86 API
+//! \ingroup asmjit_x86
+
+//! \defgroup asmjit_x86_db X86 Database
+//! \ingroup asmjit_x86
+
+//! \defgroup asmjit_x86_ra X86 RA
+//! \ingroup asmjit_x86
+
+// ============================================================================
+// [asmjit_arm]
+// ============================================================================
+
+//! \defgroup asmjit_arm asmjit/arm
+//! \brief AsmJit ARM backend.
+
+//! \defgroup asmjit_arm_api ARM API
+//! \ingroup asmjit_arm
+
+//! \defgroup asmjit_arm_db ARM Database
+//! \ingroup asmjit_arm
+
+// ============================================================================
+// [Dependencies]
+// ============================================================================
 
 #include "./core.h"
 

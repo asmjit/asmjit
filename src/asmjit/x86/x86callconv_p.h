@@ -9,26 +9,26 @@
 
 #include "../core/callconv.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86
+//! \addtogroup asmjit_x86_api
 //! \{
 
 // ============================================================================
-// [asmjit::X86CallConvInternal]
+// [asmjit::x86::CallConvInternal]
 // ============================================================================
 
 //! \internal
 //!
 //! X86-specific function API (calling conventions and other utilities).
-namespace X86CallConvInternal {
+namespace CallConvInternal {
   //! Initialize `CallConv` structure (X86 specific).
   Error init(CallConv& cc, uint32_t ccId) noexcept;
 }
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_X86_X86CALLCONV_P_H

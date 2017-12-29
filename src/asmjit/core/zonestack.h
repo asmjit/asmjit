@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
@@ -27,29 +27,28 @@ public:
   static constexpr uint32_t kBlockSize = ZoneAllocator::kHiMaxSize;
 
   struct Block {
-    inline bool isEmpty() const noexcept { return _start == _end; }
-
-    inline Block* getPrev() const noexcept { return _link[Globals::kLinkLeft]; }
-    inline Block* getNext() const noexcept { return _link[Globals::kLinkRight]; }
+    inline bool empty() const noexcept { return _start == _end; }
+    inline Block* prev() const noexcept { return _link[Globals::kLinkLeft]; }
+    inline Block* next() const noexcept { return _link[Globals::kLinkRight]; }
 
     inline void setPrev(Block* block) noexcept { _link[Globals::kLinkLeft] = block; }
     inline void setNext(Block* block) noexcept { _link[Globals::kLinkRight] = block; }
 
     template<typename T>
-    inline T* getStart() const noexcept { return static_cast<T*>(_start); }
+    inline T* start() const noexcept { return static_cast<T*>(_start); }
     template<typename T>
     inline void setStart(T* start) noexcept { _start = static_cast<void*>(start); }
 
     template<typename T>
-    inline T* getEnd() const noexcept { return (T*)_end; }
+    inline T* end() const noexcept { return (T*)_end; }
     template<typename T>
     inline void setEnd(T* end) noexcept { _end = (void*)end; }
 
     template<typename T>
-    inline T* getData() const noexcept { return (T*)((uint8_t*)(this) + sizeof(Block)); }
+    inline T* data() const noexcept { return (T*)((uint8_t*)(this) + sizeof(Block)); }
 
     template<typename T>
-    inline bool canPrepend() const noexcept { return _start > getData<void>(); }
+    inline bool canPrepend() const noexcept { return _start > data<void>(); }
 
     template<typename T>
     inline bool canAppend() const noexcept {
@@ -89,11 +88,11 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get a `ZoneAllocator` attached to this container.
-  inline ZoneAllocator* getAllocator() const noexcept { return _allocator; }
+  inline ZoneAllocator* allocator() const noexcept { return _allocator; }
 
-  inline bool isEmpty() const noexcept {
+  inline bool empty() const noexcept {
     ASMJIT_ASSERT(isInitialized());
-    return _block[0]->getStart<void>() == _block[1]->getEnd<void>();
+    return _block[0]->start<void>() == _block[1]->end<void>();
   }
 
   // --------------------------------------------------------------------------
@@ -153,8 +152,8 @@ public:
       block = _block[Globals::kLinkFirst];
     }
 
-    T* ptr = block->getStart<T>() - 1;
-    ASMJIT_ASSERT(ptr >= block->getData<T>() && ptr <= block->getData<T>() + (kNumBlockItems - 1));
+    T* ptr = block->start<T>() - 1;
+    ASMJIT_ASSERT(ptr >= block->data<T>() && ptr <= block->data<T>() + (kNumBlockItems - 1));
     *ptr = item;
     block->setStart<T>(ptr);
     return kErrorOk;
@@ -169,8 +168,8 @@ public:
       block = _block[Globals::kLinkLast];
     }
 
-    T* ptr = block->getEnd<T>();
-    ASMJIT_ASSERT(ptr >= block->getData<T>() && ptr <= block->getData<T>() + (kNumBlockItems - 1));
+    T* ptr = block->end<T>();
+    ASMJIT_ASSERT(ptr >= block->data<T>() && ptr <= block->data<T>() + (kNumBlockItems - 1));
 
     *ptr++ = item;
     block->setEnd(ptr);
@@ -179,16 +178,16 @@ public:
 
   ASMJIT_FORCEINLINE T popFirst() noexcept {
     ASMJIT_ASSERT(isInitialized());
-    ASMJIT_ASSERT(!isEmpty());
+    ASMJIT_ASSERT(!empty());
 
     Block* block = _block[Globals::kLinkFirst];
-    ASMJIT_ASSERT(!block->isEmpty());
+    ASMJIT_ASSERT(!block->empty());
 
-    T* ptr = block->getStart<T>();
+    T* ptr = block->start<T>();
     T item = *ptr++;
 
     block->setStart(ptr);
-    if (block->isEmpty())
+    if (block->empty())
       _cleanupBlock(Globals::kLinkFirst, kMidBlockIndex);
 
     return item;
@@ -196,18 +195,18 @@ public:
 
   ASMJIT_FORCEINLINE T pop() noexcept {
     ASMJIT_ASSERT(isInitialized());
-    ASMJIT_ASSERT(!isEmpty());
+    ASMJIT_ASSERT(!empty());
 
     Block* block = _block[Globals::kLinkLast];
-    ASMJIT_ASSERT(!block->isEmpty());
+    ASMJIT_ASSERT(!block->empty());
 
-    T* ptr = block->getEnd<T>();
+    T* ptr = block->end<T>();
     T item = *--ptr;
-    ASMJIT_ASSERT(ptr >= block->getData<T>());
-    ASMJIT_ASSERT(ptr >= block->getStart<T>());
+    ASMJIT_ASSERT(ptr >= block->data<T>());
+    ASMJIT_ASSERT(ptr >= block->start<T>());
 
     block->setEnd(ptr);
-    if (block->isEmpty())
+    if (block->empty())
       _cleanupBlock(Globals::kLinkLast, kMidBlockIndex);
 
     return item;

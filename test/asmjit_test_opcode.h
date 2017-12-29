@@ -14,7 +14,7 @@
 namespace asmtest {
 
 // Generate all instructions asmjit can emit.
-static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool useRex2 = false) {
+static void generateOpcodes(asmjit::x86::Emitter* e, bool useRex1 = false, bool useRex2 = false) {
   using namespace asmjit;
   using namespace asmjit::x86;
 
@@ -24,63 +24,63 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
   e->ret();
 
   // All instructions use the following register that can be changed to see if
-  // the `X86Assembler` is properly encoding all possible combinations. If the
+  // `x86::Assembler` can properly encode all possible combinations. If the given
   // `useRexRegs` argument is true the `A` version will in most cases contain
-  // a register having index 8 (if encodable).
-  X86Gp gLoA = useRex1 ? r8b : al;
-  X86Gp gLoB = useRex2 ? r9b : bl;
+  // a register having index 8 or greater to force REX prefix.
+  Gp gLoA = useRex1 ? r8b : al;
+  Gp gLoB = useRex2 ? r9b : bl;
 
-  X86Gp gHiA = ah;
-  X86Gp gHiB = bh;
+  Gp gHiA = ah;
+  Gp gHiB = bh;
 
-  X86Gp gwA = useRex1 ? r8w  : ax;
-  X86Gp gwB = useRex2 ? r9w  : bx;
+  Gp gwA = useRex1 ? r8w  : ax;
+  Gp gwB = useRex2 ? r9w  : bx;
 
-  X86Gp gdA = useRex1 ? r8d  : eax;
-  X86Gp gdB = useRex2 ? r9d  : ebx;
-  X86Gp gdC = useRex2 ? r10d : ecx;
+  Gp gdA = useRex1 ? r8d  : eax;
+  Gp gdB = useRex2 ? r9d  : ebx;
+  Gp gdC = useRex2 ? r10d : ecx;
 
-  X86Gp gzA = useRex1 ? r8   : e->zax();
-  X86Gp gzB = useRex2 ? r9   : e->zbx();
-  X86Gp gzC = useRex2 ? r10  : e->zcx();
-  X86Gp gzD = useRex2 ? r11  : e->zdx();
+  Gp gzA = useRex1 ? r8   : e->zax();
+  Gp gzB = useRex2 ? r9   : e->zbx();
+  Gp gzC = useRex2 ? r10  : e->zcx();
+  Gp gzD = useRex2 ? r11  : e->zdx();
 
-  X86KReg kA = k1;
-  X86KReg kB = k2;
-  X86KReg kC = k3;
+  KReg kA = k1;
+  KReg kB = k2;
+  KReg kC = k3;
 
-  X86Mem anyptr_gpA = ptr(gzA);
-  X86Mem anyptr_gpB = ptr(gzB);
-  X86Mem anyptr_gpC = ptr(gzC);
-  X86Mem anyptr_gpD = ptr(gzD);
+  Mem anyptr_gpA = ptr(gzA);
+  Mem anyptr_gpB = ptr(gzB);
+  Mem anyptr_gpC = ptr(gzC);
+  Mem anyptr_gpD = ptr(gzD);
 
-  X86Mem intptr_gpA = e->intptr_ptr(gzA);
-  X86Mem intptr_gpB = e->intptr_ptr(gzB);
+  Mem intptr_gpA = e->intptr_ptr(gzA);
+  Mem intptr_gpB = e->intptr_ptr(gzB);
 
-  X86Fp fpA = fp0;
-  X86Fp fpB = fp7;
+  St stA = st0;
+  St stB = st7;
 
-  X86Mm mmA = mm0;
-  X86Mm mmB = mm1;
+  Mm mmA = mm0;
+  Mm mmB = mm1;
 
-  X86Xmm xmmA = useRex1 ? xmm8  : xmm0;
-  X86Xmm xmmB = useRex2 ? xmm9  : xmm1;
-  X86Xmm xmmC = useRex2 ? xmm10 : xmm2;
-  X86Xmm xmmD = useRex2 ? xmm11 : xmm3;
+  Xmm xmmA = useRex1 ? xmm8  : xmm0;
+  Xmm xmmB = useRex2 ? xmm9  : xmm1;
+  Xmm xmmC = useRex2 ? xmm10 : xmm2;
+  Xmm xmmD = useRex2 ? xmm11 : xmm3;
 
-  X86Ymm ymmA = useRex1 ? ymm8  : ymm0;
-  X86Ymm ymmB = useRex2 ? ymm9  : ymm1;
-  X86Ymm ymmC = useRex2 ? ymm10 : ymm2;
-  X86Ymm ymmD = useRex2 ? ymm11 : ymm3;
+  Ymm ymmA = useRex1 ? ymm8  : ymm0;
+  Ymm ymmB = useRex2 ? ymm9  : ymm1;
+  Ymm ymmC = useRex2 ? ymm10 : ymm2;
+  Ymm ymmD = useRex2 ? ymm11 : ymm3;
 
-  X86Zmm zmmA = useRex1 ? zmm8  : zmm0;
-  X86Zmm zmmB = useRex2 ? zmm9  : zmm1;
-  X86Zmm zmmC = useRex2 ? zmm10 : zmm2;
-  X86Zmm zmmD = useRex2 ? zmm11 : zmm3;
+  Zmm zmmA = useRex1 ? zmm8  : zmm0;
+  Zmm zmmB = useRex2 ? zmm9  : zmm1;
+  Zmm zmmC = useRex2 ? zmm10 : zmm2;
+  Zmm zmmD = useRex2 ? zmm11 : zmm3;
 
-  X86Mem vx_ptr = ptr(gzB, xmmB);
-  X86Mem vy_ptr = ptr(gzB, ymmB);
-  X86Mem vz_ptr = ptr(gzB, zmmB);
+  Mem vx_ptr = ptr(gzB, xmmB);
+  Mem vy_ptr = ptr(gzB, ymmB);
+  Mem vz_ptr = ptr(gzB, zmmB);
 
   Label L;
 
@@ -512,7 +512,7 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
   if (isX64) e->mov(gzA, uint32_t(0xFEEDFEED));
   if (isX64) e->and_(gzA, uint32_t(0xFEEDFEED));
 
-  // Special case - mov with absolute 32-bit address (X86|X64).
+  // Special case - mov with absolute 32-bit address.
   e->mov(al , ptr(0x01020304U));
   e->mov(ax , ptr(0x01020304U));
   e->mov(eax, ptr(0x01020304U));
@@ -520,7 +520,7 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
   e->mov(ptr(0x01020304U), ax );
   e->mov(ptr(0x01020304U), eax);
 
-  // Special case - mov with absolute 64-bit address (X64).
+  // Special case - mov with absolute 64-bit address.
   if (isX64) e->mov(al , ptr(0x0102030405060708U));
   if (isX64) e->mov(ax , ptr(0x0102030405060708U));
   if (isX64) e->mov(eax, ptr(0x0102030405060708U));
@@ -729,38 +729,38 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
 
   e->f2xm1();
   e->fabs();
-  e->fadd(fpA, fpB);
-  e->fadd(fpB, fpA);
+  e->fadd(stA, stB);
+  e->fadd(stB, stA);
   e->fadd(dword_ptr(gzA));
   e->fadd(qword_ptr(gzA));
-  e->faddp(fpB);
+  e->faddp(stB);
   e->faddp();
   e->fbld(dword_ptr(gzA));
   e->fbstp(dword_ptr(gzA));
   e->fchs();
   e->fclex();
-  e->fcom(fpB);
+  e->fcom(stB);
   e->fcom();
   e->fcom(dword_ptr(gzA));
   e->fcom(qword_ptr(gzA));
-  e->fcomp(fpB);
+  e->fcomp(stB);
   e->fcomp();
   e->fcomp(dword_ptr(gzA));
   e->fcomp(qword_ptr(gzA));
   e->fcompp();
   e->fcos();
   e->fdecstp();
-  e->fdiv(fpA, fpB);
-  e->fdiv(fpB, fpA);
+  e->fdiv(stA, stB);
+  e->fdiv(stB, stA);
   e->fdiv(dword_ptr(gzA));
   e->fdiv(qword_ptr(gzA));
-  e->fdivp(fpB);
+  e->fdivp(stB);
   e->fdivp();
-  e->fdivr(fpA, fpB);
-  e->fdivr(fpB, fpA);
+  e->fdivr(stA, stB);
+  e->fdivr(stB, stA);
   e->fdivr(dword_ptr(gzA));
   e->fdivr(qword_ptr(gzA));
-  e->fdivrp(fpB);
+  e->fdivrp(stB);
   e->fdivrp();
   e->fiadd(dword_ptr(gzA));
   e->ficom(word_ptr(gzA));
@@ -800,11 +800,11 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
   e->fldz();
   e->fldcw(anyptr_gpA);
   e->fldenv(anyptr_gpA);
-  e->fmul(fpA, fpB);
-  e->fmul(fpB, fpA);
+  e->fmul(stA, stB);
+  e->fmul(stB, stA);
   e->fmul(dword_ptr(gzA));
   e->fmul(qword_ptr(gzA));
-  e->fmulp(fpB);
+  e->fmulp(stB);
   e->fmulp();
   e->fnclex();
   e->fnop();
@@ -829,25 +829,25 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
   e->fstp(tword_ptr(gzA));
   e->fstcw(anyptr_gpA);
   e->fstenv(anyptr_gpA);
-  e->fsub(fpA, fpB);
-  e->fsub(fpB, fpA);
+  e->fsub(stA, stB);
+  e->fsub(stB, stA);
   e->fsub(dword_ptr(gzA));
   e->fsub(qword_ptr(gzA));
-  e->fsubp(fpB);
+  e->fsubp(stB);
   e->fsubp();
-  e->fsubr(fpA, fpB);
-  e->fsubr(fpB, fpA);
+  e->fsubr(stA, stB);
+  e->fsubr(stB, stA);
   e->fsubr(dword_ptr(gzA));
   e->fsubr(qword_ptr(gzA));
-  e->fsubrp(fpB);
+  e->fsubrp(stB);
   e->fsubrp();
   e->ftst();
-  e->fucom(fpB);
+  e->fucom(stB);
   e->fucom();
-  e->fucom(fpB);
-  e->fucomi(fpB);
-  e->fucomip(fpB);
-  e->fucomp(fpB);
+  e->fucom(stB);
+  e->fucomi(stB);
+  e->fucomip(stB);
+  e->fucomp(stB);
   e->fucompp();
   e->fxam();
   e->fxtract();
@@ -5203,7 +5203,7 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
   e->vpmovsxdq(xmmA, anyptr_gpB);
   e->vpmovsxdq(ymmA, xmmB);
   e->vpmovsxdq(ymmA, anyptr_gpB);
-  e->vpmovsxdq(zmmA, xmmB);
+  e->vpmovsxdq(zmmA, ymmB);
   e->vpmovsxdq(zmmA, anyptr_gpB);
   e->vpmovsxwd(xmmA, xmmB);
   e->vpmovsxwd(xmmA, anyptr_gpB);
@@ -5284,7 +5284,7 @@ static void generateOpcodes(asmjit::X86Emitter* e, bool useRex1 = false, bool us
   e->vpmovzxdq(xmmA, anyptr_gpB);
   e->vpmovzxdq(ymmA, xmmB);
   e->vpmovzxdq(ymmA, anyptr_gpB);
-  e->vpmovzxdq(zmmA, xmmB);
+  e->vpmovzxdq(zmmA, ymmB);
   e->vpmovzxdq(zmmA, anyptr_gpB);
   e->vpmovzxwd(xmmA, xmmB);
   e->vpmovzxwd(xmmA, anyptr_gpB);

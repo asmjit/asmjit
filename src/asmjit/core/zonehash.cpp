@@ -54,7 +54,7 @@ void ZoneHashBase::_rehash(ZoneAllocator* allocator, uint32_t newCount) noexcept
     ZoneHashNode* node = oldData[i];
     while (node) {
       ZoneHashNode* next = node->_hashNext;
-      uint32_t hMod = node->_hVal % newCount;
+      uint32_t hMod = node->_hashCode % newCount;
 
       node->_hashNext = newData[hMod];
       newData[hMod] = node;
@@ -77,7 +77,7 @@ void ZoneHashBase::_rehash(ZoneAllocator* allocator, uint32_t newCount) noexcept
 // ============================================================================
 
 ZoneHashNode* ZoneHashBase::_insert(ZoneAllocator* allocator, ZoneHashNode* node) noexcept {
-  uint32_t hMod = node->_hVal % _bucketsCount;
+  uint32_t hMod = node->_hashCode % _bucketsCount;
   ZoneHashNode* next = _data[hMod];
 
   node->_hashNext = next;
@@ -94,7 +94,7 @@ ZoneHashNode* ZoneHashBase::_insert(ZoneAllocator* allocator, ZoneHashNode* node
 
 ZoneHashNode* ZoneHashBase::_remove(ZoneAllocator* allocator, ZoneHashNode* node) noexcept {
   ASMJIT_UNUSED(allocator);
-  uint32_t hMod = node->_hVal % _bucketsCount;
+  uint32_t hMod = node->_hashCode % _bucketsCount;
 
   ZoneHashNode** pPrev = &_data[hMod];
   ZoneHashNode* p = *pPrev;
@@ -130,7 +130,7 @@ struct MyKeyMatcher {
   inline MyKeyMatcher(uint32_t key) noexcept
     : _key(key) {}
 
-  inline uint32_t getHVal() const noexcept { return _key; }
+  inline uint32_t hashCode() const noexcept { return _key; }
   inline bool matches(const MyHashNode* node) const noexcept { return node->_key == _key; }
 
   uint32_t _key;
@@ -171,7 +171,7 @@ UNIT(core_zone_hash) {
     }
   } while (count);
 
-  EXPECT(hashTable.isEmpty());
+  EXPECT(hashTable.empty());
 }
 #endif
 

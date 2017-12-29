@@ -12,15 +12,15 @@
 #ifndef ASMJIT_DISABLE_COMPILER
 
 // [Dependencies]
-#include "../core/codecompiler.h"
+#include "../core/compiler.h"
 #include "../core/rabuilders_p.h"
 #include "../core/rapass_p.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86compiler.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_ra
+//! \addtogroup asmjit_x86_ra
 //! \{
 
 // ============================================================================
@@ -49,8 +49,8 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get compiler as `X86Compiler`.
-  inline X86Compiler* cc() const noexcept { return static_cast<X86Compiler*>(_cb); }
+  //! Get compiler as `x86::Compiler`.
+  inline Compiler* cc() const noexcept { return static_cast<Compiler*>(_cb); }
 
   // --------------------------------------------------------------------------
   // [OnInit / OnDone]
@@ -86,7 +86,7 @@ public:
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER

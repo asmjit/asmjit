@@ -15,7 +15,7 @@
 #include "./arm/armbuilder.h"
 #include "./arm/armcompiler.h"
 #include "./arm/armemitter.h"
-#include "./arm/arminst.h"
+#include "./arm/arminstdb.h"
 #include "./arm/armoperand.h"
 
 // [Guard]

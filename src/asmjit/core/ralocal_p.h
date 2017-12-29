@@ -19,7 +19,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_ra
+//! \addtogroup asmjit_core_ra
 //! \{
 
 // ============================================================================
@@ -46,7 +46,7 @@ public:
       _clobberedRegs(),
       _curAssignment(),
       _block(nullptr),
-      _cbInst(nullptr),
+      _node(nullptr),
       _raInst(nullptr),
       _tiedTotal(),
       _tiedCount() {}
@@ -57,16 +57,16 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline RAWorkReg* getWorkReg(uint32_t workId) const noexcept { return _pass->getWorkReg(workId); }
-  inline PhysToWorkMap* getPhysToWorkMap() const noexcept { return _curAssignment.getPhysToWorkMap(); }
-  inline WorkToPhysMap* getWorkToPhysMap() const noexcept { return _curAssignment.getWorkToPhysMap(); }
+  inline RAWorkReg* workRegById(uint32_t workId) const noexcept { return _pass->workRegById(workId); }
+  inline PhysToWorkMap* physToWorkMap() const noexcept { return _curAssignment.physToWorkMap(); }
+  inline WorkToPhysMap* workToPhysMap() const noexcept { return _curAssignment.workToPhysMap(); }
 
   // --------------------------------------------------------------------------
   // [Block]
   // --------------------------------------------------------------------------
 
   //! Get the currently processed block.
-  inline RABlock* getBlock() const noexcept { return _block; }
+  inline RABlock* block() const noexcept { return _block; }
   //! Set the currently processed block.
   inline void setBlock(RABlock* block) noexcept { _block = block; }
 
@@ -74,20 +74,20 @@ public:
   // [Instruction]
   // --------------------------------------------------------------------------
 
-  //! Get the currently processed `CBInst`.
-  inline CBInst* getCBInst() const noexcept { return _cbInst; }
+  //! Get the currently processed `InstNode`.
+  inline InstNode* node() const noexcept { return _node; }
   //! Get the currently processed `RAInst`.
-  inline RAInst* getRAInst() const noexcept { return _raInst; }
+  inline RAInst* raInst() const noexcept { return _raInst; }
 
   //! Get all tied regs.
-  inline RATiedReg* getTiedRegs() const noexcept { return _raInst->getTiedRegs(); }
+  inline RATiedReg* tiedRegs() const noexcept { return _raInst->tiedRegs(); }
   //! Get grouped tied regs.
-  inline RATiedReg* getTiedRegs(uint32_t group) const noexcept { return _raInst->getTiedRegs(group); }
+  inline RATiedReg* tiedRegs(uint32_t group) const noexcept { return _raInst->tiedRegs(group); }
 
   //! Get TiedReg count (all).
-  inline uint32_t getTiedCount() const noexcept { return _tiedTotal; }
+  inline uint32_t tiedCount() const noexcept { return _tiedTotal; }
   //! Get TiedReg count (per class).
-  inline uint32_t getTiedCount(uint32_t group) const noexcept { return _tiedCount.get(group); }
+  inline uint32_t tiedCount(uint32_t group) const noexcept { return _tiedCount.get(group); }
 
   inline bool isGroupUsed(uint32_t group) const noexcept { return _tiedCount[group] != 0; }
 
@@ -120,8 +120,8 @@ public:
   // [Allocation]
   // --------------------------------------------------------------------------
 
-  Error allocInst(CBInst* cbInst) noexcept;
-  Error allocBranch(CBInst* cbInst, RABlock* target, RABlock* cont) noexcept;
+  Error allocInst(InstNode* cbInst) noexcept;
+  Error allocBranch(InstNode* cbInst, RABlock* target, RABlock* cont) noexcept;
 
   // --------------------------------------------------------------------------
   // [Decision Making]
@@ -137,8 +137,8 @@ public:
   }
 
   inline uint32_t calculateSpillCost(uint32_t group, uint32_t workId, uint32_t assignedId) const noexcept {
-    RAWorkReg* workReg = getWorkReg(workId);
-    uint32_t cost = costByFrequency(workReg->getLiveStats().getFreq());
+    RAWorkReg* workReg = workRegById(workId);
+    uint32_t cost = costByFrequency(workReg->liveStats().freq());
 
     if (_curAssignment.isPhysDirty(group, assignedId))
       cost += kCostOfDirtyFlag;
@@ -221,7 +221,7 @@ public:
   // --------------------------------------------------------------------------
 
   RAPass* _pass;                         //!< Link to `RAPass`.
-  CodeCompiler* _cc;                     //!< Link to `CodeCompiler`.
+  BaseCompiler* _cc;                     //!< Link to `BaseCompiler`.
 
   RAArchTraits _archTraits;              //!< Architecture traits.
   RARegMask _availableRegs;              //!< Registers available to the allocator.
@@ -231,7 +231,7 @@ public:
   RAAssignment _tmpAssignment;           //!< Register assignment used temporarily during assignment switches.
 
   RABlock* _block;                       //!< Link to the current `RABlock`.
-  CBInst* _cbInst;                       //!< CB instruction.
+  InstNode* _node;                       //!< InstNode.
   RAInst* _raInst;                       //!< RA instruction.
 
   uint32_t _tiedTotal;                   //!< Count of all TiedReg's.

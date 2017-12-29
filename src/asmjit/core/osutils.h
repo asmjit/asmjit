@@ -13,22 +13,14 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
 // [asmjit::OSUtils]
 // ============================================================================
 
-//! OS utilities.
-//!
-//! Benchmarking
-//! ------------
-//!
-//! OSUtils also provide a function `getTickCount()` that can be used for
-//! benchmarking purposes. It's similar to Windows-only `GetTickCount()`, but
-//! it's cross-platform and tries to be the most reliable platform specific
-//! calls to make the result usable.
+//! Operating system utilities.
 namespace OSUtils {
   //! Get the current CPU tick count, used for benchmarking (1ms resolution).
   ASMJIT_API uint32_t getTickCount() noexcept;

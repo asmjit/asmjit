@@ -31,8 +31,8 @@ struct ZoneRBUnit {
   static int checkHeight(NODE* node) noexcept {
     if (!node) return 1;
 
-    NODE* ln = node->getLeft();
-    NODE* rn = node->getRight();
+    NODE* ln = node->left();
+    NODE* rn = node->right();
 
     // Invalid tree.
     EXPECT(ln == nullptr || *ln < *node);
@@ -97,7 +97,7 @@ UNIT(core_zone_rbtree) {
     ZoneRBUnit<MyRBNode>::verifyTree(rbTree);
   } while (count);
 
-  EXPECT(rbTree.isEmpty());
+  EXPECT(rbTree.empty());
 }
 #endif
 

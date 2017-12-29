@@ -13,27 +13,51 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-namespace MemUtils {
-
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
+
+//! Memory read/write utilities.
+//!
+//! Utilities that simplify reading and writing from aligned or unaligned memory.
+namespace MemUtils {
 
 // ============================================================================
 // [asmjit::MemUtils - Config]
 // ============================================================================
 
+//! \internal
+//! \{
 static constexpr bool kUnalignedAccess16 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess32 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess64 = ASMJIT_ARCH_X86 != 0;
+//! \}
 
 // ============================================================================
 // [asmjit::MemUtils - Alloc / Release]
 // ============================================================================
 
+#if defined(ASMJIT_CUSTOM_ALLOC) && defined(ASMJIT_CUSTOM_REALLOC) && defined(ASMJIT_CUSTOM_FREE)
+
+static inline void* alloc(size_t size) noexcept { return ASMJIT_CUSTOM_ALLOC(size); }
+static inline void* realloc(void* p, size_t size) noexcept { return ASMJIT_CUSTOM_REALLOC(p, size); }
+static inline void release(void* p) noexcept { ASMJIT_CUSTOM_FREE(p); }
+
+#elif !defined(ASMJIT_CUSTOM_ALLOC) && !defined(ASMJIT_CUSTOM_REALLOC) && !defined(ASMJIT_CUSTOM_FREE)
+
+static inline void* alloc(size_t size) noexcept { return std::malloc(size); }
+static inline void* realloc(void* p, size_t size) noexcept { return std::realloc(p, size); }
+static inline void release(void* p) noexcept { std::free(p); }
+
+#else
+#error "[asmjit] You must provide either none or all of ASMJIT_CUSTOM_[ALLOC|REALLOC|FREE]"
+#endif
+
 // ============================================================================
 // [asmjit::MemUtils - Read]
 // ============================================================================
 
+//! \internal
+//! \{
 template<typename T, size_t ALIGNMENT>
 struct AlignedInt {};
 
@@ -46,6 +70,7 @@ template<> struct AlignedInt<uint64_t, 1> { typedef uint64_t ASMJIT_ALIGN_TYPE(T
 template<> struct AlignedInt<uint64_t, 2> { typedef uint64_t ASMJIT_ALIGN_TYPE(T, 2); };
 template<> struct AlignedInt<uint64_t, 4> { typedef uint64_t ASMJIT_ALIGN_TYPE(T, 4); };
 template<> struct AlignedInt<uint64_t, 8> { typedef uint64_t T; };
+//! \}
 
 static inline uint32_t readU8(const void* p) noexcept { return uint32_t(static_cast<const uint8_t*>(p)[0]); }
 static inline int32_t readI8(const void* p) noexcept { return int32_t(static_cast<const int8_t*>(p)[0]); }
@@ -424,9 +449,9 @@ static inline void writeI64uBE(void* p, int64_t x) noexcept { writeI64xBE<1>(p, 
 static inline void writeI64a(void* p, int64_t x) noexcept { writeI64x<8>(p, x); }
 static inline void writeI64u(void* p, int64_t x) noexcept { writeI64x<1>(p, x); }
 
-//! \}
-
 } // MemUtils namespace
+
+//! \}
 
 ASMJIT_END_NAMESPACE
 

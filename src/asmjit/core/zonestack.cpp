@@ -23,7 +23,7 @@ Error ZoneStackBase::_init(ZoneAllocator* allocator, size_t middleIndex) noexcep
   if (oldAllocator) {
     Block* block = _block[Globals::kLinkFirst];
     while (block) {
-      Block* next = block->getNext();
+      Block* next = block->next();
       oldAllocator->release(block, kBlockSize);
       block = next;
     }
@@ -59,7 +59,7 @@ Error ZoneStackBase::_prepareBlock(uint32_t side, size_t initialIndex) noexcept 
   ASMJIT_ASSERT(isInitialized());
 
   Block* prev = _block[side];
-  ASMJIT_ASSERT(!prev->isEmpty());
+  ASMJIT_ASSERT(!prev->empty());
 
   Block* block = _allocator->allocT<Block>(kBlockSize);
   if (ASMJIT_UNLIKELY(!block))
@@ -78,7 +78,7 @@ Error ZoneStackBase::_prepareBlock(uint32_t side, size_t initialIndex) noexcept 
 
 void ZoneStackBase::_cleanupBlock(uint32_t side, size_t middleIndex) noexcept {
   Block* block = _block[side];
-  ASMJIT_ASSERT(block->isEmpty());
+  ASMJIT_ASSERT(block->empty());
 
   Block* prev = block->_link[!side];
   if (prev) {
@@ -88,7 +88,7 @@ void ZoneStackBase::_cleanupBlock(uint32_t side, size_t middleIndex) noexcept {
     prev->_link[side] = nullptr;
     _block[side] = prev;
   }
-  else if (_block[!side] == prev && prev->isEmpty()) {
+  else if (_block[!side] == prev && prev->empty()) {
     // If the container becomes empty center both pointers in the remaining block.
     prev->_start = (uint8_t*)prev + middleIndex;
     prev->_end = (uint8_t*)prev + middleIndex;
@@ -108,17 +108,17 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
   INFO("  (%d items per one Block)", ZoneStack<T>::kNumBlockItems);
 
   EXPECT(stack.init(allocator) == kErrorOk);
-  EXPECT(stack.isEmpty(), "Stack must be empty after `init()`");
+  EXPECT(stack.empty(), "Stack must be empty after `init()`");
 
   EXPECT(stack.append(42) == kErrorOk);
-  EXPECT(!stack.isEmpty() , "Stack must not be empty after an item has been appended");
-  EXPECT(stack.pop() == 42, "Stack.pop() must return the item that has been appended last");
-  EXPECT(stack.isEmpty()  , "Stack must be empty after the last item has been removed");
+  EXPECT(!stack.empty()        , "Stack must not be empty after an item has been appended");
+  EXPECT(stack.pop() == 42     , "Stack.pop() must return the item that has been appended last");
+  EXPECT(stack.empty()         , "Stack must be empty after the last item has been removed");
 
   EXPECT(stack.prepend(43) == kErrorOk);
-  EXPECT(!stack.isEmpty()      , "Stack must not be empty after an item has been prepended");
+  EXPECT(!stack.empty()        , "Stack must not be empty after an item has been prepended");
   EXPECT(stack.popFirst() == 43, "Stack.popFirst() must return the item that has been prepended last");
-  EXPECT(stack.isEmpty()       , "Stack must be empty after the last item has been removed");
+  EXPECT(stack.empty()         , "Stack must be empty after the last item has been removed");
 
   int i;
   int iMin =-100000;
@@ -129,26 +129,26 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
   for (i = 0; i <= iMax; i++) {
     T item = stack.popFirst();
     EXPECT(i == item, "Item '%d' didn't match the item '%lld' popped", i, (long long)item);
-    if (!stack.isEmpty()) {
+    if (!stack.empty()) {
       item = stack.popFirst();
       EXPECT(i + 1 == item, "Item '%d' didn't match the item '%lld' popped", i + 1, (long long)item);
       stack.prepend(item);
     }
   }
-  EXPECT(stack.isEmpty());
+  EXPECT(stack.empty());
 
   INFO("Validating append() & pop()");
   for (i = 0; i <= iMax; i++) stack.append(T(i));
   for (i = iMax; i >= 0; i--) {
     T item = stack.pop();
     EXPECT(i == item, "Item '%d' didn't match the item '%lld' popped", i, (long long)item);
-    if (!stack.isEmpty()) {
+    if (!stack.empty()) {
       item = stack.pop();
       EXPECT(i - 1 == item, "Item '%d' didn't match the item '%lld' popped", i - 1, (long long)item);
       stack.append(item);
     }
   }
-  EXPECT(stack.isEmpty());
+  EXPECT(stack.empty());
 
   INFO("Validating append()/prepend() & popFirst()");
   for (i = 1; i <= iMax; i++) stack.append(T(i));
@@ -158,7 +158,7 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
     T item = stack.popFirst();
     EXPECT(i == item, "Item '%d' didn't match the item '%lld' popped", i, (long long)item);
   }
-  EXPECT(stack.isEmpty());
+  EXPECT(stack.empty());
 
   INFO("Validating append()/prepend() & pop()");
   for (i = 0; i >= iMin; i--) stack.prepend(T(i));
@@ -168,7 +168,7 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
     T item = stack.pop();
     EXPECT(i == item, "Item '%d' didn't match the item '%lld' popped", i, (long long)item);
   }
-  EXPECT(stack.isEmpty());
+  EXPECT(stack.empty());
 }
 
 UNIT(core_zone_stack) {

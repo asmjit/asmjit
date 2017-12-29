@@ -15,6 +15,7 @@
 #include "../core/intutils.h"
 #include "../core/jitallocator.h"
 #include "../core/jitutils.h"
+#include "../core/memutils.h"
 #include "../core/zone.h"
 
 #if defined(ASMJIT_BUILD_TEST)
@@ -33,7 +34,7 @@ typedef JitAllocator::Block Block;
 // [asmjit::JitAllocator - Helpers]
 // ============================================================================
 
-static inline uint32_t JitAllocator_getDefaultFillPattern() noexcept {
+static inline uint32_t JitAllocator_defaultFillPattern() noexcept {
   // X86 and X86_64 - 4x 'int3' instruction.
   if (ASMJIT_ARCH_X86)
     return 0xCCCCCCCCU;
@@ -57,7 +58,7 @@ static inline size_t JitAllocator_sizeToPoolId(const JitAllocator* self, size_t 
   return poolId;
 }
 
-static inline size_t JitAllocator_bitVectorLengthToByteSize(uint32_t areaSize) noexcept {
+static inline size_t JitAllocator_bitVectorSizeToByteSize(uint32_t areaSize) noexcept {
   return ((areaSize + Globals::kBitWordSize - 1U) / Globals::kBitWordSize) * sizeof(Globals::BitWord);
 }
 
@@ -83,7 +84,7 @@ ASMJIT_FAVOR_SPEED static void JitAllocator_fillPattern(void* mem, uint32_t patt
 static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool, size_t blockSize) noexcept {
   typedef Globals::BitWord BitWord;
 
-  uint32_t areaSize = uint32_t((blockSize + pool->getGranularity() - 1) >> pool->_granularityLog2);
+  uint32_t areaSize = uint32_t((blockSize + pool->granularity() - 1) >> pool->_granularityLog2);
   uint32_t numBitWords = (areaSize + Globals::kBitWordSize - 1U) / Globals::kBitWordSize;
 
   Block* block = static_cast<Block*>(MemUtils::alloc(sizeof(Block)));
@@ -100,7 +101,7 @@ static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool
 
   // Fill memory if secure mode is enabled.
   if (self->hasFlag(JitAllocator::kFlagSecureMode))
-    JitAllocator_fillPattern(virtMem, self->getFillPattern(), blockSize);
+    JitAllocator_fillPattern(virtMem, self->fillPattern(), blockSize);
 
   std::memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
   return new(block) Block(pool, virtMem, blockSize, bitWords, bitWords + numBitWords, areaSize);
@@ -109,13 +110,13 @@ static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool
 static void JitAllocator_deleteBlock(JitAllocator* self, JitAllocator::Block* block) noexcept {
   ASMJIT_UNUSED(self);
 
-  JitUtils::virtualRelease(block->getVirtMem(), block->getBlockSize());
+  JitUtils::virtualRelease(block->virtMem(), block->blockSize());
   MemUtils::release(block->_usedBitVector);
   MemUtils::release(block);
 }
 
 static void JitAllocator_insertBlock(JitAllocator* self, JitAllocator::Block* block) noexcept {
-  JitAllocator::Pool* pool = block->getPool();
+  JitAllocator::Pool* pool = block->pool();
 
   if (!pool->_cursor)
     pool->_cursor = block;
@@ -126,24 +127,24 @@ static void JitAllocator_insertBlock(JitAllocator* self, JitAllocator::Block* bl
 
   // Update statistics.
   pool->_blockCount++;
-  pool->_totalAreaSize += block->getAreaSize();
-  pool->_totalOverheadBytes += sizeof(Block) + JitAllocator_bitVectorLengthToByteSize(block->getAreaSize()) * 2U;
+  pool->_totalAreaSize += block->areaSize();
+  pool->_totalOverheadBytes += sizeof(Block) + JitAllocator_bitVectorSizeToByteSize(block->areaSize()) * 2U;
 }
 
 static void JitAllocator_removeBlock(JitAllocator* self, JitAllocator::Block* block) noexcept {
-  JitAllocator::Pool* pool = block->getPool();
+  JitAllocator::Pool* pool = block->pool();
 
   // Remove from RBTree and List.
   if (pool->_cursor == block)
-    pool->_cursor = block->hasPrev() ? block->getPrev() : block->getNext();
+    pool->_cursor = block->hasPrev() ? block->prev() : block->next();
 
   self->_tree.remove(block);
   pool->_blocks.unlink(block);
 
   // Update statistics.
   pool->_blockCount--;
-  pool->_totalAreaSize -= block->getAreaSize();
-  pool->_totalOverheadBytes -= sizeof(Block) + JitAllocator_bitVectorLengthToByteSize(block->getAreaSize()) * 2U;
+  pool->_totalAreaSize -= block->areaSize();
+  pool->_totalOverheadBytes -= sizeof(Block) + JitAllocator_bitVectorSizeToByteSize(block->areaSize()) * 2U;
 }
 
 // ============================================================================
@@ -151,12 +152,12 @@ static void JitAllocator_removeBlock(JitAllocator* self, JitAllocator::Block* bl
 // ============================================================================
 
 JitAllocator::JitAllocator() noexcept {
-  JitUtils::MemInfo memInfo = JitUtils::getMemInfo();
+  JitUtils::MemInfo memInfo = JitUtils::memInfo();
 
   _flags = 0;
   _pageSize = memInfo.pageSize;
   _blockSize = memInfo.pageGranularity;
-  _fillPattern = JitAllocator_getDefaultFillPattern();
+  _fillPattern = JitAllocator_defaultFillPattern();
 
   for (size_t poolId = 0; poolId < kPoolCount; poolId++)
     _pools[poolId].setGranularity(uint32_t(kMinimumGranularity) << poolId);
@@ -173,10 +174,10 @@ JitAllocator::~JitAllocator() noexcept {
 void JitAllocator::reset() noexcept {
   for (size_t poolId = 0; poolId < kPoolCount; poolId++) {
     Pool& pool = _pools[poolId];
-    Block* block = pool._blocks.getFirst();
+    Block* block = pool._blocks.first();
 
     while (block) {
-      Block* next = block->getNext();
+      Block* next = block->next();
       JitAllocator_deleteBlock(this, block);
       block = next;
     }
@@ -190,7 +191,7 @@ void JitAllocator::reset() noexcept {
 // [asmjit::JitAllocator - Statistics]
 // ============================================================================
 
-JitAllocator::Statistics JitAllocator::getStatistics() const noexcept {
+JitAllocator::Statistics JitAllocator::statistics() const noexcept {
   Statistics statistics;
   statistics.reset();
 
@@ -198,8 +199,8 @@ JitAllocator::Statistics JitAllocator::getStatistics() const noexcept {
   for (size_t poolId = 0; poolId < kPoolCount; poolId++) {
     const Pool& pool = _pools[poolId];
     statistics._blockCount   += size_t(pool._blockCount);
-    statistics._reservedSize += size_t(pool._totalAreaSize) * pool.getGranularity();
-    statistics._usedSize     += size_t(pool._totalAreaUsed) * pool.getGranularity();
+    statistics._reservedSize += size_t(pool._totalAreaSize) * pool.granularity();
+    statistics._usedSize     += size_t(pool._totalAreaUsed) * pool.granularity();
     statistics._overheadSize += size_t(pool._totalOverheadBytes);
   }
   return statistics;
@@ -224,14 +225,14 @@ void* JitAllocator::alloc(size_t size) noexcept {
   uint32_t areaSize = uint32_t(pool->areaSizeFromByteSize(size));
 
   // Try to find the requested memory area in existing blocks.
-  Block* block = pool->_blocks.getFirst();
+  Block* block = pool->_blocks.first();
   if (block) {
     Block* initial = block;
     do {
-      Block* next = block->hasNext() ? block->getNext() : pool->_blocks.getFirst();
-      if (block->getAreaAvailable() >= areaSize) {
-        if (block->hasFlag(Block::kFlagDirty) || block->getLargestUnusedArea() >= areaSize) {
-          uint32_t blockAreaSize = block->getAreaSize();
+      Block* next = block->hasNext() ? block->next() : pool->_blocks.first();
+      if (block->areaAvailable() >= areaSize) {
+        if (block->hasFlag(Block::kFlagDirty) || block->largestUnusedArea() >= areaSize) {
+          uint32_t blockAreaSize = block->areaSize();
           uint32_t searchStart = block->_searchStart;
           uint32_t searchEnd = block->_searchEnd;
 
@@ -299,16 +300,16 @@ void* JitAllocator::alloc(size_t size) noexcept {
     JitAllocator_insertBlock(this, block);
     areaIndex = 0;
     block->_searchStart = areaSize;
-    block->_largestUnusedArea = block->getAreaSize() - areaSize;
+    block->_largestUnusedArea = block->areaSize() - areaSize;
   }
 
   // Update statistics.
   block->increaseUsedArea(areaSize);
 
   // Handle special cases.
-  if (block->getAreaAvailable() == 0) {
+  if (block->areaAvailable() == 0) {
     // The whole block is filled.
-    block->_searchStart = block->getAreaSize();
+    block->_searchStart = block->areaSize();
     block->_searchEnd = 0;
     block->_largestUnusedArea = 0;
     block->clearFlags(Block::kFlagDirty);
@@ -319,9 +320,9 @@ void* JitAllocator::alloc(size_t size) noexcept {
   IntUtils::bitVectorSetBit(block->_stopBitVector, areaIndex + areaSize - 1, true);
 
   // Return a pointer to allocated memory.
-  uint8_t* result = block->getVirtMem() + pool->byteSizeFromAreaSize(areaIndex);
-  ASMJIT_ASSERT(result >= block->getVirtMem());
-  ASMJIT_ASSERT(result <= block->getVirtMem() + block->getBlockSize() - size);
+  uint8_t* result = block->virtMem() + pool->byteSizeFromAreaSize(areaIndex);
+  ASMJIT_ASSERT(result >= block->virtMem());
+  ASMJIT_ASSERT(result <= block->virtMem() + block->blockSize() - size);
   return result;
 }
 
@@ -336,8 +337,8 @@ Error JitAllocator::release(void* p) noexcept {
     return DebugUtils::errored(kErrorInvalidState);
 
   // Offset relative to the start of the block.
-  Pool* pool = block->getPool();
-  size_t offset = (size_t)((uint8_t*)p - block->getVirtMem());
+  Pool* pool = block->pool();
+  size_t offset = (size_t)((uint8_t*)p - block->virtMem());
 
   // The first bit representing the allocated area and its size.
   uint32_t areaIndex = uint32_t(offset >> pool->_granularityLog2);
@@ -356,13 +357,10 @@ Error JitAllocator::release(void* p) noexcept {
 
   // Fill released memory if the secure mode is enabled.
   if (hasFlag(kFlagSecureMode))
-    JitAllocator_fillPattern(
-      block->getVirtMem() + areaIndex * pool->getGranularity(),
-      getFillPattern(),
-      areaSize * pool->getGranularity());
+    JitAllocator_fillPattern(block->virtMem() + areaIndex * pool->granularity(), fillPattern(), areaSize * pool->granularity());
 
   // Release the whole block if it became empty.
-  if (block->getAreaUsed() == 0) {
+  if (block->areaUsed() == 0) {
     JitAllocator_removeBlock(this, block);
     JitAllocator_deleteBlock(this, block);
   }
@@ -384,8 +382,8 @@ Error JitAllocator::shrink(void* p, size_t newSize) noexcept {
     return DebugUtils::errored(kErrorInvalidState);
 
   // Offset relative to the start of the block.
-  Pool* pool = block->getPool();
-  size_t offset = (size_t)((uint8_t*)p - block->getVirtMem());
+  Pool* pool = block->pool();
+  size_t offset = (size_t)((uint8_t*)p - block->virtMem());
 
   // The first bit representing the allocated area and its size.
   uint32_t areaIndex = uint32_t(offset >> pool->_granularityLog2);
@@ -413,9 +411,9 @@ Error JitAllocator::shrink(void* p, size_t newSize) noexcept {
   // Fill released memory if the secure mode is enabled.
   if (hasFlag(kFlagSecureMode))
     JitAllocator_fillPattern(
-      block->getVirtMem() + (areaIndex + areaOldSize) * pool->getGranularity(),
-      getFillPattern(),
-      areaDiff * pool->getGranularity());
+      block->virtMem() + (areaIndex + areaOldSize) * pool->granularity(),
+      fillPattern(),
+      areaDiff * pool->granularity());
 
   return kErrorOk;
 }
@@ -516,11 +514,11 @@ static void JitAllocatorTest_shuffle(void** ptrArray, size_t count, std::mt19937
 }
 
 static void JitAllocatorTest_stats(JitAllocator& allocator) noexcept {
-  JitAllocator::Statistics stats = allocator.getStatistics();
-  INFO("Block Count       : %9llu [Blocks]"        , (unsigned long long)(stats.getBlockCount()));
-  INFO("Reserved (VirtMem): %9llu [Bytes]"         , (unsigned long long)(stats.getReservedSize()));
-  INFO("Used     (VirtMem): %9llu [Bytes] (%.1f%%)", (unsigned long long)(stats.getUsedSize()), stats.getUsedAsPercent());
-  INFO("Overhead (HeapMem): %9llu [Bytes] (%.1f%%)", (unsigned long long)(stats.getOverheadSize()), stats.getOverheadAsPercent());
+  JitAllocator::Statistics stats = allocator.statistics();
+  INFO("Block Count       : %9llu [Blocks]"        , (unsigned long long)(stats.blockCount()));
+  INFO("Reserved (VirtMem): %9llu [Bytes]"         , (unsigned long long)(stats.reservedSize()));
+  INFO("Used     (VirtMem): %9llu [Bytes] (%.1f%%)", (unsigned long long)(stats.usedSize()), stats.usedSizeAsPercent());
+  INFO("Overhead (HeapMem): %9llu [Bytes] (%.1f%%)", (unsigned long long)(stats.overheadSize()), stats.overheadSizeAsPercent());
 }
 
 UNIT(core_jit_allocator) {

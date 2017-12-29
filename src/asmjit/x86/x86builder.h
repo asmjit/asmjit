@@ -12,35 +12,33 @@
 #ifndef ASMJIT_DISABLE_BUILDER
 
 // [Dependencies]
-#include "../core/codebuilder.h"
+#include "../core/builder.h"
 #include "../core/simdtypes.h"
 #include "../x86/x86emitter.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86
+//! \addtogroup asmjit_x86_api
 //! \{
 
 // ============================================================================
-// [asmjit::CodeBuilder]
+// [asmjit::x86::Builder]
 // ============================================================================
 
-//! Architecture-dependent \ref CodeBuilder targeting X86 and X64.
-class ASMJIT_VIRTAPI X86Builder
-  : public CodeBuilder,
-    public X86EmitterImplicitT<X86Builder> {
+//! Architecture-dependent asm-builder (X86).
+class ASMJIT_VIRTAPI Builder
+  : public BaseBuilder,
+    public EmitterImplicitT<Builder> {
 public:
-  ASMJIT_NONCOPYABLE(X86Builder)
-  typedef CodeBuilder Base;
+  ASMJIT_NONCOPYABLE(Builder)
+  typedef BaseBuilder Base;
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a `X86Builder` instance.
-  ASMJIT_API explicit X86Builder(CodeHolder* code = nullptr) noexcept;
-  //! Destroy the `X86Builder` instance.
-  ASMJIT_API virtual ~X86Builder() noexcept;
+  ASMJIT_API explicit Builder(CodeHolder* code = nullptr) noexcept;
+  ASMJIT_API virtual ~Builder() noexcept;
 
   // --------------------------------------------------------------------------
   // [Finalize]
@@ -57,7 +55,7 @@ public:
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // !ASMJIT_DISABLE_BUILDER

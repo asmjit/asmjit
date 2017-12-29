@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
@@ -22,52 +22,54 @@ ASMJIT_BEGIN_NAMESPACE
 
 namespace Globals {
 
-//! Storage used to store a pack of bits (should by compatible with a machine word).
-typedef uintptr_t BitWord;
-
 #if ASMJIT_ARCH_X86
 typedef uint8_t FastUInt8;
 #else
 typedef unsigned int FastUInt8;
 #endif
 
+//! Storage used to store a pack of bits (should by compatible with a machine word).
+typedef uintptr_t BitWord;
+
 //! Number of bits stored in `BitWord`.
 constexpr uint32_t kBitWordSize = uint32_t(sizeof(BitWord)) * 8;
-
-//! Returned by `indexOf()` and similar when working with containers that use 32-bit index/length.
-constexpr uint32_t kNotFound = ~uint32_t(0);
 
 //! Maximum number of operands per single instruction.
 constexpr uint32_t kMaxOpCount = 6;
 
-//! Invalid base address.
-constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
+// TODO: Use this one.
+constexpr uint32_t kMaxFuncArgs = 16;
 
-//! The length of the string is not known, but the string is null terminated.
-constexpr size_t kNullTerminated = ~size_t(0);
+//! Maximum number of physical registers AsmJit can use, per group.
+constexpr uint32_t kMaxPhysRegs = 32;
 
-  //! Host memory allocator overhead.
+//! Maximum alignment.
+constexpr uint32_t kMaxAlignment = 64;
+
+//! Maximum label or symbol size in bytes (take into consideration that a
+//! single UTF-8 character can take more than single byte to encode it).
+constexpr uint32_t kMaxLabelNameSize = 2048;
+
+//! Maximum size of comment.
+constexpr uint32_t kMaxCommentSize = 1024;
+
+//! Host memory allocator overhead.
 constexpr uint32_t kAllocOverhead = int32_t(sizeof(intptr_t) * 4);
 
 //! Aggressive growing strategy threshold.
-constexpr uint32_t kAllocThreshold = 8388608;
+constexpr uint32_t kAllocThreshold = 8192 * 1024;
 
-enum Limits : uint32_t {
-  //! Maximum number of physical registers AsmJit can use, per group.
-  kMaxPhysRegs = 32,
+//! Returned by `indexOf()` and similar when working with containers that use 32-bit index/size.
+constexpr uint32_t kNotFound = ~uint32_t(0);
 
-  //! Maximum alignment.
-  kMaxAlignment = 64,
+//! The size of the string is not known, but the string is null terminated.
+constexpr size_t kNullTerminated = ~size_t(0);
 
-  //! Maximum label or symbol length in bytes (take into consideration that a
-  //! single UTF-8 character can take more than single byte to encode it).
-  kMaxLabelLength = 2048
-};
+//! Invalid base address.
+constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
 
-enum Half : size_t {
-  kHalfLo = ASMJIT_ARCH_LE ? 0 : 1,
-  kHalfHi = ASMJIT_ARCH_LE ? 1 : 0
-};
+constexpr uint32_t kHalfLo = ASMJIT_ARCH_LE ? 0 : 1;
+constexpr uint32_t kHalfHi = ASMJIT_ARCH_LE ? 1 : 0;
 
 enum Link : uint32_t {
   kLinkLeft  = 0,
@@ -129,12 +131,9 @@ enum ErrorCode : uint32_t {
   //! Built-in feature was disabled at compile time and it's not available.
   kErrorFeatureNotEnabled,
 
-  //! CodeHolder can't have attached more than one \ref Assembler at a time.
-  kErrorSlotOccupied,
-
   //! No code generated.
   //!
-  //! Returned by runtime if the \ref CodeHolder contains no code.
+  //! Returned by runtime if the `CodeHolder` contains no code.
   kErrorNoCodeGenerated,
   //! Code generated is larger than allowed.
   kErrorCodeTooLarge,
@@ -238,7 +237,7 @@ enum ErrorCode : uint32_t {
 
   //! AsmJit requires a physical register, but no one is available.
   kErrorNoMorePhysRegs,
-  //! A variable has been assigned more than once to a function argument (CodeCompiler).
+  //! A variable has been assigned more than once to a function argument (BaseCompiler).
   kErrorOverlappedRegs,
   //! Invalid register to hold stack arguments offset.
   kErrorOverlappingStackRegWithRegArg,
@@ -246,28 +245,6 @@ enum ErrorCode : uint32_t {
   //! Count of AsmJit error codes.
   kErrorCount
 };
-
-// ============================================================================
-// [asmjit::Alloc|Release]
-// ============================================================================
-
-namespace MemUtils {
-  #if defined(ASMJIT_CUSTOM_ALLOC) && defined(ASMJIT_CUSTOM_REALLOC) && defined(ASMJIT_CUSTOM_FREE)
-
-  static inline void* alloc(size_t size) noexcept { return ASMJIT_CUSTOM_ALLOC(size); }
-  static inline void* realloc(void* p, size_t size) noexcept { return ASMJIT_CUSTOM_REALLOC(p, size); }
-  static inline void release(void* p) noexcept { ASMJIT_CUSTOM_FREE(p); }
-
-  #elif !defined(ASMJIT_CUSTOM_ALLOC) && !defined(ASMJIT_CUSTOM_REALLOC) && !defined(ASMJIT_CUSTOM_FREE)
-
-  static inline void* alloc(size_t size) noexcept { return std::malloc(size); }
-  static inline void* realloc(void* p, size_t size) noexcept { return std::realloc(p, size); }
-  static inline void release(void* p) noexcept { std::free(p); }
-
-  #else
-  #error "[asmjit] You must provide either none or all of ASMJIT_CUSTOM_[ALLOC|REALLOC|FREE]"
-  #endif
-} // MemUtils namespace
 
 // ============================================================================
 // [asmjit::PointerCast]

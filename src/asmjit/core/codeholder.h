@@ -14,22 +14,23 @@
 #include "../core/memutils.h"
 #include "../core/operand.h"
 #include "../core/simdtypes.h"
-#include "../core/smallstring.h"
+#include "../core/stringutils.h"
 #include "../core/target.h"
 #include "../core/zone.h"
 #include "../core/zonehash.h"
+#include "../core/zonestring.h"
 #include "../core/zonevector.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
 // [Forward Declarations]
 // ============================================================================
 
-class CodeEmitter;
+class BaseEmitter;
 class CodeHolder;
 class Logger;
 
@@ -50,7 +51,9 @@ enum AlignMode : uint32_t {
 // ============================================================================
 
 //! Error handler can be used to override the default behavior of error handling
-//! available to all classes that inherit \ref CodeEmitter. See \ref handleError().
+//! available to all classes that inherit `BaseEmitter`.
+//!
+//! Override `ErrorHandler::handleError()` to implement your own error handler.
 class ASMJIT_VIRTAPI ErrorHandler {
 public:
   // --------------------------------------------------------------------------
@@ -80,13 +83,13 @@ public:
   //!    this way is the preferred way of handling errors in your project.
   //!
   //! 3. Using plain old C's `setjmp()` and `longjmp()`. Asmjit always puts
-  //!    `CodeEmitter` to a consistent state before calling `handleError()`
+  //!    `BaseEmitter` to a consistent state before calling `handleError()`
   //!    so `longjmp()` can be used without any issues to cancel the code
   //!    generation if an error occurred. There is no difference between
   //!    exceptions and `longjmp()` from AsmJit's perspective, however,
-  //!    never jump outside of `CodeHolder` and `CodeEmitter` scope as you
+  //!    never jump outside of `CodeHolder` and `BaseEmitter` scope as you
   //!    would leak memory.
-  virtual void handleError(Error err, const char* message, CodeEmitter* origin) = 0;
+  virtual void handleError(Error err, const char* message, BaseEmitter* origin) = 0;
 };
 
 // ============================================================================
@@ -104,25 +107,26 @@ struct CodeBuffer {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline uint32_t getFlags() const noexcept { return _flags; }
+  inline uint32_t flags() const noexcept { return _flags; }
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
+  inline bool isAllocated() const noexcept { return _data != nullptr; }
   inline bool isFixed() const noexcept { return hasFlag(kFlagIsFixed); }
   inline bool isExternal() const noexcept { return hasFlag(kFlagIsExternal); }
 
-  inline bool hasData() const noexcept { return _data != nullptr; }
-  inline uint8_t* getData() noexcept { return _data; }
-  inline const uint8_t* getData() const noexcept { return _data; }
+  inline uint8_t* data() noexcept { return _data; }
+  inline const uint8_t* data() const noexcept { return _data; }
 
-  inline size_t getLength() const noexcept { return _length; }
-  inline size_t getCapacity() const noexcept { return _capacity; }
+  inline bool empty() const noexcept { return !_size; }
+  inline size_t size() const noexcept { return _size; }
+  inline size_t capacity() const noexcept { return _capacity; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
   uint8_t* _data;                        //!< The content of the buffer (data).
-  size_t _length;                        //!< Number of bytes of `data` used.
+  size_t _size;                          //!< Number of bytes of `data` used.
   size_t _capacity;                      //!< Buffer capacity (in bytes).
   uint32_t _flags;                       //!< Buffer flags.
 };
@@ -151,31 +155,29 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline uint32_t getId() const noexcept { return _id; }
-  inline const char* getName() const noexcept { return _name; }
+  inline uint32_t id() const noexcept { return _id; }
+  inline const char* name() const noexcept { return _name.str; }
 
   inline void _setDefaultName(char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
                               char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
-    _nameAsU32[0] = IntUtils::bytepack32_4x8(uint8_t(c0), uint8_t(c1), uint8_t(c2), uint8_t(c3));
-    _nameAsU32[1] = IntUtils::bytepack32_4x8(uint8_t(c4), uint8_t(c5), uint8_t(c6), uint8_t(c7));
+    _name.u32[0] = IntUtils::bytepack32_4x8(uint8_t(c0), uint8_t(c1), uint8_t(c2), uint8_t(c3));
+    _name.u32[1] = IntUtils::bytepack32_4x8(uint8_t(c4), uint8_t(c5), uint8_t(c6), uint8_t(c7));
   }
 
-  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
+  inline uint32_t flags() const noexcept { return _flags; }
+  inline uint32_t alignment() const noexcept { return _alignment; }
+  inline size_t virtualSize() const noexcept { return _virtualSize; }
+  inline size_t physicalSize() const noexcept { return _buffer.size(); }
 
-  inline uint32_t getFlags() const noexcept { return _flags; }
+  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
   inline void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
 
-  inline uint32_t getAlignment() const noexcept { return _alignment; }
   inline void setAlignment(uint32_t alignment) noexcept { _alignment = alignment; }
-
-  inline size_t getPhysicalSize() const noexcept { return _buffer.getLength(); }
-
-  inline size_t getVirtualSize() const noexcept { return _virtualSize; }
   inline void setVirtualSize(uint32_t size) noexcept { _virtualSize = size; }
 
-  inline CodeBuffer& getBuffer() noexcept { return _buffer; }
-  inline const CodeBuffer& getBuffer() const noexcept { return _buffer; }
+  inline CodeBuffer& buffer() noexcept { return _buffer; }
+  inline const CodeBuffer& buffer() const noexcept { return _buffer; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -185,10 +187,7 @@ public:
   uint32_t _flags;                       //!< Section flags.
   uint32_t _alignment;                   //!< Section alignment requirements (0 if no requirements).
   uint32_t _virtualSize;                 //!< Virtual size of the section (zero initialized mostly).
-  union {
-    char _name[36];                      //!< Section name (max 35 characters, PE allows max 8).
-    uint32_t _nameAsU32[36 / 4];         //!< Section name as `uint32_t[]` (only optimization).
-  };
+  StaticString<36> _name;                //!< Section name (max 35 characters, PE allows max 8).
   CodeBuffer _buffer;                    //!< Code or data buffer.
 };
 
@@ -196,7 +195,7 @@ public:
 // [asmjit::LabelLink]
 // ============================================================================
 
-//! Data structure used to link labels.
+//! Data structure used to link unbound labels.
 struct LabelLink {
   LabelLink* prev;                       //!< Previous link (single-linked list).
   uint32_t sectionId;                    //!< Section id.
@@ -231,47 +230,47 @@ public:
   // the structure to 64-bits.
 
   //! Get label id.
-  inline uint32_t getId() const noexcept { return _customData; }
-  //! Set label id (internal, used only by \ref CodeHolder).
+  inline uint32_t id() const noexcept { return _customData; }
+  //! Set label id (internal, used only by `CodeHolder`).
   inline void _setId(uint32_t id) noexcept { _customData = id; }
 
-  //! Get label type, see \ref Label::Type.
-  inline uint32_t getType() const noexcept { return _type; }
+  //! Get label type, see `Label::LabelType`.
+  inline uint32_t type() const noexcept { return _type; }
   //! Get label flags, returns 0 at the moment.
-  inline uint32_t getFlags() const noexcept { return _flags; }
+  inline uint32_t flags() const noexcept { return _flags; }
 
   inline bool hasParent() const noexcept { return _parentId != 0; }
   //! Get label's parent id.
-  inline uint32_t getParentId() const noexcept { return _parentId; }
+  inline uint32_t parentId() const noexcept { return _parentId; }
   //! Get label's section id where it's bound to (or `SectionEntry::kInvalidId` if it's not bound yet).
-  inline uint32_t getSectionId() const noexcept { return _sectionId; }
+  inline uint32_t sectionId() const noexcept { return _sectionId; }
 
   //! Get whether the label has name.
-  inline bool hasName() const noexcept { return !_name.isEmpty(); }
+  inline bool hasName() const noexcept { return !_name.empty(); }
 
   //! Get the label's name.
   //!
   //! NOTE: Local labels will return their local name without their parent
   //! part, for example ".L1".
-  inline const char* getName() const noexcept { return _name.getData(); }
+  inline const char* name() const noexcept { return _name.data(); }
 
-  //! Get length of label's name.
+  //! Get size of label's name.
   //!
   //! NOTE: Label name is always null terminated, so you can use `strlen()` to
-  //! get it, however, it's also cached in `LabelEntry`, so if you want to know
-  //! the length the easiest way is to use `LabelEntry::getNameLength()`.
-  inline uint32_t getNameLength() const noexcept { return _name.getLength(); }
+  //! get it, however, it's also cached in `LabelEntry` itself, so if you want
+  //! to know the size the fastest way is to call `LabelEntry::nameSize()`.
+  inline uint32_t nameSize() const noexcept { return _name.size(); }
 
   //! Get whether the label is bound.
   inline bool isBound() const noexcept { return _sectionId != SectionEntry::kInvalidId; }
   //! Get the label offset (only useful if the label is bound).
-  inline intptr_t getOffset() const noexcept { return _offset; }
+  inline intptr_t offset() const noexcept { return _offset; }
 
   //! Get the hash-value of label's name and its parent label (if any).
   //!
   //! Label hash is calculated as `HASH(Name) ^ ParentId`. The hash function
   //! is implemented in `hashString::hashString()` and `StringUtils::hashRound()`.
-  inline uint32_t getHVal() const noexcept { return _hVal; }
+  inline uint32_t hashCode() const noexcept { return _hashCode; }
 
   // ------------------------------------------------------------------------
   // [Members]
@@ -279,11 +278,11 @@ public:
 
   // Let's round the size of `LabelEntry` to 64 bytes (as `ZoneAllocator` has
   // granularity of 32 bytes anyway). This gives `_name` the remaining space,
-  // which is roughly 16 bytes on 64-bit and 28 bytes on 32-bit architectures.
-  static constexpr uint32_t kStaticNameLength =
+  // which is should be 16 bytes on 64-bit and 28 bytes on 32-bit architectures.
+  static constexpr uint32_t kStaticNameSize =
     64 - (sizeof(ZoneHashNode) + 16 + sizeof(intptr_t) + sizeof(LabelLink*));
 
-  uint8_t _type;                         //!< Label type, see Label::Type.
+  uint8_t _type;                         //!< Label type, see `Label::LabelType`.
   uint8_t _flags;                        //!< Must be zero.
   uint16_t _reserved16;                  //!< Reserved.
   uint32_t _parentId;                    //!< Label parent id or zero.
@@ -291,7 +290,7 @@ public:
   uint32_t _reserved32;                  //!< Reserved.
   intptr_t _offset;                      //!< Label offset.
   LabelLink* _links;                     //!< Label links.
-  SmallString<kStaticNameLength> _name;  //!< Label name.
+  ZoneString<kStaticNameSize> _name;     //!< Label name.
 };
 
 // ============================================================================
@@ -317,16 +316,16 @@ struct RelocEntry {
   // [Accessors]
   // ------------------------------------------------------------------------
 
-  inline uint32_t getId() const noexcept { return _id; }
+  inline uint32_t id() const noexcept { return _id; }
 
-  inline uint32_t getType() const noexcept { return _type; }
-  inline uint32_t getSize() const noexcept { return _size; }
+  inline uint32_t type() const noexcept { return _type; }
+  inline uint32_t size() const noexcept { return _size; }
 
-  inline uint32_t getSourceSectionId() const noexcept { return _sourceSectionId; }
-  inline uint32_t getTargetSectionId() const noexcept { return _targetSectionId; }
+  inline uint32_t sourceSectionId() const noexcept { return _sourceSectionId; }
+  inline uint32_t targetSectionId() const noexcept { return _targetSectionId; }
 
-  inline uint64_t getSourceOffset() const noexcept { return _sourceOffset; }
-  inline uint64_t getData() const noexcept { return _data; }
+  inline uint64_t sourceOffset() const noexcept { return _sourceOffset; }
+  inline uint64_t payload() const noexcept { return _payload; }
 
   // ------------------------------------------------------------------------
   // [Members]
@@ -339,7 +338,7 @@ struct RelocEntry {
   uint32_t _sourceSectionId;             //!< Source section id.
   uint32_t _targetSectionId;             //!< Destination section id.
   uint64_t _sourceOffset;                //!< Source offset (relative to start of the section).
-  uint64_t _data;                        //!< Relocation data (target offset, target address, etc).
+  uint64_t _payload;                     //!< Payload (target offset, target address, etc).
 };
 
 // ============================================================================
@@ -349,11 +348,11 @@ struct RelocEntry {
 //! Contains basic information about the target architecture plus its settings,
 //! and holds code & data (including sections, labels, and relocation information).
 //! CodeHolder can store both binary and intermediate representation of assembly,
-//! which can be generated by \ref Assembler and/or \ref CodeBuilder.
+//! which can be generated by `BaseAssembler` and/or `BaseBuilder`.
 //!
-//! NOTE: CodeHolder has ability to attach an \ref ErrorHandler, however, this
-//! error handler is not triggered by CodeHolder itself, it's only used by the
-//! attached code generators.
+//! NOTE: `CodeHolder` has ability to attach an `ErrorHandler`, however, the
+//! error handler is not triggered by `CodeHolder` itself, it's only used by
+//! emitters attached to `CodeHolder`.
 class CodeHolder {
 public:
   ASMJIT_NONCOPYABLE(CodeHolder)
@@ -375,57 +374,57 @@ public:
 
   //! Initialize to CodeHolder to hold code described by `codeInfo`.
   ASMJIT_API Error init(const CodeInfo& info) noexcept;
-  //! Detach all code-generators attached and reset the \ref CodeHolder.
+  //! Detach all code-generators attached and reset the `CodeHolder`.
   ASMJIT_API void reset(bool releaseMemory = false) noexcept;
 
   // --------------------------------------------------------------------------
   // [Attach / Detach]
   // --------------------------------------------------------------------------
 
-  //! Attach a \ref CodeEmitter to this \ref CodeHolder.
-  ASMJIT_API Error attach(CodeEmitter* emitter) noexcept;
-  //! Detach a \ref CodeEmitter from this \ref CodeHolder.
-  ASMJIT_API Error detach(CodeEmitter* emitter) noexcept;
+  //! Attach an emitter to this `CodeHolder`.
+  ASMJIT_API Error attach(BaseEmitter* emitter) noexcept;
+  //! Detach an emitter from this `CodeHolder`.
+  ASMJIT_API Error detach(BaseEmitter* emitter) noexcept;
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline ZoneAllocator* getAllocator() const noexcept { return const_cast<ZoneAllocator*>(&_allocator); }
-  inline const ZoneVector<CodeEmitter*>& getEmitters() const noexcept { return _emitters; }
+  inline ZoneAllocator* allocator() const noexcept { return const_cast<ZoneAllocator*>(&_allocator); }
+  inline const ZoneVector<BaseEmitter*>& emitters() const noexcept { return _emitters; }
 
   // --------------------------------------------------------------------------
   // [Code / Arch]
   // --------------------------------------------------------------------------
 
-  //! Get code/target information, see \ref CodeInfo.
-  inline const CodeInfo& getCodeInfo() const noexcept { return _codeInfo; }
-  //! Get architecture information, see \ref ArchInfo.
-  inline const ArchInfo& getArchInfo() const noexcept { return _codeInfo.getArchInfo(); }
+  //! Get architecture information, see `ArchInfo`.
+  inline const ArchInfo& archInfo() const noexcept { return _codeInfo.archInfo(); }
+  //! Get code/target information, see `CodeInfo`.
+  inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
 
   //! Get the target's architecture type.
-  inline uint32_t getArchType() const noexcept { return getArchInfo().getType(); }
+  inline uint32_t archId() const noexcept { return archInfo().archId(); }
   //! Get the target's architecture sub-type.
-  inline uint32_t getArchSubType() const noexcept { return getArchInfo().getSubType(); }
+  inline uint32_t archSubId() const noexcept { return archInfo().archSubId(); }
 
   //! Get whether a static base-address is set.
   inline bool hasBaseAddress() const noexcept { return _codeInfo.hasBaseAddress(); }
   //! Get a static base-address (uint64_t).
-  inline uint64_t getBaseAddress() const noexcept { return _codeInfo.getBaseAddress(); }
+  inline uint64_t baseAddress() const noexcept { return _codeInfo.baseAddress(); }
 
   // --------------------------------------------------------------------------
   // [Emitter Options]
   // --------------------------------------------------------------------------
 
   //! Get global hints, internally propagated to all code emitters attached.
-  inline uint32_t getEmitterOptions() const noexcept { return _emitterOptions; }
+  inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
 
   // --------------------------------------------------------------------------
   // [Result Information]
   // --------------------------------------------------------------------------
 
   //! Get the size code & data of all sections.
-  ASMJIT_API size_t getCodeSize() const noexcept;
+  ASMJIT_API size_t codeSize() const noexcept;
 
   //! Get size of all possible trampolines.
   //!
@@ -439,10 +438,8 @@ public:
   // [Logging & Error Handling]
   // --------------------------------------------------------------------------
 
-  //! Get whether a logger attached.
-  inline bool hasLogger() const noexcept { return _logger != nullptr; }
   //! Get the attached logger.
-  inline Logger* getLogger() const noexcept { return _logger; }
+  inline Logger* logger() const noexcept { return _logger; }
   //! Attach a `logger` to CodeHolder and propagate it to all attached code emitters.
   ASMJIT_API void setLogger(Logger* logger) noexcept;
   //! Reset the logger (does nothing if not attached).
@@ -451,7 +448,7 @@ public:
   //! Get whether the global error handler is attached.
   inline bool hasErrorHandler() const noexcept { return _errorHandler != nullptr; }
   //! Get the global error handler.
-  inline ErrorHandler* getErrorHandler() const noexcept { return _errorHandler; }
+  inline ErrorHandler* errorHandler() const noexcept { return _errorHandler; }
   //! Set the global error handler.
   inline void setErrorHandler(ErrorHandler* handler) noexcept { _errorHandler = handler; }
   //! Reset the global error handler (does nothing if not attached).
@@ -462,11 +459,11 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get array of `SectionEntry*` records.
-  inline const ZoneVector<SectionEntry*>& getSections() const noexcept { return _sections; }
-  //! Get the number of sections.
-  inline uint32_t getSectionCount() const noexcept { return _sections.getLength(); }
+  inline const ZoneVector<SectionEntry*>& sectionEntries() const noexcept { return _sectionEntries; }
   //! Get a section entry of the given index.
-  inline SectionEntry* getSectionEntry(uint32_t index) const noexcept { return _sections[index]; }
+  inline SectionEntry* sectionEntry(uint32_t index) const noexcept { return _sectionEntries[index]; }
+  //! Get the number of sections.
+  inline uint32_t sectionCount() const noexcept { return _sectionEntries.size(); }
 
   ASMJIT_API Error growBuffer(CodeBuffer* cb, size_t n) noexcept;
   ASMJIT_API Error reserveBuffer(CodeBuffer* cb, size_t n) noexcept;
@@ -477,16 +474,20 @@ public:
 
   //! Create a new anonymous label and return its id in `idOut`.
   //!
-  //! Returns `Error`, does not report error to \ref ErrorHandler.
+  //! Returns `Error`, does not report error to `ErrorHandler`.
   ASMJIT_API Error newLabelId(uint32_t& idOut) noexcept;
 
   //! Create a new named label label-type `type`.
   //!
-  //! Returns `Error`, does not report error to \ref ErrorHandler.
-  ASMJIT_API Error newNamedLabelId(uint32_t& idOut, const char* name, size_t nameLength, uint32_t type, uint32_t parentId) noexcept;
+  //! Returns `Error`, does not report error to `ErrorHandler`.
+  ASMJIT_API Error newNamedLabelId(uint32_t& idOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId) noexcept;
 
   //! Get a label id by name.
-  ASMJIT_API uint32_t getLabelIdByName(const char* name, size_t nameLength = Globals::kNullTerminated, uint32_t parentId = 0) noexcept;
+  ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = Globals::kNullTerminated, uint32_t parentId = 0) noexcept;
+
+  inline Label labelByName(const char* name, size_t nameSize = Globals::kNullTerminated, uint32_t parentId = 0) noexcept {
+    return Label(labelIdByName(name, nameSize, parentId));
+  }
 
   //! Create a new label-link used to store information about yet unbound labels.
   //!
@@ -494,54 +495,53 @@ public:
   ASMJIT_API LabelLink* newLabelLink(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel) noexcept;
 
   //! Get array of `LabelEntry*` records.
-  inline const ZoneVector<LabelEntry*>& getLabelEntries() const noexcept { return _labelEntries; }
+  inline const ZoneVector<LabelEntry*>& labelEntries() const noexcept { return _labelEntries; }
+
+  //! Get information about a label of the given `id`.
+  inline LabelEntry* labelEntry(uint32_t id) const noexcept {
+    uint32_t index = Operand::unpackId(id);
+    return index < _labelEntries.size() ? _labelEntries[index] : static_cast<LabelEntry*>(nullptr);
+  }
+  //! Get information about the given `label`.
+  inline LabelEntry* labelEntry(const Label& label) const noexcept {
+    return labelEntry(label.id());
+  }
+
+  //! Get a `label` offset or -1 if the label is not yet bound.
+  inline intptr_t labelOffset(uint32_t id) const noexcept {
+    ASMJIT_ASSERT(isLabelValid(id));
+    return _labelEntries[Operand::unpackId(id)]->offset();
+  }
+  //! Get a `label` offset or -1 if the label is not yet bound.
+  inline intptr_t labelOffset(const Label& label) const noexcept {
+    return labelOffset(label.id());
+  }
 
   //! Get number of labels created.
-  inline uint32_t getLabelCount() const noexcept { return _labelEntries.getLength(); }
-
+  inline uint32_t labelCount() const noexcept { return _labelEntries.size(); }
   //! Get number of label references, which are unresolved at the moment.
-  inline uint32_t getUnresolvedLabelCount() const noexcept { return _unresolvedLabelCount; }
+  inline uint32_t unresolvedLabelCount() const noexcept { return _unresolvedLabelCount; }
 
-  //! Get whether the `label` is valid (i.e. created by `newLabelId()`).
-  inline bool isLabelValid(const Label& label) const noexcept {
-    return isLabelValid(label.getId());
-  }
   //! Get whether the label having `id` is valid (i.e. created by `newLabelId()`).
   inline bool isLabelValid(uint32_t labelId) const noexcept {
     uint32_t index = Operand::unpackId(labelId);
-    return index < _labelEntries.getLength();
+    return index < _labelEntries.size();
+  }
+  //! Get whether the `label` is valid (i.e. created by `newLabelId()`).
+  inline bool isLabelValid(const Label& label) const noexcept {
+    return isLabelValid(label.id());
   }
 
+  //! \overload
+  inline bool isLabelBound(uint32_t id) const noexcept {
+    uint32_t index = Operand::unpackId(id);
+    return index < _labelEntries.size() && _labelEntries[index]->isBound();
+  }
   //! Get whether the `label` is already bound.
   //!
   //! Returns `false` if the `label` is not valid.
   inline bool isLabelBound(const Label& label) const noexcept {
-    return isLabelBound(label.getId());
-  }
-  //! \overload
-  inline bool isLabelBound(uint32_t id) const noexcept {
-    uint32_t index = Operand::unpackId(id);
-    return index < _labelEntries.getLength() && _labelEntries[index]->isBound();
-  }
-
-  //! Get a `label` offset or -1 if the label is not yet bound.
-  inline intptr_t getLabelOffset(const Label& label) const noexcept {
-    return getLabelOffset(label.getId());
-  }
-  //! \overload
-  inline intptr_t getLabelOffset(uint32_t id) const noexcept {
-    ASMJIT_ASSERT(isLabelValid(id));
-    return _labelEntries[Operand::unpackId(id)]->getOffset();
-  }
-
-  //! Get information about the given `label`.
-  inline LabelEntry* getLabelEntry(const Label& label) const noexcept {
-    return getLabelEntry(label.getId());
-  }
-  //! Get information about a label having the given `id`.
-  inline LabelEntry* getLabelEntry(uint32_t id) const noexcept {
-    uint32_t index = Operand::unpackId(id);
-    return index < _labelEntries.getLength() ? _labelEntries[index] : static_cast<LabelEntry*>(nullptr);
+    return isLabelBound(label.id());
   }
 
   // --------------------------------------------------------------------------
@@ -549,12 +549,12 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get whether the code contains relocation entries.
-  inline bool hasRelocEntries() const noexcept { return !_relocations.isEmpty(); }
+  inline bool hasRelocEntries() const noexcept { return !_relocations.empty(); }
   //! Get array of `RelocEntry*` records.
-  inline const ZoneVector<RelocEntry*>& getRelocEntries() const noexcept { return _relocations; }
+  inline const ZoneVector<RelocEntry*>& relocEntries() const noexcept { return _relocations; }
 
   //! Get reloc entry of a given `id`.
-  inline RelocEntry* getRelocEntry(uint32_t id) const noexcept { return _relocations[id]; }
+  inline RelocEntry* relocEntry(uint32_t id) const noexcept { return _relocations[id]; }
 
   //! Create a new relocation entry of type `type` and size `size`.
   //!
@@ -576,7 +576,7 @@ public:
   //! allocator can shrink the memory it allocated initially.
   //!
   //! A given buffer will be overwritten, to get the number of bytes required,
-  //! use `getCodeSize()`.
+  //! use `codeSize()`.
   ASMJIT_API size_t relocate(void* dst, uint64_t baseAddress = Globals::kNoBaseAddress) const noexcept;
 
   // --------------------------------------------------------------------------
@@ -586,8 +586,8 @@ public:
   CodeInfo _codeInfo;                    //!< Basic information about the code (architecture and other info).
   uint32_t _emitterOptions;              //!< Emitter options, propagated to all emitters when changed.
 
-  Logger* _logger;                       //!< Attached \ref Logger, used by all consumers.
-  ErrorHandler* _errorHandler;           //!< Attached \ref ErrorHandler.
+  Logger* _logger;                       //!< Attached `Logger`, used by all consumers.
+  ErrorHandler* _errorHandler;           //!< Attached `ErrorHandler`.
 
   uint32_t _unresolvedLabelCount;        //!< Count of label references which were not resolved.
   uint32_t _trampolinesSize;             //!< Size of all possible trampolines.
@@ -595,8 +595,8 @@ public:
   Zone _zone;                            //!< Code zone (used to allocate core structures).
   ZoneAllocator _allocator;              //!< Zone allocator, used to manage internal containers.
 
-  ZoneVector<CodeEmitter*> _emitters;    //!< Attached code emitters.
-  ZoneVector<SectionEntry*> _sections;   //!< Section entries.
+  ZoneVector<BaseEmitter*> _emitters;    //!< Attached code emitters.
+  ZoneVector<SectionEntry*> _sectionEntries; //!< Section entries.
   ZoneVector<LabelEntry*> _labelEntries; //!< Label entries.
   ZoneVector<RelocEntry*> _relocations;  //!< Relocation entries.
   ZoneHash<LabelEntry> _namedLabels;     //!< Label name -> LabelEntry (only named labels).

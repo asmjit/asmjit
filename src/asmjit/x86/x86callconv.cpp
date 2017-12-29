@@ -15,26 +15,26 @@
 #include "../x86/x86callconv_p.h"
 #include "../x86/x86operand.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 // ============================================================================
-// [asmjit::X86CallConvInternal - Init]
+// [asmjit::x86::CallConvInternal - Init]
 // ============================================================================
 
-ASMJIT_FAVOR_SIZE Error X86CallConvInternal::init(CallConv& cc, uint32_t ccId) noexcept {
-  constexpr uint32_t kGroupGp  = X86Reg::kGroupGp;
-  constexpr uint32_t kGroupVec = X86Reg::kGroupVec;
-  constexpr uint32_t kGroupMm  = X86Reg::kGroupMm;
-  constexpr uint32_t kGroupK   = X86Reg::kGroupK;
+ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noexcept {
+  constexpr uint32_t kGroupGp   = Reg::kGroupGp;
+  constexpr uint32_t kGroupVec  = Reg::kGroupVec;
+  constexpr uint32_t kGroupMm   = Reg::kGroupMm;
+  constexpr uint32_t kGroupKReg = Reg::kGroupKReg;
 
-  constexpr uint32_t kZax = X86Gp::kIdAx;
-  constexpr uint32_t kZbx = X86Gp::kIdBx;
-  constexpr uint32_t kZcx = X86Gp::kIdCx;
-  constexpr uint32_t kZdx = X86Gp::kIdDx;
-  constexpr uint32_t kZsp = X86Gp::kIdSp;
-  constexpr uint32_t kZbp = X86Gp::kIdBp;
-  constexpr uint32_t kZsi = X86Gp::kIdSi;
-  constexpr uint32_t kZdi = X86Gp::kIdDi;
+  constexpr uint32_t kZax = Gp::kIdAx;
+  constexpr uint32_t kZbx = Gp::kIdBx;
+  constexpr uint32_t kZcx = Gp::kIdCx;
+  constexpr uint32_t kZdx = Gp::kIdDx;
+  constexpr uint32_t kZsp = Gp::kIdSp;
+  constexpr uint32_t kZbp = Gp::kIdBp;
+  constexpr uint32_t kZsi = Gp::kIdSi;
+  constexpr uint32_t kZdi = Gp::kIdDi;
 
   switch (ccId) {
     case CallConv::kIdX86StdCall:
@@ -67,12 +67,12 @@ ASMJIT_FAVOR_SIZE Error X86CallConvInternal::init(CallConv& cc, uint32_t ccId) n
     case CallConv::kIdX86CDecl:
 X86CallConv:
       cc.setNaturalStackAlignment(4);
-      cc.setArchType(ArchInfo::kTypeX86);
+      cc.setArchType(ArchInfo::kIdX86);
       cc.setPreservedRegs(kGroupGp, IntUtils::mask(kZbx, kZsp, kZbp, kZsi, kZdi));
       break;
 
     case CallConv::kIdX86Win64:
-      cc.setArchType(ArchInfo::kTypeX64);
+      cc.setArchType(ArchInfo::kIdX64);
       cc.setStrategy(CallConv::kStrategyWin64);
       cc.setFlags(CallConv::kFlagPassFloatsByVec | CallConv::kFlagIndirectVecArgs);
       cc.setNaturalStackAlignment(16);
@@ -84,7 +84,7 @@ X86CallConv:
       break;
 
     case CallConv::kIdX86SysV64:
-      cc.setArchType(ArchInfo::kTypeX64);
+      cc.setArchType(ArchInfo::kIdX64);
       cc.setFlags(CallConv::kFlagPassFloatsByVec);
       cc.setNaturalStackAlignment(16);
       cc.setRedZoneSize(128);
@@ -98,17 +98,17 @@ X86CallConv:
     case CallConv::kIdX86LightCall4: {
       uint32_t n = (ccId - CallConv::kIdX86LightCall2) + 2;
 
-      cc.setArchType(ArchInfo::kTypeX86);
+      cc.setArchType(ArchInfo::kIdX86);
       cc.setFlags(CallConv::kFlagPassFloatsByVec);
       cc.setNaturalStackAlignment(16);
       cc.setPassedOrder(kGroupGp, kZax, kZdx, kZcx, kZsi, kZdi);
       cc.setPassedOrder(kGroupMm, 0, 1, 2, 3, 4, 5, 6, 7);
       cc.setPassedOrder(kGroupVec, 0, 1, 2, 3, 4, 5, 6, 7);
 
-      cc.setPreservedRegs(kGroupGp , IntUtils::lsbMask<uint32_t>(8));
-      cc.setPreservedRegs(kGroupVec, IntUtils::lsbMask<uint32_t>(8) & ~IntUtils::lsbMask<uint32_t>(n));
-      cc.setPreservedRegs(kGroupMm , IntUtils::lsbMask<uint32_t>(8));
-      cc.setPreservedRegs(kGroupK  , IntUtils::lsbMask<uint32_t>(8));
+      cc.setPreservedRegs(kGroupGp  , IntUtils::lsbMask<uint32_t>(8));
+      cc.setPreservedRegs(kGroupVec , IntUtils::lsbMask<uint32_t>(8) & ~IntUtils::lsbMask<uint32_t>(n));
+      cc.setPreservedRegs(kGroupMm  , IntUtils::lsbMask<uint32_t>(8));
+      cc.setPreservedRegs(kGroupKReg, IntUtils::lsbMask<uint32_t>(8));
       break;
     }
 
@@ -117,17 +117,17 @@ X86CallConv:
     case CallConv::kIdX64LightCall4: {
       uint32_t n = (ccId - CallConv::kIdX64LightCall2) + 2;
 
-      cc.setArchType(ArchInfo::kTypeX64);
+      cc.setArchType(ArchInfo::kIdX64);
       cc.setFlags(CallConv::kFlagPassFloatsByVec);
       cc.setNaturalStackAlignment(16);
       cc.setPassedOrder(kGroupGp, kZax, kZdx, kZcx, kZsi, kZdi);
       cc.setPassedOrder(kGroupMm, 0, 1, 2, 3, 4, 5, 6, 7);
       cc.setPassedOrder(kGroupVec, 0, 1, 2, 3, 4, 5, 6, 7);
 
-      cc.setPreservedRegs(kGroupGp , IntUtils::lsbMask<uint32_t>(16));
-      cc.setPreservedRegs(kGroupVec,~IntUtils::lsbMask<uint32_t>(n));
-      cc.setPreservedRegs(kGroupMm , IntUtils::lsbMask<uint32_t>(8));
-      cc.setPreservedRegs(kGroupK  , IntUtils::lsbMask<uint32_t>(8));
+      cc.setPreservedRegs(kGroupGp  , IntUtils::lsbMask<uint32_t>(16));
+      cc.setPreservedRegs(kGroupVec ,~IntUtils::lsbMask<uint32_t>(n));
+      cc.setPreservedRegs(kGroupMm  , IntUtils::lsbMask<uint32_t>(8));
+      cc.setPreservedRegs(kGroupKReg, IntUtils::lsbMask<uint32_t>(8));
       break;
     }
 
@@ -139,7 +139,7 @@ X86CallConv:
   return kErrorOk;
 }
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86

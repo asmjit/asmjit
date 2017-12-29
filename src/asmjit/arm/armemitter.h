@@ -9,14 +9,14 @@
 #define _ASMJIT_ARM_ARMEMITTER_H
 
 // [Dependencies]
-#include "../core/codeemitter.h"
+#include "../core/emitter.h"
 #include "../core/intutils.h"
-#include "../arm/arminst.h"
+#include "../arm/arminstdb.h"
 #include "../arm/armoperand.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 
-//! \addtogroup asmjit_arm
+//! \addtogroup asmjit_arm_api
 //! \{
 
 // ============================================================================
@@ -125,7 +125,7 @@ public:
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_ARM_ARMEMITTER_H

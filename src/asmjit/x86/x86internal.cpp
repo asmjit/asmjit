@@ -18,7 +18,7 @@
 #include "../core/type.h"
 #include "../x86/x86internal_p.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 // ============================================================================
 // [asmjit::X86Internal - Helpers]
@@ -28,13 +28,13 @@ static ASMJIT_FORCEINLINE uint32_t x86GetXmmMovInst(const FuncFrame& frame) {
   bool avx = frame.isAvxEnabled();
   bool aligned = frame.hasAlignedVecSR();
 
-  return aligned ? (avx ? X86Inst::kIdVmovaps : X86Inst::kIdMovaps)
-                 : (avx ? X86Inst::kIdVmovups : X86Inst::kIdMovups);
+  return aligned ? (avx ? Inst::kIdVmovaps : Inst::kIdMovaps)
+                 : (avx ? Inst::kIdVmovups : Inst::kIdMovups);
 }
 
 static ASMJIT_FORCEINLINE uint32_t x86VecTypeIdToRegType(uint32_t typeId) noexcept {
-  return typeId <= Type::_kIdVec128End ? X86Reg::kRegXmm :
-         typeId <= Type::_kIdVec256End ? X86Reg::kRegYmm : X86Reg::kRegZmm;
+  return typeId <= Type::_kIdVec128End ? Reg::kTypeXmm :
+         typeId <= Type::_kIdVec256End ? Reg::kTypeYmm : Reg::kTypeZmm;
 }
 
 // ============================================================================
@@ -44,30 +44,30 @@ static ASMJIT_FORCEINLINE uint32_t x86VecTypeIdToRegType(uint32_t typeId) noexce
 ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const FuncSignature& sign, uint32_t gpSize) noexcept {
   ASMJIT_UNUSED(sign);
 
-  const CallConv& cc = func.getCallConv();
-  uint32_t archType = cc.getArchType();
+  const CallConv& cc = func.callConv();
+  uint32_t archId = cc.archId();
   uint32_t stackOffset = cc._spillZoneSize;
 
   uint32_t i;
-  uint32_t argCount = func.getArgCount();
+  uint32_t argCount = func.argCount();
 
-  if (func.getRetCount() != 0) {
-    uint32_t typeId = func._rets[0].getTypeId();
+  if (func.retCount() != 0) {
+    uint32_t typeId = func._rets[0].typeId();
     switch (typeId) {
       case Type::kIdI64:
       case Type::kIdU64: {
-        if (archType == ArchInfo::kTypeX86) {
+        if (archId == ArchInfo::kIdX86) {
           // Convert a 64-bit return value to two 32-bit return values.
           func._retCount = 2;
           typeId -= 2;
 
           // 64-bit value is returned in EDX:EAX on X86.
-          func._rets[0].initReg(X86Gp::kRegGpd, X86Gp::kIdAx, typeId);
-          func._rets[1].initReg(X86Gp::kRegGpd, X86Gp::kIdDx, typeId);
+          func._rets[0].initReg(Reg::kTypeGpd, Gp::kIdAx, typeId);
+          func._rets[1].initReg(Reg::kTypeGpd, Gp::kIdDx, typeId);
           break;
         }
         else {
-          func._rets[0].initReg(X86Gp::kRegGpq, X86Gp::kIdAx, typeId);
+          func._rets[0].initReg(Reg::kTypeGpq, Gp::kIdAx, typeId);
         }
         break;
       }
@@ -75,36 +75,36 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       case Type::kIdI8:
       case Type::kIdI16:
       case Type::kIdI32: {
-        func._rets[0].initReg(X86Gp::kRegGpd, X86Gp::kIdAx, Type::kIdI32);
+        func._rets[0].initReg(Reg::kTypeGpd, Gp::kIdAx, Type::kIdI32);
         break;
       }
 
       case Type::kIdU8:
       case Type::kIdU16:
       case Type::kIdU32: {
-        func._rets[0].initReg(X86Gp::kRegGpd, X86Gp::kIdAx, Type::kIdU32);
+        func._rets[0].initReg(Reg::kTypeGpd, Gp::kIdAx, Type::kIdU32);
         break;
       }
 
       case Type::kIdF32:
       case Type::kIdF64: {
-        uint32_t regType = (archType == ArchInfo::kTypeX86) ? X86Reg::kRegFp : X86Reg::kRegXmm;
+        uint32_t regType = (archId == ArchInfo::kIdX86) ? Reg::kTypeSt : Reg::kTypeXmm;
         func._rets[0].initReg(regType, 0, typeId);
         break;
       }
 
       case Type::kIdF80: {
         // 80-bit floats are always returned by FP0.
-        func._rets[0].initReg(X86Reg::kRegFp, 0, typeId);
+        func._rets[0].initReg(Reg::kTypeSt, 0, typeId);
         break;
       }
 
       case Type::kIdMmx32:
       case Type::kIdMmx64: {
         // MM registers are returned through XMM or GPQ (Win64).
-        uint32_t regType = X86Reg::kRegMm;
-        if (archType != ArchInfo::kTypeX86)
-          regType = cc.getStrategy() == CallConv::kStrategyDefault ? X86Reg::kRegXmm : X86Reg::kRegGpq;
+        uint32_t regType = Reg::kTypeMm;
+        if (archId != ArchInfo::kIdX86)
+          regType = cc.strategy() == CallConv::kStrategyDefault ? Reg::kTypeXmm : Reg::kTypeGpq;
 
         func._rets[0].initReg(regType, 0, typeId);
         break;
@@ -117,20 +117,20 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
     }
   }
 
-  if (cc.getStrategy() == CallConv::kStrategyDefault) {
+  if (cc.strategy() == CallConv::kStrategyDefault) {
     uint32_t gpzPos = 0;
     uint32_t vecPos = 0;
 
     for (i = 0; i < argCount; i++) {
       FuncValue& arg = func._args[i];
-      uint32_t typeId = arg.getTypeId();
+      uint32_t typeId = arg.typeId();
 
       if (Type::isInt(typeId)) {
-        uint32_t regId = gpzPos < CallConv::kMaxRegArgsPerGroup ? cc._passedOrder[X86Reg::kGroupGp].id[gpzPos] : uint8_t(Reg::kIdBad);
-        if (regId != Reg::kIdBad) {
-          uint32_t regType = (typeId <= Type::kIdU32) ? X86Reg::kRegGpd : X86Reg::kRegGpq;
+        uint32_t regId = gpzPos < CallConv::kMaxRegArgsPerGroup ? cc._passedOrder[Reg::kGroupGp].id[gpzPos] : uint8_t(BaseReg::kIdBad);
+        if (regId != BaseReg::kIdBad) {
+          uint32_t regType = (typeId <= Type::kIdU32) ? Reg::kTypeGpd : Reg::kTypeGpq;
           arg.assignRegData(regType, regId);
-          func.addUsedRegs(X86Reg::kGroupGp, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupGp, IntUtils::mask(regId));
           gpzPos++;
         }
         else {
@@ -142,16 +142,16 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       }
 
       if (Type::isFloat(typeId) || Type::isVec(typeId)) {
-        uint32_t regId = vecPos < CallConv::kMaxRegArgsPerGroup ? cc._passedOrder[X86Reg::kGroupVec].id[vecPos] : uint8_t(Reg::kIdBad);
+        uint32_t regId = vecPos < CallConv::kMaxRegArgsPerGroup ? cc._passedOrder[Reg::kGroupVec].id[vecPos] : uint8_t(BaseReg::kIdBad);
 
         // If this is a float, but `floatByVec` is false, we have to pass by stack.
         if (Type::isFloat(typeId) && !cc.hasFlag(CallConv::kFlagPassFloatsByVec))
-          regId = Reg::kIdBad;
+          regId = BaseReg::kIdBad;
 
-        if (regId != Reg::kIdBad) {
+        if (regId != BaseReg::kIdBad) {
           arg.initTypeId(typeId);
           arg.assignRegData(x86VecTypeIdToRegType(typeId), regId);
-          func.addUsedRegs(X86Reg::kGroupVec, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupVec, IntUtils::mask(regId));
           vecPos++;
         }
         else {
@@ -164,19 +164,19 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
     }
   }
 
-  if (cc.getStrategy() == CallConv::kStrategyWin64) {
+  if (cc.strategy() == CallConv::kStrategyWin64) {
     for (i = 0; i < argCount; i++) {
       FuncValue& arg = func._args[i];
 
-      uint32_t typeId = arg.getTypeId();
+      uint32_t typeId = arg.typeId();
       uint32_t size = Type::sizeOf(typeId);
 
       if (Type::isInt(typeId) || Type::isMmx(typeId)) {
-        uint32_t regId = i < CallConv::kMaxRegArgsPerGroup ? cc._passedOrder[X86Reg::kGroupGp].id[i] : uint8_t(Reg::kIdBad);
-        if (regId != Reg::kIdBad) {
-          uint32_t regType = (size <= 4 && !Type::isMmx(typeId)) ? X86Reg::kRegGpd : X86Reg::kRegGpq;
+        uint32_t regId = i < CallConv::kMaxRegArgsPerGroup ? cc._passedOrder[Reg::kGroupGp].id[i] : uint8_t(BaseReg::kIdBad);
+        if (regId != BaseReg::kIdBad) {
+          uint32_t regType = (size <= 4 && !Type::isMmx(typeId)) ? Reg::kTypeGpd : Reg::kTypeGpq;
           arg.assignRegData(regType, regId);
-          func.addUsedRegs(X86Reg::kGroupGp, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupGp, IntUtils::mask(regId));
         }
         else {
           arg.assignStackOffset(int32_t(stackOffset));
@@ -186,14 +186,14 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       }
 
       if (Type::isFloat(typeId) || Type::isVec(typeId)) {
-        uint32_t regId = Reg::kIdBad;
+        uint32_t regId = BaseReg::kIdBad;
         if (i < CallConv::kMaxRegArgsPerGroup)
-          regId = cc._passedOrder[X86Reg::kGroupVec].id[i];
-        
-        if (regId != Reg::kIdBad && (Type::isFloat(typeId) || cc.hasFlag(CallConv::kFlagVectorCall))) {
+          regId = cc._passedOrder[Reg::kGroupVec].id[i];
+
+        if (regId != BaseReg::kIdBad && (Type::isFloat(typeId) || cc.hasFlag(CallConv::kFlagVectorCall))) {
           uint32_t regType = x86VecTypeIdToRegType(typeId);
           arg.assignRegData(regType, regId);
-          func.addUsedRegs(X86Reg::kGroupVec, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupVec, IntUtils::mask(regId));
         }
         else {
           arg.assignStackOffset(int32_t(stackOffset));
@@ -212,22 +212,21 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
 // [asmjit::X86FuncArgsContext]
 // ============================================================================
 
-static RegInfo x86GetRegForMemToMemMove(uint32_t archType, uint32_t dstTypeId, uint32_t srcTypeId) noexcept {
+static RegInfo x86GetRegForMemToMemMove(uint32_t archId, uint32_t dstTypeId, uint32_t srcTypeId) noexcept {
   uint32_t dstSize = Type::sizeOf(dstTypeId);
   uint32_t srcSize = Type::sizeOf(srcTypeId);
   uint32_t maxSize = std::max<uint32_t>(dstSize, srcSize);
-  uint32_t gpSize = archType == ArchInfo::kTypeX86 ? 4 : 8;
+  uint32_t gpSize = archId == ArchInfo::kIdX86 ? 4 : 8;
 
   uint32_t signature = 0;
   if (maxSize <= gpSize || (Type::isInt(dstTypeId) && Type::isInt(srcTypeId)))
-    signature = maxSize <= 4 ? X86Reg::signatureOfT<X86Reg::kRegGpd>()
-                             : X86Reg::signatureOfT<X86Reg::kRegGpq>();
+    signature = maxSize <= 4 ? Gpd::kSignature : Gpq::kSignature;
   else if (maxSize <= 16)
-    signature = X86Reg::signatureOfT<X86Reg::kRegXmm>();
+    signature = Xmm::kSignature;
   else if (maxSize <= 32)
-    signature = X86Reg::signatureOfT<X86Reg::kRegYmm>();
+    signature = Ymm::kSignature;
   else if (maxSize <= 64)
-    signature = X86Reg::signatureOfT<X86Reg::kRegZmm>();
+    signature = Zmm::kSignature;
 
   return RegInfo { signature };
 }
@@ -316,12 +315,12 @@ public:
       _assignedRegs ^= IntUtils::mask(regId);
     }
 
-    inline uint32_t getArchRegs() const noexcept { return _archRegs; }
-    inline uint32_t getWorkRegs() const noexcept { return _workRegs; }
-    inline uint32_t getUsedRegs() const noexcept { return _usedRegs; }
-    inline uint32_t getAssignedRegs() const noexcept { return _assignedRegs; }
-    inline uint32_t getDstRegs() const noexcept { return _dstRegs; }
-    inline uint32_t getAvailableRegs() const noexcept { return _workRegs & ~_assignedRegs; }
+    inline uint32_t archRegs() const noexcept { return _archRegs; }
+    inline uint32_t workRegs() const noexcept { return _workRegs; }
+    inline uint32_t usedRegs() const noexcept { return _usedRegs; }
+    inline uint32_t assignedRegs() const noexcept { return _assignedRegs; }
+    inline uint32_t dstRegs() const noexcept { return _dstRegs; }
+    inline uint32_t availableRegs() const noexcept { return _workRegs & ~_assignedRegs; }
 
     uint32_t _archRegs;                  //!< All allocable registers provided by the architecture.
     uint32_t _workRegs;                  //!< All registers that can be used by the shuffler.
@@ -337,11 +336,11 @@ public:
 
   X86FuncArgsContext() noexcept;
 
-  inline uint32_t getArchType() const noexcept { return _archType; }
-  inline uint32_t getVarCount() const noexcept { return _varCount; }
+  inline uint32_t archId() const noexcept { return _archId; }
+  inline uint32_t varCount() const noexcept { return _varCount; }
 
-  inline Var& getVar(uint32_t varId) noexcept { return _vars[varId]; }
-  inline const Var& getVar(uint32_t varId) const noexcept { return _vars[varId]; }
+  inline Var& var(uint32_t varId) noexcept { return _vars[varId]; }
+  inline const Var& var(uint32_t varId) const noexcept { return _vars[varId]; }
   inline uint32_t indexOf(const Var* var) const noexcept { return uint32_t((size_t)(var - _vars)); }
 
   Error initWorkData(const FuncFrame& frame, const FuncArgsAssignment& args) noexcept;
@@ -353,19 +352,19 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _archType;
+  uint8_t _archId;
   bool _hasStackSrc;                     //!< Has arguments passed via stack (SRC).
   bool _hasPreservedFP;                  //!< Has preserved frame-pointer (FP).
   uint8_t _stackDstMask;                 //!< Has arguments assigned to stack (DST).
   uint8_t _regSwapsMask;                 //!< Register swap groups (bit-mask).
   uint8_t _saVarId;
   uint32_t _varCount;
-  WorkData _workData[Reg::kGroupVirt];
+  WorkData _workData[BaseReg::kGroupVirt];
   Var _vars[kFuncArgCountLoHi + 1];
 };
 
 X86FuncArgsContext::X86FuncArgsContext() noexcept {
-  _archType = ArchInfo::kTypeNone;
+  _archId = ArchInfo::kIdNone;
   _varCount = 0;
   _hasStackSrc = false;
   _hasPreservedFP = false;
@@ -373,39 +372,39 @@ X86FuncArgsContext::X86FuncArgsContext() noexcept {
   _regSwapsMask = 0;
   _saVarId = kVarIdNone;
 
-  for (uint32_t group = 0; group < Reg::kGroupVirt; group++)
+  for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++)
     _workData[group].reset();
 }
 
 ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame, const FuncArgsAssignment& args) noexcept {
   // The code has to be updated if this changes.
-  ASMJIT_ASSERT(Reg::kGroupVirt == 4);
+  ASMJIT_ASSERT(BaseReg::kGroupVirt == 4);
 
   uint32_t i;
-  const FuncDetail& func = *args.getFuncDetail();
+  const FuncDetail& func = *args.funcDetail();
 
   // Initialize ArchType.
-  uint32_t archType = func.getCallConv().getArchType();
-  uint32_t archRegCount = (archType == ArchInfo::kTypeX86) ? 8 : 16;
+  uint32_t archId = func.callConv().archId();
+  uint32_t archRegCount = (archId == ArchInfo::kIdX86) ? 8 : 16;
 
-  _archType = uint8_t(archType);
+  _archId = uint8_t(archId);
 
   // Initialize `_archRegs`.
-  _workData[X86Reg::kGroupGp ]._archRegs = IntUtils::lsbMask<uint32_t>(archRegCount) & ~IntUtils::mask(X86Gp::kIdSp);
-  _workData[X86Reg::kGroupVec]._archRegs = IntUtils::lsbMask<uint32_t>(archRegCount);
-  _workData[X86Reg::kGroupMm ]._archRegs = IntUtils::lsbMask<uint32_t>(8);
-  _workData[X86Reg::kGroupK  ]._archRegs = IntUtils::lsbMask<uint32_t>(8);
+  _workData[Reg::kGroupGp  ]._archRegs = IntUtils::lsbMask<uint32_t>(archRegCount) & ~IntUtils::mask(Gp::kIdSp);
+  _workData[Reg::kGroupVec ]._archRegs = IntUtils::lsbMask<uint32_t>(archRegCount);
+  _workData[Reg::kGroupMm  ]._archRegs = IntUtils::lsbMask<uint32_t>(8);
+  _workData[Reg::kGroupKReg]._archRegs = IntUtils::lsbMask<uint32_t>(8);
 
   if (frame.hasPreservedFP())
-    _workData[X86Reg::kGroupGp]._archRegs &= ~IntUtils::mask(X86Gp::kIdBp);
+    _workData[Reg::kGroupGp]._archRegs &= ~IntUtils::mask(Gp::kIdBp);
 
   // Extract information from all function arguments/assignments and build Var[] array.
   uint32_t varId = 0;
   for (i = 0; i < kFuncArgCountLoHi; i++) {
-    const FuncValue& dst_ = args.getArg(i);
+    const FuncValue& dst_ = args.arg(i);
     if (!dst_.isAssigned()) continue;
 
-    const FuncValue& src_ = func.getArg(i);
+    const FuncValue& src_ = func.arg(i);
     if (ASMJIT_UNLIKELY(!src_.isAssigned()))
       return DebugUtils::errored(kErrorInvalidState);
 
@@ -416,30 +415,30 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
     FuncValue& dst = var.out;
 
     uint32_t dstGroup = 0xFFFFFFFFU;
-    uint32_t dstId = Reg::kIdBad;
+    uint32_t dstId = BaseReg::kIdBad;
     WorkData* dstWd = nullptr;
 
     if (dst.isReg()) {
-      uint32_t dstType = dst.getRegType();
-      if (ASMJIT_UNLIKELY(dstType >= X86Reg::kRegCount))
+      uint32_t dstType = dst.regType();
+      if (ASMJIT_UNLIKELY(dstType >= Reg::kTypeCount))
         return DebugUtils::errored(kErrorInvalidRegType);
 
       // Copy TypeId from source if the destination doesn't have it. The RA
-      // used by CodeCompiler would never leave TypeId undefined, but users
+      // used by BaseCompiler would never leave TypeId undefined, but users
       // of FuncAPI can just assign phys regs without specifying the type.
       if (!dst.hasTypeId())
-        dst.setTypeId(X86Reg::typeIdOf(dst.getRegType()));
+        dst.setTypeId(Reg::typeIdOf(dst.regType()));
 
-      dstGroup = X86Reg::groupOf(dstType);
-      if (ASMJIT_UNLIKELY(dstGroup >= Reg::kGroupVirt))
+      dstGroup = Reg::groupOf(dstType);
+      if (ASMJIT_UNLIKELY(dstGroup >= BaseReg::kGroupVirt))
         return DebugUtils::errored(kErrorInvalidRegGroup);
 
       dstWd = &_workData[dstGroup];
-      dstId = dst.getRegId();
-      if (ASMJIT_UNLIKELY(dstId >= 32 || !IntUtils::bitTest(dstWd->getArchRegs(), dstId)))
+      dstId = dst.regId();
+      if (ASMJIT_UNLIKELY(dstId >= 32 || !IntUtils::bitTest(dstWd->archRegs(), dstId)))
         return DebugUtils::errored(kErrorInvalidPhysId);
 
-      if (ASMJIT_UNLIKELY(IntUtils::bitTest(dstWd->getDstRegs(), dstId)))
+      if (ASMJIT_UNLIKELY(IntUtils::bitTest(dstWd->dstRegs(), dstId)))
         return DebugUtils::errored(kErrorOverlappedRegs);
 
       dstWd->_dstRegs  |= IntUtils::mask(dstId);
@@ -448,17 +447,17 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
     }
     else {
       if (!dst.hasTypeId())
-        dst.setTypeId(src.getTypeId());
+        dst.setTypeId(src.typeId());
 
-      RegInfo regInfo = x86GetRegForMemToMemMove(archType, dst.getTypeId(), src.getTypeId());
+      RegInfo regInfo = x86GetRegForMemToMemMove(archId, dst.typeId(), src.typeId());
       if (ASMJIT_UNLIKELY(!regInfo.isValid()))
         return DebugUtils::errored(kErrorInvalidState);
-      _stackDstMask = uint8_t(_stackDstMask | IntUtils::mask(regInfo.getGroup()));
+      _stackDstMask = uint8_t(_stackDstMask | IntUtils::mask(regInfo.group()));
     }
 
     if (src.isReg()) {
-      uint32_t srcId = src.getRegId();
-      uint32_t srcGroup = X86Reg::groupOf(src.getRegType());
+      uint32_t srcId = src.regId();
+      uint32_t srcGroup = Reg::groupOf(src.regType());
 
       if (dstGroup == srcGroup) {
         dstWd->assign(varId, srcId);
@@ -468,7 +467,7 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
           var.markDone();
       }
       else {
-        if (ASMJIT_UNLIKELY(srcGroup >= Reg::kGroupVirt))
+        if (ASMJIT_UNLIKELY(srcGroup >= BaseReg::kGroupVirt))
           return DebugUtils::errored(kErrorInvalidState);
 
         WorkData& srcData = _workData[srcGroup];
@@ -485,32 +484,32 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
   }
 
   // Initialize WorkData::workRegs.
-  for (i = 0; i < Reg::kGroupVirt; i++)
-    _workData[i]._workRegs = (_workData[i].getArchRegs() & (frame.getDirtyRegs(i) | ~frame.getPreservedRegs(i))) | _workData[i].getDstRegs() | _workData[i].getAssignedRegs();
+  for (i = 0; i < BaseReg::kGroupVirt; i++)
+    _workData[i]._workRegs = (_workData[i].archRegs() & (frame.dirtyRegs(i) | ~frame.preservedRegs(i))) | _workData[i].dstRegs() | _workData[i].assignedRegs();
 
   // Create a variable that represents `SARegId` if necessary.
   bool saRegRequired = _hasStackSrc && frame.hasDynamicAlignment() && !frame.hasPreservedFP();
 
-  WorkData& gpRegs = _workData[Reg::kGroupGp];
-  uint32_t saCurRegId = frame.getSARegId();
-  uint32_t saOutRegId = args.getSARegId();
+  WorkData& gpRegs = _workData[BaseReg::kGroupGp];
+  uint32_t saCurRegId = frame.saRegId();
+  uint32_t saOutRegId = args.saRegId();
 
-  if (saCurRegId != Reg::kIdBad) {
+  if (saCurRegId != BaseReg::kIdBad) {
     // Check if the provided `SARegId` doesn't collide with input registers.
     if (ASMJIT_UNLIKELY(gpRegs.isAssigned(saCurRegId)))
       return DebugUtils::errored(kErrorOverlappedRegs);
   }
 
-  if (saOutRegId != Reg::kIdBad) {
+  if (saOutRegId != BaseReg::kIdBad) {
     // Check if the provided `SARegId` doesn't collide with argument assignments.
-    if (ASMJIT_UNLIKELY(IntUtils::bitTest(gpRegs.getDstRegs(), saOutRegId)))
+    if (ASMJIT_UNLIKELY(IntUtils::bitTest(gpRegs.dstRegs(), saOutRegId)))
       return DebugUtils::errored(kErrorOverlappedRegs);
     saRegRequired = true;
   }
 
   if (saRegRequired) {
-    uint32_t ptrTypeId = (archType == ArchInfo::kTypeX86) ? Type::kIdU32 : Type::kIdU64;
-    uint32_t ptrRegType = (archType == ArchInfo::kTypeX86) ? Reg::kRegGp32 : Reg::kRegGp64;
+    uint32_t ptrTypeId = (archId == ArchInfo::kIdX86) ? Type::kIdU32 : Type::kIdU64;
+    uint32_t ptrRegType = (archId == ArchInfo::kIdX86) ? BaseReg::kTypeGp32 : BaseReg::kTypeGp64;
 
     _saVarId = uint8_t(varId);
     _hasPreservedFP = frame.hasPreservedFP();
@@ -518,14 +517,14 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
     Var& var = _vars[varId];
     var.reset();
 
-    if (saCurRegId == Reg::kIdBad) {
-      if (saOutRegId != Reg::kIdBad && !gpRegs.isAssigned(saOutRegId)) {
+    if (saCurRegId == BaseReg::kIdBad) {
+      if (saOutRegId != BaseReg::kIdBad && !gpRegs.isAssigned(saOutRegId)) {
         saCurRegId = saOutRegId;
       }
       else {
-        uint32_t availableRegs = gpRegs.getAvailableRegs();
+        uint32_t availableRegs = gpRegs.availableRegs();
         if (!availableRegs)
-          availableRegs = gpRegs.getArchRegs() & ~gpRegs.getWorkRegs();
+          availableRegs = gpRegs.archRegs() & ~gpRegs.workRegs();
 
         if (ASMJIT_UNLIKELY(!availableRegs))
           return DebugUtils::errored(kErrorNoMorePhysRegs);
@@ -538,7 +537,7 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
     gpRegs.assign(varId, saCurRegId);
     gpRegs._workRegs |= IntUtils::mask(saCurRegId);
 
-    if (saOutRegId != Reg::kIdBad) {
+    if (saOutRegId != BaseReg::kIdBad) {
       var.out.initReg(ptrRegType, saOutRegId, ptrTypeId);
       gpRegs._dstRegs  |= IntUtils::mask(saOutRegId);
       gpRegs._workRegs |= IntUtils::mask(saOutRegId);
@@ -556,17 +555,17 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
   for (varId = 0; varId < _varCount; varId++) {
     Var& var = _vars[varId];
     if (var.cur.isReg() && var.out.isReg()) {
-      uint32_t srcId = var.cur.getRegId();
-      uint32_t dstId = var.out.getRegId();
+      uint32_t srcId = var.cur.regId();
+      uint32_t dstId = var.out.regId();
 
-      uint32_t group = X86Reg::groupOf(var.cur.getRegType());
-      if (group != X86Reg::groupOf(var.out.getRegType()))
+      uint32_t group = Reg::groupOf(var.cur.regType());
+      if (group != Reg::groupOf(var.out.regType()))
         continue;
 
       WorkData& wd = _workData[group];
       if (wd.isAssigned(dstId)) {
         Var& other = _vars[wd._physToVarId[dstId]];
-        if (X86Reg::groupOf(other.out.getRegType()) == group && other.out.getRegId() == srcId) {
+        if (Reg::groupOf(other.out.regType()) == group && other.out.regId() == srcId) {
           wd._numSwaps++;
           _regSwapsMask = uint8_t(_regSwapsMask | IntUtils::mask(group));
         }
@@ -578,9 +577,9 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
 }
 
 ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markDstRegsDirty(FuncFrame& frame) noexcept {
-  for (uint32_t i = 0; i < Reg::kGroupVirt; i++) {
+  for (uint32_t i = 0; i < BaseReg::kGroupVirt; i++) {
     WorkData& wd = _workData[i];
-    uint32_t regs = wd.getUsedRegs() | wd._dstShuf;
+    uint32_t regs = wd.usedRegs() | wd._dstShuf;
 
     wd._workRegs |= regs;
     frame.addDirtyRegs(i, regs);
@@ -596,27 +595,27 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markScratchRegs(FuncFrame& frame) no
   groupMask |= _stackDstMask;
 
   // Handle register swaps.
-  groupMask |= _regSwapsMask & ~IntUtils::mask(Reg::kGroupGp);
+  groupMask |= _regSwapsMask & ~IntUtils::mask(BaseReg::kGroupGp);
 
   if (!groupMask)
     return kErrorOk;
 
   // selects one dirty register per affected group that can be used as a scratch register.
-  for (uint32_t group = 0; group < Reg::kGroupVirt; group++) {
+  for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++) {
     if (groupMask & (1U << group)) {
       WorkData& wd = _workData[group];
 
       // Initially, pick some clobbered or dirty register.
-      uint32_t workRegs = wd.getWorkRegs();
-      uint32_t regs = workRegs & ~(wd.getUsedRegs() | wd._dstShuf);
+      uint32_t workRegs = wd.workRegs();
+      uint32_t regs = workRegs & ~(wd.usedRegs() | wd._dstShuf);
 
       // If that didn't work out pick some register which is not in 'used'.
-      if (!regs) regs = workRegs & ~wd.getUsedRegs();
+      if (!regs) regs = workRegs & ~wd.usedRegs();
 
       // If that didn't work out pick any other register that is allocable.
       // This last resort case will, however, result in marking one more
       // register dirty.
-      if (!regs) regs = wd.getArchRegs() & ~workRegs;
+      if (!regs) regs = wd.archRegs() & ~workRegs;
 
       // If that didn't work out we will have to use XORs instead of MOVs.
       if (!regs) continue;
@@ -634,11 +633,11 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markStackArgsReg(FuncFrame& frame) n
   // TODO: Validate, improve...
   if (_saVarId != kVarIdNone) {
     const Var& var = _vars[_saVarId];
-    frame.setSARegId(var.cur.getRegId());
+    frame.setSARegId(var.cur.regId());
   }
   else if (frame.hasPreservedFP()) {
     // Always EBP|RBP if the frame-pointer isn't omitted.
-    frame.setSARegId(X86Gp::kIdBp);
+    frame.setSARegId(Gp::kIdBp);
   }
 
   return kErrorOk;
@@ -649,18 +648,18 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markStackArgsReg(FuncFrame& frame) n
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE Error X86Internal::initFuncFrame(FuncFrame& frame, const FuncDetail& func) noexcept {
-  uint32_t archType = func.getCallConv().getArchType();
+  uint32_t archId = func.callConv().archId();
 
   // Initializing FuncFrame means making a copy of some properties of `func`.
   // Properties like `_localStackSize` will be set by the user before the frame
   // is finalized.
   frame.reset();
 
-  frame._archType = uint8_t(archType);
-  frame._spRegId = X86Gp::kIdSp;
-  frame._saRegId = X86Gp::kIdBad;
+  frame._archId = uint8_t(archId);
+  frame._spRegId = Gp::kIdSp;
+  frame._saRegId = Gp::kIdBad;
 
-  uint32_t naturalStackAlignment = func.getCallConv().getNaturalStackAlignment();
+  uint32_t naturalStackAlignment = func.callConv().naturalStackAlignment();
   uint32_t minimumDynamicAlignment = std::max<uint32_t>(naturalStackAlignment, 16);
 
   if (minimumDynamicAlignment == naturalStackAlignment)
@@ -668,28 +667,28 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncFrame(FuncFrame& frame, const FuncD
 
   frame._naturalStackAlignment = uint8_t(naturalStackAlignment);
   frame._minimumDynamicAlignment = uint8_t(minimumDynamicAlignment);
-  frame._redZoneSize = uint8_t(func.getRedZoneSize());
-  frame._spillZoneSize = uint8_t(func.getSpillZoneSize());
+  frame._redZoneSize = uint8_t(func.redZoneSize());
+  frame._spillZoneSize = uint8_t(func.spillZoneSize());
   frame._finalStackAlignment = uint8_t(frame._naturalStackAlignment);
 
   if (func.hasFlag(CallConv::kFlagCalleePopsStack)) {
-    frame._calleeStackCleanup = uint16_t(func.getArgStackSize());
+    frame._calleeStackCleanup = uint16_t(func.argStackSize());
   }
 
   // Initial masks of dirty and preserved registers.
-  for (uint32_t group = 0; group < Reg::kGroupVirt; group++) {
-    frame._dirtyRegs[group] = func.getUsedRegs(group);
-    frame._preservedRegs[group] = func.getPreservedRegs(group);
+  for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++) {
+    frame._dirtyRegs[group] = func.usedRegs(group);
+    frame._preservedRegs[group] = func.preservedRegs(group);
   }
 
   // Exclude ESP/RSP - this register is never included in saved GP regs.
-  frame._preservedRegs[Reg::kGroupGp] &= ~IntUtils::mask(X86Gp::kIdSp);
+  frame._preservedRegs[BaseReg::kGroupGp] &= ~IntUtils::mask(Gp::kIdSp);
 
   return kErrorOk;
 }
 
 ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcept {
-  uint32_t gpSize = frame.getArchType() == ArchInfo::kTypeX86 ? 4 : 8;
+  uint32_t gpSize = frame.archId() == ArchInfo::kIdX86 ? 4 : 8;
 
   // The final stack alignment must be updated accordingly to call and local stack alignments.
   uint32_t stackAlignment = frame._finalStackAlignment;
@@ -705,37 +704,37 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
 
   // Include EBP|RBP if the function preserves the frame-pointer.
   if (hasFP)
-    frame._dirtyRegs[X86Reg::kGroupGp] |= IntUtils::mask(X86Gp::kIdBp);
+    frame._dirtyRegs[Reg::kGroupGp] |= IntUtils::mask(Gp::kIdBp);
 
   // These two are identical if the function doesn't align its stack dynamically.
-  uint32_t saRegId = frame.getSARegId();
-  if (saRegId == Reg::kIdBad)
-    saRegId = X86Gp::kIdSp;
+  uint32_t saRegId = frame.saRegId();
+  if (saRegId == BaseReg::kIdBad)
+    saRegId = Gp::kIdSp;
 
   // Fix stack arguments base-register from ESP|RSP to EBP|RBP in case it was
   // not picked before and the function performs dynamic stack alignment.
-  if (hasDA && saRegId == X86Gp::kIdSp)
-    saRegId = X86Gp::kIdBp;
+  if (hasDA && saRegId == Gp::kIdSp)
+    saRegId = Gp::kIdBp;
 
   // Mark as dirty any register but ESP|RSP if used as SA pointer.
-  if (saRegId != X86Gp::kIdSp)
-    frame._dirtyRegs[X86Reg::kGroupGp] |= IntUtils::mask(saRegId);
+  if (saRegId != Gp::kIdSp)
+    frame._dirtyRegs[Reg::kGroupGp] |= IntUtils::mask(saRegId);
 
-  frame._spRegId = uint8_t(X86Gp::kIdSp);
+  frame._spRegId = uint8_t(Gp::kIdSp);
   frame._saRegId = uint8_t(saRegId);
 
   // Setup stack size used to save preserved registers.
-  frame._gpSaveSize    = uint16_t(IntUtils::popcnt(frame.getSavedRegs(X86Reg::kGroupGp )) * gpSize);
-  frame._nonGpSaveSize = uint16_t(IntUtils::popcnt(frame.getSavedRegs(X86Reg::kGroupVec)) * vecSize +
-                                  IntUtils::popcnt(frame.getSavedRegs(X86Reg::kGroupMm )) * 8 +
-                                  IntUtils::popcnt(frame.getSavedRegs(X86Reg::kGroupK  )) * 8);
+  frame._gpSaveSize    = uint16_t(IntUtils::popcnt(frame.savedRegs(Reg::kGroupGp  )) * gpSize);
+  frame._nonGpSaveSize = uint16_t(IntUtils::popcnt(frame.savedRegs(Reg::kGroupVec )) * vecSize +
+                                  IntUtils::popcnt(frame.savedRegs(Reg::kGroupMm  )) * 8 +
+                                  IntUtils::popcnt(frame.savedRegs(Reg::kGroupKReg)) * 8);
 
   uint32_t v = 0;                             // The beginning of the stack frame relative to SP after prolog.
-  v += frame.getCallStackSize();              // Count 'callStackSize'    <- This is used to call functions.
+  v += frame.callStackSize();                 // Count 'callStackSize'    <- This is used to call functions.
   v  = IntUtils::alignUp(v, stackAlignment);  // Align to function's stack alignment.
 
   frame._localStackOffset = v;                // Store 'localStackOffset' <- Function's local stack starts here..
-  v += frame.getLocalStackSize();             // Count 'localStackSize'   <- Function's local stack ends here.
+  v += frame.localStackSize();                // Count 'localStackSize'   <- Function's local stack ends here.
 
   // If the function's stack must be aligned, calculate the alignment necessary
   // to store vector registers, and set `FuncFrame::kAttrAlignedVecSR` to inform
@@ -767,7 +766,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
   // (depending on the architecture). So count number of bytes needed to align
   // it up to the function's CallFrame (the beginning).
   if (v || frame.hasFuncCalls())
-    v += IntUtils::alignUpDiff(v + frame.getGpSaveSize() + gpSize, stackAlignment);
+    v += IntUtils::alignUpDiff(v + frame.gpSaveSize() + gpSize, stackAlignment);
 
   frame._gpSaveOffset = v;                    // Store 'gpSaveOffset'     <- Function's GP Save/Restore starts here.
   frame._stackAdjustment = v;                 // Store 'stackAdjustment'  <- SA used by 'add zsp, SA' and 'sub zsp, SA'.
@@ -809,7 +808,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::argsToFuncFrame(const FuncArgsAssignment& a
 // [asmjit::X86Internal - Emit Helpers]
 // ============================================================================
 
-ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
+ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(Emitter* emitter,
   const Operand_& dst_,
   const Operand_& src_, uint32_t typeId, bool avxEnabled, const char* comment) {
 
@@ -828,12 +827,12 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
   };
 
   // Detect memory operands and patch them to have the same size as the register.
-  // CodeCompiler always sets memory size of allocs and spills, so it shouldn't
+  // BaseCompiler always sets memory size of allocs and spills, so it shouldn't
   // be really necessary, however, after this function was separated from Compiler
   // it's better to make sure that the size is always specified, as we can use
   // 'movzx' and 'movsx' that rely on it.
-  if (dst.isMem()) { memFlags |= kDstMem; dst.as<X86Mem>().setSize(src.getSize()); }
-  if (src.isMem()) { memFlags |= kSrcMem; src.as<X86Mem>().setSize(dst.getSize()); }
+  if (dst.isMem()) { memFlags |= kDstMem; dst.as<Mem>().setSize(src.size()); }
+  if (src.isMem()) { memFlags |= kSrcMem; src.as<Mem>().setSize(dst.size()); }
 
   switch (typeId) {
     case Type::kIdI8:
@@ -842,13 +841,13 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
     case Type::kIdU16:
       // Special case - 'movzx' load.
       if (memFlags & kSrcMem) {
-        instId = X86Inst::kIdMovzx;
-        dst.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+        instId = Inst::kIdMovzx;
+        dst.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
       }
       else if (!memFlags) {
         // Change both destination and source registers to GPD (safer, no dependencies).
-        dst.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
-        src.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+        dst.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
+        src.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
       }
       ASMJIT_FALLTHROUGH;
 
@@ -856,48 +855,48 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
     case Type::kIdU32:
     case Type::kIdI64:
     case Type::kIdU64:
-      instId = X86Inst::kIdMov;
+      instId = Inst::kIdMov;
       break;
 
     case Type::kIdMmx32:
-      instId = X86Inst::kIdMovd;
+      instId = Inst::kIdMovd;
       if (memFlags) break;
       ASMJIT_FALLTHROUGH;
 
-    case Type::kIdMmx64 : instId = X86Inst::kIdMovq ; break;
-    case Type::kIdMask8 : instId = X86Inst::kIdKmovb; break;
-    case Type::kIdMask16: instId = X86Inst::kIdKmovw; break;
-    case Type::kIdMask32: instId = X86Inst::kIdKmovd; break;
-    case Type::kIdMask64: instId = X86Inst::kIdKmovq; break;
+    case Type::kIdMmx64 : instId = Inst::kIdMovq ; break;
+    case Type::kIdMask8 : instId = Inst::kIdKmovb; break;
+    case Type::kIdMask16: instId = Inst::kIdKmovw; break;
+    case Type::kIdMask32: instId = Inst::kIdKmovd; break;
+    case Type::kIdMask64: instId = Inst::kIdKmovq; break;
 
     default: {
       uint32_t elementTypeId = Type::baseOf(typeId);
       if (Type::isVec32(typeId) && memFlags) {
         if (elementTypeId == Type::kIdF32)
-          instId = avxEnabled ? X86Inst::kIdVmovss : X86Inst::kIdMovss;
+          instId = avxEnabled ? Inst::kIdVmovss : Inst::kIdMovss;
         else
-          instId = avxEnabled ? X86Inst::kIdVmovd : X86Inst::kIdMovd;
+          instId = avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
         break;
       }
 
       if (Type::isVec64(typeId) && memFlags) {
         if (elementTypeId == Type::kIdF64)
-          instId = avxEnabled ? X86Inst::kIdVmovsd : X86Inst::kIdMovsd;
+          instId = avxEnabled ? Inst::kIdVmovsd : Inst::kIdMovsd;
         else
-          instId = avxEnabled ? X86Inst::kIdVmovq : X86Inst::kIdMovq;
+          instId = avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq;
         break;
       }
 
       if (elementTypeId == Type::kIdF32)
-        instId = avxEnabled ? X86Inst::kIdVmovaps : X86Inst::kIdMovaps;
+        instId = avxEnabled ? Inst::kIdVmovaps : Inst::kIdMovaps;
       else if (elementTypeId == Type::kIdF64)
-        instId = avxEnabled ? X86Inst::kIdVmovapd : X86Inst::kIdMovapd;
+        instId = avxEnabled ? Inst::kIdVmovapd : Inst::kIdMovapd;
       else if (typeId <= Type::_kIdVec256End)
-        instId = avxEnabled ? X86Inst::kIdVmovdqa : X86Inst::kIdMovdqa;
+        instId = avxEnabled ? Inst::kIdVmovdqa : Inst::kIdMovdqa;
       else if (elementTypeId <= Type::kIdU32)
-        instId = X86Inst::kIdVmovdqa32;
+        instId = Inst::kIdVmovdqa32;
       else
-        instId = X86Inst::kIdVmovdqa64;
+        instId = Inst::kIdVmovdqa64;
       break;
     }
   }
@@ -909,18 +908,18 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
   return emitter->emit(instId, dst, src);
 }
 
-ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
-  const X86Reg& dst_, uint32_t dstTypeId,
+ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
+  const Reg& dst_, uint32_t dstTypeId,
   const Operand_& src_, uint32_t srcTypeId, bool avxEnabled, const char* comment) {
 
   // Deduce optional `dstTypeId`, which may be `Type::kIdVoid` in some cases.
-  if (!dstTypeId) dstTypeId = x86OpData.archRegs.regTypeToTypeId[dst_.getType()];
+  if (!dstTypeId) dstTypeId = opData.archRegs.regTypeToTypeId[dst_.type()];
 
   // Invalid or abstract TypeIds are not allowed.
   ASMJIT_ASSERT(Type::isValid(dstTypeId) && !Type::isAbstract(dstTypeId));
   ASMJIT_ASSERT(Type::isValid(srcTypeId) && !Type::isAbstract(srcTypeId));
 
-  X86Reg dst(dst_);
+  Reg dst(dst_);
   Operand src(src_);
 
   uint32_t dstSize = Type::sizeOf(dstTypeId);
@@ -932,7 +931,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
   for (;;) {
     if (Type::isInt(dstTypeId)) {
       if (Type::isInt(srcTypeId)) {
-        instId = X86Inst::kIdMovsx;
+        instId = Inst::kIdMovsx;
         uint32_t typeOp = (dstTypeId << 8) | srcTypeId;
 
         // Sign extend by using 'movsx'.
@@ -943,26 +942,26 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
             typeOp == ((Type::kIdI64 << 8) | Type::kIdI16)) break;
 
         // Sign extend by using 'movsxd'.
-        instId = X86Inst::kIdMovsxd;
+        instId = Inst::kIdMovsxd;
         if (typeOp == ((Type::kIdI64 << 8) | Type::kIdI32)) break;
       }
 
       if (Type::isInt(srcTypeId) || src_.isMem()) {
         // Zero extend by using 'movzx' or 'mov'.
         if (dstSize <= 4 && srcSize < 4) {
-          instId = X86Inst::kIdMovzx;
-          dst.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+          instId = Inst::kIdMovzx;
+          dst.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
         }
         else {
           // We should have caught all possibilities where `srcSize` is less
           // than 4, so we don't have to worry about 'movzx' anymore. Minimum
           // size is enough to determine if we want 32-bit or 64-bit move.
-          instId = X86Inst::kIdMov;
+          instId = Inst::kIdMov;
           srcSize = std::min(srcSize, dstSize);
 
-          dst.setSignature(srcSize == 4 ? X86Reg::signatureOfT<X86Reg::kRegGpd>()
-                                        : X86Reg::signatureOfT<X86Reg::kRegGpq>());
-          if (src.isReg()) src.setSignature(dst.getSignature());
+          dst.setSignature(srcSize == 4 ? Reg::signatureOfT<Reg::kTypeGpd>()
+                                        : Reg::signatureOfT<Reg::kTypeGpq>());
+          if (src.isReg()) src.setSignature(dst.signature());
         }
         break;
       }
@@ -973,36 +972,36 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
 
       if (Type::isMmx(srcTypeId)) {
         // 64-bit move.
-        instId = X86Inst::kIdMovq;
+        instId = Inst::kIdMovq;
         if (srcSize == 8) break;
 
         // 32-bit move.
-        instId = X86Inst::kIdMovd;
-        dst.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+        instId = Inst::kIdMovd;
+        dst.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
         break;
       }
 
       if (Type::isMask(srcTypeId)) {
-        instId = X86Inst::kmovIdFromSize(srcSize);
-        dst.setSignature(srcSize <= 4 ? X86Reg::signatureOfT<X86Reg::kRegGpd>()
-                                      : X86Reg::signatureOfT<X86Reg::kRegGpq>());
+        instId = Inst::kmovFromSize(srcSize);
+        dst.setSignature(srcSize <= 4 ? Reg::signatureOfT<Reg::kTypeGpd>()
+                                      : Reg::signatureOfT<Reg::kTypeGpq>());
         break;
       }
 
       if (Type::isVec(srcTypeId)) {
         // 64-bit move.
-        instId = avxEnabled ? X86Inst::kIdVmovq : X86Inst::kIdMovq;
+        instId = avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq;
         if (srcSize == 8) break;
 
         // 32-bit move.
-        instId = avxEnabled ? X86Inst::kIdVmovd : X86Inst::kIdMovd;
-        dst.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+        instId = avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
+        dst.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
         break;
       }
     }
 
     if (Type::isMmx(dstTypeId)) {
-      instId = X86Inst::kIdMovq;
+      instId = Inst::kIdMovq;
       srcSize = std::min(srcSize, dstSize);
 
       if (Type::isInt(srcTypeId) || src.isMem()) {
@@ -1010,15 +1009,15 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
         if (srcSize == 8) break;
 
         // 32-bit move.
-        instId = X86Inst::kIdMovd;
-        if (src.isReg()) src.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+        instId = Inst::kIdMovd;
+        if (src.isReg()) src.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
         break;
       }
 
       if (Type::isMmx(srcTypeId)) break;
 
       // This will hurt if `avxEnabled`.
-      instId = X86Inst::kIdMovdq2q;
+      instId = Inst::kIdMovdq2q;
       if (Type::isVec(srcTypeId)) break;
     }
 
@@ -1026,20 +1025,20 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
       srcSize = std::min(srcSize, dstSize);
 
       if (Type::isInt(srcTypeId) || Type::isMask(srcTypeId) || src.isMem()) {
-        instId = X86Inst::kmovIdFromSize(srcSize);
-        if (X86Reg::isGp(src) && srcSize <= 4) src.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+        instId = Inst::kmovFromSize(srcSize);
+        if (Reg::isGp(src) && srcSize <= 4) src.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
         break;
       }
     }
 
     if (Type::isVec(dstTypeId)) {
       // By default set destination to XMM, will be set to YMM|ZMM if needed.
-      dst.setSignature(X86Reg::signatureOfT<X86Reg::kRegXmm>());
+      dst.setSignature(Reg::signatureOfT<Reg::kTypeXmm>());
 
       // This will hurt if `avxEnabled`.
-      if (X86Reg::isMm(src)) {
+      if (Reg::isMm(src)) {
         // 64-bit move.
-        instId = X86Inst::kIdMovq2dq;
+        instId = Inst::kIdMovq2dq;
         break;
       }
 
@@ -1052,14 +1051,14 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
         dstSize = srcSize / 2;
 
         if (srcSize <= 8)
-          instId = avxEnabled ? X86Inst::kIdVcvtss2sd : X86Inst::kIdCvtss2sd;
+          instId = avxEnabled ? Inst::kIdVcvtss2sd : Inst::kIdCvtss2sd;
         else
-          instId = avxEnabled ? X86Inst::kIdVcvtps2pd : X86Inst::kIdCvtps2pd;
+          instId = avxEnabled ? Inst::kIdVcvtps2pd : Inst::kIdCvtps2pd;
 
         if (dstSize == 32)
-          dst.setSignature(X86Reg::signatureOfT<X86Reg::kRegYmm>());
+          dst.setSignature(Reg::signatureOfT<Reg::kTypeYmm>());
         if (src.isReg())
-          src.setSignature(X86Reg::signatureOfVecBySize(srcSize));
+          src.setSignature(Reg::signatureOfVecBySize(srcSize));
         break;
       }
 
@@ -1068,35 +1067,35 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
         dstSize = srcSize * 2;
 
         if (srcSize <= 4)
-          instId = avxEnabled ? X86Inst::kIdVcvtsd2ss : X86Inst::kIdCvtsd2ss;
+          instId = avxEnabled ? Inst::kIdVcvtsd2ss : Inst::kIdCvtsd2ss;
         else
-          instId = avxEnabled ? X86Inst::kIdVcvtpd2ps : X86Inst::kIdCvtpd2ps;
+          instId = avxEnabled ? Inst::kIdVcvtpd2ps : Inst::kIdCvtpd2ps;
 
-        dst.setSignature(X86Reg::signatureOfVecBySize(dstSize));
+        dst.setSignature(Reg::signatureOfVecBySize(dstSize));
         if (src.isReg() && srcSize >= 32)
-          src.setSignature(X86Reg::signatureOfT<X86Reg::kRegYmm>());
+          src.setSignature(Reg::signatureOfT<Reg::kTypeYmm>());
         break;
       }
 
       srcSize = std::min(srcSize, dstSize);
-      if (X86Reg::isGp(src) || src.isMem()) {
+      if (Reg::isGp(src) || src.isMem()) {
         // 32-bit move.
         if (srcSize <= 4) {
-          instId = avxEnabled ? X86Inst::kIdVmovd : X86Inst::kIdMovd;
-          if (src.isReg()) src.setSignature(X86Reg::signatureOfT<X86Reg::kRegGpd>());
+          instId = avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
+          if (src.isReg()) src.setSignature(Reg::signatureOfT<Reg::kTypeGpd>());
           break;
         }
 
         // 64-bit move.
         if (srcSize == 8) {
-          instId = avxEnabled ? X86Inst::kIdVmovq : X86Inst::kIdMovq;
+          instId = avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq;
           break;
         }
       }
 
-      if (X86Reg::isVec(src) || src.isMem()) {
-        instId = avxEnabled ? X86Inst::kIdVmovaps : X86Inst::kIdMovaps;
-        uint32_t sign = X86Reg::signatureOfVecBySize(srcSize);
+      if (Reg::isVec(src) || src.isMem()) {
+        instId = avxEnabled ? Inst::kIdVmovaps : Inst::kIdMovaps;
+        uint32_t sign = Reg::signatureOfVecBySize(srcSize);
 
         dst.setSignature(sign);
         if (src.isReg()) src.setSignature(sign);
@@ -1108,7 +1107,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
   }
 
   if (src.isMem())
-    src.as<X86Mem>().setSize(srcSize);
+    src.as<Mem>().setSize(srcSize);
 
   emitter->setInlineComment(comment);
   return emitter->emit(instId, dst, src);
@@ -1118,38 +1117,38 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
 // [asmjit::X86Internal - Emit Prolog & Epilog]
 // ============================================================================
 
-static ASMJIT_FORCEINLINE void X86Internal_setupSaveRestoreInfo(uint32_t group, const FuncFrame& frame, X86Reg& xReg, uint32_t& xInst, uint32_t& xSize) noexcept {
+static ASMJIT_FORCEINLINE void X86Internal_setupSaveRestoreInfo(uint32_t group, const FuncFrame& frame, Reg& xReg, uint32_t& xInst, uint32_t& xSize) noexcept {
   switch (group) {
-    case X86Reg::kGroupVec:
-      xReg = x86::xmm(0);
+    case Reg::kGroupVec:
+      xReg = xmm(0);
       xInst = x86GetXmmMovInst(frame);
-      xSize = xReg.getSize();
+      xSize = xReg.size();
       break;
-    case X86Reg::kGroupMm:
-      xReg = x86::mm(0);
-      xInst = X86Inst::kIdMovq;
-      xSize = xReg.getSize();
+    case Reg::kGroupMm:
+      xReg = mm(0);
+      xInst = Inst::kIdMovq;
+      xSize = xReg.size();
       break;
-    case X86Reg::kGroupK:
-      xReg = x86::k(0);
-      xInst = X86Inst::kIdKmovq;
-      xSize = xReg.getSize();
+    case Reg::kGroupKReg:
+      xReg = k(0);
+      xInst = Inst::kIdKmovq;
+      xSize = xReg.size();
       break;
   }
 }
 
-ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(X86Emitter* emitter, const FuncFrame& frame) {
-  uint32_t gpSaved = frame.getSavedRegs(X86Reg::kGroupGp);
+ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(Emitter* emitter, const FuncFrame& frame) {
+  uint32_t gpSaved = frame.savedRegs(Reg::kGroupGp);
 
-  X86Gp zsp = emitter->zsp();   // ESP|RSP register.
-  X86Gp zbp = emitter->zbp();   // EBP|RBP register.
-  X86Gp gpReg = zsp;            // General purpose register (temporary).
-  X86Gp saReg = zsp;            // Stack-arguments base pointer.
+  Gp zsp = emitter->zsp();   // ESP|RSP register.
+  Gp zbp = emitter->zbp();   // EBP|RBP register.
+  Gp gpReg = zsp;            // General purpose register (temporary).
+  Gp saReg = zsp;            // Stack-arguments base pointer.
 
   // Emit: 'push zbp'
   //       'mov  zbp, zsp'.
   if (frame.hasPreservedFP()) {
-    gpSaved &= ~IntUtils::mask(X86Gp::kIdBp);
+    gpSaved &= ~IntUtils::mask(Gp::kIdBp);
     ASMJIT_PROPAGATE(emitter->push(zbp));
     ASMJIT_PROPAGATE(emitter->mov(zbp, zsp));
   }
@@ -1164,11 +1163,11 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(X86Emitter* emitter, const FuncF
   }
 
   // Emit: 'mov saReg, zsp'.
-  uint32_t saRegId = frame.getSARegId();
-  if (saRegId != Reg::kIdBad && saRegId != X86Gp::kIdSp) {
+  uint32_t saRegId = frame.saRegId();
+  if (saRegId != BaseReg::kIdBad && saRegId != Gp::kIdSp) {
     saReg.setId(saRegId);
     if (frame.hasPreservedFP()) {
-      if (saRegId != X86Gp::kIdBp)
+      if (saRegId != Gp::kIdBp)
         ASMJIT_PROPAGATE(emitter->mov(saReg, zbp));
     }
     else {
@@ -1178,30 +1177,30 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(X86Emitter* emitter, const FuncF
 
   // Emit: 'and zsp, StackAlignment'.
   if (frame.hasDynamicAlignment()) {
-    ASMJIT_PROPAGATE(emitter->and_(zsp, -int32_t(frame.getFinalStackAlignment())));
+    ASMJIT_PROPAGATE(emitter->and_(zsp, -int32_t(frame.finalStackAlignment())));
   }
 
   // Emit: 'sub zsp, StackAdjustment'.
   if (frame.hasStackAdjustment()) {
-    ASMJIT_PROPAGATE(emitter->sub(zsp, frame.getStackAdjustment()));
+    ASMJIT_PROPAGATE(emitter->sub(zsp, frame.stackAdjustment()));
   }
 
   // Emit: 'mov [zsp + DAOffset], saReg'.
   if (frame.hasDynamicAlignment() && frame.hasDAOffset()) {
-    X86Mem saMem = x86::ptr(zsp, int32_t(frame.getDAOffset()));
+    Mem saMem = ptr(zsp, int32_t(frame.daOffset()));
     ASMJIT_PROPAGATE(emitter->mov(saMem, saReg));
   }
 
   // Emit 'movxxx [zsp + X], {[x|y|z]mm, k}'.
   {
-    X86Reg xReg;
-    X86Mem xBase = x86::ptr(zsp, int32_t(frame.getNonGpSaveOffset()));
+    Reg xReg;
+    Mem xBase = ptr(zsp, int32_t(frame.nonGpSaveOffset()));
 
     uint32_t xInst;
     uint32_t xSize;
 
-    for (uint32_t group = 1; group < Reg::kGroupVirt; group++) {
-      IntUtils::BitWordIterator<uint32_t> it(frame.getSavedRegs(group));
+    for (uint32_t group = 1; group < BaseReg::kGroupVirt; group++) {
+      IntUtils::BitWordIterator<uint32_t> it(frame.savedRegs(group));
       if (it.hasNext()) {
         X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize);
         do {
@@ -1216,31 +1215,31 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(X86Emitter* emitter, const FuncF
   return kErrorOk;
 }
 
-ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(X86Emitter* emitter, const FuncFrame& frame) {
+ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(Emitter* emitter, const FuncFrame& frame) {
   uint32_t i;
   uint32_t regId;
 
-  uint32_t gpSize = emitter->getGpSize();
-  uint32_t gpSaved = frame.getSavedRegs(X86Reg::kGroupGp);
+  uint32_t gpSize = emitter->gpSize();
+  uint32_t gpSaved = frame.savedRegs(Reg::kGroupGp);
 
-  X86Gp zsp = emitter->zsp();   // ESP|RSP register.
-  X86Gp zbp = emitter->zbp();   // EBP|RBP register.
-  X86Gp gpReg = emitter->zsp(); // General purpose register (temporary).
+  Gp zsp = emitter->zsp();   // ESP|RSP register.
+  Gp zbp = emitter->zbp();   // EBP|RBP register.
+  Gp gpReg = emitter->zsp(); // General purpose register (temporary).
 
   // Don't emit 'pop zbp' in the pop sequence, this case is handled separately.
   if (frame.hasPreservedFP())
-    gpSaved &= ~IntUtils::mask(X86Gp::kIdBp);
+    gpSaved &= ~IntUtils::mask(Gp::kIdBp);
 
   // Emit 'movxxx {[x|y|z]mm, k}, [zsp + X]'.
   {
-    X86Reg xReg;
-    X86Mem xBase = x86::ptr(zsp, int32_t(frame.getNonGpSaveOffset()));
+    Reg xReg;
+    Mem xBase = ptr(zsp, int32_t(frame.nonGpSaveOffset()));
 
     uint32_t xInst;
     uint32_t xSize;
 
-    for (uint32_t group = 1; group < Reg::kGroupVirt; group++) {
-      IntUtils::BitWordIterator<uint32_t> it(frame.getSavedRegs(group));
+    for (uint32_t group = 1; group < BaseReg::kGroupVirt; group++) {
+      IntUtils::BitWordIterator<uint32_t> it(frame.savedRegs(group));
       if (it.hasNext()) {
         X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize);
         do {
@@ -1258,21 +1257,21 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(X86Emitter* emitter, const FuncF
 
   if (frame.hasPreservedFP()) {
     // Emit 'mov zsp, zbp' or 'lea zsp, [zbp - x]'
-    int32_t count = int32_t(frame.getGpSaveSize() - gpSize);
+    int32_t count = int32_t(frame.gpSaveSize() - gpSize);
     if (!count)
       ASMJIT_PROPAGATE(emitter->mov(zsp, zbp));
     else
-      ASMJIT_PROPAGATE(emitter->lea(zsp, x86::ptr(zbp, -count)));
+      ASMJIT_PROPAGATE(emitter->lea(zsp, ptr(zbp, -count)));
   }
   else {
     if (frame.hasDynamicAlignment() && frame.hasDAOffset()) {
       // Emit 'mov zsp, [zsp + DsaSlot]'.
-      X86Mem saMem = x86::ptr(zsp, int32_t(frame.getDAOffset()));
+      Mem saMem = ptr(zsp, int32_t(frame.daOffset()));
       ASMJIT_PROPAGATE(emitter->mov(zsp, saMem));
     }
     else if (frame.hasStackAdjustment()) {
       // Emit 'add zsp, StackAdjustment'.
-      ASMJIT_PROPAGATE(emitter->add(zsp, int32_t(frame.getStackAdjustment())));
+      ASMJIT_PROPAGATE(emitter->add(zsp, int32_t(frame.stackAdjustment())));
     }
   }
 
@@ -1297,9 +1296,9 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(X86Emitter* emitter, const FuncF
 
   // Emit 'ret' or 'ret x'.
   if (frame.hasCalleeStackCleanup())
-    ASMJIT_PROPAGATE(emitter->emit(X86Inst::kIdRet, int(frame.getCalleeStackCleanup())));
+    ASMJIT_PROPAGATE(emitter->emit(Inst::kIdRet, int(frame.calleeStackCleanup())));
   else
-    ASMJIT_PROPAGATE(emitter->emit(X86Inst::kIdRet));
+    ASMJIT_PROPAGATE(emitter->emit(Inst::kIdRet));
 
   return kErrorOk;
 }
@@ -1308,14 +1307,14 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(X86Emitter* emitter, const FuncF
 // [asmjit::X86Internal - Emit Arguments Assignment]
 // ============================================================================
 
-static void dumpFuncValue(StringBuilder& sb, uint32_t archType, const FuncValue& value) noexcept {
-  Logging::formatTypeId(sb, value.getTypeId());
+static void dumpFuncValue(StringBuilder& sb, uint32_t archId, const FuncValue& value) noexcept {
+  Logging::formatTypeId(sb, value.typeId());
   sb.appendChar('@');
   if (value.isReg()) {
-    Logging::formatRegister(sb, 0, nullptr, archType, value.getRegType(), value.getRegId());
+    Logging::formatRegister(sb, 0, nullptr, archId, value.regType(), value.regId());
   }
   else if (value.isStack()) {
-    sb.appendFormat("[%d]", value.getStackOffset());
+    sb.appendFormat("[%d]", value.stackOffset());
   }
   else {
     sb.appendString("<none>");
@@ -1325,18 +1324,18 @@ static void dumpFuncValue(StringBuilder& sb, uint32_t archType, const FuncValue&
 static void dumpAssignment(StringBuilder& sb, const X86FuncArgsContext& ctx) noexcept {
   typedef X86FuncArgsContext::Var Var;
 
-  uint32_t archType = ctx.getArchType();
-  uint32_t varCount = ctx.getVarCount();
+  uint32_t archId = ctx.archId();
+  uint32_t varCount = ctx.varCount();
 
   for (uint32_t i = 0; i < varCount; i++) {
-    const Var& var = ctx.getVar(i);
+    const Var& var = ctx.var(i);
     const FuncValue& dst = var.out;
     const FuncValue& cur = var.cur;
 
     sb.appendFormat("Var%u: ", i);
-    dumpFuncValue(sb, archType, dst);
+    dumpFuncValue(sb, archId, dst);
     sb.appendString(" <- ");
-    dumpFuncValue(sb, archType, cur);
+    dumpFuncValue(sb, archId, cur);
 
     if (var.isDone())
       sb.appendString(" {Done}");
@@ -1345,7 +1344,7 @@ static void dumpAssignment(StringBuilder& sb, const X86FuncArgsContext& ctx) noe
   }
 }
 
-ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(X86Emitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args) {
+ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(Emitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args) {
   typedef X86FuncArgsContext::Var Var;
   typedef X86FuncArgsContext::WorkData WorkData;
 
@@ -1363,11 +1362,11 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(X86Emitter* emitter, con
   {
     StringBuilder sb;
     dumpAssignment(sb, ctx);
-    std::printf("%s\n", sb.getData());
+    std::printf("%s\n", sb.data());
   }
   */
 
-  uint32_t archType = ctx.getArchType();
+  uint32_t archId = ctx.archId();
   uint32_t varCount = ctx._varCount;
   WorkData* workData = ctx._workData;
 
@@ -1375,13 +1374,13 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(X86Emitter* emitter, con
   bool avxEnabled = frame.isAvxEnabled();
 
   uint32_t saVarId = ctx._saVarId;
-  uint32_t saRegId = X86Gp::kIdSp;
+  uint32_t saRegId = Gp::kIdSp;
 
   if (frame.hasDynamicAlignment()) {
     if (frame.hasPreservedFP())
-      saRegId = X86Gp::kIdBp;
+      saRegId = Gp::kIdBp;
     else
-      saRegId = saVarId < varCount ? ctx._vars[saVarId].cur.getRegId() : frame.getSARegId();
+      saRegId = saVarId < varCount ? ctx._vars[saVarId].cur.regId() : frame.saRegId();
   }
 
   // --------------------------------------------------------------------------
@@ -1391,21 +1390,21 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(X86Emitter* emitter, con
 
   if (ctx._stackDstMask) {
     // Base address of all arguments passed by stack.
-    X86Mem baseArgPtr = x86::ptr(emitter->gpz(saRegId), int32_t(frame.getSAOffset(saRegId)));
-    X86Mem baseStackPtr = x86::ptr(emitter->gpz(X86Gp::kIdSp), int32_t(0));
+    Mem baseArgPtr = ptr(emitter->gpz(saRegId), int32_t(frame.saOffset(saRegId)));
+    Mem baseStackPtr = ptr(emitter->gpz(Gp::kIdSp), int32_t(0));
 
     for (uint32_t varId = 0; varId < varCount; varId++) {
       Var& var = ctx._vars[varId];
       if (!var.out.isStack()) continue;
 
       ASMJIT_ASSERT(var.cur.isReg() || var.cur.isStack());
-      X86Reg reg;
+      Reg reg;
 
       if (var.cur.isReg()) {
-        WorkData& wd = workData[X86Reg::groupOf(var.cur.getRegType())];
-        uint32_t rId = var.cur.getRegId();
+        WorkData& wd = workData[Reg::groupOf(var.cur.regType())];
+        uint32_t rId = var.cur.regId();
 
-        reg.setSignatureAndId(X86Reg::signatureOf(var.cur.getRegType()), rId);
+        reg.setSignatureAndId(Reg::signatureOf(var.cur.regType()), rId);
         wd.unassign(varId, rId);
       }
       else {
@@ -1413,30 +1412,30 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(X86Emitter* emitter, con
         // register to use. In general we follow the rule that IntToInt moves will use
         // GP regs with possibility to sign or zero extend, and all other moves will
         // either use GP or VEC regs depending on the size of the move.
-        RegInfo rInfo = x86GetRegForMemToMemMove(archType, var.out.getTypeId(), var.cur.getTypeId());
+        RegInfo rInfo = x86GetRegForMemToMemMove(archId, var.out.typeId(), var.cur.typeId());
         if (ASMJIT_UNLIKELY(!rInfo.isValid()))
           return DebugUtils::errored(kErrorInvalidState);
 
-        WorkData& wd = workData[rInfo.getGroup()];
-        uint32_t availableRegs = wd.getAvailableRegs();
+        WorkData& wd = workData[rInfo.group()];
+        uint32_t availableRegs = wd.availableRegs();
         if (ASMJIT_UNLIKELY(!availableRegs))
           return DebugUtils::errored(kErrorInvalidState);
 
         uint32_t rId = IntUtils::ctz(availableRegs);
-        reg.setSignatureAndId(rInfo.getSignature(), rId);
+        reg.setSignatureAndId(rInfo.signature(), rId);
 
         ASMJIT_PROPAGATE(
           emitArgMove(emitter,
                       reg,
-                      var.out.getTypeId(),
-                      baseArgPtr.cloneAdjusted(var.cur.getStackOffset()),
-                      var.cur.getTypeId(),
+                      var.out.typeId(),
+                      baseArgPtr.cloneAdjusted(var.cur.stackOffset()),
+                      var.cur.typeId(),
                       avxEnabled));
       }
 
-      // Reg to stack move.
+      // Register to stack move.
       ASMJIT_PROPAGATE(
-        emitRegMove(emitter, baseStackPtr.cloneAdjusted(var.out.getStackOffset()), reg, var.cur.getTypeId(), avxEnabled));
+        emitRegMove(emitter, baseStackPtr.cloneAdjusted(var.out.stackOffset()), reg, var.cur.typeId(), avxEnabled));
 
       var.markDone();
     }
@@ -1452,14 +1451,14 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(X86Emitter* emitter, con
       Var& var = ctx._vars[varId];
       if (var.isDone() || !var.cur.isReg()) continue;
 
-      uint32_t curType = var.cur.getRegType();
-      uint32_t outType = var.out.getRegType();
+      uint32_t curType = var.cur.regType();
+      uint32_t outType = var.out.regType();
 
-      uint32_t curGroup = X86Reg::groupOf(curType);
-      uint32_t outGroup = X86Reg::groupOf(outType);
+      uint32_t curGroup = Reg::groupOf(curType);
+      uint32_t outGroup = Reg::groupOf(outType);
 
-      uint32_t curId = var.cur.getRegId();
-      uint32_t outId = var.out.getRegId();
+      uint32_t curId = var.cur.regId();
+      uint32_t outId = var.out.regId();
 
       if (curGroup != outGroup) {
         ASMJIT_ASSERT(!"IMPLEMENTED");
@@ -1480,13 +1479,13 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(X86Emitter* emitter, con
 EmitMove:
           ASMJIT_PROPAGATE(
             emitArgMove(emitter,
-              X86Reg::fromTypeAndId(outType, outId), var.out.getTypeId(),
-              X86Reg::fromTypeAndId(curType, curId), var.cur.getTypeId(), avxEnabled));
+              Reg::fromTypeAndId(outType, outId), var.out.typeId(),
+              Reg::fromTypeAndId(curType, curId), var.cur.typeId(), avxEnabled));
 
           wd.reassign(varId, outId, curId);
-          var.cur.initReg(outType, outId, var.out.getTypeId());
+          var.cur.initReg(outType, outId, var.out.typeId());
 
-          if (outId == var.out.getRegId())
+          if (outId == var.out.regId())
             var.markDone();
           workFlags |= kWorkDidSome | kWorkPending;
         }
@@ -1494,14 +1493,14 @@ EmitMove:
           uint32_t altId = wd._physToVarId[outId];
           Var& altVar = ctx._vars[altId];
 
-          if (!altVar.out.isInitialized() || (altVar.out.isReg() && altVar.out.getRegId() == curId)) {
+          if (!altVar.out.isInitialized() || (altVar.out.isReg() && altVar.out.regId() == curId)) {
             // Swap operation is possible only between two GP registers.
-            if (curGroup == X86Reg::kGroupGp) {
-              uint32_t highestType = std::max(var.cur.getRegType(), altVar.cur.getRegType());
-              uint32_t signature = highestType == X86Reg::kRegGpq ? X86Reg::signatureOfT<X86Reg::kRegGpq>()
-                                                                  : X86Reg::signatureOfT<X86Reg::kRegGpd>();
+            if (curGroup == Reg::kGroupGp) {
+              uint32_t highestType = std::max(var.cur.regType(), altVar.cur.regType());
+              uint32_t signature = highestType == Reg::kTypeGpq ? Reg::signatureOfT<Reg::kTypeGpq>()
+                                                                : Reg::signatureOfT<Reg::kTypeGpd>();
 
-              ASMJIT_PROPAGATE(emitter->emit(X86Inst::kIdXchg, X86Reg(signature, outId), X86Reg(signature, curId)));
+              ASMJIT_PROPAGATE(emitter->emit(Inst::kIdXchg, Reg(signature, outId), Reg(signature, curId)));
               wd.swap(varId, curId, altId, outId);
               var.cur.setRegId(outId);
               var.markDone();
@@ -1513,9 +1512,9 @@ EmitMove:
             }
             else {
               // If there is a scratch register it can be used to perform the swap.
-              uint32_t availableRegs = wd.getAvailableRegs();
+              uint32_t availableRegs = wd.availableRegs();
               if (availableRegs) {
-                uint32_t inOutRegs = wd.getDstRegs();
+                uint32_t inOutRegs = wd.dstRegs();
                 if (availableRegs & ~inOutRegs)
                   availableRegs &= ~inOutRegs;
                 outId = IntUtils::ctz(availableRegs);
@@ -1551,10 +1550,10 @@ EmitMove:
   if (ctx._hasStackSrc) {
     uint32_t iterCount = 1;
     if (frame.hasDynamicAlignment() && !frame.hasPreservedFP())
-      saRegId = saVarId < varCount ? ctx._vars[saVarId].cur.getRegId() : frame.getSARegId();
+      saRegId = saVarId < varCount ? ctx._vars[saVarId].cur.regId() : frame.saRegId();
 
     // Base address of all arguments passed by stack.
-    X86Mem baseArgPtr = x86::ptr(emitter->gpz(saRegId), int32_t(frame.getSAOffset(saRegId)));
+    Mem baseArgPtr = ptr(emitter->gpz(saRegId), int32_t(frame.saOffset(saRegId)));
 
     for (uint32_t iter = 0; iter < iterCount; iter++) {
       for (uint32_t varId = 0; varId < varCount; varId++) {
@@ -1564,13 +1563,13 @@ EmitMove:
         if (var.cur.isStack()) {
           ASMJIT_ASSERT(var.out.isReg());
 
-          uint32_t outId = var.out.getRegId();
-          uint32_t outType = var.out.getRegType();
+          uint32_t outId = var.out.regId();
+          uint32_t outType = var.out.regType();
 
-          uint32_t group = X86Reg::groupOf(outType);
+          uint32_t group = Reg::groupOf(outType);
           WorkData& wd = ctx._workData[group];
 
-          if (outId == saRegId && group == Reg::kGroupGp) {
+          if (outId == saRegId && group == BaseReg::kGroupGp) {
             // This register will be processed last as we still need `saRegId`.
             if (iterCount == 1) {
               iterCount++;
@@ -1579,16 +1578,16 @@ EmitMove:
             wd.unassign(wd._physToVarId[outId], outId);
           }
 
-          X86Reg dstReg = X86Reg::fromTypeAndId(outType, outId);
-          X86Mem srcMem = baseArgPtr.cloneAdjusted(var.cur.getStackOffset());
+          Reg dstReg = Reg::fromTypeAndId(outType, outId);
+          Mem srcMem = baseArgPtr.cloneAdjusted(var.cur.stackOffset());
 
           ASMJIT_PROPAGATE(
             emitArgMove(emitter,
-              dstReg, var.out.getTypeId(),
-              srcMem, var.cur.getTypeId(), avxEnabled));
+              dstReg, var.out.typeId(),
+              srcMem, var.cur.typeId(), avxEnabled));
 
           wd.assign(varId, outId);
-          var.cur.initReg(outType, outId, var.cur.getTypeId(), FuncValue::kFlagIsDone);
+          var.cur.initReg(outType, outId, var.cur.typeId(), FuncValue::kFlagIsDone);
         }
       }
     }
@@ -1597,7 +1596,7 @@ EmitMove:
   return kErrorOk;
 }
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86

@@ -31,12 +31,12 @@ ASMJIT_FAVOR_SIZE Error CallConv::init(uint32_t ccId) noexcept {
 
   #ifdef ASMJIT_BUILD_X86
   if (CallConv::isX86Family(ccId))
-    return X86CallConvInternal::init(*this, ccId);
+    return x86::CallConvInternal::init(*this, ccId);
   #endif
 
   #ifdef ASMJIT_BUILD_ARM
   if (CallConv::isArmFamily(ccId))
-    return ArmCallConvInternal::init(*this, ccId);
+    return arm::CallConvInternal::init(*this, ccId);
   #endif
 
   return DebugUtils::errored(kErrorInvalidArgument);

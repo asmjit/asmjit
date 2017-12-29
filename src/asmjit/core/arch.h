@@ -9,12 +9,11 @@
 #define _ASMJIT_CORE_ARCH_H
 
 // [Dependencies]
-#include "../core/globals.h"
 #include "../core/operand.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
@@ -25,48 +24,48 @@ class ArchInfo {
 public:
   //! Architecture id.
   enum Id : uint32_t {
-    kTypeNone  = 0,                      //!< No/Unknown architecture.
+    kIdNone  = 0,                        //!< No/Unknown architecture.
 
     // X86 architectures.
-    kTypeX86   = 1,                      //!< X86 architecture (32-bit).
-    kTypeX64   = 2,                      //!< X64 architecture (64-bit) (AMD64).
+    kIdX86   = 1,                        //!< X86 architecture (32-bit).
+    kIdX64   = 2,                        //!< X64 architecture (64-bit) (AMD64).
 
     // ARM architectures.
-    kTypeA32   = 3,                      //!< ARM 32-bit architecture (AArch32/ARM/THUMB).
-    kTypeA64   = 4,                      //!< ARM 64-bit architecture (AArch64).
+    kIdA32   = 3,                        //!< ARM 32-bit architecture (AArch32/ARM/THUMB).
+    kIdA64   = 4,                        //!< ARM 64-bit architecture (AArch64).
 
     //! Architecture detected at compile-time (architecture of the host).
-    kTypeHost  = ASMJIT_ARCH_X86 == 32 ? kTypeX86 :
-                 ASMJIT_ARCH_X86 == 64 ? kTypeX64 :
-                 ASMJIT_ARCH_ARM == 32 ? kTypeA32 :
-                 ASMJIT_ARCH_ARM == 64 ? kTypeA64 : kTypeNone
+    kIdHost  = ASMJIT_ARCH_X86 == 32 ? kIdX86 :
+               ASMJIT_ARCH_X86 == 64 ? kIdX64 :
+               ASMJIT_ARCH_ARM == 32 ? kIdA32 :
+               ASMJIT_ARCH_ARM == 64 ? kIdA64 : kIdNone
   };
 
   //! Architecture sub-type or execution mode.
   enum SubType : uint32_t {
-    kSubTypeNone         = 0,            //!< Default mode (or no specific mode).
+    kSubIdNone         = 0,              //!< Default mode (or no specific mode).
 
     // X86 sub-types.
-    kSubTypeX86_AVX      = 1,            //!< Code generation uses AVX         by default (VEC instructions).
-    kSubTypeX86_AVX2     = 2,            //!< Code generation uses AVX2        by default (VEC instructions).
-    kSubTypeX86_AVX512   = 3,            //!< Code generation uses AVX-512F    by default (+32 vector regs).
-    kSubTypeX86_AVX512VL = 4,            //!< Code generation uses AVX-512F-VL by default (+VL extensions).
+    kSubIdX86_AVX      = 1,              //!< Code generation uses AVX         by default (VEC instructions).
+    kSubIdX86_AVX2     = 2,              //!< Code generation uses AVX2        by default (VEC instructions).
+    kSubIdX86_AVX512   = 3,              //!< Code generation uses AVX-512F    by default (+32 vector regs).
+    kSubIdX86_AVX512VL = 4,              //!< Code generation uses AVX-512F-VL by default (+VL extensions).
 
     // ARM sub-types.
-    kSubTypeA32_Thumb    = 8,            //!< THUMB|THUMB2 sub-type (only ARM in 32-bit mode).
+    kSubIdA32_Thumb    = 8,              //!< THUMB|THUMBv2 sub-type (only ARM in 32-bit mode).
 
     #if   (ASMJIT_ARCH_X86) && defined(__AVX512VL__)
-    kSubTypeHost = kSubTypeX86_AVX512VL
+    kSubIdHost = kSubIdX86_AVX512VL
     #elif (ASMJIT_ARCH_X86) && defined(__AVX512F__)
-    kSubTypeHost = kSubTypeX86_AVX512
+    kSubIdHost = kSubIdX86_AVX512
     #elif (ASMJIT_ARCH_X86) && defined(__AVX2__)
-    kSubTypeHost = kSubTypeX86_AVX2
+    kSubIdHost = kSubIdX86_AVX2
     #elif (ASMJIT_ARCH_X86) && defined(__AVX__)
-    kSubTypeHost = kSubTypeX86_AVX
+    kSubIdHost = kSubIdX86_AVX
     #elif (ASMJIT_ARCH_ARM == 32) && (defined(_M_ARMT) || defined(__thumb__) || defined(__thumb2__))
-    kSubTypeHost = kSubTypeA32_Thumb
+    kSubIdHost = kSubIdA32_Thumb
     #else
-    kSubTypeHost = 0
+    kSubIdHost = 0
     #endif
   };
 
@@ -74,8 +73,8 @@ public:
   // [Utilities]
   // --------------------------------------------------------------------------
 
-  static inline bool isX86Family(uint32_t archType) noexcept { return archType >= kTypeX86 && archType <= kTypeX64; }
-  static inline bool isArmFamily(uint32_t archType) noexcept { return archType >= kTypeA32 && archType <= kTypeA64; }
+  static inline bool isX86Family(uint32_t archId) noexcept { return archId >= kIdX86 && archId <= kIdX64; }
+  static inline bool isArmFamily(uint32_t archId) noexcept { return archId >= kIdA32 && archId <= kIdA64; }
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -83,27 +82,27 @@ public:
 
   inline ArchInfo() noexcept : _signature(0) {}
   inline ArchInfo(const ArchInfo& other) noexcept : _signature(other._signature) {}
-  explicit inline ArchInfo(uint32_t type, uint32_t subType = kSubTypeNone) noexcept { init(type, subType); }
+  explicit inline ArchInfo(uint32_t type, uint32_t subType = kSubIdNone) noexcept { init(type, subType); }
 
-  inline static ArchInfo host() noexcept { return ArchInfo(kTypeHost, kSubTypeHost); }
+  inline static ArchInfo host() noexcept { return ArchInfo(kIdHost, kSubIdHost); }
 
   // --------------------------------------------------------------------------
   // [Init / Reset]
   // --------------------------------------------------------------------------
 
-  inline bool isInitialized() const noexcept { return _type != kTypeNone; }
+  inline bool isInitialized() const noexcept { return _id != kIdNone; }
 
-  ASMJIT_API void init(uint32_t type, uint32_t subType = kSubTypeNone) noexcept;
+  ASMJIT_API void init(uint32_t type, uint32_t subType = kSubIdNone) noexcept;
   inline void reset() noexcept { _signature = 0; }
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get architecture type, see \ref Id.
-  inline uint32_t getType() const noexcept { return _type; }
+  //! Get architecture id, see `Id`.
+  inline uint32_t archId() const noexcept { return _id; }
 
-  //! Get architecture sub-type, see \ref SubType.
+  //! Get architecture sub-type, see `SubType`.
   //!
   //! X86 & X64
   //! ---------
@@ -115,9 +114,9 @@ public:
   //! ---------
   //!
   //! Architecture mode means the instruction encoding to be used when generating
-  //! machine code, thus mode can be used to force generation of THUMB and THUMB2
+  //! machine code, thus mode can be used to force generation of THUMB and THUMBv2
   //! encoding or regular ARM encoding.
-  inline uint32_t getSubType() const noexcept { return _subType; }
+  inline uint32_t archSubId() const noexcept { return _subId; }
 
   //! Get whether the architecture is 32-bit.
   inline bool is32Bit() const noexcept { return _gpSize == 4; }
@@ -125,14 +124,14 @@ public:
   inline bool is64Bit() const noexcept { return _gpSize == 8; }
 
   //! Get whether the architecture is X86, X64, or X32.
-  inline bool isX86Family() const noexcept { return isX86Family(_type); }
+  inline bool isX86Family() const noexcept { return isX86Family(_id); }
   //! Get whether the architecture is ARM32 or ARM64.
-  inline bool isArmFamily() const noexcept { return isArmFamily(_type); }
+  inline bool isArmFamily() const noexcept { return isArmFamily(_id); }
 
   //! Get a size of a general-purpose register.
-  inline uint32_t getGpSize() const noexcept { return _gpSize; }
+  inline uint32_t gpSize() const noexcept { return _gpSize; }
   //! Get number of general-purpose registers.
-  inline uint32_t getGpCount() const noexcept { return _gpCount; }
+  inline uint32_t gpCount() const noexcept { return _gpCount; }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -149,8 +148,8 @@ public:
 
   union {
     struct {
-      uint8_t _type;                     //!< Architecture type.
-      uint8_t _subType;                  //!< Architecture sub-type.
+      uint8_t _id;                       //!< Architecture id.
+      uint8_t _subId;                    //!< Architecture sub-id.
       uint8_t _gpSize;                   //!< Default size of a general purpose register.
       uint8_t _gpCount;                  //!< Count of all general purpose registers.
     };
@@ -164,12 +163,12 @@ public:
 
 //! Information about all architecture registers.
 struct ArchRegs {
-  //! Register information and signatures indexed by \ref Reg::Type.
-  RegInfo regInfo[Reg::kRegMax + 1];
-  //! Count (maximum) of registers per \ref Reg::Type.
-  uint8_t regCount[Reg::kRegMax + 1];
-  //! Converts RegType to TypeId, see \ref Type::Id.
-  uint8_t regTypeToTypeId[Reg::kRegMax + 1];
+  //! Register information and signatures indexed by `BaseReg::RegType`.
+  RegInfo regInfo[BaseReg::kTypeMax + 1];
+  //! Count (maximum) of registers per `BaseReg::RegType`.
+  uint8_t regCount[BaseReg::kTypeMax + 1];
+  //! Converts RegType to TypeId, see `Type::Id`.
+  uint8_t regTypeToTypeId[BaseReg::kTypeMax + 1];
 };
 
 // ============================================================================
@@ -177,7 +176,7 @@ struct ArchRegs {
 // ============================================================================
 
 struct ArchUtils {
-  ASMJIT_API static Error typeIdToRegInfo(uint32_t archType, uint32_t& typeIdInOut, RegInfo& regInfo) noexcept;
+  ASMJIT_API static Error typeIdToRegInfo(uint32_t archId, uint32_t& typeIdInOut, RegInfo& regInfo) noexcept;
 };
 
 //! \}

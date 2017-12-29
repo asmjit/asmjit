@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
@@ -34,8 +34,8 @@ public:
   inline bool hasPrev() const noexcept { return _listNodes[Globals::kLinkPrev] != nullptr; }
   inline bool hasNext() const noexcept { return _listNodes[Globals::kLinkNext] != nullptr; }
 
-  inline NODE_T* getPrev() const noexcept { return _listNodes[Globals::kLinkPrev]; }
-  inline NODE_T* getNext() const noexcept { return _listNodes[Globals::kLinkNext]; }
+  inline NODE_T* prev() const noexcept { return _listNodes[Globals::kLinkPrev]; }
+  inline NODE_T* next() const noexcept { return _listNodes[Globals::kLinkNext]; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -72,9 +72,9 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline bool isEmpty() const noexcept { return _bounds[0] == nullptr; }
-  inline NODE_T* getFirst() const noexcept { return _bounds[Globals::kLinkFirst]; }
-  inline NODE_T* getLast() const noexcept { return _bounds[Globals::kLinkLast]; }
+  inline bool empty() const noexcept { return _bounds[0] == nullptr; }
+  inline NODE_T* first() const noexcept { return _bounds[Globals::kLinkFirst]; }
+  inline NODE_T* last() const noexcept { return _bounds[Globals::kLinkLast]; }
 
   // --------------------------------------------------------------------------
   // [Operations]
@@ -116,8 +116,8 @@ public:
   inline void insertBefore(NODE_T* ref, NODE_T* node) noexcept { _insertNode(ref, node, Globals::kLinkPrev); }
 
   inline NODE_T* unlink(NODE_T* node) noexcept {
-    NODE_T* prev = node->getPrev();
-    NODE_T* next = node->getNext();
+    NODE_T* prev = node->prev();
+    NODE_T* next = node->next();
 
     if (prev) { prev->_listNodes[Globals::kLinkNext] = next; node->_listNodes[0] = nullptr; } else { _bounds[Globals::kLinkFirst] = next; }
     if (next) { next->_listNodes[Globals::kLinkPrev] = prev; node->_listNodes[1] = nullptr; } else { _bounds[Globals::kLinkLast ] = prev; }
@@ -132,7 +132,7 @@ public:
     NODE_T* node = _bounds[Globals::kLinkFirst];
     ASMJIT_ASSERT(node != nullptr);
 
-    NODE_T* next = node->getNext();
+    NODE_T* next = node->next();
     _bounds[Globals::kLinkFirst] = next;
 
     if (next) {
@@ -150,7 +150,7 @@ public:
     NODE_T* node = _bounds[Globals::kLinkLast];
     ASMJIT_ASSERT(node != nullptr);
 
-    NODE_T* prev = node->getPrev();
+    NODE_T* prev = node->prev();
     _bounds[Globals::kLinkLast] = prev;
 
     if (prev) {

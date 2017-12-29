@@ -50,14 +50,15 @@ cxx_detect_standard(ASMJIT_PRIVATE_CFLAGS)
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(ASMJIT_PRIVATE_LFLAGS "/OPT:REF /OPT:ICF")
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)      # [+] Multi-process compilation
-  list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)      # [+] Eliminate duplicate strings.
-  list(APPEND ASMJIT_PRIVATE_CFLAGS /GR-)     # [-] Runtime type information.
+  list(APPEND ASMJIT_PRIVATE_CFLAGS /std:c++latest) # [+] Use C++14 and later.
+  list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)            # [+] Multi-process compilation
+  list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)            # [+] Eliminate duplicate strings.
+  list(APPEND ASMJIT_PRIVATE_CFLAGS /GR-)           # [-] Runtime type information.
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS)  # [+] Buffer security-check.
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /GS-) # [-] Buffer security-check.
+  list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS)        # [+] Buffer security-check.
+  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /GS-)       # [-] Buffer security-check.
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Ox)  # [+] Global optimization.
+  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Ox)        # [+] Global optimization.
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
@@ -125,27 +126,29 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit
 )
 
 cxx_add_source(asmjit ASMJIT_SRC asmjit/core
+  build.h
+
   algorithm.cpp
   algorithm.h
   arch.cpp
   arch.h
   assembler.cpp
   assembler.h
-  build.h
+  builder.cpp
+  builder.h
   callconv.cpp
   callconv.h
-  codebuilder.cpp
-  codebuilder.h
-  codecompiler.cpp
-  codecompiler.h
-  codeemitter.cpp
-  codeemitter.h
   codeholder.cpp
   codeholder.h
+  compiler.cpp
+  compiler.h
   constpool.cpp
   constpool.h
   cpuinfo.cpp
   cpuinfo.h
+  emitter.cpp
+  emitter.h
+  features.h
   func.cpp
   func.h
   globals.cpp
@@ -179,7 +182,6 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   rastack.cpp
   rastack_p.h
   simdtypes.h
-  smallstring.h
   stringbuilder.cpp
   stringbuilder.h
   stringutils.h
@@ -197,6 +199,7 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   zonerbtree.h
   zonestack.cpp
   zonestack.h
+  zonestring.h
   zonevector.cpp
   zonevector.h
 )
@@ -211,11 +214,13 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/arm
   armcompiler.cpp
   armcompiler.h
   armemitter.h
+  armfeatures.cpp
+  armfeatures.h
   armglobals.h
   arminternal.cpp
   arminternal_p.h
-  arminst.cpp
-  arminst.h
+  arminstdb.cpp
+  arminstdb.h
   armlogging.cpp
   armlogging_p.h
   armoperand.cpp
@@ -234,21 +239,21 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/x86
   x86compiler.cpp
   x86compiler.h
   x86emitter.h
+  x86features.cpp
+  x86features.h
   x86globals.h
   x86internal.cpp
   x86internal_p.h
-  x86inst.cpp
-  x86inst.h
-  x86instimpl.cpp
-  x86instimpl_p.h
+  x86instdb.cpp
+  x86instdb.h
   x86logging.cpp
   x86logging_p.h
   x86operand.cpp
   x86operand.h
   x86rapass.cpp
   x86rapass_p.h
-  x86ssetoavxpass.cpp
-  x86ssetoavxpass_p.h
+  x86ssetoavx.cpp
+  x86ssetoavx_p.h
 )
 
 # =============================================================================

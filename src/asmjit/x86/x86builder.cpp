@@ -15,45 +15,45 @@
 #include "../x86/x86assembler.h"
 #include "../x86/x86builder.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 // ============================================================================
-// [asmjit::X86Builder - Construction / Destruction]
+// [asmjit::x86::Builder - Construction / Destruction]
 // ============================================================================
 
-X86Builder::X86Builder(CodeHolder* code) noexcept : CodeBuilder() {
+Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
   if (code)
     code->attach(this);
 }
-X86Builder::~X86Builder() noexcept {}
+Builder::~Builder() noexcept {}
 
 // ============================================================================
-// [asmjit::X86Builder - Finalize]
+// [asmjit::x86::Builder - Finalize]
 // ============================================================================
 
-Error X86Builder::finalize() {
+Error Builder::finalize() {
   ASMJIT_PROPAGATE(runPasses());
 
-  X86Assembler a(_code);
+  Assembler a(_code);
   return serialize(&a);
 }
 
 // ============================================================================
-// [asmjit::X86Builder - Events]
+// [asmjit::x86::Builder - Events]
 // ============================================================================
 
-Error X86Builder::onAttach(CodeHolder* code) noexcept {
-  uint32_t archType = code->getArchType();
-  if (!ArchInfo::isX86Family(archType))
+Error Builder::onAttach(CodeHolder* code) noexcept {
+  uint32_t archId = code->archId();
+  if (!ArchInfo::isX86Family(archId))
     return DebugUtils::errored(kErrorInvalidArch);
 
   ASMJIT_PROPAGATE(Base::onAttach(code));
 
-  _gpRegInfo.setSignature(archType == ArchInfo::kTypeX86 ? uint32_t(X86Gpd::kSignature) : uint32_t(X86Gpq::kSignature));
+  _gpRegInfo.setSignature(archId == ArchInfo::kIdX86 ? uint32_t(Gpd::kSignature) : uint32_t(Gpq::kSignature));
   return kErrorOk;
 }
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 && !ASMJIT_DISABLE_COMPILER

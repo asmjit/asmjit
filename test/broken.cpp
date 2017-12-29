@@ -29,9 +29,7 @@ struct BrokenGlobal {
     return false;
   }
 
-  FILE* getFile() const {
-    return _file ? _file : stdout;
-  }
+  inline FILE* file() const { return _file ? _file : stdout; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -233,12 +231,12 @@ int BrokenAPI::run(int argc, const char* argv[],
 
 int BrokenAPI::info(const char* fmt, ...) {
   BrokenGlobal& global = _brokenGlobal;
-  FILE* dst = global.getFile();
+  FILE* dst = global.file();
 
   const char* prefix = global._unitRunning ? "  " : "";
-  size_t len = ::strlen(fmt);
+  size_t size = ::strlen(fmt);
 
-  if (len != 0) {
+  if (size != 0) {
     va_list ap;
     va_start(ap, fmt);
     ::fputs(prefix, dst);
@@ -246,7 +244,7 @@ int BrokenAPI::info(const char* fmt, ...) {
     va_end(ap);
   }
 
-  if (len == 0 || fmt[len - 1] != '\n')
+  if (size == 0 || fmt[size - 1] != '\n')
     ::fputs("\n", dst);
 
   ::fflush(dst);
@@ -255,19 +253,19 @@ int BrokenAPI::info(const char* fmt, ...) {
 
 int BrokenAPI::fail(const char* fmt, va_list ap) {
   BrokenGlobal& global = _brokenGlobal;
-  FILE* dst = global.getFile();
+  FILE* dst = global.file();
 
   ::fputs("  Failed!", dst);
   if (fmt == NULL)
     fmt = "";
 
-  size_t len = ::strlen(fmt);
-  if (len != 0) {
+  size_t size = ::strlen(fmt);
+  if (size != 0) {
     ::fputs(" ", dst);
     ::vfprintf(dst, fmt, ap);
   }
 
-  if (len > 0 && fmt[len - 1] != '\n')
+  if (size > 0 && fmt[size - 1] != '\n')
     ::fputs("\n", dst);
 
   ::fprintf(dst, "  File: %s (Line: %d)\n", global._currentFile, global._currentLine);

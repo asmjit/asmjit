@@ -61,12 +61,12 @@ namespace BenchUtils {
   }
 
   template<typename EMITTER, typename FUNC>
-  static void bench(CodeHolder& code, uint32_t archType, const char* testName, const FUNC& func) noexcept {
+  static void bench(CodeHolder& code, uint32_t archId, const char* testName, const FUNC& func) noexcept {
     EMITTER emitter;
 
     const char* archName =
-      archType == ArchInfo::kTypeX86 ? "X86" :
-      archType == ArchInfo::kTypeX64 ? "X64" : "???";
+      archId == ArchInfo::kIdX86 ? "X86" :
+      archId == ArchInfo::kIdX64 ? "X64" : "???";
 
     const char* emitterName =
       emitter.isAssembler() ? "Assembler" :
@@ -76,8 +76,8 @@ namespace BenchUtils {
     Performance perf;
     uint64_t codeSize = 0;
 
-    CodeInfo codeInfo(archType);
-    codeInfo.setCdeclCallConv(archType == ArchInfo::kTypeX86 ? CallConv::kIdX86CDecl : CallConv::kIdX86SysV64);
+    CodeInfo codeInfo(archId);
+    codeInfo.setCdeclCallConv(archId == ArchInfo::kIdX86 ? CallConv::kIdX86CDecl : CallConv::kIdX86SysV64);
 
     for (uint32_t r = 0; r < kNumRepeats; r++) {
       perf.start();
@@ -87,7 +87,7 @@ namespace BenchUtils {
         code.attach(&emitter);
 
         func(emitter);
-        codeSize += code.getCodeSize();
+        codeSize += code.codeSize();
 
         code.reset(false);
       }
@@ -108,27 +108,27 @@ namespace BenchUtils {
 // ============================================================================
 
 #ifdef ASMJIT_BUILD_X86
-static void benchX86(uint32_t archType) noexcept {
+static void benchX86(uint32_t archId) noexcept {
   CodeHolder code;
 
-  BenchUtils::bench<X86Assembler>(code, archType, "[raw]", [](X86Assembler& a) {
-    asmtest::generateOpcodes(a.as<X86Emitter>());
+  BenchUtils::bench<x86::Assembler>(code, archId, "[raw]", [](x86::Assembler& a) {
+    asmtest::generateOpcodes(a.as<x86::Emitter>());
   });
 
-  BenchUtils::bench<X86Builder>(code, archType, "[raw]", [](X86Builder& cb) {
-    asmtest::generateOpcodes(cb.as<X86Emitter>());
+  BenchUtils::bench<x86::Builder>(code, archId, "[raw]", [](x86::Builder& cb) {
+    asmtest::generateOpcodes(cb.as<x86::Emitter>());
   });
 
-  BenchUtils::bench<X86Builder>(code, archType, "[final]", [](X86Builder& cb) {
-    asmtest::generateOpcodes(cb.as<X86Emitter>());
+  BenchUtils::bench<x86::Builder>(code, archId, "[final]", [](x86::Builder& cb) {
+    asmtest::generateOpcodes(cb.as<x86::Emitter>());
     cb.finalize();
   });
 
-  BenchUtils::bench<X86Compiler>(code, archType, "[raw]", [](X86Compiler& cc) {
+  BenchUtils::bench<x86::Compiler>(code, archId, "[raw]", [](x86::Compiler& cc) {
     asmtest::generateAlphaBlend(cc);
   });
 
-  BenchUtils::bench<X86Compiler>(code, archType, "[final]", [](X86Compiler& cc) {
+  BenchUtils::bench<x86::Compiler>(code, archId, "[final]", [](x86::Compiler& cc) {
     asmtest::generateAlphaBlend(cc);
     cc.finalize();
   });
@@ -137,8 +137,8 @@ static void benchX86(uint32_t archType) noexcept {
 
 int main(int argc, char* argv[]) {
   #ifdef ASMJIT_BUILD_X86
-  benchX86(ArchInfo::kTypeX86);
-  benchX86(ArchInfo::kTypeX64);
+  benchX86(ArchInfo::kIdX86);
+  benchX86(ArchInfo::kIdX64);
   #endif
 
   return 0;

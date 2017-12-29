@@ -14,17 +14,17 @@
 // [Dependencies]
 #include "../core/memutils.h"
 #include "../core/stringutils.h"
-#include "../arm/arminst.h"
+#include "../arm/arminstdb.h"
 #include "../arm/armoperand.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 
 // ============================================================================
 // [asmjit::ArmInst]
 // ============================================================================
 
 // Instruction opcode definitions:
-#define O(OPCODE) (OPCODE)                          // Instruction OpCode.
+#define O(OPCODE) (OPCODE)                          // Instruction Opcode.
 #define F(FLAG) ArmInst::kInstFlag##FLAG            // Instruction Base Flag(s) `F(...)`.
 #define Enc(ENCODING) ArmInst::kEncoding##ENCODING  // Instruction Encoding `Enc(...)`.
 
@@ -47,7 +47,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 const ArmInst ArmInstDB::instData[] = {
   // <-----------------+------------------------+------+---------------------------------------+-----+----+
-  //  Instruction Id   |  Instruction Encoding  |OpCode|          Instruction Flags            |NameX|ComX|
+  //  Instruction Id   |  Instruction Encoding  |Opcode|          Instruction Flags            |NameX|ComX|
   // <-----------------+------------------------+------+---------------------------------------+-----+----+
   // ${instData:Begin}
   INST(None            , undefined              , undefined                 , 0   , 0  ),
@@ -569,7 +569,7 @@ const char ArmInstDB::nameData[] =
   "wfi\0" "yield";
 
 enum {
-  kArmInstMaxLength = 9
+  kArmInstMaxSize = 9
 };
 
 struct InstNameAZ {
@@ -608,14 +608,14 @@ static const InstNameAZ ArmInstNameAZ[26] = {
 // ----------------------------------------------------------------------------
 // ${nameData:End}
 
-uint32_t ArmInst::getIdByName(const char* name, size_t len) noexcept {
+uint32_t ArmInst::idByName(const char* name, size_t size) noexcept {
   if (ASMJIT_UNLIKELY(!name))
     return Globals::kInvalidInstId;
 
-  if (len == Globals::kNullTerminated)
-    len = std::strlen(name);
+  if (size == Globals::kNullTerminated)
+    size = std::strlen(name);
 
-  if (ASMJIT_UNLIKELY(len == 0 || len > kArmInstMaxLength))
+  if (ASMJIT_UNLIKELY(size == 0 || size > kArmInstMaxSize))
     return Globals::kInvalidInstId;
 
   uint32_t prefix = uint32_t(name[0]) - kArmInstAlphaIndexFirst;
@@ -634,7 +634,7 @@ uint32_t ArmInst::getIdByName(const char* name, size_t len) noexcept {
 
   for (size_t lim = (size_t)(end - base); lim != 0; lim >>= 1) {
     const ArmInst* cur = base + (lim >> 1);
-    int result = StringUtils::cmpInstName(nameData + cur[0].getNameDataIndex(), name, len);
+    int result = StringUtils::cmpInstName(nameData + cur[0]._nameDataIndex, name, size);
 
     if (result < 0) {
       base = cur + 1;
@@ -651,10 +651,10 @@ uint32_t ArmInst::getIdByName(const char* name, size_t len) noexcept {
   return Globals::kInvalidInst;
 }
 
-const char* ArmInst::getNameById(uint32_t id) noexcept {
+const char* ArmInst::bameById(uint32_t id) noexcept {
   if (ASMJIT_UNLIKELY(id >= ArmInst::_kIdCount))
     return nullptr;
-  return ArmInst::getInst(id).getName();
+  return ArmInst::infoById(id).name();
 }
 #else
 const char ArmInstDB::nameData[] = "";
@@ -666,7 +666,7 @@ const char ArmInstDB::nameData[] = "";
 
 #ifndef ASMJIT_DISABLE_INST_API
 ASMJIT_FAVOR_SIZE Error ArmInst::validate(
-  uint32_t archType,
+  uint32_t archId,
   uint32_t instId, uint32_t options,
   const Operand_& opExtra, const Operand_* operands, uint32_t count) noexcept {
 
@@ -675,7 +675,7 @@ ASMJIT_FAVOR_SIZE Error ArmInst::validate(
 }
 #endif
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_ARM

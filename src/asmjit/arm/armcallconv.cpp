@@ -14,7 +14,7 @@
 // [Dependencies]
 #include "../arm/armcallconv_p.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 
 // ============================================================================
 // [asmjit::ArmCallConvInternal - Init]
@@ -25,7 +25,7 @@ ASMJIT_FAVOR_SIZE Error ArmCallConvInternal::init(CallConv& cc, uint32_t ccId) n
   return DebugUtils::errored(kErrorNotInitialized);
 }
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_ARM

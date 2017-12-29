@@ -19,7 +19,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 class CodeHolder;
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_jit
 //! \{
 
 // ============================================================================
@@ -46,9 +46,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get `JitAllocator` of the runtime.
-  inline JitAllocator* getJitAllocator() const noexcept {
-    return const_cast<JitAllocator*>(&_jitAllocator);
-  }
+  inline JitAllocator* allocator() const noexcept { return const_cast<JitAllocator*>(&_allocator); }
 
   // --------------------------------------------------------------------------
   // [Add / Release]
@@ -57,11 +55,11 @@ public:
   // NOTE: To allow passing function pointers to `add()` and `release()` the
   // virtual methods are prefixed with `_` and called from templates instead.
 
-  //! Allocate a memory needed for a code stored in the \ref CodeHolder and
+  //! Allocate a memory needed for a code stored in the `CodeHolder` and
   //! relocate it to the target location.
   //!
   //! The beginning of the memory allocated for the function is returned in
-  //! `dst`. If failed the \ref Error code is returned and `dst` is set to null
+  //! `dst`. If failed the `Error` code is returned and `dst` is set to null
   //! (this means that you don't have to set it to null before calling `add()`).
   template<typename Func>
   inline Error add(Func* dst, CodeHolder* code) noexcept {
@@ -86,7 +84,7 @@ public:
   //! destination buffer. It is only useful for JIT code generation as it
   //! causes a flush of the processor's cache.
   //!
-  //! Flushing is basically a NOP under X86/X64, but is needed by architectures
+  //! Flushing is basically a NOP under X86, but is needed by architectures
   //! that do not have a transparent instruction cache like ARM.
   //!
   //! This function can also be overridden to improve compatibility with tools
@@ -98,7 +96,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Virtual memory allocator.
-  JitAllocator _jitAllocator;
+  JitAllocator _allocator;
 };
 
 //! \}

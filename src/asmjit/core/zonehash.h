@@ -13,14 +13,14 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
 // [asmjit::ZoneHashNode]
 // ============================================================================
 
-//! Node used by \ref ZoneHash<> template.
+//! Node used by `ZoneHash<>` template.
 //!
 //! You must provide function `bool eq(const Key& key)` in order to make
 //! `ZoneHash::get()` working.
@@ -28,13 +28,13 @@ class ZoneHashNode {
 public:
   ASMJIT_NONCOPYABLE(ZoneHashNode)
 
-  inline ZoneHashNode(uint32_t hVal = 0) noexcept
+  inline ZoneHashNode(uint32_t hashCode = 0) noexcept
     : _hashNext(nullptr),
-      _hVal(hVal),
+      _hashCode(hashCode),
       _customData(0) {}
 
   ZoneHashNode* _hashNext;               //!< Next node in the chain, null if it terminates the chain.
-  uint32_t _hVal;                        //!< Key hash value.
+  uint32_t _hashCode;                    //!< Precalculated hash-code of key.
   uint32_t _customData;                  //!< Padding, can be reused by any Node that inherits `ZoneHashNode`.
 };
 
@@ -91,8 +91,8 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline bool isEmpty() const noexcept { return _size == 0; }
-  inline size_t getSize() const noexcept { return _size; }
+  inline bool empty() const noexcept { return _size == 0; }
+  inline size_t size() const noexcept { return _size; }
 
   // --------------------------------------------------------------------------
   // [Ops]
@@ -154,7 +154,7 @@ public:
 
   template<typename KEY>
   inline NODE* get(const KEY& key) const noexcept {
-    uint32_t hMod = key.getHVal() % _bucketsCount;
+    uint32_t hMod = key.hashCode() % _bucketsCount;
     NODE* node = static_cast<NODE*>(_data[hMod]);
 
     while (node && !key.matches(node))

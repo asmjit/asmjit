@@ -17,20 +17,20 @@ using namespace asmjit;
 // Signature of the generated function.
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
 
-// This function works with both X86Assembler and X86Builder. It shows how
-// `X86Emitter` can be used to make your code more generic.
-static void makeRawFunc(X86Emitter* emitter) {
+// This function works with both x86::Assembler and x86::Builder. It shows how
+// `x86::Emitter` can be used to make your code more generic.
+static void makeRawFunc(x86::Emitter* emitter) {
   // Decide which registers will be mapped to function arguments. Try changing
   // registers of `dst`, `src_a`, and `src_b` and see what happens in function's
   // prolog and epilog.
-  X86Gp dst   = emitter->zax();
-  X86Gp src_a = emitter->zcx();
-  X86Gp src_b = emitter->zdx();
+  x86::Gp dst   = emitter->zax();
+  x86::Gp src_a = emitter->zcx();
+  x86::Gp src_b = emitter->zdx();
 
   // Decide which vector registers to use. We use these to keep the code generic,
   // you can switch to any other registers when needed.
-  X86Xmm vec0 = x86::xmm0;
-  X86Xmm vec1 = x86::xmm1;
+  x86::Xmm vec0 = x86::xmm0;
+  x86::Xmm vec1 = x86::xmm1;
 
   // Create and initialize `FuncDetail` and `FuncFrame`.
   FuncDetail func;
@@ -40,7 +40,7 @@ static void makeRawFunc(X86Emitter* emitter) {
   frame.init(func);
 
   // Make XMM0 and XMM1 dirty. VEC group includes XMM|YMM|ZMM registers.
-  frame.setDirtyRegs(X86Reg::kGroupVec, IntUtils::mask(0, 1));
+  frame.setDirtyRegs(x86::Reg::kGroupVec, IntUtils::mask(0, 1));
 
   FuncArgsAssignment args(&func);         // Create arguments assignment context.
   args.assignAll(dst, src_a, src_b);      // Assign our registers to arguments.
@@ -60,14 +60,14 @@ static void makeRawFunc(X86Emitter* emitter) {
   emitter->emitEpilog(frame);
 }
 
-// This function works with X86Compiler, provided for comparison.
-static void makeCompiledFunc(X86Compiler* cc) {
-  X86Gp dst   = cc->newIntPtr();
-  X86Gp src_a = cc->newIntPtr();
-  X86Gp src_b = cc->newIntPtr();
+// This function works with x86::Compiler, provided for comparison.
+static void makeCompiledFunc(x86::Compiler* cc) {
+  x86::Gp dst   = cc->newIntPtr();
+  x86::Gp src_a = cc->newIntPtr();
+  x86::Gp src_b = cc->newIntPtr();
 
-  X86Xmm vec0 = cc->newXmm();
-  X86Xmm vec1 = cc->newXmm();
+  x86::Xmm vec0 = cc->newXmm();
+  x86::Xmm vec1 = cc->newXmm();
 
   cc->addFunc(FuncSignatureT<void, int*, const int*, const int*>(CallConv::kIdHost));
   cc->setArg(0, dst);
@@ -86,40 +86,40 @@ static int testFunc(uint32_t emitterType) {
   FileLogger logger(stdout);              // Create logger that logs to stdout.
 
   CodeHolder code;                        // Create a CodeHolder.
-  code.init(rt.getCodeInfo());            // Initialize it to match `rt`.
+  code.init(rt.codeInfo());               // Initialize it to match `rt`.
   code.setLogger(&logger);                // Attach logger to the code.
 
   Error err = kErrorOk;
   switch (emitterType) {
-    case CodeEmitter::kTypeAssembler: {
-      printf("Using X86Assembler:\n");
-      X86Assembler a(&code);
-      makeRawFunc(a.as<X86Emitter>());
+    case BaseEmitter::kTypeAssembler: {
+      printf("Using x86::Assembler:\n");
+      x86::Assembler a(&code);
+      makeRawFunc(a.as<x86::Emitter>());
       break;
     }
 
-    case CodeEmitter::kTypeBuilder: {
-      printf("Using X86Builder:\n");
-      X86Builder cb(&code);
-      makeRawFunc(cb.as<X86Emitter>());
+    case BaseEmitter::kTypeBuilder: {
+      printf("Using x86::Builder:\n");
+      x86::Builder cb(&code);
+      makeRawFunc(cb.as<x86::Emitter>());
 
       err = cb.finalize();
       if (err) {
-        printf("X86Builder::finalize() failed: %s\n", DebugUtils::errorAsString(err));
+        printf("x86::Builder::finalize() failed: %s\n", DebugUtils::errorAsString(err));
         return 1;
       }
       break;
     }
 
-    case CodeEmitter::kTypeCompiler: {
-      // Create the function by using X86Builder.
-      printf("Using X86Compiler:\n");
-      X86Compiler cc(&code);
+    case BaseEmitter::kTypeCompiler: {
+      // Create the function by using x86::Builder.
+      printf("Using x86::Compiler:\n");
+      x86::Compiler cc(&code);
       makeCompiledFunc(&cc);
 
       err = cc.finalize();
       if (err) {
-        printf("X86Compiler::finalize() failed: %s\n", DebugUtils::errorAsString(err));
+        printf("x86::Compiler::finalize() failed: %s\n", DebugUtils::errorAsString(err));
         return 1;
       }
       break;
@@ -149,7 +149,7 @@ static int testFunc(uint32_t emitterType) {
 }
 
 int main(int argc, char* argv[]) {
-  return testFunc(CodeEmitter::kTypeAssembler) |
-         testFunc(CodeEmitter::kTypeBuilder)   |
-         testFunc(CodeEmitter::kTypeCompiler)  ;
+  return testFunc(BaseEmitter::kTypeAssembler) |
+         testFunc(BaseEmitter::kTypeBuilder)   |
+         testFunc(BaseEmitter::kTypeCompiler)  ;
 }

@@ -18,8 +18,13 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 const Type::TypeData Type::_typeData = {
-  { ASMJIT_TABLE_T_256(Type::BaseOfTypeId, kTypeId  , 0) },
-  { ASMJIT_TABLE_T_256(Type::SizeOfTypeId, kTypeSize, 0) }
+  #define VALUE(X) Type::BaseOfTypeId<X>::kTypeId
+  { ASMJIT_TABLE_256(VALUE, 0) },
+  #undef VALUE
+
+  #define VALUE(X) Type::SizeOfTypeId<X>::kTypeSize
+  { ASMJIT_TABLE_256(VALUE, 0) }
+  #undef VALUE
 };
 
 ASMJIT_END_NAMESPACE

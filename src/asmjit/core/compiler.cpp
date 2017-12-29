@@ -13,7 +13,7 @@
 
 // [Dependencies]
 #include "../core/assembler.h"
-#include "../core/codecompiler.h"
+#include "../core/compiler.h"
 #include "../core/cpuinfo.h"
 #include "../core/intutils.h"
 #include "../core/logging.h"
@@ -23,31 +23,31 @@
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
-// [asmjit::CCFuncCall - Arg / Ret]
+// [asmjit::FuncCallNode - Arg / Ret]
 // ============================================================================
 
-bool CCFuncCall::_setArg(uint32_t i, const Operand_& op) noexcept {
-  if ((i & ~kFuncArgHi) >= _funcDetail.getArgCount())
+bool FuncCallNode::_setArg(uint32_t i, const Operand_& op) noexcept {
+  if ((i & ~kFuncArgHi) >= _funcDetail.argCount())
     return false;
 
   _args[i] = op;
   return true;
 }
 
-bool CCFuncCall::_setRet(uint32_t i, const Operand_& op) noexcept {
+bool FuncCallNode::_setRet(uint32_t i, const Operand_& op) noexcept {
   if (i >= 2)
     return false;
 
-  _ret[i] = op;
+  _rets[i] = op;
   return true;
 }
 
 // ============================================================================
-// [asmjit::CodeCompiler - Construction / Destruction]
+// [asmjit::BaseCompiler - Construction / Destruction]
 // ============================================================================
 
-CodeCompiler::CodeCompiler() noexcept
-  : CodeBuilder(),
+BaseCompiler::BaseCompiler() noexcept
+  : BaseBuilder(),
     _func(nullptr),
     _vRegZone(4096 - Zone::kZoneOverhead),
     _vRegArray(),
@@ -56,16 +56,16 @@ CodeCompiler::CodeCompiler() noexcept
 
   _type = kTypeCompiler;
 }
-CodeCompiler::~CodeCompiler() noexcept {}
+BaseCompiler::~BaseCompiler() noexcept {}
 
 // ============================================================================
-// [asmjit::CodeCompiler - Func]
+// [asmjit::BaseCompiler - Func]
 // ============================================================================
 
-CCFunc* CodeCompiler::newFunc(const FuncSignature& sign) noexcept {
+FuncNode* BaseCompiler::newFunc(const FuncSignature& sign) noexcept {
   Error err;
 
-  CCFunc* func = newNodeT<CCFunc>();
+  FuncNode* func = newNodeT<FuncNode>();
   if (ASMJIT_UNLIKELY(!func)) {
     reportError(DebugUtils::errored(kErrorNoHeapMemory));
     return nullptr;
@@ -80,7 +80,7 @@ CCFunc* CodeCompiler::newFunc(const FuncSignature& sign) noexcept {
 
   // Create helper nodes.
   func->_exitNode = newLabelNode();
-  func->_end = newNodeT<CBSentinel>(CBSentinel::kSentinelFuncEnd);
+  func->_end = newNodeT<SentinelNode>(SentinelNode::kSentinelFuncEnd);
 
   if (ASMJIT_UNLIKELY(!func->_exitNode || !func->_end)) {
     reportError(DebugUtils::errored(kErrorNoHeapMemory));
@@ -88,7 +88,7 @@ CCFunc* CodeCompiler::newFunc(const FuncSignature& sign) noexcept {
   }
 
   // Initialize the function info.
-  err = func->getDetail().init(sign);
+  err = func->detail().init(sign);
   if (ASMJIT_UNLIKELY(err)) {
     reportError(err);
     return nullptr;
@@ -97,8 +97,8 @@ CCFunc* CodeCompiler::newFunc(const FuncSignature& sign) noexcept {
   // If the Target guarantees greater stack alignment than required by the
   // calling convention then override it as we can prevent having to perform
   // dynamic stack alignment
-  if (func->_funcDetail._callConv.getNaturalStackAlignment() < _codeInfo.getStackAlignment())
-    func->_funcDetail._callConv.setNaturalStackAlignment(_codeInfo.getStackAlignment());
+  if (func->_funcDetail._callConv.naturalStackAlignment() < _codeInfo.stackAlignment())
+    func->_funcDetail._callConv.setNaturalStackAlignment(_codeInfo.stackAlignment());
 
   // Initialize the function frame.
   err = func->_frame.init(func->_funcDetail);
@@ -109,34 +109,34 @@ CCFunc* CodeCompiler::newFunc(const FuncSignature& sign) noexcept {
 
   // Allocate space for function arguments.
   func->_args = nullptr;
-  if (func->getArgCount() != 0) {
-    func->_args = _allocator.allocT<VirtReg*>(func->getArgCount() * sizeof(VirtReg*));
+  if (func->argCount() != 0) {
+    func->_args = _allocator.allocT<VirtReg*>(func->argCount() * sizeof(VirtReg*));
     if (ASMJIT_UNLIKELY(!func->_args)) {
       reportError(DebugUtils::errored(kErrorNoHeapMemory));
       return nullptr;
     }
 
-    std::memset(func->_args, 0, func->getArgCount() * sizeof(VirtReg*));
+    std::memset(func->_args, 0, func->argCount() * sizeof(VirtReg*));
   }
 
   return func;
 }
 
-CCFunc* CodeCompiler::addFunc(CCFunc* func) {
+FuncNode* BaseCompiler::addFunc(FuncNode* func) {
   ASMJIT_ASSERT(_func == nullptr);
   _func = func;
 
   addNode(func);                 // Function node.
-  CBNode* cursor = getCursor();  // {CURSOR}.
-  addNode(func->getExitNode());  // Function exit label.
-  addNode(func->getEnd());       // Function end marker.
+  BaseNode* prev = cursor();     // {CURSOR}.
+  addNode(func->exitNode());     // Function exit label.
+  addNode(func->endNode());      // Function end marker.
 
-  _setCursor(cursor);
+  _setCursor(prev);
   return func;
 }
 
-CCFunc* CodeCompiler::addFunc(const FuncSignature& sign) {
-  CCFunc* func = newFunc(sign);
+FuncNode* BaseCompiler::addFunc(const FuncSignature& sign) {
+  FuncNode* func = newFunc(sign);
 
   if (!func) {
     reportError(DebugUtils::errored(kErrorNoHeapMemory));
@@ -146,14 +146,14 @@ CCFunc* CodeCompiler::addFunc(const FuncSignature& sign) {
   return addFunc(func);
 }
 
-Error CodeCompiler::endFunc() {
-  CCFunc* func = getFunc();
+Error BaseCompiler::endFunc() {
+  FuncNode* func = _func;
   if (ASMJIT_UNLIKELY(!func))
     return reportError(DebugUtils::errored(kErrorInvalidState));
 
   // Add the local constant pool at the end of the function (if exists).
   if (_localConstPool) {
-    setCursor(func->getEnd()->getPrev());
+    setCursor(func->endNode()->prev());
     addNode(_localConstPool);
     _localConstPool = nullptr;
   }
@@ -161,17 +161,17 @@ Error CodeCompiler::endFunc() {
   // Mark as finished.
   _func = nullptr;
 
-  CBSentinel* end = func->getEnd();
+  SentinelNode* end = func->endNode();
   setCursor(end);
   return kErrorOk;
 }
 
 // ============================================================================
-// [asmjit::CodeCompiler - Ret]
+// [asmjit::BaseCompiler - Ret]
 // ============================================================================
 
-CCFuncRet* CodeCompiler::newRet(const Operand_& o0, const Operand_& o1) noexcept {
-  CCFuncRet* node = newNodeT<CCFuncRet>();
+FuncRetNode* BaseCompiler::newRet(const Operand_& o0, const Operand_& o1) noexcept {
+  FuncRetNode* node = newNodeT<FuncRetNode>();
   if (!node) {
     reportError(DebugUtils::errored(kErrorNoHeapMemory));
     return nullptr;
@@ -184,18 +184,18 @@ CCFuncRet* CodeCompiler::newRet(const Operand_& o0, const Operand_& o1) noexcept
   return node;
 }
 
-CCFuncRet* CodeCompiler::addRet(const Operand_& o0, const Operand_& o1) noexcept {
-  CCFuncRet* node = newRet(o0, o1);
+FuncRetNode* BaseCompiler::addRet(const Operand_& o0, const Operand_& o1) noexcept {
+  FuncRetNode* node = newRet(o0, o1);
   if (!node) return nullptr;
-  return addNode(node)->as<CCFuncRet>();
+  return addNode(node)->as<FuncRetNode>();
 }
 
 // ============================================================================
-// [asmjit::CodeCompiler - Call]
+// [asmjit::BaseCompiler - Call]
 // ============================================================================
 
-CCFuncCall* CodeCompiler::newCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept {
-  CCFuncCall* node = newNodeT<CCFuncCall>(instId, 0);
+FuncCallNode* BaseCompiler::newCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept {
+  FuncCallNode* node = newNodeT<FuncCallNode>(instId, 0);
   if (ASMJIT_UNLIKELY(!node)) {
     reportError(DebugUtils::errored(kErrorNoHeapMemory));
     return nullptr;
@@ -207,14 +207,14 @@ CCFuncCall* CodeCompiler::newCall(uint32_t instId, const Operand_& o0, const Fun
   node->resetOp(2);
   node->resetOp(3);
 
-  Error err = node->getDetail().init(sign);
+  Error err = node->detail().init(sign);
   if (ASMJIT_UNLIKELY(err)) {
     reportError(err);
     return nullptr;
   }
 
   // If there are no arguments skip the allocation.
-  uint32_t nArgs = sign.getArgCount();
+  uint32_t nArgs = sign.argCount();
   if (!nArgs) return node;
 
   node->_args = static_cast<Operand*>(_allocator.alloc(nArgs * sizeof(Operand)));
@@ -227,18 +227,18 @@ CCFuncCall* CodeCompiler::newCall(uint32_t instId, const Operand_& o0, const Fun
   return node;
 }
 
-CCFuncCall* CodeCompiler::addCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept {
-  CCFuncCall* node = newCall(instId, o0, sign);
+FuncCallNode* BaseCompiler::addCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept {
+  FuncCallNode* node = newCall(instId, o0, sign);
   if (!node) return nullptr;
-  return addNode(node)->as<CCFuncCall>();
+  return addNode(node)->as<FuncCallNode>();
 }
 
 // ============================================================================
-// [asmjit::CodeCompiler - Vars]
+// [asmjit::BaseCompiler - Vars]
 // ============================================================================
 
-Error CodeCompiler::setArg(uint32_t argIndex, const Reg& r) {
-  CCFunc* func = getFunc();
+Error BaseCompiler::setArg(uint32_t argIndex, const BaseReg& r) {
+  FuncNode* func = _func;
 
   if (ASMJIT_UNLIKELY(!func))
     return reportError(DebugUtils::errored(kErrorInvalidState));
@@ -246,28 +246,28 @@ Error CodeCompiler::setArg(uint32_t argIndex, const Reg& r) {
   if (ASMJIT_UNLIKELY(!isVirtRegValid(r)))
     return reportError(DebugUtils::errored(kErrorInvalidVirtId));
 
-  VirtReg* vReg = getVirtReg(r);
+  VirtReg* vReg = virtRegByReg(r);
   func->setArg(argIndex, vReg);
 
   return kErrorOk;
 }
 
 // ============================================================================
-// [asmjit::CodeCompiler - Vars]
+// [asmjit::BaseCompiler - Vars]
 // ============================================================================
 
-static void CodeCompiler_assignGenericName(CodeCompiler* self, VirtReg* vReg) {
+static void CodeCompiler_assignGenericName(BaseCompiler* self, VirtReg* vReg) {
   uint32_t index = unsigned(Operand::unpackId(vReg->_id));
 
   char buf[64];
-  int len = std::snprintf(buf, ASMJIT_ARRAY_SIZE(buf), "%%%u", unsigned(index));
+  int size = std::snprintf(buf, ASMJIT_ARRAY_SIZE(buf), "%%%u", unsigned(index));
 
-  ASMJIT_ASSERT(len > 0 && len < int(ASMJIT_ARRAY_SIZE(buf)));
-  vReg->_name.setData(&self->_dataZone, buf, unsigned(len));
+  ASMJIT_ASSERT(size > 0 && size < int(ASMJIT_ARRAY_SIZE(buf)));
+  vReg->_name.setData(&self->_dataZone, buf, unsigned(size));
 }
 
-VirtReg* CodeCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const char* name) noexcept {
-  uint32_t index = _vRegArray.getLength();
+VirtReg* BaseCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const char* name) noexcept {
+  uint32_t index = _vRegArray.size();
   if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kPackedIdCount)))
     return nullptr;
 
@@ -293,35 +293,35 @@ VirtReg* CodeCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const cha
   return vReg;
 }
 
-Error CodeCompiler::_newReg(Reg& out, uint32_t typeId, const char* name) {
+Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* name) {
   RegInfo regInfo;
 
-  Error err = ArchUtils::typeIdToRegInfo(getArchType(), typeId, regInfo);
+  Error err = ArchUtils::typeIdToRegInfo(archId(), typeId, regInfo);
   if (ASMJIT_UNLIKELY(err)) return reportError(err);
 
-  VirtReg* vReg = newVirtReg(typeId, regInfo.getSignature(), name);
+  VirtReg* vReg = newVirtReg(typeId, regInfo.signature(), name);
   if (ASMJIT_UNLIKELY(!vReg)) {
     out.reset();
     return reportError(DebugUtils::errored(kErrorNoHeapMemory));
   }
 
-  out._initReg(regInfo.getSignature(), vReg->getId());
+  out._initReg(regInfo.signature(), vReg->id());
   return kErrorOk;
 }
 
-Error CodeCompiler::_newReg(Reg& out, uint32_t typeId, const char* fmt, std::va_list ap) {
+Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* fmt, std::va_list ap) {
   StringBuilderTmp<256> sb;
   sb.appendFormatVA(fmt, ap);
-  return _newReg(out, typeId, sb.getData());
+  return _newReg(out, typeId, sb.data());
 }
 
-Error CodeCompiler::_newReg(Reg& out, const Reg& ref, const char* name) {
+Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* name) {
   RegInfo regInfo;
   uint32_t typeId;
 
   if (isVirtRegValid(ref)) {
-    VirtReg* vRef = getVirtReg(ref);
-    typeId = vRef->getTypeId();
+    VirtReg* vRef = virtRegByReg(ref);
+    typeId = vRef->typeId();
 
     // NOTE: It's possible to cast one register type to another if it's the
     // same register group. However, VirtReg always contains the TypeId that
@@ -330,7 +330,7 @@ Error CodeCompiler::_newReg(Reg& out, const Reg& ref, const char* name) {
     // adjust the TypeId to match the `ref` register type instead of the
     // original register type, which should be the expected behavior.
     uint32_t typeSize = Type::sizeOf(typeId);
-    uint32_t refSize = ref.getSize();
+    uint32_t refSize = ref.size();
 
     if (typeSize != refSize) {
       if (Type::isInt(typeId)) {
@@ -374,29 +374,29 @@ Error CodeCompiler::_newReg(Reg& out, const Reg& ref, const char* name) {
     }
   }
   else {
-    typeId = ref.getType();
+    typeId = ref.type();
   }
 
-  Error err = ArchUtils::typeIdToRegInfo(getArchType(), typeId, regInfo);
+  Error err = ArchUtils::typeIdToRegInfo(archId(), typeId, regInfo);
   if (ASMJIT_UNLIKELY(err)) return reportError(err);
 
-  VirtReg* vReg = newVirtReg(typeId, regInfo.getSignature(), name);
+  VirtReg* vReg = newVirtReg(typeId, regInfo.signature(), name);
   if (ASMJIT_UNLIKELY(!vReg)) {
     out.reset();
     return reportError(DebugUtils::errored(kErrorNoHeapMemory));
   }
 
-  out._initReg(regInfo.getSignature(), vReg->getId());
+  out._initReg(regInfo.signature(), vReg->id());
   return kErrorOk;
 }
 
-Error CodeCompiler::_newReg(Reg& out, const Reg& ref, const char* fmt, std::va_list ap) {
+Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* fmt, std::va_list ap) {
   StringBuilderTmp<256> sb;
   sb.appendFormatVA(fmt, ap);
-  return _newReg(out, ref, sb.getData());
+  return _newReg(out, ref, sb.data());
 }
 
-Error CodeCompiler::_newStack(Mem& out, uint32_t size, uint32_t alignment, const char* name) {
+Error BaseCompiler::_newStack(BaseMem& out, uint32_t size, uint32_t alignment, const char* name) {
   if (size == 0)
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
@@ -417,20 +417,20 @@ Error CodeCompiler::_newStack(Mem& out, uint32_t size, uint32_t alignment, const
   vReg->_alignment = uint8_t(alignment);
 
   // Set the memory operand to GPD/GPQ and its id to VirtReg.
-  out = Mem(Globals::Init, _gpRegInfo.getType(), vReg->getId(), Reg::kRegNone, 0, 0, 0, Mem::kSignatureMemRegHomeFlag);
+  out = BaseMem(Globals::Init, _gpRegInfo.type(), vReg->id(), BaseReg::kTypeNone, 0, 0, 0, BaseMem::kSignatureMemRegHomeFlag);
   return kErrorOk;
 }
 
-Error CodeCompiler::_newConst(Mem& out, uint32_t scope, const void* data, size_t size) {
-  CBConstPool** pPool;
-  if (scope == kConstScopeLocal)
+Error BaseCompiler::_newConst(BaseMem& out, uint32_t scope, const void* data, size_t size) {
+  ConstPoolNode** pPool;
+  if (scope == ConstPool::kScopeLocal)
     pPool = &_localConstPool;
-  else if (scope == kConstScopeGlobal)
+  else if (scope == ConstPool::kScopeGlobal)
     pPool = &_globalConstPool;
   else
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
-  CBConstPool* pool = *pPool;
+  ConstPoolNode* pool = *pPool;
   if (!pool) {
     pool = newConstPoolNode();
     if (ASMJIT_UNLIKELY(!pool))
@@ -444,9 +444,9 @@ Error CodeCompiler::_newConst(Mem& out, uint32_t scope, const void* data, size_t
   if (ASMJIT_UNLIKELY(err))
     return reportError(err);
 
-  out = Mem(Globals::Init,
+  out = BaseMem(Globals::Init,
     Label::kLabelTag,      // Base type.
-    pool->getId(),         // Base id.
+    pool->id(),            // Base id.
     0,                     // Index type.
     0,                     // Index id.
     int32_t(off),          // Offset.
@@ -455,10 +455,10 @@ Error CodeCompiler::_newConst(Mem& out, uint32_t scope, const void* data, size_t
   return kErrorOk;
 }
 
-void CodeCompiler::rename(Reg& reg, const char* fmt, ...) {
+void BaseCompiler::rename(BaseReg& reg, const char* fmt, ...) {
   if (!reg.isVirtReg()) return;
 
-  VirtReg* vReg = getVirtRegById(reg.getId());
+  VirtReg* vReg = virtRegById(reg.id());
   if (!vReg) return;
 
   if (fmt && fmt[0] != '\0') {
@@ -477,14 +477,14 @@ void CodeCompiler::rename(Reg& reg, const char* fmt, ...) {
 }
 
 // ============================================================================
-// [asmjit::CodeCompiler - Events]
+// [asmjit::BaseCompiler - Events]
 // ============================================================================
 
-Error CodeCompiler::onAttach(CodeHolder* code) noexcept {
+Error BaseCompiler::onAttach(CodeHolder* code) noexcept {
   return Base::onAttach(code);
 }
 
-Error CodeCompiler::onDetach(CodeHolder* code) noexcept {
+Error BaseCompiler::onDetach(CodeHolder* code) noexcept {
   _func = nullptr;
   _localConstPool = nullptr;
   _globalConstPool = nullptr;
@@ -496,31 +496,31 @@ Error CodeCompiler::onDetach(CodeHolder* code) noexcept {
 }
 
 // ============================================================================
-// [asmjit::CCFuncPass - Construction / Destruction]
+// [asmjit::FuncPass - Construction / Destruction]
 // ============================================================================
 
-CCFuncPass::CCFuncPass(const char* name) noexcept
-  : CBPass(name) {}
+FuncPass::FuncPass(const char* name) noexcept
+  : Pass(name) {}
 
 // ============================================================================
-// [asmjit::CCFuncPass - Run]
+// [asmjit::FuncPass - Run]
 // ============================================================================
 
-Error CCFuncPass::run(Zone* zone, Logger* logger) noexcept {
-  CBNode* node = cb()->getFirstNode();
+Error FuncPass::run(Zone* zone, Logger* logger) noexcept {
+  BaseNode* node = cb()->firstNode();
   if (!node) return kErrorOk;
 
   do {
-    if (node->getType() == CBNode::kNodeFunc) {
-      CCFunc* func = node->as<CCFunc>();
-      node = func->getEnd();
+    if (node->type() == BaseNode::kNodeFunc) {
+      FuncNode* func = node->as<FuncNode>();
+      node = func->endNode();
       ASMJIT_PROPAGATE(runOnFunction(zone, logger, func));
     }
 
     // Find a function by skipping all nodes that are not `kNodeFunc`.
     do {
-      node = node->getNext();
-    } while (node && node->getType() != CBNode::kNodeFunc);
+      node = node->next();
+    } while (node && node->type() != BaseNode::kNodeFunc);
   } while (node);
 
   return kErrorOk;

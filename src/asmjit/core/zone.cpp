@@ -9,6 +9,7 @@
 
 // [Dependencies]
 #include "../core/intutils.h"
+#include "../core/memutils.h"
 #include "../core/zone.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -17,7 +18,7 @@ ASMJIT_BEGIN_NAMESPACE
 // Should be allocated in read-only memory and should never be modified.
 static const Zone::Block Zone_zeroBlock = { nullptr, nullptr, 0, { 0 } };
 
-static inline uint32_t Zone_getAlignmentOffsetFromAlignment(uint32_t x) noexcept {
+static inline uint32_t Zone_alignmentOffsetFromAlignment(uint32_t x) noexcept {
   switch (x) {
     default: return 0;
     case 0 : return 0;
@@ -41,7 +42,7 @@ Zone::Zone(uint32_t blockSize, uint32_t blockAlignment) noexcept {
   _end = empty->data;
   _block = empty;
   _blockSize = blockSize;
-  _blockAlignmentShift = Zone_getAlignmentOffsetFromAlignment(blockAlignment);
+  _blockAlignmentShift = Zone_alignmentOffsetFromAlignment(blockAlignment);
 }
 
 Zone::~Zone() noexcept {
@@ -100,11 +101,10 @@ void* Zone::_alloc(size_t size) noexcept {
   uint8_t* p;
 
   size_t blockSize = std::max<size_t>(_blockSize, size);
-  size_t blockAlignment = getBlockAlignment();
 
   // The `_alloc()` method can only be called if there is not enough space
   // in the current block, see `alloc()` implementation for more details.
-  ASMJIT_ASSERT(curBlock == &Zone_zeroBlock || getRemainingSize() < size);
+  ASMJIT_ASSERT(curBlock == &Zone_zeroBlock || remainingSize() < size);
 
   // If the `Zone` has been cleared the current block doesn't have to be the
   // last one. Check if there is a block that can be used instead of allocating
@@ -113,7 +113,7 @@ void* Zone::_alloc(size_t size) noexcept {
   Block* next = curBlock->next;
   if (next) {
     uint8_t* end = next->data + next->size;
-    p = IntUtils::alignUp(next->data, blockAlignment);
+    p = IntUtils::alignUp(next->data, blockAlignment());
     if ((size_t)(end - p) >= size) {
       _block = next;
       _ptr = p + size;
@@ -126,10 +126,10 @@ void* Zone::_alloc(size_t size) noexcept {
 
   // Prevent arithmetic overflow.
   const size_t kBaseBlockSize = sizeof(Block) - sizeof(void*);
-  if (ASMJIT_UNLIKELY(blockSize > (std::numeric_limits<size_t>::max() - kBaseBlockSize - blockAlignment)))
+  if (ASMJIT_UNLIKELY(blockSize > (std::numeric_limits<size_t>::max() - kBaseBlockSize - blockAlignment())))
     return nullptr;
 
-  blockSize += blockAlignment;
+  blockSize += blockAlignment();
   Block* newBlock = static_cast<Block*>(MemUtils::alloc(kBaseBlockSize + blockSize));
   if (ASMJIT_UNLIKELY(!newBlock))
     return nullptr;
@@ -137,7 +137,7 @@ void* Zone::_alloc(size_t size) noexcept {
   // Align the pointer to `blockAlignment` and adjust the size of this block
   // accordingly. It's the same as using `blockAlignment - IntUtils::alignUpDiff()`,
   // just written differently.
-  p = IntUtils::alignUp(newBlock->data, blockAlignment);
+  p = IntUtils::alignUp(newBlock->data, blockAlignment());
   newBlock->prev = nullptr;
   newBlock->next = nullptr;
   newBlock->size = blockSize;
@@ -189,15 +189,15 @@ char* Zone::sformat(const char* fmt, ...) noexcept {
     return nullptr;
 
   char buf[512];
-  size_t len;
+  size_t size;
   std::va_list ap;
 
   va_start(ap, fmt);
-  len = std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf) - 1, fmt, ap);
+  size = std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf) - 1, fmt, ap);
   va_end(ap);
 
-  buf[len++] = 0;
-  return static_cast<char*>(dup(buf, len));
+  buf[size++] = 0;
+  return static_cast<char*>(dup(buf, size));
 }
 
 // ============================================================================
@@ -252,7 +252,7 @@ void* ZoneAllocator::_alloc(size_t size, size_t& allocatedSize) noexcept {
     }
 
     p = _zone->align(kBlockAlignment);
-    size_t remain = (size_t)(_zone->getEnd() - p);
+    size_t remain = (size_t)(_zone->end() - p);
 
     if (ASMJIT_LIKELY(remain >= size)) {
       _zone->setCursor(p + size);

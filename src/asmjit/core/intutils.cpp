@@ -121,30 +121,30 @@ UNIT(core_intutils) {
   EXPECT(IntUtils::isBetween<int>(11 , 10, 20) == true);
   EXPECT(IntUtils::isBetween<int>(101, 10, 20) == false);
 
-  INFO("IntUtils::isInt8()");
-  EXPECT(IntUtils::isInt8(-128) == true);
-  EXPECT(IntUtils::isInt8( 127) == true);
-  EXPECT(IntUtils::isInt8(-129) == false);
-  EXPECT(IntUtils::isInt8( 128) == false);
+  INFO("IntUtils::isI8()");
+  EXPECT(IntUtils::isI8(-128) == true);
+  EXPECT(IntUtils::isI8( 127) == true);
+  EXPECT(IntUtils::isI8(-129) == false);
+  EXPECT(IntUtils::isI8( 128) == false);
 
-  INFO("IntUtils::isInt16()");
-  EXPECT(IntUtils::isInt16(-32768) == true);
-  EXPECT(IntUtils::isInt16( 32767) == true);
-  EXPECT(IntUtils::isInt16(-32769) == false);
-  EXPECT(IntUtils::isInt16( 32768) == false);
+  INFO("IntUtils::isI16()");
+  EXPECT(IntUtils::isI16(-32768) == true);
+  EXPECT(IntUtils::isI16( 32767) == true);
+  EXPECT(IntUtils::isI16(-32769) == false);
+  EXPECT(IntUtils::isI16( 32768) == false);
 
-  INFO("IntUtils::isInt32()");
-  EXPECT(IntUtils::isInt32( 2147483647    ) == true);
-  EXPECT(IntUtils::isInt32(-2147483647 - 1) == true);
-  EXPECT(IntUtils::isInt32(uint64_t(2147483648U)) == false);
-  EXPECT(IntUtils::isInt32(uint64_t(0xFFFFFFFFU)) == false);
-  EXPECT(IntUtils::isInt32(uint64_t(0xFFFFFFFFU) + 1) == false);
+  INFO("IntUtils::isI32()");
+  EXPECT(IntUtils::isI32( 2147483647    ) == true);
+  EXPECT(IntUtils::isI32(-2147483647 - 1) == true);
+  EXPECT(IntUtils::isI32(uint64_t(2147483648U)) == false);
+  EXPECT(IntUtils::isI32(uint64_t(0xFFFFFFFFU)) == false);
+  EXPECT(IntUtils::isI32(uint64_t(0xFFFFFFFFU) + 1) == false);
 
-  INFO("IntUtils::isUInt8()");
-  EXPECT(IntUtils::isUInt8(0)   == true);
-  EXPECT(IntUtils::isUInt8(255) == true);
-  EXPECT(IntUtils::isUInt8(256) == false);
-  EXPECT(IntUtils::isUInt8(-1)  == false);
+  INFO("IntUtils::isU8()");
+  EXPECT(IntUtils::isU8(0)   == true);
+  EXPECT(IntUtils::isU8(255) == true);
+  EXPECT(IntUtils::isU8(256) == false);
+  EXPECT(IntUtils::isU8(-1)  == false);
 
   INFO("IntUtils::isUInt12()");
   EXPECT(IntUtils::isUInt12(0)    == true);
@@ -152,16 +152,16 @@ UNIT(core_intutils) {
   EXPECT(IntUtils::isUInt12(4096) == false);
   EXPECT(IntUtils::isUInt12(-1)   == false);
 
-  INFO("IntUtils::isUInt16()");
-  EXPECT(IntUtils::isUInt16(0)     == true);
-  EXPECT(IntUtils::isUInt16(65535) == true);
-  EXPECT(IntUtils::isUInt16(65536) == false);
-  EXPECT(IntUtils::isUInt16(-1)    == false);
+  INFO("IntUtils::isU16()");
+  EXPECT(IntUtils::isU16(0)     == true);
+  EXPECT(IntUtils::isU16(65535) == true);
+  EXPECT(IntUtils::isU16(65536) == false);
+  EXPECT(IntUtils::isU16(-1)    == false);
 
-  INFO("IntUtils::isUInt32()");
-  EXPECT(IntUtils::isUInt32(uint64_t(0xFFFFFFFF)) == true);
-  EXPECT(IntUtils::isUInt32(uint64_t(0xFFFFFFFF) + 1) == false);
-  EXPECT(IntUtils::isUInt32(-1) == false);
+  INFO("IntUtils::isU32()");
+  EXPECT(IntUtils::isU32(uint64_t(0xFFFFFFFF)) == true);
+  EXPECT(IntUtils::isU32(uint64_t(0xFFFFFFFF) + 1) == false);
+  EXPECT(IntUtils::isU32(-1) == false);
 
   INFO("IntUtils::bitVectorOp");
   {

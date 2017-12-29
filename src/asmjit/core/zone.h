@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
@@ -29,7 +29,7 @@ ASMJIT_BEGIN_NAMESPACE
 //!
 //! Zone has no function to release the allocated memory. It has to be released
 //! all at once by calling `reset()`. If you need a more friendly allocator that
-//! also supports `release()`, consider using \ref Zone with \ref ZoneAllocator.
+//! also supports `release()`, consider using `Zone` with `ZoneAllocator`.
 class Zone {
 public:
   ASMJIT_NONCOPYABLE(Zone)
@@ -96,19 +96,19 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get the default block size.
-  inline uint32_t getBlockSize() const noexcept { return _blockSize; }
+  inline uint32_t blockSize() const noexcept { return _blockSize; }
   //! Get the default block alignment.
-  inline uint32_t getBlockAlignment() const noexcept { return (uint32_t)1 << _blockAlignmentShift; }
+  inline uint32_t blockAlignment() const noexcept { return (uint32_t)1 << _blockAlignmentShift; }
   //! Get remaining size of the current block.
-  inline size_t getRemainingSize() const noexcept { return (size_t)(_end - _ptr); }
+  inline size_t remainingSize() const noexcept { return (size_t)(_end - _ptr); }
 
   //! Get the current zone cursor (dangerous).
   //!
   //! This is a function that can be used to get exclusive access to the current
   //! block's memory buffer.
-  inline uint8_t* getCursor() noexcept { return _ptr; }
-  //! Get the end of the current zone block, only useful if you use `getCursor()`.
-  inline uint8_t* getEnd() noexcept { return _end; }
+  inline uint8_t* cursor() noexcept { return _ptr; }
+  //! Get the end of the current zone block, only useful if you use `cursor()`.
+  inline uint8_t* end() noexcept { return _end; }
 
   //! Set the current zone cursor to `p` (must match the current block).
   inline void setCursor(uint8_t* p) noexcept {
@@ -183,7 +183,7 @@ public:
 
   //! Allocate `size` bytes without any checks.
   //!
-  //! Can only be called if `getRemainingSize()` returns size at least equal
+  //! Can only be called if `remainingSize()` returns size at least equal
   //! to `size`.
   inline void* allocNoCheck(size_t size) noexcept {
     ASMJIT_ASSERT((size_t)(_end - _ptr) >= size);
@@ -193,9 +193,7 @@ public:
     return static_cast<void*>(ptr);
   }
 
-  //! Allocate `size` bytes of zeroed memory.
-  //!
-  //! See \ref alloc() for more details.
+  //! Allocate `size` bytes of zeroed memory. See `alloc()` for more details.
   ASMJIT_API void* allocZeroed(size_t size) noexcept;
 
   //! Like `alloc()`, but the return pointer is casted to `T*`.
@@ -251,7 +249,7 @@ public:
     return dup(data, size, nullTerminate);
   }
 
-  //! Helper to duplicate a formatted string, maximum length is 256 bytes.
+  //! Helper to duplicate a formatted string, maximum size is 256 bytes.
   ASMJIT_API char* sformat(const char* str, ...) noexcept;
 
   // --------------------------------------------------------------------------
@@ -296,15 +294,14 @@ public:
 // [asmjit::ZoneAllocator]
 // ============================================================================
 
-//! Zone-based memory allocator that uses an existing \ref Zone and provides
-//! a `release()` functionality on top of it. It uses \ref Zone only for chunks
+//! Zone-based memory allocator that uses an existing `Zone` and provides a
+//! `release()` functionality on top of it. It uses `Zone` only for chunks
 //! that can be pooled, and uses libc `malloc()` for chunks that are large.
 //!
 //! The advantage of ZoneAllocator is that it can allocate small chunks of memory
 //! really fast, and these chunks, when released, will be reused by consecutive
-//! calls to `alloc()`. Also, since ZoneAllocator uses \ref Zone, you can turn
-//! any \ref Zone into a \ref ZoneAllocator, and use it in your \ref Pass when
-//! necessary.
+//! calls to `alloc()`. Also, since ZoneAllocator uses `Zone`, you can turn any
+//! `Zone` into a `ZoneAllocator`, and use it in your `Pass` when necessary.
 //!
 //! ZoneAllocator is used by AsmJit containers to make containers having only
 //! few elements fast (and lightweight) and to allow them to grow and use
@@ -389,7 +386,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get the `Zone` the allocator is using, or null if it's not initialized.
-  inline Zone* getZone() const noexcept { return _zone; }
+  inline Zone* zone() const noexcept { return _zone; }
 
   // --------------------------------------------------------------------------
   // [Utilities]

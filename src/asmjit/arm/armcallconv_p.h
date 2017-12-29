@@ -10,28 +10,26 @@
 
 #include "../core/callconv.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 
-//! \addtogroup asmjit_arm
+//! \addtogroup asmjit_arm_api
 //! \{
 
 // ============================================================================
-// [asmjit::ArmCallConvInternal]
+// [asmjit::arm::CallConvInternal]
 // ============================================================================
 
 //! \internal
 //!
 //! ARM-specific function API (calling conventions and other utilities).
-namespace ArmCallConvInternal {
-
-//! Initialize `CallConv` structure (ARM specific).
-Error init(CallConv& cc, uint32_t ccId) noexcept;
-
-} // ArmCallConvInternal
+namespace CallConvInternal {
+  //! Initialize `CallConv` structure (ARM specific).
+  Error init(CallConv& cc, uint32_t ccId) noexcept;
+}
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_ARM_ARMCALLCONV_P_H

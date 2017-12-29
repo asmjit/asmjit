@@ -58,32 +58,32 @@ static ASMJIT_FORCEINLINE void ConstPool_freeGap(ConstPool* self, ConstPool::Gap
   self->_gapPool = gap;
 }
 
-static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) noexcept {
-  ASMJIT_ASSERT(length > 0);
+static void ConstPool_addGap(ConstPool* self, size_t offset, size_t size) noexcept {
+  ASMJIT_ASSERT(size > 0);
 
-  while (length > 0) {
+  while (size > 0) {
     size_t gapIndex;
-    size_t gapLength;
+    size_t gapSize;
 
-    if (length >= 16 && IntUtils::isAligned<size_t>(offset, 16)) {
+    if (size >= 16 && IntUtils::isAligned<size_t>(offset, 16)) {
       gapIndex = ConstPool::kIndex16;
-      gapLength = 16;
+      gapSize = 16;
     }
-    else if (length >= 8 && IntUtils::isAligned<size_t>(offset, 8)) {
+    else if (size >= 8 && IntUtils::isAligned<size_t>(offset, 8)) {
       gapIndex = ConstPool::kIndex8;
-      gapLength = 8;
+      gapSize = 8;
     }
-    else if (length >= 4 && IntUtils::isAligned<size_t>(offset, 4)) {
+    else if (size >= 4 && IntUtils::isAligned<size_t>(offset, 4)) {
       gapIndex = ConstPool::kIndex4;
-      gapLength = 4;
+      gapSize = 4;
     }
-    else if (length >= 2 && IntUtils::isAligned<size_t>(offset, 2)) {
+    else if (size >= 2 && IntUtils::isAligned<size_t>(offset, 2)) {
       gapIndex = ConstPool::kIndex2;
-      gapLength = 2;
+      gapSize = 2;
     }
     else {
       gapIndex = ConstPool::kIndex1;
-      gapLength = 1;
+      gapSize = 1;
     }
 
     // We don't have to check for errors here, if this failed nothing really
@@ -97,10 +97,10 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t length) noex
     self->_gaps[gapIndex] = gap;
 
     gap->_offset = offset;
-    gap->_length = gapLength;
+    gap->_size = gapSize;
 
-    offset += gapLength;
-    length -= gapLength;
+    offset += gapSize;
+    size -= gapSize;
   }
 }
 
@@ -139,7 +139,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
     // Check if there is a gap.
     if (gap) {
       size_t gapOffset = gap->_offset;
-      size_t gapLength = gap->_length;
+      size_t gapSize = gap->_size;
 
       // Destroy the gap for now.
       _gaps[treeIndex] = gap->_next;
@@ -148,9 +148,9 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
       offset = gapOffset;
       ASMJIT_ASSERT(IntUtils::isAligned<size_t>(offset, size));
 
-      gapLength -= size;
-      if (gapLength > 0)
-        ConstPool_addGap(this, gapOffset, gapLength);
+      gapSize -= size;
+      if (gapSize > 0)
+        ConstPool_addGap(this, gapOffset, gapSize);
     }
 
     gapIndex++;
@@ -214,7 +214,7 @@ struct ConstPoolFill {
 
   inline void visit(const ConstPool::Node* node) noexcept {
     if (!node->_shared)
-      std::memcpy(_dst + node->_offset, node->getData(), _dataSize);
+      std::memcpy(_dst + node->_offset, node->data(), _dataSize);
   }
 
   uint8_t* _dst;
@@ -257,11 +257,11 @@ UNIT(core_const_pool) {
       c++;
       EXPECT(pool.add(&c, 8, curOffset) == kErrorOk);
       EXPECT(prevOffset + 8 == curOffset);
-      EXPECT(pool.getSize() == (i + 1) * 8);
+      EXPECT(pool.size() == (i + 1) * 8);
       prevOffset = curOffset;
     }
 
-    EXPECT(pool.getAlignment() == 8);
+    EXPECT(pool.alignment() == 8);
   }
 
   INFO("Retrieving %u constants from the pool.", kCount);
@@ -294,7 +294,7 @@ UNIT(core_const_pool) {
 
     EXPECT(pool.add(&c, 2, offset) == kErrorOk);
     EXPECT(offset == kCount * 8);
-    EXPECT(pool.getAlignment() == 8);
+    EXPECT(pool.alignment() == 8);
   }
 
   INFO("Adding 8 byte constant to check if pool gets aligned again");
@@ -313,7 +313,7 @@ UNIT(core_const_pool) {
 
     EXPECT(pool.add(&c, 2, offset) == kErrorOk);
     EXPECT(offset == kCount * 8 + 2);
-    EXPECT(pool.getAlignment() == 8);
+    EXPECT(pool.alignment() == 8);
   }
 
   INFO("Checking reset functionality");
@@ -321,8 +321,8 @@ UNIT(core_const_pool) {
     pool.reset(&zone);
     zone.reset();
 
-    EXPECT(pool.getSize() == 0);
-    EXPECT(pool.getAlignment() == 0);
+    EXPECT(pool.size() == 0);
+    EXPECT(pool.alignment() == 0);
   }
 
   INFO("Checking pool alignment when combined constants are added");
@@ -331,28 +331,28 @@ UNIT(core_const_pool) {
     size_t offset;
 
     pool.add(bytes, 1, offset);
-    EXPECT(pool.getSize() == 1);
-    EXPECT(pool.getAlignment() == 1);
+    EXPECT(pool.size() == 1);
+    EXPECT(pool.alignment() == 1);
     EXPECT(offset == 0);
 
     pool.add(bytes, 2, offset);
-    EXPECT(pool.getSize() == 4);
-    EXPECT(pool.getAlignment() == 2);
+    EXPECT(pool.size() == 4);
+    EXPECT(pool.alignment() == 2);
     EXPECT(offset == 2);
 
     pool.add(bytes, 4, offset);
-    EXPECT(pool.getSize() == 8);
-    EXPECT(pool.getAlignment() == 4);
+    EXPECT(pool.size() == 8);
+    EXPECT(pool.alignment() == 4);
     EXPECT(offset == 4);
 
     pool.add(bytes, 4, offset);
-    EXPECT(pool.getSize() == 8);
-    EXPECT(pool.getAlignment() == 4);
+    EXPECT(pool.size() == 8);
+    EXPECT(pool.alignment() == 4);
     EXPECT(offset == 4);
 
     pool.add(bytes, 32, offset);
-    EXPECT(pool.getSize() == 64);
-    EXPECT(pool.getAlignment() == 32);
+    EXPECT(pool.size() == 64);
+    EXPECT(pool.alignment() == 32);
     EXPECT(offset == 32);
   }
 }

@@ -5,17 +5,18 @@
 // Zlib - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_CORE_CODEEMITTER_H
-#define _ASMJIT_CORE_CODEEMITTER_H
+#ifndef _ASMJIT_CORE_EMITTER_H
+#define _ASMJIT_CORE_EMITTER_H
 
 // [Dependencies]
 #include "../core/arch.h"
-#include "../core/codeholder.h"
+#include "../core/inst.h"
 #include "../core/operand.h"
+#include "../core/codeholder.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
@@ -27,12 +28,12 @@ class FuncFrame;
 class FuncArgsAssignment;
 
 // ============================================================================
-// [asmjit::CodeEmitter]
+// [asmjit::BaseEmitter]
 // ============================================================================
 
-//! Provides a base foundation to emit code - specialized by \ref Assembler and
-//! \ref CodeBuilder.
-class ASMJIT_VIRTAPI CodeEmitter {
+//! Provides a base foundation to emit code - specialized by `Assembler` and
+//! `BaseBuilder`.
+class ASMJIT_VIRTAPI BaseEmitter {
 public:
   //! Emitter type.
   enum EmitterType : uint32_t {
@@ -51,7 +52,7 @@ public:
 
   //! Emitter options.
   enum Options : uint32_t {
-    //! Logging is enabled, `CodeEmitter::getLogger()` must return a valid logger.
+    //! Logging is enabled, `BaseEmitter::logger()` must return a valid logger.
     kOptionLoggingEnabled   = 0x00000001U,
 
     //! Stricly validate each instruction before it's emitted.
@@ -61,10 +62,10 @@ public:
     //!
     //! Default `false`.
     //!
-    //! X86/X64 Specific
-    //! ----------------
+    //! X86 Specific
+    //! ------------
     //!
-    //! Default align sequence used by X86/X64 architecture is one-byte (0x90)
+    //! Default align sequence used by X86 architecture is one-byte (0x90)
     //! opcode that is often shown by disassemblers as NOP. However there are
     //! more optimized align sequences for 2-11 bytes that may execute faster
     //! on certain CPUs. If this feature is enabled AsmJit will generate
@@ -75,8 +76,8 @@ public:
     //!
     //! Default `false`.
     //!
-    //! X86/X64 Specific
-    //! ----------------
+    //! X86 Specific
+    //! ------------
     //!
     //! Jump prediction is usually based on the direction of the jump. If the
     //! jump is backward it is usually predicted as taken; and if the jump is
@@ -96,8 +97,8 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API explicit CodeEmitter(uint32_t type) noexcept;
-  ASMJIT_API virtual ~CodeEmitter() noexcept;
+  ASMJIT_API explicit BaseEmitter(uint32_t type) noexcept;
+  ASMJIT_API virtual ~BaseEmitter() noexcept;
 
   // --------------------------------------------------------------------------
   // [Cast]
@@ -113,9 +114,9 @@ public:
   // [Emitter Type & Flags]
   // --------------------------------------------------------------------------
 
-  //! Get the type of this CodeEmitter, see \ref EmitterType.
-  inline uint32_t getEmitterType() const noexcept { return _type; }
-  inline uint32_t getEmitterFlags() const noexcept { return _flags; }
+  //! Get the type of this BaseEmitter, see `EmitterType`.
+  inline uint32_t emitterType() const noexcept { return _type; }
+  inline uint32_t emitterFlags() const noexcept { return _flags; }
 
   inline bool isAssembler() const noexcept { return _type == kTypeAssembler; }
   inline bool isBuilder() const noexcept { return _type >= kTypeBuilder; }
@@ -132,32 +133,32 @@ public:
   // [Target Information]
   // --------------------------------------------------------------------------
 
-  //! Get \ref CodeHolder this CodeEmitter is attached to.
-  inline CodeHolder* getCode() const noexcept { return _code; }
-  //! Get information about the code, see \ref CodeInfo.
-  inline const CodeInfo& getCodeInfo() const noexcept { return _codeInfo; }
-  //! Get information about the architecture, see \ref ArchInfo.
-  inline const ArchInfo& getArchInfo() const noexcept { return _codeInfo.getArchInfo(); }
+  //! Get `CodeHolder` this emitter is attached to.
+  inline CodeHolder* code() const noexcept { return _code; }
+  //! Get information about the code, see `CodeInfo`.
+  inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
+  //! Get information about the architecture, see `ArchInfo`.
+  inline const ArchInfo& archInfo() const noexcept { return _codeInfo.archInfo(); }
 
   //! Get whether the target architecture is 32-bit.
-  inline bool is32Bit() const noexcept { return getArchInfo().is32Bit(); }
+  inline bool is32Bit() const noexcept { return archInfo().is32Bit(); }
   //! Get whether the target architecture is 64-bit.
-  inline bool is64Bit() const noexcept { return getArchInfo().is64Bit(); }
+  inline bool is64Bit() const noexcept { return archInfo().is64Bit(); }
 
   //! Get the target architecture type.
-  inline uint32_t getArchType() const noexcept { return getArchInfo().getType(); }
+  inline uint32_t archId() const noexcept { return archInfo().archId(); }
   //! Get the target architecture sub-type.
-  inline uint32_t getArchSubType() const noexcept { return getArchInfo().getSubType(); }
+  inline uint32_t archSubId() const noexcept { return archInfo().archSubId(); }
   //! Get the target architecture's GP register size (4 or 8 bytes).
-  inline uint32_t getGpSize() const noexcept { return getArchInfo().getGpSize(); }
+  inline uint32_t gpSize() const noexcept { return archInfo().gpSize(); }
   //! Get the number of target GP registers.
-  inline uint32_t getGpCount() const noexcept { return getArchInfo().getGpCount(); }
+  inline uint32_t gpCount() const noexcept { return archInfo().gpCount(); }
 
   // --------------------------------------------------------------------------
   // [Initialization / Finalization]
   // --------------------------------------------------------------------------
 
-  //! Get whether the CodeEmitter is initialized (i.e. attached to a \ref CodeHolder).
+  //! Get whether the BaseEmitter is initialized (i.e. attached to the `CodeHolder`).
   inline bool isInitialized() const noexcept { return _code != nullptr; }
 
   ASMJIT_API virtual Error finalize();
@@ -169,7 +170,7 @@ public:
   //! Get whether the `option` is present in emitter options.
   inline bool hasEmitterOption(uint32_t option) const noexcept { return (_emitterOptions & option) != 0; }
   //! Get emitter options.
-  inline uint32_t getEmitterOptions() const noexcept { return _emitterOptions; }
+  inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
 
   inline void addEmitterOptions(uint32_t options) noexcept {
     _emitterOptions |= options;
@@ -188,7 +189,7 @@ public:
   //! for error handling, logging, and strict validation. Other options are globals that
   //! affect each instruction, for example if VEX3 is set globally, it will all
   //! instructions, even those that don't have such option set.
-  inline uint32_t getGlobalInstOptions() const noexcept { return _globalInstOptions; }
+  inline uint32_t globalInstOptions() const noexcept { return _globalInstOptions; }
 
   // --------------------------------------------------------------------------
   // [Error Handling]
@@ -197,14 +198,14 @@ public:
   //! Get whether the local error handler is attached.
   inline bool hasErrorHandler() const noexcept { return _errorHandler != nullptr; }
   //! Get the local error handler.
-  inline ErrorHandler* getErrorHandler() const noexcept { return _errorHandler; }
+  inline ErrorHandler* errorHandler() const noexcept { return _errorHandler; }
   //! Set the local error handler.
   inline void setErrorHandler(ErrorHandler* handler) noexcept { _errorHandler = handler; }
   //! Reset the local error handler (does nothing if not attached).
   inline void resetErrorHandler() noexcept { setErrorHandler(nullptr); }
 
   //! Handle the given error in the following way:
-  //!   1. Get either CodeEmitter's (preferred) or CodeHolder's ErrorHandler.
+  //!   1. Get either BaseEmitter's (preferred) or CodeHolder's ErrorHandler.
   //!   2. If exists, call `ErrorHandler::handleError(error, message, this)`.
   //!   3. Return the given `err` if ErrorHandler haven't thrown.
   ASMJIT_API Error reportError(Error err, const char* message = nullptr);
@@ -214,7 +215,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get options of the next instruction.
-  inline uint32_t getInstOptions() const noexcept { return _instOptions; }
+  inline uint32_t instOptions() const noexcept { return _instOptions; }
   //! Set options of the next instruction.
   inline void setInstOptions(uint32_t options) noexcept { _instOptions = options; }
   //! Add options of the next instruction.
@@ -223,22 +224,22 @@ public:
   inline void resetInstOptions() noexcept { _instOptions = 0; }
 
   //! Get whether the extra register operand is valid.
-  inline bool hasExtraReg() const noexcept { return _extraReg.isValid(); }
+  inline bool hasExtraReg() const noexcept { return _extraReg.isReg(); }
   //! Get an extra operand that will be used by the next instruction (architecture specific).
-  inline const RegOnly& getExtraReg() const noexcept { return _extraReg; }
+  inline const RegOnly& extraReg() const noexcept { return _extraReg; }
   //! Set an extra operand that will be used by the next instruction (architecture specific).
-  inline void setExtraReg(const Reg& reg) noexcept { _extraReg.init(reg); }
+  inline void setExtraReg(const BaseReg& reg) noexcept { _extraReg.init(reg); }
   //! Set an extra operand that will be used by the next instruction (architecture specific).
   inline void setExtraReg(const RegOnly& reg) noexcept { _extraReg.init(reg); }
   //! Reset an extra operand that will be used by the next instruction (architecture specific).
   inline void resetExtraReg() noexcept { _extraReg.reset(); }
 
   //! Get annotation of the next instruction.
-  inline const char* getInlineComment() const noexcept { return _inlineComment; }
+  inline const char* inlineComment() const noexcept { return _inlineComment; }
   //! Set annotation of the next instruction.
   //!
   //! NOTE: This string is set back to null by `_emit()`, but until that it has
-  //! to remain valid as `CodeEmitter` is not required to make a copy of it (and
+  //! to remain valid as `BaseEmitter` is not required to make a copy of it (and
   //! it would be slow to do that for each instruction).
   inline void setInlineComment(const char* s) noexcept { _inlineComment = s; }
   //! Reset annotation of the next instruction to null.
@@ -253,7 +254,7 @@ public:
   //! Create a new named label.
   virtual Label newNamedLabel(
     const char* name,
-    size_t nameLength = Globals::kNullTerminated,
+    size_t nameSize = Globals::kNullTerminated,
     uint32_t type = Label::kTypeGlobal,
     uint32_t parentId = 0) = 0;
 
@@ -261,12 +262,11 @@ public:
   //!
   //! Returns invalid Label in case that the name is invalid or label was not found.
   //!
-  //! NOTE: This function doesn't trigger ErrorHandler in case the name is
-  //! invalid or no such label exist. You must always check the validity of the
-  //! \ref Label returned.
-  ASMJIT_API Label getLabelByName(
+  //! NOTE: This function doesn't trigger ErrorHandler in case the name is invalid
+  //! or no such label exist. You must always check the validity of the `Label` returned.
+  ASMJIT_API Label labelByName(
     const char* name,
-    size_t nameLength = Globals::kNullTerminated,
+    size_t nameSize = Globals::kNullTerminated,
     uint32_t parentId = 0) noexcept;
 
   //! Bind the `label` to the current position of the current section.
@@ -277,7 +277,7 @@ public:
   //! Get whether the label `id` is valid (i.e. registered).
   ASMJIT_API bool isLabelValid(uint32_t id) const noexcept;
   //! Get whether the `label` is valid (i.e. registered).
-  inline bool isLabelValid(const Label& label) const noexcept { return isLabelValid(label.getId()); }
+  inline bool isLabelValid(const Label& label) const noexcept { return isLabelValid(label.id()); }
 
   // --------------------------------------------------------------------------
   // [Emit - Low-Level]
@@ -366,6 +366,12 @@ public:
 
   inline Error emitOpArray(uint32_t instId, const Operand_* operands, size_t count) { return _emitOpArray(instId, operands, count); }
 
+  inline Error emitInst(const BaseInst& inst, const Operand_* operands, size_t count) {
+    setInstOptions(inst.options());
+    setExtraReg(inst.extraReg());
+    return _emitOpArray(inst.id(), operands, count);
+  }
+
   // --------------------------------------------------------------------------
   // [Emit - Virtual]
   // --------------------------------------------------------------------------
@@ -392,8 +398,8 @@ public:
   //! Align to the `alignment` specified.
   //!
   //! The sequence that is used to fill the gap between the aligned location
-  //! and the current location depends on the align `mode`, see \ref AlignMode.
-  virtual Error align(uint32_t mode, uint32_t alignment) = 0;
+  //! and the current location depends on the align `mode`, see `AlignMode`.
+  virtual Error align(uint32_t alignMode, uint32_t alignment) = 0;
 
   // --------------------------------------------------------------------------
   // [Embed]
@@ -415,8 +421,8 @@ public:
   // [Comment]
   // --------------------------------------------------------------------------
 
-  //! Emit comment from string `s` with an optional `len` parameter.
-  virtual Error comment(const char* s, size_t len = Globals::kNullTerminated) = 0;
+  //! Emit comment from string `data` with an optional comment `size` parameter.
+  virtual Error comment(const char* data, size_t size = Globals::kNullTerminated) = 0;
 
   //! Emit comment from a formatted string `fmt`.
   ASMJIT_API Error commentf(const char* fmt, ...);
@@ -427,33 +433,33 @@ public:
   // [Events]
   // --------------------------------------------------------------------------
 
-  //! Called after the \ref CodeEmitter was attached to the \ref CodeHolder.
+  //! Called after the emitter was attached to `CodeHolder`.
   virtual Error onAttach(CodeHolder* code) noexcept = 0;
-  //! Called after the \ref CodeEmitter was detached from the \ref CodeHolder.
+  //! Called after the emitter was detached from `CodeHolder`.
   virtual Error onDetach(CodeHolder* code) noexcept = 0;
 
   //! Called to update `_globalInstOptions` based on `_emitterOptions`.
   //!
-  //! This function should only touch one bit `Inst::kOptionReserved`, which is
-  //! used to handle errors and special-cases in a way that minimizes branching.
+  //! This function should only touch one bit `BaseInst::kOptionReserved`, which
+  //! is used to handle errors and special-cases in a way that minimizes branching.
   ASMJIT_API void onUpdateGlobalInstOptions() noexcept;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _type;                         //!< See \ref EmitterType.
-  uint8_t _reserved;                     //!< \reserved
-  uint16_t _flags;                       //!< See \ref Flags.
+  uint8_t _type;                         //!< See `EmitterType`.
+  uint8_t _reserved;                     //!< Reserved
+  uint16_t _flags;                       //!< See `Flags`.
 
-  CodeHolder* _code;                     //!< CodeHolder the CodeEmitter is attached to.
-  ErrorHandler* _errorHandler;           //!< Attached \ref ErrorHandler.
+  CodeHolder* _code;                     //!< CodeHolder the BaseEmitter is attached to.
+  ErrorHandler* _errorHandler;           //!< Attached `ErrorHandler`.
 
   CodeInfo _codeInfo;                    //!< Basic information about the code (matches CodeHolder::_codeInfo).
   RegInfo _gpRegInfo;                    //!< Native GP register signature and signature related information.
 
   uint32_t _emitterOptions;              //!< Emitter options, always in sync with CodeHolder.
-  uint32_t _privateData;                 //!< Internal private data used freely by any CodeEmitter.
+  uint32_t _privateData;                 //!< Internal private data used freely by any BaseEmitter.
 
   uint32_t _instOptions;                 //!< Next instruction options                (affects the next instruction).
   uint32_t _globalInstOptions;           //!< Global Instruction options              (combined with `_instOptions` by `emit...()`).
@@ -466,4 +472,4 @@ public:
 ASMJIT_END_NAMESPACE
 
 // [Guard]
-#endif // _ASMJIT_CORE_CODEEMITTER_H
+#endif // _ASMJIT_CORE_EMITTER_H

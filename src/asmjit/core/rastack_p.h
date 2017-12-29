@@ -16,7 +16,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_ra
+//! \addtogroup asmjit_core_ra
 //! \{
 
 // ============================================================================
@@ -39,24 +39,24 @@ struct RAStackSlot {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline uint32_t getBaseRegId() const noexcept { return _baseRegId; }
+  inline uint32_t baseRegId() const noexcept { return _baseRegId; }
   inline void setBaseRegId(uint32_t id) noexcept { _baseRegId = uint8_t(id); }
 
-  inline uint32_t getSize() const noexcept { return _size; }
-  inline uint32_t getAlignment() const noexcept { return _alignment; }
+  inline uint32_t size() const noexcept { return _size; }
+  inline uint32_t alignment() const noexcept { return _alignment; }
 
-  inline uint32_t getFlags() const noexcept { return _flags; }
+  inline uint32_t flags() const noexcept { return _flags; }
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
   inline bool isRegHome() const noexcept { return (_flags & kFlagRegHome) != 0; }
   inline bool isStackArg() const noexcept { return (_flags & kFlagStackArg) != 0; }
 
-  inline uint32_t getUseCount() const noexcept { return _useCount; }
+  inline uint32_t useCount() const noexcept { return _useCount; }
   inline void addUseCount(uint32_t n = 1) noexcept { _useCount += n; }
 
-  inline uint32_t getWeight() const noexcept { return _weight; }
+  inline uint32_t weight() const noexcept { return _weight; }
   inline void setWeight(uint32_t weight) noexcept { _weight = weight; }
 
-  inline int32_t getOffset() const noexcept { return _offset; }
+  inline int32_t offset() const noexcept { return _offset; }
   inline void setOffset(int32_t offset) noexcept { _offset = offset; }
 
   // --------------------------------------------------------------------------
@@ -119,16 +119,15 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline ZoneAllocator* getAllocator() const noexcept { return _allocator; }
+  inline ZoneAllocator* allocator() const noexcept { return _allocator; }
 
-  inline uint32_t getBytesUsed() const noexcept { return _bytesUsed; }
-  inline uint32_t getStackSize() const noexcept { return _stackSize; }
-  inline uint32_t getAlignment() const noexcept { return _alignment; }
+  inline uint32_t bytesUsed() const noexcept { return _bytesUsed; }
+  inline uint32_t stackSize() const noexcept { return _stackSize; }
+  inline uint32_t alignment() const noexcept { return _alignment; }
 
-  inline RAStackSlots& getSlots() noexcept { return _slots; }
-  inline const RAStackSlots& getSlots() const noexcept { return _slots; }
-
-  inline uint32_t getSlotCount() const noexcept { return _slots.getLength(); }
+  inline RAStackSlots& slots() noexcept { return _slots; }
+  inline const RAStackSlots& slots() const noexcept { return _slots; }
+  inline uint32_t slotCount() const noexcept { return _slots.size(); }
 
   // --------------------------------------------------------------------------
   // [Slots]

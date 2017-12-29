@@ -19,7 +19,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_jit
 //! \{
 
 // ============================================================================
@@ -94,10 +94,7 @@ public:
       _totalOverheadBytes = 0;
     }
 
-    inline uint32_t getGranularity() const noexcept {
-      return _granularity;
-    }
-
+    inline uint32_t granularity() const noexcept { return _granularity; }
     inline void setGranularity(uint32_t granularity) noexcept {
       ASMJIT_ASSERT(granularity < 65536U);
       _granularity = uint16_t(granularity);
@@ -152,21 +149,21 @@ public:
         _usedBitVector(usedBitVector),
         _stopBitVector(stopBitVector) {}
 
-    inline Pool* getPool() const noexcept { return _pool; }
+    inline Pool* pool() const noexcept { return _pool; }
 
-    inline uint8_t* getVirtMem() const noexcept { return _virtMem; }
-    inline size_t getBlockSize() const noexcept { return _blockSize; }
+    inline uint8_t* virtMem() const noexcept { return _virtMem; }
+    inline size_t blockSize() const noexcept { return _blockSize; }
 
-    inline uint32_t getFlags() const noexcept { return _flags; }
+    inline uint32_t flags() const noexcept { return _flags; }
     inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
     inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
     inline void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
 
-    inline uint32_t getAreaSize() const noexcept { return _areaSize; }
-    inline uint32_t getAreaUsed() const noexcept { return _areaUsed; }
+    inline uint32_t areaSize() const noexcept { return _areaSize; }
+    inline uint32_t areaUsed() const noexcept { return _areaUsed; }
 
-    inline uint32_t getAreaAvailable() const noexcept { return getAreaSize() - getAreaUsed(); }
-    inline uint32_t getLargestUnusedArea() const noexcept { return _largestUnusedArea; }
+    inline uint32_t areaAvailable() const noexcept { return areaSize() - areaUsed(); }
+    inline uint32_t largestUnusedArea() const noexcept { return _largestUnusedArea; }
 
     inline void increaseUsedArea(uint32_t areaSize) noexcept {
       _areaUsed += areaSize;
@@ -179,12 +176,12 @@ public:
     }
 
     // RBTree default CMP uses '<' and '>' operators.
-    inline bool operator<(const Block& other) const noexcept { return getVirtMem() < other.getVirtMem(); }
-    inline bool operator>(const Block& other) const noexcept { return getVirtMem() > other.getVirtMem(); }
+    inline bool operator<(const Block& other) const noexcept { return virtMem() < other.virtMem(); }
+    inline bool operator>(const Block& other) const noexcept { return virtMem() > other.virtMem(); }
 
     // Special implementation for querying blocks by `key`, which must be in `[virtMem, virtMem + blockSize)` interval.
-    inline bool operator<(const uint8_t* key) const noexcept { return getVirtMem() + getBlockSize() <= key; }
-    inline bool operator>(const uint8_t* key) const noexcept { return getVirtMem() > key; }
+    inline bool operator<(const uint8_t* key) const noexcept { return virtMem() + blockSize() <= key; }
+    inline bool operator>(const uint8_t* key) const noexcept { return virtMem() > key; }
 
     Pool* _pool;                         //!< Link to the pool that owns this block.
     uint8_t* _virtMem;                   //!< Virtual memory address.
@@ -210,27 +207,27 @@ public:
     }
 
     //! Get count of blocks managed by `JitAllocator`.
-    inline size_t getBlockCount() const noexcept { return _blockCount; }
+    inline size_t blockCount() const noexcept { return _blockCount; }
 
     //! Get how many bytes are currently used.
-    inline size_t getUsedSize() const noexcept { return _usedSize; }
+    inline size_t usedSize() const noexcept { return _usedSize; }
     //! Number of bytes unused by the allocator at the moment.
-    inline size_t getUnusedSize() const noexcept { return _reservedSize - _usedSize; }
+    inline size_t unusedSize() const noexcept { return _reservedSize - _usedSize; }
     //! Total number of bytes bytes reserved by the allocator (sum of sizes of all blocks).
-    inline size_t getReservedSize() const noexcept { return _reservedSize; }
+    inline size_t reservedSize() const noexcept { return _reservedSize; }
     //! Number of bytes the allocator needs to manage the allocated memory.
-    inline size_t getOverheadSize() const noexcept { return _overheadSize; }
+    inline size_t overheadSize() const noexcept { return _overheadSize; }
 
-    inline double getUsedAsPercent() const noexcept {
-      return (double(getUsedSize()) / (double(getReservedSize()) + 1e-16)) * 100.0;
+    inline double usedSizeAsPercent() const noexcept {
+      return (double(usedSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
 
-    inline double getUnusedAsPercent() const noexcept {
-      return (double(getUnusedSize()) / (double(getReservedSize()) + 1e-16)) * 100.0;
+    inline double unusedSizeAsPercent() const noexcept {
+      return (double(unusedSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
 
-    inline double getOverheadAsPercent() const noexcept {
-      return (double(getOverheadSize()) / (double(getReservedSize()) + 1e-16)) * 100.0;
+    inline double overheadSizeAsPercent() const noexcept {
+      return (double(overheadSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
 
     size_t _blockCount;                  //!< Number of blocks `JitAllocator` maintaints.
@@ -259,21 +256,21 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get allocation flags, see \ref Flags.
-  inline uint32_t getFlags() const noexcept { return _flags; }
+  //! Get allocation flags, see `Flags`.
+  inline uint32_t flags() const noexcept { return _flags; }
   //! Get whether the allocator has the given `flag` set.
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
   //! Get a page size (smallest possible allocable chunk of virtual memory).
-  inline uint32_t getPageSize() const noexcept { return _pageSize; }
+  inline uint32_t pageSize() const noexcept { return _pageSize; }
   //! Get a minimum block size (a minimum size of block that the allocator would allocate).
-  inline uint32_t getBlockSize() const noexcept { return _blockSize; }
+  inline uint32_t blockSize() const noexcept { return _blockSize; }
 
   //! Get a pattern that is used to fill unused memory if `kFlagSecureMode` is enabled.
-  inline uint32_t getFillPattern() const noexcept { return _fillPattern; }
+  inline uint32_t fillPattern() const noexcept { return _fillPattern; }
 
   //! Get allocation statistics.
-  ASMJIT_API Statistics getStatistics() const noexcept;
+  ASMJIT_API Statistics statistics() const noexcept;
 
   // --------------------------------------------------------------------------
   // [Alloc / Release]
@@ -290,7 +287,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _flags;                       //!< Allocator flags, see \ref Flags.
+  uint32_t _flags;                       //!< Allocator flags, see `Flags`.
   uint32_t _pageSize;                    //!< System page size (also a minimum block size).
   uint32_t _blockSize;                   //!< Default block size.
   uint32_t _fillPattern;                 //!< A pattern that is used to fill unused memory if secure mode is enabled.

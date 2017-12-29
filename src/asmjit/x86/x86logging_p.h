@@ -16,42 +16,42 @@
 #include "../core/stringbuilder.h"
 #include "../x86/x86globals.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_x86_api
 //! \{
 
 // ============================================================================
-// [asmjit::X86Logging]
+// [asmjit::x86::LoggingInternal]
 // ============================================================================
 
-struct X86Logging {
-  static Error formatRegister(
+namespace LoggingInternal {
+  Error formatRegister(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
     uint32_t regType,
     uint32_t regId) noexcept;
 
-  static Error formatOperand(
+  Error formatOperand(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
     const Operand_& op) noexcept;
 
-  static Error formatInstruction(
+  Error formatInstruction(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
-    const Inst::Detail& detail, const Operand_* operands, uint32_t count) noexcept;
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
+    const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
 };
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // !ASMJIT_DISABLE_LOGGING

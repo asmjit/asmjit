@@ -69,7 +69,7 @@ static inline uint32_t JitRuntime_detectNaturalStackAlignment() noexcept {
 JitRuntime::JitRuntime() noexcept {
   // Setup target properties.
   _targetType = kTargetJit;
-  _codeInfo._archInfo       = CpuInfo::getHost().getArchInfo();
+  _codeInfo._archInfo       = CpuInfo::host().archInfo();
   _codeInfo._stackAlignment = uint8_t(JitRuntime_detectNaturalStackAlignment());
   _codeInfo._cdeclCallConv  = CallConv::kIdHostCDecl;
   _codeInfo._stdCallConv    = CallConv::kIdHostStdCall;
@@ -82,13 +82,13 @@ JitRuntime::~JitRuntime() noexcept {}
 // ============================================================================
 
 Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
-  size_t codeSize = code->getCodeSize();
+  size_t codeSize = code->codeSize();
   if (ASMJIT_UNLIKELY(codeSize == 0)) {
     *dst = nullptr;
     return DebugUtils::errored(kErrorNoCodeGenerated);
   }
 
-  void* p = _jitAllocator.alloc(codeSize);
+  void* p = _allocator.alloc(codeSize);
   if (ASMJIT_UNLIKELY(!p)) {
     *dst = nullptr;
     return DebugUtils::errored(kErrorNoVirtualMemory);
@@ -98,12 +98,12 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
   size_t relocSize = code->relocate(p);
   if (ASMJIT_UNLIKELY(relocSize == 0)) {
     *dst = nullptr;
-    _jitAllocator.release(p);
+    _allocator.release(p);
     return DebugUtils::errored(kErrorInvalidState);
   }
 
   if (relocSize < codeSize)
-    _jitAllocator.shrink(p, relocSize);
+    _allocator.shrink(p, relocSize);
 
   flush(p, relocSize);
   *dst = p;
@@ -112,7 +112,7 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
 }
 
 Error JitRuntime::_release(void* p) noexcept {
-  return _jitAllocator.release(p);
+  return _allocator.release(p);
 }
 
 void JitRuntime::flush(const void* p, size_t size) noexcept {

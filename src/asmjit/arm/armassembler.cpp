@@ -20,20 +20,20 @@
 #include "../arm/armassembler.h"
 #include "../arm/armlogging_p.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 
 // ============================================================================
-// [asmjit::A32Assembler - Construction / Destruction]
+// [asmjit::Assembler - Construction / Destruction]
 // ============================================================================
 
-A32Assembler::A32Assembler(CodeHolder* code) noexcept : Assembler() {
+Assembler::Assembler(CodeHolder* code) noexcept : BaseAssembler() {
   if (code)
     code->attach(this);
 }
-A32Assembler::~A32Assembler() noexcept {}
+Assembler::~Assembler() noexcept {}
 
 // ============================================================================
-// [asmjit::A32Assembler - Helpers]
+// [asmjit::Assembler - Helpers]
 // ============================================================================
 
 #define ENC_OPS1(OP0)                     ((Operand::kOp##OP0))
@@ -43,20 +43,20 @@ A32Assembler::~A32Assembler() noexcept {}
 #define ENC_OPS5(OP0, OP1, OP2, OP3, OP4) ((Operand::kOp##OP0) + ((Operand::kOp##OP1) << 3) + ((Operand::kOp##OP2) << 6) + ((Operand::kOp##OP3) << 9) + ((Operand::kOp##OP4) << 12))
 
 // ============================================================================
-// [asmjit::A32Assembler - Emit]
+// [asmjit::Assembler - Emit]
 // ============================================================================
 
-Error A32Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
+Error Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
   uint8_t* cursor = _bufferPtr;
-  uint32_t options = uint32_t(instId >= ArmInst::_kIdCount) | getInstOptions() | getGlobalInstOptions();
+  uint32_t options = uint32_t(instId >= ArmInst::_kIdCount) | instOptions() | globalInstOptions();
 
-  const ArmInst* instData = ArmInstDB::instData + instId;
-  const ArmInst::CommonData* commonData;
+  const InstDB::InstInfo* instInfo = ArmInstDB::instData + instId;
+  const InstDB::CommonInfo* commonInfo;
 
   // Signature of the first 3 operands.
-  uint32_t isign3 = o0.getOp() + (o1.getOp() << 3) + (o2.getOp() << 6);
+  uint32_t isign3 = o0.opType() + (o1.opType() << 3) + (o2.opType() << 6);
 
-  if (ASMJIT_UNLIKELY(options & Inst::kOptionReserved)) {
+  if (ASMJIT_UNLIKELY(options & BaseInst::kOptionReserved)) {
     if (ASMJIT_UNLIKELY(!_code))
       return DebugUtils::errored(kErrorNotInitialized);
 
@@ -75,9 +75,9 @@ Error A32Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
   // [Encoding Scope]
   // --------------------------------------------------------------------------
 
-  commonData = &instData->getCommonData();
+  commonInfo = &instData->commonInfo();
 
-  switch (instData->getEncodingType()) {
+  switch (instData->encodingType()) {
   }
 
   // --------------------------------------------------------------------------
@@ -87,7 +87,7 @@ Error A32Assembler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o
 EmitDone:
   #ifndef ASMJIT_DISABLE_LOGGING
   if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled)))
-    _emitLog(instId, options, o0, o1, o2, o3, relSize, imLen, cursor);
+    _emitLog(instId, options, o0, o1, o2, o3, relSize, immSize, cursor);
   #endif
 
   resetInstOptions();
@@ -114,19 +114,20 @@ Failed:
 }
 
 // ============================================================================
-// [asmjit::A32Assembler - Align]
+// [asmjit::Assembler - Align]
 // ============================================================================
 
-Error A32Assembler::align(uint32_t mode, uint32_t alignment) {
+Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
   #ifndef ASMJIT_DISABLE_LOGGING
-  if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled)))
+  if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled))) {
     _code->_logger->logf("%s.align %u\n", _code->_logger->getIndentation(), alignment);
+  }
   #endif
 
-  if (ASMJIT_UNLIKELY(mode >= kAlignCount))
+  if (ASMJIT_UNLIKELY(alignMode >= kAlignCount))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
   if (alignment <= 1)
@@ -135,7 +136,7 @@ Error A32Assembler::align(uint32_t mode, uint32_t alignment) {
   if (ASMJIT_UNLIKELY(alignment > Globals::kMaxAlignment || !IntUtils::isPowerOf2(alignment)))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
-  size_t offset = getOffset();
+  size_t offset = offset();
   uint32_t i = uint32_t(IntUtils::alignUpDiff<size_t>(offset, alignment));
 
   if (i == 0)
@@ -148,7 +149,7 @@ Error A32Assembler::align(uint32_t mode, uint32_t alignment) {
   constexpr uint32_t kNopT32 = 0xF3AF8000U; // [11110011|10101111|10000000|00000000].
   constexpr uint32_t kNopA32 = 0xE3AF8000U; // [Cond0011|00100000|11110000|00000000].
 
-  switch (mode) {
+  switch (alignMode) {
     case kAlignCode: {
       if (isInThumbMode()) {
         uint32_t pattern = 0;
@@ -191,12 +192,12 @@ Error A32Assembler::align(uint32_t mode, uint32_t alignment) {
 }
 
 // ============================================================================
-// [asmjit::A32Assembler - Events]
+// [asmjit::Assembler - Events]
 // ============================================================================
 
-Error A32Assembler::onAttach(CodeHolder* code) noexcept {
-  uint32_t archType = code->getArchType();
-  if (archType != ArchInfo::kTypeA32)
+Error Assembler::onAttach(CodeHolder* code) noexcept {
+  uint32_t archId = code->archId();
+  if (archId != ArchInfo::kIdA32)
     return DebugUtils::errored(kErrorInvalidArch);
 
   ASMJIT_PROPAGATE(Base::onAttach(code));
@@ -204,7 +205,7 @@ Error A32Assembler::onAttach(CodeHolder* code) noexcept {
   return kErrorOk;
 }
 
-Error A32Assembler::onDetach(CodeHolder* code) noexcept {
+Error Assembler::onDetach(CodeHolder* code) noexcept {
   return Base::onDetach(code);
 }
 

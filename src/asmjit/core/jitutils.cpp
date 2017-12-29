@@ -37,7 +37,7 @@ static inline DWORD JitUtils_vmFlagsToProtectFlags(uint32_t vmFlags) noexcept {
   return protectFlags;
 }
 
-JitUtils::MemInfo JitUtils::getMemInfo() noexcept {
+JitUtils::MemInfo JitUtils::memInfo() noexcept {
   MemInfo memInfo;
   SYSTEM_INFO systemInfo;
 
@@ -83,7 +83,7 @@ static inline int JitUtils_vmFlagsToProtection(uint32_t vmFlags) noexcept {
   return protection;
 }
 
-JitUtils::MemInfo JitUtils::getMemInfo() noexcept {
+JitUtils::MemInfo JitUtils::memInfo() noexcept {
   MemInfo memInfo;
 
   uint32_t pageSize = uint32_t(::getpagesize());

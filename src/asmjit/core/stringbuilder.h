@@ -9,11 +9,12 @@
 #define _ASMJIT_CORE_STRINGBUILDER_H
 
 // [Dependencies]
+#include "../core/memutils.h"
 #include "../core/zone.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_support
 //! \{
 
 // ============================================================================
@@ -56,13 +57,13 @@ public:
 
   inline StringBuilder() noexcept
     : _data(_embedded),
-      _length(0),
+      _size(0),
       _capacity(0),
       _embeddedUInt(0) {}
 
   inline StringBuilder(Globals::Init_, size_t embeddedCapacity) noexcept
     : _data(_embedded),
-      _length(0),
+      _size(0),
       _capacity(embeddedCapacity),
       _embeddedUInt(0) {}
 
@@ -75,27 +76,27 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
+  //! Get null-terminated string data.
+  inline char* data() noexcept { return _data; }
+  //! Get null-terminated string data (const).
+  inline const char* data() const noexcept { return _data; }
+
   //! Get whether the string is empty.
-  inline bool isEmpty() const noexcept { return _length == 0; }
+  inline bool empty() const noexcept { return _size == 0; }
+  //! Get size.
+  inline size_t size() const noexcept { return _size; }
+  //! Get capacity.
+  inline size_t capacity() const noexcept { return _capacity; }
+
   //! Get whether the string is using a small embedded buffer which is not dynamically allocated.
   inline bool isEmbedded() const noexcept { return _data == _embedded; }
-
-  //! Get length.
-  inline size_t getLength() const noexcept { return _length; }
-  //! Get capacity.
-  inline size_t getCapacity() const noexcept { return _capacity; }
-
-  //! Get null-terminated string data.
-  inline char* getData() noexcept { return _data; }
-  //! Get null-terminated string data (const).
-  inline const char* getData() const noexcept { return _data; }
 
   // --------------------------------------------------------------------------
   // [Prepare / Reserve]
   // --------------------------------------------------------------------------
 
   //! Prepare to set/append.
-  ASMJIT_API char* prepare(uint32_t op, size_t len) noexcept;
+  ASMJIT_API char* prepare(uint32_t op, size_t size) noexcept;
 
   //! Reserve `to` bytes in string builder.
   ASMJIT_API Error reserve(size_t to) noexcept;
@@ -106,33 +107,33 @@ public:
 
   //! Clear the content in String builder.
   inline void clear() noexcept {
-    _length = 0;
+    _size = 0;
     _data[0] = '\0';
   }
 
   //! Truncate the string to `maxLen` characters.
   inline void truncate(size_t maxLen) noexcept {
-    _length = std::min<size_t>(_length, maxLen);
+    _size = std::min<size_t>(_size, maxLen);
   }
 
   // --------------------------------------------------------------------------
   // [Op]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error _opString(uint32_t op, const char* str, size_t len = Globals::kNullTerminated) noexcept;
+  ASMJIT_API Error _opString(uint32_t op, const char* str, size_t size = Globals::kNullTerminated) noexcept;
   ASMJIT_API Error _opVFormat(uint32_t op, const char* fmt, std::va_list ap) noexcept;
   ASMJIT_API Error _opChar(uint32_t op, char c) noexcept;
   ASMJIT_API Error _opChars(uint32_t op, char c, size_t n) noexcept;
   ASMJIT_API Error _opNumber(uint32_t op, uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) noexcept;
-  ASMJIT_API Error _opHex(uint32_t op, const void* data, size_t len, char separator = '\0') noexcept;
+  ASMJIT_API Error _opHex(uint32_t op, const void* data, size_t size, char separator = '\0') noexcept;
 
   // --------------------------------------------------------------------------
   // [Set]
   // --------------------------------------------------------------------------
 
-  //! Replace the current string with `str` having `len` characters (or possibly null terminated).
-  inline Error setString(const char* str, size_t len = Globals::kNullTerminated) noexcept {
-    return _opString(kStringOpSet, str, len);
+  //! Replace the current string with `str` having `size` characters (or possibly null terminated).
+  inline Error setString(const char* str, size_t size = Globals::kNullTerminated) noexcept {
+    return _opString(kStringOpSet, str, size);
   }
 
   //! Replace the current content by a formatted string `fmt`.
@@ -173,17 +174,17 @@ public:
   }
 
   //! Replace the current content by the given `data` converted to a HEX string.
-  inline Error setHex(const void* data, size_t len, char separator = '\0') noexcept {
-    return _opHex(kStringOpSet, data, len, separator);
+  inline Error setHex(const void* data, size_t size, char separator = '\0') noexcept {
+    return _opHex(kStringOpSet, data, size, separator);
   }
 
   // --------------------------------------------------------------------------
   // [Append]
   // --------------------------------------------------------------------------
 
-  //! Append string `str` having `len` characters (or possibly null terminated).
-  inline Error appendString(const char* str, size_t len = Globals::kNullTerminated) noexcept {
-    return _opString(kStringOpAppend, str, len);
+  //! Append string `str` of size `size` (or possibly null terminated).
+  inline Error appendString(const char* str, size_t size = Globals::kNullTerminated) noexcept {
+    return _opString(kStringOpAppend, str, size);
   }
 
   //! Append a formatted string `fmt`.
@@ -226,18 +227,18 @@ public:
   }
 
   //! Append the given `data` converted to a HEX string.
-  inline Error appendHex(const void* data, size_t len, char separator = '\0') noexcept {
-    return _opHex(kStringOpAppend, data, len, separator);
+  inline Error appendHex(const void* data, size_t size, char separator = '\0') noexcept {
+    return _opHex(kStringOpAppend, data, size, separator);
   }
 
   // --------------------------------------------------------------------------
   // [Eq]
   // --------------------------------------------------------------------------
 
-  //! Check for equality with other `str` of length `len`.
-  ASMJIT_API bool eq(const char* str, size_t len = Globals::kNullTerminated) const noexcept;
+  //! Check for equality with other `str` of size `size`.
+  ASMJIT_API bool eq(const char* str, size_t size = Globals::kNullTerminated) const noexcept;
   //! Check for equality with `other`.
-  inline bool eq(const StringBuilder& other) const noexcept { return eq(other._data, other._length); }
+  inline bool eq(const StringBuilder& other) const noexcept { return eq(other._data, other._size); }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -254,7 +255,7 @@ public:
   // --------------------------------------------------------------------------
 
   char* _data;                           //!< String data.
-  size_t _length;                        //!< String length.
+  size_t _size;                          //!< String size.
   size_t _capacity;                      //!< String capacity.
 
   union {

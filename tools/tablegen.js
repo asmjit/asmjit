@@ -13,30 +13,29 @@
 
 "use strict";
 
-const fs = require("fs");
-const hasOwn = Object.prototype.hasOwnProperty;
-
 const VERBOSE = false;
 
 // ============================================================================
-// [asmdb]
+// [Imports]
 // ============================================================================
 
+const fs = require("fs");
+const hasOwn = Object.prototype.hasOwnProperty;
+
 const asmdb = (function() {
+  // Try to import local 'asmdb' package, if available.
   try {
-    // Prefer a local copy of 'asmdb' package if available.
     return require("./asmdb");
   }
   catch (ex) {
-    // That would mean there is a bug in 'asmdb', report it and fail.
     if (ex.code !== "MODULE_NOT_FOUND") {
       console.log(`FATAL ERROR: ${ex.message}`);
       throw ex;
     }
-
-    // Okay, so global then...
-    return require("asmdb");
   }
+
+  // Try to import global 'asmdb' package as local package is not available.
+  return require("asmdb");
 })();
 exports.asmdb = asmdb;
 
@@ -45,7 +44,7 @@ exports.asmdb = asmdb;
 // ============================================================================
 
 const kIndent = "  ";
-const kJustify = 79;
+const kJustify = 119;
 const kAsmJitRoot = "..";
 
 exports.kIndent = kIndent;
@@ -101,12 +100,20 @@ class StringUtils {
       mapFn = StringUtils.asString;
 
     var s = "";
+    var threshold = 80;
+
+    if (showIndex === -1)
+      s += indent;
+
     for (var i = 0; i < array.length; i++) {
       const item = array[i];
       const last = i === array.length - 1;
 
-      s += `${indent}${mapFn(item)}`;
-      if (showIndex) {
+      if (showIndex !== -1)
+        s += indent;
+
+      s += mapFn(item);
+      if (showIndex > 0) {
         s += `${last ? " " : ","} // #${i}`;
         if (typeof array.refCountOf === "function")
           s += ` [ref=${array.refCountOf(item)}x]`;
@@ -115,7 +122,18 @@ class StringUtils {
         s += ",";
       }
 
-      if (!last) s += "\n";
+      if (showIndex === -1) {
+        if (s.length >= threshold - 1 && !last) {
+          s += "\n" + indent;
+          threshold += 80;
+        }
+        else {
+          if (!last) s += " ";
+        }
+      }
+      else {
+        if (!last) s += "\n";
+      }
     }
 
     return s;
@@ -178,30 +196,55 @@ class StringUtils {
 
     return s.substr(0, iStart + start.length + nIndent) + code + s.substr(iEnd);
   }
+
+  static makePriorityCompare(priorityArray) {
+    const map = Object.create(null);
+    priorityArray.forEach((str, index) => { map[str] = index; });
+
+    return function(a, b) {
+      const ax = hasOwn.call(map, a) ? map[a] : Infinity;
+      const bx = hasOwn.call(map, b) ? map[b] : Infinity;
+      return ax != bx ? ax - bx : a < b ? -1 : a > b ? 1 : 0;
+    }
+  }
 }
 exports.StringUtils = StringUtils;
+
+// ============================================================================
+// [ArrayUtils]
+// ============================================================================
+
+class ArrayUtils {
+  static sorted(obj, cmp) {
+    const out = Array.isArray(obj) ? obj.slice() : Object.getOwnPropertyNames(obj);
+    out.sort(cmp);
+    return out;
+  }
+}
+exports.ArrayUtils = ArrayUtils;
 
 // ============================================================================
 // [MapUtils]
 // ============================================================================
 
 class MapUtils {
-  static clone(map) { return Object.assign(Object.create(null), map); }
+  static clone(map) {
+    return Object.assign(Object.create(null), map);
+  }
 
   static arrayToMap(arr, value) {
     if (value === undefined)
       value = true;
 
-    const map = Object.create(null);
+    const out = Object.create(null);
     for (var i = 0; i < arr.length; i++)
-      map[arr[i]] = value;
-    return map;
+      out[arr[i]] = value;
+    return out;
   }
 
   static equals(a, b) {
     for (var k in a) if (!hasOwn.call(b, k)) return false;
     for (var k in b) if (!hasOwn.call(a, k)) return false;
-
     return true;
   }
 
@@ -258,8 +301,9 @@ exports.MapUtils = MapUtils;
 //
 // The latter (b) has an advantage that it doesn't have to be relocated by the
 // linker, which saves a lot of space in the resulting binary and a lot of CPU
-// cycles (and memory) when the linker loads it. AsmJit has more than thousand
-// of instructions, so each optimization like this makes it smaller and faster.
+// cycles (and memory) when the linker loads it. AsmJit supports thousands of
+// instructions so each optimization like this makes it smaller and faster to
+// load.
 class IndexedString {
   constructor() {
     this.map = Object.create(null);
@@ -421,7 +465,14 @@ class Task {
     this.deps = deps || [];
   }
 
-  run() { FAIL("Task.run(): Must be reimplemented"); }
+  inject(key, str, size) {
+    this.ctx.inject(key, str, size);
+    return this;
+  }
+
+  run() {
+    FAIL("Task.run(): Must be reimplemented");
+  }
 }
 exports.Task = Task;
 
@@ -617,7 +668,6 @@ exports.TableGen = TableGen;
 // [IdEnum]
 // ============================================================================
 
-//
 class IdEnum extends Task {
   constructor(name, deps) {
     super(name || "IdEnum", deps);
@@ -644,7 +694,7 @@ class IdEnum extends Task {
     }
     s += "_kIdCount\n";
 
-    return this.ctx.inject("idData", s);
+    return this.ctx.inject("InstId", s);
   }
 }
 exports.IdEnum = IdEnum;
@@ -660,7 +710,7 @@ class NameTable extends Task {
 
   run() {
     const arch = this.ctx.arch;
-    const none = `${arch}Inst::kIdNone`;
+    const none = "Inst::kIdNone";
 
     const insts = this.ctx.insts;
     const instNames = new IndexedString();
@@ -687,26 +737,26 @@ class NameTable extends Task {
 
       inst.nameIndex = nameIndex;
       if (instFirst[index] === undefined)
-        instFirst[index] = `${arch}Inst::kId${inst.enum}`;
-      instLast[index] = `${arch}Inst::kId${inst.enum}`;
+        instFirst[index] = `Inst::kId${inst.enum}`;
+      instLast[index] = `Inst::kId${inst.enum}`;
     }
 
     var s = "";
-    s += `const char ${arch}InstDB::nameData[] =\n${instNames.format(kIndent, kJustify)}\n`;
+    s += `const char InstDB::_nameData[] =\n${instNames.format(kIndent, kJustify)}\n`;
     s += `\n`;
 
     s += `enum {\n`;
-    s += `  k${arch}InstMaxLength = ${maxLength}\n`;
+    s += `  k${arch}InstMaxSize = ${maxLength}\n`;
     s += `};\n`;
     s += `\n`;
 
-    s += `struct InstNameAZ {\n`;
+    s += `struct InstNameIndex {\n`;
     s += `  uint16_t start;\n`;
     s += `  uint16_t end;\n`;
     s += `};\n`;
     s += `\n`;
 
-    s += `static const InstNameAZ ${arch}InstNameAZ[26] = {\n`;
+    s += `static const InstNameIndex ${arch}InstNameIndex[26] = {\n`;
     for (var i = 0; i < instFirst.length; i++) {
       const firstId = instFirst[i] || none;
       const lastId = instLast[i] || none;
@@ -718,7 +768,7 @@ class NameTable extends Task {
     }
     s += `};\n`;
 
-    return this.ctx.inject("nameData", StringUtils.disclaimer(s), instNames.getSize() + 26 * 4);
+    return this.ctx.inject("NameData", StringUtils.disclaimer(s), instNames.getSize() + 26 * 4);
   }
 }
 exports.NameTable = NameTable;

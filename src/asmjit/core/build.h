@@ -42,10 +42,10 @@
 //
 // Flags can be defined to disable standard features. These are handy especially
 // when building AsmJit statically and some features are not needed or unwanted
-// (like CodeCompiler).
+// (like BaseCompiler).
 //
 // AsmJit features are enabled by default.
-// #define ASMJIT_DISABLE_COMPILER   // Disable CodeCompiler (completely).
+// #define ASMJIT_DISABLE_COMPILER   // Disable BaseCompiler (completely).
 // #define ASMJIT_DISABLE_JIT        // Disable JIT memory manager and JitRuntime.
 // #define ASMJIT_DISABLE_LOGGING    // Disable logging and formatting (completely).
 // #define ASMJIT_DISABLE_TEXT       // Disable everything that contains text
@@ -434,6 +434,14 @@
 #define ASMJIT_OFFSET_OF(STRUCT, MEMBER) ((int)(intptr_t)((const char*)&((const STRUCT*)0x1)->MEMBER) - 1)
 #define ASMJIT_ARRAY_SIZE(X) uint32_t(sizeof(X) / sizeof(X[0]))
 
+#if ASMJIT_CXX_HAS_ATTRIBUTE(attribute_deprecated_with_message, ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 5, 0))
+  #define ASMJIT_DEPRECATED(DECL, MESSAGE) DECL __attribute__((deprecated(MESSAGE)))
+#elif ASMJIT_MSC
+  #define ASMJIT_DEPRECATED(DECL, MESSAGE) __declspec(deprecated(MESSAGE)) DECL
+#else
+  #define ASMJIT_DEPRECATED(DECL, MESSAGE) DECL
+#endif
+
 // ============================================================================
 // [asmjit::Build - Globals - Begin-Namespace / End-Namespace]
 // ============================================================================
@@ -468,6 +476,14 @@
   #define ASMJIT_BEGIN_NAMESPACE namespace asmjit {
   #define ASMJIT_END_NAMESPACE }
 #endif
+
+#define ASMJIT_BEGIN_SUB_NAMESPACE(NAMESPACE)                                 \
+  ASMJIT_BEGIN_NAMESPACE                                                      \
+  namespace NAMESPACE {
+
+#define ASMJIT_END_SUB_NAMESPACE                                              \
+  }                                                                           \
+  ASMJIT_END_NAMESPACE
 
 // ============================================================================
 // [asmjit::Build - Globals - Utilities]
@@ -516,6 +532,7 @@
 // ============================================================================
 
 // We really want std-types as globals.
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 

@@ -147,8 +147,9 @@ class ArmTableGen extends commons.TableGen {
 
   onBeforeRun() {
     this.load([
-      "src/asmjit/arm/arminst.cpp",
-      "src/asmjit/arm/arminst.h"
+      "src/asmjit/arm/armglobals.h"
+      "src/asmjit/arm/arminstdb.cpp",
+      "src/asmjit/arm/arminstdb.h"
     ]);
     this.parse();
   }

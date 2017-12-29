@@ -14,7 +14,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
@@ -38,8 +38,8 @@ public:
       _baseAddress(Globals::kNoBaseAddress) {}
   inline CodeInfo(const CodeInfo& other) noexcept { init(other); }
 
-  explicit inline CodeInfo(uint32_t archType, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept
-    : _archInfo(archType, archMode),
+  explicit inline CodeInfo(uint32_t archId, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept
+    : _archInfo(archId, archMode),
       _stackAlignment(0),
       _cdeclCallConv(CallConv::kIdNone),
       _stdCallConv(CallConv::kIdNone),
@@ -51,15 +51,15 @@ public:
   // --------------------------------------------------------------------------
 
   inline bool isInitialized() const noexcept {
-    return _archInfo._type != ArchInfo::kTypeNone;
+    return _archInfo.archId() != ArchInfo::kIdNone;
   }
 
   inline void init(const CodeInfo& other) noexcept {
     std::memcpy(this, &other, sizeof(*this));
   }
 
-  inline void init(uint32_t archType, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept {
-    _archInfo.init(archType, archMode);
+  inline void init(uint32_t archId, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept {
+    _archInfo.init(archId, archMode);
     _stackAlignment = 0;
     _cdeclCallConv = CallConv::kIdNone;
     _stdCallConv = CallConv::kIdNone;
@@ -80,34 +80,34 @@ public:
   // [Architecture Information]
   // --------------------------------------------------------------------------
 
-  //! Get architecture information, see \ref ArchInfo.
-  inline const ArchInfo& getArchInfo() const noexcept { return _archInfo; }
+  //! Get architecture information, see `ArchInfo`.
+  inline const ArchInfo& archInfo() const noexcept { return _archInfo; }
 
-  //! Get architecture type, see \ref ArchInfo::Type.
-  inline uint32_t getArchType() const noexcept { return _archInfo.getType(); }
-  //! Get architecture sub-type, see \ref ArchInfo::SubType.
-  inline uint32_t getArchSubType() const noexcept { return _archInfo.getSubType(); }
+  //! Get architecture type, see `ArchInfo::Id`.
+  inline uint32_t archId() const noexcept { return _archInfo.archId(); }
+  //! Get architecture sub-type, see `ArchInfo::SubId`.
+  inline uint32_t archSubId() const noexcept { return _archInfo.archSubId(); }
   //! Get a size of a GP register of the architecture the code is using.
-  inline uint32_t getGpSize() const noexcept { return _archInfo.getGpSize(); }
+  inline uint32_t gpSize() const noexcept { return _archInfo.gpSize(); }
   //! Get number of GP registers available of the architecture the code is using.
-  inline uint32_t getGpCount() const noexcept { return _archInfo.getGpCount(); }
+  inline uint32_t gpCount() const noexcept { return _archInfo.gpCount(); }
 
   // --------------------------------------------------------------------------
   // [High-Level Information]
   // --------------------------------------------------------------------------
 
   //! Get a natural stack alignment that must be honored (or 0 if not known).
-  inline uint32_t getStackAlignment() const noexcept { return _stackAlignment; }
+  inline uint32_t stackAlignment() const noexcept { return _stackAlignment; }
   //! Set a natural stack alignment that must be honored.
   inline void setStackAlignment(uint32_t sa) noexcept { _stackAlignment = uint8_t(sa); }
 
-  inline uint32_t getCdeclCallConv() const noexcept { return _cdeclCallConv; }
+  inline uint32_t cdeclCallConv() const noexcept { return _cdeclCallConv; }
   inline void setCdeclCallConv(uint32_t cc) noexcept { _cdeclCallConv = uint8_t(cc); }
 
-  inline uint32_t getStdCallConv() const noexcept { return _stdCallConv; }
+  inline uint32_t stdCallConv() const noexcept { return _stdCallConv; }
   inline void setStdCallConv(uint32_t cc) noexcept { _stdCallConv = uint8_t(cc); }
 
-  inline uint32_t getFastCallConv() const noexcept { return _fastCallConv; }
+  inline uint32_t fastCallConv() const noexcept { return _fastCallConv; }
   inline void setFastCallConv(uint32_t cc) noexcept { _fastCallConv = uint8_t(cc); }
 
   // --------------------------------------------------------------------------
@@ -115,7 +115,7 @@ public:
   // --------------------------------------------------------------------------
 
   inline bool hasBaseAddress() const noexcept { return _baseAddress != Globals::kNoBaseAddress; }
-  inline uint64_t getBaseAddress() const noexcept { return _baseAddress; }
+  inline uint64_t baseAddress() const noexcept { return _baseAddress; }
   inline void setBaseAddress(uint64_t p) noexcept { _baseAddress = p; }
   inline void resetBaseAddress() noexcept { _baseAddress = Globals::kNoBaseAddress; }
 
@@ -171,21 +171,21 @@ public:
   //!
   //! CodeInfo can be used to setup a CodeHolder in case you plan to generate a
   //! code compatible and executable by this Runtime.
-  inline const CodeInfo& getCodeInfo() const noexcept { return _codeInfo; }
+  inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
 
-  //! Get the Runtime's architecture type, see \ref ArchInfo::Type.
-  inline uint32_t getArchType() const noexcept { return _codeInfo.getArchType(); }
-  //! Get the Runtime's architecture sub-type, see \ref ArchInfo::SubType.
-  inline uint32_t getArchSubType() const noexcept { return _codeInfo.getArchSubType(); }
+  //! Get the Runtime's architecture type, see `ArchInfo::Id`.
+  inline uint32_t archId() const noexcept { return _codeInfo.archId(); }
+  //! Get the Runtime's architecture sub-type, see `ArchInfo::SubId`.
+  inline uint32_t archSubId() const noexcept { return _codeInfo.archSubId(); }
 
-  //! Get target type, see \ref TargetType.
-  inline uint32_t getTargetType() const noexcept { return _targetType; }
+  //! Get target type, see `TargetType`.
+  inline uint32_t targetType() const noexcept { return _targetType; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _targetType;                   //!< Tartget type, see \ref TargetType.
+  uint8_t _targetType;                   //!< Tartget type, see `TargetType`.
   uint8_t _reserved[7];                  //!< \internal
 
   CodeInfo _codeInfo;                    //!< Basic information about the Runtime's code.

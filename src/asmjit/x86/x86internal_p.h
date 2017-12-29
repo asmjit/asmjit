@@ -15,9 +15,9 @@
 #include "../x86/x86emitter.h"
 #include "../x86/x86operand.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86
+//! \addtogroup asmjit_x86_api
 //! \{
 
 // ============================================================================
@@ -40,15 +40,15 @@ struct X86Internal {
   static Error argsToFuncFrame(const FuncArgsAssignment& args, FuncFrame& frame) noexcept;
 
   //! Emit function prolog.
-  static Error emitProlog(X86Emitter* emitter, const FuncFrame& frame);
+  static Error emitProlog(Emitter* emitter, const FuncFrame& frame);
 
   //! Emit function epilog.
-  static Error emitEpilog(X86Emitter* emitter, const FuncFrame& frame);
+  static Error emitEpilog(Emitter* emitter, const FuncFrame& frame);
 
   //! Emit a pure move operation between two registers or the same type or
   //! between a register and its home slot. This function does not handle
   //! register conversion.
-  static Error emitRegMove(X86Emitter* emitter,
+  static Error emitRegMove(Emitter* emitter,
     const Operand_& dst_,
     const Operand_& src_, uint32_t typeId, bool avxEnabled, const char* comment = nullptr);
 
@@ -58,16 +58,16 @@ struct X86Internal {
   //! another, and from one register type to another, if it's possible. Any
   //! attempt of conversion that requires third register of a different group
   //! (for example conversion from K to MMX) will fail.
-  static Error emitArgMove(X86Emitter* emitter,
-    const X86Reg& dst_, uint32_t dstTypeId,
+  static Error emitArgMove(Emitter* emitter,
+    const Reg& dst_, uint32_t dstTypeId,
     const Operand_& src_, uint32_t srcTypeId, bool avxEnabled, const char* comment = nullptr);
 
-  static Error emitArgsAssignment(X86Emitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args);
+  static Error emitArgsAssignment(Emitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args);
 };
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_X86_X86INTERNAL_P_H

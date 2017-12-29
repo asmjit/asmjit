@@ -10,12 +10,12 @@
 
 // [Dependencies]
 #include "../core/arch.h"
-#include "../core/intutils.h"
 #include "../core/operand.h"
+#include "../core/intutils.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_func
 //! \{
 
 // ============================================================================
@@ -144,7 +144,7 @@ struct CallConv {
     kIdHostCDecl     = kIdX86CDecl,
     kIdHostStdCall   = kIdX86StdCall,
     kIdHostFastCall  = ASMJIT_CXX_MSC ? kIdX86MsFastCall  :
-                      ASMJIT_CXX_GNU ? kIdX86GccFastCall : kIdNone,
+                       ASMJIT_CXX_GNU ? kIdX86GccFastCall : kIdNone,
     kIdHostLightCall2 = kIdX86LightCall2,
     kIdHostLightCall3 = kIdX86LightCall3,
     kIdHostLightCall4 = kIdX86LightCall4
@@ -234,46 +234,47 @@ struct CallConv {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get calling convention id, see \ref Id.
-  inline uint32_t getId() const noexcept { return _id; }
-  //! Set calling convention id, see \ref Id.
+  //! Get calling convention id, see `Id`.
+  inline uint32_t id() const noexcept { return _id; }
+  //! Set calling convention id, see `Id`.
   inline void setId(uint32_t id) noexcept { _id = uint8_t(id); }
 
   //! Get architecture type.
-  inline uint32_t getArchType() const noexcept { return _archType; }
+  inline uint32_t archId() const noexcept { return _archId; }
   //! Set architecture type.
-  inline void setArchType(uint32_t archType) noexcept { _archType = uint8_t(archType); }
+  inline void setArchType(uint32_t archId) noexcept { _archId = uint8_t(archId); }
 
-  //! Get a strategy used to assign registers to arguments, see \ref Strategy.
-  inline uint32_t getStrategy() const noexcept { return _strategy; }
-  //! Set a strategy used to assign registers to arguments, see \ref Strategy.
+  //! Get a strategy used to assign registers to arguments, see `Strategy`.
+  inline uint32_t strategy() const noexcept { return _strategy; }
+  //! Set a strategy used to assign registers to arguments, see `Strategy`.
   inline void setStrategy(uint32_t strategy) noexcept { _strategy = uint8_t(strategy); }
 
   //! Get whether the calling convention has the given `flag` set.
   inline bool hasFlag(uint32_t flag) const noexcept { return (uint32_t(_flags) & flag) != 0; }
-  //! Get calling convention flags, see \ref Flags.
-  inline uint32_t getFlags() const noexcept { return _flags; }
-  //! Add calling convention flags, see \ref Flags.
+  //! Get calling convention flags, see `Flags`.
+  inline uint32_t flags() const noexcept { return _flags; }
+  //! Add calling convention flags, see `Flags`.
   inline void setFlags(uint32_t flag) noexcept { _flags = uint8_t(flag); };
-  //! Add calling convention flags, see \ref Flags.
+  //! Add calling convention flags, see `Flags`.
   inline void addFlags(uint32_t flags) noexcept { _flags = uint8_t(_flags | flags); };
 
   //! Get whether this calling convention specifies 'RedZone'.
   inline bool hasRedZone() const noexcept { return _redZoneSize != 0; }
-  //! Get size of 'RedZone'.
-  inline uint32_t getRedZoneSize() const noexcept { return _redZoneSize; }
-  //! Set size of 'RedZone'.
-  inline void setRedZoneSize(uint32_t size) noexcept { _redZoneSize = uint8_t(size); }
-
   //! Get whether this calling convention specifies 'SpillZone'.
   inline bool hasSpillZone() const noexcept { return _spillZoneSize != 0; }
+
+  //! Get size of 'RedZone'.
+  inline uint32_t redZoneSize() const noexcept { return _redZoneSize; }
   //! Get size of 'SpillZone'.
-  inline uint32_t getSpillZoneSize() const noexcept { return _spillZoneSize; }
+  inline uint32_t spillZoneSize() const noexcept { return _spillZoneSize; }
+
+  //! Set size of 'RedZone'.
+  inline void setRedZoneSize(uint32_t size) noexcept { _redZoneSize = uint8_t(size); }
   //! Set size of 'SpillZone'.
   inline void setSpillZoneSize(uint32_t size) noexcept { _spillZoneSize = uint8_t(size); }
 
   //! Get a natural stack alignment.
-  inline uint32_t getNaturalStackAlignment() const noexcept { return _naturalStackAlignment; }
+  inline uint32_t naturalStackAlignment() const noexcept { return _naturalStackAlignment; }
   //! Set a natural stack alignment.
   //!
   //! This function can be used to override the default stack alignment in case
@@ -281,18 +282,18 @@ struct CallConv {
   //! implement custom calling conventions that guarantee higher stack alignment.
   inline void setNaturalStackAlignment(uint32_t value) noexcept { _naturalStackAlignment = uint8_t(value); }
 
-  inline const uint8_t* getPassedOrder(uint32_t group) const noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+  inline const uint8_t* passedOrder(uint32_t group) const noexcept {
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _passedOrder[group].id;
   }
 
-  inline uint32_t getPassedRegs(uint32_t group) const noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+  inline uint32_t passedRegs(uint32_t group) const noexcept {
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _passedRegs[group];
   }
 
   inline void _setPassedPacked(uint32_t group, uint32_t p0, uint32_t p1, uint32_t p2, uint32_t p3) noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
 
     _passedOrder[group].packed[0] = p0;
     _passedOrder[group].packed[1] = p1;
@@ -301,14 +302,14 @@ struct CallConv {
   }
 
   inline void setPassedToNone(uint32_t group) noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
 
     _setPassedPacked(group, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU);
     _passedRegs[group] = 0U;
   }
 
   inline void setPassedOrder(uint32_t group, uint32_t a0, uint32_t a1 = 0xFF, uint32_t a2 = 0xFF, uint32_t a3 = 0xFF, uint32_t a4 = 0xFF, uint32_t a5 = 0xFF, uint32_t a6 = 0xFF, uint32_t a7 = 0xFF) noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
 
     // NOTE: This should always be called with all arguments known at compile time,
     // so even if it looks scary it should be translated into few instructions.
@@ -327,13 +328,13 @@ struct CallConv {
                          (a7 != 0xFF ? 1U << a7 : 0U) ;
   }
 
-  inline uint32_t getPreservedRegs(uint32_t group) const noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+  inline uint32_t preservedRegs(uint32_t group) const noexcept {
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _preservedRegs[group];
   }
 
   inline void setPreservedRegs(uint32_t group, uint32_t regs) noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     _preservedRegs[group] = regs;
   }
 
@@ -341,8 +342,8 @@ struct CallConv {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _id;                           //!< Calling convention id, see \ref Id.
-  uint8_t _archType;                     //!< Architecture type (see \ref ArchInfo::Type).
+  uint8_t _id;                           //!< Calling convention id, see `Id`.
+  uint8_t _archId;                       //!< Architecture id (see `ArchInfo::Id`).
   uint8_t _strategy;                     //!< Register assignment strategy.
   uint8_t _flags;                        //!< Flags.
 
@@ -351,9 +352,9 @@ struct CallConv {
   uint8_t _naturalStackAlignment;        //!< Natural stack alignment as defined by OS/ABI.
   uint8_t _reserved[1];
 
-  uint32_t _passedRegs[Reg::kGroupVirt];    //!< Mask of all passed registers, per group.
-  uint32_t _preservedRegs[Reg::kGroupVirt]; //!< Mask of all preserved registers, per group.
-  RegOrder _passedOrder[Reg::kGroupVirt];   //!< Passed registers' order, per group.
+  uint32_t _passedRegs[BaseReg::kGroupVirt];    //!< Mask of all passed registers, per group.
+  uint32_t _preservedRegs[BaseReg::kGroupVirt]; //!< Mask of all preserved registers, per group.
+  RegOrder _passedOrder[BaseReg::kGroupVirt];   //!< Passed registers' order, per group.
 };
 
 //! \}

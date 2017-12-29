@@ -13,48 +13,48 @@
 #include "../x86/x86emitter.h"
 #include "../x86/x86operand.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86
+//! \addtogroup asmjit_x86_api
 //! \{
 
 // ============================================================================
-// [asmjit::X86Assembler]
+// [asmjit::Assembler]
 // ============================================================================
 
-//! X86/X64 assembler.
+//! Assembler (X86).
 //!
-//! X86/X64 assembler emits machine-code into buffers managed by \ref CodeHolder.
-class ASMJIT_VIRTAPI X86Assembler
-  : public Assembler,
-    public X86EmitterImplicitT<X86Assembler> {
+//! Emits X86 machine-code into buffers managed by `CodeHolder`.
+class ASMJIT_VIRTAPI Assembler
+  : public BaseAssembler,
+    public EmitterImplicitT<Assembler> {
 public:
-  ASMJIT_NONCOPYABLE(X86Assembler)
-  typedef Assembler Base;
+  ASMJIT_NONCOPYABLE(Assembler)
+  typedef BaseAssembler Base;
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API explicit X86Assembler(CodeHolder* code = nullptr) noexcept;
-  ASMJIT_API virtual ~X86Assembler() noexcept;
+  ASMJIT_API explicit Assembler(CodeHolder* code = nullptr) noexcept;
+  ASMJIT_API virtual ~Assembler() noexcept;
 
   // --------------------------------------------------------------------------
   // [Internal]
   // --------------------------------------------------------------------------
 
-  // NOTE: X86Assembler uses _privateData to store 'address-override' bit that
+  // NOTE: x86::Assembler uses _privateData to store 'address-override' bit that
   // is used to decide whether to emit address-override (67H) prefix based on
   // the memory BASE+INDEX registers. It's either `kX86MemInfo_67H_X86` or
   // `kX86MemInfo_67H_X64`.
-  inline uint32_t _getAddressOverrideMask() const noexcept { return _privateData; }
+  inline uint32_t _addressOverrideMask() const noexcept { return _privateData; }
   inline void _setAddressOverrideMask(uint32_t m) noexcept { _privateData = m; }
 
   // --------------------------------------------------------------------------
   // [Emit (Low-Level)]
   // --------------------------------------------------------------------------
 
-  using CodeEmitter::_emit;
+  using BaseEmitter::_emit;
 
   ASMJIT_API Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) override;
 
@@ -62,7 +62,7 @@ public:
   // [Align]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error align(uint32_t mode, uint32_t alignment) override;
+  ASMJIT_API Error align(uint32_t alignMode, uint32_t alignment) override;
 
   // --------------------------------------------------------------------------
   // [Events]
@@ -74,7 +74,7 @@ public:
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_X86_X86ASSEMBLER_H

@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 // ============================================================================
@@ -25,7 +25,7 @@ namespace Type {
 //! TypeId.
 //!
 //! This is an additional information that can be used to describe a value-type
-//! of physical or virtual register. it's used mostly by CodeCompiler to describe
+//! of physical or virtual register. it's used mostly by BaseCompiler to describe
 //! register representation (the group of data stored in the register and the
 //! width used) and it's also used by APIs that allow to describe and work with
 //! function signatures.
@@ -199,7 +199,7 @@ template<typename T> struct IdOfT<T*> {
 
 template<typename T>
 struct IdOfIntT {
-  static constexpr uint32_t kTypeId = 
+  static constexpr uint32_t kTypeId =
     sizeof(T) == 1 ? (std::is_signed<T>::value ? kIdI8  : kIdU8 ) :
     sizeof(T) == 2 ? (std::is_signed<T>::value ? kIdI16 : kIdU16) :
     sizeof(T) == 4 ? (std::is_signed<T>::value ? kIdI32 : kIdU32) :
@@ -208,7 +208,7 @@ struct IdOfIntT {
 
 template<uint32_t TYPE_ID>
 struct BaseOfTypeId {
-  static constexpr uint32_t kTypeId = 
+  static constexpr uint32_t kTypeId =
     isBase  (TYPE_ID) ? TYPE_ID :
     isMask8 (TYPE_ID) ? kIdU8   :
     isMask16(TYPE_ID) ? kIdU16  :
@@ -225,7 +225,7 @@ struct BaseOfTypeId {
 
 template<uint32_t TYPE_ID>
 struct SizeOfTypeId {
-  static constexpr uint32_t kTypeSize = 
+  static constexpr uint32_t kTypeSize =
     isI8    (TYPE_ID) ?  1 :
     isU8    (TYPE_ID) ?  1 :
     isI16   (TYPE_ID) ?  2 :

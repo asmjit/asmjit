@@ -14,7 +14,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_core_api
 //! \{
 
 #ifndef ASMJIT_DISABLE_LOGGING
@@ -23,15 +23,86 @@ ASMJIT_BEGIN_NAMESPACE
 // [Forward Declarations]
 // ============================================================================
 
-class CodeEmitter;
+class BaseEmitter;
+class BaseReg;
 class Logger;
-class Reg;
 struct Operand_;
 
 #ifndef ASMJIT_DISABLE_BUILDER
-class CodeBuilder;
-class CBNode;
+class BaseBuilder;
+class BaseNode;
 #endif
+
+// ============================================================================
+// [asmjit::FormatOptions]
+// ============================================================================
+
+class FormatOptions {
+public:
+  enum Flags : uint32_t {
+    kFlagMachineCode      = 0x00000001U, //!< Show also binary form of each logged instruction (assembler).
+    kFlagExplainImms      = 0x00000002U, //!< Show a text explanation of some immediate values.
+    kFlagHexImms          = 0x00000004U, //!< Use hexadecimal notation of immediate values.
+    kFlagHexOffsets       = 0x00000008U, //!< Use hexadecimal notation of address offsets.
+    kFlagRegCasts         = 0x00000010U, //!< Show casts between virtual register types (compiler).
+    kFlagPositions        = 0x00000020U, //!< Show positions associated with nodes (compiler).
+    kFlagAnnotations      = 0x00000040U, //!< Annotate nodes that are lowered by passes.
+    // TODO: These must go, keep this only for formatting.
+    kFlagDebugPasses      = 0x00000080U, //!< Show an additional output from passes.
+    kFlagDebugRA          = 0x00000100U  //!< Show an additional output from RA.
+  };
+
+  enum IndentationType : uint32_t {
+    kIndentationCode      = 0U,          //!< Indentation used for instructions and directives.
+    kIndentationLabel     = 1U,          //!< Indentation used for labels and function nodes.
+    kIndentationComment   = 2U,          //!< Indentation used for comments (not inline comments).
+    kIndentationReserved  = 3U
+  };
+
+  // --------------------------------------------------------------------------
+  // [Construction / Destruction]
+  // --------------------------------------------------------------------------
+
+  constexpr FormatOptions() noexcept
+    : _flags(0),
+      _indentation { 0, 0, 0, 0 } {}
+
+  constexpr FormatOptions(const FormatOptions& other) noexcept = default;
+  inline FormatOptions& operator=(const FormatOptions& other) noexcept = default;
+
+  // --------------------------------------------------------------------------
+  // [Reset]
+  // --------------------------------------------------------------------------
+
+  inline void reset() noexcept {
+    _flags = 0;
+    _indentation[0] = 0;
+    _indentation[1] = 0;
+    _indentation[2] = 0;
+    _indentation[3] = 0;
+  }
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  constexpr uint32_t flags() const noexcept { return _flags; }
+  constexpr bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
+  inline void setFlags(uint32_t flags) noexcept { _flags = flags; }
+  inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
+  inline void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
+
+  constexpr uint8_t indentation(uint32_t type) const noexcept { return _indentation[type]; }
+  inline void setIndentation(uint32_t type, uint32_t n) noexcept { _indentation[type] = uint8_t(n); }
+  inline void resetIndentation(uint32_t type) noexcept { _indentation[type] = uint8_t(0); }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  uint32_t _flags;
+  uint8_t _indentation[4];
+};
 
 // ============================================================================
 // [asmjit::Logger]
@@ -43,29 +114,12 @@ class CBNode;
 //! subsystem. When reimplementing use `Logger::_log()` method to log into
 //! a custom stream.
 //!
-//! There are two \ref Logger implementations offered by AsmJit:
-//!   - \ref FileLogger - allows to log into `std::FILE*`.
-//!   - \ref StringLogger - logs into a `StringBuilder`.
+//! There are two `Logger` implementations offered by AsmJit:
+//!   - `FileLogger` - allows to log into `std::FILE*`.
+//!   - `StringLogger` - logs into a `StringBuilder`.
 class ASMJIT_VIRTAPI Logger {
 public:
   ASMJIT_NONCOPYABLE(Logger)
-
-  // --------------------------------------------------------------------------
-  // [Options]
-  // --------------------------------------------------------------------------
-
-  //! Logger options.
-  enum Options : uint32_t {
-    kOptionBinaryForm      = 0x00000001, //!< Show also binary form of each logged instruction.
-    kOptionExplainConsts   = 0x00000002, //!< Show a text explanation of some constants.
-    kOptionHexConsts       = 0x00000004, //!< Use hexadecimal notation to output constants.
-    kOptionHexOffsets      = 0x00000008, //!< Use hexadecimal notation to output offsets.
-    kOptionAnnotate        = 0x00000010, //!< Annotate nodes that are lowered by CodeCompiler passes.
-    kOptionRegCasts        = 0x00000020, //!< Show casts of virtual registers.
-    kOptionNodePosition    = 0x00000040, //!< Show a node position of CodeBuilder/CodeCompiler instructions.
-    kOptionDebugPasses     = 0x00000080, //!< Show an additional output from passes.
-    kOptionDebugRA         = 0x00000100  //!< Show an additional output from RA.
-  };
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -81,12 +135,12 @@ public:
   // --------------------------------------------------------------------------
 
   //! Log `str` - must be reimplemented.
-  virtual Error _log(const char* str, size_t len) noexcept = 0;
+  virtual Error _log(const char* data, size_t size) noexcept = 0;
 
-  //! Log a string `str`, which is either null terminated or having `len` length.
-  inline Error log(const char* str, size_t len = Globals::kNullTerminated) noexcept { return _log(str, len); }
+  //! Log a string `str`, which is either null terminated or having size `size`.
+  inline Error log(const char* data, size_t size = Globals::kNullTerminated) noexcept { return _log(data, size); }
   //! Log a content of a `StringBuilder` `str`.
-  inline Error log(const StringBuilder& str) noexcept { return _log(str.getData(), str.getLength()); }
+  inline Error log(const StringBuilder& str) noexcept { return _log(str.data(), str.size()); }
 
   //! Format the message by using `std::snprintf()` and then send to `log()`.
   ASMJIT_API Error logf(const char* fmt, ...) noexcept;
@@ -99,33 +153,25 @@ public:
   // [Options]
   // --------------------------------------------------------------------------
 
-  //! Get all logger options as a single integer.
-  inline uint32_t getOptions() const noexcept { return _options; }
-  //! Get the given logger option.
-  inline bool hasOption(uint32_t option) const noexcept { return (_options & option) != 0; }
-  inline void addOptions(uint32_t options) noexcept { _options |= options; }
-  inline void clearOptions(uint32_t options) noexcept { _options &= ~options; }
+  inline FormatOptions& options() noexcept { return _options; }
+  inline const FormatOptions& options() const noexcept { return _options; }
 
-  // --------------------------------------------------------------------------
-  // [Indentation]
-  // --------------------------------------------------------------------------
+  inline uint32_t flags() const noexcept { return _options.flags(); }
+  inline bool hasFlag(uint32_t flag) const noexcept { return _options.hasFlag(flag); }
+  inline void setFlags(uint32_t flags) noexcept { _options.setFlags(flags); }
+  inline void addFlags(uint32_t flags) noexcept { _options.addFlags(flags); }
+  inline void clearFlags(uint32_t flags) noexcept { _options.clearFlags(flags); }
 
-  //! Get indentation.
-  inline const char* getIndentation() const noexcept { return _indentation; }
-  //! Set indentation.
-  ASMJIT_API void setIndentation(const char* indentation) noexcept;
-  //! Reset indentation.
-  inline void resetIndentation() noexcept { setIndentation(nullptr); }
+  inline uint32_t indentation(uint32_t type) const noexcept { return _options.indentation(type); }
+  inline void setIndentation(uint32_t type, uint32_t n) noexcept { _options.setIndentation(type, n); }
+  inline void resetIndentation(uint32_t type) noexcept { _options.resetIndentation(type); }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Options, see \ref Options.
-  uint32_t _options;
-
-  //! Indentation.
-  char _indentation[12];
+  //! Log options.
+  FormatOptions _options;
 };
 
 // ============================================================================
@@ -142,7 +188,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Create a new `FileLogger` that logs to `std::FILE*`.
-  ASMJIT_API FileLogger(std::FILE* stream = nullptr) noexcept;
+  ASMJIT_API FileLogger(std::FILE* file = nullptr) noexcept;
   //! Destroy the `FileLogger`.
   ASMJIT_API virtual ~FileLogger() noexcept;
 
@@ -150,28 +196,29 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get the logging out put stream or null.
-  inline std::FILE* getStream() const noexcept { return _stream; }
+  //! Get the logging output stream or null if the logger has no output stream.
+  inline std::FILE* file() const noexcept { return _file; }
 
   //! Set the logging output stream to `stream` or null.
   //!
-  //! NOTE: If the `stream` is null it will disable logging, but it won't
-  //! stop calling `log()` unless the logger is detached from the
-  //! \ref Assembler.
-  inline void setStream(std::FILE* stream) noexcept { _stream = stream; }
+  //! NOTE: If the `file` is null the logging will be disabled. When a logger
+  //! is attached to `CodeHolder` or any emitter the logging API will always
+  //! be called regardless of the output file. This means that if you really
+  //! want to disable logging at emitter level you must not attach a logger
+  //! to it.
+  inline void setFile(std::FILE* file) noexcept { _file = file; }
 
   // --------------------------------------------------------------------------
   // [Logging]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error _log(const char* buf, size_t len = Globals::kNullTerminated) noexcept override;
+  ASMJIT_API Error _log(const char* data, size_t size = Globals::kNullTerminated) noexcept override;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! `std::FILE*` stream.
-  std::FILE* _stream;
+  std::FILE* _file;
 };
 
 // ============================================================================
@@ -196,28 +243,28 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get `char*` pointer which represents the resulting string.
+  //! Get `char*` pointer which represents string buffer.
   //!
   //! The pointer is owned by `StringLogger`, it can't be modified or freed.
-  inline const char* getString() const noexcept { return _stringBuilder.getData(); }
-  //! Clear the resulting string.
-  inline void clearString() noexcept { _stringBuilder.clear(); }
+  inline const char* data() const noexcept { return _content.data(); }
+  //! Get the size of the string returned by `data()`.
+  inline size_t size() const noexcept { return _content.size(); }
 
-  //! Get the length of the string returned by `getString()`.
-  inline size_t getLength() const noexcept { return _stringBuilder.getLength(); }
+  //! Clear the internal buffer.
+  inline void clear() noexcept { _content.clear(); }
 
   // --------------------------------------------------------------------------
   // [Logging]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error _log(const char* buf, size_t len = Globals::kNullTerminated) noexcept override;
+  ASMJIT_API Error _log(const char* data, size_t size = Globals::kNullTerminated) noexcept override;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
   //! Output string.
-  StringBuilder _stringBuilder;
+  StringBuilder _content;
 };
 
 // ============================================================================
@@ -227,31 +274,31 @@ public:
 struct Logging {
   ASMJIT_API static Error formatRegister(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
     uint32_t regType,
     uint32_t regId) noexcept;
 
   ASMJIT_API static Error formatLabel(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
+    uint32_t flags,
+    const BaseEmitter* emitter,
     uint32_t labelId) noexcept;
 
   ASMJIT_API static Error formatOperand(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
     const Operand_& op) noexcept;
 
   ASMJIT_API static Error formatInstruction(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
-    const Inst::Detail& detail, const Operand_* operands, uint32_t count) noexcept;
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
+    const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
 
   ASMJIT_API static Error formatTypeId(
     StringBuilder& sb,
@@ -260,9 +307,9 @@ struct Logging {
   #ifndef ASMJIT_DISABLE_BUILDER
   ASMJIT_API static Error formatNode(
     StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeBuilder* cb,
-    const CBNode* node_) noexcept;
+    uint32_t flags,
+    const BaseBuilder* cb,
+    const BaseNode* node_) noexcept;
   #endif
 
   // Only used by AsmJit internals, not available to users.
@@ -270,14 +317,13 @@ struct Logging {
   enum {
     // Has to be big to be able to hold all metadata compiler can assign to a
     // single instruction.
-    kMaxCommentLength = 512,
-    kMaxInstLength = 44,
-    kMaxBinaryLength = 26
+    kMaxInstLineSize = 44,
+    kMaxBinarySize = 26
   };
 
   static Error formatLine(
     StringBuilder& sb,
-    const uint8_t* binData, size_t binLen, size_t dispLen, size_t imLen, const char* comment) noexcept;
+    const uint8_t* binData, size_t binSize, size_t dispSize, size_t immSize, const char* comment) noexcept;
   #endif
 };
 #endif

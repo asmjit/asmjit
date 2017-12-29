@@ -12,7 +12,7 @@
 #ifndef ASMJIT_DISABLE_COMPILER
 
 // [Dependencies]
-#include "../core/codecompiler.h"
+#include "../core/compiler.h"
 #include "../core/intutils.h"
 #include "../core/logging.h"
 #include "../core/zone.h"
@@ -20,7 +20,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_ra
+//! \addtogroup asmjit_core_ra
 //! \{
 
 // ============================================================================
@@ -70,7 +70,7 @@ struct RAStrategy {
   inline RAStrategy() noexcept { reset(); }
   inline void reset() noexcept { std::memset(this, 0, sizeof(*this)); }
 
-  inline uint32_t getType() const noexcept { return _type; }
+  inline uint32_t type() const noexcept { return _type; }
   inline void setType(uint32_t type) noexcept { _type = uint8_t(type); }
 
   inline bool isSimple() const noexcept { return _type == kStrategySimple; }
@@ -105,12 +105,12 @@ struct RAArchTraits {
   inline bool hasSwap(uint32_t group) const noexcept { return hasFlag(group, kHasSwap); }
 
   inline uint8_t& operator[](uint32_t group) noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _flags[group];
   }
 
   inline const uint8_t& operator[](uint32_t group) const noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _flags[group];
   }
 
@@ -118,7 +118,7 @@ struct RAArchTraits {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _flags[Reg::kGroupVirt];
+  uint8_t _flags[BaseReg::kGroupVirt];
 };
 
 // ============================================================================
@@ -145,7 +145,7 @@ struct RARegCount {
 
   //! Get register count by a register `group`.
   inline uint32_t get(uint32_t group) const noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
 
     uint32_t shift = IntUtils::byteShiftOfDWordStruct(group);
     return (_packed >> shift) & uint32_t(0xFF);
@@ -153,7 +153,7 @@ struct RARegCount {
 
   //! Set register count by a register `group`.
   inline void set(uint32_t group, uint32_t n) noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     ASMJIT_ASSERT(n <= 0xFF);
 
     uint32_t shift = IntUtils::byteShiftOfDWordStruct(group);
@@ -162,7 +162,7 @@ struct RARegCount {
 
   //! Add register count by a register `group`.
   inline void add(uint32_t group, uint32_t n = 1) noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     ASMJIT_ASSERT(0xFF - uint32_t(_regs[group]) >= n);
 
     uint32_t shift = IntUtils::byteShiftOfDWordStruct(group);
@@ -174,12 +174,12 @@ struct RARegCount {
   // --------------------------------------------------------------------------
 
   inline uint8_t& operator[](uint32_t index) noexcept {
-    ASMJIT_ASSERT(index < Reg::kGroupVirt);
+    ASMJIT_ASSERT(index < BaseReg::kGroupVirt);
     return _regs[index];
   }
 
   inline const uint8_t& operator[](uint32_t index) const noexcept {
-    ASMJIT_ASSERT(index < Reg::kGroupVirt);
+    ASMJIT_ASSERT(index < BaseReg::kGroupVirt);
     return _regs[index];
   }
 
@@ -222,13 +222,13 @@ struct RARegMask {
   // --------------------------------------------------------------------------
 
   inline void init(const RARegMask& other) noexcept {
-    for (uint32_t i = 0; i < Reg::kGroupVirt; i++)
+    for (uint32_t i = 0; i < BaseReg::kGroupVirt; i++)
       _masks[i] = other._masks[i];
   }
 
   //! Reset all register masks to zero.
   inline void reset() noexcept {
-    for (uint32_t i = 0; i < Reg::kGroupVirt; i++)
+    for (uint32_t i = 0; i < BaseReg::kGroupVirt; i++)
       _masks[i] = 0;
   }
 
@@ -237,15 +237,15 @@ struct RARegMask {
   // --------------------------------------------------------------------------
 
   //! Get whether all register masks are zero (empty).
-  inline bool isEmpty() const noexcept {
+  inline bool empty() const noexcept {
     uint32_t m = 0;
-    for (uint32_t i = 0; i < Reg::kGroupVirt; i++)
+    for (uint32_t i = 0; i < BaseReg::kGroupVirt; i++)
       m |= _masks[i];
     return m == 0;
   }
 
   inline bool has(uint32_t group, uint32_t mask = 0xFFFFFFFFU) const noexcept {
-    ASMJIT_ASSERT(group < Reg::kGroupVirt);
+    ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return (_masks[group] & mask) != 0;
   }
 
@@ -255,7 +255,7 @@ struct RARegMask {
 
   template<class Operator>
   inline void op(const RARegMask& other) noexcept {
-    for (uint32_t i = 0; i < Reg::kGroupVirt; i++)
+    for (uint32_t i = 0; i < BaseReg::kGroupVirt; i++)
       _masks[i] = Operator::op(_masks[i], other._masks[i]);
   }
 
@@ -269,12 +269,12 @@ struct RARegMask {
   // --------------------------------------------------------------------------
 
   inline uint32_t& operator[](uint32_t index) noexcept {
-    ASMJIT_ASSERT(index < Reg::kGroupVirt);
+    ASMJIT_ASSERT(index < BaseReg::kGroupVirt);
     return _masks[index];
   }
 
   inline const uint32_t& operator[](uint32_t index) const noexcept {
-    ASMJIT_ASSERT(index < Reg::kGroupVirt);
+    ASMJIT_ASSERT(index < BaseReg::kGroupVirt);
     return _masks[index];
   }
 
@@ -295,7 +295,7 @@ struct RARegMask {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _masks[Reg::kGroupVirt];
+  uint32_t _masks[BaseReg::kGroupVirt];
 };
 
 // ============================================================================
@@ -353,12 +353,12 @@ public:
   inline RALiveCount(const RALiveCount& other) noexcept { init(other); }
 
   inline void init(const RALiveCount& other) noexcept {
-    for (uint32_t group = 0; group < Reg::kGroupVirt; group++)
+    for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++)
       n[group] = other.n[group];
   }
 
   inline void reset() noexcept {
-    for (uint32_t group = 0; group < Reg::kGroupVirt; group++)
+    for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++)
       n[group] = 0;
   }
 
@@ -368,7 +368,7 @@ public:
 
   template<class Operator>
   inline void op(const RALiveCount& other) noexcept {
-    for (uint32_t group = 0; group < Reg::kGroupVirt; group++)
+    for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++)
       n[group] = Operator::op(n[group], other.n[group]);
   }
 
@@ -381,7 +381,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t n[Reg::kGroupVirt];
+  uint32_t n[BaseReg::kGroupVirt];
 };
 
 // ============================================================================
@@ -414,7 +414,7 @@ struct LiveInterval {
   // --------------------------------------------------------------------------
 
   inline bool isValid() const noexcept { return a < b; }
-  inline uint32_t getWidth() const noexcept { return b - a; }
+  inline uint32_t width() const noexcept { return b - a; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -486,17 +486,17 @@ public:
   // [Interface]
   // --------------------------------------------------------------------------
 
-  inline bool isEmpty() const noexcept { return _data.isEmpty(); }
-  inline uint32_t getLength() const noexcept { return _data.getLength(); }
+  inline bool empty() const noexcept { return _data.empty(); }
+  inline uint32_t size() const noexcept { return _data.size(); }
 
-  inline T* getData() noexcept { return _data.getData(); }
-  inline const T* getData() const noexcept { return _data.getData(); }
+  inline T* data() noexcept { return _data.data(); }
+  inline const T* data() const noexcept { return _data.data(); }
 
   inline void swap(RALiveSpans<T>& other) noexcept { _data.swap(other._data); }
 
   inline bool isOpen() const noexcept {
-    uint32_t len = _data.getLength();
-    return len > 0 && _data[len - 1].b == LiveInterval::kInf;
+    uint32_t size = _data.size();
+    return size > 0 && _data[size - 1].b == LiveInterval::kInf;
   }
 
   //! Open the current live span.
@@ -506,11 +506,11 @@ public:
   }
 
   ASMJIT_FORCEINLINE Error openAt(ZoneAllocator* allocator, uint32_t start, uint32_t end, bool& wasOpen) noexcept {
-    uint32_t len = _data.getLength();
+    uint32_t size = _data.size();
     wasOpen = false;
 
-    if (len > 0) {
-      T& last = _data[len - 1];
+    if (size > 0) {
+      T& last = _data[size - 1];
       if (last.b >= start) {
         wasOpen = last.b > start;
         last.b = end;
@@ -522,21 +522,20 @@ public:
   }
 
   inline void closeAt(uint32_t end) noexcept {
-    ASMJIT_ASSERT(!isEmpty());
+    ASMJIT_ASSERT(!empty());
 
-    uint32_t len = _data.getLength();
-    _data[len - 1].b = end;
+    uint32_t size = _data.size();
+    _data[size - 1].b = end;
   }
 
   //! Returns the sum of width of all spans.
   //!
   //! NOTE: Don't overuse, this iterates over all spans so it's O(N).
   //! It should be only called once and then cached.
-  ASMJIT_FORCEINLINE uint32_t calcWidth() const noexcept {
+  ASMJIT_FORCEINLINE uint32_t width() const noexcept {
     uint32_t width = 0;
-    const T* spans = _data.getData();
-    for (uint32_t i = 0, len = _data.getLength(); i < len; i++)
-      width += spans[i].getWidth();
+    for (const T& span : _data)
+      width += span.width();
     return width;
   }
 
@@ -548,16 +547,15 @@ public:
   }
 
   ASMJIT_FORCEINLINE Error nonOverlappingUnionOf(ZoneAllocator* allocator, const RALiveSpans<T>& x, const RALiveSpans<T>& y, const DataType& yData) noexcept {
-    uint32_t finalLength = x.getLength() + y.getLength();
-    ASMJIT_PROPAGATE(_data.reserve(allocator, finalLength));
+    uint32_t finalSize = x.size() + y.size();
+    ASMJIT_PROPAGATE(_data.reserve(allocator, finalSize));
 
-    T* dstPtr = _data.getData();
+    T* dstPtr = _data.data();
+    const T* xSpan = x.data();
+    const T* ySpan = y.data();
 
-    const T* xSpan = x.getData();
-    const T* ySpan = y.getData();
-
-    const T* xEnd = xSpan + x.getLength();
-    const T* yEnd = ySpan + y.getLength();
+    const T* xEnd = xSpan + x.size();
+    const T* yEnd = ySpan + y.size();
 
     // Loop until we have intersection or either `xSpan == xEnd` or `ySpan == yEnd`,
     // which means that there is no intersection. We advance either `xSpan` or `ySpan`
@@ -603,11 +601,11 @@ public:
   }
 
   static ASMJIT_FORCEINLINE bool intersects(const RALiveSpans<T>& x, const RALiveSpans<T>& y) noexcept {
-    const T* xSpan = x.getData();
-    const T* ySpan = y.getData();
+    const T* xSpan = x.data();
+    const T* ySpan = y.data();
 
-    const T* xEnd = xSpan + x.getLength();
-    const T* yEnd = ySpan + y.getLength();
+    const T* xEnd = xSpan + x.size();
+    const T* yEnd = ySpan + y.size();
 
     // Loop until we have intersection or either `xSpan == xEnd` or `ySpan == yEnd`,
     // which means that there is no intersection. We advance either `xSpan` or `ySpan`
@@ -657,8 +655,8 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline uint32_t getWidth() const noexcept { return _width; }
-  inline float getFreq() const noexcept { return _freq; }
+  inline uint32_t width() const noexcept { return _width; }
+  inline float freq() const noexcept { return _freq; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -673,7 +671,7 @@ public:
 // ============================================================================
 
 struct LiveRegData {
-  inline LiveRegData() noexcept : id(Reg::kIdBad) {}
+  inline LiveRegData() noexcept : id(BaseReg::kIdBad) {}
   explicit inline LiveRegData(uint32_t id) noexcept : id(id) {}
   explicit inline LiveRegData(const LiveRegData& other) noexcept : id(other.id) {}
 
@@ -770,14 +768,14 @@ struct RATiedReg {
   // --------------------------------------------------------------------------
 
   //! Get the associated WorkReg id.
-  inline uint32_t getWorkId() const noexcept { return _workId; }
+  inline uint32_t workId() const noexcept { return _workId; }
 
-  //! Check if the given `flag` is set, see \ref Flags.
+  //! Check if the given `flag` is set, see `Flags`.
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
-  //! Get tied register flags, see \ref Flags.
-  inline uint32_t getFlags() const noexcept { return _flags; }
-  //! Add tied register flags, see \ref Flags.
+  //! Get tied register flags, see `Flags`.
+  inline uint32_t flags() const noexcept { return _flags; }
+  //! Add tied register flags, see `Flags`.
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
 
   //! Get whether the register is read (writes `true` also if it's Read/Write).
@@ -816,23 +814,23 @@ struct RATiedReg {
   //! Get whether this register is OUT or KILL (used internally by local register allocator).
   inline bool isOutOrKill() const noexcept { return hasFlag(kOut | kKill); }
 
-  inline uint32_t getAllocableRegs() const noexcept { return _allocableRegs; }
+  inline uint32_t allocableRegs() const noexcept { return _allocableRegs; }
 
-  inline uint32_t getRefCount() const noexcept { return _refCount; }
+  inline uint32_t refCount() const noexcept { return _refCount; }
   inline void addRefCount(uint32_t n = 1) noexcept { _refCount = uint8_t(_refCount + n); }
 
   //! Get whether the register must be allocated to a fixed physical register before it's used.
-  inline bool hasUseId() const noexcept { return _useId != Reg::kIdBad; }
+  inline bool hasUseId() const noexcept { return _useId != BaseReg::kIdBad; }
   //! Get whether the register must be allocated to a fixed physical register before it's written.
-  inline bool hasOutId() const noexcept { return _outId != Reg::kIdBad; }
+  inline bool hasOutId() const noexcept { return _outId != BaseReg::kIdBad; }
 
   //! Get a physical register used for 'use' operation.
-  inline uint32_t getUseId() const noexcept { return _useId; }
+  inline uint32_t useId() const noexcept { return _useId; }
   //! Get a physical register used for 'out' operation.
-  inline uint32_t getOutId() const noexcept { return _outId; }
+  inline uint32_t outId() const noexcept { return _outId; }
 
-  inline uint32_t getUseRewriteMask() const noexcept { return _useRewriteMask; }
-  inline uint32_t getOutRewriteMask() const noexcept { return _outRewriteMask; }
+  inline uint32_t useRewriteMask() const noexcept { return _useRewriteMask; }
+  inline uint32_t outRewriteMask() const noexcept { return _outRewriteMask; }
 
   //! Set a physical register used for 'use' operation.
   inline void setUseId(uint32_t index) noexcept { _useId = uint8_t(index); }
@@ -904,15 +902,15 @@ public:
 
   ASMJIT_FORCEINLINE RAWorkReg(VirtReg* vReg, uint32_t workId) noexcept
     : _workId(workId),
-      _virtId(vReg->getId()),
+      _virtId(vReg->id()),
       _virtReg(vReg),
       _tiedReg(nullptr),
       _stackSlot(nullptr),
-      _info(vReg->getInfo()),
+      _info(vReg->info()),
       _flags(kFlagDirtyStats),
       _allocatedMask(0),
       _argIndex(kNoArgIndex),
-      _homeId(Reg::kIdBad),
+      _homeId(BaseReg::kIdBad),
       _liveSpans(),
       _liveStats(),
       _refs() {}
@@ -921,16 +919,16 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline uint32_t getWorkId() const noexcept { return _workId; }
-  inline uint32_t getVirtId() const noexcept { return _virtId; }
+  inline uint32_t workId() const noexcept { return _workId; }
+  inline uint32_t virtId() const noexcept { return _virtId; }
 
-  inline const char* getName() const noexcept { return _virtReg->getName(); }
-  inline uint32_t getNameLength() const noexcept { return _virtReg->getNameLength(); }
+  inline const char* name() const noexcept { return _virtReg->name(); }
+  inline uint32_t nameSize() const noexcept { return _virtReg->nameSize(); }
 
-  inline uint32_t getTypeId() const noexcept { return _virtReg->getTypeId(); }
+  inline uint32_t typeId() const noexcept { return _virtReg->typeId(); }
 
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
-  inline uint32_t getFlags() const noexcept { return _flags; }
+  inline uint32_t flags() const noexcept { return _flags; }
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
 
   inline bool isStackUsed() const noexcept { return hasFlag(kFlagStackUsed); }
@@ -942,34 +940,34 @@ public:
   //! Get whether this RAWorkReg has been coalesced with another one (cannot be used anymore).
   inline bool isCoalesced() const noexcept { return hasFlag(kFlagCoalesced); }
 
-  inline const RegInfo& getInfo() const noexcept { return _info; }
-  inline uint32_t getGroup() const noexcept { return _info.getGroup(); }
+  inline const RegInfo& info() const noexcept { return _info; }
+  inline uint32_t group() const noexcept { return _info.group(); }
 
-  inline VirtReg* getVirtReg() const noexcept { return _virtReg; }
+  inline VirtReg* virtReg() const noexcept { return _virtReg; }
 
   inline bool hasTiedReg() const noexcept { return _tiedReg != nullptr; }
-  inline RATiedReg* getTiedReg() const noexcept { return _tiedReg; }
+  inline RATiedReg* tiedReg() const noexcept { return _tiedReg; }
   inline void setTiedReg(RATiedReg* tiedReg) noexcept { _tiedReg = tiedReg; }
   inline void resetTiedReg() noexcept { _tiedReg = nullptr; }
 
   inline bool hasStackSlot() const noexcept { return _stackSlot != nullptr; }
-  inline RAStackSlot* getStackSlot() const noexcept { return _stackSlot; }
+  inline RAStackSlot* stackSlot() const noexcept { return _stackSlot; }
 
-  inline LiveRegSpans& getLiveSpans() noexcept { return _liveSpans; }
-  inline const LiveRegSpans& getLiveSpans() const noexcept { return _liveSpans; }
+  inline LiveRegSpans& liveSpans() noexcept { return _liveSpans; }
+  inline const LiveRegSpans& liveSpans() const noexcept { return _liveSpans; }
 
-  inline RALiveStats& getLiveStats() noexcept { return _liveStats; }
-  inline const RALiveStats& getLiveStats() const noexcept { return _liveStats; }
+  inline RALiveStats& liveStats() noexcept { return _liveStats; }
+  inline const RALiveStats& liveStats() const noexcept { return _liveStats; }
 
   inline bool hasArgIndex() const noexcept { return _argIndex != kNoArgIndex; }
-  inline uint32_t getArgIndex() const noexcept { return _argIndex; }
+  inline uint32_t argIndex() const noexcept { return _argIndex; }
   inline void setArgIndex(uint32_t index) noexcept { _argIndex = uint8_t(index); }
 
-  inline bool hasHomeId() const noexcept { return _homeId != Reg::kIdBad; }
-  inline uint32_t getHomeId() const noexcept { return _homeId; }
+  inline bool hasHomeId() const noexcept { return _homeId != BaseReg::kIdBad; }
+  inline uint32_t homeId() const noexcept { return _homeId; }
   inline void setHomeId(uint32_t physId) noexcept { _homeId = uint8_t(physId); }
 
-  inline uint32_t getAllocatedMask() const noexcept { return _allocatedMask; }
+  inline uint32_t allocatedMask() const noexcept { return _allocatedMask; }
   inline void addAllocatedMask(uint32_t mask) noexcept { _allocatedMask |= mask; }
 
   // --------------------------------------------------------------------------
@@ -993,8 +991,8 @@ public:
   LiveRegSpans _liveSpans;               //!< Live spans of the `VirtReg`.
   RALiveStats _liveStats;                //!< Live statistics.
 
-  ZoneVector<CBNode*> _refs;             //!< All nodes that read/write this VirtReg/WorkReg.
-  ZoneVector<CBNode*> _writes;           //!< All nodes that write to this VirtReg/WorkReg.
+  ZoneVector<BaseNode*> _refs;           //!< All nodes that read/write this VirtReg/WorkReg.
+  ZoneVector<BaseNode*> _writes;         //!< All nodes that write to this VirtReg/WorkReg.
 };
 
 //! \}

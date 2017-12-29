@@ -27,34 +27,34 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 static const uint32_t archInfoTable[] = {
-  // <--------------------+---------------------+-----------------------+-------+
-  //                      | Type                | SubType               | GPInfo|
-  // <--------------------+---------------------+-----------------------+-------+
-  IntUtils::bytepack32_4x8(ArchInfo::kTypeNone  , ArchInfo::kSubTypeNone, 0,  0),
-  IntUtils::bytepack32_4x8(ArchInfo::kTypeX86   , ArchInfo::kSubTypeNone, 4,  8),
-  IntUtils::bytepack32_4x8(ArchInfo::kTypeX64   , ArchInfo::kSubTypeNone, 8, 16),
-  IntUtils::bytepack32_4x8(ArchInfo::kTypeA32   , ArchInfo::kSubTypeNone, 4, 16),
-  IntUtils::bytepack32_4x8(ArchInfo::kTypeA64   , ArchInfo::kSubTypeNone, 8, 32)
+  // <--------------------+---------------------+-------------------+-------+
+  //                      | Type                | SubType           | GPInfo|
+  // <--------------------+---------------------+-------------------+-------+
+  IntUtils::bytepack32_4x8(ArchInfo::kIdNone  , ArchInfo::kSubIdNone, 0,  0),
+  IntUtils::bytepack32_4x8(ArchInfo::kIdX86   , ArchInfo::kSubIdNone, 4,  8),
+  IntUtils::bytepack32_4x8(ArchInfo::kIdX64   , ArchInfo::kSubIdNone, 8, 16),
+  IntUtils::bytepack32_4x8(ArchInfo::kIdA32   , ArchInfo::kSubIdNone, 4, 16),
+  IntUtils::bytepack32_4x8(ArchInfo::kIdA64   , ArchInfo::kSubIdNone, 8, 32)
 };
 
-ASMJIT_FAVOR_SIZE void ArchInfo::init(uint32_t type, uint32_t subType) noexcept {
-  uint32_t index = type < ASMJIT_ARRAY_SIZE(archInfoTable) ? type : uint32_t(0);
+ASMJIT_FAVOR_SIZE void ArchInfo::init(uint32_t id, uint32_t subId) noexcept {
+  uint32_t index = id < ASMJIT_ARRAY_SIZE(archInfoTable) ? id : uint32_t(0);
 
   // Make sure the `archInfoTable` array is correctly indexed.
   _signature = archInfoTable[index];
-  ASMJIT_ASSERT(_type == index);
+  ASMJIT_ASSERT(_id == index);
 
-  // Even if the architecture is not known we setup its type and sub-type,
+  // Even if the architecture is not known we setup its id and sub-id,
   // however, such architecture is not really useful.
-  _type = uint8_t(type);
-  _subType = uint8_t(subType);
+  _id = uint8_t(id);
+  _subId = uint8_t(subId);
 }
 
 // ============================================================================
 // [asmjit::ArchUtils]
 // ============================================================================
 
-ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archType, uint32_t& typeIdInOut, RegInfo& regInfo) noexcept {
+ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archId, uint32_t& typeIdInOut, RegInfo& regInfo) noexcept {
   uint32_t typeId = typeIdInOut;
 
   // Zero the signature so it's clear in case that typeId is not invalid.
@@ -62,10 +62,10 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archType, uint32_t& 
 
   // TODO: Move to X86 backend.
   #ifdef ASMJIT_BUILD_X86
-  if (ArchInfo::isX86Family(archType)) {
+  if (ArchInfo::isX86Family(archId)) {
     // Passed RegType instead of TypeId?
-    if (typeId <= Reg::kRegMax)
-      typeId = x86OpData.archRegs.regTypeToTypeId[typeId];
+    if (typeId <= BaseReg::kTypeMax)
+      typeId = x86::opData.archRegs.regTypeToTypeId[typeId];
 
     if (ASMJIT_UNLIKELY(!Type::isValid(typeId)))
       return DebugUtils::errored(kErrorInvalidTypeId);
@@ -73,9 +73,9 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archType, uint32_t& 
     // First normalize architecture dependent types.
     if (Type::isAbstract(typeId)) {
       if (typeId == Type::kIdIntPtr)
-        typeId = (archType == ArchInfo::kTypeX86) ? Type::kIdI32 : Type::kIdI64;
+        typeId = (archId == ArchInfo::kIdX86) ? Type::kIdI32 : Type::kIdI64;
       else
-        typeId = (archType == ArchInfo::kTypeX86) ? Type::kIdU32 : Type::kIdU64;
+        typeId = (archId == ArchInfo::kIdX86) ? Type::kIdU32 : Type::kIdU64;
     }
 
     // Type size helps to construct all groupss of registers. If the size is zero
@@ -92,36 +92,36 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archType, uint32_t& 
     switch (typeId) {
       case Type::kIdI8:
       case Type::kIdU8:
-        regType = X86Reg::kRegGpbLo;
+        regType = x86::Reg::kTypeGpbLo;
         break;
 
       case Type::kIdI16:
       case Type::kIdU16:
-        regType = X86Reg::kRegGpw;
+        regType = x86::Reg::kTypeGpw;
         break;
 
       case Type::kIdI32:
       case Type::kIdU32:
-        regType = X86Reg::kRegGpd;
+        regType = x86::Reg::kTypeGpd;
         break;
 
       case Type::kIdI64:
       case Type::kIdU64:
-        if (archType == ArchInfo::kTypeX86)
+        if (archId == ArchInfo::kIdX86)
           return DebugUtils::errored(kErrorInvalidUseOfGpq);
 
-        regType = X86Reg::kRegGpq;
+        regType = x86::Reg::kTypeGpq;
         break;
 
       // F32 and F64 are always promoted to use vector registers.
       case Type::kIdF32:
         typeId = Type::kIdF32x1;
-        regType = X86Reg::kRegXmm;
+        regType = x86::Reg::kTypeXmm;
         break;
 
       case Type::kIdF64:
         typeId = Type::kIdF64x1;
-        regType = X86Reg::kRegXmm;
+        regType = x86::Reg::kTypeXmm;
         break;
 
       // Mask registers {k}.
@@ -129,28 +129,28 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archType, uint32_t& 
       case Type::kIdMask16:
       case Type::kIdMask32:
       case Type::kIdMask64:
-        regType = X86Reg::kRegK;
+        regType = x86::Reg::kTypeKReg;
         break;
 
       // MMX registers.
       case Type::kIdMmx32:
       case Type::kIdMmx64:
-        regType = X86Reg::kRegMm;
+        regType = x86::Reg::kTypeMm;
         break;
 
       // XMM|YMM|ZMM registers.
       default:
         if (size <= 16)
-          regType = X86Reg::kRegXmm;
+          regType = x86::Reg::kTypeXmm;
         else if (size == 32)
-          regType = X86Reg::kRegYmm;
+          regType = x86::Reg::kTypeYmm;
         else
-          regType = X86Reg::kRegZmm;
+          regType = x86::Reg::kTypeZmm;
         break;
     }
 
     typeIdInOut = typeId;
-    regInfo._signature = x86OpData.archRegs.regInfo[regType].getSignature();
+    regInfo._signature = x86::opData.archRegs.regInfo[regType].signature();
     return kErrorOk;
   }
   #endif

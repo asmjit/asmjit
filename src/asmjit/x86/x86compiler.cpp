@@ -16,23 +16,23 @@
 #include "../x86/x86compiler.h"
 #include "../x86/x86rapass_p.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 // ============================================================================
-// [asmjit::X86Compiler - Construction / Destruction]
+// [asmjit::x86::Compiler - Construction / Destruction]
 // ============================================================================
 
-X86Compiler::X86Compiler(CodeHolder* code) noexcept : CodeCompiler() {
+Compiler::Compiler(CodeHolder* code) noexcept : BaseCompiler() {
   if (code)
     code->attach(this);
 }
-X86Compiler::~X86Compiler() noexcept {}
+Compiler::~Compiler() noexcept {}
 
 // ============================================================================
-// [asmjit::X86Compiler - Finalize]
+// [asmjit::x86::Compiler - Finalize]
 // ============================================================================
 
-Error X86Compiler::finalize() {
+Error Compiler::finalize() {
   // Flush the global constant pool.
   if (_globalConstPool) {
     addNode(_globalConstPool);
@@ -41,27 +41,27 @@ Error X86Compiler::finalize() {
 
   ASMJIT_PROPAGATE(runPasses());
 
-  X86Assembler a(_code);
+  Assembler a(_code);
   return serialize(&a);
 }
 
 // ============================================================================
-// [asmjit::X86Compiler - Events]
+// [asmjit::x86::Compiler - Events]
 // ============================================================================
 
-Error X86Compiler::onAttach(CodeHolder* code) noexcept {
-  uint32_t archType = code->getArchType();
-  if (!ArchInfo::isX86Family(archType))
+Error Compiler::onAttach(CodeHolder* code) noexcept {
+  uint32_t archId = code->archId();
+  if (!ArchInfo::isX86Family(archId))
     return DebugUtils::errored(kErrorInvalidArch);
 
   ASMJIT_PROPAGATE(_passes.willGrow(&_allocator));
   ASMJIT_PROPAGATE(Base::onAttach(code));
 
-  _gpRegInfo.setSignature(archType == ArchInfo::kTypeX86 ? uint32_t(X86Gpd::kSignature) : uint32_t(X86Gpq::kSignature));
+  _gpRegInfo.setSignature(archId == ArchInfo::kIdX86 ? uint32_t(Gpd::kSignature) : uint32_t(Gpq::kSignature));
   return addPassT<X86RAPass>();
 }
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // ASMJIT_BUILD_X86 && !ASMJIT_DISABLE_COMPILER

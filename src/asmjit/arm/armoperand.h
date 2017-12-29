@@ -14,29 +14,29 @@
 #include "../core/type.h"
 #include "../arm/armglobals.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(arm)
+
+//! \addtogroup asmjit_arm_api
+//! \{
 
 // ============================================================================
 // [Forward Declarations]
 // ============================================================================
 
-class ArmReg;
-class ArmMem;
+class Reg;
+class Mem;
 
-class ArmGp;
-class ArmGpw;
-class ArmGpx;
+class Gp;
+class Gpw;
+class Gpx;
 
-class ArmVec;
-class ArmVecS;
-class ArmVecD;
-class ArmVecV;
-
-//! \addtogroup asmjit_arm
-//! \{
+class Vec;
+class VecS;
+class VecD;
+class VecV;
 
 // ============================================================================
-// [asmjit::ArmRegTraits]
+// [asmjit::arm::RegTraits]
 // ============================================================================
 
 //! Register traits (ARM/AArch64).
@@ -46,53 +46,42 @@ class ArmVecV;
 //! tables that contain register information (this way it's possible to change
 //! register types and groups without having to reorder these tables).
 template<uint32_t REG_TYPE>
-struct ArmRegTraits {
-  enum : uint32_t {
-    kValid     = 0,                      //!< RegType is not valid by default.
-    kCount     = 0,                      //!< Count of registers (0 if none).
-    kTypeId    = Type::kIdVoid,          //!< Everything is void by default.
+struct RegTraits : public BaseRegTraits {};
 
-    kType      = 0,                      //!< Zero type by default.
-    kGroup     = 0,                      //!< Zero group by default.
-    kSize      = 0,                      //!< No size by default.
-    kSignature = 0                       //!< No signature by default.
-  };
-};
-
-// <--------------------+------------+---------+--------------------+--------------------+---+---+----------------+
-//                      |  Traits-T  |  Reg-T  |      Reg-Type      |      Reg-Group     |Sz |Cnt|     TypeId     |
-// <--------------------+------------+---------+--------------------+--------------------+---+---+----------------+
-ASMJIT_DEFINE_REG_TRAITS(ArmRegTraits, ArmGpw  , Reg::kRegGp32      , Reg::kGroupGp      , 4 , 32, Type::kIdI32   );
-ASMJIT_DEFINE_REG_TRAITS(ArmRegTraits, ArmGpx  , Reg::kRegGp64      , Reg::kGroupGp      , 8 , 32, Type::kIdI64   );
-ASMJIT_DEFINE_REG_TRAITS(ArmRegTraits, ArmVecS , Reg::kRegVec32     , Reg::kGroupVec     , 4 , 32, Type::kIdI32x1 );
-ASMJIT_DEFINE_REG_TRAITS(ArmRegTraits, ArmVecD , Reg::kRegVec64     , Reg::kGroupVec     , 8 , 32, Type::kIdI32x2 );
-ASMJIT_DEFINE_REG_TRAITS(ArmRegTraits, ArmVecV , Reg::kRegVec128    , Reg::kGroupVec     , 16, 32, Type::kIdI32x4 );
+// <--------------------+-----+----------------------+---------------------+---+---+----------------+
+//                      | Reg |       Reg-Type       |      Reg-Group      |Sz |Cnt|     TypeId     |
+// <--------------------+-----+----------------------+---------------------+---+---+----------------+
+ASMJIT_DEFINE_REG_TRAITS(Gpw  , BaseReg::kTypeGp32   , BaseReg::kGroupGp   , 4 , 32, Type::kIdI32   );
+ASMJIT_DEFINE_REG_TRAITS(Gpx  , BaseReg::kTypeGp64   , BaseReg::kGroupGp   , 8 , 32, Type::kIdI64   );
+ASMJIT_DEFINE_REG_TRAITS(VecS , BaseReg::kTypeVec32  , BaseReg::kGroupVec  , 4 , 32, Type::kIdI32x1 );
+ASMJIT_DEFINE_REG_TRAITS(VecD , BaseReg::kTypeVec64  , BaseReg::kGroupVec  , 8 , 32, Type::kIdI32x2 );
+ASMJIT_DEFINE_REG_TRAITS(VecV , BaseReg::kTypeVec128 , BaseReg::kGroupVec  , 16, 32, Type::kIdI32x4 );
 
 // ============================================================================
-// [asmjit::ArmReg]
+// [asmjit::arm::Reg]
 // ============================================================================
 
-//! Register (ARM/AArch64).
-class ArmReg : public Reg {
+//! Register (ARM).
+class Reg : public BaseReg {
 public:
-  ASMJIT_DEFINE_ABSTRACT_REG(ArmReg, Reg)
+  ASMJIT_DEFINE_ABSTRACT_REG(Reg, BaseReg)
 
   //! Register type.
   enum RegType : uint32_t {
-    kRegNone      = Reg::kRegNone,       //!< No register type or invalid register.
-    kRegGpw       = Reg::kRegGp32,       //!< 32-bit general purpose register (R or W).
-    kRegGpx       = Reg::kRegGp64,       //!< 64-bit general purpose register (X).
-    kRegVecS      = Reg::kRegVec32,      //!< 32-bit view of VFP/ASIMD register (S).
-    kRegVecD      = Reg::kRegVec64,      //!< 64-bit view of VFP/ASIMD register (D).
-    kRegVecV      = Reg::kRegVec128,     //!< 128-bit view of VFP/ASIMD register (Q|V).
-    kRegIP        = Reg::kRegIP,         //!< Instruction pointer (A64).
-    kRegCount                            //!< Count of register types.
+    kTypeNone    = BaseReg::kTypeNone,   //!< No register type or invalid register.
+    kTypeGpw     = BaseReg::kTypeGp32,   //!< 32-bit general purpose register (R or W).
+    kTypeGpx     = BaseReg::kTypeGp64,   //!< 64-bit general purpose register (X).
+    kTypeVecS    = BaseReg::kTypeVec32,  //!< 32-bit view of VFP/ASIMD register (S).
+    kTypeVecD    = BaseReg::kTypeVec64,  //!< 64-bit view of VFP/ASIMD register (D).
+    kTypeVecV    = BaseReg::kTypeVec128, //!< 128-bit view of VFP/ASIMD register (Q|V).
+    kTypeIP      = BaseReg::kTypeIP,     //!< Instruction pointer (A64).
+    kTypeCount                           //!< Count of register types.
   };
 
   //! Register group.
-  enum Group : uint32_t {
-    kGroupGp       = Reg::kGroupGp,      //!< General purpose register group.
-    kGroupVec      = Reg::kGroupVec,     //!< Vector (VFP/ASIMD) register group.
+  enum RegGroup : uint32_t {
+    kGroupGp     = BaseReg::kGroupGp,    //!< General purpose register group.
+    kGroupVec    = BaseReg::kGroupVec,   //!< Vector (VFP/ASIMD) register group.
     kGroupCount                          //!< Count of all ARM register groups.
   };
 
@@ -102,105 +91,105 @@ public:
   constexpr bool isVec() const noexcept { return _reg.group == kGroupVec; }
 
   //! Get whether the register is a `R|W` register (32-bit).
-  constexpr bool isGpw() const noexcept { return hasSignature(X86RegTraits<kRegGpw>::kSignature); }
+  constexpr bool isGpw() const noexcept { return hasSignature(RegTraits<kTypeGpw>::kSignature); }
   //! Get whether the register is an `X` register (64-bit).
-  constexpr bool isGpx() const noexcept { return hasSignature(X86RegTraits<kRegGpx>::kSignature); }
+  constexpr bool isGpx() const noexcept { return hasSignature(RegTraits<kTypeGpx>::kSignature); }
 
   //! Get whether the register is a VEC-S register (32-bit).
-  constexpr bool isVecS() const noexcept { return hasSignature(X86RegTraits<kRegVecS>::kSignature); }
+  constexpr bool isVecS() const noexcept { return hasSignature(RegTraits<kTypeVecS>::kSignature); }
   //! Get whether the register is a VEC-D register (64-bit).
-  constexpr bool isVecD() const noexcept { return hasSignature(X86RegTraits<kRegVecD>::kSignature); }
+  constexpr bool isVecD() const noexcept { return hasSignature(RegTraits<kTypeVecD>::kSignature); }
   //! Get whether the register is a VEC-V register (128-bit).
-  constexpr bool isVecV() const noexcept { return hasSignature(X86RegTraits<kRegVecV>::kSignature); }
+  constexpr bool isVecV() const noexcept { return hasSignature(RegTraits<kTypeVecV>::kSignature); }
 
   template<uint32_t REG_TYPE>
   inline void setArmRegT(uint32_t id) noexcept {
-    setSignature(ArmRegTraits<REG_TYPE>::kSignature);
+    setSignature(RegTraits<REG_TYPE>::kSignature);
     setId(id);
   }
 
   inline void setTypeAndId(uint32_t regType, uint32_t id) noexcept {
-    ASMJIT_ASSERT(regType < kRegCount);
+    ASMJIT_ASSERT(regType < kTypeCount);
     setSignature(signatureOf(regType));
     setId(id);
   }
 
   static inline uint32_t groupOf(uint32_t regType) noexcept;
   template<uint32_t REG_TYPE>
-  static inline uint32_t groupOfT() noexcept { return ArmRegTraits<REG_TYPE>::kGroup; }
+  static inline uint32_t groupOfT() noexcept { return RegTraits<REG_TYPE>::kGroup; }
 
   static inline uint32_t signatureOf(uint32_t regType) noexcept;
   template<uint32_t REG_TYPE>
-  static inline uint32_t signatureOfT() noexcept { return ArmRegTraits<REG_TYPE>::kSignature; }
+  static inline uint32_t signatureOfT() noexcept { return RegTraits<REG_TYPE>::kSignature; }
 
-  static inline bool isGpw(const Operand_& op) noexcept { return op.as<ArmReg>().isGpW(); }
-  static inline bool isGpx(const Operand_& op) noexcept { return op.as<ArmReg>().isGpX(); }
-  static inline bool isGpw(const Operand_& op, uint32_t id) noexcept { return isGpW(op) & (op.getId() == id); }
-  static inline bool isGpx(const Operand_& op, uint32_t id) noexcept { return isGpX(op) & (op.getId() == id); }
+  static inline bool isGpw(const Operand_& op) noexcept { return op.as<Reg>().isGpW(); }
+  static inline bool isGpx(const Operand_& op) noexcept { return op.as<Reg>().isGpX(); }
+  static inline bool isGpw(const Operand_& op, uint32_t id) noexcept { return isGpW(op) & (op.id() == id); }
+  static inline bool isGpx(const Operand_& op, uint32_t id) noexcept { return isGpX(op) & (op.id() == id); }
 
-  static inline bool isVecS(const Operand_& op) noexcept { return op.as<ArmReg>().isVecS(); }
-  static inline bool isVecD(const Operand_& op) noexcept { return op.as<ArmReg>().isVecD(); }
-  static inline bool isVecV(const Operand_& op) noexcept { return op.as<ArmReg>().isVecV(); }
-  static inline bool isVecS(const Operand_& op, uint32_t id) noexcept { return isVecS(op) & (op.getId() == id); }
-  static inline bool isVecD(const Operand_& op, uint32_t id) noexcept { return isVecD(op) & (op.getId() == id); }
-  static inline bool isVecV(const Operand_& op, uint32_t id) noexcept { return isVecV(op) & (op.getId() == id); }
+  static inline bool isVecS(const Operand_& op) noexcept { return op.as<Reg>().isVecS(); }
+  static inline bool isVecD(const Operand_& op) noexcept { return op.as<Reg>().isVecD(); }
+  static inline bool isVecV(const Operand_& op) noexcept { return op.as<Reg>().isVecV(); }
+  static inline bool isVecS(const Operand_& op, uint32_t id) noexcept { return isVecS(op) & (op.id() == id); }
+  static inline bool isVecD(const Operand_& op, uint32_t id) noexcept { return isVecD(op) & (op.id() == id); }
+  static inline bool isVecV(const Operand_& op, uint32_t id) noexcept { return isVecV(op) & (op.id() == id); }
 };
 
-//! General purpose register (ARM/AArch64).
-class ArmGp : public ArmReg {
+//! General purpose register (ARM).
+class Gp : public Reg {
 public:
-  ASMJIT_DEFINE_ABSTRACT_REG(ArmGp, ArmReg)
+  ASMJIT_DEFINE_ABSTRACT_REG(Gp, Reg)
 
   //! Cast this register to a 32-bit R|W.
-  constexpr ArmGpw w() const noexcept;
+  constexpr Gpw w() const noexcept;
   //! Cast this register to a 64-bit X.
-  constexpr ArmGpx x() const noexcept;
+  constexpr Gpx x() const noexcept;
 };
 
-//! Vector register (ARM/AArch64).
-class ArmVec : public ArmReg {
+//! Vector register (ARM).
+class Vec : public Reg {
 public:
-  ASMJIT_DEFINE_ABSTRACT_REG(ArmVec, ArmReg)
+  ASMJIT_DEFINE_ABSTRACT_REG(Vec, Reg)
 
   //! Cast this register to a 32-bit S register.
-  constexpr ArmVecS s() const noexcept;
+  constexpr VecS s() const noexcept;
   //! Cast this register to a 64-bit D register.
-  constexpr ArmVecD d() const noexcept;
+  constexpr VecD d() const noexcept;
   //! Cast this register to a 128-bit V register.
-  constexpr ArmVecV v() const noexcept;
+  constexpr VecV v() const noexcept;
 };
 
 //! 32-bit GPW (AArch64) and/or GPR (ARM/AArch32) register.
-class ArmGpw : public ArmGp { ASMJIT_DEFINE_FINAL_REG(ArmGpw, ArmGp, ArmRegTraits<kRegGpw>) };
+class Gpw : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpw, Gp, RegTraits<kTypeGpw>) };
 //! 64-bit GPX (AArch64) register.
-class ArmGpx : public ArmGp { ASMJIT_DEFINE_FINAL_REG(ArmGpx, ArmGp, ArmRegTraits<kRegGpx>) };
+class Gpx : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpx, Gp, RegTraits<kTypeGpx>) };
 //! 32-bit view (S) of VFP/SIMD register.
-class ArmVecS : public ArmVec { ASMJIT_DEFINE_FINAL_REG(ArmVecS, ArmVec, ArmRegTraits<kRegVecS>) };
+class VecS : public Vec { ASMJIT_DEFINE_FINAL_REG(VecS, Vec, RegTraits<kTypeVecS>) };
 //! 64-bit view (D) of VFP/SIMD register.
-class ArmVecD : public ArmVec { ASMJIT_DEFINE_FINAL_REG(ArmVecD, ArmVec, ArmRegTraits<kRegVecD>) };
+class VecD : public Vec { ASMJIT_DEFINE_FINAL_REG(VecD, Vec, RegTraits<kTypeVecD>) };
 //! 128-bit vector register (Q or V).
-class ArmVecV : public ArmVec { ASMJIT_DEFINE_FINAL_REG(ArmVecV, ArmVec, ArmRegTraits<kRegVecV>) };
+class VecV : public Vec { ASMJIT_DEFINE_FINAL_REG(VecV, Vec, RegTraits<kTypeVecV>) };
 
-constexpr ArmGpw ArmGp::w() const noexcept { return ArmGpw(getId()); }
-constexpr ArmGpx ArmGp::x() const noexcept { return ArmGpx(getId()); }
-constexpr ArmVecS ArmVec::s() const noexcept { return ArmVecS(getId()); }
-constexpr ArmVecD ArmVec::d() const noexcept { return ArmVecD(getId()); }
-constexpr ArmVecV ArmVec::v() const noexcept { return ArmVecV(getId()); }
+constexpr Gpw Gp::w() const noexcept { return Gpw(id()); }
+constexpr Gpx Gp::x() const noexcept { return Gpx(id()); }
+constexpr VecS Vec::s() const noexcept { return VecS(id()); }
+constexpr VecD Vec::d() const noexcept { return VecD(id()); }
+constexpr VecV Vec::v() const noexcept { return VecV(id()); }
 
-ASMJIT_DEFINE_TYPE_ID(ArmGpw, kIdI32);
-ASMJIT_DEFINE_TYPE_ID(ArmGpx, kIdI64);
-ASMJIT_DEFINE_TYPE_ID(ArmVecS, kIdF32x1);
-ASMJIT_DEFINE_TYPE_ID(ArmVecD, kIdF64x1);
-ASMJIT_DEFINE_TYPE_ID(ArmVecV, kIdI32x4);
+ASMJIT_DEFINE_TYPE_ID(Gpw, kIdI32);
+ASMJIT_DEFINE_TYPE_ID(Gpx, kIdI64);
+ASMJIT_DEFINE_TYPE_ID(VecS, kIdF32x1);
+ASMJIT_DEFINE_TYPE_ID(VecD, kIdF64x1);
+ASMJIT_DEFINE_TYPE_ID(VecV, kIdI32x4);
 
 // ============================================================================
-// [asmjit::ArmMem]
+// [asmjit::arm::Mem]
 // ============================================================================
 
-//! Memory operand (ARM/AArch64).
-class ArmMem : public Mem {
+//! Memory operand (ARM).
+class Mem : public BaseMem {
 public:
-  //! Additional bits of operand's signature used by `ArmMem`.
+  //! Additional bits of operand's signature used by `Mem`.
   enum AdditionalBits : uint32_t {
     kSignatureMemShiftShift   = 16,
     kSignatureMemShiftBits    = 0x1FU,
@@ -211,38 +200,38 @@ public:
     kSignatureMemModeMask     = kSignatureMemSegmentBits << kSignatureMemSegmentShift,
   };
 
-  //! Memory addressing mode.
-  enum Mode : uint32_t {
-    kModeOffset               = 0,       //!< Address + offset "[BASE, #Offset]".
-    kModePreInc               = 1,       //!< Pre-increment    "[BASE, #Offset]!".
-    kModePostInc              = 2        //!< Post-increment   "[BASE], #Offset".
+  //! Memory offset mode.
+  enum OffsetMode : uint32_t {
+    kOffsetFixed              = 0,       //!< Address + offset "[BASE, #Offset]".
+    kOffsetPreInc             = 1,       //!< Pre-increment    "[BASE, #Offset]!".
+    kOffsetPostInc            = 2        //!< Post-increment   "[BASE], #Offset".
   };
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Construct a default `ArmMem` operand, that points to [0].
-  constexpr ArmMem() noexcept : Mem() {}
-  constexpr ArmMem(const ArmMem& other) noexcept : Mem(other) {}
-  explicit inline ArmMem(Globals::NoInit_) noexcept : Mem(Globals::NoInit) {}
+  //! Construct a default `Mem` operand, that points to [0].
+  constexpr Mem() noexcept : BaseMem() {}
+  constexpr Mem(const Mem& other) noexcept : BaseMem(other) {}
+  explicit inline Mem(Globals::NoInit_) noexcept : BaseMem(Globals::NoInit) {}
 
   // --------------------------------------------------------------------------
-  // [ArmMem]
+  // [Arm Specific]
   // --------------------------------------------------------------------------
 
   //! Clone the memory operand.
-  constexpr ArmMem clone() const noexcept { return ArmMem(*this); }
+  constexpr Mem clone() const noexcept { return Mem(*this); }
   //! Get new memory operand adjusted by `off`.
-  inline ArmMem cloneAdjusted(int64_t off) const noexcept {
-    ArmMem result(*this);
+  inline Mem cloneAdjusted(int64_t off) const noexcept {
+    Mem result(*this);
     result.addOffset(off);
     return result;
   }
 
-  using Mem::setIndex;
+  using BaseMem::setIndex;
 
-  inline void setIndex(const Reg& index, uint32_t shift) noexcept {
+  inline void setIndex(const BaseReg& index, uint32_t shift) noexcept {
     setIndex(index);
     setShift(shift);
   }
@@ -250,44 +239,44 @@ public:
   //! Get whether the memory operand has shift (aka scale) constant.
   constexpr bool hasShift() const noexcept { return _hasSignatureData(kSignatureMemShiftMask); }
   //! Get the memory operand's shift (aka scale) constant.
-  constexpr uint32_t getShift() const noexcept { return _getSignatureData(kSignatureMemShiftBits, kSignatureMemShiftShift); }
+  constexpr uint32_t shift() const noexcept { return _signatureData(kSignatureMemShiftBits, kSignatureMemShiftShift); }
   //! Set the memory operand's shift (aka scale) constant.
   inline void setShift(uint32_t shift) noexcept { _setSignatureData(shift, kSignatureMemShiftBits, kSignatureMemShiftShift); }
   //! Reset the memory operand's shift (aka scale) constant to zero.
   inline void resetShift() noexcept { _any.signature &= ~kSignatureMemShiftMask; }
 
-  //! Get the addressing mode, see \ref ArmMem::Mode.
-  constexpr uint32_t getMode() const noexcept { return _getSignatureData(kSignatureMemModeBits, kSignatureMemModeShift); }
-  //! Set the addressing mode, see \ref ArmMem::Mode.
-  inline void setMode(uint32_t mode) noexcept { _setSignatureData(mode, kSignatureMemModeBits, kSignatureMemModeShift); }
-  //! Reset the addressing mode to \ref ArmMem::kModeOffset.
-  inline void resetMode() noexcept { _any.signature &= ~kSignatureMemModeMask; }
+  //! Get the addressing mode, see `Mem::Mode`.
+  constexpr uint32_t offsetMode() const noexcept { return _signatureData(kSignatureMemModeBits, kSignatureMemModeShift); }
+  //! Set the addressing mode, see `Mem::Mode`.
+  inline void setOffsetMode(uint32_t mode) noexcept { _setSignatureData(mode, kSignatureMemModeBits, kSignatureMemModeShift); }
+  //! Reset the addressing mode to `Mem::kModeOffset`.
+  inline void resetOffsetMode() noexcept { _any.signature &= ~kSignatureMemModeMask; }
 
-  constexpr bool isOffsetMode() const noexcept { return getMode() == kModeOffset; }
-  constexpr bool isPreIncMode() const noexcept { return getMode() == kModePreInc; }
-  constexpr bool isPostIncMode() const noexcept { return getMode() == kModePostInc; }
+  constexpr bool isFixedOffset() const noexcept { return mMode() == kOffsetFixed; }
+  constexpr bool isPreIncOffset() const noexcept { return mode() == kOffsetPreInc; }
+  constexpr bool isPostIncOffset() const noexcept { return mode() == kOffsetPostInc; }
 
-  inline ArmMem pre() const noexcept {
-    ArmMem result(*this);
+  inline Mem pre() const noexcept {
+    Mem result(*this);
     result.setMode(kModePreInc);
     return result;
   }
 
-  inline ArmMem pre(int64_t off) const noexcept {
-    ArmMem result(*this);
+  inline Mem pre(int64_t off) const noexcept {
+    Mem result(*this);
     result.setMode(kModePreInc);
     result.addOffset(off);
     return result;
   }
 
-  inline ArmMem post() const noexcept {
-    ArmMem result(*this);
+  inline Mem post() const noexcept {
+    Mem result(*this);
     result.setMode(kModePreInc);
     return result;
   }
 
-  inline ArmMem post(int64_t off) const noexcept {
-    ArmMem result(*this);
+  inline Mem post(int64_t off) const noexcept {
+    Mem result(*this);
     result.setMode(kModePostInc);
     result.addOffset(off);
     return result;
@@ -297,7 +286,7 @@ public:
   // [Operator Overload]
   // --------------------------------------------------------------------------
 
-  inline ArmMem& operator=(const ArmMem& other) noexcept = default;
+  inline Mem& operator=(const Mem& other) noexcept = default;
 };
 
 // ============================================================================
@@ -310,14 +299,14 @@ struct ArmOpData {
 };
 ASMJIT_VARAPI const ArmOpData armOpData;
 
-// ... ArmReg methods that require `armOpData`.
-inline uint32_t ArmReg::signatureOf(uint32_t regType) noexcept {
-  ASMJIT_ASSERT(regType <= Reg::kRegMax);
+// ... Reg methods that require `armOpData`.
+inline uint32_t Reg::signatureOf(uint32_t regType) noexcept {
+  ASMJIT_ASSERT(regType <= BaseReg::kTypeMax);
   return armOpData.archRegs.regInfo[regType].signature;
 }
 
-inline uint32_t ArmReg::groupOf(uint32_t regType) noexcept {
-  ASMJIT_ASSERT(regType <= Reg::kRegMax);
+inline uint32_t Reg::groupOf(uint32_t regType) noexcept {
+  ASMJIT_ASSERT(regType <= BaseReg::kTypeMax);
   return armOpData.archRegs.regInfo[regType].group;
 }
 
@@ -325,90 +314,88 @@ inline uint32_t ArmReg::groupOf(uint32_t regType) noexcept {
 // [asmjit::arm::regs]
 // ============================================================================
 
-namespace arm {
 namespace regs {
 namespace {
 
 //! Create a 32-bit W register operand (ARM/AArch64).
-static constexpr ArmGpw w(uint32_t id) noexcept { return ArmGpw(id); }
+static constexpr Gpw w(uint32_t id) noexcept { return Gpw(id); }
 //! Create a 64-bit X register operand (AArch64).
-static constexpr ArmGpx x(uint32_t id) noexcept { return ArmGpx(id); }
+static constexpr Gpx x(uint32_t id) noexcept { return Gpx(id); }
 //! Create a 32-bit S register operand (ARM/AArch64).
-static constexpr ArmVecS s(uint32_t id) noexcept { return ArmVecS(id); }
+static constexpr VecS s(uint32_t id) noexcept { return VecS(id); }
 //! Create a 64-bit D register operand (ARM/AArch64).
-static constexpr ArmVecD d(uint32_t id) noexcept { return ArmVecD(id); }
+static constexpr VecD d(uint32_t id) noexcept { return VecD(id); }
 //! Create a 1282-bit V register operand (ARM/AArch64).
-static constexpr ArmVecV v(uint32_t id) noexcept { return ArmVecV(id); }
+static constexpr VecV v(uint32_t id) noexcept { return VecV(id); }
 
-constexpr ArmGpw w0(0);
-constexpr ArmGpw w1(1);
-constexpr ArmGpw w2(2);
-constexpr ArmGpw w3(3);
-constexpr ArmGpw w4(4);
-constexpr ArmGpw w5(5);
-constexpr ArmGpw w6(6);
-constexpr ArmGpw w7(7);
-constexpr ArmGpw w8(8);
-constexpr ArmGpw w9(9);
-constexpr ArmGpw w10(10);
-constexpr ArmGpw w11(11);
-constexpr ArmGpw w12(12);
-constexpr ArmGpw w13(13);
-constexpr ArmGpw w14(14);
-constexpr ArmGpw w15(15);
-constexpr ArmGpw w16(16);
-constexpr ArmGpw w17(17);
-constexpr ArmGpw w18(18);
-constexpr ArmGpw w19(19);
-constexpr ArmGpw w20(20);
-constexpr ArmGpw w21(21);
-constexpr ArmGpw w22(22);
-constexpr ArmGpw w23(23);
-constexpr ArmGpw w24(24);
-constexpr ArmGpw w25(25);
-constexpr ArmGpw w26(26);
-constexpr ArmGpw w27(27);
-constexpr ArmGpw w28(28);
-constexpr ArmGpw w29(29);
-constexpr ArmGpw w30(30);
-constexpr ArmGpw w31(31);
+static constexpr Gpw w0(0);
+static constexpr Gpw w1(1);
+static constexpr Gpw w2(2);
+static constexpr Gpw w3(3);
+static constexpr Gpw w4(4);
+static constexpr Gpw w5(5);
+static constexpr Gpw w6(6);
+static constexpr Gpw w7(7);
+static constexpr Gpw w8(8);
+static constexpr Gpw w9(9);
+static constexpr Gpw w10(10);
+static constexpr Gpw w11(11);
+static constexpr Gpw w12(12);
+static constexpr Gpw w13(13);
+static constexpr Gpw w14(14);
+static constexpr Gpw w15(15);
+static constexpr Gpw w16(16);
+static constexpr Gpw w17(17);
+static constexpr Gpw w18(18);
+static constexpr Gpw w19(19);
+static constexpr Gpw w20(20);
+static constexpr Gpw w21(21);
+static constexpr Gpw w22(22);
+static constexpr Gpw w23(23);
+static constexpr Gpw w24(24);
+static constexpr Gpw w25(25);
+static constexpr Gpw w26(26);
+static constexpr Gpw w27(27);
+static constexpr Gpw w28(28);
+static constexpr Gpw w29(29);
+static constexpr Gpw w30(30);
+static constexpr Gpw w31(31);
 
-constexpr ArmGpx x0(0);
-constexpr ArmGpx x1(1);
-constexpr ArmGpx x2(2);
-constexpr ArmGpx x3(3);
-constexpr ArmGpx x4(4);
-constexpr ArmGpx x5(5);
-constexpr ArmGpx x6(6);
-constexpr ArmGpx x7(7);
-constexpr ArmGpx x8(8);
-constexpr ArmGpx x9(9);
-constexpr ArmGpx x10(10);
-constexpr ArmGpx x11(11);
-constexpr ArmGpx x12(12);
-constexpr ArmGpx x13(13);
-constexpr ArmGpx x14(14);
-constexpr ArmGpx x15(15);
-constexpr ArmGpx x16(16);
-constexpr ArmGpx x17(17);
-constexpr ArmGpx x18(18);
-constexpr ArmGpx x19(19);
-constexpr ArmGpx x20(20);
-constexpr ArmGpx x21(21);
-constexpr ArmGpx x22(22);
-constexpr ArmGpx x23(23);
-constexpr ArmGpx x24(24);
-constexpr ArmGpx x25(25);
-constexpr ArmGpx x26(26);
-constexpr ArmGpx x27(27);
-constexpr ArmGpx x28(28);
-constexpr ArmGpx x29(29);
-constexpr ArmGpx x30(30);
-constexpr ArmGpx x31(31);
+static constexpr Gpx x0(0);
+static constexpr Gpx x1(1);
+static constexpr Gpx x2(2);
+static constexpr Gpx x3(3);
+static constexpr Gpx x4(4);
+static constexpr Gpx x5(5);
+static constexpr Gpx x6(6);
+static constexpr Gpx x7(7);
+static constexpr Gpx x8(8);
+static constexpr Gpx x9(9);
+static constexpr Gpx x10(10);
+static constexpr Gpx x11(11);
+static constexpr Gpx x12(12);
+static constexpr Gpx x13(13);
+static constexpr Gpx x14(14);
+static constexpr Gpx x15(15);
+static constexpr Gpx x16(16);
+static constexpr Gpx x17(17);
+static constexpr Gpx x18(18);
+static constexpr Gpx x19(19);
+static constexpr Gpx x20(20);
+static constexpr Gpx x21(21);
+static constexpr Gpx x22(22);
+static constexpr Gpx x23(23);
+static constexpr Gpx x24(24);
+static constexpr Gpx x25(25);
+static constexpr Gpx x26(26);
+static constexpr Gpx x27(27);
+static constexpr Gpx x28(28);
+static constexpr Gpx x29(29);
+static constexpr Gpx x30(30);
+static constexpr Gpx x31(31);
 
 } // anonymous namespace
 } // regs namespace
-} // arm namespace
 
 // ============================================================================
 // [asmjit::arm - Ptr]
@@ -416,7 +403,7 @@ constexpr ArmGpx x31(31);
 
 //! \}
 
-ASMJIT_END_NAMESPACE
+ASMJIT_END_SUB_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_ARM_ARMOPERAND_H
