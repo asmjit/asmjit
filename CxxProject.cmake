@@ -133,13 +133,13 @@ if (NOT __CXX_INCLUDED)
   function(cxx_project product)
     string(TOUPPER "${product}" PRODUCT)
 
-    set(MODE_EMBED ${${PRODUCT}_EMBED})
-    set(MODE_STATIC ${${PRODUCT}_STATIC})
+    set(MODE_EMBED ${${PRODUCT}_BUILD_EMBED})
+    set(MODE_STATIC ${${PRODUCT}_BUILD_STATIC})
 
     # EMBED implies STATIC.
     if(MODE_EMBED)
       set(MODE_STATIC TRUE)
-      set(${PRODUCT}_STATIC TRUE PARENT_SCOPE)
+      set(${PRODUCT}_BUILD_STATIC TRUE PARENT_SCOPE)
     endif()
 
     # Deduce source and include directories. By default CxxProject assumes that
@@ -166,13 +166,13 @@ if (NOT __CXX_INCLUDED)
     set(PRIVATE_LFLAGS     "") # Private linker flags.
 
     if(MODE_EMBED)
-      list(APPEND CFLAGS         "${CXX_DEFINE}${PRODUCT}_EMBED")
-      list(APPEND PRIVATE_CFLAGS "${CXX_DEFINE}${PRODUCT}_EMBED")
+      list(APPEND CFLAGS         "${CXX_DEFINE}${PRODUCT}_BUILD_EMBED")
+      list(APPEND PRIVATE_CFLAGS "${CXX_DEFINE}${PRODUCT}_BUILD_EMBED")
     endif()
 
     if(MODE_STATIC)
-      list(APPEND CFLAGS         "${CXX_DEFINE}${PRODUCT}_STATIC")
-      list(APPEND PRIVATE_CFLAGS "${CXX_DEFINE}${PRODUCT}_STATIC")
+      list(APPEND CFLAGS         "${CXX_DEFINE}${PRODUCT}_BUILD_STATIC")
+      list(APPEND PRIVATE_CFLAGS "${CXX_DEFINE}${PRODUCT}_BUILD_STATIC")
     endif()
 
     # PUBLIC properties - usable by third parties.
@@ -193,9 +193,9 @@ if (NOT __CXX_INCLUDED)
     set(BUILD_MODE "")
     set(BUILD_TEST "")
 
-    if(${PRODUCT}_EMBED)
+    if(${PRODUCT}_BUILD_EMBED)
       set(BUILD_MODE "Embed")
-    elseif(${PRODUCT}_STATIC)
+    elseif(${PRODUCT}_BUILD_STATIC)
       set(BUILD_MODE "Static")
     else()
       set(BUILD_MODE "Shared")
@@ -281,7 +281,7 @@ if (NOT __CXX_INCLUDED)
   function(cxx_add_library product target src deps cflags cflags_dbg cflags_rel)
     string(TOUPPER "${product}" PRODUCT)
 
-    if(NOT ${PRODUCT}_STATIC)
+    if(NOT ${PRODUCT}_BUILD_STATIC)
       add_library(${target} SHARED ${src})
     else()
       add_library(${target} STATIC ${src})
@@ -302,7 +302,7 @@ if (NOT __CXX_INCLUDED)
       target_compile_options(${target} PRIVATE ${cflags} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
     endif()
 
-    if(NOT ${PRODUCT}_STATIC)
+    if(NOT ${PRODUCT}_BUILD_STATIC)
       install(TARGETS ${target} RUNTIME DESTINATION "bin"
                                 LIBRARY DESTINATION "lib${LIB_SUFFIX}"
                                 ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
@@ -328,7 +328,7 @@ if (NOT __CXX_INCLUDED)
       target_compile_options(${target} PRIVATE ${cflags} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
     endif()
 
-    if(NOT ${PRODUCT}_STATIC)
+    if(NOT ${PRODUCT}_BUILD_STATIC)
       install(TARGETS ${target} DESTINATION "lib${LIB_SUFFIX}")
     endif()
   endfunction()

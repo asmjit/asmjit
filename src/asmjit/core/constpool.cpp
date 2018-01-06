@@ -212,7 +212,7 @@ struct ConstPoolFill {
     _dst(dst),
     _dataSize(dataSize) {}
 
-  inline void visit(const ConstPool::Node* node) noexcept {
+  inline void operator()(const ConstPool::Node* node) noexcept {
     if (!node->_shared)
       std::memcpy(_dst + node->_offset, node->data(), _dataSize);
   }
@@ -227,7 +227,7 @@ void ConstPool::fill(void* dst) const noexcept {
 
   ConstPoolFill filler(static_cast<uint8_t*>(dst), 1);
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {
-    _tree[i].iterate(filler);
+    _tree[i].forEach(filler);
     filler._dataSize <<= 1;
   }
 }

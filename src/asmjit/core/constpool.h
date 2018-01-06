@@ -140,11 +140,11 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    // [Iterate]
+    // [ForEach]
     // --------------------------------------------------------------------------
 
     template<typename Visitor>
-    inline void iterate(Visitor& visitor) const noexcept {
+    inline void forEach(Visitor& visitor) const noexcept {
       Node* node = _tree.root();
       if (!node) return;
 
@@ -162,7 +162,7 @@ public:
         }
 
         for (;;) {
-          visitor.visit(node);
+          visitor(node);
           node = node->right();
 
           if (node != nullptr)

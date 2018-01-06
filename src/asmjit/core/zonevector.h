@@ -405,10 +405,10 @@ public:
   ASMJIT_NONCOPYABLE(ZoneBitVector)
 
   typedef Globals::BitWord BitWord;
-  static constexpr uint32_t kBitWordSize = Globals::kBitWordSize;
+  static constexpr uint32_t kBitWordSizeInBits = Globals::kBitWordSizeInBits;
 
   static inline uint32_t _wordsPerBits(uint32_t nBits) noexcept {
-    return ((nBits + kBitWordSize - 1) / kBitWordSize);
+    return ((nBits + kBitWordSizeInBits - 1) / kBitWordSizeInBits);
   }
 
   static inline void _zeroBits(BitWord* dst, uint32_t nBitWords) noexcept {
@@ -500,8 +500,8 @@ public:
     if (ASMJIT_UNLIKELY(index >= _capacity))
       return _append(allocator, value);
 
-    uint32_t idx = index / kBitWordSize;
-    uint32_t bit = index % kBitWordSize;
+    uint32_t idx = index / kBitWordSizeInBits;
+    uint32_t bit = index % kBitWordSizeInBits;
 
     if (bit == 0)
       _data[idx] = BitWord(value) << bit;
@@ -592,8 +592,8 @@ public:
   }
 
   inline void _clearUnusedBits() noexcept {
-    uint32_t idx = _size / kBitWordSize;
-    uint32_t bit = _size % kBitWordSize;
+    uint32_t idx = _size / kBitWordSizeInBits;
+    uint32_t bit = _size % kBitWordSizeInBits;
 
     if (!bit) return;
     _data[idx] &= (BitWord(1) << bit) - 1U;

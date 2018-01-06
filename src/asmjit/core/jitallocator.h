@@ -105,7 +105,8 @@ public:
     inline uint32_t areaSizeFromByteSize(size_t size) const noexcept { return uint32_t((size + _granularity - 1) >> _granularityLog2); }
 
     inline size_t bitWordCountFromAreaSize(uint32_t areaSize) const noexcept {
-      return IntUtils::alignUp<size_t>(areaSize, Globals::kBitWordSize) / Globals::kBitWordSize;
+      using Globals::kBitWordSizeInBits;
+      return IntUtils::alignUp<size_t>(areaSize, kBitWordSizeInBits) / kBitWordSizeInBits;
     }
 
     ZoneList<Block> _blocks;             //!< Double linked list of blocks.

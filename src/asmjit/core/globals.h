@@ -31,8 +31,8 @@ typedef unsigned int FastUInt8;
 //! Storage used to store a pack of bits (should by compatible with a machine word).
 typedef uintptr_t BitWord;
 
-//! Number of bits stored in `BitWord`.
-constexpr uint32_t kBitWordSize = uint32_t(sizeof(BitWord)) * 8;
+//! Number of bits stored in a single `BitWord`.
+constexpr uint32_t kBitWordSizeInBits = uint32_t(sizeof(BitWord)) * 8;
 
 //! Maximum height of RB-Tree is:
 //!

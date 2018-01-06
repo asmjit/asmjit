@@ -59,7 +59,8 @@ static inline size_t JitAllocator_sizeToPoolId(const JitAllocator* self, size_t 
 }
 
 static inline size_t JitAllocator_bitVectorSizeToByteSize(uint32_t areaSize) noexcept {
-  return ((areaSize + Globals::kBitWordSize - 1U) / Globals::kBitWordSize) * sizeof(Globals::BitWord);
+  using Globals::kBitWordSizeInBits;
+  return ((areaSize + kBitWordSizeInBits - 1U) / kBitWordSizeInBits) * sizeof(Globals::BitWord);
 }
 
 static inline size_t JitAllocator_calculateIdealBlockSize(JitAllocator::Pool* pool, size_t allocationSize) noexcept {
@@ -82,10 +83,11 @@ ASMJIT_FAVOR_SPEED static void JitAllocator_fillPattern(void* mem, uint32_t patt
 
 // Allocate a new `JitAllocator::Block` for the given `blockSize`.
 static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool, size_t blockSize) noexcept {
-  typedef Globals::BitWord BitWord;
+  using Globals::BitWord;
+  using Globals::kBitWordSizeInBits;
 
   uint32_t areaSize = uint32_t((blockSize + pool->granularity() - 1) >> pool->_granularityLog2);
-  uint32_t numBitWords = (areaSize + Globals::kBitWordSize - 1U) / Globals::kBitWordSize;
+  uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1U) / kBitWordSizeInBits;
 
   Block* block = static_cast<Block*>(MemUtils::alloc(sizeof(Block)));
   BitWord* bitWords = static_cast<BitWord*>(MemUtils::alloc(size_t(numBitWords) * 2 * sizeof(BitWord)));

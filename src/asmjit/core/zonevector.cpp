@@ -113,7 +113,7 @@ Error ZoneBitVector::copyFrom(ZoneAllocator* allocator, const ZoneBitVector& oth
 
   if (newSize > _capacity) {
     // Realloc needed... Calculate the minimum capacity (in bytes) requied.
-    uint32_t minimumCapacityInBits = IntUtils::alignUp<uint32_t>(newSize, kBitWordSize);
+    uint32_t minimumCapacityInBits = IntUtils::alignUp<uint32_t>(newSize, kBitWordSizeInBits);
     if (ASMJIT_UNLIKELY(minimumCapacityInBits < newSize))
       return DebugUtils::errored(kErrorNoHeapMemory);
 
@@ -153,12 +153,12 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
 
   if (newSize <= _size) {
     // The size after the resize is lesser than or equal to the current size.
-    uint32_t idx = newSize / kBitWordSize;
-    uint32_t bit = newSize % kBitWordSize;
+    uint32_t idx = newSize / kBitWordSizeInBits;
+    uint32_t bit = newSize % kBitWordSizeInBits;
 
     // Just set all bits outside of the new size in the last word to zero.
     // There is a case that there are not bits to set if `bit` is zero. This
-    // happens when `newSize` is a multiply of `kBitWordSize` like 64, 128,
+    // happens when `newSize` is a multiply of `kBitWordSizeInBits` like 64, 128,
     // and so on. In that case don't change anything as that would mean settings
     // bits outside of the `_size`.
     if (bit)
@@ -173,7 +173,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
 
   if (newSize > _capacity) {
     // Realloc needed, calculate the minimum capacity (in bytes) requied.
-    uint32_t minimumCapacityInBits = IntUtils::alignUp<uint32_t>(idealCapacity, kBitWordSize);
+    uint32_t minimumCapacityInBits = IntUtils::alignUp<uint32_t>(idealCapacity, kBitWordSizeInBits);
 
     if (ASMJIT_UNLIKELY(minimumCapacityInBits < newSize))
       return DebugUtils::errored(kErrorNoHeapMemory);
@@ -206,9 +206,9 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
   }
 
   // Start (of the old size) and end (of the new size) bits
-  uint32_t idx = oldSize / kBitWordSize;
-  uint32_t startBit = oldSize % kBitWordSize;
-  uint32_t endBit = newSize % kBitWordSize;
+  uint32_t idx = oldSize / kBitWordSizeInBits;
+  uint32_t startBit = oldSize % kBitWordSizeInBits;
+  uint32_t endBit = newSize % kBitWordSizeInBits;
 
   // Set new bits to either 0 or 1. The `pattern` is used to set multiple
   // bits per bit-word and contains either all zeros or all ones.
@@ -218,7 +218,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
   if (startBit) {
     uint32_t nBits = 0;
 
-    if (idx == (newSize / kBitWordSize)) {
+    if (idx == (newSize / kBitWordSizeInBits)) {
       // The number of bit-words is the same after the resize. In that case
       // we need to set only bits necessary in the current last bit-word.
       ASMJIT_ASSERT(startBit < endBit);
@@ -227,7 +227,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
     else {
       // There is be more bit-words after the resize. In that case we don't
       // have to be extra careful about the last bit-word of the old size.
-      nBits = kBitWordSize - startBit;
+      nBits = kBitWordSizeInBits - startBit;
     }
 
     data[idx++] |= pattern << nBits;

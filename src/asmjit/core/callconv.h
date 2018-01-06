@@ -183,11 +183,12 @@ struct CallConv {
 
   //! Strategy used to assign registers to function arguments.
   //!
-  //! This is AsmJit specific. It basically describes how should AsmJit convert
-  //! the function arguments defined by `FuncSignature` into register IDs or
-  //! stack offsets. The default strategy assigns registers and then stack.
-  //! The Win64 strategy does register shadowing as defined by `WIN64` calling
-  //! convention - it applies to 64-bit calling conventions only.
+  //! This is AsmJit specific. It basically describes how AsmJit should convert
+  //! the function arguments defined by `FuncSignature` into register IDs and
+  //! stack offsets. The default strategy `kStrategyDefault` assigns registers
+  //! and then stack whereas `kStrategyWin64` strategy does register shadowing
+  //! as defined by WIN64 calling convention - it applies to 64-bit calling
+  //! conventions only.
   enum Strategy : uint32_t {
     kStrategyDefault     = 0,            //!< Default register assignment strategy.
     kStrategyWin64       = 1             //!< WIN64 specific register assignment strategy.
