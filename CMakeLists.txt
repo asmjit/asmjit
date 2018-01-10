@@ -45,7 +45,6 @@ set(ASMJIT_BUILD_ARM      ${ASMJIT_BUILD_ARM}         CACHE BOOLEAN "Build ARM b
 include("${ASMJIT_DIR}/CxxProject.cmake")
 
 cxx_project(asmjit)
-cxx_detect_standard(ASMJIT_PRIVATE_CFLAGS)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(ASMJIT_PRIVATE_LFLAGS "/OPT:REF /OPT:ICF")
@@ -269,6 +268,8 @@ if(NOT ASMJIT_BUILD_EMBED)
     "${ASMJIT_PRIVATE_CFLAGS_DBG}"
     "${ASMJIT_PRIVATE_CFLAGS_REL}")
 
+  set_property(TARGET asmjit PROPERTY CXX_STANDARD 11)
+
   foreach(_src_file ${ASMJIT_SRC})
     get_filename_component(_src_dir ${_src_file} PATH)
     get_filename_component(_src_name ${_src_file} NAME)
@@ -282,18 +283,18 @@ if(NOT ASMJIT_BUILD_EMBED)
 
   # Add `asmjit` tests and samples.
   if(ASMJIT_BUILD_TEST)
-    cxx_detect_standard(CXX_STD)
     cxx_add_source(asmjit ASMJIT_TEST_SRC ../test asmjit_test_unit.cpp broken.cpp broken.h)
 
     cxx_add_executable(asmjit asmjit_test_unit
       "${ASMJIT_SRC};${ASMJIT_TEST_SRC}"
       "${ASMJIT_DEPS}"
-      "${ASMJIT_PRIVATE_CFLAGS};${CXX_DEFINE}ASMJIT_BUILD_TEST;${CXX_DEFINE}ASMJIT_BUILD_EMBED;${CXX_STD}"
+      "${ASMJIT_PRIVATE_CFLAGS};${CXX_DEFINE}ASMJIT_BUILD_TEST;${CXX_DEFINE}ASMJIT_BUILD_EMBED"
       "${ASMJIT_PRIVATE_CFLAGS_DBG}"
       "${ASMJIT_PRIVATE_CFLAGS_REL}")
 
     foreach(_target asmjit_bench_x86 asmjit_test_opcode asmjit_test_x86_asm asmjit_test_x86_cc)
-      cxx_add_executable(asmjit ${_target} "test/${_target}.cpp" "${ASMJIT_LIBS}" "${ASMJIT_CFLAGS};${CXX_STD}" "" "")
+      cxx_add_executable(asmjit ${_target} "test/${_target}.cpp" "${ASMJIT_LIBS}" "${ASMJIT_CFLAGS}" "" "")
+      set_property(TARGET ${_target} PROPERTY CXX_STANDARD 11)
     endforeach()
   endif()
 endif()

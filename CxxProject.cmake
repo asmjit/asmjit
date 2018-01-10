@@ -25,24 +25,6 @@ if (NOT __CXX_INCLUDED)
     set(${out} "${out_array}" PARENT_SCOPE)
   endfunction()
 
-  function(cxx_detect_standard out)
-    set(out_array)
-
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-      cxx_detect_cflags(out_array "/std:c++latest" "/std:c++14")
-    else()
-      cxx_detect_cflags(out_array "-std=c++17" "-std=c++14" "-std=c++11" "-std=c++0x")
-    endif()
-
-    # Keep only the first flag detected, which keeps the highest version supported.
-    if(out_array)
-      list(GET out_array 0 out_array)
-    endif()
-
-    set(out_array ${${out}} ${out_array})
-    set(${out} "${out_array}" PARENT_SCOPE)
-  endfunction()
-
   function(cxx_print_cflags cflags_any cflags_dbg cflags_rel)
     foreach(flag ${cflags_any})
       message("     ${flag}")
