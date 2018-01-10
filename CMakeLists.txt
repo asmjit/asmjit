@@ -60,7 +60,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Ox)        # [+] Global optimization.
 endif()
 
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang")
   cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS
     "-fvisibility=hidden"
     "-fno-tree-vectorize"
