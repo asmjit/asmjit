@@ -25,18 +25,6 @@ if (NOT __CXX_INCLUDED)
     set(${out} "${out_array}" PARENT_SCOPE)
   endfunction()
 
-  function(cxx_print_cflags cflags_any cflags_dbg cflags_rel)
-    foreach(flag ${cflags_any})
-      message("     ${flag}")
-    endforeach()
-    foreach(flag ${cflags_dbg})
-      message("     ${flag} [DEBUG]")
-    endforeach()
-    foreach(flag ${cflags_rel})
-      message("     ${flag} [RELEASE]")
-    endforeach()
-  endfunction()
-
   # -----------------------------------------------------------------------------
   # This part detects the c++ compiler and fills basic CXX_... variables to make
   # integration with that compiler easier. It provides the most common flags in
@@ -142,9 +130,7 @@ if (NOT __CXX_INCLUDED)
     set(DEPS               "") # Dependencies (list of libraries) for the linker.
     set(LIBS               "") # Dependencies with project included, for consumers.
     set(CFLAGS             "") # Public compiler flags.
-    set(PRIVATE_CFLAGS     "") # Private compiler flags independent of build type.
-    set(PRIVATE_CFLAGS_DBG "") # Private compiler flags used by debug builds.
-    set(PRIVATE_CFLAGS_REL "") # Private compiler flags used by release builds.
+    set(PRIVATE_CFLAGS     "") # Private compiler flags.
     set(PRIVATE_LFLAGS     "") # Private linker flags.
 
     if(MODE_EMBED)
@@ -164,8 +150,6 @@ if (NOT __CXX_INCLUDED)
 
     # PRIVATE properties - only used during build.
     set(${PRODUCT}_PRIVATE_CFLAGS     "${PRIVATE_CFLAGS}"     PARENT_SCOPE)
-    set(${PRODUCT}_PRIVATE_CFLAGS_DBG "${PRIVATE_CFLAGS_DBG}" PARENT_SCOPE)
-    set(${PRODUCT}_PRIVATE_CFLAGS_REL "${PRIVATE_CFLAGS_REL}" PARENT_SCOPE)
     set(${PRODUCT}_PRIVATE_LFLAGS     "${PRIVATE_LFLAGS}"     PARENT_SCOPE)
   endfunction()
 
@@ -198,11 +182,7 @@ if (NOT __CXX_INCLUDED)
     message("   ${PRODUCT}_CFLAGS=${${PRODUCT}_CFLAGS}")
     message("   ${PRODUCT}_SOURCE_DIR=${${PRODUCT}_SOURCE_DIR}")
     message("   ${PRODUCT}_INCLUDE_DIR=${${PRODUCT}_INCLUDE_DIR}")
-    message("   ${PRODUCT}_PRIVATE_CFLAGS=")
-    cxx_print_cflags(
-      "${${PRODUCT}_PRIVATE_CFLAGS}"
-      "${${PRODUCT}_PRIVATE_CFLAGS_DBG}"
-      "${${PRODUCT}_PRIVATE_CFLAGS_REL}")
+    message("   ${PRODUCT}_PRIVATE_CFLAGS=${${PRODUCT}_PRIVATE_CFLAGS}")
   endfunction()
 
   function(cxx_add_source product out src_dir)
@@ -260,38 +240,7 @@ if (NOT __CXX_INCLUDED)
     set("${out}" "${out_tmp}" PARENT_SCOPE)
   endfunction()
 
-  function(cxx_add_library product target src deps cflags cflags_dbg cflags_rel)
-    string(TOUPPER "${product}" PRODUCT)
-
-    if(NOT ${PRODUCT}_BUILD_STATIC)
-      add_library(${target} SHARED ${src})
-    else()
-      add_library(${target} STATIC ${src})
-    endif()
-
-    target_link_libraries(${target} ${deps})
-    if (NOT "${${PRODUCT}_PRIVATE_LFLAGS}" STREQUAL "")
-      set_target_properties(${target} PROPERTIES LINK_FLAGS "${${PRODUCT}_PRIVATE_LFLAGS}")
-    endif()
-
-    if(CMAKE_BUILD_TYPE)
-      if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        target_compile_options(${target} PRIVATE ${cflags} ${cflags_dbg})
-      else()
-        target_compile_options(${target} PRIVATE ${cflags} ${cflags_rel})
-      endif()
-    else()
-      target_compile_options(${target} PRIVATE ${cflags} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
-    endif()
-
-    if(NOT ${PRODUCT}_BUILD_STATIC)
-      install(TARGETS ${target} RUNTIME DESTINATION "bin"
-                                LIBRARY DESTINATION "lib${LIB_SUFFIX}"
-                                ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
-    endif()
-  endfunction()
-
-  function(cxx_add_executable product target src deps cflags cflags_dbg cflags_rel)
+  function(cxx_add_executable product target src deps cflags)
     string(TOUPPER "${product}" PRODUCT)
     add_executable(${target} ${src})
 
@@ -300,15 +249,7 @@ if (NOT __CXX_INCLUDED)
       set_target_properties(${target} PROPERTIES LINK_FLAGS "${${PRODUCT}_PRIVATE_LFLAGS}")
     endif()
 
-    if(CMAKE_BUILD_TYPE)
-      if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        target_compile_options(${target} PRIVATE ${cflags} ${cflags_dbg})
-      else()
-        target_compile_options(${target} PRIVATE ${cflags} ${cflags_rel})
-      endif()
-    else()
-      target_compile_options(${target} PRIVATE ${cflags} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
-    endif()
+    target_compile_options(${target} PRIVATE ${cflags})
 
     if(NOT ${PRODUCT}_BUILD_STATIC)
       install(TARGETS ${target} DESTINATION "lib${LIB_SUFFIX}")

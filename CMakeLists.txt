@@ -54,10 +54,12 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)            # [+] Eliminate duplicate strings.
   list(APPEND ASMJIT_PRIVATE_CFLAGS /GR-)           # [-] Runtime type information.
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS)        # [+] Buffer security-check.
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /GS-)       # [-] Buffer security-check.
-
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Ox)        # [+] Global optimization.
+  if(CMAKE_BUILD_TYPE MATCHES Debug)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /GS)          # [+] Buffer security-check.
+  else()
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /GS-)         # [-] Buffer security-check.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /Ox)          # [+] Global optimization.
+  endif()
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang")
@@ -67,10 +69,12 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang")
     "-Wconversion"
     "-Wall"
     "-Wextra")
-  cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL
-    "-O2" # CMake by default uses -O3, which does nothing useful.
-    "-fno-keep-static-consts"
-    "-fmerge-all-constants")
+  if(CMAKE_BUILD_TYPE MATCHES Release)
+    cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS
+      "-O2" # CMake by default uses -O3, which does nothing useful.
+      "-fno-keep-static-consts"
+      "-fmerge-all-constants")
+  endif()
 endif()
 
 if(ASMJIT_BUILD_SANITIZE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
@@ -264,9 +268,7 @@ if(NOT ASMJIT_BUILD_EMBED)
   cxx_add_library(asmjit asmjit
     "${ASMJIT_SRC}"
     "${ASMJIT_DEPS}"
-    "${ASMJIT_PRIVATE_CFLAGS}"
-    "${ASMJIT_PRIVATE_CFLAGS_DBG}"
-    "${ASMJIT_PRIVATE_CFLAGS_REL}")
+    "${ASMJIT_PRIVATE_CFLAGS}")
 
   set_property(TARGET asmjit PROPERTY CXX_STANDARD 11)
 
@@ -288,12 +290,10 @@ if(NOT ASMJIT_BUILD_EMBED)
     cxx_add_executable(asmjit asmjit_test_unit
       "${ASMJIT_SRC};${ASMJIT_TEST_SRC}"
       "${ASMJIT_DEPS}"
-      "${ASMJIT_PRIVATE_CFLAGS};${CXX_DEFINE}ASMJIT_BUILD_TEST;${CXX_DEFINE}ASMJIT_BUILD_EMBED"
-      "${ASMJIT_PRIVATE_CFLAGS_DBG}"
-      "${ASMJIT_PRIVATE_CFLAGS_REL}")
+      "${ASMJIT_PRIVATE_CFLAGS};${CXX_DEFINE}ASMJIT_BUILD_TEST;${CXX_DEFINE}ASMJIT_BUILD_EMBED")
 
     foreach(_target asmjit_bench_x86 asmjit_test_opcode asmjit_test_x86_asm asmjit_test_x86_cc)
-      cxx_add_executable(asmjit ${_target} "test/${_target}.cpp" "${ASMJIT_LIBS}" "${ASMJIT_CFLAGS}" "" "")
+      cxx_add_executable(asmjit ${_target} "test/${_target}.cpp" "${ASMJIT_LIBS}" "${ASMJIT_CFLAGS}")
       set_property(TARGET ${_target} PROPERTY CXX_STANDARD 11)
     endforeach()
   endif()
