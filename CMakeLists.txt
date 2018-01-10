@@ -265,10 +265,24 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/x86
 
 if(NOT ASMJIT_BUILD_EMBED)
   # Add `asmjit` library.
-  cxx_add_library(asmjit asmjit
-    "${ASMJIT_SRC}"
-    "${ASMJIT_DEPS}"
-    "${ASMJIT_PRIVATE_CFLAGS}")
+  if(NOT ASMJIT_BUILD_STATIC)
+    add_library(asmjit SHARED ${ASMJIT_SRC})
+  else()
+    add_library(asmjit STATIC ${ASMJIT_SRC})
+  endif()
+
+  target_link_libraries(asmjit ${ASMJIT_DEPS})
+  if (NOT "${ASMJIT_PRIVATE_LFLAGS}" STREQUAL "")
+    set_target_properties(asmjit PROPERTIES LINK_FLAGS "${ASMJIT_PRIVATE_LFLAGS}")
+  endif()
+
+  target_compile_options(asmjit PRIVATE ${ASMJIT_PRIVATE_CFLAGS})
+
+  if(NOT ASMJIT_BUILD_STATIC)
+    install(TARGETS ${target} RUNTIME DESTINATION "bin"
+                              LIBRARY DESTINATION "lib${LIB_SUFFIX}"
+                              ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
+  endif()
 
   set_property(TARGET asmjit PROPERTY CXX_STANDARD 11)
 
