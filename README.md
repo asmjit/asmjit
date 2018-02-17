@@ -908,6 +908,7 @@ NOTE: All nodes that have **CB** prefix are used by both **CodeBuilder** and **C
 The code representation used by **CodeBuilder** is compatible with everything AsmJit provides. Each instruction is stored as **CBInst**, which contains instruction id, options, and operands. Each instruction emitted will create a new **CBInst** instance and add it to the current cursor in the double-linked list of nodes. Since the instruction stream used by **CodeBuilder** can be manipulated, we can rewrite the **SumInts** example into the following:
 
 ```c++
+// this example currently does not work
 #include <asmjit/asmjit.h>
 #include <stdio.h>
 
@@ -1232,12 +1233,12 @@ int main(int argc, char* argv[]) {
   // ----> CodeHolder is no longer needed from here and can be destroyed <----
 
   // Test the generated code.
-  uint32_t src[6] = { 1, 2, 3, 5, 8, 13 };
-  uint32_t dst[6];
-  memcpy32(dst, src, 6);
+  uint32_t srcArr[6] = { 1, 2, 3, 5, 8, 13 };
+  uint32_t dstArr[6];
+  memcpy32(dstArr, srcArr, 6);
 
   for (uint32_t i = 0; i < 6; i++)
-    printf("%d\n", dst[i]);
+    printf("%d\n", dstArr[i]);
 
   rt.release(memcpy32);                   // RAII, but let's make it explicit.
   return 0;
@@ -1267,7 +1268,7 @@ int main(int argc, char* argv[]) {
   CCFunc* func = cc.addFunc(              // Begin of the Fibonacci function, `addFunc()`
     FuncSignature1<int, int>());          // Returns a pointer to the `CCFunc` node.
 
-  Label L_Exit = cc.newLabel()            // Exit label.
+  Label L_Exit = cc.newLabel();            // Exit label.
   X86Gp x = cc.newU32();                  // Function `x` argument.
   X86Gp y = cc.newU32();                  // Temporary.
 
@@ -1300,7 +1301,7 @@ int main(int argc, char* argv[]) {
   if (err) return 1;                      // Handle a possible error returned by AsmJit.
   // ----> CodeHolder is no longer needed from here and can be destroyed <----
 
-  printf("Fib(%u) -> %u\n, 8, fib(8));    // Test the generated code.
+  printf("Fib(%u) -> %u\n", 8, fib(8));    // Test the generated code.
 
   rt.release(fib);                        // RAII, but let's make it explicit.
   return 0;
@@ -1423,6 +1424,7 @@ Both **CodeBuilder** and **CodeCompiler** emitters store their nodes in a double
 The following example shows how to inject code at the beginning of the function by providing an **XmmConstInjector** helper class.
 
 ```c++
+// TODO use this emitting method for the example somewhere above
 #include <asmjit/asmjit.h>
 #include <stdio.h>
 #include <vector>
