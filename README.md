@@ -795,8 +795,12 @@ The following concepts are used to describe and create functions in AsmJit:
 It's a lot of concepts where each represents one step in the function layout calculation. In addition, the whole machinery can also be used to create function calls, instead of function prologs and epilogs. The next example shows how AsmJit can be used to create functions for both 32-bit and 64-bit targets and various calling conventions:
 
 ```c++
-#include <asmjit/asmjit.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <setjmp.h>
+
+#include <asmjit/asmjit.h>
 
 using namespace asmjit;
 
@@ -807,20 +811,23 @@ int main(int argc, char* argv[]) {
 
   CodeHolder code;                        // Create a CodeHolder.
   code.init(rt.getCodeInfo());            // Initialize it to match `rt`.
-  X86Assembler a(&code);                  // Create and attach X86Assembler to `code`.
+  X86Assembler a(&code);                   // Create and attach X86Builder to `code`.
+  X86Emitter* emitter = a.asEmitter();
+  
+  FileLogger logger(stdout);
+  code.setLogger(&logger);
 
   // Decide which registers will be mapped to function arguments. Try changing
   // registers of `dst`, `src_a`, and `src_b` and see what happens in function's
   // prolog and epilog.
-  X86Gp dst   = a.zax();
-  X86Gp src_a = a.zcx();
-  X86Gp src_b = a.zdx();
+  X86Gp dst   = emitter->zax();
+  X86Gp src_a = emitter->zcx();
+  X86Gp src_b = emitter->zdx();
 
   X86Xmm vec0 = x86::xmm0;
   X86Xmm vec1 = x86::xmm1;
 
-  // Create and initialize `FuncDetail` and `FuncFrameInfo`. Both are
-  // needed to create a function and they hold different kind of data.
+  // Create and initialize `FuncDetail`.
   FuncDetail func;
   func.init(FuncSignature3<void, int*, const int*, const int*>(CallConv::kIdHost));
 
@@ -835,13 +842,17 @@ int main(int argc, char* argv[]) {
   FuncFrameLayout layout;                 // Create the FuncFrameLayout, which
   layout.init(func, ffi);                 // contains metadata of prolog/epilog.
 
-  FuncUtils::emitProlog(&a, layout);      // Emit function prolog.
-  FuncUtils::allocArgs(&a, layout, args); // Allocate arguments to registers.
-  a.movdqu(vec0, x86::ptr(src_a));        // Load 4 ints from [src_a] to XMM0.
-  a.movdqu(vec1, x86::ptr(src_b));        // Load 4 ints from [src_b] to XMM1.
-  a.paddd(vec0, vec1);                    // Add 4 ints in XMM1 to XMM0.
-  a.movdqu(x86::ptr(dst), vec0);          // Store the result to [dst].
-  FuncUtils::emitEpilog(&a, layout);      // Emit function epilog and return.
+  // Emit function prolog and allocate arguments to registers.
+  FuncUtils::emitProlog(emitter, layout);
+  FuncUtils::allocArgs(emitter, layout, args);
+
+  emitter->movdqu(vec0, x86::ptr(src_a)); // Load 4 ints from [src_a] to XMM0.
+  emitter->movdqu(vec1, x86::ptr(src_b)); // Load 4 ints from [src_b] to XMM1.
+  emitter->paddd(vec0, vec1);             // Add 4 ints in XMM1 to XMM0.
+  emitter->movdqu(x86::ptr(dst), vec0);   // Store the result to [dst].
+
+  // Emit function epilog and return.
+  FuncUtils::emitEpilog(emitter, layout);
 
   SumIntsFunc fn;
   Error err = rt.add(&fn, &code);         // Add the generated code to the runtime.
