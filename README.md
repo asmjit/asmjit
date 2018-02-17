@@ -908,34 +908,35 @@ NOTE: All nodes that have **CB** prefix are used by both **CodeBuilder** and **C
 The code representation used by **CodeBuilder** is compatible with everything AsmJit provides. Each instruction is stored as **CBInst**, which contains instruction id, options, and operands. Each instruction emitted will create a new **CBInst** instance and add it to the current cursor in the double-linked list of nodes. Since the instruction stream used by **CodeBuilder** can be manipulated, we can rewrite the **SumInts** example into the following:
 
 ```c++
-// this example currently does not work
-#include <asmjit/asmjit.h>
+// this example currently produces wrong outpu!
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <setjmp.h>
+
+#include <asmjit/asmjit.h>
 
 using namespace asmjit;
 
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
 
-// Small helper function to print the current content of `cb`.
-static void dumpCode(CodeBuilder& cb, const char* phase) {
-  StringBuilder sb;
-  cb.dump(sb);
-  printf("%s:\n%s\n", phase, sb.getData());
-}
-
 int main(int argc, char* argv[]) {
   JitRuntime rt;                          // Create JIT Runtime.
 
+  FileLogger logger(stdout);
+
   CodeHolder code;                        // Create a CodeHolder.
   code.init(rt.getCodeInfo());            // Initialize it to match `rt`.
-  X86Builder cb(&code);                   // Create and attach X86Builder to `code`.
+  code.setLogger(&logger);
+  X86Assembler a(&code);                   // Create and attach X86Builder to `code`.
+  X86Emitter* cb = a.asEmitter();
 
   // Decide which registers will be mapped to function arguments. Try changing
   // registers of `dst`, `src_a`, and `src_b` and see what happens in function's
   // prolog and epilog.
-  X86Gp dst   = cb.zax();
-  X86Gp src_a = cb.zcx();
-  X86Gp src_b = cb.zdx();
+  X86Gp dst   = cb->zax();
+  X86Gp src_a = cb->zcx();
+  X86Gp src_b = cb->zdx();
 
   X86Xmm vec0 = x86::xmm0;
   X86Xmm vec1 = x86::xmm1;
@@ -944,20 +945,11 @@ int main(int argc, char* argv[]) {
   FuncDetail func;
   func.init(FuncSignature3<void, int*, const int*, const int*>(CallConv::kIdHost));
 
-  // Remember prolog insertion point.
-  CBNode* prologInsertionPoint = cb.getCursor();
-
   // Emit function body:
-  cb.movdqu(vec0, x86::ptr(src_a));       // Load 4 ints from [src_a] to XMM0.
-  cb.movdqu(vec1, x86::ptr(src_b));       // Load 4 ints from [src_b] to XMM1.
-  cb.paddd(vec0, vec1);                   // Add 4 ints in XMM1 to XMM0.
-  cb.movdqu(x86::ptr(dst), vec0);         // Store the result to [dst].
-
-  // Remember epilog insertion point.
-  CBNode* epilogInsertionPoint = cb.getCursor();
-
-  // Let's see what we have now.
-  dumpCode(cb, "Raw Function");
+  cb->movdqu(vec0, x86::ptr(src_a));       // Load 4 ints from [src_a] to XMM0.
+  cb->movdqu(vec1, x86::ptr(src_b));       // Load 4 ints from [src_b] to XMM1.
+  cb->paddd(vec0, vec1);                   // Add 4 ints in XMM1 to XMM0.
+  cb->movdqu(x86::ptr(dst), vec0);         // Store the result to [dst].
 
   // Now, after we emitted the function body, we can insert the prolog, arguments
   // allocation, and epilog. This is not possible with using pure X86Assembler.
@@ -973,20 +965,11 @@ int main(int argc, char* argv[]) {
   layout.init(func, ffi);                 // contains metadata of prolog/epilog.
 
   // Insert function prolog and allocate arguments to registers.
-  cb.setCursor(prologInsertionPoint);
-  FuncUtils::emitProlog(&cb, layout);
-  FuncUtils::allocArgs(&cb, layout, args);
+  FuncUtils::emitProlog(cb, layout);
+  FuncUtils::allocArgs(cb, layout, args);
 
   // Insert function epilog.
-  cb.setCursor(epilogInsertionPoint);
-  FuncUtils::emitEpilog(&cb, layout);
-
-  // Let's see how the function prolog and epilog looks.
-  dumpCode(cb, "Prolog & Epilog");
-
-  // IMPORTANT: CodeBuilder requires `finalize()` to be called to serialize
-  // the code to the Assembler (it automatically creates one if not attached).
-  cb.finalize();
+  FuncUtils::emitEpilog(cb, layout);
 
   SumIntsFunc fn;
   Error err = rt.add(&fn, &code);         // Add the generated code to the runtime.
@@ -1424,7 +1407,6 @@ Both **CodeBuilder** and **CodeCompiler** emitters store their nodes in a double
 The following example shows how to inject code at the beginning of the function by providing an **XmmConstInjector** helper class.
 
 ```c++
-// TODO use this emitting method for the example somewhere above
 #include <asmjit/asmjit.h>
 #include <stdio.h>
 #include <vector>
