@@ -54,6 +54,20 @@ BaseBuilder::BaseBuilder() noexcept
     _lastNode(nullptr),
     _cursor(nullptr),
     _nodeFlags(0) {}
+// Note: For some reason we can't call the move constructor of `BaseEmitter`
+BaseBuilder::BaseBuilder(BaseBuilder&& o) noexcept
+  : BaseEmitter{ 0 }, _codeZone{ std::move(o._codeZone) }, _dataZone{ std::move(o._dataZone) },
+  _passZone{ std::move(o._passZone) }, _allocator{ std::move(o._allocator) }, _passes{ std::move(o._passes) },
+  _labelNodes{ std::move(o._labelNodes) }, _firstNode{ o._firstNode }, _lastNode{ o._lastNode },
+  _cursor{ o._cursor }, _nodeFlags{ o._nodeFlags }
+{
+  moveFrom(o);
+  _allocator._zone = &_codeZone;
+
+  o._firstNode = nullptr;
+  o._lastNode = nullptr;
+  o._cursor = nullptr;
+}
 BaseBuilder::~BaseBuilder() noexcept {}
 
 // ============================================================================

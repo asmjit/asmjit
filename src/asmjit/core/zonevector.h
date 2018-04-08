@@ -45,7 +45,12 @@ protected:
   inline ZoneVectorBase(ZoneVectorBase&& other) noexcept
     : _data(other._data),
       _size(other._size),
-      _capacity(other._capacity) {}
+      _capacity(other._capacity)
+  {
+    other._size = 0;
+    other._capacity = 0;
+    other._data = nullptr;
+  }
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -152,7 +157,7 @@ public:
   // --------------------------------------------------------------------------
 
   inline ZoneVector() noexcept : ZoneVectorBase() {}
-  inline ZoneVector(ZoneVector&& other) noexcept : ZoneVector(other) {}
+  inline ZoneVector(ZoneVector&& other) noexcept : ZoneVectorBase(std::move(other)) {}
 
   // --------------------------------------------------------------------------
   // [Accessors]

@@ -58,14 +58,14 @@ public:
     _embedded[0] = nullptr;
   }
 
-  inline ZoneHashBase(ZoneHashBase&& other) noexcept {
-    _size = other._size;
-    _bucketsCount = other._bucketsCount;
-    _bucketsGrow = other._bucketsGrow;
-    _data = other._data;
+  inline ZoneHashBase(ZoneHashBase&& other) noexcept : _size{ other._size }, _bucketsCount{ other._bucketsCount }, _bucketsGrow{ other._bucketsGrow }, _data{ other._data } {
     _embedded[0] = other._embedded[0];
 
-    if (_data == other._embedded) _data = _embedded;
+    other._size = 0;
+    other._bucketsCount = 0;
+    other._bucketsGrow = 0;
+    other._data = nullptr;
+    other._embedded[0] = nullptr;
   }
 
   // --------------------------------------------------------------------------
@@ -150,7 +150,7 @@ public:
     : ZoneHashBase() {}
 
   inline ZoneHash(ZoneHash&& other) noexcept
-    : ZoneHash(other) {}
+    : ZoneHashBase(std::move(other)) {}
 
   template<typename KEY>
   inline NODE* get(const KEY& key) const noexcept {

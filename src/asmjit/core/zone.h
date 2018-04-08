@@ -361,6 +361,17 @@ public:
     std::memset(this, 0, sizeof(*this));
     _zone = zone;
   }
+  inline ZoneAllocator(ZoneAllocator&& o)
+    : _zone{ o._zone }, _dynamicBlocks{ o._dynamicBlocks }
+  {
+    o._zone = nullptr;
+    o._dynamicBlocks = nullptr;
+
+    for (int i = 0; i != kLoCount + kHiCount; ++i) {
+      _slots[i] = o._slots[i];
+      o._slots[i] = nullptr;
+    }
+  }
   //! Destroy the `ZoneAllocator`.
   inline ~ZoneAllocator() noexcept { reset(); }
 

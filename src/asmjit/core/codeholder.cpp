@@ -98,6 +98,15 @@ CodeHolder::CodeHolder() noexcept
     _zone(16384 - Zone::kZoneOverhead),
     _allocator(&_zone) {}
 
+CodeHolder::CodeHolder(CodeHolder&& o) noexcept
+  : _codeInfo{ std::move(o._codeInfo) }, _emitterOptions{ o._emitterOptions }, _logger{ o._logger },
+  _errorHandler{ o._errorHandler }, _unresolvedLabelCount{ o._unresolvedLabelCount }, _trampolinesSize{ o._trampolinesSize },
+  _zone{ std::move(o._zone) }, _allocator{ std::move(o._allocator) }, _emitters{ std::move(o._emitters) },
+  _sectionEntries{ std::move(o._sectionEntries) }, _labelEntries{ std::move(o._labelEntries) }, _namedLabels{ std::move(o._namedLabels) }
+{
+  o._logger = nullptr;
+  o._errorHandler = nullptr;
+}
 CodeHolder::~CodeHolder() noexcept {
   CodeHolder_resetInternal(this, true);
 }

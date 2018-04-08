@@ -465,6 +465,9 @@ public:
   uint32_t _globalInstOptions;           //!< Global Instruction options              (combined with `_instOptions` by `emit...()`).
   RegOnly _extraReg;                     //!< Extra register (op-mask {k} on AVX-512) (affects the next instruction).
   const char* _inlineComment;            //!< Inline comment of the next instruction  (affects the next instruction).
+
+  protected:
+  void moveFrom(BaseEmitter& o) noexcept;     // Cause I can't actually pass a `BaseEmitter&&`
 };
 
 //! \}

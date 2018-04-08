@@ -38,6 +38,7 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_API explicit Builder(CodeHolder* code = nullptr) noexcept;
+  ASMJIT_API Builder(Builder&& o) noexcept;
   ASMJIT_API virtual ~Builder() noexcept;
 
   // --------------------------------------------------------------------------

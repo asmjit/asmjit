@@ -49,6 +49,26 @@ BaseEmitter::~BaseEmitter() noexcept {
   }
 }
 
+void BaseEmitter::moveFrom(BaseEmitter& o) noexcept {
+  _type = o._type;
+  _reserved = o._reserved;
+  _flags = o._flags;
+  _code = o._code;
+  _errorHandler = o._errorHandler;
+  _codeInfo = std::move(o._codeInfo);
+  _gpRegInfo = std::move(o._gpRegInfo);
+  _emitterOptions = o._emitterOptions;
+  _privateData = o._privateData;
+  _instOptions = o._instOptions;
+  _globalInstOptions = o._globalInstOptions;
+  _extraReg = std::move(o._extraReg);
+  _inlineComment = o._inlineComment;
+
+  o._code = nullptr;
+  o._errorHandler = nullptr;
+  o._inlineComment = nullptr;
+}
+
 // ============================================================================
 // [asmjit::BaseEmitter - Code-Generation]
 // ============================================================================

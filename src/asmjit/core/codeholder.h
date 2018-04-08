@@ -363,6 +363,8 @@ public:
 
   //! Create an uninitialized CodeHolder (you must init() it before it can be used).
   ASMJIT_API CodeHolder() noexcept;
+  //! Move a `CodeHolder` instance
+  ASMJIT_API CodeHolder(CodeHolder&&) noexcept;
   //! Destroy the CodeHolder.
   ASMJIT_API ~CodeHolder() noexcept;
 

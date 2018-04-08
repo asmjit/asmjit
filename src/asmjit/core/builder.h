@@ -57,6 +57,8 @@ public:
 
   //! Create a new `BaseBuilder` instance.
   ASMJIT_API BaseBuilder() noexcept;
+  //! Move a `BaseBuilder` instance
+  ASMJIT_API BaseBuilder(BaseBuilder&& o) noexcept;
   //! Destroy the `BaseBuilder` instance.
   ASMJIT_API virtual ~BaseBuilder() noexcept;
 
