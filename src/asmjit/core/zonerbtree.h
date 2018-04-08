@@ -33,7 +33,12 @@ public:
   static constexpr uintptr_t kPtrMask = ~kRedMask;
 
   inline ZoneRBNode() noexcept
-    : _rbNodeData { 0, 0 } {}
+    : _rbNodeData{ 0, 0 } {}
+  inline ZoneRBNode(ZoneRBNode&& node) noexcept
+    : _rbNodeData{ node._rbNodeData[0], node._RbNodeData[1] }
+  {
+    node._rbNodeData[0] = node._rbNodeData[1] = 0;
+  }
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -79,6 +84,7 @@ public:
 
   inline ZoneRBNodeT() noexcept
     : ZoneRBNode() {}
+  inline ZoneRBNodeT(ZoneRBNodeT&& node) noexcept : ZoneRBNode(std::move(node)) {}
 
   inline NODE_T* child(size_t i) const noexcept { return static_cast<NODE_T*>(_getChild(i)); }
   inline NODE_T* left() const noexcept { return static_cast<NODE_T*>(_getLeft()); }
@@ -104,7 +110,10 @@ public:
     : _root(nullptr) {}
 
   inline ZoneRBTree(ZoneRBTree&& other) noexcept
-    : _root(other._root) {}
+    : _root(other._root)
+  {
+    other._root = nullptr;
+  }
 
   // --------------------------------------------------------------------------
   // [Accessors]

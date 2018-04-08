@@ -29,7 +29,11 @@ public:
     : _listNodes { nullptr, nullptr } {}
 
   inline ZoneListNode(ZoneListNode&& other) noexcept
-    : _listNodes { other._listNodes[0], other._listNodes[1] } {}
+    : _listNodes { other._listNodes[0], other._listNodes[1] }
+  {
+    other._listNodes[Globals::kLinkPrev] = nullptr;
+    other._listNodes[Globals::kLinkNext] = nullptr;
+  }
 
   inline bool hasPrev() const noexcept { return _listNodes[Globals::kLinkPrev] != nullptr; }
   inline bool hasNext() const noexcept { return _listNodes[Globals::kLinkNext] != nullptr; }
@@ -57,7 +61,10 @@ public:
     : _bounds { nullptr, nullptr } {}
 
   inline ZoneList(ZoneList&& other) noexcept
-    : _bounds { other._bounds[0], other._bounds[1] } {}
+    : _bounds { other._bounds[0], other._bounds[1] }
+  {
+    other.reset();
+  }
 
   // --------------------------------------------------------------------------
   // [Reset]

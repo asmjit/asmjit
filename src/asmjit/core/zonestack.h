@@ -73,6 +73,15 @@ public:
     _block[0] = nullptr;
     _block[1] = nullptr;
   }
+  inline ZoneStackBase(ZoneStackBase&& stack) noexcept {
+    _allocator = stack._allocator;
+    _block[0] = stack._block[0];
+    _block[1] = stack._block[1];
+
+    stack._allocator = nullptr;
+    stack._block[0] = nullptr;
+    stack._block[1] = nullptr;
+  }
   inline ~ZoneStackBase() noexcept { reset(); }
 
   // --------------------------------------------------------------------------
@@ -131,6 +140,7 @@ public:
   // --------------------------------------------------------------------------
 
   inline ZoneStack() noexcept {}
+  inline ZoneStack(ZoneStack&& stack) noexcept = default;
   inline ~ZoneStack() noexcept {}
 
   // --------------------------------------------------------------------------
