@@ -57,7 +57,7 @@ void Zone::reset(bool releaseMemory) noexcept {
   Block* cur = _block;
 
   // Can't be altered.
-  if (cur == &Zone_zeroBlock)
+  if (cur == &Zone_zeroBlock || cur == nullptr)
     return;
 
   if (releaseMemory) {
