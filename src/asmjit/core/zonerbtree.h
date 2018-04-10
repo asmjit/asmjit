@@ -35,7 +35,7 @@ public:
   inline ZoneRBNode() noexcept
     : _rbNodeData{ 0, 0 } {}
   inline ZoneRBNode(ZoneRBNode&& node) noexcept
-    : _rbNodeData{ node._rbNodeData[0], node._RbNodeData[1] }
+    : _rbNodeData{ node._rbNodeData[0], node._rbNodeData[1] }
   {
     node._rbNodeData[0] = node._rbNodeData[1] = 0;
   }
