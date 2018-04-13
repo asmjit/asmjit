@@ -39,6 +39,7 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_API explicit Compiler(CodeHolder* code = nullptr) noexcept;
+  ASMJIT_API explicit Compiler(Compiler&& c) noexcept;
   ASMJIT_API virtual ~Compiler() noexcept;
 
   // --------------------------------------------------------------------------

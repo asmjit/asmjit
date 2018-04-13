@@ -362,7 +362,8 @@ public:
     _zone = zone;
   }
   inline ZoneAllocator(ZoneAllocator&& o)
-    : _zone{ o._zone }, _dynamicBlocks{ o._dynamicBlocks }
+    : _zone(o._zone),
+      _dynamicBlocks(o._dynamicBlocks)
   {
     o._zone = nullptr;
     o._dynamicBlocks = nullptr;

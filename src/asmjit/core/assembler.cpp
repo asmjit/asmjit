@@ -28,6 +28,22 @@ BaseAssembler::BaseAssembler() noexcept
     _bufferPtr(nullptr),
     _op4(),
     _op5() {}
+BaseAssembler::BaseAssembler(BaseAssembler&& b) noexcept
+  : BaseEmitter(0),
+    _section(b._section),
+    _bufferData(b._bufferData),
+    _bufferEnd(b._bufferEnd),
+    _bufferPtr(b._bufferPtr),
+    _op4(b._op4),
+    _op5(b._op5)
+{
+  moveFrom(b);
+
+  b._section = nullptr;
+  b._bufferData = nullptr;
+  b._bufferEnd = nullptr;
+  b._bufferPtr = nullptr;
+}
 BaseAssembler::~BaseAssembler() noexcept {}
 
 // ============================================================================

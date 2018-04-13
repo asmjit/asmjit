@@ -56,6 +56,19 @@ BaseCompiler::BaseCompiler() noexcept
 
   _type = kTypeCompiler;
 }
+BaseCompiler::BaseCompiler(BaseCompiler&& c) noexcept
+  : BaseBuilder(std::move(c)),
+    _func(c._func),
+    _vRegZone(std::move(c._vRegZone)),
+    _vRegArray(std::move(c._vRegArray)),
+    _localConstPool(c._localConstPool),
+    _globalConstPool(c._globalConstPool)
+{
+  c._func = nullptr;
+  c._localConstPool = nullptr;
+  c._globalConstPool = nullptr;
+  _type = c._type;
+}
 BaseCompiler::~BaseCompiler() noexcept {}
 
 // ============================================================================

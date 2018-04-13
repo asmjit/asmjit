@@ -169,6 +169,8 @@ public:
 
   //! Create a new `BaseCompiler` instance.
   ASMJIT_API BaseCompiler() noexcept;
+  //! Move `BaseCompiler` instance.
+  ASMJIT_API BaseCompiler(BaseCompiler&& c) noexcept;
   //! Destroy the `BaseCompiler` instance.
   ASMJIT_API virtual ~BaseCompiler() noexcept;
 

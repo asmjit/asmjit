@@ -29,7 +29,7 @@ public:
     : _listNodes { nullptr, nullptr } {}
 
   inline ZoneListNode(ZoneListNode&& other) noexcept
-    : _listNodes { other._listNodes[0], other._listNodes[1] }
+    : _listNodes{ other._listNodes[0], other._listNodes[1] }
   {
     other._listNodes[Globals::kLinkPrev] = nullptr;
     other._listNodes[Globals::kLinkNext] = nullptr;

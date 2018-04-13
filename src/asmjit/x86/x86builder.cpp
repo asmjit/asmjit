@@ -25,7 +25,7 @@ Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
   if (code)
     code->attach(this);
 }
-Builder::Builder(Builder&& o) noexcept : BaseBuilder{ std::move(o) } {}
+Builder::Builder(Builder&& o) noexcept : BaseBuilder(std::move(o)) {}
 Builder::~Builder() noexcept {}
 
 // ============================================================================

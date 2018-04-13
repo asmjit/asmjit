@@ -456,6 +456,7 @@ Assembler::Assembler(CodeHolder* code) noexcept : BaseAssembler() {
   if (code)
     code->attach(this);
 }
+Assembler::Assembler(Assembler&& assembler) noexcept : BaseAssembler(std::move(assembler)) {}
 Assembler::~Assembler() noexcept {}
 
 // ============================================================================

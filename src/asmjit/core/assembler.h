@@ -35,6 +35,8 @@ public:
 
   //! Create a new `BaseAssembler` instance.
   ASMJIT_API BaseAssembler() noexcept;
+  //! Move a `BaseAssembler` instance.
+  ASMJIT_API BaseAssembler(BaseAssembler&& b) noexcept;
   //! Destroy the `BaseAssembler` instance.
   ASMJIT_API virtual ~BaseAssembler() noexcept;
 

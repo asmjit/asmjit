@@ -26,6 +26,7 @@ Compiler::Compiler(CodeHolder* code) noexcept : BaseCompiler() {
   if (code)
     code->attach(this);
 }
+Compiler::Compiler(Compiler&& c) noexcept : BaseCompiler(std::move(c)) {}
 Compiler::~Compiler() noexcept {}
 
 // ============================================================================
