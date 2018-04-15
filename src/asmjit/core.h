@@ -26,6 +26,7 @@
 #include "./core/inst.h"
 #include "./core/intutils.h"
 #include "./core/jitallocator.h"
+#include "./core/jitdump.h"
 #include "./core/jitruntime.h"
 #include "./core/jitutils.h"
 #include "./core/logging.h"

@@ -159,6 +159,8 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   intutils.h
   jitallocator.cpp
   jitallocator.h
+  jitdump.cpp
+  jitdump.h
   jitruntime.cpp
   jitruntime.h
   jitutils.cpp
