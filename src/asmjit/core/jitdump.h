@@ -1,15 +1,13 @@
 #ifndef JITDUMP_HPP_
 #define JITDUMP_HPP_
 
+
+#ifdef __linux__
+
 #include <cstdio>
 #include <cstdint>
 
 #include <elf.h>
-//#include <fcntl.h>
-//#include <sys/types.h>
-//#include <sys/mman.h>
-//#include <unistd.h>
-//#include <time.h>
 
 
 namespace asmjit{
@@ -87,13 +85,15 @@ private:
 	uint64_t getTimestamp() const;
 
 public:
-	//TODO: change to ctor and dtor
-	void init();
+	int init();
 	void close();
 
+	// dump function with associated function name
 	void addCodeSegment(const char *fn_name, void *fn, uint64_t code_size);
 };
 
 }
+
+#endif // __linux__
 
 #endif
