@@ -28,10 +28,6 @@ constexpr uint32_t kMemAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
 //! Host memory allocator alignment.
 constexpr uint32_t kMemAllocAlignment = 8;
 
-//! A theoretical maximum memory (in bytes) that can be allocated by host
-//! memory allocator. Adjusted to be aligned and safe.
-constexpr size_t kMemAllocLimit = std::numeric_limits<size_t>::max() - (1024 * 1024 * 16) + 1;
-
 //! Aggressive growing strategy threshold.
 constexpr uint32_t kAllocThreshold = 8192 * 1024;
 

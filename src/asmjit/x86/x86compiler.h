@@ -28,8 +28,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! Architecture-dependent asm-compiler (X86).
 class ASMJIT_VIRTAPI Compiler
-  : public BaseCompiler,
-    public EmitterExplicitT<Compiler> {
+  : public EmitterExplicitT<Compiler>,
+    public BaseCompiler {
 public:
   ASMJIT_NONCOPYABLE(Compiler)
   typedef BaseCompiler Base;

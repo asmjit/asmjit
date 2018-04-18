@@ -380,7 +380,7 @@ enum SpecialCases : uint32_t {
 
 //! Used to describe what the instruction does and some of its quirks.
 enum OperationFlags : uint32_t {
-  kOperationVolatile      = 0x00000001U, //!< Hint for instruction schedulers to never reorder this instruction (side effects, memory barrier, etc).
+  kOperationVolatile      = 0x00000001U  //!< Hint for instruction schedulers to never reorder this instruction (side effects, memory barrier, etc).
 };
 
 // ============================================================================
@@ -538,7 +538,7 @@ struct CommonInfo {
 ASMJIT_VARAPI const CommonInfo _commonInfoTable[];
 
 // ============================================================================
-// [asmjit::x86::ExecutionInfo]
+// [asmjit::x86::InstDB::ExecutionInfo]
 // ============================================================================
 
 //! Detailed data about instruction's operation, requirements, and side-effects.

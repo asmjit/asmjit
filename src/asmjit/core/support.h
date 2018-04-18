@@ -1481,6 +1481,48 @@ public:
   T* _p;
 };
 
+// ============================================================================
+// [b2d::Support::Temporary]
+// ============================================================================
+
+//! Used to pass a temporary buffer to:
+//!
+//!   - Containers that use user-passed buffer as an initial storage (still can grow).
+//!   - Zone allocator that would use the temporary buffer as a first block.
+struct Temporary {
+  // --------------------------------------------------------------------------
+  // [Construction / Destruction]
+  // --------------------------------------------------------------------------
+
+  constexpr Temporary(const Temporary& other) noexcept = default;
+  constexpr Temporary(void* data, size_t size) noexcept
+    : _data(data),
+      _size(size) {}
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  //! Get the storage.
+  template<typename T = void>
+  constexpr T* data() const noexcept { return static_cast<T*>(_data); }
+  //! Get the storage size (capacity).
+  constexpr size_t size() const noexcept { return _size; }
+
+  // --------------------------------------------------------------------------
+  // [Operator Overload]
+  // --------------------------------------------------------------------------
+
+  inline Temporary& operator=(const Temporary& other) noexcept = default;
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  void* _data;
+  size_t _size;
+};
+
 } // Support namespace
 
 //! \}

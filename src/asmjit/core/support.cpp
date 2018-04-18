@@ -445,7 +445,7 @@ static void testBitVector() noexcept {
 }
 
 static void testSorting() noexcept {
-  INFO("Testing qsort and isort of predefined arrays");
+  INFO("Support::qSort() - Testing qsort and isort of predefined arrays");
   {
     constexpr size_t kArraySize = 11;
 
@@ -461,7 +461,7 @@ static void testSorting() noexcept {
     testArrays(arr2, ref_, kArraySize);
   }
 
-  INFO("Testing qsort and isort of artificial arrays");
+  INFO("Support::qSort() - Testing qsort and isort of artificial arrays");
   {
     constexpr size_t kArraySize = 200;
 
@@ -483,7 +483,7 @@ static void testSorting() noexcept {
     }
   }
 
-  INFO("Testing qsort and isort having unstable compare function");
+  INFO("Support::qSort() - Testing qsort and isort having unstable compare function");
   {
     constexpr size_t kArraySize = 5;
 

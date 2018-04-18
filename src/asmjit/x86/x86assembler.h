@@ -26,8 +26,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! Emits X86 machine-code into buffers managed by `CodeHolder`.
 class ASMJIT_VIRTAPI Assembler
-  : public BaseAssembler,
-    public EmitterImplicitT<Assembler> {
+  : public EmitterImplicitT<Assembler>,
+    public BaseAssembler {
 public:
   ASMJIT_NONCOPYABLE(Assembler)
   typedef BaseAssembler Base;

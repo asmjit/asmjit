@@ -194,11 +194,11 @@ struct EmitterExplicitT {
   // --------------------------------------------------------------------------
 
   inline This* _emitter() noexcept {
-    return static_cast<This*>(this);
+    return reinterpret_cast<This*>(this);
   }
 
   inline const This* _emitter() const noexcept {
-    return static_cast<const This*>(this);
+    return reinterpret_cast<const This*>(this);
   }
 
   //! Get either GPD or GPQ register of index `id` depending on the current architecture.
@@ -5217,7 +5217,7 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
 //! it as emitter that emits to either `x86::Assembler`, `x86::Builder`, or
 //! `x86::Compiler` (use with caution with `x86::Compiler` as it requires virtual
 //! registers).
-class Emitter : public BaseEmitter, public EmitterImplicitT<Emitter> {
+class Emitter final : public EmitterImplicitT<Emitter>, public BaseEmitter {
   ASMJIT_NONCONSTRUCTIBLE(Emitter)
 };
 
