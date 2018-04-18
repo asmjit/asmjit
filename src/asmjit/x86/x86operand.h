@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_X86_OPERAND_H
@@ -425,13 +425,13 @@ public:
     : BaseMem(Globals::Init, 0, uint32_t(base >> 32), index.type(), index.id(), int32_t(uint32_t(base & 0xFFFFFFFFU)), size, flags | (shift << kSignatureMemShiftShift)) {}
 
   //! Construct a `Mem` operand from `MemData`.
-  explicit constexpr Mem(const MemData& data) noexcept
+  constexpr explicit Mem(const MemData& data) noexcept
     : BaseMem(data) {}
 
   constexpr Mem(Globals::Init_, uint32_t baseType, uint32_t baseId, uint32_t indexType, uint32_t indexId, int32_t off, uint32_t size, uint32_t flags) noexcept
     : BaseMem(Globals::Init, baseType, baseId, indexType, indexId, off, size, flags) {}
 
-  explicit inline Mem(Globals::NoInit_) noexcept
+  inline explicit Mem(Globals::NoInit_) noexcept
     : BaseMem(Globals::NoInit) {}
 
   //! Clone the memory operand.

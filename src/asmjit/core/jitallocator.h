@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_JITALLOCATOR_H
@@ -15,7 +15,7 @@
 #include "../core/globals.h"
 #include "../core/osutils.h"
 #include "../core/zonelist.h"
-#include "../core/zonerbtree.h"
+#include "../core/zonetree.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -49,24 +49,28 @@ class JitAllocator {
 public:
   ASMJIT_NONCOPYABLE(JitAllocator)
 
-  enum Flags : uint32_t {
-    kFlagSecureMode = 0x80000000U        //!< Always mark unused memory by fill-pattern.
+  enum Limits : uint32_t {
+    //! Number of pools that contain blocks.
+    //!
+    //! Each pool increases granularity twice to make memory management more
+    //! efficient. Ideal number of pools appears to be 3 to 4 as it distributes
+    //! small and large functions properly.
+    kPoolCount = 3,
+
+    //! Minimum granularity (and the default granularity for pool #0).
+    kMinGranularity = 64,
+
+    //! Minimum block size (64kB).
+    kMinBlockSize = 1024 * 64,
+
+    //! Maximum block size (1MB).
+    kMaxBlockSize = 1024 * 1024
   };
 
-  //! Minimum granularity (and the default granularity for pool #0).
-  static constexpr uint32_t kMinimumGranularity = 64;
-
-  //! Number of pools that contain blocks.
-  //!
-  //! Each pool increases granularity twice to make memory management more
-  //! efficient. Ideal number of pools appears to be 3 to 4 as it distributes
-  //! small and large functions properly.
-  static constexpr uint32_t kPoolCount = 3;
-
-  //! Minimum block size.
-  static constexpr uint32_t kMinBlockSize = 65536;   // 64kB.
-  //! Maximum block size.
-  static constexpr uint32_t kMaxBlockSize = 1048576; // 1MB.
+  enum Flags : uint32_t {
+    //! Always mark unused memory by fill-pattern.
+    kFlagSecureMode = 0x80000000U
+  };
 
   class Block;
 
@@ -98,15 +102,15 @@ public:
     inline void setGranularity(uint32_t granularity) noexcept {
       ASMJIT_ASSERT(granularity < 65536U);
       _granularity = uint16_t(granularity);
-      _granularityLog2 = uint8_t(IntUtils::ctz(granularity));
+      _granularityLog2 = uint8_t(Support::ctz(granularity));
     }
 
     inline size_t byteSizeFromAreaSize(uint32_t areaSize) const noexcept { return size_t(areaSize) * _granularity; }
     inline uint32_t areaSizeFromByteSize(size_t size) const noexcept { return uint32_t((size + _granularity - 1) >> _granularityLog2); }
 
     inline size_t bitWordCountFromAreaSize(uint32_t areaSize) const noexcept {
-      using Globals::kBitWordSizeInBits;
-      return IntUtils::alignUp<size_t>(areaSize, kBitWordSizeInBits) / kBitWordSizeInBits;
+      using Support::kBitWordSizeInBits;
+      return Support::alignUp<size_t>(areaSize, kBitWordSizeInBits) / kBitWordSizeInBits;
     }
 
     ZoneList<Block> _blocks;             //!< Double linked list of blocks.
@@ -122,22 +126,22 @@ public:
     size_t _totalOverheadBytes;          //!< Overhead of all blocks (in bytes).
   };
 
-  class Block : public ZoneRBNodeT<Block>,
+  class Block : public ZoneTreeNodeT<Block>,
                 public ZoneListNode<Block> {
   public:
     ASMJIT_NONCOPYABLE(Block)
 
     enum Flags {
-      kFlagDirty           = 0x00000001U //!< Block is dirty (some information needs update).
+      kFlagDirty           = 0x80000000U //!< Block is dirty (some members needs update).
     };
 
     inline Block(Pool* pool,
                  uint8_t* virtMem,
                  size_t blockSize,
-                 Globals::BitWord* usedBitVector,
-                 Globals::BitWord* stopBitVector,
+                 Support::BitWord* usedBitVector,
+                 Support::BitWord* stopBitVector,
                  uint32_t areaSize) noexcept
-      : ZoneRBNodeT(),
+      : ZoneTreeNodeT(),
         _pool(pool),
         _virtMem(virtMem),
         _blockSize(blockSize),
@@ -180,7 +184,7 @@ public:
     inline bool operator<(const Block& other) const noexcept { return virtMem() < other.virtMem(); }
     inline bool operator>(const Block& other) const noexcept { return virtMem() > other.virtMem(); }
 
-    // Special implementation for querying blocks by `key`, which must be in `[virtMem, virtMem + blockSize)` interval.
+    // Special implementation for querying blocks by `key`, which must be in `[virtMem, virtMem + blockSize)` range.
     inline bool operator<(const uint8_t* key) const noexcept { return virtMem() + blockSize() <= key; }
     inline bool operator>(const uint8_t* key) const noexcept { return virtMem() > key; }
 
@@ -195,8 +199,8 @@ public:
     uint32_t _searchStart;               //!< Start of a search range (for unused bits).
     uint32_t _searchEnd;                 //!< End of a search range (for unused bits).
 
-    Globals::BitWord* _usedBitVector;    //!< Used bit-vector (0 = unused    , 1 = used).
-    Globals::BitWord* _stopBitVector;    //!< Stop bit-vector (0 = don't care, 1 = stop).
+    Support::BitWord* _usedBitVector;   //!< Used bit-vector (0 = unused    , 1 = used).
+    Support::BitWord* _stopBitVector;   //!< Stop bit-vector (0 = don't care, 1 = stop).
   };
 
   struct Statistics {
@@ -231,7 +235,7 @@ public:
       return (double(overheadSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
 
-    size_t _blockCount;                  //!< Number of blocks `JitAllocator` maintaints.
+    size_t _blockCount;                  //!< Number of blocks `JitAllocator` maintains.
     size_t _usedSize;                    //!< How many bytes are currently used / allocated.
     size_t _reservedSize;                //!< How many bytes are currently reserved by the allocator.
     size_t _overheadSize;                //!< Allocation overhead (in bytes) required to maintain all blocks.
@@ -281,8 +285,8 @@ public:
   ASMJIT_API void* alloc(size_t size) noexcept;
   //! Release a memory returned by `alloc()`.
   ASMJIT_API Error release(void* p) noexcept;
-  //! Free extra memory allocated with `p`.
-  ASMJIT_API Error shrink(void* p, size_t used) noexcept;
+  //! Free extra memory allocated with `p` by restricting it to `newSize` size.
+  ASMJIT_API Error shrink(void* p, size_t newSize) noexcept;
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -294,7 +298,7 @@ public:
   uint32_t _fillPattern;                 //!< A pattern that is used to fill unused memory if secure mode is enabled.
 
   mutable Lock _lock;                    //!< Lock for thread safety.
-  ZoneRBTree<Block> _tree;               //!< Blocks from all pools in RBTree.
+  ZoneTree<Block> _tree;                 //!< Blocks from all pools in RBTree.
   Pool _pools[kPoolCount];               //!< Allocator pools.
 };
 

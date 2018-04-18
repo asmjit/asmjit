@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Dependencies]
 #include <cstring>
@@ -82,7 +82,7 @@ public:
   // --------------------------------------------------------------------------
 
   X86TestApp()
-    : _zone(8096 - Zone::kZoneOverhead),
+    : _zone(8096 - Zone::kBlockOverhead),
       _allocator(&_zone),
       _returnCode(0),
       _binSize(0),
@@ -2194,8 +2194,8 @@ public:
     uint32_t _srcBuffer[kCount + 3];
 
     // Has to be aligned.
-    uint32_t* dstBuffer = (uint32_t*)IntUtils::alignUp<intptr_t>((intptr_t)_dstBuffer, 16);
-    uint32_t* srcBuffer = (uint32_t*)IntUtils::alignUp<intptr_t>((intptr_t)_srcBuffer, 16);
+    uint32_t* dstBuffer = (uint32_t*)Support::alignUp<intptr_t>((intptr_t)_dstBuffer, 16);
+    uint32_t* srcBuffer = (uint32_t*)Support::alignUp<intptr_t>((intptr_t)_srcBuffer, 16);
 
     std::memcpy(dstBuffer, dstConstData, sizeof(dstConstData));
     std::memcpy(srcBuffer, srcConstData, sizeof(srcConstData));

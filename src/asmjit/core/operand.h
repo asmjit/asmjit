@@ -2,14 +2,14 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_OPERAND_H
 #define _ASMJIT_CORE_OPERAND_H
 
 // [Dependencies]
-#include "../core/intutils.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -134,11 +134,11 @@ struct Operand_ {
   //! a single uint32_t to contain either physical register id or virtual
   //! register id represented as `packed-id`. This concept is used also for
   //! labels to make the API consistent.
-  static ASMJIT_FORCEINLINE bool isPackedId(uint32_t id) noexcept { return id - kPackedIdMin < uint32_t(kPackedIdCount); }
+  static ASMJIT_INLINE bool isPackedId(uint32_t id) noexcept { return id - kPackedIdMin < uint32_t(kPackedIdCount); }
   //! Convert a real-id into a packed-id that can be stored in Operand.
-  static ASMJIT_FORCEINLINE uint32_t packId(uint32_t id) noexcept { return id + kPackedIdMin; }
+  static ASMJIT_INLINE uint32_t packId(uint32_t id) noexcept { return id + kPackedIdMin; }
   //! Convert a packed-id back to real-id.
-  static ASMJIT_FORCEINLINE uint32_t unpackId(uint32_t id) noexcept { return id - kPackedIdMin; }
+  static ASMJIT_INLINE uint32_t unpackId(uint32_t id) noexcept { return id - kPackedIdMin; }
 
   // --------------------------------------------------------------------------
   // [Operand Data]
@@ -359,7 +359,7 @@ struct Operand_ {
 
   //! Get whether the operand is a register or memory.
   constexpr bool isRegOrMem() const noexcept {
-    return IntUtils::isBetween<uint32_t>(opType(), kOpReg, kOpMem);
+    return Support::isBetween<uint32_t>(opType(), kOpReg, kOpMem);
   }
 
   // --------------------------------------------------------------------------
@@ -405,7 +405,7 @@ public:
     : Operand_(other) {}
 
   //! Create a cloned `other` operand.
-  explicit constexpr Operand(const Operand_& other)
+  constexpr explicit Operand(const Operand_& other)
     : Operand_(other) {}
 
   //! Create an operand initialized to raw `[p0, p1, p2, p3]` values.
@@ -413,7 +413,7 @@ public:
     : Operand_{{{ p0, p1, p2, p3 }}} {}
 
   //! Create an uninitialized operand (dangerous).
-  explicit inline Operand(Globals::NoInit_) noexcept {}
+  inline explicit Operand(Globals::NoInit_) noexcept {}
 
   // --------------------------------------------------------------------------
   // [Clone]
@@ -497,10 +497,10 @@ public:
     : Operand(other) {}
 
   //! Create a label operand of the given `id`.
-  explicit constexpr Label(uint32_t id) noexcept
+  constexpr explicit Label(uint32_t id) noexcept
     : Operand(Globals::Init, kOpLabel, id, 0, 0) {}
 
-  explicit inline Label(Globals::NoInit_) noexcept
+  inline explicit Label(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
   // --------------------------------------------------------------------------
@@ -600,7 +600,7 @@ public:                                                                       \
     : BASE(signature, rId) {}                                                 \
                                                                               \
   /*! Create a completely uninitialized REG register operand (garbage). */    \
-  explicit inline REG(Globals::NoInit_) noexcept                              \
+  inline explicit REG(Globals::NoInit_) noexcept                              \
     : BASE(Globals::NoInit) {}                                                \
                                                                               \
   /*! Create a new register from register type and id. */                     \
@@ -623,7 +623,7 @@ public:                                                                       \
   ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                       \
                                                                               \
   /*! Create a REG register with `rId`. */                                    \
-  explicit constexpr REG(uint32_t rId) noexcept                               \
+  constexpr explicit REG(uint32_t rId) noexcept                               \
     : BASE(kSignature, rId) {}
 
 //! Structure that allows to extract a register information based on the signature.
@@ -709,7 +709,7 @@ public:
   constexpr BaseReg(uint32_t signature, uint32_t rId) noexcept
     : Operand(Globals::Init, signature, rId, 0, 0) {}
 
-  explicit inline BaseReg(Globals::NoInit_) noexcept
+  inline explicit BaseReg(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
   // --------------------------------------------------------------------------
@@ -942,7 +942,7 @@ public:
     : Operand(other) {}
 
   //! Construct a `BaseMem` operand from `MemData`.
-  explicit constexpr BaseMem(const MemData& data) noexcept
+  constexpr explicit BaseMem(const MemData& data) noexcept
     : Operand(Globals::Init, data.signature, data.base, data.index, data.offsetLo32) {}
 
   constexpr BaseMem(Globals::Init_, uint32_t baseType, uint32_t baseId, uint32_t indexType, uint32_t indexId, int32_t off, uint32_t size, uint32_t flags) noexcept
@@ -955,7 +955,7 @@ public:
               indexId,
               uint32_t(off)) {}
 
-  explicit inline BaseMem(Globals::NoInit_) noexcept
+  inline explicit BaseMem(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
   // --------------------------------------------------------------------------
@@ -1062,7 +1062,7 @@ public:
 
   //! Get whether the memory operand has a non-zero offset or absolute address.
   constexpr bool hasOffset() const noexcept {
-    return (_mem.offsetLo32 | uint32_t(_mem.base & IntUtils::maskFromBool<uint32_t>(isOffset64Bit()))) != 0;
+    return (_mem.offsetLo32 | uint32_t(_mem.base & Support::bitMaskFromBool<uint32_t>(isOffset64Bit()))) != 0;
   }
 
   //! Get a 64-bit offset or absolute address.
@@ -1089,7 +1089,7 @@ public:
   inline void setOffset(int64_t offset) noexcept {
     uint32_t lo = uint32_t(uint64_t(offset) & 0xFFFFFFFFU);
     uint32_t hi = uint32_t(uint64_t(offset) >> 32);
-    uint32_t hiMsk = IntUtils::maskFromBool<uint32_t>(isOffset64Bit());
+    uint32_t hiMsk = Support::bitMaskFromBool<uint32_t>(isOffset64Bit());
 
     _mem.offsetLo32 = lo;
     _mem.base = (hi & hiMsk) | (_mem.base & ~hiMsk);
@@ -1156,10 +1156,10 @@ public:
     : Operand(other) {}
 
   //! Create a new signed immediate value, assigning the value to `val`.
-  explicit constexpr Imm(int64_t val) noexcept
-    : Operand(Globals::Init, kOpImm, 0, IntUtils::unpackU32At0(val), IntUtils::unpackU32At1(val)) {}
+  constexpr explicit Imm(int64_t val) noexcept
+    : Operand(Globals::Init, kOpImm, 0, Support::unpackU32At0(val), Support::unpackU32At1(val)) {}
 
-  explicit inline Imm(Globals::NoInit_) noexcept
+  inline explicit Imm(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
   // --------------------------------------------------------------------------
@@ -1170,38 +1170,38 @@ public:
   constexpr Imm clone() const noexcept { return Imm(*this); }
 
   //! Get whether the immediate can be casted to 8-bit signed integer.
-  constexpr bool isI8() const noexcept { return IntUtils::isI8(_imm.value.i64); }
+  constexpr bool isI8() const noexcept { return Support::isI8(_imm.value.i64); }
   //! Get whether the immediate can be casted to 8-bit unsigned integer.
-  constexpr bool isU8() const noexcept { return IntUtils::isU8(_imm.value.i64); }
+  constexpr bool isU8() const noexcept { return Support::isU8(_imm.value.i64); }
   //! Get whether the immediate can be casted to 16-bit signed integer.
-  constexpr bool isI16() const noexcept { return IntUtils::isI16(_imm.value.i64); }
+  constexpr bool isI16() const noexcept { return Support::isI16(_imm.value.i64); }
   //! Get whether the immediate can be casted to 16-bit unsigned integer.
-  constexpr bool isU16() const noexcept { return IntUtils::isU16(_imm.value.i64); }
+  constexpr bool isU16() const noexcept { return Support::isU16(_imm.value.i64); }
   //! Get whether the immediate can be casted to 32-bit signed integer.
-  constexpr bool isI32() const noexcept { return IntUtils::isI32(_imm.value.i64); }
+  constexpr bool isI32() const noexcept { return Support::isI32(_imm.value.i64); }
   //! Get whether the immediate can be casted to 32-bit unsigned integer.
-  constexpr bool isU32() const noexcept { return IntUtils::isU32(_imm.value.i64); }
+  constexpr bool isU32() const noexcept { return Support::isU32(_imm.value.i64); }
 
   //! Get immediate value as 8-bit signed integer.
-  constexpr int8_t i8() const noexcept { return int8_t(_imm.value.i32[Globals::kHalfLo] & 0xFF); }
+  constexpr int8_t i8() const noexcept { return int8_t(_imm.value.i32[Globals::kLoHalf] & 0xFF); }
   //! Get immediate value as 8-bit unsigned integer.
-  constexpr uint8_t u8() const noexcept { return uint8_t(_imm.value.u32[Globals::kHalfLo] & 0xFFU); }
+  constexpr uint8_t u8() const noexcept { return uint8_t(_imm.value.u32[Globals::kLoHalf] & 0xFFU); }
   //! Get immediate value as 16-bit signed integer.
-  constexpr int16_t i16() const noexcept { return int16_t(_imm.value.i32[Globals::kHalfLo] & 0xFFFF);}
+  constexpr int16_t i16() const noexcept { return int16_t(_imm.value.i32[Globals::kLoHalf] & 0xFFFF);}
   //! Get immediate value as 16-bit unsigned integer.
-  constexpr uint16_t u16() const noexcept { return uint16_t(_imm.value.u32[Globals::kHalfLo] & 0xFFFFU);}
+  constexpr uint16_t u16() const noexcept { return uint16_t(_imm.value.u32[Globals::kLoHalf] & 0xFFFFU);}
   //! Get immediate value as 32-bit signed integer.
-  constexpr int32_t i32() const noexcept { return _imm.value.i32[Globals::kHalfLo]; }
+  constexpr int32_t i32() const noexcept { return _imm.value.i32[Globals::kLoHalf]; }
   //! Get low 32-bit signed integer.
-  constexpr int32_t i32Lo() const noexcept { return _imm.value.i32[Globals::kHalfLo]; }
+  constexpr int32_t i32Lo() const noexcept { return _imm.value.i32[Globals::kLoHalf]; }
   //! Get high 32-bit signed integer.
-  constexpr int32_t i32Hi() const noexcept { return _imm.value.i32[Globals::kHalfHi]; }
+  constexpr int32_t i32Hi() const noexcept { return _imm.value.i32[Globals::kHiHalf]; }
   //! Get immediate value as 32-bit unsigned integer.
-  constexpr uint32_t u32() const noexcept { return _imm.value.u32[Globals::kHalfLo]; }
+  constexpr uint32_t u32() const noexcept { return _imm.value.u32[Globals::kLoHalf]; }
   //! Get low 32-bit signed integer.
-  constexpr uint32_t u32Lo() const noexcept { return _imm.value.u32[Globals::kHalfLo]; }
+  constexpr uint32_t u32Lo() const noexcept { return _imm.value.u32[Globals::kLoHalf]; }
   //! Get high 32-bit signed integer.
-  constexpr uint32_t u32Hi() const noexcept { return _imm.value.u32[Globals::kHalfHi]; }
+  constexpr uint32_t u32Hi() const noexcept { return _imm.value.u32[Globals::kHiHalf]; }
   //! Get immediate value as 64-bit signed integer.
   constexpr int64_t i64() const noexcept { return _imm.value.i64; }
   //! Get immediate value as 64-bit unsigned integer.
@@ -1234,15 +1234,15 @@ public:
 
   //! Set immediate value to `val`.
   template<typename T>
-  inline void setValue(T val) noexcept { setI64(int64_t(IntUtils::asNormalized(val))); }
+  inline void setValue(T val) noexcept { setI64(int64_t(Support::asNormalized(val))); }
 
   // --------------------------------------------------------------------------
   // [Float]
   // --------------------------------------------------------------------------
 
   inline void setFloat(float f) noexcept {
-    _imm.value.f32[Globals::kHalfLo] = f;
-    _imm.value.u32[Globals::kHalfHi] = 0;
+    _imm.value.f32[Globals::kLoHalf] = f;
+    _imm.value.u32[Globals::kHiHalf] = 0;
   }
 
   inline void setDouble(double d) noexcept {
@@ -1274,7 +1274,7 @@ public:
 //! Using `imm(x)` is much better than `Imm(x)` as this is a template which
 //! can accept any integer including pointers and function pointers.
 template<typename T>
-constexpr Imm imm(T val) noexcept { return Imm(int64_t(IntUtils::asNormalized(val))); }
+constexpr Imm imm(T val) noexcept { return Imm(int64_t(Support::asNormalized(val))); }
 
 //! \}
 

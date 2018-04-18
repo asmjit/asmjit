@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -11,8 +11,8 @@
 #ifndef ASMJIT_DISABLE_JIT
 
 // [Dependencies]
-#include "../core/intutils.h"
 #include "../core/jitutils.h"
+#include "../core/support.h"
 
 #if ASMJIT_OS_POSIX
   #include <sys/types.h>
@@ -42,7 +42,7 @@ JitUtils::MemInfo JitUtils::memInfo() noexcept {
   SYSTEM_INFO systemInfo;
 
   ::GetSystemInfo(&systemInfo);
-  memInfo.pageSize = IntUtils::alignUpPowerOf2<uint32_t>(systemInfo.dwPageSize);
+  memInfo.pageSize = Support::alignUpPowerOf2<uint32_t>(systemInfo.dwPageSize);
   memInfo.pageGranularity = systemInfo.dwAllocationGranularity;
 
   return memInfo;

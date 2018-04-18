@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -13,7 +13,7 @@
 
 // [Dependencies]
 #include "../core/cpuinfo.h"
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../core/type.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86compiler.h"
@@ -27,7 +27,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::X86RAPass - Helpers]
 // ============================================================================
 
-static ASMJIT_FORCEINLINE uint64_t immMaskFromSize(uint32_t size) noexcept {
+static ASMJIT_INLINE uint64_t immMaskFromSize(uint32_t size) noexcept {
   ASMJIT_ASSERT(size > 0 && size < 256);
   static const uint64_t masks[] = {
     0x00000000000000FFU, //   1
@@ -40,7 +40,7 @@ static ASMJIT_FORCEINLINE uint64_t immMaskFromSize(uint32_t size) noexcept {
     0x0000000000000000U, // 128
     0x0000000000000000U  // 256
   };
-  return masks[IntUtils::ctz(size)];
+  return masks[Support::ctz(size)];
 }
 
 // ============================================================================
@@ -72,7 +72,7 @@ namespace X86OpInfo {
   DEFINE_OPS(op_xx   , X(Any), X(Any), R(Any), R(Any), R(Any), R(Any));
   DEFINE_OPS(op_w_all, W(Any), W(Any), W(Any), W(Any), W(Any), W(Any));
 
-  static ASMJIT_FORCEINLINE const OpInfo* get(uint32_t instId, const InstDB::InstInfo& instInfo, const Operand* opArray, uint32_t opCount) noexcept {
+  static ASMJIT_INLINE const OpInfo* get(uint32_t instId, const InstDB::InstInfo& instInfo, const Operand* opArray, uint32_t opCount) noexcept {
     if (!instInfo.hasFixedRM()) {
       if (instInfo.isUseXX()) return op_xx;
       if (instInfo.isUseX()) return op_x;
@@ -294,11 +294,11 @@ Error X86RACFGBuilder::newInst(InstNode** out, uint32_t instId, const OpInfo* op
 
         if (opInfo[i].isUse()) {
           useId = physRegs[i];
-          useRewriteMask = IntUtils::mask(inst->getRewriteIndex(&reg._reg.id));
+          useRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
         }
         else {
           outId = physRegs[i];
-          outRewriteMask = IntUtils::mask(inst->getRewriteIndex(&reg._reg.id));
+          outRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
         }
 
         ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -375,11 +375,11 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 
             if (opInfo[i].isUse()) {
               useId = opInfo[i].physId();
-              useRewriteMask = IntUtils::mask(inst->getRewriteIndex(&reg._reg.id));
+              useRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
             }
             else {
               outId = opInfo[i].physId();
-              outRewriteMask = IntUtils::mask(inst->getRewriteIndex(&reg._reg.id));
+              outRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
             }
 
             ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -412,7 +412,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
               uint32_t outRewriteMask = 0;
 
               useId = opInfo[i].physId();
-              useRewriteMask = IntUtils::mask(inst->getRewriteIndex(&mem._reg.id));
+              useRewriteMask = Support::mask(inst->getRewriteIndex(&mem._reg.id));
 
               uint32_t flags = useId != BaseReg::kIdBad ? uint32_t(opInfo[i].flags()) : uint32_t(RATiedReg::kUse | RATiedReg::kRead);
               ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -427,7 +427,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 
               uint32_t group = workReg->group();
               uint32_t allocable = _pass->_availableRegs[group];
-              uint32_t rewriteMask = IntUtils::mask(inst->getRewriteIndex(&mem._mem.index));
+              uint32_t rewriteMask = Support::mask(inst->getRewriteIndex(&mem._mem.index));
 
               ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kUse | RATiedReg::kRead, allocable, BaseReg::kIdBad, rewriteMask, BaseReg::kIdBad, 0));
             }
@@ -444,11 +444,11 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
         ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 
         uint32_t group = workReg->group();
-        uint32_t rewriteMask = IntUtils::mask(inst->getRewriteIndex(&inst->extraReg()._id));
+        uint32_t rewriteMask = Support::mask(inst->getRewriteIndex(&inst->extraReg()._id));
 
         if (group == Gp::kGroupKReg) {
           // AVX-512 mask selector {k} register - read-only, allocable to any register except {k0}.
-          uint32_t allocableRegs= _pass->_availableRegs[group] & ~IntUtils::mask(0);
+          uint32_t allocableRegs= _pass->_availableRegs[group] & ~Support::mask(0);
           ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kUse | RATiedReg::kRead, allocableRegs, BaseReg::kIdBad, rewriteMask, BaseReg::kIdBad, 0));
           singleRegOps = 0;
         }
@@ -624,10 +624,10 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
   }
 
   // Setup clobbered registers.
-  ib._clobbered[0] = IntUtils::lsbMask<uint32_t>(_pass->_physRegCount[0]) & ~fd.preservedRegs(0);
-  ib._clobbered[1] = IntUtils::lsbMask<uint32_t>(_pass->_physRegCount[1]) & ~fd.preservedRegs(1);
-  ib._clobbered[2] = IntUtils::lsbMask<uint32_t>(_pass->_physRegCount[2]) & ~fd.preservedRegs(2);
-  ib._clobbered[3] = IntUtils::lsbMask<uint32_t>(_pass->_physRegCount[3]) & ~fd.preservedRegs(3);
+  ib._clobbered[0] = Support::lsbMask<uint32_t>(_pass->_physRegCount[0]) & ~fd.preservedRegs(0);
+  ib._clobbered[1] = Support::lsbMask<uint32_t>(_pass->_physRegCount[1]) & ~fd.preservedRegs(1);
+  ib._clobbered[2] = Support::lsbMask<uint32_t>(_pass->_physRegCount[2]) & ~fd.preservedRegs(2);
+  ib._clobbered[3] = Support::lsbMask<uint32_t>(_pass->_physRegCount[3]) & ~fd.preservedRegs(3);
 
   // This block has function call(s).
   _pass->func()->frame().updateCallStackSize(fd.argStackSize());
@@ -1004,10 +1004,10 @@ void X86RAPass::onInit() noexcept {
   _buildPhysIndex();
 
   _availableRegCount = _physRegCount;
-  _availableRegs[Reg::kGroupGp  ] = IntUtils::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupGp  ));
-  _availableRegs[Reg::kGroupVec ] = IntUtils::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupVec ));
-  _availableRegs[Reg::kGroupMm  ] = IntUtils::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupMm  ));
-  _availableRegs[Reg::kGroupKReg] = IntUtils::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupKReg));
+  _availableRegs[Reg::kGroupGp  ] = Support::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupGp  ));
+  _availableRegs[Reg::kGroupVec ] = Support::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupVec ));
+  _availableRegs[Reg::kGroupMm  ] = Support::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupMm  ));
+  _availableRegs[Reg::kGroupKReg] = Support::lsbMask<uint32_t>(_physRegCount.get(Reg::kGroupKReg));
 
   // The architecture specific setup makes implicitly all registers available. So
   // make unavailable all registers that are special and cannot be used in general.
@@ -1202,7 +1202,7 @@ ASMJIT_END_SUB_NAMESPACE
 
 
 #if 0
-ASMJIT_FORCEINLINE void X86CallAlloc::allocImmsOnStack() {
+ASMJIT_INLINE void X86CallAlloc::allocImmsOnStack() {
   FuncCallNode* node = getNode();
   FuncDetail& fd = node->getDetail();
 
@@ -1228,7 +1228,7 @@ ASMJIT_FORCEINLINE void X86CallAlloc::allocImmsOnStack() {
 }
 
 template<int C>
-ASMJIT_FORCEINLINE void X86CallAlloc::duplicate() {
+ASMJIT_INLINE void X86CallAlloc::duplicate() {
   TiedReg* tiedRegs = getTiedRegsByGroup(C);
   uint32_t tiedCount = getTiedCountByGroup(C);
 
@@ -1244,13 +1244,13 @@ ASMJIT_FORCEINLINE void X86CallAlloc::duplicate() {
 
     ASMJIT_ASSERT(physId != BaseReg::kIdBad);
 
-    inRegs &= ~IntUtils::mask(physId);
+    inRegs &= ~Support::mask(physId);
     if (!inRegs) continue;
 
     for (uint32_t dupIndex = 0; inRegs != 0; dupIndex++, inRegs >>= 1) {
       if (inRegs & 0x1) {
         _context->emitMove(vreg, dupIndex, physId, "Duplicate");
-        _context->_clobberedRegs.or_(C, IntUtils::mask(dupIndex));
+        _context->_clobberedRegs.or_(C, Support::mask(dupIndex));
       }
     }
   }
@@ -1260,7 +1260,7 @@ ASMJIT_FORCEINLINE void X86CallAlloc::duplicate() {
 // [asmjit::X86CallAlloc - Ret]
 // ============================================================================
 
-ASMJIT_FORCEINLINE void X86CallAlloc::ret() {
+ASMJIT_INLINE void X86CallAlloc::ret() {
   FuncCallNode* node = getNode();
   FuncDetail& fd = node->detail();
   Operand_* rets = node->_ret;

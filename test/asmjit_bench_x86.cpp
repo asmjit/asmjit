@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Dependencies]
 #include <cstdio>
@@ -60,9 +60,9 @@ namespace BenchUtils {
     return (bytesTotal * 1000) / (double(time) * 1024 * 1024);
   }
 
-  template<typename EMITTER, typename FUNC>
-  static void bench(CodeHolder& code, uint32_t archId, const char* testName, const FUNC& func) noexcept {
-    EMITTER emitter;
+  template<typename EmitterT, typename FuncT>
+  static void bench(CodeHolder& code, uint32_t archId, const char* testName, const FuncT& func) noexcept {
+    EmitterT emitter;
 
     const char* archName =
       archId == ArchInfo::kIdX86 ? "X86" :
@@ -89,7 +89,7 @@ namespace BenchUtils {
         func(emitter);
         codeSize += code.codeSize();
 
-        code.reset(false);
+        code.reset();
       }
       perf.end();
     }

@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -12,8 +12,8 @@
 #ifndef ASMJIT_DISABLE_COMPILER
 
 // [Dependencies]
-#include "../core/intutils.h"
 #include "../core/ralocal_p.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -79,7 +79,7 @@ Error RALocalAllocator::makeInitialAssignment() noexcept {
           // First iteration: Try to allocate to HomeId.
           if (workReg->hasHomeId()) {
             uint32_t physId = workReg->homeId();
-            if (IntUtils::bitTest(allocableRegs, physId)) {
+            if (Support::bitTest(allocableRegs, physId)) {
               _curAssignment.assign(group, workId, physId, true);
               _pass->_argsAssignment.assignReg(i, workReg->info().type(), physId, workReg->typeId());
               continue;
@@ -91,7 +91,7 @@ Error RALocalAllocator::makeInitialAssignment() noexcept {
         else {
           // Second iteration: Pick any other register if the is an unassigned one or assign to stack.
           if (allocableRegs) {
-            uint32_t physId = IntUtils::ctz(allocableRegs);
+            uint32_t physId = Support::ctz(allocableRegs);
             _curAssignment.assign(group, workId, physId, true);
             _pass->_argsAssignment.assignReg(i, workReg->info().type(), physId, workReg->typeId());
           }
@@ -146,7 +146,7 @@ Error RALocalAllocator::switchToAssignment(
     // ------------------------------------------------------------------------
 
     if (!tryMode) {
-      IntUtils::BitWordIterator<uint32_t> it(cur.assigned(group));
+      Support::BitWordIterator<uint32_t> it(cur.assigned(group));
       while (it.hasNext()) {
         uint32_t physId = it.next();
         uint32_t workId = cur.physToWorkId(group, physId);
@@ -188,10 +188,10 @@ Error RALocalAllocator::switchToAssignment(
         break;
       }
 
-      IntUtils::BitWordIterator<uint32_t> it(affectedRegs);
+      Support::BitWordIterator<uint32_t> it(affectedRegs);
       while (it.hasNext()) {
         uint32_t physId = it.next();
-        uint32_t physMask = IntUtils::mask(physId);
+        uint32_t physMask = Support::mask(physId);
 
         uint32_t curWorkId = cur.physToWorkId(group, physId);
         uint32_t dstWorkId = dst.physToWorkId(group, physId);
@@ -230,10 +230,10 @@ Error RALocalAllocator::switchToAssignment(
 
                 if (allocableRegs) {
                   // MOVE is possible, thus preferred.
-                  uint32_t tmpPhysId = IntUtils::ctz(allocableRegs);
+                  uint32_t tmpPhysId = Support::ctz(allocableRegs);
 
                   ASMJIT_PROPAGATE(onMoveReg(group, curWorkId, tmpPhysId, physId));
-                  _pass->_clobberedRegs[group] |= IntUtils::mask(tmpPhysId);
+                  _pass->_clobberedRegs[group] |= Support::mask(tmpPhysId);
                 }
                 else {
                   // MOVE is impossible, must SPILL.
@@ -295,7 +295,7 @@ Cleared:
     // ------------------------------------------------------------------------
 
     {
-      IntUtils::BitWordIterator<uint32_t> it(willLoadRegs);
+      Support::BitWordIterator<uint32_t> it(willLoadRegs);
       while (it.hasNext()) {
         uint32_t physId = it.next();
 
@@ -403,7 +403,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
 
       if (tiedReg->hasUseId()) {
         // If the register has `useId` it means it can only be allocated in that register.
-        uint32_t useMask = IntUtils::mask(tiedReg->useId());
+        uint32_t useMask = Support::mask(tiedReg->useId());
 
         // RAInstBuilder must have collected `usedRegs` on-the-fly.
         ASMJIT_ASSERT((willUse & useMask) != 0);
@@ -424,7 +424,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
         // Check if the register must be moved to `allocableRegs`.
         uint32_t allocableRegs = tiedReg->allocableRegs();
         if (assignedId != RAAssignment::kPhysNone) {
-          uint32_t assignedMask = IntUtils::mask(assignedId);
+          uint32_t assignedMask = Support::mask(assignedId);
           if ((allocableRegs & ~willUse) & assignedMask) {
             tiedReg->setUseId(assignedId);
             tiedReg->markUseDone();
@@ -467,14 +467,14 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
 
           // DECIDE where to assign the USE register.
           uint32_t useId = decideOnAssignment(group, workId, assignedId, allocableRegs);
-          uint32_t useMask = IntUtils::mask(useId);
+          uint32_t useMask = Support::mask(useId);
 
           willUse |= useMask;
           willFree |= useMask & liveRegs;
           tiedReg->setUseId(useId);
 
           if (assignedId != RAAssignment::kPhysNone) {
-            uint32_t assignedMask = IntUtils::mask(assignedId);
+            uint32_t assignedMask = Support::mask(assignedId);
 
             willFree |= assignedMask;
             liveRegs &= ~assignedMask;
@@ -516,7 +516,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
 
     if (willFree) {
       uint32_t allocableRegs = _availableRegs[group] & ~(_curAssignment.assigned(group) | willFree | willUse | willOut);
-      IntUtils::BitWordIterator<uint32_t> it(willFree);
+      Support::BitWordIterator<uint32_t> it(willFree);
 
       do {
         uint32_t assignedId = it.next();
@@ -528,7 +528,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
             uint32_t reassignedId = decideOnUnassignment(group, workId, assignedId, allocableRegs);
             if (reassignedId != RAAssignment::kPhysNone) {
               ASMJIT_PROPAGATE(onMoveReg(group, workId, reassignedId, assignedId));
-              allocableRegs ^= IntUtils::mask(reassignedId);
+              allocableRegs ^= Support::mask(reassignedId);
               continue;
             }
           }
@@ -647,7 +647,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
         // immediately after OUT, which could mean the register is not assigned).
         if (physId != RAAssignment::kPhysNone) {
           ASMJIT_PROPAGATE(onKillReg(group, workId, physId));
-          willOut &= ~IntUtils::mask(physId);
+          willOut &= ~Support::mask(physId);
         }
 
         // We still maintain number of pending registers for OUT assignment.
@@ -664,7 +664,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     // ------------------------------------------------------------------------
 
     if (willOut) {
-      IntUtils::BitWordIterator<uint32_t> it(willOut);
+      Support::BitWordIterator<uint32_t> it(willOut);
       do {
         uint32_t physId = it.next();
         uint32_t workId = _curAssignment.physToWorkId(group, physId);
@@ -728,8 +728,8 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
         tiedReg->setOutId(physId);
         tiedReg->markOutDone();
 
-        outRegs  |=  IntUtils::mask(physId);
-        liveRegs &= ~IntUtils::mask(physId);
+        outRegs  |=  Support::mask(physId);
+        liveRegs &= ~Support::mask(physId);
         outPending--;
       }
 
@@ -820,7 +820,7 @@ uint32_t RALocalAllocator::decideOnAssignment(uint32_t group, uint32_t workId, u
   // HIGHEST PRIORITY: Home register id.
   if (workReg->hasHomeId()) {
     uint32_t homeId = workReg->homeId();
-    if (IntUtils::bitTest(allocableRegs, homeId))
+    if (Support::bitTest(allocableRegs, homeId))
       return homeId;
   }
 
@@ -829,11 +829,11 @@ uint32_t RALocalAllocator::decideOnAssignment(uint32_t group, uint32_t workId, u
   if (allocableRegs & previouslyAssignedRegs)
     allocableRegs &= previouslyAssignedRegs;
 
-  if (IntUtils::isPowerOf2(allocableRegs))
-    return IntUtils::ctz(allocableRegs);
+  if (Support::isPowerOf2(allocableRegs))
+    return Support::ctz(allocableRegs);
 
   // TODO: This is not finished.
-  return IntUtils::ctz(allocableRegs);
+  return Support::ctz(allocableRegs);
 }
 
 uint32_t RALocalAllocator::decideOnUnassignment(uint32_t group, uint32_t workId, uint32_t physId, uint32_t allocableRegs) const noexcept {
@@ -857,7 +857,7 @@ uint32_t RALocalAllocator::decideOnSpillFor(uint32_t group, uint32_t workId, uin
   ASMJIT_UNUSED(workId);
   ASMJIT_ASSERT(spillableRegs != 0);
 
-  IntUtils::BitWordIterator<uint32_t> it(spillableRegs);
+  Support::BitWordIterator<uint32_t> it(spillableRegs);
   uint32_t bestPhysId = it.next();
   uint32_t bestWorkId = _curAssignment.physToWorkId(group, bestPhysId);
 

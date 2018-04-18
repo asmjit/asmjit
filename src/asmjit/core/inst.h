@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_INST_H
@@ -190,7 +190,7 @@ public:
   // [Init / Destroy]
   // ------------------------------------------------------------------------
 
-  explicit inline BaseInst(uint32_t id = 0, uint32_t options = 0) noexcept
+  inline explicit BaseInst(uint32_t id = 0, uint32_t options = 0) noexcept
     : _id(id),
       _options(options),
       _extraReg() {}

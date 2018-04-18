@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -171,8 +171,8 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
   EXPECT(stack.empty());
 }
 
-UNIT(core_zone_stack) {
-  Zone zone(8096 - Zone::kZoneOverhead);
+UNIT(asmjit_core_zone_stack) {
+  Zone zone(8096 - Zone::kBlockOverhead);
   ZoneAllocator allocator(&zone);
 
   test_zone_stack<int>(&allocator, "int");

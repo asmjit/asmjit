@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -20,7 +20,7 @@ ASMJIT_BEGIN_NAMESPACE
 #if defined(ASMJIT_BUILD_TEST)
 class MyListNode : public ZoneListNode<MyListNode> {};
 
-UNIT(core_zone_list) {
+UNIT(asmjit_core_zone_list) {
   Zone zone(4096);
   ZoneList<MyListNode> list;
 

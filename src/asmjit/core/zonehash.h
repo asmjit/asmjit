@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_ZONEHASH_H
@@ -130,7 +130,7 @@ public:
 };
 
 // ============================================================================
-// [asmjit::ZoneHash<NODE>]
+// [asmjit::ZoneHash]
 // ============================================================================
 
 //! Low-level hash table specialized for storing string keys and POD values.
@@ -139,12 +139,12 @@ public:
 //! level that it's up to you if you allow it or not, as you should first
 //! `get()` the node and then modify it or insert a new node by using `insert()`,
 //! depending on the intention).
-template<typename NODE>
+template<typename NodeT>
 class ZoneHash : public ZoneHashBase {
 public:
-  ASMJIT_NONCOPYABLE(ZoneHash<NODE>)
+  ASMJIT_NONCOPYABLE(ZoneHash<NodeT>)
 
-  typedef NODE Node;
+  typedef NodeT Node;
 
   inline ZoneHash() noexcept
     : ZoneHashBase() {}
@@ -152,18 +152,18 @@ public:
   inline ZoneHash(ZoneHash&& other) noexcept
     : ZoneHash(other) {}
 
-  template<typename KEY>
-  inline NODE* get(const KEY& key) const noexcept {
+  template<typename KeyT>
+  inline NodeT* get(const KeyT& key) const noexcept {
     uint32_t hMod = key.hashCode() % _bucketsCount;
-    NODE* node = static_cast<NODE*>(_data[hMod]);
+    NodeT* node = static_cast<NodeT*>(_data[hMod]);
 
     while (node && !key.matches(node))
-      node = static_cast<NODE*>(node->_hashNext);
+      node = static_cast<NodeT*>(node->_hashNext);
     return node;
   }
 
-  inline NODE* insert(ZoneAllocator* allocator, NODE* node) noexcept { return static_cast<NODE*>(_insert(allocator, node)); }
-  inline NODE* remove(ZoneAllocator* allocator, NODE* node) noexcept { return static_cast<NODE*>(_remove(allocator, node)); }
+  inline NodeT* insert(ZoneAllocator* allocator, NodeT* node) noexcept { return static_cast<NodeT*>(_insert(allocator, node)); }
+  inline NodeT* remove(ZoneAllocator* allocator, NodeT* node) noexcept { return static_cast<NodeT*>(_remove(allocator, node)); }
 
   inline void swapWith(ZoneHash& other) noexcept { ZoneHashBase::swapWith(other); }
 };

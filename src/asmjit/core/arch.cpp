@@ -2,14 +2,14 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
 #include "../core/arch.h"
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../core/type.h"
 
 #ifdef ASMJIT_BUILD_X86
@@ -30,11 +30,11 @@ static const uint32_t archInfoTable[] = {
   // <--------------------+---------------------+-------------------+-------+
   //                      | Type                | SubType           | GPInfo|
   // <--------------------+---------------------+-------------------+-------+
-  IntUtils::bytepack32_4x8(ArchInfo::kIdNone  , ArchInfo::kSubIdNone, 0,  0),
-  IntUtils::bytepack32_4x8(ArchInfo::kIdX86   , ArchInfo::kSubIdNone, 4,  8),
-  IntUtils::bytepack32_4x8(ArchInfo::kIdX64   , ArchInfo::kSubIdNone, 8, 16),
-  IntUtils::bytepack32_4x8(ArchInfo::kIdA32   , ArchInfo::kSubIdNone, 4, 16),
-  IntUtils::bytepack32_4x8(ArchInfo::kIdA64   , ArchInfo::kSubIdNone, 8, 32)
+  Support::bytepack32_4x8(ArchInfo::kIdNone  , ArchInfo::kSubIdNone, 0,  0),
+  Support::bytepack32_4x8(ArchInfo::kIdX86   , ArchInfo::kSubIdNone, 4,  8),
+  Support::bytepack32_4x8(ArchInfo::kIdX64   , ArchInfo::kSubIdNone, 8, 16),
+  Support::bytepack32_4x8(ArchInfo::kIdA32   , ArchInfo::kSubIdNone, 4, 16),
+  Support::bytepack32_4x8(ArchInfo::kIdA64   , ArchInfo::kSubIdNone, 8, 32)
 };
 
 ASMJIT_FAVOR_SIZE void ArchInfo::init(uint32_t id, uint32_t subId) noexcept {

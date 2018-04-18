@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_CODEHOLDER_H
@@ -10,11 +10,11 @@
 
 // [Dependencies]
 #include "../core/arch.h"
-#include "../core/intutils.h"
-#include "../core/memutils.h"
+#include "../core/datatypes.h"
+#include "../core/memmgr.h"
 #include "../core/operand.h"
-#include "../core/simdtypes.h"
 #include "../core/stringutils.h"
+#include "../core/support.h"
 #include "../core/target.h"
 #include "../core/zone.h"
 #include "../core/zonehash.h"
@@ -160,8 +160,8 @@ public:
 
   inline void _setDefaultName(char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
                               char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
-    _name.u32[0] = IntUtils::bytepack32_4x8(uint8_t(c0), uint8_t(c1), uint8_t(c2), uint8_t(c3));
-    _name.u32[1] = IntUtils::bytepack32_4x8(uint8_t(c4), uint8_t(c5), uint8_t(c6), uint8_t(c7));
+    _name.u32[0] = Support::bytepack32_4x8(uint8_t(c0), uint8_t(c1), uint8_t(c2), uint8_t(c3));
+    _name.u32[1] = Support::bytepack32_4x8(uint8_t(c4), uint8_t(c5), uint8_t(c6), uint8_t(c7));
   }
 
   inline uint32_t flags() const noexcept { return _flags; }
@@ -375,7 +375,7 @@ public:
   //! Initialize to CodeHolder to hold code described by `codeInfo`.
   ASMJIT_API Error init(const CodeInfo& info) noexcept;
   //! Detach all code-generators attached and reset the `CodeHolder`.
-  ASMJIT_API void reset(bool releaseMemory = false) noexcept;
+  ASMJIT_API void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept;
 
   // --------------------------------------------------------------------------
   // [Attach / Detach]

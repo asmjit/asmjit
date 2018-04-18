@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_RALOCAL_P_H
@@ -12,10 +12,10 @@
 #ifndef ASMJIT_DISABLE_COMPILER
 
 // [Dependencies]
-#include "../core/intutils.h"
 #include "../core/raassignment_p.h"
 #include "../core/radefs_p.h"
 #include "../core/rapass_p.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 

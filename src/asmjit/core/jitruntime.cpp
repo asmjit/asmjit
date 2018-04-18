@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 #define ASMJIT_EXPORTS
 
@@ -45,8 +45,8 @@ static inline uint32_t JitRuntime_detectNaturalStackAlignment() noexcept {
   //   - 64-bit - stack must be aligned to at least 16 bytes.
   #if ASMJIT_ARCH_X86
   unsigned int kIsModernOS = ASMJIT_OS_BSD    |
-                              ASMJIT_OS_DARWIN |
-                              ASMJIT_OS_LINUX  ;
+                             ASMJIT_OS_MAC    |
+                             ASMJIT_OS_LINUX  ;
   alignment = (ASMJIT_ARCH_X86 == 64 || kIsModernOS != 0) ? 16 : 4;
   #endif
 

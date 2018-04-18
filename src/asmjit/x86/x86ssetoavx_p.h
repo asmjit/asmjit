@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_X86_X86SSETOAVX_P_H
@@ -12,7 +12,7 @@
 #ifndef ASMJIT_DISABLE_BUILDER
 
 // [Dependencies]
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../x86/x86builder.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
@@ -64,7 +64,7 @@ public:
     for (uint32_t i = 0; i < count; i++) {
       const Operand& op = operands[i];
       if (!op.isReg()) continue;
-      mask |= IntUtils::mask(op.as<BaseReg>().type());
+      mask |= Support::mask(op.as<BaseReg>().type());
     }
     return mask;
   }

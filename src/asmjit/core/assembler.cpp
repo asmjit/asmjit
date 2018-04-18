@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -10,9 +10,9 @@
 // [Dependencies]
 #include "../core/assembler.h"
 #include "../core/constpool.h"
-#include "../core/intutils.h"
 #include "../core/logging.h"
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -59,6 +59,7 @@ static void BaseAssembler_logLabel(BaseAssembler* self, const Label& label) noex
 
   sb.appendChars(' ', logger->indentation(FormatOptions::kIndentationLabel));
   Logging::formatLabel(sb, logger->flags(), self, label.id());
+  sb.appendChar(':');
   Logging::formatLine(sb, nullptr, binSize, 0, 0, self->_inlineComment);
   logger->log(sb.data(), sb.size());
 }
@@ -128,8 +129,8 @@ Error BaseAssembler::bind(const Label& label) {
       // Size of the value we are going to patch. Only BYTE/DWORD is allowed.
       uint32_t size = _bufferData[offset];
       if (size == 4)
-        MemUtils::writeI32u(_bufferData + offset, int32_t(patchedValue));
-      else if (size == 1 && IntUtils::isI8(patchedValue))
+        Support::writeI32u(_bufferData + offset, int32_t(patchedValue));
+      else if (size == 1 && Support::isI8(patchedValue))
         _bufferData[offset] = uint8_t(patchedValue & 0xFF);
       else
         err = DebugUtils::errored(kErrorInvalidDisplacement);

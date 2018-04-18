@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_BUILDER_H
@@ -16,9 +16,9 @@
 #include "../core/codeholder.h"
 #include "../core/constpool.h"
 #include "../core/inst.h"
-#include "../core/intutils.h"
 #include "../core/operand.h"
 #include "../core/stringbuilder.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 #include "../core/zonevector.h"
 
@@ -76,9 +76,9 @@ public:
   }
 
   //! \internal
-  template<typename T, typename... Args>
-  inline T* newNodeT(Args... args) noexcept {
-    return _allocator.newT<T>(this, args...);
+  template<typename T, typename... ArgsT>
+  inline T* newNodeT(ArgsT&&... args) noexcept {
+    return _allocator.newT<T>(this, std::forward<ArgsT>(args)...);
   }
 
   //! Create a new `LabelNode`.
@@ -152,19 +152,19 @@ public:
   //! Get a vector of Pass objects that will be executed by `runPasses()`.
   inline const ZoneVector<Pass*>& passes() const noexcept { return _passes; }
 
+  //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T>
-  inline T* newPassT() noexcept { return new(_codeZone.allocAligned(sizeof(T), sizeof(intptr_t))) T(); }
-  template<typename T, typename P0>
-  inline T* newPassT(P0 p0) noexcept { return new(_codeZone.allocAligned(sizeof(T), sizeof(intptr_t))) T(p0); }
-  template<typename T, typename P0, typename P1>
-  inline T* newPassT(P0 p0, P1 p1) noexcept { return new(_codeZone.allocAligned(sizeof(T), sizeof(intptr_t))) T(p0, p1); }
+  inline T* newPassT() noexcept { return _codeZone.newT<T>(); }
+
+  //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
+  template<typename T, typename... ArgsT>
+  inline T* newPassT(ArgsT&&... args) noexcept { return _codeZone.newT<T>(std::forward<ArgsT>(args)...); }
 
   template<typename T>
   inline Error addPassT() noexcept { return addPass(newPassT<T>()); }
-  template<typename T, typename P0>
-  inline Error addPassT(P0 p0) noexcept { return addPass(newPassT<P0>(p0)); }
-  template<typename T, typename P0, typename P1>
-  inline Error addPassT(P0 p0, P1 p1) noexcept { return addPass(newPassT<P0, P1>(p0, p1)); }
+
+  template<typename T, typename... ArgsT>
+  inline Error addPassT(ArgsT&&... args) noexcept { return addPass(newPassT<T, ArgsT...>(std::forward<ArgsT>(args)...)); }
 
   //! Get a `Pass` by name.
   ASMJIT_API Pass* passByName(const char* name) const noexcept;
@@ -307,7 +307,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Create a new `BaseNode` - always use `BaseBuilder` to allocate nodes.
-  ASMJIT_FORCEINLINE BaseNode(BaseBuilder* cb, uint32_t type, uint32_t flags = 0) noexcept {
+  ASMJIT_INLINE BaseNode(BaseBuilder* cb, uint32_t type, uint32_t flags = 0) noexcept {
     _link[kLinkPrev] = nullptr;
     _link[kLinkNext] = nullptr;
     _any._nodeType = uint8_t(type);
@@ -484,7 +484,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Create a new `InstNode` instance.
-  ASMJIT_FORCEINLINE InstNode(BaseBuilder* cb, uint32_t instId, uint32_t options, uint32_t opCount, uint32_t opCapacity = kBaseOpCapacity) noexcept
+  ASMJIT_INLINE InstNode(BaseBuilder* cb, uint32_t instId, uint32_t options, uint32_t opCount, uint32_t opCapacity = kBaseOpCapacity) noexcept
     : BaseNode(cb, kNodeInst, kFlagIsCode | kFlagIsRemovable | kFlagActsAsInst),
       _baseInst(instId, options) {
     _inst._opCapacity = uint8_t(opCapacity);
@@ -609,7 +609,7 @@ public:
   inline uint32_t* _getRewriteArray() noexcept { return &_baseInst._extraReg._id; }
   inline const uint32_t* _getRewriteArray() const noexcept { return &_baseInst._extraReg._id; }
 
-  ASMJIT_FORCEINLINE uint32_t getRewriteIndex(const uint32_t* id) const noexcept {
+  ASMJIT_INLINE uint32_t getRewriteIndex(const uint32_t* id) const noexcept {
     const uint32_t* array = _getRewriteArray();
     ASMJIT_ASSERT(array <= id);
 
@@ -619,7 +619,7 @@ public:
     return uint32_t(index);
   }
 
-  ASMJIT_FORCEINLINE void rewriteIdAtIndex(uint32_t index, uint32_t id) noexcept {
+  ASMJIT_INLINE void rewriteIdAtIndex(uint32_t index, uint32_t id) noexcept {
     uint32_t* array = _getRewriteArray();
     array[index] = id;
   }

@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_CONSTPOOL_H
@@ -10,7 +10,7 @@
 
 // [Dependencies]
 #include "../core/zone.h"
-#include "../core/zonerbtree.h"
+#include "../core/zonetree.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -53,12 +53,12 @@ public:
   };
 
   //! Zone-allocated const-pool node.
-  class Node : public ZoneRBNodeT<Node> {
+  class Node : public ZoneTreeNodeT<Node> {
   public:
     ASMJIT_NONCOPYABLE(Node)
 
     inline Node(size_t offset, bool shared) noexcept
-      : ZoneRBNodeT<Node>(),
+      : ZoneTreeNodeT<Node>(),
         _shared(shared),
         _offset(uint32_t(offset)) {}
 
@@ -98,7 +98,7 @@ public:
     // [Construction / Destruction]
     // --------------------------------------------------------------------------
 
-    explicit inline Tree(size_t dataSize = 0) noexcept
+    inline explicit Tree(size_t dataSize = 0) noexcept
       : _tree(),
         _size(0),
         _dataSize(dataSize) {}
@@ -181,7 +181,7 @@ public:
     // --------------------------------------------------------------------------
 
     static inline Node* _newNode(Zone* zone, const void* data, size_t size, size_t offset, bool shared) noexcept {
-      Node* node = zone->allocAlignedT<Node>(sizeof(Node) + size, sizeof(intptr_t));
+      Node* node = zone->allocT<Node>(sizeof(Node) + size);
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
 
       node = new(node) Node(offset, shared);
@@ -193,7 +193,7 @@ public:
     // [Members]
     // --------------------------------------------------------------------------
 
-    ZoneRBTree<Node> _tree;              //!< RB tree.
+    ZoneTree<Node> _tree;                //!< RB tree.
     size_t _size;                        //!< Size of the tree (number of nodes).
     size_t _dataSize;                    //!< Size of the data.
   };

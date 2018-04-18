@@ -50,7 +50,6 @@ cxx_detect_standard(ASMJIT_PRIVATE_CFLAGS)
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(ASMJIT_PRIVATE_LFLAGS "/OPT:REF /OPT:ICF")
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS /std:c++latest) # [+] Use C++14 and later.
   list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)            # [+] Multi-process compilation
   list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)            # [+] Eliminate duplicate strings.
   list(APPEND ASMJIT_PRIVATE_CFLAGS /GR-)           # [-] Runtime type information.
@@ -128,8 +127,6 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit
 cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   build.h
 
-  algorithm.cpp
-  algorithm.h
   arch.cpp
   arch.h
   assembler.cpp
@@ -146,6 +143,7 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   constpool.h
   cpuinfo.cpp
   cpuinfo.h
+  datatypes.h
   emitter.cpp
   emitter.h
   features.h
@@ -155,8 +153,6 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   globals.h
   inst.cpp
   inst.h
-  intutils.cpp
-  intutils.h
   jitallocator.cpp
   jitallocator.h
   jitruntime.cpp
@@ -165,8 +161,8 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   jitutils.h
   logging.cpp
   logging.h
-  memutils.cpp
-  memutils.h
+  memmgr.cpp
+  memmgr.h
   misc_p.h
   operand.cpp
   operand.h
@@ -181,10 +177,11 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   rapass_p.h
   rastack.cpp
   rastack_p.h
-  simdtypes.h
   stringbuilder.cpp
   stringbuilder.h
   stringutils.h
+  support.cpp
+  support.h
   target.cpp
   target.h
   type.cpp
@@ -195,11 +192,11 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   zonehash.h
   zonelist.cpp
   zonelist.h
-  zonerbtree.cpp
-  zonerbtree.h
   zonestack.cpp
   zonestack.h
   zonestring.h
+  zonetree.cpp
+  zonetree.h
   zonevector.cpp
   zonevector.h
 )

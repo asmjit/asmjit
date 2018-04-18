@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_ARM_ARMOPERAND_H
@@ -214,7 +214,7 @@ public:
   //! Construct a default `Mem` operand, that points to [0].
   constexpr Mem() noexcept : BaseMem() {}
   constexpr Mem(const Mem& other) noexcept : BaseMem(other) {}
-  explicit inline Mem(Globals::NoInit_) noexcept : BaseMem(Globals::NoInit) {}
+  inline explicit Mem(Globals::NoInit_) noexcept : BaseMem(Globals::NoInit) {}
 
   // --------------------------------------------------------------------------
   // [Arm Specific]

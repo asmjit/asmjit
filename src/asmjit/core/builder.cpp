@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -44,9 +44,9 @@ public:
 
 BaseBuilder::BaseBuilder() noexcept
   : BaseEmitter(kTypeBuilder),
-    _codeZone(32768 - Zone::kZoneOverhead),
-    _dataZone(16384 - Zone::kZoneOverhead),
-    _passZone(65536 - Zone::kZoneOverhead),
+    _codeZone(32768 - Zone::kBlockOverhead),
+    _dataZone(16384 - Zone::kBlockOverhead),
+    _passZone(65536 - Zone::kBlockOverhead),
     _allocator(&_codeZone),
     _passes(),
     _labelNodes(),
@@ -810,9 +810,9 @@ Error BaseBuilder::onDetach(CodeHolder* code) noexcept {
   _labelNodes.reset();
 
   _allocator.reset(&_codeZone);
-  _codeZone.reset(false);
-  _dataZone.reset(false);
-  _passZone.reset(false);
+  _codeZone.reset();
+  _dataZone.reset();
+  _passZone.reset();
 
   _nodeFlags = 0;
 

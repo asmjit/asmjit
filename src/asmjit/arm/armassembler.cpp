@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -13,10 +13,10 @@
 
 // [Dependencies]
 #include "../core/cpuinfo.h"
-#include "../core/intutils.h"
 #include "../core/logging.h"
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
 #include "../core/misc_p.h"
+#include "../core/support.h"
 #include "../arm/armassembler.h"
 #include "../arm/armlogging_p.h"
 
@@ -133,11 +133,11 @@ Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
   if (alignment <= 1)
     return kErrorOk;
 
-  if (ASMJIT_UNLIKELY(alignment > Globals::kMaxAlignment || !IntUtils::isPowerOf2(alignment)))
+  if (ASMJIT_UNLIKELY(alignment > Globals::kMaxAlignment || !Support::isPowerOf2(alignment)))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
   size_t offset = offset();
-  uint32_t i = uint32_t(IntUtils::alignUpDiff<size_t>(offset, alignment));
+  uint32_t i = uint32_t(Support::alignUpDiff<size_t>(offset, alignment));
 
   if (i == 0)
     return kErrorOk;

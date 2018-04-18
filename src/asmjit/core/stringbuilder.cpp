@@ -2,15 +2,15 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
-#include "../core/intutils.h"
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
 #include "../core/stringbuilder.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -29,13 +29,13 @@ constexpr size_t kMaxAllocSize = std::numeric_limits<size_t>::max() - Globals::k
 
 ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcept {
   if (op == kStringOpSet) {
-    if (_capacity < size) {
+    if (size > _capacity) {
       // Prevent arithmetic overflow.
       if (ASMJIT_UNLIKELY(size >= kMaxAllocSize))
         return nullptr;
 
-      size_t newCapacity = IntUtils::alignUp<size_t>(size + 1, kMinAllocSize);
-      char* newData = static_cast<char*>(MemUtils::alloc(newCapacity));
+      size_t newCapacity = Support::alignUp<size_t>(size + 1, kMinAllocSize);
+      char* newData = static_cast<char*>(MemMgr::alloc(newCapacity));
 
       if (ASMJIT_UNLIKELY(!newData))
         return nullptr;
@@ -45,7 +45,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
       _capacity = newCapacity - 1;
 
       if (oldData != _embedded)
-        MemUtils::release(oldData);
+        MemMgr::release(oldData);
     }
 
     _data[size] = 0;
@@ -60,19 +60,19 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
       return nullptr;
 
     size_t afterPlusOne = _size + size + 1;
-    if (_capacity < afterPlusOne) {
+    if (afterPlusOne > _capacity) {
       size_t newCapacity = std::max<size_t>(_capacity + 1, kMinAllocSize);
 
       if (newCapacity < afterPlusOne && newCapacity < Globals::kAllocThreshold)
-        newCapacity = IntUtils::alignUpPowerOf2(newCapacity);
+        newCapacity = Support::alignUpPowerOf2(newCapacity);
 
       if (newCapacity < afterPlusOne)
-        newCapacity = IntUtils::alignUp(afterPlusOne, Globals::kAllocThreshold);
+        newCapacity = Support::alignUp(afterPlusOne, Globals::kAllocThreshold);
 
       if (ASMJIT_UNLIKELY(newCapacity < afterPlusOne))
         return nullptr;
 
-      char* newData = static_cast<char*>(MemUtils::alloc(newCapacity));
+      char* newData = static_cast<char*>(MemMgr::alloc(newCapacity));
       if (!newData) return nullptr;
 
       char* oldData = _data;
@@ -82,7 +82,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
       _capacity = newCapacity - 1;
 
       if (oldData != _embedded)
-        MemUtils::release(oldData);
+        MemMgr::release(oldData);
     }
 
     char* p = _data + _size;
@@ -101,8 +101,8 @@ ASMJIT_FAVOR_SIZE Error StringBuilder::reserve(size_t to) noexcept {
   if (to >= std::numeric_limits<size_t>::max() - sizeof(intptr_t) * 2)
     return DebugUtils::errored(kErrorNoHeapMemory);
 
-  to = IntUtils::alignUp<size_t>(to, sizeof(intptr_t));
-  char* newData = static_cast<char*>(MemUtils::alloc(to + sizeof(intptr_t)));
+  to = Support::alignUp<size_t>(to, sizeof(intptr_t));
+  char* newData = static_cast<char*>(MemMgr::alloc(to + sizeof(intptr_t)));
 
   if (!newData)
     return DebugUtils::errored(kErrorNoHeapMemory);
@@ -114,7 +114,7 @@ ASMJIT_FAVOR_SIZE Error StringBuilder::reserve(size_t to) noexcept {
   _capacity = to + sizeof(intptr_t) - 1;
 
   if (oldData != _embedded)
-    MemUtils::release(oldData);
+    MemMgr::release(oldData);
   return kErrorOk;
 }
 

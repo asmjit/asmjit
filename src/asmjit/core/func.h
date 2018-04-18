@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_FUNC_H
@@ -11,9 +11,9 @@
 // [Dependencies]
 #include "../core/arch.h"
 #include "../core/callconv.h"
-#include "../core/intutils.h"
 #include "../core/operand.h"
 #include "../core/type.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -562,7 +562,7 @@ public:
   //! Get whether vector registers can be saved and restored by using aligned reads and writes.
   inline bool hasAlignedVecSR() const noexcept { return hasAttribute(kAttrAlignedVecSR); }
   //! Get whether the function has to align stack dynamically.
-  inline bool hasDynamicAlignment() const noexcept { return _finalStackAlignment >= _minimumDynamicAlignment; }
+  inline bool hasDynamicAlignment() const noexcept { return _finalStackAlignment >= _minDynamicAlignment; }
 
   //! Get whether this calling convention specifies 'RedZone'.
   inline bool hasRedZone() const noexcept { return _redZoneSize != 0; }
@@ -576,7 +576,7 @@ public:
   //! Get natural stack alignment (guaranteed stack alignment upon entry).
   inline uint32_t naturalStackAlignment() const noexcept { return _naturalStackAlignment; }
   //! Get natural stack alignment (guaranteed stack alignment upon entry).
-  inline uint32_t minimumDynamicAlignment() const noexcept { return _minimumDynamicAlignment; }
+  inline uint32_t minDynamicAlignment() const noexcept { return _minDynamicAlignment; }
 
   //! Get whether the callee must adjust SP before returning (X86-STDCALL only)
   inline bool hasCalleeStackCleanup() const noexcept { return _calleeStackCleanup != 0; }
@@ -725,7 +725,7 @@ public:
   uint8_t _redZoneSize;                  //!< Red zone size (copied from CallConv).
   uint8_t _spillZoneSize;                //!< Spill zone size (copied from CallConv).
   uint8_t _naturalStackAlignment;        //!< Natural stack alignment (copied from CallConv).
-  uint8_t _minimumDynamicAlignment;      //!< Minimum stack alignment to turn on dynamic alignment.
+  uint8_t _minDynamicAlignment;      //!< Minimum stack alignment to turn on dynamic alignment.
 
   uint8_t _callStackAlignment;           //!< Call stack alignment.
   uint8_t _localStackAlignment;          //!< Local stack alignment.
@@ -765,7 +765,7 @@ public:
     kArgCount = kFuncArgCountLoHi
   };
 
-  explicit inline FuncArgsAssignment(const FuncDetail* fd = nullptr) noexcept { reset(fd); }
+  inline explicit FuncArgsAssignment(const FuncDetail* fd = nullptr) noexcept { reset(fd); }
 
   inline FuncArgsAssignment(const FuncArgsAssignment& other) noexcept {
     std::memcpy(this, &other, sizeof(*this));

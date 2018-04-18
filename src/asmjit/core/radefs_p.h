@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_RADEFS_P_H
@@ -13,8 +13,8 @@
 
 // [Dependencies]
 #include "../core/compiler.h"
-#include "../core/intutils.h"
 #include "../core/logging.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 #include "../core/zonevector.h"
 
@@ -147,7 +147,7 @@ struct RARegCount {
   inline uint32_t get(uint32_t group) const noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
 
-    uint32_t shift = IntUtils::byteShiftOfDWordStruct(group);
+    uint32_t shift = Support::byteShiftOfDWordStruct(group);
     return (_packed >> shift) & uint32_t(0xFF);
   }
 
@@ -156,7 +156,7 @@ struct RARegCount {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     ASMJIT_ASSERT(n <= 0xFF);
 
-    uint32_t shift = IntUtils::byteShiftOfDWordStruct(group);
+    uint32_t shift = Support::byteShiftOfDWordStruct(group);
     _packed = (_packed & ~uint32_t(0xFF << shift)) + (n << shift);
   }
 
@@ -165,7 +165,7 @@ struct RARegCount {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     ASMJIT_ASSERT(0xFF - uint32_t(_regs[group]) >= n);
 
-    uint32_t shift = IntUtils::byteShiftOfDWordStruct(group);
+    uint32_t shift = Support::byteShiftOfDWordStruct(group);
     _packed += n << shift;
   }
 
@@ -207,7 +207,7 @@ struct RARegIndex : public RARegCount {
 
     ASMJIT_ASSERT(y <= 0xFF);
     ASMJIT_ASSERT(z <= 0xFF);
-    _packed = IntUtils::bytepack32_4x8(0, x, y, z);
+    _packed = Support::bytepack32_4x8(0, x, y, z);
   }
 };
 
@@ -324,16 +324,16 @@ struct RARegsStats {
   inline void combineWith(const RARegsStats& other) noexcept { _packed |= other._packed; }
 
   inline bool hasUsed() const noexcept { return (_packed & kMaskUsed) != 0U; }
-  inline bool hasUsed(uint32_t group) const noexcept { return (_packed & IntUtils::mask(kIndexUsed + group)) != 0U; }
-  inline void makeUsed(uint32_t group) noexcept { _packed |= IntUtils::mask(kIndexUsed + group); }
+  inline bool hasUsed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexUsed + group)) != 0U; }
+  inline void makeUsed(uint32_t group) noexcept { _packed |= Support::mask(kIndexUsed + group); }
 
   inline bool hasFixed() const noexcept { return (_packed & kMaskFixed) != 0U; }
-  inline bool hasFixed(uint32_t group) const noexcept { return (_packed & IntUtils::mask(kIndexFixed + group)) != 0U; }
-  inline void makeFixed(uint32_t group) noexcept { _packed |= IntUtils::mask(kIndexFixed + group); }
+  inline bool hasFixed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexFixed + group)) != 0U; }
+  inline void makeFixed(uint32_t group) noexcept { _packed |= Support::mask(kIndexFixed + group); }
 
   inline bool hasClobbered() const noexcept { return (_packed & kMaskClobbered) != 0U; }
-  inline bool hasClobbered(uint32_t group) const noexcept { return (_packed & IntUtils::mask(kIndexClobbered + group)) != 0U; }
-  inline void makeClobbered(uint32_t group) noexcept { _packed |= IntUtils::mask(kIndexClobbered + group); }
+  inline bool hasClobbered(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexClobbered + group)) != 0U; }
+  inline void makeClobbered(uint32_t group) noexcept { _packed |= Support::mask(kIndexClobbered + group); }
 
   uint32_t _packed;
 };
@@ -500,12 +500,12 @@ public:
   }
 
   //! Open the current live span.
-  ASMJIT_FORCEINLINE Error openAt(ZoneAllocator* allocator, uint32_t start, uint32_t end) noexcept {
+  ASMJIT_INLINE Error openAt(ZoneAllocator* allocator, uint32_t start, uint32_t end) noexcept {
     bool wasOpen;
     return openAt(allocator, start, end, wasOpen);
   }
 
-  ASMJIT_FORCEINLINE Error openAt(ZoneAllocator* allocator, uint32_t start, uint32_t end, bool& wasOpen) noexcept {
+  ASMJIT_INLINE Error openAt(ZoneAllocator* allocator, uint32_t start, uint32_t end, bool& wasOpen) noexcept {
     uint32_t size = _data.size();
     wasOpen = false;
 
@@ -532,7 +532,7 @@ public:
   //!
   //! NOTE: Don't overuse, this iterates over all spans so it's O(N).
   //! It should be only called once and then cached.
-  ASMJIT_FORCEINLINE uint32_t width() const noexcept {
+  ASMJIT_INLINE uint32_t width() const noexcept {
     uint32_t width = 0;
     for (const T& span : _data)
       width += span.width();
@@ -546,7 +546,7 @@ public:
     return intersects(*this, other);
   }
 
-  ASMJIT_FORCEINLINE Error nonOverlappingUnionOf(ZoneAllocator* allocator, const RALiveSpans<T>& x, const RALiveSpans<T>& y, const DataType& yData) noexcept {
+  ASMJIT_INLINE Error nonOverlappingUnionOf(ZoneAllocator* allocator, const RALiveSpans<T>& x, const RALiveSpans<T>& y, const DataType& yData) noexcept {
     uint32_t finalSize = x.size() + y.size();
     ASMJIT_PROPAGATE(_data.reserve(allocator, finalSize));
 
@@ -600,7 +600,7 @@ public:
     return kErrorOk;
   }
 
-  static ASMJIT_FORCEINLINE bool intersects(const RALiveSpans<T>& x, const RALiveSpans<T>& y) noexcept {
+  static ASMJIT_INLINE bool intersects(const RALiveSpans<T>& x, const RALiveSpans<T>& y) noexcept {
     const T* xSpan = x.data();
     const T* ySpan = y.data();
 
@@ -672,8 +672,8 @@ public:
 
 struct LiveRegData {
   inline LiveRegData() noexcept : id(BaseReg::kIdBad) {}
-  explicit inline LiveRegData(uint32_t id) noexcept : id(id) {}
-  explicit inline LiveRegData(const LiveRegData& other) noexcept : id(other.id) {}
+  inline explicit LiveRegData(uint32_t id) noexcept : id(id) {}
+  inline explicit LiveRegData(const LiveRegData& other) noexcept : id(other.id) {}
 
   inline void init(const LiveRegData& other) noexcept { id = other.id; }
 
@@ -751,7 +751,7 @@ struct RATiedReg {
   // [Init / Reset]
   // --------------------------------------------------------------------------
 
-  ASMJIT_FORCEINLINE void init(uint32_t workId, uint32_t flags, uint32_t allocableRegs, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask) noexcept {
+  ASMJIT_INLINE void init(uint32_t workId, uint32_t flags, uint32_t allocableRegs, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask) noexcept {
     _workId = workId;
     _flags = flags;
     _allocableRegs = allocableRegs;
@@ -900,7 +900,7 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_FORCEINLINE RAWorkReg(VirtReg* vReg, uint32_t workId) noexcept
+  ASMJIT_INLINE RAWorkReg(VirtReg* vReg, uint32_t workId) noexcept
     : _workId(workId),
       _virtId(vReg->id()),
       _virtReg(vReg),

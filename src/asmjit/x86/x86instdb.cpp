@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // ----------------------------------------------------------------------------
 // IMPORTANT: AsmJit now uses an external instruction database to populate
@@ -4995,7 +4995,7 @@ struct X86ValidationData {
   (X == Reg::kTypeSt   ) ? InstDB::kOpSt    : \
   (X == Reg::kTypeBnd  ) ? InstDB::kOpBnd   : \
   (X == Reg::kTypeRip  ) ? InstDB::kOpNone  : InstDB::kOpNone
-static const uint32_t _x86OpFlagFromRegType[Reg::kTypeMax + 1] = { ASMJIT_TABLE_32(VALUE, 0) };
+static const uint32_t _x86OpFlagFromRegType[Reg::kTypeMax + 1] = { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) };
 #undef VALUE
 
 #define REG_MASK_FROM_REG_TYPE_X86(X) \
@@ -5035,13 +5035,13 @@ static const uint32_t _x86OpFlagFromRegType[Reg::kTypeMax + 1] = { ASMJIT_TABLE_
   (X == Reg::kTypeRip  ) ? 0x00000001U : 0U
 
 static const X86ValidationData _x86ValidationData = {
-  { ASMJIT_TABLE_32(REG_MASK_FROM_REG_TYPE_X86, 0) },
+  { ASMJIT_LOOKUP_TABLE_32(REG_MASK_FROM_REG_TYPE_X86, 0) },
   (1U << Reg::kTypeGpw) | (1U << Reg::kTypeGpd) | (1U << Reg::kTypeRip) | (1U << Label::kLabelTag),
   (1U << Reg::kTypeGpw) | (1U << Reg::kTypeGpd) | (1U << Reg::kTypeXmm) | (1U << Reg::kTypeYmm) | (1U << Reg::kTypeZmm)
 };
 
 static const X86ValidationData _x64ValidationData = {
-  { ASMJIT_TABLE_32(REG_MASK_FROM_REG_TYPE_X64, 0) },
+  { ASMJIT_LOOKUP_TABLE_32(REG_MASK_FROM_REG_TYPE_X64, 0) },
   (1U << Reg::kTypeGpd) | (1U << Reg::kTypeGpq) | (1U << Reg::kTypeRip) | (1U << Label::kLabelTag),
   (1U << Reg::kTypeGpd) | (1U << Reg::kTypeGpq) | (1U << Reg::kTypeXmm) | (1U << Reg::kTypeYmm) | (1U << Reg::kTypeZmm)
 };
@@ -5049,11 +5049,11 @@ static const X86ValidationData _x64ValidationData = {
 #undef REG_MASK_FROM_REG_TYPE_X64
 #undef REG_MASK_FROM_REG_TYPE_X86
 
-static ASMJIT_FORCEINLINE bool x86IsZmmOrM512(const Operand_& op) noexcept {
+static ASMJIT_INLINE bool x86IsZmmOrM512(const Operand_& op) noexcept {
   return Reg::isZmm(op) || (op.isMem() && op.size() == 64);
 }
 
-static ASMJIT_FORCEINLINE bool x86CheckOSig(const InstDB::OpSignature& op, const InstDB::OpSignature& ref, bool& immOutOfRange) noexcept {
+static ASMJIT_INLINE bool x86CheckOSig(const InstDB::OpSignature& op, const InstDB::OpSignature& ref, bool& immOutOfRange) noexcept {
   // Fail if operand types are incompatible.
   uint32_t opFlags = op.opFlags;
   if ((opFlags & ref.opFlags) == 0) {
@@ -5191,10 +5191,10 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           if (ASMJIT_UNLIKELY(regId >= 32))
             return DebugUtils::errored(kErrorInvalidPhysId);
 
-          if (ASMJIT_UNLIKELY(IntUtils::bitTest(vd->allowedRegMask[regType], regId) == 0))
+          if (ASMJIT_UNLIKELY(Support::bitTest(vd->allowedRegMask[regType], regId) == 0))
             return DebugUtils::errored(kErrorInvalidPhysId);
 
-          regMask = IntUtils::mask(regId);
+          regMask = Support::mask(regId);
           combinedRegMask |= regMask;
         }
         else {
@@ -5251,7 +5251,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           // instructions where memory operand is implicit and has 'seg:[reg]' form.
           if (baseId < Operand::kPackedIdMin) {
             // Physical base id.
-            regMask = IntUtils::mask(baseId);
+            regMask = Support::mask(baseId);
             combinedRegMask |= regMask;
           }
           else {
@@ -5267,7 +5267,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           // Base is an address, make sure that the address doesn't overflow 32-bit
           // integer (either int32_t or uint32_t) in 32-bit targets.
           int64_t offset = m.offset();
-          if (archMask == InstDB::kArchMaskX86 && !IntUtils::isI32(offset) && !IntUtils::isU32(offset))
+          if (archMask == InstDB::kArchMaskX86 && !Support::isI32(offset) && !Support::isU32(offset))
             return DebugUtils::errored(kErrorInvalidAddress);
         }
 
@@ -5299,7 +5299,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
 
           uint32_t indexId = m.indexId();
           if (indexId < Operand::kPackedIdMin)
-            combinedRegMask |= IntUtils::mask(indexId);
+            combinedRegMask |= Support::mask(indexId);
 
           // Only used for implicit memory operands having 'seg:[reg]' form, so clear it.
           regMask = 0;
@@ -5357,7 +5357,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
             immFlags = InstDB::kOpU64;
         }
         else {
-          immValue = IntUtils::neg(immValue);
+          immValue = Support::neg(immValue);
           if (immValue <= 0x80U)
             immFlags = InstDB::kOpI64 | InstDB::kOpI32 | InstDB::kOpI16 | InstDB::kOpI8;
           else if (immValue <= 0x8000U)
@@ -5579,12 +5579,12 @@ ASMJIT_FAVOR_SIZE static uint32_t x86GetRegTypesMask(const Operand_* operands, u
     const Operand_& op = operands[i];
     if (op.isReg()) {
       const BaseReg& reg = op.as<BaseReg>();
-      mask |= IntUtils::mask(reg.type());
+      mask |= Support::mask(reg.type());
     }
     else if (op.isMem()) {
       const BaseMem& mem = op.as<BaseMem>();
-      if (mem.hasBaseReg()) mask |= IntUtils::mask(mem.baseType());
-      if (mem.hasIndexReg()) mask |= IntUtils::mask(mem.indexType());
+      if (mem.hasBaseReg()) mask |= Support::mask(mem.baseType());
+      if (mem.hasIndexReg()) mask |= Support::mask(mem.indexType());
     }
   }
   return mask;
@@ -5627,7 +5627,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
       // Only instructions defined by SSE and SSE2 overlap. Instructions introduced
       // by newer instruction sets like SSE3+ don't state MMX as they require SSE3+.
       if (out.has(Features::kSSE) || out.has(Features::kSSE2)) {
-        if (!IntUtils::bitTest(mask, Reg::kTypeXmm)) {
+        if (!Support::bitTest(mask, Reg::kTypeXmm)) {
           // The instruction doesn't use XMM register(s), thus it's MMX/MMX2 only.
           out.remove(Features::kSSE);
           out.remove(Features::kSSE2);
@@ -5656,12 +5656,12 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
 
     // Handle PCLMULQDQ vs VPCLMULQDQ.
     if (out.has(Features::kVPCLMULQDQ)) {
-      if (IntUtils::bitTest(mask, Reg::kTypeZmm) || IntUtils::bitTest(options, Inst::kOptionEvex)) {
+      if (Support::bitTest(mask, Reg::kTypeZmm) || Support::bitTest(options, Inst::kOptionEvex)) {
         // AVX512_F & VPCLMULQDQ.
         out.remove(Features::kAVX,
                    Features::kPCLMULQDQ);
       }
-      else if (IntUtils::bitTest(mask, Reg::kTypeYmm)) {
+      else if (Support::bitTest(mask, Reg::kTypeYmm)) {
         out.remove(Features::kAVX512_F,
                    Features::kAVX512_VL);
       }
@@ -5687,7 +5687,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
         // AVX instruction set doesn't support integer operations on YMM registers
         // as these were later introcuced by AVX2. In our case we have to check if
         // YMM register(s) are in use and if that is the case this is an AVX2 instruction.
-        if (!(mask & IntUtils::mask(Reg::kTypeYmm, Reg::kTypeZmm)))
+        if (!(mask & Support::mask(Reg::kTypeYmm, Reg::kTypeZmm)))
           isAVX2 = false;
       }
 
@@ -5702,7 +5702,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
       // Only AVX512-F|BW|DQ allow to encode AVX/AVX2 instructions
       if (out.has(Features::kAVX512_F) || out.has(Features::kAVX512_BW) || out.has(Features::kAVX512_DQ)) {
         uint32_t kAvx512Options = Inst::kOptionEvex | Inst::_kOptionAvx512Mask;
-        if (!(mask & IntUtils::mask(Reg::kTypeZmm, Reg::kTypeKReg)) && !(options & (kAvx512Options)) && inst.extraReg().type() != Reg::kTypeKReg) {
+        if (!(mask & Support::mask(Reg::kTypeZmm, Reg::kTypeKReg)) && !(options & (kAvx512Options)) && inst.extraReg().type() != Reg::kTypeKReg) {
           out.remove(Features::kAVX512_F,
                      Features::kAVX512_BW,
                      Features::kAVX512_DQ,
@@ -5712,7 +5712,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
     }
 
     // Clear AVX512_VL if ZMM register is used.
-    if (IntUtils::bitTest(mask, Reg::kTypeZmm))
+    if (Support::bitTest(mask, Reg::kTypeZmm))
       out.remove(Features::kAVX512_VL);
   }
 
@@ -5725,7 +5725,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
 // ============================================================================
 
 #if defined(ASMJIT_BUILD_TEST)
-UNIT(x86_inst_bits) {
+UNIT(asmjit_x86_inst_bits) {
   INFO("Checking validity of Inst enums");
 
   // Cross-validate prefixes.
@@ -5747,7 +5747,7 @@ UNIT(x86_inst_bits) {
 #endif
 
 #if defined(ASMJIT_BUILD_TEST) && !defined(ASMJIT_DISABLE_TEXT)
-UNIT(x86_inst_names) {
+UNIT(asmjit_x86_inst_names) {
   // All known instructions should be matched.
   INFO("Matching all X86 instructions");
   for (uint32_t a = 0; a < Inst::_kIdCount; a++) {

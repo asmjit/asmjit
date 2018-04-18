@@ -2,13 +2,13 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 #include "../core/zonehash.h"
 
@@ -136,7 +136,7 @@ struct MyKeyMatcher {
   uint32_t _key;
 };
 
-UNIT(core_zone_hash) {
+UNIT(asmjit_core_zone_hash) {
   constexpr uint32_t kCount = 10000;
 
   Zone zone(4096);

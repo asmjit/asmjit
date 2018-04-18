@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -116,7 +116,7 @@ struct RegFormatInfo_T {
 
 static const RegFormatInfo x86RegFormatInfo = {
   // Register type entries and strings.
-  { ASMJIT_TABLE_32(ASMJIT_REG_TYPE_ENTRY, 0) },
+  { ASMJIT_LOOKUP_TABLE_32(ASMJIT_REG_TYPE_ENTRY, 0) },
 
   "\0"             // #0
   "gpb.lo\0"       // #1
@@ -137,7 +137,7 @@ static const RegFormatInfo x86RegFormatInfo = {
   "dr\0",          // #62
 
   // Register name entries and strings.
-  { ASMJIT_TABLE_32(ASMJIT_REG_NAME_ENTRY, 0) },
+  { ASMJIT_LOOKUP_TABLE_32(ASMJIT_REG_NAME_ENTRY, 0) },
 
   "\0"
   "r%ub\0"         // #1
@@ -762,7 +762,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
 
     // Support AVX-512 broadcast - {1tox}.
     if (op.isMem() && op.as<Mem>().hasBroadcast()) {
-      ASMJIT_PROPAGATE(sb.appendFormat(" {1to%u}", IntUtils::mask(op.as<Mem>().getBroadcast())));
+      ASMJIT_PROPAGATE(sb.appendFormat(" {1to%u}", Support::mask(op.as<Mem>().getBroadcast())));
     }
   }
 

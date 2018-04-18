@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_OSUTILS_H
@@ -49,7 +49,7 @@ public:
 
   Handle _handle;
 
-  #elif ASMJIT_OS_POSIX && !ASMJIT_OS_BROWSER
+  #elif ASMJIT_OS_POSIX && !defined(__EMSCRIPTEN__)
 
   typedef pthread_mutex_t Handle;
 
@@ -63,7 +63,7 @@ public:
 
   #else
 
-  #ifndef ASMJIT_OS_BROWSER
+  #if !defined(__EMSCRIPTEN__)
   #pragma message("asmjit::Lock doesn't have implementation for your target OS.")
   #endif
 

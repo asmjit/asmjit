@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_ZONESTACK_H
@@ -143,7 +143,7 @@ public:
   // [Ops]
   // --------------------------------------------------------------------------
 
-  ASMJIT_FORCEINLINE Error prepend(T item) noexcept {
+  ASMJIT_INLINE Error prepend(T item) noexcept {
     ASMJIT_ASSERT(isInitialized());
     Block* block = _block[Globals::kLinkFirst];
 
@@ -159,7 +159,7 @@ public:
     return kErrorOk;
   }
 
-  ASMJIT_FORCEINLINE Error append(T item) noexcept {
+  ASMJIT_INLINE Error append(T item) noexcept {
     ASMJIT_ASSERT(isInitialized());
     Block* block = _block[Globals::kLinkLast];
 
@@ -176,7 +176,7 @@ public:
     return kErrorOk;
   }
 
-  ASMJIT_FORCEINLINE T popFirst() noexcept {
+  ASMJIT_INLINE T popFirst() noexcept {
     ASMJIT_ASSERT(isInitialized());
     ASMJIT_ASSERT(!empty());
 
@@ -193,7 +193,7 @@ public:
     return item;
   }
 
-  ASMJIT_FORCEINLINE T pop() noexcept {
+  ASMJIT_INLINE T pop() noexcept {
     ASMJIT_ASSERT(isInitialized());
     ASMJIT_ASSERT(!empty());
 

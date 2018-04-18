@@ -2,14 +2,14 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_STRINGBUILDER_H
 #define _ASMJIT_CORE_STRINGBUILDER_H
 
 // [Dependencies]
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
 #include "../core/zone.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -69,7 +69,7 @@ public:
 
   inline ~StringBuilder() noexcept {
     if (!isEmbedded())
-      MemUtils::release(_data);
+      MemMgr::release(_data);
   }
 
   // --------------------------------------------------------------------------

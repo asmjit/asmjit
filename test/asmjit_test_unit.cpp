@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Dependencies]
 #include "./asmjit.h"
@@ -34,7 +34,7 @@ static void dumpCpu(void) {
   INFO("  Family ID               : %u", cpu.familyId());
   INFO("  Stepping                : %u", cpu.stepping());
   INFO("  Cache-Line Size         : %u", cpu.cacheLineSize());
-  INFO("  HW-Threads Count        : %u", cpu.hwThreadsCount());
+  INFO("  HW-Thread Count         : %u", cpu.hwThreadCount());
   INFO("");
 
   // --------------------------------------------------------------------------

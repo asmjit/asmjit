@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -13,7 +13,7 @@
 
 // [Dependencies]
 #include "../core/cpuinfo.h"
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../x86/x86features.h"
 
 // Required by `__cpuidex()` and `_xgetbv()`.
@@ -120,7 +120,7 @@ static inline void simplifyCpuBrand(char* s) noexcept {
 }
 
 ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
-  using IntUtils::bitTest;
+  using Support::bitTest;
 
   cpuid_t regs;
   xgetbv_t xcr0 { 0, 0 };

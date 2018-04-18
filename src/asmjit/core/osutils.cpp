@@ -2,21 +2,21 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
-#include "../core/intutils.h"
 #include "../core/osutils.h"
+#include "../core/support.h"
 
 #if ASMJIT_OS_POSIX
   #include <time.h>
   #include <unistd.h>
 #endif
 
-#if ASMJIT_OS_DARWIN
+#if ASMJIT_OS_MAC
   #include <mach/mach_time.h>
 #endif
 
@@ -68,7 +68,7 @@ uint32_t OSUtils::getTickCount() noexcept {
   // Bail to `GetTickCount()` if we cannot use high resolution.
   return ::GetTickCount();
 
-  #elif ASMJIT_OS_DARWIN
+  #elif ASMJIT_OS_MAC
 
   // See Apple's QA1398.
   static mach_timebase_info_data_t _machTime;

@@ -2,13 +2,13 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 #include "../core/zonevector.h"
 
@@ -113,7 +113,7 @@ Error ZoneBitVector::copyFrom(ZoneAllocator* allocator, const ZoneBitVector& oth
 
   if (newSize > _capacity) {
     // Realloc needed... Calculate the minimum capacity (in bytes) requied.
-    uint32_t minimumCapacityInBits = IntUtils::alignUp<uint32_t>(newSize, kBitWordSizeInBits);
+    uint32_t minimumCapacityInBits = Support::alignUp<uint32_t>(newSize, kBitWordSizeInBits);
     if (ASMJIT_UNLIKELY(minimumCapacityInBits < newSize))
       return DebugUtils::errored(kErrorNoHeapMemory);
 
@@ -173,7 +173,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
 
   if (newSize > _capacity) {
     // Realloc needed, calculate the minimum capacity (in bytes) requied.
-    uint32_t minimumCapacityInBits = IntUtils::alignUp<uint32_t>(idealCapacity, kBitWordSizeInBits);
+    uint32_t minimumCapacityInBits = Support::alignUp<uint32_t>(idealCapacity, kBitWordSizeInBits);
 
     if (ASMJIT_UNLIKELY(minimumCapacityInBits < newSize))
       return DebugUtils::errored(kErrorNoHeapMemory);
@@ -212,7 +212,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
 
   // Set new bits to either 0 or 1. The `pattern` is used to set multiple
   // bits per bit-word and contains either all zeros or all ones.
-  BitWord pattern = IntUtils::maskFromBool<BitWord>(newBitsValue);
+  BitWord pattern = Support::bitMaskFromBool<BitWord>(newBitsValue);
 
   // First initialize the last bit-word of the old size.
   if (startBit) {
@@ -302,7 +302,7 @@ static void test_zone_vector(ZoneAllocator* allocator, const char* typeName) {
 }
 
 static void test_zone_bitvector(ZoneAllocator* allocator) {
-  Zone zone(8096 - Zone::kZoneOverhead);
+  Zone zone(8096 - Zone::kBlockOverhead);
 
   uint32_t i, count;
   uint32_t kMaxCount = 100;
@@ -348,8 +348,8 @@ static void test_zone_bitvector(ZoneAllocator* allocator) {
   }
 }
 
-UNIT(core_zone_vector) {
-  Zone zone(8096 - Zone::kZoneOverhead);
+UNIT(asmjit_core_zone_vector) {
+  Zone zone(8096 - Zone::kBlockOverhead);
   ZoneAllocator allocator(&zone);
 
   test_zone_vector<int>(&allocator, "int");

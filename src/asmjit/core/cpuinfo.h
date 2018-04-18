@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_CPUINFO_H
@@ -74,7 +74,7 @@ public:
   //! Get the size of a cache line flush.
   inline uint32_t cacheLineSize() const noexcept { return _cacheLineSize; }
   //! Get number of hardware threads available.
-  inline uint32_t hwThreadsCount() const noexcept { return _hwThreadsCount; }
+  inline uint32_t hwThreadCount() const noexcept { return _hwThreadCount; }
 
   //! Get CPU vendor.
   inline const char* vendor() const noexcept { return _vendor.str; }
@@ -84,10 +84,12 @@ public:
   //! Get CPU brand string.
   inline const char* brand() const noexcept { return _brand.str; }
 
+  //! Get all CPU features as `BaseFeatures`, cast to your arch-specific class if needed.
+  template<typename T = BaseFeatures>
+  inline const T& features() const noexcept { return _features.as<T>(); }
+
   //! Get whether CPU has a `feature`.
   inline bool hasFeature(uint32_t featureId) const noexcept { return _features.has(featureId); }
-  //! Get all CPU features as `BaseFeatures`, cast to your arch-specific class if needed.
-  inline const BaseFeatures& features() const noexcept { return _features; }
   //! Add a CPU `feature`.
   inline CpuInfo& addFeature(uint32_t featureId) noexcept { _features.add(featureId); return *this; }
 
@@ -120,7 +122,7 @@ public:
   uint32_t _modelId;                     //!< CPU model ID.
   uint32_t _stepping;                    //!< CPU stepping.
   uint32_t _cacheLineSize;               //!< Cache line size (in bytes).
-  uint32_t _hwThreadsCount;              //!< Number of hardware threads.
+  uint32_t _hwThreadCount;               //!< Number of hardware threads.
 
   StaticString<16> _vendor;              //!< CPU vendor string.
   StaticString<64> _brand;               //!< CPU brand string.

@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_RAPASS_P_H
@@ -244,7 +244,7 @@ public:
     return sizeof(RAInst) - sizeof(RATiedReg) + tiedRegCount * sizeof(RATiedReg);
   }
 
-  ASMJIT_FORCEINLINE RAInst(RABlock* block, uint32_t flags, uint32_t tiedTotal, const RARegMask& clobberedRegs) noexcept {
+  ASMJIT_INLINE RAInst(RABlock* block, uint32_t flags, uint32_t tiedTotal, const RARegMask& clobberedRegs) noexcept {
     _block = block;
     _flags = flags;
     _tiedTotal = tiedTotal;
@@ -368,18 +368,18 @@ public:
   // [Ops]
   // --------------------------------------------------------------------------
 
-  ASMJIT_FORCEINLINE Error add(RAWorkReg* workReg, uint32_t flags, uint32_t allocable, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask) noexcept {
+  ASMJIT_INLINE Error add(RAWorkReg* workReg, uint32_t flags, uint32_t allocable, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask) noexcept {
     uint32_t group = workReg->group();
     RATiedReg* tiedReg = workReg->tiedReg();
 
     if (useId != BaseReg::kIdBad) {
       _stats.makeFixed(group);
-      _used[group] |= IntUtils::mask(useId);
+      _used[group] |= Support::mask(useId);
       flags |= RATiedReg::kUseFixed;
     }
 
     if (outId != BaseReg::kIdBad) {
-      _clobbered[group] |= IntUtils::mask(outId);
+      _clobbered[group] |= Support::mask(outId);
       flags |= RATiedReg::kOutFixed;
     }
 
@@ -404,7 +404,7 @@ public:
           return DebugUtils::errored(kErrorOverlappedRegs);
 
         tiedReg->setOutId(outId);
-        // TODO: ? _used[group] |= IntUtils::mask(outId);
+        // TODO: ? _used[group] |= Support::mask(outId);
       }
 
       tiedReg->addRefCount();
@@ -465,9 +465,9 @@ public:
   inline Logger* debugLogger() const noexcept { return _debugLogger; }
 
   //! Get `Zone` passed to `runOnFunction()`.
-  inline Zone* zone() const { return _allocator.zone(); }
+  inline Zone* zone() const noexcept { return _allocator.zone(); }
   //! Get `ZoneAllocator` used by the register allocator.
-  inline ZoneAllocator* allocator() const { return const_cast<ZoneAllocator*>(&_allocator); }
+  inline ZoneAllocator* allocator() const noexcept { return const_cast<ZoneAllocator*>(&_allocator); }
 
   //! Get function node.
   inline FuncNode* func() const noexcept { return _func; }
@@ -485,7 +485,7 @@ public:
   inline const RARegMask& cloberredRegs() const noexcept { return _clobberedRegs; }
 
   inline void makeUnavailable(uint32_t group, uint32_t regId) noexcept {
-    _availableRegs[group] &= ~IntUtils::mask(regId);
+    _availableRegs[group] &= ~Support::mask(regId);
     _availableRegCount[group]--;
   }
 
@@ -562,11 +562,11 @@ public:
     return _exits.append(allocator(), block);
   }
 
-  ASMJIT_FORCEINLINE RAInst* newRAInst(RABlock* block, uint32_t flags, uint32_t tiedRegCount, const RARegMask& clobberedRegs) noexcept {
+  ASMJIT_INLINE RAInst* newRAInst(RABlock* block, uint32_t flags, uint32_t tiedRegCount, const RARegMask& clobberedRegs) noexcept {
     return new(zone()->alloc(RAInst::sizeOf(tiedRegCount))) RAInst(block, flags, tiedRegCount, clobberedRegs);
   }
 
-  ASMJIT_FORCEINLINE Error assignRAInst(BaseNode* node, RABlock* block, RAInstBuilder& ib) noexcept {
+  ASMJIT_INLINE Error assignRAInst(BaseNode* node, RABlock* block, RAInstBuilder& ib) noexcept {
     uint32_t tiedRegCount = ib.tiedRegCount();
     RAInst* raInst = newRAInst(block, ib.flags(), tiedRegCount, ib._clobbered);
 
@@ -588,7 +588,7 @@ public:
 
       if (tiedReg->hasUseId()) {
         block->addFlags(RABlock::kFlagHasFixedRegs);
-        raInst->_usedRegs[group] |= IntUtils::mask(tiedReg->useId());
+        raInst->_usedRegs[group] |= Support::mask(tiedReg->useId());
       }
 
       if (tiedReg->hasOutId()) {

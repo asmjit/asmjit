@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -13,7 +13,7 @@
 
 // [Dependencies]
 #include "../core/cpuinfo.h"
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../arm/armfeatures.h"
 
 // Required by `getauxval()`.
@@ -113,7 +113,7 @@ struct LinuxHWCapMapping {
 static void detectHWCaps(CpuInfo& cpu, unsigned long type, const LinuxHWCapMapping* mapping, size_t size) noexcept {
   unsigned long mask = getauxval(type);
   for (size_t i = 0; i < size; i++)
-    if (IntUtils::bitTest(mask, mapping[i].hwCapBit))
+    if (Support::bitTest(mask, mapping[i].hwCapBit))
       cpu.addFeature(mapping[i].featureId);
 }
 

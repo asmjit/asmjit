@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_X86_X86OPCODE_P_H
@@ -358,7 +358,7 @@ struct Opcode {
   inline Opcode& addWBySize(T size) noexcept { return addWIf(size == 8); }
 
   template<typename T>
-  ASMJIT_FORCEINLINE Opcode& addPrefixBySize(T size) noexcept {
+  ASMJIT_INLINE Opcode& addPrefixBySize(T size) noexcept {
     static const uint32_t mask[16] = {
       0,          // #0
       0,          // #1 -> nothing (already handled or not possible)
@@ -374,7 +374,7 @@ struct Opcode {
   }
 
   template<typename T>
-  ASMJIT_FORCEINLINE Opcode& addArithBySize(T size) noexcept {
+  ASMJIT_INLINE Opcode& addArithBySize(T size) noexcept {
     static const uint32_t mask[16] = {
       0,          // #0
       0,          // #1 -> nothing
@@ -390,19 +390,19 @@ struct Opcode {
   }
 
   //! Extract `O` field from the opcode.
-  ASMJIT_FORCEINLINE uint32_t extractO() const noexcept {
+  ASMJIT_INLINE uint32_t extractO() const noexcept {
     return (v >> kO_Shift) & 0x07;
   }
 
   //! Extract `REX` prefix from opcode combined with `options`.
-  ASMJIT_FORCEINLINE uint32_t extractRex(uint32_t options) const noexcept {
+  ASMJIT_INLINE uint32_t extractRex(uint32_t options) const noexcept {
     // kREX was designed in a way that when shifted there will be no bytes
     // set except REX.[B|X|R|W]. The returned value forms a real REX prefix byte.
     // This case should be unit-tested as well.
     return (v | options) >> kREX_Shift;
   }
 
-  ASMJIT_FORCEINLINE uint32_t extractLLMM(uint32_t options) const noexcept {
+  ASMJIT_INLINE uint32_t extractLLMM(uint32_t options) const noexcept {
     uint32_t x = v       & (kLL_Mask | kMM_Mask);
     uint32_t y = options & (Inst::kOptionVex3 | Inst::kOptionEvex);
     return (x | y) >> kMM_Shift;

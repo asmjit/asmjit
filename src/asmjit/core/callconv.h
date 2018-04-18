@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_CALLCONV_H
@@ -11,7 +11,7 @@
 // [Dependencies]
 #include "../core/arch.h"
 #include "../core/operand.h"
-#include "../core/intutils.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -314,8 +314,8 @@ struct CallConv {
 
     // NOTE: This should always be called with all arguments known at compile time,
     // so even if it looks scary it should be translated into few instructions.
-    _setPassedPacked(group, IntUtils::bytepack32_4x8(a0, a1, a2, a3),
-                            IntUtils::bytepack32_4x8(a4, a5, a6, a7),
+    _setPassedPacked(group, Support::bytepack32_4x8(a0, a1, a2, a3),
+                            Support::bytepack32_4x8(a4, a5, a6, a7),
                             0xFFFFFFFFU,
                             0xFFFFFFFFU);
 

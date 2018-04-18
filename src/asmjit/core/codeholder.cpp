@@ -2,17 +2,17 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
 #include "../core/assembler.h"
-#include "../core/intutils.h"
 #include "../core/logging.h"
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
 #include "../core/stringutils.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -27,7 +27,7 @@ ErrorHandler::~ErrorHandler() noexcept {}
 // [asmjit::CodeHolder - Utilities]
 // ============================================================================
 
-static void CodeHolder_resetInternal(CodeHolder* self, bool releaseMemory) noexcept {
+static void CodeHolder_resetInternal(CodeHolder* self, uint32_t resetPolicy) noexcept {
   uint32_t i;
   const ZoneVector<BaseEmitter*>& emitters = self->emitters();
 
@@ -49,7 +49,7 @@ static void CodeHolder_resetInternal(CodeHolder* self, bool releaseMemory) noexc
   for (i = 0; i < numSections; i++) {
     SectionEntry* section = self->_sectionEntries[i];
     if (section->_buffer.data() && !section->_buffer.isExternal())
-      MemUtils::release(section->_buffer._data);
+      MemMgr::release(section->_buffer._data);
     section->_buffer._data = nullptr;
     section->_buffer._capacity = 0;
   }
@@ -64,7 +64,7 @@ static void CodeHolder_resetInternal(CodeHolder* self, bool releaseMemory) noexc
   self->_sectionEntries.reset();
 
   allocator->reset(&self->_zone);
-  self->_zone.reset(releaseMemory);
+  self->_zone.reset(resetPolicy);
 }
 
 static void CodeHolder_modifyEmitterOptions(CodeHolder* self, uint32_t clear, uint32_t add) noexcept {
@@ -95,11 +95,11 @@ CodeHolder::CodeHolder() noexcept
     _errorHandler(nullptr),
     _unresolvedLabelCount(0),
     _trampolinesSize(0),
-    _zone(16384 - Zone::kZoneOverhead),
+    _zone(16384 - Zone::kBlockOverhead),
     _allocator(&_zone) {}
 
 CodeHolder::~CodeHolder() noexcept {
-  CodeHolder_resetInternal(this, true);
+  CodeHolder_resetInternal(this, Globals::kResetHard);
 }
 
 // ============================================================================
@@ -107,8 +107,7 @@ CodeHolder::~CodeHolder() noexcept {
 // ============================================================================
 
 Error CodeHolder::init(const CodeInfo& info) noexcept {
-  // Cannot reinitialize if it's locked or there is one or more BaseEmitter
-  // attached.
+  // Cannot reinitialize if it's locked or there is one or more emitter attached.
   if (isInitialized())
     return DebugUtils::errored(kErrorAlreadyInitialized);
 
@@ -130,7 +129,7 @@ Error CodeHolder::init(const CodeInfo& info) noexcept {
   }
 
   if (ASMJIT_UNLIKELY(err)) {
-    _zone.reset(false);
+    _zone.reset();
     return err;
   }
   else {
@@ -139,8 +138,8 @@ Error CodeHolder::init(const CodeInfo& info) noexcept {
   }
 }
 
-void CodeHolder::reset(bool releaseMemory) noexcept {
-  CodeHolder_resetInternal(this, releaseMemory);
+void CodeHolder::reset(uint32_t resetPolicy) noexcept {
+  CodeHolder_resetInternal(this, resetPolicy);
 }
 
 // ============================================================================
@@ -232,9 +231,9 @@ static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t
   uint8_t* newData;
 
   if (oldData && !cb->isExternal())
-    newData = static_cast<uint8_t*>(MemUtils::realloc(oldData, n));
+    newData = static_cast<uint8_t*>(MemMgr::realloc(oldData, n));
   else
-    newData = static_cast<uint8_t*>(MemUtils::alloc(n));
+    newData = static_cast<uint8_t*>(MemMgr::alloc(n));
 
   if (ASMJIT_UNLIKELY(!newData))
     return DebugUtils::errored(kErrorNoHeapMemory);
@@ -279,7 +278,7 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
   if (capacity < kInitialCapacity)
     capacity = kInitialCapacity;
   else
-    capacity += Globals::kAllocOverhead;
+    capacity += Globals::kMemAllocOverhead;
 
   do {
     size_t old = capacity;
@@ -291,9 +290,9 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
     // Overflow.
     if (ASMJIT_UNLIKELY(old > capacity))
       return DebugUtils::errored(kErrorNoHeapMemory);
-  } while (capacity - Globals::kAllocOverhead < required);
+  } while (capacity - Globals::kMemAllocOverhead < required);
 
-  return CodeHolder_reserveInternal(this, cb, capacity - Globals::kAllocOverhead);
+  return CodeHolder_reserveInternal(this, cb, capacity - Globals::kMemAllocOverhead);
 }
 
 Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
@@ -561,7 +560,7 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
           return DebugUtils::errored(kErrorInvalidRelocEntry);
 
         ptr -= baseAddress + re->sourceOffset() + re->size();
-        if (!IntUtils::isI32(int64_t(ptr))) {
+        if (!Support::isI32(int64_t(ptr))) {
           ptr = (uint64_t)trampOffset - re->sourceOffset() - re->size();
           useTrampoline = true;
         }
@@ -574,15 +573,15 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
 
     switch (re->size()) {
       case 1:
-        MemUtils::writeU8(dst + codeOffset, uint32_t(ptr & 0xFFU));
+        Support::writeU8(dst + codeOffset, uint32_t(ptr & 0xFFU));
         break;
 
       case 4:
-        MemUtils::writeU32u(dst + codeOffset, uint32_t(ptr & 0xFFFFFFFFU));
+        Support::writeU32u(dst + codeOffset, uint32_t(ptr & 0xFFFFFFFFU));
         break;
 
       case 8:
-        MemUtils::writeU64u(dst + codeOffset, ptr);
+        Support::writeU64u(dst + codeOffset, ptr);
         break;
 
       default:
@@ -613,7 +612,7 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
       dst[codeOffset - 1] = uint8_t(byte1);
 
       // Store absolute address and advance the trampoline pointer.
-      MemUtils::writeU64u(dst + trampOffset, re->payload());
+      Support::writeU64u(dst + trampOffset, re->payload());
       trampOffset += 8;
 
 #ifndef ASMJIT_DISABLE_LOGGING

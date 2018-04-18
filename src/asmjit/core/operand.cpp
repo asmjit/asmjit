@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -17,7 +17,7 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 #if defined(ASMJIT_BUILD_TEST)
-UNIT(core_operand) {
+UNIT(asmjit_core_operand) {
   INFO("Checking operand sizes");
   EXPECT(sizeof(Operand) == 16);
   EXPECT(sizeof(BaseReg) == 16);

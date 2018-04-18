@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_COMPILER_H
@@ -17,8 +17,8 @@
 #include "../core/constpool.h"
 #include "../core/func.h"
 #include "../core/inst.h"
-#include "../core/intutils.h"
 #include "../core/operand.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 #include "../core/zonevector.h"
 
@@ -298,7 +298,7 @@ public:
   //! Create a new `FuncNode` instance.
   //!
   //! Always use `BaseCompiler::addFunc()` to create `FuncNode`.
-  ASMJIT_FORCEINLINE FuncNode(BaseBuilder* cb) noexcept
+  ASMJIT_INLINE FuncNode(BaseBuilder* cb) noexcept
     : LabelNode(cb),
       _funcDetail(),
       _frame(),

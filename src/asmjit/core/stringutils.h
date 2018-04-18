@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_STRINGUTILS_H
@@ -37,12 +37,6 @@ union StaticString {
 // ============================================================================
 
 namespace StringUtils {
-  template<typename T>
-  static constexpr T toLower(T c) noexcept { return c ^ (T(c >= T('A') && c <= T('Z')) << 5); }
-
-  template<typename T>
-  static constexpr T toUpper(T c) noexcept { return c ^ (T(c >= T('a') && c <= T('z')) << 5); }
-
   // \internal
   static constexpr uint32_t hashRound(uint32_t hash, uint32_t c) noexcept { return hash * 65599 + c; }
 
@@ -56,14 +50,14 @@ namespace StringUtils {
     return hashCode;
   }
 
-  static ASMJIT_FORCEINLINE size_t strLen(const char* s, size_t maxSize) noexcept {
+  static ASMJIT_INLINE size_t strLen(const char* s, size_t maxSize) noexcept {
     size_t i;
     for (i = 0; i < maxSize && s[i] != '\0'; i++)
       continue;
     return i;
   }
 
-  static ASMJIT_FORCEINLINE const char* findPackedString(const char* p, uint32_t id) noexcept {
+  static ASMJIT_INLINE const char* findPackedString(const char* p, uint32_t id) noexcept {
     uint32_t i = 0;
     while (i < id) {
       while (p[0])
@@ -78,7 +72,7 @@ namespace StringUtils {
   //!
   //! `a` is a null terminated instruction name from arch-specific `nameData[]` table.
   //! `b` is a non-null terminated instruction name passed to `Inst::idByName()`.
-  static ASMJIT_FORCEINLINE int cmpInstName(const char* a, const char* b, size_t size) noexcept {
+  static ASMJIT_INLINE int cmpInstName(const char* a, const char* b, size_t size) noexcept {
     for (size_t i = 0; i < size; i++) {
       int c = int(uint8_t(a[i])) - int(uint8_t(b[i]));
       if (c != 0) return c;

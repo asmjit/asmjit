@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -12,10 +12,9 @@
 #ifndef ASMJIT_DISABLE_COMPILER
 
 // [Dependencies]
-#include "../core/algorithm.h"
-#include "../core/intutils.h"
 #include "../core/ralocal_p.h"
 #include "../core/rapass_p.h"
+#include "../core/support.h"
 #include "../core/type.h"
 #include "../core/zonestack.h"
 
@@ -404,7 +403,7 @@ Error RAPass::buildViews() noexcept {
 // [asmjit::RAPass - CFG - Dominators]
 // ============================================================================
 
-static ASMJIT_FORCEINLINE RABlock* intersectBlocks(RABlock* b1, RABlock* b2) noexcept {
+static ASMJIT_INLINE RABlock* intersectBlocks(RABlock* b1, RABlock* b2) noexcept {
   while (b1 != b2) {
     while (b2->povOrder() > b1->povOrder()) b1 = b1->iDom();
     while (b1->povOrder() > b2->povOrder()) b2 = b2->iDom();
@@ -652,7 +651,7 @@ RAAssignment::PhysToWorkMap* RAPass::newPhysToWorkMap() noexcept {
   uint32_t count = physRegTotal();
   size_t size = PhysToWorkMap::sizeOf(count);
 
-  PhysToWorkMap* map = zone()->allocAlignedT<PhysToWorkMap>(size, sizeof(uint32_t));
+  PhysToWorkMap* map = zone()->allocT<PhysToWorkMap>(size);
   if (ASMJIT_UNLIKELY(!map))
     return nullptr;
 
@@ -668,14 +667,14 @@ namespace LiveOps {
   typedef ZoneBitVector::BitWord BitWord;
 
   struct In {
-    static ASMJIT_FORCEINLINE BitWord op(BitWord dst, BitWord out, BitWord gen, BitWord kill) noexcept {
+    static ASMJIT_INLINE BitWord op(BitWord dst, BitWord out, BitWord gen, BitWord kill) noexcept {
       ASMJIT_UNUSED(dst);
       return (out | gen) & ~kill;
     }
   };
 
   template<typename Operator>
-  static ASMJIT_FORCEINLINE bool op(BitWord* dst, const BitWord* a, uint32_t n) noexcept {
+  static ASMJIT_INLINE bool op(BitWord* dst, const BitWord* a, uint32_t n) noexcept {
     BitWord changed = 0;
 
     for (uint32_t i = 0; i < n; i++) {
@@ -690,7 +689,7 @@ namespace LiveOps {
   }
 
   template<typename Operator>
-  static ASMJIT_FORCEINLINE bool op(BitWord* dst, const BitWord* a, const BitWord* b, uint32_t n) noexcept {
+  static ASMJIT_INLINE bool op(BitWord* dst, const BitWord* a, const BitWord* b, uint32_t n) noexcept {
     BitWord changed = 0;
 
     for (uint32_t i = 0; i < n; i++) {
@@ -705,7 +704,7 @@ namespace LiveOps {
   }
 
   template<typename Operator>
-  static ASMJIT_FORCEINLINE bool op(BitWord* dst, const BitWord* a, const BitWord* b, const BitWord* c, uint32_t n) noexcept {
+  static ASMJIT_INLINE bool op(BitWord* dst, const BitWord* a, const BitWord* b, const BitWord* c, uint32_t n) noexcept {
     BitWord changed = 0;
 
     for (uint32_t i = 0; i < n; i++) {
@@ -719,7 +718,7 @@ namespace LiveOps {
     return changed != 0;
   }
 
-  static ASMJIT_FORCEINLINE bool recalcInOut(RABlock* block, uint32_t numBitWords, bool initial = false) noexcept {
+  static ASMJIT_INLINE bool recalcInOut(RABlock* block, uint32_t numBitWords, bool initial = false) noexcept {
     bool changed = initial;
 
     const RABlocks& successors = block->successors();
@@ -727,7 +726,7 @@ namespace LiveOps {
 
     // Calculate `OUT` based on `IN` of all successors.
     for (uint32_t i = 0; i < numSuccessors; i++)
-      changed |= op<IntUtils::Or>(block->liveOut().data(), successors[i]->liveIn().data(), numBitWords);
+      changed |= op<Support::Or>(block->liveOut().data(), successors[i]->liveIn().data(), numBitWords);
 
     // Calculate `IN` based on `OUT`, `GEN`, and `KILL` bits.
     if (changed)
@@ -963,7 +962,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
         }
 
         position += 2;
-        maxLiveCount.op<IntUtils::Max>(raInst->_liveCount);
+        maxLiveCount.op<Support::Max>(raInst->_liveCount);
       }
 
       if (node == stop)
@@ -974,7 +973,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
     }
 
     block->_maxLiveCount = maxLiveCount;
-    _globalMaxLiveCount.op<IntUtils::Max>(maxLiveCount);
+    _globalMaxLiveCount.op<Support::Max>(maxLiveCount);
     ASMJIT_ASSERT(position == block->endPosition());
   }
 
@@ -1041,7 +1040,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
   );
 
   ASMJIT_RA_LOG_FORMAT("[RAPass::BinPack] Available=%u (0x%08X) Count=%u\n",
-    IntUtils::popcnt(_availableRegs[group]),
+    Support::popcnt(_availableRegs[group]),
     _availableRegs[group],
     workRegCount(group));
 
@@ -1054,7 +1053,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
     return b->liveStats().freq() - a->liveStats().freq();
   });
 
-  IntUtils::BitWordIterator<uint32_t> it(_availableRegs[group]);
+  Support::BitWordIterator<uint32_t> it(_availableRegs[group]);
   while (it.hasNext() && !workRegs.empty()) {
     uint32_t physId = it.next();
     uint32_t dstIndex = 0;
@@ -1228,7 +1227,7 @@ Error RAPass::runLocalAllocator() noexcept {
     lra.replaceAssignment(block->entryPhysToWorkMap(), block->entryWorkToPhysMap());
   }
 
-  _clobberedRegs.op<IntUtils::Or>(lra._clobberedRegs);
+  _clobberedRegs.op<Support::Or>(lra._clobberedRegs);
   return kErrorOk;
 }
 
@@ -1255,7 +1254,7 @@ Error RAPass::setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, 
   // It's possible that `fromBlock` has LIVE-OUT regs that `block` doesn't
   // have in LIVE-IN, these have to be unassigned.
   {
-    ZoneBitVector::ForEachBitOp<IntUtils::AndNot> it(liveOut, liveIn);
+    ZoneBitVector::ForEachBitOp<Support::AndNot> it(liveOut, liveIn);
     while (it.hasNext()) {
       uint32_t workId = uint32_t(it.next());
       RAWorkReg* workReg = workRegById(workId);
@@ -1272,13 +1271,13 @@ Error RAPass::setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, 
   {
     for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++) {
       if (_strategy[group].isComplex()) {
-        IntUtils::BitWordIterator<uint32_t> it(as.assigned(group));
+        Support::BitWordIterator<uint32_t> it(as.assigned(group));
         while (it.hasNext()) {
           uint32_t physId = it.next();
           uint32_t workId = as.physToWorkId(group, physId);
 
           RAWorkReg* workReg = workRegById(workId);
-          workReg->addAllocatedMask(IntUtils::mask(physId));
+          workReg->addAllocatedMask(Support::mask(physId));
         }
       }
     }
@@ -1452,11 +1451,11 @@ ASMJIT_FAVOR_SPEED Error RAPass::_rewrite(BaseNode* first, BaseNode* stop) noexc
         for (i = 0; i < tiedCount; i++) {
           RATiedReg* tiedReg = &tiedRegs[i];
 
-          IntUtils::BitWordIterator<uint32_t> useIt(tiedReg->useRewriteMask());
+          Support::BitWordIterator<uint32_t> useIt(tiedReg->useRewriteMask());
           uint32_t useId = tiedReg->useId();
           while (useIt.hasNext()) cbInst->rewriteIdAtIndex(useIt.next(), useId);
 
-          IntUtils::BitWordIterator<uint32_t> outIt(tiedReg->outRewriteMask());
+          Support::BitWordIterator<uint32_t> outIt(tiedReg->outRewriteMask());
           uint32_t outId = tiedReg->outId();
           while (outIt.hasNext()) cbInst->rewriteIdAtIndex(outIt.next(), outId);
         }

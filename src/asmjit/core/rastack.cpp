@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -12,9 +12,8 @@
 #ifndef ASMJIT_DISABLE_COMPILER
 
 // [Dependencies]
-#include "../core/algorithm.h"
-#include "../core/intutils.h"
 #include "../core/rastack_p.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -81,7 +80,7 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
     uint32_t alignment = slot->alignment();
     ASMJIT_ASSERT(alignment > 0);
 
-    uint32_t power = IntUtils::ctz(alignment);
+    uint32_t power = Support::ctz(alignment);
     uint64_t weight;
 
     if (slot->isRegHome())
@@ -120,7 +119,7 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
     if (slot->isStackArg()) continue;
 
     uint32_t slotAlignment = slot->alignment();
-    uint32_t alignedOffset = IntUtils::alignUp(offset, slotAlignment);
+    uint32_t alignedOffset = Support::alignUp(offset, slotAlignment);
 
     // Try to find a slot within gaps first, before advancing the `offset`.
     bool foundGap = false;
@@ -133,12 +132,12 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
       uint32_t slotSize = slot->size();
       if (slotSize < (1U << uint32_t(ASMJIT_ARRAY_SIZE(gaps)))) {
         // Iterate from the lowest to the highest possible.
-        uint32_t index = IntUtils::ctz(slotSize);
+        uint32_t index = Support::ctz(slotSize);
         do {
           if (!gaps[index].empty()) {
             RAStackGap gap = gaps[index].pop();
 
-            ASMJIT_ASSERT(IntUtils::isAligned(gap.offset, slotAlignment));
+            ASMJIT_ASSERT(Support::isAligned(gap.offset, slotAlignment));
             slot->setOffset(int32_t(gap.offset));
 
             gapSize = gap.size - slotSize;
@@ -161,13 +160,13 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
 
     // True if we have found a gap and not filled all of it or we aligned the current offset.
     if (gapSize) {
-      uint32_t slotSize = IntUtils::alignUpPowerOf2(gapSize + 1) / 2;
+      uint32_t slotSize = Support::alignUpPowerOf2(gapSize + 1) / 2;
       do {
         if (gapSize >= slotSize) {
           gapSize -= slotSize;
           gapOffset -= slotSize;
 
-          uint32_t index = IntUtils::ctz(slotSize);
+          uint32_t index = Support::ctz(slotSize);
           ASMJIT_PROPAGATE(gaps[index].append(allocator(), RAStackGap(gapOffset, slotSize)));
         }
         slotSize >>= 1;
@@ -175,13 +174,13 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
     }
 
     if (!foundGap) {
-      ASMJIT_ASSERT(IntUtils::isAligned(offset, slotAlignment));
+      ASMJIT_ASSERT(Support::isAligned(offset, slotAlignment));
       slot->setOffset(int32_t(offset));
       offset += slot->size();
     }
   }
 
-  _stackSize = IntUtils::alignUp(offset, _alignment);
+  _stackSize = Support::alignUp(offset, _alignment);
   return kErrorOk;
 }
 

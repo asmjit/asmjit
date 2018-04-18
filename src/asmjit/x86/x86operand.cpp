@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -25,17 +25,17 @@ const OpData opData = {
   {
     // RegInfo[]
     # define VALUE(X) { RegTraits<X>::kSignature }
-    { ASMJIT_TABLE_32(VALUE, 0) },
+    { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) },
     #undef VALUE
 
     // RegCount[]
     # define VALUE(X) RegTraits<X>::kCount
-    { ASMJIT_TABLE_32(VALUE, 0) },
+    { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) },
     #undef VALUE
 
     // RegTypeToTypeId[]
     #define VALUE(X) RegTraits<X>::kTypeId
-    { ASMJIT_TABLE_32(VALUE, 0) }
+    { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) }
     #undef VALUE
   }
 };
@@ -45,7 +45,7 @@ const OpData opData = {
 // ============================================================================
 
 #if defined(ASMJIT_BUILD_TEST)
-UNIT(x86_operand) {
+UNIT(asmjit_x86_operand) {
   Label L(1000); // Label with some ID.
 
   INFO("Checking basic properties of built-in X86 registers");

@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_X86_X86INSTDB_H
@@ -547,7 +547,7 @@ struct ExecutionInfo {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  ASMJIT_FORCEINLINE bool hasFeature(uint32_t feature) const noexcept {
+  ASMJIT_INLINE bool hasFeature(uint32_t feature) const noexcept {
     for (uint32_t i = 0; i < ASMJIT_ARRAY_SIZE(_features); i++)
       if (feature == _features[i])
         return true;

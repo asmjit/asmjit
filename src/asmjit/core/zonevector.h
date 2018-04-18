@@ -2,15 +2,14 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_ZONEVECTOR_H
 #define _ASMJIT_CORE_ZONEVECTOR_H
 
 // [Dependencies]
-#include "../core/algorithm.h"
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -37,7 +36,7 @@ protected:
   // --------------------------------------------------------------------------
 
   //! Create a new instance of `ZoneVectorBase`.
-  explicit inline ZoneVectorBase() noexcept
+  inline ZoneVectorBase() noexcept
     : _data(nullptr),
       _size(0),
       _capacity(0) {}
@@ -142,10 +141,10 @@ public:
   typedef T& reference;
   typedef const T& const_reference;
 
-  typedef Algorithm::Iterator<T> iterator;
-  typedef Algorithm::Iterator<const T> const_iterator;
-  typedef Algorithm::ReverseIterator<T> reverse_iterator;
-  typedef Algorithm::ReverseIterator<const T> const_reverse_iterator;
+  typedef Support::Iterator<T> iterator;
+  typedef Support::Iterator<const T> const_iterator;
+  typedef Support::ReverseIterator<T> reverse_iterator;
+  typedef Support::ReverseIterator<const T> const_reverse_iterator;
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -332,9 +331,9 @@ public:
     std::swap(_data, other._data);
   }
 
-  template<typename CMP = Algorithm::Compare<Algorithm::kOrderAscending>>
-  inline void sort(const CMP& cmp = CMP()) noexcept {
-    Algorithm::qSort<T, CMP>(data(), size(), cmp);
+  template<typename CompareT = Support::Compare<Support::kSortAscending>>
+  inline void sort(const CompareT& cmp = CompareT()) noexcept {
+    Support::qSort<T, CompareT>(data(), size(), cmp);
   }
 
   //! Get item at index `i`.
@@ -404,8 +403,8 @@ class ZoneBitVector {
 public:
   ASMJIT_NONCOPYABLE(ZoneBitVector)
 
-  typedef Globals::BitWord BitWord;
-  static constexpr uint32_t kBitWordSizeInBits = Globals::kBitWordSizeInBits;
+  typedef Support::BitWord BitWord;
+  static constexpr uint32_t kBitWordSizeInBits = Support::kBitWordSizeInBits;
 
   static inline uint32_t _wordsPerBits(uint32_t nBits) noexcept {
     return ((nBits + kBitWordSizeInBits - 1) / kBitWordSizeInBits);
@@ -430,7 +429,7 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  explicit inline ZoneBitVector() noexcept
+  inline ZoneBitVector() noexcept
     : _data(nullptr),
       _size(0),
       _capacity(0) {}
@@ -482,20 +481,20 @@ public:
 
   inline bool bitAt(uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < _size);
-    return IntUtils::bitVectorGetBit(_data, index);
+    return Support::bitVectorGetBit(_data, index);
   }
 
   inline void setBit(uint32_t index, bool value) noexcept {
     ASMJIT_ASSERT(index < _size);
-    IntUtils::bitVectorSetBit(_data, index, value);
+    Support::bitVectorSetBit(_data, index, value);
   }
 
   inline void flipBit(uint32_t index) noexcept {
     ASMJIT_ASSERT(index < _size);
-    IntUtils::bitVectorFlipBit(_data, index);
+    Support::bitVectorFlipBit(_data, index);
   }
 
-  ASMJIT_FORCEINLINE Error append(ZoneAllocator* allocator, bool value) noexcept {
+  ASMJIT_INLINE Error append(ZoneAllocator* allocator, bool value) noexcept {
     uint32_t index = _size;
     if (ASMJIT_UNLIKELY(index >= _capacity))
       return _append(allocator, value);
@@ -527,14 +526,14 @@ public:
     ASMJIT_ASSERT(start <= _size);
     ASMJIT_ASSERT(_size - start >= count);
 
-    IntUtils::bitVectorClear(_data, start, count);
+    Support::bitVectorClear(_data, start, count);
   }
 
   inline void fillBits(uint32_t start, uint32_t count) noexcept {
     ASMJIT_ASSERT(start <= _size);
     ASMJIT_ASSERT(_size - start >= count);
 
-    IntUtils::bitVectorFill(_data, start, count);
+    Support::bitVectorFill(_data, start, count);
   }
 
   //! Perform a logical bitwise AND between bits specified in this array and bits
@@ -647,17 +646,17 @@ public:
   // [Iterators]
   // --------------------------------------------------------------------------
 
-  class ForEachBitSet : public IntUtils::BitVectorIterator<BitWord> {
+  class ForEachBitSet : public Support::BitVectorIterator<BitWord> {
   public:
-    explicit ASMJIT_FORCEINLINE ForEachBitSet(const ZoneBitVector& bitVector) noexcept
-      : IntUtils::BitVectorIterator<BitWord>(bitVector.data(), bitVector.sizeInBitWords()) {}
+    ASMJIT_INLINE explicit ForEachBitSet(const ZoneBitVector& bitVector) noexcept
+      : Support::BitVectorIterator<BitWord>(bitVector.data(), bitVector.sizeInBitWords()) {}
   };
 
   template<class Operator>
-  class ForEachBitOp : public IntUtils::BitVectorOpIterator<BitWord, Operator> {
+  class ForEachBitOp : public Support::BitVectorOpIterator<BitWord, Operator> {
   public:
-    ASMJIT_FORCEINLINE ForEachBitOp(const ZoneBitVector& a, const ZoneBitVector& b) noexcept
-      : IntUtils::BitVectorOpIterator<BitWord, Operator>(a.data(), b.data(), a.sizeInBitWords()) {
+    ASMJIT_INLINE ForEachBitOp(const ZoneBitVector& a, const ZoneBitVector& b) noexcept
+      : Support::BitVectorOpIterator<BitWord, Operator>(a.data(), b.data(), a.sizeInBitWords()) {
       ASMJIT_ASSERT(a.size() == b.size());
     }
   };

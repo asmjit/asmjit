@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -23,18 +23,18 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 #if ASMJIT_OS_WINDOWS
-static inline uint32_t detectNumHWThreads() noexcept {
+static inline uint32_t detectHWThreadCount() noexcept {
   SYSTEM_INFO info;
   ::GetSystemInfo(&info);
   return info.dwNumberOfProcessors;
 }
 #elif ASMJIT_OS_POSIX && defined(_SC_NPROCESSORS_ONLN)
-static inline uint32_t detectNumHWThreads() noexcept {
+static inline uint32_t detectHWThreadCount() noexcept {
   long res = ::sysconf(_SC_NPROCESSORS_ONLN);
   return res <= 0 ? uint32_t(1) : uint32_t(res);
 }
 #else
-static inline uint32_t detectNumHWThreads() noexcept {
+static inline uint32_t detectHWThreadCount() noexcept {
   return 1;
 }
 #endif
@@ -65,7 +65,7 @@ struct HostCpuInfo : public CpuInfo {
     arm::detectCpu(*this);
     #endif
 
-    _hwThreadsCount = detectNumHWThreads();
+    _hwThreadCount = detectHWThreadCount();
   }
 };
 

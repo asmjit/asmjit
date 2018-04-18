@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -12,9 +12,9 @@
 #ifdef ASMJIT_BUILD_X86
 
 // [Dependencies]
-#include "../core/intutils.h"
 #include "../core/logging.h"
 #include "../core/stringbuilder.h"
+#include "../core/support.h"
 #include "../core/type.h"
 #include "../x86/x86internal_p.h"
 
@@ -24,7 +24,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::X86Internal - Helpers]
 // ============================================================================
 
-static ASMJIT_FORCEINLINE uint32_t x86GetXmmMovInst(const FuncFrame& frame) {
+static ASMJIT_INLINE uint32_t x86GetXmmMovInst(const FuncFrame& frame) {
   bool avx = frame.isAvxEnabled();
   bool aligned = frame.hasAlignedVecSR();
 
@@ -32,7 +32,7 @@ static ASMJIT_FORCEINLINE uint32_t x86GetXmmMovInst(const FuncFrame& frame) {
                  : (avx ? Inst::kIdVmovups : Inst::kIdMovups);
 }
 
-static ASMJIT_FORCEINLINE uint32_t x86VecTypeIdToRegType(uint32_t typeId) noexcept {
+static ASMJIT_INLINE uint32_t x86VecTypeIdToRegType(uint32_t typeId) noexcept {
   return typeId <= Type::_kIdVec128End ? Reg::kTypeXmm :
          typeId <= Type::_kIdVec256End ? Reg::kTypeYmm : Reg::kTypeZmm;
 }
@@ -130,7 +130,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
         if (regId != BaseReg::kIdBad) {
           uint32_t regType = (typeId <= Type::kIdU32) ? Reg::kTypeGpd : Reg::kTypeGpq;
           arg.assignRegData(regType, regId);
-          func.addUsedRegs(Reg::kGroupGp, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupGp, Support::mask(regId));
           gpzPos++;
         }
         else {
@@ -151,7 +151,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
         if (regId != BaseReg::kIdBad) {
           arg.initTypeId(typeId);
           arg.assignRegData(x86VecTypeIdToRegType(typeId), regId);
-          func.addUsedRegs(Reg::kGroupVec, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupVec, Support::mask(regId));
           vecPos++;
         }
         else {
@@ -176,7 +176,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
         if (regId != BaseReg::kIdBad) {
           uint32_t regType = (size <= 4 && !Type::isMmx(typeId)) ? Reg::kTypeGpd : Reg::kTypeGpq;
           arg.assignRegData(regType, regId);
-          func.addUsedRegs(Reg::kGroupGp, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupGp, Support::mask(regId));
         }
         else {
           arg.assignStackOffset(int32_t(stackOffset));
@@ -193,7 +193,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
         if (regId != BaseReg::kIdBad && (Type::isFloat(typeId) || cc.hasFlag(CallConv::kFlagVectorCall))) {
           uint32_t regType = x86VecTypeIdToRegType(typeId);
           arg.assignRegData(regType, regId);
-          func.addUsedRegs(Reg::kGroupVec, IntUtils::mask(regId));
+          func.addUsedRegs(Reg::kGroupVec, Support::mask(regId));
         }
         else {
           arg.assignStackOffset(int32_t(stackOffset));
@@ -274,7 +274,7 @@ public:
 
     inline bool isAssigned(uint32_t regId) const noexcept {
       ASMJIT_ASSERT(regId < 32);
-      return IntUtils::bitTest(_assignedRegs, regId);
+      return Support::bitTest(_assignedRegs, regId);
     }
 
     inline void assign(uint32_t varId, uint32_t regId) noexcept {
@@ -282,7 +282,7 @@ public:
       ASMJIT_ASSERT(_physToVarId[regId] == kVarIdNone);
 
       _physToVarId[regId] = uint8_t(varId);
-      _assignedRegs ^= IntUtils::mask(regId);
+      _assignedRegs ^= Support::mask(regId);
     }
 
     inline void reassign(uint32_t varId, uint32_t newId, uint32_t oldId) noexcept {
@@ -293,7 +293,7 @@ public:
 
       _physToVarId[oldId] = uint8_t(kVarIdNone);
       _physToVarId[newId] = uint8_t(varId);
-      _assignedRegs ^= IntUtils::mask(newId) ^ IntUtils::mask(oldId);
+      _assignedRegs ^= Support::mask(newId) ^ Support::mask(oldId);
     }
 
     inline void swap(uint32_t aVarId, uint32_t aRegId, uint32_t bVarId, uint32_t bRegId) noexcept {
@@ -312,7 +312,7 @@ public:
       ASMJIT_ASSERT(_physToVarId[regId] == varId);
 
       _physToVarId[regId] = uint8_t(kVarIdNone);
-      _assignedRegs ^= IntUtils::mask(regId);
+      _assignedRegs ^= Support::mask(regId);
     }
 
     inline uint32_t archRegs() const noexcept { return _archRegs; }
@@ -390,13 +390,13 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
   _archId = uint8_t(archId);
 
   // Initialize `_archRegs`.
-  _workData[Reg::kGroupGp  ]._archRegs = IntUtils::lsbMask<uint32_t>(archRegCount) & ~IntUtils::mask(Gp::kIdSp);
-  _workData[Reg::kGroupVec ]._archRegs = IntUtils::lsbMask<uint32_t>(archRegCount);
-  _workData[Reg::kGroupMm  ]._archRegs = IntUtils::lsbMask<uint32_t>(8);
-  _workData[Reg::kGroupKReg]._archRegs = IntUtils::lsbMask<uint32_t>(8);
+  _workData[Reg::kGroupGp  ]._archRegs = Support::lsbMask<uint32_t>(archRegCount) & ~Support::mask(Gp::kIdSp);
+  _workData[Reg::kGroupVec ]._archRegs = Support::lsbMask<uint32_t>(archRegCount);
+  _workData[Reg::kGroupMm  ]._archRegs = Support::lsbMask<uint32_t>(8);
+  _workData[Reg::kGroupKReg]._archRegs = Support::lsbMask<uint32_t>(8);
 
   if (frame.hasPreservedFP())
-    _workData[Reg::kGroupGp]._archRegs &= ~IntUtils::mask(Gp::kIdBp);
+    _workData[Reg::kGroupGp]._archRegs &= ~Support::mask(Gp::kIdBp);
 
   // Extract information from all function arguments/assignments and build Var[] array.
   uint32_t varId = 0;
@@ -435,15 +435,15 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
 
       dstWd = &_workData[dstGroup];
       dstId = dst.regId();
-      if (ASMJIT_UNLIKELY(dstId >= 32 || !IntUtils::bitTest(dstWd->archRegs(), dstId)))
+      if (ASMJIT_UNLIKELY(dstId >= 32 || !Support::bitTest(dstWd->archRegs(), dstId)))
         return DebugUtils::errored(kErrorInvalidPhysId);
 
-      if (ASMJIT_UNLIKELY(IntUtils::bitTest(dstWd->dstRegs(), dstId)))
+      if (ASMJIT_UNLIKELY(Support::bitTest(dstWd->dstRegs(), dstId)))
         return DebugUtils::errored(kErrorOverlappedRegs);
 
-      dstWd->_dstRegs  |= IntUtils::mask(dstId);
-      dstWd->_dstShuf  |= IntUtils::mask(dstId);
-      dstWd->_usedRegs |= IntUtils::mask(dstId);
+      dstWd->_dstRegs  |= Support::mask(dstId);
+      dstWd->_dstShuf  |= Support::mask(dstId);
+      dstWd->_usedRegs |= Support::mask(dstId);
     }
     else {
       if (!dst.hasTypeId())
@@ -452,7 +452,7 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
       RegInfo regInfo = x86GetRegForMemToMemMove(archId, dst.typeId(), src.typeId());
       if (ASMJIT_UNLIKELY(!regInfo.isValid()))
         return DebugUtils::errored(kErrorInvalidState);
-      _stackDstMask = uint8_t(_stackDstMask | IntUtils::mask(regInfo.group()));
+      _stackDstMask = uint8_t(_stackDstMask | Support::mask(regInfo.group()));
     }
 
     if (src.isReg()) {
@@ -502,7 +502,7 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
 
   if (saOutRegId != BaseReg::kIdBad) {
     // Check if the provided `SARegId` doesn't collide with argument assignments.
-    if (ASMJIT_UNLIKELY(IntUtils::bitTest(gpRegs.dstRegs(), saOutRegId)))
+    if (ASMJIT_UNLIKELY(Support::bitTest(gpRegs.dstRegs(), saOutRegId)))
       return DebugUtils::errored(kErrorOverlappedRegs);
     saRegRequired = true;
   }
@@ -529,18 +529,18 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
         if (ASMJIT_UNLIKELY(!availableRegs))
           return DebugUtils::errored(kErrorNoMorePhysRegs);
 
-        saCurRegId = IntUtils::ctz(availableRegs);
+        saCurRegId = Support::ctz(availableRegs);
       }
     }
 
     var.cur.initReg(ptrRegType, saCurRegId, ptrTypeId);
     gpRegs.assign(varId, saCurRegId);
-    gpRegs._workRegs |= IntUtils::mask(saCurRegId);
+    gpRegs._workRegs |= Support::mask(saCurRegId);
 
     if (saOutRegId != BaseReg::kIdBad) {
       var.out.initReg(ptrRegType, saOutRegId, ptrTypeId);
-      gpRegs._dstRegs  |= IntUtils::mask(saOutRegId);
-      gpRegs._workRegs |= IntUtils::mask(saOutRegId);
+      gpRegs._dstRegs  |= Support::mask(saOutRegId);
+      gpRegs._workRegs |= Support::mask(saOutRegId);
     }
     else {
       var.markDone();
@@ -567,7 +567,7 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
         Var& other = _vars[wd._physToVarId[dstId]];
         if (Reg::groupOf(other.out.regType()) == group && other.out.regId() == srcId) {
           wd._numSwaps++;
-          _regSwapsMask = uint8_t(_regSwapsMask | IntUtils::mask(group));
+          _regSwapsMask = uint8_t(_regSwapsMask | Support::mask(group));
         }
       }
     }
@@ -595,14 +595,14 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markScratchRegs(FuncFrame& frame) no
   groupMask |= _stackDstMask;
 
   // Handle register swaps.
-  groupMask |= _regSwapsMask & ~IntUtils::mask(BaseReg::kGroupGp);
+  groupMask |= _regSwapsMask & ~Support::mask(BaseReg::kGroupGp);
 
   if (!groupMask)
     return kErrorOk;
 
   // selects one dirty register per affected group that can be used as a scratch register.
   for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++) {
-    if (groupMask & (1U << group)) {
+    if (Support::bitTest(groupMask, group)) {
       WorkData& wd = _workData[group];
 
       // Initially, pick some clobbered or dirty register.
@@ -620,7 +620,7 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markScratchRegs(FuncFrame& frame) no
       // If that didn't work out we will have to use XORs instead of MOVs.
       if (!regs) continue;
 
-      uint32_t regMask = IntUtils::blsi(regs);
+      uint32_t regMask = Support::blsi(regs);
       wd._workRegs |= regMask;
       frame.addDirtyRegs(group, regMask);
     }
@@ -660,13 +660,13 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncFrame(FuncFrame& frame, const FuncD
   frame._saRegId = Gp::kIdBad;
 
   uint32_t naturalStackAlignment = func.callConv().naturalStackAlignment();
-  uint32_t minimumDynamicAlignment = std::max<uint32_t>(naturalStackAlignment, 16);
+  uint32_t minDynamicAlignment = std::max<uint32_t>(naturalStackAlignment, 16);
 
-  if (minimumDynamicAlignment == naturalStackAlignment)
-    minimumDynamicAlignment <<= 1;
+  if (minDynamicAlignment == naturalStackAlignment)
+    minDynamicAlignment <<= 1;
 
   frame._naturalStackAlignment = uint8_t(naturalStackAlignment);
-  frame._minimumDynamicAlignment = uint8_t(minimumDynamicAlignment);
+  frame._minDynamicAlignment = uint8_t(minDynamicAlignment);
   frame._redZoneSize = uint8_t(func.redZoneSize());
   frame._spillZoneSize = uint8_t(func.spillZoneSize());
   frame._finalStackAlignment = uint8_t(frame._naturalStackAlignment);
@@ -682,7 +682,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncFrame(FuncFrame& frame, const FuncD
   }
 
   // Exclude ESP/RSP - this register is never included in saved GP regs.
-  frame._preservedRegs[BaseReg::kGroupGp] &= ~IntUtils::mask(Gp::kIdSp);
+  frame._preservedRegs[BaseReg::kGroupGp] &= ~Support::mask(Gp::kIdSp);
 
   return kErrorOk;
 }
@@ -704,7 +704,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
 
   // Include EBP|RBP if the function preserves the frame-pointer.
   if (hasFP)
-    frame._dirtyRegs[Reg::kGroupGp] |= IntUtils::mask(Gp::kIdBp);
+    frame._dirtyRegs[Reg::kGroupGp] |= Support::mask(Gp::kIdBp);
 
   // These two are identical if the function doesn't align its stack dynamically.
   uint32_t saRegId = frame.saRegId();
@@ -718,20 +718,20 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
 
   // Mark as dirty any register but ESP|RSP if used as SA pointer.
   if (saRegId != Gp::kIdSp)
-    frame._dirtyRegs[Reg::kGroupGp] |= IntUtils::mask(saRegId);
+    frame._dirtyRegs[Reg::kGroupGp] |= Support::mask(saRegId);
 
   frame._spRegId = uint8_t(Gp::kIdSp);
   frame._saRegId = uint8_t(saRegId);
 
   // Setup stack size used to save preserved registers.
-  frame._gpSaveSize    = uint16_t(IntUtils::popcnt(frame.savedRegs(Reg::kGroupGp  )) * gpSize);
-  frame._nonGpSaveSize = uint16_t(IntUtils::popcnt(frame.savedRegs(Reg::kGroupVec )) * vecSize +
-                                  IntUtils::popcnt(frame.savedRegs(Reg::kGroupMm  )) * 8 +
-                                  IntUtils::popcnt(frame.savedRegs(Reg::kGroupKReg)) * 8);
+  frame._gpSaveSize    = uint16_t(Support::popcnt(frame.savedRegs(Reg::kGroupGp  )) * gpSize);
+  frame._nonGpSaveSize = uint16_t(Support::popcnt(frame.savedRegs(Reg::kGroupVec )) * vecSize +
+                                  Support::popcnt(frame.savedRegs(Reg::kGroupMm  )) * 8 +
+                                  Support::popcnt(frame.savedRegs(Reg::kGroupKReg)) * 8);
 
   uint32_t v = 0;                             // The beginning of the stack frame relative to SP after prolog.
   v += frame.callStackSize();                 // Count 'callStackSize'    <- This is used to call functions.
-  v  = IntUtils::alignUp(v, stackAlignment);  // Align to function's stack alignment.
+  v  = Support::alignUp(v, stackAlignment);  // Align to function's stack alignment.
 
   frame._localStackOffset = v;                // Store 'localStackOffset' <- Function's local stack starts here..
   v += frame.localStackSize();                // Count 'localStackSize'   <- Function's local stack ends here.
@@ -741,7 +741,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
   // PEI that it can use instructions to perform aligned stores/loads.
   if (stackAlignment >= vecSize && frame._nonGpSaveSize) {
     frame.addAttributes(FuncFrame::kAttrAlignedVecSR);
-    v = IntUtils::alignUp(v, vecSize);        // Align '_nonGpSaveOffset'.
+    v = Support::alignUp(v, vecSize);        // Align '_nonGpSaveOffset'.
   }
 
   frame._nonGpSaveOffset = v;                 // Store '_nonGpSaveOffset' <- Non-GP Save/Restore starts here.
@@ -766,7 +766,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
   // (depending on the architecture). So count number of bytes needed to align
   // it up to the function's CallFrame (the beginning).
   if (v || frame.hasFuncCalls())
-    v += IntUtils::alignUpDiff(v + frame.gpSaveSize() + gpSize, stackAlignment);
+    v += Support::alignUpDiff(v + frame.gpSaveSize() + gpSize, stackAlignment);
 
   frame._gpSaveOffset = v;                    // Store 'gpSaveOffset'     <- Function's GP Save/Restore starts here.
   frame._stackAdjustment = v;                 // Store 'stackAdjustment'  <- SA used by 'add zsp, SA' and 'sub zsp, SA'.
@@ -776,7 +776,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
 
   // If the function performs dynamic stack alignment then the stack-adjustment must be aligned.
   if (hasDA)
-    frame._stackAdjustment = IntUtils::alignUp(frame._stackAdjustment, stackAlignment);
+    frame._stackAdjustment = Support::alignUp(frame._stackAdjustment, stackAlignment);
 
   uint32_t saInvOff = FuncFrame::kTagInvalidOffset;
   uint32_t saTmpOff = gpSize + frame._gpSaveSize;
@@ -1117,7 +1117,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
 // [asmjit::X86Internal - Emit Prolog & Epilog]
 // ============================================================================
 
-static ASMJIT_FORCEINLINE void X86Internal_setupSaveRestoreInfo(uint32_t group, const FuncFrame& frame, Reg& xReg, uint32_t& xInst, uint32_t& xSize) noexcept {
+static ASMJIT_INLINE void X86Internal_setupSaveRestoreInfo(uint32_t group, const FuncFrame& frame, Reg& xReg, uint32_t& xInst, uint32_t& xSize) noexcept {
   switch (group) {
     case Reg::kGroupVec:
       xReg = xmm(0);
@@ -1148,14 +1148,14 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(Emitter* emitter, const FuncFram
   // Emit: 'push zbp'
   //       'mov  zbp, zsp'.
   if (frame.hasPreservedFP()) {
-    gpSaved &= ~IntUtils::mask(Gp::kIdBp);
+    gpSaved &= ~Support::mask(Gp::kIdBp);
     ASMJIT_PROPAGATE(emitter->push(zbp));
     ASMJIT_PROPAGATE(emitter->mov(zbp, zsp));
   }
 
   // Emit: 'push gp' sequence.
   {
-    IntUtils::BitWordIterator<uint32_t> it(gpSaved);
+    Support::BitWordIterator<uint32_t> it(gpSaved);
     while (it.hasNext()) {
       gpReg.setId(it.next());
       ASMJIT_PROPAGATE(emitter->push(gpReg));
@@ -1200,7 +1200,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(Emitter* emitter, const FuncFram
     uint32_t xSize;
 
     for (uint32_t group = 1; group < BaseReg::kGroupVirt; group++) {
-      IntUtils::BitWordIterator<uint32_t> it(frame.savedRegs(group));
+      Support::BitWordIterator<uint32_t> it(frame.savedRegs(group));
       if (it.hasNext()) {
         X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize);
         do {
@@ -1228,7 +1228,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(Emitter* emitter, const FuncFram
 
   // Don't emit 'pop zbp' in the pop sequence, this case is handled separately.
   if (frame.hasPreservedFP())
-    gpSaved &= ~IntUtils::mask(Gp::kIdBp);
+    gpSaved &= ~Support::mask(Gp::kIdBp);
 
   // Emit 'movxxx {[x|y|z]mm, k}, [zsp + X]'.
   {
@@ -1239,7 +1239,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(Emitter* emitter, const FuncFram
     uint32_t xSize;
 
     for (uint32_t group = 1; group < BaseReg::kGroupVirt; group++) {
-      IntUtils::BitWordIterator<uint32_t> it(frame.savedRegs(group));
+      Support::BitWordIterator<uint32_t> it(frame.savedRegs(group));
       if (it.hasNext()) {
         X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize);
         do {
@@ -1421,7 +1421,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(Emitter* emitter, const 
         if (ASMJIT_UNLIKELY(!availableRegs))
           return DebugUtils::errored(kErrorInvalidState);
 
-        uint32_t rId = IntUtils::ctz(availableRegs);
+        uint32_t rId = Support::ctz(availableRegs);
         reg.setSignatureAndId(rInfo.signature(), rId);
 
         ASMJIT_PROPAGATE(
@@ -1517,7 +1517,7 @@ EmitMove:
                 uint32_t inOutRegs = wd.dstRegs();
                 if (availableRegs & ~inOutRegs)
                   availableRegs &= ~inOutRegs;
-                outId = IntUtils::ctz(availableRegs);
+                outId = Support::ctz(availableRegs);
                 goto EmitMove;
               }
               else {

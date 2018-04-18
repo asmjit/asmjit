@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_X86_X86EMITTER_H
@@ -10,7 +10,7 @@
 
 // [Dependencies]
 #include "../core/emitter.h"
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../x86/x86globals.h"
 #include "../x86/x86operand.h"
 
@@ -34,10 +34,10 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 #define ASMJIT_INST_1i(NAME, ID, T0) \
   inline Error NAME(const T0& o0) { return _emitter()->emit(Inst::kId##ID, o0); } \
-  inline Error NAME(int o0) { return _emitter()->emit(Inst::kId##ID, IntUtils::asInt(o0)); } \
-  inline Error NAME(unsigned int o0) { return _emitter()->emit(Inst::kId##ID, IntUtils::asInt(o0)); } \
-  inline Error NAME(int64_t o0) { return _emitter()->emit(Inst::kId##ID, IntUtils::asInt(o0)); } \
-  inline Error NAME(uint64_t o0) { return _emitter()->emit(Inst::kId##ID, IntUtils::asInt(o0)); }
+  inline Error NAME(int o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); } \
+  inline Error NAME(unsigned int o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); } \
+  inline Error NAME(int64_t o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); } \
+  inline Error NAME(uint64_t o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); }
 
 #define ASMJIT_INST_1c(NAME, ID, CONV, T0) \
   inline Error NAME(uint32_t cc, const T0& o0) { return _emitter()->emit(CONV(cc), o0); } \
@@ -77,10 +77,10 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 #define ASMJIT_INST_2i(NAME, ID, T0, T1) \
   inline Error NAME(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID, o0, o1); } \
-  inline Error NAME(const T0& o0, int o1) { return _emitter()->emit(Inst::kId##ID, o0, IntUtils::asInt(o1)); } \
-  inline Error NAME(const T0& o0, unsigned int o1) { return _emitter()->emit(Inst::kId##ID, o0, IntUtils::asInt(o1)); } \
-  inline Error NAME(const T0& o0, int64_t o1) { return _emitter()->emit(Inst::kId##ID, o0, IntUtils::asInt(o1)); } \
-  inline Error NAME(const T0& o0, uint64_t o1) { return _emitter()->emit(Inst::kId##ID, o0, IntUtils::asInt(o1)); }
+  inline Error NAME(const T0& o0, int o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); } \
+  inline Error NAME(const T0& o0, unsigned int o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); } \
+  inline Error NAME(const T0& o0, int64_t o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); } \
+  inline Error NAME(const T0& o0, uint64_t o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); }
 
 #define ASMJIT_INST_2c(NAME, ID, CONV, T0, T1) \
   inline Error NAME(uint32_t cc, const T0& o0, const T1& o1) { return _emitter()->emit(CONV(cc), o0, o1); } \
@@ -120,38 +120,38 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 #define ASMJIT_INST_3i(NAME, ID, T0, T1, T2) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2); } \
-  inline Error NAME(const T0& o0, const T1& o1, int o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); } \
-  inline Error NAME(const T0& o0, const T1& o1, unsigned int o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); } \
-  inline Error NAME(const T0& o0, const T1& o1, int64_t o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); } \
-  inline Error NAME(const T0& o0, const T1& o1, uint64_t o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, IntUtils::asInt(o2)); }
+  inline Error NAME(const T0& o0, const T1& o1, int o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); } \
+  inline Error NAME(const T0& o0, const T1& o1, unsigned int o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); } \
+  inline Error NAME(const T0& o0, const T1& o1, int64_t o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); } \
+  inline Error NAME(const T0& o0, const T1& o1, uint64_t o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); }
 
 #define ASMJIT_INST_3ii(NAME, ID, T0, T1, T2) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2); } \
-  inline Error NAME(const T0& o0, int o1, int o2) { return _emitter()->emit(Inst::kId##ID, o0, Imm(o1), IntUtils::asInt(o2)); }
+  inline Error NAME(const T0& o0, int o1, int o2) { return _emitter()->emit(Inst::kId##ID, o0, Imm(o1), Support::asInt(o2)); }
 
 #define ASMJIT_INST_4x(NAME, ID, T0, T1, T2, T3) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3); }
 
 #define ASMJIT_INST_4i(NAME, ID, T0, T1, T2, T3) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, unsigned int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int64_t o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, uint64_t o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, IntUtils::asInt(o3)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, unsigned int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int64_t o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, uint64_t o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); }
 
 #define ASMJIT_INST_4ii(NAME, ID, T0, T1, T2, T3) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3); } \
-  inline Error NAME(const T0& o0, const T1& o1, int o2, int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, Imm(o2), IntUtils::asInt(o3)); }
+  inline Error NAME(const T0& o0, const T1& o1, int o2, int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, Imm(o2), Support::asInt(o3)); }
 
 #define ASMJIT_INST_5x(NAME, ID, T0, T1, T2, T3, T4) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4); }
 
 #define ASMJIT_INST_5i(NAME, ID, T0, T1, T2, T3, T4) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, unsigned int o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int64_t o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, uint64_t o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, IntUtils::asInt(o4)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, unsigned int o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int64_t o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); } \
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, uint64_t o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); }
 
 #define ASMJIT_INST_6x(NAME, ID, T0, T1, T2, T3, T4, T5) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4, const T5& o5) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4, o5); }
@@ -193,8 +193,13 @@ struct EmitterExplicitT {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline This* _emitter() noexcept { return static_cast<This*>(this); }
-  inline const This* _emitter() const noexcept { return static_cast<const This*>(this); }
+  inline This* _emitter() noexcept {
+    return static_cast<This*>(this);
+  }
+
+  inline const This* _emitter() const noexcept {
+    return static_cast<const This*>(this);
+  }
 
   //! Get either GPD or GPQ register of index `id` depending on the current architecture.
   inline Gp gpz(uint32_t id) const noexcept {

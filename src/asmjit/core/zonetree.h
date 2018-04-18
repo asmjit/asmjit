@@ -2,14 +2,14 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_CORE_ZONERBTREE_H
-#define _ASMJIT_CORE_ZONERBTREE_H
+#ifndef _ASMJIT_CORE_ZONETREE_H
+#define _ASMJIT_CORE_ZONETREE_H
 
 // [Dependencies]
-#include "../core/algorithm.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -17,22 +17,22 @@ ASMJIT_BEGIN_NAMESPACE
 //! \{
 
 // ============================================================================
-// [asmjit::ZoneRBNode]
+// [asmjit::ZoneTreeNode]
 // ============================================================================
 
 //! RB-Tree node.
 //!
-//! The color is stored as a least significant bit in the `left` node.
+//! The color is stored in a least significant bit of the `left` node.
 //!
-//! NOTE: Always use accessors to access left and right children.
-class ZoneRBNode {
+//! WARNING: Always use accessors to access left and right children.
+class ZoneTreeNode {
 public:
-  ASMJIT_NONCOPYABLE(ZoneRBNode)
+  ASMJIT_NONCOPYABLE(ZoneTreeNode)
 
   static constexpr uintptr_t kRedMask = 0x1;
   static constexpr uintptr_t kPtrMask = ~kRedMask;
 
-  inline ZoneRBNode() noexcept
+  inline ZoneTreeNode() noexcept
     : _rbNodeData { 0, 0 } {}
 
   // --------------------------------------------------------------------------
@@ -43,19 +43,19 @@ public:
   inline bool hasLeft() const noexcept { return _rbNodeData[0] > kRedMask; }
   inline bool hasRight() const noexcept { return _rbNodeData[1] != 0; }
 
-  inline ZoneRBNode* _getChild(size_t i) const noexcept { return (ZoneRBNode*)(_rbNodeData[i] & kPtrMask); }
-  inline ZoneRBNode* _getLeft() const noexcept { return (ZoneRBNode*)(_rbNodeData[0] & kPtrMask); }
-  inline ZoneRBNode* _getRight() const noexcept { return (ZoneRBNode*)(_rbNodeData[1]); }
+  inline ZoneTreeNode* _getChild(size_t i) const noexcept { return (ZoneTreeNode*)(_rbNodeData[i] & kPtrMask); }
+  inline ZoneTreeNode* _getLeft() const noexcept { return (ZoneTreeNode*)(_rbNodeData[0] & kPtrMask); }
+  inline ZoneTreeNode* _getRight() const noexcept { return (ZoneTreeNode*)(_rbNodeData[1]); }
 
-  inline void _setChild(size_t i, ZoneRBNode* node) noexcept { _rbNodeData[i] = (_rbNodeData[i] & kRedMask) | (uintptr_t)node; }
-  inline void _setLeft(ZoneRBNode* node) noexcept { _rbNodeData[0] = (_rbNodeData[0] & kRedMask) | (uintptr_t)node; }
-  inline void _setRight(ZoneRBNode* node) noexcept { _rbNodeData[1] = (uintptr_t)node; }
+  inline void _setChild(size_t i, ZoneTreeNode* node) noexcept { _rbNodeData[i] = (_rbNodeData[i] & kRedMask) | (uintptr_t)node; }
+  inline void _setLeft(ZoneTreeNode* node) noexcept { _rbNodeData[0] = (_rbNodeData[0] & kRedMask) | (uintptr_t)node; }
+  inline void _setRight(ZoneTreeNode* node) noexcept { _rbNodeData[1] = (uintptr_t)node; }
 
-  template<typename T = ZoneRBNode>
+  template<typename T = ZoneTreeNode>
   inline T* child(size_t i) const noexcept { return static_cast<T*>(_getChild(i)); }
-  template<typename T = ZoneRBNode>
+  template<typename T = ZoneTreeNode>
   inline T* left() const noexcept { return static_cast<T*>(_getLeft()); }
-  template<typename T = ZoneRBNode>
+  template<typename T = ZoneTreeNode>
   inline T* right() const noexcept { return static_cast<T*>(_getRight()); }
 
   inline bool isRed() const noexcept { return static_cast<bool>(_rbNodeData[0] & kRedMask); }
@@ -63,7 +63,7 @@ public:
   inline void _makeBlack() noexcept { _rbNodeData[0] &= kPtrMask; }
 
   //! Get whether the node is RED (RED node must be non-null and must have RED flag set).
-  static inline bool _isValidRed(ZoneRBNode* node) noexcept { return node && node->isRed(); }
+  static inline bool _isValidRed(ZoneTreeNode* node) noexcept { return node && node->isRed(); }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -72,38 +72,40 @@ public:
   uintptr_t _rbNodeData[Globals::kLinkCount];
 };
 
-template<typename NODE_T>
-class ZoneRBNodeT : public ZoneRBNode {
+//! RB-Tree typed to `NodeT`.
+template<typename NodeT>
+class ZoneTreeNodeT : public ZoneTreeNode {
 public:
-  ASMJIT_NONCOPYABLE(ZoneRBNodeT)
+  ASMJIT_NONCOPYABLE(ZoneTreeNodeT)
 
-  inline ZoneRBNodeT() noexcept
-    : ZoneRBNode() {}
+  inline ZoneTreeNodeT() noexcept
+    : ZoneTreeNode() {}
 
-  inline NODE_T* child(size_t i) const noexcept { return static_cast<NODE_T*>(_getChild(i)); }
-  inline NODE_T* left() const noexcept { return static_cast<NODE_T*>(_getLeft()); }
-  inline NODE_T* right() const noexcept { return static_cast<NODE_T*>(_getRight()); }
+  inline NodeT* child(size_t i) const noexcept { return static_cast<NodeT*>(_getChild(i)); }
+  inline NodeT* left() const noexcept { return static_cast<NodeT*>(_getLeft()); }
+  inline NodeT* right() const noexcept { return static_cast<NodeT*>(_getRight()); }
 };
 
 // ============================================================================
-// [asmjit::ZoneRBTree]
+// [asmjit::ZoneTree]
 // ============================================================================
 
-template<typename NODE_T>
-class ZoneRBTree {
+//! RB-Tree.
+template<typename NodeT>
+class ZoneTree {
 public:
-  ASMJIT_NONCOPYABLE(ZoneRBTree)
+  ASMJIT_NONCOPYABLE(ZoneTree)
 
-  typedef NODE_T Node;
+  typedef NodeT Node;
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  inline ZoneRBTree() noexcept
+  inline ZoneTree() noexcept
     : _root(nullptr) {}
 
-  inline ZoneRBTree(ZoneRBTree&& other) noexcept
+  inline ZoneTree(ZoneTree&& other) noexcept
     : _root(other._root) {}
 
   // --------------------------------------------------------------------------
@@ -111,7 +113,7 @@ public:
   // --------------------------------------------------------------------------
 
   inline bool empty() const noexcept { return _root == nullptr; }
-  inline NODE_T* root() const noexcept { return static_cast<NODE_T*>(_root); }
+  inline NodeT* root() const noexcept { return static_cast<NodeT*>(_root); }
 
   // --------------------------------------------------------------------------
   // [Reset]
@@ -123,8 +125,8 @@ public:
   // [Operations]
   // --------------------------------------------------------------------------
 
-  template<typename CMP = Algorithm::Compare<Algorithm::kOrderAscending>>
-  void insert(NODE_T* node, const CMP& cmp = CMP()) noexcept {
+  template<typename CompareT = Support::Compare<Support::kSortAscending>>
+  void insert(NodeT* node, const CompareT& cmp = CompareT()) noexcept {
     // Node to insert must not contain garbage.
     ASMJIT_ASSERT(!node->hasLeft());
     ASMJIT_ASSERT(!node->hasRight());
@@ -135,13 +137,13 @@ public:
       return;
     }
 
-    ZoneRBNode head;           // False root node,
+    ZoneTreeNode head;         // False root node,
     head._setRight(_root);     // having root on the right.
 
-    ZoneRBNode* g = nullptr;   // Grandparent.
-    ZoneRBNode* p = nullptr;   // Parent.
-    ZoneRBNode* t = &head;     // Iterator.
-    ZoneRBNode* q = _root;     // Query.
+    ZoneTreeNode* g = nullptr; // Grandparent.
+    ZoneTreeNode* p = nullptr; // Parent.
+    ZoneTreeNode* t = &head;   // Iterator.
+    ZoneTreeNode* q = _root;   // Query.
 
     size_t dir = 0;            // Direction for accessing child nodes.
     size_t last = 0;           // Not needed to initialize, but makes some tools happy.
@@ -172,7 +174,7 @@ public:
         break;
 
       last = dir;
-      dir = cmp(*static_cast<NODE_T*>(q), *static_cast<NODE_T*>(node)) < 0;
+      dir = cmp(*static_cast<NodeT*>(q), *static_cast<NodeT*>(node)) < 0;
 
       // Update helpers.
       if (g) t = g;
@@ -183,23 +185,23 @@ public:
     }
 
     // Update root and make it black.
-    _root = static_cast<NODE_T*>(head._getRight());
+    _root = static_cast<NodeT*>(head._getRight());
     _root->_makeBlack();
   }
 
   //! Remove node from RBTree.
-  template<typename CMP = Algorithm::Compare<Algorithm::kOrderAscending>>
-  void remove(ZoneRBNode* node, const CMP& cmp = CMP()) noexcept {
-    ZoneRBNode head;           // False root node,
-    head._setRight(_root);     // having root on the right.
+  template<typename CompareT = Support::Compare<Support::kSortAscending>>
+  void remove(ZoneTreeNode* node, const CompareT& cmp = CompareT()) noexcept {
+    ZoneTreeNode head;           // False root node,
+    head._setRight(_root);       // having root on the right.
 
-    ZoneRBNode* g = nullptr;   // Grandparent.
-    ZoneRBNode* p = nullptr;   // Parent.
-    ZoneRBNode* q = &head;     // Query.
+    ZoneTreeNode* g = nullptr;   // Grandparent.
+    ZoneTreeNode* p = nullptr;   // Parent.
+    ZoneTreeNode* q = &head;     // Query.
 
-    ZoneRBNode* f  = nullptr;  // Found item.
-    ZoneRBNode* gf = nullptr;  // Found grandparent.
-    size_t dir = 1;            // Direction (0 or 1).
+    ZoneTreeNode* f  = nullptr;  // Found item.
+    ZoneTreeNode* gf = nullptr;  // Found grandparent.
+    size_t dir = 1;              // Direction (0 or 1).
 
     // Search and push a red down.
     while (q->hasChild(dir)) {
@@ -209,7 +211,7 @@ public:
       g = p;
       p = q;
       q = q->_getChild(dir);
-      dir = cmp(*static_cast<NODE_T*>(q), *static_cast<NODE_T*>(node)) < 0;
+      dir = cmp(*static_cast<NodeT*>(q), *static_cast<NodeT*>(node)) < 0;
 
       // Save found node.
       if (q == node) {
@@ -220,12 +222,12 @@ public:
       // Push the red node down.
       if (!_isValidRed(q) && !_isValidRed(q->_getChild(dir))) {
         if (_isValidRed(q->_getChild(!dir))) {
-          ZoneRBNode* child = _singleRotate(q, dir);
+          ZoneTreeNode* child = _singleRotate(q, dir);
           p->_setChild(last, child);
           p = child;
         }
         else if (!_isValidRed(q->_getChild(!dir)) && p->_getChild(!last)) {
-          ZoneRBNode* s = p->_getChild(!last);
+          ZoneTreeNode* s = p->_getChild(!last);
           if (!_isValidRed(s->_getChild(!last)) && !_isValidRed(s->_getChild(last))) {
             // Color flip.
             p->_makeBlack();
@@ -234,7 +236,7 @@ public:
           }
           else {
             size_t dir2 = g->_getRight() == p;
-            ZoneRBNode* child = g->_getChild(dir2);
+            ZoneTreeNode* child = g->_getChild(dir2);
 
             if (_isValidRed(s->_getChild(last))) {
               child = _doubleRotate(p, last);
@@ -271,8 +273,8 @@ public:
       ASMJIT_ASSERT(f != &head);
       ASMJIT_ASSERT(f != gf);
 
-      ZoneRBNode* n = gf ? gf : &head;
-      dir = (n == &head) ? 1  : cmp(*static_cast<NODE_T*>(n), *static_cast<NODE_T*>(node)) < 0;
+      ZoneTreeNode* n = gf ? gf : &head;
+      dir = (n == &head) ? 1  : cmp(*static_cast<NodeT*>(n), *static_cast<NodeT*>(node)) < 0;
 
       for (;;) {
         if (n->_getChild(dir) == f) {
@@ -287,33 +289,33 @@ public:
 
         // Cannot be true as we know that it must reach `f` in few iterations.
         ASMJIT_ASSERT(n != nullptr);
-        dir = cmp(*static_cast<NODE_T*>(n), *static_cast<NODE_T*>(node)) < 0;
+        dir = cmp(*static_cast<NodeT*>(n), *static_cast<NodeT*>(node)) < 0;
       }
     }
 
     // Update root and make it black.
-    _root = static_cast<NODE_T*>(head._getRight());
+    _root = static_cast<NodeT*>(head._getRight());
     if (_root) _root->_makeBlack();
   }
 
-  template<typename KEY, typename CMP = Algorithm::Compare<Algorithm::kOrderAscending>>
-  ASMJIT_FORCEINLINE NODE_T* get(const KEY& key, const CMP& cmp = CMP()) const noexcept {
-    ZoneRBNode* node = _root;
+  template<typename KeyT, typename CompareT = Support::Compare<Support::kSortAscending>>
+  ASMJIT_INLINE NodeT* get(const KeyT& key, const CompareT& cmp = CompareT()) const noexcept {
+    ZoneTreeNode* node = _root;
     while (node) {
-      auto result = cmp(*static_cast<const NODE_T*>(node), key);
+      auto result = cmp(*static_cast<const NodeT*>(node), key);
       if (result == 0) break;
 
       // Go left or right depending on the `result`.
       node = node->_getChild(result < 0);
     }
-    return static_cast<NODE_T*>(node);
+    return static_cast<NodeT*>(node);
   }
 
   // --------------------------------------------------------------------------
   // [Swap]
   // --------------------------------------------------------------------------
 
-  inline void swapWith(ZoneRBTree& other) noexcept {
+  inline void swapWith(ZoneTree& other) noexcept {
     std::swap(_root, other._root);
   }
 
@@ -321,11 +323,11 @@ public:
   // [Internal]
   // --------------------------------------------------------------------------
 
-  static inline bool _isValidRed(ZoneRBNode* node) noexcept { return ZoneRBNode::_isValidRed(node); }
+  static inline bool _isValidRed(ZoneTreeNode* node) noexcept { return ZoneTreeNode::_isValidRed(node); }
 
   //! Single rotation.
-  static ASMJIT_FORCEINLINE ZoneRBNode* _singleRotate(ZoneRBNode* root, size_t dir) noexcept {
-    ZoneRBNode* save = root->_getChild(!dir);
+  static ASMJIT_INLINE ZoneTreeNode* _singleRotate(ZoneTreeNode* root, size_t dir) noexcept {
+    ZoneTreeNode* save = root->_getChild(!dir);
     root->_setChild(!dir, save->_getChild(dir));
     save->_setChild( dir, root);
     root->_makeRed();
@@ -334,7 +336,7 @@ public:
   }
 
   //! Double rotation.
-  static ASMJIT_FORCEINLINE ZoneRBNode* _doubleRotate(ZoneRBNode* root, size_t dir) noexcept {
+  static ASMJIT_INLINE ZoneTreeNode* _doubleRotate(ZoneTreeNode* root, size_t dir) noexcept {
     root->_setChild(!dir, _singleRotate(root->_getChild(!dir), !dir));
     return _singleRotate(root, dir);
   }
@@ -343,7 +345,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  NODE_T* _root;
+  NodeT* _root;
 };
 
 //! \}
@@ -351,4 +353,4 @@ public:
 ASMJIT_END_NAMESPACE
 
 // [Guard]
-#endif // _ASMJIT_CORE_ZONERBTREE_H
+#endif // _ASMJIT_CORE_ZONETREE_H

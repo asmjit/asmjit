@@ -2,11 +2,11 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
-#ifndef _ASMJIT_CORE_SIMDTYPES_H
-#define _ASMJIT_CORE_SIMDTYPES_H
+#ifndef _ASMJIT_CORE_DATATYPES_H
+#define _ASMJIT_CORE_DATATYPES_H
 
 // [Dependencies]
 #include "../core/globals.h"
@@ -160,7 +160,7 @@ union Data64 {
 
   //! Set all eight 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0101010101010101U;
       uq[0] = xq;
     }
@@ -194,7 +194,7 @@ union Data64 {
 
   //! Set all four 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0001000100010001U;
       uq[0] = xq;
     }
@@ -462,7 +462,7 @@ union Data128 {
 
   //! Set all sixteen 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept  {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0101010101010101U;
       uq[0] = xq;
       uq[1] = xq;
@@ -509,7 +509,7 @@ union Data128 {
 
   //! Set all eight 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0001000100010001U;
       uq[0] = xq;
       uq[1] = xq;
@@ -546,7 +546,7 @@ union Data128 {
 
   //! Set all four 32-bit unsigned integers.
   inline void setU32(uint32_t x0) noexcept {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t t = (uint64_t(x0) << 32) + x0;
       uq[0] = t;
       uq[1] = t;
@@ -834,7 +834,7 @@ union Data256 {
 
   //! Set all thirty two 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0101010101010101U;
       uq[0] = xq;
       uq[1] = xq;
@@ -903,7 +903,7 @@ union Data256 {
 
   //! Set all eight 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0001000100010001U;
       uq[0] = xq;
       uq[1] = xq;
@@ -952,7 +952,7 @@ union Data256 {
 
   //! Set all eight 32-bit unsigned integers.
   inline void setU32(uint32_t x0) noexcept {
-    if (ASMJIT_ARCH_BITS == 64) {
+    if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = (uint64_t(x0) << 32) + x0;
       uq[0] = xq;
       uq[1] = xq;
@@ -1066,4 +1066,4 @@ union Data256 {
 ASMJIT_END_NAMESPACE
 
 // [Guard]
-#endif // _ASMJIT_CORE_SIMDTYPES_H
+#endif // _ASMJIT_CORE_DATATYPES_H

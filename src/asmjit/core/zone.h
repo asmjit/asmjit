@@ -2,14 +2,14 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_ZONE_H
 #define _ASMJIT_CORE_ZONE_H
 
 // [Dependencies]
-#include "../core/intutils.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -44,10 +44,9 @@ public:
     uint8_t data[sizeof(void*)];         //!< Data.
   };
 
-  enum : uint32_t {
-    //! Zone allocator overhead.
-    kZoneOverhead = Globals::kAllocOverhead + uint32_t(sizeof(Block))
-  };
+  //! Block allocator overhead.
+  static constexpr uint32_t kBlockOverhead =
+    Globals::kMemAllocOverhead + uint32_t(sizeof(Block)) - sizeof(void*);
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -63,7 +62,7 @@ public:
   //! It's not required, but it's good practice to set `blockSize` to a
   //! reasonable value that depends on the usage of `Zone`. Greater block sizes
   //! are generally safer and perform better than unreasonably low values.
-  ASMJIT_API Zone(uint32_t blockSize, uint32_t blockAlignment = 32) noexcept;
+  ASMJIT_API Zone(size_t blockSize, size_t blockAlignment = 32) noexcept;
 
   inline Zone(Zone&& other) noexcept
     : _ptr(other._ptr),
@@ -71,15 +70,13 @@ public:
       _block(other._block),
       _blockSize(other._blockSize),
       _blockAlignmentShift(other._blockAlignmentShift) {
-    other._ptr = nullptr;
-    other._end = nullptr;
     other._block = nullptr;
   }
 
   //! Destroy the `Zone` instance.
   //!
   //! This will destroy the `Zone` instance and release all blocks of memory
-  //! allocated by it. It performs implicit `reset(true)`.
+  //! allocated by it. It performs implicit `reset(Globals::kResetHard)`.
   ASMJIT_API ~Zone() noexcept;
 
   // --------------------------------------------------------------------------
@@ -88,8 +85,8 @@ public:
 
   //! Reset the `Zone` invalidating all blocks allocated.
   //!
-  //! If `releaseMemory` is true all buffers will be released to the system.
-  ASMJIT_API void reset(bool releaseMemory = false) noexcept;
+  //! See `Globals::ResetPolicy` for more details.
+  ASMJIT_API void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept;
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -121,7 +118,7 @@ public:
   // --------------------------------------------------------------------------
 
   inline uint8_t* align(size_t alignment) noexcept {
-    _ptr = std::min<uint8_t*>(IntUtils::alignUp(_ptr, alignment), _end);
+    _ptr = std::min<uint8_t*>(Support::alignUp(_ptr, alignment), _end);
     ASMJIT_ASSERT(_ptr >= _block->data && _ptr <= _end);
     return _ptr;
   }
@@ -130,7 +127,7 @@ public:
   // [Alloc]
   // --------------------------------------------------------------------------
 
-  //! Allocate `size` bytes of memory.
+  //! Allocate the requested memory specified by `size`.
   //!
   //! Pointer returned is valid until the `Zone` instance is destroyed or reset
   //! by calling `reset()`. If you plan to make an instance of C++ from the
@@ -142,7 +139,7 @@ public:
   //! class Object { ... };
   //!
   //! // Create Zone with default block size of approximately 65536 bytes.
-  //! Zone zone(65536 - Zone::kZoneOverhead);
+  //! Zone zone(65536 - Zone::kBlockOverhead);
   //!
   //! // Create your objects using zone object allocating, for example:
   //! Object* obj = static_cast<Object*>( zone.alloc(sizeof(Object)) );
@@ -162,83 +159,92 @@ public:
   //! // Reset or destroy `Zone`.
   //! zone.reset();
   //! ~~~
-  ASMJIT_FORCEINLINE void* alloc(size_t size) noexcept {
+  ASMJIT_INLINE void* alloc(size_t size) noexcept {
+    if (ASMJIT_UNLIKELY(size > remainingSize()))
+      return _alloc(size, 1);
+
     uint8_t* ptr = _ptr;
-    size_t remainingBytes = (size_t)(_end - ptr);
-
-    if (ASMJIT_UNLIKELY(remainingBytes < size))
-      return _alloc(size);
-
     _ptr += size;
-    ASMJIT_ASSERT(_ptr <= _end);
-
     return static_cast<void*>(ptr);
   }
 
-  //! Allocate `size` bytes of memory aligned to the given `alignment`.
-  inline void* allocAligned(size_t size, size_t alignment) noexcept {
-    align(alignment);
-    return alloc(size);
+  //! Allocate the requested memory specified by `size` and `alignment`.
+  ASMJIT_INLINE void* alloc(size_t size, size_t alignment) noexcept {
+    ASMJIT_ASSERT(Support::isPowerOf2(alignment));
+    uint8_t* ptr = Support::alignUp(_ptr, alignment);
+
+    if (size > (size_t)(_end - ptr))
+      return _alloc(size, alignment);
+
+    _ptr = ptr + size;
+    return static_cast<void*>(ptr);
   }
 
-  //! Allocate `size` bytes without any checks.
+  //! Allocate the requested memory specified by `size` without doing any checks.
   //!
-  //! Can only be called if `remainingSize()` returns size at least equal
-  //! to `size`.
-  inline void* allocNoCheck(size_t size) noexcept {
-    ASMJIT_ASSERT((size_t)(_end - _ptr) >= size);
+  //! Can only be called if `remainingSize()` returns size at least equal to `size`.
+  ASMJIT_INLINE void* allocNoCheck(size_t size) noexcept {
+    ASMJIT_ASSERT(remainingSize() >= size);
 
     uint8_t* ptr = _ptr;
     _ptr += size;
+    return static_cast<void*>(ptr);
+  }
+
+  //! Allocate the requested memory specified by `size` and `alignment` without doing any checks.
+  //!
+  //! Performs the same operation as `Zone::allocNoCheck(size)` with `alignment` applied.
+  ASMJIT_INLINE void* allocNoCheck(size_t size, size_t alignment) noexcept {
+    ASMJIT_ASSERT(Support::isPowerOf2(alignment));
+
+    uint8_t* ptr = Support::alignUp(_ptr, alignment);
+    ASMJIT_ASSERT(size <= (size_t)(_end - ptr));
+
+    _ptr = ptr + size;
     return static_cast<void*>(ptr);
   }
 
   //! Allocate `size` bytes of zeroed memory. See `alloc()` for more details.
-  ASMJIT_API void* allocZeroed(size_t size) noexcept;
+  ASMJIT_API void* allocZeroed(size_t size, size_t alignment = 1) noexcept;
 
   //! Like `alloc()`, but the return pointer is casted to `T*`.
   template<typename T>
-  inline T* allocT(size_t size = sizeof(T)) noexcept {
-    return static_cast<T*>(alloc(size));
-  }
-
-  //! Like `alloc()`, but the return pointer is casted to `T*`.
-  template<typename T>
-  inline T* allocAlignedT(size_t size, size_t alignment) noexcept {
-    return static_cast<T*>(allocAligned(size, alignment));
+  inline T* allocT(size_t size = sizeof(T), size_t alignment = alignof(T)) noexcept {
+    return static_cast<T*>(alloc(size, alignment));
   }
 
   //! Like `allocNoCheck()`, but the return pointer is casted to `T*`.
   template<typename T>
-  inline T* allocNoCheckT(size_t size = sizeof(T)) noexcept {
-    return static_cast<T*>(allocNoCheck(size));
+  inline T* allocNoCheckT(size_t size = sizeof(T), size_t alignment = alignof(T)) noexcept {
+    return static_cast<T*>(allocNoCheck(size, alignment));
   }
 
   //! Like `allocZeroed()`, but the return pointer is casted to `T*`.
   template<typename T>
-  inline T* allocZeroedT(size_t size = sizeof(T)) noexcept {
-    return static_cast<T*>(allocZeroed(size));
+  inline T* allocZeroedT(size_t size = sizeof(T), size_t alignment = alignof(T)) noexcept {
+    return static_cast<T*>(allocZeroed(size, alignment));
   }
 
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T>
   inline T* newT() noexcept {
-    void* p = allocAligned(sizeof(T), alignof(T));
+    void* p = alloc(sizeof(T), alignof(T));
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
     return new(p) T();
   }
+
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
-  template<typename T, typename... Args>
-  inline T* newT(Args... args) noexcept {
-    void* p = allocAligned(sizeof(T), alignof(T));
+  template<typename T, typename... ArgsT>
+  inline T* newT(ArgsT&&... args) noexcept {
+    void* p = alloc(sizeof(T), alignof(T));
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(p) T(args...);
+    return new(p) T(std::forward<ArgsT>(args)...);
   }
 
   //! \internal
-  ASMJIT_API void* _alloc(size_t size) noexcept;
+  ASMJIT_API void* _alloc(size_t size, size_t alignment) noexcept;
 
   //! Helper to duplicate data.
   ASMJIT_API void* dup(const void* data, size_t size, bool nullTerminate = false) noexcept;
@@ -260,7 +266,7 @@ public:
     std::swap(_ptr, other._ptr);
     std::swap(_end, other._end);
     std::swap(_block, other._block);
-    std::swap(_blockSizeAndAlignmentShift, other._blockSizeAndAlignmentShift);
+    std::swap(_packedData, other._packedData);
   }
 
   // --------------------------------------------------------------------------
@@ -271,21 +277,21 @@ public:
   uint8_t* _end;                         //!< End of the current block's buffer.
   Block* _block;                         //!< Current block.
 
-  #if ASMJIT_ARCH_BITS == 64
+  #if ASMJIT_ARCH_BITS >= 64
   union {
     struct {
-      uint32_t _blockSize;               //!< Default size of a newly allocated block.
-      uint32_t _blockAlignmentShift;     //!< Minimum alignment of each block.
+      uint32_t _blockSize;               //!< Default block size.
+      uint32_t _blockAlignmentShift;     //!< Block alignment (1 << alignment).
     };
-    uint64_t _blockSizeAndAlignmentShift;
+    uint64_t _packedData;
   };
   #else
   union {
     struct {
-      uint32_t _blockSize : 29;          //!< Default size of a newly allocated block.
-      uint32_t _blockAlignmentShift : 3; //!< Minimum alignment of each block.
+      uint32_t _blockSize : 29;          //!< Default block size.
+      uint32_t _blockAlignmentShift : 3; //!< Block alignment (1 << alignment).
     };
-    uint32_t _blockSizeAndAlignmentShift;
+    uint32_t _packedData;
   };
   #endif
 };
@@ -356,11 +362,13 @@ public:
   inline ZoneAllocator() noexcept {
     std::memset(this, 0, sizeof(*this));
   }
+
   //! Create a new `ZoneAllocator` initialized to use `zone`.
-  explicit inline ZoneAllocator(Zone* zone) noexcept {
+  inline explicit ZoneAllocator(Zone* zone) noexcept {
     std::memset(this, 0, sizeof(*this));
     _zone = zone;
   }
+
   //! Destroy the `ZoneAllocator`.
   inline ~ZoneAllocator() noexcept { reset(); }
 
@@ -397,7 +405,7 @@ public:
   //! Get the slot index to be used for `size`. Returns `true` if a valid slot
   //! has been written to `slot` and `allocatedSize` has been filled with slot
   //! exact size (`allocatedSize` can be equal or slightly greater than `size`).
-  static ASMJIT_FORCEINLINE bool _getSlotIndex(size_t size, uint32_t& slot) noexcept {
+  static ASMJIT_INLINE bool _getSlotIndex(size_t size, uint32_t& slot) noexcept {
     ASMJIT_ASSERT(size > 0);
     if (size > kHiMaxSize)
       return false;
@@ -411,18 +419,18 @@ public:
   }
 
   //! \overload
-  static ASMJIT_FORCEINLINE bool _getSlotIndex(size_t size, uint32_t& slot, size_t& allocatedSize) noexcept {
+  static ASMJIT_INLINE bool _getSlotIndex(size_t size, uint32_t& slot, size_t& allocatedSize) noexcept {
     ASMJIT_ASSERT(size > 0);
     if (size > kHiMaxSize)
       return false;
 
     if (size <= kLoMaxSize) {
       slot = uint32_t((size - 1) / kLoGranularity);
-      allocatedSize = IntUtils::alignUp(size, kLoGranularity);
+      allocatedSize = Support::alignUp(size, kLoGranularity);
     }
     else {
       slot = uint32_t((size - kLoMaxSize - 1) / kHiGranularity) + kLoCount;
-      allocatedSize = IntUtils::alignUp(size, kHiGranularity);
+      allocatedSize = Support::alignUp(size, kHiGranularity);
     }
 
     return true;
@@ -482,13 +490,17 @@ public:
   template<typename T>
   inline T* newT() noexcept {
     void* p = allocT<T>();
-    return p ? new(p) T() : nullptr;
+    if (ASMJIT_UNLIKELY(!p))
+      return nullptr;
+    return new(p) T();
   }
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
-  template<typename T, typename... Args>
-  inline T* newT(Args... args) noexcept {
+  template<typename T, typename... ArgsT>
+  inline T* newT(ArgsT&&... args) noexcept {
     void* p = allocT<T>();
-    return p ? new(p) T(args...) : nullptr;
+    if (ASMJIT_UNLIKELY(!p))
+      return nullptr;
+    return new(p) T(std::forward<ArgsT>(args)...);
   }
 
   //! Release the memory previously allocated by `alloc()`. The `size` argument

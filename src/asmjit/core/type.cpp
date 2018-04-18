@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -19,11 +19,11 @@ ASMJIT_BEGIN_NAMESPACE
 
 const Type::TypeData Type::_typeData = {
   #define VALUE(X) Type::BaseOfTypeId<X>::kTypeId
-  { ASMJIT_TABLE_256(VALUE, 0) },
+  { ASMJIT_LOOKUP_TABLE_256(VALUE, 0) },
   #undef VALUE
 
   #define VALUE(X) Type::SizeOfTypeId<X>::kTypeSize
-  { ASMJIT_TABLE_256(VALUE, 0) }
+  { ASMJIT_LOOKUP_TABLE_256(VALUE, 0) }
   #undef VALUE
 };
 

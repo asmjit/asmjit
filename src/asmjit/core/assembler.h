@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_ASSEMBLER_H
@@ -10,9 +10,9 @@
 
 // [Dependencies]
 #include "../core/codeholder.h"
+#include "../core/datatypes.h"
 #include "../core/emitter.h"
 #include "../core/operand.h"
-#include "../core/simdtypes.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -147,10 +147,10 @@ public:
 // TODO: Better name, should not be here, maybe hide from public API completely?
 class AsmBufferWriter {
 public:
-  explicit ASMJIT_FORCEINLINE AsmBufferWriter(BaseAssembler* a) noexcept
+  ASMJIT_INLINE explicit AsmBufferWriter(BaseAssembler* a) noexcept
     : _cursor(a->_bufferPtr) {}
 
-  ASMJIT_FORCEINLINE Error ensureSpace(BaseAssembler* a, size_t n) noexcept {
+  ASMJIT_INLINE Error ensureSpace(BaseAssembler* a, size_t n) noexcept {
     size_t remainingSpace = (size_t)(a->_bufferEnd - _cursor);
     if (ASMJIT_UNLIKELY(remainingSpace < n)) {
       CodeBuffer& buffer = a->_section->_buffer;
@@ -162,28 +162,28 @@ public:
     return kErrorOk;
   }
 
-  ASMJIT_FORCEINLINE uint8_t* cursor() const noexcept {
+  ASMJIT_INLINE uint8_t* cursor() const noexcept {
     return _cursor;
   }
 
-  ASMJIT_FORCEINLINE size_t offset(uint8_t* from) const noexcept {
+  ASMJIT_INLINE size_t offset(uint8_t* from) const noexcept {
     ASMJIT_ASSERT(_cursor >= from);
     return (size_t)(_cursor - from);
   }
 
-  ASMJIT_FORCEINLINE void advance(size_t n) noexcept {
+  ASMJIT_INLINE void advance(size_t n) noexcept {
     _cursor += n;
   }
 
   template<typename T>
-  ASMJIT_FORCEINLINE void emit8(T val) noexcept {
+  ASMJIT_INLINE void emit8(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
     _cursor[0] = uint8_t(U(val) & U(0xFF));
     _cursor++;
   }
 
   template<typename T, typename Y>
-  ASMJIT_FORCEINLINE void emit8If(T val, Y cond) noexcept {
+  ASMJIT_INLINE void emit8If(T val, Y cond) noexcept {
     typedef typename std::make_unsigned<T>::type U;
     ASMJIT_ASSERT(size_t(cond) <= 1U);
 
@@ -192,46 +192,46 @@ public:
   }
 
   template<typename T>
-  ASMJIT_FORCEINLINE void emit16uLE(T val) noexcept {
+  ASMJIT_INLINE void emit16uLE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    MemUtils::writeU16uLE(_cursor, uint32_t(U(val) & 0xFFFFU));
+    Support::writeU16uLE(_cursor, uint32_t(U(val) & 0xFFFFU));
     _cursor += 2;
   }
 
   template<typename T>
-  ASMJIT_FORCEINLINE void emit16uBE(T val) noexcept {
+  ASMJIT_INLINE void emit16uBE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    MemUtils::writeU16uBE(_cursor, uint32_t(U(val) & 0xFFFFU));
+    Support::writeU16uBE(_cursor, uint32_t(U(val) & 0xFFFFU));
     _cursor += 2;
   }
 
   template<typename T>
-  ASMJIT_FORCEINLINE void emit32uLE(T val) noexcept {
+  ASMJIT_INLINE void emit32uLE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    MemUtils::writeU32uLE(_cursor, uint32_t(U(val) & 0xFFFFFFFFU));
+    Support::writeU32uLE(_cursor, uint32_t(U(val) & 0xFFFFFFFFU));
     _cursor += 4;
   }
 
   template<typename T>
-  ASMJIT_FORCEINLINE void emit32uBE(T val) noexcept {
+  ASMJIT_INLINE void emit32uBE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    MemUtils::writeU32uBE(_cursor, uint32_t(U(val) & 0xFFFFFFFFU));
+    Support::writeU32uBE(_cursor, uint32_t(U(val) & 0xFFFFFFFFU));
     _cursor += 4;
   }
 
-  ASMJIT_FORCEINLINE void emitData(const void* data, size_t size) noexcept {
+  ASMJIT_INLINE void emitData(const void* data, size_t size) noexcept {
     ASMJIT_ASSERT(size != 0);
     std::memcpy(_cursor, data, size);
     _cursor += size;
   }
 
-  ASMJIT_FORCEINLINE void emitZeros(size_t size) noexcept {
+  ASMJIT_INLINE void emitZeros(size_t size) noexcept {
     ASMJIT_ASSERT(size != 0);
     std::memset(_cursor, 0, size);
     _cursor += size;
   }
 
-  ASMJIT_FORCEINLINE void done(BaseAssembler* a) noexcept {
+  ASMJIT_INLINE void done(BaseAssembler* a) noexcept {
     CodeBuffer& buffer = a->_section->_buffer;
     size_t newSize = (size_t)(_cursor - a->_bufferData);
     ASMJIT_ASSERT(newSize <= buffer.capacity());

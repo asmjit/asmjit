@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -15,9 +15,9 @@
 #include "../core/assembler.h"
 #include "../core/compiler.h"
 #include "../core/cpuinfo.h"
-#include "../core/intutils.h"
 #include "../core/logging.h"
 #include "../core/rapass_p.h"
+#include "../core/support.h"
 #include "../core/type.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -49,7 +49,7 @@ bool FuncCallNode::_setRet(uint32_t i, const Operand_& op) noexcept {
 BaseCompiler::BaseCompiler() noexcept
   : BaseBuilder(),
     _func(nullptr),
-    _vRegZone(4096 - Zone::kZoneOverhead),
+    _vRegZone(4096 - Zone::kBlockOverhead),
     _vRegArray(),
     _localConstPool(nullptr),
     _globalConstPool(nullptr) {
@@ -401,7 +401,7 @@ Error BaseCompiler::_newStack(BaseMem& out, uint32_t size, uint32_t alignment, c
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
   if (alignment == 0) alignment = 1;
-  if (!IntUtils::isPowerOf2(alignment))
+  if (!Support::isPowerOf2(alignment))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
   if (alignment > 64) alignment = 64;
@@ -490,7 +490,7 @@ Error BaseCompiler::onDetach(CodeHolder* code) noexcept {
   _globalConstPool = nullptr;
 
   _vRegArray.reset();
-  _vRegZone.reset(false);
+  _vRegZone.reset();
 
   return Base::onDetach(code);
 }

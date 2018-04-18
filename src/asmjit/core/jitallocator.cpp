@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -12,10 +12,10 @@
 
 // [Dependencies]
 #include "../core/arch.h"
-#include "../core/intutils.h"
 #include "../core/jitallocator.h"
 #include "../core/jitutils.h"
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 
 #if defined(ASMJIT_BUILD_TEST)
@@ -47,10 +47,10 @@ static inline size_t JitAllocator_sizeToPoolId(const JitAllocator* self, size_t 
   ASMJIT_UNUSED(self);
 
   size_t poolId = size_t(JitAllocator::kPoolCount - 1);
-  size_t granularity = size_t(JitAllocator::kMinimumGranularity) << poolId;
+  size_t granularity = size_t(JitAllocator::kMinGranularity) << poolId;
 
   while (poolId) {
-    if (IntUtils::alignUp(size, granularity) == size)
+    if (Support::alignUp(size, granularity) == size)
       break;
     poolId--;
     granularity >>= 1;
@@ -59,17 +59,17 @@ static inline size_t JitAllocator_sizeToPoolId(const JitAllocator* self, size_t 
 }
 
 static inline size_t JitAllocator_bitVectorSizeToByteSize(uint32_t areaSize) noexcept {
-  using Globals::kBitWordSizeInBits;
-  return ((areaSize + kBitWordSizeInBits - 1U) / kBitWordSizeInBits) * sizeof(Globals::BitWord);
+  using Support::kBitWordSizeInBits;
+  return ((areaSize + kBitWordSizeInBits - 1U) / kBitWordSizeInBits) * sizeof(Support::BitWord);
 }
 
 static inline size_t JitAllocator_calculateIdealBlockSize(JitAllocator::Pool* pool, size_t allocationSize) noexcept {
-  uint32_t kMaxSizeShift = IntUtils::staticCtz<JitAllocator::kMaxBlockSize>() -
-                           IntUtils::staticCtz<JitAllocator::kMinBlockSize>() ;
+  uint32_t kMaxSizeShift = Support::staticCtz<JitAllocator::kMaxBlockSize>() -
+                           Support::staticCtz<JitAllocator::kMinBlockSize>() ;
 
   size_t blockSize = size_t(JitAllocator::kMinBlockSize) << std::min<uint32_t>(kMaxSizeShift, pool->_blockCount);
   if (blockSize < allocationSize)
-    blockSize = IntUtils::alignUp(allocationSize, blockSize);
+    blockSize = Support::alignUp(allocationSize, blockSize);
   return blockSize;
 }
 
@@ -83,21 +83,21 @@ ASMJIT_FAVOR_SPEED static void JitAllocator_fillPattern(void* mem, uint32_t patt
 
 // Allocate a new `JitAllocator::Block` for the given `blockSize`.
 static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool, size_t blockSize) noexcept {
-  using Globals::BitWord;
-  using Globals::kBitWordSizeInBits;
+  using Support::BitWord;
+  using Support::kBitWordSizeInBits;
 
   uint32_t areaSize = uint32_t((blockSize + pool->granularity() - 1) >> pool->_granularityLog2);
   uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1U) / kBitWordSizeInBits;
 
-  Block* block = static_cast<Block*>(MemUtils::alloc(sizeof(Block)));
-  BitWord* bitWords = static_cast<BitWord*>(MemUtils::alloc(size_t(numBitWords) * 2 * sizeof(BitWord)));
+  Block* block = static_cast<Block*>(MemMgr::alloc(sizeof(Block)));
+  BitWord* bitWords = static_cast<BitWord*>(MemMgr::alloc(size_t(numBitWords) * 2 * sizeof(BitWord)));
   uint8_t* virtMem = static_cast<uint8_t*>(JitUtils::virtualAlloc(blockSize, JitUtils::kVirtMemWriteExecute));
 
   // Out of memory.
   if (ASMJIT_UNLIKELY(!block || !bitWords || !virtMem)) {
     if (virtMem) JitUtils::virtualRelease(virtMem, blockSize);
-    if (bitWords) MemUtils::release(bitWords);
-    if (block) MemUtils::release(block);
+    if (bitWords) MemMgr::release(bitWords);
+    if (block) MemMgr::release(block);
     return nullptr;
   }
 
@@ -113,8 +113,8 @@ static void JitAllocator_deleteBlock(JitAllocator* self, JitAllocator::Block* bl
   ASMJIT_UNUSED(self);
 
   JitUtils::virtualRelease(block->virtMem(), block->blockSize());
-  MemUtils::release(block->_usedBitVector);
-  MemUtils::release(block);
+  MemMgr::release(block->_usedBitVector);
+  MemMgr::release(block);
 }
 
 static void JitAllocator_insertBlock(JitAllocator* self, JitAllocator::Block* block) noexcept {
@@ -162,7 +162,7 @@ JitAllocator::JitAllocator() noexcept {
   _fillPattern = JitAllocator_defaultFillPattern();
 
   for (size_t poolId = 0; poolId < kPoolCount; poolId++)
-    _pools[poolId].setGranularity(uint32_t(kMinimumGranularity) << poolId);
+    _pools[poolId].setGranularity(uint32_t(kMinGranularity) << poolId);
 }
 
 JitAllocator::~JitAllocator() noexcept {
@@ -216,7 +216,7 @@ void* JitAllocator::alloc(size_t size) noexcept {
   constexpr uint32_t kNoIndex = std::numeric_limits<uint32_t>::max();
 
   // Align to minimum granularity by default.
-  size = IntUtils::alignUp<size_t>(size, kMinimumGranularity);
+  size = Support::alignUp<size_t>(size, kMinGranularity);
   if (ASMJIT_UNLIKELY(size == 0 || size > std::numeric_limits<uint32_t>::max() / 2))
     return nullptr;
 
@@ -238,11 +238,11 @@ void* JitAllocator::alloc(size_t size) noexcept {
           uint32_t searchStart = block->_searchStart;
           uint32_t searchEnd = block->_searchEnd;
 
-          IntUtils::BitVectorFlipIterator<Globals::BitWord> it(
+          Support::BitVectorFlipIterator<Support::BitWord> it(
             block->_usedBitVector,
             pool->bitWordCountFromAreaSize(searchEnd),
             searchStart,
-            IntUtils::allOnes<Globals::BitWord>());
+            Support::allOnes<Support::BitWord>());
 
           // If there is unused area available then there has to be at least one match.
           ASMJIT_ASSERT(it.hasNext());
@@ -318,8 +318,8 @@ void* JitAllocator::alloc(size_t size) noexcept {
   }
 
   // Mark the newly allocated space as occupied and also the sentinel.
-  IntUtils::bitVectorFill(block->_usedBitVector, areaIndex, areaSize);
-  IntUtils::bitVectorSetBit(block->_stopBitVector, areaIndex + areaSize - 1, true);
+  Support::bitVectorFill(block->_usedBitVector, areaIndex, areaSize);
+  Support::bitVectorSetBit(block->_stopBitVector, areaIndex + areaSize - 1, true);
 
   // Return a pointer to allocated memory.
   uint8_t* result = block->virtMem() + pool->byteSizeFromAreaSize(areaIndex);
@@ -344,7 +344,7 @@ Error JitAllocator::release(void* p) noexcept {
 
   // The first bit representing the allocated area and its size.
   uint32_t areaIndex = uint32_t(offset >> pool->_granularityLog2);
-  uint32_t areaLast = uint32_t(IntUtils::bitVectorIndexOf(block->_stopBitVector, areaIndex, true));
+  uint32_t areaLast = uint32_t(Support::bitVectorIndexOf(block->_stopBitVector, areaIndex, true));
   uint32_t areaSize = areaLast - areaIndex + 1;
 
   // Update the search region and statistics.
@@ -354,10 +354,10 @@ Error JitAllocator::release(void* p) noexcept {
   block->decreaseUsedArea(areaSize);
 
   // Clear all occupied bits and also the sentinel.
-  IntUtils::bitVectorClear(block->_usedBitVector, areaIndex, areaSize);
-  IntUtils::bitVectorSetBit(block->_stopBitVector, areaLast, false);
+  Support::bitVectorClear(block->_usedBitVector, areaIndex, areaSize);
+  Support::bitVectorSetBit(block->_stopBitVector, areaLast, false);
 
-  // Fill released memory if the secure mode is enabled.
+  // Fill the released memory if the secure mode is enabled.
   if (hasFlag(kFlagSecureMode))
     JitAllocator_fillPattern(block->virtMem() + areaIndex * pool->granularity(), fillPattern(), areaSize * pool->granularity());
 
@@ -389,13 +389,13 @@ Error JitAllocator::shrink(void* p, size_t newSize) noexcept {
 
   // The first bit representing the allocated area and its size.
   uint32_t areaIndex = uint32_t(offset >> pool->_granularityLog2);
-  uint32_t areaOldSize = uint32_t(IntUtils::bitVectorIndexOf(block->_stopBitVector, areaIndex, true)) + 1 - areaIndex;
+  uint32_t areaOldSize = uint32_t(Support::bitVectorIndexOf(block->_stopBitVector, areaIndex, true)) + 1 - areaIndex;
   uint32_t areaNewSize = pool->areaSizeFromByteSize(newSize);
 
   if (ASMJIT_UNLIKELY(areaNewSize > areaOldSize))
     return DebugUtils::errored(kErrorInvalidState);
 
-  uint32_t areaDiff = areaNewSize - areaOldSize;
+  uint32_t areaDiff = areaOldSize - areaNewSize;
   if (!areaDiff)
     return kErrorOk;
 
@@ -406,9 +406,9 @@ Error JitAllocator::shrink(void* p, size_t newSize) noexcept {
   block->decreaseUsedArea(areaDiff);
 
   // Unmark the released space and move the sentinel.
-  IntUtils::bitVectorClear(block->_usedBitVector, areaIndex + areaNewSize, areaDiff);
-  IntUtils::bitVectorSetBit(block->_stopBitVector, areaIndex + areaOldSize - 1, false);
-  IntUtils::bitVectorSetBit(block->_stopBitVector, areaIndex + areaNewSize - 1, true);
+  Support::bitVectorClear(block->_usedBitVector, areaIndex + areaNewSize, areaDiff);
+  Support::bitVectorSetBit(block->_stopBitVector, areaIndex + areaOldSize - 1, false);
+  Support::bitVectorSetBit(block->_stopBitVector, areaIndex + areaNewSize - 1, true);
 
   // Fill released memory if the secure mode is enabled.
   if (hasFlag(kFlagSecureMode))
@@ -443,11 +443,11 @@ public:
   };
 
   // Based on JitAllocator::Block, serves our purpose well...
-  class Record : public ZoneRBNodeT<Record>,
+  class Record : public ZoneTreeNodeT<Record>,
                  public Range {
   public:
     inline Record(uint8_t* addr, size_t size)
-      : ZoneRBNodeT<Record>(),
+      : ZoneTreeNodeT<Record>(),
         Range(addr, size) {}
 
     inline bool operator<(const Record& other) const noexcept { return addr < other.addr; }
@@ -506,7 +506,7 @@ public:
 
   Zone _zone;
   ZoneAllocator _heap;
-  ZoneRBTree<Record> _records;
+  ZoneTree<Record> _records;
   JitAllocator _allocator;
 };
 
@@ -515,7 +515,7 @@ static void JitAllocatorTest_shuffle(void** ptrArray, size_t count, std::mt19937
     std::swap(ptrArray[i], ptrArray[size_t(prng() % count)]);
 }
 
-static void JitAllocatorTest_stats(JitAllocator& allocator) noexcept {
+static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {
   JitAllocator::Statistics stats = allocator.statistics();
   INFO("Block Count       : %9llu [Blocks]"        , (unsigned long long)(stats.blockCount()));
   INFO("Reserved (VirtMem): %9llu [Bytes]"         , (unsigned long long)(stats.reservedSize()));
@@ -523,53 +523,53 @@ static void JitAllocatorTest_stats(JitAllocator& allocator) noexcept {
   INFO("Overhead (HeapMem): %9llu [Bytes] (%.1f%%)", (unsigned long long)(stats.overheadSize()), stats.overheadSizeAsPercent());
 }
 
-UNIT(core_jit_allocator) {
+UNIT(asmjit_core_jit_allocator) {
   JitAllocatorWrapper wrapper;
   std::mt19937 prng(100);
 
   size_t i;
   size_t kCount = 200000;
 
-  INFO("Memory alloc/free test - %d allocations", kCount);
+  INFO("Memory alloc/release test - %d allocations", kCount);
 
-  void** ptrArray = (void**)MemUtils::alloc(sizeof(void*) * size_t(kCount));
+  void** ptrArray = (void**)MemMgr::alloc(sizeof(void*) * size_t(kCount));
   EXPECT(ptrArray != nullptr,
         "Couldn't allocate '%u' bytes for pointer-array", unsigned(sizeof(void*) * size_t(kCount)));
 
   INFO("Allocating virtual memory...");
   for (i = 0; i < kCount; i++)
     ptrArray[i] = wrapper.alloc((prng() % 1000) + 8);
-  JitAllocatorTest_stats(wrapper._allocator);
+  JitAllocatorTest_usage(wrapper._allocator);
 
-  INFO("Freeing virtual memory...");
+  INFO("Releasing virtual memory...");
   for (i = 0; i < kCount; i++)
     wrapper.release(ptrArray[i]);
-  JitAllocatorTest_stats(wrapper._allocator);
+  JitAllocatorTest_usage(wrapper._allocator);
 
   INFO("Allocating virtual memory...", kCount);
   for (i = 0; i < kCount; i++)
     ptrArray[i] = wrapper.alloc((prng() % 1000) + 8);
-  JitAllocatorTest_stats(wrapper._allocator);
+  JitAllocatorTest_usage(wrapper._allocator);
 
   INFO("Shuffling...");
   JitAllocatorTest_shuffle(ptrArray, unsigned(kCount), prng);
 
-  INFO("Freeing 50% blocks...");
+  INFO("Releasing 50% blocks...");
   for (i = 0; i < kCount / 2; i++)
     wrapper.release(ptrArray[i]);
-  JitAllocatorTest_stats(wrapper._allocator);
+  JitAllocatorTest_usage(wrapper._allocator);
 
   INFO("Allocating 50% blocks again...");
   for (i = 0; i < kCount / 2; i++)
     ptrArray[i] = wrapper.alloc((prng() % 1000) + 8);
-  JitAllocatorTest_stats(wrapper._allocator);
+  JitAllocatorTest_usage(wrapper._allocator);
 
-  INFO("Freeing virtual memory...");
+  INFO("Releasing virtual memory...");
   for (i = 0; i < kCount; i++)
     wrapper.release(ptrArray[i]);
-  JitAllocatorTest_stats(wrapper._allocator);
+  JitAllocatorTest_usage(wrapper._allocator);
 
-  MemUtils::release(ptrArray);
+  MemMgr::release(ptrArray);
 }
 #endif
 

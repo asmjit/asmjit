@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_TARGET_H
@@ -36,15 +36,16 @@ public:
       _stdCallConv(CallConv::kIdNone),
       _fastCallConv(CallConv::kIdNone),
       _baseAddress(Globals::kNoBaseAddress) {}
-  inline CodeInfo(const CodeInfo& other) noexcept { init(other); }
 
-  explicit inline CodeInfo(uint32_t archId, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept
+  inline explicit CodeInfo(uint32_t archId, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept
     : _archInfo(archId, archMode),
       _stackAlignment(0),
       _cdeclCallConv(CallConv::kIdNone),
       _stdCallConv(CallConv::kIdNone),
       _fastCallConv(CallConv::kIdNone),
       _baseAddress(baseAddress) {}
+
+  inline CodeInfo(const CodeInfo& other) noexcept { init(other); }
 
   // --------------------------------------------------------------------------
   // [Init / Reset]

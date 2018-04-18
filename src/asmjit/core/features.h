@@ -2,14 +2,14 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_FEATURES_H
 #define _ASMJIT_CORE_FEATURES_H
 
 // [Dependencies]
-#include "../core/globals.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -22,11 +22,11 @@ ASMJIT_BEGIN_NAMESPACE
 
 class BaseFeatures {
 public:
-  typedef Globals::BitWord BitWord;
+  typedef Support::BitWord BitWord;
 
   enum : uint32_t {
     kMaxFeatures = 128,
-    kBitWordSizeInBits = Globals::kBitWordSizeInBits,
+    kBitWordSizeInBits = Support::kBitWordSizeInBits,
     kNumBitWords = kMaxFeatures / kBitWordSizeInBits
   };
 
@@ -41,7 +41,10 @@ public:
   // [Reset]
   // --------------------------------------------------------------------------
 
-  inline void reset() noexcept { std::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept {
+    for (size_t i = 0; i < kNumBitWords; i++)
+      _bits[i] = 0;
+  }
 
   // --------------------------------------------------------------------------
   // [Cast]
@@ -94,8 +97,8 @@ public:
     _bits[idx] |= BitWord(1) << bit;
   }
 
-  template<typename... Args>
-  inline void add(uint32_t featureId, Args... otherIds) noexcept {
+  template<typename... ArgsT>
+  inline void add(uint32_t featureId, ArgsT... otherIds) noexcept {
     add(featureId);
     add(otherIds...);
   }
@@ -110,11 +113,19 @@ public:
     _bits[idx] &= ~(BitWord(1) << bit);
   }
 
-  template<typename... Args>
-  inline void remove(uint32_t featureId, Args... otherIds) noexcept {
+  template<typename... ArgsT>
+  inline void remove(uint32_t featureId, ArgsT... otherIds) noexcept {
     remove(featureId);
     remove(otherIds...);
   }
+
+  inline bool eq(const BaseFeatures& other) const noexcept {
+    for (size_t i = 0; i < kNumBitWords; i++)
+      if (_bits[i] != other._bits[i])
+        return false;
+    return true;
+  }
+
 
   // --------------------------------------------------------------------------
   // [Operator Overload]
@@ -122,8 +133,8 @@ public:
 
   inline BaseFeatures& operator=(const BaseFeatures& other) noexcept = default;
 
-  inline bool operator==(const BaseFeatures& other) noexcept { return std::memcmp(this, &other, sizeof(*this)) == 0; }
-  inline bool operator!=(const BaseFeatures& other) noexcept { return std::memcmp(this, &other, sizeof(*this)) != 0; }
+  inline bool operator==(const BaseFeatures& other) noexcept { return  eq(other); }
+  inline bool operator!=(const BaseFeatures& other) noexcept { return !eq(other); }
 
   // --------------------------------------------------------------------------
   // [Members]

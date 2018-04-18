@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_GLOBALS_H
@@ -22,17 +22,18 @@ ASMJIT_BEGIN_NAMESPACE
 
 namespace Globals {
 
-#if ASMJIT_ARCH_X86
-typedef uint8_t FastUInt8;
-#else
-typedef unsigned int FastUInt8;
-#endif
+//! Host memory allocator overhead.
+constexpr uint32_t kMemAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
 
-//! Storage used to store a pack of bits (should by compatible with a machine word).
-typedef uintptr_t BitWord;
+//! Host memory allocator alignment.
+constexpr uint32_t kMemAllocAlignment = 8;
 
-//! Number of bits stored in a single `BitWord`.
-constexpr uint32_t kBitWordSizeInBits = uint32_t(sizeof(BitWord)) * 8;
+//! A theoretical maximum memory (in bytes) that can be allocated by host
+//! memory allocator. Adjusted to be aligned and safe.
+constexpr size_t kMemAllocLimit = std::numeric_limits<size_t>::max() - (1024 * 1024 * 16) + 1;
+
+//! Aggressive growing strategy threshold.
+constexpr uint32_t kAllocThreshold = 8192 * 1024;
 
 //! Maximum height of RB-Tree is:
 //!
@@ -47,42 +48,35 @@ constexpr uint32_t kBitWordSizeInBits = uint32_t(sizeof(BitWord)) * 8;
 //! The final value was adjusted by +1 for safety reasons.
 constexpr uint32_t kMaxTreeHeight = (ASMJIT_ARCH_BITS == 32 ? 30 : 61) + 1;
 
-//! Maximum number of operands per single instruction.
+//! Maximum number of operands per a single instruction.
 constexpr uint32_t kMaxOpCount = 6;
 
 // TODO: Use this one.
 constexpr uint32_t kMaxFuncArgs = 16;
 
-//! Maximum number of physical registers AsmJit can use, per group.
+//! Maximum number of physical registers AsmJit can use per register group.
 constexpr uint32_t kMaxPhysRegs = 32;
 
 //! Maximum alignment.
 constexpr uint32_t kMaxAlignment = 64;
 
-//! Maximum label or symbol size in bytes (take into consideration that a
-//! single UTF-8 character can take more than single byte to encode it).
+//! Maximum label or symbol size in bytes.
 constexpr uint32_t kMaxLabelNameSize = 2048;
 
 //! Maximum size of comment.
 constexpr uint32_t kMaxCommentSize = 1024;
 
-//! Host memory allocator overhead.
-constexpr uint32_t kAllocOverhead = int32_t(sizeof(intptr_t) * 4);
-
-//! Aggressive growing strategy threshold.
-constexpr uint32_t kAllocThreshold = 8192 * 1024;
-
 //! Returned by `indexOf()` and similar when working with containers that use 32-bit index/size.
-constexpr uint32_t kNotFound = ~uint32_t(0);
+constexpr uint32_t kNotFound = std::numeric_limits<uint32_t>::max();
 
 //! The size of the string is not known, but the string is null terminated.
-constexpr size_t kNullTerminated = ~size_t(0);
+constexpr size_t kNullTerminated = std::numeric_limits<size_t>::max();
 
 //! Invalid base address.
 constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
 
-constexpr uint32_t kHalfLo = ASMJIT_ARCH_LE ? 0 : 1;
-constexpr uint32_t kHalfHi = ASMJIT_ARCH_LE ? 1 : 0;
+constexpr uint32_t kLoHalf = ASMJIT_ARCH_LE ? 0 : 1;
+constexpr uint32_t kHiHalf = ASMJIT_ARCH_LE ? 1 : 0;
 
 enum Link : uint32_t {
   kLinkLeft  = 0,
@@ -95,6 +89,14 @@ enum Link : uint32_t {
   kLinkLast  = 1,
 
   kLinkCount = 2
+};
+
+//! Reset policy used by most `Something::reset()`
+enum ResetPolicy : uint32_t {
+  //! Soft reset, doesn't deallocate memory (default).
+  kResetSoft = 0,
+  //! Hard reset, releases all memory used, if any.
+  kResetHard = 1
 };
 
 struct Init_ {};

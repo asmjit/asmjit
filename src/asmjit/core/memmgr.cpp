@@ -7,16 +7,8 @@
 // [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
-#include "../core/build.h"
-#ifdef ASMJIT_BUILD_ARM
-
 // [Dependencies]
-#include "../arm/arminternal_p.h"
+#include "../core/memmgr.h"
 
 ASMJIT_BEGIN_NAMESPACE
-
 ASMJIT_END_NAMESPACE
-
-// [Guard]
-#endif // ASMJIT_BUILD_ARM

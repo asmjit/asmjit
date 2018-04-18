@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -12,7 +12,7 @@
 #ifdef ASMJIT_BUILD_ARM
 
 // [Dependencies]
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
 #include "../core/stringutils.h"
 #include "../arm/arminstdb.h"
 #include "../arm/armoperand.h"

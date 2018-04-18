@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Guard]
 #ifndef _ASMJIT_CORE_ARCH_H
@@ -82,7 +82,7 @@ public:
 
   inline ArchInfo() noexcept : _signature(0) {}
   inline ArchInfo(const ArchInfo& other) noexcept : _signature(other._signature) {}
-  explicit inline ArchInfo(uint32_t type, uint32_t subType = kSubIdNone) noexcept { init(type, subType); }
+  inline explicit ArchInfo(uint32_t type, uint32_t subType = kSubIdNone) noexcept { init(type, subType); }
 
   inline static ArchInfo host() noexcept { return ArchInfo(kIdHost, kSubIdHost); }
 

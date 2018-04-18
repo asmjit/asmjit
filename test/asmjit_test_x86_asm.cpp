@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Dependencies]
 #include <stdio.h>
@@ -40,7 +40,7 @@ static void makeRawFunc(x86::Emitter* emitter) {
   frame.init(func);
 
   // Make XMM0 and XMM1 dirty. VEC group includes XMM|YMM|ZMM registers.
-  frame.setDirtyRegs(x86::Reg::kGroupVec, IntUtils::mask(0, 1));
+  frame.setDirtyRegs(x86::Reg::kGroupVec, Support::mask(0, 1));
 
   FuncArgsAssignment args(&func);         // Create arguments assignment context.
   args.assignAll(dst, src_a, src_b);      // Assign our registers to arguments.

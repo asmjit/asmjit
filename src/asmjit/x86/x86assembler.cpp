@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
@@ -13,10 +13,10 @@
 
 // [Dependencies]
 #include "../core/cpuinfo.h"
-#include "../core/intutils.h"
 #include "../core/logging.h"
-#include "../core/memutils.h"
+#include "../core/memmgr.h"
 #include "../core/misc_p.h"
+#include "../core/support.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86instdb.h"
 #include "../x86/x86logging_p.h"
@@ -28,7 +28,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [TypeDefs]
 // ============================================================================
 
-typedef Globals::FastUInt8 FastUInt8;
+typedef Support::FastUInt8 FastUInt8;
 
 // ============================================================================
 // [Constants]
@@ -223,7 +223,7 @@ struct X86MemInfo_T {
 //           REX.B and REX.X are possibly masked out, but REX.R and REX.W are
 //           kept as is.
 #define VALUE(X) X86MemInfo_T<X>::kValue
-static const uint8_t x86MemInfo[] = { ASMJIT_TABLE_1024(VALUE, 0) };
+static const uint8_t x86MemInfo[] = { ASMJIT_LOOKUP_TABLE_1024(VALUE, 0) };
 #undef VALUE
 
 // VEX3 or XOP xor bits applied to the opcode before emitted. The index to this
@@ -236,7 +236,7 @@ static const uint8_t x86MemInfo[] = { ASMJIT_TABLE_1024(VALUE, 0) };
 //            ____    ___
 // [_OPCODE_|WvvvvLpp|RXBmmmmm|VEX3_XOP]
 #define VALUE(X) ((X & 0x08) ? kX86ByteXop3 : kX86ByteVex3) | (0xF << 19) | (0x7 << 13)
-static const uint32_t x86VEXPrefix[] = { ASMJIT_TABLE_16(VALUE, 0) };
+static const uint32_t x86VEXPrefix[] = { ASMJIT_LOOKUP_TABLE_16(VALUE, 0) };
 #undef VALUE
 
 // Table that contains LL opcode field addressed by a register size / 16. It's
@@ -244,7 +244,7 @@ static const uint32_t x86VEXPrefix[] = { ASMJIT_TABLE_16(VALUE, 0) };
 // respectively.
 #define VALUE(X) (X & (64 >> 4)) ? Opcode::kLL_2 : \
                  (X & (32 >> 4)) ? Opcode::kLL_1 : Opcode::kLL_0
-static const uint32_t x86LLBySizeDiv16[] = { ASMJIT_TABLE_16(VALUE, 0) };
+static const uint32_t x86LLBySizeDiv16[] = { ASMJIT_LOOKUP_TABLE_16(VALUE, 0) };
 #undef VALUE
 
 // Table that contains LL opcode field addressed by a register size / 16. It's
@@ -252,7 +252,7 @@ static const uint32_t x86LLBySizeDiv16[] = { ASMJIT_TABLE_16(VALUE, 0) };
 // respectively.
 #define VALUE(X) X == Reg::kTypeZmm ? Opcode::kLL_2 : \
                  X == Reg::kTypeYmm ? Opcode::kLL_1 : Opcode::kLL_0
-static const uint32_t x86LLByRegType[] = { ASMJIT_TABLE_16(VALUE, 0) };
+static const uint32_t x86LLByRegType[] = { ASMJIT_LOOKUP_TABLE_16(VALUE, 0) };
 #undef VALUE
 
 // Table that contains a scale (shift left) based on 'TTWLL' field and
@@ -274,7 +274,7 @@ struct X86CDisp8SHL_T {
 };
 
 #define VALUE(X) X86CDisp8SHL_T<X>::kValue
-static const uint32_t x86CDisp8SHL[] = { ASMJIT_TABLE_32(VALUE, 0) };
+static const uint32_t x86CDisp8SHL[] = { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) };
 #undef VALUE
 
 // Table that contains MOD byte of a 16-bit [BASE + disp] address.
@@ -306,36 +306,36 @@ struct X86Mod16BaseIndexTable_T {
 };
 
 #define VALUE(X) X86Mod16BaseIndexTable_T<X>::kValue
-static const uint8_t x86Mod16BaseIndexTable[] = { ASMJIT_TABLE_64(VALUE, 0) };
+static const uint8_t x86Mod16BaseIndexTable[] = { ASMJIT_LOOKUP_TABLE_64(VALUE, 0) };
 #undef VALUE
 
 // ============================================================================
 // [asmjit::x86::Assembler - Helpers]
 // ============================================================================
 
-static ASMJIT_FORCEINLINE bool x86IsJmpOrCall(uint32_t instId) noexcept {
+static ASMJIT_INLINE bool x86IsJmpOrCall(uint32_t instId) noexcept {
   return instId == Inst::kIdJmp || instId == Inst::kIdCall;
 }
 
-static ASMJIT_FORCEINLINE bool x86IsImplicitMem(const Operand_& op, uint32_t base) noexcept {
+static ASMJIT_INLINE bool x86IsImplicitMem(const Operand_& op, uint32_t base) noexcept {
   return op.isMem() && op.as<Mem>().baseId() == base;
 }
 
 //! Combine `regId` and `vvvvvId` into a single value (used by AVX and AVX-512).
-static ASMJIT_FORCEINLINE uint32_t x86PackRegAndVvvvv(uint32_t regId, uint32_t vvvvvId) noexcept {
+static ASMJIT_INLINE uint32_t x86PackRegAndVvvvv(uint32_t regId, uint32_t vvvvvId) noexcept {
   return regId + (vvvvvId << kVexVVVVVShift);
 }
 
-static ASMJIT_FORCEINLINE uint32_t x86OpcodeLByVMem(const Operand_& op) noexcept {
+static ASMJIT_INLINE uint32_t x86OpcodeLByVMem(const Operand_& op) noexcept {
   return x86LLByRegType[op.as<Mem>().indexType()];
 }
 
-static ASMJIT_FORCEINLINE uint32_t x86OpcodeLBySize(uint32_t size) noexcept {
+static ASMJIT_INLINE uint32_t x86OpcodeLBySize(uint32_t size) noexcept {
   return x86LLBySizeDiv16[size / 16];
 }
 
 //! Encode MOD byte.
-static ASMJIT_FORCEINLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) noexcept {
+static ASMJIT_INLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) noexcept {
   ASMJIT_ASSERT(m <= 3);
   ASMJIT_ASSERT(o <= 7);
   ASMJIT_ASSERT(rm <= 7);
@@ -343,14 +343,14 @@ static ASMJIT_FORCEINLINE uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t
 }
 
 //! Encode SIB byte.
-static ASMJIT_FORCEINLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) noexcept {
+static ASMJIT_INLINE uint32_t x86EncodeSib(uint32_t s, uint32_t i, uint32_t b) noexcept {
   ASMJIT_ASSERT(s <= 3);
   ASMJIT_ASSERT(i <= 7);
   ASMJIT_ASSERT(b <= 7);
   return (s << 6) + (i << 3) + b;
 }
 
-static ASMJIT_FORCEINLINE bool x86IsRexInvalid(uint32_t rex) noexcept {
+static ASMJIT_INLINE bool x86IsRexInvalid(uint32_t rex) noexcept {
   // Validates the following possibilities:
   //   REX == 0x00      -> OKAY (X86_32 / X86_64).
   //   REX == 0x40-0x4F -> OKAY (X86_64).
@@ -365,16 +365,16 @@ static ASMJIT_FORCEINLINE bool x86IsRexInvalid(uint32_t rex) noexcept {
 
 class X86BufferWriter : public AsmBufferWriter {
 public:
-  explicit ASMJIT_FORCEINLINE X86BufferWriter(Assembler* a) noexcept
+  ASMJIT_INLINE explicit X86BufferWriter(Assembler* a) noexcept
     : AsmBufferWriter(a) {}
 
-  ASMJIT_FORCEINLINE void emitPP(uint32_t opcode) noexcept {
+  ASMJIT_INLINE void emitPP(uint32_t opcode) noexcept {
     uint32_t ppIndex = (opcode              >> Opcode::kPP_Shift) &
                        (Opcode::kPP_FPUMask >> Opcode::kPP_Shift) ;
     emit8If(x86OpcodePP[ppIndex], ppIndex != 0);
   }
 
-  ASMJIT_FORCEINLINE void emitMMAndOpcode(uint32_t opcode) noexcept {
+  ASMJIT_INLINE void emitMMAndOpcode(uint32_t opcode) noexcept {
     uint32_t mmIndex = (opcode & Opcode::kMM_Mask) >> Opcode::kMM_Shift;
     const X86OpcodeMM& mmCode = x86OpcodeMM[mmIndex];
 
@@ -383,23 +383,23 @@ public:
     emit8(opcode);
   }
 
-  ASMJIT_FORCEINLINE void emitSegmentOverride(uint32_t segmentId) noexcept {
+  ASMJIT_INLINE void emitSegmentOverride(uint32_t segmentId) noexcept {
     ASMJIT_ASSERT(segmentId < ASMJIT_ARRAY_SIZE(x86SegmentPrefix));
 
     FastUInt8 prefix = x86SegmentPrefix[segmentId];
     emit8If(prefix, prefix != 0);
   }
 
-  template<typename COND>
-  ASMJIT_FORCEINLINE void emitAddressOverride(COND condition) noexcept {
+  template<typename CondT>
+  ASMJIT_INLINE void emitAddressOverride(CondT condition) noexcept {
     emit8If(0x67, condition);
   }
 
-  ASMJIT_FORCEINLINE void emitImmediate(uint64_t immValue, FastUInt8 immSize) noexcept {
+  ASMJIT_INLINE void emitImmediate(uint64_t immValue, FastUInt8 immSize) noexcept {
     if (!immSize)
       return;
 
-    #if ASMJIT_ARCH_BITS == 64
+    #if ASMJIT_ARCH_BITS >= 64
     uint64_t imm = uint64_t(immValue);
     #else
     uint32_t imm = uint32_t(immValue & 0xFFFFFFFFU);
@@ -417,7 +417,7 @@ public:
     // Can be 1, 2, 4 or 8 bytes, this handles the remaining high DWORD of an 8-byte immediate.
     ASMJIT_ASSERT(immSize == 4);
 
-    #if ASMJIT_ARCH_BITS == 64
+    #if ASMJIT_ARCH_BITS >= 64
     imm >>= 8;
     emit32uLE(uint32_t(imm));
     #else
@@ -879,22 +879,22 @@ CaseX86M_GPB_MulDiv:
           }
           else if (size == 4) {
             // Sign extend so isI8 returns the right result.
-            immValue = IntUtils::signExtendI32<int64_t>(immValue);
+            immValue = Support::signExtendI32<int64_t>(immValue);
           }
           else if (size == 8) {
             // In 64-bit mode it's not possible to use 64-bit immediate.
-            if (IntUtils::isU32(immValue)) {
+            if (Support::isU32(immValue)) {
               // Zero-extend `and` by using a 32-bit GPD destination instead of a 64-bit GPQ.
               if (instId == Inst::kIdAnd)
                 size = 4;
-              else if (!IntUtils::isI32(immValue))
+              else if (!Support::isI32(immValue))
                 goto InvalidImmediate;
             }
             opcode.addWBySize(size);
           }
 
           immSize = FastUInt8(std::min<uint32_t>(size, 4));
-          if (IntUtils::isI8(immValue) && !(options & Inst::kOptionLongForm))
+          if (Support::isI8(immValue) && !(options & Inst::kOptionLongForm))
             immSize = 1;
         }
 
@@ -921,9 +921,9 @@ CaseX86M_GPB_MulDiv:
 
         // Sign extend so isI8 returns the right result.
         if (memSize == 4)
-          immValue = IntUtils::signExtendI32<int64_t>(immValue);
+          immValue = Support::signExtendI32<int64_t>(immValue);
 
-        if (IntUtils::isI8(immValue) && !(options & Inst::kOptionLongForm))
+        if (Support::isI8(immValue) && !(options & Inst::kOptionLongForm))
           immSize = 1;
 
         opcode += memSize != 1 ? (immSize != 1 ? 1 : 3) : 0;
@@ -1105,7 +1105,7 @@ CaseX86M_GPB_MulDiv:
         immValue = o2.as<Imm>().i64();
         immSize = 1;
 
-        if (!IntUtils::isI8(immValue) || (options & Inst::kOptionLongForm)) {
+        if (!Support::isI8(immValue) || (options & Inst::kOptionLongForm)) {
           opcode -= 2;
           immSize = o0.size() == 2 ? 2 : 4;
         }
@@ -1125,9 +1125,9 @@ CaseX86M_GPB_MulDiv:
 
         // Sign extend so isI8 returns the right result.
         if (o0.size() == 4)
-          immValue = IntUtils::signExtendI32<int64_t>(immValue);
+          immValue = Support::signExtendI32<int64_t>(immValue);
 
-        if (!IntUtils::isI8(immValue) || (options & Inst::kOptionLongForm)) {
+        if (!Support::isI8(immValue) || (options & Inst::kOptionLongForm)) {
           opcode -= 2;
           immSize = o0.size() == 2 ? 2 : 4;
         }
@@ -1177,9 +1177,9 @@ CaseX86M_GPB_MulDiv:
 
         // Sign extend so isI8 returns the right result.
         if (o0.size() == 4)
-          immValue = IntUtils::signExtendI32<int64_t>(immValue);
+          immValue = Support::signExtendI32<int64_t>(immValue);
 
-        if (!IntUtils::isI8(immValue) || (options & Inst::kOptionLongForm)) {
+        if (!Support::isI8(immValue) || (options & Inst::kOptionLongForm)) {
           opcode -= 2;
           immSize = o0.size() == 2 ? 2 : 4;
         }
@@ -1460,7 +1460,7 @@ CaseX86M_GPB_MulDiv:
           // Handle a special form `mov al|ax|eax|rax, [ptr64]` that doesn't use MOD.
           if (o0.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
             immValue = rmRel->as<Mem>().offset();
-            if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !IntUtils::isI32(immValue)))) {
+            if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !Support::isI32(immValue)))) {
               opcode += 0xA0;
               goto EmitX86OpMovAbs;
             }
@@ -1492,7 +1492,7 @@ CaseX86M_GPB_MulDiv:
           // Handle a special form `mov [ptr64], al|ax|eax|rax` that doesn't use MOD.
           if (o1.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
             immValue = rmRel->as<Mem>().offset();
-            if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !IntUtils::isI32(immValue)))) {
+            if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !Support::isI32(immValue)))) {
               opcode += 0xA2;
               goto EmitX86OpMovAbs;
             }
@@ -1520,11 +1520,11 @@ CaseX86M_GPB_MulDiv:
 
           // Optimize the instruction size by using a 32-bit immediate if possible.
           if (immSize == 8 && !(options & Inst::kOptionLongForm)) {
-            if (IntUtils::isU32(immValue)) {
+            if (Support::isU32(immValue)) {
               // Zero-extend by using a 32-bit GPD destination instead of a 64-bit GPQ.
               immSize = 4;
             }
-            else if (IntUtils::isI32(immValue)) {
+            else if (Support::isI32(immValue)) {
               // Sign-extend, uses 'C7 /0' opcode.
               rbReg = opReg;
 
@@ -1638,7 +1638,7 @@ CaseX86M_GPB_MulDiv:
         immValue = o0.as<Imm>().i64();
         immSize = 4;
 
-        if (IntUtils::isI8(immValue) && !(options & Inst::kOptionLongForm))
+        if (Support::isI8(immValue) && !(options & Inst::kOptionLongForm))
           immSize = 1;
 
         opcode = immSize == 1 ? 0x6A : 0x68;
@@ -3572,7 +3572,7 @@ EmitModSib:
           uint32_t cdShift = (opcode & Opcode::kCDSHL_Mask) >> Opcode::kCDSHL_Shift;
           int32_t cdOffset = relOffset >> cdShift;
 
-          if (IntUtils::isI8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
+          if (Support::isI8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
             writer.emit8(mod + 0x40); // <- MOD(1, opReg, rbReg).
             writer.emit8(x86EncodeSib(0, 4, 4));
             writer.emit8(cdOffset & 0xFF);
@@ -3593,7 +3593,7 @@ EmitModSib:
         uint32_t cdShift = (opcode & Opcode::kCDSHL_Mask) >> Opcode::kCDSHL_Shift;
         int32_t cdOffset = relOffset >> cdShift;
 
-        if (IntUtils::isI8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
+        if (Support::isI8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
           writer.emit8(mod + 0x40);
           writer.emit8(cdOffset & 0xFF);
         }
@@ -3626,7 +3626,7 @@ EmitModSib:
           uint64_t rip64 = baseAddress + uint64_t(writer.offset(_bufferData)) + immSize + kModRel32Size;
 
           uint64_t rel64 = uint64_t(rmRel->as<Mem>().offset()) - rip64;
-          if (IntUtils::isI32(int64_t(rel64))) {
+          if (Support::isI32(int64_t(rel64))) {
             writer.emit8(x86EncodeMod(0, opReg, 5));
             writer.emit32uLE(uint32_t(rel64 & 0xFFFFFFFFU));
             writer.emitImmediate(immValue, immSize);
@@ -3738,7 +3738,7 @@ EmitModVSib:
         uint32_t cdShift = (opcode & Opcode::kCDSHL_Mask) >> Opcode::kCDSHL_Shift;
         int32_t cdOffset = relOffset >> cdShift;
 
-        if (IntUtils::isI8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
+        if (Support::isI8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
           // [BASE + INDEX << SHIFT + DISP8].
           writer.emit8(mod + 0x40); // <- MOD(1, opReg, 4).
           writer.emit8(sib);
@@ -3810,7 +3810,7 @@ EmitModVSib:
       if (relOffset == 0 && mod != 0x06) {
         writer.emit8(mod);
       }
-      else if (IntUtils::isI8(relOffset)) {
+      else if (Support::isI8(relOffset)) {
         writer.emit8(mod + 0x40);
         writer.emit8(uint32_t(relOffset));
       }
@@ -3900,7 +3900,7 @@ EmitVexEvexR:
     opReg &= 0x7;
 
     // Mark invalid VEX (force EVEX) case:               // [@.......|.LL..aaa|Vvvvv..R|RBBmmmmm].
-    x |= (~commonInfo->flags() & InstDB::kFlagVex) << (31 - IntUtils::staticCtz<InstDB::kFlagVex>());
+    x |= (~commonInfo->flags() & InstDB::kFlagVex) << (31 - Support::staticCtz<InstDB::kFlagVex>());
 
     // Handle AVX512 options by a single branch.
     const uint32_t kAvx512Options = Inst::kOptionZMask |
@@ -4039,7 +4039,7 @@ EmitVexEvexM:
     opReg &= 0x07U;
 
     // Mark invalid VEX (force EVEX) case:               // [@.......|.LLbXaaa|Vvvvv..R|RXBmmmmm].
-    x |= (~commonInfo->flags() & InstDB::kFlagVex) << (31 - IntUtils::staticCtz<InstDB::kFlagVex>());
+    x |= (~commonInfo->flags() & InstDB::kFlagVex) << (31 - Support::staticCtz<InstDB::kFlagVex>());
 
     // Handle AVX512 options by a single branch.
     const uint32_t kAvx512Options = Inst::kOptionZMask   |
@@ -4197,7 +4197,7 @@ EmitJmpCall:
       // Emit relative displacement as it was a bound label if all checks ok.
       if (baseAddress != Globals::kNoBaseAddress) {
         uint64_t rel64 = jumpAddress - (ip + baseAddress) - inst32Size;
-        if (archId() == ArchInfo::kIdX86 || IntUtils::isI32(int64_t(rel64))) {
+        if (archId() == ArchInfo::kIdX86 || Support::isI32(int64_t(rel64))) {
           rel32 = uint32_t(rel64 & 0xFFFFFFFFU);
           goto EmitJmpCallRel;
         }
@@ -4258,7 +4258,7 @@ EmitJmpCall:
     // between 8-bit and 32-bit displacement encoding. Some instructions only
     // allow either 8-bit or 32-bit encoding, others allow both encodings.
 EmitJmpCallRel:
-    if (IntUtils::isI8(int32_t(rel32 + inst32Size - inst8Size)) && opCode8 && !(options & Inst::kOptionLongForm)) {
+    if (Support::isI8(int32_t(rel32 + inst32Size - inst8Size)) && opCode8 && !(options & Inst::kOptionLongForm)) {
       options |= Inst::kOptionShortForm;
       writer.emit8(opCode8);                                     // Emit opcode
       writer.emit8(rel32 + inst32Size - inst8Size);              // Emit DISP8.
@@ -4368,10 +4368,10 @@ Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
   if (alignment <= 1)
     return kErrorOk;
 
-  if (ASMJIT_UNLIKELY(!IntUtils::isPowerOf2(alignment) || alignment > Globals::kMaxAlignment))
+  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(alignment) || alignment > Globals::kMaxAlignment))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
-  uint32_t i = uint32_t(IntUtils::alignUpDiff<size_t>(offset(), alignment));
+  uint32_t i = uint32_t(Support::alignUpDiff<size_t>(offset(), alignment));
   if (i > 0) {
     AsmBufferWriter writer(this);
     ASMJIT_PROPAGATE(writer.ensureSpace(this, i));

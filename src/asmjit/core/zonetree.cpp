@@ -2,37 +2,37 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // [Export]
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
-#include "../core/intutils.h"
+#include "../core/support.h"
 #include "../core/zone.h"
-#include "../core/zonerbtree.h"
+#include "../core/zonetree.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
-// [asmjit::ZoneRBTree - Unit]
+// [asmjit::ZoneTree - Unit]
 // ============================================================================
 
 #if defined(ASMJIT_BUILD_TEST)
-template<typename NODE>
+template<typename NodeT>
 struct ZoneRBUnit {
-  typedef ZoneRBTree<NODE> Tree;
+  typedef ZoneTree<NodeT> Tree;
 
   static void verifyTree(Tree& tree) noexcept {
-    EXPECT(checkHeight(static_cast<NODE*>(tree._root)) > 0);
+    EXPECT(checkHeight(static_cast<NodeT*>(tree._root)) > 0);
   }
 
   // Check whether the Red-Black tree is valid.
-  static int checkHeight(NODE* node) noexcept {
+  static int checkHeight(NodeT* node) noexcept {
     if (!node) return 1;
 
-    NODE* ln = node->left();
-    NODE* rn = node->right();
+    NodeT* ln = node->left();
+    NodeT* rn = node->right();
 
     // Invalid tree.
     EXPECT(ln == nullptr || *ln < *node);
@@ -40,7 +40,7 @@ struct ZoneRBUnit {
 
     // Red violation.
     EXPECT(!node->isRed() ||
-          (!ZoneRBNode::_isValidRed(ln) && !ZoneRBNode::_isValidRed(rn)));
+          (!ZoneTreeNode::_isValidRed(ln) && !ZoneTreeNode::_isValidRed(rn)));
 
     // Black violation.
     int lh = checkHeight(ln);
@@ -52,11 +52,11 @@ struct ZoneRBUnit {
   }
 };
 
-class MyRBNode : public ZoneRBNodeT<MyRBNode> {
+class MyRBNode : public ZoneTreeNodeT<MyRBNode> {
 public:
   ASMJIT_NONCOPYABLE(MyRBNode)
 
-  explicit inline MyRBNode(uint32_t key) noexcept
+  inline explicit MyRBNode(uint32_t key) noexcept
     : _key(key) {}
 
   inline bool operator<(const MyRBNode& other) const noexcept { return _key < other._key; }
@@ -68,11 +68,11 @@ public:
   uint32_t _key;
 };
 
-UNIT(core_zone_rbtree) {
+UNIT(asmjit_core_zone_rbtree) {
   constexpr uint32_t kCount = 10000;
 
   Zone zone(4096);
-  ZoneRBTree<MyRBNode> rbTree;
+  ZoneTree<MyRBNode> rbTree;
 
   uint32_t key;
   INFO("Inserting %u elements to RBTree and validating each operation", unsigned(kCount));

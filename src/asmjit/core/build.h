@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // AsmJit Static Builds and Embedding
 // ----------------------------------
@@ -124,9 +124,9 @@
 #endif
 
 #if defined(__APPLE__)
-  #define ASMJIT_OS_DARWIN     1
+  #define ASMJIT_OS_MAC        1
 #else
-  #define ASMJIT_OS_DARWIN     0
+  #define ASMJIT_OS_MAC        0
 #endif
 
 #if defined(__FreeBSD__) || defined(__NetBSD__)    || \
@@ -135,12 +135,6 @@
   #define ASMJIT_OS_BSD        1
 #else
   #define ASMJIT_OS_BSD        0
-#endif
-
-#if defined(__EMSCRIPTEN__)
-  #define ASMJIT_OS_BROWSER    1
-#else
-  #define ASMJIT_OS_BROWSER    0
 #endif
 
 #define ASMJIT_OS_POSIX        (!ASMJIT_OS_WINDOWS)
@@ -335,12 +329,12 @@
     #endif
   #elif ASMJIT_OS_WINDOWS && ASMJIT_CXX_GNU
     #if defined(ASMJIT_EXPORTS)
-      #define ASMJIT_API __attribute__((dllexport))
+      #define ASMJIT_API __attribute__((__dllexport__))
     #else
-      #define ASMJIT_API __attribute__((dllimport))
+      #define ASMJIT_API __attribute__((__dllimport__))
     #endif
   #elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 0, 0)
-    #define ASMJIT_API __attribute__((visibility("default")))
+    #define ASMJIT_API __attribute__((__visibility__("default")))
   #endif
 #endif
 
@@ -366,16 +360,16 @@
 
 // Function attributes.
 #if (ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 4, 0) && !defined(__MINGW32__))
-  #define ASMJIT_FORCEINLINE inline __attribute__((always_inline))
+  #define ASMJIT_INLINE inline __attribute__((__always_inline__))
 #elif ASMJIT_CXX_MSC
-  #define ASMJIT_FORCEINLINE __forceinline
+  #define ASMJIT_INLINE __forceinline
 #else
-  #define ASMJIT_FORCEINLINE inline
+  #define ASMJIT_INLINE inline
 #endif
 
 #if ASMJIT_CXX_GNU
-  #define ASMJIT_NOINLINE __attribute__((noinline))
-  #define ASMJIT_NORETURN __attribute__((noreturn))
+  #define ASMJIT_NOINLINE __attribute__((__noinline__))
+  #define ASMJIT_NORETURN __attribute__((__noreturn__))
 #elif ASMJIT_CXX_MSC
   #define ASMJIT_NOINLINE __declspec(noinline)
   #define ASMJIT_NORETURN __declspec(noreturn)
@@ -386,10 +380,10 @@
 
 // Calling conventions.
 #if ASMJIT_ARCH_X86 == 32 && ASMJIT_CXX_GNU
-  #define ASMJIT_CDECL __attribute__((cdecl))
-  #define ASMJIT_STDCALL __attribute__((stdcall))
-  #define ASMJIT_FASTCALL __attribute__((fastcall))
-  #define ASMJIT_REGPARM(N) __attribute__((regparm(N)))
+  #define ASMJIT_CDECL __attribute__((__cdecl__))
+  #define ASMJIT_STDCALL __attribute__((__stdcall__))
+  #define ASMJIT_FASTCALL __attribute__((__fastcall__))
+  #define ASMJIT_REGPARM(N) __attribute__((__regparm__(N)))
 #elif ASMJIT_ARCH_X86 == 32 && ASMJIT_CXX_MSC
   #define ASMJIT_CDECL __cdecl
   #define ASMJIT_STDCALL __stdcall
@@ -404,7 +398,7 @@
 
 // Type alignment (not allowed by C++11 'alignas' keyword).
 #if ASMJIT_CXX_GNU
-  #define ASMJIT_ALIGN_TYPE(TYPE, N) __attribute__((aligned(N))) TYPE
+  #define ASMJIT_ALIGN_TYPE(TYPE, N) __attribute__((__aligned__(N))) TYPE
 #elif ASMJIT_CXX_MSC
   #define ASMJIT_ALIGN_TYPE(TYPE, N) __declspec(align(N)) TYPE
 #else
@@ -423,7 +417,7 @@
 #if ASMJIT_CXX_CLANG && __cplusplus >= 201103L
   #define ASMJIT_FALLTHROUGH [[clang::fallthrough]]
 #elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(7, 0, 0)
-  #define ASMJIT_FALLTHROUGH __attribute__((fallthrough))
+  #define ASMJIT_FALLTHROUGH __attribute__((__fallthrough__))
 #else
   #define ASMJIT_FALLTHROUGH ((void)0) /* fallthrough */
 #endif
@@ -435,7 +429,7 @@
 #define ASMJIT_ARRAY_SIZE(X) uint32_t(sizeof(X) / sizeof(X[0]))
 
 #if ASMJIT_CXX_HAS_ATTRIBUTE(attribute_deprecated_with_message, ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 5, 0))
-  #define ASMJIT_DEPRECATED(DECL, MESSAGE) DECL __attribute__((deprecated(MESSAGE)))
+  #define ASMJIT_DEPRECATED(DECL, MESSAGE) DECL __attribute__((__deprecated__(MESSAGE)))
 #elif ASMJIT_MSC
   #define ASMJIT_DEPRECATED(DECL, MESSAGE) __declspec(deprecated(MESSAGE)) DECL
 #else
@@ -508,9 +502,9 @@
 
 // Internal macros that are only used when building AsmJit itself.
 #ifdef ASMJIT_EXPORTS
-  #if !defined(ASMJIT_BUILD_DEBUG) && ASMJIT_CXX_HAS_ATTRIBUTE(optimize, ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 4, 0))
-    #define ASMJIT_FAVOR_SIZE  __attribute__((optimize("Os")))
-    #define ASMJIT_FAVOR_SPEED __attribute__((optimize("O3")))
+  #if !defined(ASMJIT_BUILD_DEBUG) && ASMJIT_CXX_HAS_ATTRIBUTE(__optimize__, ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 4, 0))
+    #define ASMJIT_FAVOR_SIZE  __attribute__((__optimize__("Os")))
+    #define ASMJIT_FAVOR_SPEED __attribute__((__optimize__("O3")))
   #else
     #define ASMJIT_FAVOR_SIZE
     #define ASMJIT_FAVOR_SPEED
@@ -544,6 +538,7 @@
 #include <limits>
 #include <new>
 #include <type_traits>
+#include <utility>
 
 #if ASMJIT_OS_WINDOWS
   #ifndef WIN32_LEAN_AND_MEAN
