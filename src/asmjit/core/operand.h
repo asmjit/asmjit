@@ -1183,25 +1183,25 @@ public:
   constexpr bool isU32() const noexcept { return Support::isU32(_imm.value.i64); }
 
   //! Get immediate value as 8-bit signed integer.
-  constexpr int8_t i8() const noexcept { return int8_t(_imm.value.i32[Globals::kLoHalf] & 0xFF); }
+  constexpr int8_t i8() const noexcept { return int8_t(i32() & 0xFF); }
   //! Get immediate value as 8-bit unsigned integer.
-  constexpr uint8_t u8() const noexcept { return uint8_t(_imm.value.u32[Globals::kLoHalf] & 0xFFU); }
+  constexpr uint8_t u8() const noexcept { return uint8_t(u32() & 0xFFU); }
   //! Get immediate value as 16-bit signed integer.
-  constexpr int16_t i16() const noexcept { return int16_t(_imm.value.i32[Globals::kLoHalf] & 0xFFFF);}
+  constexpr int16_t i16() const noexcept { return int16_t(i32() & 0xFFFF);}
   //! Get immediate value as 16-bit unsigned integer.
-  constexpr uint16_t u16() const noexcept { return uint16_t(_imm.value.u32[Globals::kLoHalf] & 0xFFFFU);}
+  constexpr uint16_t u16() const noexcept { return uint16_t(u32() & 0xFFFFU);}
   //! Get immediate value as 32-bit signed integer.
-  constexpr int32_t i32() const noexcept { return _imm.value.i32[Globals::kLoHalf]; }
+  constexpr int32_t i32() const noexcept { return i32Lo(); }
   //! Get low 32-bit signed integer.
-  constexpr int32_t i32Lo() const noexcept { return _imm.value.i32[Globals::kLoHalf]; }
+  constexpr int32_t i32Lo() const noexcept { return _imm.value.i32[ASMJIT_ARCH_LE ? 0 : 1]; }
   //! Get high 32-bit signed integer.
-  constexpr int32_t i32Hi() const noexcept { return _imm.value.i32[Globals::kHiHalf]; }
+  constexpr int32_t i32Hi() const noexcept { return _imm.value.i32[ASMJIT_ARCH_LE ? 1 : 0]; }
   //! Get immediate value as 32-bit unsigned integer.
-  constexpr uint32_t u32() const noexcept { return _imm.value.u32[Globals::kLoHalf]; }
+  constexpr uint32_t u32() const noexcept { return u32Lo(); }
   //! Get low 32-bit signed integer.
-  constexpr uint32_t u32Lo() const noexcept { return _imm.value.u32[Globals::kLoHalf]; }
+  constexpr uint32_t u32Lo() const noexcept { return _imm.value.u32[ASMJIT_ARCH_LE ? 0 : 1]; }
   //! Get high 32-bit signed integer.
-  constexpr uint32_t u32Hi() const noexcept { return _imm.value.u32[Globals::kHiHalf]; }
+  constexpr uint32_t u32Hi() const noexcept { return _imm.value.u32[ASMJIT_ARCH_LE ? 1 : 0]; }
   //! Get immediate value as 64-bit signed integer.
   constexpr int64_t i64() const noexcept { return _imm.value.i64; }
   //! Get immediate value as 64-bit unsigned integer.
@@ -1241,8 +1241,8 @@ public:
   // --------------------------------------------------------------------------
 
   inline void setFloat(float f) noexcept {
-    _imm.value.f32[Globals::kLoHalf] = f;
-    _imm.value.u32[Globals::kHiHalf] = 0;
+    _imm.value.f32[ASMJIT_ARCH_LE ? 0 : 1] = f;
+    _imm.value.u32[ASMJIT_ARCH_LE ? 1 : 0] = 0;
   }
 
   inline void setDouble(double d) noexcept {

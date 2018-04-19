@@ -175,7 +175,7 @@ static void testIntUtils() noexcept {
 }
 
 static void testReadWrite() noexcept {
-  INFO("Support::readX()/writeX()");
+  INFO("Support::readX() / writeX()");
 
   uint8_t arr[32] = { 0 };
 

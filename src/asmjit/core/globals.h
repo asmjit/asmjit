@@ -22,6 +22,10 @@ ASMJIT_BEGIN_NAMESPACE
 
 namespace Globals {
 
+// ============================================================================
+// [asmjit::Globals::<global>]
+// ============================================================================
+
 //! Host memory allocator overhead.
 constexpr uint32_t kMemAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
 
@@ -71,8 +75,33 @@ constexpr size_t kNullTerminated = std::numeric_limits<size_t>::max();
 //! Invalid base address.
 constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
 
-constexpr uint32_t kLoHalf = ASMJIT_ARCH_LE ? 0 : 1;
-constexpr uint32_t kHiHalf = ASMJIT_ARCH_LE ? 1 : 0;
+// ============================================================================
+// [asmjit::Globals::ByteOrder]
+// ============================================================================
+
+//! Byte order.
+enum ByteOrder : uint32_t {
+  kByteOrderLE      = 0,
+  kByteOrderBE      = 1,
+  kByteOrderNative  = ASMJIT_ARCH_LE ? kByteOrderLE : kByteOrderBE,
+  kByteOrderSwapped = ASMJIT_ARCH_LE ? kByteOrderBE : kByteOrderLE
+};
+
+// ============================================================================
+// [asmjit::Globals::ResetPolicy]
+// ============================================================================
+
+//! Reset policy used by most `reset()` functions.
+enum ResetPolicy : uint32_t {
+  //! Soft reset, doesn't deallocate memory (default).
+  kResetSoft = 0,
+  //! Hard reset, releases all memory used, if any.
+  kResetHard = 1
+};
+
+// ============================================================================
+// [asmjit::Globals::Link]
+// ============================================================================
 
 enum Link : uint32_t {
   kLinkLeft  = 0,
@@ -85,14 +114,6 @@ enum Link : uint32_t {
   kLinkLast  = 1,
 
   kLinkCount = 2
-};
-
-//! Reset policy used by most `Something::reset()`
-enum ResetPolicy : uint32_t {
-  //! Soft reset, doesn't deallocate memory (default).
-  kResetSoft = 0,
-  //! Hard reset, releases all memory used, if any.
-  kResetHard = 1
 };
 
 struct Init_ {};

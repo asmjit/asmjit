@@ -28,21 +28,21 @@ ASMJIT_BEGIN_NAMESPACE
 namespace Support {
 
 // ============================================================================
-// [asmjit::Support - Architecture Constraints]
+// [asmjit::Support - Architecture Features & Constraints]
 // ============================================================================
 
-//! \internal
-//! \{
+using Globals::kByteOrderLE;
+using Globals::kByteOrderBE;
+using Globals::kByteOrderNative;
+
 static constexpr bool kUnalignedAccess16 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess32 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess64 = ASMJIT_ARCH_X86 != 0;
-//! \}
 
 // ============================================================================
 // [asmjit::Support - Internal]
 // ============================================================================
 
-//! \internal
 namespace Internal {
   template<typename T, size_t Alignment>
   struct AlignedInt {};
@@ -342,14 +342,12 @@ constexpr uint32_t staticCtz() noexcept { return StaticCtz<N>::kValue; }
 //   }
 //   return n;
 
-//! \internal
 static inline uint32_t _popcntGeneric(uint32_t x) noexcept {
   x = x - ((x >> 1) & 0x55555555U);
   x = (x & 0x33333333U) + ((x >> 2) & 0x33333333U);
   return (((x + (x >> 4)) & 0x0F0F0F0FU) * 0x01010101U) >> 24;
 }
 
-//! \internal
 static inline uint32_t _popcntGeneric(uint64_t x) noexcept {
   if (ASMJIT_ARCH_BITS >= 64) {
     x = x - ((x >> 1) & 0x5555555555555555U);
@@ -362,7 +360,6 @@ static inline uint32_t _popcntGeneric(uint64_t x) noexcept {
   }
 }
 
-//! \internal
 static inline uint32_t _popcntImpl(uint32_t x) noexcept {
   #if ASMJIT_CXX_GNU
   return uint32_t(__builtin_popcount(x));
@@ -371,7 +368,6 @@ static inline uint32_t _popcntImpl(uint32_t x) noexcept {
   #endif
 }
 
-//! \internal
 static inline uint32_t _popcntImpl(uint64_t x) noexcept {
   #if ASMJIT_CXX_GNU
   return uint32_t(__builtin_popcountll(x));
@@ -598,375 +594,246 @@ constexpr T asciiToUpper(T c) noexcept { return c ^ (T(c >= T('a') && c <= T('z'
 static inline uint32_t readU8(const void* p) noexcept { return uint32_t(static_cast<const uint8_t*>(p)[0]); }
 static inline int32_t readI8(const void* p) noexcept { return int32_t(static_cast<const int8_t*>(p)[0]); }
 
-template<size_t Alignment>
-static inline uint32_t readU16xLE(const void* p) noexcept {
-  if (ASMJIT_ARCH_LE && (kUnalignedAccess16 || Alignment >= 2)) {
+template<uint32_t BO, size_t Alignment>
+static inline uint32_t readU16x(const void* p) noexcept {
+  if (BO == kByteOrderNative && (kUnalignedAccess16 || Alignment >= 2)) {
     typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
     return uint32_t(static_cast<const U16AlignedToN*>(p)[0]);
   }
   else {
-    uint32_t x = uint32_t(static_cast<const uint8_t*>(p)[0]);
-    uint32_t y = uint32_t(static_cast<const uint8_t*>(p)[1]);
-    return x | (y << 8);
+    uint32_t hi = readU8(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 1 : 0));
+    uint32_t lo = readU8(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 0 : 1));
+    return shl(hi, 8) | lo;
   }
 }
 
-template<size_t Alignment>
-static inline uint32_t readU16xBE(const void* p) noexcept {
-  if (ASMJIT_ARCH_BE && (kUnalignedAccess16 || Alignment >= 2)) {
-    typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
-    return uint32_t(static_cast<const U16AlignedToN*>(p)[0]);
-  }
-  else {
-    uint32_t x = uint32_t(static_cast<const uint8_t*>(p)[0]);
-    uint32_t y = uint32_t(static_cast<const uint8_t*>(p)[1]);
-    return (x << 8) | y;
-  }
-}
-
-template<size_t Alignment>
-static inline int32_t readI16xLE(const void* p) noexcept {
-  if (ASMJIT_ARCH_LE && (kUnalignedAccess16 || Alignment >= 2)) {
+template<uint32_t BO, size_t Alignment>
+static inline int32_t readI16x(const void* p) noexcept {
+  if (BO == kByteOrderNative && (kUnalignedAccess16 || Alignment >= 2)) {
     typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
     return int32_t(int16_t(static_cast<const U16AlignedToN*>(p)[0]));
   }
   else {
-    int32_t x = int32_t(static_cast<const uint8_t*>(p)[0]);
-    int32_t y = int32_t(static_cast<const int8_t*>(p)[1]);
-    return x | shl(y, 8);
+    int32_t hi = readI8(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 1 : 0));
+    int32_t lo = readU8(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 0 : 1));
+    return shl(hi, 8) | lo;
   }
 }
 
-template<size_t Alignment>
-static inline int32_t readI16xBE(const void* p) noexcept {
-  if (ASMJIT_ARCH_BE && (kUnalignedAccess16 || Alignment >= 2)) {
-    typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
-    return int32_t(int16_t(static_cast<const U16AlignedToN*>(p)[0]));
+template<uint32_t BO = kByteOrderNative>
+static inline uint32_t readU24u(const void* p) noexcept {
+  uint32_t b0 = readU8(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 2 : 0));
+  uint32_t b1 = readU8(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 1 : 1));
+  uint32_t b2 = readU8(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 0 : 2));
+  return shl(b0, 16) | shl(b1, 8) | b2;
+}
+
+template<uint32_t BO, size_t Alignment>
+static inline uint32_t readU32x(const void* p) noexcept {
+  if (kUnalignedAccess32 || Alignment >= 4) {
+    typedef typename Internal::AlignedInt<uint32_t, Alignment>::T U32AlignedToN;
+    uint32_t x = static_cast<const U32AlignedToN*>(p)[0];
+    return BO == kByteOrderNative ? x : byteswap32(x);
   }
   else {
-    int32_t x = int32_t(static_cast<const int8_t*>(p)[0]);
-    int32_t y = int32_t(static_cast<const uint8_t*>(p)[1]);
-    return shl(x, 8) | y;
+    uint32_t hi = readU16x<BO, Alignment >= 2 ? size_t(2) : Alignment>(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 2 : 0));
+    uint32_t lo = readU16x<BO, Alignment >= 2 ? size_t(2) : Alignment>(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 0 : 2));
+    return shl(hi, 16) | lo;
   }
 }
 
-template<size_t Alignment>
-static inline uint32_t readU16x(const void* p) noexcept { return ASMJIT_ARCH_LE ? readU16xLE<Alignment>(p) : readU16xBE<Alignment>(p); }
+template<uint32_t BO, size_t Alignment>
+static inline uint64_t readU64x(const void* p) noexcept {
+  if (BO == kByteOrderNative && (kUnalignedAccess64 || Alignment >= 8)) {
+    typedef typename Internal::AlignedInt<uint64_t, Alignment>::T U64AlignedToN;
+    return static_cast<const U64AlignedToN*>(p)[0];
+  }
+  else {
+    uint32_t hi = readU32x<BO, Alignment >= 4 ? size_t(4) : Alignment>(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 4 : 0));
+    uint32_t lo = readU32x<BO, Alignment >= 4 ? size_t(4) : Alignment>(static_cast<const uint8_t*>(p) + (BO == kByteOrderLE ? 0 : 4));
+    return shl(uint64_t(hi), 32) | lo;
+  }
+}
 
-template<size_t Alignment>
-static inline int32_t readI16x(const void* p) noexcept { return ASMJIT_ARCH_LE ? readI16xLE<Alignment>(p) : readI16xBE<Alignment>(p); }
+template<uint32_t BO, size_t Alignment>
+static inline int32_t readI32x(const void* p) noexcept { return int32_t(readU32x<BO, Alignment>(p)); }
 
-static inline uint32_t readU16aLE(const void* p) noexcept { return readU16xLE<2>(p); }
-static inline uint32_t readU16uLE(const void* p) noexcept { return readU16xLE<1>(p); }
+template<uint32_t BO, size_t Alignment>
+static inline int64_t readI64x(const void* p) noexcept { return int64_t(readU64x<BO, Alignment>(p)); }
 
-static inline uint32_t readU16aBE(const void* p) noexcept { return readU16xBE<2>(p); }
-static inline uint32_t readU16uBE(const void* p) noexcept { return readU16xBE<1>(p); }
+template<size_t Alignment> static inline int32_t readI16xLE(const void* p) noexcept { return readI16x<kByteOrderLE, Alignment>(p); }
+template<size_t Alignment> static inline int32_t readI16xBE(const void* p) noexcept { return readI16x<kByteOrderBE, Alignment>(p); }
+template<size_t Alignment> static inline uint32_t readU16xLE(const void* p) noexcept { return readU16x<kByteOrderLE, Alignment>(p); }
+template<size_t Alignment> static inline uint32_t readU16xBE(const void* p) noexcept { return readU16x<kByteOrderBE, Alignment>(p); }
+template<size_t Alignment> static inline int32_t readI32xLE(const void* p) noexcept { return readI32x<kByteOrderLE, Alignment>(p); }
+template<size_t Alignment> static inline int32_t readI32xBE(const void* p) noexcept { return readI32x<kByteOrderBE, Alignment>(p); }
+template<size_t Alignment> static inline uint32_t readU32xLE(const void* p) noexcept { return readU32x<kByteOrderLE, Alignment>(p); }
+template<size_t Alignment> static inline uint32_t readU32xBE(const void* p) noexcept { return readU32x<kByteOrderBE, Alignment>(p); }
+template<size_t Alignment> static inline int64_t readI64xLE(const void* p) noexcept { return readI64x<kByteOrderLE, Alignment>(p); }
+template<size_t Alignment> static inline int64_t readI64xBE(const void* p) noexcept { return readI64x<kByteOrderBE, Alignment>(p); }
+template<size_t Alignment> static inline uint64_t readU64xLE(const void* p) noexcept { return readU64x<kByteOrderLE, Alignment>(p); }
+template<size_t Alignment> static inline uint64_t readU64xBE(const void* p) noexcept { return readU64x<kByteOrderBE, Alignment>(p); }
 
-static inline uint32_t readU16a(const void* p) noexcept { return readU16x<2>(p); }
-static inline uint32_t readU16u(const void* p) noexcept { return readU16x<1>(p); }
+static inline int32_t readI16a(const void* p) noexcept { return readI16x<kByteOrderNative, 2>(p); }
+static inline int32_t readI16u(const void* p) noexcept { return readI16x<kByteOrderNative, 1>(p); }
+static inline uint32_t readU16a(const void* p) noexcept { return readU16x<kByteOrderNative, 2>(p); }
+static inline uint32_t readU16u(const void* p) noexcept { return readU16x<kByteOrderNative, 1>(p); }
 
 static inline int32_t readI16aLE(const void* p) noexcept { return readI16xLE<2>(p); }
 static inline int32_t readI16uLE(const void* p) noexcept { return readI16xLE<1>(p); }
+static inline uint32_t readU16aLE(const void* p) noexcept { return readU16xLE<2>(p); }
+static inline uint32_t readU16uLE(const void* p) noexcept { return readU16xLE<1>(p); }
 
 static inline int32_t readI16aBE(const void* p) noexcept { return readI16xBE<2>(p); }
 static inline int32_t readI16uBE(const void* p) noexcept { return readI16xBE<1>(p); }
+static inline uint32_t readU16aBE(const void* p) noexcept { return readU16xBE<2>(p); }
+static inline uint32_t readU16uBE(const void* p) noexcept { return readU16xBE<1>(p); }
 
-static inline int32_t readI16a(const void* p) noexcept { return readI16x<2>(p); }
-static inline int32_t readI16u(const void* p) noexcept { return readI16x<1>(p); }
+static inline uint32_t readU24uLE(const void* p) noexcept { return readU24u<kByteOrderLE>(p); }
+static inline uint32_t readU24uBE(const void* p) noexcept { return readU24u<kByteOrderBE>(p); }
 
-template<size_t Alignment>
-static inline uint32_t readU32xLE(const void* p) noexcept {
-  if (kUnalignedAccess32 || Alignment >= 4) {
-    typedef typename Internal::AlignedInt<uint32_t, Alignment>::T U32AlignedToN;
-    uint32_t x = static_cast<const U32AlignedToN*>(p)[0];
-    return ASMJIT_ARCH_LE ? x : byteswap32(x);
-  }
-  else {
-    uint32_t x = readU16xLE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<const uint8_t*>(p) + 0);
-    uint32_t y = readU16xLE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<const uint8_t*>(p) + 2);
-    return x + (y << 16);
-  }
-}
-
-template<size_t Alignment>
-static inline uint32_t readU32xBE(const void* p) noexcept {
-  if (kUnalignedAccess32 || Alignment >= 4) {
-    typedef typename Internal::AlignedInt<uint32_t, Alignment>::T U32AlignedToN;
-    uint32_t x = static_cast<const U32AlignedToN*>(p)[0];
-    return ASMJIT_ARCH_BE ? x : byteswap32(x);
-  }
-  else {
-    uint32_t x = readU16xBE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<const uint8_t*>(p) + 0);
-    uint32_t y = readU16xBE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<const uint8_t*>(p) + 2);
-    return (x << 16) + y;
-  }
-}
-
-template<size_t Alignment>
-static inline int32_t readI32xLE(const void* p) noexcept { return int32_t(readU32xLE<Alignment>(p)); }
-
-template<size_t Alignment>
-static inline int32_t readI32xBE(const void* p) noexcept { return int32_t(readU32xBE<Alignment>(p)); }
-
-template<size_t Alignment>
-static inline uint32_t readU32x(const void* p) noexcept { return ASMJIT_ARCH_LE ? readU32xLE<Alignment>(p) : readU32xBE<Alignment>(p); }
-
-template<size_t Alignment>
-static inline int32_t readI32x(const void* p) noexcept { return ASMJIT_ARCH_LE ? readI32xLE<Alignment>(p) : readI32xBE<Alignment>(p); }
-
-static inline uint32_t readU32a(const void* p) noexcept { return readU32x<4>(p); }
-static inline uint32_t readU32u(const void* p) noexcept { return readU32x<1>(p); }
-
-static inline uint32_t readU32aLE(const void* p) noexcept { return readU32xLE<4>(p); }
-static inline uint32_t readU32uLE(const void* p) noexcept { return readU32xLE<1>(p); }
-
-static inline uint32_t readU32aBE(const void* p) noexcept { return readU32xBE<4>(p); }
-static inline uint32_t readU32uBE(const void* p) noexcept { return readU32xBE<1>(p); }
-
-static inline int32_t readI32a(const void* p) noexcept { return readI32x<4>(p); }
-static inline int32_t readI32u(const void* p) noexcept { return readI32x<1>(p); }
+static inline int32_t readI32a(const void* p) noexcept { return readI32x<kByteOrderNative, 4>(p); }
+static inline int32_t readI32u(const void* p) noexcept { return readI32x<kByteOrderNative, 1>(p); }
+static inline uint32_t readU32a(const void* p) noexcept { return readU32x<kByteOrderNative, 4>(p); }
+static inline uint32_t readU32u(const void* p) noexcept { return readU32x<kByteOrderNative, 1>(p); }
 
 static inline int32_t readI32aLE(const void* p) noexcept { return readI32xLE<4>(p); }
 static inline int32_t readI32uLE(const void* p) noexcept { return readI32xLE<1>(p); }
+static inline uint32_t readU32aLE(const void* p) noexcept { return readU32xLE<4>(p); }
+static inline uint32_t readU32uLE(const void* p) noexcept { return readU32xLE<1>(p); }
 
 static inline int32_t readI32aBE(const void* p) noexcept { return readI32xBE<4>(p); }
 static inline int32_t readI32uBE(const void* p) noexcept { return readI32xBE<1>(p); }
+static inline uint32_t readU32aBE(const void* p) noexcept { return readU32xBE<4>(p); }
+static inline uint32_t readU32uBE(const void* p) noexcept { return readU32xBE<1>(p); }
 
-template<size_t Alignment>
-static inline uint64_t readU64xLE(const void* p) noexcept {
-  if (ASMJIT_ARCH_LE && (kUnalignedAccess64 || Alignment >= 8)) {
-    typedef typename Internal::AlignedInt<uint64_t, Alignment>::T U64AlignedToN;
-    return static_cast<const U64AlignedToN*>(p)[0];
-  }
-  else {
-    uint32_t x = readU32xLE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<const uint8_t*>(p) + 0);
-    uint32_t y = readU32xLE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<const uint8_t*>(p) + 4);
-    return uint64_t(x) | (uint64_t(y) << 32);
-  }
-}
-
-template<size_t Alignment>
-static inline uint64_t readU64xBE(const void* p) noexcept {
-  if (ASMJIT_ARCH_BE && (kUnalignedAccess64 || Alignment >= 8)) {
-    typedef typename Internal::AlignedInt<uint64_t, Alignment>::T U64AlignedToN;
-    return static_cast<const U64AlignedToN*>(p)[0];
-  }
-  else {
-    uint32_t x = readU32xBE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<const uint8_t*>(p) + 0);
-    uint32_t y = readU32xBE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<const uint8_t*>(p) + 4);
-    return (uint64_t(x) << 32) | uint64_t(y);
-  }
-}
-
-template<size_t Alignment>
-static inline int64_t readI64xLE(const void* p) noexcept { return int64_t(readU64xLE<Alignment>(p)); }
-
-template<size_t Alignment>
-static inline int64_t readI64xBE(const void* p) noexcept { return int64_t(readU64xBE<Alignment>(p)); }
-
-template<size_t Alignment>
-static inline uint64_t readU64x(const void* p) noexcept { return ASMJIT_ARCH_LE ? readU64xLE<Alignment>(p) : readU64xBE<Alignment>(p); }
-
-template<size_t Alignment>
-static inline int64_t readI64x(const void* p) noexcept { return ASMJIT_ARCH_LE ? readI64xLE<Alignment>(p) : readI64xBE<Alignment>(p); }
-
-static inline uint64_t readU64a(const void* p) noexcept { return readU64x<8>(p); }
-static inline uint64_t readU64u(const void* p) noexcept { return readU64x<1>(p); }
-
-static inline uint64_t readU64aLE(const void* p) noexcept { return readU64xLE<8>(p); }
-static inline uint64_t readU64uLE(const void* p) noexcept { return readU64xLE<1>(p); }
-
-static inline uint64_t readU64aBE(const void* p) noexcept { return readU64xBE<8>(p); }
-static inline uint64_t readU64uBE(const void* p) noexcept { return readU64xBE<1>(p); }
-
-static inline int64_t readI64a(const void* p) noexcept { return readI64x<8>(p); }
-static inline int64_t readI64u(const void* p) noexcept { return readI64x<1>(p); }
+static inline int64_t readI64a(const void* p) noexcept { return readI64x<kByteOrderNative, 8>(p); }
+static inline int64_t readI64u(const void* p) noexcept { return readI64x<kByteOrderNative, 1>(p); }
+static inline uint64_t readU64a(const void* p) noexcept { return readU64x<kByteOrderNative, 8>(p); }
+static inline uint64_t readU64u(const void* p) noexcept { return readU64x<kByteOrderNative, 1>(p); }
 
 static inline int64_t readI64aLE(const void* p) noexcept { return readI64xLE<8>(p); }
 static inline int64_t readI64uLE(const void* p) noexcept { return readI64xLE<1>(p); }
+static inline uint64_t readU64aLE(const void* p) noexcept { return readU64xLE<8>(p); }
+static inline uint64_t readU64uLE(const void* p) noexcept { return readU64xLE<1>(p); }
 
 static inline int64_t readI64aBE(const void* p) noexcept { return readI64xBE<8>(p); }
 static inline int64_t readI64uBE(const void* p) noexcept { return readI64xBE<1>(p); }
+static inline uint64_t readU64aBE(const void* p) noexcept { return readU64xBE<8>(p); }
+static inline uint64_t readU64uBE(const void* p) noexcept { return readU64xBE<1>(p); }
 
 static inline void writeU8(void* p, uint32_t x) noexcept { static_cast<uint8_t*>(p)[0] = uint8_t(x & 0xFFU); }
 static inline void writeI8(void* p, int32_t x) noexcept { static_cast<uint8_t*>(p)[0] = uint8_t(x & 0xFF); }
 
-template<size_t Alignment>
-static inline void writeU16xLE(void* p, uint32_t x) noexcept {
-  if (ASMJIT_ARCH_LE && (kUnalignedAccess16 || Alignment >= 2)) {
-    typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
-    static_cast<U16AlignedToN*>(p)[0] = uint16_t(x & 0xFFFFU);
-  }
-  else {
-    static_cast<uint8_t*>(p)[0] = uint8_t((x     ) & 0xFFU);
-    static_cast<uint8_t*>(p)[1] = uint8_t((x >> 8) & 0xFFU);
-  }
-}
-
-template<size_t Alignment>
-static inline void writeU16xBE(void* p, uint32_t x) noexcept {
-  if (ASMJIT_ARCH_BE && (kUnalignedAccess16 || Alignment >= 2)) {
-    typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
-    static_cast<U16AlignedToN*>(p)[0] = uint16_t(x & 0xFFFFU);
-  }
-  else {
-    static_cast<uint8_t*>(p)[0] = uint8_t((x >> 8) & 0xFFU);
-    static_cast<uint8_t*>(p)[1] = uint8_t((x     ) & 0xFFU);
-  }
-}
-
-template<size_t Alignment>
+template<uint32_t BO, size_t Alignment>
 static inline void writeU16x(void* p, uint32_t x) noexcept {
-  if (ASMJIT_ARCH_LE)
-    writeU16xLE<Alignment>(p, x);
-  else
-    writeU16xBE<Alignment>(p, x);
+  if (BO == kByteOrderNative && (kUnalignedAccess16 || Alignment >= 2)) {
+    typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
+    static_cast<U16AlignedToN*>(p)[0] = uint16_t(x & 0xFFFFU);
+  }
+  else {
+    static_cast<uint8_t*>(p)[0] = uint8_t((x >> (BO == kByteOrderLE ? 0 : 8)) & 0xFFU);
+    static_cast<uint8_t*>(p)[1] = uint8_t((x >> (BO == kByteOrderLE ? 8 : 0)) & 0xFFU);
+  }
 }
 
-template<size_t Alignment>
-static inline void writeI16xLE(void* p, int32_t x) noexcept { writeU16xLE<Alignment>(p, uint32_t(x)); }
+template<uint32_t BO = kByteOrderNative>
+static inline void writeU24u(void* p, uint32_t v) noexcept {
+  static_cast<uint8_t*>(p)[0] = uint8_t((v >> (BO == kByteOrderLE ?  0 : 16)) & 0xFFU);
+  static_cast<uint8_t*>(p)[1] = uint8_t((v >> (BO == kByteOrderLE ?  8 :  8)) & 0xFFU);
+  static_cast<uint8_t*>(p)[2] = uint8_t((v >> (BO == kByteOrderLE ? 16 :  0)) & 0xFFU);
+}
 
-template<size_t Alignment>
-static inline void writeI16xBE(void* p, int32_t x) noexcept { writeU16xBE<Alignment>(p, uint32_t(x)); }
+template<uint32_t BO, size_t Alignment>
+static inline void writeU32x(void* p, uint32_t x) noexcept {
+  if (kUnalignedAccess32 || Alignment >= 4) {
+    typedef typename Internal::AlignedInt<uint32_t, Alignment>::T U32AlignedToN;
+    static_cast<U32AlignedToN*>(p)[0] = (BO == kByteOrderNative) ? x : Support::byteswap32(x);
+  }
+  else {
+    writeU16x<BO, Alignment >= 2 ? size_t(2) : Alignment>(static_cast<uint8_t*>(p) + 0, x >> (BO == kByteOrderLE ?  0 : 16));
+    writeU16x<BO, Alignment >= 2 ? size_t(2) : Alignment>(static_cast<uint8_t*>(p) + 2, x >> (BO == kByteOrderLE ? 16 :  0));
+  }
+}
 
-template<size_t Alignment>
-static inline void writeI16x(void* p, int32_t x) noexcept { writeU16x<Alignment>(p, uint32_t(x)); }
+template<uint32_t BO, size_t Alignment>
+static inline void writeU64x(void* p, uint64_t x) noexcept {
+  if (BO == kByteOrderNative && (kUnalignedAccess64 || Alignment >= 8)) {
+    typedef typename Internal::AlignedInt<uint64_t, Alignment>::T U64AlignedToN;
+    static_cast<U64AlignedToN*>(p)[0] = x;
+  }
+  else {
+    writeU32x<BO, Alignment >= 4 ? size_t(4) : Alignment>(static_cast<uint8_t*>(p) + 0, uint32_t((x >> (BO == kByteOrderLE ?  0 : 32)) & 0xFFFFFFFFU));
+    writeU32x<BO, Alignment >= 4 ? size_t(4) : Alignment>(static_cast<uint8_t*>(p) + 4, uint32_t((x >> (BO == kByteOrderLE ? 32 :  0)) & 0xFFFFFFFFU));
+  }
+}
 
-static inline void writeU16aLE(void* p, uint32_t x) noexcept { writeU16xLE<2>(p, x); }
-static inline void writeU16uLE(void* p, uint32_t x) noexcept { writeU16xLE<1>(p, x); }
+template<uint32_t BO, size_t Alignment> static inline void writeI16x(void* p, int32_t x) noexcept { writeU16x<BO, Alignment>(p, uint32_t(x)); }
+template<uint32_t BO, size_t Alignment> static inline void writeI32x(void* p, int32_t x) noexcept { writeU32x<BO, Alignment>(p, uint32_t(x)); }
+template<uint32_t BO, size_t Alignment> static inline void writeI64x(void* p, int64_t x) noexcept { writeU64x<BO, Alignment>(p, uint64_t(x)); }
 
-static inline void writeU16aBE(void* p, uint32_t x) noexcept { writeU16xBE<2>(p, x); }
-static inline void writeU16uBE(void* p, uint32_t x) noexcept { writeU16xBE<1>(p, x); }
+template<size_t Alignment> static inline void writeI16xLE(void* p, int32_t x) noexcept { writeI16x<kByteOrderLE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeI16xBE(void* p, int32_t x) noexcept { writeI16x<kByteOrderBE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeU16xLE(void* p, uint32_t x) noexcept { writeU16x<kByteOrderLE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeU16xBE(void* p, uint32_t x) noexcept { writeU16x<kByteOrderBE, Alignment>(p, x); }
 
-static inline void writeU16a(void* p, uint32_t x) noexcept { writeU16x<2>(p, x); }
-static inline void writeU16u(void* p, uint32_t x) noexcept { writeU16x<1>(p, x); }
+template<size_t Alignment> static inline void writeI32xLE(void* p, int32_t x) noexcept { writeI32x<kByteOrderLE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeI32xBE(void* p, int32_t x) noexcept { writeI32x<kByteOrderBE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeU32xLE(void* p, uint32_t x) noexcept { writeU32x<kByteOrderLE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeU32xBE(void* p, uint32_t x) noexcept { writeU32x<kByteOrderBE, Alignment>(p, x); }
+
+template<size_t Alignment> static inline void writeI64xLE(void* p, int64_t x) noexcept { writeI64x<kByteOrderLE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeI64xBE(void* p, int64_t x) noexcept { writeI64x<kByteOrderBE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeU64xLE(void* p, uint64_t x) noexcept { writeU64x<kByteOrderLE, Alignment>(p, x); }
+template<size_t Alignment> static inline void writeU64xBE(void* p, uint64_t x) noexcept { writeU64x<kByteOrderBE, Alignment>(p, x); }
+
+static inline void writeI16a(void* p, int32_t x) noexcept { writeI16x<kByteOrderNative, 2>(p, x); }
+static inline void writeI16u(void* p, int32_t x) noexcept { writeI16x<kByteOrderNative, 1>(p, x); }
+static inline void writeU16a(void* p, uint32_t x) noexcept { writeU16x<kByteOrderNative, 2>(p, x); }
+static inline void writeU16u(void* p, uint32_t x) noexcept { writeU16x<kByteOrderNative, 1>(p, x); }
 
 static inline void writeI16aLE(void* p, int32_t x) noexcept { writeI16xLE<2>(p, x); }
 static inline void writeI16uLE(void* p, int32_t x) noexcept { writeI16xLE<1>(p, x); }
+static inline void writeU16aLE(void* p, uint32_t x) noexcept { writeU16xLE<2>(p, x); }
+static inline void writeU16uLE(void* p, uint32_t x) noexcept { writeU16xLE<1>(p, x); }
 
 static inline void writeI16aBE(void* p, int32_t x) noexcept { writeI16xBE<2>(p, x); }
 static inline void writeI16uBE(void* p, int32_t x) noexcept { writeI16xBE<1>(p, x); }
+static inline void writeU16aBE(void* p, uint32_t x) noexcept { writeU16xBE<2>(p, x); }
+static inline void writeU16uBE(void* p, uint32_t x) noexcept { writeU16xBE<1>(p, x); }
 
-static inline void writeI16a(void* p, int32_t x) noexcept { writeI16x<2>(p, x); }
-static inline void writeI16u(void* p, int32_t x) noexcept { writeI16x<1>(p, x); }
+static inline void writeU24uLE(void* p, uint32_t v) noexcept { writeU24u<kByteOrderLE>(p, v); }
+static inline void writeU24uBE(void* p, uint32_t v) noexcept { writeU24u<kByteOrderBE>(p, v); }
 
-template<size_t Alignment>
-static inline void writeU32xLE(void* p, uint32_t x) noexcept {
-  if (kUnalignedAccess32 || Alignment >= 4) {
-    typedef typename Internal::AlignedInt<uint32_t, Alignment>::T U32AlignedToN;
-    static_cast<U32AlignedToN*>(p)[0] = ASMJIT_ARCH_LE ? x : byteswap32(x);
-  }
-  else {
-    writeU16xLE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<uint8_t*>(p) + 0, x);
-    writeU16xLE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<uint8_t*>(p) + 2, x >> 16);
-  }
-}
-
-template<size_t Alignment>
-static inline void writeU32xBE(void* p, uint32_t x) noexcept {
-  if (kUnalignedAccess32 || Alignment >= 4) {
-    typedef typename Internal::AlignedInt<uint32_t, Alignment>::T U32AlignedToN;
-    static_cast<U32AlignedToN*>(p)[0] = ASMJIT_ARCH_BE ? x : byteswap32(x);
-  }
-  else {
-    writeU16xBE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<uint8_t*>(p) + 0, x >> 16);
-    writeU16xBE<Alignment < 4 ? Alignment : size_t(2)>(static_cast<uint8_t*>(p) + 2, x);
-  }
-}
-
-template<size_t Alignment>
-static inline void writeU32x(void* p, uint32_t x) noexcept {
-  if (ASMJIT_ARCH_LE)
-    writeU32xLE<Alignment>(p, x);
-  else
-    writeU32xBE<Alignment>(p, x);
-}
-
-template<size_t Alignment>
-static inline void writeI32xLE(void* p, int32_t x) noexcept { writeU32xLE<Alignment>(p, uint32_t(x)); }
-
-template<size_t Alignment>
-static inline void writeI32xBE(void* p, int32_t x) noexcept { writeU32xBE<Alignment>(p, uint32_t(x)); }
-
-template<size_t Alignment>
-static inline void writeI32x(void* p, int32_t x) noexcept { writeU32x<Alignment>(p, uint32_t(x)); }
-
-static inline void writeU32aLE(void* p, uint32_t x) noexcept { writeU32xLE<4>(p, x); }
-static inline void writeU32uLE(void* p, uint32_t x) noexcept { writeU32xLE<1>(p, x); }
-
-static inline void writeU32aBE(void* p, uint32_t x) noexcept { writeU32xBE<4>(p, x); }
-static inline void writeU32uBE(void* p, uint32_t x) noexcept { writeU32xBE<1>(p, x); }
-
-static inline void writeU32a(void* p, uint32_t x) noexcept { writeU32x<4>(p, x); }
-static inline void writeU32u(void* p, uint32_t x) noexcept { writeU32x<1>(p, x); }
+static inline void writeI32a(void* p, int32_t x) noexcept { writeI32x<kByteOrderNative, 4>(p, x); }
+static inline void writeI32u(void* p, int32_t x) noexcept { writeI32x<kByteOrderNative, 1>(p, x); }
+static inline void writeU32a(void* p, uint32_t x) noexcept { writeU32x<kByteOrderNative, 4>(p, x); }
+static inline void writeU32u(void* p, uint32_t x) noexcept { writeU32x<kByteOrderNative, 1>(p, x); }
 
 static inline void writeI32aLE(void* p, int32_t x) noexcept { writeI32xLE<4>(p, x); }
 static inline void writeI32uLE(void* p, int32_t x) noexcept { writeI32xLE<1>(p, x); }
+static inline void writeU32aLE(void* p, uint32_t x) noexcept { writeU32xLE<4>(p, x); }
+static inline void writeU32uLE(void* p, uint32_t x) noexcept { writeU32xLE<1>(p, x); }
 
 static inline void writeI32aBE(void* p, int32_t x) noexcept { writeI32xBE<4>(p, x); }
 static inline void writeI32uBE(void* p, int32_t x) noexcept { writeI32xBE<1>(p, x); }
+static inline void writeU32aBE(void* p, uint32_t x) noexcept { writeU32xBE<4>(p, x); }
+static inline void writeU32uBE(void* p, uint32_t x) noexcept { writeU32xBE<1>(p, x); }
 
-static inline void writeI32a(void* p, int32_t x) noexcept { writeI32x<4>(p, x); }
-static inline void writeI32u(void* p, int32_t x) noexcept { writeI32x<1>(p, x); }
-
-template<size_t Alignment>
-static inline void writeU64xLE(void* p, uint64_t x) noexcept {
-  if (ASMJIT_ARCH_LE && (kUnalignedAccess64 || Alignment >= 8)) {
-    typedef typename Internal::AlignedInt<uint64_t, Alignment>::T U64AlignedToN;
-    static_cast<U64AlignedToN*>(p)[0] = x;
-  }
-  else {
-    writeU32xLE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<uint8_t*>(p) + 0, uint32_t(x & 0xFFFFFFFFU));
-    writeU32xLE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<uint8_t*>(p) + 4, uint32_t(x >> 32));
-  }
-}
-
-template<size_t Alignment>
-static inline void writeU64xBE(void* p, uint64_t x) noexcept {
-  if (ASMJIT_ARCH_BE && (kUnalignedAccess64 || Alignment >= 8)) {
-    typedef typename Internal::AlignedInt<uint64_t, Alignment>::T U64AlignedToN;
-    static_cast<U64AlignedToN*>(p)[0] = x;
-  }
-  else {
-    writeU32xBE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<uint8_t*>(p) + 0, uint32_t(x >> 32));
-    writeU32xBE<Alignment < 8 ? Alignment : size_t(4)>(static_cast<uint8_t*>(p) + 4, uint32_t(x & 0xFFFFFFFFU));
-  }
-}
-
-template<size_t Alignment>
-static inline void writeU64x(void* p, uint64_t x) noexcept {
-  if (ASMJIT_ARCH_LE)
-    writeU64xLE<Alignment>(p, x);
-  else
-    writeU64xBE<Alignment>(p, x);
-}
-
-template<size_t Alignment>
-static inline void writeI64xLE(void* p, int64_t x) noexcept { writeU64xLE<Alignment>(p, uint64_t(x)); }
-
-template<size_t Alignment>
-static inline void writeI64xBE(void* p, int64_t x) noexcept { writeU64xBE<Alignment>(p, uint64_t(x)); }
-
-template<size_t Alignment>
-static inline void writeI64x(void* p, int64_t x) noexcept { writeU64x<Alignment>(p, uint64_t(x)); }
-
-static inline void writeU64aLE(void* p, uint64_t x) noexcept { writeU64xLE<8>(p, x); }
-static inline void writeU64uLE(void* p, uint64_t x) noexcept { writeU64xLE<1>(p, x); }
-
-static inline void writeU64aBE(void* p, uint64_t x) noexcept { writeU64xBE<8>(p, x); }
-static inline void writeU64uBE(void* p, uint64_t x) noexcept { writeU64xBE<1>(p, x); }
-
-static inline void writeU64a(void* p, uint64_t x) noexcept { writeU64x<8>(p, x); }
-static inline void writeU64u(void* p, uint64_t x) noexcept { writeU64x<1>(p, x); }
+static inline void writeI64a(void* p, int64_t x) noexcept { writeI64x<kByteOrderNative, 8>(p, x); }
+static inline void writeI64u(void* p, int64_t x) noexcept { writeI64x<kByteOrderNative, 1>(p, x); }
+static inline void writeU64a(void* p, uint64_t x) noexcept { writeU64x<kByteOrderNative, 8>(p, x); }
+static inline void writeU64u(void* p, uint64_t x) noexcept { writeU64x<kByteOrderNative, 1>(p, x); }
 
 static inline void writeI64aLE(void* p, int64_t x) noexcept { writeI64xLE<8>(p, x); }
 static inline void writeI64uLE(void* p, int64_t x) noexcept { writeI64xLE<1>(p, x); }
+static inline void writeU64aLE(void* p, uint64_t x) noexcept { writeU64xLE<8>(p, x); }
+static inline void writeU64uLE(void* p, uint64_t x) noexcept { writeU64xLE<1>(p, x); }
 
 static inline void writeI64aBE(void* p, int64_t x) noexcept { writeI64xBE<8>(p, x); }
 static inline void writeI64uBE(void* p, int64_t x) noexcept { writeI64xBE<1>(p, x); }
-
-static inline void writeI64a(void* p, int64_t x) noexcept { writeI64x<8>(p, x); }
-static inline void writeI64u(void* p, int64_t x) noexcept { writeI64x<1>(p, x); }
+static inline void writeU64aBE(void* p, uint64_t x) noexcept { writeU64xBE<8>(p, x); }
+static inline void writeU64uBE(void* p, uint64_t x) noexcept { writeU64xBE<1>(p, x); }
 
 // ============================================================================
 // [asmjit::Support - Operators]
@@ -1482,7 +1349,7 @@ public:
 };
 
 // ============================================================================
-// [b2d::Support::Temporary]
+// [asmjit::Support::Temporary]
 // ============================================================================
 
 //! Used to pass a temporary buffer to:
