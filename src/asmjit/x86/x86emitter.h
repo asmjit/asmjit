@@ -193,18 +193,14 @@ struct EmitterExplicitT {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline This* _emitter() noexcept {
-    return reinterpret_cast<This*>(this);
-  }
-
-  inline const This* _emitter() const noexcept {
-    return reinterpret_cast<const This*>(this);
-  }
+  // These two are unfortunately reported by the sanitizer. We know what we do,
+  // however, the sanitizer doesn't. I have tried to use reinterpret_cast instead,
+  // but that would generate bad code when compiled by MSC.
+  ASMJIT_CXX_NO_SANITIZE_UNDEFINED inline This* _emitter() noexcept { return static_cast<This*>(this); }
+  ASMJIT_CXX_NO_SANITIZE_UNDEFINED inline const This* _emitter() const noexcept { return static_cast<const This*>(this); }
 
   //! Get either GPD or GPQ register of index `id` depending on the current architecture.
-  inline Gp gpz(uint32_t id) const noexcept {
-    return Gp(_emitter()->_gpRegInfo.signature(), id);
-  }
+  inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), id); }
 
   inline Gp zax() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdAx); }
   inline Gp zcx() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdCx); }

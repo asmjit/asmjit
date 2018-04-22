@@ -436,6 +436,14 @@
   #define ASMJIT_DEPRECATED(DECL, MESSAGE) DECL
 #endif
 
+#if ASMJIT_CXX_HAS_ATTRIBUTE(no_sanitize, 0)
+  #define ASMJIT_CXX_NO_SANITIZE_UNDEFINED __attribute__((__no_sanitize__("undefined")))
+#elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(4, 9, 0)
+  #define ASMJIT_CXX_NO_SANITIZE_UNDEFINED __attribute__((__no_sanitize_undefined__))
+#else
+  #define ASMJIT_CXX_NO_SANITIZE_UNDEFINED
+#endif
+
 // ============================================================================
 // [asmjit::Build - Globals - Begin-Namespace / End-Namespace]
 // ============================================================================
