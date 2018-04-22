@@ -26,7 +26,8 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::ArchInfo]
 // ============================================================================
 
-static const uint32_t archInfoTable[] = {
+// NOTE: Keep `const constexpr` otherwise MSC would not compile this code correctly.
+static const constexpr uint32_t archInfoTable[] = {
   // <--------------------+---------------------+-------------------+-------+
   //                      | Type                | SubType           | GPInfo|
   // <--------------------+---------------------+-------------------+-------+
