@@ -37,10 +37,10 @@ typedef JitAllocator::Block Block;
 static inline uint32_t JitAllocator_defaultFillPattern() noexcept {
   // X86 and X86_64 - 4x 'int3' instruction.
   if (ASMJIT_ARCH_X86)
-    return 0xCCCCCCCCU;
+    return 0xCCCCCCCCu;
 
   // Unknown...
-  return 0U;
+  return 0u;
 }
 
 static inline size_t JitAllocator_sizeToPoolId(const JitAllocator* self, size_t size) noexcept {
@@ -60,7 +60,7 @@ static inline size_t JitAllocator_sizeToPoolId(const JitAllocator* self, size_t 
 
 static inline size_t JitAllocator_bitVectorSizeToByteSize(uint32_t areaSize) noexcept {
   using Support::kBitWordSizeInBits;
-  return ((areaSize + kBitWordSizeInBits - 1U) / kBitWordSizeInBits) * sizeof(Support::BitWord);
+  return ((areaSize + kBitWordSizeInBits - 1u) / kBitWordSizeInBits) * sizeof(Support::BitWord);
 }
 
 static inline size_t JitAllocator_calculateIdealBlockSize(JitAllocator::Pool* pool, size_t allocationSize) noexcept {
@@ -74,7 +74,7 @@ static inline size_t JitAllocator_calculateIdealBlockSize(JitAllocator::Pool* po
 }
 
 ASMJIT_FAVOR_SPEED static void JitAllocator_fillPattern(void* mem, uint32_t pattern, size_t sizeInBytes) noexcept {
-  size_t n = sizeInBytes / 4U;
+  size_t n = sizeInBytes / 4u;
   uint32_t* p = static_cast<uint32_t*>(mem);
 
   for (size_t i = 0; i < n; i++)
@@ -87,7 +87,7 @@ static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool
   using Support::kBitWordSizeInBits;
 
   uint32_t areaSize = uint32_t((blockSize + pool->granularity() - 1) >> pool->_granularityLog2);
-  uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1U) / kBitWordSizeInBits;
+  uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
 
   Block* block = static_cast<Block*>(MemMgr::alloc(sizeof(Block)));
   BitWord* bitWords = static_cast<BitWord*>(MemMgr::alloc(size_t(numBitWords) * 2 * sizeof(BitWord)));
@@ -130,7 +130,7 @@ static void JitAllocator_insertBlock(JitAllocator* self, JitAllocator::Block* bl
   // Update statistics.
   pool->_blockCount++;
   pool->_totalAreaSize += block->areaSize();
-  pool->_totalOverheadBytes += sizeof(Block) + JitAllocator_bitVectorSizeToByteSize(block->areaSize()) * 2U;
+  pool->_totalOverheadBytes += sizeof(Block) + JitAllocator_bitVectorSizeToByteSize(block->areaSize()) * 2u;
 }
 
 static void JitAllocator_removeBlock(JitAllocator* self, JitAllocator::Block* block) noexcept {
@@ -146,7 +146,7 @@ static void JitAllocator_removeBlock(JitAllocator* self, JitAllocator::Block* bl
   // Update statistics.
   pool->_blockCount--;
   pool->_totalAreaSize -= block->areaSize();
-  pool->_totalOverheadBytes -= sizeof(Block) + JitAllocator_bitVectorSizeToByteSize(block->areaSize()) * 2U;
+  pool->_totalOverheadBytes -= sizeof(Block) + JitAllocator_bitVectorSizeToByteSize(block->areaSize()) * 2u;
 }
 
 // ============================================================================

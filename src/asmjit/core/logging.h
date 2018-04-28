@@ -40,23 +40,23 @@ class BaseNode;
 class FormatOptions {
 public:
   enum Flags : uint32_t {
-    kFlagMachineCode      = 0x00000001U, //!< Show also binary form of each logged instruction (assembler).
-    kFlagExplainImms      = 0x00000002U, //!< Show a text explanation of some immediate values.
-    kFlagHexImms          = 0x00000004U, //!< Use hexadecimal notation of immediate values.
-    kFlagHexOffsets       = 0x00000008U, //!< Use hexadecimal notation of address offsets.
-    kFlagRegCasts         = 0x00000010U, //!< Show casts between virtual register types (compiler).
-    kFlagPositions        = 0x00000020U, //!< Show positions associated with nodes (compiler).
-    kFlagAnnotations      = 0x00000040U, //!< Annotate nodes that are lowered by passes.
+    kFlagMachineCode      = 0x00000001u, //!< Show also binary form of each logged instruction (assembler).
+    kFlagExplainImms      = 0x00000002u, //!< Show a text explanation of some immediate values.
+    kFlagHexImms          = 0x00000004u, //!< Use hexadecimal notation of immediate values.
+    kFlagHexOffsets       = 0x00000008u, //!< Use hexadecimal notation of address offsets.
+    kFlagRegCasts         = 0x00000010u, //!< Show casts between virtual register types (compiler).
+    kFlagPositions        = 0x00000020u, //!< Show positions associated with nodes (compiler).
+    kFlagAnnotations      = 0x00000040u, //!< Annotate nodes that are lowered by passes.
     // TODO: These must go, keep this only for formatting.
-    kFlagDebugPasses      = 0x00000080U, //!< Show an additional output from passes.
-    kFlagDebugRA          = 0x00000100U  //!< Show an additional output from RA.
+    kFlagDebugPasses      = 0x00000080u, //!< Show an additional output from passes.
+    kFlagDebugRA          = 0x00000100u  //!< Show an additional output from RA.
   };
 
   enum IndentationType : uint32_t {
-    kIndentationCode      = 0U,          //!< Indentation used for instructions and directives.
-    kIndentationLabel     = 1U,          //!< Indentation used for labels and function nodes.
-    kIndentationComment   = 2U,          //!< Indentation used for comments (not inline comments).
-    kIndentationReserved  = 3U
+    kIndentationCode      = 0u,          //!< Indentation used for instructions and directives.
+    kIndentationLabel     = 1u,          //!< Indentation used for labels and function nodes.
+    kIndentationComment   = 2u,          //!< Indentation used for comments (not inline comments).
+    kIndentationReserved  = 3u
   };
 
   // --------------------------------------------------------------------------

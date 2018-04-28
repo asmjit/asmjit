@@ -43,7 +43,7 @@ namespace InstDB {
   //!
   //! Instruction flags.
   enum InstFlags : uint32_t {
-    kInstFlagNone         = 0x00000000U  //!< No flags.
+    kInstFlagNone         = 0x00000000u  //!< No flags.
   };
 
   //! Supported architectures.

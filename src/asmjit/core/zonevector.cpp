@@ -162,7 +162,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
     // and so on. In that case don't change anything as that would mean settings
     // bits outside of the `_size`.
     if (bit)
-      _data[idx] &= (BitWord(1) << bit) - 1U;
+      _data[idx] &= (BitWord(1) << bit) - 1u;
 
     _size = newSize;
     return kErrorOk;

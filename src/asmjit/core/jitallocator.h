@@ -69,7 +69,7 @@ public:
 
   enum Flags : uint32_t {
     //! Always mark unused memory by fill-pattern.
-    kFlagSecureMode = 0x80000000U
+    kFlagSecureMode = 0x80000000u
   };
 
   class Block;
@@ -100,7 +100,7 @@ public:
 
     inline uint32_t granularity() const noexcept { return _granularity; }
     inline void setGranularity(uint32_t granularity) noexcept {
-      ASMJIT_ASSERT(granularity < 65536U);
+      ASMJIT_ASSERT(granularity < 65536u);
       _granularity = uint16_t(granularity);
       _granularityLog2 = uint8_t(Support::ctz(granularity));
     }
@@ -132,7 +132,7 @@ public:
     ASMJIT_NONCOPYABLE(Block)
 
     enum Flags {
-      kFlagDirty           = 0x80000000U //!< Block is dirty (some members needs update).
+      kFlagDirty           = 0x80000000u //!< Block is dirty (some members needs update).
     };
 
     inline Block(Pool* pool,

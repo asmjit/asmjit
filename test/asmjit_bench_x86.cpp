@@ -31,8 +31,8 @@ namespace BenchUtils {
     inline Performance() noexcept { reset(); }
 
     inline void reset() noexcept {
-      tick = 0U;
-      best = 0xFFFFFFFFU;
+      tick = 0u;
+      best = 0xFFFFFFFFu;
     }
 
     inline uint32_t start() noexcept { return (tick = now()); }

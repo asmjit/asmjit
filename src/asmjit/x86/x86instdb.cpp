@@ -54,7 +54,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 #define O(PREFIX, OPCODE, O, LL, W, EvexW, N, TT) (O_ENCODE(0, Opcode::k##PREFIX, 0x##OPCODE, Opcode::kO_##O, Opcode::kLL_##LL, Opcode::kW_##W, Opcode::kEvex_W_##EvexW, Opcode::kCDSHL_##N, Opcode::kCDTT_##TT))
 #define V(PREFIX, OPCODE, O, LL, W, EvexW, N, TT) (O_ENCODE(1, Opcode::k##PREFIX, 0x##OPCODE, Opcode::kO_##O, Opcode::kLL_##LL, Opcode::kW_##W, Opcode::kEvex_W_##EvexW, Opcode::kCDSHL_##N, Opcode::kCDTT_##TT))
-#define O_FPU(PREFIX, OPCODE, O) (Opcode::kFPU_##PREFIX | (0x##OPCODE & 0xFFU) | ((0x##OPCODE >> 8) << Opcode::kFPU_2B_Shift) | Opcode::kO_##O)
+#define O_FPU(PREFIX, OPCODE, O) (Opcode::kFPU_##PREFIX | (0x##OPCODE & 0xFFu) | ((0x##OPCODE >> 8) << Opcode::kFPU_2B_Shift) | Opcode::kO_##O)
 
 // Don't store `_nameDataIndex` if instruction names are disabled. Since some
 // APIs can use `_nameDataIndex` it's much safer if it's zero if it's not defined.
@@ -4324,7 +4324,7 @@ const char* InstDB::nameById(uint32_t id) noexcept {
   return InstDB::infoById(id).name();
 }
 #else
-const char InstInfo::nameData[] = "";
+const char InstDB::_nameData[] = "";
 #endif
 
 // ============================================================================
@@ -4999,51 +4999,51 @@ static const uint32_t _x86OpFlagFromRegType[Reg::kTypeMax + 1] = { ASMJIT_LOOKUP
 #undef VALUE
 
 #define REG_MASK_FROM_REG_TYPE_X86(X) \
-  (X == Reg::kTypeGpbLo) ? 0x0000000FU : \
-  (X == Reg::kTypeGpbHi) ? 0x0000000FU : \
-  (X == Reg::kTypeGpw  ) ? 0x000000FFU : \
-  (X == Reg::kTypeGpd  ) ? 0x000000FFU : \
-  (X == Reg::kTypeGpq  ) ? 0x000000FFU : \
-  (X == Reg::kTypeXmm  ) ? 0x000000FFU : \
-  (X == Reg::kTypeYmm  ) ? 0x000000FFU : \
-  (X == Reg::kTypeZmm  ) ? 0x000000FFU : \
-  (X == Reg::kTypeMm   ) ? 0x000000FFU : \
-  (X == Reg::kTypeKReg ) ? 0x000000FFU : \
-  (X == Reg::kTypeSReg ) ? 0x0000007EU : \
-  (X == Reg::kTypeCReg ) ? 0x0000FFFFU : \
-  (X == Reg::kTypeDReg ) ? 0x000000FFU : \
-  (X == Reg::kTypeSt   ) ? 0x000000FFU : \
-  (X == Reg::kTypeBnd  ) ? 0x0000000FU : \
-  (X == Reg::kTypeRip  ) ? 0x00000001U : 0U
+  (X == Reg::kTypeGpbLo) ? 0x0000000Fu : \
+  (X == Reg::kTypeGpbHi) ? 0x0000000Fu : \
+  (X == Reg::kTypeGpw  ) ? 0x000000FFu : \
+  (X == Reg::kTypeGpd  ) ? 0x000000FFu : \
+  (X == Reg::kTypeGpq  ) ? 0x000000FFu : \
+  (X == Reg::kTypeXmm  ) ? 0x000000FFu : \
+  (X == Reg::kTypeYmm  ) ? 0x000000FFu : \
+  (X == Reg::kTypeZmm  ) ? 0x000000FFu : \
+  (X == Reg::kTypeMm   ) ? 0x000000FFu : \
+  (X == Reg::kTypeKReg ) ? 0x000000FFu : \
+  (X == Reg::kTypeSReg ) ? 0x0000007Eu : \
+  (X == Reg::kTypeCReg ) ? 0x0000FFFFu : \
+  (X == Reg::kTypeDReg ) ? 0x000000FFu : \
+  (X == Reg::kTypeSt   ) ? 0x000000FFu : \
+  (X == Reg::kTypeBnd  ) ? 0x0000000Fu : \
+  (X == Reg::kTypeRip  ) ? 0x00000001u : 0u
 
 #define REG_MASK_FROM_REG_TYPE_X64(X) \
-  (X == Reg::kTypeGpbLo) ? 0x0000FFFFU : \
-  (X == Reg::kTypeGpbHi) ? 0x0000000FU : \
-  (X == Reg::kTypeGpw  ) ? 0x0000FFFFU : \
-  (X == Reg::kTypeGpd  ) ? 0x0000FFFFU : \
-  (X == Reg::kTypeGpq  ) ? 0x0000FFFFU : \
-  (X == Reg::kTypeXmm  ) ? 0xFFFFFFFFU : \
-  (X == Reg::kTypeYmm  ) ? 0xFFFFFFFFU : \
-  (X == Reg::kTypeZmm  ) ? 0xFFFFFFFFU : \
-  (X == Reg::kTypeMm   ) ? 0x000000FFU : \
-  (X == Reg::kTypeKReg ) ? 0x000000FFU : \
-  (X == Reg::kTypeSReg ) ? 0x0000007EU : \
-  (X == Reg::kTypeCReg ) ? 0x0000FFFFU : \
-  (X == Reg::kTypeDReg ) ? 0x0000FFFFU : \
-  (X == Reg::kTypeSt   ) ? 0x000000FFU : \
-  (X == Reg::kTypeBnd  ) ? 0x0000000FU : \
-  (X == Reg::kTypeRip  ) ? 0x00000001U : 0U
+  (X == Reg::kTypeGpbLo) ? 0x0000FFFFu : \
+  (X == Reg::kTypeGpbHi) ? 0x0000000Fu : \
+  (X == Reg::kTypeGpw  ) ? 0x0000FFFFu : \
+  (X == Reg::kTypeGpd  ) ? 0x0000FFFFu : \
+  (X == Reg::kTypeGpq  ) ? 0x0000FFFFu : \
+  (X == Reg::kTypeXmm  ) ? 0xFFFFFFFFu : \
+  (X == Reg::kTypeYmm  ) ? 0xFFFFFFFFu : \
+  (X == Reg::kTypeZmm  ) ? 0xFFFFFFFFu : \
+  (X == Reg::kTypeMm   ) ? 0x000000FFu : \
+  (X == Reg::kTypeKReg ) ? 0x000000FFu : \
+  (X == Reg::kTypeSReg ) ? 0x0000007Eu : \
+  (X == Reg::kTypeCReg ) ? 0x0000FFFFu : \
+  (X == Reg::kTypeDReg ) ? 0x0000FFFFu : \
+  (X == Reg::kTypeSt   ) ? 0x000000FFu : \
+  (X == Reg::kTypeBnd  ) ? 0x0000000Fu : \
+  (X == Reg::kTypeRip  ) ? 0x00000001u : 0u
 
 static const X86ValidationData _x86ValidationData = {
   { ASMJIT_LOOKUP_TABLE_32(REG_MASK_FROM_REG_TYPE_X86, 0) },
-  (1U << Reg::kTypeGpw) | (1U << Reg::kTypeGpd) | (1U << Reg::kTypeRip) | (1U << Label::kLabelTag),
-  (1U << Reg::kTypeGpw) | (1U << Reg::kTypeGpd) | (1U << Reg::kTypeXmm) | (1U << Reg::kTypeYmm) | (1U << Reg::kTypeZmm)
+  (1u << Reg::kTypeGpw) | (1u << Reg::kTypeGpd) | (1u << Reg::kTypeRip) | (1u << Label::kLabelTag),
+  (1u << Reg::kTypeGpw) | (1u << Reg::kTypeGpd) | (1u << Reg::kTypeXmm) | (1u << Reg::kTypeYmm) | (1u << Reg::kTypeZmm)
 };
 
 static const X86ValidationData _x64ValidationData = {
   { ASMJIT_LOOKUP_TABLE_32(REG_MASK_FROM_REG_TYPE_X64, 0) },
-  (1U << Reg::kTypeGpd) | (1U << Reg::kTypeGpq) | (1U << Reg::kTypeRip) | (1U << Label::kLabelTag),
-  (1U << Reg::kTypeGpd) | (1U << Reg::kTypeGpq) | (1U << Reg::kTypeXmm) | (1U << Reg::kTypeYmm) | (1U << Reg::kTypeZmm)
+  (1u << Reg::kTypeGpd) | (1u << Reg::kTypeGpq) | (1u << Reg::kTypeRip) | (1u << Label::kLabelTag),
+  (1u << Reg::kTypeGpd) | (1u << Reg::kTypeGpq) | (1u << Reg::kTypeXmm) | (1u << Reg::kTypeYmm) | (1u << Reg::kTypeZmm)
 };
 
 #undef REG_MASK_FROM_REG_TYPE_X64
@@ -5198,7 +5198,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           combinedRegMask |= regMask;
         }
         else {
-          regMask = 0xFFFFFFFFU;
+          regMask = 0xFFFFFFFFu;
         }
         break;
       }
@@ -5242,7 +5242,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
             // to ESP|RSP.
           }
           else {
-            if (ASMJIT_UNLIKELY((vd->allowedMemBaseRegs & (1U << baseType)) == 0))
+            if (ASMJIT_UNLIKELY((vd->allowedMemBaseRegs & (1u << baseType)) == 0))
               return DebugUtils::errored(kErrorInvalidAddress);
           }
 
@@ -5257,7 +5257,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           else {
             // Virtual base id - will the whole mask for implicit mem validation.
             // The register is not assigned yet, so we cannot predict the phys id.
-            regMask = 0xFFFFFFFFU;
+            regMask = 0xFFFFFFFFu;
           }
 
           if (!indexType && !m.offsetLo32())
@@ -5272,7 +5272,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
         }
 
         if (indexType) {
-          if (ASMJIT_UNLIKELY((vd->allowedMemIndexRegs & (1U << indexType)) == 0))
+          if (ASMJIT_UNLIKELY((vd->allowedMemIndexRegs & (1u << indexType)) == 0))
             return DebugUtils::errored(kErrorInvalidAddress);
 
           if (indexType == Reg::kTypeXmm) {
@@ -5331,38 +5331,38 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
         uint32_t immFlags = 0;
 
         if (int64_t(immValue) >= 0) {
-          if (immValue <= 0xFU)
+          if (immValue <= 0xFu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64 | InstDB::kOpI32 | InstDB::kOpU32 |
                        InstDB::kOpI16 | InstDB::kOpU16 | InstDB::kOpI8  | InstDB::kOpU8  |
                        InstDB::kOpU4  ;
-          else if (immValue <= 0x7FU)
+          else if (immValue <= 0x7Fu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64 | InstDB::kOpI32 | InstDB::kOpU32 |
                        InstDB::kOpI16 | InstDB::kOpU16 | InstDB::kOpI8  | InstDB::kOpU8  ;
-          else if (immValue <= 0xFFU)
+          else if (immValue <= 0xFFu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64 | InstDB::kOpI32 | InstDB::kOpU32 |
                        InstDB::kOpI16 | InstDB::kOpU16 | InstDB::kOpU8  ;
-          else if (immValue <= 0x7FFFU)
+          else if (immValue <= 0x7FFFu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64 | InstDB::kOpI32 | InstDB::kOpU32 |
                        InstDB::kOpI16 | InstDB::kOpU16 ;
-          else if (immValue <= 0xFFFFU)
+          else if (immValue <= 0xFFFFu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64 | InstDB::kOpI32 | InstDB::kOpU32 |
                        InstDB::kOpU16 ;
-          else if (immValue <= 0x7FFFFFFFU)
+          else if (immValue <= 0x7FFFFFFFu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64 | InstDB::kOpI32 | InstDB::kOpU32;
-          else if (immValue <= 0xFFFFFFFFU)
+          else if (immValue <= 0xFFFFFFFFu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64 | InstDB::kOpU32;
-          else if (immValue <= 0x7FFFFFFFFFFFFFFFU)
+          else if (immValue <= 0x7FFFFFFFFFFFFFFFu)
             immFlags = InstDB::kOpI64 | InstDB::kOpU64;
           else
             immFlags = InstDB::kOpU64;
         }
         else {
           immValue = Support::neg(immValue);
-          if (immValue <= 0x80U)
+          if (immValue <= 0x80u)
             immFlags = InstDB::kOpI64 | InstDB::kOpI32 | InstDB::kOpI16 | InstDB::kOpI8;
-          else if (immValue <= 0x8000U)
+          else if (immValue <= 0x8000u)
             immFlags = InstDB::kOpI64 | InstDB::kOpI32 | InstDB::kOpI16;
-          else if (immValue <= 0x80000000U)
+          else if (immValue <= 0x80000000u)
             immFlags = InstDB::kOpI64 | InstDB::kOpI32;
           else
             immFlags = InstDB::kOpI64;
@@ -5383,7 +5383,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
     InstDB::OpSignature& oSigDst = oSigTranslated[i];
     oSigDst.opFlags = opFlags;
     oSigDst.memFlags = uint16_t(memFlags);
-    oSigDst.regMask = uint8_t(regMask & 0xFFU);
+    oSigDst.regMask = uint8_t(regMask & 0xFFu);
     combinedOpFlags |= opFlags;
   }
 
@@ -5405,7 +5405,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
   }
   else {
     // Illegal use of a high 8-bit register with REX prefix.
-    if (ASMJIT_UNLIKELY((combinedOpFlags & InstDB::kOpGpbHi) != 0 && (combinedRegMask & 0xFFFFFF00U) != 0))
+    if (ASMJIT_UNLIKELY((combinedOpFlags & InstDB::kOpGpbHi) != 0 && (combinedRegMask & 0xFFFFFF00u) != 0))
       return DebugUtils::errored(kErrorInvalidUseOfGpbHi);
   }
 
@@ -5729,9 +5729,9 @@ UNIT(asmjit_x86_inst_bits) {
   INFO("Checking validity of Inst enums");
 
   // Cross-validate prefixes.
-  EXPECT(Inst::kOptionRex  == 0x40000000U, "REX prefix must be at 0x40000000");
-  EXPECT(Inst::kOptionVex3 == 0x00000400U, "VEX3 prefix must be at 0x00000400");
-  EXPECT(Inst::kOptionEvex == 0x00001000U, "EVEX prefix must be at 0x00001000");
+  EXPECT(Inst::kOptionRex  == 0x40000000u, "REX prefix must be at 0x40000000");
+  EXPECT(Inst::kOptionVex3 == 0x00000400u, "VEX3 prefix must be at 0x00000400");
+  EXPECT(Inst::kOptionEvex == 0x00001000u, "EVEX prefix must be at 0x00001000");
 
   // These could be combined together to form a valid REX prefix, they must match.
   EXPECT(uint32_t(Inst::kOptionOpCodeB) == uint32_t(Opcode::kB));

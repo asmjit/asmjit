@@ -190,21 +190,21 @@ public:
 struct FuncValue {
   enum Parts : uint32_t {
     kTypeIdShift      = 0,             //!< TypeId shift.
-    kTypeIdMask       = 0x000000FFU,   //!< TypeId mask.
+    kTypeIdMask       = 0x000000FFu,   //!< TypeId mask.
 
-    kFlagIsReg        = 0x00000100U,   //!< Passed by register.
-    kFlagIsStack      = 0x00000200U,   //!< Passed by stack.
-    kFlagIsIndirect   = 0x00000400U,   //!< Passed indirectly by reference (internally a pointer).
-    kFlagIsDone       = 0x00000800U,   //!< Used internally by arguments allocator.
+    kFlagIsReg        = 0x00000100u,   //!< Passed by register.
+    kFlagIsStack      = 0x00000200u,   //!< Passed by stack.
+    kFlagIsIndirect   = 0x00000400u,   //!< Passed indirectly by reference (internally a pointer).
+    kFlagIsDone       = 0x00000800u,   //!< Used internally by arguments allocator.
 
     kStackOffsetShift = 12,            //!< Stack offset shift.
-    kStackOffsetMask  = 0xFFFFF000U,   //!< Stack offset mask (must occupy MSB bits).
+    kStackOffsetMask  = 0xFFFFF000u,   //!< Stack offset mask (must occupy MSB bits).
 
     kRegIdShift       = 16,            //!< RegId shift.
-    kRegIdMask        = 0x00FF0000U,   //!< RegId mask.
+    kRegIdMask        = 0x00FF0000u,   //!< RegId mask.
 
     kRegTypeShift     = 24,            //!< RegType shift.
-    kRegTypeMask      = 0xFF000000U    //!< RegType mask.
+    kRegTypeMask      = 0xFF000000u    //!< RegType mask.
   };
 
   // --------------------------------------------------------------------------
@@ -466,21 +466,21 @@ public:
   };
 
   enum Tag : uint32_t {
-    kTagInvalidOffset     = 0xFFFFFFFFU  //!< Tag used to inform that some offset is invalid.
+    kTagInvalidOffset     = 0xFFFFFFFFu  //!< Tag used to inform that some offset is invalid.
   };
 
   //! Attributes are designed in a way that all are initially false, and user
   //! or FuncFrame finalizer adds them when necessary.
   enum Attributes : uint32_t {
-    kAttrHasPreservedFP   = 0x00000001U, //!< Preserve frame pointer (don't omit FP).
-    kAttrHasFuncCalls     = 0x00000002U, //!< Function calls other functions (is not leaf).
+    kAttrHasPreservedFP   = 0x00000001u, //!< Preserve frame pointer (don't omit FP).
+    kAttrHasFuncCalls     = 0x00000002u, //!< Function calls other functions (is not leaf).
 
-    kAttrX86AvxEnabled    = 0x00010000U, //!< Use AVX instead of SSE for all operations (X86).
-    kAttrX86AvxCleanup    = 0x00020000U, //!< Emit VZEROUPPER instruction in epilog (X86).
-    kAttrX86MmxCleanup    = 0x00040000U, //!< Emit EMMS instruction in epilog (X86).
+    kAttrX86AvxEnabled    = 0x00010000u, //!< Use AVX instead of SSE for all operations (X86).
+    kAttrX86AvxCleanup    = 0x00020000u, //!< Emit VZEROUPPER instruction in epilog (X86).
+    kAttrX86MmxCleanup    = 0x00040000u, //!< Emit EMMS instruction in epilog (X86).
 
-    kAttrAlignedVecSR     = 0x40000000U, //!< Function has aligned save/restore of vector registers.
-    kAttrIsFinalized      = 0x80000000U  //!< FuncFrame is finalized and can be used by PEI.
+    kAttrAlignedVecSR     = 0x40000000u, //!< Function has aligned save/restore of vector registers.
+    kAttrIsFinalized      = 0x80000000u  //!< FuncFrame is finalized and can be used by PEI.
   };
 
   // --------------------------------------------------------------------------
@@ -675,15 +675,15 @@ public:
   }
 
   inline void setAllDirty() noexcept {
-    _dirtyRegs[0] = 0xFFFFFFFFU;
-    _dirtyRegs[1] = 0xFFFFFFFFU;
-    _dirtyRegs[2] = 0xFFFFFFFFU;
-    _dirtyRegs[3] = 0xFFFFFFFFU;
+    _dirtyRegs[0] = 0xFFFFFFFFu;
+    _dirtyRegs[1] = 0xFFFFFFFFu;
+    _dirtyRegs[2] = 0xFFFFFFFFu;
+    _dirtyRegs[3] = 0xFFFFFFFFu;
   }
 
   inline void setAllDirty(uint32_t group) noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
-    _dirtyRegs[group] = 0xFFFFFFFFU;
+    _dirtyRegs[group] = 0xFFFFFFFFu;
   }
 
   inline uint32_t savedRegs(uint32_t group) const noexcept {

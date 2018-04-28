@@ -161,11 +161,11 @@ union Data64 {
   //! Set all eight 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
-      uint64_t xq = uint64_t(x0) * 0x0101010101010101U;
+      uint64_t xq = uint64_t(x0) * 0x0101010101010101u;
       uq[0] = xq;
     }
     else {
-      uint32_t xd = uint32_t(x0) * 0x01010101U;
+      uint32_t xd = uint32_t(x0) * 0x01010101u;
       ud[0] = xd;
       ud[1] = xd;
     }
@@ -195,11 +195,11 @@ union Data64 {
   //! Set all four 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
-      uint64_t xq = uint64_t(x0) * 0x0001000100010001U;
+      uint64_t xq = uint64_t(x0) * 0x0001000100010001u;
       uq[0] = xq;
     }
     else {
-      uint32_t xd = uint32_t(x0) * 0x00010001U;
+      uint32_t xd = uint32_t(x0) * 0x00010001u;
       ud[0] = xd;
       ud[1] = xd;
     }
@@ -463,12 +463,12 @@ union Data128 {
   //! Set all sixteen 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept  {
     if (ASMJIT_ARCH_BITS >= 64) {
-      uint64_t xq = uint64_t(x0) * 0x0101010101010101U;
+      uint64_t xq = uint64_t(x0) * 0x0101010101010101u;
       uq[0] = xq;
       uq[1] = xq;
     }
     else {
-      uint32_t xd = uint32_t(x0) * 0x01010101U;
+      uint32_t xd = uint32_t(x0) * 0x01010101u;
       ud[0] = xd;
       ud[1] = xd;
       ud[2] = xd;
@@ -510,12 +510,12 @@ union Data128 {
   //! Set all eight 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
-      uint64_t xq = uint64_t(x0) * 0x0001000100010001U;
+      uint64_t xq = uint64_t(x0) * 0x0001000100010001u;
       uq[0] = xq;
       uq[1] = xq;
     }
     else {
-      uint32_t xd = uint32_t(x0) * 0x00010001U;
+      uint32_t xd = uint32_t(x0) * 0x00010001u;
       ud[0] = xd;
       ud[1] = xd;
       ud[2] = xd;
@@ -835,14 +835,14 @@ union Data256 {
   //! Set all thirty two 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
-      uint64_t xq = uint64_t(x0) * 0x0101010101010101U;
+      uint64_t xq = uint64_t(x0) * 0x0101010101010101u;
       uq[0] = xq;
       uq[1] = xq;
       uq[2] = xq;
       uq[3] = xq;
     }
     else {
-      uint32_t xd = uint32_t(x0) * 0x01010101U;
+      uint32_t xd = uint32_t(x0) * 0x01010101u;
       ud[0] = xd;
       ud[1] = xd;
       ud[2] = xd;
@@ -904,14 +904,14 @@ union Data256 {
   //! Set all eight 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
-      uint64_t xq = uint64_t(x0) * 0x0001000100010001U;
+      uint64_t xq = uint64_t(x0) * 0x0001000100010001u;
       uq[0] = xq;
       uq[1] = xq;
       uq[2] = xq;
       uq[3] = xq;
     }
     else {
-      uint32_t xd = uint32_t(x0) * 0x00010001U;
+      uint32_t xd = uint32_t(x0) * 0x00010001u;
       ud[0] = xd;
       ud[1] = xd;
       ud[2] = xd;

@@ -90,8 +90,8 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
 
     // If overflown, which has less chance of winning a lottery, just use max
     // possible weight. In such case it probably doesn't matter at all.
-    if (weight > 0xFFFFFFFFU)
-      weight = 0xFFFFFFFFU;
+    if (weight > 0xFFFFFFFFu)
+      weight = 0xFFFFFFFFu;
 
     slot->setWeight(uint32_t(weight));
   }
@@ -130,7 +130,7 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
     // Try to find a slot within gaps first.
     {
       uint32_t slotSize = slot->size();
-      if (slotSize < (1U << uint32_t(ASMJIT_ARRAY_SIZE(gaps)))) {
+      if (slotSize < (1u << uint32_t(ASMJIT_ARRAY_SIZE(gaps)))) {
         // Iterate from the lowest to the highest possible.
         uint32_t index = Support::ctz(slotSize);
         do {

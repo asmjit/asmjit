@@ -55,8 +55,8 @@ public:
   Error run(Zone* zone, Logger* logger) noexcept override;
 
   enum ProbeMask : uint32_t {
-    kProbeMmx  = 1U << Reg::kTypeMm,     //!< Instruction uses MMX registers.
-    kProbeXmm  = 1U << Reg::kTypeXmm     //!< Instruction uses XMM registers.
+    kProbeMmx  = 1u << Reg::kTypeMm,     //!< Instruction uses MMX registers.
+    kProbeXmm  = 1u << Reg::kTypeXmm     //!< Instruction uses XMM registers.
   };
 
   static inline uint32_t probeRegs(const Operand* operands, uint32_t count) noexcept {

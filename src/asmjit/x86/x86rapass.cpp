@@ -30,15 +30,15 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 static ASMJIT_INLINE uint64_t immMaskFromSize(uint32_t size) noexcept {
   ASMJIT_ASSERT(size > 0 && size < 256);
   static const uint64_t masks[] = {
-    0x00000000000000FFU, //   1
-    0x000000000000FFFFU, //   2
-    0x00000000FFFFFFFFU, //   4
-    0xFFFFFFFFFFFFFFFFU, //   8
-    0x0000000000000000U, //  16
-    0x0000000000000000U, //  32
-    0x0000000000000000U, //  64
-    0x0000000000000000U, // 128
-    0x0000000000000000U  // 256
+    0x00000000000000FFu, //   1
+    0x000000000000FFFFu, //   2
+    0x00000000FFFFFFFFu, //   4
+    0xFFFFFFFFFFFFFFFFu, //   8
+    0x0000000000000000u, //  16
+    0x0000000000000000u, //  32
+    0x0000000000000000u, //  64
+    0x0000000000000000u, // 128
+    0x0000000000000000u  // 256
   };
   return masks[Support::ctz(size)];
 }
@@ -336,7 +336,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
           // Register operand.
           const Reg& reg = op.as<Reg>();
           uint32_t flags = opInfo[i].flags();
-          uint32_t allowedRegs = 0xFFFFFFFFU;
+          uint32_t allowedRegs = 0xFFFFFFFFu;
 
           // X86-specific constraints related to LO|HI general purpose registers.
           if (reg.isGpb()) {
@@ -344,7 +344,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
             if (!_is64Bit) {
               // Restrict to first four - AL|AH|BL|BH|CL|CH|DL|DH. In 32-bit mode
               // it's not possible to access SIL|DIL, etc, so this is just enough.
-              allowedRegs = 0x0FU;
+              allowedRegs = 0x0Fu;
             }
             else {
               // If we encountered GPB-HI register the situation is much more
@@ -354,7 +354,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
               // set a flag and will do it later, to not complicate this loop.
               if (reg.isGpbHi()) {
                 hasGpbHiConstraint = true;
-                allowedRegs = 0x0FU;
+                allowedRegs = 0x0Fu;
               }
             }
           }
@@ -468,7 +468,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
     if (hasGpbHiConstraint) {
       for (uint32_t i = 0; i < ib.tiedRegCount(); i++) {
         RATiedReg* tiedReg = ib[i];
-        tiedReg->_allocableRegs &= tiedReg->hasFlag(RATiedReg::kX86Gpb) ? 0x0FU : 0xFFU;
+        tiedReg->_allocableRegs &= tiedReg->hasFlag(RATiedReg::kX86Gpb) ? 0x0Fu : 0xFFu;
       }
     }
 
@@ -993,7 +993,7 @@ X86RAPass::~X86RAPass() noexcept {}
 
 void X86RAPass::onInit() noexcept {
   uint32_t archId = cc()->archId();
-  uint32_t baseRegCount = archId == ArchInfo::kIdX86 ? 8U : 16U;
+  uint32_t baseRegCount = archId == ArchInfo::kIdX86 ? 8u : 16u;
 
   _archTraits[Reg::kGroupGp] |= RAArchTraits::kHasSwap;
 

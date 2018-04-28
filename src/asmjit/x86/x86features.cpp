@@ -53,7 +53,7 @@ static inline void cpuid_query(cpuid_t* out, uint32_t inEax, uint32_t inEcx = 0)
 static inline void xgetbv_query(xgetbv_t* out, uint32_t inEcx) noexcept {
   #if ASMJIT_CXX_MSC
   uint64_t value = _xgetbv(inEcx);
-  out->eax = uint32_t(value & 0xFFFFFFFFU);
+  out->eax = uint32_t(value & 0xFFFFFFFFu);
   out->edx = uint32_t(value >> 32);
   #elif ASMJIT_CXX_GNU
   uint32_t outEax;
@@ -152,11 +152,11 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     uint32_t familyId = (regs.eax >> 8) & 0x0F;
 
     // Use extended family and model fields.
-    if (familyId == 0x06U || familyId == 0x0FU)
-      modelId += (((regs.eax >> 16) & 0x0FU) << 4);
+    if (familyId == 0x06u || familyId == 0x0Fu)
+      modelId += (((regs.eax >> 16) & 0x0Fu) << 4);
 
-    if (familyId == 0x0FU)
-      familyId += (((regs.eax >> 20) & 0xFFU) << 4);
+    if (familyId == 0x0Fu)
+      familyId += (((regs.eax >> 20) & 0xFFu) << 4);
 
     cpu._modelId  = modelId;
     cpu._familyId = familyId;
@@ -198,7 +198,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.edx, 28)) features.add(Features::kMT);
 
     // Get the content of XCR0 if supported by CPU and enabled by OS.
-    if ((regs.ecx & 0x0C000000U) == 0x0C000000U) {
+    if ((regs.ecx & 0x0C000000u) == 0x0C000000u) {
       xgetbv_query(&xcr0, 0);
     }
 
@@ -206,7 +206,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ecx, 28)) {
       // - XCR0[2:1] == 11b
       //   XMM & YMM states need to be enabled by OS.
-      if ((xcr0.eax & 0x00000006U) == 0x00000006U) {
+      if ((xcr0.eax & 0x00000006u) == 0x00000006u) {
         features.add(Features::kAVX);
 
         if (bitTest(regs.ecx, 12)) features.add(Features::kFMA);
@@ -255,7 +255,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ebx, 16)) {
       // - XCR0[2:1] ==  11b - XMM/YMM states need to be enabled by OS.
       // - XCR0[7:5] == 111b - Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by OS.
-      if ((xcr0.eax & 0x000000E6U) == 0x000000E6U) {
+      if ((xcr0.eax & 0x000000E6u) == 0x000000E6u) {
         features.add(Features::kAVX512_F);
 
         if (bitTest(regs.ebx, 17)) features.add(Features::kAVX512_DQ);
@@ -289,7 +289,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     cpuid_query(&regs, 0xD, 0);
 
     // Both CPUID result and XCR0 has to be enabled to have support for MPX.
-    if (((regs.eax & xcr0.eax) & 0x00000018U) == 0x00000018U && maybeMPX)
+    if (((regs.eax & xcr0.eax) & 0x00000018u) == 0x00000018u && maybeMPX)
       features.add(Features::kMPX);
 
     cpuid_query(&regs, 0xD, 1);
@@ -302,11 +302,11 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
   // [CPUID EAX=0x80000000...maxId]
   // --------------------------------------------------------------------------
 
-  maxId = 0x80000000U;
+  maxId = 0x80000000u;
   uint32_t i = maxId;
 
   // The highest EAX that we understand.
-  uint32_t kHighestProcessedEAX = 0x80000008U;
+  uint32_t kHighestProcessedEAX = 0x80000008u;
 
   // Several CPUID calls are required to get the whole branc string. It's easy
   // to copy one DWORD at a time instead of performing a byte copy.
@@ -314,11 +314,11 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
   do {
     cpuid_query(&regs, i);
     switch (i) {
-      case 0x80000000U:
+      case 0x80000000u:
         maxId = std::min<uint32_t>(regs.eax, kHighestProcessedEAX);
         break;
 
-      case 0x80000001U:
+      case 0x80000001u:
         if (bitTest(regs.ecx,  0)) features.add(Features::kLAHFSAHF);
         if (bitTest(regs.ecx,  2)) features.add(Features::kSVM);
         if (bitTest(regs.ecx,  5)) features.add(Features::kLZCNT);
@@ -349,19 +349,19 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         }
         break;
 
-      case 0x80000002U:
-      case 0x80000003U:
-      case 0x80000004U:
+      case 0x80000002u:
+      case 0x80000003u:
+      case 0x80000004u:
         *brand++ = regs.eax;
         *brand++ = regs.ebx;
         *brand++ = regs.ecx;
         *brand++ = regs.edx;
 
         // Go directly to the last one.
-        if (i == 0x80000004U) i = 0x80000008U - 1;
+        if (i == 0x80000004u) i = 0x80000008u - 1;
         break;
 
-      case 0x80000008U:
+      case 0x80000008u:
         if (bitTest(regs.ebx,  0)) features.add(Features::kCLZERO);
         break;
     }

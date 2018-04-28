@@ -51,9 +51,9 @@ namespace StringUtils {
   }
 
   static ASMJIT_INLINE size_t strLen(const char* s, size_t maxSize) noexcept {
-    size_t i;
-    for (i = 0; i < maxSize && s[i] != '\0'; i++)
-      continue;
+    size_t i = 0;
+    while (i < maxSize && s[i] != '\0')
+      i++;
     return i;
   }
 

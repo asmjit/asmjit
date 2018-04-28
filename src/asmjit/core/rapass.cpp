@@ -791,7 +791,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
           uint32_t workId = tiedReg->workId();
 
           // Update `nUses` and `nOuts`.
-          nUsesPerWorkReg[workId] += 1U;
+          nUsesPerWorkReg[workId] += 1u;
           nOutsPerWorkReg[workId] += uint32_t(tiedReg->isWrite());
 
           // Mark as:
@@ -1070,7 +1070,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
         continue;
       }
 
-      if (err != 0xFFFFFFFFU)
+      if (err != 0xFFFFFFFFu)
         return err;
       workRegs[dstIndex++] = workReg;
     }

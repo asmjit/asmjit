@@ -27,8 +27,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! Architecture-dependent asm-builder (X86).
 class ASMJIT_VIRTAPI Builder
-  : public EmitterImplicitT<Builder>,
-    public BaseBuilder {
+  : public BaseBuilder,
+    public EmitterImplicitT<Builder> {
 public:
   ASMJIT_NONCOPYABLE(Builder)
   typedef BaseBuilder Base;

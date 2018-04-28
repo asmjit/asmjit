@@ -192,11 +192,11 @@ public:
   //! Additional bits of operand's signature used by `Mem`.
   enum AdditionalBits : uint32_t {
     kSignatureMemShiftShift   = 16,
-    kSignatureMemShiftBits    = 0x1FU,
+    kSignatureMemShiftBits    = 0x1Fu,
     kSignatureMemShiftMask    = kSignatureMemShiftBits << kSignatureMemShiftShift,
 
     kSignatureMemModeShift    = 21,
-    kSignatureMemModeBits     = 0x03U,
+    kSignatureMemModeBits     = 0x03u,
     kSignatureMemModeMask     = kSignatureMemSegmentBits << kSignatureMemSegmentShift,
   };
 

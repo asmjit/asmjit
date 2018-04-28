@@ -62,7 +62,7 @@ uint32_t OSUtils::getTickCount() noexcept {
     }
 
     if (status == kHiResAvailable)
-      return uint32_t(uint64_t(int64_t(double(now.QuadPart) / freq)) & 0xFFFFFFFFU);
+      return uint32_t(uint64_t(int64_t(double(now.QuadPart) / freq)) & 0xFFFFFFFFu);
   }
 
   // Bail to `GetTickCount()` if we cannot use high resolution.
@@ -72,14 +72,23 @@ uint32_t OSUtils::getTickCount() noexcept {
 
   // See Apple's QA1398.
   static mach_timebase_info_data_t _machTime;
-  if (ASMJIT_UNLIKELY(_machTime.denom == 0) || mach_timebase_info(&_machTime) != KERN_SUCCESS)
-    return 0;
+  uint32_t denom = _machTime.denom;
+
+  if (ASMJIT_UNLIKELY(!denom)) {
+    if (mach_timebase_info(&_machTime) != KERN_SUCCESS)
+      return 0;
+
+    denom = _machTime.denom;
+    if (!denom)
+      return 0;
+  }
+
 
   // `mach_absolute_time()` returns nanoseconds, we want milliseconds.
-  uint64_t t = mach_absolute_time() / 1000000;
+  uint64_t t = mach_absolute_time() / 1000000u;
 
-  t = t * _machTime.numer / _machTime.denom;
-  return uint32_t(t & 0xFFFFFFFFU);
+  t = (t * _machTime.numer) / _machTime.denom;
+  return uint32_t(t & 0xFFFFFFFFu);
 
   #elif defined(_POSIX_MONOTONIC_CLOCK) && _POSIX_MONOTONIC_CLOCK >= 0
 
@@ -88,8 +97,8 @@ uint32_t OSUtils::getTickCount() noexcept {
   if (ASMJIT_UNLIKELY(clock_gettime(CLOCK_MONOTONIC, &ts) != 0))
     return 0;
 
-  uint64_t t = (uint64_t(ts.tv_sec ) * 1000) + (uint64_t(ts.tv_nsec) / 1000000);
-  return uint32_t(t & 0xFFFFFFFFU);
+  uint64_t t = (uint64_t(ts.tv_sec ) * 1000u) + (uint64_t(ts.tv_nsec) / 1000000u);
+  return uint32_t(t & 0xFFFFFFFFu);
 
   #else
 

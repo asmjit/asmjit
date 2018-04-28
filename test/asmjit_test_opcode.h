@@ -513,22 +513,22 @@ static void generateOpcodes(asmjit::x86::Emitter* e, bool useRex1 = false, bool 
   if (isX64) e->and_(gzA, uint32_t(0xFEEDFEED));
 
   // Special case - mov with absolute 32-bit address.
-  e->mov(al , ptr(0x01020304U));
-  e->mov(ax , ptr(0x01020304U));
-  e->mov(eax, ptr(0x01020304U));
-  e->mov(ptr(0x01020304U), al );
-  e->mov(ptr(0x01020304U), ax );
-  e->mov(ptr(0x01020304U), eax);
+  e->mov(al , ptr(0x01020304u));
+  e->mov(ax , ptr(0x01020304u));
+  e->mov(eax, ptr(0x01020304u));
+  e->mov(ptr(0x01020304u), al );
+  e->mov(ptr(0x01020304u), ax );
+  e->mov(ptr(0x01020304u), eax);
 
   // Special case - mov with absolute 64-bit address.
-  if (isX64) e->mov(al , ptr(0x0102030405060708U));
-  if (isX64) e->mov(ax , ptr(0x0102030405060708U));
-  if (isX64) e->mov(eax, ptr(0x0102030405060708U));
-  if (isX64) e->mov(rax, ptr(0x0102030405060708U));
-  if (isX64) e->mov(ptr(0x0102030405060708U), al );
-  if (isX64) e->mov(ptr(0x0102030405060708U), ax );
-  if (isX64) e->mov(ptr(0x0102030405060708U), eax);
-  if (isX64) e->mov(ptr(0x0102030405060708U), rax);
+  if (isX64) e->mov(al , ptr(0x0102030405060708u));
+  if (isX64) e->mov(ax , ptr(0x0102030405060708u));
+  if (isX64) e->mov(eax, ptr(0x0102030405060708u));
+  if (isX64) e->mov(rax, ptr(0x0102030405060708u));
+  if (isX64) e->mov(ptr(0x0102030405060708u), al );
+  if (isX64) e->mov(ptr(0x0102030405060708u), ax );
+  if (isX64) e->mov(ptr(0x0102030405060708u), eax);
+  if (isX64) e->mov(ptr(0x0102030405060708u), rax);
 
   // Control registers.
   e->nop();

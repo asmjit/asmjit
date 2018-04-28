@@ -179,7 +179,7 @@ FuncRetNode* BaseCompiler::newRet(const Operand_& o0, const Operand_& o1) noexce
 
   node->setOp(0, o0);
   node->setOp(1, o1);
-  node->setOpCount(!o1.isNone() ? 2U : !o0.isNone() ? 1U : 0U);
+  node->setOpCount(!o1.isNone() ? 2u : !o0.isNone() ? 1u : 0u);
 
   return node;
 }

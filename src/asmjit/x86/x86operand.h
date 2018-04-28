@@ -373,15 +373,15 @@ public:
   //! Additional bits of operand's signature used by `Mem`.
   enum AdditionalBits : uint32_t {
     kSignatureMemSegmentShift   = 16,
-    kSignatureMemSegmentBits    = 0x07U,
+    kSignatureMemSegmentBits    = 0x07u,
     kSignatureMemSegmentMask    = kSignatureMemSegmentBits << kSignatureMemSegmentShift,
 
     kSignatureMemShiftShift     = 19,
-    kSignatureMemShiftBits      = 0x03U,
+    kSignatureMemShiftBits      = 0x03u,
     kSignatureMemShiftMask      = kSignatureMemShiftBits << kSignatureMemShiftShift,
 
     kSignatureMemBroadcastShift = 21,
-    kSignatureMemBroadcastBits  = 0x7U,
+    kSignatureMemBroadcastBits  = 0x7u,
     kSignatureMemBroadcastMask  = kSignatureMemBroadcastBits << kSignatureMemBroadcastShift
   };
 
@@ -419,10 +419,10 @@ public:
     : BaseMem(Globals::Init, base.type(), base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift)) {}
 
   constexpr Mem(uint64_t base, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, 0, uint32_t(base >> 32), 0, 0, int32_t(uint32_t(base & 0xFFFFFFFFU)), size, flags) {}
+    : BaseMem(Globals::Init, 0, uint32_t(base >> 32), 0, 0, int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags) {}
 
   constexpr Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, 0, uint32_t(base >> 32), index.type(), index.id(), int32_t(uint32_t(base & 0xFFFFFFFFU)), size, flags | (shift << kSignatureMemShiftShift)) {}
+    : BaseMem(Globals::Init, 0, uint32_t(base >> 32), index.type(), index.id(), int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags | (shift << kSignatureMemShiftShift)) {}
 
   //! Construct a `Mem` operand from `MemData`.
   constexpr explicit Mem(const MemData& data) noexcept

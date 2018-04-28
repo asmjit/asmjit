@@ -25,9 +25,9 @@ namespace InstDB {
 
 //! Architecture mask.
 enum ArchMask : uint32_t {
-  kArchMaskNone           = 0x00U,       //!< No arch (invalid).
-  kArchMaskX86            = 0x01U,       //!< X86 mode supported.
-  kArchMaskX64            = 0x02U        //!< X64 mode supported.
+  kArchMaskNone           = 0x00u,       //!< No arch (invalid).
+  kArchMaskX86            = 0x01u,       //!< X86 mode supported.
+  kArchMaskX64            = 0x02u        //!< X64 mode supported.
 };
 
 static inline uint32_t archMaskFromArchId(uint32_t archId) noexcept {
@@ -41,46 +41,46 @@ static inline uint32_t archMaskFromArchId(uint32_t archId) noexcept {
 
 //! Operand flags (X86).
 enum OpFlags : uint32_t {
-  kOpNone                 = 0x00000000U, //!< No flags.
+  kOpNone                 = 0x00000000u, //!< No flags.
 
-  kOpGpbLo                = 0x00000001U, //!< Operand can be low 8-bit GPB register.
-  kOpGpbHi                = 0x00000002U, //!< Operand can be high 8-bit GPB register.
-  kOpGpw                  = 0x00000004U, //!< Operand can be 16-bit GPW register.
-  kOpGpd                  = 0x00000008U, //!< Operand can be 32-bit GPD register.
-  kOpGpq                  = 0x00000010U, //!< Operand can be 64-bit GPQ register.
-  kOpXmm                  = 0x00000020U, //!< Operand can be 128-bit XMM register.
-  kOpYmm                  = 0x00000040U, //!< Operand can be 256-bit YMM register.
-  kOpZmm                  = 0x00000080U, //!< Operand can be 512-bit ZMM register.
-  kOpMm                   = 0x00000100U, //!< Operand can be 64-bit MM register.
-  kOpKReg                 = 0x00000200U, //!< Operand can be 64-bit K register.
-  kOpSReg                 = 0x00000400U, //!< Operand can be SReg (segment register).
-  kOpCReg                 = 0x00000800U, //!< Operand can be CReg (control register).
-  kOpDReg                 = 0x00001000U, //!< Operand can be DReg (debug register).
-  kOpSt                   = 0x00002000U, //!< Operand can be 80-bit ST register (FPU).
-  kOpBnd                  = 0x00004000U, //!< Operand can be 128-bit BND register.
-  kOpAllRegs              = 0x00007FFFU, //!< Combination of all possible registers.
+  kOpGpbLo                = 0x00000001u, //!< Operand can be low 8-bit GPB register.
+  kOpGpbHi                = 0x00000002u, //!< Operand can be high 8-bit GPB register.
+  kOpGpw                  = 0x00000004u, //!< Operand can be 16-bit GPW register.
+  kOpGpd                  = 0x00000008u, //!< Operand can be 32-bit GPD register.
+  kOpGpq                  = 0x00000010u, //!< Operand can be 64-bit GPQ register.
+  kOpXmm                  = 0x00000020u, //!< Operand can be 128-bit XMM register.
+  kOpYmm                  = 0x00000040u, //!< Operand can be 256-bit YMM register.
+  kOpZmm                  = 0x00000080u, //!< Operand can be 512-bit ZMM register.
+  kOpMm                   = 0x00000100u, //!< Operand can be 64-bit MM register.
+  kOpKReg                 = 0x00000200u, //!< Operand can be 64-bit K register.
+  kOpSReg                 = 0x00000400u, //!< Operand can be SReg (segment register).
+  kOpCReg                 = 0x00000800u, //!< Operand can be CReg (control register).
+  kOpDReg                 = 0x00001000u, //!< Operand can be DReg (debug register).
+  kOpSt                   = 0x00002000u, //!< Operand can be 80-bit ST register (FPU).
+  kOpBnd                  = 0x00004000u, //!< Operand can be 128-bit BND register.
+  kOpAllRegs              = 0x00007FFFu, //!< Combination of all possible registers.
 
-  kOpU4                   = 0x00010000U, //!< Operand can be unsigned 4-bit  immediate.
-  kOpI8                   = 0x00020000U, //!< Operand can be signed   8-bit  immediate.
-  kOpU8                   = 0x00040000U, //!< Operand can be unsigned 8-bit  immediate.
-  kOpI16                  = 0x00080000U, //!< Operand can be signed   16-bit immediate.
-  kOpU16                  = 0x00100000U, //!< Operand can be unsigned 16-bit immediate.
-  kOpI32                  = 0x00200000U, //!< Operand can be signed   32-bit immediate.
-  kOpU32                  = 0x00400000U, //!< Operand can be unsigned 32-bit immediate.
-  kOpI64                  = 0x00800000U, //!< Operand can be signed   64-bit immediate.
-  kOpU64                  = 0x01000000U, //!< Operand can be unsigned 64-bit immediate.
-  kOpAllImm               = 0x01FF0000U, //!< Operand can be any immediate.
+  kOpU4                   = 0x00010000u, //!< Operand can be unsigned 4-bit  immediate.
+  kOpI8                   = 0x00020000u, //!< Operand can be signed   8-bit  immediate.
+  kOpU8                   = 0x00040000u, //!< Operand can be unsigned 8-bit  immediate.
+  kOpI16                  = 0x00080000u, //!< Operand can be signed   16-bit immediate.
+  kOpU16                  = 0x00100000u, //!< Operand can be unsigned 16-bit immediate.
+  kOpI32                  = 0x00200000u, //!< Operand can be signed   32-bit immediate.
+  kOpU32                  = 0x00400000u, //!< Operand can be unsigned 32-bit immediate.
+  kOpI64                  = 0x00800000u, //!< Operand can be signed   64-bit immediate.
+  kOpU64                  = 0x01000000u, //!< Operand can be unsigned 64-bit immediate.
+  kOpAllImm               = 0x01FF0000u, //!< Operand can be any immediate.
 
-  kOpMem                  = 0x02000000U, //!< Operand can be a scalar memory pointer.
-  kOpVm                   = 0x04000000U, //!< Operand can be a vector memory pointer.
+  kOpMem                  = 0x02000000u, //!< Operand can be a scalar memory pointer.
+  kOpVm                   = 0x04000000u, //!< Operand can be a vector memory pointer.
 
-  kOpRel8                 = 0x08000000U, //!< Operand can be relative 8-bit  displacement.
-  kOpRel32                = 0x10000000U, //!< Operand can be relative 32-bit displacement.
+  kOpRel8                 = 0x08000000u, //!< Operand can be relative 8-bit  displacement.
+  kOpRel32                = 0x10000000u, //!< Operand can be relative 32-bit displacement.
 
-  kOpR                    = 0x20000000U, //!< Operand is read.
-  kOpW                    = 0x40000000U, //!< Operand is written.
-  kOpX                    = 0x60000000U, //!< Operand is read & written.
-  kOpImplicit             = 0x80000000U  //!< Operand is implicit.
+  kOpR                    = 0x20000000u, //!< Operand is read.
+  kOpW                    = 0x40000000u, //!< Operand is written.
+  kOpX                    = 0x60000000u, //!< Operand is read & written.
+  kOpImplicit             = 0x80000000u  //!< Operand is implicit.
 };
 
 // ============================================================================
@@ -92,30 +92,30 @@ enum MemFlags : uint32_t {
   // NOTE: Instruction uses either scalar or vector memory operands, they never
   // collide. This allows us to share bits between "M" and "Vm" enums.
 
-  kMemOpAny               = 0x0001U,     //!< Operand can be any scalar memory pointer.
-  kMemOpM8                = 0x0002U,     //!< Operand can be an 8-bit memory pointer.
-  kMemOpM16               = 0x0004U,     //!< Operand can be a 16-bit memory pointer.
-  kMemOpM32               = 0x0008U,     //!< Operand can be a 32-bit memory pointer.
-  kMemOpM48               = 0x0010U,     //!< Operand can be a 32-bit memory pointer.
-  kMemOpM64               = 0x0020U,     //!< Operand can be a 64-bit memory pointer.
-  kMemOpM80               = 0x0040U,     //!< Operand can be an 80-bit memory pointer.
-  kMemOpM128              = 0x0080U,     //!< Operand can be a 128-bit memory pointer.
-  kMemOpM256              = 0x0100U,     //!< Operand can be a 256-bit memory pointer.
-  kMemOpM512              = 0x0200U,     //!< Operand can be a 512-bit memory pointer.
-  kMemOpM1024             = 0x0400U,     //!< Operand can be a 1024-bit memory pointer.
+  kMemOpAny               = 0x0001u,     //!< Operand can be any scalar memory pointer.
+  kMemOpM8                = 0x0002u,     //!< Operand can be an 8-bit memory pointer.
+  kMemOpM16               = 0x0004u,     //!< Operand can be a 16-bit memory pointer.
+  kMemOpM32               = 0x0008u,     //!< Operand can be a 32-bit memory pointer.
+  kMemOpM48               = 0x0010u,     //!< Operand can be a 32-bit memory pointer.
+  kMemOpM64               = 0x0020u,     //!< Operand can be a 64-bit memory pointer.
+  kMemOpM80               = 0x0040u,     //!< Operand can be an 80-bit memory pointer.
+  kMemOpM128              = 0x0080u,     //!< Operand can be a 128-bit memory pointer.
+  kMemOpM256              = 0x0100u,     //!< Operand can be a 256-bit memory pointer.
+  kMemOpM512              = 0x0200u,     //!< Operand can be a 512-bit memory pointer.
+  kMemOpM1024             = 0x0400u,     //!< Operand can be a 1024-bit memory pointer.
 
-  kMemOpVm32x             = 0x0002U,     //!< Operand can be a vm32x (vector) pointer.
-  kMemOpVm32y             = 0x0004U,     //!< Operand can be a vm32y (vector) pointer.
-  kMemOpVm32z             = 0x0008U,     //!< Operand can be a vm32z (vector) pointer.
-  kMemOpVm64x             = 0x0020U,     //!< Operand can be a vm64x (vector) pointer.
-  kMemOpVm64y             = 0x0040U,     //!< Operand can be a vm64y (vector) pointer.
-  kMemOpVm64z             = 0x0080U,     //!< Operand can be a vm64z (vector) pointer.
+  kMemOpVm32x             = 0x0002u,     //!< Operand can be a vm32x (vector) pointer.
+  kMemOpVm32y             = 0x0004u,     //!< Operand can be a vm32y (vector) pointer.
+  kMemOpVm32z             = 0x0008u,     //!< Operand can be a vm32z (vector) pointer.
+  kMemOpVm64x             = 0x0020u,     //!< Operand can be a vm64x (vector) pointer.
+  kMemOpVm64y             = 0x0040u,     //!< Operand can be a vm64y (vector) pointer.
+  kMemOpVm64z             = 0x0080u,     //!< Operand can be a vm64z (vector) pointer.
 
-  kMemOpBaseOnly          = 0x0800U,     //!< Only memory base is allowed (no index, no offset).
-  kMemOpDs                = 0x1000U,     //!< Implicit memory operand's DS segment.
-  kMemOpEs                = 0x2000U,     //!< Implicit memory operand's ES segment.
+  kMemOpBaseOnly          = 0x0800u,     //!< Only memory base is allowed (no index, no offset).
+  kMemOpDs                = 0x1000u,     //!< Implicit memory operand's DS segment.
+  kMemOpEs                = 0x2000u,     //!< Implicit memory operand's ES segment.
 
-  kMemOpMib               = 0x4000U      //!< Operand must be MIB (base+index) pointer.
+  kMemOpMib               = 0x4000u      //!< Operand must be MIB (base+index) pointer.
 };
 
 // ============================================================================
@@ -269,7 +269,7 @@ enum EncodingId : uint32_t {
 //!
 //! Details about instruction encoding, operation, features, and some limitations.
 enum Flags : uint32_t {
-  kFlagNone               = 0x00000000U, //!< No flags.
+  kFlagNone               = 0x00000000u, //!< No flags.
 
   // Operand's Use
   // -------------
@@ -283,52 +283,52 @@ enum Flags : uint32_t {
   // describe the same operation. In such case `kFlagUseComplex` is set and
   // AsmJit will use different approach to calculate operand's use flags.
 
-  kFlagUseA               = 0x00000001U, //!< Use flags are ambiguous as USE information couldn't be flattened.
-  kFlagUseR               = 0x00000002U, //!< 1st operand is R (read), read-only if `kFlagOpW` isn't set.
-  kFlagUseW               = 0x00000004U, //!< 1st operand is W (written), write-only if `kFlagOpR` isn't set.
-  kFlagUseX               = 0x00000006U, //!< 1st operand is X (read-write).
-  kFlagUseXX              = 0x00000008U, //!< 1st and 2nd operands are XX (read & written) (XCHG, XADD).
+  kFlagUseA               = 0x00000001u, //!< Use flags are ambiguous as USE information couldn't be flattened.
+  kFlagUseR               = 0x00000002u, //!< 1st operand is R (read), read-only if `kFlagOpW` isn't set.
+  kFlagUseW               = 0x00000004u, //!< 1st operand is W (written), write-only if `kFlagOpR` isn't set.
+  kFlagUseX               = 0x00000006u, //!< 1st operand is X (read-write).
+  kFlagUseXX              = 0x00000008u, //!< 1st and 2nd operands are XX (read & written) (XCHG, XADD).
 
-  kFlagFixedReg           = 0x00000010U, //!< Some operand uses fixed register.
-  kFlagFixedMem           = 0x00000020U, //!< Some operand uses fixed register to access memory (EAX|RAX, EDI|RDI, ESI|RSI).
-  kFlagFixedRM            = 0x00000030U, //!< Combination of `kFlagUseFixedReg` and `kFlagUseFixedMem`.
+  kFlagFixedReg           = 0x00000010u, //!< Some operand uses fixed register.
+  kFlagFixedMem           = 0x00000020u, //!< Some operand uses fixed register to access memory (EAX|RAX, EDI|RDI, ESI|RSI).
+  kFlagFixedRM            = 0x00000030u, //!< Combination of `kFlagUseFixedReg` and `kFlagUseFixedMem`.
 
-  kFlagVolatile           = 0x00000040U,
-  kFlagPrivileged         = 0x00000080U, //!< This is a privileged operation that cannot run in user mode.
+  kFlagVolatile           = 0x00000040u,
+  kFlagPrivileged         = 0x00000080u, //!< This is a privileged operation that cannot run in user mode.
 
   // Instruction Family
   // ------------------
   //
   // Instruction family information.
 
-  kFlagFpu                = 0x00000100U, //!< Instruction that accesses FPU registers.
-  kFlagMmx                = 0x00000200U, //!< Instruction that accesses MMX registers (including 3DNOW and GEODE) and EMMS.
-  kFlagVec                = 0x00000400U, //!< Instruction that accesses XMM registers (SSE, AVX, AVX512).
+  kFlagFpu                = 0x00000100u, //!< Instruction that accesses FPU registers.
+  kFlagMmx                = 0x00000200u, //!< Instruction that accesses MMX registers (including 3DNOW and GEODE) and EMMS.
+  kFlagVec                = 0x00000400u, //!< Instruction that accesses XMM registers (SSE, AVX, AVX512).
 
   // Prefixes and Encoding Flags
   // ---------------------------
   //
   // These describe optional X86 prefixes that can be used to change the instruction's operation.
 
-  kFlagRep                = 0x00001000U, //!< Instruction can be prefixed with using the REP/REPE/REPZ prefix.
-  kFlagRepne              = 0x00002000U, //!< Instruction can be prefixed with using the REPNE/REPNZ prefix.
-  kFlagLock               = 0x00004000U, //!< Instruction can be prefixed with using the LOCK prefix.
-  kFlagXAcquire           = 0x00008000U, //!< Instruction can be prefixed with using the XACQUIRE prefix.
-  kFlagXRelease           = 0x00010000U, //!< Instruction can be prefixed with using the XRELEASE prefix.
-  kFlagMib                = 0x00020000U, //!< Instruction uses MIB (BNDLDX|BNDSTX) to encode two registers.
-  kFlagVsib               = 0x00040000U, //!< Instruction uses VSIB instead of legacy SIB.
-  kFlagVex                = 0x00080000U, //!< Instruction can be encoded by VEX|XOP (AVX|AVX2|BMI|XOP|...).
-  kFlagEvex               = 0x00100000U, //!< Instruction can be encoded by EVEX (AVX512).
+  kFlagRep                = 0x00001000u, //!< Instruction can be prefixed with using the REP/REPE/REPZ prefix.
+  kFlagRepne              = 0x00002000u, //!< Instruction can be prefixed with using the REPNE/REPNZ prefix.
+  kFlagLock               = 0x00004000u, //!< Instruction can be prefixed with using the LOCK prefix.
+  kFlagXAcquire           = 0x00008000u, //!< Instruction can be prefixed with using the XACQUIRE prefix.
+  kFlagXRelease           = 0x00010000u, //!< Instruction can be prefixed with using the XRELEASE prefix.
+  kFlagMib                = 0x00020000u, //!< Instruction uses MIB (BNDLDX|BNDSTX) to encode two registers.
+  kFlagVsib               = 0x00040000u, //!< Instruction uses VSIB instead of legacy SIB.
+  kFlagVex                = 0x00080000u, //!< Instruction can be encoded by VEX|XOP (AVX|AVX2|BMI|XOP|...).
+  kFlagEvex               = 0x00100000u, //!< Instruction can be encoded by EVEX (AVX512).
 
   // FPU Flags
   // ---------
   //
   // Used to tell the encoder which memory operand sizes are encodable.
 
-  kFlagFpuM16             = 0x00200000U, //!< FPU instruction can address `word_ptr` (shared with M10).
-  kFlagFpuM32             = 0x00400000U, //!< FPU instruction can address `dword_ptr`.
-  kFlagFpuM64             = 0x00800000U, //!< FPU instruction can address `qword_ptr`.
-  kFlagFpuM80             = 0x00200000U, //!< FPU instruction can address `tword_ptr` (shared with M2).
+  kFlagFpuM16             = 0x00200000u, //!< FPU instruction can address `word_ptr` (shared with M10).
+  kFlagFpuM32             = 0x00400000u, //!< FPU instruction can address `dword_ptr`.
+  kFlagFpuM64             = 0x00800000u, //!< FPU instruction can address `qword_ptr`.
+  kFlagFpuM80             = 0x00200000u, //!< FPU instruction can address `tword_ptr` (shared with M2).
 
   // AVX and AVX515 Flags
   // --------------------
@@ -338,14 +338,14 @@ enum Flags : uint32_t {
   // In that case AsmJit checks global options and also instruction options
   // to decide whether to emit VEX or EVEX prefix.
 
-  kFlagAvx512_            = 0x00000000U, //!< Internally used in tables, has no meaning.
-  kFlagAvx512K            = 0x01000000U, //!< Supports masking {k1..k7}.
-  kFlagAvx512Z            = 0x02000000U, //!< Supports zeroing {z}, must be used together with `kAvx512k`.
-  kFlagAvx512ER           = 0x04000000U, //!< Supports 'embedded-rounding' {er} with implicit {sae},
-  kFlagAvx512SAE          = 0x08000000U, //!< Supports 'suppress-all-exceptions' {sae}.
-  kFlagAvx512B32          = 0x10000000U, //!< Supports 32-bit broadcast 'b32'.
-  kFlagAvx512B64          = 0x20000000U, //!< Supports 64-bit broadcast 'b64'.
-  kFlagAvx512T4X          = 0x80000000U, //!< Operates on a vector of consecutive registers (AVX512_4FMAPS and AVX512_4VNNIW).
+  kFlagAvx512_            = 0x00000000u, //!< Internally used in tables, has no meaning.
+  kFlagAvx512K            = 0x01000000u, //!< Supports masking {k1..k7}.
+  kFlagAvx512Z            = 0x02000000u, //!< Supports zeroing {z}, must be used together with `kAvx512k`.
+  kFlagAvx512ER           = 0x04000000u, //!< Supports 'embedded-rounding' {er} with implicit {sae},
+  kFlagAvx512SAE          = 0x08000000u, //!< Supports 'suppress-all-exceptions' {sae}.
+  kFlagAvx512B32          = 0x10000000u, //!< Supports 32-bit broadcast 'b32'.
+  kFlagAvx512B64          = 0x20000000u, //!< Supports 64-bit broadcast 'b64'.
+  kFlagAvx512T4X          = 0x80000000u, //!< Operates on a vector of consecutive registers (AVX512_4FMAPS and AVX512_4VNNIW).
 
   // Combinations used by instruction tables to make AVX512 definitions more compact.
   kFlagAvx512KZ            = kFlagAvx512K         | kFlagAvx512Z,
@@ -370,8 +370,8 @@ enum Flags : uint32_t {
 
 //! Cases that require special handling.
 enum SpecialCases : uint32_t {
-  kSpecialCaseMovCrDr     = 0x00000001U, //!< `MOV REG <-> CREG|DREG` - Defined/Undefined flags, L0/L3 privilege levels.
-  kSpecialCaseMovSsSd     = 0x00000002U  //!< `MOVSS|MOVSD XMM, [MEM]` - Destination operand is completely overwritten.
+  kSpecialCaseMovCrDr     = 0x00000001u, //!< `MOV REG <-> CREG|DREG` - Defined/Undefined flags, L0/L3 privilege levels.
+  kSpecialCaseMovSsSd     = 0x00000002u  //!< `MOVSS|MOVSD XMM, [MEM]` - Destination operand is completely overwritten.
 };
 
 // ============================================================================
@@ -380,7 +380,7 @@ enum SpecialCases : uint32_t {
 
 //! Used to describe what the instruction does and some of its quirks.
 enum OperationFlags : uint32_t {
-  kOperationVolatile      = 0x00000001U  //!< Hint for instruction schedulers to never reorder this instruction (side effects, memory barrier, etc).
+  kOperationVolatile      = 0x00000001u  //!< Hint for instruction schedulers to never reorder this instruction (side effects, memory barrier, etc).
 };
 
 // ============================================================================

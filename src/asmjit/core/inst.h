@@ -27,11 +27,11 @@ struct OpInfo {
   //!
   //! Flags describe how the operand is accessed and some additional information.
   enum Flags : uint32_t {
-    kRead                 = 0x00000001U, //!< Operand is Read.
-    kWrite                = 0x00000002U, //!< Operand is Written.
-    kRW                   = 0x00000003U, //!< Operand is ReadWrite.
-    kUse                  = 0x00000004U, //!< Operand is either Read or ReadWrite.
-    kOut                  = 0x00000008U  //!< Operand is always WriteOnly (not Read nor ReadWrite).
+    kRead                 = 0x00000001u, //!< Operand is Read.
+    kWrite                = 0x00000002u, //!< Operand is Written.
+    kRW                   = 0x00000003u, //!< Operand is ReadWrite.
+    kUse                  = 0x00000004u, //!< Operand is either Read or ReadWrite.
+    kOut                  = 0x00000008u  //!< Operand is always WriteOnly (not Read nor ReadWrite).
   };
 
   // --------------------------------------------------------------------------
@@ -67,12 +67,12 @@ struct OpInfo {
 struct OpRWInfo {
   //! Flags describe how the operand is accessed and some additional information.
   enum Flags : uint32_t {
-    kRead               = 0x00000001U, //!< Operand is Read.
-    kWrite              = 0x00000002U, //!< Operand is Written.
-    kRW                 = 0x00000003U, //!< Operand is ReadWrite.
-    kUse                = 0x00000004U, //!< Operand is either Read or ReadWrite.
-    kOut                = 0x00000008U, //!< Operand is always WriteOnly (not Read nor ReadWrite).
-    kZExt               = 0x00000010U  //!< The output is zero extended to a native register size.
+    kRead               = 0x00000001u, //!< Operand is Read.
+    kWrite              = 0x00000002u, //!< Operand is Written.
+    kRW                 = 0x00000003u, //!< Operand is ReadWrite.
+    kUse                = 0x00000004u, //!< Operand is either Read or ReadWrite.
+    kOut                = 0x00000008u, //!< Operand is always WriteOnly (not Read nor ReadWrite).
+    kZExt               = 0x00000010u  //!< The output is zero extended to a native register size.
   };
 
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
@@ -116,19 +116,19 @@ struct InstRWInfo {
 class BaseInst {
 public:
   enum Id : uint32_t {
-    kIdNone               = 0x00000000U, //!< Invalid or uninitialized instruction id.
-    kIdAbstract           = 0x80000000U  //!< Abstract instruction (BaseBuilder and BaseCompiler).
+    kIdNone               = 0x00000000u, //!< Invalid or uninitialized instruction id.
+    kIdAbstract           = 0x80000000u  //!< Abstract instruction (BaseBuilder and BaseCompiler).
   };
 
   enum Options : uint32_t {
     //! Used internally by emitters for handling errors and rare cases.
-    kOptionReserved       = 0x00000001U,
+    kOptionReserved       = 0x00000001u,
 
     //! Used only by Assembler to mark that `_op4` and `_op5` are used (internal).
-    kOptionOp4Op5Used     = 0x00000002U,
+    kOptionOp4Op5Used     = 0x00000002u,
 
     //! Prevents following a jump during compilation (BaseCompiler).
-    kOptionUnfollow       = 0x00000010U,
+    kOptionUnfollow       = 0x00000010u,
 
     //! Overwrite the destination operand(s) (BaseCompiler).
     //!
@@ -168,22 +168,22 @@ public:
     //!
     //!     - `sqrtss x, y` - only LO element of `x` is changed, if you don't
     //!       use HI elements, use `compiler.overwrite().sqrtss(x, y)`.
-    kOptionOverwrite      = 0x00000020U,
+    kOptionOverwrite      = 0x00000020u,
 
-    kOptionShortForm      = 0x00000040U, //!< Emit short-form of the instruction.
-    kOptionLongForm       = 0x00000080U, //!< Emit long-form of the instruction.
+    kOptionShortForm      = 0x00000040u, //!< Emit short-form of the instruction.
+    kOptionLongForm       = 0x00000080u, //!< Emit long-form of the instruction.
 
-    kOptionTaken          = 0x00000100U, //!< Conditional jump is likely to be taken.
-    kOptionNotTaken       = 0x00000200U  //!< Conditional jump is unlikely to be taken.
+    kOptionTaken          = 0x00000100u, //!< Conditional jump is likely to be taken.
+    kOptionNotTaken       = 0x00000200u  //!< Conditional jump is unlikely to be taken.
   };
 
   //! Control type.
   enum ControlType : uint32_t {
-    kControlNone          = 0U,          //!< No control type (doesn't jump).
-    kControlJump          = 1U,          //!< Unconditional jump.
-    kControlBranch        = 2U,          //!< Conditional jump (branch).
-    kControlCall          = 3U,          //!< Function call.
-    kControlReturn        = 4U           //!< Function return.
+    kControlNone          = 0u,          //!< No control type (doesn't jump).
+    kControlJump          = 1u,          //!< Unconditional jump.
+    kControlBranch        = 2u,          //!< Conditional jump (branch).
+    kControlCall          = 3u,          //!< Function call.
+    kControlReturn        = 4u           //!< Function return.
   };
 
   // ------------------------------------------------------------------------

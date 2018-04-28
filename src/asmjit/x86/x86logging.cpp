@@ -349,7 +349,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmBits(StringBuilder& sb, 
 }
 
 ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmText(StringBuilder& sb, uint32_t u8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
-  uint32_t mask = (1U << bits) - 1;
+  uint32_t mask = (1u << bits) - 1;
   uint32_t pos = 0;
 
   for (uint32_t i = 0; i < count; i++, u8 >>= bits, pos += advance) {
@@ -387,57 +387,57 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
   static const char vshufps[] = "A0\0A1\0A2\0A3\0A0\0A1\0A2\0A3\0B0\0B1\0B2\0B3\0B0\0B1\0B2\0B3\0";
 
   static const ImmBits vfpclassxx[] = {
-    { 0x07U, 0, ImmBits::kModeLookup, "QNAN\0" "+0\0" "-0\0" "+INF\0" "-INF\0" "DENORMAL\0" "-FINITE\0" "SNAN\0" }
+    { 0x07u, 0, ImmBits::kModeLookup, "QNAN\0" "+0\0" "-0\0" "+INF\0" "-INF\0" "DENORMAL\0" "-FINITE\0" "SNAN\0" }
   };
 
   static const ImmBits vfixupimmxx[] = {
-    { 0x01U, 0, ImmBits::kModeLookup, "\0" "+INF_IE\0" },
-    { 0x02U, 1, ImmBits::kModeLookup, "\0" "-VE_IE\0"  },
-    { 0x04U, 2, ImmBits::kModeLookup, "\0" "-INF_IE\0" },
-    { 0x08U, 3, ImmBits::kModeLookup, "\0" "SNAN_IE\0" },
-    { 0x10U, 4, ImmBits::kModeLookup, "\0" "ONE_IE\0"  },
-    { 0x20U, 5, ImmBits::kModeLookup, "\0" "ONE_ZE\0"  },
-    { 0x40U, 6, ImmBits::kModeLookup, "\0" "ZERO_IE\0" },
-    { 0x80U, 7, ImmBits::kModeLookup, "\0" "ZERO_ZE\0" }
+    { 0x01u, 0, ImmBits::kModeLookup, "\0" "+INF_IE\0" },
+    { 0x02u, 1, ImmBits::kModeLookup, "\0" "-VE_IE\0"  },
+    { 0x04u, 2, ImmBits::kModeLookup, "\0" "-INF_IE\0" },
+    { 0x08u, 3, ImmBits::kModeLookup, "\0" "SNAN_IE\0" },
+    { 0x10u, 4, ImmBits::kModeLookup, "\0" "ONE_IE\0"  },
+    { 0x20u, 5, ImmBits::kModeLookup, "\0" "ONE_ZE\0"  },
+    { 0x40u, 6, ImmBits::kModeLookup, "\0" "ZERO_IE\0" },
+    { 0x80u, 7, ImmBits::kModeLookup, "\0" "ZERO_ZE\0" }
   };
 
   static const ImmBits vgetmantxx[] = {
-    { 0x03U, 0, ImmBits::kModeLookup, "[1, 2)\0" "[.5, 2)\0" "[.5, 1)\0" "[.75, 1.5)\0" },
-    { 0x04U, 2, ImmBits::kModeLookup, "\0" "NO_SIGN\0" },
-    { 0x08U, 3, ImmBits::kModeLookup, "\0" "QNAN_IF_SIGN\0" }
+    { 0x03u, 0, ImmBits::kModeLookup, "[1, 2)\0" "[.5, 2)\0" "[.5, 1)\0" "[.75, 1.5)\0" },
+    { 0x04u, 2, ImmBits::kModeLookup, "\0" "NO_SIGN\0" },
+    { 0x08u, 3, ImmBits::kModeLookup, "\0" "QNAN_IF_SIGN\0" }
   };
 
   static const ImmBits vmpsadbw[] = {
-    { 0x04U, 2, ImmBits::kModeLookup, "BLK1[0]\0" "BLK1[1]\0" },
-    { 0x03U, 0, ImmBits::kModeLookup, "BLK2[0]\0" "BLK2[1]\0" "BLK2[2]\0" "BLK2[3]\0" },
-    { 0x40U, 6, ImmBits::kModeLookup, "BLK1[4]\0" "BLK1[5]\0" },
-    { 0x30U, 4, ImmBits::kModeLookup, "BLK2[4]\0" "BLK2[5]\0" "BLK2[6]\0" "BLK2[7]\0" }
+    { 0x04u, 2, ImmBits::kModeLookup, "BLK1[0]\0" "BLK1[1]\0" },
+    { 0x03u, 0, ImmBits::kModeLookup, "BLK2[0]\0" "BLK2[1]\0" "BLK2[2]\0" "BLK2[3]\0" },
+    { 0x40u, 6, ImmBits::kModeLookup, "BLK1[4]\0" "BLK1[5]\0" },
+    { 0x30u, 4, ImmBits::kModeLookup, "BLK2[4]\0" "BLK2[5]\0" "BLK2[6]\0" "BLK2[7]\0" }
   };
 
   static const ImmBits vpclmulqdq[] = {
-    { 0x01U, 0, ImmBits::kModeLookup, "LQ\0" "HQ\0" },
-    { 0x10U, 4, ImmBits::kModeLookup, "LQ\0" "HQ\0" }
+    { 0x01u, 0, ImmBits::kModeLookup, "LQ\0" "HQ\0" },
+    { 0x10u, 4, ImmBits::kModeLookup, "LQ\0" "HQ\0" }
   };
 
   static const ImmBits vperm2x128[] = {
-    { 0x0BU, 0, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" },
-    { 0xB0U, 4, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" }
+    { 0x0Bu, 0, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" },
+    { 0xB0u, 4, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" }
   };
 
   static const ImmBits vrangexx[] = {
-    { 0x03U, 0, ImmBits::kModeLookup, "MIN\0" "MAX\0" "MIN_ABS\0" "MAX_ABS\0" },
-    { 0x0CU, 2, ImmBits::kModeLookup, "SIGN_A\0" "SIGN_B\0" "SIGN_0\0" "SIGN_1\0" }
+    { 0x03u, 0, ImmBits::kModeLookup, "MIN\0" "MAX\0" "MIN_ABS\0" "MAX_ABS\0" },
+    { 0x0Cu, 2, ImmBits::kModeLookup, "SIGN_A\0" "SIGN_B\0" "SIGN_0\0" "SIGN_1\0" }
   };
 
   static const ImmBits vreducexx_vrndscalexx[] = {
-    { 0x07U, 0, ImmBits::kModeLookup, "\0" "\0" "\0" "\0" "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" },
-    { 0x08U, 3, ImmBits::kModeLookup, "\0" "SAE\0" },
-    { 0xF0U, 4, ImmBits::kModeFormat, "LEN=%d" }
+    { 0x07u, 0, ImmBits::kModeLookup, "\0" "\0" "\0" "\0" "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" },
+    { 0x08u, 3, ImmBits::kModeLookup, "\0" "SAE\0" },
+    { 0xF0u, 4, ImmBits::kModeFormat, "LEN=%d" }
   };
 
   static const ImmBits vroundxx[] = {
-    { 0x07U, 0, ImmBits::kModeLookup, "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" "\0" "\0" "\0" "\0" },
-    { 0x08U, 3, ImmBits::kModeLookup, "\0" "INEXACT\0" }
+    { 0x07u, 0, ImmBits::kModeLookup, "ROUND\0" "FLOOR\0" "CEIL\0" "TRUNC\0" "\0" "\0" "\0" "\0" },
+    { 0x08u, 3, ImmBits::kModeLookup, "\0" "INEXACT\0" }
   };
 
   uint32_t u8 = imm.u8();
@@ -594,8 +594,8 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
     case Inst::kIdVshuff64x2:
     case Inst::kIdVshufi32x4:
     case Inst::kIdVshufi64x2: {
-      uint32_t count = std::max<uint32_t>(vecSize / 16, 2U);
-      uint32_t bits = count <= 2 ? 1U : 2U;
+      uint32_t count = std::max<uint32_t>(vecSize / 16, 2u);
+      uint32_t bits = count <= 2 ? 1u : 2u;
       return LoggingInternal_formatImmShuf(sb, u8, bits, count);
     }
 

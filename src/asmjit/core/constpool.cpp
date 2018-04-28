@@ -248,7 +248,7 @@ UNIT(asmjit_core_const_pool) {
   {
     size_t prevOffset;
     size_t curOffset;
-    uint64_t c = 0x0101010101010101U;
+    uint64_t c = 0x0101010101010101u;
 
     EXPECT(pool.add(&c, 8, prevOffset) == kErrorOk);
     EXPECT(prevOffset == 0);
@@ -266,7 +266,7 @@ UNIT(asmjit_core_const_pool) {
 
   INFO("Retrieving %u constants from the pool.", kCount);
   {
-    uint64_t c = 0x0101010101010101U;
+    uint64_t c = 0x0101010101010101u;
 
     for (i = 0; i < kCount; i++) {
       size_t offset;
@@ -299,7 +299,7 @@ UNIT(asmjit_core_const_pool) {
 
   INFO("Adding 8 byte constant to check if pool gets aligned again");
   {
-    uint64_t c = 0xFFFFFFFFFFFFFFFFU;
+    uint64_t c = 0xFFFFFFFFFFFFFFFFu;
     size_t offset;
 
     EXPECT(pool.add(&c, 8, offset) == kErrorOk);

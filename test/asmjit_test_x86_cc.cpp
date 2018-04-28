@@ -403,8 +403,8 @@ public:
         break;
     }
 
-    result.setFormat("ret={%u, %u}", resultRet >> 28, resultRet & 0x0FFFFFFFU);
-    expect.setFormat("ret={%u, %u}", expectRet >> 28, expectRet & 0x0FFFFFFFU);
+    result.setFormat("ret={%u, %u}", resultRet >> 28, resultRet & 0x0FFFFFFFu);
+    expect.setFormat("ret={%u, %u}", expectRet >> 28, expectRet & 0x0FFFFFFFu);
 
     return resultRet == expectRet;
   }
@@ -2173,8 +2173,8 @@ public:
     d_20 *= saInv;
     d_31 *= saInv;
 
-    d_20 = ((d_20 + ((d_20 >> 8) & 0x00FF00FFU) + 0x00800080U) & 0xFF00FF00U) >> 8;
-    d_31 = ((d_31 + ((d_31 >> 8) & 0x00FF00FFU) + 0x00800080U) & 0xFF00FF00U);
+    d_20 = ((d_20 + ((d_20 >> 8) & 0x00FF00FFu) + 0x00800080u) & 0xFF00FF00u) >> 8;
+    d_31 = ((d_31 + ((d_31 >> 8) & 0x00FF00FFu) + 0x00800080u) & 0xFF00FF00u);
 
     return d_20 + d_31 + s;
   }

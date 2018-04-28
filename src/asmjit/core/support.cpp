@@ -57,12 +57,12 @@ static void testBitUtils() noexcept {
   uint32_t i;
 
   INFO("Support::shl() / shr()");
-  EXPECT(Support::shl<int32_t>(0x00001111, 16) == int32_t(0x11110000U));
-  EXPECT(Support::shl<uint32_t>(0x00001111, 16) == uint32_t(0x11110000U));
-  EXPECT(Support::shr<int32_t>(0x11110000U, 16) == int32_t(0x00001111U));
-  EXPECT(Support::shr<uint32_t>(0x11110000U, 16) == uint32_t(0x00001111U));
-  EXPECT(Support::sar<int32_t>(0xFFFF0000U, 16) == int32_t(0xFFFFFFFFU));
-  EXPECT(Support::sar<uint32_t>(0xFFFF0000U, 16) == uint32_t(0xFFFFFFFFU));
+  EXPECT(Support::shl<int32_t>(0x00001111, 16) == int32_t(0x11110000u));
+  EXPECT(Support::shl<uint32_t>(0x00001111, 16) == uint32_t(0x11110000u));
+  EXPECT(Support::shr<int32_t>(0x11110000u, 16) == int32_t(0x00001111u));
+  EXPECT(Support::shr<uint32_t>(0x11110000u, 16) == uint32_t(0x00001111u));
+  EXPECT(Support::sar<int32_t>(0xFFFF0000u, 16) == int32_t(0xFFFFFFFFu));
+  EXPECT(Support::sar<uint32_t>(0xFFFF0000u, 16) == uint32_t(0xFFFFFFFFu));
 
   INFO("Support::blsi()");
   for (i = 0; i < 32; i++) EXPECT(Support::blsi(uint32_t(1) << i) == uint32_t(1) << i);
@@ -77,9 +77,9 @@ static void testBitUtils() noexcept {
   for (i = 0; i < 64; i++) EXPECT(Support::Internal::ctzGeneric(uint64_t(1) << i) == i);
 
   INFO("Support::mask()");
-  EXPECT(Support::mask(0, 1, 7) == 0x83U);
+  EXPECT(Support::mask(0, 1, 7) == 0x83u);
   for (i = 0; i < 32; i++)
-    EXPECT(Support::mask(i) == (1U << i));
+    EXPECT(Support::mask(i) == (1u << i));
 
   INFO("Support::bitTest()");
   for (i = 0; i < 32; i++) {
@@ -146,9 +146,9 @@ static void testIntUtils() noexcept {
   INFO("Support::isI32()");
   EXPECT(Support::isI32( 2147483647    ) == true);
   EXPECT(Support::isI32(-2147483647 - 1) == true);
-  EXPECT(Support::isI32(uint64_t(2147483648U)) == false);
-  EXPECT(Support::isI32(uint64_t(0xFFFFFFFFU)) == false);
-  EXPECT(Support::isI32(uint64_t(0xFFFFFFFFU) + 1) == false);
+  EXPECT(Support::isI32(uint64_t(2147483648u)) == false);
+  EXPECT(Support::isI32(uint64_t(0xFFFFFFFFu)) == false);
+  EXPECT(Support::isI32(uint64_t(0xFFFFFFFFu) + 1) == false);
 
   INFO("Support::isU8()");
   EXPECT(Support::isU8(0)   == true);
@@ -179,19 +179,19 @@ static void testReadWrite() noexcept {
 
   uint8_t arr[32] = { 0 };
 
-  Support::writeU16uBE(arr + 1, 0x0102U);
-  Support::writeU16uBE(arr + 3, 0x0304U);
-  EXPECT(Support::readU32uBE(arr + 1) == 0x01020304U);
-  EXPECT(Support::readU32uLE(arr + 1) == 0x04030201U);
-  EXPECT(Support::readU32uBE(arr + 2) == 0x02030400U);
-  EXPECT(Support::readU32uLE(arr + 2) == 0x00040302U);
+  Support::writeU16uBE(arr + 1, 0x0102u);
+  Support::writeU16uBE(arr + 3, 0x0304u);
+  EXPECT(Support::readU32uBE(arr + 1) == 0x01020304u);
+  EXPECT(Support::readU32uLE(arr + 1) == 0x04030201u);
+  EXPECT(Support::readU32uBE(arr + 2) == 0x02030400u);
+  EXPECT(Support::readU32uLE(arr + 2) == 0x00040302u);
 
-  Support::writeU32uLE(arr + 5, 0x05060708U);
-  EXPECT(Support::readU64uBE(arr + 1) == 0x0102030408070605U);
-  EXPECT(Support::readU64uLE(arr + 1) == 0x0506070804030201U);
+  Support::writeU32uLE(arr + 5, 0x05060708u);
+  EXPECT(Support::readU64uBE(arr + 1) == 0x0102030408070605u);
+  EXPECT(Support::readU64uLE(arr + 1) == 0x0506070804030201u);
 
-  Support::writeU64uLE(arr + 7, 0x1122334455667788U);
-  EXPECT(Support::readU32uBE(arr + 8) == 0x77665544U);
+  Support::writeU64uLE(arr + 7, 0x1122334455667788u);
+  EXPECT(Support::readU32uBE(arr + 8) == 0x77665544u);
 }
 
 static void testBitVector() noexcept {
@@ -199,54 +199,54 @@ static void testBitVector() noexcept {
   {
     uint32_t vec[3] = { 0 };
     Support::bitVectorFill(vec, 1, 64);
-    EXPECT(vec[0] == 0xFFFFFFFEU);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0x00000001U);
+    EXPECT(vec[0] == 0xFFFFFFFEu);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0x00000001u);
 
     Support::bitVectorClear(vec, 1, 1);
-    EXPECT(vec[0] == 0xFFFFFFFCU);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0x00000001U);
+    EXPECT(vec[0] == 0xFFFFFFFCu);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0x00000001u);
 
     Support::bitVectorFill(vec, 0, 32);
-    EXPECT(vec[0] == 0xFFFFFFFFU);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0x00000001U);
+    EXPECT(vec[0] == 0xFFFFFFFFu);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0x00000001u);
 
     Support::bitVectorClear(vec, 0, 32);
-    EXPECT(vec[0] == 0x00000000U);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0x00000001U);
+    EXPECT(vec[0] == 0x00000000u);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0x00000001u);
 
     Support::bitVectorFill(vec, 1, 30);
-    EXPECT(vec[0] == 0x7FFFFFFEU);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0x00000001U);
+    EXPECT(vec[0] == 0x7FFFFFFEu);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0x00000001u);
 
     Support::bitVectorClear(vec, 1, 95);
-    EXPECT(vec[0] == 0x00000000U);
-    EXPECT(vec[1] == 0x00000000U);
-    EXPECT(vec[2] == 0x00000000U);
+    EXPECT(vec[0] == 0x00000000u);
+    EXPECT(vec[1] == 0x00000000u);
+    EXPECT(vec[2] == 0x00000000u);
 
     Support::bitVectorFill(vec, 32, 64);
-    EXPECT(vec[0] == 0x00000000U);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0xFFFFFFFFU);
+    EXPECT(vec[0] == 0x00000000u);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0xFFFFFFFFu);
 
     Support::bitVectorSetBit(vec, 1, true);
-    EXPECT(vec[0] == 0x00000002U);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0xFFFFFFFFU);
+    EXPECT(vec[0] == 0x00000002u);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0xFFFFFFFFu);
 
     Support::bitVectorSetBit(vec, 95, false);
-    EXPECT(vec[0] == 0x00000002U);
-    EXPECT(vec[1] == 0xFFFFFFFFU);
-    EXPECT(vec[2] == 0x7FFFFFFFU);
+    EXPECT(vec[0] == 0x00000002u);
+    EXPECT(vec[1] == 0xFFFFFFFFu);
+    EXPECT(vec[2] == 0x7FFFFFFFu);
 
     Support::bitVectorClear(vec, 33, 32);
-    EXPECT(vec[0] == 0x00000002U);
-    EXPECT(vec[1] == 0x00000001U);
-    EXPECT(vec[2] == 0x7FFFFFFEU);
+    EXPECT(vec[0] == 0x00000002u);
+    EXPECT(vec[1] == 0x00000001u);
+    EXPECT(vec[2] == 0x7FFFFFFEu);
   }
 
   INFO("Support::bitVectorIndexOf");
@@ -287,7 +287,7 @@ static void testBitVector() noexcept {
 
   INFO("Support::BitWordIterator<uint32_t>");
   {
-    Support::BitWordIterator<uint32_t> it(0x80000F01U);
+    Support::BitWordIterator<uint32_t> it(0x80000F01u);
     EXPECT(it.hasNext());
     EXPECT(it.next() == 0);
     EXPECT(it.hasNext());
@@ -303,17 +303,17 @@ static void testBitVector() noexcept {
     EXPECT(!it.hasNext());
 
     // No bits set.
-    it.init(0x00000000U);
+    it.init(0x00000000u);
     ASMJIT_ASSERT(!it.hasNext());
 
     // Only first bit set.
-    it.init(0x00000001U);
+    it.init(0x00000001u);
     EXPECT(it.hasNext());
     EXPECT(it.next() == 0);
     ASMJIT_ASSERT(!it.hasNext());
 
     // Only last bit set (special case).
-    it.init(0x80000000U);
+    it.init(0x80000000u);
     ASMJIT_ASSERT(it.hasNext());
     ASMJIT_ASSERT(it.next() == 31);
     ASMJIT_ASSERT(!it.hasNext());
@@ -330,7 +330,7 @@ static void testBitVector() noexcept {
   INFO("Support::BitVectorIterator<uint32_t>");
   {
     // Border cases.
-    static const uint32_t bitsNone[] = { 0xFFFFFFFFU };
+    static const uint32_t bitsNone[] = { 0xFFFFFFFFu };
     Support::BitVectorIterator<uint32_t> it(bitsNone, 0);
 
     EXPECT(!it.hasNext());
@@ -339,7 +339,7 @@ static void testBitVector() noexcept {
     it.init(bitsNone, 0, 128);
     EXPECT(!it.hasNext());
 
-    static const uint32_t bits1[] = { 0x80000008U, 0x80000001U, 0x00000000U, 0x80000000U, 0x00000000U, 0x00000000U, 0x00003000U };
+    static const uint32_t bits1[] = { 0x80000008u, 0x80000001u, 0x00000000u, 0x80000000u, 0x00000000u, 0x00000000u, 0x00003000u };
     it.init(bits1, ASMJIT_ARRAY_SIZE(bits1));
 
     EXPECT(it.hasNext());
@@ -370,7 +370,7 @@ static void testBitVector() noexcept {
     EXPECT(it.hasNext());
     EXPECT(it.next() == 127);
 
-    static const uint32_t bits2[] = { 0x80000000U, 0x80000000U, 0x00000000U, 0x80000000U };
+    static const uint32_t bits2[] = { 0x80000000u, 0x80000000u, 0x00000000u, 0x80000000u };
     it.init(bits2, ASMJIT_ARRAY_SIZE(bits2));
 
     EXPECT(it.hasNext());
@@ -381,11 +381,11 @@ static void testBitVector() noexcept {
     EXPECT(it.next() == 127);
     EXPECT(!it.hasNext());
 
-    static const uint32_t bits3[] = { 0x00000000U, 0x00000000U, 0x00000000U, 0x00000000U };
+    static const uint32_t bits3[] = { 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u };
     it.init(bits3, ASMJIT_ARRAY_SIZE(bits3));
     EXPECT(!it.hasNext());
 
-    static const uint32_t bits4[] = { 0x00000000U, 0x00000000U, 0x00000000U, 0x80000000U };
+    static const uint32_t bits4[] = { 0x00000000u, 0x00000000u, 0x00000000u, 0x80000000u };
     it.init(bits4, ASMJIT_ARRAY_SIZE(bits4));
     EXPECT(it.hasNext());
     EXPECT(it.next() == 127);
@@ -394,7 +394,7 @@ static void testBitVector() noexcept {
 
   INFO("Support::BitVectorIterator<uint64_t>");
   {
-    static const uint64_t bits1[] = { 0x80000000U, 0x80000000U, 0x00000000U, 0x80000000U };
+    static const uint64_t bits1[] = { 0x80000000u, 0x80000000u, 0x00000000u, 0x80000000u };
     Support::BitVectorIterator<uint64_t> it(bits1, ASMJIT_ARRAY_SIZE(bits1));
 
     EXPECT(it.hasNext());
@@ -405,7 +405,7 @@ static void testBitVector() noexcept {
     EXPECT(it.next() == 223);
     EXPECT(!it.hasNext());
 
-    static const uint64_t bits2[] = { 0x8000000000000000U, 0, 0, 0 };
+    static const uint64_t bits2[] = { 0x8000000000000000u, 0, 0, 0 };
     it.init(bits2, ASMJIT_ARRAY_SIZE(bits2));
 
     EXPECT(it.hasNext());
@@ -415,7 +415,7 @@ static void testBitVector() noexcept {
 
   INFO("Support::BitVectorFlipIterator<uint32_t>");
   {
-    static const uint32_t bits[] = { 0x80000000U, 0x80000000U, 0x00000000U, 0x80000000U };
+    static const uint32_t bits[] = { 0x80000000u, 0x80000000u, 0x00000000u, 0x80000000u };
     Support::BitVectorFlipIterator<uint32_t> it(bits, ASMJIT_ARRAY_SIZE(bits));
 
     EXPECT(it.hasNext());
@@ -433,7 +433,7 @@ static void testBitVector() noexcept {
 
   INFO("Support::BitVectorFlipIterator<uint64_t>");
   {
-    static const uint64_t bits[] = { 0xFFFFFFFFFFFFFFFFU, 0xFFFFFFFFFFFFFFFF, 0, 0 };
+    static const uint64_t bits[] = { 0xFFFFFFFFFFFFFFFFu, 0xFFFFFFFFFFFFFFFF, 0, 0 };
     Support::BitVectorFlipIterator<uint64_t> it(bits, ASMJIT_ARRAY_SIZE(bits));
 
     EXPECT(it.hasNext());

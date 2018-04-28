@@ -99,8 +99,8 @@ public:
 //! Code or data buffer.
 struct CodeBuffer {
   enum Flags : uint32_t {
-    kFlagIsExternal       = 0x00000001U, //!< Buffer is external (not allocated by asmjit).
-    kFlagIsFixed          = 0x00000002U  //!< Buffer is fixed (cannot be reallocated).
+    kFlagIsExternal       = 0x00000001u, //!< Buffer is external (not allocated by asmjit).
+    kFlagIsFixed          = 0x00000002u  //!< Buffer is fixed (cannot be reallocated).
   };
 
   // --------------------------------------------------------------------------
@@ -139,16 +139,16 @@ struct CodeBuffer {
 class SectionEntry {
 public:
   enum Id : uint32_t {
-    kInvalidId       = 0xFFFFFFFFU       //!< Invalid section id.
+    kInvalidId       = 0xFFFFFFFFu       //!< Invalid section id.
   };
 
   //! Section flags.
   enum Flags : uint32_t {
-    kFlagExec        = 0x00000001U,      //!< Executable (.text sections).
-    kFlagConst       = 0x00000002U,      //!< Read-only (.text and .data sections).
-    kFlagZero        = 0x00000004U,      //!< Zero initialized by the loader (BSS).
-    kFlagInfo        = 0x00000008U,      //!< Info / comment flag.
-    kFlagImplicit    = 0x80000000U       //!< Section created implicitly and can be deleted by `Target`.
+    kFlagExec        = 0x00000001u,      //!< Executable (.text sections).
+    kFlagConst       = 0x00000002u,      //!< Read-only (.text and .data sections).
+    kFlagZero        = 0x00000004u,      //!< Zero initialized by the loader (BSS).
+    kFlagInfo        = 0x00000008u,      //!< Info / comment flag.
+    kFlagImplicit    = 0x80000000u       //!< Section created implicitly and can be deleted by `Target`.
   };
 
   // --------------------------------------------------------------------------
@@ -300,7 +300,7 @@ public:
 //! Relocation entry.
 struct RelocEntry {
   enum Id : uint32_t {
-    kInvalidId       = 0xFFFFFFFFU       //!< Invalid relocation id.
+    kInvalidId       = 0xFFFFFFFFu       //!< Invalid relocation id.
   };
 
   //! Relocation type.

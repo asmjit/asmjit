@@ -305,8 +305,8 @@ struct CallConv {
   inline void setPassedToNone(uint32_t group) noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
 
-    _setPassedPacked(group, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU);
-    _passedRegs[group] = 0U;
+    _setPassedPacked(group, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu);
+    _passedRegs[group] = 0u;
   }
 
   inline void setPassedOrder(uint32_t group, uint32_t a0, uint32_t a1 = 0xFF, uint32_t a2 = 0xFF, uint32_t a3 = 0xFF, uint32_t a4 = 0xFF, uint32_t a5 = 0xFF, uint32_t a6 = 0xFF, uint32_t a7 = 0xFF) noexcept {
@@ -316,17 +316,17 @@ struct CallConv {
     // so even if it looks scary it should be translated into few instructions.
     _setPassedPacked(group, Support::bytepack32_4x8(a0, a1, a2, a3),
                             Support::bytepack32_4x8(a4, a5, a6, a7),
-                            0xFFFFFFFFU,
-                            0xFFFFFFFFU);
+                            0xFFFFFFFFu,
+                            0xFFFFFFFFu);
 
-    _passedRegs[group] = (a0 != 0xFF ? 1U << a0 : 0U) |
-                         (a1 != 0xFF ? 1U << a1 : 0U) |
-                         (a2 != 0xFF ? 1U << a2 : 0U) |
-                         (a3 != 0xFF ? 1U << a3 : 0U) |
-                         (a4 != 0xFF ? 1U << a4 : 0U) |
-                         (a5 != 0xFF ? 1U << a5 : 0U) |
-                         (a6 != 0xFF ? 1U << a6 : 0U) |
-                         (a7 != 0xFF ? 1U << a7 : 0U) ;
+    _passedRegs[group] = (a0 != 0xFF ? 1u << a0 : 0u) |
+                         (a1 != 0xFF ? 1u << a1 : 0u) |
+                         (a2 != 0xFF ? 1u << a2 : 0u) |
+                         (a3 != 0xFF ? 1u << a3 : 0u) |
+                         (a4 != 0xFF ? 1u << a4 : 0u) |
+                         (a5 != 0xFF ? 1u << a5 : 0u) |
+                         (a6 != 0xFF ? 1u << a6 : 0u) |
+                         (a7 != 0xFF ? 1u << a7 : 0u) ;
   }
 
   inline uint32_t preservedRegs(uint32_t group) const noexcept {

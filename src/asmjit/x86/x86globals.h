@@ -24,37 +24,37 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 namespace Cond {
   //! Condition code.
   enum Value : uint32_t {
-    kO                    = 0x00U,       //!<                 OF==1
-    kNO                   = 0x01U,       //!<                 OF==0
-    kB                    = 0x02U,       //!< CF==1                  (unsigned < )
-    kC                    = 0x02U,       //!< CF==1
-    kNAE                  = 0x02U,       //!< CF==1                  (unsigned < )
-    kAE                   = 0x03U,       //!< CF==0                  (unsigned >=)
-    kNB                   = 0x03U,       //!< CF==0                  (unsigned >=)
-    kNC                   = 0x03U,       //!< CF==0
-    kE                    = 0x04U,       //!<         ZF==1          (any_sign ==)
-    kZ                    = 0x04U,       //!<         ZF==1          (any_sign ==)
-    kNE                   = 0x05U,       //!<         ZF==0          (any_sign !=)
-    kNZ                   = 0x05U,       //!<         ZF==0          (any_sign !=)
-    kBE                   = 0x06U,       //!< CF==1 | ZF==1          (unsigned <=)
-    kNA                   = 0x06U,       //!< CF==1 | ZF==1          (unsigned <=)
-    kA                    = 0x07U,       //!< CF==0 & ZF==0          (unsigned > )
-    kNBE                  = 0x07U,       //!< CF==0 & ZF==0          (unsigned > )
-    kS                    = 0x08U,       //!<                 SF==1  (is negative)
-    kNS                   = 0x09U,       //!<                 SF==0  (is positive or zero)
-    kP                    = 0x0AU,       //!< PF==1
-    kPE                   = 0x0AU,       //!< PF==1
-    kPO                   = 0x0BU,       //!< PF==0
-    kNP                   = 0x0BU,       //!< PF==0
-    kL                    = 0x0CU,       //!<                 SF!=OF (signed   < )
-    kNGE                  = 0x0CU,       //!<                 SF!=OF (signed   < )
-    kGE                   = 0x0DU,       //!<                 SF==OF (signed   >=)
-    kNL                   = 0x0DU,       //!<                 SF==OF (signed   >=)
-    kLE                   = 0x0EU,       //!<         ZF==1 | SF!=OF (signed   <=)
-    kNG                   = 0x0EU,       //!<         ZF==1 | SF!=OF (signed   <=)
-    kG                    = 0x0FU,       //!<         ZF==0 & SF==OF (signed   > )
-    kNLE                  = 0x0FU,       //!<         ZF==0 & SF==OF (signed   > )
-    kCount                = 0x10U,
+    kO                    = 0x00u,       //!<                 OF==1
+    kNO                   = 0x01u,       //!<                 OF==0
+    kB                    = 0x02u,       //!< CF==1                  (unsigned < )
+    kC                    = 0x02u,       //!< CF==1
+    kNAE                  = 0x02u,       //!< CF==1                  (unsigned < )
+    kAE                   = 0x03u,       //!< CF==0                  (unsigned >=)
+    kNB                   = 0x03u,       //!< CF==0                  (unsigned >=)
+    kNC                   = 0x03u,       //!< CF==0
+    kE                    = 0x04u,       //!<         ZF==1          (any_sign ==)
+    kZ                    = 0x04u,       //!<         ZF==1          (any_sign ==)
+    kNE                   = 0x05u,       //!<         ZF==0          (any_sign !=)
+    kNZ                   = 0x05u,       //!<         ZF==0          (any_sign !=)
+    kBE                   = 0x06u,       //!< CF==1 | ZF==1          (unsigned <=)
+    kNA                   = 0x06u,       //!< CF==1 | ZF==1          (unsigned <=)
+    kA                    = 0x07u,       //!< CF==0 & ZF==0          (unsigned > )
+    kNBE                  = 0x07u,       //!< CF==0 & ZF==0          (unsigned > )
+    kS                    = 0x08u,       //!<                 SF==1  (is negative)
+    kNS                   = 0x09u,       //!<                 SF==0  (is positive or zero)
+    kP                    = 0x0Au,       //!< PF==1
+    kPE                   = 0x0Au,       //!< PF==1
+    kPO                   = 0x0Bu,       //!< PF==0
+    kNP                   = 0x0Bu,       //!< PF==0
+    kL                    = 0x0Cu,       //!<                 SF!=OF (signed   < )
+    kNGE                  = 0x0Cu,       //!<                 SF!=OF (signed   < )
+    kGE                   = 0x0Du,       //!<                 SF==OF (signed   >=)
+    kNL                   = 0x0Du,       //!<                 SF==OF (signed   >=)
+    kLE                   = 0x0Eu,       //!<         ZF==1 | SF!=OF (signed   <=)
+    kNG                   = 0x0Eu,       //!<         ZF==1 | SF!=OF (signed   <=)
+    kG                    = 0x0Fu,       //!<         ZF==0 & SF==OF (signed   > )
+    kNLE                  = 0x0Fu,       //!<         ZF==0 & SF==OF (signed   > )
+    kCount                = 0x10u,
 
     kSign                 = kS,          //!< Sign.
     kNotSign              = kNS,         //!< Not Sign.
@@ -95,7 +95,7 @@ namespace Cond {
   //! Reverse a condition code (reverses the corresponding operands of a comparison).
   static constexpr uint32_t reverse(uint32_t cond) noexcept { return reverseTable[cond]; }
   //! Negate a condition code.
-  static constexpr uint32_t negate(uint32_t cond) noexcept { return cond ^ 1U; }
+  static constexpr uint32_t negate(uint32_t cond) noexcept { return cond ^ 1u; }
 }
 
 // ============================================================================
@@ -1574,32 +1574,32 @@ struct Inst : public BaseInst {
 
   //! Instruction options (X86).
   enum Options : uint32_t {
-    kOptionVex3           = 0x00000400U, //!< Use 3-byte VEX prefix if possible (AVX) (must be 0x00000400).
-    kOptionModMR          = 0x00000800U, //!< Use ModMR instead of ModRM when it's available.
-    kOptionEvex           = 0x00001000U, //!< Use 4-byte EVEX prefix if possible (AVX-512) (must be 0x00001000).
+    kOptionVex3           = 0x00000400u, //!< Use 3-byte VEX prefix if possible (AVX) (must be 0x00000400).
+    kOptionModMR          = 0x00000800u, //!< Use ModMR instead of ModRM when it's available.
+    kOptionEvex           = 0x00001000u, //!< Use 4-byte EVEX prefix if possible (AVX-512) (must be 0x00001000).
 
-    kOptionLock           = 0x00002000U, //!< LOCK prefix (lock-enabled instructions only).
-    kOptionRep            = 0x00004000U, //!< REP prefix (string instructions only).
-    kOptionRepne          = 0x00008000U, //!< REPNE prefix (string instructions only).
+    kOptionLock           = 0x00002000u, //!< LOCK prefix (lock-enabled instructions only).
+    kOptionRep            = 0x00004000u, //!< REP prefix (string instructions only).
+    kOptionRepne          = 0x00008000u, //!< REPNE prefix (string instructions only).
 
-    kOptionXAcquire       = 0x00010000U, //!< XACQUIRE prefix (only allowed instructions).
-    kOptionXRelease       = 0x00020000U, //!< XRELEASE prefix (only allowed instructions).
+    kOptionXAcquire       = 0x00010000u, //!< XACQUIRE prefix (only allowed instructions).
+    kOptionXRelease       = 0x00020000u, //!< XRELEASE prefix (only allowed instructions).
 
-    kOptionER             = 0x00040000U, //!< AVX-512: embedded-rounding {er} and implicit {sae}.
-    kOptionSAE            = 0x00080000U, //!< AVX-512: suppress-all-exceptions {sae}.
-    kOptionRN_SAE         = 0x00000000U, //!< AVX-512: round-to-nearest (even)      {rn-sae} (bits 00).
-    kOptionRD_SAE         = 0x00200000U, //!< AVX-512: round-down (toward -inf)     {rd-sae} (bits 01).
-    kOptionRU_SAE         = 0x00400000U, //!< AVX-512: round-up (toward +inf)       {ru-sae} (bits 10).
-    kOptionRZ_SAE         = 0x00600000U, //!< AVX-512: round-toward-zero (truncate) {rz-sae} (bits 11).
-    kOptionZMask          = 0x00800000U, //!< AVX-512: Use zeroing {k}{z} instead of merging {k}.
-    _kOptionAvx512Mask    = 0x00FC0000U, //!< AVX-512: Mask of all possible AVX-512 options except EVEX prefix flag.
+    kOptionER             = 0x00040000u, //!< AVX-512: embedded-rounding {er} and implicit {sae}.
+    kOptionSAE            = 0x00080000u, //!< AVX-512: suppress-all-exceptions {sae}.
+    kOptionRN_SAE         = 0x00000000u, //!< AVX-512: round-to-nearest (even)      {rn-sae} (bits 00).
+    kOptionRD_SAE         = 0x00200000u, //!< AVX-512: round-down (toward -inf)     {rd-sae} (bits 01).
+    kOptionRU_SAE         = 0x00400000u, //!< AVX-512: round-up (toward +inf)       {ru-sae} (bits 10).
+    kOptionRZ_SAE         = 0x00600000u, //!< AVX-512: round-toward-zero (truncate) {rz-sae} (bits 11).
+    kOptionZMask          = 0x00800000u, //!< AVX-512: Use zeroing {k}{z} instead of merging {k}.
+    _kOptionAvx512Mask    = 0x00FC0000u, //!< AVX-512: Mask of all possible AVX-512 options except EVEX prefix flag.
 
-    kOptionOpCodeB        = 0x01000000U, //!< REX.B and/or VEX.B field (X64).
-    kOptionOpCodeX        = 0x02000000U, //!< REX.X and/or VEX.X field (X64).
-    kOptionOpCodeR        = 0x04000000U, //!< REX.R and/or VEX.R field (X64).
-    kOptionOpCodeW        = 0x08000000U, //!< REX.W and/or VEX.W field (X64).
-    kOptionRex            = 0x40000000U, //!< Force REX prefix (X64).
-    _kOptionInvalidRex    = 0x80000000U  //!< Invalid REX prefix (set by X86 or when AH|BH|CH|DH regs are used on X64).
+    kOptionOpCodeB        = 0x01000000u, //!< REX.B and/or VEX.B field (X64).
+    kOptionOpCodeX        = 0x02000000u, //!< REX.X and/or VEX.X field (X64).
+    kOptionOpCodeR        = 0x04000000u, //!< REX.R and/or VEX.R field (X64).
+    kOptionOpCodeW        = 0x08000000u, //!< REX.W and/or VEX.W field (X64).
+    kOptionRex            = 0x40000000u, //!< Force REX prefix (X64).
+    _kOptionInvalidRex    = 0x80000000u  //!< Invalid REX prefix (set by X86 or when AH|BH|CH|DH regs are used on X64).
   };
 
   // --------------------------------------------------------------------------
@@ -1646,51 +1646,51 @@ struct Inst : public BaseInst {
 namespace FpuWord {
   //! FPU status word.
   enum Status : uint32_t {
-    kStatusInvalid        = 0x0001U,
-    kStatusDenormalized   = 0x0002U,
-    kStatusDivByZero      = 0x0004U,
-    kStatusOverflow       = 0x0008U,
-    kStatusUnderflow      = 0x0010U,
-    kStatusPrecision      = 0x0020U,
-    kStatusStackFault     = 0x0040U,
-    kStatusInterrupt      = 0x0080U,
-    kStatusC0             = 0x0100U,
-    kStatusC1             = 0x0200U,
-    kStatusC2             = 0x0400U,
-    kStatusTop            = 0x3800U,
-    kStatusC3             = 0x4000U,
-    kStatusBusy           = 0x8000U
+    kStatusInvalid        = 0x0001u,
+    kStatusDenormalized   = 0x0002u,
+    kStatusDivByZero      = 0x0004u,
+    kStatusOverflow       = 0x0008u,
+    kStatusUnderflow      = 0x0010u,
+    kStatusPrecision      = 0x0020u,
+    kStatusStackFault     = 0x0040u,
+    kStatusInterrupt      = 0x0080u,
+    kStatusC0             = 0x0100u,
+    kStatusC1             = 0x0200u,
+    kStatusC2             = 0x0400u,
+    kStatusTop            = 0x3800u,
+    kStatusC3             = 0x4000u,
+    kStatusBusy           = 0x8000u
   };
 
   //! FPU control word.
   enum Control : uint32_t {
     // Bits 0-5.
-    kControlEM_Mask       = 0x003FU,
-    kControlEM_Invalid    = 0x0001U,
-    kControlEM_Denormal   = 0x0002U,
-    kControlEM_DivByZero  = 0x0004U,
-    kControlEM_Overflow   = 0x0008U,
-    kControlEM_Underflow  = 0x0010U,
-    kControlEM_Inexact    = 0x0020U,
+    kControlEM_Mask       = 0x003Fu,
+    kControlEM_Invalid    = 0x0001u,
+    kControlEM_Denormal   = 0x0002u,
+    kControlEM_DivByZero  = 0x0004u,
+    kControlEM_Overflow   = 0x0008u,
+    kControlEM_Underflow  = 0x0010u,
+    kControlEM_Inexact    = 0x0020u,
 
     // Bits 8-9.
-    kControlPC_Mask       = 0x0300U,
-    kControlPC_Float      = 0x0000U,
-    kControlPC_Reserved   = 0x0100U,
-    kControlPC_Double     = 0x0200U,
-    kControlPC_Extended   = 0x0300U,
+    kControlPC_Mask       = 0x0300u,
+    kControlPC_Float      = 0x0000u,
+    kControlPC_Reserved   = 0x0100u,
+    kControlPC_Double     = 0x0200u,
+    kControlPC_Extended   = 0x0300u,
 
     // Bits 10-11.
-    kControlRC_Mask       = 0x0C00U,
-    kControlRC_Nearest    = 0x0000U,
-    kControlRC_Down       = 0x0400U,
-    kControlRC_Up         = 0x0800U,
-    kControlRC_Truncate   = 0x0C00U,
+    kControlRC_Mask       = 0x0C00u,
+    kControlRC_Nearest    = 0x0000u,
+    kControlRC_Down       = 0x0400u,
+    kControlRC_Up         = 0x0800u,
+    kControlRC_Truncate   = 0x0C00u,
 
     // Bit 12.
-    kControlIC_Mask       = 0x1000U,
-    kControlIC_Projective = 0x0000U,
-    kControlIC_Affine     = 0x1000U
+    kControlIC_Mask       = 0x1000u,
+    kControlIC_Projective = 0x0000u,
+    kControlIC_Affine     = 0x1000u
   };
 }
 
@@ -1701,31 +1701,31 @@ namespace FpuWord {
 // TODO: Move into a namespace.
 //! Flags describing special registers and/or their parts.
 enum SpecialRegs : uint32_t {
-  kSpecialReg_FLAGS_CF    = 0x00000001U, //!< [R|E]FLAGS - Carry flag.
-  kSpecialReg_FLAGS_PF    = 0x00000002U, //!< [R|E]FLAGS - Parity flag.
-  kSpecialReg_FLAGS_AF    = 0x00000004U, //!< [R|E]FLAGS - Adjust flag.
-  kSpecialReg_FLAGS_ZF    = 0x00000008U, //!< [R|E]FLAGS - Zero flag.
-  kSpecialReg_FLAGS_SF    = 0x00000010U, //!< [R|E]FLAGS - Sign flag.
-  kSpecialReg_FLAGS_TF    = 0x00000020U, //!< [R|E]FLAGS - Trap flag.
-  kSpecialReg_FLAGS_IF    = 0x00000040U, //!< [R|E]FLAGS - Interrupt enable flag.
-  kSpecialReg_FLAGS_DF    = 0x00000080U, //!< [R|E]FLAGS - Direction flag.
-  kSpecialReg_FLAGS_OF    = 0x00000100U, //!< [R|E]FLAGS - Overflow flag.
-  kSpecialReg_FLAGS_AC    = 0x00000200U, //!< [R|E]FLAGS - Alignment check.
-  kSpecialReg_FLAGS_SYS   = 0x00000400U, //!< [R|E]FLAGS - System flags.
+  kSpecialReg_FLAGS_CF    = 0x00000001u, //!< [R|E]FLAGS - Carry flag.
+  kSpecialReg_FLAGS_PF    = 0x00000002u, //!< [R|E]FLAGS - Parity flag.
+  kSpecialReg_FLAGS_AF    = 0x00000004u, //!< [R|E]FLAGS - Adjust flag.
+  kSpecialReg_FLAGS_ZF    = 0x00000008u, //!< [R|E]FLAGS - Zero flag.
+  kSpecialReg_FLAGS_SF    = 0x00000010u, //!< [R|E]FLAGS - Sign flag.
+  kSpecialReg_FLAGS_TF    = 0x00000020u, //!< [R|E]FLAGS - Trap flag.
+  kSpecialReg_FLAGS_IF    = 0x00000040u, //!< [R|E]FLAGS - Interrupt enable flag.
+  kSpecialReg_FLAGS_DF    = 0x00000080u, //!< [R|E]FLAGS - Direction flag.
+  kSpecialReg_FLAGS_OF    = 0x00000100u, //!< [R|E]FLAGS - Overflow flag.
+  kSpecialReg_FLAGS_AC    = 0x00000200u, //!< [R|E]FLAGS - Alignment check.
+  kSpecialReg_FLAGS_SYS   = 0x00000400u, //!< [R|E]FLAGS - System flags.
 
-  kSpecialReg_X87CW_EXC   = 0x00000800U, //!< X87 Control Word - Exception control.
-  kSpecialReg_X87CW_PC    = 0x00001000U, //!< X87 Control Word - Precision control.
-  kSpecialReg_X87CW_RC    = 0x00002000U, //!< X87 Control Word - Rounding control.
+  kSpecialReg_X87CW_EXC   = 0x00000800u, //!< X87 Control Word - Exception control.
+  kSpecialReg_X87CW_PC    = 0x00001000u, //!< X87 Control Word - Precision control.
+  kSpecialReg_X87CW_RC    = 0x00002000u, //!< X87 Control Word - Rounding control.
 
-  kSpecialReg_X87SW_EXC   = 0x00004000U, //!< X87 Status Word - Exception flags.
-  kSpecialReg_X87SW_C0    = 0x00008000U, //!< X87 Status Word - C0 flag.
-  kSpecialReg_X87SW_C1    = 0x00010000U, //!< X87 Status Word - C1 flag.
-  kSpecialReg_X87SW_C2    = 0x00020000U, //!< X87 Status Word - C2 flag.
-  kSpecialReg_X87SW_TOP   = 0x00040000U, //!< X87 Status Word - Top of the FPU stack.
-  kSpecialReg_X87SW_C3    = 0x00080000U, //!< X87 Status Word - C3 flag.
+  kSpecialReg_X87SW_EXC   = 0x00004000u, //!< X87 Status Word - Exception flags.
+  kSpecialReg_X87SW_C0    = 0x00008000u, //!< X87 Status Word - C0 flag.
+  kSpecialReg_X87SW_C1    = 0x00010000u, //!< X87 Status Word - C1 flag.
+  kSpecialReg_X87SW_C2    = 0x00020000u, //!< X87 Status Word - C2 flag.
+  kSpecialReg_X87SW_TOP   = 0x00040000u, //!< X87 Status Word - Top of the FPU stack.
+  kSpecialReg_X87SW_C3    = 0x00080000u, //!< X87 Status Word - C3 flag.
 
-  kSpecialReg_MSR         = 0x00100000U, //!< MSR register.
-  kSpecialReg_XCR         = 0x00200000U  //!< XCR register.
+  kSpecialReg_MSR         = 0x00100000u, //!< MSR register.
+  kSpecialReg_XCR         = 0x00200000u  //!< XCR register.
 };
 
 // ============================================================================
@@ -1736,55 +1736,55 @@ enum SpecialRegs : uint32_t {
 namespace Predicate {
   //! A predicate used by CMP[PD|PS|SD|SS] instructions.
   enum Cmp : uint32_t {
-    kCmpEQ                = 0x00U,       //!< Equal             (Quiet).
-    kCmpLT                = 0x01U,       //!< Less              (Signaling).
-    kCmpLE                = 0x02U,       //!< Less/Equal        (Signaling).
-    kCmpUNORD             = 0x03U,       //!< Unordered         (Quiet).
-    kCmpNEQ               = 0x04U,       //!< Not Equal         (Quiet).
-    kCmpNLT               = 0x05U,       //!< Not Less          (Signaling).
-    kCmpNLE               = 0x06U,       //!< Not Less/Equal    (Signaling).
-    kCmpORD               = 0x07U        //!< Ordered           (Quiet).
+    kCmpEQ                = 0x00u,       //!< Equal             (Quiet).
+    kCmpLT                = 0x01u,       //!< Less              (Signaling).
+    kCmpLE                = 0x02u,       //!< Less/Equal        (Signaling).
+    kCmpUNORD             = 0x03u,       //!< Unordered         (Quiet).
+    kCmpNEQ               = 0x04u,       //!< Not Equal         (Quiet).
+    kCmpNLT               = 0x05u,       //!< Not Less          (Signaling).
+    kCmpNLE               = 0x06u,       //!< Not Less/Equal    (Signaling).
+    kCmpORD               = 0x07u        //!< Ordered           (Quiet).
   };
 
   //! A predicate used by [V]PCMP[I|E]STR[I|M] instructions.
   enum PCmpStr : uint32_t {
     // Source data format:
-    kPCmpStrUB            = 0x00U << 0,  //!< The source data format is unsigned bytes.
-    kPCmpStrUW            = 0x01U << 0,  //!< The source data format is unsigned words.
-    kPCmpStrSB            = 0x02U << 0,  //!< The source data format is signed bytes.
-    kPCmpStrSW            = 0x03U << 0,  //!< The source data format is signed words.
+    kPCmpStrUB            = 0x00u << 0,  //!< The source data format is unsigned bytes.
+    kPCmpStrUW            = 0x01u << 0,  //!< The source data format is unsigned words.
+    kPCmpStrSB            = 0x02u << 0,  //!< The source data format is signed bytes.
+    kPCmpStrSW            = 0x03u << 0,  //!< The source data format is signed words.
 
     // Aggregation operation:
-    kPCmpStrEqualAny      = 0x00U << 2,  //!< The arithmetic comparison is "equal".
-    kPCmpStrRanges        = 0x01U << 2,  //!< The arithmetic comparison is “greater than or equal”
+    kPCmpStrEqualAny      = 0x00u << 2,  //!< The arithmetic comparison is "equal".
+    kPCmpStrRanges        = 0x01u << 2,  //!< The arithmetic comparison is “greater than or equal”
                                          //!< between even indexed elements and “less than or equal”
                                          //!< between odd indexed elements.
-    kPCmpStrEqualEach     = 0x02U << 2,  //!< The arithmetic comparison is "equal".
-    kPCmpStrEqualOrdered  = 0x03U << 2,  //!< The arithmetic comparison is "equal".
+    kPCmpStrEqualEach     = 0x02u << 2,  //!< The arithmetic comparison is "equal".
+    kPCmpStrEqualOrdered  = 0x03u << 2,  //!< The arithmetic comparison is "equal".
 
     // Polarity:
-    kPCmpStrPosPolarity   = 0x00U << 4,  //!< IntRes2 = IntRes1.
-    kPCmpStrNegPolarity   = 0x01U << 4,  //!< IntRes2 = -1 XOR IntRes1.
-    kPCmpStrPosMasked     = 0x02U << 4,  //!< IntRes2 = IntRes1.
-    kPCmpStrNegMasked     = 0x03U << 4,  //!< IntRes2[i] = second[i] == invalid ? IntRes1[i] : ~IntRes1[i].
+    kPCmpStrPosPolarity   = 0x00u << 4,  //!< IntRes2 = IntRes1.
+    kPCmpStrNegPolarity   = 0x01u << 4,  //!< IntRes2 = -1 XOR IntRes1.
+    kPCmpStrPosMasked     = 0x02u << 4,  //!< IntRes2 = IntRes1.
+    kPCmpStrNegMasked     = 0x03u << 4,  //!< IntRes2[i] = second[i] == invalid ? IntRes1[i] : ~IntRes1[i].
 
     // Output selection (pcmpstri):
-    kPCmpStrOutputLSI     = 0x00U << 6,  //!< The index returned to ECX is of the least significant set bit in IntRes2.
-    kPCmpStrOutputMSI     = 0x01U << 6,  //!< The index returned to ECX is of the most significant set bit in IntRes2.
+    kPCmpStrOutputLSI     = 0x00u << 6,  //!< The index returned to ECX is of the least significant set bit in IntRes2.
+    kPCmpStrOutputMSI     = 0x01u << 6,  //!< The index returned to ECX is of the most significant set bit in IntRes2.
 
     // Output selection (pcmpstrm):
-    kPCmpStrBitMask       = 0x00U << 6,  //!< IntRes2 is returned as the mask to the least significant bits of XMM0.
-    kPCmpStrIndexMask     = 0x01U << 6   //!< IntRes2 is expanded into a byte/word mask and placed in XMM0.
+    kPCmpStrBitMask       = 0x00u << 6,  //!< IntRes2 is returned as the mask to the least significant bits of XMM0.
+    kPCmpStrIndexMask     = 0x01u << 6   //!< IntRes2 is expanded into a byte/word mask and placed in XMM0.
   };
 
   //! A predicate used by ROUND[PD|PS|SD|SS] instructions.
   enum Round : uint32_t {
-    kRoundNearest         = 0x00U,       //!< Round to nearest (even).
-    kRoundDown            = 0x01U,       //!< Round to down toward -INF (floor),
-    kRoundUp              = 0x02U,       //!< Round to up toward +INF (ceil).
-    kRoundTrunc           = 0x03U,       //!< Round toward zero (truncate).
-    kRoundCurrent         = 0x04U,       //!< Round to the current rounding mode set (ignores other RC bits).
-    kRoundInexact         = 0x08U        //!< Avoids inexact exception, if set.
+    kRoundNearest         = 0x00u,       //!< Round to nearest (even).
+    kRoundDown            = 0x01u,       //!< Round to down toward -INF (floor),
+    kRoundUp              = 0x02u,       //!< Round to up toward +INF (ceil).
+    kRoundTrunc           = 0x03u,       //!< Round toward zero (truncate).
+    kRoundCurrent         = 0x04u,       //!< Round to the current rounding mode set (ignores other RC bits).
+    kRoundInexact         = 0x08u        //!< Avoids inexact exception, if set.
   };
 
   //! A predicate used by VCMP[PD|PS|SD|SS] instructions.
@@ -1799,110 +1799,110 @@ namespace Predicate {
     kVCmpNLT_US           = kCmpNLT,     //!< Not Less          (Signaling, Unordered).
     kVCmpNLE_US           = kCmpNLE,     //!< Not Less/Equal    (Signaling, Unordered).
     kVCmpORD_Q            = kCmpORD,     //!< Ordered           (Quiet).
-    kVCmpEQ_UQ            = 0x08U,       //!< Equal             (Quiet    , Unordered).
-    kVCmpNGE_US           = 0x09U,       //!< Not Greater/Equal (Signaling, Unordered).
-    kVCmpNGT_US           = 0x0AU,       //!< Not Greater       (Signaling, Unordered).
-    kVCmpFALSE_OQ         = 0x0BU,       //!< False             (Quiet    , Ordered).
-    kVCmpNEQ_OQ           = 0x0CU,       //!< Not Equal         (Quiet    , Ordered).
-    kVCmpGE_OS            = 0x0DU,       //!< Greater/Equal     (Signaling, Ordered).
-    kVCmpGT_OS            = 0x0EU,       //!< Greater           (Signaling, Ordered).
-    kVCmpTRUE_UQ          = 0x0FU,       //!< True              (Quiet    , Unordered).
-    kVCmpEQ_OS            = 0x10U,       //!< Equal             (Signaling, Ordered).
-    kVCmpLT_OQ            = 0x11U,       //!< Less              (Quiet    , Ordered).
-    kVCmpLE_OQ            = 0x12U,       //!< Less/Equal        (Quiet    , Ordered).
-    kVCmpUNORD_S          = 0x13U,       //!< Unordered         (Signaling).
-    kVCmpNEQ_US           = 0x14U,       //!< Not Equal         (Signaling, Unordered).
-    kVCmpNLT_UQ           = 0x15U,       //!< Not Less          (Quiet    , Unordered).
-    kVCmpNLE_UQ           = 0x16U,       //!< Not Less/Equal    (Quiet    , Unordered).
-    kVCmpORD_S            = 0x17U,       //!< Ordered           (Signaling).
-    kVCmpEQ_US            = 0x18U,       //!< Equal             (Signaling, Unordered).
-    kVCmpNGE_UQ           = 0x19U,       //!< Not Greater/Equal (Quiet    , Unordered).
-    kVCmpNGT_UQ           = 0x1AU,       //!< Not Greater       (Quiet    , Unordered).
-    kVCmpFALSE_OS         = 0x1BU,       //!< False             (Signaling, Ordered).
-    kVCmpNEQ_OS           = 0x1CU,       //!< Not Equal         (Signaling, Ordered).
-    kVCmpGE_OQ            = 0x1DU,       //!< Greater/Equal     (Quiet    , Ordered).
-    kVCmpGT_OQ            = 0x1EU,       //!< Greater           (Quiet    , Ordered).
-    kVCmpTRUE_US          = 0x1FU        //!< True              (Signaling, Unordered).
+    kVCmpEQ_UQ            = 0x08u,       //!< Equal             (Quiet    , Unordered).
+    kVCmpNGE_US           = 0x09u,       //!< Not Greater/Equal (Signaling, Unordered).
+    kVCmpNGT_US           = 0x0Au,       //!< Not Greater       (Signaling, Unordered).
+    kVCmpFALSE_OQ         = 0x0Bu,       //!< False             (Quiet    , Ordered).
+    kVCmpNEQ_OQ           = 0x0Cu,       //!< Not Equal         (Quiet    , Ordered).
+    kVCmpGE_OS            = 0x0Du,       //!< Greater/Equal     (Signaling, Ordered).
+    kVCmpGT_OS            = 0x0Eu,       //!< Greater           (Signaling, Ordered).
+    kVCmpTRUE_UQ          = 0x0Fu,       //!< True              (Quiet    , Unordered).
+    kVCmpEQ_OS            = 0x10u,       //!< Equal             (Signaling, Ordered).
+    kVCmpLT_OQ            = 0x11u,       //!< Less              (Quiet    , Ordered).
+    kVCmpLE_OQ            = 0x12u,       //!< Less/Equal        (Quiet    , Ordered).
+    kVCmpUNORD_S          = 0x13u,       //!< Unordered         (Signaling).
+    kVCmpNEQ_US           = 0x14u,       //!< Not Equal         (Signaling, Unordered).
+    kVCmpNLT_UQ           = 0x15u,       //!< Not Less          (Quiet    , Unordered).
+    kVCmpNLE_UQ           = 0x16u,       //!< Not Less/Equal    (Quiet    , Unordered).
+    kVCmpORD_S            = 0x17u,       //!< Ordered           (Signaling).
+    kVCmpEQ_US            = 0x18u,       //!< Equal             (Signaling, Unordered).
+    kVCmpNGE_UQ           = 0x19u,       //!< Not Greater/Equal (Quiet    , Unordered).
+    kVCmpNGT_UQ           = 0x1Au,       //!< Not Greater       (Quiet    , Unordered).
+    kVCmpFALSE_OS         = 0x1Bu,       //!< False             (Signaling, Ordered).
+    kVCmpNEQ_OS           = 0x1Cu,       //!< Not Equal         (Signaling, Ordered).
+    kVCmpGE_OQ            = 0x1Du,       //!< Greater/Equal     (Quiet    , Ordered).
+    kVCmpGT_OQ            = 0x1Eu,       //!< Greater           (Quiet    , Ordered).
+    kVCmpTRUE_US          = 0x1Fu        //!< True              (Signaling, Unordered).
   };
 
   //! A predicate used by VFIXUPIMM[PD|PS|SD|SS] instructions (AVX-512).
   enum VFixupImm : uint32_t {
-    kVFixupImmZEOnZero    = 0x01U,
-    kVFixupImmIEOnZero    = 0x02U,
-    kVFixupImmZEOnOne     = 0x04U,
-    kVFixupImmIEOnOne     = 0x08U,
-    kVFixupImmIEOnSNaN    = 0x10U,
-    kVFixupImmIEOnNInf    = 0x20U,
-    kVFixupImmIEOnNegative= 0x40U,
-    kVFixupImmIEOnPInf    = 0x80U
+    kVFixupImmZEOnZero    = 0x01u,
+    kVFixupImmIEOnZero    = 0x02u,
+    kVFixupImmZEOnOne     = 0x04u,
+    kVFixupImmIEOnOne     = 0x08u,
+    kVFixupImmIEOnSNaN    = 0x10u,
+    kVFixupImmIEOnNInf    = 0x20u,
+    kVFixupImmIEOnNegative= 0x40u,
+    kVFixupImmIEOnPInf    = 0x80u
   };
 
   //! A predicate used by VFPCLASS[PD|PS|SD|SS] instructions (AVX-512).
   enum VFPClass : uint32_t {
-    kVFPClassQNaN         = 0x00U,
-    kVFPClassPZero        = 0x01U,
-    kVFPClassNZero        = 0x02U,
-    kVFPClassPInf         = 0x03U,
-    kVFPClassNInf         = 0x04U,
-    kVFPClassDenormal     = 0x05U,
-    kVFPClassNegative     = 0x06U,
-    kVFPClassSNaN         = 0x07U
+    kVFPClassQNaN         = 0x00u,
+    kVFPClassPZero        = 0x01u,
+    kVFPClassNZero        = 0x02u,
+    kVFPClassPInf         = 0x03u,
+    kVFPClassNInf         = 0x04u,
+    kVFPClassDenormal     = 0x05u,
+    kVFPClassNegative     = 0x06u,
+    kVFPClassSNaN         = 0x07u
   };
 
   //! A predicate used by VGETMANT[PD|PS|SD|SS] instructions (AVX-512).
   enum VGetMant : uint32_t {
-    kVGetMant1To2         = 0x00U,
-    kVGetMant1Div2To2     = 0x01U,
-    kVGetMant1Div2To1     = 0x02U,
-    kVGetMant3Div4To3Div2 = 0x03U,
-    kVGetMantNoSign       = 0x04U,
-    kVGetMantQNaNIfSign   = 0x08U
+    kVGetMant1To2         = 0x00u,
+    kVGetMant1Div2To2     = 0x01u,
+    kVGetMant1Div2To1     = 0x02u,
+    kVGetMant3Div4To3Div2 = 0x03u,
+    kVGetMantNoSign       = 0x04u,
+    kVGetMantQNaNIfSign   = 0x08u
   };
 
   //! A predicate used by VPCMP[U][B|W|D|Q] instructions (AVX-512).
   enum VPCmp : uint32_t {
-    kVPCmpEQ              = 0x00U,       //!< Equal.
-    kVPCmpLT              = 0x01U,       //!< Less.
-    kVPCmpLE              = 0x02U,       //!< Less/Equal.
-    kVPCmpFALSE           = 0x03U,       //!< False.
-    kVPCmpNE              = 0x04U,       //!< Not Equal.
-    kVPCmpGE              = 0x05U,       //!< Greater/Equal.
-    kVPCmpGT              = 0x06U,       //!< Greater.
-    kVPCmpTRUE            = 0x07U        //!< True.
+    kVPCmpEQ              = 0x00u,       //!< Equal.
+    kVPCmpLT              = 0x01u,       //!< Less.
+    kVPCmpLE              = 0x02u,       //!< Less/Equal.
+    kVPCmpFALSE           = 0x03u,       //!< False.
+    kVPCmpNE              = 0x04u,       //!< Not Equal.
+    kVPCmpGE              = 0x05u,       //!< Greater/Equal.
+    kVPCmpGT              = 0x06u,       //!< Greater.
+    kVPCmpTRUE            = 0x07u        //!< True.
   };
 
   //! A predicate used by VPCOM[U][B|W|D|Q] instructions (XOP).
   enum VPCom : uint32_t {
-    kVPComLT              = 0x00U,       //!< Less.
-    kVPComLE              = 0x01U,       //!< Less/Equal
-    kVPComGT              = 0x02U,       //!< Greater.
-    kVPComGE              = 0x03U,       //!< Greater/Equal.
-    kVPComEQ              = 0x04U,       //!< Equal.
-    kVPComNE              = 0x05U,       //!< Not Equal.
-    kVPComFALSE           = 0x06U,       //!< False.
-    kVPComTRUE            = 0x07U        //!< True.
+    kVPComLT              = 0x00u,       //!< Less.
+    kVPComLE              = 0x01u,       //!< Less/Equal
+    kVPComGT              = 0x02u,       //!< Greater.
+    kVPComGE              = 0x03u,       //!< Greater/Equal.
+    kVPComEQ              = 0x04u,       //!< Equal.
+    kVPComNE              = 0x05u,       //!< Not Equal.
+    kVPComFALSE           = 0x06u,       //!< False.
+    kVPComTRUE            = 0x07u        //!< True.
   };
 
   //! A predicate used by VRANGE[PD|PS|SD|SS] instructions (AVX-512).
   enum VRange : uint32_t {
-    kVRangeSelectMin      = 0x00U,       //!< Select minimum value.
-    kVRangeSelectMax      = 0x01U,       //!< Select maximum value.
-    kVRangeSelectAbsMin   = 0x02U,       //!< Select minimum absolute value.
-    kVRangeSelectAbsMax   = 0x03U,       //!< Select maximum absolute value.
-    kVRangeSignSrc1       = 0x00U,       //!< Select sign of SRC1.
-    kVRangeSignSrc2       = 0x04U,       //!< Select sign of SRC2.
-    kVRangeSign0          = 0x08U,       //!< Set sign to 0.
-    kVRangeSign1          = 0x0CU        //!< Set sign to 1.
+    kVRangeSelectMin      = 0x00u,       //!< Select minimum value.
+    kVRangeSelectMax      = 0x01u,       //!< Select maximum value.
+    kVRangeSelectAbsMin   = 0x02u,       //!< Select minimum absolute value.
+    kVRangeSelectAbsMax   = 0x03u,       //!< Select maximum absolute value.
+    kVRangeSignSrc1       = 0x00u,       //!< Select sign of SRC1.
+    kVRangeSignSrc2       = 0x04u,       //!< Select sign of SRC2.
+    kVRangeSign0          = 0x08u,       //!< Set sign to 0.
+    kVRangeSign1          = 0x0Cu        //!< Set sign to 1.
   };
 
   //! A predicate used by VREDUCE[PD|PS|SD|SS] instructions (AVX-512).
   enum VReduce : uint32_t {
-    kVReduceRoundCurrent  = 0x00U,       //!< Round to the current mode set.
-    kVReduceRoundEven     = 0x04U,       //!< Round to nearest even.
-    kVReduceRoundDown     = 0x05U,       //!< Round down.
-    kVReduceRoundUp       = 0x06U,       //!< Round up.
-    kVReduceRoundTrunc    = 0x07U,       //!< Truncate.
-    kVReduceSuppress      = 0x08U        //!< Suppress exceptions.
+    kVReduceRoundCurrent  = 0x00u,       //!< Round to the current mode set.
+    kVReduceRoundEven     = 0x04u,       //!< Round to nearest even.
+    kVReduceRoundDown     = 0x05u,       //!< Round down.
+    kVReduceRoundUp       = 0x06u,       //!< Round up.
+    kVReduceRoundTrunc    = 0x07u,       //!< Truncate.
+    kVReduceSuppress      = 0x08u        //!< Suppress exceptions.
   };
 
   //! Pack a shuffle constant to be used by SSE/AVX/AVX-512 instructions (2 values).
@@ -1942,24 +1942,24 @@ namespace Predicate {
 namespace TLog {
   //! A predicate that can be used to create a common predicate for VPTERNLOG[D|Q].
   enum Operator : uint32_t {
-    k0                    = 0x00U,
-    k1                    = 0xFFU,
-    kA                    = 0xF0U,
-    kB                    = 0xCCU,
-    kC                    = 0xAAU,
-    kNotA                 = kA ^ 0xFFU,
-    kNotB                 = kB ^ 0xFFU,
-    kNotC                 = kC ^ 0xFFU,
+    k0                    = 0x00u,
+    k1                    = 0xFFu,
+    kA                    = 0xF0u,
+    kB                    = 0xCCu,
+    kC                    = 0xAAu,
+    kNotA                 = kA ^ 0xFFu,
+    kNotB                 = kB ^ 0xFFu,
+    kNotC                 = kC ^ 0xFFu,
 
     kAB                   = kA & kB,
     kAC                   = kA & kC,
     kBC                   = kB & kC,
-    kNotAB                = kAB ^ 0xFFU,
-    kNotAC                = kAC ^ 0xFFU,
-    kNotBC                = kBC ^ 0xFFU,
+    kNotAB                = kAB ^ 0xFFu,
+    kNotAC                = kAC ^ 0xFFu,
+    kNotBC                = kBC ^ 0xFFu,
 
     kABC                  = kA & kB & kC,
-    kNotABC               = kABC ^ 0xFFU
+    kNotABC               = kABC ^ 0xFFu
   };
 
   //! Create an immediate that can be used by VPTERNLOG[D|Q] instructions.

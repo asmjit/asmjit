@@ -414,7 +414,7 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
     FuncValue& src = var.cur;
     FuncValue& dst = var.out;
 
-    uint32_t dstGroup = 0xFFFFFFFFU;
+    uint32_t dstGroup = 0xFFFFFFFFu;
     uint32_t dstId = BaseReg::kIdBad;
     WorkData* dstWd = nullptr;
 
@@ -1307,6 +1307,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(Emitter* emitter, const FuncFram
 // [asmjit::X86Internal - Emit Arguments Assignment]
 // ============================================================================
 
+#if !defined(ASMJIT_DISABLE_LOGGING)
 static void dumpFuncValue(StringBuilder& sb, uint32_t archId, const FuncValue& value) noexcept {
   Logging::formatTypeId(sb, value.typeId());
   sb.appendChar('@');
@@ -1343,6 +1344,7 @@ static void dumpAssignment(StringBuilder& sb, const X86FuncArgsContext& ctx) noe
     sb.appendChar('\n');
   }
 }
+#endif
 
 ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(Emitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args) {
   typedef X86FuncArgsContext::Var Var;

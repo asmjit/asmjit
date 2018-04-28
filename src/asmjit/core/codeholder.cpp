@@ -573,11 +573,11 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
 
     switch (re->size()) {
       case 1:
-        Support::writeU8(dst + codeOffset, uint32_t(ptr & 0xFFU));
+        Support::writeU8(dst + codeOffset, uint32_t(ptr & 0xFFu));
         break;
 
       case 4:
-        Support::writeU32u(dst + codeOffset, uint32_t(ptr & 0xFFFFFFFFU));
+        Support::writeU32u(dst + codeOffset, uint32_t(ptr & 0xFFFFFFFFu));
         break;
 
       case 8:

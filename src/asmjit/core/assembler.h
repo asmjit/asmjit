@@ -185,7 +185,7 @@ public:
   template<typename T, typename Y>
   ASMJIT_INLINE void emit8If(T val, Y cond) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    ASMJIT_ASSERT(size_t(cond) <= 1U);
+    ASMJIT_ASSERT(size_t(cond) <= 1u);
 
     _cursor[0] = uint8_t(U(val) & U(0xFF));
     _cursor += size_t(cond);
@@ -194,28 +194,28 @@ public:
   template<typename T>
   ASMJIT_INLINE void emit16uLE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    Support::writeU16uLE(_cursor, uint32_t(U(val) & 0xFFFFU));
+    Support::writeU16uLE(_cursor, uint32_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit16uBE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    Support::writeU16uBE(_cursor, uint32_t(U(val) & 0xFFFFU));
+    Support::writeU16uBE(_cursor, uint32_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit32uLE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    Support::writeU32uLE(_cursor, uint32_t(U(val) & 0xFFFFFFFFU));
+    Support::writeU32uLE(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
 
   template<typename T>
   ASMJIT_INLINE void emit32uBE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    Support::writeU32uBE(_cursor, uint32_t(U(val) & 0xFFFFFFFFU));
+    Support::writeU32uBE(_cursor, uint32_t(U(val) & 0xFFFFFFFFu));
     _cursor += 4;
   }
 

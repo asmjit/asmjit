@@ -1008,7 +1008,7 @@ static void collectDirtyRegs(const BaseNode* first, const BaseNode* last, uint32
         if (op.isReg()) {
           const x86::Reg& reg = op.as<x86::Reg>();
           if (reg.group() < BaseReg::kGroupVirt)
-            regMask[reg.group()] |= 1U << reg.id();
+            regMask[reg.group()] |= 1u << reg.id();
         }
       }
     }

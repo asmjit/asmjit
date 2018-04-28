@@ -5213,7 +5213,7 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
 //! it as emitter that emits to either `x86::Assembler`, `x86::Builder`, or
 //! `x86::Compiler` (use with caution with `x86::Compiler` as it requires virtual
 //! registers).
-class Emitter : public EmitterImplicitT<Emitter>, public BaseEmitter {
+class Emitter : public BaseEmitter, public EmitterImplicitT<Emitter> {
   ASMJIT_NONCONSTRUCTIBLE(Emitter)
 };
 

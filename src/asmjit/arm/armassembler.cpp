@@ -145,15 +145,15 @@ Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
   AsmBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, i));
 
-  constexpr uint32_t kNopT16 = 0x0000BF00U; // [10111111|00000000].
-  constexpr uint32_t kNopT32 = 0xF3AF8000U; // [11110011|10101111|10000000|00000000].
-  constexpr uint32_t kNopA32 = 0xE3AF8000U; // [Cond0011|00100000|11110000|00000000].
+  constexpr uint32_t kNopT16 = 0x0000BF00u; // [10111111|00000000].
+  constexpr uint32_t kNopT32 = 0xF3AF8000u; // [11110011|10101111|10000000|00000000].
+  constexpr uint32_t kNopA32 = 0xE3AF8000u; // [Cond0011|00100000|11110000|00000000].
 
   switch (alignMode) {
     case kAlignCode: {
       if (isInThumbMode()) {
         uint32_t pattern = 0;
-        if (ASMJIT_UNLIKELY(offset & 0x1U))
+        if (ASMJIT_UNLIKELY(offset & 0x1u))
           return DebugUtils::errored(kErrorInvalidState);
 
         while (i >= 4) {
@@ -168,7 +168,7 @@ Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
       }
       else {
         uint32_t pattern = 0;
-        if (ASMJIT_UNLIKELY(offset & 0x3U))
+        if (ASMJIT_UNLIKELY(offset & 0x3u))
           return DebugUtils::errored(kErrorInvalidState);
 
         while (i >= 4) {

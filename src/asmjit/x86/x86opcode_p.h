@@ -122,20 +122,20 @@ struct Opcode {
     // [3]   - Required by XOP instructions, so we use this bit also to indicate
     //         that this is a XOP opcode.
     kMM_Shift      = 8,
-    kMM_Mask       = 0x1FU << kMM_Shift,
-    kMM_00         = 0x00U << kMM_Shift,
-    kMM_0F         = 0x01U << kMM_Shift,
-    kMM_0F38       = 0x02U << kMM_Shift,
-    kMM_0F3A       = 0x03U << kMM_Shift,   // Described also as XOP.M3 in AMD manuals.
-    kMM_0F01       = 0x04U << kMM_Shift,   // AsmJit way to describe 0F01 (never VEX/EVEX).
+    kMM_Mask       = 0x1Fu << kMM_Shift,
+    kMM_00         = 0x00u << kMM_Shift,
+    kMM_0F         = 0x01u << kMM_Shift,
+    kMM_0F38       = 0x02u << kMM_Shift,
+    kMM_0F3A       = 0x03u << kMM_Shift,   // Described also as XOP.M3 in AMD manuals.
+    kMM_0F01       = 0x04u << kMM_Shift,   // AsmJit way to describe 0F01 (never VEX/EVEX).
 
     // `XOP` field is only used to force XOP prefix instead of VEX3 prefix. We
     // know that only XOP encoding uses bit 0b1000 of MM field and that no VEX
     // and EVEX instruction uses such bit, so we can use this bit to force XOP
     // prefix to be emitted instead of VEX3 prefix. See `x86VEXPrefix` defined
     // in `x86assembler.cpp`.
-    kMM_XOP08      = 0x08U << kMM_Shift,   // XOP.M8.
-    kMM_XOP09      = 0x09U << kMM_Shift,   // XOP.M9.
+    kMM_XOP08      = 0x08u << kMM_Shift,   // XOP.M8.
+    kMM_XOP09      = 0x09u << kMM_Shift,   // XOP.M9.
 
     kMM_IsXOP_Shift= kMM_Shift + 3,
     kMM_IsXOP      = kMM_XOP08,
@@ -146,8 +146,8 @@ struct Opcode {
     // ForceEvex always set, however. instructions that can be encoded by
     // either VEX or EVEX prefix shall not have ForceEvex set.
 
-    kMM_ForceVex3  = 0x04U << kMM_Shift,   // Force 3-BYTE VEX prefix.
-    kMM_ForceEvex  = 0x10U << kMM_Shift,   // Force 4-BYTE EVEX prefix.
+    kMM_ForceVex3  = 0x04u << kMM_Shift,   // Force 3-BYTE VEX prefix.
+    kMM_ForceEvex  = 0x10u << kMM_Shift,   // Force 4-BYTE EVEX prefix.
 
     // FPU_2B - Second-Byte of the Opcode used by FPU
     // ----------------------------------------------
@@ -176,26 +176,26 @@ struct Opcode {
     //
     // These bits are then adjusted before calling EmitModSib or EmitModVSib.
     kCDSHL_Shift   = 13,
-    kCDSHL_Mask    = 0x7U << kCDSHL_Shift,
+    kCDSHL_Mask    = 0x7u << kCDSHL_Shift,
 
-    kCDSHL__       = 0x0U << kCDSHL_Shift, // Base element size not used.
-    kCDSHL_0       = 0x0U << kCDSHL_Shift, // N << 0.
-    kCDSHL_1       = 0x1U << kCDSHL_Shift, // N << 1.
-    kCDSHL_2       = 0x2U << kCDSHL_Shift, // N << 2.
-    kCDSHL_3       = 0x3U << kCDSHL_Shift, // N << 3.
-    kCDSHL_4       = 0x4U << kCDSHL_Shift, // N << 4.
-    kCDSHL_5       = 0x5U << kCDSHL_Shift, // N << 5.
+    kCDSHL__       = 0x0u << kCDSHL_Shift, // Base element size not used.
+    kCDSHL_0       = 0x0u << kCDSHL_Shift, // N << 0.
+    kCDSHL_1       = 0x1u << kCDSHL_Shift, // N << 1.
+    kCDSHL_2       = 0x2u << kCDSHL_Shift, // N << 2.
+    kCDSHL_3       = 0x3u << kCDSHL_Shift, // N << 3.
+    kCDSHL_4       = 0x4u << kCDSHL_Shift, // N << 4.
+    kCDSHL_5       = 0x5u << kCDSHL_Shift, // N << 5.
 
     // Compressed displacement tuple-type (specific to AsmJit).
     //
     // Since we store the base offset independently of CDTT we can simplify the
     // number of 'TUPLE_TYPE' groups significantly and just handle special cases.
     kCDTT_Shift    = 16,
-    kCDTT_Mask     = 0x3U << kCDTT_Shift,
-    kCDTT_None     = 0x0U << kCDTT_Shift,  // Does nothing.
-    kCDTT_ByLL     = 0x1U << kCDTT_Shift,  // Scales by LL (1x 2x 4x).
-    kCDTT_T1W      = 0x2U << kCDTT_Shift,  // Used to add 'W' to the shift.
-    kCDTT_DUP      = 0x3U << kCDTT_Shift,  // Special 'VMOVDDUP' case.
+    kCDTT_Mask     = 0x3u << kCDTT_Shift,
+    kCDTT_None     = 0x0u << kCDTT_Shift,  // Does nothing.
+    kCDTT_ByLL     = 0x1u << kCDTT_Shift,  // Scales by LL (1x 2x 4x).
+    kCDTT_T1W      = 0x2u << kCDTT_Shift,  // Used to add 'W' to the shift.
+    kCDTT_DUP      = 0x3u << kCDTT_Shift,  // Special 'VMOVDDUP' case.
 
     // Aliases that match names used in instruction manuals.
     kCDTT__        = kCDTT_None,
@@ -219,17 +219,17 @@ struct Opcode {
     // -------------------
 
     kO_Shift       = 18,
-    kO_Mask        = 0x7U << kO_Shift,
+    kO_Mask        = 0x7u << kO_Shift,
 
-    kO__           = 0x0U,
-    kO_0           = 0x0U << kO_Shift,
-    kO_1           = 0x1U << kO_Shift,
-    kO_2           = 0x2U << kO_Shift,
-    kO_3           = 0x3U << kO_Shift,
-    kO_4           = 0x4U << kO_Shift,
-    kO_5           = 0x5U << kO_Shift,
-    kO_6           = 0x6U << kO_Shift,
-    kO_7           = 0x7U << kO_Shift,
+    kO__           = 0x0u,
+    kO_0           = 0x0u << kO_Shift,
+    kO_1           = 0x1u << kO_Shift,
+    kO_2           = 0x2u << kO_Shift,
+    kO_3           = 0x3u << kO_Shift,
+    kO_4           = 0x4u << kO_Shift,
+    kO_5           = 0x5u << kO_Shift,
+    kO_6           = 0x6u << kO_Shift,
+    kO_7           = 0x7u << kO_Shift,
 
     // `PP` Field
     // ----------
@@ -246,14 +246,14 @@ struct Opcode {
     // more bit that is used to emit 9B prefix for some X87-FPU instructions.
 
     kPP_Shift      = 21,
-    kPP_VEXMask    = 0x03U << kPP_Shift,   // PP field mask used by VEX/EVEX.
-    kPP_FPUMask    = 0x07U << kPP_Shift,   // Mask used by EMIT_PP, also includes '0x9B'.
-    kPP_00         = 0x00U << kPP_Shift,
-    kPP_66         = 0x01U << kPP_Shift,
-    kPP_F3         = 0x02U << kPP_Shift,
-    kPP_F2         = 0x03U << kPP_Shift,
+    kPP_VEXMask    = 0x03u << kPP_Shift,   // PP field mask used by VEX/EVEX.
+    kPP_FPUMask    = 0x07u << kPP_Shift,   // Mask used by EMIT_PP, also includes '0x9B'.
+    kPP_00         = 0x00u << kPP_Shift,
+    kPP_66         = 0x01u << kPP_Shift,
+    kPP_F3         = 0x02u << kPP_Shift,
+    kPP_F2         = 0x03u << kPP_Shift,
 
-    kPP_9B         = 0x07U << kPP_Shift,   // AsmJit specific to emit FPU's '9B' byte.
+    kPP_9B         = 0x07u << kPP_Shift,   // AsmJit specific to emit FPU's '9B' byte.
 
     // REX|VEX|EVEX B|X|R|W Bits
     // -------------------------
@@ -265,18 +265,18 @@ struct Opcode {
 
     // These must be binary compatible with instruction options.
     kREX_Shift     = 24,
-    kREX_Mask      = 0x0FU << kREX_Shift,
-    kB             = 0x01U << kREX_Shift,  // Never stored in DB, used by encoder.
-    kX             = 0x02U << kREX_Shift,  // Never stored in DB, used by encoder.
-    kR             = 0x04U << kREX_Shift,  // Never stored in DB, used by encoder.
-    kW             = 0x08U << kREX_Shift,
+    kREX_Mask      = 0x0Fu << kREX_Shift,
+    kB             = 0x01u << kREX_Shift,  // Never stored in DB, used by encoder.
+    kX             = 0x02u << kREX_Shift,  // Never stored in DB, used by encoder.
+    kR             = 0x04u << kREX_Shift,  // Never stored in DB, used by encoder.
+    kW             = 0x08u << kREX_Shift,
     kW_Shift       = kREX_Shift + 3,
 
-    kW__           = 0U << kW_Shift,       // REX.W/VEX.W is unspecified.
-    kW_x           = 0U << kW_Shift,       // REX.W/VEX.W is based on instruction operands.
-    kW_I           = 0U << kW_Shift,       // REX.W/VEX.W is ignored (WIG).
-    kW_0           = 0U << kW_Shift,       // REX.W/VEX.W is 0 (W0).
-    kW_1           = 1U << kW_Shift,       // REX.W/VEX.W is 1 (W1).
+    kW__           = 0u << kW_Shift,       // REX.W/VEX.W is unspecified.
+    kW_x           = 0u << kW_Shift,       // REX.W/VEX.W is based on instruction operands.
+    kW_I           = 0u << kW_Shift,       // REX.W/VEX.W is ignored (WIG).
+    kW_0           = 0u << kW_Shift,       // REX.W/VEX.W is 0 (W0).
+    kW_1           = 1u << kW_Shift,       // REX.W/VEX.W is 1 (W1).
 
     // EVEX.W Field
     // ------------
@@ -284,13 +284,13 @@ struct Opcode {
     // `W` field used by EVEX instruction encoding.
 
     kEvex_W_Shift  = 28,
-    kEvex_W_Mask   = 1U << kEvex_W_Shift,
+    kEvex_W_Mask   = 1u << kEvex_W_Shift,
 
-    kEvex_W__      = 0U << kEvex_W_Shift,  // EVEX.W is unspecified (not EVEX instruction).
-    kEvex_W_x      = 0U << kEvex_W_Shift,  // EVEX.W is based on instruction operands.
-    kEvex_W_I      = 0U << kEvex_W_Shift,  // EVEX.W is ignored (WIG).
-    kEvex_W_0      = 0U << kEvex_W_Shift,  // EVEX.W is 0 (W0).
-    kEvex_W_1      = 1U << kEvex_W_Shift,  // EVEX.W is 1 (W1).
+    kEvex_W__      = 0u << kEvex_W_Shift,  // EVEX.W is unspecified (not EVEX instruction).
+    kEvex_W_x      = 0u << kEvex_W_Shift,  // EVEX.W is based on instruction operands.
+    kEvex_W_I      = 0u << kEvex_W_Shift,  // EVEX.W is ignored (WIG).
+    kEvex_W_0      = 0u << kEvex_W_Shift,  // EVEX.W is 0 (W0).
+    kEvex_W_1      = 1u << kEvex_W_Shift,  // EVEX.W is 1 (W1).
 
     // `L` or `LL` field in AVX/XOP/AVX-512
     // ------------------------------------
@@ -301,14 +301,14 @@ struct Opcode {
     // If the instruction set manual describes an instruction by `LIG` it means
     // that the `L` field is ignored and AsmJit defaults to `0` in such case.
     kLL_Shift      = 29,
-    kLL_Mask       = 0x3U << kLL_Shift,
+    kLL_Mask       = 0x3u << kLL_Shift,
 
-    kLL__          = 0x0U << kLL_Shift,    // LL is unspecified.
-    kLL_x          = 0x0U << kLL_Shift,    // LL is based on instruction operands.
-    kLL_I          = 0x0U << kLL_Shift,    // LL is ignored (LIG).
-    kLL_0          = 0x0U << kLL_Shift,    // LL is 0 (L.128).
-    kLL_1          = 0x1U << kLL_Shift,    // LL is 1 (L.256).
-    kLL_2          = 0x2U << kLL_Shift,    // LL is 2 (L.512).
+    kLL__          = 0x0u << kLL_Shift,    // LL is unspecified.
+    kLL_x          = 0x0u << kLL_Shift,    // LL is based on instruction operands.
+    kLL_I          = 0x0u << kLL_Shift,    // LL is ignored (LIG).
+    kLL_0          = 0x0u << kLL_Shift,    // LL is 0 (L.128).
+    kLL_1          = 0x1u << kLL_Shift,    // LL is 1 (L.256).
+    kLL_2          = 0x2u << kLL_Shift,    // LL is 2 (L.512).
 
     // Opcode Combinations
     // -------------------

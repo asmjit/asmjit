@@ -87,7 +87,7 @@ struct RAStrategy {
 struct RAArchTraits {
   enum Flags : uint32_t {
     //! Registers can be swapped by a single instruction.
-    kHasSwap = 0x01U
+    kHasSwap = 0x01u
   };
 
   // --------------------------------------------------------------------------
@@ -244,7 +244,7 @@ struct RARegMask {
     return m == 0;
   }
 
-  inline bool has(uint32_t group, uint32_t mask = 0xFFFFFFFFU) const noexcept {
+  inline bool has(uint32_t group, uint32_t mask = 0xFFFFFFFFu) const noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return (_masks[group] & mask) != 0;
   }
@@ -315,24 +315,24 @@ struct RARegsStats {
   };
 
   enum Mask : uint32_t {
-    kMaskUsed        = 0xFFU << kIndexUsed,
-    kMaskFixed       = 0xFFU << kIndexFixed,
-    kMaskClobbered   = 0xFFU << kIndexClobbered
+    kMaskUsed        = 0xFFu << kIndexUsed,
+    kMaskFixed       = 0xFFu << kIndexFixed,
+    kMaskClobbered   = 0xFFu << kIndexClobbered
   };
 
   inline void reset() noexcept { _packed = 0; }
   inline void combineWith(const RARegsStats& other) noexcept { _packed |= other._packed; }
 
-  inline bool hasUsed() const noexcept { return (_packed & kMaskUsed) != 0U; }
-  inline bool hasUsed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexUsed + group)) != 0U; }
+  inline bool hasUsed() const noexcept { return (_packed & kMaskUsed) != 0u; }
+  inline bool hasUsed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexUsed + group)) != 0u; }
   inline void makeUsed(uint32_t group) noexcept { _packed |= Support::mask(kIndexUsed + group); }
 
-  inline bool hasFixed() const noexcept { return (_packed & kMaskFixed) != 0U; }
-  inline bool hasFixed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexFixed + group)) != 0U; }
+  inline bool hasFixed() const noexcept { return (_packed & kMaskFixed) != 0u; }
+  inline bool hasFixed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexFixed + group)) != 0u; }
   inline void makeFixed(uint32_t group) noexcept { _packed |= Support::mask(kIndexFixed + group); }
 
-  inline bool hasClobbered() const noexcept { return (_packed & kMaskClobbered) != 0U; }
-  inline bool hasClobbered(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexClobbered + group)) != 0U; }
+  inline bool hasClobbered() const noexcept { return (_packed & kMaskClobbered) != 0u; }
+  inline bool hasClobbered(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexClobbered + group)) != 0u; }
   inline void makeClobbered(uint32_t group) noexcept { _packed |= Support::mask(kIndexClobbered + group); }
 
   uint32_t _packed;
@@ -391,7 +391,7 @@ public:
 struct LiveInterval {
   enum Misc : uint32_t {
     kNaN = 0,
-    kInf = 0xFFFFFFFFU
+    kInf = 0xFFFFFFFFu
   };
 
   // --------------------------------------------------------------------------
@@ -581,7 +581,7 @@ public:
         // We know that `xSpan->b > ySpan->a`, so check if `ySpan->b > xSpan->a`.
         xa = xSpan->a;
         if (ySpan->b > xa)
-          return 0xFFFFFFFFU;
+          return 0xFFFFFFFFu;
       }
     }
 
@@ -727,24 +727,24 @@ struct RATiedReg {
     kUse         = OpInfo::kUse,         //!< Register has a USE slot (Read/ReadWrite).
     kOut         = OpInfo::kOut,         //!< Register has an OUT slot (WriteOnly).
 
-    kUseFixed    = 0x00000010U,          //!< Register has a fixed USE slot.
-    kOutFixed    = 0x00000020U,          //!< Register has a fixed OUT slot.
+    kUseFixed    = 0x00000010u,          //!< Register has a fixed USE slot.
+    kOutFixed    = 0x00000020u,          //!< Register has a fixed OUT slot.
 
     // TODO: Maybe we don't need these at all.
-    kUseCall     = 0x00000040U,          //!< Function-call register argument (USE).
-    kOutCall     = 0x00000080U,          //!< Function-call register return (OUT).
+    kUseCall     = 0x00000040u,          //!< Function-call register argument (USE).
+    kOutCall     = 0x00000080u,          //!< Function-call register return (OUT).
 
-    kUseDone     = 0x00000100U,          //!< Register USE slot has been allocated.
-    kOutDone     = 0x00000200U,          //!< Register OUT slot has been allocated
+    kUseDone     = 0x00000100u,          //!< Register USE slot has been allocated.
+    kOutDone     = 0x00000200u,          //!< Register OUT slot has been allocated
 
-    kLast        = 0x00000400U,          //!< Last occurrence of this VirtReg in basic block.
-    kKill        = 0x00000800U,          //!< Kill this VirtReg after use.
+    kLast        = 0x00000400u,          //!< Last occurrence of this VirtReg in basic block.
+    kKill        = 0x00000800u,          //!< Kill this VirtReg after use.
 
     // Architecture specific flags are used during RATiedReg building to ensure
     // that architecture-specific constraints are handled properly. These flags
     // are not really needed after RATiedReg[] is built and copied to `RAInst`.
 
-    kX86Gpb      = 0x00001000U           //!< This tied references GPB-LO or GPB-HI.
+    kX86Gpb      = 0x00001000u           //!< This tied references GPB-LO or GPB-HI.
   };
 
   // --------------------------------------------------------------------------
@@ -879,21 +879,21 @@ public:
   ASMJIT_NONCOPYABLE(RAWorkReg)
 
   enum Ids : uint32_t {
-    kIdNone               = 0xFFFFFFFFU
+    kIdNone               = 0xFFFFFFFFu
   };
 
   enum Flags : uint32_t {
-    kFlagCoalesced        = 0x00000001U, //!< Has been coalesced to another WorkReg.
-    kFlagStackUsed        = 0x00000002U, //!< Stack slot has to be allocated.
-    kFlagStackPreferred   = 0x00000004U, //!< Stack allocation is preferred.
-    kFlagStackArgToStack  = 0x00000008U, //!< Marked for stack argument reassignment.
+    kFlagCoalesced        = 0x00000001u, //!< Has been coalesced to another WorkReg.
+    kFlagStackUsed        = 0x00000002u, //!< Stack slot has to be allocated.
+    kFlagStackPreferred   = 0x00000004u, //!< Stack allocation is preferred.
+    kFlagStackArgToStack  = 0x00000008u, //!< Marked for stack argument reassignment.
 
     // TODO: Used?
-    kFlagDirtyStats       = 0x80000000U
+    kFlagDirtyStats       = 0x80000000u
   };
 
   enum ArgIndex : uint32_t {
-    kNoArgIndex      = 0xFFU
+    kNoArgIndex      = 0xFFu
   };
 
   // --------------------------------------------------------------------------

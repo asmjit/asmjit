@@ -292,14 +292,14 @@ public:
 
   //! Node flags, specify what the node is and/or does.
   enum Flags : uint32_t {
-    kFlagIsCode          = 0x01U,        //!< Node is code that can be executed (instruction, label, align, etc...).
-    kFlagIsData          = 0x02U,        //!< Node is data that cannot be executed (data, const-pool, etc...).
-    kFlagIsInformative   = 0x04U,        //!< Node is informative, can be removed and ignored.
-    kFlagIsRemovable     = 0x08U,        //!< Node can be safely removed if unreachable.
-    kFlagHasNoEffect     = 0x20U,        //!< Node does nothing when executed (label, align, explicit nop).
+    kFlagIsCode          = 0x01u,        //!< Node is code that can be executed (instruction, label, align, etc...).
+    kFlagIsData          = 0x02u,        //!< Node is data that cannot be executed (data, const-pool, etc...).
+    kFlagIsInformative   = 0x04u,        //!< Node is informative, can be removed and ignored.
+    kFlagIsRemovable     = 0x08u,        //!< Node can be safely removed if unreachable.
+    kFlagHasNoEffect     = 0x20u,        //!< Node does nothing when executed (label, align, explicit nop).
 
-    kFlagActsAsInst      = 0x40U,        //!< Node is an instruction or acts as it.
-    kFlagActsAsLabel     = 0x80U         //!< Node is a label or acts as it.
+    kFlagActsAsInst      = 0x40u,        //!< Node is an instruction or acts as it.
+    kFlagActsAsLabel     = 0x80u         //!< Node is a label or acts as it.
   };
 
   // --------------------------------------------------------------------------
@@ -913,8 +913,8 @@ public:
 
   //! Type of the sentinel (purery informative purpose).
   enum SentinelType : uint32_t {
-    kSentinelUnknown = 0U,
-    kSentinelFuncEnd = 1U
+    kSentinelUnknown = 0u,
+    kSentinelFuncEnd = 1u
   };
 
   // --------------------------------------------------------------------------

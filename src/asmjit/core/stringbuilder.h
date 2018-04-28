@@ -45,10 +45,10 @@ public:
   //!
   //! String format flags.
   enum StringFormatFlags : uint32_t {
-    kStringFormatShowSign  = 0x00000001U,
-    kStringFormatShowSpace = 0x00000002U,
-    kStringFormatAlternate = 0x00000004U,
-    kStringFormatSigned    = 0x80000000U
+    kStringFormatShowSign  = 0x00000001u,
+    kStringFormatShowSpace = 0x00000002u,
+    kStringFormatAlternate = 0x00000004u,
+    kStringFormatSigned    = 0x80000000u
   };
 
   // --------------------------------------------------------------------------

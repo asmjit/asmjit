@@ -23,25 +23,25 @@ ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 //! Condition code (ARM).
 namespace Cond {
   enum Value : uint32_t {
-    kEQ               = 0x00U,           //!<        Z==1         (any_sign ==)
-    kNE               = 0x01U,           //!<        Z==0         (any_sign !=)
-    kCS               = 0x02U,           //!< C==1                (unsigned >=)
-    kHS               = 0x02U,           //!< C==1                (unsigned >=)
-    kCC               = 0x03U,           //!< C==0                (unsigned < )
-    kLO               = 0x03U,           //!< C==0                (unsigned < )
-    kMI               = 0x04U,           //!<               N==1  (is negative)
-    kPL               = 0x05U,           //!<               N==0  (is positive or zero)
-    kVS               = 0x06U,           //!<               V==1  (is overflow)
-    kVC               = 0x07U,           //!<               V==0  (no overflow)
-    kHI               = 0x08U,           //!< C==1 & Z==0         (unsigned > )
-    kLS               = 0x09U,           //!< C==0 | Z==1         (unsigned <=)
-    kGE               = 0x0AU,           //!<               N==V  (signed   >=)
-    kLT               = 0x0BU,           //!<               N!=V  (signed   < )
-    kGT               = 0x0CU,           //!<        Z==0 & N==V  (signed   > )
-    kLE               = 0x0DU,           //!<        Z==1 | N!=V  (signed   <=)
-    kAL               = 0x0EU,           //!< (no condition code) (always)
-    kNA               = 0x0FU,           //!< (not available)     (special)
-    kCount            = 0x10U,
+    kEQ               = 0x00u,           //!<        Z==1         (any_sign ==)
+    kNE               = 0x01u,           //!<        Z==0         (any_sign !=)
+    kCS               = 0x02u,           //!< C==1                (unsigned >=)
+    kHS               = 0x02u,           //!< C==1                (unsigned >=)
+    kCC               = 0x03u,           //!< C==0                (unsigned < )
+    kLO               = 0x03u,           //!< C==0                (unsigned < )
+    kMI               = 0x04u,           //!<               N==1  (is negative)
+    kPL               = 0x05u,           //!<               N==0  (is positive or zero)
+    kVS               = 0x06u,           //!<               V==1  (is overflow)
+    kVC               = 0x07u,           //!<               V==0  (no overflow)
+    kHI               = 0x08u,           //!< C==1 & Z==0         (unsigned > )
+    kLS               = 0x09u,           //!< C==0 | Z==1         (unsigned <=)
+    kGE               = 0x0Au,           //!<               N==V  (signed   >=)
+    kLT               = 0x0Bu,           //!<               N!=V  (signed   < )
+    kGT               = 0x0Cu,           //!<        Z==0 & N==V  (signed   > )
+    kLE               = 0x0Du,           //!<        Z==1 | N!=V  (signed   <=)
+    kAL               = 0x0Eu,           //!< (no condition code) (always)
+    kNA               = 0x0Fu,           //!< (not available)     (special)
+    kCount            = 0x10u,
 
     kSign             = kMI,             //!< Sign.
     kNotSign          = kPL,             //!< Not sign.
@@ -536,31 +536,31 @@ struct Inst : public BaseInst {
 namespace Predicate {
   //! Shift/Rotate predicate (ARM).
   enum Shift : uint32_t {
-    kShiftLSL          = 0x00U,          //!< Shift left logical (default).
-    kShiftLSR          = 0x01U,          //!< Shift right logical.
-    kShiftASR          = 0x02U,          //!< Shift right arithmetic.
-    kShiftROR          = 0x03U,          //!< Rotate right.
-    kShiftRRX          = 0x04U           //!< Rotate right with carry (encoded as `kShiftROR` with zero).
+    kShiftLSL          = 0x00u,          //!< Shift left logical (default).
+    kShiftLSR          = 0x01u,          //!< Shift right logical.
+    kShiftASR          = 0x02u,          //!< Shift right arithmetic.
+    kShiftROR          = 0x03u,          //!< Rotate right.
+    kShiftRRX          = 0x04u           //!< Rotate right with carry (encoded as `kShiftROR` with zero).
   };
 
   //! Memory barrier (ARM).
   enum Barrier : uint32_t {
-    kBarrierReserved0  = 0x00U,
-    kBarrierOSHLD      = 0x01U,          //!< Waits only for loads to complete, and only applies to the outer shareable domain.
-    kBarrierOSHST      = 0x02U,          //!< Waits only for stores to complete, and only applies to the outer shareable domain.
-    kBarrierOSH        = 0x03U,          //!< Only applies to the outer shareable domain.
-    kBarrierReserved4  = 0x04U,
-    kBarrierNSHLD      = 0x05U,          //!< Waits only for loads to complete and only applies out to the point of unification.
-    kBarrierNSHST      = 0x06U,          //!< Waits only for stores to complete and only applies out to the point of unification.
-    kBarrierNSH        = 0x07U,          //!< Only applies out to the point of unification.
-    kBarrierReserved8  = 0x08U,
-    kBarrierISHLD      = 0x09U,          //!< Waits only for loads to complete, and only applies to the inner shareable domain.
-    kBarrierISHST      = 0x0AU,          //!< Waits only for stores to complete, and only applies to the inner shareable domain.
-    kBarrierISH        = 0x0BU,          //!< Only applies to the inner shareable domain.
-    kBarrierReserved12 = 0x0CU,
-    kBarrierLD         = 0x0DU,          //!< Waits only for loads to complete.
-    kBarrierST         = 0x0EU,          //!< Waits only for stores to complete.
-    kBarrierSY         = 0x0FU           //!< Full system memory barrier operation.
+    kBarrierReserved0  = 0x00u,
+    kBarrierOSHLD      = 0x01u,          //!< Waits only for loads to complete, and only applies to the outer shareable domain.
+    kBarrierOSHST      = 0x02u,          //!< Waits only for stores to complete, and only applies to the outer shareable domain.
+    kBarrierOSH        = 0x03u,          //!< Only applies to the outer shareable domain.
+    kBarrierReserved4  = 0x04u,
+    kBarrierNSHLD      = 0x05u,          //!< Waits only for loads to complete and only applies out to the point of unification.
+    kBarrierNSHST      = 0x06u,          //!< Waits only for stores to complete and only applies out to the point of unification.
+    kBarrierNSH        = 0x07u,          //!< Only applies out to the point of unification.
+    kBarrierReserved8  = 0x08u,
+    kBarrierISHLD      = 0x09u,          //!< Waits only for loads to complete, and only applies to the inner shareable domain.
+    kBarrierISHST      = 0x0Au,          //!< Waits only for stores to complete, and only applies to the inner shareable domain.
+    kBarrierISH        = 0x0Bu,          //!< Only applies to the inner shareable domain.
+    kBarrierReserved12 = 0x0Cu,
+    kBarrierLD         = 0x0Du,          //!< Waits only for loads to complete.
+    kBarrierST         = 0x0Eu,          //!< Waits only for stores to complete.
+    kBarrierSY         = 0x0Fu           //!< Full system memory barrier operation.
   };
 }
 

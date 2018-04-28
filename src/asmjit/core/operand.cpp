@@ -104,8 +104,8 @@ UNIT(asmjit_core_operand) {
   EXPECT(m.offsetLo32() == -1);
   EXPECT(m.offset() == -1);
 
-  int64_t x = int64_t(0xFF00FF0000000001U);
-  int32_t xHi = int32_t(0xFF00FF00U);
+  int64_t x = int64_t(0xFF00FF0000000001u);
+  int32_t xHi = int32_t(0xFF00FF00u);
 
   m.setOffset(x);
   EXPECT(m.offset() == x);

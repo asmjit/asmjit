@@ -21,11 +21,6 @@ ASMJIT_BEGIN_NAMESPACE
 // Should be allocated in read-only memory and should never be modified.
 const Zone::Block Zone::_zeroBlock = { nullptr, nullptr, 0 };
 
-// Translates alignment to alignmentShift that can be stored to `Zone::_blockAlignmentShift`.
-static inline size_t Zone_alignmentShiftFromAlignment(size_t x) noexcept {
-  return x ? Support::ctz(x) : size_t(0);
-}
-
 // ============================================================================
 // [asmjit::Zone - Init / Reset]
 // ============================================================================

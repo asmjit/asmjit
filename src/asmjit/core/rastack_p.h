@@ -27,8 +27,8 @@ ASMJIT_BEGIN_NAMESPACE
 struct RAStackSlot {
   enum Flags : uint32_t {
     // TODO: kFlagRegHome is apparently not used, but isRegHome() is.
-    kFlagRegHome          = 0x00000001U, //!< Stack slot is register home slot.
-    kFlagStackArg         = 0x00000002U  //!< Stack slot position matches argument passed via stack.
+    kFlagRegHome          = 0x00000001u, //!< Stack slot is register home slot.
+    kFlagStackArg         = 0x00000002u  //!< Stack slot position matches argument passed via stack.
   };
 
   enum ArgIndex : uint32_t {

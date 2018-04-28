@@ -595,7 +595,7 @@ public:
     uint32_t bit = _size % kBitWordSizeInBits;
 
     if (!bit) return;
-    _data[idx] &= (BitWord(1) << bit) - 1U;
+    _data[idx] &= (BitWord(1) << bit) - 1u;
   }
 
   inline bool eq(const ZoneBitVector& other) const noexcept {

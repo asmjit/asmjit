@@ -194,19 +194,19 @@ UNIT(asmjit_x86_operand) {
   EXPECT(m.offset() == 0);
   EXPECT(m.offsetLo32() == 0);
 
-  m = ptr(0x0123456789ABCDEFU);
+  m = ptr(0x0123456789ABCDEFu);
   EXPECT(m.hasBase() == false);
   EXPECT(m.hasBaseReg() == false);
   EXPECT(m.hasIndex() == false);
   EXPECT(m.hasIndexReg() == false);
   EXPECT(m.hasOffset() == true);
   EXPECT(m.isOffset64Bit() == true);
-  EXPECT(m.offset() == int64_t(0x0123456789ABCDEFU));
-  EXPECT(m.offsetLo32() == int32_t(0x89ABCDEFU));
+  EXPECT(m.offset() == int64_t(0x0123456789ABCDEFu));
+  EXPECT(m.offsetLo32() == int32_t(0x89ABCDEFu));
   m.addOffset(1);
-  EXPECT(m.offset() == int64_t(0x0123456789ABCDF0U));
+  EXPECT(m.offset() == int64_t(0x0123456789ABCDF0u));
 
-  m = ptr(0x0123456789ABCDEFU, rdi, 4);
+  m = ptr(0x0123456789ABCDEFu, rdi, 4);
   EXPECT(m.hasBase() == false);
   EXPECT(m.hasBaseReg() == false);
   EXPECT(m.hasIndex() == true);
@@ -215,8 +215,8 @@ UNIT(asmjit_x86_operand) {
   EXPECT(m.indexId() == rdi.id());
   EXPECT(m.hasOffset() == true);
   EXPECT(m.isOffset64Bit() == true);
-  EXPECT(m.offset() == int64_t(0x0123456789ABCDEFU));
-  EXPECT(m.offsetLo32() == int32_t(0x89ABCDEFU));
+  EXPECT(m.offset() == int64_t(0x0123456789ABCDEFu));
+  EXPECT(m.offsetLo32() == int32_t(0x89ABCDEFu));
   m.resetIndex();
   EXPECT(m.hasIndex() == false);
   EXPECT(m.hasIndexReg() == false);

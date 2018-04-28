@@ -28,9 +28,9 @@ namespace JitUtils {
 
 //! Memory access flags.
 enum VirtMemFlags : uint32_t {
-  kVirtMemNoFlags         = 0x00000000U, //!< No access flags.
-  kVirtMemWrite           = 0x00000001U, //!< Memory is writable.
-  kVirtMemExecute         = 0x00000002U, //!< Memory is executable.
+  kVirtMemNoFlags         = 0x00000000u, //!< No access flags.
+  kVirtMemWrite           = 0x00000001u, //!< Memory is writable.
+  kVirtMemExecute         = 0x00000002u, //!< Memory is executable.
 
   kVirtMemWriteExecute    = kVirtMemWrite |
                             kVirtMemExecute

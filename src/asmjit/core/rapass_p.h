@@ -30,19 +30,19 @@ public:
   ASMJIT_NONCOPYABLE(RABlock)
 
   enum Id : uint32_t {
-    kUnassignedId         = 0xFFFFFFFFU
+    kUnassignedId         = 0xFFFFFFFFu
   };
 
   enum Flags : uint32_t {
-    kFlagIsConstructed    = 0x00000001U, //!< Block has been constructed from nodes.
-    kFlagIsReachable      = 0x00000002U, //!< Block is reachable (set by `buildViews()`).
-    kFlagIsAllocated      = 0x00000004U, //!< Block has been allocated.
-    kFlagIsFuncExit       = 0x00000008U, //!< Block is a function-exit.
+    kFlagIsConstructed    = 0x00000001u, //!< Block has been constructed from nodes.
+    kFlagIsReachable      = 0x00000002u, //!< Block is reachable (set by `buildViews()`).
+    kFlagIsAllocated      = 0x00000004u, //!< Block has been allocated.
+    kFlagIsFuncExit       = 0x00000008u, //!< Block is a function-exit.
 
-    kFlagHasTerminator    = 0x00000010U, //!< Block has a terminator (jump, conditional jump, ret).
-    kFlagHasConsecutive   = 0x00000020U, //!< Block naturally flows to the next block.
-    kFlagHasFixedRegs     = 0x00000040U, //!< Block contains fixed registers (precolored).
-    kFlagHasFuncCalls     = 0x00000080U  //!< Block contains function calls.
+    kFlagHasTerminator    = 0x00000010u, //!< Block has a terminator (jump, conditional jump, ret).
+    kFlagHasConsecutive   = 0x00000020u, //!< Block naturally flows to the next block.
+    kFlagHasFixedRegs     = 0x00000040u, //!< Block contains fixed registers (precolored).
+    kFlagHasFuncCalls     = 0x00000080u  //!< Block contains function calls.
   };
 
   enum LiveType : uint32_t {
@@ -237,7 +237,7 @@ public:
   ASMJIT_NONCOPYABLE(RAInst)
 
   enum Flags : uint32_t {
-    kFlagIsTerminator = 0x00000001U
+    kFlagIsTerminator = 0x00000001u
   };
 
   static inline size_t sizeOf(uint32_t tiedRegCount) noexcept {

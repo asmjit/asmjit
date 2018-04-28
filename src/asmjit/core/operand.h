@@ -57,55 +57,55 @@ struct Operand_ {
     // Operand type (3 least significant bits).
     // |........|........|........|.....XXX|
     kSignatureOpShift           = 0,
-    kSignatureOpBits            = 0x07U,
+    kSignatureOpBits            = 0x07u,
     kSignatureOpMask            = kSignatureOpBits << kSignatureOpShift,
 
     // Register type (5 bits).
     // |........|........|........|XXXXX...|
     kSignatureRegTypeShift      = 3,
-    kSignatureRegTypeBits       = 0x1FU,
+    kSignatureRegTypeBits       = 0x1Fu,
     kSignatureRegTypeMask       = kSignatureRegTypeBits << kSignatureRegTypeShift,
 
     // Register group (4 bits).
     // |........|........|....XXXX|........|
     kSignatureRegGroupShift     = 8,
-    kSignatureRegGroupBits      = 0x0FU,
+    kSignatureRegGroupBits      = 0x0Fu,
     kSignatureRegGroupMask      = kSignatureRegGroupBits << kSignatureRegGroupShift,
 
     // Memory base type (5 bits).
     // |........|........|........|XXXXX...|
     kSignatureMemBaseTypeShift  = 3,
-    kSignatureMemBaseTypeBits   = 0x1FU,
+    kSignatureMemBaseTypeBits   = 0x1Fu,
     kSignatureMemBaseTypeMask   = kSignatureMemBaseTypeBits << kSignatureMemBaseTypeShift,
 
     // Memory index type (5 bits).
     // |........|........|...XXXXX|........|
     kSignatureMemIndexTypeShift = 8,
-    kSignatureMemIndexTypeBits  = 0x1FU,
+    kSignatureMemIndexTypeBits  = 0x1Fu,
     kSignatureMemIndexTypeMask  = kSignatureMemIndexTypeBits << kSignatureMemIndexTypeShift,
 
     // Memory base+index combined (10 bits).
     // |........|........|...XXXXX|XXXXX...|
     kSignatureMemBaseIndexShift = 3,
-    kSignatureMemBaseIndexBits  = 0x3FFU,
+    kSignatureMemBaseIndexBits  = 0x3FFu,
     kSignatureMemBaseIndexMask  = kSignatureMemBaseIndexBits << kSignatureMemBaseIndexShift,
 
     // Memory address type (2 bits).
     // |........|........|.XX.....|........|
     kSignatureMemAddrTypeShift  = 13,
-    kSignatureMemAddrTypeBits   = 0x03U,
+    kSignatureMemAddrTypeBits   = 0x03u,
     kSignatureMemAddrTypeMask   = kSignatureMemAddrTypeBits << kSignatureMemAddrTypeShift,
 
     // This memory operand represents a home-slot or stack (BaseCompiler).
     // |........|........|X.......|........|
     kSignatureMemRegHomeShift   = 15,
-    kSignatureMemRegHomeBits    = 0x01U,
+    kSignatureMemRegHomeBits    = 0x01u,
     kSignatureMemRegHomeFlag    = kSignatureMemRegHomeBits << kSignatureMemRegHomeShift,
 
     // Operand size (8 most significant bits).
     // |XXXXXXXX|........|........|........|
     kSignatureSizeShift         = 24,
-    kSignatureSizeBits          = 0xFFU,
+    kSignatureSizeBits          = 0xFFu,
     kSignatureSizeMask          = kSignatureSizeBits << kSignatureSizeShift
   };
 
@@ -116,9 +116,9 @@ struct Operand_ {
   //! Operand id helpers useful for id <-> index translation.
   enum PackedId : uint32_t {
     //! Minimum valid packed-id.
-    kPackedIdMin    = 0x00000100U,
+    kPackedIdMin    = 0x00000100u,
     //! Maximum valid packed-id.
-    kPackedIdMax    = 0xFFFFFFFFU,
+    kPackedIdMax    = 0xFFFFFFFFu,
     //! Count of valid packed-ids.
     kPackedIdCount  = uint32_t(kPackedIdMax - kPackedIdMin + 1)
   };
@@ -306,9 +306,9 @@ struct Operand_ {
   constexpr bool isLabel() const noexcept { return opType() == kOpLabel; }
 
   //! Get whether the operand is a physical register.
-  constexpr bool isPhysReg() const noexcept { return isReg() && _reg.id < 0xFFU; }
+  constexpr bool isPhysReg() const noexcept { return isReg() && _reg.id < 0xFFu; }
   //! Get whether the operand is a virtual register.
-  constexpr bool isVirtReg() const noexcept { return isReg() && _reg.id > 0xFFU; }
+  constexpr bool isVirtReg() const noexcept { return isReg() && _reg.id > 0xFFu; }
 
   //! Get whether the operand specifies a size (i.e. the size is not zero).
   constexpr bool hasSize() const noexcept { return _hasSignatureData(kSignatureSizeMask); }
@@ -398,7 +398,7 @@ public:
 
   //! Create `Operand_::kOpNone` operand (all values initialized to zeros).
   constexpr Operand() noexcept
-    : Operand_{{{ kOpNone, 0U, 0U, 0U }}} {}
+    : Operand_{{{ kOpNone, 0u, 0u, 0u }}} {}
 
   //! Create a cloned `other` operand.
   constexpr Operand(const Operand& other) noexcept
@@ -684,7 +684,7 @@ public:
   };
 
   enum Id : uint32_t {
-    kIdBad          = 0xFFU               //!< None or any register (mostly internal).
+    kIdBad          = 0xFFu               //!< None or any register (mostly internal).
   };
 
   static constexpr uint32_t kSignature = kOpReg;
@@ -1087,7 +1087,7 @@ public:
   //! and 64-bit offset, and there is currently no architecture that has such
   //! capability targeted by AsmJit.
   inline void setOffset(int64_t offset) noexcept {
-    uint32_t lo = uint32_t(uint64_t(offset) & 0xFFFFFFFFU);
+    uint32_t lo = uint32_t(uint64_t(offset) & 0xFFFFFFFFu);
     uint32_t hi = uint32_t(uint64_t(offset) >> 32);
     uint32_t hiMsk = Support::bitMaskFromBool<uint32_t>(isOffset64Bit());
 
@@ -1107,11 +1107,11 @@ public:
   inline void addOffset(int64_t offset) noexcept {
     if (isOffset64Bit()) {
       int64_t result = offset + int64_t(uint64_t(_mem.offsetLo32) | (uint64_t(_mem.base) << 32));
-      _mem.offsetLo32 = uint32_t(uint64_t(result) & 0xFFFFFFFFU);
+      _mem.offsetLo32 = uint32_t(uint64_t(result) & 0xFFFFFFFFu);
       _mem.base       = uint32_t(uint64_t(result) >> 32);
     }
     else {
-      _mem.offsetLo32 += uint32_t(uint64_t(offset) & 0xFFFFFFFFU);
+      _mem.offsetLo32 += uint32_t(uint64_t(offset) & 0xFFFFFFFFu);
     }
   }
   //! Add `offset` to a low 32-bit offset part (don't use without knowing how BaseMem works).
@@ -1185,11 +1185,11 @@ public:
   //! Get immediate value as 8-bit signed integer.
   constexpr int8_t i8() const noexcept { return int8_t(i32() & 0xFF); }
   //! Get immediate value as 8-bit unsigned integer.
-  constexpr uint8_t u8() const noexcept { return uint8_t(u32() & 0xFFU); }
+  constexpr uint8_t u8() const noexcept { return uint8_t(u32() & 0xFFu); }
   //! Get immediate value as 16-bit signed integer.
   constexpr int16_t i16() const noexcept { return int16_t(i32() & 0xFFFF);}
   //! Get immediate value as 16-bit unsigned integer.
-  constexpr uint16_t u16() const noexcept { return uint16_t(u32() & 0xFFFFU);}
+  constexpr uint16_t u16() const noexcept { return uint16_t(u32() & 0xFFFFu);}
   //! Get immediate value as 32-bit signed integer.
   constexpr int32_t i32() const noexcept { return i32Lo(); }
   //! Get low 32-bit signed integer.
@@ -1253,13 +1253,13 @@ public:
   // [Sign Extend / Zero Extend]
   // --------------------------------------------------------------------------
 
-  inline void signExtend8Bits() noexcept { _imm.value.i64 = int64_t(int8_t(_imm.value.u64 & 0x000000FFU)); }
-  inline void signExtend16Bits() noexcept { _imm.value.i64 = int64_t(int16_t(_imm.value.u64 & 0x0000FFFFU)); }
-  inline void signExtend32Bits() noexcept { _imm.value.i64 = int64_t(int32_t(_imm.value.u64 & 0xFFFFFFFFU)); }
+  inline void signExtend8Bits() noexcept { _imm.value.i64 = int64_t(int8_t(_imm.value.u64 & 0x000000FFu)); }
+  inline void signExtend16Bits() noexcept { _imm.value.i64 = int64_t(int16_t(_imm.value.u64 & 0x0000FFFFu)); }
+  inline void signExtend32Bits() noexcept { _imm.value.i64 = int64_t(int32_t(_imm.value.u64 & 0xFFFFFFFFu)); }
 
-  inline void zeroExtend8Bits() noexcept { _imm.value.u64 = _imm.value.u64 & 0x000000FFU; }
-  inline void zeroExtend16Bits() noexcept { _imm.value.u64 = _imm.value.u64 & 0x0000FFFFU; }
-  inline void zeroExtend32Bits() noexcept { _imm.value.u64 = _imm.value.u64 & 0xFFFFFFFFU; }
+  inline void zeroExtend8Bits() noexcept { _imm.value.u64 = _imm.value.u64 & 0x000000FFu; }
+  inline void zeroExtend16Bits() noexcept { _imm.value.u64 = _imm.value.u64 & 0x0000FFFFu; }
+  inline void zeroExtend32Bits() noexcept { _imm.value.u64 = _imm.value.u64 & 0xFFFFFFFFu; }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]

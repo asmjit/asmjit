@@ -46,17 +46,17 @@ public:
 
   //! Emitter flags.
   enum Flags : uint32_t {
-    kFlagFinalized = 0x4000U,            //!< Code emitter is finalized.
-    kFlagDestroyed = 0x8000U             //!< Code emitter was destroyed.
+    kFlagFinalized = 0x4000u,            //!< Code emitter is finalized.
+    kFlagDestroyed = 0x8000u             //!< Code emitter was destroyed.
   };
 
   //! Emitter options.
   enum Options : uint32_t {
     //! Logging is enabled, `BaseEmitter::logger()` must return a valid logger.
-    kOptionLoggingEnabled   = 0x00000001U,
+    kOptionLoggingEnabled   = 0x00000001u,
 
     //! Stricly validate each instruction before it's emitted.
-    kOptionStrictValidation = 0x00000002U,
+    kOptionStrictValidation = 0x00000002u,
 
     //! Emit optimized code-alignment sequences.
     //!
@@ -70,7 +70,7 @@ public:
     //! more optimized align sequences for 2-11 bytes that may execute faster
     //! on certain CPUs. If this feature is enabled AsmJit will generate
     //! specialized sequences for alignment between 2 to 11 bytes.
-    kOptionOptimizedAlign = 0x00000004U,
+    kOptionOptimizedAlign = 0x00000004u,
 
     //! Emit jump-prediction hints.
     //!
@@ -90,7 +90,7 @@ public:
     //! used to take into consideration prediction hints was P4. Newer processors
     //! implement heuristics for branch prediction and ignore static hints. This
     //! means that this feature can be used for annotation purposes.
-    kOptionPredictedJumps = 0x00000008U
+    kOptionPredictedJumps = 0x00000008u
   };
 
   // --------------------------------------------------------------------------
