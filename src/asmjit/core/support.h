@@ -274,7 +274,7 @@ namespace Internal {
   }
 
   template<typename T>
-  constexpr T ctzGeneric(T x) noexcept {
+  constexpr uint32_t ctzGeneric(T x) noexcept {
     return ctzGenericImpl(x & neg(x));
   }
 
