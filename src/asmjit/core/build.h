@@ -359,9 +359,9 @@
 #endif
 
 // Function attributes.
-#if (ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 4, 0) && !defined(__MINGW32__))
+#if !defined(ASMJIT_BUILD_DEBUG) && (ASMJIT_CXX_GNU || ASMJIT_CXX_CLANG)
   #define ASMJIT_INLINE inline __attribute__((__always_inline__))
-#elif ASMJIT_CXX_MSC
+#elif !defined(ASMJIT_BUILD_DEBUG) && ASMJIT_CXX_MSC
   #define ASMJIT_INLINE __forceinline
 #else
   #define ASMJIT_INLINE inline

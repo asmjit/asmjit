@@ -31,7 +31,7 @@ void Zone::_init(size_t blockSize, size_t blockAlignment, const Support::Tempora
   ASMJIT_ASSERT(blockAlignment <= 64);
 
   _assignZeroBlock();
-  _blockSize = blockSize & Support::lsbMask<size_t>(Support::bitSizeOf<size_t>() - 4);
+  _blockSize = blockSize;
   _isTemporary = temporary != nullptr;
   _blockAlignmentShift = Support::ctz(blockAlignment) & 0x7;
 

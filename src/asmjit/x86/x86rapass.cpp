@@ -24,7 +24,7 @@
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 // ============================================================================
-// [asmjit::X86RAPass - Helpers]
+// [asmjit::x86::X86RAPass - Helpers]
 // ============================================================================
 
 static ASMJIT_INLINE uint64_t immMaskFromSize(uint32_t size) noexcept {
@@ -44,7 +44,7 @@ static ASMJIT_INLINE uint64_t immMaskFromSize(uint32_t size) noexcept {
 }
 
 // ============================================================================
-// [asmjit::X86OpInfo]
+// [asmjit::x86::X86OpInfo]
 // ============================================================================
 
 namespace X86OpInfo {
@@ -237,7 +237,7 @@ namespace X86OpInfo {
 } // X86OpInfo namespace
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder]
+// [asmjit::x86::X86RACFGBuilder]
 // ============================================================================
 
 class X86RACFGBuilder : public RACFGBuilder<X86RACFGBuilder> {
@@ -260,7 +260,7 @@ public:
 };
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder - Utilities]
+// [asmjit::x86::X86RACFGBuilder - Utilities]
 // ============================================================================
 
 Error X86RACFGBuilder::newInst(InstNode** out, uint32_t instId, const OpInfo* opInfo, const uint32_t* physRegs, const Operand_& o0, const Operand_& o1) noexcept {
@@ -312,7 +312,7 @@ Error X86RACFGBuilder::newInst(InstNode** out, uint32_t instId, const OpInfo* op
 }
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder - OnInst]
+// [asmjit::x86::X86RACFGBuilder - OnInst]
 // ============================================================================
 
 Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuilder& ib) noexcept {
@@ -537,7 +537,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 }
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder - OnCall]
+// [asmjit::x86::X86RACFGBuilder - OnCall]
 // ============================================================================
 
 Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
@@ -637,7 +637,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
 }
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder - MoveImmToRegArg]
+// [asmjit::x86::X86RACFGBuilder - MoveImmToRegArg]
 // ============================================================================
 
 Error X86RACFGBuilder::moveImmToRegArg(FuncCallNode* call, const FuncValue& arg, const Imm& imm_, BaseReg* out) noexcept {
@@ -681,7 +681,7 @@ MovAny:
 }
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder - MoveImmToStackArg]
+// [asmjit::x86::X86RACFGBuilder - MoveImmToStackArg]
 // ============================================================================
 
 Error X86RACFGBuilder::moveImmToStackArg(FuncCallNode* call, const FuncValue& arg, const Imm& imm_) noexcept {
@@ -746,7 +746,7 @@ MovU32:
 }
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder - MoveRegToStackArg]
+// [asmjit::x86::X86RACFGBuilder - MoveRegToStackArg]
 // ============================================================================
 
 Error X86RACFGBuilder::moveRegToStackArg(FuncCallNode* call, const FuncValue& arg, const BaseReg& reg) noexcept {
@@ -940,7 +940,7 @@ MovXmmQ:
 }
 
 // ============================================================================
-// [asmjit::X86RACFGBuilder - OnReg]
+// [asmjit::x86::X86RACFGBuilder - OnReg]
 // ============================================================================
 
 Error X86RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
@@ -979,7 +979,7 @@ Error X86RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
 }
 
 // ============================================================================
-// [asmjit::X86RAPass - Construction / Destruction]
+// [asmjit::x86::X86RAPass - Construction / Destruction]
 // ============================================================================
 
 X86RAPass::X86RAPass() noexcept
@@ -988,7 +988,7 @@ X86RAPass::X86RAPass() noexcept
 X86RAPass::~X86RAPass() noexcept {}
 
 // ============================================================================
-// [asmjit::X86RAPass - OnInit / OnDone]
+// [asmjit::x86::X86RAPass - OnInit / OnDone]
 // ============================================================================
 
 void X86RAPass::onInit() noexcept {
@@ -1024,7 +1024,7 @@ void X86RAPass::onInit() noexcept {
 void X86RAPass::onDone() noexcept {}
 
 // ============================================================================
-// [asmjit::X86RAPass - BuildCFG]
+// [asmjit::x86::X86RAPass - BuildCFG]
 // ============================================================================
 
 Error X86RAPass::buildCFG() noexcept {
@@ -1032,7 +1032,7 @@ Error X86RAPass::buildCFG() noexcept {
 }
 
 // ============================================================================
-// [asmjit::X86RAPass - OnEmit]
+// [asmjit::x86::X86RAPass - OnEmit]
 // ============================================================================
 
 Error X86RAPass::onEmitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {
@@ -1257,7 +1257,7 @@ ASMJIT_INLINE void X86CallAlloc::duplicate() {
 }
 
 // ============================================================================
-// [asmjit::X86CallAlloc - Ret]
+// [asmjit::x86::X86CallAlloc - Ret]
 // ============================================================================
 
 ASMJIT_INLINE void X86CallAlloc::ret() {
@@ -1307,7 +1307,7 @@ ASMJIT_INLINE void X86CallAlloc::ret() {
 }
 
 // ============================================================================
-// [asmjit::X86RAPass - Translate - Ret]
+// [asmjit::x86::X86RAPass - Translate - Ret]
 // ============================================================================
 
 static Error X86RAPass_translateRet(X86RAPass* self, FuncRetNode* rNode, LabelNode* exitTarget) {

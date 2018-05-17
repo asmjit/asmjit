@@ -145,7 +145,7 @@ public:
 // [asmjit::Target]
 // ============================================================================
 
-//! Target is an abstract class that describes a compilation (asm) target.
+//! Target is an abstract class that describes the machine code target.
 class ASMJIT_VIRTAPI Target {
 public:
   ASMJIT_NONCOPYABLE(Target)

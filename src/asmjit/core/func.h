@@ -725,7 +725,7 @@ public:
   uint8_t _redZoneSize;                  //!< Red zone size (copied from CallConv).
   uint8_t _spillZoneSize;                //!< Spill zone size (copied from CallConv).
   uint8_t _naturalStackAlignment;        //!< Natural stack alignment (copied from CallConv).
-  uint8_t _minDynamicAlignment;      //!< Minimum stack alignment to turn on dynamic alignment.
+  uint8_t _minDynamicAlignment;          //!< Minimum stack alignment to turn on dynamic alignment.
 
   uint8_t _callStackAlignment;           //!< Call stack alignment.
   uint8_t _localStackAlignment;          //!< Local stack alignment.

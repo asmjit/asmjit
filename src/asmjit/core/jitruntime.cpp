@@ -20,15 +20,13 @@ ASMJIT_BEGIN_NAMESPACE
 
 static inline void JitRuntime_flushInstructionCache(const void* p, size_t size) noexcept {
   // Only useful on non-x86 architectures.
-#if !ASMJIT_ARCH_X86
-# if ASMJIT_OS_WINDOWS
+  #if !ASMJIT_ARCH_X86 && ASMJIT_OS_WINDOW
   // Windows has a built-in support in `kernel32.dll`.
   ::FlushInstructionCache(::GetCurrentProcess(), p, size);
-# endif
-#else
+  #else
   ASMJIT_UNUSED(p);
   ASMJIT_UNUSED(size);
-#endif
+  #endif
 }
 
 static inline uint32_t JitRuntime_detectNaturalStackAlignment() noexcept {

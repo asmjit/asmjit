@@ -131,8 +131,9 @@ public:
   public:
     ASMJIT_NONCOPYABLE(Block)
 
-    enum Flags {
-      kFlagDirty           = 0x80000000u //!< Block is dirty (some members needs update).
+    enum Flags : uint32_t {
+      //! Block is dirty (some members needs update).
+      kFlagDirty = 0x80000000u
     };
 
     inline Block(Pool* pool,
@@ -199,8 +200,8 @@ public:
     uint32_t _searchStart;               //!< Start of a search range (for unused bits).
     uint32_t _searchEnd;                 //!< End of a search range (for unused bits).
 
-    Support::BitWord* _usedBitVector;   //!< Used bit-vector (0 = unused    , 1 = used).
-    Support::BitWord* _stopBitVector;   //!< Stop bit-vector (0 = don't care, 1 = stop).
+    Support::BitWord* _usedBitVector;    //!< Used bit-vector (0 = unused    , 1 = used).
+    Support::BitWord* _stopBitVector;    //!< Stop bit-vector (0 = don't care, 1 = stop).
   };
 
   struct Statistics {

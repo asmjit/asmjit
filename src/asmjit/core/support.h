@@ -544,14 +544,8 @@ constexpr bool isU32(T x) noexcept {
 // [asmjit::Support - ByteSwap]
 // ============================================================================
 
-static inline uint32_t byteswap32(uint32_t x) noexcept {
-  #if ASMJIT_CXX_MSC
-    return uint32_t(_byteswap_ulong(x));
-  #elif ASMJIT_CXX_GNU
-    return __builtin_bswap32(x);
-  #else
-    return (x << 24) | (x >> 24) | ((x << 8) & 0x00FF0000u) | ((x >> 8) & 0x0000FF00);
-  #endif
+constexpr uint32_t byteswap32(uint32_t x) noexcept {
+  return (x << 24) | (x >> 24) | ((x << 8) & 0x00FF0000u) | ((x >> 8) & 0x0000FF00);
 }
 
 // ============================================================================

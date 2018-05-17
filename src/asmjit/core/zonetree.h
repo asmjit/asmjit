@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_support
+//! \addtogroup asmjit_core_zone
 //! \{
 
 // ============================================================================
@@ -267,8 +267,8 @@ public:
 
     // NOTE: The original algorithm used a trick to just copy 'key/value' to
     // `f` and mark `q` for deletion. But this is unacceptable here as we
-    // really want to destroy the passed `node`. So, we really have to make
-    // sure that we really removed `f` and not `q` from the tree.
+    // really want to destroy the passed `node`. So, we have to make sure that
+    // we have really removed `f` and not `q`.
     if (f != q) {
       ASMJIT_ASSERT(f != &head);
       ASMJIT_ASSERT(f != gf);

@@ -1947,19 +1947,19 @@ namespace TLog {
     kA                    = 0xF0u,
     kB                    = 0xCCu,
     kC                    = 0xAAu,
-    kNotA                 = kA ^ 0xFFu,
-    kNotB                 = kB ^ 0xFFu,
-    kNotC                 = kC ^ 0xFFu,
+    kNotA                 = kA ^ k1,
+    kNotB                 = kB ^ k1,
+    kNotC                 = kC ^ k1,
 
     kAB                   = kA & kB,
     kAC                   = kA & kC,
     kBC                   = kB & kC,
-    kNotAB                = kAB ^ 0xFFu,
-    kNotAC                = kAC ^ 0xFFu,
-    kNotBC                = kBC ^ 0xFFu,
+    kNotAB                = kAB ^ k1,
+    kNotAC                = kAC ^ k1,
+    kNotBC                = kBC ^ k1,
 
     kABC                  = kA & kB & kC,
-    kNotABC               = kABC ^ 0xFFu
+    kNotABC               = kABC ^ k1
   };
 
   //! Create an immediate that can be used by VPTERNLOG[D|Q] instructions.
