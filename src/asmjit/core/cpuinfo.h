@@ -51,7 +51,7 @@ public:
     _archInfo.init(archId, archMode);
   }
 
-  inline void reset() noexcept { std::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
 
   // --------------------------------------------------------------------------
   // [Accessors]

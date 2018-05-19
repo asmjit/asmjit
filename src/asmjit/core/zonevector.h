@@ -73,7 +73,7 @@ public:
 
   //! Truncate the vector to at most `n` items.
   inline void truncate(size_type n) noexcept {
-    _size = std::min(_size, n);
+    _size = Support::min(_size, n);
   }
 
   //! Set size of the vector to `n`. Used internally by some algorithms.
@@ -205,8 +205,8 @@ public:
     if (ASMJIT_UNLIKELY(_size == _capacity))
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
-    std::memmove(static_cast<T*>(_data) + 1, _data, size_t(_size) * sizeof(T));
-    std::memcpy(_data, &item, sizeof(T));
+    ::memmove(static_cast<T*>(_data) + 1, _data, size_t(_size) * sizeof(T));
+    ::memcpy(_data, &item, sizeof(T));
 
     _size++;
     return kErrorOk;
@@ -220,8 +220,8 @@ public:
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
     T* dst = static_cast<T*>(_data) + index;
-    std::memmove(dst + 1, dst, size_t(_size - index) * sizeof(T));
-    std::memcpy(dst, &item, sizeof(T));
+    ::memmove(dst + 1, dst, size_t(_size - index) * sizeof(T));
+    ::memcpy(dst, &item, sizeof(T));
     _size++;
 
     return kErrorOk;
@@ -232,7 +232,7 @@ public:
     if (ASMJIT_UNLIKELY(_size == _capacity))
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
-    std::memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
+    ::memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
     _size++;
 
     return kErrorOk;
@@ -244,7 +244,7 @@ public:
       ASMJIT_PROPAGATE(grow(allocator, size));
 
     if (size) {
-      std::memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
+      ::memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
       _size += size;
     }
 
@@ -261,9 +261,9 @@ public:
     T* data = static_cast<T*>(_data);
 
     if (_size)
-      std::memmove(data + 1, data, size_t(_size) * sizeof(T));
+      ::memmove(data + 1, data, size_t(_size) * sizeof(T));
 
-    std::memcpy(data, &item, sizeof(T));
+    ::memcpy(data, &item, sizeof(T));
     _size++;
   }
 
@@ -275,7 +275,7 @@ public:
   inline void appendUnsafe(const T& item) noexcept {
     ASMJIT_ASSERT(_size < _capacity);
 
-    std::memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
+    ::memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
     _size++;
   }
 
@@ -285,7 +285,7 @@ public:
     ASMJIT_ASSERT(_capacity - _size >= size);
 
     if (size) {
-      std::memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
+      ::memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
       _size += size;
     }
   }
@@ -314,7 +314,7 @@ public:
     uint32_t size = --_size - i;
 
     if (size)
-      std::memmove(data, data + 1, size_t(size) * sizeof(T));
+      ::memmove(data, data + 1, size_t(size) * sizeof(T));
   }
 
   inline T pop() noexcept {
@@ -475,7 +475,7 @@ public:
   }
 
   inline void truncate(uint32_t newSize) noexcept {
-    _size = std::min(_size, newSize);
+    _size = Support::min(_size, newSize);
     _clearUnusedBits();
   }
 
@@ -547,7 +547,7 @@ public:
 
     uint32_t thisBitWordCount = sizeInBitWords();
     uint32_t otherBitWordCount = other.sizeInBitWords();
-    uint32_t commonBitWordCount = std::min(thisBitWordCount, otherBitWordCount);
+    uint32_t commonBitWordCount = Support::min(thisBitWordCount, otherBitWordCount);
 
     uint32_t i = 0;
     while (i < commonBitWordCount) {
@@ -570,7 +570,7 @@ public:
     BitWord* dst = _data;
     const BitWord* src = other._data;
 
-    uint32_t commonBitWordCount = _wordsPerBits(std::min(_size, other._size));
+    uint32_t commonBitWordCount = _wordsPerBits(Support::min(_size, other._size));
     for (uint32_t i = 0; i < commonBitWordCount; i++)
       dst[i] = dst[i] & ~src[i];
   }
@@ -584,7 +584,7 @@ public:
     BitWord* dst = _data;
     const BitWord* src = other._data;
 
-    uint32_t commonBitWordCount = _wordsPerBits(std::min(_size, other._size));
+    uint32_t commonBitWordCount = _wordsPerBits(Support::min(_size, other._size));
     for (uint32_t i = 0; i < commonBitWordCount; i++)
       dst[i] = dst[i] | src[i];
     _clearUnusedBits();

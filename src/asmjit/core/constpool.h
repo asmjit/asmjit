@@ -76,11 +76,11 @@ public:
       : _dataSize(dataSize) {}
 
     inline int operator()(const Node& a, const Node& b) const noexcept {
-      return std::memcmp(a.data(), b.data(), _dataSize);
+      return ::memcmp(a.data(), b.data(), _dataSize);
     }
 
     inline int operator()(const Node& a, const void* data) const noexcept {
-      return std::memcmp(a.data(), data, _dataSize);
+      return ::memcmp(a.data(), data, _dataSize);
     }
 
     size_t _dataSize;
@@ -185,7 +185,7 @@ public:
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
 
       node = new(node) Node(offset, shared);
-      std::memcpy(node->data(), data, size);
+      ::memcpy(node->data(), data, size);
       return node;
     }
 

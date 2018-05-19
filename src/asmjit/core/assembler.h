@@ -221,13 +221,13 @@ public:
 
   ASMJIT_INLINE void emitData(const void* data, size_t size) noexcept {
     ASMJIT_ASSERT(size != 0);
-    std::memcpy(_cursor, data, size);
+    ::memcpy(_cursor, data, size);
     _cursor += size;
   }
 
   ASMJIT_INLINE void emitZeros(size_t size) noexcept {
     ASMJIT_ASSERT(size != 0);
-    std::memset(_cursor, 0, size);
+    ::memset(_cursor, 0, size);
     _cursor += size;
   }
 
@@ -237,7 +237,7 @@ public:
     ASMJIT_ASSERT(newSize <= buffer.capacity());
 
     a->_bufferPtr = _cursor;
-    buffer._size = std::max(buffer._size, newSize);
+    buffer._size = Support::max(buffer._size, newSize);
   }
 
   uint8_t* _cursor;

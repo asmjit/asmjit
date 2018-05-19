@@ -427,7 +427,7 @@ public:
   //! Emit comment from a formatted string `fmt`.
   ASMJIT_API Error commentf(const char* fmt, ...);
   //! Emit comment from a formatted string `fmt` (va_list version).
-  ASMJIT_API Error commentv(const char* fmt, std::va_list ap);
+  ASMJIT_API Error commentv(const char* fmt, va_list ap);
 
   // --------------------------------------------------------------------------
   // [Events]

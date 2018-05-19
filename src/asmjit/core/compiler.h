@@ -221,10 +221,10 @@ public:
   ASMJIT_API VirtReg* newVirtReg(uint32_t typeId, uint32_t signature, const char* name) noexcept;
 
   ASMJIT_API Error _newReg(BaseReg& out, uint32_t typeId, const char* name = nullptr);
-  ASMJIT_API Error _newReg(BaseReg& out, uint32_t typeId, const char* fmt, std::va_list ap);
+  ASMJIT_API Error _newReg(BaseReg& out, uint32_t typeId, const char* fmt, va_list ap);
 
   ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* name = nullptr);
-  ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* fmt, std::va_list ap);
+  ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap);
 
   ASMJIT_API Error _newStack(BaseMem& out, uint32_t size, uint32_t alignment, const char* name = nullptr);
   ASMJIT_API Error _newConst(BaseMem& out, uint32_t scope, const void* data, size_t size);

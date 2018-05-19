@@ -4280,7 +4280,7 @@ uint32_t InstDB::idByName(const char* name, size_t nameSize) noexcept {
     return Inst::kIdNone;
 
   if (nameSize == Globals::kNullTerminated)
-    nameSize = std::strlen(name);
+    nameSize = ::strlen(name);
 
   if (ASMJIT_UNLIKELY(nameSize == 0 || nameSize > kX86InstMaxSize))
     return Inst::kIdNone;

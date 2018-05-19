@@ -68,7 +68,7 @@ struct RAStrategy {
   };
 
   inline RAStrategy() noexcept { reset(); }
-  inline void reset() noexcept { std::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
 
   inline uint32_t type() const noexcept { return _type; }
   inline void setType(uint32_t type) noexcept { _type = uint8_t(type); }
@@ -95,7 +95,7 @@ struct RAArchTraits {
   // --------------------------------------------------------------------------
 
   inline RAArchTraits() noexcept { reset(); }
-  inline void reset() noexcept { std::memset(_flags, 0, sizeof(_flags)); }
+  inline void reset() noexcept { ::memset(_flags, 0, sizeof(_flags)); }
 
   // --------------------------------------------------------------------------
   // [Accessors]

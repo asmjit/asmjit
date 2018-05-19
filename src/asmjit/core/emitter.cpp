@@ -181,7 +181,7 @@ Error BaseEmitter::commentf(const char* fmt, ...) {
   #ifndef ASMJIT_DISABLE_LOGGING
   StringBuilderTmp<1024> sb;
 
-  std::va_list ap;
+  va_list ap;
   va_start(ap, fmt);
   Error err = sb.appendFormatVA(fmt, ap);
   va_end(ap);
@@ -196,7 +196,7 @@ Error BaseEmitter::commentf(const char* fmt, ...) {
   #endif
 }
 
-Error BaseEmitter::commentv(const char* fmt, std::va_list ap) {
+Error BaseEmitter::commentv(const char* fmt, va_list ap) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 

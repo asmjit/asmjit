@@ -19,6 +19,7 @@
 #include "../core/logging.h"
 #include "../core/stringbuilder.h"
 #include "../core/stringutils.h"
+#include "../core/support.h"
 #include "../core/type.h"
 
 #ifdef ASMJIT_BUILD_X86
@@ -49,7 +50,7 @@ Logger::~Logger() noexcept {}
 
 Error Logger::logf(const char* fmt, ...) noexcept {
   Error err;
-  std::va_list ap;
+  va_list ap;
 
   va_start(ap, fmt);
   err = logv(fmt, ap);
@@ -58,7 +59,7 @@ Error Logger::logf(const char* fmt, ...) noexcept {
   return err;
 }
 
-Error Logger::logv(const char* fmt, std::va_list ap) noexcept {
+Error Logger::logv(const char* fmt, va_list ap) noexcept {
   StringBuilderTmp<2048> sb;
   ASMJIT_PROPAGATE(sb.appendFormatVA(fmt, ap));
   return log(sb);
@@ -74,7 +75,7 @@ Error Logger::logBinary(const void* data, size_t size) noexcept {
   const uint8_t* s = static_cast<const uint8_t*>(data);
 
   while (i) {
-    uint32_t n = uint32_t(std::min<size_t>(i, 16));
+    uint32_t n = uint32_t(Support::min<size_t>(i, 16));
     sb.truncate(ASMJIT_ARRAY_SIZE(prefix) - 1);
     sb.appendHex(s, n);
     sb.appendChar('\n');
@@ -90,7 +91,7 @@ Error Logger::logBinary(const void* data, size_t size) noexcept {
 // [asmjit::FileLogger - Construction / Destruction]
 // ============================================================================
 
-FileLogger::FileLogger(std::FILE* file) noexcept
+FileLogger::FileLogger(FILE* file) noexcept
   : _file(nullptr) { setFile(file); }
 FileLogger::~FileLogger() noexcept {}
 

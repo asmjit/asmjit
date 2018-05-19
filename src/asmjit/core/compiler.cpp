@@ -116,7 +116,7 @@ FuncNode* BaseCompiler::newFunc(const FuncSignature& sign) noexcept {
       return nullptr;
     }
 
-    std::memset(func->_args, 0, func->argCount() * sizeof(VirtReg*));
+    ::memset(func->_args, 0, func->argCount() * sizeof(VirtReg*));
   }
 
   return func;
@@ -223,7 +223,7 @@ FuncCallNode* BaseCompiler::newCall(uint32_t instId, const Operand_& o0, const F
     return nullptr;
   }
 
-  std::memset(node->_args, 0, nArgs * sizeof(Operand));
+  ::memset(node->_args, 0, nArgs * sizeof(Operand));
   return node;
 }
 
@@ -278,7 +278,7 @@ VirtReg* BaseCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const cha
   if (ASMJIT_UNLIKELY(!vReg)) return nullptr;
 
   uint32_t size = Type::sizeOf(typeId);
-  uint32_t alignment = std::min<uint32_t>(size, 64);
+  uint32_t alignment = Support::min<uint32_t>(size, 64);
 
   vReg = new(vReg) VirtReg(Operand::packId(index), signature, size, alignment, typeId);
 
@@ -309,7 +309,7 @@ Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* name) {
   return kErrorOk;
 }
 
-Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* fmt, std::va_list ap) {
+Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* fmt, va_list ap) {
   StringBuilderTmp<256> sb;
   sb.appendFormatVA(fmt, ap);
   return _newReg(out, typeId, sb.data());
@@ -390,7 +390,7 @@ Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* name) 
   return kErrorOk;
 }
 
-Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* fmt, std::va_list ap) {
+Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap) {
   StringBuilderTmp<256> sb;
   sb.appendFormatVA(fmt, ap);
   return _newReg(out, ref, sb.data());
@@ -463,7 +463,7 @@ void BaseCompiler::rename(BaseReg& reg, const char* fmt, ...) {
 
   if (fmt && fmt[0] != '\0') {
     char buf[128];
-    std::va_list ap;
+    va_list ap;
 
     va_start(ap, fmt);
     std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);

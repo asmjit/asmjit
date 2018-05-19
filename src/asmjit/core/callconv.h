@@ -227,8 +227,8 @@ struct CallConv {
   ASMJIT_API Error init(uint32_t ccId) noexcept;
 
   inline void reset() noexcept {
-    std::memset(this, 0, sizeof(*this));
-    std::memset(_passedOrder, 0xFF, sizeof(_passedOrder));
+    ::memset(this, 0, sizeof(*this));
+    ::memset(_passedOrder, 0xFF, sizeof(_passedOrder));
   }
 
   // --------------------------------------------------------------------------

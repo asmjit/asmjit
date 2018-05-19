@@ -56,7 +56,7 @@ public:
   }
 
   inline void init(const CodeInfo& other) noexcept {
-    std::memcpy(this, &other, sizeof(*this));
+    ::memcpy(this, &other, sizeof(*this));
   }
 
   inline void init(uint32_t archId, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept {
@@ -126,8 +126,8 @@ public:
 
   inline CodeInfo& operator=(const CodeInfo& other) noexcept = default;
 
-  inline bool operator==(const CodeInfo& other) const noexcept { return std::memcmp(this, &other, sizeof(*this)) == 0; }
-  inline bool operator!=(const CodeInfo& other) const noexcept { return std::memcmp(this, &other, sizeof(*this)) != 0; }
+  inline bool operator==(const CodeInfo& other) const noexcept { return ::memcmp(this, &other, sizeof(*this)) == 0; }
+  inline bool operator!=(const CodeInfo& other) const noexcept { return ::memcmp(this, &other, sizeof(*this)) != 0; }
 
   // --------------------------------------------------------------------------
   // [Members]

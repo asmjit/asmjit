@@ -161,7 +161,7 @@ public:
 
   //! Align the current pointer to `alignment`.
   ASMJIT_INLINE void align(size_t alignment) noexcept {
-    _ptr = std::min(Support::alignUp(_ptr, alignment), _end);
+    _ptr = Support::min(Support::alignUp(_ptr, alignment), _end);
   }
 
   //! Ensure the remaining size is at least equal or greater than `size`.
@@ -451,12 +451,12 @@ public:
   //!
   //! NOTE: To use it, you must first `init()` it.
   inline ZoneAllocator() noexcept {
-    std::memset(this, 0, sizeof(*this));
+    ::memset(this, 0, sizeof(*this));
   }
 
   //! Create a new `ZoneAllocator` initialized to use `zone`.
   inline explicit ZoneAllocator(Zone* zone) noexcept {
-    std::memset(this, 0, sizeof(*this));
+    ::memset(this, 0, sizeof(*this));
     _zone = zone;
   }
 

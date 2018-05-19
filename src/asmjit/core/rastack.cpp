@@ -30,7 +30,7 @@ RAStackSlot* RAStackAllocator::newSlot(uint32_t baseRegId, uint32_t size, uint32
     return nullptr;
 
   slot->_baseRegId = uint8_t(baseRegId);
-  slot->_alignment = uint8_t(std::max<uint32_t>(alignment, 1));
+  slot->_alignment = uint8_t(Support::max<uint32_t>(alignment, 1));
   slot->_reserved[0] = 0;
   slot->_reserved[1] = 0;
   slot->_useCount = 0;
@@ -40,7 +40,7 @@ RAStackSlot* RAStackAllocator::newSlot(uint32_t baseRegId, uint32_t size, uint32
   slot->_weight = 0;
   slot->_offset = 0;
 
-  _alignment = std::max<uint32_t>(_alignment, alignment);
+  _alignment = Support::max<uint32_t>(_alignment, alignment);
   _slots.appendUnsafe(slot);
   return slot;
 }

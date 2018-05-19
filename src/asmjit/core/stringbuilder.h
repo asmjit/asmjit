@@ -10,6 +10,7 @@
 
 // [Dependencies]
 #include "../core/memmgr.h"
+#include "../core/support.h"
 #include "../core/zone.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -113,7 +114,7 @@ public:
 
   //! Truncate the string to `maxLen` characters.
   inline void truncate(size_t maxLen) noexcept {
-    _size = std::min<size_t>(_size, maxLen);
+    _size = Support::min<size_t>(_size, maxLen);
   }
 
   // --------------------------------------------------------------------------
@@ -121,7 +122,7 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_API Error _opString(uint32_t op, const char* str, size_t size = Globals::kNullTerminated) noexcept;
-  ASMJIT_API Error _opVFormat(uint32_t op, const char* fmt, std::va_list ap) noexcept;
+  ASMJIT_API Error _opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept;
   ASMJIT_API Error _opChar(uint32_t op, char c) noexcept;
   ASMJIT_API Error _opChars(uint32_t op, char c, size_t n) noexcept;
   ASMJIT_API Error _opNumber(uint32_t op, uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) noexcept;
@@ -139,7 +140,7 @@ public:
   //! Replace the current content by a formatted string `fmt`.
   inline Error setFormat(const char* fmt, ...) noexcept {
     Error result;
-    std::va_list ap;
+    va_list ap;
 
     va_start(ap, fmt);
     result = _opVFormat(kStringOpSet, fmt, ap);
@@ -149,7 +150,7 @@ public:
   }
 
   //! Replace the current content by a formatted string `fmt` (va_list version).
-  inline Error setFormatVA(const char* fmt, std::va_list ap) noexcept {
+  inline Error setFormatVA(const char* fmt, va_list ap) noexcept {
     return _opVFormat(kStringOpSet, fmt, ap);
   }
 
@@ -190,7 +191,7 @@ public:
   //! Append a formatted string `fmt`.
   inline Error appendFormat(const char* fmt, ...) noexcept {
     Error result;
-    std::va_list ap;
+    va_list ap;
 
     va_start(ap, fmt);
     result = _opVFormat(kStringOpAppend, fmt, ap);
@@ -200,7 +201,7 @@ public:
   }
 
   //! Append a formatted string `fmt` (va_list version).
-  inline Error appendFormatVA(const char* fmt, std::va_list ap) noexcept {
+  inline Error appendFormatVA(const char* fmt, va_list ap) noexcept {
     return _opVFormat(kStringOpAppend, fmt, ap);
   }
 

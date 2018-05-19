@@ -622,7 +622,7 @@ Error RAPass::_asWorkReg(VirtReg* vReg, RAWorkReg** out) noexcept {
   wRegsByGroup.appendUnsafe(wReg);
 
   // Only used by RA logging.
-  _maxWorkRegNameSize = std::max(_maxWorkRegNameSize, vReg->nameSize());
+  _maxWorkRegNameSize = Support::max(_maxWorkRegNameSize, vReg->nameSize());
 
   *out = wReg;
   return kErrorOk;

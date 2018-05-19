@@ -473,14 +473,14 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
 
     case Inst::kIdVmpsadbw:
     case Inst::kIdMpsadbw:
-      return LoggingInternal_formatImmBits(sb, u8, vmpsadbw, std::min<uint32_t>(vecSize / 8, 4));
+      return LoggingInternal_formatImmBits(sb, u8, vmpsadbw, Support::min<uint32_t>(vecSize / 8, 4));
 
     case Inst::kIdVpblendw:
     case Inst::kIdPblendw:
       return LoggingInternal_formatImmShuf(sb, u8, 1, 8);
 
     case Inst::kIdVpblendd:
-      return LoggingInternal_formatImmShuf(sb, u8, 1, std::min<uint32_t>(vecSize / 4, 8));
+      return LoggingInternal_formatImmShuf(sb, u8, 1, Support::min<uint32_t>(vecSize / 4, 8));
 
     case Inst::kIdVpclmulqdq:
     case Inst::kIdPclmulqdq:
@@ -498,7 +498,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
 
     case Inst::kIdVshufpd:
     case Inst::kIdShufpd:
-      return LoggingInternal_formatImmText(sb, u8, 1, 2, vshufpd, std::min<uint32_t>(vecSize / 8, 8));
+      return LoggingInternal_formatImmText(sb, u8, 1, 2, vshufpd, Support::min<uint32_t>(vecSize / 8, 8));
 
     case Inst::kIdVshufps:
     case Inst::kIdShufps:
@@ -594,7 +594,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
     case Inst::kIdVshuff64x2:
     case Inst::kIdVshufi32x4:
     case Inst::kIdVshufi64x2: {
-      uint32_t count = std::max<uint32_t>(vecSize / 16, 2u);
+      uint32_t count = Support::max<uint32_t>(vecSize / 16, 2u);
       uint32_t bits = count <= 2 ? 1u : 2u;
       return LoggingInternal_formatImmShuf(sb, u8, bits, count);
     }
@@ -741,7 +741,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
       uint32_t vecSize = 16;
       for (uint32_t j = 0; j < count; j++)
         if (operands[j].isReg())
-          vecSize = std::max<uint32_t>(vecSize, operands[j].size());
+          vecSize = Support::max<uint32_t>(vecSize, operands[j].size());
       ASMJIT_PROPAGATE(LoggingInternal_explainConst(sb, flags, instId, vecSize, op.as<Imm>()));
     }
 

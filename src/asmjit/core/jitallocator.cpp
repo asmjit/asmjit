@@ -18,10 +18,6 @@
 #include "../core/support.h"
 #include "../core/zone.h"
 
-#if defined(ASMJIT_BUILD_TEST)
-  #include <random>
-#endif
-
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
@@ -67,7 +63,7 @@ static inline size_t JitAllocator_calculateIdealBlockSize(JitAllocator::Pool* po
   uint32_t kMaxSizeShift = Support::staticCtz<JitAllocator::kMaxBlockSize>() -
                            Support::staticCtz<JitAllocator::kMinBlockSize>() ;
 
-  size_t blockSize = size_t(JitAllocator::kMinBlockSize) << std::min<uint32_t>(kMaxSizeShift, pool->_blockCount);
+  size_t blockSize = size_t(JitAllocator::kMinBlockSize) << Support::min<uint32_t>(kMaxSizeShift, pool->_blockCount);
   if (blockSize < allocationSize)
     blockSize = Support::alignUp(allocationSize, blockSize);
   return blockSize;
@@ -105,7 +101,7 @@ static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool
   if (self->hasFlag(JitAllocator::kFlagSecureMode))
     JitAllocator_fillPattern(virtMem, self->fillPattern(), blockSize);
 
-  std::memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
+  ::memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
   return new(block) Block(pool, virtMem, blockSize, bitWords, bitWords + numBitWords, areaSize);
 }
 
@@ -258,16 +254,16 @@ void* JitAllocator::alloc(size_t size) noexcept {
             holeIndex = uint32_t(it.nextAndFlip());
             if (holeIndex >= searchEnd) break;
 
-            holeEnd = it.hasNext() ? std::min(searchEnd, uint32_t(it.nextAndFlip())) : searchEnd;
+            holeEnd = it.hasNext() ? Support::min(searchEnd, uint32_t(it.nextAndFlip())) : searchEnd;
             uint32_t holeSize = holeEnd - holeIndex;
 
             if (holeSize >= areaSize && bestArea >= holeSize) {
-              largestArea = std::max(largestArea, bestArea);
+              largestArea = Support::max(largestArea, bestArea);
               bestArea = holeSize;
               areaIndex = holeIndex;
             }
             else {
-              largestArea = std::max(largestArea, holeSize);
+              largestArea = Support::max(largestArea, holeSize);
             }
           } while (it.hasNext());
           searchEnd = holeEnd;
@@ -348,8 +344,8 @@ Error JitAllocator::release(void* p) noexcept {
   uint32_t areaSize = areaLast - areaIndex + 1;
 
   // Update the search region and statistics.
-  block->_searchStart = std::min(block->_searchStart, areaIndex);
-  block->_searchEnd = std::max(block->_searchEnd, areaLast + 1);
+  block->_searchStart = Support::min(block->_searchStart, areaIndex);
+  block->_searchEnd = Support::max(block->_searchEnd, areaLast + 1);
   block->addFlags(Block::kFlagDirty);
   block->decreaseUsedArea(areaSize);
 
@@ -400,8 +396,8 @@ Error JitAllocator::shrink(void* p, size_t newSize) noexcept {
     return kErrorOk;
 
   // Update the search region and statistics.
-  block->_searchStart = std::min(block->_searchStart, areaIndex + areaNewSize);
-  block->_searchEnd = std::max(block->_searchEnd, areaIndex + areaOldSize);
+  block->_searchStart = Support::min(block->_searchStart, areaIndex + areaNewSize);
+  block->_searchEnd = Support::max(block->_searchEnd, areaIndex + areaOldSize);
   block->addFlags(Block::kFlagDirty);
   block->decreaseUsedArea(areaDiff);
 
@@ -425,6 +421,56 @@ Error JitAllocator::shrink(void* p, size_t newSize) noexcept {
 // ============================================================================
 
 #if defined(ASMJIT_BUILD_TEST)
+// A pseudo random number generator based on a paper by Sebastiano Vigna:
+//   http://vigna.di.unimi.it/ftp/papers/xorshiftplus.pdf
+class Random {
+public:
+  // The constants used are the constants suggested as `23/18/5`.
+  enum Steps : uint32_t {
+    kStep1_SHL = 23,
+    kStep2_SHR = 18,
+    kStep3_SHR = 5
+  };
+
+  inline explicit Random(uint64_t seed = 0) noexcept { reset(seed); }
+  inline Random(const Random& other) noexcept = default;
+
+  inline void reset(uint64_t seed = 0) noexcept {
+    // The number is arbitrary, it means nothing.
+    constexpr uint64_t kZeroSeed = 0x1F0A2BE71D163FA0u;
+
+    // Generate the state data by using splitmix64.
+    for (uint32_t i = 0; i < 2; i++) {
+      seed += 0x9E3779B97F4A7C15u;
+      uint64_t x = seed;
+      x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9u;
+      x = (x ^ (x >> 27)) * 0x94D049BB133111EBu;
+      x = (x ^ (x >> 31));
+      _state[i] = x != 0 ? x : kZeroSeed;
+    }
+  }
+
+  inline uint32_t nextUInt32() noexcept {
+    return uint32_t(nextUInt64() >> 32);
+  }
+
+  inline uint64_t nextUInt64() noexcept {
+    uint64_t x = _state[0];
+    uint64_t y = _state[1];
+
+    x ^= x << kStep1_SHL;
+    y ^= y >> kStep3_SHR;
+    x ^= x >> kStep2_SHR;
+    x ^= y;
+
+    _state[0] = y;
+    _state[1] = x;
+    return x + y;
+  }
+
+  uint64_t _state[2];
+};
+
 // Helper class to verify that JitAllocator doesn't return addresses that overlap.
 class JitAllocatorWrapper {
 public:
@@ -510,9 +556,9 @@ public:
   JitAllocator _allocator;
 };
 
-static void JitAllocatorTest_shuffle(void** ptrArray, size_t count, std::mt19937& prng) noexcept {
+static void JitAllocatorTest_shuffle(void** ptrArray, size_t count, Random& prng) noexcept {
   for (size_t i = 0; i < count; ++i)
-    std::swap(ptrArray[i], ptrArray[size_t(prng() % count)]);
+    std::swap(ptrArray[i], ptrArray[size_t(prng.nextUInt32() % count)]);
 }
 
 static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {
@@ -525,7 +571,7 @@ static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {
 
 UNIT(asmjit_core_jit_allocator) {
   JitAllocatorWrapper wrapper;
-  std::mt19937 prng(100);
+  Random prng(100);
 
   size_t i;
   size_t kCount = 200000;
@@ -538,7 +584,7 @@ UNIT(asmjit_core_jit_allocator) {
 
   INFO("Allocating virtual memory...");
   for (i = 0; i < kCount; i++)
-    ptrArray[i] = wrapper.alloc((prng() % 1000) + 8);
+    ptrArray[i] = wrapper.alloc((prng.nextUInt32() % 1000) + 8);
   JitAllocatorTest_usage(wrapper._allocator);
 
   INFO("Releasing virtual memory...");
@@ -548,7 +594,7 @@ UNIT(asmjit_core_jit_allocator) {
 
   INFO("Allocating virtual memory...", kCount);
   for (i = 0; i < kCount; i++)
-    ptrArray[i] = wrapper.alloc((prng() % 1000) + 8);
+    ptrArray[i] = wrapper.alloc((prng.nextUInt32() % 1000) + 8);
   JitAllocatorTest_usage(wrapper._allocator);
 
   INFO("Shuffling...");
@@ -561,7 +607,7 @@ UNIT(asmjit_core_jit_allocator) {
 
   INFO("Allocating 50% blocks again...");
   for (i = 0; i < kCount / 2; i++)
-    ptrArray[i] = wrapper.alloc((prng() % 1000) + 8);
+    ptrArray[i] = wrapper.alloc((prng.nextUInt32() % 1000) + 8);
   JitAllocatorTest_usage(wrapper._allocator);
 
   INFO("Releasing virtual memory...");

@@ -760,7 +760,7 @@ public:
 
     if (size <= kInlineBufferSize) {
       if (data)
-        std::memcpy(_buf, data, size);
+        ::memcpy(_buf, data, size);
     }
     else {
       _externalPtr = static_cast<uint8_t*>(data);

@@ -381,6 +381,26 @@ template<typename T>
 static inline uint32_t popcnt(T x) noexcept { return _popcntImpl(asUInt(x)); }
 
 // ============================================================================
+// [asmjit::Support - Min/Max]
+// ============================================================================
+
+// NOTE: These are constexpr `min()` and `max()` implementations that are not
+// exactly the same as `std::min()` and `std::max()`. The return value is not
+// a reference to `a` or `b` but it's a new value instead.
+
+template<typename T>
+constexpr T min(const T& a, const T& b) noexcept { return b < a ? b : a; }
+
+template<typename T, typename... ArgsT>
+constexpr T min(const T& a, const T& b, ArgsT&&... args) noexcept { return min(min(a, b), std::forward<ArgsT>(args)...); }
+
+template<typename T>
+constexpr T max(const T& a, const T& b) noexcept { return a < b ? b : a; }
+
+template<typename T, typename... ArgsT>
+constexpr T max(const T& a, const T& b, ArgsT&&... args) noexcept { return max(max(a, b), std::forward<ArgsT>(args)...); }
+
+// ============================================================================
 // [asmjit::Support - SignExtend]
 // ============================================================================
 
@@ -555,7 +575,7 @@ constexpr uint32_t byteswap32(uint32_t x) noexcept {
 //! Pack four 8-bit integer into a 32-bit integer as it is an array of `{b0,b1,b2,b3}`.
 constexpr uint32_t bytepack32_4x8(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
   return ASMJIT_ARCH_LE ? (a | (b << 8) | (c << 16) | (d << 24))
-                        : (d | (c << 8) | (b << 16) | (a << 24)) ;
+                        : (d | (c << 8) | (b << 16) | (a << 24));
 }
 
 template<typename T>
@@ -842,8 +862,8 @@ struct Or     { template<typename T> static inline T op(T x, T y) noexcept { ret
 struct Xor    { template<typename T> static inline T op(T x, T y) noexcept { return  x ^  y; } };
 struct Add    { template<typename T> static inline T op(T x, T y) noexcept { return  x +  y; } };
 struct Sub    { template<typename T> static inline T op(T x, T y) noexcept { return  x -  y; } };
-struct Min    { template<typename T> static inline T op(T x, T y) noexcept { return std::min<T>(x, y); } };
-struct Max    { template<typename T> static inline T op(T x, T y) noexcept { return std::max<T>(x, y); } };
+struct Min    { template<typename T> static inline T op(T x, T y) noexcept { return min<T>(x, y); } };
+struct Max    { template<typename T> static inline T op(T x, T y) noexcept { return max<T>(x, y); } };
 
 // ============================================================================
 // [asmjit::Support - BitWordIterator]
@@ -899,7 +919,7 @@ namespace Internal {
 
     // The first BitWord requires special handling to preserve bits outside the fill region.
     const T kFillMask = allOnes<T>();
-    size_t firstNBits = std::min<size_t>(kTSizeInBits - bitIndex, count);
+    size_t firstNBits = min<size_t>(kTSizeInBits - bitIndex, count);
 
     buf[0] = OperatorT::op(buf[0], (kFillMask >> (kTSizeInBits - firstNBits)) << bitIndex);
     buf++;

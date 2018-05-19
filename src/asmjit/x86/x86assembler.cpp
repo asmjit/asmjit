@@ -893,7 +893,7 @@ CaseX86M_GPB_MulDiv:
             opcode.addWBySize(size);
           }
 
-          immSize = FastUInt8(std::min<uint32_t>(size, 4));
+          immSize = FastUInt8(Support::min<uint32_t>(size, 4));
           if (Support::isI8(immValue) && !(options & Inst::kOptionLongForm))
             immSize = 1;
         }
@@ -902,7 +902,7 @@ CaseX86M_GPB_MulDiv:
         if (rbReg == 0 && (size == 1 || immSize != 1) && !(options & Inst::kOptionLongForm)) {
           opcode &= Opcode::kPP_66 | Opcode::kW;
           opcode |= ((opReg << 3) | (0x04 + (size != 1)));
-          immSize = FastUInt8(std::min<uint32_t>(size, 4));
+          immSize = FastUInt8(Support::min<uint32_t>(size, 4));
           goto EmitX86Op;
         }
 
@@ -917,7 +917,7 @@ CaseX86M_GPB_MulDiv:
           goto AmbiguousOperandSize;
 
         immValue = o1.as<Imm>().i64();
-        immSize = FastUInt8(std::min<uint32_t>(memSize, 4));
+        immSize = FastUInt8(Support::min<uint32_t>(memSize, 4));
 
         // Sign extend so isI8 returns the right result.
         if (memSize == 4)
@@ -1553,7 +1553,7 @@ CaseX86M_GPB_MulDiv:
         rmRel = &o0;
 
         immValue = o1.as<Imm>().i64();
-        immSize = FastUInt8(std::min<uint32_t>(memSize, 4));
+        immSize = FastUInt8(Support::min<uint32_t>(memSize, 4));
         goto EmitX86M;
       }
       break;
@@ -1917,7 +1917,7 @@ CaseX86PushPop_Gp:
         }
         else {
           immValue = o1.as<Imm>().i64();
-          immSize = FastUInt8(std::min<uint32_t>(o0.size(), 4));
+          immSize = FastUInt8(Support::min<uint32_t>(o0.size(), 4));
         }
 
         // Short form - AL, AX, EAX, RAX.
@@ -1938,7 +1938,7 @@ CaseX86PushPop_Gp:
         rmRel = &o0;
 
         immValue = o1.as<Imm>().i64();
-        immSize = FastUInt8(std::min<uint32_t>(o0.size(), 4));
+        immSize = FastUInt8(Support::min<uint32_t>(o0.size(), 4));
         goto EmitX86M;
       }
       break;
@@ -2688,7 +2688,7 @@ CaseExtRm:
 
     case InstDB::kEncodingVexMr_VM:
       if (isign3 == ENC_OPS2(Mem, Reg)) {
-        opcode |= std::max(x86OpcodeLByVMem(o0), x86OpcodeLBySize(o1.size()));
+        opcode |= Support::max(x86OpcodeLByVMem(o0), x86OpcodeLBySize(o1.size()));
 
         opReg = o1.id();
         rmRel = &o0;
@@ -2749,7 +2749,7 @@ CaseVexRm:
 
     case InstDB::kEncodingVexRm_VM:
       if (isign3 == ENC_OPS2(Reg, Mem)) {
-        opcode |= std::max(x86OpcodeLByVMem(o1), x86OpcodeLBySize(o0.size()));
+        opcode |= Support::max(x86OpcodeLByVMem(o1), x86OpcodeLBySize(o0.size()));
         opReg = o0.id();
         rmRel = &o1;
         goto EmitVexEvexM;
@@ -2902,7 +2902,7 @@ CaseVexRvm_R:
     case InstDB::kEncodingVexRmvRm_VM:
       if (isign3 == ENC_OPS2(Reg, Mem)) {
         opcode  = InstDB::altOpcodeFromId(instId);
-        opcode |= std::max(x86OpcodeLByVMem(o1), x86OpcodeLBySize(o0.size()));
+        opcode |= Support::max(x86OpcodeLByVMem(o1), x86OpcodeLBySize(o0.size()));
 
         opReg = o0.id();
         rmRel = &o1;
@@ -2913,7 +2913,7 @@ CaseVexRvm_R:
 
     case InstDB::kEncodingVexRmv_VM:
       if (isign3 == ENC_OPS3(Reg, Mem, Reg)) {
-        opcode |= std::max(x86OpcodeLByVMem(o1), x86OpcodeLBySize(o0.size() | o2.size()));
+        opcode |= Support::max(x86OpcodeLByVMem(o1), x86OpcodeLBySize(o0.size() | o2.size()));
 
         opReg = x86PackRegAndVvvvv(o0.id(), o2.id());
         rmRel = &o1;
@@ -4396,7 +4396,7 @@ Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
           };
 
           do {
-            uint32_t n = std::min<uint32_t>(i, kMaxNopSize);
+            uint32_t n = Support::min<uint32_t>(i, kMaxNopSize);
             const uint8_t* src = nopData[n - 1];
 
             i -= n;

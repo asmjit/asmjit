@@ -115,7 +115,7 @@ public:
 //! a custom stream.
 //!
 //! There are two `Logger` implementations offered by AsmJit:
-//!   - `FileLogger` - allows to log into `std::FILE*`.
+//!   - `FileLogger` - allows to log into `FILE*`.
 //!   - `StringLogger` - logs into a `StringBuilder`.
 class ASMJIT_VIRTAPI Logger {
 public:
@@ -145,7 +145,7 @@ public:
   //! Format the message by using `std::snprintf()` and then send to `log()`.
   ASMJIT_API Error logf(const char* fmt, ...) noexcept;
   //! Format the message by using `std::vsnprintf()` and then send to `log()`.
-  ASMJIT_API Error logv(const char* fmt, std::va_list ap) noexcept;
+  ASMJIT_API Error logv(const char* fmt, va_list ap) noexcept;
   //! Log binary data.
   ASMJIT_API Error logBinary(const void* data, size_t size) noexcept;
 
@@ -178,7 +178,7 @@ public:
 // [asmjit::FileLogger]
 // ============================================================================
 
-//! Logger that can log to a `std::FILE*`.
+//! Logger that can log to a `FILE*`.
 class ASMJIT_VIRTAPI FileLogger : public Logger {
 public:
   ASMJIT_NONCOPYABLE(FileLogger)
@@ -187,8 +187,8 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new `FileLogger` that logs to `std::FILE*`.
-  ASMJIT_API FileLogger(std::FILE* file = nullptr) noexcept;
+  //! Create a new `FileLogger` that logs to `FILE*`.
+  ASMJIT_API FileLogger(FILE* file = nullptr) noexcept;
   //! Destroy the `FileLogger`.
   ASMJIT_API virtual ~FileLogger() noexcept;
 
@@ -197,7 +197,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Get the logging output stream or null if the logger has no output stream.
-  inline std::FILE* file() const noexcept { return _file; }
+  inline FILE* file() const noexcept { return _file; }
 
   //! Set the logging output stream to `stream` or null.
   //!
@@ -206,7 +206,7 @@ public:
   //! be called regardless of the output file. This means that if you really
   //! want to disable logging at emitter level you must not attach a logger
   //! to it.
-  inline void setFile(std::FILE* file) noexcept { _file = file; }
+  inline void setFile(FILE* file) noexcept { _file = file; }
 
   // --------------------------------------------------------------------------
   // [Logging]
@@ -218,7 +218,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  std::FILE* _file;
+  FILE* _file;
 };
 
 // ============================================================================

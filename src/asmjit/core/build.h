@@ -534,15 +534,13 @@
 // ============================================================================
 
 // We really want std-types as globals.
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <algorithm>
-#include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <cstdlib>
 #include <limits>
 #include <new>
 #include <type_traits>

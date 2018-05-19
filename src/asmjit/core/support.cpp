@@ -453,7 +453,7 @@ static void testSorting() noexcept {
     int arr1[kArraySize] = { 0, 1, -1, 19, 22, 14, -4, 9, 12, 13, -2 };
     int arr2[kArraySize];
 
-    std::memcpy(arr2, arr1, kArraySize * sizeof(int));
+    ::memcpy(arr2, arr1, kArraySize * sizeof(int));
 
     Support::iSort(arr1, kArraySize);
     Support::qSort(arr2, kArraySize);
@@ -490,7 +490,7 @@ static void testSorting() noexcept {
     float arr1[kArraySize] = { 1.0f, 0.0f, 3.0f, -1.0f, std::numeric_limits<float>::quiet_NaN() };
     float arr2[kArraySize] = { };
 
-    std::memcpy(arr2, arr1, kArraySize * sizeof(float));
+    ::memcpy(arr2, arr1, kArraySize * sizeof(float));
 
     // We don't test as it's undefined where the NaN would be.
     Support::iSort(arr1, kArraySize);

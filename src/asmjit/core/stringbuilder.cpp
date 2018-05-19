@@ -61,7 +61,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
 
     size_t afterPlusOne = _size + size + 1;
     if (afterPlusOne > _capacity) {
-      size_t newCapacity = std::max<size_t>(_capacity + 1, kMinAllocSize);
+      size_t newCapacity = Support::max<size_t>(_capacity + 1, kMinAllocSize);
 
       if (newCapacity < afterPlusOne && newCapacity < Globals::kAllocThreshold)
         newCapacity = Support::alignUpPowerOf2(newCapacity);
@@ -76,7 +76,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
       if (!newData) return nullptr;
 
       char* oldData = _data;
-      std::memcpy(newData, oldData, _size);
+      ::memcpy(newData, oldData, _size);
 
       _data = newData;
       _capacity = newCapacity - 1;
@@ -107,7 +107,7 @@ ASMJIT_FAVOR_SIZE Error StringBuilder::reserve(size_t to) noexcept {
   if (!newData)
     return DebugUtils::errored(kErrorNoHeapMemory);
 
-  std::memcpy(newData, _data, _size + 1);
+  ::memcpy(newData, _data, _size + 1);
 
   char* oldData = _data;
   _data = newData;
@@ -124,7 +124,7 @@ ASMJIT_FAVOR_SIZE Error StringBuilder::reserve(size_t to) noexcept {
 
 Error StringBuilder::_opString(uint32_t op, const char* str, size_t size) noexcept {
   if (size == Globals::kNullTerminated)
-    size = str ? std::strlen(str) : size_t(0);
+    size = str ? ::strlen(str) : size_t(0);
 
   if (!size)
     return kErrorOk;
@@ -132,7 +132,7 @@ Error StringBuilder::_opString(uint32_t op, const char* str, size_t size) noexce
   char* p = prepare(op, size);
   if (!p) return DebugUtils::errored(kErrorNoHeapMemory);
 
-  std::memcpy(p, str, size);
+  ::memcpy(p, str, size);
   return kErrorOk;
 }
 
@@ -151,7 +151,7 @@ Error StringBuilder::_opChars(uint32_t op, char c, size_t n) noexcept {
   char* p = prepare(op, n);
   if (!p) return DebugUtils::errored(kErrorNoHeapMemory);
 
-  std::memset(p, c, n);
+  ::memset(p, c, n);
   return kErrorOk;
 }
 
@@ -242,13 +242,13 @@ Error StringBuilder::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t wi
   if (!data)
     return DebugUtils::errored(kErrorNoHeapMemory);
 
-  std::memcpy(data, p, prefixSize);
+  ::memcpy(data, p, prefixSize);
   data += prefixSize;
 
-  std::memset(data, '0', width);
+  ::memset(data, '0', width);
   data += width;
 
-  std::memcpy(data, p + prefixSize, numberSize);
+  ::memcpy(data, p + prefixSize, numberSize);
   return kErrorOk;
 }
 
@@ -296,7 +296,7 @@ Error StringBuilder::_opHex(uint32_t op, const void* data, size_t size, char sep
   return kErrorOk;
 }
 
-Error StringBuilder::_opVFormat(uint32_t op, const char* fmt, std::va_list ap) noexcept {
+Error StringBuilder::_opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept {
   size_t startAt = (op == kStringOpSet) ? size_t(0) : _size;
   size_t remainingCapacity = _capacity - startAt;
 
@@ -351,7 +351,7 @@ bool StringBuilder::eq(const char* data, size_t size) const noexcept {
   else {
     if (aSize != bSize)
       return false;
-    return std::memcmp(aData, bData, aSize) == 0;
+    return ::memcmp(aData, bData, aSize) == 0;
   }
 }
 

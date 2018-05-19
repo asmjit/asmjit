@@ -38,7 +38,7 @@ Error BaseAssembler::setOffset(size_t offset) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  size_t size = std::max<size_t>(_section->buffer().size(), this->offset());
+  size_t size = Support::max<size_t>(_section->buffer().size(), this->offset());
   if (ASMJIT_UNLIKELY(offset > size))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 

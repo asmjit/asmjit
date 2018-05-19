@@ -1056,7 +1056,7 @@ Error X86RAPass::onEmitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId
   RAWorkReg* waReg = workRegById(aWorkId);
   RAWorkReg* wbReg = workRegById(bWorkId);
 
-  bool is64Bit = std::max(waReg->typeId(), wbReg->typeId()) >= Type::kIdI64;
+  bool is64Bit = Support::max(waReg->typeId(), wbReg->typeId()) >= Type::kIdI64;
   uint32_t sign = is64Bit ? uint32_t(RegTraits<Reg::kTypeGpq>::kSignature)
                           : uint32_t(RegTraits<Reg::kTypeGpd>::kSignature);
 

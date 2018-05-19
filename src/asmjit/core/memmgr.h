@@ -35,9 +35,9 @@ static inline void release(void* p) noexcept { ASMJIT_CUSTOM_FREE(p); }
       !defined(ASMJIT_CUSTOM_REALLOC) && \
       !defined(ASMJIT_CUSTOM_FREE)
 
-static inline void* alloc(size_t size) noexcept { return std::malloc(size); }
-static inline void* realloc(void* p, size_t size) noexcept { return std::realloc(p, size); }
-static inline void release(void* p) noexcept { std::free(p); }
+static inline void* alloc(size_t size) noexcept { return ::malloc(size); }
+static inline void* realloc(void* p, size_t size) noexcept { return ::realloc(p, size); }
+static inline void release(void* p) noexcept { ::free(p); }
 
 #else
 #error "[asmjit] You must provide either none or all of ASMJIT_CUSTOM_[ALLOC|REALLOC|FREE]"

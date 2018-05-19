@@ -88,7 +88,7 @@ JitUtils::MemInfo JitUtils::memInfo() noexcept {
 
   uint32_t pageSize = uint32_t(::getpagesize());
   memInfo.pageSize = pageSize;
-  memInfo.pageGranularity = std::max<uint32_t>(pageSize, 65536);
+  memInfo.pageGranularity = Support::max<uint32_t>(pageSize, 65536);
 
   return memInfo;
 }

@@ -29,10 +29,10 @@ struct ZoneStringBase {
 
   Error setData(Zone* zone, uint32_t maxEmbeddedSize, const char* str, size_t size) noexcept {
     if (size == Globals::kNullTerminated)
-      size = std::strlen(str);
+      size = ::strlen(str);
 
     if (size <= maxEmbeddedSize) {
-      std::memcpy(_embedded, str, size);
+      ::memcpy(_embedded, str, size);
       _embedded[size] = '\0';
     }
     else {

@@ -71,7 +71,7 @@ Error ZoneVectorBase::_reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint3
 
   void* oldData = _data;
   if (_size)
-    std::memcpy(newData, oldData, size_t(_size) * sizeOfT);
+    ::memcpy(newData, oldData, size_t(_size) * sizeOfT);
 
   if (oldData)
     allocator->release(oldData, size_t(oldCapacity) * sizeOfT);
@@ -92,7 +92,7 @@ Error ZoneVectorBase::_resize(ZoneAllocator* allocator, uint32_t sizeOfT, uint32
   }
 
   if (size < n)
-    std::memset(static_cast<uint8_t*>(_data) + size_t(size) * sizeOfT, 0, size_t(n - size) * sizeOfT);
+    ::memset(static_cast<uint8_t*>(_data) + size_t(size) * sizeOfT, 0, size_t(n - size) * sizeOfT);
 
   _size = n;
   return kErrorOk;

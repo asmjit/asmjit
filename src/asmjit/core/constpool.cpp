@@ -175,7 +175,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
   if (!node) return DebugUtils::errored(kErrorNoHeapMemory);
 
   _tree[treeIndex].insert(node);
-  _alignment = std::max<size_t>(_alignment, size);
+  _alignment = Support::max<size_t>(_alignment, size);
 
   dstOffset = offset;
 
@@ -214,7 +214,7 @@ struct ConstPoolFill {
 
   inline void operator()(const ConstPool::Node* node) noexcept {
     if (!node->_shared)
-      std::memcpy(_dst + node->_offset, node->data(), _dataSize);
+      ::memcpy(_dst + node->_offset, node->data(), _dataSize);
   }
 
   uint8_t* _dst;
@@ -223,7 +223,7 @@ struct ConstPoolFill {
 
 void ConstPool::fill(void* dst) const noexcept {
   // Clears possible gaps, asmjit should never emit garbage to the output.
-  std::memset(dst, 0, _size);
+  ::memset(dst, 0, _size);
 
   ConstPoolFill filler(static_cast<uint8_t*>(dst), 1);
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {

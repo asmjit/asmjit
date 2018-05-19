@@ -324,7 +324,7 @@ public:
   inline uint32_t hashCode() const noexcept { return _hashCode; }
 
   inline bool matches(const LabelEntry* entry) const noexcept {
-    return entry->nameSize() == _keySize && std::memcmp(entry->name(), _key, _keySize) == 0;
+    return entry->nameSize() == _keySize && ::memcmp(entry->name(), _key, _keySize) == 0;
   }
 
   const char* _key;
@@ -518,7 +518,7 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
 
   // We will copy the exact size of the generated code. Extra code for trampolines
   // is generated on-the-fly by the relocator (this code doesn't exist at the moment).
-  std::memcpy(dst, section->_buffer._data, minCodeSize);
+  ::memcpy(dst, section->_buffer._data, minCodeSize);
 
   // Trampoline offset from the beginning of dst/baseAddress.
   size_t trampOffset = minCodeSize;

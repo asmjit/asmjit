@@ -53,7 +53,7 @@ public:
 
 #ifndef ASMJIT_DISABLE_LOGGING
 # define ASMJIT_NEW_REG(OUT, PARAM, NAME_FMT)                 \
-    std::va_list ap;                                          \
+    va_list ap;                                          \
     va_start(ap, NAME_FMT);                                   \
     _newReg(OUT, PARAM, NAME_FMT, ap);                        \
     va_end(ap)

@@ -76,7 +76,7 @@ struct FuncSignature {
     _args = args;
   }
 
-  inline void reset() noexcept { std::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -327,7 +327,7 @@ public:
 
   //! Initialize this `FuncDetail` to the given signature.
   ASMJIT_API Error init(const FuncSignature& sign);
-  inline void reset() noexcept { std::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
 
   // --------------------------------------------------------------------------
   // [Accessors - Calling Convention]
@@ -498,7 +498,7 @@ public:
   ASMJIT_API Error finalize() noexcept;
 
   inline void reset() noexcept {
-    std::memset(this, 0, sizeof(FuncFrame));
+    ::memset(this, 0, sizeof(FuncFrame));
     _spRegId = BaseReg::kIdBad;
     _saRegId = BaseReg::kIdBad;
     _daOffset = kTagInvalidOffset;
@@ -595,7 +595,7 @@ public:
   //! NOTE: This also updates the final stack alignment.
   inline void setCallStackAlignment(uint32_t alignment) noexcept {
     _callStackAlignment = uint8_t(alignment);
-    _finalStackAlignment = std::max(_naturalStackAlignment, std::max(_callStackAlignment, _localStackAlignment));
+    _finalStackAlignment = Support::max(_naturalStackAlignment, _callStackAlignment, _localStackAlignment);
   }
 
   //! Set local stack alignment.
@@ -603,23 +603,23 @@ public:
   //! NOTE: This also updates the final stack alignment.
   inline void setLocalStackAlignment(uint32_t value) noexcept {
     _localStackAlignment = uint8_t(value);
-    _finalStackAlignment = std::max(_naturalStackAlignment, std::max(_callStackAlignment, _localStackAlignment));
+    _finalStackAlignment = Support::max(_naturalStackAlignment, _callStackAlignment, _localStackAlignment);
   }
 
   //! Combine call stack alignment with `alignment`, updating it to the greater value.
   //!
   //! NOTE: This also updates the final stack alignment.
   inline void updateCallStackAlignment(uint32_t alignment) noexcept {
-    _callStackAlignment = uint8_t(std::max<uint32_t>(_callStackAlignment, alignment));
-    _finalStackAlignment = std::max(_finalStackAlignment, _callStackAlignment);
+    _callStackAlignment = uint8_t(Support::max<uint32_t>(_callStackAlignment, alignment));
+    _finalStackAlignment = Support::max(_finalStackAlignment, _callStackAlignment);
   }
 
   //! Combine local stack alignment with `alignment`, updating it to the greater value.
   //!
   //! NOTE: This also updates the final stack alignment.
   inline void updateLocalStackAlignment(uint32_t alignment) noexcept {
-    _localStackAlignment = uint8_t(std::max<uint32_t>(_localStackAlignment, alignment));
-    _finalStackAlignment = std::max(_finalStackAlignment, _localStackAlignment);
+    _localStackAlignment = uint8_t(Support::max<uint32_t>(_localStackAlignment, alignment));
+    _finalStackAlignment = Support::max(_finalStackAlignment, _localStackAlignment);
   }
 
   //! Get call stack size.
@@ -633,9 +633,9 @@ public:
   inline void setLocalStackSize(uint32_t size) noexcept { _localStackSize = size; }
 
   //! Combine call stack size with `size`, updating it to the greater value.
-  inline void updateCallStackSize(uint32_t size) noexcept { _callStackSize = std::max(_callStackSize, size); }
+  inline void updateCallStackSize(uint32_t size) noexcept { _callStackSize = Support::max(_callStackSize, size); }
   //! Combine local stack size with `size`, updating it to the greater value.
-  inline void updateLocalStackSize(uint32_t size) noexcept { _localStackSize = std::max(_localStackSize, size); }
+  inline void updateLocalStackSize(uint32_t size) noexcept { _localStackSize = Support::max(_localStackSize, size); }
 
   //! Get final stack size (only valid after the FuncFrame is finalized).
   inline uint32_t finalStackSize() const noexcept { return _finalStackSize; }
@@ -768,7 +768,7 @@ public:
   inline explicit FuncArgsAssignment(const FuncDetail* fd = nullptr) noexcept { reset(fd); }
 
   inline FuncArgsAssignment(const FuncArgsAssignment& other) noexcept {
-    std::memcpy(this, &other, sizeof(*this));
+    ::memcpy(this, &other, sizeof(*this));
   }
 
   // --------------------------------------------------------------------------
@@ -778,8 +778,8 @@ public:
   inline void reset(const FuncDetail* fd = nullptr) noexcept {
     _funcDetail = fd;
     _saRegId = uint8_t(BaseReg::kIdBad);
-    std::memset(_reserved, 0, sizeof(_reserved));
-    std::memset(_args, 0, sizeof(_args));
+    ::memset(_reserved, 0, sizeof(_reserved));
+    ::memset(_args, 0, sizeof(_args));
   }
 
   // --------------------------------------------------------------------------

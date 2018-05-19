@@ -90,7 +90,7 @@ static inline void simplifyCpuVendor(CpuInfo& cpu, uint32_t d0, uint32_t d1, uin
   for (i = 0; i < ASMJIT_ARRAY_SIZE(table) - 1; i++)
     if (table[i].d[0] == d0 && table[i].d[1] == d1 && table[i].d[2] == d2)
       break;
-  std::memcpy(cpu._vendor.str, table[i].normalized, 8);
+  ::memcpy(cpu._vendor.str, table[i].normalized, 8);
 }
 
 static inline void simplifyCpuBrand(char* s) noexcept {
@@ -315,7 +315,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     cpuid_query(&regs, i);
     switch (i) {
       case 0x80000000u:
-        maxId = std::min<uint32_t>(regs.eax, kHighestProcessedEAX);
+        maxId = Support::min<uint32_t>(regs.eax, kHighestProcessedEAX);
         break;
 
       case 0x80000001u:

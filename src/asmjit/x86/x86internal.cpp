@@ -134,7 +134,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
           gpzPos++;
         }
         else {
-          uint32_t size = std::max<uint32_t>(Type::sizeOf(typeId), gpSize);
+          uint32_t size = Support::max<uint32_t>(Type::sizeOf(typeId), gpSize);
           arg.assignStackOffset(int32_t(stackOffset));
           stackOffset += size;
         }
@@ -215,7 +215,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
 static RegInfo x86GetRegForMemToMemMove(uint32_t archId, uint32_t dstTypeId, uint32_t srcTypeId) noexcept {
   uint32_t dstSize = Type::sizeOf(dstTypeId);
   uint32_t srcSize = Type::sizeOf(srcTypeId);
-  uint32_t maxSize = std::max<uint32_t>(dstSize, srcSize);
+  uint32_t maxSize = Support::max<uint32_t>(dstSize, srcSize);
   uint32_t gpSize = archId == ArchInfo::kIdX86 ? 4 : 8;
 
   uint32_t signature = 0;
@@ -268,8 +268,8 @@ public:
       _dstShuf = 0;
       _numSwaps = 0;
       _numStackArgs = 0;
-      std::memset(_reserved, 0, sizeof(_reserved));
-      std::memset(_physToVarId, kVarIdNone, 32);
+      ::memset(_reserved, 0, sizeof(_reserved));
+      ::memset(_physToVarId, kVarIdNone, 32);
     }
 
     inline bool isAssigned(uint32_t regId) const noexcept {
@@ -660,7 +660,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncFrame(FuncFrame& frame, const FuncD
   frame._saRegId = Gp::kIdBad;
 
   uint32_t naturalStackAlignment = func.callConv().naturalStackAlignment();
-  uint32_t minDynamicAlignment = std::max<uint32_t>(naturalStackAlignment, 16);
+  uint32_t minDynamicAlignment = Support::max<uint32_t>(naturalStackAlignment, 16);
 
   if (minDynamicAlignment == naturalStackAlignment)
     minDynamicAlignment <<= 1;
@@ -692,9 +692,9 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
 
   // The final stack alignment must be updated accordingly to call and local stack alignments.
   uint32_t stackAlignment = frame._finalStackAlignment;
-  ASMJIT_ASSERT(stackAlignment == std::max(frame._naturalStackAlignment,
-                                  std::max(frame._callStackAlignment,
-                                           frame._localStackAlignment)));
+  ASMJIT_ASSERT(stackAlignment == Support::max(frame._naturalStackAlignment,
+                                               frame._callStackAlignment,
+                                               frame._localStackAlignment));
 
   // TODO: Must be configurable.
   uint32_t vecSize = 16;
@@ -957,7 +957,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
           // than 4, so we don't have to worry about 'movzx' anymore. Minimum
           // size is enough to determine if we want 32-bit or 64-bit move.
           instId = Inst::kIdMov;
-          srcSize = std::min(srcSize, dstSize);
+          srcSize = Support::min(srcSize, dstSize);
 
           dst.setSignature(srcSize == 4 ? Reg::signatureOfT<Reg::kTypeGpd>()
                                         : Reg::signatureOfT<Reg::kTypeGpq>());
@@ -968,7 +968,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
 
       // NOTE: The previous branch caught all memory sources, from here it's
       // always register to register conversion, so catch the remaining cases.
-      srcSize = std::min(srcSize, dstSize);
+      srcSize = Support::min(srcSize, dstSize);
 
       if (Type::isMmx(srcTypeId)) {
         // 64-bit move.
@@ -1002,7 +1002,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
 
     if (Type::isMmx(dstTypeId)) {
       instId = Inst::kIdMovq;
-      srcSize = std::min(srcSize, dstSize);
+      srcSize = Support::min(srcSize, dstSize);
 
       if (Type::isInt(srcTypeId) || src.isMem()) {
         // 64-bit move.
@@ -1022,7 +1022,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
     }
 
     if (Type::isMask(dstTypeId)) {
-      srcSize = std::min(srcSize, dstSize);
+      srcSize = Support::min(srcSize, dstSize);
 
       if (Type::isInt(srcTypeId) || Type::isMask(srcTypeId) || src.isMem()) {
         instId = Inst::kmovFromSize(srcSize);
@@ -1047,7 +1047,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
       uint32_t srcElement = Type::baseOf(srcTypeId);
 
       if (dstElement == Type::kIdF32 && srcElement == Type::kIdF64) {
-        srcSize = std::min(dstSize * 2, srcSize);
+        srcSize = Support::min(dstSize * 2, srcSize);
         dstSize = srcSize / 2;
 
         if (srcSize <= 8)
@@ -1063,7 +1063,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
       }
 
       if (dstElement == Type::kIdF64 && srcElement == Type::kIdF32) {
-        srcSize = std::min(dstSize, srcSize * 2) / 2;
+        srcSize = Support::min(dstSize, srcSize * 2) / 2;
         dstSize = srcSize * 2;
 
         if (srcSize <= 4)
@@ -1077,7 +1077,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(Emitter* emitter,
         break;
       }
 
-      srcSize = std::min(srcSize, dstSize);
+      srcSize = Support::min(srcSize, dstSize);
       if (Reg::isGp(src) || src.isMem()) {
         // 32-bit move.
         if (srcSize <= 4) {
@@ -1498,7 +1498,7 @@ EmitMove:
           if (!altVar.out.isInitialized() || (altVar.out.isReg() && altVar.out.regId() == curId)) {
             // Swap operation is possible only between two GP registers.
             if (curGroup == Reg::kGroupGp) {
-              uint32_t highestType = std::max(var.cur.regType(), altVar.cur.regType());
+              uint32_t highestType = Support::max(var.cur.regType(), altVar.cur.regType());
               uint32_t signature = highestType == Reg::kTypeGpq ? Reg::signatureOfT<Reg::kTypeGpq>()
                                                                 : Reg::signatureOfT<Reg::kTypeGpd>();
 

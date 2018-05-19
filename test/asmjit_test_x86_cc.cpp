@@ -7,8 +7,8 @@
 // [Dependencies]
 #include <cstring>
 #include <cstdio>
-#include <cstdlib>
 #include <setjmp.h>
+#include <stdlib.h>
 
 #include "./asmjit.h"
 #include "./asmjit_test_misc.h"
@@ -136,7 +136,7 @@ void X86TestApp::showInfo() {
 }
 
 int X86TestApp::run() {
-  std::FILE* file = stdout;
+  FILE* file = stdout;
 
   #ifndef ASMJIT_DISABLE_LOGGING
   uint32_t kFormatFlags = FormatOptions::kFlagMachineCode   |
@@ -2197,8 +2197,8 @@ public:
     uint32_t* dstBuffer = (uint32_t*)Support::alignUp<intptr_t>((intptr_t)_dstBuffer, 16);
     uint32_t* srcBuffer = (uint32_t*)Support::alignUp<intptr_t>((intptr_t)_srcBuffer, 16);
 
-    std::memcpy(dstBuffer, dstConstData, sizeof(dstConstData));
-    std::memcpy(srcBuffer, srcConstData, sizeof(srcConstData));
+    ::memcpy(dstBuffer, dstConstData, sizeof(dstConstData));
+    ::memcpy(srcBuffer, srcConstData, sizeof(srcConstData));
 
     uint32_t i;
     uint32_t expBuffer[kCount];
@@ -2321,19 +2321,19 @@ public:
     cc.lea(p2, s2);
 
     // Try to corrupt the stack if wrongly allocated.
-    call = cc.call(imm(std::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm(::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p1);
     call->setArg(1, imm(token));
     call->setArg(2, imm(kTokenSize));
     call->setRet(0, p1);
 
-    call = cc.call(imm(std::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm(::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p2);
     call->setArg(1, imm(token));
     call->setArg(2, imm(kTokenSize));
     call->setRet(0, p2);
 
-    call = cc.call(imm(std::memcmp), FuncSignatureT<int, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm(::memcmp), FuncSignatureT<int, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p1);
     call->setArg(1, p2);
     call->setArg(2, imm(kTokenSize));
