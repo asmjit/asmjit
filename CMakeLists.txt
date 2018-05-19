@@ -253,6 +253,10 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/x86
   x86ssetoavx_p.h
 )
 
+if(MSVC)
+  cxx_add_source(asmjit ASMJIT_SRC asmjit asmjit.natvis)
+endif()
+
 # =============================================================================
 # [AsmJit - Targets]
 # =============================================================================

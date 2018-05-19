@@ -29,8 +29,10 @@ class ZoneTreeNode {
 public:
   ASMJIT_NONCOPYABLE(ZoneTreeNode)
 
-  static constexpr uintptr_t kRedMask = 0x1;
-  static constexpr uintptr_t kPtrMask = ~kRedMask;
+  enum : uintptr_t {
+    kRedMask = 0x1,
+    kPtrMask = ~kRedMask
+  };
 
   inline ZoneTreeNode() noexcept
     : _rbNodeData { 0, 0 } {}
