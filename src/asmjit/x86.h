@@ -24,7 +24,7 @@
 ASMJIT_BEGIN_NAMESPACE
 typedef ASMJIT_DEPRECATED(x86::Reg  X86Reg  , "Use x86::Reg");
 typedef ASMJIT_DEPRECATED(x86::Mem  X86Mem  , "Use x86::Mem");
-typedef ASMJIT_DEPRECATED(x86::Gp   X86Gp   , "Use x86::Xmm");
+typedef ASMJIT_DEPRECATED(x86::Gp   X86Gp   , "Use x86::Gp");
 typedef ASMJIT_DEPRECATED(x86::Gpb  X86Gpb  , "Use x86::Gpb");
 typedef ASMJIT_DEPRECATED(x86::Gpw  X86Gpw  , "Use x86::Gpw");
 typedef ASMJIT_DEPRECATED(x86::Gpd  X86Gpd  , "Use x86::Gpd");
