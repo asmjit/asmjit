@@ -2285,6 +2285,12 @@ const X86Inst::CommonData X86InstDB::commonData[] = {
 #define OP_FLAG(F) X86Inst::kOperation##F
 #define FEATURE(F) CpuInfo::kX86Feature##F
 #define SPECIAL(F) x86::kSpecialReg_##F
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4838) // comversion from 'int' to 'uint32_t'
+#endif
+
 const X86Inst::OperationData X86InstDB::operationData[] = {
   { 0, { 0 }, 0, 0 }, // #0
   { 0, { 0 }, 0, SPECIAL(FLAGS_AF) | SPECIAL(FLAGS_CF) | SPECIAL(FLAGS_OF) | SPECIAL(FLAGS_PF) | SPECIAL(FLAGS_SF) | SPECIAL(FLAGS_ZF) }, // #1
@@ -2442,6 +2448,11 @@ const X86Inst::OperationData X86InstDB::operationData[] = {
   { OP_FLAG(Volatile) | OP_FLAG(Privileged), { FEATURE(XSAVE) }, 0, SPECIAL(XCR) }, // #153
   { OP_FLAG(Volatile), { FEATURE(TSX) }, 0, SPECIAL(FLAGS_AF) | SPECIAL(FLAGS_CF) | SPECIAL(FLAGS_OF) | SPECIAL(FLAGS_PF) | SPECIAL(FLAGS_SF) | SPECIAL(FLAGS_ZF) }  // #154
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #undef SPECIAL
 #undef FEATURE
 #undef OP_FLAG

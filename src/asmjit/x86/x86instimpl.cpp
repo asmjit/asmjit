@@ -100,6 +100,11 @@ static const uint32_t _x86OpFlagFromRegType[X86Reg::kRegMax + 1] = {
   ASMJIT_TABLE_T_32(X86OpTypeFromRegTypeT, kValue, 0)
 };
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4838) // comversion from 'int' to 'uint32_t'
+#endif
+
 static const X86ValidationData _x86ValidationData = {
   { ASMJIT_TABLE_T_32(X86RegMaskFromRegTypeT, kMask, 0) },
   (1U << X86Reg::kRegGpw) | (1U << X86Reg::kRegGpd) | (1U << X86Reg::kRegRip) | (1U << Label::kLabelTag),
@@ -111,6 +116,10 @@ static const X86ValidationData _x64ValidationData = {
   (1U << X86Reg::kRegGpd) | (1U << X86Reg::kRegGpq) | (1U << X86Reg::kRegRip) | (1U << Label::kLabelTag),
   (1U << X86Reg::kRegGpd) | (1U << X86Reg::kRegGpq) | (1U << X86Reg::kRegXmm) | (1U << X86Reg::kRegYmm) | (1U << X86Reg::kRegZmm)
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 static ASMJIT_INLINE bool x86CheckOSig(const X86Inst::OSignature& op, const X86Inst::OSignature& ref, bool& immOutOfRange) noexcept {
   // Fail if operand types are incompatible.
