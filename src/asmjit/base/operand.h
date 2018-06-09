@@ -13,7 +13,7 @@
 
 // [Api-Begin]
 #include "../asmjit_apibegin.h"
-#include <numeric_limits>
+#include <limits>
 
 namespace asmjit {
 
