@@ -27,8 +27,8 @@ constexpr size_t kMaxAllocSize = std::numeric_limits<size_t>::max() - Globals::k
 // ============================================================================
 
 Error String::reset() noexcept {
-  if (_type == kTypeLarge)
-    ::free(_large.data);
+  if (type == kTypeLarge)
+    ::free(large.data);
 
   _resetToEmbedded();
   return kErrorOk;
@@ -36,11 +36,11 @@ Error String::reset() noexcept {
 
 Error String::clear() noexcept {
   if (isLarge()) {
-    _large.size = 0;
-    _large.data[0] = '\0';
+    large.size = 0;
+    large.data[0] = '\0';
   }
   else {
-    _uptr[0] = 0;
+    uptr[0] = 0;
   }
 
   return kErrorOk;
@@ -48,15 +48,15 @@ Error String::clear() noexcept {
 
 Error String::truncate(size_t newSize) noexcept {
   if (isLarge()) {
-    if (newSize < _large.size) {
-      _large.data[newSize] = '\0';
-      _large.size = newSize;
+    if (newSize < large.size) {
+      large.data[newSize] = '\0';
+      large.size = newSize;
     }
   }
   else {
-    if (newSize < _type) {
-      _small.data[newSize] = '\0';
-      _small.type = uint8_t(newSize);
+    if (newSize < type) {
+      small.data[newSize] = '\0';
+      small.type = uint8_t(newSize);
     }
   }
 
@@ -69,13 +69,13 @@ char* String::prepare(uint32_t op, size_t size) noexcept {
   size_t curCapacity;
 
   if (isLarge()) {
-    curData = this->_large.data;
-    curSize = this->_large.size;
-    curCapacity = this->_large.capacity;
+    curData = this->large.data;
+    curSize = this->large.size;
+    curCapacity = this->large.capacity;
   }
   else {
-    curData = this->_small.data;
-    curSize = this->_small.type;
+    curData = this->small.data;
+    curSize = this->small.type;
     curCapacity = kSSOCapacity;
   }
 
@@ -91,13 +91,13 @@ char* String::prepare(uint32_t op, size_t size) noexcept {
       if (ASMJIT_UNLIKELY(!newData))
         return nullptr;
 
-      if (_type == kTypeLarge)
+      if (type == kTypeLarge)
         ::free(curData);
 
-      _large.type = kTypeLarge;
-      _large.size = size;
-      _large.capacity = newCapacity - 1;
-      _large.data = newData;
+      large.type = kTypeLarge;
+      large.size = size;
+      large.capacity = newCapacity - 1;
+      large.data = newData;
 
       newData[size] = '\0';
       return newData;
@@ -134,13 +134,13 @@ char* String::prepare(uint32_t op, size_t size) noexcept {
 
       ::memcpy(newData, curData, curSize);
 
-      if (_type == kTypeLarge)
+      if (type == kTypeLarge)
         ::free(curData);
 
-      _large.type = kTypeLarge;
-      _large.size = newSize;
-      _large.capacity = newCapacity - 1;
-      _large.data = newData;
+      large.type = kTypeLarge;
+      large.size = newSize;
+      large.capacity = newCapacity - 1;
+      large.data = newData;
 
       newData[newSize] = '\0';
       return newData + curSize;
@@ -182,9 +182,9 @@ Error String::assignString(const char* data, size_t size) noexcept {
     size = data ? ::strlen(data) : size_t(0);
 
   if (isLarge()) {
-    if (size <= _large.capacity) {
-      dst = _large.data;
-      _large.size = size;
+    if (size <= large.capacity) {
+      dst = large.data;
+      large.size = size;
     }
     else {
       size_t capacityPlusOne = Support::alignUp(size + 1, 32);
@@ -196,30 +196,30 @@ Error String::assignString(const char* data, size_t size) noexcept {
         return DebugUtils::errored(kErrorOutOfMemory);
 
       if (!isExternal())
-        ::free(_large.data);
+        ::free(large.data);
 
-      _large.type = kTypeLarge;
-      _large.data = dst;
-      _large.size = size;
-      _large.capacity = capacityPlusOne - 1;
+      large.type = kTypeLarge;
+      large.data = dst;
+      large.size = size;
+      large.capacity = capacityPlusOne - 1;
     }
   }
   else {
     if (size <= kSSOCapacity) {
       ASMJIT_ASSERT(size < 0xFFu);
 
-      dst = _small.data;
-      _small.type = uint8_t(size);
+      dst = small.data;
+      small.type = uint8_t(size);
     }
     else {
       dst = static_cast<char*>(::malloc(size + 1));
       if (ASMJIT_UNLIKELY(!dst))
         return DebugUtils::errored(kErrorOutOfMemory);
 
-      _large.type = kTypeLarge;
-      _large.data = dst;
-      _large.size = size;
-      _large.capacity = size;
+      large.type = kTypeLarge;
+      large.data = dst;
+      large.size = size;
+      large.capacity = size;
     }
   }
 
