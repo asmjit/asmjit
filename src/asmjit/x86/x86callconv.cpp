@@ -24,7 +24,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 static inline void CallConv_initX86Common(CallConv& cc) noexcept {
   cc.setNaturalStackAlignment(4);
   cc.setArchType(ArchInfo::kIdX86);
-  cc.setPreservedRegs(Reg::kGroupGp, Support::mask(Gp::kIdBx, Gp::kIdSp, Gp::kIdBp, Gp::kIdSi, Gp::kIdDi));
+  cc.setPreservedRegs(Reg::kGroupGp, Support::bitMask(Gp::kIdBx, Gp::kIdSp, Gp::kIdBp, Gp::kIdSi, Gp::kIdDi));
 }
 
 ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noexcept {
@@ -88,8 +88,8 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
       cc.setSpillZoneSize(32);
       cc.setPassedOrder(kGroupGp, kZcx, kZdx, 8, 9);
       cc.setPassedOrder(kGroupVec, 0, 1, 2, 3);
-      cc.setPreservedRegs(kGroupGp, Support::mask(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));
-      cc.setPreservedRegs(kGroupVec, Support::mask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
+      cc.setPreservedRegs(kGroupGp, Support::bitMask(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));
+      cc.setPreservedRegs(kGroupVec, Support::bitMask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
       break;
 
     case CallConv::kIdX86SysV64:
@@ -99,7 +99,7 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
       cc.setRedZoneSize(128);
       cc.setPassedOrder(kGroupGp, kZdi, kZsi, kZdx, kZcx, 8, 9);
       cc.setPassedOrder(kGroupVec, 0, 1, 2, 3, 4, 5, 6, 7);
-      cc.setPreservedRegs(kGroupGp, Support::mask(kZbx, kZsp, kZbp, 12, 13, 14, 15));
+      cc.setPreservedRegs(kGroupGp, Support::bitMask(kZbx, kZsp, kZbp, 12, 13, 14, 15));
       break;
 
     case CallConv::kIdX86LightCall2:

@@ -73,13 +73,13 @@ static void testBitUtils() noexcept {
   INFO("Support::ctz()");
   for (i = 0; i < 32; i++) EXPECT(Support::ctz(uint32_t(1) << i) == i);
   for (i = 0; i < 64; i++) EXPECT(Support::ctz(uint64_t(1) << i) == i);
-  for (i = 0; i < 32; i++) EXPECT(Support::Internal::ctzGeneric(uint32_t(1) << i) == i);
-  for (i = 0; i < 64; i++) EXPECT(Support::Internal::ctzGeneric(uint64_t(1) << i) == i);
+  for (i = 0; i < 32; i++) EXPECT(Support::constCtz(uint32_t(1) << i) == i);
+  for (i = 0; i < 64; i++) EXPECT(Support::constCtz(uint64_t(1) << i) == i);
 
-  INFO("Support::mask()");
-  EXPECT(Support::mask(0, 1, 7) == 0x83u);
+  INFO("Support::bitMask()");
+  EXPECT(Support::bitMask(0, 1, 7) == 0x83u);
   for (i = 0; i < 32; i++)
-    EXPECT(Support::mask(i) == (1u << i));
+    EXPECT(Support::bitMask(i) == (1u << i));
 
   INFO("Support::bitTest()");
   for (i = 0; i < 32; i++) {
@@ -128,33 +128,37 @@ static void testIntUtils() noexcept {
   EXPECT(bpdata.bytes[3] == 0x33);
 
   INFO("Support::isBetween()");
+  EXPECT(Support::isBetween<int>(10 , 10, 20) == true);
   EXPECT(Support::isBetween<int>(11 , 10, 20) == true);
+  EXPECT(Support::isBetween<int>(20 , 10, 20) == true);
+  EXPECT(Support::isBetween<int>(9  , 10, 20) == false);
+  EXPECT(Support::isBetween<int>(21 , 10, 20) == false);
   EXPECT(Support::isBetween<int>(101, 10, 20) == false);
 
-  INFO("Support::isI8()");
-  EXPECT(Support::isI8(-128) == true);
-  EXPECT(Support::isI8( 127) == true);
-  EXPECT(Support::isI8(-129) == false);
-  EXPECT(Support::isI8( 128) == false);
+  INFO("Support::isInt8()");
+  EXPECT(Support::isInt8(-128) == true);
+  EXPECT(Support::isInt8( 127) == true);
+  EXPECT(Support::isInt8(-129) == false);
+  EXPECT(Support::isInt8( 128) == false);
 
-  INFO("Support::isI16()");
-  EXPECT(Support::isI16(-32768) == true);
-  EXPECT(Support::isI16( 32767) == true);
-  EXPECT(Support::isI16(-32769) == false);
-  EXPECT(Support::isI16( 32768) == false);
+  INFO("Support::isInt16()");
+  EXPECT(Support::isInt16(-32768) == true);
+  EXPECT(Support::isInt16( 32767) == true);
+  EXPECT(Support::isInt16(-32769) == false);
+  EXPECT(Support::isInt16( 32768) == false);
 
-  INFO("Support::isI32()");
-  EXPECT(Support::isI32( 2147483647    ) == true);
-  EXPECT(Support::isI32(-2147483647 - 1) == true);
-  EXPECT(Support::isI32(uint64_t(2147483648u)) == false);
-  EXPECT(Support::isI32(uint64_t(0xFFFFFFFFu)) == false);
-  EXPECT(Support::isI32(uint64_t(0xFFFFFFFFu) + 1) == false);
+  INFO("Support::isInt32()");
+  EXPECT(Support::isInt32( 2147483647    ) == true);
+  EXPECT(Support::isInt32(-2147483647 - 1) == true);
+  EXPECT(Support::isInt32(uint64_t(2147483648u)) == false);
+  EXPECT(Support::isInt32(uint64_t(0xFFFFFFFFu)) == false);
+  EXPECT(Support::isInt32(uint64_t(0xFFFFFFFFu) + 1) == false);
 
-  INFO("Support::isU8()");
-  EXPECT(Support::isU8(0)   == true);
-  EXPECT(Support::isU8(255) == true);
-  EXPECT(Support::isU8(256) == false);
-  EXPECT(Support::isU8(-1)  == false);
+  INFO("Support::isUInt8()");
+  EXPECT(Support::isUInt8(0)   == true);
+  EXPECT(Support::isUInt8(255) == true);
+  EXPECT(Support::isUInt8(256) == false);
+  EXPECT(Support::isUInt8(-1)  == false);
 
   INFO("Support::isUInt12()");
   EXPECT(Support::isUInt12(0)    == true);
@@ -162,16 +166,16 @@ static void testIntUtils() noexcept {
   EXPECT(Support::isUInt12(4096) == false);
   EXPECT(Support::isUInt12(-1)   == false);
 
-  INFO("Support::isU16()");
-  EXPECT(Support::isU16(0)     == true);
-  EXPECT(Support::isU16(65535) == true);
-  EXPECT(Support::isU16(65536) == false);
-  EXPECT(Support::isU16(-1)    == false);
+  INFO("Support::isUInt16()");
+  EXPECT(Support::isUInt16(0)     == true);
+  EXPECT(Support::isUInt16(65535) == true);
+  EXPECT(Support::isUInt16(65536) == false);
+  EXPECT(Support::isUInt16(-1)    == false);
 
-  INFO("Support::isU32()");
-  EXPECT(Support::isU32(uint64_t(0xFFFFFFFF)) == true);
-  EXPECT(Support::isU32(uint64_t(0xFFFFFFFF) + 1) == false);
-  EXPECT(Support::isU32(-1) == false);
+  INFO("Support::isUInt32()");
+  EXPECT(Support::isUInt32(uint64_t(0xFFFFFFFF)) == true);
+  EXPECT(Support::isUInt32(uint64_t(0xFFFFFFFF) + 1) == false);
+  EXPECT(Support::isUInt32(-1) == false);
 }
 
 static void testReadWrite() noexcept {

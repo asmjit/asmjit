@@ -18,15 +18,15 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::JitRuntime - Utilities]
 // ============================================================================
 
+// Only useful on non-x86 architectures.
 static inline void JitRuntime_flushInstructionCache(const void* p, size_t size) noexcept {
-  // Only useful on non-x86 architectures.
-  #if defined(_WIN32) && !ASMJIT_ARCH_X86
+#if defined(_WIN32) && !ASMJIT_ARCH_X86
   // Windows has a built-in support in `kernel32.dll`.
   ::FlushInstructionCache(::GetCurrentProcess(), p, size);
-  #else
+#else
   ASMJIT_UNUSED(p);
   ASMJIT_UNUSED(size);
-  #endif
+#endif
 }
 
 // X86 Target
@@ -45,12 +45,12 @@ static inline void JitRuntime_flushInstructionCache(const void* p, size_t size) 
 static inline uint32_t JitRuntime_detectNaturalStackAlignment() noexcept {
 #if ASMJIT_ARCH_BITS == 64 || \
     defined(__APPLE__    ) || \
-    defined(__bsdi__     ) || \
     defined(__DragonFly__) || \
     defined(__HAIKU__    ) || \
     defined(__FreeBSD__  ) || \
     defined(__NetBSD__   ) || \
     defined(__OpenBSD__  ) || \
+    defined(__bsdi__     ) || \
     defined(__linux__    )
   return 16;
 #elif ASMJIT_ARCH_ARM
@@ -89,7 +89,7 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
   void* p = _allocator.alloc(codeSize);
   if (ASMJIT_UNLIKELY(!p)) {
     *dst = nullptr;
-    return DebugUtils::errored(kErrorNoVirtualMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
   }
 
   // Relocate the code and release the unused memory back to `JitAllocator`.

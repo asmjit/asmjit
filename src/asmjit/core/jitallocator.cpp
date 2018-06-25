@@ -59,8 +59,8 @@ static inline size_t JitAllocator_bitVectorSizeToByteSize(uint32_t areaSize) noe
 }
 
 static inline size_t JitAllocator_calculateIdealBlockSize(JitAllocator::Pool* pool, size_t allocationSize) noexcept {
-  uint32_t kMaxSizeShift = Support::staticCtz<JitAllocator::kMaxBlockSize>() -
-                           Support::staticCtz<JitAllocator::kMinBlockSize>() ;
+  uint32_t kMaxSizeShift = Support::constCtz(JitAllocator::kMaxBlockSize) -
+                           Support::constCtz(JitAllocator::kMinBlockSize) ;
 
   size_t blockSize = size_t(JitAllocator::kMinBlockSize) << Support::min<uint32_t>(kMaxSizeShift, pool->_blockCount);
   if (blockSize < allocationSize)
@@ -84,15 +84,15 @@ static Block* JitAllocator_newBlock(JitAllocator* self, JitAllocator::Pool* pool
   uint32_t areaSize = uint32_t((blockSize + pool->granularity() - 1) >> pool->_granularityLog2);
   uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
 
-  Block* block = static_cast<Block*>(Support::alloc(sizeof(Block)));
-  BitWord* bitWords = static_cast<BitWord*>(Support::alloc(size_t(numBitWords) * 2 * sizeof(BitWord)));
+  Block* block = static_cast<Block*>(::malloc(sizeof(Block)));
+  BitWord* bitWords = static_cast<BitWord*>(::malloc(size_t(numBitWords) * 2 * sizeof(BitWord)));
   uint8_t* virtMem = static_cast<uint8_t*>(JitUtils::virtualAlloc(blockSize, JitUtils::kVirtMemWriteExecute));
 
   // Out of memory.
   if (ASMJIT_UNLIKELY(!block || !bitWords || !virtMem)) {
     if (virtMem) JitUtils::virtualRelease(virtMem, blockSize);
-    if (bitWords) Support::release(bitWords);
-    if (block) Support::release(block);
+    if (bitWords) ::free(bitWords);
+    if (block) ::free(block);
     return nullptr;
   }
 
@@ -108,8 +108,8 @@ static void JitAllocator_deleteBlock(JitAllocator* self, JitAllocator::Block* bl
   ASMJIT_UNUSED(self);
 
   JitUtils::virtualRelease(block->virtMem(), block->blockSize());
-  Support::release(block->_usedBitVector);
-  Support::release(block);
+  ::free(block->_usedBitVector);
+  ::free(block);
 }
 
 static void JitAllocator_insertBlock(JitAllocator* self, JitAllocator::Block* block) noexcept {
@@ -577,7 +577,7 @@ UNIT(asmjit_core_jit_allocator) {
 
   INFO("Memory alloc/release test - %d allocations", kCount);
 
-  void** ptrArray = (void**)Support::alloc(sizeof(void*) * size_t(kCount));
+  void** ptrArray = (void**)::malloc(sizeof(void*) * size_t(kCount));
   EXPECT(ptrArray != nullptr,
         "Couldn't allocate '%u' bytes for pointer-array", unsigned(sizeof(void*) * size_t(kCount)));
 
@@ -614,7 +614,7 @@ UNIT(asmjit_core_jit_allocator) {
     wrapper.release(ptrArray[i]);
   JitAllocatorTest_usage(wrapper._allocator);
 
-  Support::release(ptrArray);
+  ::free(ptrArray);
 }
 #endif
 

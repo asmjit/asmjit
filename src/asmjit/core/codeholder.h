@@ -12,7 +12,7 @@
 #include "../core/arch.h"
 #include "../core/datatypes.h"
 #include "../core/operand.h"
-#include "../core/stringutils.h"
+#include "../core/string.h"
 #include "../core/support.h"
 #include "../core/target.h"
 #include "../core/zone.h"
@@ -186,7 +186,7 @@ public:
   uint32_t _flags;                       //!< Section flags.
   uint32_t _alignment;                   //!< Section alignment requirements (0 if no requirements).
   uint32_t _virtualSize;                 //!< Virtual size of the section (zero initialized mostly).
-  StaticString<36> _name;                //!< Section name (max 35 characters, PE allows max 8).
+  FixedString<36> _name;                 //!< Section name (max 35 characters, PE allows max 8).
   CodeBuffer _buffer;                    //!< Code or data buffer.
 };
 
@@ -268,7 +268,7 @@ public:
   //! Get the hash-value of label's name and its parent label (if any).
   //!
   //! Label hash is calculated as `HASH(Name) ^ ParentId`. The hash function
-  //! is implemented in `hashString::hashString()` and `StringUtils::hashRound()`.
+  //! is implemented in `Support::hashString()` and `Support::hashRound()`.
   inline uint32_t hashCode() const noexcept { return _hashCode; }
 
   // ------------------------------------------------------------------------

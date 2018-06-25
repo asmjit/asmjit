@@ -46,11 +46,11 @@ public:
   virtual void handleError(Error err, const char* message, BaseEmitter* origin) {
     ASMJIT_UNUSED(origin);
     _err = err;
-    _message.setString(message);
+    _message.assignString(message);
   }
 
   Error _err;
-  StringBuilder _message;
+  String _message;
 };
 
 // ============================================================================
@@ -60,15 +60,15 @@ public:
 //! Base test interface for testing `x86::Compiler`.
 class X86Test {
 public:
-  X86Test(const char* name = nullptr) { _name.setString(name); }
+  X86Test(const char* name = nullptr) { _name.assignString(name); }
   virtual ~X86Test() {}
 
   inline const char* name() const { return _name.data(); }
 
   virtual void compile(x86::Compiler& c) = 0;
-  virtual bool run(void* func, StringBuilder& result, StringBuilder& expect) = 0;
+  virtual bool run(void* func, String& result, String& expect) = 0;
 
-  StringBuilder _name;
+  String _name;
 };
 
 // ============================================================================
@@ -189,7 +189,7 @@ int X86TestApp::run() {
     if (_dumpAsm) {
       if (!_verbose) std::fprintf(file, "\n");
 
-      StringBuilder sb;
+      String sb;
       cc.dump(sb, kFormatFlags);
       std::fprintf(file, "%s", sb.data());
     }
@@ -202,8 +202,8 @@ int X86TestApp::run() {
       std::fflush(file);
 
     if (err == kErrorOk) {
-      StringBuilderTmp<128> result;
-      StringBuilderTmp<128> expect;
+      StringTmp<128> result;
+      StringTmp<128> expect;
 
       if (test->run(func, result, expect)) {
         if (!_verbose) std::fprintf(file, " [OK]\n");
@@ -256,7 +256,7 @@ public:
     : _argCount(argCount),
       _alignment(alignment),
       _preserveFP(preserveFP) {
-    _name.setFormat("AlignBase {NumArgs=%u Alignment=%u PreserveFP=%c}", argCount, alignment, preserveFP ? 'Y' : 'N');
+    _name.assignFormat("AlignBase {NumArgs=%u Alignment=%u PreserveFP=%c}", argCount, alignment, preserveFP ? 'Y' : 'N');
   }
 
   static void add(X86TestApp& app) {
@@ -310,7 +310,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func0)();
     typedef int (*Func1)(int);
     typedef int (*Func2)(int, int);
@@ -403,8 +403,8 @@ public:
         break;
     }
 
-    result.setFormat("ret={%u, %u}", resultRet >> 28, resultRet & 0x0FFFFFFFu);
-    expect.setFormat("ret={%u, %u}", expectRet >> 28, expectRet & 0x0FFFFFFFu);
+    result.assignFormat("ret={%u, %u}", resultRet >> 28, resultRet & 0x0FFFFFFFu);
+    expect.assignFormat("ret={%u, %u}", expectRet >> 28, expectRet & 0x0FFFFFFFu);
 
     return resultRet == expectRet;
   }
@@ -431,7 +431,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void(*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -459,7 +459,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -517,7 +517,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void(*Func)(int*, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -527,8 +527,8 @@ public:
     for (int i = 0; i < 5; i++)
       func(&arr[i], i);
 
-    result.setFormat("ret={%d, %d, %d, %d, %d}", arr[0], arr[1], arr[2], arr[3], arr[4]);
-    expect.setFormat("ret={%d, %d, %d, %d, %d}", exp[0], exp[1], exp[2], exp[3], exp[4]);
+    result.assignFormat("ret={%d, %d, %d, %d, %d}", arr[0], arr[1], arr[2], arr[3], arr[4]);
+    expect.assignFormat("ret={%d, %d, %d, %d, %d}", exp[0], exp[1], exp[2], exp[3], exp[4]);
 
     return true;
   }
@@ -565,7 +565,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -600,7 +600,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
 
     Func func = ptr_as_func<Func>(_func);
@@ -608,8 +608,8 @@ public:
     int resultRet = func();
     int expectRet = 0;
 
-    result.setFormat("ret={%d}", resultRet);
-    expect.setFormat("ret={%d}", expectRet);
+    result.assignFormat("ret={%d}", resultRet);
+    expect.assignFormat("ret={%d}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -665,7 +665,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -712,7 +712,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -762,15 +762,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = 1 + 2 + 3 + 4;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -829,7 +829,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(int*, int*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -841,8 +841,8 @@ public:
 
     func(&resultX, &resultY);
 
-    result.setFormat("ret={x=%d, y=%d}", resultX, resultY);
-    expect.setFormat("ret={x=%d, y=%d}", expectX, expectY);
+    result.assignFormat("ret={x=%d, y=%d}", resultX, resultY);
+    expect.assignFormat("ret={x=%d, y=%d}", expectX, expectY);
 
     return resultX == expectX && resultY == expectY;
   }
@@ -886,7 +886,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(int*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -946,7 +946,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(int*, int*, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -961,8 +961,8 @@ public:
 
     func(&resultHi, &resultLo, v0, v1);
 
-    result.setFormat("hi=%d, lo=%d", resultHi, resultLo);
-    expect.setFormat("hi=%d, lo=%d", expectHi, expectLo);
+    result.assignFormat("hi=%d, lo=%d", resultHi, resultLo);
+    expect.assignFormat("hi=%d, lo=%d", expectHi, expectLo);
 
     return resultHi == expectHi && resultLo == expectLo;
   }
@@ -1005,7 +1005,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(int*, const int*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1015,8 +1015,8 @@ public:
 
     func(resultRet, src);
 
-    result.setFormat("ret={%d, %d}", resultRet[0], resultRet[1]);
-    expect.setFormat("ret={%d, %d}", expectRet[0], expectRet[1]);
+    result.assignFormat("ret={%d, %d}", resultRet[0], resultRet[1]);
+    expect.assignFormat("ret={%d, %d}", expectRet[0], expectRet[1]);
 
     return resultRet[0] == expectRet[0] && resultRet[1] == expectRet[1];
   }
@@ -1051,7 +1051,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1061,8 +1061,8 @@ public:
     int resultRet = func(v0, v1);
     int expectRet = 2999 / 245;
 
-    result.setFormat("result=%d", resultRet);
-    expect.setFormat("result=%d", expectRet);
+    result.assignFormat("result=%d", resultRet);
+    expect.assignFormat("result=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1097,7 +1097,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(int, int, char*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1109,8 +1109,8 @@ public:
     func(1, 0, &resultBuf[2]); // We are expecting 0 (1 != 0).
     func(1, 1, &resultBuf[3]); // We are expecting 1 (1 == 1).
 
-    result.setFormat("out={%d, %d, %d, %d}", resultBuf[0], resultBuf[1], resultBuf[2], resultBuf[3]);
-    expect.setFormat("out={%d, %d, %d, %d}", expectBuf[0], expectBuf[1], expectBuf[2], expectBuf[3]);
+    result.assignFormat("out={%d, %d, %d, %d}", resultBuf[0], resultBuf[1], resultBuf[2], resultBuf[3]);
+    expect.assignFormat("out={%d, %d, %d, %d}", expectBuf[0], expectBuf[1], expectBuf[2], expectBuf[3]);
 
     return resultBuf[0] == expectBuf[0] &&
            resultBuf[1] == expectBuf[1] &&
@@ -1151,7 +1151,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(int*, int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1162,8 +1162,8 @@ public:
 
     func(&resultRet, v0, 16, 8);
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1222,7 +1222,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(uint32_t*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1253,8 +1253,8 @@ public:
     }
     resultRet = func(buf);
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1287,7 +1287,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(void*, void*, size_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1295,8 +1295,8 @@ public:
     char src[20] = "Hello AsmJit!";
     func(dst, src, strlen(src) + 1);
 
-    result.setFormat("ret=\"%s\"", dst);
-    expect.setFormat("ret=\"%s\"", src);
+    result.assignFormat("ret=\"%s\"", dst);
+    expect.assignFormat("ret=\"%s\"", src);
 
     return result == expect;
   }
@@ -1340,7 +1340,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1401,7 +1401,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1462,7 +1462,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1528,7 +1528,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1567,15 +1567,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(char);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func(-13);
     int expectRet = -13;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1603,15 +1603,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func(42, 155, 199);
     int expectRet = 199;
 
-    result.setFormat("ret={%d}", resultRet);
-    expect.setFormat("ret={%d}", expectRet);
+    result.assignFormat("ret={%d}", resultRet);
+    expect.assignFormat("ret={%d}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1653,7 +1653,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(void*, void*, void*, void*, void*, void*, void*, void*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1663,11 +1663,11 @@ public:
     func(resultBuf, resultBuf, resultBuf, resultBuf,
          resultBuf, resultBuf, resultBuf, resultBuf);
 
-    result.setFormat("buf={%d, %d, %d, %d, %d, %d, %d, %d, %d}",
+    result.assignFormat("buf={%d, %d, %d, %d, %d, %d, %d, %d, %d}",
       resultBuf[0], resultBuf[1], resultBuf[2], resultBuf[3],
       resultBuf[4], resultBuf[5], resultBuf[6], resultBuf[7],
       resultBuf[8]);
-    expect.setFormat("buf={%d, %d, %d, %d, %d, %d, %d, %d, %d}",
+    expect.assignFormat("buf={%d, %d, %d, %d, %d, %d, %d, %d, %d}",
       expectBuf[0], expectBuf[1], expectBuf[2], expectBuf[3],
       expectBuf[4], expectBuf[5], expectBuf[6], expectBuf[7],
       expectBuf[8]);
@@ -1714,7 +1714,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(float, float, float, float, float, float, float, float*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1723,8 +1723,8 @@ public:
 
     func(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, &resultRet);
 
-    result.setFormat("ret={%g}", resultRet);
-    expect.setFormat("ret={%g}", expectRet);
+    result.assignFormat("ret={%g}", resultRet);
+    expect.assignFormat("ret={%g}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1768,7 +1768,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(double, double, double, double, double, double, double, double*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -1777,8 +1777,8 @@ public:
 
     func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, &resultRet);
 
-    result.setFormat("ret={%g}", resultRet);
-    expect.setFormat("ret={%g}", expectRet);
+    result.assignFormat("ret={%g}", resultRet);
+    expect.assignFormat("ret={%g}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1806,15 +1806,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef float (*Func)(float);
     Func func = ptr_as_func<Func>(_func);
 
     float resultRet = func(42.0f);
     float expectRet = 42.0f;
 
-    result.setFormat("ret={%g}", resultRet);
-    expect.setFormat("ret={%g}", expectRet);
+    result.assignFormat("ret={%g}", resultRet);
+    expect.assignFormat("ret={%g}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1847,15 +1847,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef float (*Func)(float, float);
     Func func = ptr_as_func<Func>(_func);
 
     float resultRet = func(1.0f, 2.0f);
     float expectRet = 1.0f + 2.0f;
 
-    result.setFormat("ret={%g}", resultRet);
-    expect.setFormat("ret={%g}", expectRet);
+    result.assignFormat("ret={%g}", resultRet);
+    expect.assignFormat("ret={%g}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1883,15 +1883,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef double (*Func)(double);
     Func func = ptr_as_func<Func>(_func);
 
     double resultRet = func(42.0);
     double expectRet = 42.0;
 
-    result.setFormat("ret={%g}", resultRet);
-    expect.setFormat("ret={%g}", expectRet);
+    result.assignFormat("ret={%g}", resultRet);
+    expect.assignFormat("ret={%g}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1923,15 +1923,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef double (*Func)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
     double resultRet = func(1.0, 2.0);
     double expectRet = 1.0 + 2.0;
 
-    result.setFormat("ret={%g}", resultRet);
-    expect.setFormat("ret={%g}", expectRet);
+    result.assignFormat("ret={%g}", resultRet);
+    expect.assignFormat("ret={%g}", expectRet);
 
     return resultRet == expectRet;
   }
@@ -1991,15 +1991,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = 32640;
 
-    result.setInt(resultRet);
-    expect.setInt(expectRet);
+    result.assignInt(resultRet);
+    expect.assignInt(expectRet);
 
     return resultRet == expectRet;
   }
@@ -2051,7 +2051,7 @@ public:
     cc.endFunc();                                   // End of function.
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(uint32_t*, const uint32_t*, size_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2067,8 +2067,8 @@ public:
 
     func(dstBuffer, srcBuffer, kCount);
 
-    result.setString("buf={");
-    expect.setString("buf={");
+    result.assignString("buf={");
+    expect.assignString("buf={");
 
     for (i = 0; i < kCount; i++) {
       if (i != 0) {
@@ -2133,7 +2133,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2143,8 +2143,8 @@ public:
     int exp1 = 4 + 5;
     int exp2 = 4 - 5;
 
-    result.setFormat("ret={%d, %d}", ret1, ret2);
-    expect.setFormat("ret={%d, %d}", exp1, exp2);
+    result.assignFormat("ret={%d, %d}", ret1, ret2);
+    expect.assignFormat("ret={%d, %d}", exp1, exp2);
 
     return result == expect;
   }
@@ -2183,7 +2183,7 @@ public:
     asmtest::generateAlphaBlend(cc);
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(void*, const void*, size_t);
     Func func = ptr_as_func<Func>(_func);
 
@@ -2209,8 +2209,8 @@ public:
 
     func(dstBuffer, srcBuffer, kCount);
 
-    result.setString("buf={");
-    expect.setString("buf={");
+    result.assignString("buf={");
+    expect.assignString("buf={");
 
     for (i = 0; i < kCount; i++) {
       if (i != 0) {
@@ -2270,15 +2270,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func(3, 2, 1);
     int expectRet = 36;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2354,15 +2354,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = 0; // Must be zero, stack addresses must be different.
 
-    result.setInt(resultRet);
-    expect.setInt(expectRet);
+    result.assignInt(resultRet);
+    expect.assignInt(expectRet);
 
     return resultRet == expectRet;
   }
@@ -2403,15 +2403,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func(1, 42, 3);
     int expectRet = calledFunc(1, 42, 3);
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2458,15 +2458,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func(9);
     int expectRet = (9 * 9) * (9 * 9);
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2555,7 +2555,7 @@ public:
     }
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef void (*Func)(const void*, const void*, const void*, const void*, void*);
 
     Func func = ptr_as_func<Func>(_func);
@@ -2570,8 +2570,8 @@ public:
 
     func(a, b, c, d, o);
 
-    result.setFormat("ret={%02X %02X %02X %02X %02X %02X %02X %02X}", o[0], o[1], o[2], o[3], o[4], o[5], o[6], o[7]);
-    expect.setFormat("ret={%02X %02X %02X %02X %02X %02X %02X %02X}", oExp, oExp, oExp, oExp, oExp, oExp, oExp, oExp);
+    result.assignFormat("ret={%02X %02X %02X %02X %02X %02X %02X %02X}", o[0], o[1], o[2], o[3], o[4], o[5], o[6], o[7]);
+    expect.assignFormat("ret={%02X %02X %02X %02X %02X %02X %02X %02X}", oExp, oExp, oExp, oExp, oExp, oExp, oExp, oExp);
 
     return result == expect;
   }
@@ -2639,15 +2639,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = calledFunc(0x03, 0x12, 0xA0, 0x0B, 0x2F, 0x02, 0x0C, 0x12, 0x18, 0x1E);
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2697,15 +2697,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = calledFunc(3, 3, 3, 3, 3, 3, 3, 3, 3, 3);
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2750,15 +2750,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = X86Test_FuncCallManyArgs::calledFunc(0x03, 0x12, 0xA0, 0x0B, 0x2F, 0x02, 0x0C, 0x12, 0x18, 0x1E);
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2816,15 +2816,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = 55;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2871,15 +2871,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef float (*Func)(float, float);
     Func func = ptr_as_func<Func>(_func);
 
     float resultRet = func(15.5f, 2.0f);
     float expectRet = calledFunc(15.5f, 2.0f);
 
-    result.setFormat("ret=%g", resultRet);
-    expect.setFormat("ret=%g", expectRet);
+    result.assignFormat("ret=%g", resultRet);
+    expect.assignFormat("ret=%g", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2924,15 +2924,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef double (*Func)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
     double resultRet = func(15.5, 2.0);
     double expectRet = calledFunc(15.5, 2.0);
 
-    result.setFormat("ret=%g", resultRet);
-    expect.setFormat("ret=%g", expectRet);
+    result.assignFormat("ret=%g", resultRet);
+    expect.assignFormat("ret=%g", expectRet);
 
     return resultRet == expectRet;
   }
@@ -2996,7 +2996,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int, int);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3009,8 +3009,8 @@ public:
     int resultMul = func(arg1, arg2, 1);
     int expectMul = calledFuncMul(arg1, arg2);
 
-    result.setFormat("ret={add=%d, mul=%d}", resultAdd, resultMul);
-    expect.setFormat("ret={add=%d, mul=%d}", expectAdd, expectMul);
+    result.assignFormat("ret={add=%d, mul=%d}", resultAdd, resultMul);
+    expect.assignFormat("ret={add=%d, mul=%d}", expectAdd, expectMul);
 
     return (resultAdd == expectAdd) && (resultMul == expectMul);
   }
@@ -3080,7 +3080,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3089,8 +3089,8 @@ public:
     int resultRet = func(buffer);
     int expectRet = 0;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3132,15 +3132,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func(5);
     int expectRet = 1 * 2 * 3 * 4 * 5;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3180,15 +3180,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func(44, 199);
     int expectRet = 243;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3227,7 +3227,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef double (*Func)(const double*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3236,8 +3236,8 @@ public:
     double resultRet = func(&arg);
     double expectRet = op(arg);
 
-    result.setFormat("ret=%g", resultRet);
-    expect.setFormat("ret=%g", expectRet);
+    result.assignFormat("ret=%g", resultRet);
+    expect.assignFormat("ret=%g", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3281,7 +3281,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef double (*Func)(const double*);
     Func func = ptr_as_func<Func>(_func);
 
@@ -3290,8 +3290,8 @@ public:
     double resultRet = func(&arg);
     double expectRet = -op(arg);
 
-    result.setFormat("ret=%g", resultRet);
-    expect.setFormat("ret=%g", expectRet);
+    result.assignFormat("ret=%g", resultRet);
+    expect.assignFormat("ret=%g", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3329,15 +3329,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef double (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     double resultRet = func();
     double expectRet = 3.14;
 
-    result.setFormat("ret=%g", resultRet);
-    expect.setFormat("ret=%g", expectRet);
+    result.assignFormat("ret=%g", resultRet);
+    expect.assignFormat("ret=%g", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3386,15 +3386,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = sizeof(void*) == 4 ? 6 : 14;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3431,15 +3431,15 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
     int resultRet = func();
     int expectRet = 233;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return resultRet == expectRet;
   }
@@ -3513,7 +3513,7 @@ struct X86Test_MiscMultiRet : public X86Test {
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int, int);
 
     Func func = ptr_as_func<Func>(_func);
@@ -3530,8 +3530,8 @@ struct X86Test_MiscMultiRet : public X86Test {
     int e2 = a * b;
     int e3 = a / b;
 
-    result.setFormat("ret={%d %d %d %d}", r0, r1, r2, r3);
-    expect.setFormat("ret={%d %d %d %d}", e0, e1, e2, e3);
+    result.assignFormat("ret={%d %d %d %d}", r0, r1, r2, r3);
+    expect.assignFormat("ret={%d %d %d %d}", e0, e1, e2, e3);
 
     return result.eq(expect);
   }
@@ -3584,7 +3584,7 @@ public:
     }
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (*Func)(int, int);
 
     Func func = ptr_as_func<Func>(_func);
@@ -3592,8 +3592,8 @@ public:
     int resultRet = func(56, 22);
     int expectRet = 56 + 22;
 
-    result.setFormat("ret=%d", resultRet);
-    expect.setFormat("ret=%d", expectRet);
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
 
     return result.eq(expect);
   }
@@ -3639,7 +3639,7 @@ public:
     cc.endFunc();
   }
 
-  virtual bool run(void* _func, StringBuilder& result, StringBuilder& expect) {
+  virtual bool run(void* _func, String& result, String& expect) {
     typedef int (ASMJIT_FASTCALL *Func)(int, void*);
 
     Func func = ptr_as_func<Func>(_func);
@@ -3652,8 +3652,8 @@ public:
     else
       resultRet = 1;
 
-    result.setFormat("ret={%d}", resultRet);
-    expect.setFormat("ret={%d}", expectRet);
+    result.assignFormat("ret={%d}", resultRet);
+    expect.assignFormat("ret={%d}", expectRet);
 
     return resultRet == expectRet;
   }

@@ -9,7 +9,6 @@
 
 // [Dependencies]
 #include "../core/globals.h"
-#include "../core/stringutils.h"
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -80,7 +79,7 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     "Overlapped registers\0"
     "Overlapping register and arguments base-address register\0"
     "Unknown error\0";
-  return StringUtils::findPackedString(errorMessages, Support::min<Error>(err, kErrorCount));
+  return Support::findPackedString(errorMessages, Support::min<Error>(err, kErrorCount));
 #else
   ASMJIT_UNUSED(err);
   static const char noMessage[] = "";

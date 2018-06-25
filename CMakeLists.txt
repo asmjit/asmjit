@@ -176,9 +176,8 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   rapass_p.h
   rastack.cpp
   rastack_p.h
-  stringbuilder.cpp
-  stringbuilder.h
-  stringutils.h
+  string.cpp
+  string.h
   support.cpp
   support.h
   target.cpp

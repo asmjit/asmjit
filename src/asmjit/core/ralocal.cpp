@@ -28,7 +28,7 @@ Error RALocalAllocator::init() noexcept {
   physToWorkMap = _pass->newPhysToWorkMap();
   workToPhysMap = _pass->newWorkToPhysMap();
   if (!physToWorkMap || !workToPhysMap)
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   _curAssignment.initLayout(_pass->_physRegCount, _pass->workRegs());
   _curAssignment.initMaps(physToWorkMap, workToPhysMap);
@@ -36,7 +36,7 @@ Error RALocalAllocator::init() noexcept {
   physToWorkMap = _pass->newPhysToWorkMap();
   workToPhysMap = _pass->newWorkToPhysMap();
   if (!physToWorkMap || !workToPhysMap)
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   _tmpAssignment.initLayout(_pass->_physRegCount, _pass->workRegs());
   _tmpAssignment.initMaps(physToWorkMap, workToPhysMap);
@@ -100,7 +100,7 @@ Error RALocalAllocator::makeInitialAssignment() noexcept {
             // to it. We will patch `_argsAssignment` later after RAStackAllocator finishes.
             RAStackSlot* slot = _pass->getOrCreateStackSlot(workReg);
             if (ASMJIT_UNLIKELY(!slot))
-              return DebugUtils::errored(kErrorNoHeapMemory);
+              return DebugUtils::errored(kErrorOutOfMemory);
 
             // This means STACK_ARG may be moved to STACK.
             workReg->addFlags(RAWorkReg::kFlagStackArgToStack);
@@ -191,7 +191,7 @@ Error RALocalAllocator::switchToAssignment(
       Support::BitWordIterator<uint32_t> it(affectedRegs);
       while (it.hasNext()) {
         uint32_t physId = it.next();
-        uint32_t physMask = Support::mask(physId);
+        uint32_t physMask = Support::bitMask(physId);
 
         uint32_t curWorkId = cur.physToWorkId(group, physId);
         uint32_t dstWorkId = dst.physToWorkId(group, physId);
@@ -233,7 +233,7 @@ Error RALocalAllocator::switchToAssignment(
                   uint32_t tmpPhysId = Support::ctz(allocableRegs);
 
                   ASMJIT_PROPAGATE(onMoveReg(group, curWorkId, tmpPhysId, physId));
-                  _pass->_clobberedRegs[group] |= Support::mask(tmpPhysId);
+                  _pass->_clobberedRegs[group] |= Support::bitMask(tmpPhysId);
                 }
                 else {
                   // MOVE is impossible, must SPILL.
@@ -403,7 +403,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
 
       if (tiedReg->hasUseId()) {
         // If the register has `useId` it means it can only be allocated in that register.
-        uint32_t useMask = Support::mask(tiedReg->useId());
+        uint32_t useMask = Support::bitMask(tiedReg->useId());
 
         // RAInstBuilder must have collected `usedRegs` on-the-fly.
         ASMJIT_ASSERT((willUse & useMask) != 0);
@@ -424,7 +424,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
         // Check if the register must be moved to `allocableRegs`.
         uint32_t allocableRegs = tiedReg->allocableRegs();
         if (assignedId != RAAssignment::kPhysNone) {
-          uint32_t assignedMask = Support::mask(assignedId);
+          uint32_t assignedMask = Support::bitMask(assignedId);
           if ((allocableRegs & ~willUse) & assignedMask) {
             tiedReg->setUseId(assignedId);
             tiedReg->markUseDone();
@@ -467,14 +467,14 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
 
           // DECIDE where to assign the USE register.
           uint32_t useId = decideOnAssignment(group, workId, assignedId, allocableRegs);
-          uint32_t useMask = Support::mask(useId);
+          uint32_t useMask = Support::bitMask(useId);
 
           willUse |= useMask;
           willFree |= useMask & liveRegs;
           tiedReg->setUseId(useId);
 
           if (assignedId != RAAssignment::kPhysNone) {
-            uint32_t assignedMask = Support::mask(assignedId);
+            uint32_t assignedMask = Support::bitMask(assignedId);
 
             willFree |= assignedMask;
             liveRegs &= ~assignedMask;
@@ -528,7 +528,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
             uint32_t reassignedId = decideOnUnassignment(group, workId, assignedId, allocableRegs);
             if (reassignedId != RAAssignment::kPhysNone) {
               ASMJIT_PROPAGATE(onMoveReg(group, workId, reassignedId, assignedId));
-              allocableRegs ^= Support::mask(reassignedId);
+              allocableRegs ^= Support::bitMask(reassignedId);
               continue;
             }
           }
@@ -647,7 +647,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
         // immediately after OUT, which could mean the register is not assigned).
         if (physId != RAAssignment::kPhysNone) {
           ASMJIT_PROPAGATE(onKillReg(group, workId, physId));
-          willOut &= ~Support::mask(physId);
+          willOut &= ~Support::bitMask(physId);
         }
 
         // We still maintain number of pending registers for OUT assignment.
@@ -728,8 +728,8 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
         tiedReg->setOutId(physId);
         tiedReg->markOutDone();
 
-        outRegs  |=  Support::mask(physId);
-        liveRegs &= ~Support::mask(physId);
+        outRegs  |=  Support::bitMask(physId);
+        liveRegs &= ~Support::bitMask(physId);
         outPending--;
       }
 

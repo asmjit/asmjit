@@ -121,11 +121,8 @@ enum ErrorCode : uint32_t {
   //! No error (success).
   kErrorOk = 0,
 
-  //! Heap memory allocation failed.
-  kErrorNoHeapMemory,
-
-  //! Virtual memory allocation failed.
-  kErrorNoVirtualMemory,
+  //! Out of memory.
+  kErrorOutOfMemory,
 
   //! Invalid argument.
   kErrorInvalidArgument,
@@ -278,19 +275,19 @@ namespace ByteOrder {
 }
 
 // ============================================================================
-// [asmjit::PointerCast]
+// [asmjit::ptr_as_func / func_as_ptr]
 // ============================================================================
 
-namespace AsmJitInternal {
+namespace Support {
   //! Cast designed to cast between function and void* pointers.
   template<typename Dst, typename Src>
-  static inline Dst ptr_cast(Src p) noexcept { return (Dst)p; }
+  static constexpr Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
 }
 
 template<typename Func>
-static inline Func ptr_as_func(void* func) noexcept { return AsmJitInternal::ptr_cast<Func, void*>(func); }
+static constexpr Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
 template<typename Func>
-static inline void* func_as_ptr(Func func) noexcept { return AsmJitInternal::ptr_cast<void*, Func>(func); }
+static constexpr void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_impl<void*, Func>(func); }
 
 // ============================================================================
 // [asmjit::DebugUtils]

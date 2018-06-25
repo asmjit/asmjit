@@ -64,7 +64,7 @@ public:
     for (uint32_t i = 0; i < count; i++) {
       const Operand& op = operands[i];
       if (!op.isReg()) continue;
-      mask |= Support::mask(op.as<BaseReg>().type());
+      mask |= Support::bitMask(op.as<BaseReg>().type());
     }
     return mask;
   }

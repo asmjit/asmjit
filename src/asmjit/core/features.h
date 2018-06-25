@@ -26,8 +26,7 @@ public:
 
   enum : uint32_t {
     kMaxFeatures = 128,
-    kBitWordSizeInBits = Support::kBitWordSizeInBits,
-    kNumBitWords = kMaxFeatures / kBitWordSizeInBits
+    kNumBitWords = kMaxFeatures / Support::kBitWordSizeInBits
   };
 
   // --------------------------------------------------------------------------
@@ -69,8 +68,8 @@ public:
   inline bool has(uint32_t featureId) const noexcept {
     ASMJIT_ASSERT(featureId < kMaxFeatures);
 
-    uint32_t idx = featureId / kBitWordSizeInBits;
-    uint32_t bit = featureId % kBitWordSizeInBits;
+    uint32_t idx = featureId / Support::kBitWordSizeInBits;
+    uint32_t bit = featureId % Support::kBitWordSizeInBits;
 
     return bool((_bits[idx] >> bit) & 0x1);
   }
@@ -91,8 +90,8 @@ public:
   inline void add(uint32_t featureId) noexcept {
     ASMJIT_ASSERT(featureId < kMaxFeatures);
 
-    uint32_t idx = featureId / kBitWordSizeInBits;
-    uint32_t bit = featureId % kBitWordSizeInBits;
+    uint32_t idx = featureId / Support::kBitWordSizeInBits;
+    uint32_t bit = featureId % Support::kBitWordSizeInBits;
 
     _bits[idx] |= BitWord(1) << bit;
   }
@@ -107,8 +106,8 @@ public:
   inline void remove(uint32_t featureId) noexcept {
     ASMJIT_ASSERT(featureId < kMaxFeatures);
 
-    uint32_t idx = featureId / kBitWordSizeInBits;
-    uint32_t bit = featureId % kBitWordSizeInBits;
+    uint32_t idx = featureId / Support::kBitWordSizeInBits;
+    uint32_t bit = featureId % Support::kBitWordSizeInBits;
 
     _bits[idx] &= ~(BitWord(1) << bit);
   }

@@ -17,8 +17,7 @@
 #include "../core/compiler.h"
 #include "../core/emitter.h"
 #include "../core/logging.h"
-#include "../core/stringbuilder.h"
-#include "../core/stringutils.h"
+#include "../core/string.h"
 #include "../core/support.h"
 #include "../core/type.h"
 
@@ -60,7 +59,7 @@ Error Logger::logf(const char* fmt, ...) noexcept {
 }
 
 Error Logger::logv(const char* fmt, va_list ap) noexcept {
-  StringBuilderTmp<2048> sb;
+  StringTmp<2048> sb;
   ASMJIT_PROPAGATE(sb.appendFormatVA(fmt, ap));
   return log(sb);
 }
@@ -68,7 +67,7 @@ Error Logger::logv(const char* fmt, va_list ap) noexcept {
 Error Logger::logBinary(const void* data, size_t size) noexcept {
   static const char prefix[] = "db ";
 
-  StringBuilderTmp<256> sb;
+  StringTmp<256> sb;
   sb.appendString(prefix, ASMJIT_ARRAY_SIZE(prefix) - 1);
 
   size_t i = size;
@@ -130,7 +129,7 @@ Error StringLogger::_log(const char* data, size_t size) noexcept {
 // ============================================================================
 
 Error Logging::formatLabel(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t labelId) noexcept {
@@ -163,7 +162,7 @@ Error Logging::formatLabel(
 }
 
 Error Logging::formatRegister(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t archId,
@@ -184,7 +183,7 @@ Error Logging::formatRegister(
 }
 
 Error Logging::formatOperand(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t archId,
@@ -204,7 +203,7 @@ Error Logging::formatOperand(
 }
 
 Error Logging::formatInstruction(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t archId,
@@ -223,7 +222,7 @@ Error Logging::formatInstruction(
   return kErrorInvalidArch;
 }
 
-Error Logging::formatTypeId(StringBuilder& sb, uint32_t typeId) noexcept {
+Error Logging::formatTypeId(String& sb, uint32_t typeId) noexcept {
   if (typeId == Type::kIdVoid)
     return sb.appendString("void");
 
@@ -268,7 +267,7 @@ Error Logging::formatTypeId(StringBuilder& sb, uint32_t typeId) noexcept {
 }
 
 #ifndef ASMJIT_DISABLE_BUILDER
-static Error formatFuncValue(StringBuilder& sb, uint32_t flags, const BaseEmitter* emitter, FuncValue value) noexcept {
+static Error formatFuncValue(String& sb, uint32_t flags, const BaseEmitter* emitter, FuncValue value) noexcept {
   uint32_t typeId = value.typeId();
   ASMJIT_PROPAGATE(Logging::formatTypeId(sb, typeId));
 
@@ -285,7 +284,7 @@ static Error formatFuncValue(StringBuilder& sb, uint32_t flags, const BaseEmitte
 }
 
 static Error formatFuncRets(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   const FuncDetail& fd,
@@ -310,7 +309,7 @@ static Error formatFuncRets(
 }
 
 static Error formatFuncArgs(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   const FuncDetail& fd,
@@ -336,7 +335,7 @@ static Error formatFuncArgs(
 }
 
 Error Logging::formatNode(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseBuilder* cb,
   const BaseNode* node_) noexcept {
@@ -455,9 +454,9 @@ Error Logging::formatNode(
 }
 #endif
 
-Error Logging::formatLine(StringBuilder& sb, const uint8_t* binData, size_t binSize, size_t dispSize, size_t immSize, const char* comment) noexcept {
+Error Logging::formatLine(String& sb, const uint8_t* binData, size_t binSize, size_t dispSize, size_t immSize, const char* comment) noexcept {
   size_t currentSize = sb.size();
-  size_t commentSize = comment ? StringUtils::strLen(comment, Globals::kMaxCommentSize) : 0;
+  size_t commentSize = comment ? Support::strLen(comment, Globals::kMaxCommentSize) : 0;
 
   ASMJIT_ASSERT(binSize >= dispSize);
   const size_t kNoBinSize = std::numeric_limits<size_t>::max();

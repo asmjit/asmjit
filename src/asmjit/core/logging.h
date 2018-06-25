@@ -10,7 +10,7 @@
 
 // [Dependencies]
 #include "../core/inst.h"
-#include "../core/stringbuilder.h"
+#include "../core/string.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -116,7 +116,7 @@ public:
 //!
 //! There are two `Logger` implementations offered by AsmJit:
 //!   - `FileLogger` - allows to log into `FILE*`.
-//!   - `StringLogger` - logs into a `StringBuilder`.
+//!   - `StringLogger` - logs into a `String`.
 class ASMJIT_VIRTAPI Logger {
 public:
   ASMJIT_NONCOPYABLE(Logger)
@@ -139,8 +139,8 @@ public:
 
   //! Log a string `str`, which is either null terminated or having size `size`.
   inline Error log(const char* data, size_t size = SIZE_MAX) noexcept { return _log(data, size); }
-  //! Log a content of a `StringBuilder` `str`.
-  inline Error log(const StringBuilder& str) noexcept { return _log(str.data(), str.size()); }
+  //! Log a content of a `String` `str`.
+  inline Error log(const String& str) noexcept { return _log(str.data(), str.size()); }
 
   //! Format the message by using `std::snprintf()` and then send to `log()`.
   ASMJIT_API Error logf(const char* fmt, ...) noexcept;
@@ -264,7 +264,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Output string.
-  StringBuilder _content;
+  String _content;
 };
 
 // ============================================================================
@@ -273,7 +273,7 @@ public:
 
 struct Logging {
   ASMJIT_API static Error formatRegister(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t archId,
@@ -281,32 +281,32 @@ struct Logging {
     uint32_t regId) noexcept;
 
   ASMJIT_API static Error formatLabel(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t labelId) noexcept;
 
   ASMJIT_API static Error formatOperand(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t archId,
     const Operand_& op) noexcept;
 
   ASMJIT_API static Error formatInstruction(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t archId,
     const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
 
   ASMJIT_API static Error formatTypeId(
-    StringBuilder& sb,
+    String& sb,
     uint32_t typeId) noexcept;
 
   #ifndef ASMJIT_DISABLE_BUILDER
   ASMJIT_API static Error formatNode(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseBuilder* cb,
     const BaseNode* node_) noexcept;
@@ -322,7 +322,7 @@ struct Logging {
   };
 
   static Error formatLine(
-    StringBuilder& sb,
+    String& sb,
     const uint8_t* binData, size_t binSize, size_t dispSize, size_t immSize, const char* comment) noexcept;
   #endif
 };

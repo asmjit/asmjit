@@ -54,7 +54,7 @@ Error BaseAssembler::setOffset(size_t offset) {
 static void BaseAssembler_logLabel(BaseAssembler* self, const Label& label) noexcept {
   Logger* logger = self->code()->logger();
 
-  StringBuilderTmp<512> sb;
+  StringTmp<512> sb;
   size_t binSize = logger->hasFlag(FormatOptions::kFlagMachineCode) ? size_t(0) : std::numeric_limits<size_t>::max();
 
   sb.appendChars(' ', logger->indentation(FormatOptions::kIndentationLabel));
@@ -130,7 +130,7 @@ Error BaseAssembler::bind(const Label& label) {
       uint32_t size = _bufferData[offset];
       if (size == 4)
         Support::writeI32u(_bufferData + offset, int32_t(patchedValue));
-      else if (size == 1 && Support::isI8(patchedValue))
+      else if (size == 1 && Support::isInt8(patchedValue))
         _bufferData[offset] = uint8_t(patchedValue & 0xFF);
       else
         err = DebugUtils::errored(kErrorInvalidDisplacement);
@@ -206,7 +206,7 @@ void BaseAssembler::_emitLog(
   ASMJIT_ASSERT(logger != nullptr);
   ASMJIT_ASSERT(options & BaseEmitter::kOptionLoggingEnabled);
 
-  StringBuilderTmp<256> sb;
+  StringTmp<256> sb;
   uint32_t flags = logger->flags();
 
   uint8_t* beforeCursor = _bufferPtr;
@@ -241,7 +241,7 @@ Error BaseAssembler::_emitFailed(
   Error err,
   uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
 
-  StringBuilderTmp<256> sb;
+  StringTmp<256> sb;
   sb.appendString(DebugUtils::errorAsString(err));
   sb.appendString(": ");
 
@@ -327,7 +327,7 @@ Error BaseAssembler::embedLabel(const Label& label) {
   else {
     LabelLink* link = _code->newLabelLink(le, _section->id(), offset(), 0);
     if (ASMJIT_UNLIKELY(!link))
-      return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+      return reportError(DebugUtils::errored(kErrorOutOfMemory));
     link->relocId = re->id();
   }
 

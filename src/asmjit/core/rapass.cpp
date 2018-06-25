@@ -615,7 +615,7 @@ Error RAPass::_asWorkReg(VirtReg* vReg, RAWorkReg** out) noexcept {
 
   RAWorkReg* wReg = zone()->newT<RAWorkReg>(vReg, wRegs.size());
   if (ASMJIT_UNLIKELY(!wReg))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   vReg->setWorkReg(wReg);
   wRegs.appendUnsafe(wReg);
@@ -739,7 +739,7 @@ namespace LiveOps {
 ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
   ASMJIT_RA_LOG_INIT(
     Logger* logger = debugLogger();
-    StringBuilderTmp<512> sb;
+    StringTmp<512> sb;
   );
   ASMJIT_RA_LOG_FORMAT("[RAPass::BuildLiveness]\n");
 
@@ -872,7 +872,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
     for (i = 0; i < numAllBlocks; i++) {
       RABlock* block = _blocks[i];
 
-      ASMJIT_PROPAGATE(sb.setFormat("  {#%u}\n", block->blockId()));
+      ASMJIT_PROPAGATE(sb.assignFormat("  {#%u}\n", block->blockId()));
       ASMJIT_PROPAGATE(_dumpBlockLiveness(sb, block));
 
       logger->log(sb);
@@ -1018,7 +1018,7 @@ Error RAPass::runGlobalAllocator() noexcept {
   return kErrorOk;
 }
 
-static void dumpSpans(StringBuilder& sb, uint32_t index, const LiveRegSpans& liveSpans) {
+static void dumpSpans(String& sb, uint32_t index, const LiveRegSpans& liveSpans) {
   sb.appendFormat("  %02u: ", index);
 
   for (uint32_t i = 0; i < liveSpans.size(); i++) {
@@ -1036,7 +1036,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
 
   ASMJIT_RA_LOG_INIT(
     Logger* logger = debugLogger();
-    StringBuilderTmp<512> sb;
+    StringTmp<512> sb;
   );
 
   ASMJIT_RA_LOG_FORMAT("[RAPass::BinPack] Available=%u (0x%08X) Count=%u\n",
@@ -1236,7 +1236,7 @@ Error RAPass::setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, 
   WorkToPhysMap* workToPhysMap = cloneWorkToPhysMap(fromAssignment.workToPhysMap());
 
   if (ASMJIT_UNLIKELY(!physToWorkMap || !workToPhysMap))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   block->setEntryAssignment(physToWorkMap, workToPhysMap);
 
@@ -1277,7 +1277,7 @@ Error RAPass::setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, 
           uint32_t workId = as.physToWorkId(group, physId);
 
           RAWorkReg* workReg = workRegById(workId);
-          workReg->addAllocatedMask(Support::mask(physId));
+          workReg->addAllocatedMask(Support::bitMask(physId));
         }
       }
     }
@@ -1520,7 +1520,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::_rewrite(BaseNode* first, BaseNode* stop) noexc
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_LOGGING
-static void RAPass_dumpRAInst(RAPass* pass, StringBuilder& sb, const RAInst* raInst) noexcept {
+static void RAPass_dumpRAInst(RAPass* pass, String& sb, const RAInst* raInst) noexcept {
   const RATiedReg* tiedRegs = raInst->tiedRegs();
   uint32_t tiedCount = raInst->tiedCount();
 
@@ -1553,7 +1553,7 @@ static void RAPass_dumpRAInst(RAPass* pass, StringBuilder& sb, const RAInst* raI
 
 ASMJIT_FAVOR_SIZE Error RAPass::annotateCode() noexcept {
   uint32_t loggerFlags = _loggerFlags;
-  StringBuilderTmp<1024> sb;
+  StringTmp<1024> sb;
 
   for (const RABlock* block : _blocks) {
     BaseNode* node = block->first();
@@ -1590,7 +1590,7 @@ ASMJIT_FAVOR_SIZE Error RAPass::_logBlockIds(const RABlocks& blocks) noexcept {
   // Can only be called if the `Logger` is present.
   ASMJIT_ASSERT(debugLogger());
 
-  StringBuilderTmp<1024> sb;
+  StringTmp<1024> sb;
   sb.appendString("  [Succ] {");
 
   for (uint32_t i = 0, size = blocks.size(); i < size; i++) {
@@ -1603,7 +1603,7 @@ ASMJIT_FAVOR_SIZE Error RAPass::_logBlockIds(const RABlocks& blocks) noexcept {
   return debugLogger()->log(sb.data(), sb.size());
 }
 
-ASMJIT_FAVOR_SIZE Error RAPass::_dumpBlockLiveness(StringBuilder& sb, const RABlock* block) noexcept {
+ASMJIT_FAVOR_SIZE Error RAPass::_dumpBlockLiveness(String& sb, const RABlock* block) noexcept {
   for (uint32_t liveType = 0; liveType < RABlock::kLiveCount; liveType++) {
     const char* bitsName = liveType == RABlock::kLiveIn  ? "IN  " :
                            liveType == RABlock::kLiveOut ? "OUT " :
@@ -1635,7 +1635,7 @@ ASMJIT_FAVOR_SIZE Error RAPass::_dumpBlockLiveness(StringBuilder& sb, const RABl
   return kErrorOk;
 }
 
-ASMJIT_FAVOR_SIZE Error RAPass::_dumpLiveSpans(StringBuilder& sb) noexcept {
+ASMJIT_FAVOR_SIZE Error RAPass::_dumpLiveSpans(String& sb) noexcept {
   uint32_t numWorkRegs = _workRegs.size();
   uint32_t maxSize = _maxWorkRegNameSize;
 

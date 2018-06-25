@@ -173,7 +173,7 @@ public:
     if (size <= remainingSize())
       return kErrorOk;
     else
-      return _alloc(0, 1) ? kErrorOk : DebugUtils::errored(kErrorNoHeapMemory);
+      return _alloc(0, 1) ? kErrorOk : DebugUtils::errored(kErrorOutOfMemory);
   }
 
   ASMJIT_INLINE void _assignBlock(Block* block) noexcept {

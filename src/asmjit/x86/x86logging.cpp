@@ -13,8 +13,7 @@
 
 // [Dependencies]
 #include "../core/misc_p.h"
-#include "../core/stringutils.h"
-
+#include "../core/support.h"
 #include "../x86/x86instdb.h"
 #include "../x86/x86logging_p.h"
 #include "../x86/x86operand.h"
@@ -189,7 +188,7 @@ static const char* x86GetAddressSizeString(uint32_t size) noexcept {
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE Error LoggingInternal::formatOperand(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t archId,
@@ -296,7 +295,7 @@ struct ImmBits {
   char text[48 - 3];
 };
 
-ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmShuf(StringBuilder& sb, uint32_t u8, uint32_t bits, uint32_t count) noexcept {
+ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmShuf(String& sb, uint32_t u8, uint32_t bits, uint32_t count) noexcept {
   uint32_t mask = (1 << bits) - 1;
 
   for (uint32_t i = 0; i < count; i++, u8 >>= bits) {
@@ -311,7 +310,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmShuf(StringBuilder& sb, 
   return kErrorOk;
 }
 
-ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmBits(StringBuilder& sb, uint32_t u8, const ImmBits* bits, uint32_t count) noexcept {
+ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmBits(String& sb, uint32_t u8, const ImmBits* bits, uint32_t count) noexcept {
   uint32_t n = 0;
   char buf[64];
 
@@ -323,7 +322,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmBits(StringBuilder& sb, 
 
     switch (spec.mode) {
       case ImmBits::kModeLookup:
-        str = StringUtils::findPackedString(spec.text, value);
+        str = Support::findPackedString(spec.text, value);
         break;
 
       case ImmBits::kModeFormat:
@@ -348,14 +347,14 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmBits(StringBuilder& sb, 
   return kErrorOk;
 }
 
-ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmText(StringBuilder& sb, uint32_t u8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
+ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmText(String& sb, uint32_t u8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
   uint32_t mask = (1u << bits) - 1;
   uint32_t pos = 0;
 
   for (uint32_t i = 0; i < count; i++, u8 >>= bits, pos += advance) {
     uint32_t value = (u8 & mask) + pos;
     ASMJIT_PROPAGATE(sb.appendChar(i == 0 ? kImmCharStart : kImmCharOr));
-    ASMJIT_PROPAGATE(sb.appendString(StringUtils::findPackedString(text, value)));
+    ASMJIT_PROPAGATE(sb.appendString(Support::findPackedString(text, value)));
   }
 
   if (kImmCharEnd)
@@ -365,7 +364,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmText(StringBuilder& sb, 
 }
 
 ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   uint32_t instId,
   uint32_t vecSize,
@@ -608,14 +607,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
 // [asmjit::x86::LoggingInternal - Format Register]
 // ============================================================================
 
-ASMJIT_FAVOR_SIZE Error LoggingInternal::formatRegister(
-  StringBuilder& sb,
-  uint32_t flags,
-  const BaseEmitter* emitter,
-  uint32_t archId,
-  uint32_t rType,
-  uint32_t rId) noexcept {
-
+ASMJIT_FAVOR_SIZE Error LoggingInternal::formatRegister(String& sb, uint32_t flags, const BaseEmitter* emitter, uint32_t archId, uint32_t rType, uint32_t rId) noexcept {
   ASMJIT_UNUSED(archId);
   const RegFormatInfo& info = x86RegFormatInfo;
 
@@ -669,7 +661,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatRegister(
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
-  StringBuilder& sb,
+  String& sb,
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t archId,
@@ -762,7 +754,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
 
     // Support AVX-512 broadcast - {1tox}.
     if (op.isMem() && op.as<Mem>().hasBroadcast()) {
-      ASMJIT_PROPAGATE(sb.appendFormat(" {1to%u}", Support::mask(op.as<Mem>().getBroadcast())));
+      ASMJIT_PROPAGATE(sb.appendFormat(" {1to%u}", Support::bitMask(op.as<Mem>().getBroadcast())));
     }
   }
 

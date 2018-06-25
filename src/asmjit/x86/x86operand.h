@@ -859,13 +859,39 @@ static constexpr Mem ptr(const Rip& rip_, int32_t offset = 0, uint32_t size = 0)
 static constexpr Mem ptr(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size);
 }
-//! Create an `[abs + (index.reg << shift)]` absolute memory operand.
+//! Create an `[base + (index.reg << shift)]` absolute memory operand.
 static constexpr Mem ptr(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
 }
-//! Create an `[abs + (index.reg << shift)]` absolute memory operand.
+//! Create an `[base + (index.reg << shift)]` absolute memory operand.
 static constexpr Mem ptr(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
+}
+
+//! Create an `[base]` absolute memory operand (absolute).
+static constexpr Mem ptr_abs(uint64_t base, uint32_t size = 0) noexcept {
+  return Mem(base, size, BaseMem::kSignatureMemAbs);
+}
+//! Create an `[base + (index.reg << shift)]` absolute memory operand (absolute).
+static constexpr Mem ptr_abs(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+  return Mem(base, index, shift, size, BaseMem::kSignatureMemAbs);
+}
+//! Create an `[base + (index.reg << shift)]` absolute memory operand (absolute).
+static constexpr Mem ptr_abs(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+  return Mem(base, index, shift, size, BaseMem::kSignatureMemAbs);
+}
+
+//! Create an `[base]` relative memory operand (relative).
+static constexpr Mem ptr_rel(uint64_t base, uint32_t size = 0) noexcept {
+  return Mem(base, size, BaseMem::kSignatureMemRel);
+}
+//! Create an `[base + (index.reg << shift)]` relative memory operand (relative).
+static constexpr Mem ptr_rel(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+  return Mem(base, index, shift, size, BaseMem::kSignatureMemRel);
+}
+//! Create an `[base + (index.reg << shift)]` relative memory operand (relative).
+static constexpr Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+  return Mem(base, index, shift, size, BaseMem::kSignatureMemRel);
 }
 
 //! \internal
@@ -907,28 +933,28 @@ static constexpr Mem ptr(uint64_t base, const Vec& index, uint32_t shift = 0, ui
     return Mem(base, index, shift, SIZE);                                             \
   }                                                                                   \
                                                                                       \
-  /*! Create a `[base + offset]` memory operand. */                                   \
+  /*! Create a `[base + offset]` memory operand (absolute). */                        \
   static constexpr Mem FUNC##_abs(uint64_t base) noexcept {                           \
     return Mem(base, SIZE, BaseMem::kSignatureMemAbs);                                \
   }                                                                                   \
-  /*! Create a `[base + (index << shift) + offset]` memory operand. */                \
+  /*! Create a `[base + (index << shift) + offset]` memory operand (absolute). */     \
   static constexpr Mem FUNC##_abs(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemAbs);                  \
   }                                                                                   \
-  /*! Create a `[base + (vec_index << shift) + offset]` memory operand. */            \
+  /*! Create a `[base + (vec_index << shift) + offset]` memory operand (absolute). */ \
   static constexpr Mem FUNC##_abs(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemAbs);                  \
   }                                                                                   \
                                                                                       \
-  /*! Create a `[base + offset]` memory operand. */                                   \
+  /*! Create a `[base + offset]` memory operand (relative). */                        \
   static constexpr Mem FUNC##_rel(uint64_t base) noexcept {                           \
     return Mem(base, SIZE, BaseMem::kSignatureMemRel);                                \
   }                                                                                   \
-  /*! Create a `[base + (index << shift) + offset]` memory operand. */                \
+  /*! Create a `[base + (index << shift) + offset]` memory operand (relative). */     \
   static constexpr Mem FUNC##_rel(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemRel);                  \
   }                                                                                   \
-  /*! Create a `[base + (vec_index << shift) + offset]` memory operand. */            \
+  /*! Create a `[base + (vec_index << shift) + offset]` memory operand (relative). */ \
   static constexpr Mem FUNC##_rel(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemRel);                  \
   }

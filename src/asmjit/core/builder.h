@@ -17,7 +17,7 @@
 #include "../core/constpool.h"
 #include "../core/inst.h"
 #include "../core/operand.h"
-#include "../core/stringbuilder.h"
+#include "../core/string.h"
 #include "../core/support.h"
 #include "../core/zone.h"
 #include "../core/zonevector.h"
@@ -212,7 +212,7 @@ public:
   // --------------------------------------------------------------------------
 
   #ifndef ASMJIT_DISABLE_LOGGING
-  ASMJIT_API Error dump(StringBuilder& sb, uint32_t flags = 0) const noexcept;
+  ASMJIT_API Error dump(String& sb, uint32_t flags = 0) const noexcept;
   #endif
 
   // --------------------------------------------------------------------------

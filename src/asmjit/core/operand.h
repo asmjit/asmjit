@@ -1170,17 +1170,17 @@ public:
   constexpr Imm clone() const noexcept { return Imm(*this); }
 
   //! Get whether the immediate can be casted to 8-bit signed integer.
-  constexpr bool isI8() const noexcept { return Support::isI8(_imm.value.i64); }
+  constexpr bool isInt8() const noexcept { return Support::isInt8(_imm.value.i64); }
   //! Get whether the immediate can be casted to 8-bit unsigned integer.
-  constexpr bool isU8() const noexcept { return Support::isU8(_imm.value.i64); }
+  constexpr bool isUInt8() const noexcept { return Support::isUInt8(_imm.value.i64); }
   //! Get whether the immediate can be casted to 16-bit signed integer.
-  constexpr bool isI16() const noexcept { return Support::isI16(_imm.value.i64); }
+  constexpr bool isInt16() const noexcept { return Support::isInt16(_imm.value.i64); }
   //! Get whether the immediate can be casted to 16-bit unsigned integer.
-  constexpr bool isU16() const noexcept { return Support::isU16(_imm.value.i64); }
+  constexpr bool isUInt16() const noexcept { return Support::isUInt16(_imm.value.i64); }
   //! Get whether the immediate can be casted to 32-bit signed integer.
-  constexpr bool isI32() const noexcept { return Support::isI32(_imm.value.i64); }
+  constexpr bool isInt32() const noexcept { return Support::isInt32(_imm.value.i64); }
   //! Get whether the immediate can be casted to 32-bit unsigned integer.
-  constexpr bool isU32() const noexcept { return Support::isU32(_imm.value.i64); }
+  constexpr bool isUInt32() const noexcept { return Support::isUInt32(_imm.value.i64); }
 
   //! Get immediate value as 8-bit signed integer.
   constexpr int8_t i8() const noexcept { return int8_t(i32() & 0xFF); }

@@ -31,8 +31,11 @@ static void dumpCpu(void) {
   INFO("  Vendor                  : %s", cpu.vendor());
   INFO("  Brand                   : %s", cpu.brand());
   INFO("  Model ID                : %u", cpu.modelId());
+  INFO("  Brand ID                : %u", cpu.brandId());
   INFO("  Family ID               : %u", cpu.familyId());
   INFO("  Stepping                : %u", cpu.stepping());
+  INFO("  Processor Type          : %u", cpu.processorType());
+  INFO("  Max logical Processors  : %u", cpu.maxLogicalProcessors());
   INFO("  Cache-Line Size         : %u", cpu.cacheLineSize());
   INFO("  HW-Thread Count         : %u", cpu.hwThreadCount());
   INFO("");
@@ -135,12 +138,6 @@ static void dumpCpu(void) {
     { x86::Features::kXSAVES          , "XSAVES"           }
   };
 
-  INFO("X86 Specific:");
-  INFO("  Processor Type          : %u", cpu.x86ProcessorType());
-  INFO("  Brand Index             : %u", cpu.x86BrandIndex());
-  INFO("  Max logical Processors  : %u", cpu.x86MaxLogicalProcessors());
-  INFO("");
-
   INFO("X86 Features:");
   dumpFeatures(cpu, x86FeaturesList, ASMJIT_ARRAY_SIZE(x86FeaturesList));
   INFO("");
@@ -208,7 +205,7 @@ static void dumpSizeOf(void) {
     DUMP_TYPE(LabelEntry);
     DUMP_TYPE(RelocEntry);
     DUMP_TYPE(SectionEntry);
-    DUMP_TYPE(StringBuilder);
+    DUMP_TYPE(String);
     DUMP_TYPE(Target);
     DUMP_TYPE(Zone);
     DUMP_TYPE(ZoneAllocator);

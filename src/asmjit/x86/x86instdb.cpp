@@ -32,8 +32,8 @@
 
 // [Dependencies]
 #include "../core/cpuinfo.h"
-#include "../core/stringutils.h"
 #include "../core/misc_p.h"
+#include "../core/support.h"
 #include "../x86/x86features.h"
 #include "../x86/x86instdb.h"
 #include "../x86/x86opcode_p.h"
@@ -4301,7 +4301,7 @@ uint32_t InstDB::idByName(const char* name, size_t nameSize) noexcept {
 
   for (size_t lim = (size_t)(end - base); lim != 0; lim >>= 1) {
     const InstInfo* cur = base + (lim >> 1);
-    int result = StringUtils::cmpInstName(nameData + cur[0]._nameDataIndex, name, nameSize);
+    int result = Support::cmpInstName(nameData + cur[0]._nameDataIndex, name, nameSize);
 
     if (result < 0) {
       base = cur + 1;
@@ -5194,7 +5194,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           if (ASMJIT_UNLIKELY(Support::bitTest(vd->allowedRegMask[regType], regId) == 0))
             return DebugUtils::errored(kErrorInvalidPhysId);
 
-          regMask = Support::mask(regId);
+          regMask = Support::bitMask(regId);
           combinedRegMask |= regMask;
         }
         else {
@@ -5251,7 +5251,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           // instructions where memory operand is implicit and has 'seg:[reg]' form.
           if (baseId < Operand::kPackedIdMin) {
             // Physical base id.
-            regMask = Support::mask(baseId);
+            regMask = Support::bitMask(baseId);
             combinedRegMask |= regMask;
           }
           else {
@@ -5267,7 +5267,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           // Base is an address, make sure that the address doesn't overflow 32-bit
           // integer (either int32_t or uint32_t) in 32-bit targets.
           int64_t offset = m.offset();
-          if (archMask == InstDB::kArchMaskX86 && !Support::isI32(offset) && !Support::isU32(offset))
+          if (archMask == InstDB::kArchMaskX86 && !Support::isInt32(offset) && !Support::isUInt32(offset))
             return DebugUtils::errored(kErrorInvalidAddress);
         }
 
@@ -5299,7 +5299,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
 
           uint32_t indexId = m.indexId();
           if (indexId < Operand::kPackedIdMin)
-            combinedRegMask |= Support::mask(indexId);
+            combinedRegMask |= Support::bitMask(indexId);
 
           // Only used for implicit memory operands having 'seg:[reg]' form, so clear it.
           regMask = 0;
@@ -5579,12 +5579,12 @@ ASMJIT_FAVOR_SIZE static uint32_t x86GetRegTypesMask(const Operand_* operands, u
     const Operand_& op = operands[i];
     if (op.isReg()) {
       const BaseReg& reg = op.as<BaseReg>();
-      mask |= Support::mask(reg.type());
+      mask |= Support::bitMask(reg.type());
     }
     else if (op.isMem()) {
       const BaseMem& mem = op.as<BaseMem>();
-      if (mem.hasBaseReg()) mask |= Support::mask(mem.baseType());
-      if (mem.hasIndexReg()) mask |= Support::mask(mem.indexType());
+      if (mem.hasBaseReg()) mask |= Support::bitMask(mem.baseType());
+      if (mem.hasIndexReg()) mask |= Support::bitMask(mem.indexType());
     }
   }
   return mask;
@@ -5687,7 +5687,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
         // AVX instruction set doesn't support integer operations on YMM registers
         // as these were later introcuced by AVX2. In our case we have to check if
         // YMM register(s) are in use and if that is the case this is an AVX2 instruction.
-        if (!(mask & Support::mask(Reg::kTypeYmm, Reg::kTypeZmm)))
+        if (!(mask & Support::bitMask(Reg::kTypeYmm, Reg::kTypeZmm)))
           isAVX2 = false;
       }
 
@@ -5702,7 +5702,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
       // Only AVX512-F|BW|DQ allow to encode AVX/AVX2 instructions
       if (out.has(Features::kAVX512_F) || out.has(Features::kAVX512_BW) || out.has(Features::kAVX512_DQ)) {
         uint32_t kAvx512Options = Inst::kOptionEvex | Inst::_kOptionAvx512Mask;
-        if (!(mask & Support::mask(Reg::kTypeZmm, Reg::kTypeKReg)) && !(options & (kAvx512Options)) && inst.extraReg().type() != Reg::kTypeKReg) {
+        if (!(mask & Support::bitMask(Reg::kTypeZmm, Reg::kTypeKReg)) && !(options & (kAvx512Options)) && inst.extraReg().type() != Reg::kTypeKReg) {
           out.remove(Features::kAVX512_F,
                      Features::kAVX512_BW,
                      Features::kAVX512_DQ,

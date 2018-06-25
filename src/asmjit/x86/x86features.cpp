@@ -123,7 +123,9 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
   xgetbv_t xcr0 { 0, 0 };
   Features& features = cpu._features.as<Features>();
 
+  cpu.reset();
   cpu._archInfo.init(ArchInfo::kIdHost);
+  cpu._maxLogicalProcessors = 1;
   features.add(Features::kI486);
 
   // --------------------------------------------------------------------------
@@ -155,14 +157,13 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (familyId == 0x0Fu)
       familyId += (((regs.eax >> 20) & 0xFFu) << 4);
 
-    cpu._modelId  = modelId;
-    cpu._familyId = familyId;
-    cpu._stepping = regs.eax & 0x0F;
-    cpu._cacheLineSize = ((regs.ebx >>  8) & 0xFF) * 8;
-
-    cpu._x86Data._processorType        = ((regs.eax >> 12) & 0x03);
-    cpu._x86Data._brandIndex           = ((regs.ebx      ) & 0xFF);
-    cpu._x86Data._maxLogicalProcessors = ((regs.ebx >> 16) & 0xFF);
+    cpu._modelId              = modelId;
+    cpu._familyId             = familyId;
+    cpu._brandId              = ((regs.ebx      ) & 0xFF);
+    cpu._processorType        = ((regs.eax >> 12) & 0x03);
+    cpu._maxLogicalProcessors = ((regs.ebx >> 16) & 0xFF);
+    cpu._stepping             = ((regs.eax      ) & 0x0F);
+    cpu._cacheLineSize        = ((regs.ebx >>  8) & 0xFF) * 8;
 
     if (bitTest(regs.ecx,  0)) features.add(Features::kSSE3);
     if (bitTest(regs.ecx,  1)) features.add(Features::kPCLMULQDQ);
@@ -179,7 +180,6 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ecx, 26)) features.add(Features::kXSAVE);
     if (bitTest(regs.ecx, 27)) features.add(Features::kOSXSAVE);
     if (bitTest(regs.ecx, 30)) features.add(Features::kRDRAND);
-
     if (bitTest(regs.edx,  0)) features.add(Features::kFPU);
     if (bitTest(regs.edx,  4)) features.add(Features::kRDTSC);
     if (bitTest(regs.edx,  5)) features.add(Features::kMSR);
@@ -188,10 +188,8 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.edx, 19)) features.add(Features::kCLFLUSH);
     if (bitTest(regs.edx, 23)) features.add(Features::kMMX);
     if (bitTest(regs.edx, 24)) features.add(Features::kFXSR);
-    if (bitTest(regs.edx, 25)) features.add(Features::kSSE,
-                                            Features::kMMX2);
-    if (bitTest(regs.edx, 26)) features.add(Features::kSSE,
-                                            Features::kSSE2);
+    if (bitTest(regs.edx, 25)) features.add(Features::kSSE, Features::kMMX2);
+    if (bitTest(regs.edx, 26)) features.add(Features::kSSE, Features::kSSE2);
     if (bitTest(regs.edx, 28)) features.add(Features::kMT);
 
     // Get the content of XCR0 if supported by CPU and enabled by OS.
@@ -237,7 +235,6 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ebx, 23)) features.add(Features::kCLFLUSHOPT);
     if (bitTest(regs.ebx, 24)) features.add(Features::kCLWB);
     if (bitTest(regs.ebx, 29)) features.add(Features::kSHA);
-
     if (bitTest(regs.ecx,  0)) features.add(Features::kPREFETCHWT1);
 
     // Detect 'TSX' - Requires at least one of `HLE` and `RTM` features.
@@ -262,7 +259,6 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         if (bitTest(regs.ebx, 28)) features.add(Features::kAVX512_CDI);
         if (bitTest(regs.ebx, 30)) features.add(Features::kAVX512_BW);
         if (bitTest(regs.ebx, 31)) features.add(Features::kAVX512_VL);
-
         if (bitTest(regs.ecx,  1)) features.add(Features::kAVX512_VBMI);
         if (bitTest(regs.ecx,  6)) features.add(Features::kAVX512_VBMI2);
         if (bitTest(regs.ecx,  8)) features.add(Features::kGFNI);
@@ -271,7 +267,6 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         if (bitTest(regs.ecx, 11)) features.add(Features::kAVX512_VNNI);
         if (bitTest(regs.ecx, 12)) features.add(Features::kAVX512_BITALG);
         if (bitTest(regs.ecx, 14)) features.add(Features::kAVX512_VPOPCNTDQ);
-
         if (bitTest(regs.edx,  2)) features.add(Features::kAVX512_4VNNIW);
         if (bitTest(regs.edx,  3)) features.add(Features::kAVX512_4FMAPS);
       }
@@ -326,13 +321,11 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         if (bitTest(regs.ecx, 15)) features.add(Features::kLWP);
         if (bitTest(regs.ecx, 21)) features.add(Features::kTBM);
         if (bitTest(regs.ecx, 29)) features.add(Features::kMONITORX);
-
         if (bitTest(regs.edx, 20)) features.add(Features::kNX);
         if (bitTest(regs.edx, 21)) features.add(Features::kFXSROPT);
         if (bitTest(regs.edx, 22)) features.add(Features::kMMX2);
         if (bitTest(regs.edx, 27)) features.add(Features::kRDTSCP);
-        if (bitTest(regs.edx, 30)) features.add(Features::k3DNOW2,
-                                                Features::kMMX2);
+        if (bitTest(regs.edx, 30)) features.add(Features::k3DNOW2, Features::kMMX2);
         if (bitTest(regs.edx, 31)) features.add(Features::k3DNOW);
 
         if (cpu.hasFeature(Features::kAVX)) {

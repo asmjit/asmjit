@@ -63,13 +63,13 @@ public:
   //! (this means that you don't have to set it to null before calling `add()`).
   template<typename Func>
   inline Error add(Func* dst, CodeHolder* code) noexcept {
-    return _add(AsmJitInternal::ptr_cast<void**, Func*>(dst), code);
+    return _add(Support::ptr_cast_impl<void**, Func*>(dst), code);
   }
 
   //! Release `p` which was obtained by calling `add()`.
   template<typename Func>
   inline Error release(Func p) noexcept {
-    return _release(AsmJitInternal::ptr_cast<void*, Func>(p));
+    return _release(Support::ptr_cast_impl<void*, Func>(p));
   }
 
   //! Type-unsafe version of `add()`.

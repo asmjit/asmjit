@@ -32,10 +32,10 @@ public:
     ASMJIT_UNUSED(err);
     ASMJIT_UNUSED(origin);
 
-    _message.setString(message);
+    _message.assignString(message);
   }
 
-  StringBuilderTmp<128> _message;
+  StringTmp<128> _message;
 };
 
 // ============================================================================
@@ -344,7 +344,7 @@ Error BaseBuilder::labelNodeOf(LabelNode** pOut, uint32_t id) noexcept {
   if (!node) {
     node = newNodeT<LabelNode>(id);
     if (ASMJIT_UNLIKELY(!node))
-      return DebugUtils::errored(kErrorNoHeapMemory);
+      return DebugUtils::errored(kErrorOutOfMemory);
     _labelNodes[index] = node;
   }
 
@@ -376,7 +376,7 @@ Label BaseBuilder::newLabel() {
   if (_code) {
     LabelNode* node = newNodeT<LabelNode>(id);
     if (ASMJIT_UNLIKELY(!node)) {
-      reportError(DebugUtils::errored(kErrorNoHeapMemory));
+      reportError(DebugUtils::errored(kErrorOutOfMemory));
     }
     else {
       Error err = registerLabelNode(node);
@@ -394,7 +394,7 @@ Label BaseBuilder::newNamedLabel(const char* name, size_t nameSize, uint32_t typ
   if (_code) {
     LabelNode* node = newNodeT<LabelNode>(id);
     if (ASMJIT_UNLIKELY(!node)) {
-      reportError(DebugUtils::errored(kErrorNoHeapMemory));
+      reportError(DebugUtils::errored(kErrorOutOfMemory));
     }
     else {
       Error err = _code->newNamedLabelId(id, name, nameSize, type, parentId);
@@ -436,7 +436,7 @@ ASMJIT_FAVOR_SIZE Error BaseBuilder::addPass(Pass* pass) noexcept {
   if (ASMJIT_UNLIKELY(pass == nullptr)) {
     // Since this is directly called by `addPassT()` we treat `null` argument
     // as out-of-memory condition. Otherwise it would be API misuse.
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
   }
   else if (ASMJIT_UNLIKELY(pass->_cb)) {
     // Kinda weird, but okay...
@@ -555,7 +555,7 @@ Error BaseBuilder::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     resetInstOptions();
     resetExtraReg();
     resetInlineComment();
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
   node = new(node) InstNode(this, instId, options, opCount, opCapacity);
@@ -626,7 +626,7 @@ Error BaseBuilder::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     resetInstOptions();
     resetExtraReg();
     resetInlineComment();
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
   node = new(node) InstNode(this, instId, options, opCount, opCapacity);
@@ -662,7 +662,7 @@ Error BaseBuilder::align(uint32_t alignMode, uint32_t alignment) {
 
   AlignNode* node = newAlignNode(alignMode, alignment);
   if (ASMJIT_UNLIKELY(!node))
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
   addNode(node);
   return kErrorOk;
@@ -678,7 +678,7 @@ Error BaseBuilder::embed(const void* data, uint32_t size) {
 
   EmbedDataNode* node = newEmbedDataNode(data, size);
   if (ASMJIT_UNLIKELY(!node))
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
   addNode(node);
   return kErrorOk;
@@ -690,7 +690,7 @@ Error BaseBuilder::embedLabel(const Label& label) {
 
   LabelDataNode* node = newNodeT<LabelDataNode>(label.id());
   if (ASMJIT_UNLIKELY(!node))
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
   addNode(node);
   return kErrorOk;
@@ -708,7 +708,7 @@ Error BaseBuilder::embedConstPool(const Label& label, const ConstPool& pool) {
 
   EmbedDataNode* node = newEmbedDataNode(nullptr, uint32_t(pool.size()));
   if (ASMJIT_UNLIKELY(!node))
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
   pool.fill(node->data());
   addNode(node);
@@ -725,7 +725,7 @@ Error BaseBuilder::comment(const char* data, size_t size) {
 
   CommentNode* node = newCommentNode(data, size);
   if (ASMJIT_UNLIKELY(!node))
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
   addNode(node);
   return kErrorOk;
@@ -785,7 +785,7 @@ Error BaseBuilder::serialize(BaseEmitter* dst) {
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_LOGGING
-Error BaseBuilder::dump(StringBuilder& sb, uint32_t flags) const noexcept {
+Error BaseBuilder::dump(String& sb, uint32_t flags) const noexcept {
   BaseNode* node = firstNode();
   while (node) {
     ASMJIT_PROPAGATE(Logging::formatNode(sb, flags, this, node));

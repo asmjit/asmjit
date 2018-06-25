@@ -10,7 +10,7 @@
 
 // [Dependencies]
 #include "../core/logging.h"
-#include "../core/stringbuilder.h"
+#include "../core/string.h"
 #include "../x86/x86globals.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)

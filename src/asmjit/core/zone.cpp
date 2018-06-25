@@ -77,14 +77,14 @@ void Zone::reset(uint32_t resetPolicy) noexcept {
         break;
       }
 
-      Support::release(cur);
+      ::free(cur);
       cur = prev;
     } while (cur);
 
     cur = next;
     while (cur) {
       next = cur->next;
-      Support::release(cur);
+      ::free(cur);
       cur = next;
     }
   }
@@ -133,7 +133,7 @@ void* Zone::_alloc(size_t size, size_t alignment) noexcept {
   // new block size, and we also add `kBlockOverhead` to the allocator as it includes
   // members of `Zone::Block` structure.
   newSize += blockAlignmentOverhead;
-  Block* newBlock = static_cast<Block*>(Support::alloc(newSize + kBlockSize));
+  Block* newBlock = static_cast<Block*>(::malloc(newSize + kBlockSize));
 
   if (ASMJIT_UNLIKELY(!newBlock))
     return nullptr;
@@ -231,7 +231,7 @@ void ZoneAllocator::reset(Zone* zone) noexcept {
   DynamicBlock* block = _dynamicBlocks;
   while (block) {
     DynamicBlock* next = block->next;
-    Support::release(block);
+    ::free(block);
     block = next;
   }
 
@@ -301,7 +301,7 @@ void* ZoneAllocator::_alloc(size_t size, size_t& allocatedSize) noexcept {
     if (ASMJIT_UNLIKELY(kBlockOverhead >= std::numeric_limits<size_t>::max() - size))
       return nullptr;
 
-    void* p = Support::alloc(size + kBlockOverhead);
+    void* p = ::malloc(size + kBlockOverhead);
     if (ASMJIT_UNLIKELY(!p)) {
       allocatedSize = 0;
       return nullptr;
@@ -356,7 +356,7 @@ void ZoneAllocator::_releaseDynamic(void* p, size_t size) noexcept {
   if (next)
     next->prev = prev;
 
-  Support::release(block);
+  ::free(block);
 }
 
 ASMJIT_END_NAMESPACE

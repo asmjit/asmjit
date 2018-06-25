@@ -88,7 +88,7 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t size) noexce
 
     // We don't have to check for errors here, if this failed nothing really
     // happened (just the gap won't be visible) and it will fail again at
-    // place where the same check would generate `kErrorNoHeapMemory` error.
+    // place where the same check would generate `kErrorOutOfMemory` error.
     ConstPool::Gap* gap = ConstPool_allocGap(self);
     if (!gap)
       return;
@@ -172,7 +172,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
 
   // Add the initial node to the right index.
   node = ConstPool::Tree::_newNode(_zone, data, size, offset, false);
-  if (!node) return DebugUtils::errored(kErrorNoHeapMemory);
+  if (!node) return DebugUtils::errored(kErrorOutOfMemory);
 
   _tree[treeIndex].insert(node);
   _alignment = Support::max<size_t>(_alignment, size);

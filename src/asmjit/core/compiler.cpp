@@ -67,7 +67,7 @@ FuncNode* BaseCompiler::newFunc(const FuncSignature& sign) noexcept {
 
   FuncNode* func = newNodeT<FuncNode>();
   if (ASMJIT_UNLIKELY(!func)) {
-    reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;
   }
 
@@ -83,7 +83,7 @@ FuncNode* BaseCompiler::newFunc(const FuncSignature& sign) noexcept {
   func->_end = newNodeT<SentinelNode>(SentinelNode::kSentinelFuncEnd);
 
   if (ASMJIT_UNLIKELY(!func->_exitNode || !func->_end)) {
-    reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;
   }
 
@@ -112,7 +112,7 @@ FuncNode* BaseCompiler::newFunc(const FuncSignature& sign) noexcept {
   if (func->argCount() != 0) {
     func->_args = _allocator.allocT<VirtReg*>(func->argCount() * sizeof(VirtReg*));
     if (ASMJIT_UNLIKELY(!func->_args)) {
-      reportError(DebugUtils::errored(kErrorNoHeapMemory));
+      reportError(DebugUtils::errored(kErrorOutOfMemory));
       return nullptr;
     }
 
@@ -139,7 +139,7 @@ FuncNode* BaseCompiler::addFunc(const FuncSignature& sign) {
   FuncNode* func = newFunc(sign);
 
   if (!func) {
-    reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;
   }
 
@@ -173,7 +173,7 @@ Error BaseCompiler::endFunc() {
 FuncRetNode* BaseCompiler::newRet(const Operand_& o0, const Operand_& o1) noexcept {
   FuncRetNode* node = newNodeT<FuncRetNode>();
   if (!node) {
-    reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;
   }
 
@@ -197,7 +197,7 @@ FuncRetNode* BaseCompiler::addRet(const Operand_& o0, const Operand_& o1) noexce
 FuncCallNode* BaseCompiler::newCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept {
   FuncCallNode* node = newNodeT<FuncCallNode>(instId, 0);
   if (ASMJIT_UNLIKELY(!node)) {
-    reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;
   }
 
@@ -219,7 +219,7 @@ FuncCallNode* BaseCompiler::newCall(uint32_t instId, const Operand_& o0, const F
 
   node->_args = static_cast<Operand*>(_allocator.alloc(nArgs * sizeof(Operand)));
   if (!node->_args) {
-    reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;
   }
 
@@ -302,7 +302,7 @@ Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* name) {
   VirtReg* vReg = newVirtReg(typeId, regInfo.signature(), name);
   if (ASMJIT_UNLIKELY(!vReg)) {
     out.reset();
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
   out._initReg(regInfo.signature(), vReg->id());
@@ -310,7 +310,7 @@ Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* name) {
 }
 
 Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* fmt, va_list ap) {
-  StringBuilderTmp<256> sb;
+  StringTmp<256> sb;
   sb.appendFormatVA(fmt, ap);
   return _newReg(out, typeId, sb.data());
 }
@@ -383,7 +383,7 @@ Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* name) 
   VirtReg* vReg = newVirtReg(typeId, regInfo.signature(), name);
   if (ASMJIT_UNLIKELY(!vReg)) {
     out.reset();
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
   out._initReg(regInfo.signature(), vReg->id());
@@ -391,7 +391,7 @@ Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* name) 
 }
 
 Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap) {
-  StringBuilderTmp<256> sb;
+  StringTmp<256> sb;
   sb.appendFormatVA(fmt, ap);
   return _newReg(out, ref, sb.data());
 }
@@ -409,7 +409,7 @@ Error BaseCompiler::_newStack(BaseMem& out, uint32_t size, uint32_t alignment, c
   VirtReg* vReg = newVirtReg(0, 0, name);
   if (ASMJIT_UNLIKELY(!vReg)) {
     out.reset();
-    return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
   vReg->_virtSize = size;
@@ -434,7 +434,7 @@ Error BaseCompiler::_newConst(BaseMem& out, uint32_t scope, const void* data, si
   if (!pool) {
     pool = newConstPoolNode();
     if (ASMJIT_UNLIKELY(!pool))
-      return reportError(DebugUtils::errored(kErrorNoHeapMemory));
+      return reportError(DebugUtils::errored(kErrorOutOfMemory));
     *pPool = pool;
   }
 

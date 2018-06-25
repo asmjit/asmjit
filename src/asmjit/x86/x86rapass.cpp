@@ -266,7 +266,7 @@ public:
 Error X86RACFGBuilder::newInst(InstNode** out, uint32_t instId, const OpInfo* opInfo, const uint32_t* physRegs, const Operand_& o0, const Operand_& o1) noexcept {
   InstNode* inst = cc()->newInstNode(instId, 0, o0, o1);
   if (ASMJIT_UNLIKELY(!inst))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   RAInstBuilder ib;
   uint32_t opCount = inst->opCount();
@@ -294,11 +294,11 @@ Error X86RACFGBuilder::newInst(InstNode** out, uint32_t instId, const OpInfo* op
 
         if (opInfo[i].isUse()) {
           useId = physRegs[i];
-          useRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
+          useRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
         }
         else {
           outId = physRegs[i];
-          outRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
+          outRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
         }
 
         ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -375,11 +375,11 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 
             if (opInfo[i].isUse()) {
               useId = opInfo[i].physId();
-              useRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
+              useRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
             }
             else {
               outId = opInfo[i].physId();
-              outRewriteMask = Support::mask(inst->getRewriteIndex(&reg._reg.id));
+              outRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
             }
 
             ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -412,7 +412,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
               uint32_t outRewriteMask = 0;
 
               useId = opInfo[i].physId();
-              useRewriteMask = Support::mask(inst->getRewriteIndex(&mem._reg.id));
+              useRewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._reg.id));
 
               uint32_t flags = useId != BaseReg::kIdBad ? uint32_t(opInfo[i].flags()) : uint32_t(RATiedReg::kUse | RATiedReg::kRead);
               ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -427,7 +427,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 
               uint32_t group = workReg->group();
               uint32_t allocable = _pass->_availableRegs[group];
-              uint32_t rewriteMask = Support::mask(inst->getRewriteIndex(&mem._mem.index));
+              uint32_t rewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._mem.index));
 
               ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kUse | RATiedReg::kRead, allocable, BaseReg::kIdBad, rewriteMask, BaseReg::kIdBad, 0));
             }
@@ -444,11 +444,11 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
         ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 
         uint32_t group = workReg->group();
-        uint32_t rewriteMask = Support::mask(inst->getRewriteIndex(&inst->extraReg()._id));
+        uint32_t rewriteMask = Support::bitMask(inst->getRewriteIndex(&inst->extraReg()._id));
 
         if (group == Gp::kGroupKReg) {
           // AVX-512 mask selector {k} register - read-only, allocable to any register except {k0}.
-          uint32_t allocableRegs= _pass->_availableRegs[group] & ~Support::mask(0);
+          uint32_t allocableRegs= _pass->_availableRegs[group] & ~Support::bitMask(0);
           ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kUse | RATiedReg::kRead, allocableRegs, BaseReg::kIdBad, rewriteMask, BaseReg::kIdBad, 0));
           singleRegOps = 0;
         }
@@ -669,7 +669,7 @@ MovAny:
     case Type::kIdI64:
     case Type::kIdU64:
       // Prefer smaller code, moving to GPD automatically zero extends in 64-bit mode.
-      if (imm.isU32())
+      if (imm.isUInt32())
         goto MovU32;
 
       ASMJIT_PROPAGATE(cc()->_newReg(*out, Type::kIdU64, nullptr));
@@ -720,7 +720,7 @@ MovU32:
     case Type::kIdF64:
     case Type::kIdMmx32:
     case Type::kIdMmx64:
-      if (_is64Bit && imm[0].isI32()) {
+      if (_is64Bit && imm[0].isInt32()) {
         mem.setSize(8);
         nMovs = 1;
         break;
@@ -1044,7 +1044,7 @@ Error X86RAPass::onEmitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhy
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (_loggerFlags & FormatOptions::kFlagAnnotations) {
-    _tmpString.setFormat("<MOVE> %s", workRegById(workId)->name());
+    _tmpString.assignFormat("<MOVE> %s", workRegById(workId)->name());
     comment = _tmpString.data();
   }
   #endif
@@ -1062,7 +1062,7 @@ Error X86RAPass::onEmitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (_loggerFlags & FormatOptions::kFlagAnnotations) {
-    _tmpString.setFormat("<SWAP> %s, %s", waReg->name(), wbReg->name());
+    _tmpString.assignFormat("<SWAP> %s, %s", waReg->name(), wbReg->name());
     cc()->setInlineComment(_tmpString.data());
   }
   #endif
@@ -1079,7 +1079,7 @@ Error X86RAPass::onEmitLoad(uint32_t workId, uint32_t dstPhysId) noexcept {
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (_loggerFlags & FormatOptions::kFlagAnnotations) {
-    _tmpString.setFormat("<LOAD> %s", workRegById(workId)->name());
+    _tmpString.assignFormat("<LOAD> %s", workRegById(workId)->name());
     comment = _tmpString.data();
   }
   #endif
@@ -1096,7 +1096,7 @@ Error X86RAPass::onEmitSave(uint32_t workId, uint32_t srcPhysId) noexcept {
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (_loggerFlags & FormatOptions::kFlagAnnotations) {
-    _tmpString.setFormat("<SAVE> %s", workRegById(workId)->name());
+    _tmpString.assignFormat("<SAVE> %s", workRegById(workId)->name());
     comment = _tmpString.data();
   }
   #endif
@@ -1244,13 +1244,13 @@ ASMJIT_INLINE void X86CallAlloc::duplicate() {
 
     ASMJIT_ASSERT(physId != BaseReg::kIdBad);
 
-    inRegs &= ~Support::mask(physId);
+    inRegs &= ~Support::bitMask(physId);
     if (!inRegs) continue;
 
     for (uint32_t dupIndex = 0; inRegs != 0; dupIndex++, inRegs >>= 1) {
       if (inRegs & 0x1) {
         _context->emitMove(vreg, dupIndex, physId, "Duplicate");
-        _context->_clobberedRegs.or_(C, Support::mask(dupIndex));
+        _context->_clobberedRegs.or_(C, Support::bitMask(dupIndex));
       }
     }
   }

@@ -10,7 +10,6 @@
 // [Dependencies]
 #include "../core/assembler.h"
 #include "../core/logging.h"
-#include "../core/stringutils.h"
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -48,7 +47,7 @@ static void CodeHolder_resetInternal(CodeHolder* self, uint32_t resetPolicy) noe
   for (i = 0; i < numSections; i++) {
     SectionEntry* section = self->_sectionEntries[i];
     if (section->_buffer.data() && !section->_buffer.isExternal())
-      Support::release(section->_buffer._data);
+      ::free(section->_buffer._data);
     section->_buffer._data = nullptr;
     section->_buffer._capacity = 0;
   }
@@ -123,7 +122,7 @@ Error CodeHolder::init(const CodeInfo& info) noexcept {
       _sectionEntries.appendUnsafe(se);
     }
     else {
-      err = DebugUtils::errored(kErrorNoHeapMemory);
+      err = DebugUtils::errored(kErrorOutOfMemory);
     }
   }
 
@@ -230,12 +229,12 @@ static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t
   uint8_t* newData;
 
   if (oldData && !cb->isExternal())
-    newData = static_cast<uint8_t*>(Support::realloc(oldData, n));
+    newData = static_cast<uint8_t*>(::realloc(oldData, n));
   else
-    newData = static_cast<uint8_t*>(Support::alloc(n));
+    newData = static_cast<uint8_t*>(::malloc(n));
 
   if (ASMJIT_UNLIKELY(!newData))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   cb->_data = newData;
   cb->_capacity = n;
@@ -261,7 +260,7 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
   // The size of the section must be valid.
   size_t size = cb->size();
   if (ASMJIT_UNLIKELY(n > std::numeric_limits<uintptr_t>::max() - size))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   // We can now check if growing the buffer is really necessary. It's unlikely
   // that this function is called while there is still room for `n` bytes.
@@ -288,7 +287,7 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
 
     // Overflow.
     if (ASMJIT_UNLIKELY(old > capacity))
-      return DebugUtils::errored(kErrorNoHeapMemory);
+      return DebugUtils::errored(kErrorOutOfMemory);
   } while (capacity - Globals::kMemAllocOverhead < required);
 
   return CodeHolder_reserveInternal(this, cb, capacity - Globals::kMemAllocOverhead);
@@ -339,7 +338,7 @@ static uint32_t CodeHolder_hashNameAndFixSize(const char* name, size_t& nameSize
     for (;;) {
       uint8_t c = uint8_t(name[i]);
       if (!c) break;
-      hashCode = StringUtils::hashRound(hashCode, c);
+      hashCode = Support::hashRound(hashCode, c);
       i++;
     }
     nameSize = i;
@@ -348,7 +347,7 @@ static uint32_t CodeHolder_hashNameAndFixSize(const char* name, size_t& nameSize
     for (size_t i = 0; i < nameSize; i++) {
       uint8_t c = uint8_t(name[i]);
       if (ASMJIT_UNLIKELY(!c)) return DebugUtils::errored(kErrorInvalidLabelName);
-      hashCode = StringUtils::hashRound(hashCode, c);
+      hashCode = Support::hashRound(hashCode, c);
     }
   }
   return hashCode;
@@ -383,7 +382,7 @@ Error CodeHolder::newLabelId(uint32_t& idOut) noexcept {
   LabelEntry* le = _allocator.allocZeroedT<LabelEntry>();
 
   if (ASMJIT_UNLIKELY(!le))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   uint32_t id = Operand::packId(index);
   le->_setId(id);
@@ -441,7 +440,7 @@ Error CodeHolder::newNamedLabelId(uint32_t& idOut, const char* name, size_t name
   le = _allocator.allocZeroedT<LabelEntry>();
 
   if (ASMJIT_UNLIKELY(!le))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   uint32_t id = Operand::packId(index);
   le->_hashCode = hashCode;
@@ -486,7 +485,7 @@ Error CodeHolder::newRelocEntry(RelocEntry** dst, uint32_t type, uint32_t size) 
   RelocEntry* re = _allocator.allocZeroedT<RelocEntry>();
 
   if (ASMJIT_UNLIKELY(!re))
-    return DebugUtils::errored(kErrorNoHeapMemory);
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   re->_id = index;
   re->_type = uint8_t(type);
@@ -559,7 +558,7 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
           return DebugUtils::errored(kErrorInvalidRelocEntry);
 
         ptr -= baseAddress + re->sourceOffset() + re->size();
-        if (!Support::isI32(int64_t(ptr))) {
+        if (!Support::isInt32(int64_t(ptr))) {
           ptr = (uint64_t)trampOffset - re->sourceOffset() - re->size();
           useTrampoline = true;
         }

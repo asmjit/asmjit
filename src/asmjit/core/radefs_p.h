@@ -324,16 +324,16 @@ struct RARegsStats {
   inline void combineWith(const RARegsStats& other) noexcept { _packed |= other._packed; }
 
   inline bool hasUsed() const noexcept { return (_packed & kMaskUsed) != 0u; }
-  inline bool hasUsed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexUsed + group)) != 0u; }
-  inline void makeUsed(uint32_t group) noexcept { _packed |= Support::mask(kIndexUsed + group); }
+  inline bool hasUsed(uint32_t group) const noexcept { return (_packed & Support::bitMask(kIndexUsed + group)) != 0u; }
+  inline void makeUsed(uint32_t group) noexcept { _packed |= Support::bitMask(kIndexUsed + group); }
 
   inline bool hasFixed() const noexcept { return (_packed & kMaskFixed) != 0u; }
-  inline bool hasFixed(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexFixed + group)) != 0u; }
-  inline void makeFixed(uint32_t group) noexcept { _packed |= Support::mask(kIndexFixed + group); }
+  inline bool hasFixed(uint32_t group) const noexcept { return (_packed & Support::bitMask(kIndexFixed + group)) != 0u; }
+  inline void makeFixed(uint32_t group) noexcept { _packed |= Support::bitMask(kIndexFixed + group); }
 
   inline bool hasClobbered() const noexcept { return (_packed & kMaskClobbered) != 0u; }
-  inline bool hasClobbered(uint32_t group) const noexcept { return (_packed & Support::mask(kIndexClobbered + group)) != 0u; }
-  inline void makeClobbered(uint32_t group) noexcept { _packed |= Support::mask(kIndexClobbered + group); }
+  inline bool hasClobbered(uint32_t group) const noexcept { return (_packed & Support::bitMask(kIndexClobbered + group)) != 0u; }
+  inline void makeClobbered(uint32_t group) noexcept { _packed |= Support::bitMask(kIndexClobbered + group); }
 
   uint32_t _packed;
 };

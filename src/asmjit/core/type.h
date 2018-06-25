@@ -154,12 +154,12 @@ static constexpr bool isBase(uint32_t typeId) noexcept { return typeId >= _kIdBa
 static constexpr bool isAbstract(uint32_t typeId) noexcept { return typeId >= kIdIntPtr && typeId <= kIdUIntPtr; }
 
 static constexpr bool isInt(uint32_t typeId) noexcept { return typeId >= _kIdIntStart && typeId <= _kIdIntEnd; }
-static constexpr bool isI8(uint32_t typeId) noexcept { return typeId == kIdI8; }
-static constexpr bool isU8(uint32_t typeId) noexcept { return typeId == kIdU8; }
-static constexpr bool isI16(uint32_t typeId) noexcept { return typeId == kIdI16; }
-static constexpr bool isU16(uint32_t typeId) noexcept { return typeId == kIdU16; }
-static constexpr bool isI32(uint32_t typeId) noexcept { return typeId == kIdI32; }
-static constexpr bool isU32(uint32_t typeId) noexcept { return typeId == kIdU32; }
+static constexpr bool isInt8(uint32_t typeId) noexcept { return typeId == kIdI8; }
+static constexpr bool isUInt8(uint32_t typeId) noexcept { return typeId == kIdU8; }
+static constexpr bool isInt16(uint32_t typeId) noexcept { return typeId == kIdI16; }
+static constexpr bool isUInt16(uint32_t typeId) noexcept { return typeId == kIdU16; }
+static constexpr bool isInt32(uint32_t typeId) noexcept { return typeId == kIdI32; }
+static constexpr bool isUInt32(uint32_t typeId) noexcept { return typeId == kIdU32; }
 static constexpr bool isI64(uint32_t typeId) noexcept { return typeId == kIdI64; }
 static constexpr bool isU64(uint32_t typeId) noexcept { return typeId == kIdU64; }
 
@@ -226,12 +226,12 @@ struct BaseOfTypeId {
 template<uint32_t TYPE_ID>
 struct SizeOfTypeId {
   static constexpr uint32_t kTypeSize =
-    isI8    (TYPE_ID) ?  1 :
-    isU8    (TYPE_ID) ?  1 :
-    isI16   (TYPE_ID) ?  2 :
-    isU16   (TYPE_ID) ?  2 :
-    isI32   (TYPE_ID) ?  4 :
-    isU32   (TYPE_ID) ?  4 :
+    isInt8    (TYPE_ID) ?  1 :
+    isUInt8    (TYPE_ID) ?  1 :
+    isInt16   (TYPE_ID) ?  2 :
+    isUInt16   (TYPE_ID) ?  2 :
+    isInt32   (TYPE_ID) ?  4 :
+    isUInt32   (TYPE_ID) ?  4 :
     isI64   (TYPE_ID) ?  8 :
     isU64   (TYPE_ID) ?  8 :
     isF32   (TYPE_ID) ?  4 :

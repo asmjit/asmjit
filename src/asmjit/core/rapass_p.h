@@ -374,12 +374,12 @@ public:
 
     if (useId != BaseReg::kIdBad) {
       _stats.makeFixed(group);
-      _used[group] |= Support::mask(useId);
+      _used[group] |= Support::bitMask(useId);
       flags |= RATiedReg::kUseFixed;
     }
 
     if (outId != BaseReg::kIdBad) {
-      _clobbered[group] |= Support::mask(outId);
+      _clobbered[group] |= Support::bitMask(outId);
       flags |= RATiedReg::kOutFixed;
     }
 
@@ -404,7 +404,7 @@ public:
           return DebugUtils::errored(kErrorOverlappedRegs);
 
         tiedReg->setOutId(outId);
-        // TODO: ? _used[group] |= Support::mask(outId);
+        // TODO: ? _used[group] |= Support::bitMask(outId);
       }
 
       tiedReg->addRefCount();
@@ -485,7 +485,7 @@ public:
   inline const RARegMask& cloberredRegs() const noexcept { return _clobberedRegs; }
 
   inline void makeUnavailable(uint32_t group, uint32_t regId) noexcept {
-    _availableRegs[group] &= ~Support::mask(regId);
+    _availableRegs[group] &= ~Support::bitMask(regId);
     _availableRegCount[group]--;
   }
 
@@ -571,7 +571,7 @@ public:
     RAInst* raInst = newRAInst(block, ib.flags(), tiedRegCount, ib._clobbered);
 
     if (ASMJIT_UNLIKELY(!raInst))
-      return DebugUtils::errored(kErrorNoHeapMemory);
+      return DebugUtils::errored(kErrorOutOfMemory);
 
     RARegIndex index;
     index.buildIndexes(ib._count);
@@ -588,7 +588,7 @@ public:
 
       if (tiedReg->hasUseId()) {
         block->addFlags(RABlock::kFlagHasFixedRegs);
-        raInst->_usedRegs[group] |= Support::mask(tiedReg->useId());
+        raInst->_usedRegs[group] |= Support::bitMask(tiedReg->useId());
       }
 
       if (tiedReg->hasOutId()) {
@@ -800,8 +800,8 @@ public:
   Error annotateCode() noexcept;
 
   Error _logBlockIds(const RABlocks& blocks) noexcept;
-  Error _dumpBlockLiveness(StringBuilder& sb, const RABlock* block) noexcept;
-  Error _dumpLiveSpans(StringBuilder& sb) noexcept;
+  Error _dumpBlockLiveness(String& sb, const RABlock* block) noexcept;
+  Error _dumpLiveSpans(String& sb) noexcept;
   #endif
 
   // --------------------------------------------------------------------------
@@ -859,7 +859,7 @@ public:
   FuncArgsAssignment _argsAssignment;    //!< Function arguments mapper.
   uint32_t _numStackArgsToStackSlots;    //!< Some StackArgs have to be assigned to StackSlots.
 
-  StringBuilderTmp<80> _tmpString;       //!< Temporary string builder used to format comments.
+  StringTmp<80> _tmpString;       //!< Temporary string builder used to format comments.
   uint32_t _maxWorkRegNameSize;          //!< Maximum name-size computed from all WorkReg's.
 };
 

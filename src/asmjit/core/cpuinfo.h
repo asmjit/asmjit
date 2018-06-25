@@ -11,7 +11,7 @@
 // [Dependencies]
 #include "../core/arch.h"
 #include "../core/features.h"
-#include "../core/stringutils.h"
+#include "../core/string.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -30,9 +30,6 @@ public:
   // --------------------------------------------------------------------------
 
   struct X86Data {
-    uint32_t _processorType;             //!< Processor type.
-    uint32_t _brandIndex;                //!< Brand index.
-    uint32_t _maxLogicalProcessors;      //!< Maximum number of addressable IDs for logical processors.
   };
 
   // --------------------------------------------------------------------------
@@ -68,8 +65,14 @@ public:
   inline uint32_t familyId() const noexcept { return _familyId; }
   //! Get CPU model ID.
   inline uint32_t modelId() const noexcept { return _modelId; }
+  //! Get CPU brand id.
+  inline uint32_t brandId() const noexcept { return _brandId; }
   //! Get CPU stepping.
   inline uint32_t stepping() const noexcept { return _stepping; }
+  //! Get processor type.
+  inline uint32_t processorType() const noexcept { return _processorType; }
+  //! Get the number of maximum logical processors.
+  inline uint32_t maxLogicalProcessors() const noexcept { return _maxLogicalProcessors; }
 
   //! Get the size of a cache line flush.
   inline uint32_t cacheLineSize() const noexcept { return _cacheLineSize; }
@@ -79,7 +82,7 @@ public:
   //! Get CPU vendor.
   inline const char* vendor() const noexcept { return _vendor.str; }
   //! Check whether the CPU vendor is equal to string `s`.
-  inline bool isVendor(const char* s) const noexcept { return _vendor.test(s); }
+  inline bool isVendor(const char* s) const noexcept { return _vendor.eq(s); }
 
   //! Get CPU brand string.
   inline const char* brand() const noexcept { return _brand.str; }
@@ -92,13 +95,6 @@ public:
   inline bool hasFeature(uint32_t featureId) const noexcept { return _features.has(featureId); }
   //! Add a CPU `feature`.
   inline CpuInfo& addFeature(uint32_t featureId) noexcept { _features.add(featureId); return *this; }
-
-  //! Get CPU type.
-  inline uint32_t x86ProcessorType() const noexcept { return _x86Data._processorType; }
-  //! Get CPU brand index.
-  inline uint32_t x86BrandIndex() const noexcept { return _x86Data._brandIndex; }
-  //! Get the number of maximum logical processors.
-  inline uint32_t x86MaxLogicalProcessors() const noexcept { return _x86Data._maxLogicalProcessors; }
 
   // --------------------------------------------------------------------------
   // [Statics]
@@ -120,12 +116,15 @@ public:
   ArchInfo _archInfo;                    //!< CPU architecture information.
   uint32_t _familyId;                    //!< CPU family ID.
   uint32_t _modelId;                     //!< CPU model ID.
+  uint32_t _brandId;                     //!< CPU brand ID.
   uint32_t _stepping;                    //!< CPU stepping.
+  uint32_t _processorType;               //!< Processor type.
+  uint32_t _maxLogicalProcessors;        //!< Maximum number of addressable IDs for logical processors.
   uint32_t _cacheLineSize;               //!< Cache line size (in bytes).
   uint32_t _hwThreadCount;               //!< Number of hardware threads.
 
-  StaticString<16> _vendor;              //!< CPU vendor string.
-  StaticString<64> _brand;               //!< CPU brand string.
+  FixedString<16> _vendor;               //!< CPU vendor string.
+  FixedString<64> _brand;                //!< CPU brand string.
   BaseFeatures _features;                //!< CPU features.
 
   // Architecture specific data.

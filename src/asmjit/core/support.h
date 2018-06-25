@@ -36,22 +36,6 @@ static constexpr bool kUnalignedAccess32 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess64 = ASMJIT_ARCH_X86 != 0;
 
 // ============================================================================
-// [asmjit::Support - System]
-// ============================================================================
-
-#if defined(ASMJIT_CUSTOM_ALLOC) && defined(ASMJIT_CUSTOM_REALLOC) && defined(ASMJIT_CUSTOM_FREE)
-static inline void* alloc(size_t size) noexcept { return ASMJIT_CUSTOM_ALLOC(size); }
-static inline void* realloc(void* p, size_t size) noexcept { return ASMJIT_CUSTOM_REALLOC(p, size); }
-static inline void release(void* p) noexcept { ASMJIT_CUSTOM_FREE(p); }
-#elif !defined(ASMJIT_CUSTOM_ALLOC) && !defined(ASMJIT_CUSTOM_REALLOC) && !defined(ASMJIT_CUSTOM_FREE)
-static inline void* alloc(size_t size) noexcept { return ::malloc(size); }
-static inline void* realloc(void* p, size_t size) noexcept { return ::realloc(p, size); }
-static inline void release(void* p) noexcept { ::free(p); }
-#else
-  #error "[asmjit] You must provide either none or all of ASMJIT_CUSTOM_[ALLOC|REALLOC|FREE]"
-#endif
-
-// ============================================================================
 // [asmjit::Support - Internal]
 // ============================================================================
 
@@ -135,25 +119,17 @@ template<typename Dst, typename Src>
 ASMJIT_INLINE Dst bitCast(const Src& x) noexcept { return Internal::BitCastUnion<Dst, Src>(x).dst; }
 
 // ============================================================================
-// [asmjit::Support - BitSizeOf]
-// ============================================================================
-
-template<typename T>
-constexpr uint32_t bitSizeOf() noexcept { return uint32_t(sizeof(T) * 8u); }
-
-// ============================================================================
-// [asmjit::Support - BitWord]
+// [asmjit::Support - BitOps]
 // ============================================================================
 
 //! Storage used to store a pack of bits (should by compatible with a machine word).
 typedef Internal::IntBySize<sizeof(uintptr_t), 0>::Type BitWord;
 
+template<typename T>
+constexpr uint32_t bitSizeOf() noexcept { return uint32_t(sizeof(T) * 8u); }
+
 //! Number of bits stored in a single `BitWord`.
 constexpr uint32_t kBitWordSizeInBits = bitSizeOf<BitWord>();
-
-// ============================================================================
-// [asmjit::Support - BitUtilities]
-// ============================================================================
 
 //! Returns `0 - x` in a safe way (no undefined behavior), works for unsigned numbers as well.
 template<typename T>
@@ -197,13 +173,6 @@ constexpr T blsi(T x) noexcept {
   return T(U(x) & neg(U(x)));
 }
 
-//! Returns `x & (x - 1)` - resets lowest set bit (like BLSR instruction).
-template<typename T>
-constexpr T blsr(T x) noexcept {
-  typedef typename std::make_unsigned<T>::type U;
-  return T(U(x) & (U(x) - U(1)));
-}
-
 //! Generate a trailing bit-mask that has `n` least significant (trailing) bits set.
 template<typename T, typename CountT>
 constexpr T lsbMask(CountT n) noexcept {
@@ -225,11 +194,11 @@ constexpr bool bitTest(T x, IndexT n) noexcept {
 
 //! Return a bit-mask that has `x` bit set.
 template<typename T>
-constexpr uint32_t mask(T x) noexcept { return (1u << x); }
+constexpr uint32_t bitMask(T x) noexcept { return (1u << x); }
 
 //! Return a bit-mask that has `x` bit set (multiple arguments).
 template<typename T, typename... ArgsT>
-constexpr uint32_t mask(T x, ArgsT... args) noexcept { return mask(x) | mask(args...); }
+constexpr uint32_t bitMask(T x, ArgsT... args) noexcept { return bitMask(x) | bitMask(args...); }
 
 //! Convert a boolean value `b` to zero or full mask (all bits set).
 template<typename DstT, typename SrcT>
@@ -261,7 +230,7 @@ constexpr T fillTrailingBits(const T& x) noexcept {
 // ============================================================================
 
 namespace Internal {
-  constexpr uint32_t ctzGenericImpl(uint32_t xAndNegX) noexcept {
+  constexpr uint32_t constCtzImpl(uint32_t xAndNegX) noexcept {
     return 31 - ((xAndNegX & 0x0000FFFFu) ? 16 : 0)
               - ((xAndNegX & 0x00FF00FFu) ?  8 : 0)
               - ((xAndNegX & 0x0F0F0F0Fu) ?  4 : 0)
@@ -269,7 +238,7 @@ namespace Internal {
               - ((xAndNegX & 0x55555555u) ?  1 : 0);
   }
 
-  constexpr uint32_t ctzGenericImpl(uint64_t xAndNegX) noexcept {
+  constexpr uint32_t constCtzImpl(uint64_t xAndNegX) noexcept {
     return 63 - ((xAndNegX & 0x00000000FFFFFFFFu) ? 32 : 0)
               - ((xAndNegX & 0x0000FFFF0000FFFFu) ? 16 : 0)
               - ((xAndNegX & 0x00FF00FF00FF00FFu) ?  8 : 0)
@@ -279,58 +248,44 @@ namespace Internal {
   }
 
   template<typename T>
-  constexpr uint32_t ctzGeneric(T x) noexcept {
-    return ctzGenericImpl(x & neg(x));
+  constexpr uint32_t constCtz(T x) noexcept {
+    return constCtzImpl(x & neg(x));
   }
 
   static ASMJIT_INLINE uint32_t ctz(uint32_t x) noexcept {
-    #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 || ASMJIT_ARCH_ARM)
+  #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 || ASMJIT_ARCH_ARM)
     unsigned long i;
     _BitScanForward(&i, x);
     return uint32_t(i);
-    #elif ASMJIT_CXX_GNU
+  #elif ASMJIT_CXX_GNU
     return uint32_t(__builtin_ctz(x));
-    #else
+  #else
     return ctzGeneric(x);
-    #endif
+  #endif
   }
 
   static ASMJIT_INLINE uint32_t ctz(uint64_t x) noexcept {
-    #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 == 64 || ASMJIT_ARCH_ARM == 64)
+  #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 == 64 || ASMJIT_ARCH_ARM == 64)
     unsigned long i;
     _BitScanForward64(&i, x);
     return uint32_t(i);
-    #elif ASMJIT_CXX_GNU
+  #elif ASMJIT_CXX_GNU
     return uint32_t(__builtin_ctzll(x));
-    #else
+  #else
     return ctzGeneric(x);
-    #endif
+  #endif
   }
 }
+
+//! Count trailing zeros in `x` (constant expression).
+template<typename T>
+constexpr uint32_t constCtz(T x) noexcept { return Internal::constCtz(asUInt(x)); }
 
 //! Count trailing zeros in `x` (returns a position of a first bit set in `x`).
 //!
 //! NOTE: The input MUST NOT be zero, otherwise the result is undefined.
 template<typename T>
-static inline uint32_t ctz(T x) noexcept { return Internal::ctz(asUInt(x)); }
-
-template<uint64_t N>
-struct StaticCtz {
-  enum {
-    _kTmp1 = 0      + (((N            ) & uint64_t(0xFFFFFFFFu)) == 0 ? 32 : 0),
-    _kTmp2 = _kTmp1 + (((N >> (_kTmp1)) & uint64_t(0x0000FFFFu)) == 0 ? 16 : 0),
-    _kTmp3 = _kTmp2 + (((N >> (_kTmp2)) & uint64_t(0x000000FFu)) == 0 ?  8 : 0),
-    _kTmp4 = _kTmp3 + (((N >> (_kTmp3)) & uint64_t(0x0000000Fu)) == 0 ?  4 : 0),
-    _kTmp5 = _kTmp4 + (((N >> (_kTmp4)) & uint64_t(0x00000003u)) == 0 ?  2 : 0),
-    kValue = _kTmp5 + (((N >> (_kTmp5)) & uint64_t(0x00000001u)) == 0 ?  1 : 0)
-  };
-};
-
-template<>
-struct StaticCtz<0> {}; // Undefined.
-
-template<uint64_t N>
-constexpr uint32_t staticCtz() noexcept { return StaticCtz<N>::kValue; }
+inline uint32_t ctz(T x) noexcept { return Internal::ctz(asUInt(x)); }
 
 // ============================================================================
 // [asmjit::Support - PopCnt]
@@ -366,19 +321,19 @@ static inline uint32_t _popcntGeneric(uint64_t x) noexcept {
 }
 
 static inline uint32_t _popcntImpl(uint32_t x) noexcept {
-  #if ASMJIT_CXX_GNU
+#if ASMJIT_CXX_GNU
   return uint32_t(__builtin_popcount(x));
-  #else
+#else
   return _popcntGeneric(asUInt(x));
-  #endif
+#endif
 }
 
 static inline uint32_t _popcntImpl(uint64_t x) noexcept {
-  #if ASMJIT_CXX_GNU
+#if ASMJIT_CXX_GNU
   return uint32_t(__builtin_popcountll(x));
-  #else
+#else
   return _popcntGeneric(asUInt(x));
-  #endif
+#endif
 }
 
 //! Get count of bits in `x`.
@@ -486,7 +441,7 @@ constexpr bool isInt4(T x) noexcept {
 
 //! Get whether the given integer `x` can be casted to an 8-bit signed integer.
 template<typename T>
-constexpr bool isI8(T x) noexcept {
+constexpr bool isInt8(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
   typedef typename std::make_unsigned<T>::type U;
 
@@ -496,7 +451,7 @@ constexpr bool isI8(T x) noexcept {
 
 //! Get whether the given integer `x` can be casted to a 16-bit signed integer.
 template<typename T>
-constexpr bool isI16(T x) noexcept {
+constexpr bool isInt16(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
   typedef typename std::make_unsigned<T>::type U;
 
@@ -506,7 +461,7 @@ constexpr bool isI16(T x) noexcept {
 
 //! Get whether the given integer `x` can be casted to a 32-bit signed integer.
 template<typename T>
-constexpr bool isI32(T x) noexcept {
+constexpr bool isInt32(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
   typedef typename std::make_unsigned<T>::type U;
 
@@ -525,7 +480,7 @@ constexpr bool isUInt4(T x) noexcept {
 
 //! Get whether the given integer `x` can be casted to an 8-bit unsigned integer.
 template<typename T>
-constexpr bool isU8(T x) noexcept {
+constexpr bool isUInt8(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
 
   return std::is_signed<T>::value ? (sizeof(T) <= 1 || T(x) <= T(255)) && x >= T(0)
@@ -543,7 +498,7 @@ constexpr bool isUInt12(T x) noexcept {
 
 //! Get whether the given integer `x` can be casted to a 16-bit unsigned integer.
 template<typename T>
-constexpr bool isU16(T x) noexcept {
+constexpr bool isUInt16(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
 
   return std::is_signed<T>::value ? (sizeof(T) <= 2 || T(x) <= T(65535)) && x >= T(0)
@@ -552,7 +507,7 @@ constexpr bool isU16(T x) noexcept {
 
 //! Get whether the given integer `x` can be casted to a 32-bit unsigned integer.
 template<typename T>
-constexpr bool isU32(T x) noexcept {
+constexpr bool isUInt32(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
 
   return std::is_signed<T>::value ? (sizeof(T) <= 4 || T(x) <= T(4294967295u)) && x >= T(0)
@@ -591,7 +546,7 @@ static inline uint32_t byteShiftOfDWordStruct(uint32_t index) noexcept {
 }
 
 // ============================================================================
-// [asmjit::Support - ASCII]
+// [asmjit::Support - String Utilities]
 // ============================================================================
 
 template<typename T>
@@ -599,6 +554,49 @@ constexpr T asciiToLower(T c) noexcept { return c ^ (T(c >= T('A') && c <= T('Z'
 
 template<typename T>
 constexpr T asciiToUpper(T c) noexcept { return c ^ (T(c >= T('a') && c <= T('z')) << 5); }
+
+static ASMJIT_INLINE size_t strLen(const char* s, size_t maxSize) noexcept {
+  size_t i = 0;
+  while (i < maxSize && s[i] != '\0')
+    i++;
+  return i;
+}
+
+// \internal
+static constexpr uint32_t hashRound(uint32_t hash, uint32_t c) noexcept { return hash * 65599 + c; }
+
+// Get a hash of the given string `data` of size `size`. Size must be valid
+// as this function doesn't check for a null terminator and allows it in the
+// middle of the string.
+static inline uint32_t hashString(const char* data, size_t size) noexcept {
+  uint32_t hashCode = 0;
+  for (uint32_t i = 0; i < size; i++)
+    hashCode = hashRound(hashCode, uint8_t(data[i]));
+  return hashCode;
+}
+
+static ASMJIT_INLINE const char* findPackedString(const char* p, uint32_t id) noexcept {
+  uint32_t i = 0;
+  while (i < id) {
+    while (p[0])
+      p++;
+    p++;
+    i++;
+  }
+  return p;
+}
+
+//! Compare two instruction names.
+//!
+//! `a` is a null terminated instruction name from arch-specific `nameData[]` table.
+//! `b` is a non-null terminated instruction name passed to `Inst::idByName()`.
+static ASMJIT_INLINE int cmpInstName(const char* a, const char* b, size_t size) noexcept {
+  for (size_t i = 0; i < size; i++) {
+    int c = int(uint8_t(a[i])) - int(uint8_t(b[i]));
+    if (c != 0) return c;
+  }
+  return int(uint8_t(a[size]));
+}
 
 // ============================================================================
 // [asmjit::Support - Read / Write]
@@ -738,7 +736,7 @@ static inline uint64_t readU64uBE(const void* p) noexcept { return readU64xBE<1>
 static inline void writeU8(void* p, uint32_t x) noexcept { static_cast<uint8_t*>(p)[0] = uint8_t(x & 0xFFu); }
 static inline void writeI8(void* p, int32_t x) noexcept { static_cast<uint8_t*>(p)[0] = uint8_t(x & 0xFF); }
 
-template<uint32_t BO, size_t Alignment>
+template<uint32_t BO = ByteOrder::kNative, size_t Alignment = 1>
 static inline void writeU16x(void* p, uint32_t x) noexcept {
   if (BO == ByteOrder::kNative && (kUnalignedAccess16 || Alignment >= 2)) {
     typedef typename Internal::AlignedInt<uint16_t, Alignment>::T U16AlignedToN;
@@ -757,7 +755,7 @@ static inline void writeU24u(void* p, uint32_t v) noexcept {
   static_cast<uint8_t*>(p)[2] = uint8_t((v >> (BO == ByteOrder::kLE ? 16 :  0)) & 0xFFu);
 }
 
-template<uint32_t BO, size_t Alignment>
+template<uint32_t BO = ByteOrder::kNative, size_t Alignment = 1>
 static inline void writeU32x(void* p, uint32_t x) noexcept {
   if (kUnalignedAccess32 || Alignment >= 4) {
     typedef typename Internal::AlignedInt<uint32_t, Alignment>::T U32AlignedToN;
@@ -769,7 +767,7 @@ static inline void writeU32x(void* p, uint32_t x) noexcept {
   }
 }
 
-template<uint32_t BO, size_t Alignment>
+template<uint32_t BO = ByteOrder::kNative, size_t Alignment = 1>
 static inline void writeU64x(void* p, uint64_t x) noexcept {
   if (BO == ByteOrder::kNative && (kUnalignedAccess64 || Alignment >= 8)) {
     typedef typename Internal::AlignedInt<uint64_t, Alignment>::T U64AlignedToN;
@@ -781,24 +779,24 @@ static inline void writeU64x(void* p, uint64_t x) noexcept {
   }
 }
 
-template<uint32_t BO, size_t Alignment> static inline void writeI16x(void* p, int32_t x) noexcept { writeU16x<BO, Alignment>(p, uint32_t(x)); }
-template<uint32_t BO, size_t Alignment> static inline void writeI32x(void* p, int32_t x) noexcept { writeU32x<BO, Alignment>(p, uint32_t(x)); }
-template<uint32_t BO, size_t Alignment> static inline void writeI64x(void* p, int64_t x) noexcept { writeU64x<BO, Alignment>(p, uint64_t(x)); }
+template<uint32_t BO = ByteOrder::kNative, size_t Alignment = 1> static inline void writeI16x(void* p, int32_t x) noexcept { writeU16x<BO, Alignment>(p, uint32_t(x)); }
+template<uint32_t BO = ByteOrder::kNative, size_t Alignment = 1> static inline void writeI32x(void* p, int32_t x) noexcept { writeU32x<BO, Alignment>(p, uint32_t(x)); }
+template<uint32_t BO = ByteOrder::kNative, size_t Alignment = 1> static inline void writeI64x(void* p, int64_t x) noexcept { writeU64x<BO, Alignment>(p, uint64_t(x)); }
 
-template<size_t Alignment> static inline void writeI16xLE(void* p, int32_t x) noexcept { writeI16x<ByteOrder::kLE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeI16xBE(void* p, int32_t x) noexcept { writeI16x<ByteOrder::kBE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeU16xLE(void* p, uint32_t x) noexcept { writeU16x<ByteOrder::kLE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeU16xBE(void* p, uint32_t x) noexcept { writeU16x<ByteOrder::kBE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeI16xLE(void* p, int32_t x) noexcept { writeI16x<ByteOrder::kLE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeI16xBE(void* p, int32_t x) noexcept { writeI16x<ByteOrder::kBE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeU16xLE(void* p, uint32_t x) noexcept { writeU16x<ByteOrder::kLE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeU16xBE(void* p, uint32_t x) noexcept { writeU16x<ByteOrder::kBE, Alignment>(p, x); }
 
-template<size_t Alignment> static inline void writeI32xLE(void* p, int32_t x) noexcept { writeI32x<ByteOrder::kLE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeI32xBE(void* p, int32_t x) noexcept { writeI32x<ByteOrder::kBE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeU32xLE(void* p, uint32_t x) noexcept { writeU32x<ByteOrder::kLE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeU32xBE(void* p, uint32_t x) noexcept { writeU32x<ByteOrder::kBE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeI32xLE(void* p, int32_t x) noexcept { writeI32x<ByteOrder::kLE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeI32xBE(void* p, int32_t x) noexcept { writeI32x<ByteOrder::kBE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeU32xLE(void* p, uint32_t x) noexcept { writeU32x<ByteOrder::kLE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeU32xBE(void* p, uint32_t x) noexcept { writeU32x<ByteOrder::kBE, Alignment>(p, x); }
 
-template<size_t Alignment> static inline void writeI64xLE(void* p, int64_t x) noexcept { writeI64x<ByteOrder::kLE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeI64xBE(void* p, int64_t x) noexcept { writeI64x<ByteOrder::kBE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeU64xLE(void* p, uint64_t x) noexcept { writeU64x<ByteOrder::kLE, Alignment>(p, x); }
-template<size_t Alignment> static inline void writeU64xBE(void* p, uint64_t x) noexcept { writeU64x<ByteOrder::kBE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeI64xLE(void* p, int64_t x) noexcept { writeI64x<ByteOrder::kLE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeI64xBE(void* p, int64_t x) noexcept { writeI64x<ByteOrder::kBE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeU64xLE(void* p, uint64_t x) noexcept { writeU64x<ByteOrder::kLE, Alignment>(p, x); }
+template<size_t Alignment = 1> static inline void writeU64xBE(void* p, uint64_t x) noexcept { writeU64x<ByteOrder::kBE, Alignment>(p, x); }
 
 static inline void writeI16a(void* p, int32_t x) noexcept { writeI16x<ByteOrder::kNative, 2>(p, x); }
 static inline void writeI16u(void* p, int32_t x) noexcept { writeI16x<ByteOrder::kNative, 1>(p, x); }

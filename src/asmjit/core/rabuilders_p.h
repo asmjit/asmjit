@@ -39,7 +39,7 @@ public:
       Logger* logger = _pass->debugLogger();
       uint32_t flags = FormatOptions::kFlagPositions;
       RABlock* lastPrintedBlock = nullptr;
-      StringBuilderTmp<512> sb;
+      StringTmp<512> sb;
     );
     ASMJIT_RA_LOG_FORMAT("[RAPass::BuildCFG]\n");
 
@@ -49,13 +49,13 @@ public:
     // Create entry and exit blocks.
     _retBlock = _pass->newBlockOrExistingAt(func->exitNode(), &node);
     if (ASMJIT_UNLIKELY(!_retBlock))
-      return DebugUtils::errored(kErrorNoHeapMemory);
+      return DebugUtils::errored(kErrorOutOfMemory);
     ASMJIT_PROPAGATE(_pass->addExitBlock(_retBlock));
 
     if (node != func) {
       _curBlock = _pass->newBlock();
       if (ASMJIT_UNLIKELY(!_curBlock))
-        return DebugUtils::errored(kErrorNoHeapMemory);
+        return DebugUtils::errored(kErrorOutOfMemory);
     }
     else {
       // Function that has no code at all.
@@ -155,7 +155,7 @@ public:
 
               RABlock* targetBlock = _pass->newBlockOrExistingAt(cbLabel);
               if (ASMJIT_UNLIKELY(!targetBlock))
-                return DebugUtils::errored(kErrorNoHeapMemory);
+                return DebugUtils::errored(kErrorOutOfMemory);
 
               _curBlock->setLast(node);
               _curBlock->addFlags(RABlock::kFlagHasTerminator);
@@ -184,14 +184,14 @@ public:
                   else {
                     consecutiveBlock = _pass->newBlock(node);
                     if (ASMJIT_UNLIKELY(!consecutiveBlock))
-                      return DebugUtils::errored(kErrorNoHeapMemory);
+                      return DebugUtils::errored(kErrorOutOfMemory);
                     node->setPassData<RABlock>(consecutiveBlock);
                   }
                 }
                 else {
                   consecutiveBlock = _pass->newBlock(node);
                   if (ASMJIT_UNLIKELY(!consecutiveBlock))
-                    return DebugUtils::errored(kErrorNoHeapMemory);
+                    return DebugUtils::errored(kErrorOutOfMemory);
                 }
 
                 _curBlock->addFlags(RABlock::kFlagHasConsecutive);
@@ -238,7 +238,7 @@ public:
             // No block assigned, to create a new one, and assign it.
             _curBlock = _pass->newBlock(node);
             if (ASMJIT_UNLIKELY(!_curBlock))
-              return DebugUtils::errored(kErrorNoHeapMemory);
+              return DebugUtils::errored(kErrorOutOfMemory);
             node->setPassData<RABlock>(_curBlock);
           }
 
@@ -285,7 +285,7 @@ public:
 
               RABlock* consecutive = _pass->newBlock(node);
               if (ASMJIT_UNLIKELY(!consecutive))
-                return DebugUtils::errored(kErrorNoHeapMemory);
+                return DebugUtils::errored(kErrorOutOfMemory);
 
               ASMJIT_PROPAGATE(_curBlock->appendSuccessor(consecutive));
               ASMJIT_PROPAGATE(_pass->addBlock(consecutive));

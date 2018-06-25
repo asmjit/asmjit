@@ -13,7 +13,7 @@
 
 // [Dependencies]
 #include "../core/logging.h"
-#include "../core/stringbuilder.h"
+#include "../core/string.h"
 #include "../x86/x86globals.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
@@ -27,7 +27,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 namespace LoggingInternal {
   Error formatRegister(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t archId,
@@ -35,14 +35,14 @@ namespace LoggingInternal {
     uint32_t regId) noexcept;
 
   Error formatOperand(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t archId,
     const Operand_& op) noexcept;
 
   Error formatInstruction(
-    StringBuilder& sb,
+    String& sb,
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t archId,

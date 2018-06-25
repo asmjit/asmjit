@@ -203,7 +203,7 @@ public:
     _workToPhysMap->physIds[workId] = uint8_t(physId);
     _physToWorkIds[group][physId] = workId;
 
-    uint32_t regMask = Support::mask(physId);
+    uint32_t regMask = Support::bitMask(physId);
     _physToWorkMap->assigned[group] |= regMask;
     _physToWorkMap->dirty[group] |= regMask & Support::bitMaskFromBool<uint32_t>(dirty);
 
@@ -222,8 +222,8 @@ public:
     _physToWorkIds[group][srcPhysId] = kWorkNone;
     _physToWorkIds[group][dstPhysId] = workId;
 
-    uint32_t srcMask = Support::mask(srcPhysId);
-    uint32_t dstMask = Support::mask(dstPhysId);
+    uint32_t srcMask = Support::bitMask(srcPhysId);
+    uint32_t dstMask = Support::bitMask(dstPhysId);
 
     uint32_t dirty = (_physToWorkMap->dirty[group] & srcMask) != 0;
     uint32_t regMask = dstMask | srcMask;
@@ -248,8 +248,8 @@ public:
     _physToWorkIds[group][aPhysId] = bWorkId;
     _physToWorkIds[group][bPhysId] = aWorkId;
 
-    uint32_t aMask = Support::mask(aPhysId);
-    uint32_t bMask = Support::mask(bPhysId);
+    uint32_t aMask = Support::bitMask(aPhysId);
+    uint32_t bMask = Support::bitMask(bPhysId);
 
     uint32_t flipMask = Support::bitMaskFromBool<uint32_t>(
       ((_physToWorkMap->dirty[group] & aMask) != 0) ^
@@ -271,7 +271,7 @@ public:
     _workToPhysMap->physIds[workId] = kPhysNone;
     _physToWorkIds[group][physId] = kWorkNone;
 
-    uint32_t regMask = Support::mask(physId);
+    uint32_t regMask = Support::bitMask(physId);
     _physToWorkMap->assigned[group] &= ~regMask;
     _physToWorkMap->dirty[group] &= ~regMask;
 
@@ -281,14 +281,14 @@ public:
   inline void makeClean(uint32_t group, uint32_t workId, uint32_t physId) noexcept {
     ASMJIT_UNUSED(workId);
 
-    uint32_t regMask = Support::mask(physId);
+    uint32_t regMask = Support::bitMask(physId);
     _physToWorkMap->dirty[group] &= ~regMask;
   }
 
   inline void makeDirty(uint32_t group, uint32_t workId, uint32_t physId) noexcept {
     ASMJIT_UNUSED(workId);
 
-    uint32_t regMask = Support::mask(physId);
+    uint32_t regMask = Support::bitMask(physId);
     _physToWorkMap->dirty[group] |= regMask;
   }
 

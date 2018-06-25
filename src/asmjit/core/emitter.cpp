@@ -179,7 +179,7 @@ Error BaseEmitter::commentf(const char* fmt, ...) {
     return DebugUtils::errored(kErrorNotInitialized);
 
   #ifndef ASMJIT_DISABLE_LOGGING
-  StringBuilderTmp<1024> sb;
+  StringTmp<1024> sb;
 
   va_list ap;
   va_start(ap, fmt);
@@ -201,7 +201,7 @@ Error BaseEmitter::commentv(const char* fmt, va_list ap) {
     return DebugUtils::errored(kErrorNotInitialized);
 
   #ifndef ASMJIT_DISABLE_LOGGING
-  StringBuilderTmp<1024> sb;
+  StringTmp<1024> sb;
 
   Error err = sb.appendFormatVA(fmt, ap);
   if (ASMJIT_UNLIKELY(err))

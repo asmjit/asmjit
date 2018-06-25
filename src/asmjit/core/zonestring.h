@@ -38,7 +38,7 @@ struct ZoneStringBase {
     else {
       char* external = static_cast<char*>(zone->dup(str, size, true));
       if (ASMJIT_UNLIKELY(!external))
-        return DebugUtils::errored(kErrorNoHeapMemory);
+        return DebugUtils::errored(kErrorOutOfMemory);
       _external = external;
     }
 

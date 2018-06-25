@@ -40,7 +40,7 @@ static void makeRawFunc(x86::Emitter* emitter) {
   frame.init(func);
 
   // Make XMM0 and XMM1 dirty. VEC group includes XMM|YMM|ZMM registers.
-  frame.setDirtyRegs(x86::Reg::kGroupVec, Support::mask(0, 1));
+  frame.setDirtyRegs(x86::Reg::kGroupVec, Support::bitMask(0, 1));
 
   FuncArgsAssignment args(&func);         // Create arguments assignment context.
   args.assignAll(dst, src_a, src_b);      // Assign our registers to arguments.

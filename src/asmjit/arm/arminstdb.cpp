@@ -12,7 +12,7 @@
 #ifdef ASMJIT_BUILD_ARM
 
 // [Dependencies]
-#include "../core/stringutils.h"
+#include "../core/support.h"
 #include "../arm/arminstdb.h"
 #include "../arm/armoperand.h"
 
@@ -633,7 +633,7 @@ uint32_t ArmInst::idByName(const char* name, size_t size) noexcept {
 
   for (size_t lim = (size_t)(end - base); lim != 0; lim >>= 1) {
     const ArmInst* cur = base + (lim >> 1);
-    int result = StringUtils::cmpInstName(nameData + cur[0]._nameDataIndex, name, size);
+    int result = Support::cmpInstName(nameData + cur[0]._nameDataIndex, name, size);
 
     if (result < 0) {
       base = cur + 1;
