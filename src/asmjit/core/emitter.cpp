@@ -183,7 +183,7 @@ Error BaseEmitter::commentf(const char* fmt, ...) {
 
   va_list ap;
   va_start(ap, fmt);
-  Error err = sb.appendFormatVA(fmt, ap);
+  Error err = sb.appendVFormat(fmt, ap);
   va_end(ap);
 
   if (ASMJIT_UNLIKELY(err))
@@ -203,7 +203,7 @@ Error BaseEmitter::commentv(const char* fmt, va_list ap) {
   #ifndef ASMJIT_DISABLE_LOGGING
   StringTmp<1024> sb;
 
-  Error err = sb.appendFormatVA(fmt, ap);
+  Error err = sb.appendVFormat(fmt, ap);
   if (ASMJIT_UNLIKELY(err))
     return err;
 

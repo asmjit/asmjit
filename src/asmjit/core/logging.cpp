@@ -60,7 +60,7 @@ Error Logger::logf(const char* fmt, ...) noexcept {
 
 Error Logger::logv(const char* fmt, va_list ap) noexcept {
   StringTmp<2048> sb;
-  ASMJIT_PROPAGATE(sb.appendFormatVA(fmt, ap));
+  ASMJIT_PROPAGATE(sb.appendVFormat(fmt, ap));
   return log(sb);
 }
 

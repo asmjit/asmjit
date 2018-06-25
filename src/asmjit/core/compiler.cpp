@@ -311,7 +311,7 @@ Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* name) {
 
 Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* fmt, va_list ap) {
   StringTmp<256> sb;
-  sb.appendFormatVA(fmt, ap);
+  sb.appendVFormat(fmt, ap);
   return _newReg(out, typeId, sb.data());
 }
 
@@ -392,7 +392,7 @@ Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* name) 
 
 Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap) {
   StringTmp<256> sb;
-  sb.appendFormatVA(fmt, ap);
+  sb.appendVFormat(fmt, ap);
   return _newReg(out, ref, sb.data());
 }
 

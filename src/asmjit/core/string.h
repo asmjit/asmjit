@@ -234,7 +234,7 @@ public:
   }
 
   //! Append a formatted string `fmt` (va_list version).
-  inline Error appendFormatVA(const char* fmt, va_list ap) noexcept {
+  inline Error appendVFormat(const char* fmt, va_list ap) noexcept {
     return _opVFormat(kOpAppend, fmt, ap);
   }
 
@@ -311,17 +311,17 @@ public:
 
   inline void _resetToTemporary() noexcept {
     _large.type = kTypeExternal;
-    _large.capacity = ASMJIT_ARRAY_SIZE(_embeddedTmp) - 1;
-    _large.data = _embeddedTmp;
-    _embeddedTmp[0] = '\0';
+    _large.capacity = ASMJIT_ARRAY_SIZE(_embeddedData) - 1;
+    _large.data = _embeddedData;
+    _embeddedData[0] = '\0';
   }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Embedded data (temporary extension to the `_embedded` data).
-  char _embeddedTmp[Support::alignUp(N + 1, sizeof(size_t))];
+  //! Embedded data.
+  char _embeddedData[Support::alignUp(N + 1, sizeof(size_t))];
 };
 
 // ============================================================================

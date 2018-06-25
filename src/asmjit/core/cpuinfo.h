@@ -26,13 +26,6 @@ ASMJIT_BEGIN_NAMESPACE
 class CpuInfo {
 public:
   // --------------------------------------------------------------------------
-  // [X86Info]
-  // --------------------------------------------------------------------------
-
-  struct X86Data {
-  };
-
-  // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
@@ -126,9 +119,6 @@ public:
   FixedString<16> _vendor;               //!< CPU vendor string.
   FixedString<64> _brand;                //!< CPU brand string.
   BaseFeatures _features;                //!< CPU features.
-
-  // Architecture specific data.
-  X86Data _x86Data;
 };
 
 //! \}
