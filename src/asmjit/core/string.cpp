@@ -40,7 +40,7 @@ Error String::clear() noexcept {
     _large.data[0] = '\0';
   }
   else {
-    _uptr[0] = 0;
+    _raw.uptr[0] = 0;
   }
 
   return kErrorOk;
@@ -273,10 +273,7 @@ Error String::_opChars(uint32_t op, char c, size_t n) noexcept {
 
 Error String::padEnd(size_t n, char c) noexcept {
   size_t size = this->size();
-  if (n <= size)
-    return kErrorOk;
-
-  return appendChars(c, n - size);
+  return n > size ? appendChars(c, n - size) : kErrorOk;
 }
 
 Error String::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t width, uint32_t flags) noexcept {

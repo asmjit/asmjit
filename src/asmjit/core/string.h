@@ -74,6 +74,25 @@ public:
     kFormatSigned    = 0x80000000u
   };
 
+  union Raw {
+    uint8_t u8[kLayoutSize];
+    uint64_t u64[kLayoutSize / sizeof(uint64_t)];
+    uintptr_t uptr[kLayoutSize / sizeof(uintptr_t)];
+  };
+
+  struct Small {
+    uint8_t type;
+    char data[kSSOCapacity + 1u];
+  };
+
+  struct Large {
+    uint8_t type;
+    uint8_t reserved[sizeof(uintptr_t) - 1];
+    size_t size;
+    size_t capacity;
+    char* data;
+  };
+
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -82,8 +101,8 @@ public:
     : _small {} {}
 
   inline String(String&& other) noexcept {
-    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_uptr); i++)
-      _uptr[i] = other._uptr[i];
+    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_raw.uptr); i++)
+      _raw.uptr[i] = other._raw.uptr[i];
     other._resetToEmbedded();
   }
 
@@ -100,8 +119,8 @@ public:
   //! NOTE: This is always called internally after an external buffer was released
   //! as it zeroes all bytes used by String's embedded storage.
   inline void _resetToEmbedded() noexcept {
-    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_uptr); i++)
-      _uptr[i] = 0;
+    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_raw.uptr); i++)
+      _raw.uptr[i] = 0;
   }
 
   inline void _setSize(size_t newSize) noexcept {
@@ -260,27 +279,11 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  struct Small {
-    uint8_t type;
-    char data[kSSOCapacity + 1u];
-  };
-
-  struct Large {
-    uint8_t type;
-    uint8_t reserved[sizeof(uintptr_t) - 1];
-    size_t size;
-    size_t capacity;
-    char* data;
-  };
-
   union {
     uint8_t _type;
+    Raw _raw;
     Small _small;
     Large _large;
-
-    uint8_t _u8[kLayoutSize];
-    uint64_t _u64[kLayoutSize / sizeof(uint64_t)];
-    uintptr_t _uptr[kLayoutSize / sizeof(uintptr_t)];
   };
 };
 
