@@ -14,7 +14,6 @@
 // [Dependencies]
 #include "../core/cpuinfo.h"
 #include "../core/logging.h"
-#include "../core/memmgr.h"
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../arm/armassembler.h"
@@ -142,7 +141,7 @@ Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
   if (i == 0)
     return kErrorOk;
 
-  AsmBufferWriter writer(this);
+  CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, i));
 
   constexpr uint32_t kNopT16 = 0x0000BF00u; // [10111111|00000000].

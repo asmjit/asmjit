@@ -19,8 +19,7 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
-  #ifndef ASMJIT_DISABLE_TEXT
-
+#ifndef ASMJIT_DISABLE_TEXT
   static const char errorMessages[] =
     "Ok\0"
     "No heap memory\0"
@@ -82,22 +81,19 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     "Overlapping register and arguments base-address register\0"
     "Unknown error\0";
   return StringUtils::findPackedString(errorMessages, Support::min<Error>(err, kErrorCount));
-
-  #else
-
+#else
   ASMJIT_UNUSED(err);
   static const char noMessage[] = "";
   return noMessage;
-
-  #endif
+#endif
 }
 
 ASMJIT_FAVOR_SIZE void DebugUtils::debugOutput(const char* str) noexcept {
-  #if ASMJIT_OS_WINDOWS
+#if defined(_WIN32)
   ::OutputDebugStringA(str);
-  #else
+#else
   std::fputs(str, stderr);
-  #endif
+#endif
 }
 
 ASMJIT_FAVOR_SIZE void DebugUtils::assertionFailed(const char* file, int line, const char* msg) noexcept {

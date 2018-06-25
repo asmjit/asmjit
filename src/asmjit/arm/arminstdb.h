@@ -120,7 +120,7 @@ namespace InstDB {
   //! match. If there is an exact match the instruction id is returned, otherwise
   //! `kInvalidInstId` (zero) is returned instead. The given `name` doesn't have
   //! to be null-terminated if `size` is provided.
-  ASMJIT_API static uint32_t idByName(const char* name, size_t size = Globals::kNullTerminated) noexcept;
+  ASMJIT_API static uint32_t idByName(const char* name, size_t size = SIZE_MAX) noexcept;
 
   //! Get an instruction name from a given instruction id `instId`.
   ASMJIT_API static const char* nameById(uint32_t instId) noexcept;

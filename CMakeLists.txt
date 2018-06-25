@@ -60,7 +60,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Ox)        # [+] Global optimization.
 endif()
 
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
   cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS
     "-fvisibility=hidden"
     "-fno-tree-vectorize"
@@ -73,7 +73,7 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
     "-fmerge-all-constants")
 endif()
 
-if(ASMJIT_BUILD_SANITIZE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
+if(ASMJIT_BUILD_SANITIZE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
   cxx_detect_cflags(ASMJIT_SANITIZE_FLAGS "-fsanitize=undefined")
   list(APPEND ASMJIT_PRIVATE_CFLAGS ${ASMJIT_SANITIZE_FLAGS})
   list(APPEND ASMJIT_PRIVATE_LFLAGS ${ASMJIT_SANITIZE_FLAGS})
@@ -135,6 +135,7 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   builder.h
   callconv.cpp
   callconv.h
+  codebufferwriter_p.h
   codeholder.cpp
   codeholder.h
   compiler.cpp
@@ -161,8 +162,6 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   jitutils.h
   logging.cpp
   logging.h
-  memmgr.cpp
-  memmgr.h
   misc_p.h
   operand.cpp
   operand.h
@@ -254,7 +253,7 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/x86
 )
 
 if(MSVC)
-  cxx_add_source(asmjit ASMJIT_SRC asmjit asmjit.natvis)
+  cxx_add_source(asmjit ASMJIT_SRC .. asmjit.natvis)
 endif()
 
 # =============================================================================

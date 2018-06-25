@@ -8,7 +8,6 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
-#include "../core/memmgr.h"
 #include "../core/stringbuilder.h"
 #include "../core/support.h"
 
@@ -18,16 +17,30 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::StringBuilder - Globals]
 // ============================================================================
 
-constexpr char StringBuilder_numbers[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char StringBuilder_numbers[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 constexpr size_t kMinAllocSize = 256;
 constexpr size_t kMaxAllocSize = std::numeric_limits<size_t>::max() - Globals::kAllocThreshold;
 
 // ============================================================================
+// [asmjit::StringBuilder - Reset]
+// ============================================================================
+
+void StringBuilder::reset() noexcept {
+  if (!isEmbedded())
+    Support::release(_data);
+
+  _data = _embedded;
+  _size = 0;
+  _capacity = 0;
+  _embeddedUInt = 0;
+}
+
+// ============================================================================
 // [asmjit::StringBuilder - Prepare / Reserve]
 // ============================================================================
 
-ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcept {
+char* StringBuilder::prepare(uint32_t op, size_t size) noexcept {
   if (op == kStringOpSet) {
     if (size > _capacity) {
       // Prevent arithmetic overflow.
@@ -35,7 +48,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
         return nullptr;
 
       size_t newCapacity = Support::alignUp<size_t>(size + 1, kMinAllocSize);
-      char* newData = static_cast<char*>(MemMgr::alloc(newCapacity));
+      char* newData = static_cast<char*>(Support::alloc(newCapacity));
 
       if (ASMJIT_UNLIKELY(!newData))
         return nullptr;
@@ -45,7 +58,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
       _capacity = newCapacity - 1;
 
       if (oldData != _embedded)
-        MemMgr::release(oldData);
+        Support::release(oldData);
     }
 
     _data[size] = 0;
@@ -72,7 +85,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
       if (ASMJIT_UNLIKELY(newCapacity < afterPlusOne))
         return nullptr;
 
-      char* newData = static_cast<char*>(MemMgr::alloc(newCapacity));
+      char* newData = static_cast<char*>(Support::alloc(newCapacity));
       if (!newData) return nullptr;
 
       char* oldData = _data;
@@ -82,7 +95,7 @@ ASMJIT_FAVOR_SIZE char* StringBuilder::prepare(uint32_t op, size_t size) noexcep
       _capacity = newCapacity - 1;
 
       if (oldData != _embedded)
-        MemMgr::release(oldData);
+        Support::release(oldData);
     }
 
     char* p = _data + _size;
@@ -102,7 +115,7 @@ ASMJIT_FAVOR_SIZE Error StringBuilder::reserve(size_t to) noexcept {
     return DebugUtils::errored(kErrorNoHeapMemory);
 
   to = Support::alignUp<size_t>(to, sizeof(intptr_t));
-  char* newData = static_cast<char*>(MemMgr::alloc(to + sizeof(intptr_t)));
+  char* newData = static_cast<char*>(Support::alloc(to + sizeof(intptr_t)));
 
   if (!newData)
     return DebugUtils::errored(kErrorNoHeapMemory);
@@ -114,7 +127,7 @@ ASMJIT_FAVOR_SIZE Error StringBuilder::reserve(size_t to) noexcept {
   _capacity = to + sizeof(intptr_t) - 1;
 
   if (oldData != _embedded)
-    MemMgr::release(oldData);
+    Support::release(oldData);
   return kErrorOk;
 }
 
@@ -123,7 +136,7 @@ ASMJIT_FAVOR_SIZE Error StringBuilder::reserve(size_t to) noexcept {
 // ============================================================================
 
 Error StringBuilder::_opString(uint32_t op, const char* str, size_t size) noexcept {
-  if (size == Globals::kNullTerminated)
+  if (size == SIZE_MAX)
     size = str ? ::strlen(str) : size_t(0);
 
   if (!size)
@@ -341,7 +354,7 @@ bool StringBuilder::eq(const char* data, size_t size) const noexcept {
   size_t aSize = _size;
   size_t bSize = size;
 
-  if (bSize == Globals::kNullTerminated) {
+  if (bSize == SIZE_MAX) {
     size_t i;
     for (i = 0; i < aSize; i++)
       if (aData[i] != bData[i] || bData[i] == 0)

@@ -9,9 +9,9 @@
 
 // [Dependencies]
 #include "../core/assembler.h"
+#include "../core/codebufferwriter_p.h"
 #include "../core/constpool.h"
 #include "../core/logging.h"
-#include "../core/memmgr.h"
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -279,7 +279,7 @@ Error BaseAssembler::embed(const void* data, uint32_t size) {
   if (size == 0)
     return DebugUtils::errored(kErrorInvalidArgument);
 
-  AsmBufferWriter writer(this);
+  CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, size));
 
   writer.emitData(data, size);
@@ -305,7 +305,7 @@ Error BaseAssembler::embedLabel(const Label& label) {
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
 
   uint32_t size = gpSize();
-  AsmBufferWriter writer(this);
+  CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, size));
 
   #ifndef ASMJIT_DISABLE_LOGGING
@@ -349,7 +349,7 @@ Error BaseAssembler::embedConstPool(const Label& label, const ConstPool& pool) {
   ASMJIT_PROPAGATE(bind(label));
 
   size_t size = pool.size();
-  AsmBufferWriter writer(this);
+  CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, size));
 
   pool.fill(writer.cursor());

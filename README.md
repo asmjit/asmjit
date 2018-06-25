@@ -296,9 +296,13 @@ int main(int argc, char* argv[]) {
   x86::Gp sum = x86::eax;                 // Use EAX as 'sum' as it's a return register.
 
   if (ASMJIT_ARCH_BITS == 64) {
-    bool isWinOS = static_cast<bool>(ASMJIT_OS_WINDOWS);
-    arr = isWinOS ? x86::rcx : x86::rdi;  // First argument (array ptr).
-    cnt = isWinOS ? x86::rdx : x86::rsi;  // Second argument (number of elements)
+  #if defined(_WIN32)
+    arr = x86::rcx;                       // First argument (array ptr).
+    cnt = x86::rdx;                       // Second argument (number of elements)
+  #else
+    arr = x86::rdi;                       // First argument (array ptr).
+    cnt = x86::rsi;                       // Second argument (number of elements)
+  #endif
   }
   else {
     arr = x86::edx;                       // Use EDX to hold the array pointer.
@@ -504,7 +508,6 @@ int main(int argc, char* argv[]) {
 
   // Generate a function runnable in both 32-bit and 64-bit architectures:
   bool isX86 = ASMJIT_ARCH_X86 == 32;
-  bool isWin = ASMJIT_OS_WINDOWS != 0;
 
   // Signature: 'void func(int* dst, const int* a, const int* b)'.
   x86::Gp dst;
@@ -522,9 +525,15 @@ int main(int argc, char* argv[]) {
     a.mov(src_b, dword_ptr(x86::esp, 12));// Load the second source pointer.
   }
   else {
-    dst   = isWin ? x86::rcx : x86::rdi;  // First argument  (destination pointer).
-    src_a = isWin ? x86::rdx : x86::rsi;  // Second argument (source 'a' pointer).
-    src_b = isWin ? x86::r8  : x86::rdx;  // Third argument  (source 'b' pointer).
+  #if defined(_WIN32)
+    dst   = x86::rcx;                     // First argument  (destination pointer).
+    src_a = x86::rdx;                     // Second argument (source 'a' pointer).
+    src_b = x86::r8;                      // Third argument  (source 'b' pointer).
+  #else
+    dst   = x86::rdi;                     // First argument  (destination pointer).
+    src_a = x86::rsi;                     // Second argument (source 'a' pointer).
+    src_b = x86::rdx;                     // Third argument  (source 'b' pointer).
+  #endif
   }
 
   a.movdqu(x86::xmm0, x86::ptr(src_a));   // Load 4 ints from [src_a] to XMM0.

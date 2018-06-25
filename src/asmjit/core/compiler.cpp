@@ -284,7 +284,7 @@ VirtReg* BaseCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const cha
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (name && name[0] != '\0')
-    vReg->_name.setData(&_dataZone, name, Globals::kNullTerminated);
+    vReg->_name.setData(&_dataZone, name, SIZE_MAX);
   else
     CodeCompiler_assignGenericName(this, vReg);
   #endif
@@ -469,7 +469,7 @@ void BaseCompiler::rename(BaseReg& reg, const char* fmt, ...) {
     std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);
     va_end(ap);
 
-    vReg->_name.setData(&_dataZone, buf, Globals::kNullTerminated);
+    vReg->_name.setData(&_dataZone, buf, SIZE_MAX);
   }
   else {
     CodeCompiler_assignGenericName(this, vReg);

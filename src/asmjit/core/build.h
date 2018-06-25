@@ -58,10 +58,49 @@
 #define _ASMJIT_CORE_BUILD_H
 
 // ============================================================================
-// [asmjit::Build - Globals - Version]
+// [asmjit::Version]
 // ============================================================================
 
 #define ASMJIT_LIBRARY_VERSION 0x010200 /* 1.2.0 */
+
+// ============================================================================
+// [asmjit::Dependencies]
+// ============================================================================
+
+// We really want std-types as globals.
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#include <cstdio>
+#include <cstring>
+#include <limits>
+#include <new>
+#include <type_traits>
+#include <utility>
+
+#if defined(_WIN32)
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+    #define ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
+  #endif
+  #ifndef NOMINMAX
+    #define NOMINMAX
+    #define ASMJIT_UNDEF_NOMINMAX
+  #endif
+  #include <windows.h>
+  #ifdef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
+    #undef WIN32_LEAN_AND_MEAN
+    #undef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
+  #endif
+  #ifdef ASMJIT_UNDEF_NOMINMAX
+    #undef NOMINMAX
+    #undef ASMJIT_UNDEF_NOMINMAX
+  #endif
+#else
+  #include <pthread.h>
+#endif
 
 // ============================================================================
 // [asmjit::Build - Globals - Deprecated]
@@ -102,67 +141,28 @@
 #endif
 
 // ============================================================================
-// [asmjit::Build - Globals - Target Operating System]
-// ============================================================================
-
-#if defined(_WIN32)
-  #define ASMJIT_OS_WINDOWS    1
-#else
-  #define ASMJIT_OS_WINDOWS    0
-#endif
-
-#if defined(__linux__) || defined(__ANDROID__)
-  #define ASMJIT_OS_LINUX      1
-#else
-  #define ASMJIT_OS_LINUX      0
-#endif
-
-#if defined(__ANDROID__)
-  #define ASMJIT_OS_ANDROID    1
-#else
-  #define ASMJIT_OS_ANDROID    0
-#endif
-
-#if defined(__APPLE__)
-  #define ASMJIT_OS_MAC        1
-#else
-  #define ASMJIT_OS_MAC        0
-#endif
-
-#if defined(__FreeBSD__) || defined(__NetBSD__)    || \
-    defined(__OpenBSD__) || defined(__DragonFly__) || \
-    defined(__bsdi__)
-  #define ASMJIT_OS_BSD        1
-#else
-  #define ASMJIT_OS_BSD        0
-#endif
-
-#define ASMJIT_OS_POSIX        (!ASMJIT_OS_WINDOWS)
-
-// ============================================================================
 // [asmjit::Build - Globals - Target Architecture]
 // ============================================================================
 
-#if defined(_M_X64) || defined(__amd64) || defined(__x86_64) || defined(__x86_64__)
-  #define ASMJIT_ARCH_X86      64
-#elif defined(_M_IX86) || defined(__i386) || defined(__i386__)
-  #define ASMJIT_ARCH_X86      32
+#if defined(_M_X64) || defined(__x86_64__)
+  #define ASMJIT_ARCH_X86 64
+#elif defined(_M_IX86) || defined(__X86__) || defined(__i386__)
+  #define ASMJIT_ARCH_X86 32
 #else
-  #define ASMJIT_ARCH_X86      0
+  #define ASMJIT_ARCH_X86 0
 #endif
 
-#if defined(__ARM64__) || defined(__aarch64__)
-  #define ASMJIT_ARCH_ARM      64
-#elif (defined(_M_ARM  ) || defined(__arm    ) || defined(__thumb__ ) || \
-       defined(_M_ARMT ) || defined(__arm__  ) || defined(__thumb2__))
-  #define ASMJIT_ARCH_ARM      32
+#if defined(__arm64__) || defined(__aarch64__)
+# define ASMJIT_ARCH_ARM 64
+#elif defined(_M_ARM) || defined(_M_ARMT) || defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
+  #define ASMJIT_ARCH_ARM 32
 #else
-  #define ASMJIT_ARCH_ARM      0
+  #define ASMJIT_ARCH_ARM 0
 #endif
 
 #if defined(_MIPS_ARCH_MIPS64) || defined(__mips64)
   #define ASMJIT_ARCH_MIPS     64
-#elif defined(_MIPS_ARCH_MIPS32) || defined(_M_MRX000) || defined(__mips) || defined(__mips__)
+#elif defined(_MIPS_ARCH_MIPS32) || defined(_M_MRX000) || defined(__mips__)
   #define ASMJIT_ARCH_MIPS     32
 #else
   #define ASMJIT_ARCH_MIPS     0
@@ -314,26 +314,21 @@
 // [asmjit::Build - Globals - API Decorators & Language Extensions]
 // ============================================================================
 
-// ASMJIT_BUILD_EMBED implies ASMJIT_BUILD_STATIC.
-#if defined(ASMJIT_BUILD_EMBED) && !defined(ASMJIT_BUILD_STATIC)
-  #define ASMJIT_BUILD_STATIC
-#endif
-
 // API (Export / Import).
-#if !defined(ASMJIT_API) && !defined(ASMJIT_BUILD_STATIC)
-  #if ASMJIT_OS_WINDOWS && (ASMJIT_CXX_MSC || defined(__MINGW32__))
+#if !defined(ASMJIT_BUILD_EMBED) && !defined(ASMJIT_BUILD_STATIC)
+  #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
     #if defined(ASMJIT_EXPORTS)
       #define ASMJIT_API __declspec(dllexport)
     #else
       #define ASMJIT_API __declspec(dllimport)
     #endif
-  #elif ASMJIT_OS_WINDOWS && ASMJIT_CXX_GNU
+  #elif defined(_WIN32) && defined(__GNUC__)
     #if defined(ASMJIT_EXPORTS)
       #define ASMJIT_API __attribute__((__dllexport__))
     #else
       #define ASMJIT_API __attribute__((__dllimport__))
     #endif
-  #elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 0, 0)
+  #elif defined(__GNUC__)
     #define ASMJIT_API __attribute__((__visibility__("default")))
   #endif
 #endif
@@ -352,7 +347,7 @@
 // class is exported. However, GCC has some strange behavior that even if
 // one or more symbol is exported it doesn't export typeinfo unless the
 // class itself is decorated with "visibility(default)" (i.e. ASMJIT_API).
-#if ASMJIT_CXX_GNU && !ASMJIT_OS_WINDOWS
+#if !defined(_WIN32) && ASMJIT_CXX_GNU
   #define ASMJIT_VIRTAPI ASMJIT_API
 #else
   #define ASMJIT_VIRTAPI
@@ -527,47 +522,6 @@
       #define _CRT_SECURE_NO_WARNINGS
     #endif
   #endif
-#endif
-
-// ============================================================================
-// [asmjit::Build - Globals - Dependencies]
-// ============================================================================
-
-// We really want std-types as globals.
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-#include <cstdio>
-#include <cstring>
-#include <limits>
-#include <new>
-#include <type_traits>
-#include <utility>
-
-#if ASMJIT_OS_WINDOWS
-  #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-    #define ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-  #endif
-  #ifndef NOMINMAX
-    #define NOMINMAX
-    #define ASMJIT_UNDEF_NOMINMAX
-  #endif
-  #include <windows.h>
-  #ifdef ASMJIT_UNDEF_NOMINMAX
-    #undef NOMINMAX
-    #undef ASMJIT_UNDEF_NOMINMAX
-  #endif
-  #ifdef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-    #undef WIN32_LEAN_AND_MEAN
-    #undef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
- #endif
-#endif
-
-#if ASMJIT_OS_POSIX
-  #include <pthread.h>
 #endif
 
 // ============================================================================

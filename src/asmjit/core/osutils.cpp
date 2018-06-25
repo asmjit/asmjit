@@ -11,17 +11,13 @@
 #include "../core/osutils.h"
 #include "../core/support.h"
 
-#if ASMJIT_OS_POSIX
+#if defined(_WIN32)
+  #include <atomic>
+#elif defined(__APPLE__)
+  #include <mach/mach_time.h>
+#else
   #include <time.h>
   #include <unistd.h>
-#endif
-
-#if ASMJIT_OS_MAC
-  #include <mach/mach_time.h>
-#endif
-
-#if ASMJIT_OS_WINDOWS
-  #include <atomic>
 #endif
 
 ASMJIT_BEGIN_NAMESPACE
@@ -31,8 +27,7 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 uint32_t OSUtils::getTickCount() noexcept {
-  #if ASMJIT_OS_WINDOWS
-
+#if defined(_WIN32)
   enum HiResStatus : uint32_t {
     kHiResUnknown      = 0,
     kHiResAvailable    = 1,
@@ -67,45 +62,31 @@ uint32_t OSUtils::getTickCount() noexcept {
 
   // Bail to `GetTickCount()` if we cannot use high resolution.
   return ::GetTickCount();
-
-  #elif ASMJIT_OS_MAC
-
+#elif defined(__APPLE__)
   // See Apple's QA1398.
   static mach_timebase_info_data_t _machTime;
+
   uint32_t denom = _machTime.denom;
-
   if (ASMJIT_UNLIKELY(!denom)) {
-    if (mach_timebase_info(&_machTime) != KERN_SUCCESS)
-      return 0;
-
-    denom = _machTime.denom;
-    if (!denom)
+    if (mach_timebase_info(&_machTime) != KERN_SUCCESS || !(denom = _machTime.denom))
       return 0;
   }
 
-
   // `mach_absolute_time()` returns nanoseconds, we want milliseconds.
   uint64_t t = mach_absolute_time() / 1000000u;
-
   t = (t * _machTime.numer) / _machTime.denom;
   return uint32_t(t & 0xFFFFFFFFu);
-
-  #elif defined(_POSIX_MONOTONIC_CLOCK) && _POSIX_MONOTONIC_CLOCK >= 0
-
+#elif defined(_POSIX_MONOTONIC_CLOCK) && _POSIX_MONOTONIC_CLOCK >= 0
   struct timespec ts;
-
   if (ASMJIT_UNLIKELY(clock_gettime(CLOCK_MONOTONIC, &ts) != 0))
     return 0;
 
   uint64_t t = (uint64_t(ts.tv_sec ) * 1000u) + (uint64_t(ts.tv_nsec) / 1000000u);
   return uint32_t(t & 0xFFFFFFFFu);
-
-  #else
-
+#else
   #pragma message("asmjit::OSUtils::getTickCount() doesn't have implementation for the target OS.")
   return 0;
-
-  #endif
+#endif
 }
 
 ASMJIT_END_NAMESPACE

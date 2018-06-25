@@ -28,7 +28,6 @@
 #include "./core/jitruntime.h"
 #include "./core/jitutils.h"
 #include "./core/logging.h"
-#include "./core/memmgr.h"
 #include "./core/operand.h"
 #include "./core/osutils.h"
 #include "./core/stringbuilder.h"

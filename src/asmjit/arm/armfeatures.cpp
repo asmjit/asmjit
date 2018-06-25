@@ -16,8 +16,8 @@
 #include "../core/support.h"
 #include "../arm/armfeatures.h"
 
-// Required by `getauxval()`.
-#if ASMJIT_ARCH_ARM && ASMJIT_OS_LINUX
+// Required by `getauxval()` on Linux.
+#if defined(__linux__)
   #include <sys/auxv.h>
 #endif
 
@@ -53,7 +53,7 @@ static inline void populateBaseFeatures(CpuInfo& cpu) noexcept {
 // [asmjit::arm::Features - Detect - Windows]
 // ============================================================================
 
-#if ASMJIT_OS_WINDOWS
+#if defined(_WIN32)
 struct WinPFPMapping {
   uint8_t featureId;
   uint8_t pfpFeatureId;
@@ -104,7 +104,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
 // [asmjit::arm::Features - Detect - Linux]
 // ============================================================================
 
-#if ASMJIT_OS_LINUX
+#if defined(__linux__)
 struct LinuxHWCapMapping {
   uint8_t featureId;
   uint8_t hwCapBit;
@@ -186,8 +186,8 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
 // [asmjit::arm::Features - Detect - Unknown]
 // ============================================================================
 
-#if !ASMJIT_OS_WINDOWS && !ASMJIT_OS_LINUX
-#error "[asmjit] arm::detectCpu() - Unsupported OS."
+#if !defined(_WIN32) && !defined(__linux__)
+  #error "[asmjit] arm::detectCpu() - Unsupported OS."
 #endif
 
 ASMJIT_END_SUB_NAMESPACE

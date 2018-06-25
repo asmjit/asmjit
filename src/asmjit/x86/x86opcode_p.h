@@ -408,7 +408,7 @@ struct Opcode {
     return (x | y) >> kMM_Shift;
   }
 
-  inline Opcode& operator =(uint32_t x) noexcept { v  = x; return *this; }
+  inline Opcode& operator=(uint32_t x) noexcept { v = x; return *this; }
   inline Opcode& operator+=(uint32_t x) noexcept { v += x; return *this; }
   inline Opcode& operator-=(uint32_t x) noexcept { v -= x; return *this; }
   inline Opcode& operator&=(uint32_t x) noexcept { v &= x; return *this; }

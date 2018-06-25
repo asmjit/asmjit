@@ -252,11 +252,7 @@ public:
   //! Create a new label.
   virtual Label newLabel() = 0;
   //! Create a new named label.
-  virtual Label newNamedLabel(
-    const char* name,
-    size_t nameSize = Globals::kNullTerminated,
-    uint32_t type = Label::kTypeGlobal,
-    uint32_t parentId = 0) = 0;
+  virtual Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = 0) = 0;
 
   //! Get a label by name.
   //!
@@ -264,10 +260,7 @@ public:
   //!
   //! NOTE: This function doesn't trigger ErrorHandler in case the name is invalid
   //! or no such label exist. You must always check the validity of the `Label` returned.
-  ASMJIT_API Label labelByName(
-    const char* name,
-    size_t nameSize = Globals::kNullTerminated,
-    uint32_t parentId = 0) noexcept;
+  ASMJIT_API Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept;
 
   //! Bind the `label` to the current position of the current section.
   //!
@@ -422,7 +415,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Emit comment from string `data` with an optional comment `size` parameter.
-  virtual Error comment(const char* data, size_t size = Globals::kNullTerminated) = 0;
+  virtual Error comment(const char* data, size_t size = SIZE_MAX) = 0;
 
   //! Emit comment from a formatted string `fmt`.
   ASMJIT_API Error commentf(const char* fmt, ...);

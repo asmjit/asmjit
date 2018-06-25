@@ -69,23 +69,8 @@ constexpr uint32_t kMaxCommentSize = 1024;
 //! Returned by `indexOf()` and similar when working with containers that use 32-bit index/size.
 constexpr uint32_t kNotFound = std::numeric_limits<uint32_t>::max();
 
-//! The size of the string is not known, but the string is null terminated.
-constexpr size_t kNullTerminated = std::numeric_limits<size_t>::max();
-
 //! Invalid base address.
 constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
-
-// ============================================================================
-// [asmjit::Globals::ByteOrder]
-// ============================================================================
-
-//! Byte order.
-enum ByteOrder : uint32_t {
-  kByteOrderLE      = 0,
-  kByteOrderBE      = 1,
-  kByteOrderNative  = ASMJIT_ARCH_LE ? kByteOrderLE : kByteOrderBE,
-  kByteOrderSwapped = ASMJIT_ARCH_LE ? kByteOrderBE : kByteOrderLE
-};
 
 // ============================================================================
 // [asmjit::Globals::ResetPolicy]
@@ -277,6 +262,20 @@ enum ErrorCode : uint32_t {
   //! Count of AsmJit error codes.
   kErrorCount
 };
+
+// ============================================================================
+// [asmjit::ByteOrder]
+// ============================================================================
+
+//! Byte order.
+namespace ByteOrder {
+  enum : uint32_t {
+    kLE      = 0,
+    kBE      = 1,
+    kNative  = ASMJIT_ARCH_LE ? kLE : kBE,
+    kSwapped = ASMJIT_ARCH_LE ? kBE : kLE
+  };
+}
 
 // ============================================================================
 // [asmjit::PointerCast]

@@ -12,7 +12,6 @@
 #ifdef ASMJIT_BUILD_ARM
 
 // [Dependencies]
-#include "../core/memmgr.h"
 #include "../core/stringutils.h"
 #include "../arm/arminstdb.h"
 #include "../arm/armoperand.h"
@@ -612,7 +611,7 @@ uint32_t ArmInst::idByName(const char* name, size_t size) noexcept {
   if (ASMJIT_UNLIKELY(!name))
     return Globals::kInvalidInstId;
 
-  if (size == Globals::kNullTerminated)
+  if (size == SIZE_MAX)
     size = ::strlen(name);
 
   if (ASMJIT_UNLIKELY(size == 0 || size > kArmInstMaxSize))

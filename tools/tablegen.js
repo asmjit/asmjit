@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // ============================================================================
 // tablegen.js
@@ -745,7 +745,7 @@ class NameTable extends Task {
     s += `const char InstDB::_nameData[] =\n${instNames.format(kIndent, kJustify)}\n`;
     s += `\n`;
 
-    s += `enum {\n`;
+    s += `enum : uint32_t {\n`;
     s += `  k${arch}InstMaxSize = ${maxLength}\n`;
     s += `};\n`;
     s += `\n`;

@@ -1,7 +1,7 @@
 #!/bin/sh
 
-CURRENT_DIR=`pwd`
 BUILD_DIR="build_xcode"
+CURRENT_DIR=`pwd`
 
 mkdir -p ../${BUILD_DIR}
 cd ../${BUILD_DIR}

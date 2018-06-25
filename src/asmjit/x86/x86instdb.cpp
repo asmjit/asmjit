@@ -4235,7 +4235,7 @@ const char InstDB::_nameData[] =
   "xbegin\0" "xend\0" "xgetbv\0" "xlatb\0" "xrstors\0" "xrstors64\0" "xsavec\0" "xsavec64\0" "xsaveopt\0"
   "xsaveopt64\0" "xsaves\0" "xsaves64\0" "xsetbv\0" "xtest";
 
-enum {
+enum : uint32_t {
   kX86InstMaxSize = 16
 };
 
@@ -4279,7 +4279,7 @@ uint32_t InstDB::idByName(const char* name, size_t nameSize) noexcept {
   if (ASMJIT_UNLIKELY(!name))
     return Inst::kIdNone;
 
-  if (nameSize == Globals::kNullTerminated)
+  if (nameSize == SIZE_MAX)
     nameSize = ::strlen(name);
 
   if (ASMJIT_UNLIKELY(nameSize == 0 || nameSize > kX86InstMaxSize))
@@ -5552,7 +5552,7 @@ Next:
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_INST_API
-ASMJIT_FAVOR_SIZE Error InstInternal::queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept {
+ASMJIT_FAVOR_SIZE Error InstInternal::queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept {
   // Only called when `archId` matches X86 family.
   ASMJIT_ASSERT(ArchInfo::isX86Family(archId));
 

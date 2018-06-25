@@ -9,7 +9,6 @@
 #define _ASMJIT_CORE_STRINGBUILDER_H
 
 // [Dependencies]
-#include "../core/memmgr.h"
 #include "../core/support.h"
 #include "../core/zone.h"
 
@@ -69,8 +68,7 @@ public:
       _embeddedUInt(0) {}
 
   inline ~StringBuilder() noexcept {
-    if (!isEmbedded())
-      MemMgr::release(_data);
+    reset();
   }
 
   // --------------------------------------------------------------------------
@@ -96,6 +94,8 @@ public:
   // [Prepare / Reserve]
   // --------------------------------------------------------------------------
 
+  ASMJIT_API void reset() noexcept;
+
   //! Prepare to set/append.
   ASMJIT_API char* prepare(uint32_t op, size_t size) noexcept;
 
@@ -115,13 +115,14 @@ public:
   //! Truncate the string to `maxLen` characters.
   inline void truncate(size_t maxLen) noexcept {
     _size = Support::min<size_t>(_size, maxLen);
+    _data[_size] = '\0';
   }
 
   // --------------------------------------------------------------------------
   // [Op]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error _opString(uint32_t op, const char* str, size_t size = Globals::kNullTerminated) noexcept;
+  ASMJIT_API Error _opString(uint32_t op, const char* str, size_t size = SIZE_MAX) noexcept;
   ASMJIT_API Error _opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept;
   ASMJIT_API Error _opChar(uint32_t op, char c) noexcept;
   ASMJIT_API Error _opChars(uint32_t op, char c, size_t n) noexcept;
@@ -133,7 +134,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Replace the current string with `str` having `size` characters (or possibly null terminated).
-  inline Error setString(const char* str, size_t size = Globals::kNullTerminated) noexcept {
+  inline Error setString(const char* str, size_t size = SIZE_MAX) noexcept {
     return _opString(kStringOpSet, str, size);
   }
 
@@ -184,7 +185,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Append string `str` of size `size` (or possibly null terminated).
-  inline Error appendString(const char* str, size_t size = Globals::kNullTerminated) noexcept {
+  inline Error appendString(const char* str, size_t size = SIZE_MAX) noexcept {
     return _opString(kStringOpAppend, str, size);
   }
 
@@ -237,7 +238,7 @@ public:
   // --------------------------------------------------------------------------
 
   //! Check for equality with other `str` of size `size`.
-  ASMJIT_API bool eq(const char* str, size_t size = Globals::kNullTerminated) const noexcept;
+  ASMJIT_API bool eq(const char* str, size_t size = SIZE_MAX) const noexcept;
   //! Check for equality with `other`.
   inline bool eq(const StringBuilder& other) const noexcept { return eq(other._data, other._size); }
 

@@ -96,7 +96,7 @@ enum MemFlags : uint32_t {
   kMemOpM8                = 0x0002u,     //!< Operand can be an 8-bit memory pointer.
   kMemOpM16               = 0x0004u,     //!< Operand can be a 16-bit memory pointer.
   kMemOpM32               = 0x0008u,     //!< Operand can be a 32-bit memory pointer.
-  kMemOpM48               = 0x0010u,     //!< Operand can be a 32-bit memory pointer.
+  kMemOpM48               = 0x0010u,     //!< Operand can be a 48-bit memory pointer (FAR pointers only).
   kMemOpM64               = 0x0020u,     //!< Operand can be a 64-bit memory pointer.
   kMemOpM80               = 0x0040u,     //!< Operand can be an 80-bit memory pointer.
   kMemOpM128              = 0x0080u,     //!< Operand can be a 128-bit memory pointer.
@@ -711,7 +711,7 @@ static inline uint32_t altOpcodeFromId(uint32_t instId) noexcept {
 //! match. If there is an exact match the instruction id is returned, otherwise
 //! `kInvalidInstId` (zero) is returned instead. The given `name` doesn't have
 //! to be null-terminated if `nameSize` is provided.
-ASMJIT_API uint32_t idByName(const char* name, size_t nameSize = Globals::kNullTerminated) noexcept;
+ASMJIT_API uint32_t idByName(const char* name, size_t nameSize = SIZE_MAX) noexcept;
 
 //! Get an instruction name from a given instruction id `instId`.
 ASMJIT_API const char* nameById(uint32_t instId) noexcept;
@@ -735,7 +735,7 @@ inline const InstInfo& infoById(uint32_t instId) noexcept {
 namespace InstInternal {
   #ifndef ASMJIT_DISABLE_INST_API
   Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
-  Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept;
+  Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept;
   Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;
   #endif
 };

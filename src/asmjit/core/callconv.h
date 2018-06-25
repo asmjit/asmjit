@@ -126,35 +126,39 @@ struct CallConv {
     //! NOTE: This should be always the same as `kIdHostCDecl`, but some
     //! compilers allow to override the default calling convention. Overriding
     //! is not detected at the moment.
-    kIdHost          = DETECTED_AT_COMPILE_TIME,
+    kIdHost           = DETECTED_AT_COMPILE_TIME,
     //! Default CDECL calling convention based on the current C++ compiler's settings.
-    kIdHostCDecl     = DETECTED_AT_COMPILE_TIME,
+    kIdHostCDecl      = DETECTED_AT_COMPILE_TIME,
     //! Default STDCALL calling convention based on the current C++ compiler's settings.
     //!
     //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
-    kIdHostStdCall   = DETECTED_AT_COMPILE_TIME,
+    kIdHostStdCall    = DETECTED_AT_COMPILE_TIME,
     //! Compatibility for `__fastcall` calling convention.
     //!
     //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
-    kIdHostFastCall  = DETECTED_AT_COMPILE_TIME
+    kIdHostFastCall   = DETECTED_AT_COMPILE_TIME
 
     #elif ASMJIT_ARCH_X86 == 32
 
-    kIdHost          = kIdX86CDecl,
-    kIdHostCDecl     = kIdX86CDecl,
-    kIdHostStdCall   = kIdX86StdCall,
-    kIdHostFastCall  = ASMJIT_CXX_MSC ? kIdX86MsFastCall  :
-                       ASMJIT_CXX_GNU ? kIdX86GccFastCall : kIdNone,
+    kIdHost           = kIdX86CDecl,
+    kIdHostCDecl      = kIdX86CDecl,
+    kIdHostStdCall    = kIdX86StdCall,
+    kIdHostFastCall   = ASMJIT_CXX_MSC ? kIdX86MsFastCall  :
+                        ASMJIT_CXX_GNU ? kIdX86GccFastCall : kIdNone,
     kIdHostLightCall2 = kIdX86LightCall2,
     kIdHostLightCall3 = kIdX86LightCall3,
     kIdHostLightCall4 = kIdX86LightCall4
 
     #elif ASMJIT_ARCH_X86 == 64
 
-    kIdHost          = ASMJIT_OS_WINDOWS ? kIdX86Win64 : kIdX86SysV64,
-    kIdHostCDecl     = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostStdCall   = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostFastCall  = kIdHost, // Doesn't exist, redirected to host.
+    #if defined(_WIN32)
+    kIdHost           = kIdX86Win64,
+    #else
+    kIdHost           = kIdX86SysV64,
+    #endif
+    kIdHostCDecl      = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostStdCall    = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostFastCall   = kIdHost, // Doesn't exist, redirected to host.
     kIdHostLightCall2 = kIdX64LightCall2,
     kIdHostLightCall3 = kIdX64LightCall3,
     kIdHostLightCall4 = kIdX64LightCall4
@@ -162,21 +166,21 @@ struct CallConv {
     #elif ASMJIT_ARCH_ARM == 32
 
     #if defined(__SOFTFP__)
-    kIdHost          = kIdArm32SoftFP,
+    kIdHost           = kIdArm32SoftFP,
     #else
-    kIdHost          = kIdArm32HardFP,
+    kIdHost           = kIdArm32HardFP,
     #endif
     // These don't exist on ARM.
-    kIdHostCDecl     = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostStdCall   = kIdHost, // Doesn't exist, redirected to host.
-    kIdHostFastCall  = kIdHost  // Doesn't exist, redirected to host.
+    kIdHostCDecl      = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostStdCall    = kIdHost, // Doesn't exist, redirected to host.
+    kIdHostFastCall   = kIdHost  // Doesn't exist, redirected to host.
 
     #else
 
-    kIdHost          = kIdNone,
-    kIdHostCDecl     = kIdHost,
-    kIdHostStdCall   = kIdHost,
-    kIdHostFastCall  = kIdHost
+    kIdHost           = kIdNone,
+    kIdHostCDecl      = kIdHost,
+    kIdHostStdCall    = kIdHost,
+    kIdHostFastCall   = kIdHost
 
     #endif
   };

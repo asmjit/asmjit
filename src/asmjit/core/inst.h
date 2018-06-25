@@ -63,20 +63,24 @@ struct OpInfo {
   uint8_t _reserved;                     //!< Reserved for future use.
 };
 
-//! Operand Read/Write information, used by `InstRWInfo`.
-struct OpRWInfo {
+// ============================================================================
+// [asmjit::IRWInfo / ORWInfo]
+// ============================================================================
+
+//! Read/Write information related to a single operand, used by `IRWInfo`.
+struct ORWInfo {
   //! Flags describe how the operand is accessed and some additional information.
   enum Flags : uint32_t {
-    kRead               = 0x00000001u, //!< Operand is Read.
-    kWrite              = 0x00000002u, //!< Operand is Written.
-    kRW                 = 0x00000003u, //!< Operand is ReadWrite.
-    kUse                = 0x00000004u, //!< Operand is either Read or ReadWrite.
-    kOut                = 0x00000008u, //!< Operand is always WriteOnly (not Read nor ReadWrite).
-    kZExt               = 0x00000010u  //!< The output is zero extended to a native register size.
+    kRead                 = 0x00000001u, //!< Operand is Read.
+    kWrite                = 0x00000002u, //!< Operand is Written.
+    kRW                   = 0x00000003u, //!< Operand is ReadWrite.
+    kUse                  = 0x00000004u, //!< Operand has a USE slot (each read or read/write operation).
+    kOut                  = 0x00000008u, //!< Operand has an OUT slot (each write-only operation).
+    kZExt                 = 0x00000010u  //!< The output is zero extended to a native register size.
   };
 
-  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
   inline uint32_t flags() const noexcept { return _flags; }
+  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
   inline bool isRead() const noexcept { return hasFlag(kRead); }
   inline bool isWrite() const noexcept { return hasFlag(kWrite); }
@@ -93,17 +97,18 @@ struct OpRWInfo {
   inline uint32_t index() const noexcept { return _index; }
   inline uint32_t width() const noexcept { return _width; }
 
-  uint8_t _flags;                      //!< Read/Write flags.
-  uint8_t _physId;                     //!< Physical register index, if required.
-  uint8_t _index;                      //!< Read/write register index [in bytes], `_index` is ignored if the operand is memory.
-  uint8_t _width;                      //!< Read/Write register/memory width [in bytes], zero means native width or imm/rel width.
+  uint8_t _flags;                        //!< Read/Write flags.
+  uint8_t _physId;                       //!< Physical register index, if required.
+  uint8_t _index;                        //!< Read/write register index [in bytes], `_index` is ignored if the operand is memory.
+  uint8_t _width;                        //!< Read/Write register/memory width [in bytes], zero means native width or imm/rel width.
 };
 
-//! Instruction Read/Write information.
-struct InstRWInfo {
+//! Read/Write information related to the whole instruction.
+struct IRWInfo {
   uint32_t flags;
-  OpRWInfo extraReg;
-  OpRWInfo operands[Globals::kMaxOpCount];
+  uint32_t opCount;
+  ORWInfo extraReg;
+  ORWInfo operands[Globals::kMaxOpCount];
 };
 
 // ============================================================================
@@ -235,7 +240,7 @@ public:
   ASMJIT_API static Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
 
   //! Get Read/Write information of the given instruction.
-  ASMJIT_API static Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept;
+  ASMJIT_API static Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept;
 
   //! Get CPU features required by the given instruction.
   ASMJIT_API static Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;

@@ -12,9 +12,9 @@
 #ifdef ASMJIT_BUILD_X86
 
 // [Dependencies]
+#include "../core/codebufferwriter_p.h"
 #include "../core/cpuinfo.h"
 #include "../core/logging.h"
-#include "../core/memmgr.h"
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../x86/x86assembler.h"
@@ -359,14 +359,17 @@ static ASMJIT_INLINE bool x86IsRexInvalid(uint32_t rex) noexcept {
   return rex > kX86ByteInvalidRex;
 }
 
+template<typename T>
+constexpr T x86SignExtendI32(T imm) noexcept { return int64_t(int32_t(imm & T(0xFFFFFFFF))); }
+
 // ============================================================================
 // [asmjit::X86BufferWriter]
 // ============================================================================
 
-class X86BufferWriter : public AsmBufferWriter {
+class X86BufferWriter : public CodeBufferWriter {
 public:
   ASMJIT_INLINE explicit X86BufferWriter(Assembler* a) noexcept
-    : AsmBufferWriter(a) {}
+    : CodeBufferWriter(a) {}
 
   ASMJIT_INLINE void emitPP(uint32_t opcode) noexcept {
     uint32_t ppIndex = (opcode              >> Opcode::kPP_Shift) &
@@ -406,13 +409,20 @@ public:
     #endif
 
     // Many instructions just use a single byte immediate, so make it fast.
-    emit8(imm & 0xFFu); if (--immSize == 0) return;
+    emit8(imm & 0xFFu);
+    if (--immSize == 0) return;
+
     imm >>= 8;
-    emit8(imm & 0xFFu); if (--immSize == 0) return;
+    emit8(imm & 0xFFu);
+    if (--immSize == 0) return;
+
     imm >>= 8;
-    emit8(imm & 0xFFu); if (--immSize == 0) return;
+    emit8(imm & 0xFFu);
+    if (--immSize == 0) return;
+
     imm >>= 8;
-    emit8(imm & 0xFFu); if (--immSize == 0) return;
+    emit8(imm & 0xFFu);
+    if (--immSize == 0) return;
 
     // Can be 1, 2, 4 or 8 bytes, this handles the remaining high DWORD of an 8-byte immediate.
     ASMJIT_ASSERT(immSize == 4);
@@ -879,7 +889,7 @@ CaseX86M_GPB_MulDiv:
           }
           else if (size == 4) {
             // Sign extend so isI8 returns the right result.
-            immValue = Support::signExtendI32<int64_t>(immValue);
+            immValue = x86SignExtendI32<int64_t>(immValue);
           }
           else if (size == 8) {
             // In 64-bit mode it's not possible to use 64-bit immediate.
@@ -921,7 +931,7 @@ CaseX86M_GPB_MulDiv:
 
         // Sign extend so isI8 returns the right result.
         if (memSize == 4)
-          immValue = Support::signExtendI32<int64_t>(immValue);
+          immValue = x86SignExtendI32<int64_t>(immValue);
 
         if (Support::isI8(immValue) && !(options & Inst::kOptionLongForm))
           immSize = 1;
@@ -1125,7 +1135,7 @@ CaseX86M_GPB_MulDiv:
 
         // Sign extend so isI8 returns the right result.
         if (o0.size() == 4)
-          immValue = Support::signExtendI32<int64_t>(immValue);
+          immValue = x86SignExtendI32<int64_t>(immValue);
 
         if (!Support::isI8(immValue) || (options & Inst::kOptionLongForm)) {
           opcode -= 2;
@@ -1177,7 +1187,7 @@ CaseX86M_GPB_MulDiv:
 
         // Sign extend so isI8 returns the right result.
         if (o0.size() == 4)
-          immValue = Support::signExtendI32<int64_t>(immValue);
+          immValue = x86SignExtendI32<int64_t>(immValue);
 
         if (!Support::isI8(immValue) || (options & Inst::kOptionLongForm)) {
           opcode -= 2;
@@ -1458,7 +1468,7 @@ CaseX86M_GPB_MulDiv:
             FIXUP_GPB(o0, opReg);
 
           // Handle a special form `mov al|ax|eax|rax, [ptr64]` that doesn't use MOD.
-          if (o0.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
+          if (o0.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex() && !rmRel->as<Mem>().isRel()) {
             immValue = rmRel->as<Mem>().offset();
             if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !Support::isI32(immValue)))) {
               opcode += 0xA0;
@@ -1490,7 +1500,7 @@ CaseX86M_GPB_MulDiv:
             FIXUP_GPB(o1, opReg);
 
           // Handle a special form `mov [ptr64], al|ax|eax|rax` that doesn't use MOD.
-          if (o1.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
+          if (o1.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex() && !rmRel->as<Mem>().isRel()) {
             immValue = rmRel->as<Mem>().offset();
             if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !Support::isI32(immValue)))) {
               opcode += 0xA2;
@@ -3620,7 +3630,7 @@ EmitModSib:
 
         // If we know the base address and the memory operand points to an
         // absolute address it's possible to calculate REL32 that can be
-        // be used as [RIP+REL32] in 64-bit mode.
+        // used as [RIP+REL32] in 64-bit mode.
         if (baseAddress != Globals::kNoBaseAddress && !preferAbsolute) {
           const uint32_t kModRel32Size = 5;
           uint64_t rip64 = baseAddress + uint64_t(writer.offset(_bufferData)) + immSize + kModRel32Size;
@@ -4373,7 +4383,7 @@ Error Assembler::align(uint32_t alignMode, uint32_t alignment) {
 
   uint32_t i = uint32_t(Support::alignUpDiff<size_t>(offset(), alignment));
   if (i > 0) {
-    AsmBufferWriter writer(this);
+    CodeBufferWriter writer(this);
     ASMJIT_PROPAGATE(writer.ensureSpace(this, i));
 
     uint8_t pattern = 0x00;

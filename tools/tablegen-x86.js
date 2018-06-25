@@ -2,7 +2,7 @@
 // Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// ZLIB - See LICENSE.md file in the package.
 
 // ============================================================================
 // tablegen-x86.js
@@ -20,21 +20,21 @@
 
 "use strict";
 
-const commons = require("./tablegen.js");
-const asmdb = commons.asmdb;
-const kIndent = commons.kIndent;
+const core = require("./tablegen.js");
+const asmdb = core.asmdb;
+const kIndent = core.kIndent;
 
-const MapUtils = commons.MapUtils;
-const ArrayUtils = commons.ArrayUtils;
-const StringUtils = commons.StringUtils;
-const IndexedArray = commons.IndexedArray;
+const MapUtils = core.MapUtils;
+const ArrayUtils = core.ArrayUtils;
+const StringUtils = core.StringUtils;
+const IndexedArray = core.IndexedArray;
 
 const hasOwn = Object.prototype.hasOwnProperty;
 const padLeft = StringUtils.padLeft;
 const disclaimer = StringUtils.disclaimer;
 
-const FAIL = commons.FAIL;
-const DEBUG = commons.DEBUG;
+const FAIL = core.FAIL;
+const DEBUG = core.DEBUG;
 
 // ============================================================================
 // [tablegen.x86.x86isa]
@@ -44,12 +44,12 @@ const DEBUG = commons.DEBUG;
 const x86isa = new asmdb.x86.ISA({
   instructions: [
     // Imul in [reg, imm] form is encoded as [reg, reg, imm].
-    ["imul"  , "r16, ib"    , "RM"   , "66 6B /r ib"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul"  , "r32, ib"    , "RM"   , "6B /r ib"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul"  , "r64, ib"    , "RM"   , "REX.W 6B /r ib"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul"  , "r16, iw"    , "RM"   , "66 69 /r iw"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul"  , "r32, id"    , "RM"   , "69 /r id"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul"  , "r64, id"    , "RM"   , "REX.W 69 /r id"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"]
+    ["imul", "r16, ib"    , "RMI"  , "66 6B /r ib"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul", "r32, ib"    , "RMI"  , "6B /r ib"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul", "r64, ib"    , "RMI"  , "REX.W 6B /r ib"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul", "r16, iw"    , "RMI"  , "66 69 /r iw"        , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul", "r32, id"    , "RMI"  , "69 /r id"           , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
+    ["imul", "r64, id"    , "RMI"  , "REX.W 69 /r id"     , "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"]
   ]
 });
 
@@ -377,47 +377,47 @@ class GenUtils {
       case "xchg"    :
 
       case "and"     :
-      case "pand"    : case "vpand"    : case "vpandd"  : case "vpandq"   :
-      case "andpd"   : case "vandpd"   :
-      case "andps"   : case "vandps"   :
+      case "pand"    : case "vpand"  : case "vpandd"  : case "vpandq"   :
+      case "andpd"   : case "vandpd" :
+      case "andps"   : case "vandps" :
 
       case "or"      :
-      case "por"     : case "vpor"     : case "vpord"   : case "vporq"    :
-      case "orpd"    : case "vorpd"    :
-      case "orps"    : case "vorps"    :
+      case "por"     : case "vpor"   : case "vpord"   : case "vporq"    :
+      case "orpd"    : case "vorpd"  :
+      case "orps"    : case "vorps"  :
 
-      case "pminsb"  : case "vpminsb"  : case "pmaxsb"  : case "vpmaxsb"  :
-      case "pminsw"  : case "vpminsw"  : case "pmaxsw"  : case "vpmaxsw"  :
-      case "pminsd"  : case "vpminsd"  : case "pmaxsd"  : case "vpmaxsd"  :
-      case "pminub"  : case "vpminub"  : case "pmaxub"  : case "vpmaxub"  :
-      case "pminuw"  : case "vpminuw"  : case "pmaxuw"  : case "vpmaxuw"  :
-      case "pminud"  : case "vpminud"  : case "pmaxud"  : case "vpmaxud"  :
+      case "pminsb"  : case "vpminsb": case "pmaxsb"  : case "vpmaxsb"  :
+      case "pminsw"  : case "vpminsw": case "pmaxsw"  : case "vpmaxsw"  :
+      case "pminsd"  : case "vpminsd": case "pmaxsd"  : case "vpmaxsd"  :
+      case "pminub"  : case "vpminub": case "pmaxub"  : case "vpmaxub"  :
+      case "pminuw"  : case "vpminuw": case "pmaxuw"  : case "vpmaxuw"  :
+      case "pminud"  : case "vpminud": case "pmaxud"  : case "vpmaxud"  :
         return "RO";
 
-      case "pandn"   : case "vpandn"   : case "vpandnd" : case "vpandnq"  :
+      case "pandn"   : case "vpandn" : case "vpandnd" : case "vpandnq"  :
 
       case "xor"     :
-      case "pxor"    : case "vpxor"    : case "vpxord"  : case "vpxorq"   :
-      case "xorpd"   : case "vxorpd"   :
-      case "xorps"   : case "vxorps"   :
+      case "pxor"    : case "vpxor"  : case "vpxord"  : case "vpxorq"   :
+      case "xorpd"   : case "vxorpd" :
+      case "xorps"   : case "vxorps" :
 
       case "sub"     :
-      case "psubb"   : case "vpsubb"   :
-      case "psubw"   : case "vpsubw"   :
-      case "psubd"   : case "vpsubd"   :
-      case "psubq"   : case "vpsubq"   :
-      case "psubsb"  : case "vpsubsb"  : case "psubusb" : case "vpsubusb" :
-      case "psubsw"  : case "vpsubsw"  : case "psubusw" : case "vpsubusw" :
+      case "psubb"   : case "vpsubb" :
+      case "psubw"   : case "vpsubw" :
+      case "psubd"   : case "vpsubd" :
+      case "psubq"   : case "vpsubq" :
+      case "psubsb"  : case "vpsubsb": case "psubusb" : case "vpsubusb" :
+      case "psubsw"  : case "vpsubsw": case "psubusw" : case "vpsubusw" :
 
-      case "vpcmpeqb": case "pcmpeqb"  : case "vpcmpgtb": case "pcmpgtb"  :
-      case "vpcmpeqw": case "pcmpeqw"  : case "vpcmpgtw": case "pcmpgtw"  :
-      case "vpcmpeqd": case "pcmpeqd"  : case "vpcmpgtd": case "pcmpgtd"  :
-      case "vpcmpeqq": case "pcmpeqq"  : case "vpcmpgtq": case "pcmpgtq"  :
+      case "vpcmpeqb": case "pcmpeqb": case "vpcmpgtb": case "pcmpgtb"  :
+      case "vpcmpeqw": case "pcmpeqw": case "vpcmpgtw": case "pcmpgtw"  :
+      case "vpcmpeqd": case "pcmpeqd": case "vpcmpgtd": case "pcmpgtd"  :
+      case "vpcmpeqq": case "pcmpeqq": case "vpcmpgtq": case "pcmpgtq"  :
 
-      case "vpcmpb"  : case "vpcmpub"  :
-      case "vpcmpd"  : case "vpcmpud"  :
-      case "vpcmpw"  : case "vpcmpuw"  :
-      case "vpcmpq"  : case "vpcmpuq"  :
+      case "vpcmpb"  : case "vpcmpub":
+      case "vpcmpd"  : case "vpcmpud":
+      case "vpcmpw"  : case "vpcmpuw":
+      case "vpcmpq"  : case "vpcmpuq":
         return "WO";
 
       default:
@@ -438,7 +438,7 @@ class GenUtils {
 // [tablegen.x86.X86TableGen]
 // ============================================================================
 
-class X86TableGen extends commons.TableGen {
+class X86TableGen extends core.TableGen {
   constructor() {
     super("X86");
   }
@@ -469,16 +469,16 @@ class X86TableGen extends commons.TableGen {
     const data = this.dataOfFile("src/asmjit/x86/x86instdb.cpp");
     const re = new RegExp(
       "INST\\(" +
-        "([A-Za-z0-9_]+)\\s*"              + "," + // [01] Instruction.
-        "([^,]+)"                          + "," + // [02] Encoding.
-        "(.{26}[^,]*)"                     + "," + // [03] Opcode[0].
-        "(.{26}[^,]*)"                     + "," + // [04] Opcode[1].
-        "([^,]+)"                          + "," + // [05] Write-Index.
-        "([^,]+)"                          + "," + // [06] Write-Size.
+        "([A-Za-z0-9_]+)\\s*"              + "," +  // [01] Instruction.
+        "([^,]+)"                          + "," +  // [02] Encoding.
+        "(.{26}[^,]*)"                     + "," +  // [03] Opcode[0].
+        "(.{26}[^,]*)"                     + "," +  // [04] Opcode[1].
+        "([^,]+)"                          + "," +  // [05] Write-Index.
+        "([^,]+)"                          + "," +  // [06] Write-Size.
         // --- autogenerated fields ---
-        "([^\\)]+)"                        + "," + // [07] NameIndex.
-        "([^\\)]+)"                        + "," + // [08] CommonDataIndex.
-        "([^\\)]+)"                        + "\\)",// [09] OperationDataIndex.
+        "([^\\)]+)"                        + "," +  // [07] NameIndex.
+        "([^\\)]+)"                        + "," +  // [08] CommonDataIndex.
+        "([^\\)]+)"                        + "\\)", // [09] OperationDataIndex.
       "g");
 
     var m;
@@ -697,7 +697,7 @@ class X86TableGen extends commons.TableGen {
 // [tablegen.x86.IdEnum]
 // ============================================================================
 
-class IdEnum extends commons.IdEnum {
+class IdEnum extends core.IdEnum {
   constructor() {
     super("IdEnum");
   }
@@ -728,7 +728,7 @@ class IdEnum extends commons.IdEnum {
 // [tablegen.x86.NameTable]
 // ============================================================================
 
-class NameTable extends commons.NameTable {
+class NameTable extends core.NameTable {
   constructor() {
     super("NameTable");
   }
@@ -738,7 +738,7 @@ class NameTable extends commons.NameTable {
 // [tablegen.x86.EncodingTable]
 // ============================================================================
 
-class EncodingTable extends commons.Task {
+class EncodingTable extends core.Task {
   constructor() {
     super("EncodingTable");
   }
@@ -761,7 +761,7 @@ class EncodingTable extends commons.Task {
 // [tablegen.x86.MainOpcodeTable]
 // ============================================================================
 
-class MainOpcodeTable extends commons.Task {
+class MainOpcodeTable extends core.Task {
   constructor() {
     super("MainOpcodeTable");
   }
@@ -780,7 +780,7 @@ class MainOpcodeTable extends commons.Task {
 // [tablegen.x86.AltOpcodeTable]
 // ============================================================================
 
-class AltOpcodeTable extends commons.Task {
+class AltOpcodeTable extends core.Task {
   constructor() {
     super("AltOpcodeTable");
   }
@@ -804,7 +804,7 @@ class AltOpcodeTable extends commons.Task {
 // [tablegen.x86.SseToAvxTable]
 // ============================================================================
 
-class InstSseToAvxTable extends commons.Task {
+class InstSseToAvxTable extends core.Task {
   constructor() {
     super("InstSseToAvxTable", ["IdEnum"]);
   }
@@ -1472,7 +1472,7 @@ class SignatureArray extends Array {
   }
 }
 
-class InstSignatureTable extends commons.Task {
+class InstSignatureTable extends core.Task {
   constructor() {
     super("InstSignatureTable");
 
@@ -1744,7 +1744,7 @@ class InstSignatureTable extends commons.Task {
 // [tablegen.x86.InstExecutionTable]
 // ============================================================================
 
-class InstExecutionTable extends commons.Task {
+class InstExecutionTable extends core.Task {
   constructor() {
     super("InstExecutionTable");
   }
@@ -1789,7 +1789,7 @@ class InstExecutionTable extends commons.Task {
 // [tablegen.x86.InstRWInfoTable]
 // ============================================================================
 
-class InstRWInfoTable extends commons.Task {
+class InstRWInfoTable extends core.Task {
   constructor() {
     super("InstRWInfoTable");
   }
@@ -1961,7 +1961,7 @@ class InstRWInfoTable extends commons.Task {
 // [tablegen.x86.InstCommonTable]
 // ============================================================================
 
-class InstCommonTable extends commons.Task {
+class InstCommonTable extends core.Task {
   constructor() {
     super("InstCommonTable", [
       "IdEnum",

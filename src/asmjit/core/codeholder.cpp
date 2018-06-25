@@ -10,7 +10,6 @@
 // [Dependencies]
 #include "../core/assembler.h"
 #include "../core/logging.h"
-#include "../core/memmgr.h"
 #include "../core/stringutils.h"
 #include "../core/support.h"
 
@@ -49,7 +48,7 @@ static void CodeHolder_resetInternal(CodeHolder* self, uint32_t resetPolicy) noe
   for (i = 0; i < numSections; i++) {
     SectionEntry* section = self->_sectionEntries[i];
     if (section->_buffer.data() && !section->_buffer.isExternal())
-      MemMgr::release(section->_buffer._data);
+      Support::release(section->_buffer._data);
     section->_buffer._data = nullptr;
     section->_buffer._capacity = 0;
   }
@@ -231,9 +230,9 @@ static Error CodeHolder_reserveInternal(CodeHolder* self, CodeBuffer* cb, size_t
   uint8_t* newData;
 
   if (oldData && !cb->isExternal())
-    newData = static_cast<uint8_t*>(MemMgr::realloc(oldData, n));
+    newData = static_cast<uint8_t*>(Support::realloc(oldData, n));
   else
-    newData = static_cast<uint8_t*>(MemMgr::alloc(n));
+    newData = static_cast<uint8_t*>(Support::alloc(n));
 
   if (ASMJIT_UNLIKELY(!newData))
     return DebugUtils::errored(kErrorNoHeapMemory);
@@ -332,10 +331,10 @@ public:
   uint32_t _hashCode;
 };
 
-// Returns a hash of `name` and fixes `nameSize` if it's `Globals::kNullTerminated`.
+// Returns a hash of `name` and fixes `nameSize` if it's `SIZE_MAX`.
 static uint32_t CodeHolder_hashNameAndFixSize(const char* name, size_t& nameSize) noexcept {
   uint32_t hashCode = 0;
-  if (nameSize == Globals::kNullTerminated) {
+  if (nameSize == SIZE_MAX) {
     size_t i = 0;
     for (;;) {
       uint8_t c = uint8_t(name[i]);

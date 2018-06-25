@@ -20,7 +20,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 static inline void JitRuntime_flushInstructionCache(const void* p, size_t size) noexcept {
   // Only useful on non-x86 architectures.
-  #if !ASMJIT_ARCH_X86 && ASMJIT_OS_WINDOW
+  #if defined(_WIN32) && !ASMJIT_ARCH_X86
   // Windows has a built-in support in `kernel32.dll`.
   ::FlushInstructionCache(::GetCurrentProcess(), p, size);
   #else
@@ -29,35 +29,35 @@ static inline void JitRuntime_flushInstructionCache(const void* p, size_t size) 
   #endif
 }
 
+// X86 Target
+// ----------
+//
+//   - 32-bit - Linux, OSX, BSD, and apparently also Haiku guarantee 16-byte
+//              stack alignment. Other operating systems are assumed to have
+//              4-byte alignment by default for safety reasons.
+//   - 64-bit - stack must be aligned to 16 bytes.
+//
+// ARM Target
+// ----------
+//
+//   - 32-bit - Stack must be aligned to 8 bytes.
+//   - 64-bit - Stack must be aligned to 16 bytes (hardware requirement).
 static inline uint32_t JitRuntime_detectNaturalStackAlignment() noexcept {
-  // Alignment is assumed to match the pointer-size by default.
-  uint32_t alignment = sizeof(intptr_t);
-
-  // X86 Target
-  // ----------
-  //
-  //   - 32-bit - stack must be aligned to at least 4 bytes. Modern Linux, Mac,
-  //              and BSD guarantee 16-byte stack alignment even on 32-bit. I'm
-  //              not sure about other unices as 16-byte alignment was a recent
-  //              addition to the specification.
-  //   - 64-bit - stack must be aligned to at least 16 bytes.
-  #if ASMJIT_ARCH_X86
-  unsigned int kIsModernOS = ASMJIT_OS_BSD    |
-                             ASMJIT_OS_MAC    |
-                             ASMJIT_OS_LINUX  ;
-  alignment = (ASMJIT_ARCH_X86 == 64 || kIsModernOS != 0) ? 16 : 4;
-  #endif
-
-  // ARM Target
-  // ----------
-  //
-  //   - 32-bit - Stack must be aligned to at least 8 bytes.
-  //   - 64-bit - Stack must be aligned to at least 16 bytes (hardware requirement).
-  #if ASMJIT_ARCH_ARM
-  alignment = (ASMJIT_ARCH_ARM == 32) ? 8 : 16;
-  #endif
-
-  return alignment;
+#if ASMJIT_ARCH_BITS == 64 || \
+    defined(__APPLE__    ) || \
+    defined(__bsdi__     ) || \
+    defined(__DragonFly__) || \
+    defined(__HAIKU__    ) || \
+    defined(__FreeBSD__  ) || \
+    defined(__NetBSD__   ) || \
+    defined(__OpenBSD__  ) || \
+    defined(__linux__    )
+  return 16;
+#elif ASMJIT_ARCH_ARM
+  return 8;
+#else
+  return uint32_t(sizeof(uintptr_t));
+#endif
 }
 
 // ============================================================================

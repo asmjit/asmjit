@@ -24,12 +24,12 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 const OpData opData = {
   {
     // RegInfo[]
-    # define VALUE(X) { RegTraits<X>::kSignature }
+    #define VALUE(X) { RegTraits<X>::kSignature }
     { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) },
     #undef VALUE
 
     // RegCount[]
-    # define VALUE(X) RegTraits<X>::kCount
+    #define VALUE(X) RegTraits<X>::kCount
     { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) },
     #undef VALUE
 

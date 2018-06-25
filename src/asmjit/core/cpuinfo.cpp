@@ -10,7 +10,7 @@
 // [Dependencies]
 #include "../core/cpuinfo.h"
 
-#if ASMJIT_OS_POSIX
+#if !defined(_WIN32)
   #include <errno.h>
   #include <sys/utsname.h>
   #include <unistd.h>
@@ -22,13 +22,13 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::CpuInfo - Detect - CPU NumThreads]
 // ============================================================================
 
-#if ASMJIT_OS_WINDOWS
+#if defined(_WIN32)
 static inline uint32_t detectHWThreadCount() noexcept {
   SYSTEM_INFO info;
   ::GetSystemInfo(&info);
   return info.dwNumberOfProcessors;
 }
-#elif ASMJIT_OS_POSIX && defined(_SC_NPROCESSORS_ONLN)
+#elif defined(_SC_NPROCESSORS_ONLN)
 static inline uint32_t detectHWThreadCount() noexcept {
   long res = ::sysconf(_SC_NPROCESSORS_ONLN);
   return res <= 0 ? uint32_t(1) : uint32_t(res);

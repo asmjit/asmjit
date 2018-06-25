@@ -11,7 +11,6 @@
 // [Dependencies]
 #include "../core/arch.h"
 #include "../core/datatypes.h"
-#include "../core/memmgr.h"
 #include "../core/operand.h"
 #include "../core/stringutils.h"
 #include "../core/support.h"
@@ -483,9 +482,9 @@ public:
   ASMJIT_API Error newNamedLabelId(uint32_t& idOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId) noexcept;
 
   //! Get a label id by name.
-  ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = Globals::kNullTerminated, uint32_t parentId = 0) noexcept;
+  ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept;
 
-  inline Label labelByName(const char* name, size_t nameSize = Globals::kNullTerminated, uint32_t parentId = 0) noexcept {
+  inline Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept {
     return Label(labelIdByName(name, nameSize, parentId));
   }
 

@@ -37,7 +37,7 @@ class Lock {
 public:
   ASMJIT_NONCOPYABLE(Lock)
 
-  #if ASMJIT_OS_WINDOWS
+  #if defined(_WIN32)
 
   typedef CRITICAL_SECTION Handle;
 
@@ -49,7 +49,7 @@ public:
 
   Handle _handle;
 
-  #elif ASMJIT_OS_POSIX && !defined(__EMSCRIPTEN__)
+  #elif !defined(__EMSCRIPTEN__)
 
   typedef pthread_mutex_t Handle;
 
@@ -62,10 +62,6 @@ public:
   Handle _handle;
 
   #else
-
-  #if !defined(__EMSCRIPTEN__)
-  #pragma message("asmjit::Lock doesn't have implementation for your target OS.")
-  #endif
 
   // Browser or other unsupported OS.
   inline Lock() noexcept {}

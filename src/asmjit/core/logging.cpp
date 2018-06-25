@@ -103,8 +103,8 @@ Error FileLogger::_log(const char* data, size_t size) noexcept {
   if (!_file)
     return kErrorOk;
 
-  if (size == Globals::kNullTerminated)
-    size = strlen(data);
+  if (size == SIZE_MAX)
+    size = ::strlen(data);
 
   fwrite(data, 1, size, _file);
   return kErrorOk;

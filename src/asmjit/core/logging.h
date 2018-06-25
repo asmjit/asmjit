@@ -138,7 +138,7 @@ public:
   virtual Error _log(const char* data, size_t size) noexcept = 0;
 
   //! Log a string `str`, which is either null terminated or having size `size`.
-  inline Error log(const char* data, size_t size = Globals::kNullTerminated) noexcept { return _log(data, size); }
+  inline Error log(const char* data, size_t size = SIZE_MAX) noexcept { return _log(data, size); }
   //! Log a content of a `StringBuilder` `str`.
   inline Error log(const StringBuilder& str) noexcept { return _log(str.data(), str.size()); }
 
@@ -212,7 +212,7 @@ public:
   // [Logging]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error _log(const char* data, size_t size = Globals::kNullTerminated) noexcept override;
+  ASMJIT_API Error _log(const char* data, size_t size = SIZE_MAX) noexcept override;
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -257,7 +257,7 @@ public:
   // [Logging]
   // --------------------------------------------------------------------------
 
-  ASMJIT_API Error _log(const char* data, size_t size = Globals::kNullTerminated) noexcept override;
+  ASMJIT_API Error _log(const char* data, size_t size = SIZE_MAX) noexcept override;
 
   // --------------------------------------------------------------------------
   // [Members]

@@ -94,7 +94,7 @@ ConstPoolNode* BaseBuilder::newConstPoolNode() noexcept {
 
 CommentNode* BaseBuilder::newCommentNode(const char* data, size_t size) noexcept {
   if (data) {
-    if (size == Globals::kNullTerminated)
+    if (size == SIZE_MAX)
       size = ::strlen(data);
 
     if (size > 0) {

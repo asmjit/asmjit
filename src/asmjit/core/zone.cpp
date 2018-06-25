@@ -8,7 +8,6 @@
 #define ASMJIT_EXPORTS
 
 // [Dependencies]
-#include "../core/memmgr.h"
 #include "../core/support.h"
 #include "../core/zone.h"
 
@@ -78,14 +77,14 @@ void Zone::reset(uint32_t resetPolicy) noexcept {
         break;
       }
 
-      MemMgr::release(cur);
+      Support::release(cur);
       cur = prev;
     } while (cur);
 
     cur = next;
     while (cur) {
       next = cur->next;
-      MemMgr::release(cur);
+      Support::release(cur);
       cur = next;
     }
   }
@@ -134,7 +133,7 @@ void* Zone::_alloc(size_t size, size_t alignment) noexcept {
   // new block size, and we also add `kBlockOverhead` to the allocator as it includes
   // members of `Zone::Block` structure.
   newSize += blockAlignmentOverhead;
-  Block* newBlock = static_cast<Block*>(MemMgr::alloc(newSize + kBlockSize));
+  Block* newBlock = static_cast<Block*>(Support::alloc(newSize + kBlockSize));
 
   if (ASMJIT_UNLIKELY(!newBlock))
     return nullptr;
@@ -232,7 +231,7 @@ void ZoneAllocator::reset(Zone* zone) noexcept {
   DynamicBlock* block = _dynamicBlocks;
   while (block) {
     DynamicBlock* next = block->next;
-    MemMgr::release(block);
+    Support::release(block);
     block = next;
   }
 
@@ -302,7 +301,7 @@ void* ZoneAllocator::_alloc(size_t size, size_t& allocatedSize) noexcept {
     if (ASMJIT_UNLIKELY(kBlockOverhead >= std::numeric_limits<size_t>::max() - size))
       return nullptr;
 
-    void* p = MemMgr::alloc(size + kBlockOverhead);
+    void* p = Support::alloc(size + kBlockOverhead);
     if (ASMJIT_UNLIKELY(!p)) {
       allocatedSize = 0;
       return nullptr;
@@ -357,7 +356,7 @@ void ZoneAllocator::_releaseDynamic(void* p, size_t size) noexcept {
   if (next)
     next->prev = prev;
 
-  MemMgr::release(block);
+  Support::release(block);
 }
 
 ASMJIT_END_NAMESPACE

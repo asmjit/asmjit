@@ -348,26 +348,17 @@ public:
   uint8_t* _end;                         //!< End of the current block.
   Block* _block;                         //!< Current block.
 
-  #if ASMJIT_ARCH_BITS >= 64
   union {
     struct {
-      size_t _blockSize : 60;            //!< Default block size.
-      size_t _isTemporary : 1;           //!< First block is temporary (ZoneTmp).
-      size_t _blockAlignmentShift : 3;   //!< Block alignment (1 << alignment).
+      //! Default block size.
+      size_t _blockSize : Support::bitSizeOf<size_t>() - 4;
+      //! First block is temporary (ZoneTmp).
+      size_t _isTemporary : 1;
+      //! Block alignment (1 << alignment).
+      size_t _blockAlignmentShift : 3;
     };
     size_t _packedData;
   };
-  #else
-  union {
-    struct {
-      size_t _blockSize : 28;            //!< Default block size.
-      size_t _isTemporary : 1;           //!< First block is temporary (ZoneTmp).
-      size_t _blockAlignmentShift : 3;   //!< Block alignment (1 << alignment).
-    };
-    size_t _packedData;
-  };
-  #endif
-
 };
 
 // ============================================================================

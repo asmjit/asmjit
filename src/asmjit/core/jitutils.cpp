@@ -14,20 +14,26 @@
 #include "../core/jitutils.h"
 #include "../core/support.h"
 
-#if ASMJIT_OS_POSIX
+#if !defined(_WIN32)
   #include <sys/types.h>
   #include <sys/mman.h>
   #include <unistd.h>
+
+  // BSD/OSX: `MAP_ANONYMOUS` is not defined, `MAP_ANON` is.
+  #if !defined(MAP_ANONYMOUS)
+    #define MAP_ANONYMOUS MAP_ANON
+  #endif
 #endif
 
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
-// [asmjit::JitUtils - Virtual Memory (Windows)]
+// [asmjit::JitUtils - Virtual Memory]
 // ============================================================================
 
-// Windows specific implementation using `VirtualAlloc` and `VirtualFree`.
-#if ASMJIT_OS_WINDOWS
+#if defined(_WIN32)
+
+// Windows specific implementation that uses `VirtualAlloc` and `VirtualFree`.
 static inline DWORD JitUtils_vmFlagsToProtectFlags(uint32_t vmFlags) noexcept {
   DWORD protectFlags = 0;
   if (vmFlags & JitUtils::kVirtMemExecute)
@@ -62,20 +68,10 @@ Error JitUtils::virtualRelease(void* p, size_t size) noexcept {
     return DebugUtils::errored(kErrorInvalidState);
   return kErrorOk;
 }
-#endif
 
-// ============================================================================
-// [asmjit::JitUtils - Virtual Memory (Posix)]
-// ============================================================================
+#else
 
-// Posix specific implementation using `mmap()` and `munmap()`.
-#if ASMJIT_OS_POSIX
-
-// BSD/OSX: `MAP_ANONYMOUS` is not defined, `MAP_ANON` is.
-#if !defined(MAP_ANONYMOUS)
-  #define MAP_ANONYMOUS MAP_ANON
-#endif
-
+// Posix specific implementation that uses `mmap()` and `munmap()`.
 static inline int JitUtils_vmFlagsToProtection(uint32_t vmFlags) noexcept {
   int protection = PROT_READ;
   if (vmFlags & JitUtils::kVirtMemWrite  ) protection |= PROT_WRITE;
