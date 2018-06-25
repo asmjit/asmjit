@@ -79,11 +79,11 @@ public:
   // --------------------------------------------------------------------------
 
   inline String() noexcept
-    : _small {} {}
+    : small {} {}
 
   inline String(String&& other) noexcept {
-    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_uptr); i++)
-      _uptr[i] = other._uptr[i];
+    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(uptr); i++)
+      uptr[i] = other.uptr[i];
     other._resetToEmbedded();
   }
 
@@ -100,30 +100,30 @@ public:
   //! NOTE: This is always called internally after an external buffer was released
   //! as it zeroes all bytes used by String's embedded storage.
   inline void _resetToEmbedded() noexcept {
-    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_uptr); i++)
-      _uptr[i] = 0;
+    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(uptr); i++)
+      uptr[i] = 0;
   }
 
   inline void _setSize(size_t newSize) noexcept {
     if (isLarge())
-      _large.size = newSize;
+      large.size = newSize;
     else
-      _small.type = uint8_t(newSize);
+      small.type = uint8_t(newSize);
   }
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline bool isLarge() const noexcept { return _type >= kTypeLarge; }
-  inline bool isExternal() const noexcept { return _type == kTypeExternal; }
+  inline bool isLarge() const noexcept { return type >= kTypeLarge; }
+  inline bool isExternal() const noexcept { return type == kTypeExternal; }
 
   inline bool empty() const noexcept { return size() == 0; }
-  inline size_t size() const noexcept { return isLarge() ? size_t(_large.size) : size_t(_type); }
-  inline size_t capacity() const noexcept { return isLarge() ? _large.capacity : size_t(kSSOCapacity); }
+  inline size_t size() const noexcept { return isLarge() ? size_t(large.size) : size_t(type); }
+  inline size_t capacity() const noexcept { return isLarge() ? large.capacity : size_t(kSSOCapacity); }
 
-  inline char* data() noexcept { return isLarge() ? _large.data : _small.data; }
-  inline const char* data() const noexcept { return isLarge() ? _large.data : _small.data; }
+  inline char* data() noexcept { return isLarge() ? large.data : small.data; }
+  inline const char* data() const noexcept { return isLarge() ? large.data : small.data; }
 
   inline char* end() noexcept { return data() + size(); }
   inline const char* end() const noexcept { return data() + size(); }
@@ -274,13 +274,13 @@ public:
   };
 
   union {
-    uint8_t _type;
-    Small _small;
-    Large _large;
+    uint8_t type;
+    Small small;
+    Large large;
 
-    uint8_t _u8[kLayoutSize];
-    uint64_t _u64[kLayoutSize / sizeof(uint64_t)];
-    uintptr_t _uptr[kLayoutSize / sizeof(uintptr_t)];
+    uint8_t u8[kLayoutSize];
+    uint64_t u64[kLayoutSize / sizeof(uint64_t)];
+    uintptr_t uptr[kLayoutSize / sizeof(uintptr_t)];
   };
 };
 
@@ -307,9 +307,9 @@ public:
   // --------------------------------------------------------------------------
 
   inline void _resetToTemporary() noexcept {
-    _large.type = kTypeExternal;
-    _large.capacity = ASMJIT_ARRAY_SIZE(_embeddedTmp) - 1;
-    _large.data = _embeddedTmp;
+    large.type = kTypeExternal;
+    large.capacity = ASMJIT_ARRAY_SIZE(_embeddedTmp) - 1;
+    large.data = _embeddedTmp;
     _embeddedTmp[0] = '\0';
   }
 
