@@ -37,15 +37,15 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE CpuFeatures() noexcept { reset(); }
-  ASMJIT_INLINE CpuFeatures(const CpuFeatures& other) noexcept { init(other); }
+  ASMJIT_INLINE CpuFeatures() noexcept = default;
+  ASMJIT_INLINE CpuFeatures(const CpuFeatures& other) noexcept = default;
 
   // --------------------------------------------------------------------------
   // [Init / Reset]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void init(const CpuFeatures& other) noexcept { ::memcpy(this, &other, sizeof(*this)); }
-  ASMJIT_INLINE void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
+  ASMJIT_INLINE void init(const CpuFeatures& other) noexcept { *this=other; }
+  ASMJIT_INLINE void reset() noexcept { *this={}; }
 
   // --------------------------------------------------------------------------
   // [Ops]
@@ -100,7 +100,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  BitWord _bits[kNumBitWords];
+  BitWord _bits[kNumBitWords] = {0};
 };
 
 // ============================================================================
@@ -238,18 +238,18 @@ public:
   // --------------------------------------------------------------------------
 
   struct X86Data {
-    uint32_t _processorType;             //!< Processor type.
-    uint32_t _brandIndex;                //!< Brand index.
-    uint32_t _flushCacheLineSize;        //!< Flush cache line size (in bytes).
-    uint32_t _maxLogicalProcessors;      //!< Maximum number of addressable IDs for logical processors.
+    uint32_t _processorType = 0;         //!< Processor type.
+    uint32_t _brandIndex = 0;            //!< Brand index.
+    uint32_t _flushCacheLineSize = 0;    //!< Flush cache line size (in bytes).
+    uint32_t _maxLogicalProcessors = 0;  //!< Maximum number of addressable IDs for logical processors.
   };
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE CpuInfo() noexcept { reset(); }
-  ASMJIT_INLINE CpuInfo(const CpuInfo& other) noexcept { init(other); }
+  ASMJIT_INLINE CpuInfo() noexcept : _x86Data({}) {}
+  ASMJIT_INLINE CpuInfo(const CpuInfo& other) noexcept = default;
 
   // --------------------------------------------------------------------------
   // [Init / Reset]
@@ -260,8 +260,8 @@ public:
     _archInfo.init(archType, archMode);
   }
 
-  ASMJIT_INLINE void init(const CpuInfo& other) noexcept { ::memcpy(this, &other, sizeof(*this)); }
-  ASMJIT_INLINE void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
+  ASMJIT_INLINE void init(const CpuInfo& other) noexcept { *this = other; }
+  ASMJIT_INLINE void reset() noexcept { *this = {}; }
 
   // --------------------------------------------------------------------------
   // [Detect]
@@ -346,14 +346,14 @@ public:
   // --------------------------------------------------------------------------
 
   ArchInfo _archInfo;                    //!< CPU architecture information.
-  uint32_t _vendorId;                    //!< CPU vendor id, see \ref Vendor.
-  uint32_t _family;                      //!< CPU family ID.
-  uint32_t _model;                       //!< CPU model ID.
-  uint32_t _stepping;                    //!< CPU stepping.
-  uint32_t _hwThreadsCount;              //!< Number of hardware threads.
+  uint32_t _vendorId = 0;                //!< CPU vendor id, see \ref Vendor.
+  uint32_t _family = 0;                  //!< CPU family ID.
+  uint32_t _model = 0;                   //!< CPU model ID.
+  uint32_t _stepping = 0;                //!< CPU stepping.
+  uint32_t _hwThreadsCount = 0;          //!< Number of hardware threads.
   CpuFeatures _features;                 //!< CPU features.
-  char _vendorString[16];                //!< CPU vendor string.
-  char _brandString[64];                 //!< CPU brand string.
+  char _vendorString[16] = {0};          //!< CPU vendor string.
+  char _brandString[64] = {0};           //!< CPU brand string.
 
   // Architecture specific data.
   union {

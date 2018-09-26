@@ -1505,6 +1505,14 @@ struct TypeIdOfInt {
   };
 };
 
+template<>
+struct TypeIdOfInt<bool> {
+  enum {
+    kSignatureed = true,
+    kTypeId = (int)(TypeId::kI8)
+  };
+};
+
 #define ASMJIT_DEFINE_TYPE_ID(T, TYPE_ID) \
   template<> \
   struct TypeIdOf<T> { enum { kTypeId = TYPE_ID}; }
