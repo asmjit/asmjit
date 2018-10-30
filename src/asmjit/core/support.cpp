@@ -416,36 +416,6 @@ static void testBitVector() noexcept {
     EXPECT(it.next() == 63);
     EXPECT(!it.hasNext());
   }
-
-  INFO("Support::BitVectorFlipIterator<uint32_t>");
-  {
-    static const uint32_t bits[] = { 0x80000000u, 0x80000000u, 0x00000000u, 0x80000000u };
-    Support::BitVectorFlipIterator<uint32_t> it(bits, ASMJIT_ARRAY_SIZE(bits));
-
-    EXPECT(it.hasNext());
-    EXPECT(it.nextAndFlip() == 31);
-    EXPECT(it.hasNext());
-    EXPECT(it.nextAndFlip() == 32);
-    EXPECT(it.hasNext());
-    EXPECT(it.nextAndFlip() == 63);
-    EXPECT(it.hasNext());
-    EXPECT(it.nextAndFlip() == 64);
-    EXPECT(it.hasNext());
-    EXPECT(it.nextAndFlip() == 127);
-    EXPECT(!it.hasNext());
-  }
-
-  INFO("Support::BitVectorFlipIterator<uint64_t>");
-  {
-    static const uint64_t bits[] = { 0xFFFFFFFFFFFFFFFFu, 0xFFFFFFFFFFFFFFFF, 0, 0 };
-    Support::BitVectorFlipIterator<uint64_t> it(bits, ASMJIT_ARRAY_SIZE(bits));
-
-    EXPECT(it.hasNext());
-    EXPECT(it.nextAndFlip() == 0);
-    EXPECT(it.hasNext());
-    EXPECT(it.nextAndFlip() == 128);
-    EXPECT(!it.hasNext());
-  }
 }
 
 static void testSorting() noexcept {

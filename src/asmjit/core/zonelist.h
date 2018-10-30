@@ -119,8 +119,8 @@ public:
     NodeT* prev = node->prev();
     NodeT* next = node->next();
 
-    if (prev) { prev->_listNodes[Globals::kLinkNext] = next; node->_listNodes[0] = nullptr; } else { _bounds[Globals::kLinkFirst] = next; }
-    if (next) { next->_listNodes[Globals::kLinkPrev] = prev; node->_listNodes[1] = nullptr; } else { _bounds[Globals::kLinkLast ] = prev; }
+    if (prev) { prev->_listNodes[1] = next; node->_listNodes[0] = nullptr; } else { _bounds[0] = next; }
+    if (next) { next->_listNodes[0] = prev; node->_listNodes[1] = nullptr; } else { _bounds[1] = prev; }
 
     node->_listNodes[0] = nullptr;
     node->_listNodes[1] = nullptr;
@@ -129,36 +129,36 @@ public:
   }
 
   inline NodeT* popFirst() noexcept {
-    NodeT* node = _bounds[Globals::kLinkFirst];
+    NodeT* node = _bounds[0];
     ASMJIT_ASSERT(node != nullptr);
 
     NodeT* next = node->next();
-    _bounds[Globals::kLinkFirst] = next;
+    _bounds[0] = next;
 
     if (next) {
-      next->_listNodes[Globals::kLinkPrev] = nullptr;
-      node->_listNodes[Globals::kLinkNext] = nullptr;
+      next->_listNodes[0] = nullptr;
+      node->_listNodes[1] = nullptr;
     }
     else {
-      _bounds[Globals::kLinkLast] = nullptr;
+      _bounds[1] = nullptr;
     }
 
     return node;
   }
 
   inline NodeT* pop() noexcept {
-    NodeT* node = _bounds[Globals::kLinkLast];
+    NodeT* node = _bounds[1];
     ASMJIT_ASSERT(node != nullptr);
 
     NodeT* prev = node->prev();
-    _bounds[Globals::kLinkLast] = prev;
+    _bounds[1] = prev;
 
     if (prev) {
-      prev->_listNodes[Globals::kLinkNext] = nullptr;
-      node->_listNodes[Globals::kLinkPrev] = nullptr;
+      prev->_listNodes[1] = nullptr;
+      node->_listNodes[0] = nullptr;
     }
     else {
-      _bounds[Globals::kLinkFirst] = nullptr;
+      _bounds[0] = nullptr;
     }
 
     return node;

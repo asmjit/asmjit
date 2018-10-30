@@ -122,7 +122,7 @@ void* Zone::_alloc(size_t size, size_t alignment) noexcept {
     }
   }
 
-  size_t blockAlignmentOverhead = alignment - Support::min<size_t>(alignment, Globals::kMemAllocAlignment);
+  size_t blockAlignmentOverhead = alignment - Support::min<size_t>(alignment, Globals::kAllocAlignment);
   size_t newSize = Support::max(blockSize(), size);
 
   // Prevent arithmetic overflow.

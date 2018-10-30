@@ -42,30 +42,5 @@
 #include "./core/zonestring.h"
 #include "./core/zonevector.h"
 
-// DEPRECATED:
-ASMJIT_BEGIN_NAMESPACE
-
-#ifndef ASMJIT_DISABLE_BUILDER
-typedef ASMJIT_DEPRECATED(BaseBuilder   CodeBuilder , "Use `BaseBuilder`");
-typedef ASMJIT_DEPRECATED(BaseNode      CBNode      , "Use `BaseNode`");
-typedef ASMJIT_DEPRECATED(InstNode      CBInst      , "Use `InstNode`");
-typedef ASMJIT_DEPRECATED(LabelNode     CBLabel     , "Use `LabelNode`");
-typedef ASMJIT_DEPRECATED(AlignNode     CBAlign     , "Use `AlignNode`");
-typedef ASMJIT_DEPRECATED(EmbedDataNode CBData      , "Use `EmbedDataNode`");
-typedef ASMJIT_DEPRECATED(LabelDataNode CBLabelData , "Use `LabelDataNode`");
-typedef ASMJIT_DEPRECATED(ConstPoolNode CBConstPool , "Use `ConstPoolNode`");
-typedef ASMJIT_DEPRECATED(CommentNode   CBComment   , "Use `CommentNode`");
-typedef ASMJIT_DEPRECATED(SentinelNode  CBSentinel  , "Use `SentinelNode`");
-typedef ASMJIT_DEPRECATED(Pass          CBPass      , "Use `Pass`");
-#endif
-
-#ifndef ASMJIT_DISABLE_COMPILER
-typedef ASMJIT_DEPRECATED(BaseCompiler  CodeCompiler, "Use `BaseCompiler`");
-typedef ASMJIT_DEPRECATED(FuncNode      CCFunc      , "Use `FuncNode`");
-typedef ASMJIT_DEPRECATED(FuncRetNode   CCFuncRet   , "Use `FuncRetNode`");
-typedef ASMJIT_DEPRECATED(FuncCallNode  CCFuncCall  , "Use `FuncCallNode`");
-#endif
-ASMJIT_END_NAMESPACE
-
 // [Guard]
 #endif // _ASMJIT_CORE_H

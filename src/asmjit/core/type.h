@@ -160,8 +160,8 @@ static constexpr bool isInt16(uint32_t typeId) noexcept { return typeId == kIdI1
 static constexpr bool isUInt16(uint32_t typeId) noexcept { return typeId == kIdU16; }
 static constexpr bool isInt32(uint32_t typeId) noexcept { return typeId == kIdI32; }
 static constexpr bool isUInt32(uint32_t typeId) noexcept { return typeId == kIdU32; }
-static constexpr bool isI64(uint32_t typeId) noexcept { return typeId == kIdI64; }
-static constexpr bool isU64(uint32_t typeId) noexcept { return typeId == kIdU64; }
+static constexpr bool isInt64(uint32_t typeId) noexcept { return typeId == kIdI64; }
+static constexpr bool isUInt64(uint32_t typeId) noexcept { return typeId == kIdU64; }
 
 static constexpr bool isGp8(uint32_t typeId) noexcept { return typeId >= kIdI8 && typeId <= kIdU8; }
 static constexpr bool isGp16(uint32_t typeId) noexcept { return typeId >= kIdI16 && typeId <= kIdU16; }
@@ -169,9 +169,9 @@ static constexpr bool isGp32(uint32_t typeId) noexcept { return typeId >= kIdI32
 static constexpr bool isGp64(uint32_t typeId) noexcept { return typeId >= kIdI64 && typeId <= kIdU64; }
 
 static constexpr bool isFloat(uint32_t typeId) noexcept { return typeId >= _kIdFloatStart && typeId <= _kIdFloatEnd; }
-static constexpr bool isF32(uint32_t typeId) noexcept { return typeId == kIdF32; }
-static constexpr bool isF64(uint32_t typeId) noexcept { return typeId == kIdF64; }
-static constexpr bool isF80(uint32_t typeId) noexcept { return typeId == kIdF80; }
+static constexpr bool isFloat32(uint32_t typeId) noexcept { return typeId == kIdF32; }
+static constexpr bool isFloat64(uint32_t typeId) noexcept { return typeId == kIdF64; }
+static constexpr bool isFloat80(uint32_t typeId) noexcept { return typeId == kIdF80; }
 
 static constexpr bool isMask(uint32_t typeId) noexcept { return typeId >= _kIdMaskStart && typeId <= _kIdMaskEnd; }
 static constexpr bool isMask8(uint32_t typeId) noexcept { return typeId == kIdMask8; }
@@ -191,10 +191,10 @@ static constexpr bool isVec256(uint32_t typeId) noexcept { return typeId >= _kId
 static constexpr bool isVec512(uint32_t typeId) noexcept { return typeId >= _kIdVec512Start && typeId <= _kIdVec512End; }
 
 //! IdOfT<> template allows to get a TypeId of a C++ type.
-template<typename T> struct IdOfT {}; // Fail if not specialized.
+template<typename T> struct IdOfT { /* Fail if not specialized. */ };
 
 template<typename T> struct IdOfT<T*> {
-  static constexpr uint32_t kTypeId = kIdUIntPtr;
+  enum : uint32_t { kTypeId = kIdUIntPtr };
 };
 
 template<typename T>
@@ -226,28 +226,28 @@ struct BaseOfTypeId {
 template<uint32_t TYPE_ID>
 struct SizeOfTypeId {
   static constexpr uint32_t kTypeSize =
-    isInt8    (TYPE_ID) ?  1 :
-    isUInt8    (TYPE_ID) ?  1 :
-    isInt16   (TYPE_ID) ?  2 :
-    isUInt16   (TYPE_ID) ?  2 :
-    isInt32   (TYPE_ID) ?  4 :
-    isUInt32   (TYPE_ID) ?  4 :
-    isI64   (TYPE_ID) ?  8 :
-    isU64   (TYPE_ID) ?  8 :
-    isF32   (TYPE_ID) ?  4 :
-    isF64   (TYPE_ID) ?  8 :
-    isF80   (TYPE_ID) ? 10 :
-    isMask8 (TYPE_ID) ?  1 :
-    isMask16(TYPE_ID) ?  2 :
-    isMask32(TYPE_ID) ?  4 :
-    isMask64(TYPE_ID) ?  8 :
-    isMmx32 (TYPE_ID) ?  4 :
-    isMmx64 (TYPE_ID) ?  8 :
-    isVec32 (TYPE_ID) ?  4 :
-    isVec64 (TYPE_ID) ?  8 :
-    isVec128(TYPE_ID) ? 16 :
-    isVec256(TYPE_ID) ? 32 :
-    isVec512(TYPE_ID) ? 64 : 0;
+    isInt8   (TYPE_ID) ?  1 :
+    isUInt8  (TYPE_ID) ?  1 :
+    isInt16  (TYPE_ID) ?  2 :
+    isUInt16 (TYPE_ID) ?  2 :
+    isInt32  (TYPE_ID) ?  4 :
+    isUInt32 (TYPE_ID) ?  4 :
+    isInt64  (TYPE_ID) ?  8 :
+    isUInt64 (TYPE_ID) ?  8 :
+    isFloat32(TYPE_ID) ?  4 :
+    isFloat64(TYPE_ID) ?  8 :
+    isFloat80(TYPE_ID) ? 10 :
+    isMask8  (TYPE_ID) ?  1 :
+    isMask16 (TYPE_ID) ?  2 :
+    isMask32 (TYPE_ID) ?  4 :
+    isMask64 (TYPE_ID) ?  8 :
+    isMmx32  (TYPE_ID) ?  4 :
+    isMmx64  (TYPE_ID) ?  8 :
+    isVec32  (TYPE_ID) ?  4 :
+    isVec64  (TYPE_ID) ?  8 :
+    isVec128 (TYPE_ID) ? 16 :
+    isVec256 (TYPE_ID) ? 32 :
+    isVec512 (TYPE_ID) ? 64 : 0;
 };
 
 static inline uint32_t baseOf(uint32_t typeId) noexcept {
@@ -305,12 +305,12 @@ struct F64  {};                          //!< double as C++ type-name.
 // [ASMJIT_DEFINE_TYPE_ID]
 // ============================================================================
 
-#define ASMJIT_DEFINE_TYPE_ID(T, TYPE_ID)        \
-namespace Type {                                 \
-  template<>                                     \
-  struct IdOfT<T> {                              \
-    static constexpr uint32_t kTypeId = TYPE_ID; \
-  };                                             \
+#define ASMJIT_DEFINE_TYPE_ID(T, TYPE_ID)  \
+namespace Type {                           \
+  template<>                               \
+  struct IdOfT<T> {                        \
+    enum : uint32_t { kTypeId = TYPE_ID }; \
+  };                                       \
 }
 
 ASMJIT_DEFINE_TYPE_ID(bool              , IdOfIntT<bool              >::kTypeId);

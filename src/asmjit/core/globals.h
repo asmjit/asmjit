@@ -27,13 +27,13 @@ namespace Globals {
 // ============================================================================
 
 //! Host memory allocator overhead.
-constexpr uint32_t kMemAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
+constexpr uint32_t kAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
 
 //! Host memory allocator alignment.
-constexpr uint32_t kMemAllocAlignment = 8;
+constexpr uint32_t kAllocAlignment = 8;
 
 //! Aggressive growing strategy threshold.
-constexpr uint32_t kAllocThreshold = 8192 * 1024;
+constexpr uint32_t kGrowThreshold = 1024 * 1024 * 16;
 
 //! Maximum height of RB-Tree is:
 //!

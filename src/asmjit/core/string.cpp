@@ -20,7 +20,7 @@ ASMJIT_BEGIN_NAMESPACE
 static const char String_baseN[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 constexpr size_t kMinAllocSize = 64;
-constexpr size_t kMaxAllocSize = std::numeric_limits<size_t>::max() - Globals::kAllocThreshold;
+constexpr size_t kMaxAllocSize = std::numeric_limits<size_t>::max() - Globals::kGrowThreshold;
 
 // ============================================================================
 // [asmjit::String]
@@ -30,7 +30,7 @@ Error String::reset() noexcept {
   if (_type == kTypeLarge)
     ::free(_large.data);
 
-  _resetToEmbedded();
+  _resetInternal();
   return kErrorOk;
 }
 
@@ -41,23 +41,6 @@ Error String::clear() noexcept {
   }
   else {
     _raw.uptr[0] = 0;
-  }
-
-  return kErrorOk;
-}
-
-Error String::truncate(size_t newSize) noexcept {
-  if (isLarge()) {
-    if (newSize < _large.size) {
-      _large.data[newSize] = '\0';
-      _large.size = newSize;
-    }
-  }
-  else {
-    if (newSize < _type) {
-      _small.data[newSize] = '\0';
-      _small.type = uint8_t(newSize);
-    }
   }
 
   return kErrorOk;
@@ -119,11 +102,11 @@ char* String::prepare(uint32_t op, size_t size) noexcept {
     if (newSizePlusOne > curCapacity) {
       size_t newCapacity = Support::max<size_t>(curCapacity + 1, kMinAllocSize);
 
-      if (newCapacity < newSizePlusOne && newCapacity < Globals::kAllocThreshold)
+      if (newCapacity < newSizePlusOne && newCapacity < Globals::kGrowThreshold)
         newCapacity = Support::alignUpPowerOf2(newCapacity);
 
       if (newCapacity < newSizePlusOne)
-        newCapacity = Support::alignUp(newSizePlusOne, Globals::kAllocThreshold);
+        newCapacity = Support::alignUp(newSizePlusOne, Globals::kGrowThreshold);
 
       if (ASMJIT_UNLIKELY(newCapacity < newSizePlusOne))
         return nullptr;
@@ -150,27 +133,6 @@ char* String::prepare(uint32_t op, size_t size) noexcept {
       curData[newSize] = '\0';
       return curData + curSize;
     }
-  }
-}
-
-bool String::eq(const char* other, size_t size) const noexcept {
-  const char* aData = data();
-  const char* bData = other;
-
-  size_t aSize = this->size();
-  size_t bSize = size;
-
-  if (bSize == SIZE_MAX) {
-    size_t i;
-    for (i = 0; i < aSize; i++)
-      if (aData[i] != bData[i] || bData[i] == 0)
-        return false;
-    return bData[i] == 0;
-  }
-  else {
-    if (aSize != bSize)
-      return false;
-    return ::memcmp(aData, bData, aSize) == 0;
   }
 }
 
@@ -456,6 +418,44 @@ Error String::_opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept {
   ASMJIT_ASSERT(size_t(fmtResult) == outputSize);
 
   return kErrorOk;
+}
+
+Error String::truncate(size_t newSize) noexcept {
+  if (isLarge()) {
+    if (newSize < _large.size) {
+      _large.data[newSize] = '\0';
+      _large.size = newSize;
+    }
+  }
+  else {
+    if (newSize < _type) {
+      _small.data[newSize] = '\0';
+      _small.type = uint8_t(newSize);
+    }
+  }
+
+  return kErrorOk;
+}
+
+bool String::eq(const char* other, size_t size) const noexcept {
+  const char* aData = data();
+  const char* bData = other;
+
+  size_t aSize = this->size();
+  size_t bSize = size;
+
+  if (bSize == SIZE_MAX) {
+    size_t i;
+    for (i = 0; i < aSize; i++)
+      if (aData[i] != bData[i] || bData[i] == 0)
+        return false;
+    return bData[i] == 0;
+  }
+  else {
+    if (aSize != bSize)
+      return false;
+    return ::memcmp(aData, bData, aSize) == 0;
+  }
 }
 
 // ============================================================================

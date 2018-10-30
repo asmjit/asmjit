@@ -362,10 +362,10 @@
   #define ASMJIT_INLINE inline
 #endif
 
-#if ASMJIT_CXX_GNU
+#if defined(__GNUC__)
   #define ASMJIT_NOINLINE __attribute__((__noinline__))
   #define ASMJIT_NORETURN __attribute__((__noreturn__))
-#elif ASMJIT_CXX_MSC
+#elif defined(_MSC_VER)
   #define ASMJIT_NOINLINE __declspec(noinline)
   #define ASMJIT_NORETURN __declspec(noreturn)
 #else
@@ -374,12 +374,12 @@
 #endif
 
 // Calling conventions.
-#if ASMJIT_ARCH_X86 == 32 && ASMJIT_CXX_GNU
+#if ASMJIT_ARCH_X86 == 32 && defined(__GNUC__)
   #define ASMJIT_CDECL __attribute__((__cdecl__))
   #define ASMJIT_STDCALL __attribute__((__stdcall__))
   #define ASMJIT_FASTCALL __attribute__((__fastcall__))
   #define ASMJIT_REGPARM(N) __attribute__((__regparm__(N)))
-#elif ASMJIT_ARCH_X86 == 32 && ASMJIT_CXX_MSC
+#elif ASMJIT_ARCH_X86 == 32 && defined(_MSC_VER)
   #define ASMJIT_CDECL __cdecl
   #define ASMJIT_STDCALL __stdcall
   #define ASMJIT_FASTCALL __fastcall
@@ -392,16 +392,16 @@
 #endif
 
 // Type alignment (not allowed by C++11 'alignas' keyword).
-#if ASMJIT_CXX_GNU
+#if defined(__GNUC__)
   #define ASMJIT_ALIGN_TYPE(TYPE, N) __attribute__((__aligned__(N))) TYPE
-#elif ASMJIT_CXX_MSC
+#elif defined(_MSC_VER)
   #define ASMJIT_ALIGN_TYPE(TYPE, N) __declspec(align(N)) TYPE
 #else
   #define ASMJIT_ALIGN_TYPE(TYPE, N) TYPE
 #endif
 
 // Annotations.
-#if ASMJIT_CXX_HAS_BUILTIN(__builtin_expect, ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(3, 0, 0))
+#if defined(__GNUC__)
   #define ASMJIT_LIKELY(...) __builtin_expect(!!(__VA_ARGS__), 1)
   #define ASMJIT_UNLIKELY(...) __builtin_expect(!!(__VA_ARGS__), 0)
 #else
@@ -409,7 +409,7 @@
   #define ASMJIT_UNLIKELY(...) (__VA_ARGS__)
 #endif
 
-#if ASMJIT_CXX_CLANG && __cplusplus >= 201103L
+#if defined(__clang__) && __cplusplus >= 201103L
   #define ASMJIT_FALLTHROUGH [[clang::fallthrough]]
 #elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(7, 0, 0)
   #define ASMJIT_FALLTHROUGH __attribute__((__fallthrough__))
@@ -432,44 +432,44 @@
 #endif
 
 #if ASMJIT_CXX_HAS_ATTRIBUTE(no_sanitize, 0)
-  #define ASMJIT_CXX_NO_SANITIZE_UNDEFINED __attribute__((__no_sanitize__("undefined")))
+  #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF __attribute__((__no_sanitize__("undefined")))
 #elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(4, 9, 0)
-  #define ASMJIT_CXX_NO_SANITIZE_UNDEFINED __attribute__((__no_sanitize_undefined__))
+  #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF __attribute__((__no_sanitize_undefined__))
 #else
-  #define ASMJIT_CXX_NO_SANITIZE_UNDEFINED
+  #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF
 #endif
 
 // ============================================================================
 // [asmjit::Build - Globals - Begin-Namespace / End-Namespace]
 // ============================================================================
 
-#if ASMJIT_CXX_CLANG
-  #define ASMJIT_BEGIN_NAMESPACE                                               \
-    namespace asmjit {                                                         \
-      _Pragma("clang diagnostic push")                                         \
-      _Pragma("clang diagnostic ignored \"-Wconstant-logical-operand\"")       \
+#if defined(__clang__)
+  #define ASMJIT_BEGIN_NAMESPACE                                              \
+    namespace asmjit {                                                        \
+      _Pragma("clang diagnostic push")                                        \
+      _Pragma("clang diagnostic ignored \"-Wconstant-logical-operand\"")      \
       _Pragma("clang diagnostic ignored \"-Wunnamed-type-template-args\"")
-  #define ASMJIT_END_NAMESPACE                                                 \
-      _Pragma("clang diagnostic pop")                                          \
+  #define ASMJIT_END_NAMESPACE                                                \
+      _Pragma("clang diagnostic pop")                                         \
     }
-#endif
-
-#if ASMJIT_CXX_GNU_ONLY
-  // Nothing atm.
-#endif
-
-#if ASMJIT_CXX_MSC_ONLY
-  #define ASMJIT_BEGIN_NAMESPACE                                               \
-    namespace asmjit {                                                         \
-      __pragma(warning(push))                                                  \
-      __pragma(warning(disable: 4127)) /* conditional expression is constant*/ \
+#elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(8, 0, 0)
+  #define ASMJIT_BEGIN_NAMESPACE                                              \
+    namespace asmjit {                                                        \
+      _Pragma("GCC diagnostic push")                                          \
+      _Pragma("GCC diagnostic ignored \"-Wclass-memaccess\"")
+  #define ASMJIT_END_NAMESPACE                                                \
+      _Pragma("GCC diagnostic pop")                                           \
+    }
+#elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+  #define ASMJIT_BEGIN_NAMESPACE                                              \
+    namespace asmjit {                                                        \
+      __pragma(warning(push))                                                 \
+      __pragma(warning(disable: 4127)) /* conditional expression is constant*/\
       __pragma(warning(disable: 4201)) /* nameless struct/union             */
-  #define ASMJIT_END_NAMESPACE                                                 \
-      __pragma(warning(pop))                                                   \
+  #define ASMJIT_END_NAMESPACE                                                \
+      __pragma(warning(pop))                                                  \
     }
-#endif
-
-#ifndef ASMJIT_BEGIN_NAMESPACE
+#else
   #define ASMJIT_BEGIN_NAMESPACE namespace asmjit {
   #define ASMJIT_END_NAMESPACE }
 #endif

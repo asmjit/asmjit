@@ -276,21 +276,21 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
   if (capacity < kInitialCapacity)
     capacity = kInitialCapacity;
   else
-    capacity += Globals::kMemAllocOverhead;
+    capacity += Globals::kAllocOverhead;
 
   do {
     size_t old = capacity;
-    if (capacity < Globals::kAllocThreshold)
+    if (capacity < Globals::kGrowThreshold)
       capacity *= 2;
     else
-      capacity += Globals::kAllocThreshold;
+      capacity += Globals::kGrowThreshold;
 
     // Overflow.
     if (ASMJIT_UNLIKELY(old > capacity))
       return DebugUtils::errored(kErrorOutOfMemory);
-  } while (capacity - Globals::kMemAllocOverhead < required);
+  } while (capacity - Globals::kAllocOverhead < required);
 
-  return CodeHolder_reserveInternal(this, cb, capacity - Globals::kMemAllocOverhead);
+  return CodeHolder_reserveInternal(this, cb, capacity - Globals::kAllocOverhead);
 }
 
 Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {

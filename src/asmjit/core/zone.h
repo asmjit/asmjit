@@ -49,7 +49,7 @@ public:
 
   enum Limits : size_t {
     kBlockSize = sizeof(Block),
-    kBlockOverhead = Globals::kMemAllocOverhead + kBlockSize,
+    kBlockOverhead = Globals::kAllocOverhead + kBlockSize,
 
     kMinBlockSize = 64, // The number is ridiculously small, but still possible.
     kMaxBlockSize = size_t(1) << (sizeof(size_t) * 8 - 4 - 1),

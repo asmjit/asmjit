@@ -5658,18 +5658,14 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
     if (out.has(Features::kVPCLMULQDQ)) {
       if (Support::bitTest(mask, Reg::kTypeZmm) || Support::bitTest(options, Inst::kOptionEvex)) {
         // AVX512_F & VPCLMULQDQ.
-        out.remove(Features::kAVX,
-                   Features::kPCLMULQDQ);
+        out.remove(Features::kAVX, Features::kPCLMULQDQ);
       }
       else if (Support::bitTest(mask, Reg::kTypeYmm)) {
-        out.remove(Features::kAVX512_F,
-                   Features::kAVX512_VL);
+        out.remove(Features::kAVX512_F, Features::kAVX512_VL);
       }
       else {
         // AVX & PCLMULQDQ.
-        out.remove(Features::kAVX512_F,
-                   Features::kAVX512_VL,
-                   Features::kVPCLMULQDQ);
+        out.remove(Features::kAVX512_F, Features::kAVX512_VL, Features::kVPCLMULQDQ);
       }
     }
 
@@ -5703,10 +5699,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
       if (out.has(Features::kAVX512_F) || out.has(Features::kAVX512_BW) || out.has(Features::kAVX512_DQ)) {
         uint32_t kAvx512Options = Inst::kOptionEvex | Inst::_kOptionAvx512Mask;
         if (!(mask & Support::bitMask(Reg::kTypeZmm, Reg::kTypeKReg)) && !(options & (kAvx512Options)) && inst.extraReg().type() != Reg::kTypeKReg) {
-          out.remove(Features::kAVX512_F,
-                     Features::kAVX512_BW,
-                     Features::kAVX512_DQ,
-                     Features::kAVX512_VL);
+          out.remove(Features::kAVX512_F, Features::kAVX512_BW, Features::kAVX512_DQ, Features::kAVX512_VL);
         }
       }
     }

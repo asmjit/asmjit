@@ -103,31 +103,11 @@ public:
   inline String(String&& other) noexcept {
     for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_raw.uptr); i++)
       _raw.uptr[i] = other._raw.uptr[i];
-    other._resetToEmbedded();
+    other._resetInternal();
   }
 
   inline ~String() noexcept {
     reset();
-  }
-
-  // --------------------------------------------------------------------------
-  // [Internal]
-  // --------------------------------------------------------------------------
-
-  //! Resets string to embedded and makes it empty (zero length, zero first char)
-  //!
-  //! NOTE: This is always called internally after an external buffer was released
-  //! as it zeroes all bytes used by String's embedded storage.
-  inline void _resetToEmbedded() noexcept {
-    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_raw.uptr); i++)
-      _raw.uptr[i] = 0;
-  }
-
-  inline void _setSize(size_t newSize) noexcept {
-    if (isLarge())
-      _large.size = newSize;
-    else
-      _small.type = uint8_t(newSize);
   }
 
   // --------------------------------------------------------------------------
@@ -153,16 +133,10 @@ public:
 
   //! Reset the string into a construction state.
   ASMJIT_API Error reset() noexcept;
-
   //! Clear the content of the string.
   ASMJIT_API Error clear() noexcept;
-  //! Truncate the string length into `newSize`.
-  ASMJIT_API Error truncate(size_t newSize) noexcept;
 
   ASMJIT_API char* prepare(uint32_t op, size_t size) noexcept;
-
-  ASMJIT_API bool eq(const char* other, size_t size = SIZE_MAX) const noexcept;
-  inline bool eq(const String& other) const noexcept { return eq(other.data(), other.size()); }
 
   // --------------------------------------------------------------------------
   // [Operations]
@@ -176,12 +150,10 @@ public:
   ASMJIT_API Error _opNumber(uint32_t op, uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) noexcept;
   ASMJIT_API Error _opHex(uint32_t op, const void* data, size_t size, char separator = '\0') noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Assign]
-  // --------------------------------------------------------------------------
-
-  //! Replace the current string with `str` having `size` characters (or possibly null terminated).
-  ASMJIT_API Error assignString(const char* str, size_t size = SIZE_MAX) noexcept;
+  //! Replace the string content to a string specified by `data` and `size`. If
+  //! `size` is `SIZE_MAX` then it's considered null-terminated and its length
+  //! will be obtained through `strlen()`.
+  ASMJIT_API Error assignString(const char* data, size_t size = SIZE_MAX) noexcept;
 
   //! Replace the current content by a formatted string `fmt`.
   template<typename... ArgsT>
@@ -218,10 +190,6 @@ public:
   inline Error assignHex(const void* data, size_t size, char separator = '\0') noexcept {
     return _opHex(kOpAssign, data, size, separator);
   }
-
-  // --------------------------------------------------------------------------
-  // [Append]
-  // --------------------------------------------------------------------------
 
   //! Append string `str` of size `size` (or possibly null terminated).
   inline Error appendString(const char* str, size_t size = SIZE_MAX) noexcept {
@@ -263,6 +231,32 @@ public:
   //! Append the given `data` converted to a HEX string.
   inline Error appendHex(const void* data, size_t size, char separator = '\0') noexcept {
     return _opHex(kOpAppend, data, size, separator);
+  }
+
+  //! Truncate the string length into `newSize`.
+  ASMJIT_API Error truncate(size_t newSize) noexcept;
+
+  ASMJIT_API bool eq(const char* other, size_t size = SIZE_MAX) const noexcept;
+  inline bool eq(const String& other) const noexcept { return eq(other.data(), other.size()); }
+
+  // --------------------------------------------------------------------------
+  // [Internal]
+  // --------------------------------------------------------------------------
+
+  //! Resets string to embedded and makes it empty (zero length, zero first char)
+  //!
+  //! NOTE: This is always called internally after an external buffer was released
+  //! as it zeroes all bytes used by String's embedded storage.
+  inline void _resetInternal() noexcept {
+    for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_raw.uptr); i++)
+      _raw.uptr[i] = 0;
+  }
+
+  inline void _setSize(size_t newSize) noexcept {
+    if (isLarge())
+      _large.size = newSize;
+    else
+      _small.type = uint8_t(newSize);
   }
 
   // --------------------------------------------------------------------------

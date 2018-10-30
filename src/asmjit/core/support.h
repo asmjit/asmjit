@@ -11,7 +11,7 @@
 // [Dependencies]
 #include "../core/globals.h"
 
-#if ASMJIT_CXX_MSC
+#if defined(_MSC_VER)
   #include <intrin.h>
 #endif
 
@@ -253,26 +253,26 @@ namespace Internal {
   }
 
   static ASMJIT_INLINE uint32_t ctz(uint32_t x) noexcept {
-  #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 || ASMJIT_ARCH_ARM)
+  #if defined(__GNUC__)
+    return uint32_t(__builtin_ctz(x));
+  #elif defined(_MSC_VER) && (ASMJIT_ARCH_X86 || ASMJIT_ARCH_ARM)
     unsigned long i;
     _BitScanForward(&i, x);
     return uint32_t(i);
-  #elif ASMJIT_CXX_GNU
-    return uint32_t(__builtin_ctz(x));
   #else
-    return ctzGeneric(x);
+    return constCtz(x);
   #endif
   }
 
   static ASMJIT_INLINE uint32_t ctz(uint64_t x) noexcept {
-  #if ASMJIT_CXX_MSC && (ASMJIT_ARCH_X86 == 64 || ASMJIT_ARCH_ARM == 64)
+  #if defined(__GNUC__)
+    return uint32_t(__builtin_ctzll(x));
+  #elif defined(_MSC_VER) && (ASMJIT_ARCH_X86 == 64 || ASMJIT_ARCH_ARM == 64)
     unsigned long i;
     _BitScanForward64(&i, x);
     return uint32_t(i);
-  #elif ASMJIT_CXX_GNU
-    return uint32_t(__builtin_ctzll(x));
   #else
-    return ctzGeneric(x);
+    return constCtz(x);
   #endif
   }
 }
@@ -321,7 +321,7 @@ static inline uint32_t _popcntGeneric(uint64_t x) noexcept {
 }
 
 static inline uint32_t _popcntImpl(uint32_t x) noexcept {
-#if ASMJIT_CXX_GNU
+#if defined(__GNUC__)
   return uint32_t(__builtin_popcount(x));
 #else
   return _popcntGeneric(asUInt(x));
@@ -329,7 +329,7 @@ static inline uint32_t _popcntImpl(uint32_t x) noexcept {
 }
 
 static inline uint32_t _popcntImpl(uint64_t x) noexcept {
-#if ASMJIT_CXX_GNU
+#if defined(__GNUC__)
   return uint32_t(__builtin_popcountll(x));
 #else
   return _popcntGeneric(asUInt(x));
@@ -1059,83 +1059,6 @@ public:
   size_t _idx;
   size_t _end;
   T _current;
-};
-
-// ============================================================================
-// [asmjit::Support - BitVectorFlipIterator]
-// ============================================================================
-
-template<typename T>
-class BitVectorFlipIterator {
-public:
-  ASMJIT_INLINE BitVectorFlipIterator(const T* data, size_t numBitWords, size_t start = 0, T xorMask = 0) noexcept {
-    init(data, numBitWords, start, xorMask);
-  }
-
-  ASMJIT_INLINE void init(const T* data, size_t numBitWords, size_t start = 0, T xorMask = 0) noexcept {
-    const T* ptr = data + (start / bitSizeOf<T>());
-    size_t idx = alignDown(start, bitSizeOf<T>());
-    size_t end = numBitWords * bitSizeOf<T>();
-
-    T bitWord = T(0);
-    if (idx < end) {
-      bitWord = (*ptr++ ^ xorMask) & (allOnes<T>() << (start % bitSizeOf<T>()));
-      while (!bitWord && (idx += bitSizeOf<T>()) < end)
-        bitWord = *ptr++ ^ xorMask;
-    }
-
-    _ptr = ptr;
-    _idx = idx;
-    _end = end;
-    _current = bitWord;
-    _xorMask = xorMask;
-  }
-
-  ASMJIT_INLINE bool hasNext() const noexcept {
-    return _current != T(0);
-  }
-
-  ASMJIT_INLINE size_t next() noexcept {
-    T bitWord = _current;
-    ASMJIT_ASSERT(bitWord != T(0));
-
-    uint32_t bit = ctz(bitWord);
-    bitWord ^= T(1u) << bit;
-
-    size_t n = _idx + bit;
-    while (!bitWord && (_idx += bitSizeOf<T>()) < _end)
-      bitWord = *_ptr++ ^ _xorMask;
-
-    _current = bitWord;
-    return n;
-  }
-
-  ASMJIT_INLINE size_t nextAndFlip() noexcept {
-    T bitWord = _current;
-    ASMJIT_ASSERT(bitWord != T(0));
-
-    uint32_t bit = ctz(bitWord);
-    bitWord ^= allOnes<T>() << bit;
-    _xorMask ^= allOnes<T>();
-
-    size_t n = _idx + bit;
-    while (!bitWord && (_idx += bitSizeOf<T>()) < _end)
-      bitWord = *_ptr++ ^ _xorMask;
-
-    _current = bitWord;
-    return n;
-  }
-
-  ASMJIT_INLINE size_t peekNext() const noexcept {
-    ASMJIT_ASSERT(_current != T(0));
-    return _idx + ctz(_current);
-  }
-
-  const T* _ptr;
-  size_t _idx;
-  size_t _end;
-  T _current;
-  T _xorMask;
 };
 
 // ============================================================================

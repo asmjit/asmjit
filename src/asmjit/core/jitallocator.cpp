@@ -20,6 +20,86 @@
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
+// [asmjit::BitFlipIterator]
+// ============================================================================
+
+//! \internal
+//!
+//! BitWord[] iterator used by `JitAllocator` that can flip the search pattern during iteration.
+template<typename T>
+class BitFlipIterator {
+public:
+  ASMJIT_INLINE BitFlipIterator(const T* data, size_t numBitWords, size_t start = 0, T xorMask = 0) noexcept {
+    init(data, numBitWords, start, xorMask);
+  }
+
+  ASMJIT_INLINE void init(const T* data, size_t numBitWords, size_t start = 0, T xorMask = 0) noexcept {
+    const T* ptr = data + (start / Support::bitSizeOf<T>());
+    size_t idx = Support::alignDown(start, Support::bitSizeOf<T>());
+    size_t end = numBitWords * Support::bitSizeOf<T>();
+
+    T bitWord = T(0);
+    if (idx < end) {
+      bitWord = (*ptr++ ^ xorMask) & (Support::allOnes<T>() << (start % Support::bitSizeOf<T>()));
+      while (!bitWord && (idx += Support::bitSizeOf<T>()) < end)
+        bitWord = *ptr++ ^ xorMask;
+    }
+
+    _ptr = ptr;
+    _idx = idx;
+    _end = end;
+    _current = bitWord;
+    _xorMask = xorMask;
+  }
+
+  ASMJIT_INLINE bool hasNext() const noexcept {
+    return _current != T(0);
+  }
+
+  ASMJIT_INLINE size_t next() noexcept {
+    T bitWord = _current;
+    ASMJIT_ASSERT(bitWord != T(0));
+
+    uint32_t bit = ctz(bitWord);
+    bitWord ^= T(1u) << bit;
+
+    size_t n = _idx + bit;
+    while (!bitWord && (_idx += Support::bitSizeOf<T>()) < _end)
+      bitWord = *_ptr++ ^ _xorMask;
+
+    _current = bitWord;
+    return n;
+  }
+
+  ASMJIT_INLINE size_t nextAndFlip() noexcept {
+    T bitWord = _current;
+    ASMJIT_ASSERT(bitWord != T(0));
+
+    uint32_t bit = Support::ctz(bitWord);
+    bitWord ^= Support::allOnes<T>() << bit;
+    _xorMask ^= Support::allOnes<T>();
+
+    size_t n = _idx + bit;
+    while (!bitWord && (_idx += Support::bitSizeOf<T>()) < _end)
+      bitWord = *_ptr++ ^ _xorMask;
+
+    _current = bitWord;
+    return n;
+  }
+
+  ASMJIT_INLINE size_t peekNext() const noexcept {
+    ASMJIT_ASSERT(_current != T(0));
+    return _idx + Support::ctz(_current);
+  }
+
+  const T* _ptr;
+  size_t _idx;
+  size_t _end;
+  T _current;
+  T _xorMask;
+};
+
+// ============================================================================
 // [asmjit::JitAllocator::TypeDefs]
 // ============================================================================
 
@@ -233,7 +313,7 @@ void* JitAllocator::alloc(size_t size) noexcept {
           uint32_t searchStart = block->_searchStart;
           uint32_t searchEnd = block->_searchEnd;
 
-          Support::BitVectorFlipIterator<Support::BitWord> it(
+          BitFlipIterator<Support::BitWord> it(
             block->_usedBitVector,
             pool->bitWordCountFromAreaSize(searchEnd),
             searchStart,
@@ -574,6 +654,36 @@ UNIT(asmjit_core_jit_allocator) {
 
   size_t i;
   size_t kCount = 200000;
+
+  INFO("BitFlipIterator<uint32_t>");
+  {
+    static const uint32_t bits[] = { 0x80000000u, 0x80000000u, 0x00000000u, 0x80000000u };
+    BitFlipIterator<uint32_t> it(bits, ASMJIT_ARRAY_SIZE(bits));
+
+    EXPECT(it.hasNext());
+    EXPECT(it.nextAndFlip() == 31);
+    EXPECT(it.hasNext());
+    EXPECT(it.nextAndFlip() == 32);
+    EXPECT(it.hasNext());
+    EXPECT(it.nextAndFlip() == 63);
+    EXPECT(it.hasNext());
+    EXPECT(it.nextAndFlip() == 64);
+    EXPECT(it.hasNext());
+    EXPECT(it.nextAndFlip() == 127);
+    EXPECT(!it.hasNext());
+  }
+
+  INFO("BitFlipIterator<uint64_t>");
+  {
+    static const uint64_t bits[] = { 0xFFFFFFFFFFFFFFFFu, 0xFFFFFFFFFFFFFFFF, 0, 0 };
+    BitFlipIterator<uint64_t> it(bits, ASMJIT_ARRAY_SIZE(bits));
+
+    EXPECT(it.hasNext());
+    EXPECT(it.nextAndFlip() == 0);
+    EXPECT(it.hasNext());
+    EXPECT(it.nextAndFlip() == 128);
+    EXPECT(!it.hasNext());
+  }
 
   INFO("Memory alloc/release test - %d allocations", kCount);
 

@@ -17,7 +17,7 @@
 #include "../x86/x86features.h"
 
 // Required by `__cpuidex()` and `_xgetbv()`.
-#if ASMJIT_CXX_MSC
+#if defined(_MSC_VER)
   #include <intrin.h>
 #endif
 
@@ -32,14 +32,14 @@ struct xgetbv_t { uint32_t eax, edx; };
 
 // Executes `cpuid` instruction.
 static inline void cpuidQuery(cpuid_t* out, uint32_t inEax, uint32_t inEcx = 0) noexcept {
-#if ASMJIT_CXX_MSC
+#if defined(_MSC_VER)
   __cpuidex(reinterpret_cast<int*>(out), inEax, inEcx);
-#elif ASMJIT_CXX_GNU && ASMJIT_ARCH_X86 == 32
+#elif defined(__GNUC__) && ASMJIT_ARCH_X86 == 32
   __asm__ __volatile__(
     "mov %%ebx, %%edi\n"
     "cpuid\n"
     "xchg %%edi, %%ebx\n" : "=a"(out->eax), "=D"(out->ebx), "=c"(out->ecx), "=d"(out->edx) : "a"(inEax), "c"(inEcx));
-#elif ASMJIT_CXX_GNU && ASMJIT_ARCH_X86 == 64
+#elif defined(__GNUC__) && ASMJIT_ARCH_X86 == 64
   __asm__ __volatile__(
     "mov %%rbx, %%rdi\n"
     "cpuid\n"
@@ -51,11 +51,11 @@ static inline void cpuidQuery(cpuid_t* out, uint32_t inEax, uint32_t inEcx = 0) 
 
 // Executes 'xgetbv' instruction.
 static inline void xgetbvQuery(xgetbv_t* out, uint32_t inEcx) noexcept {
-#if ASMJIT_CXX_MSC
+#if defined(_MSC_VER)
   uint64_t value = _xgetbv(inEcx);
   out->eax = uint32_t(value & 0xFFFFFFFFu);
   out->edx = uint32_t(value >> 32);
-#elif ASMJIT_CXX_GNU
+#elif defined(__GNUC__)
   uint32_t outEax;
   uint32_t outEdx;
 

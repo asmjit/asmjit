@@ -19,7 +19,7 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 Error ZoneVectorBase::_grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept {
-  uint32_t threshold = Globals::kAllocThreshold / sizeOfT;
+  uint32_t threshold = Globals::kGrowThreshold / sizeOfT;
   uint32_t capacity = _capacity;
   uint32_t after = _size;
 
@@ -246,7 +246,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
 }
 
 Error ZoneBitVector::_append(ZoneAllocator* allocator, bool value) noexcept {
-  uint32_t kThreshold = Globals::kAllocThreshold * 8;
+  uint32_t kThreshold = Globals::kGrowThreshold * 8;
   uint32_t newSize = _size + 1;
   uint32_t idealCapacity = _capacity;
 

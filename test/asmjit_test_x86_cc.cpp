@@ -5,10 +5,10 @@
 // ZLIB - See LICENSE.md file in the package.
 
 // [Dependencies]
-#include <cstring>
-#include <cstdio>
 #include <setjmp.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "./asmjit.h"
 #include "./asmjit_test_misc.h"
@@ -27,7 +27,7 @@ public:
 
   bool hasArg(const char* arg) {
     for (int i = 1; i < _argc; i++)
-      if (std::strcmp(_argv[i], arg) == 0)
+      if (::strcmp(_argv[i], arg) == 0)
         return true;
     return false;
   }
@@ -81,7 +81,7 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  X86TestApp()
+  X86TestApp() noexcept
     : _zone(8096 - Zone::kBlockOverhead),
       _allocator(&_zone),
       _returnCode(0),
@@ -89,7 +89,7 @@ public:
       _verbose(false),
       _dumpAsm(false) {}
 
-  ~X86TestApp() {
+  ~X86TestApp() noexcept {
     for (X86Test* test : _tests)
       delete test;
   }
@@ -98,8 +98,12 @@ public:
   // [Interface]
   // --------------------------------------------------------------------------
 
-  Error add(X86Test* test) { return _tests.append(&_allocator, test); }
-  template<class T> inline void addT() { T::add(*this); }
+  Error add(X86Test* test) noexcept{
+    return _tests.append(&_allocator, test);
+  }
+
+  template<class T>
+  inline void addT() { T::add(*this); }
 
   int handleArgs(int argc, const char* const* argv);
   void showInfo();
@@ -130,9 +134,9 @@ int X86TestApp::handleArgs(int argc, const char* const* argv) {
 }
 
 void X86TestApp::showInfo() {
-  std::printf("AsmJit::x86::Compiler Test:\n");
-  std::printf("  [%s] Verbose (use --verbose to turn verbose output ON)\n", _verbose ? "x" : " ");
-  std::printf("  [%s] DumpAsm (use --dump-asm to turn assembler dumps ON)\n", _dumpAsm ? "x" : " ");
+  printf("AsmJit::x86::Compiler Test:\n");
+  printf("  [%s] Verbose (use --verbose to turn verbose output ON)\n", _verbose ? "x" : " ");
+  printf("  [%s] DumpAsm (use --dump-asm to turn assembler dumps ON)\n", _dumpAsm ? "x" : " ");
 }
 
 int X86TestApp::run() {
@@ -171,10 +175,10 @@ int X86TestApp::run() {
     }
     #endif
 
-    std::fprintf(file, "[Test] %s", test->name());
+    fprintf(file, "[Test] %s", test->name());
 
     #ifndef ASMJIT_DISABLE_LOGGING
-    if (_verbose) std::fprintf(file, "\n");
+    if (_verbose) fprintf(file, "\n");
     #endif
 
     x86::Compiler cc(&code);
@@ -187,11 +191,11 @@ int X86TestApp::run() {
 
     #ifndef ASMJIT_DISABLE_LOGGING
     if (_dumpAsm) {
-      if (!_verbose) std::fprintf(file, "\n");
+      if (!_verbose) fprintf(file, "\n");
 
       String sb;
       cc.dump(sb, kFormatFlags);
-      std::fprintf(file, "%s", sb.data());
+      fprintf(file, "%s", sb.data());
     }
     #endif
 
@@ -199,25 +203,25 @@ int X86TestApp::run() {
       err = runtime.add(&func, &code);
 
     if (_verbose)
-      std::fflush(file);
+      fflush(file);
 
     if (err == kErrorOk) {
       StringTmp<128> result;
       StringTmp<128> expect;
 
       if (test->run(func, result, expect)) {
-        if (!_verbose) std::fprintf(file, " [OK]\n");
+        if (!_verbose) fprintf(file, " [OK]\n");
       }
       else {
-        if (!_verbose) std::fprintf(file, " [FAILED]\n");
+        if (!_verbose) fprintf(file, " [FAILED]\n");
 
         #ifndef ASMJIT_DISABLE_LOGGING
-        if (!_verbose) std::fprintf(file, "%s", stringLogger.data());
+        if (!_verbose) fprintf(file, "%s", stringLogger.data());
         #endif
 
-        std::fprintf(file, "[Status]\n");
-        std::fprintf(file, "  Returned: %s\n", result.data());
-        std::fprintf(file, "  Expected: %s\n", expect.data());
+        fprintf(file, "[Status]\n");
+        fprintf(file, "  Returned: %s\n", result.data());
+        fprintf(file, "  Expected: %s\n", expect.data());
 
         _returnCode = 1;
       }
@@ -225,23 +229,23 @@ int X86TestApp::run() {
       runtime.release(func);
     }
     else {
-      if (!_verbose) std::fprintf(file, " [FAILED]\n");
+      if (!_verbose) fprintf(file, " [FAILED]\n");
 
       #ifndef ASMJIT_DISABLE_LOGGING
-      if (!_verbose) std::fprintf(file, "%s", stringLogger.data());
+      if (!_verbose) fprintf(file, "%s", stringLogger.data());
       #endif
 
-      std::fprintf(file, "[Status]\n");
-      std::fprintf(file, "  ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
+      fprintf(file, "[Status]\n");
+      fprintf(file, "  ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
 
       _returnCode = 1;
     }
 
-    std::fflush(file);
+    fflush(file);
   }
 
-  std::fprintf(file, "\n");
-  std::fflush(file);
+  fprintf(file, "\n");
+  fflush(file);
 
   return _returnCode;
 }
@@ -2416,9 +2420,7 @@ public:
     return resultRet == expectRet;
   }
 
-  // Function that is called inside the generated one. Because this test is
-  // mainly about register arguments, we need to use the fastcall calling
-  // convention when running 32-bit.
+  // STDCALL function that is called inside the generated one.
   static int ASMJIT_STDCALL calledFunc(int a, int b, int c) noexcept {
     return (a + b) * c;
   }
@@ -2471,9 +2473,7 @@ public:
     return resultRet == expectRet;
   }
 
-  // Function that is called inside the generated one. Because this test is
-  // mainly about register arguments, we need to use the fastcall calling
-  // convention when running 32-bit.
+  // FASTCALL function that is called inside the generated one.
   static int ASMJIT_FASTCALL calledFunc(int a) noexcept {
     return a * a;
   }

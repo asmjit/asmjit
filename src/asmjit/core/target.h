@@ -56,7 +56,7 @@ public:
   }
 
   inline void init(const CodeInfo& other) noexcept {
-    ::memcpy(this, &other, sizeof(*this));
+    *this = other;
   }
 
   inline void init(uint32_t archId, uint32_t archMode = 0, uint64_t baseAddress = Globals::kNoBaseAddress) noexcept {
