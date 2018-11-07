@@ -1081,13 +1081,13 @@ struct SArgData {
 };
 
 static ASMJIT_INLINE bool X86RAPass_mustConvertSArg(X86RAPass* self, uint32_t dstTypeId, uint32_t srcTypeId) noexcept{
-  bool dstFloatSize = dstTypeId == TypeId::kF32   ? 4 :
-                      dstTypeId == TypeId::kF64   ? 8 : 0;
+  uint32_t dstFloatSize = dstTypeId == TypeId::kF32   ? 4 :
+                          dstTypeId == TypeId::kF64   ? 8 : 0;
 
-  bool srcFloatSize = srcTypeId == TypeId::kF32   ? 4 :
-                      srcTypeId == TypeId::kF32x1 ? 4 :
-                      srcTypeId == TypeId::kF64   ? 8 :
-                      srcTypeId == TypeId::kF64x1 ? 8 : 0;
+  uint32_t srcFloatSize = srcTypeId == TypeId::kF32   ? 4 :
+                          srcTypeId == TypeId::kF32x1 ? 4 :
+                          srcTypeId == TypeId::kF64   ? 8 :
+                          srcTypeId == TypeId::kF64x1 ? 8 : 0;
 
   if (dstFloatSize && srcFloatSize)
     return dstFloatSize != srcFloatSize;
