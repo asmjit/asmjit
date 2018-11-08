@@ -21,8 +21,7 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
 #ifndef ASMJIT_DISABLE_TEXT
   static const char errorMessages[] =
     "Ok\0"
-    "No heap memory\0"
-    "No virtual memory\0"
+    "Out of memory\0"
     "Invalid argument\0"
     "Invalid state\0"
     "Invalid architecture\0"
