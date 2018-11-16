@@ -60,7 +60,7 @@ public:
     T bitWord = _current;
     ASMJIT_ASSERT(bitWord != T(0));
 
-    uint32_t bit = ctz(bitWord);
+    uint32_t bit = Support::ctz(bitWord);
     bitWord ^= T(1u) << bit;
 
     size_t n = _idx + bit;

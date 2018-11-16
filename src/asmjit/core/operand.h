@@ -1050,7 +1050,7 @@ public:
   //! Reset the memory operand's INDEX register.
   inline void resetIndex() noexcept { _setIndex(0, 0); }
 
-  //! Set memory operand size.
+  //! Set memory operand size (in bytes).
   inline void setSize(uint32_t size) noexcept {
     _setSignatureData(size, kSignatureSizeBits, kSignatureSizeShift);
   }

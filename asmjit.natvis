@@ -3,6 +3,25 @@
 <!-- asmjit visualizer for Visual Studio (natvis) -->
 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="asmjit::String">
+    <Intrinsic Name="isSmall" Expression="(_type &lt; 0x1F)"/>
+    <DisplayString Condition="isSmall()">{_small.data, s8}</DisplayString>
+    <DisplayString Condition="!isSmall()">{_large.data, s8}</DisplayString>
+    <Expand HideRawView="true">
+      <Synthetic Name="_type">
+        <DisplayString Condition="(_type <  0x1F)">Small</DisplayString>
+        <DisplayString Condition="(_type == 0x1F)">Large</DisplayString>
+        <DisplayString Condition="(_type >  0x1F)">External</DisplayString>
+      </Synthetic>
+      <Item Name="_size" Condition="isSmall()" ExcludeView="simple">(int)_small.type, d</Item>
+      <Item Name="_size" Condition="!isSmall()" ExcludeView="simple">_large.size, d</Item>
+      <Item Name="_capacity" Condition="isSmall()" ExcludeView="simple">asmjit::String::kSSOCapacity, d</Item>
+      <Item Name="_capacity" Condition="!isSmall()" ExcludeView="simple">_large.capacity, d</Item>
+      <Item Name="_data" Condition="isSmall()" ExcludeView="simple">_small.data, s8</Item>
+      <Item Name="_data" Condition="!isSmall()" ExcludeView="simple">_large.data, s8</Item>
+    </Expand>
+  </Type>
+
   <Type Name="asmjit::ZoneVector&lt;*&gt;">
     <DisplayString>{{ [size={_size, d} capacity={_capacity, d}] }}</DisplayString>
     <Expand>

@@ -359,7 +359,7 @@ using namespace asmjit::x86;              // Easier to access x86 regs.
 x86::Mem a = ptr(rax);                    // a = [rax]
 x86::Mem b = ptr(rax, 15)                 // b = [rax + 15]
 
-// BASE + INDEX + SCALE - Scale is in BITS as used by X86!
+// BASE + INDEX << SHIFT - Shift is in BITS as used by X86!
 x86::Mem c = ptr(rax, rbx)                // c = [rax + rbx]
 x86::Mem d = ptr(rax, rbx, 2)             // d = [rax + rbx << 2]
 x86::Mem e = ptr(rax, rbx, 2, 15)         // e = [rax + rbx << 2 + 15]
