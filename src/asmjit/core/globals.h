@@ -177,6 +177,8 @@ enum ErrorCode : uint32_t {
   kErrorRelocIndexOverflow,
   //! Invalid relocation entry.
   kErrorInvalidRelocEntry,
+  //! Reloc entry contains address that is out of range (unencodable).
+  kErrorRelocOffsetOutOfRange,
 
   //! Invalid instruction.
   kErrorInvalidInstruction,

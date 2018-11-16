@@ -297,6 +297,16 @@ public:
 // ============================================================================
 
 //! Relocation entry.
+//!
+//! We describe relocation data in the following way:
+//!
+//! ```
+//! +- Start of the buffer                              +- End of the data
+//! |                               |*PATCHED*|         |  or instruction
+//! |xxxxxxxxxxxxxxxxxxxxxx|LeadSize|ValueSize|TrailSize|xxxxxxxxxxxxxxxxxxxx->
+//!                        |
+//!                        +- Source offset
+//! ```
 struct RelocEntry {
   enum Id : uint32_t {
     kInvalidId       = 0xFFFFFFFFu       //!< Invalid relocation id.
@@ -304,7 +314,7 @@ struct RelocEntry {
 
   //! Relocation type.
   enum RelocType : uint32_t {
-    kTypeNone        = 0,                //!< Deleted entry (no relocation).
+    kTypeNone        = 0,                //!< None/deleted (no relocation).
     kTypeAbsToAbs    = 1,                //!< Relocate absolute to absolute.
     kTypeRelToAbs    = 2,                //!< Relocate relative to absolute.
     kTypeAbsToRel    = 3,                //!< Relocate absolute to relative.
@@ -317,8 +327,11 @@ struct RelocEntry {
 
   inline uint32_t id() const noexcept { return _id; }
 
-  inline uint32_t type() const noexcept { return _type; }
-  inline uint32_t size() const noexcept { return _size; }
+  inline uint32_t relocType() const noexcept { return _relocType; }
+  inline uint32_t valueSize() const noexcept { return _valueSize; }
+
+  inline uint32_t leadingSize() const noexcept { return _leadingSize; }
+  inline uint32_t trailingSize() const noexcept { return _trailingSize; }
 
   inline uint32_t sourceSectionId() const noexcept { return _sourceSectionId; }
   inline uint32_t targetSectionId() const noexcept { return _targetSectionId; }
@@ -330,14 +343,25 @@ struct RelocEntry {
   // [Members]
   // ------------------------------------------------------------------------
 
-  uint32_t _id;                          //!< Relocation id.
-  uint8_t _type;                         //!< Type of the relocation.
-  uint8_t _size;                         //!< Size of the relocation (1, 2, 4 or 8 bytes).
-  uint8_t _reserved[2];                  //!< Reserved.
-  uint32_t _sourceSectionId;             //!< Source section id.
-  uint32_t _targetSectionId;             //!< Destination section id.
-  uint64_t _sourceOffset;                //!< Source offset (relative to start of the section).
-  uint64_t _payload;                     //!< Payload (target offset, target address, etc).
+  //! Relocation id.
+  uint32_t _id;
+  //! Type of the relocation.
+  uint8_t _relocType;
+  //! Size of the relocation data/value (1, 2, 4 or 8 bytes).
+  uint8_t _valueSize;
+  //! Number of bytes after `_sourceOffset` to reach the value to be patched.
+  uint8_t _leadingSize;
+  //! Number of bytes after `_sourceOffset + _valueSize` to reach end of the
+  //! instruction.
+  uint8_t _trailingSize;
+  //! Source section id.
+  uint32_t _sourceSectionId;
+  //! Target section id.
+  uint32_t _targetSectionId;
+  //! Source offset (relative to start of the section).
+  uint64_t _sourceOffset;
+  //! Payload (target offset, target address, etc).
+  uint64_t _payload;
 };
 
 // ============================================================================
@@ -555,10 +579,10 @@ public:
   //! Get reloc entry of a given `id`.
   inline RelocEntry* relocEntry(uint32_t id) const noexcept { return _relocations[id]; }
 
-  //! Create a new relocation entry of type `type` and size `size`.
+  //! Create a new relocation entry of type `relocType` and size `valueSize`.
   //!
   //! Additional fields can be set after the relocation entry was created.
-  ASMJIT_API Error newRelocEntry(RelocEntry** dst, uint32_t type, uint32_t size) noexcept;
+  ASMJIT_API Error newRelocEntry(RelocEntry** dst, uint32_t relocType, uint32_t valueSize) noexcept;
 
   //! Relocate the code to `baseAddress` and copy it to `dst`.
   //!

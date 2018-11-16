@@ -45,7 +45,7 @@ public:
     return _cursor;
   }
 
-  ASMJIT_INLINE size_t offset(uint8_t* from) const noexcept {
+  ASMJIT_INLINE size_t offsetFrom(uint8_t* from) const noexcept {
     ASMJIT_ASSERT(_cursor >= from);
     return (size_t)(_cursor - from);
   }

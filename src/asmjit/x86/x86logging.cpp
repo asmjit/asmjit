@@ -207,8 +207,11 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatOperand(
       ASMJIT_PROPAGATE(sb.appendFormat("%s:", x86RegFormatInfo.nameStrings + 224 + seg * 4));
 
     ASMJIT_PROPAGATE(sb.appendChar('['));
-    if (m.isAbs())
-      ASMJIT_PROPAGATE(sb.appendString("abs "));
+    switch (m.addrType()) {
+      case BaseMem::kAddrTypeAbs: ASMJIT_PROPAGATE(sb.appendString("abs ")); break;
+      case BaseMem::kAddrTypeRel: ASMJIT_PROPAGATE(sb.appendString("rel ")); break;
+      case BaseMem::kAddrTypeWrt: ASMJIT_PROPAGATE(sb.appendString("wrt ")); break;
+    }
 
     char opSign = '\0';
     if (m.hasBase()) {
@@ -237,7 +240,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatOperand(
     }
 
     uint64_t off = uint64_t(m.offset());
-    if (off) {
+    if (off || !m.hasBaseOrIndex()) {
       if (int64_t(off) < 0) {
         opSign = '-';
         off = ~off + 1;

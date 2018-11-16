@@ -41,6 +41,7 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     "Non-local label can't have parent\0"
     "Relocation index overflow\0"
     "Invalid relocation entry\0"
+    "Relocation offset out of range\0"
     "Invalid instruction\0"
     "Invalid register type\0"
     "Invalid register group\0"

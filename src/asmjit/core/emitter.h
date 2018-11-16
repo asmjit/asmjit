@@ -53,10 +53,30 @@ public:
   //! Emitter options.
   enum Options : uint32_t {
     //! Logging is enabled, `BaseEmitter::logger()` must return a valid logger.
+    //! This option is set automatically by the emitter if the logger is present.
+    //! User code should never alter this value.
+    //!
+    //! Default `false`.
     kOptionLoggingEnabled   = 0x00000001u,
 
     //! Stricly validate each instruction before it's emitted.
+    //!
+    //! Default `false`.
     kOptionStrictValidation = 0x00000002u,
+
+    //! Emit instructions that are optimized for size, if possible.
+    //!
+    //! Default `false`.
+    //!
+    //! X86 Specific
+    //! ------------
+    //!
+    //! When this option is set it the assembler will try to fix instructions
+    //! if possible into operation equivalent instructions that take less bytes
+    //! by taking advantage of implicit zero extension. For example instruction
+    //! like `mov r64, imm` and `and r64, imm` can be translated to `mov r32, imm`
+    //! and `and r32, imm` when the immediate constant is lesser than `2^31`.
+    kOptionOptimizedForSize = 0x00000004u,
 
     //! Emit optimized code-alignment sequences.
     //!
@@ -70,7 +90,7 @@ public:
     //! more optimized align sequences for 2-11 bytes that may execute faster
     //! on certain CPUs. If this feature is enabled AsmJit will generate
     //! specialized sequences for alignment between 2 to 11 bytes.
-    kOptionOptimizedAlign = 0x00000004u,
+    kOptionOptimizedAlign = 0x00000008u,
 
     //! Emit jump-prediction hints.
     //!
@@ -90,7 +110,7 @@ public:
     //! used to take into consideration prediction hints was P4. Newer processors
     //! implement heuristics for branch prediction and ignore static hints. This
     //! means that this feature can be used for annotation purposes.
-    kOptionPredictedJumps = 0x00000008u
+    kOptionPredictedJumps = 0x00000010u
   };
 
   // --------------------------------------------------------------------------
