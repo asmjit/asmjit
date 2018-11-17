@@ -369,7 +369,8 @@ class LabelByName {
 public:
   ASMJIT_INLINE LabelByName(const char* name, size_t nameLength, uint32_t hVal) noexcept
     : name(name),
-      nameLength(static_cast<uint32_t>(nameLength)) {}
+      nameLength(static_cast<uint32_t>(nameLength)),
+      hVal(hVal) {}
 
   ASMJIT_INLINE bool matches(const LabelEntry* entry) const noexcept {
     return static_cast<uint32_t>(entry->getNameLength()) == nameLength &&
