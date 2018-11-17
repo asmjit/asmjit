@@ -137,6 +137,7 @@ enum EncodingId : uint32_t {
   kEncodingX86M_GPB,                     //!< X86 [M] (handles single-byte size).
   kEncodingX86M_GPB_MulDiv,              //!< X86 [M] (like GPB, handles implicit|explicit MUL|DIV|IDIV).
   kEncodingX86M_Only,                    //!< X86 [M] (restricted to memory operand of any size).
+  kEncodingX86M_Nop,                     //!< X86 [M] (special case of NOP instruction).
   kEncodingX86Rm,                        //!< X86 [RM] (doesn't handle single-byte size).
   kEncodingX86Rm_Raw66H,                 //!< X86 [RM] (used by LZCNT, POPCNT, and TZCNT).
   kEncodingX86Rm_NoRexW,                 //!< X86 [RM] (doesn't add REX.W prefix if 64-bit reg is used).

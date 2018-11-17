@@ -751,6 +751,27 @@ CaseX86M_GPB_MulDiv:
       }
       break;
 
+    case InstDB::kEncodingX86M_Nop:
+      if (isign3 == ENC_OPS1(None))
+        goto EmitX86Op;
+
+      // Multi-byte NOP instruction "0F 1F /0".
+      opcode = Opcode::k000F00 | 0x1F;
+      opReg = 0;
+
+      if (isign3 == ENC_OPS1(Reg)) {
+        opcode.add66hBySize(o0.size());
+        rbReg = o0.id();
+        goto EmitX86R;
+      }
+
+      if (isign3 == ENC_OPS1(Mem)) {
+        opcode.add66hBySize(o0.size());
+        rmRel = &o0;
+        goto EmitX86M;
+      }
+      break;
+
     case InstDB::kEncodingX86Rm:
       opcode.addPrefixBySize(o0.size());
       ASMJIT_FALLTHROUGH;

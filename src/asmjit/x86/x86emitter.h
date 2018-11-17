@@ -648,6 +648,8 @@ public:
   ASMJIT_INST_1x(neg, Neg, Gp)                                         // ANY
   ASMJIT_INST_1x(neg, Neg, Mem)                                        // ANY
   ASMJIT_INST_0x(nop, Nop)                                             // ANY
+  ASMJIT_INST_1x(nop, Nop, Gp)                                         // ANY
+  ASMJIT_INST_1x(nop, Nop, Mem)                                        // ANY
   ASMJIT_INST_1x(not_, Not, Gp)                                        // ANY
   ASMJIT_INST_1x(not_, Not, Mem)                                       // ANY
   ASMJIT_INST_2x(or_, Or, Gp, Gp)                                      // ANY
