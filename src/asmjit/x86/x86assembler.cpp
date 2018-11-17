@@ -3870,7 +3870,8 @@ EmitModSib_LabelRip_X86:
   else if (!(rmInfo & kX86MemInfo_67H_X86)) {
     // ESP|RSP can't be used as INDEX in pure SIB mode, however, VSIB mode
     // allows XMM4|YMM4|ZMM4 (that's why the check is before the label).
-    if (ASMJIT_UNLIKELY(rxReg == X86Gp::kIdSp)) goto InvalidAddressIndex;
+    if (ASMJIT_UNLIKELY(rxReg == X86Gp::kIdSp))
+      goto InvalidAddressIndex;
 
 EmitModVSib:
     rxReg &= 0x7;
