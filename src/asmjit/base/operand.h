@@ -1497,11 +1497,11 @@ template<typename T> struct TypeIdOf<T*> {
 template<typename T>
 struct TypeIdOfInt {
   enum {
-    kSignatureed = int(~static_cast<T>(0) < static_cast<T>(0)),
-    kTypeId = (sizeof(T) == 1) ? (int)(kSignatureed ? TypeId::kI8  : TypeId::kU8 ) :
-              (sizeof(T) == 2) ? (int)(kSignatureed ? TypeId::kI16 : TypeId::kU16) :
-              (sizeof(T) == 4) ? (int)(kSignatureed ? TypeId::kI32 : TypeId::kU32) :
-              (sizeof(T) == 8) ? (int)(kSignatureed ? TypeId::kI64 : TypeId::kU64) : (int)TypeId::kVoid
+    kSigned = int(~T(0) < T(0)),
+    kTypeId = (sizeof(T) == 1) ? (int)(kSigned ? TypeId::kI8  : TypeId::kU8 ) :
+              (sizeof(T) == 2) ? (int)(kSigned ? TypeId::kI16 : TypeId::kU16) :
+              (sizeof(T) == 4) ? (int)(kSigned ? TypeId::kI32 : TypeId::kU32) :
+              (sizeof(T) == 8) ? (int)(kSigned ? TypeId::kI64 : TypeId::kU64) : (int)TypeId::kVoid
   };
 };
 
@@ -1524,7 +1524,6 @@ ASMJIT_DEFINE_TYPE_ID(unsigned __int64  , TypeIdOfInt< unsigned __int64   >::kTy
 ASMJIT_DEFINE_TYPE_ID(long long         , TypeIdOfInt< long long          >::kTypeId);
 ASMJIT_DEFINE_TYPE_ID(unsigned long long, TypeIdOfInt< unsigned long long >::kTypeId);
 #endif
-ASMJIT_DEFINE_TYPE_ID(bool              , TypeIdOfInt< bool               >::kTypeId);
 #if ASMJIT_CC_HAS_NATIVE_CHAR
 ASMJIT_DEFINE_TYPE_ID(char              , TypeIdOfInt< char               >::kTypeId);
 #endif
@@ -1539,6 +1538,7 @@ ASMJIT_DEFINE_TYPE_ID(wchar_t           , TypeIdOfInt< wchar_t            >::kTy
 #endif
 
 ASMJIT_DEFINE_TYPE_ID(void              , TypeId::kVoid);
+ASMJIT_DEFINE_TYPE_ID(bool              , TypeId::kI8);
 ASMJIT_DEFINE_TYPE_ID(float             , TypeId::kF32);
 ASMJIT_DEFINE_TYPE_ID(double            , TypeId::kF64);
 

@@ -234,7 +234,12 @@ if(NOT ASMJIT_EMBED)
       "${ASMJIT_PRIVATE_CFLAGS_REL}")
 
     foreach(_target asmjit_bench_x86 asmjit_test_opcode asmjit_test_x86_asm asmjit_test_x86_cc)
-      cxx_add_executable(asmjit ${_target} "test/${_target}.cpp" "${ASMJIT_LIBS}" "${ASMJIT_CFLAGS}" "" "")
+      cxx_add_executable(asmjit ${_target}
+        "test/${_target}.cpp"
+        "${ASMJIT_LIBS}"
+        "${ASMJIT_CFLAGS}"
+        "${ASMJIT_PRIVATE_CFLAGS_DBG}"
+        "${ASMJIT_PRIVATE_CFLAGS_REL}")
     endforeach()
   endif()
 endif()
