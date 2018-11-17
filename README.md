@@ -351,6 +351,8 @@ The example should be self-explanatory. It shows how to work with labels, how to
 X86 provides a complex memory addressing model that allows to encode addresses having a BASE register, INDEX register with a possible scale (left shift), and displacement (called offset in AsmJit). Memory address can also specify memory segment (segment-override in X86 terminology) and some instructions (gather / scatter) require INDEX to be a VECTOR register instead of a general-purpose register. AsmJit allows to encode and work with all forms of addresses mentioned and implemented by X86. It also allows to construct a 64-bit memory address, which is only allowed in one form of 'mov' instruction.
 
 ```c++
+#include <asmjit/asmjit.h>
+
 // Memory operand construction is provided by x86 namespace.
 using namespace asmjit;
 using namespace asmjit::x86;              // Easier to access x86 regs.
@@ -416,6 +418,8 @@ mem.hasIndex();                           // true.
 Making changes to memory operand is very comfortable when emitting loads and stores:
 
 ```c++
+#include <asmjit/asmjit.h>
+
 using namespace asmjit;
 
 x86::Assembler a(...);                    // Your initialized x86::Assembler.
@@ -449,6 +453,9 @@ You can explore the possibilities by taking a look at:
 In the first complete example the `CodeInfo` is retrieved from `JitRuntime`. It's logical as `JitRuntime` will always return a `CodeInfo` that is compatible with the runtime environment. For example if your application runs in 64-bit mode the `CodeInfo` will use `ArchInfo::kIdX64` architecture in contrast to `ArchInfo::kIdX86`, which will be used in 32-bit mode. AsmJit also allows to setup `CodeInfo` manually, and to select a different architecture when needed. So let's do something else this time, let's always generate a 32-bit code and print it's binary representation. To do that, we create our own `CodeInfo` and initialize it to `ArchInfo::kIdX86` architecture. CodeInfo will populate all basic fields just based on the architecture we provide, so it's super-easy:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 int main(int argc, char* argv[]) {
@@ -496,6 +503,9 @@ Next example shows how to use a built-in virtual memory allocator `JitAllocator`
 The following code is similar to the previous one, but implements a function working in both 32-bit and 64-bit environments:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
@@ -601,6 +611,9 @@ TODO: Maybe `CodeHolder::relocate()` is not the best name?
 AsmJit's X86 code emitters always provide functions to construct machine-size registers depending on the target. This feature is for people that want to write code targeting both 32-bit and 64-bit at the same time. In AsmJit terminology these registers are named **zax**, **zcx**, **zdx**, **zbx**, **zsp**, **zbp**, **zsi**, and **zdi** (they are defined in this exact order by X86). They are accessible through `x86::Assembler`, `x86::Builder`, and `x86::Compiler`. The following example illustrates how to use this feature:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef int (*Func)(void);
@@ -680,6 +693,9 @@ To illustrate what short form and long form means in binary let's assume we want
 If you generate an instruction in a short form and then patch it in a long form or vice-versa then something really bad will happen when you try to execute such code. The following example illustrates how to patch the code properly (it just extends the previous example):
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef int (*Func)(void);
@@ -774,6 +790,9 @@ The following concepts are used to describe and create functions in AsmJit:
 It's a lot of concepts where each represents one step in the function frame calculation. In addition, the whole machinery can also be used to create function calls, instead of function prologs and epilogs. The next example shows how AsmJit can be used to create functions for both 32-bit and 64-bit targets and various calling conventions:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
@@ -881,6 +900,9 @@ There are multiple node types used by both `BaseBuilder` and `BaseCompiler`:
 The code representation used by `BaseBuilder` is compatible with everything AsmJit provides. Each instruction is stored as `InstNode`, which contains instruction id, options, and operands. Each instruction emitted will create a new `InstNode` instance and add it to the current cursor in the double-linked list of nodes. Since the instruction stream used by `BaseBuilder` can be manipulated, we can rewrite the **SumInts** example into the following:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
@@ -999,6 +1021,8 @@ ret
 The number of use-cases of **x86::Builder** is not limited and highly depends on your creativity and experience. The previous example can be easily improved to collect all dirty registers inside the function programmatically and to pass them to `frame.setDirtyRegs()`:
 
 ```c++
+#include <asmjit/asmjit.h>
+
 using namespace asmjit;
 
 // NOTE: This function doesn't cover all possible constructs. It ignores
@@ -1066,6 +1090,8 @@ The graph basically shows that it's not possible to cast `x86::Assembler` to `x8
 Each X86 emitter implements a member function called `as<x86::Emitter>()`, which casts the instance to the `x86::Emitter`, as illustrated on the next example:
 
 ```c++
+#include <asmjit/asmjit.h>
+
 using namespace asmjit;
 
 static void emitSomething(x86::Emitter* e) {
@@ -1613,7 +1639,9 @@ Support
 
 Please consider a donation if you use the project and would like to keep it active in the future.
 
-  * [Donate by PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=QDRM6SRNG7378&lc=EN;&item_name=asmjit&currency_code=EUR)
+  * BTC: 14dEp5h8jYSxgXB9vcjE8eh78uweD76o7W
+  * ETH: 0xd4f0b9424cF31DF5a5359D029CF3A65c500a581E
+  * Please contact the author if you would still like to donate through a different channel or use a different crypto-currency.
 
 Donors:
 
