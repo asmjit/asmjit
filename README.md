@@ -8,6 +8,11 @@ Complete x86/x64 JIT and Remote Assembler for C++.
   * [Official Chat (gitter)](https://gitter.im/asmjit/asmjit)
   * [Permissive ZLIB license](./LICENSE.md)
 
+Important
+---------
+
+At the moment the most work related to asmjit happens in next-wip branch, which should be now used in case that you use either Assembler or Builder tools, however, it's unstable regarding asmjit's Compiler. The current master branch is considered stable, but is frozen until next-wip branch is merged. Also note that next-wip branch is not compatible with master - it moves all classes with X86 prefix into x86 namespaces and contains a lot of minor breaking changes - the transition is straightforward and if you use gitter you can get help instantly in case you face something more complicated.
+
 Introduction
 ------------
 
@@ -226,6 +231,8 @@ AsmJit allows to construct operands dynamically, to store them, and to query a c
 Small example of manipulating and using operands:
 
 ```c++
+#include <asmjit/asmjit.h>
+
 using namespace asmjit;
 
 X86Gp getDstRegByValue() { return x86::ecx; }
@@ -270,6 +277,9 @@ X86Assembler is a code emitter that emits machine code into a CodeBuffer directl
 The example handles 3 calling conventions manually just to show how it could be done, however, AsmJit contains utilities that can be used to create function prologs and epilogs automatically, but these concepts will be explained later.
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 // Signature of the generated function.
@@ -440,6 +450,9 @@ You can explore the possibilities by taking a look at [base/operand.h](./src/asm
 In the first complete example the `CodeInfo` is retrieved from `JitRuntime`. It's logical as `JitRuntime` will always return a `CodeInfo` that is compatible with the runtime environment. For example if your application runs in 64-bit mode the `CodeInfo` will use `ArchInfo::kTypeX64` architecture in contrast to `ArchInfo::kTypeX86`, which will be used in 32-bit mode. AsmJit also allows to setup `CodeInfo` manually, and to select a different architecture when needed. So let's do something else this time, let's always generate a 32-bit code and print it's binary representation. To do that, we create our own `CodeInfo` and initialize it to `ArchInfo::kTypeX86` architecture. CodeInfo will populate all basic fields just based on the architecture we provide, so it's super-easy:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 int main(int argc, char* argv[]) {
@@ -481,12 +494,12 @@ int main(int argc, char* argv[]) {
   // and CodeBuffer structures. We are interested in section's CodeBuffer only.
   //
   // NOTE: The first section is always '.text', so it's safe to just use 0 index.
-  CodeBuffer& buf = code.getSectionEntry(0)->buffer;
+  CodeBuffer& buf = code.getSectionEntry(0)->getBuffer();
 
   // Print the machine-code generated or do something more interesting with it?
   //   8B4424048B4C24048B5424040F28010F58010F2900C3
-  for (size_t i = 0; i < buf.length; i++)
-    printf("%02X", buf.data[i]);
+  for (size_t i = 0; i < buf.getLength(); i++)
+    printf("%02X", buf.getData()[i]);
 
   return 0;
 }
@@ -501,6 +514,9 @@ Next example shows how to use a built-in virtual memory manager `VMemMgr` instea
 The following code is similar to the previous one, but implements a function working in both 32-bit and 64-bit environments:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
@@ -526,9 +542,9 @@ int main(int argc, char* argv[]) {
     dst   = x86::eax;
     src_a = x86::ecx;
     src_b = x86::edx;
-    a.mov(dst  , dword_ptr(x86::esp, 4)); // Load the destination pointer.
-    a.mov(src_a, dword_ptr(x86::esp, 8)); // Load the first source pointer.
-    a.mov(src_b, dword_ptr(x86::esp, 12));// Load the second source pointer.
+    a.mov(dst  , x86::dword_ptr(x86::esp, 4));  // Load the destination pointer.
+    a.mov(src_a, x86::dword_ptr(x86::esp, 8));  // Load the first source pointer.
+    a.mov(src_b, x86::dword_ptr(x86::esp, 12)); // Load the second source pointer.
   }
   else {
     dst   = isWin ? x86::rcx : x86::rdi;  // First argument  (destination pointer).
@@ -565,7 +581,7 @@ int main(int argc, char* argv[]) {
   int out[4];
 
   // This code uses AsmJit's ptr_as_func<> to cast between void* and SumIntsFunc.
-  ptr_as_func<SumIntsFunc>(p)(result, arr_a, arr_b);
+  ptr_as_func<SumIntsFunc>(p)(out, inA, inB);
 
   // Prints {5 8 4 9}
   printf("{%d %d %d %d}\n", out[0], out[1], out[2], out[3]);
@@ -601,6 +617,9 @@ TODO: Maybe `CodeHolder::relocate()` is not the best name?
 AsmJit's X86 code emitters always provide functions to construct machine-size registers depending on the target. This feature is for people that want to write code targeting both 32-bit and 64-bit at the same time. In AsmJit terminology these registers are named **zax**, **zcx**, **zdx**, **zbx**, **zsp**, **zbp**, **zsi**, and **zdi** (they are defined in this exact order by X86). They are accessible through `X86Assembler`, `X86Builder`, and `X86Compiler`. The following example illustrates how to use this feature:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef int (*Func)(void);
@@ -680,6 +699,9 @@ To illustrate what short form and long form means in binary let's assume we want
 If you generate an instruction in a short form and then patch it in a long form or vice-versa then something really bad will happen when you try to execute such code. The following example illustrates how to patch the code properly (it just extends the previous example):
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef int (*Func)(void);
@@ -776,6 +798,9 @@ The following concepts are used to describe and create functions in AsmJit:
 It's a lot of concepts where each represents one step in the function layout calculation. In addition, the whole machinery can also be used to create function calls, instead of function prologs and epilogs. The next example shows how AsmJit can be used to create functions for both 32-bit and 64-bit targets and various calling conventions:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
@@ -886,6 +911,9 @@ NOTE: All nodes that have **CB** prefix are used by both **CodeBuilder** and **C
 The code representation used by **CodeBuilder** is compatible with everything AsmJit provides. Each instruction is stored as **CBInst**, which contains instruction id, options, and operands. Each instruction emitted will create a new **CBInst** instance and add it to the current cursor in the double-linked list of nodes. Since the instruction stream used by **CodeBuilder** can be manipulated, we can rewrite the **SumInts** example into the following:
 
 ```c++
+#include <asmjit/asmjit.h>
+#include <stdio.h>
+
 using namespace asmjit;
 
 typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
@@ -1207,12 +1235,13 @@ int main(int argc, char* argv[]) {
   // ----> CodeHolder is no longer needed from here and can be destroyed <----
 
   // Test the generated code.
-  uint32_t src[6] = { 1, 2, 3, 5, 8, 13 };
-  uint32_t dst[6];
-  memcpy32(dst, src, 6);
+  uint32_t srcData[6] = { 1, 2, 3, 5, 8, 13 };
+  uint32_t dstData[6];
+
+  memcpy32(dstData, srcData, 6);          // Calls the generated function.
 
   for (uint32_t i = 0; i < 6; i++)
-    printf("%d\n", dst[i]);
+    printf("%d\n", dstData[i]);
 
   rt.release(memcpy32);                   // RAII, but let's make it explicit.
   return 0;
@@ -1242,7 +1271,7 @@ int main(int argc, char* argv[]) {
   CCFunc* func = cc.addFunc(              // Begin of the Fibonacci function, `addFunc()`
     FuncSignature1<int, int>());          // Returns a pointer to the `CCFunc` node.
 
-  Label L_Exit = cc.newLabel()            // Exit label.
+  Label L_Exit = cc.newLabel();           // Exit label.
   X86Gp x = cc.newU32();                  // Function `x` argument.
   X86Gp y = cc.newU32();                  // Temporary.
 
@@ -1275,7 +1304,7 @@ int main(int argc, char* argv[]) {
   if (err) return 1;                      // Handle a possible error returned by AsmJit.
   // ----> CodeHolder is no longer needed from here and can be destroyed <----
 
-  printf("Fib(%u) -> %u\n, 8, fib(8));    // Test the generated code.
+  printf("Fib(%u) -> %u\n", 8, fib(8));   // Test the generated code.
 
   rt.release(fib);                        // RAII, but let's make it explicit.
   return 0;
@@ -1723,11 +1752,13 @@ Support
 
 Please consider a donation if you use the project and would like to keep it active in the future.
 
-  * [Donate by PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=QDRM6SRNG7378&lc=EN;&item_name=asmjit&currency_code=EUR)
+  * BTC: 14dEp5h8jYSxgXB9vcjE8eh78uweD76o7W
+  * ETH: 0xd4f0b9424cF31DF5a5359D029CF3A65c500a581E
+  * Please contact the author if you would like to donate through a different channel or use a different crypto-currency.
 
-Received From:
+Donors:
 
-  * [PELock - Software copy protection and license key system](https://www.pelock.com)
+  * [ZehMatt](https://github.com/ZehMatt)
 
 Authors & Maintainers
 ---------------------
