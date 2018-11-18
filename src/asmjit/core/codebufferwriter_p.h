@@ -41,17 +41,13 @@ public:
     return kErrorOk;
   }
 
-  ASMJIT_INLINE uint8_t* cursor() const noexcept {
-    return _cursor;
-  }
+  ASMJIT_INLINE uint8_t* cursor() const noexcept { return _cursor; }
+  ASMJIT_INLINE void setCursor(uint8_t* cursor) noexcept { _cursor = cursor; }
+  ASMJIT_INLINE void advance(size_t n) noexcept { _cursor += n; }
 
   ASMJIT_INLINE size_t offsetFrom(uint8_t* from) const noexcept {
     ASMJIT_ASSERT(_cursor >= from);
     return (size_t)(_cursor - from);
-  }
-
-  ASMJIT_INLINE void advance(size_t n) noexcept {
-    _cursor += n;
   }
 
   template<typename T>
@@ -108,6 +104,28 @@ public:
     ASMJIT_ASSERT(size != 0);
     ::memset(_cursor, 0, size);
     _cursor += size;
+  }
+
+  ASMJIT_INLINE void remove8(uint8_t* where) noexcept {
+    ASMJIT_ASSERT(where < _cursor);
+
+    uint8_t* p = where;
+    while (++p != _cursor)
+      p[-1] = p[0];
+    _cursor--;
+  }
+
+  template<typename T>
+  ASMJIT_INLINE void insert8(uint8_t* where, T val) noexcept {
+    uint8_t* p = _cursor;
+
+    while (p != where) {
+      p[0] = p[-1];
+      p--;
+    }
+
+    *p = uint8_t(val & 0xFF);
+    _cursor++;
   }
 
   ASMJIT_INLINE void done(BaseAssembler* a) noexcept {

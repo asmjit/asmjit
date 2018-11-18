@@ -220,6 +220,8 @@ enum ErrorCode : uint32_t {
   kErrorInvalidAddressScale,
   //! Invalid use of 64-bit address.
   kErrorInvalidAddress64Bit,
+  //! Invalid use of 64-bit address that require 32-bit zero-extension (X64).
+  kErrorInvalidAddress64BitZeroExtension,
   //! Invalid displacement (not encodable).
   kErrorInvalidDisplacement,
   //! Invalid segment (X86).

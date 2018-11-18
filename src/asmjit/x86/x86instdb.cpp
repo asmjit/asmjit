@@ -5264,11 +5264,31 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
             memFlags |= InstDB::kMemOpBaseOnly;
         }
         else {
-          // Base is an address, make sure that the address doesn't overflow 32-bit
-          // integer (either int32_t or uint32_t) in 32-bit targets.
+          // Base is a 64-bit address.
           int64_t offset = m.offset();
-          if (archMask == InstDB::kArchMaskX86 && !Support::isInt32(offset) && !Support::isUInt32(offset))
-            return DebugUtils::errored(kErrorInvalidAddress);
+          if (!Support::isInt32(offset)) {
+            if (archMask == InstDB::kArchMaskX86) {
+              // 32-bit mode: Make sure that the address is either `int32_t` or `uint32_t`.
+              if (!Support::isUInt32(offset))
+                return DebugUtils::errored(kErrorInvalidAddress64Bit);
+            }
+            else {
+              // 64-bit mode: Zero extension is allowed if the address has 32-bit index
+              // register or the address has no index register (it's still encodable).
+              if (indexType) {
+                if (!Support::isUInt32(offset))
+                  return DebugUtils::errored(kErrorInvalidAddress64Bit);
+
+                if (indexType != Reg::kTypeGpd)
+                  return DebugUtils::errored(kErrorInvalidAddress64BitZeroExtension);
+              }
+              else {
+                // We don't validate absolute 64-bit addresses without an index register
+                // as this also depends on the target's base address. If it's known we
+                // cannot validate anything as we don't have the information to do it.
+              }
+            }
+          }
         }
 
         if (indexType) {

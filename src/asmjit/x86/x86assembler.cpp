@@ -498,6 +498,7 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
   RelocEntry* re = nullptr;        // Relocation entry.
   int32_t relOffset;               // Relative offset
   FastUInt8 relSize = 0;           // Relative size.
+  uint8_t* memOpAOMark = nullptr;  // Marker that points before 'address-override prefix' is emitted.
 
   int64_t immValue = 0;            // Immediate value (must be 64-bit).
   FastUInt8 immSize = 0;           // Immediate size.
@@ -3551,14 +3552,15 @@ EmitX86R:
   goto EmitDone;
 
 EmitX86M:
+  // `rmRel` operand must be memory.
   ASMJIT_ASSERT(rmRel != nullptr);
   ASMJIT_ASSERT(rmRel->opType() == Operand::kOpMem);
-  rmInfo = x86MemInfo[rmRel->as<Mem>().baseAndIndexTypes()];
-
-  // GP instructions have never compressed displacement specified.
   ASMJIT_ASSERT((opcode & Opcode::kCDSHL_Mask) == 0);
 
+  rmInfo = x86MemInfo[rmRel->as<Mem>().baseAndIndexTypes()];
   writer.emitSegmentOverride(rmRel->as<Mem>().segmentId());
+
+  memOpAOMark = writer.cursor();
   writer.emitAddressOverride((rmInfo & _addressOverrideMask()) != 0);
 
   // Mandatory instruction prefix.
@@ -3647,33 +3649,42 @@ EmitModSib:
     // ==========|> [ABSOLUTE | DISP32].
     else if (!(rmInfo & (kX86MemInfo_BaseLabel | kX86MemInfo_BaseRip))) {
       uint32_t addrType = rmRel->as<Mem>().addrType();
+      relOffset = rmRel->as<Mem>().offsetLo32();
 
       if (is32Bit()) {
         // Explicit relative addressing doesn't work in 32-bit mode.
         if (ASMJIT_UNLIKELY(addrType == BaseMem::kAddrTypeRel))
           goto InvalidAddress;
 
-        relOffset = rmRel->as<Mem>().offsetLo32();
         writer.emit8(x86EncodeMod(0, opReg, 5));
         writer.emit32uLE(uint32_t(relOffset));
       }
       else {
+        bool isOffsetI32 = rmRel->as<Mem>().offsetHi32() == (relOffset >> 31);
+        bool isOffsetU32 = rmRel->as<Mem>().offsetHi32() == 0;
         uint64_t baseAddress = codeInfo().baseAddress();
-        relOffset = rmRel->as<Mem>().offsetLo32();
-
-        bool emitRelative = addrType == BaseMem::kAddrTypeRel;
-        bool isAbsImmValid = rmRel->as<Mem>().offsetHi32() == (relOffset >> 31);
 
         // If relative addressing was not explicitly set then we can try to guess.
         // By guessing we check some properties of the memory operand and try to
         // base the decision on the segment prefix and the address type.
-        if (!emitRelative && baseAddress != Globals::kNoBaseAddress) {
-          bool hasFsGs = rmRel->as<Mem>().segmentId() >= SReg::kIdFs;
-          // Prefer absolute addressing mode if FS|GS segment override is present.
-          emitRelative = !hasFsGs && addrType != BaseMem::kAddrTypeAbs;
+        if (addrType == BaseMem::kAddrTypeDefault) {
+          if (baseAddress == Globals::kNoBaseAddress) {
+            // Prefer absolute addressing mode if the offset is 32-bit.
+            addrType = isOffsetI32 || isOffsetU32 ? BaseMem::kAddrTypeAbs
+                                                  : BaseMem::kAddrTypeRel;
+          }
+          else {
+            // Prefer absolute addressing mode if FS|GS segment override is present.
+            bool hasFsGs = rmRel->as<Mem>().segmentId() >= SReg::kIdFs;
+            // Prefer absolute addressing mode if this is LEA with 32-bit immediate.
+            bool isLea32 = (instId == Inst::kIdLea) && (isOffsetI32 || isOffsetU32);
+
+            addrType = hasFsGs || isLea32 ? BaseMem::kAddrTypeAbs
+                                          : BaseMem::kAddrTypeRel;
+          }
         }
 
-        if (emitRelative) {
+        if (addrType == BaseMem::kAddrTypeRel) {
           uint32_t kModRel32Size = 5;
           uint64_t virtualOffset = uint64_t(writer.offsetFrom(_bufferData)) + immSize + kModRel32Size;
 
@@ -3706,15 +3717,61 @@ EmitModSib:
               goto EmitDone;
             }
             else {
-              if (ASMJIT_UNLIKELY(addrType == BaseMem::kAddrTypeRel))
+              // We must check the original address type as we have modified
+              // `addrType`. We failed if the original address type is 'rel'.
+              if (ASMJIT_UNLIKELY(rmRel->as<Mem>().isRel()))
                 goto InvalidAddress;
             }
           }
         }
 
-        if (ASMJIT_UNLIKELY(!isAbsImmValid))
-          goto InvalidAddress64Bit;
+        // Handle unsigned 32-bit address that doesn't work with sign extension.
+        // Consider the following instructions:
+        //
+        //   1. lea rax, [-1]         - Sign extended to 0xFFFFFFFFFFFFFFFF
+        //   2. lea rax, [0xFFFFFFFF] - Zero extended to 0x00000000FFFFFFFF
+        //   3. add rax, [-1]         - Sign extended to 0xFFFFFFFFFFFFFFFF
+        //   4. add rax, [0xFFFFFFFF] - Zero extended to 0x00000000FFFFFFFF
+        //
+        // Sign extension is naturally performed by the CPU so we don't have to
+        // bother, however, zero extension requires address-size override prefix,
+        // which we probably don't have at this moment. So to make the address
+        // valid we need to insert it at `memOpAOMark` if it's not already there.
+        //
+        // If this is 'lea' instruction then it's possible to remove REX.W part
+        // from REX prefix (if it's there), which would be one-byte shorter than
+        // inserting address-size override.
+        //
+        // NOTE: If we don't do this then these instructions are unencodable.
+        if (!isOffsetI32) {
+          // 64-bit absolute address is unencodable.
+          if (ASMJIT_UNLIKELY(!isOffsetU32))
+            goto InvalidAddress64Bit;
 
+          // We only patch the existing code if we don't have address-size override.
+          if (*memOpAOMark != 0x67) {
+            if (instId == Inst::kIdLea) {
+              // LEA: Remove REX.W, if present. This is easy as we know that 'lea'
+              // doesn't use any PP prefix so if REX prefix was emitted it would be
+              // at `memOpAOMark`.
+              uint32_t rex = *memOpAOMark;
+              if (rex & kX86ByteRex) {
+                rex &= (~kX86ByteRexW) & 0xFF;
+                *memOpAOMark = uint8_t(rex);
+
+                // We can remove the REX prefix completely if it was not forced.
+                if (rex == kX86ByteRex && !(options & Inst::kOptionRex))
+                  writer.remove8(memOpAOMark);
+              }
+            }
+            else {
+              // Any other instruction: Insert address-size override prefix.
+              writer.insert8(memOpAOMark, 0x67);
+            }
+          }
+        }
+
+        // Emit 32-bit absolute address.
         writer.emit8(x86EncodeMod(0, opReg, 4));
         writer.emit8(x86EncodeSib(0, 4, 5));
         writer.emit32uLE(uint32_t(relOffset));
@@ -3733,7 +3790,7 @@ EmitModSib_LabelRip_X86:
         if (rmInfo & kX86MemInfo_BaseLabel) {
           // [LABEL->ABS].
           label = _code->labelEntry(rmRel->as<Mem>().baseId());
-          if (!label)
+          if (ASMJIT_UNLIKELY(!label))
             goto InvalidLabel;
 
           err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, 4);
@@ -3778,7 +3835,7 @@ EmitModSib_LabelRip_X86:
         if (rmInfo & kX86MemInfo_BaseLabel) {
           // [RIP].
           label = _code->labelEntry(rmRel->as<Mem>().baseId());
-          if (!label)
+          if (ASMJIT_UNLIKELY(!label))
             goto InvalidLabel;
 
           relOffset -= (4 + immSize);
@@ -3803,7 +3860,8 @@ EmitModSib_LabelRip_X86:
   else if (!(rmInfo & kX86MemInfo_67H_X86)) {
     // ESP|RSP can't be used as INDEX in pure SIB mode, however, VSIB mode
     // allows XMM4|YMM4|ZMM4 (that's why the check is before the label).
-    if (ASMJIT_UNLIKELY(rxReg == Gp::kIdSp)) goto InvalidAddressIndex;
+    if (ASMJIT_UNLIKELY(rxReg == Gp::kIdSp))
+      goto InvalidAddressIndex;
 
 EmitModVSib:
     rxReg &= 0x7;
@@ -4098,9 +4156,11 @@ EmitVexEvexR:
 EmitVexEvexM:
   ASMJIT_ASSERT(rmRel != nullptr);
   ASMJIT_ASSERT(rmRel->opType() == Operand::kOpMem);
-  rmInfo = x86MemInfo[rmRel->as<Mem>().baseAndIndexTypes()];
 
+  rmInfo = x86MemInfo[rmRel->as<Mem>().baseAndIndexTypes()];
   writer.emitSegmentOverride(rmRel->as<Mem>().segmentId());
+
+  memOpAOMark = writer.cursor();
   writer.emitAddressOverride((rmInfo & _addressOverrideMask()) != 0);
 
   rbReg = rmRel->as<Mem>().hasBaseReg()  ? rmRel->as<Mem>().baseId()  : uint32_t(0);
@@ -4121,7 +4181,7 @@ EmitVexEvexM:
                  ((rxReg << 15) & 0x00080000u) |         // [........|....X...|........|........].
                  ((rbReg <<  2) & 0x00000020u) |         // [........|........|........|..B.....].
                  opcode.extractLLMM(options)   |         // [........|.LL.X...|Vvvvv..R|RXBmmmmm].
-                 (_extraReg.id() << 16)     |         // [........|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
+                 (_extraReg.id()    << 16)     |         // [........|.LL.Xaaa|Vvvvv..R|RXBmmmmm].
                  (broadcastBit      << 20)     ;         // [........|.LLbXaaa|Vvvvv..R|RXBmmmmm].
     opReg &= 0x07u;
 

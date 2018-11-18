@@ -918,15 +918,13 @@ public:
   enum AddrType : uint32_t {
     kAddrTypeDefault = 0,
     kAddrTypeAbs     = 1,
-    kAddrTypeRel     = 2,
-    kAddrTypeWrt     = 3
+    kAddrTypeRel     = 2
   };
 
   // Shortcuts.
   enum SignatureMem : uint32_t {
     kSignatureMemAbs = kAddrTypeAbs << kSignatureMemAddrTypeShift,
-    kSignatureMemRel = kAddrTypeRel << kSignatureMemAddrTypeShift,
-    kSignatureMemWrt = kAddrTypeWrt << kSignatureMemAddrTypeShift
+    kSignatureMemRel = kAddrTypeRel << kSignatureMemAddrTypeShift
   };
 
   // --------------------------------------------------------------------------
@@ -985,9 +983,6 @@ public:
 
   constexpr bool isRel() const noexcept { return addrType() == kAddrTypeRel; }
   inline void setRel() noexcept { setAddrType(kAddrTypeRel); }
-
-  constexpr bool isWrt() const noexcept { return addrType() == kAddrTypeWrt; }
-  inline void setWrt() noexcept { setAddrType(kAddrTypeWrt); }
 
   constexpr bool isRegHome() const noexcept { return _hasSignatureData(kSignatureMemRegHomeFlag); }
   inline void setRegHome() noexcept { _any.signature |= kSignatureMemRegHomeFlag; }

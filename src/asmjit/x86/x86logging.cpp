@@ -210,7 +210,6 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatOperand(
     switch (m.addrType()) {
       case BaseMem::kAddrTypeAbs: ASMJIT_PROPAGATE(sb.appendString("abs ")); break;
       case BaseMem::kAddrTypeRel: ASMJIT_PROPAGATE(sb.appendString("rel ")); break;
-      case BaseMem::kAddrTypeWrt: ASMJIT_PROPAGATE(sb.appendString("wrt ")); break;
     }
 
     char opSign = '\0';

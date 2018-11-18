@@ -342,20 +342,24 @@ struct Opcode {
   // [Opcode Builder]
   // --------------------------------------------------------------------------
 
-  inline uint32_t get() const noexcept { return v; }
-  inline Opcode& add(uint32_t x) noexcept { return operator+=(x); }
+  ASMJIT_INLINE uint32_t get() const noexcept { return v; }
 
-  inline Opcode& add66h() noexcept { return operator|=(kPP_66); }
-  template<typename T>
-  inline Opcode& add66hIf(T exp) noexcept { return operator|=(uint32_t(exp) << kPP_Shift); }
-  template<typename T>
-  inline Opcode& add66hBySize(T size) noexcept { return add66hIf(size == 2); }
+  ASMJIT_INLINE bool hasW() const noexcept { return (v & kW) != 0; }
+  ASMJIT_INLINE bool has66h() const noexcept { return (v & kPP_66) != 0; }
 
-  inline Opcode& addW() noexcept { return operator|=(kW); }
+  ASMJIT_INLINE Opcode& add(uint32_t x) noexcept { return operator+=(x); }
+
+  ASMJIT_INLINE Opcode& add66h() noexcept { return operator|=(kPP_66); }
   template<typename T>
-  inline Opcode& addWIf(T exp) noexcept { return operator|=(uint32_t(exp) << kW_Shift); }
+  ASMJIT_INLINE Opcode& add66hIf(T exp) noexcept { return operator|=(uint32_t(exp) << kPP_Shift); }
   template<typename T>
-  inline Opcode& addWBySize(T size) noexcept { return addWIf(size == 8); }
+  ASMJIT_INLINE Opcode& add66hBySize(T size) noexcept { return add66hIf(size == 2); }
+
+  ASMJIT_INLINE Opcode& addW() noexcept { return operator|=(kW); }
+  template<typename T>
+  ASMJIT_INLINE Opcode& addWIf(T exp) noexcept { return operator|=(uint32_t(exp) << kW_Shift); }
+  template<typename T>
+  ASMJIT_INLINE Opcode& addWBySize(T size) noexcept { return addWIf(size == 8); }
 
   template<typename T>
   ASMJIT_INLINE Opcode& addPrefixBySize(T size) noexcept {
@@ -408,18 +412,18 @@ struct Opcode {
     return (x | y) >> kMM_Shift;
   }
 
-  inline Opcode& operator=(uint32_t x) noexcept { v = x; return *this; }
-  inline Opcode& operator+=(uint32_t x) noexcept { v += x; return *this; }
-  inline Opcode& operator-=(uint32_t x) noexcept { v -= x; return *this; }
-  inline Opcode& operator&=(uint32_t x) noexcept { v &= x; return *this; }
-  inline Opcode& operator|=(uint32_t x) noexcept { v |= x; return *this; }
-  inline Opcode& operator^=(uint32_t x) noexcept { v ^= x; return *this; }
+  ASMJIT_INLINE Opcode& operator=(uint32_t x) noexcept { v = x; return *this; }
+  ASMJIT_INLINE Opcode& operator+=(uint32_t x) noexcept { v += x; return *this; }
+  ASMJIT_INLINE Opcode& operator-=(uint32_t x) noexcept { v -= x; return *this; }
+  ASMJIT_INLINE Opcode& operator&=(uint32_t x) noexcept { v &= x; return *this; }
+  ASMJIT_INLINE Opcode& operator|=(uint32_t x) noexcept { v |= x; return *this; }
+  ASMJIT_INLINE Opcode& operator^=(uint32_t x) noexcept { v ^= x; return *this; }
 
-  inline uint32_t operator&(uint32_t x) const noexcept { return v & x; }
-  inline uint32_t operator|(uint32_t x) const noexcept { return v | x; }
-  inline uint32_t operator^(uint32_t x) const noexcept { return v ^ x; }
-  inline uint32_t operator<<(uint32_t x) const noexcept { return v << x; }
-  inline uint32_t operator>>(uint32_t x) const noexcept { return v >> x; }
+  ASMJIT_INLINE uint32_t operator&(uint32_t x) const noexcept { return v & x; }
+  ASMJIT_INLINE uint32_t operator|(uint32_t x) const noexcept { return v | x; }
+  ASMJIT_INLINE uint32_t operator^(uint32_t x) const noexcept { return v ^ x; }
+  ASMJIT_INLINE uint32_t operator<<(uint32_t x) const noexcept { return v << x; }
+  ASMJIT_INLINE uint32_t operator>>(uint32_t x) const noexcept { return v >> x; }
 
   // --------------------------------------------------------------------------
   // [Members]
