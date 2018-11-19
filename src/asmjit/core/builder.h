@@ -30,6 +30,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 class BaseNode;
 class InstNode;
+class SectionNode;
 class LabelNode;
 class AlignNode;
 class EmbedDataNode;
@@ -61,7 +62,7 @@ public:
   ASMJIT_API virtual ~BaseBuilder() noexcept;
 
   // --------------------------------------------------------------------------
-  // [Node Management]
+  // [Nodes]
   // --------------------------------------------------------------------------
 
   //! Get the first node.
@@ -120,7 +121,22 @@ public:
   ASMJIT_API BaseNode* setCursor(BaseNode* node) noexcept;
 
   // --------------------------------------------------------------------------
-  // [Label Management]
+  // [Sections]
+  // --------------------------------------------------------------------------
+
+  //! Get `LabelNode` by `id`.
+  ASMJIT_API Error sectionNodeOf(SectionNode** pOut, uint32_t sectionId) noexcept;
+
+  ASMJIT_API Error section(Section* section) override;
+
+  //! Gets whether the section links of active section nodes are dirty. You can
+  //! update these links by calling `updateSectionLinks()` in such case.
+  inline bool hasDirtySectionLinks() const noexcept { return _dirtySectionLinks; }
+  //! Update links of all active section nodes.
+  ASMJIT_API void updateSectionLinks() noexcept;
+
+  // --------------------------------------------------------------------------
+  // [Labels]
   // --------------------------------------------------------------------------
 
   //! Get a vector of LabelNode nodes.
@@ -130,7 +146,7 @@ public:
   inline const ZoneVector<LabelNode*>& labelNodes() const noexcept { return _labelNodes; }
 
   //! Get `LabelNode` by `id`.
-  ASMJIT_API Error labelNodeOf(LabelNode** pOut, uint32_t id) noexcept;
+  ASMJIT_API Error labelNodeOf(LabelNode** pOut, uint32_t labelId) noexcept;
   //! Get `LabelNode` by `label`.
   inline Error labelNodeOf(LabelNode** pOut, const Label& label) noexcept { return labelNodeOf(pOut, label.id()); }
 
@@ -142,7 +158,7 @@ public:
   ASMJIT_API Error bind(const Label& label) override;
 
   // --------------------------------------------------------------------------
-  // [Pass Management]
+  // [Passes]
   // --------------------------------------------------------------------------
 
   //! Get a vector of Pass objects that will be executed by `runPasses()`.
@@ -226,19 +242,33 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  Zone _codeZone;                        //!< Base zone used to allocate nodes and `Pass`.
-  Zone _dataZone;                        //!< Data zone used to allocate data and names.
-  Zone _passZone;                        //!< Pass zone, passed to `Pass::run()`.
-  ZoneAllocator _allocator;              //!< Allocator that uses `_codeZone`.
+  //! Base zone used to allocate nodes and `Pass`.
+  Zone _codeZone;
+  //! Data zone used to allocate data and names.
+  Zone _dataZone;
+  //! Pass zone, passed to `Pass::run()`.
+  Zone _passZone;
+  //! Allocator that uses `_codeZone`.
+  ZoneAllocator _allocator;
 
-  ZoneVector<Pass*> _passes;             //!< Array of `Pass` objects.
-  ZoneVector<LabelNode*> _labelNodes;    //!< Maps label indexes to `LabelNode` nodes.
+  //! Array of `Pass` objects.
+  ZoneVector<Pass*> _passes;
+  //! Maps section indexes to `LabelNode` nodes.
+  ZoneVector<SectionNode*> _sectionNodes;
+  //! Maps label indexes to `LabelNode` nodes.
+  ZoneVector<LabelNode*> _labelNodes;
 
-  BaseNode* _firstNode;                  //!< First node of the current section.
-  BaseNode* _lastNode;                   //!< Last node of the current section.
-  BaseNode* _cursor;                     //!< Current node (cursor).
+  //! Current node (cursor).
+  BaseNode* _cursor;
+  //! First node of the current section.
+  BaseNode* _firstNode;
+  //! Last node of the current section.
+  BaseNode* _lastNode;
 
-  uint32_t _nodeFlags;                   //!< Flags assigned to each new node.
+  //! Flags assigned to each new node.
+  uint32_t _nodeFlags;
+  //! The sections links are dirty (used internally).
+  bool _dirtySectionLinks;
 };
 
 // ============================================================================
@@ -269,17 +299,18 @@ public:
 
     // [BaseBuilder]
     kNodeInst       = 1,                 //!< Node is `InstNode` or `InstExNode`.
-    kNodeLabel      = 2,                 //!< Node is `LabelNode`.
-    kNodeAlign      = 3,                 //!< Node is `AlignNode`.
-    kNodeEmbedData  = 4,                 //!< Node is `EmbedDataNode`.
-    kNodeLabelData  = 5,                 //!< Node is `LabelDataNode`.
-    kNodeConstPool  = 6,                 //!< Node is `ConstPoolNode`.
-    kNodeComment    = 7,                 //!< Node is `CommentNode`.
-    kNodeSentinel   = 8,                 //!< Node is `SentinelNode`.
+    kNodeSection    = 2,                 //!< Node is `SectionNode`.
+    kNodeLabel      = 3,                 //!< Node is `LabelNode`.
+    kNodeAlign      = 4,                 //!< Node is `AlignNode`.
+    kNodeEmbedData  = 5,                 //!< Node is `EmbedDataNode`.
+    kNodeLabelData  = 6,                 //!< Node is `LabelDataNode`.
+    kNodeConstPool  = 7,                 //!< Node is `ConstPoolNode`.
+    kNodeComment    = 8,                 //!< Node is `CommentNode`.
+    kNodeSentinel   = 9,                 //!< Node is `SentinelNode`.
 
     // [BaseCompiler]
     kNodeFunc       = 16,                //!< Node is `FuncNode`     (acts as LabelNode).
-    kNodeFuncRet    = 17,                //!< Node is `FuncRetNode`  (acts as BaseNode).
+    kNodeFuncRet    = 17,                //!< Node is `FuncRetNode`  (acts as InstNode).
     kNodeFuncCall   = 18,                //!< Node is `FuncCallNode` (acts as InstNode).
 
     // [UserDefined]
@@ -292,10 +323,10 @@ public:
     kFlagIsData          = 0x02u,        //!< Node is data that cannot be executed (data, const-pool, etc...).
     kFlagIsInformative   = 0x04u,        //!< Node is informative, can be removed and ignored.
     kFlagIsRemovable     = 0x08u,        //!< Node can be safely removed if unreachable.
-    kFlagHasNoEffect     = 0x20u,        //!< Node does nothing when executed (label, align, explicit nop).
-
-    kFlagActsAsInst      = 0x40u,        //!< Node is an instruction or acts as it.
-    kFlagActsAsLabel     = 0x80u         //!< Node is a label or acts as it.
+    kFlagHasNoEffect     = 0x10u,        //!< Node does nothing when executed (label, align, explicit nop).
+    kFlagActsAsInst      = 0x20u,        //!< Node is an instruction or acts as it.
+    kFlagActsAsLabel     = 0x40u,        //!< Node is a label or acts as it.
+    kFlagIsActive        = 0x80u         //!< Node is not part of the code (was removed, or never added).
   };
 
   // --------------------------------------------------------------------------
@@ -304,8 +335,8 @@ public:
 
   //! Create a new `BaseNode` - always use `BaseBuilder` to allocate nodes.
   ASMJIT_INLINE BaseNode(BaseBuilder* cb, uint32_t type, uint32_t flags = 0) noexcept {
-    _link[kLinkPrev] = nullptr;
-    _link[kLinkNext] = nullptr;
+    _prev = nullptr;
+    _next = nullptr;
     _any._nodeType = uint8_t(type);
     _any._nodeFlags = uint8_t(flags | cb->_nodeFlags);
     _any._reserved0 = 0;
@@ -319,20 +350,15 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
+  //! Get previous node.
+  inline BaseNode* prev() const noexcept { return _prev; }
+  //! Get next node.
+  inline BaseNode* next() const noexcept { return _next; }
+
   inline BaseNode* link(size_t where) const noexcept {
     ASMJIT_ASSERT(where < kLinkCount);
     return _link[where];
   }
-
-  //! Get previous node.
-  inline BaseNode* prev() const noexcept { return _link[kLinkPrev]; }
-  //! Get next node.
-  inline BaseNode* next() const noexcept { return _link[kLinkNext]; }
-
-  //! Set previous node (internal, use public BaseBuilder API to manage nodes).
-  inline void _setPrev(BaseNode* node) noexcept { _link[kLinkPrev] = node; }
-  //! Set next node (internal, use public BaseBuilder API to do manage nodes).
-  inline void _setNext(BaseNode* node) noexcept { _link[kLinkNext] = node; }
 
   //! Get the node type, see `NodeType`.
   inline uint32_t type() const noexcept { return _any._nodeType; }
@@ -340,6 +366,7 @@ public:
   inline void setType(uint32_t type) noexcept { _any._nodeType = uint8_t(type); }
 
   inline bool isInst() const noexcept { return hasFlag(kFlagActsAsInst); }
+  inline bool isSection() const noexcept { return type() == kNodeSection; }
   inline bool isLabel() const noexcept { return hasFlag(kFlagActsAsLabel); }
   inline bool isAlign() const noexcept { return type() == kNodeAlign; }
   inline bool isEmbedData() const noexcept { return type() == kNodeEmbedData; }
@@ -371,9 +398,10 @@ public:
   inline bool isInformative() const noexcept { return hasFlag(kFlagIsInformative); }
   //! Get whether the node is removable if it's in an unreachable code block.
   inline bool isRemovable() const noexcept { return hasFlag(kFlagIsRemovable); }
-
   //! The node has no effect when executed (label, .align, nop, ...).
   inline bool hasNoEffect() const noexcept { return hasFlag(kFlagHasNoEffect); }
+  //! Get whether the node is active (is part of the code).
+  inline bool isActive() const noexcept { return hasFlag(kFlagIsActive); }
 
   //! Get whether the node has a position.
   inline bool hasPosition() const noexcept { return _position != 0; }
@@ -413,27 +441,49 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  BaseNode* _link[2];                    //!< Links (previous and next nodes).
+  union {
+    struct {
+      //! Previous node.
+      BaseNode* _prev;
+      //! Next node.
+      BaseNode* _next;
+    };
+    //! Links (previous and next nodes).
+    BaseNode* _link[2];
+  };
 
+  //! Data shared between all types of nodes.
   struct AnyData {
-    uint8_t _nodeType;                   //!< Node type, see `NodeType`.
-    uint8_t _nodeFlags;                  //!< Node flags.
+    //! Node type, see `NodeType`.
+    uint8_t _nodeType;
+    //! Node flags.
+    uint8_t _nodeFlags;
+    //! Not used by BaseNode.
     uint8_t _reserved0;
+    //! Not used by BaseNode.
     uint8_t _reserved1;
   };
 
   struct InstData {
-    uint8_t _nodeType;                   //!< Node type, see `NodeType`.
-    uint8_t _nodeFlags;                  //!< Node flags.
-    uint8_t _opCount;                    //!< Number of operands.
-    uint8_t _opCapacity;                 //!< Maximum number of operands (capacity).
+    //! Node type, see `NodeType`.
+    uint8_t _nodeType;
+    //! Node flags.
+    uint8_t _nodeFlags;
+    //! Number of operands.
+    uint8_t _opCount;
+    //! Maximum number of operands (capacity).
+    uint8_t _opCapacity;
   };
 
   struct SentinelData {
-    uint8_t _nodeType;                   //!< Node type, see `NodeType`.
-    uint8_t _nodeFlags;                  //!< Node flags.
-    uint8_t _sentinelType;               //!< Sentinel type.
-    uint8_t _reserved0;
+    //! Node type, see `NodeType`.
+    uint8_t _nodeType;
+    //! Node flags.
+    uint8_t _nodeFlags;
+    //! Sentinel type.
+    uint8_t _sentinelType;
+    //! Not used by BaseNode.
+    uint8_t _reserved1;
   };
 
   union {
@@ -442,9 +492,12 @@ public:
     SentinelData _sentinel;
   };
 
-  uint32_t _position;                    //!< Node position in code (should be unique).
-  void* _passData;                       //!< Data used exclusively by the current `Pass`.
-  const char* _inlineComment;            //!< Inline comment or null if not used.
+  //! Node position in code (should be unique).
+  uint32_t _position;
+  //! Data used exclusively by the current `Pass`.
+  void* _passData;
+  //! Inline comment or null if not used.
+  const char* _inlineComment;
 };
 
 // ============================================================================
@@ -624,8 +677,11 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  BaseInst _baseInst;                    //!< Base instruction data.
-  Operand_ _opArray[kBaseOpCapacity];    //!< First 4 or 5 operands (indexed from 0).
+
+  //! Base instruction data.
+  BaseInst _baseInst;
+  //! First 4 or 5 operands (indexed from 0).
+  Operand_ _opArray[kBaseOpCapacity];
 };
 
 // ============================================================================
@@ -650,6 +706,48 @@ public:
 
   //! Continued `_opArray[]` to hold up to `kMaxOpCount` operands.
   Operand_ _opArrayEx[Globals::kMaxOpCount - kBaseOpCapacity];
+};
+
+// ============================================================================
+// [asmjit::SectionNode]
+// ============================================================================
+
+//! Section node.
+class SectionNode : public BaseNode {
+public:
+  ASMJIT_NONCOPYABLE(SectionNode)
+
+  // --------------------------------------------------------------------------
+  // [Construction / Destruction]
+  // --------------------------------------------------------------------------
+
+  //! Create a new `SectionNode` instance.
+  inline SectionNode(BaseBuilder* cb, uint32_t id = 0) noexcept
+    : BaseNode(cb, kNodeSection, kFlagHasNoEffect),
+      _id(id),
+      _nextSection(nullptr) {}
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  //! Get the section id.
+  inline uint32_t id() const noexcept { return _id; }
+
+  // --------------------------------------------------------------------------
+  // [Members]
+  // --------------------------------------------------------------------------
+
+  //! Section id.
+  uint32_t _id;
+
+  //! Next section node that follows this section.
+  //!
+  //! This link is only valid when the section is active (is part of the code)
+  //! and when `Builder::hasDirtySectionLinks()` returns `false`. If you intend
+  //! to use this field you should always call `Builder::updateSectionLinks()`
+  //! before you do so.
+  SectionNode* _nextSection;
 };
 
 // ============================================================================
@@ -725,8 +823,10 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _alignMode;                   //!< Align mode, see `AlignMode`.
-  uint32_t _alignment;                   //!< Alignment (in bytes).
+  //! Align mode, see `AlignMode`.
+  uint32_t _alignMode;
+  //! Alignment (in bytes).
+  uint32_t _alignment;
 };
 
 // ============================================================================
@@ -779,11 +879,14 @@ public:
 
   union {
     struct {
-      uint8_t _buf[kInlineBufferSize];   //!< Embedded data buffer.
-      uint32_t _size;                    //!< Size of the data.
+      //! Embedded data buffer.
+      uint8_t _buf[kInlineBufferSize];
+      //! Size of the data.
+      uint32_t _size;
     };
     struct {
-      uint8_t* _externalPtr;             //!< Pointer to external data.
+      //! Pointer to external data.
+      uint8_t* _externalPtr;
     };
   };
 };
@@ -970,8 +1073,10 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  BaseBuilder* _cb;                      //!< BaseBuilder this pass is assigned to.
-  const char* _name;                     //!< Name of the pass.
+  //! BaseBuilder this pass is assigned to.
+  BaseBuilder* _cb;
+  //! Name of the pass.
+  const char* _name;
 };
 
 //! \}

@@ -1463,7 +1463,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(Emitter* emitter, const 
       uint32_t outId = var.out.regId();
 
       if (curGroup != outGroup) {
-        ASMJIT_ASSERT(!"IMPLEMENTED");
+        ASMJIT_ASSERT(false);
 
         // Requires a conversion between two register groups.
         if (workData[outGroup]._numSwaps) {

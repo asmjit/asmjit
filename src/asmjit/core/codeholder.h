@@ -18,6 +18,7 @@
 #include "../core/zone.h"
 #include "../core/zonehash.h"
 #include "../core/zonestring.h"
+#include "../core/zonetree.h"
 #include "../core/zonevector.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -124,18 +125,22 @@ struct CodeBuffer {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t* _data;                        //!< The content of the buffer (data).
-  size_t _size;                          //!< Number of bytes of `data` used.
-  size_t _capacity;                      //!< Buffer capacity (in bytes).
-  uint32_t _flags;                       //!< Buffer flags.
+  //! The content of the buffer (data).
+  uint8_t* _data;
+  //! Number of bytes of `data` used.
+  size_t _size;
+  //! Buffer capacity (in bytes).
+  size_t _capacity;
+  //! Buffer flags.
+  uint32_t _flags;
 };
 
 // ============================================================================
-// [asmjit::SectionEntry]
+// [asmjit::Section]
 // ============================================================================
 
 //! Section entry.
-class SectionEntry {
+class Section {
 public:
   enum Id : uint32_t {
     kInvalidId       = 0xFFFFFFFFu       //!< Invalid section id.
@@ -157,23 +162,35 @@ public:
   inline uint32_t id() const noexcept { return _id; }
   inline const char* name() const noexcept { return _name.str; }
 
-  inline void _setDefaultName(char c0 = 0, char c1 = 0, char c2 = 0, char c3 = 0,
-                              char c4 = 0, char c5 = 0, char c6 = 0, char c7 = 0) noexcept {
-    _name.u32[0] = Support::bytepack32_4x8(uint8_t(c0), uint8_t(c1), uint8_t(c2), uint8_t(c3));
-    _name.u32[1] = Support::bytepack32_4x8(uint8_t(c4), uint8_t(c5), uint8_t(c6), uint8_t(c7));
-  }
+  inline uint8_t* data() noexcept { return _buffer.data(); }
+  inline const uint8_t* data() const noexcept { return _buffer.data(); }
 
   inline uint32_t flags() const noexcept { return _flags; }
-  inline uint32_t alignment() const noexcept { return _alignment; }
-  inline size_t virtualSize() const noexcept { return _virtualSize; }
-  inline size_t physicalSize() const noexcept { return _buffer.size(); }
-
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
   inline void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
 
+  inline uint32_t alignment() const noexcept { return _alignment; }
   inline void setAlignment(uint32_t alignment) noexcept { _alignment = alignment; }
-  inline void setVirtualSize(uint32_t size) noexcept { _virtualSize = size; }
+
+  inline uint64_t offset() const noexcept { return _offset; }
+  inline void setOffset(uint64_t offset) noexcept { _offset = offset; }
+
+  //! Gets the virtual size of the section.
+  //!
+  //! Virtual size is initially zero and is never changed by AsmJit. It's normal
+  //! if virtual size is smaller than size returned by `bufferSize()` as the buffer
+  //! stores real data emitted by assemblers or appended by users.
+  //!
+  //! Use `realSize()` to get the real and final size of this section.
+  inline uint64_t virtualSize() const noexcept { return _virtualSize; }
+  //! Sets the virtual size of the section.
+  inline void setVirtualSize(uint64_t virtualSize) noexcept { _virtualSize = virtualSize; }
+
+  //! Gets the buffer size of the section.
+  inline size_t bufferSize() const noexcept { return _buffer.size(); }
+  //! Gets the real size of the section calculated from virtual and buffer sizes.
+  inline uint64_t realSize() const noexcept { return Support::max<uint64_t>(virtualSize(), bufferSize()); }
 
   inline CodeBuffer& buffer() noexcept { return _buffer; }
   inline const CodeBuffer& buffer() const noexcept { return _buffer; }
@@ -182,25 +199,40 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _id;                          //!< Section id.
-  uint32_t _flags;                       //!< Section flags.
-  uint32_t _alignment;                   //!< Section alignment requirements (0 if no requirements).
-  uint32_t _virtualSize;                 //!< Virtual size of the section (zero initialized mostly).
-  FixedString<36> _name;                 //!< Section name (max 35 characters, PE allows max 8).
-  CodeBuffer _buffer;                    //!< Code or data buffer.
+  //! Section id.
+  uint32_t _id;
+  //! Section flags.
+  uint32_t _flags;
+  //! Section alignment requirements (0 if no requirements).
+  uint32_t _alignment;
+  //! Reserved for future use (padding).
+  uint32_t _reserved;
+  //! Offset of this section from base-address.
+  uint64_t _offset;
+  //! Virtual size of the section (zero initialized sections).
+  uint64_t _virtualSize;
+  //! Section name (max 35 characters, PE allows max 8).
+  FixedString<Globals::kMaxSectionNameSize + 1> _name;
+  //! Code or data buffer.
+  CodeBuffer _buffer;
 };
 
 // ============================================================================
 // [asmjit::LabelLink]
 // ============================================================================
 
-//! Data structure used to link unbound labels.
+//! Data structure used to link either unbound labels or cross-section links.
 struct LabelLink {
-  LabelLink* prev;                       //!< Previous link (single-linked list).
-  uint32_t sectionId;                    //!< Section id.
-  uint32_t relocId;                      //!< Relocation id or RelocEntry::kInvalidId.
-  size_t offset;                         //!< Label offset relative to the start of the section.
-  intptr_t rel;                          //!< Inlined rel8/rel32.
+  //! Next link (single-linked list).
+  LabelLink* next;
+  //! Section id where the label is bound.
+  uint32_t sectionId;
+  //! Relocation id or RelocEntry::kInvalidId.
+  uint32_t relocId;
+  //! Label offset relative to the start of the section.
+  size_t offset;
+  //! Inlined rel8/rel32.
+  intptr_t rel;
 };
 
 // ============================================================================
@@ -228,44 +260,50 @@ public:
   // to fill a padding that a C++ compiler targeting 64-bit CPU will add to align
   // the structure to 64-bits.
 
-  //! Get label id.
+  //! Gets label id.
   inline uint32_t id() const noexcept { return _customData; }
-  //! Set label id (internal, used only by `CodeHolder`).
+  //! Sets label id (internal, used only by `CodeHolder`).
   inline void _setId(uint32_t id) noexcept { _customData = id; }
 
-  //! Get label type, see `Label::LabelType`.
+  //! Gets label type, see `Label::LabelType`.
   inline uint32_t type() const noexcept { return _type; }
-  //! Get label flags, returns 0 at the moment.
+  //! Gets label flags, returns 0 at the moment.
   inline uint32_t flags() const noexcept { return _flags; }
 
   inline bool hasParent() const noexcept { return _parentId != 0; }
-  //! Get label's parent id.
+  //! Gets label's parent id.
   inline uint32_t parentId() const noexcept { return _parentId; }
-  //! Get label's section id where it's bound to (or `SectionEntry::kInvalidId` if it's not bound yet).
+  //! Gets label's section id where it's bound to (or `Section::kInvalidId` if it's not bound yet).
   inline uint32_t sectionId() const noexcept { return _sectionId; }
 
-  //! Get whether the label has name.
+  //! Gets whether the label has name.
   inline bool hasName() const noexcept { return !_name.empty(); }
 
-  //! Get the label's name.
+  //! Gets the label's name.
   //!
   //! NOTE: Local labels will return their local name without their parent
   //! part, for example ".L1".
   inline const char* name() const noexcept { return _name.data(); }
 
-  //! Get size of label's name.
+  //! Gets size of label's name.
   //!
   //! NOTE: Label name is always null terminated, so you can use `strlen()` to
   //! get it, however, it's also cached in `LabelEntry` itself, so if you want
   //! to know the size the fastest way is to call `LabelEntry::nameSize()`.
   inline uint32_t nameSize() const noexcept { return _name.size(); }
 
-  //! Get whether the label is bound.
-  inline bool isBound() const noexcept { return _sectionId != SectionEntry::kInvalidId; }
-  //! Get the label offset (only useful if the label is bound).
+  //! Gets links associated with this label.
+  inline LabelLink* links() const noexcept { return _links; }
+
+  //! Gets whether the label is bound.
+  inline bool isBound() const noexcept { return _sectionId != Section::kInvalidId; }
+  //! Gets whether the label is bound to a the given `sectionId`.
+  inline bool isBoundTo(uint32_t sectionId) const noexcept { return _sectionId == sectionId; }
+
+  //! Gets the label offset (only useful if the label is bound).
   inline intptr_t offset() const noexcept { return _offset; }
 
-  //! Get the hash-value of label's name and its parent label (if any).
+  //! Gets the hash-value of label's name and its parent label (if any).
   //!
   //! Label hash is calculated as `HASH(Name) ^ ParentId`. The hash function
   //! is implemented in `Support::hashString()` and `Support::hashRound()`.
@@ -281,15 +319,24 @@ public:
   static constexpr uint32_t kStaticNameSize =
     64 - (sizeof(ZoneHashNode) + 16 + sizeof(intptr_t) + sizeof(LabelLink*));
 
-  uint8_t _type;                         //!< Label type, see `Label::LabelType`.
-  uint8_t _flags;                        //!< Must be zero.
-  uint16_t _reserved16;                  //!< Reserved.
-  uint32_t _parentId;                    //!< Label parent id or zero.
-  uint32_t _sectionId;                   //!< Section id or `SectionEntry::kInvalidId`.
-  uint32_t _reserved32;                  //!< Reserved.
-  intptr_t _offset;                      //!< Label offset.
-  LabelLink* _links;                     //!< Label links.
-  ZoneString<kStaticNameSize> _name;     //!< Label name.
+  //! Label type, see `Label::LabelType`.
+  uint8_t _type;
+  //! Must be zero.
+  uint8_t _flags;
+  //! Reserved.
+  uint16_t _reserved16;
+  //! Label parent id or zero.
+  uint32_t _parentId;
+  //! Section id or `Section::kInvalidId`.
+  uint32_t _sectionId;
+  //! Reserved.
+  uint32_t _reserved32;
+  //! Label offset.
+  intptr_t _offset;
+  //! Label links.
+  LabelLink* _links;
+  //! Label name.
+  ZoneString<kStaticNameSize> _name;
 };
 
 // ============================================================================
@@ -309,16 +356,22 @@ public:
 //! ```
 struct RelocEntry {
   enum Id : uint32_t {
-    kInvalidId       = 0xFFFFFFFFu       //!< Invalid relocation id.
+    //! Invalid relocation id.
+    kInvalidId = 0xFFFFFFFFu
   };
 
   //! Relocation type.
   enum RelocType : uint32_t {
-    kTypeNone        = 0,                //!< None/deleted (no relocation).
-    kTypeAbsToAbs    = 1,                //!< Relocate absolute to absolute.
-    kTypeRelToAbs    = 2,                //!< Relocate relative to absolute.
-    kTypeAbsToRel    = 3,                //!< Relocate absolute to relative.
-    kTypeTrampoline  = 4                 //!< Relocate absolute to relative or use trampoline.
+    //! None/deleted (no relocation).
+    kTypeNone = 0,
+    //! Relocate absolute to absolute.
+    kTypeAbsToAbs = 1,
+    //! Relocate relative to absolute.
+    kTypeRelToAbs = 2,
+    //! Relocate absolute to relative.
+    kTypeAbsToRel = 3,
+    //! Relocate absolute to relative or use trampoline.
+    kTypeX64AddressEntry = 4
   };
 
   // ------------------------------------------------------------------------
@@ -365,6 +418,33 @@ struct RelocEntry {
 };
 
 // ============================================================================
+// [asmjit::AddressTableEntry]
+// ============================================================================
+
+class AddressTableEntry : public ZoneTreeNodeT<AddressTableEntry> {
+public:
+  ASMJIT_NONCOPYABLE(AddressTableEntry)
+
+  inline explicit AddressTableEntry(uint64_t address) noexcept
+    : _address(address),
+      _slot(0xFFFFFFFFu) {}
+
+  inline uint64_t address() const noexcept { return _address; }
+  inline uint32_t slot() const noexcept { return _slot; }
+
+  inline bool hasAssignedSlot() const noexcept { return _slot != 0xFFFFFFFFu; }
+
+  inline bool operator<(const AddressTableEntry& other) const noexcept { return _address < other._address; }
+  inline bool operator>(const AddressTableEntry& other) const noexcept { return _address > other._address; }
+
+  inline bool operator<(uint64_t queryAddress) const noexcept { return _address < queryAddress; }
+  inline bool operator>(uint64_t queryAddress) const noexcept { return _address > queryAddress; }
+
+  uint64_t _address;
+  uint32_t _slot;
+};
+
+// ============================================================================
 // [asmjit::CodeHolder]
 // ============================================================================
 
@@ -395,9 +475,9 @@ public:
 
   inline bool isInitialized() const noexcept { return _codeInfo.isInitialized(); }
 
-  //! Initialize to CodeHolder to hold code described by `codeInfo`.
+  //! Initializes CodeHolder to hold code described by `codeInfo`.
   ASMJIT_API Error init(const CodeInfo& info) noexcept;
-  //! Detach all code-generators attached and reset the `CodeHolder`.
+  //! Detaches all code-generators attached and resets the `CodeHolder`.
   ASMJIT_API void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept;
 
   // --------------------------------------------------------------------------
@@ -439,23 +519,16 @@ public:
   // [Emitter Options]
   // --------------------------------------------------------------------------
 
-  //! Get global hints, internally propagated to all code emitters attached.
+  //! Get global emitter options, internally propagated to all attached emitters.
   inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
 
-  // --------------------------------------------------------------------------
-  // [Result Information]
-  // --------------------------------------------------------------------------
+  //! Enable the given global emitter `options` and propagate the resulting
+  //! options to all attached emitters.
+  ASMJIT_API void addEmitterOptions(uint32_t options) noexcept;
 
-  //! Get the size code & data of all sections.
-  ASMJIT_API size_t codeSize() const noexcept;
-
-  //! Get size of all possible trampolines.
-  //!
-  //! Trampolines are needed to successfully generate relative jumps to absolute
-  //! addresses. This value is only non-zero if jmp of call instructions were
-  //! used with immediate operand (this means jumping or calling an absolute
-  //! address directly).
-  inline size_t getTrampolinesSize() const noexcept { return _trampolinesSize; }
+  //! Disable the given global emitter `options` and propagate the resulting
+  //! options to all attached emitters.
+  ASMJIT_API void clearEmitterOptions(uint32_t options) noexcept;
 
   // --------------------------------------------------------------------------
   // [Logging & Error Handling]
@@ -478,34 +551,82 @@ public:
   inline void resetErrorHandler() noexcept { setErrorHandler(nullptr); }
 
   // --------------------------------------------------------------------------
-  // [Sections]
+  // [Code Buffer]
   // --------------------------------------------------------------------------
-
-  //! Get array of `SectionEntry*` records.
-  inline const ZoneVector<SectionEntry*>& sectionEntries() const noexcept { return _sectionEntries; }
-  //! Get a section entry of the given index.
-  inline SectionEntry* sectionEntry(uint32_t index) const noexcept { return _sectionEntries[index]; }
-  //! Get the number of sections.
-  inline uint32_t sectionCount() const noexcept { return _sectionEntries.size(); }
 
   ASMJIT_API Error growBuffer(CodeBuffer* cb, size_t n) noexcept;
   ASMJIT_API Error reserveBuffer(CodeBuffer* cb, size_t n) noexcept;
 
   // --------------------------------------------------------------------------
-  // [Labels & Symbols]
+  // [Sections]
   // --------------------------------------------------------------------------
 
-  //! Create a new anonymous label and return its id in `idOut`.
+  //! Gets an array of `Section*` records.
+  inline const ZoneVector<Section*>& sections() const noexcept { return _sections; }
+  //! Gets the number of sections.
+  inline uint32_t sectionCount() const noexcept { return _sections.size(); }
+
+  //! Gets whether the given `sectionId` is valid.
+  inline bool isSectionValid(uint32_t sectionId) const noexcept { return sectionId < _sections.size(); }
+
+  //! Creates a new section and return its pointer in `entryOut`.
+  //!
+  //! Returns `Error`, does not report a possible error to `ErrorHandler`.
+  ASMJIT_API Error newSection(Section** entryOut, const char* name, size_t nameSize = SIZE_MAX, uint32_t flags = 0, uint32_t alignment = 1) noexcept;
+
+  //! Gets a section entry of the given index.
+  inline Section* sectionById(uint32_t sectionId) const noexcept { return _sections[sectionId]; }
+
+  //! Returns section-id that matches the given `name`.
+  //!
+  //! If there is no such section `Section::kInvalidId` is returned.
+  ASMJIT_API Section* sectionByName(const char* name, size_t nameSize = SIZE_MAX) const noexcept;
+
+  //! Gets '.text' section (section that commonly represents code).
+  //!
+  //! NOTE: Text section is always the first section in `CodeHolder::sections()` array.
+  inline Section* textSection() const noexcept { return _sections[0]; }
+
+  //! Gets whether '.addrtab' section exists.
+  inline bool hasAddressTable() const noexcept { return _addressTableSection != nullptr; }
+
+  //! Gets '.addrtab' section.
+  //!
+  //! This section is used exclusively by AsmJit to store absolute 64-bit
+  //! addresses that cannot be encoded in instructions like 'jmp' or 'call'.
+  inline Section* addressTableSection() const noexcept { return _addressTableSection; }
+
+  //! Ensures that '.addrtab' section exists (creates it if it doesn't) and
+  //! returns it. Can return `nullptr` on out of memory condition.
+  ASMJIT_API Section* ensureAddressTableSection() noexcept;
+
+  //! Used to add an address to an address table.
+  //!
+  //! This implicitly calls `ensureAddressTableSection()` and then creates
+  //! `AddressTableEntry` that is inserted to `_addressTableEntries`. If the
+  //! address already exists this operation does nothing as the same addresses
+  //! use the same slot.
+  //!
+  //! This function should be considered internal as it's used by assemblers to
+  //! insert an absolute address into the address table. Inserting address into
+  //! address table without creating a particula relocation entry makes no sense.
+  ASMJIT_API Error addAddressToAddressTable(uint64_t address) noexcept;
+
+  // --------------------------------------------------------------------------
+  // [Labels / Symbols]
+  // --------------------------------------------------------------------------
+
+  //! Creates a new anonymous label and return its id in `idOut`.
   //!
   //! Returns `Error`, does not report error to `ErrorHandler`.
-  ASMJIT_API Error newLabelId(uint32_t& idOut) noexcept;
+  ASMJIT_API Error newLabelEntry(LabelEntry** entryOut) noexcept;
 
   //! Create a new named label label-type `type`.
   //!
-  //! Returns `Error`, does not report error to `ErrorHandler`.
-  ASMJIT_API Error newNamedLabelId(uint32_t& idOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId) noexcept;
+  //! Returns `Error`, does not report a possible error to `ErrorHandler`.
+  ASMJIT_API Error newNamedLabelEntry(LabelEntry** entryOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId) noexcept;
 
-  //! Get a label id by name.
+  //! Gets a label id by name.
   ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept;
 
   inline Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept {
@@ -542,15 +663,13 @@ public:
 
   //! Get number of labels created.
   inline uint32_t labelCount() const noexcept { return _labelEntries.size(); }
-  //! Get number of label references, which are unresolved at the moment.
-  inline uint32_t unresolvedLabelCount() const noexcept { return _unresolvedLabelCount; }
 
-  //! Get whether the label having `id` is valid (i.e. created by `newLabelId()`).
+  //! Get whether the label having `id` is valid (i.e. created by `newLabelEntry()`).
   inline bool isLabelValid(uint32_t labelId) const noexcept {
     uint32_t index = Operand::unpackId(labelId);
     return index < _labelEntries.size();
   }
-  //! Get whether the `label` is valid (i.e. created by `newLabelId()`).
+  //! Get whether the `label` is valid (i.e. created by `newLabelEntry()`).
   inline bool isLabelValid(const Label& label) const noexcept {
     return isLabelValid(label.id());
   }
@@ -566,6 +685,22 @@ public:
   inline bool isLabelBound(const Label& label) const noexcept {
     return isLabelBound(label.id());
   }
+
+  //! Gets whether there are any unresolved label links.
+  inline bool hasUnresolvedLabelLinks() const noexcept { return _unresolvedLinkCount != 0; }
+  //! Gets the number of label links, which are unresolved.
+  inline size_t unresolvedLinkCount() const noexcept { return _unresolvedLinkCount; }
+
+  //! Bind a label to a given `sectionId` and `offset` (relative to start of the section).
+  //!
+  //! This function is generally used by `BaseAssembler::bind()` to do the heavy lifting.
+  ASMJIT_API Error bindLabel(const Label& label, uint32_t sectionId, size_t offset) noexcept;
+
+  //! Resolves cross-section links (`LabelLink`) associated with each label that
+  //! was used as a destination in code of a different section. It's only useful
+  //! to people that use multiple sections as it will do nothing if the code only
+  //! contains a single section in which cross-section links are not possible.
+  ASMJIT_API Error resolveUnresolvedLinks() noexcept;
 
   // --------------------------------------------------------------------------
   // [Relocations]
@@ -584,45 +719,80 @@ public:
   //! Additional fields can be set after the relocation entry was created.
   ASMJIT_API Error newRelocEntry(RelocEntry** dst, uint32_t relocType, uint32_t valueSize) noexcept;
 
-  //! Relocate the code to `baseAddress` and copy it to `dst`.
+  // --------------------------------------------------------------------------
+  // [Utilities]
+  // --------------------------------------------------------------------------
+
+  //! Flattens all sections by recalculating their offsets, starting at 0.
   //!
-  //! \param dst Contains the location where the relocated code should be
-  //! copied. The pointer can be address returned by virtual memory allocator
-  //! or any other address that has sufficient space.
+  //! NOTE: This should never be called more than once.
+  ASMJIT_API Error flatten() noexcept;
+
+  //! Get the size code & data of all sections.
+  ASMJIT_API size_t codeSize() const noexcept;
+
+  //! Relocate the code to the given `baseAddress`.
   //!
-  //! \param baseAddress Base address used for relocation. `JitRuntime` always
-  //! sets the `baseAddress` to be the same as `dst`.
+  //! \param baseAddress Absolute base address where the code will be relocated
+  //! to. Please note that nothing is copied to such base address, it's just an
+  //! absolute value used by the relocator to resolve all stored relocations.
   //!
-  //! \return The number of bytes actually used. If the code emitter reserved
-  //! space for possible trampolines, but didn't use it, the number of bytes
-  //! used can actually be less than the expected worst case. Virtual memory
-  //! allocator can shrink the memory it allocated initially.
+  //! NOTE: This should never be called more than once.
+  ASMJIT_API Error relocateToBase(uint64_t baseAddress) noexcept;
+
+  //! Options that can be used with \ref copySectionData().
+  enum CopyOptions : uint32_t {
+    //! If virtual size of the section is larger than the size of its buffer
+    //! then all bytes between buffer size and virtual size will be zeroed.
+    kCopyWithPadding = 0x1
+  };
+
+  //! Copies a single section into `dst`.
+  ASMJIT_API Error copySectionData(void* dst, size_t dstSize, uint32_t sectionId, uint32_t options = 0) noexcept;
+
+  //! Copies all sections into `dst`.
   //!
-  //! A given buffer will be overwritten, to get the number of bytes required,
-  //! use `codeSize()`.
-  ASMJIT_API size_t relocate(void* dst, uint64_t baseAddress = Globals::kNoBaseAddress) const noexcept;
+  //! This should only be used if the data was flattened and there are no gaps
+  //! between the sections. The `dstSize` is always checked and the copy will
+  //! never write anything outside the providede buffer.
+  ASMJIT_API Error copyFlattenedData(void* dst, size_t dstSize, uint32_t options = 0) noexcept;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  CodeInfo _codeInfo;                    //!< Basic information about the code (architecture and other info).
-  uint32_t _emitterOptions;              //!< Emitter options, propagated to all emitters when changed.
+  //! Basic information about the code (architecture and other info).
+  CodeInfo _codeInfo;
+  //! Emitter options, propagated to all emitters when changed.
+  uint32_t _emitterOptions;
 
-  Logger* _logger;                       //!< Attached `Logger`, used by all consumers.
-  ErrorHandler* _errorHandler;           //!< Attached `ErrorHandler`.
+  //! Attached `Logger`, used by all consumers.
+  Logger* _logger;
+  //! Attached `ErrorHandler`.
+  ErrorHandler* _errorHandler;
 
-  uint32_t _unresolvedLabelCount;        //!< Count of label references which were not resolved.
-  uint32_t _trampolinesSize;             //!< Size of all possible trampolines.
+  //! Code zone (used to allocate core structures).
+  Zone _zone;
+  //! Zone allocator, used to manage internal containers.
+  ZoneAllocator _allocator;
 
-  Zone _zone;                            //!< Code zone (used to allocate core structures).
-  ZoneAllocator _allocator;              //!< Zone allocator, used to manage internal containers.
+  //! Attached code emitters.
+  ZoneVector<BaseEmitter*> _emitters;
+  //! Section entries.
+  ZoneVector<Section*> _sections;
+  //! Label entries.
+  ZoneVector<LabelEntry*> _labelEntries;
+  //! Relocation entries.
+  ZoneVector<RelocEntry*> _relocations;
+  //! Label name -> LabelEntry (only named labels).
+  ZoneHash<LabelEntry> _namedLabels;
 
-  ZoneVector<BaseEmitter*> _emitters;    //!< Attached code emitters.
-  ZoneVector<SectionEntry*> _sectionEntries; //!< Section entries.
-  ZoneVector<LabelEntry*> _labelEntries; //!< Label entries.
-  ZoneVector<RelocEntry*> _relocations;  //!< Relocation entries.
-  ZoneHash<LabelEntry> _namedLabels;     //!< Label name -> LabelEntry (only named labels).
+  //! Count of label links, which are not resolved.
+  size_t _unresolvedLinkCount;
+  //! Pointer to an address table section (or null if this section doesn't exist).
+  Section* _addressTableSection;
+  //! Address table entries.
+  ZoneTree<AddressTableEntry> _addressTableEntries;
 };
 
 //! \}

@@ -570,7 +570,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
           }
           else {
             // TODO:
-            ASMJIT_ASSERT(!"IMPLEMENTED");
+            ASMJIT_ASSERT(false);
           }
         }
         else {
@@ -614,7 +614,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
         }
         else {
           // TODO:
-          ASMJIT_ASSERT(!"IMPLEMENTED");
+          ASMJIT_ASSERT(false);
         }
       }
       else {

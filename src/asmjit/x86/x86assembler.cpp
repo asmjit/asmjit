@@ -3707,7 +3707,7 @@ EmitModSib:
             goto EmitDone;
           }
           else {
-            uint64_t rip64 = baseAddress + virtualOffset;
+            uint64_t rip64 = baseAddress + _section->offset() + virtualOffset;
             uint64_t rel64 = uint64_t(rmRel->as<Mem>().offset()) - rip64;
 
             if (Support::isInt32(int64_t(rel64))) {
@@ -3803,13 +3803,13 @@ EmitModSib_LabelRip_X86:
           re->_trailingSize = uint8_t(immSize);
           re->_payload = uint64_t(int64_t(relOffset));
 
-          if (label->isBound()) {
-            // Bound label.
+          if (label->isBoundTo(_section->id())) {
+            // Bound label to the current section.
             re->_payload += uint64_t(label->offset());
             writer.emit32uLE(0);
           }
           else {
-            // Non-bound label.
+            // Non-bound label or label bound to a different section.
             relOffset = -4 - immSize;
             relSize = 4;
             goto EmitRel;
@@ -3839,13 +3839,13 @@ EmitModSib_LabelRip_X86:
             goto InvalidLabel;
 
           relOffset -= (4 + immSize);
-          if (label->isBound()) {
-            // Bound label.
+          if (label->isBoundTo(_section->id())) {
+            // Bound label to the current section.
             relOffset += int32_t(label->offset() - (intptr_t)(writer.offsetFrom(_bufferData)));
             writer.emit32uLE(uint32_t(relOffset));
           }
           else {
-            // Non-bound label.
+            // Non-bound label or label bound to a different section.
             relSize = 4;
             goto EmitRel;
           }
@@ -4272,7 +4272,6 @@ EmitVexEvexM:
   // [Emit - Jmp/Jcc/Call]
   // --------------------------------------------------------------------------
 
-  // TODO: Should be adjusted after the support for multiple sections feature is added.
 EmitJmpCall:
   {
     // Emit REX prefix if asked for (64-bit only).
@@ -4304,15 +4303,15 @@ EmitJmpCall:
       if (ASMJIT_UNLIKELY(!label))
         goto InvalidLabel;
 
-      if (label->isBound()) {
-        // Bound label.
+      if (label->isBoundTo(_section->id())) {
+        // Bound label to the current section.
         rel32 = uint32_t((uint64_t(label->offset()) - ip - inst32Size) & 0xFFFFFFFFu);
         goto EmitJmpCallRel;
       }
       else {
-        // Non-bound label.
+        // Non-bound label or label bound to a different section.
         if (opCode8 && (!opcode.v || (options & Inst::kOptionShortForm))) {
-          writer.emit8(opCode8);                                         // Emit opcode.
+          writer.emit8(opCode8);
 
           // Record DISP8 (non-bound label).
           relOffset = -1;
@@ -4374,8 +4373,11 @@ EmitJmpCall:
           if (!rex)
             writer.emit8(kX86ByteRex);
 
-          re->_relocType = RelocEntry::kTypeTrampoline;
-          _code->_trampolinesSize += 8;
+          err = _code->addAddressToAddressTable(jumpAddress);
+          if (ASMJIT_UNLIKELY(err))
+            goto Failed;
+
+          re->_relocType = RelocEntry::kTypeX64AddressEntry;
         }
 
         writer.emit8If(0x0F, (opcode & Opcode::kMM_Mask) != 0);  // Emit 0F prefix.
@@ -4430,7 +4432,6 @@ EmitJmpCallRel:
 
 EmitRel:
   {
-    ASMJIT_ASSERT(!label->isBound());
     ASMJIT_ASSERT(relSize == 1 || relSize == 4);
 
     // Chain with label.

@@ -45,7 +45,8 @@
 // (like BaseCompiler).
 //
 // AsmJit features are enabled by default.
-// #define ASMJIT_DISABLE_COMPILER   // Disable BaseCompiler (completely).
+// #define ASMJIT_DISABLE_BUILDER    // Disable Builder (completely).
+// #define ASMJIT_DISABLE_COMPILER   // Disable Compiler (completely).
 // #define ASMJIT_DISABLE_JIT        // Disable JIT memory manager and JitRuntime.
 // #define ASMJIT_DISABLE_LOGGING    // Disable logging and formatting (completely).
 // #define ASMJIT_DISABLE_TEXT       // Disable everything that contains text

@@ -63,11 +63,17 @@ constexpr uint32_t kMaxAlignment = 64;
 //! Maximum label or symbol size in bytes.
 constexpr uint32_t kMaxLabelNameSize = 2048;
 
+//! Maximum section name size.
+constexpr uint32_t kMaxSectionNameSize = 35;
+
 //! Maximum size of comment.
 constexpr uint32_t kMaxCommentSize = 1024;
 
+//! Invalid identifier.
+constexpr uint32_t kInvalidId = 0xFFFFFFFFu;
+
 //! Returned by `indexOf()` and similar when working with containers that use 32-bit index/size.
-constexpr uint32_t kNotFound = std::numeric_limits<uint32_t>::max();
+constexpr uint32_t kNotFound = 0xFFFFFFFFu;
 
 //! Invalid base address.
 constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
@@ -156,10 +162,10 @@ enum ErrorCode : uint32_t {
   kErrorInvalidDirective,
   //! Attempt to use uninitialized label.
   kErrorInvalidLabel,
-  //! Label index overflow - a single `Assembler` instance can hold more than
-  //! 2 billion labels (2147483391 to be exact). If there is an attempt to
-  //! create more labels this error is returned.
-  kErrorLabelIndexOverflow,
+  //! Label index overflow - a single `Assembler` instance can hold almost
+  //! 2^32 (4 billion) labels. If there is an attempt to create more labels
+  //! then this error is returned.
+  kErrorTooManyLabels,
   //! Label is already bound.
   kErrorLabelAlreadyBound,
   //! Label is already defined (named labels).
@@ -173,8 +179,15 @@ enum ErrorCode : uint32_t {
   //! Parent id specified for a non-local (global) label.
   kErrorNonLocalLabelCantHaveParent,
 
-  //! Relocation index overflow.
-  kErrorRelocIndexOverflow,
+  //! Invalid section.
+  kErrorInvalidSection,
+  //! Too many sections (section index overflow).
+  kErrorTooManySections,
+  //! Invalid section name (most probably too long).
+  kErrorInvalidSectionName,
+
+  //! Relocation index overflow (too many relocations).
+  kErrorTooManyRelocations,
   //! Invalid relocation entry.
   kErrorInvalidRelocEntry,
   //! Reloc entry contains address that is out of range (unencodable).

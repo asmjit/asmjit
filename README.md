@@ -84,13 +84,13 @@ Important
 
 Breaking the official API is sometimes inevitable, what to do?
   * See asmjit tests, they always compile and provide an implementation of a lot of use-cases:
-    * [asmjit_test_x86_asm.cpp](./test/asmjit_test_x86_asm.cpp) - Tests that use all emitters.
-    * [asmjit_test_x86_cc.cpp](./test/asmjit_test_x86_cc.cpp) - Tests that use **x86::Compiler**.
+    * [asmjit_test_x86_asm.cpp](./test/asmjit_test_x86_asm.cpp) - Tests that demonstrate the purpose of emitters.
+    * [asmjit_test_x86_cc.cpp](./test/asmjit_test_x86_cc.cpp) - A lot of tests targeting Compiler infrastructure.
+    * [asmjit_test_x86_sections.cpp](./test/asmjit_test_x86_sections.cpp) - Multiple sections test.
   * Visit our [Official Chat](https://gitter.im/asmjit/asmjit) if you need a quick help.
 
 TODOs:
   * [ ] Add support for user external buffers.
-  * [ ] AsmJit added support for code sections, but only the first section (executable code) works atm.
 
 Supported Environments
 ----------------------
@@ -102,10 +102,10 @@ Supported Environments
   * Tested:
     * **Clang** - tested by Travis-CI - Clang 3.9+ (with C++11 enabled) is officially supported (older Clang versions having C++11 support are probably fine, but are not regularly tested).
     * **GNU** - tested by Travis-CI - GCC 4.8+ (with C++11 enabled) is officially supported.
-    * **MINGW** - tested by AppVeyor - Use the latest version if possible.
-    * **MSVC** - tested by AppVeyor - **MSVC2017+ only!** - there is a severe bug in MSVC2015's `constexpr` implementation that makes that compiler unusable.
+    * **MINGW** - tested by Travis-CI - Use the latest version if possible.
+    * **MSVC** - tested by Travis-CI - **MSVC2017+ only!** - there is a severe bug in MSVC2015's `constexpr` implementation that makes that compiler unusable.
   * Untested:
-    * **Intel** - no maintainers, no CI environment to regularly test this compiler.
+    * **Intel** - no maintainers and no CI environment to regularly test this compiler.
     * Other c++ compilers would require basic support in [core/build.h](./src/asmjit/core/build.h).
 
 ### Operating Systems:
@@ -113,14 +113,14 @@ Supported Environments
   * Tested:
     * **Linux** - tested by Travis-CI - any distribution is generally supported.
     * **Mac** - tested by Travis-CI - any version is supported.
-    * **Windows** - tested by AppVeyor - Windows 7+ is officially supported although Windows XP should work as well.
+    * **Windows** - tested by Travis-CI - Windows 7+ is officially supported although Windows XP should work as well.
   * Untested:
     * **BSDs** - no maintainers, no CI environment to regularly test this OS.
     * Other operating systems would require some testing and support in [core/build.h](./src/asmjit/core/build.h) and [core/osutils.cpp](./src/asmjit/core/osutils.cpp).
 
 ### Backends:
 
-  * **X86** - tested by both Travis-CI and AppVeyor - both 32-bit and 64-bit backends are fully functional.
+  * **X86** - tested by both Travis-CI - both 32-bit and 64-bit backends are fully functional.
   * **ARM** - work-in-progress (not public at the moment).
 
 Project Organization
@@ -168,7 +168,7 @@ If none of `ASMJIT_BUILD_...` is defined AsmJit bails to `ASMJIT_BUILD_HOST`, wh
   * `ASMJIT_DISABLE_COMPILER` - Disables `BaseCompiler` emitter. For users that use `BaseBuilder`, but not `BaseCompiler`.
   * `ASMJIT_DISABLE_JIT` - Disables JIT execution engine, which includes `JitUtils`, `JitAllocator`, and `JitRuntime`.
   * `ASMJIT_DISABLE_LOGGING` - Disables logging (`Logger` and all classes that inherit it) and instruction formatting.
-  * `ASMJIT_DISABLE_TEXT` - Disables everything that uses text-representation and that causes certain strings to be stored in the resulting binary. For example when this flag is enabled all instruction and error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGING`. This option is suitable for deployment builds or builds that don't want to reveal the use of AsmJit.
+  * `ASMJIT_DISABLE_TEXT` - Disables everything that uses text-representation and that causes certain strings to be stored in the resulting binary. For example when this flag is set all instruction and error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGING`. This option is suitable for deployment builds or builds that don't want to reveal the use of AsmJit.
   * `ASMJIT_DISABLE_INST_API` - Disables strict validation, read/write information, and all additional data and APIs that can output information about instructions.
 
 NOTE: Please don't disable any features if you plan to build AsmJit as a shared library that will be used by multiple projects that you don't control (for example asmjit in a Linux distribution). The possibility to disable certain features exists mainly for customized builds of AsmJit.
@@ -191,11 +191,9 @@ Code emitters:
   * `[Base]Builder` - Emitter designed to emit code into a representation that can be processed afterwards. It stores the whole code in a double linked list consisting of nodes (`BaseNode` and all derived classes). There are nodes that represent instructions (`InstNode`), labels (`LabelNode`), and other building blocks (`AlignNode`, `DataNode`, ...). Some nodes are used as markers (`SentinelNode` and comments (`CommentNode`).
   * `[Base]Compiler` - High-level code emitter that uses virtual registers and contains high-level function building features. Compiler extends `[Base]Builder` functionality and introduces new nodes like `FuncNode`, `FuncRetNode`, and `FuncCallNode`. Compiler is the simplest way to start with AsmJit as it abstracts lots of details required to generate a function that can be called from a C/C++ language.
 
-### Runtime
+### Targets and JitRuntime
 
-AsmJit's `Runtime` is designed for execution and/or linking. The `Runtime` itself is abstract and defines only how to `add()` and `release()` code held by `CodeHolder`. `CodeHolder` holds machine code and relocation entries, but should be seen as a temporary object only - after the code in `CodeHolder` is ready, it should be passed to `Runtime` or relocated manually. Users interested in inspecting the generated machine-code (instead of executing or linking) can keep it in `CodeHodler` and process it manually of course.
-
-The only `Runtime` implementation provided directly by AsmJit is called `JitRuntime`, which is suitable for storing and executing dynamically generated code. `JitRuntime` is used in most AsmJit examples as it makes the code management easy. It allows to add and release dynamically generated functions easily, so it's suitable for JIT code generators that want to keep many functions alive, and possibly release functions which are no longer needed.
+AsmJit's `Target` class is an interface that provides basic target abstraction. At the moment only one implementation called `JitRuntime` is provided, which as the name suggests provides JIT code target and execution runtime. `JitRuntime` provides all the necessary functionality to implement a simple JIT functionality with basic memory management. It only provides `add()` and `release()` functions that are used to either add code to the runtime or release it. The `JitRuntime` doesn't do any decisions on when the code should be released. Once you add new code into it you must decide when that code is no longer needed and should be released.
 
 ### Instructions & Operands
 
@@ -496,9 +494,13 @@ int main(int argc, char* argv[]) {
 
 ### Explicit Code Relocation
 
-CodeInfo contains much more information than just the target architecture. It can be configured to specify a base-address (or a virtual base-address in a linker terminology), which could be static (useful when you know the location of the target's machine code) or dynamic. AsmJit assumes dynamic base-address by default and relocates the code held by `CodeHolder` to a user-provided address on-demand. To be able to relocate to a user-provided address it needs to store some information about relocations, which is represented by `CodeHolder::RelocEntry`. Relocation entries are only required if you call external functions from the generated code that cannot be encoded by using a 32-bit displacement (X64 architecture doesn't provide 64-bit encodable displacement) and when a label referenced in one section is bound in another, but this is not really a JIT case and it's more related to AOT (ahead-of-time) compilation.
+CodeInfo contains much more information than just the target architecture. It can be configured to specify a base-address (or a virtual base-address in a linker terminology), which could be static (useful when you know the location of the target's machine code) or dynamic. AsmJit assumes dynamic base-address by default and relocates the code held by `CodeHolder` to a user-provided address on-demand. To be able to relocate to a user-provided address it needs to store some information about relocations, which is represented by `RelocEntry`. Relocation entries are only required if you call external functions from the generated code that cannot be encoded by using a 32-bit displacement (X64 architecture doesn't provide an encodable 64-bit displacement).
 
-Next example shows how to use a built-in virtual memory allocator `JitAllocator` instead of using `JitRuntime` (just in case you want to use your own memory management) and how to relocate the generated code into your own memory block - you can use your own virtual memory allocator if you prefer that, but that's OS specific and it's already provided by AsmJit, so we will use what AsmJit offers instead of going deep into OS APIs.
+There is also a concept called `LabelLink` - label links are lightweight structs that don't have any identifier and are stored per label in a single-linked list. Label links represent either unbound yet used labels (that are valid in cases in which label was not bound but was already referenced by an instruction) and links that cross-sections (only relevant to code that uses multiple sections). Since crossing sections is something that cannot be resolved immediately these links persist until offsets of these sections are assigned and `CodeHolder::resolveUnresolvedLinks()` is called. It's an error if you end up with code that has unresolved label links after flattening. You can verify it by calling `CodeHolder::hasUnresolvedLabelLinks()` and `CodeHolder::unresolvedLinkCount()`.
+
+AsmJit can flatten code that uses multiple sections by assigning each section an incrementing offset that respects its alignment. Use `CodeHolder::flatten()` to do that. After the sections are flattened their offsets and virtual-sizes were adjusted to respect section's buffer size and alignment. You must call `CodeHolder::resolveUnresolvedLinks()` before relocating the code held by it. You can also flatten your code manually by iterating over all sections and calculating their offsets (relative to base) by your own algorithm. In that case you don't have to call `CodeHolder::flatten()`, but you must still call `CodeHolder::resolveUnresolvedLinks()`.
+
+Next example shows how to use a built-in virtual memory allocator `JitAllocator` instead of using `JitRuntime` (just in case you want to use your own memory management) and how to relocate the generated code into your own memory block - you can use your own virtual memory allocator if you prefer that, but that's OS specific and it's already provided by AsmJit, so we will use what AsmJit offers instead of going deep into OS specific APIs.
 
 The following code is similar to the previous one, but implements a function working in both 32-bit and 64-bit environments:
 
@@ -512,7 +514,7 @@ typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
 
 int main(int argc, char* argv[]) {
   CodeHolder code;                        // Create a CodeHolder.
-  code.init(CodeInfo(ArchInfo::kIdHost));// Initialize it for the host architecture.
+  code.init(CodeInfo(ArchInfo::kIdHost)); // Initialize it for the host architecture.
 
   x86::Assembler a(&code);                // Create and attach x86::Assembler to `code`.
 
@@ -552,22 +554,54 @@ int main(int argc, char* argv[]) {
   a.movdqu(x86::ptr(dst), x86::xmm0);     // Store the result to [dst].
   a.ret();                                // Return from function.
 
+  // Even when we didn't use multiple sections AsmJit could insert one section
+  // called '.addrtab' (address table section), which would be filled by data
+  // required by relocations (absolute jumps and calls). You can omit this code
+  // if you are 100% sure your code doesn't contain multiple sections and
+  // such relocations. You can use `CodeHolder::hasAddressTable()` to verify
+  // whether the address table section does exist.
+  code.flatten();
+  code.resolveUnresolvedLinks();
+
   // After the code was generated it can be relocated manually to any memory
   // location, however, we need to know it's size before we perform memory
-  // allocation. CodeHolder's `codeSize()` returns the worst estimated
-  // code-size (the biggest possible) in case that relocations are not
-  // possible without trampolines (in that case some extra code at the end
-  // of the current code buffer is generated during relocation).
-  size_t size = code.codeSize();
+  // allocation. `CodeHolder::codeSize()` returns the worst estimated code
+  // size in case that relocations are not possible without trampolines (in
+  // that case some extra code at the end of the current code buffer is
+  // generated during relocation).
+  size_t estimatedSize = code.codeSize();
 
-  // Instead of rolling our own virtual memory allocator we can use the one
-  // AsmJit uses. It's decoupled so you don't need to use Runtime for that.
+  // Instead of rolling up our own memory allocator we can use the one AsmJit
+  // provides. It's decoupled so you don't need to use `JitRuntime` for that.
   JitAllocator allocator;
 
-  void* p = allocator.alloc(size);        // Allocate a virtual memory (executable).
-  if (!p) return 0;                       // Handle a possible out-of-memory case.
+  // Allocate an executable virtual memory and handle a possible failure.
+  void* p = allocator.alloc(estimatedSize);
+  if (!p) return 0;
 
-  size_t realSize = code.relocate(p);     // Relocate & store the output in 'p'.
+  // Now relocate the code to the address provided by the memory allocator.
+  // Please note that this DOESN'T COPY anything to `p`. This function will
+  // store the address in CodeInfo and use relocation entries to patch the
+  // existing code in all sections to respect the base address provided.
+  code.relocateToBase((uint64_t)p);
+
+  // This is purely optional. There are cases in which the relocation can
+  // omit unneeded data, which would shrink the size of address table. If
+  // that happened the `codeSize` returned after `relocateToBase()` would
+  // be smaller than the originally `estimatedSize`.
+  size_t codeSize = code.codeSize();
+
+  // This will copy code from all sections to `p`. Iterating over all
+  // sections and calling `memcpy()` would work as well, however, this
+  // function supports additional options that can be used to also zero
+  // pad sections' virtual size, etc.
+  //
+  // With some additional features, copyFlattenData() does roughly this:
+  //   for (SectionEntry* section : code.sectionEntries())
+  //     memcpy((uint8_t*)p + section->offset(),
+  //            section->data(),
+  //            section->bufferSize());
+  code.copyFlattenedData(p, codeSize, CodeHolder::kCopyWithPadding);
 
   // Execute the generated function.
   int inA[4] = { 4, 3, 2, 1 };
@@ -589,22 +623,17 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-Configure the CodeInfo by calling `CodeInfo::setBaseAddress()` to initialize it to a user-provided base-address before passing it to `CodeHolder`:
+If you know your base-address in advance (before code generation) you can use `CodeInfo::setBaseAddress()` to setup its initial value. In that case Assembler will know the absolute position of each instruction and would be able to use it during instruction encoding and prevent relocations in case the instruction is encodable. The following example shows how to configure the base address:
 
 ```c++
-// Configure CodeInfo.
+// Configure CodeInfo with base address.
 CodeInfo ci(...);
 ci.setBaseAddress(uint64_t(0x1234));
 
 // Then initialize CodeHolder with it.
 CodeHolder code;
 code.init(ci);
-
-// ... after you emit the machine code it will be relocated to the base address
-//     provided and stored in the pointer passed to `CodeHolder::relocate()`.
 ```
-
-TODO: Maybe `CodeHolder::relocate()` is not the best name?
 
 ### Using Native Registers - zax, zbx, zcx, ...
 

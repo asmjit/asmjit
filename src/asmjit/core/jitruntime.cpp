@@ -80,30 +80,48 @@ JitRuntime::~JitRuntime() noexcept {}
 // ============================================================================
 
 Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
-  size_t codeSize = code->codeSize();
-  if (ASMJIT_UNLIKELY(codeSize == 0)) {
-    *dst = nullptr;
+  *dst = nullptr;
+
+  ASMJIT_PROPAGATE(code->flatten());
+  ASMJIT_PROPAGATE(code->resolveUnresolvedLinks());
+
+  size_t estimatedCodeSize = code->codeSize();
+  if (ASMJIT_UNLIKELY(estimatedCodeSize == 0))
     return DebugUtils::errored(kErrorNoCodeGenerated);
-  }
 
-  void* p = _allocator.alloc(codeSize);
-  if (ASMJIT_UNLIKELY(!p)) {
-    *dst = nullptr;
+  uint8_t* p = static_cast<uint8_t*>(_allocator.alloc(estimatedCodeSize));
+  if (ASMJIT_UNLIKELY(!p))
     return DebugUtils::errored(kErrorOutOfMemory);
-  }
 
-  // Relocate the code and release the unused memory back to `JitAllocator`.
-  size_t relocSize = code->relocate(p);
-  if (ASMJIT_UNLIKELY(relocSize == 0)) {
-    *dst = nullptr;
+  // Relocate the code.
+  Error err = code->relocateToBase(uint64_t((void*)p));
+  if (ASMJIT_UNLIKELY(err)) {
     _allocator.release(p);
-    return DebugUtils::errored(kErrorInvalidState);
+    return err;
   }
 
-  if (relocSize < codeSize)
-    _allocator.shrink(p, relocSize);
+  // Recalculate the final code size and shrink the memory we allocated for it
+  // in case that some relocations didn't require records in an address table.
+  size_t codeSize = code->codeSize();
 
-  flush(p, relocSize);
+  for (Section* section : code->_sections) {
+    size_t offset = size_t(section->offset());
+    size_t bufferSize = size_t(section->bufferSize());
+    size_t virtualSize = size_t(section->virtualSize());
+
+    ASMJIT_ASSERT(offset + bufferSize <= codeSize);
+    memcpy(p + offset, section->data(), bufferSize);
+
+    if (virtualSize > bufferSize) {
+      ASMJIT_ASSERT(offset + virtualSize <= codeSize);
+      memset(p + offset + bufferSize, 0, virtualSize - bufferSize);
+    }
+  }
+
+  if (codeSize < estimatedCodeSize)
+    _allocator.shrink(p, codeSize);
+
+  flush(p, codeSize);
   *dst = p;
 
   return kErrorOk;

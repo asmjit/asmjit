@@ -63,6 +63,14 @@ public:
   inline uint8_t* bufferPtr() const noexcept { return _bufferPtr; }
 
   // --------------------------------------------------------------------------
+  // [Section Management]
+  // --------------------------------------------------------------------------
+
+  inline Section* currentSection() const noexcept { return _section; }
+
+  ASMJIT_API Error section(Section* section) override;
+
+  // --------------------------------------------------------------------------
   // [Label Management]
   // --------------------------------------------------------------------------
 
@@ -132,7 +140,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  SectionEntry* _section;                //!< Current section where the assembling happens.
+  Section* _section;                     //!< Current section where the assembling happens.
   uint8_t* _bufferData;                  //!< Start of the CodeBuffer of the current section.
   uint8_t* _bufferEnd;                   //!< End (first invalid byte) of the current section.
   uint8_t* _bufferPtr;                   //!< Pointer in the CodeBuffer of the current section.

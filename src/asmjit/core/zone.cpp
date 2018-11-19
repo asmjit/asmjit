@@ -201,7 +201,7 @@ char* Zone::sformat(const char* fmt, ...) noexcept {
   va_list ap;
 
   va_start(ap, fmt);
-  size = std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf) - 1, fmt, ap);
+  size = unsigned(std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf) - 1, fmt, ap));
   va_end(ap);
 
   buf[size++] = 0;

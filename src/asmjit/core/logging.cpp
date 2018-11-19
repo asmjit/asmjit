@@ -234,25 +234,25 @@ Error Logging::formatTypeId(String& sb, uint32_t typeId) noexcept {
 
   uint32_t baseId = Type::baseOf(typeId);
   switch (baseId) {
-    case Type::kIdIntPtr : typeName = "intptr" ; break;
-    case Type::kIdUIntPtr: typeName = "uintptr"; break;
-    case Type::kIdI8     : typeName = "i8"     ; break;
-    case Type::kIdU8     : typeName = "u8"     ; break;
-    case Type::kIdI16    : typeName = "i16"    ; break;
-    case Type::kIdU16    : typeName = "u16"    ; break;
-    case Type::kIdI32    : typeName = "i32"    ; break;
-    case Type::kIdU32    : typeName = "u32"    ; break;
-    case Type::kIdI64    : typeName = "i64"    ; break;
-    case Type::kIdU64    : typeName = "u64"    ; break;
-    case Type::kIdF32    : typeName = "f32"    ; break;
-    case Type::kIdF64    : typeName = "f64"    ; break;
-    case Type::kIdF80    : typeName = "f80"    ; break;
-    case Type::kIdMask8  : typeName = "mask8"  ; break;
-    case Type::kIdMask16 : typeName = "mask16" ; break;
-    case Type::kIdMask32 : typeName = "mask32" ; break;
-    case Type::kIdMask64 : typeName = "mask64" ; break;
-    case Type::kIdMmx32  : typeName = "mmx32"  ; break;
-    case Type::kIdMmx64  : typeName = "mmx64"  ; break;
+    case Type::kIdIntPtr : typeName = "iptr"  ; break;
+    case Type::kIdUIntPtr: typeName = "uptr"  ; break;
+    case Type::kIdI8     : typeName = "i8"    ; break;
+    case Type::kIdU8     : typeName = "u8"    ; break;
+    case Type::kIdI16    : typeName = "i16"   ; break;
+    case Type::kIdU16    : typeName = "u16"   ; break;
+    case Type::kIdI32    : typeName = "i32"   ; break;
+    case Type::kIdU32    : typeName = "u32"   ; break;
+    case Type::kIdI64    : typeName = "i64"   ; break;
+    case Type::kIdU64    : typeName = "u64"   ; break;
+    case Type::kIdF32    : typeName = "f32"   ; break;
+    case Type::kIdF64    : typeName = "f64"   ; break;
+    case Type::kIdF80    : typeName = "f80"   ; break;
+    case Type::kIdMask8  : typeName = "mask8" ; break;
+    case Type::kIdMask16 : typeName = "mask16"; break;
+    case Type::kIdMask32 : typeName = "mask32"; break;
+    case Type::kIdMask64 : typeName = "mask64"; break;
+    case Type::kIdMmx32  : typeName = "mmx32" ; break;
+    case Type::kIdMmx64  : typeName = "mmx64" ; break;
   }
 
   uint32_t baseSize = Type::sizeOf(baseId);
@@ -350,6 +350,15 @@ Error Logging::formatNode(
         Logging::formatInstruction(sb, flags, cb,
           cb->archId(),
           node->baseInst(), node->operands(), node->opCount()));
+      break;
+    }
+
+    case BaseNode::kNodeSection: {
+      const SectionNode* node = node_->as<SectionNode>();
+      if (cb->_code->isSectionValid(node->id())) {
+        const Section* section = cb->_code->sectionById(node->id());
+        ASMJIT_PROPAGATE(sb.appendFormat(".section %s", section->name()));
+      }
       break;
     }
 

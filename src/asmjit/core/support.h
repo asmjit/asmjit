@@ -361,6 +361,36 @@ template<typename T, typename... ArgsT>
 constexpr T max(const T& a, const T& b, ArgsT&&... args) noexcept { return max(max(a, b), std::forward<ArgsT>(args)...); }
 
 // ============================================================================
+// [asmjit::Support - Overflow Arithmetic]
+// ============================================================================
+
+namespace Internal {
+  template<typename T>
+  ASMJIT_INLINE T addOverflowImpl(T x, T y, FastUInt8* of) noexcept {
+    typedef typename std::make_unsigned<T>::type U;
+
+    U result = U(x) + U(y);
+    *of = FastUInt8(*of | (std::is_unsigned<T>::value ? result < U(x) : T((U(x) ^ ~U(y)) & (U(x) ^ result)) < 0));
+    return T(result);
+  }
+
+  template<typename T>
+  ASMJIT_INLINE T subOverflowImpl(T x, T y, FastUInt8* of) noexcept {
+    typedef typename std::make_unsigned<T>::type U;
+
+    U result = U(x) - U(y);
+    *of = FastUInt8(*of | (std::is_unsigned<T>::value ? result > U(x) : T((U(x) ^ U(y)) & (U(x) ^ result)) < 0));
+    return T(result);
+  }
+}
+
+template<typename T>
+static ASMJIT_INLINE T addOverflow(const T& x, const T& y, FastUInt8* of) noexcept { return T(Internal::addOverflowImpl(x, y, of)); }
+
+template<typename T>
+static ASMJIT_INLINE T subOverflow(const T& x, const T& y, FastUInt8* of) noexcept { return T(Internal::subOverflowImpl(x, y, of)); }
+
+// ============================================================================
 // [asmjit::Support - Alignment]
 // ============================================================================
 
@@ -626,8 +656,8 @@ static inline int32_t readI16x(const void* p) noexcept {
   }
   else {
     int32_t hi = readI8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 1 : 0));
-    int32_t lo = readU8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 0 : 1));
-    return shl(hi, 8) | lo;
+    uint32_t lo = readU8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 0 : 1));
+    return shl(hi, 8) | int32_t(lo);
   }
 }
 

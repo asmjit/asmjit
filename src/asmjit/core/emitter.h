@@ -192,6 +192,7 @@ public:
   //! Get emitter options.
   inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
 
+  // TODO: Deprecate and remove, CodeHolder::addEmitterOptions() is the way.
   inline void addEmitterOptions(uint32_t options) noexcept {
     _emitterOptions |= options;
     onUpdateGlobalInstOptions();
@@ -264,6 +265,12 @@ public:
   inline void setInlineComment(const char* s) noexcept { _inlineComment = s; }
   //! Reset annotation of the next instruction to null.
   inline void resetInlineComment() noexcept { _inlineComment = nullptr; }
+
+  // --------------------------------------------------------------------------
+  // [Section Management]
+  // --------------------------------------------------------------------------
+
+  virtual Error section(Section* section) = 0;
 
   // --------------------------------------------------------------------------
   // [Label Management]
@@ -472,12 +479,12 @@ public:
   RegInfo _gpRegInfo;                    //!< Native GP register signature and signature related information.
 
   uint32_t _emitterOptions;              //!< Emitter options, always in sync with CodeHolder.
-  uint32_t _privateData;                 //!< Internal private data used freely by any BaseEmitter.
+  uint32_t _privateData;                 //!< Internal private data used freely by any emitter.
 
-  uint32_t _instOptions;                 //!< Next instruction options                (affects the next instruction).
-  uint32_t _globalInstOptions;           //!< Global Instruction options              (combined with `_instOptions` by `emit...()`).
+  uint32_t _instOptions;                 //!< Next instruction options (affects the next instruction).
+  uint32_t _globalInstOptions;           //!< Global Instruction options (combined with `_instOptions` by `emit...()`).
   RegOnly _extraReg;                     //!< Extra register (op-mask {k} on AVX-512) (affects the next instruction).
-  const char* _inlineComment;            //!< Inline comment of the next instruction  (affects the next instruction).
+  const char* _inlineComment;            //!< Inline comment of the next instruction (affects the next instruction).
 };
 
 //! \}

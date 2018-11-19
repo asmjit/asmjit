@@ -204,7 +204,7 @@ static void dumpSizeOf(void) {
     DUMP_TYPE(ConstPool);
     DUMP_TYPE(LabelEntry);
     DUMP_TYPE(RelocEntry);
-    DUMP_TYPE(SectionEntry);
+    DUMP_TYPE(Section);
     DUMP_TYPE(String);
     DUMP_TYPE(Target);
     DUMP_TYPE(Zone);

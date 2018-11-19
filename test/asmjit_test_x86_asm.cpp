@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <setjmp.h>
 
 #include "./asmjit.h"
 
@@ -53,6 +52,7 @@ static void makeRawFunc(x86::Emitter* emitter) {
 
   emitter->movdqu(vec0, x86::ptr(src_a)); // Load 4 ints from [src_a] to XMM0.
   emitter->movdqu(vec1, x86::ptr(src_b)); // Load 4 ints from [src_b] to XMM1.
+
   emitter->paddd(vec0, vec1);             // Add 4 ints in XMM1 to XMM0.
   emitter->movdqu(x86::ptr(dst), vec0);   // Store the result to [dst].
 

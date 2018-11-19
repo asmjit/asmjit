@@ -195,7 +195,7 @@ FuncRetNode* BaseCompiler::addRet(const Operand_& o0, const Operand_& o1) noexce
 // ============================================================================
 
 FuncCallNode* BaseCompiler::newCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept {
-  FuncCallNode* node = newNodeT<FuncCallNode>(instId, 0);
+  FuncCallNode* node = newNodeT<FuncCallNode>(instId, 0u);
   if (ASMJIT_UNLIKELY(!node)) {
     reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;

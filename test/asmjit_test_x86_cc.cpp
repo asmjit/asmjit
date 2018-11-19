@@ -21,11 +21,11 @@ using namespace asmjit;
 
 class CmdLine {
 public:
-  CmdLine(int argc, const char* const* argv)
+  CmdLine(int argc, const char* const* argv) noexcept
     : _argc(argc),
       _argv(argv) {}
 
-  bool hasArg(const char* arg) {
+  bool hasArg(const char* arg) noexcept {
     for (int i = 1; i < _argc; i++)
       if (::strcmp(_argv[i], arg) == 0)
         return true;

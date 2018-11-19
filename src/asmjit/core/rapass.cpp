@@ -1165,7 +1165,7 @@ Error RAPass::runLocalAllocator() noexcept {
           }
           else if (successors.size() > 1) {
             // TODO: Jump table.
-            ASMJIT_ASSERT(!"IMPLEMENTED");
+            ASMJIT_ASSERT(false);
           }
           else {
             // Otherwise this is an unconditional jump, special handling isn't required.
@@ -1317,7 +1317,7 @@ Error RAPass::updateStackFrame() noexcept {
 
   // StackAllocator allocates all stots starting from [0], adjust them when necessary.
   if (frame.localStackOffset() != 0)
-    ASMJIT_PROPAGATE(_stackAllocator.adjustSlotOffsets(frame.localStackOffset()));
+    ASMJIT_PROPAGATE(_stackAllocator.adjustSlotOffsets(int32_t(frame.localStackOffset())));
 
   // Again, if there are stack arguments allocated in function's stack we have
   // to handle them. This handles all cases (either regular or dynamic stack

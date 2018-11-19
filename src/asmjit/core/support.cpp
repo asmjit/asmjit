@@ -57,12 +57,12 @@ static void testBitUtils() noexcept {
   uint32_t i;
 
   INFO("Support::shl() / shr()");
-  EXPECT(Support::shl<int32_t>(0x00001111, 16) == int32_t(0x11110000u));
-  EXPECT(Support::shl<uint32_t>(0x00001111, 16) == uint32_t(0x11110000u));
-  EXPECT(Support::shr<int32_t>(0x11110000u, 16) == int32_t(0x00001111u));
-  EXPECT(Support::shr<uint32_t>(0x11110000u, 16) == uint32_t(0x00001111u));
-  EXPECT(Support::sar<int32_t>(0xFFFF0000u, 16) == int32_t(0xFFFFFFFFu));
-  EXPECT(Support::sar<uint32_t>(0xFFFF0000u, 16) == uint32_t(0xFFFFFFFFu));
+  EXPECT(Support::shl(int32_t(0x00001111), 16) == int32_t(0x11110000u));
+  EXPECT(Support::shl(uint32_t(0x00001111), 16) == uint32_t(0x11110000u));
+  EXPECT(Support::shr(int32_t(0x11110000u), 16) == int32_t(0x00001111u));
+  EXPECT(Support::shr(uint32_t(0x11110000u), 16) == uint32_t(0x00001111u));
+  EXPECT(Support::sar(int32_t(0xFFFF0000u), 16) == int32_t(0xFFFFFFFFu));
+  EXPECT(Support::sar(uint32_t(0xFFFF0000u), 16) == uint32_t(0xFFFFFFFFu));
 
   INFO("Support::blsi()");
   for (i = 0; i < 32; i++) EXPECT(Support::blsi(uint32_t(1) << i) == uint32_t(1) << i);
