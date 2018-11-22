@@ -132,7 +132,7 @@ static ASMJIT_INLINE bool x86CheckOSig(const X86Inst::OSignature& op, const X86I
     if ((refMemFlags & opMemFlags) == 0)
       return false;
 
-    if ((refMemFlags & X86Inst::kMemOpBaseOnly) && !(opMemFlags && X86Inst::kMemOpBaseOnly))
+    if ((refMemFlags & X86Inst::kMemOpBaseOnly) && !(opMemFlags & X86Inst::kMemOpBaseOnly))
       return false;
   }
 
