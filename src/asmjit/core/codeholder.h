@@ -142,10 +142,6 @@ struct CodeBuffer {
 //! Section entry.
 class Section {
 public:
-  enum Id : uint32_t {
-    kInvalidId       = 0xFFFFFFFFu       //!< Invalid section id.
-  };
-
   //! Section flags.
   enum Flags : uint32_t {
     kFlagExec        = 0x00000001u,      //!< Executable (.text sections).
@@ -227,7 +223,7 @@ struct LabelLink {
   LabelLink* next;
   //! Section id where the label is bound.
   uint32_t sectionId;
-  //! Relocation id or RelocEntry::kInvalidId.
+  //! Relocation id or Globals::kInvalidId.
   uint32_t relocId;
   //! Label offset relative to the start of the section.
   size_t offset;
@@ -270,11 +266,14 @@ public:
   //! Gets label flags, returns 0 at the moment.
   inline uint32_t flags() const noexcept { return _flags; }
 
-  inline bool hasParent() const noexcept { return _parentId != 0; }
+  inline bool hasParent() const noexcept { return _parentId != Globals::kInvalidId; }
   //! Gets label's parent id.
   inline uint32_t parentId() const noexcept { return _parentId; }
-  //! Gets label's section id where it's bound to (or `Section::kInvalidId` if it's not bound yet).
-  inline uint32_t sectionId() const noexcept { return _sectionId; }
+
+  //! Gets the section where the label was bound.
+  //!
+  //! If the label was not yet bound the return value is `nullptr`.
+  inline Section* section() const noexcept { return _section; }
 
   //! Gets whether the label has name.
   inline bool hasName() const noexcept { return !_name.empty(); }
@@ -296,12 +295,12 @@ public:
   inline LabelLink* links() const noexcept { return _links; }
 
   //! Gets whether the label is bound.
-  inline bool isBound() const noexcept { return _sectionId != Section::kInvalidId; }
+  inline bool isBound() const noexcept { return _section != nullptr; }
   //! Gets whether the label is bound to a the given `sectionId`.
-  inline bool isBoundTo(uint32_t sectionId) const noexcept { return _sectionId == sectionId; }
+  inline bool isBoundTo(Section* section) const noexcept { return _section == section; }
 
   //! Gets the label offset (only useful if the label is bound).
-  inline intptr_t offset() const noexcept { return _offset; }
+  inline uint64_t offset() const noexcept { return _offset; }
 
   //! Gets the hash-value of label's name and its parent label (if any).
   //!
@@ -317,7 +316,7 @@ public:
   // granularity of 32 bytes anyway). This gives `_name` the remaining space,
   // which is should be 16 bytes on 64-bit and 28 bytes on 32-bit architectures.
   static constexpr uint32_t kStaticNameSize =
-    64 - (sizeof(ZoneHashNode) + 16 + sizeof(intptr_t) + sizeof(LabelLink*));
+    64 - (sizeof(ZoneHashNode) + 8 + sizeof(Section*) + sizeof(size_t) + sizeof(LabelLink*));
 
   //! Label type, see `Label::LabelType`.
   uint8_t _type;
@@ -327,12 +326,10 @@ public:
   uint16_t _reserved16;
   //! Label parent id or zero.
   uint32_t _parentId;
-  //! Section id or `Section::kInvalidId`.
-  uint32_t _sectionId;
-  //! Reserved.
-  uint32_t _reserved32;
-  //! Label offset.
-  intptr_t _offset;
+  //! Label offset relative to the start of the `_section`.
+  uint64_t _offset;
+  //! Section where the label was bound.
+  Section* _section;
   //! Label links.
   LabelLink* _links;
   //! Label name.
@@ -355,11 +352,6 @@ public:
 //!                        +- Source offset
 //! ```
 struct RelocEntry {
-  enum Id : uint32_t {
-    //! Invalid relocation id.
-    kInvalidId = 0xFFFFFFFFu
-  };
-
   //! Relocation type.
   enum RelocType : uint32_t {
     //! None/deleted (no relocation).
@@ -534,20 +526,20 @@ public:
   // [Logging & Error Handling]
   // --------------------------------------------------------------------------
 
-  //! Get the attached logger.
+  //! Gets the attached logger.
   inline Logger* logger() const noexcept { return _logger; }
-  //! Attach a `logger` to CodeHolder and propagate it to all attached code emitters.
+  //! Attaches a `logger` to CodeHolder and propagates it to all attached emitters.
   ASMJIT_API void setLogger(Logger* logger) noexcept;
-  //! Reset the logger (does nothing if not attached).
+  //! Resets the logger to none.
   inline void resetLogger() noexcept { setLogger(nullptr); }
 
-  //! Get whether the global error handler is attached.
+  //! Gets whether the global error handler is attached.
   inline bool hasErrorHandler() const noexcept { return _errorHandler != nullptr; }
-  //! Get the global error handler.
+  //! Gets the global error handler.
   inline ErrorHandler* errorHandler() const noexcept { return _errorHandler; }
-  //! Set the global error handler.
+  //! Sets the global error handler.
   inline void setErrorHandler(ErrorHandler* handler) noexcept { _errorHandler = handler; }
-  //! Reset the global error handler (does nothing if not attached).
+  //! Resets the global error handler to none.
   inline void resetErrorHandler() noexcept { setErrorHandler(nullptr); }
 
   // --------------------------------------------------------------------------
@@ -569,10 +561,10 @@ public:
   //! Gets whether the given `sectionId` is valid.
   inline bool isSectionValid(uint32_t sectionId) const noexcept { return sectionId < _sections.size(); }
 
-  //! Creates a new section and return its pointer in `entryOut`.
+  //! Creates a new section and return its pointer in `sectionOut`.
   //!
   //! Returns `Error`, does not report a possible error to `ErrorHandler`.
-  ASMJIT_API Error newSection(Section** entryOut, const char* name, size_t nameSize = SIZE_MAX, uint32_t flags = 0, uint32_t alignment = 1) noexcept;
+  ASMJIT_API Error newSection(Section** sectionOut, const char* name, size_t nameSize = SIZE_MAX, uint32_t flags = 0, uint32_t alignment = 1) noexcept;
 
   //! Gets a section entry of the given index.
   inline Section* sectionById(uint32_t sectionId) const noexcept { return _sections[sectionId]; }
@@ -616,6 +608,74 @@ public:
   // [Labels / Symbols]
   // --------------------------------------------------------------------------
 
+  //! Get array of `LabelEntry*` records.
+  inline const ZoneVector<LabelEntry*>& labelEntries() const noexcept { return _labelEntries; }
+
+  //! Get number of labels created.
+  inline uint32_t labelCount() const noexcept { return _labelEntries.size(); }
+
+  //! Get whether the label having `id` is valid (i.e. created by `newLabelEntry()`).
+  inline bool isLabelValid(uint32_t labelId) const noexcept {
+    return labelId < _labelEntries.size();
+  }
+
+  //! Get whether the `label` is valid (i.e. created by `newLabelEntry()`).
+  inline bool isLabelValid(const Label& label) const noexcept {
+    return label.id() < _labelEntries.size();
+  }
+
+  //! \overload
+  inline bool isLabelBound(uint32_t labelId) const noexcept {
+    return isLabelValid(labelId) && _labelEntries[labelId]->isBound();
+  }
+
+  //! Get whether the `label` is already bound.
+  //!
+  //! Returns `false` if the `label` is not valid.
+  inline bool isLabelBound(const Label& label) const noexcept {
+    return isLabelBound(label.id());
+  }
+
+  //! Get information about a label of the given `id`.
+  inline LabelEntry* labelEntry(uint32_t labelId) const noexcept {
+    return isLabelValid(labelId) ? _labelEntries[labelId] : static_cast<LabelEntry*>(nullptr);
+  }
+
+  //! Get information about the given `label`.
+  inline LabelEntry* labelEntry(const Label& label) const noexcept {
+    return labelEntry(label.id());
+  }
+
+  //! Gets offset of a `Label` by its `labelId`.
+  //!
+  //! The offset returned is relative to the start of the section. Zero offset
+  //! is returned for unbound labels, which is their initial offset value.
+  inline uint64_t labelOffset(uint32_t labelId) const noexcept {
+    ASMJIT_ASSERT(isLabelValid(labelId));
+    return _labelEntries[labelId]->offset();
+  }
+
+  //! \overload
+  inline uint64_t labelOffset(const Label& label) const noexcept {
+    return labelOffset(label.id());
+  }
+
+  //! Gets offset of a label by it's `labelId` relative to the base offset.
+  //!
+  //! \remarks The offset of the section where the label is bound must be valid
+  //! in order to use this function, otherwise the value returned will not be
+  //! reliable.
+  inline uint64_t labelOffsetFromBase(uint32_t labelId) const noexcept {
+    ASMJIT_ASSERT(isLabelValid(labelId));
+    const LabelEntry* le = _labelEntries[labelId];
+    return (le->isBound() ? le->section()->offset() : uint64_t(0)) + le->offset();
+  }
+
+  //! \overload
+  inline uint64_t labelOffsetFromBase(const Label& label) const noexcept {
+    return labelOffsetFromBase(label.id());
+  }
+
   //! Creates a new anonymous label and return its id in `idOut`.
   //!
   //! Returns `Error`, does not report error to `ErrorHandler`.
@@ -624,83 +684,35 @@ public:
   //! Create a new named label label-type `type`.
   //!
   //! Returns `Error`, does not report a possible error to `ErrorHandler`.
-  ASMJIT_API Error newNamedLabelEntry(LabelEntry** entryOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId) noexcept;
+  ASMJIT_API Error newNamedLabelEntry(LabelEntry** entryOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId = Globals::kInvalidId) noexcept;
 
   //! Gets a label id by name.
-  ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept;
+  ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept;
 
-  inline Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept {
+  inline Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept {
     return Label(labelIdByName(name, nameSize, parentId));
   }
+
+  //! Gets whether there are any unresolved label links.
+  inline bool hasUnresolvedLinks() const noexcept { return _unresolvedLinkCount != 0; }
+  //! Gets the number of label links, which are unresolved.
+  inline size_t unresolvedLinkCount() const noexcept { return _unresolvedLinkCount; }
 
   //! Create a new label-link used to store information about yet unbound labels.
   //!
   //! Returns `null` if the allocation failed.
   ASMJIT_API LabelLink* newLabelLink(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel) noexcept;
 
-  //! Get array of `LabelEntry*` records.
-  inline const ZoneVector<LabelEntry*>& labelEntries() const noexcept { return _labelEntries; }
-
-  //! Get information about a label of the given `id`.
-  inline LabelEntry* labelEntry(uint32_t id) const noexcept {
-    uint32_t index = Operand::unpackId(id);
-    return index < _labelEntries.size() ? _labelEntries[index] : static_cast<LabelEntry*>(nullptr);
-  }
-  //! Get information about the given `label`.
-  inline LabelEntry* labelEntry(const Label& label) const noexcept {
-    return labelEntry(label.id());
-  }
-
-  //! Get a `label` offset or -1 if the label is not yet bound.
-  inline intptr_t labelOffset(uint32_t id) const noexcept {
-    ASMJIT_ASSERT(isLabelValid(id));
-    return _labelEntries[Operand::unpackId(id)]->offset();
-  }
-  //! Get a `label` offset or -1 if the label is not yet bound.
-  inline intptr_t labelOffset(const Label& label) const noexcept {
-    return labelOffset(label.id());
-  }
-
-  //! Get number of labels created.
-  inline uint32_t labelCount() const noexcept { return _labelEntries.size(); }
-
-  //! Get whether the label having `id` is valid (i.e. created by `newLabelEntry()`).
-  inline bool isLabelValid(uint32_t labelId) const noexcept {
-    uint32_t index = Operand::unpackId(labelId);
-    return index < _labelEntries.size();
-  }
-  //! Get whether the `label` is valid (i.e. created by `newLabelEntry()`).
-  inline bool isLabelValid(const Label& label) const noexcept {
-    return isLabelValid(label.id());
-  }
-
-  //! \overload
-  inline bool isLabelBound(uint32_t id) const noexcept {
-    uint32_t index = Operand::unpackId(id);
-    return index < _labelEntries.size() && _labelEntries[index]->isBound();
-  }
-  //! Get whether the `label` is already bound.
-  //!
-  //! Returns `false` if the `label` is not valid.
-  inline bool isLabelBound(const Label& label) const noexcept {
-    return isLabelBound(label.id());
-  }
-
-  //! Gets whether there are any unresolved label links.
-  inline bool hasUnresolvedLabelLinks() const noexcept { return _unresolvedLinkCount != 0; }
-  //! Gets the number of label links, which are unresolved.
-  inline size_t unresolvedLinkCount() const noexcept { return _unresolvedLinkCount; }
-
-  //! Bind a label to a given `sectionId` and `offset` (relative to start of the section).
-  //!
-  //! This function is generally used by `BaseAssembler::bind()` to do the heavy lifting.
-  ASMJIT_API Error bindLabel(const Label& label, uint32_t sectionId, size_t offset) noexcept;
-
   //! Resolves cross-section links (`LabelLink`) associated with each label that
   //! was used as a destination in code of a different section. It's only useful
   //! to people that use multiple sections as it will do nothing if the code only
   //! contains a single section in which cross-section links are not possible.
   ASMJIT_API Error resolveUnresolvedLinks() noexcept;
+
+  //! Bind a label to a given `sectionId` and `offset` (relative to start of the section).
+  //!
+  //! This function is generally used by `BaseAssembler::bind()` to do the heavy lifting.
+  ASMJIT_API Error bindLabel(const Label& label, uint32_t sectionId, uint64_t offset) noexcept;
 
   // --------------------------------------------------------------------------
   // [Relocations]
@@ -728,7 +740,7 @@ public:
   //! NOTE: This should never be called more than once.
   ASMJIT_API Error flatten() noexcept;
 
-  //! Get the size code & data of all sections.
+  //! Get the size of code & data of all sections.
   ASMJIT_API size_t codeSize() const noexcept;
 
   //! Relocate the code to the given `baseAddress`.

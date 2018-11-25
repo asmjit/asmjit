@@ -158,8 +158,6 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   jitallocator.h
   jitruntime.cpp
   jitruntime.h
-  jitutils.cpp
-  jitutils.h
   logging.cpp
   logging.h
   misc_p.h
@@ -184,6 +182,8 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/core
   target.h
   type.cpp
   type.h
+  virtmem.cpp
+  virtmem.h
   zone.cpp
   zone.h
   zonehash.cpp

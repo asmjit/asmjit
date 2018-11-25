@@ -278,8 +278,8 @@ Error X86RACFGBuilder::newInst(InstNode** out, uint32_t instId, const OpInfo* op
       const Reg& reg = op.as<Reg>();
       uint32_t flags = opInfo[i].flags();
 
-      uint32_t vIndex = Operand::unpackId(reg.id());
-      if (vIndex < Operand::kPackedIdCount) {
+      uint32_t vIndex = Operand::virtIdToIndex(reg.id());
+      if (vIndex < Operand::kVirtIdCount) {
         RAWorkReg* workReg;
         ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 
@@ -294,11 +294,11 @@ Error X86RACFGBuilder::newInst(InstNode** out, uint32_t instId, const OpInfo* op
 
         if (opInfo[i].isUse()) {
           useId = physRegs[i];
-          useRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
+          useRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._baseId));
         }
         else {
           outId = physRegs[i];
-          outRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
+          outRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._baseId));
         }
 
         ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -359,8 +359,8 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
             }
           }
 
-          uint32_t vIndex = Operand::unpackId(reg.id());
-          if (vIndex < Operand::kPackedIdCount) {
+          uint32_t vIndex = Operand::virtIdToIndex(reg.id());
+          if (vIndex < Operand::kVirtIdCount) {
             RAWorkReg* workReg;
             ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 
@@ -375,11 +375,11 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 
             if (opInfo[i].isUse()) {
               useId = opInfo[i].physId();
-              useRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
+              useRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._baseId));
             }
             else {
               outId = opInfo[i].physId();
-              outRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._reg.id));
+              outRewriteMask = Support::bitMask(inst->getRewriteIndex(&reg._baseId));
             }
 
             ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -393,12 +393,12 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
           const Mem& mem = op.as<Mem>();
           if (mem.isRegHome()) {
             RAWorkReg* workReg;
-            ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::unpackId(mem.baseId()), &workReg));
+            ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(mem.baseId()), &workReg));
             _pass->getOrCreateStackSlot(workReg);
           }
           else if (mem.hasBaseReg()) {
-            uint32_t vIndex = Operand::unpackId(mem.baseId());
-            if (vIndex < Operand::kPackedIdCount) {
+            uint32_t vIndex = Operand::virtIdToIndex(mem.baseId());
+            if (vIndex < Operand::kVirtIdCount) {
               RAWorkReg* workReg;
               ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 
@@ -412,7 +412,7 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
               uint32_t outRewriteMask = 0;
 
               useId = opInfo[i].physId();
-              useRewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._reg.id));
+              useRewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._baseId));
 
               uint32_t flags = useId != BaseReg::kIdBad ? uint32_t(opInfo[i].flags()) : uint32_t(RATiedReg::kUse | RATiedReg::kRead);
               ASMJIT_PROPAGATE(ib.add(workReg, flags, allocable, useId, useRewriteMask, outId, outRewriteMask));
@@ -420,14 +420,14 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
           }
 
           if (mem.hasIndexReg()) {
-            uint32_t vIndex = Operand::unpackId(mem.indexId());
-            if (vIndex < Operand::kPackedIdCount) {
+            uint32_t vIndex = Operand::virtIdToIndex(mem.indexId());
+            if (vIndex < Operand::kVirtIdCount) {
               RAWorkReg* workReg;
               ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 
               uint32_t group = workReg->group();
               uint32_t allocable = _pass->_availableRegs[group];
-              uint32_t rewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._mem.index));
+              uint32_t rewriteMask = Support::bitMask(inst->getRewriteIndex(&mem._mem.indexId));
 
               ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kUse | RATiedReg::kRead, allocable, BaseReg::kIdBad, rewriteMask, BaseReg::kIdBad, 0));
             }
@@ -438,8 +438,8 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 
     // Handle extra operand (either REP {cx|ecx|rcx} or AVX-512 {k} selector).
     if (inst->hasExtraReg()) {
-      uint32_t vIndex = Operand::unpackId(inst->extraReg().id());
-      if (vIndex < Operand::kPackedIdCount) {
+      uint32_t vIndex = Operand::virtIdToIndex(inst->extraReg().id());
+      if (vIndex < Operand::kVirtIdCount) {
         RAWorkReg* workReg;
         ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 
@@ -559,7 +559,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
       if (op.isReg()) {
         const Reg& reg = op.as<Reg>();
         RAWorkReg* workReg;
-        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::unpackId(reg.id()), &workReg));
+        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
 
         if (arg.isReg()) {
           uint32_t regGroup = workReg->group();
@@ -583,7 +583,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
           ASMJIT_PROPAGATE(moveImmToRegArg(call, arg, op.as<Imm>(), &reg));
 
           RAWorkReg* workReg;
-          ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::unpackId(reg.id()), &workReg));
+          ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
           ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kUse | RATiedReg::kRead, 0, arg.regId(), 0, Gp::kIdBad, 0));
         }
         else {
@@ -603,7 +603,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
     if (op.isReg()) {
       const Reg& reg = op.as<Reg>();
       RAWorkReg* workReg;
-      ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::unpackId(reg.id()), &workReg));
+      ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
 
       if (ret.isReg()) {
         uint32_t regGroup = workReg->group();
@@ -959,9 +959,9 @@ Error X86RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
     if (op.isReg()) {
       // Register return value.
       const Reg& reg = op.as<Reg>();
-      uint32_t vIndex = Operand::unpackId(reg.id());
+      uint32_t vIndex = Operand::virtIdToIndex(reg.id());
 
-      if (vIndex < Operand::kPackedIdCount) {
+      if (vIndex < Operand::kVirtIdCount) {
         RAWorkReg* workReg;
         ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
 

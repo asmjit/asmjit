@@ -5181,13 +5181,13 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
         if (ASMJIT_UNLIKELY(opFlags == 0))
           return DebugUtils::errored(kErrorInvalidRegType);
 
-        // If `regId` is equal or greater than Operand::kPackedIdMin it means
+        // If `regId` is equal or greater than Operand::kVirtIdMin it means
         // that the register is virtual and its index will be assigned later
         // by the register allocator. We must pass unless asked to disallow
         // virtual registers.
         // TODO: We need an option to refuse virtual regs here.
         uint32_t regId = op.id();
-        if (regId < Operand::kPackedIdMin) {
+        if (regId < Operand::kVirtIdMin) {
           if (ASMJIT_UNLIKELY(regId >= 32))
             return DebugUtils::errored(kErrorInvalidPhysId);
 
@@ -5249,7 +5249,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           // Create information that will be validated only if this is an implicit
           // memory operand. Basically only usable for string instructions and other
           // instructions where memory operand is implicit and has 'seg:[reg]' form.
-          if (baseId < Operand::kPackedIdMin) {
+          if (baseId < Operand::kVirtIdMin) {
             // Physical base id.
             regMask = Support::bitMask(baseId);
             combinedRegMask |= regMask;
@@ -5318,7 +5318,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
             return DebugUtils::errored(kErrorInvalidAddress);
 
           uint32_t indexId = m.indexId();
-          if (indexId < Operand::kPackedIdMin)
+          if (indexId < Operand::kVirtIdMin)
             combinedRegMask |= Support::bitMask(indexId);
 
           // Only used for implicit memory operands having 'seg:[reg]' form, so clear it.

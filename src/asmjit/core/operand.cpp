@@ -35,21 +35,17 @@ UNIT(asmjit_core_operand) {
   EXPECT(a.isImm() == false);
   EXPECT(a.isLabel() == false);
   EXPECT(a == b);
-
-  EXPECT(a._p32[2] == 0);
-  EXPECT(a._p32[3] == 0);
+  EXPECT(a._data64 == 0);
 
   INFO("Checking basic functionality of Label");
   Label label;
   EXPECT(label.isValid() == false);
-  EXPECT(label.id() == 0);
+  EXPECT(label.id() == Globals::kInvalidId);
 
   INFO("Checking basic functionality of BaseReg");
   EXPECT(BaseReg().isReg() == true);
   EXPECT(BaseReg().isValid() == false);
-
-  EXPECT(BaseReg()._p32[2] == 0);
-  EXPECT(BaseReg()._p32[3] == 0);
+  EXPECT(BaseReg()._data64 == 0);
   EXPECT(dummy.as<BaseReg>().isValid() == false);
 
   // Create some register (not specific to any architecture).
@@ -58,33 +54,32 @@ UNIT(asmjit_core_operand) {
                                     (8 << Operand::kSignatureSizeShift    ) ;
   BaseReg r1(rSig, 5);
 
-  EXPECT(r1.isValid()      == true);
-  EXPECT(r1.isReg()        == true);
-  EXPECT(r1.isReg(1)       == true);
-  EXPECT(r1.isPhysReg()    == true);
-  EXPECT(r1.isVirtReg()    == false);
+  EXPECT(r1.isValid()   == true);
+  EXPECT(r1.isReg()     == true);
+  EXPECT(r1.isReg(1)    == true);
+  EXPECT(r1.isPhysReg() == true);
+  EXPECT(r1.isVirtReg() == false);
   EXPECT(r1.signature() == rSig);
   EXPECT(r1.type()      == 1);
   EXPECT(r1.group()     == 2);
-  EXPECT(r1.size()         == 8);
-  EXPECT(r1.id()           == 5);
-  EXPECT(r1.isReg(1, 5)    == true); // RegType and Id.
-  EXPECT(r1._p32[2] == 0);
-  EXPECT(r1._p32[3] == 0);
+  EXPECT(r1.size()      == 8);
+  EXPECT(r1.id()        == 5);
+  EXPECT(r1.isReg(1, 5) == true); // RegType and Id.
+  EXPECT(r1._data64     == 0);
 
   // The same type of register having different id.
   BaseReg r2(r1, 6);
-  EXPECT(r2.isValid()      == true);
-  EXPECT(r2.isReg()        == true);
-  EXPECT(r2.isReg(1)       == true);
-  EXPECT(r2.isPhysReg()    == true);
-  EXPECT(r2.isVirtReg()    == false);
+  EXPECT(r2.isValid()   == true);
+  EXPECT(r2.isReg()     == true);
+  EXPECT(r2.isReg(1)    == true);
+  EXPECT(r2.isPhysReg() == true);
+  EXPECT(r2.isVirtReg() == false);
   EXPECT(r2.signature() == rSig);
   EXPECT(r2.type()      == r1.type());
   EXPECT(r2.group()     == r1.group());
-  EXPECT(r2.size()         == r1.size());
-  EXPECT(r2.id()           == 6);
-  EXPECT(r2.isReg(1, 6)    == true);
+  EXPECT(r2.size()      == r1.size());
+  EXPECT(r2.id()        == 6);
+  EXPECT(r2.isReg(1, 6) == true);
 
   r1.reset();
   EXPECT(!r1.isReg());

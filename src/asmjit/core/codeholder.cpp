@@ -334,7 +334,7 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
     return kErrorOk;
 
   if (cb->isFixed())
-    return DebugUtils::errored(kErrorCodeTooLarge);
+    return DebugUtils::errored(kErrorTooLarge);
 
   size_t kInitialCapacity = 8096;
   if (capacity < kInitialCapacity)
@@ -362,7 +362,7 @@ Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
   if (n <= capacity) return kErrorOk;
 
   if (cb->isFixed())
-    return DebugUtils::errored(kErrorCodeTooLarge);
+    return DebugUtils::errored(kErrorTooLarge);
 
   return CodeHolder_reserveInternal(this, cb, n);
 }
@@ -371,8 +371,8 @@ Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
 // [asmjit::CodeHolder - Sections]
 // ============================================================================
 
-Error CodeHolder::newSection(Section** entryOut, const char* name, size_t nameSize, uint32_t flags, uint32_t alignment) noexcept {
-  *entryOut = nullptr;
+Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t nameSize, uint32_t flags, uint32_t alignment) noexcept {
+  *sectionOut = nullptr;
 
   if (nameSize == SIZE_MAX)
     nameSize = strlen(name);
@@ -386,8 +386,8 @@ Error CodeHolder::newSection(Section** entryOut, const char* name, size_t nameSi
   if (ASMJIT_UNLIKELY(nameSize > Globals::kMaxSectionNameSize))
     return DebugUtils::errored(kErrorInvalidSectionName);
 
-  uint32_t id = _sections.size();
-  if (ASMJIT_UNLIKELY(id == 0xFFFFFFFFu))
+  uint32_t sectionId = _sections.size();
+  if (ASMJIT_UNLIKELY(sectionId == Globals::kInvalidId))
     return DebugUtils::errored(kErrorTooManySections);
 
   ASMJIT_PROPAGATE(_sections.willGrow(&_allocator));
@@ -396,14 +396,13 @@ Error CodeHolder::newSection(Section** entryOut, const char* name, size_t nameSi
   if (ASMJIT_UNLIKELY(!section))
     return DebugUtils::errored(kErrorOutOfMemory);
 
-  section->_id = id;
+  section->_id = sectionId;
   section->_flags = flags;
   section->_alignment = alignment;
   memcpy(section->_name.str, name, nameSize);
-
   _sections.appendUnsafe(section);
-  *entryOut = section;
 
+  *sectionOut = section;
   return kErrorOk;
 }
 
@@ -519,7 +518,7 @@ LabelLink* CodeHolder::newLabelLink(LabelEntry* le, uint32_t sectionId, size_t o
   le->_links = link;
 
   link->sectionId = sectionId;
-  link->relocId = RelocEntry::kInvalidId;
+  link->relocId = Globals::kInvalidId;
   link->offset = offset;
   link->rel = rel;
 
@@ -530,8 +529,8 @@ LabelLink* CodeHolder::newLabelLink(LabelEntry* le, uint32_t sectionId, size_t o
 Error CodeHolder::newLabelEntry(LabelEntry** entryOut) noexcept {
   *entryOut = 0;
 
-  uint32_t index = _labelEntries.size();
-  if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kPackedIdCount)))
+  uint32_t labelId = _labelEntries.size();
+  if (ASMJIT_UNLIKELY(labelId == Globals::kInvalidId))
     return DebugUtils::errored(kErrorTooManyLabels);
 
   ASMJIT_PROPAGATE(_labelEntries.willGrow(&_allocator));
@@ -540,10 +539,8 @@ Error CodeHolder::newLabelEntry(LabelEntry** entryOut) noexcept {
   if (ASMJIT_UNLIKELY(!le))
     return DebugUtils::errored(kErrorOutOfMemory);
 
-  uint32_t labelId = Operand::packId(index);
   le->_setId(labelId);
-  le->_parentId = 0;
-  le->_sectionId = Section::kInvalidId;
+  le->_parentId = Globals::kInvalidId;
   le->_offset = 0;
   _labelEntries.appendUnsafe(le);
 
@@ -563,14 +560,14 @@ Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, si
 
   switch (type) {
     case Label::kTypeLocal:
-      if (ASMJIT_UNLIKELY(Operand::unpackId(parentId) >= _labelEntries.size()))
+      if (ASMJIT_UNLIKELY(parentId >= _labelEntries.size()))
         return DebugUtils::errored(kErrorInvalidParentLabel);
 
       hashCode ^= parentId;
       break;
 
     case Label::kTypeGlobal:
-      if (ASMJIT_UNLIKELY(parentId != 0))
+      if (ASMJIT_UNLIKELY(parentId != Globals::kInvalidId))
         return DebugUtils::errored(kErrorNonLocalLabelCantHaveParent);
 
       break;
@@ -587,9 +584,9 @@ Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, si
     return DebugUtils::errored(kErrorLabelAlreadyDefined);
 
   Error err = kErrorOk;
-  uint32_t index = _labelEntries.size();
+  uint32_t labelId = _labelEntries.size();
 
-  if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kPackedIdCount)))
+  if (ASMJIT_UNLIKELY(labelId == Globals::kInvalidId))
     return DebugUtils::errored(kErrorTooManyLabels);
 
   ASMJIT_PROPAGATE(_labelEntries.willGrow(&_allocator));
@@ -598,12 +595,10 @@ Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, si
   if (ASMJIT_UNLIKELY(!le))
     return DebugUtils::errored(kErrorOutOfMemory);
 
-  uint32_t labelId = Operand::packId(index);
   le->_hashCode = hashCode;
   le->_setId(labelId);
   le->_type = uint8_t(type);
   le->_parentId = 0;
-  le->_sectionId = Section::kInvalidId;
   le->_offset = 0;
   ASMJIT_PROPAGATE(le->_name.setData(&_zone, name, nameSize));
 
@@ -625,68 +620,8 @@ uint32_t CodeHolder::labelIdByName(const char* name, size_t nameSize, uint32_t p
   return le ? le->id() : uint32_t(0);
 }
 
-ASMJIT_API Error CodeHolder::bindLabel(const Label& label, uint32_t toSectionId, size_t toOffset) noexcept {
-  LabelEntry* le = labelEntry(label);
-  if (ASMJIT_UNLIKELY(!le))
-    return DebugUtils::errored(kErrorInvalidLabel);
-
-  if (ASMJIT_UNLIKELY(toSectionId > _sections.size()))
-    return DebugUtils::errored(kErrorInvalidSection);
-
-  // Label can be bound only once.
-  if (ASMJIT_UNLIKELY(le->isBound()))
-    return DebugUtils::errored(kErrorLabelAlreadyBound);
-
-  // Bind the label by changing its LabelEntry.
-  le->_sectionId = toSectionId;
-  le->_offset = intptr_t(toOffset);
-
-  Error err = kErrorOk;
-  CodeBuffer& buf = _sections[toSectionId]->buffer();
-
-  // Fix all links to this label we have collected so far if they are within
-  // the same section. We ignore any inter-section links as these have to be
-  // fixed later.
-  LabelLinkIterator link(le);
-  while (link) {
-    uint32_t linkSectionId = link->sectionId;
-    intptr_t linkOffset = intptr_t(link->offset);
-
-    if (linkSectionId != toSectionId) {
-      link.next();
-      continue;
-    }
-
-    uint32_t relocId = link->relocId;
-    if (relocId != RelocEntry::kInvalidId) {
-      // Adjust relocation data only.
-      RelocEntry* re = _relocations[relocId];
-      re->_payload += uint64_t(toOffset);
-    }
-    else {
-      ASMJIT_ASSERT(size_t(linkOffset) < buf.size());
-      int64_t displacement = int64_t(int64_t(toOffset) - int64_t(linkOffset) + int64_t(link->rel));
-
-      // Size of the value we are going to patch. Only BYTE/DWORD is allowed.
-      uint32_t displacementSize = buf._data[linkOffset];
-      ASMJIT_ASSERT(buf.size() - size_t(linkOffset) >= displacementSize);
-
-      // Overwrite a real displacement in the CodeBuffer.
-      if (!CodeHolder_writeDisplacement(buf._data + linkOffset, displacement, displacementSize)) {
-        err = DebugUtils::errored(kErrorInvalidDisplacement);
-        link.next();
-        continue;
-      }
-    }
-
-    link.resolveAndNext(this);
-  }
-
-  return err;
-}
-
 ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
-  if (!hasUnresolvedLabelLinks())
+  if (!hasUnresolvedLinks())
     return kErrorOk;
 
   Error err = kErrorOk;
@@ -696,15 +631,13 @@ ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
 
     LabelLinkIterator link(le);
     if (link) {
-      uint32_t toSectionId = le->sectionId();
-      Section* toSection = sectionById(toSectionId);
-
       Support::FastUInt8 of = 0;
-      uint64_t toVaOffset = Support::addOverflow<uint64_t>(toSection->offset(), uintptr_t(le->offset()), &of);
+      Section* toSection = le->section();
+      uint64_t toOffset = Support::addOverflow<uint64_t>(toSection->offset(), uintptr_t(le->offset()), &of);
 
       do {
         uint32_t linkSectionId = link->sectionId;
-        if (link->relocId == RelocEntry::kInvalidId) {
+        if (link->relocId == Globals::kInvalidId) {
           Section* fromSection = sectionById(linkSectionId);
           size_t linkOffset = link->offset;
 
@@ -712,8 +645,8 @@ ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
           ASMJIT_ASSERT(linkOffset < buf.size());
 
           // Calculate the offset relative to the start of the virtual base.
-          uint64_t fromVaOffset = Support::addOverflow<uint64_t>(fromSection->offset(), linkOffset, &of);
-          int64_t displacement = int64_t(toVaOffset) - int64_t(fromVaOffset) + int64_t(link->rel);
+          uint64_t fromOffset = Support::addOverflow<uint64_t>(fromSection->offset(), linkOffset, &of);
+          int64_t displacement = int64_t(toOffset - fromOffset + uint64_t(int64_t(link->rel)));
 
           if (!of) {
             ASMJIT_ASSERT(size_t(linkOffset) < buf.size());
@@ -741,6 +674,67 @@ ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
   return err;
 }
 
+ASMJIT_API Error CodeHolder::bindLabel(const Label& label, uint32_t toSectionId, uint64_t toOffset) noexcept {
+  LabelEntry* le = labelEntry(label);
+  if (ASMJIT_UNLIKELY(!le))
+    return DebugUtils::errored(kErrorInvalidLabel);
+
+  if (ASMJIT_UNLIKELY(toSectionId > _sections.size()))
+    return DebugUtils::errored(kErrorInvalidSection);
+
+  // Label can be bound only once.
+  if (ASMJIT_UNLIKELY(le->isBound()))
+    return DebugUtils::errored(kErrorLabelAlreadyBound);
+
+  // Bind the label.
+  Section* section = _sections[toSectionId];
+  le->_section = section;
+  le->_offset = toOffset;
+
+  Error err = kErrorOk;
+  CodeBuffer& buf = section->buffer();
+
+  // Fix all links to this label we have collected so far if they are within
+  // the same section. We ignore any inter-section links as these have to be
+  // fixed later.
+  LabelLinkIterator link(le);
+  while (link) {
+    uint32_t linkSectionId = link->sectionId;
+    size_t linkOffset = link->offset;
+
+    if (linkSectionId != toSectionId) {
+      link.next();
+      continue;
+    }
+
+    uint32_t relocId = link->relocId;
+    if (relocId != Globals::kInvalidId) {
+      // Adjust relocation data only.
+      RelocEntry* re = _relocations[relocId];
+      re->_payload += toOffset;
+    }
+    else {
+      ASMJIT_ASSERT(linkOffset < buf.size());
+      int64_t displacement = int64_t(toOffset - uint64_t(linkOffset) + uint64_t(int64_t(link->rel)));
+
+      // Size of the value we are going to patch. Only BYTE/DWORD is allowed.
+      uint32_t displacementSize = buf._data[linkOffset];
+      ASMJIT_ASSERT(buf.size() - size_t(linkOffset) >= displacementSize);
+
+      // Overwrite a real displacement in the CodeBuffer.
+      if (!CodeHolder_writeDisplacement(buf._data + linkOffset, displacement, displacementSize)) {
+        err = DebugUtils::errored(kErrorInvalidDisplacement);
+        link.next();
+        continue;
+      }
+    }
+
+    link.resolveAndNext(this);
+  }
+
+  return err;
+}
+
 // ============================================================================
 // [asmjit::BaseEmitter - Relocations]
 // ============================================================================
@@ -748,17 +742,19 @@ ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
 Error CodeHolder::newRelocEntry(RelocEntry** dst, uint32_t relocType, uint32_t valueSize) noexcept {
   ASMJIT_PROPAGATE(_relocations.willGrow(&_allocator));
 
-  uint32_t index = _relocations.size();
-  RelocEntry* re = _allocator.allocZeroedT<RelocEntry>();
+  uint32_t relocId = _relocations.size();
+  if (ASMJIT_UNLIKELY(relocId == Globals::kInvalidId))
+    return DebugUtils::errored(kErrorTooManyRelocations);
 
+  RelocEntry* re = _allocator.allocZeroedT<RelocEntry>();
   if (ASMJIT_UNLIKELY(!re))
     return DebugUtils::errored(kErrorOutOfMemory);
 
-  re->_id = index;
+  re->_id = relocId;
   re->_relocType = uint8_t(relocType);
   re->_valueSize = uint8_t(valueSize);
-  re->_sourceSectionId = Section::kInvalidId;
-  re->_targetSectionId = Section::kInvalidId;
+  re->_sourceSectionId = Globals::kInvalidId;
+  re->_targetSectionId = Globals::kInvalidId;
   _relocations.appendUnsafe(re);
 
   *dst = re;
@@ -776,13 +772,13 @@ Error CodeHolder::flatten() noexcept {
     if (realSize) {
       uint64_t alignedOffset = Support::alignUp(offset, section->alignment());
       if (ASMJIT_UNLIKELY(alignedOffset < offset))
-        return DebugUtils::errored(kErrorCodeTooLarge);
+        return DebugUtils::errored(kErrorTooLarge);
 
       Support::FastUInt8 of = 0;
       offset = Support::addOverflow(alignedOffset, realSize, &of);
 
       if (ASMJIT_UNLIKELY(of))
-        return DebugUtils::errored(kErrorCodeTooLarge);
+        return DebugUtils::errored(kErrorTooLarge);
     }
   }
 
@@ -852,11 +848,6 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
       continue;
 
     Section* sourceSection = sectionById(re->sourceSectionId());
-    Section* targetSection = nullptr;
-
-    if (re->targetSectionId() != Section::kInvalidId)
-      targetSection = sectionById(re->targetSectionId());
-
     uint64_t value = re->payload();
     uint64_t sectionOffset = sourceSection->offset();
     uint64_t sourceOffset = re->sourceOffset();
@@ -997,7 +988,7 @@ Error CodeHolder::copyFlattenedData(void* dst, size_t dstSize, uint32_t options)
       return DebugUtils::errored(kErrorInvalidArgument);
 
     size_t bufferSize = section->bufferSize();
-    size_t offset = section->offset();
+    size_t offset = size_t(section->offset());
     if (ASMJIT_UNLIKELY(dstSize < bufferSize))
       return DebugUtils::errored(kErrorInvalidArgument);
 

@@ -74,7 +74,7 @@ Error BaseEmitter::_emitOpArray(uint32_t instId, const Operand_* operands, size_
 // ============================================================================
 
 Label BaseEmitter::labelByName(const char* name, size_t nameSize, uint32_t parentId) noexcept {
-  return Label(_code ? _code->labelIdByName(name, nameSize, parentId) : uint32_t(0));
+  return Label(_code ? _code->labelIdByName(name, nameSize, parentId) : uint32_t(Globals::kInvalidId));
 }
 
 // ============================================================================
@@ -110,9 +110,8 @@ Error BaseEmitter::reportError(Error err, const char* message) {
 // [asmjit::BaseEmitter - Label Management]
 // ============================================================================
 
-bool BaseEmitter::isLabelValid(uint32_t id) const noexcept {
-  uint32_t index = Operand::unpackId(id);
-  return _code && index < _code->labelCount();
+bool BaseEmitter::isLabelValid(uint32_t labelId) const noexcept {
+  return _code && labelId < _code->labelCount();
 }
 
 // ============================================================================

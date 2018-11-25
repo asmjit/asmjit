@@ -231,7 +231,7 @@ public:
 
   //! Get whether the given `id` is a valid virtual register id.
   inline bool isVirtIdValid(uint32_t id) const noexcept {
-    uint32_t index = Operand::unpackId(id);
+    uint32_t index = Operand::virtIdToIndex(id);
     return index < _vRegArray.size();
   }
   //! Get whether the given `reg` is a valid virtual register having a valid id.
@@ -241,7 +241,7 @@ public:
 
   //! Get `VirtReg` associated with the given `id`.
   inline VirtReg* virtRegById(uint32_t id) const noexcept {
-    uint32_t index = Operand::unpackId(id);
+    uint32_t index = Operand::virtIdToIndex(id);
     ASMJIT_ASSERT(index < _vRegArray.size());
     return _vRegArray[index];
   }

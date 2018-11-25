@@ -37,9 +37,17 @@ public:
   // --------------------------------------------------------------------------
 
   //! Create a `JitRuntime` instance.
-  ASMJIT_API JitRuntime() noexcept;
+  explicit ASMJIT_API JitRuntime(const JitAllocator::CreateParams* params = nullptr) noexcept;
   //! Destroy the `JitRuntime` instance.
   ASMJIT_API virtual ~JitRuntime() noexcept;
+
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
+
+  inline void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept {
+    _allocator.reset(resetPolicy);
+  }
 
   // --------------------------------------------------------------------------
   // [Accessors]

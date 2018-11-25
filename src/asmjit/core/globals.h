@@ -110,8 +110,8 @@ enum Link : uint32_t {
 struct Init_ {};
 struct NoInit_ {};
 
-constexpr Init_ Init {};
-constexpr NoInit_ NoInit {};
+static constexpr Init_ Init {};
+static constexpr NoInit_ NoInit {};
 
 } // Globals namespace
 
@@ -151,12 +151,15 @@ enum ErrorCode : uint32_t {
   //! Built-in feature was disabled at compile time and it's not available.
   kErrorFeatureNotEnabled,
 
+  //! Too many handles (Windows) or file descriptors (Unix/Posix).
+  kErrorTooManyHandles,
+  //! Code generated is larger than allowed.
+  kErrorTooLarge,
+
   //! No code generated.
   //!
   //! Returned by runtime if the `CodeHolder` contains no code.
   kErrorNoCodeGenerated,
-  //! Code generated is larger than allowed.
-  kErrorCodeTooLarge,
 
   //! Invalid directive.
   kErrorInvalidDirective,

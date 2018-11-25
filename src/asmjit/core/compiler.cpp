@@ -257,7 +257,7 @@ Error BaseCompiler::setArg(uint32_t argIndex, const BaseReg& r) {
 // ============================================================================
 
 static void CodeCompiler_assignGenericName(BaseCompiler* self, VirtReg* vReg) {
-  uint32_t index = unsigned(Operand::unpackId(vReg->_id));
+  uint32_t index = unsigned(Operand::virtIdToIndex(vReg->_id));
 
   char buf[64];
   int size = std::snprintf(buf, ASMJIT_ARRAY_SIZE(buf), "%%%u", unsigned(index));
@@ -268,7 +268,7 @@ static void CodeCompiler_assignGenericName(BaseCompiler* self, VirtReg* vReg) {
 
 VirtReg* BaseCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const char* name) noexcept {
   uint32_t index = _vRegArray.size();
-  if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kPackedIdCount)))
+  if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kVirtIdCount)))
     return nullptr;
 
   if (_vRegArray.willGrow(&_allocator) != kErrorOk)
@@ -280,7 +280,7 @@ VirtReg* BaseCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const cha
   uint32_t size = Type::sizeOf(typeId);
   uint32_t alignment = Support::min<uint32_t>(size, 64);
 
-  vReg = new(vReg) VirtReg(Operand::packId(index), signature, size, alignment, typeId);
+  vReg = new(vReg) VirtReg(Operand::indexToVirtId(index), signature, size, alignment, typeId);
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (name && name[0] != '\0')
@@ -417,7 +417,7 @@ Error BaseCompiler::_newStack(BaseMem& out, uint32_t size, uint32_t alignment, c
   vReg->_alignment = uint8_t(alignment);
 
   // Set the memory operand to GPD/GPQ and its id to VirtReg.
-  out = BaseMem(Globals::Init, _gpRegInfo.type(), vReg->id(), BaseReg::kTypeNone, 0, 0, 0, BaseMem::kSignatureMemRegHomeFlag);
+  out = BaseMem(BaseMem::Decomposed { _gpRegInfo.type(), vReg->id(), BaseReg::kTypeNone, 0, 0, 0, BaseMem::kSignatureMemRegHomeFlag });
   return kErrorOk;
 }
 
@@ -444,14 +444,15 @@ Error BaseCompiler::_newConst(BaseMem& out, uint32_t scope, const void* data, si
   if (ASMJIT_UNLIKELY(err))
     return reportError(err);
 
-  out = BaseMem(Globals::Init,
+  out = BaseMem(BaseMem::Decomposed {
     Label::kLabelTag,      // Base type.
     pool->id(),            // Base id.
     0,                     // Index type.
     0,                     // Index id.
     int32_t(off),          // Offset.
     uint32_t(size),        // Size.
-    0);                    // Flags.
+    0                      // Flags.
+  });
   return kErrorOk;
 }
 

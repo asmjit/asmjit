@@ -710,8 +710,8 @@ static inline uint32_t altOpcodeFromId(uint32_t instId) noexcept {
 //!
 //! NOTE: Instruction name MUST BE in lowercase, otherwise there will be no
 //! match. If there is an exact match the instruction id is returned, otherwise
-//! `kInvalidInstId` (zero) is returned instead. The given `name` doesn't have
-//! to be null-terminated if `nameSize` is provided.
+//! `Globals::kInvalidInstId` (zero) is returned instead. The given `name` does
+//! not have to be null-terminated if `nameSize` is provided (not `SIZE_MAX`).
 ASMJIT_API uint32_t idByName(const char* name, size_t nameSize = SIZE_MAX) noexcept;
 
 //! Get an instruction name from a given instruction id `instId`.

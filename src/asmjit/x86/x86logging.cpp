@@ -614,7 +614,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatRegister(String& sb, uint32_t fla
   const RegFormatInfo& info = x86RegFormatInfo;
 
   #ifndef ASMJIT_DISABLE_COMPILER
-  if (Operand::isPackedId(rId)) {
+  if (Operand::isVirtId(rId)) {
     if (emitter && emitter->emitterType() == BaseEmitter::kTypeCompiler) {
       const BaseCompiler* cc = static_cast<const BaseCompiler*>(emitter);
       if (cc->isVirtIdValid(rId)) {
@@ -625,7 +625,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatRegister(String& sb, uint32_t fla
         if (name && name[0] != '\0')
           ASMJIT_PROPAGATE(sb.appendString(name));
         else
-          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::unpackId(rId))));
+          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(rId))));
 
         if (vReg->type() != rType && rType <= BaseReg::kTypeMax && (flags & FormatOptions::kFlagRegCasts) != 0) {
           const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[rType];

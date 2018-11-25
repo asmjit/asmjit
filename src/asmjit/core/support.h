@@ -370,7 +370,7 @@ namespace Internal {
     typedef typename std::make_unsigned<T>::type U;
 
     U result = U(x) + U(y);
-    *of = FastUInt8(*of | (std::is_unsigned<T>::value ? result < U(x) : T((U(x) ^ ~U(y)) & (U(x) ^ result)) < 0));
+    *of = FastUInt8(*of | FastUInt8(std::is_unsigned<T>::value ? result < U(x) : T((U(x) ^ ~U(y)) & (U(x) ^ result)) < 0));
     return T(result);
   }
 
@@ -379,7 +379,7 @@ namespace Internal {
     typedef typename std::make_unsigned<T>::type U;
 
     U result = U(x) - U(y);
-    *of = FastUInt8(*of | (std::is_unsigned<T>::value ? result > U(x) : T((U(x) ^ U(y)) & (U(x) ^ result)) < 0));
+    *of = FastUInt8(*of | FastUInt8(std::is_unsigned<T>::value ? result > U(x) : T((U(x) ^ U(y)) & (U(x) ^ result)) < 0));
     return T(result);
   }
 }

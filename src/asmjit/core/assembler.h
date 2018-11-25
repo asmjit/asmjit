@@ -75,7 +75,7 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_API Label newLabel() override;
-  ASMJIT_API Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = 0) override;
+  ASMJIT_API Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = Globals::kInvalidId) override;
   ASMJIT_API Error bind(const Label& label) override;
 
   // --------------------------------------------------------------------------

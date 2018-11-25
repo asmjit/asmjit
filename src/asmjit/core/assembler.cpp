@@ -99,27 +99,27 @@ Error BaseAssembler::section(Section* section) {
 // ============================================================================
 
 Label BaseAssembler::newLabel() {
-  uint32_t id = 0;
+  uint32_t labelId = Globals::kInvalidId;
   if (ASMJIT_LIKELY(_code)) {
     LabelEntry* le;
     Error err = _code->newLabelEntry(&le);
     if (ASMJIT_UNLIKELY(err))
       reportError(err);
-    id = le->id();
+    labelId = le->id();
   }
-  return Label(id);
+  return Label(labelId);
 }
 
 Label BaseAssembler::newNamedLabel(const char* name, size_t nameSize, uint32_t type, uint32_t parentId) {
-  uint32_t id = 0;
+  uint32_t labelId = Globals::kInvalidId;
   if (ASMJIT_LIKELY(_code)) {
     LabelEntry* le;
     Error err = _code->newNamedLabelEntry(&le, name, nameSize, type, parentId);
     if (ASMJIT_UNLIKELY(err))
       reportError(err);
-    id = le->id();
+    labelId = le->id();
   }
-  return Label(id);
+  return Label(labelId);
 }
 
 Error BaseAssembler::bind(const Label& label) {
@@ -295,7 +295,7 @@ Error BaseAssembler::embedLabel(const Label& label) {
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled)))
-    _code->_logger->logf(size == 4 ? ".dd L%u\n" : ".dq L%u\n", Operand::unpackId(label.id()));
+    _code->_logger->logf(size == 4 ? ".dd L%u\n" : ".dq L%u\n", label.id());
   #endif
 
   Error err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, size);
@@ -303,11 +303,11 @@ Error BaseAssembler::embedLabel(const Label& label) {
     return reportError(err);
 
   re->_sourceSectionId = _section->id();
-  re->_sourceOffset = uint64_t(offset());
+  re->_sourceOffset = offset();
 
   if (le->isBound()) {
-    re->_targetSectionId = le->sectionId();
-    re->_payload = uint64_t(int64_t(le->offset()));
+    re->_targetSectionId = le->section()->id();
+    re->_payload = le->offset();
   }
   else {
     LabelLink* link = _code->newLabelLink(le, _section->id(), offset(), 0);

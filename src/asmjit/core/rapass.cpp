@@ -1490,7 +1490,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::_rewrite(BaseNode* first, BaseNode* stop) noexc
         if (op.isMem()) {
           BaseMem& mem = op.as<BaseMem>();
           if (mem.isRegHome()) {
-            uint32_t virtIndex = Operand::unpackId(mem.baseId());
+            uint32_t virtIndex = Operand::virtIdToIndex(mem.baseId());
             if (ASMJIT_UNLIKELY(virtIndex >= virtCount))
               return DebugUtils::errored(kErrorInvalidVirtId);
 

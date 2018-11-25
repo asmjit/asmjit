@@ -64,7 +64,9 @@ static inline uint32_t JitRuntime_detectNaturalStackAlignment() noexcept {
 // [asmjit::JitRuntime - Construction / Destruction]
 // ============================================================================
 
-JitRuntime::JitRuntime() noexcept {
+JitRuntime::JitRuntime(const JitAllocator::CreateParams* params) noexcept
+  : _allocator(params) {
+
   // Setup target properties.
   _targetType = kTargetJit;
   _codeInfo._archInfo       = CpuInfo::host().archInfo();
@@ -89,14 +91,14 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
   if (ASMJIT_UNLIKELY(estimatedCodeSize == 0))
     return DebugUtils::errored(kErrorNoCodeGenerated);
 
-  uint8_t* p = static_cast<uint8_t*>(_allocator.alloc(estimatedCodeSize));
-  if (ASMJIT_UNLIKELY(!p))
-    return DebugUtils::errored(kErrorOutOfMemory);
+  uint8_t* ro;
+  uint8_t* rw;
+  ASMJIT_PROPAGATE(_allocator.alloc((void**)&ro, (void**)&rw, estimatedCodeSize));
 
   // Relocate the code.
-  Error err = code->relocateToBase(uint64_t((void*)p));
+  Error err = code->relocateToBase(uint64_t((void*)ro));
   if (ASMJIT_UNLIKELY(err)) {
-    _allocator.release(p);
+    _allocator.release(ro);
     return err;
   }
 
@@ -110,19 +112,19 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
     size_t virtualSize = size_t(section->virtualSize());
 
     ASMJIT_ASSERT(offset + bufferSize <= codeSize);
-    memcpy(p + offset, section->data(), bufferSize);
+    memcpy(rw + offset, section->data(), bufferSize);
 
     if (virtualSize > bufferSize) {
       ASMJIT_ASSERT(offset + virtualSize <= codeSize);
-      memset(p + offset + bufferSize, 0, virtualSize - bufferSize);
+      memset(rw + offset + bufferSize, 0, virtualSize - bufferSize);
     }
   }
 
   if (codeSize < estimatedCodeSize)
-    _allocator.shrink(p, codeSize);
+    _allocator.shrink(ro, codeSize);
 
-  flush(p, codeSize);
-  *dst = p;
+  flush(ro, codeSize);
+  *dst = ro;
 
   return kErrorOk;
 }

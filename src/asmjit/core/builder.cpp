@@ -438,7 +438,7 @@ Error BaseBuilder::labelNodeOf(LabelNode** pOut, uint32_t labelId) noexcept {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  uint32_t index = Operand::unpackId(labelId);
+  uint32_t index = labelId;
   if (ASMJIT_UNLIKELY(index >= _code->labelCount()))
     return DebugUtils::errored(kErrorInvalidLabel);
 
@@ -466,34 +466,32 @@ Error BaseBuilder::registerLabelNode(LabelNode* node) noexcept {
   LabelEntry* le;
   ASMJIT_PROPAGATE(_code->newLabelEntry(&le));
   uint32_t labelId = le->id();
-  uint32_t index = Operand::unpackId(labelId);
 
   // We just added one label so it must be true.
-  ASMJIT_ASSERT(_labelNodes.size() < index + 1);
-  ASMJIT_PROPAGATE(_labelNodes.resize(&_allocator, index + 1));
+  ASMJIT_ASSERT(_labelNodes.size() < labelId + 1);
+  ASMJIT_PROPAGATE(_labelNodes.resize(&_allocator, labelId + 1));
 
-  _labelNodes[index] = node;
+  _labelNodes[labelId] = node;
   node->_id = labelId;
 
   return kErrorOk;
 }
 
 static Error BaseBuilder_newLabelInternal(BaseBuilder* self, uint32_t labelId) noexcept {
-  uint32_t index = Operand::unpackId(labelId);
-  ASMJIT_ASSERT(self->_labelNodes.size() < index + 1);
-
+  ASMJIT_ASSERT(self->_labelNodes.size() < labelId + 1);
   LabelNode* node = self->newNodeT<LabelNode>(labelId);
+
   if (ASMJIT_UNLIKELY(!node))
     return DebugUtils::errored(kErrorOutOfMemory);
 
-  ASMJIT_PROPAGATE(self->_labelNodes.resize(&self->_allocator, index + 1));
-  self->_labelNodes[index] = node;
+  ASMJIT_PROPAGATE(self->_labelNodes.resize(&self->_allocator, labelId + 1));
+  self->_labelNodes[labelId] = node;
   node->_id = labelId;
   return kErrorOk;
 }
 
 Label BaseBuilder::newLabel() {
-  uint32_t labelId = 0;
+  uint32_t labelId = Globals::kInvalidId;
   if (_code) {
     LabelEntry* le;
     Error err = _code->newLabelEntry(&le);
@@ -512,7 +510,7 @@ Label BaseBuilder::newLabel() {
 }
 
 Label BaseBuilder::newNamedLabel(const char* name, size_t nameSize, uint32_t type, uint32_t parentId) {
-  uint32_t labelId = 0;
+  uint32_t labelId = Globals::kInvalidId;
   if (_code) {
     LabelEntry* le;
     Error err = _code->newNamedLabelEntry(&le, name, nameSize, type, parentId);

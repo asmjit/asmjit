@@ -457,7 +457,7 @@ static void testSorting() noexcept {
     }
   }
 
-  INFO("Support::qSort() - Testing qsort and isort having unstable compare function");
+  INFO("Support::qSort() - Testing qsort and isort with an unstable compare function");
   {
     constexpr size_t kArraySize = 5;
 

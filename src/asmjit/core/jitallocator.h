@@ -13,9 +13,7 @@
 
 // [Dependencies]
 #include "../core/globals.h"
-#include "../core/osutils.h"
-#include "../core/zonelist.h"
-#include "../core/zonetree.h"
+#include "../core/virtmem.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -26,184 +24,186 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::JitAllocator]
 // ============================================================================
 
-//! A simple implementation of memory manager that uses `JitUtils::virtualAlloc()`
-//! and `JitUtils::virtualRelease()` to manage executable memory.
+//! A simple implementation of memory manager that uses `asmjit::VirtMem`
+//! functions to manage virtual memory for JIT compiled code.
 //!
 //! Implementation notes:
 //!
 //! - Granularity of allocated blocks is different than granularity for a typical
-//!   C malloc. There are several memory pools having a different granularity to
-//!   make as little waste as possible.
+//!   C malloc. In addition, the allocator can use several memory pools having a
+//!   different granularity to minimize the maintenance overhead. Multiple pools
+//!   feature requires `kFlagUseMultiplePools` flag to be set.
 //!
 //! - The allocator doesn't store any information in executable memory, instead,
 //!   the implementation uses two bit-vectors to manage allocated memory of each
-//!   block. The first bit-vector called 'used' is used to track used memory
-//!   (where each bit represents memory size defined by granularity) and the second
-//!   bit vector called 'stop' is used as a sentinel to mark where the allocated
-//!   area ends.
+//!   allocator-block. The first bit-vector called 'used' is used to track used
+//!   memory (where each bit represents memory size defined by granularity) and
+//!   the second bit vector called 'stop' is used as a sentinel to mark where
+//!   the allocated area ends.
 //!
 //! - Internally, the allocator also uses RB tree to keep track of all blocks
-//!   across all polls. Each inserted block is added to the tree so it can be
-//!   queried fast during `release()` and `shrink()`.
+//!   across all pools. Each inserted block is added to the tree so it can be
+//!   matched fast during `release()` and `shrink()`.
 class JitAllocator {
 public:
   ASMJIT_NONCOPYABLE(JitAllocator)
 
-  enum Limits : uint32_t {
-    //! Number of pools that contain blocks.
+  enum Options : uint32_t {
+    //! Enables the use of an anonymous memory-mapped memory that is mapped into
+    //! two buffers having a different pointer. The first buffer has read and
+    //! execute permissions and the second buffer has read+write permissions.
     //!
-    //! Each pool increases granularity twice to make memory management more
-    //! efficient. Ideal number of pools appears to be 3 to 4 as it distributes
-    //! small and large functions properly.
-    kPoolCount = 3,
+    //! See \ref VirtMem::allocDualMapping() for more details about this feature.
+    kOptionUseDualMapping = 0x00000001u,
 
-    //! Minimum granularity (and the default granularity for pool #0).
-    kMinGranularity = 64,
+    //! Enables the use of multiple pools with increasing granularity instead of
+    //! a single pool. This flag would enable 3 internal pools in total having
+    //! 64, 128, and 256 bytes granularity.
+    //!
+    //! This feature is only recommended for users that generate a lot of code
+    //! and would like to minimize the overhead of `JitAllocator` itself by
+    //! having blocks of different allocation granularities. Using this feature
+    //! only for few allocations won't pay off as the allocator may need to
+    //! create more blocks initially before it can take the advantage of
+    //! variable block granularity.
+    kOptionUseMultiplePools = 0x00000002u,
 
-    //! Minimum block size (64kB).
-    kMinBlockSize = 1024 * 64,
+    //! Always fill reserved memory by a fill-pattern.
+    //!
+    //! Causes a new block to be cleared by the fill pattern and freshly
+    //! released memory to be cleared before making it ready for another use.
+    kOptionFillUnusedMemory = 0x00000004u,
 
-    //! Maximum block size (1MB).
-    kMaxBlockSize = 1024 * 1024
+    //! When this flag is set the allocator would immediately release unused
+    //! blocks during `release()` or `reset()`. When this flag is not set the
+    //! allocator would keep one empty block in each pool to prevent excessive
+    //! virtual memory allocations and deallocations in border cases, which
+    //! involve constantly allocating and deallocating a single block caused
+    //! by repetitive calling `alloc()` and `release()` when the allocator has
+    //! either no blocks or have all blocks fully occupied.
+    kOptionImmediateRelease = 0x00000008u,
+
+    //! Use a custom fill pattern, must be combined with `kFlagFillUnusedMemory`.
+    kOptionCustomFillPattern = 0x10000000u
   };
 
-  enum Flags : uint32_t {
-    //! Always mark unused memory by fill-pattern.
-    kFlagSecureMode = 0x80000000u
+  struct Impl {
+    //! Allocator options, see \ref JitAllocator::Options.
+    uint32_t options;
+    //! Base block size (0 if the allocator is not initialized).
+    uint32_t blockSize;
+    //! Base granularity (0 if the allocator is not initialized).
+    uint32_t granularity;
+    //! A pattern that is used to fill unused memory if secure mode is enabled.
+    uint32_t fillPattern;
   };
 
-  class Block;
+  // --------------------------------------------------------------------------
+  // [Construction / Destruction]
+  // --------------------------------------------------------------------------
 
-  class Pool {
-  public:
-    ASMJIT_NONCOPYABLE(Pool)
+  //! Parameters that can be passed to `JitAllocator` constructor.
+  //!
+  //! Use it like this:
+  //!
+  //! ```
+  //! // Zero initialize (zero means the default value) and change what you need.
+  //! JitAllocator::CreateParams params {};
+  //! params.blockSize = 1024 * 1024;
+  //!
+  //! // Create the allocator.
+  //! JitAllocator allocator(&params);
+  //! ```
+  struct CreateParams {
+    // Reset the content of `CreateParams`.
+    inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
-    inline Pool() noexcept
-      : _blocks(),
-        _cursor(nullptr),
-        _blockCount(0),
-        _granularity(0),
-        _granularityLog2(0),
-        _reserved(0),
-        _totalAreaSize(0),
-        _totalAreaUsed(0),
-        _totalOverheadBytes(0) {}
+    //! Allocator options, see \ref JitAllocator::Options.
+    //!
+    //! No options are used by default.
+    uint32_t options;
 
-    inline void reset() noexcept {
-      _blocks.reset();
-      _cursor = nullptr;
-      _blockCount = 0;
-      _totalAreaSize = 0;
-      _totalAreaUsed = 0;
-      _totalOverheadBytes = 0;
-    }
+    //! Base size of a single block in bytes (default 64kB).
+    //!
+    //! \remarks Block size must be equal or greater to page size and must be
+    //! power of 2. If the input is not valid then the default block size will
+    //! be used instead.
+    uint32_t blockSize;
 
-    inline uint32_t granularity() const noexcept { return _granularity; }
-    inline void setGranularity(uint32_t granularity) noexcept {
-      ASMJIT_ASSERT(granularity < 65536u);
-      _granularity = uint16_t(granularity);
-      _granularityLog2 = uint8_t(Support::ctz(granularity));
-    }
+    //! Base granularity (and also natural alignment) of allocations in bytes
+    //! (default 64).
+    //!
+    //! Since the `JitAllocator` uses bit-arrays to mark used memory the
+    //! granularity also specifies how many bytes correspond to a single bit in
+    //! such bit-array. Higher granularity means more waste of virtual memory
+    //! (as it increases the natural alignment), but smaller bit-arrays as less
+    //! bits would be required per a single block.
+    uint32_t granularity;
 
-    inline size_t byteSizeFromAreaSize(uint32_t areaSize) const noexcept { return size_t(areaSize) * _granularity; }
-    inline uint32_t areaSizeFromByteSize(size_t size) const noexcept { return uint32_t((size + _granularity - 1) >> _granularityLog2); }
-
-    inline size_t bitWordCountFromAreaSize(uint32_t areaSize) const noexcept {
-      using namespace Support;
-      return alignUp<size_t>(areaSize, kBitWordSizeInBits) / kBitWordSizeInBits;
-    }
-
-    ZoneList<Block> _blocks;             //!< Double linked list of blocks.
-    Block* _cursor;                      //!< Where to start looking first.
-
-    uint32_t _blockCount;                //!< Count of blocks.
-    uint16_t _granularity;               //!< Allocation granularity.
-    uint8_t _granularityLog2;            //!< Log2(_granularity).
-    uint8_t _reserved;
-
-    size_t _totalAreaSize;               //!< Number of bits reserved across all blocks.
-    size_t _totalAreaUsed;               //!< Number of bits used across all blocks.
-    size_t _totalOverheadBytes;          //!< Overhead of all blocks (in bytes).
+    //! Patter to use to fill unused memory.
+    //!
+    //! Only used if \ref Options::kOptionCustomFillPattern is set.
+    uint32_t fillPattern;
   };
 
-  class Block : public ZoneTreeNodeT<Block>,
-                public ZoneListNode<Block> {
-  public:
-    ASMJIT_NONCOPYABLE(Block)
+  //! Create a `JitAllocator` instance.
+  explicit ASMJIT_API JitAllocator(const CreateParams* params = nullptr) noexcept;
+  //! Destroy the `JitAllocator` instance and release all blocks held.
+  ASMJIT_API ~JitAllocator() noexcept;
 
-    enum Flags : uint32_t {
-      //! Block is dirty (some members needs update).
-      kFlagDirty = 0x80000000u
-    };
+  // --------------------------------------------------------------------------
+  // [Reset]
+  // --------------------------------------------------------------------------
 
-    inline Block(Pool* pool,
-                 uint8_t* virtMem,
-                 size_t blockSize,
-                 Support::BitWord* usedBitVector,
-                 Support::BitWord* stopBitVector,
-                 uint32_t areaSize) noexcept
-      : ZoneTreeNodeT(),
-        _pool(pool),
-        _virtMem(virtMem),
-        _blockSize(blockSize),
-        _flags(0),
-        _areaSize(areaSize),
-        _areaUsed(0),
-        _largestUnusedArea(areaSize),
-        _searchStart(0),
-        _searchEnd(areaSize),
-        _usedBitVector(usedBitVector),
-        _stopBitVector(stopBitVector) {}
+  inline bool isInitialized() const noexcept { return _impl->blockSize == 0; }
 
-    inline Pool* pool() const noexcept { return _pool; }
+  //! Free all allocated memory - makes all pointers returned by `alloc()` invalid.
+  //!
+  //! \remarks This function is not thread-safe as it's designed to be used when
+  //! nobody else is using allocator. The reason is that there is no point of
+  //1 calling `reset()` when the allocator is still in use.
+  ASMJIT_API void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept;
 
-    inline uint8_t* virtMem() const noexcept { return _virtMem; }
-    inline size_t blockSize() const noexcept { return _blockSize; }
+  // --------------------------------------------------------------------------
+  // [Accessors]
+  // --------------------------------------------------------------------------
 
-    inline uint32_t flags() const noexcept { return _flags; }
-    inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
-    inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
-    inline void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
+  //! Gets the allocator options, see `Flags`.
+  inline uint32_t options() const noexcept { return _impl->options; }
+  //! Gets whether the allocator has the given `option` set.
+  inline bool hasOption(uint32_t option) const noexcept { return (_impl->options & option) != 0; }
 
-    inline uint32_t areaSize() const noexcept { return _areaSize; }
-    inline uint32_t areaUsed() const noexcept { return _areaUsed; }
+  //! Gets a base block size (a minimum size of block that the allocator would allocate).
+  inline uint32_t blockSize() const noexcept { return _impl->blockSize; }
+  //! Gets a base granularity of the allocator.
+  inline uint32_t granularity() const noexcept { return _impl->granularity; }
+  //! Gets a pattern that is used to fill unused memory if `kFlagUseFillPattern` is set.
+  inline uint32_t fillPattern() const noexcept { return _impl->fillPattern; }
 
-    inline uint32_t areaAvailable() const noexcept { return areaSize() - areaUsed(); }
-    inline uint32_t largestUnusedArea() const noexcept { return _largestUnusedArea; }
+  // --------------------------------------------------------------------------
+  // [Alloc / Release]
+  // --------------------------------------------------------------------------
 
-    inline void increaseUsedArea(uint32_t areaSize) noexcept {
-      _areaUsed += areaSize;
-      _pool->_totalAreaUsed += areaSize;
-    }
+  //! Allocate `size` bytes of virtual memory.
+  //!
+  //! \remarks This function is thread-safe.
+  ASMJIT_API Error alloc(void** roPtrOut, void** rwPtrOut, size_t size) noexcept;
 
-    inline void decreaseUsedArea(uint32_t areaSize) noexcept {
-      _areaUsed -= areaSize;
-      _pool->_totalAreaUsed -= areaSize;
-    }
+  //! Release a memory returned by `alloc()`.
+  //!
+  //! \remarks This function is thread-safe.
+  ASMJIT_API Error release(void* ro) noexcept;
 
-    // RBTree default CMP uses '<' and '>' operators.
-    inline bool operator<(const Block& other) const noexcept { return virtMem() < other.virtMem(); }
-    inline bool operator>(const Block& other) const noexcept { return virtMem() > other.virtMem(); }
+  //! Free extra memory allocated with `p` by restricting it to `newSize` size.
+  //!
+  //! \remarks This function is thread-safe.
+  ASMJIT_API Error shrink(void* ro, size_t newSize) noexcept;
 
-    // Special implementation for querying blocks by `key`, which must be in `[virtMem, virtMem + blockSize)` range.
-    inline bool operator<(const uint8_t* key) const noexcept { return virtMem() + blockSize() <= key; }
-    inline bool operator>(const uint8_t* key) const noexcept { return virtMem() > key; }
+  // --------------------------------------------------------------------------
+  // [Statistics]
+  // --------------------------------------------------------------------------
 
-    Pool* _pool;                         //!< Link to the pool that owns this block.
-    uint8_t* _virtMem;                   //!< Virtual memory address.
-    size_t _blockSize;                   //!< Virtual memory size (block size) [bytes].
-
-    uint32_t _flags;                     //!< Block flags.
-    uint32_t _areaSize;                  //!< Size of the whole block area (bit-vector size).
-    uint32_t _areaUsed;                  //!< Used area (number of bits in bit-vector used).
-    uint32_t _largestUnusedArea;         //!< The largest unused continuous area in the bit-vector (or `_areaSize` to initiate rescan).
-    uint32_t _searchStart;               //!< Start of a search range (for unused bits).
-    uint32_t _searchEnd;                 //!< End of a search range (for unused bits).
-
-    Support::BitWord* _usedBitVector;    //!< Used bit-vector (0 = unused    , 1 = used).
-    Support::BitWord* _stopBitVector;    //!< Stop bit-vector (0 = don't care, 1 = stop).
-  };
-
+  //! Statistics about `JitAllocator`.
   struct Statistics {
     inline void reset() noexcept {
       _blockCount = 0;
@@ -236,71 +236,27 @@ public:
       return (double(overheadSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
 
-    size_t _blockCount;                  //!< Number of blocks `JitAllocator` maintains.
-    size_t _usedSize;                    //!< How many bytes are currently used / allocated.
-    size_t _reservedSize;                //!< How many bytes are currently reserved by the allocator.
-    size_t _overheadSize;                //!< Allocation overhead (in bytes) required to maintain all blocks.
+    //! Number of blocks `JitAllocator` maintains.
+    size_t _blockCount;
+    //! How many bytes are currently used / allocated.
+    size_t _usedSize;
+    //! How many bytes are currently reserved by the allocator.
+    size_t _reservedSize;
+    //! Allocation overhead (in bytes) required to maintain all blocks.
+    size_t _overheadSize;
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
-
-  //! Create a `JitAllocator` instance.
-  ASMJIT_API JitAllocator() noexcept;
-  //! Destroy the `JitAllocator` instance and release all blocks held.
-  ASMJIT_API ~JitAllocator() noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Reset]
-  // --------------------------------------------------------------------------
-
-  //! Free all allocated memory - makes all pointers returned by `alloc()` invalid.
-  ASMJIT_API void reset() noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
-
-  //! Get allocation flags, see `Flags`.
-  inline uint32_t flags() const noexcept { return _flags; }
-  //! Get whether the allocator has the given `flag` set.
-  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
-
-  //! Get a page size (smallest possible allocable chunk of virtual memory).
-  inline uint32_t pageSize() const noexcept { return _pageSize; }
-  //! Get a minimum block size (a minimum size of block that the allocator would allocate).
-  inline uint32_t blockSize() const noexcept { return _blockSize; }
-
-  //! Get a pattern that is used to fill unused memory if `kFlagSecureMode` is enabled.
-  inline uint32_t fillPattern() const noexcept { return _fillPattern; }
-
   //! Get allocation statistics.
+  //!
+  //! \remarks This function is thread-safe.
   ASMJIT_API Statistics statistics() const noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Alloc / Release]
-  // --------------------------------------------------------------------------
-
-  //! Allocate `size` bytes of virtual memory.
-  ASMJIT_API void* alloc(size_t size) noexcept;
-  //! Release a memory returned by `alloc()`.
-  ASMJIT_API Error release(void* p) noexcept;
-  //! Free extra memory allocated with `p` by restricting it to `newSize` size.
-  ASMJIT_API Error shrink(void* p, size_t newSize) noexcept;
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _flags;                       //!< Allocator flags, see `Flags`.
-  uint32_t _pageSize;                    //!< System page size (also a minimum block size).
-  uint32_t _blockSize;                   //!< Default block size.
-  uint32_t _fillPattern;                 //!< A pattern that is used to fill unused memory if secure mode is enabled.
-
-  mutable Lock _lock;                    //!< Lock for thread safety.
-  ZoneTree<Block> _tree;                 //!< Blocks from all pools in RBTree.
-  Pool _pools[kPoolCount];               //!< Allocator pools.
+  //! Allocator implementation (private).
+  Impl* _impl;
 };
 
 //! \}

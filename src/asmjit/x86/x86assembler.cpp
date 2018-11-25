@@ -3803,9 +3803,9 @@ EmitModSib_LabelRip_X86:
           re->_trailingSize = uint8_t(immSize);
           re->_payload = uint64_t(int64_t(relOffset));
 
-          if (label->isBoundTo(_section->id())) {
-            // Bound label to the current section.
-            re->_payload += uint64_t(label->offset());
+          if (label->isBoundTo(_section)) {
+            // Label bound to the current section.
+            re->_payload += label->offset();
             writer.emit32uLE(0);
           }
           else {
@@ -3839,9 +3839,9 @@ EmitModSib_LabelRip_X86:
             goto InvalidLabel;
 
           relOffset -= (4 + immSize);
-          if (label->isBoundTo(_section->id())) {
-            // Bound label to the current section.
-            relOffset += int32_t(label->offset() - (intptr_t)(writer.offsetFrom(_bufferData)));
+          if (label->isBoundTo(_section)) {
+            // Label bound to the current section.
+            relOffset += int32_t(label->offset() - writer.offsetFrom(_bufferData));
             writer.emit32uLE(uint32_t(relOffset));
           }
           else {
@@ -4303,9 +4303,9 @@ EmitJmpCall:
       if (ASMJIT_UNLIKELY(!label))
         goto InvalidLabel;
 
-      if (label->isBoundTo(_section->id())) {
-        // Bound label to the current section.
-        rel32 = uint32_t((uint64_t(label->offset()) - ip - inst32Size) & 0xFFFFFFFFu);
+      if (label->isBoundTo(_section)) {
+        // Label bound to the current section.
+        rel32 = uint32_t((label->offset() - ip - inst32Size) & 0xFFFFFFFFu);
         goto EmitJmpCallRel;
       }
       else {

@@ -386,13 +386,13 @@ public:
   };
 
   enum Broadcast : uint32_t {
-    kBroadcast1To1              = 0,
-    kBroadcast1To2              = 1,
-    kBroadcast1To4              = 2,
-    kBroadcast1To8              = 3,
-    kBroadcast1To16             = 4,
-    kBroadcast1To32             = 5,
-    kBroadcast1To64             = 6
+    kBroadcast1To1 = 0,
+    kBroadcast1To2 = 1,
+    kBroadcast1To4 = 2,
+    kBroadcast1To8 = 3,
+    kBroadcast1To16 = 4,
+    kBroadcast1To32 = 5,
+    kBroadcast1To64 = 6
   };
 
   // --------------------------------------------------------------------------
@@ -406,30 +406,30 @@ public:
   constexpr Mem(const Mem& other) noexcept
     : BaseMem(other) {}
 
+  //! \internal
+  constexpr explicit Mem(const Decomposed& d) noexcept
+    : BaseMem(d) {}
+
   constexpr Mem(const Label& base, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, Label::kLabelTag, base.id(), 0, 0, off, size, flags) {}
+    : BaseMem(Decomposed { Label::kLabelTag, base.id(), 0, 0, off, size, flags }) {}
 
   constexpr Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, Label::kLabelTag, base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift)) {}
+    : BaseMem(Decomposed { Label::kLabelTag, base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift) }) {}
 
   constexpr Mem(const BaseReg& base, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, base.type(), base.id(), 0, 0, off, size, flags) {}
+    : BaseMem(Decomposed { base.type(), base.id(), 0, 0, off, size, flags }) {}
 
   constexpr Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, base.type(), base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift)) {}
+    : BaseMem(Decomposed { base.type(), base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift) }) {}
 
   constexpr Mem(uint64_t base, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, 0, uint32_t(base >> 32), 0, 0, int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags) {}
+    : BaseMem(Decomposed { 0, uint32_t(base >> 32), 0, 0, int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags }) {}
 
   constexpr Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, uint32_t flags = 0) noexcept
-    : BaseMem(Globals::Init, 0, uint32_t(base >> 32), index.type(), index.id(), int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags | (shift << kSignatureMemShiftShift)) {}
+    : BaseMem(Decomposed { 0, uint32_t(base >> 32), index.type(), index.id(), int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags | (shift << kSignatureMemShiftShift) }) {}
 
-  //! Construct a `Mem` operand from `MemData`.
-  constexpr explicit Mem(const MemData& data) noexcept
-    : BaseMem(data) {}
-
-  constexpr Mem(Globals::Init_, uint32_t baseType, uint32_t baseId, uint32_t indexType, uint32_t indexId, int32_t off, uint32_t size, uint32_t flags) noexcept
-    : BaseMem(Globals::Init, baseType, baseId, indexType, indexId, off, size, flags) {}
+  constexpr Mem(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
+    : BaseMem(Globals::Init, u0, u1, u2, u3) {}
 
   inline explicit Mem(Globals::NoInit_) noexcept
     : BaseMem(Globals::NoInit) {}
@@ -444,13 +444,13 @@ public:
     return result;
   }
 
-  constexpr Mem _1to1() const noexcept { return Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To1 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
-  constexpr Mem _1to2() const noexcept { return Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To2 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
-  constexpr Mem _1to4() const noexcept { return Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To4 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
-  constexpr Mem _1to8() const noexcept { return Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To8 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
-  constexpr Mem _1to16() const noexcept { return Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To16 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
-  constexpr Mem _1to32() const noexcept { return Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To32 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
-  constexpr Mem _1to64() const noexcept { return Mem(MemData { (_any.signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To64 << kSignatureMemBroadcastShift), _any.id, _any.p32_2, _any.p32_3 }); }
+  constexpr Mem _1to1() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To1 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  constexpr Mem _1to2() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To2 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  constexpr Mem _1to4() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To4 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  constexpr Mem _1to8() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To8 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  constexpr Mem _1to16() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To16 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  constexpr Mem _1to32() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To32 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  constexpr Mem _1to64() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To64 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
 
   // --------------------------------------------------------------------------
   // [Mem]
@@ -464,36 +464,36 @@ public:
   }
 
   //! Get whether the memory operand has a segment override.
-  constexpr bool hasSegment() const noexcept { return _hasSignatureData(kSignatureMemSegmentMask); }
+  constexpr bool hasSegment() const noexcept { return _hasSignaturePart<kSignatureMemSegmentMask>(); }
   //! Get associated segment override as `SReg` operand.
   constexpr SReg segment() const noexcept { return SReg(segmentId()); }
   //! Get segment override as id, see `SReg::Id`.
-  constexpr uint32_t segmentId() const noexcept { return _signatureData(kSignatureMemSegmentBits, kSignatureMemSegmentShift); }
+  constexpr uint32_t segmentId() const noexcept { return _getSignaturePart<kSignatureMemSegmentMask>(); }
 
   //! Set the segment override to `seg`.
   inline void setSegment(const SReg& seg) noexcept { setSegment(seg.id()); }
   //! Set the segment override to `id`.
-  inline void setSegment(uint32_t rId) noexcept { _setSignatureData(rId, kSignatureMemSegmentBits, kSignatureMemSegmentShift); }
+  inline void setSegment(uint32_t rId) noexcept { _setSignaturePart<kSignatureMemSegmentMask>(rId); }
   //! Reset the segment override.
-  inline void resetSegment() noexcept { _any.signature &= ~kSignatureMemSegmentMask; }
+  inline void resetSegment() noexcept { _setSignaturePart<kSignatureMemSegmentMask>(0); }
 
   //! Get whether the memory operand has shift (aka scale) constant.
-  constexpr bool hasShift() const noexcept { return _hasSignatureData(kSignatureMemShiftMask); }
+  constexpr bool hasShift() const noexcept { return _hasSignaturePart<kSignatureMemShiftMask>(); }
   //! Get the memory operand's shift (aka scale) constant.
-  constexpr uint32_t shift() const noexcept { return _signatureData(kSignatureMemShiftBits, kSignatureMemShiftShift); }
+  constexpr uint32_t shift() const noexcept { return _getSignaturePart<kSignatureMemShiftMask>(); }
   //! Set the memory operand's shift (aka scale) constant.
-  inline void setShift(uint32_t shift) noexcept { _setSignatureData(shift, kSignatureMemShiftBits, kSignatureMemShiftShift); }
+  inline void setShift(uint32_t shift) noexcept { _setSignaturePart<kSignatureMemShiftMask>(shift); }
   //! Reset the memory operand's shift (aka scale) constant to zero.
-  inline void resetShift() noexcept { _any.signature &= ~kSignatureMemShiftMask; }
+  inline void resetShift() noexcept { _setSignaturePart<kSignatureMemShiftMask>(0); }
 
   //! Get whether the memory operand has broadcast {1tox}.
-  constexpr bool hasBroadcast() const noexcept { return _hasSignatureData(kSignatureMemBroadcastMask); }
+  constexpr bool hasBroadcast() const noexcept { return _hasSignaturePart<kSignatureMemBroadcastMask>(); }
   //! Get the memory operand's broadcast.
-  constexpr uint32_t getBroadcast() const noexcept { return _signatureData(kSignatureMemBroadcastBits, kSignatureMemBroadcastShift); }
+  constexpr uint32_t getBroadcast() const noexcept { return _getSignaturePart<kSignatureMemBroadcastMask>(); }
   //! Set the memory operand's broadcast.
-  inline void setBroadcast(uint32_t bcst) noexcept { _setSignatureData(bcst, kSignatureMemBroadcastBits, kSignatureMemBroadcastShift); }
+  inline void setBroadcast(uint32_t bcst) noexcept { _setSignaturePart<kSignatureMemBroadcastMask>(bcst); }
   //! Reset the memory operand's broadcast to none.
-  inline void resetBroadcast() noexcept { _any.signature &= ~kSignatureMemBroadcastMask; }
+  inline void resetBroadcast() noexcept { _setSignaturePart<kSignatureMemBroadcastMask>(0); }
 
   // --------------------------------------------------------------------------
   // [Operator Overload]

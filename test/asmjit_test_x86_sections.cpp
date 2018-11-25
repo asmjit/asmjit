@@ -85,7 +85,9 @@ int main(int argc, char* argv[]) {
     a.embed(dataArray, sizeof(dataArray));
   }
 
-  // Manually change he offsets of each section, start at 0.
+  // Manually change he offsets of each section, start at 0. This code is very
+  // similar to what `CodeHolder::flatten()` does, however, it's shown here
+  // how to do it explicitly.
   printf("\nCalculating section offsets:\n");
   uint64_t offset = 0;
   for (Section* section : code.sections()) {
@@ -112,22 +114,24 @@ int main(int argc, char* argv[]) {
   printf("  After 'resolveUnresolvedLinks()': %zu\n", code.unresolvedLinkCount());
 
   // Allocate memory for the function and relocate it there.
-  uint8_t* p = static_cast<uint8_t*>(allocator.alloc(codeSize));
-  if (!p)
-    fail("Failed to allocate executable memory", kErrorOutOfMemory);
+  void* roPtr;
+  void* rwPtr;
+  err = allocator.alloc(&roPtr, &rwPtr, codeSize);
+  if (err)
+    fail("Failed to allocate executable memory", err);
 
-  // Relocate to the base-address of the allocated memory
-  code.relocateToBase(uint64_t(uintptr_t(p)));
+  // Relocate to the base-address of the allocated memory.
+  code.relocateToBase(uint64_t(uintptr_t(roPtr)));
 
-  // Copy the flattened code into `p`. There are two ways. You can either copy
+  // Copy the flattened code into `mem.rw`. There are two ways. You can either copy
   // everything manually by iterating over all sections or use `copyFlattenedData`.
   // This code is similar to what `copyFlattenedData(p, codeSize, 0)` would do:
   for (Section* section : code.sections())
-    memcpy(p + section->offset(), section->data(), section->bufferSize());
+    memcpy(static_cast<uint8_t*>(rwPtr) + size_t(section->offset()), section->data(), section->bufferSize());
 
   // Execute the function and test whether it works.
   typedef size_t (*Func)(size_t idx);
-  Func fn = (Func)p;
+  Func fn = (Func)roPtr;
 
   printf("\nTesting the generated function:\n");
   if (fn(0) != dataArray[0] ||
@@ -141,6 +145,6 @@ int main(int argc, char* argv[]) {
     printf("  [PASS] The generated function returned expected results\n");
   }
 
-  allocator.release(p);
+  allocator.release((void*)fn);
   return 0;
 }

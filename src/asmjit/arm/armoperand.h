@@ -237,47 +237,47 @@ public:
   }
 
   //! Get whether the memory operand has shift (aka scale) constant.
-  constexpr bool hasShift() const noexcept { return _hasSignatureData(kSignatureMemShiftMask); }
+  constexpr bool hasShift() const noexcept { return _hasSignaturePart<kSignatureMemShiftMask>(); }
   //! Get the memory operand's shift (aka scale) constant.
-  constexpr uint32_t shift() const noexcept { return _signatureData(kSignatureMemShiftBits, kSignatureMemShiftShift); }
+  constexpr uint32_t shift() const noexcept { return _getSignaturePart<kSignatureMemShiftMask>(); }
   //! Set the memory operand's shift (aka scale) constant.
-  inline void setShift(uint32_t shift) noexcept { _setSignatureData(shift, kSignatureMemShiftBits, kSignatureMemShiftShift); }
+  inline void setShift(uint32_t shift) noexcept { _setSignaturePart<kSignatureMemShiftMask>(shift); }
   //! Reset the memory operand's shift (aka scale) constant to zero.
-  inline void resetShift() noexcept { _any.signature &= ~kSignatureMemShiftMask; }
+  inline void resetShift() noexcept { _setSignaturePart<kSignatureMemShiftMask>(0); }
 
-  //! Get the addressing mode, see `Mem::Mode`.
-  constexpr uint32_t offsetMode() const noexcept { return _signatureData(kSignatureMemModeBits, kSignatureMemModeShift); }
-  //! Set the addressing mode, see `Mem::Mode`.
-  inline void setOffsetMode(uint32_t mode) noexcept { _setSignatureData(mode, kSignatureMemModeBits, kSignatureMemModeShift); }
-  //! Reset the addressing mode to `Mem::kModeOffset`.
-  inline void resetOffsetMode() noexcept { _any.signature &= ~kSignatureMemModeMask; }
+  //! Get the addressing mode, see `Mem::OffsetMode`.
+  constexpr uint32_t offsetMode() const noexcept { return _getSignaturePart<kSignatureMemModeMask>(); }
+  //! Set the addressing mode, see `Mem::OffsetMode`.
+  inline void setOffsetMode(uint32_t mode) noexcept { _setSignaturePart<kSignatureMemModeMask>(mode); }
+  //! Reset the addressing mode to `Mem::OffsetMode`.
+  inline void resetOffsetMode() noexcept { _setSignaturePart<kSignatureMemModeMask>(kOffsetFixed); }
 
-  constexpr bool isFixedOffset() const noexcept { return mMode() == kOffsetFixed; }
-  constexpr bool isPreIncOffset() const noexcept { return mode() == kOffsetPreInc; }
-  constexpr bool isPostIncOffset() const noexcept { return mode() == kOffsetPostInc; }
+  constexpr bool isFixedOffset() const noexcept { return offsetMode() == kOffsetFixed; }
+  constexpr bool isPreIncOffset() const noexcept { return offsetMode() == kOffsetPreInc; }
+  constexpr bool isPostIncOffset() const noexcept { return offsetMode() == kOffsetPostInc; }
 
   inline Mem pre() const noexcept {
     Mem result(*this);
-    result.setMode(kModePreInc);
+    result.setOffsetMode(kOffsetPreInc);
     return result;
   }
 
   inline Mem pre(int64_t off) const noexcept {
     Mem result(*this);
-    result.setMode(kModePreInc);
+    result.setOffsetMode(kOffsetPreInc);
     result.addOffset(off);
     return result;
   }
 
   inline Mem post() const noexcept {
     Mem result(*this);
-    result.setMode(kModePreInc);
+    result.setOffsetMode(kOffsetPreInc);
     return result;
   }
 
   inline Mem post(int64_t off) const noexcept {
     Mem result(*this);
-    result.setMode(kModePostInc);
+    result.setOffsetMode(kOffsetPostInc);
     result.addOffset(off);
     return result;
   }

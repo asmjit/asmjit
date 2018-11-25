@@ -279,7 +279,7 @@ public:
   //! Create a new label.
   virtual Label newLabel() = 0;
   //! Create a new named label.
-  virtual Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = 0) = 0;
+  virtual Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = Globals::kInvalidId) = 0;
 
   //! Get a label by name.
   //!
@@ -287,7 +287,7 @@ public:
   //!
   //! NOTE: This function doesn't trigger ErrorHandler in case the name is invalid
   //! or no such label exist. You must always check the validity of the `Label` returned.
-  ASMJIT_API Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = 0) noexcept;
+  ASMJIT_API Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept;
 
   //! Bind the `label` to the current position of the current section.
   //!
@@ -295,7 +295,7 @@ public:
   virtual Error bind(const Label& label) = 0;
 
   //! Get whether the label `id` is valid (i.e. registered).
-  ASMJIT_API bool isLabelValid(uint32_t id) const noexcept;
+  ASMJIT_API bool isLabelValid(uint32_t labelId) const noexcept;
   //! Get whether the `label` is valid (i.e. registered).
   inline bool isLabelValid(const Label& label) const noexcept { return isLabelValid(label.id()); }
 

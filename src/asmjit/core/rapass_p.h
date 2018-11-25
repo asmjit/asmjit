@@ -733,7 +733,7 @@ public:
 
   inline BaseMem workRegAsMem(RAWorkReg* workReg) noexcept {
     getOrCreateStackSlot(workReg);
-    return BaseMem(Globals::Init, _sp.type(), workReg->virtId(), BaseReg::kTypeNone, 0, 0, 0, BaseMem::kSignatureMemRegHomeFlag);
+    return BaseMem(BaseMem::Decomposed { _sp.type(), workReg->virtId(), BaseReg::kTypeNone, 0, 0, 0, BaseMem::kSignatureMemRegHomeFlag });
   }
 
   WorkToPhysMap* newWorkToPhysMap() noexcept;

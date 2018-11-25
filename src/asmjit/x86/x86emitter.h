@@ -213,9 +213,7 @@ struct EmitterExplicitT {
 
   //! Create a target dependent pointer of which base register's id is `baseId`.
   inline Mem ptr_base(uint32_t baseId, int32_t off = 0, uint32_t size = 0) const noexcept {
-    uint32_t baseType = _emitter()->_gpRegInfo.type();
-    uint32_t flags = 0;
-    return Mem(Globals::Init, baseType, baseId, 0, 0, off, size, flags);
+    return Mem(Mem::Decomposed { _emitter()->_gpRegInfo.type(), baseId, 0, 0, off, size, 0 });
   }
 
   inline Mem ptr_zax(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(Gp::kIdAx, off, size); }

@@ -148,7 +148,7 @@ Error Logging::formatLabel(
       if (ASMJIT_UNLIKELY(!pe))
         ASMJIT_PROPAGATE(sb.appendFormat("InvalidLabel[Id=%u]", labelId));
       else if (ASMJIT_UNLIKELY(!pe->hasName()))
-        ASMJIT_PROPAGATE(sb.appendFormat("L%u", Operand::unpackId(parentId)));
+        ASMJIT_PROPAGATE(sb.appendFormat("L%u", parentId));
       else
         ASMJIT_PROPAGATE(sb.appendString(pe->name()));
 
@@ -157,7 +157,7 @@ Error Logging::formatLabel(
     return sb.appendString(le->name());
   }
   else {
-    return sb.appendFormat("L%u", Operand::unpackId(labelId));
+    return sb.appendFormat("L%u", labelId);
   }
 }
 
