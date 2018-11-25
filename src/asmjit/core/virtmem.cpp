@@ -140,7 +140,7 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t accessFla
     nullptr,
     PAGE_READWRITE,
     (DWORD)(size & 0xFFFFFFFFu),
-    (DWORD)(size >> 32),
+    (DWORD)(uint64_t(size) >> 32),
     nullptr);
 
   if (ASMJIT_UNLIKELY(!handle.value))
