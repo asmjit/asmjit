@@ -477,11 +477,12 @@ int main(int argc, char* argv[]) {
   a.ret();                                // Return from function.
 
   // We have no Runtime this time, it's on us what we do with the code.
-  // CodeHolder stores code in SectionEntry, which embeds CodeSection
-  // and CodeBuffer structures. We are interested in section's CodeBuffer only.
+  // CodeHolder stores code in `Section`, which provides some basic properties
+  // and CodeBuffer structure. We are interested in section's CodeBuffer only.
   //
   // NOTE: The first section is always '.text', so it's safe to just use 0 index.
-  CodeBuffer& buffer = code.sectionEntry(0)->buffer();
+  // Get it by using either `code.sectionById(0)` or `code.textSection()`.
+  CodeBuffer& buffer = code.sectionById(0)->buffer();
 
   // Print the machine-code generated or do something more interesting with it?
   //   8B4424048B4C24048B5424040F28010F58010F2900C3
@@ -597,7 +598,7 @@ int main(int argc, char* argv[]) {
   // pad sections' virtual size, etc.
   //
   // With some additional features, copyFlattenData() does roughly this:
-  //   for (SectionEntry* section : code.sectionEntries())
+  //   for (Section* section : code.sections())
   //     memcpy((uint8_t*)p + section->offset(),
   //            section->data(),
   //            section->bufferSize());

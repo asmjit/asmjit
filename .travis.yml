@@ -17,7 +17,7 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [valgrind, g++-4.8, g++-4.8-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8 && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 4.8 [64-bit] [DBG]"
       os: linux
@@ -33,7 +33,7 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [valgrind, g++-4.9, g++-4.9-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9 && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 4.9 [64-bit] [DBG]"
       os: linux
@@ -49,7 +49,7 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [valgrind, g++-5, g++-5-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5 && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 5.X [64-bit] [DBG]"
       os: linux
@@ -65,7 +65,7 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [valgrind, g++-6, g++-6-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6 && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 6.X [64-bit] [DBG]"
       os: linux
@@ -81,7 +81,7 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [valgrind, g++-7, g++-7-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7 && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 7.X [64-bit] [DBG]"
       os: linux
@@ -97,7 +97,7 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [valgrind, g++-8, g++-8-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8 && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 8.X [64-bit] [DBG]"
       os: linux
@@ -113,7 +113,7 @@ matrix:
         apt:
           sources: [ubuntu-toolchain-r-test]
           packages: [valgrind, g++-8, g++-8-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8 && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 8.X [64-bit] [REL]"
       os: linux
@@ -126,7 +126,7 @@ matrix:
     - name: "OSX Clang XCode 9.4 [32-bit] [DBG]"
       os: osx
       osx_image: xcode9.4
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug" CXXFLAGS=-m32 && LDFLAGS=-m32
 
     - name: "OSX Clang XCode 9.4 [64-bit] [DBG]"
       os: osx
@@ -136,7 +136,7 @@ matrix:
     - name: "OSX Clang XCode 9.4 [32-bit] [REL]"
       os: osx
       osx_image: xcode9.4
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CXXFLAGS=-m32 && LDFLAGS=-m32"
+      env: BUILD_MATRIX="BUILD_TYPE=Release" CXXFLAGS=-m32 && LDFLAGS=-m32
 
     - name: "OSX Clang XCode 9.4 [64-bit] [REL]"
       os: osx
