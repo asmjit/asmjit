@@ -464,7 +464,7 @@ static void JitAllocatorImpl_deleteBlock(JitAllocatorPrivateImpl* impl, JitAlloc
   if (block->flags & JitAllocatorBlock::kFlagDualMapped)
     VirtMem::releaseDualMapping(&block->mapping, block->blockSize);
   else
-    VirtMem::release(&block->mapping.ro, block->blockSize);
+    VirtMem::release(block->mapping.ro, block->blockSize);
 
   ::free(block->usedBitVector);
   ::free(block);

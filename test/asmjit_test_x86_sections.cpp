@@ -104,14 +104,17 @@ int main(int argc, char* argv[]) {
   size_t codeSize = size_t(offset);
   printf("  Final code size: %zu\n", codeSize);
 
-  // Resolve cross-section links.
-  printf("\nResolving cross-section links:\n");
-  printf("  Before 'resolveUnresolvedLinks()': %zu\n", code.unresolvedLinkCount());
+  // Resolve cross-section links (if any). On 32-bit X86 this is not necessary
+  // as this is handled through relocations as the addressing is different.
+  if (code.hasUnresolvedLinks()) {
+    printf("\nResolving cross-section links:\n");
+    printf("  Before 'resolveUnresolvedLinks()': %zu\n", code.unresolvedLinkCount());
 
-  err = code.resolveUnresolvedLinks();
-  if (err)
-    fail("Failed to resolve cross-section links", err);
-  printf("  After 'resolveUnresolvedLinks()': %zu\n", code.unresolvedLinkCount());
+    err = code.resolveUnresolvedLinks();
+    if (err)
+      fail("Failed to resolve cross-section links", err);
+    printf("  After 'resolveUnresolvedLinks()': %zu\n", code.unresolvedLinkCount());
+  }
 
   // Allocate memory for the function and relocate it there.
   void* roPtr;

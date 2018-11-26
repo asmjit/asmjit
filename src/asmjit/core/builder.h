@@ -286,13 +286,6 @@ class BaseNode {
 public:
   ASMJIT_NONCOPYABLE(BaseNode)
 
-  //! Type of link, used to index `_link[2]` data.
-  enum LinkType : uint32_t {
-    kLinkPrev       = 0,                 //!< Previous node in a double-linked list.
-    kLinkNext       = 1,                 //!< Next node in a double-linked list.
-    kLinkCount      = 2                  //!< Count of node links (must be 2 as it's a double-linked list)
-  };
-
   //! Type of `BaseNode`.
   enum NodeType : uint32_t {
     kNodeNone       = 0,                 //!< Invalid node (internal, don't use).
@@ -326,7 +319,7 @@ public:
     kFlagHasNoEffect     = 0x10u,        //!< Node does nothing when executed (label, align, explicit nop).
     kFlagActsAsInst      = 0x20u,        //!< Node is an instruction or acts as it.
     kFlagActsAsLabel     = 0x40u,        //!< Node is a label or acts as it.
-    kFlagIsActive        = 0x80u         //!< Node is not part of the code (was removed, or never added).
+    kFlagIsActive        = 0x80u         //!< Node is active (part of the code).
   };
 
   // --------------------------------------------------------------------------
@@ -356,7 +349,7 @@ public:
   inline BaseNode* next() const noexcept { return _next; }
 
   inline BaseNode* link(size_t where) const noexcept {
-    ASMJIT_ASSERT(where < kLinkCount);
+    ASMJIT_ASSERT(where < 2);
     return _link[where];
   }
 

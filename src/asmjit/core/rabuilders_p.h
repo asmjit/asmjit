@@ -26,6 +26,12 @@ ASMJIT_BEGIN_NAMESPACE
 template<typename This>
 class RACFGBuilder {
 public:
+  // NOTE: This is a bit hacky. There are some nodes which are processed twice
+  // (see `onBeforeCall()` and `onBeforeRet()`) as they can insert some nodes
+  // around them. Since we don't have any flags to mark these we just use their
+  // position that is [at that time] unassigned.
+  static constexpr uint32_t kNodePositionDidOnBefore = 0xFFFFFFFFu;
+
   inline RACFGBuilder(RAPass* pass) noexcept
     : _pass(pass),
       _cc(pass->cc()),
@@ -90,7 +96,7 @@ public:
 
     for (;;) {
       BaseNode* next = node->next();
-      ASMJIT_ASSERT(!node->hasPosition());
+      ASMJIT_ASSERT(node->position() == 0 || node->position() == kNodePositionDidOnBefore);
 
       if (node->isInst()) {
         if (ASMJIT_UNLIKELY(!_curBlock)) {
@@ -109,29 +115,62 @@ public:
           // these share the `InstNode` interface and contain operands.
           hasCode = true;
 
+          if (node->type() != BaseNode::kNodeInst) {
+            if (node->position() != kNodePositionDidOnBefore) {
+              // Call and Reg are complicated as they may insert some surrounding
+              // code around them. The simplest approach is to get the previous
+              // node, call the `onBefore()` handlers and then check whether
+              // anything changed and restart if so. By restart we mean that the
+              // current `node` would go back to the first possible inserted node
+              // by `onBeforeCall()` or `onBeforeRet()`.
+              BaseNode* prev = node->prev();
+              if (node->type() == BaseNode::kNodeFuncCall) {
+                ASMJIT_PROPAGATE(static_cast<This*>(this)->onBeforeCall(node->as<FuncCallNode>()));
+              }
+              else if (node->type() == BaseNode::kNodeFuncRet) {
+                ASMJIT_PROPAGATE(static_cast<This*>(this)->onBeforeRet(node->as<FuncRetNode>()));
+              }
+
+              if (prev != node->prev()) {
+                // If this was the first node in the block and something was
+                // inserted before it then we have to update the first block.
+                if (_curBlock->first() == node)
+                  _curBlock->setFirst(prev->next());
+
+                node->setPosition(kNodePositionDidOnBefore);
+                node = prev->next();
+
+                // `onBeforeCall()` and `onBeforeRet()` can only insert instructions.
+                ASMJIT_ASSERT(node->isInst());
+              }
+
+              // Necessary if something was inserted after `node`, but nothing before.
+              next = node->next();
+            }
+            else {
+              // Change the position back to its original value.
+              node->setPosition(0);
+            }
+          }
+
+          InstNode* inst = node->as<InstNode>();
           ASMJIT_RA_LOG_COMPLEX({
             sb.clear();
             Logging::formatNode(sb, flags, cc(), node);
             logger->logf("    %s\n", sb.data());
           });
 
-          InstNode* inst = node->as<InstNode>();
           uint32_t controlType = BaseInst::kControlNone;
-
           ib.reset();
           ASMJIT_PROPAGATE(static_cast<This*>(this)->onInst(inst, controlType, ib));
 
-          uint32_t nodeType = inst->type();
-          if (nodeType != BaseNode::kNodeInst) {
-            if (nodeType == BaseNode::kNodeFuncCall) {
+          if (node->type() != BaseNode::kNodeInst) {
+            if (node->type() == BaseNode::kNodeFuncCall) {
               ASMJIT_PROPAGATE(static_cast<This*>(this)->onCall(inst->as<FuncCallNode>(), ib));
             }
-            else if (nodeType == BaseNode::kNodeFuncRet) {
+            else if (node->type() == BaseNode::kNodeFuncRet) {
               ASMJIT_PROPAGATE(static_cast<This*>(this)->onRet(inst->as<FuncRetNode>(), ib));
               controlType = BaseInst::kControlReturn;
-            }
-            else {
-              return DebugUtils::errored(kErrorInvalidInstruction);
             }
           }
 

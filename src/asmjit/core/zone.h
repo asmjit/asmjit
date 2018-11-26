@@ -240,7 +240,7 @@ public:
     ASMJIT_ASSERT(Support::isPowerOf2(alignment));
     uint8_t* ptr = Support::alignUp(_ptr, alignment);
 
-    if (size > (size_t)(_end - ptr))
+    if (ptr >= _end || size > (size_t)(_end - ptr))
       return _alloc(size, alignment);
 
     _ptr = ptr + size;

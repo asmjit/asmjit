@@ -9,9 +9,9 @@
     <DisplayString Condition="!isSmall()">{_large.data, s8}</DisplayString>
     <Expand HideRawView="true">
       <Synthetic Name="_type">
-        <DisplayString Condition="(_type <  0x1F)">Small</DisplayString>
+        <DisplayString Condition="(_type &lt; 0x1F)">Small</DisplayString>
         <DisplayString Condition="(_type == 0x1F)">Large</DisplayString>
-        <DisplayString Condition="(_type >  0x1F)">External</DisplayString>
+        <DisplayString Condition="(_type &gt; 0x1F)">External</DisplayString>
       </Synthetic>
       <Item Name="_size" Condition="isSmall()" ExcludeView="simple">(int)_small.type, d</Item>
       <Item Name="_size" Condition="!isSmall()" ExcludeView="simple">_large.size, d</Item>

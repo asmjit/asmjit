@@ -3690,7 +3690,7 @@ EmitModSib:
 
           if (baseAddress == Globals::kNoBaseAddress) {
             // Create a new RelocEntry as we cannot calculate the offset right now.
-            err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, 4);
+            err = _code->newRelocEntry(&re, RelocEntry::kTypeAbsToRel, 4);
             if (ASMJIT_UNLIKELY(err))
               goto Failed;
 
@@ -3803,9 +3803,10 @@ EmitModSib_LabelRip_X86:
           re->_trailingSize = uint8_t(immSize);
           re->_payload = uint64_t(int64_t(relOffset));
 
-          if (label->isBoundTo(_section)) {
+          if (label->isBound()) {
             // Label bound to the current section.
             re->_payload += label->offset();
+            re->_targetSectionId = label->section()->id();
             writer.emit32uLE(0);
           }
           else {
@@ -3822,10 +3823,11 @@ EmitModSib_LabelRip_X86:
             goto Failed;
 
           re->_sourceSectionId = _section->id();
+          re->_targetSectionId = _section->id();
           re->_sourceOffset = offset();
           re->_leadingSize = uint8_t(writer.offsetFrom(_bufferPtr));
           re->_trailingSize = uint8_t(immSize);
-          re->_payload = re->_sourceOffset + uint64_t(int64_t(relOffset));
+          re->_payload = re->_sourceOffset + re->_leadingSize + 4 + re->_trailingSize + uint64_t(int64_t(relOffset));
 
           writer.emit32uLE(0);
         }

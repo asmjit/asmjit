@@ -2261,10 +2261,7 @@ public:
     cc.shl(v2, 1);
 
     // Call a function.
-    x86::Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm(calledFunc));
-
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<int, int, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int>(CallConv::kIdHost));
     call->setArg(0, v2);
     call->setArg(1, v1);
     call->setArg(2, v0);
@@ -2394,10 +2391,7 @@ public:
     cc.setArg(1, y);
     cc.setArg(2, z);
 
-    x86::Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm(calledFunc));
-
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<int, int, int, int>(CallConv::kIdHostStdCall));
+    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int>(CallConv::kIdHostStdCall));
     call->setArg(0, x);
     call->setArg(1, y);
     call->setArg(2, z);
@@ -2440,19 +2434,16 @@ public:
 
   virtual void compile(x86::Compiler& cc) {
     x86::Gp var = cc.newInt32("var");
-    x86::Gp fn = cc.newIntPtr("fn");
 
     cc.addFunc(FuncSignatureT<int, int>(CallConv::kIdHost));
     cc.setArg(0, var);
 
-    cc.mov(fn, imm(calledFunc));
     FuncCallNode* call;
-
-    call = cc.call(fn, FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
+    call = cc.call(imm(calledFunc), FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
     call->setArg(0, var);
     call->setRet(0, var);
 
-    call = cc.call(fn, FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
+    call = cc.call(imm(calledFunc), FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
     call->setArg(0, var);
     call->setRet(0, var);
 
@@ -2597,7 +2588,6 @@ public:
     cc.addFunc(FuncSignatureT<int>(CallConv::kIdHost));
 
     // Prepare.
-    x86::Gp fn = cc.newIntPtr("fn");
     x86::Gp va = cc.newInt32("va");
     x86::Gp vb = cc.newInt32("vb");
     x86::Gp vc = cc.newInt32("vc");
@@ -2609,7 +2599,6 @@ public:
     x86::Gp vi = cc.newInt32("vi");
     x86::Gp vj = cc.newInt32("vj");
 
-    cc.mov(fn, imm(calledFunc));
     cc.mov(va, 0x03);
     cc.mov(vb, 0x12);
     cc.mov(vc, 0xA0);
@@ -2622,7 +2611,7 @@ public:
     cc.mov(vj, 0x1E);
 
     // Call function.
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
     call->setArg(0, va);
     call->setArg(1, vb);
     call->setArg(2, vc);
@@ -2673,14 +2662,11 @@ public:
     cc.addFunc(FuncSignatureT<int>(CallConv::kIdHost));
 
     // Prepare.
-    x86::Gp fn = cc.newIntPtr("fn");
     x86::Gp a = cc.newInt32("a");
-
-    cc.mov(fn, imm(calledFunc));
     cc.mov(a, 3);
 
     // Call function.
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
     call->setArg(0, a);
     call->setArg(1, a);
     call->setArg(2, a);
@@ -2727,13 +2713,13 @@ public:
     cc.addFunc(FuncSignatureT<int>(CallConv::kIdHost));
 
     // Prepare.
-    x86::Gp fn = cc.newIntPtr("fn");
     x86::Gp rv = cc.newInt32("rv");
 
-    cc.mov(fn, imm(X86Test_FuncCallManyArgs::calledFunc));
-
     // Call function.
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm(X86Test_FuncCallManyArgs::calledFunc),
+      FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
+
     call->setArg(0, imm(0x03));
     call->setArg(1, imm(0x12));
     call->setArg(2, imm(0xA0));
@@ -2793,13 +2779,13 @@ public:
     cc.addFunc(FuncSignatureT<int>(CallConv::kIdHost));
 
     // Prepare.
-    x86::Gp fn = cc.newIntPtr("fn");
     x86::Gp rv = cc.newInt32("rv");
 
-    cc.mov(fn, imm(calledFunc));
-
     // Call function.
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm(calledFunc),
+      FuncSignatureT<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>(CallConv::kIdHost));
+
     call->setArg(0, imm(0x01));
     call->setArg(1, imm(0x02));
     call->setArg(2, imm(0x03));
@@ -2856,12 +2842,8 @@ public:
     cc.setArg(0, a);
     cc.setArg(1, b);
 
-    // Prepare.
-    x86::Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm(calledFunc));
-
     // Call function.
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<float, float, float>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<float, float, float>(CallConv::kIdHost));
 
     call->setArg(0, a);
     call->setArg(1, b);
@@ -2911,11 +2893,7 @@ public:
     cc.setArg(0, a);
     cc.setArg(1, b);
 
-    x86::Gp fn = cc.newIntPtr("fn");
-    cc.mov(fn, imm(calledFunc));
-
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<double, double, double>(CallConv::kIdHost));
-
+    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<double, double, double>(CallConv::kIdHost));
     call->setArg(0, a);
     call->setArg(1, b);
     call->setRet(0, ret);
@@ -3210,16 +3188,13 @@ public:
     FuncNode* func = cc.addFunc(FuncSignatureT<double, const double*>(CallConv::kIdHost));
 
     x86::Gp p = cc.newIntPtr("p");
-    x86::Gp fn = cc.newIntPtr("fn");
-
     x86::Xmm arg = cc.newXmmSd("arg");
     x86::Xmm ret = cc.newXmmSd("ret");
 
     cc.setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
-    cc.mov(fn, imm(op));
 
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<double, double>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(imm(op), FuncSignatureT<double, double>(CallConv::kIdHost));
     call->setArg(0, arg);
     call->setRet(0, ret);
 
@@ -3261,16 +3236,13 @@ public:
     FuncNode* func = cc.addFunc(FuncSignatureT<double, const double*>(CallConv::kIdHost));
 
     x86::Gp p = cc.newIntPtr("p");
-    x86::Gp fn = cc.newIntPtr("fn");
-
     x86::Xmm arg = cc.newXmmSd("arg");
     x86::Xmm ret = cc.newXmmSd("ret");
 
     cc.setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
-    cc.mov(fn, imm(op));
 
-    FuncCallNode* call = cc.call(fn, FuncSignatureT<double, double>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(imm(op), FuncSignatureT<double, double>(CallConv::kIdHost));
     call->setArg(0, arg);
     call->setRet(0, ret);
 

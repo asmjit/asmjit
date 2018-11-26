@@ -18,13 +18,23 @@ struct DumpCpuFeature {
   const char* name;
 };
 
-static void dumpFeatures(const CpuInfo& cpu, const DumpCpuFeature* data, size_t count) {
+static const char* hostArch() noexcept {
+  switch (ArchInfo::kIdHost) {
+    case ArchInfo::kIdX86: return "X86";
+    case ArchInfo::kIdX64: return "X64";
+    case ArchInfo::kIdA32: return "ARM32";
+    case ArchInfo::kIdA64: return "ARM64";
+    default: return "Unknown";
+  }
+}
+
+static void dumpFeatures(const CpuInfo& cpu, const DumpCpuFeature* data, size_t count) noexcept {
   for (size_t i = 0; i < count; i++)
     if (cpu.hasFeature(data[i].feature))
       INFO("  %s", data[i].name);
 }
 
-static void dumpCpu(void) {
+static void dumpCpu(void) noexcept {
   const CpuInfo& cpu = CpuInfo::host();
 
   INFO("Host CPU:");
@@ -178,7 +188,7 @@ static void dumpCpu(void) {
 // [DumpSizeOf]
 // ============================================================================
 
-static void dumpSizeOf(void) {
+static void dumpSizeOf(void) noexcept {
   #define DUMP_TYPE(...) \
     INFO("  %-26s: %u", #__VA_ARGS__, uint32_t(sizeof(__VA_ARGS__)))
 
@@ -289,15 +299,16 @@ static void onBeforeRun(void) {
 
 int main(int argc, const char* argv[]) {
   #if defined(ASMJIT_BUILD_DEBUG)
-  const char buildType[] = "DEBUG";
+  const char buildType[] = "Debug";
   #else
-  const char buildType[] = "RELEASE";
+  const char buildType[] = "Release";
   #endif
 
-  INFO("AsmJit Unit-Test (v%u.%u.%u [%s])\n\n",
+  INFO("AsmJit Unit-Test v%u.%u.%u [Arch=%s] [Mode=%s]\n\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
+    hostArch(),
     buildType
   );
   return BrokenAPI::run(argc, argv, onBeforeRun);

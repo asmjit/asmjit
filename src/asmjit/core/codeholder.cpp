@@ -598,7 +598,7 @@ Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, si
   le->_hashCode = hashCode;
   le->_setId(labelId);
   le->_type = uint8_t(type);
-  le->_parentId = 0;
+  le->_parentId = Globals::kInvalidId;
   le->_offset = 0;
   ASMJIT_PROPAGATE(le->_name.setData(&_zone, name, nameSize));
 
@@ -617,7 +617,7 @@ uint32_t CodeHolder::labelIdByName(const char* name, size_t nameSize, uint32_t p
   if (ASMJIT_UNLIKELY(!nameSize)) return 0;
 
   LabelEntry* le = _namedLabels.get(LabelByName(name, nameSize, hashCode));
-  return le ? le->id() : uint32_t(0);
+  return le ? le->id() : uint32_t(Globals::kInvalidId);
 }
 
 ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
@@ -633,7 +633,7 @@ ASMJIT_API Error CodeHolder::resolveUnresolvedLinks() noexcept {
     if (link) {
       Support::FastUInt8 of = 0;
       Section* toSection = le->section();
-      uint64_t toOffset = Support::addOverflow<uint64_t>(toSection->offset(), uintptr_t(le->offset()), &of);
+      uint64_t toOffset = Support::addOverflow(toSection->offset(), le->offset(), &of);
 
       do {
         uint32_t linkSectionId = link->sectionId;
@@ -702,18 +702,19 @@ ASMJIT_API Error CodeHolder::bindLabel(const Label& label, uint32_t toSectionId,
     uint32_t linkSectionId = link->sectionId;
     size_t linkOffset = link->offset;
 
-    if (linkSectionId != toSectionId) {
-      link.next();
-      continue;
-    }
-
     uint32_t relocId = link->relocId;
     if (relocId != Globals::kInvalidId) {
       // Adjust relocation data only.
       RelocEntry* re = _relocations[relocId];
       re->_payload += toOffset;
+      re->_targetSectionId = toSectionId;
     }
     else {
+      if (linkSectionId != toSectionId) {
+        link.next();
+        continue;
+      }
+
       ASMJIT_ASSERT(linkOffset < buf.size());
       int64_t displacement = int64_t(toOffset - uint64_t(linkOffset) + uint64_t(int64_t(link->rel)));
 
@@ -848,6 +849,11 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
       continue;
 
     Section* sourceSection = sectionById(re->sourceSectionId());
+    Section* targetSection = nullptr;
+
+    if (re->targetSectionId() != Globals::kInvalidId)
+      targetSection = sectionById(re->targetSectionId());
+
     uint64_t value = re->payload();
     uint64_t sectionOffset = sourceSection->offset();
     uint64_t sourceOffset = re->sourceOffset();
@@ -867,13 +873,19 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
       }
 
       case RelocEntry::kTypeRelToAbs: {
-        value += baseAddress + sectionOffset + sourceOffset + regionSize;
+        // Value is currently a relative offset from the start of its section.
+        // We have to convert it to an absolute offset (including base address).
+        if (ASMJIT_UNLIKELY(!targetSection))
+          return DebugUtils::errored(kErrorInvalidRelocEntry);
+
+        //value += baseAddress + sectionOffset + sourceOffset + regionSize;
+        value += baseAddress + targetSection->offset();
         break;
       }
 
       case RelocEntry::kTypeAbsToRel: {
         value -= baseAddress + sectionOffset + sourceOffset + regionSize;
-        if (!Support::isInt32(int64_t(value)))
+        if (gpSize > 4 && !Support::isInt32(int64_t(value)))
           return DebugUtils::errored(kErrorRelocOffsetOutOfRange);
         break;
       }
@@ -882,7 +894,7 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
         if (re->valueSize() != 4 || re->leadingSize() < 2)
           return DebugUtils::errored(kErrorInvalidRelocEntry);
 
-        // First try whether relative 32-bit displacement would work.
+        // First try whether a relative 32-bit displacement would work.
         value -= baseAddress + sectionOffset + sourceOffset + regionSize;
         if (!Support::isInt32(int64_t(value))) {
           // Relative 32-bit displacement is not possible, use '.addrtab' section.
@@ -953,7 +965,7 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
 
   // Fixup the virtual size of the address table if it's the last section.
   if (_sections.last() == addressTableSection) {
-    size_t addressTableSize = uint64_t(addressTableEntryCount) * gpSize;;
+    size_t addressTableSize = addressTableEntryCount * gpSize;
     addressTableSection->_buffer._size = addressTableSize;
     addressTableSection->_virtualSize = addressTableSize;
   }
