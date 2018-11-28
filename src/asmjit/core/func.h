@@ -674,6 +674,11 @@ public:
     _dirtyRegs[group] |= regs;
   }
 
+  //! Add a single register (by `reg`) to saved/restored registers.
+  inline void addDirtyReg(const BaseReg& reg) noexcept {
+    addDirtyRegs(reg.group(), 1u << reg.id());
+  }
+
   inline void setAllDirty() noexcept {
     _dirtyRegs[0] = 0xFFFFFFFFu;
     _dirtyRegs[1] = 0xFFFFFFFFu;
