@@ -828,64 +828,19 @@ public:
   // once, however, since registers are passed all at once these initializers
   // don't provide any way to pass TypeId and/or to keep any argument between
   // the arguments passed unassigned.
-  inline void assignAll(const BaseReg& a0) noexcept {
-    assignReg(0, a0);
+  inline void _assignAllInternal(size_t N, const BaseReg& reg) noexcept {
+    assignReg(N, reg);
   }
 
-  inline void assignAll(const BaseReg& a0, const BaseReg& a1) noexcept {
-    assignReg(0, a0);
-    assignReg(1, a1);
+  template<typename... Args>
+  inline void _assignAllInternal(size_t N, const BaseReg& reg, Args&&... args) noexcept {
+    assignReg(N, reg);
+    return _assignAllInternal(N + 1, std::forward<Args>(args)...);
   }
 
-  inline void assignAll(const BaseReg& a0, const BaseReg& a1, const BaseReg& a2) noexcept {
-    assignReg(0, a0);
-    assignReg(1, a1);
-    assignReg(2, a2);
-  }
-
-  inline void assignAll(const BaseReg& a0, const BaseReg& a1, const BaseReg& a2, const BaseReg& a3) noexcept {
-    assignReg(0, a0);
-    assignReg(1, a1);
-    assignReg(2, a2);
-    assignReg(3, a3);
-  }
-
-  inline void assignAll(const BaseReg& a0, const BaseReg& a1, const BaseReg& a2, const BaseReg& a3, const BaseReg& a4) noexcept {
-    assignReg(0, a0);
-    assignReg(1, a1);
-    assignReg(2, a2);
-    assignReg(3, a3);
-    assignReg(4, a4);
-  }
-
-  inline void assignAll(const BaseReg& a0, const BaseReg& a1, const BaseReg& a2, const BaseReg& a3, const BaseReg& a4, const BaseReg& a5) noexcept {
-    assignReg(0, a0);
-    assignReg(1, a1);
-    assignReg(2, a2);
-    assignReg(3, a3);
-    assignReg(4, a4);
-    assignReg(5, a5);
-  }
-
-  inline void assignAll(const BaseReg& a0, const BaseReg& a1, const BaseReg& a2, const BaseReg& a3, const BaseReg& a4, const BaseReg& a5, const BaseReg& a6) noexcept {
-    assignReg(0, a0);
-    assignReg(1, a1);
-    assignReg(2, a2);
-    assignReg(3, a3);
-    assignReg(4, a4);
-    assignReg(5, a5);
-    assignReg(6, a6);
-  }
-
-  inline void assignAll(const BaseReg& a0, const BaseReg& a1, const BaseReg& a2, const BaseReg& a3, const BaseReg& a4, const BaseReg& a5, const BaseReg& a6, const BaseReg& a7) noexcept {
-    assignReg(0, a0);
-    assignReg(1, a1);
-    assignReg(2, a2);
-    assignReg(3, a3);
-    assignReg(4, a4);
-    assignReg(5, a5);
-    assignReg(6, a6);
-    assignReg(7, a7);
+  template<typename... Args>
+  inline void assignAll(Args&&... args) noexcept {
+    return _assignAllInternal(0, std::forward<Args>(args)...);
   }
 
   // --------------------------------------------------------------------------
@@ -915,3 +870,4 @@ ASMJIT_END_NAMESPACE
 
 // [Guard]
 #endif // _ASMJIT_CORE_FUNC_H
+
