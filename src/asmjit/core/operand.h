@@ -1237,7 +1237,7 @@ public:
 //! Using `imm(x)` is much better than `Imm(x)` as this is a template which
 //! can accept any integer including pointers and function pointers.
 template<typename T>
-constexpr Imm imm(T val) noexcept { return Imm(int64_t(Support::asNormalized(val))); }
+static constexpr Imm imm(T val) noexcept { return Imm(int64_t(Support::asNormalized(val))); }
 
 //! \}
 

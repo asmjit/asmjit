@@ -1027,7 +1027,7 @@ static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {
 }
 
 UNIT(asmjit_core_jit_allocator) {
-  size_t kCount = 100000;
+  size_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 100000;
 
   struct TestParams {
     const char* name;

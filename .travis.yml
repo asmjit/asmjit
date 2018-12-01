@@ -16,7 +16,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-4.8, g++-4.8-multilib]
+          packages: [g++-4.8, g++-4.8-multilib, "linux-libc-dev:i386"]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 4.8 [64-bit] [DBG]"
@@ -24,7 +24,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-4.8, g++-4.8-multilib]
+          packages: [g++-4.8]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8"
 
     - name: "Linux GCC 4.9 [32-bit] [DBG]"
@@ -32,7 +32,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-4.9, g++-4.9-multilib]
+          packages: [g++-4.9, g++-4.9-multilib, "linux-libc-dev:i386"]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 4.9 [64-bit] [DBG]"
@@ -40,7 +40,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-4.9, g++-4.9-multilib]
+          packages: [g++-4.9]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9"
 
     - name: "Linux GCC 5.X [32-bit] [DBG]"
@@ -48,7 +48,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-5, g++-5-multilib]
+          packages: [g++-5, g++-5-multilib, "linux-libc-dev:i386"]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 5.X [64-bit] [DBG]"
@@ -56,7 +56,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-5, g++-5-multilib]
+          packages: [g++-5]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5"
 
     - name: "Linux GCC 6.X [32-bit] [DBG]"
@@ -64,7 +64,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-6, g++-6-multilib]
+          packages: [g++-6, g++-6-multilib, "linux-libc-dev:i386"]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 6.X [64-bit] [DBG]"
@@ -72,7 +72,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-6, g++-6-multilib]
+          packages: [g++-6]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6"
 
     - name: "Linux GCC 7.X [32-bit] [DBG]"
@@ -80,7 +80,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-7, g++-7-multilib]
+          packages: [g++-7, g++-7-multilib, "linux-libc-dev:i386"]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 7.X [64-bit] [DBG]"
@@ -88,7 +88,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-7, g++-7-multilib]
+          packages: [g++-7]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7"
 
     - name: "Linux GCC 8.X [32-bit] [DBG]"
@@ -96,7 +96,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-8, g++-8-multilib]
+          packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 8.X [64-bit] [DBG]"
@@ -104,7 +104,7 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-8, g++-8-multilib]
+          packages: [g++-8]
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8"
 
     - name: "Linux GCC 8.X [32-bit] [REL]"
@@ -112,16 +112,32 @@ matrix:
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-8, g++-8-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
+          packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
 
     - name: "Linux GCC 8.X [64-bit] [REL]"
       os: linux
       addons:
         apt:
           sources: [ubuntu-toolchain-r-test]
-          packages: [valgrind, g++-8, g++-8-multilib]
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8"
+          packages: [g++-8]
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8"
+
+    - name: "Linux GCC 8.X [32-bit] [Valgrind]"
+      os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-8, g++-8-multilib, "linux-libc-dev:i386"]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32 USE_VALGRIND=1
+
+    - name: "Linux GCC 8.X [64-bit] [Valgrind]"
+      os: linux
+      addons:
+        apt:
+          sources: [ubuntu-toolchain-r-test]
+          packages: [valgrind, g++-8]
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" USE_VALGRIND=1
 
     - name: "OSX Clang XCode 9.4 [32-bit] [DBG]"
       os: osx
@@ -183,13 +199,13 @@ script:
       cmake --build .
     fi
 
-  - ./asmjit_test_unit
-  - ./asmjit_test_opcode > /dev/null
-  - ./asmjit_test_x86_asm
-  - ./asmjit_test_x86_cc
-  - ./asmjit_test_x86_sections
+  - |
+    if [ "$USE_VALGRIND" = "1" ]; then
+      RUN_CMD="valgrind --leak-check=full --show-reachable=yes"
+    fi
 
-after_success:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./asmjit_test_unit; fi;
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./asmjit_test_x86_asm; fi;
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then valgrind --leak-check=full --show-reachable=yes ./asmjit_test_x86_cc; fi;
+  - eval "$RUN_CMD ./asmjit_test_unit --quick"
+  - eval "$RUN_CMD ./asmjit_test_opcode > /dev/null"
+  - eval "$RUN_CMD ./asmjit_test_x86_asm"
+  - eval "$RUN_CMD ./asmjit_test_x86_cc"
+  - eval "$RUN_CMD ./asmjit_test_x86_sections"

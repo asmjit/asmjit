@@ -292,7 +292,7 @@ static void dumpSizeOf(void) noexcept {
 // [Main]
 // ============================================================================
 
-static void onBeforeRun(void) {
+static void onBeforeRun(void) noexcept {
   dumpCpu();
   dumpSizeOf();
 }
@@ -311,5 +311,6 @@ int main(int argc, const char* argv[]) {
     hostArch(),
     buildType
   );
+
   return BrokenAPI::run(argc, argv, onBeforeRun);
 }

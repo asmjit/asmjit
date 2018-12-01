@@ -69,7 +69,7 @@ public:
 };
 
 UNIT(asmjit_core_zone_rbtree) {
-  constexpr uint32_t kCount = 10000;
+  uint32_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 10000;
 
   Zone zone(4096);
   ZoneTree<MyRBNode> rbTree;

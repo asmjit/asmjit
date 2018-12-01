@@ -140,8 +140,8 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) no
     INVALID_HANDLE_VALUE,
     nullptr,
     PAGE_READWRITE,
-    (DWORD)(size & 0xFFFFFFFFu),
     (DWORD)(uint64_t(size) >> 32),
+    (DWORD)(size & 0xFFFFFFFFu),
     nullptr);
 
   if (ASMJIT_UNLIKELY(!handle.value))

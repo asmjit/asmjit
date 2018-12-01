@@ -242,7 +242,7 @@ UNIT(asmjit_core_const_pool) {
   ConstPool pool(&zone);
 
   uint32_t i;
-  uint32_t kCount = 1000000;
+  uint32_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 1000000;
 
   INFO("Adding %u constants to the pool.", kCount);
   {
