@@ -676,7 +676,15 @@ public:
 
   //! Add a single register (by `reg`) to saved/restored registers.
   inline void addDirtyReg(const BaseReg& reg) noexcept {
-    addDirtyRegs(reg.group(), 1u << reg.id());
+    ASMJIT_ASSERT(reg.id() < Globals::kMaxPhysRegs);
+    addDirtyRegs(reg.group(), Support::bitMask(reg.id()));
+  }
+
+  //! Add one or more registers to saved/restored registers.
+  template<typename ...Args>
+  inline void addDirtyRegs(const BaseReg& reg, Args&&... args) noexcept {
+    addDirtyReg(reg);
+    addDirtyRegs(std::forward<Args>(args)...);
   }
 
   inline void setAllDirty() noexcept {
