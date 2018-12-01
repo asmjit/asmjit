@@ -147,8 +147,17 @@ static int testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
 }
 
 int main(int argc, char* argv[]) {
+  unsigned nFailed = 0;
   JitRuntime rt;
-  return testFunc(rt, BaseEmitter::kTypeAssembler) |
-         testFunc(rt, BaseEmitter::kTypeBuilder)   |
-         testFunc(rt, BaseEmitter::kTypeCompiler)  ;
+
+  nFailed += testFunc(rt, BaseEmitter::kTypeAssembler);
+  nFailed += testFunc(rt, BaseEmitter::kTypeBuilder);
+  nFailed += testFunc(rt, BaseEmitter::kTypeCompiler);
+  
+  if (!nFailed)
+    printf("[PASSED] All tests passed\n");
+  else
+    printf("[FAILED] %u %s failed\n", nFailed, nFailed == 1 ? "test" : "tests");
+
+  return nFailed ? 1 : 0;
 }

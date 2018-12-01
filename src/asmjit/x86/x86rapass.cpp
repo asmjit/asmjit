@@ -602,7 +602,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
           uint32_t argGroup = Reg::groupOf(arg.regType());
 
           if (regGroup == argGroup) {
-            ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kUse | RATiedReg::kRead, 0, arg.regId(), 0, Gp::kIdBad, 0));
+            ASMJIT_PROPAGATE(ib.addCallArg(workReg, arg.regId()));
           }
         }
       }
@@ -623,7 +623,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
         uint32_t retGroup = Reg::groupOf(ret.regType());
 
         if (regGroup == retGroup) {
-          ASMJIT_PROPAGATE(ib.add(workReg, RATiedReg::kOut | RATiedReg::kWrite, 0, Gp::kIdBad, 0, ret.regId(), 0));
+          ASMJIT_PROPAGATE(ib.addCallRet(workReg, ret.regId()));
         }
       }
       else {
@@ -748,6 +748,7 @@ MovU32:
 // ============================================================================
 
 Error X86RACFGBuilder::moveRegToStackArg(FuncCallNode* call, const FuncValue& arg, const BaseReg& reg) noexcept {
+  ASMJIT_UNUSED(call);
   ASMJIT_ASSERT(arg.isStack());
 
   Mem mem = ptr(_pass->_sp.as<Gp>(), arg.stackOffset());
@@ -939,6 +940,7 @@ MovXmmQ:
 // ============================================================================
 
 Error X86RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {
+  ASMJIT_UNUSED(funcRet);
   return kErrorOk;
 }
 
@@ -1105,6 +1107,56 @@ Error X86RAPass::onEmitSave(uint32_t workId, uint32_t srcPhysId) noexcept {
 
 Error X86RAPass::onEmitJump(const Label& label) noexcept {
   return cc()->jmp(label);
+}
+
+Error X86RAPass::onEmitPreCall(FuncCallNode* call) noexcept {
+  if (call->detail().hasVarArgs()) {
+    uint32_t argCount = call->argCount();
+    const FuncDetail& fd = call->detail();
+
+    switch (call->detail().callConv().id()) {
+      case CallConv::kIdX86SysV64: {
+        // AL register contains the number of arguments passed in XMM register(s).
+        uint32_t n = 0;
+        for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+          for (uint32_t argHi = 0; argHi <= kFuncArgHi; argHi += kFuncArgHi) {
+            if (!fd.hasArg(argIndex + argHi))
+              continue;
+
+            const FuncValue& arg = fd.arg(argIndex + argHi);
+            if (arg.isReg() && Reg::groupOf(arg.regType()) == Reg::kGroupVec)
+              n++;
+          }
+        }
+
+        if (!n)
+          ASMJIT_PROPAGATE(cc()->xor_(eax, eax));
+        else
+          ASMJIT_PROPAGATE(cc()->mov(al, n));
+        break;
+      }
+      
+      case CallConv::kIdX86Win64: {
+        // Each double-precision argument passed in XMM must be also passed in GP.
+        for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+          for (uint32_t argHi = 0; argHi <= kFuncArgHi; argHi += kFuncArgHi) {
+            if (!fd.hasArg(argIndex + argHi))
+              continue;
+
+            const FuncValue& arg = fd.arg(argIndex + argHi);
+            if (arg.isReg() && Reg::groupOf(arg.regType()) == Reg::kGroupVec) {
+              Gp dst = gpq(fd.callConv().passedOrder(Reg::kGroupGp)[argIndex]);
+              Xmm src = xmm(arg.regId());
+              ASMJIT_PROPAGATE(cc()->emit(_avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq, dst, src));
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  return kErrorOk;
 }
 
 ASMJIT_END_SUB_NAMESPACE

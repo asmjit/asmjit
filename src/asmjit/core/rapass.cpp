@@ -779,8 +779,8 @@ ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
     uint32_t nInsts = 0;
     for (;;) {
       if (node->isInst()) {
-        InstNode* cbInst = node->as<InstNode>();
-        RAInst* raInst = cbInst->passData<RAInst>();
+        InstNode* inst = node->as<InstNode>();
+        RAInst* raInst = inst->passData<RAInst>();
         ASMJIT_ASSERT(raInst != nullptr);
 
         RATiedReg* tiedRegs = raInst->tiedRegs();
@@ -919,14 +919,14 @@ ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
 
     for (;;) {
       if (node->isInst()) {
-        InstNode* cbInst = node->as<InstNode>();
-        RAInst* raInst = cbInst->passData<RAInst>();
+        InstNode* inst = node->as<InstNode>();
+        RAInst* raInst = inst->passData<RAInst>();
         ASMJIT_ASSERT(raInst != nullptr);
 
         RATiedReg* tiedRegs = raInst->tiedRegs();
         uint32_t count = raInst->tiedCount();
 
-        cbInst->setPosition(position);
+        inst->setPosition(position);
         raInst->_liveCount = curLiveCount;
 
         for (uint32_t j = 0; j < count; j++) {
@@ -1155,12 +1155,12 @@ Error RAPass::runLocalAllocator() noexcept {
 
     for (BaseNode* node = first; node != afterLast; node = node->next()) {
       if (node->isInst()) {
-        InstNode* cbInst = node->as<InstNode>();
+        InstNode* inst = node->as<InstNode>();
 
-        if (ASMJIT_UNLIKELY(cbInst == terminator)) {
+        if (ASMJIT_UNLIKELY(inst == terminator)) {
           const RABlocks& successors = block->successors();
           if (block->hasConsecutive()) {
-            ASMJIT_PROPAGATE(lra.allocBranch(cbInst, successors.last(), successors.first()));
+            ASMJIT_PROPAGATE(lra.allocBranch(inst, successors.last(), successors.first()));
             continue;
           }
           else if (successors.size() > 1) {
@@ -1173,7 +1173,9 @@ Error RAPass::runLocalAllocator() noexcept {
           }
         }
 
-        ASMJIT_PROPAGATE(lra.allocInst(cbInst));
+        ASMJIT_PROPAGATE(lra.allocInst(inst));
+        if (inst->type() == BaseNode::kNodeFuncCall)
+          ASMJIT_PROPAGATE(onEmitPreCall(inst->as<FuncCallNode>()));
       }
     }
 
@@ -1434,11 +1436,11 @@ ASMJIT_FAVOR_SPEED Error RAPass::_rewrite(BaseNode* first, BaseNode* stop) noexc
   while (node != stop) {
     BaseNode* next = node->next();
     if (node->isInst()) {
-      InstNode* cbInst = node->as<InstNode>();
+      InstNode* inst = node->as<InstNode>();
       RAInst* raInst = node->passData<RAInst>();
 
-      Operand* operands = cbInst->operands();
-      uint32_t opCount = cbInst->opCount();
+      Operand* operands = inst->operands();
+      uint32_t opCount = inst->opCount();
       uint32_t i;
 
       // Rewrite virtual registers into physical registers.
@@ -1453,11 +1455,11 @@ ASMJIT_FAVOR_SPEED Error RAPass::_rewrite(BaseNode* first, BaseNode* stop) noexc
 
           Support::BitWordIterator<uint32_t> useIt(tiedReg->useRewriteMask());
           uint32_t useId = tiedReg->useId();
-          while (useIt.hasNext()) cbInst->rewriteIdAtIndex(useIt.next(), useId);
+          while (useIt.hasNext()) inst->rewriteIdAtIndex(useIt.next(), useId);
 
           Support::BitWordIterator<uint32_t> outIt(tiedReg->outRewriteMask());
           uint32_t outId = tiedReg->outId();
-          while (outIt.hasNext()) cbInst->rewriteIdAtIndex(outIt.next(), outId);
+          while (outIt.hasNext()) inst->rewriteIdAtIndex(outIt.next(), outId);
         }
 
         // This data is allocated by Zone passed to `runOnFunction()`, which

@@ -88,10 +88,10 @@ void ZoneStackBase::_cleanupBlock(uint32_t side, size_t middleIndex) noexcept {
     prev->_link[side] = nullptr;
     _block[side] = prev;
   }
-  else if (_block[!side] == prev && prev->empty()) {
+  else if (_block[!side] == block) {
     // If the container becomes empty center both pointers in the remaining block.
-    prev->_start = (uint8_t*)prev + middleIndex;
-    prev->_end = (uint8_t*)prev + middleIndex;
+    block->_start = (uint8_t*)block + middleIndex;
+    block->_end = (uint8_t*)block + middleIndex;
   }
 }
 

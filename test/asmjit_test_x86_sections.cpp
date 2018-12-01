@@ -141,11 +141,11 @@ int main(int argc, char* argv[]) {
       fn(3) != dataArray[3] ||
       fn(6) != dataArray[6] ||
       fn(9) != dataArray[9] ) {
-    printf("  [FAIL] The generated function returned incorrect result(s)\n");
+    printf("  [FAILED] The generated function returned incorrect result(s)\n");
     return 1;
   }
   else {
-    printf("  [PASS] The generated function returned expected results\n");
+    printf("  [PASSED] The generated function returned expected results\n");
   }
 
   allocator.release((void*)fn);

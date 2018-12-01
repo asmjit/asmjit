@@ -5408,9 +5408,9 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
   }
 
   // Decrease the number of operands of those that are none. This is important
-  // as Assembler and BaseCompiler may just pass more operands where some of
-  // them are none (it means that no operand is given at that index). However,
-  // validate that there are no gaps (like [reg, none, reg] or [none, reg]).
+  // as Assembler and Compiler may just pass more operands padded with none
+  // (which means that no operand is given at that index). However, validate
+  // that there are no gaps (like [reg, none, reg] or [none, reg]).
   if (i < count) {
     while (--count > i)
       if (ASMJIT_UNLIKELY(!operands[count].isNone()))

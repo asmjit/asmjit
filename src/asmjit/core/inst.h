@@ -71,9 +71,9 @@ struct OpInfo {
 struct ORWInfo {
   //! Flags describe how the operand is accessed and some additional information.
   enum Flags : uint32_t {
-    kRead                 = 0x00000001u, //!< Operand is Read.
-    kWrite                = 0x00000002u, //!< Operand is Written.
-    kRW                   = 0x00000003u, //!< Operand is ReadWrite.
+    kRead                 = 0x00000001u, //!< Operand is read.
+    kWrite                = 0x00000002u, //!< Operand is written.
+    kRW                   = 0x00000003u, //!< Operand is both read and written.
     kUse                  = 0x00000004u, //!< Operand has a USE slot (each read or read/write operation).
     kOut                  = 0x00000008u, //!< Operand has an OUT slot (each write-only operation).
     kZExt                 = 0x00000010u  //!< The output is zero extended to a native register size.
@@ -97,10 +97,14 @@ struct ORWInfo {
   inline uint32_t index() const noexcept { return _index; }
   inline uint32_t width() const noexcept { return _width; }
 
-  uint8_t _flags;                        //!< Read/Write flags.
-  uint8_t _physId;                       //!< Physical register index, if required.
-  uint8_t _index;                        //!< Read/write register index [in bytes], `_index` is ignored if the operand is memory.
-  uint8_t _width;                        //!< Read/Write register/memory width [in bytes], zero means native width or imm/rel width.
+  //! Read/Write flags.
+  uint8_t _flags;
+  //! Physical register index, if required.
+  uint8_t _physId;
+  //! Read/write register index [in bytes], `_index` is ignored if the operand is memory.
+  uint8_t _index;
+  //! Read/Write register/memory width [in bytes], zero means native width or imm/rel width.
+  uint8_t _width;
 };
 
 //! Read/Write information related to the whole instruction.

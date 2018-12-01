@@ -180,26 +180,29 @@ public:
           if (controlType != BaseInst::kControlNone) {
             // Support for conditional and unconditional jumps.
             if (controlType == BaseInst::kControlJump || controlType == BaseInst::kControlBranch) {
-              // Jmp/Jcc/Call/Loop/etc...
-              uint32_t opCount = inst->opCount();
-              const Operand* opArray = inst->operands();
-
-              // The last operand must be label (this supports also instructions
-              // like jecx in explicit form).
-              if (ASMJIT_UNLIKELY(opCount == 0 || !opArray[opCount - 1].isLabel()))
-                return DebugUtils::errored(kErrorInvalidState);
-
-              LabelNode* cbLabel;
-              ASMJIT_PROPAGATE(cc()->labelNodeOf(&cbLabel, opArray[opCount - 1].as<Label>()));
-
-              RABlock* targetBlock = _pass->newBlockOrExistingAt(cbLabel);
-              if (ASMJIT_UNLIKELY(!targetBlock))
-                return DebugUtils::errored(kErrorOutOfMemory);
-
               _curBlock->setLast(node);
               _curBlock->addFlags(RABlock::kFlagHasTerminator);
               _curBlock->makeConstructed(blockRegStats);
-              ASMJIT_PROPAGATE(_curBlock->appendSuccessor(targetBlock));
+
+              if (!(inst->instOptions() & BaseInst::kOptionUnfollow)) {
+                // Jmp/Jcc/Call/Loop/etc...
+                uint32_t opCount = inst->opCount();
+                const Operand* opArray = inst->operands();
+
+                // The last operand must be label (this supports also instructions
+                // like jecx in explicit form).
+                if (ASMJIT_UNLIKELY(opCount == 0 || !opArray[opCount - 1].isLabel()))
+                  return DebugUtils::errored(kErrorInvalidState);
+
+                LabelNode* cbLabel;
+                ASMJIT_PROPAGATE(cc()->labelNodeOf(&cbLabel, opArray[opCount - 1].as<Label>()));
+
+                RABlock* targetBlock = _pass->newBlockOrExistingAt(cbLabel);
+                if (ASMJIT_UNLIKELY(!targetBlock))
+                  return DebugUtils::errored(kErrorOutOfMemory);
+
+                ASMJIT_PROPAGATE(_curBlock->appendSuccessor(targetBlock));
+              }
 
               if (controlType == BaseInst::kControlJump) {
                 // Unconditional jump makes the code after the jump unreachable,

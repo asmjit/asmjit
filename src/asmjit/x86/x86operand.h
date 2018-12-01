@@ -373,16 +373,13 @@ public:
   //! Additional bits of operand's signature used by `Mem`.
   enum AdditionalBits : uint32_t {
     kSignatureMemSegmentShift   = 16,
-    kSignatureMemSegmentBits    = 0x07u,
-    kSignatureMemSegmentMask    = kSignatureMemSegmentBits << kSignatureMemSegmentShift,
+    kSignatureMemSegmentMask    = 0x07u << kSignatureMemSegmentShift,
 
     kSignatureMemShiftShift     = 19,
-    kSignatureMemShiftBits      = 0x03u,
-    kSignatureMemShiftMask      = kSignatureMemShiftBits << kSignatureMemShiftShift,
+    kSignatureMemShiftMask      = 0x03u << kSignatureMemShiftShift,
 
     kSignatureMemBroadcastShift = 21,
-    kSignatureMemBroadcastBits  = 0x7u,
-    kSignatureMemBroadcastMask  = kSignatureMemBroadcastBits << kSignatureMemBroadcastShift
+    kSignatureMemBroadcastMask  = 0x7u << kSignatureMemBroadcastShift
   };
 
   enum Broadcast : uint32_t {
@@ -443,6 +440,16 @@ public:
     result.addOffset(off);
     return result;
   }
+
+  //! Converts memory `baseType` and `baseId` to `x86::Reg` instance.
+  //!
+  //! The memory must have a valid base register otherwise the result will be wrong.
+  inline Reg baseReg() const noexcept { return Reg::fromTypeAndId(baseType(), baseId()); }
+
+  //! Converts memory `indexType` and `indexId` to `x86::Reg` instance.
+  //!
+  //! The memory must have a valid index register otherwise the result will be wrong.
+  inline Reg indexReg() const noexcept { return Reg::fromTypeAndId(indexType(), indexId()); }
 
   constexpr Mem _1to1() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To1 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
   constexpr Mem _1to2() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To2 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }

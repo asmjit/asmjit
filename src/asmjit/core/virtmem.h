@@ -26,8 +26,8 @@ ASMJIT_BEGIN_NAMESPACE
 //! Virtual memory management.
 namespace VirtMem {
 
-//! Virtual memory access flags.
-enum AccessFlags : uint32_t {
+//! Virtual memory and memory mapping flags.
+enum Flags : uint32_t {
   //! No access flags.
   kAccessNone = 0x00000000u,
   //! Memory is readable.
@@ -38,7 +38,16 @@ enum AccessFlags : uint32_t {
   kAccessExecute = 0x00000004u,
 
   //! A combination of `kAccessRead | kAccessWrite`
-  kAccessReadWrite = 0x00000003u
+  kAccessReadWrite = 0x00000003u,
+  
+  //! Not an access flag, only used by `allocDualMapping()` to override the
+  //! default allocation strategy to always use a temporary directory instead
+  //! on "/dev/shm" (on POSIX systems). Please note that this flag will be
+  //! ignored if the operating system allows to allocate an executable memory
+  //! by a different API than `open()` or `shm_open()`. For example on Linux
+  //! `memfd_create()` is preferred and on BSDs `shm_open(SHM_ANON, ...)` is
+  //! used if SHM_ANON is defined.
+  kMappingPreferTmp = 0x80000000u
 };
 
 //! Virtual memory information.
@@ -69,7 +78,7 @@ ASMJIT_API Info info() noexcept;
 //! NOTE: `size` should be aligned to a page size, use \ref VirtMem::info()
 //! to obtain it. Invalid size will not be corrected by the implementation
 //! and the allocation would not succeed in such case.
-ASMJIT_API Error alloc(void** p, size_t size, uint32_t accessFlags) noexcept;
+ASMJIT_API Error alloc(void** p, size_t size, uint32_t flags) noexcept;
 
 //! Releases virtual memory previously allocated by \ref  VirtMem::alloc() or
 //! \ref VirtMem::allocDualMapping().
@@ -81,7 +90,7 @@ ASMJIT_API Error release(void* p, size_t size) noexcept;
 
 //! A cross-platform wrapper around `mprotect()` (POSIX) and `VirtualProtect`
 //! (Windows).
-ASMJIT_API Error protect(void* p, size_t size, uint32_t accessFlags) noexcept;
+ASMJIT_API Error protect(void* p, size_t size, uint32_t flags) noexcept;
 
 //! Allocates virtual memory and creates two views of it where the first view
 //! has no write access. This is an addition to the API that should be used
@@ -96,7 +105,7 @@ ASMJIT_API Error protect(void* p, size_t size, uint32_t accessFlags) noexcept;
 //! Windows.
 //!
 //! \remarks Both pointers in `dm` would be set to `nullptr` if the function fails.
-ASMJIT_API Error allocDualMapping(DualMapping* dm, size_t size, uint32_t accessFlags) noexcept;
+ASMJIT_API Error allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) noexcept;
 
 //! Releases the virtual memory mapping previously allocated by
 //! \ref VirtMem::allocDualMapping().

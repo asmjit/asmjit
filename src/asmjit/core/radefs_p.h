@@ -721,30 +721,26 @@ struct RATiedReg {
   //! the register allocator will first allocate USE registers, and then assign
   //! OUT registers independently of USE registers.
   enum Flags : uint32_t {
-    kRead        = OpInfo::kRead,        //!< Register is read.
-    kWrite       = OpInfo::kWrite,       //!< Register is written.
-    kRW          = OpInfo::kRW,          //!< Register read and written.
-    kUse         = OpInfo::kUse,         //!< Register has a USE slot (Read/ReadWrite).
-    kOut         = OpInfo::kOut,         //!< Register has an OUT slot (WriteOnly).
+    kRead         = OpInfo::kRead,       //!< Register is read.
+    kWrite        = OpInfo::kWrite,      //!< Register is written.
+    kRW           = OpInfo::kRW,         //!< Register both read and written.
+    kUse          = OpInfo::kUse,        //!< Register has a USE slot (Read/ReadWrite).
+    kOut          = OpInfo::kOut,        //!< Register has an OUT slot (WriteOnly).
 
-    kUseFixed    = 0x00000010u,          //!< Register has a fixed USE slot.
-    kOutFixed    = 0x00000020u,          //!< Register has a fixed OUT slot.
+    kUseFixed     = 0x00000010u,         //!< Register has a fixed USE slot.
+    kOutFixed     = 0x00000020u,         //!< Register has a fixed OUT slot.
+    kUseDone      = 0x00000040u,         //!< Register USE slot has been allocated.
+    kOutDone      = 0x00000080u,         //!< Register OUT slot has been allocated.
 
-    // TODO: Maybe we don't need these at all.
-    kUseCall     = 0x00000040u,          //!< Function-call register argument (USE).
-    kOutCall     = 0x00000080u,          //!< Function-call register return (OUT).
-
-    kUseDone     = 0x00000100u,          //!< Register USE slot has been allocated.
-    kOutDone     = 0x00000200u,          //!< Register OUT slot has been allocated
-
-    kLast        = 0x00000400u,          //!< Last occurrence of this VirtReg in basic block.
-    kKill        = 0x00000800u,          //!< Kill this VirtReg after use.
+    kDuplicate    = 0x00000100u,         //!< Register must be duplicated (function call only).
+    kLast         = 0x00000400u,         //!< Last occurrence of this VirtReg in basic block.
+    kKill         = 0x00000800u,         //!< Kill this VirtReg after use.
 
     // Architecture specific flags are used during RATiedReg building to ensure
     // that architecture-specific constraints are handled properly. These flags
     // are not really needed after RATiedReg[] is built and copied to `RAInst`.
 
-    kX86Gpb      = 0x00001000u           //!< This tied references GPB-LO or GPB-HI.
+    kX86Gpb       = 0x00001000u          //!< This tied references GPB-LO or GPB-HI.
   };
 
   // --------------------------------------------------------------------------
@@ -805,6 +801,9 @@ struct RATiedReg {
     _outRewriteMask |= _useRewriteMask;
     _useRewriteMask = 0;
   }
+  
+  //! Get whether this register would duplicate.
+  inline bool isDuplicate() const noexcept { return hasFlag(kDuplicate); }
 
   //! Get whether this register (and the instruction it's part of) appears last in the basic block.
   inline bool isLast() const noexcept { return hasFlag(kLast); }

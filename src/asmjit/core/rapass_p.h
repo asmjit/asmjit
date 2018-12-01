@@ -398,11 +398,15 @@ public:
       return kErrorOk;
     }
     else {
-      // TODO: What about `useId`, in that case we should perform a move outside and ban coalescing.
-      if (ASMJIT_UNLIKELY(outId != BaseReg::kIdBad)) {
+      if (useId != BaseReg::kIdBad) {
+        if (ASMJIT_UNLIKELY(tiedReg->hasUseId()))
+          return DebugUtils::errored(kErrorOverlappedRegs);
+        tiedReg->setUseId(useId);
+      }
+      
+      if (outId != BaseReg::kIdBad) {
         if (ASMJIT_UNLIKELY(tiedReg->hasOutId()))
           return DebugUtils::errored(kErrorOverlappedRegs);
-
         tiedReg->setOutId(outId);
         // TODO: ? _used[group] |= Support::bitMask(outId);
       }
@@ -416,19 +420,97 @@ public:
     }
   }
 
+  ASMJIT_INLINE Error addCallArg(RAWorkReg* workReg, uint32_t useId) noexcept {
+    ASMJIT_ASSERT(useId != BaseReg::kIdBad);
+
+    uint32_t flags = RATiedReg::kUse | RATiedReg::kRead | RATiedReg::kUseFixed;
+    uint32_t group = workReg->group();
+    uint32_t allocable = Support::bitMask(useId);
+
+    _flags |= flags;
+    _used[group] |= allocable;
+    _stats.makeFixed(group);
+    _stats.makeUsed(group);
+
+    RATiedReg* tiedReg = workReg->tiedReg();
+    if (!tiedReg) {
+      // Could happen when the builder is not reset properly after each instruction.
+      ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
+
+      tiedReg = _cur++;
+      tiedReg->init(workReg->workId(), flags, allocable, useId, 0, BaseReg::kIdBad, 0);
+      workReg->setTiedReg(tiedReg);
+
+      _count.add(group);
+      return kErrorOk;
+    }
+    else {
+      if (tiedReg->hasUseId()) {
+        flags |= RATiedReg::kDuplicate;
+        tiedReg->_allocableRegs |= allocable;
+      }
+      else {
+        tiedReg->setUseId(useId);
+        tiedReg->_allocableRegs &= allocable;
+      }
+
+      tiedReg->addRefCount();
+      tiedReg->addFlags(flags);
+      return kErrorOk;
+    }
+  }
+
+  ASMJIT_INLINE Error addCallRet(RAWorkReg* workReg, uint32_t outId) noexcept {
+    ASMJIT_ASSERT(outId != BaseReg::kIdBad);
+
+    uint32_t flags = RATiedReg::kOut | RATiedReg::kWrite | RATiedReg::kOutFixed;
+    uint32_t group = workReg->group();
+    uint32_t allocable = Support::bitMask(outId);
+
+    _flags |= flags;
+    _used[group] |= allocable;
+    _stats.makeFixed(group);
+    _stats.makeUsed(group);
+
+    RATiedReg* tiedReg = workReg->tiedReg();
+    if (!tiedReg) {
+      // Could happen when the builder is not reset properly after each instruction.
+      ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
+
+      tiedReg = _cur++;
+      tiedReg->init(workReg->workId(), flags, allocable, BaseReg::kIdBad, 0, outId, 0);
+      workReg->setTiedReg(tiedReg);
+
+      _count.add(group);
+      return kErrorOk;
+    }
+    else {
+      if (tiedReg->hasOutId())
+        return DebugUtils::errored(kErrorOverlappedRegs);
+
+      tiedReg->addRefCount();
+      tiedReg->addFlags(flags);
+      tiedReg->setOutId(outId);
+      return kErrorOk;
+    }
+  }
+
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _flags;                       //!< Flags combined from all RATiedReg's.
+  //! Flags combined from all RATiedReg's.
+  uint32_t _flags;
   RARegCount _count;
   RARegsStats _stats;
 
   RARegMask _used;
   RARegMask _clobbered;
 
-  RATiedReg* _cur;                       //!< Current tied register in `_tiedRegs`.
-  RATiedReg _tiedRegs[128];              //!< Array of temporary tied registers.
+  //! Current tied register in `_tiedRegs`.
+  RATiedReg* _cur;
+  //! Array of temporary tied registers.
+  RATiedReg _tiedRegs[128];
 };
 
 // ============================================================================
@@ -597,7 +679,8 @@ public:
 
       RATiedReg& dst = raInst->_tiedRegs[index[group]++];
       dst = *tiedReg;
-      dst._allocableRegs &= ~ib._used[group];
+      if (!tiedReg->isDuplicate())
+        dst._allocableRegs &= ~ib._used[group];
     }
 
     node->setPassData<RAInst>(raInst);
@@ -815,6 +898,7 @@ public:
   virtual Error onEmitSave(uint32_t workId, uint32_t srcPhysId) noexcept = 0;
 
   virtual Error onEmitJump(const Label& label) noexcept = 0;
+  virtual Error onEmitPreCall(FuncCallNode* call) noexcept = 0;
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -859,7 +943,7 @@ public:
   FuncArgsAssignment _argsAssignment;    //!< Function arguments mapper.
   uint32_t _numStackArgsToStackSlots;    //!< Some StackArgs have to be assigned to StackSlots.
 
-  StringTmp<80> _tmpString;       //!< Temporary string builder used to format comments.
+  StringTmp<80> _tmpString;              //!< Temporary string builder used to format comments.
   uint32_t _maxWorkRegNameSize;          //!< Maximum name-size computed from all WorkReg's.
 };
 

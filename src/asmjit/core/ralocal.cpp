@@ -319,7 +319,7 @@ Cleared:
   }
 
   if (!tryMode) {
-    // In case something fails here is code that dumps the conflicting part:
+    // Hre is a code that dumps the conflicting part if something fails here:
     //   if (!dst.equals(cur)) {
     //     uint32_t physTotal = dst._layout.physTotal;
     //     uint32_t workCount = dst._layout.workCount;
@@ -328,14 +328,14 @@ Cleared:
     //       uint32_t dstWorkId = dst._physToWorkMap->workIds[physId];
     //       uint32_t curWorkId = cur._physToWorkMap->workIds[physId];
     //       if (dstWorkId != curWorkId)
-    //         std::fprintf(stderr, "[PhysIdWork] PhysId=%u WorkId[DST(%u) != CUR(%u)]\n", physId, dstWorkId, curWorkId);
+    //         fprintf(stderr, "[PhysIdWork] PhysId=%u WorkId[DST(%u) != CUR(%u)]\n", physId, dstWorkId, curWorkId);
     //     }
     //
     //     for (uint32_t workId = 0; workId < workCount; workId++) {
     //       uint32_t dstPhysId = dst._workToPhysMap->physIds[workId];
     //       uint32_t curPhysId = cur._workToPhysMap->physIds[workId];
     //       if (dstPhysId != curPhysId)
-    //         std::fprintf(stderr, "[WorkToPhys] WorkId=%u PhysId[DST(%u) != CUR(%u)]\n", workId, dstPhysId, curPhysId);
+    //         fprintf(stderr, "[WorkToPhys] WorkId=%u PhysId[DST(%u) != CUR(%u)]\n", workId, dstPhysId, curPhysId);
     //     }
     //   }
     ASMJIT_ASSERT(dst.equals(cur));
@@ -351,6 +351,9 @@ Cleared:
 Error RALocalAllocator::allocInst(InstNode* node) noexcept {
   RAInst* raInst = node->passData<RAInst>();
 
+  RATiedReg* outTiedRegs[Globals::kMaxPhysRegs];
+  RATiedReg* dupTiedRegs[Globals::kMaxPhysRegs];
+
   // The cursor must point to the previous instruction for a possible instruction insertion.
   _cc->_setCursor(node->prev());
 
@@ -363,15 +366,16 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     return kErrorOk;
 
   for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++) {
-    uint32_t willUse = _raInst->_usedRegs[group];
-    uint32_t willOut = _raInst->_clobberedRegs[group];
-    uint32_t willFree = 0;
-
     uint32_t i, count = this->tiedCount(group);
     RATiedReg* tiedRegs = this->tiedRegs(group);
 
+    uint32_t willUse = _raInst->_usedRegs[group];
+    uint32_t willOut = _raInst->_clobberedRegs[group];
+    uint32_t willFree = 0;
     uint32_t usePending = count;
-    uint32_t outPending = 0;
+
+    uint32_t outTiedCount = 0;
+    uint32_t dupTiedCount = 0;
 
     // ------------------------------------------------------------------------
     // STEP 1:
@@ -390,7 +394,11 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
       RATiedReg* tiedReg = &tiedRegs[i];
 
       // Add OUT and KILL to `outPending` for CLOBBERing and/or OUT assignment.
-      outPending += uint32_t(tiedReg->isOutOrKill());
+      if (tiedReg->isOutOrKill())
+        outTiedRegs[outTiedCount++] = tiedReg;
+
+      if (tiedReg->isDuplicate())
+        dupTiedRegs[dupTiedCount++] = tiedReg;
 
       if (!tiedReg->isUse()) {
         tiedReg->markUseDone();
@@ -586,6 +594,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
                 _curAssignment.makeDirty(group, thisWorkId, targetPhysId);
               usePending--;
 
+              // TODO: Is tiedReg() safe here? It seems it's not updated after the CFG is built.
               // Double-hit.
               RATiedReg* targetTiedReg = targetWorkReg->tiedReg();
               if (targetTiedReg && targetTiedReg->useId() == thisPhysId) {
@@ -635,10 +644,10 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     // KILL registers marked as KILL/OUT.
     // ------------------------------------------------------------------------
 
-    if (outPending) {
-      for (i = 0; i < count; i++) {
-        RATiedReg* tiedReg = &tiedRegs[i];
-        if (!tiedReg->isOutOrKill()) continue;
+    uint32_t outPending = outTiedCount;
+    if (outTiedCount) {
+      for (i = 0; i < outTiedCount; i++) {
+        RATiedReg* tiedReg = outTiedRegs[i];
 
         uint32_t workId = tiedReg->workId();
         uint32_t physId = _curAssignment.workToPhysId(group, workId);
@@ -679,6 +688,26 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     // ------------------------------------------------------------------------
     // STEP 7:
     //
+    // Duplication.
+    // ------------------------------------------------------------------------
+
+    for (i = 0; i < dupTiedCount; i++) {
+      RATiedReg* tiedReg = dupTiedRegs[i];
+      uint32_t workId = tiedReg->workId();
+      uint32_t srcId = tiedReg->useId();
+      
+      Support::BitWordIterator<uint32_t> it(tiedReg->_allocableRegs);
+      while (it.hasNext()) {
+        uint32_t dstId = it.next();
+        if (dstId == srcId)
+          continue;
+        _pass->onEmitMove(workId, dstId, srcId);
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // STEP 8:
+    //
     // Assign OUT registers.
     // ------------------------------------------------------------------------
 
@@ -694,8 +723,8 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
       // Must avoid as they collide with already allocated ones.
       uint32_t avoidRegs = willUse & ~clobberedByInst;
 
-      for (i = 0; i < count; i++) {
-        RATiedReg* tiedReg = &tiedRegs[i];
+      for (i = 0; i < outTiedCount; i++) {
+        RATiedReg* tiedReg = outTiedRegs[i];
         if (!tiedReg->isOut()) continue;
 
         uint32_t workId = tiedReg->workId();
@@ -728,7 +757,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
         tiedReg->setOutId(physId);
         tiedReg->markOutDone();
 
-        outRegs  |=  Support::bitMask(physId);
+        outRegs |= Support::bitMask(physId);
         liveRegs &= ~Support::bitMask(physId);
         outPending--;
       }

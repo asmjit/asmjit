@@ -47,6 +47,7 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& sign) {
     arg.initTypeId(Type::deabstract(args[i], deabstractDelta));
   }
   _argCount = uint8_t(argCount);
+  _vaIndex = uint8_t(sign.vaIndex());
 
   uint32_t ret = sign.ret();
   if (ret != Type::kIdVoid) {

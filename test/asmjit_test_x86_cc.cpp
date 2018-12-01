@@ -84,7 +84,7 @@ public:
   X86TestApp() noexcept
     : _zone(8096 - Zone::kBlockOverhead),
       _allocator(&_zone),
-      _returnCode(0),
+      _nFailed(0),
       _binSize(0),
       _verbose(false),
       _dumpAsm(false) {}
@@ -117,7 +117,7 @@ public:
   ZoneAllocator _allocator;
   ZoneVector<X86Test*> _tests;
 
-  int _returnCode;
+  int _nFailed;
   int _binSize;
 
   bool _verbose;
@@ -223,8 +223,11 @@ int X86TestApp::run() {
         fprintf(file, "  Returned: %s\n", result.data());
         fprintf(file, "  Expected: %s\n", expect.data());
 
-        _returnCode = 1;
+        _nFailed++;
       }
+
+      if (_dumpAsm)
+        fprintf(file, "\n");
 
       runtime.release(func);
     }
@@ -238,16 +241,19 @@ int X86TestApp::run() {
       fprintf(file, "[Status]\n");
       fprintf(file, "  ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
 
-      _returnCode = 1;
+      _nFailed++;
     }
 
     fflush(file);
   }
 
-  fprintf(file, "\n");
+  if (_nFailed == 0)
+    fprintf(file, "\n[PASSED] All tests passed\n");
+  else
+    fprintf(file, "\n[FAILED] %u %s of %u failed\n", _nFailed, _nFailed == 1 ? "test" : "tests", unsigned(_tests.size()));
   fflush(file);
 
-  return _returnCode;
+  return _nFailed == 0 ? 0 : 1;
 }
 
 // ============================================================================
@@ -3125,6 +3131,72 @@ public:
 };
 
 // ============================================================================
+// [X86Test_FuncCallVarArg1]
+// ============================================================================
+
+class X86Test_FuncCallVarArg1 : public X86Test {
+public:
+  X86Test_FuncCallVarArg1() : X86Test("FuncCallVarArg1") {}
+
+  static void add(X86TestApp& app) {
+    app.add(new X86Test_FuncCallVarArg1());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<int, int, int, int, int>(CallConv::kIdHost));
+
+    x86::Gp a0 = cc.newInt32("a0");
+    x86::Gp a1 = cc.newInt32("a1");
+    x86::Gp a2 = cc.newInt32("a2");
+    x86::Gp a3 = cc.newInt32("a3");
+
+    cc.setArg(0, a0);
+    cc.setArg(1, a1);
+    cc.setArg(2, a2);
+    cc.setArg(3, a3);
+
+    // We call `int func(size_t, ...)`
+    //   - The `vaIndex` must be 1 (first argument after size_t).
+    //   - The full signature of varargs (int, int, int, int) must follow.
+    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, size_t, int, int, int, int>(CallConv::kIdHost, 1));
+    call->setArg(0, imm(4));
+    call->setArg(1, a0);
+    call->setArg(2, a1);
+    call->setArg(3, a2);
+    call->setArg(4, a3);
+    call->setRet(0, a0);
+
+    cc.ret(a0);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef int (*Func)(int, int, int, int);
+    Func func = ptr_as_func<Func>(_func);
+
+    int resultRet = func(1, 2, 3, 4);
+    int expectRet = 1 + 2 + 3 + 4;
+
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+  
+  static int calledFunc(size_t n, ...) {
+    int sum = 0;
+    va_list ap;
+    va_start(ap, n);
+    for (size_t i = 0; i < n; i++) {
+      int arg = va_arg(ap, int);
+      sum += arg;
+    }
+    va_end(ap);
+    return sum;
+  }
+};
+
+// ============================================================================
 // [X86Test_FuncCallMisc1]
 // ============================================================================
 
@@ -3185,7 +3257,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* func = cc.addFunc(FuncSignatureT<double, const double*>(CallConv::kIdHost));
+    cc.addFunc(FuncSignatureT<double, const double*>(CallConv::kIdHost));
 
     x86::Gp p = cc.newIntPtr("p");
     x86::Xmm arg = cc.newXmmSd("arg");
@@ -3233,7 +3305,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* func = cc.addFunc(FuncSignatureT<double, const double*>(CallConv::kIdHost));
+    cc.addFunc(FuncSignatureT<double, const double*>(CallConv::kIdHost));
 
     x86::Gp p = cc.newIntPtr("p");
     x86::Xmm arg = cc.newXmmSd("arg");
@@ -3591,7 +3663,7 @@ public:
     // arguments will be passed by registers and there won't be any stack
     // misalignment when we call the `handler()`. This was failing on OSX
     // when targeting 32-bit.
-    cc.addFunc(FuncSignatureT<void, int, void*>(CallConv::kIdHostFastCall));
+    cc.addFunc(FuncSignatureT<int, int, void*>(CallConv::kIdHostFastCall));
 
     x86::Gp a = cc.newInt32("a");
     x86::Gp b = cc.newIntPtr("b");
@@ -3699,6 +3771,7 @@ int main(int argc, char* argv[]) {
   app.addT<X86Test_FuncCallConditional>();
   app.addT<X86Test_FuncCallMultiple>();
   app.addT<X86Test_FuncCallRecursive>();
+  app.addT<X86Test_FuncCallVarArg1>();
   app.addT<X86Test_FuncCallMisc1>();
   app.addT<X86Test_FuncCallMisc2>();
   app.addT<X86Test_FuncCallMisc3>();

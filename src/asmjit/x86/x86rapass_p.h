@@ -76,6 +76,7 @@ public:
   Error onEmitSave(uint32_t workId, uint32_t srcPhysId) noexcept override;
 
   Error onEmitJump(const Label& label) noexcept override;
+  Error onEmitPreCall(FuncCallNode* node) noexcept override;
 
   // --------------------------------------------------------------------------
   // [Members]

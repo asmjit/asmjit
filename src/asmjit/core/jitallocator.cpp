@@ -1116,12 +1116,12 @@ UNIT(asmjit_core_jit_allocator) {
     INFO("  Shuffling...");
     JitAllocatorTest_shuffle(ptrArray, unsigned(kCount), prng);
 
-    INFO("  Releasing 50% blocks...");
+    INFO("  Releasing 50%% blocks...");
     for (i = 0; i < kCount / 2; i++)
       wrapper.release(ptrArray[i]);
     JitAllocatorTest_usage(wrapper._allocator);
 
-    INFO("  Allocating 50% blocks again...");
+    INFO("  Allocating 50%% blocks again...");
     for (i = 0; i < kCount / 2; i++)
       ptrArray[i] = wrapper.alloc((prng.nextUInt32() % 1024) + 8);
     JitAllocatorTest_usage(wrapper._allocator);

@@ -12,6 +12,7 @@
 
 // [Dependencies]
 #include "../core/osutils.h"
+#include "../core/string.h"
 #include "../core/support.h"
 #include "../core/virtmem.h"
 
@@ -41,7 +42,7 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::VirtMem - Utilities]
 // ============================================================================
 
-static const uint32_t allocViewFilter[2] = {
+static const uint32_t dualMappingFilter[2] = {
   VirtMem::kAccessWrite,
   VirtMem::kAccessExecute
 };
@@ -73,14 +74,14 @@ static void VirtMem_getInfo(VirtMem::Info& vmInfo) noexcept {
 }
 
 // Windows specific implementation that uses `VirtualAlloc` and `VirtualFree`.
-static DWORD VirtMem_accessToWinProtectFlags(uint32_t accessFlags) noexcept {
+static DWORD VirtMem_accessToWinProtectFlags(uint32_t flags) noexcept {
   DWORD protectFlags;
 
   // READ|WRITE|EXECUTE.
-  if (accessFlags & VirtMem::kAccessExecute)
-    protectFlags = (accessFlags & VirtMem::kAccessWrite) ? PAGE_EXECUTE_READWRITE : PAGE_EXECUTE_READ;
-  else if (accessFlags & VirtMem::kAccessReadWrite)
-    protectFlags = (accessFlags & VirtMem::kAccessWrite) ? PAGE_READWRITE : PAGE_READONLY;
+  if (flags & VirtMem::kAccessExecute)
+    protectFlags = (flags & VirtMem::kAccessWrite) ? PAGE_EXECUTE_READWRITE : PAGE_EXECUTE_READ;
+  else if (flags & VirtMem::kAccessReadWrite)
+    protectFlags = (flags & VirtMem::kAccessWrite) ? PAGE_READWRITE : PAGE_READONLY;
   else
     protectFlags = PAGE_NOACCESS;
 
@@ -88,19 +89,19 @@ static DWORD VirtMem_accessToWinProtectFlags(uint32_t accessFlags) noexcept {
   return protectFlags;
 }
 
-static DWORD VirtMem_accessToWinDesiredAccess(uint32_t accessFlags) noexcept {
-  DWORD access = (accessFlags & VirtMem::kAccessWrite) ? FILE_MAP_WRITE : FILE_MAP_READ;
-  if (accessFlags & VirtMem::kAccessExecute)
+static DWORD VirtMem_accessToWinDesiredAccess(uint32_t flags) noexcept {
+  DWORD access = (flags & VirtMem::kAccessWrite) ? FILE_MAP_WRITE : FILE_MAP_READ;
+  if (flags & VirtMem::kAccessExecute)
     access |= FILE_MAP_EXECUTE;
   return access;
 }
 
-Error VirtMem::alloc(void** p, size_t size, uint32_t accessFlags) noexcept {
+Error VirtMem::alloc(void** p, size_t size, uint32_t flags) noexcept {
   *p = nullptr;
   if (size == 0)
     return DebugUtils::errored(kErrorInvalidArgument);
 
-  DWORD protectFlags = VirtMem_accessToWinProtectFlags(accessFlags);
+  DWORD protectFlags = VirtMem_accessToWinProtectFlags(flags);
   void* result = ::VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, protectFlags);
 
   if (!result)
@@ -117,8 +118,8 @@ Error VirtMem::release(void* p, size_t size) noexcept {
   return kErrorOk;
 }
 
-Error VirtMem::protect(void* p, size_t size, uint32_t accessFlags) noexcept {
-  DWORD protectFlags = VirtMem_accessToWinProtectFlags(accessFlags);
+Error VirtMem::protect(void* p, size_t size, uint32_t flags) noexcept {
+  DWORD protectFlags = VirtMem_accessToWinProtectFlags(flags);
   DWORD oldFlags;
 
   if (::VirtualProtect(p, size, protectFlags, &oldFlags))
@@ -127,7 +128,7 @@ Error VirtMem::protect(void* p, size_t size, uint32_t accessFlags) noexcept {
   return DebugUtils::errored(kErrorInvalidArgument);
 }
 
-Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t accessFlags) noexcept {
+Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) noexcept {
   dm->ro = nullptr;
   dm->rw = nullptr;
 
@@ -148,7 +149,7 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t accessFla
 
   void* ptr[2];
   for (uint32_t i = 0; i < 2; i++) {
-    DWORD desiredAccess = VirtMem_accessToWinDesiredAccess(accessFlags & ~allocViewFilter[i]);
+    DWORD desiredAccess = VirtMem_accessToWinDesiredAccess(flags & ~dualMappingFilter[i]);
     ptr[i] = ::MapViewOfFile(handle.value, desiredAccess, 0, 0, size);
 
     if (ptr[i] == nullptr) {
@@ -188,13 +189,6 @@ Error VirtMem::releaseDualMapping(DualMapping* dm, size_t size) noexcept {
 // ============================================================================
 
 #if !defined(_WIN32)
-
-#if defined(SYS_memfd_create)
-// Zero initialized, if ever changed to '1' that would mean the syscall is not
-// available and we must use `shm_open()` and `shm_unlink()`.
-static volatile int _memfd_create_not_supported;
-#endif
-
 struct ScopedFD {
   inline ScopedFD() noexcept
     : value(-1) {}
@@ -207,6 +201,35 @@ struct ScopedFD {
   int value;
 };
 
+#if defined(SYS_memfd_create)
+// Zero initialized, if ever changed to '1' that would mean the syscall is not
+// available and we must use `shm_open()` and `shm_unlink()`.
+static volatile int vm_memfd_create_not_supported;
+#endif
+
+// Some operating systems don't allow /dev/shm to be executable. On Linux this
+// happens when /dev/shm is mounted with 'noexec', which is enforced by systemd.
+// Other operating systems like OSX also restrict executable permissions regarding
+// /dev/shm, so we use a runtime detection before trying to allocate the requested
+// memory by the user. Sometimes we don't need the detection as we know it would
+// always result in 'kShmStrategyTmpDir'.
+enum ShmStrategy : uint32_t {
+  kShmStrategyUnknown = 0,
+  kShmStrategyDevShm = 1,
+  kShmStrategyTmpDir = 2
+};
+
+#if defined(__APPLE__)
+  #define ASMJIT_VM_SHM_DETECT 0
+#else
+  #define ASMJIT_VM_SHM_DETECT 1
+#endif
+
+#if ASMJIT_VM_SHM_DETECT
+// We initially assume this is not true on OSes that don't enable noexec by default.
+static volatile int vm_shm_strategy = kShmStrategyUnknown;
+#endif
+
 static void VirtMem_getInfo(VirtMem::Info& vmInfo) noexcept {
   uint32_t pageSize = uint32_t(::getpagesize());
 
@@ -215,11 +238,11 @@ static void VirtMem_getInfo(VirtMem::Info& vmInfo) noexcept {
 }
 
 // Posix specific implementation that uses `mmap()` and `munmap()`.
-static int VirtMem_accessToPosixProtection(uint32_t accessFlags) noexcept {
+static int VirtMem_accessToPosixProtection(uint32_t flags) noexcept {
   int protection = 0;
-  if (accessFlags & VirtMem::kAccessRead   ) protection |= PROT_READ;
-  if (accessFlags & VirtMem::kAccessWrite  ) protection |= PROT_READ | PROT_WRITE;
-  if (accessFlags & VirtMem::kAccessExecute) protection |= PROT_READ | PROT_EXEC;
+  if (flags & VirtMem::kAccessRead   ) protection |= PROT_READ;
+  if (flags & VirtMem::kAccessWrite  ) protection |= PROT_READ | PROT_WRITE;
+  if (flags & VirtMem::kAccessExecute) protection |= PROT_READ | PROT_EXEC;
   return protection;
 }
 
@@ -245,18 +268,23 @@ static Error VirtMem_makeErrorFromErrno(int e) noexcept {
   }
 }
 
-static Error VirtMem_openAnonymousMemory(int* fd) noexcept {
+static const char* VirtMem_getTmpDir() noexcept {
+  const char* tmpDir = getenv("TMPDIR");
+  return tmpDir ? tmpDir : "/tmp";
+}
+
+static Error VirtMem_openAnonymousMemory(int* fd, bool preferTmpOverDevShm) noexcept {
 #if defined(SYS_memfd_create)
   // Linux specific 'memfd_create' - if the syscall returns `ENOSYS` it means
   // it's not available and we will never call it again (would be pointless).
-  if (!_memfd_create_not_supported) {
+  if (!vm_memfd_create_not_supported) {
     *fd = (int)syscall(SYS_memfd_create, "vmem", 0);
-    if (ASMJIT_UNLIKELY(*fd >= 0))
+    if (ASMJIT_LIKELY(*fd >= 0))
       return kErrorOk;
 
     int e = errno;
     if (e == ENOSYS)
-      _memfd_create_not_supported = 1;
+      vm_memfd_create_not_supported = 1;
     else
       return DebugUtils::errored(VirtMem_makeErrorFromErrno(e));
   }
@@ -264,10 +292,13 @@ static Error VirtMem_openAnonymousMemory(int* fd) noexcept {
 
 #if defined(SHM_ANON)
   // Originally FreeBSD extension, apparently works in other BSDs too.
+  ASMJIT_UNUSED(preferTmpOverDevShm);
   *fd = shm_open(SHM_ANON, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-  if (ASMJIT_UNLIKELY(*fd < 0))
+
+  if (ASMJIT_LIKELY(*fd >= 0))
+    return kErrorOk;
+  else
     return DebugUtils::errored(VirtMem_makeErrorFromErrno(errno));
-  return kErrorOk;
 #else
   // POSIX API. We have to generate somehow a unique name. This is nothing
   // cryptographic, just using a bit from the stack address to always have
@@ -276,19 +307,32 @@ static Error VirtMem_openAnonymousMemory(int* fd) noexcept {
   // require creation of the file so we never open an existing shared memory.
   static std::atomic<uint32_t> internalCounter;
 
-  char uniqueName[128];
+  StringTmp<128> uniqueName;
+  const char* kShmFormat = "/shm-id-%08llX";
+
   uint32_t kRetryCount = 100;
-  uint64_t bits = ((uintptr_t)(void*)uniqueName) & 0x55555555u;
+  uint64_t bits = ((uintptr_t)(void*)&uniqueName) & 0x55555555u;
 
   for (uint32_t i = 0; i < kRetryCount; i++) {
     bits -= uint64_t(OSUtils::getTickCount()) * 773703683;
     bits = ((bits >> 14) ^ (bits << 6)) + uint64_t(++internalCounter) * 10619863;
-    snprintf(uniqueName, sizeof(uniqueName), "/shm-id-%08llX", (unsigned long long)bits);
 
-    *fd = shm_open(uniqueName, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-    if (ASMJIT_UNLIKELY(*fd >= 0)) {
-      shm_unlink(uniqueName);
-      return kErrorOk;
+    if (!ASMJIT_VM_SHM_DETECT || preferTmpOverDevShm) {
+      uniqueName.assignString(VirtMem_getTmpDir());
+      uniqueName.appendFormat(kShmFormat, (unsigned long long)bits);
+      *fd = open(uniqueName.data(), O_RDWR | O_CREAT | O_EXCL, 0);
+      if (ASMJIT_LIKELY(*fd >= 0)) {
+        unlink(uniqueName.data());
+        return kErrorOk;
+      }
+    }
+    else {
+      uniqueName.assignFormat(kShmFormat, (unsigned long long)bits);
+      *fd = shm_open(uniqueName.data(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+      if (ASMJIT_LIKELY(*fd >= 0)) {
+        shm_unlink(uniqueName.data());
+        return kErrorOk;
+      }
     }
 
     int e = errno;
@@ -301,13 +345,58 @@ static Error VirtMem_openAnonymousMemory(int* fd) noexcept {
 #endif
 }
 
-Error VirtMem::alloc(void** p, size_t size, uint32_t accessFlags) noexcept {
+#if ASMJIT_VM_SHM_DETECT
+static Error VirtMem_detectShmStrategy(uint32_t* strategyOut) noexcept {
+  ScopedFD fd;
+  VirtMem::Info vmInfo = VirtMem::info();
+
+  ASMJIT_PROPAGATE(VirtMem_openAnonymousMemory(&fd.value, false));
+  if (ftruncate(fd.value, off_t(vmInfo.pageSize)) != 0)
+    return DebugUtils::errored(VirtMem_makeErrorFromErrno(errno));
+
+  void* ptr = mmap(nullptr, vmInfo.pageSize, PROT_READ | PROT_EXEC, MAP_SHARED, fd.value, 0);
+  if (ptr == MAP_FAILED) {
+    int e = errno;
+    if (e == EINVAL) {
+      *strategyOut = kShmStrategyTmpDir;
+      return kErrorOk;
+    }
+    return DebugUtils::errored(VirtMem_makeErrorFromErrno(e));
+  }
+  else {
+    munmap(ptr, vmInfo.pageSize);
+    *strategyOut = kShmStrategyDevShm;
+    return kErrorOk;
+  }
+}
+#endif
+
+#if ASMJIT_VM_SHM_DETECT
+static Error VirtMem_getShmStrategy(uint32_t* strategyOut) noexcept {
+  uint32_t strategy = vm_shm_strategy;
+
+  if (strategy == kShmStrategyUnknown) {
+    ASMJIT_PROPAGATE(VirtMem_detectShmStrategy(&strategy));
+    vm_shm_strategy = strategy;
+  }
+
+  *strategyOut = strategy;
+  return kErrorOk;
+}
+#else
+static Error VirtMem_getShmStrategy(uint32_t* strategyOut) noexcept {
+  *strategyOut = kShmStrategyTmpDir;
+  return kErrorOk;
+}
+#endif
+
+Error VirtMem::alloc(void** p, size_t size, uint32_t flags) noexcept {
   *p = nullptr;
 
   if (size == 0)
     return DebugUtils::errored(kErrorInvalidArgument);
 
-  int protection = VirtMem_accessToPosixProtection(accessFlags);
+  int protection = VirtMem_accessToPosixProtection(flags);
   void* ptr = mmap(nullptr, size, protection, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
   if (ptr == MAP_FAILED)
@@ -325,37 +414,43 @@ Error VirtMem::release(void* p, size_t size) noexcept {
 }
 
 
-Error VirtMem::protect(void* p, size_t size, uint32_t accessFlags) noexcept {
-  int protection = VirtMem_accessToPosixProtection(accessFlags);
+Error VirtMem::protect(void* p, size_t size, uint32_t flags) noexcept {
+  int protection = VirtMem_accessToPosixProtection(flags);
   if (mprotect(p, size, protection) == 0)
     return kErrorOk;
 
   return DebugUtils::errored(kErrorInvalidArgument);
 }
 
-Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t accessFlags) noexcept {
+Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) noexcept {
   dm->ro = nullptr;
   dm->rw = nullptr;
 
   if (off_t(size) <= 0)
     return DebugUtils::errored(size == 0 ? kErrorInvalidArgument : kErrorTooLarge);
 
-  // ScopedFD will automatically close the file descriptor in destructor.
-  ScopedFD fd;
+  bool preferTmpOverDevShm = (flags & kMappingPreferTmp) != 0;
+  if (!preferTmpOverDevShm) {
+    uint32_t strategy;
+    ASMJIT_PROPAGATE(VirtMem_getShmStrategy(&strategy));
+    preferTmpOverDevShm = (strategy == kShmStrategyTmpDir);
+  }
 
-  ASMJIT_PROPAGATE(VirtMem_openAnonymousMemory(&fd.value));
+  // ScopedFD will automatically close the file descriptor in its destructor.
+  ScopedFD fd;
+  ASMJIT_PROPAGATE(VirtMem_openAnonymousMemory(&fd.value, preferTmpOverDevShm));
   if (ftruncate(fd.value, off_t(size)) != 0)
     return DebugUtils::errored(VirtMem_makeErrorFromErrno(errno));
 
   void* ptr[2];
   for (uint32_t i = 0; i < 2; i++) {
-    ptr[i] = mmap(nullptr, size, VirtMem_accessToPosixProtection(accessFlags & ~allocViewFilter[i]), MAP_SHARED, fd.value, 0);
+    ptr[i] = mmap(nullptr, size, VirtMem_accessToPosixProtection(flags & ~dualMappingFilter[i]), MAP_SHARED, fd.value, 0);
     if (ptr[i] == MAP_FAILED) {
-      // Must convert the error now as `munmap()` could clobber `errno`.
-      Error err = DebugUtils::errored(VirtMem_makeErrorFromErrno(errno));
+      // Get the error now before `munmap` has a chance to clobber it.
+      int e = errno;
       if (i == 1)
         munmap(ptr[0], size);
-      return err;
+      return DebugUtils::errored(VirtMem_makeErrorFromErrno(e));
     }
   }
 
@@ -376,7 +471,6 @@ Error VirtMem::releaseDualMapping(DualMapping* dm, size_t size) noexcept {
   dm->rw = nullptr;
   return kErrorOk;
 }
-
 #endif
 
 // ============================================================================

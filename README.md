@@ -28,10 +28,10 @@ using namespace asmjit;
 typedef int (*Func)(void);
 
 int main(int argc, char* argv[]) {
-  JitRuntime jit;                         // Runtime specialized for JIT code execution.
+  JitRuntime rt;                          // Runtime specialized for JIT code execution.
 
   CodeHolder code;                        // Holds code and relocation information.
-  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
+  code.init(rt.codeInfo());               // Initialize to the same arch as JIT runtime.
 
   x86::Assembler a(&code);                // Create and attach x86::Assembler to `code`.
   a.mov(x86::eax, 1);                     // Move one to 'eax' register.
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   // ----> x86::Assembler is no longer needed from here and can be destroyed <----
 
   Func fn;
-  Error err = jit.add(&fn, &code);        // Add the generated code to the runtime.
+  Error err = rt.add(&fn, &code);         // Add the generated code to the runtime.
   if (err) return 1;                      // Handle a possible error returned by AsmJit.
   // ----> CodeHolder is no longer needed from here and can be destroyed <----
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
   // All classes use RAII, all resources will be released before `main()` returns,
   // the generated function can be, however, released explicitly if you intend to
   // reuse or keep the runtime alive, which you should in a production-ready code.
-  jit.release(fn);
+  rt.release(fn);
 
   return 0;
 }
@@ -63,7 +63,7 @@ AsmJit Summary
   * Built-in CPU vendor and features detection.
   * Advanced logging/formatting and robust error handling.
   * JIT memory allocator - interface similar to malloc/free for JIT code-generation and execution.
-  * Lightweight and easily embeddable - 200-250kB compiled with all built-in features.
+  * Lightweight and easily embeddable - 250-300kB compiled with all built-in features.
   * Modular - unneeded features can be disabled at compile-time to make the library even smaller.
   * Zero dependencies - no external libraries, no STL/RTTI - easy to embed and/or link statically.
   * Doesn't use exceptions internally, but allows to attach a "throwable" error handler of your choice.
@@ -97,12 +97,12 @@ Supported Environments
 
 ### C++ Compilers:
 
-  * Features:
-    * AsmJit won't build without C++11 enabled. If you use older GCC and Clang you would have to enable at least c++11 through compiler flags.
+  * Requirements:
+    * AsmJit won't build without C++11 enabled. If you use older GCC or Clang you would have to enable at least c++11 through compiler flags.
   * Tested:
     * **Clang** - tested by Travis-CI - Clang 3.9+ (with C++11 enabled) is officially supported (older Clang versions having C++11 support are probably fine, but are not regularly tested).
     * **GNU** - tested by Travis-CI - GCC 4.8+ (with C++11 enabled) is officially supported.
-    * **MINGW** - tested by Travis-CI - Use the latest version if possible.
+    * **MINGW** - tested by Travis-CI - Use the latest version, if possible.
     * **MSVC** - tested by Travis-CI - **MSVC2017+ only!** - there is a severe bug in MSVC2015's `constexpr` implementation that makes that compiler unusable.
   * Untested:
     * **Intel** - no maintainers and no CI environment to regularly test this compiler.
@@ -112,11 +112,12 @@ Supported Environments
 
   * Tested:
     * **Linux** - tested by Travis-CI - any distribution is generally supported.
-    * **Mac** - tested by Travis-CI - any version is supported.
-    * **Windows** - tested by Travis-CI - Windows 7+ is officially supported although Windows XP should work as well.
+    * **OSX** - tested by Travis-CI - any version is supported.
+    * **Windows** - tested by Travis-CI - Windows 7+ is officially supported.
   * Untested:
-    * **BSDs** - no maintainers, no CI environment to regularly test this OS.
-    * Other operating systems would require some testing and support in [core/build.h](./src/asmjit/core/build.h) and [core/osutils.cpp](./src/asmjit/core/osutils.cpp).
+    * **BSDs** - no maintainers, no CI environment to regularly test these OSes.
+    * **Haiku** - not regularly tested, but reported to work.
+    * Other operating systems would require some testing and support in [core/build.h](./src/asmjit/core/build.h), [core/osutils.cpp](./src/asmjit/core/osutils.cpp), and [core/virtmem.cpp](./src/asmjit/core/virtmem.cpp).
 
 ### Backends:
 
@@ -129,7 +130,7 @@ Project Organization
   * **`/`**        - Project root.
     * **src**      - Source code.
       * **asmjit** - Source code and headers (always point include path in here).
-        * **core** - Core API, backend independent.
+        * **core** - Core API, backend independent except relocations.
         * **arm**  - ARM specific API, used only by ARM32 and ARM64 backends.
         * **x86**  - X86 specific API, used only by X86 and X64 backends.
     * **test**     - Unit and integration tests (don't embed in your project).
