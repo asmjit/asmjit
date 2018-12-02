@@ -204,7 +204,7 @@ struct ScopedFD {
 #if defined(SYS_memfd_create)
 // Zero initialized, if ever changed to '1' that would mean the syscall is not
 // available and we must use `shm_open()` and `shm_unlink()`.
-static volatile int vm_memfd_create_not_supported;
+static volatile uint32_t vm_memfd_create_not_supported;
 #endif
 
 // Some operating systems don't allow /dev/shm to be executable. On Linux this
@@ -228,7 +228,7 @@ enum ShmStrategy : uint32_t {
 #if ASMJIT_VM_SHM_DETECT
 // Initially don't assume anything. It has to be tested whether '/dev/shm' was
 // mounted with 'noexec' flag or not.
-static volatile int vm_shm_strategy = kShmStrategyUnknown;
+static volatile uint32_t vm_shm_strategy = kShmStrategyUnknown;
 #endif
 
 static void VirtMem_getInfo(VirtMem::Info& vmInfo) noexcept {

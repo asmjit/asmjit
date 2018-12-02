@@ -646,6 +646,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
 // ============================================================================
 
 Error X86RACFGBuilder::moveImmToRegArg(FuncCallNode* call, const FuncValue& arg, const Imm& imm_, BaseReg* out) noexcept {
+  ASMJIT_UNUSED(call);
   ASMJIT_ASSERT(arg.isReg());
 
   Imm imm(imm_);
@@ -687,6 +688,7 @@ MovU32:
 // ============================================================================
 
 Error X86RACFGBuilder::moveImmToStackArg(FuncCallNode* call, const FuncValue& arg, const Imm& imm_) noexcept {
+  ASMJIT_UNUSED(call);
   ASMJIT_ASSERT(arg.isStack());
 
   Mem mem = ptr(_pass->_sp.as<Gp>(), arg.stackOffset());

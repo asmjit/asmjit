@@ -62,8 +62,8 @@ static bool BrokenAPI_matchesFilter(const char* a, const char* b) noexcept {
     if (ca == '-') ca = '_';
     if (cb == '-') cb = '_';
 
-    if (ca >= 'A' && ca <= 'Z') ca += 'a' - 'A';
-    if (cb >= 'A' && cb <= 'Z') cb += 'a' - 'A';
+    if (ca >= 'A' && ca <= 'Z') ca = (unsigned char)(ca + (unsigned char)('a' - 'A'));
+    if (cb >= 'A' && cb <= 'Z') cb = (unsigned char)(cb + (unsigned char)('a' - 'A'));
 
     if (ca != cb)
       return false;
