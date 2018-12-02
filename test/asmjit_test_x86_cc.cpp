@@ -499,7 +499,7 @@ public:
     Label LEnd = cc.newLabel();
 
     x86::Gp dst = cc.newIntPtr("dst");
-    x86::Gp val = cc.newIntPtr("val");
+    x86::Gp val = cc.newInt32("val");
 
     cc.setArg(0, dst);
     cc.setArg(1, val);
@@ -540,7 +540,7 @@ public:
     result.assignFormat("ret={%d, %d, %d, %d, %d}", arr[0], arr[1], arr[2], arr[3], arr[4]);
     expect.assignFormat("ret={%d, %d, %d, %d, %d}", exp[0], exp[1], exp[2], exp[3], exp[4]);
 
-    return true;
+    return result == expect;
   }
 };
 
@@ -2267,7 +2267,7 @@ public:
     cc.shl(v2, 1);
 
     // Call a function.
-    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(imm((void*)calledFunc), FuncSignatureT<int, int, int, int>(CallConv::kIdHost));
     call->setArg(0, v2);
     call->setArg(1, v1);
     call->setArg(2, v0);
@@ -2328,19 +2328,19 @@ public:
     cc.lea(p2, s2);
 
     // Try to corrupt the stack if wrongly allocated.
-    call = cc.call(imm(::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm((void*)memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p1);
     call->setArg(1, imm(token));
     call->setArg(2, imm(kTokenSize));
     call->setRet(0, p1);
 
-    call = cc.call(imm(::memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm((void*)memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p2);
     call->setArg(1, imm(token));
     call->setArg(2, imm(kTokenSize));
     call->setRet(0, p2);
 
-    call = cc.call(imm(::memcmp), FuncSignatureT<int, void*, void*, size_t>(CallConv::kIdHostCDecl));
+    call = cc.call(imm((void*)memcmp), FuncSignatureT<int, void*, void*, size_t>(CallConv::kIdHostCDecl));
     call->setArg(0, p1);
     call->setArg(1, p2);
     call->setArg(2, imm(kTokenSize));
@@ -2397,7 +2397,9 @@ public:
     cc.setArg(1, y);
     cc.setArg(2, z);
 
-    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int>(CallConv::kIdHostStdCall));
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<int, int, int, int>(CallConv::kIdHostStdCall));
     call->setArg(0, x);
     call->setArg(1, y);
     call->setArg(2, z);
@@ -2445,11 +2447,15 @@ public:
     cc.setArg(0, var);
 
     FuncCallNode* call;
-    call = cc.call(imm(calledFunc), FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
+    call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
     call->setArg(0, var);
     call->setRet(0, var);
 
-    call = cc.call(imm(calledFunc), FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
+    call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<int, int>(CallConv::kIdHostFastCall));
     call->setArg(0, var);
     call->setRet(0, var);
 
@@ -2617,7 +2623,9 @@ public:
     cc.mov(vj, 0x1E);
 
     // Call function.
-    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
     call->setArg(0, va);
     call->setArg(1, vb);
     call->setArg(2, vc);
@@ -2672,7 +2680,9 @@ public:
     cc.mov(a, 3);
 
     // Call function.
-    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
     call->setArg(0, a);
     call->setArg(1, a);
     call->setArg(2, a);
@@ -2723,7 +2733,7 @@ public:
 
     // Call function.
     FuncCallNode* call = cc.call(
-      imm(X86Test_FuncCallManyArgs::calledFunc),
+      imm((void*)X86Test_FuncCallManyArgs::calledFunc),
       FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConv::kIdHost));
 
     call->setArg(0, imm(0x03));
@@ -2789,7 +2799,7 @@ public:
 
     // Call function.
     FuncCallNode* call = cc.call(
-      imm(calledFunc),
+      imm((void*)calledFunc),
       FuncSignatureT<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>(CallConv::kIdHost));
 
     call->setArg(0, imm(0x01));
@@ -2849,8 +2859,9 @@ public:
     cc.setArg(1, b);
 
     // Call function.
-    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<float, float, float>(CallConv::kIdHost));
-
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<float, float, float>(CallConv::kIdHost));
     call->setArg(0, a);
     call->setArg(1, b);
     call->setRet(0, ret);
@@ -2899,7 +2910,9 @@ public:
     cc.setArg(0, a);
     cc.setArg(1, b);
 
-    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<double, double, double>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<double, double, double>(CallConv::kIdHost));
     call->setArg(0, a);
     call->setArg(1, b);
     call->setRet(0, ret);
@@ -3158,7 +3171,9 @@ public:
     // We call `int func(size_t, ...)`
     //   - The `vaIndex` must be 1 (first argument after size_t).
     //   - The full signature of varargs (int, int, int, int) must follow.
-    FuncCallNode* call = cc.call(imm(calledFunc), FuncSignatureT<int, size_t, int, int, int, int>(CallConv::kIdHost, 1));
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<int, size_t, int, int, int, int>(CallConv::kIdHost, 1));
     call->setArg(0, imm(4));
     call->setArg(1, a0);
     call->setArg(2, a1);
@@ -3182,7 +3197,7 @@ public:
 
     return resultRet == expectRet;
   }
-  
+
   static int calledFunc(size_t n, ...) {
     int sum = 0;
     va_list ap;
@@ -3220,7 +3235,9 @@ public:
     cc.setArg(0, a);
     cc.setArg(1, b);
 
-    FuncCallNode* call = cc.call(imm(dummy), FuncSignatureT<void, int, int>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm((void*)dummy),
+      FuncSignatureT<void, int, int>(CallConv::kIdHost));
     call->setArg(0, a);
     call->setArg(1, b);
 
@@ -3266,7 +3283,9 @@ public:
     cc.setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
 
-    FuncCallNode* call = cc.call(imm(op), FuncSignatureT<double, double>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm((void*)op),
+      FuncSignatureT<double, double>(CallConv::kIdHost));
     call->setArg(0, arg);
     call->setRet(0, ret);
 
@@ -3314,7 +3333,9 @@ public:
     cc.setArg(0, p);
     cc.movsd(arg, x86::ptr(p));
 
-    FuncCallNode* call = cc.call(imm(op), FuncSignatureT<double, double>(CallConv::kIdHost));
+    FuncCallNode* call = cc.call(
+      imm((void*)op),
+      FuncSignatureT<double, double>(CallConv::kIdHost));
     call->setArg(0, arg);
     call->setRet(0, ret);
 
@@ -3364,7 +3385,7 @@ public:
     FuncSignatureBuilder callPrototype;
     callPrototype.setCallConv(CallConv::kIdHost);
     callPrototype.setRet(Type::kIdF64);
-    FuncCallNode* call = cc.call(imm(calledFunc), callPrototype);
+    FuncCallNode* call = cc.call(imm((void*)calledFunc), callPrototype);
 
     x86::Xmm ret = cc.newXmmSd("ret");
     call->setRet(0, ret);
@@ -3411,7 +3432,7 @@ public:
     uint32_t i, regCount = cc.gpCount();
     ASMJIT_ASSERT(regCount <= ASMJIT_ARRAY_SIZE(vars));
 
-    cc.mov(pFn, imm(calledFunc));
+    cc.mov(pFn, imm((void*)calledFunc));
 
     for (i = 0; i < regCount; i++) {
       if (i == x86::Gp::kIdBp || i == x86::Gp::kIdSp)

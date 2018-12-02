@@ -226,7 +226,8 @@ enum ShmStrategy : uint32_t {
 #endif
 
 #if ASMJIT_VM_SHM_DETECT
-// We initially assume this is not true on OSes that don't enable noexec by default.
+// Initially don't assume anything. It has to be tested whether '/dev/shm' was
+// mounted with 'noexec' flag or not.
 static volatile int vm_shm_strategy = kShmStrategyUnknown;
 #endif
 
