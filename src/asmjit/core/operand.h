@@ -1237,7 +1237,9 @@ public:
 //! Using `imm(x)` is much better than `Imm(x)` as this is a template which
 //! can accept any integer including pointers and function pointers.
 template<typename T>
-static constexpr Imm imm(T val) noexcept { return Imm(int64_t(Support::asNormalized(val))); }
+static constexpr Imm imm(T val) noexcept {
+  return Imm(std::is_signed<T>::value ? int64_t(val) : int64_t(uint64_t(val)));
+}
 
 //! \}
 

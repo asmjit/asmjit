@@ -139,7 +139,7 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) no
   handle.value = ::CreateFileMappingW(
     INVALID_HANDLE_VALUE,
     nullptr,
-    PAGE_READWRITE,
+    PAGE_EXECUTE_READWRITE,
     (DWORD)(uint64_t(size) >> 32),
     (DWORD)(size & 0xFFFFFFFFu),
     nullptr);
