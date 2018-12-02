@@ -828,19 +828,19 @@ public:
   // once, however, since registers are passed all at once these initializers
   // don't provide any way to pass TypeId and/or to keep any argument between
   // the arguments passed unassigned.
-  inline void _assignAllInternal(size_t N, const BaseReg& reg) noexcept {
-    assignReg(N, reg);
+  inline void _assignAllInternal(uint32_t argIndex, const BaseReg& reg) noexcept {
+    assignReg(argIndex, reg);
   }
 
-  template<typename... Args>
-  inline void _assignAllInternal(size_t N, const BaseReg& reg, Args&&... args) noexcept {
-    assignReg(N, reg);
-    return _assignAllInternal(N + 1, std::forward<Args>(args)...);
+  template<typename... ArgsT>
+  inline void _assignAllInternal(uint32_t argIndex, const BaseReg& reg, ArgsT&&... args) noexcept {
+    assignReg(argIndex, reg);
+    _assignAllInternal(argIndex + 1, std::forward<ArgsT>(args)...);
   }
 
-  template<typename... Args>
-  inline void assignAll(Args&&... args) noexcept {
-    return _assignAllInternal(0, std::forward<Args>(args)...);
+  template<typename... ArgsT>
+  inline void assignAll(ArgsT&&... args) noexcept {
+    _assignAllInternal(0, std::forward<ArgsT>(args)...);
   }
 
   // --------------------------------------------------------------------------
