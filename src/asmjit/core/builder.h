@@ -145,9 +145,22 @@ public:
   //! would be null, so always check for nulls if you iterate over the vector.
   inline const ZoneVector<LabelNode*>& labelNodes() const noexcept { return _labelNodes; }
 
-  //! Get `LabelNode` by `id`.
+  //! Get whether the `LabelNode` for the given `labelId` was registered.
+  inline bool hasRegisteredLabelNode(uint32_t labelId) const noexcept {
+    return labelId < _labelNodes.size() && _labelNodes[labelId] != nullptr;
+  }
+  //! \overload
+  inline bool hasRegisteredLabelNode(const Label& label) const noexcept {
+    return hasRegisteredLabelNode(label.id());
+  }
+
+  //! Gets an existing `LabelNode` by `id` or creates it.
+  //!
+  //! \remarks This function will either get the existing `LabelNode` or create
+  //! if in case it wasn't created before. You can check whether a label has a
+  //! registered `LabelNode` by using `BaseBuilder::hasRegisteredLabelNode()`.
   ASMJIT_API Error labelNodeOf(LabelNode** pOut, uint32_t labelId) noexcept;
-  //! Get `LabelNode` by `label`.
+  //! \overload
   inline Error labelNodeOf(LabelNode** pOut, const Label& label) noexcept { return labelNodeOf(pOut, label.id()); }
 
   //! \internal

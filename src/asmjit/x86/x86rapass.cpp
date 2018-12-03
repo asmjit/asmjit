@@ -119,7 +119,7 @@ namespace X86OpInfo {
         case Inst::kIdImul:
           if (opCount == 2) {
             if (Reg::isGpw(opArray[0]) && opArray[1].size() == 1)
-              RETURN_OPS(W(Zax), R(Any)); // imul ax, r8/m8
+              RETURN_OPS(X(Zax), R(Any)); // imul ax, r8/m8
             else
               RETURN_OPS(X(Any), R(Any)); // imul r?, r?/m?
           }
@@ -1187,73 +1187,6 @@ ASMJIT_END_SUB_NAMESPACE
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #if 0
 ASMJIT_INLINE void X86CallAlloc::allocImmsOnStack() {
   FuncCallNode* node = getNode();
@@ -1276,35 +1209,6 @@ ASMJIT_INLINE void X86CallAlloc::allocImmsOnStack() {
     else {
       Mem dst = ptr(_context->_zsp, -int(_context->gpSize()) + arg.stackOffset());
       _context->emitImmToStack(varType, &dst, &imm);
-    }
-  }
-}
-
-template<int C>
-ASMJIT_INLINE void X86CallAlloc::duplicate() {
-  TiedReg* tiedRegs = getTiedRegsByGroup(C);
-  uint32_t tiedCount = getTiedCountByGroup(C);
-
-  for (uint32_t i = 0; i < tiedCount; i++) {
-    TiedReg* tied = &tiedRegs[i];
-    if ((tied->flags & TiedReg::kRReg) == 0) continue;
-
-    uint32_t inRegs = tied->inRegs;
-    if (!inRegs) continue;
-
-    VirtReg* vreg = tied->vreg;
-    uint32_t physId = vreg->physId();
-
-    ASMJIT_ASSERT(physId != BaseReg::kIdBad);
-
-    inRegs &= ~Support::bitMask(physId);
-    if (!inRegs) continue;
-
-    for (uint32_t dupIndex = 0; inRegs != 0; dupIndex++, inRegs >>= 1) {
-      if (inRegs & 0x1) {
-        _context->emitMove(vreg, dupIndex, physId, "Duplicate");
-        _context->_clobberedRegs.or_(C, Support::bitMask(dupIndex));
-      }
     }
   }
 }

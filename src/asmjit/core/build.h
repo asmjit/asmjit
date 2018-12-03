@@ -107,7 +107,7 @@
 // [asmjit::Build - Globals - Deprecated]
 // ============================================================================
 
-// DEPRECATED: Will be removed from v1.4+.
+// DEPRECATED: Will be removed from v2.0+.
 #if defined(ASMJIT_EMBED)
   #pragma message("'ASMJIT_EMBED' is deprecated, use 'ASMJIT_BUILD_EMBED'")
   #define ASMJIT_BUILD_EMBED

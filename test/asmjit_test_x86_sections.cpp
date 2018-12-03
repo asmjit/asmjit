@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     FuncFrame frame;
     frame.init(func);
-    frame.setDirtyRegs(x86::Reg::kGroupGp, Support::bitMask(idx.id(), addr.id()));
+    frame.addDirtyRegs(idx, addr);
 
     FuncArgsAssignment args(&func);
     args.assignAll(idx);

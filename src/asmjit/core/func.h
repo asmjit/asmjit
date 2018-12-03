@@ -115,11 +115,16 @@ struct FuncSignature {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _callConv;                     //!< Calling convention id.
-  uint8_t _argCount;                     //!< Count of arguments.
-  uint8_t _vaIndex;                      //!< Index of a first VA or `kNoVarArgs`.
-  uint8_t _ret;                          //!< Return value TypeId.
-  const uint8_t* _args;                  //!< Function arguments TypeIds.
+  //! Calling convention id.
+  uint8_t _callConv;
+  //! Count of arguments.
+  uint8_t _argCount;
+  //! Index of a first VA or `kNoVarArgs`.
+  uint8_t _vaIndex;
+  //! Return value TypeId.
+  uint8_t _ret;
+  //! Function arguments TypeIds.
+  const uint8_t* _args;
 };
 
 // ============================================================================
@@ -429,15 +434,24 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  CallConv _callConv;                    //!< Calling convention.
-  uint8_t _argCount;                     //!< Number of function arguments.
-  uint8_t _retCount;                     //!< Number of function return values.
-  uint8_t _vaIndex;                      //!< Variable arguments index of `kNoVarArgs`.
-  uint8_t _reserved;                     //!< Reserved.
-  uint32_t _usedRegs[BaseReg::kGroupVirt];//!< Registers that contains arguments.
-  uint32_t _argStackSize;                //!< Size of arguments passed by stack.
-  FuncValue _rets[2];                    //!< Function return values.
-  FuncValue _args[kFuncArgCountLoHi];    //!< Function arguments.
+  //! Calling convention.
+  CallConv _callConv;
+  //! Number of function arguments.
+  uint8_t _argCount;
+  //! Number of function return values.
+  uint8_t _retCount;
+  //! Variable arguments index of `kNoVarArgs`.
+  uint8_t _vaIndex;
+  //! \internal
+  uint8_t _reserved;
+  //! Registers that contains arguments.
+  uint32_t _usedRegs[BaseReg::kGroupVirt];
+  //! Size of arguments passed by stack.
+  uint32_t _argStackSize;
+  //! Function return values.
+  FuncValue _rets[2];
+  //! Function arguments.
+  FuncValue _args[kFuncArgCountLoHi];
 };
 
 // ============================================================================
@@ -678,22 +692,42 @@ public:
   inline uint32_t saOffsetFromSP() const noexcept { return _saOffsetFromSP; }
   inline uint32_t saOffsetFromSA() const noexcept { return _saOffsetFromSA; }
 
-  //! Gets which registers (by `group`) are saved/restored in prolog/epilog, respectively.
+  //! Gets which registers (as a mask) of the given register `group` are modified
+  //! by the function. The engine would then calculate which registers must be
+  //! saved & restored by the function by using the data provided by the calling
+  //! convention.
   inline uint32_t dirtyRegs(uint32_t group) const noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _dirtyRegs[group];
   }
 
-  //! Sets which registers (by `group`) are saved/restored in prolog/epilog, respectively.
+  //! Sets which registers (as a mask) are modified by the function.
+  //!
+  //! \remarks Please note that this will completely overwrite the existing
+  //! register mask, use `addDirtyRegs()` to modify the existing register
+  //! mask.
   inline void setDirtyRegs(uint32_t group, uint32_t regs) noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     _dirtyRegs[group] = regs;
   }
 
-  //! Adds registers (by `group`) to saved/restored registers.
+  //! Adds which registers (as a mask) are modified by the function.
   inline void addDirtyRegs(uint32_t group, uint32_t regs) noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     _dirtyRegs[group] |= regs;
+  }
+
+  //! \overload
+  inline void addDirtyRegs(const BaseReg& reg) noexcept {
+    ASMJIT_ASSERT(reg.id() < Globals::kMaxPhysRegs);
+    addDirtyRegs(reg.group(), Support::bitMask(reg.id()));
+  }
+
+  //! \overload
+  template<typename... ArgsT>
+  ASMJIT_INLINE void addDirtyRegs(const BaseReg& reg, ArgsT&&... args) noexcept {
+    addDirtyRegs(reg);
+    addDirtyRegs(std::forward<ArgsT>(args)...);
   }
 
   inline void setAllDirty() noexcept {
@@ -708,11 +742,20 @@ public:
     _dirtyRegs[group] = 0xFFFFFFFFu;
   }
 
+  //! Returns a calculated mask of registers of the given `group` that will be
+  //! saved and restored in the function's prolog and epilog, respectively. The
+  //! register mask is calculated from both `dirtyRegs` (provided by user) and
+  //! `preservedMask` (provided by the calling convention).
   inline uint32_t savedRegs(uint32_t group) const noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _dirtyRegs[group] & _preservedRegs[group];
   }
 
+  //! Gets the mask of preserved registers of the given register `group`.
+  //!
+  //! Preserved registers are those that must survive the function call
+  //! unmodified. The function can only modify preserved registers it they
+  //! are saved and restored in funciton's prolog and epilog, respectively.
   inline uint32_t preservedRegs(uint32_t group) const noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _preservedRegs[group];
@@ -728,51 +771,85 @@ public:
   //! Gets stack size required to save other than GP registers (MM, XMM|YMM|ZMM, K, VFP, etc...).
   inline uint32_t nonGpSaveSize() const noexcept { return _nonGpSaveSize; }
 
+  //! Gets an offset to the stack where general purpose registers are saved.
   inline uint32_t gpSaveOffset() const noexcept { return _gpSaveOffset; }
+  //! Gets an offset to the stack where other than GP registers are saved.
   inline uint32_t nonGpSaveOffset() const noexcept { return _nonGpSaveOffset; }
 
+  //! Gets whether the functions contains stack adjustment.
   inline bool hasStackAdjustment() const noexcept { return _stackAdjustment != 0; }
+  //! Gets function's stack adjustment used in function's prolog and epilog.
+  //!
+  //! If the returned value is zero it means that the stack is not adjusted.
+  //! This can mean both that the stack is not used and/or the stack is only
+  //! adjusted by instructions that pust/pop registers into/from stack.
   inline uint32_t stackAdjustment() const noexcept { return _stackAdjustment; }
 
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _attributes;                  //!< Function attributes.
+  //! Function attributes.
+  uint32_t _attributes;
 
-  uint8_t _archId;                       //!< Architecture ID.
-  uint8_t _spRegId;                      //!< SP register ID (to access call stack and local stack).
-  uint8_t _saRegId;                      //!< SA register ID (to access stack arguments).
+  //! Architecture ID.
+  uint8_t _archId;
+  //! SP register ID (to access call stack and local stack).
+  uint8_t _spRegId;
+  //! SA register ID (to access stack arguments).
+  uint8_t _saRegId;
 
-  uint8_t _redZoneSize;                  //!< Red zone size (copied from CallConv).
-  uint8_t _spillZoneSize;                //!< Spill zone size (copied from CallConv).
-  uint8_t _naturalStackAlignment;        //!< Natural stack alignment (copied from CallConv).
-  uint8_t _minDynamicAlignment;          //!< Minimum stack alignment to turn on dynamic alignment.
+  //! Red zone size (copied from CallConv).
+  uint8_t _redZoneSize;
+  //! Spill zone size (copied from CallConv).
+  uint8_t _spillZoneSize;
+  //! Natural stack alignment (copied from CallConv).
+  uint8_t _naturalStackAlignment;
+  //! Minimum stack alignment to turn on dynamic alignment.
+  uint8_t _minDynamicAlignment;
 
-  uint8_t _callStackAlignment;           //!< Call stack alignment.
-  uint8_t _localStackAlignment;          //!< Local stack alignment.
-  uint8_t _finalStackAlignment;          //!< Final stack alignment.
+  //! Call stack alignment.
+  uint8_t _callStackAlignment;
+  //! Local stack alignment.
+  uint8_t _localStackAlignment;
+  //! Final stack alignment.
+  uint8_t _finalStackAlignment;
 
-  uint16_t _calleeStackCleanup;          //!< Adjustment of the stack before returning (X86-STDCALL).
+  //! Adjustment of the stack before returning (X86-STDCALL).
+  uint16_t _calleeStackCleanup;
 
-  uint32_t _callStackSize;               //!< Call stack size.
-  uint32_t _localStackSize;              //!< Local stack size.
-  uint32_t _finalStackSize;              //!< Final stack size (sum of call stack and local stack).
+  //! Call stack size.
+  uint32_t _callStackSize;
+  //! Local stack size.
+  uint32_t _localStackSize;
+  //! Final stack size (sum of call stack and local stack).
+  uint32_t _finalStackSize;
 
-  uint32_t _localStackOffset;            //!< Local stack offset (non-zero only if call stack is used).
-  uint32_t _daOffset;                    //!< Offset relative to SP that contains previous SP (before alignment).
-  uint32_t _saOffsetFromSP;              //!< Offset of the first stack argument relative to SP.
-  uint32_t _saOffsetFromSA;              //!< Offset of the first stack argument relative to SA (_saRegId or FP).
+  //! Local stack offset (non-zero only if call stack is used).
+  uint32_t _localStackOffset;
+  //! Offset relative to SP that contains previous SP (before alignment).
+  uint32_t _daOffset;
+  //! Offset of the first stack argument relative to SP.
+  uint32_t _saOffsetFromSP;
+  //! Offset of the first stack argument relative to SA (_saRegId or FP).
+  uint32_t _saOffsetFromSA;
 
-  uint32_t _stackAdjustment;             //!< Local stack adjustment in prolog/epilog.
+  //! Local stack adjustment in prolog/epilog.
+  uint32_t _stackAdjustment;
 
-  uint32_t _dirtyRegs[BaseReg::kGroupVirt];     //!< Registers that are dirty.
-  uint32_t _preservedRegs[BaseReg::kGroupVirt]; //!< Registers that must be preserved (copied from CallConv).
+  //! Registers that are dirty.
+  uint32_t _dirtyRegs[BaseReg::kGroupVirt];
+  //! Registers that must be preserved (copied from CallConv).
+  uint32_t _preservedRegs[BaseReg::kGroupVirt];
 
-  uint16_t _gpSaveSize;                  //!< Final stack size required to save GP regs.
-  uint16_t _nonGpSaveSize;               //!< Final Stack size required to save other than GP regs.
-  uint32_t _gpSaveOffset;                //!< Final offset where saved GP regs are stored.
-  uint32_t _nonGpSaveOffset;             //!< Final offset where saved other than GP regs are stored.
+  //! Final stack size required to save GP regs.
+  uint16_t _gpSaveSize;
+  //! Final Stack size required to save other than GP regs.
+  uint16_t _nonGpSaveSize;
+  //! Final offset where saved GP regs are stored.
+  uint32_t _gpSaveOffset;
+  //! Final offset where saved other than GP regs are stored.
+  uint32_t _nonGpSaveOffset;
 };
 
 // ============================================================================
@@ -880,10 +957,14 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  const FuncDetail* _funcDetail;         //!< Function detail.
-  uint8_t _saRegId;                      //!< Register that can be used to access arguments passed by stack.
-  uint8_t _reserved[3];                  //!< \internal
-  FuncValue _args[kArgCount];            //!< Mapping of each function argument.
+  //! Function detail.
+  const FuncDetail* _funcDetail;
+  //! Register that can be used to access arguments passed by stack.
+  uint8_t _saRegId;
+  //! \internal
+  uint8_t _reserved[3];
+  //! Mapping of each function argument.
+  FuncValue _args[kArgCount];
 };
 
 //! \}

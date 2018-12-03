@@ -85,7 +85,7 @@ public:
     : _zone(8096 - Zone::kBlockOverhead),
       _allocator(&_zone),
       _nFailed(0),
-      _binSize(0),
+      _outputSize(0),
       _verbose(false),
       _dumpAsm(false) {}
 
@@ -117,8 +117,8 @@ public:
   ZoneAllocator _allocator;
   ZoneVector<X86Test*> _tests;
 
-  int _nFailed;
-  int _binSize;
+  unsigned _nFailed;
+  size_t _outputSize;
 
   bool _verbose;
   bool _dumpAsm;
@@ -134,14 +134,17 @@ int X86TestApp::handleArgs(int argc, const char* const* argv) {
 }
 
 void X86TestApp::showInfo() {
-  printf("AsmJit::x86::Compiler Test:\n");
+  printf("AsmJit Compiler Test-Suite v%u.%u.%u  [Arch=%s]:\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
+    sizeof(void*) == 8 ? "X64" : "X86");
   printf("  [%s] Verbose (use --verbose to turn verbose output ON)\n", _verbose ? "x" : " ");
   printf("  [%s] DumpAsm (use --dump-asm to turn assembler dumps ON)\n", _dumpAsm ? "x" : " ");
+  printf("\n");
 }
 
 int X86TestApp::run() {
-  FILE* file = stdout;
-
   #ifndef ASMJIT_DISABLE_LOGGING
   uint32_t kFormatFlags = FormatOptions::kFlagMachineCode   |
                           FormatOptions::kFlagExplainImms   |
@@ -150,7 +153,7 @@ int X86TestApp::run() {
                           FormatOptions::kFlagDebugPasses   |
                           FormatOptions::kFlagDebugRA       ;
 
-  FileLogger fileLogger(file);
+  FileLogger fileLogger(stdout);
   fileLogger.addFlags(kFormatFlags);
 
   StringLogger stringLogger;
@@ -175,10 +178,10 @@ int X86TestApp::run() {
     }
     #endif
 
-    fprintf(file, "[Test] %s", test->name());
+    printf("[Test] %s", test->name());
 
     #ifndef ASMJIT_DISABLE_LOGGING
-    if (_verbose) fprintf(file, "\n");
+    if (_verbose) printf("\n");
     #endif
 
     x86::Compiler cc(&code);
@@ -191,11 +194,11 @@ int X86TestApp::run() {
 
     #ifndef ASMJIT_DISABLE_LOGGING
     if (_dumpAsm) {
-      if (!_verbose) fprintf(file, "\n");
+      if (!_verbose) printf("\n");
 
       String sb;
       cc.dump(sb, kFormatFlags);
-      fprintf(file, "%s", sb.data());
+      printf("%s", sb.data());
     }
     #endif
 
@@ -203,55 +206,56 @@ int X86TestApp::run() {
       err = runtime.add(&func, &code);
 
     if (_verbose)
-      fflush(file);
+      fflush(stdout);
 
     if (err == kErrorOk) {
+      _outputSize += code.codeSize();
+
       StringTmp<128> result;
       StringTmp<128> expect;
 
       if (test->run(func, result, expect)) {
-        if (!_verbose) fprintf(file, " [OK]\n");
+        if (!_verbose) printf(" [OK]\n");
       }
       else {
-        if (!_verbose) fprintf(file, " [FAILED]\n");
+        if (!_verbose) printf(" [FAILED]\n");
 
         #ifndef ASMJIT_DISABLE_LOGGING
-        if (!_verbose) fprintf(file, "%s", stringLogger.data());
+        if (!_verbose) printf("%s", stringLogger.data());
         #endif
 
-        fprintf(file, "[Status]\n");
-        fprintf(file, "  Returned: %s\n", result.data());
-        fprintf(file, "  Expected: %s\n", expect.data());
+        printf("[Status]\n");
+        printf("  Returned: %s\n", result.data());
+        printf("  Expected: %s\n", expect.data());
 
         _nFailed++;
       }
 
       if (_dumpAsm)
-        fprintf(file, "\n");
+        printf("\n");
 
       runtime.release(func);
     }
     else {
-      if (!_verbose) fprintf(file, " [FAILED]\n");
+      if (!_verbose) printf(" [FAILED]\n");
 
       #ifndef ASMJIT_DISABLE_LOGGING
-      if (!_verbose) fprintf(file, "%s", stringLogger.data());
+      if (!_verbose) printf("%s", stringLogger.data());
       #endif
 
-      fprintf(file, "[Status]\n");
-      fprintf(file, "  ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
+      printf("[Status]\n");
+      printf("  ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
 
       _nFailed++;
     }
-
-    fflush(file);
   }
 
   if (_nFailed == 0)
-    fprintf(file, "\n[PASSED] All tests passed\n");
+    printf("\n[PASSED] All %u tests passed\n", unsigned(_tests.size()));
   else
-    fprintf(file, "\n[FAILED] %u %s of %u failed\n", _nFailed, _nFailed == 1 ? "test" : "tests", unsigned(_tests.size()));
-  fflush(file);
+    printf("\n[FAILED] %u %s of %u failed\n", _nFailed, _nFailed == 1 ? "test" : "tests", unsigned(_tests.size()));
+
+  printf("  OutputSize=%zu\n", _outputSize);
 
   return _nFailed == 0 ? 0 : 1;
 }

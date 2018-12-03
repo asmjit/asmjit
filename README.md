@@ -59,7 +59,7 @@ AsmJit Summary
 --------------
 
   * Complete x86/x64 instruction set - MMX, SSEx, BMIx, ADX, TBM, XOP, AVXx, FMAx, and AVX512.
-  * Different emitters providing various abstraction levels (Assembler, BaseBuilder, BaseCompiler).
+  * Different emitters providing various abstraction levels (Assembler, Builder, Compiler).
   * Built-in CPU vendor and features detection.
   * Advanced logging/formatting and robust error handling.
   * JIT memory allocator - interface similar to malloc/free for JIT code-generation and execution.
@@ -165,8 +165,8 @@ If none of `ASMJIT_BUILD_...` is defined AsmJit bails to `ASMJIT_BUILD_HOST`, wh
 
 ### Disabling Features:
 
-  * `ASMJIT_DISABLE_BUILDER` - Disables both `BaseBuilder` and `BaseCompiler` emitters (only `Assembler` will be available). Ideal for users that don't use `BaseBuilder` concept and want to have AsmJit a bit smaller.
-  * `ASMJIT_DISABLE_COMPILER` - Disables `BaseCompiler` emitter. For users that use `BaseBuilder`, but not `BaseCompiler`.
+  * `ASMJIT_DISABLE_BUILDER` - Disables both `Builder` and `Compiler` emitters (only `Assembler` will be available). Ideal for users that don't use `Builder` concept and want to have AsmJit a bit smaller.
+  * `ASMJIT_DISABLE_COMPILER` - Disables `BaseCompiler` emitter. For users that use `Builder`, but not `Compiler`.
   * `ASMJIT_DISABLE_JIT` - Disables JIT execution engine, which includes `JitUtils`, `JitAllocator`, and `JitRuntime`.
   * `ASMJIT_DISABLE_LOGGING` - Disables logging (`Logger` and all classes that inherit it) and instruction formatting.
   * `ASMJIT_DISABLE_TEXT` - Disables everything that uses text-representation and that causes certain strings to be stored in the resulting binary. For example when this flag is set all instruction and error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGING`. This option is suitable for deployment builds or builds that don't want to reveal the use of AsmJit.
@@ -802,11 +802,11 @@ So far all examples shown above handled creating function prologs and epilogs ma
 AsmJit contains a functionality that can be used to define function signatures and to calculate automatically optimal function frame that can be used directly by a prolog and epilog inserter. This feature was exclusive to AsmJit's BaseCompiler for a very long time, but was abstracted out and is now available for all users regardless of BaseEmitter they use. The design of handling functions prologs and epilogs allows generally two use cases:
 
   * Calculate function frame before the function is generated - this is the only way if you use pure `Assembler` emitter and shown in the next example.
-  * Calculate function frame after the function is generated - this way is generally used by `BaseBuilder` and `BaseCompiler` (will be described together with `x86::Compiler`).
+  * Calculate function frame after the function is generated - this way is generally used by `Builder` and `Compiler` emitters(will be described together with `x86::Compiler`).
 
 The following concepts are used to describe and create functions in AsmJit:
 
-  * `Type` - Type is an 8-bit value that describes a platform independent type as we know it from C/C++. It provides abstractions for most common types like `int8_t`, `uint32_t`, `uintptr_t`, `float`, `double`, and all possible vector types to match ISAs up to AVX512. `Type::Id` was introduced originally to be used with `BaseCompiler`, but is now used by `FuncSignature` as well.
+  * `Type` - Type is an 8-bit value that describes a platform independent type as we know from C/C++. It provides abstractions for most common types like `int8_t`, `uint32_t`, `uintptr_t`, `float`, `double`, and all possible vector types to match ISAs up to AVX512. `Type::Id` was introduced originally to be used with the Compiler infrastucture, but is now used by `FuncSignature` as well.
 
   * `CallConv` - Describes a calling convention - this class contains instructions to assign registers and stack addresses to function arguments and return value(s), but doesn't specify any function signature. Calling conventions are architecture and OS dependent.
 
@@ -847,13 +847,17 @@ int main(int argc, char* argv[]) {
 
   // Create and initialize `FuncDetail` and `FuncFrame`.
   FuncDetail func;
-  func.init(FuncSignature3<void, int*, const int*, const int*>(CallConv::kIdHost));
+  func.init(FuncSignatureT<void, int*, const int*, const int*>(CallConv::kIdHost));
 
   FuncFrame frame;
   frame.init(func);
 
   // Make XMM0 and XMM1 dirty; `kGroupVec` describes XMM|YMM|ZMM registers.
   frame.setDirtyRegs(x86::Reg::kGroupVec, IntUtils::mask(0, 1));
+
+  // Alternatively, if you don't want to use register masks you can pass `BaseReg`
+  // to `addDirtyRegs()`. The following code would add both `xmm0` and `xmm1`.
+  frame.addDirtyRegs(x86::xmm0, x86::xmm1);
 
   FuncArgsAssignment args(&func);         // Create arguments assignment context.
   args.assignAll(dst, src_a, src_b);      // Assign our registers to arguments.
@@ -964,7 +968,7 @@ int main(int argc, char* argv[]) {
 
   // Create and initialize `FuncDetail`.
   FuncDetail func;
-  func.init(FuncSignature3<void, int*, const int*, const int*>(CallConv::kIdHost));
+  func.init(FuncSignatureT<void, int*, const int*, const int*>(CallConv::kIdHost));
 
   // Remember prolog insertion point.
   BaseNode* prologInsertionPoint = cb.cursor();
@@ -1093,7 +1097,7 @@ static void setDirtyRegsOfFuncFrame(const x86::Builder& cb, FuncFrame& frame) {
 
 ### Using x86::Assembler or x86::Builder through X86::Emitter
 
-Even when **Assembler** and **BaseBuilder** implement the same interface defined by **BaseEmitter** their platform dependent variants (**x86::Assembler** and **x86::Builder**, respective) cannot be interchanged or casted to each other by using C++'s `static_cast<>`. The main reason is the inheritance graph of these classes is different and cast-incompatible, as illustrated in the following graph:
+Even when **BaseAssembler** and **BaseBuilder** provide the same interface as defined by **BaseEmitter** their platform dependent variants (**x86::Assembler** and **x86::Builder**, respective) cannot be interchanged or casted to each other by using C++'s `static_cast<>`. The main reason is the inheritance graph of these classes is different and cast-incompatible, as illustrated in the following graph:
 
 ```
                                             +--------------+      +=========================+
@@ -1174,7 +1178,7 @@ int main(int argc, char* argv[]) {
   code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
 
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
-  cc.addFunc(FuncSignature0<int>());      // Begin a function of `int fn(void)` signature.
+  cc.addFunc(FuncSignatureT<int>());      // Begin a function of `int fn(void)` signature.
 
   x86::Gp vReg = cc.newGpd();             // Create a 32-bit general purpose register.
   cc.mov(vReg, 1);                        // Move one to our virtual register `vReg`.
@@ -1216,7 +1220,7 @@ int main(int argc, char* argv[]) {
 
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
   cc.addFunc(                             // Begin the function of the following signature:
-    FuncSignature3<void,                  //   Return value - void      (no return value).
+    FuncSignatureT<void,                  //   Return value - void      (no return value).
       uint32_t*,                          //   1st argument - uint32_t* (machine reg-size).
       const uint32_t*,                    //   2nd argument - uint32_t* (machine reg-size).
       size_t>());                         //   3rd argument - size_t    (machine reg-size).
@@ -1292,7 +1296,7 @@ int main(int argc, char* argv[]) {
 
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
   FuncNode* func = cc.addFunc(            // Begin of the Fibonacci function, `addFunc()`
-    FuncSignature1<int, int>());          // Returns a pointer to the `FuncNode` node.
+    FuncSignatureT<int, int>());          // Returns a pointer to the `FuncNode` node.
 
   Label L_Exit = cc.newLabel()            // Exit label.
   x86::Gp x = cc.newU32();                // Function `x` argument.
@@ -1308,7 +1312,7 @@ int main(int argc, char* argv[]) {
 
   FuncCallNode* call = cc.call(           // Function call:
     func->label(),                        //   Function address or Label.
-    FuncSignature1<int, int>());          //   Function signature.
+    FuncSignatureT<int, int>());          //   Function signature.
 
   call->setArg(0, x);                     // Assign `x` as the first argument and
   call->setRet(0, x);                     // assign `x` as a return value as well.
@@ -1354,7 +1358,7 @@ int main(int argc, char* argv[]) {
   code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
 
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
-  cc.addFunc(FuncSignature0<int>());      // Create a function that returns 'int'.
+  cc.addFunc(FuncSignatureT<int>());      // Create a function that returns 'int'.
 
   x86::Gp p = cc.newIntPtr("p");
   x86::Gp i = cc.newIntPtr("i");
@@ -1426,7 +1430,7 @@ int main(int argc, char* argv[]) {
 using namespace asmjit;
 
 static void exampleUseOfConstPool(x86::Compiler& cc) {
-  cc.addFunc(FuncSignature0<int>());
+  cc.addFunc(FuncSignatureT<int>());
 
   x86::Gp v0 = cc.newGpd("v0");
   x86::Gp v1 = cc.newGpd("v1");
