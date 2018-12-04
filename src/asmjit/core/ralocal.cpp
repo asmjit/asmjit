@@ -18,6 +18,17 @@
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
+// [asmjit::RALocalAllocator - Utilities]
+// ============================================================================
+
+static ASMJIT_INLINE RATiedReg* RALocal_findTiedRegByWorkId(RATiedReg* tiedRegs, size_t count, uint32_t workId) noexcept {
+  for (size_t i = 0; i < count; i++)
+    if (tiedRegs[i].workId() == workId)
+      return &tiedRegs[i];
+  return nullptr;
+}
+
+// ============================================================================
 // [asmjit::RALocalAllocator - Init / Reset]
 // ============================================================================
 
@@ -594,9 +605,8 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
                 _curAssignment.makeDirty(group, thisWorkId, targetPhysId);
               usePending--;
 
-              // TODO: Is tiedReg() safe here? It seems it's not updated after the CFG is built.
               // Double-hit.
-              RATiedReg* targetTiedReg = targetWorkReg->tiedReg();
+              RATiedReg* targetTiedReg = RALocal_findTiedRegByWorkId(tiedRegs, count, targetWorkReg->workId());
               if (targetTiedReg && targetTiedReg->useId() == thisPhysId) {
                 targetTiedReg->markUseDone();
                 if (targetTiedReg->isWrite())

@@ -133,12 +133,18 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  ArchInfo _archInfo;                    //!< Architecture information.
-  uint8_t _stackAlignment;               //!< Natural stack alignment (ARCH+OS).
-  uint8_t _cdeclCallConv;                //!< Default CDECL calling convention.
-  uint8_t _stdCallConv;                  //!< Default STDCALL calling convention.
-  uint8_t _fastCallConv;                 //!< Default FASTCALL calling convention.
-  uint64_t _baseAddress;                 //!< Base address.
+  //!< Architecture information.
+  ArchInfo _archInfo;
+  //! Natural stack alignment (ARCH+OS).
+  uint8_t _stackAlignment;
+  //! Default CDECL calling convention.
+  uint8_t _cdeclCallConv;
+  //! Default STDCALL calling convention.
+  uint8_t _stdCallConv;
+  //! Default FASTCALL calling convention.
+  uint8_t _fastCallConv;
+  //! Base address.
+  uint64_t _baseAddress;
 };
 
 // ============================================================================
@@ -186,10 +192,12 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _targetType;                   //!< Tartget type, see `TargetType`.
-  uint8_t _reserved[7];                  //!< \internal
-
-  CodeInfo _codeInfo;                    //!< Basic information about the Runtime's code.
+  //! Tartget type, see `TargetType`.
+  uint8_t _targetType;
+  //! \internal
+  uint8_t _reserved[7];
+  //! Basic information about the Runtime's code.
+  CodeInfo _codeInfo;
 };
 
 //! \}

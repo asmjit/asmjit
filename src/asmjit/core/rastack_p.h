@@ -63,15 +63,23 @@ struct RAStackSlot {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _baseRegId;                    //!< Base register used to address the stack.
-  uint8_t _alignment;                    //!< Minimum alignment required by the slot.
-  uint8_t _reserved[2];                  //!< Reserved for future use.
-  uint32_t _size;                        //!< Size of memory required by the slot.
-  uint32_t _flags;                       //!< Slot flags.
+  //! Base register used to address the stack.
+  uint8_t _baseRegId;
+  //! Minimum alignment required by the slot.
+  uint8_t _alignment;
+  //! Reserved for future use.
+  uint8_t _reserved[2];
+  //! Size of memory required by the slot.
+  uint32_t _size;
+  //! Slot flags.
+  uint32_t _flags;
 
-  uint32_t _useCount;                    //!< Usage counter (one unit equals one memory access).
-  uint32_t _weight;                      //!< Weight of the slot (calculated by `calculateStackFrame()`).
-  int32_t _offset;                       //!< Stack offset (calculated by `calculateStackFrame()`).
+  //! Usage counter (one unit equals one memory access).
+  uint32_t _useCount;
+  //! Weight of the slot (calculated by `calculateStackFrame()`).
+  uint32_t _weight;
+  //! Stack offset (calculated by `calculateStackFrame()`).
+  int32_t _offset;
 };
 
 typedef ZoneVector<RAStackSlot*> RAStackSlots;
@@ -146,11 +154,16 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  ZoneAllocator* _allocator;             //!< Allocator used to allocate internal data.
-  uint32_t _bytesUsed;                   //!< Count of bytes used by all slots.
-  uint32_t _stackSize;                   //!< Calculated stack size (can be a bit greater than `_bytesUsed`).
-  uint32_t _alignment;                   //!< Minimum stack alignment.
-  RAStackSlots _slots;                   //!< Stack slots vector.
+  //! Allocator used to allocate internal data.
+  ZoneAllocator* _allocator;
+  //! Count of bytes used by all slots.
+  uint32_t _bytesUsed;
+  //! Calculated stack size (can be a bit greater than `_bytesUsed`).
+  uint32_t _stackSize;
+  //! Minimum stack alignment.
+  uint32_t _alignment;
+  //! Stack slots vector.
+  RAStackSlots _slots;
 };
 
 //! \}

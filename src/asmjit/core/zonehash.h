@@ -33,9 +33,12 @@ public:
       _hashCode(hashCode),
       _customData(0) {}
 
-  ZoneHashNode* _hashNext;               //!< Next node in the chain, null if it terminates the chain.
-  uint32_t _hashCode;                    //!< Precalculated hash-code of key.
-  uint32_t _customData;                  //!< Padding, can be reused by any Node that inherits `ZoneHashNode`.
+  //! Next node in the chain, null if it terminates the chain.
+  ZoneHashNode* _hashNext;
+  //! Precalculated hash-code of key.
+  uint32_t _hashCode;
+  //! Padding, can be reused by any Node that inherits `ZoneHashNode`.
+  uint32_t _customData;
 };
 
 // ============================================================================
@@ -121,12 +124,17 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  size_t _size;                          //!< Count of records inserted into the hash table.
-  uint32_t _bucketsCount;                //!< Count of hash buckets.
-  uint32_t _bucketsGrow;                 //!< When buckets array should grow.
+  //! Count of records inserted into the hash table.
+  size_t _size;
+  //! Count of hash buckets.
+  uint32_t _bucketsCount;
+  //! When buckets array should grow.
+  uint32_t _bucketsGrow;
 
-  ZoneHashNode** _data;                  //!< Buckets data.
-  ZoneHashNode* _embedded[1];            //!< Embedded data, used by empty hash tables.
+  //! Buckets data.
+  ZoneHashNode** _data;
+  //! Embedded data, used by empty hash tables.
+  ZoneHashNode* _embedded[1];
 };
 
 // ============================================================================

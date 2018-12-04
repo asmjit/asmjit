@@ -106,8 +106,10 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  ZoneAllocator* _allocator;             //!< Allocator used to allocate data.
-  Block* _block[Globals::kLinkCount];    //!< First and last blocks.
+  //! Allocator used to allocate data.
+  ZoneAllocator* _allocator;
+  //! First and last blocks.
+  Block* _block[Globals::kLinkCount];
 };
 
 // ============================================================================

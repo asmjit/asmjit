@@ -31,11 +31,11 @@ BaseEmitter::BaseEmitter(uint32_t type) noexcept
   : _type(uint8_t(type)),
     _reserved(0),
     _flags(0),
+    _emitterOptions(0),
     _code(nullptr),
     _errorHandler(nullptr),
     _codeInfo(),
     _gpRegInfo(),
-    _emitterOptions(0),
     _privateData(0),
     _instOptions(0),
     _globalInstOptions(BaseInst::kOptionReserved),
@@ -231,12 +231,11 @@ Error BaseEmitter::onDetach(CodeHolder* code) noexcept {
   ASMJIT_UNUSED(code);
 
   _flags = 0;
+  _emitterOptions = 0;
   _errorHandler = nullptr;
 
   _codeInfo.reset();
   _gpRegInfo.reset();
-
-  _emitterOptions = 0;
   _privateData = 0;
 
   _instOptions = 0;

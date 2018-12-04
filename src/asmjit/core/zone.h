@@ -42,9 +42,12 @@ public:
       return const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(this) + sizeof(*this));
     }
 
-    Block* prev;                         //!< Link to the previous block.
-    Block* next;                         //!< Link to the next block.
-    size_t size;                         //!< Size of the block.
+    //! Link to the previous block.
+    Block* prev;
+    //! Link to the next block.
+    Block* next;
+    //! Size of the block.
+    size_t size;
   };
 
   enum Limits : size_t {
@@ -344,9 +347,12 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t* _ptr;                         //!< Pointer in the current block.
-  uint8_t* _end;                         //!< End of the current block.
-  Block* _block;                         //!< Current block.
+  //! Pointer in the current block.
+  uint8_t* _ptr;
+  //! End of the current block.
+  uint8_t* _end;
+  //! Current block.
+  Block* _block;
 
   union {
     struct {
@@ -607,9 +613,12 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  Zone* _zone;                           //!< Zone used to allocate memory that fits into slots.
-  Slot* _slots[kLoCount + kHiCount];     //!< Indexed slots containing released memory.
-  DynamicBlock* _dynamicBlocks;          //!< Dynamic blocks for larger allocations (no slots).
+  //! Zone used to allocate memory that fits into slots.
+  Zone* _zone;
+  //! Indexed slots containing released memory.
+  Slot* _slots[kLoCount + kHiCount];
+  //! Dynamic blocks for larger allocations (no slots).
+  DynamicBlock* _dynamicBlocks;
 };
 
 //! \}

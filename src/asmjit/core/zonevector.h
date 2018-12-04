@@ -113,9 +113,12 @@ protected:
   // --------------------------------------------------------------------------
 
 public:
-  void* _data;                           //!< Vector data (untyped).
-  size_type _size;                       //!< Size of the vector.
-  size_type _capacity;                   //!< Capacity of the vector.
+  //! Vector data (untyped).
+  void* _data;
+  //! Size of the vector.
+  size_type _size;
+  //! Capacity of the vector.
+  size_type _capacity;
 };
 
 // ============================================================================
@@ -665,9 +668,12 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  BitWord* _data;                        //!< Bits.
-  uint32_t _size;                        //!< Size of the bit-vector (in bits).
-  uint32_t _capacity;                    //!< Capacity of the bit-vector (in bits).
+  //! Bits.
+  BitWord* _data;
+  //! Size of the bit-vector (in bits).
+  uint32_t _size;
+  //! Capacity of the bit-vector (in bits).
+  uint32_t _capacity;
 };
 
 //! \}

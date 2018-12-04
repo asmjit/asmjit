@@ -285,19 +285,32 @@ static constexpr uint32_t deabstract(uint32_t typeId, uint32_t deabstractDelta) 
   return isAbstract(typeId) ? typeId + deabstractDelta : typeId;
 }
 
-struct Bool {};                          //!< bool as C++ type-name.
-struct I8   {};                          //!< int8_t as C++ type-name.
-struct U8   {};                          //!< uint8_t as C++ type-name.
-struct I16  {};                          //!< int16_t as C++ type-name.
-struct U16  {};                          //!< uint16_t as C++ type-name.
-struct I32  {};                          //!< int32_t as C++ type-name.
-struct U32  {};                          //!< uint32_t as C++ type-name.
-struct I64  {};                          //!< int64_t as C++ type-name.
-struct U64  {};                          //!< uint64_t as C++ type-name.
-struct IPtr {};                          //!< intptr_t as C++ type-name.
-struct UPtr {};                          //!< uintptr_t as C++ type-name.
-struct F32  {};                          //!< float as C++ type-name.
-struct F64  {};                          //!< double as C++ type-name.
+//! bool as C++ type-name.
+struct Bool {};
+//! int8_t as C++ type-name.
+struct I8   {};
+//! uint8_t as C++ type-name.
+struct U8   {};
+//! int16_t as C++ type-name.
+struct I16  {};
+//! uint16_t as C++ type-name.
+struct U16  {};
+//! int32_t as C++ type-name.
+struct I32  {};
+//! uint32_t as C++ type-name.
+struct U32  {};
+//! int64_t as C++ type-name.
+struct I64  {};
+//! uint64_t as C++ type-name.
+struct U64  {};
+//! intptr_t as C++ type-name.
+struct IPtr {};
+//! uintptr_t as C++ type-name.
+struct UPtr {};
+//! float as C++ type-name.
+struct F32  {};
+//! double as C++ type-name.
+struct F64  {};
 
 } // Type namespace
 

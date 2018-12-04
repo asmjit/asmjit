@@ -28,18 +28,25 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 struct SseToAvxData {
   //! Conversion mode.
   enum Mode : uint32_t {
-    kModeNone       = 0,                 //!< No conversion possible.
-    kModeMove       = 1,                 //!< No change (no operands changed).
-    kModeMoveIfMem  = 2,                 //!< No change if the second operand is mem, extend otherwise.
-    kModeExtend     = 3,                 //!< The first SSE operand becomes first and second AVX operand.
-    kModeBlend      = 4                  //!< Special case for 'vblendvpd', 'vblendvps', and 'vpblendvb'.
+    //! No conversion possible.
+    kModeNone = 0,
+    //! No change (no operands changed).
+    kModeMove = 1,
+    //! No change if the second operand is mem, extend otherwise.
+    kModeMoveIfMem = 2,
+    //! The first SSE operand becomes first and second AVX operand.
+    kModeExtend = 3,
+    //! Special case for 'vblendvpd', 'vblendvps', and 'vpblendvb'.
+    kModeBlend = 4
   };
 
   inline uint32_t mode() const noexcept { return _mode; }
   inline int32_t delta() const noexcept { return _delta; }
 
-  uint16_t _mode :  3;                   //!< SSE to AVX conversion mode, see `Mode`.
-  int16_t _delta : 13;                   //!< Delta to get the counterpart SSE/AVX instruction.
+  //! SSE to AVX conversion mode, see `Mode`.
+  uint16_t _mode :  3;
+  //! Delta to get the counterpart SSE/AVX instruction.
+  int16_t _delta : 13;
 };
 
 // ============================================================================

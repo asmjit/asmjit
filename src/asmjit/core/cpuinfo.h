@@ -106,19 +106,31 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  ArchInfo _archInfo;                    //!< CPU architecture information.
-  uint32_t _familyId;                    //!< CPU family ID.
-  uint32_t _modelId;                     //!< CPU model ID.
-  uint32_t _brandId;                     //!< CPU brand ID.
-  uint32_t _stepping;                    //!< CPU stepping.
-  uint32_t _processorType;               //!< Processor type.
-  uint32_t _maxLogicalProcessors;        //!< Maximum number of addressable IDs for logical processors.
-  uint32_t _cacheLineSize;               //!< Cache line size (in bytes).
-  uint32_t _hwThreadCount;               //!< Number of hardware threads.
+  //! CPU architecture information.
+  ArchInfo _archInfo;
+  //! CPU family ID.
+  uint32_t _familyId;
+  //! CPU model ID.
+  uint32_t _modelId;
+  //! CPU brand ID.
+  uint32_t _brandId;
+  //! CPU stepping.
+  uint32_t _stepping;
+  //! Processor type.
+  uint32_t _processorType;
+  //! Maximum number of addressable IDs for logical processors.
+  uint32_t _maxLogicalProcessors;
+  //! Cache line size (in bytes).
+  uint32_t _cacheLineSize;
+  //! Number of hardware threads.
+  uint32_t _hwThreadCount;
 
-  FixedString<16> _vendor;               //!< CPU vendor string.
-  FixedString<64> _brand;                //!< CPU brand string.
-  BaseFeatures _features;                //!< CPU features.
+  //! CPU vendor string.
+  FixedString<16> _vendor;
+  //! CPU brand string.
+  FixedString<64> _brand;
+  //! CPU features.
+  BaseFeatures _features;
 };
 
 //! \}

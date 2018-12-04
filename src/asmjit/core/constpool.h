@@ -193,9 +193,12 @@ public:
     // [Members]
     // --------------------------------------------------------------------------
 
-    ZoneTree<Node> _tree;                //!< RB tree.
-    size_t _size;                        //!< Size of the tree (number of nodes).
-    size_t _dataSize;                    //!< Size of the data.
+    //! RB tree.
+    ZoneTree<Node> _tree;
+    //! Size of the tree (number of nodes).
+    size_t _size;
+    //! Size of the data.
+    size_t _dataSize;
   };
 
   // --------------------------------------------------------------------------
@@ -252,13 +255,19 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  Zone* _zone;                           //!< Zone allocator.
-  Tree _tree[kIndexCount];               //!< Tree per size.
-  Gap* _gaps[kIndexCount];               //!< Gaps per size.
-  Gap* _gapPool;                         //!< Gaps pool
+  //! Zone allocator.
+  Zone* _zone;
+  //! Tree per size.
+  Tree _tree[kIndexCount];
+  //! Gaps per size.
+  Gap* _gaps[kIndexCount];
+  //! Gaps pool
+  Gap* _gapPool;
 
-  size_t _size;                          //!< Size of the pool (in bytes).
-  size_t _alignment;                     //!< Required pool alignment.
+  //! Size of the pool (in bytes).
+  size_t _size;
+  //! Required pool alignment.
+  size_t _alignment;
 };
 
 //! \}

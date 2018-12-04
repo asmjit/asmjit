@@ -148,12 +148,17 @@ public:
 
   union {
     struct {
-      uint8_t _id;                       //!< Architecture id.
-      uint8_t _subId;                    //!< Architecture sub-id.
-      uint8_t _gpSize;                   //!< Default size of a general purpose register.
-      uint8_t _gpCount;                  //!< Count of all general purpose registers.
+      //! Architecture id.
+      uint8_t _id;
+      //! Architecture sub-id.
+      uint8_t _subId;
+      //! Default size of a general purpose register.
+      uint8_t _gpSize;
+      //! Count of all general purpose registers.
+      uint8_t _gpCount;
     };
-    uint32_t _signature;                 //!< Architecture signature (32-bit int).
+    //! Architecture signature (32-bit int).
+    uint32_t _signature;
   };
 };
 

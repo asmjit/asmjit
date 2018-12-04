@@ -853,20 +853,30 @@ struct RATiedReg {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _workId;                      //!< WorkReg id.
-  uint32_t _flags;                       //!< Allocation flags.
-  uint32_t _allocableRegs;               //!< Registers where input {R|X} can be allocated to.
-  uint32_t _useRewriteMask;              //!< Indexes used to rewrite USE regs.
-  uint32_t _outRewriteMask;              //!< Indexes used to rewrite OUT regs.
+  //! WorkReg id.
+  uint32_t _workId;
+  //! Allocation flags.
+  uint32_t _flags;
+  //! Registers where input {R|X} can be allocated to.
+  uint32_t _allocableRegs;
+  //! Indexes used to rewrite USE regs.
+  uint32_t _useRewriteMask;
+  //! Indexes used to rewrite OUT regs.
+  uint32_t _outRewriteMask;
 
   union {
     struct {
-      uint8_t _refCount;                 //!< How many times the VirtReg is referenced in all operands.
-      uint8_t _useId;                    //!< Physical register for use operation (ReadOnly / ReadWrite).
-      uint8_t _outId;                    //!< Physical register for out operation (WriteOnly).
-      uint8_t _reserved;                 //!< Index of OUT operand or 0xFF if none.
+      //! How many times the VirtReg is referenced in all operands.
+      uint8_t _refCount;
+      //! Physical register for use operation (ReadOnly / ReadWrite).
+      uint8_t _useId;
+      //! Physical register for out operation (WriteOnly).
+      uint8_t _outId;
+      //! Index of OUT operand or 0xFF if none.
+      uint8_t _reserved;
     };
-    uint32_t _packed;                    //!< Packed data.
+    //! Packed data.
+    uint32_t _packed;
   };
 };
 
@@ -909,6 +919,7 @@ public:
       _info(vReg->info()),
       _flags(kFlagDirtyStats),
       _allocatedMask(0),
+      _clobberSurvivalMask(0),
       _argIndex(kNoArgIndex),
       _homeRegId(BaseReg::kIdBad),
       _hintRegId(BaseReg::kIdBad),
@@ -975,30 +986,54 @@ public:
   inline uint32_t allocatedMask() const noexcept { return _allocatedMask; }
   inline void addAllocatedMask(uint32_t mask) noexcept { _allocatedMask |= mask; }
 
+  inline uint32_t clobberSurvivalMask() const noexcept { return _clobberSurvivalMask; }
+  inline void addClobberSurvivalMask(uint32_t mask) noexcept { _clobberSurvivalMask |= mask; }
+
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _workId;                      //!< RAPass specific ID used during analysis and allocation.
-  uint32_t _virtId;                      //!< Copy of ID used by `VirtReg`.
+  //! RAPass specific ID used during analysis and allocation.
+  uint32_t _workId;
+  //! Copy of ID used by `VirtReg`.
+  uint32_t _virtId;
 
-  VirtReg* _virtReg;                     //!< Permanent association with `VirtReg`.
-  RATiedReg* _tiedReg;                   //!< Temporary association with `RATiedReg`.
-  RAStackSlot* _stackSlot;               //!< Stack slot associated with the register.
+  //! Permanent association with `VirtReg`.
+  VirtReg* _virtReg;
+  //! Temporary association with `RATiedReg`.
+  RATiedReg* _tiedReg;
+  //! Stack slot associated with the register.
+  RAStackSlot* _stackSlot;
 
-  RegInfo _info;                         //!< Copy of a signature used by `VirtReg`.
-  uint32_t _flags;                       //!< RAPass specific flags used during analysis and allocation.
-  uint32_t _allocatedMask;               //!< IDs of all physical registers this WorkReg has been allocated to.
+  //! Copy of a signature used by `VirtReg`.
+  RegInfo _info;
+  //! RAPass specific flags used during analysis and allocation.
+  uint32_t _flags;
+  //! IDs of all physical registers this WorkReg has been allocated to.
+  uint32_t _allocatedMask;
+  //! IDs of all physical registers that are clobbered during the lifetime of
+  //! this WorkReg.
+  //!
+  //! This mask should be updated by `RAPass::buildLiveness()`, because it's
+  //! global and should be updated after unreachable code has been removed.
+  uint32_t _clobberSurvivalMask;
 
-  uint8_t _argIndex;                     //!< Argument index (or `kNoArgIndex` if none).
-  uint8_t _homeRegId;                    //!< Global home register ID (if any, assigned by RA).
-  uint8_t _hintRegId;                    //!< Global hint register ID (provided by RA or user).
+  //! Argument index (or `kNoArgIndex` if none).
+  uint8_t _argIndex;
+  //! Global home register ID (if any, assigned by RA).
+  uint8_t _homeRegId;
+  //! Global hint register ID (provided by RA or user).
+  uint8_t _hintRegId;
 
-  LiveRegSpans _liveSpans;               //!< Live spans of the `VirtReg`.
-  RALiveStats _liveStats;                //!< Live statistics.
+  //! Live spans of the `VirtReg`.
+  LiveRegSpans _liveSpans;
+  //! Live statistics.
+  RALiveStats _liveStats;
 
-  ZoneVector<BaseNode*> _refs;           //!< All nodes that read/write this VirtReg/WorkReg.
-  ZoneVector<BaseNode*> _writes;         //!< All nodes that write to this VirtReg/WorkReg.
+  //! All nodes that read/write this VirtReg/WorkReg.
+  ZoneVector<BaseNode*> _refs;
+  //! All nodes that write to this VirtReg/WorkReg.
+  ZoneVector<BaseNode*> _writes;
 };
 
 //! \}

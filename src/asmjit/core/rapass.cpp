@@ -975,6 +975,17 @@ ASMJIT_FAVOR_SPEED Error RAPass::buildLiveness() noexcept {
             liveSpans.closeAt(position + !tiedReg->isRead() + 1);
             curLiveCount[group]--;
           }
+
+          // Update `RAWorkReg::hintRegId`.
+          if (tiedReg->hasUseId() && !workReg->hasHintRegId()) {
+            uint32_t useId = tiedReg->useId();
+            if (!(raInst->_clobberedRegs[group] & Support::bitMask(useId)))
+              workReg->setHintRegId(useId);
+          }
+
+          // Update `RAWorkReg::clobberedSurvivalMask`.
+          if (raInst->_clobberedRegs[group] && !tiedReg->isOutOrKill())
+            workReg->addClobberSurvivalMask(raInst->_clobberedRegs[group]);
         }
 
         position += 2;
@@ -1119,23 +1130,22 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
     return b->liveStats().priority() - a->liveStats().priority();
   });
 
-  uint32_t remainingRegMask = _availableRegs[group];
+  uint32_t numWorkRegs = workRegs.size();
+  uint32_t availableRegs = _availableRegs[group];
 
   // First try to pack everything that provides register-id hint as these are
   // most likely function arguments and fixed (precolored) virtual registers.
   if (!workRegs.empty()) {
     uint32_t dstIndex = 0;
-    uint32_t numWorkRegs = workRegs.size();
-    // uint32_t workRegsToCheck = Support::min<uint32_t>(numWorkRegs, remainingRegCount);
 
     for (i = 0; i < numWorkRegs; i++) {
       RAWorkReg* workReg = workRegs[i];
       if (workReg->hasHintRegId()) {
         uint32_t physId = workReg->hintRegId();
-        LiveRegSpans& live = _globalLiveSpans[group][physId];
-
-        if (remainingRegMask & Support::bitMask(physId)) {
+        if (availableRegs & Support::bitMask(physId)) {
+          LiveRegSpans& live = _globalLiveSpans[group][physId];
           Error err = tmpSpans.nonOverlappingUnionOf(allocator(), live, workReg->liveSpans(), LiveRegData(workReg->virtId()));
+
           if (err == kErrorOk) {
             workReg->setHomeRegId(physId);
             live.swap(tmpSpans);
@@ -1151,9 +1161,39 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
     }
 
     workRegs._setSize(dstIndex);
+    numWorkRegs = dstIndex;
   }
 
   // Try to pack the rest.
+  for (i = 0; i < numWorkRegs; i++) {
+    RAWorkReg* workReg = workRegs[i];
+    uint32_t physRegs = availableRegs;
+
+    while (physRegs) {
+      uint32_t physId = Support::ctz(physRegs);
+      if (workReg->clobberSurvivalMask()) {
+        uint32_t preferredMask = physRegs & workReg->clobberSurvivalMask();
+        if (preferredMask)
+          physId = Support::ctz(preferredMask);
+      }
+
+      LiveRegSpans& live = _globalLiveSpans[group][physId];
+      Error err = tmpSpans.nonOverlappingUnionOf(allocator(), live, workReg->liveSpans(), LiveRegData(workReg->virtId()));
+
+      if (err == kErrorOk) {
+        workReg->setHomeRegId(physId);
+        live.swap(tmpSpans);
+        break;
+      }
+
+      if (ASMJIT_UNLIKELY(err != 0xFFFFFFFFu))
+        return err;
+
+      physRegs ^= Support::bitMask(physId);
+    }
+  }
+
+  /*
   while (!workRegs.empty() && remainingRegMask) {
     uint32_t dstIndex = 0;
     uint32_t numWorkRegs = workRegs.size();
@@ -1179,6 +1219,8 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
     workRegs._setSize(dstIndex);
     remainingRegMask &= ~Support::bitMask(physId);
   }
+
+  */
 
   ASMJIT_RA_LOG_COMPLEX({
     for (uint32_t physId = 0; physId < physCount; physId++) {

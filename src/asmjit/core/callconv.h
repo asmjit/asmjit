@@ -347,19 +347,29 @@ struct CallConv {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _id;                           //!< Calling convention id, see `Id`.
-  uint8_t _archId;                       //!< Architecture id (see `ArchInfo::Id`).
-  uint8_t _strategy;                     //!< Register assignment strategy.
-  uint8_t _flags;                        //!< Flags.
+  //! Calling convention id, see `Id`.
+  uint8_t _id;
+  //! Architecture id (see `ArchInfo::Id`).
+  uint8_t _archId;
+  //! Register assignment strategy.
+  uint8_t _strategy;
+  //! Flags.
+  uint8_t _flags;
 
-  uint8_t _redZoneSize;                  //!< Red zone size (AMD64 == 128 bytes).
-  uint8_t _spillZoneSize;                //!< Spill zone size (WIN64 == 32 bytes).
-  uint8_t _naturalStackAlignment;        //!< Natural stack alignment as defined by OS/ABI.
+  //! Red zone size (AMD64 == 128 bytes).
+  uint8_t _redZoneSize;
+  //! Spill zone size (WIN64 == 32 bytes).
+  uint8_t _spillZoneSize;
+  //! Natural stack alignment as defined by OS/ABI.
+  uint8_t _naturalStackAlignment;
   uint8_t _reserved[1];
 
-  uint32_t _passedRegs[BaseReg::kGroupVirt];    //!< Mask of all passed registers, per group.
-  uint32_t _preservedRegs[BaseReg::kGroupVirt]; //!< Mask of all preserved registers, per group.
-  RegOrder _passedOrder[BaseReg::kGroupVirt];   //!< Passed registers' order, per group.
+  //! Mask of all passed registers, per group.
+  uint32_t _passedRegs[BaseReg::kGroupVirt];
+  //! Mask of all preserved registers, per group.
+  uint32_t _preservedRegs[BaseReg::kGroupVirt];
+  //! Passed registers' order, per group.
+  RegOrder _passedOrder[BaseReg::kGroupVirt];
 };
 
 //! \}

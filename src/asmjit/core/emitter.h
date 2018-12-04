@@ -468,23 +468,35 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint8_t _type;                         //!< See `EmitterType`.
-  uint8_t _reserved;                     //!< Reserved
-  uint16_t _flags;                       //!< See `Flags`.
+  //! See `EmitterType`.
+  uint8_t _type;
+  //! \internal
+  uint8_t _reserved;
+  //! See \ref BaseEmitter::Flags.
+  uint16_t _flags;
+  //! Emitter options, always in sync with CodeHolder.
+  uint32_t _emitterOptions;
 
-  CodeHolder* _code;                     //!< CodeHolder the BaseEmitter is attached to.
-  ErrorHandler* _errorHandler;           //!< Attached `ErrorHandler`.
+  //! CodeHolder the BaseEmitter is attached to.
+  CodeHolder* _code;
+  //! Attached `ErrorHandler`.
+  ErrorHandler* _errorHandler;
 
-  CodeInfo _codeInfo;                    //!< Basic information about the code (matches CodeHolder::_codeInfo).
-  RegInfo _gpRegInfo;                    //!< Native GP register signature and signature related information.
+  //! Basic information about the code (matches CodeHolder::_codeInfo).
+  CodeInfo _codeInfo;
+  //! Native GP register signature and signature related information.
+  RegInfo _gpRegInfo;
+  //! Internal private data used freely by any emitter.
+  uint32_t _privateData;
 
-  uint32_t _emitterOptions;              //!< Emitter options, always in sync with CodeHolder.
-  uint32_t _privateData;                 //!< Internal private data used freely by any emitter.
-
-  uint32_t _instOptions;                 //!< Next instruction options (affects the next instruction).
-  uint32_t _globalInstOptions;           //!< Global Instruction options (combined with `_instOptions` by `emit...()`).
-  RegOnly _extraReg;                     //!< Extra register (op-mask {k} on AVX-512) (affects the next instruction).
-  const char* _inlineComment;            //!< Inline comment of the next instruction (affects the next instruction).
+  //! Next instruction options (affects the next instruction).
+  uint32_t _instOptions;
+  //! Global Instruction options (combined with `_instOptions` by `emit...()`).
+  uint32_t _globalInstOptions;
+  //! Extra register (op-mask {k} on AVX-512) (affects the next instruction).
+  RegOnly _extraReg;
+  //! Inline comment of the next instruction (affects the next instruction).
+  const char* _inlineComment;
 };
 
 //! \}

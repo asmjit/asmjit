@@ -371,8 +371,10 @@ enum Flags : uint32_t {
 
 //! Cases that require special handling.
 enum SpecialCases : uint32_t {
-  kSpecialCaseMovCrDr     = 0x00000001u, //!< `MOV REG <-> CREG|DREG` - Defined/Undefined flags, L0/L3 privilege levels.
-  kSpecialCaseMovSsSd     = 0x00000002u  //!< `MOVSS|MOVSD XMM, [MEM]` - Destination operand is completely overwritten.
+  //! `MOV REG <-> CREG|DREG` - Defined/Undefined flags, L0/L3 privilege levels.
+  kSpecialCaseMovCrDr = 0x00000001u,
+  //! `MOVSS|MOVSD XMM, [MEM]` - Destination operand is completely overwritten.
+  kSpecialCaseMovSsSd = 0x00000002u
 };
 
 // ============================================================================
@@ -381,7 +383,8 @@ enum SpecialCases : uint32_t {
 
 //! Used to describe what the instruction does and some of its quirks.
 enum OperationFlags : uint32_t {
-  kOperationVolatile      = 0x00000001u  //!< Hint for instruction schedulers to never reorder this instruction (side effects, memory barrier, etc).
+  //! Hint for instruction schedulers to never reorder this instruction (side effects, memory barrier, etc).
+  kOperationVolatile = 0x00000001u
 };
 
 // ============================================================================
@@ -389,9 +392,12 @@ enum OperationFlags : uint32_t {
 // ============================================================================
 
 enum SingleRegCase : uint32_t {
-  kSingleRegNone          = 0,           //!< No special handling.
-  kSingleRegRO            = 1,           //!< Operands become read-only  - `REG & REG` and similar.
-  kSingleRegWO            = 2            //!< Operands become write-only - `REG ^ REG` and similar.
+  //! No special handling.
+  kSingleRegNone = 0,
+  //! Operands become read-only  - `REG & REG` and similar.
+  kSingleRegRO = 1,
+  //! Operands become write-only - `REG ^ REG` and similar.
+  kSingleRegWO = 2
 };
 
 ASMJIT_VARAPI const char _nameData[];
@@ -405,10 +411,14 @@ ASMJIT_VARAPI const char _nameData[];
 //! Contains all possible operand combinations, memory size information, and
 //! a fixed register id (or `BaseReg::kIdBad` if fixed id isn't required).
 struct OpSignature {
-  uint32_t opFlags;                      //!< Operand flags.
-  uint16_t memFlags;                     //!< Memory flags.
-  uint8_t extFlags;                      //!< Extra flags.
-  uint8_t regMask;                       //!< Mask of possible register IDs.
+  //! Operand flags.
+  uint32_t opFlags;
+  //! Memory flags.
+  uint16_t memFlags;
+  //! Extra flags.
+  uint8_t extFlags;
+  //! Mask of possible register IDs.
+  uint8_t regMask;
 };
 
 ASMJIT_VARAPI const OpSignature _opSignatureTable[];
@@ -422,11 +432,16 @@ ASMJIT_VARAPI const OpSignature _opSignatureTable[];
 //! Contains a sequence of operands' combinations and other metadata that defines
 //! a single instruction. This data is used by instruction validator.
 struct InstSignature {
-  uint8_t opCount  : 3;                  //!< Count of operands in `opIndex` (0..6).
-  uint8_t archMask : 2;                  //!< Architecture mask of this record.
-  uint8_t implicit : 3;                  //!< Number of implicit operands.
-  uint8_t reserved;                      //!< Reserved for future use.
-  uint8_t operands[Globals::kMaxOpCount];//!< Indexes to `OpSignature` table.
+  //! Count of operands in `opIndex` (0..6).
+  uint8_t opCount  : 3;
+  //! Architecture mask of this record.
+  uint8_t archMask : 2;
+  //! Number of implicit operands.
+  uint8_t implicit : 3;
+  //! Reserved for future use.
+  uint8_t reserved;
+  //! Indexes to `OpSignature` table.
+  uint8_t operands[Globals::kMaxOpCount];
 };
 
 ASMJIT_VARAPI const InstSignature _instSignatureTable[];
@@ -524,16 +539,25 @@ struct CommonInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _flags;                       //!< Instruction flags.
-  uint32_t _writeIndex         :  8;     //!< First DST byte of a WRITE operation (default 0).
-  uint32_t _writeSize          : 24;     //!< Number of bytes to be written in DST.
+  //! Instruction flags.
+  uint32_t _flags;
+  //! First DST byte of a WRITE operation (default 0).
+  uint32_t _writeIndex : 8;
+  //! Number of bytes to be written in DST.
+  uint32_t _writeSize : 24;
 
-  uint32_t _iSignatureIndex    : 11;     //!< First `InstSignature` entry in the database.
-  uint32_t _iSignatureCount    :  5;     //!< Number of relevant `ISignature` entries.
-  uint32_t _controlType        :  3;     //!< Control type, see `ControlType`.
-  uint32_t _singleRegCase      :  2;     //!< Specifies what happens if all source operands share the same register.
-  uint32_t _specialCases       :  4;     //!< Special cases.
-  uint32_t _reserved           :  7;     //!< Reserved.
+  //! First `InstSignature` entry in the database.
+  uint32_t _iSignatureIndex : 11;
+  //! Number of relevant `ISignature` entries.
+  uint32_t _iSignatureCount : 5;
+  //! Control type, see `ControlType`.
+  uint32_t _controlType : 3;
+  //! Specifies what happens if all source operands share the same register.
+  uint32_t _singleRegCase : 2;
+  //! Special cases.
+  uint32_t _specialCases : 4;
+  //! \internal
+  uint32_t _reserved : 7;
 };
 
 ASMJIT_VARAPI const CommonInfo _commonInfoTable[];
@@ -565,10 +589,14 @@ struct ExecutionInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint16_t _flags;                     //!< Operation flags.
-  uint8_t _features[6];                //!< Features vector.
-  uint32_t _specialRegsR;              //!< Special registers read.
-  uint32_t _specialRegsW;              //!< Special registers written.
+  //! Operation flags.
+  uint16_t _flags;
+  //! Features vector.
+  uint8_t _features[6];
+  //! Special registers read.
+  uint32_t _specialRegsR;
+  //! Special registers written.
+  uint32_t _specialRegsW;
 };
 
 ASMJIT_VARAPI const ExecutionInfo _executionInfoTable[];
@@ -675,9 +703,12 @@ struct InstInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _nameDataIndex      : 14;     //!< Index to `_nameData`.
-  uint32_t _commonInfoIndex    : 10;     //!< Index to `_commonInfoTable`.
-  uint32_t _executionInfoIndex : 8;      //!< Index to `_executionInfoTable`.
+  //!< Index to `_nameData`.
+  uint32_t _nameDataIndex : 14;
+  //!< Index to `_commonInfoTable`.
+  uint32_t _commonInfoIndex : 10;
+  //!< Index to `_executionInfoTable`.
+  uint32_t _executionInfoIndex : 8;
 };
 
 ASMJIT_VARAPI const InstInfo _instInfoTable[];

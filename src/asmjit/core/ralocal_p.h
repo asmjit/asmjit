@@ -220,22 +220,34 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  RAPass* _pass;                         //!< Link to `RAPass`.
-  BaseCompiler* _cc;                     //!< Link to `BaseCompiler`.
+  //! Link to `RAPass`.
+  RAPass* _pass;
+  //! Link to `BaseCompiler`.
+  BaseCompiler* _cc;
 
-  RAArchTraits _archTraits;              //!< Architecture traits.
-  RARegMask _availableRegs;              //!< Registers available to the allocator.
-  RARegMask _clobberedRegs;              //!< Registers clobbered by the allocator.
+  //! Architecture traits.
+  RAArchTraits _archTraits;
+  //! Registers available to the allocator.
+  RARegMask _availableRegs;
+  //! Registers clobbered by the allocator.
+  RARegMask _clobberedRegs;
 
-  RAAssignment _curAssignment;           //!< Register assignment (current).
-  RAAssignment _tmpAssignment;           //!< Register assignment used temporarily during assignment switches.
+  //! Register assignment (current).
+  RAAssignment _curAssignment;
+  //! Register assignment used temporarily during assignment switches.
+  RAAssignment _tmpAssignment;
 
-  RABlock* _block;                       //!< Link to the current `RABlock`.
-  InstNode* _node;                       //!< InstNode.
-  RAInst* _raInst;                       //!< RA instruction.
+  //! Link to the current `RABlock`.
+  RABlock* _block;
+  //! InstNode.
+  InstNode* _node;
+  //! RA instruction.
+  RAInst* _raInst;
 
-  uint32_t _tiedTotal;                   //!< Count of all TiedReg's.
-  RARegCount _tiedCount;                 //!< TiedReg's total counter.
+  //! Count of all TiedReg's.
+  uint32_t _tiedTotal;
+  //! TiedReg's total counter.
+  RARegCount _tiedCount;
 };
 
 //! \}

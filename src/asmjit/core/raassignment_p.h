@@ -390,10 +390,14 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  Layout _layout;                        //!< Physical registers layout.
-  WorkToPhysMap* _workToPhysMap;         //!< WorkReg to PhysReg mapping.
-  PhysToWorkMap* _physToWorkMap;         //!< PhysReg to WorkReg mapping and assigned/dirty bits.
-  uint32_t* _physToWorkIds[BaseReg::kGroupVirt]; //!< Optimization to translate PhysRegs to WorkRegs faster.
+  //! Physical registers layout.
+  Layout _layout;
+  //! WorkReg to PhysReg mapping.
+  WorkToPhysMap* _workToPhysMap;
+  //! PhysReg to WorkReg mapping and assigned/dirty bits.
+  PhysToWorkMap* _physToWorkMap;
+  //! Optimization to translate PhysRegs to WorkRegs faster.
+  uint32_t* _physToWorkIds[BaseReg::kGroupVirt];
 };
 //! \}
 

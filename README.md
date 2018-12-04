@@ -166,7 +166,7 @@ If none of `ASMJIT_BUILD_...` is defined AsmJit bails to `ASMJIT_BUILD_HOST`, wh
 ### Disabling Features:
 
   * `ASMJIT_DISABLE_BUILDER` - Disables both `Builder` and `Compiler` emitters (only `Assembler` will be available). Ideal for users that don't use `Builder` concept and want to have AsmJit a bit smaller.
-  * `ASMJIT_DISABLE_COMPILER` - Disables `BaseCompiler` emitter. For users that use `Builder`, but not `Compiler`.
+  * `ASMJIT_DISABLE_COMPILER` - Disables `Compiler` emitter. For users that use `Builder`, but not `Compiler`.
   * `ASMJIT_DISABLE_JIT` - Disables JIT execution engine, which includes `JitUtils`, `JitAllocator`, and `JitRuntime`.
   * `ASMJIT_DISABLE_LOGGING` - Disables logging (`Logger` and all classes that inherit it) and instruction formatting.
   * `ASMJIT_DISABLE_TEXT` - Disables everything that uses text-representation and that causes certain strings to be stored in the resulting binary. For example when this flag is set all instruction and error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGING`. This option is suitable for deployment builds or builds that don't want to reveal the use of AsmJit.
@@ -184,7 +184,7 @@ AsmJit library uses one global namespace called `asmjit` that provides the whole
 AsmJit provides two classes that are used together for code generation:
 
   * `CodeHolder` - Provides functionality to hold generated code and stores all necessary information about code sections, labels, symbols, and possible relocations.
-  * `[Base]Emitter` - Provides functionality to emit code into `CodeHolder`. `BaseEmitter` is abstract and provides just basic building blocks that are then implemented by `BaseAssembler`, `BaseBuilder`, `BaseCompiler`, and their architecture-specific implementations like `x86::Assembler`, `x86::Builder`, and `x86::Compiler`.
+  * `BaseEmitter` - Provides functionality to emit code into `CodeHolder`. `BaseEmitter` is abstract and provides just basic building blocks that are then implemented by `BaseAssembler`, `BaseBuilder`, `BaseCompiler`, and their architecture-specific implementations like `x86::Assembler`, `x86::Builder`, and `x86::Compiler`.
 
 Code emitters:
 
@@ -799,7 +799,7 @@ AsmJit contains another instruction option that controls (forces) REX prefix - `
 
 So far all examples shown above handled creating function prologs and epilogs manually. While it's possible to do it that way it's much better to automate such process as function calling conventions vary across architectures and also across operating systems.
 
-AsmJit contains a functionality that can be used to define function signatures and to calculate automatically optimal function frame that can be used directly by a prolog and epilog inserter. This feature was exclusive to AsmJit's BaseCompiler for a very long time, but was abstracted out and is now available for all users regardless of BaseEmitter they use. The design of handling functions prologs and epilogs allows generally two use cases:
+AsmJit contains a functionality that can be used to define function signatures and to calculate automatically optimal function frame that can be used directly by a prolog and epilog inserter. This feature was exclusive to AsmJit's Compiler for a very long time, but was abstracted out and is now available for all users regardless of BaseEmitter they use. The design of handling functions prologs and epilogs allows generally two use cases:
 
   * Calculate function frame before the function is generated - this is the only way if you use pure `Assembler` emitter and shown in the next example.
   * Calculate function frame after the function is generated - this way is generally used by `Builder` and `Compiler` emitters(will be described together with `x86::Compiler`).
@@ -890,23 +890,23 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-BaseBuilder
------------
+Builder Interface
+-----------------
 
-Both `[Base]Builder` and `[Base]Compiler` are emitters that emit everything to a representation that allows further processing. The code stored in such representation is completely safe to be patched, simplified, reordered, obfuscated, removed, injected, analyzed, and 'think-of-anything-else'. Each instruction, label, directive, etc... is stored in `BaseNode` (or derived class like `InstNode` or `LabelNode`) and contains all the information relevant to it.
+Both `Builder` and `Compiler` are emitters that emit everything to a representation that allows further processing. The code stored in such representation is completely safe to be patched, simplified, reordered, obfuscated, removed, injected, analyzed, and 'think-of-anything-else'. Each instruction, label, directive, etc... is stored in `BaseNode` (or derived class like `InstNode` or `LabelNode`) and contains all the information required to pass it later to the `Assembler`.
 
-There is a difference between `[Base]Builder` and `[Base]Compiler`:
+There is a huge difference between `Builder` and `Compiler`:
 
-  * `BaseBuilder` (low-level):
-    * Maximum compatibility with `Assembler`, easy to switch from `Assembler` to `BaseBuilder` and vice versa.
+  * `Builder` (low-level):
+    * Maximum compatibility with `Assembler`, easy to switch from `Assembler` to `Builder` and vice versa.
     * Doesn't generate machine code directly, allows to serialize to `Assembler` when the whole code is ready to be encoded.
 
-  * `BaseCompiler` (high-level):
+  * `Compiler` (high-level):
     * Virtual registers - allows to use unlimited number of virtual registers which are allocated into physical registers by a built-in register allocator.
     * Function nodes - allows to create functions by specifying their signatures and assigning virtual registers to function arguments and return value(s).
     * Function calls - allows to call other functions within the generated code by using the same interface that is used to create functions.
 
-There are multiple node types used by both `BaseBuilder` and `BaseCompiler`:
+There are multiple node types used by both `Builder` and `Compiler`:
 
   * Basic nodes:
     * `BaseNode` - Base class for all nodes.
@@ -923,16 +923,16 @@ There are multiple node types used by both `BaseBuilder` and `BaseCompiler`:
     * `CommentNode` - Contains a comment string, doesn't affect code generation.
     * `SentinelNode` - A marker that can be used to remember certain position, doesn't affect code generation.
 
-  * `BaseCompiler` nodes:
+  * Compiler-only nodes:
     * `FuncNode` - Start of a function.
     * `FuncRetNode` - Return from a function.
     * `FuncCallNode` - Function call.
 
-### Using BaseBuilder
+### Using Builder
 
-`BaseBuilder` was designed to be used as an `Assembler` replacement in case that post-processing of the generated code is required. The code can be modified during or after code generation. The post processing can be done manually or through `Pass` (Code-Builder Pass) object. `BaseBuilder` stores the emitted code as a double-linked list, which allows O(1) insertion and removal.
+The Builder interface was designed to be used as an `Assembler` replacement in case that post-processing of the generated code is required. The code can be modified during or after code generation. The post processing can be done manually or through `Pass` (Code-Builder Pass) object. Builder stores the emitted code as a double-linked list, which allows O(1) insertion and removal.
 
-The code representation used by `BaseBuilder` is compatible with everything AsmJit provides. Each instruction is stored as `InstNode`, which contains instruction id, options, and operands. Each instruction emitted will create a new `InstNode` instance and add it to the current cursor in the double-linked list of nodes. Since the instruction stream used by `BaseBuilder` can be manipulated, we can rewrite the **SumInts** example into the following:
+The code representation used by `Builder` is compatible with everything AsmJit provides. Each instruction is stored as `InstNode`, which contains instruction id, options, and operands. Each instruction emitted will create a new `InstNode` instance and add it to the current cursor in the double-linked list of nodes. Since the instruction stream used by `Builder` can be manipulated, we can rewrite the **SumInts** example into the following:
 
 ```c++
 #include <asmjit/asmjit.h>
@@ -1010,8 +1010,8 @@ int main(int argc, char* argv[]) {
   // Let's see how the function's prolog and epilog looks.
   dumpCode(cb, "Prolog & Epilog");
 
-  // IMPORTANT: BaseBuilder requires `finalize()` to be called to serialize
-  // the code to the Assembler (it automatically creates one if not attached).
+  // IMPORTANT: Builder requires `finalize()` to be called to serialize the code
+  // to the Assembler (it automatically creates one if not attached).
   cb.finalize();
 
   SumIntsFunc fn;
@@ -1097,7 +1097,7 @@ static void setDirtyRegsOfFuncFrame(const x86::Builder& cb, FuncFrame& frame) {
 
 ### Using x86::Assembler or x86::Builder through X86::Emitter
 
-Even when **BaseAssembler** and **BaseBuilder** provide the same interface as defined by **BaseEmitter** their platform dependent variants (**x86::Assembler** and **x86::Builder**, respective) cannot be interchanged or casted to each other by using C++'s `static_cast<>`. The main reason is the inheritance graph of these classes is different and cast-incompatible, as illustrated in the following graph:
+Even when **Assembler** and **Builder** provide the same interface as defined by **BaseEmitter** their platform dependent variants (**x86::Assembler** and **x86::Builder**, respective) cannot be interchanged or casted to each other by using C++'s `static_cast<>`. The main reason is the inheritance graph of these classes is different and cast-incompatible, as illustrated in the following graph:
 
 ```
                                             +--------------+      +=========================+
@@ -1142,8 +1142,8 @@ static void assemble(CodeHolder& code, bool useAsm) {
     x86::Builder cb(&code);
     emitSomething(cb.as<x86::Emitter>());
 
-    // IMPORTANT: BaseBuilder requires `finalize()` to be called to serialize
-    // the code to the Assembler (it automatically creates one if not attached).
+    // IMPORTANT: Builder requires `finalize()` to be called to serialize the
+    // code to the Assembler (it automatically creates one if not attached).
     cb.finalize();
   }
 }
@@ -1151,16 +1151,16 @@ static void assemble(CodeHolder& code, bool useAsm) {
 
 The example above shows how to create a function that can emit code to either **x86::Assembler** or **x86::Builder** through **x86::Emitter**, which provides emitter-neutral functionality. **x86::Emitter**, however, doesn't provide any emitter **x86::Assembler** or **x86::Builder** specific functionality like **setCursor()**.
 
-BaseCompiler
-------------
+Compiler Interface
+------------------
 
-**BaseCompiler** is a high-level code emitter that provides virtual registers and automatically handles function calling conventions. It's still architecture dependent, but makes the code generation much easier by offering a built-in register allocator and function builder. Functions are essential; the first-step to generate some code is to define the signature of the function you want to generate (before generating the function body). Function arguments and return value(s) are handled by assigning virtual registers to them. Similarly, function calls are handled the same way.
+**Compiler** is a high-level code emitter that provides virtual registers and automatically handles function calling conventions. It's still architecture dependent, but makes the code generation much easier by offering a built-in register allocator and function builder. Functions are essential; the first-step to generate some code is to define the signature of the function you want to generate (before generating the function body). Function arguments and return value(s) are handled by assigning virtual registers to them. Similarly, function calls are handled the same way.
 
-**BaseCompiler** also makes the use of passes (introduced by **BaseBuilder**) and automatically adds an architecture-dependent register allocator pass to the list of passes when attached to **CodeHolder**.
+**Compiler** also makes the use of passes (introduced by **Builder**) and automatically adds an architecture-dependent register allocator pass to the list of passes when attached to **CodeHolder**.
 
 ### Compiler Basics
 
-The first **BaseCompiler** example shows how to generate a function that simply returns an integer value. It's an analogy to the very first example:
+The first **Compiler** example shows how to generate a function that simply returns an integer value. It's an analogy to the very first example:
 
 ```c++
 #include <asmjit/asmjit.h>
@@ -1340,7 +1340,7 @@ int main(int argc, char* argv[]) {
 
 ### Stack Management
 
-**BaseCompiler** manages function's stack-frame, which is used by the register allocator to spill virtual registers. It also provides an interface to allocate user-defined block of the stack, which can be used as a temporary storage by the generated function. In the following example a stack of 256 bytes size is allocated, filled by bytes starting from 0 to 255 and then iterated again to sum all the values.
+**Compiler** manages function's stack-frame, which is used by the register allocator to spill virtual registers. It also provides an interface to allocate user-defined block of the stack, which can be used as a temporary storage by the generated function. In the following example a stack of 256 bytes size is allocated, filled by bytes starting from 0 to 255 and then iterated again to sum all the values.
 
 ```c++
 #include <asmjit/asmjit.h>
@@ -1422,7 +1422,7 @@ int main(int argc, char* argv[]) {
 
 ### Constant Pool
 
-**BaseCompiler** provides two constant pools for a general purpose code generation - local and global. Local constant pool is related to a single **FuncNode** node and is generally flushed after the function body, and global constant pool is flushed at the end of the generated code by **BaseCompiler::finalize()**.
+**Compiler** provides two constant pools for a general purpose code generation - local and global. Local constant pool is related to a single **FuncNode** node and is generally flushed after the function body, and global constant pool is flushed at the end of the generated code by **Compiler::finalize()**.
 
 ```c++
 #include <asmjit/asmjit.h>
@@ -1643,8 +1643,8 @@ int main(int argc, char* argv[]) {
 
   x86::Assembler a(&code);
 
-  // Try to emit instruction that doesn't exist.
   if (!setjmp(eh.state)) {
+    // Try to emit instruction that doesn't exist.
     a.emit(x86::Inst::kIdMov, x86::xmm0, x86::xmm1);
   }
   else {
@@ -1658,7 +1658,7 @@ int main(int argc, char* argv[]) {
 
 ### Code Injection
 
-`BaseBuilder` and `BaseCompiler` emitters store their nodes in a double-linked list, which makes it easy to manipulate during the code generation or after it. Each node is always emitted next to the current `cursor` and the cursor is changed to that newly emitted node. Cursor can be explicitly retrieved and assigned by `cursor()` and `setCursor()`, respectively.
+Both `Builder` and `Compiler` emitters store their nodes in a double-linked list, which makes it easy to manipulate that list during the code generation or after. Each node is always emitted next to the current `cursor` and the cursor is changed to that newly emitted node. The cursor can be explicitly retrieved and assigned by `cursor()` and `setCursor()`, respectively.
 
 The following example shows how to inject code at the beginning of the function by implementing an `XmmConstInjector` helper class.
 
@@ -1672,7 +1672,11 @@ The following example shows how to inject code at the beginning of the function 
 Support
 -------
 
-Please consider a donation if you use the project and would like to keep it active in the future.
+AsmJit is an open-source library released under a permissive ZLIB license, which makes it possible to use AsmJit freely in any open-source or commercial product. Please consider a donation if you like the project and would like to keep it active in the future. You can get basic help for free by opening issue(s) or by joining AsmJit's gitter channel, which is very active.
+
+Commercial support is currently individual and can be negotiated on demand. It includes consultation, review of code that uses AsmJit, priority bug fixing, and implementation of new AsmJit features.
+
+Donation Addresses:
 
   * BTC: 14dEp5h8jYSxgXB9vcjE8eh78uweD76o7W
   * ETH: 0xd4f0b9424cF31DF5a5359D029CF3A65c500a581E
@@ -1681,6 +1685,8 @@ Please consider a donation if you use the project and would like to keep it acti
 Donors:
 
   * [ZehMatt](https://github.com/ZehMatt)
+
+
 
 Authors & Maintainers
 ---------------------
