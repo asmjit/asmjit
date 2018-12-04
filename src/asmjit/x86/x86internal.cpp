@@ -731,9 +731,9 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
 
   uint32_t v = 0;                             // The beginning of the stack frame relative to SP after prolog.
   v += frame.callStackSize();                 // Count 'callStackSize'    <- This is used to call functions.
-  v  = Support::alignUp(v, stackAlignment);  // Align to function's stack alignment.
+  v  = Support::alignUp(v, stackAlignment);   // Align to function's stack alignment.
 
-  frame._localStackOffset = v;                // Store 'localStackOffset' <- Function's local stack starts here..
+  frame._localStackOffset = v;                // Store 'localStackOffset' <- Function's local stack starts here.
   v += frame.localStackSize();                // Count 'localStackSize'   <- Function's local stack ends here.
 
   // If the function's stack must be aligned, calculate the alignment necessary
@@ -741,7 +741,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
   // PEI that it can use instructions to perform aligned stores/loads.
   if (stackAlignment >= vecSize && frame._nonGpSaveSize) {
     frame.addAttributes(FuncFrame::kAttrAlignedVecSR);
-    v = Support::alignUp(v, vecSize);        // Align '_nonGpSaveOffset'.
+    v = Support::alignUp(v, vecSize);         // Align '_nonGpSaveOffset'.
   }
 
   frame._nonGpSaveOffset = v;                 // Store '_nonGpSaveOffset' <- Non-GP Save/Restore starts here.

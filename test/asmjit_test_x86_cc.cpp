@@ -3216,6 +3216,74 @@ public:
 };
 
 // ============================================================================
+// [X86Test_FuncCallVarArg2]
+// ============================================================================
+
+class X86Test_FuncCallVarArg2 : public X86Test {
+public:
+  X86Test_FuncCallVarArg2() : X86Test("FuncCallVarArg2") {}
+
+  static void add(X86TestApp& app) {
+    app.add(new X86Test_FuncCallVarArg2());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<double, double, double, double, double>(CallConv::kIdHost));
+
+    x86::Xmm a0 = cc.newXmmSd("a0");
+    x86::Xmm a1 = cc.newXmmSd("a1");
+    x86::Xmm a2 = cc.newXmmSd("a2");
+    x86::Xmm a3 = cc.newXmmSd("a3");
+
+    cc.setArg(0, a0);
+    cc.setArg(1, a1);
+    cc.setArg(2, a2);
+    cc.setArg(3, a3);
+
+    // We call `double func(size_t, ...)`
+    //   - The `vaIndex` must be 1 (first argument after size_t).
+    //   - The full signature of varargs (double, double, double, double) must follow.
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<double, size_t, double, double, double, double>(CallConv::kIdHost, 1));
+    call->setArg(0, imm(4));
+    call->setArg(1, a0);
+    call->setArg(2, a1);
+    call->setArg(3, a2);
+    call->setArg(4, a3);
+    call->setRet(0, a0);
+
+    cc.ret(a0);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef double (*Func)(double, double, double, double);
+    Func func = ptr_as_func<Func>(_func);
+
+    double resultRet = func(1.0, 2.0, 3.0, 4.0);
+    double expectRet = 1.0 + 2.0 + 3.0 + 4.0;
+
+    result.assignFormat("ret=%f", resultRet);
+    expect.assignFormat("ret=%f", expectRet);
+
+    return resultRet == expectRet;
+  }
+
+  static double calledFunc(size_t n, ...) {
+    double sum = 0;
+    va_list ap;
+    va_start(ap, n);
+    for (size_t i = 0; i < n; i++) {
+      double arg = va_arg(ap, double);
+      sum += arg;
+    }
+    va_end(ap);
+    return sum;
+  }
+};
+
+// ============================================================================
 // [X86Test_FuncCallMisc1]
 // ============================================================================
 
@@ -3797,6 +3865,7 @@ int main(int argc, char* argv[]) {
   app.addT<X86Test_FuncCallMultiple>();
   app.addT<X86Test_FuncCallRecursive>();
   app.addT<X86Test_FuncCallVarArg1>();
+  app.addT<X86Test_FuncCallVarArg2>();
   app.addT<X86Test_FuncCallMisc1>();
   app.addT<X86Test_FuncCallMisc2>();
   app.addT<X86Test_FuncCallMisc3>();

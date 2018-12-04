@@ -570,8 +570,9 @@ Error X86RACFGBuilder::onBeforeCall(FuncCallNode* call) noexcept {
   }
 
   // This block has function call(s).
-  _pass->func()->frame().updateCallStackSize(fd.argStackSize());
   _curBlock->addFlags(RABlock::kFlagHasFuncCalls);
+  _pass->func()->frame().addAttributes(FuncFrame::kAttrHasFuncCalls);
+  _pass->func()->frame().updateCallStackSize(fd.argStackSize());
 
   return kErrorOk;
 }
@@ -1137,7 +1138,7 @@ Error X86RAPass::onEmitPreCall(FuncCallNode* call) noexcept {
         if (!n)
           ASMJIT_PROPAGATE(cc()->xor_(eax, eax));
         else
-          ASMJIT_PROPAGATE(cc()->mov(al, n));
+          ASMJIT_PROPAGATE(cc()->mov(eax, n));
         break;
       }
 

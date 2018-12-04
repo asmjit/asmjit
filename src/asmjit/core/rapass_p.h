@@ -987,7 +987,7 @@ public:
   //! Some StackArgs have to be assigned to StackSlots.
   uint32_t _numStackArgsToStackSlots;
 
-  //! Maximum name-size computed from all WorkReg's.
+  //! Maximum name-size computed from all WorkRegs.
   uint32_t _maxWorkRegNameSize;
   //! Temporary string builder used to format comments.
   StringTmp<80> _tmpString;

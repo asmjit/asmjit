@@ -893,7 +893,7 @@ public:
   };
 
   enum ArgIndex : uint32_t {
-    kNoArgIndex      = 0xFFu
+    kNoArgIndex = 0xFFu
   };
 
   // --------------------------------------------------------------------------
