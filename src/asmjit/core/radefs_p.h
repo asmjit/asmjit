@@ -28,7 +28,6 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_LOGGING
-# define ASMJIT_RA_LOG_INIT(...) __VA_ARGS__
 # define ASMJIT_RA_LOG_FORMAT(...)  \
   do {                              \
     if (logger)                     \
@@ -41,7 +40,6 @@ ASMJIT_BEGIN_NAMESPACE
     }                               \
   } while (0)
 #else
-# define ASMJIT_RA_LOG_INIT(...) ((void)0)
 # define ASMJIT_RA_LOG_FORMAT(...) ((void)0)
 # define ASMJIT_RA_LOG_COMPLEX(...) ((void)0)
 #endif
@@ -649,7 +647,8 @@ class RALiveStats {
 public:
   inline RALiveStats()
     : _width(0),
-      _freq(0.0f) {}
+      _freq(0.0f),
+      _priority(0.0f) {}
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -657,6 +656,7 @@ public:
 
   inline uint32_t width() const noexcept { return _width; }
   inline float freq() const noexcept { return _freq; }
+  inline float priority() const noexcept { return _priority; }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -664,6 +664,7 @@ public:
 
   uint32_t _width;
   float _freq;
+  float _priority;
 };
 
 // ============================================================================
@@ -909,7 +910,8 @@ public:
       _flags(kFlagDirtyStats),
       _allocatedMask(0),
       _argIndex(kNoArgIndex),
-      _homeId(BaseReg::kIdBad),
+      _homeRegId(BaseReg::kIdBad),
+      _hintRegId(BaseReg::kIdBad),
       _liveSpans(),
       _liveStats(),
       _refs() {}
@@ -962,9 +964,13 @@ public:
   inline uint32_t argIndex() const noexcept { return _argIndex; }
   inline void setArgIndex(uint32_t index) noexcept { _argIndex = uint8_t(index); }
 
-  inline bool hasHomeId() const noexcept { return _homeId != BaseReg::kIdBad; }
-  inline uint32_t homeId() const noexcept { return _homeId; }
-  inline void setHomeId(uint32_t physId) noexcept { _homeId = uint8_t(physId); }
+  inline bool hasHomeRegId() const noexcept { return _homeRegId != BaseReg::kIdBad; }
+  inline uint32_t homeRegId() const noexcept { return _homeRegId; }
+  inline void setHomeRegId(uint32_t physId) noexcept { _homeRegId = uint8_t(physId); }
+
+  inline bool hasHintRegId() const noexcept { return _hintRegId != BaseReg::kIdBad; }
+  inline uint32_t hintRegId() const noexcept { return _hintRegId; }
+  inline void setHintRegId(uint32_t physId) noexcept { _hintRegId = uint8_t(physId); }
 
   inline uint32_t allocatedMask() const noexcept { return _allocatedMask; }
   inline void addAllocatedMask(uint32_t mask) noexcept { _allocatedMask |= mask; }
@@ -984,8 +990,9 @@ public:
   uint32_t _flags;                       //!< RAPass specific flags used during analysis and allocation.
   uint32_t _allocatedMask;               //!< IDs of all physical registers this WorkReg has been allocated to.
 
-  uint8_t _argIndex;                     //!< Argument index (or kNoStackArgIndex if none).
-  uint8_t _homeId;                       //!< Global home register ID (if any).
+  uint8_t _argIndex;                     //!< Argument index (or `kNoArgIndex` if none).
+  uint8_t _homeRegId;                    //!< Global home register ID (if any, assigned by RA).
+  uint8_t _hintRegId;                    //!< Global hint register ID (provided by RA or user).
 
   LiveRegSpans _liveSpans;               //!< Live spans of the `VirtReg`.
   RALiveStats _liveStats;                //!< Live statistics.

@@ -860,7 +860,7 @@ public:
 //! function argument. Use with `BaseEmitter::emitArgsAssignment()`.
 class FuncArgsAssignment {
 public:
-  enum {
+  enum : uint32_t {
     kArgCount = kFuncArgCountLoHi
   };
 

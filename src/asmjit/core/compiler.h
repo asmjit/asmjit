@@ -118,17 +118,26 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint32_t _id;                          //!< VirtReg id.
-  RegInfo _info;                         //!< VirtReg info (signature).
-  uint32_t _virtSize;                    //!< VirtReg size (can be smaller than `regInfo._size`).
-  uint8_t _alignment;                    //!< VirtReg alignment (for spilling).
-  uint8_t _typeId;                       //!< Type-id.
-  uint8_t _weight;                       //!< VirtReg weight for alloc/spill decisions.
-  uint8_t _isFixed : 1;                  //!< True if this is a fixed register, never reallocated.
-  uint8_t _isStack : 1;                  //!< True if the virtual register is only used as a stack (never accessed as register).
+  //! VirtReg id.
+  uint32_t _id;
+  //! VirtReg info (signature).
+  RegInfo _info;
+  //! VirtReg size (can be smaller than `regInfo._size`).
+  uint32_t _virtSize;
+  //! VirtReg alignment (for spilling).
+  uint8_t _alignment;
+  //! Type-id.
+  uint8_t _typeId;
+  //! VirtReg weight for alloc/spill decisions.
+  uint8_t _weight;
+  //! True if this is a fixed register, never reallocated.
+  uint8_t _isFixed : 1;
+  //! True if the virtual register is only used as a stack (never accessed as register).
+  uint8_t _isStack : 1;
   uint8_t _reserved : 6;
 
-  ZoneString<16> _name;                 //!< VirtReg name (user provided or automatically generated).
+  //! VirtReg name (user provided or automatically generated).
+  ZoneString<16> _name;
 
   // -------------------------------------------------------------------------
   // The following members are used exclusively by RAPass. They are initialized
@@ -136,7 +145,8 @@ public:
   // execution. RAPass sets them back to NULL before it returns.
   // -------------------------------------------------------------------------
 
-  RAWorkReg* _workReg;                   //!< Reference to `RAWorkReg`, used during register allocation.
+  //! Reference to `RAWorkReg`, used during register allocation.
+  RAWorkReg* _workReg;
 };
 
 // ============================================================================
@@ -241,9 +251,8 @@ public:
 
   //! Get `VirtReg` associated with the given `id`.
   inline VirtReg* virtRegById(uint32_t id) const noexcept {
-    uint32_t index = Operand::virtIdToIndex(id);
-    ASMJIT_ASSERT(index < _vRegArray.size());
-    return _vRegArray[index];
+    ASMJIT_ASSERT(isVirtIdValid(id));
+    return _vRegArray[Operand::virtIdToIndex(id)];
   }
   //! Get `VirtReg` associated with the given `reg`.
   inline VirtReg* virtRegByReg(const BaseReg& reg) const noexcept { return virtRegById(reg.id()); }
@@ -273,13 +282,17 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  FuncNode* _func;                       //!< Current function.
+  //! Current function.
+  FuncNode* _func;
+  //! Allocates `VirtReg` objects.
+  Zone _vRegZone;
+  //! Stores array of `VirtReg` pointers.
+  ZoneVector<VirtReg*> _vRegArray;
 
-  Zone _vRegZone;                        //!< Allocates `VirtReg` objects.
-  ZoneVector<VirtReg*> _vRegArray;       //!< Stores array of `VirtReg` pointers.
-
-  ConstPoolNode* _localConstPool;        //!< Local constant pool, flushed at the end of each function.
-  ConstPoolNode* _globalConstPool;       //!< Global constant pool, flushed by `finalize()`.
+  //! Local constant pool, flushed at the end of each function.
+  ConstPoolNode* _localConstPool;
+  //! Global constant pool, flushed by `finalize()`.
+  ConstPoolNode* _globalConstPool;
 };
 
 // ============================================================================
@@ -363,13 +376,16 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  FuncDetail _funcDetail;                //!< Function detail.
-  FuncFrame _frame;                      //!< Function frame.
-
-  LabelNode* _exitNode;                  //!< Function exit (label).
-  SentinelNode* _end;                    //!< Function end (sentinel).
-
-  VirtReg** _args;                       //!< Arguments array as `VirtReg`.
+  //! Function detail.
+  FuncDetail _funcDetail;
+  //! Function frame.
+  FuncFrame _frame;
+  //! Function exit (label).
+  LabelNode* _exitNode;
+  //! Function end (sentinel).
+  SentinelNode* _end;
+  //! Arguments array as `VirtReg`.
+  VirtReg** _args;
 };
 
 // ============================================================================
@@ -483,9 +499,12 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  FuncDetail _funcDetail;                //!< Function detail.
-  Operand_ _rets[2];                     //!< Returns.
-  Operand_* _args;                       //!< Arguments.
+  //! Function detail.
+  FuncDetail _funcDetail;
+  //! Returns.
+  Operand_ _rets[2];
+  //! Arguments.
+  Operand_* _args;
 };
 
 // ============================================================================

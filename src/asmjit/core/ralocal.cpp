@@ -62,50 +62,50 @@ Error RALocalAllocator::makeInitialAssignment() noexcept {
       VirtReg* virtReg = func->arg(i);
       if (!virtReg) continue;
 
-      // Unused argument.
+      // Unreferenced argument.
       RAWorkReg* workReg = virtReg->workReg();
       if (!workReg) continue;
 
+      // Overwritten argument.
       uint32_t workId = workReg->workId();
-      if (liveIn.bitAt(workId)) {
-        uint32_t group = workReg->group();
-        if (_curAssignment.workToPhysId(group, workId) != RAAssignment::kPhysNone)
-          continue;
+      if (!liveIn.bitAt(workId))
+        continue;
 
-        uint32_t allocableRegs = _availableRegs[group] & ~_curAssignment.assigned(group);
-        if (iter == 0) {
-          workReg->setArgIndex(i);
+      uint32_t group = workReg->group();
+      if (_curAssignment.workToPhysId(group, workId) != RAAssignment::kPhysNone)
+        continue;
 
-          // First iteration: Try to allocate to HomeId.
-          if (workReg->hasHomeId()) {
-            uint32_t physId = workReg->homeId();
-            if (Support::bitTest(allocableRegs, physId)) {
-              _curAssignment.assign(group, workId, physId, true);
-              _pass->_argsAssignment.assignReg(i, workReg->info().type(), physId, workReg->typeId());
-              continue;
-            }
-          }
-
-          numIter = 2;
-        }
-        else {
-          // Second iteration: Pick any other register if the is an unassigned one or assign to stack.
-          if (allocableRegs) {
-            uint32_t physId = Support::ctz(allocableRegs);
+      uint32_t allocableRegs = _availableRegs[group] & ~_curAssignment.assigned(group);
+      if (iter == 0) {
+        // First iteration: Try to allocate to home RegId.
+        if (workReg->hasHomeRegId()) {
+          uint32_t physId = workReg->homeRegId();
+          if (Support::bitTest(allocableRegs, physId)) {
             _curAssignment.assign(group, workId, physId, true);
             _pass->_argsAssignment.assignReg(i, workReg->info().type(), physId, workReg->typeId());
+            continue;
           }
-          else {
-            // This register will definitely need stack, create the slot now and assign also `argIndex`
-            // to it. We will patch `_argsAssignment` later after RAStackAllocator finishes.
-            RAStackSlot* slot = _pass->getOrCreateStackSlot(workReg);
-            if (ASMJIT_UNLIKELY(!slot))
-              return DebugUtils::errored(kErrorOutOfMemory);
+        }
 
-            // This means STACK_ARG may be moved to STACK.
-            workReg->addFlags(RAWorkReg::kFlagStackArgToStack);
-            _pass->_numStackArgsToStackSlots++;
-          }
+        numIter = 2;
+      }
+      else {
+        // Second iteration: Pick any other register if the is an unassigned one or assign to stack.
+        if (allocableRegs) {
+          uint32_t physId = Support::ctz(allocableRegs);
+          _curAssignment.assign(group, workId, physId, true);
+          _pass->_argsAssignment.assignReg(i, workReg->info().type(), physId, workReg->typeId());
+        }
+        else {
+          // This register will definitely need stack, create the slot now and assign also `argIndex`
+          // to it. We will patch `_argsAssignment` later after RAStackAllocator finishes.
+          RAStackSlot* slot = _pass->getOrCreateStackSlot(workReg);
+          if (ASMJIT_UNLIKELY(!slot))
+            return DebugUtils::errored(kErrorOutOfMemory);
+
+          // This means STACK_ARG may be moved to STACK.
+          workReg->addFlags(RAWorkReg::kFlagStackArgToStack);
+          _pass->_numStackArgsToStackSlots++;
         }
       }
     }
@@ -847,8 +847,8 @@ uint32_t RALocalAllocator::decideOnAssignment(uint32_t group, uint32_t workId, u
   RAWorkReg* workReg = workRegById(workId);
 
   // HIGHEST PRIORITY: Home register id.
-  if (workReg->hasHomeId()) {
-    uint32_t homeId = workReg->homeId();
+  if (workReg->hasHomeRegId()) {
+    uint32_t homeId = workReg->homeRegId();
     if (Support::bitTest(allocableRegs, homeId))
       return homeId;
   }

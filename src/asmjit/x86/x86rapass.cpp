@@ -680,6 +680,8 @@ MovU32:
   }
 
   ASMJIT_PROPAGATE(cc()->_newReg(*out, rTypeId, nullptr));
+  cc()->virtRegById(out->id())->setWeight(RAPass::kCallArgWeight);
+
   return cc()->mov(out->as<x86::Gp>(), imm);
 }
 
@@ -998,6 +1000,7 @@ void X86RAPass::onInit() noexcept {
   uint32_t archId = cc()->archId();
   uint32_t baseRegCount = archId == ArchInfo::kIdX86 ? 8u : 16u;
 
+  _archRegsInfo = &opData.archRegs;
   _archTraits[Reg::kGroupGp] |= RAArchTraits::kHasSwap;
 
   _physRegCount.set(Reg::kGroupGp  , baseRegCount);
@@ -1137,7 +1140,7 @@ Error X86RAPass::onEmitPreCall(FuncCallNode* call) noexcept {
           ASMJIT_PROPAGATE(cc()->mov(al, n));
         break;
       }
-      
+
       case CallConv::kIdX86Win64: {
         // Each double-precision argument passed in XMM must be also passed in GP.
         for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {

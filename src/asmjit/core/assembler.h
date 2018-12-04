@@ -140,12 +140,18 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  Section* _section;                     //!< Current section where the assembling happens.
-  uint8_t* _bufferData;                  //!< Start of the CodeBuffer of the current section.
-  uint8_t* _bufferEnd;                   //!< End (first invalid byte) of the current section.
-  uint8_t* _bufferPtr;                   //!< Pointer in the CodeBuffer of the current section.
-  Operand_ _op4;                         //!< 5th operand data, used only temporarily.
-  Operand_ _op5;                         //!< 6th operand data, used only temporarily.
+  //! Current section where the assembling happens.
+  Section* _section;
+  //! Start of the CodeBuffer of the current section.
+  uint8_t* _bufferData;
+  //! End (first invalid byte) of the current section.
+  uint8_t* _bufferEnd;
+  //! Pointer in the CodeBuffer of the current section.
+  uint8_t* _bufferPtr;
+  //! 5th operand data, used only temporarily.
+  Operand_ _op4;
+  //! 6th operand data, used only temporarily.
+  Operand_ _op5;
 };
 
 //! \}

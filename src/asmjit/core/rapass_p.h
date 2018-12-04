@@ -523,6 +523,10 @@ public:
   ASMJIT_NONCOPYABLE(RAPass)
   typedef FuncPass Base;
 
+  enum Weights : uint32_t {
+    kCallArgWeight = 80
+  };
+
   // --------------------------------------------------------------------------
   // [Typedefs]
   // --------------------------------------------------------------------------
@@ -842,12 +846,19 @@ public:
   //! 2. Calculate live spans and basic statistics of each work register.
   Error buildLiveness() noexcept;
 
+  //! Assigns argIndex to WorkRegs. Must be called after the liveness analysis
+  //! finishes as it checks whether the argument is live upon entry.
+  Error assignArgIndexToWorkRegs() noexcept;
+
   // --------------------------------------------------------------------------
   // [Allocation - Global]
   // --------------------------------------------------------------------------
 
   //! Run a global register allocator.
   Error runGlobalAllocator() noexcept;
+
+  //! Initialize data structures used for global live spans.
+  Error initGlobalLiveSpans() noexcept;
 
   Error binPack(uint32_t group) noexcept;
 
@@ -904,47 +915,82 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  ZoneAllocator _allocator;              //!< Allocator that uses zone passed to `runOnFunction()`.
-  Logger* _logger;                       //!< Logger, disabled if null.
-  Logger* _debugLogger;                  //!< Debug logger, non-null only if `kOptionDebugPasses` option is set.
-  uint32_t _loggerFlags;                 //!< Logger flags.
+  //! Allocator that uses zone passed to `runOnFunction()`.
+  ZoneAllocator _allocator;
+  //! Logger, disabled if null.
+  Logger* _logger;
+  //! Debug logger, non-null only if `kOptionDebugPasses` option is set.
+  Logger* _debugLogger;
+  //! Logger flags.
+  uint32_t _loggerFlags;
 
-  FuncNode* _func;                       //!< Function being processed.
-  BaseNode* _stop;                       //!< Stop node.
-  BaseNode* _extraBlock;                 //!< Node that is used to insert extra code after the function body.
+  //! Function being processed.
+  FuncNode* _func;
+  //! Stop node.
+  BaseNode* _stop;
+  //! Node that is used to insert extra code after the function body.
+  BaseNode* _extraBlock;
 
-  RABlocks _blocks;                      //!< Blocks (first block is the entry, always exists).
-  RABlocks _exits;                       //!< Function exit blocks (usually one, but can contain more).
-  RABlocks _pov;                         //!< Post order view (POV).
+  //! Blocks (first block is the entry, always exists).
+  RABlocks _blocks;
+  //! Function exit blocks (usually one, but can contain more).
+  RABlocks _exits;
+  //! Post order view (POV).
+  RABlocks _pov;
 
-  uint32_t _instructionCount;            //!< Number of instruction nodes.
-  uint32_t _createdBlockCount;           //!< Number of created blocks (internal).
-  mutable uint64_t _lastTimestamp;       //!< Timestamp generator (incremental).
+  //! Number of instruction nodes.
+  uint32_t _instructionCount;
+  //! Number of created blocks (internal).
+  uint32_t _createdBlockCount;
+  //! Timestamp generator (incremental).
+  mutable uint64_t _lastTimestamp;
 
-  RAArchTraits _archTraits;              //!< Architecture traits.
-  RARegIndex _physRegIndex;              //!< Index to physical registers in `RAAssignment::PhysToWorkMap`.
-  RARegCount _physRegCount;              //!< Count of physical registers in `RAAssignment::PhysToWorkMap`.
-  uint32_t _physRegTotal;                //!< Total number of physical registers.
+  //!< Architecture registers information.
+  const ArchRegs* _archRegsInfo;
+  //! Architecture traits.
+  RAArchTraits _archTraits;
+  //! Index to physical registers in `RAAssignment::PhysToWorkMap`.
+  RARegIndex _physRegIndex;
+  //! Count of physical registers in `RAAssignment::PhysToWorkMap`.
+  RARegCount _physRegCount;
+  //! Total number of physical registers.
+  uint32_t _physRegTotal;
 
-  RARegMask _availableRegs;              //!< Registers available for allocation.
-  RARegCount _availableRegCount;         //!< Count of physical registers per group.
+  //! Registers available for allocation.
+  RARegMask _availableRegs;
+  //! Count of physical registers per group.
+  RARegCount _availableRegCount;
+  //! Registers clobbered by the function.
+  RARegMask _clobberedRegs;
 
-  RARegMask _clobberedRegs;              //!< Registers clobbered by the function.
-
-  RAWorkRegs _workRegs;                  //!< Work registers (registers used by the function).
+  //! Work registers (registers used by the function).
+  RAWorkRegs _workRegs;
+  //! Work registers per register group.
   RAWorkRegs _workRegsOfGroup[BaseReg::kGroupVirt];
 
-  RAStrategy _strategy[BaseReg::kGroupVirt]; //!< Register allocation strategy.
-  RALiveCount _globalMaxLiveCount;       //!< Global max live-count (from all blocks).
+  //! Register allocation strategy per register group.
+  RAStrategy _strategy[BaseReg::kGroupVirt];
+  //! Global max live-count (from all blocks) per register group.
+  RALiveCount _globalMaxLiveCount;
 
-  BaseReg _sp;                           //!< Stack pointer.
-  BaseReg _fp;                           //!< Frame pointer.
-  RAStackAllocator _stackAllocator;      //!< Stack manager.
-  FuncArgsAssignment _argsAssignment;    //!< Function arguments mapper.
-  uint32_t _numStackArgsToStackSlots;    //!< Some StackArgs have to be assigned to StackSlots.
+  //! Global live spans per register group.
+  LiveRegSpans* _globalLiveSpans[BaseReg::kGroupVirt];
 
-  StringTmp<80> _tmpString;              //!< Temporary string builder used to format comments.
-  uint32_t _maxWorkRegNameSize;          //!< Maximum name-size computed from all WorkReg's.
+  //! Stack pointer.
+  BaseReg _sp;
+  //! Frame pointer.
+  BaseReg _fp;
+  //! Stack manager.
+  RAStackAllocator _stackAllocator;
+  //! Function arguments assignment.
+  FuncArgsAssignment _argsAssignment;
+  //! Some StackArgs have to be assigned to StackSlots.
+  uint32_t _numStackArgsToStackSlots;
+
+  //! Maximum name-size computed from all WorkReg's.
+  uint32_t _maxWorkRegNameSize;
+  //! Temporary string builder used to format comments.
+  StringTmp<80> _tmpString;
 };
 
 inline ZoneAllocator* RABlock::allocator() const noexcept { return _ra->allocator(); }

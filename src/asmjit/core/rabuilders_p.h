@@ -41,12 +41,13 @@ public:
   inline BaseCompiler* cc() const noexcept { return _cc; }
 
   Error run() noexcept {
-    ASMJIT_RA_LOG_INIT(
-      Logger* logger = _pass->debugLogger();
-      uint32_t flags = FormatOptions::kFlagPositions;
-      RABlock* lastPrintedBlock = nullptr;
-      StringTmp<512> sb;
-    );
+    #ifndef ASMJIT_DISABLE_LOGGING
+    Logger* logger = _pass->debugLogger();
+    uint32_t flags = FormatOptions::kFlagPositions;
+    RABlock* lastPrintedBlock = nullptr;
+    StringTmp<512> sb;
+    #endif
+
     ASMJIT_RA_LOG_FORMAT("[RAPass::BuildCFG]\n");
 
     FuncNode* func = _pass->func();
