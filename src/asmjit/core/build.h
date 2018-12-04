@@ -209,58 +209,60 @@
 // [asmjit::Build - Globals - C++ Compiler and Features Detection]
 // ============================================================================
 
-#define ASMJIT_CXX_CLANG       0
-#define ASMJIT_CXX_INTEL       0
-#define ASMJIT_CXX_GNU_ONLY    0
-#define ASMJIT_CXX_MSC_ONLY    0
+#define ASMJIT_CXX_CLANG 0
+#define ASMJIT_CXX_GNU   0
+#define ASMJIT_CXX_INTEL 0
+#define ASMJIT_CXX_MSC   0
 #define ASMJIT_CXX_MAKE_VER(MAJOR, MINOR, PATCH) ((MAJOR) * 10000000 + (MINOR) * 100000 + (PATCH))
 
+// Intel Compiler [pretends to be GNU or MSC, so it must be checked first]:
+//   - https://software.intel.com/en-us/articles/c0x-features-supported-by-intel-c-compiler
+//   - https://software.intel.com/en-us/articles/c14-features-supported-by-intel-c-compiler
+//   - https://software.intel.com/en-us/articles/c17-features-supported-by-intel-c-compiler
 #if defined(__INTEL_COMPILER)
-  // Intel compiler pretends to be GNU or MSC, so it must be checked first.
-  //   https://software.intel.com/en-us/articles/c0x-features-supported-by-intel-c-compiler
-  //   https://software.intel.com/en-us/articles/c14-features-supported-by-intel-c-compiler
-  //   https://software.intel.com/en-us/articles/c17-features-supported-by-intel-c-compiler
+
   #undef ASMJIT_CXX_INTEL
   #define ASMJIT_CXX_INTEL ASMJIT_CXX_MAKE_VER(__INTEL_COMPILER / 100, (__INTEL_COMPILER / 10) % 10, __INTEL_COMPILER % 10)
+
+// MSC Compiler:
+//   - https://msdn.microsoft.com/en-us/library/hh567368.aspx
+//
+// Version List:
+//   - 16.00.0 == VS2010
+//   - 17.00.0 == VS2012
+//   - 18.00.0 == VS2013
+//   - 19.00.0 == VS2015
+//   - 19.10.0 == VS2017
 #elif defined(_MSC_VER) && defined(_MSC_FULL_VER)
-  // MSC compiler:
-  //   https://msdn.microsoft.com/en-us/library/hh567368.aspx
-  //
-  // Version List:
-  //   16.00.0 == VS2010
-  //   17.00.0 == VS2012
-  //   18.00.0 == VS2013
-  //   19.00.0 == VS2015
-  //   19.10.0 == VS2017
-  #undef ASMJIT_CXX_MSC_ONLY
+
+  #undef ASMJIT_CXX_MSC
   #if _MSC_VER == _MSC_FULL_VER / 10000
-    #define ASMJIT_CXX_MSC_ONLY ASMJIT_CXX_MAKE_VER(_MSC_VER / 100, _MSC_VER % 100, _MSC_FULL_VER % 10000)
+    #define ASMJIT_CXX_MSC ASMJIT_CXX_MAKE_VER(_MSC_VER / 100, _MSC_VER % 100, _MSC_FULL_VER % 10000)
   #else
-    #define ASMJIT_CXX_MSC_ONLY ASMJIT_CXX_MAKE_VER(_MSC_VER / 100, (_MSC_FULL_VER / 100000) % 100, _MSC_FULL_VER % 100000)
+    #define ASMJIT_CXX_MSC ASMJIT_CXX_MAKE_VER(_MSC_VER / 100, (_MSC_FULL_VER / 100000) % 100, _MSC_FULL_VER % 100000)
   #endif
+
+  // SEVERE: VS2015 handles constexpr's incorrectly in case a struct contains a
+  //         union. There is no workaround known other than rewriting the whole
+  //         code. VS2017 has a similar bug, but it can be workarounded.
+  #if ASMJIT_CXX_MSC < ASMJIT_CXX_MAKE_VER(19, 10, 0)
+    #error "[asmjit] At least VS2017 is required due to a severe bug in VS2015's constexpr implementation"
+  #endif
+
+// Clang Compiler [Pretends to be GNU, so it must be checked before]:
+//   - https://clang.llvm.org/cxx_status.html
 #elif defined(__clang_major__) && defined(__clang_minor__) && defined(__clang_patchlevel__)
-  // Clang compiler:
+
   #undef ASMJIT_CXX_CLANG
   #define ASMJIT_CXX_CLANG ASMJIT_CXX_MAKE_VER(__clang_major__, __clang_minor__, __clang_patchlevel__)
+
+// GNU Compiler:
+//   - https://gcc.gnu.org/projects/cxx-status.html
 #elif defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
-  // GNU compiler:
-  //   https://gcc.gnu.org/projects/cxx-status.html
-  #undef ASMJIT_CXX_GNU_ONLY
-  #define ASMJIT_CXX_GNU_ONLY ASMJIT_CXX_MAKE_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
-#endif
 
-// GNU [Compatibility] - GNU compiler or compatible.
-#if defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
+  #undef ASMJIT_CXX_GNU
   #define ASMJIT_CXX_GNU ASMJIT_CXX_MAKE_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
-#else
-  #define ASMJIT_CXX_GNU ASMJIT_CXX_GNU_ONLY
-#endif
 
-// MSC [Compatibility] - MSC compiler or compatible.
-#if !ASMJIT_CXX_MSC_ONLY && defined(_MSC_VER)
-  #define ASMJIT_CXX_MSC ASMJIT_CXX_MAKE_VER(_MSC_VER / 100, _MSC_VER % 100, 0)
-#else
-  #define ASMJIT_CXX_MSC ASMJIT_CXX_MSC_ONLY
 #endif
 
 // Compiler features detection macros.
@@ -291,24 +293,19 @@
 #endif
 
 // Compiler features by vendor.
-#if defined(ASMJIT_CXX_MSC_ONLY) && !defined(_NATIVE_WCHAR_T_DEFINED)
+#if defined(_MSC_VER) && !defined(_NATIVE_WCHAR_T_DEFINED)
   #define ASMJIT_CXX_HAS_NATIVE_WCHAR_T 0
 #else
   #define ASMJIT_CXX_HAS_NATIVE_WCHAR_T 1
 #endif
 
-#define ASMJIT_CXX_HAS_UNICODE_LITERALS \
-  ASMJIT_CXX_HAS_FEATURE(cxx_unicode_literals, ( \
-                        (ASMJIT_CXX_INTEL    >= ASMJIT_CXX_MAKE_VER(14, 0, 0)) || \
-                        (ASMJIT_CXX_MSC_ONLY >= ASMJIT_CXX_MAKE_VER(19, 0, 0)) || \
-                        (ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(4 , 5, 0) && __cplusplus >= 201103L) ))
-
-// SEVERE: VS2015 handles constexpr's incorrectly in case a struct contains a
-//         union. There is no workaround known other than rewriting the whole
-//         code.
-//         VS2017 has a similar bug, but it can be workarounded.
-#if ASMJIT_CXX_MSC_ONLY && ASMJIT_CXX_MSC_ONLY < ASMJIT_CXX_MAKE_VER(19, 10, 0)
-  #error "[asmjit] At least VS2017 is required due to a severe bug in VS2015's 'constexpr', please upgrade your compiler."
+#if ASMJIT_CXX_HAS_FEATURE(cxx_unicode_literals, ( \
+                          (ASMJIT_CXX_INTEL >= ASMJIT_CXX_MAKE_VER(14, 0, 0)) || \
+                          (ASMJIT_CXX_MSC   >= ASMJIT_CXX_MAKE_VER(19, 0, 0)) || \
+                          (ASMJIT_CXX_GNU   >= ASMJIT_CXX_MAKE_VER(4 , 5, 0) && __cplusplus >= 201103L) ))
+  #define ASMJIT_CXX_HAS_UNICODE_LITERALS 1
+#else
+  #define ASMJIT_CXX_HAS_UNICODE_LITERALS 0
 #endif
 
 // ============================================================================
@@ -348,16 +345,16 @@
 // class is exported. However, GCC has some strange behavior that even if
 // one or more symbol is exported it doesn't export typeinfo unless the
 // class itself is decorated with "visibility(default)" (i.e. ASMJIT_API).
-#if !defined(_WIN32) && ASMJIT_CXX_GNU
+#if !defined(_WIN32) && defined(__GNUC__)
   #define ASMJIT_VIRTAPI ASMJIT_API
 #else
   #define ASMJIT_VIRTAPI
 #endif
 
 // Function attributes.
-#if !defined(ASMJIT_BUILD_DEBUG) && (ASMJIT_CXX_GNU || ASMJIT_CXX_CLANG)
+#if !defined(ASMJIT_BUILD_DEBUG) && defined(__GNUC__)
   #define ASMJIT_INLINE inline __attribute__((__always_inline__))
-#elif !defined(ASMJIT_BUILD_DEBUG) && ASMJIT_CXX_MSC
+#elif !defined(ASMJIT_BUILD_DEBUG) && defined(_MSC_VER)
   #define ASMJIT_INLINE __forceinline
 #else
   #define ASMJIT_INLINE inline
@@ -412,7 +409,7 @@
 
 #if defined(__clang__) && __cplusplus >= 201103L
   #define ASMJIT_FALLTHROUGH [[clang::fallthrough]]
-#elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(7, 0, 0)
+#elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(7, 0, 0)
   #define ASMJIT_FALLTHROUGH __attribute__((__fallthrough__))
 #else
   #define ASMJIT_FALLTHROUGH ((void)0) /* fallthrough */
@@ -434,7 +431,7 @@
 
 #if ASMJIT_CXX_HAS_ATTRIBUTE(no_sanitize, 0)
   #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF __attribute__((__no_sanitize__("undefined")))
-#elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(4, 9, 0)
+#elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 9, 0)
   #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF __attribute__((__no_sanitize_undefined__))
 #else
   #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF
@@ -453,7 +450,7 @@
   #define ASMJIT_END_NAMESPACE                                                \
       _Pragma("clang diagnostic pop")                                         \
     }
-#elif ASMJIT_CXX_GNU_ONLY >= ASMJIT_CXX_MAKE_VER(8, 0, 0)
+#elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(8, 0, 0)
   #define ASMJIT_BEGIN_NAMESPACE                                              \
     namespace asmjit {                                                        \
       _Pragma("GCC diagnostic push")                                          \
@@ -524,6 +521,18 @@
     #endif
   #endif
 #endif
+
+// ============================================================================
+// [asmjit::Build - Globals - Cleanup]
+// ============================================================================
+
+// Undefine everything that is not used by AsmJit outside of `build.h` and that
+// is considered private.
+#undef ASMJIT_CXX_CLANG
+#undef ASMJIT_CXX_GNU
+#undef ASMJIT_CXX_INTEL
+#undef ASMJIT_CXX_MSC
+#undef ASMJIT_CXX_MAKE_VER
 
 // ============================================================================
 // [asmjit::Build - Globals - Unit Testing Boilerplate]

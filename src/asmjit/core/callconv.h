@@ -127,12 +127,15 @@ struct CallConv {
     //! compilers allow to override the default calling convention. Overriding
     //! is not detected at the moment.
     kIdHost           = DETECTED_AT_COMPILE_TIME,
+
     //! Default CDECL calling convention based on the current C++ compiler's settings.
     kIdHostCDecl      = DETECTED_AT_COMPILE_TIME,
+
     //! Default STDCALL calling convention based on the current C++ compiler's settings.
     //!
     //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
     kIdHostStdCall    = DETECTED_AT_COMPILE_TIME,
+
     //! Compatibility for `__fastcall` calling convention.
     //!
     //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
@@ -143,8 +146,15 @@ struct CallConv {
     kIdHost           = kIdX86CDecl,
     kIdHostCDecl      = kIdX86CDecl,
     kIdHostStdCall    = kIdX86StdCall,
-    kIdHostFastCall   = ASMJIT_CXX_MSC ? kIdX86MsFastCall  :
-                        ASMJIT_CXX_GNU ? kIdX86GccFastCall : kIdNone,
+
+    #if defind(_MSC_VER)
+    kIdHostFastCall   = kIdX86MsFastCall,
+    #elif defined(__GNUC__)
+    kIdHostFastCall   = kIdX86GccFastCall,
+    #else
+    kIdHostFastCall   = kIdHost,
+    #endif
+
     kIdHostLightCall2 = kIdX86LightCall2,
     kIdHostLightCall3 = kIdX86LightCall3,
     kIdHostLightCall4 = kIdX86LightCall4
@@ -156,9 +166,11 @@ struct CallConv {
     #else
     kIdHost           = kIdX86SysV64,
     #endif
+
     kIdHostCDecl      = kIdHost, // Doesn't exist, redirected to host.
     kIdHostStdCall    = kIdHost, // Doesn't exist, redirected to host.
     kIdHostFastCall   = kIdHost, // Doesn't exist, redirected to host.
+
     kIdHostLightCall2 = kIdX64LightCall2,
     kIdHostLightCall3 = kIdX64LightCall3,
     kIdHostLightCall4 = kIdX64LightCall4

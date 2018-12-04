@@ -1,7 +1,7 @@
 AsmJit
 ------
 
-Complete x86/x64 JIT and Remote Assembler for C++.
+Complete x86/x64 JIT and AOT Assembler for C++.
 
   * [Official Repository (asmjit/asmjit)](https://github.com/asmjit/asmjit)
   * [Official Blog (asmbits)](https://asmbits.blogspot.com/ncr)
@@ -58,13 +58,14 @@ int main(int argc, char* argv[]) {
 AsmJit Summary
 --------------
 
-  * Complete x86/x64 instruction set - MMX, SSEx, BMIx, ADX, TBM, XOP, AVXx, FMAx, and AVX512.
+  * Complete x86/x64 instruction set - MMX, SSE+, BMI+, ADX, TBM, XOP, AVX+, FMA+, and AVX512+.
   * Different emitters providing various abstraction levels (Assembler, Builder, Compiler).
+  * Support for sections for separating code and data.
   * Built-in CPU vendor and features detection.
-  * Advanced logging/formatting and robust error handling.
+  * Advanced logging, formatting, and error handling.
   * JIT memory allocator - interface similar to malloc/free for JIT code-generation and execution.
   * Lightweight and easily embeddable - 250-300kB compiled with all built-in features.
-  * Modular - unneeded features can be disabled at compile-time to make the library even smaller.
+  * Modular design - unneeded features can be disabled at compile-time to make the library smaller.
   * Zero dependencies - no external libraries, no STL/RTTI - easy to embed and/or link statically.
   * Doesn't use exceptions internally, but allows to attach a "throwable" error handler of your choice.
 
@@ -73,11 +74,11 @@ Advanced Features
 
   * AsmJit contains a highly compressed instruction database:
     * Instruction names - allows to convert instruction id to its name and vice versa.
-    * Instruction metadata - access (read|write|rw) of all operand combinations of all instructions.
+    * Instruction metadata - access (read|write) of all operand combinations of all instructions.
     * Instruction signatures - allows to strictly validate if an instruction (with all its operands) is valid.
   * AsmJit allows to precisely control how instructions are encoded if there are multiple variations.
   * AsmJit is highly dynamic, constructing operands at runtime is a common practice.
-  * Multiple emitters with the same interface - emit machine code directly or to a representation that can be processed afterwards.
+  * Multiple emitters with the same interface - emit machine code directly or to a representation that can be post-processed.
 
 Important
 ---------
@@ -89,8 +90,10 @@ Breaking the official API is sometimes inevitable, what to do?
     * [asmjit_test_x86_sections.cpp](./test/asmjit_test_x86_sections.cpp) - Multiple sections test.
   * Visit our [Official Chat](https://gitter.im/asmjit/asmjit) if you need a quick help.
 
-TODOs:
-  * [ ] Add support for user external buffers.
+TODO
+----
+
+  * [ ] Add support for user external buffers in CodeHolder.
 
 Supported Environments
 ----------------------

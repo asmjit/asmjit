@@ -244,9 +244,14 @@ class X86RACFGBuilder : public RACFGBuilder<X86RACFGBuilder> {
 public:
   inline X86RACFGBuilder(X86RAPass* pass) noexcept
     : RACFGBuilder<X86RACFGBuilder>(pass),
-      _is64Bit(pass->gpSize() == 8) {}
+      _is64Bit(pass->gpSize() == 8),
+      _avxEnabled(pass->_avxEnabled) {}
 
   inline Compiler* cc() const noexcept { return static_cast<Compiler*>(_cc); }
+
+  inline uint32_t choose(uint32_t sseInst, uint32_t avxInst) const noexcept {
+    return _avxEnabled ? sseInst : avxInst;
+  }
 
   Error onInst(InstNode* inst, uint32_t& controlType, RAInstBuilder& ib) noexcept;
 
@@ -261,6 +266,7 @@ public:
   Error onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept;
 
   bool _is64Bit;
+  bool _avxEnabled;
 };
 
 // ============================================================================
@@ -922,22 +928,22 @@ MovGpQ:
 MovMmD:
   mem.setSize(4);
   r0.setRegT<Reg::kTypeMm>(reg.id());
-  return cc()->emit(Inst::kIdMovd, mem, r0);
+  return cc()->emit(choose(Inst::kIdMovd, Inst::kIdVmovd), mem, r0);
 
 MovMmQ:
   mem.setSize(8);
   r0.setRegT<Reg::kTypeMm>(reg.id());
-  return cc()->emit(Inst::kIdMovq, mem, r0);
+  return cc()->emit(choose(Inst::kIdMovq, Inst::kIdVmovq), mem, r0);
 
 MovXmmD:
   mem.setSize(4);
   r0.setRegT<Reg::kTypeXmm>(reg.id());
-  return cc()->emit(Inst::kIdMovss, mem, r0);
+  return cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), mem, r0);
 
 MovXmmQ:
   mem.setSize(8);
   r0.setRegT<Reg::kTypeXmm>(reg.id());
-  return cc()->emit(Inst::kIdMovlps, mem, r0);
+  return cc()->emit(choose(Inst::kIdMovlps, Inst::kIdVmovlps), mem, r0);
 }
 
 // ============================================================================
@@ -1153,7 +1159,7 @@ Error X86RAPass::onEmitPreCall(FuncCallNode* call) noexcept {
             if (arg.isReg() && Reg::groupOf(arg.regType()) == Reg::kGroupVec) {
               Gp dst = gpq(fd.callConv().passedOrder(Reg::kGroupGp)[argIndex]);
               Xmm src = xmm(arg.regId());
-              ASMJIT_PROPAGATE(cc()->emit(_avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq, dst, src));
+              ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovq, Inst::kIdVmovq), dst, src));
             }
           }
         }

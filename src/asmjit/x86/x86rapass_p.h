@@ -53,6 +53,14 @@ public:
   inline Compiler* cc() const noexcept { return static_cast<Compiler*>(_cb); }
 
   // --------------------------------------------------------------------------
+  // [Utilities]
+  // --------------------------------------------------------------------------
+
+  inline uint32_t choose(uint32_t sseInstId, uint32_t avxInstId) noexcept {
+    return _avxEnabled ? avxInstId : sseInstId;
+  }
+
+  // --------------------------------------------------------------------------
   // [OnInit / OnDone]
   // --------------------------------------------------------------------------
 
