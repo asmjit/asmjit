@@ -147,7 +147,7 @@ struct CallConv {
     kIdHostCDecl      = kIdX86CDecl,
     kIdHostStdCall    = kIdX86StdCall,
 
-    #if defind(_MSC_VER)
+    #if defined(_MSC_VER)
     kIdHostFastCall   = kIdX86MsFastCall,
     #elif defined(__GNUC__)
     kIdHostFastCall   = kIdX86GccFastCall,

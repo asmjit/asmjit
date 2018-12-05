@@ -796,7 +796,7 @@ AsmJit contains another instruction option that controls (forces) REX prefix - `
   * `4083C410` - `rex add esp, 16` - 32-bit operation in 64-bit mode with forced REX prefix (0x40).
   * `4883C410` - `add rsp, 16`     - 64-bit operation in 64-bit mode requires REX prefix (0x48).
   * `4183C410` - `add r12d, 16`    - 32-bit operation in 64-bit mode using R12D requires REX prefix (0x41).
-  * `4983C410` - `add r12, 16`     - 64-bit operation in 64-bit mode using R12  requires REX prefix (0x49).
+  * `4983C410` - `add r12, 16`     - 64-bit operation in 64-bit mode using R12 requires REX prefix (0x49).
 
 ### Generic Function API
 

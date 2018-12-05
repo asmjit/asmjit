@@ -73,9 +73,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <cstdio>
-#include <cstring>
 #include <limits>
 #include <new>
 #include <type_traits>
