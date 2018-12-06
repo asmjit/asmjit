@@ -196,6 +196,8 @@ enum ErrorCode : uint32_t {
   //! Reloc entry contains address that is out of range (unencodable).
   kErrorRelocOffsetOutOfRange,
 
+  //! Invalid assignment to a register, function argument, or function return value.
+  kErrorInvalidAssignment,
   //! Invalid instruction.
   kErrorInvalidInstruction,
   //! Invalid register type.

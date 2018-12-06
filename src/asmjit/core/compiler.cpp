@@ -400,11 +400,14 @@ Error BaseCompiler::_newStack(BaseMem& out, uint32_t size, uint32_t alignment, c
   if (size == 0)
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
-  if (alignment == 0) alignment = 1;
+  if (alignment == 0)
+    alignment = 1;
+
   if (!Support::isPowerOf2(alignment))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
-  if (alignment > 64) alignment = 64;
+  if (alignment > 64)
+    alignment = 64;
 
   VirtReg* vReg = newVirtReg(0, 0, name);
   if (ASMJIT_UNLIKELY(!vReg)) {

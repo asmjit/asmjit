@@ -85,6 +85,7 @@ RAPass::RAPass() noexcept
     _clobberedRegs(),
     _globalMaxLiveCount(),
     _globalLiveSpans {},
+    _temporaryMem(),
     _sp(),
     _fp(),
     _stackAllocator(),
@@ -125,6 +126,7 @@ static void RAPass_reset(RAPass* self, FuncDetail* funcDetail) noexcept {
     self->_globalLiveSpans[group] = nullptr;
   }
   self->_globalMaxLiveCount.reset();
+  self->_temporaryMem.reset();
 
   self->_stackAllocator.reset(allocator);
   self->_argsAssignment.reset(funcDetail);
@@ -1436,6 +1438,29 @@ Error RAPass::setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, 
     }
   }
 
+  return kErrorOk;
+}
+
+// ============================================================================
+// [asmjit::RAPass - Allocation - Utilities]
+// ============================================================================
+
+Error RAPass::useTemporaryMem(BaseMem& out, uint32_t size, uint32_t alignment) noexcept {
+  ASMJIT_ASSERT(alignment <= 64);
+
+  if (_temporaryMem.isNone()) {
+    ASMJIT_PROPAGATE(cc()->_newStack(_temporaryMem.as<BaseMem>(), size, alignment));
+  }
+  else {
+    ASMJIT_ASSERT(_temporaryMem.as<BaseMem>().isRegHome());
+    uint32_t virtId = _temporaryMem.as<BaseMem>().baseId();
+
+    VirtReg* virtReg = cc()->virtRegById(virtId);
+    virtReg->_virtSize = Support::max(virtReg->virtSize(), size);
+    virtReg->_alignment = uint8_t(Support::max(virtReg->alignment(), alignment));
+  }
+
+  out = _temporaryMem.as<BaseMem>();
   return kErrorOk;
 }
 

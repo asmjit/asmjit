@@ -872,6 +872,12 @@ public:
   Error setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, const RAAssignment& fromAssignment) noexcept;
 
   // --------------------------------------------------------------------------
+  // [Allocation - Utilities]
+  // --------------------------------------------------------------------------
+
+  Error useTemporaryMem(BaseMem& out, uint32_t size, uint32_t alignment) noexcept;
+
+  // --------------------------------------------------------------------------
   // [Allocation - Prolog / Epilog]
   // --------------------------------------------------------------------------
 
@@ -973,9 +979,10 @@ public:
   RAStrategy _strategy[BaseReg::kGroupVirt];
   //! Global max live-count (from all blocks) per register group.
   RALiveCount _globalMaxLiveCount;
-
   //! Global live spans per register group.
   LiveRegSpans* _globalLiveSpans[BaseReg::kGroupVirt];
+  //! Temporary stack slot.
+  Operand _temporaryMem;
 
   //! Stack pointer.
   BaseReg _sp;

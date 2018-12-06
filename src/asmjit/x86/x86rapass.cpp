@@ -503,7 +503,7 @@ Error X86RACFGBuilder::onBeforeCall(FuncCallNode* call) noexcept {
   uint32_t retCount = call->retCount();
   const FuncDetail& fd = call->detail();
 
-  cc()->_cursor = call->prev();
+  cc()->_setCursor(call->prev());
 
   for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
     for (uint32_t argHi = 0; argHi <= kFuncArgHi; argHi += kFuncArgHi) {
@@ -547,7 +547,7 @@ Error X86RACFGBuilder::onBeforeCall(FuncCallNode* call) noexcept {
     }
   }
 
-  cc()->_cursor = call;
+  cc()->_setCursor(call);
   if (fd.hasFlag(CallConv::kFlagCalleePopsStack))
     ASMJIT_PROPAGATE(cc()->sub(cc()->zsp(), fd.argStackSize()));
 
@@ -561,16 +561,45 @@ Error X86RACFGBuilder::onBeforeCall(FuncCallNode* call) noexcept {
       ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
 
       if (ret.isReg()) {
-        uint32_t regGroup = workReg->group();
-        uint32_t retGroup = Reg::groupOf(ret.regType());
+        if (ret.regType() == Reg::kTypeSt) {
+          if (workReg->group() != Reg::kGroupVec)
+            return DebugUtils::errored(kErrorInvalidAssignment);
 
-        if (regGroup != retGroup) {
-          // TODO:
-          ASMJIT_ASSERT(false);
+          Reg dst = Reg(workReg->signature(), workReg->virtId());
+          Mem mem;
+
+          uint32_t typeId = Type::baseOf(workReg->typeId());
+          if (ret.hasTypeId())
+            typeId = ret.typeId();
+
+          switch (typeId) {
+            case Type::kIdF32:
+              ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
+              mem.setSize(4);
+              ASMJIT_PROPAGATE(cc()->fstp(mem));
+              ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), dst.as<Xmm>(), mem));
+              break;
+
+            case Type::kIdF64:
+              ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
+              mem.setSize(8);
+              ASMJIT_PROPAGATE(cc()->fstp(mem));
+              ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), dst.as<Xmm>(), mem));
+              break;
+
+            default:
+              return DebugUtils::errored(kErrorInvalidAssignment);
+          }
         }
-      }
-      else {
-        return DebugUtils::errored(kErrorInvalidState);
+        else {
+          uint32_t regGroup = workReg->group();
+          uint32_t retGroup = Reg::groupOf(ret.regType());
+
+          if (regGroup != retGroup) {
+            // TODO:
+            ASMJIT_ASSERT(false);
+          }
+        }
       }
     }
   }
@@ -620,6 +649,10 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
     const FuncValue& ret = fd.ret(retIndex);
     const Operand& op = call->ret(retIndex);
 
+    // Not handled here...
+    if (ret.regType() == Reg::kTypeSt)
+      continue;
+
     if (op.isReg()) {
       const Reg& reg = op.as<Reg>();
       RAWorkReg* workReg;
@@ -634,7 +667,7 @@ Error X86RACFGBuilder::onCall(FuncCallNode* call, RAInstBuilder& ib) noexcept {
         }
       }
       else {
-        return DebugUtils::errored(kErrorInvalidState);
+        return DebugUtils::errored(kErrorInvalidAssignment);
       }
     }
   }
@@ -951,7 +984,59 @@ MovXmmQ:
 // ============================================================================
 
 Error X86RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {
-  ASMJIT_UNUSED(funcRet);
+  const FuncDetail& funcDetail = _pass->func()->detail();
+  const Operand* opArray = funcRet->operands();
+  uint32_t opCount = funcRet->opCount();
+
+  cc()->_setCursor(funcRet->prev());
+
+  for (uint32_t i = 0; i < opCount; i++) {
+    const Operand& op = opArray[i];
+    const FuncValue& ret = funcDetail.ret(i);
+
+    if (!op.isReg())
+      continue;
+
+    if (ret.regType() == Reg::kTypeSt) {
+      const Reg& reg = op.as<Reg>();
+      uint32_t vIndex = Operand::virtIdToIndex(reg.id());
+
+      if (vIndex < Operand::kVirtIdCount) {
+        RAWorkReg* workReg;
+        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
+
+        if (workReg->group() != Reg::kGroupVec)
+          return DebugUtils::errored(kErrorInvalidAssignment);
+
+        Reg src = Reg(workReg->signature(), workReg->virtId());
+        Mem mem;
+
+        uint32_t typeId = Type::baseOf(workReg->typeId());
+        if (ret.hasTypeId())
+          typeId = ret.typeId();
+
+        switch (typeId) {
+          case Type::kIdF32:
+            ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
+            mem.setSize(4);
+            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), mem, src.as<Xmm>()));
+            ASMJIT_PROPAGATE(cc()->fld(mem));
+            break;
+
+          case Type::kIdF64:
+            ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
+            mem.setSize(8);
+            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), mem, src.as<Xmm>()));
+            ASMJIT_PROPAGATE(cc()->fld(mem));
+            break;
+
+          default:
+            return DebugUtils::errored(kErrorInvalidAssignment);
+        }
+      }
+    }
+  }
+
   return kErrorOk;
 }
 
@@ -966,7 +1051,11 @@ Error X86RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
 
     const FuncValue& ret = funcDetail.ret(i);
     if (ASMJIT_UNLIKELY(!ret.isReg()))
-      return DebugUtils::errored(kErrorInvalidState);
+      return DebugUtils::errored(kErrorInvalidAssignment);
+
+    // Not handled here...
+    if (ret.regType() == Reg::kTypeSt)
+      continue;
 
     if (op.isReg()) {
       // Register return value.
@@ -983,7 +1072,7 @@ Error X86RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
       }
     }
     else {
-      return DebugUtils::errored(kErrorInvalidState);
+      return DebugUtils::errored(kErrorInvalidAssignment);
     }
   }
 

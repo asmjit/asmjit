@@ -954,6 +954,7 @@ public:
 
   inline const RegInfo& info() const noexcept { return _info; }
   inline uint32_t group() const noexcept { return _info.group(); }
+  inline uint32_t signature() const noexcept { return _info.signature(); }
 
   inline VirtReg* virtReg() const noexcept { return _virtReg; }
 
