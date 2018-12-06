@@ -240,13 +240,13 @@ public:
   // --------------------------------------------------------------------------
 
   #ifndef ASMJIT_DISABLE_INST_API
-  //! Validate the given instruction.
+  //! Validates the given instruction.
   ASMJIT_API static Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
 
-  //! Get Read/Write information of the given instruction.
+  //! Gets Read/Write information of the given instruction.
   ASMJIT_API static Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept;
 
-  //! Get CPU features required by the given instruction.
+  //! Gets CPU features required by the given instruction.
   ASMJIT_API static Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;
   #endif
 

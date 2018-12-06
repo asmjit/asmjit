@@ -87,15 +87,15 @@ typedef unsigned int FastUInt8;
 // [asmjit::Support - IntBySize / Int32Or64]
 // ============================================================================
 
-//! Cast an integer `x` to either `int32_t` or `int64_t` depending on `T`.
+//! Casts an integer `x` to either `int32_t` or `int64_t` depending on `T`.
 template<typename T>
 static constexpr typename Internal::Int32Or64<T, 1>::Type asInt(T x) noexcept { return (typename Internal::Int32Or64<T, 1>::Type)x; }
 
-//! Cast an integer `x` to either `uint32_t` or `uint64_t` depending on `T`.
+//! Casts an integer `x` to either `uint32_t` or `uint64_t` depending on `T`.
 template<typename T>
 static constexpr typename Internal::Int32Or64<T, 0>::Type asUInt(T x) noexcept { return (typename Internal::Int32Or64<T, 0>::Type)x; }
 
-//! Cast an integer `x` to either `int32_t`, uint32_t`, `int64_t`, or `uint64_t` depending on `T`.
+//! Casts an integer `x` to either `int32_t`, uint32_t`, `int64_t`, or `uint64_t` depending on `T`.
 template<typename T>
 static constexpr typename Internal::Int32Or64<T>::Type asNormalized(T x) noexcept { return (typename Internal::Int32Or64<T>::Type)x; }
 
@@ -112,7 +112,7 @@ namespace Internal {
   };
 }
 
-//! Bit-cast from `Src` type to `Dst` type.
+//! Bit-casts from `Src` type to `Dst` type.
 //!
 //! Useful to bit-cast between integers and floating points.
 template<typename Dst, typename Src>
@@ -185,7 +185,7 @@ static constexpr T lsbMask(CountT n) noexcept {
     : T(((U(1) << n) - U(1u)) | neg(U(n >= CountT(bitSizeOf<T>()))));
 }
 
-//! Get whether `x` has Nth bit set.
+//! Gets whether `x` has Nth bit set.
 template<typename T, typename IndexT>
 static constexpr bool bitTest(T x, IndexT n) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -208,17 +208,17 @@ static constexpr DstT bitMaskFromBool(SrcT b) noexcept {
 }
 
 namespace Internal {
-  // Fill all trailing bits right from the first most significant bit set.
+  // Fills all trailing bits right from the first most significant bit set.
   static constexpr uint8_t fillTrailingBitsImpl(uint8_t x) noexcept { return or_shr(or_shr(or_shr(x, 1), 2), 4); }
-  // Fill all trailing bits right from the first most significant bit set.
+  // Fills all trailing bits right from the first most significant bit set.
   static constexpr uint16_t fillTrailingBitsImpl(uint16_t x) noexcept { return or_shr(or_shr(or_shr(or_shr(x, 1), 2), 4), 8); }
-  // Fill all trailing bits right from the first most significant bit set.
+  // Fills all trailing bits right from the first most significant bit set.
   static constexpr uint32_t fillTrailingBitsImpl(uint32_t x) noexcept { return or_shr(or_shr(or_shr(or_shr(or_shr(x, 1), 2), 4), 8), 16); }
-  // Fill all trailing bits right from the first most significant bit set.
+  // Fills all trailing bits right from the first most significant bit set.
   static constexpr uint64_t fillTrailingBitsImpl(uint64_t x) noexcept { return or_shr(or_shr(or_shr(or_shr(or_shr(or_shr(x, 1), 2), 4), 8), 16), 32); }
 }
 
-// Fill all trailing bits right from the first most significant bit set.
+// Fills all trailing bits right from the first most significant bit set.
 template<typename T>
 static constexpr T fillTrailingBits(const T& x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -336,7 +336,7 @@ static inline uint32_t _popcntImpl(uint64_t x) noexcept {
 #endif
 }
 
-//! Get count of bits in `x`.
+//! Gets count of bits in `x`.
 template<typename T>
 static inline uint32_t popcnt(T x) noexcept { return _popcntImpl(asUInt(x)); }
 
@@ -400,7 +400,7 @@ static constexpr bool isAligned(X base, Y alignment) noexcept {
   return ((U)base % (U)alignment) == 0;
 }
 
-//! Get whether the `x` is a power of two (only one bit is set).
+//! Gets whether the `x` is a power of two (only one bit is set).
 template<typename T>
 static constexpr bool isPowerOf2(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -419,7 +419,7 @@ static constexpr T alignUpPowerOf2(T x) noexcept {
   return (T)(fillTrailingBits(U(x) - 1u) + 1u);
 }
 
-//! Get zero or a positive difference between `base` and `base` when aligned to `alignment`.
+//! Gets zero or a positive difference between `base` and `base` when aligned to `alignment`.
 template<typename X, typename Y>
 static constexpr typename Internal::IntBySize<sizeof(X), 0>::Type alignUpDiff(X base, Y alignment) noexcept {
   typedef typename Internal::IntBySize<sizeof(X), 0>::Type U;
@@ -436,7 +436,7 @@ static constexpr X alignDown(X x, Y alignment) noexcept {
 // [asmjit::Support - NumGranularized]
 // ============================================================================
 
-//! Calculate the number of elements that would be required if `base` is
+//! Calculates the number of elements that would be required if `base` is
 //! granularized by `granularity`. This function can be used to calculate
 //! the number of BitWords to represent N bits, for example.
 template<typename X, typename Y>
@@ -449,7 +449,7 @@ static constexpr X numGranularized(X base, Y granularity) noexcept {
 // [asmjit::Support - IsBetween]
 // ============================================================================
 
-//! Get whether `x` is greater than or equal to `a` and lesses than or equal to `b`.
+//! Gets whether `x` is greater than or equal to `a` and lesser than or equal to `b`.
 template<typename T>
 static constexpr bool isBetween(const T& x, const T& a, const T& b) noexcept {
   return x >= a && x <= b;
@@ -459,7 +459,7 @@ static constexpr bool isBetween(const T& x, const T& a, const T& b) noexcept {
 // [asmjit::Support - IsInt / IsUInt]
 // ============================================================================
 
-//! Get whether the given integer `x` can be casted to a 4-bit signed integer.
+//! Gets whether the given integer `x` can be casted to a 4-bit signed integer.
 template<typename T>
 static constexpr bool isInt4(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -469,7 +469,7 @@ static constexpr bool isInt4(T x) noexcept {
                                   : U(x) <= U(7u);
 }
 
-//! Get whether the given integer `x` can be casted to an 8-bit signed integer.
+//! Gets whether the given integer `x` can be casted to an 8-bit signed integer.
 template<typename T>
 static constexpr bool isInt8(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -479,7 +479,7 @@ static constexpr bool isInt8(T x) noexcept {
                                   : U(x) <= U(127u);
 }
 
-//! Get whether the given integer `x` can be casted to a 16-bit signed integer.
+//! Gets whether the given integer `x` can be casted to a 16-bit signed integer.
 template<typename T>
 static constexpr bool isInt16(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -489,7 +489,7 @@ static constexpr bool isInt16(T x) noexcept {
                                   : sizeof(T) <= 1 || U(x) <= U(32767u);
 }
 
-//! Get whether the given integer `x` can be casted to a 32-bit signed integer.
+//! Gets whether the given integer `x` can be casted to a 32-bit signed integer.
 template<typename T>
 static constexpr bool isInt32(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -499,7 +499,7 @@ static constexpr bool isInt32(T x) noexcept {
                                   : sizeof(T) <= 2 || U(x) <= U(2147483647u);
 }
 
-//! Get whether the given integer `x` can be casted to a 4-bit unsigned integer.
+//! Gets whether the given integer `x` can be casted to a 4-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt4(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -508,7 +508,7 @@ static constexpr bool isUInt4(T x) noexcept {
                                   : U(x) <= U(15u);
 }
 
-//! Get whether the given integer `x` can be casted to an 8-bit unsigned integer.
+//! Gets whether the given integer `x` can be casted to an 8-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt8(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -517,7 +517,7 @@ static constexpr bool isUInt8(T x) noexcept {
                                   : (sizeof(T) <= 1 || U(x) <= U(255u));
 }
 
-//! Get whether the given integer `x` can be casted to a 12-bit unsigned integer (ARM specific).
+//! Gets whether the given integer `x` can be casted to a 12-bit unsigned integer (ARM specific).
 template<typename T>
 static constexpr bool isUInt12(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -526,7 +526,7 @@ static constexpr bool isUInt12(T x) noexcept {
                                   : (sizeof(T) <= 1 || U(x) <= U(4095u));
 }
 
-//! Get whether the given integer `x` can be casted to a 16-bit unsigned integer.
+//! Gets whether the given integer `x` can be casted to a 16-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt16(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -535,7 +535,7 @@ static constexpr bool isUInt16(T x) noexcept {
                                   : (sizeof(T) <= 2 || U(x) <= U(65535u));
 }
 
-//! Get whether the given integer `x` can be casted to a 32-bit unsigned integer.
+//! Gets whether the given integer `x` can be casted to a 32-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt32(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -595,7 +595,7 @@ static ASMJIT_INLINE size_t strLen(const char* s, size_t maxSize) noexcept {
 // \internal
 static constexpr uint32_t hashRound(uint32_t hash, uint32_t c) noexcept { return hash * 65599 + c; }
 
-// Get a hash of the given string `data` of size `size`. Size must be valid
+// Gets a hash of the given string `data` of size `size`. Size must be valid
 // as this function doesn't check for a null terminator and allows it in the
 // middle of the string.
 static inline uint32_t hashString(const char* data, size_t size) noexcept {
@@ -616,7 +616,7 @@ static ASMJIT_INLINE const char* findPackedString(const char* p, uint32_t id) no
   return p;
 }
 
-//! Compare two instruction names.
+//! Compares two instruction names.
 //!
 //! `a` is a null terminated instruction name from arch-specific `nameData[]` table.
 //! `b` is a non-null terminated instruction name passed to `Inst::idByName()`.
@@ -965,7 +965,7 @@ namespace Internal {
   }
 }
 
-//! Set bit in a bit-vector `buf` at `index`.
+//! Sets bit in a bit-vector `buf` at `index`.
 template<typename T>
 static inline bool bitVectorGetBit(T* buf, size_t index) noexcept {
   const size_t kTSizeInBits = bitSizeOf<T>();
@@ -976,7 +976,7 @@ static inline bool bitVectorGetBit(T* buf, size_t index) noexcept {
   return bool((buf[vecIndex] >> bitIndex) & 0x1u);
 }
 
-//! Set bit in a bit-vector `buf` at `index` to `value`.
+//! Sets bit in a bit-vector `buf` at `index` to `value`.
 template<typename T>
 static inline void bitVectorSetBit(T* buf, size_t index, bool value) noexcept {
   const size_t kTSizeInBits = bitSizeOf<T>();
@@ -991,7 +991,7 @@ static inline void bitVectorSetBit(T* buf, size_t index, bool value) noexcept {
     buf[vecIndex] &= ~bitMask;
 }
 
-//! Set bit in a bit-vector `buf` at `index` to `value`.
+//! Sets bit in a bit-vector `buf` at `index` to `value`.
 template<typename T>
 static inline void bitVectorFlipBit(T* buf, size_t index) noexcept {
   const size_t kTSizeInBits = bitSizeOf<T>();
@@ -1003,11 +1003,11 @@ static inline void bitVectorFlipBit(T* buf, size_t index) noexcept {
   buf[vecIndex] ^= bitMask;
 }
 
-//! Fill `count` bits in bit-vector `buf` starting at bit-index `index`.
+//! Fills `count` bits in bit-vector `buf` starting at bit-index `index`.
 template<typename T>
 static inline void bitVectorFill(T* buf, size_t index, size_t count) noexcept { Internal::bitVectorOp<T, Or, Set>(buf, index, count); }
 
-//! Clear `count` bits in bit-vector `buf` starting at bit-index `index`.
+//! Clears `count` bits in bit-vector `buf` starting at bit-index `index`.
 template<typename T>
 static inline void bitVectorClear(T* buf, size_t index, size_t count) noexcept { Internal::bitVectorOp<T, AndNot, SetNot>(buf, index, count); }
 
@@ -1334,10 +1334,10 @@ struct Temporary {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get the storage.
+  //! Gets the storage.
   template<typename T = void>
   constexpr T* data() const noexcept { return static_cast<T*>(_data); }
-  //! Get the storage size (capacity).
+  //! Gets the storage size (capacity).
   constexpr size_t size() const noexcept { return _size; }
 
   // --------------------------------------------------------------------------

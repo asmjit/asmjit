@@ -81,25 +81,25 @@ public:
   // [Architecture Information]
   // --------------------------------------------------------------------------
 
-  //! Get architecture information, see `ArchInfo`.
+  //! Gets the target architecture information, see `ArchInfo`.
   inline const ArchInfo& archInfo() const noexcept { return _archInfo; }
 
-  //! Get architecture type, see `ArchInfo::Id`.
+  //! Gets the target architecture id, see `ArchInfo::Id`.
   inline uint32_t archId() const noexcept { return _archInfo.archId(); }
-  //! Get architecture sub-type, see `ArchInfo::SubId`.
+  //! Gets the target architecture sub-type, see `ArchInfo::SubId`.
   inline uint32_t archSubId() const noexcept { return _archInfo.archSubId(); }
-  //! Get a size of a GP register of the architecture the code is using.
+  //! Gets the native size of the target's architecture GP register.
   inline uint32_t gpSize() const noexcept { return _archInfo.gpSize(); }
-  //! Get number of GP registers available of the architecture the code is using.
+  //! Gets the number of GP registers of the target's architecture.
   inline uint32_t gpCount() const noexcept { return _archInfo.gpCount(); }
 
   // --------------------------------------------------------------------------
   // [High-Level Information]
   // --------------------------------------------------------------------------
 
-  //! Get a natural stack alignment that must be honored (or 0 if not known).
+  //! Gets a natural stack alignment that must be honored (or 0 if not known).
   inline uint32_t stackAlignment() const noexcept { return _stackAlignment; }
-  //! Set a natural stack alignment that must be honored.
+  //! Sets a natural stack alignment that must be honored.
   inline void setStackAlignment(uint32_t sa) noexcept { _stackAlignment = uint8_t(sa); }
 
   inline uint32_t cdeclCallConv() const noexcept { return _cdeclCallConv; }
@@ -165,27 +165,27 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a `Target` instance.
+  //! Creates a `Target` instance.
   ASMJIT_API Target() noexcept;
-  //! Destroy the `Target` instance.
+  //! Destroys the `Target` instance.
   ASMJIT_API virtual ~Target() noexcept;
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get CodeInfo of this runtime.
+  //! Gets CodeInfo of this runtime.
   //!
   //! CodeInfo can be used to setup a CodeHolder in case you plan to generate a
   //! code compatible and executable by this Runtime.
   inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
 
-  //! Get the Runtime's architecture type, see `ArchInfo::Id`.
+  //! Gets the target architecture id, see `ArchInfo::Id`.
   inline uint32_t archId() const noexcept { return _codeInfo.archId(); }
-  //! Get the Runtime's architecture sub-type, see `ArchInfo::SubId`.
+  //! Gets the target architecture sub-id, see `ArchInfo::SubId`.
   inline uint32_t archSubId() const noexcept { return _codeInfo.archSubId(); }
 
-  //! Get target type, see `TargetType`.
+  //! Gets the target type, see `TargetType`.
   inline uint32_t targetType() const noexcept { return _targetType; }
 
   // --------------------------------------------------------------------------

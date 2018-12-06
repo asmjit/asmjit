@@ -1606,10 +1606,10 @@ struct Inst : public BaseInst {
   // [Statics]
   // --------------------------------------------------------------------------
 
-  //! Get whether the `instId` is defined (counts also Inst::kIdNone, which must be zero).
+  //! Gets whether the `instId` is defined (counts also Inst::kIdNone, which must be zero).
   static inline bool isDefinedId(uint32_t instId) noexcept { return instId < _kIdCount; }
 
-  //! Get a 'kmov?' instruction from a `size`.
+  //! Converts `size` to a 'kmov?' instructio.
   static inline uint32_t kmovFromSize(uint32_t size) noexcept {
     switch (size) {
       case  1: return kIdKmovb;
@@ -1962,16 +1962,16 @@ namespace TLog {
     kNotABC               = kABC ^ k1
   };
 
-  //! Create an immediate that can be used by VPTERNLOG[D|Q] instructions.
+  //! Creates an immediate that can be used by VPTERNLOG[D|Q] instructions.
   static constexpr uint32_t make(uint32_t b000, uint32_t b001, uint32_t b010, uint32_t b011, uint32_t b100, uint32_t b101, uint32_t b110, uint32_t b111) noexcept {
     return (b000 << 0) | (b001 << 1) | (b010 << 2) | (b011 << 3) | (b100 << 4) | (b101 << 5) | (b110 << 6) | (b111 << 7);
   }
 
-  //! Create an immediate that can be used by VPTERNLOG[D|Q] instructions.
+  //! Creates an immediate that can be used by VPTERNLOG[D|Q] instructions.
   static constexpr uint32_t value(uint32_t x) noexcept { return x & 0xFF; }
   //! Negate an immediate that can be used by VPTERNLOG[D|Q] instructions.
   static constexpr uint32_t negate(uint32_t x) noexcept { return x ^ 0xFF; }
-  //! Create an if/else logic that can be used by VPTERNLOG[D|Q] instructions.
+  //! Creates an if/else logic that can be used by VPTERNLOG[D|Q] instructions.
   static constexpr uint32_t ifElse(uint32_t condition, uint32_t a, uint32_t b) noexcept { return (condition & a) | (negate(condition) & b); }
 }
 

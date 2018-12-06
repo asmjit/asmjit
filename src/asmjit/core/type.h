@@ -260,7 +260,7 @@ static inline uint32_t sizeOf(uint32_t typeId) noexcept {
   return _typeData.sizeOf[typeId];
 }
 
-//! Get an offset to convert a `kIntPtr` and `kUIntPtr` TypeId into a
+//! Gets an offset to convert a `kIntPtr` and `kUIntPtr` TypeId into a
 //! type that matches `gpSize` (general-purpose register size). If you
 //! find such TypeId it's then only about adding the offset to it.
 //!

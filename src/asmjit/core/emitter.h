@@ -46,8 +46,10 @@ public:
 
   //! Emitter flags.
   enum Flags : uint32_t {
-    kFlagFinalized = 0x4000u,            //!< Code emitter is finalized.
-    kFlagDestroyed = 0x8000u             //!< Code emitter was destroyed.
+    //! The emitter was finalized.
+    kFlagFinalized = 0x4000u,
+    //! The emitter was destroyed.
+    kFlagDestroyed = 0x8000u
   };
 
   //! Emitter options.
@@ -134,7 +136,7 @@ public:
   // [Emitter Type & Flags]
   // --------------------------------------------------------------------------
 
-  //! Get the type of this BaseEmitter, see `EmitterType`.
+  //! Gets the type of this BaseEmitter, see `EmitterType`.
   inline uint32_t emitterType() const noexcept { return _type; }
   inline uint32_t emitterFlags() const noexcept { return _flags; }
 
@@ -153,32 +155,32 @@ public:
   // [Target Information]
   // --------------------------------------------------------------------------
 
-  //! Get `CodeHolder` this emitter is attached to.
+  //! Gets the CodeHolder this emitter is attached to.
   inline CodeHolder* code() const noexcept { return _code; }
-  //! Get information about the code, see `CodeInfo`.
+  //! Gets an information about the code, see `CodeInfo`.
   inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
-  //! Get information about the architecture, see `ArchInfo`.
+  //! Gets an information about the architecture, see `ArchInfo`.
   inline const ArchInfo& archInfo() const noexcept { return _codeInfo.archInfo(); }
 
-  //! Get whether the target architecture is 32-bit.
+  //! Gets whether the target architecture is 32-bit.
   inline bool is32Bit() const noexcept { return archInfo().is32Bit(); }
-  //! Get whether the target architecture is 64-bit.
+  //! Gets whether the target architecture is 64-bit.
   inline bool is64Bit() const noexcept { return archInfo().is64Bit(); }
 
-  //! Get the target architecture type.
+  //! Gets the target architecture type.
   inline uint32_t archId() const noexcept { return archInfo().archId(); }
-  //! Get the target architecture sub-type.
+  //! Gets the target architecture sub-type.
   inline uint32_t archSubId() const noexcept { return archInfo().archSubId(); }
-  //! Get the target architecture's GP register size (4 or 8 bytes).
+  //! Gets the target architecture's GP register size (4 or 8 bytes).
   inline uint32_t gpSize() const noexcept { return archInfo().gpSize(); }
-  //! Get the number of target GP registers.
+  //! Gets the number of target GP registers.
   inline uint32_t gpCount() const noexcept { return archInfo().gpCount(); }
 
   // --------------------------------------------------------------------------
   // [Initialization / Finalization]
   // --------------------------------------------------------------------------
 
-  //! Get whether the BaseEmitter is initialized (i.e. attached to the `CodeHolder`).
+  //! Gets whether the BaseEmitter is initialized (i.e. attached to the `CodeHolder`).
   inline bool isInitialized() const noexcept { return _code != nullptr; }
 
   ASMJIT_API virtual Error finalize();
@@ -187,9 +189,9 @@ public:
   // [Emitter Options]
   // --------------------------------------------------------------------------
 
-  //! Get whether the `option` is present in emitter options.
+  //! Gets whether the `option` is present in emitter options.
   inline bool hasEmitterOption(uint32_t option) const noexcept { return (_emitterOptions & option) != 0; }
-  //! Get emitter options.
+  //! Gets the emitter options.
   inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
 
   // TODO: Deprecate and remove, CodeHolder::addEmitterOptions() is the way.
@@ -203,7 +205,7 @@ public:
     onUpdateGlobalInstOptions();
   }
 
-  //! Get global instruction options.
+  //! Gets the global instruction options.
   //!
   //! Default instruction options are merged with instruction options before the
   //! instruction is encoded. These options have some bits reserved that are used
@@ -216,54 +218,54 @@ public:
   // [Error Handling]
   // --------------------------------------------------------------------------
 
-  //! Get whether the local error handler is attached.
+  //! Gets whether the local error handler is attached.
   inline bool hasErrorHandler() const noexcept { return _errorHandler != nullptr; }
-  //! Get the local error handler.
+  //! Gets the local error handler.
   inline ErrorHandler* errorHandler() const noexcept { return _errorHandler; }
-  //! Set the local error handler.
+  //! Sets the local error handler.
   inline void setErrorHandler(ErrorHandler* handler) noexcept { _errorHandler = handler; }
-  //! Reset the local error handler (does nothing if not attached).
+  //! Resets the local error handler (does nothing if not attached).
   inline void resetErrorHandler() noexcept { setErrorHandler(nullptr); }
 
-  //! Handle the given error in the following way:
-  //!   1. Get either BaseEmitter's (preferred) or CodeHolder's ErrorHandler.
-  //!   2. If exists, call `ErrorHandler::handleError(error, message, this)`.
-  //!   3. Return the given `err` if ErrorHandler haven't thrown.
+  //! Handles the given error in the following way:
+  //!   1. Gets either Emitter's (preferred) or CodeHolder's ErrorHandler.
+  //!   2. If exists, calls `ErrorHandler::handleError(error, message, this)`.
+  //!   3. Returns the given `err` if ErrorHandler haven't thrown.
   ASMJIT_API Error reportError(Error err, const char* message = nullptr);
 
   // --------------------------------------------------------------------------
   // [Instruction Properties - Affect the Next Instruction to be Emitted]
   // --------------------------------------------------------------------------
 
-  //! Get options of the next instruction.
+  //! Gets options of the next instruction.
   inline uint32_t instOptions() const noexcept { return _instOptions; }
-  //! Set options of the next instruction.
+  //! Sets options of the next instruction.
   inline void setInstOptions(uint32_t options) noexcept { _instOptions = options; }
-  //! Add options of the next instruction.
+  //! Adds options of the next instruction.
   inline void addInstOptions(uint32_t options) noexcept { _instOptions |= options; }
-  //! Reset options of the next instruction.
+  //! Resets options of the next instruction.
   inline void resetInstOptions() noexcept { _instOptions = 0; }
 
-  //! Get whether the extra register operand is valid.
+  //! Gets whether the extra register operand is valid.
   inline bool hasExtraReg() const noexcept { return _extraReg.isReg(); }
-  //! Get an extra operand that will be used by the next instruction (architecture specific).
+  //! Gets an extra operand that will be used by the next instruction (architecture specific).
   inline const RegOnly& extraReg() const noexcept { return _extraReg; }
-  //! Set an extra operand that will be used by the next instruction (architecture specific).
+  //! Sets an extra operand that will be used by the next instruction (architecture specific).
   inline void setExtraReg(const BaseReg& reg) noexcept { _extraReg.init(reg); }
-  //! Set an extra operand that will be used by the next instruction (architecture specific).
+  //! Sets an extra operand that will be used by the next instruction (architecture specific).
   inline void setExtraReg(const RegOnly& reg) noexcept { _extraReg.init(reg); }
-  //! Reset an extra operand that will be used by the next instruction (architecture specific).
+  //! Resets an extra operand that will be used by the next instruction (architecture specific).
   inline void resetExtraReg() noexcept { _extraReg.reset(); }
 
-  //! Get annotation of the next instruction.
+  //! Gets comment/annotation of the next instruction.
   inline const char* inlineComment() const noexcept { return _inlineComment; }
-  //! Set annotation of the next instruction.
+  //! Sets comment/annotation of the next instruction.
   //!
   //! NOTE: This string is set back to null by `_emit()`, but until that it has
-  //! to remain valid as `BaseEmitter` is not required to make a copy of it (and
+  //! to remain valid as the Emitter is not required to make a copy of it (and
   //! it would be slow to do that for each instruction).
   inline void setInlineComment(const char* s) noexcept { _inlineComment = s; }
-  //! Reset annotation of the next instruction to null.
+  //! Resets the comment/annotation to nullptr.
   inline void resetInlineComment() noexcept { _inlineComment = nullptr; }
 
   // --------------------------------------------------------------------------
@@ -276,12 +278,12 @@ public:
   // [Label Management]
   // --------------------------------------------------------------------------
 
-  //! Create a new label.
+  //! Creates a new label.
   virtual Label newLabel() = 0;
-  //! Create a new named label.
+  //! Creates a new named label.
   virtual Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = Globals::kInvalidId) = 0;
 
-  //! Get a label by name.
+  //! Gets a label by name.
   //!
   //! Returns invalid Label in case that the name is invalid or label was not found.
   //!
@@ -289,14 +291,14 @@ public:
   //! or no such label exist. You must always check the validity of the `Label` returned.
   ASMJIT_API Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept;
 
-  //! Bind the `label` to the current position of the current section.
+  //! Binds the `label` to the current position of the current section.
   //!
   //! NOTE: Attempt to bind the same label multiple times will return an error.
   virtual Error bind(const Label& label) = 0;
 
-  //! Get whether the label `id` is valid (i.e. registered).
+  //! Gets whether the label `id` is valid (i.e. registered).
   ASMJIT_API bool isLabelValid(uint32_t labelId) const noexcept;
-  //! Get whether the `label` is valid (i.e. registered).
+  //! Gets whether the `label` is valid (i.e. registered).
   inline bool isLabelValid(const Label& label) const noexcept { return isLabelValid(label.id()); }
 
   // --------------------------------------------------------------------------
@@ -314,7 +316,7 @@ public:
   #define OP const Operand_&
   #define NONE Globals::none
 
-  //! Emit an instruction.
+  //! Emits an instruction.
   ASMJIT_NOINLINE Error emit(uint32_t instId) { return _emit(instId, NONE, NONE, NONE, NONE); }
   //! \overload
   ASMJIT_NOINLINE Error emit(uint32_t instId, OP o0) { return _emit(instId, o0, NONE, NONE, NONE); }
@@ -396,11 +398,11 @@ public:
   // [Emit - Virtual]
   // --------------------------------------------------------------------------
 
-  //! Emit instruction having max 4 operands.
+  //! Emits instruction having max 4 operands.
   virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) = 0;
-  //! Emit instruction having max 6 operands.
+  //! Emits instruction having max 6 operands.
   virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) = 0;
-  //! Emit instruction having operands stored in array.
+  //! Emits instruction having operands stored in array.
   virtual Error _emitOpArray(uint32_t instId, const Operand_* operands, size_t count);
 
   // --------------------------------------------------------------------------
@@ -415,7 +417,7 @@ public:
   // [Align]
   // --------------------------------------------------------------------------
 
-  //! Align to the `alignment` specified.
+  //! Aligns the current CodeBuffer to the `alignment` specified.
   //!
   //! The sequence that is used to fill the gap between the aligned location
   //! and the current location depends on the align `mode`, see `AlignMode`.
@@ -425,28 +427,28 @@ public:
   // [Embed]
   // --------------------------------------------------------------------------
 
-  //! Embed raw data into the code-buffer.
+  //! Embeds raw data into the CodeBuffer.
   virtual Error embed(const void* data, uint32_t size) = 0;
 
-  //! Embed absolute label address as data (4 or 8 bytes).
+  //! Embeds an absolute label address as data (4 or 8 bytes).
   virtual Error embedLabel(const Label& label) = 0;
 
-  //! Embed a constant pool into the code-buffer in the following steps:
-  //!   1. Align by using kAlignData to the minimum `pool` alignment.
-  //!   2. Bind `label` so it's bound to an aligned location.
-  //!   3. Emit constant pool data.
+  //! Embeds a constant pool at the current offset by performing the following:
+  //!   1. Aligns by using kAlignData to the minimum `pool` alignment.
+  //!   2. Binds the ConstPool label so it's bound to an aligned location.
+  //!   3. Emits ConstPool content.
   virtual Error embedConstPool(const Label& label, const ConstPool& pool) = 0;
 
   // --------------------------------------------------------------------------
   // [Comment]
   // --------------------------------------------------------------------------
 
-  //! Emit comment from string `data` with an optional comment `size` parameter.
+  //! Emits a comment stored in `data` with an optional `size` parameter.
   virtual Error comment(const char* data, size_t size = SIZE_MAX) = 0;
 
-  //! Emit comment from a formatted string `fmt`.
+  //! Emits a formatted comment specified by `fmt` and variable number of arguments.
   ASMJIT_API Error commentf(const char* fmt, ...);
-  //! Emit comment from a formatted string `fmt` (va_list version).
+  //! Emits a formatted comment specified by `fmt` and `ap`.
   ASMJIT_API Error commentv(const char* fmt, va_list ap);
 
   // --------------------------------------------------------------------------

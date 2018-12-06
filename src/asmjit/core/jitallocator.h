@@ -146,9 +146,9 @@ public:
     uint32_t fillPattern;
   };
 
-  //! Create a `JitAllocator` instance.
+  //! Creates a `JitAllocator` instance.
   explicit ASMJIT_API JitAllocator(const CreateParams* params = nullptr) noexcept;
-  //! Destroy the `JitAllocator` instance and release all blocks held.
+  //! Destroys the `JitAllocator` instance and release all blocks held.
   ASMJIT_API ~JitAllocator() noexcept;
 
   // --------------------------------------------------------------------------
@@ -212,16 +212,16 @@ public:
       _overheadSize = 0;
     }
 
-    //! Get count of blocks managed by `JitAllocator`.
+    //! Gets count of blocks managed by `JitAllocator`.
     inline size_t blockCount() const noexcept { return _blockCount; }
 
-    //! Get how many bytes are currently used.
+    //! Gets how many bytes are currently used.
     inline size_t usedSize() const noexcept { return _usedSize; }
-    //! Number of bytes unused by the allocator at the moment.
+    //! Gets the number of bytes unused by the allocator at the moment.
     inline size_t unusedSize() const noexcept { return _reservedSize - _usedSize; }
-    //! Total number of bytes bytes reserved by the allocator (sum of sizes of all blocks).
+    //! Gets the total number of bytes bytes reserved by the allocator (sum of sizes of all blocks).
     inline size_t reservedSize() const noexcept { return _reservedSize; }
-    //! Number of bytes the allocator needs to manage the allocated memory.
+    //! Gets the number of bytes the allocator needs to manage the allocated memory.
     inline size_t overheadSize() const noexcept { return _overheadSize; }
 
     inline double usedSizeAsPercent() const noexcept {
@@ -246,7 +246,7 @@ public:
     size_t _overheadSize;
   };
 
-  //! Get allocation statistics.
+  //! Gets JIT allocator statistics.
   //!
   //! \remarks This function is thread-safe.
   ASMJIT_API Statistics statistics() const noexcept;

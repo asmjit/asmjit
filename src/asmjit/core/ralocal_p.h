@@ -65,28 +65,28 @@ public:
   // [Block]
   // --------------------------------------------------------------------------
 
-  //! Get the currently processed block.
+  //! Gets the currently processed block.
   inline RABlock* block() const noexcept { return _block; }
-  //! Set the currently processed block.
+  //! Sets the currently processed block.
   inline void setBlock(RABlock* block) noexcept { _block = block; }
 
   // --------------------------------------------------------------------------
   // [Instruction]
   // --------------------------------------------------------------------------
 
-  //! Get the currently processed `InstNode`.
+  //! Gets the currently processed `InstNode`.
   inline InstNode* node() const noexcept { return _node; }
-  //! Get the currently processed `RAInst`.
+  //! Gets the currently processed `RAInst`.
   inline RAInst* raInst() const noexcept { return _raInst; }
 
-  //! Get all tied regs.
+  //! Gets all tied regs.
   inline RATiedReg* tiedRegs() const noexcept { return _raInst->tiedRegs(); }
-  //! Get grouped tied regs.
+  //! Gets grouped tied regs.
   inline RATiedReg* tiedRegs(uint32_t group) const noexcept { return _raInst->tiedRegs(group); }
 
-  //! Get TiedReg count (all).
+  //! Gets TiedReg count (all).
   inline uint32_t tiedCount() const noexcept { return _tiedTotal; }
-  //! Get TiedReg count (per class).
+  //! Gets TiedReg count (per class).
   inline uint32_t tiedCount(uint32_t group) const noexcept { return _tiedCount.get(group); }
 
   inline bool isGroupUsed(uint32_t group) const noexcept { return _tiedCount[group] != 0; }
@@ -146,31 +146,32 @@ public:
     return cost;
   }
 
-  //! Decide on register assignment.
+  //! Decides on register assignment.
   uint32_t decideOnAssignment(uint32_t group, uint32_t workId, uint32_t assignedId, uint32_t allocableRegs) const noexcept;
 
-  //! Decide on whether to MOVE or SPILL the given WorkReg.
+  //! Decides on whether to MOVE or SPILL the given WorkReg.
   //!
   //! The function must return either `RAAssignment::kPhysNone`, which means that
   //! the WorkReg should be spilled, or a valid physical register ID, which means
   //! that the register should be moved to that physical register instead.
   uint32_t decideOnUnassignment(uint32_t group, uint32_t workId, uint32_t assignedId, uint32_t allocableRegs) const noexcept;
 
-  //! Decide on best spill given a register mask `spillableRegs`
+  //! Decides on best spill given a register mask `spillableRegs`
   uint32_t decideOnSpillFor(uint32_t group, uint32_t workId, uint32_t spillableRegs, uint32_t* spillWorkId) const noexcept;
 
   // --------------------------------------------------------------------------
   // [Emit]
   // --------------------------------------------------------------------------
 
-  //! Emit a move between a destination and source register, and fix the register assignment.
+  //! Emits a move between a destination and source register, and fixes the
+  //! register assignment.
   inline Error onMoveReg(uint32_t group, uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {
     if (dstPhysId == srcPhysId) return kErrorOk;
     _curAssignment.reassign(group, workId, dstPhysId, srcPhysId);
     return _pass->onEmitMove(workId, dstPhysId, srcPhysId);
   }
 
-  //! Emit a swap between two physical registers and fix their assignment.
+  //! Emits a swap between two physical registers and fixes their assignment.
   //!
   //! NOTE: Target must support this operation otherwise this would ASSERT.
   inline Error onSwapReg(uint32_t group, uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, uint32_t bPhysId) noexcept {
@@ -178,13 +179,15 @@ public:
     return _pass->onEmitSwap(aWorkId, aPhysId, bWorkId, bPhysId);
   }
 
-  //! Emit a load from [VirtReg/WorkReg]'s spill slot to a physical register and make it assigned and clean.
+  //! Emits a load from [VirtReg/WorkReg]'s spill slot to a physical register
+  //! and makes it assigned and clean.
   inline Error onLoadReg(uint32_t group, uint32_t workId, uint32_t physId) noexcept {
     _curAssignment.assign(group, workId, physId, RAAssignment::kClean);
     return _pass->onEmitLoad(workId, physId);
   }
 
-  //! Emit a save a physical register to a [VirtReg/WorkReg]'s spill slot, keep it assigned, and make it clean.
+  //! Emits a save a physical register to a [VirtReg/WorkReg]'s spill slot,
+  //! keeps it assigned, and makes it clean.
   inline Error onSaveReg(uint32_t group, uint32_t workId, uint32_t physId) noexcept {
     ASMJIT_ASSERT(_curAssignment.workToPhysId(group, workId) == physId);
     ASMJIT_ASSERT(_curAssignment.physToWorkId(group, physId) == workId);
@@ -193,13 +196,13 @@ public:
     return _pass->onEmitSave(workId, physId);
   }
 
-  //! Assign a register, the content of it is undefined at this point.
+  //! Assigns a register, the content of it is undefined at this point.
   inline Error onAssignReg(uint32_t group, uint32_t workId, uint32_t physId, uint32_t dirty) noexcept {
     _curAssignment.assign(group, workId, physId, dirty);
     return kErrorOk;
   }
 
-  //! Spill variable/register, saves the content to the memory-home if modified.
+  //! Spills a variable/register, saves the content to the memory-home if modified.
   inline Error onSpillReg(uint32_t group, uint32_t workId, uint32_t physId) noexcept {
     if (_curAssignment.isPhysDirty(group, physId))
       ASMJIT_PROPAGATE(onSaveReg(group, workId, physId));

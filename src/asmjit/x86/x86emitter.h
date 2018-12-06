@@ -199,7 +199,7 @@ struct EmitterExplicitT {
   ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF inline This* _emitter() noexcept { return static_cast<This*>(this); }
   ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF inline const This* _emitter() const noexcept { return static_cast<const This*>(this); }
 
-  //! Get either GPD or GPQ register of index `id` depending on the current architecture.
+  //! Gets either GPD or GPQ register of the given `id` depending on the current architecture.
   inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), id); }
 
   inline Gp zax() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdAx); }
@@ -211,7 +211,7 @@ struct EmitterExplicitT {
   inline Gp zsi() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdSi); }
   inline Gp zdi() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdDi); }
 
-  //! Create a target dependent pointer of which base register's id is `baseId`.
+  //! Creates a target dependent pointer of which base register's id is `baseId`.
   inline Mem ptr_base(uint32_t baseId, int32_t off = 0, uint32_t size = 0) const noexcept {
     return Mem(Mem::Decomposed { _emitter()->_gpRegInfo.type(), baseId, 0, 0, off, size, 0 });
   }
@@ -225,7 +225,7 @@ struct EmitterExplicitT {
   inline Mem ptr_zsi(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(Gp::kIdSi, off, size); }
   inline Mem ptr_zdi(int32_t off = 0, uint32_t size = 0) const noexcept { return ptr_base(Gp::kIdDi, off, size); }
 
-  //! Create an `intptr_t` memory operand depending on the current architecture.
+  //! Creates an `intptr_t` memory operand depending on the current architecture.
   inline Mem intptr_ptr(const Gp& base, int32_t offset = 0) const noexcept {
     uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
     return Mem(base, offset, nativeGpSize);
@@ -285,48 +285,48 @@ struct EmitterExplicitT {
   // [Embed]
   // --------------------------------------------------------------------------
 
-  //! Add 8-bit integer data to the instruction stream.
+  //! Adds 8-bit integer data to the CodeBuffer.
   inline Error db(uint8_t x) { return static_cast<This*>(this)->embed(&x, 1); }
-  //! Add 16-bit integer data to the instruction stream.
+  //! Adds 16-bit integer data to the CodeBuffer.
   inline Error dw(uint16_t x) { return static_cast<This*>(this)->embed(&x, 2); }
-  //! Add 32-bit integer data to the instruction stream.
+  //! Adds 32-bit integer data to the CodeBuffer.
   inline Error dd(uint32_t x) { return static_cast<This*>(this)->embed(&x, 4); }
-  //! Add 64-bit integer data to the instruction stream.
+  //! Adds 64-bit integer data to the CodeBuffer.
   inline Error dq(uint64_t x) { return static_cast<This*>(this)->embed(&x, 8); }
 
-  //! Add 8-bit integer data to the instruction stream.
+  //! Adds 8-bit integer data to the CodeBuffer.
   inline Error dint8(int8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int8_t)); }
-  //! Add 8-bit integer data to the instruction stream.
+  //! Adds 8-bit integer data to the CodeBuffer.
   inline Error duint8(uint8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint8_t)); }
 
-  //! Add 16-bit integer data to the instruction stream.
+  //! Adds 16-bit integer data to the CodeBuffer.
   inline Error dint16(int16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int16_t)); }
-  //! Add 16-bit integer data to the instruction stream.
+  //! Adds 16-bit integer data to the CodeBuffer.
   inline Error duint16(uint16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint16_t)); }
 
-  //! Add 32-bit integer data to the instruction stream.
+  //! Adds 32-bit integer data to the CodeBuffer.
   inline Error dint32(int32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int32_t)); }
-  //! Add 32-bit integer data to the instruction stream.
+  //! Adds 32-bit integer data to the CodeBuffer.
   inline Error duint32(uint32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint32_t)); }
 
-  //! Add 64-bit integer data to the instruction stream.
+  //! Adds 64-bit integer data to the CodeBuffer.
   inline Error dint64(int64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int64_t)); }
-  //! Add 64-bit integer data to the instruction stream.
+  //! Adds 64-bit integer data to the CodeBuffer.
   inline Error duint64(uint64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint64_t)); }
 
-  //! Add float data to the instruction stream.
+  //! Adds float data to the CodeBuffer.
   inline Error dfloat(float x) { return static_cast<This*>(this)->embed(&x, sizeof(float)); }
-  //! Add double data to the instruction stream.
+  //! Adds double data to the CodeBuffer.
   inline Error ddouble(double x) { return static_cast<This*>(this)->embed(&x, sizeof(double)); }
 
-  //! Add MMX data to the instruction stream.
+  //! Adds MMX data to the CodeBuffer.
   inline Error dmm(const Data64& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data64)); }
-  //! Add XMM data to the instruction stream.
+  //! Adds XMM data to the CodeBuffer.
   inline Error dxmm(const Data128& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data128)); }
-  //! Add YMM data to the instruction stream.
+  //! Adds YMM data to the CodeBuffer.
   inline Error dymm(const Data256& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data256)); }
 
-  //! Add data in a given structure instance to the instruction stream.
+  //! Adds data in a given structure instance to the CodeBuffer.
   template<typename T>
   inline Error dstruct(const T& x) { return static_cast<This*>(this)->embed(&x, uint32_t(sizeof(T))); }
 

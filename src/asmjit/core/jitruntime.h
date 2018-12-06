@@ -36,9 +36,9 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a `JitRuntime` instance.
+  //! Creates a `JitRuntime` instance.
   explicit ASMJIT_API JitRuntime(const JitAllocator::CreateParams* params = nullptr) noexcept;
-  //! Destroy the `JitRuntime` instance.
+  //! Destroys the `JitRuntime` instance.
   ASMJIT_API virtual ~JitRuntime() noexcept;
 
   // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get `JitAllocator` of the runtime.
+  //! Gets the associated JitAllocator.
   inline JitAllocator* allocator() const noexcept { return const_cast<JitAllocator*>(&_allocator); }
 
   // --------------------------------------------------------------------------
@@ -63,7 +63,7 @@ public:
   // NOTE: To allow passing function pointers to `add()` and `release()` the
   // virtual methods are prefixed with `_` and called from templates instead.
 
-  //! Allocate a memory needed for a code stored in the `CodeHolder` and
+  //! Allocates a memory needed for a code stored in the `CodeHolder` and
   //! relocate it to the target location.
   //!
   //! The beginning of the memory allocated for the function is returned in
@@ -74,7 +74,7 @@ public:
     return _add(Support::ptr_cast_impl<void**, Func*>(dst), code);
   }
 
-  //! Release `p` which was obtained by calling `add()`.
+  //! Releases `p` which was obtained by calling `add()`.
   template<typename Func>
   inline Error release(Func p) noexcept {
     return _release(Support::ptr_cast_impl<void*, Func>(p));
@@ -86,7 +86,7 @@ public:
   //! Type-unsafe version of `release()`.
   ASMJIT_API virtual Error _release(void* p) noexcept;
 
-  //! Flush an instruction cache.
+  //! Flushes an instruction cache.
   //!
   //! This member function is called after the code has been copied to the
   //! destination buffer. It is only useful for JIT code generation as it

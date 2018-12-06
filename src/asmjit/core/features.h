@@ -59,12 +59,12 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get all features as `BitWord` array.
+  //! Gets all features as `BitWord` array.
   inline BitWord* bits() noexcept { return _bits; }
-  //! Get all features as `BitWord` array (const).
+  //! Gets all features as `BitWord` array (const).
   inline const BitWord* bits() const noexcept { return _bits; }
 
-  //! Get whether feature `featureId` is present.
+  //! Gets whether feature `featureId` is present.
   inline bool has(uint32_t featureId) const noexcept {
     ASMJIT_ASSERT(featureId < kMaxFeatures);
 
@@ -74,7 +74,7 @@ public:
     return bool((_bits[idx] >> bit) & 0x1);
   }
 
-  //! Get whether all features as defined by `other` are  present.
+  //! Gets whether all features as defined by `other` are present.
   inline bool hasAll(const BaseFeatures& other) const noexcept {
     for (uint32_t i = 0; i < kNumBitWords; i++)
       if ((_bits[i] & other._bits[i]) != other._bits[i])
@@ -86,7 +86,7 @@ public:
   // [Operations]
   // --------------------------------------------------------------------------
 
-  //! Add a CPU `feature`.
+  //! Adds the given CPU `featureId` to the list of features.
   inline void add(uint32_t featureId) noexcept {
     ASMJIT_ASSERT(featureId < kMaxFeatures);
 
@@ -102,7 +102,7 @@ public:
     add(otherIds...);
   }
 
-  //! Remove a CPU `featureId`.
+  //! Removes the given CPU `featureId` from the list of features.
   inline void remove(uint32_t featureId) noexcept {
     ASMJIT_ASSERT(featureId < kMaxFeatures);
 

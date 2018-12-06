@@ -35,7 +35,7 @@ protected:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new instance of `ZoneVectorBase`.
+  //! Creates a new instance of `ZoneVectorBase`.
   inline ZoneVectorBase() noexcept
     : _data(nullptr),
       _size(0),
@@ -51,11 +51,11 @@ protected:
   // --------------------------------------------------------------------------
 
 public:
-  //! Get whether the vector is empty.
+  //! Gets whether the vector is empty.
   inline bool empty() const noexcept { return _size == 0; }
-  //! Get vector size.
+  //! Gets the vector size.
   inline size_type size() const noexcept { return _size; }
-  //! Get vector capacity.
+  //! Gets the vector capacity.
   inline size_type capacity() const noexcept { return _capacity; }
 
   // --------------------------------------------------------------------------
@@ -64,19 +64,19 @@ public:
 
   //! Makes the vector empty (won't change the capacity or data pointer).
   inline void clear() noexcept { _size = 0; }
-  //! Reset the vector data and set its `size` to zero.
+  //! Resets the vector data and set its `size` to zero.
   inline void reset() noexcept {
     _data = nullptr;
     _size = 0;
     _capacity = 0;
   }
 
-  //! Truncate the vector to at most `n` items.
+  //! Truncates the vector to at most `n` items.
   inline void truncate(size_type n) noexcept {
     _size = Support::min(_size, n);
   }
 
-  //! Set size of the vector to `n`. Used internally by some algorithms.
+  //! Sets size of the vector to `n`. Used internally by some algorithms.
   inline void _setSize(size_type n) noexcept {
     ASMJIT_ASSERT(n <= _capacity);
     _size = n;
@@ -160,12 +160,12 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get data.
+  //! Gets vector items.
   inline T* data() noexcept { return static_cast<T*>(_data); }
   //! \overload
   inline const T* data() const noexcept { return static_cast<const T*>(_data); }
 
-  //! Get item at index `i` (const).
+  //! Gets item at index `i` (const).
   inline const T& at(uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _size);
     return data()[i];
@@ -203,7 +203,7 @@ public:
   // [Operations]
   // --------------------------------------------------------------------------
 
-  //! Prepend `item` to the vector.
+  //! Prepends `item` to the vector.
   inline Error prepend(ZoneAllocator* allocator, const T& item) noexcept {
     if (ASMJIT_UNLIKELY(_size == _capacity))
       ASMJIT_PROPAGATE(grow(allocator, 1));
@@ -215,7 +215,7 @@ public:
     return kErrorOk;
   }
 
-  //! Insert an `item` at the specified `index`.
+  //! Inserts an `item` at the specified `index`.
   inline Error insert(ZoneAllocator* allocator, uint32_t index, const T& item) noexcept {
     ASMJIT_ASSERT(index <= _size);
 
@@ -230,7 +230,7 @@ public:
     return kErrorOk;
   }
 
-  //! Append `item` to the vector.
+  //! Appends `item` to the vector.
   inline Error append(ZoneAllocator* allocator, const T& item) noexcept {
     if (ASMJIT_UNLIKELY(_size == _capacity))
       ASMJIT_PROPAGATE(grow(allocator, 1));
@@ -254,7 +254,7 @@ public:
     return kErrorOk;
   }
 
-  //! Prepend `item` to the vector (unsafe case).
+  //! Prepends `item` to the vector (unsafe case).
   //!
   //! Can only be used together with `willGrow()`. If `willGrow(N)` returns
   //! `kErrorOk` then N elements can be added to the vector without checking
@@ -270,7 +270,7 @@ public:
     _size++;
   }
 
-  //! Append `item` to the vector (unsafe case).
+  //! Append s`item` to the vector (unsafe case).
   //!
   //! Can only be used together with `willGrow()`. If `willGrow(N)` returns
   //! `kErrorOk` then N elements can be added to the vector without checking
@@ -282,7 +282,7 @@ public:
     _size++;
   }
 
-  //! Concatenate all items of `other` at the end of the vector.
+  //! Concatenates all items of `other` at the end of the vector.
   inline void concatUnsafe(const ZoneVector<T>& other) noexcept {
     uint32_t size = other._size;
     ASMJIT_ASSERT(_capacity - _size >= size);
@@ -293,7 +293,7 @@ public:
     }
   }
 
-  //! Get index of `val` or `Globals::kNotFound` if not found.
+  //! Gets index of `val` or `Globals::kNotFound` if not found.
   inline uint32_t indexOf(const T& val) const noexcept {
     const T* data = static_cast<const T*>(_data);
     uint32_t size = _size;
@@ -304,12 +304,12 @@ public:
     return Globals::kNotFound;
   }
 
-  //! Get whether the vector contains `val`.
+  //! Gets whether the vector contains `val`.
   inline bool contains(const T& val) const noexcept {
     return indexOf(val) != Globals::kNotFound;
   }
 
-  //! Remove item at index `i`.
+  //! Removes item at index `i`.
   inline void removeAt(uint32_t i) noexcept {
     ASMJIT_ASSERT(i < _size);
 
@@ -327,7 +327,7 @@ public:
     return data()[index];
   }
 
-  //! Swap this pod-vector with `other`.
+  //! Swaps this vector with `other`.
   inline void swap(ZoneVector<T>& other) noexcept {
     std::swap(_size, other._size);
     std::swap(_capacity, other._capacity);
@@ -339,13 +339,13 @@ public:
     Support::qSort<T, CompareT>(data(), size(), cmp);
   }
 
-  //! Get item at index `i`.
+  //! Gets item at index `i`.
   inline T& operator[](uint32_t i) noexcept {
     ASMJIT_ASSERT(i < _size);
     return data()[i];
   }
 
-  //! Get item at index `i`.
+  //! Gets item at index `i`.
   inline const T& operator[](uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _size);
     return data()[i];
@@ -361,7 +361,7 @@ public:
   // [Memory Management]
   // --------------------------------------------------------------------------
 
-  //! Release the memory held by `ZoneVector<T>` back to the `allocator`.
+  //! Releases the memory held by `ZoneVector<T>` back to the `allocator`.
   inline void release(ZoneAllocator* allocator) noexcept {
     _release(allocator, sizeof(T));
   }
@@ -371,7 +371,7 @@ public:
     return ZoneVectorBase::_grow(allocator, sizeof(T), n);
   }
 
-  //! Resize the vector to hold `n` elements.
+  //! Resizes the vector to hold `n` elements.
   //!
   //! If `n` is greater than the current size then the additional elements'
   //! content will be initialized to zero. If `n` is less than the current
@@ -380,7 +380,7 @@ public:
     return ZoneVectorBase::_resize(allocator, sizeof(T), n);
   }
 
-  //! Realloc internal array to fit at least `n` items.
+  //! Reallocates the internal array to fit at least `n` items.
   inline Error reserve(ZoneAllocator* allocator, uint32_t n) noexcept {
     return n > _capacity ? ZoneVectorBase::_reserve(allocator, sizeof(T), n) : Error(kErrorOk);
   }
@@ -446,19 +446,19 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get whether the bit-vector is empty (has no bits).
+  //! Gets whether the bit-vector is empty (has no bits).
   inline bool empty() const noexcept { return _size == 0; }
-  //! Get a size of this bit-vector (in bits).
+  //! Gets the size of this bit-vector (in bits).
   inline uint32_t size() const noexcept { return _size; }
-  //! Get a capacity of this bit-vector (in bits).
+  //! Gets the capacity of this bit-vector (in bits).
   inline uint32_t capacity() const noexcept { return _capacity; }
 
-  //! Get a count of `BitWord[]` array need to store all bits.
+  //! Gets a count of `BitWord[]` array need to store all bits.
   inline uint32_t sizeInBitWords() const noexcept { return _wordsPerBits(_size); }
-  //! Get a count of `BitWord[]` array need to store all bits.
+  //! Gets a count of `BitWord[]` array need to store all bits.
   inline uint32_t capacityInBitWords() const noexcept { return _wordsPerBits(_capacity); }
 
-  //! Get data.
+  //! Gets bit-vector data as `BitWord[]`.
   inline BitWord* data() noexcept { return _data; }
   //! \overload
   inline const BitWord* data() const noexcept { return _data; }
@@ -539,7 +539,7 @@ public:
     Support::bitVectorFill(_data, start, count);
   }
 
-  //! Perform a logical bitwise AND between bits specified in this array and bits
+  //! Performs a logical bitwise AND between bits specified in this array and bits
   //! in `other`. If `other` has less bits than `this` then all remaining bits are
   //! set to zero.
   //!
@@ -564,7 +564,7 @@ public:
     }
   }
 
-  //! Perform a logical bitwise AND between bits specified in this array and
+  //! Performs a logical bitwise AND between bits specified in this array and
   //! negated bits in `other`. If `other` has less bits than `this` then all
   //! remaining bits are kept intact.
   //!
@@ -578,7 +578,7 @@ public:
       dst[i] = dst[i] & ~src[i];
   }
 
-  //! Perform a logical bitwise OP between bits specified in this array and bits
+  //! Performs a logical bitwise OP between bits specified in this array and bits
   //! in `other`. If `other` has less bits than `this` then all remaining bits
   //! are kept intact.
   //!

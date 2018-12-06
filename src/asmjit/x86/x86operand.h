@@ -127,39 +127,39 @@ public:
     kGroupCount                          //!< Count of all register groups.
   };
 
-  //! Get whether the register is a GPB register (8-bit).
+  //! Gets whether the register is a GPB register (8-bit).
   constexpr bool isGpb() const noexcept { return size() == 1; }
-  //! Get whether the register is a low GPB register (8-bit).
+  //! Gets whether the register is a low GPB register (8-bit).
   constexpr bool isGpbLo() const noexcept { return hasSignature(RegTraits<kTypeGpbLo>::kSignature); }
-  //! Get whether the register is a high GPB register (8-bit).
+  //! Gets whether the register is a high GPB register (8-bit).
   constexpr bool isGpbHi() const noexcept { return hasSignature(RegTraits<kTypeGpbHi>::kSignature); }
-  //! Get whether the register is a GPW register (16-bit).
+  //! Gets whether the register is a GPW register (16-bit).
   constexpr bool isGpw() const noexcept { return hasSignature(RegTraits<kTypeGpw>::kSignature); }
-  //! Get whether the register is a GPD register (32-bit).
+  //! Gets whether the register is a GPD register (32-bit).
   constexpr bool isGpd() const noexcept { return hasSignature(RegTraits<kTypeGpd>::kSignature); }
-  //! Get whether the register is a GPQ register (64-bit).
+  //! Gets whether the register is a GPQ register (64-bit).
   constexpr bool isGpq() const noexcept { return hasSignature(RegTraits<kTypeGpq>::kSignature); }
-  //! Get whether the register is an XMM register (128-bit).
+  //! Gets whether the register is an XMM register (128-bit).
   constexpr bool isXmm() const noexcept { return hasSignature(RegTraits<kTypeXmm>::kSignature); }
-  //! Get whether the register is a YMM register (256-bit).
+  //! Gets whether the register is a YMM register (256-bit).
   constexpr bool isYmm() const noexcept { return hasSignature(RegTraits<kTypeYmm>::kSignature); }
-  //! Get whether the register is a ZMM register (512-bit).
+  //! Gets whether the register is a ZMM register (512-bit).
   constexpr bool isZmm() const noexcept { return hasSignature(RegTraits<kTypeZmm>::kSignature); }
-  //! Get whether the register is an MMX register (64-bit).
+  //! Gets whether the register is an MMX register (64-bit).
   constexpr bool isMm() const noexcept { return hasSignature(RegTraits<kTypeMm>::kSignature); }
-  //! Get whether the register is a K register (64-bit).
+  //! Gets whether the register is a K register (64-bit).
   constexpr bool isKReg() const noexcept { return hasSignature(RegTraits<kTypeKReg>::kSignature); }
-  //! Get whether the register is a segment register.
+  //! Gets whether the register is a segment register.
   constexpr bool isSReg() const noexcept { return hasSignature(RegTraits<kTypeSReg>::kSignature); }
-  //! Get whether the register is a control register.
+  //! Gets whether the register is a control register.
   constexpr bool isCReg() const noexcept { return hasSignature(RegTraits<kTypeCReg>::kSignature); }
-  //! Get whether the register is a debug register.
+  //! Gets whether the register is a debug register.
   constexpr bool isDReg() const noexcept { return hasSignature(RegTraits<kTypeDReg>::kSignature); }
-  //! Get whether the register is an FPU register (80-bit).
+  //! Gets whether the register is an FPU register (80-bit).
   constexpr bool isSt() const noexcept { return hasSignature(RegTraits<kTypeSt>::kSignature); }
-  //! Get whether the register is a bound register.
+  //! Gets whether the register is a bound register.
   constexpr bool isBnd() const noexcept { return hasSignature(RegTraits<kTypeBnd>::kSignature); }
-  //! Get whether the register is RIP.
+  //! Gets whether the register is RIP.
   constexpr bool isRip() const noexcept { return hasSignature(RegTraits<kTypeRip>::kSignature); }
 
   template<uint32_t REG_TYPE>
@@ -196,7 +196,7 @@ public:
            size <= 32 ? RegTraits<kTypeYmm>::kSignature : RegTraits<kTypeZmm>::kSignature;
   }
 
-  //! Get whether the `op` operand is either a low or high 8-bit GPB register.
+  //! Gets whether the `op` operand is either a low or high 8-bit GPB register.
   static inline bool isGpb(const Operand_& op) noexcept {
     // Check operand type, register group, and size. Not interested in register type.
     const uint32_t kSgn = (Operand::kOpReg << kSignatureOpShift  ) |
@@ -269,17 +269,17 @@ public:
     kIdR15 = 15  //!< Physical id of R15B|R15W|R15D|R15 registers (64-bit only).
   };
 
-  //! Cast this register to 8-bit (LO) part.
+  //! Casts this register to 8-bit (LO) part.
   inline GpbLo r8() const noexcept;
-  //! Cast this register to 8-bit (LO) part.
+  //! Casts this register to 8-bit (LO) part.
   inline GpbLo r8Lo() const noexcept;
-  //! Cast this register to 8-bit (HI) part.
+  //! Casts this register to 8-bit (HI) part.
   inline GpbHi r8Hi() const noexcept;
-  //! Cast this register to 16-bit.
+  //! Casts this register to 16-bit.
   inline Gpw r16() const noexcept;
-  //! Cast this register to 32-bit.
+  //! Casts this register to 32-bit.
   inline Gpd r32() const noexcept;
-  //! Cast this register to 64-bit.
+  //! Casts this register to 64-bit.
   inline Gpq r64() const noexcept;
 };
 
@@ -287,11 +287,11 @@ public:
 class Vec : public Reg {
   ASMJIT_DEFINE_ABSTRACT_REG(Vec, Reg)
 
-  //! Cast this register to XMM (clone).
+  //! Casts this register to XMM (clone).
   inline Xmm xmm() const noexcept;
-  //! Cast this register to YMM.
+  //! Casts this register to YMM.
   inline Ymm ymm() const noexcept;
-  //! Cast this register to ZMM.
+  //! Casts this register to ZMM.
   inline Zmm zmm() const noexcept;
 };
 
@@ -367,7 +367,7 @@ inline Zmm Vec::zmm() const noexcept { return Zmm(*this, id()); }
 // [asmjit::x86::Mem]
 // ============================================================================
 
-//! Memory operand ().
+//! Memory operand.
 class Mem : public BaseMem {
 public:
   //! Additional bits of operand's signature used by `Mem`.
@@ -396,7 +396,7 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Construct a default `Mem` operand that points to [0].
+  //! Creates a default `Mem` operand that points to [0].
   constexpr Mem() noexcept
     : BaseMem() {}
 
@@ -431,10 +431,10 @@ public:
   inline explicit Mem(Globals::NoInit_) noexcept
     : BaseMem(Globals::NoInit) {}
 
-  //! Clone the memory operand.
+  //! Clones the memory operand.
   constexpr Mem clone() const noexcept { return Mem(*this); }
 
-  //! Get new memory operand adjusted by `off`.
+  //! Creates a new copy of this memory operand adjusted by `off`.
   inline Mem cloneAdjusted(int64_t off) const noexcept {
     Mem result(*this);
     result.addOffset(off);
@@ -470,36 +470,36 @@ public:
     setShift(shift);
   }
 
-  //! Get whether the memory operand has a segment override.
+  //! Gets whether the memory operand has a segment override.
   constexpr bool hasSegment() const noexcept { return _hasSignaturePart<kSignatureMemSegmentMask>(); }
-  //! Get associated segment override as `SReg` operand.
+  //! Gets associated segment override as `SReg` operand.
   constexpr SReg segment() const noexcept { return SReg(segmentId()); }
-  //! Get segment override as id, see `SReg::Id`.
+  //! Gets segment override as id, see `SReg::Id`.
   constexpr uint32_t segmentId() const noexcept { return _getSignaturePart<kSignatureMemSegmentMask>(); }
 
-  //! Set the segment override to `seg`.
+  //! Sets the segment override to `seg`.
   inline void setSegment(const SReg& seg) noexcept { setSegment(seg.id()); }
-  //! Set the segment override to `id`.
+  //! Sets the segment override to `id`.
   inline void setSegment(uint32_t rId) noexcept { _setSignaturePart<kSignatureMemSegmentMask>(rId); }
-  //! Reset the segment override.
+  //! Resets the segment override.
   inline void resetSegment() noexcept { _setSignaturePart<kSignatureMemSegmentMask>(0); }
 
-  //! Get whether the memory operand has shift (aka scale) constant.
+  //! Gets whether the memory operand has shift (aka scale) constant.
   constexpr bool hasShift() const noexcept { return _hasSignaturePart<kSignatureMemShiftMask>(); }
-  //! Get the memory operand's shift (aka scale) constant.
+  //! Gets the memory operand's shift (aka scale) constant.
   constexpr uint32_t shift() const noexcept { return _getSignaturePart<kSignatureMemShiftMask>(); }
-  //! Set the memory operand's shift (aka scale) constant.
+  //! Sets the memory operand's shift (aka scale) constant.
   inline void setShift(uint32_t shift) noexcept { _setSignaturePart<kSignatureMemShiftMask>(shift); }
-  //! Reset the memory operand's shift (aka scale) constant to zero.
+  //! Resets the memory operand's shift (aka scale) constant to zero.
   inline void resetShift() noexcept { _setSignaturePart<kSignatureMemShiftMask>(0); }
 
-  //! Get whether the memory operand has broadcast {1tox}.
+  //! Gets whether the memory operand has broadcast {1tox}.
   constexpr bool hasBroadcast() const noexcept { return _hasSignaturePart<kSignatureMemBroadcastMask>(); }
-  //! Get the memory operand's broadcast.
+  //! Gets the memory operand's broadcast.
   constexpr uint32_t getBroadcast() const noexcept { return _getSignaturePart<kSignatureMemBroadcastMask>(); }
-  //! Set the memory operand's broadcast.
+  //! Sets the memory operand's broadcast.
   inline void setBroadcast(uint32_t bcst) noexcept { _setSignaturePart<kSignatureMemBroadcastMask>(bcst); }
-  //! Reset the memory operand's broadcast to none.
+  //! Resets the memory operand's broadcast to none.
   inline void resetBroadcast() noexcept { _setSignaturePart<kSignatureMemBroadcastMask>(0); }
 
   // --------------------------------------------------------------------------
@@ -542,35 +542,35 @@ inline uint32_t Reg::signatureOf(uint32_t rType) noexcept {
 namespace regs {
 namespace {
 
-//! Create an 8-bit low GPB register operand.
+//! Creates an 8-bit low GPB register operand.
 static constexpr GpbLo gpb(uint32_t rId) noexcept { return GpbLo(rId); }
-//! Create an 8-bit low GPB register operand.
+//! Creates an 8-bit low GPB register operand.
 static constexpr GpbLo gpb_lo(uint32_t rId) noexcept { return GpbLo(rId); }
-//! Create an 8-bit high GPB register operand.
+//! Creates an 8-bit high GPB register operand.
 static constexpr GpbHi gpb_hi(uint32_t rId) noexcept { return GpbHi(rId); }
-//! Create a 16-bit GPW register operand.
+//! Creates a 16-bit GPW register operand.
 static constexpr Gpw gpw(uint32_t rId) noexcept { return Gpw(rId); }
-//! Create a 32-bit GPD register operand.
+//! Creates a 32-bit GPD register operand.
 static constexpr Gpd gpd(uint32_t rId) noexcept { return Gpd(rId); }
-//! Create a 64-bit GPQ register operand (64-bit).
+//! Creates a 64-bit GPQ register operand (64-bit).
 static constexpr Gpq gpq(uint32_t rId) noexcept { return Gpq(rId); }
-//! Create a 128-bit XMM register operand.
+//! Creates a 128-bit XMM register operand.
 static constexpr Xmm xmm(uint32_t rId) noexcept { return Xmm(rId); }
-//! Create a 256-bit YMM register operand.
+//! Creates a 256-bit YMM register operand.
 static constexpr Ymm ymm(uint32_t rId) noexcept { return Ymm(rId); }
-//! Create a 512-bit ZMM register operand.
+//! Creates a 512-bit ZMM register operand.
 static constexpr Zmm zmm(uint32_t rId) noexcept { return Zmm(rId); }
-//! Create a 64-bit Mm register operand.
+//! Creates a 64-bit Mm register operand.
 static constexpr Mm mm(uint32_t rId) noexcept { return Mm(rId); }
-//! Create a 64-bit K register operand.
+//! Creates a 64-bit K register operand.
 static constexpr KReg k(uint32_t rId) noexcept { return KReg(rId); }
-//! Create a 32-bit or 64-bit control register operand.
+//! Creates a 32-bit or 64-bit control register operand.
 static constexpr CReg cr(uint32_t rId) noexcept { return CReg(rId); }
-//! Create a 32-bit or 64-bit debug register operand.
+//! Creates a 32-bit or 64-bit debug register operand.
 static constexpr DReg dr(uint32_t rId) noexcept { return DReg(rId); }
-//! Create an 80-bit st register operand.
+//! Creates an 80-bit st register operand.
 static constexpr St st(uint32_t rId) noexcept { return St(rId); }
-//! Create a 128-bit bound register operand.
+//! Creates a 128-bit bound register operand.
 static constexpr Bnd bnd(uint32_t rId) noexcept { return Bnd(rId); }
 
 static constexpr Gp al(GpbLo::kSignature, Gp::kIdAx);
@@ -831,28 +831,28 @@ using namespace regs;
 // [asmjit::x86::ptr]
 // ============================================================================
 
-//! Create a `[base.reg + offset]` memory operand.
+//! Creates a `[base.reg + offset]` memory operand.
 static constexpr Mem ptr(const Gp& base, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, offset, size);
 }
-//! Create a `[base.reg + (index << shift) + offset]` memory operand (scalar index).
+//! Creates a `[base.reg + (index << shift) + offset]` memory operand (scalar index).
 static constexpr Mem ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
-//! Create a `[base.reg + (index << shift) + offset]` memory operand (vector index).
+//! Creates a `[base.reg + (index << shift) + offset]` memory operand (vector index).
 static constexpr Mem ptr(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 
-//! Create a `[base + offset]` memory operand.
+//! Creates a `[base + offset]` memory operand.
 static constexpr Mem ptr(const Label& base, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, offset, size);
 }
-//! Create a `[base + (index << shift) + offset]` memory operand.
+//! Creates a `[base + (index << shift) + offset]` memory operand.
 static constexpr Mem ptr(const Label& base, const Gp& index, uint32_t shift, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
-//! Create a `[base + (index << shift) + offset]` memory operand.
+//! Creates a `[base + (index << shift) + offset]` memory operand.
 static constexpr Mem ptr(const Label& base, const Vec& index, uint32_t shift, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
@@ -862,111 +862,111 @@ static constexpr Mem ptr(const Rip& rip_, int32_t offset = 0, uint32_t size = 0)
   return Mem(rip_, offset, size);
 }
 
-//! Create an `[base]` absolute memory operand.
+//! Creates an `[base]` absolute memory operand.
 static constexpr Mem ptr(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size);
 }
-//! Create an `[base + (index.reg << shift)]` absolute memory operand.
+//! Creates an `[base + (index.reg << shift)]` absolute memory operand.
 static constexpr Mem ptr(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
 }
-//! Create an `[base + (index.reg << shift)]` absolute memory operand.
+//! Creates an `[base + (index.reg << shift)]` absolute memory operand.
 static constexpr Mem ptr(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
 }
 
-//! Create an `[base]` absolute memory operand (absolute).
+//! Creates an `[base]` absolute memory operand (absolute).
 static constexpr Mem ptr_abs(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size, BaseMem::kSignatureMemAbs);
 }
-//! Create an `[base + (index.reg << shift)]` absolute memory operand (absolute).
+//! Creates an `[base + (index.reg << shift)]` absolute memory operand (absolute).
 static constexpr Mem ptr_abs(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemAbs);
 }
-//! Create an `[base + (index.reg << shift)]` absolute memory operand (absolute).
+//! Creates an `[base + (index.reg << shift)]` absolute memory operand (absolute).
 static constexpr Mem ptr_abs(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemAbs);
 }
 
-//! Create an `[base]` relative memory operand (relative).
+//! Creates an `[base]` relative memory operand (relative).
 static constexpr Mem ptr_rel(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size, BaseMem::kSignatureMemRel);
 }
-//! Create an `[base + (index.reg << shift)]` relative memory operand (relative).
+//! Creates an `[base + (index.reg << shift)]` relative memory operand (relative).
 static constexpr Mem ptr_rel(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemRel);
 }
-//! Create an `[base + (index.reg << shift)]` relative memory operand (relative).
+//! Creates an `[base + (index.reg << shift)]` relative memory operand (relative).
 static constexpr Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemRel);
 }
 
 //! \internal
 #define ASMJIT_MEM_PTR(FUNC, SIZE)                                                    \
-  /*! Create a `[base + offset]` memory operand. */                                   \
+  /*! Creates a `[base + offset]` memory operand. */                                  \
   static constexpr Mem FUNC(const Gp& base, int32_t offset = 0) noexcept {            \
     return Mem(base, offset, SIZE);                                                   \
   }                                                                                   \
-  /*! Create a `[base + (index << shift) + offset]` memory operand. */                \
+  /*! Creates a `[base + (index << shift) + offset]` memory operand. */               \
   static constexpr Mem FUNC(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
     return Mem(base, index, shift, offset, SIZE);                                     \
   }                                                                                   \
-  /*! Create a `[base + (vec_index << shift) + offset]` memory operand. */            \
+  /*! Creates a `[base + (vec_index << shift) + offset]` memory operand. */           \
   static constexpr Mem FUNC(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
     return Mem(base, index, shift, offset, SIZE);                                     \
   }                                                                                   \
-  /*! Create a `[base + offset]` memory operand. */                                   \
+  /*! Creates a `[base + offset]` memory operand. */                                  \
   static constexpr Mem FUNC(const Label& base, int32_t offset = 0) noexcept {         \
     return Mem(base, offset, SIZE);                                                   \
   }                                                                                   \
-  /*! Create a `[base + (index << shift) + offset]` memory operand. */                \
+  /*! Creates a `[base + (index << shift) + offset]` memory operand. */               \
   static constexpr Mem FUNC(const Label& base, const Gp& index, uint32_t shift, int32_t offset = 0) noexcept { \
     return Mem(base, index, shift, offset, SIZE);                                     \
   }                                                                                   \
-  /*! Create a `[rip + offset]` memory operand. */                                    \
+  /*! Creates a `[rip + offset]` memory operand. */                                   \
   static constexpr Mem FUNC(const Rip& rip_, int32_t offset = 0) noexcept {           \
     return Mem(rip_, offset, SIZE);                                                   \
   }                                                                                   \
-  /*! Create a `[ptr]` memory operand. */                                             \
+  /*! Creates a `[ptr]` memory operand. */                                            \
   static constexpr Mem FUNC(uint64_t base) noexcept {                                 \
     return Mem(base, SIZE);                                                           \
   }                                                                                   \
-  /*! Create a `[base + (index << shift) + offset]` memory operand. */                \
+  /*! Creates a `[base + (index << shift) + offset]` memory operand. */               \
   static constexpr Mem FUNC(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE);                                             \
   }                                                                                   \
-  /*! Create a `[base + (vec_index << shift) + offset]` memory operand. */            \
+  /*! Creates a `[base + (vec_index << shift) + offset]` memory operand. */           \
   static constexpr Mem FUNC(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE);                                             \
   }                                                                                   \
                                                                                       \
-  /*! Create a `[base + offset]` memory operand (absolute). */                        \
+  /*! Creates a `[base + offset]` memory operand (absolute). */                       \
   static constexpr Mem FUNC##_abs(uint64_t base) noexcept {                           \
     return Mem(base, SIZE, BaseMem::kSignatureMemAbs);                                \
   }                                                                                   \
-  /*! Create a `[base + (index << shift) + offset]` memory operand (absolute). */     \
+  /*! Creates a `[base + (index << shift) + offset]` memory operand (absolute). */    \
   static constexpr Mem FUNC##_abs(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemAbs);                  \
   }                                                                                   \
-  /*! Create a `[base + (vec_index << shift) + offset]` memory operand (absolute). */ \
+  /*! Creates a `[base + (vec_index << shift) + offset]` memory operand (absolute). */\
   static constexpr Mem FUNC##_abs(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemAbs);                  \
   }                                                                                   \
                                                                                       \
-  /*! Create a `[base + offset]` memory operand (relative). */                        \
+  /*! Creates a `[base + offset]` memory operand (relative). */                       \
   static constexpr Mem FUNC##_rel(uint64_t base) noexcept {                           \
     return Mem(base, SIZE, BaseMem::kSignatureMemRel);                                \
   }                                                                                   \
-  /*! Create a `[base + (index << shift) + offset]` memory operand (relative). */     \
+  /*! Creates a `[base + (index << shift) + offset]` memory operand (relative). */    \
   static constexpr Mem FUNC##_rel(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemRel);                  \
   }                                                                                   \
-  /*! Create a `[base + (vec_index << shift) + offset]` memory operand (relative). */ \
+  /*! Creates a `[base + (vec_index << shift) + offset]` memory operand (relative). */\
   static constexpr Mem FUNC##_rel(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemRel);                  \
   }
 
-// Define memory operand constructors that use platform independent naming.
+// Definition of memory operand constructors that use platform independent naming.
 ASMJIT_MEM_PTR(ptr_8, 1)
 ASMJIT_MEM_PTR(ptr_16, 2)
 ASMJIT_MEM_PTR(ptr_32, 4)
@@ -977,7 +977,7 @@ ASMJIT_MEM_PTR(ptr_128, 16)
 ASMJIT_MEM_PTR(ptr_256, 32)
 ASMJIT_MEM_PTR(ptr_512, 64)
 
-// Define memory operand constructors that use X86-specific convention.
+// Definition of memory operand constructors that use X86-specific convention.
 ASMJIT_MEM_PTR(byte_ptr, 1)
 ASMJIT_MEM_PTR(word_ptr, 2)
 ASMJIT_MEM_PTR(dword_ptr, 4)

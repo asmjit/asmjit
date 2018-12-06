@@ -60,9 +60,9 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new `ErrorHandler` instance.
+  //! Creates a new `ErrorHandler` instance.
   ASMJIT_API ErrorHandler() noexcept;
-  //! Destroy the `ErrorHandler` instance.
+  //! Destroys the `ErrorHandler` instance.
   ASMJIT_API virtual ~ErrorHandler() noexcept;
 
   // --------------------------------------------------------------------------
@@ -456,9 +456,9 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create an uninitialized CodeHolder (you must init() it before it can be used).
+  //! Creates an uninitialized CodeHolder (you must init() it before it can be used).
   ASMJIT_API CodeHolder() noexcept;
-  //! Destroy the CodeHolder.
+  //! Destroys the CodeHolder.
   ASMJIT_API ~CodeHolder() noexcept;
 
   // --------------------------------------------------------------------------
@@ -476,9 +476,9 @@ public:
   // [Attach / Detach]
   // --------------------------------------------------------------------------
 
-  //! Attach an emitter to this `CodeHolder`.
+  //! Attaches an emitter to this `CodeHolder`.
   ASMJIT_API Error attach(BaseEmitter* emitter) noexcept;
-  //! Detach an emitter from this `CodeHolder`.
+  //! Detaches an emitter from this `CodeHolder`.
   ASMJIT_API Error detach(BaseEmitter* emitter) noexcept;
 
   // --------------------------------------------------------------------------
@@ -492,33 +492,33 @@ public:
   // [Code / Arch]
   // --------------------------------------------------------------------------
 
-  //! Get architecture information, see `ArchInfo`.
+  //! Gets the target architecture information, see `ArchInfo`.
   inline const ArchInfo& archInfo() const noexcept { return _codeInfo.archInfo(); }
-  //! Get code/target information, see `CodeInfo`.
+  //! Gets the target code information, see `CodeInfo`.
   inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
 
-  //! Get the target's architecture type.
+  //! Gets the target architecture id.
   inline uint32_t archId() const noexcept { return archInfo().archId(); }
-  //! Get the target's architecture sub-type.
+  //! Gets the target architecture sub-id.
   inline uint32_t archSubId() const noexcept { return archInfo().archSubId(); }
 
-  //! Get whether a static base-address is set.
+  //! Gets whether a static base-address is set.
   inline bool hasBaseAddress() const noexcept { return _codeInfo.hasBaseAddress(); }
-  //! Get a static base-address (uint64_t).
+  //! Gets a static base-address (uint64_t).
   inline uint64_t baseAddress() const noexcept { return _codeInfo.baseAddress(); }
 
   // --------------------------------------------------------------------------
   // [Emitter Options]
   // --------------------------------------------------------------------------
 
-  //! Get global emitter options, internally propagated to all attached emitters.
+  //! Gets global emitter options, internally propagated to all attached emitters.
   inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
 
-  //! Enable the given global emitter `options` and propagate the resulting
+  //! Enables the given global emitter `options` and propagates the resulting
   //! options to all attached emitters.
   ASMJIT_API void addEmitterOptions(uint32_t options) noexcept;
 
-  //! Disable the given global emitter `options` and propagate the resulting
+  //! Disables the given global emitter `options` and propagates the resulting
   //! options to all attached emitters.
   ASMJIT_API void clearEmitterOptions(uint32_t options) noexcept;
 
@@ -608,18 +608,18 @@ public:
   // [Labels / Symbols]
   // --------------------------------------------------------------------------
 
-  //! Get array of `LabelEntry*` records.
+  //! Gets array of `LabelEntry*` records.
   inline const ZoneVector<LabelEntry*>& labelEntries() const noexcept { return _labelEntries; }
 
-  //! Get number of labels created.
+  //! Gets number of labels created.
   inline uint32_t labelCount() const noexcept { return _labelEntries.size(); }
 
-  //! Get whether the label having `id` is valid (i.e. created by `newLabelEntry()`).
+  //! Gets whether the label having `id` is valid (i.e. created by `newLabelEntry()`).
   inline bool isLabelValid(uint32_t labelId) const noexcept {
     return labelId < _labelEntries.size();
   }
 
-  //! Get whether the `label` is valid (i.e. created by `newLabelEntry()`).
+  //! Gets whether the `label` is valid (i.e. created by `newLabelEntry()`).
   inline bool isLabelValid(const Label& label) const noexcept {
     return label.id() < _labelEntries.size();
   }
@@ -629,19 +629,19 @@ public:
     return isLabelValid(labelId) && _labelEntries[labelId]->isBound();
   }
 
-  //! Get whether the `label` is already bound.
+  //! Gets whether the `label` is already bound.
   //!
   //! Returns `false` if the `label` is not valid.
   inline bool isLabelBound(const Label& label) const noexcept {
     return isLabelBound(label.id());
   }
 
-  //! Get information about a label of the given `id`.
+  //! Gets LabelEntry of the given label `id`.
   inline LabelEntry* labelEntry(uint32_t labelId) const noexcept {
     return isLabelValid(labelId) ? _labelEntries[labelId] : static_cast<LabelEntry*>(nullptr);
   }
 
-  //! Get information about the given `label`.
+  //! Gets LabelEntry of the given `label`.
   inline LabelEntry* labelEntry(const Label& label) const noexcept {
     return labelEntry(label.id());
   }
@@ -681,7 +681,7 @@ public:
   //! Returns `Error`, does not report error to `ErrorHandler`.
   ASMJIT_API Error newLabelEntry(LabelEntry** entryOut) noexcept;
 
-  //! Create a new named label label-type `type`.
+  //! Creates a new named label label-type `type`.
   //!
   //! Returns `Error`, does not report a possible error to `ErrorHandler`.
   ASMJIT_API Error newNamedLabelEntry(LabelEntry** entryOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId = Globals::kInvalidId) noexcept;
@@ -698,7 +698,7 @@ public:
   //! Gets the number of label links, which are unresolved.
   inline size_t unresolvedLinkCount() const noexcept { return _unresolvedLinkCount; }
 
-  //! Create a new label-link used to store information about yet unbound labels.
+  //! Creates a new label-link used to store information about yet unbound labels.
   //!
   //! Returns `null` if the allocation failed.
   ASMJIT_API LabelLink* newLabelLink(LabelEntry* le, uint32_t sectionId, size_t offset, intptr_t rel) noexcept;
@@ -709,7 +709,7 @@ public:
   //! contains a single section in which cross-section links are not possible.
   ASMJIT_API Error resolveUnresolvedLinks() noexcept;
 
-  //! Bind a label to a given `sectionId` and `offset` (relative to start of the section).
+  //! Binds a label to a given `sectionId` and `offset` (relative to start of the section).
   //!
   //! This function is generally used by `BaseAssembler::bind()` to do the heavy lifting.
   ASMJIT_API Error bindLabel(const Label& label, uint32_t sectionId, uint64_t offset) noexcept;
@@ -718,15 +718,15 @@ public:
   // [Relocations]
   // --------------------------------------------------------------------------
 
-  //! Get whether the code contains relocation entries.
+  //! Gets whether the code contains relocation entries.
   inline bool hasRelocEntries() const noexcept { return !_relocations.empty(); }
-  //! Get array of `RelocEntry*` records.
+  //! Gets array of `RelocEntry*` records.
   inline const ZoneVector<RelocEntry*>& relocEntries() const noexcept { return _relocations; }
 
-  //! Get reloc entry of a given `id`.
+  //! Gets a RelocEntry of a given `id`.
   inline RelocEntry* relocEntry(uint32_t id) const noexcept { return _relocations[id]; }
 
-  //! Create a new relocation entry of type `relocType` and size `valueSize`.
+  //! Creates a new relocation entry of type `relocType` and size `valueSize`.
   //!
   //! Additional fields can be set after the relocation entry was created.
   ASMJIT_API Error newRelocEntry(RelocEntry** dst, uint32_t relocType, uint32_t valueSize) noexcept;
@@ -740,10 +740,10 @@ public:
   //! NOTE: This should never be called more than once.
   ASMJIT_API Error flatten() noexcept;
 
-  //! Get the size of code & data of all sections.
+  //! Gets the size of code & data of all sections.
   ASMJIT_API size_t codeSize() const noexcept;
 
-  //! Relocate the code to the given `baseAddress`.
+  //! Relocates the code to the given `baseAddress`.
   //!
   //! \param baseAddress Absolute base address where the code will be relocated
   //! to. Please note that nothing is copied to such base address, it's just an

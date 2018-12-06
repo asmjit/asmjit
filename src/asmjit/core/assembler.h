@@ -33,33 +33,33 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new `BaseAssembler` instance.
+  //! Creates a new `BaseAssembler` instance.
   ASMJIT_API BaseAssembler() noexcept;
-  //! Destroy the `BaseAssembler` instance.
+  //! Destroys the `BaseAssembler` instance.
   ASMJIT_API virtual ~BaseAssembler() noexcept;
 
   // --------------------------------------------------------------------------
   // [Buffer Management]
   // --------------------------------------------------------------------------
 
-  //! Get the capacity of the current CodeBuffer.
+  //! Gets the capacity of the current CodeBuffer.
   inline size_t bufferCapacity() const noexcept { return (size_t)(_bufferEnd - _bufferData); }
-  //! Get the number of remaining bytes in the current CodeBuffer.
+  //! Gets the number of remaining bytes in the current CodeBuffer.
   inline size_t remainingSpace() const noexcept { return (size_t)(_bufferEnd - _bufferPtr); }
 
-  //! Get the current position in the CodeBuffer.
+  //! Gets the current position in the CodeBuffer.
   inline size_t offset() const noexcept { return (size_t)(_bufferPtr - _bufferData); }
-  //! Set the current position in the CodeBuffer to `offset`.
+  //! Sets the current position in the CodeBuffer to `offset`.
   //!
   //! NOTE: The `offset` cannot be outside of the buffer size (even if it's
   //! within buffer's capacity).
   ASMJIT_API Error setOffset(size_t offset);
 
-  //! Get start of the CodeBuffer of the current section.
+  //! Gets the start of the CodeBuffer in the current section.
   inline uint8_t* bufferData() const noexcept { return _bufferData; }
-  //! Get end (first invalid byte) of the current section.
+  //! Gets the end (first invalid byte) in the current section.
   inline uint8_t* bufferEnd() const noexcept { return _bufferEnd; }
-  //! Get pointer in the CodeBuffer of the current section.
+  //! Gets the current pointer in the CodeBuffer in the current section.
   inline uint8_t* bufferPtr() const noexcept { return _bufferPtr; }
 
   // --------------------------------------------------------------------------

@@ -26,21 +26,21 @@ union Data64 {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Set all eight 8-bit signed integers.
+  //! Sets all eight 8-bit signed integers.
   static inline Data64 fromI8(int8_t x0) noexcept {
     Data64 self;
     self.setI8(x0);
     return self;
   }
 
-  //! Set all eight 8-bit unsigned integers.
+  //! Sets all eight 8-bit unsigned integers.
   static inline Data64 fromU8(uint8_t x0) noexcept {
     Data64 self;
     self.setU8(x0);
     return self;
   }
 
-  //! Set all eight 8-bit signed integers.
+  //! Sets all eight 8-bit signed integers.
   static inline Data64 fromI8(
     int8_t x0, int8_t x1, int8_t x2, int8_t x3, int8_t x4, int8_t x5, int8_t x6, int8_t x7) noexcept {
 
@@ -49,7 +49,7 @@ union Data64 {
     return self;
   }
 
-  //! Set all eight 8-bit unsigned integers.
+  //! Sets all eight 8-bit unsigned integers.
   static inline Data64 fromU8(
     uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7) noexcept {
 
@@ -58,91 +58,91 @@ union Data64 {
     return self;
   }
 
-  //! Set all four 16-bit signed integers.
+  //! Sets all four 16-bit signed integers.
   static inline Data64 fromI16(int16_t x0) noexcept {
     Data64 self;
     self.setI16(x0);
     return self;
   }
 
-  //! Set all four 16-bit unsigned integers.
+  //! Sets all four 16-bit unsigned integers.
   static inline Data64 fromU16(uint16_t x0) noexcept {
     Data64 self;
     self.setU16(x0);
     return self;
   }
 
-  //! Set all four 16-bit signed integers.
+  //! Sets all four 16-bit signed integers.
   static inline Data64 fromI16(int16_t x0, int16_t x1, int16_t x2, int16_t x3) noexcept {
     Data64 self;
     self.setI16(x0, x1, x2, x3);
     return self;
   }
 
-  //! Set all four 16-bit unsigned integers.
+  //! Sets all four 16-bit unsigned integers.
   static inline Data64 fromU16(uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3) noexcept {
     Data64 self;
     self.setU16(x0, x1, x2, x3);
     return self;
   }
 
-  //! Set all two 32-bit signed integers.
+  //! Sets all two 32-bit signed integers.
   static inline Data64 fromI32(int32_t x0) noexcept {
     Data64 self;
     self.setI32(x0);
     return self;
   }
 
-  //! Set all two 32-bit unsigned integers.
+  //! Sets all two 32-bit unsigned integers.
   static inline Data64 fromU32(uint32_t x0) noexcept {
     Data64 self;
     self.setU32(x0);
     return self;
   }
 
-  //! Set all two 32-bit signed integers.
+  //! Sets all two 32-bit signed integers.
   static inline Data64 fromI32(int32_t x0, int32_t x1) noexcept {
     Data64 self;
     self.setI32(x0, x1);
     return self;
   }
 
-  //! Set all two 32-bit unsigned integers.
+  //! Sets all two 32-bit unsigned integers.
   static inline Data64 fromU32(uint32_t x0, uint32_t x1) noexcept {
     Data64 self;
     self.setU32(x0, x1);
     return self;
   }
 
-  //! Set 64-bit signed integer.
+  //! Sets 64-bit signed integer.
   static inline Data64 fromI64(int64_t x0) noexcept {
     Data64 self;
     self.setI64(x0);
     return self;
   }
 
-  //! Set 64-bit unsigned integer.
+  //! Sets 64-bit unsigned integer.
   static inline Data64 fromU64(uint64_t x0) noexcept {
     Data64 self;
     self.setU64(x0);
     return self;
   }
 
-  //! Set all two SP-FP values.
+  //! Sets all two SP-FP values.
   static inline Data64 fromF32(float x0) noexcept {
     Data64 self;
     self.setF32(x0);
     return self;
   }
 
-  //! Set all two SP-FP values.
+  //! Sets all two SP-FP values.
   static inline Data64 fromF32(float x0, float x1) noexcept {
     Data64 self;
     self.setF32(x0, x1);
     return self;
   }
 
-  //! Set all two SP-FP values.
+  //! Sets all two SP-FP values.
   static inline Data64 fromF64(double x0) noexcept {
     Data64 self;
     self.setF64(x0);
@@ -153,12 +153,12 @@ union Data64 {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Set all eight 8-bit signed integers.
+  //! Sets all eight 8-bit signed integers.
   inline void setI8(int8_t x0) noexcept {
     setU8(uint8_t(x0));
   }
 
-  //! Set all eight 8-bit unsigned integers.
+  //! Sets all eight 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0101010101010101u;
@@ -171,7 +171,7 @@ union Data64 {
     }
   }
 
-  //! Set all eight 8-bit signed integers.
+  //! Sets all eight 8-bit signed integers.
   inline void setI8(
     int8_t x0, int8_t x1, int8_t x2, int8_t x3, int8_t x4, int8_t x5, int8_t x6, int8_t x7) noexcept {
 
@@ -179,7 +179,7 @@ union Data64 {
     sb[4] = x4; sb[5] = x5; sb[6] = x6; sb[7] = x7;
   }
 
-  //! Set all eight 8-bit unsigned integers.
+  //! Sets all eight 8-bit unsigned integers.
   inline void setU8(
     uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7) noexcept {
 
@@ -187,12 +187,12 @@ union Data64 {
     ub[4] = x4; ub[5] = x5; ub[6] = x6; ub[7] = x7;
   }
 
-  //! Set all four 16-bit signed integers.
+  //! Sets all four 16-bit signed integers.
   inline void setI16(int16_t x0) noexcept {
     setU16(uint16_t(x0));
   }
 
-  //! Set all four 16-bit unsigned integers.
+  //! Sets all four 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0001000100010001u;
@@ -205,57 +205,57 @@ union Data64 {
     }
   }
 
-  //! Set all four 16-bit signed integers.
+  //! Sets all four 16-bit signed integers.
   inline void setI16(int16_t x0, int16_t x1, int16_t x2, int16_t x3) noexcept {
     sw[0] = x0; sw[1] = x1; sw[2] = x2; sw[3] = x3;
   }
 
-  //! Set all four 16-bit unsigned integers.
+  //! Sets all four 16-bit unsigned integers.
   inline void setU16(uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3) noexcept {
     uw[0] = x0; uw[1] = x1; uw[2] = x2; uw[3] = x3;
   }
 
-  //! Set all two 32-bit signed integers.
+  //! Sets all two 32-bit signed integers.
   inline void setI32(int32_t x0) noexcept {
     sd[0] = x0; sd[1] = x0;
   }
 
-  //! Set all two 32-bit unsigned integers.
+  //! Sets all two 32-bit unsigned integers.
   inline void setU32(uint32_t x0) noexcept {
     ud[0] = x0; ud[1] = x0;
   }
 
-  //! Set all two 32-bit signed integers.
+  //! Sets all two 32-bit signed integers.
   inline void setI32(int32_t x0, int32_t x1) noexcept {
     sd[0] = x0; sd[1] = x1;
   }
 
-  //! Set all two 32-bit unsigned integers.
+  //! Sets all two 32-bit unsigned integers.
   inline void setU32(uint32_t x0, uint32_t x1) noexcept {
     ud[0] = x0; ud[1] = x1;
   }
 
-  //! Set 64-bit signed integer.
+  //! Sets 64-bit signed integer.
   inline void setI64(int64_t x0) noexcept {
     sq[0] = x0;
   }
 
-  //! Set 64-bit unsigned integer.
+  //! Sets 64-bit unsigned integer.
   inline void setU64(uint64_t x0) noexcept {
     uq[0] = x0;
   }
 
-  //! Set all two SP-FP values.
+  //! Sets all two SP-FP values.
   inline void setF32(float x0) noexcept {
     sf[0] = x0; sf[1] = x0;
   }
 
-  //! Set all two SP-FP values.
+  //! Sets all two SP-FP values.
   inline void setF32(float x0, float x1) noexcept {
     sf[0] = x0; sf[1] = x1;
   }
 
-  //! Set all two SP-FP values.
+  //! Sets all two SP-FP values.
   inline void setF64(double x0) noexcept {
     df[0] = x0;
   }
@@ -297,21 +297,21 @@ union Data128 {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Set all sixteen 8-bit signed integers.
+  //! Sets all sixteen 8-bit signed integers.
   static inline Data128 fromI8(int8_t x0) noexcept {
     Data128 self;
     self.setI8(x0);
     return self;
   }
 
-  //! Set all sixteen 8-bit unsigned integers.
+  //! Sets all sixteen 8-bit unsigned integers.
   static inline Data128 fromU8(uint8_t x0) noexcept {
     Data128 self;
     self.setU8(x0);
     return self;
   }
 
-  //! Set all sixteen 8-bit signed integers.
+  //! Sets all sixteen 8-bit signed integers.
   static inline Data128 fromI8(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -323,7 +323,7 @@ union Data128 {
     return self;
   }
 
-  //! Set all sixteen 8-bit unsigned integers.
+  //! Sets all sixteen 8-bit unsigned integers.
   static inline Data128 fromU8(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -335,21 +335,21 @@ union Data128 {
     return self;
   }
 
-  //! Set all eight 16-bit signed integers.
+  //! Sets all eight 16-bit signed integers.
   static inline Data128 fromI16(int16_t x0) noexcept {
     Data128 self;
     self.setI16(x0);
     return self;
   }
 
-  //! Set all eight 16-bit unsigned integers.
+  //! Sets all eight 16-bit unsigned integers.
   static inline Data128 fromU16(uint16_t x0) noexcept {
     Data128 self;
     self.setU16(x0);
     return self;
   }
 
-  //! Set all eight 16-bit signed integers.
+  //! Sets all eight 16-bit signed integers.
   static inline Data128 fromI16(
     int16_t x0, int16_t x1, int16_t x2, int16_t x3, int16_t x4, int16_t x5, int16_t x6, int16_t x7) noexcept {
 
@@ -358,7 +358,7 @@ union Data128 {
     return self;
   }
 
-  //! Set all eight 16-bit unsigned integers.
+  //! Sets all eight 16-bit unsigned integers.
   static inline Data128 fromU16(
     uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3, uint16_t x4, uint16_t x5, uint16_t x6, uint16_t x7) noexcept {
 
@@ -367,84 +367,84 @@ union Data128 {
     return self;
   }
 
-  //! Set all four 32-bit signed integers.
+  //! Sets all four 32-bit signed integers.
   static inline Data128 fromI32(int32_t x0) noexcept {
     Data128 self;
     self.setI32(x0);
     return self;
   }
 
-  //! Set all four 32-bit unsigned integers.
+  //! Sets all four 32-bit unsigned integers.
   static inline Data128 fromU32(uint32_t x0) noexcept {
     Data128 self;
     self.setU32(x0);
     return self;
   }
 
-  //! Set all four 32-bit signed integers.
+  //! Sets all four 32-bit signed integers.
   static inline Data128 fromI32(int32_t x0, int32_t x1, int32_t x2, int32_t x3) noexcept {
     Data128 self;
     self.setI32(x0, x1, x2, x3);
     return self;
   }
 
-  //! Set all four 32-bit unsigned integers.
+  //! Sets all four 32-bit unsigned integers.
   static inline Data128 fromU32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3) noexcept {
     Data128 self;
     self.setU32(x0, x1, x2, x3);
     return self;
   }
 
-  //! Set all two 64-bit signed integers.
+  //! Sets all two 64-bit signed integers.
   static inline Data128 fromI64(int64_t x0) noexcept {
     Data128 self;
     self.setI64(x0);
     return self;
   }
 
-  //! Set all two 64-bit unsigned integers.
+  //! Sets all two 64-bit unsigned integers.
   static inline Data128 fromU64(uint64_t x0) noexcept {
     Data128 self;
     self.setU64(x0);
     return self;
   }
 
-  //! Set all two 64-bit signed integers.
+  //! Sets all two 64-bit signed integers.
   static inline Data128 fromI64(int64_t x0, int64_t x1) noexcept {
     Data128 self;
     self.setI64(x0, x1);
     return self;
   }
 
-  //! Set all two 64-bit unsigned integers.
+  //! Sets all two 64-bit unsigned integers.
   static inline Data128 fromU64(uint64_t x0, uint64_t x1) noexcept {
     Data128 self;
     self.setU64(x0, x1);
     return self;
   }
 
-  //! Set all four SP-FP floats.
+  //! Sets all four SP-FP floats.
   static inline Data128 fromF32(float x0) noexcept {
     Data128 self;
     self.setF32(x0);
     return self;
   }
 
-  //! Set all four SP-FP floats.
+  //! Sets all four SP-FP floats.
   static inline Data128 fromF32(float x0, float x1, float x2, float x3) noexcept {
     Data128 self;
     self.setF32(x0, x1, x2, x3);
     return self;
   }
 
-  //! Set all two DP-FP floats.
+  //! Sets all two DP-FP floats.
   static inline Data128 fromF64(double x0) noexcept {
     Data128 self;
     self.setF64(x0);
     return self;
   }
 
-  //! Set all two DP-FP floats.
+  //! Sets all two DP-FP floats.
   static inline Data128 fromF64(double x0, double x1) noexcept {
     Data128 self;
     self.setF64(x0, x1);
@@ -455,12 +455,12 @@ union Data128 {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Set all sixteen 8-bit signed integers.
+  //! Sets all sixteen 8-bit signed integers.
   inline void setI8(int8_t x0) noexcept {
     setU8(uint8_t(x0));
   }
 
-  //! Set all sixteen 8-bit unsigned integers.
+  //! Sets all sixteen 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept  {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0101010101010101u;
@@ -476,7 +476,7 @@ union Data128 {
     }
   }
 
-  //! Set all sixteen 8-bit signed integers.
+  //! Sets all sixteen 8-bit signed integers.
   inline void setI8(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -489,7 +489,7 @@ union Data128 {
     sb[12] = x12; sb[13] = x13; sb[14] = x14; sb[15] = x15;
   }
 
-  //! Set all sixteen 8-bit unsigned integers.
+  //! Sets all sixteen 8-bit unsigned integers.
   inline void setU8(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -502,12 +502,12 @@ union Data128 {
     ub[12] = x12; ub[13] = x13; ub[14] = x14; ub[15] = x15;
   }
 
-  //! Set all eight 16-bit signed integers.
+  //! Sets all eight 16-bit signed integers.
   inline void setI16(int16_t x0) noexcept {
     setU16(uint16_t(x0));
   }
 
-  //! Set all eight 16-bit unsigned integers.
+  //! Sets all eight 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0001000100010001u;
@@ -523,7 +523,7 @@ union Data128 {
     }
   }
 
-  //! Set all eight 16-bit signed integers.
+  //! Sets all eight 16-bit signed integers.
   inline void setI16(
     int16_t x0, int16_t x1, int16_t x2, int16_t x3, int16_t x4, int16_t x5, int16_t x6, int16_t x7) noexcept {
 
@@ -531,7 +531,7 @@ union Data128 {
     sw[4] = x4; sw[5] = x5; sw[6] = x6; sw[7] = x7;
   }
 
-  //! Set all eight 16-bit unsigned integers.
+  //! Sets all eight 16-bit unsigned integers.
   inline void setU16(
     uint16_t x0, uint16_t x1, uint16_t x2, uint16_t x3, uint16_t x4, uint16_t x5, uint16_t x6, uint16_t x7) noexcept {
 
@@ -539,12 +539,12 @@ union Data128 {
     uw[4] = x4; uw[5] = x5; uw[6] = x6; uw[7] = x7;
   }
 
-  //! Set all four 32-bit signed integers.
+  //! Sets all four 32-bit signed integers.
   inline void setI32(int32_t x0) noexcept {
     setU32(uint32_t(x0));
   }
 
-  //! Set all four 32-bit unsigned integers.
+  //! Sets all four 32-bit unsigned integers.
   inline void setU32(uint32_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t t = (uint64_t(x0) << 32) + x0;
@@ -559,52 +559,52 @@ union Data128 {
     }
   }
 
-  //! Set all four 32-bit signed integers.
+  //! Sets all four 32-bit signed integers.
   inline void setI32(int32_t x0, int32_t x1, int32_t x2, int32_t x3) noexcept {
     sd[0] = x0; sd[1] = x1; sd[2] = x2; sd[3] = x3;
   }
 
-  //! Set all four 32-bit unsigned integers.
+  //! Sets all four 32-bit unsigned integers.
   inline void setU32(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3) noexcept {
     ud[0] = x0; ud[1] = x1; ud[2] = x2; ud[3] = x3;
   }
 
-  //! Set all two 64-bit signed integers.
+  //! Sets all two 64-bit signed integers.
   inline void setI64(int64_t x0) noexcept {
     sq[0] = x0; sq[1] = x0;
   }
 
-  //! Set all two 64-bit unsigned integers.
+  //! Sets all two 64-bit unsigned integers.
   inline void setU64(uint64_t x0) noexcept {
     uq[0] = x0; uq[1] = x0;
   }
 
-  //! Set all two 64-bit signed integers.
+  //! Sets all two 64-bit signed integers.
   inline void setI64(int64_t x0, int64_t x1) noexcept {
     sq[0] = x0; sq[1] = x1;
   }
 
-  //! Set all two 64-bit unsigned integers.
+  //! Sets all two 64-bit unsigned integers.
   inline void setU64(uint64_t x0, uint64_t x1) noexcept {
     uq[0] = x0; uq[1] = x1;
   }
 
-  //! Set all four SP-FP floats.
+  //! Sets all four SP-FP floats.
   inline void setF32(float x0) noexcept {
     sf[0] = x0; sf[1] = x0; sf[2] = x0; sf[3] = x0;
   }
 
-  //! Set all four SP-FP floats.
+  //! Sets all four SP-FP floats.
   inline void setF32(float x0, float x1, float x2, float x3) noexcept {
     sf[0] = x0; sf[1] = x1; sf[2] = x2; sf[3] = x3;
   }
 
-  //! Set all two DP-FP floats.
+  //! Sets all two DP-FP floats.
   inline void setF64(double x0) noexcept {
     df[0] = x0; df[1] = x0;
   }
 
-  //! Set all two DP-FP floats.
+  //! Sets all two DP-FP floats.
   inline void setF64(double x0, double x1) noexcept {
     df[0] = x0; df[1] = x1;
   }
@@ -646,21 +646,21 @@ union Data256 {
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Set all thirty two 8-bit signed integers.
+  //! Sets all thirty two 8-bit signed integers.
   static inline Data256 fromI8(int8_t x0) noexcept {
     Data256 self;
     self.setI8(x0);
     return self;
   }
 
-  //! Set all thirty two 8-bit unsigned integers.
+  //! Sets all thirty two 8-bit unsigned integers.
   static inline Data256 fromU8(uint8_t x0) noexcept {
     Data256 self;
     self.setU8(x0);
     return self;
   }
 
-  //! Set all thirty two 8-bit signed integers.
+  //! Sets all thirty two 8-bit signed integers.
   static inline Data256 fromI8(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -678,7 +678,7 @@ union Data256 {
     return self;
   }
 
-  //! Set all thirty two 8-bit unsigned integers.
+  //! Sets all thirty two 8-bit unsigned integers.
   static inline Data256 fromU8(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -696,21 +696,21 @@ union Data256 {
     return self;
   }
 
-  //! Set all sixteen 16-bit signed integers.
+  //! Sets all sixteen 16-bit signed integers.
   static inline Data256 fromI16(int16_t x0) noexcept {
     Data256 self;
     self.setI16(x0);
     return self;
   }
 
-  //! Set all sixteen 16-bit unsigned integers.
+  //! Sets all sixteen 16-bit unsigned integers.
   static inline Data256 fromU16(uint16_t x0) noexcept {
     Data256 self;
     self.setU16(x0);
     return self;
   }
 
-  //! Set all sixteen 16-bit signed integers.
+  //! Sets all sixteen 16-bit signed integers.
   static inline Data256 fromI16(
     int16_t x0, int16_t x1, int16_t x2 , int16_t x3 , int16_t x4 , int16_t x5 , int16_t x6 , int16_t x7 ,
     int16_t x8, int16_t x9, int16_t x10, int16_t x11, int16_t x12, int16_t x13, int16_t x14, int16_t x15) noexcept {
@@ -720,7 +720,7 @@ union Data256 {
     return self;
   }
 
-  //! Set all sixteen 16-bit unsigned integers.
+  //! Sets all sixteen 16-bit unsigned integers.
   static inline Data256 fromU16(
     uint16_t x0, uint16_t x1, uint16_t x2 , uint16_t x3 , uint16_t x4 , uint16_t x5 , uint16_t x6 , uint16_t x7 ,
     uint16_t x8, uint16_t x9, uint16_t x10, uint16_t x11, uint16_t x12, uint16_t x13, uint16_t x14, uint16_t x15) noexcept {
@@ -730,21 +730,21 @@ union Data256 {
     return self;
   }
 
-  //! Set all eight 32-bit signed integers.
+  //! Sets all eight 32-bit signed integers.
   static inline Data256 fromI32(int32_t x0) noexcept {
     Data256 self;
     self.setI32(x0);
     return self;
   }
 
-  //! Set all eight 32-bit unsigned integers.
+  //! Sets all eight 32-bit unsigned integers.
   static inline Data256 fromU32(uint32_t x0) noexcept {
     Data256 self;
     self.setU32(x0);
     return self;
   }
 
-  //! Set all eight 32-bit signed integers.
+  //! Sets all eight 32-bit signed integers.
   static inline Data256 fromI32(
     int32_t x0, int32_t x1, int32_t x2, int32_t x3,
     int32_t x4, int32_t x5, int32_t x6, int32_t x7) noexcept {
@@ -754,7 +754,7 @@ union Data256 {
     return self;
   }
 
-  //! Set all eight 32-bit unsigned integers.
+  //! Sets all eight 32-bit unsigned integers.
   static inline Data256 fromU32(
     uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
     uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7) noexcept {
@@ -764,42 +764,42 @@ union Data256 {
     return self;
   }
 
-  //! Set all four 64-bit signed integers.
+  //! Sets all four 64-bit signed integers.
   static inline Data256 fromI64(int64_t x0) noexcept {
     Data256 self;
     self.setI64(x0);
     return self;
   }
 
-  //! Set all four 64-bit unsigned integers.
+  //! Sets all four 64-bit unsigned integers.
   static inline Data256 fromU64(uint64_t x0) noexcept {
     Data256 self;
     self.setU64(x0);
     return self;
   }
 
-  //! Set all four 64-bit signed integers.
+  //! Sets all four 64-bit signed integers.
   static inline Data256 fromI64(int64_t x0, int64_t x1, int64_t x2, int64_t x3) noexcept {
     Data256 self;
     self.setI64(x0, x1, x2, x3);
     return self;
   }
 
-  //! Set all four 64-bit unsigned integers.
+  //! Sets all four 64-bit unsigned integers.
   static inline Data256 fromU64(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3) noexcept {
     Data256 self;
     self.setU64(x0, x1, x2, x3);
     return self;
   }
 
-  //! Set all eight SP-FP floats.
+  //! Sets all eight SP-FP floats.
   static inline Data256 fromF32(float x0) noexcept {
     Data256 self;
     self.setF32(x0);
     return self;
   }
 
-  //! Set all eight SP-FP floats.
+  //! Sets all eight SP-FP floats.
   static inline Data256 fromF32(
     float x0, float x1, float x2, float x3,
     float x4, float x5, float x6, float x7) noexcept {
@@ -809,14 +809,14 @@ union Data256 {
     return self;
   }
 
-  //! Set all four DP-FP floats.
+  //! Sets all four DP-FP floats.
   static inline Data256 fromF64(double x0) noexcept {
     Data256 self;
     self.setF64(x0);
     return self;
   }
 
-  //! Set all four DP-FP floats.
+  //! Sets all four DP-FP floats.
   static inline Data256 fromF64(double x0, double x1, double x2, double x3) noexcept {
     Data256 self;
     self.setF64(x0, x1, x2, x3);
@@ -827,12 +827,12 @@ union Data256 {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Set all thirty two 8-bit signed integers.
+  //! Sets all thirty two 8-bit signed integers.
   inline void setI8(int8_t x0) noexcept {
     setU8(uint8_t(x0));
   }
 
-  //! Set all thirty two 8-bit unsigned integers.
+  //! Sets all thirty two 8-bit unsigned integers.
   inline void setU8(uint8_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0101010101010101u;
@@ -854,7 +854,7 @@ union Data256 {
     }
   }
 
-  //! Set all thirty two 8-bit signed integers.
+  //! Sets all thirty two 8-bit signed integers.
   inline void setI8(
     int8_t x0 , int8_t x1 , int8_t x2 , int8_t x3 ,
     int8_t x4 , int8_t x5 , int8_t x6 , int8_t x7 ,
@@ -875,7 +875,7 @@ union Data256 {
     sb[28] = x28; sb[29] = x29; sb[30] = x30; sb[31] = x31;
   }
 
-  //! Set all thirty two 8-bit unsigned integers.
+  //! Sets all thirty two 8-bit unsigned integers.
   inline void setU8(
     uint8_t x0 , uint8_t x1 , uint8_t x2 , uint8_t x3 ,
     uint8_t x4 , uint8_t x5 , uint8_t x6 , uint8_t x7 ,
@@ -896,12 +896,12 @@ union Data256 {
     ub[28] = x28; ub[29] = x29; ub[30] = x30; ub[31] = x31;
   }
 
-  //! Set all sixteen 16-bit signed integers.
+  //! Sets all sixteen 16-bit signed integers.
   inline void setI16(int16_t x0) noexcept {
     setU16(uint16_t(x0));
   }
 
-  //! Set all eight 16-bit unsigned integers.
+  //! Sets all eight 16-bit unsigned integers.
   inline void setU16(uint16_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = uint64_t(x0) * 0x0001000100010001u;
@@ -923,7 +923,7 @@ union Data256 {
     }
   }
 
-  //! Set all sixteen 16-bit signed integers.
+  //! Sets all sixteen 16-bit signed integers.
   inline void setI16(
     int16_t x0, int16_t x1, int16_t x2 , int16_t x3 , int16_t x4 , int16_t x5 , int16_t x6 , int16_t x7,
     int16_t x8, int16_t x9, int16_t x10, int16_t x11, int16_t x12, int16_t x13, int16_t x14, int16_t x15) noexcept {
@@ -934,7 +934,7 @@ union Data256 {
     sw[12] = x12; sw[13] = x13; sw[14] = x14; sw[15] = x15;
   }
 
-  //! Set all sixteen 16-bit unsigned integers.
+  //! Sets all sixteen 16-bit unsigned integers.
   inline void setU16(
     uint16_t x0, uint16_t x1, uint16_t x2 , uint16_t x3 , uint16_t x4 , uint16_t x5 , uint16_t x6 , uint16_t x7,
     uint16_t x8, uint16_t x9, uint16_t x10, uint16_t x11, uint16_t x12, uint16_t x13, uint16_t x14, uint16_t x15) noexcept {
@@ -945,12 +945,12 @@ union Data256 {
     uw[12] = x12; uw[13] = x13; uw[14] = x14; uw[15] = x15;
   }
 
-  //! Set all eight 32-bit signed integers.
+  //! Sets all eight 32-bit signed integers.
   inline void setI32(int32_t x0) noexcept {
     setU32(uint32_t(x0));
   }
 
-  //! Set all eight 32-bit unsigned integers.
+  //! Sets all eight 32-bit unsigned integers.
   inline void setU32(uint32_t x0) noexcept {
     if (ASMJIT_ARCH_BITS >= 64) {
       uint64_t xq = (uint64_t(x0) << 32) + x0;
@@ -971,7 +971,7 @@ union Data256 {
     }
   }
 
-  //! Set all eight 32-bit signed integers.
+  //! Sets all eight 32-bit signed integers.
   inline void setI32(
     int32_t x0, int32_t x1, int32_t x2, int32_t x3,
     int32_t x4, int32_t x5, int32_t x6, int32_t x7) noexcept {
@@ -980,7 +980,7 @@ union Data256 {
     sd[4] = x4; sd[5] = x5; sd[6] = x6; sd[7] = x7;
   }
 
-  //! Set all eight 32-bit unsigned integers.
+  //! Sets all eight 32-bit unsigned integers.
   inline void setU32(
     uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3,
     uint32_t x4, uint32_t x5, uint32_t x6, uint32_t x7) noexcept {
@@ -989,33 +989,33 @@ union Data256 {
     ud[4] = x4; ud[5] = x5; ud[6] = x6; ud[7] = x7;
   }
 
-  //! Set all four 64-bit signed integers.
+  //! Sets all four 64-bit signed integers.
   inline void setI64(int64_t x0) noexcept {
     sq[0] = x0; sq[1] = x0; sq[2] = x0; sq[3] = x0;
   }
 
-  //! Set all four 64-bit unsigned integers.
+  //! Sets all four 64-bit unsigned integers.
   inline void setU64(uint64_t x0) noexcept {
     uq[0] = x0; uq[1] = x0; uq[2] = x0; uq[3] = x0;
   }
 
-  //! Set all four 64-bit signed integers.
+  //! Sets all four 64-bit signed integers.
   inline void setI64(int64_t x0, int64_t x1, int64_t x2, int64_t x3) noexcept {
     sq[0] = x0; sq[1] = x1; sq[2] = x2; sq[3] = x3;
   }
 
-  //! Set all four 64-bit unsigned integers.
+  //! Sets all four 64-bit unsigned integers.
   inline void setU64(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3) noexcept {
     uq[0] = x0; uq[1] = x1; uq[2] = x2; uq[3] = x3;
   }
 
-  //! Set all eight SP-FP floats.
+  //! Sets all eight SP-FP floats.
   inline void setF32(float x0) noexcept {
     sf[0] = x0; sf[1] = x0; sf[2] = x0; sf[3] = x0;
     sf[4] = x0; sf[5] = x0; sf[6] = x0; sf[7] = x0;
   }
 
-  //! Set all eight SP-FP floats.
+  //! Sets all eight SP-FP floats.
   inline void setF32(
     float x0, float x1, float x2, float x3,
     float x4, float x5, float x6, float x7) noexcept {
@@ -1024,12 +1024,12 @@ union Data256 {
     sf[4] = x4; sf[5] = x5; sf[6] = x6; sf[7] = x7;
   }
 
-  //! Set all four DP-FP floats.
+  //! Sets all four DP-FP floats.
   inline void setF64(double x0) noexcept {
     df[0] = x0; df[1] = x0; df[2] = x0; df[3] = x0;
   }
 
-  //! Set all four DP-FP floats.
+  //! Sets all four DP-FP floats.
   inline void setF64(double x0, double x1, double x2, double x3) noexcept {
     df[0] = x0; df[1] = x1; df[2] = x2; df[3] = x3;
   }

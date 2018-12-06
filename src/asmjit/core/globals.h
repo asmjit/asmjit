@@ -321,7 +321,7 @@ namespace DebugUtils {
 //! help with tracing the origin of any error reported / returned by AsmJit.
 static constexpr Error errored(Error err) noexcept { return err; }
 
-//! Get a printable version of `asmjit::Error` code.
+//! Gets a printable version of `asmjit::Error` code.
 ASMJIT_API const char* errorAsString(Error err) noexcept;
 
 //! Called to output debugging message(s).

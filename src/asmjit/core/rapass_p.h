@@ -259,39 +259,40 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get the instruction flags.
+  //! Gets the instruction flags.
   inline uint32_t flags() const noexcept { return _flags; }
-  //! Get whether the instruction has flag `flag`.
+  //! Gets whether the instruction has flag `flag`.
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
-  //! Set instruction flags to `flags`.
+  //! Replaces the existing instruction flags with `flags`.
   inline void setFlags(uint32_t flags) noexcept { _flags = flags; }
-  //! Add instruction `flags`.
+  //! Adds instruction `flags` to this RAInst.
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
-  //! Clear instruction `flags`.
+  //! Clears instruction `flags` from  this RAInst.
   inline void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
 
-  //! Get whether the node is code that can be executed.
+  //! Gets whether the node is code that can be executed.
   inline bool isTerminator() const noexcept { return hasFlag(kFlagIsTerminator); }
 
+  //! Gets the associated block with this RAInst.
   inline RABlock* block() const noexcept { return _block; }
 
-  //! Get tied registers (all).
+  //! Gets tied registers (all).
   inline RATiedReg* tiedRegs() const noexcept { return const_cast<RATiedReg*>(_tiedRegs); }
-  //! Get tied registers for a given `group`.
+  //! Gets tied registers for a given `group`.
   inline RATiedReg* tiedRegs(uint32_t group) const noexcept { return const_cast<RATiedReg*>(_tiedRegs) + _tiedIndex.get(group); }
 
-   //! Get count of all tied registers.
+  //! Gets count of all tied registers.
   inline uint32_t tiedCount() const noexcept { return _tiedTotal; }
-  //! Get count of tied registers of a given `group`.
+  //! Gets count of tied registers of a given `group`.
   inline uint32_t tiedCount(uint32_t group) const noexcept { return _tiedCount[group]; }
 
-  //! Get `RATiedReg` at the specified `index`.
+  //! Gets `RATiedReg` at the specified `index`.
   inline RATiedReg* tiedAt(uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < _tiedTotal);
     return tiedRegs() + index;
   }
 
-  //! Get `RATiedReg` at the specified index for a given register `group`.
+  //! Gets `RATiedReg` at the specified index for a given register `group`.
   inline RATiedReg* tiedOf(uint32_t group, uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < _tiedCount._regs[group]);
     return tiedRegs(group) + index;
@@ -349,16 +350,16 @@ public:
   inline uint32_t flags() const noexcept { return _flags; }
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
 
-  //! Get the number of tied registers added to the builder.
+  //! Gets the number of tied registers added to the builder.
   inline uint32_t tiedRegCount() const noexcept { return uint32_t((size_t)(_cur - _tiedRegs)); }
 
-  //! Get a tied register at index `index`.
+  //! Gets a tied register at index `index`.
   inline RATiedReg* operator[](uint32_t index) noexcept {
     ASMJIT_ASSERT(index < tiedRegCount());
     return &_tiedRegs[index];
   }
 
-  //! Get a tied register at index `index` (const).
+  //! Gets a tied register at index `index` (const).
   inline const RATiedReg* operator[](uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < tiedRegCount());
     return &_tiedRegs[index];
@@ -545,24 +546,24 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get `Logger` passed to `runOnFunction()`.
+  //! Gets `Logger` passed to `runOnFunction()`.
   inline Logger* logger() const noexcept { return _logger; }
-  //! Get `Logger` passed to `runOnFunction()` or null if `kOptionDebugPasses` is not set.
+  //! Gets `Logger` passed to `runOnFunction()` or null if `kOptionDebugPasses` is not set.
   inline Logger* debugLogger() const noexcept { return _debugLogger; }
 
-  //! Get `Zone` passed to `runOnFunction()`.
+  //! Gets `Zone` passed to `runOnFunction()`.
   inline Zone* zone() const noexcept { return _allocator.zone(); }
-  //! Get `ZoneAllocator` used by the register allocator.
+  //! Gets `ZoneAllocator` used by the register allocator.
   inline ZoneAllocator* allocator() const noexcept { return const_cast<ZoneAllocator*>(&_allocator); }
 
-  //! Get function node.
+  //! Gets the current function node.
   inline FuncNode* func() const noexcept { return _func; }
-  //! Get stop node.
+  //! Gets the stop of the current function.
   inline BaseNode* stop() const noexcept { return _stop; }
 
-  //! Get extra block.
+  //! Gets an extra block.
   inline BaseNode* extraBlock() const noexcept { return _extraBlock; }
-  //! Set extra block.
+  //! Sets an extra block.
   inline void setExtraBlock(BaseNode* node) noexcept { _extraBlock = node; }
 
   inline uint32_t endPosition() const noexcept { return _instructionCount * 2; }
@@ -579,10 +580,10 @@ public:
   // [RunOnFunction / RunAllocation]
   // --------------------------------------------------------------------------
 
-  //! Run the register allocator for the given `func`.
+  //! Runs the register allocator for the given `func`.
   Error runOnFunction(Zone* zone, Logger* logger, FuncNode* func) noexcept override;
 
-  //! Perform all allocation steps sequentially, called by `runOnFunction()`.
+  //! Performs all allocation steps sequentially, called by `runOnFunction()`.
   Error onPerformAllSteps() noexcept;
 
   // --------------------------------------------------------------------------
@@ -601,24 +602,24 @@ public:
   // [CFG - Basic Block Management]
   // --------------------------------------------------------------------------
 
-  //! Get entry block.
+  //! Gets entry block of the current function.
   inline RABlock* entryBlock() noexcept {
     ASMJIT_ASSERT(!_blocks.empty());
     return _blocks[0];
   }
 
-  //! Get entry block (const).
+  //! \overload
   inline const RABlock* entryBlock() const noexcept {
     ASMJIT_ASSERT(!_blocks.empty());
     return _blocks[0];
   }
 
-  //! Get count of basic blocks (returns size of `_blocks` array).
+  //! Gets count of basic blocks (returns size of `_blocks` array).
   inline uint32_t blockCount() const noexcept { return _blocks.size(); }
-  //! Get count of reachable basic blocks (returns size of `_pov` array).
+  //! Gets count of reachable basic blocks (returns size of `_pov` array).
   inline uint32_t reachableBlockCount() const noexcept { return _pov.size(); }
 
-  //! Get whether the CFG has dangling blocks - these were created by `newBlock()`,
+  //! Gets whether the CFG has dangling blocks - these were created by `newBlock()`,
   //! but not added to CFG through `addBlocks()`. If `true` is returned and the
   //! CFG is constructed it means that something is missing and it's incomplete.
   //!
@@ -626,10 +627,10 @@ public:
   //! the number of added blocks.
   inline bool hasDanglingBlocks() const noexcept { return _createdBlockCount != blockCount(); }
 
-  //! Get a next timestamp to be used to mark CFG blocks.
+  //! Gest a next timestamp to be used to mark CFG blocks.
   inline uint64_t nextTimestamp() const noexcept { return ++_lastTimestamp; }
 
-  //! Creates a new `RABlock` instance.
+  //! Createss a new `RABlock` instance.
   //!
   //! NOTE: New blocks don't have ID assigned until they are added to the block
   //! array by calling `addBlock()`.
@@ -640,7 +641,7 @@ public:
   //! is created and assigned to all possible labels in a backward direction.
   RABlock* newBlockOrExistingAt(LabelNode* cbLabel, BaseNode** stoppedAt = nullptr) noexcept;
 
-  //! Add the given `block` to the block list and assign it a unique block id.
+  //! Adds the given `block` to the block list and assign it a unique block id.
   Error addBlock(RABlock* block) noexcept;
 
   inline Error addExitBlock(RABlock* block) noexcept {
@@ -717,7 +718,7 @@ public:
   // [CFG - Views Order]
   // --------------------------------------------------------------------------
 
-  //! Construct CFG views (only POV at the moment).
+  //! Constructs CFG views (only POV at the moment).
   Error buildViews() noexcept;
 
   // --------------------------------------------------------------------------
@@ -730,7 +731,7 @@ public:
   //   - A node `Z` post-dominates a node `X` if any path from `X` to the end
   //     of the graph has to go through `Z`.
 
-  //! Construct a dominator-tree from CFG.
+  //! Constructs a dominator-tree from CFG.
   Error buildDominators() noexcept;
 
   //! \internal
@@ -738,14 +739,14 @@ public:
   //! \internal
   const RABlock* _nearestCommonDominator(const RABlock* a, const RABlock* b) const noexcept;
 
-  //! Get whether basic block `a` dominates `b` - non-strict, returns true when `a == b`.
+  //! Gets whether basic block `a` dominates `b` - non-strict, returns true when `a == b`.
   inline bool dominates(const RABlock* a, const RABlock* b) const noexcept { return a == b ? true : _strictlyDominates(a, b); }
-  //! Get whether basic block `a` dominates `b` - strict dominance check, returns false when `a == b`.
+  //! Gets whether basic block `a` dominates `b` - strict dominance check, returns false when `a == b`.
   inline bool strictlyDominates(const RABlock* a, const RABlock* b) const noexcept { return a == b ? false : _strictlyDominates(a, b); }
 
-  //! Get a nearest common dominator of `a` and `b`.
+  //! Gets a nearest common dominator of `a` and `b`.
   inline RABlock* nearestCommonDominator(RABlock* a, RABlock* b) const noexcept { return const_cast<RABlock*>(_nearestCommonDominator(a, b)); }
-  //! Get a nearest common dominator of `a` and `b` (const).
+  //! Gets a nearest common dominator of `a` and `b` (const).
   inline const RABlock* nearestCommonDominator(const RABlock* a, const RABlock* b) const noexcept { return _nearestCommonDominator(a, b); }
 
   // --------------------------------------------------------------------------
@@ -769,7 +770,7 @@ public:
   // [Registers - Management]
   // --------------------------------------------------------------------------
 
-  //! Get a native size of a general-purpose register.
+  //! Gets a native size of a general-purpose register.
   inline uint32_t gpSize() const noexcept { return _sp.size(); }
   inline uint32_t availableRegCount(uint32_t group) const noexcept { return _availableRegCount[group]; }
 
@@ -842,8 +843,8 @@ public:
   // [Registers - Liveness Analysis and Statistics]
   // --------------------------------------------------------------------------
 
-  //! 1. Calculate GEN/KILL/IN/OUT of each block.
-  //! 2. Calculate live spans and basic statistics of each work register.
+  //! 1. Calculates GEN/KILL/IN/OUT of each block.
+  //! 2. Calculates live spans and basic statistics of each work register.
   Error buildLiveness() noexcept;
 
   //! Assigns argIndex to WorkRegs. Must be called after the liveness analysis
@@ -854,10 +855,10 @@ public:
   // [Allocation - Global]
   // --------------------------------------------------------------------------
 
-  //! Run a global register allocator.
+  //! Runs a global register allocator.
   Error runGlobalAllocator() noexcept;
 
-  //! Initialize data structures used for global live spans.
+  //! Initializes data structures used for global live spans.
   Error initGlobalLiveSpans() noexcept;
 
   Error binPack(uint32_t group) noexcept;
@@ -866,7 +867,7 @@ public:
   // [Allocation - Local]
   // --------------------------------------------------------------------------
 
-  //! Run a local register allocator.
+  //! Runs a local register allocator.
   Error runLocalAllocator() noexcept;
   Error setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, const RAAssignment& fromAssignment) noexcept;
 

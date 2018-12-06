@@ -64,7 +64,7 @@ public:
   inline void _makeRed() noexcept { _rbNodeData[0] |= kRedMask; }
   inline void _makeBlack() noexcept { _rbNodeData[0] &= kPtrMask; }
 
-  //! Get whether the node is RED (RED node must be non-null and must have RED flag set).
+  //! Gets whether the node is RED (RED node must be non-null and must have RED flag set).
   static inline bool _isValidRed(ZoneTreeNode* node) noexcept { return node && node->isRed(); }
 
   // --------------------------------------------------------------------------

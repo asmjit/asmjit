@@ -251,48 +251,48 @@ struct CallConv {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get calling convention id, see `Id`.
+  //! Gets the calling convention id, see `Id`.
   inline uint32_t id() const noexcept { return _id; }
-  //! Set calling convention id, see `Id`.
+  //! Sets the calling convention id, see `Id`.
   inline void setId(uint32_t id) noexcept { _id = uint8_t(id); }
 
-  //! Get architecture type.
+  //! Gets the calling function architecture id.
   inline uint32_t archId() const noexcept { return _archId; }
-  //! Set architecture type.
+  //! Sets the calling function architecture id.
   inline void setArchType(uint32_t archId) noexcept { _archId = uint8_t(archId); }
 
-  //! Get a strategy used to assign registers to arguments, see `Strategy`.
+  //! Gets the strategy used to assign registers to arguments, see `Strategy`.
   inline uint32_t strategy() const noexcept { return _strategy; }
-  //! Set a strategy used to assign registers to arguments, see `Strategy`.
+  //! Sets the strategy used to assign registers to arguments, see `Strategy`.
   inline void setStrategy(uint32_t strategy) noexcept { _strategy = uint8_t(strategy); }
 
-  //! Get whether the calling convention has the given `flag` set.
+  //! Gets whether the calling convention has the given `flag` set.
   inline bool hasFlag(uint32_t flag) const noexcept { return (uint32_t(_flags) & flag) != 0; }
-  //! Get calling convention flags, see `Flags`.
+  //! Gets the calling convention flags, see `Flags`.
   inline uint32_t flags() const noexcept { return _flags; }
-  //! Add calling convention flags, see `Flags`.
+  //! Adds the calling convention flags, see `Flags`.
   inline void setFlags(uint32_t flag) noexcept { _flags = uint8_t(flag); };
-  //! Add calling convention flags, see `Flags`.
+  //! Adds the calling convention flags, see `Flags`.
   inline void addFlags(uint32_t flags) noexcept { _flags = uint8_t(_flags | flags); };
 
-  //! Get whether this calling convention specifies 'RedZone'.
+  //! Gets whether this calling convention specifies 'RedZone'.
   inline bool hasRedZone() const noexcept { return _redZoneSize != 0; }
-  //! Get whether this calling convention specifies 'SpillZone'.
+  //! Gets whether this calling convention specifies 'SpillZone'.
   inline bool hasSpillZone() const noexcept { return _spillZoneSize != 0; }
 
-  //! Get size of 'RedZone'.
+  //! Gets size of 'RedZone'.
   inline uint32_t redZoneSize() const noexcept { return _redZoneSize; }
-  //! Get size of 'SpillZone'.
+  //! Gets size of 'SpillZone'.
   inline uint32_t spillZoneSize() const noexcept { return _spillZoneSize; }
 
-  //! Set size of 'RedZone'.
+  //! Sets size of 'RedZone'.
   inline void setRedZoneSize(uint32_t size) noexcept { _redZoneSize = uint8_t(size); }
-  //! Set size of 'SpillZone'.
+  //! Sets size of 'SpillZone'.
   inline void setSpillZoneSize(uint32_t size) noexcept { _spillZoneSize = uint8_t(size); }
 
-  //! Get a natural stack alignment.
+  //! Gets a natural stack alignment.
   inline uint32_t naturalStackAlignment() const noexcept { return _naturalStackAlignment; }
-  //! Set a natural stack alignment.
+  //! Sets a natural stack alignment.
   //!
   //! This function can be used to override the default stack alignment in case
   //! that you know that it's alignment is different. For example it allows to

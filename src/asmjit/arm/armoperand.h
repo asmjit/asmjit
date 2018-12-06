@@ -85,21 +85,21 @@ public:
     kGroupCount                          //!< Count of all ARM register groups.
   };
 
-  //! Get whether the register is a GP register of any size.
+  //! Gets whether the register is a GP register of any size.
   constexpr bool isGp() const noexcept { return _reg.group == kGroupGp; }
-  //! Get whether the register is a VFP/ASIMD register of any size.
+  //! Gets whether the register is a VFP/ASIMD register of any size.
   constexpr bool isVec() const noexcept { return _reg.group == kGroupVec; }
 
-  //! Get whether the register is a `R|W` register (32-bit).
+  //! Gets whether the register is a `R|W` register (32-bit).
   constexpr bool isGpw() const noexcept { return hasSignature(RegTraits<kTypeGpw>::kSignature); }
-  //! Get whether the register is an `X` register (64-bit).
+  //! Gets whether the register is an `X` register (64-bit).
   constexpr bool isGpx() const noexcept { return hasSignature(RegTraits<kTypeGpx>::kSignature); }
 
-  //! Get whether the register is a VEC-S register (32-bit).
+  //! Gets whether the register is a VEC-S register (32-bit).
   constexpr bool isVecS() const noexcept { return hasSignature(RegTraits<kTypeVecS>::kSignature); }
-  //! Get whether the register is a VEC-D register (64-bit).
+  //! Gets whether the register is a VEC-D register (64-bit).
   constexpr bool isVecD() const noexcept { return hasSignature(RegTraits<kTypeVecD>::kSignature); }
-  //! Get whether the register is a VEC-V register (128-bit).
+  //! Gets whether the register is a VEC-V register (128-bit).
   constexpr bool isVecV() const noexcept { return hasSignature(RegTraits<kTypeVecV>::kSignature); }
 
   template<uint32_t REG_TYPE>
@@ -218,9 +218,9 @@ public:
   // [Arm Specific]
   // --------------------------------------------------------------------------
 
-  //! Clone the memory operand.
+  //! Clones the memory operand.
   constexpr Mem clone() const noexcept { return Mem(*this); }
-  //! Get new memory operand adjusted by `off`.
+  //! Gets new memory operand adjusted by `off`.
   inline Mem cloneAdjusted(int64_t off) const noexcept {
     Mem result(*this);
     result.addOffset(off);
@@ -234,20 +234,20 @@ public:
     setShift(shift);
   }
 
-  //! Get whether the memory operand has shift (aka scale) constant.
+  //! Gets whether the memory operand has shift (aka scale) constant.
   constexpr bool hasShift() const noexcept { return _hasSignaturePart<kSignatureMemShiftMask>(); }
-  //! Get the memory operand's shift (aka scale) constant.
+  //! Gets the memory operand's shift (aka scale) constant.
   constexpr uint32_t shift() const noexcept { return _getSignaturePart<kSignatureMemShiftMask>(); }
-  //! Set the memory operand's shift (aka scale) constant.
+  //! Sets the memory operand's shift (aka scale) constant.
   inline void setShift(uint32_t shift) noexcept { _setSignaturePart<kSignatureMemShiftMask>(shift); }
-  //! Reset the memory operand's shift (aka scale) constant to zero.
+  //! Resets the memory operand's shift (aka scale) constant to zero.
   inline void resetShift() noexcept { _setSignaturePart<kSignatureMemShiftMask>(0); }
 
-  //! Get the addressing mode, see `Mem::OffsetMode`.
+  //! Gets the addressing mode, see `Mem::OffsetMode`.
   constexpr uint32_t offsetMode() const noexcept { return _getSignaturePart<kSignatureMemModeMask>(); }
-  //! Set the addressing mode, see `Mem::OffsetMode`.
+  //! Sets the addressing mode, see `Mem::OffsetMode`.
   inline void setOffsetMode(uint32_t mode) noexcept { _setSignaturePart<kSignatureMemModeMask>(mode); }
-  //! Reset the addressing mode to `Mem::OffsetMode`.
+  //! Resets the addressing mode to `Mem::OffsetMode`.
   inline void resetOffsetMode() noexcept { _setSignaturePart<kSignatureMemModeMask>(kOffsetFixed); }
 
   constexpr bool isFixedOffset() const noexcept { return offsetMode() == kOffsetFixed; }
@@ -315,15 +315,15 @@ inline uint32_t Reg::groupOf(uint32_t regType) noexcept {
 namespace regs {
 namespace {
 
-//! Create a 32-bit W register operand (ARM/AArch64).
+//! Creates a 32-bit W register operand (ARM/AArch64).
 static constexpr Gpw w(uint32_t id) noexcept { return Gpw(id); }
-//! Create a 64-bit X register operand (AArch64).
+//! Creates a 64-bit X register operand (AArch64).
 static constexpr Gpx x(uint32_t id) noexcept { return Gpx(id); }
-//! Create a 32-bit S register operand (ARM/AArch64).
+//! Creates a 32-bit S register operand (ARM/AArch64).
 static constexpr VecS s(uint32_t id) noexcept { return VecS(id); }
-//! Create a 64-bit D register operand (ARM/AArch64).
+//! Creates a 64-bit D register operand (ARM/AArch64).
 static constexpr VecD d(uint32_t id) noexcept { return VecD(id); }
-//! Create a 1282-bit V register operand (ARM/AArch64).
+//! Creates a 1282-bit V register operand (ARM/AArch64).
 static constexpr VecV v(uint32_t id) noexcept { return VecV(id); }
 
 static constexpr Gpw w0(0);

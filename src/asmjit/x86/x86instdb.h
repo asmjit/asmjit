@@ -458,62 +458,62 @@ struct CommonInfo {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get all instruction flags, see `InstInfo::Flags`.
+  //! Gets all instruction flags, see `InstInfo::Flags`.
   inline uint32_t flags() const noexcept { return _flags; }
-  //! Get whether the instruction has a `flag`, see `InstInfo::Flags`.
+  //! Gets whether the instruction has a `flag`, see `InstInfo::Flags`.
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
-  //! Get whether the instruction is FPU instruction.
+  //! Gets whether the instruction is FPU instruction.
   inline bool isFpu() const noexcept { return hasFlag(kFlagFpu); }
-  //! Get whether the instruction is MMX/3DNOW instruction that accesses MMX registers (includes EMMS and FEMMS).
+  //! Gets whether the instruction is MMX/3DNOW instruction that accesses MMX registers (includes EMMS and FEMMS).
   inline bool isMmx() const noexcept { return hasFlag(kFlagMmx); }
-  //! Get whether the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers.
+  //! Gets whether the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers.
   inline bool isVec() const noexcept { return hasFlag(kFlagVec); }
-  //! Get whether the instruction is SSE+ (SSE4.2, AES, SHA included) instruction that accesses XMM registers.
+  //! Gets whether the instruction is SSE+ (SSE4.2, AES, SHA included) instruction that accesses XMM registers.
   inline bool isSse() const noexcept { return (flags() & (kFlagVec | kFlagVex | kFlagEvex)) == kFlagVec; }
-  //! Get whether the instruction is AVX+ (FMA included) instruction that accesses XMM|YMM|ZMM registers.
+  //! Gets whether the instruction is AVX+ (FMA included) instruction that accesses XMM|YMM|ZMM registers.
   inline bool isAvx() const noexcept { return isVec() && isVexOrEvex(); }
 
-  //! Get whether the instruction can be prefixed with LOCK prefix.
+  //! Gets whether the instruction can be prefixed with LOCK prefix.
   inline bool hasLockPrefix() const noexcept { return hasFlag(kFlagLock); }
-  //! Get whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
+  //! Gets whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
   inline bool hasRepPrefix() const noexcept { return hasFlag(kFlagRep); }
-  //! Get whether the instruction can be prefixed with REPNE (REPNZ) prefix.
+  //! Gets whether the instruction can be prefixed with REPNE (REPNZ) prefix.
   inline bool hasRepnePrefix() const noexcept { return hasFlag(kFlagRepne); }
-  //! Get whether the instruction can be prefixed with XACQUIRE prefix.
+  //! Gets whether the instruction can be prefixed with XACQUIRE prefix.
   inline bool hasXAcquirePrefix() const noexcept { return hasFlag(kFlagXAcquire); }
-  //! Get whether the instruction can be prefixed with XRELEASE prefix.
+  //! Gets whether the instruction can be prefixed with XRELEASE prefix.
   inline bool hasXReleasePrefix() const noexcept { return hasFlag(kFlagXRelease); }
 
-  //! Get whether the instruction uses MIB.
+  //! Gets whether the instruction uses MIB.
   inline bool isMibOp() const noexcept { return hasFlag(kFlagMib); }
-  //! Get whether the instruction uses VSIB.
+  //! Gets whether the instruction uses VSIB.
   inline bool isVsibOp() const noexcept { return hasFlag(kFlagVsib); }
-  //! Get whether the instruction uses VEX (can be set together with EVEX if both are encodable).
+  //! Gets whether the instruction uses VEX (can be set together with EVEX if both are encodable).
   inline bool isVex() const noexcept { return hasFlag(kFlagVex); }
-  //! Get whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  //! Gets whether the instruction uses EVEX (can be set together with VEX if both are encodable).
   inline bool isEvex() const noexcept { return hasFlag(kFlagEvex); }
-  //! Get whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  //! Gets whether the instruction uses EVEX (can be set together with VEX if both are encodable).
   inline bool isVexOrEvex() const noexcept { return hasFlag(kFlagVex | kFlagEvex); }
 
-  //! Get whether the instruction supports AVX512 masking {k}.
+  //! Gets whether the instruction supports AVX512 masking {k}.
   inline bool hasAvx512K() const noexcept { return hasFlag(kFlagAvx512K); }
-  //! Get whether the instruction supports AVX512 zeroing {k}{z}.
+  //! Gets whether the instruction supports AVX512 zeroing {k}{z}.
   inline bool hasAvx512Z() const noexcept { return hasFlag(kFlagAvx512Z); }
-  //! Get whether the instruction supports AVX512 embedded-rounding {er}.
+  //! Gets whether the instruction supports AVX512 embedded-rounding {er}.
   inline bool hasAvx512ER() const noexcept { return hasFlag(kFlagAvx512ER); }
-  //! Get whether the instruction supports AVX512 suppress-all-exceptions {sae}.
+  //! Gets whether the instruction supports AVX512 suppress-all-exceptions {sae}.
   inline bool hasAvx512SAE() const noexcept { return hasFlag(kFlagAvx512SAE); }
-  //! Get whether the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
+  //! Gets whether the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
   inline bool hasAvx512B() const noexcept { return hasFlag(kFlagAvx512B32 | kFlagAvx512B64); }
-  //! Get whether the instruction supports AVX512 broadcast (32-bit).
+  //! Gets whether the instruction supports AVX512 broadcast (32-bit).
   inline bool hasAvx512B32() const noexcept { return hasFlag(kFlagAvx512B32); }
-  //! Get whether the instruction supports AVX512 broadcast (64-bit).
+  //! Gets whether the instruction supports AVX512 broadcast (64-bit).
   inline bool hasAvx512B64() const noexcept { return hasFlag(kFlagAvx512B64); }
 
-  //! Get the destination index of WRITE operation.
+  //! Gets the destination index of WRITE operation.
   inline uint32_t writeIndex() const noexcept { return _writeIndex; }
-  //! Get the number of bytes that will be written by a WRITE operation.
+  //! Gets the number of bytes that will be written by a WRITE operation.
   //!
   //! This information is required by a liveness analysis to mark virtual
   //! registers dead even if the instruction doesn't completely overwrite
@@ -529,7 +529,7 @@ struct CommonInfo {
   inline const InstSignature* signatureData() const noexcept { return _instSignatureTable + _iSignatureIndex; }
   inline const InstSignature* signatureEnd() const noexcept { return _instSignatureTable + _iSignatureIndex + _iSignatureCount; }
 
-  //! Get the control-flow type of the instruction.
+  //! Gets the control-flow type of the instruction.
   inline uint32_t controlType() const noexcept { return _controlType; }
 
   inline uint32_t singleRegCase() const noexcept { return _singleRegCase; }
@@ -611,84 +611,84 @@ struct InstInfo {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get instruction name (null terminated).
+  //! Gets instruction name (null terminated).
   //!
   //! NOTE: If AsmJit was compiled with `ASMJIT_DISABLE_TEXT` then this will
   //! return an empty string (null terminated string of zero size).
   inline const char* name() const noexcept { return _nameData + _nameDataIndex; };
 
-  //! Get common information, see `CommonInfo`.
+  //! Gets common information, see `CommonInfo`.
   inline const CommonInfo& commonInfo() const noexcept { return _commonInfoTable[_commonInfoIndex]; }
-  //! Get execution information, see `ExecutionInfo`.
+  //! Gets execution information, see `ExecutionInfo`.
   inline const ExecutionInfo& executionInfo() const noexcept { return _executionInfoTable[_executionInfoIndex]; }
 
-  //! Get whether the instruction has flag `flag`, see `Flags`.
+  //! Gets whether the instruction has flag `flag`, see `Flags`.
   inline bool hasFlag(uint32_t flag) const noexcept { return commonInfo().hasFlag(flag); }
-  //! Get instruction flags, see `Flags`.
+  //! Gets instruction flags, see `Flags`.
   inline uint32_t flags() const noexcept { return commonInfo().flags(); }
 
-  //! Get whether the instruction is FPU instruction.
+  //! Gets whether the instruction is FPU instruction.
   inline bool isFpu() const noexcept { return commonInfo().isFpu(); }
-  //! Get whether the instruction is MMX/3DNOW instruction that accesses MMX registers (includes EMMS and FEMMS).
+  //! Gets whether the instruction is MMX/3DNOW instruction that accesses MMX registers (includes EMMS and FEMMS).
   inline bool isMmx() const noexcept { return commonInfo().isMmx(); }
-  //! Get whether the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers.
+  //! Gets whether the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers.
   inline bool isVec() const noexcept { return commonInfo().isVec(); }
-  //! Get whether the instruction is SSE+ (SSE4.2, AES, SHA included) instruction that accesses XMM registers.
+  //! Gets whether the instruction is SSE+ (SSE4.2, AES, SHA included) instruction that accesses XMM registers.
   inline bool isSse() const noexcept { return commonInfo().isSse(); }
-  //! Get whether the instruction is AVX+ (FMA included) instruction that accesses XMM|YMM|ZMM registers.
+  //! Gets whether the instruction is AVX+ (FMA included) instruction that accesses XMM|YMM|ZMM registers.
   inline bool isAvx() const noexcept { return commonInfo().isAvx(); }
 
-  //! Get whether the instruction can be prefixed with LOCK prefix.
+  //! Gets whether the instruction can be prefixed with LOCK prefix.
   inline bool hasLockPrefix() const noexcept { return commonInfo().hasLockPrefix(); }
-  //! Get whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
+  //! Gets whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
   inline bool hasRepPrefix() const noexcept { return commonInfo().hasRepPrefix(); }
-  //! Get whether the instruction can be prefixed with REPNE (REPNZ) prefix.
+  //! Gets whether the instruction can be prefixed with REPNE (REPNZ) prefix.
   inline bool hasRepnePrefix() const noexcept { return commonInfo().hasRepnePrefix(); }
-  //! Get whether the instruction can be prefixed with XACQUIRE prefix.
+  //! Gets whether the instruction can be prefixed with XACQUIRE prefix.
   inline bool hasXAcquirePrefix() const noexcept { return commonInfo().hasXAcquirePrefix(); }
-  //! Get whether the instruction can be prefixed with XRELEASE prefix.
+  //! Gets whether the instruction can be prefixed with XRELEASE prefix.
   inline bool hasXReleasePrefix() const noexcept { return commonInfo().hasXReleasePrefix(); }
 
-  //! Get whether the instruction uses MIB.
+  //! Gets whether the instruction uses MIB.
   inline bool isMibOp() const noexcept { return hasFlag(kFlagMib); }
-  //! Get whether the instruction uses VSIB.
+  //! Gets whether the instruction uses VSIB.
   inline bool isVsibOp() const noexcept { return hasFlag(kFlagVsib); }
-  //! Get whether the instruction uses VEX (can be set together with EVEX if both are encodable).
+  //! Gets whether the instruction uses VEX (can be set together with EVEX if both are encodable).
   inline bool isVex() const noexcept { return hasFlag(kFlagVex); }
-  //! Get whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  //! Gets whether the instruction uses EVEX (can be set together with VEX if both are encodable).
   inline bool isEvex() const noexcept { return hasFlag(kFlagEvex); }
-  //! Get whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  //! Gets whether the instruction uses EVEX (can be set together with VEX if both are encodable).
   inline bool isVexOrEvex() const noexcept { return hasFlag(kFlagVex | kFlagEvex); }
 
-  //! Get whether the instruction supports AVX512 masking {k}.
+  //! Gets whether the instruction supports AVX512 masking {k}.
   inline bool hasAvx512K() const noexcept { return hasFlag(kFlagAvx512K); }
-  //! Get whether the instruction supports AVX512 zeroing {k}{z}.
+  //! Gets whether the instruction supports AVX512 zeroing {k}{z}.
   inline bool hasAvx512Z() const noexcept { return hasFlag(kFlagAvx512Z); }
-  //! Get whether the instruction supports AVX512 embedded-rounding {er}.
+  //! Gets whether the instruction supports AVX512 embedded-rounding {er}.
   inline bool hasAvx512ER() const noexcept { return hasFlag(kFlagAvx512ER); }
-  //! Get whether the instruction supports AVX512 suppress-all-exceptions {sae}.
+  //! Gets whether the instruction supports AVX512 suppress-all-exceptions {sae}.
   inline bool hasAvx512SAE() const noexcept { return hasFlag(kFlagAvx512SAE); }
-  //! Get whether the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
+  //! Gets whether the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
   inline bool hasAvx512B() const noexcept { return hasFlag(kFlagAvx512B32 | kFlagAvx512B64); }
-  //! Get whether the instruction supports AVX512 broadcast (32-bit).
+  //! Gets whether the instruction supports AVX512 broadcast (32-bit).
   inline bool hasAvx512B32() const noexcept { return hasFlag(kFlagAvx512B32); }
-  //! Get whether the instruction supports AVX512 broadcast (64-bit).
+  //! Gets whether the instruction supports AVX512 broadcast (64-bit).
   inline bool hasAvx512B64() const noexcept { return hasFlag(kFlagAvx512B64); }
 
-  //! Get whether 1st operand is read-only.
+  //! Gets whether 1st operand is read-only.
   inline bool isUseR() const noexcept { return (flags() & kFlagUseX) == kFlagUseR; }
-  //! Get whether 1st operand is write-only.
+  //! Gets whether 1st operand is write-only.
   inline bool isUseW() const noexcept { return (flags() & kFlagUseX) == kFlagUseW; }
-  //! Get whether 1st operand is read-write.
+  //! Gets whether 1st operand is read-write.
   inline bool isUseX() const noexcept { return (flags() & kFlagUseX) == kFlagUseX; }
-  //! Get whether 1st and 2nd operands are read-write.
+  //! Gets whether 1st and 2nd operands are read-write.
   inline bool isUseXX() const noexcept { return hasFlag(kFlagUseXX); }
 
   inline bool hasFixedReg() const noexcept { return hasFlag(kFlagFixedReg); }
   inline bool hasFixedMem() const noexcept { return hasFlag(kFlagFixedMem); }
   inline bool hasFixedRM() const noexcept { return hasFlag(kFlagFixedRM); }
 
-  //! Get the control-flow type of the instruction.
+  //! Gets the control-flow type of the instruction.
   inline uint32_t controlType() const noexcept { return commonInfo().controlType(); }
   inline uint32_t singleRegCase() const noexcept { return commonInfo().singleRegCase(); }
   inline uint32_t specialCases() const noexcept { return commonInfo().specialCases(); }
@@ -737,7 +737,7 @@ static inline uint32_t altOpcodeFromId(uint32_t instId) noexcept {
 #endif
 
 #ifndef ASMJIT_DISABLE_TEXT
-//! Get an instruction ID from a given instruction `name`.
+//! Gets an instruction ID from a given instruction `name`.
 //!
 //! NOTE: Instruction name MUST BE in lowercase, otherwise there will be no
 //! match. If there is an exact match the instruction id is returned, otherwise
@@ -745,7 +745,7 @@ static inline uint32_t altOpcodeFromId(uint32_t instId) noexcept {
 //! not have to be null-terminated if `nameSize` is provided (not `SIZE_MAX`).
 ASMJIT_API uint32_t idByName(const char* name, size_t nameSize = SIZE_MAX) noexcept;
 
-//! Get an instruction name from a given instruction id `instId`.
+//! Gets an instruction name from a given instruction id `instId`.
 ASMJIT_API const char* nameById(uint32_t instId) noexcept;
 #endif
 

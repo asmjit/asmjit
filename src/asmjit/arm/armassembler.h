@@ -41,10 +41,10 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get whether the current ARM mode is THUMB (only available on A32).
+  //! Gets whether the current ARM mode is THUMB (only available on A32).
   inline bool isInThumbMode() const noexcept { return _archInfo.subId() == ArchInfo::kSubIdA32_Thumb; }
 
-  //! Get the current code alignment of the current mode (ARM vs THUMB).
+  //! Gets the current code alignment of the current mode (ARM vs THUMB).
   inline uint32_t codeAlignment() const noexcept { return isInThumbMode() ? 2 : 4; }
 
   // --------------------------------------------------------------------------

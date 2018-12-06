@@ -22,7 +22,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 //! Operating system utilities.
 namespace OSUtils {
-  //! Get the current CPU tick count, used for benchmarking (1ms resolution).
+  //! Gets the current CPU tick count, used for benchmarking (1ms resolution).
   ASMJIT_API uint32_t getTickCount() noexcept;
 };
 

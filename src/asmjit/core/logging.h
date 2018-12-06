@@ -125,28 +125,32 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a `Logger` instance.
+  //! Creates a `Logger` instance.
   ASMJIT_API Logger() noexcept;
-  //! Destroy the `Logger` instance.
+  //! Destroys the `Logger` instance.
   ASMJIT_API virtual ~Logger() noexcept;
 
   // --------------------------------------------------------------------------
   // [Logging]
   // --------------------------------------------------------------------------
 
-  //! Log `str` - must be reimplemented.
+  //! Logs `str` - must be reimplemented.
   virtual Error _log(const char* data, size_t size) noexcept = 0;
 
-  //! Log a string `str`, which is either null terminated or having size `size`.
+  //! Logs string `str`, which is either null terminated or having size `size`.
   inline Error log(const char* data, size_t size = SIZE_MAX) noexcept { return _log(data, size); }
-  //! Log a content of a `String` `str`.
+  //! Logs content of a string `str`.
   inline Error log(const String& str) noexcept { return _log(str.data(), str.size()); }
 
-  //! Format the message by using `std::snprintf()` and then send to `log()`.
+  //! Formats the message by using `std::snprintf()` and then sends the result
+  //! to `log()`.
   ASMJIT_API Error logf(const char* fmt, ...) noexcept;
-  //! Format the message by using `std::vsnprintf()` and then send to `log()`.
+
+  //! Formats the message by using `std::vsnprintf()` and then sends the result
+  //! to `log()`.
   ASMJIT_API Error logv(const char* fmt, va_list ap) noexcept;
-  //! Log binary data.
+
+  //! Logs binary data.
   ASMJIT_API Error logBinary(const void* data, size_t size) noexcept;
 
   // --------------------------------------------------------------------------
@@ -187,19 +191,19 @@ public:
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
 
-  //! Create a new `FileLogger` that logs to `FILE*`.
+  //! Creates a new `FileLogger` that logs to `FILE*`.
   ASMJIT_API FileLogger(FILE* file = nullptr) noexcept;
-  //! Destroy the `FileLogger`.
+  //! Destroys the `FileLogger`.
   ASMJIT_API virtual ~FileLogger() noexcept;
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get the logging output stream or null if the logger has no output stream.
+  //! Gets the logging output stream or null if the logger has no output stream.
   inline FILE* file() const noexcept { return _file; }
 
-  //! Set the logging output stream to `stream` or null.
+  //! Sets the logging output stream to `stream` or null.
   //!
   //! NOTE: If the `file` is null the logging will be disabled. When a logger
   //! is attached to `CodeHolder` or any emitter the logging API will always
@@ -236,21 +240,21 @@ public:
 
   //! Create new `StringLogger`.
   ASMJIT_API StringLogger() noexcept;
-  //! Destroy the `StringLogger`.
+  //! Destroys the `StringLogger`.
   ASMJIT_API virtual ~StringLogger() noexcept;
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get `char*` pointer which represents string buffer.
+  //! Gets `char*` pointer which represents string buffer.
   //!
   //! The pointer is owned by `StringLogger`, it can't be modified or freed.
   inline const char* data() const noexcept { return _content.data(); }
-  //! Get the size of the string returned by `data()`.
+  //! Gets the size of the string returned by `data()`.
   inline size_t size() const noexcept { return _content.size(); }
 
-  //! Clear the internal buffer.
+  //! Clears the internal logging buffer.
   inline void clear() noexcept { _content.clear(); }
 
   // --------------------------------------------------------------------------

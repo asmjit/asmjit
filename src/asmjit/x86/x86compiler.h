@@ -157,7 +157,7 @@ public:
   // [Stack]
   // --------------------------------------------------------------------------
 
-  //! Create a new memory chunk allocated on the current function's stack.
+  //! Creates a new memory chunk allocated on the current function's stack.
   inline Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
     Mem m(Globals::NoInit);
     _newStack(m, size, alignment, name);

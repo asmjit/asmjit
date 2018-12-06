@@ -134,14 +134,14 @@ struct RARegCount {
   // [Reset]
   // --------------------------------------------------------------------------
 
-  //! Reset all counters to zero.
+  //! Resets all counters to zero.
   inline void reset() noexcept { _packed = 0; }
 
   // --------------------------------------------------------------------------
   // [Operators]
   // --------------------------------------------------------------------------
 
-  //! Get register count by a register `group`.
+  //! Gets the register count by a register `group`.
   inline uint32_t get(uint32_t group) const noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
 
@@ -149,7 +149,7 @@ struct RARegCount {
     return (_packed >> shift) & uint32_t(0xFF);
   }
 
-  //! Set register count by a register `group`.
+  //! Sets the register count by a register `group`.
   inline void set(uint32_t group, uint32_t n) noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     ASMJIT_ASSERT(n <= 0xFF);
@@ -158,7 +158,7 @@ struct RARegCount {
     _packed = (_packed & ~uint32_t(0xFF << shift)) + (n << shift);
   }
 
-  //! Add register count by a register `group`.
+  //! Adds the register count by a register `group`.
   inline void add(uint32_t group, uint32_t n = 1) noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     ASMJIT_ASSERT(0xFF - uint32_t(_regs[group]) >= n);
@@ -234,7 +234,7 @@ struct RARegMask {
   // [IsEmpty / Has]
   // --------------------------------------------------------------------------
 
-  //! Get whether all register masks are zero (empty).
+  //! Gets whether all register masks are zero (empty).
   inline bool empty() const noexcept {
     uint32_t m = 0;
     for (uint32_t i = 0; i < BaseReg::kGroupVirt; i++)
@@ -764,31 +764,31 @@ struct RATiedReg {
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get the associated WorkReg id.
+  //! Gets the associated WorkReg id.
   inline uint32_t workId() const noexcept { return _workId; }
 
-  //! Check if the given `flag` is set, see `Flags`.
+  //! Checks if the given `flag` is set, see `Flags`.
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
-  //! Get tied register flags, see `Flags`.
+  //! Gets tied register flags, see `Flags`.
   inline uint32_t flags() const noexcept { return _flags; }
-  //! Add tied register flags, see `Flags`.
+  //! Adds tied register flags, see `Flags`.
   inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
 
-  //! Get whether the register is read (writes `true` also if it's Read/Write).
+  //! Gets whether the register is read (writes `true` also if it's Read/Write).
   inline bool isRead() const noexcept { return hasFlag(kRead); }
-  //! Get whether the register is written (writes `true` also if it's Read/Write).
+  //! Gets whether the register is written (writes `true` also if it's Read/Write).
   inline bool isWrite() const noexcept { return hasFlag(kWrite); }
-  //! Get whether the register is read only.
+  //! Gets whether the register is read only.
   inline bool isReadOnly() const noexcept { return (_flags & kRW) == kRead; }
-  //! Get whether the register is write only.
+  //! Gets whether the register is write only.
   inline bool isWriteOnly() const noexcept { return (_flags & kRW) == kWrite; }
-  //! Get whether the register is read and written.
+  //! Gets whether the register is read and written.
   inline bool isReadWrite() const noexcept { return (_flags & kRW) == kRW; }
 
-  //! Get whether the tied register has use operand (Read/ReadWrite).
+  //! Gets whether the tied register has use operand (Read/ReadWrite).
   inline bool isUse() const noexcept { return hasFlag(kUse); }
-  //! Get whether the tied register has out operand (Write).
+  //! Gets whether the tied register has out operand (Write).
   inline bool isOut() const noexcept { return hasFlag(kOut); }
 
   inline void makeReadOnly() noexcept {
@@ -802,16 +802,16 @@ struct RATiedReg {
     _outRewriteMask |= _useRewriteMask;
     _useRewriteMask = 0;
   }
-  
-  //! Get whether this register would duplicate.
+
+  //! Gets whether this register would duplicate.
   inline bool isDuplicate() const noexcept { return hasFlag(kDuplicate); }
 
-  //! Get whether this register (and the instruction it's part of) appears last in the basic block.
+  //! Gets whether this register (and the instruction it's part of) appears last in the basic block.
   inline bool isLast() const noexcept { return hasFlag(kLast); }
-  //! Get whether this register should be killed after USEd and/or OUTed.
+  //! Gets whether this register should be killed after USEd and/or OUTed.
   inline bool isKill() const noexcept { return hasFlag(kKill); }
 
-  //! Get whether this register is OUT or KILL (used internally by local register allocator).
+  //! Gets whether this register is OUT or KILL (used internally by local register allocator).
   inline bool isOutOrKill() const noexcept { return hasFlag(kOut | kKill); }
 
   inline uint32_t allocableRegs() const noexcept { return _allocableRegs; }
@@ -819,22 +819,22 @@ struct RATiedReg {
   inline uint32_t refCount() const noexcept { return _refCount; }
   inline void addRefCount(uint32_t n = 1) noexcept { _refCount = uint8_t(_refCount + n); }
 
-  //! Get whether the register must be allocated to a fixed physical register before it's used.
+  //! Gets whether the register must be allocated to a fixed physical register before it's used.
   inline bool hasUseId() const noexcept { return _useId != BaseReg::kIdBad; }
-  //! Get whether the register must be allocated to a fixed physical register before it's written.
+  //! Gets whether the register must be allocated to a fixed physical register before it's written.
   inline bool hasOutId() const noexcept { return _outId != BaseReg::kIdBad; }
 
-  //! Get a physical register used for 'use' operation.
+  //! Gets a physical register used for 'use' operation.
   inline uint32_t useId() const noexcept { return _useId; }
-  //! Get a physical register used for 'out' operation.
+  //! Gets a physical register used for 'out' operation.
   inline uint32_t outId() const noexcept { return _outId; }
 
   inline uint32_t useRewriteMask() const noexcept { return _useRewriteMask; }
   inline uint32_t outRewriteMask() const noexcept { return _outRewriteMask; }
 
-  //! Set a physical register used for 'use' operation.
+  //! Sets a physical register used for 'use' operation.
   inline void setUseId(uint32_t index) noexcept { _useId = uint8_t(index); }
-  //! Set a physical register used for 'out' operation.
+  //! Sets a physical register used for 'out' operation.
   inline void setOutId(uint32_t index) noexcept { _outId = uint8_t(index); }
 
   inline bool isUseDone() const noexcept { return hasFlag(kUseDone); }
@@ -949,7 +949,7 @@ public:
   inline bool isStackPreferred() const noexcept { return hasFlag(kFlagStackPreferred); }
   inline void markStackPreferred() noexcept { addFlags(kFlagStackPreferred); }
 
-  //! Get whether this RAWorkReg has been coalesced with another one (cannot be used anymore).
+  //! Gets whether this RAWorkReg has been coalesced with another one (cannot be used anymore).
   inline bool isCoalesced() const noexcept { return hasFlag(kFlagCoalesced); }
 
   inline const RegInfo& info() const noexcept { return _info; }

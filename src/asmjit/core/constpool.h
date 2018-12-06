@@ -218,14 +218,14 @@ public:
   // [Ops]
   // --------------------------------------------------------------------------
 
-  //! Get whether the constant-pool is empty.
+  //! Gets whether the constant-pool is empty.
   inline bool empty() const noexcept { return _size == 0; }
-  //! Get the size of the constant-pool in bytes.
+  //! Gets the size of the constant-pool in bytes.
   inline size_t size() const noexcept { return _size; }
-  //! Get minimum alignment.
+  //! Gets minimum alignment.
   inline size_t alignment() const noexcept { return _alignment; }
 
-  //! Add a constant to the constant pool.
+  //! Adds a constant to the constant pool.
   //!
   //! The constant must have known size, which is 1, 2, 4, 8, 16 or 32 bytes.
   //! The constant is added to the pool only if it doesn't not exist, otherwise
@@ -248,7 +248,7 @@ public:
   // [Fill]
   // --------------------------------------------------------------------------
 
-  //! Fill the destination with the constants from the pool.
+  //! Fills the destination with the content of this constant pool.
   ASMJIT_API void fill(void* dst) const noexcept;
 
   // --------------------------------------------------------------------------

@@ -69,7 +69,7 @@ struct DualMapping {
   void* rw;
 };
 
-//! Get virtual memory information, see `VirtMem::Info` for more details.
+//! Gets virtual memory information, see `VirtMem::Info` for more details.
 ASMJIT_API Info info() noexcept;
 
 //! Allocates virtual memory by either using `VirtualAlloc()` (Windows)

@@ -58,52 +58,53 @@ namespace InstDB {
     // [Accessors]
     // ------------------------------------------------------------------------
 
-    //! Get all instruction flags, see `InstFlags`.
+    //! Gets all instruction flags, see `InstFlags`.
     inline uint32_t flags() const noexcept { return _flags; }
-    //! Get whether the instruction has a `flag`, see `InstFlags`.
+    //! Gets whether the instruction has a `flag`, see `InstFlags`.
     inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
 
     // ------------------------------------------------------------------------
     // [Members]
     // ------------------------------------------------------------------------
 
-    uint32_t _flags;                     //!< Instruction flags.
+    //! Instruction flags.
+    uint32_t _flags;
   };
 
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Get instruction name (null terminated).
+  //! Gets the instruction name (null terminated).
   //!
   //! NOTE: If AsmJit was compiled with `ASMJIT_DISABLE_TEXT` then this will
   //! return an empty string (null terminated string of zero size).
   inline const char* name() const noexcept;
 
-  //! Get `CommonData` of the instruction.
+  //! Gets `CommonData` of the instruction.
   inline const CommonData& commonInfo() const noexcept;
-  //! Get index to `ArmInstDB::commonData` of this instruction.
+  //! Gets index to `ArmInstDB::commonData` of this instruction.
   inline uint32_t commonInfoIndex() const noexcept { return _commonDataIndex; }
 
-  //! Get instruction encoding, see `EncodingType`.
+  //! Gets the instruction encoding, see `EncodingType`.
   inline uint32_t encodingType() const noexcept { return _encodingType; }
 
-  //! Get instruction opcode, see `OpCodeBits`.
+  //! Gets the instruction opcode, see `OpCodeBits`.
   inline uint32_t opcode() const noexcept { return _opCode; }
 
-  //! Get whether the instruction has flag `flag`, see `InstFlags`.
+  //! Gets whether the instruction has flag `flag`, see `InstFlags`.
   inline bool hasFlag(uint32_t flag) const noexcept { return commonInfo().hasFlag(flag); }
-  //! Get instruction flags, see `InstFlags`.
+  //! Gets the instruction flags, see `InstFlags`.
   inline uint32_t flags() const noexcept { return commonInfo().flags(); }
 
   // --------------------------------------------------------------------------
   // [Get]
   // --------------------------------------------------------------------------
 
-  //! Get whether the `instId` is defined (counts also kInvalidInstId, which is zero).
+  //! Gets whether the `instId` is defined (counts also kInvalidInstId, which is zero).
   static inline bool isDefinedId(uint32_t instId) noexcept { return instId < _kIdCount; }
 
-  //! Get instruction information based on the instruction `instId`.
+  //! Gets instruction information based on the instruction `instId`.
   //!
   //! NOTE: `instId` has to be a valid instruction ID, it can't be greater than
   //! or equal to `ArmInst::_kIdCount`. It asserts in debug mode.
@@ -114,7 +115,7 @@ namespace InstDB {
   // --------------------------------------------------------------------------
 
   #ifndef ASMJIT_DISABLE_TEXT
-  //! Get an instruction ID from a given instruction `name`.
+  //! Gets an instruction ID from a given instruction `name`.
   //!
   //! NOTE: Instruction name MUST BE in lowercase, otherwise there will be no
   //! match. If there is an exact match the instruction id is returned, otherwise
@@ -122,7 +123,7 @@ namespace InstDB {
   //! to be null-terminated if `size` is provided.
   ASMJIT_API static uint32_t idByName(const char* name, size_t size = SIZE_MAX) noexcept;
 
-  //! Get an instruction name from a given instruction id `instId`.
+  //! Gets an instruction name from a given instruction id `instId`.
   ASMJIT_API static const char* nameById(uint32_t instId) noexcept;
   #endif
 
