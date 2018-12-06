@@ -393,7 +393,7 @@ public:
     _any._reserved0 = 0;
     _any._reserved1 = 0;
     _position = 0;
-    _userData = nullptr;
+    _userDataU64 = 0;
     _passData = nullptr;
     _inlineComment = nullptr;
   }
@@ -401,6 +401,13 @@ public:
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
+
+  //! Casts this node to `T*`.
+  template<typename T>
+  inline T* as() noexcept { return static_cast<T*>(this); }
+  //! Casts this node to `const T*`.
+  template<typename T>
+  inline const T* as() const noexcept { return static_cast<const T*>(this); }
 
   //! Gets previous node or `nullptr` if this node is either first or not part
   //! of Builder/Compiler node-list.
@@ -492,43 +499,42 @@ public:
   //! by the library. The data has a pointer size so you can either store a
   //! pointer or `intptr_t` value through `setUserDataAsIntPtr()`.
   template<typename T>
-  inline T* userData() const noexcept { return static_cast<T*>(_userData); }
+  inline T* userDataAsPtr() const noexcept { return static_cast<T*>(_userDataPtr); }
+  //! Gets user data as `int64_t`.
+  inline int64_t userDataAsInt64() const noexcept { return int64_t(_userDataU64); }
+  //! Gets user data as `uint64_t`.
+  inline uint64_t userDataAsUInt64() const noexcept { return _userDataU64; }
 
   //! Sets user data to `data`.
   template<typename T>
-  inline void setUserData(T* data) noexcept { _userData = static_cast<void*>(data); }
+  inline void setUserDataAsPtr(T* data) noexcept { _userDataPtr = static_cast<void*>(data); }
+  //! Sets used data to the given 64-bit signed `value`.
+  inline void setUserDataAsInt64(int64_t value) noexcept { _userDataU64 = uint64_t(value); }
+  //! Sets used data to the given 64-bit unsigned `value`.
+  inline void setUserDataAsUInt64(uint64_t value) noexcept { _userDataU64 = value; }
 
-  //! Gets user data as `intptr_t`.
-  inline intptr_t userDataAsIntPtr() const noexcept { return _userIntPtr; }
-  //! Sets used data to the given `value`.
-  inline void setUserDataAsIntPtr(intptr_t value) noexcept { _userIntPtr = value; }
+  //! Resets user data to zero / nullptr.
+  inline void resetUserData() noexcept { _userDataU64 = 0; }
 
   //! Gets whether the node has an associated pass data.
   inline bool hasPassData() const noexcept { return _passData != nullptr; }
-  //! Gets the node's pass data - data used during processing & transformations.
+  //! Gets the node pass data - data used during processing & transformations.
   template<typename T>
   inline T* passData() const noexcept { return (T*)_passData; }
-  //! Sets the node's the pass data to `data`.
+  //! Sets the node pass data to `data`.
   template<typename T>
   inline void setPassData(T* data) noexcept { _passData = (void*)data; }
-  //! Resets the node's pass data to nullptr.
+  //! Resets the node pass data to nullptr.
   inline void resetPassData() noexcept { _passData = nullptr; }
 
-  //! Gets whether the node has an inline comment.
+  //! Gets whether the node has an inline comment/annotation.
   inline bool hasInlineComment() const noexcept { return _inlineComment != nullptr; }
-  //! Gets an inline comment string.
+  //! Gets an inline comment/annotation string.
   inline const char* inlineComment() const noexcept { return _inlineComment; }
-  //! Sets an inline comment string to `s`.
+  //! Sets an inline comment/annotation string to `s`.
   inline void setInlineComment(const char* s) noexcept { _inlineComment = s; }
-  //! Sets an inline comment string to nullptr.
+  //! Resets an inline comment/annotation string to nullptr.
   inline void resetInlineComment() noexcept { _inlineComment = nullptr; }
-
-  //! Casts this node to `T*`.
-  template<typename T>
-  inline T* as() noexcept { return static_cast<T*>(this); }
-  //! Casts this node to `const T*`.
-  template<typename T>
-  inline const T* as() const noexcept { return static_cast<const T*>(this); }
 
   // --------------------------------------------------------------------------
   // [Members]
@@ -542,7 +548,7 @@ public:
       BaseNode* _next;
     };
     //! Links (previous and next nodes).
-    BaseNode* _link[2];
+    BaseNode* _links[2];
   };
 
   //! Data shared between all types of nodes.
@@ -590,8 +596,8 @@ public:
 
   //! Value reserved for AsmJit users never touched by AsmJit itself.
   union {
-    void* _userData;
-    intptr_t _userIntPtr;
+    uint64_t _userDataU64;
+    void* _userDataPtr;
   };
 
   //! Data used exclusively by the current `Pass`.

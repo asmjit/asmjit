@@ -8,12 +8,14 @@ Complete x86/x64 JIT and AOT Assembler for C++.
   * [Official Chat (gitter)](https://gitter.im/asmjit/asmjit)
   * [Permissive ZLIB license](./LICENSE.md)
 
+
 Introduction
 ------------
 
 AsmJit is a complete JIT and remote assembler for C++ language. It can generate native code for x86 and x64 architectures and supports the whole x86/x64 instruction set - from legacy MMX to the newest AVX512. It has a type-safe API that allows C++ compiler to do semantic checks at compile-time even before the assembled code is generated and/or executed.
 
 AsmJit, as the name implies, started as a project that provided JIT code-generation and execution. However, AsmJit evolved and it now contains features that are far beyond the scope of a simple JIT compilation. To keep the library small and lightweight the functionality not strictly related to JIT is provided by a sister project called [asmtk](https://github.com/asmjit/asmtk).
+
 
 Minimal Example
 ---------------
@@ -55,6 +57,7 @@ int main(int argc, char* argv[]) {
 }
 ```
 
+
 AsmJit Summary
 --------------
 
@@ -69,6 +72,7 @@ AsmJit Summary
   * Zero dependencies - no external libraries, no STL/RTTI - easy to embed and/or link statically.
   * Doesn't use exceptions internally, but allows to attach a "throwable" error handler of your choice.
 
+
 Advanced Features
 -----------------
 
@@ -80,6 +84,7 @@ Advanced Features
   * AsmJit is highly dynamic, constructing operands at runtime is a common practice.
   * Multiple emitters with the same interface - emit machine code directly or to a representation that can be post-processed.
 
+
 Important
 ---------
 
@@ -90,10 +95,12 @@ Breaking the official API is sometimes inevitable, what to do?
     * [asmjit_test_x86_sections.cpp](./test/asmjit_test_x86_sections.cpp) - Multiple sections test.
   * Visit our [Official Chat](https://gitter.im/asmjit/asmjit) if you need a quick help.
 
+
 TODO
 ----
 
   * [ ] Add support for user external buffers in CodeHolder.
+
 
 Supported Environments
 ----------------------
@@ -127,6 +134,7 @@ Supported Environments
   * **X86** - tested by both Travis-CI - both 32-bit and 64-bit backends are fully functional.
   * **ARM** - work-in-progress (not public at the moment).
 
+
 Project Organization
 --------------------
 
@@ -138,6 +146,7 @@ Project Organization
         * **x86**  - X86 specific API, used only by X86 and X64 backends.
     * **test**     - Unit and integration tests (don't embed in your project).
     * **tools**    - Tools used for configuring, documenting and generating data files.
+
 
 Configuring & Feature Selection
 -------------------------------
@@ -173,9 +182,10 @@ If none of `ASMJIT_BUILD_...` is defined AsmJit bails to `ASMJIT_BUILD_HOST`, wh
   * `ASMJIT_DISABLE_JIT` - Disables JIT execution engine, which includes `JitUtils`, `JitAllocator`, and `JitRuntime`.
   * `ASMJIT_DISABLE_LOGGING` - Disables logging (`Logger` and all classes that inherit it) and instruction formatting.
   * `ASMJIT_DISABLE_TEXT` - Disables everything that uses text-representation and that causes certain strings to be stored in the resulting binary. For example when this flag is set all instruction and error names (and related APIs) will not be available. This flag has to be disabled together with `ASMJIT_DISABLE_LOGGING`. This option is suitable for deployment builds or builds that don't want to reveal the use of AsmJit.
-  * `ASMJIT_DISABLE_INST_API` - Disables strict validation, read/write information, and all additional data and APIs that can output information about instructions.
+  * `ASMJIT_DISABLE_INST_API` - Disables instruction query features, strict validation, read/write information, and all additional data and APIs that can output information about instructions.
 
 NOTE: Please don't disable any features if you plan to build AsmJit as a shared library that will be used by multiple projects that you don't control (for example asmjit in a Linux distribution). The possibility to disable certain features exists mainly for customized builds of AsmJit.
+
 
 Using AsmJit
 ------------
@@ -893,6 +903,7 @@ int main(int argc, char* argv[]) {
 }
 ```
 
+
 Builder Interface
 -----------------
 
@@ -1153,6 +1164,7 @@ static void assemble(CodeHolder& code, bool useAsm) {
 ```
 
 The example above shows how to create a function that can emit code to either **x86::Assembler** or **x86::Builder** through **x86::Emitter**, which provides emitter-neutral functionality. **x86::Emitter**, however, doesn't provide any emitter **x86::Assembler** or **x86::Builder** specific functionality like **setCursor()**.
+
 
 Compiler Interface
 ------------------
@@ -1450,6 +1462,7 @@ static void exampleUseOfConstPool(x86::Compiler& cc) {
 }
 ```
 
+
 Advanced Features
 -----------------
 
@@ -1671,6 +1684,170 @@ The following example shows how to inject code at the beginning of the function 
 ### TODO
 
 ...More documentation...
+
+
+
+Other Topics
+------------
+
+This section provides quick answers to some recurring questions and topics.
+
+### Instruction Validation
+
+AsmJit by default prefers performance when it comes to instruction encoding. The Assembler implementation would only validate operands that must be validated to select a proper encoding of the instruction. This means that by default it would accept instructions that do not really exist like `mov rax, ebx`. This is great in release mode as it makes the assembler faster, however, it's not that great for development as it allows to silently pass even when the instruction's operands are incorrect. To fix this Asmjit contains a feature called **Strict Validation**, which allows to validate each instruction before the Assembler tries to encode it. This feature can also be used without an Assembler instance through `BaseInst::validate()` API.
+
+Emitter options are configured through CodeHolder:
+
+```c++
+CodeHolder code;
+
+// Enables strict instruction validation for all emitters attached to `code`.
+code.addEmitterOptions(BaseEmitter::kOptionStrictValidation);
+
+// Use either ErrorHandler attached to CodeHolder or Error code returned by
+// the Assembler.
+x86::Assembler a(&code);
+Error err = a.emit(x86::Inst::kIdMov, x86::eax, x86::al);
+if (err) { /* failed */ }
+```
+
+### Label Offsets and Links
+
+When you use a label that is not yet bound the Assembler would create a `LabelLink`, which is then added to CodeHolder's `LabelEntry`. These links are also created for labels that are bound but reference some location in a different section. Firstly, here are some functions that can be used to check some basics:
+
+```c++
+CodeHolder code = ...;
+Label L = ...;
+
+// Returns whether the Label `L` is bound.
+bool bound = code.isLabelBound(L or L.id());
+
+// Returns true if the code contains either referenced, but unbound labels,
+// or cross-section label links that are not resolved yet.
+bool value = code.hasUnresolvedLinks();     // Boolean answer.
+size_t count = code.unresolvedLinkCount();  // Count of links.
+```
+
+Please note that there is not API to return a count of unbound labels as this is completely unimportant from CodeHolder's perspective. If a label is not used then it doesn't matter whether it's bound or not, only used labels matter. After a Label is bound you can query it's offset relative to the start of the section where it was bound:
+
+```c++
+CodeHolder code = ...;
+Label L = ...;
+
+// After you are done you can check the offset. The offset provided
+// is relative to the start of the section, see below for alternative.
+// If the given label is not bound then the offset returned will be zero.
+uint64_t offset = code.labelOffset(L or L.id());
+
+// If you use multiple sections and want the offset relative to the base.
+// NOTE: This function expects that the section has already an offset and
+// the label-link was resolved (if this is not true you will still get an
+// offset relative to the start of the section).
+uint64_t offset = code.labelOffsetFromBase(L or L.id());
+```
+
+### Sections
+
+Sections is a relatively new feature that allows to create multiple sections. It's supported by Assembler, Builder, and Compiler. Please note that using multiple sections is advanced and requires more understanding about how AsmJit works. There is a test-case [asmjit_test_x86_sections.cpp](./test/asmjit_test_x86_sections.cpp) that shows how sections can be used.
+
+```c++
+CodeHolder code = ...;
+
+// Text section is always provided as the first section.
+Section* text = code.textSection(); // or code.sectionById(0);
+
+// To create another section use `code.newSection()`.
+Section* data;
+Error err = code.newSection(&data,
+  ".data",  // Section name
+  SIZE_MAX, // Name length if the name is not null terminated (or SIZE_MAX).
+  0,        // Section flags, see Section::Flags.
+  8);       // Section alignment, must be power of 2.
+
+// When you switch sections in Assembler, Builder, or Compiler the cursor
+// will always move to the end of that section. When you create an Assembler
+// the cursor would be placed at the end of the first (.text) section, which
+// is initially empty.
+x86::Assembler a(&code);
+Label L_Data = a.newLabel();
+
+a.mov(x86::eax, x86::ebx); // Emits in .text section.
+
+a.section(data);           // Switches to the end of .data section.
+a.bind(L_Data);            // Binds label in this .data section
+a.db(0x01);                // Emits byte in .data section.
+
+a.section(text);           // Switches to the end of .text section.
+a.add(x86::ebx, x86::eax); // Emits in .text section.
+
+// References a label bound in .data section in .text section. This
+// would create a LabelLink even when the L_Data is already bound,
+// because the reference crosses sections. See below...
+a.lea(x86::rsi, x86::ptr(L_Data));
+```
+
+The last line in the example above shows that a LabelLink would be created even for bound labels that cross sections. In this case a referenced label was bound in another section, which means that the link couldn't be resolved at that moment. If your code uses sections, but you wish AsmJit to flatten these sections (you don't plan to flatten then manually) then there is an API for that.
+
+```c++
+// ... (continuing the previous example) ...
+CodeHolder code = ...;
+
+// Suppose we have some code that contains multiple sections and
+// we would like to flatten it by using AsmJit's built-in API:
+Error err = code.flatten();
+if (err) { /* Error handling is necessary. */ }
+
+// After flattening all sections would contain assigned offsets
+// relative to base. Offsets are 64-bit unsigned integers so we
+// cast it to `unsigned int` for simplicity here...
+printf("Data section offset %u", unsigned(data->offset()));
+
+// The flattening doesn't resolve unresolved label links, this
+// has to be done manually as flattening can be done separately.
+err = code.resolveUnresolvedLinks();
+if (err) { /* Error handling is necessary. */ }
+
+if (code.hasUnresolvedLinks()) {
+  // This would mean either unbound label or some other issue.
+  printf("FAILED: UnresoledLinkCount=%zu\n", code.unresovedLinkCount());
+}
+```
+
+### Using AsmJit Data Structures
+
+AsmJit stores its data in data structures allocated by `ZoneAllocator`. It's a fast allocator that allows AsmJit to allocate a lot of small data structures fast and without `malloc()` overhead. The most common data structure that you will probably inspect is `ZoneVector<T>`. It's like C++'s `std::vector`. but the implementation doesn't use exceptions and uses the mentioned `ZoneAllocator` for performance reasons. You don't have to worry about allocations as you should not need to add items to data structures that are managed by `CodeHolder` or advanced emitters like Builder/Compiler.
+
+APIs that return `ZoneVector`:
+
+```c++
+CodeHolder code = ...;
+
+// Contains all emitters attached to CodeHolder.
+const ZoneVector<BaseEmitter*>& emitters = code.emitters();
+
+// Contains all sections managed by CodeHolder.
+const ZoneVector<Section*>& sections = code.sections();
+
+// Contains all LabelEntry records associated with created Labels.
+const ZoneVector<LabelEntry*>& labelEntries = code.labelEntries();
+
+// Contains all RelocEntry records that describe relocations.
+const ZoneVector<RelocEntry*>& relocEntries = code.relocEntries();
+```
+
+AsmJit's `ZoneVector<T>` has overloaded the array access operator so access its elements through operator[]. Some standard functions like `empty()`, `size()`, and `data()` are provided as well. Vectors are also iterable through range-based for loop:
+
+```c++
+CodeHolder code = ...;
+
+for (LabelEntry* le : code.labelEntries()) {
+  printf("Label #%u {Bound=%s Offset=%llu}",
+    le->id(),
+    le->isBound() ? "true" : "false",
+    (unsigned long long)le->offset());
+}
+```
+
 
 Support
 -------
