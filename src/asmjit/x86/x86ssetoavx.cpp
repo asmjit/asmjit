@@ -14,7 +14,7 @@
 // [Dependencies]
 #include "../core/zonestack.h"
 
-#include "../x86/x86instdb.h"
+#include "../x86/x86instdb_p.h"
 #include "../x86/x86operand.h"
 #include "../x86/x86ssetoavx_p.h"
 

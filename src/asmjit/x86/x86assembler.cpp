@@ -18,7 +18,7 @@
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../x86/x86assembler.h"
-#include "../x86/x86instdb.h"
+#include "../x86/x86instdb_p.h"
 #include "../x86/x86logging_p.h"
 #include "../x86/x86opcode_p.h"
 
@@ -578,7 +578,7 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
 
     // REP and REPNE prefixes.
     if (options & (Inst::kOptionRep | Inst::kOptionRepne)) {
-      if (ASMJIT_UNLIKELY(!(iFlags & (InstDB::kFlagRep | InstDB::kFlagRepne))))
+      if (ASMJIT_UNLIKELY(!(iFlags & InstDB::kFlagRep)))
         goto InvalidRepPrefix;
 
       if (_extraReg.isReg() && ASMJIT_UNLIKELY(_extraReg.group() != Reg::kGroupGp || _extraReg.id() != Gp::kIdCx))

@@ -392,8 +392,8 @@ static constexpr Gpx x29(29);
 static constexpr Gpx x30(30);
 static constexpr Gpx x31(31);
 
-} // anonymous namespace
-} // regs namespace
+} // {anonymous}
+} // {regs}
 
 // ============================================================================
 // [asmjit::arm - Ptr]

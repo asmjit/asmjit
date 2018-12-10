@@ -312,7 +312,7 @@ struct F32  {};
 //! double as C++ type-name.
 struct F64  {};
 
-} // Type namespace
+} // {Type}
 
 // ============================================================================
 // [ASMJIT_DEFINE_TYPE_ID]

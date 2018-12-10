@@ -9,7 +9,7 @@
 // are grouped by category and then sorted alphabetically.
 
 // [Dependencies]
-#include <cstdio>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "./asmjit.h"
@@ -38,7 +38,7 @@ static const char* archIdToString(uint32_t archId) {
 
 struct TestErrorHandler : public ErrorHandler {
   virtual void handleError(Error err, const char* message, BaseEmitter* origin) {
-    std::printf("ERROR 0x%08X: %s\n", err, message);
+    printf("ERROR 0x%08X: %s\n", err, message);
   }
 };
 
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < ASMJIT_ARRAY_SIZE(infoList); i++) {
     const OpcodeDumpInfo& info = infoList[i];
 
-    std::printf("Opcodes [ARCH=%s REX1=%s REX2=%s]\n",
+    printf("Opcodes [ARCH=%s REX1=%s REX2=%s]\n",
       archIdToString(info.archId),
       info.useRex1 ? "true" : "false",
       info.useRex2 ? "true" : "false");

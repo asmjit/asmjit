@@ -1360,7 +1360,7 @@ struct Temporary {
   size_t _size;
 };
 
-} // Support namespace
+} // {Support}
 
 //! \}
 

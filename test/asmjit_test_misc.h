@@ -166,7 +166,7 @@ static void generateAlphaBlend(asmjit::x86::Compiler& cc) {
   cc.dxmm(Data128::fromI16(0x0101));
 }
 
-} // asmtest namespace
+} // {asmtest}
 
 // [Guard]
 #endif // _ASMJIT_TEST_MISC_H

@@ -17,7 +17,7 @@
 #include "../core/type.h"
 #include "../x86/x86assembler.h"
 #include "../x86/x86compiler.h"
-#include "../x86/x86instdb.h"
+#include "../x86/x86instdb_p.h"
 #include "../x86/x86internal_p.h"
 #include "../x86/x86rapass_p.h"
 
@@ -234,7 +234,7 @@ namespace X86OpInfo {
   #undef X
   #undef W
   #undef R
-} // X86OpInfo namespace
+} // {X86OpInfo}
 
 // ============================================================================
 // [asmjit::x86::X86RACFGBuilder]

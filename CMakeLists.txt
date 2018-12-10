@@ -241,6 +241,7 @@ cxx_add_source(asmjit ASMJIT_SRC asmjit/x86
   x86internal_p.h
   x86instdb.cpp
   x86instdb.h
+  x86instdb_p.h
   x86logging.cpp
   x86logging_p.h
   x86operand.cpp

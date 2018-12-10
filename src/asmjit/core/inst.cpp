@@ -16,7 +16,7 @@
 #include "../core/inst.h"
 
 #ifdef ASMJIT_BUILD_X86
-  #include "../x86/x86instdb.h"
+  #include "../x86/x86instdb_p.h"
 #endif
 
 #ifdef ASMJIT_BUILD_ARM

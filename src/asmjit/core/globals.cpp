@@ -58,7 +58,7 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     "Invalid xrelease prefix\0"
     "Invalid rep prefix\0"
     "Invalid rex prefix\0"
-    "Invalid mask, expected {k}\0"
+    "Invalid {...} register \0"
     "Invalid use of {k}\0"
     "Invalid use of {k}{z}\0"
     "Invalid broadcast {1tox}\0"

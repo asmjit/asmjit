@@ -14,7 +14,7 @@
 // [Dependencies]
 #include "../core/misc_p.h"
 #include "../core/support.h"
-#include "../x86/x86instdb.h"
+#include "../x86/x86instdb_p.h"
 #include "../x86/x86logging_p.h"
 #include "../x86/x86operand.h"
 

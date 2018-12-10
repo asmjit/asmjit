@@ -202,9 +202,8 @@ class GenUtils {
 
     for (i = 0; i < dbInsts.length; i++) {
       const dbInst = dbInsts[i];
-      const name = dbInst.name;
-
       const acc = getAccess(dbInst);
+
       if (!access)
         access = acc;
       else if (access !== acc)
@@ -263,14 +262,14 @@ class GenUtils {
 
     for (i = 0; i < dbInsts.length; i++) {
       const dbInst = dbInsts[i];
-      const name = dbInst.name;
       const operands = dbInst.operands;
 
-      if (dbInst.attributes.Lock    ) f.Lock     = true;
-      if (dbInst.attributes.REP     ) f.Rep      = true;
-      if (dbInst.attributes.REPNE   ) f.Repne    = true;
-      if (dbInst.attributes.XAcquire) f.XAcquire = true;
-      if (dbInst.attributes.XRelease) f.XRelease = true;
+      if (dbInst.attributes.Lock      ) f.Lock       = true;
+      if (dbInst.attributes.XAcquire  ) f.XAcquire   = true;
+      if (dbInst.attributes.XRelease  ) f.XRelease   = true;
+      if (dbInst.attributes.REP       ) f.Rep        = true;
+      if (dbInst.attributes.REPNE     ) f.Rep        = true;
+      if (dbInst.attributes.RepIgnored) f.RepIgnored = true;
 
       if (dbInst.fpu) {
         for (var j = 0; j < operands.length; j++) {
@@ -336,7 +335,6 @@ class GenUtils {
     for (var i = 0; i < dbInsts.length; i++) {
       const dbInst = dbInsts[i];
       const name = dbInst.name;
-      const operands = dbInst.operands;
 
       // Special case: MOV undefines flags if moving between GP and CR|DR registers.
       if (name === "mov")

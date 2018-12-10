@@ -6040,7 +6040,7 @@ static void generateOpcodes(asmjit::x86::Emitter* e, bool useRex1 = false, bool 
   e->nop();
 }
 
-} // asmtest namespace
+} // {asmtest}
 
 // [Guard]
 #endif // _ASMJIT_TEST_OPCODE_H

@@ -113,7 +113,7 @@ struct NoInit_ {};
 static constexpr Init_ Init {};
 static constexpr NoInit_ NoInit {};
 
-} // Globals namespace
+} // {Globals}
 
 // ============================================================================
 // [asmjit::Error]
@@ -220,8 +220,8 @@ enum ErrorCode : uint32_t {
   kErrorInvalidRepPrefix,
   //! Invalid REX prefix.
   kErrorInvalidRexPrefix,
-  //! Invalid mask register (not 'k').
-  kErrorInvalidKMaskReg,
+  //! Invalid {...} register.
+  kErrorInvalidExtraReg,
   //! Invalid {k} use (not supported by the instruction).
   kErrorInvalidKMaskUse,
   //! Invalid {k}{z} use (not supported by the instruction).
@@ -361,7 +361,7 @@ ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, cons
       return _err;                          \
   } while (0)
 
-} // DebugUtils namespace
+} // {DebugUtils}
 
 //! \}
 

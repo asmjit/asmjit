@@ -13,7 +13,7 @@
 
 #ifdef ASMJIT_BUILD_X86
   #include "../x86/x86internal_p.h"
-  #include "../x86/x86instdb.h"
+  #include "../x86/x86instdb_p.h"
 #endif // ASMJIT_BUILD_X86
 
 #ifdef ASMJIT_BUILD_ARM

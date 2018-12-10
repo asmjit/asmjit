@@ -821,8 +821,8 @@ static constexpr Bnd bnd3(3);
 
 static constexpr Rip rip(0);
 
-} // anonymous namespace
-} // regs namespace
+} // {anonymous}
+} // {regs}
 
 // Make `x86::regs` accessible through `x86` namespace as well.
 using namespace regs;

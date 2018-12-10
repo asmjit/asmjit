@@ -151,7 +151,7 @@ namespace InstDB {
   ASMJIT_VARAPI const ArmInst::CommonData commonData[];
   ASMJIT_VARAPI const char nameData[];
 
-} // InstDB namespace
+} // {InstDB}
 
 //! \}
 

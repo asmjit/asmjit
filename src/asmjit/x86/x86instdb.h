@@ -57,30 +57,28 @@ enum OpFlags : uint32_t {
   kOpSReg                 = 0x00000400u, //!< Operand can be SReg (segment register).
   kOpCReg                 = 0x00000800u, //!< Operand can be CReg (control register).
   kOpDReg                 = 0x00001000u, //!< Operand can be DReg (debug register).
-  kOpSt                   = 0x00002000u, //!< Operand can be 80-bit ST register (FPU).
+  kOpSt                   = 0x00002000u, //!< Operand can be 80-bit ST register (X87).
   kOpBnd                  = 0x00004000u, //!< Operand can be 128-bit BND register.
   kOpAllRegs              = 0x00007FFFu, //!< Combination of all possible registers.
 
-  kOpU4                   = 0x00010000u, //!< Operand can be unsigned 4-bit  immediate.
-  kOpI8                   = 0x00020000u, //!< Operand can be signed   8-bit  immediate.
-  kOpU8                   = 0x00040000u, //!< Operand can be unsigned 8-bit  immediate.
-  kOpI16                  = 0x00080000u, //!< Operand can be signed   16-bit immediate.
-  kOpU16                  = 0x00100000u, //!< Operand can be unsigned 16-bit immediate.
-  kOpI32                  = 0x00200000u, //!< Operand can be signed   32-bit immediate.
-  kOpU32                  = 0x00400000u, //!< Operand can be unsigned 32-bit immediate.
-  kOpI64                  = 0x00800000u, //!< Operand can be signed   64-bit immediate.
-  kOpU64                  = 0x01000000u, //!< Operand can be unsigned 64-bit immediate.
-  kOpAllImm               = 0x01FF0000u, //!< Operand can be any immediate.
+  kOpI4                   = 0x00010000u, //!< Operand can be unsigned 4-bit  immediate.
+  kOpU4                   = 0x00020000u, //!< Operand can be unsigned 4-bit  immediate.
+  kOpI8                   = 0x00040000u, //!< Operand can be signed   8-bit  immediate.
+  kOpU8                   = 0x00080000u, //!< Operand can be unsigned 8-bit  immediate.
+  kOpI16                  = 0x00100000u, //!< Operand can be signed   16-bit immediate.
+  kOpU16                  = 0x00200000u, //!< Operand can be unsigned 16-bit immediate.
+  kOpI32                  = 0x00400000u, //!< Operand can be signed   32-bit immediate.
+  kOpU32                  = 0x00800000u, //!< Operand can be unsigned 32-bit immediate.
+  kOpI64                  = 0x01000000u, //!< Operand can be signed   64-bit immediate.
+  kOpU64                  = 0x02000000u, //!< Operand can be unsigned 64-bit immediate.
+  kOpAllImm               = 0x03FF0000u, //!< Operand can be any immediate.
 
-  kOpMem                  = 0x02000000u, //!< Operand can be a scalar memory pointer.
-  kOpVm                   = 0x04000000u, //!< Operand can be a vector memory pointer.
+  kOpMem                  = 0x04000000u, //!< Operand can be a scalar memory pointer.
+  kOpVm                   = 0x08000000u, //!< Operand can be a vector memory pointer.
 
-  kOpRel8                 = 0x08000000u, //!< Operand can be relative 8-bit  displacement.
-  kOpRel32                = 0x10000000u, //!< Operand can be relative 32-bit displacement.
+  kOpRel8                 = 0x10000000u, //!< Operand can be relative 8-bit  displacement.
+  kOpRel32                = 0x20000000u, //!< Operand can be relative 32-bit displacement.
 
-  kOpR                    = 0x20000000u, //!< Operand is read.
-  kOpW                    = 0x40000000u, //!< Operand is written.
-  kOpX                    = 0x60000000u, //!< Operand is read & written.
   kOpImplicit             = 0x80000000u  //!< Operand is implicit.
 };
 
@@ -117,150 +115,6 @@ enum MemFlags : uint32_t {
   kMemOpEs                = 0x2000u,     //!< Implicit memory operand's ES segment.
 
   kMemOpMib               = 0x4000u      //!< Operand must be MIB (base+index) pointer.
-};
-
-// ============================================================================
-// [asmjit::x86::InstDB::Encoding]
-// ============================================================================
-
-//! Instruction encoding (X86).
-enum EncodingId : uint32_t {
-  kEncodingNone = 0,                     //!< Never used.
-  kEncodingX86Op,                        //!< X86 [OP].
-  kEncodingX86Op_O,                      //!< X86 [OP] (opcode and /0-7).
-  kEncodingX86Op_O_I8,                   //!< X86 [OP] (opcode and /0-7 + 8-bit immediate).
-  kEncodingX86Op_xAX,                    //!< X86 [OP] (implicit or explicit '?AX' form).
-  kEncodingX86Op_xDX_xAX,                //!< X86 [OP] (implicit or explicit '?DX, ?AX' form).
-  kEncodingX86Op_ZAX,                    //!< X86 [OP] (implicit or explicit '[EAX|RAX]' form).
-  kEncodingX86I_xAX,                     //!< X86 [I] (implicit or explicit '?AX' form).
-  kEncodingX86M,                         //!< X86 [M] (handles 2|4|8-bytes size).
-  kEncodingX86M_NoSize,                  //!< X86 [M] (doesn't handle any size).
-  kEncodingX86M_GPB,                     //!< X86 [M] (handles single-byte size).
-  kEncodingX86M_GPB_MulDiv,              //!< X86 [M] (like GPB, handles implicit|explicit MUL|DIV|IDIV).
-  kEncodingX86M_Only,                    //!< X86 [M] (restricted to memory operand of any size).
-  kEncodingX86M_Nop,                     //!< X86 [M] (special case of NOP instruction).
-  kEncodingX86Rm,                        //!< X86 [RM] (doesn't handle single-byte size).
-  kEncodingX86Rm_Raw66H,                 //!< X86 [RM] (used by LZCNT, POPCNT, and TZCNT).
-  kEncodingX86Rm_NoRexW,                 //!< X86 [RM] (doesn't add REX.W prefix if 64-bit reg is used).
-  kEncodingX86Mr,                        //!< X86 [MR] (doesn't handle single-byte size).
-  kEncodingX86Mr_NoSize,                 //!< X86 [MR] (doesn't handle any size).
-  kEncodingX86Arith,                     //!< X86 adc, add, and, cmp, or, sbb, sub, xor.
-  kEncodingX86Bswap,                     //!< X86 bswap.
-  kEncodingX86Bt,                        //!< X86 bt, btc, btr, bts.
-  kEncodingX86Call,                      //!< X86 call.
-  kEncodingX86Cmpxchg,                   //!< X86 [MR] cmpxchg.
-  kEncodingX86Cmpxchg8b_16b,             //!< X86 [MR] cmpxchg8b, cmpxchg16b.
-  kEncodingX86Crc,                       //!< X86 crc32.
-  kEncodingX86Enter,                     //!< X86 enter.
-  kEncodingX86Imul,                      //!< X86 imul.
-  kEncodingX86In,                        //!< X86 in.
-  kEncodingX86Ins,                       //!< X86 ins[b|q|d].
-  kEncodingX86IncDec,                    //!< X86 inc, dec.
-  kEncodingX86Int,                       //!< X86 int (interrupt).
-  kEncodingX86Jcc,                       //!< X86 jcc.
-  kEncodingX86JecxzLoop,                 //!< X86 jcxz, jecxz, jrcxz, loop, loope, loopne.
-  kEncodingX86Jmp,                       //!< X86 jmp.
-  kEncodingX86JmpRel,                    //!< X86 xbegin.
-  kEncodingX86Lea,                       //!< X86 lea.
-  kEncodingX86Mov,                       //!< X86 mov (all possible cases).
-  kEncodingX86MovsxMovzx,                //!< X86 movsx, movzx.
-  kEncodingX86Out,                       //!< X86 out.
-  kEncodingX86Outs,                      //!< X86 out[b|q|d].
-  kEncodingX86Push,                      //!< X86 push.
-  kEncodingX86Pop,                       //!< X86 pop.
-  kEncodingX86Ret,                       //!< X86 ret.
-  kEncodingX86Rot,                       //!< X86 rcl, rcr, rol, ror, sal, sar, shl, shr.
-  kEncodingX86Set,                       //!< X86 setcc.
-  kEncodingX86ShldShrd,                  //!< X86 shld, shrd.
-  kEncodingX86StrRm,                     //!< X86 lods.
-  kEncodingX86StrMr,                     //!< X86 scas, stos.
-  kEncodingX86StrMm,                     //!< X86 cmps, movs.
-  kEncodingX86Test,                      //!< X86 test.
-  kEncodingX86Xadd,                      //!< X86 xadd.
-  kEncodingX86Xchg,                      //!< X86 xchg.
-  kEncodingX86Fence,                     //!< X86 lfence, mfence, sfence.
-  kEncodingX86Bndmov,                    //!< X86 [RM|MR] (used by BNDMOV).
-  kEncodingFpuOp,                        //!< FPU [OP].
-  kEncodingFpuArith,                     //!< FPU fadd, fdiv, fdivr, fmul, fsub, fsubr.
-  kEncodingFpuCom,                       //!< FPU fcom, fcomp.
-  kEncodingFpuFldFst,                    //!< FPU fld, fst, fstp.
-  kEncodingFpuM,                         //!< FPU fiadd, ficom, ficomp, fidiv, fidivr, fild, fimul, fist, fistp, fisttp, fisub, fisubr.
-  kEncodingFpuR,                         //!< FPU fcmov, fcomi, fcomip, ffree, fucom, fucomi, fucomip, fucomp, fxch.
-  kEncodingFpuRDef,                      //!< FPU faddp, fdivp, fdivrp, fmulp, fsubp, fsubrp.
-  kEncodingFpuStsw,                      //!< FPU fnstsw, Fstsw.
-  kEncodingExtRm,                        //!< EXT [RM].
-  kEncodingExtRm_XMM0,                   //!< EXT [RM<XMM0>].
-  kEncodingExtRm_ZDI,                    //!< EXT [RM<ZDI>].
-  kEncodingExtRm_P,                      //!< EXT [RM] (propagates 66H if the instruction uses XMM register).
-  kEncodingExtRm_Wx,                     //!< EXT [RM] (propagates REX.W if GPQ is used).
-  kEncodingExtRmRi,                      //!< EXT [RM|RI].
-  kEncodingExtRmRi_P,                    //!< EXT [RM|RI] (propagates 66H if the instruction uses XMM register).
-  kEncodingExtRmi,                       //!< EXT [RMI].
-  kEncodingExtRmi_P,                     //!< EXT [RMI] (propagates 66H if the instruction uses XMM register).
-  kEncodingExtPextrw,                    //!< EXT pextrw.
-  kEncodingExtExtract,                   //!< EXT pextrb, pextrd, pextrq, extractps.
-  kEncodingExtMov,                       //!< EXT mov?? - #1:[MM|XMM, MM|XMM|Mem] #2:[MM|XMM|Mem, MM|XMM].
-  kEncodingExtMovnti,                    //!< EXT movnti.
-  kEncodingExtMovbe,                     //!< EXT movbe.
-  kEncodingExtMovd,                      //!< EXT movd.
-  kEncodingExtMovq,                      //!< EXT movq.
-  kEncodingExtExtrq,                     //!< EXT extrq (SSE4A).
-  kEncodingExtInsertq,                   //!< EXT insrq (SSE4A).
-  kEncodingExt3dNow,                     //!< EXT [RMI] (3DNOW specific).
-  kEncodingVexOp,                        //!< VEX [OP].
-  kEncodingVexKmov,                      //!< VEX [RM|MR] (used by kmov[b|w|d|q]).
-  kEncodingVexM,                         //!< VEX|EVEX [M].
-  kEncodingVexM_VM,                      //!< VEX|EVEX [M] (propagates VEX|EVEX.L, VSIB support).
-  kEncodingVexMr_Lx,                     //!< VEX|EVEX [MR] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexMr_VM,                     //!< VEX|EVEX [MR] (propagates VEX|EVEX.L, VSIB support).
-  kEncodingVexMri,                       //!< VEX|EVEX [MRI].
-  kEncodingVexMri_Lx,                    //!< VEX|EVEX [MRI] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRm,                        //!< VEX|EVEX [RM].
-  kEncodingVexRm_ZDI,                    //!< VEX|EVEX [RM<ZDI>].
-  kEncodingVexRm_Wx,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.W if GPQ used).
-  kEncodingVexRm_Lx,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRm_VM,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.L, VSIB support).
-  kEncodingVexRm_T1_4X,                  //!<     EVEX [RM] (used by NN instructions that use RM-T1_4X encoding).
-  kEncodingVexRmi,                       //!< VEX|EVEX [RMI].
-  kEncodingVexRmi_Wx,                    //!< VEX|EVEX [RMI] (propagates VEX|EVEX.W if GPQ used).
-  kEncodingVexRmi_Lx,                    //!< VEX|EVEX [RMI] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRvm,                       //!< VEX|EVEX [RVM].
-  kEncodingVexRvm_Wx,                    //!< VEX|EVEX [RVM] (propagates VEX|EVEX.W if GPQ used).
-  kEncodingVexRvm_ZDX_Wx,                //!< VEX|EVEX [RVM<ZDX>] (propagates VEX|EVEX.W if GPQ used).
-  kEncodingVexRvm_Lx,                    //!< VEX|EVEX [RVM] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRvmr,                      //!< VEX|EVEX [RVMR].
-  kEncodingVexRvmr_Lx,                   //!< VEX|EVEX [RVMR] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRvmi,                      //!< VEX|EVEX [RVMI].
-  kEncodingVexRvmi_Lx,                   //!< VEX|EVEX [RVMI] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRmv,                       //!< VEX|EVEX [RMV].
-  kEncodingVexRmv_Wx,                    //!< VEX|EVEX [RMV] (propagates VEX|EVEX.W if GPQ used).
-  kEncodingVexRmv_VM,                    //!< VEX|EVEX [RMV] (propagates VEX|EVEX.L, VSIB support).
-  kEncodingVexRmvRm_VM,                  //!< VEX|EVEX [RMV|RM] (propagates VEX|EVEX.L, VSIB support).
-  kEncodingVexRmvi,                      //!< VEX|EVEX [RMVI].
-  kEncodingVexRmMr,                      //!< VEX|EVEX [RM|MR].
-  kEncodingVexRmMr_Lx,                   //!< VEX|EVEX [RM|MR] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRvmRmv,                    //!< VEX|EVEX [RVM|RMV].
-  kEncodingVexRvmRmi,                    //!< VEX|EVEX [RVM|RMI].
-  kEncodingVexRvmRmi_Lx,                 //!< VEX|EVEX [RVM|RMI] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRvmRmvRmi,                 //!< VEX|EVEX [RVM|RMV|RMI].
-  kEncodingVexRvmMr,                     //!< VEX|EVEX [RVM|MR].
-  kEncodingVexRvmMvr,                    //!< VEX|EVEX [RVM|MVR].
-  kEncodingVexRvmMvr_Lx,                 //!< VEX|EVEX [RVM|MVR] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRvmVmi,                    //!< VEX|EVEX [RVM|VMI].
-  kEncodingVexRvmVmi_Lx,                 //!< VEX|EVEX [RVM|VMI] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexVm,                        //!< VEX|EVEX [VM].
-  kEncodingVexVm_Wx,                     //!< VEX|EVEX [VM] (propagates VEX|EVEX.W if GPQ used).
-  kEncodingVexVmi,                       //!< VEX|EVEX [VMI].
-  kEncodingVexVmi_Lx,                    //!< VEX|EVEX [VMI] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexEvexVmi_Lx,                //!< VEX|EVEX [VMI] (special, used by vpsrldq and vpslldq)
-  kEncodingVexRvrmRvmr,                  //!< VEX|EVEX [RVRM|RVMR].
-  kEncodingVexRvrmRvmr_Lx,               //!< VEX|EVEX [RVRM|RVMR] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexRvrmiRvmri_Lx,             //!< VEX|EVEX [RVRMI|RVMRI] (propagates VEX|EVEX.L if YMM used).
-  kEncodingVexMovdMovq,                  //!< VEX|EVEX vmovd, vmovq.
-  kEncodingVexMovssMovsd,                //!< VEX|EVEX vmovss, vmovsd.
-  kEncodingFma4,                         //!< FMA4 [R, R, R/M, R/M].
-  kEncodingFma4_Lx,                      //!< FMA4 [R, R, R/M, R/M] (propagates AVX.L if YMM used).
-  kEncodingCount                         //!< Count of instruction encodings.
 };
 
 // ============================================================================
@@ -313,7 +167,7 @@ enum Flags : uint32_t {
   // These describe optional X86 prefixes that can be used to change the instruction's operation.
 
   kFlagRep                = 0x00001000u, //!< Instruction can be prefixed with using the REP/REPE/REPZ prefix.
-  kFlagRepne              = 0x00002000u, //!< Instruction can be prefixed with using the REPNE/REPNZ prefix.
+  kFlagRepIgnored         = 0x00002000u, //!< Instruction can be prefixed with using the REPNE/REPNZ prefix.
   kFlagLock               = 0x00004000u, //!< Instruction can be prefixed with using the LOCK prefix.
   kFlagXAcquire           = 0x00008000u, //!< Instruction can be prefixed with using the XACQUIRE prefix.
   kFlagXRelease           = 0x00010000u, //!< Instruction can be prefixed with using the XRELEASE prefix.
@@ -479,13 +333,13 @@ struct CommonInfo {
   inline bool hasLockPrefix() const noexcept { return hasFlag(kFlagLock); }
   //! Gets whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
   inline bool hasRepPrefix() const noexcept { return hasFlag(kFlagRep); }
-  //! Gets whether the instruction can be prefixed with REPNE (REPNZ) prefix.
-  inline bool hasRepnePrefix() const noexcept { return hasFlag(kFlagRepne); }
   //! Gets whether the instruction can be prefixed with XACQUIRE prefix.
   inline bool hasXAcquirePrefix() const noexcept { return hasFlag(kFlagXAcquire); }
   //! Gets whether the instruction can be prefixed with XRELEASE prefix.
   inline bool hasXReleasePrefix() const noexcept { return hasFlag(kFlagXRelease); }
 
+  //! Gets whether the rep prefix is supported by the instruction, but ignored (has no effect).
+  inline bool isRepIgnored() const noexcept { return hasFlag(kFlagRepIgnored); }
   //! Gets whether the instruction uses MIB.
   inline bool isMibOp() const noexcept { return hasFlag(kFlagMib); }
   //! Gets whether the instruction uses VSIB.
@@ -643,13 +497,13 @@ struct InstInfo {
   inline bool hasLockPrefix() const noexcept { return commonInfo().hasLockPrefix(); }
   //! Gets whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
   inline bool hasRepPrefix() const noexcept { return commonInfo().hasRepPrefix(); }
-  //! Gets whether the instruction can be prefixed with REPNE (REPNZ) prefix.
-  inline bool hasRepnePrefix() const noexcept { return commonInfo().hasRepnePrefix(); }
   //! Gets whether the instruction can be prefixed with XACQUIRE prefix.
   inline bool hasXAcquirePrefix() const noexcept { return commonInfo().hasXAcquirePrefix(); }
   //! Gets whether the instruction can be prefixed with XRELEASE prefix.
   inline bool hasXReleasePrefix() const noexcept { return commonInfo().hasXReleasePrefix(); }
 
+  //! Gets whether the rep prefix is supported by the instruction, but ignored (has no effect).
+  inline bool isRepIgnored() const noexcept { return commonInfo().isRepIgnored(); }
   //! Gets whether the instruction uses MIB.
   inline bool isMibOp() const noexcept { return hasFlag(kFlagMib); }
   //! Gets whether the instruction uses VSIB.
@@ -714,29 +568,6 @@ struct InstInfo {
 
 ASMJIT_VARAPI const InstInfo _instInfoTable[];
 
-#if defined(ASMJIT_EXPORTS)
-// TODO: Should not be part of the API, don't export.
-ASMJIT_VARAPI const uint8_t _encodingTable[];
-ASMJIT_VARAPI const uint32_t _mainOpcodeTable[];
-ASMJIT_VARAPI const uint8_t _altOpcodeIndex[];
-ASMJIT_VARAPI const uint32_t _altOpcodeTable[];
-
-static inline uint32_t encodingFromId(uint32_t instId) noexcept {
-  ASMJIT_ASSERT(Inst::isDefinedId(instId));
-  return _encodingTable[instId];
-}
-
-static inline uint32_t mainOpcodeFromId(uint32_t instId) noexcept {
-  ASMJIT_ASSERT(Inst::isDefinedId(instId));
-  return _mainOpcodeTable[instId];
-}
-
-static inline uint32_t altOpcodeFromId(uint32_t instId) noexcept {
-  ASMJIT_ASSERT(Inst::isDefinedId(instId));
-  return _altOpcodeTable[_altOpcodeIndex[instId]];
-}
-#endif
-
 #ifndef ASMJIT_DISABLE_TEXT
 //! Gets an instruction ID from a given instruction `name`.
 //!
@@ -755,24 +586,7 @@ inline const InstInfo& infoById(uint32_t instId) noexcept {
   return _instInfoTable[instId];
 }
 
-} // InstDB namespace
-
-// ============================================================================
-// [asmjit::x86::InstInternal]
-// ============================================================================
-
-#if defined(ASMJIT_EXPORTS)
-//! \internal
-//!
-//! Implements API provided by `BaseInst` (X86).
-namespace InstInternal {
-  #ifndef ASMJIT_DISABLE_INST_API
-  Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
-  Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept;
-  Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;
-  #endif
-};
-#endif
+} // {InstDB}
 
 //! \}
 
