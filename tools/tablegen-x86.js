@@ -1598,8 +1598,8 @@ class InstSignatureTable extends core.Task {
     }
 
     var s = `#define ROW(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5)  \\\n` +
-            `  { count, (x86 ? uint8_t(InstDB::kArchMaskX86) : uint8_t(0)) | \\\n` +
-            `           (x64 ? uint8_t(InstDB::kArchMaskX64) : uint8_t(0)) , \\\n` +
+            `  { count, (x86 ? uint8_t(InstDB::kModeX86) : uint8_t(0)) |     \\\n` +
+            `           (x64 ? uint8_t(InstDB::kModeX64) : uint8_t(0)) ,     \\\n` +
             `    implicit,                                                   \\\n` +
             `    0,                                                          \\\n` +
             `    { o0, o1, o2, o3, o4, o5 }                                  \\\n` +

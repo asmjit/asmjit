@@ -290,14 +290,10 @@ using namespace asmjit;
 typedef int (*SumFunc)(const int* arr, size_t count);
 
 int main(int argc, char* argv[]) {
-  assert(sizeof(void*) == 8 &&
-    "This example requires 64-bit environment.");
-
   JitRuntime jit;                         // Create a runtime specialized for JIT.
-
   CodeHolder code;                        // Create a CodeHolder.
-  code.init(jit.codeInfo());              // Initialize it to be compatible with `jit`.
 
+  code.init(jit.codeInfo());              // Initialize it to be compatible with `jit`.
   x86::Assembler a(&code);                // Create and attach x86::Assembler to `code`.
 
   // Decide between 32-bit CDECL, WIN64, and SysV64 calling conventions:
@@ -664,10 +660,9 @@ typedef int (*Func)(void);
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Create a runtime specialized for JIT.
-
   CodeHolder code;                        // Create a CodeHolder.
-  code.init(jit.codeInfo());              // Initialize it to be compatible with `jit`.
 
+  code.init(jit.codeInfo());              // Initialize it to be compatible with `jit`.
   x86::Assembler a(&code);                // Create and attach x86::Assembler to `code`.
 
   // Let's get these registers from x86::Assembler.
@@ -746,10 +741,9 @@ typedef int (*Func)(void);
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Create a runtime specialized for JIT.
-
   CodeHolder code;                        // Create a CodeHolder.
-  code.init(jit.codeInfo());              // Initialize it to be compatible with `jit`.
 
+  code.init(jit.codeInfo());              // Initialize it to be compatible with `jit`.
   x86::Assembler a(&code);                // Create and attach x86::Assembler to `code`.
 
   // Let's get these registers from x86::Assembler.
@@ -843,8 +837,8 @@ typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Create JIT Runtime.
-
   CodeHolder code;                        // Create a CodeHolder.
+
   code.init(jit.codeInfo());              // Initialize it to match `jit`.
   x86::Assembler a(&code);                // Create and attach x86::Assembler to `code`.
 
@@ -965,8 +959,8 @@ static void dumpCode(BaseBuilder& cb, const char* phase) {
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Create JIT Runtime.
-
   CodeHolder code;                        // Create a CodeHolder.
+
   code.init(jit.codeInfo());              // Initialize it to match `jit`.
   x86::Builder cb(&code);                 // Create and attach x86::Builder to `code`.
 
@@ -1188,11 +1182,11 @@ typedef int (*Func)(void);
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Runtime specialized for JIT code execution.
-
   CodeHolder code;                        // Holds code and relocation information.
-  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
 
+  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
+
   cc.addFunc(FuncSignatureT<int>());      // Begin a function of `int fn(void)` signature.
 
   x86::Gp vReg = cc.newGpd();             // Create a 32-bit general purpose register.
@@ -1229,11 +1223,11 @@ typedef void (*MemCpy32)(uint32_t* dst, const uint32_t* src, size_t count);
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Runtime specialized for JIT code execution.
-
   CodeHolder code;                        // Holds code and relocation information.
-  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
 
+  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
+
   cc.addFunc(                             // Begin the function of the following signature:
     FuncSignatureT<void,                  //   Return value - void      (no return value).
       uint32_t*,                          //   1st argument - uint32_t* (machine reg-size).
@@ -1278,12 +1272,12 @@ int main(int argc, char* argv[]) {
   // ----> CodeHolder is no longer needed from here and can be destroyed <----
 
   // Test the generated code.
-  uint32_t src[6] = { 1, 2, 3, 5, 8, 13 };
-  uint32_t dst[6];
-  memcpy32(dst, src, 6);
+  uint32_t input[6] = { 1, 2, 3, 5, 8, 13 };
+  uint32_t output[6];
+  memcpy32(output, input, 6);
 
   for (uint32_t i = 0; i < 6; i++)
-    printf("%d\n", dst[i]);
+    printf("%d\n", output[i]);
 
   jit.release(memcpy32);                  // RAII, but let's make it explicit.
   return 0;
@@ -1305,11 +1299,11 @@ typedef uint32_t (*Fibonacci)(uint32_t x);
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Runtime specialized for JIT code execution.
-
   CodeHolder code;                        // Holds code and relocation information.
-  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
 
+  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
+
   FuncNode* func = cc.addFunc(            // Begin of the Fibonacci function, `addFunc()`
     FuncSignatureT<int, int>());          // Returns a pointer to the `FuncNode` node.
 
@@ -1368,11 +1362,11 @@ typedef int (*Func)(void);
 
 int main(int argc, char* argv[]) {
   JitRuntime jit;                         // Runtime specialized for JIT code execution.
-
   CodeHolder code;                        // Holds code and relocation information.
-  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
 
+  code.init(jit.codeInfo());              // Initialize to the same arch as JIT runtime.
   x86::Compiler cc(&code);                // Create and attach x86::Compiler to `code`.
+
   cc.addFunc(FuncSignatureT<int>());      // Create a function that returns 'int'.
 
   x86::Gp p = cc.newIntPtr("p");
@@ -1674,7 +1668,7 @@ int main(int argc, char* argv[]) {
 
 ### Code Injection
 
-Both `Builder` and `Compiler` emitters store their nodes in a double-linked list, which makes it easy to manipulate that list during the code generation or after. Each node is always emitted next to the current `cursor` and the cursor is changed to that newly emitted node. The cursor can be explicitly retrieved and assigned by `cursor()` and `setCursor()`, respectively.
+Both `Builder` and `Compiler` emitters store their nodes in a double-linked list, which makes it easy to manipulate that list during the code generation or after. Each node is always emitted next to the current `cursor` and the cursor is changed to that newly emitted node. The cursor can be explicitly retrieved and changed by `cursor()` and `setCursor()`, respectively.
 
 The following example shows how to inject code at the beginning of the function by implementing an `XmmConstInjector` helper class.
 

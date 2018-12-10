@@ -932,10 +932,14 @@ Error BaseBuilder::onAttach(CodeHolder* code) noexcept {
   SectionNode* initialSection;
   Error err = sectionNodeOf(&initialSection, 0);
 
+  if (!err)
+    err = _passes.willGrow(&_allocator, 8);
+
   if (ASMJIT_UNLIKELY(err)) {
     onDetach(code);
     return err;
   }
+
 
   _cursor = initialSection;
   _firstNode = initialSection;

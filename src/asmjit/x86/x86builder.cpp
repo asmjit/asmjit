@@ -33,7 +33,6 @@ Builder::~Builder() noexcept {}
 
 Error Builder::finalize() {
   ASMJIT_PROPAGATE(runPasses());
-
   Assembler a(_code);
   return serialize(&a);
 }

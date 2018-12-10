@@ -33,18 +33,10 @@ Compiler::~Compiler() noexcept {}
 // ============================================================================
 
 Error Compiler::finalize() {
-  // Flush the global constant pool.
-  if (_globalConstPool) {
-    addNode(_globalConstPool);
-    _globalConstPool = nullptr;
-  }
-
   ASMJIT_PROPAGATE(runPasses());
-
   Assembler a(_code);
   return serialize(&a);
 }
-
 // ============================================================================
 // [asmjit::x86::Compiler - Events]
 // ============================================================================
@@ -54,11 +46,16 @@ Error Compiler::onAttach(CodeHolder* code) noexcept {
   if (!ArchInfo::isX86Family(archId))
     return DebugUtils::errored(kErrorInvalidArch);
 
-  ASMJIT_PROPAGATE(_passes.willGrow(&_allocator));
   ASMJIT_PROPAGATE(Base::onAttach(code));
-
   _gpRegInfo.setSignature(archId == ArchInfo::kIdX86 ? uint32_t(Gpd::kSignature) : uint32_t(Gpq::kSignature));
-  return addPassT<X86RAPass>();
+
+  Error err = addPassT<X86RAPass>();
+  if (ASMJIT_UNLIKELY(err)) {
+    onDetach(code);
+    return err;
+  }
+
+  return kErrorOk;
 }
 
 ASMJIT_END_SUB_NAMESPACE

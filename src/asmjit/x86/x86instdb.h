@@ -20,19 +20,20 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 namespace InstDB {
 
 // ============================================================================
-// [asmjit::x86::InstDB::ArchMask]
+// [asmjit::x86::InstDB::Mode]
 // ============================================================================
 
-//! Architecture mask.
-enum ArchMask : uint32_t {
-  kArchMaskNone           = 0x00u,       //!< No arch (invalid).
-  kArchMaskX86            = 0x01u,       //!< X86 mode supported.
-  kArchMaskX64            = 0x02u        //!< X64 mode supported.
+//! Describes which mode is supported by an instruction or instruction signature.
+enum Mode : uint32_t {
+  kModeNone               = 0x00u,       //!< Invalid.
+  kModeX86                = 0x01u,       //!< X86 mode supported.
+  kModeX64                = 0x02u,       //!< X64 mode supported.
+  kModeAny                = 0x03u        //!< Both X86 and X64 modes supported.
 };
 
-static inline uint32_t archMaskFromArchId(uint32_t archId) noexcept {
-  return archId == ArchInfo::kIdX86 ? kArchMaskX86 :
-         archId == ArchInfo::kIdX64 ? kArchMaskX64 : kArchMaskNone;
+static constexpr uint32_t modeFromArchId(uint32_t archId) noexcept {
+  return archId == ArchInfo::kIdX86 ? kModeX86 :
+         archId == ArchInfo::kIdX64 ? kModeX64 : kModeNone;
 }
 
 // ============================================================================
@@ -433,9 +434,9 @@ ASMJIT_VARAPI const OpSignature _opSignatureTable[];
 //! a single instruction. This data is used by instruction validator.
 struct InstSignature {
   //! Count of operands in `opIndex` (0..6).
-  uint8_t opCount  : 3;
-  //! Architecture mask of this record.
-  uint8_t archMask : 2;
+  uint8_t opCount : 3;
+  //! Architecture modes supported (X86 / X64).
+  uint8_t modes : 2;
   //! Number of implicit operands.
   uint8_t implicit : 3;
   //! Reserved for future use.

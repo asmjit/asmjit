@@ -47,9 +47,9 @@ namespace InstDB {
   };
 
   //! Supported architectures.
-  enum ArchMask : uint32_t {
-    kArchMaskArm32        = 0x01,        //!< ARM32 mode supported.
-    kArchMaskArm64        = 0x02         //!< ARM64 mode supported.
+  enum Mode : uint32_t {
+    kModeArm32            = 0x01,        //!< ARM32 mode supported.
+    kModeArm64            = 0x02         //!< ARM64 mode supported.
   };
 
   //! Common data - aggregated data that is shared across many instructions.

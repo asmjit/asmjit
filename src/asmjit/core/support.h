@@ -449,7 +449,7 @@ static constexpr X numGranularized(X base, Y granularity) noexcept {
 // [asmjit::Support - IsBetween]
 // ============================================================================
 
-//! Gets whether `x` is greater than or equal to `a` and lesser than or equal to `b`.
+//! Checks whether `x` is greater than or equal to `a` and lesser than or equal to `b`.
 template<typename T>
 static constexpr bool isBetween(const T& x, const T& a, const T& b) noexcept {
   return x >= a && x <= b;
@@ -459,7 +459,7 @@ static constexpr bool isBetween(const T& x, const T& a, const T& b) noexcept {
 // [asmjit::Support - IsInt / IsUInt]
 // ============================================================================
 
-//! Gets whether the given integer `x` can be casted to a 4-bit signed integer.
+//! Checks whether the given integer `x` can be casted to a 4-bit signed integer.
 template<typename T>
 static constexpr bool isInt4(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -469,7 +469,7 @@ static constexpr bool isInt4(T x) noexcept {
                                   : U(x) <= U(7u);
 }
 
-//! Gets whether the given integer `x` can be casted to an 8-bit signed integer.
+//! Checks whether the given integer `x` can be casted to an 8-bit signed integer.
 template<typename T>
 static constexpr bool isInt8(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -479,7 +479,7 @@ static constexpr bool isInt8(T x) noexcept {
                                   : U(x) <= U(127u);
 }
 
-//! Gets whether the given integer `x` can be casted to a 16-bit signed integer.
+//! Checks whether the given integer `x` can be casted to a 16-bit signed integer.
 template<typename T>
 static constexpr bool isInt16(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -489,7 +489,7 @@ static constexpr bool isInt16(T x) noexcept {
                                   : sizeof(T) <= 1 || U(x) <= U(32767u);
 }
 
-//! Gets whether the given integer `x` can be casted to a 32-bit signed integer.
+//! Checks whether the given integer `x` can be casted to a 32-bit signed integer.
 template<typename T>
 static constexpr bool isInt32(T x) noexcept {
   typedef typename std::make_signed<T>::type S;
@@ -499,7 +499,7 @@ static constexpr bool isInt32(T x) noexcept {
                                   : sizeof(T) <= 2 || U(x) <= U(2147483647u);
 }
 
-//! Gets whether the given integer `x` can be casted to a 4-bit unsigned integer.
+//! Checks whether the given integer `x` can be casted to a 4-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt4(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -508,7 +508,7 @@ static constexpr bool isUInt4(T x) noexcept {
                                   : U(x) <= U(15u);
 }
 
-//! Gets whether the given integer `x` can be casted to an 8-bit unsigned integer.
+//! Checks whether the given integer `x` can be casted to an 8-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt8(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -517,7 +517,7 @@ static constexpr bool isUInt8(T x) noexcept {
                                   : (sizeof(T) <= 1 || U(x) <= U(255u));
 }
 
-//! Gets whether the given integer `x` can be casted to a 12-bit unsigned integer (ARM specific).
+//! Checks whether the given integer `x` can be casted to a 12-bit unsigned integer (ARM specific).
 template<typename T>
 static constexpr bool isUInt12(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -526,7 +526,7 @@ static constexpr bool isUInt12(T x) noexcept {
                                   : (sizeof(T) <= 1 || U(x) <= U(4095u));
 }
 
-//! Gets whether the given integer `x` can be casted to a 16-bit unsigned integer.
+//! Checks whether the given integer `x` can be casted to a 16-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt16(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -535,13 +535,19 @@ static constexpr bool isUInt16(T x) noexcept {
                                   : (sizeof(T) <= 2 || U(x) <= U(65535u));
 }
 
-//! Gets whether the given integer `x` can be casted to a 32-bit unsigned integer.
+//! Checks whether the given integer `x` can be casted to a 32-bit unsigned integer.
 template<typename T>
 static constexpr bool isUInt32(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
 
   return std::is_signed<T>::value ? (sizeof(T) <= 4 || T(x) <= T(4294967295u)) && x >= T(0)
                                   : (sizeof(T) <= 4 || U(x) <= U(4294967295u));
+}
+
+//! Checks whether the given integer `x` can be casted to a 32-bit unsigned integer.
+template<typename T>
+static constexpr bool isIntOrUInt32(T x) noexcept {
+  return sizeof(T) <= 4 ? true : (uint32_t(uint64_t(x) >> 32) + 1u) <= 1u;
 }
 
 // ============================================================================

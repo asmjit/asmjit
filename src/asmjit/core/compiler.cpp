@@ -23,6 +23,27 @@
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
+// [asmjit::GlobalConstPoolPass]
+// ============================================================================
+
+class GlobalConstPoolPass : public Pass {
+  ASMJIT_NONCOPYABLE(GlobalConstPoolPass)
+  typedef Pass Base;
+
+  GlobalConstPoolPass() noexcept : Pass("GlobalConstPoolPass") {}
+
+  Error run(Zone* zone, Logger* logger) noexcept override {
+    // Flush the global constant pool.
+    BaseCompiler* compiler = static_cast<BaseCompiler*>(_cb);
+    if (compiler->_globalConstPool) {
+      compiler->addAfter(compiler->_globalConstPool, compiler->lastNode());
+      compiler->_globalConstPool = nullptr;
+    }
+    return kErrorOk;
+  }
+};
+
+// ============================================================================
 // [asmjit::FuncCallNode - Arg / Ret]
 // ============================================================================
 
@@ -485,7 +506,15 @@ void BaseCompiler::rename(BaseReg& reg, const char* fmt, ...) {
 // ============================================================================
 
 Error BaseCompiler::onAttach(CodeHolder* code) noexcept {
-  return Base::onAttach(code);
+  ASMJIT_PROPAGATE(Base::onAttach(code));
+
+  Error err = addPassT<GlobalConstPoolPass>();
+  if (ASMJIT_UNLIKELY(err)) {
+    onDetach(code);
+    return err;
+  }
+
+  return kErrorOk;
 }
 
 Error BaseCompiler::onDetach(CodeHolder* code) noexcept {

@@ -4335,8 +4335,8 @@ const char InstDB::_nameData[] = "";
 // ${InstSignatureTable:Begin}
 // ------------------- Automatically generated, do not edit -------------------
 #define ROW(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5)  \
-  { count, (x86 ? uint8_t(InstDB::kArchMaskX86) : uint8_t(0)) | \
-           (x64 ? uint8_t(InstDB::kArchMaskX64) : uint8_t(0)) , \
+  { count, (x86 ? uint8_t(InstDB::kModeX86) : uint8_t(0)) |     \
+           (x64 ? uint8_t(InstDB::kModeX64) : uint8_t(0)) ,     \
     implicit,                                                   \
     0,                                                          \
     { o0, o1, o2, o3, o4, o5 }                                  \
@@ -5099,7 +5099,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
     vd = &_x64ValidationData;
 
   uint32_t i;
-  uint32_t archMask = InstDB::archMaskFromArchId(archId);
+  uint32_t mode = InstDB::modeFromArchId(archId);
 
   // Get the instruction data.
   uint32_t instId = inst.id();
@@ -5204,7 +5204,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
         break;
       }
 
-      // TODO: Validate base and index and combine with `combinedRegMask`.
+      // TODO: Validate base and index and combine these with `combinedRegMask`.
       case Operand::kOpMem: {
         const Mem& m = op.as<Mem>();
         memOp = &m;
@@ -5238,7 +5238,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           uint32_t baseId = m.baseId();
 
           if (m.isRegHome()) {
-            // Home address of virtual register. In such case we don't want to
+            // Home address of a virtual register. In such case we don't want to
             // validate the type of the base register as it will always be patched
             // to ESP|RSP.
           }
@@ -5256,7 +5256,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
             combinedRegMask |= regMask;
           }
           else {
-            // Virtual base id - will the whole mask for implicit mem validation.
+            // Virtual base id - fill the whole mask for implicit mem validation.
             // The register is not assigned yet, so we cannot predict the phys id.
             regMask = 0xFFFFFFFFu;
           }
@@ -5268,7 +5268,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
           // Base is a 64-bit address.
           int64_t offset = m.offset();
           if (!Support::isInt32(offset)) {
-            if (archMask == InstDB::kArchMaskX86) {
+            if (mode == InstDB::kModeX86) {
               // 32-bit mode: Make sure that the address is either `int32_t` or `uint32_t`.
               if (!Support::isUInt32(offset))
                 return DebugUtils::errored(kErrorInvalidAddress64Bit);
@@ -5285,8 +5285,8 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
               }
               else {
                 // We don't validate absolute 64-bit addresses without an index register
-                // as this also depends on the target's base address. If it's known we
-                // cannot validate anything as we don't have the information to do it.
+                // as this also depends on the target's base address. We don't have the
+                // information to do it at this moment.
               }
             }
           }
@@ -5419,7 +5419,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
   }
 
   // Validate X86 and X64 specific cases.
-  if (archMask == InstDB::kArchMaskX86) {
+  if (mode == InstDB::kModeX86) {
     // Illegal use of 64-bit register in 32-bit mode.
     if (ASMJIT_UNLIKELY((combinedOpFlags & InstDB::kOpGpq) != 0))
       return DebugUtils::errored(kErrorInvalidUseOfGpq);
@@ -5446,7 +5446,8 @@ ASMJIT_FAVOR_SIZE Error InstInternal::validate(uint32_t archId, const BaseInst& 
 
     do {
       // Check if the architecture is compatible.
-      if ((iSig->archMask & archMask) == 0) continue;
+      if ((iSig->modes & mode) == 0)
+        continue;
 
       // Compare the operands table with reference operands.
       uint32_t j = 0;
