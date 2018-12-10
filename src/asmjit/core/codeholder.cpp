@@ -1001,19 +1001,24 @@ Error CodeHolder::copyFlattenedData(void* dst, size_t dstSize, uint32_t options)
 
     size_t bufferSize = section->bufferSize();
     size_t offset = size_t(section->offset());
-    if (ASMJIT_UNLIKELY(dstSize < bufferSize))
+
+    if (ASMJIT_UNLIKELY(dstSize - offset < bufferSize))
       return DebugUtils::errored(kErrorInvalidArgument);
 
+    uint8_t* dstTarget = static_cast<uint8_t*>(dst) + offset;
     size_t paddingSize = 0;
-    memcpy(dst, section->data(), bufferSize);
+    memcpy(dstTarget, section->data(), bufferSize);
 
     if ((options & kCopyWithPadding) && bufferSize < section->virtualSize()) {
-      paddingSize = size_t(section->virtualSize()) - bufferSize;
-      memset(static_cast<uint8_t*>(dst) + bufferSize, 0, paddingSize);
+      paddingSize = Support::min<size_t>(dstSize - offset, size_t(section->virtualSize())) - bufferSize;
+      memset(dstTarget + bufferSize, 0, paddingSize);
     }
 
     end = Support::max(end, offset + bufferSize + paddingSize);
   }
+
+  // TODO: `end` is not used atm, we need an option to also pad anything beyond
+  // the code in case that the destination was much larger (for example page-size).
 
   return kErrorOk;
 }
