@@ -1167,62 +1167,44 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
   }
 
   // Try to pack the rest.
-  for (i = 0; i < numWorkRegs; i++) {
-    RAWorkReg* workReg = workRegs[i];
-    uint32_t physRegs = availableRegs;
-
-    while (physRegs) {
-      uint32_t physId = Support::ctz(physRegs);
-      if (workReg->clobberSurvivalMask()) {
-        uint32_t preferredMask = physRegs & workReg->clobberSurvivalMask();
-        if (preferredMask)
-          physId = Support::ctz(preferredMask);
-      }
-
-      LiveRegSpans& live = _globalLiveSpans[group][physId];
-      Error err = tmpSpans.nonOverlappingUnionOf(allocator(), live, workReg->liveSpans(), LiveRegData(workReg->virtId()));
-
-      if (err == kErrorOk) {
-        workReg->setHomeRegId(physId);
-        live.swap(tmpSpans);
-        break;
-      }
-
-      if (ASMJIT_UNLIKELY(err != 0xFFFFFFFFu))
-        return err;
-
-      physRegs ^= Support::bitMask(physId);
-    }
-  }
-
-  /*
-  while (!workRegs.empty() && remainingRegMask) {
+  if (!workRegs.empty()) {
     uint32_t dstIndex = 0;
-    uint32_t numWorkRegs = workRegs.size();
-
-    uint32_t physId = Support::ctz(remainingRegMask);
-    LiveRegSpans& live = _globalLiveSpans[group][physId];
 
     for (i = 0; i < numWorkRegs; i++) {
       RAWorkReg* workReg = workRegs[i];
-      Error err = tmpSpans.nonOverlappingUnionOf(allocator(), live, workReg->liveSpans(), LiveRegData(workReg->virtId()));
+      uint32_t physRegs = availableRegs;
 
-      if (err == kErrorOk) {
-        workReg->setHomeRegId(physId);
-        live.swap(tmpSpans);
-        continue;
+      while (physRegs) {
+        uint32_t physId = Support::ctz(physRegs);
+        if (workReg->clobberSurvivalMask()) {
+          uint32_t preferredMask = physRegs & workReg->clobberSurvivalMask();
+          if (preferredMask)
+            physId = Support::ctz(preferredMask);
+        }
+
+        LiveRegSpans& live = _globalLiveSpans[group][physId];
+        Error err = tmpSpans.nonOverlappingUnionOf(allocator(), live, workReg->liveSpans(), LiveRegData(workReg->virtId()));
+
+        if (err == kErrorOk) {
+          workReg->setHomeRegId(physId);
+          live.swap(tmpSpans);
+          break;
+        }
+
+        if (ASMJIT_UNLIKELY(err != 0xFFFFFFFFu))
+          return err;
+
+        physRegs ^= Support::bitMask(physId);
       }
 
-      if (ASMJIT_UNLIKELY(err != 0xFFFFFFFFu))
-        return err;
-      workRegs[dstIndex++] = workReg;
+      // Keep it in `workRegs` if it was not allocated.
+      if (!physRegs)
+        workRegs[dstIndex++] = workReg;
     }
 
     workRegs._setSize(dstIndex);
-    remainingRegMask &= ~Support::bitMask(physId);
+    numWorkRegs = dstIndex;
   }
-
-  */
 
   ASMJIT_RA_LOG_COMPLEX({
     for (uint32_t physId = 0; physId < physCount; physId++) {
