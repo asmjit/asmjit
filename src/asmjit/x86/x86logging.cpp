@@ -264,10 +264,13 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatOperand(
     const Imm& i = op.as<Imm>();
     int64_t val = i.i64();
 
-    if ((flags & FormatOptions::kFlagHexImms) != 0 && uint64_t(val) > 9)
+    if ((flags & FormatOptions::kFlagHexImms) != 0 && uint64_t(val) > 9) {
+      ASMJIT_PROPAGATE(sb.appendString("0x", 2));
       return sb.appendUInt(uint64_t(val), 16);
-    else
+    }
+    else {
       return sb.appendInt(val, 10);
+    }
   }
 
   if (op.isLabel()) {
