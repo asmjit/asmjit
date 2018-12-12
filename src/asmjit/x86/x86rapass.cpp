@@ -250,7 +250,7 @@ public:
   inline Compiler* cc() const noexcept { return static_cast<Compiler*>(_cc); }
 
   inline uint32_t choose(uint32_t sseInst, uint32_t avxInst) const noexcept {
-    return _avxEnabled ? sseInst : avxInst;
+    return _avxEnabled ? avxInst : sseInst;
   }
 
   Error onInst(InstNode* inst, uint32_t& controlType, RAInstBuilder& ib) noexcept;
