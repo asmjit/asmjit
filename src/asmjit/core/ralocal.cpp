@@ -373,9 +373,6 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
   _tiedTotal = raInst->_tiedTotal;
   _tiedCount = raInst->_tiedCount;
 
-  if (raInst->_tiedTotal == 0)
-    return kErrorOk;
-
   for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++) {
     uint32_t i, count = this->tiedCount(group);
     RATiedReg* tiedRegs = this->tiedRegs(group);
@@ -705,7 +702,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
       RATiedReg* tiedReg = dupTiedRegs[i];
       uint32_t workId = tiedReg->workId();
       uint32_t srcId = tiedReg->useId();
-      
+
       Support::BitWordIterator<uint32_t> it(tiedReg->_allocableRegs);
       while (it.hasNext()) {
         uint32_t dstId = it.next();
@@ -724,7 +721,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     if (outPending) {
       // Live registers, we need a separate variable (outside of `_curAssignment)
       // to hold these because of KILLed registers. If we KILL a register here it
-      // will go out from _curAssignment, but we cannot assign to it here.
+      // will go out from `_curAssignment`, but we cannot assign to it in here.
       uint32_t liveRegs = _curAssignment.assigned(group);
 
       // Must avoid as they have been already OUTed (added during the loop).
