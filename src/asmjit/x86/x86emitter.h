@@ -353,6 +353,10 @@ public:
 
   //! Use LOCK prefix.
   inline This& lock() noexcept { return _addInstOptions(Inst::kOptionLock); }
+  //! Use XACQUIRE prefix.
+  inline This& xacquire() noexcept { return _addInstOptions(Inst::kOptionXAcquire); }
+  //! Use XRELEASE prefix.
+  inline This& xrelease() noexcept { return _addInstOptions(Inst::kOptionXRelease); }
 
   //! Use REP/REPZ prefix.
   inline This& rep(const Gp& zcx) noexcept {
@@ -380,8 +384,8 @@ public:
   //! Force REX prefix to be emitted even when it's not needed (X86_64).
   //!
   //! NOTE: Don't use when using high 8-bit registers as REX prefix makes them
-  //! inaccessible and `x86::Assembler` would faild to encode such instruction.
-  inline This& rex() noexcept { return _addInstOptions(Inst::kOptionRex);}
+  //! inaccessible and `x86::Assembler` would fail to encode such instruction.
+  inline This& rex() noexcept { return _addInstOptions(Inst::kOptionRex); }
 
   //! Force REX.B prefix (X64) [It exists for special purposes only].
   inline This& rex_b() noexcept { return _addInstOptions(Inst::kOptionOpCodeB); }
@@ -396,6 +400,12 @@ public:
   inline This& vex3() noexcept { return _addInstOptions(Inst::kOptionVex3); }
   //! Force 4-byte EVEX prefix (AVX512+).
   inline This& evex() noexcept { return _addInstOptions(Inst::kOptionEvex); }
+
+  //! Use masking {k} (AVX512+).
+  inline This& k(const KReg& kreg) noexcept {
+    static_cast<This*>(this)->_extraReg.init(kreg);
+    return *static_cast<This*>(this);
+  }
 
   //! Use zeroing instead of merging (AVX512+).
   inline This& z() noexcept { return _addInstOptions(Inst::kOptionZMask); }
