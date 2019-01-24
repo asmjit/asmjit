@@ -357,6 +357,10 @@ public:
 
   //! Use LOCK prefix.
   ASMJIT_INLINE This& lock() noexcept { return _addOptions(X86Inst::kOptionLock); }
+  //! Use XACQUIRE prefix.
+  ASMJIT_INLINE This& xacquire() noexcept { return _addOptions(X86Inst::kOptionXAcquire); }
+  //! Use XRELEASE prefix.
+  ASMJIT_INLINE This& xrelease() noexcept { return _addOptions(X86Inst::kOptionXRelease); }
 
   //! Use REP/REPZ prefix.
   ASMJIT_INLINE This& rep(const X86Gp& zcx) noexcept {
@@ -400,6 +404,12 @@ public:
   ASMJIT_INLINE This& vex3() noexcept { return _addOptions(X86Inst::kOptionVex3); }
   //! Force 4-byte EVEX prefix (AVX512+).
   ASMJIT_INLINE This& evex() noexcept { return _addOptions(X86Inst::kOptionEvex); }
+
+  //! Use masking {k} (AVX512+).
+  ASMJIT_INLINE This& k(const X86KReg& kreg) noexcept {
+    static_cast<This*>(this)->_extraReg.init(kreg);
+    return *static_cast<This*>(this);
+  }
 
   //! Use zeroing instead of merging (AVX512+).
   ASMJIT_INLINE This& z() noexcept { return _addOptions(X86Inst::kOptionZMask); }
