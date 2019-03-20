@@ -31,11 +31,11 @@ endif()
 # =============================================================================
 
 set(ASMJIT_DIR        "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
-set(ASMJIT_EMBED      ${ASMJIT_EMBED}             CACHE BOOLEAN "Embed 'asmjit' library (no targets)")
-set(ASMJIT_STATIC     ${ASMJIT_STATIC}            CACHE BOOLEAN "Build 'asmjit' library as static")
-set(ASMJIT_BUILD_ARM  ${ASMJIT_BUILD_ARM}         CACHE BOOLEAN "Build ARM32/ARM64 backends")
-set(ASMJIT_BUILD_X86  ${ASMJIT_BUILD_X86}         CACHE BOOLEAN "Build X86/X64 backends")
-set(ASMJIT_BUILD_TEST ${ASMJIT_BUILD_TEST}        CACHE BOOLEAN "Build 'asmjit_test' applications")
+set(ASMJIT_EMBED      ${ASMJIT_EMBED}             CACHE BOOL "Embed 'asmjit' library (no targets)")
+set(ASMJIT_STATIC     ${ASMJIT_STATIC}            CACHE BOOL "Build 'asmjit' library as static")
+set(ASMJIT_BUILD_ARM  ${ASMJIT_BUILD_ARM}         CACHE BOOL "Build ARM32/ARM64 backends")
+set(ASMJIT_BUILD_X86  ${ASMJIT_BUILD_X86}         CACHE BOOL "Build X86/X64 backends")
+set(ASMJIT_BUILD_TEST ${ASMJIT_BUILD_TEST}        CACHE BOOL "Build 'asmjit_test' applications")
 
 # =============================================================================
 # [AsmJit - Project]
