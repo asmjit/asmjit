@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifdef ASMJIT_BUILD_X86
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/inst.h"
 
@@ -87,5 +84,4 @@ Error BaseInst::queryFeatures(uint32_t archId, const BaseInst& inst, const Opera
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // ASMJIT_BUILD_X86

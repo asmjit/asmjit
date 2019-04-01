@@ -1,5 +1,5 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
@@ -54,7 +54,6 @@
 // #define ASMJIT_DISABLE_INST_API   // Disable API related to instruction database
 //                                   // (validation, cpu features, rw-info, etc).
 
-// [Guard]
 #ifndef _ASMJIT_CORE_BUILD_H
 #define _ASMJIT_CORE_BUILD_H
 
@@ -418,7 +417,7 @@
 #define ASMJIT_UNUSED(X) (void)(X)
 
 // Utilities.
-#define ASMJIT_OFFSET_OF(STRUCT, MEMBER) ((int)(intptr_t)((const char*)&((const STRUCT*)0x1)->MEMBER) - 1)
+#define ASMJIT_OFFSET_OF(STRUCT, MEMBER) ((int)(intptr_t)((const char*)&((const STRUCT*)0x100)->MEMBER) - 0x100)
 #define ASMJIT_ARRAY_SIZE(X) uint32_t(sizeof(X) / sizeof(X[0]))
 
 #if ASMJIT_CXX_HAS_ATTRIBUTE(attribute_deprecated_with_message, ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 5, 0))
@@ -548,5 +547,4 @@
   #include "../../../test/broken.h"
 #endif
 
-// [Guard]
 #endif // _ASMJIT_CORE_BUILD_H

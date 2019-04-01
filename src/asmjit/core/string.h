@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_STRING_H
 #define _ASMJIT_CORE_STRING_H
 
-// [Dependencies]
 #include "../core/support.h"
 #include "../core/zone.h"
 
@@ -43,29 +41,25 @@ class String {
 public:
   ASMJIT_NONCOPYABLE(String)
 
+  //! \cond INTERNAL
+
   enum : uint32_t {
     kLayoutSize = 32,
     kSSOCapacity = kLayoutSize - 2
   };
 
-  //! \internal
-  //!
   //! String type.
   enum Type : uint8_t {
     kTypeLarge    = 0x1Fu, //!< Large string (owned by String).
     kTypeExternal = 0x20u  //!< External string (zone allocated or not owned by String).
   };
 
-  //! \internal
-  //!
   //! String operation.
   enum Op : uint32_t {
     kOpAssign        = 0,
     kOpAppend        = 1
   };
 
-  //! \internal
-  //!
   //! String format flags.
   enum FormatFlags : uint32_t {
     kFormatShowSign  = 0x00000001u,
@@ -92,6 +86,8 @@ public:
     size_t capacity;
     char* data;
   };
+
+  //! \endcond
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -273,12 +269,14 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
+  //! \cond INTERNAL
   union {
     uint8_t _type;
     Raw _raw;
     Small _small;
     Large _large;
   };
+  //! \endcond
 };
 
 // ============================================================================
@@ -346,5 +344,4 @@ union FixedString {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_STRING_H

@@ -14,11 +14,20 @@ if (NOT __CXX_INCLUDED)
   function(cxx_detect_cflags out)
     set(out_array ${${out}})
 
+    list(GET ARGN 0 FIRST)
+    if("${FIRST}" STREQUAL "FIRST")
+      list(REMOVE_AT ARGN 0)
+    endif()
+
     foreach(flag ${ARGN})
-      string(REGEX REPLACE "[-=:;/.\+]" "_" flag_signature "${flag}")
+      string(REGEX REPLACE "[+]" "x" flag_signature "${flag}")
+      string(REGEX REPLACE "[-=:;/.\]" "_" flag_signature "${flag_signature}")
       check_cxx_compiler_flag(${flag} "__CxxFlag_${flag_signature}")
       if(${__CxxFlag_${flag_signature}})
         list(APPEND out_array "${flag}")
+        if("${FIRST}" STREQUAL "FIRST")
+          break()
+        endif()
       endif()
     endforeach()
 
@@ -29,18 +38,79 @@ if (NOT __CXX_INCLUDED)
     set(out_array)
 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-      cxx_detect_cflags(out_array "/std:c++latest" "/std:c++14")
+      cxx_detect_cflags(out_array FIRST "/std:c++latest" "/std:c++14")
     else()
-      cxx_detect_cflags(out_array "-std=c++17" "-std=c++14" "-std=c++11" "-std=c++0x")
-    endif()
-
-    # Keep only the first flag detected, which keeps the highest version supported.
-    if(out_array)
-      list(GET out_array 0 out_array)
+      cxx_detect_cflags(out_array FIRST "-std=c++17" "-std=c++14" "-std=c++11")
     endif()
 
     set(out_array ${${out}} ${out_array})
     set(${out} "${out_array}" PARENT_SCOPE)
+  endfunction()
+
+  function(cxx_detect_cpu_features out)
+    # Flags to be exported.
+    set(cxx_cpu_features SSE2 SSE3 SSSE3 SSE4_1 SSE4_2 AVX AVX2)
+
+    foreach(feature ${cxx_cpu_features})
+      set("cxx_cpu_feature_${feature}" "")
+    endforeach()
+
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+      # AVX/AVX2 doesn't need custom defs as MSVC does define __AVX[2]__
+      # similary to other compilers. In addition, we only detect the support
+      # for AVX/AVX2 as if these are available all previous instruction sets
+      # are also available. If such check fails it means that we are either
+      # not compiling for X86/X64 or the compiler is very old, which cannot
+      # be used anyway.
+      cxx_detect_cflags(cxx_cpu_feature_AVX "/arch:AVX")
+      cxx_detect_cflags(cxx_cpu_feature_AVX2 "/arch:AVX2")
+
+      if(cxx_cpu_feature_AVX)
+        # 64-bit MSVC compiler doesn't like /arch:SSE[2] as it's implicit.
+        if(NOT CMAKE_CL_64)
+          list(APPEND cxx_cpu_feature_SSE2 "/arch:SSE2")
+          list(APPEND cxx_cpu_feature_SSE3 "/arch:SSE2")
+          list(APPEND cxx_cpu_feature_SSSE3 "/arch:SSE2")
+          list(APPEND cxx_cpu_feature_SSE4_1 "/arch:SSE2")
+          list(APPEND cxx_cpu_feature_SSE4_2 "/arch:SSE2")
+        endif()
+        # MSVC doesn't provide any preprocessor definitions for SSE3 and higher, thus
+        # we have to define these ourselves to match these defined by Intel|Clang|GCC.
+        list(APPEND cxx_cpu_feature_SSE2 "/D__SSE2__")
+        list(APPEND cxx_cpu_feature_SSE3 "/D__SSE3__")
+        list(APPEND cxx_cpu_feature_SSSE3 "/D__SSSE3__")
+        list(APPEND cxx_cpu_feature_SSE4_1 "/D__SSE4_1__")
+        list(APPEND cxx_cpu_feature_SSE4_2 "/D__SSE4_2__")
+      endif()
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND WIN32)
+      # Intel deprecated /arch:SSE, so it's implicit. In contrast to MSVC, Intel
+      # also provides /arch:SSE3+ options and uses the same definitions as GCC
+      # and Clang, so no magic needed here.
+      cxx_detect_cflags(cxx_cpu_feature_AVX "/arch:AVX")
+      cxx_detect_cflags(cxx_cpu_feature_AVX2 "/arch:AVX2")
+      if(cxx_cpu_feature_AVX)
+        list(APPEND cxx_cpu_feature_SSE2 "/arch:SSE2")
+        list(APPEND cxx_cpu_feature_SSE3 "/arch:SSE3")
+        list(APPEND cxx_cpu_feature_SSSE3 "/arch:SSSE3")
+        list(APPEND cxx_cpu_feature_SSE4_1 "/arch:SSE4.1")
+        list(APPEND cxx_cpu_feature_SSE4_2 "/arch:SSE4.2")
+      endif()
+    else()
+      # Assume all other compilers are compatible with GCC|Clang.
+      cxx_detect_cflags(cxx_cpu_feature_AVX "-mavx")
+      cxx_detect_cflags(cxx_cpu_feature_AVX2 "-mavx2")
+      if(cxx_cpu_feature_AVX)
+        list(APPEND cxx_cpu_feature_SSE2 "-msse2")
+        list(APPEND cxx_cpu_feature_SSE3 "-msse3")
+        list(APPEND cxx_cpu_feature_SSSE3 "-mssse3")
+        list(APPEND cxx_cpu_feature_SSE4_1 "-msse4.1")
+        list(APPEND cxx_cpu_feature_SSE4_2 "-msse4.2")
+      endif()
+    endif()
+
+    foreach(feature ${cxx_cpu_features})
+      set("${out}_${feature}" "${cxx_cpu_feature_${feature}}" PARENT_SCOPE)
+    endforeach()
   endfunction()
 
   function(cxx_print_cflags cflags_any cflags_dbg cflags_rel)
@@ -55,73 +125,18 @@ if (NOT __CXX_INCLUDED)
     endforeach()
   endfunction()
 
-  # -----------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
   # This part detects the c++ compiler and fills basic CXX_... variables to make
   # integration with that compiler easier. It provides the most common flags in
   # a cross-platform way.
-  # -----------------------------------------------------------------------------
-  set(CXX_DEFINE        "-D") # Define a preprocessor macro: "${CXX_DEFINE}VAR=1"
-  set(CXX_INCLUDE       "-I") # Define an include directory: "${CXX_INCLUDE}PATH"
+  # ---------------------------------------------------------------------------
+  set(CXX_DEFINE "-D")  # Define a preprocessor macro: "${CXX_DEFINE}VAR=1"
+  set(CXX_INCLUDE "-I") # Define an include directory: "${CXX_INCLUDE}PATH"
 
-  set(CXX_CFLAGS_SSE    "")   # Compiler flags to build a file that uses SSE    intrinsics.
-  set(CXX_CFLAGS_SSE2   "")   # Compiler flags to build a file that uses SSE2   intrinsics.
-  set(CXX_CFLAGS_SSE3   "")   # Compiler flags to build a file that uses SSE3   intrinsics.
-  set(CXX_CFLAGS_SSSE3  "")   # Compiler flags to build a file that uses SSSE3  intrinsics.
-  set(CXX_CFLAGS_SSE4_1 "")   # Compiler flags to build a file that uses SSE4.1 intrinsics.
-  set(CXX_CFLAGS_SSE4_2 "")   # Compiler flags to build a file that uses SSE4.2 intrinsics.
-  set(CXX_CFLAGS_AVX    "")   # Compiler flags to build a file that uses AVX    intrinsics.
-  set(CXX_CFLAGS_AVX2   "")   # Compiler flags to build a file that uses AVX2   intrinsics.
-
-  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  if(("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") OR
+     ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND WIN32))
     set(CXX_DEFINE "/D")
     set(CXX_INCLUDE "/I")
-
-    # 64-bit MSVC compiler doesn't like /arch:SSE[2] as it's implicit.
-    if(NOT CMAKE_CL_64)
-      list(APPEND CXX_CFLAGS_SSE    "/arch:SSE")
-      list(APPEND CXX_CFLAGS_SSE2   "/arch:SSE2")
-      list(APPEND CXX_CFLAGS_SSE3   "/arch:SSE2")
-      list(APPEND CXX_CFLAGS_SSSE3  "/arch:SSE2")
-      list(APPEND CXX_CFLAGS_SSE4_1 "/arch:SSE2")
-      list(APPEND CXX_CFLAGS_SSE4_2 "/arch:SSE2")
-    endif()
-
-    # MSVC doesn't provide any preprocessor definitions to detect SSE3+,
-    # these unify MSVC with definitions defined by Intel|Clang|GCC.
-    list(APPEND CXX_CFLAGS_SSE    "${CXX_DEFINE}__SSE__")
-    list(APPEND CXX_CFLAGS_SSE2   "${CXX_DEFINE}__SSE2__")
-    list(APPEND CXX_CFLAGS_SSE3   "${CXX_DEFINE}__SSE3__")
-    list(APPEND CXX_CFLAGS_SSSE3  "${CXX_DEFINE}__SSSE3__")
-    list(APPEND CXX_CFLAGS_SSE4_1 "${CXX_DEFINE}__SSE4_1__")
-    list(APPEND CXX_CFLAGS_SSE4_2 "${CXX_DEFINE}__SSE4_2__")
-
-    # AVX/AVX2 doesn't need custom defs as MSVC does define __AVX[2]__ by itself.
-    cxx_detect_cflags(CXX_CFLAGS_AVX  "/arch:AVX")
-    cxx_detect_cflags(CXX_CFLAGS_AVX2 "/arch:AVX2")
-  elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND WIN32)
-    # Intel on Windows uses CL syntax.
-    set(CXX_DEFINE "/D")
-    set(CXX_INCLUDE "/I")
-
-    # Intel deprecated /arch:SSE, so it's implicit. In contrast to MSVC, Intel
-    # also provides /arch:SSE3+ options and uses the same definitions as GCC
-    # and Clang, so no magic needed here.
-    cxx_detect_cflags(CXX_CFLAGS_SSE2   "/arch:SSE2")
-    cxx_detect_cflags(CXX_CFLAGS_SSE3   "/arch:SSE3")
-    cxx_detect_cflags(CXX_CFLAGS_SSSE3  "/arch:SSSE3")
-    cxx_detect_cflags(CXX_CFLAGS_SSE4_1 "/arch:SSE4.1")
-    cxx_detect_cflags(CXX_CFLAGS_SSE4_2 "/arch:SSE4.2")
-    cxx_detect_cflags(CXX_CFLAGS_AVX    "/arch:AVX")
-    cxx_detect_cflags(CXX_CFLAGS_AVX2   "/arch:AVX2")
-  else()
-    cxx_detect_cflags(CXX_CFLAGS_SSE    "-msse")
-    cxx_detect_cflags(CXX_CFLAGS_SSE2   "-msse2")
-    cxx_detect_cflags(CXX_CFLAGS_SSE3   "-msse3")
-    cxx_detect_cflags(CXX_CFLAGS_SSSE3  "-mssse3")
-    cxx_detect_cflags(CXX_CFLAGS_SSE4_1 "-msse4.1")
-    cxx_detect_cflags(CXX_CFLAGS_SSE4_2 "-msse4.2")
-    cxx_detect_cflags(CXX_CFLAGS_AVX    "-mavx")
-    cxx_detect_cflags(CXX_CFLAGS_AVX2   "-mavx2")
   endif()
 
   # ---------------------------------------------------------------------------
@@ -233,42 +248,23 @@ if (NOT __CXX_INCLUDED)
       set(src_file "${src_path}/${file}")
       set(src_cflags "")
 
-      if(file MATCHES "\\.c|\\.cc|\\.cxx|\\.cpp|\\.m|\\.mm")
-        if(file MATCHES "_sse\\." AND NOT "${CXX_CFLAGS_SSE}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_SSE})
+      foreach(feature sse sse2 sse3 ssse3 sse4_1 sse4_2 avx avx2)
+        if(file MATCHES "_${feature}\\.(c|cc|cxx|cpp|m|mm)")
+          string(TOUPPER "${feature}" FEATURE)
+          if(NOT "${${PRODUCT}_CFLAGS_${FEATURE}}" STREQUAL "")
+            list(APPEND src_cflags ${${PRODUCT}_CFLAGS_${FEATURE}})
+            # message("[debug] ${file} [cflags] += ${${PRODUCT}_CFLAGS_${FEATURE}}")
+          endif()
         endif()
-        if(file MATCHES "_sse2\\." AND NOT "${CXX_CFLAGS_SSE2}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_SSE2})
-        endif()
-        if(file MATCHES "_sse3\\." AND NOT "${CXX_CFLAGS_SSE3}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_SSE3})
-        endif()
-        if(file MATCHES "_ssse3\\." AND NOT "${CXX_CFLAGS_SSSE3}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_SSSE3})
-        endif()
-        if(file MATCHES "_sse4_1\\." AND NOT "${CXX_CFLAGS_SSE4_1}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_SSE4_1})
-        endif()
-        if(file MATCHES "_sse4_2\\." AND NOT "${CXX_CFLAGS_SSE4_2}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_SSE4_2})
-        endif()
-        if(file MATCHES "_avx\\." AND NOT "${CXX_CFLAGS_AVX}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_AVX})
-        endif()
-        if(file MATCHES "_avx2\\." AND NOT "${CXX_CFLAGS_AVX2}" STREQUAL "")
-          list(APPEND src_cflags ${CXX_CFLAGS_AVX2})
-        endif()
+      endforeach()
 
-        # HACK: Setting `COMPILE_FLAGS` property cannot be used when your input
-        # is LIST, even when you use `VALUE1 VALUE2 ...` as cmake would insert
-        # escaped semicolons instead of spaces. So let's make it the cmake way:
-        #   - nonituitive, verbose, and idiotic.
-        if(NOT "${src_cflags}" STREQUAL "")
-          foreach(src_cflag ${src_cflags})
-            set_property(SOURCE "${src_file}" APPEND_STRING PROPERTY COMPILE_FLAGS " ${src_cflag}")
-          endforeach()
-        endif()
-      endif()
+      # HACK: Setting `COMPILE_FLAGS` property cannot be used when your input
+      # is LIST, even when you use `VALUE1 VALUE2 ...` as cmake would insert
+      # escaped semicolons instead of spaces. So let's make it the cmake way:
+      #   - nonintuitive, verbose, and idiotic.
+      foreach(src_cflag ${src_cflags})
+        set_property(SOURCE "${src_file}" APPEND_STRING PROPERTY COMPILE_FLAGS " ${src_cflag}")
+      endforeach()
       list(APPEND src_array ${src_file})
     endforeach()
     source_group(${src_dir} FILES ${src_array})
@@ -288,9 +284,9 @@ if (NOT __CXX_INCLUDED)
     endif()
 
     target_link_libraries(${target} ${deps})
-    if (NOT "${${PRODUCT}_PRIVATE_LFLAGS}" STREQUAL "")
-      set_target_properties(${target} PROPERTIES LINK_FLAGS "${${PRODUCT}_PRIVATE_LFLAGS}")
-    endif()
+    foreach(link_flag ${${PRODUCT}_PRIVATE_LFLAGS})
+      set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${link_flag}")
+    endforeach()
 
     if(CMAKE_BUILD_TYPE)
       if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -314,9 +310,9 @@ if (NOT __CXX_INCLUDED)
     add_executable(${target} ${src})
 
     target_link_libraries(${target} ${deps})
-    if (NOT "${${PRODUCT}_PRIVATE_LFLAGS}" STREQUAL "")
-      set_target_properties(${target} PROPERTIES LINK_FLAGS "${${PRODUCT}_PRIVATE_LFLAGS}")
-    endif()
+    foreach(link_flag ${${PRODUCT}_PRIVATE_LFLAGS})
+      set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${link_flag}")
+    endforeach()
 
     if(CMAKE_BUILD_TYPE)
       if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

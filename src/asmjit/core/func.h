@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_FUNC_H
 #define _ASMJIT_CORE_FUNC_H
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/callconv.h"
 #include "../core/operand.h"
@@ -442,7 +440,7 @@ public:
   uint8_t _retCount;
   //! Variable arguments index of `kNoVarArgs`.
   uint8_t _vaIndex;
-  //! \internal
+  //! Reserved for future use.
   uint8_t _reserved;
   //! Registers that contains arguments.
   uint32_t _usedRegs[BaseReg::kGroupVirt];
@@ -961,7 +959,7 @@ public:
   const FuncDetail* _funcDetail;
   //! Register that can be used to access arguments passed by stack.
   uint8_t _saRegId;
-  //! \internal
+  //! Reserved for future use.
   uint8_t _reserved[3];
   //! Mapping of each function argument.
   FuncValue _args[kArgCount];
@@ -971,6 +969,5 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_FUNC_H
 

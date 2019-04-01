@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_TARGET_H
 #define _ASMJIT_CORE_TARGET_H
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/func.h"
 
@@ -194,7 +192,7 @@ public:
 
   //! Tartget type, see `TargetType`.
   uint8_t _targetType;
-  //! \internal
+  //! Reserved for future use.
   uint8_t _reserved[7];
   //! Basic information about the Runtime's code.
   CodeInfo _codeInfo;
@@ -204,5 +202,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_TARGET_H

@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_TYPE_H
 #define _ASMJIT_CORE_TYPE_H
 
-// [Dependencies]
 #include "../core/globals.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -370,5 +368,4 @@ ASMJIT_DEFINE_TYPE_ID(F64               , kIdF64);
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_TYPE_H

@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_COMPILER
 
-// [Dependencies]
 #include "../core/rastack_p.h"
 #include "../core/support.h"
 
@@ -193,5 +190,4 @@ Error RAStackAllocator::adjustSlotOffsets(int32_t offset) noexcept {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER

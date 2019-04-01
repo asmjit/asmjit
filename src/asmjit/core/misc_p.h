@@ -1,19 +1,17 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_MISC_P_H
 #define _ASMJIT_CORE_MISC_P_H
 
-// [Dependencies]
 #include "../core/build.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \internal
+//! \cond INTERNAL
 //! \addtogroup asmjit_core_support
 //! \{
 
@@ -27,8 +25,8 @@ ASMJIT_BEGIN_NAMESPACE
 #define ASMJIT_LOOKUP_TABLE_1024(T, I) ASMJIT_LOOKUP_TABLE_512(T, I), ASMJIT_LOOKUP_TABLE_512(T, I + 512)
 
 //! \}
+//! \endcond
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_MISC_P_H

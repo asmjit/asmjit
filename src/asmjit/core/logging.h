@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_LOGGING_H
 #define _ASMJIT_CORE_LOGGING_H
 
-// [Dependencies]
 #include "../core/inst.h"
 #include "../core/string.h"
 
@@ -336,5 +334,4 @@ struct Logging {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_LOGGER_H

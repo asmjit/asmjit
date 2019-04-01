@@ -201,7 +201,7 @@ script:
 
   - |
     if [ "$USE_VALGRIND" = "1" ]; then
-      RUN_CMD="valgrind --leak-check=full --show-reachable=yes"
+      RUN_CMD="valgrind --leak-check=full --show-reachable=yes --track-origins=yes"
     fi
 
   - eval "$RUN_CMD ./asmjit_test_unit --quick"

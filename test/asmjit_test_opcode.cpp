@@ -1,5 +1,5 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
@@ -8,7 +8,6 @@
 // disassembled in your IDE or by your favorite disassembler. Instructions
 // are grouped by category and then sorted alphabetically.
 
-// [Dependencies]
 #include <stdio.h>
 #include <stdlib.h>
 

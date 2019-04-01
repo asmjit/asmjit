@@ -1,18 +1,17 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86INSTDB_P_H
 #define _ASMJIT_X86_X86INSTDB_P_H
 
-// [Dependencies]
 #include "../x86/x86instdb.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_x86_db
 //! \{
 
@@ -22,8 +21,6 @@ namespace InstDB {
 // [asmjit::x86::InstDB::Encoding]
 // ============================================================================
 
-//! \internal
-//!
 //! Instruction encoding (X86).
 //!
 //! This is a specific identifier that is used by AsmJit to describe the way
@@ -200,8 +197,6 @@ static inline uint32_t altOpcodeFromId(uint32_t instId) noexcept {
 // [asmjit::x86::InstInternal]
 // ============================================================================
 
-//! \internal
-//!
 //! Implements API provided by `BaseInst` (X86).
 namespace InstInternal {
 
@@ -213,7 +208,9 @@ Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* opera
 
 } // {InstInternal}
 
+//! \}
+//! \endcond
+
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86INSTDB_P_H

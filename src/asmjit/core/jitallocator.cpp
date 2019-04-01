@@ -1,16 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_JIT
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/jitallocator.h"
 #include "../core/osutils.h"
@@ -54,8 +52,6 @@ static inline uint32_t JitAllocator_defaultFillPattern() noexcept {
 // [asmjit::JitAllocator - BitFlipIterator]
 // ============================================================================
 
-//! \internal
-//!
 //! BitWord[] iterator used by `JitAllocator` that can flip the search pattern
 //! during iteration.
 template<typename T>

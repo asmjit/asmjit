@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifdef ASMJIT_BUILD_X86
 
-// [Dependencies]
 #include "../core/codebufferwriter_p.h"
 #include "../core/cpuinfo.h"
 #include "../core/logging.h"
@@ -34,8 +31,6 @@ typedef Support::FastUInt8 FastUInt8;
 // [Constants]
 // ============================================================================
 
-//! \internal
-//!
 //! X86 bytes used to encode important prefixes.
 enum X86Byte : uint32_t {
   //! 1-byte REX prefix mask.
@@ -94,21 +89,15 @@ enum VexVVVVV : uint32_t {
   kVexVVVVVMask = 0x1F << kVexVVVVVShift
 };
 
-//! \internal
-//!
 //! Instruction 2-byte/3-byte opcode prefix definition.
 struct X86OpcodeMM {
   uint8_t size;
   uint8_t data[3];
 };
 
-//! \internal
-//!
 //! Mandatory prefixes used to encode legacy [66, F3, F2] or [9B] byte.
 static const uint8_t x86OpcodePP[8] = { 0x00, 0x66, 0xF3, 0xF2, 0x00, 0x00, 0x00, 0x9B };
 
-//! \internal
-//!
 //! Instruction 2-byte/3-byte opcode prefix data.
 static const X86OpcodeMM x86OpcodeMM[] = {
   { 0, { 0x00, 0x00, 0 } }, // #00 (0b0000).
@@ -163,8 +152,6 @@ static const uint32_t x86OpcodePopSReg[8]  = {
 // [asmjit::X86MemInfo | X86VEXPrefix | X86LLByRegType | X86CDisp8Table]
 // ============================================================================
 
-//! \internal
-//!
 //! Memory operand's info bits.
 //!
 //! A lookup table that contains various information based on the BASE and INDEX
@@ -4623,5 +4610,4 @@ Error Assembler::onDetach(CodeHolder* code) noexcept {
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // ASMJIT_BUILD_X86

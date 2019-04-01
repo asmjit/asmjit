@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86EMITTER_H
 #define _ASMJIT_X86_X86EMITTER_H
 
-// [Dependencies]
 #include "../core/emitter.h"
 #include "../core/support.h"
 #include "../x86/x86globals.h"
@@ -23,8 +21,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::x86::EmitterExplicitT]
 // ============================================================================
 
-//! \internal
-//! \{
+//! \cond INTERNAL
 
 #define ASMJIT_INST_0x(NAME, ID) \
   inline Error NAME() { return _emitter()->emit(Inst::kId##ID); }
@@ -156,7 +153,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 #define ASMJIT_INST_6x(NAME, ID, T0, T1, T2, T3, T4, T5) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4, const T5& o5) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4, o5); }
 
-//! \}
+//! \endcond
 
 template<typename This>
 struct EmitterExplicitT {
@@ -5231,5 +5228,4 @@ class Emitter : public BaseEmitter, public EmitterImplicitT<Emitter> {
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86EMITTER_H

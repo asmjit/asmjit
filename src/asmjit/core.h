@@ -1,14 +1,39 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_H
 #define _ASMJIT_CORE_H
 
-// [Dependencies]
+//! \defgroup asmjit_core Core
+//! \brief AsmJit Core.
+
+//! \defgroup asmjit_core_api Core
+//! \ingroup asmjit_core
+//! \brief Core API.
+
+//! \defgroup asmjit_core_func Function
+//! \ingroup asmjit_core
+//! \brief Function API.
+
+//! \defgroup asmjit_core_jit JIT
+//! \ingroup asmjit_core
+//! \brief JIT API.
+
+//! \defgroup asmjit_core_support Support
+//! \ingroup asmjit_core
+//! \brief Support API.
+
+//! \defgroup asmjit_core_ra RA Internals
+//! \ingroup asmjit_core
+//! \brief Register allocator internals.
+
+//! \defgroup asmjit_core_zone Zone
+//! \ingroup asmjit_core
+//! \brief  Zone allocators and zone-allocated containers.
+
 #include "./core/globals.h"
 
 #include "./core/arch.h"
@@ -42,5 +67,4 @@
 #include "./core/zonestring.h"
 #include "./core/zonevector.h"
 
-// [Guard]
 #endif // _ASMJIT_CORE_H

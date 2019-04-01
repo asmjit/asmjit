@@ -1,17 +1,15 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_JITALLOCATOR_H
 #define _ASMJIT_CORE_JITALLOCATOR_H
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_JIT
 
-// [Dependencies]
 #include "../core/globals.h"
 #include "../core/virtmem.h"
 

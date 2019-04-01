@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_TEST_OPCODE_H
 #define _ASMJIT_TEST_OPCODE_H
 
-// [Dependencies]
 #include "./asmjit.h"
 
 namespace asmtest {
@@ -6042,5 +6040,4 @@ static void generateOpcodes(asmjit::x86::Emitter* e, bool useRex1 = false, bool 
 
 } // {asmtest}
 
-// [Guard]
 #endif // _ASMJIT_TEST_OPCODE_H

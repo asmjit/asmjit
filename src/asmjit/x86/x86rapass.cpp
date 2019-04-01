@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_DISABLE_COMPILER)
 
-// [Dependencies]
 #include "../core/cpuinfo.h"
 #include "../core/support.h"
 #include "../core/type.h"
@@ -1262,5 +1259,4 @@ Error X86RAPass::onEmitPreCall(FuncCallNode* call) noexcept {
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // ASMJIT_BUILD_X86 && !ASMJIT_DISABLE_COMPILER

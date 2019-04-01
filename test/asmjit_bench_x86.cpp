@@ -1,12 +1,11 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Dependencies]
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 
 #include "./asmjit.h"
 #include "./asmjit_test_misc.h"
@@ -94,12 +93,12 @@ namespace BenchUtils {
       perf.end();
     }
 
-    std::printf("[%s] %-9s %-8s | Time:%6u [ms] | ", archName, emitterName, testName, perf.best);
+    printf("[%s] %-9s %-8s | Time:%6u [ms] | ", archName, emitterName, testName, perf.best);
     if (codeSize)
-      std::printf("Speed: %7.3f [MB/s]", mbps(perf.best, codeSize));
+      printf("Speed: %7.3f [MB/s]", mbps(perf.best, codeSize));
     else
-      std::printf("Speed: N/A");
-    std::printf("\n");
+      printf("Speed: N/A");
+    printf("\n");
   }
 }
 

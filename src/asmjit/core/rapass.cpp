@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_COMPILER
 
-// [Dependencies]
 #include "../core/ralocal_p.h"
 #include "../core/rapass_p.h"
 #include "../core/support.h"
@@ -1832,5 +1829,4 @@ ASMJIT_FAVOR_SIZE Error RAPass::_dumpLiveSpans(String& sb) noexcept {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER

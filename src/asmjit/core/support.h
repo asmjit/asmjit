@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_SUPPORT_H
 #define _ASMJIT_CORE_SUPPORT_H
 
-// [Dependencies]
 #include "../core/globals.h"
 
 #if defined(_MSC_VER)
@@ -17,11 +15,10 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_core_support
 //! \{
 
-//! \internal
-//!
 //! Contains support classes and functions that may be used by AsmJit source
 //! and header files. Anything defined here is considered internal and should
 //! not be used outside of AsmJit and related projects like AsmTK.
@@ -598,7 +595,6 @@ static ASMJIT_INLINE size_t strLen(const char* s, size_t maxSize) noexcept {
   return i;
 }
 
-// \internal
 static constexpr uint32_t hashRound(uint32_t hash, uint32_t c) noexcept { return hash * 65599 + c; }
 
 // Gets a hash of the given string `data` of size `size`. Size must be valid
@@ -1363,8 +1359,8 @@ struct Temporary {
 } // {Support}
 
 //! \}
+//! \endcond
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_SUPPORT_H

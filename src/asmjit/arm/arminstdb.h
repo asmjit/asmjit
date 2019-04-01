@@ -1,20 +1,19 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_ARM_ARMINSTDB_H
 #define _ASMJIT_ARM_ARMINSTDB_H
 
-// [Dependencies]
 #include "../core/assembler.h"
 #include "../core/operand.h"
 #include "../arm/armglobals.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_arm_db
 //! \{
 
@@ -39,8 +38,6 @@ namespace InstDB {
     kFamilyNeon           = 1            //!< NEON family instruction.
   };
 
-  //! \internal
-  //!
   //! Instruction flags.
   enum InstFlags : uint32_t {
     kInstFlagNone         = 0x00000000u  //!< No flags.
@@ -154,8 +151,8 @@ namespace InstDB {
 } // {InstDB}
 
 //! \}
+//! \endcond
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_ARM_ARMINSTDB_H

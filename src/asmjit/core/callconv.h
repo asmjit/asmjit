@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_CALLCONV_H
 #define _ASMJIT_CORE_CALLCONV_H
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/operand.h"
 #include "../core/support.h"
@@ -106,14 +104,18 @@ struct CallConv {
     // [Internal]
     // ------------------------------------------------------------------------
 
-    _kIdX86Start = 16,  //!< \internal
-    _kIdX86End = 31,    //!< \internal
+    //! \cond INTERNAL
 
-    _kIdX64Start = 32,  //!< \internal
-    _kIdX64End = 47,    //!< \internal
+    _kIdX86Start = 16,
+    _kIdX86End = 31,
 
-    _kIdArmStart = 48,  //!< \internal
-    _kIdArmEnd = 49,    //!< \internal
+    _kIdX64Start = 32,
+    _kIdX64End = 47,
+
+    _kIdArmStart = 48,
+    _kIdArmEnd = 49,
+
+    //! \endcond
 
     // ------------------------------------------------------------------------
     // [Host]
@@ -388,5 +390,4 @@ struct CallConv {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_CALLCONV_H

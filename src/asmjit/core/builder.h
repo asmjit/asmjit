@@ -1,17 +1,15 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_BUILDER_H
 #define _ASMJIT_CORE_BUILDER_H
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_BUILDER
 
-// [Dependencies]
 #include "../core/assembler.h"
 #include "../core/codeholder.h"
 #include "../core/constpool.h"
@@ -198,7 +196,11 @@ public:
     return labelNodeOf(pOut, label.id());
   }
 
-  //! \internal
+  //! Registers this label node [Internal].
+  //!
+  //! This function is used internally to register a newly created `LabelNode`
+  //! with this instance of Builder/Compiler. Use `labelNodeOf()` functions to
+  //! get back `LabelNode` from a label or its identifier.
   ASMJIT_API Error registerLabelNode(LabelNode* node) noexcept;
 
   ASMJIT_API Label newLabel() override;
@@ -300,7 +302,7 @@ public:
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Base zone used to allocate nodes and `Pass`.
+  //! Base zone used to allocate nodes and passes.
   Zone _codeZone;
   //! Data zone used to allocate data and names.
   Zone _dataZone;
@@ -1189,6 +1191,5 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_BUILDER
 #endif // _ASMJIT_CORE_BUILDER_H

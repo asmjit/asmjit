@@ -1,5 +1,5 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
@@ -11,6 +11,7 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_x86_api
 //! \{
 
@@ -18,8 +19,6 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::x86::CallConvInternal]
 // ============================================================================
 
-//! \internal
-//!
 //! X86-specific function API (calling conventions and other utilities).
 namespace CallConvInternal {
   //! Initialize `CallConv` structure (X86 specific).
@@ -27,8 +26,8 @@ namespace CallConvInternal {
 }
 
 //! \}
+//! \endcond
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86CALLCONV_P_H

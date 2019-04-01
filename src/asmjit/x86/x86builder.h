@@ -1,17 +1,15 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86BUILDER_H
 #define _ASMJIT_X86_X86BUILDER_H
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_BUILDER
 
-// [Dependencies]
 #include "../core/builder.h"
 #include "../core/datatypes.h"
 #include "../x86/x86emitter.h"
@@ -57,6 +55,5 @@ public:
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_BUILDER
 #endif // _ASMJIT_X86_X86BUILDER_H

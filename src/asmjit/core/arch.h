@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_ARCH_H
 #define _ASMJIT_CORE_ARCH_H
 
-// [Dependencies]
 #include "../core/operand.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -188,5 +186,4 @@ struct ArchUtils {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_ARCH_H

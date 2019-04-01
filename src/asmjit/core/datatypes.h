@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_DATATYPES_H
 #define _ASMJIT_CORE_DATATYPES_H
 
-// [Dependencies]
 #include "../core/globals.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -1065,5 +1063,4 @@ union Data256 {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_DATATYPES_H

@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_CPUINFO_H
 #define _ASMJIT_CORE_CPUINFO_H
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/features.h"
 #include "../core/string.h"
@@ -31,6 +29,7 @@ public:
 
   inline CpuInfo() noexcept { reset(); }
   inline CpuInfo(const CpuInfo& other) noexcept = default;
+  inline explicit CpuInfo(Globals::NoInit_) noexcept {};
 
   // --------------------------------------------------------------------------
   // [Init / Reset]
@@ -138,5 +137,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_CPUINFO_H

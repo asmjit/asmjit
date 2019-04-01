@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86INSTDB_H
 #define _ASMJIT_X86_X86INSTDB_H
 
-// [Dependencies]
 #include "../x86/x86globals.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
@@ -411,7 +409,7 @@ struct CommonInfo {
   uint32_t _singleRegCase : 2;
   //! Special cases.
   uint32_t _specialCases : 4;
-  //! \internal
+  //! Reserved for future use.
   uint32_t _reserved : 7;
 };
 
@@ -592,5 +590,4 @@ inline const InstInfo& infoById(uint32_t instId) noexcept {
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86INSTDB_H

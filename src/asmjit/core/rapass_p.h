@@ -1,23 +1,22 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_RAPASS_P_H
 #define _ASMJIT_CORE_RAPASS_P_H
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_COMPILER
 
-// [Dependencies]
 #include "../core/raassignment_p.h"
 #include "../core/radefs_p.h"
 #include "../core/rastack_p.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_core_ra
 //! \{
 
@@ -404,7 +403,7 @@ public:
           return DebugUtils::errored(kErrorOverlappedRegs);
         tiedReg->setUseId(useId);
       }
-      
+
       if (outId != BaseReg::kIdBad) {
         if (ASMJIT_UNLIKELY(tiedReg->hasOutId()))
           return DebugUtils::errored(kErrorOverlappedRegs);
@@ -734,9 +733,7 @@ public:
   //! Constructs a dominator-tree from CFG.
   Error buildDominators() noexcept;
 
-  //! \internal
   bool _strictlyDominates(const RABlock* a, const RABlock* b) const noexcept;
-  //! \internal
   const RABlock* _nearestCommonDominator(const RABlock* a, const RABlock* b) const noexcept;
 
   //! Gets whether basic block `a` dominates `b` - non-strict, returns true when `a == b`.
@@ -1004,9 +1001,9 @@ public:
 inline ZoneAllocator* RABlock::allocator() const noexcept { return _ra->allocator(); }
 
 //! \}
+//! \endcond
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_CORE_RAPASS_P_H

@@ -1,17 +1,15 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_RALOCAL_P_H
 #define _ASMJIT_CORE_RALOCAL_P_H
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_COMPILER
 
-// [Dependencies]
 #include "../core/raassignment_p.h"
 #include "../core/radefs_p.h"
 #include "../core/rapass_p.h"
@@ -19,6 +17,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_core_ra
 //! \{
 
@@ -254,9 +253,9 @@ public:
 };
 
 //! \}
+//! \endcond
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_CORE_RALOCAL_P_H

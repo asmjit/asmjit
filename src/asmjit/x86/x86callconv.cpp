@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifdef ASMJIT_BUILD_X86
 
-// [Dependencies]
 #include "../x86/x86callconv_p.h"
 #include "../x86/x86operand.h"
 
@@ -150,5 +147,4 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // ASMJIT_BUILD_X86

@@ -1,13 +1,11 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies]
 #include "../core/assembler.h"
 #include "../core/logging.h"
 #include "../core/support.h"
@@ -453,8 +451,6 @@ Error CodeHolder::addAddressToAddressTable(uint64_t address) noexcept {
 // [asmjit::CodeHolder - Labels / Symbols]
 // ============================================================================
 
-//! \internal
-//!
 //! Only used to lookup a label from `_namedLabels`.
 class LabelByName {
 public:

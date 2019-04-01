@@ -1,5 +1,5 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
@@ -936,14 +936,14 @@ const RegOp = MapUtils.arrayToMap(["al", "ah", "ax", "eax", "rax", "cl", "r8lo",
 const MemOp = MapUtils.arrayToMap(["m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024"]);
 
 const cmpOp = StringUtils.makePriorityCompare([
-  "implicit",
   "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st", "bnd",
   "mem", "vm", "m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024",
   "mib",
   "vm32x", "vm32y", "vm32z", "vm64x", "vm64y", "vm64z",
   "memBase", "memES", "memDS",
   "i4", "u4", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
-  "rel8", "rel32"
+  "rel8", "rel32",
+  "implicit"
 ]);
 
 const OpToAsmJitOp = {
@@ -1787,6 +1787,349 @@ class InstExecutionTable extends core.Task {
 // [tablegen.x86.InstRWInfoTable]
 // ============================================================================
 
+/*
+function mergeRM(insts) {
+  const output;
+  const map = {};
+
+  for (var i = 0; i < insts.length; i++) {
+
+
+  }
+
+  return output;
+}
+*/
+
+const regMapping = [
+  { "reg": "r8", "reg/m": "r8/m8"  },
+  { "reg": "r16", "reg/m": "r16/m16" },
+  { "reg": "r32", "reg/m": "r32/m32" },
+  { "reg": "r64", "reg/m": "r64/m64" }
+];
+
+const xyzMapping = [
+  { "xyz": "xmm", "xyz/m": "xmm/m128", "xyz:2": "xmm", "xyz/m:2": "xmm/m64" , "xyz:4": "xmm", "xyz/m:4": "xmm/m32" , "xyz:8": "xmm", "xyz/m:8": "xmm/m16" },
+  { "xyz": "ymm", "xyz/m": "ymm/m256", "xyz:2": "xmm", "xyz/m:2": "xmm/m128", "xyz:4": "xmm", "xyz/m:4": "xmm/m64" , "xyz:8": "xmm", "xyz/m:8": "xmm/m32" },
+  { "xyz": "zmm", "xyz/m": "zmm/m512", "xyz:2": "ymm", "xyz/m:2": "ymm/m256", "xyz:4": "xmm", "xyz/m:4": "xmm/m128", "xyz:8": "xmm", "xyz/m:8": "xmm/m64" }
+];
+
+class Matcher {
+  constructor(def) {
+    this.id = def.id;
+    this.names = [];
+    this.rules = [];
+    this.custom = def.custom || null;
+
+    (def.names || []).forEach((name) => {
+      this.names.push(name);
+    });
+
+    const out = this.rules;
+    (def.rules || []).forEach((rule) => {
+      const parts = rule.split(",").map((part) => { return part.trim(); });
+      // Pre-scan the pattern to check whether there is "reg" or "xyz".
+      // In that case we create more patterns based on this one.
+      if (Matcher.hasGenericReg(parts, "reg"))
+        out.push.apply(out, Matcher.mapGenericReg(parts, regMapping));
+      else if (Matcher.hasGenericReg(parts, "xyz"))
+        out.push.apply(out, Matcher.mapGenericReg(parts, xyzMapping));
+      else
+        out.push(parts.slice());
+    });
+
+    console.log("MATCHER: " + this.id);
+    console.log(out);
+  }
+
+  match(dbInsts) {
+    const names = this.names;
+    const rules = this.rules;
+    const custom = this.custom;
+
+    var i, j;
+    for (i = 0; i < dbInsts.length; i++) {
+      const dbInst = dbInsts[i];
+
+      if (custom && !custom(dbInst))
+        return null;
+
+      // Both have to match.
+      var matched = (names.length === 0) + (rules.length === 0);
+
+      for (j = 0; j < names.length; j++) {
+        if (Matcher.matchName(dbInst, names[j])) {
+          matched++;
+          break;
+        }
+      }
+
+      for (j = 0; j < rules.length; j++) {
+        if (Matcher.matchRule(dbInst, rules[j])) {
+          matched++;
+          break;
+        }
+      }
+
+      if (matched !== 2)
+        return null;
+    }
+
+    return this.id;
+  }
+
+  static hasGenericReg(parts, reg) {
+    for (var i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (part.startsWith(reg) && (part.length == reg.length || part[reg.length] == "/" || part[reg.length] == "|"))
+        return true;
+    }
+    return false;
+  }
+
+  static mapGenericReg(parts, mapping) {
+    const result = [];
+    mapping.forEach((mapping) => {
+      result.push(parts.map((parts) => {
+        return parts.split("|").map((part) => { return mapping[part] || part; }).join("|");
+      }));
+    });
+    return result;
+  }
+
+  static matchName(inst, name) {
+    if (typeof name === "string")
+      return inst.name === name;
+    else
+      return name.test(inst.name);
+  }
+
+  static matchRule(inst, rule) {
+    var i;
+
+    const operands = inst.operands;
+    const opCount = operands.length;
+
+    if (opCount !== rule.length) {
+      if (opCount + 1 === rule.length && rule[opCount] === "imm?") {
+        // This is still fine, we can just ignore the imm as it's optional.
+      }
+      else {
+        return false;
+      }
+    }
+
+    for (i = 0; i < opCount; i++) {
+      const operand = operands[i];
+      const parts = rule[i].split("|");
+      var match = 0;
+
+      for (var j = 0; j < parts.length; j++) {
+        var part = parts[j];
+        if (part === "imm" || part === "imm?") {
+          if (operand.imm) {
+            match = 1;
+            break;
+          }
+        }
+        else {
+          var reg = "";
+          var mem = -1;
+
+          var slash = part.indexOf("/");
+          if (slash !== -1) {
+            reg = part.substr(0, slash);
+            part = part.substr(slash + 1);
+          }
+
+          if (/^m\d+$/.test(part))
+            mem = parseInt(part.substr(1));
+          else if (!reg)
+            reg = part;
+
+          match = 1;
+          if (reg && operand.reg !== reg)
+            match = 0;
+
+          if (mem !== -1 && operand.memSize !== mem)
+            match = 0;
+
+          if (match)
+            break;
+        }
+      }
+
+      if (!match)
+        return false;
+    }
+
+    return true;
+  }
+
+  static matchNoMem(inst) {
+    const operands = inst.operands;
+    for (var i = 0; i < operands.length; i++) {
+      const op = operands[i];
+      if (op.mem)
+        return false;
+    }
+    return true;
+  }
+
+  static matchConsistentRegMem(inst) {
+    const operands = inst.operands;
+    for (var i = 0; i < operands.length; i++) {
+      const op = operands[i];
+      if (op.mem) {
+        //console.log(op);
+        if (!op.reg)
+          return false;
+        if (asmdb.x86.Utils.regSize(op.reg) !== op.memSize)
+          return false;
+      }
+    }
+    return true;
+  }
+
+  static matchRegMem(op) {
+    const [reg, mem] = op.split("/");
+    return function(inst) {
+      const operands = inst.operands;
+      for (var i = 0; i < operands.length; i++) {
+        const op = operands[i];
+        if (op.reg && op.mem) {
+          if (op.reg === reg && op.mem === mem)
+            return true;
+        }
+      }
+      return false;
+    }
+  }
+};
+
+class InstRWInfoTable extends core.Task {
+  constructor() {
+    super("InstRWInfoTable");
+  }
+
+  run() {
+    const insts = this.ctx.insts;
+
+    const matchers = [
+      new Matcher({ id: "None"             , names: [""] }),
+      new Matcher({ id: "NoMem"            , custom: Matcher.matchNoMem }),
+
+      /*
+      new Matcher({ id: "ConsistentMem"    , custom: Matcher.matchConsistentRegMem }),
+
+      new Matcher({ id: "R32M8"            , custom: Matcher.matchRegMem("r32/m8") }),
+      new Matcher({ id: "R32M16"           , custom: Matcher.matchRegMem("r32/m16") }),
+      new Matcher({ id: "XmmM16"           , custom: Matcher.matchRegMem("xmm/m16") }),
+      new Matcher({ id: "XmmM32"           , custom: Matcher.matchRegMem("xmm/m32") }),
+      new Matcher({ id: "XmmM64"           , custom: Matcher.matchRegMem("xmm/m64") }),
+
+      new Matcher({ id: "VMov32"           , rules: ["xmm, xmm", "xmm, xmm/m32", "xmm/m32, xmm", "m32, xmm", "xmm, xmm, xmm"] }),
+      new Matcher({ id: "VMov64"           , rules: ["xmm, xmm", "xmm, xmm/m64", "xmm/m64, xmm", "m64, xmm", "xmm, xmm, xmm"] }),
+      new Matcher({ id: "VMov64"           , rules: ["xmm, xmm", "xmm, xmm/m64", "xmm/m64, xmm", "m64, xmm", "xmm, xmm, xmm"] })
+      */
+
+      new Matcher({ id: "MovzxMovsx"       , names: [/^(movzx|movsx|movsxd)$/] }),
+
+      new Matcher({ id: "CwdCdqCqo"        , names: [/^(cwd|cdq|cqo)$/] }),
+      new Matcher({ id: "Cbw"              , names: [/^(cbw|cwde|cdqe|)$/] }),
+
+      new Matcher({ id: "MemHint"          , names: [/^(prefetch\w*|clflush\w*)$/] }),
+
+      new Matcher({ id: "Gp"               , rules: ["reg"] }),
+      new Matcher({ id: "GpM"              , rules: ["reg/m"] }),
+
+      new Matcher({ id: "GpM_GpM"          , names: ["add", "adc", "and", "cmp", "or", "sbb", "sub", "test", "xor"] }),
+      new Matcher({ id: "GpM_GpM"          , rules: ["reg, reg/m", "reg/m, reg|imm"] }),
+
+      new Matcher({ id: "Gp_GpM_Gp"        , rules: ["reg, reg/m, reg"] }),
+      new Matcher({ id: "Gp_Gp_GpM"        , rules: ["reg, reg, reg/m"] }),
+
+      new Matcher({ id: "Mm_XmmM"          , rules: ["mm, xmm/m128"] }),
+      new Matcher({ id: "XmmM_Mm"          , rules: ["xmm/m128, mm"] }),
+
+      new Matcher({ id: "MmXmm_MmXmmM"     , rules: ["mm, mm/m64", "xmm, xmm/m128"] }),
+      new Matcher({ id: "MmXmmM_MmXmm"     , rules: ["mm/m64, mm", "xmm/m128, xmm"] }),
+
+      new Matcher({ id: "MmXmm_MmXmmM32"   , rules: ["mm, mm/m32", "xmm, xmm/m32"] }),
+      new Matcher({ id: "MmXmmM32_MmXmm"   , rules: ["mm/m32, mm", "xmm/m32, xmm"] }),
+
+      new Matcher({ id: "Xmm_XmmM32"       , rules: ["xmm, xmm/m32, imm?"] }),
+      new Matcher({ id: "Xmm_XmmM64"       , rules: ["xmm, xmm/m64, imm?"] }),
+
+      new Matcher({ id: "VecM_VecM"        , rules: ["xyz, xyz/m", "xyz/m, xyz"] }),
+
+      new Matcher({ id: "Vec_VecM"         , rules: ["xyz, xyz/m, imm?"] }),
+      new Matcher({ id: "Vec_VecMH2"       , rules: ["xyz, xyz/m:2, imm?"] }),
+      new Matcher({ id: "Vec_VecMH4"       , rules: ["xyz, xyz/m:4, imm?"] }),
+      new Matcher({ id: "Vec_VecMH8"       , rules: ["xyz, xyz/m:8, imm?"] }),
+
+      new Matcher({ id: "VecMH2_Vec"       , rules: ["xyz/m:2, xyz, imm?"] }),
+      new Matcher({ id: "VecMH4_Vec"       , rules: ["xyz/m:4, xyz, imm?"] }),
+      new Matcher({ id: "VecMH8_Vec"       , rules: ["xyz/m:8, xyz, imm?"] }),
+
+      new Matcher({ id: "VecH2_VecM"       , rules: ["xyz:2, xyz/m, imm?"] }),
+
+      new Matcher({ id: "Vec_Vec_VecM"     , rules: ["xyz, xyz, xyz/m, imm?"] }),
+      new Matcher({ id: "Vec_Vec_XmmM"     , rules: ["xyz, xyz, xmm/m|imm, imm?"] }),
+      new Matcher({ id: "Vec_Vec_VecM_VecM", rules: ["xyz, xyz, xyz/m, xyz", "xyz, xyz, xyz, xyz/m"] }),
+
+      new Matcher({ id: "KVec_Vec_VecM"    , rules: ["k|xyz, xyz, xyz/m, imm?"] }),
+      new Matcher({ id: "K_Vec_VecM"       , rules: ["k, xyz, xyz/m, imm?"] }),
+
+      new Matcher({ id: "KMov8"            , rules: ["k, k/m8|r32", "r32|m8, k"] }),
+      new Matcher({ id: "KMov16"           , rules: ["k, k/m16|r32", "r32|m16, k"] }),
+      new Matcher({ id: "KMov32"           , rules: ["k, k/m32|r32", "r32|m32, k"] }),
+      new Matcher({ id: "KMov64"           , rules: ["k, k/m64|r64", "r64|m64, k"] }),
+
+      new Matcher({ id: "KTest8"           , rules: ["k, k"], names: [/^k[\w]*testb$/] }),
+      new Matcher({ id: "KTest16"          , rules: ["k, k"], names: [/^k[\w]*testw$/] }),
+      new Matcher({ id: "KTest32"          , rules: ["k, k"], names: [/^k[\w]*testd$/] }),
+      new Matcher({ id: "KTest64"          , rules: ["k, k"], names: [/^k[\w]*testq$/] }),
+
+      new Matcher({ id: "KOp8"             , rules: ["k, k", "k, k, k|imm"], names: [/^k[\w]+b$/] }),
+      new Matcher({ id: "KOp16"            , rules: ["k, k", "k, k, k|imm"], names: [/^k[\w]+w$/] }),
+      new Matcher({ id: "KOp32"            , rules: ["k, k", "k, k, k|imm"], names: [/^k[\w]+d$/] }),
+      new Matcher({ id: "KOp64"            , rules: ["k, k", "k, k, k|imm"], names: [/^k[\w]+q$/] })
+    ];
+
+    var matches = {};
+    var unmatched = [];
+
+    insts.forEach(function(inst) {
+      var matched = false;
+      for (var i = 0; i < matchers.length; i++) {
+        const matcher = matchers[i];
+        const id = matcher.match(inst.dbInsts);
+
+        if (id) {
+          if (!matches[id])
+            matches[id] = { count: 0, insts: [] };
+
+          matches[id].count++;
+          matches[id].insts.push(inst.name);
+          matched = true;
+          break;
+        }
+      }
+
+      if (!matched)
+        unmatched.push(inst.name);
+    });
+
+    for (var k in matches)
+      console.log(`{${k}} ${matches[k].count} [${matches[k].insts.join(" ")}]`);
+
+    console.log(`TOTAL UNMATCHED: ${unmatched.length}`);
+    console.log(`${unmatched.join(" ")}`);
+  }
+}
+
+/*
 class InstRWInfoTable extends core.Task {
   constructor() {
     super("InstRWInfoTable");
@@ -1939,10 +2282,10 @@ class InstRWInfoTable extends core.Task {
             rwArr.push(rwInfo);
         });
 
-        if (rwArr.length > 1) {
-          console.log(inst.name + ": ");
-          rwArr.forEach(function(item) { console.log("  " + IRWInfoToString(item)); });
-        }
+        //if (rwArr.length > 1) {
+        //  console.log(inst.name + ": ");
+        //  rwArr.forEach(function(item) { console.log("  " + IRWInfoToString(item)); });
+        //}
 
         //iRWInfoArr[index].refs++;
         //inst.rwInfoIndex = index;
@@ -1950,10 +2293,11 @@ class InstRWInfoTable extends core.Task {
       }
     });
 
-    //var s = StringUtils.makeCxxArrayWithComment(iSignatureArr, "const Inst::IRWInfo X86InstDB::iRWInfoData[]");
-    //this.inject("rwInfoData", disclaimer(s), 0);
+    var s = StringUtils.makeCxxArrayWithComment(iRWInfoArr, "const InstRWInfo iRWInfoData[]");
+    this.inject("InstRWInfoTable", disclaimer(s), 0);
   }
 }
+*/
 
 // ============================================================================
 // [tablegen.x86.InstCommonTable]

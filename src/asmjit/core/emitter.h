@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_EMITTER_H
 #define _ASMJIT_CORE_EMITTER_H
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/inst.h"
 #include "../core/operand.h"
@@ -472,7 +470,7 @@ public:
 
   //! See `EmitterType`.
   uint8_t _type;
-  //! \internal
+  //! Reserved for future use.
   uint8_t _reserved;
   //! See \ref BaseEmitter::Flags.
   uint16_t _flags;
@@ -505,5 +503,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_EMITTER_H

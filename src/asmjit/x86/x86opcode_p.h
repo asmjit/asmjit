@@ -1,20 +1,19 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86OPCODE_P_H
 #define _ASMJIT_X86_X86OPCODE_P_H
 
-// [Dependencies]
 #include "../core/logging.h"
 #include "../core/string.h"
 #include "../x86/x86globals.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_x86_api
 //! \{
 
@@ -22,8 +21,6 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::x86::Opcode]
 // ============================================================================
 
-//! \internal
-//!
 //! Helper class to store and manipulate X86 opcodes.
 //!
 //! The first 8 least significant bits describe the opcode byte as defined in
@@ -433,8 +430,8 @@ struct Opcode {
 };
 
 //! \}
+//! \endcond
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86OPCODE_P_H

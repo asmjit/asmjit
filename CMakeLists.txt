@@ -6,23 +6,23 @@ if(NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
   project(asmjit CXX)
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_EMBED)
+if(NOT DEFINED ASMJIT_BUILD_EMBED)
   set(ASMJIT_BUILD_EMBED FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_STATIC)
+if(NOT DEFINED ASMJIT_BUILD_STATIC)
   set(ASMJIT_BUILD_STATIC ${ASMJIT_BUILD_EMBED})
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_ARM)
+if(NOT DEFINED ASMJIT_BUILD_ARM)
   set(ASMJIT_BUILD_ARM FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_X86)
+if(NOT DEFINED ASMJIT_BUILD_X86)
   set(ASMJIT_BUILD_X86 FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_TEST)
+if(NOT DEFINED ASMJIT_BUILD_TEST)
   set(ASMJIT_BUILD_TEST FALSE)
 endif()
 
@@ -31,12 +31,12 @@ endif()
 # =============================================================================
 
 set(ASMJIT_DIR            "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
-set(ASMJIT_BUILD_EMBED    ${ASMJIT_BUILD_EMBED}       CACHE BOOLEAN "Embed 'asmjit' library (no targets)")
-set(ASMJIT_BUILD_STATIC   ${ASMJIT_BUILD_STATIC}      CACHE BOOLEAN "Build 'asmjit' library as static")
-set(ASMJIT_BUILD_SANITIZE ${ASMJIT_BUILD_SANITIZE}    CACHE BOOLEAN "Use C/C++ sanitizers if possible")
-set(ASMJIT_BUILD_TEST     ${ASMJIT_BUILD_TEST}        CACHE BOOLEAN "Build 'asmjit_test' applications")
-set(ASMJIT_BUILD_X86      ${ASMJIT_BUILD_X86}         CACHE BOOLEAN "Build X86 backends (X86 and X86_64)")
-set(ASMJIT_BUILD_ARM      ${ASMJIT_BUILD_ARM}         CACHE BOOLEAN "Build ARM backends")
+set(ASMJIT_BUILD_EMBED    ${ASMJIT_BUILD_EMBED}       CACHE BOOL "Embed 'asmjit' library (no targets)")
+set(ASMJIT_BUILD_STATIC   ${ASMJIT_BUILD_STATIC}      CACHE BOOL "Build 'asmjit' library as static")
+set(ASMJIT_BUILD_SANITIZE ${ASMJIT_BUILD_SANITIZE}    CACHE BOOL "Use C/C++ sanitizers if possible")
+set(ASMJIT_BUILD_TEST     ${ASMJIT_BUILD_TEST}        CACHE BOOL "Build 'asmjit_test' applications")
+set(ASMJIT_BUILD_X86      ${ASMJIT_BUILD_X86}         CACHE BOOL "Build X86 backends (X86 and X86_64)")
+set(ASMJIT_BUILD_ARM      ${ASMJIT_BUILD_ARM}         CACHE BOOL "Build ARM backends")
 
 # =============================================================================
 # [AsmJit - Project]
@@ -47,30 +47,31 @@ include("${ASMJIT_DIR}/CxxProject.cmake")
 cxx_project(asmjit)
 cxx_detect_standard(ASMJIT_PRIVATE_CFLAGS)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  set(ASMJIT_PRIVATE_LFLAGS "/OPT:REF /OPT:ICF")
+if(NOT ASMJIT_BUILD_USE_DEFAULT_FLAGS)
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(ASMJIT_PRIVATE_LFLAGS "/OPT:REF /OPT:ICF")
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)            # [+] Multi-process compilation
-  list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)            # [+] Eliminate duplicate strings.
-  list(APPEND ASMJIT_PRIVATE_CFLAGS /GR-)           # [-] Runtime type information.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /MP)            # [+] Multi-process compilation
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /GF)            # [+] Eliminate duplicate strings.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS /GR-)           # [-] Runtime type information.
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS)        # [+] Buffer security-check.
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /GS-)       # [-] Buffer security-check.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS)        # [+] Buffer security-check.
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /GS-)       # [-] Buffer security-check.
 
-  list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Ox)        # [+] Global optimization.
-endif()
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /Ox)        # [+] Global optimization.
+  endif()
 
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
-  cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS
-    "-fvisibility=hidden"
-    "-fno-tree-vectorize"
-    "-Wconversion"
-    "-Wall"
-    "-Wextra")
-  cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL
-    "-O2" # CMake by default uses -O3, which does nothing useful.
-    "-fno-keep-static-consts"
-    "-fmerge-all-constants")
+  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
+    cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS
+      "-fvisibility=hidden"
+      "-fno-tree-vectorize"
+      "-Wconversion"
+      "-Wall"
+      "-Wextra")
+    cxx_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL
+      "-O2" # CMake by default uses -O3, which does nothing useful.
+      "-fmerge-all-constants")
+  endif()
 endif()
 
 if(ASMJIT_BUILD_SANITIZE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")

@@ -1,14 +1,25 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_ARM_H
 #define _ASMJIT_ARM_H
 
-// [Dependencies]
+//! \cond INTERNAL
+
+//! \defgroup asmjit_arm ARM
+//! \brief ARM Backend.
+
+//! \defgroup asmjit_arm_api ARM API
+//! \ingroup asmjit_arm
+
+//! \defgroup asmjit_arm_db ARM DB
+//! \ingroup asmjit_arm
+
+//! \endcond
+
 #include "./core.h"
 
 #include "./arm/armassembler.h"
@@ -18,5 +29,4 @@
 #include "./arm/arminstdb.h"
 #include "./arm/armoperand.h"
 
-// [Guard]
 #endif // _ASMJIT_ARM_H

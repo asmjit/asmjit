@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_ZONEVECTOR_H
 #define _ASMJIT_CORE_ZONEVECTOR_H
 
-// [Dependencies]
 #include "../core/support.h"
 #include "../core/zone.h"
 
@@ -21,7 +19,9 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::ZoneVectorBase]
 // ============================================================================
 
-//! \internal
+//! \cond INTERNAL
+
+//! Base class implementing core `ZoneVector<>` functionality.
 class ZoneVectorBase {
 public:
   ASMJIT_NONCOPYABLE(ZoneVectorBase)
@@ -120,6 +120,8 @@ public:
   //! Capacity of the vector.
   size_type _capacity;
 };
+
+//! \endcond
 
 // ============================================================================
 // [asmjit::ZoneVector<T>]
@@ -680,5 +682,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_ZONEVECTOR_H

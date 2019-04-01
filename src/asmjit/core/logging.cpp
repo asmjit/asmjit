@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_LOGGING
 
-// [Dependencies]
 #include "../core/builder.h"
 #include "../core/codeholder.h"
 #include "../core/compiler.h"
@@ -505,5 +502,4 @@ Error Logging::formatLine(String& sb, const uint8_t* binData, size_t binSize, si
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif

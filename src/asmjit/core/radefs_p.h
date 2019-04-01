@@ -1,17 +1,15 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_RADEFS_P_H
 #define _ASMJIT_CORE_RADEFS_P_H
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_COMPILER
 
-// [Dependencies]
 #include "../core/compiler.h"
 #include "../core/logging.h"
 #include "../core/support.h"
@@ -20,6 +18,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_core_ra
 //! \{
 
@@ -340,7 +339,7 @@ struct RARegsStats {
 // [asmjit::RALiveCount]
 // ============================================================================
 
-//! Count of live register, per group.
+//! Count of live registers, per group.
 class RALiveCount {
 public:
   // --------------------------------------------------------------------------
@@ -1038,9 +1037,9 @@ public:
 };
 
 //! \}
+//! \endcond
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER
 #endif // _ASMJIT_CORE_RADEFS_P_H

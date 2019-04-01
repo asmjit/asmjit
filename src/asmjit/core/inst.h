@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_INST_H
 #define _ASMJIT_CORE_INST_H
 
-// [Dependencies]
 #include "../core/cpuinfo.h"
 #include "../core/operand.h"
 
@@ -58,9 +56,12 @@ struct OpInfo {
   // [Members]
   // --------------------------------------------------------------------------
 
-  uint16_t _flags;                       //!< Operand flags, see `Flags`.
-  uint8_t _physId;                       //!< Operand must be in this physical register.
-  uint8_t _reserved;                     //!< Reserved for future use.
+  //! Operand flags, see `Flags`.
+  uint16_t _flags;
+  //! Operand must be in this physical register.
+  uint8_t _physId;
+  //! Reserved for future use.
+  uint8_t _reserved;
 };
 
 // ============================================================================
@@ -250,9 +251,9 @@ public:
   ASMJIT_API static Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;
   #endif
 
-  // ------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // [Members]
-  // ------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
   uint32_t _id;
   uint32_t _options;
@@ -263,5 +264,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_INST_H

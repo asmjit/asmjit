@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86GLOBALS_H
 #define _ASMJIT_X86_X86GLOBALS_H
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/inst.h"
 
@@ -1701,23 +1699,23 @@ namespace FpuWord {
 // TODO: Move into a namespace.
 //! Flags describing special registers and/or their parts.
 enum SpecialRegs : uint32_t {
-  kSpecialReg_FLAGS_CF    = 0x00000001u, //!< [R|E]FLAGS - Carry flag.
-  kSpecialReg_FLAGS_PF    = 0x00000002u, //!< [R|E]FLAGS - Parity flag.
-  kSpecialReg_FLAGS_AF    = 0x00000004u, //!< [R|E]FLAGS - Adjust flag.
-  kSpecialReg_FLAGS_ZF    = 0x00000008u, //!< [R|E]FLAGS - Zero flag.
-  kSpecialReg_FLAGS_SF    = 0x00000010u, //!< [R|E]FLAGS - Sign flag.
-  kSpecialReg_FLAGS_TF    = 0x00000020u, //!< [R|E]FLAGS - Trap flag.
-  kSpecialReg_FLAGS_IF    = 0x00000040u, //!< [R|E]FLAGS - Interrupt enable flag.
-  kSpecialReg_FLAGS_DF    = 0x00000080u, //!< [R|E]FLAGS - Direction flag.
-  kSpecialReg_FLAGS_OF    = 0x00000100u, //!< [R|E]FLAGS - Overflow flag.
-  kSpecialReg_FLAGS_AC    = 0x00000200u, //!< [R|E]FLAGS - Alignment check.
-  kSpecialReg_FLAGS_SYS   = 0x00000400u, //!< [R|E]FLAGS - System flags.
+  kSpecialReg_FLAGS_CF    = 0x00000001u, //!< Flags - Carry flag.
+  kSpecialReg_FLAGS_PF    = 0x00000002u, //!< Flags - Parity flag.
+  kSpecialReg_FLAGS_AF    = 0x00000004u, //!< Flags - Adjust flag.
+  kSpecialReg_FLAGS_ZF    = 0x00000008u, //!< Flags - Zero flag.
+  kSpecialReg_FLAGS_SF    = 0x00000010u, //!< Flags - Sign flag.
+  kSpecialReg_FLAGS_TF    = 0x00000020u, //!< Flags - Trap flag.
+  kSpecialReg_FLAGS_IF    = 0x00000040u, //!< Flags - Interrupt enable flag.
+  kSpecialReg_FLAGS_DF    = 0x00000080u, //!< Flags - Direction flag.
+  kSpecialReg_FLAGS_OF    = 0x00000100u, //!< Flags - Overflow flag.
+  kSpecialReg_FLAGS_AC    = 0x00000200u, //!< Flags - Alignment check.
+  kSpecialReg_FLAGS_Other = 0x00000400u, //!< Flags - Other flags.
 
-  kSpecialReg_X87CW_EXC   = 0x00000800u, //!< X87 Control Word - Exception control.
+  kSpecialReg_X87CW_EC    = 0x00000800u, //!< X87 Control Word - Exception control.
   kSpecialReg_X87CW_PC    = 0x00001000u, //!< X87 Control Word - Precision control.
   kSpecialReg_X87CW_RC    = 0x00002000u, //!< X87 Control Word - Rounding control.
 
-  kSpecialReg_X87SW_EXC   = 0x00004000u, //!< X87 Status Word - Exception flags.
+  kSpecialReg_X87SW_EF    = 0x00004000u, //!< X87 Status Word - Exception flags.
   kSpecialReg_X87SW_C0    = 0x00008000u, //!< X87 Status Word - C0 flag.
   kSpecialReg_X87SW_C1    = 0x00010000u, //!< X87 Status Word - C1 flag.
   kSpecialReg_X87SW_C2    = 0x00020000u, //!< X87 Status Word - C2 flag.
@@ -1736,14 +1734,14 @@ enum SpecialRegs : uint32_t {
 namespace Predicate {
   //! A predicate used by CMP[PD|PS|SD|SS] instructions.
   enum Cmp : uint32_t {
-    kCmpEQ                = 0x00u,       //!< Equal             (Quiet).
-    kCmpLT                = 0x01u,       //!< Less              (Signaling).
-    kCmpLE                = 0x02u,       //!< Less/Equal        (Signaling).
-    kCmpUNORD             = 0x03u,       //!< Unordered         (Quiet).
-    kCmpNEQ               = 0x04u,       //!< Not Equal         (Quiet).
-    kCmpNLT               = 0x05u,       //!< Not Less          (Signaling).
-    kCmpNLE               = 0x06u,       //!< Not Less/Equal    (Signaling).
-    kCmpORD               = 0x07u        //!< Ordered           (Quiet).
+    kCmpEQ                = 0x00u,       //!< Equal (Quiet).
+    kCmpLT                = 0x01u,       //!< Less (Signaling).
+    kCmpLE                = 0x02u,       //!< Less/Equal (Signaling).
+    kCmpUNORD             = 0x03u,       //!< Unordered (Quiet).
+    kCmpNEQ               = 0x04u,       //!< Not Equal (Quiet).
+    kCmpNLT               = 0x05u,       //!< Not Less (Signaling).
+    kCmpNLE               = 0x06u,       //!< Not Less/Equal (Signaling).
+    kCmpORD               = 0x07u        //!< Ordered (Quiet).
   };
 
   //! A predicate used by [V]PCMP[I|E]STR[I|M] instructions.
@@ -1756,8 +1754,8 @@ namespace Predicate {
 
     // Aggregation operation:
     kPCmpStrEqualAny      = 0x00u << 2,  //!< The arithmetic comparison is "equal".
-    kPCmpStrRanges        = 0x01u << 2,  //!< The arithmetic comparison is “greater than or equal”
-                                         //!< between even indexed elements and “less than or equal”
+    kPCmpStrRanges        = 0x01u << 2,  //!< The arithmetic comparison is "greater than or equal"
+                                         //!< between even indexed elements and "less than or equal"
                                          //!< between odd indexed elements.
     kPCmpStrEqualEach     = 0x02u << 2,  //!< The arithmetic comparison is "equal".
     kPCmpStrEqualOrdered  = 0x03u << 2,  //!< The arithmetic comparison is "equal".
@@ -1979,5 +1977,4 @@ namespace TLog {
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86GLOBALS_H

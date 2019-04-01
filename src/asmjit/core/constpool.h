@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_CONSTPOOL_H
 #define _ASMJIT_CORE_CONSTPOOL_H
 
-// [Dependencies]
 #include "../core/zone.h"
 #include "../core/zonetree.h"
 
@@ -26,6 +24,10 @@ class ConstPool {
 public:
   ASMJIT_NONCOPYABLE(ConstPool)
 
+  // --------------------------------------------------------------------------
+  // [Scope]
+  // --------------------------------------------------------------------------
+
   //! Constant pool scope.
   enum Scope : uint32_t {
     //! Local constant, always embedded right after the current function.
@@ -33,6 +35,12 @@ public:
     //! Global constant, embedded at the end of the currently compiled code.
     kScopeGlobal = 1
   };
+
+  // --------------------------------------------------------------------------
+  // [Internal]
+  // --------------------------------------------------------------------------
+
+  //! \cond INTERNAL
 
   //! Index of a given size in const-pool table.
   enum Index : uint32_t {
@@ -70,6 +78,7 @@ public:
     uint32_t _offset;                    //!< Data offset from the beginning of the pool.
   };
 
+  //! Data comparer used internally.
   class Compare {
   public:
     inline Compare(size_t dataSize) noexcept
@@ -86,35 +95,17 @@ public:
     size_t _dataSize;
   };
 
-  // --------------------------------------------------------------------------
-  // [Tree]
-  // --------------------------------------------------------------------------
-
-  //! \internal
-  //!
   //! Zone-allocated const-pool tree.
   struct Tree {
-    // --------------------------------------------------------------------------
-    // [Construction / Destruction]
-    // --------------------------------------------------------------------------
-
     inline explicit Tree(size_t dataSize = 0) noexcept
       : _tree(),
         _size(0),
         _dataSize(dataSize) {}
 
-    // --------------------------------------------------------------------------
-    // [Reset]
-    // --------------------------------------------------------------------------
-
     inline void reset() noexcept {
       _tree.reset();
       _size = 0;
     }
-
-    // --------------------------------------------------------------------------
-    // [Accessors]
-    // --------------------------------------------------------------------------
 
     inline bool empty() const noexcept { return _size == 0; }
     inline size_t size() const noexcept { return _size; }
@@ -123,10 +114,6 @@ public:
       ASMJIT_ASSERT(empty());
       _dataSize = dataSize;
     }
-
-    // --------------------------------------------------------------------------
-    // [Ops]
-    // --------------------------------------------------------------------------
 
     inline Node* get(const void* data) noexcept {
       Compare cmp(_dataSize);
@@ -138,10 +125,6 @@ public:
       _tree.insert(node, cmp);
       _size++;
     }
-
-    // --------------------------------------------------------------------------
-    // [ForEach]
-    // --------------------------------------------------------------------------
 
     template<typename Visitor>
     inline void forEach(Visitor& visitor) const noexcept {
@@ -176,10 +159,6 @@ public:
       }
     }
 
-    // --------------------------------------------------------------------------
-    // [Helpers]
-    // --------------------------------------------------------------------------
-
     static inline Node* _newNode(Zone* zone, const void* data, size_t size, size_t offset, bool shared) noexcept {
       Node* node = zone->allocT<Node>(sizeof(Node) + size);
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
@@ -189,10 +168,6 @@ public:
       return node;
     }
 
-    // --------------------------------------------------------------------------
-    // [Members]
-    // --------------------------------------------------------------------------
-
     //! RB tree.
     ZoneTree<Node> _tree;
     //! Size of the tree (number of nodes).
@@ -200,6 +175,8 @@ public:
     //! Size of the data.
     size_t _dataSize;
   };
+
+  //! \endcond
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -274,5 +251,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_CONSTPOOL_H

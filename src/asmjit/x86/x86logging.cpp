@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_LOGGING
 
-// [Dependencies]
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../x86/x86instdb_p.h"
@@ -768,5 +765,4 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_LOGGING

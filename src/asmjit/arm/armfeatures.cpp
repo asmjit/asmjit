@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM
 
-// [Dependencies]
 #include "../core/cpuinfo.h"
 #include "../core/support.h"
 #include "../arm/armfeatures.h"
@@ -65,8 +62,6 @@ static void detectPFPFeatures(CpuInfo& cpu, const WinPFPMapping* mapping, size_t
       cpu.addFeature(mapping[i].featureId);
 }
 
-//! \internal
-//!
 //! Detect ARM CPU features on Windows.
 //!
 //! The detection is based on `IsProcessorFeaturePresent()` API call.
@@ -117,8 +112,6 @@ static void detectHWCaps(CpuInfo& cpu, unsigned long type, const LinuxHWCapMappi
       cpu.addFeature(mapping[i].featureId);
 }
 
-//! \internal
-//!
 //! Detect ARM CPU features on Linux.
 //!
 //! The detection is based on `getauxval()`.
@@ -192,5 +185,4 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // ASMJIT_BUILD_ARM && ASMJIT_ARCH_ARM

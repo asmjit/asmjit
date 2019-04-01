@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86FEATURES_H
 #define _ASMJIT_X86_X86FEATURES_H
 
-// [Dependencies]
 #include "../core/features.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
@@ -243,5 +241,4 @@ public:
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86FEATURES_H

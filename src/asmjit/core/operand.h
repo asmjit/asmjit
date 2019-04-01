@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_OPERAND_H
 #define _ASMJIT_CORE_OPERAND_H
 
-// [Dependencies]
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -58,6 +56,7 @@ struct Operand_ {
   // [Operand Signature (Bits)]
   // --------------------------------------------------------------------------
 
+  // \cond INTERNAL
   enum SignatureBits : uint32_t {
     // Operand type (3 least significant bits).
     // |........|........|........|.....XXX|
@@ -104,10 +103,13 @@ struct Operand_ {
     kSignatureSizeShift = 24,
     kSignatureSizeMask = 0xFFu << kSignatureSizeShift
   };
+  //! \endcond
 
   // --------------------------------------------------------------------------
   // [Operand VirtId]
   // --------------------------------------------------------------------------
+
+  //! \cond INTERNAL
 
   //! Constants useful for VirtId <-> Index translation.
   enum VirtIdConstants : uint32_t {
@@ -130,21 +132,25 @@ struct Operand_ {
   //! Converts a packed-id back to real-id.
   static ASMJIT_INLINE uint32_t virtIdToIndex(uint32_t id) noexcept { return id - kVirtIdMin; }
 
+  //! \endcond
+
   // --------------------------------------------------------------------------
   // [Init & Reset]
   // --------------------------------------------------------------------------
 
-  //! \internal
-  inline void _initReg(uint32_t signature, uint32_t rId) noexcept {
+  //! \cond INTERNAL
+
+  //! Initializes a `BaseReg` operand from `signature` and register `id`.
+  inline void _initReg(uint32_t signature, uint32_t id) noexcept {
     _signature = signature;
-    _baseId = rId;
+    _baseId = id;
     _data64 = 0;
   }
 
-  //! \internal
-  //!
   //! Initializes the operand from `other` (used by operator overloads).
   inline void copyFrom(const Operand_& other) noexcept { ::memcpy(this, &other, sizeof(Operand_)); }
+
+  //! \endcond
 
   //! Resets the `Operand` to none.
   //!
@@ -312,7 +318,9 @@ struct Operand_ {
   // [Members]
   // --------------------------------------------------------------------------
 
-  //! Operand signature that provides operand type and additional information.
+  //! \cond INTERNAL
+
+  //! Operand's signature that provides operand type and additional information.
   uint32_t _signature;
   //! Either base id as used by memory operand or any id as used by others.
   uint32_t _baseId;
@@ -325,6 +333,7 @@ struct Operand_ {
     uint32_t offsetLo32;
   };
 
+  //! Additional data used by some operands.
   union {
     //! 32-bit data (used either by immediate or as a 32-bit view).
     uint32_t _data32[2];
@@ -334,6 +343,8 @@ struct Operand_ {
     //! Memory address data.
     MemData _mem;
   };
+
+  //! \endcond
 };
 
 // ============================================================================
@@ -383,6 +394,7 @@ public:
 static_assert(sizeof(Operand) == 16, "asmjit::Operand must be exactly 16 bytes long");
 
 namespace Globals {
+  //! A default-constructed operand of `Operand_::kOpNone` type.
   static constexpr const Operand none;
 }
 
@@ -489,7 +501,9 @@ public:
 // [asmjit::BaseRegTraits]
 // ============================================================================
 
-//! \internal
+//! \cond INTERNAL
+
+//! Default register traits.
 struct BaseRegTraits {
   static constexpr uint32_t kValid  = 0; //!< RegType is not valid by default.
   static constexpr uint32_t kCount  = 0; //!< Count of registers (0 if none).
@@ -503,8 +517,6 @@ struct BaseRegTraits {
   static constexpr uint32_t kSignature = Operand::kOpReg;
 };
 
-//! \internal
-//!
 //! Adds a template specialization for `REG_TYPE` into the local `RegTraits`.
 #define ASMJIT_DEFINE_REG_TRAITS(REG, REG_TYPE, GROUP, SIZE, COUNT, TYPE_ID)  \
 template<>                                                                    \
@@ -526,14 +538,15 @@ struct RegTraits<REG_TYPE> {                                                  \
     (kSize           << Operand::kSignatureSizeShift    ) ;                   \
 }
 
+//! \endcond
 
 // ============================================================================
 // [asmjit::BaseReg]
 // ============================================================================
 
-//! \internal
-//!
-//! Adds constructors, and member functions to a class implementing abstract
+//! \cond INTERNAL
+
+//! Adds constructors and member functions to a class that implements abstract
 //! register. Abstract register is register that doesn't have type or signature
 //! yet, it's a base class like `x86::Reg` or `arm::Reg`.
 #define ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                 \
@@ -568,6 +581,8 @@ public:                                                                       \
                                                                               \
   inline REG& operator=(const REG& other) noexcept = default;
 
+//! Adds constructors and member functions to a class that implements final
+//! register. Final registers MUST HAVE a valid signature.
 #define ASMJIT_DEFINE_FINAL_REG(REG, BASE, TRAITS)                            \
 public:                                                                       \
   static constexpr uint32_t kThisType  = TRAITS::kType;                       \
@@ -580,6 +595,8 @@ public:                                                                       \
   /*! Creates a register operand having its id set to `rId`. */               \
   constexpr explicit REG(uint32_t rId) noexcept                               \
     : BASE(kSignature, rId) {}
+
+//! \endcond
 
 //! Structure that allows to extract a register information based on the signature.
 //!
@@ -775,7 +792,9 @@ public:
 // [asmjit::RegOnly]
 // ============================================================================
 
-//! RegOnly is 8-byte version of `BaseReg` that only allows to store only register.
+//! RegOnly is 8-byte version of `BaseReg` that allows to store either register
+//! or nothing.
+//!
 //! This class was designed to decrease the space consumed by each extra "operand"
 //! in `BaseEmitter` and `InstNode` classes.
 struct RegOnly {
@@ -817,13 +836,14 @@ struct RegOnly {
   //! Sets the register id.
   inline void setId(uint32_t id) noexcept { _id = id; }
 
-  //! \internal
+  //! \cond INTERNAL
   //!
   //! Extracts information from operand's signature.
   template<uint32_t mask>
   constexpr uint32_t _getSignaturePart() const noexcept {
     return (_signature >> Support::constCtz(mask)) & (mask >> Support::constCtz(mask));
   }
+  //! \endcond
 
   //! Gets the register type.
   constexpr uint32_t type() const noexcept { return _getSignaturePart<Operand::kSignatureRegTypeMask>(); }
@@ -893,8 +913,7 @@ public:
     kSignatureMemRel = kAddrTypeRel << kSignatureMemAddrTypeShift
   };
 
-  //! \internal
-  //!
+  //! \cond INTERNAL
   //! Used internally to construct `BaseMem` operand from decomposed data.
   struct Decomposed {
     uint32_t baseType;
@@ -905,6 +924,7 @@ public:
     uint32_t size;
     uint32_t flags;
   };
+  //! \endcond
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -918,11 +938,12 @@ public:
   constexpr BaseMem(const BaseMem& other) noexcept
     : Operand(other) {}
 
-  //! \internal
+  //! \cond INTERNAL
+
+  //! Creates a `BaseMem` operand from 4 integers as used by `Operand_` struct.
   constexpr BaseMem(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
     : Operand(Globals::Init, u0, u1, u2, u3) {}
 
-  //! \internal
   constexpr BaseMem(const Decomposed& d) noexcept
     : Operand(Globals::Init,
               kOpMem | (d.baseType  << kSignatureMemBaseTypeShift )
@@ -933,6 +954,9 @@ public:
               d.indexId,
               uint32_t(d.offset)) {}
 
+  //! \endcond
+
+  //! Creates a completely uninitialized `BaseMem` operand.
   inline explicit BaseMem(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
@@ -1259,5 +1283,4 @@ static constexpr Imm imm(T val) noexcept {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_OPERAND_H

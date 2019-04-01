@@ -1,22 +1,21 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86INTERNAL_P_H
 #define _ASMJIT_X86_X86INTERNAL_P_H
 
 #include "../core/build.h"
 
-// [Dependencies]
 #include "../core/func.h"
 #include "../x86/x86emitter.h"
 #include "../x86/x86operand.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
+//! \cond INTERNAL
 //! \addtogroup asmjit_x86_api
 //! \{
 
@@ -24,8 +23,6 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::X86Internal]
 // ============================================================================
 
-//! \internal
-//!
 //! X86 utilities used at multiple places, not part of public API, not exported.
 struct X86Internal {
   //! Initialize `FuncDetail` (X86 specific).
@@ -66,8 +63,8 @@ struct X86Internal {
 };
 
 //! \}
+//! \endcond
 
 ASMJIT_END_SUB_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_X86_X86INTERNAL_P_H

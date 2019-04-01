@@ -1,17 +1,15 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_VIRTMEM_H
 #define _ASMJIT_CORE_VIRTMEM_H
 
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_JIT
 
-// [Dependencies]
 #include "../core/globals.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -39,7 +37,7 @@ enum Flags : uint32_t {
 
   //! A combination of `kAccessRead | kAccessWrite`
   kAccessReadWrite = 0x00000003u,
-  
+
   //! Not an access flag, only used by `allocDualMapping()` to override the
   //! default allocation strategy to always use a temporary directory instead
   //! on "/dev/shm" (on POSIX systems). Please note that this flag will be

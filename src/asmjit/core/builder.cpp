@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_BUILDER
 
-// [Dependencies]
 #include "../core/builder.h"
 #include "../core/logging.h"
 
@@ -21,8 +18,6 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::PostponedErrorHandler (Internal)]
 // ============================================================================
 
-//! \internal
-//!
 //! Postponed error handler that never throws. Used as a temporal error handler
 //! to run passes. If error occurs, the caller is notified and will call the
 //! real error handler, that can throw.
@@ -979,5 +974,4 @@ Pass::~Pass() noexcept {}
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_BUILDER

@@ -1,13 +1,11 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies]
 #include "../core/cpuinfo.h"
 
 #if !defined(_WIN32)
@@ -55,23 +53,29 @@ namespace arm { void detectCpu(CpuInfo& cpu) noexcept; }
 // [asmjit::CpuInfo - Detect - Static Initializer]
 // ============================================================================
 
-struct HostCpuInfo : public CpuInfo {
-  inline HostCpuInfo() noexcept : CpuInfo() {
+static uint32_t cpuInfoInitialized;
+static CpuInfo cpuInfoGlobal(Globals::NoInit);
+
+const CpuInfo& CpuInfo::host() noexcept {
+  // This should never cause a problem as the resulting information should
+  // always be the same.
+  if (!cpuInfoInitialized) {
+    CpuInfo cpuInfoLocal;
+
     #if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
-    x86::detectCpu(*this);
+    x86::detectCpu(cpuInfoLocal);
     #endif
 
     #if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM
-    arm::detectCpu(*this);
+    arm::detectCpu(cpuInfoLocal);
     #endif
 
-    _hwThreadCount = detectHWThreadCount();
+    cpuInfoLocal._hwThreadCount = detectHWThreadCount();
+    cpuInfoGlobal = cpuInfoLocal;
+    cpuInfoInitialized = 1;
   }
-};
 
-const CpuInfo& CpuInfo::host() noexcept {
-  static HostCpuInfo host;
-  return host;
+  return cpuInfoGlobal;
 }
 
 ASMJIT_END_NAMESPACE

@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_OPERAND_H
 #define _ASMJIT_X86_OPERAND_H
 
-// [Dependencies]
 #include "../core/arch.h"
 #include "../core/operand.h"
 #include "../core/type.h"
@@ -403,9 +401,12 @@ public:
   constexpr Mem(const Mem& other) noexcept
     : BaseMem(other) {}
 
-  //! \internal
+  //! \cond INTERNAL
+  //!
+  //! A constructor used internally to create `Mem` operand from `Decomposed` data.
   constexpr explicit Mem(const Decomposed& d) noexcept
     : BaseMem(d) {}
+  //! \endcond
 
   constexpr Mem(const Label& base, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { Label::kLabelTag, base.id(), 0, 0, off, size, flags }) {}
@@ -901,7 +902,7 @@ static constexpr Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0
   return Mem(base, index, shift, size, BaseMem::kSignatureMemRel);
 }
 
-//! \internal
+//! \cond INTERNAL
 #define ASMJIT_MEM_PTR(FUNC, SIZE)                                                    \
   /*! Creates a `[base + offset]` memory operand. */                                  \
   static constexpr Mem FUNC(const Gp& base, int32_t offset = 0) noexcept {            \
@@ -965,6 +966,7 @@ static constexpr Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0
   static constexpr Mem FUNC##_rel(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemRel);                  \
   }
+//! \endcond
 
 // Definition of memory operand constructors that use platform independent naming.
 ASMJIT_MEM_PTR(ptr_8, 1)
@@ -1000,8 +1002,9 @@ ASMJIT_END_SUB_NAMESPACE
 // [asmjit::Type::IdOfT<x86::Reg>]
 // ============================================================================
 
-ASMJIT_BEGIN_NAMESPACE
+//! \cond INTERNAL
 
+ASMJIT_BEGIN_NAMESPACE
 ASMJIT_DEFINE_TYPE_ID(x86::Gpb, kIdI8);
 ASMJIT_DEFINE_TYPE_ID(x86::Gpw, kIdI16);
 ASMJIT_DEFINE_TYPE_ID(x86::Gpd, kIdI32);
@@ -1010,8 +1013,8 @@ ASMJIT_DEFINE_TYPE_ID(x86::Mm , kIdMmx64);
 ASMJIT_DEFINE_TYPE_ID(x86::Xmm, kIdI32x4);
 ASMJIT_DEFINE_TYPE_ID(x86::Ymm, kIdI32x8);
 ASMJIT_DEFINE_TYPE_ID(x86::Zmm, kIdI32x16);
-
 ASMJIT_END_NAMESPACE
 
-// [Guard]
+//! \endcond
+
 #endif // _ASMJIT_X86_OPERAND_H

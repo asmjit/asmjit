@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_ZONE_H
 #define _ASMJIT_CORE_ZONE_H
 
-// [Dependencies]
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -34,8 +32,8 @@ class Zone {
 public:
   ASMJIT_NONCOPYABLE(Zone)
 
-  //! \internal
-  //!
+  //! \cond INTERNAL
+
   //! A single block of memory managed by `Zone`.
   struct Block {
     inline uint8_t* data() const noexcept {
@@ -61,6 +59,8 @@ public:
   };
 
   static ASMJIT_API const Block _zeroBlock;
+
+  //! \endcond
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -313,8 +313,11 @@ public:
     return new(p) T(std::forward<ArgsT>(args)...);
   }
 
-  //! \internal
+  //! \cond INTERNAL
+  //!
+  //! Internal alloc function used by other inlines.
   ASMJIT_API void* _alloc(size_t size, size_t alignment) noexcept;
+  //! \endcond
 
   //! Helper to duplicate data.
   ASMJIT_API void* dup(const void* data, size_t size, bool nullTerminate = false) noexcept;
@@ -404,6 +407,7 @@ class ZoneAllocator {
 public:
   ASMJIT_NONCOPYABLE(ZoneAllocator)
 
+  //! \cond INTERNAL
   enum {
     // In short, we pool chunks of these sizes:
     //   [32, 64, 96, 128, 192, 256, 320, 384, 448, 512]
@@ -439,6 +443,8 @@ public:
     DynamicBlock* prev;
     DynamicBlock* next;
   };
+
+  //! \endcond
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
@@ -489,8 +495,8 @@ public:
   // [Utilities]
   // --------------------------------------------------------------------------
 
-  //! \internal
-  //!
+  //! \cond INTERNAL
+
   //! Gets the slot index to be used for `size`. Returns `true` if a valid slot
   //! has been written to `slot` and `allocatedSize` has been filled with slot
   //! exact size (`allocatedSize` can be equal or slightly greater than `size`).
@@ -525,13 +531,17 @@ public:
     return true;
   }
 
+  //! \endcond
+
   // --------------------------------------------------------------------------
   // [Alloc / Release]
   // --------------------------------------------------------------------------
 
+  //! \cond INTERNAL
   ASMJIT_API void* _alloc(size_t size, size_t& allocatedSize) noexcept;
   ASMJIT_API void* _allocZeroed(size_t size, size_t& allocatedSize) noexcept;
   ASMJIT_API void _releaseDynamic(void* p, size_t size) noexcept;
+  //! \endcond
 
   //! Allocates `size` bytes of memory, ideally from an available pool.
   //!
@@ -626,5 +636,4 @@ public:
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_ZONE_H

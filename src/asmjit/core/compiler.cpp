@@ -1,17 +1,14 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
 #include "../core/build.h"
 #ifndef ASMJIT_DISABLE_COMPILER
 
-// [Dependencies]
 #include "../core/assembler.h"
 #include "../core/compiler.h"
 #include "../core/cpuinfo.h"
@@ -33,6 +30,9 @@ class GlobalConstPoolPass : public Pass {
   GlobalConstPoolPass() noexcept : Pass("GlobalConstPoolPass") {}
 
   Error run(Zone* zone, Logger* logger) noexcept override {
+    ASMJIT_UNUSED(zone);
+    ASMJIT_UNUSED(logger);
+
     // Flush the global constant pool.
     BaseCompiler* compiler = static_cast<BaseCompiler*>(_cb);
     if (compiler->_globalConstPool) {
@@ -561,5 +561,4 @@ Error FuncPass::run(Zone* zone, Logger* logger) noexcept {
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // !ASMJIT_DISABLE_COMPILER

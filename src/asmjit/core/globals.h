@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_GLOBALS_H
 #define _ASMJIT_CORE_GLOBALS_H
 
-// [Dependencies]
 #include "../core/build.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -20,6 +18,7 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::Globals]
 // ============================================================================
 
+//! Contains typedefs, constants, and variables used globally by AsmJit.
 namespace Globals {
 
 // ============================================================================
@@ -110,8 +109,8 @@ enum Link : uint32_t {
 struct Init_ {};
 struct NoInit_ {};
 
-static constexpr Init_ Init {};
-static constexpr NoInit_ NoInit {};
+static const constexpr Init_ Init {};
+static const constexpr NoInit_ NoInit {};
 
 } // {Globals}
 
@@ -315,6 +314,7 @@ static constexpr void* func_as_ptr(Func func) noexcept { return Support::ptr_cas
 // [asmjit::DebugUtils]
 // ============================================================================
 
+//! Debugging utilities.
 namespace DebugUtils {
 
 //! Returns the error `err` passed.
@@ -351,8 +351,6 @@ ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, cons
   #define ASMJIT_ASSERT(EXP) ((void)0)
 #endif
 
-//! \internal
-//!
 //! Used by AsmJit to propagate a possible `Error` produced by `...` to the caller.
 #define ASMJIT_PROPAGATE(...)               \
   do {                                      \
@@ -367,5 +365,4 @@ ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, cons
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_GLOBALS_H

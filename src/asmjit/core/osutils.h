@@ -1,14 +1,12 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_CORE_OSUTILS_H
 #define _ASMJIT_CORE_OSUTILS_H
 
-// [Dependencies]
 #include "../core/globals.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -30,8 +28,8 @@ namespace OSUtils {
 // [asmjit::Lock]
 // ============================================================================
 
-//! \internal
-//!
+//! \cond INTERNAL
+
 //! Lock.
 class Lock {
 public:
@@ -73,12 +71,14 @@ public:
   #endif
 };
 
+//! \endcond
+
 // ============================================================================
 // [asmjit::ScopedLock]
 // ============================================================================
 
-//! \internal
-//!
+//! \cond INTERNAL
+
 //! Scoped lock.
 struct ScopedLock {
   ASMJIT_NONCOPYABLE(ScopedLock)
@@ -89,9 +89,10 @@ struct ScopedLock {
   Lock& _target;
 };
 
+//! \endcond
+
 //! \}
 
 ASMJIT_END_NAMESPACE
 
-// [Guard]
 #endif // _ASMJIT_CORE_OSUTILS_H

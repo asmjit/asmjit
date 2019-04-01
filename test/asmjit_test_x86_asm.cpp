@@ -1,10 +1,9 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // ZLIB - See LICENSE.md file in the package.
 
-// [Dependencies]
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -153,7 +152,7 @@ int main(int argc, char* argv[]) {
   nFailed += testFunc(rt, BaseEmitter::kTypeAssembler);
   nFailed += testFunc(rt, BaseEmitter::kTypeBuilder);
   nFailed += testFunc(rt, BaseEmitter::kTypeCompiler);
-  
+
   if (!nFailed)
     printf("[PASSED] All tests passed\n");
   else
