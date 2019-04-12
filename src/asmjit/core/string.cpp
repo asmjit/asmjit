@@ -389,7 +389,7 @@ Error String::_opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept {
   size_t outputSize;
 
   if (remainingCapacity >= 128) {
-    fmtResult = std::vsnprintf(data() + startAt, remainingCapacity, fmt, ap);
+    fmtResult = vsnprintf(data() + startAt, remainingCapacity, fmt, ap);
     outputSize = size_t(fmtResult);
 
     if (ASMJIT_LIKELY(outputSize <= remainingCapacity)) {
@@ -398,7 +398,7 @@ Error String::_opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept {
     }
   }
   else {
-    fmtResult = std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);
+    fmtResult = vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);
     outputSize = size_t(fmtResult);
 
     if (ASMJIT_LIKELY(outputSize < ASMJIT_ARRAY_SIZE(buf)))
@@ -412,7 +412,7 @@ Error String::_opVFormat(uint32_t op, const char* fmt, va_list ap) noexcept {
   if (ASMJIT_UNLIKELY(!p))
     return DebugUtils::errored(kErrorOutOfMemory);
 
-  fmtResult = std::vsnprintf(p, outputSize + 1, fmt, ap);
+  fmtResult = vsnprintf(p, outputSize + 1, fmt, ap);
   ASMJIT_ASSERT(size_t(fmtResult) == outputSize);
 
   return kErrorOk;

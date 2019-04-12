@@ -281,7 +281,7 @@ static void CodeCompiler_assignGenericName(BaseCompiler* self, VirtReg* vReg) {
   uint32_t index = unsigned(Operand::virtIdToIndex(vReg->_id));
 
   char buf[64];
-  int size = std::snprintf(buf, ASMJIT_ARRAY_SIZE(buf), "%%%u", unsigned(index));
+  int size = snprintf(buf, ASMJIT_ARRAY_SIZE(buf), "%%%u", unsigned(index));
 
   ASMJIT_ASSERT(size > 0 && size < int(ASMJIT_ARRAY_SIZE(buf)));
   vReg->_name.setData(&self->_dataZone, buf, unsigned(size));
@@ -491,7 +491,7 @@ void BaseCompiler::rename(BaseReg& reg, const char* fmt, ...) {
     va_list ap;
 
     va_start(ap, fmt);
-    std::vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);
+    vsnprintf(buf, ASMJIT_ARRAY_SIZE(buf), fmt, ap);
     va_end(ap);
 
     vReg->_name.setData(&_dataZone, buf, SIZE_MAX);

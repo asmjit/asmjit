@@ -71,10 +71,10 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <cstdio>
 #include <limits>
 #include <new>
 #include <type_traits>
@@ -449,6 +449,15 @@
   #define ASMJIT_END_NAMESPACE                                                \
       _Pragma("clang diagnostic pop")                                         \
     }
+#elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 0, 0) && \
+      ASMJIT_CXX_GNU <  ASMJIT_CXX_MAKE_VER(5, 0, 0)
+  #define ASMJIT_BEGIN_NAMESPACE                                              \
+    namespace asmjit {                                                        \
+      _Pragma("GCC diagnostic push")                                          \
+      _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"")
+  #define ASMJIT_END_NAMESPACE                                                \
+      _Pragma("GCC diagnostic pop")                                           \
+    }
 #elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(8, 0, 0)
   #define ASMJIT_BEGIN_NAMESPACE                                              \
     namespace asmjit {                                                        \
@@ -466,7 +475,9 @@
   #define ASMJIT_END_NAMESPACE                                                \
       __pragma(warning(pop))                                                  \
     }
-#else
+#endif
+
+#if !defined(ASMJIT_BEGIN_NAMESPACE) && !defined(ASMJIT_END_NAMESPACE)
   #define ASMJIT_BEGIN_NAMESPACE namespace asmjit {
   #define ASMJIT_END_NAMESPACE }
 #endif

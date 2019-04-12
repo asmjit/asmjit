@@ -140,11 +140,11 @@ public:
   //! Logs content of a string `str`.
   inline Error log(const String& str) noexcept { return _log(str.data(), str.size()); }
 
-  //! Formats the message by using `std::snprintf()` and then sends the result
+  //! Formats the message by using `snprintf()` and then sends the result
   //! to `log()`.
   ASMJIT_API Error logf(const char* fmt, ...) noexcept;
 
-  //! Formats the message by using `std::vsnprintf()` and then sends the result
+  //! Formats the message by using `vsnprintf()` and then sends the result
   //! to `log()`.
   ASMJIT_API Error logv(const char* fmt, va_list ap) noexcept;
 

@@ -328,7 +328,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_formatImmBits(String& sb, uint32_
         break;
 
       case ImmBits::kModeFormat:
-        std::snprintf(buf, sizeof(buf), spec.text, unsigned(value));
+        snprintf(buf, sizeof(buf), spec.text, unsigned(value));
         str = buf;
         break;
 

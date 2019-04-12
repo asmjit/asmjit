@@ -1361,7 +1361,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(Emitter* emitter, const 
   {
     String sb;
     dumpAssignment(sb, ctx);
-    std::printf("%s\n", sb.data());
+    printf("%s\n", sb.data());
   }
   */
 

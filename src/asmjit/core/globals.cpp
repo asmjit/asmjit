@@ -95,14 +95,14 @@ ASMJIT_FAVOR_SIZE void DebugUtils::debugOutput(const char* str) noexcept {
 #if defined(_WIN32)
   ::OutputDebugStringA(str);
 #else
-  std::fputs(str, stderr);
+  ::fputs(str, stderr);
 #endif
 }
 
 ASMJIT_FAVOR_SIZE void DebugUtils::assertionFailed(const char* file, int line, const char* msg) noexcept {
   char str[1024];
 
-  std::snprintf(str, 1024,
+  snprintf(str, 1024,
     "[asmjit] Assertion failed at %s (line %d):\n"
     "[asmjit] %s\n", file, line, msg);
 
