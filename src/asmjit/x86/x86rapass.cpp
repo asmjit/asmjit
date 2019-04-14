@@ -209,7 +209,7 @@ namespace X86OpInfo {
         case Inst::kIdBlendvps:
         case Inst::kIdPblendvb:
         case Inst::kIdSha256rnds2:
-          RETURN_OPS(W(Any), R(Any), R(0));
+          RETURN_OPS(X(Any), R(Any), R(0));
 
         case Inst::kIdPcmpestri  :
         case Inst::kIdVpcmpestri : RETURN_OPS(R(Any), R(Any), NONE(), W(Zcx));
