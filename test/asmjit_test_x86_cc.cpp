@@ -447,6 +447,9 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
+    ASMJIT_UNUSED(result);
+    ASMJIT_UNUSED(expect);
+
     typedef void(*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -475,6 +478,9 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
+    ASMJIT_UNUSED(result);
+    ASMJIT_UNUSED(expect);
+
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -581,6 +587,9 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
+    ASMJIT_UNUSED(result);
+    ASMJIT_UNUSED(expect);
+
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -876,7 +885,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<void, int*>(CallConv::kIdHost));
+    cc.addFunc(FuncSignatureT<void, uint32_t*>(CallConv::kIdHost));
 
     x86::Gp a = cc.newIntPtr("a");
     x86::Gp v[32];
@@ -896,18 +905,18 @@ public:
 
     cc.dec(x);
     cc.jnz(L);
-    for (i = 0; i < ASMJIT_ARRAY_SIZE(v); i++) cc.mov(x86::dword_ptr(a, i * 4), v[i]);
+    for (i = 0; i < ASMJIT_ARRAY_SIZE(v); i++) cc.mov(x86::dword_ptr(a, int(i * 4)), v[i]);
 
     cc.endFunc();
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef void (*Func)(int*);
+    typedef void (*Func)(uint32_t*);
     Func func = ptr_as_func<Func>(_func);
 
     uint32_t i;
-    int resultBuf[32];
-    int expectBuf[32];
+    uint32_t resultBuf[32];
+    uint32_t expectBuf[32];
 
     for (i = 0; i < ASMJIT_ARRAY_SIZE(resultBuf); i++)
       expectBuf[i] = i * 32;
@@ -919,8 +928,8 @@ public:
         expect.appendChar(',');
       }
 
-      result.appendFormat("%d", resultBuf[i]);
-      expect.appendFormat("%d", expectBuf[i]);
+      result.appendFormat("%u", resultBuf[i]);
+      expect.appendFormat("%u", expectBuf[i]);
     }
 
     return result == expect;
@@ -1362,9 +1371,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1423,9 +1432,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1484,9 +1493,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1550,9 +1559,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1591,7 +1600,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1627,7 +1636,7 @@ public:
     result.assignFormat("ret={%d}", resultRet);
     expect.assignFormat("ret={%d}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
