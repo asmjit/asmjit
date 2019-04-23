@@ -324,23 +324,25 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef int (*Func0)();
-    typedef int (*Func1)(int);
-    typedef int (*Func2)(int, int);
-    typedef int (*Func3)(int, int, int);
-    typedef int (*Func4)(int, int, int, int);
-    typedef int (*Func5)(int, int, int, int, int);
-    typedef int (*Func6)(int, int, int, int, int, int);
-    typedef int (*Func7)(int, int, int, int, int, int, int);
-    typedef int (*Func8)(int, int, int, int, int, int, int, int);
-    typedef int (*Func9)(int, int, int, int, int, int, int, int, int);
-    typedef int (*Func10)(int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func11)(int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func12)(int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func13)(int, int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func14)(int, int, int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func15)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func16)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int);
+    typedef unsigned int U;
+
+    typedef U (*Func0)();
+    typedef U (*Func1)(U);
+    typedef U (*Func2)(U, U);
+    typedef U (*Func3)(U, U, U);
+    typedef U (*Func4)(U, U, U, U);
+    typedef U (*Func5)(U, U, U, U, U);
+    typedef U (*Func6)(U, U, U, U, U, U);
+    typedef U (*Func7)(U, U, U, U, U, U, U);
+    typedef U (*Func8)(U, U, U, U, U, U, U, U);
+    typedef U (*Func9)(U, U, U, U, U, U, U, U, U);
+    typedef U (*Func10)(U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func11)(U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func12)(U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func13)(U, U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func14)(U, U, U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func15)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func16)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
 
     unsigned int resultRet = 0;
     unsigned int expectRet = 0;
@@ -903,7 +905,7 @@ public:
     typedef void (*Func)(int*);
     Func func = ptr_as_func<Func>(_func);
 
-    int i;
+    uint32_t i;
     int resultBuf[32];
     int expectBuf[32];
 
@@ -1213,7 +1215,7 @@ public:
 
     // Init pseudo-regs with values from our array.
     for (i = 0; i < kCount; i++) {
-      cc.mov(x[i], x86::dword_ptr(rPtr, i * 4));
+      cc.mov(x[i], x86::dword_ptr(rPtr, int(i * 4)));
     }
 
     for (i = 2; i < kCount; i++) {
@@ -1236,11 +1238,10 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef int (*Func)(uint32_t*);
+    typedef uint32_t (*Func)(uint32_t*);
     Func func = ptr_as_func<Func>(_func);
 
-    unsigned int i;
-
+    uint32_t i;
     uint32_t buf[kCount];
     uint32_t resultRet;
     uint32_t expectRet;
@@ -3294,7 +3295,7 @@ public:
     app.add(new X86Test_FuncCallMisc1());
   }
 
-  static void dummy(int a, int b) {}
+  static void dummy(int, int) {}
 
   virtual void compile(x86::Compiler& cc) {
     cc.addFunc(FuncSignatureT<int, int, int>(CallConv::kIdHost));

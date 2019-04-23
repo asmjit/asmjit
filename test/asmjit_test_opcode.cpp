@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     { ArchInfo::kIdX64, true , true  }
   };
 
-  for (int i = 0; i < ASMJIT_ARRAY_SIZE(infoList); i++) {
+  for (uint32_t i = 0; i < ASMJIT_ARRAY_SIZE(infoList); i++) {
     const OpcodeDumpInfo& info = infoList[i];
 
     printf("Opcodes [ARCH=%s REX1=%s REX2=%s]\n",

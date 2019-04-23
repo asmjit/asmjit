@@ -76,7 +76,6 @@
 #include <string.h>
 
 #include <limits>
-#include <new>
 #include <type_traits>
 #include <utility>
 

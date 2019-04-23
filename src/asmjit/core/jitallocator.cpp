@@ -346,7 +346,7 @@ static inline JitAllocatorPrivateImpl* JitAllocatorImpl_new(const JitAllocator::
     return nullptr;
 
   JitAllocatorPool* pools = reinterpret_cast<JitAllocatorPool*>((uint8_t*)p + sizeof(JitAllocatorPrivateImpl));
-  JitAllocatorPrivateImpl* impl = new(p) JitAllocatorPrivateImpl(pools, poolCount);
+  JitAllocatorPrivateImpl* impl = new(Support::PlacementNew { p }) JitAllocatorPrivateImpl(pools, poolCount);
 
   impl->options = options;
   impl->blockSize = blockSize;
@@ -355,7 +355,7 @@ static inline JitAllocatorPrivateImpl* JitAllocatorImpl_new(const JitAllocator::
   impl->pageSize = vmInfo.pageSize;
 
   for (size_t poolId = 0; poolId < poolCount; poolId++)
-    new(&pools[poolId]) JitAllocatorPool(granularity << poolId);
+    new(Support::PlacementNew { &pools[poolId] }) JitAllocatorPool(granularity << poolId);
 
   return impl;
 }
@@ -451,7 +451,7 @@ static JitAllocatorBlock* JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* imp
     JitAllocatorImpl_fillPattern(virtMem.rw, impl->fillPattern, blockSize);
 
   ::memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
-  return new(block) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
+  return new(Support::PlacementNew { block }) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
 }
 
 static void JitAllocatorImpl_deleteBlock(JitAllocatorPrivateImpl* impl, JitAllocatorBlock* block) noexcept {
