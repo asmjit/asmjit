@@ -173,8 +173,8 @@ public:
   }
 
   //! Replace the current content by a formatted integer `i` (signed).
-  inline Error assignInt(uint64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) noexcept {
-    return _opNumber(kOpAssign, i, base, width, flags | kFormatSigned);
+  inline Error assignInt(int64_t i, uint32_t base = 0, size_t width = 0, uint32_t flags = 0) noexcept {
+    return _opNumber(kOpAssign, uint64_t(i), base, width, flags | kFormatSigned);
   }
 
   //! Replace the current content by a formatted integer `i` (unsigned).

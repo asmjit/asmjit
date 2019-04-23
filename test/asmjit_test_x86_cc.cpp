@@ -324,23 +324,25 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef int (*Func0)();
-    typedef int (*Func1)(int);
-    typedef int (*Func2)(int, int);
-    typedef int (*Func3)(int, int, int);
-    typedef int (*Func4)(int, int, int, int);
-    typedef int (*Func5)(int, int, int, int, int);
-    typedef int (*Func6)(int, int, int, int, int, int);
-    typedef int (*Func7)(int, int, int, int, int, int, int);
-    typedef int (*Func8)(int, int, int, int, int, int, int, int);
-    typedef int (*Func9)(int, int, int, int, int, int, int, int, int);
-    typedef int (*Func10)(int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func11)(int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func12)(int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func13)(int, int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func14)(int, int, int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func15)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int);
-    typedef int (*Func16)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int);
+    typedef unsigned int U;
+
+    typedef U (*Func0)();
+    typedef U (*Func1)(U);
+    typedef U (*Func2)(U, U);
+    typedef U (*Func3)(U, U, U);
+    typedef U (*Func4)(U, U, U, U);
+    typedef U (*Func5)(U, U, U, U, U);
+    typedef U (*Func6)(U, U, U, U, U, U);
+    typedef U (*Func7)(U, U, U, U, U, U, U);
+    typedef U (*Func8)(U, U, U, U, U, U, U, U);
+    typedef U (*Func9)(U, U, U, U, U, U, U, U, U);
+    typedef U (*Func10)(U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func11)(U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func12)(U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func13)(U, U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func14)(U, U, U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func15)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
+    typedef U (*Func16)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
 
     unsigned int resultRet = 0;
     unsigned int expectRet = 0;
@@ -445,6 +447,9 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
+    ASMJIT_UNUSED(result);
+    ASMJIT_UNUSED(expect);
+
     typedef void(*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -473,6 +478,9 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
+    ASMJIT_UNUSED(result);
+    ASMJIT_UNUSED(expect);
+
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -579,6 +587,9 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
+    ASMJIT_UNUSED(result);
+    ASMJIT_UNUSED(expect);
+
     typedef void (*Func)(void);
     Func func = ptr_as_func<Func>(_func);
 
@@ -874,7 +885,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<void, int*>(CallConv::kIdHost));
+    cc.addFunc(FuncSignatureT<void, uint32_t*>(CallConv::kIdHost));
 
     x86::Gp a = cc.newIntPtr("a");
     x86::Gp v[32];
@@ -894,18 +905,18 @@ public:
 
     cc.dec(x);
     cc.jnz(L);
-    for (i = 0; i < ASMJIT_ARRAY_SIZE(v); i++) cc.mov(x86::dword_ptr(a, i * 4), v[i]);
+    for (i = 0; i < ASMJIT_ARRAY_SIZE(v); i++) cc.mov(x86::dword_ptr(a, int(i * 4)), v[i]);
 
     cc.endFunc();
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef void (*Func)(int*);
+    typedef void (*Func)(uint32_t*);
     Func func = ptr_as_func<Func>(_func);
 
-    int i;
-    int resultBuf[32];
-    int expectBuf[32];
+    uint32_t i;
+    uint32_t resultBuf[32];
+    uint32_t expectBuf[32];
 
     for (i = 0; i < ASMJIT_ARRAY_SIZE(resultBuf); i++)
       expectBuf[i] = i * 32;
@@ -917,8 +928,8 @@ public:
         expect.appendChar(',');
       }
 
-      result.appendFormat("%d", resultBuf[i]);
-      expect.appendFormat("%d", expectBuf[i]);
+      result.appendFormat("%u", resultBuf[i]);
+      expect.appendFormat("%u", expectBuf[i]);
     }
 
     return result == expect;
@@ -1213,7 +1224,7 @@ public:
 
     // Init pseudo-regs with values from our array.
     for (i = 0; i < kCount; i++) {
-      cc.mov(x[i], x86::dword_ptr(rPtr, i * 4));
+      cc.mov(x[i], x86::dword_ptr(rPtr, int(i * 4)));
     }
 
     for (i = 2; i < kCount; i++) {
@@ -1236,11 +1247,10 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef int (*Func)(uint32_t*);
+    typedef uint32_t (*Func)(uint32_t*);
     Func func = ptr_as_func<Func>(_func);
 
-    unsigned int i;
-
+    uint32_t i;
     uint32_t buf[kCount];
     uint32_t resultRet;
     uint32_t expectRet;
@@ -1361,9 +1371,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1422,9 +1432,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1483,9 +1493,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1549,9 +1559,9 @@ public:
     int b = func(1, 0);
 
     result.appendFormat("ret={%d, %d}", a, b);
-    result.appendFormat("ret={%d, %d}", 1, 2);
+    expect.appendFormat("ret={%d, %d}", 1, 2);
 
-    return a == 1 && b == 2;
+    return result == expect;
   }
 };
 
@@ -1590,7 +1600,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1626,7 +1636,7 @@ public:
     result.assignFormat("ret={%d}", resultRet);
     expect.assignFormat("ret={%d}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3294,7 +3304,7 @@ public:
     app.add(new X86Test_FuncCallMisc1());
   }
 
-  static void dummy(int a, int b) {}
+  static void dummy(int, int) {}
 
   virtual void compile(x86::Compiler& cc) {
     cc.addFunc(FuncSignatureT<int, int, int>(CallConv::kIdHost));

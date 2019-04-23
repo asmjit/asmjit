@@ -80,7 +80,7 @@ static void makeCompiledFunc(x86::Compiler* cc) noexcept {
   cc->endFunc();
 }
 
-static int testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
+static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
   FileLogger logger(stdout);
 
   CodeHolder code;

@@ -7,6 +7,7 @@
 #ifndef _ASMJIT_CORE_CONSTPOOL_H
 #define _ASMJIT_CORE_CONSTPOOL_H
 
+#include "../core/support.h"
 #include "../core/zone.h"
 #include "../core/zonetree.h"
 
@@ -163,7 +164,7 @@ public:
       Node* node = zone->allocT<Node>(sizeof(Node) + size);
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
 
-      node = new(node) Node(offset, shared);
+      node = new(Support::PlacementNew { node }) Node(offset, shared);
       ::memcpy(node->data(), data, size);
       return node;
     }

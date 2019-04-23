@@ -13,6 +13,7 @@
 #include "../core/raassignment_p.h"
 #include "../core/radefs_p.h"
 #include "../core/rastack_p.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -649,7 +650,10 @@ public:
   }
 
   ASMJIT_INLINE RAInst* newRAInst(RABlock* block, uint32_t flags, uint32_t tiedRegCount, const RARegMask& clobberedRegs) noexcept {
-    return new(zone()->alloc(RAInst::sizeOf(tiedRegCount))) RAInst(block, flags, tiedRegCount, clobberedRegs);
+    void* p = zone()->alloc(RAInst::sizeOf(tiedRegCount));
+    if (ASMJIT_UNLIKELY(!p))
+      return nullptr;
+    return new(Support::PlacementNew { p }) RAInst(block, flags, tiedRegCount, clobberedRegs);
   }
 
   ASMJIT_INLINE Error assignRAInst(BaseNode* node, RABlock* block, RAInstBuilder& ib) noexcept {
