@@ -152,6 +152,7 @@ public:
 //! Target is an abstract class that describes the machine code target.
 class ASMJIT_VIRTAPI Target {
 public:
+  ASMJIT_BASE_CLASS(Target)
   ASMJIT_NONCOPYABLE(Target)
 
   enum TargetType : uint32_t {

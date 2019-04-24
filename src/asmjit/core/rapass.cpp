@@ -1096,7 +1096,7 @@ ASMJIT_FAVOR_SPEED Error RAPass::initGlobalLiveSpans() noexcept {
       return DebugUtils::errored(kErrorOutOfMemory);
 
     for (size_t physId = 0; physId < physCount; physId++)
-      new(Support::PlacementNew { &liveSpans[physId] }) LiveRegSpans();
+      new(&liveSpans[physId]) LiveRegSpans();
 
     _globalLiveSpans[group] = liveSpans;
   }

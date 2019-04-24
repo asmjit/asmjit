@@ -25,13 +25,6 @@ ASMJIT_BEGIN_NAMESPACE
 namespace Support {
 
 // ============================================================================
-// [asmjit::Support - PlacementNew]
-// ============================================================================
-
-//! Helper to implement placement new/delete without relying on `<new>` header.
-struct PlacementNew { void *ptr; };
-
-// ============================================================================
 // [asmjit::Support - Architecture Features & Constraints]
 // ============================================================================
 
@@ -1369,14 +1362,5 @@ struct Temporary {
 //! \endcond
 
 ASMJIT_END_NAMESPACE
-
-// ============================================================================
-// [asmjit::Support - Placement New / Delete]
-// ============================================================================
-
-//! Implementation of placement new so we don't have to depend on `<new>`.
-inline void* operator new(std::size_t, const asmjit::Support::PlacementNew& p) { return p.ptr; }
-//! Implementation of placement delete so we don't have to depend on `<new>`.
-inline void operator delete(void*, const asmjit::Support::PlacementNew&) noexcept {}
 
 #endif // _ASMJIT_CORE_SUPPORT_H

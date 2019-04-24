@@ -653,7 +653,7 @@ public:
     void* p = zone()->alloc(RAInst::sizeOf(tiedRegCount));
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(Support::PlacementNew { p }) RAInst(block, flags, tiedRegCount, clobberedRegs);
+    return new(p) RAInst(block, flags, tiedRegCount, clobberedRegs);
   }
 
   ASMJIT_INLINE Error assignRAInst(BaseNode* node, RABlock* block, RAInstBuilder& ib) noexcept {

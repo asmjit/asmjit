@@ -117,6 +117,7 @@ public:
 //!   - `StringLogger` - logs into a `String`.
 class ASMJIT_VIRTAPI Logger {
 public:
+  ASMJIT_BASE_CLASS(Logger)
   ASMJIT_NONCOPYABLE(Logger)
 
   // --------------------------------------------------------------------------

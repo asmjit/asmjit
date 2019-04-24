@@ -54,6 +54,8 @@ enum AlignMode : uint32_t {
 //! Override `ErrorHandler::handleError()` to implement your own error handler.
 class ASMJIT_VIRTAPI ErrorHandler {
 public:
+  ASMJIT_BASE_CLASS(ErrorHandler)
+
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------

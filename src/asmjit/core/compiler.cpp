@@ -301,7 +301,7 @@ VirtReg* BaseCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const cha
   uint32_t size = Type::sizeOf(typeId);
   uint32_t alignment = Support::min<uint32_t>(size, 64);
 
-  vReg = new(Support::PlacementNew { vReg }) VirtReg(Operand::indexToVirtId(index), signature, size, alignment, typeId);
+  vReg = new(vReg) VirtReg(Operand::indexToVirtId(index), signature, size, alignment, typeId);
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (name && name[0] != '\0')

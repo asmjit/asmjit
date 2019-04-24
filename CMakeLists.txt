@@ -126,7 +126,7 @@ if (NOT ASMJIT_BUILD_USE_DEFAULT_FLAGS)
   endif()
 
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
-    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wall -Wextra -Wconversion)
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wall -Wextra)
     asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL -O2 -fmerge-all-constants)
   endif()
 endif()

@@ -33,6 +33,8 @@ class FuncArgsAssignment;
 //! `BaseBuilder`.
 class ASMJIT_VIRTAPI BaseEmitter {
 public:
+  ASMJIT_BASE_CLASS(BaseEmitter)
+
   //! Emitter type.
   enum EmitterType : uint32_t {
     kTypeNone      = 0,

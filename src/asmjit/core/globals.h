@@ -303,12 +303,37 @@ namespace Support {
   //! Cast designed to cast between function and void* pointers.
   template<typename Dst, typename Src>
   static constexpr Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
-}
+} // {Support}
 
 template<typename Func>
 static constexpr Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
 template<typename Func>
 static constexpr void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_impl<void*, Func>(func); }
+
+// ============================================================================
+// [asmjit::Support]
+// ============================================================================
+
+#if defined(ASMJIT_BUILD_NO_STDCXX)
+namespace Support {
+  ASMJIT_INLINE void* operatorNew(size_t n) noexcept { return malloc(n); }
+  ASMJIT_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
+} // {Support}
+
+#define ASMJIT_BASE_CLASS(TYPE)                                               \
+  ASMJIT_INLINE void* operator new(size_t n) noexcept {                       \
+    return Support::operatorNew(n);                                           \
+  }                                                                           \
+                                                                              \
+  ASMJIT_INLINE void  operator delete(void* p) noexcept {                     \
+    Support::operatorDelete(p);                                               \
+  }                                                                           \
+                                                                              \
+  ASMJIT_INLINE void* operator new(size_t, void* p) noexcept { return p; }    \
+  ASMJIT_INLINE void  operator delete(void*, void*) noexcept {}
+#else
+#define ASMJIT_BASE_CLASS(TYPE)
+#endif
 
 // ============================================================================
 // [asmjit::DebugUtils]
@@ -341,14 +366,14 @@ ASMJIT_API void debugOutput(const char* str) noexcept;
 ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, const char* msg) noexcept;
 
 #if defined(ASMJIT_BUILD_DEBUG)
-  #define ASMJIT_ASSERT(EXP)                                           \
-    do {                                                               \
-      if (ASMJIT_LIKELY(EXP))                                          \
-        break;                                                         \
-      ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #EXP); \
-    } while (0)
+#define ASMJIT_ASSERT(EXP)                                                     \
+  do {                                                                         \
+    if (ASMJIT_LIKELY(EXP))                                                    \
+      break;                                                                   \
+    ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #EXP);           \
+  } while (0)
 #else
-  #define ASMJIT_ASSERT(EXP) ((void)0)
+#define ASMJIT_ASSERT(EXP) ((void)0)
 #endif
 
 //! Used by AsmJit to propagate a possible `Error` produced by `...` to the caller.

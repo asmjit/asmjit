@@ -111,7 +111,7 @@ InstNode* BaseBuilder::newInstNode(uint32_t instId, uint32_t instOptions, const 
   if (ASMJIT_UNLIKELY(!node))
     return nullptr;
 
-  node = new(Support::PlacementNew { node }) InstNode(this, instId, instOptions, opCount, opCapacity);
+  node = new(node) InstNode(this, instId, instOptions, opCount, opCapacity);
   node->setOp(0, o0);
   for (uint32_t i = opCount; i < opCapacity; i++) node->resetOp(i);
   return node;
@@ -126,7 +126,7 @@ InstNode* BaseBuilder::newInstNode(uint32_t instId, uint32_t instOptions, const 
   if (ASMJIT_UNLIKELY(!node))
     return nullptr;
 
-  node = new(Support::PlacementNew { node }) InstNode(this, instId, instOptions, opCount, opCapacity);
+  node = new(node) InstNode(this, instId, instOptions, opCount, opCapacity);
   node->setOp(0, o0);
   node->setOp(1, o1);
   for (uint32_t i = opCount; i < opCapacity; i++) node->resetOp(i);
@@ -142,7 +142,7 @@ InstNode* BaseBuilder::newInstNode(uint32_t instId, uint32_t instOptions, const 
   if (ASMJIT_UNLIKELY(!node))
     return nullptr;
 
-  node = new(Support::PlacementNew { node }) InstNode(this, instId, instOptions, opCount, opCapacity);
+  node = new(node) InstNode(this, instId, instOptions, opCount, opCapacity);
   node->setOp(0, o0);
   node->setOp(1, o1);
   node->setOp(2, o2);
@@ -159,7 +159,7 @@ InstNode* BaseBuilder::newInstNode(uint32_t instId, uint32_t instOptions, const 
   if (ASMJIT_UNLIKELY(!node))
     return nullptr;
 
-  node = new(Support::PlacementNew { node }) InstNode(this, instId, instOptions, opCount, opCapacity);
+  node = new(node) InstNode(this, instId, instOptions, opCount, opCapacity);
   node->setOp(0, o0);
   node->setOp(1, o1);
   node->setOp(2, o2);
@@ -175,7 +175,7 @@ InstNode* BaseBuilder::newInstNodeRaw(uint32_t instId, uint32_t instOptions, uin
   InstNode* node = _allocator.allocT<InstNode>(InstNode::nodeSizeOfOpCapacity(opCapacity));
   if (ASMJIT_UNLIKELY(!node))
     return nullptr;
-  return new(Support::PlacementNew { node }) InstNode(this, instId, instOptions, opCount, opCapacity);
+  return new(node) InstNode(this, instId, instOptions, opCount, opCapacity);
 }
 
 BaseNode* BaseBuilder::addNode(BaseNode* node) noexcept {
@@ -675,7 +675,7 @@ Error BaseBuilder::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
-  node = new(Support::PlacementNew { node }) InstNode(this, instId, options, opCount, opCapacity);
+  node = new(node) InstNode(this, instId, options, opCount, opCapacity);
   node->setExtraReg(extraReg());
   node->setOp(0, o0);
   node->setOp(1, o1);
@@ -746,7 +746,7 @@ Error BaseBuilder::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
-  node = new(Support::PlacementNew { node }) InstNode(this, instId, options, opCount, opCapacity);
+  node = new(node) InstNode(this, instId, options, opCount, opCapacity);
   node->setExtraReg(extraReg());
   node->setOp(0, o0);
   node->setOp(1, o1);
