@@ -6,6 +6,7 @@ git:
 env:
   global:
     - BUILD_TOOLCHAIN="Unix Makefiles"
+    - MAKEFLAGS="-j2"
 
 dist: xenial
 

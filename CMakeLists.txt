@@ -349,6 +349,7 @@ if (NOT ASMJIT_BUILD_EMBED)
     "${ASMJIT_PRIVATE_CFLAGS_DBG}"
     "${ASMJIT_PRIVATE_CFLAGS_REL}")
   target_include_directories(asmjit BEFORE INTERFACE ${ASMJIT_INCLUDE_DIRS})
+  target_compile_options(asmjit INTERFACE ${ASMJIT_CFLAGS})
 
   # Add AsmJit::AsmJit target (alias to asmjit).
   add_library(AsmJit::AsmJit ALIAS asmjit)
