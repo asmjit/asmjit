@@ -60,11 +60,6 @@ function(asmjit_detect_cflags out)
   set(${out} "${out_array}" PARENT_SCOPE)
 endfunction()
 
-set(ASMJIT_MAKE_DEF "-D")  # Define a preprocessor macro: "${ASMJIT_MAKE_DEF}VAR=1"
-if (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
-  set(ASMJIT_MAKE_DEF "/D")
-endif()
-
 function(asmjit_add_source out base_dir)
   set(src_array)
   foreach(file ${ARGN})
@@ -115,19 +110,30 @@ set(ASMJIT_SANITIZE_FLAGS "")                    # Sanitizer flags used as compi
 # TODO: Backward compatibility.
 set(ASMJIT_INCLUDE_DIR "${ASMJIT_INCLUDE_DIRS}")
 
-if (NOT ASMJIT_BUILD_USE_DEFAULT_FLAGS)
-  if (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
-    list(APPEND ASMJIT_PRIVATE_CFLAGS     /GR-   # [-] Runtime type information.
-                                          /GF)   # [+] Eliminate duplicate strings.
-    list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG /GS)   # [+] Buffer security-check.
-    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL /GS-   # [-] Buffer security-check.
-                                          /Oi    # [+] Generate Intrinsic Functions.
-                                          /GL)   # [+] Whole Program Optimization.
-  endif()
+if (NOT ASMJIT_BUILD_NO_CUSTOM_FLAGS)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
+    list(APPEND ASMJIT_PRIVATE_CFLAGS
+      -MP                      # [+] Multi-Process Compilation.
+      -GR-                     # [-] Runtime type information.
+      -GF                      # [+] Eliminate duplicate strings.
+      -Zc:inline               # [+] Remove unreferenced COMDAT.
+      -Zc:strictStrings        # [+] Strict const qualification of string literals.
+      -Zc:threadSafeInit-      # [-] Thread-safe statics.
+      -W4)                     # [+] Warning level 4.
 
-  if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
-    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -Wall -Wextra)
-    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL -O2 -fmerge-all-constants)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG
+      -GS)                     # [+] Buffer security-check.
+
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL
+      -GS-                     # [-] Buffer security-check.
+      -O2                      # [+] Favor speed over size.
+      -Oi)                     # [+] Generate Intrinsic Functions.
+  elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno -fno-threadsafe-statics)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
+
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL -fmerge-all-constants)
   endif()
 endif()
 
@@ -167,8 +173,8 @@ foreach(build_option ASMJIT_BUILD_X86
                      ASMJIT_DISABLE_LOGGING
                      ASMJIT_DISABLE_INST_API)
   if (${build_option})
-    List(APPEND ASMJIT_CFLAGS         "${ASMJIT_MAKE_DEF}${build_option}")
-    List(APPEND ASMJIT_PRIVATE_CFLAGS "${ASMJIT_MAKE_DEF}${build_option}")
+    List(APPEND ASMJIT_CFLAGS         "-D${build_option}")
+    List(APPEND ASMJIT_PRIVATE_CFLAGS "-D${build_option}")
   endif()
 endforeach()
 
