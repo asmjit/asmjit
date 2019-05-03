@@ -113,8 +113,6 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
 
       cc.setPreservedRegs(kGroupGp  , Support::lsbMask<uint32_t>(8));
       cc.setPreservedRegs(kGroupVec , Support::lsbMask<uint32_t>(8) & ~Support::lsbMask<uint32_t>(n));
-      cc.setPreservedRegs(kGroupMm  , Support::lsbMask<uint32_t>(8));
-      cc.setPreservedRegs(kGroupKReg, Support::lsbMask<uint32_t>(8));
       break;
     }
 
@@ -132,8 +130,6 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
 
       cc.setPreservedRegs(kGroupGp  , Support::lsbMask<uint32_t>(16));
       cc.setPreservedRegs(kGroupVec ,~Support::lsbMask<uint32_t>(n));
-      cc.setPreservedRegs(kGroupMm  , Support::lsbMask<uint32_t>(8));
-      cc.setPreservedRegs(kGroupKReg, Support::lsbMask<uint32_t>(8));
       break;
     }
 
