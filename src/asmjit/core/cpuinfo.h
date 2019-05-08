@@ -9,6 +9,7 @@
 
 #include "../core/arch.h"
 #include "../core/features.h"
+#include "../core/globals.h"
 #include "../core/string.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -29,7 +30,8 @@ public:
 
   inline CpuInfo() noexcept { reset(); }
   inline CpuInfo(const CpuInfo& other) noexcept = default;
-  inline explicit CpuInfo(Globals::NoInit_) noexcept {};
+  inline explicit CpuInfo(Globals::NoInit_) noexcept
+    : _archInfo(Globals::NoInit), _features(Globals::NoInit) {};
 
   // --------------------------------------------------------------------------
   // [Init / Reset]

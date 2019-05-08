@@ -7,6 +7,7 @@
 #ifndef _ASMJIT_CORE_ARCH_H
 #define _ASMJIT_CORE_ARCH_H
 
+#include "../core/globals.h"
 #include "../core/operand.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -81,6 +82,7 @@ public:
   inline ArchInfo() noexcept : _signature(0) {}
   inline ArchInfo(const ArchInfo& other) noexcept : _signature(other._signature) {}
   inline explicit ArchInfo(uint32_t type, uint32_t subType = kSubIdNone) noexcept { init(type, subType); }
+  inline explicit ArchInfo(Globals::NoInit_) noexcept {}
 
   inline static ArchInfo host() noexcept { return ArchInfo(kIdHost, kSubIdHost); }
 

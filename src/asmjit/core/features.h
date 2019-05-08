@@ -7,6 +7,7 @@
 #ifndef _ASMJIT_CORE_FEATURES_H
 #define _ASMJIT_CORE_FEATURES_H
 
+#include "../core/globals.h"
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -33,6 +34,7 @@ public:
 
   inline BaseFeatures() noexcept { reset(); }
   inline BaseFeatures(const BaseFeatures& other) noexcept = default;
+  inline explicit BaseFeatures(Globals::NoInit_) noexcept {}
 
   // --------------------------------------------------------------------------
   // [Reset]
