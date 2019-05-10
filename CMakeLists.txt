@@ -294,6 +294,7 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86emitter.h
   asmjit/x86/x86features.cpp
   asmjit/x86/x86features.h
+  asmjit/x86/x86globals.cpp
   asmjit/x86/x86globals.h
   asmjit/x86/x86internal.cpp
   asmjit/x86/x86internal_p.h
