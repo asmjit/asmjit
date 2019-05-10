@@ -16,87 +16,6 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! \{
 
 // ============================================================================
-// [asmjit::x86::Cond]
-// ============================================================================
-
-namespace Cond {
-  //! Condition code.
-  enum Value : uint32_t {
-    kO                    = 0x00u,       //!<                 OF==1
-    kNO                   = 0x01u,       //!<                 OF==0
-    kB                    = 0x02u,       //!< CF==1                  (unsigned < )
-    kC                    = 0x02u,       //!< CF==1
-    kNAE                  = 0x02u,       //!< CF==1                  (unsigned < )
-    kAE                   = 0x03u,       //!< CF==0                  (unsigned >=)
-    kNB                   = 0x03u,       //!< CF==0                  (unsigned >=)
-    kNC                   = 0x03u,       //!< CF==0
-    kE                    = 0x04u,       //!<         ZF==1          (any_sign ==)
-    kZ                    = 0x04u,       //!<         ZF==1          (any_sign ==)
-    kNE                   = 0x05u,       //!<         ZF==0          (any_sign !=)
-    kNZ                   = 0x05u,       //!<         ZF==0          (any_sign !=)
-    kBE                   = 0x06u,       //!< CF==1 | ZF==1          (unsigned <=)
-    kNA                   = 0x06u,       //!< CF==1 | ZF==1          (unsigned <=)
-    kA                    = 0x07u,       //!< CF==0 & ZF==0          (unsigned > )
-    kNBE                  = 0x07u,       //!< CF==0 & ZF==0          (unsigned > )
-    kS                    = 0x08u,       //!<                 SF==1  (is negative)
-    kNS                   = 0x09u,       //!<                 SF==0  (is positive or zero)
-    kP                    = 0x0Au,       //!< PF==1
-    kPE                   = 0x0Au,       //!< PF==1
-    kPO                   = 0x0Bu,       //!< PF==0
-    kNP                   = 0x0Bu,       //!< PF==0
-    kL                    = 0x0Cu,       //!<                 SF!=OF (signed   < )
-    kNGE                  = 0x0Cu,       //!<                 SF!=OF (signed   < )
-    kGE                   = 0x0Du,       //!<                 SF==OF (signed   >=)
-    kNL                   = 0x0Du,       //!<                 SF==OF (signed   >=)
-    kLE                   = 0x0Eu,       //!<         ZF==1 | SF!=OF (signed   <=)
-    kNG                   = 0x0Eu,       //!<         ZF==1 | SF!=OF (signed   <=)
-    kG                    = 0x0Fu,       //!<         ZF==0 & SF==OF (signed   > )
-    kNLE                  = 0x0Fu,       //!<         ZF==0 & SF==OF (signed   > )
-    kCount                = 0x10u,
-
-    kSign                 = kS,          //!< Sign.
-    kNotSign              = kNS,         //!< Not Sign.
-
-    kOverflow             = kO,          //!< Signed overflow.
-    kNotOverflow          = kNO,         //!< Not signed overflow.
-
-    kEqual                = kE,          //!< Equal      `a == b`.
-    kNotEqual             = kNE,         //!< Not Equal  `a != b`.
-
-    kSignedLT             = kL,          //!< Signed     `a <  b`.
-    kSignedLE             = kLE,         //!< Signed     `a <= b`.
-    kSignedGT             = kG,          //!< Signed     `a >  b`.
-    kSignedGE             = kGE,         //!< Signed     `a >= b`.
-
-    kUnsignedLT           = kB,          //!< Unsigned   `a <  b`.
-    kUnsignedLE           = kBE,         //!< Unsigned   `a <= b`.
-    kUnsignedGT           = kA,          //!< Unsigned   `a >  b`.
-    kUnsignedGE           = kAE,         //!< Unsigned   `a >= b`.
-
-    kZero                 = kZ,
-    kNotZero              = kNZ,
-
-    kNegative             = kS,
-    kPositive             = kNS,
-
-    kParityEven           = kP,
-    kParityOdd            = kPO
-  };
-
-  static constexpr uint8_t reverseTable[kCount] = {
-    kO, kNO, kA , kBE, // O|NO|B |AE
-    kE, kNE, kAE, kB , // E|NE|BE|A
-    kS, kNS, kPE, kPO, // S|NS|PE|PO
-    kG, kLE, kGE, kL   // L|GE|LE|G
-  };
-
-  //! Reverse a condition code (reverses the corresponding operands of a comparison).
-  static constexpr uint32_t reverse(uint32_t cond) noexcept { return reverseTable[cond]; }
-  //! Negate a condition code.
-  static constexpr uint32_t negate(uint32_t cond) noexcept { return cond ^ 1u; }
-}
-
-// ============================================================================
 // [asmjit::x86::Inst]
 // ============================================================================
 
@@ -1617,6 +1536,82 @@ struct Inst : public BaseInst {
       default: return kIdNone;
     }
   }
+};
+
+// ============================================================================
+// [asmjit::x86::Cond]
+// ============================================================================
+
+namespace Cond {
+  //! Condition code.
+  enum Value : uint32_t {
+    kO                    = 0x00u,       //!<                 OF==1
+    kNO                   = 0x01u,       //!<                 OF==0
+    kB                    = 0x02u,       //!< CF==1                  (unsigned < )
+    kC                    = 0x02u,       //!< CF==1
+    kNAE                  = 0x02u,       //!< CF==1                  (unsigned < )
+    kAE                   = 0x03u,       //!< CF==0                  (unsigned >=)
+    kNB                   = 0x03u,       //!< CF==0                  (unsigned >=)
+    kNC                   = 0x03u,       //!< CF==0
+    kE                    = 0x04u,       //!<         ZF==1          (any_sign ==)
+    kZ                    = 0x04u,       //!<         ZF==1          (any_sign ==)
+    kNE                   = 0x05u,       //!<         ZF==0          (any_sign !=)
+    kNZ                   = 0x05u,       //!<         ZF==0          (any_sign !=)
+    kBE                   = 0x06u,       //!< CF==1 | ZF==1          (unsigned <=)
+    kNA                   = 0x06u,       //!< CF==1 | ZF==1          (unsigned <=)
+    kA                    = 0x07u,       //!< CF==0 & ZF==0          (unsigned > )
+    kNBE                  = 0x07u,       //!< CF==0 & ZF==0          (unsigned > )
+    kS                    = 0x08u,       //!<                 SF==1  (is negative)
+    kNS                   = 0x09u,       //!<                 SF==0  (is positive or zero)
+    kP                    = 0x0Au,       //!< PF==1
+    kPE                   = 0x0Au,       //!< PF==1
+    kPO                   = 0x0Bu,       //!< PF==0
+    kNP                   = 0x0Bu,       //!< PF==0
+    kL                    = 0x0Cu,       //!<                 SF!=OF (signed   < )
+    kNGE                  = 0x0Cu,       //!<                 SF!=OF (signed   < )
+    kGE                   = 0x0Du,       //!<                 SF==OF (signed   >=)
+    kNL                   = 0x0Du,       //!<                 SF==OF (signed   >=)
+    kLE                   = 0x0Eu,       //!<         ZF==1 | SF!=OF (signed   <=)
+    kNG                   = 0x0Eu,       //!<         ZF==1 | SF!=OF (signed   <=)
+    kG                    = 0x0Fu,       //!<         ZF==0 & SF==OF (signed   > )
+    kNLE                  = 0x0Fu,       //!<         ZF==0 & SF==OF (signed   > )
+    kCount                = 0x10u,
+
+    kSign                 = kS,          //!< Sign.
+    kNotSign              = kNS,         //!< Not Sign.
+
+    kOverflow             = kO,          //!< Signed overflow.
+    kNotOverflow          = kNO,         //!< Not signed overflow.
+
+    kEqual                = kE,          //!< Equal      `a == b`.
+    kNotEqual             = kNE,         //!< Not Equal  `a != b`.
+
+    kSignedLT             = kL,          //!< Signed     `a <  b`.
+    kSignedLE             = kLE,         //!< Signed     `a <= b`.
+    kSignedGT             = kG,          //!< Signed     `a >  b`.
+    kSignedGE             = kGE,         //!< Signed     `a >= b`.
+
+    kUnsignedLT           = kB,          //!< Unsigned   `a <  b`.
+    kUnsignedLE           = kBE,         //!< Unsigned   `a <= b`.
+    kUnsignedGT           = kA,          //!< Unsigned   `a >  b`.
+    kUnsignedGE           = kAE,         //!< Unsigned   `a >= b`.
+
+    kZero                 = kZ,
+    kNotZero              = kNZ,
+
+    kNegative             = kS,
+    kPositive             = kNS,
+
+    kParityEven           = kP,
+    kParityOdd            = kPO
+  };
+
+  static constexpr uint8_t reverseTable[kCount] = {
+    kO, kNO, kA , kBE, // O|NO|B |AE
+    kE, kNE, kAE, kB , // E|NE|BE|A
+    kS, kNS, kPE, kPO, // S|NS|PE|PO
+    kG, kLE, kGE, kL   // L|GE|LE|G
+  };
 
   #define ASMJIT_INST_FROM_COND(ID) \
     ID##o, ID##no, ID##b , ID##ae,  \
@@ -1628,13 +1623,18 @@ struct Inst : public BaseInst {
   static constexpr uint16_t cmovccTable[] = { ASMJIT_INST_FROM_COND(Inst::kIdCmov) };
   #undef ASMJIT_INST_FROM_COND
 
+  //! Reverse a condition code (reverses the corresponding operands of a comparison).
+  static constexpr uint32_t reverse(uint32_t cond) noexcept { return reverseTable[cond]; }
+  //! Negate a condition code.
+  static constexpr uint32_t negate(uint32_t cond) noexcept { return cond ^ 1u; }
+
   //! Translate a condition code `cond` to a `jcc` instruction id.
-  static constexpr uint32_t jccFromCond(uint32_t cond) noexcept { return jccTable[cond]; }
+  static constexpr uint32_t toJcc(uint32_t cond) noexcept { return jccTable[cond]; }
   //! Translate a condition code `cond` to a `setcc` instruction id.
-  static constexpr uint32_t setccFromCond(uint32_t cond) noexcept { return setccTable[cond]; }
+  static constexpr uint32_t toSetcc(uint32_t cond) noexcept { return setccTable[cond]; }
   //! Translate a condition code `cond` to a `cmovcc` instruction id.
-  static constexpr uint32_t cmovccFromCond(uint32_t cond) noexcept { return cmovccTable[cond]; }
-};
+  static constexpr uint32_t toCmovcc(uint32_t cond) noexcept { return cmovccTable[cond]; }
+}
 
 // ============================================================================
 // [asmjit::x86::FpuWord]
