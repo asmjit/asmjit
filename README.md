@@ -3,15 +3,18 @@ AsmJit
 
 Complete x86/x64 JIT and Remote Assembler for C++.
 
+  * [Home Page (asmjit.com)](https://asmjit.com)
   * [Official Repository (asmjit/asmjit)](https://github.com/asmjit/asmjit)
-  * [Official Blog (asmbits)](https://asmbits.blogspot.com/ncr)
   * [Official Chat (gitter)](https://gitter.im/asmjit/asmjit)
-  * [Permissive ZLIB license](./LICENSE.md)
+  * [Blog (asmbits)](https://asmbits.blogspot.com/ncr)
+  * [Permissive Zlib license](./LICENSE.md)
 
 Important
 ---------
 
-At the moment the most work related to asmjit happens in next-wip branch, which should be now used in case that you use either Assembler or Builder tools, however, it's unstable regarding asmjit's Compiler. The current master branch is considered stable, but is frozen until next-wip branch is merged. Also note that next-wip branch is not compatible with master - it moves all classes with X86 prefix into x86 namespaces and contains a lot of minor breaking changes - the transition is straightforward and if you use gitter you can get help instantly in case you face something more complicated.
+This is an old-stable branch that is only provided for users that haven't updated to new AsmmJit. Please do not use this branch for new projects and if you still rely on it consider updating.
+
+This branch will be provided until the end of 2019, after that the branch will be deleted and this version of AsmJit won't be maintained anymore.
 
 Introduction
 ------------
