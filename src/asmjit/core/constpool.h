@@ -165,7 +165,7 @@ public:
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
 
       node = new(node) Node(offset, shared);
-      ::memcpy(node->data(), data, size);
+      memcpy(node->data(), data, size);
       return node;
     }
 

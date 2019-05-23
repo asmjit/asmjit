@@ -74,7 +74,7 @@ struct FuncSignature {
     _args = args;
   }
 
-  inline void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -340,7 +340,7 @@ public:
 
   //! Initializes this `FuncDetail` to the given signature.
   ASMJIT_API Error init(const FuncSignature& sign);
-  inline void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
   // --------------------------------------------------------------------------
   // [Accessors - Calling Convention]
@@ -525,7 +525,7 @@ public:
   ASMJIT_API Error finalize() noexcept;
 
   inline void reset() noexcept {
-    ::memset(this, 0, sizeof(FuncFrame));
+    memset(this, 0, sizeof(FuncFrame));
     _spRegId = BaseReg::kIdBad;
     _saRegId = BaseReg::kIdBad;
     _daOffset = kTagInvalidOffset;
@@ -865,7 +865,7 @@ public:
   inline explicit FuncArgsAssignment(const FuncDetail* fd = nullptr) noexcept { reset(fd); }
 
   inline FuncArgsAssignment(const FuncArgsAssignment& other) noexcept {
-    ::memcpy(this, &other, sizeof(*this));
+    memcpy(this, &other, sizeof(*this));
   }
 
   // --------------------------------------------------------------------------
@@ -875,8 +875,8 @@ public:
   inline void reset(const FuncDetail* fd = nullptr) noexcept {
     _funcDetail = fd;
     _saRegId = uint8_t(BaseReg::kIdBad);
-    ::memset(_reserved, 0, sizeof(_reserved));
-    ::memset(_args, 0, sizeof(_args));
+    memset(_reserved, 0, sizeof(_reserved));
+    memset(_args, 0, sizeof(_args));
   }
 
   // --------------------------------------------------------------------------

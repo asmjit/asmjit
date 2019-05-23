@@ -65,7 +65,7 @@ struct RAStrategy {
   };
 
   inline RAStrategy() noexcept { reset(); }
-  inline void reset() noexcept { ::memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
   inline uint32_t type() const noexcept { return _type; }
   inline void setType(uint32_t type) noexcept { _type = uint8_t(type); }
@@ -92,7 +92,7 @@ struct RAArchTraits {
   // --------------------------------------------------------------------------
 
   inline RAArchTraits() noexcept { reset(); }
-  inline void reset() noexcept { ::memset(_flags, 0, sizeof(_flags)); }
+  inline void reset() noexcept { memset(_flags, 0, sizeof(_flags)); }
 
   // --------------------------------------------------------------------------
   // [Accessors]
@@ -721,33 +721,40 @@ struct RATiedReg {
   //! the register allocator will first allocate USE registers, and then assign
   //! OUT registers independently of USE registers.
   enum Flags : uint32_t {
-    kRead         = OpInfo::kRead,       //!< Register is read.
-    kWrite        = OpInfo::kWrite,      //!< Register is written.
-    kRW           = OpInfo::kRW,         //!< Register both read and written.
-    kUse          = OpInfo::kUse,        //!< Register has a USE slot (Read/ReadWrite).
-    kOut          = OpInfo::kOut,        //!< Register has an OUT slot (WriteOnly).
+    kRead         = OpRWInfo::kRead,     //!< Register is read.
+    kWrite        = OpRWInfo::kWrite,    //!< Register is written.
+    kRW           = OpRWInfo::kRW,       //!< Register both read and written.
 
-    kUseFixed     = 0x00000010u,         //!< Register has a fixed USE slot.
-    kOutFixed     = 0x00000020u,         //!< Register has a fixed OUT slot.
-    kUseDone      = 0x00000040u,         //!< Register USE slot has been allocated.
-    kOutDone      = 0x00000080u,         //!< Register OUT slot has been allocated.
+    kUse          = 0x00000100u,         //!< Register has a USE slot (read/rw).
+    kOut          = 0x00000200u,         //!< Register has an OUT slot (write-only).
+    kUseRM        = 0x00000400u,         //!< Register in USE slot can be patched to memory.
+    kOutRM        = 0x00000800u,         //!< Register in OUT slot can be patched to memory.
 
-    kDuplicate    = 0x00000100u,         //!< Register must be duplicated (function call only).
-    kLast         = 0x00000400u,         //!< Last occurrence of this VirtReg in basic block.
-    kKill         = 0x00000800u,         //!< Kill this VirtReg after use.
+    kUseFixed     = 0x00001000u,         //!< Register has a fixed USE slot.
+    kOutFixed     = 0x00002000u,         //!< Register has a fixed OUT slot.
+    kUseDone      = 0x00004000u,         //!< Register USE slot has been allocated.
+    kOutDone      = 0x00008000u,         //!< Register OUT slot has been allocated.
+
+    kDuplicate    = 0x00010000u,         //!< Register must be duplicated (function call only).
+    kLast         = 0x00020000u,         //!< Last occurrence of this VirtReg in basic block.
+    kKill         = 0x00040000u,         //!< Kill this VirtReg after use.
 
     // Architecture specific flags are used during RATiedReg building to ensure
     // that architecture-specific constraints are handled properly. These flags
     // are not really needed after RATiedReg[] is built and copied to `RAInst`.
 
-    kX86Gpb       = 0x00001000u          //!< This tied references GPB-LO or GPB-HI.
+    kX86Gpb       = 0x01000000u          //!< This RATiedReg references GPB-LO or GPB-HI.
   };
+
+  static_assert(kRead  == 0x1, "RATiedReg::kRead flag must be 0x1");
+  static_assert(kWrite == 0x2, "RATiedReg::kWrite flag must be 0x2");
+  static_assert(kRW    == 0x3, "RATiedReg::kRW combination must be 0x3");
 
   // --------------------------------------------------------------------------
   // [Init / Reset]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE void init(uint32_t workId, uint32_t flags, uint32_t allocableRegs, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask) noexcept {
+  ASMJIT_INLINE void init(uint32_t workId, uint32_t flags, uint32_t allocableRegs, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask, uint32_t rmSize = 0) noexcept {
     _workId = workId;
     _flags = flags;
     _allocableRegs = allocableRegs;
@@ -756,7 +763,7 @@ struct RATiedReg {
     _refCount = 1;
     _useId = uint8_t(useId);
     _outId = uint8_t(outId);
-    _reserved = 0;
+    _rmSize = uint8_t(rmSize);
   }
 
   // --------------------------------------------------------------------------
@@ -789,6 +796,13 @@ struct RATiedReg {
   inline bool isUse() const noexcept { return hasFlag(kUse); }
   //! Gets whether the tied register has out operand (Write).
   inline bool isOut() const noexcept { return hasFlag(kOut); }
+
+  //! Gets whether the USE slot can be patched to memory operand.
+  inline bool hasUseRM() const noexcept { return hasFlag(kUseRM); }
+  //! Gets whether the OUT slot can be patched to memory operand.
+  inline bool hasOutRM() const noexcept { return hasFlag(kOutRM); }
+
+  inline uint32_t rmSize() const noexcept { return _rmSize; }
 
   inline void makeReadOnly() noexcept {
     _flags = (_flags & ~(kOut | kWrite)) | kUse;
@@ -871,8 +885,8 @@ struct RATiedReg {
       uint8_t _useId;
       //! Physical register for out operation (WriteOnly).
       uint8_t _outId;
-      //! Index of OUT operand or 0xFF if none.
-      uint8_t _reserved;
+      //! Reserved for future use (padding).
+      uint8_t _rmSize;
     };
     //! Packed data.
     uint32_t _packed;
@@ -919,6 +933,7 @@ public:
       _flags(kFlagDirtyStats),
       _allocatedMask(0),
       _clobberSurvivalMask(0),
+      _regByteMask(0),
       _argIndex(kNoArgIndex),
       _homeRegId(BaseReg::kIdBad),
       _hintRegId(BaseReg::kIdBad),
@@ -989,6 +1004,9 @@ public:
   inline uint32_t clobberSurvivalMask() const noexcept { return _clobberSurvivalMask; }
   inline void addClobberSurvivalMask(uint32_t mask) noexcept { _clobberSurvivalMask |= mask; }
 
+  inline uint64_t regByteMask() const noexcept { return _regByteMask; }
+  inline void setRegByteMask(uint64_t mask) noexcept { _regByteMask = mask; }
+
   // --------------------------------------------------------------------------
   // [Members]
   // --------------------------------------------------------------------------
@@ -1017,6 +1035,9 @@ public:
   //! This mask should be updated by `RAPass::buildLiveness()`, because it's
   //! global and should be updated after unreachable code has been removed.
   uint32_t _clobberSurvivalMask;
+
+  //! A byte-mask where each bit represents one valid byte of the register.
+  uint64_t _regByteMask;
 
   //! Argument index (or `kNoArgIndex` if none).
   uint8_t _argIndex;

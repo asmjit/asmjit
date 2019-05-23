@@ -6,7 +6,7 @@ cmake_policy(SET CMP0063 NEW) # Honor visibility properties.
 include(CheckCXXCompilerFlag)
 
 # Don't create a project if it was already created by another CMakeLists.txt.
-# This allows one library to embed another library without a project collision.
+# This allows one library to embed another library without making a collision.
 if (NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
   project(asmjit CXX)
 endif()
@@ -99,8 +99,8 @@ endfunction()
 # =============================================================================
 
 set(ASMJIT_INCLUDE_DIRS "${ASMJIT_DIR}/src")     # Include directory is the same as source dir.
-set(ASMJIT_DEPS "")                              # Blend2D dependencies (libraries) for the linker.
-set(ASMJIT_LIBS "")                              # Dependencies of libs/apps that want to use Blend2D.
+set(ASMJIT_DEPS "")                              # AsmJit dependencies (libraries) for the linker.
+set(ASMJIT_LIBS "")                              # Dependencies of libs/apps that want to use AsmJit.
 set(ASMJIT_CFLAGS "")                            # Public compiler flags.
 set(ASMJIT_PRIVATE_CFLAGS "")                    # Private compiler flags independent of build type.
 set(ASMJIT_PRIVATE_CFLAGS_DBG "")                # Private compiler flags used by debug builds.
@@ -127,7 +127,7 @@ if (NOT ASMJIT_BUILD_NO_CUSTOM_FLAGS)
     list(APPEND ASMJIT_PRIVATE_CFLAGS_REL
       -GS-                     # [-] Buffer security-check.
       -O2                      # [+] Favor speed over size.
-      -Oi)                     # [+] Generate Intrinsic Functions.
+      -Oi)                     # [+] Generate intrinsic functions.
   elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
     list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra)
     list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno -fno-threadsafe-statics)

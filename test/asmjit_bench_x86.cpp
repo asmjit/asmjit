@@ -135,6 +135,9 @@ static void benchX86(uint32_t archId) noexcept {
 #endif
 
 int main(int argc, char* argv[]) {
+  ASMJIT_UNUSED(argc);
+  ASMJIT_UNUSED(argv);
+
   #ifdef ASMJIT_BUILD_X86
   benchX86(ArchInfo::kIdX86);
   benchX86(ArchInfo::kIdX64);

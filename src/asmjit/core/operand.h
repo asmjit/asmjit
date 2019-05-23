@@ -148,7 +148,7 @@ struct Operand_ {
   }
 
   //! Initializes the operand from `other` (used by operator overloads).
-  inline void copyFrom(const Operand_& other) noexcept { ::memcpy(this, &other, sizeof(Operand_)); }
+  inline void copyFrom(const Operand_& other) noexcept { memcpy(this, &other, sizeof(Operand_)); }
 
   //! \endcond
 
@@ -162,7 +162,7 @@ struct Operand_ {
   //!
   //! In other words, reset operands have all members set to zero. Reset operand
   //! must match the Operand state right after its construction. Alternatively,
-  //! if you have an array of operands, you can simply use `::memset()`.
+  //! if you have an array of operands, you can simply use `memset()`.
   //!
   //! ```
   //! using namespace asmjit;
@@ -177,7 +177,7 @@ struct Operand_ {
   //! b.reset();
   //! assert(a == b);
   //!
-  //! ::memset(&b, 0, sizeof(Operand));
+  //! memset(&b, 0, sizeof(Operand));
   //! assert(a == b);
   //! ```
   inline void reset() noexcept {

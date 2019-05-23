@@ -33,9 +33,10 @@ enum EncodingId : uint32_t {
   kEncodingX86Op,                        //!< X86 [OP].
   kEncodingX86Op_O,                      //!< X86 [OP] (opcode and /0-7).
   kEncodingX86Op_O_I8,                   //!< X86 [OP] (opcode and /0-7 + 8-bit immediate).
+  kEncodingX86Op_xAddr,                  //!< X86 [OP] (implicit address in the first register operand).
   kEncodingX86Op_xAX,                    //!< X86 [OP] (implicit or explicit '?AX' form).
   kEncodingX86Op_xDX_xAX,                //!< X86 [OP] (implicit or explicit '?DX, ?AX' form).
-  kEncodingX86Op_ZAX,                    //!< X86 [OP] (implicit or explicit '[EAX|RAX]' form).
+  kEncodingX86Op_MemZAX,                 //!< X86 [OP] (implicit or explicit '[EAX|RAX]' form).
   kEncodingX86I_xAX,                     //!< X86 [I] (implicit or explicit '?AX' form).
   kEncodingX86M,                         //!< X86 [M] (handles 2|4|8-bytes size).
   kEncodingX86M_NoSize,                  //!< X86 [M] (doesn't handle any size).
@@ -43,9 +44,10 @@ enum EncodingId : uint32_t {
   kEncodingX86M_GPB_MulDiv,              //!< X86 [M] (like GPB, handles implicit|explicit MUL|DIV|IDIV).
   kEncodingX86M_Only,                    //!< X86 [M] (restricted to memory operand of any size).
   kEncodingX86M_Nop,                     //!< X86 [M] (special case of NOP instruction).
+  kEncodingX86R_Native,                  //!< X86 [R] (register must be either 32-bit or 64-bit depending on arch).
   kEncodingX86Rm,                        //!< X86 [RM] (doesn't handle single-byte size).
   kEncodingX86Rm_Raw66H,                 //!< X86 [RM] (used by LZCNT, POPCNT, and TZCNT).
-  kEncodingX86Rm_NoRexW,                 //!< X86 [RM] (doesn't add REX.W prefix if 64-bit reg is used).
+  kEncodingX86Rm_NoSize,                 //!< X86 [RM] (doesn't add REX.W prefix if 64-bit reg is used).
   kEncodingX86Mr,                        //!< X86 [MR] (doesn't handle single-byte size).
   kEncodingX86Mr_NoSize,                 //!< X86 [MR] (doesn't handle any size).
   kEncodingX86Arith,                     //!< X86 adc, add, and, cmp, or, sbb, sub, xor.
@@ -68,6 +70,8 @@ enum EncodingId : uint32_t {
   kEncodingX86Lea,                       //!< X86 lea.
   kEncodingX86Mov,                       //!< X86 mov (all possible cases).
   kEncodingX86MovsxMovzx,                //!< X86 movsx, movzx.
+  kEncodingX86MovntiMovdiri,             //!< X86 movnti/movdiri.
+  kEncodingX86Movdir64b,                 //!< X86 movdir64b.
   kEncodingX86Out,                       //!< X86 out.
   kEncodingX86Outs,                      //!< X86 out[b|q|d].
   kEncodingX86Push,                      //!< X86 push.
@@ -104,7 +108,6 @@ enum EncodingId : uint32_t {
   kEncodingExtPextrw,                    //!< EXT pextrw.
   kEncodingExtExtract,                   //!< EXT pextrb, pextrd, pextrq, extractps.
   kEncodingExtMov,                       //!< EXT mov?? - #1:[MM|XMM, MM|XMM|Mem] #2:[MM|XMM|Mem, MM|XMM].
-  kEncodingExtMovnti,                    //!< EXT movnti.
   kEncodingExtMovbe,                     //!< EXT movbe.
   kEncodingExtMovd,                      //!< EXT movd.
   kEncodingExtMovq,                      //!< EXT movq.
@@ -113,6 +116,7 @@ enum EncodingId : uint32_t {
   kEncodingExt3dNow,                     //!< EXT [RMI] (3DNOW specific).
   kEncodingVexOp,                        //!< VEX [OP].
   kEncodingVexKmov,                      //!< VEX [RM|MR] (used by kmov[b|w|d|q]).
+  kEncodingVexR_Wx,                      //!< VEX|EVEX [R] (propagatex VEX.W if GPQ used).
   kEncodingVexM,                         //!< VEX|EVEX [M].
   kEncodingVexM_VM,                      //!< VEX|EVEX [M] (propagates VEX|EVEX.L, VSIB support).
   kEncodingVexMr_Lx,                     //!< VEX|EVEX [MR] (propagates VEX|EVEX.L if YMM used).
@@ -156,6 +160,7 @@ enum EncodingId : uint32_t {
   kEncodingVexVm_Wx,                     //!< VEX|EVEX [VM] (propagates VEX|EVEX.W if GPQ used).
   kEncodingVexVmi,                       //!< VEX|EVEX [VMI].
   kEncodingVexVmi_Lx,                    //!< VEX|EVEX [VMI] (propagates VEX|EVEX.L if YMM used).
+  kEncodingVexVmi4_Wx,                   //!< VEX|EVEX [VMI] (propagates VEX|EVEX.W if GPQ used, DWORD Immediate).
   kEncodingVexEvexVmi_Lx,                //!< VEX|EVEX [VMI] (special, used by vpsrldq and vpslldq)
   kEncodingVexRvrmRvmr,                  //!< VEX|EVEX [RVRM|RVMR].
   kEncodingVexRvrmRvmr_Lx,               //!< VEX|EVEX [RVRM|RVMR] (propagates VEX|EVEX.L if YMM used).
@@ -202,7 +207,7 @@ namespace InstInternal {
 
 #ifndef ASMJIT_DISABLE_INST_API
 Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
-Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept;
+Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept;
 Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;
 #endif
 

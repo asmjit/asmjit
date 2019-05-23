@@ -1197,14 +1197,14 @@ public:
 // [X86Test_AllocGpbLo]
 // ============================================================================
 
-class X86Test_AllocGpbLo : public X86Test {
+class X86Test_AllocGpbLo1 : public X86Test {
 public:
-  X86Test_AllocGpbLo() : X86Test("AllocGpbLo") {}
+  X86Test_AllocGpbLo1() : X86Test("AllocGpbLo1") {}
 
   enum { kCount = 32 };
 
   static void add(X86TestApp& app) {
-    app.add(new X86Test_AllocGpbLo());
+    app.add(new X86Test_AllocGpbLo1());
   }
 
   virtual void compile(x86::Compiler& cc) {
@@ -1275,6 +1275,42 @@ public:
       buf[i] = 1;
     }
     resultRet = func(buf);
+
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_AllocGpbLo2]
+// ============================================================================
+
+class X86Test_AllocGpbLo2 : public X86Test {
+public:
+  X86Test_AllocGpbLo2() : X86Test("AllocGpbLo2") {}
+
+  static void add(X86TestApp& app) {
+    app.add(new X86Test_AllocGpbLo2());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<uint32_t, uint32_t>(CallConv::kIdHost));
+
+    x86::Gp v = cc.newUInt32("v");
+    cc.setArg(0, v);
+    cc.mov(v.r8(), 0xFF);
+    cc.ret(v);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef uint32_t (*Func)(uint32_t);
+    Func func = ptr_as_func<Func>(_func);
+
+    uint32_t resultRet = func(0x12345678u);
+    uint32_t expectRet = 0x123456FFu;
 
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
@@ -2220,8 +2256,8 @@ public:
     uint32_t* dstBuffer = (uint32_t*)Support::alignUp<intptr_t>((intptr_t)_dstBuffer, 16);
     uint32_t* srcBuffer = (uint32_t*)Support::alignUp<intptr_t>((intptr_t)_srcBuffer, 16);
 
-    ::memcpy(dstBuffer, dstConstData, sizeof(dstConstData));
-    ::memcpy(srcBuffer, srcConstData, sizeof(srcConstData));
+    memcpy(dstBuffer, dstConstData, sizeof(dstConstData));
+    memcpy(srcBuffer, srcConstData, sizeof(srcConstData));
 
     uint32_t i;
     uint32_t expBuffer[kCount];
@@ -3838,7 +3874,8 @@ int main(int argc, char* argv[]) {
   app.addT<X86Test_AllocIdiv1>();
   app.addT<X86Test_AllocSetz>();
   app.addT<X86Test_AllocShlRor>();
-  app.addT<X86Test_AllocGpbLo>();
+  app.addT<X86Test_AllocGpbLo1>();
+  app.addT<X86Test_AllocGpbLo2>();
   app.addT<X86Test_AllocRepMovsb>();
   app.addT<X86Test_AllocIfElse1>();
   app.addT<X86Test_AllocIfElse2>();

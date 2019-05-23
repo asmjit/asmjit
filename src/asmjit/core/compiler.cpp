@@ -137,7 +137,7 @@ FuncNode* BaseCompiler::newFunc(const FuncSignature& sign) noexcept {
       return nullptr;
     }
 
-    ::memset(func->_args, 0, func->argCount() * sizeof(VirtReg*));
+    memset(func->_args, 0, func->argCount() * sizeof(VirtReg*));
   }
 
   return func;
@@ -244,7 +244,7 @@ FuncCallNode* BaseCompiler::newCall(uint32_t instId, const Operand_& o0, const F
     return nullptr;
   }
 
-  ::memset(node->_args, 0, nArgs * sizeof(Operand));
+  memset(node->_args, 0, nArgs * sizeof(Operand));
   return node;
 }
 

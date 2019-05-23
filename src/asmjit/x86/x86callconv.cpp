@@ -110,6 +110,7 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
       cc.setPassedOrder(kGroupGp, kZax, kZdx, kZcx, kZsi, kZdi);
       cc.setPassedOrder(kGroupMm, 0, 1, 2, 3, 4, 5, 6, 7);
       cc.setPassedOrder(kGroupVec, 0, 1, 2, 3, 4, 5, 6, 7);
+      cc.setPassedOrder(kGroupKReg, 0, 1, 2, 3, 4, 5, 6, 7);
 
       cc.setPreservedRegs(kGroupGp  , Support::lsbMask<uint32_t>(8));
       cc.setPreservedRegs(kGroupVec , Support::lsbMask<uint32_t>(8) & ~Support::lsbMask<uint32_t>(n));
@@ -127,6 +128,7 @@ ASMJIT_FAVOR_SIZE Error CallConvInternal::init(CallConv& cc, uint32_t ccId) noex
       cc.setPassedOrder(kGroupGp, kZax, kZdx, kZcx, kZsi, kZdi);
       cc.setPassedOrder(kGroupMm, 0, 1, 2, 3, 4, 5, 6, 7);
       cc.setPassedOrder(kGroupVec, 0, 1, 2, 3, 4, 5, 6, 7);
+      cc.setPassedOrder(kGroupKReg, 0, 1, 2, 3, 4, 5, 6, 7);
 
       cc.setPreservedRegs(kGroupGp  , Support::lsbMask<uint32_t>(16));
       cc.setPreservedRegs(kGroupVec ,~Support::lsbMask<uint32_t>(n));

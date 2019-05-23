@@ -37,6 +37,7 @@ public:
     kAVX2,                     //!< CPU has AVX2             (advanced vector extensions 2).
     kAVX512_4FMAPS,            //!< CPU has AVX512_FMAPS     (FMA packed single).
     kAVX512_4VNNIW,            //!< CPU has AVX512_VNNIW     (vector NN instructions word variable precision).
+    kAVX512_BF16,              //!< CPU has AVX512_BF16      (BFLOAT16 support instruction).
     kAVX512_BITALG,            //!< CPU has AVX512_BITALG    (VPOPCNT[B|W], VPSHUFBITQMB).
     kAVX512_BW,                //!< CPU has AVX512_BW        (packed BYTE|WORD).
     kAVX512_CDI,               //!< CPU has AVX512_CDI       (conflict detection).
@@ -48,17 +49,19 @@ public:
     kAVX512_VBMI,              //!< CPU has AVX512_VBMI      (vector byte manipulation).
     kAVX512_VBMI2,             //!< CPU has AVX512_VBMI2     (vector byte manipulation 2).
     kAVX512_VL,                //!< CPU has AVX512_VL        (vector length extensions).
-    kAVX512_VNNI,              //!< CPU has AVX512_VNNI.
+    kAVX512_VNNI,              //!< CPU has AVX512_VNNI.     (vector neural network instructions).
     kAVX512_VPOPCNTDQ,         //!< CPU has AVX512_VPOPCNTDQ (VPOPCNT[D|Q] instructions).
     kBMI,                      //!< CPU has BMI              (bit manipulation instructions #1).
     kBMI2,                     //!< CPU has BMI2             (bit manipulation instructions #2).
-    kCLFLUSH,                  //!< CPU has CLFUSH.
-    kCLFLUSHOPT,               //!< CPU has CLFUSHOPT.
+    kCLDEMOTE,                 //!< CPU has CLDEMOTE         (cache line demote).
+    kCLFLUSH,                  //!< CPU has CLFUSH           (Cache Line flush).
+    kCLFLUSHOPT,               //!< CPU has CLFUSHOPT        (Cache Line flush - optimized).
     kCLWB,                     //!< CPU has CLWB.
     kCLZERO,                   //!< CPU has CLZERO.
     kCMOV,                     //!< CPU has CMOV             (CMOV and FCMOV instructions).
     kCMPXCHG16B,               //!< CPU has CMPXCHG16B       (compare-exchange 16 bytes) [X86_64].
     kCMPXCHG8B,                //!< CPU has CMPXCHG8B        (compare-exchange 8 bytes).
+    kENCLV,                    //!< CPU has ENCLV.
     kERMS,                     //!< CPU has ERMS             (enhanced REP MOVSB/STOSB).
     kF16C,                     //!< CPU has F16C.
     kFMA,                      //!< CPU has FMA              (fused-multiply-add 3 operand form).
@@ -79,15 +82,19 @@ public:
     kMONITOR,                  //!< CPU has MONITOR          (MONITOR/MWAIT instructions).
     kMONITORX,                 //!< CPU has MONITORX         (MONITORX/MWAITX instructions).
     kMOVBE,                    //!< CPU has MOVBE            (move with byte-order swap).
+    kMOVDIR64B,                //!< CPU has MOVDIR64B        (move 64 bytes as direct store).
+    kMOVDIRI,                  //!< CPU has MOVDIRI          (move dword/qword as direct store).
     kMPX,                      //!< CPU has MPX              (memory protection extensions).
     kMSR,                      //!< CPU has MSR              (RDMSR/WRMSR instructions).
     kMSSE,                     //!< CPU has MSSE             (misaligned SSE support).
     kOSXSAVE,                  //!< CPU has OSXSAVE          (XSAVE enabled by OS).
     kPCLMULQDQ,                //!< CPU has PCLMULQDQ        (packed carry-less multiplication).
-    kPCOMMIT,                  //!< CPU has PCOMMIT.
+    kPCOMMIT,                  //!< CPU has PCOMMIT          (PCOMMIT instruction).
+    kPCONFIG,                  //!< CPU has PCONFIG          (PCONFIG instruction).
     kPOPCNT,                   //!< CPU has POPCNT           (POPCNT instruction).
     kPREFETCHW,                //!< CPU has PREFETCHW.
     kPREFETCHWT1,              //!< CPU has PREFETCHWT1.
+    kRDPID,                    //!< CPU has RDPID.
     kRDRAND,                   //!< CPU has RDRAND.
     kRDSEED,                   //!< CPU has RDSEED.
     kRDTSC,                    //!< CPU has RDTSC.
@@ -111,6 +118,7 @@ public:
     kVAES,                     //!< CPU has VAES             (vector AES 256|512 bit support).
     kVMX,                      //!< CPU has VMX              (virtualization) [INTEL].
     kVPCLMULQDQ,               //!< CPU has VPCLMULQDQ       (vector PCLMULQDQ 256|512-bit support).
+    kWBNOINVD,                 //!< CPU has WBNOINVD.
     kXOP,                      //!< CPU has XOP              (XOP instructions) [AMD].
     kXSAVE,                    //!< CPU has XSAVE.
     kXSAVEC,                   //!< CPU has XSAVEC.
@@ -148,6 +156,7 @@ public:
   ASMJIT_X86_FEATURE(AVX2)
   ASMJIT_X86_FEATURE(AVX512_4FMAPS)
   ASMJIT_X86_FEATURE(AVX512_4VNNIW)
+  ASMJIT_X86_FEATURE(AVX512_BF16)
   ASMJIT_X86_FEATURE(AVX512_BITALG)
   ASMJIT_X86_FEATURE(AVX512_BW)
   ASMJIT_X86_FEATURE(AVX512_CDI)
@@ -163,6 +172,7 @@ public:
   ASMJIT_X86_FEATURE(AVX512_VPOPCNTDQ)
   ASMJIT_X86_FEATURE(BMI)
   ASMJIT_X86_FEATURE(BMI2)
+  ASMJIT_X86_FEATURE(CLDEMOTE)
   ASMJIT_X86_FEATURE(CLFLUSH)
   ASMJIT_X86_FEATURE(CLFLUSHOPT)
   ASMJIT_X86_FEATURE(CLWB)
@@ -170,6 +180,7 @@ public:
   ASMJIT_X86_FEATURE(CMOV)
   ASMJIT_X86_FEATURE(CMPXCHG16B)
   ASMJIT_X86_FEATURE(CMPXCHG8B)
+  ASMJIT_X86_FEATURE(ENCLV)
   ASMJIT_X86_FEATURE(ERMS)
   ASMJIT_X86_FEATURE(F16C)
   ASMJIT_X86_FEATURE(FMA)
@@ -190,15 +201,19 @@ public:
   ASMJIT_X86_FEATURE(MONITOR)
   ASMJIT_X86_FEATURE(MONITORX)
   ASMJIT_X86_FEATURE(MOVBE)
+  ASMJIT_X86_FEATURE(MOVDIR64B)
+  ASMJIT_X86_FEATURE(MOVDIRI)
   ASMJIT_X86_FEATURE(MPX)
   ASMJIT_X86_FEATURE(MSR)
   ASMJIT_X86_FEATURE(MSSE)
   ASMJIT_X86_FEATURE(OSXSAVE)
   ASMJIT_X86_FEATURE(PCLMULQDQ)
   ASMJIT_X86_FEATURE(PCOMMIT)
+  ASMJIT_X86_FEATURE(PCONFIG)
   ASMJIT_X86_FEATURE(POPCNT)
   ASMJIT_X86_FEATURE(PREFETCHW)
   ASMJIT_X86_FEATURE(PREFETCHWT1)
+  ASMJIT_X86_FEATURE(RDPID)
   ASMJIT_X86_FEATURE(RDRAND)
   ASMJIT_X86_FEATURE(RDSEED)
   ASMJIT_X86_FEATURE(RDTSC)
@@ -226,6 +241,7 @@ public:
   ASMJIT_X86_FEATURE(VAES)
   ASMJIT_X86_FEATURE(VMX)
   ASMJIT_X86_FEATURE(VPCLMULQDQ)
+  ASMJIT_X86_FEATURE(WBNOINVD)
   ASMJIT_X86_FEATURE(XOP)
 
   #undef ASMJIT_X86_FEATURE

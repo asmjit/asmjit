@@ -30,7 +30,7 @@ struct ZoneStringBase {
       size = ::strlen(str);
 
     if (size <= maxEmbeddedSize) {
-      ::memcpy(_embedded, str, size);
+      memcpy(_embedded, str, size);
       _embedded[size] = '\0';
     }
     else {

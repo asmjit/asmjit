@@ -305,7 +305,7 @@ static ASMJIT_INLINE bool x86IsJmpOrCall(uint32_t instId) noexcept {
 }
 
 static ASMJIT_INLINE bool x86IsImplicitMem(const Operand_& op, uint32_t base) noexcept {
-  return op.isMem() && op.as<Mem>().baseId() == base;
+  return op.isMem() && op.as<Mem>().baseId() == base && !op.as<Mem>().hasOffset();
 }
 
 //! Combine `regId` and `vvvvvId` into a single value (used by AVX and AVX-512).
@@ -383,6 +383,30 @@ public:
   template<typename CondT>
   ASMJIT_INLINE void emitAddressOverride(CondT condition) noexcept {
     emit8If(0x67, condition);
+  }
+
+  ASMJIT_INLINE void emitImmByteOrDWord(uint64_t immValue, FastUInt8 immSize) noexcept {
+    if (!immSize)
+      return;
+
+    ASMJIT_ASSERT(immSize == 1 || immSize == 4);
+
+    #if ASMJIT_ARCH_BITS >= 64
+    uint64_t imm = uint64_t(immValue);
+    #else
+    uint32_t imm = uint32_t(immValue & 0xFFFFFFFFu);
+    #endif
+
+    // Many instructions just use a single byte immediate, so make it fast.
+    emit8(imm & 0xFFu);
+    if (immSize == 1) return;
+
+    imm >>= 8;
+    emit8(imm & 0xFFu);
+    imm >>= 8;
+    emit8(imm & 0xFFu);
+    imm >>= 8;
+    emit8(imm & 0xFFu);
   }
 
   ASMJIT_INLINE void emitImmediate(uint64_t immValue, FastUInt8 immSize) noexcept {
@@ -606,6 +630,14 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
       rbReg = 0;
       goto EmitX86R;
 
+    case InstDB::kEncodingX86Op_xAddr:
+      if (ASMJIT_UNLIKELY(!o0.isReg()))
+        goto InvalidInstruction;
+
+      rmInfo = x86MemInfo[o0.as<Reg>().type()];
+      writer.emitAddressOverride((rmInfo & _addressOverrideMask()) != 0);
+      goto EmitX86Op;
+
     case InstDB::kEncodingX86Op_xAX:
       if (isign3 == 0)
         goto EmitX86Op;
@@ -622,7 +654,7 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
         goto EmitX86Op;
       break;
 
-    case InstDB::kEncodingX86Op_ZAX:
+    case InstDB::kEncodingX86Op_MemZAX:
       if (isign3 == 0)
         goto EmitX86Op;
 
@@ -760,11 +792,18 @@ CaseX86M_GPB_MulDiv:
       }
       break;
 
+    case InstDB::kEncodingX86R_Native:
+      if (isign3 == ENC_OPS1(Reg)) {
+        rbReg = o0.id();
+        goto EmitX86R;
+      }
+      break;
+
     case InstDB::kEncodingX86Rm:
       opcode.addPrefixBySize(o0.size());
       ASMJIT_FALLTHROUGH;
 
-    case InstDB::kEncodingX86Rm_NoRexW:
+    case InstDB::kEncodingX86Rm_NoSize:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
         opReg = o0.id();
         rbReg = o1.id();
@@ -1607,6 +1646,33 @@ CaseX86M_GPB_MulDiv:
       }
       break;
 
+    case InstDB::kEncodingX86MovntiMovdiri:
+      if (isign3 == ENC_OPS2(Mem, Reg)) {
+        opcode.addWIf(Reg::isGpq(o1));
+
+        opReg = o1.id();
+        rmRel = &o0;
+        goto EmitX86M;
+      }
+      break;
+
+    case InstDB::kEncodingX86Movdir64b:
+      if (isign3 == ENC_OPS2(Mem, Mem)) {
+        const Mem& m0 = o0.as<Mem>();
+        // This is the only required validation, the rest is handled afterwards.
+        if (ASMJIT_UNLIKELY(m0.baseType() != o1.as<Mem>().baseType() ||
+                            m0.hasIndex() ||
+                            m0.hasOffset() ||
+                            (m0.hasSegment() && m0.segmentId() != SReg::kIdEs)))
+          goto InvalidInstruction;
+
+        // The first memory operand is passed via register, the second memory operand is RM.
+        opReg = o0.as<Mem>().baseId();
+        rmRel = &o1;
+        goto EmitX86M;
+      }
+      break;
+
     case InstDB::kEncodingX86Out:
       if (isign3 == ENC_OPS2(Imm, Reg)) {
         if (ASMJIT_UNLIKELY(o1.id() != Gp::kIdAx))
@@ -2282,16 +2348,6 @@ CaseFpuArith_Mem:
       }
       break;
 
-    case InstDB::kEncodingExtMovnti:
-      if (isign3 == ENC_OPS2(Mem, Reg)) {
-        opcode.addWIf(Reg::isGpq(o1));
-
-        opReg = o1.id();
-        rmRel = &o0;
-        goto EmitX86M;
-      }
-      break;
-
     case InstDB::kEncodingExtMovbe:
       if (isign3 == ENC_OPS2(Reg, Mem)) {
         if (o0.size() == 1)
@@ -2681,6 +2737,14 @@ CaseExtRm:
         opReg = o1.id();
         rmRel = &o0;
         goto EmitVexEvexM;
+      }
+      break;
+
+    case InstDB::kEncodingVexR_Wx:
+      if (isign3 == ENC_OPS1(Reg)) {
+        rbReg = o0.id();
+        opcode.addWIf(o0.as<Reg>().isGpq());
+        goto EmitVexEvexR;
       }
       break;
 
@@ -3289,6 +3353,7 @@ CaseVexRvm_R:
       immValue = o2.as<Imm>().i64();
       immSize = 1;
 
+CaseVexVmi_AfterImm:
       if (isign3 == ENC_OPS3(Reg, Reg, Imm)) {
         opReg = x86PackRegAndVvvvv(opReg, o0.id());
         rbReg = o1.id();
@@ -3301,6 +3366,12 @@ CaseVexRvm_R:
         goto EmitVexEvexM;
       }
       break;
+
+    case InstDB::kEncodingVexVmi4_Wx:
+      opcode.addWIf(Reg::isGpq(o0) || o1.size() == 8);
+      immValue = o2.as<Imm>().i64();
+      immSize = 4;
+      goto CaseVexVmi_AfterImm;
 
     case InstDB::kEncodingVexRvrmRvmr_Lx:
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());
@@ -3998,7 +4069,7 @@ EmitVexEvexOp:
     uint32_t x = ((opcode  & Opcode::kMM_Mask    ) >> (Opcode::kMM_Shift     )) |
                  ((opcode  & Opcode::kLL_Mask    ) >> (Opcode::kLL_Shift - 10)) |
                  ((opcode  & Opcode::kPP_VEXMask ) >> (Opcode::kPP_Shift -  8)) |
-                 ((options & Inst::kOptionVex3) >> (Opcode::kMM_Shift     )) ;
+                 ((options & Inst::kOptionVex3   ) >> (Opcode::kMM_Shift     )) ;
     if (x & 0x04u) {
       x  = (x & (0x4 ^ 0xFFFF)) << 8;                    // [00000000|00000Lpp|0000m0mm|00000000].
       x ^= (kX86ByteVex3) |                              // [........|00000Lpp|0000m0mm|__VEX3__].
@@ -4020,12 +4091,6 @@ EmitVexEvexOp:
 
 EmitVexEvexR:
   {
-    // VEX instructions use only 0-1 BYTE immediate.
-    //
-    // NOTE: This is to catch bugs in x86::Assembler, this should never be possible to
-    // trigger from outside as `immSize` is always set before jumping to `EmitVexEvexR`.
-    ASMJIT_ASSERT(immSize <= 1);
-
     // Construct `x` - a complete EVEX|VEX prefix.
     uint32_t x = ((opReg << 4) & 0xF980u) |              // [........|........|Vvvvv..R|R.......].
                  ((rbReg << 2) & 0x0060u) |              // [........|........|........|.BB.....].
@@ -4096,9 +4161,7 @@ EmitVexEvexR:
 
       rbReg &= 0x7;
       writer.emit8(x86EncodeMod(3, opReg, rbReg));
-
-      if (immSize == 0) goto EmitDone;
-      writer.emit8(immValue & 0xFF);
+      writer.emitImmByteOrDWord(immValue, immSize);
       goto EmitDone;
     }
 
@@ -4119,9 +4182,7 @@ EmitVexEvexR:
 
       rbReg &= 0x7;
       writer.emit8(x86EncodeMod(3, opReg, rbReg));
-
-      if (immSize == 0) goto EmitDone;
-      writer.emit8(immValue & 0xFF);
+      writer.emitImmByteOrDWord(immValue, immSize);
       goto EmitDone;
     }
     else {
@@ -4135,9 +4196,7 @@ EmitVexEvexR:
 
       rbReg &= 0x7;
       writer.emit8(x86EncodeMod(3, opReg, rbReg));
-
-      if (immSize == 0) goto EmitDone;
-      writer.emit8(immValue & 0xFF);
+      writer.emitImmByteOrDWord(immValue, immSize);
       goto EmitDone;
     }
   }
@@ -4156,12 +4215,6 @@ EmitVexEvexM:
   rxReg = rmRel->as<Mem>().hasIndexReg() ? rmRel->as<Mem>().indexId() : uint32_t(0);
 
   {
-    // VEX instructions use only 0-1 BYTE immediate.
-    //
-    // NOTE: This is to catch bugs in x86::Assembler, this should never be possible to
-    // trigger from outside as `immSize` is always set before jumping to `EmitVexEvexM`.
-    ASMJIT_ASSERT(immSize <= 1);
-
     uint32_t broadcastBit = uint32_t(rmRel->as<Mem>().hasBroadcast());
 
     // Construct `x` - a complete EVEX|VEX prefix.

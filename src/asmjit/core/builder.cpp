@@ -74,7 +74,7 @@ EmbedDataNode* BaseBuilder::newEmbedDataNode(const void* data, uint32_t size) no
       return nullptr;
 
     if (data)
-      ::memcpy(cloned, data, size);
+      memcpy(cloned, data, size);
     data = cloned;
   }
 

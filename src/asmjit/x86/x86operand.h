@@ -291,6 +291,11 @@ class Vec : public Reg {
   inline Ymm ymm() const noexcept;
   //! Casts this register to ZMM.
   inline Zmm zmm() const noexcept;
+
+  //! Casts this register to a register that has half the size (or XMM if it's already XMM).
+  inline Vec half() const noexcept {
+    return Vec(type() == kTypeZmm ? signatureOf(kTypeYmm) : signatureOf(kTypeXmm), id());
+  }
 };
 
 //! Segment register (X86).
@@ -330,12 +335,28 @@ class Gpw : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpw, Gp, RegTraits<kTypeGpw>) };
 class Gpd : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpd, Gp, RegTraits<kTypeGpd>) };
 //! GPQ register (X86_64).
 class Gpq : public Gp { ASMJIT_DEFINE_FINAL_REG(Gpq, Gp, RegTraits<kTypeGpq>) };
+
 //! 128-bit XMM register (SSE+).
-class Xmm : public Vec { ASMJIT_DEFINE_FINAL_REG(Xmm, Vec, RegTraits<kTypeXmm>) };
+class Xmm : public Vec {
+  ASMJIT_DEFINE_FINAL_REG(Xmm, Vec, RegTraits<kTypeXmm>)
+  //! Casts this register to a register that has half the size (XMM).
+  inline Xmm half() const noexcept { return Xmm(id()); }
+};
+
 //! 256-bit YMM register (AVX+).
-class Ymm : public Vec { ASMJIT_DEFINE_FINAL_REG(Ymm, Vec, RegTraits<kTypeYmm>) };
+class Ymm : public Vec {
+  ASMJIT_DEFINE_FINAL_REG(Ymm, Vec, RegTraits<kTypeYmm>)
+  //! Casts this register to a register that has half the size (XMM).
+  inline Xmm half() const noexcept { return Xmm(id()); }
+};
+
 //! 512-bit ZMM register (AVX512+).
-class Zmm : public Vec { ASMJIT_DEFINE_FINAL_REG(Zmm, Vec, RegTraits<kTypeZmm>) };
+class Zmm : public Vec {
+  ASMJIT_DEFINE_FINAL_REG(Zmm, Vec, RegTraits<kTypeZmm>)
+  //! Casts this register to a register that has half the size (YMM).
+  inline Ymm half() const noexcept { return Ymm(id()); }
+};
+
 //! 64-bit MMX register (MMX+).
 class Mm : public Reg { ASMJIT_DEFINE_FINAL_REG(Mm, Reg, RegTraits<kTypeMm>) };
 //! 64-bit K register (AVX512+).
@@ -850,11 +871,11 @@ static constexpr Mem ptr(const Label& base, int32_t offset = 0, uint32_t size = 
   return Mem(base, offset, size);
 }
 //! Creates a `[base + (index << shift) + offset]` memory operand.
-static constexpr Mem ptr(const Label& base, const Gp& index, uint32_t shift, int32_t offset = 0, uint32_t size = 0) noexcept {
+static constexpr Mem ptr(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 //! Creates a `[base + (index << shift) + offset]` memory operand.
-static constexpr Mem ptr(const Label& base, const Vec& index, uint32_t shift, int32_t offset = 0, uint32_t size = 0) noexcept {
+static constexpr Mem ptr(const Label& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 
@@ -921,7 +942,7 @@ static constexpr Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0
     return Mem(base, offset, SIZE);                                                   \
   }                                                                                   \
   /*! Creates a `[base + (index << shift) + offset]` memory operand. */               \
-  static constexpr Mem FUNC(const Label& base, const Gp& index, uint32_t shift, int32_t offset = 0) noexcept { \
+  static constexpr Mem FUNC(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
     return Mem(base, index, shift, offset, SIZE);                                     \
   }                                                                                   \
   /*! Creates a `[rip + offset]` memory operand. */                                   \

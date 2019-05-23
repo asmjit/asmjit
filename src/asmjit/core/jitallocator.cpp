@@ -450,7 +450,7 @@ static JitAllocatorBlock* JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* imp
   if (impl->options & JitAllocator::kOptionFillUnusedMemory)
     JitAllocatorImpl_fillPattern(virtMem.rw, impl->fillPattern, blockSize);
 
-  ::memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
+  memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
   return new(block) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
 }
 
@@ -522,8 +522,8 @@ static void JitAllocatorImpl_wipeOutBlock(JitAllocatorPrivateImpl* impl, JitAllo
     }
   }
 
-  ::memset(block->usedBitVector, 0, size_t(numBitWords) * sizeof(Support::BitWord));
-  ::memset(block->stopBitVector, 0, size_t(numBitWords) * sizeof(Support::BitWord));
+  memset(block->usedBitVector, 0, size_t(numBitWords) * sizeof(Support::BitWord));
+  memset(block->stopBitVector, 0, size_t(numBitWords) * sizeof(Support::BitWord));
 
   block->areaUsed = 0;
   block->largestUnusedArea = areaSize;

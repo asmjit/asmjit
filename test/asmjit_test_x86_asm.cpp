@@ -146,6 +146,9 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
 }
 
 int main(int argc, char* argv[]) {
+  ASMJIT_UNUSED(argc);
+  ASMJIT_UNUSED(argv);
+
   unsigned nFailed = 0;
   JitRuntime rt;
 

@@ -270,7 +270,7 @@ public:
   //! Clears instruction `flags` from  this RAInst.
   inline void clearFlags(uint32_t flags) noexcept { _flags &= ~flags; }
 
-  //! Gets whether the node is code that can be executed.
+  //! Returns whether the RAInst represents an instruction that terminates this basic block.
   inline bool isTerminator() const noexcept { return hasFlag(kFlagIsTerminator); }
 
   //! Gets the associated block with this RAInst.
@@ -308,7 +308,7 @@ public:
   // --------------------------------------------------------------------------
 
   RABlock* _block;                       //!< Parent block.
-  uint32_t _flags;                       //!< Flags.
+  uint32_t _flags;                       //!< Flags combined from all `_tiedRegs`.
   uint32_t _tiedTotal;                   //!< Total count of RATiedReg's.
   RARegIndex _tiedIndex;                 //!< Index of RATiedReg's per register group.
   RARegCount _tiedCount;                 //!< Count of RATiedReg's per register group.
@@ -336,6 +336,8 @@ public:
 
   inline void init() noexcept { reset(); }
   inline void reset() noexcept {
+    _aggregatedFlags = 0;
+    _forbiddenFlags = 0;
     _count.reset();
     _stats.reset();
     _used.reset();
@@ -347,8 +349,11 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  inline uint32_t flags() const noexcept { return _flags; }
-  inline void addFlags(uint32_t flags) noexcept { _flags |= flags; }
+  inline uint32_t aggregatedFlags() const noexcept { return _aggregatedFlags; }
+  inline uint32_t forbiddenFlags() const noexcept { return _forbiddenFlags; }
+
+  inline void addAggregatedFlags(uint32_t flags) noexcept { _aggregatedFlags |= flags; }
+  inline void addForbiddenFlags(uint32_t flags) noexcept { _forbiddenFlags |= flags; }
 
   //! Gets the number of tied registers added to the builder.
   inline uint32_t tiedRegCount() const noexcept { return uint32_t((size_t)(_cur - _tiedRegs)); }
@@ -369,7 +374,7 @@ public:
   // [Ops]
   // --------------------------------------------------------------------------
 
-  ASMJIT_INLINE Error add(RAWorkReg* workReg, uint32_t flags, uint32_t allocable, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask) noexcept {
+  ASMJIT_INLINE Error add(RAWorkReg* workReg, uint32_t flags, uint32_t allocable, uint32_t useId, uint32_t useRewriteMask, uint32_t outId, uint32_t outRewriteMask, uint32_t rmSize = 0) noexcept {
     uint32_t group = workReg->group();
     RATiedReg* tiedReg = workReg->tiedReg();
 
@@ -384,7 +389,7 @@ public:
       flags |= RATiedReg::kOutFixed;
     }
 
-    _flags |= flags;
+    _aggregatedFlags |= flags;
     _stats.makeUsed(group);
 
     if (!tiedReg) {
@@ -392,7 +397,7 @@ public:
       ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
 
       tiedReg = _cur++;
-      tiedReg->init(workReg->workId(), flags, allocable, useId, useRewriteMask, outId, outRewriteMask);
+      tiedReg->init(workReg->workId(), flags, allocable, useId, useRewriteMask, outId, outRewriteMask, rmSize);
       workReg->setTiedReg(tiedReg);
 
       _count.add(group);
@@ -417,6 +422,7 @@ public:
       tiedReg->_allocableRegs &= allocable;
       tiedReg->_useRewriteMask |= useRewriteMask;
       tiedReg->_outRewriteMask |= outRewriteMask;
+      tiedReg->_rmSize = uint8_t(Support::max<uint32_t>(tiedReg->rmSize(), rmSize));
       return kErrorOk;
     }
   }
@@ -428,7 +434,7 @@ public:
     uint32_t group = workReg->group();
     uint32_t allocable = Support::bitMask(useId);
 
-    _flags |= flags;
+    _aggregatedFlags |= flags;
     _used[group] |= allocable;
     _stats.makeFixed(group);
     _stats.makeUsed(group);
@@ -468,7 +474,7 @@ public:
     uint32_t group = workReg->group();
     uint32_t allocable = Support::bitMask(outId);
 
-    _flags |= flags;
+    _aggregatedFlags |= flags;
     _used[group] |= allocable;
     _stats.makeFixed(group);
     _stats.makeUsed(group);
@@ -501,7 +507,9 @@ public:
   // --------------------------------------------------------------------------
 
   //! Flags combined from all RATiedReg's.
-  uint32_t _flags;
+  uint32_t _aggregatedFlags;
+  //! Flags that will be cleared before storing the aggregated flags to `RAInst`.
+  uint32_t _forbiddenFlags;
   RARegCount _count;
   RARegsStats _stats;
 
@@ -658,14 +666,15 @@ public:
 
   ASMJIT_INLINE Error assignRAInst(BaseNode* node, RABlock* block, RAInstBuilder& ib) noexcept {
     uint32_t tiedRegCount = ib.tiedRegCount();
-    RAInst* raInst = newRAInst(block, ib.flags(), tiedRegCount, ib._clobbered);
+    RAInst* raInst = newRAInst(block, ib.aggregatedFlags(), tiedRegCount, ib._clobbered);
 
     if (ASMJIT_UNLIKELY(!raInst))
       return DebugUtils::errored(kErrorOutOfMemory);
 
     RARegIndex index;
-    index.buildIndexes(ib._count);
+    uint32_t flagsFilter = ~ib.forbiddenFlags();
 
+    index.buildIndexes(ib._count);
     raInst->_tiedIndex = index;
     raInst->_tiedCount = ib._count;
 
@@ -687,6 +696,8 @@ public:
 
       RATiedReg& dst = raInst->_tiedRegs[index[group]++];
       dst = *tiedReg;
+      dst._flags &= flagsFilter;
+
       if (!tiedReg->isDuplicate())
         dst._allocableRegs &= ~ib._used[group];
     }

@@ -454,12 +454,12 @@ public:
   //!
   //! NOTE: To use it, you must first `init()` it.
   inline ZoneAllocator() noexcept {
-    ::memset(this, 0, sizeof(*this));
+    memset(this, 0, sizeof(*this));
   }
 
   //! Creates a new `ZoneAllocator` initialized to use `zone`.
   inline explicit ZoneAllocator(Zone* zone) noexcept {
-    ::memset(this, 0, sizeof(*this));
+    memset(this, 0, sizeof(*this));
     _zone = zone;
   }
 

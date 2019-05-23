@@ -632,6 +632,8 @@ Error RAPass::_asWorkReg(VirtReg* vReg, RAWorkReg** out) noexcept {
     return DebugUtils::errored(kErrorOutOfMemory);
 
   vReg->setWorkReg(wReg);
+  if (!vReg->isStack())
+    wReg->setRegByteMask(Support::lsbMask<uint64_t>(vReg->virtSize()));
   wRegs.appendUnsafe(wReg);
   wRegsByGroup.appendUnsafe(wReg);
 
@@ -1285,7 +1287,9 @@ Error RAPass::runLocalAllocator() noexcept {
     lra.setBlock(block);
     block->makeAllocated();
 
-    for (BaseNode* node = first; node != afterLast; node = node->next()) {
+    BaseNode* node = first;
+    while (node != afterLast) {
+      BaseNode* next = node->next();
       if (node->isInst()) {
         InstNode* inst = node->as<InstNode>();
 
@@ -1293,6 +1297,8 @@ Error RAPass::runLocalAllocator() noexcept {
           const RABlocks& successors = block->successors();
           if (block->hasConsecutive()) {
             ASMJIT_PROPAGATE(lra.allocBranch(inst, successors.last(), successors.first()));
+
+            node = next;
             continue;
           }
           else if (successors.size() > 1) {
@@ -1308,7 +1314,10 @@ Error RAPass::runLocalAllocator() noexcept {
         ASMJIT_PROPAGATE(lra.allocInst(inst));
         if (inst->type() == BaseNode::kNodeFuncCall)
           ASMJIT_PROPAGATE(onEmitPreCall(inst->as<FuncCallNode>()));
+        else
+          ASMJIT_PROPAGATE(lra.spillAfterAllocation(inst));
       }
+      node = next;
     }
 
     if (consecutive) {

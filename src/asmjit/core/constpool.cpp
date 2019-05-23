@@ -212,7 +212,7 @@ struct ConstPoolFill {
 
   inline void operator()(const ConstPool::Node* node) noexcept {
     if (!node->_shared)
-      ::memcpy(_dst + node->_offset, node->data(), _dataSize);
+      memcpy(_dst + node->_offset, node->data(), _dataSize);
   }
 
   uint8_t* _dst;
@@ -221,7 +221,7 @@ struct ConstPoolFill {
 
 void ConstPool::fill(void* dst) const noexcept {
   // Clears possible gaps, asmjit should never emit garbage to the output.
-  ::memset(dst, 0, _size);
+  memset(dst, 0, _size);
 
   ConstPoolFill filler(static_cast<uint8_t*>(dst), 1);
   for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_tree); i++) {

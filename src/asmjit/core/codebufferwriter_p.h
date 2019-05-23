@@ -93,13 +93,13 @@ public:
 
   ASMJIT_INLINE void emitData(const void* data, size_t size) noexcept {
     ASMJIT_ASSERT(size != 0);
-    ::memcpy(_cursor, data, size);
+    memcpy(_cursor, data, size);
     _cursor += size;
   }
 
   ASMJIT_INLINE void emitZeros(size_t size) noexcept {
     ASMJIT_ASSERT(size != 0);
-    ::memset(_cursor, 0, size);
+    memset(_cursor, 0, size);
     _cursor += size;
   }
 

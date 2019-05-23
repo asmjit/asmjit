@@ -47,7 +47,10 @@ Error BaseInst::validate(uint32_t archId, const BaseInst& inst, const Operand_* 
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_INST_API
-Error BaseInst::queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept {
+Error BaseInst::queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept {
+  if (ASMJIT_UNLIKELY(count > 6))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
 #ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
     return x86::InstInternal::queryRWInfo(archId, inst, operands, count, out);

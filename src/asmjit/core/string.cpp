@@ -113,7 +113,7 @@ char* String::prepare(uint32_t op, size_t size) noexcept {
       if (ASMJIT_UNLIKELY(!newData))
         return nullptr;
 
-      ::memcpy(newData, curData, curSize);
+      memcpy(newData, curData, curSize);
 
       if (_type == kTypeLarge)
         ::free(curData);
@@ -208,7 +208,7 @@ Error String::_opString(uint32_t op, const char* str, size_t size) noexcept {
   char* p = prepare(op, size);
   if (!p) return DebugUtils::errored(kErrorOutOfMemory);
 
-  ::memcpy(p, str, size);
+  memcpy(p, str, size);
   return kErrorOk;
 }
 
@@ -227,7 +227,7 @@ Error String::_opChars(uint32_t op, char c, size_t n) noexcept {
   char* p = prepare(op, n);
   if (!p) return DebugUtils::errored(kErrorOutOfMemory);
 
-  ::memset(p, c, n);
+  memset(p, c, n);
   return kErrorOk;
 }
 
@@ -315,13 +315,13 @@ Error String::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t width, ui
   if (!data)
     return DebugUtils::errored(kErrorOutOfMemory);
 
-  ::memcpy(data, p, prefixSize);
+  memcpy(data, p, prefixSize);
   data += prefixSize;
 
-  ::memset(data, '0', width);
+  memset(data, '0', width);
   data += width;
 
-  ::memcpy(data, p + prefixSize, numberSize);
+  memcpy(data, p + prefixSize, numberSize);
   return kErrorOk;
 }
 

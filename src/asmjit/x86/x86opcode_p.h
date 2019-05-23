@@ -133,6 +133,7 @@ struct Opcode {
     // in `x86assembler.cpp`.
     kMM_XOP08      = 0x08u << kMM_Shift,   // XOP.M8.
     kMM_XOP09      = 0x09u << kMM_Shift,   // XOP.M9.
+    kMM_XOP0A      = 0x0Au << kMM_Shift,   // XOP.MA.
 
     kMM_IsXOP_Shift= kMM_Shift + 3,
     kMM_IsXOP      = kMM_XOP08,
@@ -332,7 +333,8 @@ struct Opcode {
     kFPU_00 = kPP_00 | kMM_00,             // '__' (FPU)
     kFPU_9B = kPP_9B | kMM_00,             // '9B' (FPU)
     kXOP_M8 = kPP_00 | kMM_XOP08,          // 'M8' (XOP)
-    kXOP_M9 = kPP_00 | kMM_XOP09           // 'M9' (XOP)
+    kXOP_M9 = kPP_00 | kMM_XOP09,          // 'M9' (XOP)
+    kXOP_MA = kPP_00 | kMM_XOP0A           // 'MA' (XOP)
   };
 
   // --------------------------------------------------------------------------

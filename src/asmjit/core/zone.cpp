@@ -177,7 +177,7 @@ void* Zone::allocZeroed(size_t size, size_t alignment) noexcept {
   void* p = alloc(size, alignment);
   if (ASMJIT_UNLIKELY(!p))
     return p;
-  return ::memset(p, 0, size);
+  return memset(p, 0, size);
 }
 
 void* Zone::dup(const void* data, size_t size, bool nullTerminate) noexcept {
@@ -188,7 +188,7 @@ void* Zone::dup(const void* data, size_t size, bool nullTerminate) noexcept {
   uint8_t* m = allocT<uint8_t>(size + nullTerminate);
   if (ASMJIT_UNLIKELY(!m)) return nullptr;
 
-  ::memcpy(m, data, size);
+  memcpy(m, data, size);
   if (nullTerminate) m[size] = '\0';
 
   return static_cast<void*>(m);
@@ -238,7 +238,7 @@ void ZoneAllocator::reset(Zone* zone) noexcept {
   }
 
   // Zero the entire class and initialize to the given `zone`.
-  ::memset(this, 0, sizeof(*this));
+  memset(this, 0, sizeof(*this));
   _zone = zone;
 }
 
@@ -335,7 +335,7 @@ void* ZoneAllocator::_allocZeroed(size_t size, size_t& allocatedSize) noexcept {
 
   void* p = _alloc(size, allocatedSize);
   if (ASMJIT_UNLIKELY(!p)) return p;
-  return ::memset(p, 0, allocatedSize);
+  return memset(p, 0, allocatedSize);
 }
 
 void ZoneAllocator::_releaseDynamic(void* p, size_t size) noexcept {

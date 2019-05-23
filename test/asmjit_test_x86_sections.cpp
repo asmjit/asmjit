@@ -35,6 +35,9 @@ static void fail(const char* message, Error err) {
 }
 
 int main(int argc, char* argv[]) {
+  ASMJIT_UNUSED(argc);
+  ASMJIT_UNUSED(argv);
+
   CodeInfo codeInfo(ArchInfo::kIdHost);
   JitAllocator allocator;
 

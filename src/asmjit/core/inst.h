@@ -9,6 +9,7 @@
 
 #include "../core/cpuinfo.h"
 #include "../core/operand.h"
+#include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -16,104 +17,160 @@ ASMJIT_BEGIN_NAMESPACE
 //! \{
 
 // ============================================================================
-// [asmjit::OpInfo]
+// [asmjit::InstRWInfo / OpRWInfo]
 // ============================================================================
 
-//! Operand information.
-struct OpInfo {
-  //! Operand flags.
-  //!
+//! Read/Write information related to a single operand, used by `InstRWInfo`.
+struct OpRWInfo {
   //! Flags describe how the operand is accessed and some additional information.
   enum Flags : uint32_t {
-    kRead                 = 0x00000001u, //!< Operand is Read.
-    kWrite                = 0x00000002u, //!< Operand is Written.
-    kRW                   = 0x00000003u, //!< Operand is ReadWrite.
-    kUse                  = 0x00000004u, //!< Operand is either Read or ReadWrite.
-    kOut                  = 0x00000008u  //!< Operand is always WriteOnly (not Read nor ReadWrite).
+    //! Operand is read.
+    //!
+    //! NOTE: This flag must be `0x00000001`.
+    kRead = 0x00000001u,
+
+    //! Operand is written.
+    //!
+    //! NOTE: This flag must be `0x00000002`.
+    kWrite = 0x00000002u,
+
+    //! Operand is both read and written.
+    //!
+    //! NOTE: This combination of flags must be `0x00000003`.
+    kRW = 0x00000003u,
+
+    //! Register operand can be replaced by a memory operand.
+    kRegMem = 0x00000004u,
+
+    //! The `extendByteMask()` represents a zero extension.
+    kZExt = 0x00000010u,
+
+    //! Register operand must use `physId()`.
+    kRegPhysId = 0x00000100u,
+    //! Base register of a memory operand must use `physId()`.
+    kMemPhysId = 0x00000200u,
+
+    //! This memory operand is only used to encode registers and doesn't access memory.
+    //!
+    //! X86 Specific
+    //! ------------
+    //!
+    //! Instructions that use such feature include BNDLDX, BNDSTX, and LEA.
+    kMemFake = 0x000000400u,
+
+    //! Base register of the memory operand will be read.
+    kMemBaseRead = 0x00001000u,
+    //! Base register of the memory operand will be written.
+    kMemBaseWrite = 0x00002000u,
+    //! Base register of the memory operand will be read & written.
+    kMemBaseRW = 0x00003000u,
+
+    //! Index register of the memory operand will be read.
+    kMemIndexRead = 0x00004000u,
+    //! Index register of the memory operand will be written.
+    kMemIndexWrite = 0x00008000u,
+    //! Index register of the memory operand will be read & written.
+    kMemIndexRW = 0x0000C000u,
+
+    //! Base register of the memory operand will be modified before the operation.
+    kMemBasePreModify = 0x00010000u,
+    //! Base register of the memory operand will be modified after the operation.
+    kMemBasePostModify = 0x00020000u
   };
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  static_assert(kRead  == 0x1, "OpRWInfo::kRead flag must be 0x1");
+  static_assert(kWrite == 0x2, "OpRWInfo::kWrite flag must be 0x2");
+  static_assert(kRegMem == 0x4, "OpRWInfo::kRegMem flag must be 0x4");
 
-  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
-  inline uint32_t flags() const noexcept { return _flags; }
+  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  inline void reset(uint32_t opFlags, uint32_t regSize, uint32_t physId = BaseReg::kIdBad) noexcept {
+    _opFlags = opFlags;
+    _physId = uint8_t(physId);
+    _rmSize = uint8_t((opFlags & kRegMem) ? regSize : uint32_t(0));
+    _resetReserved();
 
-  inline bool isRead() const noexcept { return hasFlag(kRead); }
-  inline bool isWrite() const noexcept { return hasFlag(kWrite); }
+    uint64_t mask = Support::lsbMask<uint64_t>(regSize);
+    _readByteMask = opFlags & kRead ? mask : uint64_t(0);
+    _writeByteMask = opFlags & kWrite ? mask : uint64_t(0);
+    _extendByteMask = 0;
+  }
 
-  inline bool isReadOnly() const noexcept { return (_flags & kRW) == kRead; }
-  inline bool isWriteOnly() const noexcept { return (_flags & kRW) == kWrite; }
-  inline bool isReadWrite() const noexcept { return (_flags & kRW) == kRW; }
+  inline void _resetReserved() noexcept {
+    memset(_reserved, 0, sizeof(_reserved));
+  }
 
-  inline bool isUse() const noexcept { return hasFlag(kUse); }
-  inline bool isOut() const noexcept { return hasFlag(kOut); }
+  inline uint32_t opFlags() const noexcept { return _opFlags; }
+  inline bool hasOpFlag(uint32_t flag) const noexcept { return (_opFlags & flag) != 0; }
 
-  inline bool hasPhysId() const noexcept { return _physId != BaseReg::kIdBad; }
+  inline void addOpFlags(uint32_t flags) noexcept { _opFlags |= flags; }
+  inline void clearOpFlags(uint32_t flags) noexcept { _opFlags &= ~flags; }
+
+  inline bool isRead() const noexcept { return hasOpFlag(kRead); }
+  inline bool isWrite() const noexcept { return hasOpFlag(kWrite); }
+  inline bool isReadWrite() const noexcept { return (_opFlags & kRW) == kRW; }
+  inline bool isReadOnly() const noexcept { return (_opFlags & kRW) == kRead; }
+  inline bool isWriteOnly() const noexcept { return (_opFlags & kRW) == kWrite; }
+  inline bool isRm() const noexcept { return hasOpFlag(kRegMem); }
+  inline bool isZExt() const noexcept { return hasOpFlag(kZExt); }
+
   inline uint32_t physId() const noexcept { return _physId; }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Operand flags, see `Flags`.
-  uint16_t _flags;
-  //! Operand must be in this physical register.
-  uint8_t _physId;
-  //! Reserved for future use.
-  uint8_t _reserved;
-};
-
-// ============================================================================
-// [asmjit::IRWInfo / ORWInfo]
-// ============================================================================
-
-//! Read/Write information related to a single operand, used by `IRWInfo`.
-struct ORWInfo {
-  //! Flags describe how the operand is accessed and some additional information.
-  enum Flags : uint32_t {
-    kRead                 = 0x00000001u, //!< Operand is read.
-    kWrite                = 0x00000002u, //!< Operand is written.
-    kRW                   = 0x00000003u, //!< Operand is both read and written.
-    kUse                  = 0x00000004u, //!< Operand has a USE slot (each read or read/write operation).
-    kOut                  = 0x00000008u, //!< Operand has an OUT slot (each write-only operation).
-    kZExt                 = 0x00000010u  //!< The output is zero extended to a native register size.
-  };
-
-  inline uint32_t flags() const noexcept { return _flags; }
-  inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
-
-  inline bool isRead() const noexcept { return hasFlag(kRead); }
-  inline bool isWrite() const noexcept { return hasFlag(kWrite); }
-  inline bool isReadWrite() const noexcept { return (_flags & kRW) == kRW; }
-  inline bool isReadOnly() const noexcept { return (_flags & kRW) == kRead; }
-  inline bool isWriteOnly() const noexcept { return (_flags & kRW) == kWrite; }
-
-  inline bool isUse() const noexcept { return hasFlag(kUse); }
-  inline bool isOut() const noexcept { return hasFlag(kOut); }
-
   inline bool hasPhysId() const noexcept { return _physId != BaseReg::kIdBad; }
-  inline uint32_t physId() const noexcept { return _physId; }
+  inline void setPhysId(uint32_t physId) noexcept { _physId = uint8_t(physId); }
 
-  inline uint32_t index() const noexcept { return _index; }
-  inline uint32_t width() const noexcept { return _width; }
+  inline uint32_t rmSize() const noexcept { return _rmSize; }
+  inline void setRmSize(uint32_t rmSize) noexcept { _rmSize = uint8_t(rmSize); }
 
-  //! Read/Write flags.
-  uint8_t _flags;
+  inline uint64_t readByteMask() const noexcept { return _readByteMask; }
+  inline uint64_t writeByteMask() const noexcept { return _writeByteMask; }
+  inline uint64_t extendByteMask() const noexcept { return _extendByteMask; }
+
+  inline void setReadByteMask(uint64_t mask) noexcept { _readByteMask = mask; }
+  inline void setWriteByteMask(uint64_t mask) noexcept { _writeByteMask = mask; }
+  inline void setExtendByteMask(uint64_t mask) noexcept { _extendByteMask = mask; }
+
+  //! Read/Write flags, see `OpRWInfo::Flags`.
+  uint32_t _opFlags;
   //! Physical register index, if required.
   uint8_t _physId;
-  //! Read/write register index [in bytes], `_index` is ignored if the operand is memory.
-  uint8_t _index;
-  //! Read/Write register/memory width [in bytes], zero means native width or imm/rel width.
-  uint8_t _width;
+  //! Size of a possible memory operand that can replace a register operand.
+  uint8_t _rmSize;
+  //! Reserved for future use.
+  uint8_t _reserved[2];
+  //! Read bit-mask where each bit represents one byte read from Reg/Mem.
+  uint64_t _readByteMask;
+  //! Write bit-mask where each bit represents one byte written to Reg/Mem.
+  uint64_t _writeByteMask;
+  //! Zero/Sign extend bit-mask where each bit represents one byte written to Reg/Mem.
+  uint64_t _extendByteMask;
 };
 
-//! Read/Write information related to the whole instruction.
-struct IRWInfo {
-  uint32_t flags;
-  uint32_t opCount;
-  ORWInfo extraReg;
-  ORWInfo operands[Globals::kMaxOpCount];
+//! Read/Write information of an instruction.
+struct InstRWInfo {
+  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+
+  inline uint32_t instFlags() const noexcept { return _instFlags; }
+  inline bool hasInstFlag(uint32_t flag) const noexcept { return (_instFlags & flag) != 0; }
+
+  inline uint32_t opCount() const noexcept { return _opCount; }
+
+  inline const OpRWInfo& extraReg() const noexcept { return _extraReg; }
+  inline const OpRWInfo* operands() const noexcept { return _operands; }
+
+  inline const OpRWInfo& operand(size_t index) const noexcept {
+    ASMJIT_ASSERT(index < Globals::kMaxOpCount);
+    return _operands[index];
+  }
+
+  //! Instruction flags.
+  uint32_t _instFlags;
+  //! Count of operands.
+  uint8_t _opCount;
+  //! Reserved for future use.
+  uint8_t _reserved[27];
+  //! Read/Write onfo of extra register (rep{} or kz{}).
+  OpRWInfo _extraReg;
+  //! Read/Write info of instruction operands.
+  OpRWInfo _operands[Globals::kMaxOpCount];
 };
 
 // ============================================================================
@@ -126,8 +183,10 @@ struct IRWInfo {
 class BaseInst {
 public:
   enum Id : uint32_t {
-    kIdNone               = 0x00000000u, //!< Invalid or uninitialized instruction id.
-    kIdAbstract           = 0x80000000u  //!< Abstract instruction (BaseBuilder and BaseCompiler).
+    //! Invalid or uninitialized instruction id.
+    kIdNone               = 0x00000000u,
+    //! Abstract instruction (BaseBuilder and BaseCompiler).
+    kIdAbstract           = 0x80000000u
   };
 
   enum Options : uint32_t {
@@ -180,11 +239,15 @@ public:
     //!       use HI elements, use `compiler.overwrite().sqrtss(x, y)`.
     kOptionOverwrite      = 0x00000020u,
 
-    kOptionShortForm      = 0x00000040u, //!< Emit short-form of the instruction.
-    kOptionLongForm       = 0x00000080u, //!< Emit long-form of the instruction.
+    //! Emit short-form of the instruction.
+    kOptionShortForm      = 0x00000040u,
+    //! Emit long-form of the instruction.
+    kOptionLongForm       = 0x00000080u,
 
-    kOptionTaken          = 0x00000100u, //!< Conditional jump is likely to be taken.
-    kOptionNotTaken       = 0x00000200u  //!< Conditional jump is unlikely to be taken.
+    //! Conditional jump is likely to be taken.
+    kOptionTaken          = 0x00000100u,
+    //! Conditional jump is unlikely to be taken.
+    kOptionNotTaken       = 0x00000200u
   };
 
   //! Control type.
@@ -245,7 +308,7 @@ public:
   ASMJIT_API static Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
 
   //! Gets Read/Write information of the given instruction.
-  ASMJIT_API static Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, IRWInfo& out) noexcept;
+  ASMJIT_API static Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept;
 
   //! Gets CPU features required by the given instruction.
   ASMJIT_API static Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;

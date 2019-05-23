@@ -265,8 +265,8 @@ public:
       _dstShuf = 0;
       _numSwaps = 0;
       _numStackArgs = 0;
-      ::memset(_reserved, 0, sizeof(_reserved));
-      ::memset(_physToVarId, kVarIdNone, 32);
+      memset(_reserved, 0, sizeof(_reserved));
+      memset(_physToVarId, kVarIdNone, 32);
     }
 
     inline bool isAssigned(uint32_t regId) const noexcept {

@@ -44,6 +44,9 @@ struct TestErrorHandler : public ErrorHandler {
 typedef void (*VoidFunc)(void);
 
 int main(int argc, char* argv[]) {
+  ASMJIT_UNUSED(argc);
+  ASMJIT_UNUSED(argv);
+
   TestErrorHandler eh;
 
   OpcodeDumpInfo infoList[] = {

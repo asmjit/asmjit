@@ -132,11 +132,11 @@ class ArmTableGen extends commons.TableGen {
   merge() {
     var s = StringUtils.format(this.insts, "", false, function(inst) {
       return "INST(" +
-        StringUtils.padLeft(inst.enum       , 16) + ", " +
-        StringUtils.padLeft(inst.encoding   , 23) + ", " +
-        StringUtils.padLeft(inst.opcode0    , 26) + ", " +
-        StringUtils.padLeft(inst.nameIndex  ,  4) + ", " +
-        StringUtils.padLeft(inst.commonIndex,  3) + ")";
+        String(inst.enum       ).padEnd(16) + ", " +
+        String(inst.encoding   ).padEnd(23) + ", " +
+        String(inst.opcode0    ).padEnd(26) + ", " +
+        String(inst.nameIndex  ).padEnd(4 ) + ", " +
+        String(inst.commonIndex).padEnd(3 ) + ")";
     }) + "\n";
     return this.inject("instData", s, this.insts.length * 12);
   }
@@ -211,7 +211,7 @@ class ArmCommonTable extends commons.Task {
 
     for (var i = 0; i < insts.length; i++) {
       const inst = insts[i];
-      const item = "{ " + StringUtils.padLeft("0", 1) + "}";
+      const item = "{ " + "0" + "}";
       inst.commonIndex = table.addIndexed(item);
     }
 

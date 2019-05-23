@@ -211,7 +211,7 @@ public:
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
     ::memmove(static_cast<T*>(_data) + 1, _data, size_t(_size) * sizeof(T));
-    ::memcpy(_data, &item, sizeof(T));
+    memcpy(_data, &item, sizeof(T));
 
     _size++;
     return kErrorOk;
@@ -226,7 +226,7 @@ public:
 
     T* dst = static_cast<T*>(_data) + index;
     ::memmove(dst + 1, dst, size_t(_size - index) * sizeof(T));
-    ::memcpy(dst, &item, sizeof(T));
+    memcpy(dst, &item, sizeof(T));
     _size++;
 
     return kErrorOk;
@@ -237,7 +237,7 @@ public:
     if (ASMJIT_UNLIKELY(_size == _capacity))
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
-    ::memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
+    memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
     _size++;
 
     return kErrorOk;
@@ -249,7 +249,7 @@ public:
       ASMJIT_PROPAGATE(grow(allocator, size));
 
     if (size) {
-      ::memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
+      memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
       _size += size;
     }
 
@@ -268,7 +268,7 @@ public:
     if (_size)
       ::memmove(data + 1, data, size_t(_size) * sizeof(T));
 
-    ::memcpy(data, &item, sizeof(T));
+    memcpy(data, &item, sizeof(T));
     _size++;
   }
 
@@ -280,7 +280,7 @@ public:
   inline void appendUnsafe(const T& item) noexcept {
     ASMJIT_ASSERT(_size < _capacity);
 
-    ::memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
+    memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
     _size++;
   }
 
@@ -290,7 +290,7 @@ public:
     ASMJIT_ASSERT(_capacity - _size >= size);
 
     if (size) {
-      ::memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
+      memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
       _size += size;
     }
   }

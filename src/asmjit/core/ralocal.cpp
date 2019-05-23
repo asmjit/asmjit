@@ -183,9 +183,12 @@ Error RALocalAllocator::switchToAssignment(
     //   - Build `willLoadRegs` mask of registers scheduled for `onLoadReg()`.
     // ------------------------------------------------------------------------
 
-    int32_t runId = -1;                             // Current run-id (1 means more aggressive decisions).
-    uint32_t willLoadRegs = 0;                      // Remaining registers scheduled for `onLoadReg()`.
-    uint32_t affectedRegs = dst.assigned(group);    // Remaining registers to be allocated in this loop.
+    // Current run-id (1 means more aggressive decisions).
+    int32_t runId = -1;
+    // Remaining registers scheduled for `onLoadReg()`.
+    uint32_t willLoadRegs = 0;
+    // Remaining registers to be allocated in this loop.
+    uint32_t affectedRegs = dst.assigned(group);
 
     while (affectedRegs) {
       if (++runId == 2) {
@@ -370,6 +373,9 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
   _tiedTotal = raInst->_tiedTotal;
   _tiedCount = raInst->_tiedCount;
 
+  // Whether we already replaced register operand with memory operand.
+  bool rmAllocated = false;
+
   for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++) {
     uint32_t i, count = this->tiedCount(group);
     RATiedReg* tiedRegs = this->tiedRegs(group);
@@ -474,6 +480,28 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
 
         uint32_t workId = tiedReg->workId();
         uint32_t assignedId = _curAssignment.workToPhysId(group, workId);
+
+        // REG/MEM: Patch register operand to memory operand if not allocated.
+        if (!rmAllocated && tiedReg->hasUseRM()) {
+          if (assignedId == RAAssignment::kPhysNone && Support::isPowerOf2(tiedReg->useRewriteMask())) {
+            RAWorkReg* workReg = workRegById(tiedReg->workId());
+            uint32_t opIndex = Support::ctz(tiedReg->useRewriteMask()) / uint32_t(sizeof(Operand) / sizeof(uint32_t));
+            uint32_t rmSize = tiedReg->rmSize();
+
+            if (rmSize <= workReg->virtReg()->virtSize()) {
+              Operand& op = node->operands()[opIndex];
+              op = _pass->workRegAsMem(workReg);
+              op.as<BaseMem>().setSize(rmSize);
+              tiedReg->_useRewriteMask = 0;
+
+              tiedReg->markUseDone();
+              usePending--;
+
+              rmAllocated = true;
+              continue;
+            }
+          }
+        }
 
         if (!tiedReg->hasUseId()) {
           uint32_t allocableRegs = tiedReg->allocableRegs() & ~(willFree | willUse);
@@ -771,6 +799,32 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     }
 
     _clobberedRegs[group] |= clobberedByInst;
+  }
+
+  return kErrorOk;
+}
+
+Error RALocalAllocator::spillAfterAllocation(InstNode* node) noexcept {
+  // This is experimental feature that would spill registers that don't have
+  // home-id and are last in this basic block. This prevents saving these regs
+  // in other basic blocks and then restoring them (mostly relevant for loops).
+  RAInst* raInst = node->passData<RAInst>();
+  uint32_t count = raInst->tiedCount();
+
+  for (uint32_t i = 0; i < count; i++) {
+    RATiedReg* tiedReg = raInst->tiedAt(i);
+    if (tiedReg->isLast()) {
+      uint32_t workId = tiedReg->workId();
+      RAWorkReg* workReg = workRegById(workId);
+      if (!workReg->hasHomeRegId()) {
+        uint32_t group = workReg->group();
+        uint32_t assignedId = _curAssignment.workToPhysId(group, workId);
+        if (assignedId != RAAssignment::kPhysNone) {
+          _cc->_setCursor(node);
+          ASMJIT_PROPAGATE(onSpillReg(group, workId, assignedId));
+        }
+      }
+    }
   }
 
   return kErrorOk;

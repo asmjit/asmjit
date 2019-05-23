@@ -87,7 +87,7 @@ static inline void simplifyCpuVendor(CpuInfo& cpu, uint32_t d0, uint32_t d1, uin
   for (i = 0; i < ASMJIT_ARRAY_SIZE(table) - 1; i++)
     if (table[i].d[0] == d0 && table[i].d[1] == d1 && table[i].d[2] == d2)
       break;
-  ::memcpy(cpu._vendor.str, table[i].normalized, 8);
+  memcpy(cpu._vendor.str, table[i].normalized, 8);
 }
 
 static inline void simplifyCpuBrand(char* s) noexcept {
@@ -216,6 +216,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
 
   if (maxId >= 0x7) {
     cpuidQuery(&regs, 0x7);
+    uint32_t maxSubLeafId = regs.eax;
 
     if (bitTest(regs.ebx,  0)) features.add(Features::kFSGSBASE);
     if (bitTest(regs.ebx,  3)) features.add(Features::kBMI);
@@ -233,6 +234,11 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ebx, 24)) features.add(Features::kCLWB);
     if (bitTest(regs.ebx, 29)) features.add(Features::kSHA);
     if (bitTest(regs.ecx,  0)) features.add(Features::kPREFETCHWT1);
+    if (bitTest(regs.ecx, 22)) features.add(Features::kRDPID);
+    if (bitTest(regs.ecx, 25)) features.add(Features::kCLDEMOTE);
+    if (bitTest(regs.ecx, 27)) features.add(Features::kMOVDIRI);
+    if (bitTest(regs.ecx, 28)) features.add(Features::kMOVDIR64B);
+    if (bitTest(regs.edx, 18)) features.add(Features::kPCONFIG);
 
     // Detect 'TSX' - Requires at least one of `HLE` and `RTM` features.
     if (features.hasHLE() || features.hasRTM())
@@ -267,6 +273,12 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         if (bitTest(regs.edx,  2)) features.add(Features::kAVX512_4VNNIW);
         if (bitTest(regs.edx,  3)) features.add(Features::kAVX512_4FMAPS);
       }
+    }
+
+    if (maxSubLeafId >= 1 && features.hasAVX512_F()) {
+      cpuidQuery(&regs, 0x7, 1);
+
+      if (bitTest(regs.eax, 5)) features.add(Features::kAVX512_BF16);
     }
   }
 

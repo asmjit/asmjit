@@ -119,8 +119,10 @@ public:
   // [Allocation]
   // --------------------------------------------------------------------------
 
-  Error allocInst(InstNode* inst) noexcept;
-  Error allocBranch(InstNode* inst, RABlock* target, RABlock* cont) noexcept;
+  Error allocInst(InstNode* node) noexcept;
+  Error spillAfterAllocation(InstNode* node) noexcept;
+
+  Error allocBranch(InstNode* node, RABlock* target, RABlock* cont) noexcept;
 
   // --------------------------------------------------------------------------
   // [Decision Making]

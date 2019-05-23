@@ -61,11 +61,98 @@ function DEBUG(msg) {
 }
 exports.DEBUG = DEBUG;
 
+function WARN(msg) {
+  console.log(msg);
+}
+exports.WARN = WARN;
+
 function FAIL(msg) {
   console.log(`FATAL ERROR: ${msg}`);
   throw new Error(msg);
 }
 exports.FAIL = FAIL;
+
+// ============================================================================
+// [Lang]
+// ============================================================================
+
+function nop(x) { return x; }
+
+class Lang {
+  static merge(a, b) {
+    if (a === b)
+      return a;
+
+    for (var k in b) {
+      var av = a[k];
+      var bv = b[k];
+
+      if (typeof av === "object" && typeof bv === "object")
+        Lang.merge(av, bv);
+      else
+        a[k] = bv;
+    }
+
+    return a;
+  }
+
+  static deepEq(a, b) {
+    if (a === b)
+      return true;
+
+    if (typeof a !== typeof b)
+      return false;
+
+    if (typeof a !== "object")
+      return a === b;
+
+    if (Array.isArray(a) || Array.isArray(b)) {
+      if (Array.isArray(a) !== Array.isArray(b))
+        return false;
+
+      const len = a.length;
+      if (b.length !== len)
+        return false;
+
+      for (var i = 0; i < len; i++)
+        if (!Lang.deepEq(a[i], b[i]))
+          return false;
+    }
+    else {
+      if (a === null || b === null)
+        return a === b;
+
+      for (var k in a)
+        if (!hasOwn.call(b, k) || !Lang.deepEq(a[k], b[k]))
+          return false;
+
+      for (var k in b)
+        if (!hasOwn.call(a, k))
+          return false;
+    }
+
+    return true;
+  }
+
+  static deepEqExcept(a, b, except) {
+    if (a === b)
+      return true;
+
+    if (typeof a !== "object" || typeof b !== "object" || Array.isArray(a) || Array.isArray(b))
+      return Lang.deepEq(a, b);
+
+    for (var k in a)
+      if (!hasOwn.call(except, k) && (!hasOwn.call(b, k) || !Lang.deepEq(a[k], b[k])))
+        return false;
+
+    for (var k in b)
+      if (!hasOwn.call(except, k) && !hasOwn.call(a, k))
+        return false;
+
+    return true;
+  }
+}
+exports.Lang = Lang;
 
 // ============================================================================
 // [StringUtils]
@@ -74,14 +161,13 @@ exports.FAIL = FAIL;
 class StringUtils {
   static asString(x) { return String(x); }
 
+  static capitalize(s) {
+    s = String(s);
+    return !s ? s : s[0].toUpperCase() + s.substr(1);
+  }
+
   static trimLeft(s) { return s.replace(/^\s+/, ""); }
   static trimRight(s) { return s.replace(/\s+$/, ""); }
-
-  static padLeft(s, n, x) {
-    s = String(s);
-    if (s.length < n) s += String(x || " ").repeat(n - s.length);
-    return s;
-  }
 
   static upFirst(s) {
     if (!s) return "";
@@ -150,7 +236,7 @@ class StringUtils {
     for (var i = 0; i < array.length; i++) {
       const last = i === array.length - 1;
       s += indent + array[i].data +
-           (last ? "  // " : ", // ") + StringUtils.padLeft(array[i].refs ? "#" + String(i) : "", 5) + array[i].comment + "\n";
+           (last ? "  // " : ", // ") + (array[i].refs ? "#" + String(i) : "").padEnd(5) + array[i].comment + "\n";
     }
     return `${code} = {\n${s}};\n`;
   }
@@ -215,10 +301,43 @@ exports.StringUtils = StringUtils;
 // ============================================================================
 
 class ArrayUtils {
+  static min(arr, fn) {
+    if (!arr.length)
+      return null;
+
+    if (!fn)
+      fn = nop;
+
+    var v = fn(arr[0]);
+    for (var i = 1; i < arr.length; i++)
+      v = Math.min(v, fn(arr[i]));
+    return v;
+  }
+
+  static max(arr, fn) {
+    if (!arr.length)
+      return null;
+
+    if (!fn)
+      fn = nop;
+
+    var v = fn(arr[0]);
+    for (var i = 1; i < arr.length; i++)
+      v = Math.max(v, fn(arr[i]));
+    return v;
+  }
+
   static sorted(obj, cmp) {
     const out = Array.isArray(obj) ? obj.slice() : Object.getOwnPropertyNames(obj);
     out.sort(cmp);
     return out;
+  }
+
+  static deepIndexOf(arr, what) {
+    for (var i = 0; i < arr.length; i++)
+      if (Lang.deepEq(arr[i], what))
+        return i;
+    return -1;
   }
 }
 exports.ArrayUtils = ArrayUtils;
@@ -284,6 +403,29 @@ class MapUtils {
   }
 };
 exports.MapUtils = MapUtils;
+
+// ============================================================================
+// [CxxUtils]
+// ============================================================================
+
+class CxxUtils {
+  static flags(obj, fn) {
+    if (!fn)
+      fn = nop;
+
+    var out = "";
+    for (var k in obj) {
+      if (obj[k])
+        out += (out ? " | " : "") + fn(k);
+    }
+    return out ? out : "0";
+  }
+
+  static struct(...args) {
+    return "{ " + args.join(", ") + " }";
+  }
+};
+exports.CxxUtils = CxxUtils;
 
 // ============================================================================
 // [IndexedString]
@@ -494,6 +636,9 @@ class TableGen {
 
     this.insts = [];
     this.instMap = Object.create(null);
+
+    this.aliases = [];
+    this.aliasMem = Object.create(null);
   }
 
   // --------------------------------------------------------------------------
@@ -626,6 +771,13 @@ class TableGen {
     return this;
   }
 
+  addAlias(alias, name) {
+    this.aliases.push(alias);
+    this.aliasMap[alias] = name;
+
+    return this;
+  }
+
   // --------------------------------------------------------------------------
   // [Run]
   // --------------------------------------------------------------------------
@@ -643,16 +795,16 @@ class TableGen {
   dumpTableSizes() {
     const sizes = this.tableSizes;
 
-    var pad = 24;
+    var pad = 26;
     var total = 0;
 
     for (var name in sizes) {
       const size = sizes[name];
       total += size;
-      console.log(StringUtils.padLeft('Size of ' + name, pad) + ": " + size);
+      console.log(("Size of " + name).padEnd(pad) + ": " + size);
     }
 
-    console.log(StringUtils.padLeft('Size of all tables', pad) + ": " + total);
+    console.log("Size of all tables".padEnd(pad) + ": " + total);
   }
 
   // --------------------------------------------------------------------------
@@ -688,7 +840,7 @@ class IdEnum extends Task {
       var text = this.comment(inst);
 
       if (text)
-        line = StringUtils.padLeft(line, 37) + "// " + text;
+        line = line.padEnd(37) + "// " + text;
 
       s += line + "\n";
     }
@@ -761,7 +913,7 @@ class NameTable extends Task {
       const firstId = instFirst[i] || none;
       const lastId = instLast[i] || none;
 
-      s += `  { ${StringUtils.padLeft(firstId, 22)}, ${StringUtils.padLeft(lastId , 22)} + 1 }`;
+      s += `  { ${String(firstId).padEnd(22)}, ${String(lastId).padEnd(22)} + 1 }`;
       if (i !== 26 - 1)
         s += `,`;
       s += `\n`;
