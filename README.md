@@ -11,7 +11,14 @@ Complete x86/x64 JIT and Remote Assembler for C++.
 Important
 ---------
 
-At the moment the most work related to asmjit happens in next-wip branch, which should be now used in case that you use either Assembler or Builder tools, however, it's unstable regarding asmjit's Compiler. The current master branch is considered stable, but is frozen until next-wip branch is merged. Also note that next-wip branch is not compatible with master - it moves all classes with X86 prefix into x86 namespaces and contains a lot of minor breaking changes - the transition is straightforward and if you use gitter you can get help instantly in case you face something more complicated.
+There are now two branches new users should decide to use:
+
+  * oldstable - old version that will be maintained until the end of 2019
+  * next-wip - new version that will be merged into master in June 2019
+
+At the moment the most work happens in `next-wip` branch, which should be now used by new projects (and existing projects should migrate as soon as possible). Some changes in next-wip branch are not API compatible with master branch, for example all classes having X86 prefix were moved into `asmjit::x86` namespaces and some other classes were renamed, but almost all changes are cosmetic and transition to the new version should be straightforward. A commercial option for transitioning from old AsmJit to the current/next-wip is also available.
+
+The `oldstable` branch was created for users that cannot migrate at the moment and will be maintained until the end of 2019, and then deleted. So please use `next-wip` branch now and consider switching to it as soon as possible.
 
 Introduction
 ------------
