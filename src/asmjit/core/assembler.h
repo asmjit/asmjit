@@ -14,7 +14,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -27,18 +27,31 @@ public:
   ASMJIT_NONCOPYABLE(BaseAssembler)
   typedef BaseEmitter Base;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Current section where the assembling happens.
+  Section* _section;
+  //! Start of the CodeBuffer of the current section.
+  uint8_t* _bufferData;
+  //! End (first invalid byte) of the current section.
+  uint8_t* _bufferEnd;
+  //! Pointer in the CodeBuffer of the current section.
+  uint8_t* _bufferPtr;
+  //! 5th operand data, used only temporarily.
+  Operand_ _op4;
+  //! 6th operand data, used only temporarily.
+  Operand_ _op5;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `BaseAssembler` instance.
   ASMJIT_API BaseAssembler() noexcept;
   //! Destroys the `BaseAssembler` instance.
   ASMJIT_API virtual ~BaseAssembler() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Buffer Management]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Code-Buffer Management
+  //! \{
 
   //! Gets the capacity of the current CodeBuffer.
   inline size_t bufferCapacity() const noexcept { return (size_t)(_bufferEnd - _bufferData); }
@@ -60,25 +73,28 @@ public:
   //! Gets the current pointer in the CodeBuffer in the current section.
   inline uint8_t* bufferPtr() const noexcept { return _bufferPtr; }
 
-  // --------------------------------------------------------------------------
-  // [Section Management]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Section Management
+  //! \{
 
   inline Section* currentSection() const noexcept { return _section; }
 
   ASMJIT_API Error section(Section* section) override;
 
-  // --------------------------------------------------------------------------
-  // [Label Management]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Label Management
+  //! \{
 
   ASMJIT_API Label newLabel() override;
   ASMJIT_API Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = Globals::kInvalidId) override;
   ASMJIT_API Error bind(const Label& label) override;
 
-  // --------------------------------------------------------------------------
-  // [Emit (Low-Level)]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Emit
+  //! \{
 
   using BaseEmitter::_emit;
 
@@ -113,43 +129,31 @@ protected:
   #endif
 public:
 
-  // --------------------------------------------------------------------------
-  // [Embed]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Embed
+  //! \{
 
   ASMJIT_API Error embed(const void* data, uint32_t size) override;
   ASMJIT_API Error embedLabel(const Label& label) override;
   ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool) override;
 
-  // --------------------------------------------------------------------------
-  // [Comment]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Comment
+  //! \{
 
   ASMJIT_API Error comment(const char* data, size_t size = SIZE_MAX) override;
 
-  // --------------------------------------------------------------------------
-  // [Events]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Events
+  //! \{
 
   ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
   ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Current section where the assembling happens.
-  Section* _section;
-  //! Start of the CodeBuffer of the current section.
-  uint8_t* _bufferData;
-  //! End (first invalid byte) of the current section.
-  uint8_t* _bufferEnd;
-  //! Pointer in the CodeBuffer of the current section.
-  uint8_t* _bufferPtr;
-  //! 5th operand data, used only temporarily.
-  Operand_ _op4;
-  //! 6th operand data, used only temporarily.
-  Operand_ _op5;
+  //! \}
 };
 
 //! \}

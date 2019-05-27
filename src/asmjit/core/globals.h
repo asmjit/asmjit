@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -314,7 +314,7 @@ static constexpr void* func_as_ptr(Func func) noexcept { return Support::ptr_cas
 // [asmjit::Support]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_NO_STDCXX)
+#if defined(ASMJIT_NO_STDCXX)
 namespace Support {
   ASMJIT_INLINE void* operatorNew(size_t n) noexcept { return malloc(n); }
   ASMJIT_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }

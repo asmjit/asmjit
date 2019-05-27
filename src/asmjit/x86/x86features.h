@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -128,18 +128,25 @@ public:
     kCount                     //!< Count of X86 CPU features.
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction / Destruction
+  //! \{
 
   inline Features() noexcept
     : BaseFeatures() {}
   inline Features(const Features& other) noexcept
     : BaseFeatures(other) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline Features& operator=(const Features& other) noexcept = default;
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   #define ASMJIT_X86_FEATURE(FEATURE) \
     inline bool has##FEATURE() const noexcept { return has(k##FEATURE); }
@@ -246,11 +253,7 @@ public:
 
   #undef ASMJIT_X86_FEATURE
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline Features& operator=(const Features& other) noexcept = default;
+  //! \}
 };
 
 //! \}

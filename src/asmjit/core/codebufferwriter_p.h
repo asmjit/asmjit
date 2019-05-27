@@ -13,7 +13,7 @@
 ASMJIT_BEGIN_NAMESPACE
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -23,6 +23,8 @@ ASMJIT_BEGIN_NAMESPACE
 //! Helper that is used to write into a `CodeBuffer` held by `BaseAssembler`.
 class CodeBufferWriter {
 public:
+  uint8_t* _cursor;
+
   ASMJIT_INLINE explicit CodeBufferWriter(BaseAssembler* a) noexcept
     : _cursor(a->_bufferPtr) {}
 
@@ -133,8 +135,6 @@ public:
     a->_bufferPtr = _cursor;
     buffer._size = Support::max(buffer._size, newSize);
   }
-
-  uint8_t* _cursor;
 };
 
 //! \}

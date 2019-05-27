@@ -15,8 +15,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \cond INTERNAL
-//! \addtogroup asmjit_core_support
+//! \addtogroup asmjit_support
 //! \{
 
 //! Contains support classes and functions that may be used by AsmJit source
@@ -28,14 +27,17 @@ namespace Support {
 // [asmjit::Support - Architecture Features & Constraints]
 // ============================================================================
 
+//! \cond INTERNAL
 static constexpr bool kUnalignedAccess16 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess32 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess64 = ASMJIT_ARCH_X86 != 0;
+//! \endcond
 
 // ============================================================================
 // [asmjit::Support - Internal]
 // ============================================================================
 
+//! \cond INTERNAL
 namespace Internal {
   template<typename T, size_t Alignment>
   struct AlignedInt {};
@@ -69,6 +71,7 @@ namespace Internal {
   template<typename T, int IS_SIGNED = std::is_signed<T>::value>
   struct Int32Or64 : public IntBySize<sizeof(T) <= 4 ? size_t(4) : sizeof(T), IS_SIGNED> {};
 }
+//! \endcond
 
 // ============================================================================
 // [asmjit::Support - FastUInt8]
@@ -100,6 +103,7 @@ static constexpr typename Internal::Int32Or64<T>::Type asNormalized(T x) noexcep
 // [asmjit::Support - BitCast]
 // ============================================================================
 
+//! \cond
 namespace Internal {
   template<typename DstT, typename SrcT>
   union BitCastUnion {
@@ -108,6 +112,7 @@ namespace Internal {
     DstT dst;
   };
 }
+//! \endcond
 
 //! Bit-casts from `Src` type to `Dst` type.
 //!
@@ -204,6 +209,7 @@ static constexpr DstT bitMaskFromBool(SrcT b) noexcept {
   return DstT(U(0) - U(b));
 }
 
+//! \cond
 namespace Internal {
   // Fills all trailing bits right from the first most significant bit set.
   static constexpr uint8_t fillTrailingBitsImpl(uint8_t x) noexcept { return or_shr(or_shr(or_shr(x, 1), 2), 4); }
@@ -214,6 +220,7 @@ namespace Internal {
   // Fills all trailing bits right from the first most significant bit set.
   static constexpr uint64_t fillTrailingBitsImpl(uint64_t x) noexcept { return or_shr(or_shr(or_shr(or_shr(or_shr(or_shr(x, 1), 2), 4), 8), 16), 32); }
 }
+//! \endcond
 
 // Fills all trailing bits right from the first most significant bit set.
 template<typename T>
@@ -226,6 +233,7 @@ static constexpr T fillTrailingBits(const T& x) noexcept {
 // [asmjit::Support - CTZ]
 // ============================================================================
 
+//! \cond
 namespace Internal {
   static constexpr uint32_t constCtzImpl(uint32_t xAndNegX) noexcept {
     return 31 - ((xAndNegX & 0x0000FFFFu) ? 16 : 0)
@@ -273,16 +281,17 @@ namespace Internal {
   #endif
   }
 }
-
-//! Count trailing zeros in `x` (constant expression).
-template<typename T>
-static constexpr uint32_t constCtz(T x) noexcept { return Internal::constCtz(asUInt(x)); }
+//! \endcond
 
 //! Count trailing zeros in `x` (returns a position of a first bit set in `x`).
 //!
 //! NOTE: The input MUST NOT be zero, otherwise the result is undefined.
 template<typename T>
 static inline uint32_t ctz(T x) noexcept { return Internal::ctz(asUInt(x)); }
+
+//! Count trailing zeros in `x` (constant expression).
+template<typename T>
+static constexpr uint32_t constCtz(T x) noexcept { return Internal::constCtz(asUInt(x)); }
 
 // ============================================================================
 // [asmjit::Support - PopCnt]
@@ -299,43 +308,51 @@ static inline uint32_t ctz(T x) noexcept { return Internal::ctz(asUInt(x)); }
 //   }
 //   return n;
 
-static inline uint32_t _popcntGeneric(uint32_t x) noexcept {
-  x = x - ((x >> 1) & 0x55555555u);
-  x = (x & 0x33333333u) + ((x >> 2) & 0x33333333u);
-  return (((x + (x >> 4)) & 0x0F0F0F0Fu) * 0x01010101u) >> 24;
-}
-
-static inline uint32_t _popcntGeneric(uint64_t x) noexcept {
-  if (ASMJIT_ARCH_BITS >= 64) {
-    x = x - ((x >> 1) & 0x5555555555555555u);
-    x = (x & 0x3333333333333333u) + ((x >> 2) & 0x3333333333333333u);
-    return uint32_t((((x + (x >> 4)) & 0x0F0F0F0F0F0F0F0Fu) * 0x0101010101010101u) >> 56);
+//! \cond
+namespace Internal {
+  static inline uint32_t constPopcntImpl(uint32_t x) noexcept {
+    x = x - ((x >> 1) & 0x55555555u);
+    x = (x & 0x33333333u) + ((x >> 2) & 0x33333333u);
+    return (((x + (x >> 4)) & 0x0F0F0F0Fu) * 0x01010101u) >> 24;
   }
-  else {
-    return _popcntGeneric(uint32_t(x >> 32)) +
-           _popcntGeneric(uint32_t(x & 0xFFFFFFFFu));
+
+  static inline uint32_t constPopcntImpl(uint64_t x) noexcept {
+    if (ASMJIT_ARCH_BITS >= 64) {
+      x = x - ((x >> 1) & 0x5555555555555555u);
+      x = (x & 0x3333333333333333u) + ((x >> 2) & 0x3333333333333333u);
+      return uint32_t((((x + (x >> 4)) & 0x0F0F0F0F0F0F0F0Fu) * 0x0101010101010101u) >> 56);
+    }
+    else {
+      return constPopcntImpl(uint32_t(x >> 32)) +
+             constPopcntImpl(uint32_t(x & 0xFFFFFFFFu));
+    }
+  }
+
+  static inline uint32_t popcntImpl(uint32_t x) noexcept {
+  #if defined(__GNUC__)
+    return uint32_t(__builtin_popcount(x));
+  #else
+    return constPopcntImpl(asUInt(x));
+  #endif
+  }
+
+  static inline uint32_t popcntImpl(uint64_t x) noexcept {
+  #if defined(__GNUC__)
+    return uint32_t(__builtin_popcountll(x));
+  #else
+    return constPopcntImpl(asUInt(x));
+  #endif
   }
 }
-
-static inline uint32_t _popcntImpl(uint32_t x) noexcept {
-#if defined(__GNUC__)
-  return uint32_t(__builtin_popcount(x));
-#else
-  return _popcntGeneric(asUInt(x));
-#endif
-}
-
-static inline uint32_t _popcntImpl(uint64_t x) noexcept {
-#if defined(__GNUC__)
-  return uint32_t(__builtin_popcountll(x));
-#else
-  return _popcntGeneric(asUInt(x));
-#endif
-}
+//! \endcond
 
 //! Gets count of bits in `x`.
 template<typename T>
-static inline uint32_t popcnt(T x) noexcept { return _popcntImpl(asUInt(x)); }
+static inline uint32_t popcnt(T x) noexcept { return Internal::popcntImpl(asUInt(x)); }
+
+//! Gets count of bits in `x`.
+template<typename T>
+static inline uint32_t constPopcnt(T x) noexcept { return Internal::constPopcntImpl(asUInt(x)); }
 
 // ============================================================================
 // [asmjit::Support - Min/Max]
@@ -361,6 +378,7 @@ static constexpr T max(const T& a, const T& b, ArgsT&&... args) noexcept { retur
 // [asmjit::Support - Overflow Arithmetic]
 // ============================================================================
 
+//! \cond
 namespace Internal {
   template<typename T>
   static ASMJIT_INLINE T addOverflowImpl(T x, T y, FastUInt8* of) noexcept {
@@ -380,6 +398,7 @@ namespace Internal {
     return T(result);
   }
 }
+//! \endcond
 
 template<typename T>
 static ASMJIT_INLINE T addOverflow(const T& x, const T& y, FastUInt8* of) noexcept { return T(Internal::addOverflowImpl(x, y, of)); }
@@ -934,6 +953,7 @@ public:
 // [asmjit::Support - BitVectorOps]
 // ============================================================================
 
+//! \cond
 namespace Internal {
   template<typename T, class OperatorT, class FullWordOpT>
   static inline void bitVectorOp(T* buf, size_t index, size_t count) noexcept {
@@ -966,6 +986,7 @@ namespace Internal {
       buf[0] = OperatorT::op(buf[0], kFillMask >> (kTSizeInBits - count));
   }
 }
+//! \endcond
 
 //! Sets bit in a bit-vector `buf` at `index`.
 template<typename T>
@@ -1181,6 +1202,7 @@ static inline void iSort(T* base, size_t size, const CompareT& cmp = CompareT())
       std::swap(pl[-1], pl[0]);
 }
 
+//! \cond
 namespace Internal {
   //! Quick-sort implementation.
   template<typename T, class CompareT>
@@ -1243,6 +1265,8 @@ namespace Internal {
     }
   };
 }
+//! \endcond
+
 
 //! Quick sort implementation.
 //!
@@ -1323,18 +1347,28 @@ public:
 //!   - Containers that use user-passed buffer as an initial storage (still can grow).
 //!   - Zone allocator that would use the temporary buffer as a first block.
 struct Temporary {
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  void* _data;
+  size_t _size;
+
+  //! \name Construction & Destruction
+  //! \{
 
   constexpr Temporary(const Temporary& other) noexcept = default;
   constexpr Temporary(void* data, size_t size) noexcept
     : _data(data),
       _size(size) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline Temporary& operator=(const Temporary& other) noexcept = default;
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the storage.
   template<typename T = void>
@@ -1342,24 +1376,12 @@ struct Temporary {
   //! Gets the storage size (capacity).
   constexpr size_t size() const noexcept { return _size; }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline Temporary& operator=(const Temporary& other) noexcept = default;
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  void* _data;
-  size_t _size;
+  //! \}
 };
 
 } // {Support}
 
 //! \}
-//! \endcond
 
 ASMJIT_END_NAMESPACE
 

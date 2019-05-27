@@ -667,7 +667,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t archId,
-  const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept {
+  const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept {
 
   uint32_t instId = inst.id();
   uint32_t options = inst.options();
@@ -724,7 +724,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
     ASMJIT_PROPAGATE(sb.appendFormat("[InstId=#%u]", unsigned(instId)));
   }
 
-  for (uint32_t i = 0; i < count; i++) {
+  for (uint32_t i = 0; i < opCount; i++) {
     const Operand_& op = operands[i];
     if (op.isNone()) break;
 
@@ -733,7 +733,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
 
     if (op.isImm() && (flags & FormatOptions::kFlagExplainImms)) {
       uint32_t vecSize = 16;
-      for (uint32_t j = 0; j < count; j++)
+      for (uint32_t j = 0; j < opCount; j++)
         if (operands[j].isReg())
           vecSize = Support::max<uint32_t>(vecSize, operands[j].size());
       ASMJIT_PROPAGATE(LoggingInternal_explainConst(sb, flags, instId, vecSize, op.as<Imm>()));

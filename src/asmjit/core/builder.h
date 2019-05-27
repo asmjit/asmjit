@@ -38,7 +38,7 @@ class CommentNode;
 class SentinelNode;
 class Pass;
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -50,18 +50,46 @@ public:
   ASMJIT_NONCOPYABLE(BaseBuilder)
   typedef BaseEmitter Base;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Base zone used to allocate nodes and passes.
+  Zone _codeZone;
+  //! Data zone used to allocate data and names.
+  Zone _dataZone;
+  //! Pass zone, passed to `Pass::run()`.
+  Zone _passZone;
+  //! Allocator that uses `_codeZone`.
+  ZoneAllocator _allocator;
+
+  //! Array of `Pass` objects.
+  ZoneVector<Pass*> _passes;
+  //! Maps section indexes to `LabelNode` nodes.
+  ZoneVector<SectionNode*> _sectionNodes;
+  //! Maps label indexes to `LabelNode` nodes.
+  ZoneVector<LabelNode*> _labelNodes;
+
+  //! Current node (cursor).
+  BaseNode* _cursor;
+  //! First node of the current section.
+  BaseNode* _firstNode;
+  //! Last node of the current section.
+  BaseNode* _lastNode;
+
+  //! Flags assigned to each new node.
+  uint32_t _nodeFlags;
+  //! The sections links are dirty (used internally).
+  bool _dirtySectionLinks;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `BaseBuilder` instance.
   ASMJIT_API BaseBuilder() noexcept;
   //! Destroys the `BaseBuilder` instance.
   ASMJIT_API virtual ~BaseBuilder() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Nodes]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Node Management
+  //! \{
 
   //! Gets the first node.
   inline BaseNode* firstNode() const noexcept { return _firstNode; }
@@ -133,9 +161,10 @@ public:
   //! this inlined (for example if you set the cursor in a loop, etc...).
   inline void _setCursor(BaseNode* node) noexcept { _cursor = node; }
 
-  // --------------------------------------------------------------------------
-  // [Sections]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Section Management
+  //! \{
 
   //! Gets a vector of SectionNode nodes.
   //!
@@ -164,9 +193,10 @@ public:
   //! Updates links of all active section nodes.
   ASMJIT_API void updateSectionLinks() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Labels]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Label Management
+  //! \{
 
   //! Gets a vector of LabelNode nodes.
   //!
@@ -207,9 +237,10 @@ public:
   ASMJIT_API Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, uint32_t type = Label::kTypeGlobal, uint32_t parentId = Globals::kInvalidId) override;
   ASMJIT_API Error bind(const Label& label) override;
 
-  // --------------------------------------------------------------------------
-  // [Passes]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Passes
+  //! \{
 
   //! Gets a vector of Pass instances that will be executed by `runPasses()`.
   inline const ZoneVector<Pass*>& passes() const noexcept { return _passes; }
@@ -245,36 +276,41 @@ public:
   //! Runs all passes in order.
   ASMJIT_API Error runPasses();
 
-  // --------------------------------------------------------------------------
-  // [Emit]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Emit
+  //! \{
 
   ASMJIT_API Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) override;
   ASMJIT_API Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) override;
 
-  // --------------------------------------------------------------------------
-  // [Align]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Align
+  //! \{
 
   ASMJIT_API Error align(uint32_t alignMode, uint32_t alignment) override;
 
-  // --------------------------------------------------------------------------
-  // [Embed]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Embed
+  //! \{
 
   ASMJIT_API Error embed(const void* data, uint32_t size) override;
   ASMJIT_API Error embedLabel(const Label& label) override;
   ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool) override;
 
-  // --------------------------------------------------------------------------
-  // [Comment]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Comment
+  //! \{
 
   ASMJIT_API Error comment(const char* data, size_t size = SIZE_MAX) override;
 
-  // --------------------------------------------------------------------------
-  // [Serialize]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Serialization
+  //! \{
 
   //! Serializes everything the given emitter `dst`.
   //!
@@ -283,52 +319,24 @@ public:
   //! nodes held by Builder/Compiler into another Builder-like emitter.
   ASMJIT_API Error serialize(BaseEmitter* dst);
 
-  // --------------------------------------------------------------------------
-  // [Logging]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Logging
+  //! \{
 
   #ifndef ASMJIT_DISABLE_LOGGING
   ASMJIT_API Error dump(String& sb, uint32_t flags = 0) const noexcept;
   #endif
 
-  // --------------------------------------------------------------------------
-  // [Events]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Events
+  //! \{
 
   ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
   ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Base zone used to allocate nodes and passes.
-  Zone _codeZone;
-  //! Data zone used to allocate data and names.
-  Zone _dataZone;
-  //! Pass zone, passed to `Pass::run()`.
-  Zone _passZone;
-  //! Allocator that uses `_codeZone`.
-  ZoneAllocator _allocator;
-
-  //! Array of `Pass` objects.
-  ZoneVector<Pass*> _passes;
-  //! Maps section indexes to `LabelNode` nodes.
-  ZoneVector<SectionNode*> _sectionNodes;
-  //! Maps label indexes to `LabelNode` nodes.
-  ZoneVector<LabelNode*> _labelNodes;
-
-  //! Current node (cursor).
-  BaseNode* _cursor;
-  //! First node of the current section.
-  BaseNode* _firstNode;
-  //! Last node of the current section.
-  BaseNode* _lastNode;
-
-  //! Flags assigned to each new node.
-  uint32_t _nodeFlags;
-  //! The sections links are dirty (used internally).
-  bool _dirtySectionLinks;
+  //! \}
 };
 
 // ============================================================================
@@ -345,6 +353,72 @@ public:
 class BaseNode {
 public:
   ASMJIT_NONCOPYABLE(BaseNode)
+
+  union {
+    struct {
+      //! Previous node.
+      BaseNode* _prev;
+      //! Next node.
+      BaseNode* _next;
+    };
+    //! Links (previous and next nodes).
+    BaseNode* _links[2];
+  };
+
+  //! Data shared between all types of nodes.
+  struct AnyData {
+    //! Node type, see \ref NodeType.
+    uint8_t _nodeType;
+    //! Node flags, see \ref Flags.
+    uint8_t _nodeFlags;
+    //! Not used by BaseNode.
+    uint8_t _reserved0;
+    //! Not used by BaseNode.
+    uint8_t _reserved1;
+  };
+
+  struct InstData {
+    //! Node type, see \ref NodeType.
+    uint8_t _nodeType;
+    //! Node flags, see \ref Flags.
+    uint8_t _nodeFlags;
+    //! Instruction operands count (used).
+    uint8_t _opCount;
+    //! Instruction operands capacity (allocated).
+    uint8_t _opCapacity;
+  };
+
+  struct SentinelData {
+    //! Node type, see \ref NodeType.
+    uint8_t _nodeType;
+    //! Node flags, see \ref Flags.
+    uint8_t _nodeFlags;
+    //! Sentinel type.
+    uint8_t _sentinelType;
+    //! Not used by BaseNode.
+    uint8_t _reserved1;
+  };
+
+  union {
+    AnyData _any;
+    InstData _inst;
+    SentinelData _sentinel;
+  };
+
+  //! Node position in code (should be unique).
+  uint32_t _position;
+
+  //! Value reserved for AsmJit users never touched by AsmJit itself.
+  union {
+    uint64_t _userDataU64;
+    void* _userDataPtr;
+  };
+
+  //! Data used exclusively by the current `Pass`.
+  void* _passData;
+
+  //! Inline comment/annotation or nullptr if not used.
+  const char* _inlineComment;
 
   //! Type of `BaseNode`.
   enum NodeType : uint32_t {
@@ -382,9 +456,8 @@ public:
     kFlagIsActive        = 0x80u         //!< Node is active (part of the code).
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `BaseNode` - always use `BaseBuilder` to allocate nodes.
   ASMJIT_INLINE BaseNode(BaseBuilder* cb, uint32_t type, uint32_t flags = 0) noexcept {
@@ -400,9 +473,10 @@ public:
     _inlineComment = nullptr;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Casts this node to `T*`.
   template<typename T>
@@ -538,75 +612,7 @@ public:
   //! Resets an inline comment/annotation string to nullptr.
   inline void resetInlineComment() noexcept { _inlineComment = nullptr; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  union {
-    struct {
-      //! Previous node.
-      BaseNode* _prev;
-      //! Next node.
-      BaseNode* _next;
-    };
-    //! Links (previous and next nodes).
-    BaseNode* _links[2];
-  };
-
-  //! Data shared between all types of nodes.
-  struct AnyData {
-    //! Node type, see \ref NodeType.
-    uint8_t _nodeType;
-    //! Node flags, see \ref Flags.
-    uint8_t _nodeFlags;
-    //! Not used by BaseNode.
-    uint8_t _reserved0;
-    //! Not used by BaseNode.
-    uint8_t _reserved1;
-  };
-
-  struct InstData {
-    //! Node type, see \ref NodeType.
-    uint8_t _nodeType;
-    //! Node flags, see \ref Flags.
-    uint8_t _nodeFlags;
-    //! Instruction operands count (used).
-    uint8_t _opCount;
-    //! Instruction operands capacity (allocated).
-    uint8_t _opCapacity;
-  };
-
-  struct SentinelData {
-    //! Node type, see \ref NodeType.
-    uint8_t _nodeType;
-    //! Node flags, see \ref Flags.
-    uint8_t _nodeFlags;
-    //! Sentinel type.
-    uint8_t _sentinelType;
-    //! Not used by BaseNode.
-    uint8_t _reserved1;
-  };
-
-  union {
-    AnyData _any;
-    InstData _inst;
-    SentinelData _sentinel;
-  };
-
-  //! Node position in code (should be unique).
-  uint32_t _position;
-
-  //! Value reserved for AsmJit users never touched by AsmJit itself.
-  union {
-    uint64_t _userDataU64;
-    void* _userDataPtr;
-  };
-
-  //! Data used exclusively by the current `Pass`.
-  void* _passData;
-
-  //! Inline comment/annotation or nullptr if not used.
-  const char* _inlineComment;
+  //! \}
 };
 
 // ============================================================================
@@ -628,18 +634,13 @@ public:
     kBaseOpCapacity = uint32_t((128 - sizeof(BaseNode) - sizeof(BaseInst)) / sizeof(Operand_))
   };
 
-  static inline uint32_t capacityOfOpCount(uint32_t opCount) noexcept {
-    return opCount <= kBaseOpCapacity ? kBaseOpCapacity : Globals::kMaxOpCount;
-  }
+  //! Base instruction data.
+  BaseInst _baseInst;
+  //! First 4 or 5 operands (indexed from 0).
+  Operand_ _opArray[kBaseOpCapacity];
 
-  static inline size_t nodeSizeOfOpCapacity(uint32_t opCapacity) noexcept {
-    size_t base = sizeof(InstNode) - kBaseOpCapacity * sizeof(Operand);
-    return base + opCapacity * sizeof(Operand);
-  }
-
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `InstNode` instance.
   ASMJIT_INLINE InstNode(BaseBuilder* cb, uint32_t instId, uint32_t options, uint32_t opCount, uint32_t opCapacity = kBaseOpCapacity) noexcept
@@ -649,10 +650,6 @@ public:
     _inst._opCount = uint8_t(opCount);
   }
 
-  // --------------------------------------------------------------------------
-  // [Init]
-  // --------------------------------------------------------------------------
-
   //! Reset all built-in operands, including `extraReg`.
   inline void _resetOps() noexcept {
     _baseInst.resetExtraReg();
@@ -660,9 +657,10 @@ public:
       _opArray[i].reset();
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline BaseInst& baseInst() noexcept { return _baseInst; }
   inline const BaseInst& baseInst() const noexcept { return _baseInst; }
@@ -727,9 +725,10 @@ public:
     _opArray[index].reset();
   }
 
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   inline bool hasOpType(uint32_t opType) const noexcept {
     for (uint32_t i = 0, count = opCount(); i < count; i++)
@@ -760,9 +759,10 @@ public:
   inline uint32_t indexOfImmOp() const noexcept { return indexOfOpType(Operand::kOpImm); }
   inline uint32_t indexOfLabelOp() const noexcept { return indexOfOpType(Operand::kOpLabel); }
 
-  // --------------------------------------------------------------------------
-  // [Rewrite]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Rewriting
+  //! \{
 
   inline uint32_t* _getRewriteArray() noexcept { return &_baseInst._extraReg._id; }
   inline const uint32_t* _getRewriteArray() const noexcept { return &_baseInst._extraReg._id; }
@@ -782,39 +782,46 @@ public:
     array[index] = id;
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
+  //! \}
 
+  //! \name Static Functions
+  //! \{
 
-  //! Base instruction data.
-  BaseInst _baseInst;
-  //! First 4 or 5 operands (indexed from 0).
-  Operand_ _opArray[kBaseOpCapacity];
+  static inline uint32_t capacityOfOpCount(uint32_t opCount) noexcept {
+    return opCount <= kBaseOpCapacity ? kBaseOpCapacity : Globals::kMaxOpCount;
+  }
+
+  static inline size_t nodeSizeOfOpCapacity(uint32_t opCapacity) noexcept {
+    size_t base = sizeof(InstNode) - kBaseOpCapacity * sizeof(Operand);
+    return base + opCapacity * sizeof(Operand);
+  }
+
+  //! \}
 };
 
 // ============================================================================
 // [asmjit::InstExNode]
 // ============================================================================
 
+//! Instruction node with maximum number of operands..
+//!
+//! This node is created automatically by Builder/Compiler in case that the
+//! required number of operands exceeds the default capacity of `InstNode`.
 class InstExNode : public InstNode {
 public:
   ASMJIT_NONCOPYABLE(InstExNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Continued `_opArray[]` to hold up to `kMaxOpCount` operands.
+  Operand_ _opArrayEx[Globals::kMaxOpCount - kBaseOpCapacity];
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `InstExNode` instance.
   inline InstExNode(BaseBuilder* cb, uint32_t instId, uint32_t options, uint32_t opCapacity = Globals::kMaxOpCount) noexcept
     : InstNode(cb, instId, options, opCapacity) {}
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Continued `_opArray[]` to hold up to `kMaxOpCount` operands.
-  Operand_ _opArrayEx[Globals::kMaxOpCount - kBaseOpCapacity];
+  //! \}
 };
 
 // ============================================================================
@@ -826,27 +833,6 @@ class SectionNode : public BaseNode {
 public:
   ASMJIT_NONCOPYABLE(SectionNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
-
-  //! Creates a new `SectionNode` instance.
-  inline SectionNode(BaseBuilder* cb, uint32_t id = 0) noexcept
-    : BaseNode(cb, kNodeSection, kFlagHasNoEffect),
-      _id(id),
-      _nextSection(nullptr) {}
-
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
-
-  //! Gets the section id.
-  inline uint32_t id() const noexcept { return _id; }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
   //! Section id.
   uint32_t _id;
 
@@ -857,6 +843,25 @@ public:
   //! to use this field you should always call `Builder::updateSectionLinks()`
   //! before you do so.
   SectionNode* _nextSection;
+
+  //! \name Construction & Destruction
+  //! \{
+
+  //! Creates a new `SectionNode` instance.
+  inline SectionNode(BaseBuilder* cb, uint32_t id = 0) noexcept
+    : BaseNode(cb, kNodeSection, kFlagHasNoEffect),
+      _id(id),
+      _nextSection(nullptr) {}
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  //! Gets the section id.
+  inline uint32_t id() const noexcept { return _id; }
+
+  //! \}
 };
 
 // ============================================================================
@@ -868,29 +873,27 @@ class LabelNode : public BaseNode {
 public:
   ASMJIT_NONCOPYABLE(LabelNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  uint32_t _id;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `LabelNode` instance.
   inline LabelNode(BaseBuilder* cb, uint32_t id = 0) noexcept
     : BaseNode(cb, kNodeLabel, kFlagHasNoEffect | kFlagActsAsLabel),
       _id(id) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the id of the label.
   inline uint32_t id() const noexcept { return _id; }
   //! Gets the label as `Label` operand.
   inline Label label() const noexcept { return Label(_id); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uint32_t _id;
+  //! \}
 };
 
 // ============================================================================
@@ -904,9 +907,13 @@ class AlignNode : public BaseNode {
 public:
   ASMJIT_NONCOPYABLE(AlignNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Align mode, see `AlignMode`.
+  uint32_t _alignMode;
+  //! Alignment (in bytes).
+  uint32_t _alignment;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `AlignNode` instance.
   inline AlignNode(BaseBuilder* cb, uint32_t alignMode, uint32_t alignment) noexcept
@@ -914,9 +921,10 @@ public:
       _alignMode(alignMode),
       _alignment(alignment) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets align mode.
   inline uint32_t alignMode() const noexcept { return _alignMode; }
@@ -928,14 +936,7 @@ public:
   //! Sets align offset in bytes to `offset`.
   inline void setAlignment(uint32_t alignment) noexcept { _alignment = alignment; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Align mode, see `AlignMode`.
-  uint32_t _alignMode;
-  //! Alignment (in bytes).
-  uint32_t _alignment;
+  //! \}
 };
 
 // ============================================================================
@@ -955,9 +956,21 @@ public:
     kInlineBufferSize = uint32_t(64 - sizeof(BaseNode) - 4)
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  union {
+    struct {
+      //! Embedded data buffer.
+      uint8_t _buf[kInlineBufferSize];
+      //! Size of the data.
+      uint32_t _size;
+    };
+    struct {
+      //! Pointer to external data.
+      uint8_t* _externalPtr;
+    };
+  };
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `EmbedDataNode` instance.
   inline EmbedDataNode(BaseBuilder* cb, void* data, uint32_t size) noexcept
@@ -973,31 +986,17 @@ public:
     _size = size;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets pointer to the data.
   inline uint8_t* data() const noexcept { return _size <= kInlineBufferSize ? const_cast<uint8_t*>(_buf) : _externalPtr; }
   //! Gets size of the data.
   inline uint32_t size() const noexcept { return _size; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  union {
-    struct {
-      //! Embedded data buffer.
-      uint8_t _buf[kInlineBufferSize];
-      //! Size of the data.
-      uint32_t _size;
-    };
-    struct {
-      //! Pointer to external data.
-      uint8_t* _externalPtr;
-    };
-  };
+  //! \}
 };
 
 // ============================================================================
@@ -1009,18 +1008,20 @@ class LabelDataNode : public BaseNode {
 public:
   ASMJIT_NONCOPYABLE(LabelDataNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  uint32_t _id;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `LabelDataNode` instance.
   inline LabelDataNode(BaseBuilder* cb, uint32_t id = 0) noexcept
     : BaseNode(cb, kNodeLabelData, kFlagIsData),
       _id(id) {}
 
-  // --------------------------------------------------------------------------
-  // [Interface]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the id of the label.
   inline uint32_t id() const noexcept { return _id; }
@@ -1030,24 +1031,22 @@ public:
   //! Gets the label as `Label` operand.
   inline Label label() const noexcept { return Label(_id); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uint32_t _id;
+  //! \}
 };
 
 // ============================================================================
 // [asmjit::ConstPoolNode]
 // ============================================================================
 
+//! A node that wraps `ConstPool`.
 class ConstPoolNode : public LabelNode {
 public:
   ASMJIT_NONCOPYABLE(ConstPoolNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  ConstPool _constPool;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `ConstPoolNode` instance.
   inline ConstPoolNode(BaseBuilder* cb, uint32_t id = 0) noexcept
@@ -1059,9 +1058,10 @@ public:
     clearFlags(kFlagIsCode | kFlagHasNoEffect);
   }
 
-  // --------------------------------------------------------------------------
-  // [Interface]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether the constant-pool is empty.
   inline bool empty() const noexcept { return _constPool.empty(); }
@@ -1075,16 +1075,17 @@ public:
   //! Gets the wrapped `ConstPool` instance (const).
   inline const ConstPool& constPool() const noexcept { return _constPool; }
 
+  //! \}
+
+  //! \name Utilities
+  //! \{
+
   //! See `ConstPool::add()`.
   inline Error add(const void* data, size_t size, size_t& dstOffset) noexcept {
     return _constPool.add(data, size, dstOffset);
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  ConstPool _constPool;
+  //! \}
 };
 
 // ============================================================================
@@ -1096,15 +1097,16 @@ class CommentNode : public BaseNode {
 public:
   ASMJIT_NONCOPYABLE(CommentNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `CommentNode` instance.
   inline CommentNode(BaseBuilder* cb, const char* comment) noexcept
     : BaseNode(cb, kNodeComment, kFlagIsInformative | kFlagHasNoEffect | kFlagIsRemovable) {
     _inlineComment = comment;
   }
+
+  //! \}
 };
 
 // ============================================================================
@@ -1125,9 +1127,8 @@ public:
     kSentinelFuncEnd = 1u
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `SentinelNode` instance.
   inline SentinelNode(BaseBuilder* cb, uint32_t sentinelType = kSentinelUnknown) noexcept
@@ -1136,12 +1137,15 @@ public:
     _sentinel._sentinelType = uint8_t(sentinelType);
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline uint32_t sentinelType() const noexcept { return _sentinel._sentinelType; }
   inline void setSentinelType(uint32_t type) noexcept { _sentinel._sentinelType = uint8_t(type); }
+
+  //! \}
 };
 
 // ============================================================================
@@ -1154,16 +1158,29 @@ public:
   ASMJIT_BASE_CLASS(Pass)
   ASMJIT_NONCOPYABLE(Pass)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! BaseBuilder this pass is assigned to.
+  BaseBuilder* _cb;
+  //! Name of the pass.
+  const char* _name;
+
+  //! \name Construction & Destruction
+  //! \{
 
   ASMJIT_API Pass(const char* name) noexcept;
   ASMJIT_API virtual ~Pass() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Interface]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  inline const BaseBuilder* cb() const noexcept { return _cb; }
+  inline const char* name() const noexcept { return _name; }
+
+  //! \}
+
+  //! \name Pass Interface
+  //! \{
 
   //! Processes the code stored in Builder or Compiler.
   //!
@@ -1171,21 +1188,7 @@ public:
   //! the code. It passes `zone`, which will be reset after the `run()` finishes.
   virtual Error run(Zone* zone, Logger* logger) noexcept = 0;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
-
-  inline const BaseBuilder* cb() const noexcept { return _cb; }
-  inline const char* name() const noexcept { return _name; }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! BaseBuilder this pass is assigned to.
-  BaseBuilder* _cb;
-  //! Name of the pass.
-  const char* _name;
+  //! \}
 };
 
 //! \}

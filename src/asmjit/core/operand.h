@@ -11,7 +11,82 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+// ============================================================================
+// [Macros]
+// ============================================================================
+
+//! Adds a template specialization for `REG_TYPE` into the local `RegTraits`.
+#define ASMJIT_DEFINE_REG_TRAITS(REG, REG_TYPE, GROUP, SIZE, COUNT, TYPE_ID)  \
+template<>                                                                    \
+struct RegTraits<REG_TYPE> {                                                  \
+  typedef REG RegT;                                                           \
+                                                                              \
+  static constexpr uint32_t kValid = 1;                                       \
+  static constexpr uint32_t kCount = COUNT;                                   \
+  static constexpr uint32_t kTypeId = TYPE_ID;                                \
+                                                                              \
+  static constexpr uint32_t kType = REG_TYPE;                                 \
+  static constexpr uint32_t kGroup = GROUP;                                   \
+  static constexpr uint32_t kSize = SIZE;                                     \
+                                                                              \
+  static constexpr uint32_t kSignature =                                      \
+    (Operand::kOpReg << Operand::kSignatureOpShift      ) |                   \
+    (kType           << Operand::kSignatureRegTypeShift ) |                   \
+    (kGroup          << Operand::kSignatureRegGroupShift) |                   \
+    (kSize           << Operand::kSignatureSizeShift    ) ;                   \
+}
+
+//! Adds constructors and member functions to a class that implements abstract
+//! register. Abstract register is register that doesn't have type or signature
+//! yet, it's a base class like `x86::Reg` or `arm::Reg`.
+#define ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                 \
+public:                                                                       \
+  /*! Default constructor that only setups basics. */                         \
+  constexpr REG() noexcept                                                    \
+    : BASE(kSignature, kIdBad) {}                                             \
+                                                                              \
+  /*! Makes a copy of the `other` register operand. */                        \
+  constexpr REG(const REG& other) noexcept                                    \
+    : BASE(other) {}                                                          \
+                                                                              \
+  /*! Makes a copy of the `other` register having id set to `rId` */          \
+  constexpr REG(const BaseReg& other, uint32_t rId) noexcept                  \
+    : BASE(other, rId) {}                                                     \
+                                                                              \
+  /*! Creates a register based on `signature` and `rId`. */                   \
+  constexpr REG(uint32_t signature, uint32_t rId) noexcept                    \
+    : BASE(signature, rId) {}                                                 \
+                                                                              \
+  /*! Creates a completely uninitialized REG register operand (garbage). */   \
+  inline explicit REG(Globals::NoInit_) noexcept                              \
+    : BASE(Globals::NoInit) {}                                                \
+                                                                              \
+  /*! Creates a new register from register type and id. */                    \
+  static inline REG fromTypeAndId(uint32_t rType, uint32_t rId) noexcept {    \
+    return REG(signatureOf(rType), rId);                                      \
+  }                                                                           \
+                                                                              \
+  /*! Clones the register operand. */                                         \
+  constexpr REG clone() const noexcept { return REG(*this); }                 \
+                                                                              \
+  inline REG& operator=(const REG& other) noexcept = default;
+
+//! Adds constructors and member functions to a class that implements final
+//! register. Final registers MUST HAVE a valid signature.
+#define ASMJIT_DEFINE_FINAL_REG(REG, BASE, TRAITS)                            \
+public:                                                                       \
+  static constexpr uint32_t kThisType  = TRAITS::kType;                       \
+  static constexpr uint32_t kThisGroup = TRAITS::kGroup;                      \
+  static constexpr uint32_t kThisSize  = TRAITS::kSize;                       \
+  static constexpr uint32_t kSignature = TRAITS::kSignature;                  \
+                                                                              \
+  ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                       \
+                                                                              \
+  /*! Creates a register operand having its id set to `rId`. */               \
+  constexpr explicit REG(uint32_t rId) noexcept                               \
+    : BASE(kSignature, rId) {}
+
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -33,9 +108,29 @@ ASMJIT_BEGIN_NAMESPACE
 //! Operand  yArray[10]; // All operands initialized to none.
 //! ```
 struct Operand_ {
-  // --------------------------------------------------------------------------
-  // [Operand Type]
-  // --------------------------------------------------------------------------
+  //! Operand's signature that provides operand type and additional information.
+  uint32_t _signature;
+  //! Either base id as used by memory operand or any id as used by others.
+  uint32_t _baseId;
+
+  //! Memory operand data.
+  struct MemData {
+    //! Index register id.
+    uint32_t indexId;
+    //! Low part of 64-bit offset (or 32-bit offset).
+    uint32_t offsetLo32;
+  };
+
+  //! Additional data used by some operands.
+  union {
+    //! 32-bit data (used either by immediate or as a 32-bit view).
+    uint32_t _data32[2];
+    //! 64-bit data (used either by immediate or as a 64-bit view).
+    uint64_t _data64;
+
+    //! Memory address data.
+    MemData _mem;
+  };
 
   //! Operand types that can be encoded in `Operand`.
   enum OpType : uint32_t {
@@ -51,10 +146,6 @@ struct Operand_ {
     kOpLabel = 4
   };
   static_assert(kOpMem == kOpReg + 1, "asmjit::Operand requires `kOpMem` to be `kOpReg+1`.");
-
-  // --------------------------------------------------------------------------
-  // [Operand Signature (Bits)]
-  // --------------------------------------------------------------------------
 
   // \cond INTERNAL
   enum SignatureBits : uint32_t {
@@ -105,12 +196,7 @@ struct Operand_ {
   };
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Operand VirtId]
-  // --------------------------------------------------------------------------
-
   //! \cond INTERNAL
-
   //! Constants useful for VirtId <-> Index translation.
   enum VirtIdConstants : uint32_t {
     //! Minimum valid packed-id.
@@ -131,15 +217,12 @@ struct Operand_ {
   static ASMJIT_INLINE uint32_t indexToVirtId(uint32_t id) noexcept { return id + kVirtIdMin; }
   //! Converts a packed-id back to real-id.
   static ASMJIT_INLINE uint32_t virtIdToIndex(uint32_t id) noexcept { return id - kVirtIdMin; }
-
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Init & Reset]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! \cond INTERNAL
-
   //! Initializes a `BaseReg` operand from `signature` and register `id`.
   inline void _initReg(uint32_t signature, uint32_t id) noexcept {
     _signature = signature;
@@ -149,7 +232,6 @@ struct Operand_ {
 
   //! Initializes the operand from `other` (used by operator overloads).
   inline void copyFrom(const Operand_& other) noexcept { memcpy(this, &other, sizeof(Operand_)); }
-
   //! \endcond
 
   //! Resets the `Operand` to none.
@@ -186,9 +268,18 @@ struct Operand_ {
     _data64 = 0;
   }
 
-  // --------------------------------------------------------------------------
-  // [Cast]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Operator Overloads
+  //! \{
+
+  template<typename T> constexpr bool operator==(const T& other) const noexcept { return  isEqual(other); }
+  template<typename T> constexpr bool operator!=(const T& other) const noexcept { return !isEqual(other); }
+
+  //! \}
+
+  //! \name Cast
+  //! \{
 
   //! Casts this operand to `T` type.
   template<typename T>
@@ -198,9 +289,10 @@ struct Operand_ {
   template<typename T>
   inline const T& as() const noexcept { return static_cast<const T&>(*this); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether the operand matches the given signature `sign`.
   constexpr bool hasSignature(uint32_t signature) const noexcept { return _signature == signature; }
@@ -307,44 +399,7 @@ struct Operand_ {
     return Support::isBetween<uint32_t>(opType(), kOpReg, kOpMem);
   }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  template<typename T> constexpr bool operator==(const T& other) const noexcept { return  isEqual(other); }
-  template<typename T> constexpr bool operator!=(const T& other) const noexcept { return !isEqual(other); }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! \cond INTERNAL
-
-  //! Operand's signature that provides operand type and additional information.
-  uint32_t _signature;
-  //! Either base id as used by memory operand or any id as used by others.
-  uint32_t _baseId;
-
-  //! Memory operand data.
-  struct MemData {
-    //! Index register id.
-    uint32_t indexId;
-    //! Low part of 64-bit offset (or 32-bit offset).
-    uint32_t offsetLo32;
-  };
-
-  //! Additional data used by some operands.
-  union {
-    //! 32-bit data (used either by immediate or as a 32-bit view).
-    uint32_t _data32[2];
-    //! 64-bit data (used either by immediate or as a 64-bit view).
-    uint64_t _data64;
-
-    //! Memory address data.
-    MemData _mem;
-  };
-
-  //! \endcond
+  //! \}
 };
 
 // ============================================================================
@@ -354,9 +409,8 @@ struct Operand_ {
 //! Operand can contain register, memory location, immediate, or label.
 class Operand : public Operand_ {
 public:
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates `kOpNone` operand having all members initialized to zero.
   constexpr Operand() noexcept
@@ -377,18 +431,22 @@ public:
   //! Creates an uninitialized operand (dangerous).
   inline explicit Operand(Globals::NoInit_) noexcept {}
 
-  // --------------------------------------------------------------------------
-  // [Clone]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Operator Overloads
+  //! \{
+
+  inline Operand& operator=(const Operand_& other) noexcept { copyFrom(other); return *this; }
+
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Clones this operand and returns its copy.
   constexpr Operand clone() const noexcept { return Operand(*this); }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline Operand& operator=(const Operand_& other) noexcept { copyFrom(other); return *this; }
+  //! \}
 };
 
 static_assert(sizeof(Operand) == 16, "asmjit::Operand must be exactly 16 bytes long");
@@ -451,9 +509,8 @@ public:
     kLabelTag = 0x1
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a label operand without ID (you must set the ID to make it valid).
   constexpr Label() noexcept
@@ -470,10 +527,6 @@ public:
   inline explicit Label(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
-  // --------------------------------------------------------------------------
-  // [Reset]
-  // --------------------------------------------------------------------------
-
   //! Resets the label, will reset all properties and set its ID to `Globals::kInvalidId`.
   inline void reset() noexcept {
     _signature = kOpLabel;
@@ -481,20 +534,24 @@ public:
     _data64 = 0;
   }
 
-  // --------------------------------------------------------------------------
-  // [Label Specific]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline Label& operator=(const Label& other) noexcept = default;
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether the label was created by CodeHolder and/or an attached emitter.
   constexpr bool isValid() const noexcept { return _baseId != Globals::kInvalidId; }
   //! Sets the label `id`.
   inline void setId(uint32_t id) noexcept { _baseId = id; }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline Label& operator=(const Label& other) noexcept = default;
+  //! \}
 };
 
 // ============================================================================
@@ -502,101 +559,30 @@ public:
 // ============================================================================
 
 //! \cond INTERNAL
-
 //! Default register traits.
 struct BaseRegTraits {
-  static constexpr uint32_t kValid  = 0; //!< RegType is not valid by default.
-  static constexpr uint32_t kCount  = 0; //!< Count of registers (0 if none).
-  static constexpr uint32_t kTypeId = 0; //!< Everything is void by default.
+  //! RegType is not valid by default.
+  static constexpr uint32_t kValid = 0;
+  //! Count of registers (0 if none).
+  static constexpr uint32_t kCount = 0;
+  //! Everything is void by default.
+  static constexpr uint32_t kTypeId = 0;
 
-  static constexpr uint32_t kType   = 0; //!< Zero type by default.
-  static constexpr uint32_t kGroup  = 0; //!< Zero group by default.
-  static constexpr uint32_t kSize   = 0; //!< No size by default.
+  //! Zero type by default.
+  static constexpr uint32_t kType = 0;
+  //! Zero group by default.
+  static constexpr uint32_t kGroup = 0;
+  //! No size by default.
+  static constexpr uint32_t kSize = 0;
 
   //! Empty signature by default.
   static constexpr uint32_t kSignature = Operand::kOpReg;
 };
-
-//! Adds a template specialization for `REG_TYPE` into the local `RegTraits`.
-#define ASMJIT_DEFINE_REG_TRAITS(REG, REG_TYPE, GROUP, SIZE, COUNT, TYPE_ID)  \
-template<>                                                                    \
-struct RegTraits<REG_TYPE> {                                                  \
-  typedef REG RegT;                                                           \
-                                                                              \
-  static constexpr uint32_t kValid = 1;                                       \
-  static constexpr uint32_t kCount = COUNT;                                   \
-  static constexpr uint32_t kTypeId = TYPE_ID;                                \
-                                                                              \
-  static constexpr uint32_t kType = REG_TYPE;                                 \
-  static constexpr uint32_t kGroup = GROUP;                                   \
-  static constexpr uint32_t kSize = SIZE;                                     \
-                                                                              \
-  static constexpr uint32_t kSignature =                                      \
-    (Operand::kOpReg << Operand::kSignatureOpShift      ) |                   \
-    (kType           << Operand::kSignatureRegTypeShift ) |                   \
-    (kGroup          << Operand::kSignatureRegGroupShift) |                   \
-    (kSize           << Operand::kSignatureSizeShift    ) ;                   \
-}
-
 //! \endcond
 
 // ============================================================================
 // [asmjit::BaseReg]
 // ============================================================================
-
-//! \cond INTERNAL
-
-//! Adds constructors and member functions to a class that implements abstract
-//! register. Abstract register is register that doesn't have type or signature
-//! yet, it's a base class like `x86::Reg` or `arm::Reg`.
-#define ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                 \
-public:                                                                       \
-  /*! Default constructor that only setups basics. */                         \
-  constexpr REG() noexcept                                                    \
-    : BASE(kSignature, kIdBad) {}                                             \
-                                                                              \
-  /*! Makes a copy of the `other` register operand. */                        \
-  constexpr REG(const REG& other) noexcept                                    \
-    : BASE(other) {}                                                          \
-                                                                              \
-  /*! Makes a copy of the `other` register having id set to `rId` */          \
-  constexpr REG(const BaseReg& other, uint32_t rId) noexcept                  \
-    : BASE(other, rId) {}                                                     \
-                                                                              \
-  /*! Creates a register based on `signature` and `rId`. */                   \
-  constexpr REG(uint32_t signature, uint32_t rId) noexcept                    \
-    : BASE(signature, rId) {}                                                 \
-                                                                              \
-  /*! Creates a completely uninitialized REG register operand (garbage). */   \
-  inline explicit REG(Globals::NoInit_) noexcept                              \
-    : BASE(Globals::NoInit) {}                                                \
-                                                                              \
-  /*! Creates a new register from register type and id. */                    \
-  static inline REG fromTypeAndId(uint32_t rType, uint32_t rId) noexcept {    \
-    return REG(signatureOf(rType), rId);                                      \
-  }                                                                           \
-                                                                              \
-  /*! Clones the register operand. */                                         \
-  constexpr REG clone() const noexcept { return REG(*this); }                 \
-                                                                              \
-  inline REG& operator=(const REG& other) noexcept = default;
-
-//! Adds constructors and member functions to a class that implements final
-//! register. Final registers MUST HAVE a valid signature.
-#define ASMJIT_DEFINE_FINAL_REG(REG, BASE, TRAITS)                            \
-public:                                                                       \
-  static constexpr uint32_t kThisType  = TRAITS::kType;                       \
-  static constexpr uint32_t kThisGroup = TRAITS::kGroup;                      \
-  static constexpr uint32_t kThisSize  = TRAITS::kSize;                       \
-  static constexpr uint32_t kSignature = TRAITS::kSignature;                  \
-                                                                              \
-  ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                       \
-                                                                              \
-  /*! Creates a register operand having its id set to `rId`. */               \
-  constexpr explicit REG(uint32_t rId) noexcept                               \
-    : BASE(kSignature, rId) {}
-
-//! \endcond
 
 //! Structure that allows to extract a register information based on the signature.
 //!
@@ -630,45 +616,70 @@ public:
   //! and VEC registers are also allowed by design to be part of a BASE|INDEX
   //! of a memory operand.
   enum RegType : uint32_t {
-    kTypeNone       = 0,                 //!< No register - unused, invalid, multiple meanings.
+    //! No register - unused, invalid, multiple meanings.
+    kTypeNone       = 0,
+
     // (1 is used as a LabelTag)
-    kTypeGp8Lo      = 2,                 //!< 8-bit low general purpose register (X86).
-    kTypeGp8Hi      = 3,                 //!< 8-bit high general purpose register (X86).
-    kTypeGp16       = 4,                 //!< 16-bit general purpose register (X86).
-    kTypeGp32       = 5,                 //!< 32-bit general purpose register (X86|ARM).
-    kTypeGp64       = 6,                 //!< 64-bit general purpose register (X86|ARM).
-    kTypeVec32      = 7,                 //!< 32-bit view of a vector register (ARM).
-    kTypeVec64      = 8,                 //!< 64-bit view of a vector register (ARM).
-    kTypeVec128     = 9,                 //!< 128-bit view of a vector register (X86|ARM).
-    kTypeVec256     = 10,                //!< 256-bit view of a vector register (X86).
-    kTypeVec512     = 11,                //!< 512-bit view of a vector register (X86).
-    kTypeVec1024    = 12,                //!< 1024-bit view of a vector register (future).
-    kTypeOther0     = 13,                //!< Other0 register, should match `kOther0` group.
-    kTypeOther1     = 14,                //!< Other1 register, should match `kOther1` group.
-    kTypeIP         = 15,                //!< Universal id of IP/PC register (if separate).
-    kTypeCustom     = 16,                //!< Start of platform dependent register types (must be honored).
-    kTypeMax        = 31                 //!< Maximum possible register id of all architectures.
+
+    //! 8-bit low general purpose register (X86).
+    kTypeGp8Lo = 2,
+    //! 8-bit high general purpose register (X86).
+    kTypeGp8Hi = 3,
+    //! 16-bit general purpose register (X86).
+    kTypeGp16 = 4,
+    //! 32-bit general purpose register (X86|ARM).
+    kTypeGp32 = 5,
+    //! 64-bit general purpose register (X86|ARM).
+    kTypeGp64 = 6,
+    //! 32-bit view of a vector register (ARM).
+    kTypeVec32 = 7,
+    //! 64-bit view of a vector register (ARM).
+    kTypeVec64 = 8,
+    //! 128-bit view of a vector register (X86|ARM).
+    kTypeVec128 = 9,
+    //! 256-bit view of a vector register (X86).
+    kTypeVec256 = 10,
+    //! 512-bit view of a vector register (X86).
+    kTypeVec512 = 11,
+    //! 1024-bit view of a vector register (future).
+    kTypeVec1024 = 12,
+    //! Other0 register, should match `kOther0` group.
+    kTypeOther0 = 13,
+    //! Other1 register, should match `kOther1` group.
+    kTypeOther1 = 14,
+    //! Universal id of IP/PC register (if separate).
+    kTypeIP = 15,
+    //! Start of platform dependent register types (must be honored).
+    kTypeCustom = 16,
+    //! Maximum possible register id of all architectures.
+    kTypeMax = 31
   };
 
   //! Register group (architecture neutral), and some limits.
   enum RegGroup : uint32_t {
-    kGroupGp        = 0,                 //!< General purpose register group compatible with all backends.
-    kGroupVec       = 1,                 //!< Vector register group compatible with all backends.
-    kGroupOther0    = 2,
-    kGroupOther1    = 3,
-    kGroupVirt      = 4,                 //!< Count of register groups used by virtual registers.
-    kGroupCount     = 16                 //!< Count of register groups used by physical registers.
+    //! General purpose register group compatible with all backends.
+    kGroupGp = 0,
+    //! Vector register group compatible with all backends.
+    kGroupVec = 1,
+    //! Group that is architecture dependent.
+    kGroupOther0 = 2,
+    //! Group that is architecture dependent.
+    kGroupOther1 = 3,
+    //! Count of register groups used by virtual registers.
+    kGroupVirt = 4,
+    //! Count of register groups used by physical registers.
+    kGroupCount = 16
   };
 
   enum Id : uint32_t {
-    kIdBad          = 0xFFu               //!< None or any register (mostly internal).
+    //! None or any register (mostly internal).
+    kIdBad = 0xFFu
   };
 
   static constexpr uint32_t kSignature = kOpReg;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a dummy register operand.
   constexpr BaseReg() noexcept
@@ -689,9 +700,10 @@ public:
   inline explicit BaseReg(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
-  // --------------------------------------------------------------------------
-  // [Reg Specific]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether this register is the same as `other`.
   //!
@@ -765,9 +777,10 @@ public:
     _baseId = rId;
   }
 
-  // --------------------------------------------------------------------------
-  // [Reg Statics]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Static Functions
+  //! \{
 
   static inline bool isGp(const Operand_& op) noexcept {
     // Check operand type and register group. Not interested in register type and size.
@@ -786,6 +799,8 @@ public:
 
   static inline bool isGp(const Operand_& op, uint32_t rId) noexcept { return isGp(op) & (op.id() == rId); }
   static inline bool isVec(const Operand_& op, uint32_t rId) noexcept { return isVec(op) & (op.id() == rId); }
+
+  //! \}
 };
 
 // ============================================================================
@@ -798,9 +813,13 @@ public:
 //! This class was designed to decrease the space consumed by each extra "operand"
 //! in `BaseEmitter` and `InstNode` classes.
 struct RegOnly {
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
+  //! Type of the operand, either `kOpNone` or `kOpReg`.
+  uint32_t _signature;
+  //! Physical or virtual register id.
+  uint32_t _id;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Initializes the `RegOnly` instance to hold register `signature` and `id`.
   inline void init(uint32_t signature, uint32_t id) noexcept {
@@ -814,9 +833,10 @@ struct RegOnly {
   //! Resets the `RegOnly` members to zeros (none).
   inline void reset() noexcept { init(0, 0); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether this ExtraReg is none (same as calling `Operand_::isNone()`).
   constexpr bool isNone() const noexcept { return _signature == 0; }
@@ -850,22 +870,16 @@ struct RegOnly {
   //! Gets the register group.
   constexpr uint32_t group() const noexcept { return _getSignaturePart<Operand::kSignatureRegGroupMask>(); }
 
-  // --------------------------------------------------------------------------
-  // [ToReg]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Converts this ExtraReg to a real `RegT` operand.
   template<typename RegT>
   constexpr RegT toReg() const noexcept { return RegT(_signature, _id); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Type of the operand, either `kOpNone` or `kOpReg`.
-  uint32_t _signature;
-  //! Physical or virtual register id.
-  uint32_t _id;
+  //! \}
 };
 
 // ============================================================================
@@ -926,9 +940,8 @@ public:
   };
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a default `BaseMem` operand, that points to [0].
   constexpr BaseMem() noexcept
@@ -960,10 +973,6 @@ public:
   inline explicit BaseMem(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
-
   //! Resets the memory operand - after the reset the memory points to [0].
   inline void reset() noexcept {
     _signature = kOpMem;
@@ -971,9 +980,17 @@ public:
     _data64 = 0;
   }
 
-  // --------------------------------------------------------------------------
-  // [Mem Specific]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline BaseMem& operator=(const BaseMem& other) noexcept { copyFrom(other); return *this; }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Clones the memory operand.
   constexpr BaseMem clone() const noexcept { return BaseMem(*this); }
@@ -1132,11 +1149,7 @@ public:
   //! how BaseMem works).
   inline void resetOffsetLo32() noexcept { setOffsetLo32(0); }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline BaseMem& operator=(const BaseMem& other) noexcept { copyFrom(other); return *this; }
+  //! \}
 };
 
 // ============================================================================
@@ -1153,9 +1166,8 @@ public:
 //! with any type, not just the default 64-bit int.
 class Imm : public Operand {
 public:
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new immediate value (initial value is 0).
   constexpr Imm() noexcept
@@ -1172,12 +1184,18 @@ public:
   inline explicit Imm(Globals::NoInit_) noexcept
     : Operand(Globals::NoInit) {}
 
-  // --------------------------------------------------------------------------
-  // [Immediate Specific]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! Clones the immediate operand.
-  constexpr Imm clone() const noexcept { return Imm(*this); }
+  //! \name Overloaded Operators
+  //! \{
+
+  //! Assigns the value of the `other` operand to this immediate.
+  inline Imm& operator=(const Imm& other) noexcept { copyFrom(other); return *this; }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether the immediate can be casted to 8-bit signed integer.
   constexpr bool isInt8() const noexcept { return Support::isInt8(int64_t(_data64)); }
@@ -1250,9 +1268,13 @@ public:
     _data64 = Support::bitCast<uint64_t>(d);
   }
 
-  // --------------------------------------------------------------------------
-  // [Sign Extend / Zero Extend]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
+
+  //! Clones the immediate operand.
+  constexpr Imm clone() const noexcept { return Imm(*this); }
 
   inline void signExtend8Bits() noexcept { _data64 = uint64_t(int64_t(i8())); }
   inline void signExtend16Bits() noexcept { _data64 = uint64_t(int64_t(i16())); }
@@ -1262,12 +1284,7 @@ public:
   inline void zeroExtend16Bits() noexcept { _data64 &= 0x0000FFFFu; }
   inline void zeroExtend32Bits() noexcept { _data64 &= 0xFFFFFFFFu; }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  //! Assigns the value of the `other` operand to this immediate.
-  inline Imm& operator=(const Imm& other) noexcept { copyFrom(other); return *this; }
+  //! \}
 };
 
 //! Creates a new immediate operand.

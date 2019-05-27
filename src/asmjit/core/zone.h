@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_zone
+//! \addtogroup asmjit_zone
 //! \{
 
 // ============================================================================
@@ -58,13 +58,31 @@ public:
     kMaxAlignment = 64
   };
 
+  //! Pointer in the current block.
+  uint8_t* _ptr;
+  //! End of the current block.
+  uint8_t* _end;
+  //! Current block.
+  Block* _block;
+
+  union {
+    struct {
+      //! Default block size.
+      size_t _blockSize : Support::bitSizeOf<size_t>() - 4;
+      //! First block is temporary (ZoneTmp).
+      size_t _isTemporary : 1;
+      //! Block alignment (1 << alignment).
+      size_t _blockAlignmentShift : 3;
+    };
+    size_t _packedData;
+  };
+
   static ASMJIT_API const Block _zeroBlock;
 
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new Zone.
   //!
@@ -100,16 +118,11 @@ public:
     other._end = other._block->data();
   }
 
-
   //! Destroys the `Zone` instance.
   //!
   //! This will destroy the `Zone` instance and release all blocks of memory
   //! allocated by it. It performs implicit `reset(Globals::kResetHard)`.
   ASMJIT_INLINE ~Zone() noexcept { reset(Globals::kResetHard); }
-
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
 
   ASMJIT_API void _init(size_t blockSize, size_t blockAlignment, const Support::Temporary* temporary) noexcept;
 
@@ -118,9 +131,10 @@ public:
   //! See `Globals::ResetPolicy` for more details.
   ASMJIT_API void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether this `Zone` is actually a `ZoneTmp` that uses temporary memory.
   ASMJIT_INLINE bool isTemporary() const noexcept { return _isTemporary != 0; }
@@ -158,9 +172,10 @@ public:
     _end = p;
   }
 
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Aligns the current pointer to `alignment`.
   ASMJIT_INLINE void align(size_t alignment) noexcept {
@@ -193,9 +208,10 @@ public:
     _block = block;
   }
 
-  // --------------------------------------------------------------------------
-  // [Alloc]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Allocation
+  //! \{
 
   //! Allocates the requested memory specified by `size`.
   //!
@@ -331,9 +347,10 @@ public:
   //! Helper to duplicate a formatted string, maximum size is 256 bytes.
   ASMJIT_API char* sformat(const char* str, ...) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Swap]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Swap
+  //! \{
 
   ASMJIT_INLINE void swapWith(Zone& other) noexcept {
     // This could lead to a disaster.
@@ -346,28 +363,7 @@ public:
     std::swap(_packedData, other._packedData);
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Pointer in the current block.
-  uint8_t* _ptr;
-  //! End of the current block.
-  uint8_t* _end;
-  //! Current block.
-  Block* _block;
-
-  union {
-    struct {
-      //! Default block size.
-      size_t _blockSize : Support::bitSizeOf<size_t>() - 4;
-      //! First block is temporary (ZoneTmp).
-      size_t _isTemporary : 1;
-      //! Block alignment (1 << alignment).
-      size_t _blockAlignmentShift : 3;
-    };
-    size_t _packedData;
-  };
+  //! \}
 };
 
 // ============================================================================
@@ -379,12 +375,12 @@ class ZoneTmp : public Zone {
 public:
   ASMJIT_NONCOPYABLE(ZoneTmp<N>)
 
-  ASMJIT_INLINE explicit ZoneTmp(size_t blockSize, size_t blockAlignment = 1) noexcept
-    : Zone(blockSize, blockAlignment, Support::Temporary(_storage.data, N)) {}
-
   struct Storage {
     char data[N];
   } _storage;
+
+  ASMJIT_INLINE explicit ZoneTmp(size_t blockSize, size_t blockAlignment = 1) noexcept
+    : Zone(blockSize, blockAlignment, Support::Temporary(_storage.data, N)) {}
 };
 
 // ============================================================================
@@ -446,9 +442,15 @@ public:
 
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Zone used to allocate memory that fits into slots.
+  Zone* _zone;
+  //! Indexed slots containing released memory.
+  Slot* _slots[kLoCount + kHiCount];
+  //! Dynamic blocks for larger allocations (no slots).
+  DynamicBlock* _dynamicBlocks;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `ZoneAllocator`.
   //!
@@ -466,10 +468,6 @@ public:
   //! Destroys the `ZoneAllocator`.
   inline ~ZoneAllocator() noexcept { reset(); }
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
-
   //! Gets whether the `ZoneAllocator` is initialized (i.e. has `Zone`).
   inline bool isInitialized() const noexcept { return _zone != nullptr; }
 
@@ -483,19 +481,20 @@ public:
   //! keeps the `ZoneAllocator` in an uninitialized state, if `zone` is null.
   ASMJIT_API void reset(Zone* zone = nullptr) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the assigned `Zone` of this allocator or null if this `ZoneAllocator`
   //! is not initialized.
   inline Zone* zone() const noexcept { return _zone; }
 
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! \cond INTERNAL
+  //! \cond
+  //! \name Internals
+  //! \{
 
   //! Gets the slot index to be used for `size`. Returns `true` if a valid slot
   //! has been written to `slot` and `allocatedSize` has been filled with slot
@@ -531,11 +530,11 @@ public:
     return true;
   }
 
+  //! \}
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Alloc / Release]
-  // --------------------------------------------------------------------------
+  //! \name Allocation
+  //! \{
 
   //! \cond INTERNAL
   ASMJIT_API void* _alloc(size_t size, size_t& allocatedSize) noexcept;
@@ -620,16 +619,7 @@ public:
     }
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Zone used to allocate memory that fits into slots.
-  Zone* _zone;
-  //! Indexed slots containing released memory.
-  Slot* _slots[kLoCount + kHiCount];
-  //! Dynamic blocks for larger allocations (no slots).
-  DynamicBlock* _dynamicBlocks;
+  //! \}
 };
 
 //! \}

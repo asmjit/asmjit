@@ -12,7 +12,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_zone
+//! \addtogroup asmjit_zone
 //! \{
 
 // ============================================================================
@@ -30,10 +30,16 @@ public:
   typedef uint32_t size_type;
   typedef ptrdiff_t difference_type;
 
+  //! Vector data (untyped).
+  void* _data;
+  //! Size of the vector.
+  size_type _size;
+  //! Capacity of the vector.
+  size_type _capacity;
+
 protected:
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new instance of `ZoneVectorBase`.
   inline ZoneVectorBase() noexcept
@@ -46,11 +52,35 @@ protected:
       _size(other._size),
       _capacity(other._capacity) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \cond INTERNAL
+  //! \name Internal
+  //! \{
+
+  inline void _release(ZoneAllocator* allocator, uint32_t sizeOfT) noexcept {
+    if (_data != nullptr) {
+      allocator->release(_data, _capacity * sizeOfT);
+      reset();
+    }
+  }
+
+  ASMJIT_API Error _grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
+  ASMJIT_API Error _resize(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
+  ASMJIT_API Error _reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
+
+  inline void swapWith(ZoneVectorBase& other) noexcept {
+    std::swap(_data, other._data);
+    std::swap(_size, other._size);
+    std::swap(_capacity, other._capacity);
+  }
+
+  //! \}
 
 public:
+  //! \name Accessors
+  //! \{
+
   //! Gets whether the vector is empty.
   inline bool empty() const noexcept { return _size == 0; }
   //! Gets the vector size.
@@ -58,9 +88,10 @@ public:
   //! Gets the vector capacity.
   inline size_type capacity() const noexcept { return _capacity; }
 
-  // --------------------------------------------------------------------------
-  // [Ops]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Makes the vector empty (won't change the capacity or data pointer).
   inline void clear() noexcept { _size = 0; }
@@ -82,43 +113,7 @@ public:
     _size = n;
   }
 
-  // --------------------------------------------------------------------------
-  // [Memory Management]
-  // --------------------------------------------------------------------------
-
-protected:
-  inline void _release(ZoneAllocator* allocator, uint32_t sizeOfT) noexcept {
-    if (_data != nullptr) {
-      allocator->release(_data, _capacity * sizeOfT);
-      reset();
-    }
-  }
-
-  ASMJIT_API Error _grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
-  ASMJIT_API Error _resize(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
-  ASMJIT_API Error _reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Swap]
-  // --------------------------------------------------------------------------
-
-  inline void swapWith(ZoneVectorBase& other) noexcept {
-    std::swap(_data, other._data);
-    std::swap(_size, other._size);
-    std::swap(_capacity, other._capacity);
-  }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-public:
-  //! Vector data (untyped).
-  void* _data;
-  //! Size of the vector.
-  size_type _size;
-  //! Capacity of the vector.
-  size_type _capacity;
+  //! \}
 };
 
 //! \endcond
@@ -151,16 +146,16 @@ public:
   typedef Support::ReverseIterator<T> reverse_iterator;
   typedef Support::ReverseIterator<const T> const_reverse_iterator;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   inline ZoneVector() noexcept : ZoneVectorBase() {}
   inline ZoneVector(ZoneVector&& other) noexcept : ZoneVector(other) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets vector items.
   inline T* data() noexcept { return static_cast<T*>(_data); }
@@ -178,9 +173,10 @@ public:
     _setSize(uint32_t((uintptr_t)(p - data())));
   }
 
-  // --------------------------------------------------------------------------
-  // [Iterators]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Iterators
+  //! \{
 
   // STL compatibility.
   inline iterator begin() noexcept { return iterator(data()); };
@@ -201,9 +197,10 @@ public:
   inline const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(data()); };
   inline const_reverse_iterator crend() const noexcept { return const_reverse_iterator(data() + _size); };
 
-  // --------------------------------------------------------------------------
-  // [Operations]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Prepends `item` to the vector.
   inline Error prepend(ZoneAllocator* allocator, const T& item) noexcept {
@@ -359,9 +356,14 @@ public:
   inline T& last() noexcept { return operator[](_size - 1); }
   inline const T& last() const noexcept { return operator[](_size - 1); }
 
-  // --------------------------------------------------------------------------
-  // [Memory Management]
-  // --------------------------------------------------------------------------
+  inline void swapWith(ZoneVector<T>& other) noexcept {
+    ZoneVectorBase::swapWith(other);
+  }
+
+  //! \}
+
+  //! \name Memory Management
+  //! \{
 
   //! Releases the memory held by `ZoneVector<T>` back to the `allocator`.
   inline void release(ZoneAllocator* allocator) noexcept {
@@ -391,13 +393,7 @@ public:
     return _capacity - _size < n ? grow(allocator, n) : Error(kErrorOk);
   }
 
-  // --------------------------------------------------------------------------
-  // [Swap]
-  // --------------------------------------------------------------------------
-
-  inline void swapWith(ZoneVector<T>& other) noexcept {
-    ZoneVectorBase::swapWith(other);
-  }
+  //! \}
 };
 
 // ============================================================================
@@ -406,10 +402,21 @@ public:
 
 class ZoneBitVector {
 public:
-  ASMJIT_NONCOPYABLE(ZoneBitVector)
-
   typedef Support::BitWord BitWord;
   static constexpr uint32_t kBitWordSizeInBits = Support::kBitWordSizeInBits;
+
+  //! Bits.
+  BitWord* _data;
+  //! Size of the bit-vector (in bits).
+  uint32_t _size;
+  //! Capacity of the bit-vector (in bits).
+  uint32_t _capacity;
+
+  ASMJIT_NONCOPYABLE(ZoneBitVector)
+
+  //! \cond INTERNAL
+  //! \name Internal
+  //! \{
 
   static inline uint32_t _wordsPerBits(uint32_t nBits) noexcept {
     return ((nBits + kBitWordSizeInBits - 1) / kBitWordSizeInBits);
@@ -430,9 +437,11 @@ public:
       dst[i] = src[i];
   }
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \}
+  //! \endcond
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline ZoneBitVector() noexcept
     : _data(nullptr),
@@ -444,9 +453,18 @@ public:
       _size(other._size),
       _capacity(other._capacity) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline bool operator==(const ZoneBitVector& other) const noexcept { return  eq(other); }
+  inline bool operator!=(const ZoneBitVector& other) const noexcept { return !eq(other); }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets whether the bit-vector is empty (has no bits).
   inline bool empty() const noexcept { return _size == 0; }
@@ -465,9 +483,10 @@ public:
   //! \overload
   inline const BitWord* data() const noexcept { return _data; }
 
-  // --------------------------------------------------------------------------
-  // [Operations]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   inline void clear() noexcept {
     _size = 0;
@@ -617,12 +636,16 @@ public:
     return true;
   }
 
-  inline bool operator==(const ZoneBitVector& other) const noexcept { return  eq(other); }
-  inline bool operator!=(const ZoneBitVector& other) const noexcept { return !eq(other); }
+  inline void swapWith(ZoneBitVector& other) noexcept {
+    std::swap(_data, other._data);
+    std::swap(_size, other._size);
+    std::swap(_capacity, other._capacity);
+  }
 
-  // --------------------------------------------------------------------------
-  // [Memory Management]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Memory Management
+  //! \{
 
   inline void release(ZoneAllocator* allocator) noexcept {
     if (!_data) return;
@@ -637,19 +660,10 @@ public:
   ASMJIT_API Error _resize(ZoneAllocator* allocator, uint32_t newSize, uint32_t idealCapacity, bool newBitsValue) noexcept;
   ASMJIT_API Error _append(ZoneAllocator* allocator, bool value) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Swap]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  inline void swapWith(ZoneBitVector& other) noexcept {
-    std::swap(_data, other._data);
-    std::swap(_size, other._size);
-    std::swap(_capacity, other._capacity);
-  }
-
-  // --------------------------------------------------------------------------
-  // [Iterators]
-  // --------------------------------------------------------------------------
+  //! \name Iterators
+  //! \{
 
   class ForEachBitSet : public Support::BitVectorIterator<BitWord> {
   public:
@@ -666,16 +680,8 @@ public:
     }
   };
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! Bits.
-  BitWord* _data;
-  //! Size of the bit-vector (in bits).
-  uint32_t _size;
-  //! Capacity of the bit-vector (in bits).
-  uint32_t _capacity;
 };
 
 //! \}

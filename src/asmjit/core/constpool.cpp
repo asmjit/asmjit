@@ -234,7 +234,7 @@ void ConstPool::fill(void* dst) const noexcept {
 // [asmjit::ConstPool - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 UNIT(asmjit_core_const_pool) {
   Zone zone(32384 - Zone::kBlockOverhead);
   ConstPool pool(&zone);

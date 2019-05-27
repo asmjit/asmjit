@@ -8,31 +8,24 @@
 #define _ASMJIT_CORE_H
 
 //! \defgroup asmjit_core Core
-//! \brief AsmJit Core.
-
-//! \defgroup asmjit_core_api Core
-//! \ingroup asmjit_core
 //! \brief Core API.
 
-//! \defgroup asmjit_core_func Function
-//! \ingroup asmjit_core
+//! \defgroup asmjit_func Function
 //! \brief Function API.
 
-//! \defgroup asmjit_core_jit JIT
-//! \ingroup asmjit_core
-//! \brief JIT API.
+//! \defgroup asmjit_jit JIT
+//! \brief JIT API and Virtual Memory Management.
 
-//! \defgroup asmjit_core_support Support
-//! \ingroup asmjit_core
+//! \defgroup asmjit_support Support
 //! \brief Support API.
 
-//! \defgroup asmjit_core_ra RA Internals
-//! \ingroup asmjit_core
-//! \brief Register allocator internals.
+//! \defgroup asmjit_zone Zone
+//! \brief Zone allocator and zone allocated containers.
 
-//! \defgroup asmjit_core_zone Zone
-//! \ingroup asmjit_core
-//! \brief  Zone allocators and zone-allocated containers.
+//! \cond INTERNAL
+//! \defgroup asmjit_ra RA
+//! \brief Register allocator internals.
+//! \endcond
 
 #include "./core/globals.h"
 

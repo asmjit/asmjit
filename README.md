@@ -142,7 +142,7 @@ Project Organization
     * **src**      - Source code.
       * **asmjit** - Source code and headers (always point include path in here).
         * **core** - Core API, backend independent except relocations.
-        * **arm**  - ARM specific API, used only by ARM32 and ARM64 backends.
+        * **arm**  - ARM specific API, used only by ARM and AArch64 backends.
         * **x86**  - X86 specific API, used only by X86 and X64 backends.
     * **test**     - Unit and integration tests (don't embed in your project).
     * **tools**    - Tools used for configuring, documenting and generating data files.
@@ -151,7 +151,7 @@ Project Organization
 Configuring & Feature Selection
 -------------------------------
 
-AsmJit is designed to be easy embeddable in any project. However, it depends on some compile-time macros that can be used to build a specific version of AsmJit that includes or excludes certain features. A typical way of building AsmJit is to use [cmake](https://www.cmake.org), but it's also possible to just include AsmJit source code in your project and just build it. The easiest way to include AsmJit in your project is to just include **src** directory in your project and to define `ASMJIT_BUILD_STATIC` or `ASMJIT_BUILD_EMBED`. AsmJit can be just updated from time to time without any changes to this integration process. Do not embed AsmJit's [/test](./test) files in such case as these are used for testing.
+AsmJit is designed to be easy embeddable in any project. However, it depends on some compile-time macros that can be used to build a specific version of AsmJit that includes or excludes certain features. A typical way of building AsmJit is to use [cmake](https://www.cmake.org), but it's also possible to just include AsmJit source code in your project and just build it. The easiest way to include AsmJit in your project is to just include **src** directory in your project and to define `ASMJIT_STATIC`. AsmJit can be just updated from time to time without any changes to this integration process. Do not embed AsmJit's [/test](./test) files in such case as these are used for testing.
 
 ### Build Type:
 
@@ -162,10 +162,9 @@ By default none of these is defined, AsmJit detects build-type based on compile-
 
 ### Build Mode:
 
-  * `ASMJIT_BUILD_EMBED` - Define to embed AsmJit in another project. Embedding means that neither shared nor static library is created and AsmJit's source files and source files of the product that embeds AsmJit are part of the same target. This way of building AsmJit has certain advantages that are beyond this manual. `ASMJIT_BUILD_EMBED` behaves similarly to `ASMJIT_BUILD_STATIC` (no API exports).
-  * `ASMJIT_BUILD_STATIC` - Define to build AsmJit as a static library. No symbols are exported in such case.
+  * `ASMJIT_STATIC` - Define to build AsmJit statically - either as a static library or as a part of another project. No symbols are exported in such case.
 
-By default AsmJit build is configured to be built as a shared library, thus none of `ASMJIT_BUILD_EMBED` and `ASMJIT_BUILD_STATIC` is defined.
+By default AsmJit build is configured to be built as a shared library, this means `ASMJIT_STATIC` must be explicitly enabled if you want to compile AsmJit statically.
 
 ### Build Backends:
 

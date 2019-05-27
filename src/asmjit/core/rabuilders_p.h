@@ -15,7 +15,7 @@
 ASMJIT_BEGIN_NAMESPACE
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_core_ra
+//! \addtogroup asmjit_ra
 //! \{
 
 // ============================================================================
@@ -25,6 +25,11 @@ ASMJIT_BEGIN_NAMESPACE
 template<typename This>
 class RACFGBuilder {
 public:
+  RAPass* _pass;
+  BaseCompiler* _cc;
+  RABlock* _curBlock;
+  RABlock* _retBlock;
+
   // NOTE: This is a bit hacky. There are some nodes which are processed twice
   // (see `onBeforeCall()` and `onBeforeRet()`) as they can insert some nodes
   // around them. Since we don't have any flags to mark these we just use their
@@ -404,11 +409,6 @@ public:
 
     return kErrorOk;
   }
-
-  RAPass* _pass;
-  BaseCompiler* _cc;
-  RABlock* _curBlock;
-  RABlock* _retBlock;
 };
 
 //! \}

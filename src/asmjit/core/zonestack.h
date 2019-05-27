@@ -11,13 +11,14 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_zone
+//! \addtogroup asmjit_zone
 //! \{
 
 // ============================================================================
 // [asmjit::ZoneStackBase]
 // ============================================================================
 
+//! Base class used by `ZoneStack<T>`.
 class ZoneStackBase {
 public:
   ASMJIT_NONCOPYABLE(ZoneStackBase)
@@ -62,9 +63,13 @@ public:
     void* _end;                          //!< Pointer to the end of the array.
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Allocator used to allocate data.
+  ZoneAllocator* _allocator;
+  //! First and last blocks.
+  Block* _block[Globals::kLinkCount];
+
+  //! \name Construction / Destruction
+  //! \{
 
   inline ZoneStackBase() noexcept {
     _allocator = nullptr;
@@ -73,17 +78,14 @@ public:
   }
   inline ~ZoneStackBase() noexcept { reset(); }
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
-
   inline bool isInitialized() const noexcept { return _allocator != nullptr; }
   ASMJIT_API Error _init(ZoneAllocator* allocator, size_t middleIndex) noexcept;
   inline Error reset() noexcept { return _init(nullptr, 0); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets a `ZoneAllocator` attached to this container.
   inline ZoneAllocator* allocator() const noexcept { return _allocator; }
@@ -93,27 +95,24 @@ public:
     return _block[0]->start<void>() == _block[1]->end<void>();
   }
 
-  // --------------------------------------------------------------------------
-  // [Ops]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \cond INTERNAL
+  //! \name Internal
+  //! \{
 
   ASMJIT_API Error _prepareBlock(uint32_t side, size_t initialIndex) noexcept;
   ASMJIT_API void _cleanupBlock(uint32_t side, size_t middleIndex) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Allocator used to allocate data.
-  ZoneAllocator* _allocator;
-  //! First and last blocks.
-  Block* _block[Globals::kLinkCount];
+  //! \}
+  //! \endcond
 };
 
 // ============================================================================
 // [asmjit::ZoneStack<T>]
 // ============================================================================
 
+//! Zone allocated stack container.
 template<typename T>
 class ZoneStack : public ZoneStackBase {
 public:
@@ -126,22 +125,18 @@ public:
     kEndBlockIndex   = uint32_t(kStartBlockIndex + (kNumBlockItems    ) * sizeof(T))
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction / Destruction
+  //! \{
 
   inline ZoneStack() noexcept {}
   inline ~ZoneStack() noexcept {}
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
-
   inline Error init(ZoneAllocator* allocator) noexcept { return _init(allocator, kMidBlockIndex); }
 
-  // --------------------------------------------------------------------------
-  // [Ops]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   ASMJIT_INLINE Error prepend(T item) noexcept {
     ASMJIT_ASSERT(isInitialized());
@@ -211,6 +206,8 @@ public:
 
     return item;
   }
+
+  //! \}
 };
 
 //! \}

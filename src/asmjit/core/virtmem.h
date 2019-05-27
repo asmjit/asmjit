@@ -14,7 +14,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_jit
+//! \addtogroup asmjit_jit
 //! \{
 
 // ============================================================================

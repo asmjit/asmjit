@@ -14,7 +14,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_support
+//! \addtogroup asmjit_support
 //! \{
 
 // ============================================================================
@@ -24,18 +24,44 @@ ASMJIT_BEGIN_NAMESPACE
 //! CPU information.
 class CpuInfo {
 public:
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! CPU architecture information.
+  ArchInfo _archInfo;
+  //! CPU family ID.
+  uint32_t _familyId;
+  //! CPU model ID.
+  uint32_t _modelId;
+  //! CPU brand ID.
+  uint32_t _brandId;
+  //! CPU stepping.
+  uint32_t _stepping;
+  //! Processor type.
+  uint32_t _processorType;
+  //! Maximum number of addressable IDs for logical processors.
+  uint32_t _maxLogicalProcessors;
+  //! Cache line size (in bytes).
+  uint32_t _cacheLineSize;
+  //! Number of hardware threads.
+  uint32_t _hwThreadCount;
+
+  //! CPU vendor string.
+  FixedString<16> _vendor;
+  //! CPU brand string.
+  FixedString<64> _brand;
+  //! CPU features.
+  BaseFeatures _features;
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline CpuInfo() noexcept { reset(); }
   inline CpuInfo(const CpuInfo& other) noexcept = default;
-  inline explicit CpuInfo(Globals::NoInit_) noexcept
-    : _archInfo(Globals::NoInit), _features(Globals::NoInit) {};
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
+  inline explicit CpuInfo(Globals::NoInit_) noexcept
+    : _archInfo(Globals::NoInit),
+      _features(Globals::NoInit) {};
+
+  //! Gets the host CPU information.
+  ASMJIT_API static const CpuInfo& host() noexcept;
 
   //! Initializes CpuInfo to the given architecture, see `ArchInfo`.
   inline void initArch(uint32_t archId, uint32_t archMode = 0) noexcept {
@@ -44,9 +70,17 @@ public:
 
   inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline CpuInfo& operator=(const CpuInfo& other) noexcept = default;
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the CPU architecture information.
   inline const ArchInfo& archInfo() const noexcept { return _archInfo; }
@@ -91,48 +125,7 @@ public:
   //! Adds the given CPU `feature` to the list of this CpuInfo features.
   inline CpuInfo& addFeature(uint32_t featureId) noexcept { _features.add(featureId); return *this; }
 
-  // --------------------------------------------------------------------------
-  // [Statics]
-  // --------------------------------------------------------------------------
-
-  //! Gets the host CPU information.
-  ASMJIT_API static const CpuInfo& host() noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline CpuInfo& operator=(const CpuInfo& other) noexcept = default;
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! CPU architecture information.
-  ArchInfo _archInfo;
-  //! CPU family ID.
-  uint32_t _familyId;
-  //! CPU model ID.
-  uint32_t _modelId;
-  //! CPU brand ID.
-  uint32_t _brandId;
-  //! CPU stepping.
-  uint32_t _stepping;
-  //! Processor type.
-  uint32_t _processorType;
-  //! Maximum number of addressable IDs for logical processors.
-  uint32_t _maxLogicalProcessors;
-  //! Cache line size (in bytes).
-  uint32_t _cacheLineSize;
-  //! Number of hardware threads.
-  uint32_t _hwThreadCount;
-
-  //! CPU vendor string.
-  FixedString<16> _vendor;
-  //! CPU brand string.
-  FixedString<64> _brand;
-  //! CPU features.
-  BaseFeatures _features;
+  //! \}
 };
 
 //! \}

@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_support
 //! \{
 
 // ============================================================================
@@ -20,9 +20,30 @@ ASMJIT_BEGIN_NAMESPACE
 
 //! 64-bit data useful for creating SIMD constants.
 union Data64 {
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Array of eight 8-bit signed integers.
+  int8_t sb[8];
+  //! Array of eight 8-bit unsigned integers.
+  uint8_t ub[8];
+  //! Array of four 16-bit signed integers.
+  int16_t sw[4];
+  //! Array of four 16-bit unsigned integers.
+  uint16_t uw[4];
+  //! Array of two 32-bit signed integers.
+  int32_t sd[2];
+  //! Array of two 32-bit unsigned integers.
+  uint32_t ud[2];
+  //! Array of one 64-bit signed integer.
+  int64_t sq[1];
+  //! Array of one 64-bit unsigned integer.
+  uint64_t uq[1];
+
+  //! Array of two SP-FP values.
+  float sf[2];
+  //! Array of one DP-FP value.
+  double df[1];
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Sets all eight 8-bit signed integers.
   static inline Data64 fromI8(int8_t x0) noexcept {
@@ -147,9 +168,10 @@ union Data64 {
     return self;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Sets all eight 8-bit signed integers.
   inline void setI8(int8_t x0) noexcept {
@@ -257,32 +279,6 @@ union Data64 {
   inline void setF64(double x0) noexcept {
     df[0] = x0;
   }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Array of eight 8-bit signed integers.
-  int8_t sb[8];
-  //! Array of eight 8-bit unsigned integers.
-  uint8_t ub[8];
-  //! Array of four 16-bit signed integers.
-  int16_t sw[4];
-  //! Array of four 16-bit unsigned integers.
-  uint16_t uw[4];
-  //! Array of two 32-bit signed integers.
-  int32_t sd[2];
-  //! Array of two 32-bit unsigned integers.
-  uint32_t ud[2];
-  //! Array of one 64-bit signed integer.
-  int64_t sq[1];
-  //! Array of one 64-bit unsigned integer.
-  uint64_t uq[1];
-
-  //! Array of two SP-FP values.
-  float sf[2];
-  //! Array of one DP-FP value.
-  double df[1];
 };
 
 // ============================================================================
@@ -291,9 +287,30 @@ union Data64 {
 
 //! 128-bit data useful for creating SIMD constants.
 union Data128 {
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Array of sixteen 8-bit signed integers.
+  int8_t sb[16];
+  //! Array of sixteen 8-bit unsigned integers.
+  uint8_t ub[16];
+  //! Array of eight 16-bit signed integers.
+  int16_t sw[8];
+  //! Array of eight 16-bit unsigned integers.
+  uint16_t uw[8];
+  //! Array of four 32-bit signed integers.
+  int32_t sd[4];
+  //! Array of four 32-bit unsigned integers.
+  uint32_t ud[4];
+  //! Array of two 64-bit signed integers.
+  int64_t sq[2];
+  //! Array of two 64-bit unsigned integers.
+  uint64_t uq[2];
+
+  //! Array of four 32-bit single precision floating points.
+  float sf[4];
+  //! Array of two 64-bit double precision floating points.
+  double df[2];
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Sets all sixteen 8-bit signed integers.
   static inline Data128 fromI8(int8_t x0) noexcept {
@@ -449,9 +466,10 @@ union Data128 {
     return self;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Sets all sixteen 8-bit signed integers.
   inline void setI8(int8_t x0) noexcept {
@@ -606,32 +624,6 @@ union Data128 {
   inline void setF64(double x0, double x1) noexcept {
     df[0] = x0; df[1] = x1;
   }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Array of sixteen 8-bit signed integers.
-  int8_t sb[16];
-  //! Array of sixteen 8-bit unsigned integers.
-  uint8_t ub[16];
-  //! Array of eight 16-bit signed integers.
-  int16_t sw[8];
-  //! Array of eight 16-bit unsigned integers.
-  uint16_t uw[8];
-  //! Array of four 32-bit signed integers.
-  int32_t sd[4];
-  //! Array of four 32-bit unsigned integers.
-  uint32_t ud[4];
-  //! Array of two 64-bit signed integers.
-  int64_t sq[2];
-  //! Array of two 64-bit unsigned integers.
-  uint64_t uq[2];
-
-  //! Array of four 32-bit single precision floating points.
-  float sf[4];
-  //! Array of two 64-bit double precision floating points.
-  double df[2];
 };
 
 // ============================================================================
@@ -640,9 +632,30 @@ union Data128 {
 
 //! 256-bit data useful for creating SIMD constants.
 union Data256 {
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Array of thirty two 8-bit signed integers.
+  int8_t sb[32];
+  //! Array of thirty two 8-bit unsigned integers.
+  uint8_t ub[32];
+  //! Array of sixteen 16-bit signed integers.
+  int16_t sw[16];
+  //! Array of sixteen 16-bit unsigned integers.
+  uint16_t uw[16];
+  //! Array of eight 32-bit signed integers.
+  int32_t sd[8];
+  //! Array of eight 32-bit unsigned integers.
+  uint32_t ud[8];
+  //! Array of four 64-bit signed integers.
+  int64_t sq[4];
+  //! Array of four 64-bit unsigned integers.
+  uint64_t uq[4];
+
+  //! Array of eight 32-bit single precision floating points.
+  float sf[8];
+  //! Array of four 64-bit double precision floating points.
+  double df[4];
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Sets all thirty two 8-bit signed integers.
   static inline Data256 fromI8(int8_t x0) noexcept {
@@ -821,9 +834,10 @@ union Data256 {
     return self;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Sets all thirty two 8-bit signed integers.
   inline void setI8(int8_t x0) noexcept {
@@ -1032,31 +1046,7 @@ union Data256 {
     df[0] = x0; df[1] = x1; df[2] = x2; df[3] = x3;
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Array of thirty two 8-bit signed integers.
-  int8_t sb[32];
-  //! Array of thirty two 8-bit unsigned integers.
-  uint8_t ub[32];
-  //! Array of sixteen 16-bit signed integers.
-  int16_t sw[16];
-  //! Array of sixteen 16-bit unsigned integers.
-  uint16_t uw[16];
-  //! Array of eight 32-bit signed integers.
-  int32_t sd[8];
-  //! Array of eight 32-bit unsigned integers.
-  uint32_t ud[8];
-  //! Array of four 64-bit signed integers.
-  int64_t sq[4];
-  //! Array of four 64-bit unsigned integers.
-  uint64_t uq[4];
-
-  //! Array of eight 32-bit single precision floating points.
-  float sf[8];
-  //! Array of four 64-bit double precision floating points.
-  double df[4];
+  //! \}
 };
 
 //! \}

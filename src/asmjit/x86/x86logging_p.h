@@ -16,7 +16,7 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -44,7 +44,7 @@ namespace LoggingInternal {
     uint32_t flags,
     const BaseEmitter* emitter,
     uint32_t archId,
-    const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
+    const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept;
 };
 
 //! \}

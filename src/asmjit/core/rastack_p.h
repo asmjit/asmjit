@@ -15,7 +15,7 @@
 ASMJIT_BEGIN_NAMESPACE
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_core_ra
+//! \addtogroup asmjit_ra
 //! \{
 
 // ============================================================================
@@ -34,9 +34,26 @@ struct RAStackSlot {
     kNoArgIndex = 0xFF
   };
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! Base register used to address the stack.
+  uint8_t _baseRegId;
+  //! Minimum alignment required by the slot.
+  uint8_t _alignment;
+  //! Reserved for future use.
+  uint8_t _reserved[2];
+  //! Size of memory required by the slot.
+  uint32_t _size;
+  //! Slot flags.
+  uint32_t _flags;
+
+  //! Usage counter (one unit equals one memory access).
+  uint32_t _useCount;
+  //! Weight of the slot (calculated by `calculateStackFrame()`).
+  uint32_t _weight;
+  //! Stack offset (calculated by `calculateStackFrame()`).
+  int32_t _offset;
+
+  //! \name Accessors
+  //! \{
 
   inline uint32_t baseRegId() const noexcept { return _baseRegId; }
   inline void setBaseRegId(uint32_t id) noexcept { _baseRegId = uint8_t(id); }
@@ -58,27 +75,7 @@ struct RAStackSlot {
   inline int32_t offset() const noexcept { return _offset; }
   inline void setOffset(int32_t offset) noexcept { _offset = offset; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Base register used to address the stack.
-  uint8_t _baseRegId;
-  //! Minimum alignment required by the slot.
-  uint8_t _alignment;
-  //! Reserved for future use.
-  uint8_t _reserved[2];
-  //! Size of memory required by the slot.
-  uint32_t _size;
-  //! Slot flags.
-  uint32_t _flags;
-
-  //! Usage counter (one unit equals one memory access).
-  uint32_t _useCount;
-  //! Weight of the slot (calculated by `calculateStackFrame()`).
-  uint32_t _weight;
-  //! Stack offset (calculated by `calculateStackFrame()`).
-  int32_t _offset;
+  //! \}
 };
 
 typedef ZoneVector<RAStackSlot*> RAStackSlots;
@@ -103,16 +100,26 @@ public:
     kSizeCount = 7
   };
 
+  //! Allocator used to allocate internal data.
+  ZoneAllocator* _allocator;
+  //! Count of bytes used by all slots.
+  uint32_t _bytesUsed;
+  //! Calculated stack size (can be a bit greater than `_bytesUsed`).
+  uint32_t _stackSize;
+  //! Minimum stack alignment.
+  uint32_t _alignment;
+  //! Stack slots vector.
+  RAStackSlots _slots;
+
+  //! \name Construction / Destruction
+  //! \{
+
   inline RAStackAllocator() noexcept
     : _allocator(nullptr),
       _bytesUsed(0),
       _stackSize(0),
       _alignment(1),
       _slots() {}
-
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
 
   inline void reset(ZoneAllocator* allocator) noexcept {
     _allocator = allocator;
@@ -122,9 +129,10 @@ public:
     _slots.reset();
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline ZoneAllocator* allocator() const noexcept { return _allocator; }
 
@@ -136,33 +144,17 @@ public:
   inline const RAStackSlots& slots() const noexcept { return _slots; }
   inline uint32_t slotCount() const noexcept { return _slots.size(); }
 
-  // --------------------------------------------------------------------------
-  // [Slots]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   RAStackSlot* newSlot(uint32_t baseRegId, uint32_t size, uint32_t alignment, uint32_t flags = 0) noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
 
   Error calculateStackFrame() noexcept;
   Error adjustSlotOffsets(int32_t offset) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Allocator used to allocate internal data.
-  ZoneAllocator* _allocator;
-  //! Count of bytes used by all slots.
-  uint32_t _bytesUsed;
-  //! Calculated stack size (can be a bit greater than `_bytesUsed`).
-  uint32_t _stackSize;
-  //! Minimum stack alignment.
-  uint32_t _alignment;
-  //! Stack slots vector.
-  RAStackSlots _slots;
+  //! \}
 };
 
 //! \}

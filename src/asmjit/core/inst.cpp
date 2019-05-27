@@ -27,15 +27,15 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_INST_API
-Error BaseInst::validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept {
+Error BaseInst::validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept {
 #ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
-    return x86::InstInternal::validate(archId, inst, operands, count);
+    return x86::InstInternal::validate(archId, inst, operands, opCount);
 #endif
 
 #ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId))
-    return arm::InstInternal::validate(archId, inst, operands, count);
+    return arm::InstInternal::validate(archId, inst, operands, opCount);
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);
@@ -47,18 +47,18 @@ Error BaseInst::validate(uint32_t archId, const BaseInst& inst, const Operand_* 
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_INST_API
-Error BaseInst::queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept {
-  if (ASMJIT_UNLIKELY(count > 6))
+Error BaseInst::queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount, InstRWInfo& out) noexcept {
+  if (ASMJIT_UNLIKELY(opCount > 6))
     return DebugUtils::errored(kErrorInvalidArgument);
 
 #ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
-    return x86::InstInternal::queryRWInfo(archId, inst, operands, count, out);
+    return x86::InstInternal::queryRWInfo(archId, inst, operands, opCount, out);
 #endif
 
 #ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId))
-    return arm::InstInternal::queryRWInfo(archId, inst, operands, count, out);
+    return arm::InstInternal::queryRWInfo(archId, inst, operands, opCount, out);
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);
@@ -70,15 +70,15 @@ Error BaseInst::queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand
 // ============================================================================
 
 #ifndef ASMJIT_DISABLE_INST_API
-Error BaseInst::queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept {
+Error BaseInst::queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount, BaseFeatures& out) noexcept {
 #ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
-    return x86::InstInternal::queryFeatures(archId, inst, operands, count, out);
+    return x86::InstInternal::queryFeatures(archId, inst, operands, opCount, out);
 #endif
 
 #ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId))
-    return arm::InstInternal::queryFeatures(archId, inst, operands, count, out);
+    return arm::InstInternal::queryFeatures(archId, inst, operands, opCount, out);
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);

@@ -76,9 +76,15 @@ public:
 
 class X86TestApp {
 public:
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  Zone _zone;
+  ZoneAllocator _allocator;
+  ZoneVector<X86Test*> _tests;
+
+  unsigned _nFailed;
+  size_t _outputSize;
+
+  bool _verbose;
+  bool _dumpAsm;
 
   X86TestApp() noexcept
     : _zone(8096 - Zone::kBlockOverhead),
@@ -93,10 +99,6 @@ public:
       delete test;
   }
 
-  // --------------------------------------------------------------------------
-  // [Interface]
-  // --------------------------------------------------------------------------
-
   Error add(X86Test* test) noexcept{
     return _tests.append(&_allocator, test);
   }
@@ -107,20 +109,6 @@ public:
   int handleArgs(int argc, const char* const* argv);
   void showInfo();
   int run();
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  Zone _zone;
-  ZoneAllocator _allocator;
-  ZoneVector<X86Test*> _tests;
-
-  unsigned _nFailed;
-  size_t _outputSize;
-
-  bool _verbose;
-  bool _dumpAsm;
 };
 
 int X86TestApp::handleArgs(int argc, const char* const* argv) {

@@ -14,7 +14,7 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::Support - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 template<typename T>
 static void testArrays(const T* a, const T* b, size_t size) noexcept {
   for (size_t i = 0; i < size; i++)
@@ -470,7 +470,7 @@ static void testSorting() noexcept {
   }
 }
 
-UNIT(asmjit_core_support) {
+UNIT(asmjit_support) {
   testAlignment();
   testBitUtils();
   testIntUtils();

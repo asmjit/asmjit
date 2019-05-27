@@ -15,7 +15,7 @@
 ASMJIT_BEGIN_NAMESPACE
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_core_ra
+//! \addtogroup asmjit_ra
 //! \{
 
 // ============================================================================
@@ -36,10 +36,6 @@ public:
     kDirty = 1
   };
 
-  // --------------------------------------------------------------------------
-  // [Layout]
-  // --------------------------------------------------------------------------
-
   struct Layout {
     inline void reset() noexcept {
       physIndex.reset();
@@ -55,10 +51,6 @@ public:
     uint32_t workCount;                  //!< Count of work registers.
     const RAWorkRegs* workRegs;          //!< WorkRegs data (vector).
   };
-
-  // --------------------------------------------------------------------------
-  // [PhysToWorkMap]
-  // --------------------------------------------------------------------------
 
   struct PhysToWorkMap {
     static inline size_t sizeOf(uint32_t count) noexcept {
@@ -83,10 +75,6 @@ public:
     uint32_t workIds[1 /* ... */];       //!< PhysReg to WorkReg mapping.
   };
 
-  // --------------------------------------------------------------------------
-  // [WorkToPhysMap]
-  // --------------------------------------------------------------------------
-
   struct WorkToPhysMap {
     static inline size_t sizeOf(uint32_t count) noexcept {
       return size_t(count) * sizeof(uint8_t);
@@ -106,18 +94,22 @@ public:
     uint8_t physIds[1 /* ... */];        //!< WorkReg to PhysReg mapping
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Physical registers layout.
+  Layout _layout;
+  //! WorkReg to PhysReg mapping.
+  WorkToPhysMap* _workToPhysMap;
+  //! PhysReg to WorkReg mapping and assigned/dirty bits.
+  PhysToWorkMap* _physToWorkMap;
+  //! Optimization to translate PhysRegs to WorkRegs faster.
+  uint32_t* _physToWorkIds[BaseReg::kGroupVirt];
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline RAAssignment() noexcept {
     _layout.reset();
     resetMaps();
   }
-
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
 
   inline void initLayout(const RARegCount& physCount, const RAWorkRegs& workRegs) noexcept {
     // Layout must be initialized before data.
@@ -146,9 +138,10 @@ public:
       _physToWorkIds[group] = nullptr;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline PhysToWorkMap* physToWorkMap() const noexcept { return _physToWorkMap; }
   inline WorkToPhysMap* workToPhysMap() const noexcept { return _workToPhysMap; }
@@ -183,9 +176,10 @@ public:
     return Support::bitTest(_physToWorkMap->dirty[group], physId);
   }
 
-  // --------------------------------------------------------------------------
-  // [Assignment]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Assignment
+  //! \{
 
   // These are low-level allocation helpers that are used to update the current
   // mappings between physical and virt/work registers and also to update masks
@@ -291,9 +285,10 @@ public:
     _physToWorkMap->dirty[group] |= regMask;
   }
 
-  // --------------------------------------------------------------------------
-  // [Copy / Swap]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   inline void copyFrom(const PhysToWorkMap* physToWorkMap, const WorkToPhysMap* workToPhysMap) noexcept {
     memcpy(_physToWorkMap, physToWorkMap, PhysToWorkMap::sizeOf(_layout.physTotal));
@@ -311,10 +306,6 @@ public:
     for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++)
       std::swap(_physToWorkIds[group], other._physToWorkIds[group]);
   }
-
-  // --------------------------------------------------------------------------
-  // [Equals]
-  // --------------------------------------------------------------------------
 
   // Not really useful outside of debugging.
   bool equals(const RAAssignment& other) const noexcept {
@@ -350,10 +341,6 @@ public:
     return true;
   }
 
-  // --------------------------------------------------------------------------
-  // [Verify]
-  // --------------------------------------------------------------------------
-
 #if defined(ASMJIT_BUILD_DEBUG)
   ASMJIT_NOINLINE void verify() noexcept {
     // Verify WorkToPhysMap.
@@ -385,18 +372,7 @@ public:
   inline void verify() noexcept {}
 #endif
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Physical registers layout.
-  Layout _layout;
-  //! WorkReg to PhysReg mapping.
-  WorkToPhysMap* _workToPhysMap;
-  //! PhysReg to WorkReg mapping and assigned/dirty bits.
-  PhysToWorkMap* _physToWorkMap;
-  //! Optimization to translate PhysRegs to WorkRegs faster.
-  uint32_t* _physToWorkIds[BaseReg::kGroupVirt];
+  //! \}
 };
 
 //! \}

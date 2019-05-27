@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_zone
+//! \addtogroup asmjit_zone
 //! \{
 
 // ============================================================================
@@ -47,9 +47,20 @@ class ZoneHashBase {
 public:
   ASMJIT_NONCOPYABLE(ZoneHashBase)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Count of records inserted into the hash table.
+  size_t _size;
+  //! Count of hash buckets.
+  uint32_t _bucketsCount;
+  //! When buckets array should grow.
+  uint32_t _bucketsGrow;
+
+  //! Buckets data.
+  ZoneHashNode** _data;
+  //! Embedded data, used by empty hash tables.
+  ZoneHashNode* _embedded[1];
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline ZoneHashBase() noexcept {
     _size = 0;
@@ -69,10 +80,6 @@ public:
     if (_data == other._embedded) _data = _embedded;
   }
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
-
   inline void reset() noexcept {
     _size = 0;
     _bucketsCount = 1;
@@ -88,24 +95,24 @@ public:
     reset();
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline bool empty() const noexcept { return _size == 0; }
   inline size_t size() const noexcept { return _size; }
 
-  // --------------------------------------------------------------------------
-  // [Ops]
-  // --------------------------------------------------------------------------
+  //! \}
 
+  //! \name Utilities
+  //! \{
+
+  //! \cond INTERNAL
   ASMJIT_API void _rehash(ZoneAllocator* allocator, uint32_t newCount) noexcept;
   ASMJIT_API ZoneHashNode* _insert(ZoneAllocator* allocator, ZoneHashNode* node) noexcept;
   ASMJIT_API ZoneHashNode* _remove(ZoneAllocator* allocator, ZoneHashNode* node) noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Swap]
-  // --------------------------------------------------------------------------
+  //! \endcond
 
   inline void swapWith(ZoneHashBase& other) noexcept {
     std::swap(_size, other._size);
@@ -118,21 +125,7 @@ public:
     if (other._data == _embedded) other._data = other._embedded;
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Count of records inserted into the hash table.
-  size_t _size;
-  //! Count of hash buckets.
-  uint32_t _bucketsCount;
-  //! When buckets array should grow.
-  uint32_t _bucketsGrow;
-
-  //! Buckets data.
-  ZoneHashNode** _data;
-  //! Embedded data, used by empty hash tables.
-  ZoneHashNode* _embedded[1];
+  //! \}
 };
 
 // ============================================================================
@@ -152,11 +145,19 @@ public:
 
   typedef NodeT Node;
 
+  //! \name Construction & Destruction
+  //! \{
+
   inline ZoneHash() noexcept
     : ZoneHashBase() {}
 
   inline ZoneHash(ZoneHash&& other) noexcept
     : ZoneHash(other) {}
+
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   template<typename KeyT>
   inline NodeT* get(const KeyT& key) const noexcept {
@@ -172,6 +173,8 @@ public:
   inline NodeT* remove(ZoneAllocator* allocator, NodeT* node) noexcept { return static_cast<NodeT*>(_remove(allocator, node)); }
 
   inline void swapWith(ZoneHash& other) noexcept { ZoneHashBase::swapWith(other); }
+
+  //! \}
 };
 
 //! \}

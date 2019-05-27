@@ -33,7 +33,7 @@ class FuncNode;
 class FuncRetNode;
 class FuncCallNode;
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -45,9 +45,38 @@ class VirtReg {
 public:
   ASMJIT_NONCOPYABLE(VirtReg)
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
+  //! Virtual register id.
+  uint32_t _id;
+  //! Virtual register info (signature).
+  RegInfo _info;
+  //! Virtual register size (can be smaller than `regInfo._size`).
+  uint32_t _virtSize;
+  //! Virtual register alignment (for spilling).
+  uint8_t _alignment;
+  //! Type-id.
+  uint8_t _typeId;
+  //! Virtual register weight for alloc/spill decisions.
+  uint8_t _weight;
+  //! True if this is a fixed register, never reallocated.
+  uint8_t _isFixed : 1;
+  //! True if the virtual register is only used as a stack (never accessed as register).
+  uint8_t _isStack : 1;
+  uint8_t _reserved : 6;
+
+  //! Virtual register name (user provided or automatically generated).
+  ZoneString<16> _name;
+
+  // -------------------------------------------------------------------------
+  // The following members are used exclusively by RAPass. They are initialized
+  // when the VirtReg is created to NULL pointers and then changed during RAPass
+  // execution. RAPass sets them back to NULL before it returns.
+  // -------------------------------------------------------------------------
+
+  //! Reference to `RAWorkReg`, used during register allocation.
+  RAWorkReg* _workReg;
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline VirtReg(uint32_t id, uint32_t signature, uint32_t virtSize, uint32_t alignment, uint32_t typeId) noexcept
     : _id(id),
@@ -61,9 +90,10 @@ public:
       _name(),
       _workReg(nullptr) { _info._signature = signature; }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the virtual register id.
   inline uint32_t id() const noexcept { return _id; }
@@ -128,39 +158,7 @@ public:
   inline void setWorkReg(RAWorkReg* workReg) noexcept { _workReg = workReg; }
   inline void resetWorkReg() noexcept { _workReg = nullptr; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Virtual register id.
-  uint32_t _id;
-  //! Virtual register info (signature).
-  RegInfo _info;
-  //! Virtual register size (can be smaller than `regInfo._size`).
-  uint32_t _virtSize;
-  //! Virtual register alignment (for spilling).
-  uint8_t _alignment;
-  //! Type-id.
-  uint8_t _typeId;
-  //! Virtual register weight for alloc/spill decisions.
-  uint8_t _weight;
-  //! True if this is a fixed register, never reallocated.
-  uint8_t _isFixed : 1;
-  //! True if the virtual register is only used as a stack (never accessed as register).
-  uint8_t _isStack : 1;
-  uint8_t _reserved : 6;
-
-  //! Virtual register name (user provided or automatically generated).
-  ZoneString<16> _name;
-
-  // -------------------------------------------------------------------------
-  // The following members are used exclusively by RAPass. They are initialized
-  // when the VirtReg is created to NULL pointers and then changed during RAPass
-  // execution. RAPass sets them back to NULL before it returns.
-  // -------------------------------------------------------------------------
-
-  //! Reference to `RAWorkReg`, used during register allocation.
-  RAWorkReg* _workReg;
+  //! \}
 };
 
 // ============================================================================
@@ -187,18 +185,30 @@ public:
   ASMJIT_NONCOPYABLE(BaseCompiler)
   typedef BaseBuilder Base;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Current function.
+  FuncNode* _func;
+  //! Allocates `VirtReg` objects.
+  Zone _vRegZone;
+  //! Stores array of `VirtReg` pointers.
+  ZoneVector<VirtReg*> _vRegArray;
+
+  //! Local constant pool, flushed at the end of each function.
+  ConstPoolNode* _localConstPool;
+  //! Global constant pool, flushed by `finalize()`.
+  ConstPoolNode* _globalConstPool;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `BaseCompiler` instance.
   ASMJIT_API BaseCompiler() noexcept;
   //! Destroys the `BaseCompiler` instance.
   ASMJIT_API virtual ~BaseCompiler() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Func]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Function API
+  //! \{
 
   //! Gets the current function.
   inline FuncNode* func() const noexcept { return _func; }
@@ -212,34 +222,28 @@ public:
   //! Emits a sentinel that marks the end of the current function.
   ASMJIT_API Error endFunc();
 
-  // --------------------------------------------------------------------------
-  // [Ret]
-  // --------------------------------------------------------------------------
+  //! Sets a function argument at `argIndex` to `reg`.
+  ASMJIT_API Error setArg(uint32_t argIndex, const BaseReg& reg);
 
   //! Creates a new `FuncRetNode`.
   ASMJIT_API FuncRetNode* newRet(const Operand_& o0, const Operand_& o1) noexcept;
   //! Adds a new `FuncRetNode`.
   ASMJIT_API FuncRetNode* addRet(const Operand_& o0, const Operand_& o1) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Call]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Function Calls
+  //! \{
 
   //! Creates a new `FuncCallNode`.
   ASMJIT_API FuncCallNode* newCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept;
   //! Adds a new `FuncCallNode`.
   ASMJIT_API FuncCallNode* addCall(uint32_t instId, const Operand_& o0, const FuncSignature& sign) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Args]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! Sets a function argument at `argIndex` to `reg`.
-  ASMJIT_API Error setArg(uint32_t argIndex, const BaseReg& reg);
-
-  // --------------------------------------------------------------------------
-  // [VirtReg / Stack]
-  // --------------------------------------------------------------------------
+  //! \name Virtual Registers
+  //! \{
 
   //! Creates a new virtual register representing the given `typeId` and `signature`.
   ASMJIT_API VirtReg* newVirtReg(uint32_t typeId, uint32_t signature, const char* name) noexcept;
@@ -249,9 +253,6 @@ public:
 
   ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* name = nullptr);
   ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap);
-
-  ASMJIT_API Error _newStack(BaseMem& out, uint32_t size, uint32_t alignment, const char* name = nullptr);
-  ASMJIT_API Error _newConst(BaseMem& out, uint32_t scope, const void* data, size_t size);
 
   //! Gets whether the given `id` is a valid virtual register id.
   inline bool isVirtIdValid(uint32_t id) const noexcept {
@@ -276,37 +277,41 @@ public:
   //! Gets an array of all virtual registers managed by the Compiler.
   inline const ZoneVector<VirtReg*>& virtRegs() const noexcept { return _vRegArray; }
 
-  //! Rename variable `reg` to `name`.
+  //! \name Stack
+  //! \{
+
+  ASMJIT_API Error _newStack(BaseMem& out, uint32_t size, uint32_t alignment, const char* name = nullptr);
+
+  //! \}
+
+  //! \name Constants
+  //! \{
+
+  ASMJIT_API Error _newConst(BaseMem& out, uint32_t scope, const void* data, size_t size);
+
+  //! \}
+
+  //! \name Miscellaneous
+  //! \{
+
+  //! Rename the given virtual register `reg` to a formatted string `fmt`.
   //!
   //! NOTE: Only new name will appear in the logger.
   ASMJIT_API void rename(BaseReg& reg, const char* fmt, ...);
+
+  //! \}
 
   // TODO: These should be removed
   inline void alloc(BaseReg& reg) { ASMJIT_UNUSED(reg); }
   inline void spill(BaseReg& reg) { ASMJIT_UNUSED(reg); }
 
-  // --------------------------------------------------------------------------
-  // [Events]
-  // --------------------------------------------------------------------------
+  //! \name Events
+  //! \{
 
   ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
   ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Current function.
-  FuncNode* _func;
-  //! Allocates `VirtReg` objects.
-  Zone _vRegZone;
-  //! Stores array of `VirtReg` pointers.
-  ZoneVector<VirtReg*> _vRegArray;
-
-  //! Local constant pool, flushed at the end of each function.
-  ConstPoolNode* _localConstPool;
-  //! Global constant pool, flushed by `finalize()`.
-  ConstPoolNode* _globalConstPool;
+  //! \}
 };
 
 // ============================================================================
@@ -318,9 +323,19 @@ class FuncNode : public LabelNode {
 public:
   ASMJIT_NONCOPYABLE(FuncNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Function detail.
+  FuncDetail _funcDetail;
+  //! Function frame.
+  FuncFrame _frame;
+  //! Function exit (label).
+  LabelNode* _exitNode;
+  //! Function end (sentinel).
+  SentinelNode* _end;
+  //! Arguments array as `VirtReg`.
+  VirtReg** _args;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `FuncNode` instance.
   //!
@@ -335,9 +350,10 @@ public:
     setType(kNodeFunc);
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \{
+  //! \name Accessors
 
   //! Gets function exit `LabelNode`.
   inline LabelNode* exitNode() const noexcept { return _exitNode; }
@@ -386,20 +402,7 @@ public:
   inline uint32_t attributes() const noexcept { return _frame.attributes(); }
   inline void addAttributes(uint32_t attrs) noexcept { _frame.addAttributes(attrs); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Function detail.
-  FuncDetail _funcDetail;
-  //! Function frame.
-  FuncFrame _frame;
-  //! Function exit (label).
-  LabelNode* _exitNode;
-  //! Function end (sentinel).
-  SentinelNode* _end;
-  //! Arguments array as `VirtReg`.
-  VirtReg** _args;
+  //! \}
 };
 
 // ============================================================================
@@ -411,14 +414,15 @@ class FuncRetNode : public InstNode {
 public:
   ASMJIT_NONCOPYABLE(FuncRetNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `FuncRetNode` instance.
   inline FuncRetNode(BaseBuilder* cb) noexcept : InstNode(cb, BaseInst::kIdAbstract, 0, 0) {
     _any._nodeType = kNodeFuncRet;
   }
+
+  //! \}
 };
 
 // ============================================================================
@@ -430,9 +434,15 @@ class FuncCallNode : public InstNode {
 public:
   ASMJIT_NONCOPYABLE(FuncCallNode)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Function detail.
+  FuncDetail _funcDetail;
+  //! Returns.
+  Operand_ _rets[2];
+  //! Arguments.
+  Operand_* _args;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a new `FuncCallNode` instance.
   inline FuncCallNode(BaseBuilder* cb, uint32_t instId, uint32_t options) noexcept
@@ -446,18 +456,15 @@ public:
     addFlags(kFlagIsRemovable);
   }
 
-  // --------------------------------------------------------------------------
-  // [Signature]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Sets the function signature.
   inline Error setSignature(const FuncSignature& sign) noexcept {
     return _funcDetail.init(sign);
   }
-
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
 
   //! Gets the function detail.
   inline FuncDetail& detail() noexcept { return _funcDetail; }
@@ -509,16 +516,7 @@ public:
   //! Sets the function return value at `i` to `var`.
   inline bool setRet(uint32_t i, const BaseReg& reg) noexcept { return _setRet(i, reg); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Function detail.
-  FuncDetail _funcDetail;
-  //! Returns.
-  Operand_ _rets[2];
-  //! Arguments.
-  Operand_* _args;
+  //! \}
 };
 
 // ============================================================================
@@ -530,11 +528,23 @@ public:
   ASMJIT_NONCOPYABLE(FuncPass)
   typedef Pass Base;
 
+  //! \name Construction & Destruction
+  //! \{
+
   ASMJIT_API FuncPass(const char* name) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Run]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  //! Gets the associated `BaseCompiler`.
+  inline BaseCompiler* cc() const noexcept { return static_cast<BaseCompiler*>(_cb); }
+
+  //! \}
+
+  //! \name Run
+  //! \{
 
   //! Calls `runOnFunction()` on each `FuncNode` node found.
   ASMJIT_API Error run(Zone* zone, Logger* logger) noexcept override;
@@ -542,12 +552,7 @@ public:
   //! Called once per `FuncNode`.
   virtual Error runOnFunction(Zone* zone, Logger* logger, FuncNode* func) noexcept = 0;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
-
-  //! Gets the associated `BaseCompiler`.
-  inline BaseCompiler* cc() const noexcept { return static_cast<BaseCompiler*>(_cb); }
+  //! \}
 };
 
 //! \}

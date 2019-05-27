@@ -204,16 +204,16 @@ Error Logging::formatInstruction(
   uint32_t flags,
   const BaseEmitter* emitter,
   uint32_t archId,
-  const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept {
+  const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept {
 
   #ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
-    return x86::LoggingInternal::formatInstruction(sb, flags, emitter, archId, inst, operands, count);
+    return x86::LoggingInternal::formatInstruction(sb, flags, emitter, archId, inst, operands, opCount);
   #endif
 
   #ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId))
-    return arm::LoggingInternal::formatInstruction(sb, flags, emitter, archId, inst, operands, count);
+    return arm::LoggingInternal::formatInstruction(sb, flags, emitter, archId, inst, operands, opCount);
   #endif
 
   return kErrorInvalidArch;

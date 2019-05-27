@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_zone
+//! \addtogroup asmjit_zone
 //! \{
 
 // ============================================================================
@@ -32,16 +32,37 @@ public:
     kPtrMask = ~kRedMask
   };
 
+  uintptr_t _rbNodeData[Globals::kLinkCount];
+
+  //! \name Construction & Destruction
+  //! \{
+
   inline ZoneTreeNode() noexcept
     : _rbNodeData { 0, 0 } {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  inline bool isRed() const noexcept { return static_cast<bool>(_rbNodeData[0] & kRedMask); }
 
   inline bool hasChild(size_t i) const noexcept { return _rbNodeData[i] > kRedMask; }
   inline bool hasLeft() const noexcept { return _rbNodeData[0] > kRedMask; }
   inline bool hasRight() const noexcept { return _rbNodeData[1] != 0; }
+
+  template<typename T = ZoneTreeNode>
+  inline T* child(size_t i) const noexcept { return static_cast<T*>(_getChild(i)); }
+  template<typename T = ZoneTreeNode>
+  inline T* left() const noexcept { return static_cast<T*>(_getLeft()); }
+  template<typename T = ZoneTreeNode>
+  inline T* right() const noexcept { return static_cast<T*>(_getRight()); }
+
+  //! \}
+
+  //! \cond INTERNAL
+  //! \name Internal
+  //! \{
 
   inline ZoneTreeNode* _getChild(size_t i) const noexcept { return (ZoneTreeNode*)(_rbNodeData[i] & kPtrMask); }
   inline ZoneTreeNode* _getLeft() const noexcept { return (ZoneTreeNode*)(_rbNodeData[0] & kPtrMask); }
@@ -51,25 +72,14 @@ public:
   inline void _setLeft(ZoneTreeNode* node) noexcept { _rbNodeData[0] = (_rbNodeData[0] & kRedMask) | (uintptr_t)node; }
   inline void _setRight(ZoneTreeNode* node) noexcept { _rbNodeData[1] = (uintptr_t)node; }
 
-  template<typename T = ZoneTreeNode>
-  inline T* child(size_t i) const noexcept { return static_cast<T*>(_getChild(i)); }
-  template<typename T = ZoneTreeNode>
-  inline T* left() const noexcept { return static_cast<T*>(_getLeft()); }
-  template<typename T = ZoneTreeNode>
-  inline T* right() const noexcept { return static_cast<T*>(_getRight()); }
-
-  inline bool isRed() const noexcept { return static_cast<bool>(_rbNodeData[0] & kRedMask); }
   inline void _makeRed() noexcept { _rbNodeData[0] |= kRedMask; }
   inline void _makeBlack() noexcept { _rbNodeData[0] &= kPtrMask; }
 
   //! Gets whether the node is RED (RED node must be non-null and must have RED flag set).
   static inline bool _isValidRed(ZoneTreeNode* node) noexcept { return node && node->isRed(); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uintptr_t _rbNodeData[Globals::kLinkCount];
+  //! \}
+  //! \endcond
 };
 
 //! RB-Tree typed to `NodeT`.
@@ -78,12 +88,22 @@ class ZoneTreeNodeT : public ZoneTreeNode {
 public:
   ASMJIT_NONCOPYABLE(ZoneTreeNodeT)
 
+  //! \name Construction & Destruction
+  //! \{
+
   inline ZoneTreeNodeT() noexcept
     : ZoneTreeNode() {}
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline NodeT* child(size_t i) const noexcept { return static_cast<NodeT*>(_getChild(i)); }
   inline NodeT* left() const noexcept { return static_cast<NodeT*>(_getLeft()); }
   inline NodeT* right() const noexcept { return static_cast<NodeT*>(_getRight()); }
+
+  //! \}
 };
 
 // ============================================================================
@@ -97,10 +117,10 @@ public:
   ASMJIT_NONCOPYABLE(ZoneTree)
 
   typedef NodeT Node;
+  NodeT* _root;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   inline ZoneTree() noexcept
     : _root(nullptr) {}
@@ -108,22 +128,20 @@ public:
   inline ZoneTree(ZoneTree&& other) noexcept
     : _root(other._root) {}
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  inline void reset() noexcept { _root = nullptr; }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline bool empty() const noexcept { return _root == nullptr; }
   inline NodeT* root() const noexcept { return static_cast<NodeT*>(_root); }
 
-  // --------------------------------------------------------------------------
-  // [Reset]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  inline void reset() noexcept { _root = nullptr; }
-
-  // --------------------------------------------------------------------------
-  // [Operations]
-  // --------------------------------------------------------------------------
+  //! \name Utilities
+  //! \{
 
   template<typename CompareT = Support::Compare<Support::kSortAscending>>
   void insert(NodeT* node, const CompareT& cmp = CompareT()) noexcept {
@@ -311,17 +329,15 @@ public:
     return static_cast<NodeT*>(node);
   }
 
-  // --------------------------------------------------------------------------
-  // [Swap]
-  // --------------------------------------------------------------------------
-
   inline void swapWith(ZoneTree& other) noexcept {
     std::swap(_root, other._root);
   }
 
-  // --------------------------------------------------------------------------
-  // [Internal]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \cond INTERNAL
+  //! \name Internal
+  //! \{
 
   static inline bool _isValidRed(ZoneTreeNode* node) noexcept { return ZoneTreeNode::_isValidRed(node); }
 
@@ -341,11 +357,8 @@ public:
     return _singleRotate(root, dir);
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  NodeT* _root;
+  //! \}
+  //! \endcond
 };
 
 //! \}

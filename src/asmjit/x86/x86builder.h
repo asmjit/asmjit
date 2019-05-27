@@ -16,7 +16,7 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -31,24 +31,27 @@ public:
   ASMJIT_NONCOPYABLE(Builder)
   typedef BaseBuilder Base;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   ASMJIT_API explicit Builder(CodeHolder* code = nullptr) noexcept;
   ASMJIT_API virtual ~Builder() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Finalize]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Finalize
+  //! \{
 
   ASMJIT_API Error finalize() override;
 
-  // --------------------------------------------------------------------------
-  // [Events]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Events
+  //! \{
 
   ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
+
+  //! \}
 };
 
 //! \}

@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86_db
+//! \addtogroup asmjit_x86
 //! \{
 
 //! Instruction database (X86).
@@ -295,6 +295,21 @@ ASMJIT_VARAPI const InstSignature _instSignatureTable[];
 //!
 //! Aggregated information shared across one or more instruction.
 struct CommonInfo {
+  //! Instruction flags.
+  uint32_t _flags;
+  //! First `InstSignature` entry in the database.
+  uint32_t _iSignatureIndex : 11;
+  //! Number of relevant `ISignature` entries.
+  uint32_t _iSignatureCount : 5;
+  //! Control type, see `ControlType`.
+  uint32_t _controlType : 3;
+  //! Specifies what happens if all source operands share the same register.
+  uint32_t _singleRegCase : 2;
+  //! Special cases.
+  uint32_t _specialCases : 4;
+  //! Reserved for future use.
+  uint32_t _reserved : 7;
+
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
@@ -363,25 +378,6 @@ struct CommonInfo {
 
   inline uint32_t singleRegCase() const noexcept { return _singleRegCase; }
   inline uint32_t specialCases() const noexcept { return _specialCases; }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Instruction flags.
-  uint32_t _flags;
-  //! First `InstSignature` entry in the database.
-  uint32_t _iSignatureIndex : 11;
-  //! Number of relevant `ISignature` entries.
-  uint32_t _iSignatureCount : 5;
-  //! Control type, see `ControlType`.
-  uint32_t _controlType : 3;
-  //! Specifies what happens if all source operands share the same register.
-  uint32_t _singleRegCase : 2;
-  //! Special cases.
-  uint32_t _specialCases : 4;
-  //! Reserved for future use.
-  uint32_t _reserved : 7;
 };
 
 ASMJIT_VARAPI const CommonInfo _commonInfoTable[];
@@ -392,6 +388,15 @@ ASMJIT_VARAPI const CommonInfo _commonInfoTable[];
 
 //! Detailed data about instruction's operation, requirements, and side-effects.
 struct ExecutionInfo {
+  //! Operation flags.
+  uint16_t _flags;
+  //! Features vector.
+  uint8_t _features[6];
+  //! Special registers read.
+  uint32_t _specialRegsR;
+  //! Special registers written.
+  uint32_t _specialRegsW;
+
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
@@ -408,19 +413,6 @@ struct ExecutionInfo {
 
   inline const uint8_t* featuresData() const noexcept { return _features; }
   inline const uint8_t* featuresEnd() const noexcept { return _features + ASMJIT_ARRAY_SIZE(_features); }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Operation flags.
-  uint16_t _flags;
-  //! Features vector.
-  uint8_t _features[6];
-  //! Special registers read.
-  uint32_t _specialRegsR;
-  //! Special registers written.
-  uint32_t _specialRegsW;
 };
 
 ASMJIT_VARAPI const ExecutionInfo _executionInfoTable[];
@@ -431,6 +423,13 @@ ASMJIT_VARAPI const ExecutionInfo _executionInfoTable[];
 
 //! Instruction information (X86).
 struct InstInfo {
+  //!< Index to `_nameData`.
+  uint32_t _nameDataIndex : 14;
+  //!< Index to `_commonInfoTable`.
+  uint32_t _commonInfoIndex : 10;
+  //!< Index to `_executionInfoTable`.
+  uint32_t _executionInfoIndex : 8;
+
   // --------------------------------------------------------------------------
   // [Accessors]
   // --------------------------------------------------------------------------
@@ -513,17 +512,6 @@ struct InstInfo {
 
   inline const InstSignature* signatureData() const noexcept { return commonInfo().signatureData(); }
   inline const InstSignature* signatureEnd() const noexcept { return commonInfo().signatureEnd(); }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //!< Index to `_nameData`.
-  uint32_t _nameDataIndex : 14;
-  //!< Index to `_commonInfoTable`.
-  uint32_t _commonInfoIndex : 10;
-  //!< Index to `_executionInfoTable`.
-  uint32_t _executionInfoIndex : 8;
 };
 
 ASMJIT_VARAPI const InstInfo _instInfoTable[];

@@ -11,7 +11,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -188,9 +188,10 @@ static constexpr bool isVec128(uint32_t typeId) noexcept { return typeId >= _kId
 static constexpr bool isVec256(uint32_t typeId) noexcept { return typeId >= _kIdVec256Start && typeId <= _kIdVec256End; }
 static constexpr bool isVec512(uint32_t typeId) noexcept { return typeId >= _kIdVec512Start && typeId <= _kIdVec512End; }
 
-//! IdOfT<> template allows to get a TypeId of a C++ type.
+//! IdOfT<> template allows to get a TypeId of a C++ `T` type.
 template<typename T> struct IdOfT { /* Fail if not specialized. */ };
 
+//! \cond
 template<typename T> struct IdOfT<T*> {
   enum : uint32_t { kTypeId = kIdUIntPtr };
 };
@@ -247,6 +248,7 @@ struct SizeOfTypeId {
     isVec256 (TYPE_ID) ? 32 :
     isVec512 (TYPE_ID) ? 64 : 0;
 };
+//! \endcond
 
 static inline uint32_t baseOf(uint32_t typeId) noexcept {
   ASMJIT_ASSERT(typeId <= kIdMax);
@@ -286,29 +288,29 @@ static constexpr uint32_t deabstract(uint32_t typeId, uint32_t deabstractDelta) 
 //! bool as C++ type-name.
 struct Bool {};
 //! int8_t as C++ type-name.
-struct I8   {};
+struct I8 {};
 //! uint8_t as C++ type-name.
-struct U8   {};
+struct U8 {};
 //! int16_t as C++ type-name.
-struct I16  {};
+struct I16 {};
 //! uint16_t as C++ type-name.
-struct U16  {};
+struct U16 {};
 //! int32_t as C++ type-name.
-struct I32  {};
+struct I32 {};
 //! uint32_t as C++ type-name.
-struct U32  {};
+struct U32 {};
 //! int64_t as C++ type-name.
-struct I64  {};
+struct I64 {};
 //! uint64_t as C++ type-name.
-struct U64  {};
+struct U64 {};
 //! intptr_t as C++ type-name.
 struct IPtr {};
 //! uintptr_t as C++ type-name.
 struct UPtr {};
 //! float as C++ type-name.
-struct F32  {};
+struct F32 {};
 //! double as C++ type-name.
-struct F64  {};
+struct F64 {};
 
 } // {Type}
 
@@ -316,6 +318,7 @@ struct F64  {};
 // [ASMJIT_DEFINE_TYPE_ID]
 // ============================================================================
 
+//! \cond
 #define ASMJIT_DEFINE_TYPE_ID(T, TYPE_ID)  \
 namespace Type {                           \
   template<>                               \
@@ -363,6 +366,7 @@ ASMJIT_DEFINE_TYPE_ID(IPtr              , kIdIntPtr);
 ASMJIT_DEFINE_TYPE_ID(UPtr              , kIdUIntPtr);
 ASMJIT_DEFINE_TYPE_ID(F32               , kIdF32);
 ASMJIT_DEFINE_TYPE_ID(F64               , kIdF64);
+//! \endcond
 
 //! \}
 

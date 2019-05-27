@@ -14,7 +14,7 @@
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -27,6 +27,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! ISA manuals, all other bits describe other properties like prefixes, see
 //! `Opcode::Bits` for more information.
 struct Opcode {
+  uint32_t v;
+
   //! Describes a meaning of all bits of AsmJit's 32-bit opcode value.
   //!
   //! This schema is AsmJit specific and has been designed to allow encoding of
@@ -423,12 +425,6 @@ struct Opcode {
   ASMJIT_INLINE uint32_t operator^(uint32_t x) const noexcept { return v ^ x; }
   ASMJIT_INLINE uint32_t operator<<(uint32_t x) const noexcept { return v << x; }
   ASMJIT_INLINE uint32_t operator>>(uint32_t x) const noexcept { return v >> x; }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uint32_t v;
 };
 
 //! \}

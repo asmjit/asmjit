@@ -120,11 +120,9 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
 
     // Try to find a slot within gaps first, before advancing the `offset`.
     bool foundGap = false;
-
     uint32_t gapSize = 0;
     uint32_t gapOffset = 0;
 
-    // Try to find a slot within gaps first.
     {
       uint32_t slotSize = slot->size();
       if (slotSize < (1u << uint32_t(ASMJIT_ARRAY_SIZE(gaps)))) {
@@ -157,17 +155,18 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
 
     // True if we have found a gap and not filled all of it or we aligned the current offset.
     if (gapSize) {
-      uint32_t slotSize = Support::alignUpPowerOf2(gapSize + 1) / 2;
-      do {
-        if (gapSize >= slotSize) {
-          gapSize -= slotSize;
-          gapOffset -= slotSize;
+      uint32_t gapEnd = gapSize + gapOffset;
+      while (gapOffset < gapEnd) {
+        uint32_t index = Support::ctz(gapOffset);
+        uint32_t slotSize = 1u << index;
 
-          uint32_t index = Support::ctz(slotSize);
-          ASMJIT_PROPAGATE(gaps[index].append(allocator(), RAStackGap(gapOffset, slotSize)));
-        }
-        slotSize >>= 1;
-      } while (gapSize);
+        // Weird case, better to bail...
+        if (gapEnd - gapOffset < slotSize)
+          break;
+
+        ASMJIT_PROPAGATE(gaps[index].append(allocator(), RAStackGap(gapOffset, slotSize)));
+        gapOffset += slotSize;
+      }
     }
 
     if (!foundGap) {

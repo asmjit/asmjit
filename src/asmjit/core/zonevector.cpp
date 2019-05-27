@@ -268,7 +268,7 @@ Error ZoneBitVector::_append(ZoneAllocator* allocator, bool value) noexcept {
 // [asmjit::ZoneVector / ZoneBitVector - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 template<typename T>
 static void test_zone_vector(ZoneAllocator* allocator, const char* typeName) {
   int i;
@@ -346,7 +346,7 @@ static void test_zone_bitvector(ZoneAllocator* allocator) {
   }
 }
 
-UNIT(asmjit_core_zone_vector) {
+UNIT(asmjit_zone_vector) {
   Zone zone(8096 - Zone::kBlockOverhead);
   ZoneAllocator allocator(&zone);
 

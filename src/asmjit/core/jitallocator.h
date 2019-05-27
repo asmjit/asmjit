@@ -15,7 +15,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_jit
+//! \addtogroup asmjit_jit
 //! \{
 
 // ============================================================================
@@ -45,6 +45,20 @@ ASMJIT_BEGIN_NAMESPACE
 class JitAllocator {
 public:
   ASMJIT_NONCOPYABLE(JitAllocator)
+
+  struct Impl {
+    //! Allocator options, see \ref JitAllocator::Options.
+    uint32_t options;
+    //! Base block size (0 if the allocator is not initialized).
+    uint32_t blockSize;
+    //! Base granularity (0 if the allocator is not initialized).
+    uint32_t granularity;
+    //! A pattern that is used to fill unused memory if secure mode is enabled.
+    uint32_t fillPattern;
+  };
+
+  //! Allocator implementation (private).
+  Impl* _impl;
 
   enum Options : uint32_t {
     //! Enables the use of an anonymous memory-mapped memory that is mapped into
@@ -85,20 +99,8 @@ public:
     kOptionCustomFillPattern = 0x10000000u
   };
 
-  struct Impl {
-    //! Allocator options, see \ref JitAllocator::Options.
-    uint32_t options;
-    //! Base block size (0 if the allocator is not initialized).
-    uint32_t blockSize;
-    //! Base granularity (0 if the allocator is not initialized).
-    uint32_t granularity;
-    //! A pattern that is used to fill unused memory if secure mode is enabled.
-    uint32_t fillPattern;
-  };
-
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   //! Parameters that can be passed to `JitAllocator` constructor.
   //!
@@ -140,7 +142,7 @@ public:
 
     //! Patter to use to fill unused memory.
     //!
-    //! Only used if \ref Options::kOptionCustomFillPattern is set.
+    //! Only used if \ref kOptionCustomFillPattern is set.
     uint32_t fillPattern;
   };
 
@@ -148,10 +150,6 @@ public:
   explicit ASMJIT_API JitAllocator(const CreateParams* params = nullptr) noexcept;
   //! Destroys the `JitAllocator` instance and release all blocks held.
   ASMJIT_API ~JitAllocator() noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Reset]
-  // --------------------------------------------------------------------------
 
   inline bool isInitialized() const noexcept { return _impl->blockSize == 0; }
 
@@ -162,9 +160,10 @@ public:
   //1 calling `reset()` when the allocator is still in use.
   ASMJIT_API void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the allocator options, see `Flags`.
   inline uint32_t options() const noexcept { return _impl->options; }
@@ -178,9 +177,10 @@ public:
   //! Gets a pattern that is used to fill unused memory if `kFlagUseFillPattern` is set.
   inline uint32_t fillPattern() const noexcept { return _impl->fillPattern; }
 
-  // --------------------------------------------------------------------------
-  // [Alloc / Release]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Alloc & Release
+  //! \{
 
   //! Allocate `size` bytes of virtual memory.
   //!
@@ -197,9 +197,10 @@ public:
   //! \remarks This function is thread-safe.
   ASMJIT_API Error shrink(void* ro, size_t newSize) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Statistics]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Statistics
+  //! \{
 
   //! Statistics about `JitAllocator`.
   struct Statistics {
@@ -249,12 +250,7 @@ public:
   //! \remarks This function is thread-safe.
   ASMJIT_API Statistics statistics() const noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Allocator implementation (private).
-  Impl* _impl;
+  //! \}
 };
 
 //! \}

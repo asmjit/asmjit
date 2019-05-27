@@ -12,7 +12,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_support
+//! \addtogroup asmjit_support
 //! \{
 
 // ============================================================================
@@ -42,7 +42,6 @@ public:
   ASMJIT_NONCOPYABLE(String)
 
   //! \cond INTERNAL
-
   enum : uint32_t {
     kLayoutSize = 32,
     kSSOCapacity = kLayoutSize - 2
@@ -87,11 +86,16 @@ public:
     char* data;
   };
 
+  union {
+    uint8_t _type;
+    Raw _raw;
+    Small _small;
+    Large _large;
+  };
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   inline String() noexcept
     : _small {} {}
@@ -106,9 +110,24 @@ public:
     reset();
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! Reset the string into a construction state.
+  ASMJIT_API Error reset() noexcept;
+
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline bool operator==(const char* other) const noexcept { return  eq(other); }
+  inline bool operator!=(const char* other) const noexcept { return !eq(other); }
+
+  inline bool operator==(const String& other) const noexcept { return  eq(other); }
+  inline bool operator!=(const String& other) const noexcept { return !eq(other); }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline bool isLarge() const noexcept { return _type >= kTypeLarge; }
   inline bool isExternal() const noexcept { return _type == kTypeExternal; }
@@ -123,20 +142,15 @@ public:
   inline char* end() noexcept { return data() + size(); }
   inline const char* end() const noexcept { return data() + size(); }
 
-  // --------------------------------------------------------------------------
-  // [Interface]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! Reset the string into a construction state.
-  ASMJIT_API Error reset() noexcept;
+  //! \name String Operations
+  //! \{
+
   //! Clear the content of the string.
   ASMJIT_API Error clear() noexcept;
 
   ASMJIT_API char* prepare(uint32_t op, size_t size) noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Operations]
-  // --------------------------------------------------------------------------
 
   ASMJIT_API Error _opString(uint32_t op, const char* str, size_t size = SIZE_MAX) noexcept;
   ASMJIT_API Error _opFormat(uint32_t op, const char* fmt, ...) noexcept;
@@ -235,9 +249,10 @@ public:
   ASMJIT_API bool eq(const char* other, size_t size = SIZE_MAX) const noexcept;
   inline bool eq(const String& other) const noexcept { return eq(other.data(), other.size()); }
 
-  // --------------------------------------------------------------------------
-  // [Internal]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Internal Functions
+  //! \{
 
   //! Resets string to embedded and makes it empty (zero length, zero first char)
   //!
@@ -255,28 +270,7 @@ public:
       _small.type = uint8_t(newSize);
   }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline bool operator==(const char* other) const noexcept { return  eq(other); }
-  inline bool operator!=(const char* other) const noexcept { return !eq(other); }
-
-  inline bool operator==(const String& other) const noexcept { return  eq(other); }
-  inline bool operator!=(const String& other) const noexcept { return !eq(other); }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! \cond INTERNAL
-  union {
-    uint8_t _type;
-    Raw _raw;
-    Small _small;
-    Large _large;
-  };
-  //! \endcond
+  //! \}
 };
 
 // ============================================================================
@@ -289,17 +283,15 @@ class StringTmp : public String {
 public:
   ASMJIT_NONCOPYABLE(StringTmp<N>)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Embedded data.
+  char _embeddedData[Support::alignUp(N + 1, sizeof(size_t))];
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline StringTmp() noexcept {
     _resetToTemporary();
   }
-
-  // --------------------------------------------------------------------------
-  // [Internal]
-  // --------------------------------------------------------------------------
 
   inline void _resetToTemporary() noexcept {
     _large.type = kTypeExternal;
@@ -308,12 +300,7 @@ public:
     _embeddedData[0] = '\0';
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Embedded data.
-  char _embeddedData[Support::alignUp(N + 1, sizeof(size_t))];
+  //! \}
 };
 
 // ============================================================================
@@ -328,16 +315,17 @@ union FixedString {
     kNumU32 = uint32_t((N + sizeof(uint32_t) - 1) / sizeof(uint32_t))
   };
 
+  char str[kNumU32 * sizeof(uint32_t)];
+  uint32_t u32[kNumU32];
+
+  //! \name Utilities
+  //! \{
+
   inline bool eq(const char* other) const noexcept {
     return ::strcmp(str, other) == 0;
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  char str[kNumU32 * sizeof(uint32_t)];
-  uint32_t u32[kNumU32];
+  //! \}
 };
 
 //! \}

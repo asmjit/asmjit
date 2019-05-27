@@ -17,7 +17,7 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -32,16 +32,16 @@ public:
   ASMJIT_NONCOPYABLE(Compiler)
   typedef BaseCompiler Base;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   ASMJIT_API explicit Compiler(CodeHolder* code = nullptr) noexcept;
   ASMJIT_API virtual ~Compiler() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [VirtReg]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Virtual Registers
+  //! \{
 
 #ifndef ASMJIT_DISABLE_LOGGING
 # define ASMJIT_NEW_REG(OUT, PARAM, NAME_FMT)                 \
@@ -145,9 +145,10 @@ public:
 #undef ASMJIT_NEW_REG_USER
 #undef ASMJIT_NEW_REG
 
-  // --------------------------------------------------------------------------
-  // [Stack]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Stack
+  //! \{
 
   //! Creates a new memory chunk allocated on the current function's stack.
   inline Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
@@ -156,9 +157,10 @@ public:
     return m;
   }
 
-  // --------------------------------------------------------------------------
-  // [Const]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Constants
+  //! \{
 
   //! Put data to a constant-pool and get a memory reference to it.
   inline Mem newConst(uint32_t scope, const void* data, size_t size) {
@@ -201,18 +203,20 @@ public:
   //! Put a YMM `val` to a constant-pool.
   inline Mem newYmmConst(uint32_t scope, const Data256& val) noexcept { return newConst(scope, &val, 32); }
 
-  // --------------------------------------------------------------------------
-  // [Instruction Options]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Instruction Options
+  //! \{
 
   //! Force the compiler to not follow the conditional or unconditional jump.
   inline Compiler& unfollow() noexcept { _instOptions |= Inst::kOptionUnfollow; return *this; }
   //! Tell the compiler that the destination variable will be overwritten.
   inline Compiler& overwrite() noexcept { _instOptions |= Inst::kOptionOverwrite; return *this; }
 
-  // --------------------------------------------------------------------------
-  // [Emit]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Function Call & Ret Intrinsics
+  //! \{
 
   //! Call a function.
   inline FuncCallNode* call(const Gp& dst, const FuncSignature& sign) { return addCall(Inst::kIdCall, dst, sign); }
@@ -232,17 +236,21 @@ public:
   //! \overload
   inline FuncRetNode* ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
 
-  // --------------------------------------------------------------------------
-  // [Finalize]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Finalize
+  //! \{
 
   ASMJIT_API Error finalize() override;
 
-  // --------------------------------------------------------------------------
-  // [Events]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Events
+  //! \{
 
   ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
+
+  //! \}
 };
 
 //! \}

@@ -12,7 +12,7 @@
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_x86_db
+//! \addtogroup asmjit_x86
 //! \{
 
 namespace InstDB {
@@ -206,9 +206,9 @@ static inline uint32_t altOpcodeFromId(uint32_t instId) noexcept {
 namespace InstInternal {
 
 #ifndef ASMJIT_DISABLE_INST_API
-Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
-Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept;
-Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;
+Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept;
+Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount, InstRWInfo& out) noexcept;
+Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount, BaseFeatures& out) noexcept;
 #endif
 
 } // {InstInternal}

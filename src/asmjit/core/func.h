@@ -15,7 +15,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_func
+//! \addtogroup asmjit_func
 //! \{
 
 // ============================================================================
@@ -53,14 +53,24 @@ enum FuncArgIndex : uint32_t {
 //! their TypeIds. Function signature is a low level structure which doesn't
 //! contain platform specific or calling convention specific information.
 struct FuncSignature {
+  //! Calling convention id.
+  uint8_t _callConv;
+  //! Count of arguments.
+  uint8_t _argCount;
+  //! Index of a first VA or `kNoVarArgs`.
+  uint8_t _vaIndex;
+  //! Return value TypeId.
+  uint8_t _ret;
+  //! Function arguments TypeIds.
+  const uint8_t* _args;
+
   enum : uint8_t {
     //! Doesn't have variable number of arguments (`...`).
     kNoVarArgs = 0xFF
   };
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
+  //! \name Initializtion & Reset
+  //! \{
 
   //! Initializes the function signature.
   inline void init(uint32_t ccId, uint32_t vaIndex, uint32_t ret, const uint8_t* args, uint32_t argCount) noexcept {
@@ -76,9 +86,10 @@ struct FuncSignature {
 
   inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the calling convention.
   inline uint32_t callConv() const noexcept { return _callConv; }
@@ -109,20 +120,7 @@ struct FuncSignature {
   //! Gets the array of function arguments' types.
   inline const uint8_t* args() const noexcept { return _args; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Calling convention id.
-  uint8_t _callConv;
-  //! Count of arguments.
-  uint8_t _argCount;
-  //! Index of a first VA or `kNoVarArgs`.
-  uint8_t _vaIndex;
-  //! Return value TypeId.
-  uint8_t _ret;
-  //! Function arguments TypeIds.
-  const uint8_t* _args;
+  //! \}
 };
 
 // ============================================================================
@@ -145,17 +143,19 @@ public:
 //! Function signature builder.
 class FuncSignatureBuilder : public FuncSignature {
 public:
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  uint8_t _builderArgList[kFuncArgCount];
+
+  //! \name Initializtion & Reset
+  //! \{
 
   inline FuncSignatureBuilder(uint32_t ccId = CallConv::kIdHost, uint32_t vaIndex = kNoVarArgs) noexcept {
     init(ccId, vaIndex, Type::kIdVoid, _builderArgList, 0);
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Sets the return type to `retType`.
   inline void setRet(uint32_t retType) noexcept { _ret = uint8_t(retType); }
@@ -181,11 +181,7 @@ public:
   template<typename T>
   inline void addArgT() noexcept { addArg(Type::IdOfT<T>::kTypeId); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uint8_t _builderArgList[kFuncArgCount];
+  //! \}
 };
 
 // ============================================================================
@@ -195,6 +191,8 @@ public:
 //! Argument or return value as defined by `FuncSignature`, but with register
 //! or stack address (and other metadata) assigned to it.
 struct FuncValue {
+  uint32_t _data;
+
   enum Parts : uint32_t {
     kTypeIdShift      = 0,             //!< TypeId shift.
     kTypeIdMask       = 0x000000FFu,   //!< TypeId mask.
@@ -214,9 +212,8 @@ struct FuncValue {
     kRegTypeMask      = 0xFF000000u    //!< RegType mask.
   };
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
+  //! \name Initializtion & Reset
+  //! \{
 
   // These initialize the whole `FuncValue` to either register or stack. Useful
   // when you know all of these properties and wanna just set it up.
@@ -237,9 +234,10 @@ struct FuncValue {
   //! Resets the value to its unassigned state.
   inline void reset() noexcept { _data = 0; }
 
-  // --------------------------------------------------------------------------
-  // [Assign]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Assign
+  //! \{
 
   // These initialize only part of `FuncValue`, useful when building `FuncValue`
   // incrementally. The caller should first init the type-id by caliing `initTypeId`
@@ -255,9 +253,10 @@ struct FuncValue {
     _data |= (uint32_t(offset) << kStackOffsetShift) | kFlagIsStack;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline void _replaceValue(uint32_t mask, uint32_t value) noexcept { _data = (_data & ~mask) | value; }
 
@@ -304,11 +303,7 @@ struct FuncValue {
   //! Sets a TypeId of this argument or return value.
   inline void setTypeId(uint32_t typeId) noexcept { _replaceValue(kTypeIdMask, typeId << kTypeIdShift); }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uint32_t _data;
+  //! \}
 };
 
 // ============================================================================
@@ -322,29 +317,44 @@ struct FuncValue {
 //! arguments have assigned either register type & id or stack address.
 class FuncDetail {
 public:
+  //! Calling convention.
+  CallConv _callConv;
+  //! Number of function arguments.
+  uint8_t _argCount;
+  //! Number of function return values.
+  uint8_t _retCount;
+  //! Variable arguments index of `kNoVarArgs`.
+  uint8_t _vaIndex;
+  //! Reserved for future use.
+  uint8_t _reserved;
+  //! Registers that contains arguments.
+  uint32_t _usedRegs[BaseReg::kGroupVirt];
+  //! Size of arguments passed by stack.
+  uint32_t _argStackSize;
+  //! Function return values.
+  FuncValue _rets[2];
+  //! Function arguments.
+  FuncValue _args[kFuncArgCountLoHi];
+
   enum : uint8_t {
     //! Doesn't have variable number of arguments (`...`).
     kNoVarArgs = 0xFF
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   inline FuncDetail() noexcept { reset(); }
   inline FuncDetail(const FuncDetail& other) noexcept = default;
-
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
 
   //! Initializes this `FuncDetail` to the given signature.
   ASMJIT_API Error init(const FuncSignature& sign);
   inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors - Calling Convention]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the function's calling convention, see `CallConv`.
   inline const CallConv& callConv() const noexcept { return _callConv; }
@@ -353,10 +363,6 @@ public:
   inline uint32_t flags() const noexcept { return _callConv.flags(); }
   //! Checks whether a CallConv `flag` is set, see `CallConv::Flags`.
   inline bool hasFlag(uint32_t ccFlag) const noexcept { return _callConv.hasFlag(ccFlag); }
-
-  // --------------------------------------------------------------------------
-  // [Accessors - Arguments and Return]
-  // --------------------------------------------------------------------------
 
   //! Gets count of function return values.
   inline uint32_t retCount() const noexcept { return _retCount; }
@@ -428,28 +434,7 @@ public:
     _usedRegs[group] |= regs;
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Calling convention.
-  CallConv _callConv;
-  //! Number of function arguments.
-  uint8_t _argCount;
-  //! Number of function return values.
-  uint8_t _retCount;
-  //! Variable arguments index of `kNoVarArgs`.
-  uint8_t _vaIndex;
-  //! Reserved for future use.
-  uint8_t _reserved;
-  //! Registers that contains arguments.
-  uint32_t _usedRegs[BaseReg::kGroupVirt];
-  //! Size of arguments passed by stack.
-  uint32_t _argStackSize;
-  //! Function return values.
-  FuncValue _rets[2];
-  //! Function arguments.
-  FuncValue _args[kFuncArgCountLoHi];
+  //! \}
 };
 
 // ============================================================================
@@ -487,10 +472,6 @@ public:
 //!   +-----------------------------+
 class FuncFrame {
 public:
-  enum Group : uint32_t {
-    kGroupVirt = BaseReg::kGroupVirt
-  };
-
   enum Tag : uint32_t {
     kTagInvalidOffset     = 0xFFFFFFFFu  //!< Tag used to inform that some offset is invalid.
   };
@@ -510,19 +491,75 @@ public:
     kAttrIsFinalized      = 0x80000000u  //!< FuncFrame is finalized and can be used by PEI.
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Function attributes.
+  uint32_t _attributes;
+
+  //! Architecture ID.
+  uint8_t _archId;
+  //! SP register ID (to access call stack and local stack).
+  uint8_t _spRegId;
+  //! SA register ID (to access stack arguments).
+  uint8_t _saRegId;
+
+  //! Red zone size (copied from CallConv).
+  uint8_t _redZoneSize;
+  //! Spill zone size (copied from CallConv).
+  uint8_t _spillZoneSize;
+  //! Natural stack alignment (copied from CallConv).
+  uint8_t _naturalStackAlignment;
+  //! Minimum stack alignment to turn on dynamic alignment.
+  uint8_t _minDynamicAlignment;
+
+  //! Call stack alignment.
+  uint8_t _callStackAlignment;
+  //! Local stack alignment.
+  uint8_t _localStackAlignment;
+  //! Final stack alignment.
+  uint8_t _finalStackAlignment;
+
+  //! Adjustment of the stack before returning (X86-STDCALL).
+  uint16_t _calleeStackCleanup;
+
+  //! Call stack size.
+  uint32_t _callStackSize;
+  //! Local stack size.
+  uint32_t _localStackSize;
+  //! Final stack size (sum of call stack and local stack).
+  uint32_t _finalStackSize;
+
+  //! Local stack offset (non-zero only if call stack is used).
+  uint32_t _localStackOffset;
+  //! Offset relative to SP that contains previous SP (before alignment).
+  uint32_t _daOffset;
+  //! Offset of the first stack argument relative to SP.
+  uint32_t _saOffsetFromSP;
+  //! Offset of the first stack argument relative to SA (_saRegId or FP).
+  uint32_t _saOffsetFromSA;
+
+  //! Local stack adjustment in prolog/epilog.
+  uint32_t _stackAdjustment;
+
+  //! Registers that are dirty.
+  uint32_t _dirtyRegs[BaseReg::kGroupVirt];
+  //! Registers that must be preserved (copied from CallConv).
+  uint32_t _preservedRegs[BaseReg::kGroupVirt];
+
+  //! Final stack size required to save GP regs.
+  uint16_t _gpSaveSize;
+  //! Final Stack size required to save other than GP regs.
+  uint16_t _nonGpSaveSize;
+  //! Final offset where saved GP regs are stored.
+  uint32_t _gpSaveOffset;
+  //! Final offset where saved other than GP regs are stored.
+  uint32_t _nonGpSaveOffset;
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline FuncFrame() noexcept { reset(); }
   inline FuncFrame(const FuncFrame& other) noexcept = default;
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset / Finalize]
-  // --------------------------------------------------------------------------
-
   ASMJIT_API Error init(const FuncDetail& func) noexcept;
-  ASMJIT_API Error finalize() noexcept;
 
   inline void reset() noexcept {
     memset(this, 0, sizeof(FuncFrame));
@@ -531,9 +568,10 @@ public:
     _daOffset = kTagInvalidOffset;
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the target architecture of the function frame.
   inline uint32_t archId() const noexcept { return _archId; }
@@ -783,71 +821,14 @@ public:
   //! adjusted by instructions that pust/pop registers into/from stack.
   inline uint32_t stackAdjustment() const noexcept { return _stackAdjustment; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! Function attributes.
-  uint32_t _attributes;
+  //! \name Finaliztion
+  //! \{
 
-  //! Architecture ID.
-  uint8_t _archId;
-  //! SP register ID (to access call stack and local stack).
-  uint8_t _spRegId;
-  //! SA register ID (to access stack arguments).
-  uint8_t _saRegId;
+  ASMJIT_API Error finalize() noexcept;
 
-  //! Red zone size (copied from CallConv).
-  uint8_t _redZoneSize;
-  //! Spill zone size (copied from CallConv).
-  uint8_t _spillZoneSize;
-  //! Natural stack alignment (copied from CallConv).
-  uint8_t _naturalStackAlignment;
-  //! Minimum stack alignment to turn on dynamic alignment.
-  uint8_t _minDynamicAlignment;
-
-  //! Call stack alignment.
-  uint8_t _callStackAlignment;
-  //! Local stack alignment.
-  uint8_t _localStackAlignment;
-  //! Final stack alignment.
-  uint8_t _finalStackAlignment;
-
-  //! Adjustment of the stack before returning (X86-STDCALL).
-  uint16_t _calleeStackCleanup;
-
-  //! Call stack size.
-  uint32_t _callStackSize;
-  //! Local stack size.
-  uint32_t _localStackSize;
-  //! Final stack size (sum of call stack and local stack).
-  uint32_t _finalStackSize;
-
-  //! Local stack offset (non-zero only if call stack is used).
-  uint32_t _localStackOffset;
-  //! Offset relative to SP that contains previous SP (before alignment).
-  uint32_t _daOffset;
-  //! Offset of the first stack argument relative to SP.
-  uint32_t _saOffsetFromSP;
-  //! Offset of the first stack argument relative to SA (_saRegId or FP).
-  uint32_t _saOffsetFromSA;
-
-  //! Local stack adjustment in prolog/epilog.
-  uint32_t _stackAdjustment;
-
-  //! Registers that are dirty.
-  uint32_t _dirtyRegs[BaseReg::kGroupVirt];
-  //! Registers that must be preserved (copied from CallConv).
-  uint32_t _preservedRegs[BaseReg::kGroupVirt];
-
-  //! Final stack size required to save GP regs.
-  uint16_t _gpSaveSize;
-  //! Final Stack size required to save other than GP regs.
-  uint16_t _nonGpSaveSize;
-  //! Final offset where saved GP regs are stored.
-  uint32_t _gpSaveOffset;
-  //! Final offset where saved other than GP regs are stored.
-  uint32_t _nonGpSaveOffset;
+  //! \}
 };
 
 // ============================================================================
@@ -858,19 +839,23 @@ public:
 //! function argument. Use with `BaseEmitter::emitArgsAssignment()`.
 class FuncArgsAssignment {
 public:
-  enum : uint32_t {
-    kArgCount = kFuncArgCountLoHi
-  };
+  //! Function detail.
+  const FuncDetail* _funcDetail;
+  //! Register that can be used to access arguments passed by stack.
+  uint8_t _saRegId;
+  //! Reserved for future use.
+  uint8_t _reserved[3];
+  //! Mapping of each function argument.
+  FuncValue _args[kFuncArgCountLoHi];
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline explicit FuncArgsAssignment(const FuncDetail* fd = nullptr) noexcept { reset(fd); }
 
   inline FuncArgsAssignment(const FuncArgsAssignment& other) noexcept {
     memcpy(this, &other, sizeof(*this));
   }
-
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
 
   inline void reset(const FuncDetail* fd = nullptr) noexcept {
     _funcDetail = fd;
@@ -879,9 +864,10 @@ public:
     memset(_args, 0, sizeof(_args));
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline const FuncDetail* funcDetail() const noexcept { return _funcDetail; }
   inline void setFuncDetail(const FuncDetail* fd) noexcept { _funcDetail = fd; }
@@ -940,9 +926,10 @@ public:
     _assignAllInternal(0, std::forward<ArgsT>(args)...);
   }
 
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Update `FuncFrame` based on function's arguments assignment.
   //!
@@ -951,18 +938,7 @@ public:
   //! assign all arguments into the registers and/or stack specified.
   ASMJIT_API Error updateFuncFrame(FuncFrame& frame) const noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Function detail.
-  const FuncDetail* _funcDetail;
-  //! Register that can be used to access arguments passed by stack.
-  uint8_t _saRegId;
-  //! Reserved for future use.
-  uint8_t _reserved[3];
-  //! Mapping of each function argument.
-  FuncValue _args[kArgCount];
+  //! \}
 };
 
 //! \}

@@ -97,7 +97,7 @@ void ZoneStackBase::_cleanupBlock(uint32_t side, size_t middleIndex) noexcept {
 // [asmjit::ZoneStack - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 template<typename T>
 static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
   ZoneStack<T> stack;
@@ -169,7 +169,7 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
   EXPECT(stack.empty());
 }
 
-UNIT(asmjit_core_zone_stack) {
+UNIT(asmjit_zone_stack) {
   Zone zone(8096 - Zone::kBlockOverhead);
   ZoneAllocator allocator(&zone);
 

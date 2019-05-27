@@ -14,15 +14,6 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-//! \addtogroup asmjit_x86_api
-//! \{
-
-// ============================================================================
-// [asmjit::x86::EmitterExplicitT]
-// ============================================================================
-
-//! \cond INTERNAL
-
 #define ASMJIT_INST_0x(NAME, ID) \
   inline Error NAME() { return _emitter()->emit(Inst::kId##ID); }
 
@@ -153,10 +144,16 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 #define ASMJIT_INST_6x(NAME, ID, T0, T1, T2, T3, T4, T5) \
   inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4, const T5& o5) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4, o5); }
 
-//! \endcond
+//! \addtogroup asmjit_x86
+//! \{
+
+// ============================================================================
+// [asmjit::x86::EmitterExplicitT]
+// ============================================================================
 
 template<typename This>
 struct EmitterExplicitT {
+  //! \cond
   // These typedefs are used to describe implicit operands passed explicitly.
   typedef Gp AL;
   typedef Gp AH;
@@ -186,15 +183,16 @@ struct EmitterExplicitT {
 
   typedef Xmm XMM0;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
-
   // These two are unfortunately reported by the sanitizer. We know what we do,
   // however, the sanitizer doesn't. I have tried to use reinterpret_cast instead,
   // but that would generate bad code when compiled by MSC.
   ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF inline This* _emitter() noexcept { return static_cast<This*>(this); }
   ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF inline const This* _emitter() const noexcept { return static_cast<const This*>(this); }
+
+  //! \endcond
+
+  //! \name Native Registers
+  //! \{
 
   //! Gets either GPD or GPQ register of the given `id` depending on the current architecture.
   inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), id); }
@@ -207,6 +205,11 @@ struct EmitterExplicitT {
   inline Gp zbp() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdBp); }
   inline Gp zsi() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdSi); }
   inline Gp zdi() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdDi); }
+
+  //! \}
+
+  //! \name Native Pointers
+  //! \{
 
   //! Creates a target dependent pointer of which base register's id is `baseId`.
   inline Mem ptr_base(uint32_t baseId, int32_t off = 0, uint32_t size = 0) const noexcept {
@@ -278,9 +281,10 @@ struct EmitterExplicitT {
     return Mem(base, index, shift, nativeGpSize, BaseMem::kSignatureMemAbs);
   }
 
-  // --------------------------------------------------------------------------
-  // [Embed]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Embed
+  //! \{
 
   //! Adds 8-bit integer data to the CodeBuffer.
   inline Error db(uint8_t x) { return static_cast<This*>(this)->embed(&x, 1); }
@@ -327,21 +331,37 @@ struct EmitterExplicitT {
   template<typename T>
   inline Error dstruct(const T& x) { return static_cast<This*>(this)->embed(&x, uint32_t(sizeof(T))); }
 
-  // --------------------------------------------------------------------------
-  // [Options]
-  // --------------------------------------------------------------------------
+  //! \}
 
 protected:
+  //! \cond
   inline This& _addInstOptions(uint32_t options) noexcept {
     static_cast<This*>(this)->addInstOptions(options);
     return *static_cast<This*>(this);
   }
+  //! \endcond
 
 public:
+  //! \name Short/Long Form Options
+  //! \{
+
   //! Force short form of jmp/jcc instruction.
   inline This& short_() noexcept { return _addInstOptions(Inst::kOptionShortForm); }
   //! Force long form of jmp/jcc instruction.
   inline This& long_() noexcept { return _addInstOptions(Inst::kOptionLongForm); }
+
+  //! \name Encoding Options
+  //! \{
+
+  //! Prefer MOD_MR encoding over MOD_RM (the default) when encoding instruction
+  //! that allows both. This option is only applicable to instructions where both
+  //! operands are registers.
+  inline This& mod_mr() noexcept { return _addInstOptions(Inst::kOptionModMR); }
+
+  //! \}
+
+  //! \name Prefix Options
+  //! \{
 
   //! Condition is likely to be taken (has only benefit on P4).
   inline This& taken() noexcept { return _addInstOptions(Inst::kOptionTaken); }
@@ -373,10 +393,10 @@ public:
   //! Use REPNE prefix.
   inline This& repnz(const Gp& zcx) noexcept { return repne(zcx); }
 
-  //! Prefer MOD_MR encoding over MOD_RM (the default) when encoding instruction
-  //! that allows both. This option is only applicable to instructions where both
-  //! operands are registers.
-  inline This& mod_mr() noexcept { return _addInstOptions(Inst::kOptionModMR); }
+  //! \}
+
+  //! \name REX Options
+  //! \{
 
   //! Force REX prefix to be emitted even when it's not needed (X86_64).
   //!
@@ -393,10 +413,20 @@ public:
   //! Force REX.W prefix (X64) [It exists for special purposes only].
   inline This& rex_w() noexcept { return _addInstOptions(Inst::kOptionOpCodeW); }
 
+  //! \}
+
+  //! \name VEX and EVEX Options
+  //! \{
+
   //! Force 3-byte VEX prefix (AVX+).
   inline This& vex3() noexcept { return _addInstOptions(Inst::kOptionVex3); }
   //! Force 4-byte EVEX prefix (AVX512+).
   inline This& evex() noexcept { return _addInstOptions(Inst::kOptionEvex); }
+
+  //! \}
+
+  //! \name AVX-512 Options & Masking
+  //! \{
 
   //! Use masking {k} (AVX512+).
   inline This& k(const KReg& kreg) noexcept {
@@ -418,9 +448,10 @@ public:
   //! Static rounding mode {rz} (round-toward-zero, truncate) and {sae} (AVX512+).
   inline This& rz_sae() noexcept { return _addInstOptions(Inst::kOptionER | Inst::kOptionRZ_SAE); }
 
-  // --------------------------------------------------------------------------
-  // [General Purpose and Non-SIMD Instructions]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name General Purpose and Other Instructions
+  //! \{
 
   ASMJIT_INST_2x(adc, Adc, Gp, Gp)                                     // ANY
   ASMJIT_INST_2x(adc, Adc, Gp, Mem)                                    // ANY
@@ -826,9 +857,10 @@ public:
   ASMJIT_INST_0x(xtest, Xtest)                                         // TSX
   ASMJIT_INST_0x(wbnoinvd, Wbnoinvd)                                   // WBNOINVD
 
-  // --------------------------------------------------------------------------
-  // [LWP]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name LWP Instructions
+  //! \{
 
   ASMJIT_INST_1x(Llwpcb, Llwpcb, Gp)                                   // LWP
   ASMJIT_INST_3i(Lwpins, Lwpins, Gp, Gp, Imm)                          // LWP
@@ -837,9 +869,10 @@ public:
   ASMJIT_INST_3i(Lwpval, Lwpval, Gp, Mem, Imm)                         // LWP
   ASMJIT_INST_1x(Slwpcb, Slwpcb, Gp)                                   // LWP
 
-  // --------------------------------------------------------------------------
-  // [Virtualization]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Virtualization Instructions
+  //! \{
 
   ASMJIT_INST_2x(invept, Invept, Gp, Mem)                              // VMX
   ASMJIT_INST_2x(invvpid, Invvpid, Gp, Mem)                            // VMX
@@ -863,9 +896,10 @@ public:
   ASMJIT_INST_1x(vmrun, Vmrun, Gp)                                     // SVM       [EXPLICIT] <zax>
   ASMJIT_INST_1x(vmsave, Vmsave, Gp)                                   // SVM       [EXPLICIT] <zax>
 
-  // --------------------------------------------------------------------------
-  // [FPU Instructions]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name FPU Instructions
+  //! \{
 
   ASMJIT_INST_0x(f2xm1, F2xm1)                                         // FPU
   ASMJIT_INST_0x(fabs, Fabs)                                           // FPU
@@ -984,9 +1018,10 @@ public:
   ASMJIT_INST_1x(fnstsw, Fnstsw, Gp)                                   // FPU
   ASMJIT_INST_1x(fnstsw, Fnstsw, Mem)                                  // FPU
 
-  // --------------------------------------------------------------------------
-  // [MMX & SSE Instructions]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name MMX & SSE+ Instructions
+  //! \{
 
   ASMJIT_INST_2x(addpd, Addpd, Xmm, Xmm)                               // SSE2
   ASMJIT_INST_2x(addpd, Addpd, Xmm, Mem)                               // SSE2
@@ -1664,9 +1699,10 @@ public:
   ASMJIT_INST_2x(xorps, Xorps, Xmm, Xmm)                               // SSE
   ASMJIT_INST_2x(xorps, Xorps, Xmm, Mem)                               // SSE
 
-  // -------------------------------------------------------------------------
-  // [3DNOW & GEODE]
-  // -------------------------------------------------------------------------
+  //! \}
+
+  //! \name 3DNOW and GEODE Instructions (Deprecated)
+  //! \{
 
   ASMJIT_INST_2x(pavgusb, Pavgusb, Mm, Mm)                             // 3DNOW
   ASMJIT_INST_2x(pavgusb, Pavgusb, Mm, Mem)                            // 3DNOW
@@ -1722,9 +1758,10 @@ public:
   ASMJIT_INST_2x(pswapd, Pswapd, Mm, Mem)                              // 3DNOW
   ASMJIT_INST_0x(femms, Femms)                                         // 3DNOW
 
-  // --------------------------------------------------------------------------
-  // [AESNI]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name AESNI Instructions
+  //! \{
 
   ASMJIT_INST_2x(aesdec, Aesdec, Xmm, Xmm)                             // AESNI
   ASMJIT_INST_2x(aesdec, Aesdec, Xmm, Mem)                             // AESNI
@@ -1739,9 +1776,10 @@ public:
   ASMJIT_INST_3i(aeskeygenassist, Aeskeygenassist, Xmm, Xmm, Imm)      // AESNI
   ASMJIT_INST_3i(aeskeygenassist, Aeskeygenassist, Xmm, Mem, Imm)      // AESNI
 
-  // --------------------------------------------------------------------------
-  // [SHA]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name SHA Instructions
+  //! \{
 
   ASMJIT_INST_2x(sha1msg1, Sha1msg1, Xmm, Xmm)                         // SHA
   ASMJIT_INST_2x(sha1msg1, Sha1msg1, Xmm, Mem)                         // SHA
@@ -1758,9 +1796,10 @@ public:
   ASMJIT_INST_3x(sha256rnds2, Sha256rnds2, Xmm, Xmm, XMM0)             // SHA [EXPLICIT]
   ASMJIT_INST_3x(sha256rnds2, Sha256rnds2, Xmm, Mem, XMM0)             // SHA [EXPLICIT]
 
-  // --------------------------------------------------------------------------
-  // [AVX...AVX512]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name AVX, FMA, and AVX512 Instructions
+  //! \{
 
   ASMJIT_INST_3x(kaddb, Kaddb, KReg, KReg, KReg)                       // AVX512_DQ
   ASMJIT_INST_3x(kaddd, Kaddd, KReg, KReg, KReg)                       // AVX512_BW
@@ -4821,9 +4860,10 @@ public:
   ASMJIT_INST_0x(vzeroall, Vzeroall)                                   // AVX
   ASMJIT_INST_0x(vzeroupper, Vzeroupper)                               // AVX
 
-  // --------------------------------------------------------------------------
-  // [FMA4]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name FMA4 Instructions
+  //! \{
 
   ASMJIT_INST_4x(vfmaddpd, Vfmaddpd, Xmm, Xmm, Xmm, Xmm)               // FMA4
   ASMJIT_INST_4x(vfmaddpd, Vfmaddpd, Xmm, Xmm, Mem, Xmm)               // FMA4
@@ -4922,9 +4962,10 @@ public:
   ASMJIT_INST_4x(vfnmsubss, Vfnmsubss, Xmm, Xmm, Mem, Xmm)             // FMA4
   ASMJIT_INST_4x(vfnmsubss, Vfnmsubss, Xmm, Xmm, Xmm, Mem)             // FMA4
 
-  // --------------------------------------------------------------------------
-  // [XOP]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name XOP Instructions (Deprecated)
+  //! \{
 
   ASMJIT_INST_2x(vfrczpd, Vfrczpd, Xmm, Xmm)                           // XOP
   ASMJIT_INST_2x(vfrczpd, Vfrczpd, Xmm, Mem)                           // XOP
@@ -5073,6 +5114,8 @@ public:
   ASMJIT_INST_3x(vpshlw, Vpshlw, Xmm, Xmm, Xmm)                        // XOP
   ASMJIT_INST_3x(vpshlw, Vpshlw, Xmm, Mem, Xmm)                        // XOP
   ASMJIT_INST_3x(vpshlw, Vpshlw, Xmm, Xmm, Mem)                        // XOP
+
+  //! \}
 };
 
 // ============================================================================
@@ -5081,9 +5124,8 @@ public:
 
 template<typename This>
 struct EmitterImplicitT : public EmitterExplicitT<This> {
-  // --------------------------------------------------------------------------
-  // [Options]
-  // --------------------------------------------------------------------------
+  //! \name Prefix Options
+  //! \{
 
   //! Use REP/REPE prefix.
   inline This& rep() noexcept { return EmitterExplicitT<This>::_addInstOptions(Inst::kOptionRep); }
@@ -5097,10 +5139,12 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   //! Use REPNE prefix.
   inline This& repnz() noexcept { return repne(); }
 
-  // --------------------------------------------------------------------------
-  // [General Purpose and Non-SIMD Instructions]
-  // --------------------------------------------------------------------------
+  //! \}
 
+  //! \name General Purpose and Other Instructions
+  //! \{
+
+  //! \cond
   using EmitterExplicitT<This>::_emitter;
 
   // TODO: xrstor and xsave don't have explicit variants yet.
@@ -5132,6 +5176,7 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   using EmitterExplicitT<This>::wrmsr;
   using EmitterExplicitT<This>::xgetbv;
   using EmitterExplicitT<This>::xsetbv;
+  //! \endcond
 
   ASMJIT_INST_0x(cbw, Cbw)                                             // ANY       [IMPLICIT] AX      <- Sign Extend AL
   ASMJIT_INST_0x(cdq, Cdq)                                             // ANY       [IMPLICIT] EDX:EAX <- Sign Extend EAX
@@ -5230,19 +5275,22 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   inline Error stosq() { return _emitter()->emit(Inst::kIdStos, EmitterExplicitT<This>::ptr_zdi(0, 8), rax); }
   inline Error stosw() { return _emitter()->emit(Inst::kIdStos, EmitterExplicitT<This>::ptr_zdi(0, 2), ax ); }
 
-  // --------------------------------------------------------------------------
-  // [MONITOR|MWAIT]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Monitor & MWait Instructions
+  //! \{
 
   ASMJIT_INST_0x(monitor, Monitor)
   ASMJIT_INST_0x(monitorx, Monitorx)
   ASMJIT_INST_0x(mwait, Mwait)
   ASMJIT_INST_0x(mwaitx, Mwaitx)
 
-  // --------------------------------------------------------------------------
-  // [MMX & SSE Instructions]
-  // --------------------------------------------------------------------------
+  //! \}
 
+  //! \name MMX & SSE+ Instructions
+  //! \{
+
+  //! \cond
   using EmitterExplicitT<This>::blendvpd;
   using EmitterExplicitT<This>::blendvps;
   using EmitterExplicitT<This>::maskmovq;
@@ -5252,6 +5300,7 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   using EmitterExplicitT<This>::pcmpestrm;
   using EmitterExplicitT<This>::pcmpistri;
   using EmitterExplicitT<This>::pcmpistrm;
+  //! \endcond
 
   ASMJIT_INST_2x(blendvpd, Blendvpd, Xmm, Xmm)                         // SSE4_1 [IMPLICIT]
   ASMJIT_INST_2x(blendvpd, Blendvpd, Xmm, Mem)                         // SSE4_1 [IMPLICIT]
@@ -5270,18 +5319,20 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   ASMJIT_INST_3i(pcmpistrm, Pcmpistrm, Xmm, Xmm, Imm)                  // SSE4_1 [IMPLICIT]
   ASMJIT_INST_3i(pcmpistrm, Pcmpistrm, Xmm, Mem, Imm)                  // SSE4_1 [IMPLICIT]
 
-  // --------------------------------------------------------------------------
-  // [SHA]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name SHA Instructions
+  //! \{
 
   using EmitterExplicitT<This>::sha256rnds2;
 
   ASMJIT_INST_2x(sha256rnds2, Sha256rnds2, Xmm, Xmm)                   // SHA [IMPLICIT]
   ASMJIT_INST_2x(sha256rnds2, Sha256rnds2, Xmm, Mem)                   // SHA [IMPLICIT]
 
-  // --------------------------------------------------------------------------
-  // [AVX...AVX512]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name AVX, FMA, and AVX512 Instructions
+  //! \{
 
   using EmitterExplicitT<This>::vmaskmovdqu;
   using EmitterExplicitT<This>::vpcmpestri;
@@ -5298,7 +5349,25 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   ASMJIT_INST_3i(vpcmpistri, Vpcmpistri, Xmm, Mem, Imm)                // AVX  [IMPLICIT]
   ASMJIT_INST_3i(vpcmpistrm, Vpcmpistrm, Xmm, Xmm, Imm)                // AVX  [IMPLICIT]
   ASMJIT_INST_3i(vpcmpistrm, Vpcmpistrm, Xmm, Mem, Imm)                // AVX  [IMPLICIT]
+
+  //! \}
 };
+
+// ============================================================================
+// [asmjit::x86::Emitter]
+// ============================================================================
+
+//! Emitter (X86).
+//!
+//! NOTE: This class cannot be instantiated, you can only cast to it and use
+//! it as emitter that emits to either `x86::Assembler`, `x86::Builder`, or
+//! `x86::Compiler` (use with caution with `x86::Compiler` as it requires virtual
+//! registers).
+class Emitter : public BaseEmitter, public EmitterImplicitT<Emitter> {
+  ASMJIT_NONCONSTRUCTIBLE(Emitter)
+};
+
+//! \}
 
 #undef ASMJIT_INST_0x
 #undef ASMJIT_INST_1x
@@ -5316,22 +5385,6 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
 #undef ASMJIT_INST_5x
 #undef ASMJIT_INST_5i
 #undef ASMJIT_INST_6x
-
-// ============================================================================
-// [asmjit::x86::Emitter]
-// ============================================================================
-
-//! Emitter (X86).
-//!
-//! NOTE: This class cannot be instantiated, you can only cast to it and use
-//! it as emitter that emits to either `x86::Assembler`, `x86::Builder`, or
-//! `x86::Compiler` (use with caution with `x86::Compiler` as it requires virtual
-//! registers).
-class Emitter : public BaseEmitter, public EmitterImplicitT<Emitter> {
-  ASMJIT_NONCONSTRUCTIBLE(Emitter)
-};
-
-//! \}
 
 ASMJIT_END_SUB_NAMESPACE
 

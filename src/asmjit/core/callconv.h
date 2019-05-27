@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_func
+//! \addtogroup asmjit_func
 //! \{
 
 // ============================================================================
@@ -27,6 +27,43 @@ ASMJIT_BEGIN_NAMESPACE
 //! architecture and OS specific calling conventions and also provides a compile
 //! time detection to make the code-generation easier.
 struct CallConv {
+  //! Calling convention id, see `Id`.
+  uint8_t _id;
+  //! Architecture id (see `ArchInfo::Id`).
+  uint8_t _archId;
+  //! Register assignment strategy.
+  uint8_t _strategy;
+  //! Flags.
+  uint8_t _flags;
+
+  //! Red zone size (AMD64 == 128 bytes).
+  uint8_t _redZoneSize;
+  //! Spill zone size (WIN64 == 32 bytes).
+  uint8_t _spillZoneSize;
+  //! Natural stack alignment as defined by OS/ABI.
+  uint8_t _naturalStackAlignment;
+  uint8_t _reserved[1];
+
+  //! Mask of all passed registers, per group.
+  uint32_t _passedRegs[BaseReg::kGroupVirt];
+  //! Mask of all preserved registers, per group.
+  uint32_t _preservedRegs[BaseReg::kGroupVirt];
+
+  //! Internal limits of AsmJit's CallConv.
+  enum Limits : uint32_t {
+    kMaxRegArgsPerGroup  = 16
+  };
+
+  //! Passed registers' order.
+  union RegOrder {
+    //! Passed registers, ordered.
+    uint8_t id[kMaxRegArgsPerGroup];
+    uint32_t packed[(kMaxRegArgsPerGroup + 3) / 4];
+  };
+
+  //! Passed registers' order, per group.
+  RegOrder _passedOrder[BaseReg::kGroupVirt];
+
   //! Calling convention id.
   enum Id : uint32_t {
     //! None or invalid (can't be used).
@@ -220,27 +257,8 @@ struct CallConv {
     kFlagIndirectVecArgs = 0x08          //!< Pass vector arguments indirectly (as a pointer).
   };
 
-  //! Internal limits of AsmJit's CallConv.
-  enum Limits : uint32_t {
-    kMaxRegArgsPerGroup  = 16
-  };
-
-  //! Passed registers' order.
-  union RegOrder {
-    uint8_t id[kMaxRegArgsPerGroup];     //!< Passed registers, ordered.
-    uint32_t packed[(kMaxRegArgsPerGroup + 3) / 4];
-  };
-
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
-
-  static inline bool isX86Family(uint32_t ccId) noexcept { return ccId >= _kIdX86Start && ccId <= _kIdX64End; }
-  static inline bool isArmFamily(uint32_t ccId) noexcept { return ccId >= _kIdArmStart && ccId <= _kIdArmEnd; }
-
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   ASMJIT_API Error init(uint32_t ccId) noexcept;
 
@@ -249,9 +267,10 @@ struct CallConv {
     memset(_passedOrder, 0xFF, sizeof(_passedOrder));
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the calling convention id, see `Id`.
   inline uint32_t id() const noexcept { return _id; }
@@ -357,33 +376,15 @@ struct CallConv {
     _preservedRegs[group] = regs;
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! Calling convention id, see `Id`.
-  uint8_t _id;
-  //! Architecture id (see `ArchInfo::Id`).
-  uint8_t _archId;
-  //! Register assignment strategy.
-  uint8_t _strategy;
-  //! Flags.
-  uint8_t _flags;
+  //! \name Static Functions
+  //! \{
 
-  //! Red zone size (AMD64 == 128 bytes).
-  uint8_t _redZoneSize;
-  //! Spill zone size (WIN64 == 32 bytes).
-  uint8_t _spillZoneSize;
-  //! Natural stack alignment as defined by OS/ABI.
-  uint8_t _naturalStackAlignment;
-  uint8_t _reserved[1];
+  static inline bool isX86Family(uint32_t ccId) noexcept { return ccId >= _kIdX86Start && ccId <= _kIdX64End; }
+  static inline bool isArmFamily(uint32_t ccId) noexcept { return ccId >= _kIdArmStart && ccId <= _kIdArmEnd; }
 
-  //! Mask of all passed registers, per group.
-  uint32_t _passedRegs[BaseReg::kGroupVirt];
-  //! Mask of all preserved registers, per group.
-  uint32_t _preservedRegs[BaseReg::kGroupVirt];
-  //! Passed registers' order, per group.
-  RegOrder _passedOrder[BaseReg::kGroupVirt];
+  //! \}
 };
 
 //! \}

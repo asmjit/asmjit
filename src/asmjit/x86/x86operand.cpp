@@ -41,7 +41,7 @@ const OpData opData = {
 // [asmjit::x86::Operand - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 UNIT(asmjit_x86_operand) {
   Label L(1000); // Label with some ID.
 

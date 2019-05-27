@@ -18,7 +18,7 @@
 ASMJIT_BEGIN_NAMESPACE
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_core_ra
+//! \addtogroup asmjit_ra
 //! \{
 
 // ============================================================================
@@ -33,9 +33,37 @@ public:
   typedef RAAssignment::PhysToWorkMap PhysToWorkMap;
   typedef RAAssignment::WorkToPhysMap WorkToPhysMap;
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
+  //! Link to `RAPass`.
+  RAPass* _pass;
+  //! Link to `BaseCompiler`.
+  BaseCompiler* _cc;
+
+  //! Architecture traits.
+  RAArchTraits _archTraits;
+  //! Registers available to the allocator.
+  RARegMask _availableRegs;
+  //! Registers clobbered by the allocator.
+  RARegMask _clobberedRegs;
+
+  //! Register assignment (current).
+  RAAssignment _curAssignment;
+  //! Register assignment used temporarily during assignment switches.
+  RAAssignment _tmpAssignment;
+
+  //! Link to the current `RABlock`.
+  RABlock* _block;
+  //! InstNode.
+  InstNode* _node;
+  //! RA instruction.
+  RAInst* _raInst;
+
+  //! Count of all TiedReg's.
+  uint32_t _tiedTotal;
+  //! TiedReg's total counter.
+  RARegCount _tiedCount;
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline RALocalAllocator(RAPass* pass) noexcept
     : _pass(pass),
@@ -52,26 +80,19 @@ public:
 
   Error init() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline RAWorkReg* workRegById(uint32_t workId) const noexcept { return _pass->workRegById(workId); }
   inline PhysToWorkMap* physToWorkMap() const noexcept { return _curAssignment.physToWorkMap(); }
   inline WorkToPhysMap* workToPhysMap() const noexcept { return _curAssignment.workToPhysMap(); }
 
-  // --------------------------------------------------------------------------
-  // [Block]
-  // --------------------------------------------------------------------------
-
   //! Gets the currently processed block.
   inline RABlock* block() const noexcept { return _block; }
   //! Sets the currently processed block.
   inline void setBlock(RABlock* block) noexcept { _block = block; }
-
-  // --------------------------------------------------------------------------
-  // [Instruction]
-  // --------------------------------------------------------------------------
 
   //! Gets the currently processed `InstNode`.
   inline InstNode* node() const noexcept { return _node; }
@@ -90,9 +111,10 @@ public:
 
   inline bool isGroupUsed(uint32_t group) const noexcept { return _tiedCount[group] != 0; }
 
-  // --------------------------------------------------------------------------
-  // [Assignment]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Assignment
+  //! \{
 
   Error makeInitialAssignment() noexcept;
 
@@ -115,18 +137,20 @@ public:
     bool dstReadOnly,
     bool tryMode) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Allocation]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Allocation
+  //! \{
 
   Error allocInst(InstNode* node) noexcept;
   Error spillAfterAllocation(InstNode* node) noexcept;
 
   Error allocBranch(InstNode* node, RABlock* target, RABlock* cont) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Decision Making]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Decision Making
+  //! \{
 
   enum CostModel : uint32_t {
     kCostOfFrequency = 1048576,
@@ -160,9 +184,10 @@ public:
   //! Decides on best spill given a register mask `spillableRegs`
   uint32_t decideOnSpillFor(uint32_t group, uint32_t workId, uint32_t spillableRegs, uint32_t* spillWorkId) const noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Emit]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Emit
+  //! \{
 
   //! Emits a move between a destination and source register, and fixes the
   //! register assignment.
@@ -220,38 +245,7 @@ public:
     return kErrorOk;
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Link to `RAPass`.
-  RAPass* _pass;
-  //! Link to `BaseCompiler`.
-  BaseCompiler* _cc;
-
-  //! Architecture traits.
-  RAArchTraits _archTraits;
-  //! Registers available to the allocator.
-  RARegMask _availableRegs;
-  //! Registers clobbered by the allocator.
-  RARegMask _clobberedRegs;
-
-  //! Register assignment (current).
-  RAAssignment _curAssignment;
-  //! Register assignment used temporarily during assignment switches.
-  RAAssignment _tmpAssignment;
-
-  //! Link to the current `RABlock`.
-  RABlock* _block;
-  //! InstNode.
-  InstNode* _node;
-  //! RA instruction.
-  RAInst* _raInst;
-
-  //! Count of all TiedReg's.
-  uint32_t _tiedTotal;
-  //! TiedReg's total counter.
-  RARegCount _tiedCount;
+  //! \}
 };
 
 //! \}

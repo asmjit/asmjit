@@ -331,6 +331,16 @@ public:
     uint8_t _physToVarId[32];            //!< Physical ID to variable ID mapping.
   };
 
+  uint8_t _archId;
+  bool _hasStackSrc;                     //!< Has arguments passed via stack (SRC).
+  bool _hasPreservedFP;                  //!< Has preserved frame-pointer (FP).
+  uint8_t _stackDstMask;                 //!< Has arguments assigned to stack (DST).
+  uint8_t _regSwapsMask;                 //!< Register swap groups (bit-mask).
+  uint8_t _saVarId;
+  uint32_t _varCount;
+  WorkData _workData[BaseReg::kGroupVirt];
+  Var _vars[kFuncArgCountLoHi + 1];
+
   X86FuncArgsContext() noexcept;
 
   inline uint32_t archId() const noexcept { return _archId; }
@@ -344,20 +354,6 @@ public:
   Error markScratchRegs(FuncFrame& frame) noexcept;
   Error markDstRegsDirty(FuncFrame& frame) noexcept;
   Error markStackArgsReg(FuncFrame& frame) noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uint8_t _archId;
-  bool _hasStackSrc;                     //!< Has arguments passed via stack (SRC).
-  bool _hasPreservedFP;                  //!< Has preserved frame-pointer (FP).
-  uint8_t _stackDstMask;                 //!< Has arguments assigned to stack (DST).
-  uint8_t _regSwapsMask;                 //!< Register swap groups (bit-mask).
-  uint8_t _saVarId;
-  uint32_t _varCount;
-  WorkData _workData[BaseReg::kGroupVirt];
-  Var _vars[kFuncArgCountLoHi + 1];
 };
 
 X86FuncArgsContext::X86FuncArgsContext() noexcept {

@@ -80,7 +80,7 @@ BaseCompiler::BaseCompiler() noexcept
 BaseCompiler::~BaseCompiler() noexcept {}
 
 // ============================================================================
-// [asmjit::BaseCompiler - Func]
+// [asmjit::BaseCompiler - Function API]
 // ============================================================================
 
 FuncNode* BaseCompiler::newFunc(const FuncSignature& sign) noexcept {
@@ -187,9 +187,20 @@ Error BaseCompiler::endFunc() {
   return kErrorOk;
 }
 
-// ============================================================================
-// [asmjit::BaseCompiler - Ret]
-// ============================================================================
+Error BaseCompiler::setArg(uint32_t argIndex, const BaseReg& r) {
+  FuncNode* func = _func;
+
+  if (ASMJIT_UNLIKELY(!func))
+    return reportError(DebugUtils::errored(kErrorInvalidState));
+
+  if (ASMJIT_UNLIKELY(!isVirtRegValid(r)))
+    return reportError(DebugUtils::errored(kErrorInvalidVirtId));
+
+  VirtReg* vReg = virtRegByReg(r);
+  func->setArg(argIndex, vReg);
+
+  return kErrorOk;
+}
 
 FuncRetNode* BaseCompiler::newRet(const Operand_& o0, const Operand_& o1) noexcept {
   FuncRetNode* node = newNodeT<FuncRetNode>();
@@ -252,25 +263,6 @@ FuncCallNode* BaseCompiler::addCall(uint32_t instId, const Operand_& o0, const F
   FuncCallNode* node = newCall(instId, o0, sign);
   if (!node) return nullptr;
   return addNode(node)->as<FuncCallNode>();
-}
-
-// ============================================================================
-// [asmjit::BaseCompiler - Vars]
-// ============================================================================
-
-Error BaseCompiler::setArg(uint32_t argIndex, const BaseReg& r) {
-  FuncNode* func = _func;
-
-  if (ASMJIT_UNLIKELY(!func))
-    return reportError(DebugUtils::errored(kErrorInvalidState));
-
-  if (ASMJIT_UNLIKELY(!isVirtRegValid(r)))
-    return reportError(DebugUtils::errored(kErrorInvalidVirtId));
-
-  VirtReg* vReg = virtRegByReg(r);
-  func->setArg(argIndex, vReg);
-
-  return kErrorOk;
 }
 
 // ============================================================================

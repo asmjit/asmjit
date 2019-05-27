@@ -96,7 +96,7 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
   ASMJIT_PROPAGATE(_allocator.alloc((void**)&ro, (void**)&rw, estimatedCodeSize));
 
   // Relocate the code.
-  Error err = code->relocateToBase(uint64_t((void*)ro));
+  Error err = code->relocateToBase(uintptr_t((void*)ro));
   if (ASMJIT_UNLIKELY(err)) {
     _allocator.release(ro);
     return err;

@@ -869,7 +869,7 @@ Error JitAllocator::shrink(void* ro, size_t newSize) noexcept {
 // [asmjit::JitAllocator - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 // A pseudo random number generator based on a paper by Sebastiano Vigna:
 //   http://vigna.di.unimi.it/ftp/papers/xorshiftplus.pdf
 class Random {
@@ -1022,7 +1022,7 @@ static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {
   INFO("  Overhead (HeapMem): %9llu [Bytes] (%.1f%%)", (unsigned long long)(stats.overheadSize()), stats.overheadSizeAsPercent());
 }
 
-UNIT(asmjit_core_jit_allocator) {
+UNIT(asmjit_jit_allocator) {
   size_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 100000;
 
   struct TestParams {

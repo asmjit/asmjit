@@ -21,7 +21,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -98,14 +98,24 @@ public:
 
 //! Code or data buffer.
 struct CodeBuffer {
+  //! The content of the buffer (data).
+  uint8_t* _data;
+  //! Number of bytes of `data` used.
+  size_t _size;
+  //! Buffer capacity (in bytes).
+  size_t _capacity;
+  //! Buffer flags.
+  uint32_t _flags;
+
   enum Flags : uint32_t {
-    kFlagIsExternal       = 0x00000001u, //!< Buffer is external (not allocated by asmjit).
-    kFlagIsFixed          = 0x00000002u  //!< Buffer is fixed (cannot be reallocated).
+    //! Buffer is external (not allocated by asmjit).
+    kFlagIsExternal = 0x00000001u,
+    //! Buffer is fixed (cannot be reallocated).
+    kFlagIsFixed = 0x00000002u
   };
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \name Accessors
+  //! \{
 
   inline uint32_t flags() const noexcept { return _flags; }
   inline bool hasFlag(uint32_t flag) const noexcept { return (_flags & flag) != 0; }
@@ -121,18 +131,7 @@ struct CodeBuffer {
   inline size_t size() const noexcept { return _size; }
   inline size_t capacity() const noexcept { return _capacity; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! The content of the buffer (data).
-  uint8_t* _data;
-  //! Number of bytes of `data` used.
-  size_t _size;
-  //! Buffer capacity (in bytes).
-  size_t _capacity;
-  //! Buffer flags.
-  uint32_t _flags;
+  //! \}
 };
 
 // ============================================================================
@@ -142,6 +141,23 @@ struct CodeBuffer {
 //! Section entry.
 class Section {
 public:
+  //! Section id.
+  uint32_t _id;
+  //! Section flags.
+  uint32_t _flags;
+  //! Section alignment requirements (0 if no requirements).
+  uint32_t _alignment;
+  //! Reserved for future use (padding).
+  uint32_t _reserved;
+  //! Offset of this section from base-address.
+  uint64_t _offset;
+  //! Virtual size of the section (zero initialized sections).
+  uint64_t _virtualSize;
+  //! Section name (max 35 characters, PE allows max 8).
+  FixedString<Globals::kMaxSectionNameSize + 1> _name;
+  //! Code or data buffer.
+  CodeBuffer _buffer;
+
   //! Section flags.
   enum Flags : uint32_t {
     kFlagExec        = 0x00000001u,      //!< Executable (.text sections).
@@ -151,9 +167,8 @@ public:
     kFlagImplicit    = 0x80000000u       //!< Section created implicitly and can be deleted by `Target`.
   };
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \name Accessors
+  //! \{
 
   inline uint32_t id() const noexcept { return _id; }
   inline const char* name() const noexcept { return _name.str; }
@@ -191,26 +206,7 @@ public:
   inline CodeBuffer& buffer() noexcept { return _buffer; }
   inline const CodeBuffer& buffer() const noexcept { return _buffer; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Section id.
-  uint32_t _id;
-  //! Section flags.
-  uint32_t _flags;
-  //! Section alignment requirements (0 if no requirements).
-  uint32_t _alignment;
-  //! Reserved for future use (padding).
-  uint32_t _reserved;
-  //! Offset of this section from base-address.
-  uint64_t _offset;
-  //! Virtual size of the section (zero initialized sections).
-  uint64_t _virtualSize;
-  //! Section name (max 35 characters, PE allows max 8).
-  FixedString<Globals::kMaxSectionNameSize + 1> _name;
-  //! Code or data buffer.
-  CodeBuffer _buffer;
+  //! \}
 };
 
 // ============================================================================
@@ -252,6 +248,32 @@ struct LabelLink {
 //!   * HashNext - Hash-table implementation detail.
 class LabelEntry : public ZoneHashNode {
 public:
+  // Let's round the size of `LabelEntry` to 64 bytes (as `ZoneAllocator` has
+  // granularity of 32 bytes anyway). This gives `_name` the remaining space,
+  // which is should be 16 bytes on 64-bit and 28 bytes on 32-bit architectures.
+  static constexpr uint32_t kStaticNameSize =
+    64 - (sizeof(ZoneHashNode) + 8 + sizeof(Section*) + sizeof(size_t) + sizeof(LabelLink*));
+
+  //! Label type, see `Label::LabelType`.
+  uint8_t _type;
+  //! Must be zero.
+  uint8_t _flags;
+  //! Reserved.
+  uint16_t _reserved16;
+  //! Label parent id or zero.
+  uint32_t _parentId;
+  //! Label offset relative to the start of the `_section`.
+  uint64_t _offset;
+  //! Section where the label was bound.
+  Section* _section;
+  //! Label links.
+  LabelLink* _links;
+  //! Label name.
+  ZoneString<kStaticNameSize> _name;
+
+  //! \name Accessors
+  //! \{
+
   // NOTE: Label id is stored in `_customData`, which is provided by ZoneHashNode
   // to fill a padding that a C++ compiler targeting 64-bit CPU will add to align
   // the structure to 64-bits.
@@ -308,32 +330,7 @@ public:
   //! is implemented in `Support::hashString()` and `Support::hashRound()`.
   inline uint32_t hashCode() const noexcept { return _hashCode; }
 
-  // ------------------------------------------------------------------------
-  // [Members]
-  // ------------------------------------------------------------------------
-
-  // Let's round the size of `LabelEntry` to 64 bytes (as `ZoneAllocator` has
-  // granularity of 32 bytes anyway). This gives `_name` the remaining space,
-  // which is should be 16 bytes on 64-bit and 28 bytes on 32-bit architectures.
-  static constexpr uint32_t kStaticNameSize =
-    64 - (sizeof(ZoneHashNode) + 8 + sizeof(Section*) + sizeof(size_t) + sizeof(LabelLink*));
-
-  //! Label type, see `Label::LabelType`.
-  uint8_t _type;
-  //! Must be zero.
-  uint8_t _flags;
-  //! Reserved.
-  uint16_t _reserved16;
-  //! Label parent id or zero.
-  uint32_t _parentId;
-  //! Label offset relative to the start of the `_section`.
-  uint64_t _offset;
-  //! Section where the label was bound.
-  Section* _section;
-  //! Label links.
-  LabelLink* _links;
-  //! Label name.
-  ZoneString<kStaticNameSize> _name;
+  //! \}
 };
 
 // ============================================================================
@@ -352,42 +349,6 @@ public:
 //!                        +- Source offset
 //! ```
 struct RelocEntry {
-  //! Relocation type.
-  enum RelocType : uint32_t {
-    //! None/deleted (no relocation).
-    kTypeNone = 0,
-    //! Relocate absolute to absolute.
-    kTypeAbsToAbs = 1,
-    //! Relocate relative to absolute.
-    kTypeRelToAbs = 2,
-    //! Relocate absolute to relative.
-    kTypeAbsToRel = 3,
-    //! Relocate absolute to relative or use trampoline.
-    kTypeX64AddressEntry = 4
-  };
-
-  // ------------------------------------------------------------------------
-  // [Accessors]
-  // ------------------------------------------------------------------------
-
-  inline uint32_t id() const noexcept { return _id; }
-
-  inline uint32_t relocType() const noexcept { return _relocType; }
-  inline uint32_t valueSize() const noexcept { return _valueSize; }
-
-  inline uint32_t leadingSize() const noexcept { return _leadingSize; }
-  inline uint32_t trailingSize() const noexcept { return _trailingSize; }
-
-  inline uint32_t sourceSectionId() const noexcept { return _sourceSectionId; }
-  inline uint32_t targetSectionId() const noexcept { return _targetSectionId; }
-
-  inline uint64_t sourceOffset() const noexcept { return _sourceOffset; }
-  inline uint64_t payload() const noexcept { return _payload; }
-
-  // ------------------------------------------------------------------------
-  // [Members]
-  // ------------------------------------------------------------------------
-
   //! Relocation id.
   uint32_t _id;
   //! Type of the relocation.
@@ -407,6 +368,39 @@ struct RelocEntry {
   uint64_t _sourceOffset;
   //! Payload (target offset, target address, etc).
   uint64_t _payload;
+
+  //! Relocation type.
+  enum RelocType : uint32_t {
+    //! None/deleted (no relocation).
+    kTypeNone = 0,
+    //! Relocate absolute to absolute.
+    kTypeAbsToAbs = 1,
+    //! Relocate relative to absolute.
+    kTypeRelToAbs = 2,
+    //! Relocate absolute to relative.
+    kTypeAbsToRel = 3,
+    //! Relocate absolute to relative or use trampoline.
+    kTypeX64AddressEntry = 4
+  };
+
+  //! \name Accessors
+  //! \{
+
+  inline uint32_t id() const noexcept { return _id; }
+
+  inline uint32_t relocType() const noexcept { return _relocType; }
+  inline uint32_t valueSize() const noexcept { return _valueSize; }
+
+  inline uint32_t leadingSize() const noexcept { return _leadingSize; }
+  inline uint32_t trailingSize() const noexcept { return _trailingSize; }
+
+  inline uint32_t sourceSectionId() const noexcept { return _sourceSectionId; }
+  inline uint32_t targetSectionId() const noexcept { return _targetSectionId; }
+
+  inline uint64_t sourceOffset() const noexcept { return _sourceOffset; }
+  inline uint64_t payload() const noexcept { return _payload; }
+
+  //! \}
 };
 
 // ============================================================================
@@ -417,9 +411,20 @@ class AddressTableEntry : public ZoneTreeNodeT<AddressTableEntry> {
 public:
   ASMJIT_NONCOPYABLE(AddressTableEntry)
 
+  uint64_t _address;
+  uint32_t _slot;
+
+  //! \name Construction & Destruction
+  //! \{
+
   inline explicit AddressTableEntry(uint64_t address) noexcept
     : _address(address),
       _slot(0xFFFFFFFFu) {}
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline uint64_t address() const noexcept { return _address; }
   inline uint32_t slot() const noexcept { return _slot; }
@@ -432,8 +437,7 @@ public:
   inline bool operator<(uint64_t queryAddress) const noexcept { return _address < queryAddress; }
   inline bool operator>(uint64_t queryAddress) const noexcept { return _address > queryAddress; }
 
-  uint64_t _address;
-  uint32_t _slot;
+  //! \}
 };
 
 // ============================================================================
@@ -452,18 +456,46 @@ class CodeHolder {
 public:
   ASMJIT_NONCOPYABLE(CodeHolder)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Basic information about the code (architecture and other info).
+  CodeInfo _codeInfo;
+  //! Emitter options, propagated to all emitters when changed.
+  uint32_t _emitterOptions;
+
+  //! Attached `Logger`, used by all consumers.
+  Logger* _logger;
+  //! Attached `ErrorHandler`.
+  ErrorHandler* _errorHandler;
+
+  //! Code zone (used to allocate core structures).
+  Zone _zone;
+  //! Zone allocator, used to manage internal containers.
+  ZoneAllocator _allocator;
+
+  //! Attached code emitters.
+  ZoneVector<BaseEmitter*> _emitters;
+  //! Section entries.
+  ZoneVector<Section*> _sections;
+  //! Label entries.
+  ZoneVector<LabelEntry*> _labelEntries;
+  //! Relocation entries.
+  ZoneVector<RelocEntry*> _relocations;
+  //! Label name -> LabelEntry (only named labels).
+  ZoneHash<LabelEntry> _namedLabels;
+
+  //! Count of label links, which are not resolved.
+  size_t _unresolvedLinkCount;
+  //! Pointer to an address table section (or null if this section doesn't exist).
+  Section* _addressTableSection;
+  //! Address table entries.
+  ZoneTree<AddressTableEntry> _addressTableEntries;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates an uninitialized CodeHolder (you must init() it before it can be used).
   ASMJIT_API CodeHolder() noexcept;
   //! Destroys the CodeHolder.
   ASMJIT_API ~CodeHolder() noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
 
   inline bool isInitialized() const noexcept { return _codeInfo.isInitialized(); }
 
@@ -472,25 +504,45 @@ public:
   //! Detaches all code-generators attached and resets the `CodeHolder`.
   ASMJIT_API void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Attach / Detach]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Attach & Detach
+  //! \{
 
   //! Attaches an emitter to this `CodeHolder`.
   ASMJIT_API Error attach(BaseEmitter* emitter) noexcept;
   //! Detaches an emitter from this `CodeHolder`.
   ASMJIT_API Error detach(BaseEmitter* emitter) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Allocators
+  //! \{
 
   inline ZoneAllocator* allocator() const noexcept { return const_cast<ZoneAllocator*>(&_allocator); }
+
+  //! \}
+
+  //! \name Code Emitter
+  //! \{
+
   inline const ZoneVector<BaseEmitter*>& emitters() const noexcept { return _emitters; }
 
-  // --------------------------------------------------------------------------
-  // [Code / Arch]
-  // --------------------------------------------------------------------------
+  //! Gets global emitter options, internally propagated to all attached emitters.
+  inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
+
+  //! Enables the given global emitter `options` and propagates the resulting
+  //! options to all attached emitters.
+  ASMJIT_API void addEmitterOptions(uint32_t options) noexcept;
+
+  //! Disables the given global emitter `options` and propagates the resulting
+  //! options to all attached emitters.
+  ASMJIT_API void clearEmitterOptions(uint32_t options) noexcept;
+
+  //! \}
+
+  //! \name Code & Architecture
+  //! \{
 
   //! Gets the target architecture information, see `ArchInfo`.
   inline const ArchInfo& archInfo() const noexcept { return _codeInfo.archInfo(); }
@@ -507,24 +559,10 @@ public:
   //! Gets a static base-address (uint64_t).
   inline uint64_t baseAddress() const noexcept { return _codeInfo.baseAddress(); }
 
-  // --------------------------------------------------------------------------
-  // [Emitter Options]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  //! Gets global emitter options, internally propagated to all attached emitters.
-  inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
-
-  //! Enables the given global emitter `options` and propagates the resulting
-  //! options to all attached emitters.
-  ASMJIT_API void addEmitterOptions(uint32_t options) noexcept;
-
-  //! Disables the given global emitter `options` and propagates the resulting
-  //! options to all attached emitters.
-  ASMJIT_API void clearEmitterOptions(uint32_t options) noexcept;
-
-  // --------------------------------------------------------------------------
-  // [Logging & Error Handling]
-  // --------------------------------------------------------------------------
+  //! \name Logging & Error Handling
+  //! \{
 
   //! Gets the attached logger.
   inline Logger* logger() const noexcept { return _logger; }
@@ -542,16 +580,18 @@ public:
   //! Resets the global error handler to none.
   inline void resetErrorHandler() noexcept { setErrorHandler(nullptr); }
 
-  // --------------------------------------------------------------------------
-  // [Code Buffer]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Code Buffer
+  //! \{
 
   ASMJIT_API Error growBuffer(CodeBuffer* cb, size_t n) noexcept;
   ASMJIT_API Error reserveBuffer(CodeBuffer* cb, size_t n) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Sections]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Sections
+  //! \{
 
   //! Gets an array of `Section*` records.
   inline const ZoneVector<Section*>& sections() const noexcept { return _sections; }
@@ -604,9 +644,10 @@ public:
   //! address table without creating a particula relocation entry makes no sense.
   ASMJIT_API Error addAddressToAddressTable(uint64_t address) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Labels / Symbols]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Labels & Symbols
+  //! \{
 
   //! Gets array of `LabelEntry*` records.
   inline const ZoneVector<LabelEntry*>& labelEntries() const noexcept { return _labelEntries; }
@@ -714,9 +755,10 @@ public:
   //! This function is generally used by `BaseAssembler::bind()` to do the heavy lifting.
   ASMJIT_API Error bindLabel(const Label& label, uint32_t sectionId, uint64_t offset) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Relocations]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Relocations
+  //! \{
 
   //! Gets whether the code contains relocation entries.
   inline bool hasRelocEntries() const noexcept { return !_relocations.empty(); }
@@ -731,9 +773,10 @@ public:
   //! Additional fields can be set after the relocation entry was created.
   ASMJIT_API Error newRelocEntry(RelocEntry** dst, uint32_t relocType, uint32_t valueSize) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Flattens all sections by recalculating their offsets, starting at 0.
   //!
@@ -766,45 +809,10 @@ public:
   //!
   //! This should only be used if the data was flattened and there are no gaps
   //! between the sections. The `dstSize` is always checked and the copy will
-  //! never write anything outside the providede buffer.
+  //! never write anything outside the provided buffer.
   ASMJIT_API Error copyFlattenedData(void* dst, size_t dstSize, uint32_t options = 0) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Basic information about the code (architecture and other info).
-  CodeInfo _codeInfo;
-  //! Emitter options, propagated to all emitters when changed.
-  uint32_t _emitterOptions;
-
-  //! Attached `Logger`, used by all consumers.
-  Logger* _logger;
-  //! Attached `ErrorHandler`.
-  ErrorHandler* _errorHandler;
-
-  //! Code zone (used to allocate core structures).
-  Zone _zone;
-  //! Zone allocator, used to manage internal containers.
-  ZoneAllocator _allocator;
-
-  //! Attached code emitters.
-  ZoneVector<BaseEmitter*> _emitters;
-  //! Section entries.
-  ZoneVector<Section*> _sections;
-  //! Label entries.
-  ZoneVector<LabelEntry*> _labelEntries;
-  //! Relocation entries.
-  ZoneVector<RelocEntry*> _relocations;
-  //! Label name -> LabelEntry (only named labels).
-  ZoneHash<LabelEntry> _namedLabels;
-
-  //! Count of label links, which are not resolved.
-  size_t _unresolvedLinkCount;
-  //! Pointer to an address table section (or null if this section doesn't exist).
-  Section* _addressTableSection;
-  //! Address table entries.
-  ZoneTree<AddressTableEntry> _addressTableEntries;
+  //! \}
 };
 
 //! \}

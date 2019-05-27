@@ -18,7 +18,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 class CodeHolder;
 
-//! \addtogroup asmjit_core_jit
+//! \addtogroup asmjit_jit
 //! \{
 
 // ============================================================================
@@ -31,33 +31,34 @@ class ASMJIT_VIRTAPI JitRuntime : public Target {
 public:
   ASMJIT_NONCOPYABLE(JitRuntime)
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! Virtual memory allocator.
+  JitAllocator _allocator;
+
+  //! \name Construction & Destruction
+  //! \{
 
   //! Creates a `JitRuntime` instance.
   explicit ASMJIT_API JitRuntime(const JitAllocator::CreateParams* params = nullptr) noexcept;
   //! Destroys the `JitRuntime` instance.
   ASMJIT_API virtual ~JitRuntime() noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
-
   inline void reset(uint32_t resetPolicy = Globals::kResetSoft) noexcept {
     _allocator.reset(resetPolicy);
   }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the associated JitAllocator.
   inline JitAllocator* allocator() const noexcept { return const_cast<JitAllocator*>(&_allocator); }
 
-  // --------------------------------------------------------------------------
-  // [Add / Release]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
+
 
   // NOTE: To allow passing function pointers to `add()` and `release()` the
   // virtual methods are prefixed with `_` and called from templates instead.
@@ -98,12 +99,7 @@ public:
   //! such as Valgrind, however, it's not an official part of AsmJit.
   ASMJIT_API virtual void flush(const void* p, size_t size) noexcept;
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  //! Virtual memory allocator.
-  JitAllocator _allocator;
+  //! \}
 };
 
 //! \}

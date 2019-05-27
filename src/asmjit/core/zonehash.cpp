@@ -115,7 +115,7 @@ ZoneHashNode* ZoneHashBase::_remove(ZoneAllocator* allocator, ZoneHashNode* node
 // [asmjit::ZoneHash - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 struct MyHashNode : public ZoneHashNode {
   inline MyHashNode(uint32_t key) noexcept
     : ZoneHashNode(key),
@@ -134,7 +134,7 @@ struct MyKeyMatcher {
   uint32_t _key;
 };
 
-UNIT(asmjit_core_zone_hash) {
+UNIT(asmjit_zone_hash) {
   uint32_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 10000;
 
   Zone zone(4096);

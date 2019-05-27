@@ -12,7 +12,7 @@
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================

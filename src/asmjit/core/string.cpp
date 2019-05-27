@@ -460,7 +460,7 @@ bool String::eq(const char* other, size_t size) const noexcept {
 // [asmjit::Support - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 UNIT(asmjit_core_string) {
   String s;
 

@@ -15,10 +15,10 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::ZoneList - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 class MyListNode : public ZoneListNode<MyListNode> {};
 
-UNIT(asmjit_core_zone_list) {
+UNIT(asmjit_zone_list) {
   Zone zone(4096);
   ZoneList<MyListNode> list;
 

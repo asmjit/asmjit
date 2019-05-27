@@ -13,7 +13,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -22,6 +22,21 @@ ASMJIT_BEGIN_NAMESPACE
 
 //! Read/Write information related to a single operand, used by `InstRWInfo`.
 struct OpRWInfo {
+  //! Read/Write flags, see `OpRWInfo::Flags`.
+  uint32_t _opFlags;
+  //! Physical register index, if required.
+  uint8_t _physId;
+  //! Size of a possible memory operand that can replace a register operand.
+  uint8_t _rmSize;
+  //! Reserved for future use.
+  uint8_t _reserved[2];
+  //! Read bit-mask where each bit represents one byte read from Reg/Mem.
+  uint64_t _readByteMask;
+  //! Write bit-mask where each bit represents one byte written to Reg/Mem.
+  uint64_t _writeByteMask;
+  //! Zero/Sign extend bit-mask where each bit represents one byte written to Reg/Mem.
+  uint64_t _extendByteMask;
+
   //! Flags describe how the operand is accessed and some additional information.
   enum Flags : uint32_t {
     //! Operand is read.
@@ -127,25 +142,21 @@ struct OpRWInfo {
   inline void setReadByteMask(uint64_t mask) noexcept { _readByteMask = mask; }
   inline void setWriteByteMask(uint64_t mask) noexcept { _writeByteMask = mask; }
   inline void setExtendByteMask(uint64_t mask) noexcept { _extendByteMask = mask; }
-
-  //! Read/Write flags, see `OpRWInfo::Flags`.
-  uint32_t _opFlags;
-  //! Physical register index, if required.
-  uint8_t _physId;
-  //! Size of a possible memory operand that can replace a register operand.
-  uint8_t _rmSize;
-  //! Reserved for future use.
-  uint8_t _reserved[2];
-  //! Read bit-mask where each bit represents one byte read from Reg/Mem.
-  uint64_t _readByteMask;
-  //! Write bit-mask where each bit represents one byte written to Reg/Mem.
-  uint64_t _writeByteMask;
-  //! Zero/Sign extend bit-mask where each bit represents one byte written to Reg/Mem.
-  uint64_t _extendByteMask;
 };
 
 //! Read/Write information of an instruction.
 struct InstRWInfo {
+  //! Instruction flags.
+  uint32_t _instFlags;
+  //! Count of operands.
+  uint8_t _opCount;
+  //! Reserved for future use.
+  uint8_t _reserved[27];
+  //! Read/Write onfo of extra register (rep{} or kz{}).
+  OpRWInfo _extraReg;
+  //! Read/Write info of instruction operands.
+  OpRWInfo _operands[Globals::kMaxOpCount];
+
   inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
   inline uint32_t instFlags() const noexcept { return _instFlags; }
@@ -160,17 +171,6 @@ struct InstRWInfo {
     ASMJIT_ASSERT(index < Globals::kMaxOpCount);
     return _operands[index];
   }
-
-  //! Instruction flags.
-  uint32_t _instFlags;
-  //! Count of operands.
-  uint8_t _opCount;
-  //! Reserved for future use.
-  uint8_t _reserved[27];
-  //! Read/Write onfo of extra register (rep{} or kz{}).
-  OpRWInfo _extraReg;
-  //! Read/Write info of instruction operands.
-  OpRWInfo _operands[Globals::kMaxOpCount];
 };
 
 // ============================================================================
@@ -182,6 +182,10 @@ struct InstRWInfo {
 //! and `Operand[]` array.
 class BaseInst {
 public:
+  uint32_t _id;
+  uint32_t _options;
+  RegOnly _extraReg;
+
   enum Id : uint32_t {
     //! Invalid or uninitialized instruction id.
     kIdNone               = 0x00000000u,
@@ -259,9 +263,8 @@ public:
     kControlReturn        = 4u           //!< Function return.
   };
 
-  // ------------------------------------------------------------------------
-  // [Init / Destroy]
-  // ------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   inline explicit BaseInst(uint32_t id = 0, uint32_t options = 0) noexcept
     : _id(id),
@@ -278,9 +281,10 @@ public:
       _options(options),
       _extraReg { extraReg.signature(), extraReg.id() } {}
 
-  // ------------------------------------------------------------------------
-  // [Accessors]
-  // ------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline uint32_t id() const noexcept { return _id; }
   inline void setId(uint32_t id) noexcept { _id = id; }
@@ -299,28 +303,23 @@ public:
   inline void setExtraReg(const RegOnly& reg) noexcept { _extraReg.init(reg); }
   inline void resetExtraReg() noexcept { _extraReg.reset(); }
 
-  // --------------------------------------------------------------------------
-  // [API]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Insturction API
+  //! \{
 
   #ifndef ASMJIT_DISABLE_INST_API
   //! Validates the given instruction.
-  ASMJIT_API static Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count) noexcept;
+  ASMJIT_API static Error validate(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept;
 
   //! Gets Read/Write information of the given instruction.
-  ASMJIT_API static Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, InstRWInfo& out) noexcept;
+  ASMJIT_API static Error queryRWInfo(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount, InstRWInfo& out) noexcept;
 
   //! Gets CPU features required by the given instruction.
-  ASMJIT_API static Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t count, BaseFeatures& out) noexcept;
+  ASMJIT_API static Error queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount, BaseFeatures& out) noexcept;
   #endif
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  uint32_t _id;
-  uint32_t _options;
-  RegOnly _extraReg;
+  //! \}
 };
 
 //! \}

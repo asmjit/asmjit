@@ -214,6 +214,7 @@ char* Zone::sformat(const char* fmt, ...) noexcept {
 // [asmjit::ZoneAllocator - Helpers]
 // ============================================================================
 
+#if defined(ASMJIT_BUILD_DEBUG)
 static bool ZoneAllocator_hasDynamicBlock(ZoneAllocator* self, ZoneAllocator::DynamicBlock* block) noexcept {
   ZoneAllocator::DynamicBlock* cur = self->_dynamicBlocks;
   while (cur) {
@@ -223,6 +224,7 @@ static bool ZoneAllocator_hasDynamicBlock(ZoneAllocator* self, ZoneAllocator::Dy
   }
   return false;
 }
+#endif
 
 // ============================================================================
 // [asmjit::ZoneAllocator - Init / Reset]

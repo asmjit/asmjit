@@ -75,6 +75,10 @@ static ASMJIT_INLINE uint32_t raMemIndexRwFlags(uint32_t flags) noexcept {
 
 class X86RACFGBuilder : public RACFGBuilder<X86RACFGBuilder> {
 public:
+  uint32_t _archId;
+  bool _is64Bit;
+  bool _avxEnabled;
+
   inline X86RACFGBuilder(X86RAPass* pass) noexcept
     : RACFGBuilder<X86RACFGBuilder>(pass),
       _archId(pass->cc()->archId()),
@@ -98,10 +102,6 @@ public:
 
   Error onBeforeRet(FuncRetNode* funcRet) noexcept;
   Error onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept;
-
-  uint32_t _archId;
-  bool _is64Bit;
-  bool _avxEnabled;
 };
 
 // ============================================================================

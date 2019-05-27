@@ -16,7 +16,7 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::ZoneTree - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 template<typename NodeT>
 struct ZoneRBUnit {
   typedef ZoneTree<NodeT> Tree;
@@ -66,7 +66,7 @@ public:
   uint32_t _key;
 };
 
-UNIT(asmjit_core_zone_rbtree) {
+UNIT(asmjit_zone_rbtree) {
   uint32_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 10000;
 
   Zone zone(4096);

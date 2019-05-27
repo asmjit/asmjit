@@ -11,8 +11,8 @@
 // when AsmJit's source code is embedded directly in another project, implies
 // static build as well.
 //
-// #define ASMJIT_BUILD_EMBED        // Asmjit is embedded (implies ASMJIT_BUILD_STATIC).
-// #define ASMJIT_BUILD_STATIC       // Enable static-library build.
+// #define ASMJIT_EMBED              // Asmjit is embedded (implies ASMJIT_BUILD_STATIC).
+// #define ASMJIT_STATIC             // Enable static-library build.
 
 // AsmJit Build Mode
 // -----------------
@@ -106,20 +106,18 @@
 // [asmjit::Build - Globals - Deprecated]
 // ============================================================================
 
-// DEPRECATED: Will be removed from v2.0+.
-#if defined(ASMJIT_EMBED)
-  #pragma message("'ASMJIT_EMBED' is deprecated, use 'ASMJIT_BUILD_EMBED'")
-  #define ASMJIT_BUILD_EMBED
-#endif
+// DEPRECATED: Will be removed in the future.
+#if defined(ASMJIT_BUILD_EMBED) || defined(ASMJIT_BUILD_STATIC)
+  #if defined(ASMJIT_BUILD_EMBED)
+    #pragma message("'ASMJIT_BUILD_EMBED' is deprecated, use 'ASMJIT_STATIC'")
+  #endif
+  #if defined(ASMJIT_BUILD_STATIC)
+    #pragma message("'ASMJIT_BUILD_STATIC' is deprecated, use 'ASMJIT_STATIC'")
+  #endif
 
-#if defined(ASMJIT_STATIC)
-  #pragma message("'ASMJIT_STATIC' is deprecated, use 'ASMJIT_BUILD_STATIC'")
-  #define ASMJIT_BUILD_STATIC
-#endif
-
-#if defined(ASMJIT_DISABLE_LOGGER)
-  #pragma message("'ASMJIT_DISABLE_LOGGER' is deprecated, use 'ASMJIT_DISABLE_LOGGING'")
-  #define ASMJIT_DISABLE_LOGGING
+  #if !defined(ASMJIT_STATIC)
+    #define ASMJIT_STATIC
+  #endif
 #endif
 
 // ============================================================================
@@ -161,31 +159,31 @@
 #endif
 
 #if defined(_MIPS_ARCH_MIPS64) || defined(__mips64)
-  #define ASMJIT_ARCH_MIPS     64
+  #define ASMJIT_ARCH_MIPS 64
 #elif defined(_MIPS_ARCH_MIPS32) || defined(_M_MRX000) || defined(__mips__)
-  #define ASMJIT_ARCH_MIPS     32
+  #define ASMJIT_ARCH_MIPS 32
 #else
-  #define ASMJIT_ARCH_MIPS     0
+  #define ASMJIT_ARCH_MIPS 0
 #endif
 
 #define ASMJIT_ARCH_BITS       (ASMJIT_ARCH_X86 | ASMJIT_ARCH_ARM | ASMJIT_ARCH_MIPS)
 #if ASMJIT_ARCH_BITS == 0
   #undef ASMJIT_ARCH_BITS
   #if defined (__LP64__) || defined(_LP64)
-    #define ASMJIT_ARCH_BITS   64
+    #define ASMJIT_ARCH_BITS 64
   #else
-    #define ASMJIT_ARCH_BITS   32
+    #define ASMJIT_ARCH_BITS 32
   #endif
 #endif
 
 #if (defined(__ARMEB__))  || \
     (defined(__MIPSEB__)) || \
     (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
-  #define ASMJIT_ARCH_LE       0
-  #define ASMJIT_ARCH_BE       1
+  #define ASMJIT_ARCH_LE 0
+  #define ASMJIT_ARCH_BE 1
 #else
-  #define ASMJIT_ARCH_LE       1
-  #define ASMJIT_ARCH_BE       0
+  #define ASMJIT_ARCH_LE 1
+  #define ASMJIT_ARCH_BE 0
 #endif
 
 // Build host architecture if no architecture is selected.
@@ -549,12 +547,12 @@
 // ============================================================================
 
 // IDE: Make sure '#ifdef'ed unit tests are properly highlighted.
-#if defined(__INTELLISENSE__) && !defined(ASMJIT_BUILD_TEST)
-  #define ASMJIT_BUILD_TEST
+#if defined(__INTELLISENSE__) && !defined(ASMJIT_TEST)
+  #define ASMJIT_TEST
 #endif
 
 // IDE: Make sure '#ifdef'ed unit tests are not disabled by IDE.
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
   #include "../../../test/broken.h"
 #endif
 

@@ -12,7 +12,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -21,6 +21,21 @@ ASMJIT_BEGIN_NAMESPACE
 
 class ArchInfo {
 public:
+  union {
+    struct {
+      //! Architecture id.
+      uint8_t _id;
+      //! Architecture sub-id.
+      uint8_t _subId;
+      //! Default size of a general purpose register.
+      uint8_t _gpSize;
+      //! Count of all general purpose registers.
+      uint8_t _gpCount;
+    };
+    //! Architecture signature (32-bit int).
+    uint32_t _signature;
+  };
+
   //! Architecture id.
   enum Id : uint32_t {
     kIdNone  = 0,                        //!< No/Unknown architecture.
@@ -68,16 +83,8 @@ public:
     #endif
   };
 
-  // --------------------------------------------------------------------------
-  // [Utilities]
-  // --------------------------------------------------------------------------
-
-  static inline bool isX86Family(uint32_t archId) noexcept { return archId >= kIdX86 && archId <= kIdX64; }
-  static inline bool isArmFamily(uint32_t archId) noexcept { return archId >= kIdA32 && archId <= kIdA64; }
-
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  //! \name Construction & Destruction
+  //! \{
 
   inline ArchInfo() noexcept : _signature(0) {}
   inline ArchInfo(const ArchInfo& other) noexcept : _signature(other._signature) {}
@@ -86,18 +93,25 @@ public:
 
   inline static ArchInfo host() noexcept { return ArchInfo(kIdHost, kSubIdHost); }
 
-  // --------------------------------------------------------------------------
-  // [Init / Reset]
-  // --------------------------------------------------------------------------
-
   inline bool isInitialized() const noexcept { return _id != kIdNone; }
 
   ASMJIT_API void init(uint32_t type, uint32_t subType = kSubIdNone) noexcept;
   inline void reset() noexcept { _signature = 0; }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline ArchInfo& operator=(const ArchInfo& other) noexcept = default;
+
+  inline bool operator==(const ArchInfo& other) const noexcept { return _signature == other._signature; }
+  inline bool operator!=(const ArchInfo& other) const noexcept { return _signature != other._signature; }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets the architecture id, see `Id`.
   inline uint32_t archId() const noexcept { return _id; }
@@ -133,33 +147,15 @@ public:
   //! Gets number of general-purpose registers.
   inline uint32_t gpCount() const noexcept { return _gpCount; }
 
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
+  //! \}
 
-  inline ArchInfo& operator=(const ArchInfo& other) noexcept = default;
+  //! \name Static Functions
+  //! \{
 
-  inline bool operator==(const ArchInfo& other) const noexcept { return _signature == other._signature; }
-  inline bool operator!=(const ArchInfo& other) const noexcept { return _signature != other._signature; }
+  static inline bool isX86Family(uint32_t archId) noexcept { return archId >= kIdX86 && archId <= kIdX64; }
+  static inline bool isArmFamily(uint32_t archId) noexcept { return archId >= kIdA32 && archId <= kIdA64; }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  union {
-    struct {
-      //! Architecture id.
-      uint8_t _id;
-      //! Architecture sub-id.
-      uint8_t _subId;
-      //! Default size of a general purpose register.
-      uint8_t _gpSize;
-      //! Count of all general purpose registers.
-      uint8_t _gpCount;
-    };
-    //! Architecture signature (32-bit int).
-    uint32_t _signature;
-  };
+  //! \}
 };
 
 // ============================================================================

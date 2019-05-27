@@ -12,7 +12,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_api
+//! \addtogroup asmjit_core
 //! \{
 
 // ============================================================================
@@ -28,26 +28,34 @@ public:
     kNumBitWords = kMaxFeatures / Support::kBitWordSizeInBits
   };
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  BitWord _bits[kNumBitWords];
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline BaseFeatures() noexcept { reset(); }
   inline BaseFeatures(const BaseFeatures& other) noexcept = default;
   inline explicit BaseFeatures(Globals::NoInit_) noexcept {}
-
-  // --------------------------------------------------------------------------
-  // [Reset]
-  // --------------------------------------------------------------------------
 
   inline void reset() noexcept {
     for (size_t i = 0; i < kNumBitWords; i++)
       _bits[i] = 0;
   }
 
-  // --------------------------------------------------------------------------
-  // [Cast]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  inline BaseFeatures& operator=(const BaseFeatures& other) noexcept = default;
+
+  inline bool operator==(const BaseFeatures& other) noexcept { return  eq(other); }
+  inline bool operator!=(const BaseFeatures& other) noexcept { return !eq(other); }
+
+  //! \}
+
+  //! \name Cast
+  //! \{
 
   template<typename T>
   inline T& as() noexcept { return static_cast<T&>(*this); }
@@ -55,9 +63,10 @@ public:
   template<typename T>
   inline const T& as() const noexcept { return static_cast<const T&>(*this); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   //! Gets all features as `BitWord` array.
   inline BitWord* bits() noexcept { return _bits; }
@@ -82,9 +91,10 @@ public:
     return true;
   }
 
-  // --------------------------------------------------------------------------
-  // [Operations]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Utilities
+  //! \{
 
   //! Adds the given CPU `featureId` to the list of features.
   inline void add(uint32_t featureId) noexcept {
@@ -125,21 +135,7 @@ public:
     return true;
   }
 
-
-  // --------------------------------------------------------------------------
-  // [Operator Overload]
-  // --------------------------------------------------------------------------
-
-  inline BaseFeatures& operator=(const BaseFeatures& other) noexcept = default;
-
-  inline bool operator==(const BaseFeatures& other) noexcept { return  eq(other); }
-  inline bool operator!=(const BaseFeatures& other) noexcept { return !eq(other); }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  BitWord _bits[kNumBitWords];
+  //! \}
 };
 
 //! \}

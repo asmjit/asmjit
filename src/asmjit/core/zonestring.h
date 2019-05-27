@@ -12,7 +12,7 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core_zone
+//! \addtogroup asmjit_zone
 //! \{
 
 // ============================================================================
@@ -20,6 +20,17 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 struct ZoneStringBase {
+  union {
+    struct {
+      uint32_t _size;
+      char _embedded[sizeof(void*) * 2 - 4];
+    };
+    struct {
+      void* _dummy;
+      char* _external;
+    };
+  };
+
   inline void reset() noexcept {
     _dummy = nullptr;
     _external = nullptr;
@@ -43,21 +54,6 @@ struct ZoneStringBase {
     _size = uint32_t(size);
     return kErrorOk;
   }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  union {
-    struct {
-      uint32_t _size;
-      char _embedded[sizeof(void*) * 2 - 4];
-    };
-    struct {
-      void* _dummy;
-      char* _external;
-    };
-  };
 };
 
 // ============================================================================
@@ -76,16 +72,21 @@ public:
     (N > sizeof(ZoneStringBase)) ? uint32_t(N) : uint32_t(sizeof(ZoneStringBase));
   static constexpr uint32_t kMaxEmbeddedSize = kWholeSize - 5;
 
-  // --------------------------------------------------------------------------
-  // [Construction / Destruction]
-  // --------------------------------------------------------------------------
+  union {
+    ZoneStringBase _base;
+    char _wholeData[kWholeSize];
+  };
+
+  //! \name Construction & Destruction
+  //! \{
 
   inline ZoneString() noexcept { reset(); }
   inline void reset() noexcept { _base.reset(); }
 
-  // --------------------------------------------------------------------------
-  // [Accessors]
-  // --------------------------------------------------------------------------
+  //! \}
+
+  //! \name Accessors
+  //! \{
 
   inline const char* data() const noexcept { return _base._size <= kMaxEmbeddedSize ? _base._embedded : _base._external; }
   inline bool empty() const noexcept { return _base._size == 0; }
@@ -97,14 +98,7 @@ public:
     return _base.setData(zone, kMaxEmbeddedSize, data, size);
   }
 
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  union {
-    ZoneStringBase _base;
-    char _wholeData[kWholeSize];
-  };
+  //! \}
 };
 
 //! \}

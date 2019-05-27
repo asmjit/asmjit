@@ -35,6 +35,8 @@ public:
   ASMJIT_NONCOPYABLE(X86RAPass)
   typedef RAPass Base;
 
+  bool _avxEnabled;
+
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
   // --------------------------------------------------------------------------
@@ -82,12 +84,6 @@ public:
 
   Error onEmitJump(const Label& label) noexcept override;
   Error onEmitPreCall(FuncCallNode* node) noexcept override;
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  bool _avxEnabled;
 };
 
 //! \}

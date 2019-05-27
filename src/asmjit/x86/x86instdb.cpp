@@ -6977,7 +6977,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryFeatures(uint32_t archId, const BaseI
 // [asmjit::Inst - Unit]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_TEST)
+#if defined(ASMJIT_TEST)
 UNIT(asmjit_x86_inst_bits) {
   INFO("Checking validity of Inst enums");
 
@@ -6999,7 +6999,7 @@ UNIT(asmjit_x86_inst_bits) {
 }
 #endif
 
-#if defined(ASMJIT_BUILD_TEST) && !defined(ASMJIT_DISABLE_TEXT)
+#if defined(ASMJIT_TEST) && !defined(ASMJIT_DISABLE_TEXT)
 UNIT(asmjit_x86_inst_names) {
   // All known instructions should be matched.
   INFO("Matching all X86 instructions");

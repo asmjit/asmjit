@@ -12,15 +12,29 @@ if (NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
 endif()
 
 # =============================================================================
+# [AsmJit - Deprecated]
+# =============================================================================
+
+if (DEFINED ASMJIT_BUILD_EMBED)
+  message(DEPRECATION "ASMJIT_BUILD_EMBED is deprecated, use ASMJIT_EMBED")
+  set(ASMJIT_EMBED "${ASMJIT_BUILD_EMBED}")
+endif()
+
+if (DEFINED ASMJIT_BUILD_STATIC)
+  message(DEPRECATION "ASMJIT_BUILD_STATIC is deprecated, use ASMJIT_STATIC")
+  set(ASMJIT_STATIC "${ASMJIT_BUILD_STATIC}")
+endif()
+
+# =============================================================================
 # [AsmJit - Configuration]
 # =============================================================================
 
-if (NOT DEFINED ASMJIT_BUILD_EMBED)
-  set(ASMJIT_BUILD_EMBED FALSE)
+if (NOT DEFINED ASMJIT_EMBED)
+  set(ASMJIT_EMBED FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_STATIC)
-  set(ASMJIT_BUILD_STATIC ${ASMJIT_BUILD_EMBED})
+if (NOT DEFINED ASMJIT_STATIC)
+  set(ASMJIT_STATIC ${ASMJIT_EMBED})
 endif()
 
 if (NOT DEFINED ASMJIT_BUILD_ARM)
@@ -31,17 +45,22 @@ if (NOT DEFINED ASMJIT_BUILD_X86)
   set(ASMJIT_BUILD_X86 FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_TEST)
-  set(ASMJIT_BUILD_TEST FALSE)
+if (NOT DEFINED ASMJIT_TEST)
+  set(ASMJIT_TEST FALSE)
 endif()
 
-set(ASMJIT_DIR            "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
-set(ASMJIT_BUILD_EMBED    ${ASMJIT_BUILD_EMBED}       CACHE BOOL "Embed 'asmjit' library (no targets)")
-set(ASMJIT_BUILD_STATIC   ${ASMJIT_BUILD_STATIC}      CACHE BOOL "Build 'asmjit' library as static")
-set(ASMJIT_BUILD_SANITIZE ${ASMJIT_BUILD_SANITIZE}    CACHE BOOL "Use C/C++ sanitizers if possible")
-set(ASMJIT_BUILD_TEST     ${ASMJIT_BUILD_TEST}        CACHE BOOL "Build 'asmjit_test' applications")
-set(ASMJIT_BUILD_X86      ${ASMJIT_BUILD_X86}         CACHE BOOL "Build X86 backends (X86 and X86_64)")
-set(ASMJIT_BUILD_ARM      ${ASMJIT_BUILD_ARM}         CACHE BOOL "Build ARM backends")
+# EMBED implies STATIC.
+if (ASMJIT_EMBED AND NOT ASMJIT_STATIC)
+  set(ASMJIT_STATIC TRUE)
+endif()
+
+set(ASMJIT_DIR        "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
+set(ASMJIT_TEST       ${ASMJIT_TEST}              CACHE BOOL "Build 'asmjit' test applications")
+set(ASMJIT_EMBED      ${ASMJIT_EMBED}             CACHE BOOL "Embed 'asmjit' library (no targets)")
+set(ASMJIT_STATIC     ${ASMJIT_STATIC}            CACHE BOOL "Build 'asmjit' library as static")
+set(ASMJIT_SANITIZE   ${ASMJIT_SANITIZE}          CACHE BOOL "Build with C/C++ sanitizers enabled")
+set(ASMJIT_BUILD_X86  ${ASMJIT_BUILD_X86}         CACHE BOOL "Build X86 backends (X86 and X86_64)")
+set(ASMJIT_BUILD_ARM  ${ASMJIT_BUILD_ARM}         CACHE BOOL "Build ARM backends")
 
 # =============================================================================
 # [AsmJit - Utilities]
@@ -58,19 +77,6 @@ function(asmjit_detect_cflags out)
     endif()
   endforeach()
   set(${out} "${out_array}" PARENT_SCOPE)
-endfunction()
-
-function(asmjit_add_source out base_dir)
-  set(src_array)
-  foreach(file ${ARGN})
-    set(src_file "${ASMJIT_DIR}/${base_dir}/${file}")
-    list(APPEND src_array ${src_file})
-  endforeach()
-  source_group(TREE "${ASMJIT_DIR}" FILES ${src_array})
-
-  set(out_tmp ${${out}})
-  list(APPEND out_tmp ${src_array})
-  set("${out}" "${out_tmp}" PARENT_SCOPE)
 endfunction()
 
 function(asmjit_add_target target target_type src deps cflags cflags_dbg cflags_rel)
@@ -110,7 +116,7 @@ set(ASMJIT_SANITIZE_FLAGS "")                    # Sanitizer flags used as compi
 # TODO: Backward compatibility.
 set(ASMJIT_INCLUDE_DIR "${ASMJIT_INCLUDE_DIRS}")
 
-if (NOT ASMJIT_BUILD_NO_CUSTOM_FLAGS)
+if (NOT ASMJIT_NO_CUSTOM_FLAGS)
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
     list(APPEND ASMJIT_PRIVATE_CFLAGS
       -MP                      # [+] Multi-Process Compilation.
@@ -132,12 +138,11 @@ if (NOT ASMJIT_BUILD_NO_CUSTOM_FLAGS)
     list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra)
     list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno -fno-threadsafe-statics)
     list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
-
     asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL -fmerge-all-constants)
   endif()
 endif()
 
-if (ASMJIT_BUILD_SANITIZE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
+if (ASMJIT_SANITIZE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
   asmjit_detect_cflags(ASMJIT_SANITIZE_FLAGS "-fsanitize=undefined")
 endif()
 
@@ -150,23 +155,22 @@ if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
 endif()
 
 set(ASMJIT_LIBS ${ASMJIT_DEPS})
-if (NOT ASMJIT_BUILD_EMBED)
+if (NOT ASMJIT_EMBED)
   list(INSERT ASMJIT_LIBS 0 asmjit)
 endif()
 
-if (ASMJIT_BUILD_EMBED)
+if (ASMJIT_EMBED)
   set(ASMJIT_TARGET_TYPE "EMBED")
-elseif (ASMJIT_BUILD_STATIC)
+elseif (ASMJIT_STATIC)
   set(ASMJIT_TARGET_TYPE "STATIC")
 else()
   set(ASMJIT_TARGET_TYPE "SHARED")
 endif()
 
-foreach(build_option ASMJIT_BUILD_X86
-                     ASMJIT_BUILD_ARM
+foreach(build_option ASMJIT_STATIC
+                     ASMJIT_BUILD_X86
+                     #ASMJIT_BUILD_ARM
                      ASMJIT_BUILD_A64
-                     ASMJIT_BUILD_EMBED
-                     ASMJIT_BUILD_STATIC
                      ASMJIT_DISABLE_BUILDER
                      ASMJIT_DISABLE_COMPILER
                      ASMJIT_DISABLE_TEXT
@@ -184,10 +188,8 @@ endforeach()
 
 set(ASMJIT_SRC_LIST
   asmjit/asmjit.h
-  asmjit/arm.h
-  asmjit/core.h
-  asmjit/x86.h
 
+  asmjit/core.h
   asmjit/core/build.h
   asmjit/core/arch.cpp
   asmjit/core/arch.h
@@ -260,29 +262,7 @@ set(ASMJIT_SRC_LIST
   asmjit/core/zonevector.cpp
   asmjit/core/zonevector.h
 
-  asmjit/arm/armassembler.cpp
-  asmjit/arm/armassembler.h
-  asmjit/arm/armbuilder.cpp
-  asmjit/arm/armbuilder.h
-  asmjit/arm/armcallconv.cpp
-  asmjit/arm/armcallconv_p.h
-  asmjit/arm/armcompiler.cpp
-  asmjit/arm/armcompiler.h
-  asmjit/arm/armemitter.h
-  asmjit/arm/armfeatures.cpp
-  asmjit/arm/armfeatures.h
-  asmjit/arm/armglobals.h
-  asmjit/arm/arminternal.cpp
-  asmjit/arm/arminternal_p.h
-  asmjit/arm/arminstdb.cpp
-  asmjit/arm/arminstdb.h
-  asmjit/arm/armlogging.cpp
-  asmjit/arm/armlogging_p.h
-  asmjit/arm/armoperand.cpp
-  asmjit/arm/armoperand.h
-  asmjit/arm/armrapass.cpp
-  asmjit/arm/armrapass_p.h
-
+  asmjit/x86.h
   asmjit/x86/x86assembler.cpp
   asmjit/x86/x86assembler.h
   asmjit/x86/x86builder.cpp
@@ -310,12 +290,15 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86ssetoavx_p.h
 )
 
-set(ASMJIT_SRC "")
-asmjit_add_source(ASMJIT_SRC src ${ASMJIT_SRC_LIST})
+#if (MSVC)
+#  list(APPEND ASMJIT_SRC_LIST asmjit.natvis)
+#endif()
 
-# if (MSVC)
-#   asmjit_add_source(ASMJIT_SRC .. asmjit.natvis)
-# endif()
+set(ASMJIT_SRC "")
+foreach(_src_file ${ASMJIT_SRC_LIST})
+  list(APPEND ASMJIT_SRC "${ASMJIT_DIR}/src/${_src_file}")
+endforeach()
+source_group(TREE "${ASMJIT_DIR}" FILES ${ASMJIT_SRC})
 
 # =============================================================================
 # [AsmJit - Summary]
@@ -323,30 +306,20 @@ asmjit_add_source(ASMJIT_SRC src ${ASMJIT_SRC_LIST})
 
 message("** AsmJit Summary **")
 message("   ASMJIT_DIR=${ASMJIT_DIR}")
+message("   ASMJIT_TEST=${ASMJIT_TEST}")
 message("   ASMJIT_TARGET_TYPE=${ASMJIT_TARGET_TYPE}")
-message("   ASMJIT_BUILD_TEST=${ASMJIT_BUILD_TEST}")
 message("   ASMJIT_DEPS=${ASMJIT_DEPS}")
 message("   ASMJIT_LIBS=${ASMJIT_LIBS}")
 message("   ASMJIT_CFLAGS=${ASMJIT_CFLAGS}")
-message("   ASMJIT_PRIVATE_CFLAGS=")
-
-foreach(_flag ${ASMJIT_PRIVATE_CFLAGS})
-  message("     ${_flag}")
-endforeach()
-
-foreach(_flag ${ASMJIT_PRIVATE_CFLAGS_DBG})
-  message("     ${_flag} [DEBUG]")
-endforeach()
-
-foreach(_flag ${ASMJIT_PRIVATE_CFLAGS_REL})
-  message("     ${_flag} [RELEASE]")
-endforeach()
+message("   ASMJIT_PRIVATE_CFLAGS=${ASMJIT_PRIVATE_CFLAGS}")
+message("   ASMJIT_PRIVATE_CFLAGS_DBG=${ASMJIT_PRIVATE_CFLAGS_DBG}")
+message("   ASMJIT_PRIVATE_CFLAGS_REL=${ASMJIT_PRIVATE_CFLAGS_REL}")
 
 # =============================================================================
 # [AsmJit - Targets]
 # =============================================================================
 
-if (NOT ASMJIT_BUILD_EMBED)
+if (NOT ASMJIT_EMBED)
   # Add 'asmjit' target.
   asmjit_add_target(asmjit "${ASMJIT_TARGET_TYPE}"
     "${ASMJIT_SRC}"
@@ -367,16 +340,15 @@ if (NOT ASMJIT_BUILD_EMBED)
 
   # Install 'asmjit' header files (private headers are filtered out).
   foreach(_src_file ${ASMJIT_SRC_LIST})
-    if ("${_src_file}" MATCHES ".h$" AND NOT "${_src_file}" MATCHES "_p.h$")
+    if ("${_src_file}" MATCHES "\\.h$" AND NOT "${_src_file}" MATCHES "_p\\.h$")
       get_filename_component(_src_dir ${_src_file} PATH)
-      get_filename_component(_src_name ${_src_file} NAME)
       install(FILES "${ASMJIT_DIR}/src/${_src_file}" DESTINATION "include/${_src_dir}")
     endif()
   endforeach()
 
   # Add 'asmjit' tests.
-  if (ASMJIT_BUILD_TEST)
-    asmjit_add_source(ASMJIT_TEST_SRC test asmjit_test_unit.cpp broken.cpp broken.h)
+  if (ASMJIT_TEST)
+    set(ASMJIT_TEST_SRC test/asmjit_test_unit.cpp test/broken.cpp test/broken.h)
 
     asmjit_add_target(asmjit_test_unit EXECUTABLE
       "${ASMJIT_SRC};${ASMJIT_TEST_SRC}"
@@ -384,7 +356,7 @@ if (NOT ASMJIT_BUILD_EMBED)
       "${ASMJIT_PRIVATE_CFLAGS}"
       "${ASMJIT_PRIVATE_CFLAGS_DBG}"
       "${ASMJIT_PRIVATE_CFLAGS_REL}")
-    target_compile_definitions(asmjit_test_unit PRIVATE ASMJIT_BUILD_TEST ASMJIT_BUILD_EMBED)
+    target_compile_definitions(asmjit_test_unit PRIVATE ASMJIT_TEST ASMJIT_STATIC)
 
     foreach(_target asmjit_bench_x86
                     asmjit_test_opcode

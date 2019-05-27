@@ -41,7 +41,7 @@ class St;
 class Bnd;
 class Rip;
 
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -57,6 +57,7 @@ class Rip;
 template<uint32_t REG_TYPE>
 struct RegTraits : public BaseRegTraits {};
 
+//! \cond
 // <--------------------+-----+-------------------------+------------------------+---+---+----------------+
 //                      | Reg |        Reg-Type         |        Reg-Group       |Sz |Cnt|     TypeId     |
 // <--------------------+-----+-------------------------+------------------------+---+---+----------------+
@@ -76,6 +77,7 @@ ASMJIT_DEFINE_REG_TRAITS(DReg , BaseReg::kTypeCustom + 2, BaseReg::kGroupVirt + 
 ASMJIT_DEFINE_REG_TRAITS(St   , BaseReg::kTypeCustom + 3, BaseReg::kGroupVirt + 3, 10, 8 , Type::kIdF80   );
 ASMJIT_DEFINE_REG_TRAITS(Bnd  , BaseReg::kTypeCustom + 4, BaseReg::kGroupVirt + 4, 16, 4 , Type::kIdVoid  );
 ASMJIT_DEFINE_REG_TRAITS(Rip  , BaseReg::kTypeIP        , BaseReg::kGroupVirt + 5, 0 , 1 , Type::kIdVoid  );
+//! \endcond
 
 // ============================================================================
 // [asmjit::x86::Reg]
@@ -562,7 +564,6 @@ inline uint32_t Reg::signatureOf(uint32_t rType) noexcept {
 // ============================================================================
 
 namespace regs {
-namespace {
 
 //! Creates an 8-bit low GPB register operand.
 static constexpr GpbLo gpb(uint32_t rId) noexcept { return GpbLo(rId); }
@@ -843,7 +844,6 @@ static constexpr Bnd bnd3(3);
 
 static constexpr Rip rip(0);
 
-} // {anonymous}
 } // {regs}
 
 // Make `x86::regs` accessible through `x86` namespace as well.

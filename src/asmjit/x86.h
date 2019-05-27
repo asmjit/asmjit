@@ -11,23 +11,11 @@
 //!
 //! \brief X86/X64 Backend.
 
-//! \defgroup asmjit_x86_api X86 API
-//! \ingroup asmjit_x86
-//!
-//! \brief X86/X64 API.
-
-//! \defgroup asmjit_x86_db X86 DB
-//! \ingroup asmjit_x86
-//!
-//! \brief X86/X64 instruction database.
-
 //! \cond INTERNAL
-
 //! \defgroup asmjit_x86_ra X86 RA
 //! \ingroup asmjit_x86
 //!
 //! \brief X86/X64 register allocation.
-
 //! \endcond
 
 //! \namespace asmjit::x86

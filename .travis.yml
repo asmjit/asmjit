@@ -184,9 +184,9 @@ before_script:
   - cd build
   - |
     if [[ "$BUILD_TOOLCHAIN" =~ ^Visual\ Studio ]]; then
-      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_BUILD_TEST=1
+      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1
     else
-      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_BUILD_TEST=1 -DCMAKE_PREFIX_PATH="$MINGW_PATH" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 -DCMAKE_PREFIX_PATH="$MINGW_PATH" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
     fi
   - cd ..
 

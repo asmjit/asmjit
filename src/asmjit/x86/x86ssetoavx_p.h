@@ -16,7 +16,7 @@
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_x86_api
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
@@ -57,29 +57,27 @@ public:
   ASMJIT_NONCOPYABLE(SseToAvxPass)
   typedef Pass Base;
 
+  bool _translated;
+
   SseToAvxPass() noexcept;
   Error run(Zone* zone, Logger* logger) noexcept override;
 
   enum ProbeMask : uint32_t {
-    kProbeMmx  = 1u << Reg::kTypeMm,     //!< Instruction uses MMX registers.
-    kProbeXmm  = 1u << Reg::kTypeXmm     //!< Instruction uses XMM registers.
+    //! Instruction uses MMX registers.
+    kProbeMmx  = 1u << Reg::kTypeMm,
+    //! Instruction uses XMM registers.
+    kProbeXmm  = 1u << Reg::kTypeXmm
   };
 
-  static inline uint32_t probeRegs(const Operand* operands, uint32_t count) noexcept {
+  static inline uint32_t probeRegs(const Operand* operands, uint32_t opCount) noexcept {
     uint32_t mask = 0;
-    for (uint32_t i = 0; i < count; i++) {
+    for (uint32_t i = 0; i < opCount; i++) {
       const Operand& op = operands[i];
       if (!op.isReg()) continue;
       mask |= Support::bitMask(op.as<BaseReg>().type());
     }
     return mask;
   }
-
-  // --------------------------------------------------------------------------
-  // [Members]
-  // --------------------------------------------------------------------------
-
-  bool _translated;
 };
 
 //! \}
