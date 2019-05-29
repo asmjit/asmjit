@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_GLOBALS_H
 #define _ASMJIT_CORE_GLOBALS_H
@@ -11,12 +11,49 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-//! \addtogroup asmjit_core
+// ============================================================================
+// [asmjit::Support]
+// ============================================================================
+
+//! \cond INTERNAL
+//! \addtogroup Support
 //! \{
+namespace Support {
+  //! Cast designed to cast between function and void* pointers.
+  template<typename Dst, typename Src>
+  static constexpr Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
+} // {Support}
+
+#if defined(ASMJIT_NO_STDCXX)
+namespace Support {
+  ASMJIT_INLINE void* operatorNew(size_t n) noexcept { return malloc(n); }
+  ASMJIT_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
+} // {Support}
+
+#define ASMJIT_BASE_CLASS(TYPE)                                               \
+  ASMJIT_INLINE void* operator new(size_t n) noexcept {                       \
+    return Support::operatorNew(n);                                           \
+  }                                                                           \
+                                                                              \
+  ASMJIT_INLINE void  operator delete(void* p) noexcept {                     \
+    Support::operatorDelete(p);                                               \
+  }                                                                           \
+                                                                              \
+  ASMJIT_INLINE void* operator new(size_t, void* p) noexcept { return p; }    \
+  ASMJIT_INLINE void  operator delete(void*, void*) noexcept {}
+#else
+#define ASMJIT_BASE_CLASS(TYPE)
+#endif
+
+//! \}
+//! \endcond
 
 // ============================================================================
 // [asmjit::Globals]
 // ============================================================================
+
+//! \addtogroup asmjit_core
+//! \{
 
 //! Contains typedefs, constants, and variables used globally by AsmJit.
 namespace Globals {
@@ -299,41 +336,10 @@ namespace ByteOrder {
 // [asmjit::ptr_as_func / func_as_ptr]
 // ============================================================================
 
-namespace Support {
-  //! Cast designed to cast between function and void* pointers.
-  template<typename Dst, typename Src>
-  static constexpr Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
-} // {Support}
-
 template<typename Func>
 static constexpr Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
 template<typename Func>
 static constexpr void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_impl<void*, Func>(func); }
-
-// ============================================================================
-// [asmjit::Support]
-// ============================================================================
-
-#if defined(ASMJIT_NO_STDCXX)
-namespace Support {
-  ASMJIT_INLINE void* operatorNew(size_t n) noexcept { return malloc(n); }
-  ASMJIT_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
-} // {Support}
-
-#define ASMJIT_BASE_CLASS(TYPE)                                               \
-  ASMJIT_INLINE void* operator new(size_t n) noexcept {                       \
-    return Support::operatorNew(n);                                           \
-  }                                                                           \
-                                                                              \
-  ASMJIT_INLINE void  operator delete(void* p) noexcept {                     \
-    Support::operatorDelete(p);                                               \
-  }                                                                           \
-                                                                              \
-  ASMJIT_INLINE void* operator new(size_t, void* p) noexcept { return p; }    \
-  ASMJIT_INLINE void  operator delete(void*, void*) noexcept {}
-#else
-#define ASMJIT_BASE_CLASS(TYPE)
-#endif
 
 // ============================================================================
 // [asmjit::DebugUtils]

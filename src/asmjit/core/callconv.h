@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_CALLCONV_H
 #define _ASMJIT_CORE_CALLCONV_H

@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_X86_X86ASSEMBLER_H
 #define _ASMJIT_X86_X86ASSEMBLER_H
@@ -38,7 +38,8 @@ public:
 
   //! \}
 
-  //! \name Internals
+  //! \cond INTERNAL
+  //! \name Internal
   //! \{
 
   // NOTE: x86::Assembler uses _privateData to store 'address-override' bit that
@@ -49,15 +50,17 @@ public:
   inline void _setAddressOverrideMask(uint32_t m) noexcept { _privateData = m; }
 
   //! \}
+  //! \endcond
 
+  //! \cond INTERNAL
   //! \name Emit
   //! \{
 
   using BaseEmitter::_emit;
-
   ASMJIT_API Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) override;
 
   //! \}
+  //! \endcond
 
   //! \name Align
   //! \{

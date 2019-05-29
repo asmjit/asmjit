@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_OPERAND_H
 #define _ASMJIT_CORE_OPERAND_H
@@ -311,6 +311,7 @@ struct Operand_ {
   //! NOTE: Improper use of `setSignature()` can lead to hard-to-debug errors.
   inline void setSignature(uint32_t signature) noexcept { _signature = signature; }
 
+  //! \cond INTERNAL
   template<uint32_t mask>
   constexpr bool _hasSignaturePart() const noexcept {
     return (_signature & mask) != 0;
@@ -326,6 +327,7 @@ struct Operand_ {
     ASMJIT_ASSERT((value & ~(mask >> Support::constCtz(mask))) == 0);
     _signature = (_signature & ~mask) | (value << Support::constCtz(mask));
   }
+  //! \endcond
 
   //! Gets the type of the operand, see `OpType`.
   constexpr uint32_t opType() const noexcept { return _getSignaturePart<kSignatureOpMask>(); }

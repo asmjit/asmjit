@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_EMITTER_H
 #define _ASMJIT_CORE_EMITTER_H
@@ -433,12 +433,14 @@ public:
     return _emitOpArray(inst.id(), operands, count);
   }
 
+  //! \cond INTERNAL
   //! Emits instruction having max 4 operands.
   virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) = 0;
   //! Emits instruction having max 6 operands.
   virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3, const Operand_& o4, const Operand_& o5) = 0;
   //! Emits instruction having operands stored in array.
   virtual Error _emitOpArray(uint32_t instId, const Operand_* operands, size_t count);
+  //! \endcond
 
   //! \}
 

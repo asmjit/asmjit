@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_ZONE_H
 #define _ASMJIT_CORE_ZONE_H
@@ -177,6 +177,17 @@ public:
   //! \name Utilities
   //! \{
 
+  ASMJIT_INLINE void swap(Zone& other) noexcept {
+    // This could lead to a disaster.
+    ASMJIT_ASSERT(!this->isTemporary());
+    ASMJIT_ASSERT(!other.isTemporary());
+
+    std::swap(_ptr, other._ptr);
+    std::swap(_end, other._end);
+    std::swap(_block, other._block);
+    std::swap(_packedData, other._packedData);
+  }
+
   //! Aligns the current pointer to `alignment`.
   ASMJIT_INLINE void align(size_t alignment) noexcept {
     _ptr = Support::min(Support::alignUp(_ptr, alignment), _end);
@@ -346,22 +357,6 @@ public:
 
   //! Helper to duplicate a formatted string, maximum size is 256 bytes.
   ASMJIT_API char* sformat(const char* str, ...) noexcept;
-
-  //! \}
-
-  //! \name Swap
-  //! \{
-
-  ASMJIT_INLINE void swapWith(Zone& other) noexcept {
-    // This could lead to a disaster.
-    ASMJIT_ASSERT(!this->isTemporary());
-    ASMJIT_ASSERT(!other.isTemporary());
-
-    std::swap(_ptr, other._ptr);
-    std::swap(_end, other._end);
-    std::swap(_block, other._block);
-    std::swap(_packedData, other._packedData);
-  }
 
   //! \}
 };

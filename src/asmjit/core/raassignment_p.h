@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_RAASSIGNMENT_P_H
 #define _ASMJIT_CORE_RAASSIGNMENT_P_H
@@ -290,6 +290,14 @@ public:
   //! \name Utilities
   //! \{
 
+  inline void swap(RAAssignment& other) noexcept {
+    std::swap(_workToPhysMap, other._workToPhysMap);
+    std::swap(_physToWorkMap, other._physToWorkMap);
+
+    for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++)
+      std::swap(_physToWorkIds[group], other._physToWorkIds[group]);
+  }
+
   inline void copyFrom(const PhysToWorkMap* physToWorkMap, const WorkToPhysMap* workToPhysMap) noexcept {
     memcpy(_physToWorkMap, physToWorkMap, PhysToWorkMap::sizeOf(_layout.physTotal));
     memcpy(_workToPhysMap, workToPhysMap, WorkToPhysMap::sizeOf(_layout.workCount));
@@ -297,14 +305,6 @@ public:
 
   inline void copyFrom(const RAAssignment& other) noexcept {
     copyFrom(other.physToWorkMap(), other.workToPhysMap());
-  }
-
-  inline void swapWith(RAAssignment& other) noexcept {
-    std::swap(_workToPhysMap, other._workToPhysMap);
-    std::swap(_physToWorkMap, other._physToWorkMap);
-
-    for (uint32_t group = 0; group < BaseReg::kGroupVirt; group++)
-      std::swap(_physToWorkIds[group], other._physToWorkIds[group]);
   }
 
   // Not really useful outside of debugging.

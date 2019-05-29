@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_ASSEMBLER_H
 #define _ASMJIT_CORE_ASSEMBLER_H
@@ -93,6 +93,7 @@ public:
 
   //! \}
 
+  //! \cond INTERNAL
   //! \name Emit
   //! \{
 
@@ -128,8 +129,8 @@ protected:
   }
   #endif
 public:
-
   //! \}
+  //! \endcond
 
   //! \name Embed
   //! \{

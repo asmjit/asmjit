@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_X86_H
 #define _ASMJIT_X86_H
@@ -10,17 +10,6 @@
 //! \defgroup asmjit_x86 X86
 //!
 //! \brief X86/X64 Backend.
-
-//! \cond INTERNAL
-//! \defgroup asmjit_x86_ra X86 RA
-//! \ingroup asmjit_x86
-//!
-//! \brief X86/X64 register allocation.
-//! \endcond
-
-//! \namespace asmjit::x86
-//!
-//! X86/X64 API.
 
 #include "./core.h"
 

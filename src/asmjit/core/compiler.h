@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_COMPILER_H
 #define _ASMJIT_CORE_COMPILER_H
@@ -33,7 +33,7 @@ class FuncNode;
 class FuncRetNode;
 class FuncCallNode;
 
-//! \addtogroup asmjit_core
+//! \addtogroup asmjit_compiler
 //! \{
 
 // ============================================================================

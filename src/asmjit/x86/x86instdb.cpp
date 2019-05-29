@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 // ----------------------------------------------------------------------------
 // IMPORTANT: AsmJit now uses an external instruction database to populate

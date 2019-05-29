@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 // This is a working example that demonstrates how multiple sections can be
 // used in a JIT-based code generator. It shows also the necessary tooling

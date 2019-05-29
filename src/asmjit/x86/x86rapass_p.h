@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_X86_X86RAPASS_P_H
 #define _ASMJIT_X86_X86RAPASS_P_H
@@ -19,6 +19,12 @@
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! \cond INTERNAL
+
+//! \defgroup asmjit_x86_ra X86 RA
+//! \ingroup asmjit_x86
+//!
+//! \brief X86/X64 register allocation.
+
 //! \addtogroup asmjit_x86_ra
 //! \{
 

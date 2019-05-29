@@ -2,13 +2,35 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_H
 #define _ASMJIT_CORE_H
 
 //! \defgroup asmjit_core Core
 //! \brief Core API.
+//!
+//! API that provides classes and functions not specific to any architecture.
+
+//! \defgroup asmjit_builder Builder
+//! \brief Builder API.
+//!
+//! Both Builder and Compiler are emitters that emit everything to a representation
+//! that allows further processing. The code stored in such representation is
+//! completely safe to be patched, simplified, reordered, obfuscated, removed,
+//! injected, analyzed, or processed some other way. Each instruction, label,
+//! directive, or other building block is stored as \ref BaseNode (or derived
+//! class like \ref InstNode or \ref LabelNode) and contains all the information
+//! necessary to pass that node later to the Assembler.
+
+//! \defgroup asmjit_compiler Compiler
+//! \brief Compiler API.
+//!
+//! Compiler tool is built on top of a \ref asmjit_builder API and adds register
+//! allocation and support for defining and calling functions into it. At the
+//! moment it's the easiest way to generate some code as most architecture and
+//! OS specific stuff is properly abstracted, however, abstractions also mean
+//! that not everything is possible with the Compiler.
 
 //! \defgroup asmjit_func Function
 //! \brief Function API.
@@ -16,11 +38,11 @@
 //! \defgroup asmjit_jit JIT
 //! \brief JIT API and Virtual Memory Management.
 
-//! \defgroup asmjit_support Support
-//! \brief Support API.
-
 //! \defgroup asmjit_zone Zone
 //! \brief Zone allocator and zone allocated containers.
+
+//! \defgroup asmjit_support Support
+//! \brief Support API.
 
 //! \cond INTERNAL
 //! \defgroup asmjit_ra RA

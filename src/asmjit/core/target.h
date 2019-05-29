@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_TARGET_H
 #define _ASMJIT_CORE_TARGET_H
@@ -136,7 +136,7 @@ public:
 // [asmjit::Target]
 // ============================================================================
 
-//! Target is an abstract class that describes the machine code target.
+//! Target is an abstract class that describes a machine code target.
 class ASMJIT_VIRTAPI Target {
 public:
   ASMJIT_BASE_CLASS(Target)

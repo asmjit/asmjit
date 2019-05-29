@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_JITRUNTIME_H
 #define _ASMJIT_CORE_JITRUNTIME_H
@@ -59,15 +59,14 @@ public:
   //! \name Utilities
   //! \{
 
-
   // NOTE: To allow passing function pointers to `add()` and `release()` the
   // virtual methods are prefixed with `_` and called from templates instead.
 
-  //! Allocates a memory needed for a code stored in the `CodeHolder` and
-  //! relocate it to the target location.
+  //! Allocates memory needed for a code stored in the `CodeHolder` and relocates
+  //! the code to the pointer allocated.
   //!
-  //! The beginning of the memory allocated for the function is returned in
-  //! `dst`. If failed the `Error` code is returned and `dst` is set to null
+  //! The beginning of the memory allocated for the function is returned in `dst`.
+  //! If failed `Error` code is returned and `dst` is explicitly set to `nullptr`
   //! (this means that you don't have to set it to null before calling `add()`).
   template<typename Func>
   inline Error add(Func* dst, CodeHolder* code) noexcept {

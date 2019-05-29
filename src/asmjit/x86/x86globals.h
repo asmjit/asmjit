@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_X86_X86GLOBALS_H
 #define _ASMJIT_X86_X86GLOBALS_H
@@ -11,6 +11,11 @@
 #include "../core/inst.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
+
+//! \namespace asmjit::x86
+//! \ingroup asmjit_x86
+//!
+//! X86/X64 API.
 
 //! \addtogroup asmjit_x86
 //! \{
@@ -1952,7 +1957,7 @@ namespace Predicate {
   //! \param b Position of the second component [0, 1].
   //!
   //! Shuffle constants can be used to encode an immediate for these instructions:
-  //!   - `shufpd`
+  //!   - `shufpd|vshufpd`
   static constexpr uint32_t shuf(uint32_t a, uint32_t b) noexcept {
     return (a << 1) | b;
   }
@@ -1965,11 +1970,11 @@ namespace Predicate {
   //! \param d Position of the fourth component [0, 3].
   //!
   //! Shuffle constants can be used to encode an immediate for these instructions:
-  //!   - `pshufw()`
-  //!   - `pshufd()`
-  //!   - `pshuflw()`
-  //!   - `pshufhw()`
-  //!   - `shufps()`
+  //!   - `pshufw`
+  //!   - `pshuflw|vpshuflw`
+  //!   - `pshufhw|vpshufhw`
+  //!   - `pshufd|vpshufd`
+  //!   - `shufps|vshufps`
   static constexpr uint32_t shuf(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
     return (a << 6) | (b << 4) | (c << 2) | d;
   }

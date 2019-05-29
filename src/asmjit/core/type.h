@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_TYPE_H
 #define _ASMJIT_CORE_TYPE_H
@@ -18,6 +18,7 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::Type]
 // ============================================================================
 
+//! Provides minimum type-system that is used by \ref asmjit_func and \ref asmjit_compiler.
 namespace Type {
 
 //! TypeId.

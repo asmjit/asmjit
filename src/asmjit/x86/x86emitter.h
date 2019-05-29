@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_X86_X86EMITTER_H
 #define _ASMJIT_X86_X86EMITTER_H
@@ -862,12 +862,12 @@ public:
   //! \name LWP Instructions
   //! \{
 
-  ASMJIT_INST_1x(Llwpcb, Llwpcb, Gp)                                   // LWP
-  ASMJIT_INST_3i(Lwpins, Lwpins, Gp, Gp, Imm)                          // LWP
-  ASMJIT_INST_3i(Lwpins, Lwpins, Gp, Mem, Imm)                         // LWP
-  ASMJIT_INST_3i(Lwpval, Lwpval, Gp, Gp, Imm)                          // LWP
-  ASMJIT_INST_3i(Lwpval, Lwpval, Gp, Mem, Imm)                         // LWP
-  ASMJIT_INST_1x(Slwpcb, Slwpcb, Gp)                                   // LWP
+  ASMJIT_INST_1x(llwpcb, Llwpcb, Gp)                                   // LWP
+  ASMJIT_INST_3i(lwpins, Lwpins, Gp, Gp, Imm)                          // LWP
+  ASMJIT_INST_3i(lwpins, Lwpins, Gp, Mem, Imm)                         // LWP
+  ASMJIT_INST_3i(lwpval, Lwpval, Gp, Gp, Imm)                          // LWP
+  ASMJIT_INST_3i(lwpval, Lwpval, Gp, Mem, Imm)                         // LWP
+  ASMJIT_INST_1x(slwpcb, Slwpcb, Gp)                                   // LWP
 
   //! \}
 

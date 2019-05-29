@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_ZONEVECTOR_H
 #define _ASMJIT_CORE_ZONEVECTOR_H
@@ -69,7 +69,7 @@ protected:
   ASMJIT_API Error _resize(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
   ASMJIT_API Error _reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
 
-  inline void swapWith(ZoneVectorBase& other) noexcept {
+  inline void _swap(ZoneVectorBase& other) noexcept {
     std::swap(_data, other._data);
     std::swap(_size, other._size);
     std::swap(_capacity, other._capacity);
@@ -126,9 +126,9 @@ public:
 //!
 //! This template has these advantages over other std::vector<>:
 //! - Always non-copyable (designed to be non-copyable, we want it).
-//! - No copy-on-write (some implementations of STL can use it).
 //! - Optimized for working only with POD types.
-//! - Uses ZoneAllocator, thus small vectors are basically for free.
+//! - Uses ZoneAllocator, thus small vectors are almost for free.
+//! - Explicit allocation, ZoneAllocator is not part of the data.
 template <typename T>
 class ZoneVector : public ZoneVectorBase {
 public:
@@ -175,7 +175,7 @@ public:
 
   //! \}
 
-  //! \name Iterators
+  //! \name STL Compatibility (Iterators)
   //! \{
 
   // STL compatibility.
@@ -201,6 +201,9 @@ public:
 
   //! \name Utilities
   //! \{
+
+  //! Swaps this vector with `other`.
+  inline void swap(ZoneVector<T>& other) noexcept { _swap(other); }
 
   //! Prepends `item` to the vector.
   inline Error prepend(ZoneAllocator* allocator, const T& item) noexcept {
@@ -326,13 +329,6 @@ public:
     return data()[index];
   }
 
-  //! Swaps this vector with `other`.
-  inline void swap(ZoneVector<T>& other) noexcept {
-    std::swap(_size, other._size);
-    std::swap(_capacity, other._capacity);
-    std::swap(_data, other._data);
-  }
-
   template<typename CompareT = Support::Compare<Support::kSortAscending>>
   inline void sort(const CompareT& cmp = CompareT()) noexcept {
     Support::qSort<T, CompareT>(data(), size(), cmp);
@@ -355,10 +351,6 @@ public:
 
   inline T& last() noexcept { return operator[](_size - 1); }
   inline const T& last() const noexcept { return operator[](_size - 1); }
-
-  inline void swapWith(ZoneVector<T>& other) noexcept {
-    ZoneVectorBase::swapWith(other);
-  }
 
   //! \}
 
@@ -487,6 +479,12 @@ public:
 
   //! \name Utilities
   //! \{
+
+  inline void swap(ZoneBitVector& other) noexcept {
+    std::swap(_data, other._data);
+    std::swap(_size, other._size);
+    std::swap(_capacity, other._capacity);
+  }
 
   inline void clear() noexcept {
     _size = 0;
@@ -634,12 +632,6 @@ public:
       if (aData[i] != bData[i])
         return false;
     return true;
-  }
-
-  inline void swapWith(ZoneBitVector& other) noexcept {
-    std::swap(_data, other._data);
-    std::swap(_size, other._size);
-    std::swap(_capacity, other._capacity);
   }
 
   //! \}

@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_BUILDER_H
 #define _ASMJIT_CORE_BUILDER_H
@@ -22,9 +22,15 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
+//! \addtogroup asmjit_builder
+//! \{
+
 // ============================================================================
 // [Forward Declarations]
 // ============================================================================
+
+class BaseBuilder;
+class Pass;
 
 class BaseNode;
 class InstNode;
@@ -36,10 +42,6 @@ class LabelDataNode;
 class ConstPoolNode;
 class CommentNode;
 class SentinelNode;
-class Pass;
-
-//! \addtogroup asmjit_core
-//! \{
 
 // ============================================================================
 // [asmjit::BaseBuilder]

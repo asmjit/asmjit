@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_ZONELIST_H
 #define _ASMJIT_CORE_ZONELIST_H
@@ -87,6 +87,11 @@ public:
   //! \name Utilities
   //! \{
 
+  inline void swap(ZoneList& other) noexcept {
+    std::swap(_bounds[0], other._bounds[0]);
+    std::swap(_bounds[1], other._bounds[1]);
+  }
+
   // Can be used to both prepend and append.
   inline void _addNode(NodeT* node, size_t dir) noexcept {
     NodeT* prev = _bounds[dir];
@@ -169,11 +174,6 @@ public:
     }
 
     return node;
-  }
-
-  inline void swapWith(ZoneList& other) noexcept {
-    std::swap(_bounds[0], other._bounds[0]);
-    std::swap(_bounds[1], other._bounds[1]);
   }
 
   //! \}

@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_ZONETREE_H
 #define _ASMJIT_CORE_ZONETREE_H
@@ -142,6 +142,10 @@ public:
 
   //! \name Utilities
   //! \{
+
+  inline void swap(ZoneTree& other) noexcept {
+    std::swap(_root, other._root);
+  }
 
   template<typename CompareT = Support::Compare<Support::kSortAscending>>
   void insert(NodeT* node, const CompareT& cmp = CompareT()) noexcept {
@@ -327,10 +331,6 @@ public:
       node = node->_getChild(result < 0);
     }
     return static_cast<NodeT*>(node);
-  }
-
-  inline void swapWith(ZoneTree& other) noexcept {
-    std::swap(_root, other._root);
   }
 
   //! \}

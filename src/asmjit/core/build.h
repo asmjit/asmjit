@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 // AsmJit Static Builds and Embedding
 // ----------------------------------
@@ -310,7 +310,7 @@
 // ============================================================================
 
 // API (Export / Import).
-#if !defined(ASMJIT_BUILD_EMBED) && !defined(ASMJIT_BUILD_STATIC)
+#if !defined(ASMJIT_STATIC)
   #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
     #if defined(ASMJIT_EXPORTS)
       #define ASMJIT_API __declspec(dllexport)

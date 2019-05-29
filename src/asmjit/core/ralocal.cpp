@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #define ASMJIT_EXPORTS
 
@@ -884,7 +884,7 @@ Error RALocalAllocator::allocBranch(InstNode* node, RABlock* target, RABlock* co
     }
 
     _cc->_setCursor(prevCursor);
-    _curAssignment.swapWith(_tmpAssignment);
+    _curAssignment.swap(_tmpAssignment);
   }
   else {
     ASMJIT_PROPAGATE(_pass->setBlockEntryAssignment(target, block(), _curAssignment));

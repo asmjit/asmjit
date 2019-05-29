@@ -2,7 +2,7 @@
 // Machine Code Generation for C++.
 //
 // [License]
-// ZLIB - See LICENSE.md file in the package.
+// Zlib - See LICENSE.md file in the package.
 
 #ifndef _ASMJIT_CORE_ZONEHASH_H
 #define _ASMJIT_CORE_ZONEHASH_H
@@ -108,13 +108,7 @@ public:
   //! \name Utilities
   //! \{
 
-  //! \cond INTERNAL
-  ASMJIT_API void _rehash(ZoneAllocator* allocator, uint32_t newCount) noexcept;
-  ASMJIT_API ZoneHashNode* _insert(ZoneAllocator* allocator, ZoneHashNode* node) noexcept;
-  ASMJIT_API ZoneHashNode* _remove(ZoneAllocator* allocator, ZoneHashNode* node) noexcept;
-  //! \endcond
-
-  inline void swapWith(ZoneHashBase& other) noexcept {
+  inline void _swap(ZoneHashBase& other) noexcept {
     std::swap(_size, other._size);
     std::swap(_bucketsCount, other._bucketsCount);
     std::swap(_bucketsGrow, other._bucketsGrow);
@@ -124,6 +118,12 @@ public:
     if (_data == other._embedded) _data = _embedded;
     if (other._data == _embedded) other._data = other._embedded;
   }
+
+  //! \cond INTERNAL
+  ASMJIT_API void _rehash(ZoneAllocator* allocator, uint32_t newCount) noexcept;
+  ASMJIT_API ZoneHashNode* _insert(ZoneAllocator* allocator, ZoneHashNode* node) noexcept;
+  ASMJIT_API ZoneHashNode* _remove(ZoneAllocator* allocator, ZoneHashNode* node) noexcept;
+  //! \endcond
 
   //! \}
 };
@@ -159,6 +159,8 @@ public:
   //! \name Utilities
   //! \{
 
+  inline void swap(ZoneHash& other) noexcept { ZoneHashBase::_swap(other); }
+
   template<typename KeyT>
   inline NodeT* get(const KeyT& key) const noexcept {
     uint32_t hMod = key.hashCode() % _bucketsCount;
@@ -171,8 +173,6 @@ public:
 
   inline NodeT* insert(ZoneAllocator* allocator, NodeT* node) noexcept { return static_cast<NodeT*>(_insert(allocator, node)); }
   inline NodeT* remove(ZoneAllocator* allocator, NodeT* node) noexcept { return static_cast<NodeT*>(_remove(allocator, node)); }
-
-  inline void swapWith(ZoneHash& other) noexcept { ZoneHashBase::swapWith(other); }
 
   //! \}
 };
