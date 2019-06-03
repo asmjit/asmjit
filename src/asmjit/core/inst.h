@@ -154,6 +154,8 @@ struct InstRWInfo {
   uint32_t _writeFlags;
   //! Count of operands.
   uint8_t _opCount;
+  //! CPU feature required for replacing register operand with memory operand.
+  uint8_t _rmFeature;
   //! Reserved for future use.
   uint8_t _reserved[19];
   //! Read/Write onfo of extra register (rep{} or kz{}).
@@ -170,6 +172,20 @@ struct InstRWInfo {
 
   inline uint32_t readFlags() const noexcept { return _readFlags; }
   inline uint32_t writeFlags() const noexcept { return _writeFlags; }
+
+  //! Returns the CPU feature required to replace a register operand with memory
+  //! operand. If the returned feature is zero (none) then this instruction
+  //! either doesn't provide memory operand combination or there is no extra
+  //! CPU feature required.
+  //!
+  //! X86 Specific
+  //! ------------
+  //!
+  //! Some AVX+ instructions may require extra features for replacing registers
+  //! with memory operands, for example VPSLLDQ instruction only supports
+  //! 'reg/reg/imm' combination on AVX/AVX2 capable CPUs and requires AVX-512 for
+  //! 'reg/mem/imm' combination.
+  inline uint32_t rmFeature() const noexcept { return _rmFeature; }
 
   inline const OpRWInfo& extraReg() const noexcept { return _extraReg; }
   inline const OpRWInfo* operands() const noexcept { return _operands; }

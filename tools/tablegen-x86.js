@@ -1894,7 +1894,8 @@ class InstRWInfoTable extends core.Task {
       "RWInfoRm::kCategory" + "None".padEnd(10),
       StringUtils.decToHex(0, 2),
       String(0).padEnd(2),
-      CxxUtils.flags({})
+      CxxUtils.flags({}),
+      "0"
     );
 
     const noOpInfo = CxxUtils.struct(
@@ -1962,7 +1963,8 @@ class InstRWInfoTable extends core.Task {
           "RWInfoRm::kCategory" + rmInfo.category.padEnd(10),
           StringUtils.decToHex(rmInfo.rmIndexes, 2),
           String(Math.max(rmInfo.memFixed, 0)).padEnd(2),
-          CxxUtils.flags({ "RWInfoRm::kFlagAmbiguous": Boolean(rmInfo.memAmbiguous) })
+          CxxUtils.flags({ "RWInfoRm::kFlagAmbiguous": Boolean(rmInfo.memAmbiguous) }),
+          rmInfo.extensionRequired
         );
 
         const rwData = CxxUtils.struct(
@@ -2170,7 +2172,8 @@ class InstRWInfoTable extends core.Task {
       rmIndexes: this.rmReplaceableIndexes(dbInsts),
       memFixed: this.rmFixedSize(dbInsts),
       memAmbiguous: this.rmIsAmbiguous(dbInsts),
-      memConsistent: this.rmIsConsistent(dbInsts)
+      memConsistent: this.rmIsConsistent(dbInsts),
+      extensionRequired: this.rmExtensionRequired(dbInsts)
     };
 
     if (info.memFixed !== -1)
@@ -2240,6 +2243,11 @@ class InstRWInfoTable extends core.Task {
 
     for (var i = 0; i < dbInsts.length; i++) {
       const dbInst = dbInsts[i];
+
+      // WORKAROUND:
+      const name = dbInst.name;
+      if (/^(vpslldq|vpsrldq|pextrw)$/.test(name))
+        return 0;
 
       var mi = getMemIndexes(dbInst);
       var ri = getRegIndexes(dbInst) & ~mi;
@@ -2363,6 +2371,33 @@ class InstRWInfoTable extends core.Task {
 
     return (isAmbiguous(Filter.byArch(uniqueInsts, "X86")) << 0) |
            (isAmbiguous(Filter.byArch(uniqueInsts, "X64")) << 1) ;
+  }
+
+  rmExtensionRequired(dbInsts) {
+    return 0;
+    /*
+    function hasRegMem(inst) {
+      return inst.operands.some((op) => { return op.isRegMem(); });
+    }
+
+    function sign(op) {
+      if (op.reg)
+        return op.reg;
+      else
+        return "?"
+    }
+
+    // Index only instructions that don't have memory operand.
+    const map = {};
+    for (var i = 0; i < dbInsts.length; i++) {
+      const inst = dbInsts[i];
+      if (hasRegMem(inst))
+        continue;
+
+      const hash = inst.operands.map(sign).join(",");
+      map[hash] = dbInst;
+    }
+    */
   }
 }
 

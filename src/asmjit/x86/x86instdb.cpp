@@ -5745,6 +5745,7 @@ struct RWInfoRm {
   uint8_t rmOpsMask;
   uint8_t fixedSize;
   uint8_t flags;
+  uint8_t extensionRequired;
 };
 
 // ${InstRWInfoTable:Begin}
@@ -5871,21 +5872,21 @@ static const uint8_t rwInfoIndex[Inst::_kIdCount * 2] = {
   0, 241, 0, 241, 0, 241, 0, 241, 0, 8, 111, 0, 111, 0, 242, 0, 111, 0, 0, 241,
   0, 241, 0, 241, 0, 241, 0, 241, 0, 241, 0, 8, 0, 8, 0, 185, 0, 185, 0, 185, 0,
   8, 0, 241, 0, 241, 0, 8, 0, 8, 0, 185, 0, 185, 0, 185, 0, 8, 0, 8, 0, 227, 0,
-  11, 0, 11, 0, 11, 0, 8, 0, 8, 0, 8, 0, 243, 0, 11, 0, 243, 0, 8, 0, 8, 0, 8,
-  0, 243, 0, 243, 0, 243, 0, 8, 0, 8, 0, 8, 0, 243, 0, 243, 0, 11, 0, 243, 0, 8,
-  0, 8, 0, 8, 0, 243, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 185, 0,
-  185, 222, 0, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227,
-  0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8,
-  0, 200, 0, 201, 11, 0, 11, 0, 0, 200, 0, 201, 181, 0, 181, 0, 0, 200, 0, 201,
-  11, 0, 0, 201, 0, 11, 0, 11, 0, 200, 0, 201, 0, 11, 0, 11, 0, 200, 0, 201, 0,
-  11, 0, 11, 0, 200, 0, 201, 11, 0, 11, 0, 0, 200, 0, 201, 181, 0, 181, 0, 0, 200,
-  0, 201, 11, 0, 0, 201, 0, 8, 0, 8, 0, 162, 0, 163, 111, 0, 111, 0, 0, 24,
-  0, 24, 0, 24, 0, 24, 0, 24, 0, 24, 0, 24, 0, 24, 111, 0, 242, 0, 0, 8, 0, 8, 0,
-  8, 0, 8, 0, 8, 0, 8, 11, 0, 11, 0, 0, 200, 0, 201, 0, 158, 0, 8, 0, 8, 0, 162,
-  0, 163, 222, 0, 222, 0, 31, 0, 32, 0, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 102, 0, 102, 0, 244, 0, 0, 245, 0, 0, 0, 246, 0, 0,
-  0, 0, 150, 0, 0, 2, 0, 4, 0, 4, 0, 0, 247, 0, 247, 0, 247, 0, 247, 0, 248, 0,
-  248, 0, 248, 0, 248, 0, 248, 0, 248, 0, 248, 0, 248, 0, 244, 0, 0
+  11, 0, 11, 0, 11, 0, 8, 0, 8, 0, 8, 0, 243, 0, 244, 0, 243, 0, 8, 0, 8, 0, 8,
+  0, 243, 0, 243, 0, 243, 0, 8, 0, 8, 0, 8, 0, 243, 0, 243, 0, 244, 0, 243, 0,
+  8, 0, 8, 0, 8, 0, 243, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 185,
+  0, 185, 222, 0, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227, 0, 227,
+  0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0,
+  8, 0, 200, 0, 201, 11, 0, 11, 0, 0, 200, 0, 201, 181, 0, 181, 0, 0, 200, 0, 201,
+  11, 0, 0, 201, 0, 11, 0, 11, 0, 200, 0, 201, 0, 11, 0, 11, 0, 200, 0, 201,
+  0, 11, 0, 11, 0, 200, 0, 201, 11, 0, 11, 0, 0, 200, 0, 201, 181, 0, 181, 0, 0,
+  200, 0, 201, 11, 0, 0, 201, 0, 8, 0, 8, 0, 162, 0, 163, 111, 0, 111, 0, 0, 24,
+  0, 24, 0, 24, 0, 24, 0, 24, 0, 24, 0, 24, 0, 24, 111, 0, 242, 0, 0, 8, 0, 8,
+  0, 8, 0, 8, 0, 8, 0, 8, 11, 0, 11, 0, 0, 200, 0, 201, 0, 158, 0, 8, 0, 8, 0,
+  162, 0, 163, 222, 0, 222, 0, 31, 0, 32, 0, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8, 0, 8,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 102, 0, 102, 0, 245, 0, 0, 246, 0, 0, 0, 247, 0, 0,
+  0, 0, 150, 0, 0, 2, 0, 4, 0, 4, 0, 0, 248, 0, 248, 0, 248, 0, 248, 0, 249, 0,
+  249, 0, 249, 0, 249, 0, 249, 0, 249, 0, 249, 0, 249, 0, 245, 0, 0
 };
 
 static const RWInfo rwInfo[] = {
@@ -5900,7 +5901,7 @@ static const RWInfo rwInfo[] = {
   { RWInfo::kCategoryGeneric   , 6 , { 11, 3 , 3 , 0 , 0 , 0  } }, // #8 [ref=185x]
   { RWInfo::kCategoryGeneric   , 7 , { 12, 13, 0 , 0 , 0 , 0  } }, // #9 [ref=1x]
   { RWInfo::kCategoryGeneric   , 2 , { 11, 3 , 3 , 0 , 0 , 0  } }, // #10 [ref=5x]
-  { RWInfo::kCategoryGeneric   , 2 , { 11, 3 , 0 , 0 , 0 , 0  } }, // #11 [ref=82x]
+  { RWInfo::kCategoryGeneric   , 2 , { 11, 3 , 0 , 0 , 0 , 0  } }, // #11 [ref=80x]
   { RWInfo::kCategoryGeneric   , 3 , { 4 , 5 , 14, 0 , 0 , 0  } }, // #12 [ref=4x]
   { RWInfo::kCategoryGeneric   , 2 , { 5 , 3 , 0 , 0 , 0 , 0  } }, // #13 [ref=3x]
   { RWInfo::kCategoryGeneric   , 8 , { 10, 3 , 0 , 0 , 0 , 0  } }, // #14 [ref=2x]
@@ -6025,7 +6026,7 @@ static const RWInfo rwInfo[] = {
   { RWInfo::kCategoryGeneric   , 3 , { 5 , 5 , 0 , 63, 0 , 0  } }, // #133 [ref=2x]
   { RWInfo::kCategoryGeneric   , 31, { 53, 5 , 0 , 0 , 0 , 0  } }, // #134 [ref=2x]
   { RWInfo::kCategoryGeneric   , 32, { 34, 5 , 0 , 0 , 0 , 0  } }, // #135 [ref=2x]
-  { RWInfo::kCategoryGeneric   , 7 , { 47, 3 , 0 , 0 , 0 , 0  } }, // #136 [ref=1x]
+  { RWInfo::kCategoryGeneric   , 21, { 47, 3 , 0 , 0 , 0 , 0  } }, // #136 [ref=1x]
   { RWInfo::kCategoryGeneric   , 3 , { 64, 5 , 0 , 0 , 0 , 0  } }, // #137 [ref=2x]
   { RWInfo::kCategoryGeneric   , 15, { 4 , 39, 0 , 0 , 0 , 0  } }, // #138 [ref=1x]
   { RWInfo::kCategoryGeneric   , 4 , { 4 , 7 , 0 , 0 , 0 , 0  } }, // #139 [ref=1x]
@@ -6133,11 +6134,12 @@ static const RWInfo rwInfo[] = {
   { RWInfo::kCategoryGeneric   , 61, { 10, 5 , 5 , 0 , 0 , 0  } }, // #241 [ref=12x]
   { RWInfo::kCategoryGeneric   , 18, { 11, 3 , 0 , 0 , 0 , 0  } }, // #242 [ref=2x]
   { RWInfo::kCategoryGeneric   , 22, { 11, 3 , 5 , 0 , 0 , 0  } }, // #243 [ref=9x]
-  { RWInfo::kCategoryGeneric   , 0 , { 56, 16, 28, 0 , 0 , 0  } }, // #244 [ref=2x]
-  { RWInfo::kCategoryGeneric   , 11, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #245 [ref=1x]
-  { RWInfo::kCategoryGeneric   , 50, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #246 [ref=1x]
-  { RWInfo::kCategoryGeneric   , 8 , { 3 , 56, 16, 0 , 0 , 0  } }, // #247 [ref=4x]
-  { RWInfo::kCategoryGeneric   , 8 , { 11, 56, 16, 0 , 0 , 0  } }  // #248 [ref=8x]
+  { RWInfo::kCategoryGeneric   , 62, { 11, 3 , 0 , 0 , 0 , 0  } }, // #244 [ref=2x]
+  { RWInfo::kCategoryGeneric   , 0 , { 56, 16, 28, 0 , 0 , 0  } }, // #245 [ref=2x]
+  { RWInfo::kCategoryGeneric   , 11, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #246 [ref=1x]
+  { RWInfo::kCategoryGeneric   , 50, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #247 [ref=1x]
+  { RWInfo::kCategoryGeneric   , 8 , { 3 , 56, 16, 0 , 0 , 0  } }, // #248 [ref=4x]
+  { RWInfo::kCategoryGeneric   , 8 , { 11, 56, 16, 0 , 0 , 0  } }  // #249 [ref=8x]
 };
 
 static const RWInfoOp rwInfoOp[] = {
@@ -6221,68 +6223,69 @@ static const RWInfoOp rwInfoOp[] = {
 };
 
 static const RWInfoRm rwInfoRm[] = {
-  { RWInfoRm::kCategoryNone      , 0x00, 0 , 0 }, // #0 [ref=1809x]
-  { RWInfoRm::kCategoryConsistent, 0x03, 0 , RWInfoRm::kFlagAmbiguous }, // #1 [ref=8x]
-  { RWInfoRm::kCategoryConsistent, 0x02, 0 , 0 }, // #2 [ref=195x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 16, 0 }, // #3 [ref=122x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 8 , 0 }, // #4 [ref=66x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 4 , 0 }, // #5 [ref=34x]
-  { RWInfoRm::kCategoryConsistent, 0x04, 0 , 0 }, // #6 [ref=269x]
-  { RWInfoRm::kCategoryFixed     , 0x01, 2 , 0 }, // #7 [ref=10x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 0 , 0 }, // #8 [ref=60x]
-  { RWInfoRm::kCategoryFixed     , 0x03, 0 , 0 }, // #9 [ref=1x]
-  { RWInfoRm::kCategoryConsistent, 0x01, 0 , RWInfoRm::kFlagAmbiguous }, // #10 [ref=20x]
-  { RWInfoRm::kCategoryConsistent, 0x01, 0 , 0 }, // #11 [ref=13x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 16, 0 }, // #12 [ref=21x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 8 , 0 }, // #13 [ref=20x]
-  { RWInfoRm::kCategoryConsistent, 0x02, 0 , RWInfoRm::kFlagAmbiguous }, // #14 [ref=15x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 1 , 0 }, // #15 [ref=5x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 64, 0 }, // #16 [ref=3x]
-  { RWInfoRm::kCategoryFixed     , 0x01, 4 , 0 }, // #17 [ref=4x]
-  { RWInfoRm::kCategoryNone      , 0x00, 0 , RWInfoRm::kFlagAmbiguous }, // #18 [ref=22x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 10, 0 }, // #19 [ref=2x]
-  { RWInfoRm::kCategoryNone      , 0x01, 0 , RWInfoRm::kFlagAmbiguous }, // #20 [ref=5x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 2 , 0 }, // #21 [ref=3x]
-  { RWInfoRm::kCategoryConsistent, 0x06, 0 , 0 }, // #22 [ref=13x]
-  { RWInfoRm::kCategoryFixed     , 0x03, 1 , 0 }, // #23 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x03, 4 , 0 }, // #24 [ref=4x]
-  { RWInfoRm::kCategoryFixed     , 0x03, 8 , 0 }, // #25 [ref=3x]
-  { RWInfoRm::kCategoryFixed     , 0x03, 2 , 0 }, // #26 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 2 , 0 }, // #27 [ref=6x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 4 , 0 }, // #28 [ref=6x]
-  { RWInfoRm::kCategoryNone      , 0x03, 0 , RWInfoRm::kFlagAmbiguous }, // #29 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x03, 16, 0 }, // #30 [ref=6x]
-  { RWInfoRm::kCategoryFixed     , 0x01, 1 , 0 }, // #31 [ref=32x]
-  { RWInfoRm::kCategoryFixed     , 0x01, 8 , 0 }, // #32 [ref=2x]
-  { RWInfoRm::kCategoryFixed     , 0x01, 2 , RWInfoRm::kFlagAmbiguous }, // #33 [ref=3x]
-  { RWInfoRm::kCategoryFixed     , 0x04, 8 , 0 }, // #34 [ref=34x]
-  { RWInfoRm::kCategoryFixed     , 0x04, 4 , 0 }, // #35 [ref=37x]
-  { RWInfoRm::kCategoryFixed     , 0x00, 32, 0 }, // #36 [ref=4x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 8 , RWInfoRm::kFlagAmbiguous }, // #37 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 4 , RWInfoRm::kFlagAmbiguous }, // #38 [ref=1x]
-  { RWInfoRm::kCategoryHalf      , 0x02, 0 , 0 }, // #39 [ref=14x]
-  { RWInfoRm::kCategoryHalf      , 0x01, 0 , 0 }, // #40 [ref=10x]
-  { RWInfoRm::kCategoryConsistent, 0x04, 0 , RWInfoRm::kFlagAmbiguous }, // #41 [ref=4x]
-  { RWInfoRm::kCategoryFixed     , 0x04, 16, 0 }, // #42 [ref=27x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 64, 0 }, // #43 [ref=6x]
-  { RWInfoRm::kCategoryFixed     , 0x01, 16, 0 }, // #44 [ref=6x]
-  { RWInfoRm::kCategoryFixed     , 0x01, 32, 0 }, // #45 [ref=4x]
-  { RWInfoRm::kCategoryConsistent, 0x0C, 0 , 0 }, // #46 [ref=15x]
-  { RWInfoRm::kCategoryFixed     , 0x0C, 8 , 0 }, // #47 [ref=4x]
-  { RWInfoRm::kCategoryFixed     , 0x0C, 4 , 0 }, // #48 [ref=4x]
-  { RWInfoRm::kCategoryFixed     , 0x04, 32, 0 }, // #49 [ref=7x]
-  { RWInfoRm::kCategoryConsistent, 0x03, 0 , 0 }, // #50 [ref=13x]
-  { RWInfoRm::kCategoryNone      , 0x02, 0 , 0 }, // #51 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x03, 8 , RWInfoRm::kFlagAmbiguous }, // #52 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x02, 32, 0 }, // #53 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x04, 1 , 0 }, // #54 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x04, 2 , 0 }, // #55 [ref=1x]
-  { RWInfoRm::kCategoryQuarter   , 0x01, 0 , 0 }, // #56 [ref=6x]
-  { RWInfoRm::kCategoryEighth    , 0x01, 0 , 0 }, // #57 [ref=3x]
-  { RWInfoRm::kCategoryQuarter   , 0x02, 0 , 0 }, // #58 [ref=4x]
-  { RWInfoRm::kCategoryEighth    , 0x02, 0 , 0 }, // #59 [ref=2x]
-  { RWInfoRm::kCategoryFixed     , 0x0C, 16, 0 }, // #60 [ref=1x]
-  { RWInfoRm::kCategoryFixed     , 0x06, 16, 0 }  // #61 [ref=12x]
+  { RWInfoRm::kCategoryNone      , 0x00, 0 , 0, 0 }, // #0 [ref=1809x]
+  { RWInfoRm::kCategoryConsistent, 0x03, 0 , RWInfoRm::kFlagAmbiguous, 0 }, // #1 [ref=8x]
+  { RWInfoRm::kCategoryConsistent, 0x02, 0 , 0, 0 }, // #2 [ref=193x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 16, 0, 0 }, // #3 [ref=122x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 8 , 0, 0 }, // #4 [ref=66x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 4 , 0, 0 }, // #5 [ref=34x]
+  { RWInfoRm::kCategoryConsistent, 0x04, 0 , 0, 0 }, // #6 [ref=269x]
+  { RWInfoRm::kCategoryFixed     , 0x01, 2 , 0, 0 }, // #7 [ref=9x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 0 , 0, 0 }, // #8 [ref=60x]
+  { RWInfoRm::kCategoryFixed     , 0x03, 0 , 0, 0 }, // #9 [ref=1x]
+  { RWInfoRm::kCategoryConsistent, 0x01, 0 , RWInfoRm::kFlagAmbiguous, 0 }, // #10 [ref=20x]
+  { RWInfoRm::kCategoryConsistent, 0x01, 0 , 0, 0 }, // #11 [ref=13x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 16, 0, 0 }, // #12 [ref=21x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 8 , 0, 0 }, // #13 [ref=20x]
+  { RWInfoRm::kCategoryConsistent, 0x02, 0 , RWInfoRm::kFlagAmbiguous, 0 }, // #14 [ref=15x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 1 , 0, 0 }, // #15 [ref=5x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 64, 0, 0 }, // #16 [ref=3x]
+  { RWInfoRm::kCategoryFixed     , 0x01, 4 , 0, 0 }, // #17 [ref=4x]
+  { RWInfoRm::kCategoryNone      , 0x00, 0 , RWInfoRm::kFlagAmbiguous, 0 }, // #18 [ref=22x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 10, 0, 0 }, // #19 [ref=2x]
+  { RWInfoRm::kCategoryNone      , 0x01, 0 , RWInfoRm::kFlagAmbiguous, 0 }, // #20 [ref=5x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 2 , 0, 0 }, // #21 [ref=4x]
+  { RWInfoRm::kCategoryConsistent, 0x06, 0 , 0, 0 }, // #22 [ref=13x]
+  { RWInfoRm::kCategoryFixed     , 0x03, 1 , 0, 0 }, // #23 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x03, 4 , 0, 0 }, // #24 [ref=4x]
+  { RWInfoRm::kCategoryFixed     , 0x03, 8 , 0, 0 }, // #25 [ref=3x]
+  { RWInfoRm::kCategoryFixed     , 0x03, 2 , 0, 0 }, // #26 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 2 , 0, 0 }, // #27 [ref=6x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 4 , 0, 0 }, // #28 [ref=6x]
+  { RWInfoRm::kCategoryNone      , 0x03, 0 , RWInfoRm::kFlagAmbiguous, 0 }, // #29 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x03, 16, 0, 0 }, // #30 [ref=6x]
+  { RWInfoRm::kCategoryFixed     , 0x01, 1 , 0, 0 }, // #31 [ref=32x]
+  { RWInfoRm::kCategoryFixed     , 0x01, 8 , 0, 0 }, // #32 [ref=2x]
+  { RWInfoRm::kCategoryFixed     , 0x01, 2 , RWInfoRm::kFlagAmbiguous, 0 }, // #33 [ref=3x]
+  { RWInfoRm::kCategoryFixed     , 0x04, 8 , 0, 0 }, // #34 [ref=34x]
+  { RWInfoRm::kCategoryFixed     , 0x04, 4 , 0, 0 }, // #35 [ref=37x]
+  { RWInfoRm::kCategoryFixed     , 0x00, 32, 0, 0 }, // #36 [ref=4x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 8 , RWInfoRm::kFlagAmbiguous, 0 }, // #37 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 4 , RWInfoRm::kFlagAmbiguous, 0 }, // #38 [ref=1x]
+  { RWInfoRm::kCategoryHalf      , 0x02, 0 , 0, 0 }, // #39 [ref=14x]
+  { RWInfoRm::kCategoryHalf      , 0x01, 0 , 0, 0 }, // #40 [ref=10x]
+  { RWInfoRm::kCategoryConsistent, 0x04, 0 , RWInfoRm::kFlagAmbiguous, 0 }, // #41 [ref=4x]
+  { RWInfoRm::kCategoryFixed     , 0x04, 16, 0, 0 }, // #42 [ref=27x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 64, 0, 0 }, // #43 [ref=6x]
+  { RWInfoRm::kCategoryFixed     , 0x01, 16, 0, 0 }, // #44 [ref=6x]
+  { RWInfoRm::kCategoryFixed     , 0x01, 32, 0, 0 }, // #45 [ref=4x]
+  { RWInfoRm::kCategoryConsistent, 0x0C, 0 , 0, 0 }, // #46 [ref=15x]
+  { RWInfoRm::kCategoryFixed     , 0x0C, 8 , 0, 0 }, // #47 [ref=4x]
+  { RWInfoRm::kCategoryFixed     , 0x0C, 4 , 0, 0 }, // #48 [ref=4x]
+  { RWInfoRm::kCategoryFixed     , 0x04, 32, 0, 0 }, // #49 [ref=7x]
+  { RWInfoRm::kCategoryConsistent, 0x03, 0 , 0, 0 }, // #50 [ref=13x]
+  { RWInfoRm::kCategoryNone      , 0x02, 0 , 0, 0 }, // #51 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x03, 8 , RWInfoRm::kFlagAmbiguous, 0 }, // #52 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x02, 32, 0, 0 }, // #53 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x04, 1 , 0, 0 }, // #54 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x04, 2 , 0, 0 }, // #55 [ref=1x]
+  { RWInfoRm::kCategoryQuarter   , 0x01, 0 , 0, 0 }, // #56 [ref=6x]
+  { RWInfoRm::kCategoryEighth    , 0x01, 0 , 0, 0 }, // #57 [ref=3x]
+  { RWInfoRm::kCategoryQuarter   , 0x02, 0 , 0, 0 }, // #58 [ref=4x]
+  { RWInfoRm::kCategoryEighth    , 0x02, 0 , 0, 0 }, // #59 [ref=2x]
+  { RWInfoRm::kCategoryFixed     , 0x0C, 16, 0, 0 }, // #60 [ref=1x]
+  { RWInfoRm::kCategoryFixed     , 0x06, 16, 0, 0 }, // #61 [ref=12x]
+  { RWInfoRm::kCategoryConsistent, 0x00, 0 , 0, 0 }  // #62 [ref=2x]
 };
 
 // ----------------------------------------------------------------------------
@@ -6348,6 +6351,7 @@ ASMJIT_FAVOR_SIZE Error InstInternal::queryRWInfo(uint32_t archId, const BaseIns
 
   out._instFlags = 0;
   out._opCount = uint8_t(opCount);
+  out._rmFeature = 0;
   out._extraReg.reset();
 
   // Read/Write flags.
