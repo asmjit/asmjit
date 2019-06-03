@@ -67,13 +67,13 @@ struct DualMapping {
   void* rw;
 };
 
-//! Gets virtual memory information, see `VirtMem::Info` for more details.
+//! Returns virtual memory information, see `VirtMem::Info` for more details.
 ASMJIT_API Info info() noexcept;
 
 //! Allocates virtual memory by either using `VirtualAlloc()` (Windows)
 //! or `mmap()` (POSIX).
 //!
-//! NOTE: `size` should be aligned to a page size, use \ref VirtMem::info()
+//! \note `size` should be aligned to a page size, use \ref VirtMem::info()
 //! to obtain it. Invalid size will not be corrected by the implementation
 //! and the allocation would not succeed in such case.
 ASMJIT_API Error alloc(void** p, size_t size, uint32_t flags) noexcept;
@@ -81,7 +81,7 @@ ASMJIT_API Error alloc(void** p, size_t size, uint32_t flags) noexcept;
 //! Releases virtual memory previously allocated by \ref  VirtMem::alloc() or
 //! \ref VirtMem::allocDualMapping().
 //!
-//! NOTE: The size must be the same as used by \ref VirtMem::alloc(). If the
+//! \note The size must be the same as used by \ref VirtMem::alloc(). If the
 //! size is not the same value the call will fail on any POSIX system, but
 //! pass on Windows, because of the difference of the implementation.
 ASMJIT_API Error release(void* p, size_t size) noexcept;

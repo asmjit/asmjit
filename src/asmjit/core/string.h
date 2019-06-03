@@ -256,7 +256,7 @@ public:
 
   //! Resets string to embedded and makes it empty (zero length, zero first char)
   //!
-  //! NOTE: This is always called internally after an external buffer was released
+  //! \note This is always called internally after an external buffer was released
   //! as it zeroes all bytes used by String's embedded storage.
   inline void _resetInternal() noexcept {
     for (size_t i = 0; i < ASMJIT_ARRAY_SIZE(_raw.uptr); i++)

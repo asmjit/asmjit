@@ -162,7 +162,7 @@ struct CallConv {
 
     //! Default calling convention based on the current C++ compiler's settings.
     //!
-    //! NOTE: This should be always the same as `kIdHostCDecl`, but some
+    //! \note This should be always the same as `kIdHostCDecl`, but some
     //! compilers allow to override the default calling convention. Overriding
     //! is not detected at the moment.
     kIdHost           = DETECTED_AT_COMPILE_TIME,
@@ -172,12 +172,12 @@ struct CallConv {
 
     //! Default STDCALL calling convention based on the current C++ compiler's settings.
     //!
-    //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
+    //! \note If not defined by the host then it's the same as `kIdHostCDecl`.
     kIdHostStdCall    = DETECTED_AT_COMPILE_TIME,
 
     //! Compatibility for `__fastcall` calling convention.
     //!
-    //! NOTE: If not defined by the host then it's the same as `kIdHostCDecl`.
+    //! \note If not defined by the host then it's the same as `kIdHostCDecl`.
     kIdHostFastCall   = DETECTED_AT_COMPILE_TIME
 
     #elif ASMJIT_ARCH_X86 == 32
@@ -272,38 +272,38 @@ struct CallConv {
   //! \name Accessors
   //! \{
 
-  //! Gets the calling convention id, see `Id`.
+  //! Returns the calling convention id, see `Id`.
   inline uint32_t id() const noexcept { return _id; }
   //! Sets the calling convention id, see `Id`.
   inline void setId(uint32_t id) noexcept { _id = uint8_t(id); }
 
-  //! Gets the calling function architecture id.
+  //! Returns the calling function architecture id.
   inline uint32_t archId() const noexcept { return _archId; }
   //! Sets the calling function architecture id.
   inline void setArchType(uint32_t archId) noexcept { _archId = uint8_t(archId); }
 
-  //! Gets the strategy used to assign registers to arguments, see `Strategy`.
+  //! Returns the strategy used to assign registers to arguments, see `Strategy`.
   inline uint32_t strategy() const noexcept { return _strategy; }
   //! Sets the strategy used to assign registers to arguments, see `Strategy`.
   inline void setStrategy(uint32_t strategy) noexcept { _strategy = uint8_t(strategy); }
 
-  //! Gets whether the calling convention has the given `flag` set.
+  //! Tests whether the calling convention has the given `flag` set.
   inline bool hasFlag(uint32_t flag) const noexcept { return (uint32_t(_flags) & flag) != 0; }
-  //! Gets the calling convention flags, see `Flags`.
+  //! Returns the calling convention flags, see `Flags`.
   inline uint32_t flags() const noexcept { return _flags; }
   //! Adds the calling convention flags, see `Flags`.
   inline void setFlags(uint32_t flag) noexcept { _flags = uint8_t(flag); };
   //! Adds the calling convention flags, see `Flags`.
   inline void addFlags(uint32_t flags) noexcept { _flags = uint8_t(_flags | flags); };
 
-  //! Gets whether this calling convention specifies 'RedZone'.
+  //! Tests whether this calling convention specifies 'RedZone'.
   inline bool hasRedZone() const noexcept { return _redZoneSize != 0; }
-  //! Gets whether this calling convention specifies 'SpillZone'.
+  //! Tests whether this calling convention specifies 'SpillZone'.
   inline bool hasSpillZone() const noexcept { return _spillZoneSize != 0; }
 
-  //! Gets size of 'RedZone'.
+  //! Returns size of 'RedZone'.
   inline uint32_t redZoneSize() const noexcept { return _redZoneSize; }
-  //! Gets size of 'SpillZone'.
+  //! Returns size of 'SpillZone'.
   inline uint32_t spillZoneSize() const noexcept { return _spillZoneSize; }
 
   //! Sets size of 'RedZone'.
@@ -311,7 +311,7 @@ struct CallConv {
   //! Sets size of 'SpillZone'.
   inline void setSpillZoneSize(uint32_t size) noexcept { _spillZoneSize = uint8_t(size); }
 
-  //! Gets a natural stack alignment.
+  //! Returns a natural stack alignment.
   inline uint32_t naturalStackAlignment() const noexcept { return _naturalStackAlignment; }
   //! Sets a natural stack alignment.
   //!

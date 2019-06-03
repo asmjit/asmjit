@@ -81,11 +81,11 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether the vector is empty.
+  //! Tests whether the vector is empty.
   inline bool empty() const noexcept { return _size == 0; }
-  //! Gets the vector size.
+  //! Returns the vector size.
   inline size_type size() const noexcept { return _size; }
-  //! Gets the vector capacity.
+  //! Returns the vector capacity.
   inline size_type capacity() const noexcept { return _capacity; }
 
   //! \}
@@ -157,12 +157,12 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets vector items.
+  //! Returns vector data.
   inline T* data() noexcept { return static_cast<T*>(_data); }
-  //! \overload
+  //! Returns vector data (const)
   inline const T* data() const noexcept { return static_cast<const T*>(_data); }
 
-  //! Gets item at index `i` (const).
+  //! Returns item at the given index `i` (const).
   inline const T& at(uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _size);
     return data()[i];
@@ -178,7 +178,6 @@ public:
   //! \name STL Compatibility (Iterators)
   //! \{
 
-  // STL compatibility.
   inline iterator begin() noexcept { return iterator(data()); };
   inline const_iterator begin() const noexcept { return const_iterator(data()); };
 
@@ -295,7 +294,7 @@ public:
     }
   }
 
-  //! Gets index of `val` or `Globals::kNotFound` if not found.
+  //! Returns index of the given `val` or `Globals::kNotFound` if it doesn't exist.
   inline uint32_t indexOf(const T& val) const noexcept {
     const T* data = static_cast<const T*>(_data);
     uint32_t size = _size;
@@ -306,7 +305,7 @@ public:
     return Globals::kNotFound;
   }
 
-  //! Gets whether the vector contains `val`.
+  //! Tests whether the vector contains `val`.
   inline bool contains(const T& val) const noexcept {
     return indexOf(val) != Globals::kNotFound;
   }
@@ -334,13 +333,13 @@ public:
     Support::qSort<T, CompareT>(data(), size(), cmp);
   }
 
-  //! Gets item at index `i`.
+  //! Returns item at index `i`.
   inline T& operator[](uint32_t i) noexcept {
     ASMJIT_ASSERT(i < _size);
     return data()[i];
   }
 
-  //! Gets item at index `i`.
+  //! Returns item at index `i`.
   inline const T& operator[](uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _size);
     return data()[i];
@@ -458,19 +457,19 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether the bit-vector is empty (has no bits).
+  //! Tests whether the bit-vector is empty (has no bits).
   inline bool empty() const noexcept { return _size == 0; }
-  //! Gets the size of this bit-vector (in bits).
+  //! Returns the size of this bit-vector (in bits).
   inline uint32_t size() const noexcept { return _size; }
-  //! Gets the capacity of this bit-vector (in bits).
+  //! Returns the capacity of this bit-vector (in bits).
   inline uint32_t capacity() const noexcept { return _capacity; }
 
-  //! Gets a count of `BitWord[]` array need to store all bits.
+  //! Returns the size of the `BitWord[]` array in `BitWord` units.
   inline uint32_t sizeInBitWords() const noexcept { return _wordsPerBits(_size); }
-  //! Gets a count of `BitWord[]` array need to store all bits.
+  //! Returns the capacity of the `BitWord[]` array in `BitWord` units.
   inline uint32_t capacityInBitWords() const noexcept { return _wordsPerBits(_capacity); }
 
-  //! Gets bit-vector data as `BitWord[]`.
+  //! REturns bit-vector data as `BitWord[]`.
   inline BitWord* data() noexcept { return _data; }
   //! \overload
   inline const BitWord* data() const noexcept { return _data; }
@@ -562,7 +561,7 @@ public:
   //! in `other`. If `other` has less bits than `this` then all remaining bits are
   //! set to zero.
   //!
-  //! NOTE: The size of the BitVector is unaffected by this operation.
+  //! \note The size of the BitVector is unaffected by this operation.
   inline void and_(const ZoneBitVector& other) noexcept {
     BitWord* dst = _data;
     const BitWord* src = other._data;
@@ -587,7 +586,7 @@ public:
   //! negated bits in `other`. If `other` has less bits than `this` then all
   //! remaining bits are kept intact.
   //!
-  //! NOTE: The size of the BitVector is unaffected by this operation.
+  //! \note The size of the BitVector is unaffected by this operation.
   inline void andNot(const ZoneBitVector& other) noexcept {
     BitWord* dst = _data;
     const BitWord* src = other._data;
@@ -601,7 +600,7 @@ public:
   //! in `other`. If `other` has less bits than `this` then all remaining bits
   //! are kept intact.
   //!
-  //! NOTE: The size of the BitVector is unaffected by this operation.
+  //! \note The size of the BitVector is unaffected by this operation.
   inline void or_(const ZoneBitVector& other) noexcept {
     BitWord* dst = _data;
     const BitWord* src = other._data;

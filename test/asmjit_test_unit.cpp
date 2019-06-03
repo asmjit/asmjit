@@ -251,7 +251,7 @@ static void dumpSizeOf(void) noexcept {
     DUMP_TYPE(AlignNode);
     DUMP_TYPE(LabelNode);
     DUMP_TYPE(EmbedDataNode);
-    DUMP_TYPE(LabelDataNode);
+    DUMP_TYPE(EmbedLabelNode);
     DUMP_TYPE(ConstPoolNode);
     DUMP_TYPE(CommentNode);
     DUMP_TYPE(SentinelNode);
@@ -278,7 +278,6 @@ static void dumpSizeOf(void) noexcept {
     #endif
     DUMP_TYPE(x86::InstDB::InstInfo);
     DUMP_TYPE(x86::InstDB::CommonInfo);
-    DUMP_TYPE(x86::InstDB::ExecutionInfo);
     DUMP_TYPE(x86::InstDB::OpSignature);
     DUMP_TYPE(x86::InstDB::InstSignature);
   INFO("");

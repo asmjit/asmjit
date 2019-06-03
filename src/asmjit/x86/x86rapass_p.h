@@ -54,7 +54,7 @@ public:
   // [Accessors]
   // --------------------------------------------------------------------------
 
-  //! Gets the compiler casted to `x86::Compiler`.
+  //! Returns the compiler casted to `x86::Compiler`.
   inline Compiler* cc() const noexcept { return static_cast<Compiler*>(_cb); }
 
   // --------------------------------------------------------------------------

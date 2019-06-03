@@ -171,44 +171,6 @@ class GenUtils {
     return ArrayUtils.sorted(dbInsts.unionCpuFeatures());
   }
 
-  static specialsOf(dbInsts) {
-    const r = Object.create(null);
-    const w = Object.create(null);
-
-    for (var i = 0; i < dbInsts.length; i++) {
-      const dbInst = dbInsts[i];
-      const specialRegs = dbInst.specialRegs;
-
-      // Mov is a special case, moving to/from control regs makes flags undefined,
-      // which we don't want to have in `X86InstDB::operationData`. This is, thus,
-      // a special case instruction analyzer must deal with.
-      if (dbInst.name === "mov")
-        continue;
-
-      for (var specialReg in specialRegs) {
-        const group = x86isa.specialRegs[specialReg].group;
-        const op = specialRegs[specialReg];
-
-        switch (op) {
-          case "R":
-            r[group] = true;
-            break;
-          case "X":
-            r[group] = true;
-            // ... fallthrough ...
-          case "W":
-          case "U":
-          case "0":
-          case "1":
-            w[group] = true;
-            break;
-        }
-      }
-    }
-
-    return [ArrayUtils.sorted(r), ArrayUtils.sorted(w)];
-  }
-
   static flagsOf(dbInsts) {
     function replace(map, a, b, c) {
       if (map[a] && map[b]) {
@@ -313,37 +275,6 @@ class GenUtils {
     replace(f, "Avx512KZ_SAE"   , "Avx512B64"   , "Avx512KZ_SAE_B64");
     replace(f, "Avx512KZ_ER_SAE", "Avx512B32"   , "Avx512KZ_ER_SAE_B32");
     replace(f, "Avx512KZ_ER_SAE", "Avx512B64"   , "Avx512KZ_ER_SAE_B64");
-
-    return Object.getOwnPropertyNames(f);
-  }
-
-  static operationFlagsOf(dbInsts) {
-    const f = Object.create(null);
-
-    for (var i = 0; i < dbInsts.length; i++) {
-      const dbInst = dbInsts[i];
-      const name = dbInst.name;
-      const operands = dbInst.operands;
-    }
-
-    return Object.getOwnPropertyNames(f);
-  }
-
-  static specialCasesOf(dbInsts) {
-    const f = Object.create(null);
-
-    for (var i = 0; i < dbInsts.length; i++) {
-      const dbInst = dbInsts[i];
-      const name = dbInst.name;
-
-      // Special case: MOV undefines flags if moving between GP and CR|DR registers.
-      if (name === "mov")
-        f.MovCrDr = true;
-
-      // Special case: MOVSS|MOVSD zeroes the remaining part of destination if source operand is memory.
-      if ((name === "movss" || name === "movsd") && !dbInst.attributes.REP)
-        f.MovSsSd = true;
-    }
 
     return Object.getOwnPropertyNames(f);
   }
@@ -521,7 +452,6 @@ class X86TableGen extends core.TableGen {
       const flags         = GenUtils.flagsOf(dbInsts);
       const controlType   = GenUtils.controlType(dbInsts);
       const singleRegCase = GenUtils.singleRegCase(name);
-      const specialCases  = GenUtils.specialCasesOf(dbInsts);
 
       this.addInst({
         id                : 0,             // Instruction id (numeric value).
@@ -535,12 +465,11 @@ class X86TableGen extends core.TableGen {
         signatures        : null,          // Instruction signatures.
         controlType       : controlType,
         singleRegCase     : singleRegCase,
-        specialCases      : specialCases,
 
         nameIndex         : -1,            // Instruction name-index.
         altOpCodeIndex    : -1,            // Index to X86InstDB::altOpCodeTable.
         commonDataIndex   : -1,
-        operationDataIndex: -1,
+        commomInfoIndexB  : -1,
 
         signatureIndex    : -1,
         signatureCount    : -1
@@ -556,13 +485,13 @@ class X86TableGen extends core.TableGen {
   merge() {
     var s = StringUtils.format(this.insts, "", true, function(inst) {
       return "INST(" +
-        String(inst.enum              ).padEnd(17) + ", " +
-        String(inst.encoding          ).padEnd(19) + ", " +
-        String(inst.opcode0           ).padEnd(26) + ", " +
-        String(inst.opcode1           ).padEnd(26) + ", " +
-        String(inst.nameIndex         ).padEnd( 5) + ", " +
-        String(inst.commonDataIndex   ).padEnd( 3) + ", " +
-        String(inst.operationDataIndex).padEnd( 3) + ")";
+        String(inst.enum            ).padEnd(17) + ", " +
+        String(inst.encoding        ).padEnd(19) + ", " +
+        String(inst.opcode0         ).padEnd(26) + ", " +
+        String(inst.opcode1         ).padEnd(26) + ", " +
+        String(inst.nameIndex       ).padEnd( 5) + ", " +
+        String(inst.commonDataIndex ).padEnd( 3) + ", " +
+        String(inst.commomInfoIndexB).padEnd( 3) + ")";
     }) + "\n";
     this.inject("InstInfo", s, this.insts.length * 4);
   }
@@ -703,7 +632,7 @@ class X86TableGen extends core.TableGen {
       opcode1           : "0",
       nameIndex         : -1,
       commonDataIndex   : -1,
-      operationDataIndex: -1
+      commomInfoIndexB  : -1
     };
   }
 
@@ -1791,47 +1720,104 @@ class InstSignatureTable extends core.Task {
 }
 
 // ============================================================================
-// [tablegen.x86.InstExecutionTable]
+// [tablegen.x86.InstCommonInfoTableB]
 // ============================================================================
 
-class InstExecutionTable extends core.Task {
+class InstCommonInfoTableB extends core.Task {
   constructor() {
-    super("InstExecutionTable");
+    super("InstCommonInfoTableB");
   }
 
   run() {
     const insts = this.ctx.insts;
-    const table = new IndexedArray();
+    const commonTableB = new IndexedArray();
+    const rwInfoTable = new IndexedArray();
+
+    // If the instruction doesn't read any flags it should point to the first index.
+    rwInfoTable.addIndexed(`{ 0, 0 }`);
 
     insts.forEach((inst) => {
       const dbInsts = inst.dbInsts;
 
-      var opFlags = GenUtils.operationFlagsOf(dbInsts).map(function(f) { return `F(${f})`; });
-      if (!opFlags.length) opFlags.push("0");
+      var features = GenUtils.cpuFeaturesOf(dbInsts).map(function(f) { return `EXT(${f})`; }).join(", ");
+      if (!features) features = "0";
 
-      var features = GenUtils.cpuFeaturesOf(dbInsts).map(function(f) { return `FEATURE(${f})`; });
-      if (!features.length) features.push("0");
+      var [r, w] = this.rwFlagsOf(dbInsts);
+      const rData = r.map(function(flag) { return `FLAG(${flag})`; }).join(" | ") || "0";
+      const wData = w.map(function(flag) { return `FLAG(${flag})`; }).join(" | ") || "0";
+      const rwDataIndex = rwInfoTable.addIndexed(`{ ${rData}, ${wData} }`);
 
-      var [r, w] = GenUtils.specialsOf(dbInsts);
-      r = r.map(function(item) { return `SPECIAL(${item.replace(".", "_")})`; });
-      w = w.map(function(item) { return `SPECIAL(${item.replace(".", "_")})`; });
-
-      const opFlagsStr = opFlags.join(" | ");
-      const featuresStr = features.join(", ");
-      const rStr = r.join(" | ") || "0";
-      const wStr = w.join(" | ") || "0";
-
-      inst.operationDataIndex = table.addIndexed(`{ ${opFlagsStr}, { ${featuresStr} }, ${rStr}, ${wStr} }`);
+      inst.commomInfoIndexB = commonTableB.addIndexed(`{ { ${features} }, ${rwDataIndex}, 0 }`);
     });
 
-    var s = `#define OP_FLAG(VAL) uint32_t(InstInfo::kOperation##VAL)\n` +
-            `#define FEATURE(VAL) uint32_t(Features::k##VAL)\n` +
-            `#define SPECIAL(VAL) uint32_t(kSpecialReg_##VAL)\n` +
-            `const InstDB::ExecutionInfo InstDB::_executionInfoTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
-            `#undef SPECIAL\n` +
-            `#undef FEATURE\n` +
-            `#undef OP_FLAG\n` ;
-    this.inject("InstExecutionTable", disclaimer(s), table.length * 16);
+    var s = `#define EXT(VAL) uint32_t(Features::k##VAL)\n` +
+            `const InstDB::CommonInfoTableB InstDB::_commonInfoTableB[] = {\n${StringUtils.format(commonTableB, kIndent, true)}\n};\n` +
+            `#undef EXT\n` +
+            `\n` +
+            `#define FLAG(VAL) uint32_t(Status::k##VAL)\n` +
+            `const InstDB::RWFlagsInfoTable InstDB::_rwFlagsInfoTable[] = {\n${StringUtils.format(rwInfoTable, kIndent, true)}\n};\n` +
+            `#undef FLAG\n`;
+    this.inject("InstCommonInfoTableB", disclaimer(s), commonTableB.length * 8 + rwInfoTable.length * 8);
+  }
+
+  rwFlagsOf(dbInsts) {
+    const r = Object.create(null);
+    const w = Object.create(null);
+
+    for (var i = 0; i < dbInsts.length; i++) {
+      const dbInst = dbInsts[i];
+
+      // Omit special cases, this is handled well in C++ code.
+      if (dbInst.name === "mov")
+        continue;
+
+      const specialRegs = dbInst.specialRegs;
+
+      // Mov is a special case, moving to/from control regs makes flags undefined,
+      // which we don't want to have in `X86InstDB::operationData`. This is, thus,
+      // a special case instruction analyzer must deal with.
+      if (dbInst.name === "mov")
+        continue;
+
+      for (var specialReg in specialRegs) {
+        var flag = "";
+        switch (specialReg) {
+          case "FLAGS.CF": flag = "CF"; break;
+          case "FLAGS.PF": flag = "PF"; break;
+          case "FLAGS.AF": flag = "AF"; break;
+          case "FLAGS.ZF": flag = "ZF"; break;
+          case "FLAGS.SF": flag = "SF"; break;
+          //case "FLAGS.TF": flag = "TF"; break;
+          //case "FLAGS.IF": flag = "IF"; break;
+          case "FLAGS.DF": flag = "DF"; break;
+          case "FLAGS.OF": flag = "OF"; break;
+          case "FLAGS.AC": flag = "AC"; break;
+          case "X86SW.C0": flag = "C0"; break;
+          case "X86SW.C1": flag = "C1"; break;
+          case "X86SW.C2": flag = "C2"; break;
+          case "X86SW.C3": flag = "C3"; break;
+          default:
+            continue;
+        }
+
+        switch (specialRegs[specialReg]) {
+          case "R":
+            r[flag] = true;
+            break;
+          case "X":
+            r[flag] = true;
+            // ... fallthrough ...
+          case "W":
+          case "U":
+          case "0":
+          case "1":
+            w[flag] = true;
+            break;
+        }
+      }
+    }
+
+    return [ArrayUtils.sorted(r), ArrayUtils.sorted(w)];
   }
 }
 
@@ -2390,7 +2376,7 @@ class InstCommonTable extends core.Task {
       "IdEnum",
       "NameTable",
       "InstSignatureTable",
-      "InstExecutionTable",
+      "InstCommonInfoTableB",
       "InstRWInfoTable"
     ]);
   }
@@ -2403,24 +2389,20 @@ class InstCommonTable extends core.Task {
       const flags         = inst.flags.map(function(flag) { return `F(${flag})`; }).join("|") || "0";
       const singleRegCase = `SINGLE_REG(${inst.singleRegCase})`;
       const controlType   = `CONTROL(${inst.controlType})`;
-      const specialCases  = inst.specialCases.map(function(flag) { return `SPECIAL_CASE(${flag})`; }).join("|") || "0";
 
       const row = "{ " +
         String(flags              ).padEnd(54) + ", " +
         String(inst.signatureIndex).padEnd( 3) + ", " +
         String(inst.signatureCount).padEnd( 2) + ", " +
         String(controlType        ).padEnd(16) + ", " +
-        String(singleRegCase      ).padEnd(16) + ", " +
-        String(specialCases       ).padEnd(20) + ", " + "0 }";
+        String(singleRegCase      ).padEnd(16) + ", " + "0 }";
       inst.commonDataIndex = table.addIndexed(row);
     });
 
     var s = `#define F(VAL) InstDB::kFlag##VAL\n` +
             `#define CONTROL(VAL) Inst::kControl##VAL\n` +
             `#define SINGLE_REG(VAL) InstDB::kSingleReg##VAL\n` +
-            `#define SPECIAL_CASE(VAL) InstDB::kSpecialCase##VAL\n` +
             `const InstDB::CommonInfo InstDB::_commonInfoTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
-            `#undef SPECIAL_CASE\n` +
             `#undef SINGLE_REG\n` +
             `#undef CONTROL\n` +
             `#undef F\n`;
@@ -2440,7 +2422,7 @@ new X86TableGen()
   .addTask(new AltOpcodeTable())
   .addTask(new InstSseToAvxTable())
   .addTask(new InstSignatureTable())
-  .addTask(new InstExecutionTable())
+  .addTask(new InstCommonInfoTableB())
   .addTask(new InstRWInfoTable())
   .addTask(new InstCommonTable())
   .run();

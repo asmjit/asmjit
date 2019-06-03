@@ -127,39 +127,39 @@ public:
     kGroupCount                          //!< Count of all register groups.
   };
 
-  //! Gets whether the register is a GPB register (8-bit).
+  //! Tests whether the register is a GPB register (8-bit).
   constexpr bool isGpb() const noexcept { return size() == 1; }
-  //! Gets whether the register is a low GPB register (8-bit).
+  //! Tests whether the register is a low GPB register (8-bit).
   constexpr bool isGpbLo() const noexcept { return hasSignature(RegTraits<kTypeGpbLo>::kSignature); }
-  //! Gets whether the register is a high GPB register (8-bit).
+  //! Tests whether the register is a high GPB register (8-bit).
   constexpr bool isGpbHi() const noexcept { return hasSignature(RegTraits<kTypeGpbHi>::kSignature); }
-  //! Gets whether the register is a GPW register (16-bit).
+  //! Tests whether the register is a GPW register (16-bit).
   constexpr bool isGpw() const noexcept { return hasSignature(RegTraits<kTypeGpw>::kSignature); }
-  //! Gets whether the register is a GPD register (32-bit).
+  //! Tests whether the register is a GPD register (32-bit).
   constexpr bool isGpd() const noexcept { return hasSignature(RegTraits<kTypeGpd>::kSignature); }
-  //! Gets whether the register is a GPQ register (64-bit).
+  //! Tests whether the register is a GPQ register (64-bit).
   constexpr bool isGpq() const noexcept { return hasSignature(RegTraits<kTypeGpq>::kSignature); }
-  //! Gets whether the register is an XMM register (128-bit).
+  //! Tests whether the register is an XMM register (128-bit).
   constexpr bool isXmm() const noexcept { return hasSignature(RegTraits<kTypeXmm>::kSignature); }
-  //! Gets whether the register is a YMM register (256-bit).
+  //! Tests whether the register is a YMM register (256-bit).
   constexpr bool isYmm() const noexcept { return hasSignature(RegTraits<kTypeYmm>::kSignature); }
-  //! Gets whether the register is a ZMM register (512-bit).
+  //! Tests whether the register is a ZMM register (512-bit).
   constexpr bool isZmm() const noexcept { return hasSignature(RegTraits<kTypeZmm>::kSignature); }
-  //! Gets whether the register is an MMX register (64-bit).
+  //! Tests whether the register is an MMX register (64-bit).
   constexpr bool isMm() const noexcept { return hasSignature(RegTraits<kTypeMm>::kSignature); }
-  //! Gets whether the register is a K register (64-bit).
+  //! Tests whether the register is a K register (64-bit).
   constexpr bool isKReg() const noexcept { return hasSignature(RegTraits<kTypeKReg>::kSignature); }
-  //! Gets whether the register is a segment register.
+  //! Tests whether the register is a segment register.
   constexpr bool isSReg() const noexcept { return hasSignature(RegTraits<kTypeSReg>::kSignature); }
-  //! Gets whether the register is a control register.
+  //! Tests whether the register is a control register.
   constexpr bool isCReg() const noexcept { return hasSignature(RegTraits<kTypeCReg>::kSignature); }
-  //! Gets whether the register is a debug register.
+  //! Tests whether the register is a debug register.
   constexpr bool isDReg() const noexcept { return hasSignature(RegTraits<kTypeDReg>::kSignature); }
-  //! Gets whether the register is an FPU register (80-bit).
+  //! Tests whether the register is an FPU register (80-bit).
   constexpr bool isSt() const noexcept { return hasSignature(RegTraits<kTypeSt>::kSignature); }
-  //! Gets whether the register is a bound register.
+  //! Tests whether the register is a bound register.
   constexpr bool isBnd() const noexcept { return hasSignature(RegTraits<kTypeBnd>::kSignature); }
-  //! Gets whether the register is RIP.
+  //! Tests whether the register is RIP.
   constexpr bool isRip() const noexcept { return hasSignature(RegTraits<kTypeRip>::kSignature); }
 
   template<uint32_t REG_TYPE>
@@ -196,7 +196,7 @@ public:
            size <= 32 ? RegTraits<kTypeYmm>::kSignature : RegTraits<kTypeZmm>::kSignature;
   }
 
-  //! Gets whether the `op` operand is either a low or high 8-bit GPB register.
+  //! Tests whether the `op` operand is either a low or high 8-bit GPB register.
   static inline bool isGpb(const Operand_& op) noexcept {
     // Check operand type, register group, and size. Not interested in register type.
     const uint32_t kSgn = (Operand::kOpReg << kSignatureOpShift  ) |
@@ -247,7 +247,7 @@ public:
 
   //! Physical id (X86).
   //!
-  //! NOTE: Register indexes have been reduced to only support general purpose
+  //! \note Register indexes have been reduced to only support general purpose
   //! registers. There is no need to have enumerations with number suffix that
   //! expands to the exactly same value as the suffix value itself.
   enum Id : uint32_t {
@@ -316,7 +316,7 @@ class SReg : public Reg {
 
     //! Count of  segment registers supported by AsmJit.
     //!
-    //! NOTE: X86 architecture has 6 segment registers - ES, CS, SS, DS, FS, GS.
+    //! \note X86 architecture has 6 segment registers - ES, CS, SS, DS, FS, GS.
     //! X64 architecture lowers them down to just FS and GS. AsmJit supports 7
     //! segment registers - all addressable in both  and X64 modes and one
     //! extra called `SReg::kIdNone`, which is AsmJit specific and means that
@@ -496,11 +496,11 @@ public:
     setShift(shift);
   }
 
-  //! Gets whether the memory operand has a segment override.
+  //! Tests whether the memory operand has a segment override.
   constexpr bool hasSegment() const noexcept { return _hasSignaturePart<kSignatureMemSegmentMask>(); }
-  //! Gets associated segment override as `SReg` operand.
+  //! Returns the associated segment override as `SReg` operand.
   constexpr SReg segment() const noexcept { return SReg(segmentId()); }
-  //! Gets segment override as id, see `SReg::Id`.
+  //! Returns segment override register id, see `SReg::Id`.
   constexpr uint32_t segmentId() const noexcept { return _getSignaturePart<kSignatureMemSegmentMask>(); }
 
   //! Sets the segment override to `seg`.
@@ -510,18 +510,18 @@ public:
   //! Resets the segment override.
   inline void resetSegment() noexcept { _setSignaturePart<kSignatureMemSegmentMask>(0); }
 
-  //! Gets whether the memory operand has shift (aka scale) constant.
+  //! Tests whether the memory operand has shift (aka scale) value.
   constexpr bool hasShift() const noexcept { return _hasSignaturePart<kSignatureMemShiftMask>(); }
-  //! Gets the memory operand's shift (aka scale) constant.
+  //! Returns the memory operand's shift (aka scale) value.
   constexpr uint32_t shift() const noexcept { return _getSignaturePart<kSignatureMemShiftMask>(); }
-  //! Sets the memory operand's shift (aka scale) constant.
+  //! Sets the memory operand's shift (aka scale) value.
   inline void setShift(uint32_t shift) noexcept { _setSignaturePart<kSignatureMemShiftMask>(shift); }
-  //! Resets the memory operand's shift (aka scale) constant to zero.
+  //! Resets the memory operand's shift (aka scale) value to zero.
   inline void resetShift() noexcept { _setSignaturePart<kSignatureMemShiftMask>(0); }
 
-  //! Gets whether the memory operand has broadcast {1tox}.
+  //! Tests whether the memory operand has broadcast {1tox}.
   constexpr bool hasBroadcast() const noexcept { return _hasSignaturePart<kSignatureMemBroadcastMask>(); }
-  //! Gets the memory operand's broadcast.
+  //! Returns the memory operand's broadcast.
   constexpr uint32_t getBroadcast() const noexcept { return _getSignaturePart<kSignatureMemBroadcastMask>(); }
   //! Sets the memory operand's broadcast.
   inline void setBroadcast(uint32_t bcst) noexcept { _setSignaturePart<kSignatureMemBroadcastMask>(bcst); }

@@ -556,34 +556,22 @@ Error RAPass::removeUnreachableBlocks() noexcept {
     BaseNode* beforeFirst = first->prev();
     BaseNode* afterLast = last->next();
 
-    // Skip labels as they can be used as reference points.
-    while (first->isLabel() && first != afterLast)
-      first = first->next();
+    BaseNode* node = first;
+    while (node != afterLast) {
+      BaseNode* next = node->next();
 
-    // Just to control flow.
-    for (;;) {
-      if (first == afterLast)
-        break;
+      if (node->isCode() || node->isRemovable())
+        cc()->removeNode(node);
+      node = next;
+    }
 
-      // Don't know a better way atm, .align nodes before labels should be preserved.
-      if (last->type() == BaseNode::kNodeAlign) {
-        if (first == last)
-          break;
-        last = last->prev();
-      }
-
-      bool wholeBlockGone = (first == block->first() && last == block->last());
-      cc()->removeNodes(first, last);
-
-      if (wholeBlockGone) {
-        block->setFirst(nullptr);
-        block->setLast(nullptr);
-      }
-      else {
-        block->setFirst(beforeFirst->next());
-        block->setLast(afterLast->prev());
-      }
-      break;
+    if (beforeFirst->next() == afterLast) {
+      block->setFirst(nullptr);
+      block->setLast(nullptr);
+    }
+    else {
+      block->setFirst(beforeFirst->next());
+      block->setLast(afterLast->prev());
     }
   }
 

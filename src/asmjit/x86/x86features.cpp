@@ -238,6 +238,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ecx, 25)) features.add(Features::kCLDEMOTE);
     if (bitTest(regs.ecx, 27)) features.add(Features::kMOVDIRI);
     if (bitTest(regs.ecx, 28)) features.add(Features::kMOVDIR64B);
+    if (bitTest(regs.ecx, 29)) features.add(Features::kENQCMD);
     if (bitTest(regs.edx, 18)) features.add(Features::kPCONFIG);
 
     // Detect 'TSX' - Requires at least one of `HLE` and `RTM` features.
@@ -263,6 +264,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         if (bitTest(regs.ebx, 30)) features.add(Features::kAVX512_BW);
         if (bitTest(regs.ebx, 31)) features.add(Features::kAVX512_VL);
         if (bitTest(regs.ecx,  1)) features.add(Features::kAVX512_VBMI);
+        if (bitTest(regs.ecx,  5)) features.add(Features::kWAITPKG);
         if (bitTest(regs.ecx,  6)) features.add(Features::kAVX512_VBMI2);
         if (bitTest(regs.ecx,  8)) features.add(Features::kGFNI);
         if (bitTest(regs.ecx,  9)) features.add(Features::kVAES);
@@ -272,6 +274,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         if (bitTest(regs.ecx, 14)) features.add(Features::kAVX512_VPOPCNTDQ);
         if (bitTest(regs.edx,  2)) features.add(Features::kAVX512_4VNNIW);
         if (bitTest(regs.edx,  3)) features.add(Features::kAVX512_4FMAPS);
+        if (bitTest(regs.edx,  8)) features.add(Features::kAVX512_VP2INTERSECT);
       }
     }
 

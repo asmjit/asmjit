@@ -104,7 +104,7 @@ public:
 
   //! Moves an existing `Zone`.
   //!
-  //! NOTE: You cannot move an existing `ZoneTmp` as it uses embedded storage.
+  //! \note You cannot move an existing `ZoneTmp` as it uses embedded storage.
   //! Attempting to move `ZoneTmp` would result in assertion failure in debug
   //! mode and undefined behavior in release mode.
   ASMJIT_INLINE Zone(Zone&& other) noexcept
@@ -136,23 +136,24 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether this `Zone` is actually a `ZoneTmp` that uses temporary memory.
+  //! Tests whether this `Zone` is actually a `ZoneTmp` that uses temporary memory.
   ASMJIT_INLINE bool isTemporary() const noexcept { return _isTemporary != 0; }
 
-  //! Gets the default block size.
+  //! Returns the default block size.
   ASMJIT_INLINE size_t blockSize() const noexcept { return _blockSize; }
-  //! Gets the default block alignment.
+  //! Returns the default block alignment.
   ASMJIT_INLINE size_t blockAlignment() const noexcept { return size_t(1) << _blockAlignmentShift; }
-  //! Gets remaining size of the current block.
+  //! Returns remaining size of the current block.
   ASMJIT_INLINE size_t remainingSize() const noexcept { return (size_t)(_end - _ptr); }
 
-  //! Gets the current zone cursor (dangerous).
+  //! Returns the current zone cursor (dangerous).
   //!
   //! This is a function that can be used to get exclusive access to the current
   //! block's memory buffer.
   template<typename T = uint8_t>
   ASMJIT_INLINE T* ptr() noexcept { return reinterpret_cast<T*>(_ptr); }
-  //! Gets the end of the current zone block, only useful if you use `ptr()`.
+
+  //! Returns the end of the current zone block, only useful if you use `ptr()`.
   template<typename T = uint8_t>
   ASMJIT_INLINE T* end() noexcept { return reinterpret_cast<T*>(_end); }
 
@@ -195,7 +196,7 @@ public:
 
   //! Ensures the remaining size is at least equal or greater than `size`.
   //!
-  //! NOTE: This function doesn't respect any alignment. If you need to ensure
+  //! \note This function doesn't respect any alignment. If you need to ensure
   //! there is enough room for an aligned allocation you need to call `align()`
   //! before calling `ensure()`.
   ASMJIT_INLINE Error ensure(size_t size) noexcept {
@@ -230,7 +231,7 @@ public:
   //! by calling `reset()`. If you plan to make an instance of C++ from the
   //! given pointer use placement `new` and `delete` operators:
   //!
-  //! ~~~
+  //! ```
   //! using namespace asmjit;
   //!
   //! class Object { ... };
@@ -240,7 +241,7 @@ public:
   //!
   //! // Create your objects using zone object allocating, for example:
   //! Object* obj = static_cast<Object*>( zone.alloc(sizeof(Object)) );
-  //
+  //!
   //! if (!obj) {
   //!   // Handle out of memory error.
   //! }
@@ -255,7 +256,7 @@ public:
   //!
   //! // Reset or destroy `Zone`.
   //! zone.reset();
-  //! ~~~
+  //! ```
   ASMJIT_INLINE void* alloc(size_t size) noexcept {
     if (ASMJIT_UNLIKELY(size > remainingSize()))
       return _alloc(size, 1);
@@ -449,7 +450,7 @@ public:
 
   //! Creates a new `ZoneAllocator`.
   //!
-  //! NOTE: To use it, you must first `init()` it.
+  //! \note To use it, you must first `init()` it.
   inline ZoneAllocator() noexcept {
     memset(this, 0, sizeof(*this));
   }
@@ -463,7 +464,7 @@ public:
   //! Destroys the `ZoneAllocator`.
   inline ~ZoneAllocator() noexcept { reset(); }
 
-  //! Gets whether the `ZoneAllocator` is initialized (i.e. has `Zone`).
+  //! Tests whether the `ZoneAllocator` is initialized (i.e. has `Zone`).
   inline bool isInitialized() const noexcept { return _zone != nullptr; }
 
   //! Convenience function to initialize the `ZoneAllocator` with `zone`.
@@ -481,7 +482,7 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the assigned `Zone` of this allocator or null if this `ZoneAllocator`
+  //! Returns the assigned `Zone` of this allocator or null if this `ZoneAllocator`
   //! is not initialized.
   inline Zone* zone() const noexcept { return _zone; }
 
@@ -491,7 +492,7 @@ public:
   //! \name Internals
   //! \{
 
-  //! Gets the slot index to be used for `size`. Returns `true` if a valid slot
+  //! Returns the slot index to be used for `size`. Returns `true` if a valid slot
   //! has been written to `slot` and `allocatedSize` has been filled with slot
   //! exact size (`allocatedSize` can be equal or slightly greater than `size`).
   static ASMJIT_INLINE bool _getSlotIndex(size_t size, uint32_t& slot) noexcept {
@@ -539,7 +540,7 @@ public:
 
   //! Allocates `size` bytes of memory, ideally from an available pool.
   //!
-  //! NOTE: `size` can't be zero, it will assert in debug mode in such case.
+  //! \note `size` can't be zero, it will assert in debug mode in such case.
   inline void* alloc(size_t size) noexcept {
     ASMJIT_ASSERT(isInitialized());
     size_t allocatedSize;

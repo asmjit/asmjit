@@ -99,6 +99,32 @@ public:
     _cursor += size;
   }
 
+  template<typename T>
+  ASMJIT_INLINE void emitValueLE(const T& value, size_t size) noexcept {
+    typedef typename std::make_unsigned<T>::type U;
+    ASMJIT_ASSERT(size <= sizeof(T));
+
+    U v = U(value);
+    for (uint32_t i = 0; i < size; i++) {
+      _cursor[i] = uint8_t(v & 0xFFu);
+      v >>= 8;
+    }
+    _cursor += size;
+  }
+
+  template<typename T>
+  ASMJIT_INLINE void emitValueBE(const T& value, size_t size) noexcept {
+    typedef typename std::make_unsigned<T>::type U;
+    ASMJIT_ASSERT(size <= sizeof(T));
+
+    U v = U(value);
+    for (uint32_t i = 0; i < size; i++) {
+      _cursor[i] = uint8_t(v >> (sizeof(T) - 8));
+      v <<= 8;
+    }
+    _cursor += size;
+  }
+
   ASMJIT_INLINE void emitZeros(size_t size) noexcept {
     ASMJIT_ASSERT(size != 0);
     memset(_cursor, 0, size);

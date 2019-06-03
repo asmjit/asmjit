@@ -381,10 +381,20 @@ Error Logging::formatNode(
       break;
     }
 
-    case BaseNode::kNodeLabelData: {
-      const LabelDataNode* node = node_->as<LabelDataNode>();
+    case BaseNode::kNodeEmbedLabel: {
+      const EmbedLabelNode* node = node_->as<EmbedLabelNode>();
       ASMJIT_PROPAGATE(sb.appendString(".label "));
       ASMJIT_PROPAGATE(formatLabel(sb, flags, cb, node->id()));
+      break;
+    }
+
+    case BaseNode::kNodeEmbedLabelDelta: {
+      const EmbedLabelDeltaNode* node = node_->as<EmbedLabelDeltaNode>();
+      ASMJIT_PROPAGATE(sb.appendString(".label ("));
+      ASMJIT_PROPAGATE(formatLabel(sb, flags, cb, node->id()));
+      ASMJIT_PROPAGATE(sb.appendString(" - "));
+      ASMJIT_PROPAGATE(formatLabel(sb, flags, cb, node->baseId()));
+      ASMJIT_PROPAGATE(sb.appendString(")"));
       break;
     }
 

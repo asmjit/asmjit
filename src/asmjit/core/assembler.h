@@ -53,24 +53,24 @@ public:
   //! \name Code-Buffer Management
   //! \{
 
-  //! Gets the capacity of the current CodeBuffer.
+  //! Returns the capacity of the current CodeBuffer.
   inline size_t bufferCapacity() const noexcept { return (size_t)(_bufferEnd - _bufferData); }
-  //! Gets the number of remaining bytes in the current CodeBuffer.
+  //! Returns the number of remaining bytes in the current CodeBuffer.
   inline size_t remainingSpace() const noexcept { return (size_t)(_bufferEnd - _bufferPtr); }
 
-  //! Gets the current position in the CodeBuffer.
+  //! Returns the current position in the CodeBuffer.
   inline size_t offset() const noexcept { return (size_t)(_bufferPtr - _bufferData); }
   //! Sets the current position in the CodeBuffer to `offset`.
   //!
-  //! NOTE: The `offset` cannot be outside of the buffer size (even if it's
+  //! \note The `offset` cannot be outside of the buffer size (even if it's
   //! within buffer's capacity).
   ASMJIT_API Error setOffset(size_t offset);
 
-  //! Gets the start of the CodeBuffer in the current section.
+  //! Returns the start of the CodeBuffer in the current section.
   inline uint8_t* bufferData() const noexcept { return _bufferData; }
-  //! Gets the end (first invalid byte) in the current section.
+  //! Returns the end (first invalid byte) in the current section.
   inline uint8_t* bufferEnd() const noexcept { return _bufferEnd; }
-  //! Gets the current pointer in the CodeBuffer in the current section.
+  //! Returns the current pointer in the CodeBuffer in the current section.
   inline uint8_t* bufferPtr() const noexcept { return _bufferPtr; }
 
   //! \}
@@ -135,8 +135,9 @@ public:
   //! \name Embed
   //! \{
 
-  ASMJIT_API Error embed(const void* data, uint32_t size) override;
+  ASMJIT_API Error embed(const void* data, uint32_t dataSize) override;
   ASMJIT_API Error embedLabel(const Label& label) override;
+  ASMJIT_API Error embedLabelDelta(const Label& label, const Label& base, uint32_t dataSize) override;
   ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool) override;
 
   //! \}

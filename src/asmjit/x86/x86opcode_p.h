@@ -91,7 +91,7 @@ struct Opcode {
   //!   is derived from instruction specification and describes additional shift
   //!   to calculate the final `CDSHL` that will be used in SIB byte.
   //!
-  //! NOTE: Don't reorder any fields here, the shifts and masks were defined
+  //! \note Don't reorder any fields here, the shifts and masks were defined
   //! carefully to make encoding of X86 instructions fast, especially to construct
   //! REX, VEX, and EVEX prefixes in the most efficient way. Changing values defined
   //! by these enums many cause AsmJit to emit invalid binary representations of

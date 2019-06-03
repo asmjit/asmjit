@@ -759,6 +759,80 @@ Error CodeHolder::newRelocEntry(RelocEntry** dst, uint32_t relocType, uint32_t v
 }
 
 // ============================================================================
+// [asmjit::BaseEmitter - Expression Evaluation]
+// ============================================================================
+
+static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, uint64_t* out) noexcept {
+  uint64_t value[2];
+  for (size_t i = 0; i < 2; i++) {
+    uint64_t v;
+    switch (exp->valueType[i]) {
+      case Expression::kValueNone: {
+        v = 0;
+        break;
+      }
+
+      case Expression::kValueConstant: {
+        v = exp->value[i].constant;
+        break;
+      }
+
+      case Expression::kValueLabel: {
+        LabelEntry* le = exp->value[i].label;
+        if (!le->isBound())
+          return DebugUtils::errored(kErrorExpressionLabelNotBound);
+        v = le->section()->offset() + le->offset();
+        break;
+      }
+
+      case Expression::kValueExpression: {
+        Expression* nested = exp->value[i].expression;
+        ASMJIT_PROPAGATE(CodeHolder_evaluateExpression(self, nested, &v));
+        break;
+      }
+
+      default:
+        return DebugUtils::errored(kErrorInvalidState);
+    }
+
+    value[i] = v;
+  }
+
+  uint64_t result;
+  uint64_t& a = value[0];
+  uint64_t& b = value[1];
+
+  switch (exp->opType) {
+    case Expression::kOpAdd:
+      result = a + b;
+      break;
+
+    case Expression::kOpSub:
+      result = a - b;
+      break;
+
+    case Expression::kOpMul:
+      result = a * b;
+      break;
+
+    case Expression::kOpSll:
+      result = (b > 63) ? uint64_t(0) : uint64_t(a << b);
+      break;
+
+    case Expression::kOpSrl:
+      result = (b > 63) ? uint64_t(0) : uint64_t(a >> b);
+      break;
+
+    case Expression::kOpSra:
+      result = Support::sar(a, Support::min<uint64_t>(b, 63));
+      break;
+  }
+
+  *out = result;
+  return kErrorOk;
+}
+
+// ============================================================================
 // [asmjit::BaseEmitter - Utilities]
 // ============================================================================
 
@@ -864,6 +938,12 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
     size_t valueOffset = size_t(re->sourceOffset()) + re->leadingSize();
 
     switch (re->relocType()) {
+      case RelocEntry::kTypeExpression: {
+        Expression* expression = (Expression*)(uintptr_t(value));
+        ASMJIT_PROPAGATE(CodeHolder_evaluateExpression(this, expression, &value));
+        break;
+      }
+
       case RelocEntry::kTypeAbsToAbs: {
         break;
       }
@@ -944,6 +1024,10 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
     switch (re->valueSize()) {
       case 1:
         Support::writeU8(buffer + valueOffset, uint32_t(value & 0xFFu));
+        break;
+
+      case 2:
+        Support::writeU16uLE(buffer + valueOffset, uint32_t(value & 0xFFFFu));
         break;
 
       case 4:

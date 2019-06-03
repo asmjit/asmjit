@@ -1656,7 +1656,7 @@ CaseX86M_GPB_MulDiv:
       }
       break;
 
-    case InstDB::kEncodingX86Movdir64b:
+    case InstDB::kEncodingX86EnqcmdMovdir64b:
       if (isign3 == ENC_OPS2(Mem, Mem)) {
         const Mem& m0 = o0.as<Mem>();
         // This is the only required validation, the rest is handled afterwards.

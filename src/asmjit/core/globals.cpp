@@ -82,6 +82,8 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     "No more physical registers\0"
     "Overlapped registers\0"
     "Overlapping register and arguments base-address register\0"
+    "Unbound label cannot be evaluated by expression\0"
+    "Arithmetic overflow during expression evaluation\0"
     "Unknown error\0";
   return Support::findPackedString(errorMessages, Support::min<Error>(err, kErrorCount));
 #else

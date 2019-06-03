@@ -60,7 +60,7 @@ public:
     : _archInfo(Globals::NoInit),
       _features(Globals::NoInit) {};
 
-  //! Gets the host CPU information.
+  //! Returns the host CPU information.
   ASMJIT_API static const CpuInfo& host() noexcept;
 
   //! Initializes CpuInfo to the given architecture, see `ArchInfo`.
@@ -82,45 +82,45 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the CPU architecture information.
+  //! Returns the CPU architecture information.
   inline const ArchInfo& archInfo() const noexcept { return _archInfo; }
-  //! Gets the CPU architecture id, see `ArchInfo::Id`.
+  //! Returns the CPU architecture id, see `ArchInfo::Id`.
   inline uint32_t archId() const noexcept { return _archInfo.archId(); }
-  //! Gets the CPU architecture sub-id, see `ArchInfo::SubId`.
+  //! Returns the CPU architecture sub-id, see `ArchInfo::SubId`.
   inline uint32_t archSubId() const noexcept { return _archInfo.archSubId(); }
 
-  //! Gets the CPU family ID.
+  //! Returns the CPU family ID.
   inline uint32_t familyId() const noexcept { return _familyId; }
-  //! Gets the CPU model ID.
+  //! Returns the CPU model ID.
   inline uint32_t modelId() const noexcept { return _modelId; }
-  //! Gets the CPU brand id.
+  //! Returns the CPU brand id.
   inline uint32_t brandId() const noexcept { return _brandId; }
-  //! Gets the CPU stepping.
+  //! Returns the CPU stepping.
   inline uint32_t stepping() const noexcept { return _stepping; }
-  //! Gets the processor type.
+  //! Returns the processor type.
   inline uint32_t processorType() const noexcept { return _processorType; }
-  //! Gets the number of maximum logical processors.
+  //! Returns the number of maximum logical processors.
   inline uint32_t maxLogicalProcessors() const noexcept { return _maxLogicalProcessors; }
 
-  //! Gets the size of a cache line flush.
+  //! Returns the size of a cache line flush.
   inline uint32_t cacheLineSize() const noexcept { return _cacheLineSize; }
-  //! Gets number of hardware threads available.
+  //! Returns number of hardware threads available.
   inline uint32_t hwThreadCount() const noexcept { return _hwThreadCount; }
 
-  //! Gets the CPU vendor.
+  //! Returns the CPU vendor.
   inline const char* vendor() const noexcept { return _vendor.str; }
-  //! Gets whether the CPU vendor is equal to `s`.
+  //! Tests whether the CPU vendor is equal to `s`.
   inline bool isVendor(const char* s) const noexcept { return _vendor.eq(s); }
 
-  //! Gets the CPU brand string.
+  //! Returns the CPU brand string.
   inline const char* brand() const noexcept { return _brand.str; }
 
-  //! Gets all CPU features as `BaseFeatures`, cast to your arch-specific class
+  //! Returns all CPU features as `BaseFeatures`, cast to your arch-specific class
   //! if needed.
   template<typename T = BaseFeatures>
   inline const T& features() const noexcept { return _features.as<T>(); }
 
-  //! Gets whether the CPU has the given `feature`.
+  //! Tests whether the CPU has the given `feature`.
   inline bool hasFeature(uint32_t featureId) const noexcept { return _features.has(featureId); }
   //! Adds the given CPU `feature` to the list of this CpuInfo features.
   inline CpuInfo& addFeature(uint32_t featureId) noexcept { _features.add(featureId); return *this; }

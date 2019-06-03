@@ -187,22 +187,22 @@ static constexpr T lsbMask(CountT n) noexcept {
     : T(((U(1) << n) - U(1u)) | neg(U(n >= CountT(bitSizeOf<T>()))));
 }
 
-//! Gets whether `x` has Nth bit set.
+//! Tests whether the given value `x` has `n`th bit set.
 template<typename T, typename IndexT>
 static constexpr bool bitTest(T x, IndexT n) noexcept {
   typedef typename std::make_unsigned<T>::type U;
   return (U(x) & (U(1) << n)) != 0;
 }
 
-//! Return a bit-mask that has `x` bit set.
+//! Returns a bit-mask that has `x` bit set.
 template<typename T>
 static constexpr uint32_t bitMask(T x) noexcept { return (1u << x); }
 
-//! Return a bit-mask that has `x` bit set (multiple arguments).
+//! Returns a bit-mask that has `x` bit set (multiple arguments).
 template<typename T, typename... ArgsT>
 static constexpr uint32_t bitMask(T x, ArgsT... args) noexcept { return bitMask(x) | bitMask(args...); }
 
-//! Convert a boolean value `b` to zero or full mask (all bits set).
+//! Converts a boolean value `b` to zero or full mask (all bits set).
 template<typename DstT, typename SrcT>
 static constexpr DstT bitMaskFromBool(SrcT b) noexcept {
   typedef typename std::make_unsigned<DstT>::type U;
@@ -285,7 +285,7 @@ namespace Internal {
 
 //! Count trailing zeros in `x` (returns a position of a first bit set in `x`).
 //!
-//! NOTE: The input MUST NOT be zero, otherwise the result is undefined.
+//! \note The input MUST NOT be zero, otherwise the result is undefined.
 template<typename T>
 static inline uint32_t ctz(T x) noexcept { return Internal::ctz(asUInt(x)); }
 
@@ -346,11 +346,11 @@ namespace Internal {
 }
 //! \endcond
 
-//! Gets count of bits in `x`.
+//! Calculates count of bits in `x`.
 template<typename T>
 static inline uint32_t popcnt(T x) noexcept { return Internal::popcntImpl(asUInt(x)); }
 
-//! Gets count of bits in `x`.
+//! Calculates count of bits in `x` (useful in constant expressions).
 template<typename T>
 static inline uint32_t constPopcnt(T x) noexcept { return Internal::constPopcntImpl(asUInt(x)); }
 
@@ -416,7 +416,7 @@ static constexpr bool isAligned(X base, Y alignment) noexcept {
   return ((U)base % (U)alignment) == 0;
 }
 
-//! Gets whether the `x` is a power of two (only one bit is set).
+//! Tests whether the `x` is a power of two (only one bit is set).
 template<typename T>
 static constexpr bool isPowerOf2(T x) noexcept {
   typedef typename std::make_unsigned<T>::type U;
@@ -435,7 +435,8 @@ static constexpr T alignUpPowerOf2(T x) noexcept {
   return (T)(fillTrailingBits(U(x) - 1u) + 1u);
 }
 
-//! Gets zero or a positive difference between `base` and `base` when aligned to `alignment`.
+//! Returns either zero or a positive difference between `base` and `base` when
+//! aligned to `alignment`.
 template<typename X, typename Y>
 static constexpr typename Internal::IntBySize<sizeof(X), 0>::Type alignUpDiff(X base, Y alignment) noexcept {
   typedef typename Internal::IntBySize<sizeof(X), 0>::Type U;
@@ -1370,10 +1371,10 @@ struct Temporary {
   //! \name Accessors
   //! \{
 
-  //! Gets the storage.
+  //! Returns the data storage.
   template<typename T = void>
   constexpr T* data() const noexcept { return static_cast<T*>(_data); }
-  //! Gets the storage size (capacity).
+  //! Returns the data storage size in bytes.
   constexpr size_t size() const noexcept { return _size; }
 
   //! \}

@@ -207,7 +207,7 @@ struct Operand_ {
     kVirtIdCount = uint32_t(kVirtIdMax - kVirtIdMin + 1)
   };
 
-  //! Gets whether the given `id` is a valid virtual register id. Since AsmJit
+  //! Tests whether the given `id` is a valid virtual register id. Since AsmJit
   //! supports both physical and virtual registers it must be able to distinguish
   //! between these two. The idea is that physical registers are always limited
   //! in size, so virtual identifiers start from `kVirtIdMin` and end at
@@ -294,12 +294,12 @@ struct Operand_ {
   //! \name Accessors
   //! \{
 
-  //! Gets whether the operand matches the given signature `sign`.
+  //! Tests whether the operand matches the given signature `sign`.
   constexpr bool hasSignature(uint32_t signature) const noexcept { return _signature == signature; }
-  //! Gets whether the operand matches the signature of the `other` operand.
+  //! Tests whether the operand matches the signature of the `other` operand.
   constexpr bool hasSignature(const Operand_& other) const noexcept { return _signature == other.signature(); }
 
-  //! Gets a 32-bit operand signature.
+  //! Returns operand signature as unsigned 32-bit integer.
   //!
   //! Signature is first 4 bytes of the operand data. It's used mostly for
   //! operand checking as it's much faster to check 4 bytes at once than having
@@ -308,7 +308,7 @@ struct Operand_ {
 
   //! Sets the operand signature, see `signature()`.
   //!
-  //! NOTE: Improper use of `setSignature()` can lead to hard-to-debug errors.
+  //! \note Improper use of `setSignature()` can lead to hard-to-debug errors.
   inline void setSignature(uint32_t signature) noexcept { _signature = signature; }
 
   //! \cond INTERNAL
@@ -329,30 +329,30 @@ struct Operand_ {
   }
   //! \endcond
 
-  //! Gets the type of the operand, see `OpType`.
+  //! Returns the type of the operand, see `OpType`.
   constexpr uint32_t opType() const noexcept { return _getSignaturePart<kSignatureOpMask>(); }
-  //! Gets whether the operand is none (`kOpNone`).
+  //! Tests whether the operand is none (`kOpNone`).
   constexpr bool isNone() const noexcept { return _signature == 0; }
-  //! Gets whether the operand is a register (`kOpReg`).
+  //! Tests whether the operand is a register (`kOpReg`).
   constexpr bool isReg() const noexcept { return opType() == kOpReg; }
-  //! Gets whether the operand is a memory location (`kOpMem`).
+  //! Tests whether the operand is a memory location (`kOpMem`).
   constexpr bool isMem() const noexcept { return opType() == kOpMem; }
-  //! Gets whether the operand is an immediate (`kOpImm`).
+  //! Tests whether the operand is an immediate (`kOpImm`).
   constexpr bool isImm() const noexcept { return opType() == kOpImm; }
-  //! Gets whether the operand is a label (`kOpLabel`).
+  //! Tests whether the operand is a label (`kOpLabel`).
   constexpr bool isLabel() const noexcept { return opType() == kOpLabel; }
 
-  //! Gets whether the operand is a physical register.
+  //! Tests whether the operand is a physical register.
   constexpr bool isPhysReg() const noexcept { return isReg() && _baseId < 0xFFu; }
-  //! Gets whether the operand is a virtual register.
+  //! Tests whether the operand is a virtual register.
   constexpr bool isVirtReg() const noexcept { return isReg() && _baseId > 0xFFu; }
 
-  //! Gets whether the operand specifies a size (i.e. the size is not zero).
+  //! Tests whether the operand specifies a size (i.e. the size is not zero).
   constexpr bool hasSize() const noexcept { return _hasSignaturePart<kSignatureSizeMask>(); }
-  //! Gets whether the size of the operand matches `size`.
+  //! Tests whether the size of the operand matches `size`.
   constexpr bool hasSize(uint32_t s) const noexcept { return size() == s; }
 
-  //! Gets the size of the operand (in bytes).
+  //! Returns the size of the operand in bytes.
   //!
   //! The value returned depends on the operand type:
   //!   * None  - Should always return zero size.
@@ -365,7 +365,7 @@ struct Operand_ {
   //!   * Label - Should always return zero size.
   constexpr uint32_t size() const noexcept { return _getSignaturePart<kSignatureSizeMask>(); }
 
-  //! Gets the operand id.
+  //! Returns the operand id.
   //!
   //! The value returned should be interpreted accordingly to the operand type:
   //!   * None  - Should be `0`.
@@ -378,25 +378,25 @@ struct Operand_ {
   //!             initialized.
   constexpr uint32_t id() const noexcept { return _baseId; }
 
-  //! Gets whether the operand is 100% equal to `other`.
+  //! Tests whether the operand is 100% equal to `other`.
   constexpr bool isEqual(const Operand_& other) const noexcept {
     return (_signature == other._signature) &
            (_baseId    == other._baseId   ) &
            (_data64    == other._data64   ) ;
   }
 
-  //! Gets whether the operand is a register matching `rType`.
+  //! Tests whether the operand is a register matching `rType`.
   constexpr bool isReg(uint32_t rType) const noexcept {
     return (_signature & (kSignatureOpMask | kSignatureRegTypeMask)) ==
            ((kOpReg << kSignatureOpShift) | (rType << kSignatureRegTypeShift));
   }
 
-  //! Gets whether the operand is register and of `rType` and `rId`.
+  //! Tests whether the operand is register and of `rType` and `rId`.
   constexpr bool isReg(uint32_t rType, uint32_t rId) const noexcept {
     return isReg(rType) && id() == rId;
   }
 
-  //! Gets whether the operand is a register or memory.
+  //! Tests whether the operand is a register or memory.
   constexpr bool isRegOrMem() const noexcept {
     return Support::isBetween<uint32_t>(opType(), kOpReg, kOpMem);
   }
@@ -470,7 +470,7 @@ namespace Globals {
 //!
 //! Example of using labels:
 //!
-//! ~~~
+//! ```
 //! // Create some emitter (for example x86::Assembler).
 //! x86::Assembler a;
 //!
@@ -486,7 +486,7 @@ namespace Globals {
 //!
 //! // Bind label to the current position, see `BaseEmitter::bind()`.
 //! a.bind(L1);
-//! ~~~
+//! ```
 class Label : public Operand {
 public:
   //! Type of the Label.
@@ -548,7 +548,7 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether the label was created by CodeHolder and/or an attached emitter.
+  //! Tests whether the label was created by CodeHolder and/or an attached emitter.
   constexpr bool isValid() const noexcept { return _baseId != Globals::kInvalidId; }
   //! Sets the label `id`.
   inline void setId(uint32_t id) noexcept { _baseId = id; }
@@ -707,7 +707,7 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether this register is the same as `other`.
+  //! Tests whether this register is the same as `other`.
   //!
   //! This is just an optimization. Registers by default only use the first
   //! 8 bytes of the Operand, so this method takes advantage of this knowledge
@@ -721,34 +721,34 @@ public:
            (_baseId    == other._baseId   ) ;
   }
 
-  //! Gets whether the register is valid (either virtual or physical).
+  //! Tests whether the register is valid (either virtual or physical).
   constexpr bool isValid() const noexcept { return (_signature != 0) & (_baseId != kIdBad); }
 
-  //! Gets whether this is a physical register.
+  //! Tests whether this is a physical register.
   constexpr bool isPhysReg() const noexcept { return _baseId < kIdBad; }
-  //! Gets whether this is a virtual register.
+  //! Tests whether this is a virtual register.
   constexpr bool isVirtReg() const noexcept { return _baseId > kIdBad; }
 
-  //! Gets whether the register type matches `type` - same as `isReg(type)`, provided for convenience.
+  //! Tests whether the register type matches `type` - same as `isReg(type)`, provided for convenience.
   constexpr bool isType(uint32_t type) const noexcept { return (_signature & kSignatureRegTypeMask) == (type << kSignatureRegTypeShift); }
-  //! Gets whether the register group matches `group`.
+  //! Tests whether the register group matches `group`.
   constexpr bool isGroup(uint32_t group) const noexcept { return (_signature & kSignatureRegGroupMask) == (group << kSignatureRegGroupShift); }
 
-  //! Gets whether the register is a general purpose register (any size).
+  //! Tests whether the register is a general purpose register (any size).
   constexpr bool isGp() const noexcept { return isGroup(kGroupGp); }
-  //! Gets whether the register is a vector register.
+  //! Tests whether the register is a vector register.
   constexpr bool isVec() const noexcept { return isGroup(kGroupVec); }
 
   using Operand_::isReg;
 
   //! Same as `isType()`, provided for convenience.
   constexpr bool isReg(uint32_t rType) const noexcept { return isType(rType); }
-  //! Gets whether the register type matches `type` and register id matches `rId`.
+  //! Tests whether the register type matches `type` and register id matches `rId`.
   constexpr bool isReg(uint32_t rType, uint32_t rId) const noexcept { return isType(rType) && id() == rId; }
 
-  //! Gets the register type.
+  //! Returns the type of the register.
   constexpr uint32_t type() const noexcept { return _getSignaturePart<kSignatureRegTypeMask>(); }
-  //! Gets the register group.
+  //! Returns the register group.
   constexpr uint32_t group() const noexcept { return _getSignaturePart<kSignatureRegGroupMask>(); }
 
   //! Clones the register operand.
@@ -756,13 +756,13 @@ public:
 
   //! Casts this register to `RegT` by also changing its signature.
   //!
-  //! NOTE: Improper use of `cloneAs()` can lead to hard-to-debug errors.
+  //! \note Improper use of `cloneAs()` can lead to hard-to-debug errors.
   template<typename RegT>
   constexpr RegT cloneAs() const noexcept { return RegT(RegT::kSignature, id()); }
 
   //! Casts this register to `other` by also changing its signature.
   //!
-  //! NOTE: Improper use of `cloneAs()` can lead to hard-to-debug errors.
+  //! \note Improper use of `cloneAs()` can lead to hard-to-debug errors.
   template<typename RegT>
   constexpr RegT cloneAs(const RegT& other) const noexcept { return RegT(other.signature(), id()); }
 
@@ -791,7 +791,7 @@ public:
     return (op.signature() & (kSignatureOpMask | kSignatureRegGroupMask)) == kSgn;
   }
 
-  //! Gets whether the `op` operand is either a low or high 8-bit GPB register.
+  //! Tests whether the `op` operand is either a low or high 8-bit GPB register.
   static inline bool isVec(const Operand_& op) noexcept {
     // Check operand type and register group. Not interested in register type and size.
     const uint32_t kSgn = (kOpReg    << kSignatureOpShift      ) |
@@ -840,19 +840,23 @@ struct RegOnly {
   //! \name Accessors
   //! \{
 
-  //! Gets whether this ExtraReg is none (same as calling `Operand_::isNone()`).
+  //! Tests whether this ExtraReg is none (same as calling `Operand_::isNone()`).
   constexpr bool isNone() const noexcept { return _signature == 0; }
-  //! Gets whether the register is valid (either virtual or physical).
+  //! Tests whether the register is valid (either virtual or physical).
   constexpr bool isReg() const noexcept { return _signature != 0; }
 
-  //! Gets whether this is a physical register.
+  //! Tests whether this is a physical register.
   constexpr bool isPhysReg() const noexcept { return _id < BaseReg::kIdBad; }
-  //! Gets whether this is a virtual register (used by `BaseCompiler`).
+  //! Tests whether this is a virtual register (used by `BaseCompiler`).
   constexpr bool isVirtReg() const noexcept { return _id > BaseReg::kIdBad; }
 
-  //! Gets the register signature or 0.
+  //! Returns the register signature or 0 if no register is assigned.
   constexpr uint32_t signature() const noexcept { return _signature; }
-  //! Gets the register id or 0.
+  //! Returns the register id.
+  //!
+  //! \note Always check whether the register is assigned before using the
+  //! returned identifier as non-assigned `RegOnly` instance would return
+  //! zero id, which is still a valid register id.
   constexpr uint32_t id() const noexcept { return _id; }
 
   //! Sets the register id.
@@ -867,9 +871,9 @@ struct RegOnly {
   }
   //! \endcond
 
-  //! Gets the register type.
+  //! Returns the type of the register.
   constexpr uint32_t type() const noexcept { return _getSignaturePart<Operand::kSignatureRegTypeMask>(); }
-  //! Gets the register group.
+  //! Returns the register group.
   constexpr uint32_t group() const noexcept { return _getSignaturePart<Operand::kSignatureRegGroupMask>(); }
 
   //! \}
@@ -890,7 +894,7 @@ struct RegOnly {
 
 //! Base class for all memory operands.
 //!
-//! NOTE: It's tricky to pack all possible cases that define a memory operand
+//! \note It's tricky to pack all possible cases that define a memory operand
 //! into just 16 bytes. The `BaseMem` splits data into the following parts:
 //!
 //!   BASE   - Base register or label - requires 36 bits total. 4 bits are used to
@@ -1011,45 +1015,45 @@ public:
   inline void setRegHome() noexcept { _signature |= kSignatureMemRegHomeFlag; }
   inline void clearRegHome() noexcept { _signature &= ~kSignatureMemRegHomeFlag; }
 
-  //! Gets whether the memory operand has a BASE register or label specified.
+  //! Tests whether the memory operand has a BASE register or label specified.
   constexpr bool hasBase() const noexcept { return (_signature & kSignatureMemBaseTypeMask) != 0; }
-  //! Gets whether the memory operand has an INDEX register specified.
+  //! Tests whether the memory operand has an INDEX register specified.
   constexpr bool hasIndex() const noexcept { return (_signature & kSignatureMemIndexTypeMask) != 0; }
-  //! Gets whether the memory operand has BASE and INDEX register.
+  //! Tests whether the memory operand has BASE and INDEX register.
   constexpr bool hasBaseOrIndex() const noexcept { return (_signature & kSignatureMemBaseIndexMask) != 0; }
-  //! Gets whether the memory operand has BASE and INDEX register.
+  //! Tests whether the memory operand has BASE and INDEX register.
   constexpr bool hasBaseAndIndex() const noexcept { return (_signature & kSignatureMemBaseTypeMask) != 0 && (_signature & kSignatureMemIndexTypeMask) != 0; }
 
-  //! Gets whether the BASE operand is a register (registers start after `kLabelTag`).
+  //! Tests whether the BASE operand is a register (registers start after `kLabelTag`).
   constexpr bool hasBaseReg() const noexcept { return (_signature & kSignatureMemBaseTypeMask) > (Label::kLabelTag << kSignatureMemBaseTypeShift); }
-  //! Gets whether the BASE operand is a label.
+  //! Tests whether the BASE operand is a label.
   constexpr bool hasBaseLabel() const noexcept { return (_signature & kSignatureMemBaseTypeMask) == (Label::kLabelTag << kSignatureMemBaseTypeShift); }
-  //! Gets whether the INDEX operand is a register (registers start after `kLabelTag`).
+  //! Tests whether the INDEX operand is a register (registers start after `kLabelTag`).
   constexpr bool hasIndexReg() const noexcept { return (_signature & kSignatureMemIndexTypeMask) > (Label::kLabelTag << kSignatureMemIndexTypeShift); }
 
-  //! Gets the type of a BASE register (0 if this memory operand doesn't use
-  //! the BASE register).
+  //! Returns the type of the BASE register (0 if this memory operand doesn't
+  //! use the BASE register).
   //!
-  //! NOTE: If the returned type is one (a value never associated to a register
+  //! \note If the returned type is one (a value never associated to a register
   //! type) the BASE is not register, but it's a label. One equals to `kLabelTag`.
   //! You should always check `hasBaseLabel()` before using `baseId()` result.
   constexpr uint32_t baseType() const noexcept { return _getSignaturePart<kSignatureMemBaseTypeMask>(); }
 
-  //! Gets the type of an INDEX register (0 if this memory operand doesn't use
-  //! the INDEX register).
+  //! Returns the type of an INDEX register (0 if this memory operand doesn't
+  //! use the INDEX register).
   constexpr uint32_t indexType() const noexcept { return _getSignaturePart<kSignatureMemIndexTypeMask>(); }
 
   //! This is used internally for BASE+INDEX validation.
   constexpr uint32_t baseAndIndexTypes() const noexcept { return _getSignaturePart<kSignatureMemBaseIndexMask>(); }
 
-  //! Gets both BASE (4:0 bits) and INDEX (9:5 bits) types combined into a
+  //! Returns both BASE (4:0 bits) and INDEX (9:5 bits) types combined into a
   //! single value.
   //!
-  //! \remarks Gets id of the BASE register or label (if the BASE was
+  //! \remarks Returns id of the BASE register or label (if the BASE was
   //! specified as label).
   constexpr uint32_t baseId() const noexcept { return _baseId; }
 
-  //! Gets the id of the INDEX register.
+  //! Returns the id of the INDEX register.
   constexpr uint32_t indexId() const noexcept { return _mem.indexId; }
 
   //! Sets the id of the BASE register (without modifying its type).
@@ -1080,33 +1084,33 @@ public:
   //! Sets the memory operand size (in bytes).
   inline void setSize(uint32_t size) noexcept { _setSignaturePart<kSignatureSizeMask>(size); }
 
-  //! Gets whether the memory operand has a 64-bit offset or absolute address.
+  //! Tests whether the memory operand has a 64-bit offset or absolute address.
   //!
   //! If this is true then `hasBase()` must always report false.
   constexpr bool isOffset64Bit() const noexcept { return baseType() == 0; }
 
-  //! Gets whether the memory operand has a non-zero offset or absolute address.
+  //! Tests whether the memory operand has a non-zero offset or absolute address.
   constexpr bool hasOffset() const noexcept {
     return (_mem.offsetLo32 | uint32_t(_baseId & Support::bitMaskFromBool<uint32_t>(isOffset64Bit()))) != 0;
   }
 
-  //! Gets a 64-bit offset or absolute address.
+  //! Returns either relative offset or absolute address as 64-bit integer.
   constexpr int64_t offset() const noexcept {
     return isOffset64Bit() ? int64_t(uint64_t(_mem.offsetLo32) | (uint64_t(_baseId) << 32))
                            : int64_t(int32_t(_mem.offsetLo32)); // Sign extend 32-bit offset.
   }
 
-  //! Gets a lower part of a 64-bit offset or absolute address.
+  //! Returns a 32-bit low part of a 64-bit offset or absolute address.
   constexpr int32_t offsetLo32() const noexcept { return int32_t(_mem.offsetLo32); }
-  //! Gets a higher part of a 64-bit offset or absolute address.
+  //! Returns a 32-but high part of a 64-bit offset or absolute address.
   //!
-  //! NOTE: This function is UNSAFE and returns garbage if `isOffset64Bit()`
+  //! \note This function is UNSAFE and returns garbage if `isOffset64Bit()`
   //! returns false. Never use it blindly without checking it first.
   constexpr int32_t offsetHi32() const noexcept { return int32_t(_baseId); }
 
   //! Sets a 64-bit offset or an absolute address to `offset`.
   //!
-  //! NOTE: This functions attempts to set both high and low parts of a 64-bit
+  //! \note This functions attempts to set both high and low parts of a 64-bit
   //! offset, however, if the operand has a BASE register it will store only the
   //! low 32 bits of the offset / address as there is no way to store both BASE
   //! and 64-bit offset, and there is currently no architecture that has such
@@ -1124,7 +1128,7 @@ public:
 
   //! Adjusts the offset by `offset`.
   //!
-  //! NOTE: This is a fast function that doesn't use the HI 32-bits of a
+  //! \note This is a fast function that doesn't use the HI 32-bits of a
   //! 64-bit offset. Use it only if you know that there is a BASE register
   //! and the offset is only 32 bits anyway.
 
@@ -1199,46 +1203,46 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether the immediate can be casted to 8-bit signed integer.
+  //! Tests whether the immediate can be casted to 8-bit signed integer.
   constexpr bool isInt8() const noexcept { return Support::isInt8(int64_t(_data64)); }
-  //! Gets whether the immediate can be casted to 8-bit unsigned integer.
+  //! Tests whether the immediate can be casted to 8-bit unsigned integer.
   constexpr bool isUInt8() const noexcept { return Support::isUInt8(int64_t(_data64)); }
-  //! Gets whether the immediate can be casted to 16-bit signed integer.
+  //! Tests whether the immediate can be casted to 16-bit signed integer.
   constexpr bool isInt16() const noexcept { return Support::isInt16(int64_t(_data64)); }
-  //! Gets whether the immediate can be casted to 16-bit unsigned integer.
+  //! Tests whether the immediate can be casted to 16-bit unsigned integer.
   constexpr bool isUInt16() const noexcept { return Support::isUInt16(int64_t(_data64)); }
-  //! Gets whether the immediate can be casted to 32-bit signed integer.
+  //! Tests whether the immediate can be casted to 32-bit signed integer.
   constexpr bool isInt32() const noexcept { return Support::isInt32(int64_t(_data64)); }
-  //! Gets whether the immediate can be casted to 32-bit unsigned integer.
+  //! Tests whether the immediate can be casted to 32-bit unsigned integer.
   constexpr bool isUInt32() const noexcept { return Support::isUInt32(int64_t(_data64)); }
 
-  //! Gets immediate value as 8-bit signed integer.
+  //! Returns immediate value as 8-bit signed integer, possibly cropped.
   constexpr int8_t i8() const noexcept { return int8_t(_data64 & 0xFFu); }
-  //! Gets immediate value as 8-bit unsigned integer.
+  //! Returns immediate value as 8-bit unsigned integer, possibly cropped.
   constexpr uint8_t u8() const noexcept { return uint8_t(_data64 & 0xFFu); }
-  //! Gets immediate value as 16-bit signed integer.
+  //! Returns immediate value as 16-bit signed integer, possibly cropped.
   constexpr int16_t i16() const noexcept { return int16_t(_data64 & 0xFFFFu);}
-  //! Gets immediate value as 16-bit unsigned integer.
+  //! Returns immediate value as 16-bit unsigned integer, possibly cropped.
   constexpr uint16_t u16() const noexcept { return uint16_t(_data64 & 0xFFFFu);}
-  //! Gets immediate value as 32-bit signed integer.
+  //! Returns immediate value as 32-bit signed integer, possibly cropped.
   constexpr int32_t i32() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
-  //! Gets low 32-bit signed integer.
+  //! Returns low 32-bit signed integer.
   constexpr int32_t i32Lo() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
-  //! Gets high 32-bit signed integer.
+  //! Returns high 32-bit signed integer.
   constexpr int32_t i32Hi() const noexcept { return int32_t(_data64 >> 32); }
-  //! Gets immediate value as 32-bit unsigned integer.
+  //! Returns immediate value as 32-bit unsigned integer, possibly cropped.
   constexpr uint32_t u32() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
-  //! Gets low 32-bit signed integer.
+  //! Returns low 32-bit signed integer.
   constexpr uint32_t u32Lo() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
-  //! Gets high 32-bit signed integer.
+  //! Returns high 32-bit signed integer.
   constexpr uint32_t u32Hi() const noexcept { return uint32_t(_data64 >> 32); }
-  //! Gets immediate value as 64-bit signed integer.
+  //! Returns immediate value as 64-bit signed integer.
   constexpr int64_t i64() const noexcept { return int64_t(_data64); }
-  //! Gets immediate value as 64-bit unsigned integer.
+  //! Returns immediate value as 64-bit unsigned integer.
   constexpr uint64_t u64() const noexcept { return _data64; }
-  //! Gets immediate value as `intptr_t`.
+  //! Returns immediate value as `intptr_t`, possibly cropped if size of `intptr_t` is 32 bits.
   constexpr intptr_t iptr() const noexcept { return (sizeof(intptr_t) == sizeof(int64_t)) ? intptr_t(_data64) : intptr_t(i32()); }
-  //! Gets immediate value as `uintptr_t`.
+  //! Returns immediate value as `uintptr_t`, possibly cropped if size of `uintptr_t` is 32 bits.
   constexpr uintptr_t uptr() const noexcept { return (sizeof(uintptr_t) == sizeof(uint64_t)) ? uintptr_t(_data64) : uintptr_t(u32()); }
 
   //! Sets immediate value to 8-bit signed integer `val`.

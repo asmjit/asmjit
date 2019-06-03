@@ -49,7 +49,8 @@ public:
     kAVX512_VBMI,              //!< CPU has AVX512_VBMI      (vector byte manipulation).
     kAVX512_VBMI2,             //!< CPU has AVX512_VBMI2     (vector byte manipulation 2).
     kAVX512_VL,                //!< CPU has AVX512_VL        (vector length extensions).
-    kAVX512_VNNI,              //!< CPU has AVX512_VNNI.     (vector neural network instructions).
+    kAVX512_VNNI,              //!< CPU has AVX512_VNNI      (vector neural network instructions).
+    kAVX512_VP2INTERSECT,      //!< CPU has AVX512_VP2INTERSECT
     kAVX512_VPOPCNTDQ,         //!< CPU has AVX512_VPOPCNTDQ (VPOPCNT[D|Q] instructions).
     kBMI,                      //!< CPU has BMI              (bit manipulation instructions #1).
     kBMI2,                     //!< CPU has BMI2             (bit manipulation instructions #2).
@@ -62,6 +63,7 @@ public:
     kCMPXCHG16B,               //!< CPU has CMPXCHG16B       (compare-exchange 16 bytes) [X86_64].
     kCMPXCHG8B,                //!< CPU has CMPXCHG8B        (compare-exchange 8 bytes).
     kENCLV,                    //!< CPU has ENCLV.
+    kENQCMD,                   //!< CPU has ENQCMD           (enqueue stores).
     kERMS,                     //!< CPU has ERMS             (enhanced REP MOVSB/STOSB).
     kF16C,                     //!< CPU has F16C.
     kFMA,                      //!< CPU has FMA              (fused-multiply-add 3 operand form).
@@ -118,6 +120,7 @@ public:
     kVAES,                     //!< CPU has VAES             (vector AES 256|512 bit support).
     kVMX,                      //!< CPU has VMX              (virtualization) [INTEL].
     kVPCLMULQDQ,               //!< CPU has VPCLMULQDQ       (vector PCLMULQDQ 256|512-bit support).
+    kWAITPKG,                  //!< CPU has WAITPKG          (UMONITOR, UMWAIT, TPAUSE).
     kWBNOINVD,                 //!< CPU has WBNOINVD.
     kXOP,                      //!< CPU has XOP              (XOP instructions) [AMD].
     kXSAVE,                    //!< CPU has XSAVE.
@@ -176,6 +179,7 @@ public:
   ASMJIT_X86_FEATURE(AVX512_VBMI2)
   ASMJIT_X86_FEATURE(AVX512_VL)
   ASMJIT_X86_FEATURE(AVX512_VNNI)
+  ASMJIT_X86_FEATURE(AVX512_VP2INTERSECT)
   ASMJIT_X86_FEATURE(AVX512_VPOPCNTDQ)
   ASMJIT_X86_FEATURE(BMI)
   ASMJIT_X86_FEATURE(BMI2)
@@ -188,6 +192,7 @@ public:
   ASMJIT_X86_FEATURE(CMPXCHG16B)
   ASMJIT_X86_FEATURE(CMPXCHG8B)
   ASMJIT_X86_FEATURE(ENCLV)
+  ASMJIT_X86_FEATURE(ENQCMD)
   ASMJIT_X86_FEATURE(ERMS)
   ASMJIT_X86_FEATURE(F16C)
   ASMJIT_X86_FEATURE(FMA)
@@ -248,6 +253,7 @@ public:
   ASMJIT_X86_FEATURE(VAES)
   ASMJIT_X86_FEATURE(VMX)
   ASMJIT_X86_FEATURE(VPCLMULQDQ)
+  ASMJIT_X86_FEATURE(WAITPKG)
   ASMJIT_X86_FEATURE(WBNOINVD)
   ASMJIT_X86_FEATURE(XOP)
 

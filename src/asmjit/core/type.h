@@ -261,12 +261,13 @@ static inline uint32_t sizeOf(uint32_t typeId) noexcept {
   return _typeData.sizeOf[typeId];
 }
 
-//! Gets an offset to convert a `kIntPtr` and `kUIntPtr` TypeId into a
-//! type that matches `gpSize` (general-purpose register size). If you
-//! find such TypeId it's then only about adding the offset to it.
+//! Returns offset needed to convert a `kIntPtr` and `kUIntPtr` TypeId
+//! into a type that matches `gpSize` (general-purpose register size).
+//! If you find such TypeId it's then only about adding the offset to it.
 //!
 //! For example:
-//! ~~~
+//!
+//! ```
 //! uint32_t gpSize = '4' or '8';
 //! uint32_t deabstractDelta = Type::deabstractDeltaOfSize(gpSize);
 //!
@@ -277,7 +278,7 @@ static inline uint32_t sizeOf(uint32_t typeId) noexcept {
 //!
 //! // The same, but by using Type::deabstract() function.
 //! typeId = Type::deabstract(typeId, deabstractDelta);
-//! ~~~
+//! ```
 static constexpr uint32_t deabstractDeltaOfSize(uint32_t gpSize) noexcept {
   return gpSize >= 8 ? kIdI64 - kIdIntPtr : kIdI32 - kIdIntPtr;
 }

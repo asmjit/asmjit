@@ -38,6 +38,7 @@ public:
   #if defined(_WIN32)
 
   typedef CRITICAL_SECTION Handle;
+  Handle _handle;
 
   inline Lock() noexcept { InitializeCriticalSection(&_handle); }
   inline ~Lock() noexcept { DeleteCriticalSection(&_handle); }
@@ -45,19 +46,16 @@ public:
   inline void lock() noexcept { EnterCriticalSection(&_handle); }
   inline void unlock() noexcept { LeaveCriticalSection(&_handle); }
 
-  Handle _handle;
-
   #elif !defined(__EMSCRIPTEN__)
 
   typedef pthread_mutex_t Handle;
+  Handle _handle;
 
   inline Lock() noexcept { pthread_mutex_init(&_handle, nullptr); }
   inline ~Lock() noexcept { pthread_mutex_destroy(&_handle); }
 
   inline void lock() noexcept { pthread_mutex_lock(&_handle); }
   inline void unlock() noexcept { pthread_mutex_unlock(&_handle); }
-
-  Handle _handle;
 
   #else
 
@@ -83,10 +81,10 @@ public:
 struct ScopedLock {
   ASMJIT_NONCOPYABLE(ScopedLock)
 
+  Lock& _target;
+
   inline ScopedLock(Lock& target) noexcept : _target(target) { _target.lock(); }
   inline ~ScopedLock() noexcept { _target.unlock(); }
-
-  Lock& _target;
 };
 
 //! \endcond

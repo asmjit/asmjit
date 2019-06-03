@@ -68,12 +68,12 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets all features as `BitWord` array.
+  //! Returns all features as `BitWord` array.
   inline BitWord* bits() noexcept { return _bits; }
-  //! Gets all features as `BitWord` array (const).
+  //! Returns all features as `BitWord` array (const).
   inline const BitWord* bits() const noexcept { return _bits; }
 
-  //! Gets whether feature `featureId` is present.
+  //! Tests whether the feature `featureId` is present.
   inline bool has(uint32_t featureId) const noexcept {
     ASMJIT_ASSERT(featureId < kMaxFeatures);
 
@@ -83,7 +83,7 @@ public:
     return bool((_bits[idx] >> bit) & 0x1);
   }
 
-  //! Gets whether all features as defined by `other` are present.
+  //! Tests whether all features as defined by `other` are present.
   inline bool hasAll(const BaseFeatures& other) const noexcept {
     for (uint32_t i = 0; i < kNumBitWords; i++)
       if ((_bits[i] & other._bits[i]) != other._bits[i])

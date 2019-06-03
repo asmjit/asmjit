@@ -87,7 +87,7 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets a `ZoneAllocator` attached to this container.
+  //! Returns `ZoneAllocator` attached to this container.
   inline ZoneAllocator* allocator() const noexcept { return _allocator; }
 
   inline bool empty() const noexcept {

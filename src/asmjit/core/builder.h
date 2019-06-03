@@ -38,10 +38,11 @@ class SectionNode;
 class LabelNode;
 class AlignNode;
 class EmbedDataNode;
-class LabelDataNode;
+class EmbedLabelNode;
 class ConstPoolNode;
 class CommentNode;
 class SentinelNode;
+class LabelDeltaNode;
 
 // ============================================================================
 // [asmjit::BaseBuilder]
@@ -93,9 +94,9 @@ public:
   //! \name Node Management
   //! \{
 
-  //! Gets the first node.
+  //! Returns the first node.
   inline BaseNode* firstNode() const noexcept { return _firstNode; }
-  //! Gets the last node.
+  //! Returns the last node.
   inline BaseNode* lastNode() const noexcept { return _lastNode; }
 
   //! Allocates and instantiates a new node of type `T` and returns its instance.
@@ -145,7 +146,7 @@ public:
   //! Removes multiple nodes.
   ASMJIT_API void removeNodes(BaseNode* first, BaseNode* last) noexcept;
 
-  //! Gets the current node called cursor.
+  //! Returns the cursor.
   //!
   //! When the Builder/Compiler is created it automatically creates a '.text'
   //! \ref SectionNode, which will be the initial one. When instructions are
@@ -168,18 +169,18 @@ public:
   //! \name Section Management
   //! \{
 
-  //! Gets a vector of SectionNode nodes.
+  //! Returns a vector of SectionNode objects.
   //!
-  //! NOTE: If a section of some id is not associated with the Builder/Compiler
+  //! \note If a section of some id is not associated with the Builder/Compiler
   //! it would be null, so always check for nulls if you iterate over the vector.
   inline const ZoneVector<SectionNode*>& sectionNodes() const noexcept { return _sectionNodes; }
 
-  //! Gets whether the `SectionNode` of the given `sectionId` was registered.
+  //! Tests whether the `SectionNode` of the given `sectionId` was registered.
   inline bool hasRegisteredSectionNode(uint32_t sectionId) const noexcept {
     return sectionId < _sectionNodes.size() && _sectionNodes[sectionId] != nullptr;
   }
 
-  //! Gets or creates a `SectionNode` that matches the given `sectionId`.
+  //! Returns or creates a `SectionNode` that matches the given `sectionId`.
   //!
   //! \remarks This function will either get the existing `SectionNode` or create
   //! it in case it wasn't created before. You can check whether a section has a
@@ -188,7 +189,7 @@ public:
 
   ASMJIT_API Error section(Section* section) override;
 
-  //! Gets whether the section links of active section nodes are dirty. You can
+  //! Returns whether the section links of active section nodes are dirty. You can
   //! update these links by calling `updateSectionLinks()` in such case.
   inline bool hasDirtySectionLinks() const noexcept { return _dirtySectionLinks; }
 
@@ -200,13 +201,13 @@ public:
   //! \name Label Management
   //! \{
 
-  //! Gets a vector of LabelNode nodes.
+  //! Returns a vector of LabelNode nodes.
   //!
-  //! NOTE: If a label of some id is not associated with the Builder/Compiler
+  //! \note If a label of some id is not associated with the Builder/Compiler
   //! it would be null, so always check for nulls if you iterate over the vector.
   inline const ZoneVector<LabelNode*>& labelNodes() const noexcept { return _labelNodes; }
 
-  //! Gets whether the `LabelNode` of the given `labelId` was registered.
+  //! Tests whether the `LabelNode` of the given `labelId` was registered.
   inline bool hasRegisteredLabelNode(uint32_t labelId) const noexcept {
     return labelId < _labelNodes.size() && _labelNodes[labelId] != nullptr;
   }
@@ -244,7 +245,7 @@ public:
   //! \name Passes
   //! \{
 
-  //! Gets a vector of Pass instances that will be executed by `runPasses()`.
+  //! Returns a vector of `Pass` instances that will be executed by `runPasses()`.
   inline const ZoneVector<Pass*>& passes() const noexcept { return _passes; }
 
   //! Allocates and instantiates a new pass of type `T` and returns its instance.
@@ -268,7 +269,7 @@ public:
   template<typename T, typename... ArgsT>
   inline Error addPassT(ArgsT&&... args) noexcept { return addPass(newPassT<T, ArgsT...>(std::forward<ArgsT>(args)...)); }
 
-  //! Gets a `Pass` by name.
+  //! Returns `Pass` by name.
   ASMJIT_API Pass* passByName(const char* name) const noexcept;
   //! Adds `pass` to the list of passes.
   ASMJIT_API Error addPass(Pass* pass) noexcept;
@@ -298,8 +299,9 @@ public:
   //! \name Embed
   //! \{
 
-  ASMJIT_API Error embed(const void* data, uint32_t size) override;
+  ASMJIT_API Error embed(const void* data, uint32_t dataSize) override;
   ASMJIT_API Error embedLabel(const Label& label) override;
+  ASMJIT_API Error embedLabelDelta(const Label& label, const Label& base, uint32_t dataSize) override;
   ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool) override;
 
   //! \}
@@ -424,26 +426,45 @@ public:
 
   //! Type of `BaseNode`.
   enum NodeType : uint32_t {
-    kNodeNone       = 0,                 //!< Invalid node (internal, don't use).
+    //! Invalid node (internal, don't use).
+    kNodeNone = 0,
 
     // [BaseBuilder]
-    kNodeInst       = 1,                 //!< Node is `InstNode` or `InstExNode`.
-    kNodeSection    = 2,                 //!< Node is `SectionNode`.
-    kNodeLabel      = 3,                 //!< Node is `LabelNode`.
-    kNodeAlign      = 4,                 //!< Node is `AlignNode`.
-    kNodeEmbedData  = 5,                 //!< Node is `EmbedDataNode`.
-    kNodeLabelData  = 6,                 //!< Node is `LabelDataNode`.
-    kNodeConstPool  = 7,                 //!< Node is `ConstPoolNode`.
-    kNodeComment    = 8,                 //!< Node is `CommentNode`.
-    kNodeSentinel   = 9,                 //!< Node is `SentinelNode`.
+
+    //! Node is `InstNode` or `InstExNode`.
+    kNodeInst = 1,
+    //! Node is `SectionNode`.
+    kNodeSection = 2,
+    //! Node is `LabelNode`.
+    kNodeLabel = 3,
+    //! Node is `AlignNode`.
+    kNodeAlign = 4,
+    //! Node is `EmbedDataNode`.
+    kNodeEmbedData = 5,
+    //! Node is `EmbedLabelNode`.
+    kNodeEmbedLabel = 6,
+    //! Node is `EmbedLabelDeltaNode`.
+    kNodeEmbedLabelDelta = 7,
+    //! Node is `ConstPoolNode`.
+    kNodeConstPool = 8,
+    //! Node is `CommentNode`.
+    kNodeComment = 9,
+    //! Node is `SentinelNode`.
+    kNodeSentinel = 10,
 
     // [BaseCompiler]
-    kNodeFunc       = 16,                //!< Node is `FuncNode`     (acts as LabelNode).
-    kNodeFuncRet    = 17,                //!< Node is `FuncRetNode`  (acts as InstNode).
-    kNodeFuncCall   = 18,                //!< Node is `FuncCallNode` (acts as InstNode).
+
+    //! Node is `FuncNode` (acts as LabelNode).
+    kNodeFunc = 16,
+    //! Node is `FuncRetNode` (acts as InstNode).
+    kNodeFuncRet = 17,
+    //! Node is `FuncCallNode` (acts as InstNode).
+    kNodeFuncCall = 18,
 
     // [UserDefined]
-    kNodeUser       = 32                 //!< First id of a user-defined node.
+
+    //! First id of a user-defined node.
+    kNodeUser = 32
   };
 
   //! Node flags, specify what the node is and/or does.
@@ -487,14 +508,14 @@ public:
   template<typename T>
   inline const T* as() const noexcept { return static_cast<const T*>(this); }
 
-  //! Gets previous node or `nullptr` if this node is either first or not part
-  //! of Builder/Compiler node-list.
+  //! Returns previous node or `nullptr` if this node is either first or not
+  //! part of Builder/Compiler node-list.
   inline BaseNode* prev() const noexcept { return _prev; }
-  //! Gets next node or `nullptr` if this node is either last or not part of
-  //! Builder/Compiler node-list.
+  //! Returns next node or `nullptr` if this node is either last or not part
+  //! of Builder/Compiler node-list.
   inline BaseNode* next() const noexcept { return _next; }
 
-  //! Gets the type of the node, see `NodeType`.
+  //! Returns the type of the node, see `NodeType`.
   inline uint32_t type() const noexcept { return _any._nodeType; }
 
   //! Sets the type of the node, see `NodeType` (internal).
@@ -504,35 +525,37 @@ public:
   //! nodes and need to change the type either during construction or later.
   inline void setType(uint32_t type) noexcept { _any._nodeType = uint8_t(type); }
 
-  //! Gets whether this node is either `InstNode` or extends it.
+  //! Tests whether this node is either `InstNode` or extends it.
   inline bool isInst() const noexcept { return hasFlag(kFlagActsAsInst); }
-  //! Gets whether this node is `SectionNode`.
+  //! Tests whether this node is `SectionNode`.
   inline bool isSection() const noexcept { return type() == kNodeSection; }
-  //! Gets whether this node is either `LabelNode` or extends it.
+  //! Tests whether this node is either `LabelNode` or extends it.
   inline bool isLabel() const noexcept { return hasFlag(kFlagActsAsLabel); }
-  //! Gets whether this node is `AlignNode`.
+  //! Tests whether this node is `AlignNode`.
   inline bool isAlign() const noexcept { return type() == kNodeAlign; }
-  //! Gets whether this node is `EmbedDataNode`.
+  //! Tests whether this node is `EmbedDataNode`.
   inline bool isEmbedData() const noexcept { return type() == kNodeEmbedData; }
-  //! Gets whether this node is `EmbedLabelNode`.
-  inline bool isLabelData() const noexcept { return type() == kNodeLabelData; }
-  //! Gets whether this node is `ConstPoolNode`.
+  //! Tests whether this node is `EmbedLabelNode`.
+  inline bool isEmbedLabel() const noexcept { return type() == kNodeEmbedLabel; }
+  //! Tests whether this node is `EmbedLabelDeltaNode`.
+  inline bool isEmbedLabelDelta() const noexcept { return type() == kNodeEmbedLabelDelta; }
+  //! Tests whether this node is `ConstPoolNode`.
   inline bool isConstPool() const noexcept { return type() == kNodeConstPool; }
-  //! Gets whether this node is `CommentNode`.
+  //! Tests whether this node is `CommentNode`.
   inline bool isComment() const noexcept { return type() == kNodeComment; }
-  //! Gets whether this node is `SentinelNode`.
+  //! Tests whether this node is `SentinelNode`.
   inline bool isSentinel() const noexcept { return type() == kNodeSentinel; }
 
-  //! Gets whether this node is `FuncNode`.
+  //! Tests whether this node is `FuncNode`.
   inline bool isFunc() const noexcept { return type() == kNodeFunc; }
-  //! Gets whether this node is `FuncRetNode`.
+  //! Tests whether this node is `FuncRetNode`.
   inline bool isFuncRet() const noexcept { return type() == kNodeFuncRet; }
-  //! Gets whether this node is `FuncCallNode`.
+  //! Tests whether this node is `FuncCallNode`.
   inline bool isFuncCall() const noexcept { return type() == kNodeFuncCall; }
 
-  //! Gets the node flags, see \ref Flags.
+  //! Returns the node flags, see \ref Flags.
   inline uint32_t flags() const noexcept { return _any._nodeFlags; }
-  //! Gets whether the node has the given `flag` set.
+  //! Tests whether the node has the given `flag` set.
   inline bool hasFlag(uint32_t flag) const noexcept { return (uint32_t(_any._nodeFlags) & flag) != 0; }
   //! Replaces node flags with `flags`.
   inline void setFlags(uint32_t flags) noexcept { _any._nodeFlags = uint8_t(flags); }
@@ -541,24 +564,24 @@ public:
   //! Clears the given `flags` from node flags.
   inline void clearFlags(uint32_t flags) noexcept { _any._nodeFlags = uint8_t(_any._nodeFlags & (flags ^ 0xFF)); }
 
-  //! Gets whether the node is code that can be executed.
+  //! Tests whether the node is code that can be executed.
   inline bool isCode() const noexcept { return hasFlag(kFlagIsCode); }
-  //! Gets whether the node is data that cannot be executed.
+  //! Tests whether the node is data that cannot be executed.
   inline bool isData() const noexcept { return hasFlag(kFlagIsData); }
-  //! Gets whether the node is informative only (is never encoded like comment, etc...).
+  //! Tests whether the node is informative only (is never encoded like comment, etc...).
   inline bool isInformative() const noexcept { return hasFlag(kFlagIsInformative); }
-  //! Gets whether the node is removable if it's in an unreachable code block.
+  //! Tests whether the node is removable if it's in an unreachable code block.
   inline bool isRemovable() const noexcept { return hasFlag(kFlagIsRemovable); }
-  //! Gets whether the node has no effect when executed (label, .align, nop, ...).
+  //! Tests whether the node has no effect when executed (label, .align, nop, ...).
   inline bool hasNoEffect() const noexcept { return hasFlag(kFlagHasNoEffect); }
-  //! Gets whether the node is part of the code.
+  //! Tests whether the node is part of the code.
   inline bool isActive() const noexcept { return hasFlag(kFlagIsActive); }
 
-  //! Gets whether the node has a position assigned.
+  //! Tests whether the node has a position assigned.
   //!
   //! \remarks Returns `true` if node position is non-zero.
   inline bool hasPosition() const noexcept { return _position != 0; }
-  //! Gets node position.
+  //! Returns node position.
   inline uint32_t position() const noexcept { return _position; }
   //! Sets node position.
   //!
@@ -571,16 +594,16 @@ public:
   //! freely for your own purposes if the 32-bit value limit is okay for you.
   inline void setPosition(uint32_t position) noexcept { _position = position; }
 
-  //! Gets user data casted to `T*`.
+  //! Returns user data casted to `T*`.
   //!
   //! User data is decicated to be used only by AsmJit users and not touched
   //! by the library. The data has a pointer size so you can either store a
   //! pointer or `intptr_t` value through `setUserDataAsIntPtr()`.
   template<typename T>
   inline T* userDataAsPtr() const noexcept { return static_cast<T*>(_userDataPtr); }
-  //! Gets user data as `int64_t`.
+  //! Returns user data casted to `int64_t`.
   inline int64_t userDataAsInt64() const noexcept { return int64_t(_userDataU64); }
-  //! Gets user data as `uint64_t`.
+  //! Returns user data casted to `uint64_t`.
   inline uint64_t userDataAsUInt64() const noexcept { return _userDataU64; }
 
   //! Sets user data to `data`.
@@ -594,9 +617,9 @@ public:
   //! Resets user data to zero / nullptr.
   inline void resetUserData() noexcept { _userDataU64 = 0; }
 
-  //! Gets whether the node has an associated pass data.
+  //! Tests whether the node has an associated pass data.
   inline bool hasPassData() const noexcept { return _passData != nullptr; }
-  //! Gets the node pass data - data used during processing & transformations.
+  //! Returns the node pass data - data used during processing & transformations.
   template<typename T>
   inline T* passData() const noexcept { return (T*)_passData; }
   //! Sets the node pass data to `data`.
@@ -605,9 +628,9 @@ public:
   //! Resets the node pass data to nullptr.
   inline void resetPassData() noexcept { _passData = nullptr; }
 
-  //! Gets whether the node has an inline comment/annotation.
+  //! Tests whether the node has an inline comment/annotation.
   inline bool hasInlineComment() const noexcept { return _inlineComment != nullptr; }
-  //! Gets an inline comment/annotation string.
+  //! Returns an inline comment/annotation string.
   inline const char* inlineComment() const noexcept { return _inlineComment; }
   //! Sets an inline comment/annotation string to `s`.
   inline void setInlineComment(const char* s) noexcept { _inlineComment = s; }
@@ -667,12 +690,12 @@ public:
   inline BaseInst& baseInst() noexcept { return _baseInst; }
   inline const BaseInst& baseInst() const noexcept { return _baseInst; }
 
-  //! Gets the instruction id, see `BaseInst::Id`.
+  //! Returns the instruction id, see `BaseInst::Id`.
   inline uint32_t id() const noexcept { return _baseInst.id(); }
   //! Sets the instruction id to `id`, see `BaseInst::Id`.
   inline void setId(uint32_t id) noexcept { _baseInst.setId(id); }
 
-  //! Gets instruction options.
+  //! Returns instruction options.
   inline uint32_t instOptions() const noexcept { return _baseInst.options(); }
   //! Sets instruction options.
   inline void setInstOptions(uint32_t options) noexcept { _baseInst.setOptions(options); }
@@ -681,9 +704,9 @@ public:
   //! Clears instruction options.
   inline void clearInstOptions(uint32_t options) noexcept { _baseInst.clearOptions(options); }
 
-  //! Gets whether the node has an extra register operand.
+  //! Tests whether the node has an extra register operand.
   inline bool hasExtraReg() const noexcept { return _baseInst.hasExtraReg(); }
-  //! Gets extra register operand.
+  //! Returns extra register operand.
   inline RegOnly& extraReg() noexcept { return _baseInst.extraReg(); }
   //! \overload
   inline const RegOnly& extraReg() const noexcept { return _baseInst.extraReg(); }
@@ -694,17 +717,17 @@ public:
   //! Resets extra register operand.
   inline void resetExtraReg() noexcept { _baseInst.resetExtraReg(); }
 
-  //! Gets operands count.
+  //! Returns operands count.
   inline uint32_t opCount() const noexcept { return _inst._opCount; }
-  //! Gets operands capacity.
+  //! Returns operands capacity.
   inline uint32_t opCapacity() const noexcept { return _inst._opCapacity; }
 
   //! Sets operands count.
   inline void setOpCount(uint32_t opCount) noexcept { _inst._opCount = uint8_t(opCount); }
 
-  //! Gets operands array.
+  //! Returns operands array.
   inline Operand* operands() noexcept { return (Operand*)_opArray; }
-  //! Gets operands array (const).
+  //! Returns operands array (const).
   inline const Operand* operands() const noexcept { return (const Operand*)_opArray; }
 
   inline Operand& opType(uint32_t index) noexcept {
@@ -860,7 +883,7 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the section id.
+  //! Returns the section id.
   inline uint32_t id() const noexcept { return _id; }
 
   //! \}
@@ -890,9 +913,9 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the id of the label.
+  //! Returns the id of the label.
   inline uint32_t id() const noexcept { return _id; }
-  //! Gets the label as `Label` operand.
+  //! Returns the label as `Label` operand.
   inline Label label() const noexcept { return Label(_id); }
 
   //! \}
@@ -928,12 +951,12 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets align mode.
+  //! Returns align mode.
   inline uint32_t alignMode() const noexcept { return _alignMode; }
   //! Sets align mode to `alignMode`.
   inline void setAlignMode(uint32_t alignMode) noexcept { _alignMode = alignMode; }
 
-  //! Gets align offset in bytes.
+  //! Returns align offset in bytes.
   inline uint32_t alignment() const noexcept { return _alignment; }
   //! Sets align offset in bytes to `offset`.
   inline void setAlignment(uint32_t alignment) noexcept { _alignment = alignment; }
@@ -993,31 +1016,31 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets pointer to the data.
+  //! Returns pointer to the data.
   inline uint8_t* data() const noexcept { return _size <= kInlineBufferSize ? const_cast<uint8_t*>(_buf) : _externalPtr; }
-  //! Gets size of the data.
+  //! Returns size of the data.
   inline uint32_t size() const noexcept { return _size; }
 
   //! \}
 };
 
 // ============================================================================
-// [asmjit::LabelDataNode]
+// [asmjit::EmbedLabelNode]
 // ============================================================================
 
 //! Label data node.
-class LabelDataNode : public BaseNode {
+class EmbedLabelNode : public BaseNode {
 public:
-  ASMJIT_NONCOPYABLE(LabelDataNode)
+  ASMJIT_NONCOPYABLE(EmbedLabelNode)
 
   uint32_t _id;
 
   //! \name Construction & Destruction
   //! \{
 
-  //! Creates a new `LabelDataNode` instance.
-  inline LabelDataNode(BaseBuilder* cb, uint32_t id = 0) noexcept
-    : BaseNode(cb, kNodeLabelData, kFlagIsData),
+  //! Creates a new `EmbedLabelNode` instance.
+  inline EmbedLabelNode(BaseBuilder* cb, uint32_t id = 0) noexcept
+    : BaseNode(cb, kNodeEmbedLabel, kFlagIsData),
       _id(id) {}
 
   //! \}
@@ -1025,13 +1048,67 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the id of the label.
+  //! Returns the id of the label.
   inline uint32_t id() const noexcept { return _id; }
   //! Sets the label id (use with caution, improper use can break a lot of things).
   inline void setId(uint32_t id) noexcept { _id = id; }
 
-  //! Gets the label as `Label` operand.
+  //! Returns the label as `Label` operand.
   inline Label label() const noexcept { return Label(_id); }
+  //! Sets the label id from `label` operand.
+  inline void setLabel(const Label& label) noexcept { setId(label.id()); }
+
+  //! \}
+};
+
+// ============================================================================
+// [asmjit::EmbedLabelDeltaNode]
+// ============================================================================
+
+//! Label data node.
+class EmbedLabelDeltaNode : public BaseNode {
+public:
+  ASMJIT_NONCOPYABLE(EmbedLabelDeltaNode)
+
+  uint32_t _id;
+  uint32_t _baseId;
+  uint32_t _dataSize;
+
+  //! \name Construction & Destruction
+  //! \{
+
+  //! Creates a new `EmbedLabelDeltaNode` instance.
+  inline EmbedLabelDeltaNode(BaseBuilder* cb, uint32_t id = 0, uint32_t baseId = 0, uint32_t dataSize = 0) noexcept
+    : BaseNode(cb, kNodeEmbedLabelDelta, kFlagIsData),
+      _id(id),
+      _baseId(baseId),
+      _dataSize(dataSize) {}
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  //! Returns the id of the label.
+  inline uint32_t id() const noexcept { return _id; }
+  //! Sets the label id.
+  inline void setId(uint32_t id) noexcept { _id = id; }
+  //! Returns the label as `Label` operand.
+  inline Label label() const noexcept { return Label(_id); }
+  //! Sets the label id from `label` operand.
+  inline void setLabel(const Label& label) noexcept { setId(label.id()); }
+
+  //! Returns the id of the base label.
+  inline uint32_t baseId() const noexcept { return _baseId; }
+  //! Sets the base label id.
+  inline void setBaseId(uint32_t baseId) noexcept { _baseId = baseId; }
+  //! Returns the base label as `Label` operand.
+  inline Label baseLabel() const noexcept { return Label(_baseId); }
+  //! Sets the base label id from `label` operand.
+  inline void setBaseLabel(const Label& baseLabel) noexcept { setBaseId(baseLabel.id()); }
+
+  inline uint32_t dataSize() const noexcept { return _dataSize; }
+  inline void setDataSize(uint32_t dataSize) noexcept { _dataSize = dataSize; }
 
   //! \}
 };
@@ -1065,16 +1142,16 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether the constant-pool is empty.
+  //! Tests whether the constant-pool is empty.
   inline bool empty() const noexcept { return _constPool.empty(); }
-  //! Gets the size of the constant-pool in bytes.
+  //! Returns the size of the constant-pool in bytes.
   inline size_t size() const noexcept { return _constPool.size(); }
-  //! Gets minimum alignment.
+  //! Returns minimum alignment.
   inline size_t alignment() const noexcept { return _constPool.alignment(); }
 
-  //! Gets the wrapped `ConstPool` instance.
+  //! Returns the wrapped `ConstPool` instance.
   inline ConstPool& constPool() noexcept { return _constPool; }
-  //! Gets the wrapped `ConstPool` instance (const).
+  //! Returns the wrapped `ConstPool` instance (const).
   inline const ConstPool& constPool() const noexcept { return _constPool; }
 
   //! \}

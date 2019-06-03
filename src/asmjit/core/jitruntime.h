@@ -51,7 +51,7 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the associated JitAllocator.
+  //! Returns the associated `JitAllocator`.
   inline JitAllocator* allocator() const noexcept { return const_cast<JitAllocator*>(&_allocator); }
 
   //! \}

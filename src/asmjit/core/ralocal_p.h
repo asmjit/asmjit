@@ -89,24 +89,24 @@ public:
   inline PhysToWorkMap* physToWorkMap() const noexcept { return _curAssignment.physToWorkMap(); }
   inline WorkToPhysMap* workToPhysMap() const noexcept { return _curAssignment.workToPhysMap(); }
 
-  //! Gets the currently processed block.
+  //! Returns the currently processed block.
   inline RABlock* block() const noexcept { return _block; }
   //! Sets the currently processed block.
   inline void setBlock(RABlock* block) noexcept { _block = block; }
 
-  //! Gets the currently processed `InstNode`.
+  //! Returns the currently processed `InstNode`.
   inline InstNode* node() const noexcept { return _node; }
-  //! Gets the currently processed `RAInst`.
+  //! Returns the currently processed `RAInst`.
   inline RAInst* raInst() const noexcept { return _raInst; }
 
-  //! Gets all tied regs.
+  //! Returns all tied regs as `RATiedReg` array.
   inline RATiedReg* tiedRegs() const noexcept { return _raInst->tiedRegs(); }
-  //! Gets grouped tied regs.
+  //! Returns tied registers grouped by the given `group`.
   inline RATiedReg* tiedRegs(uint32_t group) const noexcept { return _raInst->tiedRegs(group); }
 
-  //! Gets TiedReg count (all).
+  //! Returns count of all TiedRegs used by the instruction.
   inline uint32_t tiedCount() const noexcept { return _tiedTotal; }
-  //! Gets TiedReg count (per class).
+  //! Returns count of TiedRegs used by the given register `group`.
   inline uint32_t tiedCount(uint32_t group) const noexcept { return _tiedCount.get(group); }
 
   inline bool isGroupUsed(uint32_t group) const noexcept { return _tiedCount[group] != 0; }
@@ -199,7 +199,7 @@ public:
 
   //! Emits a swap between two physical registers and fixes their assignment.
   //!
-  //! NOTE: Target must support this operation otherwise this would ASSERT.
+  //! \note Target must support this operation otherwise this would ASSERT.
   inline Error onSwapReg(uint32_t group, uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, uint32_t bPhysId) noexcept {
     _curAssignment.swap(group, aWorkId, aPhysId, bWorkId, bPhysId);
     return _pass->onEmitSwap(aWorkId, aPhysId, bWorkId, bPhysId);

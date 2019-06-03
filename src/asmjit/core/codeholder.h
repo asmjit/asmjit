@@ -30,6 +30,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 class BaseEmitter;
 class CodeHolder;
+class LabelEntry;
 class Logger;
 
 // ============================================================================
@@ -187,7 +188,7 @@ public:
   inline uint64_t offset() const noexcept { return _offset; }
   inline void setOffset(uint64_t offset) noexcept { _offset = offset; }
 
-  //! Gets the virtual size of the section.
+  //! Returns the virtual size of the section.
   //!
   //! Virtual size is initially zero and is never changed by AsmJit. It's normal
   //! if virtual size is smaller than size returned by `bufferSize()` as the buffer
@@ -198,12 +199,14 @@ public:
   //! Sets the virtual size of the section.
   inline void setVirtualSize(uint64_t virtualSize) noexcept { _virtualSize = virtualSize; }
 
-  //! Gets the buffer size of the section.
+  //! Returns the buffer size of the section.
   inline size_t bufferSize() const noexcept { return _buffer.size(); }
-  //! Gets the real size of the section calculated from virtual and buffer sizes.
+  //! Returns the real size of the section calculated from virtual and buffer sizes.
   inline uint64_t realSize() const noexcept { return Support::max<uint64_t>(virtualSize(), bufferSize()); }
 
+  //! Returns the `CodeBuffer` used by this section.
   inline CodeBuffer& buffer() noexcept { return _buffer; }
+  //! Returns the `CodeBuffer` used by this section (const).
   inline const CodeBuffer& buffer() const noexcept { return _buffer; }
 
   //! \}
@@ -225,6 +228,56 @@ struct LabelLink {
   size_t offset;
   //! Inlined rel8/rel32.
   intptr_t rel;
+};
+
+// ============================================================================
+// [asmjit::Expression]
+// ============================================================================
+
+struct Expression {
+  enum OpType : uint8_t {
+    kOpAdd = 0,
+    kOpSub = 1,
+    kOpMul = 2,
+    kOpSll = 3,
+    kOpSrl = 4,
+    kOpSra = 5
+  };
+
+  enum ValueType : uint8_t {
+    kValueNone = 0,
+    kValueConstant = 1,
+    kValueLabel = 2,
+    kValueExpression = 3
+  };
+
+  union Value {
+    uint64_t constant;
+    Expression* expression;
+    LabelEntry* label;
+  };
+
+  uint8_t opType;
+  uint8_t valueType[2];
+  uint8_t reserved[5];
+  Value value[2];
+
+  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+
+  inline void setValueAsConstant(size_t index, uint64_t constant) noexcept {
+    valueType[index] = kValueConstant;
+    value[index].constant = constant;
+  }
+
+  inline void setValueAsLabel(size_t index, LabelEntry* label) noexcept {
+    valueType[index] = kValueLabel;
+    value[index].label = label;
+  }
+
+  inline void setValueAsExpression(size_t index, Expression* expression) noexcept {
+    valueType[index] = kValueLabel;
+    value[index].expression = expression;
+  }
 };
 
 // ============================================================================
@@ -278,53 +331,54 @@ public:
   // to fill a padding that a C++ compiler targeting 64-bit CPU will add to align
   // the structure to 64-bits.
 
-  //! Gets label id.
+  //! Returns label id.
   inline uint32_t id() const noexcept { return _customData; }
   //! Sets label id (internal, used only by `CodeHolder`).
   inline void _setId(uint32_t id) noexcept { _customData = id; }
 
-  //! Gets label type, see `Label::LabelType`.
+  //! Returns label type, see `Label::LabelType`.
   inline uint32_t type() const noexcept { return _type; }
-  //! Gets label flags, returns 0 at the moment.
+  //! Returns label flags, returns 0 at the moment.
   inline uint32_t flags() const noexcept { return _flags; }
 
+  //! Tests whether the label has a parent label.
   inline bool hasParent() const noexcept { return _parentId != Globals::kInvalidId; }
-  //! Gets label's parent id.
+  //! Returns label's parent id.
   inline uint32_t parentId() const noexcept { return _parentId; }
 
-  //! Gets the section where the label was bound.
+  //! Returns the section where the label was bound.
   //!
   //! If the label was not yet bound the return value is `nullptr`.
   inline Section* section() const noexcept { return _section; }
 
-  //! Gets whether the label has name.
+  //! Tests whether the label has name.
   inline bool hasName() const noexcept { return !_name.empty(); }
 
-  //! Gets the label's name.
+  //! Returns the label's name.
   //!
-  //! NOTE: Local labels will return their local name without their parent
+  //! \note Local labels will return their local name without their parent
   //! part, for example ".L1".
   inline const char* name() const noexcept { return _name.data(); }
 
-  //! Gets size of label's name.
+  //! Returns size of label's name.
   //!
-  //! NOTE: Label name is always null terminated, so you can use `strlen()` to
+  //! \note Label name is always null terminated, so you can use `strlen()` to
   //! get it, however, it's also cached in `LabelEntry` itself, so if you want
   //! to know the size the fastest way is to call `LabelEntry::nameSize()`.
   inline uint32_t nameSize() const noexcept { return _name.size(); }
 
-  //! Gets links associated with this label.
+  //! Returns links associated with this label.
   inline LabelLink* links() const noexcept { return _links; }
 
-  //! Gets whether the label is bound.
+  //! Tests whether the label is bound.
   inline bool isBound() const noexcept { return _section != nullptr; }
-  //! Gets whether the label is bound to a the given `sectionId`.
+  //! Tests whether the label is bound to a the given `sectionId`.
   inline bool isBoundTo(Section* section) const noexcept { return _section == section; }
 
-  //! Gets the label offset (only useful if the label is bound).
+  //! Returns the label offset (only useful if the label is bound).
   inline uint64_t offset() const noexcept { return _offset; }
 
-  //! Gets the hash-value of label's name and its parent label (if any).
+  //! Returns the hash-value of label's name and its parent label (if any).
   //!
   //! Label hash is calculated as `HASH(Name) ^ ParentId`. The hash function
   //! is implemented in `Support::hashString()` and `Support::hashRound()`.
@@ -366,21 +420,23 @@ struct RelocEntry {
   uint32_t _targetSectionId;
   //! Source offset (relative to start of the section).
   uint64_t _sourceOffset;
-  //! Payload (target offset, target address, etc).
+  //! Payload (target offset, target address, expression, etc).
   uint64_t _payload;
 
   //! Relocation type.
   enum RelocType : uint32_t {
     //! None/deleted (no relocation).
     kTypeNone = 0,
+    //! Expression evaluation, `_payload` is pointer to `Expression`.
+    kTypeExpression = 1,
     //! Relocate absolute to absolute.
-    kTypeAbsToAbs = 1,
+    kTypeAbsToAbs = 2,
     //! Relocate relative to absolute.
-    kTypeRelToAbs = 2,
+    kTypeRelToAbs = 3,
     //! Relocate absolute to relative.
-    kTypeAbsToRel = 3,
+    kTypeAbsToRel = 4,
     //! Relocate absolute to relative or use trampoline.
-    kTypeX64AddressEntry = 4
+    kTypeX64AddressEntry = 5
   };
 
   //! \name Accessors
@@ -399,6 +455,10 @@ struct RelocEntry {
 
   inline uint64_t sourceOffset() const noexcept { return _sourceOffset; }
   inline uint64_t payload() const noexcept { return _payload; }
+
+  Expression* payloadAsExpression() const noexcept {
+    return reinterpret_cast<Expression*>(uintptr_t(_payload));
+  }
 
   //! \}
 };
@@ -449,7 +509,7 @@ public:
 //! CodeHolder can store both binary and intermediate representation of assembly,
 //! which can be generated by `BaseAssembler` and/or `BaseBuilder`.
 //!
-//! NOTE: `CodeHolder` has ability to attach an `ErrorHandler`, however, the
+//! \note `CodeHolder` has ability to attach an `ErrorHandler`, however, the
 //! error handler is not triggered by `CodeHolder` itself, it's only used by
 //! emitters attached to `CodeHolder`.
 class CodeHolder {
@@ -528,7 +588,7 @@ public:
 
   inline const ZoneVector<BaseEmitter*>& emitters() const noexcept { return _emitters; }
 
-  //! Gets global emitter options, internally propagated to all attached emitters.
+  //! Returns global emitter options, internally propagated to all attached emitters.
   inline uint32_t emitterOptions() const noexcept { return _emitterOptions; }
 
   //! Enables the given global emitter `options` and propagates the resulting
@@ -544,19 +604,19 @@ public:
   //! \name Code & Architecture
   //! \{
 
-  //! Gets the target architecture information, see `ArchInfo`.
+  //! Returns the target architecture information, see `ArchInfo`.
   inline const ArchInfo& archInfo() const noexcept { return _codeInfo.archInfo(); }
-  //! Gets the target code information, see `CodeInfo`.
+  //! Returns the target code information, see `CodeInfo`.
   inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
 
-  //! Gets the target architecture id.
+  //! Returns the target architecture id.
   inline uint32_t archId() const noexcept { return archInfo().archId(); }
-  //! Gets the target architecture sub-id.
+  //! Returns the target architecture sub-id.
   inline uint32_t archSubId() const noexcept { return archInfo().archSubId(); }
 
-  //! Gets whether a static base-address is set.
+  //! Tests whether a static base-address is set.
   inline bool hasBaseAddress() const noexcept { return _codeInfo.hasBaseAddress(); }
-  //! Gets a static base-address (uint64_t).
+  //! Returns a static base-address (uint64_t).
   inline uint64_t baseAddress() const noexcept { return _codeInfo.baseAddress(); }
 
   //! \}
@@ -564,16 +624,16 @@ public:
   //! \name Logging & Error Handling
   //! \{
 
-  //! Gets the attached logger.
+  //! Returns the attached logger.
   inline Logger* logger() const noexcept { return _logger; }
   //! Attaches a `logger` to CodeHolder and propagates it to all attached emitters.
   ASMJIT_API void setLogger(Logger* logger) noexcept;
   //! Resets the logger to none.
   inline void resetLogger() noexcept { setLogger(nullptr); }
 
-  //! Gets whether the global error handler is attached.
+  //! Tests whether the global error handler is attached.
   inline bool hasErrorHandler() const noexcept { return _errorHandler != nullptr; }
-  //! Gets the global error handler.
+  //! Returns the global error handler.
   inline ErrorHandler* errorHandler() const noexcept { return _errorHandler; }
   //! Sets the global error handler.
   inline void setErrorHandler(ErrorHandler* handler) noexcept { _errorHandler = handler; }
@@ -593,12 +653,12 @@ public:
   //! \name Sections
   //! \{
 
-  //! Gets an array of `Section*` records.
+  //! Returns an array of `Section*` records.
   inline const ZoneVector<Section*>& sections() const noexcept { return _sections; }
-  //! Gets the number of sections.
+  //! Returns the number of sections.
   inline uint32_t sectionCount() const noexcept { return _sections.size(); }
 
-  //! Gets whether the given `sectionId` is valid.
+  //! Tests whether the given `sectionId` is valid.
   inline bool isSectionValid(uint32_t sectionId) const noexcept { return sectionId < _sections.size(); }
 
   //! Creates a new section and return its pointer in `sectionOut`.
@@ -606,7 +666,7 @@ public:
   //! Returns `Error`, does not report a possible error to `ErrorHandler`.
   ASMJIT_API Error newSection(Section** sectionOut, const char* name, size_t nameSize = SIZE_MAX, uint32_t flags = 0, uint32_t alignment = 1) noexcept;
 
-  //! Gets a section entry of the given index.
+  //! Returns a section entry of the given index.
   inline Section* sectionById(uint32_t sectionId) const noexcept { return _sections[sectionId]; }
 
   //! Returns section-id that matches the given `name`.
@@ -614,15 +674,15 @@ public:
   //! If there is no such section `Section::kInvalidId` is returned.
   ASMJIT_API Section* sectionByName(const char* name, size_t nameSize = SIZE_MAX) const noexcept;
 
-  //! Gets '.text' section (section that commonly represents code).
+  //! Returns '.text' section (section that commonly represents code).
   //!
-  //! NOTE: Text section is always the first section in `CodeHolder::sections()` array.
+  //! \note Text section is always the first section in `CodeHolder::sections()` array.
   inline Section* textSection() const noexcept { return _sections[0]; }
 
-  //! Gets whether '.addrtab' section exists.
+  //! Tests whether '.addrtab' section exists.
   inline bool hasAddressTable() const noexcept { return _addressTableSection != nullptr; }
 
-  //! Gets '.addrtab' section.
+  //! Returns '.addrtab' section.
   //!
   //! This section is used exclusively by AsmJit to store absolute 64-bit
   //! addresses that cannot be encoded in instructions like 'jmp' or 'call'.
@@ -649,18 +709,18 @@ public:
   //! \name Labels & Symbols
   //! \{
 
-  //! Gets array of `LabelEntry*` records.
+  //! Returns array of `LabelEntry*` records.
   inline const ZoneVector<LabelEntry*>& labelEntries() const noexcept { return _labelEntries; }
 
-  //! Gets number of labels created.
+  //! Returns number of labels created.
   inline uint32_t labelCount() const noexcept { return _labelEntries.size(); }
 
-  //! Gets whether the label having `id` is valid (i.e. created by `newLabelEntry()`).
+  //! Tests whether the label having `id` is valid (i.e. created by `newLabelEntry()`).
   inline bool isLabelValid(uint32_t labelId) const noexcept {
     return labelId < _labelEntries.size();
   }
 
-  //! Gets whether the `label` is valid (i.e. created by `newLabelEntry()`).
+  //! Tests whether the `label` is valid (i.e. created by `newLabelEntry()`).
   inline bool isLabelValid(const Label& label) const noexcept {
     return label.id() < _labelEntries.size();
   }
@@ -670,24 +730,24 @@ public:
     return isLabelValid(labelId) && _labelEntries[labelId]->isBound();
   }
 
-  //! Gets whether the `label` is already bound.
+  //! Tests whether the `label` is already bound.
   //!
   //! Returns `false` if the `label` is not valid.
   inline bool isLabelBound(const Label& label) const noexcept {
     return isLabelBound(label.id());
   }
 
-  //! Gets LabelEntry of the given label `id`.
+  //! Returns LabelEntry of the given label `id`.
   inline LabelEntry* labelEntry(uint32_t labelId) const noexcept {
     return isLabelValid(labelId) ? _labelEntries[labelId] : static_cast<LabelEntry*>(nullptr);
   }
 
-  //! Gets LabelEntry of the given `label`.
+  //! Returns LabelEntry of the given `label`.
   inline LabelEntry* labelEntry(const Label& label) const noexcept {
     return labelEntry(label.id());
   }
 
-  //! Gets offset of a `Label` by its `labelId`.
+  //! Returns offset of a `Label` by its `labelId`.
   //!
   //! The offset returned is relative to the start of the section. Zero offset
   //! is returned for unbound labels, which is their initial offset value.
@@ -701,7 +761,7 @@ public:
     return labelOffset(label.id());
   }
 
-  //! Gets offset of a label by it's `labelId` relative to the base offset.
+  //! Returns offset of a label by it's `labelId` relative to the base offset.
   //!
   //! \remarks The offset of the section where the label is bound must be valid
   //! in order to use this function, otherwise the value returned will not be
@@ -727,16 +787,16 @@ public:
   //! Returns `Error`, does not report a possible error to `ErrorHandler`.
   ASMJIT_API Error newNamedLabelEntry(LabelEntry** entryOut, const char* name, size_t nameSize, uint32_t type, uint32_t parentId = Globals::kInvalidId) noexcept;
 
-  //! Gets a label id by name.
+  //! Returns a label id by name.
   ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept;
 
   inline Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept {
     return Label(labelIdByName(name, nameSize, parentId));
   }
 
-  //! Gets whether there are any unresolved label links.
+  //! Tests whether there are any unresolved label links.
   inline bool hasUnresolvedLinks() const noexcept { return _unresolvedLinkCount != 0; }
-  //! Gets the number of label links, which are unresolved.
+  //! Returns the number of label links, which are unresolved.
   inline size_t unresolvedLinkCount() const noexcept { return _unresolvedLinkCount; }
 
   //! Creates a new label-link used to store information about yet unbound labels.
@@ -760,12 +820,12 @@ public:
   //! \name Relocations
   //! \{
 
-  //! Gets whether the code contains relocation entries.
+  //! Tests whether the code contains relocation entries.
   inline bool hasRelocEntries() const noexcept { return !_relocations.empty(); }
-  //! Gets array of `RelocEntry*` records.
+  //! Returns array of `RelocEntry*` records.
   inline const ZoneVector<RelocEntry*>& relocEntries() const noexcept { return _relocations; }
 
-  //! Gets a RelocEntry of a given `id`.
+  //! Returns a RelocEntry of the given `id`.
   inline RelocEntry* relocEntry(uint32_t id) const noexcept { return _relocations[id]; }
 
   //! Creates a new relocation entry of type `relocType` and size `valueSize`.
@@ -780,10 +840,15 @@ public:
 
   //! Flattens all sections by recalculating their offsets, starting at 0.
   //!
-  //! NOTE: This should never be called more than once.
+  //! \note This should never be called more than once.
   ASMJIT_API Error flatten() noexcept;
 
-  //! Gets the size of code & data of all sections.
+  //! Returns computed the size of code & data of all sections.
+  //!
+  //! \note All sections will be iterated over and the code size returned
+  //! would represent the minimum code size of all combined sections after
+  //! applying minimum alignment. Code size may decrease after calling
+  //! `flatten()` and `relocateToBase()`.
   ASMJIT_API size_t codeSize() const noexcept;
 
   //! Relocates the code to the given `baseAddress`.
@@ -792,7 +857,7 @@ public:
   //! to. Please note that nothing is copied to such base address, it's just an
   //! absolute value used by the relocator to resolve all stored relocations.
   //!
-  //! NOTE: This should never be called more than once.
+  //! \note This should never be called more than once.
   ASMJIT_API Error relocateToBase(uint64_t baseAddress) noexcept;
 
   //! Options that can be used with \ref copySectionData().

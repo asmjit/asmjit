@@ -165,16 +165,16 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the allocator options, see `Flags`.
+  //! Returns allocator options, see `Flags`.
   inline uint32_t options() const noexcept { return _impl->options; }
-  //! Gets whether the allocator has the given `option` set.
+  //! Tests whether the allocator has the given `option` set.
   inline bool hasOption(uint32_t option) const noexcept { return (_impl->options & option) != 0; }
 
-  //! Gets a base block size (a minimum size of block that the allocator would allocate).
+  //! Returns a base block size (a minimum size of block that the allocator would allocate).
   inline uint32_t blockSize() const noexcept { return _impl->blockSize; }
-  //! Gets a base granularity of the allocator.
+  //! Returns granularity of the allocator.
   inline uint32_t granularity() const noexcept { return _impl->granularity; }
-  //! Gets a pattern that is used to fill unused memory if `kFlagUseFillPattern` is set.
+  //! Returns pattern that is used to fill unused memory if `kFlagUseFillPattern` is set.
   inline uint32_t fillPattern() const noexcept { return _impl->fillPattern; }
 
   //! \}
@@ -211,16 +211,16 @@ public:
       _overheadSize = 0;
     }
 
-    //! Gets count of blocks managed by `JitAllocator`.
+    //! Returns count of blocks managed by `JitAllocator` at the moment.
     inline size_t blockCount() const noexcept { return _blockCount; }
 
-    //! Gets how many bytes are currently used.
+    //! Returns how many bytes are currently used.
     inline size_t usedSize() const noexcept { return _usedSize; }
-    //! Gets the number of bytes unused by the allocator at the moment.
+    //! Returns the number of bytes unused by the allocator at the moment.
     inline size_t unusedSize() const noexcept { return _reservedSize - _usedSize; }
-    //! Gets the total number of bytes bytes reserved by the allocator (sum of sizes of all blocks).
+    //! Returns the total number of bytes bytes reserved by the allocator (sum of sizes of all blocks).
     inline size_t reservedSize() const noexcept { return _reservedSize; }
-    //! Gets the number of bytes the allocator needs to manage the allocated memory.
+    //! Returns the number of bytes the allocator needs to manage the allocated memory.
     inline size_t overheadSize() const noexcept { return _overheadSize; }
 
     inline double usedSizeAsPercent() const noexcept {
@@ -245,7 +245,7 @@ public:
     size_t _overheadSize;
   };
 
-  //! Gets JIT allocator statistics.
+  //! Returns JIT allocator statistics.
   //!
   //! \remarks This function is thread-safe.
   ASMJIT_API Statistics statistics() const noexcept;

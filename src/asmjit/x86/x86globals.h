@@ -26,7 +26,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! Instruction (X86).
 //!
-//! NOTE: Only used to hold x86-specific enumerations and static functions.
+//! \note Only used to hold x86-specific enumerations and static functions.
 struct Inst : public BaseInst {
   //! Instruction id (X86).
   enum Id : uint32_t {
@@ -185,6 +185,8 @@ struct Inst : public BaseInst {
     kIdDppd,                             // {SSE4_1}
     kIdDpps,                             // {SSE4_1}
     kIdEmms,                             // {MMX}
+    kIdEnqcmd,                           // {ENQCMD}
+    kIdEnqcmds,                          // {ENQCMD}
     kIdEnter,                            // <ANY>
     kIdExtractps,                        // {SSE4_1}
     kIdExtrq,                            // {SSE4A}
@@ -1571,7 +1573,7 @@ struct Inst : public BaseInst {
   // [Statics]
   // --------------------------------------------------------------------------
 
-  //! Gets whether the `instId` is defined (counts also Inst::kIdNone, which must be zero).
+  //! Tests whether the `instId` is defined (counts also Inst::kIdNone, which must be zero).
   static inline bool isDefinedId(uint32_t instId) noexcept { return instId < _kIdCount; }
 
   //! Converts `size` to a 'kmov?' instructio.
@@ -1741,38 +1743,29 @@ namespace FpuWord {
 }
 
 // ============================================================================
-// [asmjit::x86::SpecialRegs]
+// [asmjit::x86::Status]
 // ============================================================================
 
-// TODO: Move into a namespace.
-//! Flags describing special registers and/or their parts.
-enum SpecialRegs : uint32_t {
-  kSpecialReg_FLAGS_CF    = 0x00000001u, //!< Flags - Carry flag.
-  kSpecialReg_FLAGS_PF    = 0x00000002u, //!< Flags - Parity flag.
-  kSpecialReg_FLAGS_AF    = 0x00000004u, //!< Flags - Adjust flag.
-  kSpecialReg_FLAGS_ZF    = 0x00000008u, //!< Flags - Zero flag.
-  kSpecialReg_FLAGS_SF    = 0x00000010u, //!< Flags - Sign flag.
-  kSpecialReg_FLAGS_TF    = 0x00000020u, //!< Flags - Trap flag.
-  kSpecialReg_FLAGS_IF    = 0x00000040u, //!< Flags - Interrupt enable flag.
-  kSpecialReg_FLAGS_DF    = 0x00000080u, //!< Flags - Direction flag.
-  kSpecialReg_FLAGS_OF    = 0x00000100u, //!< Flags - Overflow flag.
-  kSpecialReg_FLAGS_AC    = 0x00000200u, //!< Flags - Alignment check.
-  kSpecialReg_FLAGS_Other = 0x00000400u, //!< Flags - Other flags.
+//! CPU and FPU status (X86).
+namespace Status {
+  //! Mask of status flags of both CPU and FPU.
+  enum Flags : uint32_t {
+    kCF = 0x00000001u, //!< Carry flag.
+    kOF = 0x00000002u, //!< Signed overflow flag.
+    kSF = 0x00000004u, //!< Sign flag (negative/sign, if set).
+    kZF = 0x00000008u, //!< Zero and/or equality flag (1 if zero/equal).
 
-  kSpecialReg_X87CW_EC    = 0x00000800u, //!< X87 Control Word - Exception control.
-  kSpecialReg_X87CW_PC    = 0x00001000u, //!< X87 Control Word - Precision control.
-  kSpecialReg_X87CW_RC    = 0x00002000u, //!< X87 Control Word - Rounding control.
+    kAF = 0x00000100u, //!< Adjust flag.
+    kPF = 0x00000200u, //!< Parity flag.
+    kDF = 0x00000400u, //!< Direction flag.
+    kAC = 0x00000800u, //!< Alignment check.
 
-  kSpecialReg_X87SW_EF    = 0x00004000u, //!< X87 Status Word - Exception flags.
-  kSpecialReg_X87SW_C0    = 0x00008000u, //!< X87 Status Word - C0 flag.
-  kSpecialReg_X87SW_C1    = 0x00010000u, //!< X87 Status Word - C1 flag.
-  kSpecialReg_X87SW_C2    = 0x00020000u, //!< X87 Status Word - C2 flag.
-  kSpecialReg_X87SW_TOP   = 0x00040000u, //!< X87 Status Word - Top of the FPU stack.
-  kSpecialReg_X87SW_C3    = 0x00080000u, //!< X87 Status Word - C3 flag.
-
-  kSpecialReg_MSR         = 0x00100000u, //!< MSR register.
-  kSpecialReg_XCR         = 0x00200000u  //!< XCR register.
-};
+    kC0 = 0x00010000u, //!< FPU status word C0 flag.
+    kC1 = 0x00020000u, //!< FPU status word C1 flag.
+    kC2 = 0x00040000u, //!< FPU status word C2 flag.
+    kC3 = 0x00080000u  //!< FPU status word C3 flag.
+  };
+}
 
 // ============================================================================
 // [asmjit::x86::Predicate]

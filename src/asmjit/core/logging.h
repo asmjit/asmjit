@@ -207,12 +207,13 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the logging output stream or null if the logger has no output stream.
+  //! Returns the logging output stream or null if the logger has no output
+  //! stream.
   inline FILE* file() const noexcept { return _file; }
 
   //! Sets the logging output stream to `stream` or null.
   //!
-  //! NOTE: If the `file` is null the logging will be disabled. When a logger
+  //! \note If the `file` is null the logging will be disabled. When a logger
   //! is attached to `CodeHolder` or any emitter the logging API will always
   //! be called regardless of the output file. This means that if you really
   //! want to disable logging at emitter level you must not attach a logger
@@ -249,11 +250,11 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets `char*` pointer which represents string buffer.
+  //! Returns aggregated logger data as `char*` pointer.
   //!
   //! The pointer is owned by `StringLogger`, it can't be modified or freed.
   inline const char* data() const noexcept { return _content.data(); }
-  //! Gets the size of the string returned by `data()`.
+  //! Returns size of the data returned by `data()`.
   inline size_t dataSize() const noexcept { return _content.size(); }
 
   //! \}

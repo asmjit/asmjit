@@ -255,21 +255,32 @@ Error BaseAssembler::_emitFailed(
 // [asmjit::BaseAssembler - Embed]
 // ============================================================================
 
-Error BaseAssembler::embed(const void* data, uint32_t size) {
+struct DataSizeByPower {
+  char str[4];
+};
+
+static const DataSizeByPower dataSizeByPowerTable[] = {
+  { "db" },
+  { "dw" },
+  { "dd" },
+  { "dq" }
+};
+
+Error BaseAssembler::embed(const void* data, uint32_t dataSize) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  if (size == 0)
+  if (dataSize == 0)
     return DebugUtils::errored(kErrorInvalidArgument);
 
   CodeBufferWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensureSpace(this, size));
+  ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
 
-  writer.emitData(data, size);
+  writer.emitData(data, dataSize);
 
   #ifndef ASMJIT_DISABLE_LOGGING
   if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled)))
-    _code->_logger->logBinary(data, size);
+    _code->_logger->logBinary(data, dataSize);
   #endif
 
   writer.done(this);
@@ -287,16 +298,31 @@ Error BaseAssembler::embedLabel(const Label& label) {
   if (ASMJIT_UNLIKELY(!le))
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
 
-  uint32_t size = gpSize();
+  uint32_t dataSize = gpSize();
+  ASMJIT_ASSERT(dataSize <= 8);
+
   CodeBufferWriter writer(this);
-  ASMJIT_PROPAGATE(writer.ensureSpace(this, size));
+  ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
 
   #ifndef ASMJIT_DISABLE_LOGGING
-  if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled)))
-    _code->_logger->logf(size == 4 ? ".dd L%u\n" : ".dq L%u\n", label.id());
+  if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled))) {
+    StringTmp<256> sb;
+    sb.appendFormat(".%s ", dataSizeByPowerTable[Support::ctz(dataSize)].str);
+    Logging::formatLabel(sb, 0, this, label.id());
+    sb.appendChar('\n');
+    _code->_logger->log(sb);
+  }
   #endif
 
-  Error err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, size);
+  // TODO: Does it make sense to calculate the address here if everything is known?
+  /*
+  if (_code->hasBaseAddress() && currentSection() == _code->textSection() && le->isBound()) {
+    uint64_t addr = _code->baseAddress() + _code->textSection()->offset() + le->offset();
+    writer.emitValueLE(addr, dataSize);
+  }
+  */
+
+  Error err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, dataSize);
   if (ASMJIT_UNLIKELY(err))
     return reportError(err);
 
@@ -314,10 +340,72 @@ Error BaseAssembler::embedLabel(const Label& label) {
     link->relocId = re->id();
   }
 
-  // Emit dummy DWORD/QWORD depending on the address size.
-  writer.emitZeros(size);
+  // Emit dummy DWORD/QWORD depending on the data size.
+  writer.emitZeros(dataSize);
   writer.done(this);
 
+  return kErrorOk;
+}
+
+Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, uint32_t dataSize) {
+  if (ASMJIT_UNLIKELY(!_code))
+    return DebugUtils::errored(kErrorNotInitialized);
+
+  LabelEntry* labelEntry = _code->labelEntry(label);
+  LabelEntry* baseEntry = _code->labelEntry(base);
+
+  if (ASMJIT_UNLIKELY(!labelEntry || !baseEntry))
+    return reportError(DebugUtils::errored(kErrorInvalidLabel));
+
+  if (dataSize == 0)
+    dataSize = gpSize();
+
+  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8))
+    return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
+
+  CodeBufferWriter writer(this);
+  ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
+
+  #ifndef ASMJIT_DISABLE_LOGGING
+  if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled))) {
+    StringTmp<256> sb;
+    sb.appendFormat(".%s (", dataSizeByPowerTable[Support::ctz(dataSize)].str);
+    Logging::formatLabel(sb, 0, this, label.id());
+    sb.appendString(" - ");
+    Logging::formatLabel(sb, 0, this, base.id());
+    sb.appendString(")\n");
+    _code->_logger->log(sb);
+  }
+  #endif
+
+  // If both labels are bound within the same section it means the delta can be calculated now.
+  if (labelEntry->isBound() && baseEntry->isBound() && labelEntry->section() == baseEntry->section()) {
+    uint64_t delta = labelEntry->offset() - baseEntry->offset();
+    writer.emitValueLE(delta, dataSize);
+  }
+  else {
+    RelocEntry* re;
+    Error err = _code->newRelocEntry(&re, RelocEntry::kTypeExpression, dataSize);
+    if (ASMJIT_UNLIKELY(err))
+      return reportError(err);
+
+    Expression* exp = _code->_zone.newT<Expression>();
+    if (ASMJIT_UNLIKELY(!exp))
+      return reportError(DebugUtils::errored(kErrorOutOfMemory));
+
+    exp->reset();
+    exp->opType = Expression::kOpSub;
+    exp->setValueAsLabel(0, labelEntry);
+    exp->setValueAsLabel(1, baseEntry);
+
+    re->_sourceSectionId = _section->id();
+    re->_sourceOffset = offset();
+    re->_payload = (uint64_t)(uintptr_t)exp;
+
+    writer.emitZeros(dataSize);
+  }
+
+  writer.done(this);
   return kErrorOk;
 }
 

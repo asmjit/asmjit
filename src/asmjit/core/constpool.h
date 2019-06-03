@@ -198,11 +198,11 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets whether the constant-pool is empty.
+  //! Tests whether the constant-pool is empty.
   inline bool empty() const noexcept { return _size == 0; }
-  //! Gets the size of the constant-pool in bytes.
+  //! Returns the size of the constant-pool in bytes.
   inline size_t size() const noexcept { return _size; }
-  //! Gets minimum alignment.
+  //! Returns minimum alignment.
   inline size_t alignment() const noexcept { return _alignment; }
 
   //! \}

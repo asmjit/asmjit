@@ -95,22 +95,22 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the virtual register id.
+  //! Returns the virtual register id.
   inline uint32_t id() const noexcept { return _id; }
 
-  //! Gets the virtual register name.
+  //! Returns the virtual register name.
   inline const char* name() const noexcept { return _name.data(); }
-  //! Gets the size of the virtual register name.
+  //! Returns the size of the virtual register name.
   inline uint32_t nameSize() const noexcept { return _name.size(); }
 
-  //! Gets a register information that wraps the register signature.
+  //! Returns a register information that wraps the register signature.
   inline const RegInfo& info() const noexcept { return _info; }
-  //! Gets a virtual register type (maps to the physical register type as well).
+  //! Returns a virtual register type (maps to the physical register type as well).
   inline uint32_t type() const noexcept { return _info.type(); }
-  //! Gets a virtual register group (maps to the physical register group as well).
+  //! Returns a virtual register group (maps to the physical register group as well).
   inline uint32_t group() const noexcept { return _info.group(); }
 
-  //! Gets a real size of the register this virtual register maps to.
+  //! Returns a real size of the register this virtual register maps to.
   //!
   //! For example if this is a 128-bit SIMD register used for a scalar single
   //! precision floating point value then its virtSize would be 4, however, the
@@ -118,39 +118,39 @@ public:
   //! of that register type.
   inline uint32_t regSize() const noexcept { return _info.size(); }
 
-  //! Gets a register signature of this virtual register.
+  //! Returns a register signature of this virtual register.
   inline uint32_t signature() const noexcept { return _info.signature(); }
 
-  //! Gets the virtual register size.
+  //! Returns the virtual register size.
   //!
   //! The virtual register size describes how many bytes the virtual register
   //! needs to store its content. It can be smaller than the physical register
   //! size, see `regSize()`.
   inline uint32_t virtSize() const noexcept { return _virtSize; }
 
-  //! Gets the virtual register alignment.
+  //! Returns the virtual register alignment.
   inline uint32_t alignment() const noexcept { return _alignment; }
 
-  //! Gets the virtual register type id, see `Type::Id`.
+  //! Returns the virtual register type id, see `Type::Id`.
   inline uint32_t typeId() const noexcept { return _typeId; }
 
-  //! Gets the virtual register weight - the register allocator can use it as
-  //! explicit hint for alloc/spill decisions.
+  //! Returns the virtual register weight - the register allocator can use it
+  //! as explicit hint for alloc/spill decisions.
   inline uint32_t weight() const noexcept { return _weight; }
   //! Sets the virtual register weight (0 to 255) - the register allocator can
   //! use it as explicit hint for alloc/spill decisions and initial bin-packing.
   inline void setWeight(uint32_t weight) noexcept { _weight = uint8_t(weight); }
 
-  //! Gets whether the virtual register is always allocated to a fixed physical
-  //! register (and never reallocated).
+  //! Returns whether the virtual register is always allocated to a fixed
+  //! physical register (and never reallocated).
   //!
-  //! NOTE: This is only used for special purposes and it's mostly internal.
+  //! \note This is only used for special purposes and it's mostly internal.
   inline bool isFixed() const noexcept { return bool(_isFixed); }
 
-  //! Gets whether the virtual register is indeed a stack that only uses the
-  //! virtual register id for making it accessible.
+  //! Returns whether the virtual register is indeed a stack that only uses
+  //! the virtual register id for making it accessible.
   //!
-  //! NOTE: It's an error if a stack is accessed as a register.
+  //! \note It's an error if a stack is accessed as a register.
   inline bool isStack() const noexcept { return bool(_isStack); }
 
   inline bool hasWorkReg() const noexcept { return _workReg != nullptr; }
@@ -210,7 +210,7 @@ public:
   //! \name Function API
   //! \{
 
-  //! Gets the current function.
+  //! Returns the current function.
   inline FuncNode* func() const noexcept { return _func; }
 
   //! Creates a new `FuncNode`.
@@ -254,27 +254,27 @@ public:
   ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* name = nullptr);
   ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap);
 
-  //! Gets whether the given `id` is a valid virtual register id.
+  //! Tests whether the given `id` is a valid virtual register id.
   inline bool isVirtIdValid(uint32_t id) const noexcept {
     uint32_t index = Operand::virtIdToIndex(id);
     return index < _vRegArray.size();
   }
-  //! Gets whether the given `reg` is a virtual register having a valid id.
+  //! Tests whether the given `reg` is a virtual register having a valid id.
   inline bool isVirtRegValid(const BaseReg& reg) const noexcept {
     return isVirtIdValid(reg.id());
   }
 
-  //! Gets `VirtReg` associated with the given `id`.
+  //! Returns `VirtReg` associated with the given `id`.
   inline VirtReg* virtRegById(uint32_t id) const noexcept {
     ASMJIT_ASSERT(isVirtIdValid(id));
     return _vRegArray[Operand::virtIdToIndex(id)];
   }
-  //! Gets `VirtReg` associated with the given `reg`.
+  //! Returns `VirtReg` associated with the given `reg`.
   inline VirtReg* virtRegByReg(const BaseReg& reg) const noexcept { return virtRegById(reg.id()); }
-  //! Gets `VirtReg` associated with the given `index`.
+  //! Returns `VirtReg` associated with the given `index`.
   inline VirtReg* virtRegByIndex(uint32_t index) const noexcept { return _vRegArray[index]; }
 
-  //! Gets an array of all virtual registers managed by the Compiler.
+  //! Returns an array of all virtual registers managed by the Compiler.
   inline const ZoneVector<VirtReg*>& virtRegs() const noexcept { return _vRegArray; }
 
   //! \name Stack
@@ -296,7 +296,7 @@ public:
 
   //! Rename the given virtual register `reg` to a formatted string `fmt`.
   //!
-  //! NOTE: Only new name will appear in the logger.
+  //! \note Only new name will appear in the logger.
   ASMJIT_API void rename(BaseReg& reg, const char* fmt, ...);
 
   //! \}
@@ -355,33 +355,33 @@ public:
   //! \{
   //! \name Accessors
 
-  //! Gets function exit `LabelNode`.
+  //! Returns function exit `LabelNode`.
   inline LabelNode* exitNode() const noexcept { return _exitNode; }
-  //! Gets function exit label.
+  //! Returns function exit label.
   inline Label exitLabel() const noexcept { return _exitNode->label(); }
 
-  //! Gets "End of Func" sentinel.
+  //! Returns "End of Func" sentinel.
   inline SentinelNode* endNode() const noexcept { return _end; }
 
-  //! Gets function declaration.
+  //! Returns function declaration.
   inline FuncDetail& detail() noexcept { return _funcDetail; }
-  //! Gets function declaration.
+  //! Returns function declaration.
   inline const FuncDetail& detail() const noexcept { return _funcDetail; }
 
-  //! Gets function frame.
+  //! Returns function frame.
   inline FuncFrame& frame() noexcept { return _frame; }
-  //! Gets function frame.
+  //! Returns function frame.
   inline const FuncFrame& frame() const noexcept { return _frame; }
 
-  //! Gets arguments count.
+  //! Returns arguments count.
   inline uint32_t argCount() const noexcept { return _funcDetail.argCount(); }
-  //! Gets returns count.
+  //! Returns returns count.
   inline uint32_t retCount() const noexcept { return _funcDetail.retCount(); }
 
-  //! Gets arguments list.
+  //! Returns arguments list.
   inline VirtReg** args() const noexcept { return _args; }
 
-  //! Gets argument at `i`.
+  //! Returns argument at `i`.
   inline VirtReg* arg(uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < argCount());
     return _args[i];
@@ -466,22 +466,22 @@ public:
     return _funcDetail.init(sign);
   }
 
-  //! Gets the function detail.
+  //! Returns the function detail.
   inline FuncDetail& detail() noexcept { return _funcDetail; }
-  //! Gets the function detail.
+  //! Returns the function detail.
   inline const FuncDetail& detail() const noexcept { return _funcDetail; }
 
-  //! Gets the target operand.
+  //! Returns the target operand.
   inline Operand& target() noexcept { return _opArray[0].as<Operand>(); }
   //! \overload
   inline const Operand& target() const noexcept { return _opArray[0].as<Operand>(); }
 
-  //! Gets the number of function arguments.
+  //! Returns the number of function arguments.
   inline uint32_t argCount() const noexcept { return _funcDetail.argCount(); }
-  //! Gets the number of function return values.
+  //! Returns the number of function return values.
   inline uint32_t retCount() const noexcept { return _funcDetail.retCount(); }
 
-  //! Gets the return value at `i`.
+  //! Returns the return value at `i`.
   inline Operand& ret(uint32_t i = 0) noexcept {
     ASMJIT_ASSERT(i < 2);
     return _rets[i].as<Operand>();
@@ -492,7 +492,7 @@ public:
     return _rets[i].as<Operand>();
   }
 
-  //! Gets the function argument at `i`.
+  //! Returns the function argument at `i`.
   inline Operand& arg(uint32_t i) noexcept {
     ASMJIT_ASSERT(i < kFuncArgCountLoHi);
     return _args[i].as<Operand>();
@@ -538,7 +538,7 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the associated `BaseCompiler`.
+  //! Returns the associated `BaseCompiler`.
   inline BaseCompiler* cc() const noexcept { return static_cast<BaseCompiler*>(_cb); }
 
   //! \}

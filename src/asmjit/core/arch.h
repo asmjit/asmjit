@@ -113,10 +113,10 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the architecture id, see `Id`.
+  //! Returns the architecture id, see `Id`.
   inline uint32_t archId() const noexcept { return _id; }
 
-  //! Gets the architecture sub-id, see `SubType`.
+  //! Returns the architecture sub-id, see `SubType`.
   //!
   //! X86 & X64
   //! ---------
@@ -132,19 +132,19 @@ public:
   //! encoding or regular ARM encoding.
   inline uint32_t archSubId() const noexcept { return _subId; }
 
-  //! Gets whether this architecture is 32-bit.
+  //! Tests whether this architecture is 32-bit.
   inline bool is32Bit() const noexcept { return _gpSize == 4; }
-  //! Gets whether this architecture is 64-bit.
+  //! Tests whether this architecture is 64-bit.
   inline bool is64Bit() const noexcept { return _gpSize == 8; }
 
-  //! Gets whether this architecture is X86, X64.
+  //! Tests whether this architecture is X86, X64.
   inline bool isX86Family() const noexcept { return isX86Family(_id); }
-  //! Gets whether this architecture is ARM32 or ARM64.
+  //! Tests whether this architecture is ARM32 or ARM64.
   inline bool isArmFamily() const noexcept { return isArmFamily(_id); }
 
-  //! Gets the native size of a general-purpose register.
+  //! Returns the native size of a general-purpose register.
   inline uint32_t gpSize() const noexcept { return _gpSize; }
-  //! Gets number of general-purpose registers.
+  //! Returns number of general-purpose registers.
   inline uint32_t gpCount() const noexcept { return _gpCount; }
 
   //! \}

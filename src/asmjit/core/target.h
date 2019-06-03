@@ -98,19 +98,19 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the target architecture information, see `ArchInfo`.
+  //! Returns the target architecture information, see `ArchInfo`.
   inline const ArchInfo& archInfo() const noexcept { return _archInfo; }
 
-  //! Gets the target architecture id, see `ArchInfo::Id`.
+  //! Returns the target architecture id, see `ArchInfo::Id`.
   inline uint32_t archId() const noexcept { return _archInfo.archId(); }
-  //! Gets the target architecture sub-type, see `ArchInfo::SubId`.
+  //! Returns the target architecture sub-type, see `ArchInfo::SubId`.
   inline uint32_t archSubId() const noexcept { return _archInfo.archSubId(); }
-  //! Gets the native size of the target's architecture GP register.
+  //! Returns the native size of the target's architecture GP register.
   inline uint32_t gpSize() const noexcept { return _archInfo.gpSize(); }
-  //! Gets the number of GP registers of the target's architecture.
+  //! Returns the number of GP registers of the target's architecture.
   inline uint32_t gpCount() const noexcept { return _archInfo.gpCount(); }
 
-  //! Gets a natural stack alignment that must be honored (or 0 if not known).
+  //! Returns a natural stack alignment that must be honored (or 0 if not known).
   inline uint32_t stackAlignment() const noexcept { return _stackAlignment; }
   //! Sets a natural stack alignment that must be honored.
   inline void setStackAlignment(uint32_t sa) noexcept { _stackAlignment = uint8_t(sa); }
@@ -150,8 +150,10 @@ public:
   CodeInfo _codeInfo;
 
   enum TargetType : uint32_t {
-    kTargetNone   = 0,
-    kTargetJit    = 1
+    //! Uninitialized target or unknown target type.
+    kTargetNone = 0,
+    //! JIT target type, see `JitRuntime`.
+    kTargetJit = 1
   };
 
   //! \name Construction & Destruction
@@ -167,18 +169,18 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets CodeInfo of this runtime.
+  //! Returns CodeInfo of this target.
   //!
   //! CodeInfo can be used to setup a CodeHolder in case you plan to generate a
   //! code compatible and executable by this Runtime.
   inline const CodeInfo& codeInfo() const noexcept { return _codeInfo; }
 
-  //! Gets the target architecture id, see `ArchInfo::Id`.
+  //! Returns the target architecture id, see `ArchInfo::Id`.
   inline uint32_t archId() const noexcept { return _codeInfo.archId(); }
-  //! Gets the target architecture sub-id, see `ArchInfo::SubId`.
+  //! Returns the target architecture sub-id, see `ArchInfo::SubId`.
   inline uint32_t archSubId() const noexcept { return _codeInfo.archSubId(); }
 
-  //! Gets the target type, see `TargetType`.
+  //! Returns the target type, see `TargetType`.
   inline uint32_t targetType() const noexcept { return _targetType; }
 
   //! \}

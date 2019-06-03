@@ -71,7 +71,7 @@ enum EncodingId : uint32_t {
   kEncodingX86Mov,                       //!< X86 mov (all possible cases).
   kEncodingX86MovsxMovzx,                //!< X86 movsx, movzx.
   kEncodingX86MovntiMovdiri,             //!< X86 movnti/movdiri.
-  kEncodingX86Movdir64b,                 //!< X86 movdir64b.
+  kEncodingX86EnqcmdMovdir64b,           //!< X86 enqcmd/enqcmds/movdir64b.
   kEncodingX86Out,                       //!< X86 out.
   kEncodingX86Outs,                      //!< X86 out[b|q|d].
   kEncodingX86Push,                      //!< X86 push.
@@ -173,6 +173,30 @@ enum EncodingId : uint32_t {
 };
 
 // ============================================================================
+// [asmjit::x86::InstDB - CommonInfoTableB]
+// ============================================================================
+
+//! CPU extensions required to execute instruction.
+struct CommonInfoTableB {
+  //! Features vector.
+  uint8_t _features[6];
+  //! Index to `_rwFlagsTable`.
+  uint8_t _rwFlagsIndex;
+  //! Reserved for future use.
+  uint8_t _reserved;
+
+  inline const uint8_t* featuresBegin() const noexcept { return _features; }
+  inline const uint8_t* featuresEnd() const noexcept { return _features + ASMJIT_ARRAY_SIZE(_features); }
+};
+
+struct RWFlagsInfoTable {
+  //! CPU/FPU flags read.
+  uint32_t readFlags;
+  //! CPU/FPU flags written or undefined.
+  uint32_t writeFlags;
+};
+
+// ============================================================================
 // [asmjit::x86::InstDB::Tables]
 // ============================================================================
 
@@ -180,6 +204,9 @@ extern const uint8_t _encodingTable[];
 extern const uint32_t _mainOpcodeTable[];
 extern const uint8_t _altOpcodeIndex[];
 extern const uint32_t _altOpcodeTable[];
+
+extern const CommonInfoTableB _commonInfoTableB[];
+extern const RWFlagsInfoTable _rwFlagsInfoTable[];
 
 static inline uint32_t encodingFromId(uint32_t instId) noexcept {
   ASMJIT_ASSERT(Inst::isDefinedId(instId));

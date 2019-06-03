@@ -91,33 +91,33 @@ struct FuncSignature {
   //! \name Accessors
   //! \{
 
-  //! Gets the calling convention.
+  //! Returns the calling convention.
   inline uint32_t callConv() const noexcept { return _callConv; }
   //! Sets the calling convention to `ccId`;
   inline void setCallConv(uint32_t ccId) noexcept { _callConv = uint8_t(ccId); }
 
-  //! Gets whether the function has variable number of arguments (...).
+  //! Tests whether the function has variable number of arguments (...).
   inline bool hasVarArgs() const noexcept { return _vaIndex != kNoVarArgs; }
-  //! Gets the variable arguments (...) index, `kNoVarArgs` if none.
+  //! Returns the variable arguments (...) index, `kNoVarArgs` if none.
   inline uint32_t vaIndex() const noexcept { return _vaIndex; }
   //! Sets the variable arguments (...) index to `index`.
   inline void setVaIndex(uint32_t index) noexcept { _vaIndex = uint8_t(index); }
   //! Resets the variable arguments index (making it a non-va function).
   inline void resetVaIndex() noexcept { _vaIndex = kNoVarArgs; }
 
-  //! Gets the number of function arguments.
+  //! Returns the number of function arguments.
   inline uint32_t argCount() const noexcept { return _argCount; }
 
   inline bool hasRet() const noexcept { return _ret != Type::kIdVoid; }
-  //! Gets the return value type.
+  //! Returns the return value type.
   inline uint32_t ret() const noexcept { return _ret; }
 
-  //! Gets the type of the argument at index `i`.
+  //! Returns the type of the argument at index `i`.
   inline uint32_t arg(uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _argCount);
     return _args[i];
   }
-  //! Gets the array of function arguments' types.
+  //! Returns the array of function arguments' types.
   inline const uint8_t* args() const noexcept { return _args; }
 
   //! \}
@@ -260,45 +260,45 @@ struct FuncValue {
 
   inline void _replaceValue(uint32_t mask, uint32_t value) noexcept { _data = (_data & ~mask) | value; }
 
-  //! Gets whether the `FuncValue` has a flag `flag` set.
+  //! Tests whether the `FuncValue` has a flag `flag` set.
   inline bool hasFlag(uint32_t flag) const noexcept { return (_data & flag) != 0; }
   //! Adds `flags` to `FuncValue`.
   inline void addFlags(uint32_t flags) noexcept { _data |= flags; }
   //! Clears `flags` of `FuncValue`.
   inline void clearFlags(uint32_t flags) noexcept { _data &= ~flags; }
 
-  //! Gets whether this value is initialized (i.e. contains a valid data).
+  //! Tests whether the value is initialized (i.e. contains a valid data).
   inline bool isInitialized() const noexcept { return _data != 0; }
-  //! Gets whether this argument is passed by register.
+  //! Tests whether the argument is passed by register.
   inline bool isReg() const noexcept { return hasFlag(kFlagIsReg); }
-  //! Gets whether this argument is passed by stack.
+  //! Tests whether the argument is passed by stack.
   inline bool isStack() const noexcept { return hasFlag(kFlagIsStack); }
-  //! Gets whether this argument is passed by register.
+  //! Tests whether the argument is passed by register.
   inline bool isAssigned() const noexcept { return hasFlag(kFlagIsReg | kFlagIsStack); }
-  //! Gets whether this argument is passed through a pointer (used by WIN64 to pass XMM|YMM|ZMM).
+  //! Tests whether the argument is passed through a pointer (used by WIN64 to pass XMM|YMM|ZMM).
   inline bool isIndirect() const noexcept { return hasFlag(kFlagIsIndirect); }
 
-  //! Gets whether the argument was already processed (used internally).
+  //! Tests whether the argument was already processed (used internally).
   inline bool isDone() const noexcept { return hasFlag(kFlagIsDone); }
 
-  //! Gets a register type of the register used to pass function argument or return value.
+  //! Returns a register type of the register used to pass function argument or return value.
   inline uint32_t regType() const noexcept { return (_data & kRegTypeMask) >> kRegTypeShift; }
   //! Sets a register type of the register used to pass function argument or return value.
   inline void setRegType(uint32_t regType) noexcept { _replaceValue(kRegTypeMask, regType << kRegTypeShift); }
 
-  //! Gets a physical id of the register used to pass function argument or return value.
+  //! Returns a physical id of the register used to pass function argument or return value.
   inline uint32_t regId() const noexcept { return (_data & kRegIdMask) >> kRegIdShift; }
   //! Sets a physical id of the register used to pass function argument or return value.
   inline void setRegId(uint32_t regId) noexcept { _replaceValue(kRegIdMask, regId << kRegIdShift); }
 
-  //! Gets a stack offset of this argument.
+  //! Returns a stack offset of this argument.
   inline int32_t stackOffset() const noexcept { return int32_t(_data & kStackOffsetMask) >> kStackOffsetShift; }
   //! Sets a stack offset of this argument.
   inline void setStackOffset(int32_t offset) noexcept { _replaceValue(kStackOffsetMask, uint32_t(offset) << kStackOffsetShift); }
 
-  //! Gets a TypeId of this argument or return value.
+  //! Tests whether the argument or return value has associated `Type::Id`.
   inline bool hasTypeId() const noexcept { return (_data & kTypeIdMask) != 0; }
-  //! Gets a TypeId of this argument or return value.
+  //! Returns a TypeId of this argument or return value.
   inline uint32_t typeId() const noexcept { return (_data & kTypeIdMask) >> kTypeIdShift; }
   //! Sets a TypeId of this argument or return value.
   inline void setTypeId(uint32_t typeId) noexcept { _replaceValue(kTypeIdMask, typeId << kTypeIdShift); }
@@ -356,35 +356,35 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the function's calling convention, see `CallConv`.
+  //! Returns the function's calling convention, see `CallConv`.
   inline const CallConv& callConv() const noexcept { return _callConv; }
 
-  //! Gets CallConv flags, see `CallConv::Flags`.
+  //! Returns the associated calling convention flags, see `CallConv::Flags`.
   inline uint32_t flags() const noexcept { return _callConv.flags(); }
   //! Checks whether a CallConv `flag` is set, see `CallConv::Flags`.
   inline bool hasFlag(uint32_t ccFlag) const noexcept { return _callConv.hasFlag(ccFlag); }
 
-  //! Gets count of function return values.
+  //! Returns count of function return values.
   inline uint32_t retCount() const noexcept { return _retCount; }
-  //! Gets the number of function arguments.
+  //! Returns the number of function arguments.
   inline uint32_t argCount() const noexcept { return _argCount; }
 
-  //! Gets whether the function has a return value.
+  //! Tests whether the function has a return value.
   inline bool hasRet() const noexcept { return _retCount != 0; }
-  //! Gets function return value.
+  //! Returns function return value associated with the given `index`.
   inline FuncValue& ret(uint32_t index = 0) noexcept {
     ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_rets));
     return _rets[index];
   }
-  //! Gets function return value (const).
+  //! Returns function return value associated with the given `index` (const).
   inline const FuncValue& ret(uint32_t index = 0) const noexcept {
     ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_rets));
     return _rets[index];
   }
 
-  //! Gets function arguments array.
+  //! Returns function arguments array.
   inline FuncValue* args() noexcept { return _args; }
-  //! Gets function arguments array (const).
+  //! Returns function arguments array (const).
   inline const FuncValue* args() const noexcept { return _args; }
 
   inline bool hasArg(uint32_t index) const noexcept {
@@ -392,13 +392,13 @@ public:
     return _args[index].isInitialized();
   }
 
-  //! Gets function argument at index `index`.
+  //! Returns function argument at the given `index`.
   inline FuncValue& arg(uint32_t index) noexcept {
     ASMJIT_ASSERT(index < kFuncArgCountLoHi);
     return _args[index];
   }
 
-  //! Gets function argument at index `index`.
+  //! Returnsfunction argument at the given index `index` (const).
   inline const FuncValue& arg(uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < kFuncArgCountLoHi);
     return _args[index];
@@ -412,9 +412,9 @@ public:
   inline bool hasVarArgs() const noexcept { return _vaIndex != kNoVarArgs; }
   inline uint32_t vaIndex() const noexcept { return _vaIndex; }
 
-  //! Gets whether the function passes one or more argument by stack.
+  //! Tests whether the function passes one or more argument by stack.
   inline bool hasStackArgs() const noexcept { return _argStackSize != 0; }
-  //! Gets stack size needed for function arguments passed on the stack.
+  //! Returns stack size needed for function arguments passed on the stack.
   inline uint32_t argStackSize() const noexcept { return _argStackSize; }
 
   inline uint32_t redZoneSize() const noexcept { return _callConv.redZoneSize(); }
@@ -573,10 +573,10 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Gets the target architecture of the function frame.
+  //! Returns the target architecture of the function frame.
   inline uint32_t archId() const noexcept { return _archId; }
 
-  //! Gets FuncFrame attributes, see `Attributes`.
+  //! Returns function frame attributes, see `Attributes`.
   inline uint32_t attributes() const noexcept { return _attributes; }
   //! Checks whether the FuncFame contains an attribute `attr`.
   inline bool hasAttribute(uint32_t attr) const noexcept { return (_attributes & attr) != 0; }
@@ -585,86 +585,86 @@ public:
   //! Clears attributes `attrs` from the FrameFrame.
   inline void clearAttributes(uint32_t attrs) noexcept { _attributes &= ~attrs; }
 
-  //! Gets whether the function has variable number of arguments.
+  //! Tests whether the function has variable number of arguments.
   inline bool hasVarArgs() const noexcept { return hasAttribute(kAttrHasVarArgs); }
   //! Sets the variable arguments flag.
   inline void setVarArgs() noexcept { addAttributes(kAttrHasVarArgs); }
   //! Resets variable arguments flag.
   inline void resetVarArgs() noexcept { clearAttributes(kAttrHasVarArgs); }
 
-  //! Gets whether the function preserves frame pointer (EBP|ESP on X86).
+  //! Tests whether the function preserves frame pointer (EBP|ESP on X86).
   inline bool hasPreservedFP() const noexcept { return hasAttribute(kAttrHasPreservedFP); }
   //! Enables preserved frame pointer.
   inline void setPreservedFP() noexcept { addAttributes(kAttrHasPreservedFP); }
   //! Disables preserved frame pointer.
   inline void resetPreservedFP() noexcept { clearAttributes(kAttrHasPreservedFP); }
 
-  //! Gets whether the function calls other functions.
+  //! Tests whether the function calls other functions.
   inline bool hasFuncCalls() const noexcept { return hasAttribute(kAttrHasFuncCalls); }
   //! Sets `kFlagHasCalls` to true.
   inline void setFuncCalls() noexcept { addAttributes(kAttrHasFuncCalls); }
   //! Sets `kFlagHasCalls` to false.
   inline void resetFuncCalls() noexcept { clearAttributes(kAttrHasFuncCalls); }
 
-  //! Gets whether the function contains AVX cleanup - 'vzeroupper' instruction in epilog.
+  //! Tests whether the function contains AVX cleanup - 'vzeroupper' instruction in epilog.
   inline bool hasAvxCleanup() const noexcept { return hasAttribute(kAttrX86AvxCleanup); }
   //! Enables AVX cleanup.
   inline void setAvxCleanup() noexcept { addAttributes(kAttrX86AvxCleanup); }
   //! Disables AVX cleanup.
   inline void resetAvxCleanup() noexcept { clearAttributes(kAttrX86AvxCleanup); }
 
-  //! Gets whether the function contains AVX cleanup - 'vzeroupper' instruction in epilog.
+  //! Tests whether the function contains AVX cleanup - 'vzeroupper' instruction in epilog.
   inline bool isAvxEnabled() const noexcept { return hasAttribute(kAttrX86AvxEnabled); }
   //! Enables AVX cleanup.
   inline void setAvxEnabled() noexcept { addAttributes(kAttrX86AvxEnabled); }
   //! Disables AVX cleanup.
   inline void resetAvxEnabled() noexcept { clearAttributes(kAttrX86AvxEnabled); }
 
-  //! Gets whether the function contains MMX cleanup - 'emms' instruction in epilog.
+  //! Tests whether the function contains MMX cleanup - 'emms' instruction in epilog.
   inline bool hasMmxCleanup() const noexcept { return hasAttribute(kAttrX86MmxCleanup); }
   //! Enables MMX cleanup.
   inline void setMmxCleanup() noexcept { addAttributes(kAttrX86MmxCleanup); }
   //! Disables MMX cleanup.
   inline void resetMmxCleanup() noexcept { clearAttributes(kAttrX86MmxCleanup); }
 
-  //! Gets whether the function uses call stack.
+  //! Tests whether the function uses call stack.
   inline bool hasCallStack() const noexcept { return _callStackSize != 0; }
-  //! Gets whether the function uses local stack.
+  //! Tests whether the function uses local stack.
   inline bool hasLocalStack() const noexcept { return _localStackSize != 0; }
-  //! Gets whether vector registers can be saved and restored by using aligned reads and writes.
+  //! Tests whether vector registers can be saved and restored by using aligned reads and writes.
   inline bool hasAlignedVecSR() const noexcept { return hasAttribute(kAttrAlignedVecSR); }
-  //! Gets whether the function has to align stack dynamically.
+  //! Tests whether the function has to align stack dynamically.
   inline bool hasDynamicAlignment() const noexcept { return _finalStackAlignment >= _minDynamicAlignment; }
 
-  //! Gets whether this calling convention specifies 'RedZone'.
+  //! Tests whether the calling convention specifies 'RedZone'.
   inline bool hasRedZone() const noexcept { return _redZoneSize != 0; }
-  //! Gets whether this calling convention specifies 'SpillZone'.
+  //! Tests whether the calling convention specifies 'SpillZone'.
   inline bool hasSpillZone() const noexcept { return _spillZoneSize != 0; }
 
-  //! Gets size of 'RedZone'.
+  //! Returns the size of 'RedZone'.
   inline uint32_t redZoneSize() const noexcept { return _redZoneSize; }
-  //! Gets size of 'SpillZone'.
+  //! Returns the size of 'SpillZone'.
   inline uint32_t spillZoneSize() const noexcept { return _spillZoneSize; }
-  //! Gets natural stack alignment (guaranteed stack alignment upon entry).
+  //! Returns natural stack alignment (guaranteed stack alignment upon entry).
   inline uint32_t naturalStackAlignment() const noexcept { return _naturalStackAlignment; }
-  //! Gets natural stack alignment (guaranteed stack alignment upon entry).
+  //! Returns natural stack alignment (guaranteed stack alignment upon entry).
   inline uint32_t minDynamicAlignment() const noexcept { return _minDynamicAlignment; }
 
-  //! Gets whether the callee must adjust SP before returning (X86-STDCALL only)
+  //! Tests whether the callee must adjust SP before returning (X86-STDCALL only)
   inline bool hasCalleeStackCleanup() const noexcept { return _calleeStackCleanup != 0; }
-  //! Gets home many bytes of the stack the the callee must adjust before returning (X86-STDCALL only)
+  //! Returns home many bytes of the stack the the callee must adjust before returning (X86-STDCALL only)
   inline uint32_t calleeStackCleanup() const noexcept { return _calleeStackCleanup; }
 
-  //! Gets call stack alignment.
+  //! Returns call stack alignment.
   inline uint32_t callStackAlignment() const noexcept { return _callStackAlignment; }
-  //! Gets local stack alignment.
+  //! Returns local stack alignment.
   inline uint32_t localStackAlignment() const noexcept { return _localStackAlignment; }
-  //! Gets final stack alignment (the maximum value of call, local, and natural stack alignments).
+  //! Returns final stack alignment (the maximum value of call, local, and natural stack alignments).
   inline uint32_t finalStackAlignment() const noexcept { return _finalStackAlignment; }
 
   //! Sets call stack alignment.
   //!
-  //! NOTE: This also updates the final stack alignment.
+  //! \note This also updates the final stack alignment.
   inline void setCallStackAlignment(uint32_t alignment) noexcept {
     _callStackAlignment = uint8_t(alignment);
     _finalStackAlignment = Support::max(_naturalStackAlignment, _callStackAlignment, _localStackAlignment);
@@ -672,7 +672,7 @@ public:
 
   //! Sets local stack alignment.
   //!
-  //! NOTE: This also updates the final stack alignment.
+  //! \note This also updates the final stack alignment.
   inline void setLocalStackAlignment(uint32_t value) noexcept {
     _localStackAlignment = uint8_t(value);
     _finalStackAlignment = Support::max(_naturalStackAlignment, _callStackAlignment, _localStackAlignment);
@@ -680,7 +680,7 @@ public:
 
   //! Combines call stack alignment with `alignment`, updating it to the greater value.
   //!
-  //! NOTE: This also updates the final stack alignment.
+  //! \note This also updates the final stack alignment.
   inline void updateCallStackAlignment(uint32_t alignment) noexcept {
     _callStackAlignment = uint8_t(Support::max<uint32_t>(_callStackAlignment, alignment));
     _finalStackAlignment = Support::max(_finalStackAlignment, _callStackAlignment);
@@ -688,15 +688,15 @@ public:
 
   //! Combines local stack alignment with `alignment`, updating it to the greater value.
   //!
-  //! NOTE: This also updates the final stack alignment.
+  //! \note This also updates the final stack alignment.
   inline void updateLocalStackAlignment(uint32_t alignment) noexcept {
     _localStackAlignment = uint8_t(Support::max<uint32_t>(_localStackAlignment, alignment));
     _finalStackAlignment = Support::max(_finalStackAlignment, _localStackAlignment);
   }
 
-  //! Gets call stack size.
+  //! Returns call stack size.
   inline uint32_t callStackSize() const noexcept { return _callStackSize; }
-  //! Gets local stack size.
+  //! Returns local stack size.
   inline uint32_t localStackSize() const noexcept { return _localStackSize; }
 
   //! Sets call stack size.
@@ -709,15 +709,15 @@ public:
   //! Combines local stack size with `size`, updating it to the greater value.
   inline void updateLocalStackSize(uint32_t size) noexcept { _localStackSize = Support::max(_localStackSize, size); }
 
-  //! Gets final stack size (only valid after the FuncFrame is finalized).
+  //! Returns final stack size (only valid after the FuncFrame is finalized).
   inline uint32_t finalStackSize() const noexcept { return _finalStackSize; }
 
-  //! Gets an offset to access the local stack (non-zero only if call stack is used).
+  //! Returns an offset to access the local stack (non-zero only if call stack is used).
   inline uint32_t localStackOffset() const noexcept { return _localStackOffset; }
 
-  //! Gets whether the function prolog/epilog requires a memory slot for storing unaligned SP.
+  //! Tests whether the function prolog/epilog requires a memory slot for storing unaligned SP.
   inline bool hasDAOffset() const noexcept { return _daOffset != kTagInvalidOffset; }
-  //! Gets a memory offset used to store DA (dynamic alignment) slot (relative to SP).
+  //! Returns a memory offset used to store DA (dynamic alignment) slot (relative to SP).
   inline uint32_t daOffset() const noexcept { return _daOffset; }
 
   inline uint32_t saOffset(uint32_t regId) const noexcept {
@@ -728,7 +728,7 @@ public:
   inline uint32_t saOffsetFromSP() const noexcept { return _saOffsetFromSP; }
   inline uint32_t saOffsetFromSA() const noexcept { return _saOffsetFromSA; }
 
-  //! Gets which registers (as a mask) of the given register `group` are modified
+  //! Returns mask of registers of the given register `group` that are modified
   //! by the function. The engine would then calculate which registers must be
   //! saved & restored by the function by using the data provided by the calling
   //! convention.
@@ -787,7 +787,7 @@ public:
     return _dirtyRegs[group] & _preservedRegs[group];
   }
 
-  //! Gets the mask of preserved registers of the given register `group`.
+  //! Returns the mask of preserved registers of the given register `group`.
   //!
   //! Preserved registers are those that must survive the function call
   //! unmodified. The function can only modify preserved registers it they
@@ -802,19 +802,19 @@ public:
   inline void setSARegId(uint32_t regId) { _saRegId = uint8_t(regId); }
   inline void resetSARegId() { setSARegId(BaseReg::kIdBad); }
 
-  //! Gets stack size required to save GP registers.
+  //! Returns stack size required to save GP registers.
   inline uint32_t gpSaveSize() const noexcept { return _gpSaveSize; }
-  //! Gets stack size required to save other than GP registers (MM, XMM|YMM|ZMM, K, VFP, etc...).
+  //! Returns stack size required to save other than GP registers (MM, XMM|YMM|ZMM, K, VFP, etc...).
   inline uint32_t nonGpSaveSize() const noexcept { return _nonGpSaveSize; }
 
-  //! Gets an offset to the stack where general purpose registers are saved.
+  //! Returns an offset to the stack where general purpose registers are saved.
   inline uint32_t gpSaveOffset() const noexcept { return _gpSaveOffset; }
-  //! Gets an offset to the stack where other than GP registers are saved.
+  //! Returns an offset to the stack where other than GP registers are saved.
   inline uint32_t nonGpSaveOffset() const noexcept { return _nonGpSaveOffset; }
 
-  //! Gets whether the functions contains stack adjustment.
+  //! Tests whether the functions contains stack adjustment.
   inline bool hasStackAdjustment() const noexcept { return _stackAdjustment != 0; }
-  //! Gets function's stack adjustment used in function's prolog and epilog.
+  //! Returns function's stack adjustment used in function's prolog and epilog.
   //!
   //! If the returned value is zero it means that the stack is not adjusted.
   //! This can mean both that the stack is not used and/or the stack is only
@@ -933,7 +933,7 @@ public:
 
   //! Update `FuncFrame` based on function's arguments assignment.
   //!
-  //! NOTE: You MUST call this in orher to use `BaseEmitter::emitArgsAssignment()`,
+  //! \note You MUST call this in orher to use `BaseEmitter::emitArgsAssignment()`,
   //! otherwise the FuncFrame would not contain the information necessary to
   //! assign all arguments into the registers and/or stack specified.
   ASMJIT_API Error updateFuncFrame(FuncFrame& frame) const noexcept;

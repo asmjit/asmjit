@@ -41,17 +41,17 @@ struct OpRWInfo {
   enum Flags : uint32_t {
     //! Operand is read.
     //!
-    //! NOTE: This flag must be `0x00000001`.
+    //! \note This flag must be `0x00000001`.
     kRead = 0x00000001u,
 
     //! Operand is written.
     //!
-    //! NOTE: This flag must be `0x00000002`.
+    //! \note This flag must be `0x00000002`.
     kWrite = 0x00000002u,
 
     //! Operand is both read and written.
     //!
-    //! NOTE: This combination of flags must be `0x00000003`.
+    //! \note This combination of flags must be `0x00000003`.
     kRW = 0x00000003u,
 
     //! Register operand can be replaced by a memory operand.
@@ -148,10 +148,14 @@ struct OpRWInfo {
 struct InstRWInfo {
   //! Instruction flags.
   uint32_t _instFlags;
+  //! Mask of flags read.
+  uint32_t _readFlags;
+  //! Mask of flags written.
+  uint32_t _writeFlags;
   //! Count of operands.
   uint8_t _opCount;
   //! Reserved for future use.
-  uint8_t _reserved[27];
+  uint8_t _reserved[19];
   //! Read/Write onfo of extra register (rep{} or kz{}).
   OpRWInfo _extraReg;
   //! Read/Write info of instruction operands.
@@ -163,6 +167,9 @@ struct InstRWInfo {
   inline bool hasInstFlag(uint32_t flag) const noexcept { return (_instFlags & flag) != 0; }
 
   inline uint32_t opCount() const noexcept { return _opCount; }
+
+  inline uint32_t readFlags() const noexcept { return _readFlags; }
+  inline uint32_t writeFlags() const noexcept { return _writeFlags; }
 
   inline const OpRWInfo& extraReg() const noexcept { return _extraReg; }
   inline const OpRWInfo* operands() const noexcept { return _operands; }

@@ -789,11 +789,11 @@ Error BaseBuilder::align(uint32_t alignMode, uint32_t alignment) {
 // [asmjit::BaseBuilder - Embed]
 // ============================================================================
 
-Error BaseBuilder::embed(const void* data, uint32_t size) {
+Error BaseBuilder::embed(const void* data, uint32_t dataSize) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  EmbedDataNode* node = newEmbedDataNode(data, size);
+  EmbedDataNode* node = newEmbedDataNode(data, dataSize);
   if (ASMJIT_UNLIKELY(!node))
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
@@ -805,7 +805,19 @@ Error BaseBuilder::embedLabel(const Label& label) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  LabelDataNode* node = newNodeT<LabelDataNode>(label.id());
+  EmbedLabelNode* node = newNodeT<EmbedLabelNode>(label.id());
+  if (ASMJIT_UNLIKELY(!node))
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
+
+  addNode(node);
+  return kErrorOk;
+}
+
+Error BaseBuilder::embedLabelDelta(const Label& label, const Label& base, uint32_t dataSize) {
+  if (ASMJIT_UNLIKELY(!_code))
+    return DebugUtils::errored(kErrorNotInitialized);
+
+  EmbedLabelDeltaNode* node = newNodeT<EmbedLabelDeltaNode>(label.id(), base.id(), dataSize);
   if (ASMJIT_UNLIKELY(!node))
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
@@ -881,9 +893,13 @@ Error BaseBuilder::serialize(BaseEmitter* dst) {
       EmbedDataNode* node = node_->as<EmbedDataNode>();
       err = dst->embed(node->data(), node->size());
     }
-    else if (node_->isLabelData()) {
-      LabelDataNode* node = node_->as<LabelDataNode>();
+    else if (node_->isEmbedLabel()) {
+      EmbedLabelNode* node = node_->as<EmbedLabelNode>();
       err = dst->embedLabel(node->label());
+    }
+    else if (node_->isEmbedLabelDelta()) {
+      EmbedLabelDeltaNode* node = node_->as<EmbedLabelDeltaNode>();
+      err = dst->embedLabelDelta(node->label(), node->baseLabel(), node->dataSize());
     }
     else if (node_->isSection()) {
       SectionNode* node = node_->as<SectionNode>();

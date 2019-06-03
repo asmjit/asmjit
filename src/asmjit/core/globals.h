@@ -314,6 +314,11 @@ enum ErrorCode : uint32_t {
   //! Invalid register to hold stack arguments offset.
   kErrorOverlappingStackRegWithRegArg,
 
+  //! Unbound label cannot be evaluated by expression.
+  kErrorExpressionLabelNotBound,
+  //! Arithmetic overflow during expression evaluation.
+  kErrorExpressionOverflow,
+
   //! Count of AsmJit error codes.
   kErrorCount
 };
@@ -354,7 +359,7 @@ namespace DebugUtils {
 //! help with tracing the origin of any error reported / returned by AsmJit.
 static constexpr Error errored(Error err) noexcept { return err; }
 
-//! Gets a printable version of `asmjit::Error` code.
+//! Returns a printable version of `asmjit::Error` code.
 ASMJIT_API const char* errorAsString(Error err) noexcept;
 
 //! Called to output debugging message(s).
