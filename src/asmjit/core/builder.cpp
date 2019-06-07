@@ -387,11 +387,12 @@ Error BaseBuilder::section(Section* section) {
   if (!node->isActive()) {
     // Insert the section at the end if it was not part of the code.
     addAfter(node, lastNode());
+    _cursor = node;
   }
   else {
     // This is a bit tricky. We cache section links to make sure that
     // switching sections doesn't involve traversal in linked-list unless
-    // the position of section(s) has changed.
+    // the position of the section has changed.
     if (hasDirtySectionLinks())
       updateSectionLinks();
 
