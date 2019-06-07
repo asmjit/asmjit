@@ -230,11 +230,11 @@ public:
   inline FuncCallNode* call(uint64_t dst, const FuncSignature& sign) { return addCall(Inst::kIdCall, Imm(int64_t(dst)), sign); }
 
   //! Return.
-  inline FuncRetNode* ret() { return addRet(Operand(), Operand()); }
+  inline FuncRetNode* ret() { return addRet(Inst::kIdRet, Operand(), Operand()); }
   //! \overload
-  inline FuncRetNode* ret(const BaseReg& o0) { return addRet(o0, Operand()); }
+  inline FuncRetNode* ret(const BaseReg& o0) { return addRet(Inst::kIdRet, o0, Operand()); }
   //! \overload
-  inline FuncRetNode* ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
+  inline FuncRetNode* ret(const BaseReg& o0, const BaseReg& o1) { return addRet(Inst::kIdRet, o0, o1); }
 
   //! \}
 

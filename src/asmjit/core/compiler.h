@@ -226,9 +226,9 @@ public:
   ASMJIT_API Error setArg(uint32_t argIndex, const BaseReg& reg);
 
   //! Creates a new `FuncRetNode`.
-  ASMJIT_API FuncRetNode* newRet(const Operand_& o0, const Operand_& o1) noexcept;
+  ASMJIT_API FuncRetNode* newRet(uint32_t instId, const Operand_& o0, const Operand_& o1) noexcept;
   //! Adds a new `FuncRetNode`.
-  ASMJIT_API FuncRetNode* addRet(const Operand_& o0, const Operand_& o1) noexcept;
+  ASMJIT_API FuncRetNode* addRet(uint32_t instId, const Operand_& o0, const Operand_& o1) noexcept;
 
   //! \}
 
@@ -418,7 +418,7 @@ public:
   //! \{
 
   //! Creates a new `FuncRetNode` instance.
-  inline FuncRetNode(BaseBuilder* cb) noexcept : InstNode(cb, BaseInst::kIdAbstract, 0, 0) {
+  inline FuncRetNode(BaseBuilder* cb, uint32_t instId) noexcept : InstNode(cb, instId, 0, 0) {
     _any._nodeType = kNodeFuncRet;
   }
 

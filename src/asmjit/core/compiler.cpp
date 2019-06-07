@@ -202,8 +202,8 @@ Error BaseCompiler::setArg(uint32_t argIndex, const BaseReg& r) {
   return kErrorOk;
 }
 
-FuncRetNode* BaseCompiler::newRet(const Operand_& o0, const Operand_& o1) noexcept {
-  FuncRetNode* node = newNodeT<FuncRetNode>();
+FuncRetNode* BaseCompiler::newRet(uint32_t instId, const Operand_& o0, const Operand_& o1) noexcept {
+  FuncRetNode* node = newNodeT<FuncRetNode>(instId);
   if (!node) {
     reportError(DebugUtils::errored(kErrorOutOfMemory));
     return nullptr;
@@ -216,8 +216,8 @@ FuncRetNode* BaseCompiler::newRet(const Operand_& o0, const Operand_& o1) noexce
   return node;
 }
 
-FuncRetNode* BaseCompiler::addRet(const Operand_& o0, const Operand_& o1) noexcept {
-  FuncRetNode* node = newRet(o0, o1);
+FuncRetNode* BaseCompiler::addRet(uint32_t instId, const Operand_& o0, const Operand_& o1) noexcept {
+  FuncRetNode* node = newRet(instId, o0, o1);
   if (!node) return nullptr;
   return addNode(node)->as<FuncRetNode>();
 }
