@@ -1783,14 +1783,14 @@ class InstCommonInfoTableB extends core.Task {
         var flag = "";
         switch (specialReg) {
           case "FLAGS.CF": flag = "CF"; break;
-          case "FLAGS.PF": flag = "PF"; break;
-          case "FLAGS.AF": flag = "AF"; break;
-          case "FLAGS.ZF": flag = "ZF"; break;
-          case "FLAGS.SF": flag = "SF"; break;
-          //case "FLAGS.TF": flag = "TF"; break;
-          //case "FLAGS.IF": flag = "IF"; break;
-          case "FLAGS.DF": flag = "DF"; break;
           case "FLAGS.OF": flag = "OF"; break;
+          case "FLAGS.SF": flag = "SF"; break;
+          case "FLAGS.ZF": flag = "ZF"; break;
+          case "FLAGS.AF": flag = "AF"; break;
+          case "FLAGS.PF": flag = "PF"; break;
+          case "FLAGS.DF": flag = "DF"; break;
+          case "FLAGS.IF": flag = "IF"; break;
+        //case "FLAGS.TF": flag = "TF"; break;
           case "FLAGS.AC": flag = "AC"; break;
           case "X86SW.C0": flag = "C0"; break;
           case "X86SW.C1": flag = "C1"; break;
@@ -1964,7 +1964,7 @@ class InstRWInfoTable extends core.Task {
           StringUtils.decToHex(rmInfo.rmIndexes, 2),
           String(Math.max(rmInfo.memFixed, 0)).padEnd(2),
           CxxUtils.flags({ "RWInfoRm::kFlagAmbiguous": Boolean(rmInfo.memAmbiguous) }),
-          rmInfo.extensionRequired
+          rmInfo.memExtension === "None" ? "0" : "Features::k" + rmInfo.memExtension
         );
 
         const rwData = CxxUtils.struct(
@@ -2173,7 +2173,7 @@ class InstRWInfoTable extends core.Task {
       memFixed: this.rmFixedSize(dbInsts),
       memAmbiguous: this.rmIsAmbiguous(dbInsts),
       memConsistent: this.rmIsConsistent(dbInsts),
-      extensionRequired: this.rmExtensionRequired(dbInsts)
+      memExtension: this.rmExtension(dbInsts)
     };
 
     if (info.memFixed !== -1)
@@ -2243,11 +2243,6 @@ class InstRWInfoTable extends core.Task {
 
     for (var i = 0; i < dbInsts.length; i++) {
       const dbInst = dbInsts[i];
-
-      // WORKAROUND:
-      const name = dbInst.name;
-      if (/^(vpslldq|vpsrldq|pextrw)$/.test(name))
-        return 0;
 
       var mi = getMemIndexes(dbInst);
       var ri = getRegIndexes(dbInst) & ~mi;
@@ -2373,31 +2368,22 @@ class InstRWInfoTable extends core.Task {
            (isAmbiguous(Filter.byArch(uniqueInsts, "X64")) << 1) ;
   }
 
-  rmExtensionRequired(dbInsts) {
-    return 0;
-    /*
-    function hasRegMem(inst) {
-      return inst.operands.some((op) => { return op.isRegMem(); });
-    }
+  rmExtension(dbInsts) {
+    if (!dbInsts.length)
+      return "None";
 
-    function sign(op) {
-      if (op.reg)
-        return op.reg;
-      else
-        return "?"
-    }
+    const name = dbInsts[0].name;
+    switch (name) {
+      case "pextrw":
+        return "SSE4_1";
 
-    // Index only instructions that don't have memory operand.
-    const map = {};
-    for (var i = 0; i < dbInsts.length; i++) {
-      const inst = dbInsts[i];
-      if (hasRegMem(inst))
-        continue;
+      case "vpslldq":
+      case "vpsrldq":
+        return "AVX512_BW";
 
-      const hash = inst.operands.map(sign).join(",");
-      map[hash] = dbInst;
+      default:
+        return "None";
     }
-    */
   }
 }
 

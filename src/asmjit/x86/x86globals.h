@@ -1750,15 +1750,25 @@ namespace FpuWord {
 namespace Status {
   //! Mask of status flags of both CPU and FPU.
   enum Flags : uint32_t {
+    // ------------------------------------------------------------------------
+    // [Architecture Neutral Flags]
+    // ------------------------------------------------------------------------
+
     kCF = 0x00000001u, //!< Carry flag.
     kOF = 0x00000002u, //!< Signed overflow flag.
     kSF = 0x00000004u, //!< Sign flag (negative/sign, if set).
     kZF = 0x00000008u, //!< Zero and/or equality flag (1 if zero/equal).
 
+    // ------------------------------------------------------------------------
+    // [Architecture Specific Flags]
+    // ------------------------------------------------------------------------
+
     kAF = 0x00000100u, //!< Adjust flag.
     kPF = 0x00000200u, //!< Parity flag.
     kDF = 0x00000400u, //!< Direction flag.
-    kAC = 0x00000800u, //!< Alignment check.
+    kIF = 0x00000800u, //!< Interrupt enable flag.
+
+    kAC = 0x00001000u, //!< Alignment check.
 
     kC0 = 0x00010000u, //!< FPU status word C0 flag.
     kC1 = 0x00020000u, //!< FPU status word C1 flag.

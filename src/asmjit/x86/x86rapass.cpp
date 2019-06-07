@@ -174,6 +174,12 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
               }
             }
 
+            // Do not use RegMem flag if chaning Reg to Mem requires additional
+            // CPU feature that may not be enabled.
+            if (rwInfo.rmFeature() && (flags & (RATiedReg::kUseRM | RATiedReg::kOutRM))) {
+              flags &= ~(RATiedReg::kUseRM | RATiedReg::kOutRM);
+            }
+
             uint32_t group = workReg->group();
             uint32_t allocable = _pass->_availableRegs[group] & allowedRegs;
 
