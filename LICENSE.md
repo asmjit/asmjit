@@ -1,4 +1,4 @@
-Copyright (c) 2008-2017, Petr Kobalicek
+Copyright (c) 2008-2019, Petr Kobalicek
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

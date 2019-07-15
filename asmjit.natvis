@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- asmjit visualizer for Visual Studio (natvis) -->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="asmjit::String">
+    <Intrinsic Name="isSmall" Expression="(_type &lt; 0x1F)"/>
+    <DisplayString Condition="isSmall()">{_small.data, s8}</DisplayString>
+    <DisplayString Condition="!isSmall()">{_large.data, s8}</DisplayString>
+    <Expand HideRawView="true">
+      <Synthetic Name="_type">
+        <DisplayString Condition="(_type &lt; 0x1F)">Small</DisplayString>
+        <DisplayString Condition="(_type == 0x1F)">Large</DisplayString>
+        <DisplayString Condition="(_type &gt; 0x1F)">External</DisplayString>
+      </Synthetic>
+      <Item Name="_size" Condition="isSmall()" ExcludeView="simple">(int)_small.type, d</Item>
+      <Item Name="_size" Condition="!isSmall()" ExcludeView="simple">_large.size, d</Item>
+      <Item Name="_capacity" Condition="isSmall()" ExcludeView="simple">asmjit::String::kSSOCapacity, d</Item>
+      <Item Name="_capacity" Condition="!isSmall()" ExcludeView="simple">_large.capacity, d</Item>
+      <Item Name="_data" Condition="isSmall()" ExcludeView="simple">_small.data, s8</Item>
+      <Item Name="_data" Condition="!isSmall()" ExcludeView="simple">_large.data, s8</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="asmjit::ZoneVector&lt;*&gt;">
+    <DisplayString>{{ [size={_size, d} capacity={_capacity, d}] }}</DisplayString>
+    <Expand>
+      <Item Name="_size" ExcludeView="simple">_size, d</Item>
+      <Item Name="_capacity" ExcludeView="simple">_capacity, d</Item>
+      <ArrayItems>
+        <Size>_size</Size>
+        <ValuePointer>(($T1*)_data)</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name="asmjit::Operand_">
+    <Intrinsic Name="opType" Expression="(unsigned int)(_any.signature &amp; 0x7)"/>
+    <DisplayString Condition="opType() == 0">[None]</DisplayString>
+    <DisplayString Condition="opType() == 1">[Reg] {{ id={_reg.id, d} group={(_reg.signature &gt;&gt; 8) &amp; 0xF, d} type={(_reg.signature &gt;&gt; 4) &amp; 0x1F, d} size={(_reg.signature &gt;&gt; 24) &amp; 0xFF, d} }}</DisplayString>
+    <DisplayString Condition="opType() == 2">[Mem] {{ }}</DisplayString>
+    <DisplayString Condition="opType() == 3">[Imm] {{ val={_imm.value.i64, d} hex={_imm.value.u64, X} f64={_imm.value.f64} }}</DisplayString>
+    <DisplayString Condition="opType() == 4">[Label] {{ id={_label.id} }}</DisplayString>
+    <DisplayString Condition="opType() &gt; 4">[Unknown]</DisplayString>
+    <Expand HideRawView="true">
+      <ExpandedItem Condition="opType() == 0">_any</ExpandedItem>
+      <ExpandedItem Condition="opType() == 1">_reg</ExpandedItem>
+      <ExpandedItem Condition="opType() == 2">_mem</ExpandedItem>
+      <ExpandedItem Condition="opType() == 3">_imm</ExpandedItem>
+      <ExpandedItem Condition="opType() == 4">_label</ExpandedItem>
+      <ExpandedItem Condition="opType() &gt; 4">_any</ExpandedItem>
+    </Expand>
+  </Type>
+</AutoVisualizer>
