@@ -1,63 +1,55 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
-// [Guard]
 #ifndef _ASMJIT_X86_X86LOGGING_P_H
 #define _ASMJIT_X86_X86LOGGING_P_H
 
-#include "../asmjit_build.h"
-#if !defined(ASMJIT_DISABLE_LOGGING)
+#include "../core/build.h"
+#ifndef ASMJIT_NO_LOGGING
 
-// [Dependencies]
-#include "../base/logging.h"
+#include "../core/logging.h"
+#include "../core/string.h"
 #include "../x86/x86globals.h"
 
-// [Api-Begin]
-#include "../asmjit_apibegin.h"
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
-namespace asmjit {
-
-//! \addtogroup asmjit_base
+//! \addtogroup asmjit_x86
 //! \{
 
 // ============================================================================
-// [asmjit::X86Logging]
+// [asmjit::x86::LoggingInternal]
 // ============================================================================
 
-struct X86Logging {
-  static Error formatRegister(
-    StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
+namespace LoggingInternal {
+  Error formatRegister(
+    String& sb,
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
     uint32_t regType,
     uint32_t regId) noexcept;
 
-  static Error formatOperand(
-    StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
+  Error formatOperand(
+    String& sb,
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
     const Operand_& op) noexcept;
 
-  static Error formatInstruction(
-    StringBuilder& sb,
-    uint32_t logOptions,
-    const CodeEmitter* emitter,
-    uint32_t archType,
-    const Inst::Detail& detail, const Operand_* opArray, uint32_t opCount) noexcept;
+  Error formatInstruction(
+    String& sb,
+    uint32_t flags,
+    const BaseEmitter* emitter,
+    uint32_t archId,
+    const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept;
 };
 
 //! \}
 
-} // asmjit namespace
+ASMJIT_END_SUB_NAMESPACE
 
-// [Api-End]
-#include "../asmjit_apiend.h"
-
-// [Guard]
-#endif // !ASMJIT_DISABLE_LOGGING
+#endif // !ASMJIT_NO_LOGGING
 #endif // _ASMJIT_X86_X86LOGGING_P_H

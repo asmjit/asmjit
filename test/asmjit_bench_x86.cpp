@@ -1,12 +1,10 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Machine Code Generation for C++.
 //
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
-// [Dependencies]
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "./asmjit.h"
@@ -19,128 +17,131 @@ using namespace asmjit;
 // [Configuration]
 // ============================================================================
 
-static const uint32_t kNumRepeats = 10;
-static const uint32_t kNumIterations = 5000;
+static constexpr uint32_t kNumRepeats = 25;
+static constexpr uint32_t kNumIterations = 1000;
 
 // ============================================================================
-// [Performance]
+// [BenchUtils]
 // ============================================================================
 
-struct Performance {
-  static inline uint32_t now() {
-    return OSUtils::getTickCount();
+namespace BenchUtils {
+  class Performance {
+  public:
+    inline Performance() noexcept { reset(); }
+
+    inline void reset() noexcept {
+      tick = 0u;
+      best = 0xFFFFFFFFu;
+    }
+
+    inline uint32_t start() noexcept { return (tick = now()); }
+    inline uint32_t diff() const noexcept { return now() - tick; }
+
+    inline uint32_t end() noexcept {
+      tick = diff();
+      if (best > tick)
+        best = tick;
+      return tick;
+    }
+
+    static inline uint32_t now() noexcept {
+      return OSUtils::getTickCount();
+    }
+
+    uint32_t tick;
+    uint32_t best;
+  };
+
+  static double mbps(uint32_t time, uint64_t outputSize) noexcept {
+    if (!time) return 0.0;
+
+    double bytesTotal = double(outputSize);
+    return (bytesTotal * 1000) / (double(time) * 1024 * 1024);
   }
 
-  inline void reset() {
-    tick = 0;
-    best = 0xFFFFFFFF;
+  template<typename EmitterT, typename FuncT>
+  static void bench(CodeHolder& code, uint32_t archId, const char* testName, const FuncT& func) noexcept {
+    EmitterT emitter;
+
+    const char* archName =
+      archId == ArchInfo::kIdX86 ? "X86" :
+      archId == ArchInfo::kIdX64 ? "X64" : "???";
+
+    const char* emitterName =
+      emitter.isAssembler() ? "Assembler" :
+      emitter.isCompiler()  ? "Compiler"  :
+      emitter.isBuilder()   ? "Builder"   : "Unknown";
+
+    Performance perf;
+    uint64_t codeSize = 0;
+
+    CodeInfo codeInfo(archId);
+    codeInfo.setCdeclCallConv(archId == ArchInfo::kIdX86 ? CallConv::kIdX86CDecl : CallConv::kIdX86SysV64);
+
+    for (uint32_t r = 0; r < kNumRepeats; r++) {
+      perf.start();
+      codeSize = 0;
+      for (uint32_t i = 0; i < kNumIterations; i++) {
+        code.init(codeInfo);
+        code.attach(&emitter);
+
+        func(emitter);
+        codeSize += code.codeSize();
+
+        code.reset();
+      }
+      perf.end();
+    }
+
+    printf("[%s] %-9s %-8s | Time:%6u [ms] | ", archName, emitterName, testName, perf.best);
+    if (codeSize)
+      printf("Speed: %7.3f [MB/s]", mbps(perf.best, codeSize));
+    else
+      printf("Speed: N/A");
+    printf("\n");
   }
-
-  inline uint32_t start() { return (tick = now()); }
-  inline uint32_t diff() const { return now() - tick; }
-
-  inline uint32_t end() {
-    tick = diff();
-    if (best > tick)
-      best = tick;
-    return tick;
-  }
-
-  uint32_t tick;
-  uint32_t best;
-};
-
-static double mbps(uint32_t time, size_t outputSize) {
-  if (!time) return 0.0;
-
-  double bytesTotal = static_cast<double>(outputSize);
-  return (bytesTotal * 1000) / (static_cast<double>(time) * 1024 * 1024);
 }
 
 // ============================================================================
 // [Main]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_X86)
-static void benchX86(uint32_t archType) {
+#ifdef ASMJIT_BUILD_X86
+static void benchX86(uint32_t archId) noexcept {
   CodeHolder code;
-  Performance perf;
 
-  X86Assembler a;
-  X86Compiler cc;
+  BenchUtils::bench<x86::Assembler>(code, archId, "[raw]", [](x86::Assembler& a) {
+    asmtest::generateOpcodes(a.as<x86::Emitter>());
+  });
 
-  uint32_t r, i;
-  const char* archName = archType == ArchInfo::kTypeX86 ? "X86" : "X64";
+  BenchUtils::bench<x86::Builder>(code, archId, "[raw]", [](x86::Builder& cb) {
+    asmtest::generateOpcodes(cb.as<x86::Emitter>());
+  });
 
-  // --------------------------------------------------------------------------
-  // [Bench - Assembler]
-  // --------------------------------------------------------------------------
+  BenchUtils::bench<x86::Builder>(code, archId, "[final]", [](x86::Builder& cb) {
+    asmtest::generateOpcodes(cb.as<x86::Emitter>());
+    cb.finalize();
+  });
 
-  size_t asmOutputSize = 0;
-  size_t cmpOutputSize = 0;
+  BenchUtils::bench<x86::Compiler>(code, archId, "[raw]", [](x86::Compiler& cc) {
+    asmtest::generateAlphaBlend(cc);
+  });
 
-  perf.reset();
-  for (r = 0; r < kNumRepeats; r++) {
-    asmOutputSize = 0;
-    perf.start();
-    for (i = 0; i < kNumIterations; i++) {
-      code.init(CodeInfo(archType));
-      code.attach(&a);
-
-      asmtest::generateOpcodes(a);
-      asmOutputSize += code.getCodeSize();
-
-      code.reset(false); // Detaches `a`.
-    }
-    perf.end();
-  }
-
-  printf("%-12s (%s) | Time: %-6u [ms] | Speed: %7.3f [MB/s]\n",
-    "X86Assembler", archName, perf.best, mbps(perf.best, asmOutputSize));
-
-  // --------------------------------------------------------------------------
-  // [Bench - CodeBuilder]
-  // --------------------------------------------------------------------------
-
-  // TODO:
-
-  // --------------------------------------------------------------------------
-  // [Bench - CodeCompiler]
-  // --------------------------------------------------------------------------
-
-  perf.reset();
-  for (r = 0; r < kNumRepeats; r++) {
-    cmpOutputSize = 0;
-    perf.start();
-    for (i = 0; i < kNumIterations; i++) {
-      // NOTE: Since we don't have JitRuntime we don't know anything about
-      // function calling conventions, which is required by generateAlphaBlend.
-      // So we must setup this manually.
-      CodeInfo ci(archType);
-      ci.setCdeclCallConv(archType == ArchInfo::kTypeX86 ? CallConv::kIdX86CDecl : CallConv::kIdX86SysV64);
-
-      code.init(ci);
-      code.attach(&cc);
-
-      asmtest::generateAlphaBlend(cc);
-      cc.finalize();
-      cmpOutputSize += code.getCodeSize();
-
-      code.reset(false); // Detaches `cc`.
-    }
-    perf.end();
-  }
-
-  printf("%-12s (%s) | Time: %-6u [ms] | Speed: %7.3f [MB/s]\n",
-    "X86Compiler", archName, perf.best, mbps(perf.best, cmpOutputSize));
+  BenchUtils::bench<x86::Compiler>(code, archId, "[final]", [](x86::Compiler& cc) {
+    asmtest::generateAlphaBlend(cc);
+    cc.finalize();
+  });
 }
 #endif
 
 int main(int argc, char* argv[]) {
-#if defined(ASMJIT_BUILD_X86)
-  benchX86(ArchInfo::kTypeX86);
-  benchX86(ArchInfo::kTypeX64);
-#endif // ASMJIT_BUILD_X86
+  ASMJIT_UNUSED(argc);
+  ASMJIT_UNUSED(argv);
+
+  #ifdef ASMJIT_BUILD_X86
+  benchX86(ArchInfo::kIdX86);
+  benchX86(ArchInfo::kIdX64);
+  #endif
 
   return 0;
 }
