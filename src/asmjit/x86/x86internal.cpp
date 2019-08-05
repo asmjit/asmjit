@@ -824,6 +824,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(Emitter* emitter,
 
   uint32_t instId = Inst::kIdNone;
   uint32_t memFlags = 0;
+  uint32_t overrideMemSize = 0;
 
   enum MemFlags : uint32_t {
     kDstMem = 0x1,
@@ -876,6 +877,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(Emitter* emitter,
     default: {
       uint32_t elementTypeId = Type::baseOf(typeId);
       if (Type::isVec32(typeId) && memFlags) {
+        overrideMemSize = 4;
         if (elementTypeId == Type::kIdF32)
           instId = avxEnabled ? Inst::kIdVmovss : Inst::kIdMovss;
         else
@@ -884,6 +886,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(Emitter* emitter,
       }
 
       if (Type::isVec64(typeId) && memFlags) {
+        overrideMemSize = 8;
         if (elementTypeId == Type::kIdF64)
           instId = avxEnabled ? Inst::kIdVmovsd : Inst::kIdMovsd;
         else
@@ -907,6 +910,11 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(Emitter* emitter,
 
   if (!instId)
     return DebugUtils::errored(kErrorInvalidState);
+
+  if (overrideMemSize) {
+    if (dst.isMem()) dst.as<Mem>().setSize(overrideMemSize);
+    if (src.isMem()) src.as<Mem>().setSize(overrideMemSize);
+  }
 
   emitter->setInlineComment(comment);
   return emitter->emit(instId, dst, src);

@@ -21,7 +21,7 @@ ASMJIT_BEGIN_NAMESPACE
 namespace Support {
   //! Cast designed to cast between function and void* pointers.
   template<typename Dst, typename Src>
-  static constexpr Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
+  static inline Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
 } // {Support}
 
 #if defined(ASMJIT_NO_STDCXX)
@@ -342,9 +342,9 @@ namespace ByteOrder {
 // ============================================================================
 
 template<typename Func>
-static constexpr Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
+static inline Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
 template<typename Func>
-static constexpr void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_impl<void*, Func>(func); }
+static inline void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_impl<void*, Func>(func); }
 
 // ============================================================================
 // [asmjit::DebugUtils]
