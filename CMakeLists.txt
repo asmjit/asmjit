@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 cmake_policy(PUSH)
 cmake_policy(SET CMP0063 NEW) # Honor visibility properties.
@@ -94,10 +94,14 @@ function(asmjit_add_target target target_type src deps cflags cflags_dbg cflags_
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${link_flag}")
   endforeach()
 
+  if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    set_property(TARGET ${target} PROPERTY CXX_STANDARD 11)
+  else()
+    target_compile_features(${target} PUBLIC cxx_std_11)
+  endif()
   set_property(TARGET ${target} PROPERTY CXX_EXTENSIONS NO)
   set_property(TARGET ${target} PROPERTY CXX_VISIBILITY_PRESET hidden)
   target_compile_options(${target} PRIVATE ${cflags} ${ASMJIT_SANITIZE_FLAGS} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
-  target_compile_features(${target} PUBLIC cxx_std_11)
 endfunction()
 
 # =============================================================================
@@ -300,7 +304,9 @@ set(ASMJIT_SRC "")
 foreach(_src_file ${ASMJIT_SRC_LIST})
   list(APPEND ASMJIT_SRC "${ASMJIT_DIR}/src/${_src_file}")
 endforeach()
-source_group(TREE "${ASMJIT_DIR}" FILES ${ASMJIT_SRC})
+if (NOT ${CMAKE_VERSION} VERSION_LESS "3.8.0")
+  source_group(TREE "${ASMJIT_DIR}" FILES ${ASMJIT_SRC})
+endif()
 
 # =============================================================================
 # [AsmJit - Summary]
