@@ -4271,7 +4271,7 @@ EmitVexEvexM:
       writer.emit32uLE(x);
       writer.emit8(opcode.v);
 
-      if (opcode & 0x10000000u) {
+      if (x & 0x10000000u) {
         // Broadcast, change the compressed displacement scale to either x4 (SHL 2) or x8 (SHL 3)
         // depending on instruction's W. If 'W' is 1 'SHL' must be 3, otherwise it must be 2.
         opcode &=~uint32_t(Opcode::kCDSHL_Mask);
