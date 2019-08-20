@@ -197,6 +197,10 @@ template<typename T> struct IdOfT<T*> {
   enum : uint32_t { kTypeId = kIdUIntPtr };
 };
 
+template<typename T> struct IdOfT<T&> {
+  enum : uint32_t { kTypeId = kIdUIntPtr };
+};
+
 template<typename T>
 struct IdOfIntT {
   static constexpr uint32_t kTypeId =
