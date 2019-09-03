@@ -1191,8 +1191,8 @@ template<uint32_t Order = kSortAscending>
 struct Compare {
   template<typename A, typename B>
   inline int operator()(const A& a, const B& b) const noexcept {
-    return (Order == kSortAscending) ? (a < b ? -1 : a > b ?  1 : 0)
-                                     : (a < b ?  1 : a > b ? -1 : 0);
+    return Order == kSortAscending ? int(a > b) - int(a < b)
+                                   : int(a < b) - int(a > b);
   }
 };
 

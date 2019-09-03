@@ -291,6 +291,7 @@ class GenUtils {
       case "xorps"   : case "vxorps" :
 
       case "sub"     :
+      case "sbb"     :
       case "psubb"   : case "vpsubb" :
       case "psubw"   : case "vpsubw" :
       case "psubd"   : case "vpsubd" :

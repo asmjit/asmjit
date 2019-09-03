@@ -347,7 +347,7 @@ static ASMJIT_INLINE bool x86IsRexInvalid(uint32_t rex) noexcept {
 }
 
 template<typename T>
-constexpr T x86SignExtendI32(T imm) noexcept { return int64_t(int32_t(imm & T(0xFFFFFFFF))); }
+static constexpr T x86SignExtendI32(T imm) noexcept { return T(int64_t(int32_t(imm & T(0xFFFFFFFF)))); }
 
 static ASMJIT_INLINE uint32_t x86AltOpcodeOf(const InstDB::InstInfo* info) noexcept {
   return InstDB::_altOpcodeTable[info->_altOpcodeIndex];
@@ -620,7 +620,6 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
   // [Encoding Scope]
   // --------------------------------------------------------------------------
 
-  //switch (InstDB::encodingFromId(instId)) {
   switch (instInfo->_encoding) {
     case InstDB::kEncodingNone:
       goto EmitDone;
@@ -2158,7 +2157,7 @@ CaseFpuArith_Reg:
         else if (rbReg == 0) {
           rbReg = opReg;
           opcode = ((0xDC   << Opcode::kFPU_2B_Shift)       ) +
-                   ((opcode                                 ) & 0xFF) + rbReg;
+                   ((opcode                         ) & 0xFF) + rbReg;
           goto EmitFpuOp;
         }
         else {
@@ -4129,7 +4128,7 @@ EmitVexEvexR:
       // The {rz-sae} is encoded as {11}, so it should match the mask.
       ASMJIT_ASSERT(Inst::kOptionRZ_SAE == kLLMask11);
 
-      x |= options & Inst::kOptionZMask;              // [@.......|zLLb.aaa|Vvvvv..R|RBBmmmmm].
+      x |= options & Inst::kOptionZMask;                 // [@.......|zLLb.aaa|Vvvvv..R|RBBmmmmm].
 
       // Support embedded-rounding {er} and suppress-all-exceptions {sae}.
       if (options & (Inst::kOptionER | Inst::kOptionSAE)) {
