@@ -2870,6 +2870,75 @@ public:
 };
 
 // ============================================================================
+// [X86Test_FuncCallRefArgs]
+// ============================================================================
+
+class X86Test_FuncCallRefArgs : public X86Test {
+public:
+  X86Test_FuncCallRefArgs() : X86Test("FuncCallRefArgs") {}
+
+  static void add(X86TestApp& app) {
+    app.add(new X86Test_FuncCallRefArgs());
+  }
+
+  static int calledFunc(int& a, int& b, int& c, int& d) {
+    a += a;
+    b += b;
+    c += c;
+    d += d;
+    return a +
+           b +
+           c +
+           d;
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<int, int&, int&, int&, int&>(CallConv::kIdHost));
+
+    // Prepare.
+    x86::Gp arg1 = cc.newInt32();
+    x86::Gp arg2 = cc.newInt32();
+    x86::Gp arg3 = cc.newInt32();
+    x86::Gp arg4 = cc.newInt32();
+    x86::Gp rv = cc.newInt32("rv");
+
+    cc.setArg(0, arg1);
+    cc.setArg(1, arg2);
+    cc.setArg(2, arg3);
+    cc.setArg(3, arg4);
+
+    // Call function.
+    FuncCallNode* call = cc.call(
+      imm((void*)calledFunc),
+      FuncSignatureT<int, int&, int&, int&, int&>(CallConv::kIdHost));
+
+    call->setArg(0, arg1);
+    call->setArg(1, arg2);
+    call->setArg(2, arg3);
+    call->setArg(3, arg4);
+    call->setRet(0, rv);
+
+    cc.ret(rv);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef int (*Func)(int&, int&, int&, int&);
+    Func func = ptr_as_func<Func>(_func);
+
+    int inputs[4] = { 1, 2, 3, 4 };
+    int outputs[4] = { 2, 4, 6, 8 };
+    int resultRet = func(inputs[0], inputs[1], inputs[2], inputs[3]);
+    int expectRet = 20;
+
+    result.assignFormat("ret={%08X %08X %08X %08X %08X}", resultRet, inputs[0], inputs[1], inputs[2], inputs[3]);
+    expect.assignFormat("ret={%08X %08X %08X %08X %08X}", expectRet, outputs[0], outputs[1], outputs[2], outputs[3]);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
 // [X86Test_FuncCallFloatAsXmmRet]
 // ============================================================================
 
@@ -3893,6 +3962,7 @@ int main(int argc, char* argv[]) {
   app.addT<X86Test_FuncCallDuplicateArgs>();
   app.addT<X86Test_FuncCallImmArgs>();
   app.addT<X86Test_FuncCallPtrArgs>();
+  app.addT<X86Test_FuncCallRefArgs>();
   app.addT<X86Test_FuncCallFloatAsXmmRet>();
   app.addT<X86Test_FuncCallDoubleAsXmmRet>();
   app.addT<X86Test_FuncCallConditional>();
