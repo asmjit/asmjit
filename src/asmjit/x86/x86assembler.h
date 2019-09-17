@@ -30,6 +30,9 @@ public:
   ASMJIT_NONCOPYABLE(Assembler)
   typedef BaseAssembler Base;
 
+  //! Attachted code holder
+  CodeHolder* _codeHolder;
+
   //! \name Construction & Destruction
   //! \{
 

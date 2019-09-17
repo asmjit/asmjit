@@ -481,7 +481,10 @@ Assembler::Assembler(CodeHolder* code) noexcept : BaseAssembler() {
   if (code)
     code->attach(this);
 }
-Assembler::~Assembler() noexcept {}
+Assembler::~Assembler() noexcept {
+  if (_codeHolder)
+    _codeHolder->detach(this);
+}
 
 // ============================================================================
 // [asmjit::x86::Assembler - Emit (Low-Level)]
