@@ -2,7 +2,7 @@
 // Lightweight Unit Testing for C++.
 //
 // [License]
-// Public Domain (Unlicense)
+// Public Domain (Unlicense) or Zlib.
 
 #ifndef BROKEN_INTERNAL_H
 #define BROKEN_INTERNAL_H
@@ -15,8 +15,7 @@
 // Hide everything when using Doxygen. Ideally this can be protected by a macro,
 // but there is not globally and widely used one across multiple projects.
 
-//! \internal
-//! \{
+//! \cond
 
 // ============================================================================
 // [Broken - API]
@@ -26,22 +25,30 @@ struct BrokenAPI {
   //! Entry point of a unit test defined by `UNIT` macro.
   typedef void (*Entry)(void);
 
+  enum Flags : unsigned {
+    kFlagFinished = 0x1
+  };
+
   //! Test defined by `UNIT` macro.
   struct Unit {
-    const char* name;
     Entry entry;
-    size_t finished;
+    const char* name;
+    int priority;
+    unsigned flags;
     Unit* next;
   };
 
   //! Automatic unit registration by using static initialization.
   struct AutoUnit : Unit {
-    inline AutoUnit(const char* _name, Entry _entry) noexcept {
-      name = _name;
-      entry = _entry;
-      finished = false;
-      next = NULL;
+    inline AutoUnit(Entry entry_, const char* name_, int priority_ = 0, int dummy_ = 0) noexcept {
+      // Not used, only to trick `UNIT()` macro.
+      (void)dummy_;
 
+      this->entry = entry_;
+      this->name = name_;
+      this->priority = priority_;
+      this->flags = 0;
+      this->next = nullptr;
       BrokenAPI::add(this);
     }
   };
@@ -57,7 +64,7 @@ struct BrokenAPI {
   //! Initialize `Broken` framework.
   //!
   //! Returns `true` if `run()` should be called.
-  static int run(int argc, const char* argv[], Entry onBeforeRun = nullptr, Entry onAfterRun = nullptr) noexcept;
+  static int run(int argc, const char* argv[], Entry onBeforeRun = nullptr, Entry onAfterRun = nullptr);
 
   //! Log message, adds automatically new line if not present.
   static void info(const char* fmt, ...) noexcept;
@@ -84,17 +91,23 @@ struct BrokenAPI {
 // [Broken - Macros]
 // ============================================================================
 
-//! Define a unit test.
+//! Internal macro used by `UNIT()`.
+#define UNIT_INTERNAL(NAME, ...) \
+  static void unit_##NAME##_entry(void); \
+  static ::BrokenAPI::AutoUnit unit_##NAME##_autoinit(unit_##NAME##_entry, #NAME, __VA_ARGS__); \
+  static void unit_##NAME##_entry(void)
+
+//! \def UNIT(NAME [, PRIORITY])
+//!
+//! Define a unit test with an optional priority.
 //!
 //! `NAME` can only contain ASCII characters, numbers and underscore. It has
 //! the same rules as identifiers in C and C++.
-#define UNIT(NAME) \
-  static void unit_##NAME##_entry(void) noexcept; \
-  \
-  static ::BrokenAPI::AutoUnit unit_##NAME##_autoinit( \
-    #NAME, unit_##NAME##_entry); \
-  \
-  static void unit_##NAME##_entry(void) noexcept
+//!
+//! `PRIORITY` specifies the order in which unit tests are run. Lesses value
+//! increases the priority. At the moment all units are first sorted by
+//! priority and then by name - this makes the run always deterministic.
+#define UNIT(...) UNIT_INTERNAL(__VA_ARGS__, 0)
 
 //! #define INFO(FORMAT [, ...])
 //!
@@ -106,6 +119,6 @@ struct BrokenAPI {
 //! Expect `EXP` to be true or evaluates to true, fail otherwise.
 #define EXPECT(...) ::BrokenAPI::expect(__FILE__, __LINE__, __VA_ARGS__)
 
-//! \}
+//! \endcond
 
 #endif // BROKEN_INTERNAL_H

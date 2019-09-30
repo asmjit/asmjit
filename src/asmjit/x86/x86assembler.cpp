@@ -4278,6 +4278,7 @@ EmitVexEvexM:
       }
       else {
         // Add the compressed displacement 'SHF' to the opcode based on 'TTWLL'.
+        // The index to `x86CDisp8SHL` is composed as `CDTT[4:3] | W[2] | LL[1:0]`.
         uint32_t TTWLL = ((opcode >> (Opcode::kCDTT_Shift - 3)) & 0x18) +
                          ((opcode >> (Opcode::kW_Shift    - 2)) & 0x04) +
                          ((x >> 29) & 0x3);

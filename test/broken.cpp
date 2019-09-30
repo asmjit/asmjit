@@ -47,6 +47,14 @@ static bool BrokenAPI_startsWith(const char* a, const char* b) noexcept {
   }
 }
 
+//! Compares names and priority of two unit tests.
+static int BrokenAPI_compareUnits(const BrokenAPI::Unit* a, const BrokenAPI::Unit* b) noexcept {
+  if (a->priority == b->priority)
+    return strcmp(a->name, b->name);
+  else
+    return a->priority > b->priority ? 1 : -1;
+}
+
 // Get whether the strings `a` and `b` are equal, ignoring case and treating
 // `-` as `_`.
 static bool BrokenAPI_matchesFilter(const char* a, const char* b) noexcept {
@@ -109,9 +117,17 @@ static void BrokenAPI_runAll() noexcept {
 
   bool hasUnits = unit != NULL;
   size_t count = 0;
+  int currentPriority = 0;
 
   while (unit != NULL) {
     if (BrokenAPI_canRun(unit)) {
+      if (currentPriority != unit->priority) {
+        if (count)
+          INFO("");
+        INFO("[[Priority=%d]]", unit->priority);
+      }
+
+      currentPriority = unit->priority;
       BrokenAPI_runUnit(unit);
       count++;
     }
@@ -134,7 +150,7 @@ static void BrokenAPI_listAll() noexcept {
   if (unit != NULL) {
     INFO("Units:");
     do {
-      INFO("  %s", unit->name);
+      INFO("  %s [priority=%d]", unit->name, unit->priority);
       unit = unit->next;
     } while (unit != NULL);
   }
@@ -155,7 +171,7 @@ void BrokenAPI::add(Unit* unit) noexcept {
   // C++ static initialization doesn't guarantee anything. We sort all units by
   // name so the execution will always happen in deterministic order.
   while (current != NULL) {
-    if (strcmp(current->name, unit->name) >= 0)
+    if (BrokenAPI_compareUnits(current, unit) >= 0)
       break;
 
     pPrev = &current->next;
@@ -172,7 +188,7 @@ void BrokenAPI::setOutputFile(FILE* file) noexcept {
   global._file = file;
 }
 
-int BrokenAPI::run(int argc, const char* argv[], Entry onBeforeRun, Entry onAfterRun) noexcept {
+int BrokenAPI::run(int argc, const char* argv[], Entry onBeforeRun, Entry onAfterRun) {
   BrokenGlobal& global = _brokenGlobal;
 
   global._argc = argc;
@@ -183,7 +199,7 @@ int BrokenAPI::run(int argc, const char* argv[], Entry onBeforeRun, Entry onAfte
     INFO("  --help    - print this usage");
     INFO("  --list    - list all tests");
     INFO("  --run-... - run a test(s), trailing wildcards supported");
-    INFO("  --run-all - run all tests");
+    INFO("  --run-all - run all tests (default)");
     return 0;
   }
 
@@ -248,6 +264,7 @@ static void BrokenAPI_printMessage(const char* prefix, const char* fmt, va_list 
 
 void BrokenAPI::info(const char* fmt, ...) noexcept {
   BrokenGlobal& global = _brokenGlobal;
+
   va_list ap;
   va_start(ap, fmt);
   BrokenAPI_printMessage(global._unitRunning ? "  " : "", fmt, ap);

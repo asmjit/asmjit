@@ -2886,10 +2886,7 @@ public:
     b += b;
     c += c;
     d += d;
-    return a +
-           b +
-           c +
-           d;
+    return a + b + c + d;
   }
 
   virtual void compile(x86::Compiler& cc) {
@@ -3642,15 +3639,15 @@ public:
 };
 
 // ============================================================================
-// [X86Test_MiscConstPool]
+// [X86Test_MiscLocalConstPool]
 // ============================================================================
 
-class X86Test_MiscConstPool : public X86Test {
+class X86Test_MiscLocalConstPool : public X86Test {
 public:
-  X86Test_MiscConstPool() : X86Test("MiscConstPool1") {}
+  X86Test_MiscLocalConstPool() : X86Test("MiscLocalConstPool") {}
 
   static void add(X86TestApp& app) {
-    app.add(new X86Test_MiscConstPool());
+    app.add(new X86Test_MiscLocalConstPool());
   }
 
   virtual void compile(x86::Compiler& cc) {
@@ -3661,6 +3658,49 @@ public:
 
     x86::Mem c0 = cc.newInt32Const(ConstPool::kScopeLocal, 200);
     x86::Mem c1 = cc.newInt32Const(ConstPool::kScopeLocal, 33);
+
+    cc.mov(v0, c0);
+    cc.mov(v1, c1);
+    cc.add(v0, v1);
+
+    cc.ret(v0);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef int (*Func)(void);
+    Func func = ptr_as_func<Func>(_func);
+
+    int resultRet = func();
+    int expectRet = 233;
+
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
+
+    return resultRet == expectRet;
+  }
+};
+
+// ============================================================================
+// [X86Test_MiscGlobalConstPool]
+// ============================================================================
+
+class X86Test_MiscGlobalConstPool : public X86Test {
+public:
+  X86Test_MiscGlobalConstPool() : X86Test("MiscGlobalConstPool") {}
+
+  static void add(X86TestApp& app) {
+    app.add(new X86Test_MiscGlobalConstPool());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<int>(CallConv::kIdHost));
+
+    x86::Gp v0 = cc.newInt32("v0");
+    x86::Gp v1 = cc.newInt32("v1");
+
+    x86::Mem c0 = cc.newInt32Const(ConstPool::kScopeGlobal, 200);
+    x86::Mem c1 = cc.newInt32Const(ConstPool::kScopeGlobal, 33);
 
     cc.mov(v0, c0);
     cc.mov(v1, c1);
@@ -3977,7 +4017,8 @@ int main(int argc, char* argv[]) {
   app.addT<X86Test_FuncCallMisc5>();
 
   // Miscellaneous tests.
-  app.addT<X86Test_MiscConstPool>();
+  app.addT<X86Test_MiscLocalConstPool>();
+  app.addT<X86Test_MiscGlobalConstPool>();
   app.addT<X86Test_MiscMultiRet>();
   app.addT<X86Test_MiscMultiFunc>();
   app.addT<X86Test_MiscUnfollow>();
