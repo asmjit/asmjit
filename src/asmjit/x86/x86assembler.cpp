@@ -2834,6 +2834,16 @@ CaseExtRm:
       opcode.addWIf(Reg::isGpq(o0) | Reg::isGpq(o1));
       goto CaseVexRm;
 
+    case InstDB::kEncodingVexRm_Lx_Bcst:
+      if (isign3 == ENC_OPS2(Reg, Reg) && Reg::isGp(o1.as<Reg>())) {
+        opcode = x86AltOpcodeOf(instInfo) | x86OpcodeLBySize(o0.size() | o1.size());
+        options |= Inst::kOptionEvex;
+        opReg = o0.id();
+        rbReg = o1.id();
+        goto EmitVexEvexR;
+      }
+      ASMJIT_FALLTHROUGH;
+
     case InstDB::kEncodingVexRm_Lx:
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());
       ASMJIT_FALLTHROUGH;

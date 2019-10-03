@@ -1457,11 +1457,26 @@ Error InstInternal::queryFeatures(uint32_t archId, const BaseInst& inst, const O
         uint32_t hasKMask = inst.extraReg().type() == Reg::kTypeKReg;
         uint32_t hasKOrZmm = regAnalysis.regTypeMask & Support::bitMask(Reg::kTypeZmm, Reg::kTypeKReg);
 
-        // Special case: VPSLLDQ and VPSRLDQ instructions only allow `reg, reg. imm`
-        // combination in AVX|AVX2 mode, then AVX-512 introduced `reg, reg/mem, imm`
-        // combination that uses EVEX prefix. This means that if the second operand
-        // is memory then this is AVX-512_BW instruction and not AVX/AVX2 instruction.
-        uint32_t mustUseEvex = (instId == Inst::kIdVpslldq || instId == Inst::kIdVpsrldq) && opCount >= 2 && operands[1].isMem();
+        uint32_t mustUseEvex = 0;
+
+        switch (instId) {
+          // Special case: VPSLLDQ and VPSRLDQ instructions only allow `reg, reg. imm`
+          // combination in AVX|AVX2 mode, then AVX-512 introduced `reg, reg/mem, imm`
+          // combination that uses EVEX prefix. This means that if the second operand
+          // is memory then this is AVX-512_BW instruction and not AVX/AVX2 instruction.
+          case Inst::kIdVpslldq:
+          case Inst::kIdVpsrldq:
+            mustUseEvex = opCount >= 2 && operands[1].isMem();
+            break;
+
+          // Special case: VPBROADCAST[B|D|Q|W] only supports r32/r64 with EVEX prefix.
+          case Inst::kIdVpbroadcastb:
+          case Inst::kIdVpbroadcastd:
+          case Inst::kIdVpbroadcastq:
+          case Inst::kIdVpbroadcastw:
+            mustUseEvex = opCount >= 2 && x86::Reg::isGp(operands[1]);
+            break;
+        }
 
         if (!(hasEvex | mustUseEvex | hasKMask | hasKOrZmm | regAnalysis.highVecUsed))
           out.remove(Features::kAVX512_F, Features::kAVX512_BW, Features::kAVX512_DQ, Features::kAVX512_VL);

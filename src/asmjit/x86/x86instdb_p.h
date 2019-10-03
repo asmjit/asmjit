@@ -127,6 +127,7 @@ enum EncodingId : uint32_t {
   kEncodingVexRm_ZDI,                    //!< VEX|EVEX [RM<ZDI>].
   kEncodingVexRm_Wx,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.W if GPQ used).
   kEncodingVexRm_Lx,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.L if YMM used).
+  kEncodingVexRm_Lx_Bcst,                //!< VEX|EVEX [RM] (can handle broadcast r32/r64).
   kEncodingVexRm_VM,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.L, VSIB support).
   kEncodingVexRm_T1_4X,                  //!<     EVEX [RM] (used by NN instructions that use RM-T1_4X encoding).
   kEncodingVexRmi,                       //!< VEX|EVEX [RMI].
