@@ -1192,8 +1192,8 @@ struct Inst : public BaseInst {
     kIdVpermil2ps,                       //!< Instruction 'vpermil2ps' {XOP}.
     kIdVpermilpd,                        //!< Instruction 'vpermilpd' {AVX|AVX512_F+VL}.
     kIdVpermilps,                        //!< Instruction 'vpermilps' {AVX|AVX512_F+VL}.
-    kIdVpermpd,                          //!< Instruction 'vpermpd' {AVX2}.
-    kIdVpermps,                          //!< Instruction 'vpermps' {AVX2}.
+    kIdVpermpd,                          //!< Instruction 'vpermpd' {AVX2|AVX512_F+VL}.
+    kIdVpermps,                          //!< Instruction 'vpermps' {AVX2|AVX512_F+VL}.
     kIdVpermq,                           //!< Instruction 'vpermq' {AVX2|AVX512_F+VL}.
     kIdVpermt2b,                         //!< Instruction 'vpermt2b' {AVX512_VBMI+VL}.
     kIdVpermt2d,                         //!< Instruction 'vpermt2d' {AVX512_F+VL}.

@@ -144,7 +144,7 @@ struct Opcode {
     // cases (similar to forcing REX prefix). Force EVEX will force emitting
     // EVEX prefix instead of VEX2|VEX3. EVEX-only instructions will have
     // ForceEvex always set, however. instructions that can be encoded by
-    // either VEX or EVEX prefix shall not have ForceEvex set.
+    // either VEX or EVEX prefix should not have ForceEvex set.
 
     kMM_ForceVex3  = 0x04u << kMM_Shift,   // Force 3-BYTE VEX prefix.
     kMM_ForceEvex  = 0x10u << kMM_Shift,   // Force 4-BYTE EVEX prefix.

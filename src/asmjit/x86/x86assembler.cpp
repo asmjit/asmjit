@@ -2837,7 +2837,6 @@ CaseExtRm:
     case InstDB::kEncodingVexRm_Lx_Bcst:
       if (isign3 == ENC_OPS2(Reg, Reg) && Reg::isGp(o1.as<Reg>())) {
         opcode = x86AltOpcodeOf(instInfo) | x86OpcodeLBySize(o0.size() | o1.size());
-        options |= Inst::kOptionEvex;
         opReg = o0.id();
         rbReg = o1.id();
         goto EmitVexEvexR;
@@ -4122,13 +4121,8 @@ EmitVexEvexR:
                  (_extraReg.id() << 16);                 // [........|.LL..aaa|Vvvvv..R|RBBmmmmm].
     opReg &= 0x7;
 
-    // Mark invalid VEX (force EVEX) case:               // [@.......|.LL..aaa|Vvvvv..R|RBBmmmmm].
-    x |= (~commonInfo->flags() & InstDB::kFlagVex) << (31 - Support::constCtz(InstDB::kFlagVex));
-
     // Handle AVX512 options by a single branch.
-    const uint32_t kAvx512Options = Inst::kOptionZMask |
-                                    Inst::kOptionER    |
-                                    Inst::kOptionSAE   ;
+    const uint32_t kAvx512Options = Inst::kOptionZMask | Inst::kOptionER | Inst::kOptionSAE;
     if (options & kAvx512Options) {
       uint32_t kBcstMask = 0x1 << 20;
       uint32_t kLLMask10 = 0x2 << 21;
@@ -4138,7 +4132,7 @@ EmitVexEvexR:
       // The {rz-sae} is encoded as {11}, so it should match the mask.
       ASMJIT_ASSERT(Inst::kOptionRZ_SAE == kLLMask11);
 
-      x |= options & Inst::kOptionZMask;                 // [@.......|zLLb.aaa|Vvvvv..R|RBBmmmmm].
+      x |= options & Inst::kOptionZMask;                 // [........|zLLb.aaa|Vvvvv..R|RBBmmmmm].
 
       // Support embedded-rounding {er} and suppress-all-exceptions {sae}.
       if (options & (Inst::kOptionER | Inst::kOptionSAE)) {
@@ -4157,22 +4151,22 @@ EmitVexEvexR:
           if (ASMJIT_UNLIKELY(!commonInfo->hasAvx512ER()))
             goto InvalidEROrSAE;
 
-          x &=~kLLMask11;                                // [@.......|.00..aaa|Vvvvv..R|RBBmmmmm].
-          x |= kBcstMask | (options & kLLMask11);        // [@.......|.LLb.aaa|Vvvvv..R|RBBmmmmm].
+          x &=~kLLMask11;                                // [........|.00..aaa|Vvvvv..R|RBBmmmmm].
+          x |= kBcstMask | (options & kLLMask11);        // [........|.LLb.aaa|Vvvvv..R|RBBmmmmm].
         }
         else {
           if (ASMJIT_UNLIKELY(!commonInfo->hasAvx512SAE()))
             goto InvalidEROrSAE;
 
-          x |= kBcstMask;                                // [@.......|.LLb.aaa|Vvvvv..R|RBBmmmmm].
+          x |= kBcstMask;                                // [........|.LLb.aaa|Vvvvv..R|RBBmmmmm].
         }
       }
     }
 
-    // Check if EVEX is required by checking bits in `x` :  [@.......|xx.x.xxx|x......x|.x.x....].
-    if (x & 0x80D78150u) {
-      uint32_t y = ((x << 4) & 0x00080000u) |            // [@.......|...bV...|........|........].
-                   ((x >> 4) & 0x00000010u) ;            // [@.......|...bV...|........|...R....].
+    // Check if EVEX is required by checking bits in `x` :  [........|xx.x.xxx|x......x|.x.x....].
+    if (x & 0x00D78150u) {
+      uint32_t y = ((x << 4) & 0x00080000u) |            // [........|...bV...|........|........].
+                   ((x >> 4) & 0x00000010u) ;            // [........|...bV...|........|...R....].
       x  = (x & 0x00FF78E3u) | y;                        // [........|zLLbVaaa|0vvvv000|RBBR00mm].
       x  = x << 8;                                       // [zLLbVaaa|0vvvv000|RBBR00mm|00000000].
       x |= (opcode >> kVSHR_W    ) & 0x00800000u;        // [zLLbVaaa|Wvvvv000|RBBR00mm|00000000].

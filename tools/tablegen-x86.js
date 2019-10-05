@@ -621,7 +621,6 @@ class X86TableGen extends core.TableGen {
     this.merge();
     this.save();
     this.dumpTableSizes();
-
     this.printMissing();
   }
 }
@@ -714,7 +713,7 @@ class AltOpcodeTable extends core.Task {
       }
 
       // X(______,OP,_,_,_,_,_,_  )
-      if (opcode.startsWith("O_FPU(") || opcode.startsWith("O(") || opcode.startsWith("V(")) {
+      if (opcode.startsWith("O_FPU(") || opcode.startsWith("O(") || opcode.startsWith("V(") || opcode.startsWith("E(")) {
         var value = opcode.substring(9, 11);
         var remaining = opcode.substring(0, 9) + "00" + opcode.substring(11);
 
