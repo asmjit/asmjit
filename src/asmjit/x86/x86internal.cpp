@@ -742,7 +742,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::finalizeFuncFrame(FuncFrame& frame) noexcep
 
   // If the function's stack must be aligned, calculate the alignment necessary
   // to store vector registers, and set `FuncFrame::kAttrAlignedVecSR` to inform
-  // PEI that it can use instructions to perform aligned stores/loads.
+  // PEI that it can use instructions that perform aligned stores/loads.
   if (stackAlignment >= vecSize && frame._nonGpSaveSize) {
     frame.addAttributes(FuncFrame::kAttrAlignedVecSR);
     v = Support::alignUp(v, vecSize);         // Align '_nonGpSaveOffset'.

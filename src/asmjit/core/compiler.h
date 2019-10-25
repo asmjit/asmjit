@@ -297,7 +297,7 @@ public:
   //! Rename the given virtual register `reg` to a formatted string `fmt`.
   //!
   //! \note Only new name will appear in the logger.
-  ASMJIT_API void rename(BaseReg& reg, const char* fmt, ...);
+  ASMJIT_API void rename(const BaseReg& reg, const char* fmt, ...);
 
   //! \}
 

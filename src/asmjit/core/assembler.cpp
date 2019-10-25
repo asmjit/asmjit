@@ -244,6 +244,12 @@ Error BaseAssembler::_emitFailed(
   }
 
   Logging::formatInstruction(sb, 0, this, archId(), BaseInst(instId, options, _extraReg), operands, Globals::kMaxOpCount);
+
+  if (inlineComment()) {
+    sb.appendString(" ; ");
+    sb.appendString(inlineComment());
+  }
+
   resetInstOptions();
   resetExtraReg();
   resetInlineComment();

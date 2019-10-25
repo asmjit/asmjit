@@ -1784,21 +1784,22 @@ a.add(x86::ebx, x86::eax); // Emits in .text section.
 a.lea(x86::rsi, x86::ptr(L_Data));
 ```
 
-The last line in the example above shows that a LabelLink would be created even for bound labels that cross sections. In this case a referenced label was bound in another section, which means that the link couldn't be resolved at that moment. If your code uses sections, but you wish AsmJit to flatten these sections (you don't plan to flatten then manually) then there is an API for that.
+The last line in the example above shows that a LabelLink would be created even for bound labels that cross sections. In this case a referenced label was bound in another section, which means that the link couldn't be resolved at that moment. If your code uses sections, but you wish AsmJit to flatten these sections (you don't plan to flatten them manually) then there is an API for that.
 
 ```c++
 // ... (continuing the previous example) ...
 CodeHolder code = ...;
 
 // Suppose we have some code that contains multiple sections and
-// we would like to flatten it by using AsmJit's built-in API:
+// we would like to flatten them by using AsmJit's built-in API:
 Error err = code.flatten();
 if (err) { /* Error handling is necessary. */ }
 
 // After flattening all sections would contain assigned offsets
 // relative to base. Offsets are 64-bit unsigned integers so we
-// cast it to `unsigned int` for simplicity here...
-printf("Data section offset %u", unsigned(data->offset()));
+// cast them to `size_t` for simplicity. On 32-bit targets it's
+// guaranteed that the offset cannot be greater than `2^32 - 1`.
+printf("Data section offset %zu", size_t(data->offset()));
 
 // The flattening doesn't resolve unresolved label links, this
 // has to be done manually as flattening can be done separately.

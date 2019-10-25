@@ -472,7 +472,7 @@ Error BaseCompiler::_newConst(BaseMem& out, uint32_t scope, const void* data, si
   return kErrorOk;
 }
 
-void BaseCompiler::rename(BaseReg& reg, const char* fmt, ...) {
+void BaseCompiler::rename(const BaseReg& reg, const char* fmt, ...) {
   if (!reg.isVirtReg()) return;
 
   VirtReg* vReg = virtRegById(reg.id());

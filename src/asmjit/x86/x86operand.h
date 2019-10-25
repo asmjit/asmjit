@@ -445,7 +445,7 @@ public:
   constexpr Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { base.type(), base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift) }) {}
 
-  constexpr Mem(uint64_t base, uint32_t size = 0, uint32_t flags = 0) noexcept
+  constexpr explicit Mem(uint64_t base, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { 0, uint32_t(base >> 32), 0, 0, int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags }) {}
 
   constexpr Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, uint32_t flags = 0) noexcept

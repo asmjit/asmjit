@@ -115,7 +115,7 @@ static const RegFormatInfo x86RegFormatInfo = {
   { ASMJIT_LOOKUP_TABLE_32(ASMJIT_REG_TYPE_ENTRY, 0) },
 
   "\0"             // #0
-  "gpb.lo\0"       // #1
+  "gpb\0\0\0\0"    // #1
   "gpb.hi\0"       // #8
   "gpw\0"          // #15
   "gpd\0"          // #19
