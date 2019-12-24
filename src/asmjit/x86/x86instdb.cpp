@@ -3944,7 +3944,7 @@ const InstDB::RWInfoRm InstDB::rwInfoRm[] = {
 // ============================================================================
 
 #if defined(ASMJIT_TEST)
-UNIT(asmjit_x86_inst_db) {
+UNIT(x86_inst_db) {
   INFO("Checking validity of Inst enums");
 
   // Cross-validate prefixes.

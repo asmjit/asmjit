@@ -18,7 +18,7 @@ ASMJIT_BEGIN_NAMESPACE
 #if defined(ASMJIT_TEST)
 class MyListNode : public ZoneListNode<MyListNode> {};
 
-UNIT(asmjit_zone_list) {
+UNIT(zone_list) {
   Zone zone(4096);
   ZoneList<MyListNode> list;
 

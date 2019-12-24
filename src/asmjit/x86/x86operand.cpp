@@ -42,7 +42,7 @@ const OpData opData = {
 // ============================================================================
 
 #if defined(ASMJIT_TEST)
-UNIT(asmjit_x86_operand) {
+UNIT(x86_operand) {
   Label L(1000); // Label with some ID.
 
   INFO("Checking basic properties of built-in X86 registers");

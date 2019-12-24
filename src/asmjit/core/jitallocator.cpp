@@ -1022,7 +1022,7 @@ static void JitAllocatorTest_usage(JitAllocator& allocator) noexcept {
   INFO("  Overhead (HeapMem): %9llu [Bytes] (%.1f%%)", (unsigned long long)(stats.overheadSize()), stats.overheadSizeAsPercent());
 }
 
-UNIT(asmjit_jit_allocator) {
+UNIT(jit_allocator) {
   size_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 100000;
 
   struct TestParams {

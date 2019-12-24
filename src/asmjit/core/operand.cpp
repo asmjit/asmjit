@@ -15,7 +15,7 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 #if defined(ASMJIT_TEST)
-UNIT(asmjit_core_operand) {
+UNIT(operand) {
   INFO("Checking operand sizes");
   EXPECT(sizeof(Operand) == 16);
   EXPECT(sizeof(BaseReg) == 16);

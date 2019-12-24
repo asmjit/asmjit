@@ -1505,7 +1505,7 @@ Error InstInternal::queryFeatures(uint32_t archId, const BaseInst& inst, const O
 // ============================================================================
 
 #if defined(ASMJIT_TEST)
-UNIT(asmjit_x86_inst_api_text) {
+UNIT(x86_inst_api_text) {
   // All known instructions should be matched.
   INFO("Matching all X86 instructions");
   for (uint32_t a = 1; a < Inst::_kIdCount; a++) {

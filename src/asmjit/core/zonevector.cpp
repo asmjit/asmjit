@@ -346,7 +346,7 @@ static void test_zone_bitvector(ZoneAllocator* allocator) {
   }
 }
 
-UNIT(asmjit_zone_vector) {
+UNIT(zone_vector) {
   Zone zone(8096 - Zone::kBlockOverhead);
   ZoneAllocator allocator(&zone);
 

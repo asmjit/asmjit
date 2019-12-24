@@ -70,20 +70,20 @@ struct BrokenAPI {
   static void info(const char* fmt, ...) noexcept;
 
   //! Called on `EXPECT()` failure.
-  static void fail(const char* file, int line, const char* fmt, ...) noexcept;
+  static void fail(const char* file, int line, const char* expression, const char* fmt, ...) noexcept;
 
   //! Used internally by `EXPECT` macro.
   template<typename T>
-  static inline void expect(const char* file, int line, const T& exp) noexcept {
-    if (!exp)
-      fail(file, line, nullptr);
+  static inline void expect(const char* file, int line, const char* expression, const T& result) noexcept {
+    if (!result)
+      fail(file, line, expression, nullptr);
   }
 
   //! Used internally by `EXPECT` macro.
   template<typename T, typename... Args>
-  static inline void expect(const char* file, int line, const T& exp, const char* fmt, Args&&... args) noexcept {
-    if (!exp)
-      fail(file, line, fmt, std::forward<Args>(args)...);
+  static inline void expect(const char* file, int line, const char* expression, const T& result, const char* fmt, Args&&... args) noexcept {
+    if (!result)
+      fail(file, line, expression, fmt, std::forward<Args>(args)...);
   }
 };
 
@@ -92,10 +92,13 @@ struct BrokenAPI {
 // ============================================================================
 
 //! Internal macro used by `UNIT()`.
-#define UNIT_INTERNAL(NAME, ...) \
+#define BROKEN_UNIT_INTERNAL(NAME, PRIORITY) \
   static void unit_##NAME##_entry(void); \
-  static ::BrokenAPI::AutoUnit unit_##NAME##_autoinit(unit_##NAME##_entry, #NAME, __VA_ARGS__); \
+  static ::BrokenAPI::AutoUnit unit_##NAME##_autoinit(unit_##NAME##_entry, #NAME, PRIORITY); \
   static void unit_##NAME##_entry(void)
+
+//! Stringifies the expression used by EXPECT().
+#define BROKEN_STRINFIGY_EXPRESSION_INTERNAL(EXP, ...) #EXP
 
 //! \def UNIT(NAME [, PRIORITY])
 //!
@@ -107,7 +110,7 @@ struct BrokenAPI {
 //! `PRIORITY` specifies the order in which unit tests are run. Lesses value
 //! increases the priority. At the moment all units are first sorted by
 //! priority and then by name - this makes the run always deterministic.
-#define UNIT(...) UNIT_INTERNAL(__VA_ARGS__, 0)
+#define UNIT(NAME, ...) BROKEN_UNIT_INTERNAL(NAME, __VA_ARGS__ + 0)
 
 //! #define INFO(FORMAT [, ...])
 //!
@@ -117,7 +120,7 @@ struct BrokenAPI {
 //! #define INFO(EXP [, FORMAT [, ...]])
 //!
 //! Expect `EXP` to be true or evaluates to true, fail otherwise.
-#define EXPECT(...) ::BrokenAPI::expect(__FILE__, __LINE__, __VA_ARGS__)
+#define EXPECT(...) ::BrokenAPI::expect(__FILE__, __LINE__, BROKEN_STRINFIGY_EXPRESSION_INTERNAL(__VA_ARGS__), __VA_ARGS__)
 
 //! \endcond
 

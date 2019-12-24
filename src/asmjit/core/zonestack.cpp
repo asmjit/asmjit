@@ -169,7 +169,7 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
   EXPECT(stack.empty());
 }
 
-UNIT(asmjit_zone_stack) {
+UNIT(zone_stack) {
   Zone zone(8096 - Zone::kBlockOverhead);
   ZoneAllocator allocator(&zone);
 

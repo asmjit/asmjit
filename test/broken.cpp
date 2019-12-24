@@ -271,16 +271,20 @@ void BrokenAPI::info(const char* fmt, ...) noexcept {
   va_end(ap);
 }
 
-void BrokenAPI::fail(const char* file, int line, const char* fmt, ...) noexcept {
+void BrokenAPI::fail(const char* file, int line, const char* expression, const char* fmt, ...) noexcept {
   BrokenGlobal& global = _brokenGlobal;
   FILE* dst = global.file();
 
-  va_list ap;
-  va_start(ap, fmt);
-  BrokenAPI_printMessage("  FAILED!", fmt, ap);
-  va_end(ap);
+  fprintf(dst, "  FAILED: %s\n", expression);
 
-  fprintf(dst, "  File: %s (Line: %d)\n", file, line);
+  if (fmt) {
+    va_list ap;
+    va_start(ap, fmt);
+    BrokenAPI_printMessage("  REASON: ", fmt, ap);
+    va_end(ap);
+  }
+
+  fprintf(dst, "  SOURCE: %s (Line: %d)\n", file, line);
   fflush(dst);
 
   exit(1);

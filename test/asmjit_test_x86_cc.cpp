@@ -504,13 +504,13 @@ public:
     cc.setArg(1, val);
 
     cc.cmp(val, 0);
-    cc.je(L0);
+    cc.je(L2);
 
     cc.cmp(val, 1);
     cc.je(L1);
 
     cc.cmp(val, 2);
-    cc.je(L2);
+    cc.je(L0);
 
     cc.mov(x86::dword_ptr(dst), val);
     cc.jmp(LEnd);

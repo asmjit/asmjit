@@ -66,7 +66,7 @@ public:
   uint32_t _key;
 };
 
-UNIT(asmjit_zone_rbtree) {
+UNIT(zone_rbtree) {
   uint32_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 10000;
 
   Zone zone(4096);

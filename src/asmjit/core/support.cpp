@@ -470,7 +470,7 @@ static void testSorting() noexcept {
   }
 }
 
-UNIT(asmjit_support) {
+UNIT(support) {
   testAlignment();
   testBitUtils();
   testIntUtils();

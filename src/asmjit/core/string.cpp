@@ -461,7 +461,7 @@ bool String::eq(const char* other, size_t size) const noexcept {
 // ============================================================================
 
 #if defined(ASMJIT_TEST)
-UNIT(asmjit_core_string) {
+UNIT(core_string) {
   String s;
 
   EXPECT(s.isLarge() == false);
