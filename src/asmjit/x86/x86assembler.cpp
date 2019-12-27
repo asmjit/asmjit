@@ -1558,6 +1558,7 @@ CaseX86M_GPB_MulDiv:
         if (Reg::isSReg(o1)) {
           opcode = 0x8C;
           opcode.addPrefixBySize(o0.size());
+          opReg--;
           goto EmitX86M;
         }
         // Mem <- Reg
