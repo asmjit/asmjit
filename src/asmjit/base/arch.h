@@ -86,7 +86,11 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE ArchInfo() noexcept : _signature(0) {}
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+  ASMJIT_INLINE ArchInfo(const ArchInfo& other) noexcept { _signature = other._signature; }
+#else
   ASMJIT_INLINE ArchInfo(const ArchInfo& other) noexcept = default;
+#endif
   explicit ASMJIT_INLINE ArchInfo(uint32_t type, uint32_t subType = kSubTypeNone) noexcept { init(type, subType); }
 
   ASMJIT_INLINE static ArchInfo host() noexcept { return ArchInfo(kTypeHost, kSubTypeHost); }
@@ -147,7 +151,11 @@ public:
   // [Operator Overload]
   // --------------------------------------------------------------------------
 
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+  ASMJIT_INLINE ArchInfo& operator=(const ArchInfo& other) noexcept { _signature = other._signature; return *this; }
+#else
   ASMJIT_INLINE ArchInfo& operator=(const ArchInfo& other) noexcept = default;
+#endif
   ASMJIT_INLINE bool operator==(const ArchInfo& other) const noexcept { return _signature == other._signature; }
   ASMJIT_INLINE bool operator!=(const ArchInfo& other) const noexcept { return _signature != other._signature; }
 

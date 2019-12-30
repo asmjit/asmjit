@@ -38,7 +38,11 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE CpuFeatures() noexcept { reset(); }
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+  /* msvc the compiler will independently create the necessary copy constructor */
+#else
   ASMJIT_INLINE CpuFeatures(const CpuFeatures& other) noexcept = default;
+#endif
 
   // --------------------------------------------------------------------------
   // [Init / Reset]
@@ -249,7 +253,11 @@ public:
   // --------------------------------------------------------------------------
 
   ASMJIT_INLINE CpuInfo() noexcept { reset(); }
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+  /* msvc the compiler will independently create the necessary copy constructor */
+#else
   ASMJIT_INLINE CpuInfo(const CpuInfo& other) noexcept = default;
+#endif
 
   // --------------------------------------------------------------------------
   // [Init / Reset]

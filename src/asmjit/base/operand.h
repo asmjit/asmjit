@@ -57,7 +57,7 @@ struct Operand_ {
     // |XXXXXXXX|........|........|........|
     kSignatureSizeShift         = 24,
     kSignatureSizeBits          = 0xFFU,
-    kSignatureSizeMask          = kSignatureSizeBits << kSignatureSizeShift,
+    kSignatureSizeMask          = (uint32_t)kSignatureSizeBits << kSignatureSizeShift,
 
     // Register type (5 bits).
     // |........|........|........|XXXXX...|
