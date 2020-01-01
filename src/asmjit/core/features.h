@@ -106,8 +106,8 @@ public:
     _bits[idx] |= BitWord(1) << bit;
   }
 
-  template<typename... ArgsT>
-  inline void add(uint32_t featureId, ArgsT... otherIds) noexcept {
+  template<typename... Args>
+  inline void add(uint32_t featureId, Args... otherIds) noexcept {
     add(featureId);
     add(otherIds...);
   }
@@ -122,8 +122,8 @@ public:
     _bits[idx] &= ~(BitWord(1) << bit);
   }
 
-  template<typename... ArgsT>
-  inline void remove(uint32_t featureId, ArgsT... otherIds) noexcept {
+  template<typename... Args>
+  inline void remove(uint32_t featureId, Args... otherIds) noexcept {
     remove(featureId);
     remove(otherIds...);
   }

@@ -113,9 +113,9 @@ public:
   }
 
   //! \overload
-  template<typename T, typename... ArgsT>
-  inline T* newNodeT(ArgsT&&... args) noexcept {
-    return _allocator.newT<T>(this, std::forward<ArgsT>(args)...);
+  template<typename T, typename... Args>
+  inline T* newNodeT(Args&&... args) noexcept {
+    return _allocator.newT<T>(this, std::forward<Args>(args)...);
   }
 
   //! Creates a new `LabelNode`.
@@ -260,14 +260,14 @@ public:
   inline T* newPassT() noexcept { return _codeZone.newT<T>(); }
 
   //! \overload
-  template<typename T, typename... ArgsT>
-  inline T* newPassT(ArgsT&&... args) noexcept { return _codeZone.newT<T>(std::forward<ArgsT>(args)...); }
+  template<typename T, typename... Args>
+  inline T* newPassT(Args&&... args) noexcept { return _codeZone.newT<T>(std::forward<Args>(args)...); }
 
   template<typename T>
   inline Error addPassT() noexcept { return addPass(newPassT<T>()); }
 
-  template<typename T, typename... ArgsT>
-  inline Error addPassT(ArgsT&&... args) noexcept { return addPass(newPassT<T, ArgsT...>(std::forward<ArgsT>(args)...)); }
+  template<typename T, typename... Args>
+  inline Error addPassT(Args&&... args) noexcept { return addPass(newPassT<T, Args...>(std::forward<Args>(args)...)); }
 
   //! Returns `Pass` by name.
   ASMJIT_API Pass* passByName(const char* name) const noexcept;

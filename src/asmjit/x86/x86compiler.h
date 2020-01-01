@@ -44,106 +44,105 @@ public:
   //! \{
 
 #ifndef ASMJIT_NO_LOGGING
-# define ASMJIT_NEW_REG(OUT, PARAM, NAME_FMT)                 \
-    va_list ap;                                               \
-    va_start(ap, NAME_FMT);                                   \
-    _newReg(OUT, PARAM, NAME_FMT, ap);                        \
-    va_end(ap)
+# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                         \
+    _newRegFmt(OUT, PARAM, FORMAT, ARGS)
 #else
-# define ASMJIT_NEW_REG(OUT, PARAM, NAME_FMT)                 \
-    ASMJIT_UNUSED(NAME_FMT);                                  \
-    _newReg(OUT, PARAM, nullptr)
+# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                         \
+    ASMJIT_UNUSED(FORMAT);                                                    \
+    _newReg(OUT, PARAM)
 #endif
 
-#define ASMJIT_NEW_REG_USER(FUNC, REG)                        \
-    inline REG FUNC(uint32_t typeId) {                        \
-      REG reg(Globals::NoInit);                               \
-      _newReg(reg, typeId, nullptr);                          \
-      return reg;                                             \
-    }                                                         \
-                                                              \
-    inline REG FUNC(uint32_t typeId, const char* fmt, ...) {  \
-      REG reg(Globals::NoInit);                               \
-      ASMJIT_NEW_REG(reg, typeId, fmt);                       \
-      return reg;                                             \
+#define ASMJIT_NEW_REG_CUSTOM(FUNC, REG)                                      \
+    inline REG FUNC(uint32_t typeId) {                                        \
+      REG reg(Globals::NoInit);                                               \
+      _newReg(reg, typeId);                                                   \
+      return reg;                                                             \
+    }                                                                         \
+                                                                              \
+    template<typename... Args>                                                \
+    inline REG FUNC(uint32_t typeId, const char* fmt, Args&&... args) {       \
+      REG reg(Globals::NoInit);                                               \
+      ASMJIT_NEW_REG_FMT(reg, typeId, fmt, std::forward<Args>(args)...);      \
+      return reg;                                                             \
     }
 
-#define ASMJIT_NEW_REG_AUTO(FUNC, REG, TYPE_ID)               \
-    inline REG FUNC() {                                       \
-      REG reg(Globals::NoInit);                               \
-      _newReg(reg, TYPE_ID, nullptr);                         \
-      return reg;                                             \
-    }                                                         \
-                                                              \
-    inline REG FUNC(const char* fmt, ...) {                   \
-      REG reg(Globals::NoInit);                               \
-      ASMJIT_NEW_REG(reg, TYPE_ID, fmt);                      \
-      return reg;                                             \
+#define ASMJIT_NEW_REG_TYPED(FUNC, REG, TYPE_ID)                              \
+    inline REG FUNC() {                                                       \
+      REG reg(Globals::NoInit);                                               \
+      _newReg(reg, TYPE_ID);                                                  \
+      return reg;                                                             \
+    }                                                                         \
+                                                                              \
+    template<typename... Args>                                                \
+    inline REG FUNC(const char* fmt, Args&&... args) {                        \
+      REG reg(Globals::NoInit);                                               \
+      ASMJIT_NEW_REG_FMT(reg, TYPE_ID, fmt, std::forward<Args>(args)...);     \
+      return reg;                                                             \
     }
 
   template<typename RegT>
   inline RegT newSimilarReg(const RegT& ref) {
     RegT reg(Globals::NoInit);
-    _newReg(reg, ref, nullptr);
+    _newReg(reg, ref);
     return reg;
   }
 
-  template<typename RegT>
-  inline RegT newSimilarReg(const RegT& ref, const char* fmt, ...) {
+  template<typename RegT, typename... Args>
+  inline RegT newSimilarReg(const RegT& ref, const char* fmt, Args&&... args) {
     RegT reg(Globals::NoInit);
-    ASMJIT_NEW_REG(reg, ref, fmt);
+    ASMJIT_NEW_REG_FMT(reg, ref, fmt, std::forward<Args>(args)...);
     return reg;
   }
 
-  ASMJIT_NEW_REG_USER(newReg    , Reg )
-  ASMJIT_NEW_REG_USER(newGp     , Gp  )
-  ASMJIT_NEW_REG_USER(newVec    , Vec )
-  ASMJIT_NEW_REG_USER(newK      , KReg)
+  ASMJIT_NEW_REG_CUSTOM(newReg    , Reg )
+  ASMJIT_NEW_REG_CUSTOM(newGp     , Gp  )
+  ASMJIT_NEW_REG_CUSTOM(newVec    , Vec )
+  ASMJIT_NEW_REG_CUSTOM(newK      , KReg)
 
-  ASMJIT_NEW_REG_AUTO(newI8     , Gp  , Type::kIdI8     )
-  ASMJIT_NEW_REG_AUTO(newU8     , Gp  , Type::kIdU8     )
-  ASMJIT_NEW_REG_AUTO(newI16    , Gp  , Type::kIdI16    )
-  ASMJIT_NEW_REG_AUTO(newU16    , Gp  , Type::kIdU16    )
-  ASMJIT_NEW_REG_AUTO(newI32    , Gp  , Type::kIdI32    )
-  ASMJIT_NEW_REG_AUTO(newU32    , Gp  , Type::kIdU32    )
-  ASMJIT_NEW_REG_AUTO(newI64    , Gp  , Type::kIdI64    )
-  ASMJIT_NEW_REG_AUTO(newU64    , Gp  , Type::kIdU64    )
-  ASMJIT_NEW_REG_AUTO(newInt8   , Gp  , Type::kIdI8     )
-  ASMJIT_NEW_REG_AUTO(newUInt8  , Gp  , Type::kIdU8     )
-  ASMJIT_NEW_REG_AUTO(newInt16  , Gp  , Type::kIdI16    )
-  ASMJIT_NEW_REG_AUTO(newUInt16 , Gp  , Type::kIdU16    )
-  ASMJIT_NEW_REG_AUTO(newInt32  , Gp  , Type::kIdI32    )
-  ASMJIT_NEW_REG_AUTO(newUInt32 , Gp  , Type::kIdU32    )
-  ASMJIT_NEW_REG_AUTO(newInt64  , Gp  , Type::kIdI64    )
-  ASMJIT_NEW_REG_AUTO(newUInt64 , Gp  , Type::kIdU64    )
-  ASMJIT_NEW_REG_AUTO(newIntPtr , Gp  , Type::kIdIntPtr )
-  ASMJIT_NEW_REG_AUTO(newUIntPtr, Gp  , Type::kIdUIntPtr)
+  ASMJIT_NEW_REG_TYPED(newI8     , Gp  , Type::kIdI8     )
+  ASMJIT_NEW_REG_TYPED(newU8     , Gp  , Type::kIdU8     )
+  ASMJIT_NEW_REG_TYPED(newI16    , Gp  , Type::kIdI16    )
+  ASMJIT_NEW_REG_TYPED(newU16    , Gp  , Type::kIdU16    )
+  ASMJIT_NEW_REG_TYPED(newI32    , Gp  , Type::kIdI32    )
+  ASMJIT_NEW_REG_TYPED(newU32    , Gp  , Type::kIdU32    )
+  ASMJIT_NEW_REG_TYPED(newI64    , Gp  , Type::kIdI64    )
+  ASMJIT_NEW_REG_TYPED(newU64    , Gp  , Type::kIdU64    )
+  ASMJIT_NEW_REG_TYPED(newInt8   , Gp  , Type::kIdI8     )
+  ASMJIT_NEW_REG_TYPED(newUInt8  , Gp  , Type::kIdU8     )
+  ASMJIT_NEW_REG_TYPED(newInt16  , Gp  , Type::kIdI16    )
+  ASMJIT_NEW_REG_TYPED(newUInt16 , Gp  , Type::kIdU16    )
+  ASMJIT_NEW_REG_TYPED(newInt32  , Gp  , Type::kIdI32    )
+  ASMJIT_NEW_REG_TYPED(newUInt32 , Gp  , Type::kIdU32    )
+  ASMJIT_NEW_REG_TYPED(newInt64  , Gp  , Type::kIdI64    )
+  ASMJIT_NEW_REG_TYPED(newUInt64 , Gp  , Type::kIdU64    )
+  ASMJIT_NEW_REG_TYPED(newIntPtr , Gp  , Type::kIdIntPtr )
+  ASMJIT_NEW_REG_TYPED(newUIntPtr, Gp  , Type::kIdUIntPtr)
 
-  ASMJIT_NEW_REG_AUTO(newGpb    , Gp  , Type::kIdU8     )
-  ASMJIT_NEW_REG_AUTO(newGpw    , Gp  , Type::kIdU16    )
-  ASMJIT_NEW_REG_AUTO(newGpd    , Gp  , Type::kIdU32    )
-  ASMJIT_NEW_REG_AUTO(newGpq    , Gp  , Type::kIdU64    )
-  ASMJIT_NEW_REG_AUTO(newGpz    , Gp  , Type::kIdUIntPtr)
-  ASMJIT_NEW_REG_AUTO(newXmm    , Xmm , Type::kIdI32x4  )
-  ASMJIT_NEW_REG_AUTO(newXmmSs  , Xmm , Type::kIdF32x1  )
-  ASMJIT_NEW_REG_AUTO(newXmmSd  , Xmm , Type::kIdF64x1  )
-  ASMJIT_NEW_REG_AUTO(newXmmPs  , Xmm , Type::kIdF32x4  )
-  ASMJIT_NEW_REG_AUTO(newXmmPd  , Xmm , Type::kIdF64x2  )
-  ASMJIT_NEW_REG_AUTO(newYmm    , Ymm , Type::kIdI32x8  )
-  ASMJIT_NEW_REG_AUTO(newYmmPs  , Ymm , Type::kIdF32x8  )
-  ASMJIT_NEW_REG_AUTO(newYmmPd  , Ymm , Type::kIdF64x4  )
-  ASMJIT_NEW_REG_AUTO(newZmm    , Zmm , Type::kIdI32x16 )
-  ASMJIT_NEW_REG_AUTO(newZmmPs  , Zmm , Type::kIdF32x16 )
-  ASMJIT_NEW_REG_AUTO(newZmmPd  , Zmm , Type::kIdF64x8  )
-  ASMJIT_NEW_REG_AUTO(newMm     , Mm  , Type::kIdMmx64  )
-  ASMJIT_NEW_REG_AUTO(newKb     , KReg, Type::kIdMask8  )
-  ASMJIT_NEW_REG_AUTO(newKw     , KReg, Type::kIdMask16 )
-  ASMJIT_NEW_REG_AUTO(newKd     , KReg, Type::kIdMask32 )
-  ASMJIT_NEW_REG_AUTO(newKq     , KReg, Type::kIdMask64 )
+  ASMJIT_NEW_REG_TYPED(newGpb    , Gp  , Type::kIdU8     )
+  ASMJIT_NEW_REG_TYPED(newGpw    , Gp  , Type::kIdU16    )
+  ASMJIT_NEW_REG_TYPED(newGpd    , Gp  , Type::kIdU32    )
+  ASMJIT_NEW_REG_TYPED(newGpq    , Gp  , Type::kIdU64    )
+  ASMJIT_NEW_REG_TYPED(newGpz    , Gp  , Type::kIdUIntPtr)
+  ASMJIT_NEW_REG_TYPED(newXmm    , Xmm , Type::kIdI32x4  )
+  ASMJIT_NEW_REG_TYPED(newXmmSs  , Xmm , Type::kIdF32x1  )
+  ASMJIT_NEW_REG_TYPED(newXmmSd  , Xmm , Type::kIdF64x1  )
+  ASMJIT_NEW_REG_TYPED(newXmmPs  , Xmm , Type::kIdF32x4  )
+  ASMJIT_NEW_REG_TYPED(newXmmPd  , Xmm , Type::kIdF64x2  )
+  ASMJIT_NEW_REG_TYPED(newYmm    , Ymm , Type::kIdI32x8  )
+  ASMJIT_NEW_REG_TYPED(newYmmPs  , Ymm , Type::kIdF32x8  )
+  ASMJIT_NEW_REG_TYPED(newYmmPd  , Ymm , Type::kIdF64x4  )
+  ASMJIT_NEW_REG_TYPED(newZmm    , Zmm , Type::kIdI32x16 )
+  ASMJIT_NEW_REG_TYPED(newZmmPs  , Zmm , Type::kIdF32x16 )
+  ASMJIT_NEW_REG_TYPED(newZmmPd  , Zmm , Type::kIdF64x8  )
+  ASMJIT_NEW_REG_TYPED(newMm     , Mm  , Type::kIdMmx64  )
+  ASMJIT_NEW_REG_TYPED(newKb     , KReg, Type::kIdMask8  )
+  ASMJIT_NEW_REG_TYPED(newKw     , KReg, Type::kIdMask16 )
+  ASMJIT_NEW_REG_TYPED(newKd     , KReg, Type::kIdMask32 )
+  ASMJIT_NEW_REG_TYPED(newKq     , KReg, Type::kIdMask64 )
 
-#undef ASMJIT_NEW_REG_AUTO
-#undef ASMJIT_NEW_REG_USER
-#undef ASMJIT_NEW_REG
+#undef ASMJIT_NEW_REG_TYPED
+#undef ASMJIT_NEW_REG_CUSTOM
+#undef ASMJIT_NEW_REG_FMT
 
   //! \}
 

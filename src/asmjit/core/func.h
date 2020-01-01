@@ -760,10 +760,10 @@ public:
   }
 
   //! \overload
-  template<typename... ArgsT>
-  ASMJIT_INLINE void addDirtyRegs(const BaseReg& reg, ArgsT&&... args) noexcept {
+  template<typename... Args>
+  ASMJIT_INLINE void addDirtyRegs(const BaseReg& reg, Args&&... args) noexcept {
     addDirtyRegs(reg);
-    addDirtyRegs(std::forward<ArgsT>(args)...);
+    addDirtyRegs(std::forward<Args>(args)...);
   }
 
   inline void setAllDirty() noexcept {
@@ -915,15 +915,15 @@ public:
     assignReg(argIndex, reg);
   }
 
-  template<typename... ArgsT>
-  inline void _assignAllInternal(uint32_t argIndex, const BaseReg& reg, ArgsT&&... args) noexcept {
+  template<typename... Args>
+  inline void _assignAllInternal(uint32_t argIndex, const BaseReg& reg, Args&&... args) noexcept {
     assignReg(argIndex, reg);
-    _assignAllInternal(argIndex + 1, std::forward<ArgsT>(args)...);
+    _assignAllInternal(argIndex + 1, std::forward<Args>(args)...);
   }
 
-  template<typename... ArgsT>
-  inline void assignAll(ArgsT&&... args) noexcept {
-    _assignAllInternal(0, std::forward<ArgsT>(args)...);
+  template<typename... Args>
+  inline void assignAll(Args&&... args) noexcept {
+    _assignAllInternal(0, std::forward<Args>(args)...);
   }
 
   //! \}

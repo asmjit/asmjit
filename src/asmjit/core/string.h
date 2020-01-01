@@ -166,9 +166,9 @@ public:
   ASMJIT_API Error assignString(const char* data, size_t size = SIZE_MAX) noexcept;
 
   //! Replace the current content by a formatted string `fmt`.
-  template<typename... ArgsT>
-  inline Error assignFormat(const char* fmt, ArgsT&&... args) noexcept {
-    return _opFormat(kOpAssign, fmt, std::forward<ArgsT>(args)...);
+  template<typename... Args>
+  inline Error assignFormat(const char* fmt, Args&&... args) noexcept {
+    return _opFormat(kOpAssign, fmt, std::forward<Args>(args)...);
   }
 
   //! Replace the current content by a formatted string `fmt` (va_list version).
@@ -206,9 +206,9 @@ public:
     return _opString(kOpAppend, str, size);
   }
 
-  template<typename... ArgsT>
-  inline Error appendFormat(const char* fmt, ArgsT&&... args) noexcept {
-    return _opFormat(kOpAppend, fmt, std::forward<ArgsT>(args)...);
+  template<typename... Args>
+  inline Error appendFormat(const char* fmt, Args&&... args) noexcept {
+    return _opFormat(kOpAppend, fmt, std::forward<Args>(args)...);
   }
 
   //! Append a formatted string `fmt` (va_list version).

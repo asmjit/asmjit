@@ -249,10 +249,10 @@ public:
   ASMJIT_API VirtReg* newVirtReg(uint32_t typeId, uint32_t signature, const char* name) noexcept;
 
   ASMJIT_API Error _newReg(BaseReg& out, uint32_t typeId, const char* name = nullptr);
-  ASMJIT_API Error _newReg(BaseReg& out, uint32_t typeId, const char* fmt, va_list ap);
+  ASMJIT_API Error _newRegFmt(BaseReg& out, uint32_t typeId, const char* fmt, ...);
 
   ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* name = nullptr);
-  ASMJIT_API Error _newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap);
+  ASMJIT_API Error _newRegFmt(BaseReg& out, const BaseReg& ref, const char* fmt, ...);
 
   //! Tests whether the given `id` is a valid virtual register id.
   inline bool isVirtIdValid(uint32_t id) const noexcept {

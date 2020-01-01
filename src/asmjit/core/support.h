@@ -199,8 +199,8 @@ template<typename T>
 static constexpr uint32_t bitMask(T x) noexcept { return (1u << x); }
 
 //! Returns a bit-mask that has `x` bit set (multiple arguments).
-template<typename T, typename... ArgsT>
-static constexpr uint32_t bitMask(T x, ArgsT... args) noexcept { return bitMask(x) | bitMask(args...); }
+template<typename T, typename... Args>
+static constexpr uint32_t bitMask(T x, Args... args) noexcept { return bitMask(x) | bitMask(args...); }
 
 //! Converts a boolean value `b` to zero or full mask (all bits set).
 template<typename DstT, typename SrcT>
@@ -365,14 +365,14 @@ static inline uint32_t constPopcnt(T x) noexcept { return Internal::constPopcntI
 template<typename T>
 static constexpr T min(const T& a, const T& b) noexcept { return b < a ? b : a; }
 
-template<typename T, typename... ArgsT>
-static constexpr T min(const T& a, const T& b, ArgsT&&... args) noexcept { return min(min(a, b), std::forward<ArgsT>(args)...); }
+template<typename T, typename... Args>
+static constexpr T min(const T& a, const T& b, Args&&... args) noexcept { return min(min(a, b), std::forward<Args>(args)...); }
 
 template<typename T>
 static constexpr T max(const T& a, const T& b) noexcept { return a < b ? b : a; }
 
-template<typename T, typename... ArgsT>
-static constexpr T max(const T& a, const T& b, ArgsT&&... args) noexcept { return max(max(a, b), std::forward<ArgsT>(args)...); }
+template<typename T, typename... Args>
+static constexpr T max(const T& a, const T& b, Args&&... args) noexcept { return max(max(a, b), std::forward<Args>(args)...); }
 
 // ============================================================================
 // [asmjit::Support - Overflow Arithmetic]

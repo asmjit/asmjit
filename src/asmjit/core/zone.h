@@ -333,12 +333,12 @@ public:
   }
 
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
-  template<typename T, typename... ArgsT>
-  ASMJIT_INLINE T* newT(ArgsT&&... args) noexcept {
+  template<typename T, typename... Args>
+  ASMJIT_INLINE T* newT(Args&&... args) noexcept {
     void* p = alloc(sizeof(T), alignof(T));
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(p) T(std::forward<ArgsT>(args)...);
+    return new(p) T(std::forward<Args>(args)...);
   }
 
   //! \cond INTERNAL
@@ -589,12 +589,12 @@ public:
     return new(p) T();
   }
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
-  template<typename T, typename... ArgsT>
-  inline T* newT(ArgsT&&... args) noexcept {
+  template<typename T, typename... Args>
+  inline T* newT(Args&&... args) noexcept {
     void* p = allocT<T>();
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(p) T(std::forward<ArgsT>(args)...);
+    return new(p) T(std::forward<Args>(args)...);
   }
 
   //! Releases the memory previously allocated by `alloc()`. The `size` argument

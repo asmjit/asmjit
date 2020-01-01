@@ -322,9 +322,14 @@ Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* name) {
   return kErrorOk;
 }
 
-Error BaseCompiler::_newReg(BaseReg& out, uint32_t typeId, const char* fmt, va_list ap) {
+Error BaseCompiler::_newRegFmt(BaseReg& out, uint32_t typeId, const char* fmt, ...) {
+  va_list ap;
   StringTmp<256> sb;
+
+  va_start(ap, fmt);
   sb.appendVFormat(fmt, ap);
+  va_end(ap);
+
   return _newReg(out, typeId, sb.data());
 }
 
@@ -403,9 +408,14 @@ Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* name) 
   return kErrorOk;
 }
 
-Error BaseCompiler::_newReg(BaseReg& out, const BaseReg& ref, const char* fmt, va_list ap) {
+Error BaseCompiler::_newRegFmt(BaseReg& out, const BaseReg& ref, const char* fmt, ...) {
+  va_list ap;
   StringTmp<256> sb;
+
+  va_start(ap, fmt);
   sb.appendVFormat(fmt, ap);
+  va_end(ap);
+
   return _newReg(out, ref, sb.data());
 }
 
