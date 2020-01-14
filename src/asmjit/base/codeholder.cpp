@@ -93,8 +93,8 @@ CodeHolder::CodeHolder() noexcept
     _baseZone(16384 - Zone::kZoneOverhead),
     _dataZone(16384 - Zone::kZoneOverhead),
     _baseHeap(&_baseZone),
-    _labels(&_baseHeap),
     _sections(&_baseHeap),
+    _labels(&_baseHeap),
     _relocations(&_baseHeap) {
 }
 
@@ -365,7 +365,7 @@ namespace {
 //! Only used to lookup a label from `_namedLabels`.
 class LabelByName {
 public:
-  ASMJIT_INLINE LabelByName(const char* name, size_t nameLength, uint32_t hVal) noexcept
+  ASMJIT_INLINE LabelByName(const char* name, size_t nameLength, uint32_t /*hVal*/) noexcept
     : name(name),
       nameLength(static_cast<uint32_t>(nameLength)) {}
 
@@ -516,7 +516,7 @@ Error CodeHolder::newNamedLabelId(uint32_t& idOut, const char* name, size_t name
   return err;
 }
 
-uint32_t CodeHolder::getLabelIdByName(const char* name, size_t nameLength, uint32_t parentId) noexcept {
+uint32_t CodeHolder::getLabelIdByName(const char* name, size_t nameLength, uint32_t /*parentId*/) noexcept {
   uint32_t hVal = CodeHolder_hashNameAndFixLen(name, nameLength);
   if (ASMJIT_UNLIKELY(!nameLength)) return kInvalidValue;
 
@@ -562,7 +562,6 @@ size_t CodeHolder::relocate(void* _dst, uint64_t baseAddress) const noexcept {
   SectionEntry* section = _sections[0];
   ASMJIT_ASSERT(section != nullptr);
 
-  uint32_t archType = getArchType();
   uint8_t* dst = static_cast<uint8_t*>(_dst);
 
   if (baseAddress == kNoBaseAddress)

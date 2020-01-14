@@ -681,7 +681,7 @@ static Error X86Assembler_validateInstruction(
 #define FIXUP_GPB(REG_OP, REG_ID, ...)                                   \
   do {                                                                   \
     if (static_cast<const X86Gp&>(REG_OP).isGpbLo()) {                   \
-      options |= (REG_ID >= 4) ? X86Inst::kOptionRex : 0;                \
+      options |= (REG_ID >= 4) ? uint32_t(X86Inst::kOptionRex) : 0;                \
     }                                                                    \
     else {                                                               \
       ASMJIT_ASSERT(X86Reg::isGpbHi(REG_OP));                            \
@@ -910,7 +910,7 @@ CaseX86M_GPB_MulDiv:
       }
 
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingX86M_GPB:
       if (isign3 == ENC_OPS1(Reg)) {
         rbReg = o0.getId();
@@ -1797,7 +1797,7 @@ CaseX86M_GPB_MulDiv:
         goto EmitX86Op;
       }
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingX86Pop:
       if (isign3 == ENC_OPS1(Reg)) {
         if (X86Reg::isSeg(o0)) {
@@ -2136,7 +2136,7 @@ CaseX86Pop_Gp:
         }
       }
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingX86Xadd:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
         rbReg = o0.getId();
@@ -2296,7 +2296,7 @@ CaseFpuArith_Mem:
         goto EmitFpuOp;
       }
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingFpuR:
       if (isign3 == ENC_OPS1(Reg)) {
         opCode += o0.getId();
@@ -2576,7 +2576,7 @@ CaseExtMovd:
     case X86Inst::kEncodingExtRm_Wx:
       ADD_REX_W(X86Reg::isGpq(o0) || o1.getSize() == 8);
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingExtRm:
 CaseExtRm:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
@@ -2867,7 +2867,7 @@ CaseExtRm:
     case X86Inst::kEncodingVexMri_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexMri:
       imVal = static_cast<const Imm&>(o2).getInt64();
       imLen = 1;
@@ -2895,7 +2895,7 @@ CaseExtRm:
     case X86Inst::kEncodingVexRm_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRm:
 CaseVexRm:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
@@ -2927,7 +2927,7 @@ CaseVexRm:
     case X86Inst::kEncodingVexRmi_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRmi:
 CaseVexRmi:
       imVal = static_cast<const Imm&>(o2).getInt64();
@@ -2966,7 +2966,7 @@ CaseVexRvm_R:
       if (ASMJIT_UNLIKELY(!o3.isNone() && !X86Reg::isGp(o3, X86Gp::kIdDx)))
         goto InvalidInstruction;
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRvm_Wx:
       ADD_REX_W(X86Reg::isGpq(o0) | X86Reg::isGpq(o1));
       goto CaseVexRvm;
@@ -2978,7 +2978,7 @@ CaseVexRvm_R:
     case X86Inst::kEncodingVexRvmr_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRvmr: {
       const uint32_t isign4 = isign3 + (o3.getOp() << 9);
       imVal = o3.getId() << 4;
@@ -3001,7 +3001,7 @@ CaseVexRvm_R:
     case X86Inst::kEncodingVexRvmi_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRvmi: {
       const uint32_t isign4 = isign3 + (o3.getOp() << 9);
       imVal = static_cast<const Imm&>(o3).getInt64();
@@ -3024,7 +3024,7 @@ CaseVexRvm_R:
     case X86Inst::kEncodingVexRmv_Wx:
       ADD_REX_W(X86Reg::isGpq(o0) | X86Reg::isGpq(o2));
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRmv:
       if (isign3 == ENC_OPS3(Reg, Reg, Reg)) {
         opReg = x86PackRegAndVvvvv(o0.getId(), o2.getId());
@@ -3050,7 +3050,7 @@ CaseVexRvm_R:
       }
 
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRmv_VM:
       if (isign3 == ENC_OPS3(Reg, Mem, Reg)) {
         opCode |= Utils::iMax(x86OpCodeLByVMem(o1), x86OpCodeLBySize(o0.getSize() | o2.getSize()));
@@ -3106,7 +3106,7 @@ CaseVexRvm_R:
     case X86Inst::kEncodingVexRmMr_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRmMr:
 CaseVexRmMr:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
@@ -3166,7 +3166,7 @@ CaseVexRmMr_AfterRegReg:
     case X86Inst::kEncodingVexRvmRmi_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRvmRmi:
       if (isign3 == ENC_OPS3(Reg, Reg, Reg)) {
         opReg = x86PackRegAndVvvvv(o0.getId(), o1.getId());
@@ -3281,7 +3281,7 @@ CaseVexRmMr_AfterRegReg:
     case X86Inst::kEncodingVexRvmMvr_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRvmMvr:
       if (isign3 == ENC_OPS3(Reg, Reg, Reg)) {
         opReg = x86PackRegAndVvvvv(o0.getId(), o1.getId());
@@ -3309,7 +3309,7 @@ CaseVexRmMr_AfterRegReg:
     case X86Inst::kEncodingVexRvmVmi_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRvmVmi:
       if (isign3 == ENC_OPS3(Reg, Reg, Reg)) {
         opReg = x86PackRegAndVvvvv(o0.getId(), o1.getId());
@@ -3347,7 +3347,7 @@ CaseVexRmMr_AfterRegReg:
     case X86Inst::kEncodingVexVm_Wx:
       ADD_REX_W(X86Reg::isGpq(o0) | X86Reg::isGpq(o1));
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexVm:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
         opReg = x86PackRegAndVvvvv(opReg, o0.getId());
@@ -3366,11 +3366,11 @@ CaseVexRmMr_AfterRegReg:
       if (isign3 == ENC_OPS3(Reg, Mem, Imm))
         opCode |= X86Inst::kOpCode_MM_ForceEvex;
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexVmi_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexVmi:
       imVal = static_cast<const Imm&>(o2).getInt64();
       imLen = 1;
@@ -3391,7 +3391,7 @@ CaseVexRmMr_AfterRegReg:
     case X86Inst::kEncodingVexRvrmRvmr_Lx:
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingVexRvrmRvmr: {
       const uint32_t isign4 = isign3 + (o3.getOp() << 9);
 
@@ -3492,7 +3492,7 @@ CaseVexRmMr_AfterRegReg:
       // It's fine to just check the first operand, second is just for sanity.
       opCode |= x86OpCodeLBySize(o0.getSize() | o1.getSize());
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case X86Inst::kEncodingFma4: {
       const uint32_t isign4 = isign3 + (o3.getOp() << 9);
 

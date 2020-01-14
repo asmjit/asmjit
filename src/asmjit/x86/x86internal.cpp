@@ -274,8 +274,6 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::markStackArgsReg(FuncFrameInfo& ffi)
 
 ASMJIT_FAVOR_SIZE Error X86Internal::initCallConv(CallConv& cc, uint32_t ccId) noexcept {
   const uint32_t kKindGp  = X86Reg::kKindGp;
-  const uint32_t kKindMm  = X86Reg::kKindMm;
-  const uint32_t kKindK   = X86Reg::kKindK;
   const uint32_t kKindVec = X86Reg::kKindVec;
 
   const uint32_t kAx = X86Gp::kIdAx;
@@ -356,7 +354,7 @@ X86CallConv:
 // [asmjit::X86Internal - FuncDetail]
 // ============================================================================
 
-ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const FuncSignature& sign, uint32_t gpSize) noexcept {
+ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const FuncSignature& /*sign*/, uint32_t gpSize) noexcept {
   const CallConv& cc = func.getCallConv();
   uint32_t archType = cc.getArchType();
 
@@ -437,7 +435,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       uint32_t typeId = arg.getTypeId();
 
       if (TypeId::isInt(typeId)) {
-        uint32_t regId = gpzPos < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindGp].id[gpzPos] : kInvalidReg;
+        uint32_t regId = gpzPos < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindGp].id[gpzPos] : uint32_t(kInvalidReg);
         if (regId != kInvalidReg) {
           uint32_t regType = (typeId <= TypeId::kU32)
             ? X86Reg::kRegGpd
@@ -455,7 +453,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       }
 
       if (TypeId::isFloat(typeId) || TypeId::isVec(typeId)) {
-        uint32_t regId = vecPos < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindVec].id[vecPos] : kInvalidReg;
+        uint32_t regId = vecPos < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindVec].id[vecPos] : uint32_t(kInvalidReg);
 
         // If this is a float, but `floatByVec` is false, we have to pass by stack.
         if (TypeId::isFloat(typeId) && !cc.hasFlag(CallConv::kFlagPassFloatsByVec))
@@ -484,7 +482,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       uint32_t size = TypeId::sizeOf(typeId);
 
       if (TypeId::isInt(typeId) || TypeId::isMmx(typeId)) {
-        uint32_t regId = i < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindGp].id[i] : kInvalidReg;
+        uint32_t regId = i < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindGp].id[i] : uint32_t(kInvalidReg);
         if (regId != kInvalidReg) {
           uint32_t regType = (size <= 4 && !TypeId::isMmx(typeId))
             ? X86Reg::kRegGpd
@@ -501,7 +499,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       }
 
       if (TypeId::isFloat(typeId) || TypeId::isVec(typeId)) {
-        uint32_t regId = i < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindVec].id[i] : kInvalidReg;
+        uint32_t regId = i < CallConv::kNumRegArgsPerKind ? cc._passedOrder[X86Reg::kKindVec].id[i] : uint32_t(kInvalidReg);
         if (regId != kInvalidReg && (TypeId::isFloat(typeId) || cc.hasFlag(CallConv::kFlagVectorCall))) {
           uint32_t regType = x86VecTypeIdToRegType(typeId);
           uint32_t regId = cc._passedOrder[X86Reg::kKindVec].id[i];
@@ -719,7 +717,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
         src.setSignature(X86RegTraits<X86Reg::kRegGpd>::kSignature);
       }
       ASMJIT_FALLTHROUGH;
-
+      /* fall through */
     case TypeId::kI32:
     case TypeId::kU32:
     case TypeId::kI64:
@@ -731,6 +729,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitRegMove(X86Emitter* emitter,
       instId = X86Inst::kIdMovd;
       if (memFlags) break;
       ASMJIT_FALLTHROUGH;
+      /* fall through */
     case TypeId::kMmx64 : instId = X86Inst::kIdMovq ; break;
     case TypeId::kMask8 : instId = X86Inst::kIdKmovb; break;
     case TypeId::kMask16: instId = X86Inst::kIdKmovw; break;
@@ -986,7 +985,6 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgMove(X86Emitter* emitter,
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE Error X86Internal::emitProlog(X86Emitter* emitter, const FuncFrameLayout& layout) {
-  uint32_t gpSize = emitter->getGpSize();
   uint32_t gpSaved = layout.getSavedRegs(X86Reg::kKindGp);
 
   X86Gp zsp = emitter->zsp();   // ESP|RSP register.

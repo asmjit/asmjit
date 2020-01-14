@@ -235,7 +235,7 @@ struct VMemMgr::PermanentNode {
 //! \internal
 //!
 //! Helper to avoid `#ifdef`s in the code.
-ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* self, size_t size, size_t* vSize) noexcept {
+ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* /*self*/, size_t size, size_t* vSize) noexcept {
   uint32_t flags = OSUtils::kVMWritable | OSUtils::kVMExecutable;
 #if !ASMJIT_OS_WINDOWS
   return static_cast<uint8_t*>(OSUtils::allocVirtualMemory(size, vSize, flags));
@@ -247,7 +247,7 @@ ASMJIT_INLINE uint8_t* vMemMgrAllocVMem(VMemMgr* self, size_t size, size_t* vSiz
 //! \internal
 //!
 //! Helper to avoid `#ifdef`s in the code.
-ASMJIT_INLINE Error vMemMgrReleaseVMem(VMemMgr* self, void* p, size_t vSize) noexcept {
+ASMJIT_INLINE Error vMemMgrReleaseVMem(VMemMgr* /*self*/, void* p, size_t vSize) noexcept {
 #if !ASMJIT_OS_WINDOWS
   return OSUtils::releaseVirtualMemory(p, vSize);
 #else
@@ -255,12 +255,14 @@ ASMJIT_INLINE Error vMemMgrReleaseVMem(VMemMgr* self, void* p, size_t vSize) noe
 #endif
 }
 
+#if defined(ASMJIT_DEBUG)
 //! \internal
 //!
 //! Check whether the Red-Black tree is valid.
 static bool vMemMgrCheckTree(VMemMgr* self) noexcept {
   return rbAssert(self->_root) > 0;
 }
+#endif
 
 //! \internal
 //!

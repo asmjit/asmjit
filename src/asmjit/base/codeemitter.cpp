@@ -64,7 +64,7 @@ Error CodeEmitter::onAttach(CodeHolder* code) noexcept {
   return kErrorOk;
 }
 
-Error CodeEmitter::onDetach(CodeHolder* code) noexcept {
+Error CodeEmitter::onDetach(CodeHolder* /*code*/) noexcept {
   _codeInfo.reset();
   _finalized = false;
   _lastError = kErrorNotInitialized;
@@ -153,7 +153,7 @@ Error CodeEmitter::commentf(const char* fmt, ...) {
   if (_globalOptions & kOptionLoggingEnabled) {
     va_list ap;
     va_start(ap, fmt);
-    Error err = _code->_logger->logv(fmt, ap);
+    err = _code->_logger->logv(fmt, ap);
     va_end(ap);
   }
 #else

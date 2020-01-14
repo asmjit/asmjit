@@ -79,7 +79,7 @@ static const char* x86GetAddressSizeString(uint32_t size) noexcept {
 X86Formatter::X86Formatter() noexcept {}
 X86Formatter::~X86Formatter() noexcept {}
 
-ASMJIT_FAVOR_SIZE Error X86Formatter::formatRegister(StringBuilder& out, uint32_t logOptions, uint32_t regType, uint32_t regId) const noexcept {
+ASMJIT_FAVOR_SIZE Error X86Formatter::formatRegister(StringBuilder& out, uint32_t /*logOptions*/, uint32_t regType, uint32_t regId) const noexcept {
   static const char reg8l[] = "al\0\0" "cl\0\0" "dl\0\0" "bl\0\0" "spl\0"  "bpl\0"  "sil\0"  "dil\0" ;
   static const char reg8h[] = "ah\0\0" "ch\0\0" "dh\0\0" "bh\0\0" "--\0\0" "--\0\0" "--\0\0" "--\0\0";
   static const char reg32[] = "eax\0"  "ecx\0"  "edx\0"  "ebx\0"  "esp\0"  "ebp\0"  "esi\0"  "edi\0" ;
@@ -89,7 +89,6 @@ ASMJIT_FAVOR_SIZE Error X86Formatter::formatRegister(StringBuilder& out, uint32_
     const X86FormatterRegData& rfd = x86FormatterRegData[regType];
     if (rfd.valid) {
       if (regId < rfd.special) {
-        const char prefix = '\0';
         const char* s = nullptr;
         size_t len = kInvalidIndex;
 
@@ -231,8 +230,6 @@ ASMJIT_FAVOR_SIZE Error X86Formatter::formatInstruction(
   const Operand_& opExtra,
   const Operand_* opArray, uint32_t opCount) const noexcept {
 
-  bool opExtraDone = false;
-
   // Format instruction options and instruction mnemonic.
   if (instId < X86Inst::_kIdCount) {
     const X86Inst& instInfo = X86Inst::getInst(instId);
@@ -255,7 +252,6 @@ ASMJIT_FAVOR_SIZE Error X86Formatter::formatInstruction(
         out.appendChar('{');
         formatOperand(out, logOptions, opExtra);
         out.appendString("} ");
-        opExtraDone = true;
       }
     }
 

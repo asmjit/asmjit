@@ -20,6 +20,7 @@ namespace asmjit {
 // [asmjit::ZoneHeap - Helpers]
 // ============================================================================
 
+#if defined(ASMJIT_DEBUG)
 static bool ZoneHeap_hasDynamicBlock(ZoneHeap* self, ZoneHeap::DynamicBlock* block) noexcept {
   ZoneHeap::DynamicBlock* cur = self->_dynamicBlocks;
   while (cur) {
@@ -29,6 +30,7 @@ static bool ZoneHeap_hasDynamicBlock(ZoneHeap* self, ZoneHeap::DynamicBlock* blo
   }
   return false;
 }
+#endif
 
 // ============================================================================
 // [asmjit::ZoneHeap - Init / Reset]
@@ -151,7 +153,7 @@ void* ZoneHeap::_allocZeroed(size_t size, size_t& allocatedSize) noexcept {
   return ::memset(p, 0, allocatedSize);
 }
 
-void ZoneHeap::_releaseDynamic(void* p, size_t size) noexcept {
+void ZoneHeap::_releaseDynamic(void* p, size_t /*size*/) noexcept {
   ASMJIT_ASSERT(isInitialized());
   //printf("RELEASING DYNAMIC %p of size %d\n", p, int(size));
 

@@ -379,6 +379,7 @@ public:
   ASMJIT_INLINE Operand clone() const noexcept { return Operand(*this); }
 
   ASMJIT_INLINE Operand& operator=(const Operand_& other) noexcept { copyFrom(other); return *this; }
+  ASMJIT_INLINE Operand& operator=(const Operand& other) noexcept { copyFrom(other); return *this; }
 };
 
 // ============================================================================
@@ -550,6 +551,8 @@ public:
   //! Create a new register based on `signature` and `id`.
   static ASMJIT_INLINE Reg fromSignature(uint32_t signature, uint32_t id) noexcept { return Reg(Init, signature, id); }
 
+  ASMJIT_INLINE Reg& operator=(const Reg& other) noexcept { copyFrom(other); return *this; }
+
   // --------------------------------------------------------------------------
   // [Reg Specific]
   // --------------------------------------------------------------------------
@@ -577,7 +580,7 @@ public:
   //! some operands contains a garbage or other metadata in the upper 8 bytes
   //! then `isSame()` may return `true` in cases where `isEqual()` returns
   //! false. However. no such case is known at the moment.
-  ASMJIT_INLINE bool isSame(const Reg& other) const noexcept { return _packed[0] == _packed[1]; }
+  ASMJIT_INLINE bool isSame(const Reg&) const noexcept { return _packed[0] == _packed[1]; }
 
   //! Set a 32-bit operand signature based on traits of `T`.
   template<typename T>
@@ -787,7 +790,7 @@ public:
   ASMJIT_INLINE void markArgHome() noexcept { addFlags(kFlagArgHome); }
   ASMJIT_INLINE void markRegHome() noexcept { addFlags(kFlagRegHome); }
 
-  ASMJIT_INLINE void clearAbs(bool value = false) noexcept { _mem.flags &= ~kFlagAbs; }
+  ASMJIT_INLINE void clearAbs(bool) noexcept { _mem.flags &= ~kFlagAbs; }
   ASMJIT_INLINE void clearArgHome() noexcept { clearFlags(kFlagArgHome); }
   ASMJIT_INLINE void clearRegHome() noexcept { clearFlags(kFlagRegHome); }
 

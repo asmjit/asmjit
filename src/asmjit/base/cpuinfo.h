@@ -168,7 +168,20 @@ public:
     _archInfo.init(archType, archMode);
   }
 
-  ASMJIT_INLINE void reset() noexcept { ::memset(this, 0, sizeof(CpuInfo)); }
+  ASMJIT_INLINE void reset() noexcept {
+	  _archInfo.reset();
+	  for (int i = 0; i < 16; ++i) _vendorString[i] = 0;
+	  for (int i = 0; i < 64; ++i) _brandString[i] = 0;
+	  _vendorId = 0;
+	  _family = 0;
+	  _stepping = 0;
+	  _hwThreadsCount = 0;
+	  for (int i = 0; i < 8; ++i)_features[i] = 0;
+	  _x86Data._processorType = 0;
+	  _x86Data._brandIndex = 0;
+	  _x86Data._flushCacheLineSize = 0;
+	  _x86Data._maxLogicalProcessors = 0;
+  }
 
   // --------------------------------------------------------------------------
   // [Detect]

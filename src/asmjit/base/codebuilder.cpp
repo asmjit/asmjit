@@ -31,11 +31,11 @@ CodeBuilder::CodeBuilder() noexcept
     _cbHeap(&_cbBaseZone),
     _cbPasses(&_cbHeap),
     _cbLabels(&_cbHeap),
-    _nodeFlowId(0),
-    _nodeFlags(0),
     _firstNode(nullptr),
     _lastNode(nullptr),
-    _cursor(nullptr) {}
+    _cursor(nullptr),
+    _nodeFlowId(0),
+    _nodeFlags(0) {}
 CodeBuilder::~CodeBuilder() noexcept {}
 
 // ============================================================================
@@ -352,7 +352,7 @@ CBNode* CodeBuilder::addBefore(CBNode* node, CBNode* ref) noexcept {
   return node;
 }
 
-static ASMJIT_INLINE void CodeBuilder_nodeRemoved(CodeBuilder* self, CBNode* node_) noexcept {
+static ASMJIT_INLINE void CodeBuilder_nodeRemoved(CodeBuilder* /*self*/, CBNode* node_) noexcept {
   if (node_->isJmpOrJcc()) {
     CBJump* node = static_cast<CBJump*>(node_);
     CBLabel* label = node->getTarget();
@@ -556,12 +556,12 @@ Error CodeBuilder::serialize(CodeEmitter* dst) {
         const Operand_* o3 = &dst->_none;
 
         switch (opCount) {
-          case 6: dst->_op5 = opArray[5]; options |= CodeEmitter::kOptionOp5; ASMJIT_FALLTHROUGH;
-          case 5: dst->_op4 = opArray[4]; options |= CodeEmitter::kOptionOp4; ASMJIT_FALLTHROUGH;
-          case 4: o3 = &opArray[3]; ASMJIT_FALLTHROUGH;
-          case 3: o2 = &opArray[2]; ASMJIT_FALLTHROUGH;
-          case 2: o1 = &opArray[1]; ASMJIT_FALLTHROUGH;
-          case 1: o0 = &opArray[0]; ASMJIT_FALLTHROUGH;
+          case 6: dst->_op5 = opArray[5]; options |= CodeEmitter::kOptionOp5; ASMJIT_FALLTHROUGH; /* fall through */
+          case 5: dst->_op4 = opArray[4]; options |= CodeEmitter::kOptionOp4; ASMJIT_FALLTHROUGH; /* fall through */
+          case 4: o3 = &opArray[3]; ASMJIT_FALLTHROUGH; /* fall through */
+          case 3: o2 = &opArray[2]; ASMJIT_FALLTHROUGH; /* fall through */
+          case 2: o1 = &opArray[1]; ASMJIT_FALLTHROUGH; /* fall through */
+          case 1: o0 = &opArray[0]; ASMJIT_FALLTHROUGH; /* fall through */
           case 0: break;
         }
 
