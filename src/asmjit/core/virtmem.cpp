@@ -462,7 +462,7 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) no
 Error VirtMem::releaseDualMapping(DualMapping* dm, size_t size) noexcept {
   Error err = release(dm->ro, size);
   if (dm->ro != dm->rw)
-    err |= release(dm->ro, size);
+    err |= release(dm->rw, size);
 
   if (err)
     return DebugUtils::errored(kErrorInvalidArgument);
