@@ -674,8 +674,6 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatInstruction(
 
   // Format instruction options and instruction mnemonic.
   if (instId < Inst::_kIdCount) {
-    const InstDB::InstInfo& instInfo = InstDB::infoById(instId);
-
     // SHORT|LONG options.
     if (options & Inst::kOptionShortForm) ASMJIT_PROPAGATE(sb.appendString("short "));
     if (options & Inst::kOptionLongForm) ASMJIT_PROPAGATE(sb.appendString("long "));

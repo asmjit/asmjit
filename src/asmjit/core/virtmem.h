@@ -38,9 +38,16 @@ enum Flags : uint32_t {
   //! A combination of `kAccessRead | kAccessWrite`
   kAccessReadWrite = 0x00000003u,
 
+  //! Use a `MAP_JIT` flag available on Apple platforms (OSX Mojave+), which
+  //! allows JIT code to be executed in OSX bundles. This flag is not turned
+  //! on by default, because when a process uses `fork()` the child process
+  //! has no access to the pages mapped with `MAP_JIT`, which could break code
+  //! that doesn't expect this behavior.
+  kMMapEnableMapJit = 0x00000010u,
+
   //! Not an access flag, only used by `allocDualMapping()` to override the
-  //! default allocation strategy to always use a temporary directory instead
-  //! on "/dev/shm" (on POSIX systems). Please note that this flag will be
+  //! default allocation strategy to always use a 'tmp' directory instead of
+  //! "/dev/shm" (on POSIX platforms). Please note that this flag will be
   //! ignored if the operating system allows to allocate an executable memory
   //! by a different API than `open()` or `shm_open()`. For example on Linux
   //! `memfd_create()` is preferred and on BSDs `shm_open(SHM_ANON, ...)` is

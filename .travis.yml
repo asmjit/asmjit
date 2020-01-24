@@ -8,160 +8,51 @@ env:
     - BUILD_TOOLCHAIN="Unix Makefiles"
     - MAKEFLAGS="-j2"
 
-dist: xenial
+dist: bionic
 
 matrix:
   include:
-    - name: "Linux GCC 4.8 [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8" CXXFLAGS=-m32 LDFLAGS=-m32
+    - name: "Linux Clang Default [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=clang-9 && CXX=clang++-9"
       os: linux
       addons:
         apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-4.8, g++-4.8-multilib, "linux-libc-dev:i386"]
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [clang++-9]
 
-    - name: "Linux GCC 4.8 [64-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8"
+    - name: "Linux Clang Default [64-bit] [REL]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9"
       os: linux
       addons:
         apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-4.8]
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [clang++-9]
 
-    - name: "Linux GCC 4.9 [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9" CXXFLAGS=-m32 LDFLAGS=-m32
+    - name: "Linux Clang Default [64-bit] [REL] [Sanitize=Address]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9" SANITIZE=address
       os: linux
       addons:
         apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-4.9, g++-4.9-multilib, "linux-libc-dev:i386"]
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [clang++-9]
 
-    - name: "Linux GCC 4.9 [64-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.9 && CXX=g++-4.9"
+    - name: "Linux Clang Default [64-bit] [REL] [Sanitize=Undefined]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9" SANITIZE=undefined
       os: linux
       addons:
         apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-4.9]
-
-    - name: "Linux GCC 5.X [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-5, g++-5-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 5.X [64-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-5]
-
-    - name: "Linux GCC 6.X [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-6, g++-6-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 6.X [64-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-6]
-
-    - name: "Linux GCC 7.X [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-7, g++-7-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 7.X [64-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-7]
-
-    - name: "Linux GCC 8.X [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 8.X [32-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 8.X [64-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-8]
-
-    - name: "Linux GCC 8.X [64-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-8]
-
-    - name: "Linux GCC 9.X [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-9 && CXX=g++-9" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-9, g++-9-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 9.X [32-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-9 && CXX=g++-9" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-9, g++-9-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 9.X [64-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-9 && CXX=g++-9"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-9]
-
-    - name: "Linux GCC 9.X [64-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-9 && CXX=g++-9"
-      os: linux
-      addons:
-        apt:
-          sources: [ubuntu-toolchain-r-test]
-          packages: [g++-9]
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [clang++-9]
 
     - name: "Linux GCC Default [64-bit] [DBG + Valgrind]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug" USE_VALGRIND=1
       os: linux
       addons:
         apt:
-          sources: [ubuntu-toolchain-r-test]
           packages: [valgrind]
 
     - name: "Linux GCC Default [64-bit] [REL + Valgrind]"
@@ -169,16 +60,135 @@ matrix:
       os: linux
       addons:
         apt:
-          sources: [ubuntu-toolchain-r-test]
           packages: [valgrind]
 
+    - name: "Linux GCC 4.8 [32-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          packages: [g++-4.8, g++-4.8-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 4.8 [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8"
+      os: linux
+      addons:
+        apt:
+          packages: [g++-4.8]
+
+    - name: "Linux GCC 5.X [32-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          packages: [g++-5, g++-5-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 5.X [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5"
+      os: linux
+      addons:
+        apt:
+          packages: [g++-5]
+
+    - name: "Linux GCC 6.X [32-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          packages: [g++-6, g++-6-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 6.X [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6"
+      os: linux
+      addons:
+        apt:
+          packages: [g++-6]
+
+    - name: "Linux GCC 7.X [32-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          packages: [g++-7, g++-7-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 7.X [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7"
+      os: linux
+      addons:
+        apt:
+          packages: [g++-7]
+
+    - name: "Linux GCC 8.X [32-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 8.X [32-bit] [REL]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 8.X [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8"
+      os: linux
+      addons:
+        apt:
+          packages: [g++-8]
+
+    - name: "Linux GCC 8.X [64-bit] [REL]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8"
+      os: linux
+      addons:
+        apt:
+          packages: [g++-8]
+
+    - name: "Linux GCC 9.X [32-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-9 && CXX=g++-9" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [g++-9, g++-9-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 9.X [32-bit] [REL]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-9 && CXX=g++-9" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [g++-9, g++-9-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 9.X [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-9 && CXX=g++-9"
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [g++-9]
+
+    - name: "Linux GCC 9.X [64-bit] [REL]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-9 && CXX=g++-9"
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [g++-9]
+
     - name: "OSX Clang XCode 9.4 [32-bit] [DBG]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug" CXXFLAGS=-m32 && LDFLAGS=-m32
+      env: BUILD_MATRIX="BUILD_TYPE=Debug" CXXFLAGS=-m32 LDFLAGS=-m32
       os: osx
       osx_image: xcode9.4
 
     - name: "OSX Clang XCode 9.4 [32-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release" CXXFLAGS=-m32 && LDFLAGS=-m32
+      env: BUILD_MATRIX="BUILD_TYPE=Release" CXXFLAGS=-m32 LDFLAGS=-m32
       os: osx
       osx_image: xcode9.4
 
@@ -236,9 +246,9 @@ before_script:
   - cd build
   - |
     if [[ "$BUILD_TOOLCHAIN" =~ ^Visual\ Studio ]]; then
-      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1
+      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 -DASMJIT_SANITIZE="${SANITIZE}"
     else
-      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 -DCMAKE_PREFIX_PATH="$MINGW_PATH" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 -DASMJIT_SANITIZE="${SANITIZE}" -DCMAKE_PREFIX_PATH="${MINGW_PATH}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
     fi
   - cd ..
 
@@ -246,7 +256,7 @@ script:
   - cd build
   - |
     if [[ "$BUILD_TOOLCHAIN" =~ ^Visual\ Studio ]]; then
-      cmake --build . --config ${BUILD_TYPE} -- -nologo -v:quiet
+      cmake --build . --config ${BUILD_TYPE} -- -nologo -v:minimal
       cd ${BUILD_TYPE}
     else
       cmake --build .

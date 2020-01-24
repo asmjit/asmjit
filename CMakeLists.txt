@@ -63,6 +63,20 @@ set(ASMJIT_BUILD_X86  ${ASMJIT_BUILD_X86}         CACHE BOOL "Build X86 backends
 set(ASMJIT_BUILD_ARM  ${ASMJIT_BUILD_ARM}         CACHE BOOL "Build ARM backends")
 
 # =============================================================================
+# [AsmJit - Project]
+# =============================================================================
+
+set(ASMJIT_INCLUDE_DIRS "${ASMJIT_DIR}/src")     # Include directory is the same as source dir.
+set(ASMJIT_DEPS "")                              # AsmJit dependencies (libraries) for the linker.
+set(ASMJIT_LIBS "")                              # Dependencies of libs/apps that want to use AsmJit.
+set(ASMJIT_CFLAGS "")                            # Public compiler flags.
+set(ASMJIT_PRIVATE_CFLAGS "")                    # Private compiler flags independent of build type.
+set(ASMJIT_PRIVATE_CFLAGS_DBG "")                # Private compiler flags used by debug builds.
+set(ASMJIT_PRIVATE_CFLAGS_REL "")                # Private compiler flags used by release builds.
+set(ASMJIT_SANITIZE_CFLAGS "")                   # Compiler flags required by currently enabled sanitizers.
+set(ASMJIT_SANITIZE_LFLAGS "")                   # Linker flags required by currently enabled sanitizers.
+
+# =============================================================================
 # [AsmJit - Utilities]
 # =============================================================================
 
@@ -79,6 +93,30 @@ function(asmjit_detect_cflags out)
   set(${out} "${out_array}" PARENT_SCOPE)
 endfunction()
 
+# Support for various sanitizers provided by C/C++ compilers.
+function(asmjit_detect_sanitizers out)
+  set(_out_array ${${out}})
+  set(_flags "")
+
+  foreach(_arg ${ARGN})
+    string(REPLACE "," ";" _arg "${_arg}")
+    list(APPEND _flags ${_arg})
+  endforeach()
+
+  foreach(_flag ${_flags})
+    if (NOT "${_flag}" MATCHES "^-fsanitize=")
+      SET(_flag "-fsanitize=${_flag}")
+    endif()
+
+    # Sanitizers also require link flags, see CMAKE_REQUIRED_FLAGS.
+    set(CMAKE_REQUIRED_FLAGS "${_flag}")
+    asmjit_detect_cflags(_out_array ${_flag})
+    unset(CMAKE_REQUIRED_FLAGS)
+  endforeach()
+
+  set(${out} "${_out_array}" PARENT_SCOPE)
+endfunction()
+
 function(asmjit_add_target target target_type src deps cflags cflags_dbg cflags_rel)
   if ("${target_type}" STREQUAL "EXECUTABLE")
     add_executable(${target} ${src})
@@ -89,8 +127,8 @@ function(asmjit_add_target target target_type src deps cflags cflags_dbg cflags_
   target_link_libraries(${target} PRIVATE ${deps})
 
   # target_link_options was added in cmake 3.13, which doesn't work for us.
-  # target_link_options(${target} PRIVATE ${ASMJIT_SANITIZE_FLAGS})
-  foreach(link_flag ${ASMJIT_SANITIZE_FLAGS})
+  # target_link_options(${target} PRIVATE ${flags})
+  foreach(link_flag ${ASMJIT_SANITIZE_LFLAGS})
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${link_flag}")
   endforeach()
 
@@ -101,11 +139,11 @@ function(asmjit_add_target target target_type src deps cflags cflags_dbg cflags_
   endif()
   set_property(TARGET ${target} PROPERTY CXX_EXTENSIONS NO)
   set_property(TARGET ${target} PROPERTY CXX_VISIBILITY_PRESET hidden)
-  target_compile_options(${target} PRIVATE ${cflags} ${ASMJIT_SANITIZE_FLAGS} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
+  target_compile_options(${target} PRIVATE ${cflags} ${ASMJIT_SANITIZE_CFLAGS} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
 endfunction()
 
 # =============================================================================
-# [AsmJit - Project]
+# [AsmJit - Compiler Support]
 # =============================================================================
 
 set(ASMJIT_INCLUDE_DIRS "${ASMJIT_DIR}/src")     # Include directory is the same as source dir.
@@ -115,7 +153,8 @@ set(ASMJIT_CFLAGS "")                            # Public compiler flags.
 set(ASMJIT_PRIVATE_CFLAGS "")                    # Private compiler flags independent of build type.
 set(ASMJIT_PRIVATE_CFLAGS_DBG "")                # Private compiler flags used by debug builds.
 set(ASMJIT_PRIVATE_CFLAGS_REL "")                # Private compiler flags used by release builds.
-set(ASMJIT_SANITIZE_FLAGS "")                    # Sanitizer flags used as compile and link flags.
+set(ASMJIT_SANITIZE_CFLAGS "")                   # Compiler flags required by currently enabled sanitizers.
+set(ASMJIT_SANITIZE_LFLAGS "")                   # Linker flags required by currently enabled sanitizers.
 
 # TODO: Backward compatibility.
 set(ASMJIT_INCLUDE_DIR "${ASMJIT_INCLUDE_DIRS}")
@@ -146,8 +185,25 @@ if (NOT ASMJIT_NO_CUSTOM_FLAGS)
   endif()
 endif()
 
-if (ASMJIT_SANITIZE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
-  asmjit_detect_cflags(ASMJIT_SANITIZE_FLAGS "-fsanitize=undefined")
+# Support for sanitizers.
+if (ASMJIT_SANITIZE)
+  ASMJIT_detect_sanitizers(ASMJIT_SANITIZE_CFLAGS ${ASMJIT_SANITIZE})
+  if (ASMJIT_SANITIZE_CFLAGS)
+    message("-- Enabling sanitizers: '${ASMJIT_SANITIZE_CFLAGS}'")
+
+    # Linker must receive the same flags as the compiler when it comes to sanitizers.
+    set(ASMJIT_SANITIZE_LFLAGS ${ASMJIT_SANITIZE_CFLAGS})
+
+    # Don't omit frame pointer if sanitizers are enabled.
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
+      list(APPEND ASMJIT_SANITIZE_CFLAGS -Oy-)
+    else()
+      list(APPEND ASMJIT_SANITIZE_CFLAGS -fno-omit-frame-pointer -g)
+    endif()
+
+    list(APPEND ASMJIT_PRIVATE_CFLAGS ${ASMJIT_SANITIZE_CFLAGS})
+    list(APPEND ASMJIT_PRIVATE_LFLAGS ${ASMJIT_SANITIZE_LFLAGS})
+  endif()
 endif()
 
 if (NOT WIN32)
