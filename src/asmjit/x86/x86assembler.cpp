@@ -1015,11 +1015,11 @@ CaseX86M_GPB_MulDiv:
 
     case InstDB::kEncodingX86Bswap:
       if (isign3 == ENC_OPS1(Reg)) {
-        if (ASMJIT_UNLIKELY(o0.size() < 4))
+        if (ASMJIT_UNLIKELY(o0.size() == 1))
           goto InvalidInstruction;
 
         opReg = o0.id();
-        opcode.addWBySize(o0.size());
+        opcode.addPrefixBySize(o0.size());
         goto EmitX86OpReg;
       }
       break;

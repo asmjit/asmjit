@@ -67,11 +67,16 @@ public:
 
   //! Emitter type.
   enum EmitterType : uint32_t {
-    kTypeNone      = 0,
+    //! Unknown or uninitialized.
+    kTypeNone = 0,
+    //! Emitter inherits from `BaseAssembler`.
     kTypeAssembler = 1,
-    kTypeBuilder   = 2,
-    kTypeCompiler  = 3,
-    kTypeCount     = 4
+    //! Emitter inherits from `BaseBuilder`.
+    kTypeBuilder = 2,
+    //! Emitter inherits from `BaseCompiler`.
+    kTypeCompiler = 3,
+    //! Count of emitter types.
+    kTypeCount = 4
   };
 
   //! Emitter flags.
