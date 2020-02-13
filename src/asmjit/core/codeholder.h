@@ -115,6 +115,21 @@ struct CodeBuffer {
     kFlagIsFixed = 0x00000002u
   };
 
+  //! \name Overloaded Operators
+  //! \{
+
+  inline uint8_t& operator[](size_t index) noexcept {
+    ASMJIT_ASSERT(index < _size);
+    return _data[index];
+  }
+
+  inline const uint8_t& operator[](size_t index) const noexcept {
+    ASMJIT_ASSERT(index < _size);
+    return _data[index];
+  }
+
+  //! \}
+
   //! \name Accessors
   //! \{
 
@@ -131,6 +146,17 @@ struct CodeBuffer {
   inline bool empty() const noexcept { return !_size; }
   inline size_t size() const noexcept { return _size; }
   inline size_t capacity() const noexcept { return _capacity; }
+
+  //! \}
+
+  //! \name Iterators
+  //! \{
+
+  inline uint8_t* begin() noexcept { return _data; }
+  inline const uint8_t* begin() const noexcept { return _data; }
+
+  inline uint8_t* end() noexcept { return _data + _size; }
+  inline const uint8_t* end() const noexcept { return _data + _size; }
 
   //! \}
 };
