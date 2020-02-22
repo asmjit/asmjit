@@ -179,9 +179,15 @@ if (NOT ASMJIT_NO_CUSTOM_FLAGS)
       -Oi)                     # [+] Generate intrinsic functions.
   elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
     list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra)
-    list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno -fno-threadsafe-statics)
+    list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)
     list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
-    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL -fmerge-all-constants)
+
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS
+      -fno-threadsafe-statics
+      -fno-semantic-interposition)
+
+    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL
+      -fmerge-all-constants)
   endif()
 endif()
 

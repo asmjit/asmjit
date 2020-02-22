@@ -474,6 +474,49 @@ public:
 #define ENC_OPS4(OP0, OP1, OP2, OP3) ((Operand::kOp##OP0) + ((Operand::kOp##OP1) << 3) + ((Operand::kOp##OP2) << 6) + ((Operand::kOp##OP3) << 9))
 
 // ============================================================================
+// [asmjit::x86::Assembler - Movabs Heuristics]
+// ============================================================================
+
+static ASMJIT_INLINE bool x86GetMovAbsInstSize64Bit(uint32_t regSize, uint32_t options, const Mem& rmRel) noexcept {
+  uint32_t segmentPrefixSize = rmRel.segmentId() != 0;
+  uint32_t _66hPrefixSize = regSize == 2;
+  uint32_t rexPrefixSize = (regSize == 8) || ((options & Inst::kOptionRex) != 0);
+  uint32_t opCodeByteSize = 1;
+  uint32_t immediateSize = 8;
+
+  return segmentPrefixSize + _66hPrefixSize + rexPrefixSize + opCodeByteSize + immediateSize;
+}
+
+static ASMJIT_INLINE uint32_t x86GetMovAbsAddrType(Assembler* self, X86BufferWriter& writer, uint32_t regSize, uint32_t options, const Mem& rmRel) noexcept {
+  uint32_t addrType = rmRel.addrType();
+  int64_t addrValue = rmRel.offset();
+
+  if (addrType == BaseMem::kAddrTypeDefault && !(options & Inst::kOptionModMR)) {
+    if (self->is64Bit()) {
+      uint64_t baseAddress = self->codeInfo().baseAddress();
+      if (baseAddress != Globals::kNoBaseAddress && !rmRel.hasSegment()) {
+        uint32_t instructionSize = x86GetMovAbsInstSize64Bit(regSize, options, rmRel);
+        uint64_t virtualOffset = uint64_t(writer.offsetFrom(self->_bufferData));
+        uint64_t rip64 = baseAddress + self->_section->offset() + virtualOffset + instructionSize;
+        uint64_t rel64 = uint64_t(addrValue) - rip64;
+
+        if (!Support::isInt32(int64_t(rel64)))
+          addrType = BaseMem::kAddrTypeAbs;
+      }
+      else {
+        if (!Support::isInt32(addrValue))
+          addrType = BaseMem::kAddrTypeAbs;
+      }
+    }
+    else {
+      addrType = BaseMem::kAddrTypeAbs;
+    }
+  }
+
+  return addrType;
+}
+
+// ============================================================================
 // [asmjit::x86::Assembler - Construction / Destruction]
 // ============================================================================
 
@@ -1536,10 +1579,10 @@ CaseX86M_GPB_MulDiv:
           if (o0.size() == 1)
             FIXUP_GPB(o0, opReg);
 
-          // Handle a special form `mov al|ax|eax|rax, [ptr64]` that doesn't use MOD.
-          if (o0.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex() && !rmRel->as<Mem>().isRel()) {
+          // Handle a special form of `mov al|ax|eax|rax, [ptr64]` that doesn't use MOD.
+          if (opReg == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
             immValue = rmRel->as<Mem>().offset();
-            if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !Support::isInt32(immValue)))) {
+            if (x86GetMovAbsAddrType(this, writer, o0.size(), options, rmRel->as<Mem>()) == BaseMem::kAddrTypeAbs) {
               opcode += 0xA0;
               goto EmitX86OpMovAbs;
             }
@@ -1569,10 +1612,10 @@ CaseX86M_GPB_MulDiv:
           if (o1.size() == 1)
             FIXUP_GPB(o1, opReg);
 
-          // Handle a special form `mov [ptr64], al|ax|eax|rax` that doesn't use MOD.
-          if (o1.id() == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex() && !rmRel->as<Mem>().isRel()) {
+          // Handle a special form of `mov [ptr64], al|ax|eax|rax` that doesn't use MOD.
+          if (opReg == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
             immValue = rmRel->as<Mem>().offset();
-            if (!is64Bit() || (is64Bit() && ((options & Inst::kOptionLongForm) || !Support::isInt32(immValue)))) {
+            if (x86GetMovAbsAddrType(this, writer, o1.size(), options, rmRel->as<Mem>()) == BaseMem::kAddrTypeAbs) {
               opcode += 0xA2;
               goto EmitX86OpMovAbs;
             }
