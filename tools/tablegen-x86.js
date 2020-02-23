@@ -189,6 +189,7 @@ class GenUtils {
       if (dbInst.attributes.Lock      ) f.Lock       = true;
       if (dbInst.attributes.XAcquire  ) f.XAcquire   = true;
       if (dbInst.attributes.XRelease  ) f.XRelease   = true;
+      if (dbInst.attributes.BND       ) f.Rep        = true;
       if (dbInst.attributes.REP       ) f.Rep        = true;
       if (dbInst.attributes.REPNE     ) f.Rep        = true;
       if (dbInst.attributes.RepIgnored) f.RepIgnored = true;

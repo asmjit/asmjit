@@ -23,7 +23,7 @@ const fs = require("fs");
 const hasOwn = Object.prototype.hasOwnProperty;
 
 const asmdb = (function() {
-  // Try to import local 'asmdb' package, if available.
+  // Try to import a local 'asmdb' package, if available.
   try {
     return require("./asmdb");
   }

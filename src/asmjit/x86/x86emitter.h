@@ -377,22 +377,40 @@ public:
   //! Use XRELEASE prefix.
   inline This& xrelease() noexcept { return _addInstOptions(Inst::kOptionXRelease); }
 
+  //! Use BND/REPNE prefix.
+  //!
+  //! \note This is the same as using `repne()` or `repnz()` prefix.
+  inline This& bnd() noexcept { return _addInstOptions(Inst::kOptionRepne); }
+
   //! Use REP/REPZ prefix.
+  //!
+  //! \note This is the same as using `repe()` or `repz()` prefix.
   inline This& rep(const Gp& zcx) noexcept {
     static_cast<This*>(this)->_extraReg.init(zcx);
     return _addInstOptions(Inst::kOptionRep);
   }
+
   //! Use REP/REPE prefix.
+  //!
+  //! \note This is the same as using `rep()` or `repz()` prefix.
   inline This& repe(const Gp& zcx) noexcept { return rep(zcx); }
+
   //! Use REP/REPE prefix.
+  //!
+  //! \note This is the same as using `rep()` or `repe()` prefix.
   inline This& repz(const Gp& zcx) noexcept { return rep(zcx); }
 
   //! Use REPNE prefix.
+  //!
+  //! \note This is the same as using `bnd()` or `repnz()` prefix.
   inline This& repne(const Gp& zcx) noexcept {
     static_cast<This*>(this)->_extraReg.init(zcx);
     return _addInstOptions(Inst::kOptionRepne);
   }
+
   //! Use REPNE prefix.
+  //!
+  //! \note This is the same as using `bnd()` or `repne()` prefix.
   inline This& repnz(const Gp& zcx) noexcept { return repne(zcx); }
 
   //! \}
