@@ -2140,7 +2140,10 @@ CaseX86PushPop_Gp:
         opReg = o1.id();
         rmRel = &o0;
 
-        FIXUP_GPB(o1, opReg);
+        if (o1.size() == 1) {
+          FIXUP_GPB(o1, opReg);
+        }
+
         goto EmitX86M;
       }
       break;
