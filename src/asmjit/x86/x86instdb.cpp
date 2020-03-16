@@ -326,7 +326,7 @@ const InstDB::InstInfo InstDB::_instInfoTable[] = {
   INST(Fucomip          , FpuR               , O_FPU(00,DFE8,_)          , 0                         , 40 , 0  , 1094 , 61 , 47 ), // #244
   INST(Fucomp           , FpuRDef            , O_FPU(00,DDE8,_)          , 0                         , 44 , 0  , 1102 , 59 , 0  ), // #245
   INST(Fucompp          , FpuOp              , O_FPU(00,DAE9,_)          , 0                         , 37 , 0  , 1109 , 30 , 0  ), // #246
-  INST(Fwait            , X86Op              , O_FPU(00,00DB,_)          , 0                         , 56 , 0  , 1117 , 30 , 0  ), // #247
+  INST(Fwait            , X86Op              , O_FPU(00,009B,_)          , 0                         , 56 , 0  , 1117 , 30 , 0  ), // #247
   INST(Fxam             , FpuOp              , O_FPU(00,D9E5,_)          , 0                         , 31 , 0  , 1123 , 30 , 0  ), // #248
   INST(Fxch             , FpuR               , O_FPU(00,D9C8,_)          , 0                         , 31 , 0  , 1128 , 59 , 0  ), // #249
   INST(Fxrstor          , X86M_Only          , O(000F00,AE,1,_,_,_,_,_  ), 0                         , 27 , 0  , 1133 , 31 , 49 ), // #250
