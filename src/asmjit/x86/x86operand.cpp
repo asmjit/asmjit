@@ -140,6 +140,18 @@ UNIT(x86_operand) {
   EXPECT(zmm6.cloneAs(xmm14) == xmm6);
   EXPECT(zmm6.cloneAs(ymm15) == ymm6);
 
+  EXPECT(xmm7.xmm() == xmm7);
+  EXPECT(xmm7.ymm() == ymm7);
+  EXPECT(xmm7.zmm() == zmm7);
+
+  EXPECT(ymm7.xmm() == xmm7);
+  EXPECT(ymm7.ymm() == ymm7);
+  EXPECT(ymm7.zmm() == zmm7);
+
+  EXPECT(zmm7.xmm() == xmm7);
+  EXPECT(zmm7.ymm() == ymm7);
+  EXPECT(zmm7.zmm() == zmm7);
+
   INFO("Checking x86::FpMm register properties");
   EXPECT(Mm().isReg() == true);
   EXPECT(mm2.isReg() == true);

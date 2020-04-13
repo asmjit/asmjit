@@ -381,9 +381,9 @@ inline GpbHi Gp::r8Hi() const noexcept { return GpbHi(id()); }
 inline Gpw Gp::r16() const noexcept { return Gpw(id()); }
 inline Gpd Gp::r32() const noexcept { return Gpd(id()); }
 inline Gpq Gp::r64() const noexcept { return Gpq(id()); }
-inline Xmm Vec::xmm() const noexcept { return Xmm(*this, id()); }
-inline Ymm Vec::ymm() const noexcept { return Ymm(*this, id()); }
-inline Zmm Vec::zmm() const noexcept { return Zmm(*this, id()); }
+inline Xmm Vec::xmm() const noexcept { return Xmm(id()); }
+inline Ymm Vec::ymm() const noexcept { return Ymm(id()); }
+inline Zmm Vec::zmm() const noexcept { return Zmm(id()); }
 //! \endcond
 
 // ============================================================================
