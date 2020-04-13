@@ -1216,9 +1216,9 @@ ASMJIT_FAVOR_SPEED Error RAPass::binPack(uint32_t group) noexcept {
       workReg->markStackPreferred();
 
     ASMJIT_RA_LOG_COMPLEX({
-      uint32_t numWorkRegs = workRegs.size();
+      uint32_t count = workRegs.size();
       sb.clear();
-      sb.appendFormat("  Unassigned (%u): ", numWorkRegs);
+      sb.appendFormat("  Unassigned (%u): ", count);
       for (i = 0; i < numWorkRegs; i++) {
         RAWorkReg* workReg = workRegs[i];
         if (i) sb.appendString(", ");
