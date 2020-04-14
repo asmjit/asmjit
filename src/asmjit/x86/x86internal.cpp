@@ -15,6 +15,9 @@
 #include "../core/type.h"
 #include "../x86/x86internal_p.h"
 
+// Can be used for debugging...
+// #define ASMJIT_DUMP_ARGS_ASSIGNMENT
+
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 // ============================================================================
@@ -1319,7 +1322,7 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitEpilog(Emitter* emitter, const FuncFram
 // [asmjit::X86Internal - Emit Arguments Assignment]
 // ============================================================================
 
-#ifndef ASMJIT_NO_LOGGING
+#ifdef ASMJIT_DUMP_ARGS_ASSIGNMENT
 static void dumpFuncValue(String& sb, uint32_t archId, const FuncValue& value) noexcept {
   Logging::formatTypeId(sb, value.typeId());
   sb.appendChar('@');
@@ -1372,13 +1375,13 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(Emitter* emitter, const 
   X86FuncArgsContext ctx;
   ASMJIT_PROPAGATE(ctx.initWorkData(frame, args));
 
-  /*
+  #ifdef ASMJIT_DUMP_ARGS_ASSIGNMENT
   {
     String sb;
     dumpAssignment(sb, ctx);
     printf("%s\n", sb.data());
   }
-  */
+  #endif
 
   uint32_t archId = ctx.archId();
   uint32_t varCount = ctx._varCount;

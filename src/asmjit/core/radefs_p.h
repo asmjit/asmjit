@@ -462,7 +462,10 @@ public:
   //! \name Overloaded Operators
   //! \{
 
-  inline RALiveSpan& operator=(const RALiveSpan& other) = default;
+  inline RALiveSpan& operator=(const RALiveSpan& other) {
+    init(other);
+    return *this;
+  }
 
   //! \}
 };

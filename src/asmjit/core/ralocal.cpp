@@ -831,6 +831,9 @@ Error RALocalAllocator::spillAfterAllocation(InstNode* node) noexcept {
 }
 
 Error RALocalAllocator::allocBranch(InstNode* node, RABlock* target, RABlock* cont) noexcept {
+  // TODO: This should be used to make the branch allocation better.
+  ASMJIT_UNUSED(cont);
+
   // The cursor must point to the previous instruction for a possible instruction insertion.
   _cc->_setCursor(node->prev());
 
