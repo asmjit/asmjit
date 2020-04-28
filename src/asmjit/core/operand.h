@@ -42,19 +42,19 @@ struct RegTraits<REG_TYPE> {                                                  \
 #define ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                 \
 public:                                                                       \
   /*! Default constructor that only setups basics. */                         \
-  constexpr REG() noexcept                                                    \
+  ASMJIT_OPERAND_CONSTEXPR REG() noexcept                                     \
     : BASE(kSignature, kIdBad) {}                                             \
                                                                               \
   /*! Makes a copy of the `other` register operand. */                        \
-  constexpr REG(const REG& other) noexcept                                    \
+  ASMJIT_OPERAND_CONSTEXPR REG(const REG& other) noexcept                     \
     : BASE(other) {}                                                          \
                                                                               \
   /*! Makes a copy of the `other` register having id set to `rId` */          \
-  constexpr REG(const BaseReg& other, uint32_t rId) noexcept                  \
+  ASMJIT_OPERAND_CONSTEXPR REG(const BaseReg& other, uint32_t rId) noexcept   \
     : BASE(other, rId) {}                                                     \
                                                                               \
   /*! Creates a register based on `signature` and `rId`. */                   \
-  constexpr REG(uint32_t signature, uint32_t rId) noexcept                    \
+  ASMJIT_OPERAND_CONSTEXPR REG(uint32_t signature, uint32_t rId) noexcept     \
     : BASE(signature, rId) {}                                                 \
                                                                               \
   /*! Creates a completely uninitialized REG register operand (garbage). */   \
@@ -67,7 +67,7 @@ public:                                                                       \
   }                                                                           \
                                                                               \
   /*! Clones the register operand. */                                         \
-  constexpr REG clone() const noexcept { return REG(*this); }                 \
+  ASMJIT_OPERAND_CONSTEXPR REG clone() const noexcept { return REG(*this); }  \
                                                                               \
   inline REG& operator=(const REG& other) noexcept = default;
 
@@ -83,7 +83,7 @@ public:                                                                       \
   ASMJIT_DEFINE_ABSTRACT_REG(REG, BASE)                                       \
                                                                               \
   /*! Creates a register operand having its id set to `rId`. */               \
-  constexpr explicit REG(uint32_t rId) noexcept                               \
+  ASMJIT_OPERAND_CONSTEXPR explicit REG(uint32_t rId) noexcept                \
     : BASE(kSignature, rId) {}
 
 //! \addtogroup asmjit_core
@@ -273,8 +273,8 @@ struct Operand_ {
   //! \name Operator Overloads
   //! \{
 
-  constexpr bool operator==(const Operand_& other) const noexcept { return  isEqual(other); }
-  constexpr bool operator!=(const Operand_& other) const noexcept { return !isEqual(other); }
+  ASMJIT_OPERAND_CONSTEXPR bool operator==(const Operand_& other) const noexcept { return  isEqual(other); }
+  ASMJIT_OPERAND_CONSTEXPR bool operator!=(const Operand_& other) const noexcept { return !isEqual(other); }
 
   //! \}
 
@@ -295,16 +295,16 @@ struct Operand_ {
   //! \{
 
   //! Tests whether the operand matches the given signature `sign`.
-  constexpr bool hasSignature(uint32_t signature) const noexcept { return _signature == signature; }
+  ASMJIT_OPERAND_CONSTEXPR bool hasSignature(uint32_t signature) const noexcept { return _signature == signature; }
   //! Tests whether the operand matches the signature of the `other` operand.
-  constexpr bool hasSignature(const Operand_& other) const noexcept { return _signature == other.signature(); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasSignature(const Operand_& other) const noexcept { return _signature == other.signature(); }
 
   //! Returns operand signature as unsigned 32-bit integer.
   //!
   //! Signature is first 4 bytes of the operand data. It's used mostly for
   //! operand checking as it's much faster to check 4 bytes at once than having
   //! to check these bytes individually.
-  constexpr uint32_t signature() const noexcept { return _signature; }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t signature() const noexcept { return _signature; }
 
   //! Sets the operand signature, see `signature()`.
   //!
@@ -313,12 +313,12 @@ struct Operand_ {
 
   //! \cond INTERNAL
   template<uint32_t mask>
-  constexpr bool _hasSignaturePart() const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR bool _hasSignaturePart() const noexcept {
     return (_signature & mask) != 0;
   }
 
   template<uint32_t mask>
-  constexpr uint32_t _getSignaturePart() const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR uint32_t _getSignaturePart() const noexcept {
     return (_signature >> Support::constCtz(mask)) & (mask >> Support::constCtz(mask));
   }
 
@@ -330,27 +330,27 @@ struct Operand_ {
   //! \endcond
 
   //! Returns the type of the operand, see `OpType`.
-  constexpr uint32_t opType() const noexcept { return _getSignaturePart<kSignatureOpMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t opType() const noexcept { return _getSignaturePart<kSignatureOpMask>(); }
   //! Tests whether the operand is none (`kOpNone`).
-  constexpr bool isNone() const noexcept { return _signature == 0; }
+  ASMJIT_OPERAND_CONSTEXPR bool isNone() const noexcept { return _signature == 0; }
   //! Tests whether the operand is a register (`kOpReg`).
-  constexpr bool isReg() const noexcept { return opType() == kOpReg; }
+  ASMJIT_OPERAND_CONSTEXPR bool isReg() const noexcept { return opType() == kOpReg; }
   //! Tests whether the operand is a memory location (`kOpMem`).
-  constexpr bool isMem() const noexcept { return opType() == kOpMem; }
+  ASMJIT_OPERAND_CONSTEXPR bool isMem() const noexcept { return opType() == kOpMem; }
   //! Tests whether the operand is an immediate (`kOpImm`).
-  constexpr bool isImm() const noexcept { return opType() == kOpImm; }
+  ASMJIT_OPERAND_CONSTEXPR bool isImm() const noexcept { return opType() == kOpImm; }
   //! Tests whether the operand is a label (`kOpLabel`).
-  constexpr bool isLabel() const noexcept { return opType() == kOpLabel; }
+  ASMJIT_OPERAND_CONSTEXPR bool isLabel() const noexcept { return opType() == kOpLabel; }
 
   //! Tests whether the operand is a physical register.
-  constexpr bool isPhysReg() const noexcept { return isReg() && _baseId < 0xFFu; }
+  ASMJIT_OPERAND_CONSTEXPR bool isPhysReg() const noexcept { return isReg() && _baseId < 0xFFu; }
   //! Tests whether the operand is a virtual register.
-  constexpr bool isVirtReg() const noexcept { return isReg() && _baseId > 0xFFu; }
+  ASMJIT_OPERAND_CONSTEXPR bool isVirtReg() const noexcept { return isReg() && _baseId > 0xFFu; }
 
   //! Tests whether the operand specifies a size (i.e. the size is not zero).
-  constexpr bool hasSize() const noexcept { return _hasSignaturePart<kSignatureSizeMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasSize() const noexcept { return _hasSignaturePart<kSignatureSizeMask>(); }
   //! Tests whether the size of the operand matches `size`.
-  constexpr bool hasSize(uint32_t s) const noexcept { return size() == s; }
+  ASMJIT_OPERAND_CONSTEXPR bool hasSize(uint32_t s) const noexcept { return size() == s; }
 
   //! Returns the size of the operand in bytes.
   //!
@@ -363,7 +363,7 @@ struct Operand_ {
   //!   * Mem   - Size is optional and will be in most cases zero.
   //!   * Imm   - Should always return zero size.
   //!   * Label - Should always return zero size.
-  constexpr uint32_t size() const noexcept { return _getSignaturePart<kSignatureSizeMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t size() const noexcept { return _getSignaturePart<kSignatureSizeMask>(); }
 
   //! Returns the operand id.
   //!
@@ -376,28 +376,28 @@ struct Operand_ {
   //!   * Label - Label id if it was created by using `newLabel()` or
   //!             `Globals::kInvalidId` if the label is invalid or not
   //!             initialized.
-  constexpr uint32_t id() const noexcept { return _baseId; }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t id() const noexcept { return _baseId; }
 
   //! Tests whether the operand is 100% equal to `other`.
-  constexpr bool isEqual(const Operand_& other) const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR bool isEqual(const Operand_& other) const noexcept {
     return (_signature == other._signature) &
            (_baseId    == other._baseId   ) &
            (_data64    == other._data64   ) ;
   }
 
   //! Tests whether the operand is a register matching `rType`.
-  constexpr bool isReg(uint32_t rType) const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR bool isReg(uint32_t rType) const noexcept {
     return (_signature & (kSignatureOpMask | kSignatureRegTypeMask)) ==
            ((kOpReg << kSignatureOpShift) | (rType << kSignatureRegTypeShift));
   }
 
   //! Tests whether the operand is register and of `rType` and `rId`.
-  constexpr bool isReg(uint32_t rType, uint32_t rId) const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR bool isReg(uint32_t rType, uint32_t rId) const noexcept {
     return isReg(rType) && id() == rId;
   }
 
   //! Tests whether the operand is a register or memory.
-  constexpr bool isRegOrMem() const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR bool isRegOrMem() const noexcept {
     return Support::isBetween<uint32_t>(opType(), kOpReg, kOpMem);
   }
 
@@ -415,18 +415,18 @@ public:
   //! \{
 
   //! Creates `kOpNone` operand having all members initialized to zero.
-  constexpr Operand() noexcept
+  ASMJIT_OPERAND_CONSTEXPR Operand() noexcept
     : Operand_{ kOpNone, 0u, {{ 0u, 0u }}} {}
 
   //! Creates a cloned `other` operand.
-  constexpr Operand(const Operand& other) noexcept = default;
+  ASMJIT_OPERAND_CONSTEXPR Operand(const Operand& other) noexcept = default;
 
   //! Creates a cloned `other` operand.
-  constexpr explicit Operand(const Operand_& other)
+  ASMJIT_OPERAND_CONSTEXPR explicit Operand(const Operand_& other)
     : Operand_(other) {}
 
   //! Creates an operand initialized to raw `[u0, u1, u2, u3]` values.
-  constexpr Operand(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Operand(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
     : Operand_{ u0, u1, {{ u2, u3 }}} {}
 
   //! Creates an uninitialized operand (dangerous).
@@ -446,7 +446,7 @@ public:
   //! \{
 
   //! Clones this operand and returns its copy.
-  constexpr Operand clone() const noexcept { return Operand(*this); }
+  ASMJIT_OPERAND_CONSTEXPR Operand clone() const noexcept { return Operand(*this); }
 
   //! \}
 };
@@ -455,7 +455,7 @@ static_assert(sizeof(Operand) == 16, "asmjit::Operand must be exactly 16 bytes l
 
 namespace Globals {
   //! A default-constructed operand of `Operand_::kOpNone` type.
-  static constexpr const Operand none;
+  static ASMJIT_OPERAND_CONSTEXPR const Operand none;
 }
 
 // ============================================================================
@@ -515,15 +515,15 @@ public:
   //! \{
 
   //! Creates a label operand without ID (you must set the ID to make it valid).
-  constexpr Label() noexcept
+  ASMJIT_OPERAND_CONSTEXPR Label() noexcept
     : Operand(Globals::Init, kOpLabel, Globals::kInvalidId, 0, 0) {}
 
   //! Creates a cloned label operand of `other` .
-  constexpr Label(const Label& other) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Label(const Label& other) noexcept
     : Operand(other) {}
 
   //! Creates a label operand of the given `id`.
-  constexpr explicit Label(uint32_t id) noexcept
+  ASMJIT_OPERAND_CONSTEXPR explicit Label(uint32_t id) noexcept
     : Operand(Globals::Init, kOpLabel, id, 0, 0) {}
 
   inline explicit Label(Globals::NoInit_) noexcept
@@ -549,7 +549,7 @@ public:
   //! \{
 
   //! Tests whether the label was created by CodeHolder and/or an attached emitter.
-  constexpr bool isValid() const noexcept { return _baseId != Globals::kInvalidId; }
+  ASMJIT_OPERAND_CONSTEXPR bool isValid() const noexcept { return _baseId != Globals::kInvalidId; }
   //! Sets the label `id`.
   inline void setId(uint32_t id) noexcept { _baseId = id; }
 
@@ -684,19 +684,19 @@ public:
   //! \{
 
   //! Creates a dummy register operand.
-  constexpr BaseReg() noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseReg() noexcept
     : Operand(Globals::Init, kSignature, kIdBad, 0, 0) {}
 
   //! Creates a new register operand which is the same as `other` .
-  constexpr BaseReg(const BaseReg& other) noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseReg(const BaseReg& other) noexcept
     : Operand(other) {}
 
   //! Creates a new register operand compatible with `other`, but with a different `rId`.
-  constexpr BaseReg(const BaseReg& other, uint32_t rId) noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseReg(const BaseReg& other, uint32_t rId) noexcept
     : Operand(Globals::Init, other._signature, rId, 0, 0) {}
 
   //! Creates a register initialized to `signature` and `rId`.
-  constexpr BaseReg(uint32_t signature, uint32_t rId) noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseReg(uint32_t signature, uint32_t rId) noexcept
     : Operand(Globals::Init, signature, rId, 0, 0) {}
 
   inline explicit BaseReg(Globals::NoInit_) noexcept
@@ -723,55 +723,55 @@ public:
   //! some one of the two operand contains a garbage or other metadata in the
   //! upper 8 bytes then `isSame()` may return `true` in cases where `isEqual()`
   //! returns false.
-  constexpr bool isSame(const BaseReg& other) const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR bool isSame(const BaseReg& other) const noexcept {
     return (_signature == other._signature) &
            (_baseId    == other._baseId   ) ;
   }
 
   //! Tests whether the register is valid (either virtual or physical).
-  constexpr bool isValid() const noexcept { return (_signature != 0) & (_baseId != kIdBad); }
+  ASMJIT_OPERAND_CONSTEXPR bool isValid() const noexcept { return (_signature != 0) & (_baseId != kIdBad); }
 
   //! Tests whether this is a physical register.
-  constexpr bool isPhysReg() const noexcept { return _baseId < kIdBad; }
+  ASMJIT_OPERAND_CONSTEXPR bool isPhysReg() const noexcept { return _baseId < kIdBad; }
   //! Tests whether this is a virtual register.
-  constexpr bool isVirtReg() const noexcept { return _baseId > kIdBad; }
+  ASMJIT_OPERAND_CONSTEXPR bool isVirtReg() const noexcept { return _baseId > kIdBad; }
 
   //! Tests whether the register type matches `type` - same as `isReg(type)`, provided for convenience.
-  constexpr bool isType(uint32_t type) const noexcept { return (_signature & kSignatureRegTypeMask) == (type << kSignatureRegTypeShift); }
+  ASMJIT_OPERAND_CONSTEXPR bool isType(uint32_t type) const noexcept { return (_signature & kSignatureRegTypeMask) == (type << kSignatureRegTypeShift); }
   //! Tests whether the register group matches `group`.
-  constexpr bool isGroup(uint32_t group) const noexcept { return (_signature & kSignatureRegGroupMask) == (group << kSignatureRegGroupShift); }
+  ASMJIT_OPERAND_CONSTEXPR bool isGroup(uint32_t group) const noexcept { return (_signature & kSignatureRegGroupMask) == (group << kSignatureRegGroupShift); }
 
   //! Tests whether the register is a general purpose register (any size).
-  constexpr bool isGp() const noexcept { return isGroup(kGroupGp); }
+  ASMJIT_OPERAND_CONSTEXPR bool isGp() const noexcept { return isGroup(kGroupGp); }
   //! Tests whether the register is a vector register.
-  constexpr bool isVec() const noexcept { return isGroup(kGroupVec); }
+  ASMJIT_OPERAND_CONSTEXPR bool isVec() const noexcept { return isGroup(kGroupVec); }
 
   using Operand_::isReg;
 
   //! Same as `isType()`, provided for convenience.
-  constexpr bool isReg(uint32_t rType) const noexcept { return isType(rType); }
+  ASMJIT_OPERAND_CONSTEXPR bool isReg(uint32_t rType) const noexcept { return isType(rType); }
   //! Tests whether the register type matches `type` and register id matches `rId`.
-  constexpr bool isReg(uint32_t rType, uint32_t rId) const noexcept { return isType(rType) && id() == rId; }
+  ASMJIT_OPERAND_CONSTEXPR bool isReg(uint32_t rType, uint32_t rId) const noexcept { return isType(rType) && id() == rId; }
 
   //! Returns the type of the register.
-  constexpr uint32_t type() const noexcept { return _getSignaturePart<kSignatureRegTypeMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t type() const noexcept { return _getSignaturePart<kSignatureRegTypeMask>(); }
   //! Returns the register group.
-  constexpr uint32_t group() const noexcept { return _getSignaturePart<kSignatureRegGroupMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t group() const noexcept { return _getSignaturePart<kSignatureRegGroupMask>(); }
 
   //! Clones the register operand.
-  constexpr BaseReg clone() const noexcept { return BaseReg(*this); }
+  ASMJIT_OPERAND_CONSTEXPR BaseReg clone() const noexcept { return BaseReg(*this); }
 
   //! Casts this register to `RegT` by also changing its signature.
   //!
   //! \note Improper use of `cloneAs()` can lead to hard-to-debug errors.
   template<typename RegT>
-  constexpr RegT cloneAs() const noexcept { return RegT(RegT::kSignature, id()); }
+  ASMJIT_OPERAND_CONSTEXPR RegT cloneAs() const noexcept { return RegT(RegT::kSignature, id()); }
 
   //! Casts this register to `other` by also changing its signature.
   //!
   //! \note Improper use of `cloneAs()` can lead to hard-to-debug errors.
   template<typename RegT>
-  constexpr RegT cloneAs(const RegT& other) const noexcept { return RegT(other.signature(), id()); }
+  ASMJIT_OPERAND_CONSTEXPR RegT cloneAs(const RegT& other) const noexcept { return RegT(other.signature(), id()); }
 
   //! Sets the register id to `rId`.
   inline void setId(uint32_t rId) noexcept { _baseId = rId; }
@@ -890,7 +890,7 @@ struct RegOnly {
 
   //! Converts this ExtraReg to a real `RegT` operand.
   template<typename RegT>
-  constexpr RegT toReg() const noexcept { return RegT(_signature, _id); }
+  ASMJIT_OPERAND_CONSTEXPR RegT toReg() const noexcept { return RegT(_signature, _id); }
 
   //! \}
 };
@@ -957,20 +957,20 @@ public:
   //! \{
 
   //! Creates a default `BaseMem` operand, that points to [0].
-  constexpr BaseMem() noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseMem() noexcept
     : Operand(Globals::Init, kOpMem, 0, 0, 0) {}
 
   //! Creates a `BaseMem` operand that is a clone of `other`.
-  constexpr BaseMem(const BaseMem& other) noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseMem(const BaseMem& other) noexcept
     : Operand(other) {}
 
   //! \cond INTERNAL
 
   //! Creates a `BaseMem` operand from 4 integers as used by `Operand_` struct.
-  constexpr BaseMem(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseMem(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
     : Operand(Globals::Init, u0, u1, u2, u3) {}
 
-  constexpr BaseMem(const Decomposed& d) noexcept
+  ASMJIT_OPERAND_CONSTEXPR BaseMem(const Decomposed& d) noexcept
     : Operand(Globals::Init,
               kOpMem | (d.baseType  << kSignatureMemBaseTypeShift )
                      | (d.indexType << kSignatureMemIndexTypeShift)
@@ -1006,37 +1006,37 @@ public:
   //! \{
 
   //! Clones the memory operand.
-  constexpr BaseMem clone() const noexcept { return BaseMem(*this); }
+  ASMJIT_OPERAND_CONSTEXPR BaseMem clone() const noexcept { return BaseMem(*this); }
 
-  constexpr uint32_t addrType() const noexcept { return _getSignaturePart<kSignatureMemAddrTypeMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t addrType() const noexcept { return _getSignaturePart<kSignatureMemAddrTypeMask>(); }
   inline void setAddrType(uint32_t addrType) noexcept { _setSignaturePart<kSignatureMemAddrTypeMask>(addrType); }
   inline void resetAddrType() noexcept { _setSignaturePart<kSignatureMemAddrTypeMask>(0); }
 
-  constexpr bool isAbs() const noexcept { return addrType() == kAddrTypeAbs; }
+  ASMJIT_OPERAND_CONSTEXPR bool isAbs() const noexcept { return addrType() == kAddrTypeAbs; }
   inline void setAbs() noexcept { setAddrType(kAddrTypeAbs); }
 
-  constexpr bool isRel() const noexcept { return addrType() == kAddrTypeRel; }
+  ASMJIT_OPERAND_CONSTEXPR bool isRel() const noexcept { return addrType() == kAddrTypeRel; }
   inline void setRel() noexcept { setAddrType(kAddrTypeRel); }
 
-  constexpr bool isRegHome() const noexcept { return _hasSignaturePart<kSignatureMemRegHomeFlag>(); }
+  ASMJIT_OPERAND_CONSTEXPR bool isRegHome() const noexcept { return _hasSignaturePart<kSignatureMemRegHomeFlag>(); }
   inline void setRegHome() noexcept { _signature |= kSignatureMemRegHomeFlag; }
   inline void clearRegHome() noexcept { _signature &= ~kSignatureMemRegHomeFlag; }
 
   //! Tests whether the memory operand has a BASE register or label specified.
-  constexpr bool hasBase() const noexcept { return (_signature & kSignatureMemBaseTypeMask) != 0; }
+  ASMJIT_OPERAND_CONSTEXPR bool hasBase() const noexcept { return (_signature & kSignatureMemBaseTypeMask) != 0; }
   //! Tests whether the memory operand has an INDEX register specified.
-  constexpr bool hasIndex() const noexcept { return (_signature & kSignatureMemIndexTypeMask) != 0; }
+  ASMJIT_OPERAND_CONSTEXPR bool hasIndex() const noexcept { return (_signature & kSignatureMemIndexTypeMask) != 0; }
   //! Tests whether the memory operand has BASE and INDEX register.
-  constexpr bool hasBaseOrIndex() const noexcept { return (_signature & kSignatureMemBaseIndexMask) != 0; }
+  ASMJIT_OPERAND_CONSTEXPR bool hasBaseOrIndex() const noexcept { return (_signature & kSignatureMemBaseIndexMask) != 0; }
   //! Tests whether the memory operand has BASE and INDEX register.
-  constexpr bool hasBaseAndIndex() const noexcept { return (_signature & kSignatureMemBaseTypeMask) != 0 && (_signature & kSignatureMemIndexTypeMask) != 0; }
+  ASMJIT_OPERAND_CONSTEXPR bool hasBaseAndIndex() const noexcept { return (_signature & kSignatureMemBaseTypeMask) != 0 && (_signature & kSignatureMemIndexTypeMask) != 0; }
 
   //! Tests whether the BASE operand is a register (registers start after `kLabelTag`).
-  constexpr bool hasBaseReg() const noexcept { return (_signature & kSignatureMemBaseTypeMask) > (Label::kLabelTag << kSignatureMemBaseTypeShift); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasBaseReg() const noexcept { return (_signature & kSignatureMemBaseTypeMask) > (Label::kLabelTag << kSignatureMemBaseTypeShift); }
   //! Tests whether the BASE operand is a label.
-  constexpr bool hasBaseLabel() const noexcept { return (_signature & kSignatureMemBaseTypeMask) == (Label::kLabelTag << kSignatureMemBaseTypeShift); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasBaseLabel() const noexcept { return (_signature & kSignatureMemBaseTypeMask) == (Label::kLabelTag << kSignatureMemBaseTypeShift); }
   //! Tests whether the INDEX operand is a register (registers start after `kLabelTag`).
-  constexpr bool hasIndexReg() const noexcept { return (_signature & kSignatureMemIndexTypeMask) > (Label::kLabelTag << kSignatureMemIndexTypeShift); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasIndexReg() const noexcept { return (_signature & kSignatureMemIndexTypeMask) > (Label::kLabelTag << kSignatureMemIndexTypeShift); }
 
   //! Returns the type of the BASE register (0 if this memory operand doesn't
   //! use the BASE register).
@@ -1044,24 +1044,24 @@ public:
   //! \note If the returned type is one (a value never associated to a register
   //! type) the BASE is not register, but it's a label. One equals to `kLabelTag`.
   //! You should always check `hasBaseLabel()` before using `baseId()` result.
-  constexpr uint32_t baseType() const noexcept { return _getSignaturePart<kSignatureMemBaseTypeMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t baseType() const noexcept { return _getSignaturePart<kSignatureMemBaseTypeMask>(); }
 
   //! Returns the type of an INDEX register (0 if this memory operand doesn't
   //! use the INDEX register).
-  constexpr uint32_t indexType() const noexcept { return _getSignaturePart<kSignatureMemIndexTypeMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t indexType() const noexcept { return _getSignaturePart<kSignatureMemIndexTypeMask>(); }
 
   //! This is used internally for BASE+INDEX validation.
-  constexpr uint32_t baseAndIndexTypes() const noexcept { return _getSignaturePart<kSignatureMemBaseIndexMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t baseAndIndexTypes() const noexcept { return _getSignaturePart<kSignatureMemBaseIndexMask>(); }
 
   //! Returns both BASE (4:0 bits) and INDEX (9:5 bits) types combined into a
   //! single value.
   //!
   //! \remarks Returns id of the BASE register or label (if the BASE was
   //! specified as label).
-  constexpr uint32_t baseId() const noexcept { return _baseId; }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t baseId() const noexcept { return _baseId; }
 
   //! Returns the id of the INDEX register.
-  constexpr uint32_t indexId() const noexcept { return _mem.indexId; }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t indexId() const noexcept { return _mem.indexId; }
 
   //! Sets the id of the BASE register (without modifying its type).
   inline void setBaseId(uint32_t rId) noexcept { _baseId = rId; }
@@ -1094,26 +1094,26 @@ public:
   //! Tests whether the memory operand has a 64-bit offset or absolute address.
   //!
   //! If this is true then `hasBase()` must always report false.
-  constexpr bool isOffset64Bit() const noexcept { return baseType() == 0; }
+  ASMJIT_OPERAND_CONSTEXPR bool isOffset64Bit() const noexcept { return baseType() == 0; }
 
   //! Tests whether the memory operand has a non-zero offset or absolute address.
-  constexpr bool hasOffset() const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR bool hasOffset() const noexcept {
     return (_mem.offsetLo32 | uint32_t(_baseId & Support::bitMaskFromBool<uint32_t>(isOffset64Bit()))) != 0;
   }
 
   //! Returns either relative offset or absolute address as 64-bit integer.
-  constexpr int64_t offset() const noexcept {
+  ASMJIT_OPERAND_CONSTEXPR int64_t offset() const noexcept {
     return isOffset64Bit() ? int64_t(uint64_t(_mem.offsetLo32) | (uint64_t(_baseId) << 32))
                            : int64_t(int32_t(_mem.offsetLo32)); // Sign extend 32-bit offset.
   }
 
   //! Returns a 32-bit low part of a 64-bit offset or absolute address.
-  constexpr int32_t offsetLo32() const noexcept { return int32_t(_mem.offsetLo32); }
+  ASMJIT_OPERAND_CONSTEXPR int32_t offsetLo32() const noexcept { return int32_t(_mem.offsetLo32); }
   //! Returns a 32-but high part of a 64-bit offset or absolute address.
   //!
   //! \note This function is UNSAFE and returns garbage if `isOffset64Bit()`
   //! returns false. Never use it blindly without checking it first.
-  constexpr int32_t offsetHi32() const noexcept { return int32_t(_baseId); }
+  ASMJIT_OPERAND_CONSTEXPR int32_t offsetHi32() const noexcept { return int32_t(_baseId); }
 
   //! Sets a 64-bit offset or an absolute address to `offset`.
   //!
@@ -1183,15 +1183,15 @@ public:
   //! \{
 
   //! Creates a new immediate value (initial value is 0).
-  constexpr Imm() noexcept
+  ASMJIT_OPERAND_CONSTEXPR Imm() noexcept
     : Operand(Globals::Init, kOpImm, 0, 0, 0) {}
 
   //! Creates a new immediate value from `other`.
-  constexpr Imm(const Imm& other) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Imm(const Imm& other) noexcept
     : Operand(other) {}
 
   //! Creates a new signed immediate value, assigning the value to `val`.
-  constexpr explicit Imm(int64_t val) noexcept
+  ASMJIT_OPERAND_CONSTEXPR explicit Imm(int64_t val) noexcept
     : Operand(Globals::Init, kOpImm, 0, Support::unpackU32At0(val), Support::unpackU32At1(val)) {}
 
   inline explicit Imm(Globals::NoInit_) noexcept
@@ -1211,46 +1211,46 @@ public:
   //! \{
 
   //! Tests whether the immediate can be casted to 8-bit signed integer.
-  constexpr bool isInt8() const noexcept { return Support::isInt8(int64_t(_data64)); }
+  ASMJIT_OPERAND_CONSTEXPR bool isInt8() const noexcept { return Support::isInt8(int64_t(_data64)); }
   //! Tests whether the immediate can be casted to 8-bit unsigned integer.
-  constexpr bool isUInt8() const noexcept { return Support::isUInt8(int64_t(_data64)); }
+  ASMJIT_OPERAND_CONSTEXPR bool isUInt8() const noexcept { return Support::isUInt8(int64_t(_data64)); }
   //! Tests whether the immediate can be casted to 16-bit signed integer.
-  constexpr bool isInt16() const noexcept { return Support::isInt16(int64_t(_data64)); }
+  ASMJIT_OPERAND_CONSTEXPR bool isInt16() const noexcept { return Support::isInt16(int64_t(_data64)); }
   //! Tests whether the immediate can be casted to 16-bit unsigned integer.
-  constexpr bool isUInt16() const noexcept { return Support::isUInt16(int64_t(_data64)); }
+  ASMJIT_OPERAND_CONSTEXPR bool isUInt16() const noexcept { return Support::isUInt16(int64_t(_data64)); }
   //! Tests whether the immediate can be casted to 32-bit signed integer.
-  constexpr bool isInt32() const noexcept { return Support::isInt32(int64_t(_data64)); }
+  ASMJIT_OPERAND_CONSTEXPR bool isInt32() const noexcept { return Support::isInt32(int64_t(_data64)); }
   //! Tests whether the immediate can be casted to 32-bit unsigned integer.
-  constexpr bool isUInt32() const noexcept { return Support::isUInt32(int64_t(_data64)); }
+  ASMJIT_OPERAND_CONSTEXPR bool isUInt32() const noexcept { return Support::isUInt32(int64_t(_data64)); }
 
   //! Returns immediate value as 8-bit signed integer, possibly cropped.
-  constexpr int8_t i8() const noexcept { return int8_t(_data64 & 0xFFu); }
+  ASMJIT_OPERAND_CONSTEXPR int8_t i8() const noexcept { return int8_t(_data64 & 0xFFu); }
   //! Returns immediate value as 8-bit unsigned integer, possibly cropped.
-  constexpr uint8_t u8() const noexcept { return uint8_t(_data64 & 0xFFu); }
+  ASMJIT_OPERAND_CONSTEXPR uint8_t u8() const noexcept { return uint8_t(_data64 & 0xFFu); }
   //! Returns immediate value as 16-bit signed integer, possibly cropped.
-  constexpr int16_t i16() const noexcept { return int16_t(_data64 & 0xFFFFu);}
+  ASMJIT_OPERAND_CONSTEXPR int16_t i16() const noexcept { return int16_t(_data64 & 0xFFFFu);}
   //! Returns immediate value as 16-bit unsigned integer, possibly cropped.
-  constexpr uint16_t u16() const noexcept { return uint16_t(_data64 & 0xFFFFu);}
+  ASMJIT_OPERAND_CONSTEXPR uint16_t u16() const noexcept { return uint16_t(_data64 & 0xFFFFu);}
   //! Returns immediate value as 32-bit signed integer, possibly cropped.
-  constexpr int32_t i32() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
+  ASMJIT_OPERAND_CONSTEXPR int32_t i32() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
   //! Returns low 32-bit signed integer.
-  constexpr int32_t i32Lo() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
+  ASMJIT_OPERAND_CONSTEXPR int32_t i32Lo() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
   //! Returns high 32-bit signed integer.
-  constexpr int32_t i32Hi() const noexcept { return int32_t(_data64 >> 32); }
+  ASMJIT_OPERAND_CONSTEXPR int32_t i32Hi() const noexcept { return int32_t(_data64 >> 32); }
   //! Returns immediate value as 32-bit unsigned integer, possibly cropped.
-  constexpr uint32_t u32() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t u32() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
   //! Returns low 32-bit signed integer.
-  constexpr uint32_t u32Lo() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t u32Lo() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
   //! Returns high 32-bit signed integer.
-  constexpr uint32_t u32Hi() const noexcept { return uint32_t(_data64 >> 32); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t u32Hi() const noexcept { return uint32_t(_data64 >> 32); }
   //! Returns immediate value as 64-bit signed integer.
-  constexpr int64_t i64() const noexcept { return int64_t(_data64); }
+  ASMJIT_OPERAND_CONSTEXPR int64_t i64() const noexcept { return int64_t(_data64); }
   //! Returns immediate value as 64-bit unsigned integer.
-  constexpr uint64_t u64() const noexcept { return _data64; }
+  ASMJIT_OPERAND_CONSTEXPR uint64_t u64() const noexcept { return _data64; }
   //! Returns immediate value as `intptr_t`, possibly cropped if size of `intptr_t` is 32 bits.
-  constexpr intptr_t iptr() const noexcept { return (sizeof(intptr_t) == sizeof(int64_t)) ? intptr_t(_data64) : intptr_t(i32()); }
+  ASMJIT_OPERAND_CONSTEXPR intptr_t iptr() const noexcept { return (sizeof(intptr_t) == sizeof(int64_t)) ? intptr_t(_data64) : intptr_t(i32()); }
   //! Returns immediate value as `uintptr_t`, possibly cropped if size of `uintptr_t` is 32 bits.
-  constexpr uintptr_t uptr() const noexcept { return (sizeof(uintptr_t) == sizeof(uint64_t)) ? uintptr_t(_data64) : uintptr_t(u32()); }
+  ASMJIT_OPERAND_CONSTEXPR uintptr_t uptr() const noexcept { return (sizeof(uintptr_t) == sizeof(uint64_t)) ? uintptr_t(_data64) : uintptr_t(u32()); }
 
   //! Sets immediate value to 8-bit signed integer `val`.
   inline void setI8(int8_t val) noexcept { _data64 = uint64_t(int64_t(val)); }
@@ -1287,7 +1287,7 @@ public:
   //! \{
 
   //! Clones the immediate operand.
-  constexpr Imm clone() const noexcept { return Imm(*this); }
+  ASMJIT_OPERAND_CONSTEXPR Imm clone() const noexcept { return Imm(*this); }
 
   inline void signExtend8Bits() noexcept { _data64 = uint64_t(int64_t(i8())); }
   inline void signExtend16Bits() noexcept { _data64 = uint64_t(int64_t(i16())); }
@@ -1305,7 +1305,7 @@ public:
 //! Using `imm(x)` is much nicer than using `Imm(x)` as this is a template
 //! which can accept any integer including pointers and function pointers.
 template<typename T>
-static constexpr Imm imm(T val) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Imm imm(T val) noexcept {
   return Imm(std::is_signed<T>::value ? int64_t(val) : int64_t(uint64_t(val)));
 }
 

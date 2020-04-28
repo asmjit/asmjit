@@ -223,6 +223,8 @@
 #define ASMJIT_CXX_MSC   0
 #define ASMJIT_CXX_MAKE_VER(MAJOR, MINOR, PATCH) ((MAJOR) * 10000000 + (MINOR) * 100000 + (PATCH))
 
+#define ASMJIT_OPERAND_CONSTEXPR constexpr
+
 // Intel Compiler [pretends to be GNU or MSC, so it must be checked first]:
 //   - https://software.intel.com/en-us/articles/c0x-features-supported-by-intel-c-compiler
 //   - https://software.intel.com/en-us/articles/c14-features-supported-by-intel-c-compiler
@@ -254,7 +256,8 @@
   //         union. There is no workaround known other than rewriting the whole
   //         code. VS2017 has a similar bug, but it can be workarounded.
   #if ASMJIT_CXX_MSC < ASMJIT_CXX_MAKE_VER(19, 10, 0)
-    #error "[asmjit] At least VS2017 is required due to a severe bug in VS2015's constexpr implementation"
+    #undef ASMJIT_OPERAND_CONSTEXPR
+    #define ASMJIT_OPERAND_CONSTEXPR
   #endif
 
 // Clang Compiler [Pretends to be GNU, so it must be checked before]:

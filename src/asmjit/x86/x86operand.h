@@ -128,39 +128,39 @@ public:
   };
 
   //! Tests whether the register is a GPB register (8-bit).
-  constexpr bool isGpb() const noexcept { return size() == 1; }
+  ASMJIT_OPERAND_CONSTEXPR bool isGpb() const noexcept { return size() == 1; }
   //! Tests whether the register is a low GPB register (8-bit).
-  constexpr bool isGpbLo() const noexcept { return hasSignature(RegTraits<kTypeGpbLo>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isGpbLo() const noexcept { return hasSignature(RegTraits<kTypeGpbLo>::kSignature); }
   //! Tests whether the register is a high GPB register (8-bit).
-  constexpr bool isGpbHi() const noexcept { return hasSignature(RegTraits<kTypeGpbHi>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isGpbHi() const noexcept { return hasSignature(RegTraits<kTypeGpbHi>::kSignature); }
   //! Tests whether the register is a GPW register (16-bit).
-  constexpr bool isGpw() const noexcept { return hasSignature(RegTraits<kTypeGpw>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isGpw() const noexcept { return hasSignature(RegTraits<kTypeGpw>::kSignature); }
   //! Tests whether the register is a GPD register (32-bit).
-  constexpr bool isGpd() const noexcept { return hasSignature(RegTraits<kTypeGpd>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isGpd() const noexcept { return hasSignature(RegTraits<kTypeGpd>::kSignature); }
   //! Tests whether the register is a GPQ register (64-bit).
-  constexpr bool isGpq() const noexcept { return hasSignature(RegTraits<kTypeGpq>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isGpq() const noexcept { return hasSignature(RegTraits<kTypeGpq>::kSignature); }
   //! Tests whether the register is an XMM register (128-bit).
-  constexpr bool isXmm() const noexcept { return hasSignature(RegTraits<kTypeXmm>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isXmm() const noexcept { return hasSignature(RegTraits<kTypeXmm>::kSignature); }
   //! Tests whether the register is a YMM register (256-bit).
-  constexpr bool isYmm() const noexcept { return hasSignature(RegTraits<kTypeYmm>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isYmm() const noexcept { return hasSignature(RegTraits<kTypeYmm>::kSignature); }
   //! Tests whether the register is a ZMM register (512-bit).
-  constexpr bool isZmm() const noexcept { return hasSignature(RegTraits<kTypeZmm>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isZmm() const noexcept { return hasSignature(RegTraits<kTypeZmm>::kSignature); }
   //! Tests whether the register is an MMX register (64-bit).
-  constexpr bool isMm() const noexcept { return hasSignature(RegTraits<kTypeMm>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isMm() const noexcept { return hasSignature(RegTraits<kTypeMm>::kSignature); }
   //! Tests whether the register is a K register (64-bit).
-  constexpr bool isKReg() const noexcept { return hasSignature(RegTraits<kTypeKReg>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isKReg() const noexcept { return hasSignature(RegTraits<kTypeKReg>::kSignature); }
   //! Tests whether the register is a segment register.
-  constexpr bool isSReg() const noexcept { return hasSignature(RegTraits<kTypeSReg>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isSReg() const noexcept { return hasSignature(RegTraits<kTypeSReg>::kSignature); }
   //! Tests whether the register is a control register.
-  constexpr bool isCReg() const noexcept { return hasSignature(RegTraits<kTypeCReg>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isCReg() const noexcept { return hasSignature(RegTraits<kTypeCReg>::kSignature); }
   //! Tests whether the register is a debug register.
-  constexpr bool isDReg() const noexcept { return hasSignature(RegTraits<kTypeDReg>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isDReg() const noexcept { return hasSignature(RegTraits<kTypeDReg>::kSignature); }
   //! Tests whether the register is an FPU register (80-bit).
-  constexpr bool isSt() const noexcept { return hasSignature(RegTraits<kTypeSt>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isSt() const noexcept { return hasSignature(RegTraits<kTypeSt>::kSignature); }
   //! Tests whether the register is a bound register.
-  constexpr bool isBnd() const noexcept { return hasSignature(RegTraits<kTypeBnd>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isBnd() const noexcept { return hasSignature(RegTraits<kTypeBnd>::kSignature); }
   //! Tests whether the register is RIP.
-  constexpr bool isRip() const noexcept { return hasSignature(RegTraits<kTypeRip>::kSignature); }
+  ASMJIT_OPERAND_CONSTEXPR bool isRip() const noexcept { return hasSignature(RegTraits<kTypeRip>::kSignature); }
 
   template<uint32_t REG_TYPE>
   inline void setRegT(uint32_t rId) noexcept {
@@ -420,45 +420,45 @@ public:
   // --------------------------------------------------------------------------
 
   //! Creates a default `Mem` operand that points to [0].
-  constexpr Mem() noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem() noexcept
     : BaseMem() {}
 
-  constexpr Mem(const Mem& other) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem(const Mem& other) noexcept
     : BaseMem(other) {}
 
   //! \cond INTERNAL
   //!
   //! A constructor used internally to create `Mem` operand from `Decomposed` data.
-  constexpr explicit Mem(const Decomposed& d) noexcept
+  ASMJIT_OPERAND_CONSTEXPR explicit Mem(const Decomposed& d) noexcept
     : BaseMem(d) {}
   //! \endcond
 
-  constexpr Mem(const Label& base, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem(const Label& base, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { Label::kLabelTag, base.id(), 0, 0, off, size, flags }) {}
 
-  constexpr Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { Label::kLabelTag, base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift) }) {}
 
-  constexpr Mem(const BaseReg& base, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem(const BaseReg& base, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { base.type(), base.id(), 0, 0, off, size, flags }) {}
 
-  constexpr Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { base.type(), base.id(), index.type(), index.id(), off, size, flags | (shift << kSignatureMemShiftShift) }) {}
 
-  constexpr explicit Mem(uint64_t base, uint32_t size = 0, uint32_t flags = 0) noexcept
+  ASMJIT_OPERAND_CONSTEXPR explicit Mem(uint64_t base, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { 0, uint32_t(base >> 32), 0, 0, int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags }) {}
 
-  constexpr Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, uint32_t flags = 0) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, uint32_t flags = 0) noexcept
     : BaseMem(Decomposed { 0, uint32_t(base >> 32), index.type(), index.id(), int32_t(uint32_t(base & 0xFFFFFFFFu)), size, flags | (shift << kSignatureMemShiftShift) }) {}
 
-  constexpr Mem(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
+  ASMJIT_OPERAND_CONSTEXPR Mem(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
     : BaseMem(Globals::Init, u0, u1, u2, u3) {}
 
   inline explicit Mem(Globals::NoInit_) noexcept
     : BaseMem(Globals::NoInit) {}
 
   //! Clones the memory operand.
-  constexpr Mem clone() const noexcept { return Mem(*this); }
+  ASMJIT_OPERAND_CONSTEXPR Mem clone() const noexcept { return Mem(*this); }
 
   //! Creates a new copy of this memory operand adjusted by `off`.
   inline Mem cloneAdjusted(int64_t off) const noexcept {
@@ -477,13 +477,13 @@ public:
   //! The memory must have a valid index register otherwise the result will be wrong.
   inline Reg indexReg() const noexcept { return Reg::fromTypeAndId(indexType(), indexId()); }
 
-  constexpr Mem _1to1() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To1 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
-  constexpr Mem _1to2() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To2 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
-  constexpr Mem _1to4() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To4 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
-  constexpr Mem _1to8() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To8 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
-  constexpr Mem _1to16() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To16 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
-  constexpr Mem _1to32() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To32 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
-  constexpr Mem _1to64() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To64 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  ASMJIT_OPERAND_CONSTEXPR Mem _1to1() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To1 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  ASMJIT_OPERAND_CONSTEXPR Mem _1to2() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To2 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  ASMJIT_OPERAND_CONSTEXPR Mem _1to4() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To4 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  ASMJIT_OPERAND_CONSTEXPR Mem _1to8() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To8 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  ASMJIT_OPERAND_CONSTEXPR Mem _1to16() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To16 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  ASMJIT_OPERAND_CONSTEXPR Mem _1to32() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To32 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
+  ASMJIT_OPERAND_CONSTEXPR Mem _1to64() const noexcept { return Mem(Globals::Init, (_signature & ~kSignatureMemBroadcastMask) | (kBroadcast1To64 << kSignatureMemBroadcastShift), _baseId, _data32[0], _data32[1]); }
 
   // --------------------------------------------------------------------------
   // [Mem]
@@ -497,11 +497,11 @@ public:
   }
 
   //! Tests whether the memory operand has a segment override.
-  constexpr bool hasSegment() const noexcept { return _hasSignaturePart<kSignatureMemSegmentMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasSegment() const noexcept { return _hasSignaturePart<kSignatureMemSegmentMask>(); }
   //! Returns the associated segment override as `SReg` operand.
-  constexpr SReg segment() const noexcept { return SReg(segmentId()); }
+  ASMJIT_OPERAND_CONSTEXPR SReg segment() const noexcept { return SReg(segmentId()); }
   //! Returns segment override register id, see `SReg::Id`.
-  constexpr uint32_t segmentId() const noexcept { return _getSignaturePart<kSignatureMemSegmentMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t segmentId() const noexcept { return _getSignaturePart<kSignatureMemSegmentMask>(); }
 
   //! Sets the segment override to `seg`.
   inline void setSegment(const SReg& seg) noexcept { setSegment(seg.id()); }
@@ -511,18 +511,18 @@ public:
   inline void resetSegment() noexcept { _setSignaturePart<kSignatureMemSegmentMask>(0); }
 
   //! Tests whether the memory operand has shift (aka scale) value.
-  constexpr bool hasShift() const noexcept { return _hasSignaturePart<kSignatureMemShiftMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasShift() const noexcept { return _hasSignaturePart<kSignatureMemShiftMask>(); }
   //! Returns the memory operand's shift (aka scale) value.
-  constexpr uint32_t shift() const noexcept { return _getSignaturePart<kSignatureMemShiftMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t shift() const noexcept { return _getSignaturePart<kSignatureMemShiftMask>(); }
   //! Sets the memory operand's shift (aka scale) value.
   inline void setShift(uint32_t shift) noexcept { _setSignaturePart<kSignatureMemShiftMask>(shift); }
   //! Resets the memory operand's shift (aka scale) value to zero.
   inline void resetShift() noexcept { _setSignaturePart<kSignatureMemShiftMask>(0); }
 
   //! Tests whether the memory operand has broadcast {1tox}.
-  constexpr bool hasBroadcast() const noexcept { return _hasSignaturePart<kSignatureMemBroadcastMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR bool hasBroadcast() const noexcept { return _hasSignaturePart<kSignatureMemBroadcastMask>(); }
   //! Returns the memory operand's broadcast.
-  constexpr uint32_t getBroadcast() const noexcept { return _getSignaturePart<kSignatureMemBroadcastMask>(); }
+  ASMJIT_OPERAND_CONSTEXPR uint32_t getBroadcast() const noexcept { return _getSignaturePart<kSignatureMemBroadcastMask>(); }
   //! Sets the memory operand's broadcast.
   inline void setBroadcast(uint32_t bcst) noexcept { _setSignaturePart<kSignatureMemBroadcastMask>(bcst); }
   //! Resets the memory operand's broadcast to none.
@@ -570,283 +570,283 @@ inline uint32_t Reg::signatureOf(uint32_t rType) noexcept {
 namespace regs {
 
 //! Creates an 8-bit low GPB register operand.
-static constexpr GpbLo gpb(uint32_t rId) noexcept { return GpbLo(rId); }
+static ASMJIT_OPERAND_CONSTEXPR GpbLo gpb(uint32_t rId) noexcept { return GpbLo(rId); }
 //! Creates an 8-bit low GPB register operand.
-static constexpr GpbLo gpb_lo(uint32_t rId) noexcept { return GpbLo(rId); }
+static ASMJIT_OPERAND_CONSTEXPR GpbLo gpb_lo(uint32_t rId) noexcept { return GpbLo(rId); }
 //! Creates an 8-bit high GPB register operand.
-static constexpr GpbHi gpb_hi(uint32_t rId) noexcept { return GpbHi(rId); }
+static ASMJIT_OPERAND_CONSTEXPR GpbHi gpb_hi(uint32_t rId) noexcept { return GpbHi(rId); }
 //! Creates a 16-bit GPW register operand.
-static constexpr Gpw gpw(uint32_t rId) noexcept { return Gpw(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Gpw gpw(uint32_t rId) noexcept { return Gpw(rId); }
 //! Creates a 32-bit GPD register operand.
-static constexpr Gpd gpd(uint32_t rId) noexcept { return Gpd(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Gpd gpd(uint32_t rId) noexcept { return Gpd(rId); }
 //! Creates a 64-bit GPQ register operand (64-bit).
-static constexpr Gpq gpq(uint32_t rId) noexcept { return Gpq(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Gpq gpq(uint32_t rId) noexcept { return Gpq(rId); }
 //! Creates a 128-bit XMM register operand.
-static constexpr Xmm xmm(uint32_t rId) noexcept { return Xmm(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm(uint32_t rId) noexcept { return Xmm(rId); }
 //! Creates a 256-bit YMM register operand.
-static constexpr Ymm ymm(uint32_t rId) noexcept { return Ymm(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm(uint32_t rId) noexcept { return Ymm(rId); }
 //! Creates a 512-bit ZMM register operand.
-static constexpr Zmm zmm(uint32_t rId) noexcept { return Zmm(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm(uint32_t rId) noexcept { return Zmm(rId); }
 //! Creates a 64-bit Mm register operand.
-static constexpr Mm mm(uint32_t rId) noexcept { return Mm(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Mm mm(uint32_t rId) noexcept { return Mm(rId); }
 //! Creates a 64-bit K register operand.
-static constexpr KReg k(uint32_t rId) noexcept { return KReg(rId); }
+static ASMJIT_OPERAND_CONSTEXPR KReg k(uint32_t rId) noexcept { return KReg(rId); }
 //! Creates a 32-bit or 64-bit control register operand.
-static constexpr CReg cr(uint32_t rId) noexcept { return CReg(rId); }
+static ASMJIT_OPERAND_CONSTEXPR CReg cr(uint32_t rId) noexcept { return CReg(rId); }
 //! Creates a 32-bit or 64-bit debug register operand.
-static constexpr DReg dr(uint32_t rId) noexcept { return DReg(rId); }
+static ASMJIT_OPERAND_CONSTEXPR DReg dr(uint32_t rId) noexcept { return DReg(rId); }
 //! Creates an 80-bit st register operand.
-static constexpr St st(uint32_t rId) noexcept { return St(rId); }
+static ASMJIT_OPERAND_CONSTEXPR St st(uint32_t rId) noexcept { return St(rId); }
 //! Creates a 128-bit bound register operand.
-static constexpr Bnd bnd(uint32_t rId) noexcept { return Bnd(rId); }
+static ASMJIT_OPERAND_CONSTEXPR Bnd bnd(uint32_t rId) noexcept { return Bnd(rId); }
 
-static constexpr Gp al(GpbLo::kSignature, Gp::kIdAx);
-static constexpr Gp bl(GpbLo::kSignature, Gp::kIdBx);
-static constexpr Gp cl(GpbLo::kSignature, Gp::kIdCx);
-static constexpr Gp dl(GpbLo::kSignature, Gp::kIdDx);
-static constexpr Gp spl(GpbLo::kSignature, Gp::kIdSp);
-static constexpr Gp bpl(GpbLo::kSignature, Gp::kIdBp);
-static constexpr Gp sil(GpbLo::kSignature, Gp::kIdSi);
-static constexpr Gp dil(GpbLo::kSignature, Gp::kIdDi);
-static constexpr Gp r8b(GpbLo::kSignature, Gp::kIdR8);
-static constexpr Gp r9b(GpbLo::kSignature, Gp::kIdR9);
-static constexpr Gp r10b(GpbLo::kSignature, Gp::kIdR10);
-static constexpr Gp r11b(GpbLo::kSignature, Gp::kIdR11);
-static constexpr Gp r12b(GpbLo::kSignature, Gp::kIdR12);
-static constexpr Gp r13b(GpbLo::kSignature, Gp::kIdR13);
-static constexpr Gp r14b(GpbLo::kSignature, Gp::kIdR14);
-static constexpr Gp r15b(GpbLo::kSignature, Gp::kIdR15);
+static ASMJIT_OPERAND_CONSTEXPR Gp al(GpbLo::kSignature, Gp::kIdAx);
+static ASMJIT_OPERAND_CONSTEXPR Gp bl(GpbLo::kSignature, Gp::kIdBx);
+static ASMJIT_OPERAND_CONSTEXPR Gp cl(GpbLo::kSignature, Gp::kIdCx);
+static ASMJIT_OPERAND_CONSTEXPR Gp dl(GpbLo::kSignature, Gp::kIdDx);
+static ASMJIT_OPERAND_CONSTEXPR Gp spl(GpbLo::kSignature, Gp::kIdSp);
+static ASMJIT_OPERAND_CONSTEXPR Gp bpl(GpbLo::kSignature, Gp::kIdBp);
+static ASMJIT_OPERAND_CONSTEXPR Gp sil(GpbLo::kSignature, Gp::kIdSi);
+static ASMJIT_OPERAND_CONSTEXPR Gp dil(GpbLo::kSignature, Gp::kIdDi);
+static ASMJIT_OPERAND_CONSTEXPR Gp r8b(GpbLo::kSignature, Gp::kIdR8);
+static ASMJIT_OPERAND_CONSTEXPR Gp r9b(GpbLo::kSignature, Gp::kIdR9);
+static ASMJIT_OPERAND_CONSTEXPR Gp r10b(GpbLo::kSignature, Gp::kIdR10);
+static ASMJIT_OPERAND_CONSTEXPR Gp r11b(GpbLo::kSignature, Gp::kIdR11);
+static ASMJIT_OPERAND_CONSTEXPR Gp r12b(GpbLo::kSignature, Gp::kIdR12);
+static ASMJIT_OPERAND_CONSTEXPR Gp r13b(GpbLo::kSignature, Gp::kIdR13);
+static ASMJIT_OPERAND_CONSTEXPR Gp r14b(GpbLo::kSignature, Gp::kIdR14);
+static ASMJIT_OPERAND_CONSTEXPR Gp r15b(GpbLo::kSignature, Gp::kIdR15);
 
-static constexpr Gp ah(GpbHi::kSignature, Gp::kIdAx);
-static constexpr Gp bh(GpbHi::kSignature, Gp::kIdBx);
-static constexpr Gp ch(GpbHi::kSignature, Gp::kIdCx);
-static constexpr Gp dh(GpbHi::kSignature, Gp::kIdDx);
+static ASMJIT_OPERAND_CONSTEXPR Gp ah(GpbHi::kSignature, Gp::kIdAx);
+static ASMJIT_OPERAND_CONSTEXPR Gp bh(GpbHi::kSignature, Gp::kIdBx);
+static ASMJIT_OPERAND_CONSTEXPR Gp ch(GpbHi::kSignature, Gp::kIdCx);
+static ASMJIT_OPERAND_CONSTEXPR Gp dh(GpbHi::kSignature, Gp::kIdDx);
 
-static constexpr Gp ax(Gpw::kSignature, Gp::kIdAx);
-static constexpr Gp bx(Gpw::kSignature, Gp::kIdBx);
-static constexpr Gp cx(Gpw::kSignature, Gp::kIdCx);
-static constexpr Gp dx(Gpw::kSignature, Gp::kIdDx);
-static constexpr Gp sp(Gpw::kSignature, Gp::kIdSp);
-static constexpr Gp bp(Gpw::kSignature, Gp::kIdBp);
-static constexpr Gp si(Gpw::kSignature, Gp::kIdSi);
-static constexpr Gp di(Gpw::kSignature, Gp::kIdDi);
-static constexpr Gp r8w(Gpw::kSignature, Gp::kIdR8);
-static constexpr Gp r9w(Gpw::kSignature, Gp::kIdR9);
-static constexpr Gp r10w(Gpw::kSignature, Gp::kIdR10);
-static constexpr Gp r11w(Gpw::kSignature, Gp::kIdR11);
-static constexpr Gp r12w(Gpw::kSignature, Gp::kIdR12);
-static constexpr Gp r13w(Gpw::kSignature, Gp::kIdR13);
-static constexpr Gp r14w(Gpw::kSignature, Gp::kIdR14);
-static constexpr Gp r15w(Gpw::kSignature, Gp::kIdR15);
+static ASMJIT_OPERAND_CONSTEXPR Gp ax(Gpw::kSignature, Gp::kIdAx);
+static ASMJIT_OPERAND_CONSTEXPR Gp bx(Gpw::kSignature, Gp::kIdBx);
+static ASMJIT_OPERAND_CONSTEXPR Gp cx(Gpw::kSignature, Gp::kIdCx);
+static ASMJIT_OPERAND_CONSTEXPR Gp dx(Gpw::kSignature, Gp::kIdDx);
+static ASMJIT_OPERAND_CONSTEXPR Gp sp(Gpw::kSignature, Gp::kIdSp);
+static ASMJIT_OPERAND_CONSTEXPR Gp bp(Gpw::kSignature, Gp::kIdBp);
+static ASMJIT_OPERAND_CONSTEXPR Gp si(Gpw::kSignature, Gp::kIdSi);
+static ASMJIT_OPERAND_CONSTEXPR Gp di(Gpw::kSignature, Gp::kIdDi);
+static ASMJIT_OPERAND_CONSTEXPR Gp r8w(Gpw::kSignature, Gp::kIdR8);
+static ASMJIT_OPERAND_CONSTEXPR Gp r9w(Gpw::kSignature, Gp::kIdR9);
+static ASMJIT_OPERAND_CONSTEXPR Gp r10w(Gpw::kSignature, Gp::kIdR10);
+static ASMJIT_OPERAND_CONSTEXPR Gp r11w(Gpw::kSignature, Gp::kIdR11);
+static ASMJIT_OPERAND_CONSTEXPR Gp r12w(Gpw::kSignature, Gp::kIdR12);
+static ASMJIT_OPERAND_CONSTEXPR Gp r13w(Gpw::kSignature, Gp::kIdR13);
+static ASMJIT_OPERAND_CONSTEXPR Gp r14w(Gpw::kSignature, Gp::kIdR14);
+static ASMJIT_OPERAND_CONSTEXPR Gp r15w(Gpw::kSignature, Gp::kIdR15);
 
-static constexpr Gp eax(Gpd::kSignature, Gp::kIdAx);
-static constexpr Gp ebx(Gpd::kSignature, Gp::kIdBx);
-static constexpr Gp ecx(Gpd::kSignature, Gp::kIdCx);
-static constexpr Gp edx(Gpd::kSignature, Gp::kIdDx);
-static constexpr Gp esp(Gpd::kSignature, Gp::kIdSp);
-static constexpr Gp ebp(Gpd::kSignature, Gp::kIdBp);
-static constexpr Gp esi(Gpd::kSignature, Gp::kIdSi);
-static constexpr Gp edi(Gpd::kSignature, Gp::kIdDi);
-static constexpr Gp r8d(Gpd::kSignature, Gp::kIdR8);
-static constexpr Gp r9d(Gpd::kSignature, Gp::kIdR9);
-static constexpr Gp r10d(Gpd::kSignature, Gp::kIdR10);
-static constexpr Gp r11d(Gpd::kSignature, Gp::kIdR11);
-static constexpr Gp r12d(Gpd::kSignature, Gp::kIdR12);
-static constexpr Gp r13d(Gpd::kSignature, Gp::kIdR13);
-static constexpr Gp r14d(Gpd::kSignature, Gp::kIdR14);
-static constexpr Gp r15d(Gpd::kSignature, Gp::kIdR15);
+static ASMJIT_OPERAND_CONSTEXPR Gp eax(Gpd::kSignature, Gp::kIdAx);
+static ASMJIT_OPERAND_CONSTEXPR Gp ebx(Gpd::kSignature, Gp::kIdBx);
+static ASMJIT_OPERAND_CONSTEXPR Gp ecx(Gpd::kSignature, Gp::kIdCx);
+static ASMJIT_OPERAND_CONSTEXPR Gp edx(Gpd::kSignature, Gp::kIdDx);
+static ASMJIT_OPERAND_CONSTEXPR Gp esp(Gpd::kSignature, Gp::kIdSp);
+static ASMJIT_OPERAND_CONSTEXPR Gp ebp(Gpd::kSignature, Gp::kIdBp);
+static ASMJIT_OPERAND_CONSTEXPR Gp esi(Gpd::kSignature, Gp::kIdSi);
+static ASMJIT_OPERAND_CONSTEXPR Gp edi(Gpd::kSignature, Gp::kIdDi);
+static ASMJIT_OPERAND_CONSTEXPR Gp r8d(Gpd::kSignature, Gp::kIdR8);
+static ASMJIT_OPERAND_CONSTEXPR Gp r9d(Gpd::kSignature, Gp::kIdR9);
+static ASMJIT_OPERAND_CONSTEXPR Gp r10d(Gpd::kSignature, Gp::kIdR10);
+static ASMJIT_OPERAND_CONSTEXPR Gp r11d(Gpd::kSignature, Gp::kIdR11);
+static ASMJIT_OPERAND_CONSTEXPR Gp r12d(Gpd::kSignature, Gp::kIdR12);
+static ASMJIT_OPERAND_CONSTEXPR Gp r13d(Gpd::kSignature, Gp::kIdR13);
+static ASMJIT_OPERAND_CONSTEXPR Gp r14d(Gpd::kSignature, Gp::kIdR14);
+static ASMJIT_OPERAND_CONSTEXPR Gp r15d(Gpd::kSignature, Gp::kIdR15);
 
-static constexpr Gp rax(Gpq::kSignature, Gp::kIdAx);
-static constexpr Gp rbx(Gpq::kSignature, Gp::kIdBx);
-static constexpr Gp rcx(Gpq::kSignature, Gp::kIdCx);
-static constexpr Gp rdx(Gpq::kSignature, Gp::kIdDx);
-static constexpr Gp rsp(Gpq::kSignature, Gp::kIdSp);
-static constexpr Gp rbp(Gpq::kSignature, Gp::kIdBp);
-static constexpr Gp rsi(Gpq::kSignature, Gp::kIdSi);
-static constexpr Gp rdi(Gpq::kSignature, Gp::kIdDi);
-static constexpr Gp r8(Gpq::kSignature, Gp::kIdR8);
-static constexpr Gp r9(Gpq::kSignature, Gp::kIdR9);
-static constexpr Gp r10(Gpq::kSignature, Gp::kIdR10);
-static constexpr Gp r11(Gpq::kSignature, Gp::kIdR11);
-static constexpr Gp r12(Gpq::kSignature, Gp::kIdR12);
-static constexpr Gp r13(Gpq::kSignature, Gp::kIdR13);
-static constexpr Gp r14(Gpq::kSignature, Gp::kIdR14);
-static constexpr Gp r15(Gpq::kSignature, Gp::kIdR15);
+static ASMJIT_OPERAND_CONSTEXPR Gp rax(Gpq::kSignature, Gp::kIdAx);
+static ASMJIT_OPERAND_CONSTEXPR Gp rbx(Gpq::kSignature, Gp::kIdBx);
+static ASMJIT_OPERAND_CONSTEXPR Gp rcx(Gpq::kSignature, Gp::kIdCx);
+static ASMJIT_OPERAND_CONSTEXPR Gp rdx(Gpq::kSignature, Gp::kIdDx);
+static ASMJIT_OPERAND_CONSTEXPR Gp rsp(Gpq::kSignature, Gp::kIdSp);
+static ASMJIT_OPERAND_CONSTEXPR Gp rbp(Gpq::kSignature, Gp::kIdBp);
+static ASMJIT_OPERAND_CONSTEXPR Gp rsi(Gpq::kSignature, Gp::kIdSi);
+static ASMJIT_OPERAND_CONSTEXPR Gp rdi(Gpq::kSignature, Gp::kIdDi);
+static ASMJIT_OPERAND_CONSTEXPR Gp r8(Gpq::kSignature, Gp::kIdR8);
+static ASMJIT_OPERAND_CONSTEXPR Gp r9(Gpq::kSignature, Gp::kIdR9);
+static ASMJIT_OPERAND_CONSTEXPR Gp r10(Gpq::kSignature, Gp::kIdR10);
+static ASMJIT_OPERAND_CONSTEXPR Gp r11(Gpq::kSignature, Gp::kIdR11);
+static ASMJIT_OPERAND_CONSTEXPR Gp r12(Gpq::kSignature, Gp::kIdR12);
+static ASMJIT_OPERAND_CONSTEXPR Gp r13(Gpq::kSignature, Gp::kIdR13);
+static ASMJIT_OPERAND_CONSTEXPR Gp r14(Gpq::kSignature, Gp::kIdR14);
+static ASMJIT_OPERAND_CONSTEXPR Gp r15(Gpq::kSignature, Gp::kIdR15);
 
-static constexpr Xmm xmm0(0);
-static constexpr Xmm xmm1(1);
-static constexpr Xmm xmm2(2);
-static constexpr Xmm xmm3(3);
-static constexpr Xmm xmm4(4);
-static constexpr Xmm xmm5(5);
-static constexpr Xmm xmm6(6);
-static constexpr Xmm xmm7(7);
-static constexpr Xmm xmm8(8);
-static constexpr Xmm xmm9(9);
-static constexpr Xmm xmm10(10);
-static constexpr Xmm xmm11(11);
-static constexpr Xmm xmm12(12);
-static constexpr Xmm xmm13(13);
-static constexpr Xmm xmm14(14);
-static constexpr Xmm xmm15(15);
-static constexpr Xmm xmm16(16);
-static constexpr Xmm xmm17(17);
-static constexpr Xmm xmm18(18);
-static constexpr Xmm xmm19(19);
-static constexpr Xmm xmm20(20);
-static constexpr Xmm xmm21(21);
-static constexpr Xmm xmm22(22);
-static constexpr Xmm xmm23(23);
-static constexpr Xmm xmm24(24);
-static constexpr Xmm xmm25(25);
-static constexpr Xmm xmm26(26);
-static constexpr Xmm xmm27(27);
-static constexpr Xmm xmm28(28);
-static constexpr Xmm xmm29(29);
-static constexpr Xmm xmm30(30);
-static constexpr Xmm xmm31(31);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm0(0);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm1(1);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm2(2);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm3(3);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm4(4);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm5(5);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm6(6);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm7(7);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm8(8);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm9(9);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm10(10);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm11(11);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm12(12);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm13(13);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm14(14);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm15(15);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm16(16);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm17(17);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm18(18);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm19(19);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm20(20);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm21(21);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm22(22);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm23(23);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm24(24);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm25(25);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm26(26);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm27(27);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm28(28);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm29(29);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm30(30);
+static ASMJIT_OPERAND_CONSTEXPR Xmm xmm31(31);
 
-static constexpr Ymm ymm0(0);
-static constexpr Ymm ymm1(1);
-static constexpr Ymm ymm2(2);
-static constexpr Ymm ymm3(3);
-static constexpr Ymm ymm4(4);
-static constexpr Ymm ymm5(5);
-static constexpr Ymm ymm6(6);
-static constexpr Ymm ymm7(7);
-static constexpr Ymm ymm8(8);
-static constexpr Ymm ymm9(9);
-static constexpr Ymm ymm10(10);
-static constexpr Ymm ymm11(11);
-static constexpr Ymm ymm12(12);
-static constexpr Ymm ymm13(13);
-static constexpr Ymm ymm14(14);
-static constexpr Ymm ymm15(15);
-static constexpr Ymm ymm16(16);
-static constexpr Ymm ymm17(17);
-static constexpr Ymm ymm18(18);
-static constexpr Ymm ymm19(19);
-static constexpr Ymm ymm20(20);
-static constexpr Ymm ymm21(21);
-static constexpr Ymm ymm22(22);
-static constexpr Ymm ymm23(23);
-static constexpr Ymm ymm24(24);
-static constexpr Ymm ymm25(25);
-static constexpr Ymm ymm26(26);
-static constexpr Ymm ymm27(27);
-static constexpr Ymm ymm28(28);
-static constexpr Ymm ymm29(29);
-static constexpr Ymm ymm30(30);
-static constexpr Ymm ymm31(31);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm0(0);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm1(1);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm2(2);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm3(3);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm4(4);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm5(5);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm6(6);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm7(7);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm8(8);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm9(9);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm10(10);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm11(11);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm12(12);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm13(13);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm14(14);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm15(15);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm16(16);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm17(17);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm18(18);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm19(19);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm20(20);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm21(21);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm22(22);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm23(23);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm24(24);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm25(25);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm26(26);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm27(27);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm28(28);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm29(29);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm30(30);
+static ASMJIT_OPERAND_CONSTEXPR Ymm ymm31(31);
 
-static constexpr Zmm zmm0(0);
-static constexpr Zmm zmm1(1);
-static constexpr Zmm zmm2(2);
-static constexpr Zmm zmm3(3);
-static constexpr Zmm zmm4(4);
-static constexpr Zmm zmm5(5);
-static constexpr Zmm zmm6(6);
-static constexpr Zmm zmm7(7);
-static constexpr Zmm zmm8(8);
-static constexpr Zmm zmm9(9);
-static constexpr Zmm zmm10(10);
-static constexpr Zmm zmm11(11);
-static constexpr Zmm zmm12(12);
-static constexpr Zmm zmm13(13);
-static constexpr Zmm zmm14(14);
-static constexpr Zmm zmm15(15);
-static constexpr Zmm zmm16(16);
-static constexpr Zmm zmm17(17);
-static constexpr Zmm zmm18(18);
-static constexpr Zmm zmm19(19);
-static constexpr Zmm zmm20(20);
-static constexpr Zmm zmm21(21);
-static constexpr Zmm zmm22(22);
-static constexpr Zmm zmm23(23);
-static constexpr Zmm zmm24(24);
-static constexpr Zmm zmm25(25);
-static constexpr Zmm zmm26(26);
-static constexpr Zmm zmm27(27);
-static constexpr Zmm zmm28(28);
-static constexpr Zmm zmm29(29);
-static constexpr Zmm zmm30(30);
-static constexpr Zmm zmm31(31);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm0(0);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm1(1);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm2(2);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm3(3);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm4(4);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm5(5);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm6(6);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm7(7);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm8(8);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm9(9);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm10(10);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm11(11);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm12(12);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm13(13);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm14(14);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm15(15);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm16(16);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm17(17);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm18(18);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm19(19);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm20(20);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm21(21);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm22(22);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm23(23);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm24(24);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm25(25);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm26(26);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm27(27);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm28(28);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm29(29);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm30(30);
+static ASMJIT_OPERAND_CONSTEXPR Zmm zmm31(31);
 
-static constexpr Mm mm0(0);
-static constexpr Mm mm1(1);
-static constexpr Mm mm2(2);
-static constexpr Mm mm3(3);
-static constexpr Mm mm4(4);
-static constexpr Mm mm5(5);
-static constexpr Mm mm6(6);
-static constexpr Mm mm7(7);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm0(0);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm1(1);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm2(2);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm3(3);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm4(4);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm5(5);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm6(6);
+static ASMJIT_OPERAND_CONSTEXPR Mm mm7(7);
 
-static constexpr KReg k0(0);
-static constexpr KReg k1(1);
-static constexpr KReg k2(2);
-static constexpr KReg k3(3);
-static constexpr KReg k4(4);
-static constexpr KReg k5(5);
-static constexpr KReg k6(6);
-static constexpr KReg k7(7);
+static ASMJIT_OPERAND_CONSTEXPR KReg k0(0);
+static ASMJIT_OPERAND_CONSTEXPR KReg k1(1);
+static ASMJIT_OPERAND_CONSTEXPR KReg k2(2);
+static ASMJIT_OPERAND_CONSTEXPR KReg k3(3);
+static ASMJIT_OPERAND_CONSTEXPR KReg k4(4);
+static ASMJIT_OPERAND_CONSTEXPR KReg k5(5);
+static ASMJIT_OPERAND_CONSTEXPR KReg k6(6);
+static ASMJIT_OPERAND_CONSTEXPR KReg k7(7);
 
-static constexpr SReg no_seg(SReg::kIdNone);
-static constexpr SReg es(SReg::kIdEs);
-static constexpr SReg cs(SReg::kIdCs);
-static constexpr SReg ss(SReg::kIdSs);
-static constexpr SReg ds(SReg::kIdDs);
-static constexpr SReg fs(SReg::kIdFs);
-static constexpr SReg gs(SReg::kIdGs);
+static ASMJIT_OPERAND_CONSTEXPR SReg no_seg(SReg::kIdNone);
+static ASMJIT_OPERAND_CONSTEXPR SReg es(SReg::kIdEs);
+static ASMJIT_OPERAND_CONSTEXPR SReg cs(SReg::kIdCs);
+static ASMJIT_OPERAND_CONSTEXPR SReg ss(SReg::kIdSs);
+static ASMJIT_OPERAND_CONSTEXPR SReg ds(SReg::kIdDs);
+static ASMJIT_OPERAND_CONSTEXPR SReg fs(SReg::kIdFs);
+static ASMJIT_OPERAND_CONSTEXPR SReg gs(SReg::kIdGs);
 
-static constexpr CReg cr0(0);
-static constexpr CReg cr1(1);
-static constexpr CReg cr2(2);
-static constexpr CReg cr3(3);
-static constexpr CReg cr4(4);
-static constexpr CReg cr5(5);
-static constexpr CReg cr6(6);
-static constexpr CReg cr7(7);
-static constexpr CReg cr8(8);
-static constexpr CReg cr9(9);
-static constexpr CReg cr10(10);
-static constexpr CReg cr11(11);
-static constexpr CReg cr12(12);
-static constexpr CReg cr13(13);
-static constexpr CReg cr14(14);
-static constexpr CReg cr15(15);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr0(0);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr1(1);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr2(2);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr3(3);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr4(4);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr5(5);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr6(6);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr7(7);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr8(8);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr9(9);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr10(10);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr11(11);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr12(12);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr13(13);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr14(14);
+static ASMJIT_OPERAND_CONSTEXPR CReg cr15(15);
 
-static constexpr DReg dr0(0);
-static constexpr DReg dr1(1);
-static constexpr DReg dr2(2);
-static constexpr DReg dr3(3);
-static constexpr DReg dr4(4);
-static constexpr DReg dr5(5);
-static constexpr DReg dr6(6);
-static constexpr DReg dr7(7);
-static constexpr DReg dr8(8);
-static constexpr DReg dr9(9);
-static constexpr DReg dr10(10);
-static constexpr DReg dr11(11);
-static constexpr DReg dr12(12);
-static constexpr DReg dr13(13);
-static constexpr DReg dr14(14);
-static constexpr DReg dr15(15);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr0(0);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr1(1);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr2(2);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr3(3);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr4(4);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr5(5);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr6(6);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr7(7);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr8(8);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr9(9);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr10(10);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr11(11);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr12(12);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr13(13);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr14(14);
+static ASMJIT_OPERAND_CONSTEXPR DReg dr15(15);
 
-static constexpr St st0(0);
-static constexpr St st1(1);
-static constexpr St st2(2);
-static constexpr St st3(3);
-static constexpr St st4(4);
-static constexpr St st5(5);
-static constexpr St st6(6);
-static constexpr St st7(7);
+static ASMJIT_OPERAND_CONSTEXPR St st0(0);
+static ASMJIT_OPERAND_CONSTEXPR St st1(1);
+static ASMJIT_OPERAND_CONSTEXPR St st2(2);
+static ASMJIT_OPERAND_CONSTEXPR St st3(3);
+static ASMJIT_OPERAND_CONSTEXPR St st4(4);
+static ASMJIT_OPERAND_CONSTEXPR St st5(5);
+static ASMJIT_OPERAND_CONSTEXPR St st6(6);
+static ASMJIT_OPERAND_CONSTEXPR St st7(7);
 
-static constexpr Bnd bnd0(0);
-static constexpr Bnd bnd1(1);
-static constexpr Bnd bnd2(2);
-static constexpr Bnd bnd3(3);
+static ASMJIT_OPERAND_CONSTEXPR Bnd bnd0(0);
+static ASMJIT_OPERAND_CONSTEXPR Bnd bnd1(1);
+static ASMJIT_OPERAND_CONSTEXPR Bnd bnd2(2);
+static ASMJIT_OPERAND_CONSTEXPR Bnd bnd3(3);
 
-static constexpr Rip rip(0);
+static ASMJIT_OPERAND_CONSTEXPR Rip rip(0);
 
 } // {regs}
 
@@ -858,136 +858,136 @@ using namespace regs;
 // ============================================================================
 
 //! Creates `[base.reg + offset]` memory operand.
-static constexpr Mem ptr(const Gp& base, int32_t offset = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(const Gp& base, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, offset, size);
 }
 //! Creates `[base.reg + (index << shift) + offset]` memory operand (scalar index).
-static constexpr Mem ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 //! Creates `[base.reg + (index << shift) + offset]` memory operand (vector index).
-static constexpr Mem ptr(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 
 //! Creates `[base + offset]` memory operand.
-static constexpr Mem ptr(const Label& base, int32_t offset = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(const Label& base, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, offset, size);
 }
 //! Creates `[base + (index << shift) + offset]` memory operand.
-static constexpr Mem ptr(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 //! Creates `[base + (index << shift) + offset]` memory operand.
-static constexpr Mem ptr(const Label& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(const Label& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 
 //! Creates `[rip + offset]` memory operand.
-static constexpr Mem ptr(const Rip& rip_, int32_t offset = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(const Rip& rip_, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(rip_, offset, size);
 }
 
 //! Creates `[base]` absolute memory operand.
-static constexpr Mem ptr(uint64_t base, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size);
 }
 //! Creates `[base + (index.reg << shift)]` absolute memory operand.
-static constexpr Mem ptr(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
 }
 //! Creates `[base + (index.reg << shift)]` absolute memory operand.
-static constexpr Mem ptr(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
 }
 
 //! Creates `[base]` absolute memory operand (absolute).
-static constexpr Mem ptr_abs(uint64_t base, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr_abs(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size, BaseMem::kSignatureMemAbs);
 }
 //! Creates `[base + (index.reg << shift)]` absolute memory operand (absolute).
-static constexpr Mem ptr_abs(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr_abs(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemAbs);
 }
 //! Creates `[base + (index.reg << shift)]` absolute memory operand (absolute).
-static constexpr Mem ptr_abs(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr_abs(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemAbs);
 }
 
 //! Creates `[base]` relative memory operand (relative).
-static constexpr Mem ptr_rel(uint64_t base, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr_rel(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size, BaseMem::kSignatureMemRel);
 }
 //! Creates `[base + (index.reg << shift)]` relative memory operand (relative).
-static constexpr Mem ptr_rel(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr_rel(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemRel);
 }
 //! Creates `[base + (index.reg << shift)]` relative memory operand (relative).
-static constexpr Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+static ASMJIT_OPERAND_CONSTEXPR Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, BaseMem::kSignatureMemRel);
 }
 
 #define ASMJIT_MEM_PTR(FUNC, SIZE)                                                    \
   /*! Creates `[base + offset]` memory operand. */                                    \
-  static constexpr Mem FUNC(const Gp& base, int32_t offset = 0) noexcept {            \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(const Gp& base, int32_t offset = 0) noexcept { \
     return Mem(base, offset, SIZE);                                                   \
   }                                                                                   \
   /*! Creates `[base + (index << shift) + offset]` memory operand. */                 \
-  static constexpr Mem FUNC(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
     return Mem(base, index, shift, offset, SIZE);                                     \
   }                                                                                   \
   /*! Creates `[base + (vec_index << shift) + offset]` memory operand. */             \
-  static constexpr Mem FUNC(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
     return Mem(base, index, shift, offset, SIZE);                                     \
   }                                                                                   \
   /*! Creates `[base + offset]` memory operand. */                                    \
-  static constexpr Mem FUNC(const Label& base, int32_t offset = 0) noexcept {         \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(const Label& base, int32_t offset = 0) noexcept { \
     return Mem(base, offset, SIZE);                                                   \
   }                                                                                   \
   /*! Creates `[base + (index << shift) + offset]` memory operand. */                 \
-  static constexpr Mem FUNC(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept { \
     return Mem(base, index, shift, offset, SIZE);                                     \
   }                                                                                   \
   /*! Creates `[rip + offset]` memory operand. */                                     \
-  static constexpr Mem FUNC(const Rip& rip_, int32_t offset = 0) noexcept {           \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(const Rip& rip_, int32_t offset = 0) noexcept { \
     return Mem(rip_, offset, SIZE);                                                   \
   }                                                                                   \
   /*! Creates `[ptr]` memory operand. */                                              \
-  static constexpr Mem FUNC(uint64_t base) noexcept {                                 \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(uint64_t base) noexcept {                  \
     return Mem(base, SIZE);                                                           \
   }                                                                                   \
   /*! Creates `[base + (index << shift) + offset]` memory operand. */                 \
-  static constexpr Mem FUNC(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE);                                             \
   }                                                                                   \
   /*! Creates `[base + (vec_index << shift) + offset]` memory operand. */             \
-  static constexpr Mem FUNC(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE);                                             \
   }                                                                                   \
                                                                                       \
   /*! Creates `[base + offset]` memory operand (absolute). */                         \
-  static constexpr Mem FUNC##_abs(uint64_t base) noexcept {                           \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC##_abs(uint64_t base) noexcept {            \
     return Mem(base, SIZE, BaseMem::kSignatureMemAbs);                                \
   }                                                                                   \
   /*! Creates `[base + (index << shift) + offset]` memory operand (absolute). */      \
-  static constexpr Mem FUNC##_abs(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC##_abs(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemAbs);                  \
   }                                                                                   \
   /*! Creates `[base + (vec_index << shift) + offset]` memory operand (absolute). */  \
-  static constexpr Mem FUNC##_abs(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC##_abs(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemAbs);                  \
   }                                                                                   \
                                                                                       \
   /*! Creates `[base + offset]` memory operand (relative). */                         \
-  static constexpr Mem FUNC##_rel(uint64_t base) noexcept {                           \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC##_rel(uint64_t base) noexcept {            \
     return Mem(base, SIZE, BaseMem::kSignatureMemRel);                                \
   }                                                                                   \
   /*! Creates `[base + (index << shift) + offset]` memory operand (relative). */      \
-  static constexpr Mem FUNC##_rel(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC##_rel(uint64_t base, const Gp& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemRel);                  \
   }                                                                                   \
   /*! Creates `[base + (vec_index << shift) + offset]` memory operand (relative). */  \
-  static constexpr Mem FUNC##_rel(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
+  static ASMJIT_OPERAND_CONSTEXPR Mem FUNC##_rel(uint64_t base, const Vec& index, uint32_t shift = 0) noexcept { \
     return Mem(base, index, shift, SIZE, BaseMem::kSignatureMemRel);                  \
   }
 
