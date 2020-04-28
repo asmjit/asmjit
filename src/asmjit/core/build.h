@@ -250,13 +250,6 @@
     #define ASMJIT_CXX_MSC ASMJIT_CXX_MAKE_VER(_MSC_VER / 100, (_MSC_FULL_VER / 100000) % 100, _MSC_FULL_VER % 100000)
   #endif
 
-  // SEVERE: VS2015 handles constexpr's incorrectly in case a struct contains a
-  //         union. There is no workaround known other than rewriting the whole
-  //         code. VS2017 has a similar bug, but it can be workarounded.
-  #if ASMJIT_CXX_MSC < ASMJIT_CXX_MAKE_VER(19, 10, 0)
-    #error "[asmjit] At least VS2017 is required due to a severe bug in VS2015's constexpr implementation"
-  #endif
-
 // Clang Compiler [Pretends to be GNU, so it must be checked before]:
 //   - https://clang.llvm.org/cxx_status.html
 #elif defined(__clang_major__) && defined(__clang_minor__) && defined(__clang_patchlevel__)

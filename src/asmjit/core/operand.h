@@ -113,6 +113,24 @@ struct Operand_ {
   //! Either base id as used by memory operand or any id as used by others.
   uint32_t _baseId;
 
+  //! Data specific to the operand type.
+  //!
+  //! The reason we don't use union is that we have `constexpr` constructors that
+  //! construct operands and other `constexpr` functions that return wither another
+  //! Operand or something else. These cannot generally work with unions so we also
+  //! cannot use `union` if we want to be standard compliant.
+  uint32_t _data[2];
+
+  //! Indexes to `_data` array.
+  enum DataIndex : uint32_t {
+    kDataMemIndexId  = 0,
+    kDataMemOffsetLo = 1,
+
+    kDataImmValueLo = ASMJIT_ARCH_LE ? 0 : 1,
+    kDataImmValueHi = ASMJIT_ARCH_LE ? 1 : 0
+  };
+
+  /*
   //! Memory operand data.
   struct MemData {
     //! Index register id.
@@ -131,6 +149,7 @@ struct Operand_ {
     //! Memory address data.
     MemData _mem;
   };
+  */
 
   //! Operand types that can be encoded in `Operand`.
   enum OpType : uint32_t {
@@ -227,7 +246,8 @@ struct Operand_ {
   inline void _initReg(uint32_t signature, uint32_t id) noexcept {
     _signature = signature;
     _baseId = id;
-    _data64 = 0;
+    _data[0] = 0;
+    _data[1] = 0;
   }
 
   //! Initializes the operand from `other` (used by operator overloads).
@@ -265,7 +285,8 @@ struct Operand_ {
   inline void reset() noexcept {
     _signature = 0;
     _baseId = 0;
-    _data64 = 0;
+    _data[0] = 0;
+    _data[1] = 0;
   }
 
   //! \}
@@ -382,7 +403,8 @@ struct Operand_ {
   constexpr bool isEqual(const Operand_& other) const noexcept {
     return (_signature == other._signature) &
            (_baseId    == other._baseId   ) &
-           (_data64    == other._data64   ) ;
+           (_data[0]   == other._data[0]  ) &
+           (_data[1]   == other._data[1]  ) ;
   }
 
   //! Tests whether the operand is a register matching `rType`.
@@ -416,7 +438,7 @@ public:
 
   //! Creates `kOpNone` operand having all members initialized to zero.
   constexpr Operand() noexcept
-    : Operand_{ kOpNone, 0u, {{ 0u, 0u }}} {}
+    : Operand_{ kOpNone, 0u, { 0u, 0u }} {}
 
   //! Creates a cloned `other` operand.
   constexpr Operand(const Operand& other) noexcept = default;
@@ -427,7 +449,7 @@ public:
 
   //! Creates an operand initialized to raw `[u0, u1, u2, u3]` values.
   constexpr Operand(Globals::Init_, uint32_t u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
-    : Operand_{ u0, u1, {{ u2, u3 }}} {}
+    : Operand_{ u0, u1, { u2, u3 }} {}
 
   //! Creates an uninitialized operand (dangerous).
   inline explicit Operand(Globals::NoInit_) noexcept {}
@@ -533,7 +555,8 @@ public:
   inline void reset() noexcept {
     _signature = kOpLabel;
     _baseId = Globals::kInvalidId;
-    _data64 = 0;
+    _data[0] = 0;
+    _data[1] = 0;
   }
 
   //! \}
@@ -990,7 +1013,8 @@ public:
   inline void reset() noexcept {
     _signature = kOpMem;
     _baseId = 0;
-    _data64 = 0;
+    _data[0] = 0;
+    _data[1] = 0;
   }
 
   //! \}
@@ -1061,12 +1085,12 @@ public:
   constexpr uint32_t baseId() const noexcept { return _baseId; }
 
   //! Returns the id of the INDEX register.
-  constexpr uint32_t indexId() const noexcept { return _mem.indexId; }
+  constexpr uint32_t indexId() const noexcept { return _data[kDataMemIndexId]; }
 
   //! Sets the id of the BASE register (without modifying its type).
   inline void setBaseId(uint32_t rId) noexcept { _baseId = rId; }
   //! Sets the id of the INDEX register (without modifying its type).
-  inline void setIndexId(uint32_t rId) noexcept { _mem.indexId = rId; }
+  inline void setIndexId(uint32_t rId) noexcept { _data[kDataMemIndexId] = rId; }
 
   //! Sets the base register to type and id of the given `base` operand.
   inline void setBase(const BaseReg& base) noexcept { return _setBase(base.type(), base.id()); }
@@ -1080,7 +1104,7 @@ public:
 
   inline void _setIndex(uint32_t rType, uint32_t rId) noexcept {
     _setSignaturePart<kSignatureMemIndexTypeMask>(rType);
-    _mem.indexId = rId;
+    _data[kDataMemIndexId] = rId;
   }
 
   //! Resets the memory operand's BASE register or label.
@@ -1098,17 +1122,17 @@ public:
 
   //! Tests whether the memory operand has a non-zero offset or absolute address.
   constexpr bool hasOffset() const noexcept {
-    return (_mem.offsetLo32 | uint32_t(_baseId & Support::bitMaskFromBool<uint32_t>(isOffset64Bit()))) != 0;
+    return (_data[kDataMemOffsetLo] | uint32_t(_baseId & Support::bitMaskFromBool<uint32_t>(isOffset64Bit()))) != 0;
   }
 
   //! Returns either relative offset or absolute address as 64-bit integer.
   constexpr int64_t offset() const noexcept {
-    return isOffset64Bit() ? int64_t(uint64_t(_mem.offsetLo32) | (uint64_t(_baseId) << 32))
-                           : int64_t(int32_t(_mem.offsetLo32)); // Sign extend 32-bit offset.
+    return isOffset64Bit() ? int64_t(uint64_t(_data[kDataMemOffsetLo]) | (uint64_t(_baseId) << 32))
+                           : int64_t(int32_t(_data[kDataMemOffsetLo])); // Sign extend 32-bit offset.
   }
 
   //! Returns a 32-bit low part of a 64-bit offset or absolute address.
-  constexpr int32_t offsetLo32() const noexcept { return int32_t(_mem.offsetLo32); }
+  constexpr int32_t offsetLo32() const noexcept { return int32_t(_data[kDataMemOffsetLo]); }
   //! Returns a 32-but high part of a 64-bit offset or absolute address.
   //!
   //! \note This function is UNSAFE and returns garbage if `isOffset64Bit()`
@@ -1127,11 +1151,11 @@ public:
     uint32_t hi = uint32_t(uint64_t(offset) >> 32);
     uint32_t hiMsk = Support::bitMaskFromBool<uint32_t>(isOffset64Bit());
 
-    _mem.offsetLo32 = lo;
+    _data[kDataMemOffsetLo] = lo;
     _baseId = (hi & hiMsk) | (_baseId & ~hiMsk);
   }
   //! Sets a low 32-bit offset to `offset` (don't use without knowing how BaseMem works).
-  inline void setOffsetLo32(int32_t offset) noexcept { _mem.offsetLo32 = uint32_t(offset); }
+  inline void setOffsetLo32(int32_t offset) noexcept { _data[kDataMemOffsetLo] = uint32_t(offset); }
 
   //! Adjusts the offset by `offset`.
   //!
@@ -1142,18 +1166,18 @@ public:
   //! Adjusts the offset by a 64-bit `offset`.
   inline void addOffset(int64_t offset) noexcept {
     if (isOffset64Bit()) {
-      int64_t result = offset + int64_t(uint64_t(_mem.offsetLo32) | (uint64_t(_baseId) << 32));
-      _mem.offsetLo32 = uint32_t(uint64_t(result) & 0xFFFFFFFFu);
-      _baseId         = uint32_t(uint64_t(result) >> 32);
+      int64_t result = offset + int64_t(uint64_t(_data[kDataMemOffsetLo]) | (uint64_t(_baseId) << 32));
+      _data[kDataMemOffsetLo] = uint32_t(uint64_t(result) & 0xFFFFFFFFu);
+      _baseId                 = uint32_t(uint64_t(result) >> 32);
     }
     else {
-      _mem.offsetLo32 += uint32_t(uint64_t(offset) & 0xFFFFFFFFu);
+      _data[kDataMemOffsetLo] += uint32_t(uint64_t(offset) & 0xFFFFFFFFu);
     }
   }
 
   //! Adds `offset` to a low 32-bit offset part (don't use without knowing how
   //! BaseMem works).
-  inline void addOffsetLo32(int32_t offset) noexcept { _mem.offsetLo32 += uint32_t(offset); }
+  inline void addOffsetLo32(int32_t offset) noexcept { _data[kDataMemOffsetLo] += uint32_t(offset); }
 
   //! Resets the memory offset to zero.
   inline void resetOffset() noexcept { setOffset(0); }
@@ -1210,76 +1234,77 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Tests whether the immediate can be casted to 8-bit signed integer.
-  constexpr bool isInt8() const noexcept { return Support::isInt8(int64_t(_data64)); }
-  //! Tests whether the immediate can be casted to 8-bit unsigned integer.
-  constexpr bool isUInt8() const noexcept { return Support::isUInt8(int64_t(_data64)); }
-  //! Tests whether the immediate can be casted to 16-bit signed integer.
-  constexpr bool isInt16() const noexcept { return Support::isInt16(int64_t(_data64)); }
-  //! Tests whether the immediate can be casted to 16-bit unsigned integer.
-  constexpr bool isUInt16() const noexcept { return Support::isUInt16(int64_t(_data64)); }
-  //! Tests whether the immediate can be casted to 32-bit signed integer.
-  constexpr bool isInt32() const noexcept { return Support::isInt32(int64_t(_data64)); }
-  //! Tests whether the immediate can be casted to 32-bit unsigned integer.
-  constexpr bool isUInt32() const noexcept { return Support::isUInt32(int64_t(_data64)); }
-
   //! Returns immediate value as 8-bit signed integer, possibly cropped.
-  constexpr int8_t i8() const noexcept { return int8_t(_data64 & 0xFFu); }
+  constexpr int8_t i8() const noexcept { return int8_t(_data[kDataImmValueLo] & 0xFFu); }
   //! Returns immediate value as 8-bit unsigned integer, possibly cropped.
-  constexpr uint8_t u8() const noexcept { return uint8_t(_data64 & 0xFFu); }
+  constexpr uint8_t u8() const noexcept { return uint8_t(_data[kDataImmValueLo] & 0xFFu); }
   //! Returns immediate value as 16-bit signed integer, possibly cropped.
-  constexpr int16_t i16() const noexcept { return int16_t(_data64 & 0xFFFFu);}
+  constexpr int16_t i16() const noexcept { return int16_t(_data[kDataImmValueLo] & 0xFFFFu);}
   //! Returns immediate value as 16-bit unsigned integer, possibly cropped.
-  constexpr uint16_t u16() const noexcept { return uint16_t(_data64 & 0xFFFFu);}
+  constexpr uint16_t u16() const noexcept { return uint16_t(_data[kDataImmValueLo] & 0xFFFFu);}
   //! Returns immediate value as 32-bit signed integer, possibly cropped.
-  constexpr int32_t i32() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
+  constexpr int32_t i32() const noexcept { return int32_t(_data[kDataImmValueLo]); }
   //! Returns low 32-bit signed integer.
-  constexpr int32_t i32Lo() const noexcept { return int32_t(_data64 & 0xFFFFFFFFu); }
+  constexpr int32_t i32Lo() const noexcept { return int32_t(_data[kDataImmValueLo]); }
   //! Returns high 32-bit signed integer.
-  constexpr int32_t i32Hi() const noexcept { return int32_t(_data64 >> 32); }
+  constexpr int32_t i32Hi() const noexcept { return int32_t(_data[kDataImmValueHi]); }
   //! Returns immediate value as 32-bit unsigned integer, possibly cropped.
-  constexpr uint32_t u32() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
+  constexpr uint32_t u32() const noexcept { return _data[kDataImmValueLo]; }
   //! Returns low 32-bit signed integer.
-  constexpr uint32_t u32Lo() const noexcept { return uint32_t(_data64 & 0xFFFFFFFFu); }
+  constexpr uint32_t u32Lo() const noexcept { return _data[kDataImmValueLo]; }
   //! Returns high 32-bit signed integer.
-  constexpr uint32_t u32Hi() const noexcept { return uint32_t(_data64 >> 32); }
+  constexpr uint32_t u32Hi() const noexcept { return _data[kDataImmValueHi]; }
   //! Returns immediate value as 64-bit signed integer.
-  constexpr int64_t i64() const noexcept { return int64_t(_data64); }
+  constexpr int64_t i64() const noexcept { return int64_t((uint64_t(_data[kDataImmValueHi]) << 32) | _data[kDataImmValueLo]); }
   //! Returns immediate value as 64-bit unsigned integer.
-  constexpr uint64_t u64() const noexcept { return _data64; }
+  constexpr uint64_t u64() const noexcept { return uint64_t(i64()); }
   //! Returns immediate value as `intptr_t`, possibly cropped if size of `intptr_t` is 32 bits.
-  constexpr intptr_t iptr() const noexcept { return (sizeof(intptr_t) == sizeof(int64_t)) ? intptr_t(_data64) : intptr_t(i32()); }
+  constexpr intptr_t iptr() const noexcept { return (sizeof(intptr_t) == sizeof(int64_t)) ? intptr_t(i64()) : intptr_t(i32()); }
   //! Returns immediate value as `uintptr_t`, possibly cropped if size of `uintptr_t` is 32 bits.
-  constexpr uintptr_t uptr() const noexcept { return (sizeof(uintptr_t) == sizeof(uint64_t)) ? uintptr_t(_data64) : uintptr_t(u32()); }
+  constexpr uintptr_t uptr() const noexcept { return (sizeof(uintptr_t) == sizeof(uint64_t)) ? uintptr_t(u64()) : uintptr_t(u32()); }
+
+  //! Tests whether the immediate can be casted to 8-bit signed integer.
+  constexpr bool isInt8() const noexcept { return Support::isInt8(i64()); }
+  //! Tests whether the immediate can be casted to 8-bit unsigned integer.
+  constexpr bool isUInt8() const noexcept { return Support::isUInt8(i64()); }
+  //! Tests whether the immediate can be casted to 16-bit signed integer.
+  constexpr bool isInt16() const noexcept { return Support::isInt16(i64()); }
+  //! Tests whether the immediate can be casted to 16-bit unsigned integer.
+  constexpr bool isUInt16() const noexcept { return Support::isUInt16(i64()); }
+  //! Tests whether the immediate can be casted to 32-bit signed integer.
+  constexpr bool isInt32() const noexcept { return Support::isInt32(i64()); }
+  //! Tests whether the immediate can be casted to 32-bit unsigned integer.
+  constexpr bool isUInt32() const noexcept { return _data[kDataImmValueHi] == 0; }
 
   //! Sets immediate value to 8-bit signed integer `val`.
-  inline void setI8(int8_t val) noexcept { _data64 = uint64_t(int64_t(val)); }
+  inline void setI8(int8_t val) noexcept { setI64(val); }
   //! Sets immediate value to 8-bit unsigned integer `val`.
-  inline void setU8(uint8_t val) noexcept { _data64 = uint64_t(val); }
+  inline void setU8(uint8_t val) noexcept { setU64(val); }
   //! Sets immediate value to 16-bit signed integer `val`.
-  inline void setI16(int16_t val) noexcept { _data64 = uint64_t(int64_t(val)); }
+  inline void setI16(int16_t val) noexcept { setI64(val); }
   //! Sets immediate value to 16-bit unsigned integer `val`.
-  inline void setU16(uint16_t val) noexcept { _data64 = uint64_t(val); }
+  inline void setU16(uint16_t val) noexcept { setU64(val); }
   //! Sets immediate value to 32-bit signed integer `val`.
-  inline void setI32(int32_t val) noexcept { _data64 = uint64_t(int64_t(val)); }
+  inline void setI32(int32_t val) noexcept { setI64(val); }
   //! Sets immediate value to 32-bit unsigned integer `val`.
-  inline void setU32(uint32_t val) noexcept { _data64 = uint64_t(val); }
+  inline void setU32(uint32_t val) noexcept { setU64(val); }
   //! Sets immediate value to 64-bit signed integer `val`.
-  inline void setI64(int64_t val) noexcept { _data64 = uint64_t(val); }
+  inline void setI64(int64_t val) noexcept {
+    _data[kDataImmValueHi] = uint32_t(uint64_t(val) >> 32);
+    _data[kDataImmValueLo] = uint32_t(uint64_t(val) & 0xFFFFFFFFu);
+  }
   //! Sets immediate value to 64-bit unsigned integer `val`.
-  inline void setU64(uint64_t val) noexcept { _data64 = val; }
+  inline void setU64(uint64_t val) noexcept { setI64(int64_t(val)); }
   //! Sets immediate value to intptr_t `val`.
-  inline void setIPtr(intptr_t val) noexcept { _data64 = uint64_t(int64_t(val)); }
+  inline void setIPtr(intptr_t val) noexcept { setI64(val); }
   //! Sets immediate value to uintptr_t `val`.
-  inline void setUPtr(uintptr_t val) noexcept { _data64 = uint64_t(val); }
+  inline void setUPtr(uintptr_t val) noexcept { setU64(val); }
 
   //! Sets immediate value to `val`.
   template<typename T>
   inline void setValue(T val) noexcept { setI64(int64_t(Support::asNormalized(val))); }
 
-  inline void setDouble(double d) noexcept {
-    _data64 = Support::bitCast<uint64_t>(d);
-  }
+  inline void setDouble(double d) noexcept { setU64(Support::bitCast<uint64_t>(d)); }
 
   //! \}
 
@@ -1289,13 +1314,13 @@ public:
   //! Clones the immediate operand.
   constexpr Imm clone() const noexcept { return Imm(*this); }
 
-  inline void signExtend8Bits() noexcept { _data64 = uint64_t(int64_t(i8())); }
-  inline void signExtend16Bits() noexcept { _data64 = uint64_t(int64_t(i16())); }
-  inline void signExtend32Bits() noexcept { _data64 = uint64_t(int64_t(i32())); }
+  inline void signExtend8Bits() noexcept { setI64(int64_t(i8())); }
+  inline void signExtend16Bits() noexcept { setI64(int64_t(i16())); }
+  inline void signExtend32Bits() noexcept { setI64(int64_t(i32())); }
 
-  inline void zeroExtend8Bits() noexcept { _data64 &= 0x000000FFu; }
-  inline void zeroExtend16Bits() noexcept { _data64 &= 0x0000FFFFu; }
-  inline void zeroExtend32Bits() noexcept { _data64 &= 0xFFFFFFFFu; }
+  inline void zeroExtend8Bits() noexcept { setU64(u8()); }
+  inline void zeroExtend16Bits() noexcept { setU64(u16()); }
+  inline void zeroExtend32Bits() noexcept { _data[kDataImmValueHi] = 0u; }
 
   //! \}
 };
