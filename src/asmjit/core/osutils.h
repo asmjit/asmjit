@@ -37,14 +37,14 @@ public:
 
   #if defined(_WIN32)
 
-  typedef CRITICAL_SECTION Handle;
+  typedef struct { uint32_t data[16]; } Handle; // structure must be at least as large as CRITICAL_SECTION
   Handle _handle;
 
-  inline Lock() noexcept { InitializeCriticalSection(&_handle); }
-  inline ~Lock() noexcept { DeleteCriticalSection(&_handle); }
+  Lock() noexcept;
+  ~Lock() noexcept;
 
-  inline void lock() noexcept { EnterCriticalSection(&_handle); }
-  inline void unlock() noexcept { LeaveCriticalSection(&_handle); }
+  void lock() noexcept;
+  void unlock() noexcept;
 
   #elif !defined(__EMSCRIPTEN__)
 

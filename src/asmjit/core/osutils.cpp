@@ -87,4 +87,16 @@ uint32_t OSUtils::getTickCount() noexcept {
 #endif
 }
 
+#if defined(_WIN32)
+
+static_assert(sizeof(Lock::Handle) >= sizeof(CRITICAL_SECTION), "Lock::Handle too small, increase size of data array");
+
+Lock::Lock() noexcept { InitializeCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(&_handle)); }
+Lock::~Lock() noexcept { DeleteCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(&_handle)); }
+
+void Lock::lock() noexcept { EnterCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(&_handle)); }
+void Lock::unlock() noexcept { LeaveCriticalSection(reinterpret_cast<LPCRITICAL_SECTION>(&_handle)); }
+
+#endif
+
 ASMJIT_END_NAMESPACE

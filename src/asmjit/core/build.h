@@ -97,22 +97,10 @@
 #include <utility>
 
 #if defined(_WIN32)
-  #ifndef WIN32_LEAN_AND_MEAN
+  #ifdef ASMJIT_EXPORTS
     #define WIN32_LEAN_AND_MEAN
-    #define ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-  #endif
-  #ifndef NOMINMAX
     #define NOMINMAX
-    #define ASMJIT_UNDEF_NOMINMAX
-  #endif
-  #include <windows.h>
-  #ifdef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-    #undef WIN32_LEAN_AND_MEAN
-    #undef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-  #endif
-  #ifdef ASMJIT_UNDEF_NOMINMAX
-    #undef NOMINMAX
-    #undef ASMJIT_UNDEF_NOMINMAX
+    #include <windows.h>
   #endif
 #else
   #include <pthread.h>
