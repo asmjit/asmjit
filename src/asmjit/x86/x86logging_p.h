@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_X86_X86LOGGING_P_H
 #define _ASMJIT_X86_X86LOGGING_P_H
 
-#include "../core/build.h"
+#include "../core/api-config.h"
 #ifndef ASMJIT_NO_LOGGING
 
 #include "../core/logging.h"

@@ -4,8 +4,8 @@
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
-#ifndef _ASMJIT_CORE_BUILD_H
-#define _ASMJIT_CORE_BUILD_H
+#ifndef _ASMJIT_CORE_API_CONFIG_H
+#define _ASMJIT_CORE_API_CONFIG_H
 
 // ============================================================================
 // [asmjit::Version]
@@ -96,25 +96,7 @@
 #include <type_traits>
 #include <utility>
 
-#if defined(_WIN32)
-  #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-    #define ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-  #endif
-  #ifndef NOMINMAX
-    #define NOMINMAX
-    #define ASMJIT_UNDEF_NOMINMAX
-  #endif
-  #include <windows.h>
-  #ifdef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-    #undef WIN32_LEAN_AND_MEAN
-    #undef ASMJIT_UNDEF_WIN32_LEAN_AND_MEAN
-  #endif
-  #ifdef ASMJIT_UNDEF_NOMINMAX
-    #undef NOMINMAX
-    #undef ASMJIT_UNDEF_NOMINMAX
-  #endif
-#else
+#if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
   #include <pthread.h>
 #endif
 
@@ -316,13 +298,13 @@
 // API (Export / Import).
 #if !defined(ASMJIT_STATIC)
   #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
-    #if defined(ASMJIT_EXPORTS)
+    #ifdef ASMJIT_EXPORTS
       #define ASMJIT_API __declspec(dllexport)
     #else
       #define ASMJIT_API __declspec(dllimport)
     #endif
   #elif defined(_WIN32) && defined(__GNUC__)
-    #if defined(ASMJIT_EXPORTS)
+    #ifdef ASMJIT_EXPORTS
       #define ASMJIT_API __attribute__((__dllexport__))
     #else
       #define ASMJIT_API __attribute__((__dllimport__))
@@ -397,6 +379,12 @@
   #define ASMJIT_ALIGN_TYPE(TYPE, N) __declspec(align(N)) TYPE
 #else
   #define ASMJIT_ALIGN_TYPE(TYPE, N) TYPE
+#endif
+
+#if defined(__GNUC__)
+  #define ASMJIT_MAY_ALIAS __attribute__((__may_alias__))
+#else
+  #define ASMJIT_MAY_ALIAS
 #endif
 
 // Annotations.
@@ -563,4 +551,4 @@
   #include "../../../test/broken.h"
 #endif
 
-#endif // _ASMJIT_CORE_BUILD_H
+#endif // _ASMJIT_CORE_API_CONFIG_H

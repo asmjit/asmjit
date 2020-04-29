@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_CORE_VIRTMEM_H
 #define _ASMJIT_CORE_VIRTMEM_H
 
-#include "../core/build.h"
+#include "../core/api-config.h"
 #ifndef ASMJIT_NO_JIT
 
 #include "../core/globals.h"

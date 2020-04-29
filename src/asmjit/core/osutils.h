@@ -31,63 +31,89 @@ namespace OSUtils {
 //! \cond INTERNAL
 
 //! Lock.
+//!
+//! Lock is internal, it cannot be used outside of AsmJit, however, its internal
+//! layout is exposed as it's used by some other public classes.
 class Lock {
 public:
   ASMJIT_NONCOPYABLE(Lock)
 
-  #if defined(_WIN32)
-
-  typedef CRITICAL_SECTION Handle;
+#if defined(_WIN32)
+#pragma pack(push, 8)
+  struct ASMJIT_MAY_ALIAS Handle {
+    void* DebugInfo;
+    long LockCount;
+    long RecursionCount;
+    void* OwningThread;
+    void* LockSemaphore;
+    unsigned long* SpinCount;
+  };
   Handle _handle;
-
-  inline Lock() noexcept { InitializeCriticalSection(&_handle); }
-  inline ~Lock() noexcept { DeleteCriticalSection(&_handle); }
-
-  inline void lock() noexcept { EnterCriticalSection(&_handle); }
-  inline void unlock() noexcept { LeaveCriticalSection(&_handle); }
-
-  #elif !defined(__EMSCRIPTEN__)
-
+#pragma pack(pop)
+#elif !defined(__EMSCRIPTEN__)
   typedef pthread_mutex_t Handle;
   Handle _handle;
+#endif
 
-  inline Lock() noexcept { pthread_mutex_init(&_handle, nullptr); }
-  inline ~Lock() noexcept { pthread_mutex_destroy(&_handle); }
+  inline Lock() noexcept;
+  inline ~Lock() noexcept;
 
-  inline void lock() noexcept { pthread_mutex_lock(&_handle); }
-  inline void unlock() noexcept { pthread_mutex_unlock(&_handle); }
-
-  #else
-
-  // Browser or other unsupported OS.
-  inline Lock() noexcept {}
-  inline ~Lock() noexcept {}
-
-  inline void lock() noexcept {}
-  inline void unlock() noexcept {}
-
-  #endif
+  inline void lock() noexcept;
+  inline void unlock() noexcept;
 };
+
+#ifdef ASMJIT_EXPORTS
+#if defined(_WIN32)
+
+// Win32 implementation.
+static_assert(sizeof(Lock::Handle) == sizeof(CRITICAL_SECTION), "asmjit::Lock::Handle layout must match CRITICAL_SECTION");
+static_assert(alignof(Lock::Handle) == alignof(CRITICAL_SECTION), "asmjit::Lock::Handle alignment must match CRITICAL_SECTION");
+
+inline Lock::Lock() noexcept { InitializeCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+inline Lock::~Lock() noexcept { DeleteCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+inline void Lock::lock() noexcept { EnterCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+inline void Lock::unlock() noexcept { LeaveCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+
+#elif !defined(__EMSCRIPTEN__)
+
+// PThread implementation.
+inline Lock::Lock() noexcept { pthread_mutex_init(&_handle, nullptr); }
+inline Lock::~Lock() noexcept { pthread_mutex_destroy(&_handle); }
+inline void Lock::lock() noexcept { pthread_mutex_lock(&_handle); }
+inline void Lock::unlock() noexcept { pthread_mutex_unlock(&_handle); }
+
+#else
+
+// Dummy implementation - Emscripten or other unsupported platform.
+inline Lock::Lock() noexcept {}
+inline Lock::~Lock() noexcept {}
+inline void Lock::lock() noexcept {}
+inline void Lock::unlock() noexcept {}
+
+#endif
+#endif
 
 //! \endcond
 
 // ============================================================================
-// [asmjit::ScopedLock]
+// [asmjit::LockGuard]
 // ============================================================================
 
+#ifdef ASMJIT_EXPORTS
 //! \cond INTERNAL
 
 //! Scoped lock.
-struct ScopedLock {
-  ASMJIT_NONCOPYABLE(ScopedLock)
+struct LockGuard {
+  ASMJIT_NONCOPYABLE(LockGuard)
 
   Lock& _target;
 
-  inline ScopedLock(Lock& target) noexcept : _target(target) { _target.lock(); }
-  inline ~ScopedLock() noexcept { _target.unlock(); }
+  inline LockGuard(Lock& target) noexcept : _target(target) { _target.lock(); }
+  inline ~LockGuard() noexcept { _target.unlock(); }
 };
 
 //! \endcond
+#endif
 
 //! \}
 

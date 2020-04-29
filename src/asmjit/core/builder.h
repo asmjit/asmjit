@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_CORE_BUILDER_H
 #define _ASMJIT_CORE_BUILDER_H
 
-#include "../core/build.h"
+#include "../core/api-config.h"
 #ifndef ASMJIT_NO_BUILDER
 
 #include "../core/assembler.h"

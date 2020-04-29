@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_CORE_RASTACK_P_H
 #define _ASMJIT_CORE_RASTACK_P_H
 
-#include "../core/build.h"
+#include "../core/api-config.h"
 #ifndef ASMJIT_NO_COMPILER
 
 #include "../core/radefs_p.h"

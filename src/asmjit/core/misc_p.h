@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_CORE_MISC_P_H
 #define _ASMJIT_CORE_MISC_P_H
 
-#include "../core/build.h"
+#include "../core/api-config.h"
 
 ASMJIT_BEGIN_NAMESPACE
 

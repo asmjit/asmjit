@@ -4,9 +4,7 @@
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
-#define ASMJIT_EXPORTS
-
-#include "../core/build.h"
+#include "../core/api-build_p.h"
 #ifndef ASMJIT_NO_JIT
 
 #include "../core/arch.h"
@@ -601,7 +599,7 @@ JitAllocator::Statistics JitAllocator::statistics() const noexcept {
 
   if (ASMJIT_LIKELY(_impl != &JitAllocatorImpl_none)) {
     JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
-    ScopedLock locked(impl->lock);
+    LockGuard guard(impl->lock);
 
     size_t poolCount = impl->poolCount;
     for (size_t poolId = 0; poolId < poolCount; poolId++) {
@@ -638,7 +636,7 @@ Error JitAllocator::alloc(void** roPtrOut, void** rwPtrOut, size_t size) noexcep
   if (ASMJIT_UNLIKELY(size > std::numeric_limits<uint32_t>::max() / 2))
     return DebugUtils::errored(kErrorTooLarge);
 
-  ScopedLock locked(impl->lock);
+  LockGuard guard(impl->lock);
   JitAllocatorPool* pool = &impl->pools[JitAllocatorImpl_sizeToPoolId(impl, size)];
 
   uint32_t areaIndex = kNoIndex;
@@ -763,7 +761,7 @@ Error JitAllocator::release(void* ro) noexcept {
     return DebugUtils::errored(kErrorInvalidArgument);
 
   JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
-  ScopedLock locked(impl->lock);
+  LockGuard guard(impl->lock);
 
   JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(ro));
   if (ASMJIT_UNLIKELY(!block))
@@ -822,7 +820,7 @@ Error JitAllocator::shrink(void* ro, size_t newSize) noexcept {
     return release(ro);
 
   JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
-  ScopedLock locked(impl->lock);
+  LockGuard guard(impl->lock);
   JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(ro));
 
   if (ASMJIT_UNLIKELY(!block))

@@ -22,9 +22,7 @@
 // (including registers and flags), and all indexes to all tables.
 // ----------------------------------------------------------------------------
 
-#define ASMJIT_EXPORTS
-
-#include "../core/build.h"
+#include "../core/api-build_p.h"
 #ifdef ASMJIT_BUILD_X86
 
 #include "../core/cpuinfo.h"

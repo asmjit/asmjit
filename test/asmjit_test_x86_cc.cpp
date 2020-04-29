@@ -12,6 +12,11 @@
 #include "./asmjit.h"
 #include "./asmjit_test_misc.h"
 
+#ifdef _MSC_VER
+// Interaction between '_setjmp' and C++ object destruction is non-portable.
+#pragma warning(disable: 4611)
+#endif
+
 using namespace asmjit;
 
 // ============================================================================
@@ -174,10 +179,11 @@ int X86TestApp::run() {
     x86::Compiler cc(&code);
     test->compile(cc);
 
+    void* func = nullptr;
     Error err = errorHandler._err;
+
     if (!err)
       err = cc.finalize();
-    void* func;
 
     #ifndef ASMJIT_NO_LOGGING
     if (_dumpAsm) {

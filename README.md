@@ -113,7 +113,7 @@ Supported Environments
     * **Clang** - tested by Travis-CI - Clang 3.9+ (with C++11 enabled) is officially supported (older Clang versions having C++11 support are probably fine, but are not regularly tested).
     * **GNU** - tested by Travis-CI - GCC 4.8+ (with C++11 enabled) is officially supported.
     * **MINGW** - tested by Travis-CI - Use the latest version, if possible.
-    * **MSVC** - tested by Travis-CI - VS2017+ is officially supported, VC2015 is reported to work.
+    * **MSVC** - tested by Travis-CI - VS2017+ is officially supported, VS2015 is reported to work.
   * Untested:
     * **Intel** - no maintainers and no CI environment to regularly test this compiler.
     * Other c++ compilers would require basic support in [core/build.h](./src/asmjit/core/build.h).

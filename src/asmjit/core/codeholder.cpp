@@ -4,8 +4,7 @@
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
-#define ASMJIT_EXPORTS
-
+#include "../core/api-build_p.h"
 #include "../core/assembler.h"
 #include "../core/logging.h"
 #include "../core/support.h"

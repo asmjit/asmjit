@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_CORE_RALOCAL_P_H
 #define _ASMJIT_CORE_RALOCAL_P_H
 
-#include "../core/build.h"
+#include "../core/api-config.h"
 #ifndef ASMJIT_NO_COMPILER
 
 #include "../core/raassignment_p.h"

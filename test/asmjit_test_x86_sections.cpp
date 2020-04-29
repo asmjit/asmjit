@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
   code.init(codeInfo);
   code.setLogger(&logger);
 
-  Section* section;
-  Error err = code.newSection(&section, ".data", SIZE_MAX, 0, 8);
+  Section* dataSection;
+  Error err = code.newSection(&dataSection, ".data", SIZE_MAX, 0, 8);
 
   if (err) {
     fail("Failed to create a .data section", err);
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
     a.emitEpilog(frame);
 
-    a.section(section);
+    a.section(dataSection);
     a.bind(data);
 
     a.embed(dataArray, sizeof(dataArray));

@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_X86_X86INTERNAL_P_H
 #define _ASMJIT_X86_X86INTERNAL_P_H
 
-#include "../core/build.h"
+#include "../core/api-config.h"
 
 #include "../core/func.h"
 #include "../x86/x86emitter.h"

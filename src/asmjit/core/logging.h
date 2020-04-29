@@ -316,7 +316,7 @@ struct Logging {
   #endif
 
   // Only used by AsmJit internals, not available to users.
-  #if defined(ASMJIT_EXPORTS)
+  #ifdef ASMJIT_EXPORTS
   enum {
     // Has to be big to be able to hold all metadata compiler can assign to a
     // single instruction.

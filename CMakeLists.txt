@@ -258,7 +258,8 @@ set(ASMJIT_SRC_LIST
   asmjit/asmjit.h
 
   asmjit/core.h
-  asmjit/core/build.h
+  asmjit/core/api-build_p.h
+  asmjit/core/api-config.h
   asmjit/core/arch.cpp
   asmjit/core/arch.h
   asmjit/core/assembler.cpp
