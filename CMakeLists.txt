@@ -117,17 +117,20 @@ function(asmjit_detect_sanitizers out)
   set(${out} "${_out_array}" PARENT_SCOPE)
 endfunction()
 
-function(asmjit_add_target target target_type src deps cflags cflags_dbg cflags_rel)
-  if ("${target_type}" STREQUAL "EXECUTABLE")
-    add_executable(${target} ${src})
+function(asmjit_add_target target target_type)
+  set(single_val "")
+  set(multi_val SOURCES LIBRARIES CFLAGS CFLAGS_DBG CFLAGS_REL)
+  cmake_parse_arguments("X" "" "${single_val}" "${multi_val}" ${ARGN})
+
+  if ("${target_type}" MATCHES "^(EXECUTABLE|TEST)$")
+    add_executable(${target} ${X_SOURCES})
   else()
-    add_library(${target} ${target_type} ${src})
+    add_library(${target} ${target_type} ${X_SOURCES})
   endif()
 
-  target_link_libraries(${target} PRIVATE ${deps})
+  target_link_libraries(${target} PRIVATE ${X_LIBRARIES})
 
-  # target_link_options was added in cmake 3.13, which doesn't work for us.
-  # target_link_options(${target} PRIVATE ${flags})
+  # target_link_options was added in cmake v3.13, don't use it for now...
   foreach(link_flag ${ASMJIT_SANITIZE_LFLAGS})
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${link_flag}")
   endforeach()
@@ -139,7 +142,11 @@ function(asmjit_add_target target target_type src deps cflags cflags_dbg cflags_
   endif()
   set_property(TARGET ${target} PROPERTY CXX_EXTENSIONS NO)
   set_property(TARGET ${target} PROPERTY CXX_VISIBILITY_PRESET hidden)
-  target_compile_options(${target} PRIVATE ${cflags} ${ASMJIT_SANITIZE_CFLAGS} $<$<CONFIG:Debug>:${cflags_dbg}> $<$<NOT:$<CONFIG:Debug>>:${cflags_rel}>)
+  target_compile_options(${target} PRIVATE ${X_CFLAGS} ${ASMJIT_SANITIZE_CFLAGS} $<$<CONFIG:Debug>:${X_CFLAGS_DBG}> $<$<NOT:$<CONFIG:Debug>>:${X_CFLAGS_REL}>)
+
+  if ("${target_type}" STREQUAL "TEST")
+    add_test(NAME ${target} COMMAND ${target})
+  endif()
 endfunction()
 
 # =============================================================================
@@ -391,55 +398,67 @@ message("   ASMJIT_PRIVATE_CFLAGS_REL=${ASMJIT_PRIVATE_CFLAGS_REL}")
 # =============================================================================
 
 if (NOT ASMJIT_EMBED)
-  # Add 'asmjit' target.
+  # Add AsmJit target.
   asmjit_add_target(asmjit "${ASMJIT_TARGET_TYPE}"
-    "${ASMJIT_SRC}"
-    "${ASMJIT_DEPS}"
-    "${ASMJIT_PRIVATE_CFLAGS}"
-    "${ASMJIT_PRIVATE_CFLAGS_DBG}"
-    "${ASMJIT_PRIVATE_CFLAGS_REL}")
+                    SOURCES    ${ASMJIT_SRC}
+                    LIBRARIES  ${ASMJIT_DEPS}
+                    CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                    CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                    CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
   target_include_directories(asmjit BEFORE INTERFACE ${ASMJIT_INCLUDE_DIRS})
   target_compile_options(asmjit INTERFACE ${ASMJIT_CFLAGS})
-
-  # Add AsmJit::AsmJit target (alias to asmjit).
   add_library(AsmJit::AsmJit ALIAS asmjit)
 
-  # Install 'asmjit' target (shared or static).
-  install(TARGETS asmjit RUNTIME DESTINATION "bin"
-                         LIBRARY DESTINATION "lib${LIB_SUFFIX}"
-                         ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
+  # Add AsmJit install instructions (library and public headers).
+  if (NOT ASMJIT_NO_INSTALL)
+    install(TARGETS asmjit RUNTIME DESTINATION "bin"
+                           LIBRARY DESTINATION "lib${LIB_SUFFIX}"
+                           ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
+    foreach(_src_file ${ASMJIT_SRC_LIST})
+      if ("${_src_file}" MATCHES "\\.h$" AND NOT "${_src_file}" MATCHES "_p\\.h$")
+        get_filename_component(_src_dir ${_src_file} PATH)
+        install(FILES "${ASMJIT_DIR}/src/${_src_file}" DESTINATION "include/${_src_dir}")
+      endif()
+    endforeach()
+  endif()
 
-  # Install 'asmjit' header files (private headers are filtered out).
-  foreach(_src_file ${ASMJIT_SRC_LIST})
-    if ("${_src_file}" MATCHES "\\.h$" AND NOT "${_src_file}" MATCHES "_p\\.h$")
-      get_filename_component(_src_dir ${_src_file} PATH)
-      install(FILES "${ASMJIT_DIR}/src/${_src_file}" DESTINATION "include/${_src_dir}")
-    endif()
-  endforeach()
-
-  # Add 'asmjit' tests.
+  # Add AsmJit tests.
   if (ASMJIT_TEST)
-    set(ASMJIT_TEST_SRC test/asmjit_test_unit.cpp test/broken.cpp test/broken.h)
+    enable_testing()
 
-    asmjit_add_target(asmjit_test_unit EXECUTABLE
-      "${ASMJIT_SRC};${ASMJIT_TEST_SRC}"
-      "${ASMJIT_DEPS}"
-      "${ASMJIT_PRIVATE_CFLAGS}"
-      "${ASMJIT_PRIVATE_CFLAGS_DBG}"
-      "${ASMJIT_PRIVATE_CFLAGS_REL}")
-    target_compile_definitions(asmjit_test_unit PRIVATE ASMJIT_TEST ASMJIT_STATIC)
+    # Special target that always uses embedded AsmJit.
+    asmjit_add_target(asmjit_test_unit TEST
+                      SOURCES    ${ASMJIT_SRC}
+                                 test/asmjit_test_unit.cpp
+                                 test/broken.cpp
+                                 test/broken.h
+                      LIBRARIES  ${ASMJIT_DEPS}
+                      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                                 -DASMJIT_TEST
+                                 -DASMJIT_STATIC
+                      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    target_include_directories(asmjit_test_unit BEFORE PRIVATE ${ASMJIT_INCLUDE_DIRS})
 
-    foreach(_target asmjit_bench_x86
-                    asmjit_test_opcode
+    foreach(_target asmjit_test_opcode
                     asmjit_test_x86_asm
                     asmjit_test_x86_cc
                     asmjit_test_x86_sections)
+      asmjit_add_target(${_target} TEST
+                        SOURCES    test/${_target}.cpp
+                        LIBRARIES  AsmJit::AsmJit
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    endforeach()
+
+    foreach(_target asmjit_bench_x86)
       asmjit_add_target(${_target} EXECUTABLE
-        "test/${_target}.cpp"
-        "${ASMJIT_LIBS}"
-        "${ASMJIT_PRIVATE_CFLAGS}"
-        "${ASMJIT_PRIVATE_CFLAGS_DBG}"
-        "${ASMJIT_PRIVATE_CFLAGS_REL}")
+                        SOURCES    test/${_target}.cpp
+                        LIBRARIES  AsmJit::AsmJit
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endforeach()
   endif()
 endif()

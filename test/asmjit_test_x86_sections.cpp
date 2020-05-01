@@ -1,4 +1,4 @@
-// [AsmJit]
+// [AsmJit]you want
 // Machine Code Generation for C++.
 //
 // [License]
@@ -13,13 +13,12 @@
 //   - Tell the CodeHolder to resolve unresolved links and check whether
 //     all links were resolved.
 //   - Relocate the code
-//   - Copy the code to the location you want.
+//   - Copy the code to the destination address.
 
+#include <asmjit/x86.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "./asmjit.h"
 
 using namespace asmjit;
 

@@ -8,10 +8,10 @@
 // disassembled in your IDE or by your favorite disassembler. Instructions
 // are grouped by category and then sorted alphabetically.
 
+#include <asmjit/x86.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "./asmjit.h"
 #include "./asmjit_test_opcode.h"
 
 using namespace asmjit;

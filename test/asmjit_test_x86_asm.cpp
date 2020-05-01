@@ -4,11 +4,10 @@
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
+#include <asmjit/x86.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "./asmjit.h"
 
 using namespace asmjit;
 

@@ -4,10 +4,10 @@
 // [License]
 // Zlib - See LICENSE.md file in the package.
 
+#include <asmjit/x86.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "./asmjit.h"
 #include "./asmjit_test_misc.h"
 #include "./asmjit_test_opcode.h"
 

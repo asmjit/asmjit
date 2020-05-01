@@ -7,7 +7,7 @@
 #ifndef _ASMJIT_TEST_OPCODE_H
 #define _ASMJIT_TEST_OPCODE_H
 
-#include "./asmjit.h"
+#include <asmjit/x86.h>
 
 namespace asmtest {
 

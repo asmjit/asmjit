@@ -537,18 +537,4 @@
 #undef ASMJIT_CXX_MSC
 #undef ASMJIT_CXX_MAKE_VER
 
-// ============================================================================
-// [asmjit::Build - Globals - Unit Testing Boilerplate]
-// ============================================================================
-
-// IDE: Make sure '#ifdef'ed unit tests are properly highlighted.
-#if defined(__INTELLISENSE__) && !defined(ASMJIT_TEST)
-  #define ASMJIT_TEST
-#endif
-
-// IDE: Make sure '#ifdef'ed unit tests are not disabled by IDE.
-#if defined(ASMJIT_TEST)
-  #include "../../../test/broken.h"
-#endif
-
 #endif // _ASMJIT_CORE_API_CONFIG_H
