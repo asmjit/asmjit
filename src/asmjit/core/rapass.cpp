@@ -1429,11 +1429,12 @@ Error RAPass::useTemporaryMem(BaseMem& out, uint32_t size, uint32_t alignment) n
   }
   else {
     ASMJIT_ASSERT(_temporaryMem.as<BaseMem>().isRegHome());
-    uint32_t virtId = _temporaryMem.as<BaseMem>().baseId();
 
+    uint32_t virtId = _temporaryMem.as<BaseMem>().baseId();
     VirtReg* virtReg = cc()->virtRegById(virtId);
-    virtReg->_virtSize = Support::max(virtReg->virtSize(), size);
-    virtReg->_alignment = uint8_t(Support::max(virtReg->alignment(), alignment));
+
+    cc()->setStackSize(virtId, Support::max(virtReg->virtSize(), size),
+                               Support::max(virtReg->alignment(), alignment));
   }
 
   out = _temporaryMem.as<BaseMem>();
