@@ -125,8 +125,10 @@ UNIT(operand) {
   EXPECT(m.offsetHi32() == xHi);
 
   INFO("Checking basic functionality of Imm");
+  Imm immValue(-42);
   EXPECT(Imm(-1).i64() == int64_t(-1));
   EXPECT(imm(-1).i64() == int64_t(-1));
+  EXPECT(immValue.i64() == int64_t(-42));
   EXPECT(imm(0xFFFFFFFF).i64() == int64_t(0xFFFFFFFF));
 }
 #endif

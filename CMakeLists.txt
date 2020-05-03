@@ -49,6 +49,10 @@ if (NOT DEFINED ASMJIT_TEST)
   set(ASMJIT_TEST FALSE)
 endif()
 
+if (NOT DEFINED ASMJIT_NO_NATVIS)
+  set(ASMJIT_NO_NATVIS FALSE)
+endif()
+
 # EMBED implies STATIC.
 if (ASMJIT_EMBED AND NOT ASMJIT_STATIC)
   set(ASMJIT_STATIC TRUE)
@@ -258,6 +262,16 @@ foreach(build_option ASMJIT_STATIC
 endforeach()
 
 # =============================================================================
+# [AsmJit - Linker Support]
+# =============================================================================
+
+if (WIN32)
+  if(CMAKE_LINKER MATCHES "link\\.exe" OR CMAKE_LINKER MATCHES "lld-link\\.exe")
+    set(ASMJIT_LINKER_SUPPORTS_NATVIS TRUE)
+  endif()
+endif()
+
+# =============================================================================
 # [AsmJit - Source]
 # =============================================================================
 
@@ -366,14 +380,22 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86rapass_p.h
 )
 
-#if (MSVC)
-#  list(APPEND ASMJIT_SRC_LIST asmjit.natvis)
-#endif()
+if (MSVC AND NOT ASMJIT_NO_NATVIS)
+  list(APPEND ASMJIT_SRC_LIST asmjit.natvis)
+endif()
 
 set(ASMJIT_SRC "")
-foreach(_src_file ${ASMJIT_SRC_LIST})
-  list(APPEND ASMJIT_SRC "${ASMJIT_DIR}/src/${_src_file}")
+foreach(src_file ${ASMJIT_SRC_LIST})
+  set(src_file "${ASMJIT_DIR}/src/${src_file}")
+  list(APPEND ASMJIT_SRC ${src_file})
+
+  if ("${src_file}" MATCHES "\\.natvis")
+    if (ASMJIT_LINKER_SUPPORTS_NATVIS)
+      list(APPEND ASMJIT_PRIVATE_LFLAGS "-natvis:${src_file}")
+    endif()
+  endif()
 endforeach()
+
 if (NOT ${CMAKE_VERSION} VERSION_LESS "3.8.0")
   source_group(TREE "${ASMJIT_DIR}" FILES ${ASMJIT_SRC})
 endif()

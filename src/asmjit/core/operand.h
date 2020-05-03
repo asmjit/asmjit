@@ -147,27 +147,6 @@ struct Operand_ {
     kDataImmValueHi = ASMJIT_ARCH_LE ? 1 : 0
   };
 
-  /*
-  //! Memory operand data.
-  struct MemData {
-    //! Index register id.
-    uint32_t indexId;
-    //! Low part of 64-bit offset (or 32-bit offset).
-    uint32_t offsetLo32;
-  };
-
-  //! Additional data used by some operands.
-  union {
-    //! 32-bit data (used either by immediate or as a 32-bit view).
-    uint32_t _data32[2];
-    //! 64-bit data (used either by immediate or as a 64-bit view).
-    uint64_t _data64;
-
-    //! Memory address data.
-    MemData _mem;
-  };
-  */
-
   //! Operand types that can be encoded in `Operand`.
   enum OpType : uint32_t {
     //! Not an operand or not initialized.
