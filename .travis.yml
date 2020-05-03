@@ -30,8 +30,17 @@ matrix:
           - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages: [clang++-9]
 
+    - name: "Linux Clang Default [64-bit] [REL] [Valgrind]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9" USE_VALGRIND=1
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [clang++-9, valgrind]
+
     - name: "Linux Clang Default [64-bit] [REL] [Sanitize=Address]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9" SANITIZE=address
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9" EXTRA_OPTIONS="-DASMJIT_SANITIZE=address"
       os: linux
       addons:
         apt:
@@ -40,27 +49,13 @@ matrix:
           packages: [clang++-9]
 
     - name: "Linux Clang Default [64-bit] [REL] [Sanitize=Undefined]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9" SANITIZE=undefined
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=clang-9 && CXX=clang++-9" EXTRA_OPTIONS="-DASMJIT_SANITIZE=undefined"
       os: linux
       addons:
         apt:
           sources:
           - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages: [clang++-9]
-
-    - name: "Linux GCC Default [64-bit] [DBG + Valgrind]"
-      env: BUILD_MATRIX="BUILD_TYPE=Debug" USE_VALGRIND=1
-      os: linux
-      addons:
-        apt:
-          packages: [valgrind]
-
-    - name: "Linux GCC Default [64-bit] [REL + Valgrind]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release" USE_VALGRIND=1
-      os: linux
-      addons:
-        apt:
-          packages: [valgrind]
 
     - name: "Linux GCC 4.8 [32-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-4.8 && CXX=g++-4.8" CXXFLAGS=-m32 LDFLAGS=-m32
@@ -76,77 +71,63 @@ matrix:
         apt:
           packages: [g++-4.8]
 
-    - name: "Linux GCC 5.X [32-bit] [DBG]"
+    - name: "Linux GCC 5 [32-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5" CXXFLAGS=-m32 LDFLAGS=-m32
       os: linux
       addons:
         apt:
           packages: [g++-5, g++-5-multilib, "linux-libc-dev:i386"]
 
-    - name: "Linux GCC 5.X [64-bit] [DBG]"
+    - name: "Linux GCC 5 [64-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-5 && CXX=g++-5"
       os: linux
       addons:
         apt:
           packages: [g++-5]
 
-    - name: "Linux GCC 6.X [32-bit] [DBG]"
+    - name: "Linux GCC 6 [32-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6" CXXFLAGS=-m32 LDFLAGS=-m32
       os: linux
       addons:
         apt:
           packages: [g++-6, g++-6-multilib, "linux-libc-dev:i386"]
 
-    - name: "Linux GCC 6.X [64-bit] [DBG]"
+    - name: "Linux GCC 6 [64-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-6 && CXX=g++-6"
       os: linux
       addons:
         apt:
           packages: [g++-6]
 
-    - name: "Linux GCC 7.X [32-bit] [DBG]"
+    - name: "Linux GCC 7 [32-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7" CXXFLAGS=-m32 LDFLAGS=-m32
       os: linux
       addons:
         apt:
           packages: [g++-7, g++-7-multilib, "linux-libc-dev:i386"]
 
-    - name: "Linux GCC 7.X [64-bit] [DBG]"
+    - name: "Linux GCC 7 [64-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-7 && CXX=g++-7"
       os: linux
       addons:
         apt:
           packages: [g++-7]
 
-    - name: "Linux GCC 8.X [32-bit] [DBG]"
+    - name: "Linux GCC 8 [32-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
       os: linux
       addons:
         apt:
           packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
 
-    - name: "Linux GCC 8.X [32-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          packages: [g++-8, g++-8-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 8.X [64-bit] [DBG]"
+    - name: "Linux GCC 8 [64-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-8 && CXX=g++-8"
       os: linux
       addons:
         apt:
           packages: [g++-8]
 
-    - name: "Linux GCC 8.X [64-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-8 && CXX=g++-8"
-      os: linux
-      addons:
-        apt:
-          packages: [g++-8]
-
-    - name: "Linux GCC 9.X [32-bit] [DBG]"
+    - name: "Linux GCC 9 [32-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-9 && CXX=g++-9" CXXFLAGS=-m32 LDFLAGS=-m32
       os: linux
       addons:
@@ -155,16 +136,7 @@ matrix:
           - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages: [g++-9, g++-9-multilib, "linux-libc-dev:i386"]
 
-    - name: "Linux GCC 9.X [32-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-9 && CXX=g++-9" CXXFLAGS=-m32 LDFLAGS=-m32
-      os: linux
-      addons:
-        apt:
-          sources:
-          - sourceline: "ppa:ubuntu-toolchain-r/test"
-          packages: [g++-9, g++-9-multilib, "linux-libc-dev:i386"]
-
-    - name: "Linux GCC 9.X [64-bit] [DBG]"
+    - name: "Linux GCC 9 [64-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-9 && CXX=g++-9"
       os: linux
       addons:
@@ -173,14 +145,41 @@ matrix:
           - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages: [g++-9]
 
-    - name: "Linux GCC 9.X [64-bit] [REL]"
-      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-9 && CXX=g++-9"
+    - name: "Linux GCC 10 [32-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-10 && CXX=g++-10" CXXFLAGS=-m32 LDFLAGS=-m32
       os: linux
       addons:
         apt:
           sources:
           - sourceline: "ppa:ubuntu-toolchain-r/test"
-          packages: [g++-9]
+          packages: [g++-10, g++-10-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 10 [32-bit] [REL]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-10 && CXX=g++-10" CXXFLAGS=-m32 LDFLAGS=-m32
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [g++-10, g++-10-multilib, "linux-libc-dev:i386"]
+
+    - name: "Linux GCC 10 [64-bit] [DBG]"
+      env: BUILD_MATRIX="BUILD_TYPE=Debug && CC=gcc-10 && CXX=g++-10"
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [g++-10]
+
+    - name: "Linux GCC 10 [64-bit] [REL]"
+      env: BUILD_MATRIX="BUILD_TYPE=Release && CC=gcc-10 && CXX=g++-10"
+      os: linux
+      addons:
+        apt:
+          sources:
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
+          packages: [g++-10]
 
     - name: "OSX Clang XCode 9.4 [32-bit] [DBG]"
       env: BUILD_MATRIX="BUILD_TYPE=Debug" CXXFLAGS=-m32 LDFLAGS=-m32
@@ -246,9 +245,9 @@ before_script:
   - cd build
   - |
     if [[ "$BUILD_TOOLCHAIN" =~ ^Visual\ Studio ]]; then
-      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 -DASMJIT_SANITIZE="${SANITIZE}"
+      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 ${EXTRA_OPTIONS}
     else
-      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 -DASMJIT_SANITIZE="${SANITIZE}" -DCMAKE_PREFIX_PATH="${MINGW_PATH}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+      cmake .. -G"${BUILD_TOOLCHAIN}" -DASMJIT_TEST=1 ${EXTRA_OPTIONS} -DCMAKE_PREFIX_PATH="${MINGW_PATH}" -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
     fi
   - cd ..
 

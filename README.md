@@ -1,7 +1,7 @@
 AsmJit
 ------
 
-Complete x86/x64 JIT and AOT Assembler for C++.
+Machine code generation for C++.
 
   * [Official Repository (asmjit/asmjit)](https://github.com/asmjit/asmjit)
   * [Official Blog (asmbits)](https://asmbits.blogspot.com/ncr)
