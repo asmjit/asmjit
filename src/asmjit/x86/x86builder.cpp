@@ -22,7 +22,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 #include "../core/api-build_p.h"
-#if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_NO_COMPILER)
+#if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_NO_BUILDER)
 
 #include "../x86/x86assembler.h"
 #include "../x86/x86builder.h"
@@ -66,4 +66,4 @@ Error Builder::onAttach(CodeHolder* code) noexcept {
 
 ASMJIT_END_SUB_NAMESPACE
 
-#endif // ASMJIT_BUILD_X86 && !ASMJIT_NO_COMPILER
+#endif // ASMJIT_BUILD_X86 && !ASMJIT_NO_BUILDER

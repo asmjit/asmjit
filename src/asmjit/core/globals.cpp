@@ -103,7 +103,7 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     "Unknown error\0";
   return Support::findPackedString(errorMessages, Support::min<Error>(err, kErrorCount));
 #else
-  ASMJIT_UNUSED(err);
+  DebugUtils::unused(err);
   static const char noMessage[] = "";
   return noMessage;
 #endif

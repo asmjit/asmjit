@@ -58,25 +58,25 @@ public:
   uint8_t _indentation[4];
 
   enum Flags : uint32_t {
-    //!< Show also binary form of each logged instruction (assembler).
+    //! Show also binary form of each logged instruction (assembler).
     kFlagMachineCode = 0x00000001u,
-    //!< Show a text explanation of some immediate values.
+    //! Show a text explanation of some immediate values.
     kFlagExplainImms = 0x00000002u,
-    //!< Use hexadecimal notation of immediate values.
+    //! Use hexadecimal notation of immediate values.
     kFlagHexImms = 0x00000004u,
-    //!< Use hexadecimal notation of address offsets.
+    //! Use hexadecimal notation of address offsets.
     kFlagHexOffsets = 0x00000008u,
-    //!< Show casts between virtual register types (compiler).
+    //! Show casts between virtual register types (compiler).
     kFlagRegCasts = 0x00000010u,
-    //!< Show positions associated with nodes (compiler).
+    //! Show positions associated with nodes (compiler).
     kFlagPositions = 0x00000020u,
-    //!< Annotate nodes that are lowered by passes.
+    //! Annotate nodes that are lowered by passes.
     kFlagAnnotations = 0x00000040u,
 
     // TODO: These must go, keep this only for formatting.
-    //!< Show an additional output from passes.
+    //! Show an additional output from passes.
     kFlagDebugPasses = 0x00000080u,
-    //!< Show an additional output from RA.
+    //! Show an additional output from RA.
     kFlagDebugRA = 0x00000100u
   };
 
@@ -324,16 +324,16 @@ struct Logging {
     String& sb,
     uint32_t typeId) noexcept;
 
-  #ifndef ASMJIT_NO_BUILDER
+#ifndef ASMJIT_NO_BUILDER
   ASMJIT_API static Error formatNode(
     String& sb,
     uint32_t flags,
     const BaseBuilder* cb,
     const BaseNode* node_) noexcept;
-  #endif
+#endif
 
   // Only used by AsmJit internals, not available to users.
-  #ifdef ASMJIT_EXPORTS
+#ifdef ASMJIT_EXPORTS
   enum {
     // Has to be big to be able to hold all metadata compiler can assign to a
     // single instruction.
@@ -344,7 +344,7 @@ struct Logging {
   static Error formatLine(
     String& sb,
     const uint8_t* binData, size_t binSize, size_t dispSize, size_t immSize, const char* comment) noexcept;
-  #endif
+#endif
 };
 #endif
 

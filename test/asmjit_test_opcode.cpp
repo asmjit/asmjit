@@ -61,10 +61,7 @@ struct TestErrorHandler : public ErrorHandler {
 
 typedef void (*VoidFunc)(void);
 
-int main(int argc, char* argv[]) {
-  ASMJIT_UNUSED(argc);
-  ASMJIT_UNUSED(argv);
-
+int main() {
   TestErrorHandler eh;
 
   OpcodeDumpInfo infoList[] = {
@@ -87,11 +84,11 @@ int main(int argc, char* argv[]) {
     code.init(CodeInfo(info.archId));
     code.setErrorHandler(&eh);
 
-    #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
     FileLogger logger(stdout);
     logger.addFlags(FormatOptions::kFlagMachineCode);
     code.setLogger(&logger);
-    #endif
+#endif
 
     x86::Assembler a(&code);
     asmtest::generateOpcodes(a.as<x86::Emitter>(), info.useRex1, info.useRex2);

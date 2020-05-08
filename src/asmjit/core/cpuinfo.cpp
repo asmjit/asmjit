@@ -78,13 +78,13 @@ const CpuInfo& CpuInfo::host() noexcept {
   if (!cpuInfoInitialized) {
     CpuInfo cpuInfoLocal;
 
-    #if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
     x86::detectCpu(cpuInfoLocal);
-    #endif
+#endif
 
-    #if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM
+#if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM
     arm::detectCpu(cpuInfoLocal);
-    #endif
+#endif
 
     cpuInfoLocal._hwThreadCount = detectHWThreadCount();
     cpuInfoGlobal = cpuInfoLocal;

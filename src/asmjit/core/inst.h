@@ -296,9 +296,13 @@ public:
     kOptionReserved       = 0x00000001u,
 
     //! Used only by Assembler to mark that `_op4` and `_op5` are used (internal).
+    //!
+    //! TODO: This should be removed in the future.
     kOptionOp4Op5Used     = 0x00000002u,
 
     //! Prevents following a jump during compilation (BaseCompiler).
+    //!
+    //! TODO: This should be renamed to kOptionNoReturn.
     kOptionUnfollow       = 0x00000010u,
 
     //! Overwrite the destination operand(s) (BaseCompiler).

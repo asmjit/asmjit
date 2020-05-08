@@ -39,8 +39,7 @@ static inline void JitRuntime_flushInstructionCache(const void* p, size_t size) 
   // Windows has a built-in support in `kernel32.dll`.
   ::FlushInstructionCache(::GetCurrentProcess(), p, size);
 #else
-  ASMJIT_UNUSED(p);
-  ASMJIT_UNUSED(size);
+  DebugUtils::unused(p, size);
 #endif
 }
 

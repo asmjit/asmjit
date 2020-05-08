@@ -470,7 +470,7 @@ static JitAllocatorBlock* JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* imp
 }
 
 static void JitAllocatorImpl_deleteBlock(JitAllocatorPrivateImpl* impl, JitAllocatorBlock* block) noexcept {
-  ASMJIT_UNUSED(impl);
+  DebugUtils::unused(impl);
 
   if (block->flags & JitAllocatorBlock::kFlagDualMapped)
     VirtMem::releaseDualMapping(&block->mapping, block->blockSize);

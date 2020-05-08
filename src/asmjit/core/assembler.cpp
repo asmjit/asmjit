@@ -99,10 +99,10 @@ Error BaseAssembler::section(Section* section) {
   if (!_code->isSectionValid(section->id()) || _code->_sections[section->id()] != section)
     return reportError(DebugUtils::errored(kErrorInvalidSection));
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (hasEmitterOption(kOptionLoggingEnabled))
     _code->_logger->logf(".section %s {#%u}\n", section->name(), section->id());
-  #endif
+#endif
 
   BaseAssembler_initSection(this, section);
   return kErrorOk;
@@ -142,10 +142,10 @@ Error BaseAssembler::bind(const Label& label) {
 
   Error err = _code->bindLabel(label, _section->id(), offset());
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (hasEmitterOption(kOptionLoggingEnabled))
     BaseAssembler_logLabel(this, label);
-  #endif
+#endif
 
   resetInlineComment();
   if (err)
@@ -277,6 +277,7 @@ Error BaseAssembler::_emitFailed(
 // [asmjit::BaseAssembler - Embed]
 // ============================================================================
 
+#ifndef ASMJIT_NO_LOGGING
 struct DataSizeByPower {
   char str[4];
 };
@@ -287,6 +288,7 @@ static const DataSizeByPower dataSizeByPowerTable[] = {
   { "dd" },
   { "dq" }
 };
+#endif
 
 Error BaseAssembler::embed(const void* data, uint32_t dataSize) {
   if (ASMJIT_UNLIKELY(!_code))
@@ -300,10 +302,10 @@ Error BaseAssembler::embed(const void* data, uint32_t dataSize) {
 
   writer.emitData(data, dataSize);
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled)))
     _code->_logger->logBinary(data, dataSize);
-  #endif
+#endif
 
   writer.done(this);
   return kErrorOk;
@@ -326,7 +328,7 @@ Error BaseAssembler::embedLabel(const Label& label) {
   CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled))) {
     StringTmp<256> sb;
     sb.appendFormat(".%s ", dataSizeByPowerTable[Support::ctz(dataSize)].str);
@@ -334,7 +336,7 @@ Error BaseAssembler::embedLabel(const Label& label) {
     sb.appendChar('\n');
     _code->_logger->log(sb);
   }
-  #endif
+#endif
 
   // TODO: Does it make sense to calculate the address here if everything is known?
   /*
@@ -388,7 +390,7 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, uint
   CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled))) {
     StringTmp<256> sb;
     sb.appendFormat(".%s (", dataSizeByPowerTable[Support::ctz(dataSize)].str);
@@ -398,7 +400,7 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, uint
     sb.appendString(")\n");
     _code->_logger->log(sb);
   }
-  #endif
+#endif
 
   // If both labels are bound within the same section it means the delta can be calculated now.
   if (labelEntry->isBound() && baseEntry->isBound() && labelEntry->section() == baseEntry->section()) {
@@ -447,10 +449,10 @@ Error BaseAssembler::embedConstPool(const Label& label, const ConstPool& pool) {
 
   pool.fill(writer.cursor());
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (ASMJIT_UNLIKELY(hasEmitterOption(kOptionLoggingEnabled)))
     _code->_logger->logBinary(writer.cursor(), size);
-  #endif
+#endif
 
   writer.advance(size);
   writer.done(this);
@@ -466,17 +468,16 @@ Error BaseAssembler::comment(const char* data, size_t size) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (hasEmitterOption(kOptionLoggingEnabled)) {
     Logger* logger = _code->logger();
     logger->log(data, size);
     logger->log("\n", 1);
     return kErrorOk;
   }
-  #else
-  ASMJIT_UNUSED(data);
-  ASMJIT_UNUSED(size);
-  #endif
+#else
+  DebugUtils::unused(data, size);
+#endif
 
   return kErrorOk;
 }

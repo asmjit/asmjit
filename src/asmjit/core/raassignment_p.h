@@ -172,7 +172,7 @@ public:
   inline uint32_t dirty(uint32_t group) const noexcept { return _physToWorkMap->dirty[group]; }
 
   inline uint32_t workToPhysId(uint32_t group, uint32_t workId) const noexcept {
-    ASMJIT_UNUSED(group);
+    DebugUtils::unused(group);
     ASMJIT_ASSERT(workId != kWorkNone);
     ASMJIT_ASSERT(workId < _layout.workCount);
     return _workToPhysMap->physIds[workId];
@@ -289,15 +289,13 @@ public:
   }
 
   inline void makeClean(uint32_t group, uint32_t workId, uint32_t physId) noexcept {
-    ASMJIT_UNUSED(workId);
-
+    DebugUtils::unused(workId);
     uint32_t regMask = Support::bitMask(physId);
     _physToWorkMap->dirty[group] &= ~regMask;
   }
 
   inline void makeDirty(uint32_t group, uint32_t workId, uint32_t physId) noexcept {
-    ASMJIT_UNUSED(workId);
-
+    DebugUtils::unused(workId);
     uint32_t regMask = Support::bitMask(physId);
     _physToWorkMap->dirty[group] |= regMask;
   }

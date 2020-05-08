@@ -920,8 +920,8 @@ static inline void writeU64uBE(void* p, uint64_t x) noexcept { writeU64xBE<1>(p,
 // [asmjit::Support - Operators]
 // ============================================================================
 
-struct Set    { template<typename T> static inline T op(T x, T y) noexcept { ASMJIT_UNUSED(x); return  y; } };
-struct SetNot { template<typename T> static inline T op(T x, T y) noexcept { ASMJIT_UNUSED(x); return ~y; } };
+struct Set    { template<typename T> static inline T op(T x, T y) noexcept { DebugUtils::unused(x); return  y; } };
+struct SetNot { template<typename T> static inline T op(T x, T y) noexcept { DebugUtils::unused(x); return ~y; } };
 struct And    { template<typename T> static inline T op(T x, T y) noexcept { return  x &  y; } };
 struct AndNot { template<typename T> static inline T op(T x, T y) noexcept { return  x & ~y; } };
 struct NotAnd { template<typename T> static inline T op(T x, T y) noexcept { return ~x &  y; } };
@@ -1274,9 +1274,13 @@ namespace Internal {
           ASMJIT_ASSERT(stackptr <= stack + kStackSize);
         }
         else {
-          iSort(base, (size_t)(end - base), cmp);
+          // UB sanitizer doesn't like applying offset to a nullptr base.
+          if (base != end)
+            iSort(base, (size_t)(end - base), cmp);
+
           if (stackptr == stack)
             break;
+
           end = *--stackptr;
           base = *--stackptr;
         }

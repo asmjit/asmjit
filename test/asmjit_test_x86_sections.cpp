@@ -52,19 +52,21 @@ static void fail(const char* message, Error err) {
   exit(1);
 }
 
-int main(int argc, char* argv[]) {
-  ASMJIT_UNUSED(argc);
-  ASMJIT_UNUSED(argv);
-
+int main() {
   CodeInfo codeInfo(ArchInfo::kIdHost);
   JitAllocator allocator;
 
+#ifndef ASMJIT_NO_LOGGING
   FileLogger logger(stdout);
   logger.setIndentation(FormatOptions::kIndentationCode, 2);
+#endif
 
   CodeHolder code;
   code.init(codeInfo);
+
+#ifndef ASMJIT_NO_LOGGING
   code.setLogger(&logger);
+#endif
 
   Section* dataSection;
   Error err = code.newSection(&dataSection, ".data", SIZE_MAX, 0, 8);

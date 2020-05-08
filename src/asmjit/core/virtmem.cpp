@@ -143,7 +143,7 @@ Error VirtMem::alloc(void** p, size_t size, uint32_t flags) noexcept {
 }
 
 Error VirtMem::release(void* p, size_t size) noexcept {
-  ASMJIT_UNUSED(size);
+  DebugUtils::unused(size);
   if (ASMJIT_UNLIKELY(!::VirtualFree(p, 0, MEM_RELEASE)))
     return DebugUtils::errored(kErrorInvalidArgument);
   return kErrorOk;
@@ -196,7 +196,7 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) no
 }
 
 Error VirtMem::releaseDualMapping(DualMapping* dm, size_t size) noexcept {
-  ASMJIT_UNUSED(size);
+  DebugUtils::unused(size);
   bool failed = false;
 
   if (!::UnmapViewOfFile(dm->ro))
@@ -346,7 +346,7 @@ static ASMJIT_INLINE uint32_t VirtMem_appleSpecificMMapFlags(uint32_t flags) {
 }
 #else
 static ASMJIT_INLINE uint32_t VirtMem_appleSpecificMMapFlags(uint32_t flags) {
-  ASMJIT_UNUSED(flags);
+  DebugUtils::unused(flags);
   return 0;
 }
 #endif
@@ -380,7 +380,7 @@ static Error VirtMem_openAnonymousMemory(int* fd, bool preferTmpOverDevShm) noex
 
 #if defined(SHM_ANON)
   // Originally FreeBSD extension, apparently works in other BSDs too.
-  ASMJIT_UNUSED(preferTmpOverDevShm);
+  DebugUtils::unused(preferTmpOverDevShm);
   *fd = shm_open(SHM_ANON, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 
   if (ASMJIT_LIKELY(*fd >= 0))

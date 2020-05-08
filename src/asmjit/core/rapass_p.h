@@ -95,6 +95,7 @@ public:
   uint32_t _weight;
   //! Post-order view order, used during POV construction.
   uint32_t _povOrder;
+
   //! Basic statistics about registers.
   RARegsStats _regsStats;
   //! Maximum live-count per register group.
@@ -124,6 +125,14 @@ public:
   //! Liveness in/out/use/kill.
   ZoneBitVector _liveBits[kLiveCount];
 
+  //! Shared assignment it or `Globals::kInvalidId` if this block doesn't
+  //! have shared assignment. See `RASharedAssignment` for more details.
+  uint32_t _sharedAssignmentId;
+  //! Scratch registers that cannot be allocated upon block entry.
+  uint32_t _entryScratchGpRegs;
+  //! Scratch registers used at exit, by a terminator instruction.
+  uint32_t _exitScratchGpRegs;
+
   //! Register assignment (PhysToWork) on entry.
   PhysToWorkMap* _entryPhysToWorkMap;
   //! Register assignment (WorkToPhys) on entry.
@@ -148,6 +157,10 @@ public:
       _idom(nullptr),
       _predecessors(),
       _successors(),
+      _doms(),
+      _sharedAssignmentId(Globals::kInvalidId),
+      _entryScratchGpRegs(0),
+      _exitScratchGpRegs(0),
       _entryPhysToWorkMap(nullptr),
       _entryWorkToPhysMap(nullptr) {}
 
@@ -204,6 +217,15 @@ public:
   inline void setEndPosition(uint32_t position) noexcept { _endPosition = position; }
 
   inline uint32_t povOrder() const noexcept { return _povOrder; }
+
+  inline uint32_t entryScratchGpRegs() const noexcept;
+  inline uint32_t exitScratchGpRegs() const noexcept { return _exitScratchGpRegs; }
+
+  inline void addExitScratchGpRegs(uint32_t regMask) noexcept { _exitScratchGpRegs |= regMask; }
+
+  inline bool hasSharedAssignmentId() const noexcept { return _sharedAssignmentId != Globals::kInvalidId; }
+  inline uint32_t sharedAssignmentId() const noexcept { return _sharedAssignmentId; }
+  inline void setSharedAssignmentId(uint32_t id) noexcept { _sharedAssignmentId = id; }
 
   inline uint64_t timestamp() const noexcept { return _timestamp; }
   inline bool hasTimestamp(uint64_t ts) const noexcept { return _timestamp == ts; }
@@ -425,6 +447,12 @@ public:
   //! Returns the number of tied registers added to the builder.
   inline uint32_t tiedRegCount() const noexcept { return uint32_t((size_t)(_cur - _tiedRegs)); }
 
+  inline RATiedReg* begin() noexcept { return _tiedRegs; }
+  inline RATiedReg* end() noexcept { return _cur; }
+
+  inline const RATiedReg* begin() const noexcept { return _tiedRegs; }
+  inline const RATiedReg* end() const noexcept { return _cur; }
+
   //! Returns `RATiedReg` at the given `index`.
   inline RATiedReg* operator[](uint32_t index) noexcept {
     ASMJIT_ASSERT(index < tiedRegCount());
@@ -574,6 +602,54 @@ public:
 };
 
 // ============================================================================
+// [asmjit::RASharedAssignment]
+// ============================================================================
+
+class RASharedAssignment {
+public:
+  typedef RAAssignment::PhysToWorkMap PhysToWorkMap;
+  typedef RAAssignment::WorkToPhysMap WorkToPhysMap;
+
+  //! Bit-mask of registers that cannot be used upon a block entry, for each
+  //! block that has this shared assignment. Scratch registers can come from
+  //! ISA limits (like jecx/loop instructions on x86) or because the registers
+  //! are used by jump/branch instruction that uses registers to perform an
+  //! indirect jump.
+  uint32_t _entryScratchGpRegs;
+  //! Union of all live-in registers.
+  ZoneBitVector _liveIn;
+  //! Register assignment (PhysToWork).
+  PhysToWorkMap* _physToWorkMap;
+  //! Register assignment (WorkToPhys).
+  WorkToPhysMap* _workToPhysMap;
+
+  //! Provided for clarity, most likely never called as we initialize a vector
+  //! of shared assignments to zero.
+  inline RASharedAssignment() noexcept
+    : _entryScratchGpRegs(0),
+      _liveIn(),
+      _physToWorkMap(nullptr),
+      _workToPhysMap(nullptr) {}
+
+  inline uint32_t entryScratchGpRegs() const noexcept { return _entryScratchGpRegs; }
+  inline void addScratchGpRegs(uint32_t mask) noexcept { _entryScratchGpRegs |= mask; }
+
+  inline const ZoneBitVector& liveIn() const noexcept { return _liveIn; }
+
+  inline PhysToWorkMap* physToWorkMap() const noexcept { return _physToWorkMap; }
+  inline WorkToPhysMap* workToPhysMap() const noexcept { return _workToPhysMap; }
+
+  inline bool empty() const noexcept {
+    return _physToWorkMap == nullptr;
+  }
+
+  inline void assignMaps(PhysToWorkMap* physToWorkMap, WorkToPhysMap* workToPhysMap) noexcept {
+    _physToWorkMap = physToWorkMap;
+    _workToPhysMap = workToPhysMap;
+  }
+};
+
+// ============================================================================
 // [asmjit::RAPass]
 // ============================================================================
 
@@ -617,6 +693,10 @@ public:
   uint32_t _instructionCount;
   //! Number of created blocks (internal).
   uint32_t _createdBlockCount;
+
+  //! SharedState blocks.
+  ZoneVector<RASharedAssignment> _sharedAssignments;
+
   //! Timestamp generator (incremental).
   mutable uint64_t _lastTimestamp;
 
@@ -630,6 +710,8 @@ public:
   RARegCount _physRegCount;
   //! Total number of physical registers.
   uint32_t _physRegTotal;
+  //! Indexes of a possible scratch registers that can be selected if necessary.
+  uint8_t _scratchRegIndexes[2];
 
   //! Registers available for allocation.
   RARegMask _availableRegs;
@@ -688,6 +770,9 @@ public:
   inline Zone* zone() const noexcept { return _allocator.zone(); }
   //! Returns `ZoneAllocator` used by the register allocator.
   inline ZoneAllocator* allocator() const noexcept { return const_cast<ZoneAllocator*>(&_allocator); }
+
+  inline const ZoneVector<RASharedAssignment>& sharedAssignments() const { return _sharedAssignments; }
+  inline uint32_t sharedAssignmentCount() const noexcept { return _sharedAssignments.size(); }
 
   //! Returns the current function node.
   inline FuncNode* func() const noexcept { return _func; }
@@ -749,6 +834,11 @@ public:
     ASMJIT_ASSERT(!_blocks.empty());
     return _blocks[0];
   }
+
+  //! Returns all basic blocks of this function.
+  inline RABlocks& blocks() noexcept { return _blocks; }
+  //! \overload
+  inline const RABlocks& blocks() const noexcept { return _blocks; }
 
   //! Returns the count of basic blocks (returns size of `_blocks` array).
   inline uint32_t blockCount() const noexcept { return _blocks.size(); }
@@ -856,6 +946,9 @@ public:
   //!
   //! Use `RACFGBuilder` template that provides the necessary boilerplate.
   virtual Error buildCFG() noexcept = 0;
+
+  //! Called after the CFG is built.
+  Error initSharedAssignments(const ZoneVector<uint32_t>& sharedAssignmentsMap) noexcept;
 
   //! \}
 
@@ -1016,6 +1109,12 @@ public:
   //! Runs a local register allocator.
   Error runLocalAllocator() noexcept;
   Error setBlockEntryAssignment(RABlock* block, const RABlock* fromBlock, const RAAssignment& fromAssignment) noexcept;
+  Error setSharedAssignment(uint32_t sharedAssignmentId, const RAAssignment& fromAssignment) noexcept;
+
+  //! Called after the RA assignment has been assigned to a block.
+  //!
+  //! This cannot change the assignment, but can examine it.
+  Error blockEntryAssigned(const RAAssignment& as) noexcept;
 
   //! \}
 
@@ -1044,18 +1143,18 @@ public:
 
   //! \}
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   //! \name Logging
   //! \{
 
   Error annotateCode() noexcept;
 
-  Error _logBlockIds(const RABlocks& blocks) noexcept;
+  Error _dumpBlockIds(String& sb, const RABlocks& blocks) noexcept;
   Error _dumpBlockLiveness(String& sb, const RABlock* block) noexcept;
   Error _dumpLiveSpans(String& sb) noexcept;
 
   //! \}
-  #endif
+#endif
 
   //! \name Emit
   //! \{
@@ -1073,6 +1172,13 @@ public:
 };
 
 inline ZoneAllocator* RABlock::allocator() const noexcept { return _ra->allocator(); }
+
+inline uint32_t RABlock::entryScratchGpRegs() const noexcept {
+  uint32_t regs = _entryScratchGpRegs;
+  if (hasSharedAssignmentId())
+    regs = _ra->_sharedAssignments[_sharedAssignmentId].entryScratchGpRegs();
+  return regs;
+}
 
 //! \}
 //! \endcond

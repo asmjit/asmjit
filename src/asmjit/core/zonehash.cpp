@@ -246,7 +246,7 @@ ZoneHashNode* ZoneHashBase::_insert(ZoneAllocator* allocator, ZoneHashNode* node
 }
 
 ZoneHashNode* ZoneHashBase::_remove(ZoneAllocator* allocator, ZoneHashNode* node) noexcept {
-  ASMJIT_UNUSED(allocator);
+  DebugUtils::unused(allocator);
   uint32_t hashMod = _calcMod(node->_hashCode);
 
   ZoneHashNode** pPrev = &_data[hashMod];

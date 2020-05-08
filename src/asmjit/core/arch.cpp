@@ -76,7 +76,7 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archId, uint32_t& ty
   regInfo._signature = 0;
 
   // TODO: Move to X86 backend.
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId)) {
     // Passed RegType instead of TypeId?
     if (typeId <= BaseReg::kTypeMax)
@@ -168,7 +168,7 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegInfo(uint32_t archId, uint32_t& ty
     regInfo._signature = x86::opData.archRegs.regInfo[regType].signature();
     return kErrorOk;
   }
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArch);
 }

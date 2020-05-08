@@ -68,7 +68,7 @@ static inline uint32_t x86KmovFromSize(uint32_t size) noexcept {
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const FuncSignature& sign, uint32_t gpSize) noexcept {
-  ASMJIT_UNUSED(sign);
+  DebugUtils::unused(sign);
 
   const CallConv& cc = func.callConv();
   uint32_t archId = cc.archId();
@@ -333,10 +333,10 @@ public:
     }
 
     inline void unassign(uint32_t varId, uint32_t regId) noexcept {
-      ASMJIT_UNUSED(varId);
       ASMJIT_ASSERT(isAssigned(regId));
       ASMJIT_ASSERT(_physToVarId[regId] == varId);
 
+      DebugUtils::unused(varId);
       _physToVarId[regId] = uint8_t(kVarIdNone);
       _assignedRegs ^= Support::bitMask(regId);
     }
@@ -1390,13 +1390,13 @@ ASMJIT_FAVOR_SIZE Error X86Internal::emitArgsAssignment(Emitter* emitter, const 
   X86FuncArgsContext ctx;
   ASMJIT_PROPAGATE(ctx.initWorkData(frame, args));
 
-  #ifdef ASMJIT_DUMP_ARGS_ASSIGNMENT
+#ifdef ASMJIT_DUMP_ARGS_ASSIGNMENT
   {
     String sb;
     dumpAssignment(sb, ctx);
     printf("%s\n", sb.data());
   }
-  #endif
+#endif
 
   uint32_t archId = ctx.archId();
   uint32_t varCount = ctx._varCount;

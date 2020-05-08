@@ -1460,6 +1460,87 @@ static void exampleUseOfConstPool(x86::Compiler& cc) {
 }
 ```
 
+### Jump Tables
+
+**Compiler** supports `jmp` instruction with reg/mem operand, which is a commonly used pattern to implement indirect jumps within a function, for example to implement `switch()` statement in a programming languages. By default AsmJit assumes that every basic block can be a possible jump target as it's unable to deduce targets from instruction's operands. This is a very pessimistic default that should be avoided if possible as it's costly and very unfriendly to liveness analysis and register allocation. So instead of relying on such pessimistic default, use **JumpAnnotation** to annotate indirect jumps:
+
+```c++
+#include <asmjit/asmjit.h>
+
+using namespace asmjit;
+
+static void exampleUseOfIndirectJump(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<float, float, float, uint32_t>(CallConv::kIdHost));
+
+    // Function arguments
+    x86::Xmm a = cc.newXmmSs("a");
+    x86::Xmm b = cc.newXmmSs("b");
+    x86::Gp op = cc.newUInt32("op");
+
+    x86::Gp target = cc.newIntPtr("target");
+    x86::Gp offset = cc.newIntPtr("offset");
+
+    Label L_Table = cc.newLabel();
+    Label L_Add = cc.newLabel();
+    Label L_Sub = cc.newLabel();
+    Label L_Mul = cc.newLabel();
+    Label L_Div = cc.newLabel();
+    Label L_End = cc.newLabel();
+
+    cc.setArg(0, a);
+    cc.setArg(1, b);
+    cc.setArg(2, op);
+
+    // Jump annotation is a building block that allows to annotate all
+    // possible targets where `jmp()` can jump. It then drives the CFG
+    // contruction and liveness analysis, which impacts register allocation.
+    JumpAnnotation* annotation = cc.newJumpAnnotation();
+    annotation->addLabel(L_Add);
+    annotation->addLabel(L_Sub);
+    annotation->addLabel(L_Mul);
+    annotation->addLabel(L_Div);
+
+    // Most likely not the common indirect jump approach, but it
+    // doesn't really matter how final address is calculated. The
+    // most important path using JumpAnnotation with `jmp()`.
+    cc.lea(offset, x86::ptr(L_Table));
+    if (cc.is64Bit())
+      cc.movsxd(target, x86::dword_ptr(offset, op.cloneAs(offset), 2));
+    else
+      cc.mov(target, x86::dword_ptr(offset, op.cloneAs(offset), 2));
+    cc.add(target, offset);
+    cc.jmp(target, annotation);
+
+    // Acts like a switch() statement in C.
+    cc.bind(L_Add);
+    cc.addss(a, b);
+    cc.jmp(L_End);
+
+    cc.bind(L_Sub);
+    cc.subss(a, b);
+    cc.jmp(L_End);
+
+    cc.bind(L_Mul);
+    cc.mulss(a, b);
+    cc.jmp(L_End);
+
+    cc.bind(L_Div);
+    cc.divss(a, b);
+
+    cc.bind(L_End);
+    cc.ret(a);
+
+    cc.endFunc();
+
+    // Relative int32_t offsets of `L_XXX - L_Table`.
+    cc.bind(L_Table);
+    cc.embedLabelDelta(L_Add, L_Table, 4);
+    cc.embedLabelDelta(L_Sub, L_Table, 4);
+    cc.embedLabelDelta(L_Mul, L_Table, 4);
+    cc.embedLabelDelta(L_Div, L_Table, 4);
+}
+```
+
 
 Advanced Features
 -----------------

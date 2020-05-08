@@ -46,6 +46,9 @@ ASMJIT_BEGIN_NAMESPACE
 struct RATiedReg;
 class RAWorkReg;
 
+class JumpAnnotation;
+
+class JumpNode;
 class FuncNode;
 class FuncRetNode;
 class FuncCallNode;
@@ -208,6 +211,8 @@ public:
   Zone _vRegZone;
   //! Stores array of `VirtReg` pointers.
   ZoneVector<VirtReg*> _vRegArray;
+  //! Stores jump annotations.
+  ZoneVector<JumpAnnotation*> _jumpAnnotations;
 
   //! Local constant pool, flushed at the end of each function.
   ConstPoolNode* _localConstPool;
@@ -326,15 +331,96 @@ public:
 
   //! \}
 
+  //! \name Jump Annotations
+  //! \{
+
+  inline const ZoneVector<JumpAnnotation*>& jumpAnnotations() const noexcept {
+    return _jumpAnnotations;
+  }
+
+  ASMJIT_API JumpNode* newJumpNode(uint32_t instId, uint32_t instOptions, const Operand_& o0, JumpAnnotation* annotation) noexcept;
+  ASMJIT_API Error emitAnnotatedJump(uint32_t instId, const Operand_& o0, JumpAnnotation* annotation);
+
+  //! Returns a new `JumpAnnotation` instance, which can be used to aggregate
+  //! possible targets of a jump where the target is not a label, for example
+  //! to implement jump tables.
+  ASMJIT_API JumpAnnotation* newJumpAnnotation();
+
+  //! \}
+
   // TODO: These should be removed
-  inline void alloc(BaseReg& reg) { ASMJIT_UNUSED(reg); }
-  inline void spill(BaseReg& reg) { ASMJIT_UNUSED(reg); }
+  inline void alloc(BaseReg& reg) { DebugUtils::unused(reg); }
+  inline void spill(BaseReg& reg) { DebugUtils::unused(reg); }
 
   //! \name Events
   //! \{
 
   ASMJIT_API Error onAttach(CodeHolder* code) noexcept override;
   ASMJIT_API Error onDetach(CodeHolder* code) noexcept override;
+
+  //! \}
+};
+
+// ============================================================================
+// [asmjit::JumpAnnotation]
+// ============================================================================
+
+class JumpAnnotation {
+public:
+  ASMJIT_NONCOPYABLE(JumpAnnotation)
+
+  BaseCompiler* _compiler;
+  uint32_t _annotationId;
+  ZoneVector<uint32_t> _labelIds;
+
+  inline JumpAnnotation(BaseCompiler* compiler, uint32_t annotationId) noexcept
+    : _compiler(compiler),
+      _annotationId(annotationId) {}
+
+  inline BaseCompiler* compiler() const noexcept { return _compiler; }
+  inline uint32_t annotationId() const noexcept { return _annotationId; }
+  const ZoneVector<uint32_t>& labelIds() const noexcept { return _labelIds; }
+
+  inline bool hasLabel(const Label& label) const noexcept { return hasLabelId(label.id()); }
+  inline bool hasLabelId(uint32_t labelId) const noexcept { return _labelIds.contains(labelId); }
+
+  inline Error addLabel(const Label& label) noexcept { return addLabelId(label.id()); }
+  inline Error addLabelId(uint32_t labelId) noexcept { return _labelIds.append(&_compiler->_allocator, labelId); }
+};
+
+// ============================================================================
+// [asmjit::JumpNode]
+// ============================================================================
+
+//! Jump instruction with \ref JumpAnnotation.
+//!
+//! \note This node should be only used to represent jump where the jump target
+//! cannot be deduced by examining instruction operands. For example if the jump
+//! target is register or memory location. This pattern is often used to perform
+//! indirect jumps that use jump table, e.g. to implement `switch{}` statement.
+class JumpNode : public InstNode {
+public:
+  ASMJIT_NONCOPYABLE(JumpNode)
+
+  JumpAnnotation* _annotation;
+
+  //! \name Construction & Destruction
+  //! \{
+
+  ASMJIT_INLINE JumpNode(BaseCompiler* cc, uint32_t instId, uint32_t options, uint32_t opCount, JumpAnnotation* annotation) noexcept
+    : InstNode(cc, instId, options, opCount, kBaseOpCapacity),
+      _annotation(annotation) {
+    setType(kNodeJump);
+  }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  inline bool hasAnnotation() const noexcept { return _annotation != nullptr; }
+  inline JumpAnnotation* annotation() const noexcept { return _annotation; }
+  inline void setAnnotation(JumpAnnotation* annotation) noexcept { _annotation = annotation; }
 
   //! \}
 };

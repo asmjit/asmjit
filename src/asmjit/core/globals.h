@@ -370,6 +370,10 @@ static inline void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_i
 //! Debugging utilities.
 namespace DebugUtils {
 
+//! Used to silence warnings about unused arguments or variables.
+template<typename... Args>
+static ASMJIT_INLINE void unused(Args&&...) noexcept {}
+
 //! Returns the error `err` passed.
 //!
 //! Provided for debugging purposes. Putting a breakpoint inside `errored` can

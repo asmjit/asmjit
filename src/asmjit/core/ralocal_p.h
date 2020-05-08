@@ -154,6 +154,12 @@ public:
     bool dstReadOnly,
     bool tryMode) noexcept;
 
+  inline Error spillRegsBeforeEntry(RABlock* block) noexcept {
+    return spillGpScratchRegsBeforeEntry(block->entryScratchGpRegs());
+  }
+
+  Error spillGpScratchRegsBeforeEntry(uint32_t scratchRegs) noexcept;
+
   //! \}
 
   //! \name Allocation
@@ -163,6 +169,7 @@ public:
   Error spillAfterAllocation(InstNode* node) noexcept;
 
   Error allocBranch(InstNode* node, RABlock* target, RABlock* cont) noexcept;
+  Error allocJumpTable(InstNode* node, const RABlocks& targets, RABlock* cont) noexcept;
 
   //! \}
 

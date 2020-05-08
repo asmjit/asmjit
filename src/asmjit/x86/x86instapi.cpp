@@ -59,7 +59,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 #ifndef ASMJIT_NO_TEXT
 Error InstInternal::instIdToString(uint32_t archId, uint32_t instId, String& output) noexcept {
-  ASMJIT_UNUSED(archId);
+  DebugUtils::unused(archId);
 
   if (ASMJIT_UNLIKELY(!Inst::isDefinedId(instId)))
     return DebugUtils::errored(kErrorInvalidInstruction);
@@ -69,7 +69,7 @@ Error InstInternal::instIdToString(uint32_t archId, uint32_t instId, String& out
 }
 
 uint32_t InstInternal::stringToInstId(uint32_t archId, const char* s, size_t len) noexcept {
-  ASMJIT_UNUSED(archId);
+  DebugUtils::unused(archId);
 
   if (ASMJIT_UNLIKELY(!s))
     return Inst::kIdNone;
@@ -776,7 +776,7 @@ static ASMJIT_INLINE void rwZeroExtendGp(OpRWInfo& opRwInfo, const Gp& reg, uint
 }
 
 static ASMJIT_INLINE void rwZeroExtendAvxVec(OpRWInfo& opRwInfo, const Vec& reg) noexcept {
-  ASMJIT_UNUSED(reg);
+  DebugUtils::unused(reg);
 
   uint64_t msk = ~Support::fillTrailingBits(opRwInfo.writeByteMask());
   if (msk) {
@@ -1361,7 +1361,7 @@ static RegAnalysis InstInternal_regAnalysis(const Operand_* operands, uint32_t o
 
 Error InstInternal::queryFeatures(uint32_t archId, const BaseInst& inst, const Operand_* operands, uint32_t opCount, BaseFeatures& out) noexcept {
   // Only called when `archId` matches X86 family.
-  ASMJIT_UNUSED(archId);
+  DebugUtils::unused(archId);
   ASMJIT_ASSERT(ArchInfo::isX86Family(archId));
 
   // Get the instruction data.

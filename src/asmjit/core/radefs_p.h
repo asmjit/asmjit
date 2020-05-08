@@ -398,10 +398,10 @@ public:
 };
 
 // ============================================================================
-// [asmjit::LiveInterval]
+// [asmjit::RALiveInterval]
 // ============================================================================
 
-struct LiveInterval {
+struct RALiveInterval {
   uint32_t a, b;
 
   enum Misc : uint32_t {
@@ -412,15 +412,15 @@ struct LiveInterval {
   //! \name Construction & Destruction
   //! \{
 
-  inline LiveInterval() noexcept : a(0), b(0) {}
-  inline LiveInterval(uint32_t a, uint32_t b) noexcept : a(a), b(b) {}
-  inline LiveInterval(const LiveInterval& other) noexcept : a(other.a), b(other.b) {}
+  inline RALiveInterval() noexcept : a(0), b(0) {}
+  inline RALiveInterval(uint32_t a, uint32_t b) noexcept : a(a), b(b) {}
+  inline RALiveInterval(const RALiveInterval& other) noexcept : a(other.a), b(other.b) {}
 
   inline void init(uint32_t aVal, uint32_t bVal) noexcept {
     a = aVal;
     b = bVal;
   }
-  inline void init(const LiveInterval& other) noexcept { init(other.a, other.b); }
+  inline void init(const RALiveInterval& other) noexcept { init(other.a, other.b); }
   inline void reset() noexcept { init(0, 0); }
 
   //! \}
@@ -428,7 +428,7 @@ struct LiveInterval {
   //! \name Overloaded Operators
   //! \{
 
-  inline LiveInterval& operator=(const LiveInterval& other) = default;
+  inline RALiveInterval& operator=(const RALiveInterval& other) = default;
 
   //! \}
 
@@ -446,31 +446,31 @@ struct LiveInterval {
 // ============================================================================
 
 template<typename T>
-class RALiveSpan : public LiveInterval, public T {
+class RALiveSpan : public RALiveInterval, public T {
 public:
   typedef T DataType;
 
   //! \name Construction & Destruction
   //! \{
 
-  inline RALiveSpan() noexcept : LiveInterval(), T() {}
-  inline RALiveSpan(const RALiveSpan<T>& other) noexcept : LiveInterval(other), T() {}
-  inline RALiveSpan(const LiveInterval& interval, const T& data) noexcept : LiveInterval(interval), T(data) {}
-  inline RALiveSpan(uint32_t a, uint32_t b) noexcept : LiveInterval(a, b), T() {}
-  inline RALiveSpan(uint32_t a, uint32_t b, const T& data) noexcept : LiveInterval(a, b), T(data) {}
+  inline RALiveSpan() noexcept : RALiveInterval(), T() {}
+  inline RALiveSpan(const RALiveSpan<T>& other) noexcept : RALiveInterval(other), T() {}
+  inline RALiveSpan(const RALiveInterval& interval, const T& data) noexcept : RALiveInterval(interval), T(data) {}
+  inline RALiveSpan(uint32_t a, uint32_t b) noexcept : RALiveInterval(a, b), T() {}
+  inline RALiveSpan(uint32_t a, uint32_t b, const T& data) noexcept : RALiveInterval(a, b), T(data) {}
 
   inline void init(const RALiveSpan<T>& other) noexcept {
-    LiveInterval::init(static_cast<const LiveInterval&>(other));
+    RALiveInterval::init(static_cast<const RALiveInterval&>(other));
     T::init(static_cast<const T&>(other));
   }
 
   inline void init(const RALiveSpan<T>& span, const T& data) noexcept {
-    LiveInterval::init(static_cast<const LiveInterval&>(span));
+    RALiveInterval::init(static_cast<const RALiveInterval&>(span));
     T::init(data);
   }
 
-  inline void init(const LiveInterval& interval, const T& data) noexcept {
-    LiveInterval::init(interval);
+  inline void init(const RALiveInterval& interval, const T& data) noexcept {
+    RALiveInterval::init(interval);
     T::init(data);
   }
 
@@ -520,7 +520,7 @@ public:
 
   inline bool isOpen() const noexcept {
     uint32_t size = _data.size();
-    return size > 0 && _data[size - 1].b == LiveInterval::kInf;
+    return size > 0 && _data[size - 1].b == RALiveInterval::kInf;
   }
 
   //! \}

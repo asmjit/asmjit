@@ -357,7 +357,7 @@ void* ZoneAllocator::_allocZeroed(size_t size, size_t& allocatedSize) noexcept {
 }
 
 void ZoneAllocator::_releaseDynamic(void* p, size_t size) noexcept {
-  ASMJIT_UNUSED(size);
+  DebugUtils::unused(size);
   ASMJIT_ASSERT(isInitialized());
 
   // Pointer to `DynamicBlock` is stored at [-1].

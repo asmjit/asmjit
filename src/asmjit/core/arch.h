@@ -85,19 +85,19 @@ public:
     // ARM sub-types.
     kSubIdA32_Thumb    = 8,              //!< THUMB|THUMBv2 sub-type (only ARM in 32-bit mode).
 
-    #if   (ASMJIT_ARCH_X86) && defined(__AVX512VL__)
+#if   (ASMJIT_ARCH_X86) && defined(__AVX512VL__)
     kSubIdHost = kSubIdX86_AVX512VL
-    #elif (ASMJIT_ARCH_X86) && defined(__AVX512F__)
+#elif (ASMJIT_ARCH_X86) && defined(__AVX512F__)
     kSubIdHost = kSubIdX86_AVX512
-    #elif (ASMJIT_ARCH_X86) && defined(__AVX2__)
+#elif (ASMJIT_ARCH_X86) && defined(__AVX2__)
     kSubIdHost = kSubIdX86_AVX2
-    #elif (ASMJIT_ARCH_X86) && defined(__AVX__)
+#elif (ASMJIT_ARCH_X86) && defined(__AVX__)
     kSubIdHost = kSubIdX86_AVX
-    #elif (ASMJIT_ARCH_ARM == 32) && (defined(_M_ARMT) || defined(__thumb__) || defined(__thumb2__))
+#elif (ASMJIT_ARCH_ARM == 32) && (defined(_M_ARMT) || defined(__thumb__) || defined(__thumb2__))
     kSubIdHost = kSubIdA32_Thumb
-    #else
+#else
     kSubIdHost = 0
-    #endif
+#endif
   };
 
   //! \name Construction & Destruction

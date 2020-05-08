@@ -289,13 +289,13 @@ void CodeHolder::clearEmitterOptions(uint32_t options) noexcept {
 // ============================================================================
 
 void CodeHolder::setLogger(Logger* logger) noexcept {
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   _logger = logger;
   uint32_t option = !logger ? uint32_t(0) : uint32_t(BaseEmitter::kOptionLoggingEnabled);
   CodeHolder_modifyEmitterOptions(this, BaseEmitter::kOptionLoggingEnabled, option);
-  #else
-  ASMJIT_UNUSED(logger);
-  #endif
+#else
+  DebugUtils::unused(logger);
+#endif
 }
 
 // ============================================================================
@@ -623,7 +623,7 @@ Error CodeHolder::newNamedLabelEntry(LabelEntry** entryOut, const char* name, si
 
 uint32_t CodeHolder::labelIdByName(const char* name, size_t nameSize, uint32_t parentId) noexcept {
   // TODO: Finalize - parent id is not used here?
-  ASMJIT_UNUSED(parentId);
+  DebugUtils::unused(parentId);
 
   uint32_t hashCode = CodeHolder_hashNameAndGetSize(name, nameSize);
   if (ASMJIT_UNLIKELY(!nameSize)) return 0;

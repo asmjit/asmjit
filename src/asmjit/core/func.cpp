@@ -69,15 +69,15 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& sign) {
     _retCount = 1;
   }
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (CallConv::isX86Family(ccId))
     return x86::X86Internal::initFuncDetail(*this, sign, gpSize);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (CallConv::isArmFamily(ccId))
     return arm::ArmInternal::initFuncDetail(*this, sign, gpSize);
-  #endif
+#endif
 
   // We should never bubble here as if `cc.init()` succeeded then there has to
   // be an implementation for the current architecture. However, stay safe.
@@ -91,29 +91,29 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& sign) {
 ASMJIT_FAVOR_SIZE Error FuncFrame::init(const FuncDetail& func) noexcept {
   uint32_t ccId = func.callConv().id();
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (CallConv::isX86Family(ccId))
     return x86::X86Internal::initFuncFrame(*this, func);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (CallConv::isArmFamily(ccId))
     return arm::ArmInternal::initFuncFrame(*this, func);
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArgument);
 }
 
 ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId()))
     return x86::X86Internal::finalizeFuncFrame(*this);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId()))
     return arm::ArmInternal::finalizeFuncFrame(*this);
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArgument);
 }
@@ -128,15 +128,15 @@ ASMJIT_FAVOR_SIZE Error FuncArgsAssignment::updateFuncFrame(FuncFrame& frame) co
 
   uint32_t ccId = func->callConv().id();
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (CallConv::isX86Family(ccId))
     return x86::X86Internal::argsToFuncFrame(*this, frame);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (CallConv::isArmFamily(ccId))
     return arm::ArmInternal::argsToFuncFrame(*this, frame);
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArch);
 }

@@ -387,7 +387,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
   uint32_t vecSize,
   const Imm& imm) noexcept {
 
-  ASMJIT_UNUSED(flags);
+  DebugUtils::unused(flags);
 
   static const char vcmpx[] =
     "EQ_OQ\0" "LT_OS\0"  "LE_OS\0"  "UNORD_Q\0"  "NEQ_UQ\0" "NLT_US\0" "NLE_US\0" "ORD_Q\0"
@@ -625,7 +625,7 @@ ASMJIT_FAVOR_SIZE static Error LoggingInternal_explainConst(
 // ============================================================================
 
 ASMJIT_FAVOR_SIZE Error LoggingInternal::formatRegister(String& sb, uint32_t flags, const BaseEmitter* emitter, uint32_t archId, uint32_t rType, uint32_t rId) noexcept {
-  ASMJIT_UNUSED(archId);
+  DebugUtils::unused(archId);
   const RegFormatInfo& info = x86RegFormatInfo;
 
 #ifndef ASMJIT_NO_COMPILER
@@ -653,7 +653,7 @@ ASMJIT_FAVOR_SIZE Error LoggingInternal::formatRegister(String& sb, uint32_t fla
     }
   }
 #else
-  ASMJIT_UNUSED(flags);
+  DebugUtils::unused(emitter, flags);
 #endif
 
   if (ASMJIT_LIKELY(rType <= BaseReg::kTypeMax)) {

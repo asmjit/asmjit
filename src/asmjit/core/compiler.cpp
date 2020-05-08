@@ -46,8 +46,7 @@ class GlobalConstPoolPass : public Pass {
   GlobalConstPoolPass() noexcept : Pass("GlobalConstPoolPass") {}
 
   Error run(Zone* zone, Logger* logger) noexcept override {
-    ASMJIT_UNUSED(zone);
-    ASMJIT_UNUSED(logger);
+    DebugUtils::unused(zone, logger);
 
     // Flush the global constant pool.
     BaseCompiler* compiler = static_cast<BaseCompiler*>(_cb);
@@ -285,7 +284,7 @@ FuncCallNode* BaseCompiler::addCall(uint32_t instId, const Operand_& o0, const F
 // [asmjit::BaseCompiler - Vars]
 // ============================================================================
 
-static void CodeCompiler_assignGenericName(BaseCompiler* self, VirtReg* vReg) {
+static void BaseCompiler_assignGenericName(BaseCompiler* self, VirtReg* vReg) {
   uint32_t index = unsigned(Operand::virtIdToIndex(vReg->_id));
 
   char buf[64];
@@ -311,12 +310,14 @@ VirtReg* BaseCompiler::newVirtReg(uint32_t typeId, uint32_t signature, const cha
 
   vReg = new(vReg) VirtReg(Operand::indexToVirtId(index), signature, size, alignment, typeId);
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   if (name && name[0] != '\0')
     vReg->_name.setData(&_dataZone, name, SIZE_MAX);
   else
-    CodeCompiler_assignGenericName(this, vReg);
-  #endif
+    BaseCompiler_assignGenericName(this, vReg);
+#else
+  DebugUtils::unused(name);
+#endif
 
   _vRegArray.appendUnsafe(vReg);
   return vReg;
@@ -544,8 +545,65 @@ void BaseCompiler::rename(const BaseReg& reg, const char* fmt, ...) {
     vReg->_name.setData(&_dataZone, buf, SIZE_MAX);
   }
   else {
-    CodeCompiler_assignGenericName(this, vReg);
+    BaseCompiler_assignGenericName(this, vReg);
   }
+}
+
+// ============================================================================
+// [asmjit::BaseCompiler - Jump Annotations]
+// ============================================================================
+
+JumpNode* BaseCompiler::newJumpNode(uint32_t instId, uint32_t instOptions, const Operand_& o0, JumpAnnotation* annotation) noexcept {
+  uint32_t opCount = 1;
+  JumpNode* node = _allocator.allocT<JumpNode>();
+  if (ASMJIT_UNLIKELY(!node))
+    return nullptr;
+
+  node = new(node) JumpNode(this, instId, instOptions, opCount, annotation);
+  node->setOp(0, o0);
+  node->resetOps(opCount, JumpNode::kBaseOpCapacity);
+  return node;
+}
+
+Error BaseCompiler::emitAnnotatedJump(uint32_t instId, const Operand_& o0, JumpAnnotation* annotation) {
+  uint32_t options = instOptions() | globalInstOptions();
+  const char* comment = inlineComment();
+
+  JumpNode* node = newJumpNode(instId, options, o0, annotation);
+
+  resetInstOptions();
+  resetInlineComment();
+
+  if (ASMJIT_UNLIKELY(!node)) {
+    resetExtraReg();
+    return reportError(DebugUtils::errored(kErrorOutOfMemory));
+  }
+
+  node->setExtraReg(extraReg());
+  if (comment)
+    node->setInlineComment(static_cast<char*>(_dataZone.dup(comment, strlen(comment), true)));
+
+  addNode(node);
+  resetExtraReg();
+  return kErrorOk;
+}
+
+JumpAnnotation* BaseCompiler::newJumpAnnotation() {
+  if (_jumpAnnotations.grow(&_allocator, 1) != kErrorOk) {
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
+    return nullptr;
+  }
+
+  uint32_t id = _jumpAnnotations.size();
+  JumpAnnotation* jumpAnnotation = _allocator.newT<JumpAnnotation>(this, id);
+
+  if (!jumpAnnotation) {
+    reportError(DebugUtils::errored(kErrorOutOfMemory));
+    return nullptr;
+  }
+
+  _jumpAnnotations.appendUnsafe(jumpAnnotation);
+  return jumpAnnotation;
 }
 
 // ============================================================================

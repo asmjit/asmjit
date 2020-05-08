@@ -65,7 +65,8 @@ public:
     _newRegFmt(OUT, PARAM, FORMAT, ARGS)
 #else
 # define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                         \
-    ASMJIT_UNUSED(FORMAT);                                                    \
+    DebugUtils::unused(FORMAT);                                               \
+    DebugUtils::unused(std::forward<Args>(args)...);                          \
     _newReg(OUT, PARAM)
 #endif
 
@@ -235,15 +236,15 @@ public:
   //! \{
 
   //! Call a function.
-  inline FuncCallNode* call(const Gp& dst, const FuncSignature& sign) { return addCall(Inst::kIdCall, dst, sign); }
+  inline FuncCallNode* call(const Gp& target, const FuncSignature& sign) { return addCall(Inst::kIdCall, target, sign); }
   //! \overload
-  inline FuncCallNode* call(const Mem& dst, const FuncSignature& sign) { return addCall(Inst::kIdCall, dst, sign); }
+  inline FuncCallNode* call(const Mem& target, const FuncSignature& sign) { return addCall(Inst::kIdCall, target, sign); }
   //! \overload
-  inline FuncCallNode* call(const Label& label, const FuncSignature& sign) { return addCall(Inst::kIdCall, label, sign); }
+  inline FuncCallNode* call(const Label& target, const FuncSignature& sign) { return addCall(Inst::kIdCall, target, sign); }
   //! \overload
-  inline FuncCallNode* call(const Imm& dst, const FuncSignature& sign) { return addCall(Inst::kIdCall, dst, sign); }
+  inline FuncCallNode* call(const Imm& target, const FuncSignature& sign) { return addCall(Inst::kIdCall, target, sign); }
   //! \overload
-  inline FuncCallNode* call(uint64_t dst, const FuncSignature& sign) { return addCall(Inst::kIdCall, Imm(int64_t(dst)), sign); }
+  inline FuncCallNode* call(uint64_t target, const FuncSignature& sign) { return addCall(Inst::kIdCall, Imm(int64_t(target)), sign); }
 
   //! Return.
   inline FuncRetNode* ret() { return addRet(Operand(), Operand()); }
@@ -251,6 +252,16 @@ public:
   inline FuncRetNode* ret(const BaseReg& o0) { return addRet(o0, Operand()); }
   //! \overload
   inline FuncRetNode* ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
+
+  //! \}
+
+  //! \name Jump Tables Support
+  //! \{
+
+  using EmitterExplicitT<Compiler>::jmp;
+
+  inline Error jmp(const BaseReg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
+  inline Error jmp(const BaseMem& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
 
   //! \}
 

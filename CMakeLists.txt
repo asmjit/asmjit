@@ -464,7 +464,6 @@ if (NOT ASMJIT_EMBED)
 
     foreach(_target asmjit_test_opcode
                     asmjit_test_x86_asm
-                    asmjit_test_x86_cc
                     asmjit_test_x86_sections)
       asmjit_add_target(${_target} TEST
                         SOURCES    test/${_target}.cpp
@@ -473,6 +472,15 @@ if (NOT ASMJIT_EMBED)
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endforeach()
+
+    if (NOT (ASMJIT_NO_BUILDER OR ASMJIT_NO_COMPILER))
+      asmjit_add_target(asmjit_test_x86_cc TEST
+                        SOURCES    test/asmjit_test_x86_cc.cpp
+                        LIBRARIES  AsmJit::AsmJit
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    endif()
 
     foreach(_target asmjit_bench_x86)
       asmjit_add_target(${_target} EXECUTABLE

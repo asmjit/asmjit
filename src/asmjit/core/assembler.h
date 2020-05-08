@@ -120,7 +120,7 @@ public:
   ASMJIT_API Error _emitOpArray(uint32_t instId, const Operand_* operands, size_t count) override;
 
 protected:
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   void _emitLog(
     uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3,
     uint32_t relSize, uint32_t immSize, uint8_t* afterCursor);
@@ -128,23 +128,17 @@ protected:
   Error _emitFailed(
     Error err,
     uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3);
-  #else
+#else
   inline Error _emitFailed(
     uint32_t err,
     uint32_t instId, uint32_t options, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
 
-    ASMJIT_UNUSED(instId);
-    ASMJIT_UNUSED(options);
-    ASMJIT_UNUSED(o0);
-    ASMJIT_UNUSED(o1);
-    ASMJIT_UNUSED(o2);
-    ASMJIT_UNUSED(o3);
-
+    DebugUtils::unused(instId, options, o0, o1, o2, o3);
     resetInstOptions();
     resetInlineComment();
     return reportError(err);
   }
-  #endif
+#endif
 public:
   //! \}
   //! \endcond

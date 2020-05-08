@@ -244,57 +244,57 @@ struct EmitterExplicitT {
 
   //! Creates an `intptr_t` memory operand depending on the current architecture.
   inline Mem intptr_ptr(const Gp& base, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, offset, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(const Label& base, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, offset, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(const Label& base, const Gp& index, uint32_t shift, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(const Label& base, const Vec& index, uint32_t shift, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, index, shift, offset, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(const Rip& rip, int32_t offset = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(rip, offset, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(uint64_t base) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr(uint64_t base, const Gp& index, uint32_t shift = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, index, shift, nativeGpSize);
   }
   //! \overload
   inline Mem intptr_ptr_abs(uint64_t base) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, nativeGpSize, BaseMem::kSignatureMemAbs);
   }
   //! \overload
   inline Mem intptr_ptr_abs(uint64_t base, const Gp& index, uint32_t shift = 0) const noexcept {
-    uint32_t nativeGpSize = static_cast<const This*>(this)->gpSize();
+    uint32_t nativeGpSize = _emitter()->gpSize();
     return Mem(base, index, shift, nativeGpSize, BaseMem::kSignatureMemAbs);
   }
 
@@ -304,57 +304,57 @@ struct EmitterExplicitT {
   //! \{
 
   //! Adds 8-bit integer data to the CodeBuffer.
-  inline Error db(uint8_t x) { return static_cast<This*>(this)->embed(&x, 1); }
+  inline Error db(uint8_t x) { return _emitter()->embed(&x, 1); }
   //! Adds 16-bit integer data to the CodeBuffer.
-  inline Error dw(uint16_t x) { return static_cast<This*>(this)->embed(&x, 2); }
+  inline Error dw(uint16_t x) { return _emitter()->embed(&x, 2); }
   //! Adds 32-bit integer data to the CodeBuffer.
-  inline Error dd(uint32_t x) { return static_cast<This*>(this)->embed(&x, 4); }
+  inline Error dd(uint32_t x) { return _emitter()->embed(&x, 4); }
   //! Adds 64-bit integer data to the CodeBuffer.
-  inline Error dq(uint64_t x) { return static_cast<This*>(this)->embed(&x, 8); }
+  inline Error dq(uint64_t x) { return _emitter()->embed(&x, 8); }
 
   //! Adds 8-bit integer data to the CodeBuffer.
-  inline Error dint8(int8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int8_t)); }
+  inline Error dint8(int8_t x) { return _emitter()->embed(&x, sizeof(int8_t)); }
   //! Adds 8-bit integer data to the CodeBuffer.
-  inline Error duint8(uint8_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint8_t)); }
+  inline Error duint8(uint8_t x) { return _emitter()->embed(&x, sizeof(uint8_t)); }
 
   //! Adds 16-bit integer data to the CodeBuffer.
-  inline Error dint16(int16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int16_t)); }
+  inline Error dint16(int16_t x) { return _emitter()->embed(&x, sizeof(int16_t)); }
   //! Adds 16-bit integer data to the CodeBuffer.
-  inline Error duint16(uint16_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint16_t)); }
+  inline Error duint16(uint16_t x) { return _emitter()->embed(&x, sizeof(uint16_t)); }
 
   //! Adds 32-bit integer data to the CodeBuffer.
-  inline Error dint32(int32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int32_t)); }
+  inline Error dint32(int32_t x) { return _emitter()->embed(&x, sizeof(int32_t)); }
   //! Adds 32-bit integer data to the CodeBuffer.
-  inline Error duint32(uint32_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint32_t)); }
+  inline Error duint32(uint32_t x) { return _emitter()->embed(&x, sizeof(uint32_t)); }
 
   //! Adds 64-bit integer data to the CodeBuffer.
-  inline Error dint64(int64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(int64_t)); }
+  inline Error dint64(int64_t x) { return _emitter()->embed(&x, sizeof(int64_t)); }
   //! Adds 64-bit integer data to the CodeBuffer.
-  inline Error duint64(uint64_t x) { return static_cast<This*>(this)->embed(&x, sizeof(uint64_t)); }
+  inline Error duint64(uint64_t x) { return _emitter()->embed(&x, sizeof(uint64_t)); }
 
   //! Adds float data to the CodeBuffer.
-  inline Error dfloat(float x) { return static_cast<This*>(this)->embed(&x, sizeof(float)); }
+  inline Error dfloat(float x) { return _emitter()->embed(&x, sizeof(float)); }
   //! Adds double data to the CodeBuffer.
-  inline Error ddouble(double x) { return static_cast<This*>(this)->embed(&x, sizeof(double)); }
+  inline Error ddouble(double x) { return _emitter()->embed(&x, sizeof(double)); }
 
   //! Adds MMX data to the CodeBuffer.
-  inline Error dmm(const Data64& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data64)); }
+  inline Error dmm(const Data64& x) { return _emitter()->embed(&x, sizeof(Data64)); }
   //! Adds XMM data to the CodeBuffer.
-  inline Error dxmm(const Data128& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data128)); }
+  inline Error dxmm(const Data128& x) { return _emitter()->embed(&x, sizeof(Data128)); }
   //! Adds YMM data to the CodeBuffer.
-  inline Error dymm(const Data256& x) { return static_cast<This*>(this)->embed(&x, sizeof(Data256)); }
+  inline Error dymm(const Data256& x) { return _emitter()->embed(&x, sizeof(Data256)); }
 
   //! Adds data in a given structure instance to the CodeBuffer.
   template<typename T>
-  inline Error dstruct(const T& x) { return static_cast<This*>(this)->embed(&x, uint32_t(sizeof(T))); }
+  inline Error dstruct(const T& x) { return _emitter()->embed(&x, uint32_t(sizeof(T))); }
 
   //! \}
 
 protected:
   //! \cond
   inline This& _addInstOptions(uint32_t options) noexcept {
-    static_cast<This*>(this)->addInstOptions(options);
-    return *static_cast<This*>(this);
+    _emitter()->addInstOptions(options);
+    return *_emitter();
   }
   //! \endcond
 
@@ -403,7 +403,7 @@ public:
   //!
   //! \note This is the same as using `repe()` or `repz()` prefix.
   inline This& rep(const Gp& zcx) noexcept {
-    static_cast<This*>(this)->_extraReg.init(zcx);
+    _emitter()->_extraReg.init(zcx);
     return _addInstOptions(Inst::kOptionRep);
   }
 
@@ -421,7 +421,7 @@ public:
   //!
   //! \note This is the same as using `bnd()` or `repnz()` prefix.
   inline This& repne(const Gp& zcx) noexcept {
-    static_cast<This*>(this)->_extraReg.init(zcx);
+    _emitter()->_extraReg.init(zcx);
     return _addInstOptions(Inst::kOptionRepne);
   }
 
@@ -467,8 +467,8 @@ public:
 
   //! Use masking {k} (AVX512+).
   inline This& k(const KReg& kreg) noexcept {
-    static_cast<This*>(this)->_extraReg.init(kreg);
-    return *static_cast<This*>(this);
+    _emitter()->_extraReg.init(kreg);
+    return *_emitter();
   }
 
   //! Use zeroing instead of merging (AVX512+).

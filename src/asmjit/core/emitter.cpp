@@ -136,15 +136,15 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitProlog(const FuncFrame& frame) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (archInfo().isX86Family())
     return x86::X86Internal::emitProlog(as<x86::Emitter>(), frame);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (archInfo().isArmFamily())
     return arm::ArmInternal::emitProlog(as<arm::Emitter>(), frame);
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArch);
 }
@@ -153,15 +153,15 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitEpilog(const FuncFrame& frame) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (archInfo().isX86Family())
     return x86::X86Internal::emitEpilog(as<x86::Emitter>(), frame);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (archInfo().isArmFamily())
     return arm::ArmInternal::emitEpilog(as<arm::Emitter>(), frame);
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArch);
 }
@@ -170,15 +170,15 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitArgsAssignment(const FuncFrame& frame, 
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (archInfo().isX86Family())
     return x86::X86Internal::emitArgsAssignment(as<x86::Emitter>(), frame, args);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (archInfo().isArmFamily())
     return arm::ArmInternal::emitArgsAssignment(as<arm::Emitter>(), frame, args);
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArch);
 }
@@ -191,7 +191,7 @@ Error BaseEmitter::commentf(const char* fmt, ...) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   StringTmp<1024> sb;
 
   va_list ap;
@@ -203,17 +203,17 @@ Error BaseEmitter::commentf(const char* fmt, ...) {
     return err;
 
   return comment(sb.data(), sb.size());
-  #else
-  ASMJIT_UNUSED(fmt);
+#else
+  DebugUtils::unused(fmt);
   return kErrorOk;
-  #endif
+#endif
 }
 
 Error BaseEmitter::commentv(const char* fmt, va_list ap) {
   if (ASMJIT_UNLIKELY(!_code))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   StringTmp<1024> sb;
 
   Error err = sb.appendVFormat(fmt, ap);
@@ -221,11 +221,10 @@ Error BaseEmitter::commentv(const char* fmt, va_list ap) {
     return err;
 
   return comment(sb.data(), sb.size());
-  #else
-  ASMJIT_UNUSED(fmt);
-  ASMJIT_UNUSED(ap);
+#else
+  DebugUtils::unused(fmt, ap);
   return kErrorOk;
-  #endif
+#endif
 }
 
 // ============================================================================
@@ -242,7 +241,7 @@ Error BaseEmitter::onAttach(CodeHolder* code) noexcept {
 }
 
 Error BaseEmitter::onDetach(CodeHolder* code) noexcept {
-  ASMJIT_UNUSED(code);
+  DebugUtils::unused(code);
 
   _flags = 0;
   _emitterOptions = 0;

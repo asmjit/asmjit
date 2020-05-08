@@ -75,6 +75,7 @@ static void makeRawFunc(x86::Emitter* emitter) noexcept {
   emitter->emitEpilog(frame);
 }
 
+#ifndef ASMJIT_NO_COMPILER
 // This function works with x86::Compiler, provided for comparison.
 static void makeCompiledFunc(x86::Compiler* cc) noexcept {
   x86::Gp dst   = cc->newIntPtr();
@@ -95,13 +96,19 @@ static void makeCompiledFunc(x86::Compiler* cc) noexcept {
   cc->movdqu(x86::ptr(dst), vec0);
   cc->endFunc();
 }
+#endif
 
 static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
+#ifndef ASMJIT_NO_LOGGING
   FileLogger logger(stdout);
+#endif
 
   CodeHolder code;
   code.init(rt.codeInfo());
+
+#ifndef ASMJIT_NO_LOGGING
   code.setLogger(&logger);
+#endif
 
   Error err = kErrorOk;
   switch (emitterType) {
@@ -112,6 +119,7 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
       break;
     }
 
+#ifndef ASMJIT_NO_BUILDER
     case BaseEmitter::kTypeBuilder: {
       printf("Using x86::Builder:\n");
       x86::Builder cb(&code);
@@ -124,7 +132,9 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
       }
       break;
     }
+#endif
 
+#ifndef ASMJIT_NO_COMPILER
     case BaseEmitter::kTypeCompiler: {
       printf("Using x86::Compiler:\n");
       x86::Compiler cc(&code);
@@ -137,6 +147,7 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
       }
       break;
     }
+#endif
   }
 
   // Add the code generated to the runtime.
@@ -161,16 +172,19 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
   return !(out[0] == 5 && out[1] == 8 && out[2] == 4 && out[3] == 9);
 }
 
-int main(int argc, char* argv[]) {
-  ASMJIT_UNUSED(argc);
-  ASMJIT_UNUSED(argv);
-
+int main() {
   unsigned nFailed = 0;
   JitRuntime rt;
 
   nFailed += testFunc(rt, BaseEmitter::kTypeAssembler);
+
+#ifndef ASMJIT_NO_BUILDER
   nFailed += testFunc(rt, BaseEmitter::kTypeBuilder);
+#endif
+
+#ifndef ASMJIT_NO_COMPILER
   nFailed += testFunc(rt, BaseEmitter::kTypeCompiler);
+#endif
 
   if (!nFailed)
     printf("[PASSED] All tests passed\n");

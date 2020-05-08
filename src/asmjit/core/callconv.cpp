@@ -43,15 +43,15 @@ ASMJIT_BEGIN_NAMESPACE
 ASMJIT_FAVOR_SIZE Error CallConv::init(uint32_t ccId) noexcept {
   reset();
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (CallConv::isX86Family(ccId))
     return x86::CallConvInternal::init(*this, ccId);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (CallConv::isArmFamily(ccId))
     return arm::CallConvInternal::init(*this, ccId);
-  #endif
+#endif
 
   return DebugUtils::errored(kErrorInvalidArgument);
 }

@@ -25,8 +25,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "./asmjit_test_misc.h"
 #include "./asmjit_test_opcode.h"
+
+#ifndef ASMJIT_NO_COMPILER
+  #include "./asmjit_test_misc.h"
+#endif
 
 using namespace asmjit;
 
@@ -131,6 +134,7 @@ static void benchX86(uint32_t archId) noexcept {
     asmtest::generateOpcodes(a.as<x86::Emitter>());
   });
 
+#ifndef ASMJIT_NO_BUILDER
   BenchUtils::bench<x86::Builder>(code, archId, "[raw]", [](x86::Builder& cb) {
     asmtest::generateOpcodes(cb.as<x86::Emitter>());
   });
@@ -139,7 +143,9 @@ static void benchX86(uint32_t archId) noexcept {
     asmtest::generateOpcodes(cb.as<x86::Emitter>());
     cb.finalize();
   });
+#endif
 
+#ifndef ASMJIT_NO_COMPILER
   BenchUtils::bench<x86::Compiler>(code, archId, "[raw]", [](x86::Compiler& cc) {
     asmtest::generateAlphaBlend(cc);
   });
@@ -148,17 +154,15 @@ static void benchX86(uint32_t archId) noexcept {
     asmtest::generateAlphaBlend(cc);
     cc.finalize();
   });
+#endif
 }
 #endif
 
-int main(int argc, char* argv[]) {
-  ASMJIT_UNUSED(argc);
-  ASMJIT_UNUSED(argv);
-
-  #ifdef ASMJIT_BUILD_X86
+int main() {
+#ifdef ASMJIT_BUILD_X86
   benchX86(ArchInfo::kIdX86);
   benchX86(ArchInfo::kIdX64);
-  #endif
+#endif
 
   return 0;
 }

@@ -61,6 +61,9 @@ class CommentNode;
 class SentinelNode;
 class LabelDeltaNode;
 
+// Only used by Compiler infrastructure.
+class JumpAnnotation;
+
 // ============================================================================
 // [asmjit::BaseBuilder]
 // ============================================================================
@@ -345,9 +348,9 @@ public:
   //! \name Logging
   //! \{
 
-  #ifndef ASMJIT_NO_LOGGING
+#ifndef ASMJIT_NO_LOGGING
   ASMJIT_API Error dump(String& sb, uint32_t flags = 0) const noexcept;
-  #endif
+#endif
 
   //! \}
 
@@ -471,6 +474,8 @@ public:
 
     // [BaseCompiler]
 
+    //! Node is `JumpNode` (acts as InstNode).
+    kNodeJump = 15,
     //! Node is `FuncNode` (acts as LabelNode).
     kNodeFunc = 16,
     //! Node is `FuncRetNode` (acts as InstNode).
@@ -765,6 +770,11 @@ public:
   inline void resetOp(uint32_t index) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
     _opArray[index].reset();
+  }
+
+  inline void resetOps(uint32_t start, uint32_t end) noexcept {
+    for (uint32_t i = start; i < end; i++)
+      _opArray[i].reset();
   }
 
   //! \}

@@ -146,7 +146,7 @@ Error Logging::formatLabel(
   const BaseEmitter* emitter,
   uint32_t labelId) noexcept {
 
-  ASMJIT_UNUSED(flags);
+  DebugUtils::unused(flags);
 
   const LabelEntry* le = emitter->code()->labelEntry(labelId);
   if (ASMJIT_UNLIKELY(!le))
@@ -181,15 +181,15 @@ Error Logging::formatRegister(
   uint32_t regType,
   uint32_t regId) noexcept {
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
     return x86::LoggingInternal::formatRegister(sb, flags, emitter, archId, regType, regId);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId))
     return arm::LoggingInternal::formatRegister(sb, flags, emitter, archId, regType, regId);
-  #endif
+#endif
 
   return kErrorInvalidArch;
 }
@@ -201,15 +201,15 @@ Error Logging::formatOperand(
   uint32_t archId,
   const Operand_& op) noexcept {
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
     return x86::LoggingInternal::formatOperand(sb, flags, emitter, archId, op);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId))
     return arm::LoggingInternal::formatOperand(sb, flags, emitter, archId, op);
-  #endif
+#endif
 
   return kErrorInvalidArch;
 }
@@ -221,15 +221,15 @@ Error Logging::formatInstruction(
   uint32_t archId,
   const BaseInst& inst, const Operand_* operands, uint32_t opCount) noexcept {
 
-  #ifdef ASMJIT_BUILD_X86
+#ifdef ASMJIT_BUILD_X86
   if (ArchInfo::isX86Family(archId))
     return x86::LoggingInternal::formatInstruction(sb, flags, emitter, archId, inst, operands, opCount);
-  #endif
+#endif
 
-  #ifdef ASMJIT_BUILD_ARM
+#ifdef ASMJIT_BUILD_ARM
   if (ArchInfo::isArmFamily(archId))
     return arm::LoggingInternal::formatInstruction(sb, flags, emitter, archId, inst, operands, opCount);
-  #endif
+#endif
 
   return kErrorInvalidArch;
 }
@@ -309,12 +309,14 @@ static Error formatFuncRets(
     if (i) ASMJIT_PROPAGATE(sb.appendString(", "));
     ASMJIT_PROPAGATE(formatFuncValue(sb, flags, emitter, fd.ret(i)));
 
-    #ifndef ASMJIT_NO_COMPILER
+#ifndef ASMJIT_NO_COMPILER
     if (vRegs) {
       static const char nullRet[] = "<none>";
       ASMJIT_PROPAGATE(sb.appendFormat(" %s", vRegs[i] ? vRegs[i]->name() : nullRet));
     }
-    #endif
+#else
+    DebugUtils::unused(vRegs);
+#endif
   }
 
   return kErrorOk;
@@ -335,12 +337,14 @@ static Error formatFuncArgs(
     if (i) ASMJIT_PROPAGATE(sb.appendString(", "));
     ASMJIT_PROPAGATE(formatFuncValue(sb, flags, emitter, fd.arg(i)));
 
-    #ifndef ASMJIT_NO_COMPILER
+#ifndef ASMJIT_NO_COMPILER
     if (vRegs) {
       static const char nullArg[] = "<none>";
       ASMJIT_PROPAGATE(sb.appendFormat(" %s", vRegs[i] ? vRegs[i]->name() : nullArg));
     }
-    #endif
+#else
+    DebugUtils::unused(vRegs);
+#endif
   }
 
   return kErrorOk;
@@ -356,7 +360,8 @@ Error Logging::formatNode(
     ASMJIT_PROPAGATE(sb.appendFormat("<%05u> ", node_->position()));
 
   switch (node_->type()) {
-    case BaseNode::kNodeInst: {
+    case BaseNode::kNodeInst:
+    case BaseNode::kNodeJump: {
       const InstNode* node = node_->as<InstNode>();
       ASMJIT_PROPAGATE(
         Logging::formatInstruction(sb, flags, cb,
@@ -437,7 +442,7 @@ Error Logging::formatNode(
       break;
     }
 
-    #ifndef ASMJIT_NO_COMPILER
+#ifndef ASMJIT_NO_COMPILER
     case BaseNode::kNodeFunc: {
       const FuncNode* node = node_->as<FuncNode>();
 
@@ -473,7 +478,7 @@ Error Logging::formatNode(
           node->baseInst(), node->operands(), node->opCount()));
       break;
     }
-    #endif
+#endif
 
     default: {
       ASMJIT_PROPAGATE(sb.appendFormat("[User:%u]", node_->type()));
