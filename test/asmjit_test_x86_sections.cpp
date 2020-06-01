@@ -55,7 +55,7 @@ static void fail(const char* message, Error err) {
 int main() {
   printf("AsmJit X86 Sections Test\n\n");
 
-  Environment env(Environment::kArchHost);
+  Environment env = hostEnvironment();
   JitAllocator allocator;
 
 #ifndef ASMJIT_NO_LOGGING

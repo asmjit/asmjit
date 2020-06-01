@@ -72,6 +72,7 @@ static void dumpCpu(void) noexcept {
   // [CPU Features]
   // --------------------------------------------------------------------------
 
+#ifndef ASMJIT_NO_LOGGING
   INFO("CPU Features:");
   BaseFeatures::Iterator it(cpu.features().iterator());
   while (it.hasNext()) {
@@ -81,6 +82,7 @@ static void dumpCpu(void) noexcept {
     INFO("  %s\n", featureString.data());
   };
   INFO("");
+#endif // !ASMJIT_NO_LOGGING
 }
 
 // ============================================================================

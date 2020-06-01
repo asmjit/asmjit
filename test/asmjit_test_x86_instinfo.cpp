@@ -29,12 +29,19 @@ using namespace asmjit;
 static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* operands, size_t opCount) {
   StringTmp<512> sb;
 
+  // Read & Write Information
+  // ------------------------
+
   InstRWInfo rw;
   InstAPI::queryRWInfo(arch, inst, operands, opCount, &rw);
 
   sb.append("Instruction:\n");
   sb.append("  ");
+#ifndef ASMJIT_NO_LOGGING
   Formatter::formatInstruction(sb, 0, nullptr, arch, inst, operands, opCount);
+#else
+  sb.append("<Logging-Not-Available>");
+#endif
   sb.append("\n");
 
   sb.append("Operands:\n");
@@ -49,8 +56,13 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
     sb.append("\n");
   }
 
+  // CPU Features
+  // ------------
+
   BaseFeatures features;
   InstAPI::queryFeatures(arch, inst, operands, opCount, &features);
+
+#ifndef ASMJIT_NO_LOGGING
   if (!features.empty()) {
     sb.append("Features:\n");
     sb.append("  ");
@@ -66,6 +78,7 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
     }
     sb.append("\n");
   }
+#endif
 
   printf("%s\n", sb.data());
 }

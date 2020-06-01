@@ -310,10 +310,10 @@ script:
     if [ -z $SOURCE_CODE_CHECK ]; then
       cd build
       if [[ "$BUILD_TOOLCHAIN" =~ ^Visual\ Studio ]]; then
-        cmake --build . --config ${BUILD_TYPE} -- -nologo -v:minimal
+        cmake --build . --config ${BUILD_TYPE} -- -nologo -v:minimal || exit 1
         cd ${BUILD_TYPE}
       else
-        cmake --build .
+        cmake --build . || exit 1
       fi
       echo ""
       echo "=== Starting Tests ==="
@@ -321,23 +321,23 @@ script:
       if [ "$USE_VALGRIND" = "1" ]; then
         RUN_CMD="valgrind --leak-check=full --show-reachable=yes --track-origins=yes"
       fi
-      eval "$RUN_CMD ./asmjit_test_unit --quick"
+      eval "$RUN_CMD ./asmjit_test_unit --quick" || exit 1
       echo ""
-      eval "$RUN_CMD ./asmjit_test_opcode > /dev/null"
+      eval "$RUN_CMD ./asmjit_test_opcode > /dev/null" || exit 1
       echo ""
-      eval "$RUN_CMD ./asmjit_test_x86_asm"
+      eval "$RUN_CMD ./asmjit_test_x86_asm" || exit 1
       echo ""
-      eval "$RUN_CMD ./asmjit_test_x86_sections"
+      eval "$RUN_CMD ./asmjit_test_x86_sections" || exit 1
       if [ -f ./asmjit_test_x86_instinfo ]; then
         echo ""
-        eval "$RUN_CMD ./asmjit_test_x86_instinfo"
+        eval "$RUN_CMD ./asmjit_test_x86_instinfo" || exit 1
       fi
       if [ -f ./asmjit_test_x86_cc ]; then
         echo ""
-        eval "$RUN_CMD ./asmjit_test_x86_cc"
+        eval "$RUN_CMD ./asmjit_test_x86_cc" || exit 1
       fi
     else
       cd tools
-      ./enumgen.sh --verify
+      ./enumgen.sh --verify || exit 1
       cd ..
     fi
