@@ -666,8 +666,6 @@ public:
   //!     called).
   //!   - \ref ErrorHandler has been changed (\ref CodeHolder::setErrorHandler()
   //!     has been called).
-  //!   - Emitter options have been changed (\ref CodeHolder::addEmitterOptions()
-  //!     or \ref CodeHolder::clearEmitterOptions() have been called).
   //!
   //! This function ensures that the settings are properly propagated from
   //! \ref CodeHolder to the emitter.

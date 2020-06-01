@@ -637,7 +637,7 @@ public:
   //! Returns the attached error handler.
   inline ErrorHandler* errorHandler() const noexcept { return _errorHandler; }
   //! Attach an error handler to this `CodeHolder`.
-  inline void setErrorHandler(ErrorHandler* handler) noexcept { _errorHandler = handler; }
+  ASMJIT_API void setErrorHandler(ErrorHandler* errorHandler) noexcept;
   //! Resets the error handler to none.
   inline void resetErrorHandler() noexcept { setErrorHandler(nullptr); }
 

@@ -2044,10 +2044,14 @@ namespace asmjit {
 #ifndef ASMJIT_NO_DEPRECATED
 namespace asmjit {
 
+#ifndef ASMJIT_NO_COMPILER
 ASMJIT_DEPRECATED("Use InvokeNode instead of FuncCallNode")
 typedef InvokeNode FuncCallNode;
+#endif // !ASMJIT_NO_COMPILER
 
+#ifndef ASMJIT_NO_LOGGING
 namespace Logging { using namespace Formatter; }
+#endif //! ASMJIT_NO_LOGGING
 
 } // {asmjit}
 #endif // !ASMJIT_NO_DEPRECATED

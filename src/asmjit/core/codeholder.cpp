@@ -255,7 +255,7 @@ Error CodeHolder::detach(BaseEmitter* emitter) noexcept {
 }
 
 // ============================================================================
-// [asmjit::CodeHolder - Logging & Error Handling]
+// [asmjit::CodeHolder - Logging]
 // ============================================================================
 
 void CodeHolder::setLogger(Logger* logger) noexcept {
@@ -265,6 +265,15 @@ void CodeHolder::setLogger(Logger* logger) noexcept {
 #else
   DebugUtils::unused(logger);
 #endif
+}
+
+// ============================================================================
+// [asmjit::CodeHolder - Error Handling]
+// ============================================================================
+
+void CodeHolder::setErrorHandler(ErrorHandler* errorHandler) noexcept {
+  _errorHandler = errorHandler;
+  CodeHolder_onSettingsUpdated(this);
 }
 
 // ============================================================================

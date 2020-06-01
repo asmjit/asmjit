@@ -197,7 +197,10 @@ Error BaseAssembler::embedDataArray(uint32_t typeId, const void* data, size_t it
   CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, totalSize));
 
+#ifndef ASMJIT_NO_LOGGING
   const uint8_t* start = writer.cursor();
+#endif
+
   for (size_t i = 0; i < repeatCount; i++) {
     writer.emitData(data, dataSize);
   }
