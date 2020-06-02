@@ -698,13 +698,6 @@ public:
 
   //! \}
 
-  //! \name Finalize
-  //! \{
-
-  ASMJIT_API Error finalize() override;
-
-  //! \}
-
   //! \name Events
   //! \{
 

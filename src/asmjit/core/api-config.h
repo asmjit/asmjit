@@ -95,7 +95,7 @@ namespace asmjit {
 //! Disables instruction validation API.
 #define ASMJIT_NO_VALIDATION
 
-//! Disables instruction introspection API,
+//! Disables instruction introspection API.
 #define ASMJIT_NO_INTROSPECTION
 
 // Avoid doxygen preprocessor using feature-selection definitions.

@@ -41,16 +41,6 @@ Compiler::Compiler(CodeHolder* code) noexcept : BaseCompiler() {
 Compiler::~Compiler() noexcept {}
 
 // ============================================================================
-// [asmjit::x86::Compiler - Finalize]
-// ============================================================================
-
-Error Compiler::finalize() {
-  ASMJIT_PROPAGATE(runPasses());
-  Assembler a(_code);
-  return serialize(&a);
-}
-
-// ============================================================================
 // [asmjit::x86::Compiler - Events]
 // ============================================================================
 
