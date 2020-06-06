@@ -3,18 +3,20 @@ AsmJit
 
 Complete x86/x64 JIT and Remote Assembler for C++.
 
-  * [Home Page (asmjit.com)](https://asmjit.com)
+  * [Official Home Page (asmjit.com)](https://asmjit.com)
   * [Official Repository (asmjit/asmjit)](https://github.com/asmjit/asmjit)
   * [Official Chat (gitter)](https://gitter.im/asmjit/asmjit)
   * [Blog (asmbits)](https://asmbits.blogspot.com/ncr)
   * [Permissive Zlib license](./LICENSE.md)
 
-Important
----------
+Out of Support
+--------------
 
-This is an old-stable branch that is only provided for users that haven't updated to new AsmmJit. Please do not use this branch for new projects and if you still rely on it consider updating.
+  * This version of AsmJit is out of support and won't be updated.
+  * No pull requests will be merged into this branch.
+  * Please update your code to use the latest AsmJit as issues in this branch will not get fixed.
 
-This branch will be provided until the end of 2019, after that the branch will be deleted and this version of AsmJit won't be maintained anymore.
+This branch will be deleted at the end of 2020.
 
 Introduction
 ------------
