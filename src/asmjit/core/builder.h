@@ -372,7 +372,7 @@ public:
 #ifndef ASMJIT_NO_DEPRECATED
 #ifndef ASMJIT_NO_LOGGING
   ASMJIT_DEPRECATED("Use Formatter::formatNodeList(sb, formatFlags, builder)")
-  ASMJIT_API Error dump(String& sb, uint32_t formatFlags = 0) const noexcept {
+  inline Error dump(String& sb, uint32_t formatFlags = 0) const noexcept {
     return Formatter::formatNodeList(sb, formatFlags, this);
   }
 #endif // !ASMJIT_NO_LOGGING
