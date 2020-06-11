@@ -256,7 +256,7 @@ namespace asmjit {
 // ============================================================================
 
 #define ASMJIT_CXX_GNU   0
-#define ASMJIT_CXX_MAKE_VER(MAJOR, MINOR) ((MAJOR) * 10000000 + (MINOR) * 100000 + (PATCH))
+#define ASMJIT_CXX_MAKE_VER(MAJOR, MINOR) ((MAJOR) * 1000 + (MINOR))
 
 // Intel Compiler [pretends to be GNU or MSC, so it must be checked first]:
 //   - https://software.intel.com/en-us/articles/c0x-features-supported-by-intel-c-compiler
