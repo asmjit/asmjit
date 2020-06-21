@@ -241,7 +241,7 @@ Error BaseAssembler::embedConstPool(const Label& label, const ConstPool& pool) {
   return kErrorOk;
 }
 
-Error BaseAssembler::embedLabel(const Label& label) {
+Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
   if (ASMJIT_UNLIKELY(!_code))
     return reportError(DebugUtils::errored(kErrorNotInitialized));
 
@@ -252,8 +252,11 @@ Error BaseAssembler::embedLabel(const Label& label) {
   if (ASMJIT_UNLIKELY(!le))
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
 
-  uint32_t dataSize = registerSize();
-  ASMJIT_ASSERT(dataSize <= 8);
+  if (dataSize == 0)
+    dataSize = registerSize();
+
+  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8))
+    return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
 
   CodeBufferWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
@@ -268,7 +271,7 @@ Error BaseAssembler::embedLabel(const Label& label) {
   }
 #endif
 
-  Error err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, dataSize);
+  Error err = _code->newRelocEntry(&re, RelocEntry::kTypeRelToAbs, uint32_t(dataSize));
   if (ASMJIT_UNLIKELY(err))
     return reportError(err);
 

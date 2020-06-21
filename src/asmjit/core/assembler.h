@@ -124,8 +124,8 @@ public:
   ASMJIT_API Error embedDataArray(uint32_t typeId, const void* data, size_t itemCcount, size_t repeatCount = 1) override;
   ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool) override;
 
-  ASMJIT_API Error embedLabel(const Label& label) override;
-  ASMJIT_API Error embedLabelDelta(const Label& label, const Label& base, size_t dataSize) override;
+  ASMJIT_API Error embedLabel(const Label& label, size_t dataSize = 0) override;
+  ASMJIT_API Error embedLabelDelta(const Label& label, const Label& base, size_t dataSize = 0) override;
 
   //! \}
 

@@ -337,8 +337,8 @@ public:
   ASMJIT_API Error embedDataArray(uint32_t typeId, const void* data, size_t count, size_t repeat = 1) override;
   ASMJIT_API Error embedConstPool(const Label& label, const ConstPool& pool) override;
 
-  ASMJIT_API Error embedLabel(const Label& label) override;
-  ASMJIT_API Error embedLabelDelta(const Label& label, const Label& base, size_t dataSize) override;
+  ASMJIT_API Error embedLabel(const Label& label, size_t dataSize = 0) override;
+  ASMJIT_API Error embedLabelDelta(const Label& label, const Label& base, size_t dataSize = 0) override;
 
   //! \}
 
@@ -1145,14 +1145,16 @@ public:
   ASMJIT_NONCOPYABLE(EmbedLabelNode)
 
   uint32_t _labelId;
+  uint32_t _dataSize;
 
   //! \name Construction & Destruction
   //! \{
 
   //! Creates a new `EmbedLabelNode` instance.
-  inline EmbedLabelNode(BaseBuilder* cb, uint32_t labelId = 0) noexcept
+  inline EmbedLabelNode(BaseBuilder* cb, uint32_t labelId = 0, uint32_t dataSize = 0) noexcept
     : BaseNode(cb, kNodeEmbedLabel, kFlagIsData),
-      _labelId(labelId) {}
+      _labelId(labelId),
+      _dataSize(dataSize) {}
 
   //! \}
 
@@ -1168,6 +1170,11 @@ public:
   inline void setLabel(const Label& label) noexcept { setLabelId(label.id()); }
   //! Sets the label id (use with caution, improper use can break a lot of things).
   inline void setLabelId(uint32_t labelId) noexcept { _labelId = labelId; }
+
+  //! Returns the data size.
+  inline uint32_t dataSize() const noexcept { return _dataSize; }
+  //! Sets the data size.
+  inline void setDataSize(uint32_t dataSize) noexcept { _dataSize = dataSize; }
 
   //! \}
 
