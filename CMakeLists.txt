@@ -447,15 +447,19 @@ if (NOT ASMJIT_EMBED)
                     CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
                     CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                     CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-  target_include_directories(asmjit BEFORE INTERFACE ${ASMJIT_INCLUDE_DIRS})
+  target_include_directories(asmjit BEFORE INTERFACE
+                             $<BUILD_INTERFACE:${ASMJIT_INCLUDE_DIRS}>
+                             $<INSTALL_INTERFACE:include/src>)
   target_compile_options(asmjit INTERFACE ${ASMJIT_CFLAGS})
   add_library(AsmJit::AsmJit ALIAS asmjit)
 
   # Add AsmJit install instructions (library and public headers).
   if (NOT ASMJIT_NO_INSTALL)
-    install(TARGETS asmjit RUNTIME DESTINATION "bin"
+    install(TARGETS asmjit EXPORT asmjit-config
+                           RUNTIME DESTINATION "bin"
                            LIBRARY DESTINATION "lib${LIB_SUFFIX}"
                            ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
+    install(EXPORT asmjit-config DESTINATION "lib${LIB_SUFFIX}/cmake/asmjit")
     foreach(_src_file ${ASMJIT_SRC_LIST})
       if ("${_src_file}" MATCHES "\\.h$" AND NOT "${_src_file}" MATCHES "_p\\.h$")
         get_filename_component(_src_dir ${_src_file} PATH)
