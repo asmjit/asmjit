@@ -561,7 +561,7 @@ public:
   //! Emits an instruction - all 6 operands must be defined.
   virtual Error _emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_* oExt) = 0;
   //! Emits instruction having operands stored in array.
-  virtual Error _emitOpArray(uint32_t instId, const Operand_* operands, size_t opCount);
+  ASMJIT_API virtual Error _emitOpArray(uint32_t instId, const Operand_* operands, size_t opCount);
   //! \endcond
 
   //! \}

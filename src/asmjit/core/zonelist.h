@@ -76,20 +76,20 @@ class ZoneList {
 public:
   ASMJIT_NONCOPYABLE(ZoneList)
 
-  NodeT* _bounds[Globals::kLinkCount];
+  NodeT* _nodes[Globals::kLinkCount];
 
   //! \name Construction & Destruction
   //! \{
 
   inline ZoneList() noexcept
-    : _bounds { nullptr, nullptr } {}
+    : _nodes { nullptr, nullptr } {}
 
   inline ZoneList(ZoneList&& other) noexcept
-    : _bounds { other._bounds[0], other._bounds[1] } {}
+    : _nodes { other._nodes[0], other._nodes[1] } {}
 
   inline void reset() noexcept {
-    _bounds[0] = nullptr;
-    _bounds[1] = nullptr;
+    _nodes[0] = nullptr;
+    _nodes[1] = nullptr;
   }
 
   //! \}
@@ -97,9 +97,9 @@ public:
   //! \name Accessors
   //! \{
 
-  inline bool empty() const noexcept { return _bounds[0] == nullptr; }
-  inline NodeT* first() const noexcept { return _bounds[Globals::kLinkFirst]; }
-  inline NodeT* last() const noexcept { return _bounds[Globals::kLinkLast]; }
+  inline bool empty() const noexcept { return _nodes[0] == nullptr; }
+  inline NodeT* first() const noexcept { return _nodes[Globals::kLinkFirst]; }
+  inline NodeT* last() const noexcept { return _nodes[Globals::kLinkLast]; }
 
   //! \}
 
@@ -107,23 +107,23 @@ public:
   //! \{
 
   inline void swap(ZoneList& other) noexcept {
-    std::swap(_bounds[0], other._bounds[0]);
-    std::swap(_bounds[1], other._bounds[1]);
+    std::swap(_nodes[0], other._nodes[0]);
+    std::swap(_nodes[1], other._nodes[1]);
   }
 
-  // Can be used to both prepend and append.
+  // Can be used to both append and prepend.
   inline void _addNode(NodeT* node, size_t dir) noexcept {
-    NodeT* prev = _bounds[dir];
+    NodeT* prev = _nodes[dir];
 
     node->_listNodes[!dir] = prev;
-    _bounds[dir] = node;
+    _nodes[dir] = node;
     if (prev)
       prev->_listNodes[dir] = node;
     else
-      _bounds[!dir] = node;
+      _nodes[!dir] = node;
   }
 
-  // Can be used to both prepend and append.
+  // Can be used to both append and prepend.
   inline void _insertNode(NodeT* ref, NodeT* node, size_t dir) noexcept {
     ASMJIT_ASSERT(ref != nullptr);
 
@@ -134,7 +134,7 @@ public:
     if (next)
       next->_listNodes[!dir] = node;
     else
-      _bounds[dir] = node;
+      _nodes[dir] = node;
 
     node->_listNodes[!dir] = prev;
     node->_listNodes[ dir] = next;
@@ -150,8 +150,8 @@ public:
     NodeT* prev = node->prev();
     NodeT* next = node->next();
 
-    if (prev) { prev->_listNodes[1] = next; node->_listNodes[0] = nullptr; } else { _bounds[0] = next; }
-    if (next) { next->_listNodes[0] = prev; node->_listNodes[1] = nullptr; } else { _bounds[1] = prev; }
+    if (prev) { prev->_listNodes[1] = next; node->_listNodes[0] = nullptr; } else { _nodes[0] = next; }
+    if (next) { next->_listNodes[0] = prev; node->_listNodes[1] = nullptr; } else { _nodes[1] = prev; }
 
     node->_listNodes[0] = nullptr;
     node->_listNodes[1] = nullptr;
@@ -160,36 +160,36 @@ public:
   }
 
   inline NodeT* popFirst() noexcept {
-    NodeT* node = _bounds[0];
+    NodeT* node = _nodes[0];
     ASMJIT_ASSERT(node != nullptr);
 
     NodeT* next = node->next();
-    _bounds[0] = next;
+    _nodes[0] = next;
 
     if (next) {
       next->_listNodes[0] = nullptr;
       node->_listNodes[1] = nullptr;
     }
     else {
-      _bounds[1] = nullptr;
+      _nodes[1] = nullptr;
     }
 
     return node;
   }
 
   inline NodeT* pop() noexcept {
-    NodeT* node = _bounds[1];
+    NodeT* node = _nodes[1];
     ASMJIT_ASSERT(node != nullptr);
 
     NodeT* prev = node->prev();
-    _bounds[1] = prev;
+    _nodes[1] = prev;
 
     if (prev) {
       prev->_listNodes[1] = nullptr;
       node->_listNodes[0] = nullptr;
     }
     else {
-      _bounds[0] = nullptr;
+      _nodes[0] = nullptr;
     }
 
     return node;

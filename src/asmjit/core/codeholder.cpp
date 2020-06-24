@@ -351,7 +351,9 @@ Error CodeHolder::growBuffer(CodeBuffer* cb, size_t n) noexcept {
 
 Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
   size_t capacity = cb->capacity();
-  if (n <= capacity) return kErrorOk;
+
+  if (n <= capacity)
+    return kErrorOk;
 
   if (cb->isFixed())
     return DebugUtils::errored(kErrorTooLarge);
@@ -405,7 +407,7 @@ Section* CodeHolder::sectionByName(const char* name, size_t nameSize) const noex
   // This could be also put in a hash-table similarly like we do with labels,
   // however it's questionable as the number of sections should be pretty low
   // in general. Create an issue if this becomes a problem.
-  if (ASMJIT_UNLIKELY(nameSize <= Globals::kMaxSectionNameSize)) {
+  if (nameSize <= Globals::kMaxSectionNameSize) {
     for (Section* section : _sections)
       if (memcmp(section->_name.str, name, nameSize) == 0 && section->_name.str[nameSize] == '\0')
         return section;
