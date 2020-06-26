@@ -449,7 +449,7 @@ if (NOT ASMJIT_EMBED)
                     CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
   target_include_directories(asmjit BEFORE INTERFACE
                              $<BUILD_INTERFACE:${ASMJIT_INCLUDE_DIRS}>
-                             $<INSTALL_INTERFACE:include/src>)
+                             $<INSTALL_INTERFACE:include>)
   target_compile_options(asmjit INTERFACE ${ASMJIT_CFLAGS})
   add_library(AsmJit::AsmJit ALIAS asmjit)
 
