@@ -669,6 +669,13 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
   // [Encoding Scope]
   // --------------------------------------------------------------------------
 
+  // How it works? Each case here represents a unique encoding of a group of
+  // instructions, which is handled separately. The handlers check instruction
+  // signature, possibly register types, etc, and process this information by
+  // writing some bits to opcode, opReg/rbReg, immValue/immSize, etc, and then
+  // at the end of the sequence it uses goto to jump into a lower level handler,
+  // that actually encodes the instruction.
+
   switch (instInfo->_encoding) {
     case InstDB::kEncodingNone:
       goto EmitDone;
@@ -851,6 +858,32 @@ CaseX86M_GPB_MulDiv:
         opcode.add66hBySize(o0.size());
         rmRel = &o0;
         goto EmitX86M;
+      }
+      break;
+
+    case InstDB::kEncodingX86R_FromM:
+      if (isign3 == ENC_OPS1(Mem)) {
+        rmRel = &o0;
+        rbReg = o0.id();
+        goto EmitX86RFromM;
+      }
+      break;
+
+    case InstDB::kEncodingX86R32_EDX_EAX:
+      // Explicit form: R32, EDX, EAX.
+      if (isign3 == ENC_OPS3(Reg, Reg, Reg)) {
+        if (!Reg::isGpd(o1, Gp::kIdDx) || !Reg::isGpd(o2, Gp::kIdAx))
+          goto InvalidInstruction;
+        rbReg = o0.id();
+        goto EmitX86R;
+      }
+
+      // Implicit form: R32.
+      if (isign3 == ENC_OPS1(Reg)) {
+        if (!Reg::isGpd(o0))
+          goto InvalidInstruction;
+        rbReg = o0.id();
+        goto EmitX86R;
       }
       break;
 
@@ -2767,6 +2800,10 @@ CaseExtRm:
     case InstDB::kEncodingVexOp:
       goto EmitVexEvexOp;
 
+    case InstDB::kEncodingVexOpMod:
+      rbReg = 0;
+      goto EmitVexEvexR;
+
     case InstDB::kEncodingVexKmov:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
         opReg = o0.id();
@@ -3005,6 +3042,33 @@ CaseVexRvm_R:
     case InstDB::kEncodingVexRvm_Lx: {
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());
       goto CaseVexRvm;
+    }
+
+    case InstDB::kEncodingVexRvm_Lx_2xK: {
+      if (isign3 == ENC_OPS3(Reg, Reg, Reg)) {
+        // Two registers are encoded as a single register.
+        //   - First K register must be even.
+        //   - Second K register must be first+1.
+        if ((o0.id() & 1) != 0 || o0.id() + 1 != o1.id())
+          goto InvalidPhysId;
+
+        const Operand_& o3 = opExt[EmitterUtils::kOp3];
+
+        opcode |= x86OpcodeLBySize(o2.size());
+        opReg = x86PackRegAndVvvvv(o0.id(), o2.id());
+
+        if (o3.isReg()) {
+          rbReg = o3.id();
+          goto EmitVexEvexR;
+        }
+
+        if (o3.isMem()) {
+          rmRel = &o3;
+          goto EmitVexEvexM;
+
+        }
+      }
+      break;
     }
 
     case InstDB::kEncodingVexRvmr_Lx: {
@@ -3598,6 +3662,49 @@ CaseVexVmi_AfterImm:
       }
       break;
     }
+
+    // ------------------------------------------------------------------------
+    // [AMX]
+    // ------------------------------------------------------------------------
+
+    case InstDB::kEncodingAmxCfg:
+      if (isign3 == ENC_OPS1(Mem)) {
+        rmRel = &o0;
+        goto EmitVexEvexM;
+      }
+      break;
+
+    case InstDB::kEncodingAmxR:
+      if (isign3 == ENC_OPS1(Reg)) {
+        opReg = o0.id();
+        rbReg = 0;
+        goto EmitVexEvexR;
+      }
+      break;
+
+    case InstDB::kEncodingAmxRm:
+      if (isign3 == ENC_OPS2(Reg, Mem)) {
+        opReg = o0.id();
+        rmRel = &o1;
+        goto EmitVexEvexM;
+      }
+      break;
+
+    case InstDB::kEncodingAmxMr:
+      if (isign3 == ENC_OPS2(Mem, Reg)) {
+        opReg = o1.id();
+        rmRel = &o0;
+        goto EmitVexEvexM;
+      }
+      break;
+
+    case InstDB::kEncodingAmxRmv:
+      if (isign3 == ENC_OPS3(Reg, Reg, Reg)) {
+        opReg = x86PackRegAndVvvvv(o0.id(), o2.id());
+        rbReg = o1.id();
+        goto EmitVexEvexR;
+      }
+      break;
   }
 
   goto InvalidInstruction;
@@ -3628,6 +3735,10 @@ EmitX86Op:
   writer.emitImmediate(uint64_t(immValue), immSize);
   goto EmitDone;
 
+  // --------------------------------------------------------------------------
+  // [Emit - X86 - Opcode + Reg]
+  // --------------------------------------------------------------------------
+
 EmitX86OpReg:
   // Emit mandatory instruction prefix.
   writer.emitPP(opcode.v);
@@ -3649,8 +3760,11 @@ EmitX86OpReg:
   writer.emitImmediate(uint64_t(immValue), immSize);
   goto EmitDone;
 
+  // --------------------------------------------------------------------------
+  // [Emit - X86 - Opcode with implicit <mem> operand]
+  // --------------------------------------------------------------------------
+
 EmitX86OpImplicitMem:
-  // NOTE: Don't change the emit order here, it's compatible with KeyStone/LLVM.
   rmInfo = x86MemInfo[rmRel->as<Mem>().baseAndIndexTypes()];
   if (ASMJIT_UNLIKELY(rmRel->as<Mem>().hasOffset() || (rmInfo & kX86MemInfo_Index)))
     goto InvalidInstruction;
@@ -3667,19 +3781,26 @@ EmitX86OpImplicitMem:
     writer.emit8If(rex | kX86ByteRex, rex != 0);
   }
 
+  // Emit override prefixes.
   writer.emitSegmentOverride(rmRel->as<Mem>().segmentId());
   writer.emitAddressOverride((rmInfo & _addressOverrideMask()) != 0);
 
   // Emit instruction opcodes.
   writer.emitMMAndOpcode(opcode.v);
+
+  // Emit immediate value.
   writer.emitImmediate(uint64_t(immValue), immSize);
   goto EmitDone;
+
+  // --------------------------------------------------------------------------
+  // [Emit - X86 - Opcode /r - register]
+  // --------------------------------------------------------------------------
 
 EmitX86R:
   // Mandatory instruction prefix.
   writer.emitPP(opcode.v);
 
-  // Rex prefix (64-bit only).
+  // Emit REX prefix (64-bit only).
   {
     uint32_t rex = opcode.extractRex(options) |
                    ((opReg & 0x08) >> 1) | // REX.R (0x04).
@@ -3694,12 +3815,60 @@ EmitX86R:
     rbReg &= 0x07;
   }
 
-  // Instruction opcodes.
+  // Emit instruction opcodes.
   writer.emitMMAndOpcode(opcode.v);
-  // ModR.
+
+  // Emit ModR.
   writer.emit8(x86EncodeMod(3, opReg, rbReg));
+  // Emit immediate value.
+
   writer.emitImmediate(uint64_t(immValue), immSize);
   goto EmitDone;
+
+  // --------------------------------------------------------------------------
+  // [Emit - X86 - Opcode /r - memory base]
+  // --------------------------------------------------------------------------
+
+EmitX86RFromM:
+  rmInfo = x86MemInfo[rmRel->as<Mem>().baseAndIndexTypes()];
+  if (ASMJIT_UNLIKELY(rmRel->as<Mem>().hasOffset() || (rmInfo & kX86MemInfo_Index)))
+    goto InvalidInstruction;
+
+  // Emit mandatory instruction prefix.
+  writer.emitPP(opcode.v);
+
+  // Emit REX prefix (64-bit only).
+  {
+    uint32_t rex = opcode.extractRex(options) |
+                   ((opReg & 0x08) >> 1) | // REX.R (0x04).
+                   ((rbReg       ) >> 3) ; // REX.B (0x01).
+
+    if (ASMJIT_UNLIKELY(x86IsRexInvalid(rex)))
+      goto InvalidRexPrefix;
+    rex &= ~kX86ByteInvalidRex & 0xFF;
+    writer.emit8If(rex | kX86ByteRex, rex != 0);
+
+    opReg &= 0x07;
+    rbReg &= 0x07;
+  }
+
+  // Emit override prefixes.
+  writer.emitSegmentOverride(rmRel->as<Mem>().segmentId());
+  writer.emitAddressOverride((rmInfo & _addressOverrideMask()) != 0);
+
+  // Emit instruction opcodes.
+  writer.emitMMAndOpcode(opcode.v);
+
+  // Emit ModR/M.
+  writer.emit8(x86EncodeMod(3, opReg, rbReg));
+
+  // Emit immediate value.
+  writer.emitImmediate(uint64_t(immValue), immSize);
+  goto EmitDone;
+
+  // --------------------------------------------------------------------------
+  // [Emit - X86 - Opcode /r - memory operand]
+  // --------------------------------------------------------------------------
 
 EmitX86M:
   // `rmRel` operand must be memory.
@@ -3707,19 +3876,19 @@ EmitX86M:
   ASMJIT_ASSERT(rmRel->opType() == Operand::kOpMem);
   ASMJIT_ASSERT((opcode & Opcode::kCDSHL_Mask) == 0);
 
+  // Emit override prefixes.
   rmInfo = x86MemInfo[rmRel->as<Mem>().baseAndIndexTypes()];
   writer.emitSegmentOverride(rmRel->as<Mem>().segmentId());
 
   memOpAOMark = writer.cursor();
   writer.emitAddressOverride((rmInfo & _addressOverrideMask()) != 0);
 
-  // Mandatory instruction prefix.
+  // Emit mandatory instruction prefix.
   writer.emitPP(opcode.v);
 
+  // Emit REX prefix (64-bit only).
   rbReg = rmRel->as<Mem>().baseId();
   rxReg = rmRel->as<Mem>().indexId();
-
-  // REX prefix (64-bit only).
   {
     uint32_t rex;
 
@@ -3738,8 +3907,9 @@ EmitX86M:
     opReg &= 0x07;
   }
 
-  // Instruction opcodes.
+  // Emit instruction opcodes.
   writer.emitMMAndOpcode(opcode.v);
+
   // ... Fall through ...
 
   // --------------------------------------------------------------------------
@@ -3754,25 +3924,28 @@ EmitModSib:
       relOffset = rmRel->as<Mem>().offsetLo32();
 
       uint32_t mod = x86EncodeMod(0, opReg, rbReg);
-      if (rbReg == Gp::kIdSp) {
-        // [XSP|R12].
-        if (relOffset == 0) {
+      bool forceSIB = commonInfo->isTsibOp();
+
+      if (rbReg == Gp::kIdSp || forceSIB) {
+        // TSIB or [XSP|R12].
+        mod = (mod & 0xF8u) | 0x04u;
+        if (rbReg != Gp::kIdBp && relOffset == 0) {
           writer.emit8(mod);
-          writer.emit8(x86EncodeSib(0, 4, 4));
+          writer.emit8(x86EncodeSib(0, 4, rbReg));
         }
-        // [XSP|R12 + DISP8|DISP32].
+        // TSIB or [XSP|R12 + DISP8|DISP32].
         else {
           uint32_t cdShift = (opcode & Opcode::kCDSHL_Mask) >> Opcode::kCDSHL_Shift;
           int32_t cdOffset = relOffset >> cdShift;
 
           if (Support::isInt8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
             writer.emit8(mod + 0x40); // <- MOD(1, opReg, rbReg).
-            writer.emit8(x86EncodeSib(0, 4, 4));
+            writer.emit8(x86EncodeSib(0, 4, rbReg));
             writer.emit8(cdOffset & 0xFF);
           }
           else {
             writer.emit8(mod + 0x80); // <- MOD(2, opReg, rbReg).
-            writer.emit8(x86EncodeSib(0, 4, 4));
+            writer.emit8(x86EncodeSib(0, 4, rbReg));
             writer.emit32uLE(uint32_t(relOffset));
           }
         }
@@ -4144,7 +4317,7 @@ EmitFpuOp:
   goto EmitDone;
 
   // --------------------------------------------------------------------------
-  // [Emit - VEX / EVEX]
+  // [Emit - VEX|EVEX]
   // --------------------------------------------------------------------------
 
 EmitVexEvexOp:
@@ -4180,6 +4353,10 @@ EmitVexEvexOp:
       goto EmitDone;
     }
   }
+
+  // --------------------------------------------------------------------------
+  // [Emit - VEX|EVEX - /r (Register)]
+  // --------------------------------------------------------------------------
 
 EmitVexEvexR:
   {
@@ -4287,6 +4464,10 @@ EmitVexEvexR:
       goto EmitDone;
     }
   }
+
+  // --------------------------------------------------------------------------
+  // [Emit - VEX|EVEX - /r (Memory)]
+  // --------------------------------------------------------------------------
 
 EmitVexEvexM:
   ASMJIT_ASSERT(rmRel != nullptr);
@@ -4623,6 +4804,7 @@ EmitDone:
   ERROR_HANDLER(InvalidAddressIndex)
   ERROR_HANDLER(InvalidAddress64Bit)
   ERROR_HANDLER(InvalidDisplacement)
+  ERROR_HANDLER(InvalidPhysId)
   ERROR_HANDLER(InvalidSegment)
   ERROR_HANDLER(InvalidImmediate)
   ERROR_HANDLER(OperandSizeMismatch)

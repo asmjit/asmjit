@@ -674,7 +674,7 @@ public:
     kTypeIP = 15,
     //! Start of platform dependent register types (must be honored).
     kTypeCustom = 16,
-    //! Maximum possible register id of all architectures.
+    //! Maximum possible register type value.
     kTypeMax = 31
   };
 

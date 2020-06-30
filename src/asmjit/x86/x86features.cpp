@@ -259,7 +259,12 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ecx, 27)) features.add(Features::kMOVDIRI);
     if (bitTest(regs.ecx, 28)) features.add(Features::kMOVDIR64B);
     if (bitTest(regs.ecx, 29)) features.add(Features::kENQCMD);
+    if (bitTest(regs.edx, 14)) features.add(Features::kSERIALIZE);
+    if (bitTest(regs.edx, 16)) features.add(Features::kTSXLDTRK);
     if (bitTest(regs.edx, 18)) features.add(Features::kPCONFIG);
+    if (bitTest(regs.edx, 22)) features.add(Features::kAMX_BF16);
+    if (bitTest(regs.edx, 24)) features.add(Features::kAMX_TILE);
+    if (bitTest(regs.edx, 25)) features.add(Features::kAMX_INT8);
 
     // Detect 'TSX' - Requires at least one of `HLE` and `RTM` features.
     if (features.hasHLE() || features.hasRTM())
@@ -330,7 +335,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
   uint32_t i = maxId;
 
   // The highest EAX that we understand.
-  uint32_t kHighestProcessedEAX = 0x80000008u;
+  uint32_t kHighestProcessedEAX = 0x8000001Fu;
 
   // Several CPUID calls are required to get the whole branc string. It's easy
   // to copy one DWORD at a time instead of performing a byte copy.
@@ -357,8 +362,9 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         if (bitTest(regs.edx, 21)) features.add(Features::kFXSROPT);
         if (bitTest(regs.edx, 22)) features.add(Features::kMMX2);
         if (bitTest(regs.edx, 27)) features.add(Features::kRDTSCP);
+        if (bitTest(regs.edx, 29)) features.add(Features::kPREFETCHW);
         if (bitTest(regs.edx, 30)) features.add(Features::k3DNOW2, Features::kMMX2);
-        if (bitTest(regs.edx, 31)) features.add(Features::k3DNOW);
+        if (bitTest(regs.edx, 31)) features.add(Features::kPREFETCHW);
 
         if (cpu.hasFeature(Features::kAVX)) {
           if (bitTest(regs.ecx, 11)) features.add(Features::kXOP);
@@ -379,12 +385,22 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
         *brand++ = regs.ecx;
         *brand++ = regs.edx;
 
-        // Go directly to the last one.
+        // Go directly to the next one we are interested in.
         if (i == 0x80000004u) i = 0x80000008u - 1;
         break;
 
       case 0x80000008u:
         if (bitTest(regs.ebx,  0)) features.add(Features::kCLZERO);
+        if (bitTest(regs.ebx,  0)) features.add(Features::kRDPRU);
+        if (bitTest(regs.ebx,  8)) features.add(Features::kMCOMMIT);
+        if (bitTest(regs.ebx,  9)) features.add(Features::kWBNOINVD);
+
+        // Go directly to the next one we are interested in.
+        i = 0x8000001Fu - 1;
+        break;
+
+      case 0x8000001Fu:
+        if (bitTest(regs.eax,  4)) features.add(Features::kSNP);
         break;
     }
   } while (++i <= maxId);

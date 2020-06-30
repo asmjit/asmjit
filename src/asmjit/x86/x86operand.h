@@ -108,6 +108,7 @@ class CReg;
 class DReg;
 class St;
 class Bnd;
+class Tmm;
 class Rip;
 
 // ============================================================================
@@ -142,7 +143,8 @@ ASMJIT_DEFINE_REG_TRAITS(CReg , BaseReg::kTypeCustom + 1, BaseReg::kGroupVirt + 
 ASMJIT_DEFINE_REG_TRAITS(DReg , BaseReg::kTypeCustom + 2, BaseReg::kGroupVirt + 2, 0 , 16, Type::kIdVoid  );
 ASMJIT_DEFINE_REG_TRAITS(St   , BaseReg::kTypeCustom + 3, BaseReg::kGroupVirt + 3, 10, 8 , Type::kIdF80   );
 ASMJIT_DEFINE_REG_TRAITS(Bnd  , BaseReg::kTypeCustom + 4, BaseReg::kGroupVirt + 4, 16, 4 , Type::kIdVoid  );
-ASMJIT_DEFINE_REG_TRAITS(Rip  , BaseReg::kTypeIP        , BaseReg::kGroupVirt + 5, 0 , 1 , Type::kIdVoid  );
+ASMJIT_DEFINE_REG_TRAITS(Tmm  , BaseReg::kTypeCustom + 5, BaseReg::kGroupVirt + 5, 0 , 8 , Type::kIdVoid  );
+ASMJIT_DEFINE_REG_TRAITS(Rip  , BaseReg::kTypeIP        , BaseReg::kGroupVirt + 6, 0 , 1 , Type::kIdVoid  );
 //! \endcond
 
 //! Register (X86).
@@ -152,41 +154,78 @@ public:
 
   //! Register type.
   enum RegType : uint32_t {
-    kTypeNone  = BaseReg::kTypeNone,     //!< No register type or invalid register.
-    kTypeGpbLo = BaseReg::kTypeGp8Lo,    //!< Low GPB register (AL, BL, CL, DL, ...).
-    kTypeGpbHi = BaseReg::kTypeGp8Hi,    //!< High GPB register (AH, BH, CH, DH only).
-    kTypeGpw   = BaseReg::kTypeGp16,     //!< GPW register.
-    kTypeGpd   = BaseReg::kTypeGp32,     //!< GPD register.
-    kTypeGpq   = BaseReg::kTypeGp64,     //!< GPQ register (64-bit).
-    kTypeXmm   = BaseReg::kTypeVec128,   //!< XMM register (SSE+).
-    kTypeYmm   = BaseReg::kTypeVec256,   //!< YMM register (AVX+).
-    kTypeZmm   = BaseReg::kTypeVec512,   //!< ZMM register (AVX512+).
-    kTypeMm    = BaseReg::kTypeOther0,   //!< MMX register.
-    kTypeKReg  = BaseReg::kTypeOther1,   //!< K register (AVX512+).
-    kTypeSReg  = BaseReg::kTypeCustom+0, //!< Segment register (None, ES, CS, SS, DS, FS, GS).
-    kTypeCReg  = BaseReg::kTypeCustom+1, //!< Control register (CR).
-    kTypeDReg  = BaseReg::kTypeCustom+2, //!< Debug register (DR).
-    kTypeSt    = BaseReg::kTypeCustom+3, //!< FPU (x87) register.
-    kTypeBnd   = BaseReg::kTypeCustom+4, //!< Bound register (BND).
-    kTypeRip   = BaseReg::kTypeIP,       //!< Instruction pointer (EIP, RIP).
-    kTypeCount = BaseReg::kTypeCustom+5  //!< Count of register types.
+    //! No register type or invalid register.
+    kTypeNone = BaseReg::kTypeNone,
+
+    //! Low GPB register (AL, BL, CL, DL, ...).
+    kTypeGpbLo = BaseReg::kTypeGp8Lo,
+    //! High GPB register (AH, BH, CH, DH only).
+    kTypeGpbHi = BaseReg::kTypeGp8Hi,
+    //! GPW register.
+    kTypeGpw = BaseReg::kTypeGp16,
+    //! GPD register.
+    kTypeGpd = BaseReg::kTypeGp32,
+    //! GPQ register (64-bit).
+    kTypeGpq = BaseReg::kTypeGp64,
+    //! XMM register (SSE+).
+    kTypeXmm = BaseReg::kTypeVec128,
+    //! YMM register (AVX+).
+    kTypeYmm = BaseReg::kTypeVec256,
+    //! ZMM register (AVX512+).
+    kTypeZmm = BaseReg::kTypeVec512,
+    //! MMX register.
+    kTypeMm = BaseReg::kTypeOther0,
+    //! K register (AVX512+).
+    kTypeKReg = BaseReg::kTypeOther1,
+    //! Instruction pointer (EIP, RIP).
+    kTypeRip = BaseReg::kTypeIP,
+    //! Segment register (None, ES, CS, SS, DS, FS, GS).
+    kTypeSReg = BaseReg::kTypeCustom + 0,
+    //! Control register (CR).
+    kTypeCReg = BaseReg::kTypeCustom + 1,
+    //! Debug register (DR).
+    kTypeDReg = BaseReg::kTypeCustom + 2,
+    //! FPU (x87) register.
+    kTypeSt = BaseReg::kTypeCustom + 3,
+    //! Bound register (BND).
+    kTypeBnd = BaseReg::kTypeCustom + 4,
+    //! TMM register (AMX_TILE)
+    kTypeTmm = BaseReg::kTypeCustom + 5,
+
+    //! Count of register types.
+    kTypeCount = BaseReg::kTypeCustom + 6
   };
 
   //! Register group.
   enum RegGroup : uint32_t {
-    kGroupGp   = BaseReg::kGroupGp,      //!< GP register group or none (universal).
-    kGroupVec  = BaseReg::kGroupVec,     //!< XMM|YMM|ZMM register group (universal).
-    kGroupMm   = BaseReg::kGroupOther0,  //!< MMX register group (legacy).
-    kGroupKReg = BaseReg::kGroupOther1,  //!< K register group.
+    //! GP register group or none (universal).
+    kGroupGp   = BaseReg::kGroupGp,
+    //! XMM|YMM|ZMM register group (universal).
+    kGroupVec  = BaseReg::kGroupVec,
+    //! MMX register group (legacy).
+    kGroupMm   = BaseReg::kGroupOther0,
+    //! K register group.
+    kGroupKReg = BaseReg::kGroupOther1,
 
-    // These are not managed by BaseCompiler nor used by Func-API:
-    kGroupSReg = BaseReg::kGroupVirt+0,  //!< Segment register group.
-    kGroupCReg = BaseReg::kGroupVirt+1,  //!< Control register group.
-    kGroupDReg = BaseReg::kGroupVirt+2,  //!< Debug register group.
-    kGroupSt   = BaseReg::kGroupVirt+3,  //!< FPU register group.
-    kGroupBnd  = BaseReg::kGroupVirt+4,  //!< Bound register group.
-    kGroupRip  = BaseReg::kGroupVirt+5,  //!< Instrucion pointer (IP).
-    kGroupCount                          //!< Count of all register groups.
+    // These are not managed by Compiler nor used by Func-API:
+
+    //! Segment register group.
+    kGroupSReg = BaseReg::kGroupVirt+0,
+    //! Control register group.
+    kGroupCReg = BaseReg::kGroupVirt+1,
+    //! Debug register group.
+    kGroupDReg = BaseReg::kGroupVirt+2,
+    //! FPU register group.
+    kGroupSt   = BaseReg::kGroupVirt+3,
+    //! Bound register group.
+    kGroupBnd  = BaseReg::kGroupVirt+4,
+    //! TMM register group.
+    kGroupTmm  = BaseReg::kGroupVirt+5,
+    //! Instrucion pointer (IP).
+    kGroupRip  = BaseReg::kGroupVirt+6,
+
+    //! Count of all register groups.
+    kGroupCount
   };
 
   //! Tests whether the register is a GPB register (8-bit).
@@ -221,6 +260,8 @@ public:
   constexpr bool isSt() const noexcept { return hasSignature(RegTraits<kTypeSt>::kSignature); }
   //! Tests whether the register is a bound register.
   constexpr bool isBnd() const noexcept { return hasSignature(RegTraits<kTypeBnd>::kSignature); }
+  //! Tests whether the register is a TMM register.
+  constexpr bool isTmm() const noexcept { return hasSignature(RegTraits<kTypeTmm>::kSignature); }
   //! Tests whether the register is RIP.
   constexpr bool isRip() const noexcept { return hasSignature(RegTraits<kTypeRip>::kSignature); }
 
@@ -281,6 +322,7 @@ public:
   static inline bool isDReg(const Operand_& op) noexcept { return op.as<Reg>().isDReg(); }
   static inline bool isSt(const Operand_& op) noexcept { return op.as<Reg>().isSt(); }
   static inline bool isBnd(const Operand_& op) noexcept { return op.as<Reg>().isBnd(); }
+  static inline bool isTmm(const Operand_& op) noexcept { return op.as<Reg>().isTmm(); }
   static inline bool isRip(const Operand_& op) noexcept { return op.as<Reg>().isRip(); }
 
   static inline bool isGpb(const Operand_& op, uint32_t rId) noexcept { return isGpb(op) & (op.id() == rId); }
@@ -299,6 +341,7 @@ public:
   static inline bool isDReg(const Operand_& op, uint32_t rId) noexcept { return isDReg(op) & (op.id() == rId); }
   static inline bool isSt(const Operand_& op, uint32_t rId) noexcept { return isSt(op) & (op.id() == rId); }
   static inline bool isBnd(const Operand_& op, uint32_t rId) noexcept { return isBnd(op) & (op.id() == rId); }
+  static inline bool isTmm(const Operand_& op, uint32_t rId) noexcept { return isTmm(op) & (op.id() == rId); }
   static inline bool isRip(const Operand_& op, uint32_t rId) noexcept { return isRip(op) & (op.id() == rId); }
 };
 
@@ -368,19 +411,26 @@ class SReg : public Reg {
 
   //! X86 segment id.
   enum Id : uint32_t {
-    kIdNone = 0, //!< No segment (default).
-    kIdEs   = 1, //!< ES segment.
-    kIdCs   = 2, //!< CS segment.
-    kIdSs   = 3, //!< SS segment.
-    kIdDs   = 4, //!< DS segment.
-    kIdFs   = 5, //!< FS segment.
-    kIdGs   = 6, //!< GS segment.
+    //! No segment (default).
+    kIdNone = 0,
+    //! ES segment.
+    kIdEs = 1,
+    //! CS segment.
+    kIdCs = 2,
+    //! SS segment.
+    kIdSs = 3,
+    //! DS segment.
+    kIdDs = 4,
+    //! FS segment.
+    kIdFs = 5,
+    //! GS segment.
+    kIdGs = 6,
 
-    //! Count of  segment registers supported by AsmJit.
+    //! Count of X86 segment registers supported by AsmJit.
     //!
     //! \note X86 architecture has 6 segment registers - ES, CS, SS, DS, FS, GS.
     //! X64 architecture lowers them down to just FS and GS. AsmJit supports 7
-    //! segment registers - all addressable in both  and X64 modes and one
+    //! segment registers - all addressable in both X86 and X64 modes and one
     //! extra called `SReg::kIdNone`, which is AsmJit specific and means that
     //! there is no segment register specified.
     kIdCount = 7
@@ -433,6 +483,8 @@ class DReg : public Reg { ASMJIT_DEFINE_FINAL_REG(DReg, Reg, RegTraits<kTypeDReg
 class St : public Reg { ASMJIT_DEFINE_FINAL_REG(St, Reg, RegTraits<kTypeSt>) };
 //! 128-bit BND register (BND+).
 class Bnd : public Reg { ASMJIT_DEFINE_FINAL_REG(Bnd, Reg, RegTraits<kTypeBnd>) };
+//! 8192-bit TMM register (AMX).
+class Tmm : public Reg { ASMJIT_DEFINE_FINAL_REG(Tmm, Reg, RegTraits<kTypeTmm>) };
 //! RIP register (X86).
 class Rip : public Reg { ASMJIT_DEFINE_FINAL_REG(Rip, Reg, RegTraits<kTypeRip>) };
 
@@ -489,6 +541,8 @@ static constexpr DReg dr(uint32_t rId) noexcept { return DReg(rId); }
 static constexpr St st(uint32_t rId) noexcept { return St(rId); }
 //! Creates a 128-bit bound register operand.
 static constexpr Bnd bnd(uint32_t rId) noexcept { return Bnd(rId); }
+//! Creates a TMM register operand.
+static constexpr Tmm tmm(uint32_t rId) noexcept { return Tmm(rId); }
 
 static constexpr Gp al = Gp(GpbLo::kSignature, Gp::kIdAx);
 static constexpr Gp bl = Gp(GpbLo::kSignature, Gp::kIdBx);
@@ -735,6 +789,15 @@ static constexpr Bnd bnd0 = Bnd(0);
 static constexpr Bnd bnd1 = Bnd(1);
 static constexpr Bnd bnd2 = Bnd(2);
 static constexpr Bnd bnd3 = Bnd(3);
+
+static constexpr Tmm tmm0 = Tmm(0);
+static constexpr Tmm tmm1 = Tmm(1);
+static constexpr Tmm tmm2 = Tmm(2);
+static constexpr Tmm tmm3 = Tmm(3);
+static constexpr Tmm tmm4 = Tmm(4);
+static constexpr Tmm tmm5 = Tmm(5);
+static constexpr Tmm tmm6 = Tmm(6);
+static constexpr Tmm tmm7 = Tmm(7);
 
 static constexpr Rip rip = Rip(0);
 

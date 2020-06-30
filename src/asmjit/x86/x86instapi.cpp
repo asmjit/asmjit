@@ -142,6 +142,7 @@ struct X86ValidationData {
   (X == Reg::kTypeDReg ) ? InstDB::kOpDReg  : \
   (X == Reg::kTypeSt   ) ? InstDB::kOpSt    : \
   (X == Reg::kTypeBnd  ) ? InstDB::kOpBnd   : \
+  (X == Reg::kTypeTmm  ) ? InstDB::kOpTmm   : \
   (X == Reg::kTypeRip  ) ? InstDB::kOpNone  : InstDB::kOpNone
 static const uint32_t _x86OpFlagFromRegType[Reg::kTypeMax + 1] = { ASMJIT_LOOKUP_TABLE_32(VALUE, 0) };
 #undef VALUE
@@ -162,6 +163,7 @@ static const uint32_t _x86OpFlagFromRegType[Reg::kTypeMax + 1] = { ASMJIT_LOOKUP
   (X == Reg::kTypeDReg ) ? 0x000000FFu : \
   (X == Reg::kTypeSt   ) ? 0x000000FFu : \
   (X == Reg::kTypeBnd  ) ? 0x0000000Fu : \
+  (X == Reg::kTypeTmm  ) ? 0x000000FFu : \
   (X == Reg::kTypeRip  ) ? 0x00000001u : 0u
 
 #define REG_MASK_FROM_REG_TYPE_X64(X) \
@@ -180,6 +182,7 @@ static const uint32_t _x86OpFlagFromRegType[Reg::kTypeMax + 1] = { ASMJIT_LOOKUP
   (X == Reg::kTypeDReg ) ? 0x0000FFFFu : \
   (X == Reg::kTypeSt   ) ? 0x000000FFu : \
   (X == Reg::kTypeBnd  ) ? 0x0000000Fu : \
+  (X == Reg::kTypeTmm  ) ? 0x000000FFu : \
   (X == Reg::kTypeRip  ) ? 0x00000001u : 0u
 
 static const X86ValidationData _x86ValidationData = {
@@ -821,13 +824,15 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
   const InstDB::CommonInfoTableB& tabB = InstDB::_commonInfoTableB[InstDB::_instInfoTable[instId]._commonInfoIndexB];
   const InstDB::RWFlagsInfoTable& rwFlags = InstDB::_rwFlagsInfoTable[tabB._rwFlagsIndex];
 
-  // Each RWInfo contains two indexes
-  //   [0] - OpCount == 2
-  //   [1] - OpCount != 2
-  // They are used this way as there are instructions that have 2 and 3
-  // operand overloads that use different semantics. So instead of adding
-  // more special cases we just separated their data tables.
-  const InstDB::RWInfo& instRwInfo = InstDB::rwInfo[InstDB::rwInfoIndex[instId * 2u + uint32_t(opCount != 2)]];
+
+  // There are two data tables, one for `opCount == 2` and the second for
+  // `opCount != 2`. There are two reasons for that:
+  //   - There are instructions that share the same name that have both 2
+  //     or 3 operands, which have different RW information / semantics.
+  //   - There must be 2 tables otherwise the lookup index won't fit into
+  //     8 bits (there is more than 256 records of combined rwInfo A and B).
+  const InstDB::RWInfo& instRwInfo = opCount == 2 ? InstDB::rwInfoA[InstDB::rwInfoIndexA[instId]]
+                                                  : InstDB::rwInfoB[InstDB::rwInfoIndexB[instId]];
   const InstDB::RWInfoRm& instRmInfo = InstDB::rwInfoRm[instRwInfo.rmInfo];
 
   out->_instFlags = 0;

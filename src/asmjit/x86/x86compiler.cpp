@@ -49,7 +49,7 @@ Error Compiler::finalize() {
   Assembler a(_code);
   a.addEncodingOptions(encodingOptions());
   a.addValidationOptions(validationOptions());
-  return serialize(&a);
+  return serializeTo(&a);
 }
 // ============================================================================
 // [asmjit::x86::Compiler - Events]

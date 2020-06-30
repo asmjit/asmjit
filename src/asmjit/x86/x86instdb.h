@@ -74,17 +74,18 @@ enum OpFlags : uint32_t {
   kOpDReg                 = 0x00001000u, //!< Operand can be DReg (debug register).
   kOpSt                   = 0x00002000u, //!< Operand can be 80-bit ST register (X87).
   kOpBnd                  = 0x00004000u, //!< Operand can be 128-bit BND register.
-  kOpAllRegs              = 0x00007FFFu, //!< Combination of all possible registers.
+  kOpTmm                  = 0x00008000u, //!< Operand can be 0..8192-bit TMM register.
+  kOpAllRegs              = 0x0000FFFFu, //!< Combination of all possible registers.
 
-  kOpI4                   = 0x00010000u, //!< Operand can be unsigned 4-bit  immediate.
-  kOpU4                   = 0x00020000u, //!< Operand can be unsigned 4-bit  immediate.
-  kOpI8                   = 0x00040000u, //!< Operand can be signed   8-bit  immediate.
-  kOpU8                   = 0x00080000u, //!< Operand can be unsigned 8-bit  immediate.
-  kOpI16                  = 0x00100000u, //!< Operand can be signed   16-bit immediate.
+  kOpI4                   = 0x00010000u, //!< Operand can be unsigned 4-bit immediate.
+  kOpU4                   = 0x00020000u, //!< Operand can be unsigned 4-bit immediate.
+  kOpI8                   = 0x00040000u, //!< Operand can be signed 8-bit immediate.
+  kOpU8                   = 0x00080000u, //!< Operand can be unsigned 8-bit immediate.
+  kOpI16                  = 0x00100000u, //!< Operand can be signed 16-bit immediate.
   kOpU16                  = 0x00200000u, //!< Operand can be unsigned 16-bit immediate.
-  kOpI32                  = 0x00400000u, //!< Operand can be signed   32-bit immediate.
+  kOpI32                  = 0x00400000u, //!< Operand can be signed 32-bit immediate.
   kOpU32                  = 0x00800000u, //!< Operand can be unsigned 32-bit immediate.
-  kOpI64                  = 0x01000000u, //!< Operand can be signed   64-bit immediate.
+  kOpI64                  = 0x01000000u, //!< Operand can be signed 64-bit immediate.
   kOpU64                  = 0x02000000u, //!< Operand can be unsigned 64-bit immediate.
   kOpAllImm               = 0x03FF0000u, //!< Operand can be any immediate.
 
@@ -129,7 +130,8 @@ enum MemFlags : uint32_t {
   kMemOpDs                = 0x1000u,     //!< Implicit memory operand's DS segment.
   kMemOpEs                = 0x2000u,     //!< Implicit memory operand's ES segment.
 
-  kMemOpMib               = 0x4000u      //!< Operand must be MIB (base+index) pointer.
+  kMemOpMib               = 0x4000u,     //!< Operand must be MIB (base+index) pointer.
+  kMemOpTMem              = 0x8000u      //!< Operand is a sib_mem (ADX memory operand).
 };
 
 // ============================================================================
@@ -156,6 +158,7 @@ enum Flags : uint32_t {
   //
   // These describe optional X86 prefixes that can be used to change the instruction's operation.
 
+  kFlagTsib               = 0x00000800u, //!< Instruction uses TSIB (or SIB_MEM) encoding (MODRM followed by SIB).
   kFlagRep                = 0x00001000u, //!< Instruction can be prefixed with using the REP(REPE) or REPNE prefix.
   kFlagRepIgnored         = 0x00002000u, //!< Instruction ignores REP|REPNE prefixes, but they are accepted.
   kFlagLock               = 0x00004000u, //!< Instruction can be prefixed with using the LOCK prefix.
@@ -319,6 +322,8 @@ struct CommonInfo {
   inline bool isMibOp() const noexcept { return hasFlag(kFlagMib); }
   //! Tests whether the instruction uses VSIB.
   inline bool isVsibOp() const noexcept { return hasFlag(kFlagVsib); }
+  //! Tests whether the instruction uses TSIB (AMX, instruction requires MOD+SIB).
+  inline bool isTsibOp() const noexcept { return hasFlag(kFlagTsib); }
   //! Tests whether the instruction uses VEX (can be set together with EVEX if both are encodable).
   inline bool isVex() const noexcept { return hasFlag(kFlagVex); }
   //! Tests whether the instruction uses EVEX (can be set together with VEX if both are encodable).

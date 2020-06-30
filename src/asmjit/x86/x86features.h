@@ -52,6 +52,9 @@ public:
     kADX,                      //!< CPU has ADX              (multi-precision add-carry instruction extensions).
     kAESNI,                    //!< CPU has AESNI            (AES encode/decode instructions).
     kALTMOVCR8,                //!< CPU has LOCK MOV R<->CR0 (supports `MOV R<->CR8` via `LOCK MOV R<->CR0` in 32-bit mode) [AMD].
+    kAMX_BF16,                 //!< CPU has AMX_BF16         (advanced matrix extensions - BF16 instructions).
+    kAMX_INT8,                 //!< CPU has AMX_INT8         (advanced matrix extensions - INT8 instructions).
+    kAMX_TILE,                 //!< CPU has AMX_TILE         (advanced matrix extensions).
     kAVX,                      //!< CPU has AVX              (advanced vector extensions).
     kAVX2,                     //!< CPU has AVX2             (advanced vector extensions 2).
     kAVX512_4FMAPS,            //!< CPU has AVX512_FMAPS     (FMA packed single).
@@ -98,6 +101,7 @@ public:
     kLAHFSAHF,                 //!< CPU has LAHF/SAHF        (LAHF/SAHF in 64-bit mode) [X86_64].
     kLWP,                      //!< CPU has LWP              (lightweight profiling) [AMD].
     kLZCNT,                    //!< CPU has LZCNT            (LZCNT instruction).
+    kMCOMMIT,                  //!< CPU has MCOMMIT          (MCOMMIT instruction).
     kMMX,                      //!< CPU has MMX              (MMX base instructions).
     kMMX2,                     //!< CPU has MMX2             (MMX extensions or MMX2).
     kMONITOR,                  //!< CPU has MONITOR          (MONITOR/MWAIT instructions).
@@ -116,16 +120,19 @@ public:
     kPREFETCHW,                //!< CPU has PREFETCHW.
     kPREFETCHWT1,              //!< CPU has PREFETCHWT1.
     kRDPID,                    //!< CPU has RDPID.
+    kRDPRU,                    //!< CPU has RDPRU.
     kRDRAND,                   //!< CPU has RDRAND.
     kRDSEED,                   //!< CPU has RDSEED.
     kRDTSC,                    //!< CPU has RDTSC.
     kRDTSCP,                   //!< CPU has RDTSCP.
     kRTM,                      //!< CPU has RTM.
+    kSERIALIZE,                //!< CPU has SERIALIZE.
     kSHA,                      //!< CPU has SHA              (SHA-1 and SHA-256 instructions).
     kSKINIT,                   //!< CPU has SKINIT           (SKINIT/STGI instructions) [AMD].
     kSMAP,                     //!< CPU has SMAP             (supervisor-mode access prevention).
     kSMEP,                     //!< CPU has SMEP             (supervisor-mode execution prevention).
     kSMX,                      //!< CPU has SMX              (safer mode extensions).
+    kSNP,                      //!< CPU has SNP.
     kSSE,                      //!< CPU has SSE.
     kSSE2,                     //!< CPU has SSE2.
     kSSE3,                     //!< CPU has SSE3.
@@ -136,6 +143,7 @@ public:
     kSVM,                      //!< CPU has SVM              (virtualization) [AMD].
     kTBM,                      //!< CPU has TBM              (trailing bit manipulation) [AMD].
     kTSX,                      //!< CPU has TSX.
+    kTSXLDTRK,                 //!< CPU has TSXLDTRK.
     kVAES,                     //!< CPU has VAES             (vector AES 256|512 bit support).
     kVMX,                      //!< CPU has VMX              (virtualization) [INTEL].
     kVPCLMULQDQ,               //!< CPU has VPCLMULQDQ       (vector PCLMULQDQ 256|512-bit support).
@@ -183,6 +191,9 @@ public:
   ASMJIT_X86_FEATURE(ADX)
   ASMJIT_X86_FEATURE(AESNI)
   ASMJIT_X86_FEATURE(ALTMOVCR8)
+  ASMJIT_X86_FEATURE(AMX_BF16)
+  ASMJIT_X86_FEATURE(AMX_INT8)
+  ASMJIT_X86_FEATURE(AMX_TILE)
   ASMJIT_X86_FEATURE(AVX)
   ASMJIT_X86_FEATURE(AVX2)
   ASMJIT_X86_FEATURE(AVX512_4FMAPS)
@@ -229,6 +240,7 @@ public:
   ASMJIT_X86_FEATURE(LAHFSAHF)
   ASMJIT_X86_FEATURE(LWP)
   ASMJIT_X86_FEATURE(LZCNT)
+  ASMJIT_X86_FEATURE(MCOMMIT)
   ASMJIT_X86_FEATURE(MMX)
   ASMJIT_X86_FEATURE(MMX2)
   ASMJIT_X86_FEATURE(MONITOR)
@@ -247,16 +259,19 @@ public:
   ASMJIT_X86_FEATURE(PREFETCHW)
   ASMJIT_X86_FEATURE(PREFETCHWT1)
   ASMJIT_X86_FEATURE(RDPID)
+  ASMJIT_X86_FEATURE(RDPRU)
   ASMJIT_X86_FEATURE(RDRAND)
   ASMJIT_X86_FEATURE(RDSEED)
   ASMJIT_X86_FEATURE(RDTSC)
   ASMJIT_X86_FEATURE(RDTSCP)
   ASMJIT_X86_FEATURE(RTM)
+  ASMJIT_X86_FEATURE(SERIALIZE)
   ASMJIT_X86_FEATURE(SHA)
   ASMJIT_X86_FEATURE(SKINIT)
   ASMJIT_X86_FEATURE(SMAP)
   ASMJIT_X86_FEATURE(SMEP)
   ASMJIT_X86_FEATURE(SMX)
+  ASMJIT_X86_FEATURE(SNP)
   ASMJIT_X86_FEATURE(SSE)
   ASMJIT_X86_FEATURE(SSE2)
   ASMJIT_X86_FEATURE(SSE3)
@@ -267,6 +282,7 @@ public:
   ASMJIT_X86_FEATURE(SVM)
   ASMJIT_X86_FEATURE(TBM)
   ASMJIT_X86_FEATURE(TSX)
+  ASMJIT_X86_FEATURE(TSXLDTRK)
   ASMJIT_X86_FEATURE(XSAVE)
   ASMJIT_X86_FEATURE(XSAVEC)
   ASMJIT_X86_FEATURE(XSAVEOPT)

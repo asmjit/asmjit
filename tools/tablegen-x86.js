@@ -221,6 +221,9 @@ class GenUtils {
         }
       }
 
+      if (dbInst.attributes.Tsib)
+        f.Tsib = true;
+
       if (dbInst.vsibReg)
         f.Vsib = true;
 
@@ -509,7 +512,9 @@ class X86TableGen extends core.TableGen {
             String(inst.encoding  ).padEnd(19) + ", " +
             String(inst.opcode0   ).padEnd(26) + ", " +
             String(inst.opcode1   ).padEnd(26) + ", " +
-            String("0"            ).padEnd( 4) + ", " +
+            String("0"            ).padEnd( 3) + ", " +
+            String("0"            ).padEnd( 3) + ", " +
+            String("0"            ).padEnd( 5) + ", " +
             String("0"            ).padEnd( 3) + ", " +
             String("0"            ).padEnd( 3) + "),\n";
         }
@@ -930,6 +935,7 @@ const OpToAsmJitOp = {
   "dreg"    : "F(DReg)",
   "st"      : "F(St)",
   "bnd"     : "F(Bnd)",
+  "tmm"     : "F(Tmm)",
 
   "mem"     : "F(Mem)",
   "vm"      : "F(Vm)",
@@ -1096,7 +1102,8 @@ class OSignature {
         case "mm"      :
         case "xmm"     :
         case "ymm"     :
-        case "zmm"     : mFlags[k] = true; break;
+        case "zmm"     :
+        case "tmm"     : mFlags[k] = true; break;
 
         case "m8"      :
         case "m16"     :
@@ -1108,8 +1115,9 @@ class OSignature {
         case "m256"    :
         case "m512"    :
         case "m1024"   : mFlags.mem = true; mMemFlags[k] = true; break;
-        case "mib"     : mFlags.mem = true; mMemFlags.mib   = true; break;
-        case "mem"     : mFlags.mem = true; mMemFlags.mAny  = true; break;
+        case "mib"     : mFlags.mem = true; mMemFlags.mib = true; break;
+        case "mem"     : mFlags.mem = true; mMemFlags.mAny = true; break;
+        case "tmem"    : mFlags.mem = true; mMemFlags.mAny = true; break;
 
         case "memBase" : mFlags.mem = true; mMemFlags.memBase = true; break;
         case "memDS"   : mFlags.mem = true; mMemFlags.memDS = true; break;
@@ -1814,8 +1822,11 @@ class InstRWInfoTable extends core.Task {
   constructor() {
     super("InstRWInfoTable");
 
-    this.rwInfoIndex = [];
-    this.rwInfoTable = new IndexedArray();
+    this.rwInfoIndexA = [];
+    this.rwInfoIndexB = [];
+    this.rwInfoTableA = new IndexedArray();
+    this.rwInfoTableB = new IndexedArray();
+
     this.rmInfoTable = new IndexedArray();
     this.opInfoTable = new IndexedArray();
 
@@ -1954,21 +1965,30 @@ class InstRWInfoTable extends core.Task {
           CxxUtils.struct(...(rwOpsIndex.map(function(item) { return String(item).padEnd(2); })))
         );
 
-        this.rwInfoIndex.push(this.rwInfoTable.addIndexed(rwData));
+        if (i == 0)
+          this.rwInfoIndexA.push(this.rwInfoTableA.addIndexed(rwData));
+        else
+          this.rwInfoIndexB.push(this.rwInfoTableB.addIndexed(rwData));
       }
     });
 
     var s = "";
-    s += "const uint8_t InstDB::rwInfoIndex[Inst::_kIdCount * 2] = {\n" + StringUtils.format(this.rwInfoIndex, kIndent, -1) + "\n};\n";
+    s += "const uint8_t InstDB::rwInfoIndexA[Inst::_kIdCount] = {\n" + StringUtils.format(this.rwInfoIndexA, kIndent, -1) + "\n};\n";
     s += "\n";
-    s += "const InstDB::RWInfo InstDB::rwInfo[] = {\n" + StringUtils.format(this.rwInfoTable, kIndent, true) + "\n};\n";
+    s += "const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {\n" + StringUtils.format(this.rwInfoIndexB, kIndent, -1) + "\n};\n";
+    s += "\n";
+    s += "const InstDB::RWInfo InstDB::rwInfoA[] = {\n" + StringUtils.format(this.rwInfoTableA, kIndent, true) + "\n};\n";
+    s += "\n";
+    s += "const InstDB::RWInfo InstDB::rwInfoB[] = {\n" + StringUtils.format(this.rwInfoTableB, kIndent, true) + "\n};\n";
     s += "\n";
     s += "const InstDB::RWInfoOp InstDB::rwInfoOp[] = {\n" + StringUtils.format(this.opInfoTable, kIndent, true) + "\n};\n";
     s += "\n";
     s += "const InstDB::RWInfoRm InstDB::rwInfoRm[] = {\n" + StringUtils.format(this.rmInfoTable, kIndent, true) + "\n};\n";
 
-    const size = this.rwInfoIndex.length +
-                 this.rwInfoTable.length * 8 +
+    const size = this.rwInfoIndexA.length +
+                 this.rwInfoIndexB.length +
+                 this.rwInfoTableA.length * 8 +
+                 this.rwInfoTableB.length * 8 +
                  this.rmInfoTable.length * 4 +
                  this.opInfoTable.length * 24;
 

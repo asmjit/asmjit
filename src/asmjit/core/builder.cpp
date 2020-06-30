@@ -789,7 +789,7 @@ Error BaseBuilder::comment(const char* data, size_t size) {
 // [asmjit::BaseBuilder - Serialize]
 // ============================================================================
 
-Error BaseBuilder::serialize(BaseEmitter* dst) {
+Error BaseBuilder::serializeTo(BaseEmitter* dst) {
   Error err = kErrorOk;
   BaseNode* node_ = _firstNode;
 

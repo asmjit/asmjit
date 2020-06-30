@@ -44,7 +44,11 @@ TODO
 ----
 
   * [ ] Core:
-    * [ ] Add support for user external buffers in CodeHolder.
+    * [ ] Add support for user external buffers in CodeBuffer / CodeHolder.
+    * [ ] Register allocator doesn't understand register pairs, affected instructions:
+      * [ ] v4fmaddps, v4fmaddss, v4fnmaddps, v4fnmaddss
+      * [ ] vp4dpwssd, vp4dpwssds
+      * [ ] vp2intersectd, vp2intersectq
   * [ ] Ports:
     * [ ] ARM/Thumb/AArch64 support.
 
