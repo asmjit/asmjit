@@ -76,6 +76,8 @@ public:
     kAVX512_VPOPCNTDQ,         //!< CPU has AVX512_VPOPCNTDQ (VPOPCNT[D|Q] instructions).
     kBMI,                      //!< CPU has BMI              (bit manipulation instructions #1).
     kBMI2,                     //!< CPU has BMI2             (bit manipulation instructions #2).
+    kCET_IBT,                  //!< CPU has CET-IBT.
+    kCET_SS,                   //!< CPU has CET-SS.
     kCLDEMOTE,                 //!< CPU has CLDEMOTE         (cache line demote).
     kCLFLUSH,                  //!< CPU has CLFUSH           (Cache Line flush).
     kCLFLUSHOPT,               //!< CPU has CLFUSHOPT        (Cache Line flush - optimized).
@@ -113,12 +115,13 @@ public:
     kMSR,                      //!< CPU has MSR              (RDMSR/WRMSR instructions).
     kMSSE,                     //!< CPU has MSSE             (misaligned SSE support).
     kOSXSAVE,                  //!< CPU has OSXSAVE          (XSAVE enabled by OS).
+    kOSPKE,                    //!< CPU has OSPKE            (PKE enabled by OS).
     kPCLMULQDQ,                //!< CPU has PCLMULQDQ        (packed carry-less multiplication).
-    kPCOMMIT,                  //!< CPU has PCOMMIT          (PCOMMIT instruction).
     kPCONFIG,                  //!< CPU has PCONFIG          (PCONFIG instruction).
     kPOPCNT,                   //!< CPU has POPCNT           (POPCNT instruction).
     kPREFETCHW,                //!< CPU has PREFETCHW.
     kPREFETCHWT1,              //!< CPU has PREFETCHWT1.
+    kPTWRITE,                  //!< CPU has PTWRITE.
     kRDPID,                    //!< CPU has RDPID.
     kRDPRU,                    //!< CPU has RDPRU.
     kRDRAND,                   //!< CPU has RDRAND.
@@ -253,11 +256,11 @@ public:
   ASMJIT_X86_FEATURE(MSSE)
   ASMJIT_X86_FEATURE(OSXSAVE)
   ASMJIT_X86_FEATURE(PCLMULQDQ)
-  ASMJIT_X86_FEATURE(PCOMMIT)
   ASMJIT_X86_FEATURE(PCONFIG)
   ASMJIT_X86_FEATURE(POPCNT)
   ASMJIT_X86_FEATURE(PREFETCHW)
   ASMJIT_X86_FEATURE(PREFETCHWT1)
+  ASMJIT_X86_FEATURE(PTWRITE)
   ASMJIT_X86_FEATURE(RDPID)
   ASMJIT_X86_FEATURE(RDPRU)
   ASMJIT_X86_FEATURE(RDRAND)

@@ -178,9 +178,11 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // [asmjit::x86::EmitterExplicitT]
 // ============================================================================
 
+//! Emitter (X86 - explicit).
 template<typename This>
 struct EmitterExplicitT {
   //! \cond
+
   // These typedefs are used to describe implicit operands passed explicitly.
   typedef Gp AL;
   typedef Gp AH;
@@ -721,6 +723,10 @@ public:
   ASMJIT_INST_2i(test, Test, Gp, Imm)                                  // ANY
   ASMJIT_INST_2x(test, Test, Mem, Gp)                                  // ANY
   ASMJIT_INST_2i(test, Test, Mem, Imm)                                 // ANY
+  ASMJIT_INST_2x(ud0, Ud0, Reg, Reg)                                   // ANY
+  ASMJIT_INST_2x(ud0, Ud0, Reg, Mem)                                   // ANY
+  ASMJIT_INST_2x(ud1, Ud1, Reg, Reg)                                   // ANY
+  ASMJIT_INST_2x(ud1, Ud1, Reg, Mem)                                   // ANY
   ASMJIT_INST_0x(ud2, Ud2)                                             // ANY
   ASMJIT_INST_2x(xadd, Xadd, Gp, Gp)                                   // ANY
   ASMJIT_INST_2x(xadd, Xadd, Mem, Gp)                                  // ANY
@@ -755,8 +761,11 @@ public:
 
   //! \}
 
-  //! \name In/Out Instructions
+  //! \name IN/OUT Instructions
   //! \{
+
+  // NOTE: For some reason Doxygen is messed up here and thinks we are in cond.
+  //! \endcond
 
   ASMJIT_INST_2i(in, In, ZAX, Imm)                                     // ANY
   ASMJIT_INST_2x(in, In, ZAX, DX)                                      // ANY
@@ -767,7 +776,7 @@ public:
 
   //! \}
 
-  //! \name Clear/Set CL/DF Instructions
+  //! \name Clear/Set CF/DF Instructions
   //! \{
 
   ASMJIT_INST_0x(clc, Clc)                                             // ANY
@@ -781,8 +790,8 @@ public:
   //! \name LAHF/SAHF Instructions
   //! \{
 
-  ASMJIT_INST_1x(lahf, Lahf, AH)                                       // LAHFSAHF  [EXPLICIT] AH <- EFL
-  ASMJIT_INST_1x(sahf, Sahf, AH)                                       // LAHFSAHF  [EXPLICIT] EFL <- AH
+  ASMJIT_INST_1x(lahf, Lahf, AH)                                       // LAHFSAHF [EXPLICIT] AH <- EFL
+  ASMJIT_INST_1x(sahf, Sahf, AH)                                       // LAHFSAHF [EXPLICIT] EFL <- AH
 
   //! \}
 
@@ -956,10 +965,11 @@ public:
 
   //! \}
 
-  //! \name RDPRU Instruction
+  //! \name RDPRU/RDPKRU Instructions
   //! \{
 
-  ASMJIT_INST_3x(rdpru, Rdpru, ECX, EDX, EAX)                          // RDPRU     [EXPLICIT] EDX:EAX <- PRU[ECX]
+  ASMJIT_INST_3x(rdpru, Rdpru, EDX, EAX, ECX)                          // RDPRU     [EXPLICIT] EDX:EAX <- PRU[ECX]
+  ASMJIT_INST_3x(rdpkru, Rdpkru, EDX, EAX, ECX)                        // RDPKRU    [EXPLICIT] EDX:EAX <- PKRU[ECX]
 
   //! \}
 
@@ -1061,11 +1071,18 @@ public:
 
   //! \}
 
-  //! \name PCOMMIT/MCOMMIT Instructions
+  //! \name MCOMMIT Instruction
   //! \{
 
-  ASMJIT_INST_0x(pcommit, Pcommit)                                     // PCOMMIT
   ASMJIT_INST_0x(mcommit, Mcommit)                                     // MCOMMIT
+
+  //! \}
+
+  //! \name PTWRITE Instruction
+  //! \{
+
+  ASMJIT_INST_1x(ptwrite, Ptwrite, Gp)                                 // PTWRITE
+  ASMJIT_INST_1x(ptwrite, Ptwrite, Mem)                                // PTWRITE
 
   //! \}
 
@@ -1123,6 +1140,34 @@ public:
 
   ASMJIT_INST_0x(xresldtrk, Xresldtrk)
   ASMJIT_INST_0x(xsusldtrk, Xsusldtrk)
+
+  //! \}
+
+  //! \name CET-IBT Instructions
+  //! \{
+
+  ASMJIT_INST_0x(endbr32, Endbr32)
+  ASMJIT_INST_0x(endbr64, Endbr64)
+
+  //! \}
+
+  //! \name CET-SS Instructions
+  //! \{
+
+  ASMJIT_INST_1x(clrssbsy, Clrssbsy, Mem)
+  ASMJIT_INST_0x(setssbsy, Setssbsy)
+
+  ASMJIT_INST_1x(rstorssp, Rstorssp, Mem)
+  ASMJIT_INST_0x(saveprevssp, Saveprevssp)
+
+  ASMJIT_INST_1x(incsspd, Incsspd, Gp)
+  ASMJIT_INST_1x(incsspq, Incsspq, Gp)
+  ASMJIT_INST_1x(rdsspd, Rdsspd, Gp)
+  ASMJIT_INST_1x(rdsspq, Rdsspq, Gp)
+  ASMJIT_INST_2x(wrssd, Wrssd, Mem, Gp)
+  ASMJIT_INST_2x(wrssq, Wrssq, Mem, Gp)
+  ASMJIT_INST_2x(wrussd, Wrussd, Mem, Gp)
+  ASMJIT_INST_2x(wrussq, Wrussq, Mem, Gp)
 
   //! \}
 
@@ -1215,13 +1260,6 @@ public:
   ASMJIT_INST_1x(vmsave, Vmsave, Gp)                                   // SVM       [EXPLICIT] <zax>
 
   //! \}
-
-  //! \name SYSCALL & SYSENTER Instructions
-  //! \{
-
-  //! \}
-
-
 
   //! \name FPU Instructions
   //! \{
@@ -2126,6 +2164,9 @@ public:
 
   //! \name GFNI Instructions
   //! \{
+
+  // NOTE: For some reason Doxygen is messed up here and thinks we are in cond.
+  //! \endcond
 
   ASMJIT_INST_3i(gf2p8affineinvqb, Gf2p8affineinvqb, Xmm, Xmm, Imm)    // GFNI
   ASMJIT_INST_3i(gf2p8affineinvqb, Gf2p8affineinvqb, Xmm, Mem, Imm)    // GFNI
@@ -3707,6 +3748,7 @@ public:
 // [asmjit::x86::EmitterImplicitT]
 // ============================================================================
 
+//! Emitter (X86 - implicit).
 template<typename This>
 struct EmitterImplicitT : public EmitterExplicitT<This> {
   //! \cond
@@ -3863,6 +3905,7 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   //! \}
 
   //! \name CPUID Instruction
+  //! \{
 
   //! \cond
   using EmitterExplicitT<This>::cpuid;
@@ -3883,14 +3926,16 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
 
   //! \}
 
-  //! \name RDPRU Instruction
+  //! \name RDPRU/RDPKRU Instructions
   //! \{
 
   //! \cond
   using EmitterExplicitT<This>::rdpru;
+  using EmitterExplicitT<This>::rdpkru;
   //! \endcond
 
   ASMJIT_INST_0x(rdpru, Rdpru)                                         // RDPRU     [IMPLICIT] EDX:EAX <- PRU[ECX]
+  ASMJIT_INST_0x(rdpkru, Rdpkru)                                       // RDPKRU    [IMPLICIT] EDX:EAX <- PKRU[ECX]
 
   //! \}
 

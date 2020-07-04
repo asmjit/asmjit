@@ -230,21 +230,41 @@ struct Opcode {
 
     kCDTT_T4X      = kCDTT_T1_4X,          // Alias to have only 3 letters.
 
-    // `O` Field in MorR/M
-    // -------------------
+    // `O` Field in ModR/M (??:xxx:???)
+    // --------------------------------
 
-    kO_Shift       = 18,
-    kO_Mask        = 0x7u << kO_Shift,
+    kModO_Shift    = 18,
+    kModO_Mask     = 0x7u << kModO_Shift,
 
-    kO__           = 0x0u,
-    kO_0           = 0x0u << kO_Shift,
-    kO_1           = 0x1u << kO_Shift,
-    kO_2           = 0x2u << kO_Shift,
-    kO_3           = 0x3u << kO_Shift,
-    kO_4           = 0x4u << kO_Shift,
-    kO_5           = 0x5u << kO_Shift,
-    kO_6           = 0x6u << kO_Shift,
-    kO_7           = 0x7u << kO_Shift,
+    kModO__        = 0x0u,
+    kModO_0        = 0x0u << kModO_Shift,
+    kModO_1        = 0x1u << kModO_Shift,
+    kModO_2        = 0x2u << kModO_Shift,
+    kModO_3        = 0x3u << kModO_Shift,
+    kModO_4        = 0x4u << kModO_Shift,
+    kModO_5        = 0x5u << kModO_Shift,
+    kModO_6        = 0x6u << kModO_Shift,
+    kModO_7        = 0x7u << kModO_Shift,
+
+    // `RM` Field in ModR/M (??:???:xxx)
+    // ---------------------------------
+    //
+    // Second data field used by ModR/M byte. This is only used by few
+    // instructions that use OPCODE+MOD/RM where both values in Mod/RM
+    // are part of the opcode.
+
+    kModRM_Shift    = 10,
+    kModRM_Mask     = 0x7u << kModRM_Shift,
+
+    kModRM__        = 0x0u,
+    kModRM_0        = 0x0u << kModRM_Shift,
+    kModRM_1        = 0x1u << kModRM_Shift,
+    kModRM_2        = 0x2u << kModRM_Shift,
+    kModRM_3        = 0x3u << kModRM_Shift,
+    kModRM_4        = 0x4u << kModRM_Shift,
+    kModRM_5        = 0x5u << kModRM_Shift,
+    kModRM_6        = 0x6u << kModRM_Shift,
+    kModRM_7        = 0x7u << kModRM_Shift,
 
     // `PP` Field
     // ----------
@@ -412,9 +432,14 @@ struct Opcode {
     return operator|=(mask[size & 0xF]);
   }
 
-  //! Extract `O` field from the opcode.
-  ASMJIT_INLINE uint32_t extractO() const noexcept {
-    return (v >> kO_Shift) & 0x07;
+  //! Extract `O` field (R) from the opcode (specified as /0..7 in instruction manuals).
+  ASMJIT_INLINE uint32_t extractModO() const noexcept {
+    return (v >> kModO_Shift) & 0x07;
+  }
+
+  //! Extract `RM` field (RM) from the opcode (usually specified as another opcode value).
+  ASMJIT_INLINE uint32_t extractModRM() const noexcept {
+    return (v >> kModRM_Shift) & 0x07;
   }
 
   //! Extract `REX` prefix from opcode combined with `options`.

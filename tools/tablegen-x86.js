@@ -552,7 +552,7 @@ class X86TableGen extends core.TableGen {
     var enum_    = name[0].toUpperCase() + name.substr(1);
 
     var opcode   = dbi.opcodeHex;
-    var rm       = dbi.rm;
+    var modR     = dbi.modR;
     var mm       = dbi.mm;
     var pp       = dbi.pp;
     var encoding = dbi.encoding;
@@ -590,7 +590,7 @@ class X86TableGen extends core.TableGen {
       }
 
       if (opcode   !== dbi.opcodeHex ) { console.log(`ISSUE: Opcode ${opcode} != ${dbi.opcodeHex}`); return null; }
-      if (rm       !== dbi.rm        ) { console.log(`ISSUE: RM ${rm} != ${dbi.rm}`); return null; }
+      if (modR     !== dbi.modR      ) { console.log(`ISSUE: ModR ${modR} != ${dbi.modR}`); return null; }
       if (mm       !== dbi.mm        ) { console.log(`ISSUE: MM ${mm} != ${dbi.mm}`); return null; }
       if (pp       !== dbi.pp        ) { console.log(`ISSUE: PP ${pp} != ${dbi.pp}`); return null; }
       if (encoding !== dbi.encoding  ) { console.log(`ISSUE: Enc ${encoding} != ${dbi.encoding}`); return null; }
@@ -605,12 +605,12 @@ class X86TableGen extends core.TableGen {
       type  : isVec ? "V" : "O",
       prefix: ppmm,
       opcode: opcode,
-      o     : rm === "r" ? "_" : (rm ? rm : "_"),
+      o     : modR === "r" ? "_" : (modR ? modR : "_"),
       l     : vexL !== undefined ? vexL : "_",
       w     : vexW !== undefined ? vexW : "_",
       ew    : evexW !== undefined ? evexW : "_",
       en    : "_",
-      tt    : "_  "
+      tt    : dbi.modRM ? dbi.modRM + "  " : "_  "
     });
 
     return {
@@ -736,7 +736,7 @@ class AltOpcodeTable extends core.Task {
       }
 
       // X(______,OP,_,_,_,_,_,_  )
-      if (opcode.startsWith("O_FPU(") || opcode.startsWith("O(") || opcode.startsWith("V(") || opcode.startsWith("E(")) {
+      if (opcode.startsWith("O(") || opcode.startsWith("V(") || opcode.startsWith("E(")) {
         var value = opcode.substring(9, 11);
         var remaining = opcode.substring(0, 9) + "00" + opcode.substring(11);
 

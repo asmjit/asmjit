@@ -48,8 +48,8 @@ namespace InstDB {
 enum EncodingId : uint32_t {
   kEncodingNone = 0,                     //!< Never used.
   kEncodingX86Op,                        //!< X86 [OP].
-  kEncodingX86Op_O,                      //!< X86 [OP] (opcode and /0-7).
-  kEncodingX86Op_O_I8,                   //!< X86 [OP] (opcode and /0-7 + 8-bit immediate).
+  kEncodingX86Op_Mod11RM,                //!< X86 [OP] (opcode with ModRM byte where MOD must be 11b).
+  kEncodingX86Op_Mod11RM_I8,             //!< X86 [OP] (opcode with ModRM byte + 8-bit immediate).
   kEncodingX86Op_xAddr,                  //!< X86 [OP] (implicit address in the first register operand).
   kEncodingX86Op_xAX,                    //!< X86 [OP] (implicit or explicit '?AX' form).
   kEncodingX86Op_xDX_xAX,                //!< X86 [OP] (implicit or explicit '?DX, ?AX' form).

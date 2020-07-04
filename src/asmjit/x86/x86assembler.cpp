@@ -662,7 +662,8 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
 
   // This sequence seems to be the fastest.
   opcode = InstDB::_mainOpcodeTable[instInfo->_mainOpcodeIndex];
-  opReg = opcode.extractO();
+  opReg = opcode.extractModO();
+  rbReg = 0;
   opcode |= instInfo->_mainOpcodeValue;
 
   // --------------------------------------------------------------------------
@@ -687,16 +688,17 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
     case InstDB::kEncodingX86Op:
       goto EmitX86Op;
 
-    case InstDB::kEncodingX86Op_O_I8:
+    case InstDB::kEncodingX86Op_Mod11RM:
+      rbReg = opcode.extractModRM();
+      goto EmitX86R;
+
+    case InstDB::kEncodingX86Op_Mod11RM_I8:
       if (ASMJIT_UNLIKELY(isign3 != ENC_OPS1(Imm)))
         goto InvalidInstruction;
 
+      rbReg = opcode.extractModRM();
       immValue = o0.as<Imm>().valueAs<uint8_t>();
       immSize = 1;
-      ASMJIT_FALLTHROUGH;
-
-    case InstDB::kEncodingX86Op_O:
-      rbReg = 0;
       goto EmitX86R;
 
     case InstDB::kEncodingX86Op_xAddr:
@@ -1126,7 +1128,7 @@ CaseX86M_GPB_MulDiv:
 
       opcode = x86AltOpcodeOf(instInfo);
       opcode.addPrefixBySize(o0.size());
-      opReg = opcode.extractO();
+      opReg = opcode.extractModO();
 
       if (isign3 == ENC_OPS2(Reg, Imm)) {
         rbReg = o0.id();
@@ -2093,7 +2095,7 @@ CaseX86PushPop_Gp:
 
       // The following instructions use the secondary opcode.
       opcode = x86AltOpcodeOf(instInfo);
-      opReg = opcode.extractO();
+      opReg = opcode.extractModO();
 
       if (isign3 == ENC_OPS2(Reg, Imm)) {
         opcode.addArithBySize(o0.size());
@@ -2294,7 +2296,7 @@ CaseFpuArith_Mem:
 
         if (o0.size() == 10 && commonInfo->hasFlag(InstDB::kFlagFpuM80)) {
           opcode = x86AltOpcodeOf(instInfo);
-          opReg  = opcode.extractO();
+          opReg  = opcode.extractModO();
           goto EmitX86M;
         }
       }
@@ -2323,7 +2325,7 @@ CaseFpuArith_Mem:
 
         if (o0.size() == 8 && commonInfo->hasFlag(InstDB::kFlagFpuM64)) {
           opcode = x86AltOpcodeOf(instInfo) & ~uint32_t(Opcode::kCDSHL_Mask);
-          opReg  = opcode.extractO();
+          opReg  = opcode.extractModO();
           goto EmitX86M;
         }
       }
@@ -2642,7 +2644,7 @@ CaseExtRm:
 
       // The following instruction uses the secondary opcode.
       opcode = x86AltOpcodeOf(instInfo);
-      opReg  = opcode.extractO();
+      opReg  = opcode.extractModO();
 
       if (isign3 == ENC_OPS2(Reg, Imm)) {
         immValue = o1.as<Imm>().value();
@@ -2672,7 +2674,7 @@ CaseExtRm:
 
       // The following instruction uses the secondary opcode.
       opcode = x86AltOpcodeOf(instInfo);
-      opReg  = opcode.extractO();
+      opReg  = opcode.extractModO();
 
       if (isign3 == ENC_OPS2(Reg, Imm)) {
         opcode.add66hIf(Reg::isXmm(o0));
@@ -2742,7 +2744,7 @@ CaseExtRm:
                    (uint32_t(o2.as<Imm>().valueAs<uint8_t>()) << 8) ;
         immSize = 2;
 
-        rbReg = opcode.extractO();
+        rbReg = opcode.extractModO();
         goto EmitX86R;
       }
       break;
@@ -3065,7 +3067,6 @@ CaseVexRvm_R:
         if (o3.isMem()) {
           rmRel = &o3;
           goto EmitVexEvexM;
-
         }
       }
       break;
@@ -3454,7 +3455,7 @@ CaseVexRvm_R:
       // The following instruction uses the secondary opcode.
       opcode &= Opcode::kLL_Mask;
       opcode |= x86AltOpcodeOf(instInfo);
-      opReg = opcode.extractO();
+      opReg = opcode.extractModO();
 
       immValue = o2.as<Imm>().value();
       immSize = 1;
@@ -3804,7 +3805,7 @@ EmitX86R:
   {
     uint32_t rex = opcode.extractRex(options) |
                    ((opReg & 0x08) >> 1) | // REX.R (0x04).
-                   ((rbReg       ) >> 3) ; // REX.B (0x01).
+                   ((rbReg & 0x08) >> 3) ; // REX.B (0x01).
 
     if (ASMJIT_UNLIKELY(x86IsRexInvalid(rex)))
       goto InvalidRexPrefix;
@@ -3820,8 +3821,8 @@ EmitX86R:
 
   // Emit ModR.
   writer.emit8(x86EncodeMod(3, opReg, rbReg));
-  // Emit immediate value.
 
+  // Emit immediate value.
   writer.emitImmediate(uint64_t(immValue), immSize);
   goto EmitDone;
 

@@ -146,17 +146,19 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
   features.add(Features::kI486);
 
   // --------------------------------------------------------------------------
-  // [CPUID EAX=0x0]
+  // [CPUID EAX=0]
   // --------------------------------------------------------------------------
 
   // Get vendor string/id.
   cpuidQuery(&regs, 0x0);
 
   uint32_t maxId = regs.eax;
+  uint32_t maxSubLeafId_0x7 = 0;
+
   simplifyCpuVendor(cpu, regs.ebx, regs.edx, regs.ecx);
 
   // --------------------------------------------------------------------------
-  // [CPUID EAX=0x1]
+  // [CPUID EAX=1]
   // --------------------------------------------------------------------------
 
   if (maxId >= 0x1) {
@@ -205,12 +207,12 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.edx, 19)) features.add(Features::kCLFLUSH);
     if (bitTest(regs.edx, 23)) features.add(Features::kMMX);
     if (bitTest(regs.edx, 24)) features.add(Features::kFXSR);
-    if (bitTest(regs.edx, 25)) features.add(Features::kSSE, Features::kMMX2);
+    if (bitTest(regs.edx, 25)) features.add(Features::kSSE);
     if (bitTest(regs.edx, 26)) features.add(Features::kSSE, Features::kSSE2);
     if (bitTest(regs.edx, 28)) features.add(Features::kMT);
 
-    // Get the content of XCR0 if supported by CPU and enabled by OS.
-    if ((regs.ecx & 0x0C000000u) == 0x0C000000u) {
+    // Get the content of XCR0 if supported by the CPU and enabled by the OS.
+    if (features.hasXSAVE() && features.hasOSXSAVE()) {
       xgetbvQuery(&xcr0, 0);
     }
 
@@ -227,8 +229,23 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     }
   }
 
+  constexpr uint32_t kXCR0_AMX_Bits = 0x3u << 17;
+  bool amxEnabledByOS = (xcr0.eax & kXCR0_AMX_Bits) == kXCR0_AMX_Bits;
+
+#if defined(__APPLE__)
+  // Apple platform provides on-demand AVX512 support. When an AVX512 instruction is used
+  // the first time it results in #UD, which would cause the thread being promoted to use
+  // AVX512 support by the OS in addition to enabling the necessary bits in XCR0 register.
+  bool avx512EnabledByOS = true;
+#else
+  // - XCR0[2:1] ==  11b - XMM/YMM states need to be enabled by OS.
+  // - XCR0[7:5] == 111b - Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by OS.
+  constexpr uint32_t kXCR0_AVX512_Bits = (0x3u << 1) | (0x7u << 5);
+  bool avx512EnabledByOS = (xcr0.eax & kXCR0_AVX512_Bits) == kXCR0_AVX512_Bits;
+#endif
+
   // --------------------------------------------------------------------------
-  // [CPUID EAX=0x7]
+  // [CPUID EAX=7 ECX=0]
   // --------------------------------------------------------------------------
 
   // Detect new features if the processor supports CPUID-07.
@@ -236,7 +253,9 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
 
   if (maxId >= 0x7) {
     cpuidQuery(&regs, 0x7);
-    uint32_t maxSubLeafId = regs.eax;
+
+    maybeMPX = bitTest(regs.ebx, 14);
+    maxSubLeafId_0x7 = regs.eax;
 
     if (bitTest(regs.ebx,  0)) features.add(Features::kFSGSBASE);
     if (bitTest(regs.ebx,  3)) features.add(Features::kBMI);
@@ -245,15 +264,18 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ebx,  8)) features.add(Features::kBMI2);
     if (bitTest(regs.ebx,  9)) features.add(Features::kERMS);
     if (bitTest(regs.ebx, 11)) features.add(Features::kRTM);
-    if (bitTest(regs.ebx, 14)) maybeMPX = true;
     if (bitTest(regs.ebx, 18)) features.add(Features::kRDSEED);
     if (bitTest(regs.ebx, 19)) features.add(Features::kADX);
     if (bitTest(regs.ebx, 20)) features.add(Features::kSMAP);
-    if (bitTest(regs.ebx, 22)) features.add(Features::kPCOMMIT);
     if (bitTest(regs.ebx, 23)) features.add(Features::kCLFLUSHOPT);
     if (bitTest(regs.ebx, 24)) features.add(Features::kCLWB);
     if (bitTest(regs.ebx, 29)) features.add(Features::kSHA);
     if (bitTest(regs.ecx,  0)) features.add(Features::kPREFETCHWT1);
+    if (bitTest(regs.ecx,  4)) features.add(Features::kOSPKE);
+    if (bitTest(regs.ecx,  5)) features.add(Features::kWAITPKG);
+    if (bitTest(regs.ecx,  8)) features.add(Features::kGFNI);
+    if (bitTest(regs.ecx,  9)) features.add(Features::kVAES);
+    if (bitTest(regs.ecx, 10)) features.add(Features::kVPCLMULQDQ);
     if (bitTest(regs.ecx, 22)) features.add(Features::kRDPID);
     if (bitTest(regs.ecx, 25)) features.add(Features::kCLDEMOTE);
     if (bitTest(regs.ecx, 27)) features.add(Features::kMOVDIRI);
@@ -262,9 +284,6 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.edx, 14)) features.add(Features::kSERIALIZE);
     if (bitTest(regs.edx, 16)) features.add(Features::kTSXLDTRK);
     if (bitTest(regs.edx, 18)) features.add(Features::kPCONFIG);
-    if (bitTest(regs.edx, 22)) features.add(Features::kAMX_BF16);
-    if (bitTest(regs.edx, 24)) features.add(Features::kAMX_TILE);
-    if (bitTest(regs.edx, 25)) features.add(Features::kAMX_INT8);
 
     // Detect 'TSX' - Requires at least one of `HLE` and `RTM` features.
     if (features.hasHLE() || features.hasRTM())
@@ -274,44 +293,47 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
     if (bitTest(regs.ebx, 5) && features.hasAVX())
       features.add(Features::kAVX2);
 
-    // Detect 'AVX_512'.
-    if (bitTest(regs.ebx, 16)) {
-      // - XCR0[2:1] ==  11b - XMM/YMM states need to be enabled by OS.
-      // - XCR0[7:5] == 111b - Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by OS.
-      if ((xcr0.eax & 0x000000E6u) == 0x000000E6u) {
-        features.add(Features::kAVX512_F);
-
-        if (bitTest(regs.ebx, 17)) features.add(Features::kAVX512_DQ);
-        if (bitTest(regs.ebx, 21)) features.add(Features::kAVX512_IFMA);
-        if (bitTest(regs.ebx, 26)) features.add(Features::kAVX512_PFI);
-        if (bitTest(regs.ebx, 27)) features.add(Features::kAVX512_ERI);
-        if (bitTest(regs.ebx, 28)) features.add(Features::kAVX512_CDI);
-        if (bitTest(regs.ebx, 30)) features.add(Features::kAVX512_BW);
-        if (bitTest(regs.ebx, 31)) features.add(Features::kAVX512_VL);
-        if (bitTest(regs.ecx,  1)) features.add(Features::kAVX512_VBMI);
-        if (bitTest(regs.ecx,  5)) features.add(Features::kWAITPKG);
-        if (bitTest(regs.ecx,  6)) features.add(Features::kAVX512_VBMI2);
-        if (bitTest(regs.ecx,  8)) features.add(Features::kGFNI);
-        if (bitTest(regs.ecx,  9)) features.add(Features::kVAES);
-        if (bitTest(regs.ecx, 10)) features.add(Features::kVPCLMULQDQ);
-        if (bitTest(regs.ecx, 11)) features.add(Features::kAVX512_VNNI);
-        if (bitTest(regs.ecx, 12)) features.add(Features::kAVX512_BITALG);
-        if (bitTest(regs.ecx, 14)) features.add(Features::kAVX512_VPOPCNTDQ);
-        if (bitTest(regs.edx,  2)) features.add(Features::kAVX512_4VNNIW);
-        if (bitTest(regs.edx,  3)) features.add(Features::kAVX512_4FMAPS);
-        if (bitTest(regs.edx,  8)) features.add(Features::kAVX512_VP2INTERSECT);
-      }
+    // Detect 'AMX'.
+    if (amxEnabledByOS) {
+      if (bitTest(regs.edx, 22)) features.add(Features::kAMX_BF16);
+      if (bitTest(regs.edx, 24)) features.add(Features::kAMX_TILE);
+      if (bitTest(regs.edx, 25)) features.add(Features::kAMX_INT8);
     }
 
-    if (maxSubLeafId >= 1 && features.hasAVX512_F()) {
-      cpuidQuery(&regs, 0x7, 1);
+    // Detect 'AVX_512'.
+    if (avx512EnabledByOS && bitTest(regs.ebx, 16)) {
+      features.add(Features::kAVX512_F);
 
-      if (bitTest(regs.eax, 5)) features.add(Features::kAVX512_BF16);
+      if (bitTest(regs.ebx, 17)) features.add(Features::kAVX512_DQ);
+      if (bitTest(regs.ebx, 21)) features.add(Features::kAVX512_IFMA);
+      if (bitTest(regs.ebx, 26)) features.add(Features::kAVX512_PFI);
+      if (bitTest(regs.ebx, 27)) features.add(Features::kAVX512_ERI);
+      if (bitTest(regs.ebx, 28)) features.add(Features::kAVX512_CDI);
+      if (bitTest(regs.ebx, 30)) features.add(Features::kAVX512_BW);
+      if (bitTest(regs.ebx, 31)) features.add(Features::kAVX512_VL);
+      if (bitTest(regs.ecx,  1)) features.add(Features::kAVX512_VBMI);
+      if (bitTest(regs.ecx,  6)) features.add(Features::kAVX512_VBMI2);
+      if (bitTest(regs.ecx, 11)) features.add(Features::kAVX512_VNNI);
+      if (bitTest(regs.ecx, 12)) features.add(Features::kAVX512_BITALG);
+      if (bitTest(regs.ecx, 14)) features.add(Features::kAVX512_VPOPCNTDQ);
+      if (bitTest(regs.edx,  2)) features.add(Features::kAVX512_4VNNIW);
+      if (bitTest(regs.edx,  3)) features.add(Features::kAVX512_4FMAPS);
+      if (bitTest(regs.edx,  8)) features.add(Features::kAVX512_VP2INTERSECT);
     }
   }
 
   // --------------------------------------------------------------------------
-  // [CPUID EAX=0xD]
+  // [CPUID EAX=7 ECX=1]
+  // --------------------------------------------------------------------------
+
+  if (features.hasAVX512_F() && maxSubLeafId_0x7 >= 1) {
+    cpuidQuery(&regs, 0x7, 1);
+
+    if (bitTest(regs.eax, 5)) features.add(Features::kAVX512_BF16);
+  }
+
+  // --------------------------------------------------------------------------
+  // [CPUID EAX=13 ECX=0]
   // --------------------------------------------------------------------------
 
   if (maxId >= 0xD) {
@@ -322,9 +344,20 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
       features.add(Features::kMPX);
 
     cpuidQuery(&regs, 0xD, 1);
+
     if (bitTest(regs.eax, 0)) features.add(Features::kXSAVEOPT);
     if (bitTest(regs.eax, 1)) features.add(Features::kXSAVEC);
     if (bitTest(regs.eax, 3)) features.add(Features::kXSAVES);
+  }
+
+  // --------------------------------------------------------------------------
+  // [CPUID EAX=14 ECX=0]
+  // --------------------------------------------------------------------------
+
+  if (maxId >= 0xE) {
+    cpuidQuery(&regs, 0xE, 0);
+
+    if (bitTest(regs.ebx, 4)) features.add(Features::kPTWRITE);
   }
 
   // --------------------------------------------------------------------------

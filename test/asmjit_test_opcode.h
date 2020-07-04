@@ -1066,10 +1066,6 @@ static void generateOpcodes(asmjit::x86::Emitter* e, bool useRex1 = false, bool 
   e->mwait();                               // Implicit <EAX>, <ECX>
   e->mwaitx();                              // Implicit <EAX>, <ECX>, <EBX>
 
-  // PCOMMIT.
-  e->nop();
-  e->pcommit();
-
   // PREFETCH / PREFETCHW / PREFETCHWT1.
   e->nop();
   e->prefetch(anyptr_gpA);                  // 3DNOW.
