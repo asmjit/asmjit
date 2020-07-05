@@ -2997,11 +2997,11 @@ const InstDB::InstSignature InstDB::_instSignatureTable[] = {
   ROW(3, 1, 1, 1, 27 , 4  , 33 , 0  , 0  , 0  ), //      {r16|m16|mem, r16, <ax>}
   ROW(3, 1, 1, 1, 28 , 6  , 36 , 0  , 0  , 0  ), //      {r32|m32|mem, r32, <eax>}
   ROW(3, 0, 1, 1, 15 , 8  , 38 , 0  , 0  , 0  ), //      {r64|m64|mem, r64, <rax>}
-  ROW(1, 1, 1, 0, 69 , 0  , 0  , 0  , 0  , 0  ), // #127 {r16|m16|r64|m64|mem}
+  ROW(1, 1, 1, 0, 69 , 0  , 0  , 0  , 0  , 0  ), // #127 {r16|m16|r64|m64}
   ROW(1, 1, 0, 0, 13 , 0  , 0  , 0  , 0  , 0  ), //      {r32|m32}
   ROW(1, 1, 0, 0, 70 , 0  , 0  , 0  , 0  , 0  ), //      {ds|es|ss}
   ROW(1, 1, 1, 0, 71 , 0  , 0  , 0  , 0  , 0  ), //      {fs|gs}
-  ROW(1, 1, 1, 0, 72 , 0  , 0  , 0  , 0  , 0  ), // #131 {r16|m16|r64|m64|mem|i8|i16|i32}
+  ROW(1, 1, 1, 0, 72 , 0  , 0  , 0  , 0  , 0  ), // #131 {r16|m16|r64|m64|i8|i16|i32}
   ROW(1, 1, 0, 0, 73 , 0  , 0  , 0  , 0  , 0  ), //      {r32|m32|i32|u32}
   ROW(1, 1, 0, 0, 74 , 0  , 0  , 0  , 0  , 0  ), //      {cs|ss|ds|es}
   ROW(1, 1, 1, 0, 71 , 0  , 0  , 0  , 0  , 0  ), //      {fs|gs}
@@ -3424,10 +3424,10 @@ const InstDB::OpSignature InstDB::_opSignatureTable[] = {
   ROW(F(Vm), M(Vm64y), 0, 0x00),
   ROW(F(Vm), M(Vm64z), 0, 0x00),
   ROW(F(GpbLo) | F(Implicit), 0, 0, 0x01),
-  ROW(F(Gpw) | F(Gpq) | F(Mem), M(M16) | M(M64) | M(Any), 0, 0x00),
+  ROW(F(Gpw) | F(Gpq) | F(Mem), M(M16) | M(M64), 0, 0x00),
   ROW(F(SReg), 0, 0, 0x1A),
   ROW(F(SReg), 0, 0, 0x60),
-  ROW(F(Gpw) | F(Gpq) | F(Mem) | F(I8) | F(I16) | F(I32), M(M16) | M(M64) | M(Any), 0, 0x00),
+  ROW(F(Gpw) | F(Gpq) | F(Mem) | F(I8) | F(I16) | F(I32), M(M16) | M(M64), 0, 0x00),
   ROW(F(Gpd) | F(Mem) | F(I32) | F(U32), M(M32), 0, 0x00),
   ROW(F(SReg), 0, 0, 0x1E),
   ROW(F(Vm), M(Vm64x) | M(Vm64y), 0, 0x00),

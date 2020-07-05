@@ -282,6 +282,20 @@ class GenUtils {
     }
   }
 
+  // Prevent some instructions from having implicit memory size if that would
+  // make them ambiguous. There are some instructions where the ambiguity is
+  // okay, but some like 'push' and 'pop' where it isn't.
+  static canUseImplicitMemSize(name) {
+    switch (name) {
+      case "pop":
+      case "push":
+        return false;
+
+      default:
+        return true;
+    }
+  }
+
   static singleRegCase(name) {
     switch (name) {
       case "xchg"    :
@@ -1406,7 +1420,8 @@ class SignatureArray extends Array {
       // Patch all instructions to accept implicit-size memory operand.
       for (bIndex = 0; bIndex < sameSizeSet.length; bIndex++) {
         const bInst = sameSizeSet[bIndex];
-        if (implicit) bInst[memPos].flags.mem = true;
+        if (implicit)
+          bInst[memPos].flags.mem = true;
 
         if (!implicit)
           DEBUG(`${this.name}: Explicit: ${bInst}`);
@@ -1697,7 +1712,9 @@ class InstSignatureTable extends core.Task {
       }
     }
 
-    signatures.calcImplicitMemSize();
+    if (signatures.length && GenUtils.canUseImplicitMemSize(dbInsts[0].name))
+      signatures.calcImplicitMemSize();
+
     signatures.simplify();
     signatures.compact();
 
