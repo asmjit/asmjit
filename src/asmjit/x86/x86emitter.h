@@ -641,6 +641,8 @@ public:
   ASMJIT_INST_0x(nop, Nop)                                             // ANY
   ASMJIT_INST_1x(nop, Nop, Gp)                                         // ANY
   ASMJIT_INST_1x(nop, Nop, Mem)                                        // ANY
+  ASMJIT_INST_2x(nop, Nop, Gp, Gp)                                     // ANY
+  ASMJIT_INST_2x(nop, Nop, Mem, Gp)                                    // ANY
   ASMJIT_INST_1x(not_, Not, Gp)                                        // ANY
   ASMJIT_INST_1x(not_, Not, Mem)                                       // ANY
   ASMJIT_INST_2x(or_, Or, Gp, Gp)                                      // ANY
@@ -723,10 +725,10 @@ public:
   ASMJIT_INST_2i(test, Test, Gp, Imm)                                  // ANY
   ASMJIT_INST_2x(test, Test, Mem, Gp)                                  // ANY
   ASMJIT_INST_2i(test, Test, Mem, Imm)                                 // ANY
-  ASMJIT_INST_2x(ud0, Ud0, Reg, Reg)                                   // ANY
-  ASMJIT_INST_2x(ud0, Ud0, Reg, Mem)                                   // ANY
-  ASMJIT_INST_2x(ud1, Ud1, Reg, Reg)                                   // ANY
-  ASMJIT_INST_2x(ud1, Ud1, Reg, Mem)                                   // ANY
+  ASMJIT_INST_1x(ud0, Ud0, Reg)                                        // ANY
+  ASMJIT_INST_1x(ud0, Ud0, Mem)                                        // ANY
+  ASMJIT_INST_1x(ud1, Ud1, Reg)                                        // ANY
+  ASMJIT_INST_1x(ud1, Ud1, Mem)                                        // ANY
   ASMJIT_INST_0x(ud2, Ud2)                                             // ANY
   ASMJIT_INST_2x(xadd, Xadd, Gp, Gp)                                   // ANY
   ASMJIT_INST_2x(xadd, Xadd, Mem, Gp)                                  // ANY

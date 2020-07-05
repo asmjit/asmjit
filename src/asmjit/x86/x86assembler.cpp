@@ -846,18 +846,32 @@ CaseX86M_GPB_MulDiv:
       if (isign3 == ENC_OPS1(None))
         goto EmitX86Op;
 
-      // Multi-byte NOP instruction "0F 1F /0".
+      // Single operand NOP instruction "0F 1F /0".
       opcode = Opcode::k000F00 | 0x1F;
       opReg = 0;
 
       if (isign3 == ENC_OPS1(Reg)) {
-        opcode.add66hBySize(o0.size());
+        opcode.addPrefixBySize(o0.size());
         rbReg = o0.id();
         goto EmitX86R;
       }
 
       if (isign3 == ENC_OPS1(Mem)) {
-        opcode.add66hBySize(o0.size());
+        opcode.addPrefixBySize(o0.size());
+        rmRel = &o0;
+        goto EmitX86M;
+      }
+
+      // Two operand NOP instruction "0F 1F /r".
+      opReg = o1.id();
+      opcode.addPrefixBySize(o1.size());
+
+      if (isign3 == ENC_OPS2(Reg, Reg)) {
+        rbReg = o0.id();
+        goto EmitX86R;
+      }
+
+      if (isign3 == ENC_OPS2(Mem, Reg)) {
         rmRel = &o0;
         goto EmitX86M;
       }
