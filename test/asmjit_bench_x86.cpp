@@ -21,7 +21,12 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+#include <asmjit/core.h>
+
+#ifdef ASMJIT_BUILD_X86
 #include <asmjit/x86.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 

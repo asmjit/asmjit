@@ -21,7 +21,11 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+#include <asmjit/core.h>
+
+#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
 #include <asmjit/x86.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -196,3 +200,9 @@ int main() {
 
   return nFailed ? 1 : 0;
 }
+#else
+int main() {
+  printf("AsmJit X86 Emitter Test is disabled on non-x86 host\n\n");
+  return 0;
+}
+#endif

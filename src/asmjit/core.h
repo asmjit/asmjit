@@ -239,7 +239,7 @@ namespace asmjit {
 //!
 //!   - \ref ASMJIT_BUILD_X86 - Always build X86 backend (X86 and X86_64).
 //!   - \ref ASMJIT_BUILD_ARM - Always build ARM backend (ARM and AArch64).
-//!   - \ref ASMJIT_BUILD_HOST - Always build the host backend, implied by default.
+//!   - \ref ASMJIT_BUILD_HOST - Always build the host backend.
 //!
 //! ### Features Selection
 //!
@@ -251,6 +251,9 @@ namespace asmjit {
 //!     so it won't be available and the compilation will fail if there is
 //!     attempt to use such API. This includes deprecated classes, namespaces,
 //!     enumerations, and functions.
+//!
+//!   - \ref ASMJIT_NO_FOREIGN - Disables the support for foreign architectures.
+//!     If defined, it would internally set \ref ASMJIT_BUILD_HOST to true.
 //!
 //!   - \ref ASMJIT_NO_BUILDER - Disables \ref asmjit_builder functionality
 //!     completely. This implies \ref ASMJIT_NO_COMPILER as \ref asmjit_compiler

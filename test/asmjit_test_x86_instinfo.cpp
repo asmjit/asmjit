@@ -21,7 +21,12 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+#include <asmjit/core.h>
+
+#if defined(ASMJIT_BUILD_X86)
 #include <asmjit/x86.h>
+#endif
+
 #include <stdio.h>
 
 using namespace asmjit;
@@ -90,11 +95,9 @@ static void printInfoSimple(uint32_t arch, uint32_t instId, Args&&... args) {
   printInfo(arch, inst, opArray, sizeof...(args));
 }
 
-int main() {
-  using namespace x86;
+static void testX86Arch() {
+#if defined(ASMJIT_BUILD_X86)
   uint32_t arch = Environment::kArchX64;
-
-  printf("AsmJit X86 Instruction Information Test\n\n");
 
   printInfoSimple(arch,
                   x86::Inst::kIdAdd,
@@ -110,7 +113,7 @@ int main() {
 
   printInfoSimple(arch,
                   x86::Inst::kIdPextrw,
-                  x86::ptr(rax), x86::xmm1, imm(0));
+                  x86::ptr(x86::rax), x86::xmm1, imm(0));
 
   printInfoSimple(arch,
                   x86::Inst::kIdVaddpd,
@@ -123,6 +126,13 @@ int main() {
   printInfoSimple(arch,
                   x86::Inst::kIdVaddpd,
                   x86::zmm0, x86::zmm1, x86::zmm2);
+#endif
+}
+
+int main() {
+  printf("AsmJit Instruction Information Test\n\n");
+
+  testX86Arch();
 
   return 0;
 }

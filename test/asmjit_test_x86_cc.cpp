@@ -21,6 +21,9 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+#include <asmjit/core.h>
+#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+
 #include <asmjit/x86.h>
 #include <setjmp.h>
 #include <stdio.h>
@@ -4327,3 +4330,13 @@ int main(int argc, char* argv[]) {
 
   return app.run();
 }
+
+#else
+int main() {
+  printf("AsmJit Compiler Test-Suite v%u.%u.%u is disabled on non-x86 host:\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF));
+  return 0;
+}
+#endif
