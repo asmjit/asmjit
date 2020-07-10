@@ -1847,7 +1847,6 @@ class InstRWInfoTable extends core.Task {
     this.rmInfoTable = new IndexedArray();
     this.opInfoTable = new IndexedArray();
 
-    const _ = null;
     this.rwCategoryByName = {
       "imul"      : "Imul",
       "mov"       : "Mov",
@@ -1861,6 +1860,8 @@ class InstRWInfoTable extends core.Task {
       "vpmaskmovd": "Vmaskmov",
       "vpmaskmovq": "Vmaskmov"
     };
+
+    const _ = null;
     this.rwCategoryByData = {
       Vmov1_8: [
         [{access: "W", flags: {}, fixed: -1, index: 0, width:  8}, {access: "R", flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_],
@@ -1928,8 +1929,8 @@ class InstRWInfoTable extends core.Task {
       const o2Insts = dbInsts.filter((inst) => { return inst.operands.length === 2; });
       const oxInsts = dbInsts.filter((inst) => { return inst.operands.length !== 2; });
 
-      const rwInfoArray = [this.rwInfo(o2Insts), this.rwInfo(oxInsts)];
-      const rmInfoArray = [this.rmInfo(o2Insts), this.rmInfo(oxInsts)];
+      const rwInfoArray = [this.rwInfo(inst, o2Insts), this.rwInfo(inst, oxInsts)];
+      const rmInfoArray = [this.rmInfo(inst, o2Insts), this.rmInfo(inst, oxInsts)];
 
       for (var i = 0; i < 2; i++) {
         const rwInfo = rwInfoArray[i];
@@ -2043,7 +2044,9 @@ class InstRWInfoTable extends core.Task {
   // Read/Write Info
   // ---------------
 
-  rwInfo(dbInsts) {
+  rwInfo(asmInst, dbInsts) {
+    const self = this;
+
     function nullOps() {
       return [null, null, null, null, null, null];
     }
@@ -2088,6 +2091,9 @@ class InstRWInfoTable extends core.Task {
 
           if (op.zext)
             d.flags.ZExt = true;
+
+          for (var k in self.rwOpFlagsForInstruction(asmInst.name, j))
+            d.flags[k] = true;
 
           if ((step === -1 || step === j) || op.rwxIndex !== 0 || op.rwxWidth !== opSize) {
             d.index = op.rwxIndex;
@@ -2184,10 +2190,29 @@ class InstRWInfoTable extends core.Task {
     return null;
   }
 
+  rwOpFlagsForInstruction(instName, opIndex) {
+    const toMap = MapUtils.arrayToMap;
+
+    // TODO: We should be able to get this information from asmdb.
+    switch (instName + "@" + opIndex) {
+      case "cmps@0": return toMap(['MemBaseRW', 'MemBasePostModify']);
+      case "cmps@1": return toMap(['MemBaseRW', 'MemBasePostModify']);
+      case "movs@0": return toMap(['MemBaseRW', 'MemBasePostModify']);
+      case "movs@1": return toMap(['MemBaseRW', 'MemBasePostModify']);
+      case "lods@1": return toMap(['MemBaseRW', 'MemBasePostModify']);
+      case "stos@0": return toMap(['MemBaseRW', 'MemBasePostModify']);
+      case "scas@1": return toMap(['MemBaseRW', 'MemBasePostModify']);
+      case "bndstx@0": return toMap(['MemBaseWrite', 'MemIndexWrite']);
+
+      default:
+        return {};
+    }
+  }
+
   // Reg/Mem Info
   // ------------
 
-  rmInfo(dbInsts) {
+  rmInfo(asmInst, dbInsts) {
     const info = {
       category: "None",
       rmIndexes: this.rmReplaceableIndexes(dbInsts),

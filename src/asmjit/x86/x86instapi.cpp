@@ -851,7 +851,7 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
   constexpr uint32_t RegPhys = OpRWInfo::kRegPhysId;
   constexpr uint32_t MibRead = OpRWInfo::kMemBaseRead | OpRWInfo::kMemIndexRead;
 
-  if (ASMJIT_LIKELY(instRwInfo.category == InstDB::RWInfo::kCategoryGeneric)) {
+  if (instRwInfo.category == InstDB::RWInfo::kCategoryGeneric) {
     uint32_t i;
     uint32_t rmOpsMask = 0;
     uint32_t rmMaxSize = 0;
@@ -901,7 +901,13 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
         rmOpsMask |= Support::bitMask<uint32_t>(i);
       }
       else {
-        op.addOpFlags(MibRead);
+        const x86::Mem& memOp = srcOp.as<x86::Mem>();
+        // The RW flags of BASE+INDEX are either provided by the data, which means
+        // that the instruction is border-case, or they are deduced from the operand.
+        if (memOp.hasBaseReg() && !(op.opFlags() & OpRWInfo::kMemBaseRW))
+          op.addOpFlags(OpRWInfo::kMemBaseRead);
+        if (memOp.hasIndexReg() && !(op.opFlags() & OpRWInfo::kMemIndexRW))
+          op.addOpFlags(OpRWInfo::kMemIndexRead);
       }
     }
 

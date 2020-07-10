@@ -3850,10 +3850,10 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   inline Error cmpsq() { return _emitter()->emit(Inst::kIdCmps, EmitterExplicitT<This>::ptr_zsi(0, 8), EmitterExplicitT<This>::ptr_zdi(0, 8)); }
   inline Error cmpsw() { return _emitter()->emit(Inst::kIdCmps, EmitterExplicitT<This>::ptr_zsi(0, 2), EmitterExplicitT<This>::ptr_zdi(0, 2)); }
 
-  inline Error lodsb() { return _emitter()->emit(Inst::kIdLods, al , EmitterExplicitT<This>::ptr_zdi(0, 1)); }
-  inline Error lodsd() { return _emitter()->emit(Inst::kIdLods, eax, EmitterExplicitT<This>::ptr_zdi(0, 4)); }
-  inline Error lodsq() { return _emitter()->emit(Inst::kIdLods, rax, EmitterExplicitT<This>::ptr_zdi(0, 8)); }
-  inline Error lodsw() { return _emitter()->emit(Inst::kIdLods, ax , EmitterExplicitT<This>::ptr_zdi(0, 2)); }
+  inline Error lodsb() { return _emitter()->emit(Inst::kIdLods, al , EmitterExplicitT<This>::ptr_zsi(0, 1)); }
+  inline Error lodsd() { return _emitter()->emit(Inst::kIdLods, eax, EmitterExplicitT<This>::ptr_zsi(0, 4)); }
+  inline Error lodsq() { return _emitter()->emit(Inst::kIdLods, rax, EmitterExplicitT<This>::ptr_zsi(0, 8)); }
+  inline Error lodsw() { return _emitter()->emit(Inst::kIdLods, ax , EmitterExplicitT<This>::ptr_zsi(0, 2)); }
 
   inline Error movsb() { return _emitter()->emit(Inst::kIdMovs, EmitterExplicitT<This>::ptr_zdi(0, 1), EmitterExplicitT<This>::ptr_zsi(0, 1)); }
   inline Error movsd() { return _emitter()->emit(Inst::kIdMovs, EmitterExplicitT<This>::ptr_zdi(0, 4), EmitterExplicitT<This>::ptr_zsi(0, 4)); }

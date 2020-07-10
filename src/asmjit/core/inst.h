@@ -336,6 +336,8 @@ struct OpRWInfo {
   //! used to encode registers.
   inline bool isMemFake() const noexcept { return hasOpFlag(kMemFake); }
 
+  //! Tests whether the instruction's memory BASE register is used.
+  inline bool isMemBaseUsed() const noexcept { return (_opFlags & kMemBaseRW) != 0; }
   //! Tests whether the instruction reads from its BASE registers.
   inline bool isMemBaseRead() const noexcept { return hasOpFlag(kMemBaseRead); }
   //! Tests whether the instruction writes to its BASE registers.
@@ -354,6 +356,8 @@ struct OpRWInfo {
   //! it to calculate the target address.
   inline bool isMemBasePostModify() const noexcept { return hasOpFlag(kMemBasePostModify); }
 
+  //! Tests whether the instruction's memory INDEX register is used.
+  inline bool isMemIndexUsed() const noexcept { return (_opFlags & kMemIndexRW) != 0; }
   //! Tests whether the instruction reads the INDEX registers.
   inline bool isMemIndexRead() const noexcept { return hasOpFlag(kMemIndexRead); }
   //! Tests whether the instruction writes to its INDEX registers.

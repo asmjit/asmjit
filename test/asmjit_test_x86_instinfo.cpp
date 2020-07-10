@@ -31,6 +31,10 @@
 
 using namespace asmjit;
 
+static char accessLetter(bool r, bool w) noexcept {
+  return r && w ? 'X' : r ? 'R' : w ? 'W' : '_';
+}
+
 static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* operands, size_t opCount) {
   StringTmp<512> sb;
 
@@ -52,12 +56,26 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
   sb.append("Operands:\n");
   for (uint32_t i = 0; i < rw.opCount(); i++) {
     const OpRWInfo& op = rw.operand(i);
-    const char* access = op.isReadOnly() ? "R" :
-                         op.isWriteOnly() ? "W" :
-                         op.isReadWrite() ? "X" : "_";
 
-    sb.appendFormat("  [%u] RW=%s Read=%016llX Write=%016llX Extend=%016llX",
-                    i, access, op.readByteMask(), op.writeByteMask(), op.extendByteMask());
+    sb.appendFormat("  [%u] Op=%c Read=%016llX Write=%016llX Extend=%016llX",
+                    i,
+                    accessLetter(op.isRead(), op.isWrite()),
+                    op.readByteMask(),
+                    op.writeByteMask(),
+                    op.extendByteMask());
+
+    if (op.isMemBaseUsed()) {
+      sb.appendFormat(" Base=%c", accessLetter(op.isMemBaseRead(), op.isMemBaseWrite()));
+      if (op.isMemBasePreModify())
+        sb.appendFormat(" <PRE>");
+      if (op.isMemBasePostModify())
+        sb.appendFormat(" <POST>");
+    }
+
+    if (op.isMemIndexUsed()) {
+      sb.appendFormat(" Index=%c", accessLetter(op.isMemIndexRead(), op.isMemIndexWrite()));
+    }
+
     sb.append("\n");
   }
 
@@ -102,6 +120,10 @@ static void testX86Arch() {
   printInfoSimple(arch,
                   x86::Inst::kIdAdd,
                   x86::eax, x86::ebx);
+
+  printInfoSimple(arch,
+                  x86::Inst::kIdLods,
+                  x86::eax , dword_ptr(x86::rsi));
 
   printInfoSimple(arch,
                   x86::Inst::kIdPshufd,
