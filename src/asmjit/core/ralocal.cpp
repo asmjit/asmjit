@@ -370,7 +370,7 @@ Cleared:
   return kErrorOk;
 }
 
-Error RALocalAllocator::spillGpScratchRegsBeforeEntry(uint32_t scratchRegs) noexcept {
+Error RALocalAllocator::spillScratchGpRegsBeforeEntry(uint32_t scratchRegs) noexcept {
   uint32_t group = BaseReg::kGroupGp;
   Support::BitWordIterator<uint32_t> it(scratchRegs);
 
@@ -930,9 +930,6 @@ Error RALocalAllocator::allocBranch(InstNode* node, RABlock* target, RABlock* co
 Error RALocalAllocator::allocJumpTable(InstNode* node, const RABlocks& targets, RABlock* cont) noexcept {
   if (targets.empty())
     return DebugUtils::errored(kErrorInvalidState);
-
-  if (targets.size() == 1)
-    return allocBranch(node, targets[0], cont);
 
   // The cursor must point to the previous instruction for a possible instruction insertion.
   _cc->_setCursor(node->prev());

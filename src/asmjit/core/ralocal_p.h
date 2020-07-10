@@ -155,10 +155,10 @@ public:
     bool tryMode) noexcept;
 
   inline Error spillRegsBeforeEntry(RABlock* block) noexcept {
-    return spillGpScratchRegsBeforeEntry(block->entryScratchGpRegs());
+    return spillScratchGpRegsBeforeEntry(block->entryScratchGpRegs());
   }
 
-  Error spillGpScratchRegsBeforeEntry(uint32_t scratchRegs) noexcept;
+  Error spillScratchGpRegsBeforeEntry(uint32_t scratchRegs) noexcept;
 
   //! \}
 

@@ -232,14 +232,17 @@ public:
                 if (ASMJIT_UNLIKELY(!targetBlock))
                   return DebugUtils::errored(kErrorOutOfMemory);
 
+                targetBlock->makeTargetable();
                 ASMJIT_PROPAGATE(_curBlock->appendSuccessor(targetBlock));
               }
               else {
                 // Not a label - could be jump with reg/mem operand, which
                 // means that it can go anywhere. Such jumps must either be
                 // annotated so the CFG can be properly constructed, otherwise
-                // we assume the worst case - can jump to every basic block.
+                // we assume the worst case - can jump to any basic block.
                 JumpAnnotation* jumpAnnotation = nullptr;
+                _curBlock->addFlags(RABlock::kFlagHasJumpTable);
+
                 if (inst->type() == BaseNode::kNodeJump)
                   jumpAnnotation = inst->as<JumpNode>()->annotation();
 
@@ -256,6 +259,7 @@ public:
                     // Prevents adding basic-block successors multiple times.
                     if (!targetBlock->hasTimestamp(timestamp)) {
                       targetBlock->setTimestamp(timestamp);
+                      targetBlock->makeTargetable();
                       ASMJIT_PROPAGATE(_curBlock->appendSuccessor(targetBlock));
                     }
                   }
@@ -331,7 +335,7 @@ public:
         if (!_curBlock) {
           // If the current code is unreachable the label makes it reachable
           // again. We may remove the whole block in the future if it's not
-          // referenced.
+          // referenced though.
           _curBlock = node->passData<RABlock>();
 
           if (_curBlock) {
@@ -341,13 +345,14 @@ public:
               break;
           }
           else {
-            // No block assigned, to create a new one, and assign it.
+            // No block assigned - create a new one and assign it.
             _curBlock = _pass->newBlock(node);
             if (ASMJIT_UNLIKELY(!_curBlock))
               return DebugUtils::errored(kErrorOutOfMemory);
             node->setPassData<RABlock>(_curBlock);
           }
 
+          _curBlock->makeTargetable();
           _hasCode = false;
           _blockRegStats.reset();
           ASMJIT_PROPAGATE(_pass->addBlock(_curBlock));
@@ -355,10 +360,13 @@ public:
         else {
           if (node->hasPassData()) {
             RABlock* consecutive = node->passData<RABlock>();
+            consecutive->makeTargetable();
+
             if (_curBlock == consecutive) {
               // The label currently processed is part of the current block. This
               // is only possible for multiple labels that are right next to each
-              // other, or are separated by non-code nodes like directives and comments.
+              // other or labels that are separated by non-code nodes like directives
+              // and comments.
               if (ASMJIT_UNLIKELY(_hasCode))
                 return DebugUtils::errored(kErrorInvalidState);
             }
@@ -392,6 +400,7 @@ public:
               RABlock* consecutive = _pass->newBlock(node);
               if (ASMJIT_UNLIKELY(!consecutive))
                 return DebugUtils::errored(kErrorOutOfMemory);
+              consecutive->makeTargetable();
 
               ASMJIT_PROPAGATE(_curBlock->appendSuccessor(consecutive));
               ASMJIT_PROPAGATE(_pass->addBlock(consecutive));
@@ -479,6 +488,8 @@ public:
 
     if (ASMJIT_UNLIKELY(!_retBlock))
       return DebugUtils::errored(kErrorOutOfMemory);
+
+    _retBlock->makeTargetable();
     ASMJIT_PROPAGATE(_pass->addExitBlock(_retBlock));
 
     if (node != func) {
@@ -521,13 +532,13 @@ public:
     size_t blockCount = blocks.size();
 
     // NOTE: Iterate from `1` as the first block is the entry block, we don't
-    // allow the entry to be a successor of block that ends with unknown jump.
+    // allow the entry to be a successor of any block.
     RABlock* consecutive = block->consecutive();
     for (size_t i = 1; i < blockCount; i++) {
-      RABlock* successor = blocks[i];
-      if (successor == consecutive)
+      RABlock* candidate = blocks[i];
+      if (candidate == consecutive || !candidate->isTargetable())
         continue;
-      block->appendSuccessor(successor);
+      block->appendSuccessor(candidate);
     }
 
     return shareAssignmentAcrossSuccessors(block);

@@ -60,19 +60,23 @@ public:
     kFlagIsConstructed    = 0x00000001u,
     //! Block is reachable (set by `buildViews()`).
     kFlagIsReachable      = 0x00000002u,
+    //! Block is a target (has an associated label or multiple labels).
+    kFlagIsTargetable     = 0x00000004u,
     //! Block has been allocated.
-    kFlagIsAllocated      = 0x00000004u,
+    kFlagIsAllocated      = 0x00000008u,
     //! Block is a function-exit.
-    kFlagIsFuncExit       = 0x00000008u,
+    kFlagIsFuncExit       = 0x00000010u,
 
     //! Block has a terminator (jump, conditional jump, ret).
-    kFlagHasTerminator    = 0x00000010u,
+    kFlagHasTerminator    = 0x00000100u,
     //! Block naturally flows to the next block.
-    kFlagHasConsecutive   = 0x00000020u,
+    kFlagHasConsecutive   = 0x00000200u,
+    //! Block has a jump to a jump-table at the end.
+    kFlagHasJumpTable     = 0x00000400u,
     //! Block contains fixed registers (precolored).
-    kFlagHasFixedRegs     = 0x00000040u,
+    kFlagHasFixedRegs     = 0x00000800u,
     //! Block contains function calls.
-    kFlagHasFuncCalls     = 0x00000080u
+    kFlagHasFuncCalls     = 0x00001000u
   };
 
   //! Register allocator pass.
@@ -114,11 +118,11 @@ public:
   RABlocks _successors;
 
   enum LiveType : uint32_t {
-    kLiveIn               = 0,
-    kLiveOut              = 1,
-    kLiveGen              = 2,
-    kLiveKill             = 3,
-    kLiveCount            = 4
+    kLiveIn = 0,
+    kLiveOut = 1,
+    kLiveGen = 2,
+    kLiveKill = 3,
+    kLiveCount = 4
   };
 
   //! Liveness in/out/use/kill.
@@ -180,6 +184,7 @@ public:
 
   inline bool isConstructed() const noexcept { return hasFlag(kFlagIsConstructed); }
   inline bool isReachable() const noexcept { return hasFlag(kFlagIsReachable); }
+  inline bool isTargetable() const noexcept { return hasFlag(kFlagIsTargetable); }
   inline bool isAllocated() const noexcept { return hasFlag(kFlagIsAllocated); }
   inline bool isFuncExit() const noexcept { return hasFlag(kFlagIsFuncExit); }
 
@@ -189,12 +194,14 @@ public:
   }
 
   inline void makeReachable() noexcept { _flags |= kFlagIsReachable; }
+  inline void makeTargetable() noexcept { _flags |= kFlagIsTargetable; }
   inline void makeAllocated() noexcept { _flags |= kFlagIsAllocated; }
 
   inline const RARegsStats& regsStats() const noexcept { return _regsStats; }
 
   inline bool hasTerminator() const noexcept { return hasFlag(kFlagHasTerminator); }
   inline bool hasConsecutive() const noexcept { return hasFlag(kFlagHasConsecutive); }
+  inline bool hasJumpTable() const noexcept { return hasFlag(kFlagHasJumpTable); }
 
   inline bool hasPredecessors() const noexcept { return !_predecessors.empty(); }
   inline bool hasSuccessors() const noexcept { return !_successors.empty(); }
@@ -219,6 +226,7 @@ public:
   inline uint32_t entryScratchGpRegs() const noexcept;
   inline uint32_t exitScratchGpRegs() const noexcept { return _exitScratchGpRegs; }
 
+  inline void addEntryScratchGpRegs(uint32_t regMask) noexcept { _entryScratchGpRegs |= regMask; }
   inline void addExitScratchGpRegs(uint32_t regMask) noexcept { _exitScratchGpRegs |= regMask; }
 
   inline bool hasSharedAssignmentId() const noexcept { return _sharedAssignmentId != Globals::kInvalidId; }
@@ -629,7 +637,7 @@ public:
       _workToPhysMap(nullptr) {}
 
   inline uint32_t entryScratchGpRegs() const noexcept { return _entryScratchGpRegs; }
-  inline void addScratchGpRegs(uint32_t mask) noexcept { _entryScratchGpRegs |= mask; }
+  inline void addEntryScratchGpRegs(uint32_t mask) noexcept { _entryScratchGpRegs |= mask; }
 
   inline const ZoneBitVector& liveIn() const noexcept { return _liveIn; }
 

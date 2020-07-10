@@ -382,9 +382,20 @@ Error RAPass::initSharedAssignments(const ZoneVector<uint32_t>& sharedAssignment
   // the assignment itself. It will then be used instead of RABlock's own scratch
   // regs mask, as shared assignments have precedence.
   for (RABlock* block : _blocks) {
+    if (block->hasJumpTable()) {
+      const RABlocks& successors = block->successors();
+      if (!successors.empty()) {
+        RABlock* firstSuccessor = successors[0];
+        // NOTE: Shared assignments connect all possible successors so we only
+        // need the first to propagate exit scratch gp registers.
+        ASMJIT_ASSERT(firstSuccessor->hasSharedAssignmentId());
+        RASharedAssignment& sa = _sharedAssignments[firstSuccessor->sharedAssignmentId()];
+        sa.addEntryScratchGpRegs(block->exitScratchGpRegs());
+      }
+    }
     if (block->hasSharedAssignmentId()) {
       RASharedAssignment& sa = _sharedAssignments[block->sharedAssignmentId()];
-      sa.addScratchGpRegs(block->_entryScratchGpRegs);
+      sa.addEntryScratchGpRegs(block->_entryScratchGpRegs);
     }
   }
 

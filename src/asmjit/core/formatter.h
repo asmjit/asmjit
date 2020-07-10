@@ -46,6 +46,10 @@ class BaseBuilder;
 class BaseNode;
 #endif
 
+#ifndef ASMJIT_NO_COMPILER
+class BaseCompiler;
+#endif
+
 // ============================================================================
 // [asmjit::FormatOptions]
 // ============================================================================
