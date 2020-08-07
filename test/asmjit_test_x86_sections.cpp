@@ -118,7 +118,7 @@ int main() {
   // how to do it explicitly.
   printf("\nCalculating section offsets:\n");
   uint64_t offset = 0;
-  for (Section* section : code.sections()) {
+  for (Section* section : code.sectionsByOrder()) {
     offset = Support::alignUp(offset, section->alignment());
     section->setOffset(offset);
     offset += section->realSize();
@@ -157,7 +157,7 @@ int main() {
   // Copy the flattened code into `mem.rw`. There are two ways. You can either copy
   // everything manually by iterating over all sections or use `copyFlattenedData`.
   // This code is similar to what `copyFlattenedData(p, codeSize, 0)` would do:
-  for (Section* section : code.sections())
+  for (Section* section : code.sectionsByOrder())
     memcpy(static_cast<uint8_t*>(rwPtr) + size_t(section->offset()), section->data(), section->bufferSize());
 
   // Execute the function and test whether it works.

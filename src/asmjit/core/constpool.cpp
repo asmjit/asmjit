@@ -258,7 +258,7 @@ UNIT(const_pool) {
   uint32_t i;
   uint32_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 1000000;
 
-  INFO("Adding %u constants to the pool.", kCount);
+  INFO("Adding %u constants to the pool", kCount);
   {
     size_t prevOffset;
     size_t curOffset;
@@ -278,7 +278,7 @@ UNIT(const_pool) {
     EXPECT(pool.alignment() == 8);
   }
 
-  INFO("Retrieving %u constants from the pool.", kCount);
+  INFO("Retrieving %u constants from the pool", kCount);
   {
     uint64_t c = 0x0101010101010101u;
 

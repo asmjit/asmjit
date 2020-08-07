@@ -870,7 +870,8 @@ namespace asmjit {
 //!     ".data",  // Section name
 //!     SIZE_MAX, // Name length if the name is not null terminated (or SIZE_MAX).
 //!     0,        // Section flags, see Section::Flags.
-//!     8);       // Section alignment, must be power of 2.
+//!     8,        // Section alignment, must be power of 2.
+//!     0);       // Section order value (optional, default 0).
 //!
 //!   // When you switch sections in Assembler, Builder, or Compiler the cursor
 //!   // will always move to the end of that section. When you create an Assembler

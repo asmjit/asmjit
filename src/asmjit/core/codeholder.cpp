@@ -113,6 +113,7 @@ static void CodeHolder_resetInternal(CodeHolder* self, uint32_t resetPolicy) noe
   self->_relocations.reset();
   self->_labelEntries.reset();
   self->_sections.reset();
+  self->_sectionsByOrder.reset();
 
   self->_unresolvedLinkCount = 0;
   self->_addressTableSection = nullptr;
@@ -169,13 +170,15 @@ Error CodeHolder::init(const Environment& environment, uint64_t baseAddress) noe
   ASMJIT_ASSERT(_emitters.empty());
 
   // Create a default section and insert it to the `_sections` array.
-  Error err = _sections.willGrow(&_allocator);
+  Error err = _sections.willGrow(&_allocator) |
+              _sectionsByOrder.willGrow(&_allocator);
   if (err == kErrorOk) {
     Section* section = _allocator.allocZeroedT<Section>();
     if (ASMJIT_LIKELY(section)) {
       section->_flags = Section::kFlagExec | Section::kFlagConst;
       CodeHolder_setSectionDefaultName(section, '.', 't', 'e', 'x', 't');
       _sections.appendUnsafe(section);
+      _sectionsByOrder.appendUnsafe(section);
     }
     else {
       err = DebugUtils::errored(kErrorOutOfMemory);
@@ -365,7 +368,26 @@ Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
 // [asmjit::CodeHolder - Sections]
 // ============================================================================
 
-Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t nameSize, uint32_t flags, uint32_t alignment) noexcept {
+template<typename T, typename Compar>
+static inline size_t binarySearchClosestFirst(const T* array, size_t size, const T& value, const Compar& compar) noexcept {
+  if (!size)
+    return 0;
+
+  const T* base = array;
+  while (size_t half = size / 2u) {
+    const T* middle = base + half;
+    size -= half;
+    if (compar(middle[0], value) < 0)
+      base = middle;
+  }
+
+  if (compar(base[0], value) < 0)
+    base++;
+
+  return size_t(base - array);
+}
+
+Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t nameSize, uint32_t flags, uint32_t alignment, int32_t order) noexcept {
   *sectionOut = nullptr;
 
   if (nameSize == SIZE_MAX)
@@ -385,16 +407,25 @@ Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t name
     return DebugUtils::errored(kErrorTooManySections);
 
   ASMJIT_PROPAGATE(_sections.willGrow(&_allocator));
-  Section* section = _allocator.allocZeroedT<Section>();
+  ASMJIT_PROPAGATE(_sectionsByOrder.willGrow(&_allocator));
 
+  Section* section = _allocator.allocZeroedT<Section>();
   if (ASMJIT_UNLIKELY(!section))
     return DebugUtils::errored(kErrorOutOfMemory);
 
   section->_id = sectionId;
   section->_flags = flags;
   section->_alignment = alignment;
+  section->_order = order;
   memcpy(section->_name.str, name, nameSize);
+
+  size_t n = binarySearchClosestFirst(_sectionsByOrder.data(), _sectionsByOrder.size(), section, [](const Section* a, const Section* b) -> int64_t {
+    return a->order() == b->order() ? int64_t(a->id()) - int64_t(b->id())
+                                    : int64_t(a->order()) - int64_t(b->order());
+  });
+
   _sections.appendUnsafe(section);
+  _sectionsByOrder.insertUnsafe(n, section);
 
   *sectionOut = section;
   return kErrorOk;
@@ -420,7 +451,7 @@ Section* CodeHolder::ensureAddressTableSection() noexcept {
   if (_addressTableSection)
     return _addressTableSection;
 
-  newSection(&_addressTableSection, CodeHolder_addrTabName, sizeof(CodeHolder_addrTabName) - 1, 0, _environment.registerSize());
+  newSection(&_addressTableSection, CodeHolder_addrTabName, sizeof(CodeHolder_addrTabName) - 1, 0, _environment.registerSize(), std::numeric_limits<int32_t>::max());
   return _addressTableSection;
 }
 
@@ -842,7 +873,7 @@ static Error CodeHolder_evaluateExpression(CodeHolder* self, Expression* exp, ui
 
 Error CodeHolder::flatten() noexcept {
   uint64_t offset = 0;
-  for (Section* section : _sections) {
+  for (Section* section : _sectionsByOrder) {
     uint64_t realSize = section->realSize();
     if (realSize) {
       uint64_t alignedOffset = Support::alignUp(offset, section->alignment());
@@ -860,7 +891,7 @@ Error CodeHolder::flatten() noexcept {
   // Now we know that we can assign offsets of all sections properly.
   Section* prev = nullptr;
   offset = 0;
-  for (Section* section : _sections) {
+  for (Section* section : _sectionsByOrder) {
     uint64_t realSize = section->realSize();
     if (realSize)
       offset = Support::alignUp(offset, section->alignment());
@@ -881,7 +912,7 @@ size_t CodeHolder::codeSize() const noexcept {
   Support::FastUInt8 of = 0;
   uint64_t offset = 0;
 
-  for (Section* section : _sections) {
+  for (Section* section : _sectionsByOrder) {
     uint64_t realSize = section->realSize();
 
     if (realSize) {
@@ -1047,7 +1078,7 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
   }
 
   // Fixup the virtual size of the address table if it's the last section.
-  if (_sections.last() == addressTableSection) {
+  if (_sectionsByOrder.last() == addressTableSection) {
     size_t addressTableSize = addressTableEntryCount * addressSize;
     addressTableSection->_buffer._size = addressTableSize;
     addressTableSection->_virtualSize = addressTableSize;
@@ -1078,7 +1109,7 @@ Error CodeHolder::copySectionData(void* dst, size_t dstSize, uint32_t sectionId,
 
 Error CodeHolder::copyFlattenedData(void* dst, size_t dstSize, uint32_t copyOptions) noexcept {
   size_t end = 0;
-  for (Section* section : _sections) {
+  for (Section* section : _sectionsByOrder) {
     if (section->offset() > dstSize)
       return DebugUtils::errored(kErrorInvalidArgument);
 
@@ -1106,5 +1137,46 @@ Error CodeHolder::copyFlattenedData(void* dst, size_t dstSize, uint32_t copyOpti
 
   return kErrorOk;
 }
+
+// ============================================================================
+// [asmjit::CodeHolder - Unit]
+// ============================================================================
+
+#if defined(ASMJIT_TEST)
+UNIT(code_holder) {
+  CodeHolder code;
+
+  INFO("Verifying CodeHolder::init()");
+  Environment env;
+  env.init(Environment::kArchX86);
+
+  code.init(env);
+  EXPECT(code.arch() == Environment::kArchX86);
+
+  INFO("Verifying named labels");
+  LabelEntry* le;
+  EXPECT(code.newNamedLabelEntry(&le, "NamedLabel", SIZE_MAX, Label::kTypeGlobal) == kErrorOk);
+  EXPECT(strcmp(le->name(), "NamedLabel") == 0);
+  EXPECT(code.labelIdByName("NamedLabel") == le->id());
+
+  INFO("Verifying section ordering");
+  Section* section1;
+  EXPECT(code.newSection(&section1, "high-priority", SIZE_MAX, 0, 1, -1) == kErrorOk);
+  EXPECT(code.sections()[1] == section1);
+  EXPECT(code.sectionsByOrder()[0] == section1);
+
+  Section* section0;
+  EXPECT(code.newSection(&section0, "higher-priority", SIZE_MAX, 0, 1, -2) == kErrorOk);
+  EXPECT(code.sections()[2] == section0);
+  EXPECT(code.sectionsByOrder()[0] == section0);
+  EXPECT(code.sectionsByOrder()[1] == section1);
+
+  Section* section3;
+  EXPECT(code.newSection(&section3, "low-priority", SIZE_MAX, 0, 1, 2) == kErrorOk);
+  EXPECT(code.sections()[3] == section3);
+  EXPECT(code.sectionsByOrder()[3] == section3);
+
+}
+#endif
 
 ASMJIT_END_NAMESPACE

@@ -231,7 +231,7 @@ public:
   }
 
   //! Inserts an `item` at the specified `index`.
-  inline Error insert(ZoneAllocator* allocator, uint32_t index, const T& item) noexcept {
+  inline Error insert(ZoneAllocator* allocator, size_t index, const T& item) noexcept {
     ASMJIT_ASSERT(index <= _size);
 
     if (ASMJIT_UNLIKELY(_size == _capacity))
@@ -298,6 +298,16 @@ public:
     _size++;
   }
 
+  //! Inserts an `item` at the specified `index` (unsafe case).
+  inline void insertUnsafe(size_t index, const T& item) noexcept {
+    ASMJIT_ASSERT(_size < _capacity);
+    ASMJIT_ASSERT(index <= _size);
+
+    T* dst = static_cast<T*>(_data) + index;
+    ::memmove(dst + 1, dst, size_t(_size - index) * sizeof(T));
+    memcpy(dst, &item, sizeof(T));
+    _size++;
+  }
   //! Concatenates all items of `other` at the end of the vector.
   inline void concatUnsafe(const ZoneVector<T>& other) noexcept {
     uint32_t size = other._size;
@@ -326,11 +336,11 @@ public:
   }
 
   //! Removes item at index `i`.
-  inline void removeAt(uint32_t i) noexcept {
+  inline void removeAt(size_t i) noexcept {
     ASMJIT_ASSERT(i < _size);
 
     T* data = static_cast<T*>(_data) + i;
-    uint32_t size = --_size - i;
+    size_t size = --_size - i;
 
     if (size)
       ::memmove(data, data + 1, size_t(size) * sizeof(T));

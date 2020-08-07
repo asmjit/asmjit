@@ -81,8 +81,8 @@ public:
   uint32_t _flags;
   //! Section alignment requirements (0 if no requirements).
   uint32_t _alignment;
-  //! Reserved for future use (padding).
-  uint32_t _reserved;
+  //! Order (lower value means higher priority).
+  int32_t _order;
   //! Offset of this section from base-address.
   uint64_t _offset;
   //! Virtual size of the section (zero initialized sections).
@@ -132,6 +132,9 @@ public:
   inline uint32_t alignment() const noexcept { return _alignment; }
   //! Sets the minimum section alignment
   inline void setAlignment(uint32_t alignment) noexcept { _alignment = alignment; }
+
+  //! Returns the section order, which has a higher priority than section id.
+  inline int32_t order() const noexcept { return _order; }
 
   //! Returns the section offset, relative to base.
   inline uint64_t offset() const noexcept { return _offset; }
@@ -519,6 +522,8 @@ public:
   ZoneVector<BaseEmitter*> _emitters;
   //! Section entries.
   ZoneVector<Section*> _sections;
+  //! Section entries sorted by section order and then section id.
+  ZoneVector<Section*> _sectionsByOrder;
   //! Label entries.
   ZoneVector<LabelEntry*> _labelEntries;
   //! Relocation entries.
@@ -667,6 +672,8 @@ public:
 
   //! Returns an array of `Section*` records.
   inline const ZoneVector<Section*>& sections() const noexcept { return _sections; }
+  //! Returns an array of `Section*` records sorted according to section order first, then section id.
+  inline const ZoneVector<Section*>& sectionsByOrder() const noexcept { return _sectionsByOrder; }
   //! Returns the number of sections.
   inline uint32_t sectionCount() const noexcept { return _sections.size(); }
 
@@ -676,7 +683,7 @@ public:
   //! Creates a new section and return its pointer in `sectionOut`.
   //!
   //! Returns `Error`, does not report a possible error to `ErrorHandler`.
-  ASMJIT_API Error newSection(Section** sectionOut, const char* name, size_t nameSize = SIZE_MAX, uint32_t flags = 0, uint32_t alignment = 1) noexcept;
+  ASMJIT_API Error newSection(Section** sectionOut, const char* name, size_t nameSize = SIZE_MAX, uint32_t flags = 0, uint32_t alignment = 1, int32_t order = 0) noexcept;
 
   //! Returns a section entry of the given index.
   inline Section* sectionById(uint32_t sectionId) const noexcept { return _sections[sectionId]; }
