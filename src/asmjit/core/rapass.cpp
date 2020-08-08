@@ -1110,25 +1110,29 @@ Error RAPass::assignArgIndexToWorkRegs() noexcept {
   ZoneBitVector& liveIn = entryBlock()->liveIn();
   uint32_t argCount = func()->argCount();
 
-  for (uint32_t i = 0; i < argCount; i++) {
-    // Unassigned argument.
-    VirtReg* virtReg = func()->arg(i);
-    if (!virtReg) continue;
+  for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+    for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+      // Unassigned argument.
+      VirtReg* virtReg = func()->argPack(argIndex)[valueIndex];
+      if (!virtReg)
+        continue;
 
-    // Unreferenced argument.
-    RAWorkReg* workReg = virtReg->workReg();
-    if (!workReg) continue;
+      // Unreferenced argument.
+      RAWorkReg* workReg = virtReg->workReg();
+      if (!workReg)
+        continue;
 
-    // Overwritten argument.
-    uint32_t workId = workReg->workId();
-    if (!liveIn.bitAt(workId))
-      continue;
+      // Overwritten argument.
+      uint32_t workId = workReg->workId();
+      if (!liveIn.bitAt(workId))
+        continue;
 
-    workReg->setArgIndex(i);
+      workReg->setArgIndex(argIndex, valueIndex);
+      const FuncValue& arg = func()->detail().arg(argIndex, valueIndex);
 
-    const FuncValue& arg = func()->detail().arg(i);
-    if (arg.isReg() && _archRegsInfo->regInfo[arg.regType()].group() == workReg->group()) {
-      workReg->setHintRegId(arg.regId());
+      if (arg.isReg() && _archRegsInfo->regInfo[arg.regType()].group() == workReg->group()) {
+        workReg->setHintRegId(arg.regId());
+      }
     }
   }
 
@@ -1695,7 +1699,7 @@ Error RAPass::_markStackArgsToKeep() noexcept {
       // NOTE: Update StackOffset here so when `_argsAssignment.updateFuncFrame()`
       // is called it will take into consideration moving to stack slots. Without
       // this we may miss some scratch registers later.
-      FuncValue& dstArg = _argsAssignment.arg(workReg->argIndex());
+      FuncValue& dstArg = _argsAssignment.arg(workReg->argIndex(), workReg->argValueIndex());
       dstArg.assignStackOffset(0);
     }
   }
@@ -1728,7 +1732,7 @@ Error RAPass::_updateStackArgs() noexcept {
         }
       }
       else {
-        FuncValue& dstArg = _argsAssignment.arg(workReg->argIndex());
+        FuncValue& dstArg = _argsAssignment.arg(workReg->argIndex(), workReg->argValueIndex());
         dstArg.setStackOffset(slot->offset());
       }
     }

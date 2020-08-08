@@ -209,6 +209,8 @@ Error formatInstruction(
 }
 
 #ifndef ASMJIT_NO_BUILDER
+
+#ifndef ASMJIT_NO_COMPILER
 static Error formatFuncValue(String& sb, uint32_t formatFlags, const BaseEmitter* emitter, FuncValue value) noexcept {
   uint32_t typeId = value.typeId();
   ASMJIT_PROPAGATE(formatTypeId(sb, typeId));
@@ -237,31 +239,49 @@ static Error formatFuncValue(String& sb, uint32_t formatFlags, const BaseEmitter
   return kErrorOk;
 }
 
+static Error formatFuncValuePack(
+  String& sb,
+  uint32_t formatFlags,
+  const BaseEmitter* emitter,
+  const FuncValuePack& pack,
+  VirtReg* const* vRegs) noexcept {
+
+  size_t count = pack.count();
+  if (!count)
+    return sb.append("void");
+
+  if (count > 1)
+    sb.append('[');
+
+  for (uint32_t valueIndex = 0; valueIndex < count; valueIndex++) {
+    const FuncValue& value = pack[valueIndex];
+    if (!value)
+      break;
+
+    if (valueIndex)
+      ASMJIT_PROPAGATE(sb.append(", "));
+
+    ASMJIT_PROPAGATE(formatFuncValue(sb, formatFlags, emitter, value));
+
+    if (vRegs) {
+      static const char nullRet[] = "<none>";
+      ASMJIT_PROPAGATE(sb.appendFormat(" %s", vRegs[valueIndex] ? vRegs[valueIndex]->name() : nullRet));
+    }
+  }
+
+  if (count > 1)
+    sb.append(']');
+
+  return kErrorOk;
+}
+
 static Error formatFuncRets(
   String& sb,
   uint32_t formatFlags,
   const BaseEmitter* emitter,
-  const FuncDetail& fd,
-  VirtReg* const* vRegs) noexcept {
+  const FuncDetail& fd) noexcept {
 
-  if (!fd.hasRet())
-    return sb.append("void");
-
-  for (uint32_t i = 0; i < fd.retCount(); i++) {
-    if (i) ASMJIT_PROPAGATE(sb.append(", "));
-    ASMJIT_PROPAGATE(formatFuncValue(sb, formatFlags, emitter, fd.ret(i)));
-
-#ifndef ASMJIT_NO_COMPILER
-    if (vRegs) {
-      static const char nullRet[] = "<none>";
-      ASMJIT_PROPAGATE(sb.appendFormat(" %s", vRegs[i] ? vRegs[i]->name() : nullRet));
-    }
-#else
-    DebugUtils::unused(vRegs);
-#endif
-  }
-
-  return kErrorOk;
+  return formatFuncValuePack(sb, formatFlags, emitter, fd.retPack(), nullptr);
 }
 
 static Error formatFuncArgs(
@@ -269,30 +289,22 @@ static Error formatFuncArgs(
   uint32_t formatFlags,
   const BaseEmitter* emitter,
   const FuncDetail& fd,
-  VirtReg* const* vRegs) noexcept {
+  const FuncNode::ArgPack* argPacks) noexcept {
 
-  uint32_t count = fd.argCount();
-  if (!count)
+  uint32_t argCount = fd.argCount();
+  if (!argCount)
     return sb.append("void");
 
-  for (uint32_t i = 0; i < count; i++) {
-    if (i)
+  for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+    if (argIndex)
       ASMJIT_PROPAGATE(sb.append(", "));
 
-    ASMJIT_PROPAGATE(formatFuncValue(sb, formatFlags, emitter, fd.arg(i)));
-
-#ifndef ASMJIT_NO_COMPILER
-    if (vRegs) {
-      static const char nullArg[] = "<none>";
-      ASMJIT_PROPAGATE(sb.appendFormat(" %s", vRegs[i] ? vRegs[i]->name() : nullArg));
-    }
-#else
-    DebugUtils::unused(vRegs);
-#endif
+    ASMJIT_PROPAGATE(formatFuncValuePack(sb, formatFlags, emitter, fd.argPack(argIndex), argPacks[argIndex]._data));
   }
 
   return kErrorOk;
 }
+#endif
 
 Error formatNode(
   String& sb,
@@ -396,9 +408,9 @@ Error formatNode(
       ASMJIT_PROPAGATE(formatLabel(sb, formatFlags, builder, funcNode->labelId()));
       ASMJIT_PROPAGATE(sb.append(": "));
 
-      ASMJIT_PROPAGATE(formatFuncRets(sb, formatFlags, builder, funcNode->detail(), nullptr));
+      ASMJIT_PROPAGATE(formatFuncRets(sb, formatFlags, builder, funcNode->detail()));
       ASMJIT_PROPAGATE(sb.append(" Func("));
-      ASMJIT_PROPAGATE(formatFuncArgs(sb, formatFlags, builder, funcNode->detail(), funcNode->args()));
+      ASMJIT_PROPAGATE(formatFuncArgs(sb, formatFlags, builder, funcNode->detail(), funcNode->argPacks()));
       ASMJIT_PROPAGATE(sb.append(")"));
       break;
     }

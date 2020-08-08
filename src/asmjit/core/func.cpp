@@ -55,19 +55,17 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& signature, const E
   uint32_t registerSize = Environment::registerSizeFromArch(cc.arch());
   uint32_t deabstractDelta = Type::deabstractDeltaOfSize(registerSize);
 
-  const uint8_t* args = signature.args();
-  for (uint32_t i = 0; i < argCount; i++) {
-    FuncValue& arg = _args[i];
-    arg.initTypeId(Type::deabstract(args[i], deabstractDelta));
+  const uint8_t* signatureArgs = signature.args();
+  for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+    FuncValuePack& argPack = _args[argIndex];
+    argPack[0].initTypeId(Type::deabstract(signatureArgs[argIndex], deabstractDelta));
   }
   _argCount = uint8_t(argCount);
   _vaIndex = uint8_t(signature.vaIndex());
 
   uint32_t ret = signature.ret();
-  if (ret != Type::kIdVoid) {
+  if (ret != Type::kIdVoid)
     _rets[0].initTypeId(Type::deabstract(ret, deabstractDelta));
-    _retCount = 1;
-  }
 
 #ifdef ASMJIT_BUILD_X86
   if (environment.isFamilyX86())

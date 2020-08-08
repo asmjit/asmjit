@@ -269,8 +269,12 @@ public:
   //! Emits a sentinel that marks the end of the current function.
   ASMJIT_API Error endFunc();
 
+  ASMJIT_API Error _setArg(size_t argIndex, size_t valueIndex, const BaseReg& reg);
+
   //! Sets a function argument at `argIndex` to `reg`.
-  ASMJIT_API Error setArg(uint32_t argIndex, const BaseReg& reg);
+  inline Error setArg(size_t argIndex, const BaseReg& reg) { return _setArg(argIndex, 0, reg); }
+  //! Sets a function argument at `argIndex` at `valueIndex` to `reg`.
+  inline Error setArg(size_t argIndex, size_t valueIndex, const BaseReg& reg) { return _setArg(argIndex, valueIndex, reg); }
 
   inline FuncRetNode* newRet(const Operand_& o0, const Operand_& o1) {
     FuncRetNode* node;
@@ -573,6 +577,19 @@ class FuncNode : public LabelNode {
 public:
   ASMJIT_NONCOPYABLE(FuncNode)
 
+  //! Arguments pack.
+  struct ArgPack {
+    VirtReg* _data[Globals::kMaxValuePack];
+
+    inline void reset() noexcept {
+      for (size_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++)
+        _data[valueIndex] = nullptr;
+    }
+
+    inline VirtReg*& operator[](size_t valueIndex) noexcept { return _data[valueIndex]; }
+    inline VirtReg* const& operator[](size_t valueIndex) const noexcept { return _data[valueIndex]; }
+  };
+
   //! Function detail.
   FuncDetail _funcDetail;
   //! Function frame.
@@ -581,8 +598,9 @@ public:
   LabelNode* _exitNode;
   //! Function end (sentinel).
   SentinelNode* _end;
-  //! Arguments array as `VirtReg`.
-  VirtReg** _args;
+
+  //! Argument packs.
+  ArgPack* _args;
 
   //! \name Construction & Destruction
   //! \{
@@ -623,30 +641,42 @@ public:
   //! Returns function frame.
   inline const FuncFrame& frame() const noexcept { return _frame; }
 
+  //! Tests whether the function has a return value.
+  inline bool hasRet() const noexcept { return _funcDetail.hasRet(); }
   //! Returns arguments count.
   inline uint32_t argCount() const noexcept { return _funcDetail.argCount(); }
-  //! Returns returns count.
-  inline uint32_t retCount() const noexcept { return _funcDetail.retCount(); }
 
-  //! Returns arguments list.
-  inline VirtReg** args() const noexcept { return _args; }
+  //! Returns argument packs.
+  inline ArgPack* argPacks() const noexcept { return _args; }
 
-  //! Returns argument at `i`.
-  inline VirtReg* arg(uint32_t i) const noexcept {
-    ASMJIT_ASSERT(i < argCount());
-    return _args[i];
+  //! Returns argument pack at `argIndex`.
+  inline ArgPack& argPack(size_t argIndex) const noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    return _args[argIndex];
   }
 
-  //! Sets argument at `i`.
-  inline void setArg(uint32_t i, VirtReg* vReg) noexcept {
-    ASMJIT_ASSERT(i < argCount());
-    _args[i] = vReg;
+  //! Sets argument at `argIndex`.
+  inline void setArg(size_t argIndex, VirtReg* vReg) noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    _args[argIndex][0] = vReg;
   }
 
-  //! Resets argument at `i`.
-  inline void resetArg(uint32_t i) noexcept {
-    ASMJIT_ASSERT(i < argCount());
-    _args[i] = nullptr;
+  //! Sets argument at `argIndex` and `valueIndex`.
+  inline void setArg(size_t argIndex, size_t valueIndex, VirtReg* vReg) noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    _args[argIndex][valueIndex] = vReg;
+  }
+
+  //! Resets argument pack at `argIndex`.
+  inline void resetArg(size_t argIndex) noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    _args[argIndex].reset();
+  }
+
+  //! Resets argument pack at `argIndex`.
+  inline void resetArg(size_t argIndex, size_t valueIndex) noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    _args[argIndex][valueIndex] = nullptr;
   }
 
   //! Returns function attributes.
@@ -686,12 +716,40 @@ class InvokeNode : public InstNode {
 public:
   ASMJIT_NONCOPYABLE(InvokeNode)
 
+  //! Operand pack provides multiple operands that can be associated with a
+  //! single return value of function argument. Sometims this is necessary to
+  //! express an argument or return value that requires multiple registers, for
+  //! example 64-bit value in 32-bit mode or passing / returning homogenous data
+  //! structures.
+  struct OperandPack {
+    //! Operands.
+    Operand_ _data[Globals::kMaxValuePack];
+
+    //! Reset the pack by resetting all operands in the pack.
+    inline void reset() noexcept {
+      for (size_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++)
+        _data[valueIndex].reset();
+    }
+
+    //! Returns an operand at the given `valueIndex`.
+    inline Operand& operator[](size_t valueIndex) noexcept {
+      ASMJIT_ASSERT(valueIndex < Globals::kMaxValuePack);
+      return _data[valueIndex].as<Operand>();
+    }
+
+    //! Returns an operand at the given `valueIndex` (const).
+    const inline Operand& operator[](size_t valueIndex) const noexcept {
+      ASMJIT_ASSERT(valueIndex < Globals::kMaxValuePack);
+      return _data[valueIndex].as<Operand>();
+    }
+  };
+
   //! Function detail.
   FuncDetail _funcDetail;
-  //! Returns.
-  Operand_ _rets[2];
-  //! Arguments.
-  Operand_* _args;
+  //! Function return value(s).
+  OperandPack _rets;
+  //! Function arguments.
+  OperandPack* _args;
 
   //! \name Construction & Destruction
   //! \{
@@ -703,8 +761,7 @@ public:
       _args(nullptr) {
     setType(kNodeInvoke);
     _resetOps();
-    _rets[0].reset();
-    _rets[1].reset();
+    _rets.reset();
     addFlags(kFlagIsRemovable);
   }
 
@@ -728,45 +785,63 @@ public:
   //! \overload
   inline const Operand& target() const noexcept { return _opArray[0].as<Operand>(); }
 
+  //! Returns the number of function return values.
+  inline bool hasRet() const noexcept { return _funcDetail.hasRet(); }
   //! Returns the number of function arguments.
   inline uint32_t argCount() const noexcept { return _funcDetail.argCount(); }
-  //! Returns the number of function return values.
-  inline uint32_t retCount() const noexcept { return _funcDetail.retCount(); }
 
-  //! Returns the return value at `i`.
-  inline Operand& ret(uint32_t i = 0) noexcept {
-    ASMJIT_ASSERT(i < 2);
-    return _rets[i].as<Operand>();
+  //! Returns operand pack representing function return value(s).
+  inline OperandPack& retPack() noexcept { return _rets; }
+  //! Returns operand pack representing function return value(s).
+  inline const OperandPack& retPack() const noexcept { return _rets; }
+
+  //! Returns the return value at the given `valueIndex`.
+  inline Operand& ret(size_t valueIndex = 0) noexcept { return _rets[valueIndex]; }
+  //! \overload
+  inline const Operand& ret(size_t valueIndex = 0) const noexcept { return _rets[valueIndex]; }
+
+  //! Returns operand pack representing function return value(s).
+  inline OperandPack& argPack(size_t argIndex) noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    return _args[argIndex];
   }
   //! \overload
-  inline const Operand& ret(uint32_t i = 0) const noexcept {
-    ASMJIT_ASSERT(i < 2);
-    return _rets[i].as<Operand>();
+  inline const OperandPack& argPack(size_t argIndex) const noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    return _args[argIndex];
   }
 
-  //! Returns the function argument at `i`.
-  inline Operand& arg(uint32_t i) noexcept {
-    ASMJIT_ASSERT(i < kFuncArgCountLoHi);
-    return _args[i].as<Operand>();
+  //! Returns a function argument at the given `argIndex`.
+  inline Operand& arg(size_t argIndex, size_t valueIndex) noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    return _args[argIndex][valueIndex];
   }
   //! \overload
-  inline const Operand& arg(uint32_t i) const noexcept {
-    ASMJIT_ASSERT(i < kFuncArgCountLoHi);
-    return _args[i].as<Operand>();
+  inline const Operand& arg(size_t argIndex, size_t valueIndex) const noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    return _args[argIndex][valueIndex];
   }
 
-  //! Sets the function argument at `i` to `op`.
-  ASMJIT_API bool _setArg(uint32_t i, const Operand_& op) noexcept;
   //! Sets the function return value at `i` to `op`.
-  ASMJIT_API bool _setRet(uint32_t i, const Operand_& op) noexcept;
+  inline void _setRet(size_t valueIndex, const Operand_& op) noexcept { _rets[valueIndex] = op; }
+  //! Sets the function argument at `i` to `op`.
+  inline void _setArg(size_t argIndex, size_t valueIndex, const Operand_& op) noexcept {
+    ASMJIT_ASSERT(argIndex < argCount());
+    _args[argIndex][valueIndex] = op;
+  }
 
-  //! Sets the function argument at `i` to `reg`.
-  inline bool setArg(uint32_t i, const BaseReg& reg) noexcept { return _setArg(i, reg); }
-  //! Sets the function argument at `i` to `imm`.
-  inline bool setArg(uint32_t i, const Imm& imm) noexcept { return _setArg(i, imm); }
+  //! Sets the function return value at `valueIndex` to `reg`.
+  inline void setRet(size_t valueIndex, const BaseReg& reg) noexcept { _setRet(valueIndex, reg); }
 
-  //! Sets the function return value at `i` to `var`.
-  inline bool setRet(uint32_t i, const BaseReg& reg) noexcept { return _setRet(i, reg); }
+  //! Sets the first function argument in a value-pack at `argIndex` to `reg`.
+  inline void setArg(size_t argIndex, const BaseReg& reg) noexcept { _setArg(argIndex, 0, reg); }
+  //! Sets the first function argument in a value-pack at `argIndex` to `imm`.
+  inline void setArg(size_t argIndex, const Imm& imm) noexcept { _setArg(argIndex, 0, imm); }
+
+  //! Sets the function argument at `argIndex` and `valueIndex` to `reg`.
+  inline void setArg(size_t argIndex, size_t valueIndex, const BaseReg& reg) noexcept { _setArg(argIndex, valueIndex, reg); }
+  //! Sets the function argument at `argIndex` and `valueIndex` to `imm`.
+  inline void setArg(size_t argIndex, size_t valueIndex, const Imm& imm) noexcept { _setArg(argIndex, valueIndex, imm); }
 
   //! \}
 };

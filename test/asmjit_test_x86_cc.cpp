@@ -3677,6 +3677,68 @@ public:
 };
 
 // ============================================================================
+// [X86Test_FuncCallInt64Arg]
+// ============================================================================
+
+class X86Test_FuncCallInt64Arg : public X86Test {
+public:
+  X86Test_FuncCallInt64Arg() : X86Test("FuncCallInt64Arg") {}
+
+  static void add(X86TestApp& app) {
+    app.add(new X86Test_FuncCallInt64Arg());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<uint64_t, uint64_t>(CallConv::kIdHost));
+
+    if (cc.is64Bit()) {
+      x86::Gp reg = cc.newUInt64();
+      cc.setArg(0, reg);
+      cc.add(reg, 1);
+      cc.ret(reg);
+    }
+    else {
+      x86::Gp hi = cc.newUInt32("hi");
+      x86::Gp lo = cc.newUInt32("lo");
+
+      cc.setArg(0, 0, lo);
+      cc.setArg(0, 1, hi);
+
+      cc.add(lo, 1);
+      cc.adc(hi, 0);
+      cc.ret(lo, hi);
+    }
+
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef uint64_t (*Func)(uint64_t);
+    Func func = ptr_as_func<Func>(_func);
+
+    uint64_t resultRet = func(uint64_t(0xFFFFFFFF));
+    uint64_t expectRet = 0x100000000;
+
+    result.assignFormat("ret=%llu", (unsigned long long)resultRet);
+    expect.assignFormat("ret=%llu", (unsigned long long)expectRet);
+
+    return resultRet == expectRet;
+  }
+
+  static double calledFunc(size_t n, ...) {
+    double sum = 0;
+    va_list ap;
+    va_start(ap, n);
+    for (size_t i = 0; i < n; i++) {
+      double arg = va_arg(ap, double);
+      sum += arg;
+    }
+    va_end(ap);
+    return sum;
+  }
+};
+
+// ============================================================================
 // [X86Test_FuncCallMisc1]
 // ============================================================================
 
@@ -4315,6 +4377,7 @@ int main(int argc, char* argv[]) {
   app.addT<X86Test_FuncCallRecursive>();
   app.addT<X86Test_FuncCallVarArg1>();
   app.addT<X86Test_FuncCallVarArg2>();
+  app.addT<X86Test_FuncCallInt64Arg>();
   app.addT<X86Test_FuncCallMisc1>();
   app.addT<X86Test_FuncCallMisc2>();
   app.addT<X86Test_FuncCallMisc3>();

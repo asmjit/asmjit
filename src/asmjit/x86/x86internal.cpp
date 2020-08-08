@@ -67,76 +67,109 @@ static inline uint32_t x86KmovFromSize(uint32_t size) noexcept {
 // [asmjit::X86Internal - FuncDetail]
 // ============================================================================
 
+ASMJIT_FAVOR_SIZE void unpackValues(FuncDetail& func, FuncValuePack& pack) noexcept {
+  uint32_t typeId = pack[0].typeId();
+  switch (typeId) {
+    case Type::kIdI64:
+    case Type::kIdU64: {
+      if (Environment::is32Bit(func.callConv().arch())) {
+        // Convert a 64-bit return value to two 32-bit return values.
+        pack[0].initTypeId(Type::kIdU32);
+        pack[1].initTypeId(typeId - 2);
+        break;
+      }
+      break;
+    }
+  }
+}
+
 ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const FuncSignature& signature, uint32_t registerSize) noexcept {
   const CallConv& cc = func.callConv();
   uint32_t arch = cc.arch();
   uint32_t stackOffset = cc._spillZoneSize;
-
-  uint32_t i;
   uint32_t argCount = func.argCount();
 
-  if (func.retCount() != 0) {
-    uint32_t typeId = func._rets[0].typeId();
-    switch (typeId) {
-      case Type::kIdI64:
-      case Type::kIdU64: {
-        if (Environment::is32Bit(arch)) {
-          // Convert a 64-bit return value to two 32-bit return values.
-          func._retCount = 2;
-          typeId -= 2;
+  // Up to two return values can be returned in GP registers.
+  static const uint8_t gpReturnIndexes[4] = {
+    uint8_t(Gp::kIdAx),
+    uint8_t(Gp::kIdDx),
+    uint8_t(BaseReg::kIdBad),
+    uint8_t(BaseReg::kIdBad)
+  };
 
-          // 64-bit value is returned in EDX:EAX on X86.
-          func._rets[0].initReg(Reg::kTypeGpd, Gp::kIdAx, typeId);
-          func._rets[1].initReg(Reg::kTypeGpd, Gp::kIdDx, typeId);
+  if (func.hasRet()) {
+    unpackValues(func, func._rets);
+    for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+      uint32_t typeId = func._rets[valueIndex].typeId();
+
+      // Terminate at the first void type (end of the pack).
+      if (!typeId)
+        break;
+
+      switch (typeId) {
+        case Type::kIdI64:
+        case Type::kIdU64: {
+          if (gpReturnIndexes[valueIndex] != BaseReg::kIdBad)
+            func._rets[valueIndex].initReg(Reg::kTypeGpq, gpReturnIndexes[valueIndex], typeId);
+          else
+            return DebugUtils::errored(kErrorInvalidState);
           break;
         }
-        else {
-          func._rets[0].initReg(Reg::kTypeGpq, Gp::kIdAx, typeId);
+
+        case Type::kIdI8:
+        case Type::kIdI16:
+        case Type::kIdI32: {
+          if (gpReturnIndexes[valueIndex] != BaseReg::kIdBad)
+            func._rets[valueIndex].initReg(Reg::kTypeGpd, gpReturnIndexes[valueIndex], Type::kIdI32);
+          else
+            return DebugUtils::errored(kErrorInvalidState);
+          break;
         }
-        break;
-      }
 
-      case Type::kIdI8:
-      case Type::kIdI16:
-      case Type::kIdI32: {
-        func._rets[0].initReg(Reg::kTypeGpd, Gp::kIdAx, Type::kIdI32);
-        break;
-      }
+        case Type::kIdU8:
+        case Type::kIdU16:
+        case Type::kIdU32: {
+          if (gpReturnIndexes[valueIndex] != BaseReg::kIdBad)
+            func._rets[valueIndex].initReg(Reg::kTypeGpd, gpReturnIndexes[valueIndex], Type::kIdU32);
+          else
+            return DebugUtils::errored(kErrorInvalidState);
+          break;
+        }
 
-      case Type::kIdU8:
-      case Type::kIdU16:
-      case Type::kIdU32: {
-        func._rets[0].initReg(Reg::kTypeGpd, Gp::kIdAx, Type::kIdU32);
-        break;
-      }
+        case Type::kIdF32:
+        case Type::kIdF64: {
+          uint32_t regType = Environment::is32Bit(arch) ? Reg::kTypeSt : Reg::kTypeXmm;
+          func._rets[valueIndex].initReg(regType, valueIndex, typeId);
+          break;
+        }
 
-      case Type::kIdF32:
-      case Type::kIdF64: {
-        uint32_t regType = Environment::is32Bit(arch) ? Reg::kTypeSt : Reg::kTypeXmm;
-        func._rets[0].initReg(regType, 0, typeId);
-        break;
-      }
+        case Type::kIdF80: {
+          // 80-bit floats are always returned by FP0.
+          func._rets[valueIndex].initReg(Reg::kTypeSt, valueIndex, typeId);
+          break;
+        }
 
-      case Type::kIdF80: {
-        // 80-bit floats are always returned by FP0.
-        func._rets[0].initReg(Reg::kTypeSt, 0, typeId);
-        break;
-      }
+        case Type::kIdMmx32:
+        case Type::kIdMmx64: {
+          // MM registers are returned through XMM (SystemV) or GPQ (Win64).
+          uint32_t regType = Reg::kTypeMm;
+          uint32_t regIndex = valueIndex;
+          if (Environment::is64Bit(arch)) {
+            regType = cc.strategy() == CallConv::kStrategyDefault ? Reg::kTypeXmm : Reg::kTypeGpq;
+            regIndex = cc.strategy() == CallConv::kStrategyDefault ? valueIndex : gpReturnIndexes[valueIndex];
 
-      case Type::kIdMmx32:
-      case Type::kIdMmx64: {
-        // MM registers are returned through XMM (SystemV) or GPQ (Win64).
-        uint32_t regType = Reg::kTypeMm;
-        if (Environment::is64Bit(arch))
-          regType = cc.strategy() == CallConv::kStrategyDefault ? Reg::kTypeXmm : Reg::kTypeGpq;
+            if (regIndex == BaseReg::kIdBad)
+              return DebugUtils::errored(kErrorInvalidState);
+          }
 
-        func._rets[0].initReg(regType, 0, typeId);
-        break;
-      }
+          func._rets[valueIndex].initReg(regType, regIndex, typeId);
+          break;
+        }
 
-      default: {
-        func._rets[0].initReg(x86VecTypeIdToRegType(typeId), 0, typeId);
-        break;
+        default: {
+          func._rets[valueIndex].initReg(x86VecTypeIdToRegType(typeId), valueIndex, typeId);
+          break;
+        }
       }
     }
   }
@@ -146,62 +179,71 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       uint32_t gpzPos = 0;
       uint32_t vecPos = 0;
 
-      for (i = 0; i < argCount; i++) {
-        FuncValue& arg = func._args[i];
-        uint32_t typeId = arg.typeId();
+      for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+        unpackValues(func, func._args[argIndex]);
 
-        if (Type::isInt(typeId)) {
-          uint32_t regId = BaseReg::kIdBad;
+        for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+          FuncValue& arg = func._args[argIndex][valueIndex];
 
-          if (gpzPos < CallConv::kMaxRegArgsPerGroup)
-            regId = cc._passedOrder[Reg::kGroupGp].id[gpzPos];
+          // Terminate if there are no more arguments in the pack.
+          if (!arg)
+            break;
 
-          if (regId != BaseReg::kIdBad) {
-            uint32_t regType = (typeId <= Type::kIdU32) ? Reg::kTypeGpd : Reg::kTypeGpq;
-            arg.assignRegData(regType, regId);
-            func.addUsedRegs(Reg::kGroupGp, Support::bitMask(regId));
-            gpzPos++;
-          }
-          else {
-            uint32_t size = Support::max<uint32_t>(Type::sizeOf(typeId), registerSize);
-            arg.assignStackOffset(int32_t(stackOffset));
-            stackOffset += size;
-          }
-          continue;
-        }
+          uint32_t typeId = arg.typeId();
 
-        if (Type::isFloat(typeId) || Type::isVec(typeId)) {
-          uint32_t regId = BaseReg::kIdBad;
+          if (Type::isInt(typeId)) {
+            uint32_t regId = BaseReg::kIdBad;
 
-          if (vecPos < CallConv::kMaxRegArgsPerGroup)
-            regId = cc._passedOrder[Reg::kGroupVec].id[vecPos];
+            if (gpzPos < CallConv::kMaxRegArgsPerGroup)
+              regId = cc._passedOrder[Reg::kGroupGp].id[gpzPos];
 
-          if (Type::isFloat(typeId)) {
-            // If this is a float, but `kFlagPassFloatsByVec` is false, we have
-            // to use stack instead. This should be only used by 32-bit calling
-            // conventions.
-            if (!cc.hasFlag(CallConv::kFlagPassFloatsByVec))
-              regId = BaseReg::kIdBad;
-          }
-          else {
-            // Pass vector registers via stack if this is a variable arguments
-            // function. This should be only used by 32-bit calling conventions.
-            if (signature.hasVarArgs() && cc.hasFlag(CallConv::kFlagPassVecByStackIfVA))
-              regId = BaseReg::kIdBad;
+            if (regId != BaseReg::kIdBad) {
+              uint32_t regType = (typeId <= Type::kIdU32) ? Reg::kTypeGpd : Reg::kTypeGpq;
+              arg.assignRegData(regType, regId);
+              func.addUsedRegs(Reg::kGroupGp, Support::bitMask(regId));
+              gpzPos++;
+            }
+            else {
+              uint32_t size = Support::max<uint32_t>(Type::sizeOf(typeId), registerSize);
+              arg.assignStackOffset(int32_t(stackOffset));
+              stackOffset += size;
+            }
+            continue;
           }
 
-          if (regId != BaseReg::kIdBad) {
-            arg.initTypeId(typeId);
-            arg.assignRegData(x86VecTypeIdToRegType(typeId), regId);
-            func.addUsedRegs(Reg::kGroupVec, Support::bitMask(regId));
-            vecPos++;
+          if (Type::isFloat(typeId) || Type::isVec(typeId)) {
+            uint32_t regId = BaseReg::kIdBad;
+
+            if (vecPos < CallConv::kMaxRegArgsPerGroup)
+              regId = cc._passedOrder[Reg::kGroupVec].id[vecPos];
+
+            if (Type::isFloat(typeId)) {
+              // If this is a float, but `kFlagPassFloatsByVec` is false, we have
+              // to use stack instead. This should be only used by 32-bit calling
+              // conventions.
+              if (!cc.hasFlag(CallConv::kFlagPassFloatsByVec))
+                regId = BaseReg::kIdBad;
+            }
+            else {
+              // Pass vector registers via stack if this is a variable arguments
+              // function. This should be only used by 32-bit calling conventions.
+              if (signature.hasVarArgs() && cc.hasFlag(CallConv::kFlagPassVecByStackIfVA))
+                regId = BaseReg::kIdBad;
+            }
+
+            if (regId != BaseReg::kIdBad) {
+              arg.initTypeId(typeId);
+              arg.assignRegData(x86VecTypeIdToRegType(typeId), regId);
+              func.addUsedRegs(Reg::kGroupVec, Support::bitMask(regId));
+              vecPos++;
+            }
+            else {
+              uint32_t size = Type::sizeOf(typeId);
+              arg.assignStackOffset(int32_t(stackOffset));
+              stackOffset += size;
+            }
+            continue;
           }
-          else {
-            uint32_t size = Type::sizeOf(typeId);
-            arg.assignStackOffset(int32_t(stackOffset));
-            stackOffset += size;
-          }
-          continue;
         }
       }
       break;
@@ -226,68 +268,75 @@ ASMJIT_FAVOR_SIZE Error X86Internal::initFuncDetail(FuncDetail& func, const Func
       //        RCX  XMM1 R8   XMM3
       //
       // Unused vector registers are used by HVA.
-
       bool isVectorCall = (cc.strategy() == CallConv::kStrategyX64VectorCall);
 
-      for (i = 0; i < argCount; i++) {
-        FuncValue& arg = func._args[i];
+      for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+        unpackValues(func, func._args[argIndex]);
 
-        uint32_t typeId = arg.typeId();
-        uint32_t size = Type::sizeOf(typeId);
+        for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+          FuncValue& arg = func._args[argIndex][valueIndex];
 
-        if (Type::isInt(typeId) || Type::isMmx(typeId)) {
-          uint32_t regId = BaseReg::kIdBad;
+          // Terminate if there are no more arguments in the pack.
+          if (!arg)
+            break;
 
-          if (i < CallConv::kMaxRegArgsPerGroup)
-            regId = cc._passedOrder[Reg::kGroupGp].id[i];
+          uint32_t typeId = arg.typeId();
+          uint32_t size = Type::sizeOf(typeId);
 
-          if (regId != BaseReg::kIdBad) {
-            uint32_t regType = (size <= 4 && !Type::isMmx(typeId)) ? Reg::kTypeGpd : Reg::kTypeGpq;
-            arg.assignRegData(regType, regId);
-            func.addUsedRegs(Reg::kGroupGp, Support::bitMask(regId));
-          }
-          else {
-            arg.assignStackOffset(int32_t(stackOffset));
-            stackOffset += 8;
-          }
-          continue;
-        }
+          if (Type::isInt(typeId) || Type::isMmx(typeId)) {
+            uint32_t regId = BaseReg::kIdBad;
 
-        if (Type::isFloat(typeId) || Type::isVec(typeId)) {
-          uint32_t regId = BaseReg::kIdBad;
+            if (argIndex < CallConv::kMaxRegArgsPerGroup)
+              regId = cc._passedOrder[Reg::kGroupGp].id[argIndex];
 
-          if (i < CallConv::kMaxRegArgsPerGroup)
-            regId = cc._passedOrder[Reg::kGroupVec].id[i];
-
-          if (regId != BaseReg::kIdBad) {
-            // X64-ABI doesn't allow vector types (XMM|YMM|ZMM) to be passed
-            // via registers, however, VectorCall was designed for that purpose.
-            if (Type::isFloat(typeId) || isVectorCall) {
-              uint32_t regType = x86VecTypeIdToRegType(typeId);
+            if (regId != BaseReg::kIdBad) {
+              uint32_t regType = (size <= 4 && !Type::isMmx(typeId)) ? Reg::kTypeGpd : Reg::kTypeGpq;
               arg.assignRegData(regType, regId);
-              func.addUsedRegs(Reg::kGroupVec, Support::bitMask(regId));
-              continue;
+              func.addUsedRegs(Reg::kGroupGp, Support::bitMask(regId));
             }
-          }
-
-          // Passed via stack if the argument is float/double or indirectly.
-          // The trap is - if the argument is passed indirectly, the address
-          // can be passed via register, if the argument's index has GP one.
-          if (Type::isFloat(typeId)) {
-            arg.assignStackOffset(int32_t(stackOffset));
-          }
-          else {
-            uint32_t gpRegId = cc._passedOrder[Reg::kGroupGp].id[i];
-            if (gpRegId != BaseReg::kIdBad)
-              arg.assignRegData(Reg::kTypeGpq, gpRegId);
-            else
+            else {
               arg.assignStackOffset(int32_t(stackOffset));
-            arg.addFlags(FuncValue::kFlagIsIndirect);
+              stackOffset += 8;
+            }
+            continue;
           }
 
-          // Always 8 bytes (float/double/pointer).
-          stackOffset += 8;
-          continue;
+          if (Type::isFloat(typeId) || Type::isVec(typeId)) {
+            uint32_t regId = BaseReg::kIdBad;
+
+            if (argIndex < CallConv::kMaxRegArgsPerGroup)
+              regId = cc._passedOrder[Reg::kGroupVec].id[argIndex];
+
+            if (regId != BaseReg::kIdBad) {
+              // X64-ABI doesn't allow vector types (XMM|YMM|ZMM) to be passed
+              // via registers, however, VectorCall was designed for that purpose.
+              if (Type::isFloat(typeId) || isVectorCall) {
+                uint32_t regType = x86VecTypeIdToRegType(typeId);
+                arg.assignRegData(regType, regId);
+                func.addUsedRegs(Reg::kGroupVec, Support::bitMask(regId));
+                continue;
+              }
+            }
+
+            // Passed via stack if the argument is float/double or indirectly.
+            // The trap is - if the argument is passed indirectly, the address
+            // can be passed via register, if the argument's index has GP one.
+            if (Type::isFloat(typeId)) {
+              arg.assignStackOffset(int32_t(stackOffset));
+            }
+            else {
+              uint32_t gpRegId = cc._passedOrder[Reg::kGroupGp].id[argIndex];
+              if (gpRegId != BaseReg::kIdBad)
+                arg.assignRegData(Reg::kTypeGpq, gpRegId);
+              else
+                arg.assignStackOffset(int32_t(stackOffset));
+              arg.addFlags(FuncValue::kFlagIsIndirect);
+            }
+
+            // Always 8 bytes (float/double/pointer).
+            stackOffset += 8;
+            continue;
+          }
         }
       }
       break;
@@ -432,7 +481,7 @@ public:
   uint8_t _saVarId;
   uint32_t _varCount;
   WorkData _workData[BaseReg::kGroupVirt];
-  Var _vars[kFuncArgCountLoHi + 1];
+  Var _vars[Globals::kMaxFuncArgs + 1];
 
   X86FuncArgsContext() noexcept;
 
@@ -466,7 +515,6 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
   // The code has to be updated if this changes.
   ASMJIT_ASSERT(BaseReg::kGroupVirt == 4);
 
-  uint32_t i;
   const FuncDetail& func = *args.funcDetail();
 
   // Initialize Architecture.
@@ -486,95 +534,98 @@ ASMJIT_FAVOR_SIZE Error X86FuncArgsContext::initWorkData(const FuncFrame& frame,
 
   // Extract information from all function arguments/assignments and build Var[] array.
   uint32_t varId = 0;
-  for (i = 0; i < kFuncArgCountLoHi; i++) {
-    const FuncValue& dst_ = args.arg(i);
-    if (!dst_.isAssigned())
-      continue;
+  for (uint32_t argIndex = 0; argIndex < Globals::kMaxFuncArgs; argIndex++) {
+    for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+      const FuncValue& dst_ = args.arg(argIndex, valueIndex);
+      if (!dst_.isAssigned())
+        continue;
 
-    const FuncValue& src_ = func.arg(i);
-    if (ASMJIT_UNLIKELY(!src_.isAssigned()))
-      return DebugUtils::errored(kErrorInvalidState);
-
-    Var& var = _vars[varId];
-    var.init(src_, dst_);
-
-    FuncValue& src = var.cur;
-    FuncValue& dst = var.out;
-
-    uint32_t dstGroup = 0xFFFFFFFFu;
-    uint32_t dstId = BaseReg::kIdBad;
-    WorkData* dstWd = nullptr;
-
-    // Not supported.
-    if (src.isIndirect())
-      return DebugUtils::errored(kErrorInvalidAssignment);
-
-    if (dst.isReg()) {
-      uint32_t dstType = dst.regType();
-      if (ASMJIT_UNLIKELY(dstType >= Reg::kTypeCount))
-        return DebugUtils::errored(kErrorInvalidRegType);
-
-      // Copy TypeId from source if the destination doesn't have it. The RA
-      // used by BaseCompiler would never leave TypeId undefined, but users
-      // of FuncAPI can just assign phys regs without specifying the type.
-      if (!dst.hasTypeId())
-        dst.setTypeId(Reg::typeIdOf(dst.regType()));
-
-      dstGroup = Reg::groupOf(dstType);
-      if (ASMJIT_UNLIKELY(dstGroup >= BaseReg::kGroupVirt))
-        return DebugUtils::errored(kErrorInvalidRegGroup);
-
-      dstWd = &_workData[dstGroup];
-      dstId = dst.regId();
-      if (ASMJIT_UNLIKELY(dstId >= 32 || !Support::bitTest(dstWd->archRegs(), dstId)))
-        return DebugUtils::errored(kErrorInvalidPhysId);
-
-      if (ASMJIT_UNLIKELY(Support::bitTest(dstWd->dstRegs(), dstId)))
-        return DebugUtils::errored(kErrorOverlappedRegs);
-
-      dstWd->_dstRegs  |= Support::bitMask(dstId);
-      dstWd->_dstShuf  |= Support::bitMask(dstId);
-      dstWd->_usedRegs |= Support::bitMask(dstId);
-    }
-    else {
-      if (!dst.hasTypeId())
-        dst.setTypeId(src.typeId());
-
-      RegInfo regInfo = x86GetRegForMemToMemMove(arch, dst.typeId(), src.typeId());
-      if (ASMJIT_UNLIKELY(!regInfo.isValid()))
+      const FuncValue& src_ = func.arg(argIndex, valueIndex);
+      if (ASMJIT_UNLIKELY(!src_.isAssigned()))
         return DebugUtils::errored(kErrorInvalidState);
-      _stackDstMask = uint8_t(_stackDstMask | Support::bitMask(regInfo.group()));
-    }
 
-    if (src.isReg()) {
-      uint32_t srcId = src.regId();
-      uint32_t srcGroup = Reg::groupOf(src.regType());
+      Var& var = _vars[varId];
+      var.init(src_, dst_);
 
-      if (dstGroup == srcGroup) {
-        dstWd->assign(varId, srcId);
+      FuncValue& src = var.cur;
+      FuncValue& dst = var.out;
 
-        // The best case, register is allocated where it is expected to be.
-        if (dstId == srcId)
-          var.markDone();
+      uint32_t dstGroup = 0xFFFFFFFFu;
+      uint32_t dstId = BaseReg::kIdBad;
+      WorkData* dstWd = nullptr;
+
+      // Not supported.
+      if (src.isIndirect())
+        return DebugUtils::errored(kErrorInvalidAssignment);
+
+      if (dst.isReg()) {
+        uint32_t dstType = dst.regType();
+        if (ASMJIT_UNLIKELY(dstType >= Reg::kTypeCount))
+          return DebugUtils::errored(kErrorInvalidRegType);
+
+        // Copy TypeId from source if the destination doesn't have it. The RA
+        // used by BaseCompiler would never leave TypeId undefined, but users
+        // of FuncAPI can just assign phys regs without specifying the type.
+        if (!dst.hasTypeId())
+          dst.setTypeId(Reg::typeIdOf(dst.regType()));
+
+        dstGroup = Reg::groupOf(dstType);
+        if (ASMJIT_UNLIKELY(dstGroup >= BaseReg::kGroupVirt))
+          return DebugUtils::errored(kErrorInvalidRegGroup);
+
+        dstWd = &_workData[dstGroup];
+        dstId = dst.regId();
+        if (ASMJIT_UNLIKELY(dstId >= 32 || !Support::bitTest(dstWd->archRegs(), dstId)))
+          return DebugUtils::errored(kErrorInvalidPhysId);
+
+        if (ASMJIT_UNLIKELY(Support::bitTest(dstWd->dstRegs(), dstId)))
+          return DebugUtils::errored(kErrorOverlappedRegs);
+
+        dstWd->_dstRegs  |= Support::bitMask(dstId);
+        dstWd->_dstShuf  |= Support::bitMask(dstId);
+        dstWd->_usedRegs |= Support::bitMask(dstId);
       }
       else {
-        if (ASMJIT_UNLIKELY(srcGroup >= BaseReg::kGroupVirt))
+        if (!dst.hasTypeId())
+          dst.setTypeId(src.typeId());
+
+        RegInfo regInfo = x86GetRegForMemToMemMove(arch, dst.typeId(), src.typeId());
+        if (ASMJIT_UNLIKELY(!regInfo.isValid()))
           return DebugUtils::errored(kErrorInvalidState);
-
-        WorkData& srcData = _workData[srcGroup];
-        srcData.assign(varId, srcId);
+        _stackDstMask = uint8_t(_stackDstMask | Support::bitMask(regInfo.group()));
       }
-    }
-    else {
-      if (dstWd)
-        dstWd->_numStackArgs++;
-      _hasStackSrc = true;
-    }
 
-    varId++;
+      if (src.isReg()) {
+        uint32_t srcId = src.regId();
+        uint32_t srcGroup = Reg::groupOf(src.regType());
+
+        if (dstGroup == srcGroup) {
+          dstWd->assign(varId, srcId);
+
+          // The best case, register is allocated where it is expected to be.
+          if (dstId == srcId)
+            var.markDone();
+        }
+        else {
+          if (ASMJIT_UNLIKELY(srcGroup >= BaseReg::kGroupVirt))
+            return DebugUtils::errored(kErrorInvalidState);
+
+          WorkData& srcData = _workData[srcGroup];
+          srcData.assign(varId, srcId);
+        }
+      }
+      else {
+        if (dstWd)
+          dstWd->_numStackArgs++;
+        _hasStackSrc = true;
+      }
+
+      varId++;
+    }
   }
 
   // Initialize WorkData::workRegs.
+  uint32_t i;
   for (i = 0; i < BaseReg::kGroupVirt; i++)
     _workData[i]._workRegs = (_workData[i].archRegs() & (frame.dirtyRegs(i) | ~frame.preservedRegs(i))) | _workData[i].dstRegs() | _workData[i].assignedRegs();
 

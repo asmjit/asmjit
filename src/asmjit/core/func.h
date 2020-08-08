@@ -37,31 +37,6 @@ ASMJIT_BEGIN_NAMESPACE
 //! \{
 
 // ============================================================================
-// [asmjit::FuncArgIndex]
-// ============================================================================
-
-//! Function argument index (lo/hi).
-enum FuncArgIndex : uint32_t {
-  //! Maximum number of function arguments supported by AsmJit.
-  kFuncArgCount = Globals::kMaxFuncArgs,
-  //! Extended maximum number of arguments (used internally).
-  kFuncArgCountLoHi = kFuncArgCount * 2,
-
-  //! Index to the LO part of function argument (default).
-  //!
-  //! This value is typically omitted and added only if there is HI argument
-  //! accessed.
-  kFuncArgLo = 0,
-
-  //! Index to the HI part of function argument.
-  //!
-  //! HI part of function argument depends on target architecture. On x86 it's
-  //! typically used to transfer 64-bit integers (they form a pair of 32-bit
-  //! integers).
-  kFuncArgHi = kFuncArgCount
-};
-
-// ============================================================================
 // [asmjit::FuncSignature]
 // ============================================================================
 
@@ -161,7 +136,7 @@ public:
 //! Function signature builder.
 class FuncSignatureBuilder : public FuncSignature {
 public:
-  uint8_t _builderArgList[kFuncArgCount];
+  uint8_t _builderArgList[Globals::kMaxFuncArgs];
 
   //! \name Initializtion & Reset
   //! \{
@@ -192,7 +167,7 @@ public:
 
   //! Appends an argument of `type` to the function prototype.
   inline void addArg(uint32_t type) noexcept {
-    ASMJIT_ASSERT(_argCount < kFuncArgCount);
+    ASMJIT_ASSERT(_argCount < Globals::kMaxFuncArgs);
     _builderArgList[_argCount++] = uint8_t(type);
   }
   //! Appends an argument of type based on `T` to the function prototype.
@@ -206,8 +181,8 @@ public:
 // [asmjit::FuncValue]
 // ============================================================================
 
-//! Argument or return value as defined by `FuncSignature`, but with register
-//! or stack address (and other metadata) assigned to it.
+//! Argument or return value (or its part) as defined by `FuncSignature`, but
+//! with register or stack address (and other metadata) assigned.
 struct FuncValue {
   uint32_t _data;
 
@@ -276,6 +251,8 @@ struct FuncValue {
   //! \name Accessors
   //! \{
 
+  inline explicit operator bool() const noexcept { return _data != 0; }
+
   inline void _replaceValue(uint32_t mask, uint32_t value) noexcept { _data = (_data & ~mask) | value; }
 
   //! Tests whether the `FuncValue` has a flag `flag` set.
@@ -325,6 +302,72 @@ struct FuncValue {
 };
 
 // ============================================================================
+// [asmjit::FuncValuePack]
+// ============================================================================
+
+//! Contains multiple `FuncValue` instances in an array so functions that use
+//! multiple registers for arguments or return values can represent all inputs
+//! and outputs.
+struct FuncValuePack {
+public:
+  //! Values data.
+  FuncValue _values[Globals::kMaxValuePack];
+
+  inline void reset() noexcept {
+    for (size_t i = 0; i < Globals::kMaxValuePack; i++)
+      _values[i].reset();
+  }
+
+  //! Calculates how many values are in the pack, checking for non-values
+  //! from the end.
+  inline uint32_t count() const noexcept {
+    uint32_t n = Globals::kMaxValuePack;
+    while (n && !_values[n - 1])
+      n--;
+    return n;
+  }
+
+  inline FuncValue* values() noexcept { return _values; }
+  inline const FuncValue* values() const noexcept { return _values; }
+
+  inline void resetValue(size_t index) noexcept {
+    ASMJIT_ASSERT(index < Globals::kMaxValuePack);
+    _values[index].reset();
+  }
+
+  inline bool hasValue(size_t index) noexcept {
+    ASMJIT_ASSERT(index < Globals::kMaxValuePack);
+    return _values[index].isInitialized();
+  }
+
+  inline void assignReg(size_t index, const BaseReg& reg, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(index < Globals::kMaxValuePack);
+    ASMJIT_ASSERT(reg.isPhysReg());
+    _values[index].initReg(reg.type(), reg.id(), typeId);
+  }
+
+  inline void assignReg(size_t index, uint32_t regType, uint32_t regId, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(index < Globals::kMaxValuePack);
+    _values[index].initReg(regType, regId, typeId);
+  }
+
+  inline void assignStack(size_t index, int32_t offset, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(index < Globals::kMaxValuePack);
+    _values[index].initStack(offset, typeId);
+  }
+
+  inline FuncValue& operator[](size_t index) {
+    ASMJIT_ASSERT(index < Globals::kMaxValuePack);
+    return _values[index];
+  }
+
+  inline const FuncValue& operator[](size_t index) const {
+    ASMJIT_ASSERT(index < Globals::kMaxValuePack);
+    return _values[index];
+  }
+};
+
+// ============================================================================
 // [asmjit::FuncDetail]
 // ============================================================================
 
@@ -339,20 +382,18 @@ public:
   CallConv _callConv;
   //! Number of function arguments.
   uint8_t _argCount;
-  //! Number of function return values.
-  uint8_t _retCount;
   //! Variable arguments index of `kNoVarArgs`.
   uint8_t _vaIndex;
   //! Reserved for future use.
-  uint8_t _reserved;
+  uint16_t _reserved;
   //! Registers that contains arguments.
   uint32_t _usedRegs[BaseReg::kGroupVirt];
   //! Size of arguments passed by stack.
   uint32_t _argStackSize;
-  //! Function return values.
-  FuncValue _rets[2];
+  //! Function return value(s).
+  FuncValuePack _rets;
   //! Function arguments.
-  FuncValue _args[kFuncArgCountLoHi];
+  FuncValuePack _args[Globals::kMaxFuncArgs];
 
   enum : uint8_t {
     //! Doesn't have variable number of arguments (`...`).
@@ -382,52 +423,61 @@ public:
   //! Checks whether a CallConv `flag` is set, see `CallConv::Flags`.
   inline bool hasFlag(uint32_t ccFlag) const noexcept { return _callConv.hasFlag(ccFlag); }
 
-  //! Returns count of function return values.
-  inline uint32_t retCount() const noexcept { return _retCount; }
+  //! Tests whether the function has a return value.
+  inline bool hasRet() const noexcept { return bool(_rets[0]); }
   //! Returns the number of function arguments.
   inline uint32_t argCount() const noexcept { return _argCount; }
 
-  //! Tests whether the function has a return value.
-  inline bool hasRet() const noexcept { return _retCount != 0; }
-  //! Returns function return value associated with the given `index`.
-  inline FuncValue& ret(uint32_t index = 0) noexcept {
-    ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_rets));
-    return _rets[index];
-  }
-  //! Returns function return value associated with the given `index` (const).
-  inline const FuncValue& ret(uint32_t index = 0) const noexcept {
-    ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_rets));
-    return _rets[index];
-  }
+  //! Returns function return values.
+  inline FuncValuePack& retPack() noexcept { return _rets; }
+  //! Returns function return values.
+  inline const FuncValuePack& retPack() const noexcept { return _rets; }
 
-  //! Returns function arguments array.
-  inline FuncValue* args() noexcept { return _args; }
-  //! Returns function arguments array (const).
-  inline const FuncValue* args() const noexcept { return _args; }
+  //! Returns a function return value associated with the given `valueIndex`.
+  inline FuncValue& ret(size_t valueIndex = 0) noexcept { return _rets[valueIndex]; }
+  //! Returns a function return value associated with the given `valueIndex` (const).
+  inline const FuncValue& ret(size_t valueIndex = 0) const noexcept { return _rets[valueIndex]; }
 
-  inline bool hasArg(uint32_t index) const noexcept {
-    ASMJIT_ASSERT(index < kFuncArgCountLoHi);
-    return _args[index].isInitialized();
+  //! Returns function argument packs array.
+  inline FuncValuePack* argPacks() noexcept { return _args; }
+  //! Returns function argument packs array (const).
+  inline const FuncValuePack* argPacks() const noexcept { return _args; }
+
+  //! Returns function argument pack at the given `argIndex`.
+  inline FuncValuePack& argPack(size_t argIndex) noexcept {
+    ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
+    return _args[argIndex];
   }
 
-  //! Returns function argument at the given `index`.
-  inline FuncValue& arg(uint32_t index) noexcept {
-    ASMJIT_ASSERT(index < kFuncArgCountLoHi);
-    return _args[index];
+  //! Returns function argument pack at the given `argIndex` (const).
+  inline const FuncValuePack& argPack(size_t argIndex) const noexcept {
+    ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
+    return _args[argIndex];
   }
 
-  //! Returnsfunction argument at the given index `index` (const).
-  inline const FuncValue& arg(uint32_t index) const noexcept {
-    ASMJIT_ASSERT(index < kFuncArgCountLoHi);
-    return _args[index];
+  //! Returns an argument at `valueIndex` from the argument pack at the given `argIndex`.
+  inline FuncValue& arg(size_t argIndex, size_t valueIndex = 0) noexcept {
+    ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
+    return _args[argIndex][valueIndex];
   }
 
-  inline void resetArg(uint32_t index) noexcept {
-    ASMJIT_ASSERT(index < kFuncArgCountLoHi);
-    _args[index].reset();
+  //! Returns an argument at `valueIndex` from the argument pack at the given `argIndex` (const).
+  inline const FuncValue& arg(size_t argIndex, size_t valueIndex = 0) const noexcept {
+    ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
+    return _args[argIndex][valueIndex];
   }
 
+  //! Resets an argument at the given `argIndex`.
+  //!
+  //! If the argument is a parameter pack (has multiple values) all values are reset.
+  inline void resetArg(size_t argIndex) noexcept {
+    ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
+    _args[argIndex].reset();
+  }
+
+  //! Tests whether the function has variable arguments.
   inline bool hasVarArgs() const noexcept { return _vaIndex != kNoVarArgs; }
+  //! Returns an index of a first variable argument.
   inline uint32_t vaIndex() const noexcept { return _vaIndex; }
 
   //! Tests whether the function passes one or more argument by stack.
@@ -435,18 +485,25 @@ public:
   //! Returns stack size needed for function arguments passed on the stack.
   inline uint32_t argStackSize() const noexcept { return _argStackSize; }
 
+  //! Returns red zone size.
   inline uint32_t redZoneSize() const noexcept { return _callConv.redZoneSize(); }
+  //! Returns spill zone size.
   inline uint32_t spillZoneSize() const noexcept { return _callConv.spillZoneSize(); }
+  //! Returns natural stack alignment.
   inline uint32_t naturalStackAlignment() const noexcept { return _callConv.naturalStackAlignment(); }
 
+  //! Returns a mask of all passed registers of the given register `group`.
   inline uint32_t passedRegs(uint32_t group) const noexcept { return _callConv.passedRegs(group); }
+  //! Returns a mask of all preserved registers of the given register `group`.
   inline uint32_t preservedRegs(uint32_t group) const noexcept { return _callConv.preservedRegs(group); }
 
+  //! Returns a mask of all used registers of the given register `group`.
   inline uint32_t usedRegs(uint32_t group) const noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     return _usedRegs[group];
   }
 
+  //! Adds `regs` to the mask of used registers of the given register `group`.
   inline void addUsedRegs(uint32_t group, uint32_t regs) noexcept {
     ASMJIT_ASSERT(group < BaseReg::kGroupVirt);
     _usedRegs[group] |= regs;
@@ -873,7 +930,7 @@ public:
   //! Reserved for future use.
   uint8_t _reserved[3];
   //! Mapping of each function argument.
-  FuncValue _args[kFuncArgCountLoHi];
+  FuncValuePack _argPacks[Globals::kMaxFuncArgs];
 
   //! \name Construction & Destruction
   //! \{
@@ -888,7 +945,7 @@ public:
     _funcDetail = fd;
     _saRegId = uint8_t(BaseReg::kIdBad);
     memset(_reserved, 0, sizeof(_reserved));
-    memset(_args, 0, sizeof(_args));
+    memset(_argPacks, 0, sizeof(_argPacks));
   }
 
   //! \}
@@ -904,46 +961,62 @@ public:
   inline void setSARegId(uint32_t regId) { _saRegId = uint8_t(regId); }
   inline void resetSARegId() { _saRegId = uint8_t(BaseReg::kIdBad); }
 
-  inline FuncValue& arg(uint32_t index) noexcept {
-    ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_args));
-    return _args[index];
+  inline FuncValue& arg(size_t argIndex, size_t valueIndex) noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    return _argPacks[argIndex][valueIndex];
   }
-  inline const FuncValue& arg(uint32_t index) const noexcept {
-    ASMJIT_ASSERT(index < ASMJIT_ARRAY_SIZE(_args));
-    return _args[index];
-  }
-
-  inline bool isAssigned(uint32_t argIndex) const noexcept {
-    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_args));
-    return _args[argIndex].isAssigned();
+  inline const FuncValue& arg(size_t argIndex, size_t valueIndex) const noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    return _argPacks[argIndex][valueIndex];
   }
 
-  inline void assignReg(uint32_t argIndex, const BaseReg& reg, uint32_t typeId = Type::kIdVoid) noexcept {
-    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_args));
+  inline bool isAssigned(size_t argIndex, size_t valueIndex) const noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    return _argPacks[argIndex][valueIndex].isAssigned();
+  }
+
+  inline void assignReg(size_t argIndex, const BaseReg& reg, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     ASMJIT_ASSERT(reg.isPhysReg());
-    _args[argIndex].initReg(reg.type(), reg.id(), typeId);
+    _argPacks[argIndex][0].initReg(reg.type(), reg.id(), typeId);
   }
 
-  inline void assignReg(uint32_t argIndex, uint32_t regType, uint32_t regId, uint32_t typeId = Type::kIdVoid) noexcept {
-    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_args));
-    _args[argIndex].initReg(regType, regId, typeId);
+  inline void assignReg(size_t argIndex, uint32_t regType, uint32_t regId, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    _argPacks[argIndex][0].initReg(regType, regId, typeId);
   }
 
-  inline void assignStack(uint32_t argIndex, int32_t offset, uint32_t typeId = Type::kIdVoid) {
-    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_args));
-    _args[argIndex].initStack(offset, typeId);
+  inline void assignStack(size_t argIndex, int32_t offset, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    _argPacks[argIndex][0].initStack(offset, typeId);
+  }
+
+  inline void assignRegInPack(size_t argIndex, size_t valueIndex, const BaseReg& reg, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    ASMJIT_ASSERT(reg.isPhysReg());
+    _argPacks[argIndex][valueIndex].initReg(reg.type(), reg.id(), typeId);
+  }
+
+  inline void assignRegInPack(size_t argIndex, size_t valueIndex, uint32_t regType, uint32_t regId, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    _argPacks[argIndex][valueIndex].initReg(regType, regId, typeId);
+  }
+
+  inline void assignStackInPack(size_t argIndex, size_t valueIndex, int32_t offset, uint32_t typeId = Type::kIdVoid) noexcept {
+    ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
+    _argPacks[argIndex][valueIndex].initStack(offset, typeId);
   }
 
   // NOTE: All `assignAll()` methods are shortcuts to assign all arguments at
   // once, however, since registers are passed all at once these initializers
   // don't provide any way to pass TypeId and/or to keep any argument between
   // the arguments passed unassigned.
-  inline void _assignAllInternal(uint32_t argIndex, const BaseReg& reg) noexcept {
+  inline void _assignAllInternal(size_t argIndex, const BaseReg& reg) noexcept {
     assignReg(argIndex, reg);
   }
 
   template<typename... Args>
-  inline void _assignAllInternal(uint32_t argIndex, const BaseReg& reg, Args&&... args) noexcept {
+  inline void _assignAllInternal(size_t argIndex, const BaseReg& reg, Args&&... args) noexcept {
     assignReg(argIndex, reg);
     _assignAllInternal(argIndex + 1, std::forward<Args>(args)...);
   }

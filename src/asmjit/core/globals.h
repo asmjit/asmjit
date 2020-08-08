@@ -80,13 +80,13 @@ namespace Globals {
 // ============================================================================
 
 //! Host memory allocator overhead.
-constexpr uint32_t kAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
+static constexpr uint32_t kAllocOverhead = uint32_t(sizeof(intptr_t) * 4);
 
 //! Host memory allocator alignment.
-constexpr uint32_t kAllocAlignment = 8;
+static constexpr uint32_t kAllocAlignment = 8;
 
 //! Aggressive growing strategy threshold.
-constexpr uint32_t kGrowThreshold = 1024 * 1024 * 16;
+static constexpr uint32_t kGrowThreshold = 1024 * 1024 * 16;
 
 //! Maximum depth of RB-Tree is:
 //!
@@ -99,37 +99,41 @@ constexpr uint32_t kGrowThreshold = 1024 * 1024 * 16;
 //!
 //! Which yields 30 on 32-bit arch and 61 on 64-bit arch.
 //! The final value was adjusted by +1 for safety reasons.
-constexpr uint32_t kMaxTreeHeight = (ASMJIT_ARCH_BITS == 32 ? 30 : 61) + 1;
+static constexpr uint32_t kMaxTreeHeight = (ASMJIT_ARCH_BITS == 32 ? 30 : 61) + 1;
 
 //! Maximum number of operands per a single instruction.
-constexpr uint32_t kMaxOpCount = 6;
+static constexpr uint32_t kMaxOpCount = 6;
 
 //! Maximum arguments of a function supported by the Compiler / Function API.
-constexpr uint32_t kMaxFuncArgs = 16;
+static constexpr uint32_t kMaxFuncArgs = 16;
+
+//! The number of values that can be assigned to a single function argument or
+//! return value.
+static constexpr uint32_t kMaxValuePack = 4;
 
 //! Maximum number of physical registers AsmJit can use per register group.
-constexpr uint32_t kMaxPhysRegs = 32;
+static constexpr uint32_t kMaxPhysRegs = 32;
 
 //! Maximum alignment.
-constexpr uint32_t kMaxAlignment = 64;
+static constexpr uint32_t kMaxAlignment = 64;
 
 //! Maximum label or symbol size in bytes.
-constexpr uint32_t kMaxLabelNameSize = 2048;
+static constexpr uint32_t kMaxLabelNameSize = 2048;
 
 //! Maximum section name size.
-constexpr uint32_t kMaxSectionNameSize = 35;
+static constexpr uint32_t kMaxSectionNameSize = 35;
 
 //! Maximum size of comment.
-constexpr uint32_t kMaxCommentSize = 1024;
+static constexpr uint32_t kMaxCommentSize = 1024;
 
 //! Invalid identifier.
-constexpr uint32_t kInvalidId = 0xFFFFFFFFu;
+static constexpr uint32_t kInvalidId = 0xFFFFFFFFu;
 
 //! Returned by `indexOf()` and similar when working with containers that use 32-bit index/size.
-constexpr uint32_t kNotFound = 0xFFFFFFFFu;
+static constexpr uint32_t kNotFound = 0xFFFFFFFFu;
 
 //! Invalid base address.
-constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
+static constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
 
 // ============================================================================
 // [asmjit::Globals::ResetPolicy]

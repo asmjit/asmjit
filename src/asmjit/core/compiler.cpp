@@ -60,26 +60,6 @@ class GlobalConstPoolPass : public Pass {
 };
 
 // ============================================================================
-// [asmjit::InvokeNode - Arg / Ret]
-// ============================================================================
-
-bool InvokeNode::_setArg(uint32_t i, const Operand_& op) noexcept {
-  if ((i & ~kFuncArgHi) >= _funcDetail.argCount())
-    return false;
-
-  _args[i] = op;
-  return true;
-}
-
-bool InvokeNode::_setRet(uint32_t i, const Operand_& op) noexcept {
-  if (i >= 2)
-    return false;
-
-  _rets[i] = op;
-  return true;
-}
-
-// ============================================================================
 // [asmjit::BaseCompiler - Construction / Destruction]
 // ============================================================================
 
@@ -130,10 +110,10 @@ Error BaseCompiler::_newFuncNode(FuncNode** out, const FuncSignature& signature)
   // Allocate space for function arguments.
   funcNode->_args = nullptr;
   if (funcNode->argCount() != 0) {
-    funcNode->_args = _allocator.allocT<VirtReg*>(funcNode->argCount() * sizeof(VirtReg*));
+    funcNode->_args = _allocator.allocT<FuncNode::ArgPack>(funcNode->argCount() * sizeof(FuncNode::ArgPack));
     if (ASMJIT_UNLIKELY(!funcNode->_args))
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
-    memset(funcNode->_args, 0, funcNode->argCount() * sizeof(VirtReg*));
+    memset(funcNode->_args, 0, funcNode->argCount() * sizeof(FuncNode::ArgPack));
   }
 
   ASMJIT_PROPAGATE(registerLabelNode(funcNode));
@@ -203,7 +183,7 @@ Error BaseCompiler::endFunc() {
   return kErrorOk;
 }
 
-Error BaseCompiler::setArg(uint32_t argIndex, const BaseReg& r) {
+Error BaseCompiler::_setArg(size_t argIndex, size_t valueIndex, const BaseReg& r) {
   FuncNode* func = _func;
 
   if (ASMJIT_UNLIKELY(!func))
@@ -213,7 +193,7 @@ Error BaseCompiler::setArg(uint32_t argIndex, const BaseReg& r) {
     return reportError(DebugUtils::errored(kErrorInvalidVirtId));
 
   VirtReg* vReg = virtRegByReg(r);
-  func->setArg(argIndex, vReg);
+  func->setArg(argIndex, valueIndex, vReg);
 
   return kErrorOk;
 }
@@ -237,10 +217,10 @@ Error BaseCompiler::_newInvokeNode(InvokeNode** out, uint32_t instId, const Oper
   // Skip the allocation if there are no arguments.
   uint32_t argCount = signature.argCount();
   if (argCount) {
-    node->_args = static_cast<Operand*>(_allocator.alloc(argCount * sizeof(Operand)));
+    node->_args = static_cast<InvokeNode::OperandPack*>(_allocator.alloc(argCount * sizeof(InvokeNode::OperandPack)));
     if (!node->_args)
       reportError(DebugUtils::errored(kErrorOutOfMemory));
-    memset(node->_args, 0, argCount * sizeof(Operand));
+    memset(node->_args, 0, argCount * sizeof(InvokeNode::OperandPack));
   }
 
   *out = node;

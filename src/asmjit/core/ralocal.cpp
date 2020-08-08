@@ -80,55 +80,59 @@ Error RALocalAllocator::makeInitialAssignment() noexcept {
   uint32_t numIter = 1;
 
   for (uint32_t iter = 0; iter < numIter; iter++) {
-    for (uint32_t i = 0; i < argCount; i++) {
-      // Unassigned argument.
-      VirtReg* virtReg = func->arg(i);
-      if (!virtReg) continue;
+    for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+      for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+        // Unassigned argument.
+        VirtReg* virtReg = func->argPack(argIndex)[valueIndex];
+        if (!virtReg)
+          continue;
 
-      // Unreferenced argument.
-      RAWorkReg* workReg = virtReg->workReg();
-      if (!workReg) continue;
+        // Unreferenced argument.
+        RAWorkReg* workReg = virtReg->workReg();
+        if (!workReg)
+          continue;
 
-      // Overwritten argument.
-      uint32_t workId = workReg->workId();
-      if (!liveIn.bitAt(workId))
-        continue;
+        // Overwritten argument.
+        uint32_t workId = workReg->workId();
+        if (!liveIn.bitAt(workId))
+          continue;
 
-      uint32_t group = workReg->group();
-      if (_curAssignment.workToPhysId(group, workId) != RAAssignment::kPhysNone)
-        continue;
+        uint32_t group = workReg->group();
+        if (_curAssignment.workToPhysId(group, workId) != RAAssignment::kPhysNone)
+          continue;
 
-      uint32_t allocableRegs = _availableRegs[group] & ~_curAssignment.assigned(group);
-      if (iter == 0) {
-        // First iteration: Try to allocate to home RegId.
-        if (workReg->hasHomeRegId()) {
-          uint32_t physId = workReg->homeRegId();
-          if (Support::bitTest(allocableRegs, physId)) {
-            _curAssignment.assign(group, workId, physId, true);
-            _pass->_argsAssignment.assignReg(i, workReg->info().type(), physId, workReg->typeId());
-            continue;
+        uint32_t allocableRegs = _availableRegs[group] & ~_curAssignment.assigned(group);
+        if (iter == 0) {
+          // First iteration: Try to allocate to home RegId.
+          if (workReg->hasHomeRegId()) {
+            uint32_t physId = workReg->homeRegId();
+            if (Support::bitTest(allocableRegs, physId)) {
+              _curAssignment.assign(group, workId, physId, true);
+              _pass->_argsAssignment.assignRegInPack(argIndex, valueIndex, workReg->info().type(), physId, workReg->typeId());
+              continue;
+            }
           }
-        }
 
-        numIter = 2;
-      }
-      else {
-        // Second iteration: Pick any other register if the is an unassigned one or assign to stack.
-        if (allocableRegs) {
-          uint32_t physId = Support::ctz(allocableRegs);
-          _curAssignment.assign(group, workId, physId, true);
-          _pass->_argsAssignment.assignReg(i, workReg->info().type(), physId, workReg->typeId());
+          numIter = 2;
         }
         else {
-          // This register will definitely need stack, create the slot now and assign also `argIndex`
-          // to it. We will patch `_argsAssignment` later after RAStackAllocator finishes.
-          RAStackSlot* slot = _pass->getOrCreateStackSlot(workReg);
-          if (ASMJIT_UNLIKELY(!slot))
-            return DebugUtils::errored(kErrorOutOfMemory);
+          // Second iteration: Pick any other register if the is an unassigned one or assign to stack.
+          if (allocableRegs) {
+            uint32_t physId = Support::ctz(allocableRegs);
+            _curAssignment.assign(group, workId, physId, true);
+            _pass->_argsAssignment.assignRegInPack(argIndex, valueIndex, workReg->info().type(), physId, workReg->typeId());
+          }
+          else {
+            // This register will definitely need stack, create the slot now and assign also `argIndex`
+            // to it. We will patch `_argsAssignment` later after RAStackAllocator finishes.
+            RAStackSlot* slot = _pass->getOrCreateStackSlot(workReg);
+            if (ASMJIT_UNLIKELY(!slot))
+              return DebugUtils::errored(kErrorOutOfMemory);
 
-          // This means STACK_ARG may be moved to STACK.
-          workReg->addFlags(RAWorkReg::kFlagStackArgToStack);
-          _pass->_numStackArgsToStackSlots++;
+            // This means STACK_ARG may be moved to STACK.
+            workReg->addFlags(RAWorkReg::kFlagStackArgToStack);
+            _pass->_numStackArgsToStackSlots++;
+          }
         }
       }
     }

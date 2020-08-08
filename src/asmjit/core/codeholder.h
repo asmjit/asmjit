@@ -281,8 +281,10 @@ public:
   // Let's round the size of `LabelEntry` to 64 bytes (as `ZoneAllocator` has
   // granularity of 32 bytes anyway). This gives `_name` the remaining space,
   // which is should be 16 bytes on 64-bit and 28 bytes on 32-bit architectures.
-  static constexpr uint32_t kStaticNameSize =
-    64 - (sizeof(ZoneHashNode) + 8 + sizeof(Section*) + sizeof(size_t) + sizeof(LabelLink*));
+  enum : uint32_t {
+    kStaticNameSize =
+      64 - (sizeof(ZoneHashNode) + 8 + sizeof(Section*) + sizeof(size_t) + sizeof(LabelLink*))
+  };
 
   //! Label type, see `Label::LabelType`.
   uint8_t _type;

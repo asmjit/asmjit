@@ -404,22 +404,20 @@ Error X86RACFGBuilder::onInst(InstNode* inst, uint32_t& controlType, RAInstBuild
 // ============================================================================
 
 Error X86RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
-  uint32_t argCount = invokeNode->argCount();
-  uint32_t retCount = invokeNode->retCount();
   const FuncDetail& fd = invokeNode->detail();
+  uint32_t argCount = invokeNode->argCount();
 
   cc()->_setCursor(invokeNode->prev());
-
   uint32_t nativeRegType = cc()->_gpRegInfo.type();
 
-  for (uint32_t loIndex = 0; loIndex < argCount; loIndex++) {
-    for (uint32_t hiIndex = 0; hiIndex <= kFuncArgHi; hiIndex += kFuncArgHi) {
-      uint32_t argIndex = loIndex + hiIndex;
-      if (!fd.hasArg(argIndex))
-        continue;
+  for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
+    const FuncValuePack& argPack = fd.argPack(argIndex);
+    for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+      if (!argPack[valueIndex])
+        break;
 
-      const FuncValue& arg = fd.arg(argIndex);
-      const Operand& op = invokeNode->arg(argIndex);
+      const FuncValue& arg = argPack[valueIndex];
+      const Operand& op = invokeNode->arg(argIndex, valueIndex);
 
       if (op.isNone())
         continue;
@@ -443,7 +441,7 @@ Error X86RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
 
             BaseReg indirectReg;
             moveVecToPtr(invokeNode, arg, reg.as<Vec>(), &indirectReg);
-            invokeNode->_args[argIndex] = indirectReg;
+            invokeNode->_args[argIndex][valueIndex] = indirectReg;
           }
           else {
             if (regGroup != argGroup) {
@@ -475,7 +473,7 @@ Error X86RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
         if (arg.isReg()) {
           BaseReg reg;
           ASMJIT_PROPAGATE(moveImmToRegArg(invokeNode, arg, op.as<Imm>(), &reg));
-          invokeNode->_args[argIndex] = reg;
+          invokeNode->_args[argIndex][valueIndex] = reg;
         }
         else {
           ASMJIT_PROPAGATE(moveImmToStackArg(invokeNode, arg, op.as<Imm>()));
@@ -488,53 +486,57 @@ Error X86RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
   if (fd.hasFlag(CallConv::kFlagCalleePopsStack))
     ASMJIT_PROPAGATE(cc()->sub(cc()->zsp(), fd.argStackSize()));
 
-  for (uint32_t retIndex = 0; retIndex < retCount; retIndex++) {
-    const FuncValue& ret = fd.ret(retIndex);
-    const Operand& op = invokeNode->ret(retIndex);
+  if (fd.hasRet()) {
+    for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+      const FuncValue& ret = fd.ret(valueIndex);
+      if (!ret)
+        break;
 
-    if (op.isReg()) {
-      const Reg& reg = op.as<Reg>();
-      RAWorkReg* workReg;
-      ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
+      const Operand& op = invokeNode->ret(valueIndex);
+      if (op.isReg()) {
+        const Reg& reg = op.as<Reg>();
+        RAWorkReg* workReg;
+        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
 
-      if (ret.isReg()) {
-        if (ret.regType() == Reg::kTypeSt) {
-          if (workReg->group() != Reg::kGroupVec)
-            return DebugUtils::errored(kErrorInvalidAssignment);
-
-          Reg dst = Reg(workReg->signature(), workReg->virtId());
-          Mem mem;
-
-          uint32_t typeId = Type::baseOf(workReg->typeId());
-          if (ret.hasTypeId())
-            typeId = ret.typeId();
-
-          switch (typeId) {
-            case Type::kIdF32:
-              ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
-              mem.setSize(4);
-              ASMJIT_PROPAGATE(cc()->fstp(mem));
-              ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), dst.as<Xmm>(), mem));
-              break;
-
-            case Type::kIdF64:
-              ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
-              mem.setSize(8);
-              ASMJIT_PROPAGATE(cc()->fstp(mem));
-              ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), dst.as<Xmm>(), mem));
-              break;
-
-            default:
+        if (ret.isReg()) {
+          if (ret.regType() == Reg::kTypeSt) {
+            if (workReg->group() != Reg::kGroupVec)
               return DebugUtils::errored(kErrorInvalidAssignment);
-          }
-        }
-        else {
-          uint32_t regGroup = workReg->group();
-          uint32_t retGroup = Reg::groupOf(ret.regType());
 
-          if (regGroup != retGroup) {
-            // TODO: Conversion is not supported.
-            return DebugUtils::errored(kErrorInvalidAssignment);
+            Reg dst = Reg(workReg->signature(), workReg->virtId());
+            Mem mem;
+
+            uint32_t typeId = Type::baseOf(workReg->typeId());
+            if (ret.hasTypeId())
+              typeId = ret.typeId();
+
+            switch (typeId) {
+              case Type::kIdF32:
+                ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
+                mem.setSize(4);
+                ASMJIT_PROPAGATE(cc()->fstp(mem));
+                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), dst.as<Xmm>(), mem));
+                break;
+
+              case Type::kIdF64:
+                ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
+                mem.setSize(8);
+                ASMJIT_PROPAGATE(cc()->fstp(mem));
+                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), dst.as<Xmm>(), mem));
+                break;
+
+              default:
+                return DebugUtils::errored(kErrorInvalidAssignment);
+            }
+          }
+          else {
+            uint32_t regGroup = workReg->group();
+            uint32_t retGroup = Reg::groupOf(ret.regType());
+
+            if (regGroup != retGroup) {
+              // TODO: Conversion is not supported.
+              return DebugUtils::errored(kErrorInvalidAssignment);
+            }
           }
         }
       }
@@ -551,16 +553,16 @@ Error X86RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
 
 Error X86RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept {
   uint32_t argCount = invokeNode->argCount();
-  uint32_t retCount = invokeNode->retCount();
   const FuncDetail& fd = invokeNode->detail();
 
   for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
-    for (uint32_t argHi = 0; argHi <= kFuncArgHi; argHi += kFuncArgHi) {
-      if (!fd.hasArg(argIndex + argHi))
+    const FuncValuePack& argPack = fd.argPack(argIndex);
+    for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+      if (!argPack[valueIndex])
         continue;
 
-      const FuncValue& arg = fd.arg(argIndex + argHi);
-      const Operand& op = invokeNode->arg(argIndex + argHi);
+      const FuncValue& arg = argPack[valueIndex];
+      const Operand& op = invokeNode->arg(argIndex, valueIndex);
 
       if (op.isNone())
         continue;
@@ -588,11 +590,13 @@ Error X86RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexc
     }
   }
 
-  for (uint32_t retIndex = 0; retIndex < retCount; retIndex++) {
+  for (uint32_t retIndex = 0; retIndex < Globals::kMaxValuePack; retIndex++) {
     const FuncValue& ret = fd.ret(retIndex);
-    const Operand& op = invokeNode->ret(retIndex);
+    if (!ret)
+      break;
 
     // Not handled here...
+    const Operand& op = invokeNode->ret(retIndex);
     if (ret.regType() == Reg::kTypeSt)
       continue;
 
@@ -1223,19 +1227,20 @@ Error X86RAPass::onEmitJump(const Label& label) noexcept {
 
 Error X86RAPass::onEmitPreCall(InvokeNode* invokeNode) noexcept {
   if (invokeNode->detail().hasVarArgs() && cc()->is64Bit()) {
-    uint32_t argCount = invokeNode->argCount();
     const FuncDetail& fd = invokeNode->detail();
+    uint32_t argCount = invokeNode->argCount();
 
     switch (invokeNode->detail().callConv().id()) {
       case CallConv::kIdX64SystemV: {
         // AL register contains the number of arguments passed in XMM register(s).
         uint32_t n = 0;
         for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
-          for (uint32_t argHi = 0; argHi <= kFuncArgHi; argHi += kFuncArgHi) {
-            if (!fd.hasArg(argIndex + argHi))
-              continue;
+          const FuncValuePack& argPack = fd.argPack(argIndex);
+          for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+            const FuncValue& arg = argPack[valueIndex];
+            if (!arg)
+              break;
 
-            const FuncValue& arg = fd.arg(argIndex + argHi);
             if (arg.isReg() && Reg::groupOf(arg.regType()) == Reg::kGroupVec)
               n++;
           }
@@ -1251,11 +1256,12 @@ Error X86RAPass::onEmitPreCall(InvokeNode* invokeNode) noexcept {
       case CallConv::kIdX64Windows: {
         // Each double-precision argument passed in XMM must be also passed in GP.
         for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
-          for (uint32_t argHi = 0; argHi <= kFuncArgHi; argHi += kFuncArgHi) {
-            if (!fd.hasArg(argIndex + argHi))
-              continue;
+          const FuncValuePack& argPack = fd.argPack(argIndex);
+          for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
+            const FuncValue& arg = argPack[valueIndex];
+            if (!arg)
+              break;
 
-            const FuncValue& arg = fd.arg(argIndex + argHi);
             if (arg.isReg() && Reg::groupOf(arg.regType()) == Reg::kGroupVec) {
               Gp dst = gpq(fd.callConv().passedOrder(Reg::kGroupGp)[argIndex]);
               Xmm src = xmm(arg.regId());

@@ -957,6 +957,8 @@ public:
 
   //! Argument index (or `kNoArgIndex` if none).
   uint8_t _argIndex;
+  //! Argument value index in the pack (0 by default).
+  uint8_t _argValueIndex;
   //! Global home register ID (if any, assigned by RA).
   uint8_t _homeRegId;
   //! Global hint register ID (provided by RA or user).
@@ -1006,6 +1008,7 @@ public:
       _clobberSurvivalMask(0),
       _regByteMask(0),
       _argIndex(kNoArgIndex),
+      _argValueIndex(0),
       _homeRegId(BaseReg::kIdBad),
       _hintRegId(BaseReg::kIdBad),
       _liveSpans(),
@@ -1060,7 +1063,12 @@ public:
 
   inline bool hasArgIndex() const noexcept { return _argIndex != kNoArgIndex; }
   inline uint32_t argIndex() const noexcept { return _argIndex; }
-  inline void setArgIndex(uint32_t index) noexcept { _argIndex = uint8_t(index); }
+  inline uint32_t argValueIndex() const noexcept { return _argValueIndex; }
+
+  inline void setArgIndex(uint32_t argIndex, uint32_t valueIndex) noexcept {
+    _argIndex = uint8_t(argIndex);
+    _argValueIndex = uint8_t(valueIndex);
+  }
 
   inline bool hasHomeRegId() const noexcept { return _homeRegId != BaseReg::kIdBad; }
   inline uint32_t homeRegId() const noexcept { return _homeRegId; }
