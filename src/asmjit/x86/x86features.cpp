@@ -174,7 +174,7 @@ ASMJIT_FAVOR_SIZE void detectCpu(CpuInfo& cpu) noexcept {
       modelId += (((regs.eax >> 16) & 0x0Fu) << 4);
 
     if (familyId == 0x0Fu)
-      familyId += (((regs.eax >> 20) & 0xFFu) << 4);
+      familyId += ((regs.eax >> 20) & 0xFFu);
 
     cpu._modelId              = modelId;
     cpu._familyId             = familyId;
