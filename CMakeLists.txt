@@ -11,6 +11,7 @@ if(POLICY CMP0092)
 endif()
 
 include(CheckCXXCompilerFlag)
+include(GNUInstallDirs)
 
 # Don't create a project if it was already created by another CMakeLists.txt.
 # This allows one library to embed another library without making a collision.
@@ -447,19 +448,33 @@ if (NOT ASMJIT_EMBED)
                     CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
                     CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                     CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-  target_include_directories(asmjit BEFORE INTERFACE ${ASMJIT_INCLUDE_DIRS})
+
   target_compile_options(asmjit INTERFACE ${ASMJIT_CFLAGS})
+  target_include_directories(asmjit BEFORE INTERFACE
+                             $<BUILD_INTERFACE:${ASMJIT_INCLUDE_DIRS}>
+                             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+  # Add blend2d::blend2d alias.
+  add_library(asmjit::asmjit ALIAS asmjit)
+  # TODO: [CMAKE] Deprecated alias - we use projectname::libraryname convention now.
   add_library(AsmJit::AsmJit ALIAS asmjit)
 
   # Add AsmJit install instructions (library and public headers).
   if (NOT ASMJIT_NO_INSTALL)
-    install(TARGETS asmjit RUNTIME DESTINATION "bin"
-                           LIBRARY DESTINATION "lib${LIB_SUFFIX}"
-                           ARCHIVE DESTINATION "lib${LIB_SUFFIX}")
+    install(TARGETS asmjit
+            EXPORT asmjit-config
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    install(EXPORT asmjit-config
+            NAMESPACE asmjit::
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/asmjit")
+
     foreach(_src_file ${ASMJIT_SRC_LIST})
       if ("${_src_file}" MATCHES "\\.h$" AND NOT "${_src_file}" MATCHES "_p\\.h$")
         get_filename_component(_src_dir ${_src_file} PATH)
-        install(FILES "${ASMJIT_DIR}/src/${_src_file}" DESTINATION "include/${_src_dir}")
+        install(FILES "${ASMJIT_DIR}/src/${_src_file}" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${_src_dir}")
       endif()
     endforeach()
   endif()
@@ -487,7 +502,7 @@ if (NOT ASMJIT_EMBED)
                     asmjit_test_x86_sections)
       asmjit_add_target(${_target} TEST
                         SOURCES    test/${_target}.cpp
-                        LIBRARIES  AsmJit::AsmJit
+                        LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
@@ -496,7 +511,7 @@ if (NOT ASMJIT_EMBED)
     if (NOT ASMJIT_NO_INTROSPECTION)
       asmjit_add_target(asmjit_test_x86_instinfo TEST
                         SOURCES    test/asmjit_test_x86_instinfo.cpp
-                        LIBRARIES  AsmJit::AsmJit
+                        LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
@@ -512,7 +527,7 @@ if (NOT ASMJIT_EMBED)
       endif()
       asmjit_add_target(asmjit_test_x86_cc TEST
                         SOURCES    test/asmjit_test_x86_cc.cpp
-                        LIBRARIES  AsmJit::AsmJit
+                        LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${sse2_flags}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
@@ -521,7 +536,7 @@ if (NOT ASMJIT_EMBED)
     foreach(_target asmjit_bench_x86)
       asmjit_add_target(${_target} EXECUTABLE
                         SOURCES    test/${_target}.cpp
-                        LIBRARIES  AsmJit::AsmJit
+                        LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
