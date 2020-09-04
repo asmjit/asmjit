@@ -184,26 +184,26 @@ struct EmitterExplicitT {
   //! \cond
 
   // These typedefs are used to describe implicit operands passed explicitly.
-  typedef Gp AL;
-  typedef Gp AH;
-  typedef Gp CL;
-  typedef Gp AX;
-  typedef Gp DX;
+  typedef Gp Gp_AL;
+  typedef Gp Gp_AH;
+  typedef Gp Gp_CL;
+  typedef Gp Gp_AX;
+  typedef Gp Gp_DX;
 
-  typedef Gp EAX;
-  typedef Gp EBX;
-  typedef Gp ECX;
-  typedef Gp EDX;
+  typedef Gp Gp_EAX;
+  typedef Gp Gp_EBX;
+  typedef Gp Gp_ECX;
+  typedef Gp Gp_EDX;
 
-  typedef Gp RAX;
-  typedef Gp RBX;
-  typedef Gp RCX;
-  typedef Gp RDX;
+  typedef Gp Gp_RAX;
+  typedef Gp Gp_RBX;
+  typedef Gp Gp_RCX;
+  typedef Gp Gp_RDX;
 
-  typedef Gp ZAX;
-  typedef Gp ZBX;
-  typedef Gp ZCX;
-  typedef Gp ZDX;
+  typedef Gp Gp_ZAX;
+  typedef Gp Gp_ZBX;
+  typedef Gp Gp_ZCX;
+  typedef Gp Gp_ZDX;
 
   typedef Mem DS_ZAX; // ds:[zax]
   typedef Mem DS_ZDI; // ds:[zdi]
@@ -548,12 +548,12 @@ public:
   ASMJIT_INST_2i(bts, Bts, Gp, Imm)                                    // ANY
   ASMJIT_INST_2x(bts, Bts, Mem, Gp)                                    // ANY
   ASMJIT_INST_2i(bts, Bts, Mem, Imm)                                   // ANY
-  ASMJIT_INST_1x(cbw, Cbw, AX)                                         // ANY [EXPLICIT] AX      <- Sign Extend AL
-  ASMJIT_INST_2x(cdq, Cdq, EDX, EAX)                                   // ANY [EXPLICIT] EDX:EAX <- Sign Extend EAX
-  ASMJIT_INST_1x(cdqe, Cdqe, EAX)                                      // X64 [EXPLICIT] RAX     <- Sign Extend EAX
-  ASMJIT_INST_2x(cqo, Cqo, RDX, RAX)                                   // X64 [EXPLICIT] RDX:RAX <- Sign Extend RAX
-  ASMJIT_INST_2x(cwd, Cwd, DX, AX)                                     // ANY [EXPLICIT] DX:AX   <- Sign Extend AX
-  ASMJIT_INST_1x(cwde, Cwde, EAX)                                      // ANY [EXPLICIT] EAX     <- Sign Extend AX
+  ASMJIT_INST_1x(cbw, Cbw, Gp_AX)                                      // ANY [EXPLICIT] AX      <- Sign Extend AL
+  ASMJIT_INST_2x(cdq, Cdq, Gp_EDX, Gp_EAX)                             // ANY [EXPLICIT] EDX:EAX <- Sign Extend EAX
+  ASMJIT_INST_1x(cdqe, Cdqe, Gp_EAX)                                   // X64 [EXPLICIT] RAX     <- Sign Extend EAX
+  ASMJIT_INST_2x(cqo, Cqo, Gp_RDX, Gp_RAX)                             // X64 [EXPLICIT] RDX:RAX <- Sign Extend RAX
+  ASMJIT_INST_2x(cwd, Cwd, Gp_DX, Gp_AX)                               // ANY [EXPLICIT] DX:AX   <- Sign Extend AX
+  ASMJIT_INST_1x(cwde, Cwde, Gp_EAX)                                   // ANY [EXPLICIT] EAX     <- Sign Extend AX
   ASMJIT_INST_1x(call, Call, Gp)                                       // ANY
   ASMJIT_INST_1x(call, Call, Mem)                                      // ANY
   ASMJIT_INST_1x(call, Call, Label)                                    // ANY
@@ -566,10 +566,10 @@ public:
   ASMJIT_INST_2x(cmp, Cmp, Mem, Gp)                                    // ANY
   ASMJIT_INST_2i(cmp, Cmp, Mem, Imm)                                   // ANY
   ASMJIT_INST_2x(cmps, Cmps, DS_ZSI, ES_ZDI)                           // ANY [EXPLICIT]
-  ASMJIT_INST_3x(cmpxchg, Cmpxchg, Gp, Gp, ZAX)                        // I486 [EXPLICIT]
-  ASMJIT_INST_3x(cmpxchg, Cmpxchg, Mem, Gp, ZAX)                       // I486 [EXPLICIT]
-  ASMJIT_INST_5x(cmpxchg16b, Cmpxchg16b, Mem, RDX, RAX, RCX, RBX);     // CMPXCHG16B [EXPLICIT] m == EDX:EAX ? m <- ECX:EBX
-  ASMJIT_INST_5x(cmpxchg8b, Cmpxchg8b, Mem, EDX, EAX, ECX, EBX);       // CMPXCHG8B [EXPLICIT] m == RDX:RAX ? m <- RCX:RBX
+  ASMJIT_INST_3x(cmpxchg, Cmpxchg, Gp, Gp, Gp_ZAX)                     // I486 [EXPLICIT]
+  ASMJIT_INST_3x(cmpxchg, Cmpxchg, Mem, Gp, Gp_ZAX)                    // I486 [EXPLICIT]
+  ASMJIT_INST_5x(cmpxchg16b, Cmpxchg16b, Mem, Gp_RDX, Gp_RAX, Gp_RCX, Gp_RBX); // CMPXCHG16B [EXPLICIT] m == EDX:EAX ? m <- ECX:EBX
+  ASMJIT_INST_5x(cmpxchg8b, Cmpxchg8b, Mem, Gp_EDX, Gp_EAX, Gp_ECX, Gp_EBX);   // CMPXCHG8B  [EXPLICIT] m == RDX:RAX ? m <- RCX:RBX
   ASMJIT_INST_1x(dec, Dec, Gp)                                         // ANY
   ASMJIT_INST_1x(dec, Dec, Mem)                                        // ANY
   ASMJIT_INST_2x(div, Div, Gp, Gp)                                     // ANY [EXPLICIT]  AH[Rem]: AL[Quot] <- AX / r8
@@ -601,16 +601,16 @@ public:
   ASMJIT_INST_1x(jmp, Jmp, Imm)                                        // ANY
   ASMJIT_INST_1x(jmp, Jmp, uint64_t)                                   // ANY
   ASMJIT_INST_2x(lea, Lea, Gp, Mem)                                    // ANY
-  ASMJIT_INST_2x(lods, Lods, ZAX, DS_ZSI)                              // ANY [EXPLICIT]
-  ASMJIT_INST_2x(loop, Loop, ZCX, Label)                               // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
-  ASMJIT_INST_2x(loop, Loop, ZCX, Imm)                                 // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
-  ASMJIT_INST_2x(loop, Loop, ZCX, uint64_t)                            // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
-  ASMJIT_INST_2x(loope, Loope, ZCX, Label)                             // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 1.
-  ASMJIT_INST_2x(loope, Loope, ZCX, Imm)                               // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 1.
-  ASMJIT_INST_2x(loope, Loope, ZCX, uint64_t)                          // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 1.
-  ASMJIT_INST_2x(loopne, Loopne, ZCX, Label)                           // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 0.
-  ASMJIT_INST_2x(loopne, Loopne, ZCX, Imm)                             // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 0.
-  ASMJIT_INST_2x(loopne, Loopne, ZCX, uint64_t)                        // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 0.
+  ASMJIT_INST_2x(lods, Lods, Gp_ZAX, DS_ZSI)                           // ANY [EXPLICIT]
+  ASMJIT_INST_2x(loop, Loop, Gp_ZCX, Label)                            // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
+  ASMJIT_INST_2x(loop, Loop, Gp_ZCX, Imm)                              // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
+  ASMJIT_INST_2x(loop, Loop, Gp_ZCX, uint64_t)                         // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
+  ASMJIT_INST_2x(loope, Loope, Gp_ZCX, Label)                          // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 1.
+  ASMJIT_INST_2x(loope, Loope, Gp_ZCX, Imm)                            // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 1.
+  ASMJIT_INST_2x(loope, Loope, Gp_ZCX, uint64_t)                       // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 1.
+  ASMJIT_INST_2x(loopne, Loopne, Gp_ZCX, Label)                        // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 0.
+  ASMJIT_INST_2x(loopne, Loopne, Gp_ZCX, Imm)                          // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 0.
+  ASMJIT_INST_2x(loopne, Loopne, Gp_ZCX, uint64_t)                     // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0 && ZF == 0.
   ASMJIT_INST_2x(mov, Mov, Gp, Gp)                                     // ANY
   ASMJIT_INST_2x(mov, Mov, Gp, Mem)                                    // ANY
   ASMJIT_INST_2i(mov, Mov, Gp, Imm)                                    // ANY
@@ -632,10 +632,10 @@ public:
   ASMJIT_INST_2x(movsxd, Movsxd, Gp, Mem)                              // X64
   ASMJIT_INST_2x(movzx, Movzx, Gp, Gp)                                 // ANY
   ASMJIT_INST_2x(movzx, Movzx, Gp, Mem)                                // ANY
-  ASMJIT_INST_2x(mul, Mul, AX, Gp)                                     // ANY [EXPLICIT] AX      <-  AL * r8
-  ASMJIT_INST_2x(mul, Mul, AX, Mem)                                    // ANY [EXPLICIT] AX      <-  AL * m8
-  ASMJIT_INST_3x(mul, Mul, ZDX, ZAX, Gp)                               // ANY [EXPLICIT] xDX:xAX <- xAX * r16|r32|r64
-  ASMJIT_INST_3x(mul, Mul, ZDX, ZAX, Mem)                              // ANY [EXPLICIT] xDX:xAX <- xAX * m16|m32|m64
+  ASMJIT_INST_2x(mul, Mul, Gp_AX, Gp)                                  // ANY [EXPLICIT] AX      <-  AL * r8
+  ASMJIT_INST_2x(mul, Mul, Gp_AX, Mem)                                 // ANY [EXPLICIT] AX      <-  AL * m8
+  ASMJIT_INST_3x(mul, Mul, Gp_ZDX, Gp_ZAX, Gp)                         // ANY [EXPLICIT] xDX:xAX <- xAX * r16|r32|r64
+  ASMJIT_INST_3x(mul, Mul, Gp_ZDX, Gp_ZAX, Mem)                        // ANY [EXPLICIT] xDX:xAX <- xAX * m16|m32|m64
   ASMJIT_INST_1x(neg, Neg, Gp)                                         // ANY
   ASMJIT_INST_1x(neg, Neg, Mem)                                        // ANY
   ASMJIT_INST_0x(nop, Nop)                                             // ANY
@@ -667,20 +667,20 @@ public:
   ASMJIT_INST_0x(pushf, Pushf)                                         // ANY
   ASMJIT_INST_0x(pushfd, Pushfd)                                       // X86
   ASMJIT_INST_0x(pushfq, Pushfq)                                       // X64
-  ASMJIT_INST_2x(rcl, Rcl, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(rcl, Rcl, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(rcl, Rcl, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(rcl, Rcl, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(rcl, Rcl, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(rcl, Rcl, Mem, Imm)                                   // ANY
-  ASMJIT_INST_2x(rcr, Rcr, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(rcr, Rcr, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(rcr, Rcr, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(rcr, Rcr, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(rcr, Rcr, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(rcr, Rcr, Mem, Imm)                                   // ANY
-  ASMJIT_INST_2x(rol, Rol, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(rol, Rol, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(rol, Rol, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(rol, Rol, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(rol, Rol, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(rol, Rol, Mem, Imm)                                   // ANY
-  ASMJIT_INST_2x(ror, Ror, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(ror, Ror, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(ror, Ror, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(ror, Ror, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(ror, Ror, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(ror, Ror, Mem, Imm)                                   // ANY
   ASMJIT_INST_2x(sbb, Sbb, Gp, Gp)                                     // ANY
@@ -688,34 +688,34 @@ public:
   ASMJIT_INST_2i(sbb, Sbb, Gp, Imm)                                    // ANY
   ASMJIT_INST_2x(sbb, Sbb, Mem, Gp)                                    // ANY
   ASMJIT_INST_2i(sbb, Sbb, Mem, Imm)                                   // ANY
-  ASMJIT_INST_2x(sal, Sal, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(sal, Sal, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(sal, Sal, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(sal, Sal, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(sal, Sal, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(sal, Sal, Mem, Imm)                                   // ANY
-  ASMJIT_INST_2x(sar, Sar, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(sar, Sar, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(sar, Sar, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(sar, Sar, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(sar, Sar, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(sar, Sar, Mem, Imm)                                   // ANY
-  ASMJIT_INST_2x(scas, Scas, ZAX, ES_ZDI)                              // ANY [EXPLICIT]
+  ASMJIT_INST_2x(scas, Scas, Gp_ZAX, ES_ZDI)                           // ANY [EXPLICIT]
   ASMJIT_INST_1c(set, Set, Condition::toSetcc, Gp)                     // ANY
   ASMJIT_INST_1c(set, Set, Condition::toSetcc, Mem)                    // ANY
-  ASMJIT_INST_2x(shl, Shl, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(shl, Shl, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(shl, Shl, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(shl, Shl, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(shl, Shl, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(shl, Shl, Mem, Imm)                                   // ANY
-  ASMJIT_INST_2x(shr, Shr, Gp, CL)                                     // ANY
-  ASMJIT_INST_2x(shr, Shr, Mem, CL)                                    // ANY
+  ASMJIT_INST_2x(shr, Shr, Gp, Gp_CL)                                  // ANY
+  ASMJIT_INST_2x(shr, Shr, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2i(shr, Shr, Gp, Imm)                                    // ANY
   ASMJIT_INST_2i(shr, Shr, Mem, Imm)                                   // ANY
-  ASMJIT_INST_3x(shld, Shld, Gp, Gp, CL)                               // ANY
-  ASMJIT_INST_3x(shld, Shld, Mem, Gp, CL)                              // ANY
+  ASMJIT_INST_3x(shld, Shld, Gp, Gp, Gp_CL)                            // ANY
+  ASMJIT_INST_3x(shld, Shld, Mem, Gp, Gp_CL)                           // ANY
   ASMJIT_INST_3i(shld, Shld, Gp, Gp, Imm)                              // ANY
   ASMJIT_INST_3i(shld, Shld, Mem, Gp, Imm)                             // ANY
-  ASMJIT_INST_3x(shrd, Shrd, Gp, Gp, CL)                               // ANY
-  ASMJIT_INST_3x(shrd, Shrd, Mem, Gp, CL)                              // ANY
+  ASMJIT_INST_3x(shrd, Shrd, Gp, Gp, Gp_CL)                            // ANY
+  ASMJIT_INST_3x(shrd, Shrd, Mem, Gp, Gp_CL)                           // ANY
   ASMJIT_INST_3i(shrd, Shrd, Gp, Gp, Imm)                              // ANY
   ASMJIT_INST_3i(shrd, Shrd, Mem, Gp, Imm)                             // ANY
-  ASMJIT_INST_2x(stos, Stos, ES_ZDI, ZAX)                              // ANY [EXPLICIT]
+  ASMJIT_INST_2x(stos, Stos, ES_ZDI, Gp_ZAX)                           // ANY [EXPLICIT]
   ASMJIT_INST_2x(sub, Sub, Gp, Gp)                                     // ANY
   ASMJIT_INST_2x(sub, Sub, Gp, Mem)                                    // ANY
   ASMJIT_INST_2i(sub, Sub, Gp, Imm)                                    // ANY
@@ -769,12 +769,12 @@ public:
   // NOTE: For some reason Doxygen is messed up here and thinks we are in cond.
   //! \endcond
 
-  ASMJIT_INST_2i(in, In, ZAX, Imm)                                     // ANY
-  ASMJIT_INST_2x(in, In, ZAX, DX)                                      // ANY
-  ASMJIT_INST_2x(ins, Ins, ES_ZDI, DX)                                 // ANY
-  ASMJIT_INST_2x(out, Out, Imm, ZAX)                                   // ANY
-  ASMJIT_INST_2i(out, Out, DX, ZAX)                                    // ANY
-  ASMJIT_INST_2i(outs, Outs, DX, DS_ZSI)                               // ANY
+  ASMJIT_INST_2i(in, In, Gp_ZAX, Imm)                                  // ANY
+  ASMJIT_INST_2x(in, In, Gp_ZAX, Gp_DX)                                // ANY
+  ASMJIT_INST_2x(ins, Ins, ES_ZDI, Gp_DX)                              // ANY
+  ASMJIT_INST_2x(out, Out, Imm, Gp_ZAX)                                // ANY
+  ASMJIT_INST_2i(out, Out, Gp_DX, Gp_ZAX)                              // ANY
+  ASMJIT_INST_2i(outs, Outs, Gp_DX, DS_ZSI)                            // ANY
 
   //! \}
 
@@ -792,8 +792,8 @@ public:
   //! \name LAHF/SAHF Instructions
   //! \{
 
-  ASMJIT_INST_1x(lahf, Lahf, AH)                                       // LAHFSAHF [EXPLICIT] AH <- EFL
-  ASMJIT_INST_1x(sahf, Sahf, AH)                                       // LAHFSAHF [EXPLICIT] EFL <- AH
+  ASMJIT_INST_1x(lahf, Lahf, Gp_AH)                                    // LAHFSAHF [EXPLICIT] AH <- EFL
+  ASMJIT_INST_1x(sahf, Sahf, Gp_AH)                                    // LAHFSAHF [EXPLICIT] EFL <- AH
 
   //! \}
 
@@ -840,8 +840,8 @@ public:
 
   ASMJIT_INST_3x(bzhi, Bzhi, Gp, Gp, Gp)                               // BMI2
   ASMJIT_INST_3x(bzhi, Bzhi, Gp, Mem, Gp)                              // BMI2
-  ASMJIT_INST_4x(mulx, Mulx, Gp, Gp, Gp, ZDX)                          // BMI2      [EXPLICIT]
-  ASMJIT_INST_4x(mulx, Mulx, Gp, Gp, Mem, ZDX)                         // BMI2      [EXPLICIT]
+  ASMJIT_INST_4x(mulx, Mulx, Gp, Gp, Gp, Gp_ZDX)                       // BMI2      [EXPLICIT]
+  ASMJIT_INST_4x(mulx, Mulx, Gp, Gp, Mem, Gp_ZDX)                      // BMI2      [EXPLICIT]
   ASMJIT_INST_3x(pdep, Pdep, Gp, Gp, Gp)                               // BMI2
   ASMJIT_INST_3x(pdep, Pdep, Gp, Gp, Mem)                              // BMI2
   ASMJIT_INST_3x(pext, Pext, Gp, Gp, Gp)                               // BMI2
@@ -938,7 +938,7 @@ public:
   //! \name CPUID Instruction
   //! \{
 
-  ASMJIT_INST_4x(cpuid, Cpuid, EAX, EBX, ECX, EDX)                     // I486 [EXPLICIT] EAX:EBX:ECX:EDX <- CPUID[EAX:ECX]
+  ASMJIT_INST_4x(cpuid, Cpuid, Gp_EAX, Gp_EBX, Gp_ECX, Gp_EDX)         // I486 [EXPLICIT] EAX:EBX:ECX:EDX <- CPUID[EAX:ECX]
 
   //! \}
 
@@ -970,16 +970,16 @@ public:
   //! \name RDPRU/RDPKRU Instructions
   //! \{
 
-  ASMJIT_INST_3x(rdpru, Rdpru, EDX, EAX, ECX)                          // RDPRU     [EXPLICIT] EDX:EAX <- PRU[ECX]
-  ASMJIT_INST_3x(rdpkru, Rdpkru, EDX, EAX, ECX)                        // RDPKRU    [EXPLICIT] EDX:EAX <- PKRU[ECX]
+  ASMJIT_INST_3x(rdpru, Rdpru, Gp_EDX, Gp_EAX, Gp_ECX)                 // RDPRU     [EXPLICIT] EDX:EAX <- PRU[ECX]
+  ASMJIT_INST_3x(rdpkru, Rdpkru, Gp_EDX, Gp_EAX, Gp_ECX)               // RDPKRU    [EXPLICIT] EDX:EAX <- PKRU[ECX]
 
   //! \}
 
   //! \name RDTSC/RDTSCP Instructions
   //! \{
 
-  ASMJIT_INST_2x(rdtsc, Rdtsc, EDX, EAX)                               // RDTSC     [EXPLICIT] EDX:EAX     <- Counter
-  ASMJIT_INST_3x(rdtscp, Rdtscp, EDX, EAX, ECX)                        // RDTSCP    [EXPLICIT] EDX:EAX:EXC <- Counter
+  ASMJIT_INST_2x(rdtsc, Rdtsc, Gp_EDX, Gp_EAX)                         // RDTSC     [EXPLICIT] EDX:EAX     <- Counter
+  ASMJIT_INST_3x(rdtscp, Rdtscp, Gp_EDX, Gp_EAX, Gp_ECX)               // RDTSCP    [EXPLICIT] EDX:EAX:EXC <- Counter
 
   //! \}
 
@@ -1043,7 +1043,7 @@ public:
   //! \name XSAVE Instructions
   //! \{
 
-  ASMJIT_INST_3x(xgetbv, Xgetbv, EDX, EAX, ECX)                        // XSAVE [EXPLICIT] EDX:EAX <- XCR[ECX]
+  ASMJIT_INST_3x(xgetbv, Xgetbv, Gp_EDX, Gp_EAX, Gp_ECX)               // XSAVE [EXPLICIT] EDX:EAX <- XCR[ECX]
 
   //! \}
 
@@ -1189,13 +1189,13 @@ public:
   ASMJIT_INST_1x(lmsw, Lmsw, Mem)                                      // ANY
   ASMJIT_INST_1x(ltr, Ltr, Gp)                                         // ANY
   ASMJIT_INST_1x(ltr, Ltr, Mem)                                        // ANY
-  ASMJIT_INST_3x(rdmsr, Rdmsr, EDX, EAX, ECX)                          // MSR       [EXPLICIT] RDX:EAX     <- MSR[ECX]
-  ASMJIT_INST_3x(rdpmc, Rdpmc, EDX, EAX, ECX)                          // ANY       [EXPLICIT] RDX:EAX     <- PMC[ECX]
+  ASMJIT_INST_3x(rdmsr, Rdmsr, Gp_EDX, Gp_EAX, Gp_ECX)                 // MSR       [EXPLICIT] RDX:EAX <- MSR[ECX]
+  ASMJIT_INST_3x(rdpmc, Rdpmc, Gp_EDX, Gp_EAX, Gp_ECX)                 // ANY       [EXPLICIT] RDX:EAX <- PMC[ECX]
   ASMJIT_INST_0x(swapgs, Swapgs)                                       // X64
   ASMJIT_INST_0x(wbinvd, Wbinvd)                                       // ANY
   ASMJIT_INST_0x(wbnoinvd, Wbnoinvd)                                   // WBNOINVD
-  ASMJIT_INST_3x(wrmsr, Wrmsr, EDX, EAX, ECX)                          // MSR       [EXPLICIT] RDX:EAX     -> MSR[ECX]
-  ASMJIT_INST_3x(xsetbv, Xsetbv, EDX, EAX, ECX)                        // XSAVE     [EXPLICIT] XCR[ECX] <- EDX:EAX
+  ASMJIT_INST_3x(wrmsr, Wrmsr, Gp_EDX, Gp_EAX, Gp_ECX)                 // MSR       [EXPLICIT] RDX:EAX  -> MSR[ECX]
+  ASMJIT_INST_3x(xsetbv, Xsetbv, Gp_EDX, Gp_EAX, Gp_ECX)               // XSAVE     [EXPLICIT] XCR[ECX] <- EDX:EAX
 
   //! \}
 
@@ -1686,10 +1686,10 @@ public:
   ASMJIT_INST_3i(pblendw, Pblendw, Xmm, Mem, Imm)                      // SSE4_1
   ASMJIT_INST_3i(pclmulqdq, Pclmulqdq, Xmm, Xmm, Imm)                  // PCLMULQDQ.
   ASMJIT_INST_3i(pclmulqdq, Pclmulqdq, Xmm, Mem, Imm)                  // PCLMULQDQ.
-  ASMJIT_INST_6x(pcmpestri, Pcmpestri, Xmm, Xmm, Imm, ECX, EAX, EDX)   // SSE4_2 [EXPLICIT]
-  ASMJIT_INST_6x(pcmpestri, Pcmpestri, Xmm, Mem, Imm, ECX, EAX, EDX)   // SSE4_2 [EXPLICIT]
-  ASMJIT_INST_6x(pcmpestrm, Pcmpestrm, Xmm, Xmm, Imm, XMM0, EAX, EDX)  // SSE4_2 [EXPLICIT]
-  ASMJIT_INST_6x(pcmpestrm, Pcmpestrm, Xmm, Mem, Imm, XMM0, EAX, EDX)  // SSE4_2 [EXPLICIT]
+  ASMJIT_INST_6x(pcmpestri, Pcmpestri, Xmm, Xmm, Imm, Gp_ECX, Gp_EAX, Gp_EDX) // SSE4_2 [EXPLICIT]
+  ASMJIT_INST_6x(pcmpestri, Pcmpestri, Xmm, Mem, Imm, Gp_ECX, Gp_EAX, Gp_EDX) // SSE4_2 [EXPLICIT]
+  ASMJIT_INST_6x(pcmpestrm, Pcmpestrm, Xmm, Xmm, Imm, XMM0, Gp_EAX, Gp_EDX)   // SSE4_2 [EXPLICIT]
+  ASMJIT_INST_6x(pcmpestrm, Pcmpestrm, Xmm, Mem, Imm, XMM0, Gp_EAX, Gp_EDX)   // SSE4_2 [EXPLICIT]
   ASMJIT_INST_2x(pcmpeqb, Pcmpeqb, Mm, Mm)                             // MMX
   ASMJIT_INST_2x(pcmpeqb, Pcmpeqb, Mm, Mem)                            // MMX
   ASMJIT_INST_2x(pcmpeqb, Pcmpeqb, Xmm, Xmm)                           // SSE2
@@ -1718,8 +1718,8 @@ public:
   ASMJIT_INST_2x(pcmpgtw, Pcmpgtw, Mm, Mem)                            // MMX
   ASMJIT_INST_2x(pcmpgtw, Pcmpgtw, Xmm, Xmm)                           // SSE2
   ASMJIT_INST_2x(pcmpgtw, Pcmpgtw, Xmm, Mem)                           // SSE2
-  ASMJIT_INST_4x(pcmpistri, Pcmpistri, Xmm, Xmm, Imm, ECX)             // SSE4_2 [EXPLICIT]
-  ASMJIT_INST_4x(pcmpistri, Pcmpistri, Xmm, Mem, Imm, ECX)             // SSE4_2 [EXPLICIT]
+  ASMJIT_INST_4x(pcmpistri, Pcmpistri, Xmm, Xmm, Imm, Gp_ECX)          // SSE4_2 [EXPLICIT]
+  ASMJIT_INST_4x(pcmpistri, Pcmpistri, Xmm, Mem, Imm, Gp_ECX)          // SSE4_2 [EXPLICIT]
   ASMJIT_INST_4x(pcmpistrm, Pcmpistrm, Xmm, Xmm, Imm, XMM0)            // SSE4_2 [EXPLICIT]
   ASMJIT_INST_4x(pcmpistrm, Pcmpistrm, Xmm, Mem, Imm, XMM0)            // SSE4_2 [EXPLICIT]
   ASMJIT_INST_3i(pextrb, Pextrb, Gp, Xmm, Imm)                         // SSE4_1
@@ -2899,10 +2899,10 @@ public:
   ASMJIT_INST_3x(vpcmpeqw, Vpcmpeqw, Vec, Vec, Mem)                    // AVX+
   ASMJIT_INST_3x(vpcmpeqw, Vpcmpeqw, KReg, Vec, Vec)                   //      AVX512_BW{k}
   ASMJIT_INST_3x(vpcmpeqw, Vpcmpeqw, KReg, Vec, Mem)                   //      AVX512_BW{k}
-  ASMJIT_INST_6x(vpcmpestri, Vpcmpestri, Vec, Vec, Imm, ECX, EAX, EDX) // AVX  [EXPLICIT]
-  ASMJIT_INST_6x(vpcmpestri, Vpcmpestri, Vec, Mem, Imm, ECX, EAX, EDX) // AVX  [EXPLICIT]
-  ASMJIT_INST_6x(vpcmpestrm, Vpcmpestrm, Vec, Vec, Imm, XMM0, EAX, EDX)// AVX  [EXPLICIT]
-  ASMJIT_INST_6x(vpcmpestrm, Vpcmpestrm, Vec, Mem, Imm, XMM0, EAX, EDX)// AVX  [EXPLICIT]
+  ASMJIT_INST_6x(vpcmpestri, Vpcmpestri, Vec, Vec, Imm, Gp_ECX, Gp_EAX, Gp_EDX) // AVX  [EXPLICIT]
+  ASMJIT_INST_6x(vpcmpestri, Vpcmpestri, Vec, Mem, Imm, Gp_ECX, Gp_EAX, Gp_EDX) // AVX  [EXPLICIT]
+  ASMJIT_INST_6x(vpcmpestrm, Vpcmpestrm, Vec, Vec, Imm, XMM0, Gp_EAX, Gp_EDX)   // AVX  [EXPLICIT]
+  ASMJIT_INST_6x(vpcmpestrm, Vpcmpestrm, Vec, Mem, Imm, XMM0, Gp_EAX, Gp_EDX)   // AVX  [EXPLICIT]
   ASMJIT_INST_3x(vpcmpgtb, Vpcmpgtb, Vec, Vec, Vec)                    // AVX+
   ASMJIT_INST_3x(vpcmpgtb, Vpcmpgtb, Vec, Vec, Mem)                    // AVX+
   ASMJIT_INST_3x(vpcmpgtb, Vpcmpgtb, KReg, Vec, Vec)                   //      AVX512_BW{k}
@@ -2919,8 +2919,8 @@ public:
   ASMJIT_INST_3x(vpcmpgtw, Vpcmpgtw, Vec, Vec, Mem)                    // AVX+
   ASMJIT_INST_3x(vpcmpgtw, Vpcmpgtw, KReg, Vec, Vec)                   //      AVX512_BW{k}
   ASMJIT_INST_3x(vpcmpgtw, Vpcmpgtw, KReg, Vec, Mem)                   //      AVX512_BW{k}
-  ASMJIT_INST_4x(vpcmpistri, Vpcmpistri, Vec, Vec, Imm, ECX)           // AVX  [EXPLICIT]
-  ASMJIT_INST_4x(vpcmpistri, Vpcmpistri, Vec, Mem, Imm, ECX)           // AVX  [EXPLICIT]
+  ASMJIT_INST_4x(vpcmpistri, Vpcmpistri, Vec, Vec, Imm, Gp_ECX)        // AVX  [EXPLICIT]
+  ASMJIT_INST_4x(vpcmpistri, Vpcmpistri, Vec, Mem, Imm, Gp_ECX)        // AVX  [EXPLICIT]
   ASMJIT_INST_4x(vpcmpistrm, Vpcmpistrm, Vec, Vec, Imm, XMM0)          // AVX  [EXPLICIT]
   ASMJIT_INST_4x(vpcmpistrm, Vpcmpistrm, Vec, Mem, Imm, XMM0)          // AVX  [EXPLICIT]
   ASMJIT_INST_4i(vpcmpq, Vpcmpq, KReg, Vec, Vec, Imm)                  //      AVX512_F{k|b64}
