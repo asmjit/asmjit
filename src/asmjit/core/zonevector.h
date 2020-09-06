@@ -155,10 +155,10 @@ public:
   typedef T& reference;
   typedef const T& const_reference;
 
-  typedef Support::Iterator<T> iterator;
-  typedef Support::Iterator<const T> const_iterator;
-  typedef Support::ReverseIterator<T> reverse_iterator;
-  typedef Support::ReverseIterator<const T> const_reverse_iterator;
+  typedef T* iterator;
+  typedef const T* const_iterator;
+  typedef std::reverse_iterator<T> reverse_iterator;
+  typedef std::reverse_iterator<const T> const_reverse_iterator;
 
   //! \name Construction & Destruction
   //! \{

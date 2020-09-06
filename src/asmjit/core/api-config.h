@@ -128,8 +128,9 @@ namespace asmjit {
 #include <stdlib.h>
 #include <string.h>
 
-#include <new>
+#include <iterator>
 #include <limits>
+#include <new>
 #include <type_traits>
 #include <utility>
 

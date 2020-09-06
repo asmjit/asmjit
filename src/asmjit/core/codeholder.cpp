@@ -26,6 +26,9 @@
 #include "../core/logger.h"
 #include "../core/support.h"
 
+#include <algorithm>
+#include <tuple>
+
 ASMJIT_BEGIN_NAMESPACE
 
 // ============================================================================
@@ -368,25 +371,6 @@ Error CodeHolder::reserveBuffer(CodeBuffer* cb, size_t n) noexcept {
 // [asmjit::CodeHolder - Sections]
 // ============================================================================
 
-template<typename T, typename Compar>
-static inline size_t binarySearchClosestFirst(const T* array, size_t size, const T& value, const Compar& compar) noexcept {
-  if (!size)
-    return 0;
-
-  const T* base = array;
-  while (size_t half = size / 2u) {
-    const T* middle = base + half;
-    size -= half;
-    if (compar(middle[0], value) < 0)
-      base = middle;
-  }
-
-  if (compar(base[0], value) < 0)
-    base++;
-
-  return size_t(base - array);
-}
-
 Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t nameSize, uint32_t flags, uint32_t alignment, int32_t order) noexcept {
   *sectionOut = nullptr;
 
@@ -419,13 +403,12 @@ Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t name
   section->_order = order;
   memcpy(section->_name.str, name, nameSize);
 
-  size_t n = binarySearchClosestFirst(_sectionsByOrder.data(), _sectionsByOrder.size(), section, [](const Section* a, const Section* b) -> int64_t {
-    return a->order() == b->order() ? int64_t(a->id()) - int64_t(b->id())
-                                    : int64_t(a->order()) - int64_t(b->order());
+  Section** insertPosition = std::lower_bound(_sectionsByOrder.begin(), _sectionsByOrder.end(), section, [](const Section* a, const Section* b) {
+    return std::make_tuple(a->order(), a->id()) < std::make_tuple(b->order(), b->id());
   });
 
   _sections.appendUnsafe(section);
-  _sectionsByOrder.insertUnsafe(n, section);
+  _sectionsByOrder.insertUnsafe((size_t)(insertPosition - _sectionsByOrder.data()), section);
 
   *sectionOut = section;
   return kErrorOk;

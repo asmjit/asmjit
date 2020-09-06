@@ -1407,66 +1407,6 @@ static inline void qSort(T* base, size_t size, const CompareT& cmp = CompareT())
 }
 
 // ============================================================================
-// [asmjit::Support - Iterators]
-// ============================================================================
-
-template<typename T>
-class Iterator {
-public:
-  constexpr Iterator(T* p) noexcept : _p(p) {}
-  constexpr Iterator(const Iterator& other) noexcept = default;
-
-  inline Iterator& operator=(const Iterator& other) noexcept = default;
-
-  inline Iterator operator+(size_t n) const noexcept { return Iterator(_p + n); }
-  inline Iterator operator-(size_t n) const noexcept { return Iterator(_p - n); }
-
-  inline Iterator& operator+=(size_t n) noexcept { _p += n; return *this; }
-  inline Iterator& operator-=(size_t n) noexcept { _p -= n; return *this; }
-
-  inline Iterator& operator++() noexcept { return operator+=(1); }
-  inline Iterator& operator--() noexcept { return operator-=(1); }
-
-  inline Iterator operator++(int) noexcept { T* prev = _p; operator+=(1); return Iterator(prev); }
-  inline Iterator operator--(int) noexcept { T* prev = _p; operator-=(1); return Iterator(prev); }
-
-  inline bool operator==(const Iterator& other) noexcept { return _p == other._p; }
-  inline bool operator!=(const Iterator& other) noexcept { return _p != other._p; }
-
-  inline T& operator*() const noexcept { return _p[0]; }
-
-  T* _p;
-};
-
-template<typename T>
-class ReverseIterator {
-public:
-  constexpr ReverseIterator(T* p) noexcept : _p(p) {}
-  constexpr ReverseIterator(const ReverseIterator& other) noexcept = default;
-
-  inline ReverseIterator& operator=(const ReverseIterator& other) noexcept = default;
-
-  inline ReverseIterator operator+(size_t n) const noexcept { return ReverseIterator(_p + n); }
-  inline ReverseIterator operator-(size_t n) const noexcept { return ReverseIterator(_p - n); }
-
-  inline ReverseIterator& operator+=(size_t n) noexcept { _p -= n; return *this; }
-  inline ReverseIterator& operator-=(size_t n) noexcept { _p += n; return *this; }
-
-  inline ReverseIterator& operator++() noexcept { return operator+=(1); }
-  inline ReverseIterator& operator--() noexcept { return operator-=(1); }
-
-  inline ReverseIterator operator++(int) noexcept { T* prev = _p; operator+=(1); return ReverseIterator(prev); }
-  inline ReverseIterator operator--(int) noexcept { T* prev = _p; operator-=(1); return ReverseIterator(prev); }
-
-  inline bool operator==(const ReverseIterator& other) noexcept { return _p == other._p; }
-  inline bool operator!=(const ReverseIterator& other) noexcept { return _p != other._p; }
-
-  inline T& operator*() const noexcept { return _p[-1]; }
-
-  T* _p;
-};
-
-// ============================================================================
 // [asmjit::Support::Temporary]
 // ============================================================================
 
