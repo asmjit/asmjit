@@ -932,6 +932,8 @@ Error RALocalAllocator::allocBranch(InstNode* node, RABlock* target, RABlock* co
 }
 
 Error RALocalAllocator::allocJumpTable(InstNode* node, const RABlocks& targets, RABlock* cont) noexcept {
+  DebugUtils::unused(cont);
+
   if (targets.empty())
     return DebugUtils::errored(kErrorInvalidState);
 
