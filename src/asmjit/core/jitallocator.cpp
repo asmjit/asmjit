@@ -24,7 +24,7 @@
 #include "../core/api-build_p.h"
 #ifndef ASMJIT_NO_JIT
 
-#include "../core/arch.h"
+#include "../core/archtraits.h"
 #include "../core/jitallocator.h"
 #include "../core/osutils_p.h"
 #include "../core/support.h"

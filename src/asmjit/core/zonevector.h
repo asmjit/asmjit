@@ -46,21 +46,18 @@ public:
   typedef ptrdiff_t difference_type;
 
   //! Vector data (untyped).
-  void* _data;
+  void* _data = nullptr;
   //! Size of the vector.
-  size_type _size;
+  size_type _size = 0;
   //! Capacity of the vector.
-  size_type _capacity;
+  size_type _capacity = 0;
 
 protected:
   //! \name Construction & Destruction
   //! \{
 
   //! Creates a new instance of `ZoneVectorBase`.
-  inline ZoneVectorBase() noexcept
-    : _data(nullptr),
-      _size(0),
-      _capacity(0) {}
+  inline ZoneVectorBase() noexcept {}
 
   inline ZoneVectorBase(ZoneVectorBase&& other) noexcept
     : _data(other._data),
@@ -436,11 +433,11 @@ public:
   static constexpr uint32_t kBitWordSizeInBits = Support::kBitWordSizeInBits;
 
   //! Bits.
-  BitWord* _data;
+  BitWord* _data = nullptr;
   //! Size of the bit-vector (in bits).
-  uint32_t _size;
+  uint32_t _size = 0;
   //! Capacity of the bit-vector (in bits).
-  uint32_t _capacity;
+  uint32_t _capacity = 0;
 
   ASMJIT_NONCOPYABLE(ZoneBitVector)
 
@@ -473,10 +470,7 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline ZoneBitVector() noexcept
-    : _data(nullptr),
-      _size(0),
-      _capacity(0) {}
+  inline ZoneBitVector() noexcept {}
 
   inline ZoneBitVector(ZoneBitVector&& other) noexcept
     : _data(other._data),

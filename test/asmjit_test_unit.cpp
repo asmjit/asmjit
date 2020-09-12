@@ -42,7 +42,7 @@ static const char* archToString(uint32_t arch) noexcept {
     case Environment::kArchARM      : return "ARM";
     case Environment::kArchThumb    : return "Thumb";
     case Environment::kArchAArch64  : return "AArch64";
-    case Environment::kArchMIPS_LE  : return "MIPS";
+    case Environment::kArchMIPS32_LE: return "MIPS";
     case Environment::kArchMIPS64_LE: return "MIPS64";
     default: return "Unknown";
   }

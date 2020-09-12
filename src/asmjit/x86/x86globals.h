@@ -24,7 +24,7 @@
 #ifndef ASMJIT_X86_X86GLOBALS_H_INCLUDED
 #define ASMJIT_X86_X86GLOBALS_H_INCLUDED
 
-#include "../core/arch.h"
+#include "../core/archtraits.h"
 #include "../core/inst.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
@@ -1723,16 +1723,16 @@ namespace Condition {
   static constexpr uint16_t cmovccTable[] = { ASMJIT_INST_FROM_COND(Inst::kIdCmov) };
   #undef ASMJIT_INST_FROM_COND
 
-  //! Reverse a condition code (reverses the corresponding operands of a comparison).
+  //! Reverses a condition code (reverses the corresponding operands of a comparison).
   static constexpr uint32_t reverse(uint32_t cond) noexcept { return reverseTable[cond]; }
-  //! Negate a condition code.
+  //! Negates a condition code.
   static constexpr uint32_t negate(uint32_t cond) noexcept { return cond ^ 1u; }
 
-  //! Translate a condition code `cond` to a `jcc` instruction id.
+  //! Translates a condition code `cond` to a `jcc` instruction id.
   static constexpr uint32_t toJcc(uint32_t cond) noexcept { return jccTable[cond]; }
-  //! Translate a condition code `cond` to a `setcc` instruction id.
+  //! Translates a condition code `cond` to a `setcc` instruction id.
   static constexpr uint32_t toSetcc(uint32_t cond) noexcept { return setccTable[cond]; }
-  //! Translate a condition code `cond` to a `cmovcc` instruction id.
+  //! Translates a condition code `cond` to a `cmovcc` instruction id.
   static constexpr uint32_t toCmovcc(uint32_t cond) noexcept { return cmovccTable[cond]; }
 }
 

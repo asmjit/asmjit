@@ -339,6 +339,59 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
 }
 
 // ============================================================================
+// [asmjit::x86::FormatterInternal - Format Register]
+// ============================================================================
+
+ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(String& sb, uint32_t flags, const BaseEmitter* emitter, uint32_t arch, uint32_t rType, uint32_t rId) noexcept {
+  DebugUtils::unused(arch);
+  const RegFormatInfo& info = x86RegFormatInfo;
+
+#ifndef ASMJIT_NO_COMPILER
+  if (Operand::isVirtId(rId)) {
+    if (emitter && emitter->emitterType() == BaseEmitter::kTypeCompiler) {
+      const BaseCompiler* cc = static_cast<const BaseCompiler*>(emitter);
+      if (cc->isVirtIdValid(rId)) {
+        VirtReg* vReg = cc->virtRegById(rId);
+        ASMJIT_ASSERT(vReg != nullptr);
+
+        const char* name = vReg->name();
+        if (name && name[0] != '\0')
+          ASMJIT_PROPAGATE(sb.append(name));
+        else
+          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(rId))));
+
+        if (vReg->type() != rType && rType <= BaseReg::kTypeMax && (flags & FormatOptions::kFlagRegCasts) != 0) {
+          const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[rType];
+          if (typeEntry.index)
+            ASMJIT_PROPAGATE(sb.appendFormat("@%s", info.typeStrings + typeEntry.index));
+        }
+
+        return kErrorOk;
+      }
+    }
+  }
+#else
+  DebugUtils::unused(emitter, flags);
+#endif
+
+  if (ASMJIT_LIKELY(rType <= BaseReg::kTypeMax)) {
+    const RegFormatInfo::NameEntry& nameEntry = info.nameEntries[rType];
+
+    if (rId < nameEntry.specialCount)
+      return sb.append(info.nameStrings + nameEntry.specialIndex + rId * 4);
+
+    if (rId < nameEntry.count)
+      return sb.appendFormat(info.nameStrings + nameEntry.formatIndex, unsigned(rId));
+
+    const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[rType];
+    if (typeEntry.index)
+      return sb.appendFormat("%s@%u", info.typeStrings + typeEntry.index, rId);
+  }
+
+  return sb.appendFormat("<Reg-%u>?%u", rType, rId);
+}
+
+// ============================================================================
 // [asmjit::x86::FormatterInternal - Format Operand]
 // ============================================================================
 
@@ -363,8 +416,8 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
 
     ASMJIT_PROPAGATE(sb.append('['));
     switch (m.addrType()) {
-      case BaseMem::kAddrTypeAbs: ASMJIT_PROPAGATE(sb.append("abs ")); break;
-      case BaseMem::kAddrTypeRel: ASMJIT_PROPAGATE(sb.append("rel ")); break;
+      case Mem::kAddrTypeAbs: ASMJIT_PROPAGATE(sb.append("abs ")); break;
+      case Mem::kAddrTypeRel: ASMJIT_PROPAGATE(sb.append("rel ")); break;
     }
 
     char opSign = '\0';
@@ -761,59 +814,6 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
     default:
       return kErrorOk;
   }
-}
-
-// ============================================================================
-// [asmjit::x86::FormatterInternal - Format Register]
-// ============================================================================
-
-ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(String& sb, uint32_t flags, const BaseEmitter* emitter, uint32_t arch, uint32_t rType, uint32_t rId) noexcept {
-  DebugUtils::unused(arch);
-  const RegFormatInfo& info = x86RegFormatInfo;
-
-#ifndef ASMJIT_NO_COMPILER
-  if (Operand::isVirtId(rId)) {
-    if (emitter && emitter->emitterType() == BaseEmitter::kTypeCompiler) {
-      const BaseCompiler* cc = static_cast<const BaseCompiler*>(emitter);
-      if (cc->isVirtIdValid(rId)) {
-        VirtReg* vReg = cc->virtRegById(rId);
-        ASMJIT_ASSERT(vReg != nullptr);
-
-        const char* name = vReg->name();
-        if (name && name[0] != '\0')
-          ASMJIT_PROPAGATE(sb.append(name));
-        else
-          ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(rId))));
-
-        if (vReg->type() != rType && rType <= BaseReg::kTypeMax && (flags & FormatOptions::kFlagRegCasts) != 0) {
-          const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[rType];
-          if (typeEntry.index)
-            ASMJIT_PROPAGATE(sb.appendFormat("@%s", info.typeStrings + typeEntry.index));
-        }
-
-        return kErrorOk;
-      }
-    }
-  }
-#else
-  DebugUtils::unused(emitter, flags);
-#endif
-
-  if (ASMJIT_LIKELY(rType <= BaseReg::kTypeMax)) {
-    const RegFormatInfo::NameEntry& nameEntry = info.nameEntries[rType];
-
-    if (rId < nameEntry.specialCount)
-      return sb.append(info.nameStrings + nameEntry.specialIndex + rId * 4);
-
-    if (rId < nameEntry.count)
-      return sb.appendFormat(info.nameStrings + nameEntry.formatIndex, unsigned(rId));
-
-    const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[rType];
-    if (typeEntry.index)
-      return sb.appendFormat("%s@%u", info.typeStrings + typeEntry.index, rId);
-  }
-
-  return sb.appendFormat("Reg?%u@%u", rType, rId);
 }
 
 // ============================================================================

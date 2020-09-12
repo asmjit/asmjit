@@ -32,144 +32,112 @@
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 #define ASMJIT_INST_0x(NAME, ID) \
-  inline Error NAME() { return _emitter()->emit(Inst::kId##ID); }
+  inline Error NAME() { return _emitter()->_emitI(Inst::kId##ID); }
 
 #define ASMJIT_INST_1x(NAME, ID, T0) \
-  inline Error NAME(const T0& o0) { return _emitter()->emit(Inst::kId##ID, o0); }
+  inline Error NAME(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID, o0); }
 
 #define ASMJIT_INST_1i(NAME, ID, T0) \
-  inline Error NAME(const T0& o0) { return _emitter()->emit(Inst::kId##ID, o0); } \
-  /** \cond */ \
-  inline Error NAME(int o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); } \
-  inline Error NAME(unsigned int o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); } \
-  inline Error NAME(int64_t o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); } \
-  inline Error NAME(uint64_t o0) { return _emitter()->emit(Inst::kId##ID, Support::asInt(o0)); } \
-  /** \endcond */
+  inline Error NAME(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID, o0); }
 
 #define ASMJIT_INST_1c(NAME, ID, CONV, T0) \
-  inline Error NAME(uint32_t cc, const T0& o0) { return _emitter()->emit(CONV(cc), o0); } \
-  inline Error NAME##a(const T0& o0) { return _emitter()->emit(Inst::kId##ID##a, o0); } \
-  inline Error NAME##ae(const T0& o0) { return _emitter()->emit(Inst::kId##ID##ae, o0); } \
-  inline Error NAME##b(const T0& o0) { return _emitter()->emit(Inst::kId##ID##b, o0); } \
-  inline Error NAME##be(const T0& o0) { return _emitter()->emit(Inst::kId##ID##be, o0); } \
-  inline Error NAME##c(const T0& o0) { return _emitter()->emit(Inst::kId##ID##c, o0); } \
-  inline Error NAME##e(const T0& o0) { return _emitter()->emit(Inst::kId##ID##e, o0); } \
-  inline Error NAME##g(const T0& o0) { return _emitter()->emit(Inst::kId##ID##g, o0); } \
-  inline Error NAME##ge(const T0& o0) { return _emitter()->emit(Inst::kId##ID##ge, o0); } \
-  inline Error NAME##l(const T0& o0) { return _emitter()->emit(Inst::kId##ID##l, o0); } \
-  inline Error NAME##le(const T0& o0) { return _emitter()->emit(Inst::kId##ID##le, o0); } \
-  inline Error NAME##na(const T0& o0) { return _emitter()->emit(Inst::kId##ID##na, o0); } \
-  inline Error NAME##nae(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nae, o0); } \
-  inline Error NAME##nb(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nb, o0); } \
-  inline Error NAME##nbe(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nbe, o0); } \
-  inline Error NAME##nc(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nc, o0); } \
-  inline Error NAME##ne(const T0& o0) { return _emitter()->emit(Inst::kId##ID##ne, o0); } \
-  inline Error NAME##ng(const T0& o0) { return _emitter()->emit(Inst::kId##ID##ng, o0); } \
-  inline Error NAME##nge(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nge, o0); } \
-  inline Error NAME##nl(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nl, o0); } \
-  inline Error NAME##nle(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nle, o0); } \
-  inline Error NAME##no(const T0& o0) { return _emitter()->emit(Inst::kId##ID##no, o0); } \
-  inline Error NAME##np(const T0& o0) { return _emitter()->emit(Inst::kId##ID##np, o0); } \
-  inline Error NAME##ns(const T0& o0) { return _emitter()->emit(Inst::kId##ID##ns, o0); } \
-  inline Error NAME##nz(const T0& o0) { return _emitter()->emit(Inst::kId##ID##nz, o0); } \
-  inline Error NAME##o(const T0& o0) { return _emitter()->emit(Inst::kId##ID##o, o0); } \
-  inline Error NAME##p(const T0& o0) { return _emitter()->emit(Inst::kId##ID##p, o0); } \
-  inline Error NAME##pe(const T0& o0) { return _emitter()->emit(Inst::kId##ID##pe, o0); } \
-  inline Error NAME##po(const T0& o0) { return _emitter()->emit(Inst::kId##ID##po, o0); } \
-  inline Error NAME##s(const T0& o0) { return _emitter()->emit(Inst::kId##ID##s, o0); } \
-  inline Error NAME##z(const T0& o0) { return _emitter()->emit(Inst::kId##ID##z, o0); }
+  inline Error NAME(uint32_t cc, const T0& o0) { return _emitter()->_emitI(CONV(cc), o0); } \
+  inline Error NAME##a(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##a, o0); } \
+  inline Error NAME##ae(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##ae, o0); } \
+  inline Error NAME##b(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##b, o0); } \
+  inline Error NAME##be(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##be, o0); } \
+  inline Error NAME##c(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##c, o0); } \
+  inline Error NAME##e(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##e, o0); } \
+  inline Error NAME##g(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##g, o0); } \
+  inline Error NAME##ge(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##ge, o0); } \
+  inline Error NAME##l(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##l, o0); } \
+  inline Error NAME##le(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##le, o0); } \
+  inline Error NAME##na(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##na, o0); } \
+  inline Error NAME##nae(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nae, o0); } \
+  inline Error NAME##nb(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nb, o0); } \
+  inline Error NAME##nbe(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nbe, o0); } \
+  inline Error NAME##nc(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nc, o0); } \
+  inline Error NAME##ne(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##ne, o0); } \
+  inline Error NAME##ng(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##ng, o0); } \
+  inline Error NAME##nge(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nge, o0); } \
+  inline Error NAME##nl(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nl, o0); } \
+  inline Error NAME##nle(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nle, o0); } \
+  inline Error NAME##no(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##no, o0); } \
+  inline Error NAME##np(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##np, o0); } \
+  inline Error NAME##ns(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##ns, o0); } \
+  inline Error NAME##nz(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##nz, o0); } \
+  inline Error NAME##o(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##o, o0); } \
+  inline Error NAME##p(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##p, o0); } \
+  inline Error NAME##pe(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##pe, o0); } \
+  inline Error NAME##po(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##po, o0); } \
+  inline Error NAME##s(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##s, o0); } \
+  inline Error NAME##z(const T0& o0) { return _emitter()->_emitI(Inst::kId##ID##z, o0); }
 
 #define ASMJIT_INST_2x(NAME, ID, T0, T1) \
-  inline Error NAME(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID, o0, o1); }
+  inline Error NAME(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID, o0, o1); }
 
 #define ASMJIT_INST_2i(NAME, ID, T0, T1) \
-  inline Error NAME(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID, o0, o1); } \
-  /** \cond */ \
-  inline Error NAME(const T0& o0, int o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); } \
-  inline Error NAME(const T0& o0, unsigned int o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); } \
-  inline Error NAME(const T0& o0, int64_t o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); } \
-  inline Error NAME(const T0& o0, uint64_t o1) { return _emitter()->emit(Inst::kId##ID, o0, Support::asInt(o1)); } \
-  /** \endcond */
+  inline Error NAME(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID, o0, o1); }
 
 #define ASMJIT_INST_2c(NAME, ID, CONV, T0, T1) \
-  inline Error NAME(uint32_t cc, const T0& o0, const T1& o1) { return _emitter()->emit(CONV(cc), o0, o1); } \
-  inline Error NAME##a(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##a, o0, o1); } \
-  inline Error NAME##ae(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##ae, o0, o1); } \
-  inline Error NAME##b(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##b, o0, o1); } \
-  inline Error NAME##be(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##be, o0, o1); } \
-  inline Error NAME##c(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##c, o0, o1); } \
-  inline Error NAME##e(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##e, o0, o1); } \
-  inline Error NAME##g(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##g, o0, o1); } \
-  inline Error NAME##ge(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##ge, o0, o1); } \
-  inline Error NAME##l(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##l, o0, o1); } \
-  inline Error NAME##le(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##le, o0, o1); } \
-  inline Error NAME##na(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##na, o0, o1); } \
-  inline Error NAME##nae(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nae, o0, o1); } \
-  inline Error NAME##nb(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nb, o0, o1); } \
-  inline Error NAME##nbe(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nbe, o0, o1); } \
-  inline Error NAME##nc(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nc, o0, o1); } \
-  inline Error NAME##ne(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##ne, o0, o1); } \
-  inline Error NAME##ng(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##ng, o0, o1); } \
-  inline Error NAME##nge(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nge, o0, o1); } \
-  inline Error NAME##nl(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nl, o0, o1); } \
-  inline Error NAME##nle(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nle, o0, o1); } \
-  inline Error NAME##no(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##no, o0, o1); } \
-  inline Error NAME##np(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##np, o0, o1); } \
-  inline Error NAME##ns(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##ns, o0, o1); } \
-  inline Error NAME##nz(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##nz, o0, o1); } \
-  inline Error NAME##o(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##o, o0, o1); } \
-  inline Error NAME##p(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##p, o0, o1); } \
-  inline Error NAME##pe(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##pe, o0, o1); } \
-  inline Error NAME##po(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##po, o0, o1); } \
-  inline Error NAME##s(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##s, o0, o1); } \
-  inline Error NAME##z(const T0& o0, const T1& o1) { return _emitter()->emit(Inst::kId##ID##z, o0, o1); }
+  inline Error NAME(uint32_t cc, const T0& o0, const T1& o1) { return _emitter()->_emitI(CONV(cc), o0, o1); } \
+  inline Error NAME##a(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##a, o0, o1); } \
+  inline Error NAME##ae(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##ae, o0, o1); } \
+  inline Error NAME##b(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##b, o0, o1); } \
+  inline Error NAME##be(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##be, o0, o1); } \
+  inline Error NAME##c(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##c, o0, o1); } \
+  inline Error NAME##e(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##e, o0, o1); } \
+  inline Error NAME##g(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##g, o0, o1); } \
+  inline Error NAME##ge(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##ge, o0, o1); } \
+  inline Error NAME##l(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##l, o0, o1); } \
+  inline Error NAME##le(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##le, o0, o1); } \
+  inline Error NAME##na(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##na, o0, o1); } \
+  inline Error NAME##nae(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nae, o0, o1); } \
+  inline Error NAME##nb(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nb, o0, o1); } \
+  inline Error NAME##nbe(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nbe, o0, o1); } \
+  inline Error NAME##nc(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nc, o0, o1); } \
+  inline Error NAME##ne(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##ne, o0, o1); } \
+  inline Error NAME##ng(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##ng, o0, o1); } \
+  inline Error NAME##nge(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nge, o0, o1); } \
+  inline Error NAME##nl(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nl, o0, o1); } \
+  inline Error NAME##nle(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nle, o0, o1); } \
+  inline Error NAME##no(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##no, o0, o1); } \
+  inline Error NAME##np(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##np, o0, o1); } \
+  inline Error NAME##ns(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##ns, o0, o1); } \
+  inline Error NAME##nz(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##nz, o0, o1); } \
+  inline Error NAME##o(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##o, o0, o1); } \
+  inline Error NAME##p(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##p, o0, o1); } \
+  inline Error NAME##pe(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##pe, o0, o1); } \
+  inline Error NAME##po(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##po, o0, o1); } \
+  inline Error NAME##s(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##s, o0, o1); } \
+  inline Error NAME##z(const T0& o0, const T1& o1) { return _emitter()->_emitI(Inst::kId##ID##z, o0, o1); }
 
 #define ASMJIT_INST_3x(NAME, ID, T0, T1, T2) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2); }
 
 #define ASMJIT_INST_3i(NAME, ID, T0, T1, T2) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2); } \
-  /** \cond */ \
-  inline Error NAME(const T0& o0, const T1& o1, int o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); } \
-  inline Error NAME(const T0& o0, const T1& o1, unsigned int o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); } \
-  inline Error NAME(const T0& o0, const T1& o1, int64_t o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); } \
-  inline Error NAME(const T0& o0, const T1& o1, uint64_t o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, Support::asInt(o2)); } \
-  /** \endcond */
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2); }
 
 #define ASMJIT_INST_3ii(NAME, ID, T0, T1, T2) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2); } \
-  inline Error NAME(const T0& o0, int o1, int o2) { return _emitter()->emit(Inst::kId##ID, o0, Imm(o1), Support::asInt(o2)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2); }
 
 #define ASMJIT_INST_4x(NAME, ID, T0, T1, T2, T3) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2, o3); }
 
 #define ASMJIT_INST_4i(NAME, ID, T0, T1, T2, T3) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3); } \
-  /** \cond */ \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, unsigned int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, int64_t o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, uint64_t o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, Support::asInt(o3)); } \
-  /** \endcond */
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2, o3); }
 
 #define ASMJIT_INST_4ii(NAME, ID, T0, T1, T2, T3) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3); } \
-  inline Error NAME(const T0& o0, const T1& o1, int o2, int o3) { return _emitter()->emit(Inst::kId##ID, o0, o1, Imm(o2), Support::asInt(o3)); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2, o3); }
 
 #define ASMJIT_INST_5x(NAME, ID, T0, T1, T2, T3, T4) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2, o3, o4); }
 
 #define ASMJIT_INST_5i(NAME, ID, T0, T1, T2, T3, T4) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4); } \
-  /** \cond */ \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, unsigned int o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, int64_t o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); } \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, uint64_t o4) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, Support::asInt(o4)); } \
-  /** \endcond */
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2, o3, o4); }
 
 #define ASMJIT_INST_6x(NAME, ID, T0, T1, T2, T3, T4, T5) \
-  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4, const T5& o5) { return _emitter()->emit(Inst::kId##ID, o0, o1, o2, o3, o4, o5); }
+  inline Error NAME(const T0& o0, const T1& o1, const T2& o2, const T3& o3, const T4& o4, const T5& o5) { return _emitter()->_emitI(Inst::kId##ID, o0, o1, o2, o3, o4, o5); }
 
 //! \addtogroup asmjit_x86
 //! \{
@@ -224,16 +192,16 @@ struct EmitterExplicitT {
   //! \{
 
   //! Returns either GPD or GPQ register of the given `id` depending on the emitter's architecture.
-  inline Gp gpz(uint32_t id) const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), id); }
+  inline Gp gpz(uint32_t id) const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), id); }
 
-  inline Gp zax() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdAx); }
-  inline Gp zcx() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdCx); }
-  inline Gp zdx() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdDx); }
-  inline Gp zbx() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdBx); }
-  inline Gp zsp() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdSp); }
-  inline Gp zbp() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdBp); }
-  inline Gp zsi() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdSi); }
-  inline Gp zdi() const noexcept { return Gp(_emitter()->_gpRegInfo.signature(), Gp::kIdDi); }
+  inline Gp zax() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdAx); }
+  inline Gp zcx() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdCx); }
+  inline Gp zdx() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdDx); }
+  inline Gp zbx() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdBx); }
+  inline Gp zsp() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdSp); }
+  inline Gp zbp() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdBp); }
+  inline Gp zsi() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdSi); }
+  inline Gp zdi() const noexcept { return Gp::fromSignatureAndId(_emitter()->_gpRegInfo.signature(), Gp::kIdDi); }
 
   //! \}
 
@@ -302,12 +270,12 @@ struct EmitterExplicitT {
   //! \overload
   inline Mem intptr_ptr_abs(uint64_t base) const noexcept {
     uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, nativeGpSize, BaseMem::kSignatureMemAbs);
+    return Mem(base, nativeGpSize, Mem::kSignatureMemAbs);
   }
   //! \overload
   inline Mem intptr_ptr_abs(uint64_t base, const Gp& index, uint32_t shift = 0) const noexcept {
     uint32_t nativeGpSize = _emitter()->registerSize();
-    return Mem(base, index, shift, nativeGpSize, BaseMem::kSignatureMemAbs);
+    return Mem(base, index, shift, nativeGpSize, Mem::kSignatureMemAbs);
   }
 
   //! \}

@@ -168,6 +168,7 @@ public:
 
   inline Features() noexcept
     : BaseFeatures() {}
+
   inline Features(const Features& other) noexcept
     : BaseFeatures(other) {}
 

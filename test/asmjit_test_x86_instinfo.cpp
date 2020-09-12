@@ -79,6 +79,41 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
     sb.append("\n");
   }
 
+  if (rw.readFlags() | rw.writeFlags()) {
+    sb.append("Flags: \n");
+
+    struct FlagMap {
+      uint32_t flag;
+      char name[4];
+    };
+
+    static const FlagMap flagMap[] = {
+      { x86::Status::kCF, "CF" },
+      { x86::Status::kOF, "OF" },
+      { x86::Status::kSF, "SF" },
+      { x86::Status::kZF, "ZF" },
+      { x86::Status::kAF, "AF" },
+      { x86::Status::kPF, "PF" },
+      { x86::Status::kDF, "DF" },
+      { x86::Status::kIF, "IF" },
+      { x86::Status::kAC, "AC" },
+      { x86::Status::kC0, "C0" },
+      { x86::Status::kC1, "C1" },
+      { x86::Status::kC2, "C2" },
+      { x86::Status::kC3, "C3" }
+    };
+
+    sb.append("  ");
+    for (uint32_t f = 0; f < 13; f++) {
+      char c = accessLetter((rw.readFlags() & flagMap[f].flag) != 0,
+                            (rw.writeFlags() & flagMap[f].flag) != 0);
+      if (c != '_')
+        sb.appendFormat("%s=%c ", flagMap[f].name, c);
+    }
+
+    sb.append("\n");
+  }
+
   // CPU Features
   // ------------
 

@@ -45,6 +45,7 @@
 //!       functions provided are part of all X86 emitters.
 //!     - \ref x86::EmitterImplicitT - Provides all instructions that use
 //!       implicit operands, these cannot be used with \ref x86::Compiler.
+//!
 //!   - Instruction representation:
 //!     - \ref x86::Inst::Id - instruction identifiers.
 //!     - \ref x86::Inst::Options - instruction options.
@@ -74,7 +75,7 @@
 //! ### Memory Operands
 //!
 //!   - \ref x86::Mem - X86/X64 memory operand that provides support for all
-//!     X86 and X64 addressing features, including absolute addresses, index
+//!     X86 and X64 addressing features including absolute addresses, index
 //!     scales, and segment override prefixes.
 //!
 //! ### Other

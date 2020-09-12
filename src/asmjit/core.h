@@ -2007,10 +2007,9 @@ namespace asmjit {
 
 #include "./core/globals.h"
 
-#include "./core/arch.h"
+#include "./core/archtraits.h"
 #include "./core/assembler.h"
 #include "./core/builder.h"
-#include "./core/callconv.h"
 #include "./core/codeholder.h"
 #include "./core/compiler.h"
 #include "./core/constpool.h"

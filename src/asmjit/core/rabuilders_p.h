@@ -37,29 +37,28 @@ ASMJIT_BEGIN_NAMESPACE
 //! \{
 
 // ============================================================================
-// [asmjit::RACFGBuilder]
+// [asmjit::RACFGBuilderT]
 // ============================================================================
 
 template<typename This>
-class RACFGBuilder {
+class RACFGBuilderT {
 public:
-  RAPass* _pass;
-  BaseCompiler* _cc;
-
-  RABlock* _curBlock;
-  RABlock* _retBlock;
-  FuncNode* _funcNode;
-  RARegsStats _blockRegStats;
-  uint32_t _exitLabelId;
-  ZoneVector<uint32_t> _sharedAssignmentsMap;
+  BaseRAPass* _pass = nullptr;
+  BaseCompiler* _cc = nullptr;
+  RABlock* _curBlock = nullptr;
+  RABlock* _retBlock = nullptr;
+  FuncNode* _funcNode = nullptr;
+  RARegsStats _blockRegStats {};
+  uint32_t _exitLabelId = Globals::kInvalidId;
+  ZoneVector<uint32_t> _sharedAssignmentsMap {};
 
   // Only used by logging, it's fine to be here to prevent more #ifdefs...
-  bool _hasCode;
-  RABlock* _lastLoggedBlock;
+  bool _hasCode = false;
+  RABlock* _lastLoggedBlock = nullptr;
 
 #ifndef ASMJIT_NO_LOGGING
-  Logger* _logger;
-  uint32_t _logFlags;
+  Logger* _logger = nullptr;
+  uint32_t _logFlags = FormatOptions::kFlagPositions;
   StringTmp<512> _sb;
 #endif
 
@@ -72,20 +71,11 @@ public:
   // position that is [at that time] unassigned.
   static constexpr uint32_t kNodePositionDidOnBefore = 0xFFFFFFFFu;
 
-  inline RACFGBuilder(RAPass* pass) noexcept
+  inline RACFGBuilderT(BaseRAPass* pass) noexcept
     : _pass(pass),
-      _cc(pass->cc()),
-      _curBlock(nullptr),
-      _retBlock(nullptr),
-      _funcNode(nullptr),
-      _blockRegStats{},
-      _exitLabelId(Globals::kInvalidId),
-      _hasCode(false),
-      _lastLoggedBlock(nullptr) {
+      _cc(pass->cc()) {
 #ifndef ASMJIT_NO_LOGGING
     _logger = _pass->debugLogger();
-    _logFlags = FormatOptions::kFlagPositions;
-
     if (_logger)
       _logFlags |= _logger->flags();
 #endif

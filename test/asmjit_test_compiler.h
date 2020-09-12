@@ -21,48 +21,83 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-#include "../core/api-build_p.h"
-#if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_NO_BUILDER)
+#ifndef ASMJIT_TEST_COMPILER_H_INCLUDED
+#define ASMJIT_TEST_COMPILER_H_INCLUDED
 
-#include "../x86/x86assembler.h"
-#include "../x86/x86builder.h"
+#include <asmjit/core.h>
 
-ASMJIT_BEGIN_SUB_NAMESPACE(x86)
-
-// ============================================================================
-// [asmjit::x86::Builder - Construction / Destruction]
-// ============================================================================
-
-Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
-  if (code)
-    code->attach(this);
-}
-Builder::~Builder() noexcept {}
+#include <memory>
+#include <vector>
 
 // ============================================================================
-// [asmjit::x86::Builder - Finalize]
+// [SimpleErrorHandler]
 // ============================================================================
 
-Error Builder::finalize() {
-  ASMJIT_PROPAGATE(runPasses());
-  Assembler a(_code);
-  a.addEncodingOptions(encodingOptions());
-  a.addValidationOptions(validationOptions());
-  return serializeTo(&a);
-}
+class SimpleErrorHandler : public asmjit::ErrorHandler {
+public:
+  SimpleErrorHandler()
+    : _err(asmjit::kErrorOk) {}
+
+  virtual void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) {
+    asmjit::DebugUtils::unused(origin);
+    _err = err;
+    _message.assign(message);
+  }
+
+  asmjit::Error _err;
+  asmjit::String _message;
+};
 
 // ============================================================================
-// [asmjit::x86::Builder - Events]
+// [TestCase]
 // ============================================================================
 
-Error Builder::onAttach(CodeHolder* code) noexcept {
-  uint32_t arch = code->arch();
-  if (!Environment::isFamilyX86(arch))
-    return DebugUtils::errored(kErrorInvalidArch);
+//! A test case interface for testing AsmJit's Compiler.
+class TestCase {
+public:
+  TestCase(const char* name = nullptr) {
+    if (name)
+      _name.assign(name);
+  }
 
-  return Base::onAttach(code);
-}
+  virtual ~TestCase() {}
 
-ASMJIT_END_SUB_NAMESPACE
+  inline const char* name() const { return _name.data(); }
 
-#endif // ASMJIT_BUILD_X86 && !ASMJIT_NO_BUILDER
+  virtual void compile(asmjit::BaseCompiler& cc) = 0;
+  virtual bool run(void* func, asmjit::String& result, asmjit::String& expect) = 0;
+
+  asmjit::String _name;
+};
+
+// ============================================================================
+// [TestApp]
+// ============================================================================
+
+class TestApp {
+public:
+  std::vector<std::unique_ptr<TestCase>> _tests;
+
+  unsigned _nFailed = 0;
+  size_t _outputSize = 0;
+
+  bool _verbose = false;
+  bool _dumpAsm = false;
+  bool _dumpHex = false;
+
+  TestApp() noexcept {}
+  ~TestApp() noexcept {}
+
+  void add(TestCase* test) noexcept {
+    _tests.push_back(std::unique_ptr<TestCase>(test));
+  }
+
+  template<class T>
+  inline void addT() { T::add(*this); }
+
+  int handleArgs(int argc, const char* const* argv);
+  void showInfo();
+  int run();
+};
+
+#endif // ASMJIT_TEST_COMPILER_H_INCLUDED

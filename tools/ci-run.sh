@@ -33,7 +33,7 @@ if [ -f ${BUILD_DIR}/asmjit_test_x86_instinfo ]; then
   eval "$RUN_CMD ${BUILD_DIR}/asmjit_test_x86_instinfo"
 fi
 
-if [ -f ${BUILD_DIR}asmjit_test_x86_cc ]; then
+if [ -f ${BUILD_DIR}asmjit_test_compiler ]; then
   echo ""
-  eval "$RUN_CMD ${BUILD_DIR}/asmjit_test_x86_cc"
+  eval "$RUN_CMD ${BUILD_DIR}/asmjit_test_compiler"
 fi

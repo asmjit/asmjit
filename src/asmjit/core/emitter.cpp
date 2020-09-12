@@ -28,13 +28,13 @@
 #include "../core/support.h"
 
 #ifdef ASMJIT_BUILD_X86
-  #include "../x86/x86internal_p.h"
+  #include "../x86/x86emithelper_p.h"
   #include "../x86/x86instdb_p.h"
 #endif // ASMJIT_BUILD_X86
 
 #ifdef ASMJIT_BUILD_ARM
-  #include "../arm/arminternal_p.h"
-  #include "../arm/arminstdb.h"
+  #include "../arm/a64emithelper_p.h"
+  #include "../arm/a64instdb.h"
 #endif // ASMJIT_BUILD_ARM
 
 ASMJIT_BEGIN_NAMESPACE
@@ -44,21 +44,7 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 BaseEmitter::BaseEmitter(uint32_t emitterType) noexcept
-  : _emitterType(uint8_t(emitterType)),
-    _emitterFlags(0),
-    _validationFlags(0),
-    _validationOptions(0),
-    _encodingOptions(0),
-    _forcedInstOptions(BaseInst::kOptionReserved),
-    _privateData(0),
-    _code(nullptr),
-    _logger(nullptr),
-    _errorHandler(nullptr),
-    _environment(),
-    _gpRegInfo(),
-    _instOptions(0),
-    _extraReg(),
-    _inlineComment(nullptr) {}
+  : _emitterType(uint8_t(emitterType)) {}
 
 BaseEmitter::~BaseEmitter() noexcept {
   if (_code) {
@@ -257,13 +243,17 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitProlog(const FuncFrame& frame) {
     return DebugUtils::errored(kErrorNotInitialized);
 
 #ifdef ASMJIT_BUILD_X86
-  if (environment().isFamilyX86())
-    return x86::X86Internal::emitProlog(as<x86::Emitter>(), frame);
+  if (environment().isFamilyX86()) {
+    x86::EmitHelper emitHelper(this, frame.isAvxEnabled());
+    return emitHelper.emitProlog(frame);
+  }
 #endif
 
 #ifdef ASMJIT_BUILD_ARM
-  if (environment().isFamilyARM())
-    return arm::ArmInternal::emitProlog(as<arm::Emitter>(), frame);
+  if (environment().isArchAArch64()) {
+    a64::EmitHelper emitHelper(this);
+    return emitHelper.emitProlog(frame);
+  }
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);
@@ -274,13 +264,17 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitEpilog(const FuncFrame& frame) {
     return DebugUtils::errored(kErrorNotInitialized);
 
 #ifdef ASMJIT_BUILD_X86
-  if (environment().isFamilyX86())
-    return x86::X86Internal::emitEpilog(as<x86::Emitter>(), frame);
+  if (environment().isFamilyX86()) {
+    x86::EmitHelper emitHelper(this, frame.isAvxEnabled());
+    return emitHelper.emitEpilog(frame);
+  }
 #endif
 
 #ifdef ASMJIT_BUILD_ARM
-  if (environment().isFamilyARM())
-    return arm::ArmInternal::emitEpilog(as<arm::Emitter>(), frame);
+  if (environment().isArchAArch64()) {
+    a64::EmitHelper emitHelper(this);
+    return emitHelper.emitEpilog(frame);
+  }
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);
@@ -291,13 +285,17 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitArgsAssignment(const FuncFrame& frame, 
     return DebugUtils::errored(kErrorNotInitialized);
 
 #ifdef ASMJIT_BUILD_X86
-  if (environment().isFamilyX86())
-    return x86::X86Internal::emitArgsAssignment(as<x86::Emitter>(), frame, args);
+  if (environment().isFamilyX86()) {
+    x86::EmitHelper emitHelper(this, frame.isAvxEnabled());
+    return emitHelper.emitArgsAssignment(frame, args);
+  }
 #endif
 
 #ifdef ASMJIT_BUILD_ARM
-  if (environment().isFamilyARM())
-    return arm::ArmInternal::emitArgsAssignment(as<arm::Emitter>(), frame, args);
+  if (environment().isArchAArch64()) {
+    a64::EmitHelper emitHelper(this);
+    return emitHelper.emitArgsAssignment(frame, args);
+  }
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);
@@ -348,6 +346,10 @@ Error BaseEmitter::commentv(const char* fmt, va_list ap) {
 Error BaseEmitter::onAttach(CodeHolder* code) noexcept {
   _code = code;
   _environment = code->environment();
+
+  const ArchTraits& archTraits = ArchTraits::byArch(code->arch());
+  uint32_t nativeRegType = Environment::is32Bit(code->arch()) ? BaseReg::kTypeGp32 : BaseReg::kTypeGp64;
+  _gpRegInfo.setSignature(archTraits._regInfo[nativeRegType].signature());
 
   onSettingsUpdated();
   return kErrorOk;

@@ -366,21 +366,21 @@ ASMJIT_VARAPI const CommonInfo _commonInfoTable[];
 
 //! Instruction information (X86).
 struct InstInfo {
-  //! Index to `_nameData`.
+  //! Index to \ref _nameData.
   uint32_t _nameDataIndex : 14;
-  //! Index to `_commonInfoTable`.
+  //! Index to \ref _commonInfoTable.
   uint32_t _commonInfoIndex : 10;
-  //! Index to `InstDB::_commonInfoTableB`.
+  //! Index to \ref _commonInfoTableB.
   uint32_t _commonInfoIndexB : 8;
 
-  //! Instruction encoding, see `InstDB::EncodingId`.
+  //! Instruction encoding (internal encoding identifier used by \ref Assembler).
   uint8_t _encoding;
-  //! Main opcode value (0.255).
+  //! Main opcode value (0..255).
   uint8_t _mainOpcodeValue;
-  //! Index to `InstDB::_mainOpcodeTable` that is combined with `_mainOpcodeValue`
+  //! Index to \ref _mainOpcodeTable` that is combined with \ref _mainOpcodeValue
   //! to form the final opcode.
   uint8_t _mainOpcodeIndex;
-  //! Index to `InstDB::_altOpcodeTable` that contains a full alternative opcode.
+  //! Index to \ref _altOpcodeTable that contains a full alternative opcode.
   uint8_t _altOpcodeIndex;
 
   // --------------------------------------------------------------------------
@@ -456,7 +456,7 @@ struct InstInfo {
 
 ASMJIT_VARAPI const InstInfo _instInfoTable[];
 
-inline const InstInfo& infoById(uint32_t instId) noexcept {
+static inline const InstInfo& infoById(uint32_t instId) noexcept {
   ASMJIT_ASSERT(Inst::isDefinedId(instId));
   return _instInfoTable[instId];
 }
