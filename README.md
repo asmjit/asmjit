@@ -52,8 +52,13 @@ TODO
   * [ ] Ports:
     * [ ] ARM/Thumb/AArch64 support.
 
-Donors
-------
+Support
+-------
+
+  * AsmJit project has both community and commercial support, see [AsmJit's Support Page](https://asmjit.com/support.html)
+  * You can help the development and maintenance through Petr Kobalicek's [GitHub sponsors Profile](https://github.com/sponsors/kobalicek)
+
+Notable Donors List:
 
   * [ZehMatt](https://github.com/ZehMatt)
 
