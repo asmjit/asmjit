@@ -351,10 +351,12 @@ static ASMJIT_INLINE int VirtMem_appleSpecificMMapFlags(uint32_t flags) {
 }
 #endif
 
+#if !defined(SHM_ANON)
 static const char* VirtMem_getTmpDir() noexcept {
   const char* tmpDir = getenv("TMPDIR");
   return tmpDir ? tmpDir : "/tmp";
 }
+#endif
 
 static Error VirtMem_openAnonymousMemory(int* fd, bool preferTmpOverDevShm) noexcept {
 #if defined(SYS_memfd_create)
