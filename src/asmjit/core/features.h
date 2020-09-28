@@ -38,7 +38,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 //! Base class that provides information about CPU features.
 //!
-//! Internally each feature is repreesnted by a single bit in an embedded
+//! Internally each feature is represented by a single bit in an embedded
 //! bit-array, however, feature bits are defined by an architecture specific
 //! implementations, like \ref x86::Features.
 class BaseFeatures {
