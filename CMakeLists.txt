@@ -232,7 +232,7 @@ if (NOT WIN32)
   list(APPEND ASMJIT_DEPS pthread)
 endif()
 
-if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" OR "${CMAKE_SYSTEM_NAME}" MATCHES "NetBSD")
   list(APPEND ASMJIT_DEPS rt)
 endif()
 
