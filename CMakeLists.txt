@@ -10,14 +10,14 @@ if(POLICY CMP0092)
   cmake_policy(SET CMP0092 NEW) # Don't add -W3 warning level by default.
 endif()
 
-include(CheckCXXCompilerFlag)
-include(GNUInstallDirs)
-
 # Don't create a project if it was already created by another CMakeLists.txt.
 # This allows one library to embed another library without making a collision.
 if (NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
   project(asmjit CXX)
 endif()
+
+include(CheckCXXCompilerFlag)
+include(GNUInstallDirs)
 
 # =============================================================================
 # [AsmJit - Deprecated]
