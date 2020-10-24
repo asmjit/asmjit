@@ -495,7 +495,7 @@ public:
 // [asmjit::x86::Assembler - Movabs Heuristics]
 // ============================================================================
 
-static ASMJIT_INLINE bool x86GetMovAbsInstSize64Bit(uint32_t regSize, uint32_t options, const Mem& rmRel) noexcept {
+static ASMJIT_INLINE uint32_t x86GetMovAbsInstSize64Bit(uint32_t regSize, uint32_t options, const Mem& rmRel) noexcept {
   uint32_t segmentPrefixSize = rmRel.segmentId() != 0;
   uint32_t _66hPrefixSize = regSize == 2;
   uint32_t rexPrefixSize = (regSize == 8) || ((options & Inst::kOptionRex) != 0);
