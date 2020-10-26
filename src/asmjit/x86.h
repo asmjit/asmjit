@@ -103,15 +103,17 @@
 //!     - \ref x86::Predicate::VReduce - `REDUCE[PD|PS|SD|SS]` predicate (AVX512+).
 //!   - \ref x86::TLog - namespace that provides `VPTERNLOG[D|Q]` predicate / operations.
 
-#include "./core.h"
+#include "core.h"
 
-#include "./x86/x86assembler.h"
-#include "./x86/x86builder.h"
-#include "./x86/x86compiler.h"
-#include "./x86/x86emitter.h"
-#include "./x86/x86features.h"
-#include "./x86/x86globals.h"
-#include "./x86/x86instdb.h"
-#include "./x86/x86operand.h"
+#include "asmjit-scope-begin.h"
+#include "x86/x86assembler.h"
+#include "x86/x86builder.h"
+#include "x86/x86compiler.h"
+#include "x86/x86emitter.h"
+#include "x86/x86features.h"
+#include "x86/x86globals.h"
+#include "x86/x86instdb.h"
+#include "x86/x86operand.h"
+#include "asmjit-scope-end.h"
 
 #endif // ASMJIT_X86_H_INCLUDED

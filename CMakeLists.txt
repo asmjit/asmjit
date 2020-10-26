@@ -281,6 +281,8 @@ endif()
 
 set(ASMJIT_SRC_LIST
   asmjit/asmjit.h
+  asmjit/asmjit-scope-begin.h
+  asmjit/asmjit-scope-end.h
 
   asmjit/core.h
   asmjit/core/api-build_p.h
