@@ -30,8 +30,8 @@
 #include <memory>
 #include <vector>
 
-#include "./cmdline.h"
-#include "./asmjit_test_compiler.h"
+#include "cmdline.h"
+#include "asmjit_test_compiler.h"
 
 #if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
 #include <asmjit/x86.h>

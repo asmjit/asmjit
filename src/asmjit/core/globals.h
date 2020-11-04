@@ -379,6 +379,9 @@ enum ErrorCode : uint32_t {
   //! Arithmetic overflow during expression evaluation.
   kErrorExpressionOverflow,
 
+  //! Failed to open anonymous memory handle or file descriptor.
+  kErrorFailedToOpenAnonymousMemory,
+
   // @EnumValuesEnd@
 
   //! Count of AsmJit error codes.

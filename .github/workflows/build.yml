@@ -1,0 +1,131 @@
+name: "Build"
+on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  source-check:
+    name: "Source Check"
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@v2
+
+    - name: "Setup node.js"
+      uses: actions/setup-node@v1
+      with:
+        node-version: "14"
+
+    - name: "Check Enumerations"
+      run: |
+        cd tools
+        node enumgen.js --verify
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { title: "diag-asan"     , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", diagnose: "address" }
+          - { title: "diag-ubsan"    , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", diagnose: "undefined" }
+          - { title: "diag-valgrind" , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", diagnose: "valgrind" }
+
+          - { title: "no-deprecated" , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", add_defs: ",ASMJIT_NO_DEPRECATED=1" }
+          - { title: "no-intrinsics" , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", add_defs: ",ASMJIT_NO_INTRINSICS=1" }
+          - { title: "no-logging"    , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", add_defs: ",ASMJIT_NO_LOGGING=1" }
+          - { title: "no-builder"    , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", add_defs: ",ASMJIT_NO_BUILDER=1" }
+          - { title: "no-compiler"   , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release", add_defs: ",ASMJIT_NO_COMPILER=1" }
+
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc"     , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc"     , architecture: "x86", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc"     , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc"     , architecture: "x64", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-4.8" , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-4.8" , architecture: "x86", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-4.8" , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-4.8" , architecture: "x64", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-5"   , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-5"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-6"   , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-6"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-7"   , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-7"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-8"   , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-8"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-9"   , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-9"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-10"  , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-10"  , architecture: "x86", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-10"  , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "gcc-10"  , architecture: "x64", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x86", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang"   , architecture: "x64", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-9" , architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-9" , architecture: "x86", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-9" , architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-9" , architecture: "x64", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-10", architecture: "x86", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-10", architecture: "x86", build_type: "Release" }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-10", architecture: "x64", build_type: "Debug"   }
+          - { title: "linux"         , os: "ubuntu-latest" , cxx: "clang-10", architecture: "x64", build_type: "Release" }
+
+          - { title: "osx-10.15"     , os: "macos-10.15"   , cxx: "gcc-9"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "osx-10.15"     , os: "macos-10.15"   , cxx: "gcc-9"   , architecture: "x64", build_type: "Release" }
+          - { title: "osx-10.15"     , os: "macos-10.15"   , cxx: "clang"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "osx-10.15"     , os: "macos-10.15"   , cxx: "clang"   , architecture: "x64", build_type: "Release" }
+          - { title: "osx-11.0"      , os: "macos-11.0"    , cxx: "gcc-9"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "osx-11.0"      , os: "macos-11.0"    , cxx: "gcc-9"   , architecture: "x64", build_type: "Release" }
+          - { title: "osx-11.0"      , os: "macos-11.0"    , cxx: "clang"   , architecture: "x64", build_type: "Debug"   }
+          - { title: "osx-11.0"      , os: "macos-11.0"    , cxx: "clang"   , architecture: "x64", build_type: "Release"
+}
+          - { title: "windows"       , os: "windows-latest", cxx: "vs2019"  , architecture: "x86", build_type: "Debug"   }
+          - { title: "windows"       , os: "windows-latest", cxx: "vs2019"  , architecture: "x86", build_type: "Release" }
+          - { title: "windows"       , os: "windows-latest", cxx: "vs2019"  , architecture: "x64", build_type: "Debug"   }
+          - { title: "windows"       , os: "windows-latest", cxx: "vs2019"  , architecture: "x64", build_type: "Release" }
+
+    name: "${{matrix.title}} (${{matrix.cxx}}, ${{matrix.architecture}}, ${{matrix.build_type}})"
+    runs-on: "${{matrix.os}}"
+
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@v2
+
+    - name: "Python"
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.x"
+
+    - name: "Prepare"
+      run: python -B .github/workflows/run-step.py
+                     --step=prepare
+                     --compiler=${{matrix.cxx}}
+                     --architecture=${{matrix.architecture}}
+                     --diagnose=${{matrix.diagnose}}
+
+    - name: "Configure"
+      run: python -B .github/workflows/run-step.py
+                     --step=configure
+                     --compiler=${{matrix.cxx}}
+                     --architecture=${{matrix.architecture}}
+                     --build-type=${{matrix.build_type}}
+                     --build-defs=ASMJIT_TEST=ON${{matrix.add_defs}}
+                     --diagnose=${{matrix.diagnose}}
+
+    - name: "Build"
+      run: python -B .github/workflows/run-step.py
+                     --step=build
+                     --compiler=${{matrix.cxx}}
+                     --architecture=${{matrix.architecture}}
+                     --build-type=${{matrix.build_type}}
+                     --diagnose=${{matrix.diagnose}}
+
+    - name: "Test"
+      run: python -B .github/workflows/run-step.py
+                     --step=test
+                     --build-type=${{matrix.build_type}}
+                     --diagnose=${{matrix.diagnose}}

@@ -33,8 +33,8 @@
 // Required for function tests that pass / return XMM registers.
 #include <emmintrin.h>
 
-#include "./asmjit_test_misc.h"
-#include "./asmjit_test_compiler.h"
+#include "asmjit_test_misc.h"
+#include "asmjit_test_compiler.h"
 
 #ifdef _MSC_VER
 // Interaction between '_setjmp' and C++ object destruction is non-portable.

@@ -30,10 +30,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "./asmjit_test_opcode.h"
+#include "asmjit_test_opcode.h"
 
 #ifndef ASMJIT_NO_COMPILER
-  #include "./asmjit_test_misc.h"
+  #include "asmjit_test_misc.h"
 #endif
 
 using namespace asmjit;

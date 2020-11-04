@@ -104,6 +104,7 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     "OverlappingStackRegWithRegArg\0"
     "ExpressionLabelNotBound\0"
     "ExpressionOverflow\0"
+    "FailedToOpenAnonymousMemory\0"
     "<Unknown>\0";
 
   static const uint16_t sErrorIndex[] = {
@@ -111,7 +112,7 @@ ASMJIT_FAVOR_SIZE const char* DebugUtils::errorAsString(Error err) noexcept {
     247, 264, 283, 313, 328, 344, 363, 382, 400, 422, 440, 459, 474, 490, 504,
     518, 538, 563, 581, 603, 625, 642, 659, 675, 691, 707, 724, 739, 754, 774,
     794, 814, 847, 867, 882, 899, 918, 939, 959, 973, 994, 1008, 1026, 1042,
-    1058, 1077, 1092, 1108, 1123, 1138, 1168, 1192, 1211
+    1058, 1077, 1092, 1108, 1123, 1138, 1168, 1192, 1211, 1239
   };
   // @EnumStringEnd@
 
