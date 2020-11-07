@@ -76,8 +76,10 @@ def main():
       generator = "Visual Studio 15 2017"
     elif compiler == "vs2019":
       generator = "Visual Studio 16 2019"
-    else:
+    elif platform_name == "Darwin":
       generator = "Unix Makefiles"
+    else:
+      generator = "Ninja"
 
 
   # ---------------------------------------------------------------------------
@@ -126,7 +128,7 @@ def main():
   # ---------------------------------------------------------------------------
   if step == "configure":
     if args.problem_matcher:
-      log("::add-matcher::.github/problem-matcher.json")
+      log("::add-matcher::" + os.path.join(source_root, ".github", "problem-matcher.json"))
 
     os.makedirs(args.build_dir, exist_ok=True)
 

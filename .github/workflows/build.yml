@@ -97,6 +97,8 @@ jobs:
     steps:
     - name: "Checkout"
       uses: actions/checkout@v2
+      with:
+        path: "source"
 
     - name: "Python"
       uses: actions/setup-python@v2
@@ -104,14 +106,14 @@ jobs:
         python-version: "3.x"
 
     - name: "Prepare"
-      run: python -B .github/workflows/run-step.py
+      run: python -B source/.github/workflows/run-step.py
                      --step=prepare
                      --compiler=${{matrix.cxx}}
                      --architecture=${{matrix.architecture}}
                      --diagnose=${{matrix.diagnose}}
 
     - name: "Configure"
-      run: python -B .github/workflows/run-step.py
+      run: python -B source/.github/workflows/run-step.py
                      --step=configure
                      --compiler=${{matrix.cxx}}
                      --architecture=${{matrix.architecture}}
@@ -121,7 +123,7 @@ jobs:
                      --problem-matcher=${{matrix.problem_matcher}}
 
     - name: "Build"
-      run: python -B .github/workflows/run-step.py
+      run: python -B source/.github/workflows/run-step.py
                      --step=build
                      --compiler=${{matrix.cxx}}
                      --architecture=${{matrix.architecture}}
@@ -129,7 +131,7 @@ jobs:
                      --diagnose=${{matrix.diagnose}}
 
     - name: "Test"
-      run: python -B .github/workflows/run-step.py
+      run: python -B source/.github/workflows/run-step.py
                      --step=test
                      --build-type=${{matrix.build_type}}
                      --diagnose=${{matrix.diagnose}}
