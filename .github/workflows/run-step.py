@@ -55,6 +55,7 @@ def main():
   parser.add_argument("--build-type", default="", help="Build type (Debug / Release)")
   parser.add_argument("--build-defs", default="", help="Build definitions")
   parser.add_argument("--diagnose", default="", help="Diagnostics (valgrind|address|undefined)")
+  parser.add_argument("--problem-matcher", default="", help="Whether to setup a problem matcher")
 
   args = parser.parse_args()
   step = args.step
@@ -75,10 +76,8 @@ def main():
       generator = "Visual Studio 15 2017"
     elif compiler == "vs2019":
       generator = "Visual Studio 16 2019"
-    elif platform_name == "Darwin":
-      generator = "Unix Makefiles"
     else:
-      generator = "Ninja"
+      generator = "Unix Makefiles"
 
 
   # ---------------------------------------------------------------------------
@@ -126,6 +125,9 @@ def main():
 
   # ---------------------------------------------------------------------------
   if step == "configure":
+    if args.problem_matcher:
+      log("::add-matcher::.github/problem-matcher.json")
+
     os.makedirs(args.build_dir, exist_ok=True)
 
     cmd = ["cmake", source_root, "-G" + generator]
@@ -171,12 +173,12 @@ def main():
 
   # ---------------------------------------------------------------------------
   if step == "build":
-    cmd = ["cmake", "--build", "."]
+    cmd = ["cmake", "--build", args.build_dir, "--parallel"]
 
     if generator.startswith("Visual Studio"):
       cmd.extend(["--config", args.build_type, "--", "-nologo", "-v:minimal"])
 
-    run(cmd, cwd=args.build_dir)
+    run(cmd)
     exit(0)
   # ---------------------------------------------------------------------------
 
@@ -201,13 +203,12 @@ def main():
       # Ignore tests, which were not built, because of disabled features.
       if os.path.isfile(executable):
         try:
-          log("::group::" + test_name)
-          log(" ".join(cmd))
+          log("::group::" + " ".join(cmd))
 
+          cmd[0] = executable
           if diagnose == "valgrind":
             cmd = valgrind_args + cmd
 
-          cmd[0] = executable
           run(cmd, cwd=build_dir, print_command=False)
         finally:
           log("::endgroup::")
