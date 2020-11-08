@@ -1,0 +1,39 @@
+{
+  "diagnostics": {
+    "asan": { "definitions": ["ASMJIT_SANITIZE=address"] },
+    "ubsan": { "definitions": ["ASMJIT_SANITIZE=undefined"] }
+  },
+
+  "valgrind_arguments": [
+    "--leak-check=full",
+    "--show-reachable=yes",
+    "--track-origins=yes"
+  ],
+
+  "tests": [
+    {
+      "cmd": ["asmjit_test_unit", "--quick"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_opcode", "--quiet"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_x86_asm"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_x86_sections"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_x86_instinfo"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_compiler"],
+      "optional": true
+    }
+  ]
+}
