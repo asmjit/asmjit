@@ -42,8 +42,8 @@ static inline void JitRuntime_flushInstructionCache(const void* p, size_t size) 
   // Windows has a built-in support in `kernel32.dll`.
   ::FlushInstructionCache(::GetCurrentProcess(), p, size);
 # elif defined(__GNUC__)
-  void* start = const_cast<void*>(p);
-  void* end = static_cast<uint8_t*>(start) + size;
+  char* start = static_cast<char*>(const_cast<void*>(p));
+  char* end = start + size;
   __builtin___clear_cache(start, end);
 # else
   DebugUtils::unused(p, size);
