@@ -250,6 +250,8 @@ else()
 endif()
 
 foreach(build_option ASMJIT_STATIC
+                     ASMJIT_BUILD_DEBUG
+                     ASMJIT_BUILD_RELEASE
                      ASMJIT_BUILD_X86
                      ASMJIT_NO_DEPRECATED
                      ASMJIT_NO_JIT
