@@ -873,7 +873,7 @@ Error JitAllocator::shrink(void* ro, size_t newSize) noexcept {
   // Fill released memory if the secure mode is enabled.
   if (impl->options & kOptionFillUnusedMemory)
     JitAllocatorImpl_fillPattern(
-      block->rwPtr() + (areaIndex + areaOldSize) * pool->granularity,
+      block->rwPtr() + (areaIndex + areaNewSize) * pool->granularity,
       fillPattern(),
       areaDiff * pool->granularity);
 
