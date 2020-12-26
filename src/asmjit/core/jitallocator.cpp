@@ -815,9 +815,9 @@ Error JitAllocator::release(void* ro) noexcept {
     }
     else {
       pool->emptyBlockCount++;
-      block->largestUnusedArea = areaSize;
+      block->largestUnusedArea = block->areaSize;
       block->searchStart = 0;
-      block->searchEnd = areaSize;
+      block->searchEnd = block->areaSize;
       block->addFlags(JitAllocatorBlock::kFlagEmpty);
       block->clearFlags(JitAllocatorBlock::kFlagDirty);
     }
