@@ -1166,6 +1166,30 @@ public:
 };
 
 // ============================================================================
+// [asmjit::Support - BitWordFlipIterator]
+// ============================================================================
+
+template<typename T>
+class BitWordFlipIterator {
+public:
+  inline explicit BitWordFlipIterator(T bitWord) noexcept
+    : _bitWord(bitWord) {}
+
+  inline void init(T bitWord) noexcept { _bitWord = bitWord; }
+  inline bool hasNext() const noexcept { return _bitWord != 0; }
+
+  inline uint32_t nextAndFlip() noexcept {
+    ASMJIT_ASSERT(_bitWord != 0);
+    uint32_t index = ctz(_bitWord);
+    _bitWord ^= T(1u) << index;
+    return index;
+  }
+
+  T _bitWord;
+  T _xorMask;
+};
+
+// ============================================================================
 // [asmjit::Support - BitVectorOps]
 // ============================================================================
 
