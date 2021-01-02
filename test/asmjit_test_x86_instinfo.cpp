@@ -148,6 +148,15 @@ static void printInfoSimple(uint32_t arch, uint32_t instId, Args&&... args) {
   printInfo(arch, inst, opArray, sizeof...(args));
 }
 
+template<typename... Args>
+static void printInfoExtra(uint32_t arch, uint32_t instId, uint32_t options, const BaseReg& extraReg, Args&&... args) {
+  BaseInst inst(instId);
+  inst.addOptions(options);
+  inst.setExtraReg(extraReg);
+  Operand_ opArray[] = { std::forward<Args>(args)... };
+  printInfo(arch, inst, opArray, sizeof...(args));
+}
+
 static void testX86Arch() {
 #if defined(ASMJIT_BUILD_X86)
   uint32_t arch = Environment::kArchX64;
@@ -183,6 +192,16 @@ static void testX86Arch() {
   printInfoSimple(arch,
                   x86::Inst::kIdVaddpd,
                   x86::zmm0, x86::zmm1, x86::zmm2);
+
+  printInfoExtra(arch,
+                 x86::Inst::kIdVaddpd, 0,
+                 x86::k1,
+                 x86::zmm0, x86::zmm1, x86::zmm2);
+
+  printInfoExtra(arch,
+                 x86::Inst::kIdVaddpd, x86::Inst::kOptionZMask,
+                 x86::k1,
+                 x86::zmm0, x86::zmm1, x86::zmm2);
 #endif
 }
 

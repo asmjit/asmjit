@@ -809,6 +809,20 @@ static ASMJIT_INLINE void rwZeroExtendNonVec(OpRWInfo& opRwInfo, const Reg& reg)
   }
 }
 
+static ASMJIT_INLINE Error rwHandleAVX512(const BaseInst& inst, InstRWInfo* out) noexcept {
+  if (inst.hasExtraReg() && inst.extraReg().type() == Reg::kTypeKReg && out->opCount() > 0) {
+    // AVX-512 instruction that uses a destination with {k} register (zeroing vs masking).
+    out->_extraReg.addOpFlags(OpRWInfo::kRead);
+    out->_extraReg.setReadByteMask(0xFF);
+    if (!inst.hasOption(Inst::kOptionZMask)) {
+      out->_operands[0].addOpFlags(OpRWInfo::kRead);
+      out->_operands[0]._readByteMask |= out->_operands[0]._writeByteMask;
+    }
+  }
+
+  return kErrorOk;
+}
+
 Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Operand_* operands, size_t opCount, InstRWInfo* out) noexcept {
   using namespace Status;
 
@@ -940,15 +954,15 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
       } while (it.hasNext());
     }
 
-    return kErrorOk;
+    return rwHandleAVX512(inst, out);
   }
 
   switch (instRwInfo.category) {
     case InstDB::RWInfo::kCategoryMov: {
-      // Special case for 'movhpd' instruction. Here there are some variants that
-      // we have to handle as mov can be used to move between GP, segment, control
-      // and debug registers. Moving between GP registers also allow to use memory
-      // operand.
+      // Special case for 'mov' instruction. Here there are some variants that
+      // we have to handle as 'mov' can be used to move between GP, segment,
+      // control and debug registers. Moving between GP registers also allow to
+      // use memory operand.
 
       if (opCount == 2) {
         if (operands[0].isReg() && operands[1].isReg()) {
@@ -1118,7 +1132,7 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
     case InstDB::RWInfo::kCategoryMovh64: {
       // Special case for 'movhpd|movhps' instructions. Note that this is only
       // required for legacy (non-AVX) variants as AVX instructions use either
-      // 2 or 3 operands that are use `kCategoryGeneric`.
+      // 2 or 3 operands that are in `kCategoryGeneric` category.
       if (opCount == 2) {
         if (BaseReg::isVec(operands[0]) && operands[1].isMem()) {
           out->_operands[0].reset(W, 8);
@@ -1174,7 +1188,7 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
           out->_operands[1]._readByteMask &= 0x00FF00FF00FF00FFu;
 
           rwZeroExtendAvxVec(out->_operands[0], operands[0].as<Vec>());
-          return kErrorOk;
+          return rwHandleAVX512(inst, out);
         }
 
         if (BaseReg::isVec(operands[0]) && operands[1].isMem()) {
@@ -1185,7 +1199,7 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
           out->_operands[1].reset(R | MibRead, o1Size);
 
           rwZeroExtendAvxVec(out->_operands[0], operands[0].as<Vec>());
-          return kErrorOk;
+          return rwHandleAVX512(inst, out);
         }
       }
       break;
@@ -1259,7 +1273,7 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
           if (BaseReg::isVec(operands[0]))
             rwZeroExtendAvxVec(out->_operands[0], operands[0].as<Vec>());
 
-          return kErrorOk;
+          return rwHandleAVX512(inst, out);
         }
 
         if (operands[0].isReg() && operands[1].isMem()) {
@@ -1277,7 +1291,8 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
 
           out->_operands[0].reset(W | MibRead, size0);
           out->_operands[1].reset(R, size1);
-          return kErrorOk;
+
+          return rwHandleAVX512(inst, out);
         }
       }
       break;
@@ -1328,12 +1343,14 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
             out->_operands[1].addOpFlags(RegM);
             out->_operands[1].setRmSize(size1);
           }
-          return kErrorOk;
+
+          return rwHandleAVX512(inst, out);
         }
 
         if (operands[0].isReg() && operands[1].isMem()) {
           out->_operands[1].addOpFlags(MibRead);
-          return kErrorOk;
+
+          return rwHandleAVX512(inst, out);
         }
       }
       break;
