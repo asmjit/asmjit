@@ -57,7 +57,7 @@ Error Builder::finalize() {
 
 Error Builder::onAttach(CodeHolder* code) noexcept {
   uint32_t arch = code->arch();
-  if (!Environment::isFamilyX86(arch))
+  if (!Environment::isFamilyARM(arch))
     return DebugUtils::errored(kErrorInvalidArch);
 
   return Base::onAttach(code);
