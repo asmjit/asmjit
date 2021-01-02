@@ -547,15 +547,15 @@ public:
 };
 
 // ============================================================================
-// [X86Test_JumpTable]
+// [X86Test_JumpTable1]
 // ============================================================================
 
-class X86Test_JumpTable : public X86TestCase {
+class X86Test_JumpTable1 : public X86TestCase {
 public:
   bool _annotated;
 
-  X86Test_JumpTable(bool annotated)
-    : X86TestCase("X86Test_JumpTable"),
+  X86Test_JumpTable1(bool annotated)
+    : X86TestCase("X86Test_JumpTable1"),
       _annotated(annotated) {
     _name.assignFormat("JumpTable {%s}", annotated ? "Annotated" : "Unknown Reg/Mem");
   }
@@ -568,8 +568,8 @@ public:
   };
 
   static void add(TestApp& app) {
-    app.add(new X86Test_JumpTable(false));
-    app.add(new X86Test_JumpTable(true));
+    app.add(new X86Test_JumpTable1(false));
+    app.add(new X86Test_JumpTable1(true));
   }
 
   virtual void compile(x86::Compiler& cc) {
@@ -660,6 +660,89 @@ public:
 
     result.assignFormat("ret={%f, %f, %f, %f}", results[0], results[1], results[2], results[3]);
     expect.assignFormat("ret={%f, %f, %f, %f}", expected[0], expected[1], expected[2], expected[3]);
+
+    return result == expect;
+  }
+};
+
+// ============================================================================
+// [X86Test_JumpTable2]
+// ============================================================================
+
+class X86Test_JumpTable2 : public X86TestCase {
+public:
+  X86Test_JumpTable2()
+    : X86TestCase("JumpTable {Jumping to Begin}") {}
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_JumpTable2());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<int, int>(CallConv::kIdHost));
+
+    x86::Gp result = cc.newUInt32("result");
+    x86::Gp value = cc.newUInt32("value");
+    x86::Gp target = cc.newIntPtr("target");
+    x86::Gp offset = cc.newIntPtr("offset");
+
+    Label L_Table = cc.newLabel();
+    Label L_Begin = cc.newLabel();
+    Label L_Case0 = cc.newLabel();
+    Label L_Case1 = cc.newLabel();
+    Label L_End = cc.newLabel();
+
+    cc.setArg(0, value);
+
+    cc.bind(L_Begin);
+    cc.lea(offset, x86::ptr(L_Table));
+    if (cc.is64Bit())
+      cc.movsxd(target, x86::dword_ptr(offset, value.cloneAs(offset), 2));
+    else
+      cc.mov(target, x86::dword_ptr(offset, value.cloneAs(offset), 2));
+    cc.add(target, offset);
+
+    {
+      JumpAnnotation* annotation = cc.newJumpAnnotation();
+      annotation->addLabel(L_Case0);
+      annotation->addLabel(L_Case1);
+      annotation->addLabel(L_Begin); // Never used, just for the purpose of the test.
+      cc.jmp(target, annotation);
+
+      cc.bind(L_Case0);
+      cc.mov(result, 0);
+      cc.jmp(L_End);
+
+      cc.bind(L_Case1);
+      cc.mov(result, 1);
+      cc.jmp(L_End);
+    }
+
+    cc.bind(L_End);
+    cc.ret(result);
+
+    cc.endFunc();
+
+    cc.bind(L_Table);
+    cc.embedLabelDelta(L_Case0, L_Table, 4);
+    cc.embedLabelDelta(L_Case1, L_Table, 4);
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef int (*Func)(int);
+    Func func = ptr_as_func<Func>(_func);
+
+    int results[2];
+    int expected[2];
+
+    results[0] = func(0);
+    results[1] = func(1);
+
+    expected[0] = 0;
+    expected[1] = 1;
+
+    result.assignFormat("ret={%d, %d}", results[0], results[1]);
+    expect.assignFormat("ret={%d, %d}", expected[0], expected[1]);
 
     return result == expect;
   }
@@ -4167,7 +4250,8 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_JumpMany>();
   app.addT<X86Test_JumpUnreachable1>();
   app.addT<X86Test_JumpUnreachable2>();
-  app.addT<X86Test_JumpTable>();
+  app.addT<X86Test_JumpTable1>();
+  app.addT<X86Test_JumpTable2>();
 
   // Alloc tests.
   app.addT<X86Test_AllocBase>();

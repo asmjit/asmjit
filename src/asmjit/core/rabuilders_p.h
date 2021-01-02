@@ -95,12 +95,13 @@ public:
     logNode(_funcNode, kRootIndentation);
     logBlock(_curBlock, kRootIndentation);
 
+    RABlock* entryBlock = _curBlock;
     BaseNode* node = _funcNode->next();
     if (ASMJIT_UNLIKELY(!node))
       return DebugUtils::errored(kErrorInvalidState);
 
-    _curBlock->setFirst(node);
-    _curBlock->setLast(node);
+    _curBlock->setFirst(_funcNode);
+    _curBlock->setLast(_funcNode);
 
     RAInstBuilder ib;
     ZoneVector<RABlock*> blocksWithUnknownJumps;
@@ -379,9 +380,10 @@ public:
           }
           else {
             // First time we see this label.
-            if (_hasCode) {
+            if (_hasCode || _curBlock == entryBlock) {
               // Cannot continue the current block if it already contains some
-              // code. We need to create a new block and make it a successor.
+              // code or it's a block entry. We need to create a new block and
+              // make it a successor.
               ASMJIT_ASSERT(_curBlock->last() != node);
               _curBlock->setLast(node->prev());
               _curBlock->addFlags(RABlock::kFlagHasConsecutive);
