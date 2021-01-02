@@ -32,6 +32,10 @@
       "optional": true
     },
     {
+      "cmd": ["asmjit_test_assembler"],
+      "optional": true
+    },
+    {
       "cmd": ["asmjit_test_compiler"],
       "optional": true
     }

@@ -65,6 +65,9 @@ namespace asmjit {
 //! \note Can be defined explicitly to bypass autodetection.
 #define ASMJIT_BUILD_RELEASE
 
+//! Defined to build ARM/AArch64 backend.
+#define ASMJIT_BUILD_ARM
+
 //! Defined to build X86/X64 backend.
 #define ASMJIT_BUILD_X86
 
@@ -114,6 +117,9 @@ namespace asmjit {
 
 // Enable all features at IDE level, so it's properly highlighted and indexed.
 #ifdef __INTELLISENSE__
+  #ifndef ASMJIT_BUILD_ARM
+    #define ASMJIT_BUILD_ARM
+  #endif
   #ifndef ASMJIT_BUILD_X86
     #define ASMJIT_BUILD_X86
   #endif
@@ -248,17 +254,27 @@ namespace asmjit {
 
 #if !defined(ASMJIT_NO_FOREIGN)
   // If 'ASMJIT_NO_FOREIGN' is not defined then all architectures will be built.
+  #if !defined(ASMJIT_BUILD_ARM)
+    #define ASMJIT_BUILD_ARM
+  #endif
   #if !defined(ASMJIT_BUILD_X86)
     #define ASMJIT_BUILD_X86
   #endif
 #else
   // Detect architectures to build if building only for the host architecture.
+  #if ASMJIT_ARCH_ARM && !defined(ASMJIT_BUILD_ARM)
+    #define ASMJIT_BUILD_ARM
+  #endif
   #if ASMJIT_ARCH_X86 && !defined(ASMJIT_BUILD_X86)
     #define ASMJIT_BUILD_X86
   #endif
 #endif
 
 // Define 'ASMJIT_BUILD_HOST' if we know that host architecture will be built.
+#if !defined(ASMJIT_BUILD_HOST) && ASMJIT_ARCH_ARM && defined(ASMJIT_BUILD_ARM)
+  #define ASMJIT_BUILD_HOST
+#endif
+
 #if !defined(ASMJIT_BUILD_HOST) && ASMJIT_ARCH_X86 && defined(ASMJIT_BUILD_X86)
   #define ASMJIT_BUILD_HOST
 #endif
@@ -413,6 +429,17 @@ namespace asmjit {
   #define ASMJIT_MAY_ALIAS __attribute__((__may_alias__))
 #else
   #define ASMJIT_MAY_ALIAS
+#endif
+
+//! \def ASMJIT_MAYBE_UNUSED
+//!
+//! Expands to `[[maybe_unused]]` if supported or a compiler attribute instead.
+#if __cplusplus >= 201703L
+  #define ASMJIT_MAYBE_UNUSED [[maybe_unused]]
+#elif defined(__GNUC__)
+  #define ASMJIT_MAYBE_UNUSED __attribute__((unused))
+#else
+  #define ASMJIT_MAYBE_UNUSED
 #endif
 
 //! \def ASMJIT_LIKELY(...)
