@@ -461,7 +461,7 @@ class ZoneHeap {
 template <typename T>
 class ZoneList {
 public:
-  ASMJIT_NONCOPYABLE(ZoneList<T>)
+  ASMJIT_NONCOPYABLE(ZoneList)
 
   // --------------------------------------------------------------------------
   // [Link]
@@ -643,7 +643,7 @@ public:
 template <typename T>
 class ZoneVector : public ZoneVectorBase {
 public:
-  ASMJIT_NONCOPYABLE(ZoneVector<T>)
+  ASMJIT_NONCOPYABLE(ZoneVector)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]

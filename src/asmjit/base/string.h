@@ -254,7 +254,7 @@ public:
 template<size_t N>
 class StringBuilderTmp : public StringBuilder {
 public:
-  ASMJIT_NONCOPYABLE(StringBuilderTmp<N>)
+  ASMJIT_NONCOPYABLE(StringBuilderTmp)
 
   // --------------------------------------------------------------------------
   // [Construction / Destruction]
