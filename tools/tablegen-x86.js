@@ -1526,6 +1526,10 @@ class InstSignatureTable extends core.Task {
           if (iop.immValue !== null)
             break;
 
+          // Shorten the number of signatures of 'mov' instruction.
+          if (inst.name === "mov" && mem.startsWith("moff"))
+            break;
+
           if (reg === "r8") reg = "r8lo";
           if (reg === "seg") reg = "sreg";
           if (reg === "st(i)") reg = "st";

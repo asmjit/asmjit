@@ -2048,415 +2048,415 @@ const uint32_t InstDB::_altOpcodeTable[] = {
 #define SINGLE_REG(VAL) InstDB::kSingleReg##VAL
 const InstDB::CommonInfo InstDB::_commonInfoTable[] = {
   { 0                                                     , 0  , 0 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #0 [ref=1x]
-  { 0                                                     , 363, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #1 [ref=4x]
-  { 0                                                     , 364, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #2 [ref=2x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 23 , 12, CONTROL(None)   , SINGLE_REG(None), 0 }, // #3 [ref=2x]
-  { 0                                                     , 172, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #4 [ref=2x]
-  { F(Vec)                                                , 86 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #5 [ref=54x]
-  { F(Vec)                                                , 113, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #6 [ref=19x]
-  { F(Vec)                                                , 246, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #7 [ref=16x]
-  { F(Vec)                                                , 204, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #8 [ref=20x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 35 , 11, CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #9 [ref=1x]
-  { F(Vex)                                                , 261, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #10 [ref=3x]
-  { F(Vec)                                                , 86 , 1 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #11 [ref=12x]
-  { 0                                                     , 365, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #12 [ref=1x]
-  { F(Vex)                                                , 263, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #13 [ref=5x]
-  { F(Vex)                                                , 172, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #14 [ref=12x]
-  { F(Vec)                                                , 366, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #15 [ref=4x]
-  { 0                                                     , 265, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #16 [ref=3x]
-  { F(Mib)                                                , 367, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #17 [ref=1x]
-  { 0                                                     , 368, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #18 [ref=1x]
-  { 0                                                     , 267, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #19 [ref=1x]
-  { F(Mib)                                                , 369, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #20 [ref=1x]
-  { 0                                                     , 269, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #21 [ref=1x]
-  { 0                                                     , 171, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #22 [ref=35x]
-  { 0                                                     , 370, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #23 [ref=3x]
-  { 0                                                     , 135, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #24 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 135, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #25 [ref=3x]
-  { F(Rep)|F(RepIgnored)                                  , 271, 2 , CONTROL(Call)   , SINGLE_REG(None), 0 }, // #26 [ref=1x]
-  { 0                                                     , 371, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #27 [ref=1x]
-  { 0                                                     , 372, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #28 [ref=2x]
-  { 0                                                     , 346, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #29 [ref=1x]
-  { 0                                                     , 115, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #30 [ref=83x]
-  { 0                                                     , 373, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #31 [ref=24x]
-  { 0                                                     , 374, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #32 [ref=6x]
-  { 0                                                     , 375, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #33 [ref=1x]
-  { 0                                                     , 23 , 12, CONTROL(None)   , SINGLE_REG(None), 0 }, // #34 [ref=1x]
-  { F(Rep)                                                , 376, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #35 [ref=1x]
-  { F(Vec)                                                , 377, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #36 [ref=2x]
-  { F(Vec)                                                , 378, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #37 [ref=3x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 139, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #38 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 379, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #39 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 380, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #40 [ref=1x]
-  { 0                                                     , 381, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #41 [ref=1x]
-  { 0                                                     , 382, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #42 [ref=1x]
-  { 0                                                     , 273, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #43 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 383, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #44 [ref=2x]
-  { F(Mmx)|F(Vec)                                         , 384, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #45 [ref=2x]
-  { F(Mmx)|F(Vec)                                         , 385, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #46 [ref=2x]
-  { F(Vec)                                                , 386, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #47 [ref=2x]
-  { F(Vec)                                                , 387, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #48 [ref=2x]
-  { F(Vec)                                                , 388, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #49 [ref=2x]
-  { 0                                                     , 389, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #50 [ref=1x]
-  { 0                                                     , 390, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #51 [ref=2x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 275, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #52 [ref=2x]
-  { 0                                                     , 46 , 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #53 [ref=3x]
-  { F(Mmx)                                                , 115, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #54 [ref=1x]
-  { 0                                                     , 277, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #55 [ref=2x]
-  { 0                                                     , 391, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #56 [ref=1x]
-  { F(Vec)                                                , 392, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #57 [ref=2x]
-  { F(Vec)                                                , 279, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #58 [ref=1x]
-  { F(FpuM32)|F(FpuM64)                                   , 174, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #59 [ref=6x]
-  { 0                                                     , 281, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #60 [ref=9x]
-  { F(FpuM80)                                             , 393, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #61 [ref=2x]
-  { 0                                                     , 282, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #62 [ref=13x]
-  { F(FpuM32)|F(FpuM64)                                   , 283, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #63 [ref=2x]
-  { F(FpuM16)|F(FpuM32)                                   , 394, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #64 [ref=9x]
-  { F(FpuM16)|F(FpuM32)|F(FpuM64)                         , 395, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #65 [ref=3x]
-  { F(FpuM32)|F(FpuM64)|F(FpuM80)                         , 396, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #66 [ref=2x]
-  { F(FpuM16)                                             , 397, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #67 [ref=3x]
-  { F(FpuM16)                                             , 398, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #68 [ref=2x]
-  { F(FpuM32)|F(FpuM64)                                   , 284, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #69 [ref=1x]
-  { 0                                                     , 399, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #70 [ref=2x]
-  { 0                                                     , 46 , 10, CONTROL(None)   , SINGLE_REG(None), 0 }, // #71 [ref=1x]
-  { 0                                                     , 400, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #72 [ref=1x]
-  { 0                                                     , 401, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #73 [ref=2x]
-  { 0                                                     , 330, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #74 [ref=2x]
-  { F(Rep)                                                , 402, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #75 [ref=1x]
-  { F(Vec)                                                , 285, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #76 [ref=1x]
-  { 0                                                     , 403, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #77 [ref=2x]
-  { 0                                                     , 404, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #78 [ref=8x]
-  { 0                                                     , 287, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #79 [ref=3x]
-  { 0                                                     , 289, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #80 [ref=1x]
-  { 0                                                     , 115, 1 , CONTROL(Return) , SINGLE_REG(None), 0 }, // #81 [ref=3x]
-  { 0                                                     , 405, 1 , CONTROL(Return) , SINGLE_REG(None), 0 }, // #82 [ref=1x]
-  { F(Rep)|F(RepIgnored)                                  , 291, 2 , CONTROL(Branch) , SINGLE_REG(None), 0 }, // #83 [ref=30x]
-  { F(Rep)|F(RepIgnored)                                  , 293, 2 , CONTROL(Branch) , SINGLE_REG(None), 0 }, // #84 [ref=1x]
-  { F(Rep)|F(RepIgnored)                                  , 295, 2 , CONTROL(Jump)   , SINGLE_REG(None), 0 }, // #85 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 406, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #86 [ref=27x]
-  { F(Vec)|F(Vex)                                         , 297, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #87 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 299, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #88 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 301, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #89 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 303, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #90 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 407, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #91 [ref=12x]
-  { F(Vec)|F(Vex)                                         , 408, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #92 [ref=8x]
-  { 0                                                     , 409, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #93 [ref=2x]
-  { 0                                                     , 305, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #94 [ref=1x]
-  { F(Vec)                                                , 213, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #95 [ref=2x]
-  { 0                                                     , 410, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #96 [ref=2x]
-  { 0                                                     , 307, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #97 [ref=2x]
-  { F(Vex)                                                , 411, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #98 [ref=2x]
-  { 0                                                     , 412, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #99 [ref=1x]
-  { 0                                                     , 177, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #100 [ref=3x]
-  { 0                                                     , 413, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #101 [ref=5x]
-  { F(Vex)                                                , 414, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #102 [ref=2x]
-  { F(Rep)                                                , 415, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #103 [ref=1x]
-  { 0                                                     , 293, 2 , CONTROL(Branch) , SINGLE_REG(None), 0 }, // #104 [ref=3x]
-  { 0                                                     , 309, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #105 [ref=1x]
-  { F(Vex)                                                , 416, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #106 [ref=2x]
-  { F(Vec)                                                , 417, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #107 [ref=1x]
-  { F(Mmx)                                                , 418, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #108 [ref=1x]
-  { 0                                                     , 419, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #109 [ref=2x]
-  { F(XRelease)                                           , 0  , 23, CONTROL(None)   , SINGLE_REG(None), 0 }, // #110 [ref=1x]
-  { 0                                                     , 56 , 9 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #111 [ref=1x]
-  { F(Vec)                                                , 86 , 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #112 [ref=6x]
-  { 0                                                     , 80 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #113 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 311, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #114 [ref=1x]
-  { 0                                                     , 420, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #115 [ref=1x]
-  { 0                                                     , 84 , 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #116 [ref=2x]
-  { F(Mmx)|F(Vec)                                         , 421, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #117 [ref=1x]
-  { F(Vec)                                                , 280, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #118 [ref=2x]
-  { F(Vec)                                                , 219, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #119 [ref=4x]
-  { F(Vec)                                                , 422, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #120 [ref=2x]
-  { F(Vec)                                                , 87 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #121 [ref=3x]
-  { F(Mmx)                                                , 423, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #122 [ref=1x]
-  { F(Vec)                                                , 114, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #123 [ref=1x]
-  { F(Vec)                                                , 222, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #124 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 110, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #125 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 424, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #126 [ref=1x]
-  { F(Rep)                                                , 425, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #127 [ref=1x]
-  { F(Vec)                                                , 113, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #128 [ref=1x]
-  { F(Vec)                                                , 313, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #129 [ref=1x]
-  { 0                                                     , 315, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #130 [ref=2x]
-  { 0                                                     , 317, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #131 [ref=1x]
-  { F(Vex)                                                , 319, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #132 [ref=1x]
-  { 0                                                     , 426, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #133 [ref=1x]
-  { 0                                                     , 427, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #134 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 276, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #135 [ref=2x]
-  { 0                                                     , 115, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #136 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 23 , 12, CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #137 [ref=1x]
-  { 0                                                     , 428, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #138 [ref=1x]
-  { F(Rep)                                                , 429, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #139 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 321, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #140 [ref=40x]
-  { F(Mmx)|F(Vec)                                         , 323, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #141 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 321, 2 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #142 [ref=6x]
-  { F(Mmx)|F(Vec)                                         , 321, 2 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #143 [ref=16x]
-  { F(Mmx)                                                , 321, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #144 [ref=26x]
-  { F(Vec)                                                , 86 , 1 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #145 [ref=4x]
-  { F(Vec)                                                , 430, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #146 [ref=1x]
-  { F(Vec)                                                , 431, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #147 [ref=1x]
-  { F(Vec)                                                , 432, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #148 [ref=1x]
-  { F(Vec)                                                , 433, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #149 [ref=1x]
-  { F(Vec)                                                , 434, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #150 [ref=1x]
-  { F(Vec)                                                , 435, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #151 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 325, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #152 [ref=1x]
-  { F(Vec)                                                , 436, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #153 [ref=1x]
-  { F(Vec)                                                , 437, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #154 [ref=1x]
-  { F(Vec)                                                , 438, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #155 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 439, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #156 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 440, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #157 [ref=1x]
-  { F(Vec)                                                , 249, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #158 [ref=2x]
-  { 0                                                     , 143, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #159 [ref=1x]
-  { 0                                                     , 405, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #160 [ref=9x]
-  { F(Mmx)                                                , 323, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #161 [ref=1x]
-  { F(Mmx)|F(Vec)                                         , 327, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #162 [ref=8x]
-  { F(Vec)                                                , 441, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #163 [ref=2x]
-  { 0                                                     , 442, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #164 [ref=1x]
-  { 0                                                     , 147, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #165 [ref=1x]
-  { 0                                                     , 443, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #166 [ref=8x]
-  { 0                                                     , 444, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #167 [ref=4x]
-  { 0                                                     , 445, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #168 [ref=8x]
-  { 0                                                     , 329, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #169 [ref=1x]
-  { F(Rep)|F(RepIgnored)                                  , 331, 2 , CONTROL(Return) , SINGLE_REG(None), 0 }, // #170 [ref=1x]
-  { F(Vex)                                                , 333, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #171 [ref=1x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 23 , 12, CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #172 [ref=3x]
-  { F(Rep)                                                , 446, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #173 [ref=1x]
-  { 0                                                     , 447, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #174 [ref=30x]
-  { 0                                                     , 180, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #175 [ref=2x]
-  { 0                                                     , 448, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #176 [ref=3x]
-  { F(Rep)                                                , 449, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #177 [ref=1x]
-  { F(Vex)                                                , 450, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #178 [ref=5x]
-  { 0                                                     , 73 , 7 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #179 [ref=1x]
-  { F(Tsib)|F(Vex)                                        , 451, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #180 [ref=2x]
-  { F(Vex)                                                , 405, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #181 [ref=1x]
-  { F(Tsib)|F(Vex)                                        , 452, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #182 [ref=1x]
-  { F(Vex)                                                , 453, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #183 [ref=1x]
-  { 0                                                     , 454, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #184 [ref=2x]
-  { 0                                                     , 455, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #185 [ref=2x]
-  { 0                                                     , 456, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #186 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512T4X)|F(Avx512KZ)               , 457, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #187 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512T4X)|F(Avx512KZ)               , 458, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #188 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B64)          , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #189 [ref=22x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B32)          , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #190 [ref=22x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE)              , 459, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #191 [ref=18x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE)              , 460, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #192 [ref=17x]
-  { F(Vec)|F(Vex)                                         , 183, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #193 [ref=15x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #194 [ref=5x]
-  { F(Vec)|F(Vex)                                         , 86 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #195 [ref=17x]
-  { F(Vec)|F(Vex)                                         , 204, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #196 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #197 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #198 [ref=4x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #199 [ref=10x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #200 [ref=12x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #201 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #202 [ref=6x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #203 [ref=13x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #204 [ref=12x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #205 [ref=19x]
-  { F(Vec)|F(Vex)                                         , 186, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #206 [ref=6x]
-  { F(Vec)|F(Vex)                                         , 335, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #207 [ref=3x]
-  { F(Vec)|F(Vex)                                         , 461, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #208 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 462, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #209 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 463, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #210 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 464, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #211 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 465, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #212 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 462, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #213 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 466, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #214 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B64)             , 189, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #215 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B32)             , 189, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #216 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 467, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #217 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 468, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #218 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 113, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #219 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 246, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #220 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 192, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #221 [ref=6x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 195, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #222 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B32)          , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #223 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 337, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #224 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B64)          , 337, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #225 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B64)                 , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #226 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B64)                 , 337, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #227 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 195, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #228 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B32)          , 195, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #229 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 201, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #230 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B32)                 , 195, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #231 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B32)                 , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #232 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512ER_SAE)                 , 386, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #233 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512ER_SAE)                        , 386, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #234 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512ER_SAE)                 , 469, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #235 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 460, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #236 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512ER_SAE)                 , 388, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #237 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512ER_SAE)                        , 388, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #238 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B64)             , 337, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #239 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #240 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 337, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #241 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B32)             , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #242 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 195, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #243 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #244 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 386, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #245 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512SAE)                           , 386, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #246 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 388, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #247 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512SAE)                           , 388, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #248 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 195, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #249 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512ER_SAE)                        , 469, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #250 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #251 [ref=3x]
-  { F(Vec)|F(Vex)                                         , 186, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #252 [ref=9x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 90 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #253 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 90 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #254 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #255 [ref=9x]
-  { F(Vec)|F(Vex)                                         , 202, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #256 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 470, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #257 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 203, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #258 [ref=4x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 392, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #259 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #260 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #261 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 471, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #262 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 472, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #263 [ref=4x]
-  { F(Vec)|F(Vex)                                         , 151, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #264 [ref=13x]
-  { F(Vec)|F(Vex)                                         , 339, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #265 [ref=4x]
-  { F(Vec)|F(Vex)                                         , 341, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #266 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512K_B64)                         , 473, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #267 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512K_B32)                         , 473, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #268 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512K)                             , 474, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #269 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512K)                             , 475, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #270 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 198, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #271 [ref=7x]
-  { F(Vec)|F(Vex)                                         , 113, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #272 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 246, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #273 [ref=1x]
-  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 120, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #274 [ref=2x]
-  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 125, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #275 [ref=2x]
-  { F(Vsib)|F(Evex)|F(Avx512K)                            , 476, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #276 [ref=4x]
-  { F(Vsib)|F(Evex)|F(Avx512K)                            , 477, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #277 [ref=4x]
-  { F(Vsib)|F(Evex)|F(Avx512K)                            , 478, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #278 [ref=8x]
-  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 130, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #279 [ref=2x]
-  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 155, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #280 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 459, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #281 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 460, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #282 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 204, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #283 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 204, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #284 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #285 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #286 [ref=22x]
-  { F(Vec)|F(Vex)                                         , 343, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #287 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 343, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #288 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 479, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #289 [ref=4x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 472, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #290 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 213, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #291 [ref=1x]
-  { F(Vex)                                                , 410, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #292 [ref=2x]
-  { F(Vec)|F(Vex)                                         , 417, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #293 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 159, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #294 [ref=4x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B64)             , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #295 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B32)             , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #296 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 459, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #297 [ref=2x]
-  { 0                                                     , 345, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #298 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 86 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #299 [ref=4x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 347, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #300 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 207, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #301 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 86 , 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #302 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 86 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #303 [ref=6x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 221, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #304 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 349, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #305 [ref=4x]
-  { F(Vec)|F(Vex)                                         , 480, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #306 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 210, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #307 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 213, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #308 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 216, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #309 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 219, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #310 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #311 [ref=5x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 222, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #312 [ref=1x]
-  { 0                                                     , 351, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #313 [ref=1x]
-  { 0                                                     , 353, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #314 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512B32)                           , 225, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #315 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512B64)                           , 225, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #316 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 183, 2 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #317 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 183, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #318 [ref=2x]
-  { F(Vec)|F(Vex)                                         , 183, 2 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #319 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 183, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #320 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 183, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #321 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 183, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #322 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 481, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #323 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 482, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #324 [ref=1x]
-  { F(Vec)|F(Evex)                                        , 483, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #325 [ref=6x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 228, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #326 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 484, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #327 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #328 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512K)                             , 231, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #329 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512K_B32)                         , 231, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #330 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512K)                      , 234, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #331 [ref=4x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512K_B32)                  , 234, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #332 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512K_B64)                  , 234, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #333 [ref=2x]
-  { F(Vec)|F(Vex)                                         , 430, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #334 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 431, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #335 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 432, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #336 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 433, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #337 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512K_B64)                         , 231, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #338 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #339 [ref=6x]
-  { F(Vec)|F(Vex)|F(Evex)|F(PreferEvex)|F(Avx512KZ_B32)   , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #340 [ref=4x]
-  { F(Vec)|F(Vex)                                         , 187, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #341 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 184, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #342 [ref=2x]
-  { F(Vec)|F(Vex)                                         , 163, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #343 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 92 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #344 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 167, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #345 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 434, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #346 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 435, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #347 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 485, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #348 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 486, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #349 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 487, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #350 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 488, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #351 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 489, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #352 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #353 [ref=4x]
-  { F(Vec)|F(Vex)                                         , 335, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #354 [ref=12x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 183, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #355 [ref=8x]
-  { F(Vec)|F(Evex)                                        , 490, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #356 [ref=4x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 237, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #357 [ref=6x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 240, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #358 [ref=9x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 243, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #359 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 246, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #360 [ref=4x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 249, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #361 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 195, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #362 [ref=6x]
-  { F(Vec)|F(Vex)                                         , 151, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #363 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 204, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #364 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 204, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #365 [ref=3x]
-  { F(Vec)|F(Vex)                                         , 355, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #366 [ref=4x]
-  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 252, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #367 [ref=3x]
-  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 357, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #368 [ref=2x]
-  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 255, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #369 [ref=2x]
-  { F(Vec)|F(Vex)                                         , 359, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #370 [ref=8x]
-  { F(Vec)|F(Evex)|F(Avx512K)                             , 258, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #371 [ref=5x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 204, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #372 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 204, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #373 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 98 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #374 [ref=3x]
-  { F(Vec)|F(Vex)|F(Evex)                                 , 204, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #375 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 98 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #376 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 98 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #377 [ref=3x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 104, 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #378 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 183, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #379 [ref=6x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #380 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #381 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512K_B32)                         , 258, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #382 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512K_B64)                         , 258, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #383 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 459, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #384 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 460, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #385 [ref=2x]
-  { F(Vec)|F(Vex)                                         , 460, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #386 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 471, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #387 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 472, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #388 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 204, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #389 [ref=2x]
-  { F(Vec)|F(Vex)                                         , 471, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #390 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 472, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #391 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B64)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #392 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B32)                 , 183, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #393 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE)                     , 459, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #394 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE)                     , 460, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #395 [ref=1x]
-  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 361, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #396 [ref=1x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 187, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #397 [ref=2x]
-  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 187, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #398 [ref=2x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #399 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 186, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #400 [ref=1x]
-  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B64)          , 198, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #401 [ref=1x]
-  { F(Vec)|F(Vex)                                         , 115, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #402 [ref=2x]
-  { 0                                                     , 30 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #403 [ref=2x]
-  { 0                                                     , 68 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #404 [ref=2x]
-  { F(Lock)|F(XAcquire)|F(XRelease)                       , 65 , 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #405 [ref=1x]
-  { 0                                                     , 491, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #406 [ref=1x]
-  { F(Lock)|F(XAcquire)                                   , 65 , 8 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #407 [ref=1x]
-  { 0                                                     , 492, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #408 [ref=6x]
-  { 0                                                     , 493, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }  // #409 [ref=6x]
+  { 0                                                     , 356, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #1 [ref=4x]
+  { 0                                                     , 357, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #2 [ref=2x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 16 , 12, CONTROL(None)   , SINGLE_REG(None), 0 }, // #3 [ref=2x]
+  { 0                                                     , 165, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #4 [ref=2x]
+  { F(Vec)                                                , 79 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #5 [ref=54x]
+  { F(Vec)                                                , 106, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #6 [ref=19x]
+  { F(Vec)                                                , 239, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #7 [ref=16x]
+  { F(Vec)                                                , 197, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #8 [ref=20x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 28 , 11, CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #9 [ref=1x]
+  { F(Vex)                                                , 254, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #10 [ref=3x]
+  { F(Vec)                                                , 79 , 1 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #11 [ref=12x]
+  { 0                                                     , 358, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #12 [ref=1x]
+  { F(Vex)                                                , 256, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #13 [ref=5x]
+  { F(Vex)                                                , 165, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #14 [ref=12x]
+  { F(Vec)                                                , 359, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #15 [ref=4x]
+  { 0                                                     , 258, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #16 [ref=3x]
+  { F(Mib)                                                , 360, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #17 [ref=1x]
+  { 0                                                     , 361, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #18 [ref=1x]
+  { 0                                                     , 260, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #19 [ref=1x]
+  { F(Mib)                                                , 362, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #20 [ref=1x]
+  { 0                                                     , 262, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #21 [ref=1x]
+  { 0                                                     , 164, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #22 [ref=35x]
+  { 0                                                     , 363, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #23 [ref=3x]
+  { 0                                                     , 128, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #24 [ref=1x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 128, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #25 [ref=3x]
+  { F(Rep)|F(RepIgnored)                                  , 264, 2 , CONTROL(Call)   , SINGLE_REG(None), 0 }, // #26 [ref=1x]
+  { 0                                                     , 364, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #27 [ref=1x]
+  { 0                                                     , 365, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #28 [ref=2x]
+  { 0                                                     , 339, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #29 [ref=1x]
+  { 0                                                     , 108, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #30 [ref=83x]
+  { 0                                                     , 366, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #31 [ref=24x]
+  { 0                                                     , 367, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #32 [ref=6x]
+  { 0                                                     , 368, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #33 [ref=1x]
+  { 0                                                     , 16 , 12, CONTROL(None)   , SINGLE_REG(None), 0 }, // #34 [ref=1x]
+  { F(Rep)                                                , 369, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #35 [ref=1x]
+  { F(Vec)                                                , 370, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #36 [ref=2x]
+  { F(Vec)                                                , 371, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #37 [ref=3x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 132, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #38 [ref=1x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 372, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #39 [ref=1x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 373, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #40 [ref=1x]
+  { 0                                                     , 374, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #41 [ref=1x]
+  { 0                                                     , 375, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #42 [ref=1x]
+  { 0                                                     , 266, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #43 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 376, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #44 [ref=2x]
+  { F(Mmx)|F(Vec)                                         , 377, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #45 [ref=2x]
+  { F(Mmx)|F(Vec)                                         , 378, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #46 [ref=2x]
+  { F(Vec)                                                , 379, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #47 [ref=2x]
+  { F(Vec)                                                , 380, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #48 [ref=2x]
+  { F(Vec)                                                , 381, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #49 [ref=2x]
+  { 0                                                     , 382, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #50 [ref=1x]
+  { 0                                                     , 383, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #51 [ref=2x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 268, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #52 [ref=2x]
+  { 0                                                     , 39 , 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #53 [ref=3x]
+  { F(Mmx)                                                , 108, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #54 [ref=1x]
+  { 0                                                     , 270, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #55 [ref=2x]
+  { 0                                                     , 384, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #56 [ref=1x]
+  { F(Vec)                                                , 385, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #57 [ref=2x]
+  { F(Vec)                                                , 272, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #58 [ref=1x]
+  { F(FpuM32)|F(FpuM64)                                   , 167, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #59 [ref=6x]
+  { 0                                                     , 274, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #60 [ref=9x]
+  { F(FpuM80)                                             , 386, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #61 [ref=2x]
+  { 0                                                     , 275, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #62 [ref=13x]
+  { F(FpuM32)|F(FpuM64)                                   , 276, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #63 [ref=2x]
+  { F(FpuM16)|F(FpuM32)                                   , 387, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #64 [ref=9x]
+  { F(FpuM16)|F(FpuM32)|F(FpuM64)                         , 388, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #65 [ref=3x]
+  { F(FpuM32)|F(FpuM64)|F(FpuM80)                         , 389, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #66 [ref=2x]
+  { F(FpuM16)                                             , 390, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #67 [ref=3x]
+  { F(FpuM16)                                             , 391, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #68 [ref=2x]
+  { F(FpuM32)|F(FpuM64)                                   , 277, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #69 [ref=1x]
+  { 0                                                     , 392, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #70 [ref=2x]
+  { 0                                                     , 39 , 10, CONTROL(None)   , SINGLE_REG(None), 0 }, // #71 [ref=1x]
+  { 0                                                     , 393, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #72 [ref=1x]
+  { 0                                                     , 394, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #73 [ref=2x]
+  { 0                                                     , 323, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #74 [ref=2x]
+  { F(Rep)                                                , 395, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #75 [ref=1x]
+  { F(Vec)                                                , 278, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #76 [ref=1x]
+  { 0                                                     , 396, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #77 [ref=2x]
+  { 0                                                     , 397, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #78 [ref=8x]
+  { 0                                                     , 280, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #79 [ref=3x]
+  { 0                                                     , 282, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #80 [ref=1x]
+  { 0                                                     , 108, 1 , CONTROL(Return) , SINGLE_REG(None), 0 }, // #81 [ref=3x]
+  { 0                                                     , 398, 1 , CONTROL(Return) , SINGLE_REG(None), 0 }, // #82 [ref=1x]
+  { F(Rep)|F(RepIgnored)                                  , 284, 2 , CONTROL(Branch) , SINGLE_REG(None), 0 }, // #83 [ref=30x]
+  { F(Rep)|F(RepIgnored)                                  , 286, 2 , CONTROL(Branch) , SINGLE_REG(None), 0 }, // #84 [ref=1x]
+  { F(Rep)|F(RepIgnored)                                  , 288, 2 , CONTROL(Jump)   , SINGLE_REG(None), 0 }, // #85 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 399, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #86 [ref=27x]
+  { F(Vec)|F(Vex)                                         , 290, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #87 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 292, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #88 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 294, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #89 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 296, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #90 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 400, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #91 [ref=12x]
+  { F(Vec)|F(Vex)                                         , 401, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #92 [ref=8x]
+  { 0                                                     , 402, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #93 [ref=2x]
+  { 0                                                     , 298, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #94 [ref=1x]
+  { F(Vec)                                                , 206, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #95 [ref=2x]
+  { 0                                                     , 403, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #96 [ref=2x]
+  { 0                                                     , 300, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #97 [ref=2x]
+  { F(Vex)                                                , 404, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #98 [ref=2x]
+  { 0                                                     , 405, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #99 [ref=1x]
+  { 0                                                     , 170, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #100 [ref=3x]
+  { 0                                                     , 406, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #101 [ref=5x]
+  { F(Vex)                                                , 407, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #102 [ref=2x]
+  { F(Rep)                                                , 408, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #103 [ref=1x]
+  { 0                                                     , 286, 2 , CONTROL(Branch) , SINGLE_REG(None), 0 }, // #104 [ref=3x]
+  { 0                                                     , 302, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #105 [ref=1x]
+  { F(Vex)                                                , 409, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #106 [ref=2x]
+  { F(Vec)                                                , 410, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #107 [ref=1x]
+  { F(Mmx)                                                , 411, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #108 [ref=1x]
+  { 0                                                     , 412, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #109 [ref=2x]
+  { F(XRelease)                                           , 0  , 16, CONTROL(None)   , SINGLE_REG(None), 0 }, // #110 [ref=1x]
+  { 0                                                     , 49 , 9 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #111 [ref=1x]
+  { F(Vec)                                                , 79 , 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #112 [ref=6x]
+  { 0                                                     , 73 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #113 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 304, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #114 [ref=1x]
+  { 0                                                     , 413, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #115 [ref=1x]
+  { 0                                                     , 77 , 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #116 [ref=2x]
+  { F(Mmx)|F(Vec)                                         , 414, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #117 [ref=1x]
+  { F(Vec)                                                , 273, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #118 [ref=2x]
+  { F(Vec)                                                , 212, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #119 [ref=4x]
+  { F(Vec)                                                , 415, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #120 [ref=2x]
+  { F(Vec)                                                , 80 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #121 [ref=3x]
+  { F(Mmx)                                                , 416, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #122 [ref=1x]
+  { F(Vec)                                                , 107, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #123 [ref=1x]
+  { F(Vec)                                                , 215, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #124 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 103, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #125 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 417, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #126 [ref=1x]
+  { F(Rep)                                                , 418, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #127 [ref=1x]
+  { F(Vec)                                                , 106, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #128 [ref=1x]
+  { F(Vec)                                                , 306, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #129 [ref=1x]
+  { 0                                                     , 308, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #130 [ref=2x]
+  { 0                                                     , 310, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #131 [ref=1x]
+  { F(Vex)                                                , 312, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #132 [ref=1x]
+  { 0                                                     , 419, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #133 [ref=1x]
+  { 0                                                     , 420, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #134 [ref=1x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 269, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #135 [ref=2x]
+  { 0                                                     , 108, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #136 [ref=1x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 16 , 12, CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #137 [ref=1x]
+  { 0                                                     , 421, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #138 [ref=1x]
+  { F(Rep)                                                , 422, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #139 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 314, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #140 [ref=40x]
+  { F(Mmx)|F(Vec)                                         , 316, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #141 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 314, 2 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #142 [ref=6x]
+  { F(Mmx)|F(Vec)                                         , 314, 2 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #143 [ref=16x]
+  { F(Mmx)                                                , 314, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #144 [ref=26x]
+  { F(Vec)                                                , 79 , 1 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #145 [ref=4x]
+  { F(Vec)                                                , 423, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #146 [ref=1x]
+  { F(Vec)                                                , 424, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #147 [ref=1x]
+  { F(Vec)                                                , 425, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #148 [ref=1x]
+  { F(Vec)                                                , 426, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #149 [ref=1x]
+  { F(Vec)                                                , 427, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #150 [ref=1x]
+  { F(Vec)                                                , 428, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #151 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 318, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #152 [ref=1x]
+  { F(Vec)                                                , 429, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #153 [ref=1x]
+  { F(Vec)                                                , 430, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #154 [ref=1x]
+  { F(Vec)                                                , 431, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #155 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 432, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #156 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 433, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #157 [ref=1x]
+  { F(Vec)                                                , 242, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #158 [ref=2x]
+  { 0                                                     , 136, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #159 [ref=1x]
+  { 0                                                     , 398, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #160 [ref=9x]
+  { F(Mmx)                                                , 316, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #161 [ref=1x]
+  { F(Mmx)|F(Vec)                                         , 320, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #162 [ref=8x]
+  { F(Vec)                                                , 434, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #163 [ref=2x]
+  { 0                                                     , 435, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #164 [ref=1x]
+  { 0                                                     , 140, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #165 [ref=1x]
+  { 0                                                     , 436, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #166 [ref=8x]
+  { 0                                                     , 437, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #167 [ref=4x]
+  { 0                                                     , 438, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #168 [ref=8x]
+  { 0                                                     , 322, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #169 [ref=1x]
+  { F(Rep)|F(RepIgnored)                                  , 324, 2 , CONTROL(Return) , SINGLE_REG(None), 0 }, // #170 [ref=1x]
+  { F(Vex)                                                , 326, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #171 [ref=1x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 16 , 12, CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #172 [ref=3x]
+  { F(Rep)                                                , 439, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #173 [ref=1x]
+  { 0                                                     , 440, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #174 [ref=30x]
+  { 0                                                     , 173, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #175 [ref=2x]
+  { 0                                                     , 441, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #176 [ref=3x]
+  { F(Rep)                                                , 442, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #177 [ref=1x]
+  { F(Vex)                                                , 443, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #178 [ref=5x]
+  { 0                                                     , 66 , 7 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #179 [ref=1x]
+  { F(Tsib)|F(Vex)                                        , 444, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #180 [ref=2x]
+  { F(Vex)                                                , 398, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #181 [ref=1x]
+  { F(Tsib)|F(Vex)                                        , 445, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #182 [ref=1x]
+  { F(Vex)                                                , 446, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #183 [ref=1x]
+  { 0                                                     , 447, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #184 [ref=2x]
+  { 0                                                     , 448, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #185 [ref=2x]
+  { 0                                                     , 449, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #186 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512T4X)|F(Avx512KZ)               , 450, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #187 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512T4X)|F(Avx512KZ)               , 451, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #188 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B64)          , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #189 [ref=22x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B32)          , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #190 [ref=22x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE)              , 452, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #191 [ref=18x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE)              , 453, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #192 [ref=17x]
+  { F(Vec)|F(Vex)                                         , 176, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #193 [ref=15x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #194 [ref=5x]
+  { F(Vec)|F(Vex)                                         , 79 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #195 [ref=17x]
+  { F(Vec)|F(Vex)                                         , 197, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #196 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #197 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #198 [ref=4x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #199 [ref=10x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #200 [ref=12x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #201 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #202 [ref=6x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #203 [ref=13x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #204 [ref=12x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #205 [ref=19x]
+  { F(Vec)|F(Vex)                                         , 179, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #206 [ref=6x]
+  { F(Vec)|F(Vex)                                         , 328, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #207 [ref=3x]
+  { F(Vec)|F(Vex)                                         , 454, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #208 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 455, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #209 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 456, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #210 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 457, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #211 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 458, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #212 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 455, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #213 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 459, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #214 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B64)             , 182, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #215 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B32)             , 182, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #216 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 460, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #217 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 461, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #218 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 106, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #219 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 239, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #220 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 185, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #221 [ref=6x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 188, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #222 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B32)          , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #223 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 330, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #224 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B64)          , 330, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #225 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B64)                 , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #226 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B64)                 , 330, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #227 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 188, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #228 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B32)          , 188, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #229 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 194, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #230 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B32)                 , 188, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #231 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B32)                 , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #232 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512ER_SAE)                 , 379, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #233 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512ER_SAE)                        , 379, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #234 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512ER_SAE)                 , 462, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #235 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 453, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #236 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512ER_SAE)                 , 381, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #237 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512ER_SAE)                        , 381, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #238 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B64)             , 330, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #239 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #240 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 330, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #241 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B32)             , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #242 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 188, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #243 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #244 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 379, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #245 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512SAE)                           , 379, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #246 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512SAE)                    , 381, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #247 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512SAE)                           , 381, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #248 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 188, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #249 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512ER_SAE)                        , 462, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #250 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #251 [ref=3x]
+  { F(Vec)|F(Vex)                                         , 179, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #252 [ref=9x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 83 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #253 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 83 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #254 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #255 [ref=9x]
+  { F(Vec)|F(Vex)                                         , 195, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #256 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 463, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #257 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 196, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #258 [ref=4x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 385, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #259 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #260 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #261 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 464, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #262 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 465, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #263 [ref=4x]
+  { F(Vec)|F(Vex)                                         , 144, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #264 [ref=13x]
+  { F(Vec)|F(Vex)                                         , 332, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #265 [ref=4x]
+  { F(Vec)|F(Vex)                                         , 334, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #266 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512K_B64)                         , 466, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #267 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512K_B32)                         , 466, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #268 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512K)                             , 467, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #269 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512K)                             , 468, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #270 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 191, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #271 [ref=7x]
+  { F(Vec)|F(Vex)                                         , 106, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #272 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 239, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #273 [ref=1x]
+  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 113, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #274 [ref=2x]
+  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 118, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #275 [ref=2x]
+  { F(Vsib)|F(Evex)|F(Avx512K)                            , 469, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #276 [ref=4x]
+  { F(Vsib)|F(Evex)|F(Avx512K)                            , 470, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #277 [ref=4x]
+  { F(Vsib)|F(Evex)|F(Avx512K)                            , 471, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #278 [ref=8x]
+  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 123, 5 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #279 [ref=2x]
+  { F(Vec)|F(Vsib)|F(Vex)|F(Evex)|F(Avx512K)              , 148, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #280 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 452, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #281 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE)                        , 453, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #282 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B64)                    , 197, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #283 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_SAE_B32)                    , 197, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #284 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #285 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #286 [ref=22x]
+  { F(Vec)|F(Vex)                                         , 336, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #287 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 336, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #288 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 472, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #289 [ref=4x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 465, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #290 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 206, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #291 [ref=1x]
+  { F(Vex)                                                , 403, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #292 [ref=2x]
+  { F(Vec)|F(Vex)                                         , 410, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #293 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 152, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #294 [ref=4x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B64)             , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #295 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE_B32)             , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #296 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_SAE)                 , 452, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #297 [ref=2x]
+  { 0                                                     , 338, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #298 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 79 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #299 [ref=4x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 340, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #300 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 200, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #301 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 79 , 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #302 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 79 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #303 [ref=6x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 214, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #304 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 342, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #305 [ref=4x]
+  { F(Vec)|F(Vex)                                         , 473, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #306 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 203, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #307 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 206, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #308 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 209, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #309 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 212, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #310 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #311 [ref=5x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 215, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #312 [ref=1x]
+  { 0                                                     , 344, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #313 [ref=1x]
+  { 0                                                     , 346, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #314 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512B32)                           , 218, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #315 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512B64)                           , 218, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #316 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 176, 2 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #317 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 176, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #318 [ref=2x]
+  { F(Vec)|F(Vex)                                         , 176, 2 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #319 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 176, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #320 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 176, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #321 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 176, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #322 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 474, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #323 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 475, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #324 [ref=1x]
+  { F(Vec)|F(Evex)                                        , 476, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #325 [ref=6x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 221, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #326 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 477, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #327 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #328 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512K)                             , 224, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #329 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512K_B32)                         , 224, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #330 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512K)                      , 227, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #331 [ref=4x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512K_B32)                  , 227, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #332 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512K_B64)                  , 227, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #333 [ref=2x]
+  { F(Vec)|F(Vex)                                         , 423, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #334 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 424, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #335 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 425, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #336 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 426, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #337 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512K_B64)                         , 224, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #338 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #339 [ref=6x]
+  { F(Vec)|F(Vex)|F(Evex)|F(PreferEvex)|F(Avx512KZ_B32)   , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #340 [ref=4x]
+  { F(Vec)|F(Vex)                                         , 180, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #341 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 177, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #342 [ref=2x]
+  { F(Vec)|F(Vex)                                         , 156, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #343 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 85 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #344 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 160, 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #345 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 427, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #346 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 428, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #347 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 478, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #348 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 479, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #349 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 480, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #350 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 481, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #351 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 482, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #352 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #353 [ref=4x]
+  { F(Vec)|F(Vex)                                         , 328, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #354 [ref=12x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 176, 3 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #355 [ref=8x]
+  { F(Vec)|F(Evex)                                        , 483, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #356 [ref=4x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 230, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #357 [ref=6x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 233, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #358 [ref=9x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 236, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #359 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 239, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #360 [ref=4x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 242, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #361 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 188, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #362 [ref=6x]
+  { F(Vec)|F(Vex)                                         , 144, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #363 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 197, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #364 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 197, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #365 [ref=3x]
+  { F(Vec)|F(Vex)                                         , 348, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #366 [ref=4x]
+  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 245, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #367 [ref=3x]
+  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 350, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #368 [ref=2x]
+  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 248, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #369 [ref=2x]
+  { F(Vec)|F(Vex)                                         , 352, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #370 [ref=8x]
+  { F(Vec)|F(Evex)|F(Avx512K)                             , 251, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #371 [ref=5x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 197, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #372 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 197, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #373 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 91 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #374 [ref=3x]
+  { F(Vec)|F(Vex)|F(Evex)                                 , 197, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #375 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 91 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #376 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 91 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #377 [ref=3x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 97 , 6 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #378 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ)                     , 176, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #379 [ref=6x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #380 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(WO)  , 0 }, // #381 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512K_B32)                         , 251, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #382 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512K_B64)                         , 251, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #383 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 452, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #384 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 453, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #385 [ref=2x]
+  { F(Vec)|F(Vex)                                         , 453, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #386 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 464, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #387 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ)                            , 465, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #388 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 197, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #389 [ref=2x]
+  { F(Vec)|F(Vex)                                         , 464, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #390 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 465, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #391 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B64)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #392 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE_B32)                 , 176, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #393 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE)                     , 452, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #394 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_ER_SAE)                     , 453, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #395 [ref=1x]
+  { F(Vec)|F(Vsib)|F(Evex)|F(Avx512K)                     , 354, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #396 [ref=1x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B32)                        , 180, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #397 [ref=2x]
+  { F(Vec)|F(Evex)|F(Avx512KZ_B64)                        , 180, 2 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #398 [ref=2x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B32)                 , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #399 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_B64)                 , 179, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #400 [ref=1x]
+  { F(Vec)|F(Vex)|F(Evex)|F(Avx512KZ_ER_SAE_B64)          , 191, 3 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #401 [ref=1x]
+  { F(Vec)|F(Vex)                                         , 108, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #402 [ref=2x]
+  { 0                                                     , 23 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #403 [ref=2x]
+  { 0                                                     , 61 , 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #404 [ref=2x]
+  { F(Lock)|F(XAcquire)|F(XRelease)                       , 58 , 4 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #405 [ref=1x]
+  { 0                                                     , 484, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #406 [ref=1x]
+  { F(Lock)|F(XAcquire)                                   , 58 , 8 , CONTROL(None)   , SINGLE_REG(RO)  , 0 }, // #407 [ref=1x]
+  { 0                                                     , 485, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }, // #408 [ref=6x]
+  { 0                                                     , 486, 1 , CONTROL(None)   , SINGLE_REG(None), 0 }  // #409 [ref=6x]
 };
 #undef SINGLE_REG
 #undef CONTROL
@@ -2882,491 +2882,484 @@ const InstDB::InstSignature InstDB::_instSignatureTable[] = {
   ROW(2, 1, 1, 0, 13 , 14 , 0  , 0  , 0  , 0  ), //      {r32|m32, i32|u32}
   ROW(2, 0, 1, 0, 15 , 16 , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, i32}
   ROW(2, 0, 1, 0, 8  , 17 , 0  , 0  , 0  , 0  ), //      {r64, i64|u64|m64|mem|sreg|creg|dreg}
-  ROW(2, 1, 1, 0, 18 , 19 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi|al, m8|mem}
-  ROW(2, 1, 1, 0, 4  , 20 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem|sreg}
-  ROW(2, 1, 1, 0, 6  , 21 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem|sreg}
-  ROW(2, 1, 1, 0, 22 , 23 , 0  , 0  , 0  , 0  ), //      {m16|mem, sreg}
-  ROW(2, 1, 1, 0, 23 , 22 , 0  , 0  , 0  , 0  ), //      {sreg, m16|mem}
-  ROW(2, 1, 1, 0, 24 , 22 , 0  , 0  , 0  , 0  ), //      {ax, m16|mem}
-  ROW(2, 1, 1, 0, 25 , 26 , 0  , 0  , 0  , 0  ), //      {eax, m32|mem}
-  ROW(2, 0, 1, 0, 27 , 28 , 0  , 0  , 0  , 0  ), //      {rax, m64|mem}
-  ROW(2, 1, 1, 0, 19 , 29 , 0  , 0  , 0  , 0  ), //      {m8|mem, al}
-  ROW(2, 1, 1, 0, 22 , 24 , 0  , 0  , 0  , 0  ), //      {m16|mem, ax}
-  ROW(2, 1, 1, 0, 26 , 25 , 0  , 0  , 0  , 0  ), //      {m32|mem, eax}
-  ROW(2, 0, 1, 0, 28 , 27 , 0  , 0  , 0  , 0  ), //      {m64|mem, rax}
-  ROW(2, 1, 0, 0, 6  , 30 , 0  , 0  , 0  , 0  ), //      {r32, creg|dreg}
-  ROW(2, 1, 0, 0, 30 , 6  , 0  , 0  , 0  , 0  ), //      {creg|dreg, r32}
-  ROW(2, 1, 1, 0, 9  , 10 , 0  , 0  , 0  , 0  ), // #23  {r8lo|r8hi|m8, i8|u8}
+  ROW(2, 1, 1, 0, 2  , 18 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
+  ROW(2, 1, 1, 0, 4  , 19 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem|sreg}
+  ROW(2, 1, 1, 0, 6  , 20 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem|sreg}
+  ROW(2, 1, 1, 0, 21 , 22 , 0  , 0  , 0  , 0  ), //      {m16|mem, sreg}
+  ROW(2, 1, 1, 0, 22 , 21 , 0  , 0  , 0  , 0  ), //      {sreg, m16|mem}
+  ROW(2, 1, 0, 0, 6  , 23 , 0  , 0  , 0  , 0  ), //      {r32, creg|dreg}
+  ROW(2, 1, 0, 0, 23 , 6  , 0  , 0  , 0  , 0  ), //      {creg|dreg, r32}
+  ROW(2, 1, 1, 0, 9  , 10 , 0  , 0  , 0  , 0  ), // #16  {r8lo|r8hi|m8, i8|u8}
   ROW(2, 1, 1, 0, 11 , 12 , 0  , 0  , 0  , 0  ), //      {r16|m16, i16|u16}
   ROW(2, 1, 1, 0, 13 , 14 , 0  , 0  , 0  , 0  ), //      {r32|m32, i32|u32}
-  ROW(2, 0, 1, 0, 15 , 31 , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, i32|r64}
-  ROW(2, 1, 1, 0, 32 , 33 , 0  , 0  , 0  , 0  ), //      {r16|m16|r32|m32|r64|m64|mem, i8}
+  ROW(2, 0, 1, 0, 15 , 24 , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, i32|r64}
+  ROW(2, 1, 1, 0, 25 , 26 , 0  , 0  , 0  , 0  ), //      {r16|m16|r32|m32|r64|m64|mem, i8}
   ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi|m8|mem, r8lo|r8hi}
-  ROW(2, 1, 1, 0, 34 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
-  ROW(2, 1, 1, 0, 35 , 6  , 0  , 0  , 0  , 0  ), // #30  {r32|m32|mem, r32}
-  ROW(2, 1, 1, 0, 2  , 19 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
-  ROW(2, 1, 1, 0, 4  , 22 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem}
-  ROW(2, 1, 1, 0, 6  , 26 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
-  ROW(2, 0, 1, 0, 8  , 28 , 0  , 0  , 0  , 0  ), //      {r64, m64|mem}
-  ROW(2, 1, 1, 0, 36 , 10 , 0  , 0  , 0  , 0  ), // #35  {r8lo|r8hi|m8|r16|m16|r32|m32|r64|m64|mem, i8|u8}
+  ROW(2, 1, 1, 0, 27 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
+  ROW(2, 1, 1, 0, 28 , 6  , 0  , 0  , 0  , 0  ), // #23  {r32|m32|mem, r32}
+  ROW(2, 1, 1, 0, 2  , 18 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
+  ROW(2, 1, 1, 0, 4  , 21 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem}
+  ROW(2, 1, 1, 0, 6  , 29 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
+  ROW(2, 0, 1, 0, 8  , 30 , 0  , 0  , 0  , 0  ), //      {r64, m64|mem}
+  ROW(2, 1, 1, 0, 31 , 10 , 0  , 0  , 0  , 0  ), // #28  {r8lo|r8hi|m8|r16|m16|r32|m32|r64|m64|mem, i8|u8}
   ROW(2, 1, 1, 0, 11 , 12 , 0  , 0  , 0  , 0  ), //      {r16|m16, i16|u16}
   ROW(2, 1, 1, 0, 13 , 14 , 0  , 0  , 0  , 0  ), //      {r32|m32, i32|u32}
-  ROW(2, 0, 1, 0, 8  , 37 , 0  , 0  , 0  , 0  ), //      {r64, u32|i32|r64|m64|mem}
-  ROW(2, 0, 1, 0, 28 , 31 , 0  , 0  , 0  , 0  ), //      {m64|mem, i32|r64}
+  ROW(2, 0, 1, 0, 8  , 32 , 0  , 0  , 0  , 0  ), //      {r64, u32|i32|r64|m64|mem}
+  ROW(2, 0, 1, 0, 30 , 24 , 0  , 0  , 0  , 0  ), //      {m64|mem, i32|r64}
   ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi|m8|mem, r8lo|r8hi}
-  ROW(2, 1, 1, 0, 34 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
-  ROW(2, 1, 1, 0, 35 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
-  ROW(2, 1, 1, 0, 2  , 19 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
-  ROW(2, 1, 1, 0, 4  , 22 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem}
-  ROW(2, 1, 1, 0, 6  , 26 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
-  ROW(2, 1, 1, 1, 38 , 1  , 0  , 0  , 0  , 0  ), // #46  {<ax>, r8lo|r8hi|m8|mem}
-  ROW(3, 1, 1, 2, 39 , 38 , 34 , 0  , 0  , 0  ), //      {<dx>, <ax>, r16|m16|mem}
-  ROW(3, 1, 1, 2, 40 , 41 , 35 , 0  , 0  , 0  ), //      {<edx>, <eax>, r32|m32|mem}
-  ROW(3, 0, 1, 2, 42 , 43 , 15 , 0  , 0  , 0  ), //      {<rdx>, <rax>, r64|m64|mem}
-  ROW(2, 1, 1, 0, 4  , 44 , 0  , 0  , 0  , 0  ), //      {r16, r16|m16|mem|i8|i16}
-  ROW(2, 1, 1, 0, 6  , 45 , 0  , 0  , 0  , 0  ), //      {r32, r32|m32|mem|i8|i32}
-  ROW(2, 0, 1, 0, 8  , 46 , 0  , 0  , 0  , 0  ), //      {r64, r64|m64|mem|i8|i32}
-  ROW(3, 1, 1, 0, 4  , 34 , 47 , 0  , 0  , 0  ), //      {r16, r16|m16|mem, i8|i16|u16}
-  ROW(3, 1, 1, 0, 6  , 35 , 48 , 0  , 0  , 0  ), //      {r32, r32|m32|mem, i8|i32|u32}
-  ROW(3, 0, 1, 0, 8  , 15 , 49 , 0  , 0  , 0  ), //      {r64, r64|m64|mem, i8|i32}
-  ROW(2, 0, 1, 0, 8  , 50 , 0  , 0  , 0  , 0  ), // #56  {r64, i64|u64}
-  ROW(2, 0, 1, 0, 29 , 19 , 0  , 0  , 0  , 0  ), //      {al, m8|mem}
-  ROW(2, 0, 1, 0, 24 , 22 , 0  , 0  , 0  , 0  ), //      {ax, m16|mem}
-  ROW(2, 0, 1, 0, 25 , 26 , 0  , 0  , 0  , 0  ), //      {eax, m32|mem}
-  ROW(2, 0, 1, 0, 27 , 28 , 0  , 0  , 0  , 0  ), //      {rax, m64|mem}
-  ROW(2, 0, 1, 0, 19 , 29 , 0  , 0  , 0  , 0  ), //      {m8|mem, al}
-  ROW(2, 0, 1, 0, 22 , 24 , 0  , 0  , 0  , 0  ), //      {m16|mem, ax}
-  ROW(2, 0, 1, 0, 26 , 25 , 0  , 0  , 0  , 0  ), //      {m32|mem, eax}
-  ROW(2, 0, 1, 0, 28 , 27 , 0  , 0  , 0  , 0  ), //      {m64|mem, rax}
-  ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), // #65  {r8lo|r8hi|m8|mem, r8lo|r8hi}
-  ROW(2, 1, 1, 0, 34 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
-  ROW(2, 1, 1, 0, 35 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
-  ROW(2, 0, 1, 0, 15 , 8  , 0  , 0  , 0  , 0  ), // #68  {r64|m64|mem, r64}
-  ROW(2, 1, 1, 0, 2  , 19 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
-  ROW(2, 1, 1, 0, 4  , 22 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem}
-  ROW(2, 1, 1, 0, 6  , 26 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
-  ROW(2, 0, 1, 0, 8  , 28 , 0  , 0  , 0  , 0  ), //      {r64, m64|mem}
-  ROW(2, 1, 1, 0, 9  , 10 , 0  , 0  , 0  , 0  ), // #73  {r8lo|r8hi|m8, i8|u8}
+  ROW(2, 1, 1, 0, 27 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
+  ROW(2, 1, 1, 0, 28 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
+  ROW(2, 1, 1, 0, 2  , 18 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
+  ROW(2, 1, 1, 0, 4  , 21 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem}
+  ROW(2, 1, 1, 0, 6  , 29 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
+  ROW(2, 1, 1, 1, 33 , 1  , 0  , 0  , 0  , 0  ), // #39  {<ax>, r8lo|r8hi|m8|mem}
+  ROW(3, 1, 1, 2, 34 , 33 , 27 , 0  , 0  , 0  ), //      {<dx>, <ax>, r16|m16|mem}
+  ROW(3, 1, 1, 2, 35 , 36 , 28 , 0  , 0  , 0  ), //      {<edx>, <eax>, r32|m32|mem}
+  ROW(3, 0, 1, 2, 37 , 38 , 15 , 0  , 0  , 0  ), //      {<rdx>, <rax>, r64|m64|mem}
+  ROW(2, 1, 1, 0, 4  , 39 , 0  , 0  , 0  , 0  ), //      {r16, r16|m16|mem|i8|i16}
+  ROW(2, 1, 1, 0, 6  , 40 , 0  , 0  , 0  , 0  ), //      {r32, r32|m32|mem|i8|i32}
+  ROW(2, 0, 1, 0, 8  , 41 , 0  , 0  , 0  , 0  ), //      {r64, r64|m64|mem|i8|i32}
+  ROW(3, 1, 1, 0, 4  , 27 , 42 , 0  , 0  , 0  ), //      {r16, r16|m16|mem, i8|i16|u16}
+  ROW(3, 1, 1, 0, 6  , 28 , 43 , 0  , 0  , 0  ), //      {r32, r32|m32|mem, i8|i32|u32}
+  ROW(3, 0, 1, 0, 8  , 15 , 44 , 0  , 0  , 0  ), //      {r64, r64|m64|mem, i8|i32}
+  ROW(2, 0, 1, 0, 8  , 45 , 0  , 0  , 0  , 0  ), // #49  {r64, i64|u64}
+  ROW(2, 0, 1, 0, 46 , 18 , 0  , 0  , 0  , 0  ), //      {al, m8|mem}
+  ROW(2, 0, 1, 0, 47 , 21 , 0  , 0  , 0  , 0  ), //      {ax, m16|mem}
+  ROW(2, 0, 1, 0, 48 , 29 , 0  , 0  , 0  , 0  ), //      {eax, m32|mem}
+  ROW(2, 0, 1, 0, 49 , 30 , 0  , 0  , 0  , 0  ), //      {rax, m64|mem}
+  ROW(2, 0, 1, 0, 18 , 46 , 0  , 0  , 0  , 0  ), //      {m8|mem, al}
+  ROW(2, 0, 1, 0, 21 , 47 , 0  , 0  , 0  , 0  ), //      {m16|mem, ax}
+  ROW(2, 0, 1, 0, 29 , 48 , 0  , 0  , 0  , 0  ), //      {m32|mem, eax}
+  ROW(2, 0, 1, 0, 30 , 49 , 0  , 0  , 0  , 0  ), //      {m64|mem, rax}
+  ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), // #58  {r8lo|r8hi|m8|mem, r8lo|r8hi}
+  ROW(2, 1, 1, 0, 27 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
+  ROW(2, 1, 1, 0, 28 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
+  ROW(2, 0, 1, 0, 15 , 8  , 0  , 0  , 0  , 0  ), // #61  {r64|m64|mem, r64}
+  ROW(2, 1, 1, 0, 2  , 18 , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi, m8|mem}
+  ROW(2, 1, 1, 0, 4  , 21 , 0  , 0  , 0  , 0  ), //      {r16, m16|mem}
+  ROW(2, 1, 1, 0, 6  , 29 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
+  ROW(2, 0, 1, 0, 8  , 30 , 0  , 0  , 0  , 0  ), //      {r64, m64|mem}
+  ROW(2, 1, 1, 0, 9  , 10 , 0  , 0  , 0  , 0  ), // #66  {r8lo|r8hi|m8, i8|u8}
   ROW(2, 1, 1, 0, 11 , 12 , 0  , 0  , 0  , 0  ), //      {r16|m16, i16|u16}
   ROW(2, 1, 1, 0, 13 , 14 , 0  , 0  , 0  , 0  ), //      {r32|m32, i32|u32}
-  ROW(2, 0, 1, 0, 15 , 31 , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, i32|r64}
+  ROW(2, 0, 1, 0, 15 , 24 , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, i32|r64}
   ROW(2, 1, 1, 0, 1  , 2  , 0  , 0  , 0  , 0  ), //      {r8lo|r8hi|m8|mem, r8lo|r8hi}
-  ROW(2, 1, 1, 0, 34 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
-  ROW(2, 1, 1, 0, 35 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
-  ROW(2, 1, 1, 0, 4  , 22 , 0  , 0  , 0  , 0  ), // #80  {r16, m16|mem}
-  ROW(2, 1, 1, 0, 6  , 26 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
-  ROW(2, 0, 1, 0, 8  , 28 , 0  , 0  , 0  , 0  ), //      {r64, m64|mem}
-  ROW(2, 1, 1, 0, 22 , 4  , 0  , 0  , 0  , 0  ), //      {m16|mem, r16}
-  ROW(2, 1, 1, 0, 26 , 6  , 0  , 0  , 0  , 0  ), // #84  {m32|mem, r32}
-  ROW(2, 0, 1, 0, 28 , 8  , 0  , 0  , 0  , 0  ), //      {m64|mem, r64}
-  ROW(2, 1, 1, 0, 51 , 52 , 0  , 0  , 0  , 0  ), // #86  {xmm, xmm|m128|mem}
-  ROW(2, 1, 1, 0, 53 , 51 , 0  , 0  , 0  , 0  ), // #87  {m128|mem, xmm}
-  ROW(2, 1, 1, 0, 54 , 55 , 0  , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem}
-  ROW(2, 1, 1, 0, 56 , 54 , 0  , 0  , 0  , 0  ), //      {m256|mem, ymm}
-  ROW(2, 1, 1, 0, 57 , 58 , 0  , 0  , 0  , 0  ), // #90  {zmm, zmm|m512|mem}
-  ROW(2, 1, 1, 0, 59 , 57 , 0  , 0  , 0  , 0  ), //      {m512|mem, zmm}
-  ROW(3, 1, 1, 0, 51 , 51 , 60 , 0  , 0  , 0  ), // #92  {xmm, xmm, xmm|m128|mem|i8|u8}
-  ROW(3, 1, 1, 0, 51 , 53 , 10 , 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8}
-  ROW(3, 1, 1, 0, 54 , 54 , 61 , 0  , 0  , 0  ), //      {ymm, ymm, ymm|m256|mem|i8|u8}
-  ROW(3, 1, 1, 0, 54 , 56 , 10 , 0  , 0  , 0  ), //      {ymm, m256|mem, i8|u8}
-  ROW(3, 1, 1, 0, 57 , 57 , 62 , 0  , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem|i8|u8}
-  ROW(3, 1, 1, 0, 57 , 59 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 51 , 60 , 0  , 0  , 0  ), // #98  {xmm, xmm, i8|u8|xmm|m128|mem}
-  ROW(3, 1, 1, 0, 54 , 54 , 60 , 0  , 0  , 0  ), //      {ymm, ymm, i8|u8|xmm|m128|mem}
-  ROW(3, 1, 1, 0, 51 , 53 , 10 , 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8}
-  ROW(3, 1, 1, 0, 54 , 56 , 10 , 0  , 0  , 0  ), //      {ymm, m256|mem, i8|u8}
-  ROW(3, 1, 1, 0, 57 , 57 , 60 , 0  , 0  , 0  ), //      {zmm, zmm, xmm|m128|mem|i8|u8}
-  ROW(3, 1, 1, 0, 57 , 59 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 51 , 60 , 0  , 0  , 0  ), // #104 {xmm, xmm, xmm|m128|mem|i8|u8}
-  ROW(3, 1, 1, 0, 51 , 53 , 10 , 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8}
-  ROW(3, 1, 1, 0, 54 , 54 , 60 , 0  , 0  , 0  ), //      {ymm, ymm, xmm|m128|mem|i8|u8}
-  ROW(3, 1, 1, 0, 54 , 56 , 10 , 0  , 0  , 0  ), //      {ymm, m256|mem, i8|u8}
-  ROW(3, 1, 1, 0, 57 , 57 , 60 , 0  , 0  , 0  ), //      {zmm, zmm, xmm|m128|mem|i8|u8}
-  ROW(3, 1, 1, 0, 57 , 59 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
-  ROW(2, 1, 1, 0, 63 , 64 , 0  , 0  , 0  , 0  ), // #110 {mm, mm|m64|mem|r64}
-  ROW(2, 1, 1, 0, 15 , 65 , 0  , 0  , 0  , 0  ), //      {m64|mem|r64, mm|xmm}
-  ROW(2, 0, 1, 0, 51 , 15 , 0  , 0  , 0  , 0  ), //      {xmm, r64|m64|mem}
-  ROW(2, 1, 1, 0, 51 , 66 , 0  , 0  , 0  , 0  ), // #113 {xmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 28 , 51 , 0  , 0  , 0  , 0  ), // #114 {m64|mem, xmm}
-  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #115 {}
-  ROW(1, 1, 1, 0, 67 , 0  , 0  , 0  , 0  , 0  ), //      {r16|m16|r32|m32|r64|m64}
-  ROW(2, 1, 1, 0, 34 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
-  ROW(2, 1, 1, 0, 35 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
+  ROW(2, 1, 1, 0, 27 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
+  ROW(2, 1, 1, 0, 28 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
+  ROW(2, 1, 1, 0, 4  , 21 , 0  , 0  , 0  , 0  ), // #73  {r16, m16|mem}
+  ROW(2, 1, 1, 0, 6  , 29 , 0  , 0  , 0  , 0  ), //      {r32, m32|mem}
+  ROW(2, 0, 1, 0, 8  , 30 , 0  , 0  , 0  , 0  ), //      {r64, m64|mem}
+  ROW(2, 1, 1, 0, 21 , 4  , 0  , 0  , 0  , 0  ), //      {m16|mem, r16}
+  ROW(2, 1, 1, 0, 29 , 6  , 0  , 0  , 0  , 0  ), // #77  {m32|mem, r32}
+  ROW(2, 0, 1, 0, 30 , 8  , 0  , 0  , 0  , 0  ), //      {m64|mem, r64}
+  ROW(2, 1, 1, 0, 50 , 51 , 0  , 0  , 0  , 0  ), // #79  {xmm, xmm|m128|mem}
+  ROW(2, 1, 1, 0, 52 , 50 , 0  , 0  , 0  , 0  ), // #80  {m128|mem, xmm}
+  ROW(2, 1, 1, 0, 53 , 54 , 0  , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem}
+  ROW(2, 1, 1, 0, 55 , 53 , 0  , 0  , 0  , 0  ), //      {m256|mem, ymm}
+  ROW(2, 1, 1, 0, 56 , 57 , 0  , 0  , 0  , 0  ), // #83  {zmm, zmm|m512|mem}
+  ROW(2, 1, 1, 0, 58 , 56 , 0  , 0  , 0  , 0  ), //      {m512|mem, zmm}
+  ROW(3, 1, 1, 0, 50 , 50 , 59 , 0  , 0  , 0  ), // #85  {xmm, xmm, xmm|m128|mem|i8|u8}
+  ROW(3, 1, 1, 0, 50 , 52 , 10 , 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8}
+  ROW(3, 1, 1, 0, 53 , 53 , 60 , 0  , 0  , 0  ), //      {ymm, ymm, ymm|m256|mem|i8|u8}
+  ROW(3, 1, 1, 0, 53 , 55 , 10 , 0  , 0  , 0  ), //      {ymm, m256|mem, i8|u8}
+  ROW(3, 1, 1, 0, 56 , 56 , 61 , 0  , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem|i8|u8}
+  ROW(3, 1, 1, 0, 56 , 58 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 50 , 59 , 0  , 0  , 0  ), // #91  {xmm, xmm, i8|u8|xmm|m128|mem}
+  ROW(3, 1, 1, 0, 53 , 53 , 59 , 0  , 0  , 0  ), //      {ymm, ymm, i8|u8|xmm|m128|mem}
+  ROW(3, 1, 1, 0, 50 , 52 , 10 , 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8}
+  ROW(3, 1, 1, 0, 53 , 55 , 10 , 0  , 0  , 0  ), //      {ymm, m256|mem, i8|u8}
+  ROW(3, 1, 1, 0, 56 , 56 , 59 , 0  , 0  , 0  ), //      {zmm, zmm, xmm|m128|mem|i8|u8}
+  ROW(3, 1, 1, 0, 56 , 58 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 50 , 59 , 0  , 0  , 0  ), // #97  {xmm, xmm, xmm|m128|mem|i8|u8}
+  ROW(3, 1, 1, 0, 50 , 52 , 10 , 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8}
+  ROW(3, 1, 1, 0, 53 , 53 , 59 , 0  , 0  , 0  ), //      {ymm, ymm, xmm|m128|mem|i8|u8}
+  ROW(3, 1, 1, 0, 53 , 55 , 10 , 0  , 0  , 0  ), //      {ymm, m256|mem, i8|u8}
+  ROW(3, 1, 1, 0, 56 , 56 , 59 , 0  , 0  , 0  ), //      {zmm, zmm, xmm|m128|mem|i8|u8}
+  ROW(3, 1, 1, 0, 56 , 58 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
+  ROW(2, 1, 1, 0, 62 , 63 , 0  , 0  , 0  , 0  ), // #103 {mm, mm|m64|mem|r64}
+  ROW(2, 1, 1, 0, 15 , 64 , 0  , 0  , 0  , 0  ), //      {m64|mem|r64, mm|xmm}
+  ROW(2, 0, 1, 0, 50 , 15 , 0  , 0  , 0  , 0  ), //      {xmm, r64|m64|mem}
+  ROW(2, 1, 1, 0, 50 , 65 , 0  , 0  , 0  , 0  ), // #106 {xmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 30 , 50 , 0  , 0  , 0  , 0  ), // #107 {m64|mem, xmm}
+  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #108 {}
+  ROW(1, 1, 1, 0, 66 , 0  , 0  , 0  , 0  , 0  ), //      {r16|m16|r32|m32|r64|m64}
+  ROW(2, 1, 1, 0, 27 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
+  ROW(2, 1, 1, 0, 28 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
   ROW(2, 1, 1, 0, 15 , 8  , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, r64}
-  ROW(3, 1, 1, 0, 51 , 68 , 51 , 0  , 0  , 0  ), // #120 {xmm, vm32x, xmm}
-  ROW(3, 1, 1, 0, 54 , 68 , 54 , 0  , 0  , 0  ), //      {ymm, vm32x, ymm}
-  ROW(2, 1, 1, 0, 51 , 68 , 0  , 0  , 0  , 0  ), //      {xmm, vm32x}
-  ROW(2, 1, 1, 0, 54 , 69 , 0  , 0  , 0  , 0  ), //      {ymm, vm32y}
-  ROW(2, 1, 1, 0, 57 , 70 , 0  , 0  , 0  , 0  ), //      {zmm, vm32z}
-  ROW(3, 1, 1, 0, 51 , 68 , 51 , 0  , 0  , 0  ), // #125 {xmm, vm32x, xmm}
-  ROW(3, 1, 1, 0, 54 , 69 , 54 , 0  , 0  , 0  ), //      {ymm, vm32y, ymm}
-  ROW(2, 1, 1, 0, 51 , 68 , 0  , 0  , 0  , 0  ), //      {xmm, vm32x}
-  ROW(2, 1, 1, 0, 54 , 69 , 0  , 0  , 0  , 0  ), //      {ymm, vm32y}
-  ROW(2, 1, 1, 0, 57 , 70 , 0  , 0  , 0  , 0  ), //      {zmm, vm32z}
-  ROW(3, 1, 1, 0, 51 , 71 , 51 , 0  , 0  , 0  ), // #130 {xmm, vm64x, xmm}
-  ROW(3, 1, 1, 0, 54 , 72 , 54 , 0  , 0  , 0  ), //      {ymm, vm64y, ymm}
-  ROW(2, 1, 1, 0, 51 , 71 , 0  , 0  , 0  , 0  ), //      {xmm, vm64x}
-  ROW(2, 1, 1, 0, 54 , 72 , 0  , 0  , 0  , 0  ), //      {ymm, vm64y}
-  ROW(2, 1, 1, 0, 57 , 73 , 0  , 0  , 0  , 0  ), //      {zmm, vm64z}
-  ROW(2, 1, 1, 0, 32 , 10 , 0  , 0  , 0  , 0  ), // #135 {r16|m16|r32|m32|r64|m64|mem, i8|u8}
-  ROW(2, 1, 1, 0, 34 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
-  ROW(2, 1, 1, 0, 35 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
+  ROW(3, 1, 1, 0, 50 , 67 , 50 , 0  , 0  , 0  ), // #113 {xmm, vm32x, xmm}
+  ROW(3, 1, 1, 0, 53 , 67 , 53 , 0  , 0  , 0  ), //      {ymm, vm32x, ymm}
+  ROW(2, 1, 1, 0, 50 , 67 , 0  , 0  , 0  , 0  ), //      {xmm, vm32x}
+  ROW(2, 1, 1, 0, 53 , 68 , 0  , 0  , 0  , 0  ), //      {ymm, vm32y}
+  ROW(2, 1, 1, 0, 56 , 69 , 0  , 0  , 0  , 0  ), //      {zmm, vm32z}
+  ROW(3, 1, 1, 0, 50 , 67 , 50 , 0  , 0  , 0  ), // #118 {xmm, vm32x, xmm}
+  ROW(3, 1, 1, 0, 53 , 68 , 53 , 0  , 0  , 0  ), //      {ymm, vm32y, ymm}
+  ROW(2, 1, 1, 0, 50 , 67 , 0  , 0  , 0  , 0  ), //      {xmm, vm32x}
+  ROW(2, 1, 1, 0, 53 , 68 , 0  , 0  , 0  , 0  ), //      {ymm, vm32y}
+  ROW(2, 1, 1, 0, 56 , 69 , 0  , 0  , 0  , 0  ), //      {zmm, vm32z}
+  ROW(3, 1, 1, 0, 50 , 70 , 50 , 0  , 0  , 0  ), // #123 {xmm, vm64x, xmm}
+  ROW(3, 1, 1, 0, 53 , 71 , 53 , 0  , 0  , 0  ), //      {ymm, vm64y, ymm}
+  ROW(2, 1, 1, 0, 50 , 70 , 0  , 0  , 0  , 0  ), //      {xmm, vm64x}
+  ROW(2, 1, 1, 0, 53 , 71 , 0  , 0  , 0  , 0  ), //      {ymm, vm64y}
+  ROW(2, 1, 1, 0, 56 , 72 , 0  , 0  , 0  , 0  ), //      {zmm, vm64z}
+  ROW(2, 1, 1, 0, 25 , 10 , 0  , 0  , 0  , 0  ), // #128 {r16|m16|r32|m32|r64|m64|mem, i8|u8}
+  ROW(2, 1, 1, 0, 27 , 4  , 0  , 0  , 0  , 0  ), //      {r16|m16|mem, r16}
+  ROW(2, 1, 1, 0, 28 , 6  , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, r32}
   ROW(2, 0, 1, 0, 15 , 8  , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, r64}
-  ROW(3, 1, 1, 1, 1  , 2  , 74 , 0  , 0  , 0  ), // #139 {r8lo|r8hi|m8|mem, r8lo|r8hi, <al>}
-  ROW(3, 1, 1, 1, 34 , 4  , 38 , 0  , 0  , 0  ), //      {r16|m16|mem, r16, <ax>}
-  ROW(3, 1, 1, 1, 35 , 6  , 41 , 0  , 0  , 0  ), //      {r32|m32|mem, r32, <eax>}
-  ROW(3, 0, 1, 1, 15 , 8  , 43 , 0  , 0  , 0  ), //      {r64|m64|mem, r64, <rax>}
-  ROW(1, 1, 1, 0, 75 , 0  , 0  , 0  , 0  , 0  ), // #143 {r16|m16|r64|m64}
+  ROW(3, 1, 1, 1, 1  , 2  , 73 , 0  , 0  , 0  ), // #132 {r8lo|r8hi|m8|mem, r8lo|r8hi, <al>}
+  ROW(3, 1, 1, 1, 27 , 4  , 33 , 0  , 0  , 0  ), //      {r16|m16|mem, r16, <ax>}
+  ROW(3, 1, 1, 1, 28 , 6  , 36 , 0  , 0  , 0  ), //      {r32|m32|mem, r32, <eax>}
+  ROW(3, 0, 1, 1, 15 , 8  , 38 , 0  , 0  , 0  ), //      {r64|m64|mem, r64, <rax>}
+  ROW(1, 1, 1, 0, 74 , 0  , 0  , 0  , 0  , 0  ), // #136 {r16|m16|r64|m64}
   ROW(1, 1, 0, 0, 13 , 0  , 0  , 0  , 0  , 0  ), //      {r32|m32}
-  ROW(1, 1, 0, 0, 76 , 0  , 0  , 0  , 0  , 0  ), //      {ds|es|ss}
-  ROW(1, 1, 1, 0, 77 , 0  , 0  , 0  , 0  , 0  ), //      {fs|gs}
-  ROW(1, 1, 1, 0, 78 , 0  , 0  , 0  , 0  , 0  ), // #147 {r16|m16|r64|m64|i8|i16|i32}
-  ROW(1, 1, 0, 0, 79 , 0  , 0  , 0  , 0  , 0  ), //      {r32|m32|i32|u32}
-  ROW(1, 1, 0, 0, 80 , 0  , 0  , 0  , 0  , 0  ), //      {cs|ss|ds|es}
-  ROW(1, 1, 1, 0, 77 , 0  , 0  , 0  , 0  , 0  ), //      {fs|gs}
-  ROW(4, 1, 1, 0, 51 , 51 , 51 , 52 , 0  , 0  ), // #151 {xmm, xmm, xmm, xmm|m128|mem}
-  ROW(4, 1, 1, 0, 51 , 51 , 53 , 51 , 0  , 0  ), //      {xmm, xmm, m128|mem, xmm}
-  ROW(4, 1, 1, 0, 54 , 54 , 54 , 55 , 0  , 0  ), //      {ymm, ymm, ymm, ymm|m256|mem}
-  ROW(4, 1, 1, 0, 54 , 54 , 56 , 54 , 0  , 0  ), //      {ymm, ymm, m256|mem, ymm}
-  ROW(3, 1, 1, 0, 51 , 81 , 51 , 0  , 0  , 0  ), // #155 {xmm, vm64x|vm64y, xmm}
-  ROW(2, 1, 1, 0, 51 , 71 , 0  , 0  , 0  , 0  ), //      {xmm, vm64x}
-  ROW(2, 1, 1, 0, 54 , 72 , 0  , 0  , 0  , 0  ), //      {ymm, vm64y}
-  ROW(2, 1, 1, 0, 57 , 73 , 0  , 0  , 0  , 0  ), //      {zmm, vm64z}
-  ROW(3, 1, 1, 0, 53 , 51 , 51 , 0  , 0  , 0  ), // #159 {m128|mem, xmm, xmm}
-  ROW(3, 1, 1, 0, 56 , 54 , 54 , 0  , 0  , 0  ), //      {m256|mem, ymm, ymm}
-  ROW(3, 1, 1, 0, 51 , 51 , 53 , 0  , 0  , 0  ), //      {xmm, xmm, m128|mem}
-  ROW(3, 1, 1, 0, 54 , 54 , 56 , 0  , 0  , 0  ), //      {ymm, ymm, m256|mem}
-  ROW(5, 1, 1, 0, 51 , 51 , 52 , 51 , 82 , 0  ), // #163 {xmm, xmm, xmm|m128|mem, xmm, i4|u4}
-  ROW(5, 1, 1, 0, 51 , 51 , 51 , 53 , 82 , 0  ), //      {xmm, xmm, xmm, m128|mem, i4|u4}
-  ROW(5, 1, 1, 0, 54 , 54 , 55 , 54 , 82 , 0  ), //      {ymm, ymm, ymm|m256|mem, ymm, i4|u4}
-  ROW(5, 1, 1, 0, 54 , 54 , 54 , 56 , 82 , 0  ), //      {ymm, ymm, ymm, m256|mem, i4|u4}
-  ROW(3, 1, 1, 0, 54 , 55 , 10 , 0  , 0  , 0  ), // #167 {ymm, ymm|m256|mem, i8|u8}
-  ROW(3, 1, 1, 0, 54 , 54 , 55 , 0  , 0  , 0  ), //      {ymm, ymm, ymm|m256|mem}
-  ROW(3, 1, 1, 0, 57 , 57 , 62 , 0  , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem|i8|u8}
-  ROW(3, 1, 1, 0, 57 , 59 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
-  ROW(2, 1, 1, 0, 4  , 34 , 0  , 0  , 0  , 0  ), // #171 {r16, r16|m16|mem}
-  ROW(2, 1, 1, 0, 6  , 35 , 0  , 0  , 0  , 0  ), // #172 {r32, r32|m32|mem}
+  ROW(1, 1, 0, 0, 75 , 0  , 0  , 0  , 0  , 0  ), //      {ds|es|ss}
+  ROW(1, 1, 1, 0, 76 , 0  , 0  , 0  , 0  , 0  ), //      {fs|gs}
+  ROW(1, 1, 1, 0, 77 , 0  , 0  , 0  , 0  , 0  ), // #140 {r16|m16|r64|m64|i8|i16|i32}
+  ROW(1, 1, 0, 0, 78 , 0  , 0  , 0  , 0  , 0  ), //      {r32|m32|i32|u32}
+  ROW(1, 1, 0, 0, 79 , 0  , 0  , 0  , 0  , 0  ), //      {cs|ss|ds|es}
+  ROW(1, 1, 1, 0, 76 , 0  , 0  , 0  , 0  , 0  ), //      {fs|gs}
+  ROW(4, 1, 1, 0, 50 , 50 , 50 , 51 , 0  , 0  ), // #144 {xmm, xmm, xmm, xmm|m128|mem}
+  ROW(4, 1, 1, 0, 50 , 50 , 52 , 50 , 0  , 0  ), //      {xmm, xmm, m128|mem, xmm}
+  ROW(4, 1, 1, 0, 53 , 53 , 53 , 54 , 0  , 0  ), //      {ymm, ymm, ymm, ymm|m256|mem}
+  ROW(4, 1, 1, 0, 53 , 53 , 55 , 53 , 0  , 0  ), //      {ymm, ymm, m256|mem, ymm}
+  ROW(3, 1, 1, 0, 50 , 80 , 50 , 0  , 0  , 0  ), // #148 {xmm, vm64x|vm64y, xmm}
+  ROW(2, 1, 1, 0, 50 , 70 , 0  , 0  , 0  , 0  ), //      {xmm, vm64x}
+  ROW(2, 1, 1, 0, 53 , 71 , 0  , 0  , 0  , 0  ), //      {ymm, vm64y}
+  ROW(2, 1, 1, 0, 56 , 72 , 0  , 0  , 0  , 0  ), //      {zmm, vm64z}
+  ROW(3, 1, 1, 0, 52 , 50 , 50 , 0  , 0  , 0  ), // #152 {m128|mem, xmm, xmm}
+  ROW(3, 1, 1, 0, 55 , 53 , 53 , 0  , 0  , 0  ), //      {m256|mem, ymm, ymm}
+  ROW(3, 1, 1, 0, 50 , 50 , 52 , 0  , 0  , 0  ), //      {xmm, xmm, m128|mem}
+  ROW(3, 1, 1, 0, 53 , 53 , 55 , 0  , 0  , 0  ), //      {ymm, ymm, m256|mem}
+  ROW(5, 1, 1, 0, 50 , 50 , 51 , 50 , 81 , 0  ), // #156 {xmm, xmm, xmm|m128|mem, xmm, i4|u4}
+  ROW(5, 1, 1, 0, 50 , 50 , 50 , 52 , 81 , 0  ), //      {xmm, xmm, xmm, m128|mem, i4|u4}
+  ROW(5, 1, 1, 0, 53 , 53 , 54 , 53 , 81 , 0  ), //      {ymm, ymm, ymm|m256|mem, ymm, i4|u4}
+  ROW(5, 1, 1, 0, 53 , 53 , 53 , 55 , 81 , 0  ), //      {ymm, ymm, ymm, m256|mem, i4|u4}
+  ROW(3, 1, 1, 0, 53 , 54 , 10 , 0  , 0  , 0  ), // #160 {ymm, ymm|m256|mem, i8|u8}
+  ROW(3, 1, 1, 0, 53 , 53 , 54 , 0  , 0  , 0  ), //      {ymm, ymm, ymm|m256|mem}
+  ROW(3, 1, 1, 0, 56 , 56 , 61 , 0  , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem|i8|u8}
+  ROW(3, 1, 1, 0, 56 , 58 , 10 , 0  , 0  , 0  ), //      {zmm, m512|mem, i8|u8}
+  ROW(2, 1, 1, 0, 4  , 27 , 0  , 0  , 0  , 0  ), // #164 {r16, r16|m16|mem}
+  ROW(2, 1, 1, 0, 6  , 28 , 0  , 0  , 0  , 0  ), // #165 {r32, r32|m32|mem}
   ROW(2, 0, 1, 0, 8  , 15 , 0  , 0  , 0  , 0  ), //      {r64, r64|m64|mem}
-  ROW(1, 1, 1, 0, 83 , 0  , 0  , 0  , 0  , 0  ), // #174 {m32|m64}
-  ROW(2, 1, 1, 0, 84 , 85 , 0  , 0  , 0  , 0  ), //      {st0, st}
-  ROW(2, 1, 1, 0, 85 , 84 , 0  , 0  , 0  , 0  ), //      {st, st0}
-  ROW(2, 1, 1, 0, 4  , 26 , 0  , 0  , 0  , 0  ), // #177 {r16, m32|mem}
-  ROW(2, 1, 1, 0, 6  , 86 , 0  , 0  , 0  , 0  ), //      {r32, m48|mem}
-  ROW(2, 0, 1, 0, 8  , 87 , 0  , 0  , 0  , 0  ), //      {r64, m80|mem}
-  ROW(3, 1, 1, 0, 34 , 4  , 88 , 0  , 0  , 0  ), // #180 {r16|m16|mem, r16, cl|i8|u8}
-  ROW(3, 1, 1, 0, 35 , 6  , 88 , 0  , 0  , 0  ), //      {r32|m32|mem, r32, cl|i8|u8}
-  ROW(3, 0, 1, 0, 15 , 8  , 88 , 0  , 0  , 0  ), //      {r64|m64|mem, r64, cl|i8|u8}
-  ROW(3, 1, 1, 0, 51 , 51 , 52 , 0  , 0  , 0  ), // #183 {xmm, xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 54 , 54 , 55 , 0  , 0  , 0  ), // #184 {ymm, ymm, ymm|m256|mem}
-  ROW(3, 1, 1, 0, 57 , 57 , 58 , 0  , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem}
-  ROW(4, 1, 1, 0, 51 , 51 , 52 , 10 , 0  , 0  ), // #186 {xmm, xmm, xmm|m128|mem, i8|u8}
-  ROW(4, 1, 1, 0, 54 , 54 , 55 , 10 , 0  , 0  ), // #187 {ymm, ymm, ymm|m256|mem, i8|u8}
-  ROW(4, 1, 1, 0, 57 , 57 , 58 , 10 , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem, i8|u8}
-  ROW(4, 1, 1, 0, 89 , 51 , 52 , 10 , 0  , 0  ), // #189 {xmm|k, xmm, xmm|m128|mem, i8|u8}
-  ROW(4, 1, 1, 0, 90 , 54 , 55 , 10 , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem, i8|u8}
-  ROW(4, 1, 1, 0, 91 , 57 , 58 , 10 , 0  , 0  ), //      {k, zmm, zmm|m512|mem, i8|u8}
-  ROW(2, 1, 1, 0, 52 , 51 , 0  , 0  , 0  , 0  ), // #192 {xmm|m128|mem, xmm}
-  ROW(2, 1, 1, 0, 55 , 54 , 0  , 0  , 0  , 0  ), //      {ymm|m256|mem, ymm}
-  ROW(2, 1, 1, 0, 58 , 57 , 0  , 0  , 0  , 0  ), //      {zmm|m512|mem, zmm}
-  ROW(2, 1, 1, 0, 51 , 66 , 0  , 0  , 0  , 0  ), // #195 {xmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 54 , 52 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m128|mem}
-  ROW(2, 1, 1, 0, 57 , 55 , 0  , 0  , 0  , 0  ), //      {zmm, ymm|m256|mem}
-  ROW(2, 1, 1, 0, 51 , 52 , 0  , 0  , 0  , 0  ), // #198 {xmm, xmm|m128|mem}
-  ROW(2, 1, 1, 0, 54 , 55 , 0  , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem}
-  ROW(2, 1, 1, 0, 57 , 58 , 0  , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem}
-  ROW(3, 1, 1, 0, 66 , 51 , 10 , 0  , 0  , 0  ), // #201 {xmm|m64|mem, xmm, i8|u8}
-  ROW(3, 1, 1, 0, 52 , 54 , 10 , 0  , 0  , 0  ), // #202 {xmm|m128|mem, ymm, i8|u8}
-  ROW(3, 1, 1, 0, 55 , 57 , 10 , 0  , 0  , 0  ), // #203 {ymm|m256|mem, zmm, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 52 , 10 , 0  , 0  , 0  ), // #204 {xmm, xmm|m128|mem, i8|u8}
-  ROW(3, 1, 1, 0, 54 , 55 , 10 , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem, i8|u8}
-  ROW(3, 1, 1, 0, 57 , 58 , 10 , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem, i8|u8}
-  ROW(2, 1, 1, 0, 51 , 66 , 0  , 0  , 0  , 0  ), // #207 {xmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 54 , 55 , 0  , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem}
-  ROW(2, 1, 1, 0, 57 , 58 , 0  , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem}
-  ROW(2, 1, 1, 0, 53 , 51 , 0  , 0  , 0  , 0  ), // #210 {m128|mem, xmm}
-  ROW(2, 1, 1, 0, 56 , 54 , 0  , 0  , 0  , 0  ), //      {m256|mem, ymm}
-  ROW(2, 1, 1, 0, 59 , 57 , 0  , 0  , 0  , 0  ), //      {m512|mem, zmm}
-  ROW(2, 1, 1, 0, 51 , 53 , 0  , 0  , 0  , 0  ), // #213 {xmm, m128|mem}
-  ROW(2, 1, 1, 0, 54 , 56 , 0  , 0  , 0  , 0  ), //      {ymm, m256|mem}
-  ROW(2, 1, 1, 0, 57 , 59 , 0  , 0  , 0  , 0  ), //      {zmm, m512|mem}
-  ROW(2, 0, 1, 0, 15 , 51 , 0  , 0  , 0  , 0  ), // #216 {r64|m64|mem, xmm}
-  ROW(2, 1, 1, 0, 51 , 92 , 0  , 0  , 0  , 0  ), //      {xmm, xmm|m64|mem|r64}
-  ROW(2, 1, 1, 0, 28 , 51 , 0  , 0  , 0  , 0  ), //      {m64|mem, xmm}
-  ROW(2, 1, 1, 0, 28 , 51 , 0  , 0  , 0  , 0  ), // #219 {m64|mem, xmm}
-  ROW(2, 1, 1, 0, 51 , 28 , 0  , 0  , 0  , 0  ), //      {xmm, m64|mem}
-  ROW(3, 1, 1, 0, 51 , 51 , 51 , 0  , 0  , 0  ), // #221 {xmm, xmm, xmm}
-  ROW(2, 1, 1, 0, 26 , 51 , 0  , 0  , 0  , 0  ), // #222 {m32|mem, xmm}
-  ROW(2, 1, 1, 0, 51 , 26 , 0  , 0  , 0  , 0  ), //      {xmm, m32|mem}
-  ROW(3, 1, 1, 0, 51 , 51 , 51 , 0  , 0  , 0  ), //      {xmm, xmm, xmm}
-  ROW(4, 1, 1, 0, 91 , 91 , 51 , 52 , 0  , 0  ), // #225 {k, k, xmm, xmm|m128|mem}
-  ROW(4, 1, 1, 0, 91 , 91 , 54 , 55 , 0  , 0  ), //      {k, k, ymm, ymm|m256|mem}
-  ROW(4, 1, 1, 0, 91 , 91 , 57 , 58 , 0  , 0  ), //      {k, k, zmm, zmm|m512|mem}
-  ROW(2, 1, 1, 0, 93 , 92 , 0  , 0  , 0  , 0  ), // #228 {xmm|ymm, xmm|m64|mem|r64}
-  ROW(2, 0, 1, 0, 57 , 8  , 0  , 0  , 0  , 0  ), //      {zmm, r64}
-  ROW(2, 1, 1, 0, 57 , 66 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m64|mem}
-  ROW(4, 1, 1, 0, 91 , 51 , 52 , 10 , 0  , 0  ), // #231 {k, xmm, xmm|m128|mem, i8|u8}
-  ROW(4, 1, 1, 0, 91 , 54 , 55 , 10 , 0  , 0  ), //      {k, ymm, ymm|m256|mem, i8|u8}
-  ROW(4, 1, 1, 0, 91 , 57 , 58 , 10 , 0  , 0  ), //      {k, zmm, zmm|m512|mem, i8|u8}
-  ROW(3, 1, 1, 0, 89 , 51 , 52 , 0  , 0  , 0  ), // #234 {xmm|k, xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 90 , 54 , 55 , 0  , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem}
-  ROW(3, 1, 1, 0, 91 , 57 , 58 , 0  , 0  , 0  ), //      {k, zmm, zmm|m512|mem}
-  ROW(2, 1, 1, 0, 94 , 51 , 0  , 0  , 0  , 0  ), // #237 {xmm|m32|mem, xmm}
-  ROW(2, 1, 1, 0, 66 , 54 , 0  , 0  , 0  , 0  ), //      {xmm|m64|mem, ymm}
-  ROW(2, 1, 1, 0, 52 , 57 , 0  , 0  , 0  , 0  ), //      {xmm|m128|mem, zmm}
-  ROW(2, 1, 1, 0, 66 , 51 , 0  , 0  , 0  , 0  ), // #240 {xmm|m64|mem, xmm}
-  ROW(2, 1, 1, 0, 52 , 54 , 0  , 0  , 0  , 0  ), //      {xmm|m128|mem, ymm}
-  ROW(2, 1, 1, 0, 55 , 57 , 0  , 0  , 0  , 0  ), //      {ymm|m256|mem, zmm}
-  ROW(2, 1, 1, 0, 95 , 51 , 0  , 0  , 0  , 0  ), // #243 {xmm|m16|mem, xmm}
-  ROW(2, 1, 1, 0, 94 , 54 , 0  , 0  , 0  , 0  ), //      {xmm|m32|mem, ymm}
-  ROW(2, 1, 1, 0, 66 , 57 , 0  , 0  , 0  , 0  ), //      {xmm|m64|mem, zmm}
-  ROW(2, 1, 1, 0, 51 , 94 , 0  , 0  , 0  , 0  ), // #246 {xmm, xmm|m32|mem}
-  ROW(2, 1, 1, 0, 54 , 66 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 57 , 52 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m128|mem}
-  ROW(2, 1, 1, 0, 51 , 95 , 0  , 0  , 0  , 0  ), // #249 {xmm, xmm|m16|mem}
-  ROW(2, 1, 1, 0, 54 , 94 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m32|mem}
-  ROW(2, 1, 1, 0, 57 , 66 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 68 , 51 , 0  , 0  , 0  , 0  ), // #252 {vm32x, xmm}
-  ROW(2, 1, 1, 0, 69 , 54 , 0  , 0  , 0  , 0  ), //      {vm32y, ymm}
-  ROW(2, 1, 1, 0, 70 , 57 , 0  , 0  , 0  , 0  ), //      {vm32z, zmm}
-  ROW(2, 1, 1, 0, 71 , 51 , 0  , 0  , 0  , 0  ), // #255 {vm64x, xmm}
-  ROW(2, 1, 1, 0, 72 , 54 , 0  , 0  , 0  , 0  ), //      {vm64y, ymm}
-  ROW(2, 1, 1, 0, 73 , 57 , 0  , 0  , 0  , 0  ), //      {vm64z, zmm}
-  ROW(3, 1, 1, 0, 91 , 51 , 52 , 0  , 0  , 0  ), // #258 {k, xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 91 , 54 , 55 , 0  , 0  , 0  ), //      {k, ymm, ymm|m256|mem}
-  ROW(3, 1, 1, 0, 91 , 57 , 58 , 0  , 0  , 0  ), //      {k, zmm, zmm|m512|mem}
-  ROW(3, 1, 1, 0, 6  , 6  , 35 , 0  , 0  , 0  ), // #261 {r32, r32, r32|m32|mem}
+  ROW(1, 1, 1, 0, 82 , 0  , 0  , 0  , 0  , 0  ), // #167 {m32|m64}
+  ROW(2, 1, 1, 0, 83 , 84 , 0  , 0  , 0  , 0  ), //      {st0, st}
+  ROW(2, 1, 1, 0, 84 , 83 , 0  , 0  , 0  , 0  ), //      {st, st0}
+  ROW(2, 1, 1, 0, 4  , 29 , 0  , 0  , 0  , 0  ), // #170 {r16, m32|mem}
+  ROW(2, 1, 1, 0, 6  , 85 , 0  , 0  , 0  , 0  ), //      {r32, m48|mem}
+  ROW(2, 0, 1, 0, 8  , 86 , 0  , 0  , 0  , 0  ), //      {r64, m80|mem}
+  ROW(3, 1, 1, 0, 27 , 4  , 87 , 0  , 0  , 0  ), // #173 {r16|m16|mem, r16, cl|i8|u8}
+  ROW(3, 1, 1, 0, 28 , 6  , 87 , 0  , 0  , 0  ), //      {r32|m32|mem, r32, cl|i8|u8}
+  ROW(3, 0, 1, 0, 15 , 8  , 87 , 0  , 0  , 0  ), //      {r64|m64|mem, r64, cl|i8|u8}
+  ROW(3, 1, 1, 0, 50 , 50 , 51 , 0  , 0  , 0  ), // #176 {xmm, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 53 , 53 , 54 , 0  , 0  , 0  ), // #177 {ymm, ymm, ymm|m256|mem}
+  ROW(3, 1, 1, 0, 56 , 56 , 57 , 0  , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem}
+  ROW(4, 1, 1, 0, 50 , 50 , 51 , 10 , 0  , 0  ), // #179 {xmm, xmm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 53 , 53 , 54 , 10 , 0  , 0  ), // #180 {ymm, ymm, ymm|m256|mem, i8|u8}
+  ROW(4, 1, 1, 0, 56 , 56 , 57 , 10 , 0  , 0  ), //      {zmm, zmm, zmm|m512|mem, i8|u8}
+  ROW(4, 1, 1, 0, 88 , 50 , 51 , 10 , 0  , 0  ), // #182 {xmm|k, xmm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 89 , 53 , 54 , 10 , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem, i8|u8}
+  ROW(4, 1, 1, 0, 90 , 56 , 57 , 10 , 0  , 0  ), //      {k, zmm, zmm|m512|mem, i8|u8}
+  ROW(2, 1, 1, 0, 51 , 50 , 0  , 0  , 0  , 0  ), // #185 {xmm|m128|mem, xmm}
+  ROW(2, 1, 1, 0, 54 , 53 , 0  , 0  , 0  , 0  ), //      {ymm|m256|mem, ymm}
+  ROW(2, 1, 1, 0, 57 , 56 , 0  , 0  , 0  , 0  ), //      {zmm|m512|mem, zmm}
+  ROW(2, 1, 1, 0, 50 , 65 , 0  , 0  , 0  , 0  ), // #188 {xmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 53 , 51 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m128|mem}
+  ROW(2, 1, 1, 0, 56 , 54 , 0  , 0  , 0  , 0  ), //      {zmm, ymm|m256|mem}
+  ROW(2, 1, 1, 0, 50 , 51 , 0  , 0  , 0  , 0  ), // #191 {xmm, xmm|m128|mem}
+  ROW(2, 1, 1, 0, 53 , 54 , 0  , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem}
+  ROW(2, 1, 1, 0, 56 , 57 , 0  , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem}
+  ROW(3, 1, 1, 0, 65 , 50 , 10 , 0  , 0  , 0  ), // #194 {xmm|m64|mem, xmm, i8|u8}
+  ROW(3, 1, 1, 0, 51 , 53 , 10 , 0  , 0  , 0  ), // #195 {xmm|m128|mem, ymm, i8|u8}
+  ROW(3, 1, 1, 0, 54 , 56 , 10 , 0  , 0  , 0  ), // #196 {ymm|m256|mem, zmm, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 51 , 10 , 0  , 0  , 0  ), // #197 {xmm, xmm|m128|mem, i8|u8}
+  ROW(3, 1, 1, 0, 53 , 54 , 10 , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem, i8|u8}
+  ROW(3, 1, 1, 0, 56 , 57 , 10 , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem, i8|u8}
+  ROW(2, 1, 1, 0, 50 , 65 , 0  , 0  , 0  , 0  ), // #200 {xmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 53 , 54 , 0  , 0  , 0  , 0  ), //      {ymm, ymm|m256|mem}
+  ROW(2, 1, 1, 0, 56 , 57 , 0  , 0  , 0  , 0  ), //      {zmm, zmm|m512|mem}
+  ROW(2, 1, 1, 0, 52 , 50 , 0  , 0  , 0  , 0  ), // #203 {m128|mem, xmm}
+  ROW(2, 1, 1, 0, 55 , 53 , 0  , 0  , 0  , 0  ), //      {m256|mem, ymm}
+  ROW(2, 1, 1, 0, 58 , 56 , 0  , 0  , 0  , 0  ), //      {m512|mem, zmm}
+  ROW(2, 1, 1, 0, 50 , 52 , 0  , 0  , 0  , 0  ), // #206 {xmm, m128|mem}
+  ROW(2, 1, 1, 0, 53 , 55 , 0  , 0  , 0  , 0  ), //      {ymm, m256|mem}
+  ROW(2, 1, 1, 0, 56 , 58 , 0  , 0  , 0  , 0  ), //      {zmm, m512|mem}
+  ROW(2, 0, 1, 0, 15 , 50 , 0  , 0  , 0  , 0  ), // #209 {r64|m64|mem, xmm}
+  ROW(2, 1, 1, 0, 50 , 91 , 0  , 0  , 0  , 0  ), //      {xmm, xmm|m64|mem|r64}
+  ROW(2, 1, 1, 0, 30 , 50 , 0  , 0  , 0  , 0  ), //      {m64|mem, xmm}
+  ROW(2, 1, 1, 0, 30 , 50 , 0  , 0  , 0  , 0  ), // #212 {m64|mem, xmm}
+  ROW(2, 1, 1, 0, 50 , 30 , 0  , 0  , 0  , 0  ), //      {xmm, m64|mem}
+  ROW(3, 1, 1, 0, 50 , 50 , 50 , 0  , 0  , 0  ), // #214 {xmm, xmm, xmm}
+  ROW(2, 1, 1, 0, 29 , 50 , 0  , 0  , 0  , 0  ), // #215 {m32|mem, xmm}
+  ROW(2, 1, 1, 0, 50 , 29 , 0  , 0  , 0  , 0  ), //      {xmm, m32|mem}
+  ROW(3, 1, 1, 0, 50 , 50 , 50 , 0  , 0  , 0  ), //      {xmm, xmm, xmm}
+  ROW(4, 1, 1, 0, 90 , 90 , 50 , 51 , 0  , 0  ), // #218 {k, k, xmm, xmm|m128|mem}
+  ROW(4, 1, 1, 0, 90 , 90 , 53 , 54 , 0  , 0  ), //      {k, k, ymm, ymm|m256|mem}
+  ROW(4, 1, 1, 0, 90 , 90 , 56 , 57 , 0  , 0  ), //      {k, k, zmm, zmm|m512|mem}
+  ROW(2, 1, 1, 0, 92 , 91 , 0  , 0  , 0  , 0  ), // #221 {xmm|ymm, xmm|m64|mem|r64}
+  ROW(2, 0, 1, 0, 56 , 8  , 0  , 0  , 0  , 0  ), //      {zmm, r64}
+  ROW(2, 1, 1, 0, 56 , 65 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m64|mem}
+  ROW(4, 1, 1, 0, 90 , 50 , 51 , 10 , 0  , 0  ), // #224 {k, xmm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 90 , 53 , 54 , 10 , 0  , 0  ), //      {k, ymm, ymm|m256|mem, i8|u8}
+  ROW(4, 1, 1, 0, 90 , 56 , 57 , 10 , 0  , 0  ), //      {k, zmm, zmm|m512|mem, i8|u8}
+  ROW(3, 1, 1, 0, 88 , 50 , 51 , 0  , 0  , 0  ), // #227 {xmm|k, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 89 , 53 , 54 , 0  , 0  , 0  ), //      {ymm|k, ymm, ymm|m256|mem}
+  ROW(3, 1, 1, 0, 90 , 56 , 57 , 0  , 0  , 0  ), //      {k, zmm, zmm|m512|mem}
+  ROW(2, 1, 1, 0, 93 , 50 , 0  , 0  , 0  , 0  ), // #230 {xmm|m32|mem, xmm}
+  ROW(2, 1, 1, 0, 65 , 53 , 0  , 0  , 0  , 0  ), //      {xmm|m64|mem, ymm}
+  ROW(2, 1, 1, 0, 51 , 56 , 0  , 0  , 0  , 0  ), //      {xmm|m128|mem, zmm}
+  ROW(2, 1, 1, 0, 65 , 50 , 0  , 0  , 0  , 0  ), // #233 {xmm|m64|mem, xmm}
+  ROW(2, 1, 1, 0, 51 , 53 , 0  , 0  , 0  , 0  ), //      {xmm|m128|mem, ymm}
+  ROW(2, 1, 1, 0, 54 , 56 , 0  , 0  , 0  , 0  ), //      {ymm|m256|mem, zmm}
+  ROW(2, 1, 1, 0, 94 , 50 , 0  , 0  , 0  , 0  ), // #236 {xmm|m16|mem, xmm}
+  ROW(2, 1, 1, 0, 93 , 53 , 0  , 0  , 0  , 0  ), //      {xmm|m32|mem, ymm}
+  ROW(2, 1, 1, 0, 65 , 56 , 0  , 0  , 0  , 0  ), //      {xmm|m64|mem, zmm}
+  ROW(2, 1, 1, 0, 50 , 93 , 0  , 0  , 0  , 0  ), // #239 {xmm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 53 , 65 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 56 , 51 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m128|mem}
+  ROW(2, 1, 1, 0, 50 , 94 , 0  , 0  , 0  , 0  ), // #242 {xmm, xmm|m16|mem}
+  ROW(2, 1, 1, 0, 53 , 93 , 0  , 0  , 0  , 0  ), //      {ymm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 56 , 65 , 0  , 0  , 0  , 0  ), //      {zmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 67 , 50 , 0  , 0  , 0  , 0  ), // #245 {vm32x, xmm}
+  ROW(2, 1, 1, 0, 68 , 53 , 0  , 0  , 0  , 0  ), //      {vm32y, ymm}
+  ROW(2, 1, 1, 0, 69 , 56 , 0  , 0  , 0  , 0  ), //      {vm32z, zmm}
+  ROW(2, 1, 1, 0, 70 , 50 , 0  , 0  , 0  , 0  ), // #248 {vm64x, xmm}
+  ROW(2, 1, 1, 0, 71 , 53 , 0  , 0  , 0  , 0  ), //      {vm64y, ymm}
+  ROW(2, 1, 1, 0, 72 , 56 , 0  , 0  , 0  , 0  ), //      {vm64z, zmm}
+  ROW(3, 1, 1, 0, 90 , 50 , 51 , 0  , 0  , 0  ), // #251 {k, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 90 , 53 , 54 , 0  , 0  , 0  ), //      {k, ymm, ymm|m256|mem}
+  ROW(3, 1, 1, 0, 90 , 56 , 57 , 0  , 0  , 0  ), //      {k, zmm, zmm|m512|mem}
+  ROW(3, 1, 1, 0, 6  , 6  , 28 , 0  , 0  , 0  ), // #254 {r32, r32, r32|m32|mem}
   ROW(3, 0, 1, 0, 8  , 8  , 15 , 0  , 0  , 0  ), //      {r64, r64, r64|m64|mem}
-  ROW(3, 1, 1, 0, 6  , 35 , 6  , 0  , 0  , 0  ), // #263 {r32, r32|m32|mem, r32}
+  ROW(3, 1, 1, 0, 6  , 28 , 6  , 0  , 0  , 0  ), // #256 {r32, r32|m32|mem, r32}
   ROW(3, 0, 1, 0, 8  , 15 , 8  , 0  , 0  , 0  ), //      {r64, r64|m64|mem, r64}
-  ROW(2, 1, 0, 0, 96 , 35 , 0  , 0  , 0  , 0  ), // #265 {bnd, r32|m32|mem}
-  ROW(2, 0, 1, 0, 96 , 15 , 0  , 0  , 0  , 0  ), //      {bnd, r64|m64|mem}
-  ROW(2, 1, 1, 0, 96 , 97 , 0  , 0  , 0  , 0  ), // #267 {bnd, bnd|mem}
-  ROW(2, 1, 1, 0, 98 , 96 , 0  , 0  , 0  , 0  ), //      {mem, bnd}
-  ROW(2, 1, 0, 0, 4  , 26 , 0  , 0  , 0  , 0  ), // #269 {r16, m32|mem}
-  ROW(2, 1, 0, 0, 6  , 28 , 0  , 0  , 0  , 0  ), //      {r32, m64|mem}
-  ROW(1, 1, 0, 0, 99 , 0  , 0  , 0  , 0  , 0  ), // #271 {rel16|r16|m16|r32|m32}
-  ROW(1, 1, 1, 0, 100, 0  , 0  , 0  , 0  , 0  ), //      {rel32|r64|m64|mem}
-  ROW(2, 1, 1, 0, 6  , 101, 0  , 0  , 0  , 0  ), // #273 {r32, r8lo|r8hi|m8|r16|m16|r32|m32}
-  ROW(2, 0, 1, 0, 8  , 102, 0  , 0  , 0  , 0  ), //      {r64, r8lo|r8hi|m8|r64|m64}
-  ROW(1, 1, 0, 0, 103, 0  , 0  , 0  , 0  , 0  ), // #275 {r16|r32}
-  ROW(1, 1, 1, 0, 36 , 0  , 0  , 0  , 0  , 0  ), // #276 {r8lo|r8hi|m8|r16|m16|r32|m32|r64|m64|mem}
-  ROW(2, 1, 0, 0, 104, 59 , 0  , 0  , 0  , 0  ), // #277 {es:[memBase], m512|mem}
-  ROW(2, 0, 1, 0, 104, 59 , 0  , 0  , 0  , 0  ), //      {es:[memBase], m512|mem}
-  ROW(3, 1, 1, 0, 51 , 10 , 10 , 0  , 0  , 0  ), // #279 {xmm, i8|u8, i8|u8}
-  ROW(2, 1, 1, 0, 51 , 51 , 0  , 0  , 0  , 0  ), // #280 {xmm, xmm}
-  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #281 {}
-  ROW(1, 1, 1, 0, 85 , 0  , 0  , 0  , 0  , 0  ), // #282 {st}
-  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #283 {}
-  ROW(1, 1, 1, 0, 105, 0  , 0  , 0  , 0  , 0  ), // #284 {m32|m64|st}
-  ROW(2, 1, 1, 0, 51 , 51 , 0  , 0  , 0  , 0  ), // #285 {xmm, xmm}
-  ROW(4, 1, 1, 0, 51 , 51 , 10 , 10 , 0  , 0  ), //      {xmm, xmm, i8|u8, i8|u8}
-  ROW(2, 1, 0, 0, 6  , 53 , 0  , 0  , 0  , 0  ), // #287 {r32, m128|mem}
-  ROW(2, 0, 1, 0, 8  , 53 , 0  , 0  , 0  , 0  ), //      {r64, m128|mem}
-  ROW(2, 1, 0, 2, 41 , 106, 0  , 0  , 0  , 0  ), // #289 {<eax>, <ecx>}
-  ROW(2, 0, 1, 2, 107, 106, 0  , 0  , 0  , 0  ), //      {<eax|rax>, <ecx>}
-  ROW(1, 1, 1, 0, 108, 0  , 0  , 0  , 0  , 0  ), // #291 {rel8|rel32}
-  ROW(1, 1, 0, 0, 109, 0  , 0  , 0  , 0  , 0  ), //      {rel16}
-  ROW(2, 1, 0, 1, 110, 111, 0  , 0  , 0  , 0  ), // #293 {<cx|ecx>, rel8}
-  ROW(2, 0, 1, 1, 112, 111, 0  , 0  , 0  , 0  ), //      {<ecx|rcx>, rel8}
-  ROW(1, 1, 1, 0, 113, 0  , 0  , 0  , 0  , 0  ), // #295 {rel8|rel32|r64|m64|mem}
-  ROW(1, 1, 0, 0, 114, 0  , 0  , 0  , 0  , 0  ), //      {rel16|r32|m32|mem}
-  ROW(2, 1, 1, 0, 91 , 115, 0  , 0  , 0  , 0  ), // #297 {k, k|m8|mem|r32|r8lo|r8hi|r16}
-  ROW(2, 1, 1, 0, 116, 91 , 0  , 0  , 0  , 0  ), //      {m8|mem|r32|r8lo|r8hi|r16, k}
-  ROW(2, 1, 1, 0, 91 , 117, 0  , 0  , 0  , 0  ), // #299 {k, k|m32|mem|r32}
-  ROW(2, 1, 1, 0, 35 , 91 , 0  , 0  , 0  , 0  ), //      {m32|mem|r32, k}
-  ROW(2, 1, 1, 0, 91 , 118, 0  , 0  , 0  , 0  ), // #301 {k, k|m64|mem|r64}
-  ROW(2, 1, 1, 0, 15 , 91 , 0  , 0  , 0  , 0  ), //      {m64|mem|r64, k}
-  ROW(2, 1, 1, 0, 91 , 119, 0  , 0  , 0  , 0  ), // #303 {k, k|m16|mem|r32|r16}
-  ROW(2, 1, 1, 0, 120, 91 , 0  , 0  , 0  , 0  ), //      {m16|mem|r32|r16, k}
-  ROW(2, 1, 1, 0, 4  , 34 , 0  , 0  , 0  , 0  ), // #305 {r16, r16|m16|mem}
-  ROW(2, 1, 1, 0, 6  , 120, 0  , 0  , 0  , 0  ), //      {r32, r32|m16|mem|r16}
-  ROW(2, 1, 0, 0, 4  , 26 , 0  , 0  , 0  , 0  ), // #307 {r16, m32|mem}
-  ROW(2, 1, 0, 0, 6  , 86 , 0  , 0  , 0  , 0  ), //      {r32, m48|mem}
-  ROW(2, 1, 1, 0, 4  , 34 , 0  , 0  , 0  , 0  ), // #309 {r16, r16|m16|mem}
-  ROW(2, 1, 1, 0, 121, 120, 0  , 0  , 0  , 0  ), //      {r32|r64, r32|m16|mem|r16}
-  ROW(2, 1, 1, 0, 65 , 35 , 0  , 0  , 0  , 0  ), // #311 {mm|xmm, r32|m32|mem}
-  ROW(2, 1, 1, 0, 35 , 65 , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, mm|xmm}
-  ROW(2, 1, 1, 0, 51 , 94 , 0  , 0  , 0  , 0  ), // #313 {xmm, xmm|m32|mem}
-  ROW(2, 1, 1, 0, 26 , 51 , 0  , 0  , 0  , 0  ), //      {m32|mem, xmm}
-  ROW(2, 1, 1, 0, 4  , 9  , 0  , 0  , 0  , 0  ), // #315 {r16, r8lo|r8hi|m8}
-  ROW(2, 1, 1, 0, 121, 122, 0  , 0  , 0  , 0  ), //      {r32|r64, r8lo|r8hi|m8|r16|m16}
-  ROW(2, 0, 1, 0, 4  , 34 , 0  , 0  , 0  , 0  ), // #317 {r16, r16|m16|mem}
-  ROW(2, 0, 1, 0, 121, 35 , 0  , 0  , 0  , 0  ), //      {r32|r64, r32|m32|mem}
-  ROW(4, 1, 1, 1, 6  , 6  , 35 , 40 , 0  , 0  ), // #319 {r32, r32, r32|m32|mem, <edx>}
-  ROW(4, 0, 1, 1, 8  , 8  , 15 , 42 , 0  , 0  ), //      {r64, r64, r64|m64|mem, <rdx>}
-  ROW(2, 1, 1, 0, 63 , 123, 0  , 0  , 0  , 0  ), // #321 {mm, mm|m64|mem}
-  ROW(2, 1, 1, 0, 51 , 52 , 0  , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 63 , 123, 10 , 0  , 0  , 0  ), // #323 {mm, mm|m64|mem, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 52 , 10 , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem, i8|u8}
-  ROW(3, 1, 1, 0, 6  , 65 , 10 , 0  , 0  , 0  ), // #325 {r32, mm|xmm, i8|u8}
-  ROW(3, 1, 1, 0, 22 , 51 , 10 , 0  , 0  , 0  ), //      {m16|mem, xmm, i8|u8}
-  ROW(2, 1, 1, 0, 63 , 124, 0  , 0  , 0  , 0  ), // #327 {mm, i8|u8|mm|m64|mem}
-  ROW(2, 1, 1, 0, 51 , 60 , 0  , 0  , 0  , 0  ), //      {xmm, i8|u8|xmm|m128|mem}
-  ROW(1, 1, 0, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #329 {r32}
-  ROW(1, 0, 1, 0, 8  , 0  , 0  , 0  , 0  , 0  ), // #330 {r64}
-  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #331 {}
-  ROW(1, 1, 1, 0, 125, 0  , 0  , 0  , 0  , 0  ), //      {u16}
-  ROW(3, 1, 1, 0, 6  , 35 , 10 , 0  , 0  , 0  ), // #333 {r32, r32|m32|mem, i8|u8}
+  ROW(2, 1, 0, 0, 95 , 28 , 0  , 0  , 0  , 0  ), // #258 {bnd, r32|m32|mem}
+  ROW(2, 0, 1, 0, 95 , 15 , 0  , 0  , 0  , 0  ), //      {bnd, r64|m64|mem}
+  ROW(2, 1, 1, 0, 95 , 96 , 0  , 0  , 0  , 0  ), // #260 {bnd, bnd|mem}
+  ROW(2, 1, 1, 0, 97 , 95 , 0  , 0  , 0  , 0  ), //      {mem, bnd}
+  ROW(2, 1, 0, 0, 4  , 29 , 0  , 0  , 0  , 0  ), // #262 {r16, m32|mem}
+  ROW(2, 1, 0, 0, 6  , 30 , 0  , 0  , 0  , 0  ), //      {r32, m64|mem}
+  ROW(1, 1, 0, 0, 98 , 0  , 0  , 0  , 0  , 0  ), // #264 {rel16|r16|m16|r32|m32}
+  ROW(1, 1, 1, 0, 99 , 0  , 0  , 0  , 0  , 0  ), //      {rel32|r64|m64|mem}
+  ROW(2, 1, 1, 0, 6  , 100, 0  , 0  , 0  , 0  ), // #266 {r32, r8lo|r8hi|m8|r16|m16|r32|m32}
+  ROW(2, 0, 1, 0, 8  , 101, 0  , 0  , 0  , 0  ), //      {r64, r8lo|r8hi|m8|r64|m64}
+  ROW(1, 1, 0, 0, 102, 0  , 0  , 0  , 0  , 0  ), // #268 {r16|r32}
+  ROW(1, 1, 1, 0, 31 , 0  , 0  , 0  , 0  , 0  ), // #269 {r8lo|r8hi|m8|r16|m16|r32|m32|r64|m64|mem}
+  ROW(2, 1, 0, 0, 103, 58 , 0  , 0  , 0  , 0  ), // #270 {es:[memBase], m512|mem}
+  ROW(2, 0, 1, 0, 103, 58 , 0  , 0  , 0  , 0  ), //      {es:[memBase], m512|mem}
+  ROW(3, 1, 1, 0, 50 , 10 , 10 , 0  , 0  , 0  ), // #272 {xmm, i8|u8, i8|u8}
+  ROW(2, 1, 1, 0, 50 , 50 , 0  , 0  , 0  , 0  ), // #273 {xmm, xmm}
+  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #274 {}
+  ROW(1, 1, 1, 0, 84 , 0  , 0  , 0  , 0  , 0  ), // #275 {st}
+  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #276 {}
+  ROW(1, 1, 1, 0, 104, 0  , 0  , 0  , 0  , 0  ), // #277 {m32|m64|st}
+  ROW(2, 1, 1, 0, 50 , 50 , 0  , 0  , 0  , 0  ), // #278 {xmm, xmm}
+  ROW(4, 1, 1, 0, 50 , 50 , 10 , 10 , 0  , 0  ), //      {xmm, xmm, i8|u8, i8|u8}
+  ROW(2, 1, 0, 0, 6  , 52 , 0  , 0  , 0  , 0  ), // #280 {r32, m128|mem}
+  ROW(2, 0, 1, 0, 8  , 52 , 0  , 0  , 0  , 0  ), //      {r64, m128|mem}
+  ROW(2, 1, 0, 2, 36 , 105, 0  , 0  , 0  , 0  ), // #282 {<eax>, <ecx>}
+  ROW(2, 0, 1, 2, 106, 105, 0  , 0  , 0  , 0  ), //      {<eax|rax>, <ecx>}
+  ROW(1, 1, 1, 0, 107, 0  , 0  , 0  , 0  , 0  ), // #284 {rel8|rel32}
+  ROW(1, 1, 0, 0, 108, 0  , 0  , 0  , 0  , 0  ), //      {rel16}
+  ROW(2, 1, 0, 1, 109, 110, 0  , 0  , 0  , 0  ), // #286 {<cx|ecx>, rel8}
+  ROW(2, 0, 1, 1, 111, 110, 0  , 0  , 0  , 0  ), //      {<ecx|rcx>, rel8}
+  ROW(1, 1, 1, 0, 112, 0  , 0  , 0  , 0  , 0  ), // #288 {rel8|rel32|r64|m64|mem}
+  ROW(1, 1, 0, 0, 113, 0  , 0  , 0  , 0  , 0  ), //      {rel16|r32|m32|mem}
+  ROW(2, 1, 1, 0, 90 , 114, 0  , 0  , 0  , 0  ), // #290 {k, k|m8|mem|r32|r8lo|r8hi|r16}
+  ROW(2, 1, 1, 0, 115, 90 , 0  , 0  , 0  , 0  ), //      {m8|mem|r32|r8lo|r8hi|r16, k}
+  ROW(2, 1, 1, 0, 90 , 116, 0  , 0  , 0  , 0  ), // #292 {k, k|m32|mem|r32}
+  ROW(2, 1, 1, 0, 28 , 90 , 0  , 0  , 0  , 0  ), //      {m32|mem|r32, k}
+  ROW(2, 1, 1, 0, 90 , 117, 0  , 0  , 0  , 0  ), // #294 {k, k|m64|mem|r64}
+  ROW(2, 1, 1, 0, 15 , 90 , 0  , 0  , 0  , 0  ), //      {m64|mem|r64, k}
+  ROW(2, 1, 1, 0, 90 , 118, 0  , 0  , 0  , 0  ), // #296 {k, k|m16|mem|r32|r16}
+  ROW(2, 1, 1, 0, 119, 90 , 0  , 0  , 0  , 0  ), //      {m16|mem|r32|r16, k}
+  ROW(2, 1, 1, 0, 4  , 27 , 0  , 0  , 0  , 0  ), // #298 {r16, r16|m16|mem}
+  ROW(2, 1, 1, 0, 6  , 119, 0  , 0  , 0  , 0  ), //      {r32, r32|m16|mem|r16}
+  ROW(2, 1, 0, 0, 4  , 29 , 0  , 0  , 0  , 0  ), // #300 {r16, m32|mem}
+  ROW(2, 1, 0, 0, 6  , 85 , 0  , 0  , 0  , 0  ), //      {r32, m48|mem}
+  ROW(2, 1, 1, 0, 4  , 27 , 0  , 0  , 0  , 0  ), // #302 {r16, r16|m16|mem}
+  ROW(2, 1, 1, 0, 120, 119, 0  , 0  , 0  , 0  ), //      {r32|r64, r32|m16|mem|r16}
+  ROW(2, 1, 1, 0, 64 , 28 , 0  , 0  , 0  , 0  ), // #304 {mm|xmm, r32|m32|mem}
+  ROW(2, 1, 1, 0, 28 , 64 , 0  , 0  , 0  , 0  ), //      {r32|m32|mem, mm|xmm}
+  ROW(2, 1, 1, 0, 50 , 93 , 0  , 0  , 0  , 0  ), // #306 {xmm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 29 , 50 , 0  , 0  , 0  , 0  ), //      {m32|mem, xmm}
+  ROW(2, 1, 1, 0, 4  , 9  , 0  , 0  , 0  , 0  ), // #308 {r16, r8lo|r8hi|m8}
+  ROW(2, 1, 1, 0, 120, 121, 0  , 0  , 0  , 0  ), //      {r32|r64, r8lo|r8hi|m8|r16|m16}
+  ROW(2, 0, 1, 0, 4  , 27 , 0  , 0  , 0  , 0  ), // #310 {r16, r16|m16|mem}
+  ROW(2, 0, 1, 0, 120, 28 , 0  , 0  , 0  , 0  ), //      {r32|r64, r32|m32|mem}
+  ROW(4, 1, 1, 1, 6  , 6  , 28 , 35 , 0  , 0  ), // #312 {r32, r32, r32|m32|mem, <edx>}
+  ROW(4, 0, 1, 1, 8  , 8  , 15 , 37 , 0  , 0  ), //      {r64, r64, r64|m64|mem, <rdx>}
+  ROW(2, 1, 1, 0, 62 , 122, 0  , 0  , 0  , 0  ), // #314 {mm, mm|m64|mem}
+  ROW(2, 1, 1, 0, 50 , 51 , 0  , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 62 , 122, 10 , 0  , 0  , 0  ), // #316 {mm, mm|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 51 , 10 , 0  , 0  , 0  ), //      {xmm, xmm|m128|mem, i8|u8}
+  ROW(3, 1, 1, 0, 6  , 64 , 10 , 0  , 0  , 0  ), // #318 {r32, mm|xmm, i8|u8}
+  ROW(3, 1, 1, 0, 21 , 50 , 10 , 0  , 0  , 0  ), //      {m16|mem, xmm, i8|u8}
+  ROW(2, 1, 1, 0, 62 , 123, 0  , 0  , 0  , 0  ), // #320 {mm, i8|u8|mm|m64|mem}
+  ROW(2, 1, 1, 0, 50 , 59 , 0  , 0  , 0  , 0  ), //      {xmm, i8|u8|xmm|m128|mem}
+  ROW(1, 1, 0, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #322 {r32}
+  ROW(1, 0, 1, 0, 8  , 0  , 0  , 0  , 0  , 0  ), // #323 {r64}
+  ROW(0, 1, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #324 {}
+  ROW(1, 1, 1, 0, 124, 0  , 0  , 0  , 0  , 0  ), //      {u16}
+  ROW(3, 1, 1, 0, 6  , 28 , 10 , 0  , 0  , 0  ), // #326 {r32, r32|m32|mem, i8|u8}
   ROW(3, 0, 1, 0, 8  , 15 , 10 , 0  , 0  , 0  ), //      {r64, r64|m64|mem, i8|u8}
-  ROW(4, 1, 1, 0, 51 , 51 , 52 , 51 , 0  , 0  ), // #335 {xmm, xmm, xmm|m128|mem, xmm}
-  ROW(4, 1, 1, 0, 54 , 54 , 55 , 54 , 0  , 0  ), //      {ymm, ymm, ymm|m256|mem, ymm}
-  ROW(2, 1, 1, 0, 51 , 126, 0  , 0  , 0  , 0  ), // #337 {xmm, xmm|m128|ymm|m256}
-  ROW(2, 1, 1, 0, 54 , 58 , 0  , 0  , 0  , 0  ), //      {ymm, zmm|m512|mem}
-  ROW(4, 1, 1, 0, 51 , 51 , 51 , 66 , 0  , 0  ), // #339 {xmm, xmm, xmm, xmm|m64|mem}
-  ROW(4, 1, 1, 0, 51 , 51 , 28 , 51 , 0  , 0  ), //      {xmm, xmm, m64|mem, xmm}
-  ROW(4, 1, 1, 0, 51 , 51 , 51 , 94 , 0  , 0  ), // #341 {xmm, xmm, xmm, xmm|m32|mem}
-  ROW(4, 1, 1, 0, 51 , 51 , 26 , 51 , 0  , 0  ), //      {xmm, xmm, m32|mem, xmm}
-  ROW(4, 1, 1, 0, 54 , 54 , 52 , 10 , 0  , 0  ), // #343 {ymm, ymm, xmm|m128|mem, i8|u8}
-  ROW(4, 1, 1, 0, 57 , 57 , 52 , 10 , 0  , 0  ), //      {zmm, zmm, xmm|m128|mem, i8|u8}
-  ROW(1, 1, 0, 1, 41 , 0  , 0  , 0  , 0  , 0  ), // #345 {<eax>}
-  ROW(1, 0, 1, 1, 43 , 0  , 0  , 0  , 0  , 0  ), // #346 {<rax>}
-  ROW(2, 1, 1, 0, 35 , 51 , 0  , 0  , 0  , 0  ), // #347 {r32|m32|mem, xmm}
-  ROW(2, 1, 1, 0, 51 , 35 , 0  , 0  , 0  , 0  ), //      {xmm, r32|m32|mem}
-  ROW(2, 1, 1, 0, 28 , 51 , 0  , 0  , 0  , 0  ), // #349 {m64|mem, xmm}
-  ROW(3, 1, 1, 0, 51 , 51 , 28 , 0  , 0  , 0  ), //      {xmm, xmm, m64|mem}
-  ROW(2, 1, 0, 0, 35 , 6  , 0  , 0  , 0  , 0  ), // #351 {r32|m32|mem, r32}
+  ROW(4, 1, 1, 0, 50 , 50 , 51 , 50 , 0  , 0  ), // #328 {xmm, xmm, xmm|m128|mem, xmm}
+  ROW(4, 1, 1, 0, 53 , 53 , 54 , 53 , 0  , 0  ), //      {ymm, ymm, ymm|m256|mem, ymm}
+  ROW(2, 1, 1, 0, 50 , 125, 0  , 0  , 0  , 0  ), // #330 {xmm, xmm|m128|ymm|m256}
+  ROW(2, 1, 1, 0, 53 , 57 , 0  , 0  , 0  , 0  ), //      {ymm, zmm|m512|mem}
+  ROW(4, 1, 1, 0, 50 , 50 , 50 , 65 , 0  , 0  ), // #332 {xmm, xmm, xmm, xmm|m64|mem}
+  ROW(4, 1, 1, 0, 50 , 50 , 30 , 50 , 0  , 0  ), //      {xmm, xmm, m64|mem, xmm}
+  ROW(4, 1, 1, 0, 50 , 50 , 50 , 93 , 0  , 0  ), // #334 {xmm, xmm, xmm, xmm|m32|mem}
+  ROW(4, 1, 1, 0, 50 , 50 , 29 , 50 , 0  , 0  ), //      {xmm, xmm, m32|mem, xmm}
+  ROW(4, 1, 1, 0, 53 , 53 , 51 , 10 , 0  , 0  ), // #336 {ymm, ymm, xmm|m128|mem, i8|u8}
+  ROW(4, 1, 1, 0, 56 , 56 , 51 , 10 , 0  , 0  ), //      {zmm, zmm, xmm|m128|mem, i8|u8}
+  ROW(1, 1, 0, 1, 36 , 0  , 0  , 0  , 0  , 0  ), // #338 {<eax>}
+  ROW(1, 0, 1, 1, 38 , 0  , 0  , 0  , 0  , 0  ), // #339 {<rax>}
+  ROW(2, 1, 1, 0, 28 , 50 , 0  , 0  , 0  , 0  ), // #340 {r32|m32|mem, xmm}
+  ROW(2, 1, 1, 0, 50 , 28 , 0  , 0  , 0  , 0  ), //      {xmm, r32|m32|mem}
+  ROW(2, 1, 1, 0, 30 , 50 , 0  , 0  , 0  , 0  ), // #342 {m64|mem, xmm}
+  ROW(3, 1, 1, 0, 50 , 50 , 30 , 0  , 0  , 0  ), //      {xmm, xmm, m64|mem}
+  ROW(2, 1, 0, 0, 28 , 6  , 0  , 0  , 0  , 0  ), // #344 {r32|m32|mem, r32}
   ROW(2, 0, 1, 0, 15 , 8  , 0  , 0  , 0  , 0  ), //      {r64|m64|mem, r64}
-  ROW(2, 1, 0, 0, 6  , 35 , 0  , 0  , 0  , 0  ), // #353 {r32, r32|m32|mem}
+  ROW(2, 1, 0, 0, 6  , 28 , 0  , 0  , 0  , 0  ), // #346 {r32, r32|m32|mem}
   ROW(2, 0, 1, 0, 8  , 15 , 0  , 0  , 0  , 0  ), //      {r64, r64|m64|mem}
-  ROW(3, 1, 1, 0, 51 , 51 , 60 , 0  , 0  , 0  ), // #355 {xmm, xmm, xmm|m128|mem|i8|u8}
-  ROW(3, 1, 1, 0, 51 , 53 , 127, 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8|xmm}
-  ROW(2, 1, 1, 0, 81 , 51 , 0  , 0  , 0  , 0  ), // #357 {vm64x|vm64y, xmm}
-  ROW(2, 1, 1, 0, 73 , 54 , 0  , 0  , 0  , 0  ), //      {vm64z, ymm}
-  ROW(3, 1, 1, 0, 51 , 51 , 52 , 0  , 0  , 0  ), // #359 {xmm, xmm, xmm|m128|mem}
-  ROW(3, 1, 1, 0, 51 , 53 , 51 , 0  , 0  , 0  ), //      {xmm, m128|mem, xmm}
-  ROW(2, 1, 1, 0, 68 , 93 , 0  , 0  , 0  , 0  ), // #361 {vm32x, xmm|ymm}
-  ROW(2, 1, 1, 0, 69 , 57 , 0  , 0  , 0  , 0  ), //      {vm32y, zmm}
-  ROW(1, 1, 0, 1, 38 , 0  , 0  , 0  , 0  , 0  ), // #363 {<ax>}
-  ROW(2, 1, 0, 1, 38 , 10 , 0  , 0  , 0  , 0  ), // #364 {<ax>, i8|u8}
-  ROW(2, 1, 0, 0, 34 , 4  , 0  , 0  , 0  , 0  ), // #365 {r16|m16|mem, r16}
-  ROW(3, 1, 1, 1, 51 , 52 , 128, 0  , 0  , 0  ), // #366 {xmm, xmm|m128|mem, <xmm0>}
-  ROW(2, 1, 1, 0, 96 , 129, 0  , 0  , 0  , 0  ), // #367 {bnd, mib}
-  ROW(2, 1, 1, 0, 96 , 98 , 0  , 0  , 0  , 0  ), // #368 {bnd, mem}
-  ROW(2, 1, 1, 0, 129, 96 , 0  , 0  , 0  , 0  ), // #369 {mib, bnd}
-  ROW(1, 1, 1, 0, 130, 0  , 0  , 0  , 0  , 0  ), // #370 {r16|r32|r64}
-  ROW(1, 1, 1, 1, 38 , 0  , 0  , 0  , 0  , 0  ), // #371 {<ax>}
-  ROW(2, 1, 1, 2, 40 , 41 , 0  , 0  , 0  , 0  ), // #372 {<edx>, <eax>}
-  ROW(1, 1, 1, 0, 98 , 0  , 0  , 0  , 0  , 0  ), // #373 {mem}
-  ROW(1, 1, 1, 0, 28 , 0  , 0  , 0  , 0  , 0  ), // #374 {m64|mem}
-  ROW(1, 1, 1, 1, 131, 0  , 0  , 0  , 0  , 0  ), // #375 {<ds:[memBase|zax]>}
-  ROW(2, 1, 1, 2, 132, 133, 0  , 0  , 0  , 0  ), // #376 {<ds:[memBase|zsi]>, <es:[memBase|zdi]>}
-  ROW(3, 1, 1, 0, 51 , 66 , 10 , 0  , 0  , 0  ), // #377 {xmm, xmm|m64|mem, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 94 , 10 , 0  , 0  , 0  ), // #378 {xmm, xmm|m32|mem, i8|u8}
-  ROW(5, 0, 1, 4, 53 , 42 , 43 , 134, 135, 0  ), // #379 {m128|mem, <rdx>, <rax>, <rcx>, <rbx>}
-  ROW(5, 1, 1, 4, 28 , 40 , 41 , 106, 136, 0  ), // #380 {m64|mem, <edx>, <eax>, <ecx>, <ebx>}
-  ROW(4, 1, 1, 4, 41 , 136, 106, 40 , 0  , 0  ), // #381 {<eax>, <ebx>, <ecx>, <edx>}
-  ROW(2, 0, 1, 2, 42 , 43 , 0  , 0  , 0  , 0  ), // #382 {<rdx>, <rax>}
-  ROW(2, 1, 1, 0, 63 , 52 , 0  , 0  , 0  , 0  ), // #383 {mm, xmm|m128|mem}
-  ROW(2, 1, 1, 0, 51 , 123, 0  , 0  , 0  , 0  ), // #384 {xmm, mm|m64|mem}
-  ROW(2, 1, 1, 0, 63 , 66 , 0  , 0  , 0  , 0  ), // #385 {mm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 121, 66 , 0  , 0  , 0  , 0  ), // #386 {r32|r64, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 51 , 137, 0  , 0  , 0  , 0  ), // #387 {xmm, r32|m32|mem|r64|m64}
-  ROW(2, 1, 1, 0, 121, 94 , 0  , 0  , 0  , 0  ), // #388 {r32|r64, xmm|m32|mem}
-  ROW(2, 1, 1, 2, 39 , 38 , 0  , 0  , 0  , 0  ), // #389 {<dx>, <ax>}
-  ROW(1, 1, 1, 1, 41 , 0  , 0  , 0  , 0  , 0  ), // #390 {<eax>}
-  ROW(2, 1, 1, 0, 12 , 10 , 0  , 0  , 0  , 0  ), // #391 {i16|u16, i8|u8}
-  ROW(3, 1, 1, 0, 35 , 51 , 10 , 0  , 0  , 0  ), // #392 {r32|m32|mem, xmm, i8|u8}
-  ROW(1, 1, 1, 0, 87 , 0  , 0  , 0  , 0  , 0  ), // #393 {m80|mem}
-  ROW(1, 1, 1, 0, 138, 0  , 0  , 0  , 0  , 0  ), // #394 {m16|m32}
-  ROW(1, 1, 1, 0, 139, 0  , 0  , 0  , 0  , 0  ), // #395 {m16|m32|m64}
-  ROW(1, 1, 1, 0, 140, 0  , 0  , 0  , 0  , 0  ), // #396 {m32|m64|m80|st}
-  ROW(1, 1, 1, 0, 22 , 0  , 0  , 0  , 0  , 0  ), // #397 {m16|mem}
-  ROW(1, 1, 1, 0, 141, 0  , 0  , 0  , 0  , 0  ), // #398 {ax|m16|mem}
-  ROW(1, 0, 1, 0, 98 , 0  , 0  , 0  , 0  , 0  ), // #399 {mem}
-  ROW(2, 1, 1, 0, 142, 143, 0  , 0  , 0  , 0  ), // #400 {al|ax|eax, i8|u8|dx}
-  ROW(1, 1, 1, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #401 {r32}
-  ROW(2, 1, 1, 0, 144, 145, 0  , 0  , 0  , 0  ), // #402 {es:[memBase|zdi], dx}
-  ROW(1, 1, 1, 0, 10 , 0  , 0  , 0  , 0  , 0  ), // #403 {i8|u8}
-  ROW(0, 1, 0, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #404 {}
-  ROW(0, 0, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #405 {}
-  ROW(3, 1, 1, 0, 91 , 91 , 91 , 0  , 0  , 0  ), // #406 {k, k, k}
-  ROW(2, 1, 1, 0, 91 , 91 , 0  , 0  , 0  , 0  ), // #407 {k, k}
-  ROW(3, 1, 1, 0, 91 , 91 , 10 , 0  , 0  , 0  ), // #408 {k, k, i8|u8}
-  ROW(1, 1, 1, 1, 146, 0  , 0  , 0  , 0  , 0  ), // #409 {<ah>}
-  ROW(1, 1, 1, 0, 26 , 0  , 0  , 0  , 0  , 0  ), // #410 {m32|mem}
-  ROW(1, 0, 1, 0, 59 , 0  , 0  , 0  , 0  , 0  ), // #411 {m512|mem}
-  ROW(2, 1, 1, 0, 130, 147, 0  , 0  , 0  , 0  ), // #412 {r16|r32|r64, mem|m8|m16|m32|m48|m64|m80|m128|m256|m512|m1024}
-  ROW(1, 1, 1, 0, 34 , 0  , 0  , 0  , 0  , 0  ), // #413 {r16|m16|mem}
-  ROW(1, 1, 1, 0, 121, 0  , 0  , 0  , 0  , 0  ), // #414 {r32|r64}
-  ROW(2, 1, 1, 2, 148, 132, 0  , 0  , 0  , 0  ), // #415 {<al|ax|eax|rax>, <ds:[memBase|zsi]>}
-  ROW(3, 1, 1, 0, 121, 35 , 14 , 0  , 0  , 0  ), // #416 {r32|r64, r32|m32|mem, i32|u32}
-  ROW(3, 1, 1, 1, 51 , 51 , 149, 0  , 0  , 0  ), // #417 {xmm, xmm, <ds:[memBase|zdi]>}
-  ROW(3, 1, 1, 1, 63 , 63 , 149, 0  , 0  , 0  ), // #418 {mm, mm, <ds:[memBase|zdi]>}
-  ROW(3, 1, 1, 3, 131, 106, 40 , 0  , 0  , 0  ), // #419 {<ds:[memBase|zax]>, <ecx>, <edx>}
-  ROW(2, 1, 1, 0, 104, 59 , 0  , 0  , 0  , 0  ), // #420 {es:[memBase], m512|mem}
-  ROW(2, 1, 1, 0, 63 , 51 , 0  , 0  , 0  , 0  ), // #421 {mm, xmm}
-  ROW(2, 1, 1, 0, 6  , 51 , 0  , 0  , 0  , 0  ), // #422 {r32, xmm}
-  ROW(2, 1, 1, 0, 28 , 63 , 0  , 0  , 0  , 0  ), // #423 {m64|mem, mm}
-  ROW(2, 1, 1, 0, 51 , 63 , 0  , 0  , 0  , 0  ), // #424 {xmm, mm}
-  ROW(2, 1, 1, 2, 133, 132, 0  , 0  , 0  , 0  ), // #425 {<es:[memBase|zdi]>, <ds:[memBase|zsi]>}
-  ROW(2, 1, 1, 2, 41 , 106, 0  , 0  , 0  , 0  ), // #426 {<eax>, <ecx>}
-  ROW(3, 1, 1, 3, 41 , 106, 136, 0  , 0  , 0  ), // #427 {<eax>, <ecx>, <ebx>}
-  ROW(2, 1, 1, 0, 150, 142, 0  , 0  , 0  , 0  ), // #428 {u8|dx, al|ax|eax}
-  ROW(2, 1, 1, 0, 145, 151, 0  , 0  , 0  , 0  ), // #429 {dx, ds:[memBase|zsi]}
-  ROW(6, 1, 1, 3, 51 , 52 , 10 , 106, 41 , 40 ), // #430 {xmm, xmm|m128|mem, i8|u8, <ecx>, <eax>, <edx>}
-  ROW(6, 1, 1, 3, 51 , 52 , 10 , 128, 41 , 40 ), // #431 {xmm, xmm|m128|mem, i8|u8, <xmm0>, <eax>, <edx>}
-  ROW(4, 1, 1, 1, 51 , 52 , 10 , 106, 0  , 0  ), // #432 {xmm, xmm|m128|mem, i8|u8, <ecx>}
-  ROW(4, 1, 1, 1, 51 , 52 , 10 , 128, 0  , 0  ), // #433 {xmm, xmm|m128|mem, i8|u8, <xmm0>}
-  ROW(3, 1, 1, 0, 116, 51 , 10 , 0  , 0  , 0  ), // #434 {r32|m8|mem|r8lo|r8hi|r16, xmm, i8|u8}
-  ROW(3, 0, 1, 0, 15 , 51 , 10 , 0  , 0  , 0  ), // #435 {r64|m64|mem, xmm, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 116, 10 , 0  , 0  , 0  ), // #436 {xmm, r32|m8|mem|r8lo|r8hi|r16, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 35 , 10 , 0  , 0  , 0  ), // #437 {xmm, r32|m32|mem, i8|u8}
-  ROW(3, 0, 1, 0, 51 , 15 , 10 , 0  , 0  , 0  ), // #438 {xmm, r64|m64|mem, i8|u8}
-  ROW(3, 1, 1, 0, 65 , 120, 10 , 0  , 0  , 0  ), // #439 {mm|xmm, r32|m16|mem|r16, i8|u8}
-  ROW(2, 1, 1, 0, 6  , 65 , 0  , 0  , 0  , 0  ), // #440 {r32, mm|xmm}
-  ROW(2, 1, 1, 0, 51 , 10 , 0  , 0  , 0  , 0  ), // #441 {xmm, i8|u8}
-  ROW(1, 1, 1, 0, 137, 0  , 0  , 0  , 0  , 0  ), // #442 {r32|m32|mem|r64|m64}
-  ROW(2, 1, 1, 0, 36 , 88 , 0  , 0  , 0  , 0  ), // #443 {r8lo|r8hi|m8|r16|m16|r32|m32|r64|m64|mem, cl|i8|u8}
-  ROW(1, 0, 1, 0, 121, 0  , 0  , 0  , 0  , 0  ), // #444 {r32|r64}
-  ROW(3, 1, 1, 3, 40 , 41 , 106, 0  , 0  , 0  ), // #445 {<edx>, <eax>, <ecx>}
-  ROW(2, 1, 1, 2, 148, 133, 0  , 0  , 0  , 0  ), // #446 {<al|ax|eax|rax>, <es:[memBase|zdi]>}
-  ROW(1, 1, 1, 0, 1  , 0  , 0  , 0  , 0  , 0  ), // #447 {r8lo|r8hi|m8|mem}
-  ROW(1, 1, 1, 0, 152, 0  , 0  , 0  , 0  , 0  ), // #448 {r16|m16|mem|r32|r64}
-  ROW(2, 1, 1, 2, 133, 148, 0  , 0  , 0  , 0  ), // #449 {<es:[memBase|zdi]>, <al|ax|eax|rax>}
-  ROW(3, 0, 1, 0, 153, 153, 153, 0  , 0  , 0  ), // #450 {tmm, tmm, tmm}
-  ROW(2, 0, 1, 0, 153, 98 , 0  , 0  , 0  , 0  ), // #451 {tmm, tmem}
-  ROW(2, 0, 1, 0, 98 , 153, 0  , 0  , 0  , 0  ), // #452 {tmem, tmm}
-  ROW(1, 0, 1, 0, 153, 0  , 0  , 0  , 0  , 0  ), // #453 {tmm}
-  ROW(3, 1, 1, 2, 6  , 40 , 41 , 0  , 0  , 0  ), // #454 {r32, <edx>, <eax>}
-  ROW(1, 1, 1, 0, 35 , 0  , 0  , 0  , 0  , 0  ), // #455 {r32|m32|mem}
-  ROW(1, 1, 1, 0, 154, 0  , 0  , 0  , 0  , 0  ), // #456 {ds:[memBase]}
-  ROW(6, 1, 1, 0, 57 , 57 , 57 , 57 , 57 , 53 ), // #457 {zmm, zmm, zmm, zmm, zmm, m128|mem}
-  ROW(6, 1, 1, 0, 51 , 51 , 51 , 51 , 51 , 53 ), // #458 {xmm, xmm, xmm, xmm, xmm, m128|mem}
-  ROW(3, 1, 1, 0, 51 , 51 , 66 , 0  , 0  , 0  ), // #459 {xmm, xmm, xmm|m64|mem}
-  ROW(3, 1, 1, 0, 51 , 51 , 94 , 0  , 0  , 0  ), // #460 {xmm, xmm, xmm|m32|mem}
-  ROW(2, 1, 1, 0, 54 , 53 , 0  , 0  , 0  , 0  ), // #461 {ymm, m128|mem}
-  ROW(2, 1, 1, 0, 155, 66 , 0  , 0  , 0  , 0  ), // #462 {ymm|zmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 155, 53 , 0  , 0  , 0  , 0  ), // #463 {ymm|zmm, m128|mem}
-  ROW(2, 1, 1, 0, 57 , 56 , 0  , 0  , 0  , 0  ), // #464 {zmm, m256|mem}
-  ROW(2, 1, 1, 0, 156, 66 , 0  , 0  , 0  , 0  ), // #465 {xmm|ymm|zmm, xmm|m64|mem}
-  ROW(2, 1, 1, 0, 156, 94 , 0  , 0  , 0  , 0  ), // #466 {xmm|ymm|zmm, m32|mem|xmm}
-  ROW(4, 1, 1, 0, 89 , 51 , 66 , 10 , 0  , 0  ), // #467 {xmm|k, xmm, xmm|m64|mem, i8|u8}
-  ROW(4, 1, 1, 0, 89 , 51 , 94 , 10 , 0  , 0  ), // #468 {xmm|k, xmm, xmm|m32|mem, i8|u8}
-  ROW(3, 1, 1, 0, 51 , 51 , 137, 0  , 0  , 0  ), // #469 {xmm, xmm, r32|m32|mem|r64|m64}
-  ROW(3, 1, 1, 0, 52 , 155, 10 , 0  , 0  , 0  ), // #470 {xmm|m128|mem, ymm|zmm, i8|u8}
-  ROW(4, 1, 1, 0, 51 , 51 , 66 , 10 , 0  , 0  ), // #471 {xmm, xmm, xmm|m64|mem, i8|u8}
-  ROW(4, 1, 1, 0, 51 , 51 , 94 , 10 , 0  , 0  ), // #472 {xmm, xmm, xmm|m32|mem, i8|u8}
-  ROW(3, 1, 1, 0, 91 , 157, 10 , 0  , 0  , 0  ), // #473 {k, xmm|m128|ymm|m256|zmm|m512, i8|u8}
-  ROW(3, 1, 1, 0, 91 , 66 , 10 , 0  , 0  , 0  ), // #474 {k, xmm|m64|mem, i8|u8}
-  ROW(3, 1, 1, 0, 91 , 94 , 10 , 0  , 0  , 0  ), // #475 {k, xmm|m32|mem, i8|u8}
-  ROW(1, 1, 1, 0, 69 , 0  , 0  , 0  , 0  , 0  ), // #476 {vm32y}
-  ROW(1, 1, 1, 0, 70 , 0  , 0  , 0  , 0  , 0  ), // #477 {vm32z}
-  ROW(1, 1, 1, 0, 73 , 0  , 0  , 0  , 0  , 0  ), // #478 {vm64z}
-  ROW(4, 1, 1, 0, 57 , 57 , 55 , 10 , 0  , 0  ), // #479 {zmm, zmm, ymm|m256|mem, i8|u8}
-  ROW(2, 1, 1, 0, 6  , 93 , 0  , 0  , 0  , 0  ), // #480 {r32, xmm|ymm}
-  ROW(2, 1, 1, 0, 156, 158, 0  , 0  , 0  , 0  ), // #481 {xmm|ymm|zmm, xmm|m8|mem|r32|r8lo|r8hi|r16}
-  ROW(2, 1, 1, 0, 156, 159, 0  , 0  , 0  , 0  ), // #482 {xmm|ymm|zmm, xmm|m32|mem|r32}
-  ROW(2, 1, 1, 0, 156, 91 , 0  , 0  , 0  , 0  ), // #483 {xmm|ymm|zmm, k}
-  ROW(2, 1, 1, 0, 156, 160, 0  , 0  , 0  , 0  ), // #484 {xmm|ymm|zmm, xmm|m16|mem|r32|r16}
-  ROW(3, 1, 1, 0, 120, 51 , 10 , 0  , 0  , 0  ), // #485 {r32|m16|mem|r16, xmm, i8|u8}
-  ROW(4, 1, 1, 0, 51 , 51 , 116, 10 , 0  , 0  ), // #486 {xmm, xmm, r32|m8|mem|r8lo|r8hi|r16, i8|u8}
-  ROW(4, 1, 1, 0, 51 , 51 , 35 , 10 , 0  , 0  ), // #487 {xmm, xmm, r32|m32|mem, i8|u8}
-  ROW(4, 0, 1, 0, 51 , 51 , 15 , 10 , 0  , 0  ), // #488 {xmm, xmm, r64|m64|mem, i8|u8}
-  ROW(4, 1, 1, 0, 51 , 51 , 120, 10 , 0  , 0  ), // #489 {xmm, xmm, r32|m16|mem|r16, i8|u8}
-  ROW(2, 1, 1, 0, 91 , 156, 0  , 0  , 0  , 0  ), // #490 {k, xmm|ymm|zmm}
-  ROW(1, 1, 1, 0, 109, 0  , 0  , 0  , 0  , 0  ), // #491 {rel16|rel32}
-  ROW(3, 1, 1, 2, 98 , 40 , 41 , 0  , 0  , 0  ), // #492 {mem, <edx>, <eax>}
-  ROW(3, 0, 1, 2, 98 , 40 , 41 , 0  , 0  , 0  )  // #493 {mem, <edx>, <eax>}
+  ROW(3, 1, 1, 0, 50 , 50 , 59 , 0  , 0  , 0  ), // #348 {xmm, xmm, xmm|m128|mem|i8|u8}
+  ROW(3, 1, 1, 0, 50 , 52 , 126, 0  , 0  , 0  ), //      {xmm, m128|mem, i8|u8|xmm}
+  ROW(2, 1, 1, 0, 80 , 50 , 0  , 0  , 0  , 0  ), // #350 {vm64x|vm64y, xmm}
+  ROW(2, 1, 1, 0, 72 , 53 , 0  , 0  , 0  , 0  ), //      {vm64z, ymm}
+  ROW(3, 1, 1, 0, 50 , 50 , 51 , 0  , 0  , 0  ), // #352 {xmm, xmm, xmm|m128|mem}
+  ROW(3, 1, 1, 0, 50 , 52 , 50 , 0  , 0  , 0  ), //      {xmm, m128|mem, xmm}
+  ROW(2, 1, 1, 0, 67 , 92 , 0  , 0  , 0  , 0  ), // #354 {vm32x, xmm|ymm}
+  ROW(2, 1, 1, 0, 68 , 56 , 0  , 0  , 0  , 0  ), //      {vm32y, zmm}
+  ROW(1, 1, 0, 1, 33 , 0  , 0  , 0  , 0  , 0  ), // #356 {<ax>}
+  ROW(2, 1, 0, 1, 33 , 10 , 0  , 0  , 0  , 0  ), // #357 {<ax>, i8|u8}
+  ROW(2, 1, 0, 0, 27 , 4  , 0  , 0  , 0  , 0  ), // #358 {r16|m16|mem, r16}
+  ROW(3, 1, 1, 1, 50 , 51 , 127, 0  , 0  , 0  ), // #359 {xmm, xmm|m128|mem, <xmm0>}
+  ROW(2, 1, 1, 0, 95 , 128, 0  , 0  , 0  , 0  ), // #360 {bnd, mib}
+  ROW(2, 1, 1, 0, 95 , 97 , 0  , 0  , 0  , 0  ), // #361 {bnd, mem}
+  ROW(2, 1, 1, 0, 128, 95 , 0  , 0  , 0  , 0  ), // #362 {mib, bnd}
+  ROW(1, 1, 1, 0, 129, 0  , 0  , 0  , 0  , 0  ), // #363 {r16|r32|r64}
+  ROW(1, 1, 1, 1, 33 , 0  , 0  , 0  , 0  , 0  ), // #364 {<ax>}
+  ROW(2, 1, 1, 2, 35 , 36 , 0  , 0  , 0  , 0  ), // #365 {<edx>, <eax>}
+  ROW(1, 1, 1, 0, 97 , 0  , 0  , 0  , 0  , 0  ), // #366 {mem}
+  ROW(1, 1, 1, 0, 30 , 0  , 0  , 0  , 0  , 0  ), // #367 {m64|mem}
+  ROW(1, 1, 1, 1, 130, 0  , 0  , 0  , 0  , 0  ), // #368 {<ds:[memBase|zax]>}
+  ROW(2, 1, 1, 2, 131, 132, 0  , 0  , 0  , 0  ), // #369 {<ds:[memBase|zsi]>, <es:[memBase|zdi]>}
+  ROW(3, 1, 1, 0, 50 , 65 , 10 , 0  , 0  , 0  ), // #370 {xmm, xmm|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 93 , 10 , 0  , 0  , 0  ), // #371 {xmm, xmm|m32|mem, i8|u8}
+  ROW(5, 0, 1, 4, 52 , 37 , 38 , 133, 134, 0  ), // #372 {m128|mem, <rdx>, <rax>, <rcx>, <rbx>}
+  ROW(5, 1, 1, 4, 30 , 35 , 36 , 105, 135, 0  ), // #373 {m64|mem, <edx>, <eax>, <ecx>, <ebx>}
+  ROW(4, 1, 1, 4, 36 , 135, 105, 35 , 0  , 0  ), // #374 {<eax>, <ebx>, <ecx>, <edx>}
+  ROW(2, 0, 1, 2, 37 , 38 , 0  , 0  , 0  , 0  ), // #375 {<rdx>, <rax>}
+  ROW(2, 1, 1, 0, 62 , 51 , 0  , 0  , 0  , 0  ), // #376 {mm, xmm|m128|mem}
+  ROW(2, 1, 1, 0, 50 , 122, 0  , 0  , 0  , 0  ), // #377 {xmm, mm|m64|mem}
+  ROW(2, 1, 1, 0, 62 , 65 , 0  , 0  , 0  , 0  ), // #378 {mm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 120, 65 , 0  , 0  , 0  , 0  ), // #379 {r32|r64, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 50 , 136, 0  , 0  , 0  , 0  ), // #380 {xmm, r32|m32|mem|r64|m64}
+  ROW(2, 1, 1, 0, 120, 93 , 0  , 0  , 0  , 0  ), // #381 {r32|r64, xmm|m32|mem}
+  ROW(2, 1, 1, 2, 34 , 33 , 0  , 0  , 0  , 0  ), // #382 {<dx>, <ax>}
+  ROW(1, 1, 1, 1, 36 , 0  , 0  , 0  , 0  , 0  ), // #383 {<eax>}
+  ROW(2, 1, 1, 0, 12 , 10 , 0  , 0  , 0  , 0  ), // #384 {i16|u16, i8|u8}
+  ROW(3, 1, 1, 0, 28 , 50 , 10 , 0  , 0  , 0  ), // #385 {r32|m32|mem, xmm, i8|u8}
+  ROW(1, 1, 1, 0, 86 , 0  , 0  , 0  , 0  , 0  ), // #386 {m80|mem}
+  ROW(1, 1, 1, 0, 137, 0  , 0  , 0  , 0  , 0  ), // #387 {m16|m32}
+  ROW(1, 1, 1, 0, 138, 0  , 0  , 0  , 0  , 0  ), // #388 {m16|m32|m64}
+  ROW(1, 1, 1, 0, 139, 0  , 0  , 0  , 0  , 0  ), // #389 {m32|m64|m80|st}
+  ROW(1, 1, 1, 0, 21 , 0  , 0  , 0  , 0  , 0  ), // #390 {m16|mem}
+  ROW(1, 1, 1, 0, 140, 0  , 0  , 0  , 0  , 0  ), // #391 {ax|m16|mem}
+  ROW(1, 0, 1, 0, 97 , 0  , 0  , 0  , 0  , 0  ), // #392 {mem}
+  ROW(2, 1, 1, 0, 141, 142, 0  , 0  , 0  , 0  ), // #393 {al|ax|eax, i8|u8|dx}
+  ROW(1, 1, 1, 0, 6  , 0  , 0  , 0  , 0  , 0  ), // #394 {r32}
+  ROW(2, 1, 1, 0, 143, 144, 0  , 0  , 0  , 0  ), // #395 {es:[memBase|zdi], dx}
+  ROW(1, 1, 1, 0, 10 , 0  , 0  , 0  , 0  , 0  ), // #396 {i8|u8}
+  ROW(0, 1, 0, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #397 {}
+  ROW(0, 0, 1, 0, 0  , 0  , 0  , 0  , 0  , 0  ), // #398 {}
+  ROW(3, 1, 1, 0, 90 , 90 , 90 , 0  , 0  , 0  ), // #399 {k, k, k}
+  ROW(2, 1, 1, 0, 90 , 90 , 0  , 0  , 0  , 0  ), // #400 {k, k}
+  ROW(3, 1, 1, 0, 90 , 90 , 10 , 0  , 0  , 0  ), // #401 {k, k, i8|u8}
+  ROW(1, 1, 1, 1, 145, 0  , 0  , 0  , 0  , 0  ), // #402 {<ah>}
+  ROW(1, 1, 1, 0, 29 , 0  , 0  , 0  , 0  , 0  ), // #403 {m32|mem}
+  ROW(1, 0, 1, 0, 58 , 0  , 0  , 0  , 0  , 0  ), // #404 {m512|mem}
+  ROW(2, 1, 1, 0, 129, 146, 0  , 0  , 0  , 0  ), // #405 {r16|r32|r64, mem|m8|m16|m32|m48|m64|m80|m128|m256|m512|m1024}
+  ROW(1, 1, 1, 0, 27 , 0  , 0  , 0  , 0  , 0  ), // #406 {r16|m16|mem}
+  ROW(1, 1, 1, 0, 120, 0  , 0  , 0  , 0  , 0  ), // #407 {r32|r64}
+  ROW(2, 1, 1, 2, 147, 131, 0  , 0  , 0  , 0  ), // #408 {<al|ax|eax|rax>, <ds:[memBase|zsi]>}
+  ROW(3, 1, 1, 0, 120, 28 , 14 , 0  , 0  , 0  ), // #409 {r32|r64, r32|m32|mem, i32|u32}
+  ROW(3, 1, 1, 1, 50 , 50 , 148, 0  , 0  , 0  ), // #410 {xmm, xmm, <ds:[memBase|zdi]>}
+  ROW(3, 1, 1, 1, 62 , 62 , 148, 0  , 0  , 0  ), // #411 {mm, mm, <ds:[memBase|zdi]>}
+  ROW(3, 1, 1, 3, 130, 105, 35 , 0  , 0  , 0  ), // #412 {<ds:[memBase|zax]>, <ecx>, <edx>}
+  ROW(2, 1, 1, 0, 103, 58 , 0  , 0  , 0  , 0  ), // #413 {es:[memBase], m512|mem}
+  ROW(2, 1, 1, 0, 62 , 50 , 0  , 0  , 0  , 0  ), // #414 {mm, xmm}
+  ROW(2, 1, 1, 0, 6  , 50 , 0  , 0  , 0  , 0  ), // #415 {r32, xmm}
+  ROW(2, 1, 1, 0, 30 , 62 , 0  , 0  , 0  , 0  ), // #416 {m64|mem, mm}
+  ROW(2, 1, 1, 0, 50 , 62 , 0  , 0  , 0  , 0  ), // #417 {xmm, mm}
+  ROW(2, 1, 1, 2, 132, 131, 0  , 0  , 0  , 0  ), // #418 {<es:[memBase|zdi]>, <ds:[memBase|zsi]>}
+  ROW(2, 1, 1, 2, 36 , 105, 0  , 0  , 0  , 0  ), // #419 {<eax>, <ecx>}
+  ROW(3, 1, 1, 3, 36 , 105, 135, 0  , 0  , 0  ), // #420 {<eax>, <ecx>, <ebx>}
+  ROW(2, 1, 1, 0, 149, 141, 0  , 0  , 0  , 0  ), // #421 {u8|dx, al|ax|eax}
+  ROW(2, 1, 1, 0, 144, 150, 0  , 0  , 0  , 0  ), // #422 {dx, ds:[memBase|zsi]}
+  ROW(6, 1, 1, 3, 50 , 51 , 10 , 105, 36 , 35 ), // #423 {xmm, xmm|m128|mem, i8|u8, <ecx>, <eax>, <edx>}
+  ROW(6, 1, 1, 3, 50 , 51 , 10 , 127, 36 , 35 ), // #424 {xmm, xmm|m128|mem, i8|u8, <xmm0>, <eax>, <edx>}
+  ROW(4, 1, 1, 1, 50 , 51 , 10 , 105, 0  , 0  ), // #425 {xmm, xmm|m128|mem, i8|u8, <ecx>}
+  ROW(4, 1, 1, 1, 50 , 51 , 10 , 127, 0  , 0  ), // #426 {xmm, xmm|m128|mem, i8|u8, <xmm0>}
+  ROW(3, 1, 1, 0, 115, 50 , 10 , 0  , 0  , 0  ), // #427 {r32|m8|mem|r8lo|r8hi|r16, xmm, i8|u8}
+  ROW(3, 0, 1, 0, 15 , 50 , 10 , 0  , 0  , 0  ), // #428 {r64|m64|mem, xmm, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 115, 10 , 0  , 0  , 0  ), // #429 {xmm, r32|m8|mem|r8lo|r8hi|r16, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 28 , 10 , 0  , 0  , 0  ), // #430 {xmm, r32|m32|mem, i8|u8}
+  ROW(3, 0, 1, 0, 50 , 15 , 10 , 0  , 0  , 0  ), // #431 {xmm, r64|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 64 , 119, 10 , 0  , 0  , 0  ), // #432 {mm|xmm, r32|m16|mem|r16, i8|u8}
+  ROW(2, 1, 1, 0, 6  , 64 , 0  , 0  , 0  , 0  ), // #433 {r32, mm|xmm}
+  ROW(2, 1, 1, 0, 50 , 10 , 0  , 0  , 0  , 0  ), // #434 {xmm, i8|u8}
+  ROW(1, 1, 1, 0, 136, 0  , 0  , 0  , 0  , 0  ), // #435 {r32|m32|mem|r64|m64}
+  ROW(2, 1, 1, 0, 31 , 87 , 0  , 0  , 0  , 0  ), // #436 {r8lo|r8hi|m8|r16|m16|r32|m32|r64|m64|mem, cl|i8|u8}
+  ROW(1, 0, 1, 0, 120, 0  , 0  , 0  , 0  , 0  ), // #437 {r32|r64}
+  ROW(3, 1, 1, 3, 35 , 36 , 105, 0  , 0  , 0  ), // #438 {<edx>, <eax>, <ecx>}
+  ROW(2, 1, 1, 2, 147, 132, 0  , 0  , 0  , 0  ), // #439 {<al|ax|eax|rax>, <es:[memBase|zdi]>}
+  ROW(1, 1, 1, 0, 1  , 0  , 0  , 0  , 0  , 0  ), // #440 {r8lo|r8hi|m8|mem}
+  ROW(1, 1, 1, 0, 151, 0  , 0  , 0  , 0  , 0  ), // #441 {r16|m16|mem|r32|r64}
+  ROW(2, 1, 1, 2, 132, 147, 0  , 0  , 0  , 0  ), // #442 {<es:[memBase|zdi]>, <al|ax|eax|rax>}
+  ROW(3, 0, 1, 0, 152, 152, 152, 0  , 0  , 0  ), // #443 {tmm, tmm, tmm}
+  ROW(2, 0, 1, 0, 152, 97 , 0  , 0  , 0  , 0  ), // #444 {tmm, tmem}
+  ROW(2, 0, 1, 0, 97 , 152, 0  , 0  , 0  , 0  ), // #445 {tmem, tmm}
+  ROW(1, 0, 1, 0, 152, 0  , 0  , 0  , 0  , 0  ), // #446 {tmm}
+  ROW(3, 1, 1, 2, 6  , 35 , 36 , 0  , 0  , 0  ), // #447 {r32, <edx>, <eax>}
+  ROW(1, 1, 1, 0, 28 , 0  , 0  , 0  , 0  , 0  ), // #448 {r32|m32|mem}
+  ROW(1, 1, 1, 0, 153, 0  , 0  , 0  , 0  , 0  ), // #449 {ds:[memBase]}
+  ROW(6, 1, 1, 0, 56 , 56 , 56 , 56 , 56 , 52 ), // #450 {zmm, zmm, zmm, zmm, zmm, m128|mem}
+  ROW(6, 1, 1, 0, 50 , 50 , 50 , 50 , 50 , 52 ), // #451 {xmm, xmm, xmm, xmm, xmm, m128|mem}
+  ROW(3, 1, 1, 0, 50 , 50 , 65 , 0  , 0  , 0  ), // #452 {xmm, xmm, xmm|m64|mem}
+  ROW(3, 1, 1, 0, 50 , 50 , 93 , 0  , 0  , 0  ), // #453 {xmm, xmm, xmm|m32|mem}
+  ROW(2, 1, 1, 0, 53 , 52 , 0  , 0  , 0  , 0  ), // #454 {ymm, m128|mem}
+  ROW(2, 1, 1, 0, 154, 65 , 0  , 0  , 0  , 0  ), // #455 {ymm|zmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 154, 52 , 0  , 0  , 0  , 0  ), // #456 {ymm|zmm, m128|mem}
+  ROW(2, 1, 1, 0, 56 , 55 , 0  , 0  , 0  , 0  ), // #457 {zmm, m256|mem}
+  ROW(2, 1, 1, 0, 155, 65 , 0  , 0  , 0  , 0  ), // #458 {xmm|ymm|zmm, xmm|m64|mem}
+  ROW(2, 1, 1, 0, 155, 93 , 0  , 0  , 0  , 0  ), // #459 {xmm|ymm|zmm, m32|mem|xmm}
+  ROW(4, 1, 1, 0, 88 , 50 , 65 , 10 , 0  , 0  ), // #460 {xmm|k, xmm, xmm|m64|mem, i8|u8}
+  ROW(4, 1, 1, 0, 88 , 50 , 93 , 10 , 0  , 0  ), // #461 {xmm|k, xmm, xmm|m32|mem, i8|u8}
+  ROW(3, 1, 1, 0, 50 , 50 , 136, 0  , 0  , 0  ), // #462 {xmm, xmm, r32|m32|mem|r64|m64}
+  ROW(3, 1, 1, 0, 51 , 154, 10 , 0  , 0  , 0  ), // #463 {xmm|m128|mem, ymm|zmm, i8|u8}
+  ROW(4, 1, 1, 0, 50 , 50 , 65 , 10 , 0  , 0  ), // #464 {xmm, xmm, xmm|m64|mem, i8|u8}
+  ROW(4, 1, 1, 0, 50 , 50 , 93 , 10 , 0  , 0  ), // #465 {xmm, xmm, xmm|m32|mem, i8|u8}
+  ROW(3, 1, 1, 0, 90 , 156, 10 , 0  , 0  , 0  ), // #466 {k, xmm|m128|ymm|m256|zmm|m512, i8|u8}
+  ROW(3, 1, 1, 0, 90 , 65 , 10 , 0  , 0  , 0  ), // #467 {k, xmm|m64|mem, i8|u8}
+  ROW(3, 1, 1, 0, 90 , 93 , 10 , 0  , 0  , 0  ), // #468 {k, xmm|m32|mem, i8|u8}
+  ROW(1, 1, 1, 0, 68 , 0  , 0  , 0  , 0  , 0  ), // #469 {vm32y}
+  ROW(1, 1, 1, 0, 69 , 0  , 0  , 0  , 0  , 0  ), // #470 {vm32z}
+  ROW(1, 1, 1, 0, 72 , 0  , 0  , 0  , 0  , 0  ), // #471 {vm64z}
+  ROW(4, 1, 1, 0, 56 , 56 , 54 , 10 , 0  , 0  ), // #472 {zmm, zmm, ymm|m256|mem, i8|u8}
+  ROW(2, 1, 1, 0, 6  , 92 , 0  , 0  , 0  , 0  ), // #473 {r32, xmm|ymm}
+  ROW(2, 1, 1, 0, 155, 157, 0  , 0  , 0  , 0  ), // #474 {xmm|ymm|zmm, xmm|m8|mem|r32|r8lo|r8hi|r16}
+  ROW(2, 1, 1, 0, 155, 158, 0  , 0  , 0  , 0  ), // #475 {xmm|ymm|zmm, xmm|m32|mem|r32}
+  ROW(2, 1, 1, 0, 155, 90 , 0  , 0  , 0  , 0  ), // #476 {xmm|ymm|zmm, k}
+  ROW(2, 1, 1, 0, 155, 159, 0  , 0  , 0  , 0  ), // #477 {xmm|ymm|zmm, xmm|m16|mem|r32|r16}
+  ROW(3, 1, 1, 0, 119, 50 , 10 , 0  , 0  , 0  ), // #478 {r32|m16|mem|r16, xmm, i8|u8}
+  ROW(4, 1, 1, 0, 50 , 50 , 115, 10 , 0  , 0  ), // #479 {xmm, xmm, r32|m8|mem|r8lo|r8hi|r16, i8|u8}
+  ROW(4, 1, 1, 0, 50 , 50 , 28 , 10 , 0  , 0  ), // #480 {xmm, xmm, r32|m32|mem, i8|u8}
+  ROW(4, 0, 1, 0, 50 , 50 , 15 , 10 , 0  , 0  ), // #481 {xmm, xmm, r64|m64|mem, i8|u8}
+  ROW(4, 1, 1, 0, 50 , 50 , 119, 10 , 0  , 0  ), // #482 {xmm, xmm, r32|m16|mem|r16, i8|u8}
+  ROW(2, 1, 1, 0, 90 , 155, 0  , 0  , 0  , 0  ), // #483 {k, xmm|ymm|zmm}
+  ROW(1, 1, 1, 0, 108, 0  , 0  , 0  , 0  , 0  ), // #484 {rel16|rel32}
+  ROW(3, 1, 1, 2, 97 , 35 , 36 , 0  , 0  , 0  ), // #485 {mem, <edx>, <eax>}
+  ROW(3, 0, 1, 2, 97 , 35 , 36 , 0  , 0  , 0  )  // #486 {mem, <edx>, <eax>}
 };
 #undef ROW
 
@@ -3392,24 +3385,19 @@ const InstDB::OpSignature InstDB::_opSignatureTable[] = {
   ROW(F(Gpq) | F(Mem), M(M64) | M(Any), 0, 0x00),
   ROW(F(I32), 0, 0, 0x00),
   ROW(F(SReg) | F(CReg) | F(DReg) | F(Mem) | F(I64) | F(U64), M(M64) | M(Any), 0, 0x00),
-  ROW(F(GpbLo) | F(GpbHi), 0, 0, 0x01),
   ROW(F(Mem), M(M8) | M(Any), 0, 0x00),
   ROW(F(SReg) | F(Mem), M(M16) | M(Any), 0, 0x00),
   ROW(F(SReg) | F(Mem), M(M32) | M(Any), 0, 0x00),
   ROW(F(Mem), M(M16) | M(Any), 0, 0x00),
   ROW(F(SReg), 0, 0, 0x00),
-  ROW(F(Gpw), 0, 0, 0x01),
-  ROW(F(Gpd), 0, 0, 0x01),
-  ROW(F(Mem), M(M32) | M(Any), 0, 0x00),
-  ROW(F(Gpq), 0, 0, 0x01),
-  ROW(F(Mem), M(M64) | M(Any), 0, 0x00),
-  ROW(F(GpbLo), 0, 0, 0x01),
   ROW(F(CReg) | F(DReg), 0, 0, 0x00),
   ROW(F(Gpq) | F(I32), 0, 0, 0x00),
   ROW(F(Gpw) | F(Gpd) | F(Gpq) | F(Mem), M(M16) | M(M32) | M(M64) | M(Any), 0, 0x00),
   ROW(F(I8), 0, 0, 0x00),
   ROW(F(Gpw) | F(Mem), M(M16) | M(Any), 0, 0x00),
   ROW(F(Gpd) | F(Mem), M(M32) | M(Any), 0, 0x00),
+  ROW(F(Mem), M(M32) | M(Any), 0, 0x00),
+  ROW(F(Mem), M(M64) | M(Any), 0, 0x00),
   ROW(F(GpbLo) | F(GpbHi) | F(Gpw) | F(Gpd) | F(Gpq) | F(Mem), M(M8) | M(M16) | M(M32) | M(M64) | M(Any), 0, 0x00),
   ROW(F(Gpq) | F(Mem) | F(I32) | F(U32), M(M64) | M(Any), 0, 0x00),
   ROW(F(Gpw) | F(Implicit), 0, 0, 0x01),
@@ -3425,6 +3413,10 @@ const InstDB::OpSignature InstDB::_opSignatureTable[] = {
   ROW(F(I8) | F(I32) | F(U32), 0, 0, 0x00),
   ROW(F(I8) | F(I32), 0, 0, 0x00),
   ROW(F(I64) | F(U64), 0, 0, 0x00),
+  ROW(F(GpbLo), 0, 0, 0x01),
+  ROW(F(Gpw), 0, 0, 0x01),
+  ROW(F(Gpd), 0, 0, 0x01),
+  ROW(F(Gpq), 0, 0, 0x01),
   ROW(F(Xmm), 0, 0, 0x00),
   ROW(F(Xmm) | F(Mem), M(M128) | M(Any), 0, 0x00),
   ROW(F(Mem), M(M128) | M(Any), 0, 0x00),
