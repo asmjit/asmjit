@@ -27,12 +27,12 @@
 #include "../core/archtraits.h"
 #include "../core/inst.h"
 
-ASMJIT_BEGIN_SUB_NAMESPACE(x86)
-
 //! \namespace asmjit::x86
 //! \ingroup asmjit_x86
 //!
 //! X86/X64 API.
+
+ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 //! \addtogroup asmjit_x86
 //! \{
@@ -464,6 +464,7 @@ struct Inst : public BaseInst {
     kIdMonitor,                          //!< Instruction 'monitor' {MONITOR}.
     kIdMonitorx,                         //!< Instruction 'monitorx' {MONITORX}.
     kIdMov,                              //!< Instruction 'mov'.
+    kIdMovabs,                           //!< Instruction 'movabs' (X64).
     kIdMovapd,                           //!< Instruction 'movapd' {SSE2}.
     kIdMovaps,                           //!< Instruction 'movaps' {SSE}.
     kIdMovbe,                            //!< Instruction 'movbe' {MOVBE}.
@@ -1229,10 +1230,10 @@ struct Inst : public BaseInst {
     kIdVpcomw,                           //!< Instruction 'vpcomw' {XOP}.
     kIdVpconflictd,                      //!< Instruction 'vpconflictd' {AVX512_CDI+VL}.
     kIdVpconflictq,                      //!< Instruction 'vpconflictq' {AVX512_CDI+VL}.
-    kIdVpdpbusd,                         //!< Instruction 'vpdpbusd' {AVX512_VNNI+VL}.
-    kIdVpdpbusds,                        //!< Instruction 'vpdpbusds' {AVX512_VNNI+VL}.
-    kIdVpdpwssd,                         //!< Instruction 'vpdpwssd' {AVX512_VNNI+VL}.
-    kIdVpdpwssds,                        //!< Instruction 'vpdpwssds' {AVX512_VNNI+VL}.
+    kIdVpdpbusd,                         //!< Instruction 'vpdpbusd' {AVX_VNNI|AVX512_VNNI+VL}.
+    kIdVpdpbusds,                        //!< Instruction 'vpdpbusds' {AVX_VNNI|AVX512_VNNI+VL}.
+    kIdVpdpwssd,                         //!< Instruction 'vpdpwssd' {AVX_VNNI|AVX512_VNNI+VL}.
+    kIdVpdpwssds,                        //!< Instruction 'vpdpwssds' {AVX_VNNI|AVX512_VNNI+VL}.
     kIdVperm2f128,                       //!< Instruction 'vperm2f128' {AVX}.
     kIdVperm2i128,                       //!< Instruction 'vperm2i128' {AVX2}.
     kIdVpermb,                           //!< Instruction 'vpermb' {AVX512_VBMI+VL}.
@@ -1602,8 +1603,9 @@ struct Inst : public BaseInst {
 
   //! Instruction options.
   enum Options : uint32_t {
+    kOptionModMR          = 0x00000100u, //!< Use ModMR instead of ModRM when it's available.
     kOptionVex3           = 0x00000400u, //!< Use 3-byte VEX prefix if possible (AVX) (must be 0x00000400).
-    kOptionModMR          = 0x00000800u, //!< Use ModMR instead of ModRM when it's available.
+    kOptionVex            = 0x00000800u, //!< Use VEX prefix when both VEX|EVEX prefixes are available (HINT: AVX_VNNI).
     kOptionEvex           = 0x00001000u, //!< Use 4-byte EVEX prefix if possible (AVX-512) (must be 0x00001000).
 
     kOptionLock           = 0x00002000u, //!< LOCK prefix (lock-enabled instructions only).

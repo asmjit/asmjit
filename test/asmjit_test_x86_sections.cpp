@@ -51,7 +51,7 @@ using namespace asmjit;
 static const uint8_t dataArray[] = { 2, 9, 4, 7, 1, 3, 8, 5, 6, 0 };
 
 static void fail(const char* message, Error err) {
-  printf("%s: %s\n", message, DebugUtils::errorAsString(err));
+  printf("** FAILURE: %s (%s) **\n", message, DebugUtils::errorAsString(err));
   exit(1);
 }
 
@@ -169,11 +169,11 @@ int main() {
       fn(3) != dataArray[3] ||
       fn(6) != dataArray[6] ||
       fn(9) != dataArray[9] ) {
-    printf("Failure:\n  The generated function returned incorrect result(s)\n");
+    printf("** FAILURE: The generated function returned incorrect result(s) **\n");
     return 1;
   }
 
-  printf("Success:\n  The generated function returned expected results\n");
+  printf("** SUCCESS **\n");
   return 0;
 }
 

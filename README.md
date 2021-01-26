@@ -23,9 +23,11 @@ Breaking the API is sometimes inevitable, what to do?
 
   * See [Breaking Changes Guide](https://asmjit.com/doc/group__asmjit__breaking__changes.html), which is now part of AsmJit documentation.
   * See asmjit tests, they always compile and provide implementation of many use-cases:
-    * [asmjit_test_x86_asm.cpp](./test/asmjit_test_x86_asm.cpp) - Tests that demonstrate the purpose of emitters.
-    * [asmjit_test_x86_sections.cpp](./test/asmjit_test_x86_sections.cpp) - Multiple sections test.
+    * [asmjit_test_emitters.cpp](./test/asmjit_test_emitters.cpp) - Tests that demonstrate the purpose of emitters.
+    * [asmjit_test_assembler_x86.cpp](./test/asmjit_test_assembler_x86.cpp) - Tests targeting AsmJit's Assembler (x86/x64).
     * [asmjit_test_compiler_x86.cpp](./test/asmjit_test_compiler_x86.cpp) - Tests targeting AsmJit's Compiler (x86/x64).
+    * [asmjit_test_instinfo.cpp](./test/asmjit_test_instinfo.cpp) - Tests that query instruction information.
+    * [asmjit_test_x86_sections.cpp](./test/asmjit_test_x86_sections.cpp) - Multiple sections test.
   * Visit our [Official Chat](https://gitter.im/asmjit/asmjit) if you need a quick help.
 
 Project Organization

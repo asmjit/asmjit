@@ -168,6 +168,7 @@ enum Flags : uint32_t {
   kFlagVsib               = 0x00040000u, //!< Instruction uses VSIB instead of legacy SIB.
   kFlagVex                = 0x00080000u, //!< Instruction can be encoded by VEX|XOP (AVX|AVX2|BMI|XOP|...).
   kFlagEvex               = 0x00100000u, //!< Instruction can be encoded by EVEX (AVX512).
+  kFlagPreferEvex         = 0x00200000u, //!< EVEX encoding is preferred over VEX encoding (AVX515_VNNI vs AVX_VNNI).
 
   // FPU Flags
   // ---------
@@ -330,6 +331,9 @@ struct CommonInfo {
   inline bool isEvex() const noexcept { return hasFlag(kFlagEvex); }
   //! Tests whether the instruction uses EVEX (can be set together with VEX if both are encodable).
   inline bool isVexOrEvex() const noexcept { return hasFlag(kFlagVex | kFlagEvex); }
+
+  //! Tests whether the instruction should prefer EVEX prefix instead of VEX prefix.
+  inline bool preferEvex() const noexcept { return hasFlag(kFlagPreferEvex); }
 
   //! Tests whether the instruction supports AVX512 masking {k}.
   inline bool hasAvx512K() const noexcept { return hasFlag(kFlagAvx512K); }

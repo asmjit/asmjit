@@ -79,14 +79,14 @@ jobs:
           - { title: "linux"         , os: "ubuntu-latest" , cc: "clang-10", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"         , os: "ubuntu-latest" , cc: "clang-10", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
-          - { title: "osx-10.15"     , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "osx-10.15"     , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "osx-10.15"     , os: "macos-10.15"   , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "osx-10.15"     , os: "macos-10.15"   , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "osx-11.0"      , os: "macos-11.0"    , cc: "gcc-9"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "osx-11.0"      , os: "macos-11.0"    , cc: "gcc-9"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "osx-11.0"      , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "osx-11.0"      , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-10.15"   , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-10.15"   , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-10.15"   , os: "macos-10.15"   , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-10.15"   , os: "macos-10.15"   , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
           - { title: "windows"       , os: "windows-latest", cc: "vs2019"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "windows"       , os: "windows-latest", cc: "vs2019"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }

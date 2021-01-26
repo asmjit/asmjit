@@ -20,15 +20,19 @@
       "optional": true
     },
     {
-      "cmd": ["asmjit_test_x86_asm"],
+      "cmd": ["asmjit_test_assembler", "--quiet"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_emitters"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_instinfo"],
       "optional": true
     },
     {
       "cmd": ["asmjit_test_x86_sections"],
-      "optional": true
-    },
-    {
-      "cmd": ["asmjit_test_x86_instinfo"],
       "optional": true
     },
     {

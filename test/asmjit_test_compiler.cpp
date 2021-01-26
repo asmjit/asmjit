@@ -29,6 +29,7 @@
 
 #include <memory>
 #include <vector>
+#include <chrono>
 
 #include "cmdline.h"
 #include "asmjit_test_compiler.h"
@@ -52,6 +53,27 @@ void compiler_add_a64_tests(TestApp& app);
 #endif
 
 using namespace asmjit;
+
+class PerformanceTimer {
+public:
+  typedef std::chrono::high_resolution_clock::time_point TimePoint;
+
+  TimePoint _startTime {};
+  TimePoint _endTime {};
+
+  inline void start() {
+    _startTime = std::chrono::high_resolution_clock::now();
+  }
+
+  inline void stop() {
+    _endTime = std::chrono::high_resolution_clock::now();
+  }
+
+  inline double duration() const {
+    std::chrono::duration<double> elapsed = _endTime - _startTime;
+    return elapsed.count() * 1000;
+  }
+};
 
 // ============================================================================
 // [TestApp]
@@ -79,7 +101,7 @@ int TestApp::handleArgs(int argc, const char* const* argv) {
 }
 
 void TestApp::showInfo() {
-  printf("AsmJit Compiler Test-Suite v%u.%u.%u  [Arch=%s]:\n",
+  printf("AsmJit Compiler Test-Suite v%u.%u.%u (Arch=%s):\n",
     unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
     unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF),
@@ -109,10 +131,15 @@ int TestApp::run() {
   stringLogger.addFlags(kFormatFlags);
 #endif
 
+  double compileTime = 0;
+  double finalizeTime = 0;
+
   for (std::unique_ptr<TestCase>& test : _tests) {
     JitRuntime runtime;
     CodeHolder code;
     SimpleErrorHandler errorHandler;
+
+    PerformanceTimer perfTimer;
 
     code.init(runtime.environment());
     code.setErrorHandler(&errorHandler);
@@ -141,13 +168,20 @@ int TestApp::run() {
     arm::Compiler cc(&code);
 #endif
 
+    perfTimer.start();
     test->compile(cc);
+    perfTimer.stop();
+    compileTime += perfTimer.duration();
 
     void* func = nullptr;
     Error err = errorHandler._err;
 
-    if (!err)
+    if (!err) {
+      perfTimer.start();
       err = cc.finalize();
+      perfTimer.stop();
+      finalizeTime += perfTimer.duration();
+    }
 
 #ifndef ASMJIT_NO_LOGGING
     if (_dumpAsm) {
@@ -213,13 +247,17 @@ int TestApp::run() {
     }
   }
 
-  if (_nFailed == 0)
-    printf("\nSuccess:\n  All %u tests passed\n", unsigned(_tests.size()));
-  else
-    printf("\nFailure:\n  %u %s of %u failed\n", _nFailed, _nFailed == 1 ? "test" : "tests", unsigned(_tests.size()));
-
-  printf("  OutputSize=%zu\n", _outputSize);
   printf("\n");
+  printf("Summary:\n");
+  printf("  OutputSize: %zu bytes\n", _outputSize);
+  printf("  CompileTime: %.2f ms\n", compileTime);
+  printf("  FinalizeTime: %.2f ms\n", finalizeTime);
+  printf("\n");
+
+  if (_nFailed == 0)
+    printf("** SUCCESS: All %u tests passed **\n", unsigned(_tests.size()));
+  else
+    printf("** FAILURE: %u of %u tests failed **\n", _nFailed, unsigned(_tests.size()));
 
   return _nFailed == 0 ? 0 : 1;
 #endif

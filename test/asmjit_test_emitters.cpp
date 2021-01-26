@@ -132,7 +132,7 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
 
       err = cb.finalize();
       if (err) {
-        printf("x86::Builder::finalize() failed: %s\n", DebugUtils::errorAsString(err));
+        printf("** FAILURE: x86::Builder::finalize() failed (%s) **\n", DebugUtils::errorAsString(err));
         return 1;
       }
       break;
@@ -147,7 +147,7 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
 
       err = cc.finalize();
       if (err) {
-        printf("x86::Compiler::finalize() failed: %s\n", DebugUtils::errorAsString(err));
+        printf("** FAILURE: x86::Compiler::finalize() failed (%s) **\n", DebugUtils::errorAsString(err));
         return 1;
       }
       break;
@@ -160,7 +160,7 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
   err = rt.add(&fn, &code);
 
   if (err) {
-    printf("JitRuntime::add() failed: %s\n", DebugUtils::errorAsString(err));
+    printf("** FAILURE: JitRuntime::add() failed (%s) **\n", DebugUtils::errorAsString(err));
     return 1;
   }
 
@@ -178,7 +178,11 @@ static uint32_t testFunc(JitRuntime& rt, uint32_t emitterType) noexcept {
 }
 
 int main() {
-  printf("AsmJit X86 Emitter Test\n\n");
+  printf("AsmJit Emitters Test-Suite v%u.%u.%u\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF));
+  printf("\n");
 
   JitRuntime rt;
   unsigned nFailed = 0;
@@ -194,9 +198,9 @@ int main() {
 #endif
 
   if (!nFailed)
-    printf("Success:\n  All tests passed\n");
+    printf("** SUCCESS **\n");
   else
-    printf("Failure:\n  %u %s failed\n", nFailed, nFailed == 1 ? "test" : "tests");
+    printf("** FAILURE - %u %s failed ** \n", nFailed, nFailed == 1 ? "test" : "tests");
 
   return nFailed ? 1 : 0;
 }

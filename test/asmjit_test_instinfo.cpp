@@ -44,8 +44,6 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
   InstRWInfo rw;
   InstAPI::queryRWInfo(arch, inst, operands, opCount, &rw);
 
-  sb.append("Instruction:\n");
-  sb.append("  ");
 #ifndef ASMJIT_NO_LOGGING
   Formatter::formatInstruction(sb, 0, nullptr, arch, inst, operands, opCount);
 #else
@@ -53,11 +51,11 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
 #endif
   sb.append("\n");
 
-  sb.append("Operands:\n");
+  sb.append("  Operands:\n");
   for (uint32_t i = 0; i < rw.opCount(); i++) {
     const OpRWInfo& op = rw.operand(i);
 
-    sb.appendFormat("  [%u] Op=%c Read=%016llX Write=%016llX Extend=%016llX",
+    sb.appendFormat("    [%u] Op=%c Read=%016llX Write=%016llX Extend=%016llX",
                     i,
                     accessLetter(op.isRead(), op.isWrite()),
                     op.readByteMask(),
@@ -80,7 +78,7 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
   }
 
   if (rw.readFlags() | rw.writeFlags()) {
-    sb.append("Flags: \n");
+    sb.append("  Flags: \n");
 
     struct FlagMap {
       uint32_t flag;
@@ -103,7 +101,7 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
       { x86::Status::kC3, "C3" }
     };
 
-    sb.append("  ");
+    sb.append("    ");
     for (uint32_t f = 0; f < 13; f++) {
       char c = accessLetter((rw.readFlags() & flagMap[f].flag) != 0,
                             (rw.writeFlags() & flagMap[f].flag) != 0);
@@ -122,8 +120,8 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
 
 #ifndef ASMJIT_NO_LOGGING
   if (!features.empty()) {
-    sb.append("Features:\n");
-    sb.append("  ");
+    sb.append("  Features:\n");
+    sb.append("    ");
 
     bool first = true;
     BaseFeatures::Iterator it(features.iterator());
@@ -142,8 +140,9 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
 }
 
 template<typename... Args>
-static void printInfoSimple(uint32_t arch, uint32_t instId, Args&&... args) {
+static void printInfoSimple(uint32_t arch, uint32_t instId, uint32_t options, Args&&... args) {
   BaseInst inst(instId);
+  inst.addOptions(options);
   Operand_ opArray[] = { std::forward<Args>(args)... };
   printInfo(arch, inst, opArray, sizeof...(args));
 }
@@ -162,35 +161,43 @@ static void testX86Arch() {
   uint32_t arch = Environment::kArchX64;
 
   printInfoSimple(arch,
-                  x86::Inst::kIdAdd,
+                  x86::Inst::kIdAdd, 0,
                   x86::eax, x86::ebx);
 
   printInfoSimple(arch,
-                  x86::Inst::kIdLods,
+                  x86::Inst::kIdLods, 0,
                   x86::eax , dword_ptr(x86::rsi));
 
   printInfoSimple(arch,
-                  x86::Inst::kIdPshufd,
+                  x86::Inst::kIdPshufd, 0,
                   x86::xmm0, x86::xmm1, imm(0));
 
   printInfoSimple(arch,
-                  x86::Inst::kIdPextrw,
+                  x86::Inst::kIdPextrw, 0,
                   x86::eax, x86::xmm1, imm(0));
 
   printInfoSimple(arch,
-                  x86::Inst::kIdPextrw,
+                  x86::Inst::kIdPextrw, 0,
                   x86::ptr(x86::rax), x86::xmm1, imm(0));
 
   printInfoSimple(arch,
-                  x86::Inst::kIdVaddpd,
+                 x86::Inst::kIdVpdpbusd, 0,
+                 x86::xmm0, x86::xmm1, x86::xmm2);
+
+  printInfoSimple(arch,
+                 x86::Inst::kIdVpdpbusd, x86::Inst::kOptionVex,
+                 x86::xmm0, x86::xmm1, x86::xmm2);
+
+  printInfoSimple(arch,
+                  x86::Inst::kIdVaddpd, 0,
                   x86::ymm0, x86::ymm1, x86::ymm2);
 
   printInfoSimple(arch,
-                  x86::Inst::kIdVaddpd,
+                  x86::Inst::kIdVaddpd, 0,
                   x86::ymm0, x86::ymm30, x86::ymm31);
 
   printInfoSimple(arch,
-                  x86::Inst::kIdVaddpd,
+                  x86::Inst::kIdVaddpd, 0,
                   x86::zmm0, x86::zmm1, x86::zmm2);
 
   printInfoExtra(arch,
@@ -206,7 +213,11 @@ static void testX86Arch() {
 }
 
 int main() {
-  printf("AsmJit Instruction Information Test\n\n");
+  printf("AsmJit Instruction Info Test-Suite v%u.%u.%u\n",
+    unsigned((ASMJIT_LIBRARY_VERSION >> 16)       ),
+    unsigned((ASMJIT_LIBRARY_VERSION >>  8) & 0xFF),
+    unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF));
+  printf("\n");
 
   testX86Arch();
 

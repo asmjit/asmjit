@@ -505,33 +505,37 @@ static ASMJIT_INLINE uint32_t x86GetMovAbsInstSize64Bit(uint32_t regSize, uint32
   return segmentPrefixSize + _66hPrefixSize + rexPrefixSize + opCodeByteSize + immediateSize;
 }
 
-static ASMJIT_INLINE uint32_t x86GetMovAbsAddrType(Assembler* self, X86BufferWriter& writer, uint32_t regSize, uint32_t options, const Mem& rmRel) noexcept {
-  uint32_t addrType = rmRel.addrType();
-  int64_t addrValue = rmRel.offset();
+static ASMJIT_INLINE bool x86ShouldUseMovabs(Assembler* self, X86BufferWriter& writer, uint32_t regSize, uint32_t options, const Mem& rmRel) noexcept {
+  if (self->is32Bit()) {
+    // There is no relative addressing, just decide whether to use MOV encoded with MOD R/M or absolute.
+    return !(options & Inst::kOptionModMR);
+  }
+  else {
+    // If the addressing type is REL or MOD R/M was specified then absolute mov won't be used.
+    if (rmRel.addrType() == Mem::kAddrTypeRel || (options & Inst::kOptionModMR) != 0)
+      return false;
 
-  if (addrType == Mem::kAddrTypeDefault && !(options & Inst::kOptionModMR)) {
-    if (self->is64Bit()) {
-      uint64_t baseAddress = self->code()->baseAddress();
-      if (baseAddress != Globals::kNoBaseAddress && !rmRel.hasSegment()) {
-        uint32_t instructionSize = x86GetMovAbsInstSize64Bit(regSize, options, rmRel);
-        uint64_t virtualOffset = uint64_t(writer.offsetFrom(self->_bufferData));
-        uint64_t rip64 = baseAddress + self->_section->offset() + virtualOffset + instructionSize;
-        uint64_t rel64 = uint64_t(addrValue) - rip64;
+    int64_t addrValue = rmRel.offset();
+    uint64_t baseAddress = self->code()->baseAddress();
 
-        if (!Support::isInt32(int64_t(rel64)))
-          addrType = Mem::kAddrTypeAbs;
-      }
-      else {
-        if (!Support::isInt32(addrValue))
-          addrType = Mem::kAddrTypeAbs;
-      }
+    // If the address type is default, it means to basically check whether relative addressing is possible. However,
+    // this is only possible when the base address is known - relative encoding uses RIP+N it has to be calculated.
+    if (rmRel.addrType() == Mem::kAddrTypeDefault && baseAddress != Globals::kNoBaseAddress && !rmRel.hasSegment()) {
+      uint32_t instructionSize = x86GetMovAbsInstSize64Bit(regSize, options, rmRel);
+      uint64_t virtualOffset = uint64_t(writer.offsetFrom(self->_bufferData));
+      uint64_t rip64 = baseAddress + self->_section->offset() + virtualOffset + instructionSize;
+      uint64_t rel64 = uint64_t(addrValue) - rip64;
+
+      if (Support::isInt32(int64_t(rel64)))
+        return false;
     }
     else {
-      addrType = Mem::kAddrTypeAbs;
+      if (Support::isInt32(addrValue))
+        return false;
     }
-  }
 
-  return addrType;
+    return uint64_t(addrValue) > 0xFFFFFFFFu;
+  }
 }
 
 // ============================================================================
@@ -1631,17 +1635,17 @@ CaseX86M_GPB_MulDiv:
           opcode = 0;
           opcode.addArithBySize(o0.size());
 
-          if (o0.size() == 1)
-            FIXUP_GPB(o0, opReg);
-
           // Handle a special form of `mov al|ax|eax|rax, [ptr64]` that doesn't use MOD.
           if (opReg == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
-            immValue = rmRel->as<Mem>().offset();
-            if (x86GetMovAbsAddrType(this, writer, o0.size(), options, rmRel->as<Mem>()) == Mem::kAddrTypeAbs) {
+            if (x86ShouldUseMovabs(this, writer, o0.size(), options, rmRel->as<Mem>())) {
               opcode += 0xA0;
+              immValue = rmRel->as<Mem>().offset();
               goto EmitX86OpMovAbs;
             }
           }
+
+          if (o0.size() == 1)
+            FIXUP_GPB(o0, opReg);
 
           opcode += 0x8A;
           goto EmitX86M;
@@ -1664,17 +1668,17 @@ CaseX86M_GPB_MulDiv:
           opcode = 0;
           opcode.addArithBySize(o1.size());
 
-          if (o1.size() == 1)
-            FIXUP_GPB(o1, opReg);
-
           // Handle a special form of `mov [ptr64], al|ax|eax|rax` that doesn't use MOD.
           if (opReg == Gp::kIdAx && !rmRel->as<Mem>().hasBaseOrIndex()) {
-            immValue = rmRel->as<Mem>().offset();
-            if (x86GetMovAbsAddrType(this, writer, o1.size(), options, rmRel->as<Mem>()) == Mem::kAddrTypeAbs) {
+            if (x86ShouldUseMovabs(this, writer, o1.size(), options, rmRel->as<Mem>())) {
               opcode += 0xA2;
+              immValue = rmRel->as<Mem>().offset();
               goto EmitX86OpMovAbs;
             }
           }
+
+          if (o1.size() == 1)
+            FIXUP_GPB(o1, opReg);
 
           opcode += 0x88;
           goto EmitX86M;
@@ -1733,6 +1737,62 @@ CaseX86M_GPB_MulDiv:
         immValue = o1.as<Imm>().value();
         immSize = FastUInt8(Support::min<uint32_t>(memSize, 4));
         goto EmitX86M;
+      }
+      break;
+
+    case InstDB::kEncodingX86Movabs:
+      // Reg <- Mem
+      if (isign3 == ENC_OPS2(Reg, Mem)) {
+        opReg = o0.id();
+        rmRel = &o1;
+
+        opcode = 0xA0;
+        opcode.addArithBySize(o0.size());
+
+        if (ASMJIT_UNLIKELY(!o0.as<Reg>().isGp()) || opReg != Gp::kIdAx)
+          goto InvalidInstruction;
+
+        if (ASMJIT_UNLIKELY(rmRel->as<Mem>().hasBaseOrIndex()))
+          goto InvalidAddress;
+
+        if (ASMJIT_UNLIKELY(rmRel->as<Mem>().addrType() == Mem::kAddrTypeRel))
+          goto InvalidAddress;
+
+        immValue = rmRel->as<Mem>().offset();
+        goto EmitX86OpMovAbs;
+      }
+
+      // Mem <- Reg
+      if (isign3 == ENC_OPS2(Mem, Reg)) {
+        opReg = o1.id();
+        rmRel = &o0;
+
+        opcode = 0xA2;
+        opcode.addArithBySize(o1.size());
+
+        if (ASMJIT_UNLIKELY(!o1.as<Reg>().isGp()) || opReg != Gp::kIdAx)
+          goto InvalidInstruction;
+
+        if (ASMJIT_UNLIKELY(rmRel->as<Mem>().hasBaseOrIndex()))
+          goto InvalidAddress;
+
+        immValue = rmRel->as<Mem>().offset();
+        goto EmitX86OpMovAbs;
+      }
+
+      // Reg <- Imm.
+      if (isign3 == ENC_OPS2(Reg, Imm)) {
+        if (ASMJIT_UNLIKELY(!o0.as<Reg>().isGpq()))
+          goto InvalidInstruction;
+
+        opReg = o0.id();
+        opcode = 0xB8;
+
+        immSize = 8;
+        immValue = o1.as<Imm>().value();
+
+        opcode.addPrefixBySize(8);
+        goto EmitX86OpReg;
       }
       break;
 
@@ -4424,8 +4484,20 @@ EmitVexEvexR:
       }
     }
 
+    // If these bits are used then EVEX prefix is required.
+    constexpr uint32_t kEvexBits = 0x00D78150u;          // [........|xx.x.xxx|x......x|.x.x....].
+
+    // Force EVEX prefix even in case the instruction has VEX encoding, because EVEX encoding is preferred. At the
+    // moment this is only required for AVX_VNNI instructions, which were added after AVX512_VNNI instructions. If
+    // such instruction doesn't specify prefix, EVEX (AVX512_VNNI) would be used by default,
+    if (commonInfo->preferEvex()) {
+      if ((x & kEvexBits) == 0 && (options & (Inst::kOptionVex | Inst::kOptionVex3)) == 0) {
+        x |= (Opcode::kMM_ForceEvex) >> Opcode::kMM_Shift;
+      }
+    }
+
     // Check if EVEX is required by checking bits in `x` :  [........|xx.x.xxx|x......x|.x.x....].
-    if (x & 0x00D78150u) {
+    if (x & kEvexBits) {
       uint32_t y = ((x << 4) & 0x00080000u) |            // [........|...bV...|........|........].
                    ((x >> 4) & 0x00000010u) ;            // [........|...bV...|........|...R....].
       x  = (x & 0x00FF78E3u) | y;                        // [........|zLLbVaaa|0vvvv000|RBBR00mm].
@@ -4525,8 +4597,20 @@ EmitVexEvexM:
       x |= options & (Inst::kOptionZMask);               // [@.......|zLLbXaaa|Vvvvv..R|RXBmmmmm].
     }
 
+    // If these bits are used then EVEX prefix is required.
+    constexpr uint32_t kEvexBits = 0x80DF8110u;          // [@.......|xx.xxxxx|x......x|...x....].
+
+    // Force EVEX prefix even in case the instruction has VEX encoding, because EVEX encoding is preferred. At the
+    // moment this is only required for AVX_VNNI instructions, which were added after AVX512_VNNI instructions. If
+    // such instruction doesn't specify prefix, EVEX (AVX512_VNNI) would be used by default,
+    if (commonInfo->preferEvex()) {
+      if ((x & kEvexBits) == 0 && (options & (Inst::kOptionVex | Inst::kOptionVex3)) == 0) {
+        x |= (Opcode::kMM_ForceEvex) >> Opcode::kMM_Shift;
+      }
+    }
+
     // Check if EVEX is required by checking bits in `x` :  [@.......|xx.xxxxx|x......x|...x....].
-    if (x & 0x80DF8110u) {
+    if (x & kEvexBits) {
       uint32_t y = ((x << 4) & 0x00080000u) |            // [@.......|....V...|........|........].
                    ((x >> 4) & 0x00000010u) ;            // [@.......|....V...|........|...R....].
       x  = (x & 0x00FF78E3u) | y;                        // [........|zLLbVaaa|0vvvv000|RXBR00mm].

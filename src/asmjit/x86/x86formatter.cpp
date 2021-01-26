@@ -238,6 +238,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "AVX512_VNNI\0"
     "AVX512_VP2INTERSECT\0"
     "AVX512_VPOPCNTDQ\0"
+    "AVX_VNNI\0"
     "BMI\0"
     "BMI2\0"
     "CET_IBT\0"
@@ -263,6 +264,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "GEODE\0"
     "GFNI\0"
     "HLE\0"
+    "HRESET\0"
     "I486\0"
     "LAHFSAHF\0"
     "LWP\0"
@@ -311,6 +313,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "TBM\0"
     "TSX\0"
     "TSXLDTRK\0"
+    "UINTR\0"
     "VAES\0"
     "VMX\0"
     "VPCLMULQDQ\0"
@@ -325,13 +328,13 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
 
   static const uint16_t sFeatureIndex[] = {
     0, 5, 8, 11, 17, 24, 28, 34, 44, 53, 62, 71, 75, 80, 94, 108, 120, 134, 144,
-    155, 165, 176, 185, 197, 208, 220, 233, 243, 255, 275, 292, 296, 301, 309,
-    316, 325, 333, 344, 349, 356, 361, 372, 382, 388, 395, 400, 405, 409, 414,
-    418, 427, 432, 440, 446, 451, 455, 460, 469, 473, 479, 487, 491, 496, 504,
-    513, 519, 529, 537, 541, 545, 550, 558, 564, 574, 582, 589, 599, 611, 619,
-    625, 631, 638, 645, 651, 658, 662, 672, 676, 683, 688, 693, 697, 701, 705,
-    710, 715, 722, 729, 735, 741, 745, 749, 753, 762, 767, 771, 782, 790, 799,
-    803, 809, 816, 825, 832
+    155, 165, 176, 185, 197, 208, 220, 233, 243, 255, 275, 292, 301, 305, 310,
+    318, 325, 334, 342, 353, 358, 365, 370, 381, 391, 397, 404, 409, 414, 418,
+    423, 427, 436, 441, 449, 455, 460, 464, 471, 476, 485, 489, 495, 503, 507,
+    512, 520, 529, 535, 545, 553, 557, 561, 566, 574, 580, 590, 598, 605, 615,
+    627, 635, 641, 647, 654, 661, 667, 674, 678, 688, 692, 699, 704, 709, 713,
+    717, 721, 726, 731, 738, 745, 751, 757, 761, 765, 769, 778, 784, 789, 793,
+    804, 812, 821, 825, 831, 838, 847, 854
   };
   // @EnumStringEnd@
 
@@ -871,8 +874,9 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
     }
 
     // VEX|EVEX options.
-    if (options & Inst::kOptionVex3) ASMJIT_PROPAGATE(sb.append("vex3 "));
-    if (options & Inst::kOptionEvex) ASMJIT_PROPAGATE(sb.append("evex "));
+    if (options & Inst::kOptionVex) ASMJIT_PROPAGATE(sb.append("{vex} "));
+    if (options & Inst::kOptionVex3) ASMJIT_PROPAGATE(sb.append("{vex3} "));
+    if (options & Inst::kOptionEvex) ASMJIT_PROPAGATE(sb.append("{evex} "));
 
     ASMJIT_PROPAGATE(InstAPI::instIdToString(arch, instId, sb));
   }

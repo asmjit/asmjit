@@ -1067,6 +1067,35 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
       break;
     }
 
+    case InstDB::RWInfo::kCategoryMovabs: {
+      if (opCount == 2) {
+        if (Reg::isGp(operands[0]) && operands[1].isMem()) {
+          const Reg& o0 = operands[0].as<Reg>();
+          out->_operands[0].reset(W | RegPhys, o0.size(), Gp::kIdAx);
+          out->_operands[1].reset(R | MibRead, o0.size());
+          rwZeroExtendGp(out->_operands[0], operands[0].as<Gp>(), nativeGpSize);
+          return kErrorOk;
+        }
+
+        if (operands[0].isMem() && Reg::isGp(operands[1])) {
+          const Reg& o1 = operands[1].as<Reg>();
+          out->_operands[0].reset(W | MibRead, o1.size());
+          out->_operands[1].reset(R | RegPhys, o1.size(), Gp::kIdAx);
+          return kErrorOk;
+        }
+
+        if (Reg::isGp(operands[0]) && operands[1].isImm()) {
+          const Reg& o0 = operands[0].as<Reg>();
+          out->_operands[0].reset(W, o0.size());
+          out->_operands[1].reset();
+
+          rwZeroExtendGp(out->_operands[0], operands[0].as<Gp>(), nativeGpSize);
+          return kErrorOk;
+        }
+      }
+      break;
+    }
+
     case InstDB::RWInfo::kCategoryImul: {
       // Special case for 'imul' instruction.
       //
@@ -1400,6 +1429,14 @@ static RegAnalysis InstInternal_regAnalysis(const Operand_* operands, size_t opC
   return RegAnalysis { mask, highVecUsed };
 }
 
+static ASMJIT_INLINE uint32_t InstInternal_usesAvx512(uint32_t instOptions, const RegOnly& extraReg, const RegAnalysis& regAnalysis) noexcept {
+  uint32_t hasEvex = instOptions & (Inst::kOptionEvex | Inst::_kOptionAvx512Mask);
+  uint32_t hasKMask = extraReg.type() == Reg::kTypeKReg;
+  uint32_t hasKOrZmm = regAnalysis.regTypeMask & Support::bitMask(Reg::kTypeZmm, Reg::kTypeKReg);
+
+  return hasEvex | hasKMask | hasKOrZmm;
+}
+
 Error InstInternal::queryFeatures(uint32_t arch, const BaseInst& inst, const Operand_* operands, size_t opCount, BaseFeatures* out) noexcept {
   // Only called when `arch` matches X86 family.
   DebugUtils::unused(arch);
@@ -1509,10 +1546,7 @@ Error InstInternal::queryFeatures(uint32_t arch, const BaseInst& inst, const Ope
     if (out->has(Features::kAVX) || out->has(Features::kAVX2) || out->has(Features::kFMA) || out->has(Features::kF16C)) {
       // Only AVX512-F|BW|DQ allow to encode AVX/AVX2/FMA/F16C instructions
       if (out->has(Features::kAVX512_F) || out->has(Features::kAVX512_BW) || out->has(Features::kAVX512_DQ)) {
-        uint32_t hasEvex = options & (Inst::kOptionEvex | Inst::_kOptionAvx512Mask);
-        uint32_t hasKMask = inst.extraReg().type() == Reg::kTypeKReg;
-        uint32_t hasKOrZmm = regAnalysis.regTypeMask & Support::bitMask(Reg::kTypeZmm, Reg::kTypeKReg);
-
+        uint32_t usesAvx512 = InstInternal_usesAvx512(options, inst.extraReg(), regAnalysis);
         uint32_t mustUseEvex = 0;
 
         switch (instId) {
@@ -1540,11 +1574,24 @@ Error InstInternal::queryFeatures(uint32_t arch, const BaseInst& inst, const Ope
             break;
         }
 
-        if (!(hasEvex | mustUseEvex | hasKMask | hasKOrZmm | regAnalysis.highVecUsed))
+        if (!(usesAvx512 | mustUseEvex | regAnalysis.highVecUsed))
           out->remove(Features::kAVX512_F, Features::kAVX512_BW, Features::kAVX512_DQ, Features::kAVX512_VL);
         else
           out->remove(Features::kAVX, Features::kAVX2, Features::kFMA, Features::kF16C);
       }
+    }
+
+    // Handle AVX_VNNI vs AVX512_VNNI overlap.
+    if (out->has(Features::kAVX512_VNNI)) {
+      // By default the AVX512_VNNI instruction should be used, because it was
+      // introduced first. However, VEX|VEX3 prefix can be used to force AVX_VNNI
+      // instead.
+      uint32_t usesAvx512 = InstInternal_usesAvx512(options, inst.extraReg(), regAnalysis);
+
+      if (!usesAvx512 && (options & (Inst::kOptionVex | Inst::kOptionVex3)) != 0)
+        out->remove(Features::kAVX512_VNNI, Features::kAVX512_VL);
+      else
+        out->remove(Features::kAVX_VNNI);
     }
 
     // Clear AVX512_VL if ZMM register is used.

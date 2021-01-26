@@ -69,7 +69,18 @@ const x86isa = new asmdb.x86.ISA({
     ["imul", "r64, ib"    , "RMI"  , "REX.W 6B /r ib", "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
     ["imul", "r16, iw"    , "RMI"  , "66 69 /r iw"   , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
     ["imul", "r32, id"    , "RMI"  , "69 /r id"      , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul", "r64, id"    , "RMI"  , "REX.W 69 /r id", "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"]
+    ["imul", "r64, id"    , "RMI"  , "REX.W 69 /r id", "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
+
+    // Movabs (X64 only).
+    ["movabs", "W:r64, iq/uq" , "I"   , "REX.W B8+r iq", "X64"],
+    ["movabs", "w:al, moff8"  , "NONE", "A0"           , "X64"],
+    ["movabs", "w:ax, moff16" , "NONE", "66 A1"        , "X64"],
+    ["movabs", "W:eax, moff32", "NONE", "A1"           , "X64"],
+    ["movabs", "W:rax, moff64", "NONE", "REX.W A1"     , "X64"],
+    ["movabs", "W:moff8, al"  , "NONE", "A2"           , "X64"],
+    ["movabs", "W:moff16, ax" , "NONE", "66 A3"        , "X64"],
+    ["movabs", "W:moff32, eax", "NONE", "A3"           , "X64"],
+    ["movabs", "W:moff64, rax", "NONE", "REX.W A3"     , "X64"]
   ]
 });
 
@@ -232,6 +243,9 @@ class GenUtils {
 
       if (dbInst.prefix === "EVEX") {
         f.Evex = true;
+
+        if (dbInst.extensions["AVX512_VNNI"])
+          f.PreferEvex = true;
 
         if (dbInst.kmask) f.Avx512K = true;
         if (dbInst.zmask) f.Avx512Z = true;
@@ -682,10 +696,20 @@ class IdEnum extends core.IdEnum {
     var text = "";
     var features = GenUtils.cpuFeaturesOf(dbInsts);
 
+    const priorityFeatures = ["AVX_VNNI"];
+
     if (features.length) {
       text += "{";
       const avxFeatures = filterAVX(features, true);
       const otherFeatures = filterAVX(features, false);
+
+      for (const pf of priorityFeatures) {
+        const index = avxFeatures.indexOf(pf);
+        if (index != -1) {
+          avxFeatures.splice(index, 1);
+          avxFeatures.unshift(pf);
+        }
+      }
 
       const vl = avxFeatures.indexOf("AVX512_VL");
       if (vl !== -1) avxFeatures.splice(vl, 1);
@@ -780,138 +804,6 @@ class AltOpcodeTable extends core.Task {
                 altOpcodeTable.length * 4);
   }
 }
-
-// ============================================================================
-// [tablegen.x86.SseToAvxTable]
-// ============================================================================
-/*
-// Removed from asmjit.
-class InstSseToAvxTable extends core.Task {
-  constructor() {
-    super("InstSseToAvxTable", ["IdEnum"]);
-  }
-
-  run() {
-    const insts = this.ctx.insts;
-
-    const dataTable = new IndexedArray();
-    const indexTable = [];
-
-    function add(data) {
-      return dataTable.addIndexed("{ " + `SseToAvxData::kMode${data.mode}`.padEnd(28) + ", " + String(data.delta).padEnd(4) + " }");
-    }
-
-    // This will receive a zero index, which means that no SseToAvx or AvxToSSe translation is possible.
-    const kInvalidIndex = add({ mode: "None", delta: 0 });
-    insts.forEach((inst) => { indexTable.push(kInvalidIndex); });
-
-    insts.forEach((inst) => {
-      // If it's not `kInvalidIndex` it's an AVX instruction that shares the
-      // SseToAvx data. We won't touch it as it already has the index assigned.
-      if (indexTable[inst.id] === kInvalidIndex) {
-        const data = this.calcSseToAvxData(inst.dbInsts);
-        const index = add(data);
-
-        indexTable[inst.id] = index;
-        if (data.delta !== 0)
-          indexTable[this.ctx.instMap["v" + inst.name].id] = index;
-      }
-    });
-
-    this.inject("SseToAvxIndex",
-                disclaimer(`static const uint8_t sseToAvxIndex[] = {\n${StringUtils.format(indexTable, kIndent, -1)}\n};\n`),
-                indexTable.length * 1);
-
-    this.inject("SseToAvxTable",
-                disclaimer(`static const SseToAvxData sseToAvxData[] = {\n${StringUtils.format(dataTable, kIndent, true)}\n};\n`),
-                dataTable.length * 2);
-  }
-
-  filterSseToAvx(dbInsts) {
-    const filtered = [];
-    for (var x = 0; x < dbInsts.length; x++) {
-      const dbInst = dbInsts[x];
-      const ops = dbInst.operands;
-
-      // SSE instruction does never share its name with AVX one.
-      if (/^(VEX|XOP|EVEX)$/.test(dbInst.prefix))
-        return [];
-
-      var ok = false;
-      for (var y = 0; y < ops.length; y++) {
-        // There is no AVX instruction that works with MMX regs.
-        if (ops[y].reg === "mm") { ok = false; break; }
-        if (ops[y].reg === "xmm") { ok = true; }
-      }
-
-      if (ok)
-        filtered.push(dbInst);
-    }
-
-    return filtered;
-  }
-
-  calcSseToAvxData(dbInsts) {
-    const data = {
-      mode : "None", // No conversion by default.
-      delta: 0       // 0 if no conversion is possible.
-    };
-
-    const dbSseInsts = this.filterSseToAvx(dbInsts);
-    if (!dbSseInsts.length)
-      return data;
-
-    const sseName = dbSseInsts[0].name;
-    const avxName = "v" + sseName;
-
-    const dbAvxInsts = this.ctx.query(avxName);
-    if (!dbAvxInsts.length) {
-      DEBUG(`SseToAvx: Instruction '${sseName}' has no AVX counterpart`);
-      return data;
-    }
-
-    if (avxName === "vblendvpd" || avxName === "vblendvps" || avxName === "vpblendvb") {
-      // Special cases first.
-      data.mode = "Blend";
-    }
-    else {
-      // Common case, deduce conversion mode by checking both SSE and AVX instructions.
-      const map = Object.create(null);
-      for (var sseIndex = 0; sseIndex < dbSseInsts.length; sseIndex++) {
-        const sseInst = dbSseInsts[sseIndex];
-        var match = false;
-
-        for (var avxIndex = 0; avxIndex < dbAvxInsts.length; avxIndex++) {
-          const avxInst = dbAvxInsts[avxIndex];
-
-          // Select only VEX instructions.
-          if (avxInst.prefix !== "VEX") continue;
-
-          // Check if the AVX version is the same.
-          if (GenUtils.eqOps(avxInst.operands, 0, sseInst.operands, 0)) {
-            map.raw = true;
-            match = true;
-          }
-          else if (avxInst.operands[0].data === "xmm" && GenUtils.eqOps(avxInst.operands, 1, sseInst.operands, 0)) {
-            map.nds = true;
-            match = true;
-          }
-        }
-
-        if (!match) {
-          const signature = sseInst.operands.map(function(op) { return op.data; }).join(", ");
-          console.log(`SseToAvx: Instruction '${sseName}(${signature})' has no AVX counterpart`);
-          return data;
-        }
-      }
-
-      data.mode = (map.raw && !map.nds) ? "Move" : (map.raw && map.nds) ? "MoveIfMem" : "Extend";
-    }
-    data.delta = this.ctx.instMap[avxName].id - this.ctx.instMap[sseName].id;
-    return data;
-  }
-}
-*/
 
 // ============================================================================
 // [tablegen.x86.InstSignatureTable]
@@ -1456,14 +1348,7 @@ class SignatureArray extends Array {
 class InstSignatureTable extends core.Task {
   constructor() {
     super("InstSignatureTable");
-
     this.maxOpRows = 0;
-    this.opBlackList = {
-      "moff8" : true,
-      "moff16": true,
-      "moff32": true,
-      "moff64": true
-    };
   }
 
   run() {
@@ -1637,16 +1522,19 @@ class InstSignatureTable extends core.Task {
           var imm = iop.imm;
           var rel = iop.rel;
 
-          // Terminate if this operand is something asmjit doesn't support
-          // and skip all instructions having implicit `imm` operand of `1`,
-          // which are handled fine by asmjit.
-          if (this.opBlackList[mem] === true || iop.immValue !== null)
+          // Skip all instructions having implicit `imm` operand of `1`.
+          if (iop.immValue !== null)
             break;
 
           if (reg === "r8") reg = "r8lo";
           if (reg === "seg") reg = "sreg";
           if (reg === "st(i)") reg = "st";
           if (reg === "st(0)") reg = "st0";
+
+          if (mem === "moff8") mem = "m8";
+          if (mem === "moff16") mem = "m16";
+          if (mem === "moff32") mem = "m32";
+          if (mem === "moff64") mem = "m64";
 
           if (mem === "m32fp") mem = "m32";
           if (mem === "m64fp") mem = "m64";
@@ -1850,6 +1738,7 @@ class InstRWInfoTable extends core.Task {
     this.rwCategoryByName = {
       "imul"      : "Imul",
       "mov"       : "Mov",
+      "movabs"    : "Movabs",
       "movhpd"    : "Movh64",
       "movhps"    : "Movh64",
       "vmaskmovpd": "Vmaskmov",

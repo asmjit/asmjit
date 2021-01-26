@@ -88,6 +88,7 @@ enum EncodingId : uint32_t {
   kEncodingX86JmpRel,                    //!< X86 xbegin.
   kEncodingX86Lea,                       //!< X86 lea.
   kEncodingX86Mov,                       //!< X86 mov (all possible cases).
+  kEncodingX86Movabs,                    //!< X86 movabs.
   kEncodingX86MovsxMovzx,                //!< X86 movsx, movzx.
   kEncodingX86MovntiMovdiri,             //!< X86 movnti/movdiri.
   kEncodingX86EnqcmdMovdir64b,           //!< X86 enqcmd/enqcmds/movdir64b.
@@ -239,6 +240,7 @@ struct RWInfo {
   enum Category : uint8_t {
     kCategoryGeneric,
     kCategoryMov,
+    kCategoryMovabs,
     kCategoryImul,
     kCategoryMovh64,
     kCategoryVmaskmov,
