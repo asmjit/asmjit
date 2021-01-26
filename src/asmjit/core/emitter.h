@@ -109,6 +109,10 @@ public:
 
   //! Emitter flags.
   enum EmitterFlags : uint32_t {
+    //! Emitter is attached to CodeHolder.
+    kFlagAttached = 0x01u,
+    //! The emitter must emit comments.
+    kFlagLogComments = 0x08u,
     //! The emitter has its own \ref Logger (not propagated from \ref CodeHolder).
     kFlagOwnLogger = 0x10u,
     //! The emitter has its own \ref ErrorHandler (not propagated from \ref CodeHolder).

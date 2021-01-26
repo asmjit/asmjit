@@ -1307,7 +1307,7 @@ namespace asmjit {
 //! invoking functions. At the moment it's the easiest way of generating code
 //! in AsmJit as most architecture and OS specifics is properly abstracted and
 //! handled by AsmJit automatically. However, abstractions also mean restrictions,
-//! which means that \ref BaseCompiler has more limitations that \ref BaseAssembler
+//! which means that \ref BaseCompiler has more limitations than \ref BaseAssembler
 //! or \ref BaseBuilder.
 //!
 //! Since \ref BaseCompiler provides register allocation it also establishes the

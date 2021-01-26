@@ -366,20 +366,23 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
 // ============================================================================
 
 Error BaseAssembler::comment(const char* data, size_t size) {
-  if (ASMJIT_UNLIKELY(!_code))
-    return reportError(DebugUtils::errored(kErrorNotInitialized));
-
-#ifndef ASMJIT_NO_LOGGING
-  if (_logger) {
-    _logger->log(data, size);
-    _logger->log("\n", 1);
+  if (!hasEmitterFlag(kFlagLogComments)) {
+    if (!hasEmitterFlag(kFlagAttached))
+      return reportError(DebugUtils::errored(kErrorNotInitialized));
     return kErrorOk;
   }
+
+#ifndef ASMJIT_NO_LOGGING
+  // Logger cannot be NULL if `kFlagLogComments` is set.
+  ASMJIT_ASSERT(_logger != nullptr);
+
+  _logger->log(data, size);
+  _logger->log("\n", 1);
+  return kErrorOk;
 #else
   DebugUtils::unused(data, size);
-#endif
-
   return kErrorOk;
+#endif
 }
 
 // ============================================================================
