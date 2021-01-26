@@ -55,10 +55,10 @@ static void generateOpcodes(asmjit::x86::Emitter* e, bool useRex1 = false, bool 
   Gp gdB = useRex2 ? r9d  : ebx;
   Gp gdC = useRex2 ? r10d : ecx;
 
-  Gp gzA = useRex1 ? r8   : e->zax();
-  Gp gzB = useRex2 ? r9   : e->zbx();
-  Gp gzC = useRex2 ? r10  : e->zcx();
-  Gp gzD = useRex2 ? r11  : e->zdx();
+  Gp gzA = useRex1 ? r8.as<Gp>()  : e->zax();
+  Gp gzB = useRex2 ? r9.as<Gp>()  : e->zbx();
+  Gp gzC = useRex2 ? r10.as<Gp>() : e->zcx();
+  Gp gzD = useRex2 ? r11.as<Gp>() : e->zdx();
 
   KReg kA = k1;
   KReg kB = k2;
