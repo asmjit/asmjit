@@ -165,6 +165,16 @@ bool testX86Assembler(const TestSettings& settings) noexcept {
   TEST_INSTRUCTION("8D043B"                        , lea(eax, ptr(ebx, edi)));
   TEST_INSTRUCTION("8D0500000000"                  , lea(eax, ptr(0)));
 
+  // LJMP/LCALL/LRET.
+  TEST_INSTRUCTION("66FF18"                        , lcall(dword_ptr(eax)));
+  TEST_INSTRUCTION("FF18"                          , lcall(fword_ptr(eax)));
+  TEST_INSTRUCTION("9A020000000100"                , lcall(1, 2));
+  TEST_INSTRUCTION("66FF28"                        , ljmp(dword_ptr(eax)));
+  TEST_INSTRUCTION("FF28"                          , ljmp(fword_ptr(eax)));
+  TEST_INSTRUCTION("EA020000000100"                , ljmp(1, 2));
+  TEST_INSTRUCTION("CB"                            , lret());
+  TEST_INSTRUCTION("CA0201"                        , lret(0x0102));
+
   // XACQUIRE|XRELEASE|RTM.
   TEST_INSTRUCTION("C6F811"                        , xabort(0x11));
   TEST_INSTRUCTION("F2F00108"                      , xacquire().lock().add(dword_ptr(eax), ecx));
@@ -419,6 +429,16 @@ bool testX64Assembler(const TestSettings& settings) noexcept {
   TEST_INSTRUCTION("488D0433"                      , lea(rax, ptr(rbx, rsi)));
   TEST_INSTRUCTION("488D043B"                      , lea(rax, ptr(rbx, rdi)));
   TEST_INSTRUCTION("488D840000400000"              , lea(rax, ptr(rax, rax, 0, 0x4000)));
+
+  // LJMP/LCALL/LRET.
+  TEST_INSTRUCTION("66FF18"                        , lcall(dword_ptr(rax)));
+  TEST_INSTRUCTION("FF18"                          , lcall(fword_ptr(rax)));
+  TEST_INSTRUCTION("48FF18"                        , lcall(tbyte_ptr(rax)));
+  TEST_INSTRUCTION("66FF28"                        , ljmp(dword_ptr(rax)));
+  TEST_INSTRUCTION("FF28"                          , ljmp(fword_ptr(rax)));
+  TEST_INSTRUCTION("48FF28"                        , ljmp(tbyte_ptr(rax)));
+  TEST_INSTRUCTION("CB"                            , lret());
+  TEST_INSTRUCTION("CA0201"                        , lret(0x0102));
 
   // CRC32.
   TEST_INSTRUCTION("F20F38F0C7"                    , crc32(eax, bh));

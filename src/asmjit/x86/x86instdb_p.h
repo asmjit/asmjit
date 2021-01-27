@@ -86,6 +86,7 @@ enum EncodingId : uint32_t {
   kEncodingX86JecxzLoop,                 //!< X86 jcxz, jecxz, jrcxz, loop, loope, loopne.
   kEncodingX86Jmp,                       //!< X86 jmp.
   kEncodingX86JmpRel,                    //!< X86 xbegin.
+  kEncodingX86LcallLjmp,                 //!< X86 lcall/ljmp.
   kEncodingX86Lea,                       //!< X86 lea.
   kEncodingX86Mov,                       //!< X86 mov (all possible cases).
   kEncodingX86Movabs,                    //!< X86 movabs.

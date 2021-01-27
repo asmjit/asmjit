@@ -424,6 +424,7 @@ struct Inst : public BaseInst {
     kIdKxorw,                            //!< Instruction 'kxorw' {AVX512_F}.
     kIdLahf,                             //!< Instruction 'lahf' {LAHFSAHF}.
     kIdLar,                              //!< Instruction 'lar'.
+    kIdLcall,                            //!< Instruction 'lcall'.
     kIdLddqu,                            //!< Instruction 'lddqu' {SSE3}.
     kIdLdmxcsr,                          //!< Instruction 'ldmxcsr' {SSE}.
     kIdLds,                              //!< Instruction 'lds' (X86).
@@ -436,6 +437,7 @@ struct Inst : public BaseInst {
     kIdLgdt,                             //!< Instruction 'lgdt'.
     kIdLgs,                              //!< Instruction 'lgs'.
     kIdLidt,                             //!< Instruction 'lidt'.
+    kIdLjmp,                             //!< Instruction 'ljmp'.
     kIdLldt,                             //!< Instruction 'lldt'.
     kIdLlwpcb,                           //!< Instruction 'llwpcb' {LWP}.
     kIdLmsw,                             //!< Instruction 'lmsw'.
@@ -443,6 +445,7 @@ struct Inst : public BaseInst {
     kIdLoop,                             //!< Instruction 'loop'.
     kIdLoope,                            //!< Instruction 'loope'.
     kIdLoopne,                           //!< Instruction 'loopne'.
+    kIdLret,                             //!< Instruction 'lret'.
     kIdLsl,                              //!< Instruction 'lsl'.
     kIdLss,                              //!< Instruction 'lss'.
     kIdLtr,                              //!< Instruction 'ltr'.

@@ -432,40 +432,40 @@ public:
   }
 
   ASMJIT_INLINE void emitImmediate(uint64_t immValue, FastUInt8 immSize) noexcept {
-    if (!immSize)
-      return;
-
 #if ASMJIT_ARCH_BITS >= 64
-    uint64_t imm = uint64_t(immValue);
+    uint64_t imm = immValue;
+    if (immSize >= 4) {
+      emit32uLE(imm & 0xFFFFFFFFu);
+      imm >>= 32;
+      immSize -= 4;
+    }
 #else
     uint32_t imm = uint32_t(immValue & 0xFFFFFFFFu);
+    if (immSize >= 4) {
+      emit32uLE(imm);
+      imm = uint32_t(immValue >> 32);
+      immSize -= 4;
+    }
 #endif
 
-    // Many instructions just use a single byte immediate, so make it fast.
+    if (!immSize)
+      return;
     emit8(imm & 0xFFu);
-    if (--immSize == 0) return;
-
     imm >>= 8;
+
+    if (--immSize == 0)
+      return;
     emit8(imm & 0xFFu);
-    if (--immSize == 0) return;
-
     imm >>= 8;
+
+    if (--immSize == 0)
+      return;
     emit8(imm & 0xFFu);
-    if (--immSize == 0) return;
-
     imm >>= 8;
+
+    if (--immSize == 0)
+      return;
     emit8(imm & 0xFFu);
-    if (--immSize == 0) return;
-
-    // Can be 1, 2, 4 or 8 bytes, this handles the remaining high DWORD of an 8-byte immediate.
-    ASMJIT_ASSERT(immSize == 4);
-
-#if ASMJIT_ARCH_BITS >= 64
-    imm >>= 8;
-    emit32uLE(uint32_t(imm));
-#else
-    emit32uLE(uint32_t((uint64_t(immValue) >> 32) & 0xFFFFFFFFu));
-#endif
   }
 };
 
@@ -1493,6 +1493,39 @@ CaseX86M_GPB_MulDiv:
     case InstDB::kEncodingX86JmpRel:
       rmRel = &o0;
       goto EmitJmpCall;
+
+    case InstDB::kEncodingX86LcallLjmp:
+      if (isign3 == ENC_OPS1(Mem)) {
+        rmRel = &o0;
+        uint32_t mSize = rmRel->size();
+        if (mSize == 0) {
+          mSize = registerSize();
+        }
+        else {
+          mSize -= 2;
+          if (mSize != 2 && mSize != 4 && mSize != registerSize())
+            goto InvalidAddress;
+        }
+        opcode.addPrefixBySize(mSize);
+        goto EmitX86M;
+      }
+
+      if (isign3 == ENC_OPS2(Imm, Imm)) {
+        if (!is32Bit())
+          goto InvalidInstruction;
+
+        const Imm& imm0 = o0.as<Imm>();
+        const Imm& imm1 = o1.as<Imm>();
+
+        if (imm0.value() > 0xFFFFu || imm1.value() > 0xFFFFFFFFu)
+          goto InvalidImmediate;
+
+        opcode = x86AltOpcodeOf(instInfo);
+        immValue = imm1.value() | (imm0.value() << 32);
+        immSize = 6;
+        goto EmitX86Op;
+      }
+      break;
 
     case InstDB::kEncodingX86Lea:
       if (isign3 == ENC_OPS2(Reg, Mem)) {

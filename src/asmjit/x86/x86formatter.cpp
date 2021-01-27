@@ -193,7 +193,7 @@ static const char* x86GetAddressSizeString(uint32_t size) noexcept {
     case 4 : return "dword ";
     case 6 : return "fword ";
     case 8 : return "qword ";
-    case 10: return "tword ";
+    case 10: return "tbyte ";
     case 16: return "oword ";
     case 32: return "yword ";
     case 64: return "zword ";

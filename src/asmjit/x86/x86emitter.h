@@ -546,7 +546,11 @@ public:
   ASMJIT_INST_1x(jmp, Jmp, Mem)                                        // ANY
   ASMJIT_INST_1x(jmp, Jmp, Label)                                      // ANY
   ASMJIT_INST_1x(jmp, Jmp, Imm)                                        // ANY
+  ASMJIT_INST_2x(lcall, Lcall, Imm, Imm)                               // ANY
+  ASMJIT_INST_1x(lcall, Lcall, Mem)                                    // ANY
   ASMJIT_INST_2x(lea, Lea, Gp, Mem)                                    // ANY
+  ASMJIT_INST_2x(ljmp, Ljmp, Imm, Imm)                                 // ANY
+  ASMJIT_INST_1x(ljmp, Ljmp, Mem)                                      // ANY
   ASMJIT_INST_2x(lods, Lods, Gp_ZAX, DS_ZSI)                           // ANY [EXPLICIT]
   ASMJIT_INST_2x(loop, Loop, Gp_ZCX, Label)                            // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
   ASMJIT_INST_2x(loop, Loop, Gp_ZCX, Imm)                              // ANY [EXPLICIT] Decrement xCX; short jump if xCX != 0.
@@ -3777,6 +3781,8 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   ASMJIT_INST_1x(mul, Mul, Mem)                                        // ANY       [IMPLICIT] {AX <- AL * m8} {xDX:xAX <- xAX * m16|m32|m64}
   ASMJIT_INST_0x(ret, Ret)
   ASMJIT_INST_1x(ret, Ret, Imm)
+  ASMJIT_INST_0x(lret, Lret)
+  ASMJIT_INST_1x(lret, Lret, Imm)
   ASMJIT_INST_0x(xlatb, Xlatb)                                         // ANY       [IMPLICIT]
 
   //! \}
