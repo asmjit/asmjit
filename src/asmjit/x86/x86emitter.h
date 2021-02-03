@@ -340,9 +340,10 @@ public:
   //! \name Encoding Options
   //! \{
 
-  //! Prefer MOD_MR encoding over MOD_RM (the default) when encoding instruction
-  //! that allows both. This option is only applicable to instructions where both
-  //! operands are registers.
+  //! Prefer MOD/RM encoding when both MOD/RM and MOD/MR forms are applicable.
+  inline This& mod_rm() noexcept { return _addInstOptions(Inst::kOptionModRM); }
+
+  //! Prefer MOD/MR encoding when both MOD/RM and MOD/MR forms are applicable.
   inline This& mod_mr() noexcept { return _addInstOptions(Inst::kOptionModMR); }
 
   //! \}
@@ -675,10 +676,10 @@ public:
   ASMJIT_INST_2x(test, Test, Gp, Imm)                                  // ANY
   ASMJIT_INST_2x(test, Test, Mem, Gp)                                  // ANY
   ASMJIT_INST_2x(test, Test, Mem, Imm)                                 // ANY
-  ASMJIT_INST_1x(ud0, Ud0, Reg)                                        // ANY
-  ASMJIT_INST_1x(ud0, Ud0, Mem)                                        // ANY
-  ASMJIT_INST_1x(ud1, Ud1, Reg)                                        // ANY
-  ASMJIT_INST_1x(ud1, Ud1, Mem)                                        // ANY
+  ASMJIT_INST_2x(ud0, Ud0, Gp, Gp)                                     // ANY
+  ASMJIT_INST_2x(ud0, Ud0, Gp, Mem)                                    // ANY
+  ASMJIT_INST_2x(ud1, Ud1, Gp, Gp)                                     // ANY
+  ASMJIT_INST_2x(ud1, Ud1, Gp, Mem)                                    // ANY
   ASMJIT_INST_0x(ud2, Ud2)                                             // ANY
   ASMJIT_INST_2x(xadd, Xadd, Gp, Gp)                                   // ANY
   ASMJIT_INST_2x(xadd, Xadd, Mem, Gp)                                  // ANY
@@ -993,7 +994,19 @@ public:
   //! \name XSAVE Instructions
   //! \{
 
-  ASMJIT_INST_3x(xgetbv, Xgetbv, Gp_EDX, Gp_EAX, Gp_ECX)               // XSAVE [EXPLICIT] EDX:EAX <- XCR[ECX]
+  ASMJIT_INST_3x(xgetbv, Xgetbv, Gp_EDX, Gp_EAX, Gp_ECX)               // XSAVE     [EXPLICIT] EDX:EAX <- XCR[ECX]
+  ASMJIT_INST_3x(xrstor, Xrstor, Mem, Gp_EDX, Gp_EAX)                  // XSAVE     [EXPLICIT]
+  ASMJIT_INST_3x(xrstor64, Xrstor64, Mem, Gp_EDX, Gp_EAX)              // XSAVE+X64 [EXPLICIT]
+  ASMJIT_INST_3x(xrstors, Xrstors, Mem, Gp_EDX, Gp_EAX)                // XSAVE     [EXPLICIT]
+  ASMJIT_INST_3x(xrstors64, Xrstors64, Mem, Gp_EDX, Gp_EAX)            // XSAVE+X64 [EXPLICIT]
+  ASMJIT_INST_3x(xsave, Xsave, Mem, Gp_EDX, Gp_EAX)                    // XSAVE     [EXPLICIT]
+  ASMJIT_INST_3x(xsave64, Xsave64, Mem, Gp_EDX, Gp_EAX)                // XSAVE+X64 [EXPLICIT]
+  ASMJIT_INST_3x(xsavec, Xsavec, Mem, Gp_EDX, Gp_EAX)                  // XSAVE     [EXPLICIT]
+  ASMJIT_INST_3x(xsavec64, Xsavec64, Mem, Gp_EDX, Gp_EAX)              // XSAVE+X64 [EXPLICIT]
+  ASMJIT_INST_3x(xsaveopt, Xsaveopt, Mem, Gp_EDX, Gp_EAX)              // XSAVE     [EXPLICIT]
+  ASMJIT_INST_3x(xsaveopt64, Xsaveopt64, Mem, Gp_EDX, Gp_EAX)          // XSAVE+X64 [EXPLICIT]
+  ASMJIT_INST_3x(xsaves, Xsaves, Mem, Gp_EDX, Gp_EAX)                  // XSAVE     [EXPLICIT]
+  ASMJIT_INST_3x(xsaves64, Xsaves64, Mem, Gp_EDX, Gp_EAX)              // XSAVE+X64 [EXPLICIT]
 
   //! \}
 
@@ -1018,8 +1031,8 @@ public:
   //! \name MONITORX Instructions
   //! \{
 
-  ASMJIT_INST_3x(monitorx, Monitorx, Mem, Gp, Gp)
-  ASMJIT_INST_3x(mwaitx, Mwaitx, Gp, Gp, Gp)
+  ASMJIT_INST_3x(monitorx, Monitorx, Mem, Gp, Gp)                      // MONITORX
+  ASMJIT_INST_3x(mwaitx, Mwaitx, Gp, Gp, Gp)                           // MONITORX
 
   //! \}
 
@@ -1049,9 +1062,9 @@ public:
   //! \name WAITPKG Instructions
   //! \{
 
-  ASMJIT_INST_3x(tpause, Tpause, Gp, Gp, Gp)
-  ASMJIT_INST_1x(umonitor, Umonitor, Mem)
-  ASMJIT_INST_3x(umwait, Umwait, Gp, Gp, Gp)
+  ASMJIT_INST_3x(tpause, Tpause, Gp, Gp, Gp)                           // WAITPKG
+  ASMJIT_INST_1x(umonitor, Umonitor, Mem)                              // WAITPKG
+  ASMJIT_INST_3x(umwait, Umwait, Gp, Gp, Gp)                           // WAITPKG
 
   //! \}
 
@@ -1089,36 +1102,58 @@ public:
   //! \name TSXLDTRK Instructions
   //! \{
 
-  ASMJIT_INST_0x(xresldtrk, Xresldtrk)
-  ASMJIT_INST_0x(xsusldtrk, Xsusldtrk)
+  ASMJIT_INST_0x(xresldtrk, Xresldtrk)                                 // TSXLDTRK
+  ASMJIT_INST_0x(xsusldtrk, Xsusldtrk)                                 // TSXLDTRK
 
   //! \}
 
   //! \name CET-IBT Instructions
   //! \{
 
-  ASMJIT_INST_0x(endbr32, Endbr32)
-  ASMJIT_INST_0x(endbr64, Endbr64)
+  ASMJIT_INST_0x(endbr32, Endbr32)                                     // CET_IBT
+  ASMJIT_INST_0x(endbr64, Endbr64)                                     // CET_IBT
 
   //! \}
 
   //! \name CET-SS Instructions
   //! \{
 
-  ASMJIT_INST_1x(clrssbsy, Clrssbsy, Mem)
-  ASMJIT_INST_0x(setssbsy, Setssbsy)
+  ASMJIT_INST_1x(clrssbsy, Clrssbsy, Mem)                              // CET_SS
+  ASMJIT_INST_0x(setssbsy, Setssbsy)                                   // CET_SS
 
-  ASMJIT_INST_1x(rstorssp, Rstorssp, Mem)
-  ASMJIT_INST_0x(saveprevssp, Saveprevssp)
+  ASMJIT_INST_1x(rstorssp, Rstorssp, Mem)                              // CET_SS
+  ASMJIT_INST_0x(saveprevssp, Saveprevssp)                             // CET_SS
 
-  ASMJIT_INST_1x(incsspd, Incsspd, Gp)
-  ASMJIT_INST_1x(incsspq, Incsspq, Gp)
-  ASMJIT_INST_1x(rdsspd, Rdsspd, Gp)
-  ASMJIT_INST_1x(rdsspq, Rdsspq, Gp)
-  ASMJIT_INST_2x(wrssd, Wrssd, Mem, Gp)
-  ASMJIT_INST_2x(wrssq, Wrssq, Mem, Gp)
-  ASMJIT_INST_2x(wrussd, Wrussd, Mem, Gp)
-  ASMJIT_INST_2x(wrussq, Wrussq, Mem, Gp)
+  ASMJIT_INST_1x(incsspd, Incsspd, Gp)                                 // CET_SS
+  ASMJIT_INST_1x(incsspq, Incsspq, Gp)                                 // CET_SS
+  ASMJIT_INST_1x(rdsspd, Rdsspd, Gp)                                   // CET_SS
+  ASMJIT_INST_1x(rdsspq, Rdsspq, Gp)                                   // CET_SS
+  ASMJIT_INST_2x(wrssd, Wrssd, Gp, Gp)                                 // CET_SS
+  ASMJIT_INST_2x(wrssd, Wrssd, Mem, Gp)                                // CET_SS
+  ASMJIT_INST_2x(wrssq, Wrssq, Gp, Gp)                                 // CET_SS
+  ASMJIT_INST_2x(wrssq, Wrssq, Mem, Gp)                                // CET_SS
+  ASMJIT_INST_2x(wrussd, Wrussd, Gp, Gp)                               // CET_SS
+  ASMJIT_INST_2x(wrussd, Wrussd, Mem, Gp)                              // CET_SS
+  ASMJIT_INST_2x(wrussq, Wrussq, Gp, Gp)                               // CET_SS
+  ASMJIT_INST_2x(wrussq, Wrussq, Mem, Gp)                              // CET_SS
+
+  //! \}
+
+  //! \name HRESET Instructions
+  //! \{
+
+  ASMJIT_INST_2x(hreset, Hreset, Imm, Gp)                              // HRESET
+
+  //! \}
+
+  //! \name UINTR Instructions
+  //! \{
+
+  ASMJIT_INST_0x(clui, Clui)                                           // UINTR
+  ASMJIT_INST_1x(senduipi, Senduipi, Gp)                               // UINTR
+  ASMJIT_INST_0x(testui, Testui)                                       // UINTR
+  ASMJIT_INST_0x(stui, Stui)                                           // UINTR
+  ASMJIT_INST_0x(uiret, Uiret)                                         // UINTR
 
   //! \}
 
@@ -1193,9 +1228,11 @@ public:
   ASMJIT_INST_0x(vmlaunch, Vmlaunch)                                   // VMX
   ASMJIT_INST_1x(vmptrld, Vmptrld, Mem)                                // VMX
   ASMJIT_INST_1x(vmptrst, Vmptrst, Mem)                                // VMX
+  ASMJIT_INST_2x(vmread, Vmread, Gp, Gp)                               // VMX
   ASMJIT_INST_2x(vmread, Vmread, Mem, Gp)                              // VMX
   ASMJIT_INST_0x(vmresume, Vmresume)                                   // VMX
   ASMJIT_INST_2x(vmwrite, Vmwrite, Gp, Mem)                            // VMX
+  ASMJIT_INST_2x(vmwrite, Vmwrite, Gp, Gp)                             // VMX
   ASMJIT_INST_1x(vmxon, Vmxon, Mem)                                    // VMX
 
   //! \}
@@ -2238,18 +2275,10 @@ public:
   ASMJIT_INST_3x(vandpd, Vandpd, Vec, Vec, Mem)                        // AVX  AVX512_DQ{kz|b64}
   ASMJIT_INST_3x(vandps, Vandps, Vec, Vec, Vec)                        // AVX  AVX512_DQ{kz|b32}
   ASMJIT_INST_3x(vandps, Vandps, Vec, Vec, Mem)                        // AVX  AVX512_DQ{kz|b32}
-  ASMJIT_INST_3x(vblendmb, Vblendmb, Vec, Vec, Vec)                    //      AVX512_BW{kz}
-  ASMJIT_INST_3x(vblendmb, Vblendmb, Vec, Vec, Mem)                    //      AVX512_BW{kz}
-  ASMJIT_INST_3x(vblendmd, Vblendmd, Vec, Vec, Vec)                    //      AVX512_F{kz|b32}
-  ASMJIT_INST_3x(vblendmd, Vblendmd, Vec, Vec, Mem)                    //      AVX512_F{kz|b32}
   ASMJIT_INST_3x(vblendmpd, Vblendmpd, Vec, Vec, Vec)                  //      AVX512_F{kz|b64}
   ASMJIT_INST_3x(vblendmpd, Vblendmpd, Vec, Vec, Mem)                  //      AVX512_F{kz|b64}
   ASMJIT_INST_3x(vblendmps, Vblendmps, Vec, Vec, Vec)                  //      AVX512_F{kz|b32}
   ASMJIT_INST_3x(vblendmps, Vblendmps, Vec, Vec, Mem)                  //      AVX512_F{kz|b32}
-  ASMJIT_INST_3x(vblendmq, Vblendmq, Vec, Vec, Vec)                    //      AVX512_F{kz|b64}
-  ASMJIT_INST_3x(vblendmq, Vblendmq, Vec, Vec, Mem)                    //      AVX512_F{kz|b64}
-  ASMJIT_INST_3x(vblendmw, Vblendmw, Vec, Vec, Vec)                    //      AVX512_BW{kz}
-  ASMJIT_INST_3x(vblendmw, Vblendmw, Vec, Vec, Mem)                    //      AVX512_BW{kz}
   ASMJIT_INST_4x(vblendpd, Vblendpd, Vec, Vec, Vec, Imm)               // AVX
   ASMJIT_INST_4x(vblendpd, Vblendpd, Vec, Vec, Mem, Imm)               // AVX
   ASMJIT_INST_4x(vblendps, Vblendps, Vec, Vec, Vec, Imm)               // AVX
@@ -2808,6 +2837,14 @@ public:
   ASMJIT_INST_3x(vpavgw, Vpavgw, Vec, Vec, Mem)                        // AVX+ AVX512_BW{kz}
   ASMJIT_INST_4x(vpblendd, Vpblendd, Vec, Vec, Vec, Imm)               // AVX2
   ASMJIT_INST_4x(vpblendd, Vpblendd, Vec, Vec, Mem, Imm)               // AVX2
+  ASMJIT_INST_3x(vpblendmb, Vpblendmb, Vec, Vec, Vec)                  //      AVX512_BW{kz}
+  ASMJIT_INST_3x(vpblendmb, Vpblendmb, Vec, Vec, Mem)                  //      AVX512_BW{kz}
+  ASMJIT_INST_3x(vpblendmd, Vpblendmd, Vec, Vec, Vec)                  //      AVX512_F{kz|b32}
+  ASMJIT_INST_3x(vpblendmd, Vpblendmd, Vec, Vec, Mem)                  //      AVX512_F{kz|b32}
+  ASMJIT_INST_3x(vpblendmq, Vpblendmq, Vec, Vec, Vec)                  //      AVX512_F{kz|b64}
+  ASMJIT_INST_3x(vpblendmq, Vpblendmq, Vec, Vec, Mem)                  //      AVX512_F{kz|b64}
+  ASMJIT_INST_3x(vpblendmw, Vpblendmw, Vec, Vec, Vec)                  //      AVX512_BW{kz}
+  ASMJIT_INST_3x(vpblendmw, Vpblendmw, Vec, Vec, Mem)                  //      AVX512_BW{kz}
   ASMJIT_INST_4x(vpblendvb, Vpblendvb, Vec, Vec, Vec, Vec)             // AVX+
   ASMJIT_INST_4x(vpblendvb, Vpblendvb, Vec, Vec, Mem, Vec)             // AVX+
   ASMJIT_INST_4x(vpblendw, Vpblendw, Vec, Vec, Vec, Imm)               // AVX+
@@ -2818,8 +2855,8 @@ public:
   ASMJIT_INST_2x(vpbroadcastd, Vpbroadcastd, Vec, Vec)                 // AVX2 AVX512_F{kz}
   ASMJIT_INST_2x(vpbroadcastd, Vpbroadcastd, Vec, Mem)                 // AVX2 AVX512_F{kz}
   ASMJIT_INST_2x(vpbroadcastd, Vpbroadcastd, Vec, Gp)                  //      AVX512_F{kz}
-  ASMJIT_INST_2x(vpbroadcastmb2d, Vpbroadcastmb2d, Vec, KReg)          //      AVX512_CD
   ASMJIT_INST_2x(vpbroadcastmb2q, Vpbroadcastmb2q, Vec, KReg)          //      AVX512_CD
+  ASMJIT_INST_2x(vpbroadcastmw2d, Vpbroadcastmw2d, Vec, KReg)          //      AVX512_CD
   ASMJIT_INST_2x(vpbroadcastq, Vpbroadcastq, Vec, Vec)                 // AVX2 AVX512_F{kz}
   ASMJIT_INST_2x(vpbroadcastq, Vpbroadcastq, Vec, Mem)                 // AVX2 AVX512_F{kz}
   ASMJIT_INST_2x(vpbroadcastq, Vpbroadcastq, Vec, Gp)                  //      AVX512_F{kz}
@@ -3175,14 +3212,20 @@ public:
   ASMJIT_INST_2x(vpscatterqq, Vpscatterqq, Mem, Vec)                   //      AVX512_F{k}
   ASMJIT_INST_4x(vpshldd, Vpshldd, Vec, Vec, Vec, Imm)                 //      AVX512_VBMI2{kz}
   ASMJIT_INST_4x(vpshldd, Vpshldd, Vec, Vec, Mem, Imm)                 //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4x(vpshldq, Vpshldq, Vec, Vec, Vec, Imm)                 //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4x(vpshldq, Vpshldq, Vec, Vec, Mem, Imm)                 //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshldvd, Vpshldvd, Vec, Vec, Vec)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshldvd, Vpshldvd, Vec, Vec, Mem)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshldvq, Vpshldvq, Vec, Vec, Vec)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshldvq, Vpshldvq, Vec, Vec, Mem)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshldvw, Vpshldvw, Vec, Vec, Vec)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshldvw, Vpshldvw, Vec, Vec, Mem)                    //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4x(vpshldw, Vpshldw, Vec, Vec, Vec, Imm)                 //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4x(vpshldw, Vpshldw, Vec, Vec, Mem, Imm)                 //      AVX512_VBMI2{kz}
   ASMJIT_INST_4x(vpshrdd, Vpshrdd, Vec, Vec, Vec, Imm)                 //      AVX512_VBMI2{kz}
   ASMJIT_INST_4x(vpshrdd, Vpshrdd, Vec, Vec, Mem, Imm)                 //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4x(vpshrdq, Vpshrdq, Vec, Vec, Vec, Imm)                 //      AVX512_VBMI2{kz}
+  ASMJIT_INST_4x(vpshrdq, Vpshrdq, Vec, Vec, Mem, Imm)                 //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, Vec, Vec, Vec)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshrdvd, Vpshrdvd, Vec, Vec, Mem)                    //      AVX512_VBMI2{kz}
   ASMJIT_INST_3x(vpshrdvq, Vpshrdvq, Vec, Vec, Vec)                    //      AVX512_VBMI2{kz}
@@ -3768,7 +3811,6 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   ASMJIT_INST_0x(iret, Iret)                                           // ANY       [IMPLICIT]
   ASMJIT_INST_0x(iretd, Iretd)                                         // ANY       [IMPLICIT]
   ASMJIT_INST_0x(iretq, Iretq)                                         // X64       [IMPLICIT]
-  ASMJIT_INST_0x(iretw, Iretw)                                         // ANY       [IMPLICIT]
   ASMJIT_INST_1x(jecxz, Jecxz, Label)                                  // ANY       [IMPLICIT] Short jump if CX/ECX/RCX is zero.
   ASMJIT_INST_1x(jecxz, Jecxz, Imm)                                    // ANY       [IMPLICIT] Short jump if CX/ECX/RCX is zero.
   ASMJIT_INST_1x(loop, Loop, Label)                                    // ANY       [IMPLICIT] Decrement xCX; short jump if xCX != 0.
@@ -3781,8 +3823,8 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   ASMJIT_INST_1x(mul, Mul, Mem)                                        // ANY       [IMPLICIT] {AX <- AL * m8} {xDX:xAX <- xAX * m16|m32|m64}
   ASMJIT_INST_0x(ret, Ret)
   ASMJIT_INST_1x(ret, Ret, Imm)
-  ASMJIT_INST_0x(lret, Lret)
-  ASMJIT_INST_1x(lret, Lret, Imm)
+  ASMJIT_INST_0x(retf, Retf)
+  ASMJIT_INST_1x(retf, Retf, Imm)
   ASMJIT_INST_0x(xlatb, Xlatb)                                         // ANY       [IMPLICIT]
 
   //! \}
@@ -3918,10 +3960,20 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   //! \name XSAVE Instructions
   //! \{
 
-  // TODO: xrstor and xsave don't have explicit variants yet.
-
   //! \cond
   using EmitterExplicitT<This>::xgetbv;
+  using EmitterExplicitT<This>::xrstor;
+  using EmitterExplicitT<This>::xrstor64;
+  using EmitterExplicitT<This>::xrstors;
+  using EmitterExplicitT<This>::xrstors64;
+  using EmitterExplicitT<This>::xsave;
+  using EmitterExplicitT<This>::xsave64;
+  using EmitterExplicitT<This>::xsavec;
+  using EmitterExplicitT<This>::xsavec64;
+  using EmitterExplicitT<This>::xsaveopt;
+  using EmitterExplicitT<This>::xsaveopt64;
+  using EmitterExplicitT<This>::xsaves;
+  using EmitterExplicitT<This>::xsaves64;
   //! \endcond
 
   ASMJIT_INST_0x(xgetbv, Xgetbv)                                       // XSAVE     [IMPLICIT] EDX:EAX <- XCR[ECX]
@@ -3948,6 +4000,17 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
 
   //! \}
 
+  //! \name HRESET Instructions
+  //! \{
+
+  //! \cond
+  using EmitterExplicitT<This>::hreset;
+  //! \endcond
+
+  ASMJIT_INST_1x(hreset, Hreset, Imm)                                  // HRESET    [IMPLICIT]
+
+  //! \}
+
   //! \name Privileged Instructions
   //! \{
 
@@ -3962,9 +4025,9 @@ struct EmitterImplicitT : public EmitterExplicitT<This> {
   ASMJIT_INST_0x(rdmsr, Rdmsr)                                         // ANY       [IMPLICIT]
   ASMJIT_INST_0x(rdpmc, Rdpmc)                                         // ANY       [IMPLICIT]
   ASMJIT_INST_0x(sysexit, Sysexit)                                     // X64       [IMPLICIT]
-  ASMJIT_INST_0x(sysexit64, Sysexit64)                                 // X64       [IMPLICIT]
+  ASMJIT_INST_0x(sysexitq, Sysexitq)                                   // X64       [IMPLICIT]
   ASMJIT_INST_0x(sysret, Sysret)                                       // X64       [IMPLICIT]
-  ASMJIT_INST_0x(sysret64, Sysret64)                                   // X64       [IMPLICIT]
+  ASMJIT_INST_0x(sysretq, Sysretq)                                     // X64       [IMPLICIT]
   ASMJIT_INST_0x(wrmsr, Wrmsr)                                         // ANY       [IMPLICIT]
   ASMJIT_INST_0x(xsetbv, Xsetbv)                                       // XSAVE     [IMPLICIT] XCR[ECX] <- EDX:EAX
 

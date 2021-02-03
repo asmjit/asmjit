@@ -1180,6 +1180,46 @@ Error InstInternal::queryRWInfo(uint32_t arch, const BaseInst& inst, const Opera
       break;
     }
 
+    case InstDB::RWInfo::kCategoryPunpcklxx: {
+      // Special case for 'punpcklbw|punpckldq|punpcklwd' instructions.
+      if (opCount == 2) {
+        if (Reg::isXmm(operands[0])) {
+          out->_operands[0].reset(X, 16);
+          out->_operands[0].setReadByteMask(0x0F0Fu);
+          out->_operands[0].setWriteByteMask(0xFFFFu);
+          out->_operands[1].reset(R, 16);
+          out->_operands[1].setWriteByteMask(0x0F0Fu);
+
+          if (Reg::isXmm(operands[1])) {
+            return kErrorOk;
+          }
+
+          if (operands[1].isMem()) {
+            out->_operands[1].addOpFlags(MibRead);
+            return kErrorOk;
+          }
+        }
+
+        if (Reg::isMm(operands[0])) {
+          out->_operands[0].reset(X, 8);
+          out->_operands[0].setReadByteMask(0x0Fu);
+          out->_operands[0].setWriteByteMask(0xFFu);
+          out->_operands[1].reset(R, 4);
+          out->_operands[1].setReadByteMask(0x0Fu);
+
+          if (Reg::isMm(operands[1])) {
+            return kErrorOk;
+          }
+
+          if (operands[1].isMem()) {
+            out->_operands[1].addOpFlags(MibRead);
+            return kErrorOk;
+          }
+        }
+      }
+      break;
+    }
+
     case InstDB::RWInfo::kCategoryVmaskmov: {
       // Special case for 'vmaskmovpd|vmaskmovps|vpmaskmovd|vpmaskmovq' instructions.
       if (opCount == 3) {

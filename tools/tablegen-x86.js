@@ -933,30 +933,16 @@ class OSignature {
         const index = asmdb.x86.Utils.regIndexOf(k);
         if (index !== null && index !== -1) {
           const kind = asmdb.x86.Utils.regKindOf(k);
-          if (indexKind !== kind) return false;
+          if (indexKind !== kind)
+            return false;
         }
       }
     }
 
     // Can merge...
-    for (k in bf) af[k] = true;
+    for (k in bf)
+      af[k] = true;
     return true;
-  }
-
-  simplify() {
-    const flags = this.flags;
-
-    // 32-bit register or 16-bit memory implies also 16-bit reg.
-    if (flags.r32 && flags.m16) {
-      flags.r16 = true;
-    }
-
-    // 32-bit register or 8-bit memory implies also 16-bit and 8-bit reg.
-    if (flags.r32 && flags.m8) {
-      flags.r8lo = true;
-      flags.r8hi = true;
-      flags.r16 = true;
-    }
   }
 
   toString() {
@@ -1122,11 +1108,6 @@ class ISignature extends Array {
     this.x86 = false;
     this.x64 = false;
     this.implicit = 0; // Number of implicit operands.
-  }
-
-  simplify() {
-    for (var i = 0; i < this.length; i++)
-      this[i].simplify();
   }
 
   opEquals(other) {
@@ -1321,21 +1302,21 @@ class SignatureArray extends Array {
     }
   }
 
-  simplify() {
-    for (var i = 0; i < this.length; i++)
-      this[i].simplify();
-  }
-
   compact() {
-    for (var i = 0; i < this.length; i++) {
-      var row = this[i];
-      var j = i + 1;
-      while (j < this.length) {
-        if (row.mergeWith(this[j])) {
-          this.splice(j, 1);
-          continue;
+    var didSomething = true;
+    while (didSomething) {
+      didSomething = false;
+      for (var i = 0; i < this.length; i++) {
+        var row = this[i];
+        var j = i + 1;
+        while (j < this.length) {
+          if (row.mergeWith(this[j])) {
+            this.splice(j, 1);
+            didSomething = true;
+            continue;
+          }
+          j++;
         }
-        j++;
       }
     }
   }
@@ -1530,7 +1511,6 @@ class InstSignatureTable extends core.Task {
           if (inst.name === "mov" && mem.startsWith("moff"))
             break;
 
-          if (reg === "r8") reg = "r8lo";
           if (reg === "seg") reg = "sreg";
           if (reg === "st(i)") reg = "st";
           if (reg === "st(0)") reg = "st0";
@@ -1571,6 +1551,46 @@ class InstSignatureTable extends core.Task {
 
           const seg = iop.memSeg;
           if (seg) {
+            switch (inst.name) {
+              case "cmpsb": op.flags.m8 = true; break;
+              case "cmpsw": op.flags.m16 = true; break;
+              case "cmpsd": op.flags.m32 = true; break;
+              case "cmpsq": op.flags.m64 = true; break;
+              case "lodsb": op.flags.m8 = true; break;
+              case "lodsw": op.flags.m16 = true; break;
+              case "lodsd": op.flags.m32 = true; break;
+              case "lodsq": op.flags.m64 = true; break;
+              case "movsb": op.flags.m8 = true; break;
+              case "movsw": op.flags.m16 = true; break;
+              case "movsd": op.flags.m32 = true; break;
+              case "movsq": op.flags.m64 = true; break;
+              case "scasb": op.flags.m8 = true; break;
+              case "scasw": op.flags.m16 = true; break;
+              case "scasd": op.flags.m32 = true; break;
+              case "scasq": op.flags.m64 = true; break;
+              case "stosb": op.flags.m8 = true; break;
+              case "stosw": op.flags.m16 = true; break;
+              case "stosd": op.flags.m32 = true; break;
+              case "stosq": op.flags.m64 = true; break;
+              case "insb": op.flags.m8 = true; break;
+              case "insw": op.flags.m16 = true; break;
+              case "insd": op.flags.m32 = true; break;
+              case "outsb": op.flags.m8 = true; break;
+              case "outsw": op.flags.m16 = true; break;
+              case "outsd": op.flags.m32 = true; break;
+              case "clzero": op.flags.mem = true; op.flags.m512 = true; break;
+              case "enqcmd": op.flags.mem = true; op.flags.m512 = true; break;
+              case "enqcmds": op.flags.mem = true; op.flags.m512 = true; break;
+              case "movdir64b": op.flags.mem = true; op.flags.m512 = true; break;
+              case "maskmovq": op.flags.mem = true; op.flags.m64 = true; break;
+              case "maskmovdqu": op.flags.mem = true; op.flags.m128 = true; break;
+              case "vmaskmovdqu": op.flags.mem = true; op.flags.m128 = true; break;
+              case "monitor": op.flags.mem = true; break;
+              case "monitorx": op.flags.mem = true; break;
+              case "umonitor": op.flags.mem = true; break;
+              default: console.log(`UNKNOWN MEM IN INSTRUCTION '${inst.name}'`); break;
+            }
+
             if (seg === "ds") op.flags.memDS = true;
             if (seg === "es") op.flags.memES = true;
             if (reg === "reg") { op.flags.memBase = true; }
@@ -1581,13 +1601,26 @@ class InstSignatureTable extends core.Task {
             if (reg === "zdi") { op.flags.memBase = true; op.flags.memZDI = true; }
           }
           else if (reg) {
-            op.flags[reg] = true;
-            if (reg === "r8lo") op.flags.r8hi = true;
+            if (reg == "r8") {
+              op.flags["r8lo"] = true;
+              op.flags["r8hi"] = true;
+            }
+            else {
+              op.flags[reg] = true;
+            }
           }
           if (mem) {
             op.flags[mem] = true;
-            // Exception: Allow LEA to use any memory size.
-            if (inst.name === "lea") MapUtils.add(op.flags, MemOp);
+            // HACK: Allow LEA to use any memory size.
+            if (inst.name === "lea") {
+              op.flags.mem = true;
+              Object.assign(op.flags, MemOp);
+            }
+
+            // HACK: These instructions specify explicit memory size, but it's just informational.
+            if (inst.name === "enqcmd" || inst.name === "enqcmds" || inst.name === "movdir64b")
+              op.flags.mem = true;
+
           }
           if (imm) {
             if (iop.immSign === "any" || iop.immSign === "signed"  ) op.flags["i" + imm] = true;
@@ -1607,12 +1640,7 @@ class InstSignatureTable extends core.Task {
     if (signatures.length && GenUtils.canUseImplicitMemSize(dbInsts[0].name))
       signatures.calcImplicitMemSize();
 
-    signatures.simplify();
     signatures.compact();
-
-    signatures.simplify();
-    signatures.compact();
-
     return signatures;
   }
 }
@@ -1745,6 +1773,9 @@ class InstRWInfoTable extends core.Task {
       "movabs"    : "Movabs",
       "movhpd"    : "Movh64",
       "movhps"    : "Movh64",
+      "punpcklbw" : "Punpcklxx",
+      "punpckldq" : "Punpcklxx",
+      "punpcklwd" : "Punpcklxx",
       "vmaskmovpd": "Vmaskmov",
       "vmaskmovps": "Vmaskmov",
       "vmovddup"  : "Vmovddup",
@@ -2153,9 +2184,14 @@ class InstRWInfoTable extends core.Task {
       if (category === null)
         category = c;
       else if (category !== c) {
+        // Special cases.
         if (dbInst.name === "mov" || dbInst.name === "vmovddup")
-          return "None"; // Special case
-        return StringUtils.capitalize(dbInst.name); // Special case.
+          return "None";
+
+        if (/^(punpcklbw|punpckldq|punpcklwd)$/.test(dbInst.name))
+          return "None";
+
+        return StringUtils.capitalize(dbInst.name);
       }
     }
 

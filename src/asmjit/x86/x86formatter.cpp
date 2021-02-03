@@ -188,15 +188,15 @@ static const RegFormatInfo x86RegFormatInfo = {
 
 static const char* x86GetAddressSizeString(uint32_t size) noexcept {
   switch (size) {
-    case 1 : return "byte ";
-    case 2 : return "word ";
-    case 4 : return "dword ";
-    case 6 : return "fword ";
-    case 8 : return "qword ";
-    case 10: return "tbyte ";
-    case 16: return "oword ";
-    case 32: return "yword ";
-    case 64: return "zword ";
+    case 1 : return "byte ptr ";
+    case 2 : return "word ptr ";
+    case 4 : return "dword ptr ";
+    case 6 : return "fword ptr ";
+    case 8 : return "qword ptr ";
+    case 10: return "tbyte ptr ";
+    case 16: return "xmmword ptr ";
+    case 32: return "ymmword ptr ";
+    case 64: return "zmmword ptr ";
     default: return "";
   }
 }
@@ -835,6 +835,17 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
 
   // Format instruction options and instruction mnemonic.
   if (instId < Inst::_kIdCount) {
+    // VEX|EVEX options.
+    if (options & Inst::kOptionVex) ASMJIT_PROPAGATE(sb.append("{vex} "));
+    if (options & Inst::kOptionVex3) ASMJIT_PROPAGATE(sb.append("{vex3} "));
+    if (options & Inst::kOptionEvex) ASMJIT_PROPAGATE(sb.append("{evex} "));
+
+    // MOD/RM and MOD/MR options
+    if (options & Inst::kOptionModRM)
+      ASMJIT_PROPAGATE(sb.append("{modrm} "));
+    else if (options & Inst::kOptionModMR)
+      ASMJIT_PROPAGATE(sb.append("{modmr} "));
+
     // SHORT|LONG options.
     if (options & Inst::kOptionShortForm) ASMJIT_PROPAGATE(sb.append("short "));
     if (options & Inst::kOptionLongForm) ASMJIT_PROPAGATE(sb.append("long "));
@@ -872,11 +883,6 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
         ASMJIT_PROPAGATE(sb.append("rex "));
       }
     }
-
-    // VEX|EVEX options.
-    if (options & Inst::kOptionVex) ASMJIT_PROPAGATE(sb.append("{vex} "));
-    if (options & Inst::kOptionVex3) ASMJIT_PROPAGATE(sb.append("{vex3} "));
-    if (options & Inst::kOptionEvex) ASMJIT_PROPAGATE(sb.append("{evex} "));
 
     ASMJIT_PROPAGATE(InstAPI::instIdToString(arch, instId, sb));
   }

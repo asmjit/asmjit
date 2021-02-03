@@ -437,14 +437,14 @@ public:
     if (immSize >= 4) {
       emit32uLE(imm & 0xFFFFFFFFu);
       imm >>= 32;
-      immSize -= 4;
+      immSize = FastUInt8(immSize - 4u);
     }
 #else
     uint32_t imm = uint32_t(immValue & 0xFFFFFFFFu);
     if (immSize >= 4) {
       emit32uLE(imm);
       imm = uint32_t(immValue >> 32);
-      immSize -= 4;
+      immSize = FastUInt8(immSize - 4u);
     }
 #endif
 
@@ -697,7 +697,8 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
       goto EmitX86R;
 
     case InstDB::kEncodingX86Op_Mod11RM_I8:
-      if (ASMJIT_UNLIKELY(isign3 != ENC_OPS1(Imm)))
+      // The first operand must be immediate, we don't care of other operands as they could be implicit.
+      if (!o0.isImm())
         goto InvalidInstruction;
 
       rbReg = opcode.extractModRM();
@@ -755,11 +756,17 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(uint32_t instId, const Operand_& o0, c
       }
       break;
 
+    case InstDB::kEncodingX86M_NoMemSize:
+      if (o0.isReg())
+        opcode.addPrefixBySize(o0.size());
+      goto CaseX86M_NoSize;
+
     case InstDB::kEncodingX86M:
       opcode.addPrefixBySize(o0.size());
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingX86M_NoSize:
+CaseX86M_NoSize:
       rbReg = o0.id();
       if (isign3 == ENC_OPS1(Reg))
         goto EmitX86R;
@@ -838,6 +845,13 @@ CaseX86M_GPB_MulDiv:
         goto EmitX86M;
       }
       break;
+
+    case InstDB::kEncodingX86M_Only_EDX_EAX:
+      if (isign3 == ENC_OPS3(Mem, Reg, Reg) && Reg::isGpd(o1, Gp::kIdDx) && Reg::isGpd(o2, Gp::kIdAx)) {
+        rmRel = &o0;
+        goto EmitX86M;
+      }
+      ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingX86M_Only:
       if (isign3 == ENC_OPS1(Mem)) {
@@ -977,34 +991,27 @@ CaseX86M_GPB_MulDiv:
 
     case InstDB::kEncodingX86Arith:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
-        opcode += 2;
         opcode.addArithBySize(o0.size());
 
         if (o0.size() != o1.size())
           goto OperandSizeMismatch;
 
-        opReg = o0.id();
-        rbReg = o1.id();
+        rbReg = o0.id();
+        opReg = o1.id();
 
         if (o0.size() == 1) {
-          FIXUP_GPB(o0, opReg);
-          FIXUP_GPB(o1, rbReg);
-
-          if (!(options & Inst::kOptionModMR))
-            goto EmitX86R;
-
-          opcode -= 2;
-          std::swap(opReg, rbReg);
-          goto EmitX86R;
+          FIXUP_GPB(o0, rbReg);
+          FIXUP_GPB(o1, opReg);
         }
-        else {
-          if (!(options & Inst::kOptionModMR))
-            goto EmitX86R;
 
-          opcode -= 2;
-          std::swap(opReg, rbReg);
+        // MOD/MR: The default encoding used if not instructed otherwise..
+        if (!(options & Inst::kOptionModRM))
           goto EmitX86R;
-        }
+
+        // MOD/RM: Alternative encoding selected via instruction options.
+        opcode += 2;
+        std::swap(opReg, rbReg);
+        goto EmitX86R;
       }
 
       if (isign3 == ENC_OPS2(Reg, Mem)) {
@@ -1211,7 +1218,7 @@ CaseX86M_GPB_MulDiv:
         if (o1.size() != 1)
           goto EmitX86M;
 
-        FIXUP_GPB(o0, opReg);
+        FIXUP_GPB(o1, opReg);
         goto EmitX86M;
       }
       break;
@@ -1436,6 +1443,8 @@ CaseX86M_GPB_MulDiv:
       }
 
       if (isign3 == ENC_OPS1(Mem)) {
+        if (!o0.size())
+          goto AmbiguousOperandSize;
         opcode.addArithBySize(o0.size());
         rmRel = &o0;
         goto EmitX86M;
@@ -1539,9 +1548,6 @@ CaseX86M_GPB_MulDiv:
     case InstDB::kEncodingX86Mov:
       // Reg <- Reg
       if (isign3 == ENC_OPS2(Reg, Reg)) {
-        opReg = o0.id();
-        rbReg = o1.id();
-
         // Asmjit uses segment registers indexed from 1 to 6, leaving zero as
         // "no segment register used". We have to fix this (decrement the index
         // of the register) when emitting MOV instructions which move to/from
@@ -1550,46 +1556,45 @@ CaseX86M_GPB_MulDiv:
 
         // GP <- ??
         if (Reg::isGp(o0)) {
+          rbReg = o0.id();
+          opReg = o1.id();
+
           // GP <- GP
           if (Reg::isGp(o1)) {
-            uint32_t size0 = o0.size();
-            uint32_t size1 = o1.size();
-
-            if (size0 != size1) {
+            uint32_t opSize = o0.size();
+            if (opSize != o1.size()) {
+              // TODO: [X86 Assembler] This is a non-standard extension, which should be removed.
               // We allow 'mov r64, r32' as it's basically zero-extend.
-              if (size0 == 8 && size1 == 4)
-                size0 = 4; // Zero extend, don't promote to 64-bit.
+              if (opSize == 8 && o1.size() == 4)
+                opSize = 4; // Zero extend, don't promote to 64-bit.
               else
                 goto InvalidInstruction;
             }
 
-            if (size0 == 1) {
-              FIXUP_GPB(o0, opReg);
-              FIXUP_GPB(o1, rbReg);
-              opcode = 0x8A;
+            if (opSize == 1) {
+              FIXUP_GPB(o0, rbReg);
+              FIXUP_GPB(o1, opReg);
+              opcode = 0x88;
 
-              if (!(options & Inst::kOptionModMR))
+              if (!(options & Inst::kOptionModRM))
                 goto EmitX86R;
 
-              opcode -= 2;
+              opcode += 2;
               std::swap(opReg, rbReg);
               goto EmitX86R;
             }
             else {
-              opcode = 0x8B;
-              opcode.addPrefixBySize(size0);
+              opcode = 0x89;
+              opcode.addPrefixBySize(opSize);
 
-              if (!(options & Inst::kOptionModMR))
+              if (!(options & Inst::kOptionModRM))
                 goto EmitX86R;
 
-              opcode -= 2;
+              opcode += 2;
               std::swap(opReg, rbReg);
               goto EmitX86R;
             }
           }
-
-          opReg = rbReg;
-          rbReg = o0.id();
 
           // GP <- SReg
           if (Reg::isSReg(o1)) {
@@ -1618,6 +1623,9 @@ CaseX86M_GPB_MulDiv:
           }
         }
         else {
+          opReg = o0.id();
+          rbReg = o1.id();
+
           // ?? <- GP
           if (!Reg::isGp(o1))
             goto InvalidInstruction;
@@ -1952,7 +1960,7 @@ CaseX86M_GPB_MulDiv:
             goto InvalidSegment;
 
           opcode = x86OpcodePopSReg[segment];
-          goto EmitDone;
+          goto EmitX86Op;
         }
         else {
 CaseX86PushPop_Gp:
@@ -2032,6 +2040,8 @@ CaseX86PushPop_Gp:
         }
       }
       else {
+        if (ASMJIT_UNLIKELY(o0.size() == 0))
+          goto AmbiguousOperandSize;
         opcode.addArithBySize(o0.size());
 
         if (isign3 == ENC_OPS2(Mem, Reg)) {
@@ -2044,9 +2054,6 @@ CaseX86PushPop_Gp:
         }
 
         if (isign3 == ENC_OPS2(Mem, Imm)) {
-          if (ASMJIT_UNLIKELY(o0.size() == 0))
-            goto AmbiguousOperandSize;
-
           rmRel = &o0;
           immValue = o1.as<Imm>().value() & 0xFF;
           immSize = 0;
@@ -2257,30 +2264,45 @@ CaseX86PushPop_Gp:
 
     case InstDB::kEncodingX86Xadd:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
-        opcode.addArithBySize(o0.size());
         rbReg = o0.id();
         opReg = o1.id();
 
-        if (o0.size() != o1.size())
+        uint32_t opSize = o0.size();
+        if (opSize != o1.size())
           goto OperandSizeMismatch;
 
-        if (o0.size() == 1) {
+        if (opSize == 1) {
           FIXUP_GPB(o0, rbReg);
           FIXUP_GPB(o1, opReg);
           goto EmitX86R;
         }
 
-        // Special opcode for 'xchg ?ax, reg'.
+        // Special cases for 'xchg ?ax, reg'.
         if (instId == Inst::kIdXchg && (opReg == 0 || rbReg == 0)) {
-          opcode &= Opcode::kPP_66 | Opcode::kW;
-          opcode |= 0x90;
-          // One of `xchg a, b` or `xchg b, a` is AX/EAX/RAX.
-          opReg += rbReg;
-          goto EmitX86OpReg;
+          if (is64Bit() && opReg == rbReg && opSize >= 4) {
+            if (opSize == 8) {
+              // Encode 'xchg rax, rax' as '90' (REX and other prefixes are optional).
+              opcode &= Opcode::kW;
+              opcode |= 0x90;
+              goto EmitX86OpReg;
+            }
+            else {
+              // Encode 'xchg eax, eax' by by using a generic path.
+            }
+          }
+          else if (!(options & Inst::kOptionLongForm)) {
+            // The special encoding encodes only one register, which is non-zero.
+            opReg += rbReg;
+
+            opcode.addArithBySize(opSize);
+            opcode &= Opcode::kW | Opcode::kPP_66;
+            opcode |= 0x90;
+            goto EmitX86OpReg;
+          }
         }
-        else {
-          goto EmitX86R;
-        }
+
+        opcode.addArithBySize(opSize);
+        goto EmitX86R;
       }
 
       if (isign3 == ENC_OPS2(Mem, Reg)) {
@@ -2700,7 +2722,11 @@ CaseExtMovd:
       goto CaseExtRm;
 
     case InstDB::kEncodingExtRm_Wx:
-      opcode.addWIf(Reg::isGpq(o0) || o1.size() == 8);
+      opcode.addWIf(o1.size() == 8);
+      ASMJIT_FALLTHROUGH;
+
+    case InstDB::kEncodingExtRm_Wx_GpqOnly:
+      opcode.addWIf(Reg::isGpq(o0));
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingExtRm:
@@ -2843,15 +2869,15 @@ CaseExtRm:
       if (isign3 == ENC_OPS2(Reg, Reg))
         goto EmitX86R;
 
-      // The following instruction uses the secondary opcode.
-      opcode = x86AltOpcodeOf(instInfo);
-
       if (isign3 == ENC_OPS3(Reg, Imm, Imm)) {
+        // This variant of the instruction uses the secondary opcode.
+        opcode = x86AltOpcodeOf(instInfo);
+        rbReg = opReg;
+        opReg = opcode.extractModO();
+
         immValue = (uint32_t(o1.as<Imm>().valueAs<uint8_t>())     ) +
                    (uint32_t(o2.as<Imm>().valueAs<uint8_t>()) << 8) ;
         immSize = 2;
-
-        rbReg = opcode.extractModO();
         goto EmitX86R;
       }
       break;
@@ -2866,10 +2892,10 @@ CaseExtRm:
       if (isign4 == ENC_OPS2(Reg, Reg))
         goto EmitX86R;
 
-      // The following instruction uses the secondary opcode.
-      opcode = x86AltOpcodeOf(instInfo);
-
       if (isign4 == ENC_OPS4(Reg, Reg, Imm, Imm)) {
+        // This variant of the instruction uses the secondary opcode.
+        opcode = x86AltOpcodeOf(instInfo);
+
         immValue = (uint32_t(o2.as<Imm>().valueAs<uint8_t>())     ) +
                    (uint32_t(o3.as<Imm>().valueAs<uint8_t>()) << 8) ;
         immSize = 2;
@@ -2971,7 +2997,6 @@ CaseExtRm:
 
     case InstDB::kEncodingVexM_VM:
       if (isign3 == ENC_OPS1(Mem)) {
-        opcode |= x86OpcodeLByVMem(o0);
         rmRel = &o0;
         goto EmitVexEvexM;
       }
@@ -3003,11 +3028,27 @@ CaseExtRm:
       }
       break;
 
+    case InstDB::kEncodingVexMri_Vpextrw:
+      // Use 'vpextrw reg, xmm1, i8' when possible.
+      if (isign3 == ENC_OPS3(Reg, Reg, Imm)) {
+        opcode = Opcode::k660F00 | 0xC5;
+
+        opReg = o0.id();
+        rbReg = o1.id();
+
+        immValue = o2.as<Imm>().value();
+        immSize = 1;
+        goto EmitVexEvexR;
+      }
+
+      goto CaseVexMri;
+
     case InstDB::kEncodingVexMri_Lx:
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingVexMri:
+CaseVexMri:
       immValue = o2.as<Imm>().value();
       immSize = 1;
 
@@ -3033,6 +3074,13 @@ CaseExtRm:
 
     case InstDB::kEncodingVexRm_Wx:
       opcode.addWIf(Reg::isGpq(o0) | Reg::isGpq(o1));
+      goto CaseVexRm;
+
+    case InstDB::kEncodingVexRm_Lx_Narrow:
+      if (o1.size())
+        opcode |= x86OpcodeLBySize(o1.size());
+      else if (o0.size() == 32)
+        opcode |= Opcode::kLL_2;
       goto CaseVexRm;
 
     case InstDB::kEncodingVexRm_Lx_Bcst:
@@ -3077,7 +3125,7 @@ CaseVexRm:
       const Operand_& o4 = opExt[EmitterUtils::kOp4];
       const Operand_& o5 = opExt[EmitterUtils::kOp5];
 
-      if (Reg::isZmm(o0) && Reg::isZmm(o1) && Reg::isZmm(o2) && Reg::isZmm(o3) && Reg::isZmm(o4) && o5.isMem()) {
+      if (Reg::isVec(o0) && Reg::isVec(o1) && Reg::isVec(o2) && Reg::isVec(o3) && Reg::isVec(o4) && o5.isMem()) {
         // Registers [o1, o2, o3, o4] must start aligned and must be consecutive.
         uint32_t i1 = o1.id();
         uint32_t i2 = o2.id();
@@ -3087,7 +3135,7 @@ CaseVexRm:
         if (ASMJIT_UNLIKELY((i1 & 0x3) != 0 || i2 != i1 + 1 || i3 != i1 + 2 || i4 != i1 + 3))
           goto NotConsecutiveRegs;
 
-        opReg = o0.id();
+        opReg = x86PackRegAndVvvvv(o0.id(), i1);
         rmRel = &o5;
         goto EmitVexEvexM;
       }
@@ -3148,6 +3196,11 @@ CaseVexRvm_R:
       goto CaseVexRvm;
     }
 
+    case InstDB::kEncodingVexRvm_Lx_KEvex: {
+      opcode.forceEvexIf(Reg::isKReg(o0));
+      ASMJIT_FALLTHROUGH;
+    }
+
     case InstDB::kEncodingVexRvm_Lx: {
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());
       goto CaseVexRvm;
@@ -3205,11 +3258,21 @@ CaseVexRvm_R:
       break;
     }
 
+    case InstDB::kEncodingVexRvmi_KEvex:
+      opcode.forceEvexIf(Reg::isKReg(o0));
+      goto VexRvmi;
+
+    case InstDB::kEncodingVexRvmi_Lx_KEvex:
+      opcode.forceEvexIf(Reg::isKReg(o0));
+      ASMJIT_FALLTHROUGH;
+
     case InstDB::kEncodingVexRvmi_Lx:
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());
       ASMJIT_FALLTHROUGH;
 
-    case InstDB::kEncodingVexRvmi: {
+    case InstDB::kEncodingVexRvmi:
+VexRvmi:
+    {
       const Operand_& o3 = opExt[EmitterUtils::kOp3];
       const uint32_t isign4 = isign3 + (o3.opType() << 9);
 
@@ -3257,7 +3320,6 @@ CaseVexRvm_R:
         rmRel = &o1;
         goto EmitVexEvexM;
       }
-
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingVexRmv_VM:
@@ -3542,6 +3604,10 @@ CaseVexRvm_R:
       }
       break;
 
+    case InstDB::kEncodingVexRvmVmi_Lx_MEvex:
+      opcode.forceEvexIf(o1.isMem());
+      ASMJIT_FALLTHROUGH;
+
     case InstDB::kEncodingVexRvmVmi_Lx:
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());
       ASMJIT_FALLTHROUGH;
@@ -3560,7 +3626,7 @@ CaseVexRvm_R:
       }
 
       // The following instruction uses the secondary opcode.
-      opcode &= Opcode::kLL_Mask;
+      opcode &= Opcode::kLL_Mask | Opcode::kMM_ForceEvex;
       opcode |= x86AltOpcodeOf(instInfo);
       opReg = opcode.extractModO();
 
@@ -3598,9 +3664,9 @@ CaseVexRvm_R:
       }
       break;
 
-    case InstDB::kEncodingVexEvexVmi_Lx:
+    case InstDB::kEncodingVexVmi_Lx_MEvex:
       if (isign3 == ENC_OPS3(Reg, Mem, Imm))
-        opcode |= Opcode::kMM_ForceEvex;
+        opcode.forceEvex();
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingVexVmi_Lx:
@@ -3743,11 +3809,24 @@ CaseVexVmi_AfterImm:
 
       if (isign4 == ENC_OPS4(Reg, Reg, Reg, Reg)) {
         opReg = x86PackRegAndVvvvv(o0.id(), o1.id());
-        rbReg = o2.id();
 
-        immValue = o3.id() << 4;
-        immSize = 1;
-        goto EmitVexEvexR;
+        if (!(options & Inst::kOptionModMR)) {
+          // MOD/RM - Encoding preferred by LLVM.
+          opcode.addW();
+          rbReg = o3.id();
+
+          immValue = o2.id() << 4;
+          immSize = 1;
+          goto EmitVexEvexR;
+        }
+        else {
+          // MOD/MR - Alternative encoding.
+          rbReg = o2.id();
+
+          immValue = o3.id() << 4;
+          immSize = 1;
+          goto EmitVexEvexR;
+        }
       }
 
       if (isign4 == ENC_OPS4(Reg, Reg, Reg, Mem)) {
