@@ -1607,10 +1607,14 @@ Error InstInternal::queryFeatures(uint32_t arch, const BaseInst& inst, const Ope
             mustUseEvex = opCount >= 2 && x86::Reg::isGp(operands[1]);
             break;
 
-          // Special case: VPERMPD only supports YMM predicate in AVX mode, immediate
-          // precicate is only supported by AVX512-F and newer.
+          // Special case: VPERMPD - AVX2 vs AVX512-F case.
           case Inst::kIdVpermpd:
             mustUseEvex = opCount >= 3 && !operands[2].isImm();
+            break;
+
+          // Special case: VPERMQ - AVX2 vs AVX512-F case.
+          case Inst::kIdVpermq:
+            mustUseEvex = opCount >= 3 && (operands[1].isMem() || !operands[2].isImm());
             break;
         }
 
