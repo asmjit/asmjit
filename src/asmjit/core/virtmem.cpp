@@ -54,6 +54,10 @@
     #endif
   #endif
 
+  #if !defined(PROT_MAX)
+    #define PROT_MAX(flag) 0
+  #endif
+
   // BSD/OSX: `MAP_ANONYMOUS` is not defined, `MAP_ANON` is.
   #if !defined(MAP_ANONYMOUS)
     #define MAP_ANONYMOUS MAP_ANON
@@ -284,13 +288,17 @@ enum ShmStrategy : uint32_t {
   kShmStrategyTmpDir = 2
 };
 
+static ASMJIT_INLINE int VirtMem_protMaxMmap(int flags) noexcept {
+  return PROT_MAX(flags);
+}
+
 // Posix specific implementation that uses `mmap()` and `munmap()`.
 static int VirtMem_accessToPosixProtection(uint32_t flags) noexcept {
   int protection = 0;
   if (flags & VirtMem::kAccessRead   ) protection |= PROT_READ;
   if (flags & VirtMem::kAccessWrite  ) protection |= PROT_READ | PROT_WRITE;
   if (flags & VirtMem::kAccessExecute) protection |= PROT_READ | PROT_EXEC;
-  return protection;
+  return protection | VirtMem_protMaxMmap(protection);
 }
 
 // Translates libc errors specific to VirtualMemory mapping to `asmjit::Error`.
