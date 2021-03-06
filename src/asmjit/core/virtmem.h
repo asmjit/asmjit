@@ -41,26 +41,48 @@ ASMJIT_BEGIN_NAMESPACE
 //! Virtual memory management.
 namespace VirtMem {
 
-//! Virtual memory and memory mapping flags.
+//! Virtual memory access and mmap-specific flags.
 enum Flags : uint32_t {
   //! No access flags.
   kAccessNone = 0x00000000u,
   //! Memory is readable.
   kAccessRead = 0x00000001u,
-  //! Memory is writable (implies read access).
+  //! Memory is writable.
   kAccessWrite = 0x00000002u,
-  //! Memory is executable (implies read access).
+  //! Memory is executable.
   kAccessExecute = 0x00000004u,
 
-  //! A combination of `kAccessRead | kAccessWrite`
-  kAccessReadWrite = 0x00000003u,
+  //! A combination of \ref kAccessRead and \ref kAccessWrite.
+  kAccessReadWrite = kAccessRead | kAccessWrite,
+  //! A combination of \ref kAccessRead, \ref kAccessWrite.
+  kAccessRW = kAccessRead | kAccessWrite,
+  //! A combination of \ref kAccessRead and \ref kAccessExecute.
+  kAccessRX = kAccessRead | kAccessExecute,
+  //! A combination of \ref kAccessRead, \ref kAccessWrite, and \ref kAccessExecute.
+  kAccessRWX = kAccessRead | kAccessWrite | kAccessExecute,
 
-  //! Use a `MAP_JIT` flag available on Apple platforms (OSX Mojave+), which
-  //! allows JIT code to be executed in OSX bundles. This flag is not turned
+  //! Use a `MAP_JIT` flag available on Apple platforms (introduced by Mojave),
+  //! which allows JIT code to be executed in MAC bundles. This flag is not turned
   //! on by default, because when a process uses `fork()` the child process
   //! has no access to the pages mapped with `MAP_JIT`, which could break code
   //! that doesn't expect this behavior.
   kMMapEnableMapJit = 0x00000010u,
+
+  //! Pass `PROT_MAX(PROT_READ)` to mmap() on platforms that support `PROT_MAX`.
+  kMMapMaxAccessRead = 0x00000020u,
+  //! Pass `PROT_MAX(PROT_WRITE)` to mmap() on platforms that support `PROT_MAX`.
+  kMMapMaxAccessWrite = 0x00000040u,
+  //! Pass `PROT_MAX(PROT_EXEC)` to mmap() on platforms that support `PROT_MAX`.
+  kMMapMaxAccessExecute = 0x00000080u,
+
+  //! A combination of \ref kMMapMaxAccessRead and \ref kMMapMaxAccessWrite.
+  kMMapMaxAccessReadWrite = kMMapMaxAccessRead | kMMapMaxAccessWrite,
+  //! A combination of \ref kMMapMaxAccessRead and \ref kMMapMaxAccessWrite.
+  kMMapMaxAccessRW = kMMapMaxAccessRead | kMMapMaxAccessWrite,
+  //! A combination of \ref kMMapMaxAccessRead and \ref kMMapMaxAccessExecute.
+  kMMapMaxAccessRX = kMMapMaxAccessRead | kMMapMaxAccessExecute,
+  //! A combination of \ref kMMapMaxAccessRead, \ref kMMapMaxAccessWrite, \ref kMMapMaxAccessExecute.
+  kMMapMaxAccessRWX = kMMapMaxAccessRead | kMMapMaxAccessWrite | kMMapMaxAccessExecute,
 
   //! Not an access flag, only used by `allocDualMapping()` to override the
   //! default allocation strategy to always use a 'tmp' directory instead of
@@ -94,23 +116,22 @@ struct DualMapping {
 //! Returns virtual memory information, see `VirtMem::Info` for more details.
 ASMJIT_API Info info() noexcept;
 
-//! Allocates virtual memory by either using `VirtualAlloc()` (Windows)
-//! or `mmap()` (POSIX).
+//! Allocates virtual memory by either using `mmap()` (POSIX) or `VirtualAlloc()`
+//! (Windows).
 //!
-//! \note `size` should be aligned to a page size, use \ref VirtMem::info()
+//! \note `size` should be aligned to page size, use \ref VirtMem::info()
 //! to obtain it. Invalid size will not be corrected by the implementation
 //! and the allocation would not succeed in such case.
 ASMJIT_API Error alloc(void** p, size_t size, uint32_t flags) noexcept;
 
-//! Releases virtual memory previously allocated by \ref  VirtMem::alloc() or
-//! \ref VirtMem::allocDualMapping().
+//! Releases virtual memory previously allocated by \ref VirtMem::alloc().
 //!
 //! \note The size must be the same as used by \ref VirtMem::alloc(). If the
 //! size is not the same value the call will fail on any POSIX system, but
-//! pass on Windows, because of the difference of the implementation.
+//! pass on Windows, because it's implemented differently.
 ASMJIT_API Error release(void* p, size_t size) noexcept;
 
-//! A cross-platform wrapper around `mprotect()` (POSIX) and `VirtualProtect`
+//! A cross-platform wrapper around `mprotect()` (POSIX) and `VirtualProtect()`
 //! (Windows).
 ASMJIT_API Error protect(void* p, size_t size, uint32_t flags) noexcept;
 
@@ -129,8 +150,7 @@ ASMJIT_API Error protect(void* p, size_t size, uint32_t flags) noexcept;
 //! \remarks Both pointers in `dm` would be set to `nullptr` if the function fails.
 ASMJIT_API Error allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) noexcept;
 
-//! Releases the virtual memory mapping previously allocated by
-//! \ref VirtMem::allocDualMapping().
+//! Releases virtual memory mapping previously allocated by \ref VirtMem::allocDualMapping().
 //!
 //! \remarks Both pointers in `dm` would be set to `nullptr` if the function succeeds.
 ASMJIT_API Error releaseDualMapping(DualMapping* dm, size_t size) noexcept;

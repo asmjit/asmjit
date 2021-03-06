@@ -534,11 +534,11 @@ static JitAllocatorBlock* JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* imp
   uint32_t blockFlags = 0;
   if (bitWords != nullptr) {
     if (impl->options & JitAllocator::kOptionUseDualMapping) {
-      err = VirtMem::allocDualMapping(&virtMem, blockSize, VirtMem::kAccessReadWrite | VirtMem::kAccessExecute);
+      err = VirtMem::allocDualMapping(&virtMem, blockSize, VirtMem::kAccessRWX);
       blockFlags |= JitAllocatorBlock::kFlagDualMapped;
     }
     else {
-      err = VirtMem::alloc(&virtMem.ro, blockSize, VirtMem::kAccessReadWrite | VirtMem::kAccessExecute);
+      err = VirtMem::alloc(&virtMem.ro, blockSize, VirtMem::kAccessRWX);
       virtMem.rw = virtMem.ro;
     }
   }
