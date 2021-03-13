@@ -44,7 +44,9 @@ public:
 
   AssemblerTester(uint32_t arch, const TestSettings& settings) noexcept
     : env(arch),
-      settings(settings) {}
+      settings(settings) {
+    prepare();
+  }
 
   void printHeader(const char* archName) noexcept {
     printf("%s assembler tests:\n", archName);
@@ -56,17 +58,19 @@ public:
 
   bool didPass() const noexcept { return passed == count; }
 
-  void beforeInstruction() noexcept {
+  void prepare() noexcept {
+    code.reset();
     code.init(env, 0);
     code.attach(&assembler);
   }
 
-  bool testInstruction(const char* expectedOpcode, const char* s, uint32_t err) noexcept {
+  ASMJIT_NOINLINE bool testInstruction(const char* expectedOpcode, const char* s, uint32_t err) noexcept {
     count++;
 
     if (err) {
       printf("  !! %s\n"
              "    <%s>\n", s, asmjit::DebugUtils::errorAsString(err));
+      prepare();
       return false;
     }
 
@@ -77,6 +81,7 @@ public:
     if (encodedOpcode != expectedOpcode) {
       printf("  !! [%s] <- %s\n"
              "     [%s] (Expected)\n", encodedOpcode.data(), s, expectedOpcode);
+      prepare();
       return false;
     }
 
@@ -84,13 +89,9 @@ public:
       printf("  OK [%s] <- %s\n", encodedOpcode.data(), s);
 
     passed++;
+    prepare();
     return true;
-  }
-
-  void afterInstruction() noexcept {
-    code.reset();
   }
 };
 
 #endif // ASMJIT_TEST_ASSEMBLER_H_INCLUDED
-

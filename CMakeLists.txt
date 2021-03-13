@@ -510,6 +510,7 @@ if (NOT ASMJIT_EMBED)
 
     asmjit_add_target(asmjit_test_assembler TEST
                       SOURCES    test/asmjit_test_assembler.cpp
+                                 test/asmjit_test_assembler_x64.cpp
                                  test/asmjit_test_assembler_x86.cpp
                                  test/asmjit_test_assembler.h
                       LIBRARIES  asmjit::asmjit
