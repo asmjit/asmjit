@@ -16,15 +16,15 @@
       "optional": true
     },
     {
-      "cmd": ["asmjit_test_opcode", "--quiet"],
-      "optional": true
-    },
-    {
       "cmd": ["asmjit_test_assembler", "--quiet"],
       "optional": true
     },
     {
       "cmd": ["asmjit_test_emitters"],
+      "optional": true
+    },
+    {
+      "cmd": ["asmjit_test_compiler"],
       "optional": true
     },
     {
@@ -36,7 +36,7 @@
       "optional": true
     },
     {
-      "cmd": ["asmjit_test_compiler"],
+      "cmd": ["asmjit_test_perf", "--quick"],
       "optional": true
     }
   ]

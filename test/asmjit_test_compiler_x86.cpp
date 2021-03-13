@@ -2291,7 +2291,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    asmtest::generateAlphaBlend(cc);
+    asmtest::generateSseAlphaBlend(cc, true);
   }
 
   virtual bool run(void* _func, String& result, String& expect) {

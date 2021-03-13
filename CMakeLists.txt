@@ -497,17 +497,6 @@ if (NOT ASMJIT_EMBED)
                       CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     target_include_directories(asmjit_test_unit BEFORE PRIVATE ${ASMJIT_INCLUDE_DIRS})
 
-    foreach(_target asmjit_test_opcode
-                    asmjit_test_emitters
-                    asmjit_test_x86_sections)
-      asmjit_add_target(${_target} TEST
-                        SOURCES    test/${_target}.cpp
-                        LIBRARIES  asmjit::asmjit
-                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-    endforeach()
-
     asmjit_add_target(asmjit_test_assembler TEST
                       SOURCES    test/asmjit_test_assembler.cpp
                                  test/asmjit_test_assembler_x64.cpp
@@ -517,6 +506,25 @@ if (NOT ASMJIT_EMBED)
                       CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
                       CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                       CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+
+    asmjit_add_target(asmjit_test_perf EXECUTABLE
+                      SOURCES    test/asmjit_test_perf.cpp
+                                 test/asmjit_test_perf_x86.cpp
+                      SOURCES    test/asmjit_test_perf.h
+                      LIBRARIES  asmjit::asmjit
+                      CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                      CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                      CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+
+    foreach(_target asmjit_test_emitters
+                    asmjit_test_x86_sections)
+      asmjit_add_target(${_target} TEST
+                        SOURCES    test/${_target}.cpp
+                        LIBRARIES  asmjit::asmjit
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
+                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
+                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
+    endforeach()
 
     if (NOT ASMJIT_NO_INTROSPECTION)
       asmjit_add_target(asmjit_test_instinfo TEST
@@ -545,14 +553,6 @@ if (NOT ASMJIT_EMBED)
                         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endif()
 
-    foreach(_target asmjit_bench_x86)
-      asmjit_add_target(${_target} EXECUTABLE
-                        SOURCES    test/${_target}.cpp
-                        LIBRARIES  asmjit::asmjit
-                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS}
-                        CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
-                        CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
-    endforeach()
   endif()
 endif()
 

@@ -32,6 +32,8 @@
 #include <chrono>
 
 #include "cmdline.h"
+#include "performancetimer.h"
+
 #include "asmjit_test_compiler.h"
 
 #if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
@@ -53,27 +55,6 @@ void compiler_add_a64_tests(TestApp& app);
 #endif
 
 using namespace asmjit;
-
-class PerformanceTimer {
-public:
-  typedef std::chrono::high_resolution_clock::time_point TimePoint;
-
-  TimePoint _startTime {};
-  TimePoint _endTime {};
-
-  inline void start() {
-    _startTime = std::chrono::high_resolution_clock::now();
-  }
-
-  inline void stop() {
-    _endTime = std::chrono::high_resolution_clock::now();
-  }
-
-  inline double duration() const {
-    std::chrono::duration<double> elapsed = _endTime - _startTime;
-    return elapsed.count() * 1000;
-  }
-};
 
 // ============================================================================
 // [TestApp]

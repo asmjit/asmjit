@@ -21,8 +21,8 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-#ifndef ASMJIT_TEST_CMDLINE_H_INCLUDED
-#define ASMJIT_TEST_CMDLINE_H_INCLUDED
+#ifndef CMDLINE_H_INCLUDED
+#define CMDLINE_H_INCLUDED
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -80,4 +80,4 @@ public:
   }
 };
 
-#endif // ASMJIT_TEST_CMDLINE_H_INCLUDED
+#endif // CMDLINE_H_INCLUDED
