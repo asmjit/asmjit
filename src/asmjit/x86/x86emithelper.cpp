@@ -148,12 +148,10 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
         instId = _avxEnabled ? Inst::kIdVmovaps : Inst::kIdMovaps;
       else if (elementTypeId == Type::kIdF64)
         instId = _avxEnabled ? Inst::kIdVmovapd : Inst::kIdMovapd;
-      else if (typeId <= Type::_kIdVec256End)
+      else if (!_avx512Enabled)
         instId = _avxEnabled ? Inst::kIdVmovdqa : Inst::kIdMovdqa;
-      else if (elementTypeId <= Type::kIdU32)
-        instId = Inst::kIdVmovdqa32;
       else
-        instId = Inst::kIdVmovdqa64;
+        instId = Inst::kIdVmovdqa32;
       break;
     }
   }

@@ -149,6 +149,21 @@ class Filter {
 // [tablegen.x86.GenUtils]
 // ============================================================================
 
+const VexToEvexMap = {
+  "vbroadcastf128": "vbroadcastf32x4",
+  "vbroadcasti128": "vbroadcasti32x4",
+  "vextractf128": "vextractf32x4",
+  "vextracti128": "vextracti32x4",
+  "vinsertf128": "vinsertf32x4",
+  "vinserti128": "vinserti32x4",
+  "vmovdqa": "vmovdqa32",
+  "vmovdqu": "vmovdqu32",
+  "vpand": "vpandd",
+  "vpandn": "vpandnd",
+  "vpor": "vpord",
+  "vpxor": "vpxord"
+};
+
 class GenUtils {
   static cpuArchOf(dbInsts) {
     var anyArch = false;
@@ -169,15 +184,60 @@ class GenUtils {
     return ArrayUtils.sorted(dbInsts.unionCpuFeatures());
   }
 
-  static flagsOf(dbInsts) {
-    function replace(map, a, b, c) {
-      if (map[a] && map[b]) {
-        delete map[a];
-        delete map[b];
-        map[c] = true;
+  static assignVexEvexCompatibilityFlags(f, dbInsts) {
+    const vexInsts = dbInsts.filter((inst) => { return inst.prefix === "VEX"; });
+    const evexInsts = dbInsts.filter((inst) => { return inst.prefix === "EVEX"; });
+
+    function isCompatible(vexInst, evexInst) {
+      if (vexInst.operands.length !== evexInst.operands.length)
+        return false;
+
+      for (let i = 0; i < vexInst.operands.length; i++) {
+        const vexOp = vexInst.operands[i];
+        const evexOp = evexInst.operands[i];
+
+        if (vexOp.data === evexOp.data)
+          continue;
+
+        if (vexOp.reg && vexOp.reg === evexOp.reg)
+          continue;
+        if (vexOp.mem && vexOp.mem === evexOp.mem)
+          continue;
+
+        return false;
+      }
+      return true;
+    }
+
+    let compatible = 0;
+    for (const vexInst of vexInsts) {
+      for (const evexInst of evexInsts) {
+        if (isCompatible(vexInst, evexInst)) {
+          compatible++;
+          break;
+        }
       }
     }
 
+    if (compatible == vexInsts.length) {
+      f.EvexCompat = true;
+      return true;
+    }
+
+    if (evexInsts[0].operands[0].reg === "k") {
+      f.EvexKReg = true;
+      return true;
+    }
+
+    if (evexInsts[0].operands.length == 2 && vexInsts[0].operands.length === 3) {
+      f.EvexTwoOp = true;
+      return true;
+    }
+
+    return false;
+  }
+
+  static flagsOf(dbInsts) {
     const f = Object.create(null);
     var i, j;
 
@@ -201,7 +261,7 @@ class GenUtils {
         const op = operands[j];
         if (op.reg === "mm")
           mmx = true;
-        else if (/^(k|xmm|ymm|zmm)$/.test(op.reg)) {
+        else if (/^(xmm|ymm|zmm)$/.test(op.reg)) {
           vec = true;
         }
       }
@@ -256,20 +316,14 @@ class GenUtils {
         if (dbInst.broadcast) f["Avx512B" + String(dbInst.elementSize)] = true;
         if (dbInst.tupleType === "T1_4X") f.Avx512T4X = true;
       }
+
+      if (VexToEvexMap[dbInst.name])
+        f.EvexTransformable = true;
     }
 
-    replace(f, "Avx512K"        , "Avx512Z"     , "Avx512KZ");
-    replace(f, "Avx512ER"       , "Avx512SAE"   , "Avx512ER_SAE");
-    replace(f, "Avx512KZ"       , "Avx512SAE"   , "Avx512KZ_SAE");
-    replace(f, "Avx512KZ"       , "Avx512ER_SAE", "Avx512KZ_ER_SAE");
-    replace(f, "Avx512K"        , "Avx512B32"   , "Avx512K_B32");
-    replace(f, "Avx512K"        , "Avx512B64"   , "Avx512K_B64");
-    replace(f, "Avx512KZ"       , "Avx512B32"   , "Avx512KZ_B32");
-    replace(f, "Avx512KZ"       , "Avx512B64"   , "Avx512KZ_B64");
-    replace(f, "Avx512KZ_SAE"   , "Avx512B32"   , "Avx512KZ_SAE_B32");
-    replace(f, "Avx512KZ_SAE"   , "Avx512B64"   , "Avx512KZ_SAE_B64");
-    replace(f, "Avx512KZ_ER_SAE", "Avx512B32"   , "Avx512KZ_ER_SAE_B32");
-    replace(f, "Avx512KZ_ER_SAE", "Avx512B64"   , "Avx512KZ_ER_SAE_B64");
+    if (f.Vex && f.Evex) {
+      GenUtils.assignVexEvexCompatibilityFlags(f, dbInsts)
+    }
 
     return Object.getOwnPropertyNames(f);
   }
@@ -2382,25 +2436,33 @@ class InstCommonTable extends core.Task {
     const table = new IndexedArray();
 
     insts.forEach((inst) => {
-      const flags         = inst.flags.map(function(flag) { return `F(${flag})`; }).join("|") || "0";
+      const commonFlagsArray = inst.flags.filter((flag) => { return !flag.startsWith("Avx512"); });
+      const avx512FlagsArray = inst.flags.filter((flag) => { return  flag.startsWith("Avx512"); });
+
+      const commonFlags = commonFlagsArray.map(function(flag) { return `F(${flag          })`; }).join("|") || "0";
+      const avx512Flags = avx512FlagsArray.map(function(flag) { return `X(${flag.substr(6)})`; }).join("|") || "0";
+
       const singleRegCase = `SINGLE_REG(${inst.singleRegCase})`;
-      const controlType   = `CONTROL(${inst.controlType})`;
+      const controlType = `CONTROL(${inst.controlType})`;
 
       const row = "{ " +
-        String(flags              ).padEnd(54) + ", " +
+        String(commonFlags        ).padEnd(50) + ", " +
+        String(avx512Flags        ).padEnd(30) + ", " +
         String(inst.signatureIndex).padEnd( 3) + ", " +
         String(inst.signatureCount).padEnd( 2) + ", " +
         String(controlType        ).padEnd(16) + ", " +
-        String(singleRegCase      ).padEnd(16) + ", " + "0 }";
+        String(singleRegCase      ).padEnd(16) + "}";
       inst.commonInfoIndexA = table.addIndexed(row);
     });
 
     var s = `#define F(VAL) InstDB::kFlag##VAL\n` +
+            `#define X(VAL) InstDB::kAvx512Flag##VAL\n` +
             `#define CONTROL(VAL) Inst::kControl##VAL\n` +
             `#define SINGLE_REG(VAL) InstDB::kSingleReg##VAL\n` +
             `const InstDB::CommonInfo InstDB::_commonInfoTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
             `#undef SINGLE_REG\n` +
             `#undef CONTROL\n` +
+            `#undef X\n` +
             `#undef F\n`;
     this.inject("InstCommonTable", disclaimer(s), table.length * 8);
   }

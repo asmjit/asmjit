@@ -257,7 +257,7 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitProlog(const FuncFrame& frame) {
 
 #ifdef ASMJIT_BUILD_X86
   if (environment().isFamilyX86()) {
-    x86::EmitHelper emitHelper(this, frame.isAvxEnabled());
+    x86::EmitHelper emitHelper(this, frame.isAvxEnabled(), frame.isAvx512Enabled());
     return emitHelper.emitProlog(frame);
   }
 #endif
@@ -278,7 +278,7 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitEpilog(const FuncFrame& frame) {
 
 #ifdef ASMJIT_BUILD_X86
   if (environment().isFamilyX86()) {
-    x86::EmitHelper emitHelper(this, frame.isAvxEnabled());
+    x86::EmitHelper emitHelper(this, frame.isAvxEnabled(), frame.isAvx512Enabled());
     return emitHelper.emitEpilog(frame);
   }
 #endif
@@ -299,7 +299,7 @@ ASMJIT_FAVOR_SIZE Error BaseEmitter::emitArgsAssignment(const FuncFrame& frame, 
 
 #ifdef ASMJIT_BUILD_X86
   if (environment().isFamilyX86()) {
-    x86::EmitHelper emitHelper(this, frame.isAvxEnabled());
+    x86::EmitHelper emitHelper(this, frame.isAvxEnabled(), frame.isAvx512Enabled());
     return emitHelper.emitArgsAssignment(frame, args);
   }
 #endif
