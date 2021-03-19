@@ -158,57 +158,28 @@ static void printInfoExtra(uint32_t arch, uint32_t instId, uint32_t options, con
 
 static void testX86Arch() {
 #if defined(ASMJIT_BUILD_X86)
+  using namespace x86;
   uint32_t arch = Environment::kArchX64;
 
-  printInfoSimple(arch,
-                  x86::Inst::kIdAdd, 0,
-                  x86::eax, x86::ebx);
+  printInfoSimple(arch, Inst::kIdAdd, 0, eax, ebx);
+  printInfoSimple(arch, Inst::kIdLods, 0, eax, dword_ptr(rsi));
 
-  printInfoSimple(arch,
-                  x86::Inst::kIdLods, 0,
-                  x86::eax , dword_ptr(x86::rsi));
+  printInfoSimple(arch, Inst::kIdPshufd, 0, xmm0, xmm1, imm(0));
+  printInfoSimple(arch, Inst::kIdPabsb, 0, mm1, mm2);
+  printInfoSimple(arch, Inst::kIdPabsb, 0, xmm1, xmm2);
+  printInfoSimple(arch, Inst::kIdPextrw, 0, eax, mm1, imm(0));
+  printInfoSimple(arch, Inst::kIdPextrw, 0, eax, xmm1, imm(0));
+  printInfoSimple(arch, Inst::kIdPextrw, 0, ptr(rax), xmm1, imm(0));
 
-  printInfoSimple(arch,
-                  x86::Inst::kIdPshufd, 0,
-                  x86::xmm0, x86::xmm1, imm(0));
+  printInfoSimple(arch, Inst::kIdVpdpbusd, 0, xmm0, xmm1, xmm2);
+  printInfoSimple(arch, Inst::kIdVpdpbusd, Inst::kOptionVex, xmm0, xmm1, xmm2);
 
-  printInfoSimple(arch,
-                  x86::Inst::kIdPextrw, 0,
-                  x86::eax, x86::xmm1, imm(0));
+  printInfoSimple(arch, Inst::kIdVaddpd, 0, ymm0, ymm1, ymm2);
+  printInfoSimple(arch, Inst::kIdVaddpd, 0, ymm0, ymm30, ymm31);
+  printInfoSimple(arch, Inst::kIdVaddpd, 0, zmm0, zmm1, zmm2);
 
-  printInfoSimple(arch,
-                  x86::Inst::kIdPextrw, 0,
-                  x86::ptr(x86::rax), x86::xmm1, imm(0));
-
-  printInfoSimple(arch,
-                 x86::Inst::kIdVpdpbusd, 0,
-                 x86::xmm0, x86::xmm1, x86::xmm2);
-
-  printInfoSimple(arch,
-                 x86::Inst::kIdVpdpbusd, x86::Inst::kOptionVex,
-                 x86::xmm0, x86::xmm1, x86::xmm2);
-
-  printInfoSimple(arch,
-                  x86::Inst::kIdVaddpd, 0,
-                  x86::ymm0, x86::ymm1, x86::ymm2);
-
-  printInfoSimple(arch,
-                  x86::Inst::kIdVaddpd, 0,
-                  x86::ymm0, x86::ymm30, x86::ymm31);
-
-  printInfoSimple(arch,
-                  x86::Inst::kIdVaddpd, 0,
-                  x86::zmm0, x86::zmm1, x86::zmm2);
-
-  printInfoExtra(arch,
-                 x86::Inst::kIdVaddpd, 0,
-                 x86::k1,
-                 x86::zmm0, x86::zmm1, x86::zmm2);
-
-  printInfoExtra(arch,
-                 x86::Inst::kIdVaddpd, x86::Inst::kOptionZMask,
-                 x86::k1,
-                 x86::zmm0, x86::zmm1, x86::zmm2);
+  printInfoExtra(arch, Inst::kIdVaddpd, 0, k1, zmm0, zmm1, zmm2);
+  printInfoExtra(arch, Inst::kIdVaddpd, Inst::kOptionZMask, k1, zmm0, zmm1, zmm2);
 #endif
 }
 

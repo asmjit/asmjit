@@ -1519,6 +1519,7 @@ Error InstInternal::queryFeatures(uint32_t arch, const BaseInst& inst, const Ope
           // The instruction doesn't use XMM register(s), thus it's MMX/MMX2 only.
           out->remove(Features::kSSE);
           out->remove(Features::kSSE2);
+          out->remove(Features::kSSE4_1);
         }
         else {
           out->remove(Features::kMMX);
@@ -1532,9 +1533,6 @@ Error InstInternal::queryFeatures(uint32_t arch, const BaseInst& inst, const Ope
         // can extract directly to memory. This instruction is, of course, not
         // compatible with MMX/SSE2 and would #UD if SSE4.1 is not supported.
         if (instId == Inst::kIdPextrw) {
-          ASMJIT_ASSERT(out->has(Features::kSSE2));
-          ASMJIT_ASSERT(out->has(Features::kSSE4_1));
-
           if (opCount >= 1 && operands[0].isMem())
             out->remove(Features::kSSE2);
           else
