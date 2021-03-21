@@ -35,7 +35,7 @@
 // ----------------------------------------------------------------------------
 
 #include <asmjit/core.h>
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
 
 #include <asmjit/x86.h>
 #include <stdio.h>
@@ -182,4 +182,4 @@ int main() {
   printf("AsmJit X86 Sections Test is disabled on non-x86 host\n\n");
   return 0;
 }
-#endif
+#endif // !ASMJIT_NO_X86 && ASMJIT_ARCH_X86

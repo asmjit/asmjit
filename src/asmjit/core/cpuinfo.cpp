@@ -57,7 +57,7 @@ static inline uint32_t detectHWThreadCount() noexcept {
 // [asmjit::CpuInfo - Detect - CPU Features]
 // ============================================================================
 
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
 namespace x86 { void detectCpu(CpuInfo& cpu) noexcept; }
 #endif
 
@@ -78,7 +78,7 @@ const CpuInfo& CpuInfo::host() noexcept {
   if (!cpuInfoInitialized) {
     CpuInfo cpuInfoLocal;
 
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
     x86::detectCpu(cpuInfoLocal);
 #endif
 

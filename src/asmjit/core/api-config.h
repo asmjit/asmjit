@@ -65,17 +65,14 @@ namespace asmjit {
 //! \note Can be defined explicitly to bypass autodetection.
 #define ASMJIT_BUILD_RELEASE
 
-//! Defined to build X86/X64 backend.
-#define ASMJIT_BUILD_X86
+//! Disables X86/X64 backends.
+#define ASMJIT_NO_X86
 
-//! Defined to build host backend autodetected at compile-time.
-#define ASMJIT_BUILD_HOST
-
-//! Disables deprecated API at compile time.
-#define ASMJIT_NO_DEPRECATED
-
-//! Disable non-host architectures entirely.
+//! Disables non-host backends entirely (useful for JIT compilers to minimize the library size).
 #define ASMJIT_NO_FOREIGN
+
+//! Disables deprecated API at compile time (deprecated API won't be available).
+#define ASMJIT_NO_DEPRECATED
 
 //! Disables \ref asmjit_builder functionality completely.
 #define ASMJIT_NO_BUILDER
@@ -99,6 +96,13 @@ namespace asmjit {
 #define ASMJIT_NO_INTROSPECTION
 
 // Avoid doxygen preprocessor using feature-selection definitions.
+#undef ASMJIT_BUILD_EMBNED
+#undef ASMJIT_BUILD_STATIC
+#undef ASMJIT_BUILD_DEBUG
+#undef ASMJIT_BUILD_RELEASE
+#undef ASMJIT_NO_X86
+#undef ASMJIT_NO_FOREIGN
+// (keep ASMJIT_NO_DEPRECATED defined, we don't document deprecated APIs).
 #undef ASMJIT_NO_BUILDER
 #undef ASMJIT_NO_COMPILER
 #undef ASMJIT_NO_JIT
@@ -111,13 +115,6 @@ namespace asmjit {
 
 } // {asmjit}
 #endif // _DOXYGEN
-
-// Enable all features at IDE level, so it's properly highlighted and indexed.
-#ifdef __INTELLISENSE__
-  #ifndef ASMJIT_BUILD_X86
-    #define ASMJIT_BUILD_X86
-  #endif
-#endif
 
 // ============================================================================
 // [asmjit::Dependencies]
@@ -243,24 +240,13 @@ namespace asmjit {
 #endif
 
 // ============================================================================
-// [asmjit::Build - Globals - Build Architectures Definitions]
+// [asmjit::Build - Globals - Backends]
 // ============================================================================
 
-#if !defined(ASMJIT_NO_FOREIGN)
-  // If 'ASMJIT_NO_FOREIGN' is not defined then all architectures will be built.
-  #if !defined(ASMJIT_BUILD_X86)
-    #define ASMJIT_BUILD_X86
+#if defined(ASMJIT_NO_FOREIGN)
+  #if !ASMJIT_ARCH_X86 && !defined(ASMJIT_NO_X86)
+    #define ASMJIT_NO_X86
   #endif
-#else
-  // Detect architectures to build if building only for the host architecture.
-  #if ASMJIT_ARCH_X86 && !defined(ASMJIT_BUILD_X86)
-    #define ASMJIT_BUILD_X86
-  #endif
-#endif
-
-// Define 'ASMJIT_BUILD_HOST' if we know that host architecture will be built.
-#if !defined(ASMJIT_BUILD_HOST) && ASMJIT_ARCH_X86 && defined(ASMJIT_BUILD_X86)
-  #define ASMJIT_BUILD_HOST
 #endif
 
 // ============================================================================

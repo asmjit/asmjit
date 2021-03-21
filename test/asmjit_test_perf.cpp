@@ -30,7 +30,7 @@
 
 using namespace asmjit;
 
-#if defined(ASMJIT_BUILD_X86)
+#if !defined(ASMJIT_NO_X86)
 void benchmarkX86Emitters(uint32_t numIterations, bool testX86, bool testX64) noexcept;
 #endif
 
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
   const char* arch = cmdLine.valueOf("--arch", "all");
 
-#if defined(ASMJIT_BUILD_X86)
+#if !defined(ASMJIT_NO_X86)
   bool testX86 = strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0;
   bool testX64 = strcmp(arch, "all") == 0 || strcmp(arch, "x64") == 0;
 

@@ -22,7 +22,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 #include <asmjit/core.h>
-#if defined(ASMJIT_BUILD_X86)
+#if !defined(ASMJIT_NO_X86)
 
 #include <asmjit/x86.h>
 #include <stdio.h>
@@ -8225,4 +8225,4 @@ bool testX64Assembler(const TestSettings& settings) noexcept {
 
 #undef TEST_INSTRUCTION
 
-#endif
+#endif // !ASMJIT_NO_X86

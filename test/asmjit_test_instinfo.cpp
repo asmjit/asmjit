@@ -23,7 +23,7 @@
 
 #include <asmjit/core.h>
 
-#if defined(ASMJIT_BUILD_X86)
+#if !defined(ASMJIT_NO_X86)
 #include <asmjit/x86.h>
 #endif
 
@@ -157,7 +157,7 @@ static void printInfoExtra(uint32_t arch, uint32_t instId, uint32_t options, con
 }
 
 static void testX86Arch() {
-#if defined(ASMJIT_BUILD_X86)
+#if !defined(ASMJIT_NO_X86)
   using namespace x86;
   uint32_t arch = Environment::kArchX64;
 

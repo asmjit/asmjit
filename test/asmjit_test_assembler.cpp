@@ -31,7 +31,7 @@
 
 using namespace asmjit;
 
-#if defined(ASMJIT_BUILD_X86)
+#if !defined(ASMJIT_NO_X86)
 bool testX86Assembler(const TestSettings& settings) noexcept;
 bool testX64Assembler(const TestSettings& settings) noexcept;
 #endif
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
   bool x86Failed = false;
   bool x64Failed = false;
 
-#if defined(ASMJIT_BUILD_X86)
+#if !defined(ASMJIT_NO_X86)
   if ((strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0))
     x86Failed = !testX86Assembler(settings);
 

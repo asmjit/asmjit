@@ -144,7 +144,7 @@ static void dumpSizeOf(void) noexcept {
     DUMP_TYPE(FuncArgsAssignment);
   INFO("");
 
-#ifndef ASMJIT_NO_BUILDER
+#if !defined(ASMJIT_NO_BUILDER)
   INFO("Size of builder classes:");
     DUMP_TYPE(BaseBuilder);
     DUMP_TYPE(BaseNode);
@@ -160,7 +160,7 @@ static void dumpSizeOf(void) noexcept {
   INFO("");
 #endif
 
-#ifndef ASMJIT_NO_COMPILER
+#if !defined(ASMJIT_NO_COMPILER)
   INFO("Size of compiler classes:");
     DUMP_TYPE(BaseCompiler);
     DUMP_TYPE(FuncNode);
@@ -169,13 +169,13 @@ static void dumpSizeOf(void) noexcept {
   INFO("");
 #endif
 
-#ifdef ASMJIT_BUILD_X86
+#if !defined(ASMJIT_NO_X86)
   INFO("Size of x86-specific classes:");
     DUMP_TYPE(x86::Assembler);
-    #ifndef ASMJIT_NO_BUILDER
+    #if !defined(ASMJIT_NO_BUILDER)
     DUMP_TYPE(x86::Builder);
     #endif
-    #ifndef ASMJIT_NO_COMPILER
+    #if !defined(ASMJIT_NO_COMPILER)
     DUMP_TYPE(x86::Compiler);
     #endif
     DUMP_TYPE(x86::InstDB::InstInfo);

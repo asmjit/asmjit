@@ -37,6 +37,10 @@ endif()
 # [AsmJit - Configuration]
 # =============================================================================
 
+if (NOT DEFINED ASMJIT_TEST)
+  set(ASMJIT_TEST FALSE)
+endif()
+
 if (NOT DEFINED ASMJIT_EMBED)
   set(ASMJIT_EMBED FALSE)
 endif()
@@ -45,16 +49,24 @@ if (NOT DEFINED ASMJIT_STATIC)
   set(ASMJIT_STATIC ${ASMJIT_EMBED})
 endif()
 
-if (NOT DEFINED ASMJIT_BUILD_X86)
-  set(ASMJIT_BUILD_X86 FALSE)
+if (NOT DEFINED ASMJIT_SANITIZE)
+  set(ASMJIT_SANITIZE FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_TEST)
-  set(ASMJIT_TEST FALSE)
+if (NOT DEFINED ASMJIT_NO_X86)
+  set(ASMJIT_NO_X86 FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_FOREIGN)
+  set(ASMJIT_NO_FOREIGN FALSE)
 endif()
 
 if (NOT DEFINED ASMJIT_NO_NATVIS)
   set(ASMJIT_NO_NATVIS FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_CUSTOM_FLAGS)
+  set(ASMJIT_NO_CUSTOM_FLAGS FALSE)
 endif()
 
 # EMBED implies STATIC.
@@ -62,12 +74,15 @@ if (ASMJIT_EMBED AND NOT ASMJIT_STATIC)
   set(ASMJIT_STATIC TRUE)
 endif()
 
-set(ASMJIT_DIR        "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
-set(ASMJIT_TEST       ${ASMJIT_TEST}              CACHE BOOL "Build 'asmjit' test applications")
-set(ASMJIT_EMBED      ${ASMJIT_EMBED}             CACHE BOOL "Embed 'asmjit' library (no targets)")
-set(ASMJIT_STATIC     ${ASMJIT_STATIC}            CACHE BOOL "Build 'asmjit' library as static")
-set(ASMJIT_SANITIZE   ${ASMJIT_SANITIZE}          CACHE STRING "Build with sanitizers: 'address', 'undefined', etc...")
-set(ASMJIT_BUILD_X86  ${ASMJIT_BUILD_X86}         CACHE BOOL "Build X86 backends (X86 and X86_64)")
+set(ASMJIT_DIR             "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
+set(ASMJIT_TEST            "${ASMJIT_TEST}"            CACHE BOOL "Build 'asmjit' test applications")
+set(ASMJIT_EMBED           "${ASMJIT_EMBED}"           CACHE BOOL "Embed 'asmjit' library (no targets)")
+set(ASMJIT_STATIC          "${ASMJIT_STATIC}"          CACHE BOOL "Build 'asmjit' library as static")
+set(ASMJIT_SANITIZE        "${ASMJIT_SANITIZE}"        CACHE STRING "Build with sanitizers: 'address', 'undefined', etc...")
+set(ASMJIT_NO_X86          "${ASMJIT_NO_X86}"          CACHE BOOL "Disable X86/X64 backend")
+set(ASMJIT_NO_FOREIGN      "${ASMJIT_NO_FOREIGN}"      CACHE BOOL "Disable all foreign architectures (builds only host backend)")
+set(ASMJIT_NO_NATVIS       "${ASMJIT_NO_NATVIS}"       CACHE BOOL "Disable natvis support (embedding asmjit.natvis in PDB)")
+set(ASMJIT_NO_CUSTOM_FLAGS "${ASMJIT_NO_CUSTOM_FLAGS}" CACHE BOOL "Disable extra compilation flags added by AsmJit to its targets")
 
 # =============================================================================
 # [AsmJit - Project]
@@ -250,7 +265,10 @@ else()
 endif()
 
 foreach(build_option ASMJIT_STATIC
-                     ASMJIT_BUILD_X86
+                     # AsmJit backends selection.
+                     ASMJIT_NO_X86
+                     ASMJIT_NO_FOREIGN
+                     # AsmJit features selection.
                      ASMJIT_NO_DEPRECATED
                      ASMJIT_NO_JIT
                      ASMJIT_NO_LOGGING

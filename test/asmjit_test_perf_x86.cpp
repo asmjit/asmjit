@@ -23,7 +23,7 @@
 
 #include <asmjit/core.h>
 
-#ifdef ASMJIT_BUILD_X86
+#if !defined(ASMJIT_NO_X86)
 #include <asmjit/x86.h>
 
 #include <limits>
@@ -5046,4 +5046,5 @@ void benchmarkX86Emitters(uint32_t numIterations, bool testX86, bool testX64) {
     });
   }
 }
-#endif
+
+#endif // !ASMJIT_NO_X86

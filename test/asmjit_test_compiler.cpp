@@ -36,7 +36,7 @@
 
 #include "asmjit_test_compiler.h"
 
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
 #include <asmjit/x86.h>
 void compiler_add_x86_tests(TestApp& app);
 #endif
@@ -46,7 +46,7 @@ void compiler_add_x86_tests(TestApp& app);
 void compiler_add_a64_tests(TestApp& app);
 #endif
 
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
   #define ASMJIT_HAVE_WORKING_JIT
 #endif
 
@@ -141,7 +141,7 @@ int TestApp::run() {
     if (_verbose) printf("\n");
 #endif
 
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
     x86::Compiler cc(&code);
 #endif
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
   app.handleArgs(argc, argv);
   app.showInfo();
 
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
   compiler_add_x86_tests(app);
 #endif
 

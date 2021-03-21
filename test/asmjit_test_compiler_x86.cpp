@@ -22,7 +22,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 #include <asmjit/core.h>
-#if defined(ASMJIT_BUILD_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
 
 #include <asmjit/x86.h>
 #include <setjmp.h>
@@ -4319,4 +4319,4 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_MiscUnfollow>();
 }
 
-#endif
+#endif // !ASMJIT_NO_X86 && ASMJIT_ARCH_X86
