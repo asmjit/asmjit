@@ -393,6 +393,16 @@ class GenUtils {
       case "xorpd"   : case "vxorpd" :
       case "xorps"   : case "vxorps" :
 
+      case "kxnorb":
+      case "kxnord":
+      case "kxnorw":
+      case "kxnorq":
+
+      case "kxorb":
+      case "kxord":
+      case "kxorw":
+      case "kxorq":
+
       case "sub"     :
       case "sbb"     :
       case "psubb"   : case "vpsubb" :
