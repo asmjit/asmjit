@@ -41,7 +41,7 @@
 void compiler_add_x86_tests(TestApp& app);
 #endif
 
-#if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM == 64
+#if !defined(ASMJIT_NO_ARM) && ASMJIT_ARCH_ARM == 64
 #include <asmjit/a64.h>
 void compiler_add_a64_tests(TestApp& app);
 #endif
@@ -50,7 +50,7 @@ void compiler_add_a64_tests(TestApp& app);
   #define ASMJIT_HAVE_WORKING_JIT
 #endif
 
-#if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM == 64
+#if !defined(ASMJIT_NO_ARM) && ASMJIT_ARCH_ARM == 64
   #define ASMJIT_HAVE_WORKING_JIT
 #endif
 
@@ -145,8 +145,8 @@ int TestApp::run() {
     x86::Compiler cc(&code);
 #endif
 
-#if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM == 64
-    arm::Compiler cc(&code);
+#if !defined(ASMJIT_NO_ARM) && ASMJIT_ARCH_ARM == 64
+    a64::Compiler cc(&code);
 #endif
 
     perfTimer.start();
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
   compiler_add_x86_tests(app);
 #endif
 
-#if defined(ASMJIT_BUILD_ARM) && ASMJIT_ARCH_ARM == 64
+#if !defined(ASMJIT_NO_ARM) && ASMJIT_ARCH_ARM == 64
   compiler_add_a64_tests(app);
 #endif
 

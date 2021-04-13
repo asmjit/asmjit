@@ -44,6 +44,7 @@
 
   // Apple recently introduced MAP_JIT flag, which we want to use.
   #if defined(__APPLE__)
+    #include <pthread.h>
     #include <TargetConditionals.h>
     #if TARGET_OS_OSX
       #include <sys/utsname.h>
@@ -54,7 +55,7 @@
     #endif
   #endif
 
-  // BSD/OSX: `MAP_ANONYMOUS` is not defined, `MAP_ANON` is.
+  // BSD/MAC: `MAP_ANONYMOUS` is not defined, `MAP_ANON` is.
   #if !defined(MAP_ANONYMOUS)
     #define MAP_ANONYMOUS MAP_ANON
   #endif
@@ -66,6 +67,10 @@
   #define ASMJIT_VM_SHM_DETECT 0
 #else
   #define ASMJIT_VM_SHM_DETECT 1
+#endif
+
+#if defined(__APPLE__) && ASMJIT_ARCH_ARM >= 64
+  #define ASMJIT_HAS_PTHREAD_JIT_WRITE_PROTECT_NP
 #endif
 
 ASMJIT_BEGIN_NAMESPACE
@@ -80,10 +85,11 @@ static const uint32_t VirtMem_dualMappingFilter[2] = {
 };
 
 // ============================================================================
-// [asmjit::VirtMem - Virtual Memory [Windows]]
+// [asmjit::VirtMem - Virtual Memory Management [Windows]]
 // ============================================================================
 
 #if defined(_WIN32)
+
 struct ScopedHandle {
   inline ScopedHandle() noexcept
     : value(nullptr) {}
@@ -127,6 +133,10 @@ static DWORD VirtMem_winDesiredAccessFromFlags(uint32_t flags) noexcept {
   return access;
 }
 
+static uint32_t VirtMem_hardenedRuntimeFlags() noexcept {
+  return 0;
+}
+
 Error VirtMem::alloc(void** p, size_t size, uint32_t flags) noexcept {
   *p = nullptr;
   if (size == 0)
@@ -159,8 +169,12 @@ Error VirtMem::protect(void* p, size_t size, uint32_t flags) noexcept {
   return DebugUtils::errored(kErrorInvalidArgument);
 }
 
+// ============================================================================
+// [asmjit::VirtMem - Dual Mapping [Windows]]
+// ============================================================================
+
 Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) noexcept {
-  dm->ro = nullptr;
+  dm->rx = nullptr;
   dm->rw = nullptr;
 
   if (size == 0)
@@ -191,7 +205,7 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) no
     }
   }
 
-  dm->ro = ptr[0];
+  dm->rx = ptr[0];
   dm->rw = ptr[1];
   return kErrorOk;
 }
@@ -200,23 +214,24 @@ Error VirtMem::releaseDualMapping(DualMapping* dm, size_t size) noexcept {
   DebugUtils::unused(size);
   bool failed = false;
 
-  if (!::UnmapViewOfFile(dm->ro))
+  if (!::UnmapViewOfFile(dm->rx))
     failed = true;
 
-  if (dm->ro != dm->rw && !UnmapViewOfFile(dm->rw))
+  if (dm->rx != dm->rw && !UnmapViewOfFile(dm->rw))
     failed = true;
 
   if (failed)
     return DebugUtils::errored(kErrorInvalidArgument);
 
-  dm->ro = nullptr;
+  dm->rx = nullptr;
   dm->rw = nullptr;
   return kErrorOk;
 }
+
 #endif
 
 // ============================================================================
-// [asmjit::VirtMem - Virtual Memory [Posix]]
+// [asmjit::VirtMem - Virtual Memory Management [Posix]]
 // ============================================================================
 
 #if !defined(_WIN32)
@@ -394,58 +409,6 @@ public:
   }
 };
 
-#if defined(__APPLE__)
-// Detects whether the current process is hardened, which means that pages that
-// have WRITE and EXECUTABLE flags cannot be allocated without MAP_JIT flag.
-static ASMJIT_INLINE bool VirtMem_isHardened() noexcept {
-  static volatile uint32_t globalHardenedFlag;
-
-  enum HardenedFlag : uint32_t {
-    kHardenedFlagUnknown  = 0,
-    kHardenedFlagDisabled = 1,
-    kHardenedFlagEnabled  = 2
-  };
-
-  uint32_t flag = globalHardenedFlag;
-  if (flag == kHardenedFlagUnknown) {
-    VirtMem::Info memInfo;
-    VirtMem_getInfo(memInfo);
-
-    void* ptr = mmap(nullptr, memInfo.pageSize, PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (ptr == MAP_FAILED) {
-      flag = kHardenedFlagEnabled;
-    }
-    else {
-      flag = kHardenedFlagDisabled;
-      munmap(ptr, memInfo.pageSize);
-    }
-    globalHardenedFlag = flag;
-  }
-
-  return flag == kHardenedFlagEnabled;
-}
-
-// MAP_JIT flag required to run unsigned JIT code is only supported by kernel
-// version 10.14+ (Mojave) and IOS.
-static ASMJIT_INLINE bool VirtMem_hasMapJitSupport() noexcept {
-#if TARGET_OS_OSX
-  static volatile int globalVersion;
-
-  int ver = globalVersion;
-  if (!ver) {
-    struct utsname osname;
-    uname(&osname);
-    ver = atoi(osname.release);
-    globalVersion = ver;
-  }
-  return ver >= 18;
-#else
-  // Assume it's available.
-  return true;
-#endif
-}
-#endif
-
 // Returns `mmap()` protection flags from \ref VirtMem::Flags.
 static int VirtMem_mmProtFromFlags(uint32_t flags) noexcept {
   int protection = 0;
@@ -455,6 +418,83 @@ static int VirtMem_mmProtFromFlags(uint32_t flags) noexcept {
   return protection;
 }
 
+#if defined(__APPLE__)
+static ASMJIT_INLINE bool VirtMem_hasHardenedRuntimeMacOS() noexcept {
+#if TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
+  // MacOS on AArch64 has always hardened runtime enabled.
+  return true;
+#else
+  static std::atomic<uint32_t> globalHardenedFlag;
+
+  enum HardenedFlag : uint32_t {
+    kHardenedFlagUnknown  = 0,
+    kHardenedFlagDisabled = 1,
+    kHardenedFlagEnabled  = 2
+  };
+
+  uint32_t flag = globalHardenedFlag.load();
+  if (flag == kHardenedFlagUnknown) {
+    size_t pageSize = ::getpagesize();
+
+    void* ptr = mmap(nullptr, pageSize, PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (ptr == MAP_FAILED) {
+      flag = kHardenedFlagEnabled;
+    }
+    else {
+      flag = kHardenedFlagDisabled;
+      munmap(ptr, pageSize);
+    }
+    globalHardenedFlag.store(flag);
+  }
+
+  return flag == kHardenedFlagEnabled;
+#endif
+}
+
+static ASMJIT_INLINE bool VirtMem_hasMapJitSupportMacOS() noexcept {
+#if TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
+  // MacOS for 64-bit AArch architecture always uses hardened runtime. Some documentation can be found here:
+  //   - https://developer.apple.com/documentation/apple_silicon/porting_just-in-time_compilers_to_apple_silicon
+  return true;
+#elif TARGET_OS_OSX
+  // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave) and IOS.
+  static std::atomic<uint32_t> globalVersion;
+
+  int ver = globalVersion.load();
+  if (!ver) {
+    struct utsname osname {};
+    uname(&osname);
+    ver = atoi(osname.release);
+    globalVersion.store(ver);
+  }
+  return ver >= 18;
+#else
+  // Assume it's available.
+  return true;
+#endif
+}
+#endif // __APPLE__
+
+// Detects whether the current process is hardened, which means that pages that
+// have WRITE and EXECUTABLE flags cannot be normally allocated. On MacOS such
+// allocation requires MAP_JIT flag.
+static ASMJIT_INLINE bool VirtMem_hasHardenedRuntime() noexcept {
+#if defined(__APPLE__)
+  return VirtMem_hasHardenedRuntimeMacOS();
+#else
+  return false;
+#endif
+}
+
+// Detects whether MAP_JIT is available.
+static ASMJIT_INLINE bool VirtMem_hasMapJitSupport() noexcept {
+#if defined(__APPLE__)
+  return VirtMem_hasMapJitSupportMacOS();
+#else
+  return false;
+#endif
+}
+
 // Returns either MAP_JIT or 0 based on `flags` and the host operating system.
 static ASMJIT_INLINE int VirtMem_mmMapJitFromFlags(uint32_t flags) noexcept {
 #if defined(__APPLE__)
@@ -462,7 +502,7 @@ static ASMJIT_INLINE int VirtMem_mmMapJitFromFlags(uint32_t flags) noexcept {
   // on non-hardened processes) and detect whether it must be used when the
   // process is actually hardened (in that case it doesn't make sense to rely
   // on user `flags`).
-  bool useMapJit = (flags & VirtMem::kMMapEnableMapJit) != 0 || VirtMem_isHardened();
+  bool useMapJit = (flags & VirtMem::kMMapEnableMapJit) != 0 || VirtMem_hasHardenedRuntime();
   if (useMapJit)
     return VirtMem_hasMapJitSupport() ? int(MAP_JIT) : 0;
   else
@@ -516,12 +556,12 @@ static Error VirtMem_getShmStrategy(uint32_t* strategyOut) noexcept {
 #if ASMJIT_VM_SHM_DETECT
   // Initially don't assume anything. It has to be tested whether
   // '/dev/shm' was mounted with 'noexec' flag or not.
-  static volatile uint32_t globalShmStrategy = kShmStrategyUnknown;
+  static std::atomic<uint32_t> globalShmStrategy;
 
-  uint32_t strategy = globalShmStrategy;
+  uint32_t strategy = globalShmStrategy.load();
   if (strategy == kShmStrategyUnknown) {
     ASMJIT_PROPAGATE(VirtMem_detectShmStrategy(&strategy));
-    globalShmStrategy = strategy;
+    globalShmStrategy.store(strategy);
   }
 
   *strategyOut = strategy;
@@ -532,13 +572,25 @@ static Error VirtMem_getShmStrategy(uint32_t* strategyOut) noexcept {
 #endif
 }
 
-Error VirtMem::alloc(void** p, size_t size, uint32_t flags) noexcept {
+static uint32_t VirtMem_hardenedRuntimeFlags() noexcept {
+  uint32_t flags = 0;
+
+  if (VirtMem_hasHardenedRuntime())
+    flags |= VirtMem::kHardenedRuntimeEnabled;
+
+  if (VirtMem_hasMapJitSupport())
+    flags |= VirtMem::kHardenedRuntimeMapJit;
+
+  return flags;
+}
+
+Error VirtMem::alloc(void** p, size_t size, uint32_t memoryFlags) noexcept {
   *p = nullptr;
   if (size == 0)
     return DebugUtils::errored(kErrorInvalidArgument);
 
-  int protection = VirtMem_mmProtFromFlags(flags) | VirtMem_mmMaxProtFromFlags(flags);
-  int mmFlags = MAP_PRIVATE | MAP_ANONYMOUS | VirtMem_mmMapJitFromFlags(flags);
+  int protection = VirtMem_mmProtFromFlags(memoryFlags) | VirtMem_mmMaxProtFromFlags(memoryFlags);
+  int mmFlags = MAP_PRIVATE | MAP_ANONYMOUS | VirtMem_mmMapJitFromFlags(memoryFlags);
 
   void* ptr = mmap(nullptr, size, protection, mmFlags, -1, 0);
   if (ptr == MAP_FAILED)
@@ -556,22 +608,26 @@ Error VirtMem::release(void* p, size_t size) noexcept {
 }
 
 
-Error VirtMem::protect(void* p, size_t size, uint32_t flags) noexcept {
-  int protection = VirtMem_mmProtFromFlags(flags);
+Error VirtMem::protect(void* p, size_t size, uint32_t memoryFlags) noexcept {
+  int protection = VirtMem_mmProtFromFlags(memoryFlags);
   if (mprotect(p, size, protection) == 0)
     return kErrorOk;
 
   return DebugUtils::errored(kErrorInvalidArgument);
 }
 
-Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) noexcept {
-  dm->ro = nullptr;
+// ============================================================================
+// [asmjit::VirtMem - Dual Mapping [Posix]]
+// ============================================================================
+
+Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t memoryFlags) noexcept {
+  dm->rx = nullptr;
   dm->rw = nullptr;
 
   if (off_t(size) <= 0)
     return DebugUtils::errored(size == 0 ? kErrorInvalidArgument : kErrorTooLarge);
 
-  bool preferTmpOverDevShm = (flags & kMappingPreferTmp) != 0;
+  bool preferTmpOverDevShm = (memoryFlags & kMappingPreferTmp) != 0;
   if (!preferTmpOverDevShm) {
     uint32_t strategy;
     ASMJIT_PROPAGATE(VirtMem_getShmStrategy(&strategy));
@@ -584,7 +640,7 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) no
 
   void* ptr[2];
   for (uint32_t i = 0; i < 2; i++) {
-    uint32_t accessFlags = flags & ~VirtMem_dualMappingFilter[i];
+    uint32_t accessFlags = memoryFlags & ~VirtMem_dualMappingFilter[i];
     int protection = VirtMem_mmProtFromFlags(accessFlags) | VirtMem_mmMaxProtFromFlags(accessFlags);
 
     ptr[i] = mmap(nullptr, size, protection, MAP_SHARED, anonMem.fd(), 0);
@@ -597,32 +653,55 @@ Error VirtMem::allocDualMapping(DualMapping* dm, size_t size, uint32_t flags) no
     }
   }
 
-  dm->ro = ptr[0];
+  dm->rx = ptr[0];
   dm->rw = ptr[1];
   return kErrorOk;
 }
 
 Error VirtMem::releaseDualMapping(DualMapping* dm, size_t size) noexcept {
-  Error err = release(dm->ro, size);
-  if (dm->ro != dm->rw)
+  Error err = release(dm->rx, size);
+  if (dm->rx != dm->rw)
     err |= release(dm->rw, size);
 
   if (err)
     return DebugUtils::errored(kErrorInvalidArgument);
 
-  dm->ro = nullptr;
+  dm->rx = nullptr;
   dm->rw = nullptr;
   return kErrorOk;
 }
 #endif
 
 // ============================================================================
-// [asmjit::VirtMem - Virtual Memory [Memory Info]]
+// [asmjit::VirtMem - Instruction Cache]
+// ============================================================================
+
+void VirtMem::flushInstructionCache(void* p, size_t size) noexcept {
+#if ASMJIT_ARCH_X86
+  // X86 architecture doesn't require to do anything to flush instruction cache.
+  DebugUtils::unused(p, size);
+#elif defined(__APPLE__)
+  sys_icache_invalidate(p, size);
+#elif defined(_WIN32)
+  // Windows has a built-in support in `kernel32.dll`.
+  FlushInstructionCache(GetCurrentProcess(), p, size);
+#elif defined(__GNUC__)
+  char* start = static_cast<char*>(p);
+  char* end = start + size;
+  __builtin___clear_cache(start, end);
+#else
+  #pragma message("asmjit::VirtMem::flushInstructionCache() doesn't have implementation for the target OS and compiler")
+  DebugUtils::unused(p, size);
+#endif
+}
+
+// ============================================================================
+// [asmjit::VirtMem - Page Info]
 // ============================================================================
 
 VirtMem::Info VirtMem::info() noexcept {
-  static VirtMem::Info vmInfo;
   static std::atomic<uint32_t> vmInfoInitialized;
+  static VirtMem::Info vmInfo;
 
   if (!vmInfoInitialized.load()) {
     VirtMem::Info localMemInfo;
@@ -633,6 +712,26 @@ VirtMem::Info VirtMem::info() noexcept {
   }
 
   return vmInfo;
+}
+
+// ============================================================================
+// [asmjit::VirtMem - Hardened Runtime Info]
+// ============================================================================
+
+VirtMem::HardenedRuntimeInfo VirtMem::hardenedRuntimeInfo() noexcept {
+  return VirtMem::HardenedRuntimeInfo { VirtMem_hardenedRuntimeFlags() };
+}
+
+// ============================================================================
+// [asmjit::VirtMem - JIT Memory Protection]
+// ============================================================================
+
+void VirtMem::protectJitMemory(VirtMem::ProtectJitAccess access) noexcept {
+#if defined(ASMJIT_HAS_PTHREAD_JIT_WRITE_PROTECT_NP)
+  pthread_jit_write_protect_np(static_cast<uint32_t>(access));
+#else
+  DebugUtils::unused(access);
+#endif
 }
 
 ASMJIT_END_NAMESPACE

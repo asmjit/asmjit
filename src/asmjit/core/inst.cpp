@@ -29,7 +29,7 @@
   #include "../x86/x86instapi_p.h"
 #endif
 
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   #include "../arm/a64instapi_p.h"
 #endif
 
@@ -46,7 +46,7 @@ Error InstAPI::instIdToString(uint32_t arch, uint32_t instId, String& output) no
     return x86::InstInternal::instIdToString(arch, instId, output);
 #endif
 
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   if (Environment::isArchAArch64(arch))
     return a64::InstInternal::instIdToString(arch, instId, output);
 #endif
@@ -60,7 +60,7 @@ uint32_t InstAPI::stringToInstId(uint32_t arch, const char* s, size_t len) noexc
     return x86::InstInternal::stringToInstId(arch, s, len);
 #endif
 
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   if (Environment::isArchAArch64(arch))
     return a64::InstInternal::stringToInstId(arch, s, len);
 #endif
@@ -80,7 +80,7 @@ Error InstAPI::validate(uint32_t arch, const BaseInst& inst, const Operand_* ope
     return x86::InstInternal::validate(arch, inst, operands, opCount, validationFlags);
 #endif
 
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   if (Environment::isArchAArch64(arch))
     return a64::InstInternal::validate(arch, inst, operands, opCount, validationFlags);
 #endif
@@ -103,7 +103,7 @@ Error InstAPI::queryRWInfo(uint32_t arch, const BaseInst& inst, const Operand_* 
     return x86::InstInternal::queryRWInfo(arch, inst, operands, opCount, out);
 #endif
 
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   if (Environment::isArchAArch64(arch))
     return a64::InstInternal::queryRWInfo(arch, inst, operands, opCount, out);
 #endif
@@ -123,7 +123,7 @@ Error InstAPI::queryFeatures(uint32_t arch, const BaseInst& inst, const Operand_
     return x86::InstInternal::queryFeatures(arch, inst, operands, opCount, out);
 #endif
 
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   if (Environment::isArchAArch64(arch))
     return a64::InstInternal::queryFeatures(arch, inst, operands, opCount, out);
 #endif

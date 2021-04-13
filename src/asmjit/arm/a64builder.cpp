@@ -22,76 +22,47 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 #include "../core/api-build_p.h"
-#include "../core/cpuinfo.h"
+#if !defined(ASMJIT_NO_ARM) && !defined(ASMJIT_NO_BUILDER)
 
-#if !defined(_WIN32)
-  #include <errno.h>
-  #include <sys/utsname.h>
-  #include <unistd.h>
-#endif
+#include "../arm/a64assembler.h"
+#include "../arm/a64builder.h"
 
-ASMJIT_BEGIN_NAMESPACE
+ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 
 // ============================================================================
-// [asmjit::CpuInfo - Detect - CPU NumThreads]
+// [asmjit::a64::Builder - Construction / Destruction]
 // ============================================================================
 
-#if defined(_WIN32)
-static inline uint32_t detectHWThreadCount() noexcept {
-  SYSTEM_INFO info;
-  ::GetSystemInfo(&info);
-  return info.dwNumberOfProcessors;
+Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
+  if (code)
+    code->attach(this);
 }
-#elif defined(_SC_NPROCESSORS_ONLN)
-static inline uint32_t detectHWThreadCount() noexcept {
-  long res = ::sysconf(_SC_NPROCESSORS_ONLN);
-  return res <= 0 ? uint32_t(1) : uint32_t(res);
-}
-#else
-static inline uint32_t detectHWThreadCount() noexcept {
-  return 1;
-}
-#endif
+Builder::~Builder() noexcept {}
 
 // ============================================================================
-// [asmjit::CpuInfo - Detect - CPU Features]
+// [asmjit::a64::Builder - Finalize]
 // ============================================================================
 
-#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
-namespace x86 { void detectCpu(CpuInfo& cpu) noexcept; }
-#endif
-
-#if !defined(ASMJIT_NO_ARM) && ASMJIT_ARCH_ARM
-namespace arm { void detectCpu(CpuInfo& cpu) noexcept; }
-#endif
-
-// ============================================================================
-// [asmjit::CpuInfo - Detect - Static Initializer]
-// ============================================================================
-
-static uint32_t cpuInfoInitialized;
-static CpuInfo cpuInfoGlobal(Globals::NoInit);
-
-const CpuInfo& CpuInfo::host() noexcept {
-  // This should never cause a problem as the resulting information should
-  // always be the same.
-  if (!cpuInfoInitialized) {
-    CpuInfo cpuInfoLocal;
-
-#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
-    x86::detectCpu(cpuInfoLocal);
-#endif
-
-#if !defined(ASMJIT_NO_ARM) && ASMJIT_ARCH_ARM
-    arm::detectCpu(cpuInfoLocal);
-#endif
-
-    cpuInfoLocal._hwThreadCount = detectHWThreadCount();
-    cpuInfoGlobal = cpuInfoLocal;
-    cpuInfoInitialized = 1;
-  }
-
-  return cpuInfoGlobal;
+Error Builder::finalize() {
+  ASMJIT_PROPAGATE(runPasses());
+  Assembler a(_code);
+  a.addEncodingOptions(encodingOptions());
+  a.addValidationOptions(validationOptions());
+  return serializeTo(&a);
 }
 
-ASMJIT_END_NAMESPACE
+// ============================================================================
+// [asmjit::a64::Builder - Events]
+// ============================================================================
+
+Error Builder::onAttach(CodeHolder* code) noexcept {
+  uint32_t arch = code->arch();
+  if (!Environment::isFamilyARM(arch))
+    return DebugUtils::errored(kErrorInvalidArch);
+
+  return Base::onAttach(code);
+}
+
+ASMJIT_END_SUB_NAMESPACE
+
+#endif // !ASMJIT_NO_ARM && !ASMJIT_NO_BUILDER

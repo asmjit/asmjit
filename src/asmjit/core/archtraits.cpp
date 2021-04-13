@@ -29,7 +29,7 @@
   #include "../x86/x86archtraits_p.h"
 #endif
 
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   #include "../arm/armarchtraits_p.h"
 #endif
 
@@ -75,7 +75,7 @@ ASMJIT_VARAPI const ArchTraits _archTraits[Environment::kArchCount] = {
   noArchTraits,
 
   // AArch64 architecture.
-#ifdef ASMJIT_BUILD_ARM
+#if !defined(ASMJIT_NO_ARM)
   arm::a64ArchTraits,
 #else
   noArchTraits,

@@ -68,6 +68,9 @@ namespace asmjit {
 //! Disables X86/X64 backends.
 #define ASMJIT_NO_X86
 
+//! Disables AArch64 backend.
+#define ASMJIT_NO_ARM
+
 //! Disables non-host backends entirely (useful for JIT compilers to minimize the library size).
 #define ASMJIT_NO_FOREIGN
 
@@ -150,12 +153,12 @@ namespace asmjit {
 
 // Prevent compile-time errors caused by misconfiguration.
 #if defined(ASMJIT_NO_TEXT) && !defined(ASMJIT_NO_LOGGING)
-  #pragma "ASMJIT_NO_TEXT can only be defined when ASMJIT_NO_LOGGING is defined."
+  #pragma message("'ASMJIT_NO_TEXT' can only be defined when 'ASMJIT_NO_LOGGING' is defined.")
   #undef ASMJIT_NO_TEXT
 #endif
 
 #if defined(ASMJIT_NO_INTROSPECTION) && !defined(ASMJIT_NO_COMPILER)
-  #pragma message("ASMJIT_NO_INTROSPECTION can only be defined when ASMJIT_NO_COMPILER is defined")
+  #pragma message("'ASMJIT_NO_INTROSPECTION' can only be defined when 'ASMJIT_NO_COMPILER' is defined")
   #undef ASMJIT_NO_INTROSPECTION
 #endif
 
@@ -246,6 +249,10 @@ namespace asmjit {
 #if defined(ASMJIT_NO_FOREIGN)
   #if !ASMJIT_ARCH_X86 && !defined(ASMJIT_NO_X86)
     #define ASMJIT_NO_X86
+  #endif
+
+  #if !ASMJIT_ARCH_ARM && !defined(ASMJIT_NO_ARM)
+    #define ASMJIT_NO_ARM
   #endif
 #endif
 
@@ -399,6 +406,17 @@ namespace asmjit {
   #define ASMJIT_MAY_ALIAS __attribute__((__may_alias__))
 #else
   #define ASMJIT_MAY_ALIAS
+#endif
+
+//! \def ASMJIT_MAYBE_UNUSED
+//!
+//! Expands to `[[maybe_unused]]` if supported or a compiler attribute instead.
+#if __cplusplus >= 201703L
+  #define ASMJIT_MAYBE_UNUSED [[maybe_unused]]
+#elif defined(__GNUC__)
+  #define ASMJIT_MAYBE_UNUSED __attribute__((unused))
+#else
+  #define ASMJIT_MAYBE_UNUSED
 #endif
 
 //! \def ASMJIT_LIKELY(...)
