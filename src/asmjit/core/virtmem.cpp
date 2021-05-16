@@ -62,10 +62,17 @@
 
 #include <atomic>
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__BIONIC__)
   #define ASMJIT_VM_SHM_DETECT 0
 #else
   #define ASMJIT_VM_SHM_DETECT 1
+#endif
+
+// Android NDK doesn't provide `shm_open()` and `shm_unlink()`.
+#if defined(__BIONIC__)
+  #define ASMJIT_VM_SHM_AVAILABLE 0
+#else
+  #define ASMJIT_VM_SHM_AVAILABLE 1
 #endif
 
 ASMJIT_BEGIN_NAMESPACE
@@ -341,7 +348,9 @@ public:
       bits -= uint64_t(OSUtils::getTickCount()) * 773703683;
       bits = ((bits >> 14) ^ (bits << 6)) + uint64_t(++internalCounter) * 10619863;
 
-      if (!ASMJIT_VM_SHM_DETECT || preferTmpOverDevShm) {
+      bool useTmp = !ASMJIT_VM_SHM_DETECT || preferTmpOverDevShm;
+
+      if (useTmp) {
         _tmpName.assign(VirtMem_getTmpDir());
         _tmpName.appendFormat(kShmFormat, (unsigned long long)bits);
         _fd = ::open(_tmpName.data(), O_RDWR | O_CREAT | O_EXCL, 0);
@@ -350,6 +359,7 @@ public:
           return kErrorOk;
         }
       }
+#if !ASMJIT_VM_SHM_AVAILABLE
       else {
         _tmpName.assignFormat(kShmFormat, (unsigned long long)bits);
         _fd = ::shm_open(_tmpName.data(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -358,6 +368,7 @@ public:
           return kErrorOk;
         }
       }
+#endif
 
       int e = errno;
       if (e != EEXIST)
@@ -372,10 +383,17 @@ public:
     FileType type = _fileType;
     _fileType = kFileTypeNone;
 
-    if (type == kFileTypeShm)
+#if !ASMJIT_VM_SHM_AVAILABLE
+    if (type == kFileTypeShm) {
       ::shm_unlink(_tmpName.data());
-    else if (type == kFileTypeTmp)
+      return;
+    }
+#endif
+
+    if (type == kFileTypeTmp) {
       ::unlink(_tmpName.data());
+      return;
+    }
   }
 
   void close() noexcept {
