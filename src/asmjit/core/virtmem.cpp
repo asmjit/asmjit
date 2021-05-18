@@ -359,7 +359,7 @@ public:
           return kErrorOk;
         }
       }
-#if !ASMJIT_VM_SHM_AVAILABLE
+#if ASMJIT_VM_SHM_AVAILABLE
       else {
         _tmpName.assignFormat(kShmFormat, (unsigned long long)bits);
         _fd = ::shm_open(_tmpName.data(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -383,7 +383,7 @@ public:
     FileType type = _fileType;
     _fileType = kFileTypeNone;
 
-#if !ASMJIT_VM_SHM_AVAILABLE
+#if ASMJIT_VM_SHM_AVAILABLE
     if (type == kFileTypeShm) {
       ::shm_unlink(_tmpName.data());
       return;
