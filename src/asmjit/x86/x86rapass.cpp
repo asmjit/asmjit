@@ -516,7 +516,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
   }
 
   cc()->_setCursor(invokeNode);
-  if (fd.hasFlag(CallConv::kFlagCalleePopsStack))
+  if (fd.hasFlag(CallConv::kFlagCalleePopsStack) && fd.argStackSize() != 0)
     ASMJIT_PROPAGATE(cc()->sub(cc()->zsp(), fd.argStackSize()));
 
   if (fd.hasRet()) {
