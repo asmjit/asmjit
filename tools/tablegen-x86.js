@@ -1675,8 +1675,8 @@ class InstSignatureTable extends core.Task {
           }
           if (mem) {
             op.flags[mem] = true;
-            // HACK: Allow LEA to use any memory size.
-            if (inst.name === "lea") {
+            // HACK: Allow LEA|CL*|PREFETCH* to use any memory size.
+            if (/^(cldemote|clwb|clflush\w*|lea|prefetch\w*)$/.test(inst.name)) {
               op.flags.mem = true;
               Object.assign(op.flags, MemOp);
             }
