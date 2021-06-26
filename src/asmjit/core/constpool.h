@@ -206,6 +206,8 @@ public:
   size_t _size;
   //! Required pool alignment.
   size_t _alignment;
+  //! Minimum item size in the pool.
+  size_t _minItemSize;
 
   //! \name Construction & Destruction
   //! \{
@@ -226,6 +228,8 @@ public:
   inline size_t size() const noexcept { return _size; }
   //! Returns minimum alignment.
   inline size_t alignment() const noexcept { return _alignment; }
+  //! Returns the minimum size of all items added to the constant pool.
+  inline size_t minItemSize() const noexcept { return _minItemSize; }
 
   //! \}
 

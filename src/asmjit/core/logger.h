@@ -119,9 +119,6 @@ public:
   //! string to \ref _log().
   ASMJIT_API Error logv(const char* fmt, va_list ap) noexcept;
 
-  //! Logs binary `data` of the given `size`.
-  ASMJIT_API Error logBinary(const void* data, size_t size) noexcept;
-
   //! \}
 };
 

@@ -52,6 +52,7 @@ void ConstPool::reset(Zone* zone) noexcept {
   _gapPool = nullptr;
   _size = 0;
   _alignment = 0;
+  _minItemSize = 0;
 }
 
 // ============================================================================
@@ -186,7 +187,8 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
 
   // Add the initial node to the right index.
   node = ConstPool::Tree::_newNode(_zone, data, size, offset, false);
-  if (!node) return DebugUtils::errored(kErrorOutOfMemory);
+  if (ASMJIT_UNLIKELY(!node))
+    return DebugUtils::errored(kErrorOutOfMemory);
 
   _tree[treeIndex].insert(node);
   _alignment = Support::max<size_t>(_alignment, size);
@@ -197,22 +199,29 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
   // We stop at size 4, it probably doesn't make sense to split constants down
   // to 1 byte.
   size_t pCount = 1;
-  while (size > 4) {
-    size >>= 1;
+  size_t smallerSize = size;
+
+  while (smallerSize > 4) {
     pCount <<= 1;
+    smallerSize >>= 1;
 
     ASMJIT_ASSERT(treeIndex != 0);
     treeIndex--;
 
     const uint8_t* pData = static_cast<const uint8_t*>(data);
-    for (size_t i = 0; i < pCount; i++, pData += size) {
+    for (size_t i = 0; i < pCount; i++, pData += smallerSize) {
       node = _tree[treeIndex].get(pData);
       if (node) continue;
 
-      node = ConstPool::Tree::_newNode(_zone, pData, size, offset + (i * size), true);
+      node = ConstPool::Tree::_newNode(_zone, pData, smallerSize, offset + (i * smallerSize), true);
       _tree[treeIndex].insert(node);
     }
   }
+
+  if (_minItemSize == 0)
+    _minItemSize = size;
+  else
+    _minItemSize = Support::min(_minItemSize, size);
 
   return kErrorOk;
 }

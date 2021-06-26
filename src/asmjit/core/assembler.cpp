@@ -138,19 +138,6 @@ Error BaseAssembler::bind(const Label& label) {
 // [asmjit::BaseAssembler - Embed]
 // ============================================================================
 
-#ifndef ASMJIT_NO_LOGGING
-struct DataSizeByPower {
-  char str[4];
-};
-
-static const DataSizeByPower dataSizeByPowerTable[] = {
-  { "db" },
-  { "dw" },
-  { "dd" },
-  { "dq" }
-};
-#endif
-
 Error BaseAssembler::embed(const void* data, size_t dataSize) {
   if (ASMJIT_UNLIKELY(!_code))
     return reportError(DebugUtils::errored(kErrorNotInitialized));
@@ -162,30 +149,34 @@ Error BaseAssembler::embed(const void* data, size_t dataSize) {
   ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
 
   writer.emitData(data, dataSize);
+  writer.done(this);
 
 #ifndef ASMJIT_NO_LOGGING
-  if (_logger)
-    _logger->logBinary(data, dataSize);
+  if (_logger) {
+    StringTmp<512> sb;
+    Formatter::formatData(sb, _logger->flags(), arch(), Type::kIdU8, data, dataSize, 1);
+    sb.append('\n');
+    _logger->log(sb);
+  }
 #endif
 
-  writer.done(this);
   return kErrorOk;
 }
 
-Error BaseAssembler::embedDataArray(uint32_t typeId, const void* data, size_t itemCcount, size_t repeatCount) {
+Error BaseAssembler::embedDataArray(uint32_t typeId, const void* data, size_t itemCount, size_t repeatCount) {
   uint32_t deabstractDelta = Type::deabstractDeltaOfSize(registerSize());
   uint32_t finalTypeId = Type::deabstract(typeId, deabstractDelta);
 
   if (ASMJIT_UNLIKELY(!Type::isValid(finalTypeId)))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
-  if (itemCcount == 0 || repeatCount == 0)
+  if (itemCount == 0 || repeatCount == 0)
     return kErrorOk;
 
   uint32_t typeSize = Type::sizeOf(finalTypeId);
   Support::FastUInt8 of = 0;
 
-  size_t dataSize = Support::mulOverflow(itemCcount, size_t(typeSize), &of);
+  size_t dataSize = Support::mulOverflow(itemCount, size_t(typeSize), &of);
   size_t totalSize = Support::mulOverflow(dataSize, repeatCount, &of);
 
   if (ASMJIT_UNLIKELY(of))
@@ -194,22 +185,36 @@ Error BaseAssembler::embedDataArray(uint32_t typeId, const void* data, size_t it
   CodeWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, totalSize));
 
-#ifndef ASMJIT_NO_LOGGING
-  const uint8_t* start = writer.cursor();
-#endif
-
-  for (size_t i = 0; i < repeatCount; i++) {
+  for (size_t i = 0; i < repeatCount; i++)
     writer.emitData(data, dataSize);
-  }
-
-#ifndef ASMJIT_NO_LOGGING
-  if (_logger)
-    _logger->logBinary(start, totalSize);
-#endif
 
   writer.done(this);
+
+#ifndef ASMJIT_NO_LOGGING
+  if (_logger) {
+    StringTmp<512> sb;
+    Formatter::formatData(sb, _logger->flags(), arch(), typeId, data, itemCount, repeatCount);
+    sb.append('\n');
+    _logger->log(sb);
+  }
+#endif
+
   return kErrorOk;
 }
+
+#ifndef ASMJIT_NO_LOGGING
+static const uint8_t dataTypeIdBySize[9] = {
+  Type::kIdVoid, // [0] (invalid)
+  Type::kIdU8,   // [1] (uint8_t)
+  Type::kIdU16,  // [2] (uint16_t)
+  Type::kIdVoid, // [3] (invalid)
+  Type::kIdU32,  // [4] (uint32_t)
+  Type::kIdVoid, // [5] (invalid)
+  Type::kIdVoid, // [6] (invalid)
+  Type::kIdVoid, // [7] (invalid)
+  Type::kIdU64   // [8] (uint64_t)
+};
+#endif
 
 Error BaseAssembler::embedConstPool(const Label& label, const ConstPool& pool) {
   if (ASMJIT_UNLIKELY(!_code))
@@ -222,18 +227,31 @@ Error BaseAssembler::embedConstPool(const Label& label, const ConstPool& pool) {
   ASMJIT_PROPAGATE(bind(label));
 
   size_t size = pool.size();
+  if (!size)
+    return kErrorOk;
+
   CodeWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, size));
 
-  pool.fill(writer.cursor());
-
 #ifndef ASMJIT_NO_LOGGING
-  if (_logger)
-    _logger->logBinary(writer.cursor(), size);
+  uint8_t* data = writer.cursor();
 #endif
 
+  pool.fill(writer.cursor());
   writer.advance(size);
   writer.done(this);
+
+#ifndef ASMJIT_NO_LOGGING
+  if (_logger) {
+    uint32_t dataSizeLog2 = Support::min<uint32_t>(Support::ctz(pool.minItemSize()), 3);
+    uint32_t dataSize = 1 << dataSizeLog2;
+
+    StringTmp<512> sb;
+    Formatter::formatData(sb, _logger->flags(), arch(), dataTypeIdBySize[dataSize], data, size >> dataSizeLog2);
+    sb.append('\n');
+    _logger->log(sb);
+  }
+#endif
 
   return kErrorOk;
 }
@@ -261,7 +279,9 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
 #ifndef ASMJIT_NO_LOGGING
   if (_logger) {
     StringTmp<256> sb;
-    sb.appendFormat("%s ", dataSizeByPowerTable[Support::ctz(dataSize)].str);
+    sb.append('.');
+    Formatter::formatDataType(sb, _logger->flags(), arch(), dataTypeIdBySize[dataSize]);
+    sb.append(' ');
     Formatter::formatLabel(sb, 0, this, label.id());
     sb.append('\n');
     _logger->log(sb);
@@ -320,7 +340,9 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
 #ifndef ASMJIT_NO_LOGGING
   if (_logger) {
     StringTmp<256> sb;
-    sb.appendFormat(".%s (", dataSizeByPowerTable[Support::ctz(dataSize)].str);
+    sb.append('.');
+    Formatter::formatDataType(sb, _logger->flags(), arch(), dataTypeIdBySize[dataSize]);
+    sb.append(" (");
     Formatter::formatLabel(sb, 0, this, label.id());
     sb.append(" - ");
     Formatter::formatLabel(sb, 0, this, base.id());

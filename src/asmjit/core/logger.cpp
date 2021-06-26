@@ -59,28 +59,6 @@ Error Logger::logv(const char* fmt, va_list ap) noexcept {
   return log(sb);
 }
 
-Error Logger::logBinary(const void* data, size_t size) noexcept {
-  static const char prefix[] = "db ";
-
-  StringTmp<256> sb;
-  sb.append(prefix, ASMJIT_ARRAY_SIZE(prefix) - 1);
-
-  size_t i = size;
-  const uint8_t* s = static_cast<const uint8_t*>(data);
-
-  while (i) {
-    uint32_t n = uint32_t(Support::min<size_t>(i, 16));
-    sb.truncate(ASMJIT_ARRAY_SIZE(prefix) - 1);
-    sb.appendHex(s, n);
-    sb.append('\n');
-    ASMJIT_PROPAGATE(log(sb));
-    s += n;
-    i -= n;
-  }
-
-  return kErrorOk;
-}
-
 // ============================================================================
 // [asmjit::FileLogger - Construction / Destruction]
 // ============================================================================

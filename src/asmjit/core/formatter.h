@@ -203,6 +203,20 @@ ASMJIT_API Error formatOperand(
   uint32_t arch,
   const Operand_& op) noexcept;
 
+//! Appends a formatted data-type to the output string `sb`.
+ASMJIT_API Error formatDataType(
+  String& sb,
+  uint32_t formatFlags,
+  uint32_t arch,
+  uint32_t typeId) noexcept;
+
+//! Appends a formatted data to the output string `sb`.
+ASMJIT_API Error formatData(
+  String& sb,
+  uint32_t formatFlags,
+  uint32_t arch,
+  uint32_t typeId, const void* data, size_t itemCount, size_t repeatCount = 1) noexcept;
+
 //! Appends a formatted instruction to the output string `sb`.
 //!
 //! \note Emitter is optional, but it's required to format named labels and

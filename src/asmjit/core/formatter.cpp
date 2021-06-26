@@ -24,6 +24,7 @@
 #include "../core/api-build_p.h"
 #ifndef ASMJIT_NO_LOGGING
 
+#include "../core/archtraits.h"
 #include "../core/builder.h"
 #include "../core/codeholder.h"
 #include "../core/compiler.h"
@@ -52,6 +53,24 @@ class VirtReg;
 // ============================================================================
 
 namespace Formatter {
+
+static const char wordNameTable[][8] = {
+  "db",
+  "dw",
+  "dd",
+  "dq",
+  "byte",
+  "half",
+  "word",
+  "hword",
+  "dword",
+  "qword",
+  "xword",
+  "short",
+  "long",
+  "quad"
+};
+
 
 Error formatTypeId(String& sb, uint32_t typeId) noexcept {
   if (typeId == Type::kIdVoid)
@@ -186,6 +205,84 @@ Error formatOperand(
 #endif
 
   return kErrorInvalidArch;
+}
+
+ASMJIT_API Error formatDataType(
+  String& sb,
+  uint32_t formatFlags,
+  uint32_t arch,
+  uint32_t typeId) noexcept
+{
+  DebugUtils::unused(formatFlags);
+
+  if (ASMJIT_UNLIKELY(arch >= Environment::kArchCount))
+    return DebugUtils::errored(kErrorInvalidArch);
+
+  uint32_t typeSize = Type::sizeOf(typeId);
+  if (typeSize == 0 || typeSize > 8)
+    return DebugUtils::errored(kErrorInvalidState);
+
+  uint32_t typeSizeLog2 = Support::ctz(typeSize);
+  return sb.append(wordNameTable[size_t(_archTraits[arch].isaWordNameId(typeSizeLog2))]);
+}
+
+static Error formatDataHelper(String& sb, const char* typeName, uint32_t typeSize, const uint8_t* data, size_t itemCount) noexcept {
+  sb.append('.');
+  sb.append(typeName);
+  sb.append(' ');
+
+  for (size_t i = 0; i < itemCount; i++) {
+    uint64_t v;
+
+    if (i != 0)
+      ASMJIT_PROPAGATE(sb.append(", ", 2));
+
+    switch (typeSize) {
+      case 1: v = data[0]; break;
+      case 2: v = Support::readU16u(data); break;
+      case 4: v = Support::readU32u(data); break;
+      case 8: v = Support::readU64u(data); break;
+    }
+
+    ASMJIT_PROPAGATE(sb.appendUInt(v, 16, typeSize * 2, String::kFormatAlternate));
+    data += typeSize;
+  }
+
+  return kErrorOk;
+}
+
+Error formatData(
+  String& sb,
+  uint32_t formatFlags,
+  uint32_t arch,
+  uint32_t typeId, const void* data, size_t itemCount, size_t repeatCount) noexcept
+{
+  DebugUtils::unused(formatFlags);
+
+  if (ASMJIT_UNLIKELY(arch >= Environment::kArchCount))
+    return DebugUtils::errored(kErrorInvalidArch);
+
+  uint32_t typeSize = Type::sizeOf(typeId);
+  if (typeSize == 0)
+    return DebugUtils::errored(kErrorInvalidState);
+
+  if (!Support::isPowerOf2(typeSize)) {
+    itemCount *= typeSize;
+    typeSize = 1;
+  }
+
+  while (typeSize > 8u) {
+    typeSize >>= 1;
+    itemCount <<= 1;
+  }
+
+  uint32_t typeSizeLog2 = Support::ctz(typeSize);
+  const char* wordName = wordNameTable[size_t(_archTraits[arch].isaWordNameId(typeSizeLog2))];
+
+  if (repeatCount > 1)
+    ASMJIT_PROPAGATE(sb.appendFormat(".repeat %zu ", repeatCount));
+
+  return formatDataHelper(sb, wordName, typeSize, static_cast<const uint8_t*>(data), itemCount);
 }
 
 Error formatInstruction(
@@ -345,7 +442,7 @@ Error formatNode(
     case BaseNode::kNodeAlign: {
       const AlignNode* alignNode = node->as<AlignNode>();
       ASMJIT_PROPAGATE(
-        sb.appendFormat("align %u (%s)",
+        sb.appendFormat(".align %u (%s)",
           alignNode->alignment(),
           alignNode->alignMode() == kAlignCode ? "code" : "data"));
       break;
@@ -353,10 +450,9 @@ Error formatNode(
 
     case BaseNode::kNodeEmbedData: {
       const EmbedDataNode* embedNode = node->as<EmbedDataNode>();
-      ASMJIT_PROPAGATE(sb.append("embed "));
-      if (embedNode->repeatCount() != 1)
-        ASMJIT_PROPAGATE(sb.appendFormat("[repeat=%zu] ", size_t(embedNode->repeatCount())));
-      ASMJIT_PROPAGATE(sb.appendFormat("%u bytes", embedNode->dataSize()));
+      ASMJIT_PROPAGATE(sb.append('.'));
+      ASMJIT_PROPAGATE(formatDataType(sb, formatFlags, builder->arch(), embedNode->typeId()));
+      ASMJIT_PROPAGATE(sb.appendFormat(" {Count=%zu Repeat=%zu TotalSize=%zu}", embedNode->itemCount(), embedNode->repeatCount(), embedNode->dataSize()));
       break;
     }
 
@@ -376,6 +472,12 @@ Error formatNode(
       ASMJIT_PROPAGATE(sb.append(")"));
       break;
     }
+
+    case BaseNode::kNodeConstPool: {
+      const ConstPoolNode* constPoolNode = node->as<ConstPoolNode>();
+      ASMJIT_PROPAGATE(sb.appendFormat("[ConstPool Size=%zu Alignment=%zu]", constPoolNode->size(), constPoolNode->alignment()));
+      break;
+    };
 
     case BaseNode::kNodeComment: {
       const CommentNode* commentNode = node->as<CommentNode>();

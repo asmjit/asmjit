@@ -39,22 +39,20 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 // ============================================================================
 
 static const constexpr ArchTraits x86ArchTraits = {
-  Gp::kIdSp,      // SP.
-  Gp::kIdBp,      // FP.
-  0xFF,           // LR.
-  0xFF,           // PC.
-  { 0, 0, 0 },    // Reserved.
-  1,              // HW stack alignment.
-  0x7FFFFFFFu,    // Min stack offset.
-  0x7FFFFFFFu,    // Max stack offset.
+  // SP/FP/LR/PC.
+  Gp::kIdSp, Gp::kIdBp, 0xFF, 0xFF,
+
+  // Reserved.
+  { 0, 0, 0 },
+
+  // HW stack alignment.
+  1,
+
+  // Min/Max stack offset
+  0x7FFFFFFFu, 0x7FFFFFFFu,
 
   // ISA features [Gp, Vec, Other0, Other1].
-  {
-    ArchTraits::kIsaFeatureSwap | ArchTraits::kIsaFeaturePushPop,
-    0,
-    0,
-    0
-  },
+  { ArchTraits::kIsaFeatureSwap | ArchTraits::kIsaFeaturePushPop, 0, 0, 0 },
 
   // RegInfo.
   #define V(index) { x86::RegTraits<index>::kSignature }
@@ -83,8 +81,16 @@ static const constexpr ArchTraits x86ArchTraits = {
                     index + Type::_kIdBaseStart == Type::kIdMask64  ? Reg::kTypeKReg  : \
                     index + Type::_kIdBaseStart == Type::kIdMmx32   ? Reg::kTypeMm    : \
                     index + Type::_kIdBaseStart == Type::kIdMmx64   ? Reg::kTypeMm    : Reg::kTypeNone)
-  { ASMJIT_LOOKUP_TABLE_32(V, 0) }
+  { ASMJIT_LOOKUP_TABLE_32(V, 0) },
   #undef V
+
+  // Word names of 8-bit, 16-bit, 32-bit, and 64-bit quantities.
+  {
+    ISAWordNameId::kDB,
+    ISAWordNameId::kDW,
+    ISAWordNameId::kDD,
+    ISAWordNameId::kDQ
+  }
 };
 
 // ============================================================================
@@ -92,22 +98,20 @@ static const constexpr ArchTraits x86ArchTraits = {
 // ============================================================================
 
 static const constexpr ArchTraits x64ArchTraits = {
-  Gp::kIdSp,      // SP.
-  Gp::kIdBp,      // FP.
-  0xFF,           // LR.
-  0xFF,           // PC.
-  { 0, 0, 0 },    // Reserved.
-  1,              // HW stack alignment.
-  0x7FFFFFFFu,    // Min stack offset.
-  0x7FFFFFFFu,    // Max stack offset.
+  // SP/FP/LR/PC.
+  Gp::kIdSp, Gp::kIdBp, 0xFF, 0xFF,
+
+  // Reserved.
+  { 0, 0, 0 },
+
+  // HW stack alignment.
+  1,
+
+  // Min/Max stack offset
+  0x7FFFFFFFu, 0x7FFFFFFFu,
 
   // ISA features [Gp, Vec, Other0, Other1].
-  {
-    ArchTraits::kIsaFeatureSwap | ArchTraits::kIsaFeaturePushPop,
-    0,
-    0,
-    0
-  },
+  { ArchTraits::kIsaFeatureSwap | ArchTraits::kIsaFeaturePushPop, 0, 0, 0 },
 
   // RegInfo.
   #define V(index) { x86::RegTraits<index>::kSignature }
@@ -138,8 +142,16 @@ static const constexpr ArchTraits x64ArchTraits = {
                     index + Type::_kIdBaseStart == Type::kIdMask64  ? Reg::kTypeKReg  : \
                     index + Type::_kIdBaseStart == Type::kIdMmx32   ? Reg::kTypeMm    : \
                     index + Type::_kIdBaseStart == Type::kIdMmx64   ? Reg::kTypeMm    : Reg::kTypeNone)
-  { ASMJIT_LOOKUP_TABLE_32(V, 0) }
+  { ASMJIT_LOOKUP_TABLE_32(V, 0) },
   #undef V
+
+  // Word names of 8-bit, 16-bit, 32-bit, and 64-bit quantities.
+  {
+    ISAWordNameId::kDB,
+    ISAWordNameId::kDW,
+    ISAWordNameId::kDD,
+    ISAWordNameId::kDQ
+  }
 };
 
 //! \}

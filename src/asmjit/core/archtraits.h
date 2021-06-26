@@ -33,6 +33,41 @@ ASMJIT_BEGIN_NAMESPACE
 //! \addtogroup asmjit_core
 //! \{
 
+//! Identifier used to represent names of different data types across architectures.
+enum class ISAWordNameId : uint8_t {
+  //! Describes 'db' (X86/X86_64 convention, always 8-bit quantity).
+  kDB = 0,
+  //! Describes 'dw' (X86/X86_64 convention, always 16-bit word).
+  kDW,
+  //! Describes 'dd' (X86/X86_64 convention, always 32-bit word).
+  kDD,
+  //! Describes 'dq' (X86/X86_64 convention, always 64-bit word).
+  kDQ,
+  //! Describes 'byte' (always 8-bit quantity).
+  kByte,
+  //! Describes 'half' (most likely 16-bit word).
+  kHalf,
+  //! Describes 'word' (either 16-bit or 32-bit word).
+  kWord,
+  //! Describes 'hword' (most likely 16-bit word).
+  kHWord,
+  //! Describes 'dword' (either 32-bit or 64-bit word).
+  kDWord,
+  //! Describes 'qword' (64-bit word).
+  kQWord,
+  //! Describes 'xword' (64-bit word).
+  kXWord,
+  //! Describes 'short' (always 16-bit word).
+  kShort,
+  //! Describes 'long' (most likely 32-bit word).
+  kLong,
+  //! Describes 'quad' (64-bit word).
+  kQuad,
+
+  //! Maximum value.
+  kMaxValue = kQuad
+};
+
 // ============================================================================
 // [asmjit::ArchTraits]
 // ============================================================================
@@ -60,6 +95,7 @@ struct ArchTraits {
   uint8_t _reserved[3];
   //! Hardware stack alignment requirement.
   uint8_t _hwStackAlignment;
+
   //! Minimum addressable offset on stack guaranteed for all instructions.
   uint32_t _minStackOffset;
   //! Maximum addressable offset on stack depending on specific instruction.
@@ -75,6 +111,9 @@ struct ArchTraits {
   uint8_t _regTypeToTypeId[BaseReg::kTypeMax + 1];
   //! Maps base TypeId values (from TypeId::_kIdBaseStart) to register types, see \ref Type::Id.
   uint8_t _typeIdToRegType[32];
+
+  //! Word name identifiers of 8-bit, 16-bit, 32-biit, and 64-bit quantities that appear in formatted text.
+  ISAWordNameId _isaWordNameIdTable[4];
 
   //! Resets all members to zeros.
   inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
@@ -140,6 +179,18 @@ struct ArchTraits {
     ASMJIT_ASSERT(rType <= BaseReg::kTypeMax);
     return _regTypeToTypeId[rType];
   }
+
+  //! Returns a table of ISA word names that appear in formatted text. Word names are ISA dependent.
+  //!
+  //! The index of this table is log2 of the size:
+  //!   - [0] 8-bits
+  //!   - [1] 16-bits
+  //!   - [2] 32-bits
+  //!   - [3] 64-bits
+  inline const ISAWordNameId* isaWordNameIdTable() const noexcept { return _isaWordNameIdTable; }
+
+  //! Returns an ISA word name identifier of the given `index`, see \ref isaWordNameIdTable() for more details.
+  inline ISAWordNameId isaWordNameId(uint32_t index) const noexcept { return _isaWordNameIdTable[index]; }
 
   //! \}
 

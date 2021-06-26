@@ -31,7 +31,7 @@ ASMJIT_BEGIN_NAMESPACE
 // [asmjit::String - Globals]
 // ============================================================================
 
-static const char String_baseN[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char String_baseN[] = "0123456789ABCDEF";
 
 constexpr size_t kMinAllocSize = 64;
 constexpr size_t kMaxAllocSize = SIZE_MAX - Globals::kGrowThreshold;
@@ -256,7 +256,7 @@ Error String::padEnd(size_t n, char c) noexcept {
 }
 
 Error String::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t width, uint32_t flags) noexcept {
-  if (base < 2 || base > 36)
+  if (base == 0)
     base = 10;
 
   char buf[128];
@@ -284,13 +284,39 @@ Error String::_opNumber(uint32_t op, uint64_t i, uint32_t base, size_t width, ui
   // [Number]
   // --------------------------------------------------------------------------
 
-  do {
-    uint64_t d = i / base;
-    uint64_t r = i % base;
+  switch (base) {
+    case 2:
+    case 8:
+    case 16: {
+      uint32_t shift = Support::ctz(base);
+      uint32_t mask = base - 1;
 
-    *--p = String_baseN[r];
-    i = d;
-  } while (i);
+      do {
+        uint64_t d = i >> shift;
+        size_t r = size_t(i & mask);
+
+        *--p = String_baseN[r];
+        i = d;
+      } while (i);
+
+      break;
+    }
+
+    case 10: {
+      do {
+        uint64_t d = i / 10;
+        uint64_t r = i % 10;
+
+        *--p = char(uint32_t('0') + uint32_t(r));
+        i = d;
+      } while (i);
+
+      break;
+    }
+
+    default:
+      return DebugUtils::errored(kErrorInvalidArgument);
+  }
 
   size_t numberSize = (size_t)(buf + ASMJIT_ARRAY_SIZE(buf) - p);
 
@@ -539,6 +565,9 @@ UNIT(core_string) {
 
   EXPECT(s.appendUInt(1234) == kErrorOk);
   EXPECT(s.eq("1234") == true);
+
+  EXPECT(s.assignUInt(0xFFFF, 16, 0, String::kFormatAlternate) == kErrorOk);
+  EXPECT(s.eq("0xFFFF"));
 
   StringTmp<64> sTmp;
   EXPECT(sTmp.isLarge());

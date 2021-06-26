@@ -40,18 +40,37 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 static const constexpr ArchTraits noArchTraits = {
-  0xFF,           // SP.
-  0xFF,           // FP.
-  0xFF,           // LR.
-  0xFF,           // PC.
-  { 0, 0, 0 },    // Reserved.
-  0,              // HW stack alignment.
-  0,              // Min stack offset.
-  0,              // Max stack offset.
-  { 0, 0, 0, 0},  // ISA features [Gp, Vec, Other0, Other1].
-  { { 0 } },      // RegTypeToSignature.
-  { 0 },          // RegTypeToTypeId.
-  { 0 }           // TypeIdToRegType.
+  // SP/FP/LR/PC.
+  0xFF, 0xFF, 0xFF, 0xFF,
+
+  // Reserved,
+  { 0, 0, 0 },
+
+  // HW stack alignment.
+  0,
+
+  // Min/Max stack offset.
+  0, 0,
+
+  // ISA features [Gp, Vec, Other0, Other1].
+  { 0, 0, 0, 0},
+
+  // RegTypeToSignature.
+  { { 0 } },
+
+  // RegTypeToTypeId.
+  { 0 },
+
+  // TypeIdToRegType.
+  { 0 },
+
+  // Word names of 8-bit, 16-bit, 32-bit, and 64-bit quantities.
+  {
+    ISAWordNameId::kByte,
+    ISAWordNameId::kHalf,
+    ISAWordNameId::kWord,
+    ISAWordNameId::kQuad
+  }
 };
 
 ASMJIT_VARAPI const ArchTraits _archTraits[Environment::kArchCount] = {
