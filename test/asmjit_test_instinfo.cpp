@@ -1,25 +1,7 @@
-// AsmJit - Machine code generation for C++
+// This file is part of AsmJit project <https://asmjit.com>
 //
-//  * Official AsmJit Home Page: https://asmjit.com
-//  * Official Github Repository: https://github.com/asmjit/asmjit
-//
-// Copyright (c) 2008-2020 The AsmJit Authors
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//    claim that you wrote the original software. If you use this software
-//    in a product, an acknowledgment in the product documentation would be
-//    appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//    misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
+// See asmjit.h or LICENSE.md for license and copyright information
+// SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
 
@@ -35,7 +17,7 @@ static char accessLetter(bool r, bool w) noexcept {
   return r && w ? 'X' : r ? 'R' : w ? 'W' : '_';
 }
 
-static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* operands, size_t opCount) {
+static void printInfo(Arch arch, const BaseInst& inst, const Operand_* operands, size_t opCount) {
   StringTmp<512> sb;
 
   // Read & Write Information
@@ -45,7 +27,7 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
   InstAPI::queryRWInfo(arch, inst, operands, opCount, &rw);
 
 #ifndef ASMJIT_NO_LOGGING
-  Formatter::formatInstruction(sb, 0, nullptr, arch, inst, operands, opCount);
+  Formatter::formatInstruction(sb, FormatFlags::kNone, nullptr, arch, inst, operands, opCount);
 #else
   sb.append("<Logging-Not-Available>");
 #endif
@@ -77,34 +59,37 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
     sb.append("\n");
   }
 
-  if (rw.readFlags() | rw.writeFlags()) {
+  // CPU Flags (Read/Write)
+  // ----------------------
+
+  if ((rw.readFlags() | rw.writeFlags()) != CpuRWFlags::kNone) {
     sb.append("  Flags: \n");
 
     struct FlagMap {
-      uint32_t flag;
+      CpuRWFlags flag;
       char name[4];
     };
 
     static const FlagMap flagMap[] = {
-      { x86::Status::kCF, "CF" },
-      { x86::Status::kOF, "OF" },
-      { x86::Status::kSF, "SF" },
-      { x86::Status::kZF, "ZF" },
-      { x86::Status::kAF, "AF" },
-      { x86::Status::kPF, "PF" },
-      { x86::Status::kDF, "DF" },
-      { x86::Status::kIF, "IF" },
-      { x86::Status::kAC, "AC" },
-      { x86::Status::kC0, "C0" },
-      { x86::Status::kC1, "C1" },
-      { x86::Status::kC2, "C2" },
-      { x86::Status::kC3, "C3" }
+      { CpuRWFlags::kX86_CF, "CF" },
+      { CpuRWFlags::kX86_OF, "OF" },
+      { CpuRWFlags::kX86_SF, "SF" },
+      { CpuRWFlags::kX86_ZF, "ZF" },
+      { CpuRWFlags::kX86_AF, "AF" },
+      { CpuRWFlags::kX86_PF, "PF" },
+      { CpuRWFlags::kX86_DF, "DF" },
+      { CpuRWFlags::kX86_IF, "IF" },
+      { CpuRWFlags::kX86_AC, "AC" },
+      { CpuRWFlags::kX86_C0, "C0" },
+      { CpuRWFlags::kX86_C1, "C1" },
+      { CpuRWFlags::kX86_C2, "C2" },
+      { CpuRWFlags::kX86_C3, "C3" }
     };
 
     sb.append("    ");
     for (uint32_t f = 0; f < 13; f++) {
-      char c = accessLetter((rw.readFlags() & flagMap[f].flag) != 0,
-                            (rw.writeFlags() & flagMap[f].flag) != 0);
+      char c = accessLetter((rw.readFlags() & flagMap[f].flag) != CpuRWFlags::kNone,
+                            (rw.writeFlags() & flagMap[f].flag) != CpuRWFlags::kNone);
       if (c != '_')
         sb.appendFormat("%s=%c ", flagMap[f].name, c);
     }
@@ -115,7 +100,7 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
   // CPU Features
   // ------------
 
-  BaseFeatures features;
+  CpuFeatures features;
   InstAPI::queryFeatures(arch, inst, operands, opCount, &features);
 
 #ifndef ASMJIT_NO_LOGGING
@@ -124,7 +109,7 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
     sb.append("    ");
 
     bool first = true;
-    BaseFeatures::Iterator it(features.iterator());
+    CpuFeatures::Iterator it(features.iterator());
     while (it.hasNext()) {
       uint32_t featureId = uint32_t(it.next());
       if (!first)
@@ -140,7 +125,7 @@ static void printInfo(uint32_t arch, const BaseInst& inst, const Operand_* opera
 }
 
 template<typename... Args>
-static void printInfoSimple(uint32_t arch, uint32_t instId, uint32_t options, Args&&... args) {
+static void printInfoSimple(Arch arch,InstId instId, InstOptions options, Args&&... args) {
   BaseInst inst(instId);
   inst.addOptions(options);
   Operand_ opArray[] = { std::forward<Args>(args)... };
@@ -148,7 +133,7 @@ static void printInfoSimple(uint32_t arch, uint32_t instId, uint32_t options, Ar
 }
 
 template<typename... Args>
-static void printInfoExtra(uint32_t arch, uint32_t instId, uint32_t options, const BaseReg& extraReg, Args&&... args) {
+static void printInfoExtra(Arch arch, InstId instId, InstOptions options, const BaseReg& extraReg, Args&&... args) {
   BaseInst inst(instId);
   inst.addOptions(options);
   inst.setExtraReg(extraReg);
@@ -159,27 +144,27 @@ static void printInfoExtra(uint32_t arch, uint32_t instId, uint32_t options, con
 static void testX86Arch() {
 #if !defined(ASMJIT_NO_X86)
   using namespace x86;
-  uint32_t arch = Environment::kArchX64;
+  Arch arch = Arch::kX64;
 
-  printInfoSimple(arch, Inst::kIdAdd, 0, eax, ebx);
-  printInfoSimple(arch, Inst::kIdLods, 0, eax, dword_ptr(rsi));
+  printInfoSimple(arch, Inst::kIdAdd, InstOptions::kNone, eax, ebx);
+  printInfoSimple(arch, Inst::kIdLods, InstOptions::kNone, eax, dword_ptr(rsi));
 
-  printInfoSimple(arch, Inst::kIdPshufd, 0, xmm0, xmm1, imm(0));
-  printInfoSimple(arch, Inst::kIdPabsb, 0, mm1, mm2);
-  printInfoSimple(arch, Inst::kIdPabsb, 0, xmm1, xmm2);
-  printInfoSimple(arch, Inst::kIdPextrw, 0, eax, mm1, imm(0));
-  printInfoSimple(arch, Inst::kIdPextrw, 0, eax, xmm1, imm(0));
-  printInfoSimple(arch, Inst::kIdPextrw, 0, ptr(rax), xmm1, imm(0));
+  printInfoSimple(arch, Inst::kIdPshufd, InstOptions::kNone, xmm0, xmm1, imm(0));
+  printInfoSimple(arch, Inst::kIdPabsb, InstOptions::kNone, mm1, mm2);
+  printInfoSimple(arch, Inst::kIdPabsb, InstOptions::kNone, xmm1, xmm2);
+  printInfoSimple(arch, Inst::kIdPextrw, InstOptions::kNone, eax, mm1, imm(0));
+  printInfoSimple(arch, Inst::kIdPextrw, InstOptions::kNone, eax, xmm1, imm(0));
+  printInfoSimple(arch, Inst::kIdPextrw, InstOptions::kNone, ptr(rax), xmm1, imm(0));
 
-  printInfoSimple(arch, Inst::kIdVpdpbusd, 0, xmm0, xmm1, xmm2);
-  printInfoSimple(arch, Inst::kIdVpdpbusd, Inst::kOptionVex, xmm0, xmm1, xmm2);
+  printInfoSimple(arch, Inst::kIdVpdpbusd, InstOptions::kNone, xmm0, xmm1, xmm2);
+  printInfoSimple(arch, Inst::kIdVpdpbusd, InstOptions::kX86_Vex, xmm0, xmm1, xmm2);
 
-  printInfoSimple(arch, Inst::kIdVaddpd, 0, ymm0, ymm1, ymm2);
-  printInfoSimple(arch, Inst::kIdVaddpd, 0, ymm0, ymm30, ymm31);
-  printInfoSimple(arch, Inst::kIdVaddpd, 0, zmm0, zmm1, zmm2);
+  printInfoSimple(arch, Inst::kIdVaddpd, InstOptions::kNone, ymm0, ymm1, ymm2);
+  printInfoSimple(arch, Inst::kIdVaddpd, InstOptions::kNone, ymm0, ymm30, ymm31);
+  printInfoSimple(arch, Inst::kIdVaddpd, InstOptions::kNone, zmm0, zmm1, zmm2);
 
-  printInfoExtra(arch, Inst::kIdVaddpd, 0, k1, zmm0, zmm1, zmm2);
-  printInfoExtra(arch, Inst::kIdVaddpd, Inst::kOptionZMask, k1, zmm0, zmm1, zmm2);
+  printInfoExtra(arch, Inst::kIdVaddpd, InstOptions::kNone, k1, zmm0, zmm1, zmm2);
+  printInfoExtra(arch, Inst::kIdVaddpd, InstOptions::kX86_ZMask, k1, zmm0, zmm1, zmm2);
 #endif
 }
 
