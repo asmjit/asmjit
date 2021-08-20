@@ -514,18 +514,14 @@ namespace asmjit {
 // [asmjit::Build - Globals - Utilities]
 // ============================================================================
 
-#define ASMJIT_NONCOPYABLE(...)                                               \
-  private:                                                                    \
-    __VA_ARGS__(const __VA_ARGS__& other) = delete;                           \
-    __VA_ARGS__& operator=(const __VA_ARGS__& other) = delete;                \
-  public:
+#define ASMJIT_NONCOPYABLE(Type)                                              \
+    Type(const Type& other) = delete;                                         \
+    Type& operator=(const Type& other) = delete;
 
-#define ASMJIT_NONCONSTRUCTIBLE(...)                                          \
-  private:                                                                    \
-    __VA_ARGS__() = delete;                                                   \
-    __VA_ARGS__(const __VA_ARGS__& other) = delete;                           \
-    __VA_ARGS__& operator=(const __VA_ARGS__& other) = delete;                \
-  public:
+#define ASMJIT_NONCONSTRUCTIBLE(Type)                                         \
+    Type() = delete;                                                          \
+    Type(const Type& other) = delete;                                         \
+    Type& operator=(const Type& other) = delete;
 
 // ============================================================================
 // [asmjit::Build - Globals - Cleanup]

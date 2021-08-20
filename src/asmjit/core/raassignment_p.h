@@ -40,9 +40,9 @@ ASMJIT_BEGIN_NAMESPACE
 // ============================================================================
 
 class RAAssignment {
+public:
   ASMJIT_NONCOPYABLE(RAAssignment)
 
-public:
   enum Ids : uint32_t {
     kPhysNone = 0xFF,
     kWorkNone = RAWorkReg::kIdNone
