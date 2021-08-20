@@ -496,7 +496,7 @@ public:
 template<typename T>
 class RALiveSpans {
 public:
-  ASMJIT_NONCOPYABLE(RALiveSpans<T>)
+  ASMJIT_NONCOPYABLE(RALiveSpans)
 
   typedef typename T::DataType DataType;
   ZoneVector<T> _data;

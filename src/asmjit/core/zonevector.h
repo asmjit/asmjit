@@ -143,7 +143,7 @@ public:
 template <typename T>
 class ZoneVector : public ZoneVectorBase {
 public:
-  ASMJIT_NONCOPYABLE(ZoneVector<T>)
+  ASMJIT_NONCOPYABLE(ZoneVector)
 
   // STL compatibility;
   typedef T value_type;

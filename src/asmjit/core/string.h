@@ -371,7 +371,7 @@ public:
 template<size_t N>
 class StringTmp : public String {
 public:
-  ASMJIT_NONCOPYABLE(StringTmp<N>)
+  ASMJIT_NONCOPYABLE(StringTmp)
 
   //! Embedded data.
   char _embeddedData[Support::alignUp(N + 1, sizeof(size_t))];
