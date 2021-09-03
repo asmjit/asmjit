@@ -1308,11 +1308,11 @@ public:
               Support::unpackU32At0(shift.value()),
               Support::unpackU32At1(shift.value())) {}
 
-  //! Creates a new signed immediate value, assigning the value to `val` and
+  //! Creates a new immediate value, assigning the value to `val` and
   //! an architecture-specific predicate to `predicate`.
   //!
   //! \note Predicate is currently only used by ARM architectures.
-  template<typename T>
+  template<typename T, typename std::enable_if<std::is_scalar<typename std::decay<T>::type>::value, bool>::type = true>
   inline constexpr Imm(const T& val, const uint32_t predicate = 0) noexcept
     : Operand(Globals::Init, kOpImm | (predicate << kSignaturePredicateShift),
               0,
