@@ -797,10 +797,8 @@ static constexpr uint32_t bytepack32_4x8(uint32_t a, uint32_t b, uint32_t c, uin
                         : (d | (c << 8) | (b << 16) | (a << 24));
 }
 
-template<typename T>
-static constexpr uint32_t unpackU32At0(T x) noexcept { return ASMJIT_ARCH_LE ? uint32_t(uint64_t(x) & 0xFFFFFFFFu) : uint32_t(uint64_t(x) >> 32); }
-template<typename T>
-static constexpr uint32_t unpackU32At1(T x) noexcept { return ASMJIT_ARCH_BE ? uint32_t(uint64_t(x) & 0xFFFFFFFFu) : uint32_t(uint64_t(x) >> 32); }
+static constexpr uint32_t unpackU32At0(uint64_t x) noexcept { return uint32_t(ASMJIT_ARCH_LE ? x : x >> 32); }
+static constexpr uint32_t unpackU32At1(uint64_t x) noexcept { return uint32_t(ASMJIT_ARCH_BE ? x : x >> 32); }
 
 // ============================================================================
 // [asmjit::Support - Position of byte (in bit-shift)]

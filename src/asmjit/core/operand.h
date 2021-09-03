@@ -1316,8 +1316,8 @@ public:
   inline constexpr Imm(const T& val, const uint32_t predicate = 0) noexcept
     : Operand(Globals::Init, kOpImm | (predicate << kSignaturePredicateShift),
               0,
-              Support::unpackU32At0(int64_t(val)),
-              Support::unpackU32At1(int64_t(val))) {}
+              Support::unpackU32At0(uint64_t(val)),
+              Support::unpackU32At1(uint64_t(val))) {}
 
   inline Imm(const float& val, const uint32_t predicate = 0) noexcept
     : Operand(Globals::Init, kOpImm | (predicate << kSignaturePredicateShift), 0, 0, 0) { setValue(val); }
