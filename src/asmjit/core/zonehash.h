@@ -175,7 +175,7 @@ public:
 template<typename NodeT>
 class ZoneHash : public ZoneHashBase {
 public:
-  ASMJIT_NONCOPYABLE(ZoneHash<NodeT>)
+  ASMJIT_NONCOPYABLE(ZoneHash)
 
   typedef NodeT Node;
 

@@ -41,6 +41,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 class GlobalConstPoolPass : public Pass {
   typedef Pass Base;
+public:
   ASMJIT_NONCOPYABLE(GlobalConstPoolPass)
 
   GlobalConstPoolPass() noexcept : Pass("GlobalConstPoolPass") {}
