@@ -108,7 +108,7 @@ struct Expression {
     uint64_t constant;
     //! Pointer to another expression.
     Expression* expression;
-    //! Poitner to \ref LabelEntry.
+    //! Pointer to \ref LabelEntry.
     LabelEntry* label;
   };
 

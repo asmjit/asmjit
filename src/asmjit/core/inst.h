@@ -134,7 +134,7 @@ public:
 
   //! Creates a new BaseInst instance with `id` and `options` set.
   //!
-  //! Default values of `id` and `options` are zero, which means none instruciton.
+  //! Default values of `id` and `options` are zero, which means none instruction.
   //! Such instruction is guaranteed to never exist for any architecture supported
   //! by AsmJit.
   inline explicit BaseInst(uint32_t id = 0, uint32_t options = 0) noexcept

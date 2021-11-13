@@ -355,7 +355,7 @@ public:
     return _packed() == 0;
   }
 
-  //! Tests whether the environment is intialized, which means it must have
+  //! Tests whether the environment is initialized, which means it must have
   //! a valid architecture.
   inline bool isInitialized() const noexcept {
     return _arch != kArchUnknown;

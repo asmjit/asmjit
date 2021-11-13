@@ -68,7 +68,7 @@ class BaseEmitter;
 //! the error, but lets AsmJit continue:
 //!
 //! ```
-//! // Error Handling #1 - Logging and returing Error.
+//! // Error Handling #1 - Logging and returning Error.
 //! #include <asmjit/x86.h>
 //! #include <stdio.h>
 //!

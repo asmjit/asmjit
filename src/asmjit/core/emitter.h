@@ -685,7 +685,7 @@ public:
   //!
   //! \note This function is virtual and can be overridden, however, if you
   //! do so, always call \ref BaseEmitter::onSettingsUpdated() within your
-  //! own implementation to ensure that the emitter is in a consisten state.
+  //! own implementation to ensure that the emitter is in a consistent state.
   ASMJIT_API virtual void onSettingsUpdated() noexcept;
 
   //! \}

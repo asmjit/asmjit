@@ -589,9 +589,9 @@ public:
   ASMJIT_NONCOPYABLE(InvokeNode)
 
   //! Operand pack provides multiple operands that can be associated with a
-  //! single return value of function argument. Sometims this is necessary to
+  //! single return value of function argument. Sometimes this is necessary to
   //! express an argument or return value that requires multiple registers, for
-  //! example 64-bit value in 32-bit mode or passing / returning homogenous data
+  //! example 64-bit value in 32-bit mode or passing / returning homogeneous data
   //! structures.
   struct OperandPack {
     //! Operands.
