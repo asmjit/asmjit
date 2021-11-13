@@ -508,7 +508,7 @@ public:
   // [Utilities]
   // --------------------------------------------------------------------------
 
-  //! Called when a `node` is removed, e.g. bacause of a dead code elimination.
+  //! Called when a `node` is removed, e.g. because of a dead code elimination.
   void removeNode(BaseNode* node) noexcept {
     logNode(node, kRootIndentation, "<Removed>");
     cc()->removeNode(node);

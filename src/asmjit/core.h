@@ -1129,7 +1129,7 @@ namespace asmjit {
 //!   Mem g = ptr(rax, xmm1, 2);        // g = [rax + xmm1 << 2]
 //!   Mem h = ptr(rax, xmm1, 2, 15);    // h = [rax + xmm1 << 2 + 15]
 //!
-//!   // Absolute adddress:
+//!   // Absolute address:
 //!   uint64_t addr = (uint64_t)0x1234;
 //!   Mem i = ptr(addr);                // i = [0x1234]
 //!   Mem j = ptr(addr, rbx);           // j = [0x1234 + rbx]
@@ -1452,7 +1452,7 @@ namespace asmjit {
 //! AsmJit's \ref Logger serves the following purposes:
 //!   - Provides a basic foundation for logging.
 //!   - Abstract class leaving the implementation on users. The following built-in
-//!     inplementations are provided for simplicty:
+//!     implementations are provided for simplicity:
 //!     - \ref FileLogger implements logging into a standard `FILE` stream.
 //!     - \ref StringLogger serializes all logs into a \ref String instance.
 //!

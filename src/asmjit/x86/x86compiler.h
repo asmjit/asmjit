@@ -460,7 +460,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //!   // Jump annotation is a building block that allows to annotate all
 //!   // possible targets where `jmp()` can jump. It then drives the CFG
-//!   // contruction and liveness analysis, which impacts register allocation.
+//!   // construction and liveness analysis, which impacts register allocation.
 //!   JumpAnnotation* annotation = cc.newJumpAnnotation();
 //!   annotation->addLabel(L_Add);
 //!   annotation->addLabel(L_Sub);

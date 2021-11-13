@@ -221,7 +221,7 @@ public:
     kGroupBnd  = BaseReg::kGroupVirt+4,
     //! TMM register group.
     kGroupTmm  = BaseReg::kGroupVirt+5,
-    //! Instrucion pointer (IP).
+    //! Instruction pointer (IP).
     kGroupRip  = BaseReg::kGroupVirt+6,
 
     //! Count of all register groups.

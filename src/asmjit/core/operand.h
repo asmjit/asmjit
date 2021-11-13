@@ -139,7 +139,7 @@ struct Operand_ {
   //! Data specific to the operand type.
   //!
   //! The reason we don't use union is that we have `constexpr` constructors that
-  //! construct operands and other `constexpr` functions that return wither another
+  //! construct operands and other `constexpr` functions that return whether another
   //! Operand or something else. These cannot generally work with unions so we also
   //! cannot use `union` if we want to be standard compliant.
   uint32_t _data[2];

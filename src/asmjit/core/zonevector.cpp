@@ -126,7 +126,7 @@ Error ZoneBitVector::copyFrom(ZoneAllocator* allocator, const ZoneBitVector& oth
   }
 
   if (newSize > _capacity) {
-    // Realloc needed... Calculate the minimum capacity (in bytes) requied.
+    // Realloc needed... Calculate the minimum capacity (in bytes) required.
     uint32_t minimumCapacityInBits = Support::alignUp<uint32_t>(newSize, kBitWordSizeInBits);
     if (ASMJIT_UNLIKELY(minimumCapacityInBits < newSize))
       return DebugUtils::errored(kErrorOutOfMemory);
@@ -186,7 +186,7 @@ Error ZoneBitVector::_resize(ZoneAllocator* allocator, uint32_t newSize, uint32_
   BitWord* data = _data;
 
   if (newSize > _capacity) {
-    // Realloc needed, calculate the minimum capacity (in bytes) requied.
+    // Realloc needed, calculate the minimum capacity (in bytes) required.
     uint32_t minimumCapacityInBits = Support::alignUp<uint32_t>(idealCapacity, kBitWordSizeInBits);
 
     if (ASMJIT_UNLIKELY(minimumCapacityInBits < newSize))
