@@ -471,11 +471,13 @@ Error BaseRAPass::buildCFGDominators() noexcept {
       uint32_t j = preds.size();
       while (j) {
         RABlock* p = preds[--j];
-        if (!p->iDom()) continue;
+        if (!p->iDom())
+          continue;
         iDom = !iDom ? p : intersectBlocks(iDom, p);
       }
 
       if (block->iDom() != iDom) {
+        ASMJIT_ASSUME(iDom != nullptr);
         ASMJIT_RA_LOG_FORMAT("  IDom of #%u -> #%u\n", block->blockId(), iDom->blockId());
         block->setIDom(iDom);
         changed = true;

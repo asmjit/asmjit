@@ -149,7 +149,7 @@ public:
   }
 
   template<typename CompareT = Support::Compare<Support::SortOrder::kAscending>>
-  void insert(NodeT* node, const CompareT& cmp = CompareT()) noexcept {
+  void insert(NodeT* ASMJIT_NONNULL(node), const CompareT& cmp = CompareT()) noexcept {
     // Node to insert must not contain garbage.
     ASMJIT_ASSERT(!node->hasLeft());
     ASMJIT_ASSERT(!node->hasRight());
@@ -188,9 +188,12 @@ public:
       }
 
       // Fix red violation.
-      if (_isValidRed(q) && _isValidRed(p))
+      if (_isValidRed(q) && _isValidRed(p)) {
+        ASMJIT_ASSUME(g != nullptr);
+        ASMJIT_ASSUME(p != nullptr);
         t->_setChild(t->_getRight() == g,
                      q == p->_getChild(last) ? _singleRotate(g, !last) : _doubleRotate(g, !last));
+      }
 
       // Stop if found.
       if (q == node)
@@ -214,7 +217,7 @@ public:
 
   //! Remove node from RBTree.
   template<typename CompareT = Support::Compare<Support::SortOrder::kAscending>>
-  void remove(ZoneTreeNode* node, const CompareT& cmp = CompareT()) noexcept {
+  void remove(ZoneTreeNode* ASMJIT_NONNULL(node), const CompareT& cmp = CompareT()) noexcept {
     ZoneTreeNode head;           // False root node,
     head._setRight(_root);       // having root on the right.
 
@@ -258,6 +261,9 @@ public:
             q->_makeRed();
           }
           else {
+            ASMJIT_ASSUME(g != nullptr);
+            ASMJIT_ASSUME(s != nullptr);
+
             size_t dir2 = g->_getRight() == p;
             ZoneTreeNode* child = g->_getChild(dir2);
 
@@ -342,9 +348,14 @@ public:
   static inline bool _isValidRed(ZoneTreeNode* node) noexcept { return ZoneTreeNode::_isValidRed(node); }
 
   //! Single rotation.
-  static inline ZoneTreeNode* _singleRotate(ZoneTreeNode* root, size_t dir) noexcept {
+  static inline ZoneTreeNode* _singleRotate(ZoneTreeNode* ASMJIT_NONNULL(root), size_t dir) noexcept {
     ZoneTreeNode* save = root->_getChild(!dir);
-    root->_setChild(!dir, save->_getChild(dir));
+    ASMJIT_ASSUME(save != nullptr);
+
+    ZoneTreeNode* saveChild = save->_getChild(dir);
+    ASMJIT_ASSUME(saveChild != nullptr);
+
+    root->_setChild(!dir, saveChild);
     save->_setChild( dir, root);
     root->_makeRed();
     save->_makeBlack();
@@ -352,8 +363,10 @@ public:
   }
 
   //! Double rotation.
-  static inline ZoneTreeNode* _doubleRotate(ZoneTreeNode* root, size_t dir) noexcept {
-    root->_setChild(!dir, _singleRotate(root->_getChild(!dir), !dir));
+  static inline ZoneTreeNode* _doubleRotate(ZoneTreeNode* ASMJIT_NONNULL(root), size_t dir) noexcept {
+    ZoneTreeNode* child = root->_getChild(!dir);
+    ASMJIT_ASSUME(child != nullptr);
+    root->_setChild(!dir, _singleRotate(child, !dir));
     return _singleRotate(root, dir);
   }
 

@@ -104,6 +104,8 @@ Error BaseCompiler::newFuncNode(FuncNode** out, const FuncSignature& signature) 
 
 Error BaseCompiler::addFuncNode(FuncNode** out, const FuncSignature& signature) {
   ASMJIT_PROPAGATE(newFuncNode(out, signature));
+  ASMJIT_ASSUME(*out != nullptr);
+
   addFunc(*out);
   return kErrorOk;
 }
@@ -113,6 +115,8 @@ Error BaseCompiler::newFuncRetNode(FuncRetNode** out, const Operand_& o0, const 
   FuncRetNode* node;
 
   ASMJIT_PROPAGATE(_newNodeT<FuncRetNode>(&node));
+  ASMJIT_ASSUME(node != nullptr);
+
   node->setOpCount(opCount);
   node->setOp(0, o0);
   node->setOp(1, o1);
@@ -129,7 +133,6 @@ Error BaseCompiler::addFuncRetNode(FuncRetNode** out, const Operand_& o0, const 
 }
 
 FuncNode* BaseCompiler::addFunc(FuncNode* func) {
-  ASMJIT_ASSERT(_func == nullptr);
   _func = func;
 
   addNode(func);                 // Function node.
@@ -255,6 +258,7 @@ Error BaseCompiler::_newReg(BaseReg* out, TypeId typeId, const char* name) {
 
   VirtReg* vReg;
   ASMJIT_PROPAGATE(newVirtReg(&vReg, typeId, regSignature, name));
+  ASMJIT_ASSUME(vReg != nullptr);
 
   out->_initReg(regSignature, vReg->id());
   return kErrorOk;
@@ -338,6 +342,7 @@ Error BaseCompiler::_newReg(BaseReg* out, const BaseReg& ref, const char* name) 
 
   VirtReg* vReg;
   ASMJIT_PROPAGATE(newVirtReg(&vReg, typeId, regSignature, name));
+  ASMJIT_ASSUME(vReg != nullptr);
 
   out->_initReg(regSignature, vReg->id());
   return kErrorOk;
@@ -370,7 +375,8 @@ Error BaseCompiler::_newStack(BaseMem* out, uint32_t size, uint32_t alignment, c
     alignment = 64;
 
   VirtReg* vReg;
-  ASMJIT_PROPAGATE(newVirtReg(&vReg, TypeId::kVoid, OperandSignature(0), name));
+  ASMJIT_PROPAGATE(newVirtReg(&vReg, TypeId::kVoid, OperandSignature{0}, name));
+  ASMJIT_ASSUME(vReg != nullptr);
 
   vReg->_virtSize = size;
   vReg->_isStack = true;

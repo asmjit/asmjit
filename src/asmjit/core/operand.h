@@ -265,15 +265,6 @@ struct OperandSignature {
 
   //! \}
 
-  //! \name Construction & Destruction
-  //! \{
-
-  inline OperandSignature() noexcept = default;
-  inline constexpr OperandSignature(const OperandSignature& other) noexcept = default;
-  inline constexpr explicit OperandSignature(uint32_t bits) noexcept : _bits(bits) {}
-
-  //! \{
-
   //! \name Overloaded Operators
   //!
   //! Overloaded operators make `OperandSignature` behave like regular integer.
@@ -283,25 +274,23 @@ struct OperandSignature {
   inline constexpr bool operator!() const noexcept { return _bits != 0; }
   inline constexpr explicit operator bool() const noexcept { return _bits != 0; }
 
-  inline OperandSignature& operator=(uint32_t x) noexcept { _bits = x; return *this; }
   inline OperandSignature& operator|=(uint32_t x) noexcept { _bits |= x; return *this; }
   inline OperandSignature& operator&=(uint32_t x) noexcept { _bits &= x; return *this; }
   inline OperandSignature& operator^=(uint32_t x) noexcept { _bits ^= x; return *this; }
 
-  inline OperandSignature& operator=(const OperandSignature& other) noexcept { return operator=(other._bits); }
   inline OperandSignature& operator|=(const OperandSignature& other) noexcept { return operator|=(other._bits); }
   inline OperandSignature& operator&=(const OperandSignature& other) noexcept { return operator&=(other._bits); }
   inline OperandSignature& operator^=(const OperandSignature& other) noexcept { return operator^=(other._bits); }
 
-  inline constexpr OperandSignature operator~() const noexcept { return OperandSignature(~_bits); }
+  inline constexpr OperandSignature operator~() const noexcept { return OperandSignature{~_bits}; }
 
-  inline constexpr OperandSignature operator|(uint32_t x) const noexcept { return OperandSignature(_bits | x); }
-  inline constexpr OperandSignature operator&(uint32_t x) const noexcept { return OperandSignature(_bits & x); }
-  inline constexpr OperandSignature operator^(uint32_t x) const noexcept { return OperandSignature(_bits ^ x); }
+  inline constexpr OperandSignature operator|(uint32_t x) const noexcept { return OperandSignature{_bits | x}; }
+  inline constexpr OperandSignature operator&(uint32_t x) const noexcept { return OperandSignature{_bits & x}; }
+  inline constexpr OperandSignature operator^(uint32_t x) const noexcept { return OperandSignature{_bits ^ x}; }
 
-  inline constexpr OperandSignature operator|(const OperandSignature& other) const noexcept { return OperandSignature(_bits | other._bits); }
-  inline constexpr OperandSignature operator&(const OperandSignature& other) const noexcept { return OperandSignature(_bits & other._bits); }
-  inline constexpr OperandSignature operator^(const OperandSignature& other) const noexcept { return OperandSignature(_bits ^ other._bits); }
+  inline constexpr OperandSignature operator|(const OperandSignature& other) const noexcept { return OperandSignature{_bits | other._bits}; }
+  inline constexpr OperandSignature operator&(const OperandSignature& other) const noexcept { return OperandSignature{_bits & other._bits}; }
+  inline constexpr OperandSignature operator^(const OperandSignature& other) const noexcept { return OperandSignature{_bits ^ other._bits}; }
 
   inline constexpr bool operator==(uint32_t x) const noexcept { return _bits == x; }
   inline constexpr bool operator!=(uint32_t x) const noexcept { return _bits != x; }
@@ -340,7 +329,7 @@ struct OperandSignature {
     _bits = (_bits & ~kFieldMask) | (value << kFieldShift);
   }
 
-  inline constexpr OperandSignature subset(uint32_t mask) const noexcept { return OperandSignature(_bits & mask); }
+  inline constexpr OperandSignature subset(uint32_t mask) const noexcept { return OperandSignature{_bits & mask}; }
 
   template<uint32_t kFieldMask>
   inline constexpr bool matchesSignature(const OperandSignature& signature) const noexcept {
@@ -386,24 +375,24 @@ struct OperandSignature {
   //! \{
 
   static inline constexpr OperandSignature fromBits(uint32_t bits) noexcept {
-    return OperandSignature(bits);
+    return OperandSignature{bits};
   }
 
   template<uint32_t kFieldMask, typename T>
   static inline constexpr OperandSignature fromValue(const T& value) noexcept {
-    return OperandSignature(uint32_t(value) << Support::ConstCTZ<kFieldMask>::value);
+    return OperandSignature{uint32_t(value) << Support::ConstCTZ<kFieldMask>::value};
   }
 
   static inline constexpr OperandSignature fromOpType(OperandType opType) noexcept {
-    return OperandSignature(uint32_t(opType) << kOpTypeShift);
+    return OperandSignature{uint32_t(opType) << kOpTypeShift};
   }
 
   static inline constexpr OperandSignature fromRegType(RegType regType) noexcept {
-    return OperandSignature(uint32_t(regType) << kRegTypeShift);
+    return OperandSignature{uint32_t(regType) << kRegTypeShift};
   }
 
   static inline constexpr OperandSignature fromRegGroup(RegGroup regGroup) noexcept {
-    return OperandSignature(uint32_t(regGroup) << kRegGroupShift);
+    return OperandSignature{uint32_t(regGroup) << kRegGroupShift};
   }
 
   static inline constexpr OperandSignature fromRegTypeAndGroup(RegType regType, RegGroup regGroup) noexcept {
@@ -411,19 +400,19 @@ struct OperandSignature {
   }
 
   static inline constexpr OperandSignature fromMemBaseType(RegType baseType) noexcept {
-    return OperandSignature(uint32_t(baseType) << kMemBaseTypeShift);
+    return OperandSignature{uint32_t(baseType) << kMemBaseTypeShift};
   }
 
   static inline constexpr OperandSignature fromMemIndexType(RegType indexType) noexcept {
-    return OperandSignature(uint32_t(indexType) << kMemIndexTypeShift);
+    return OperandSignature{uint32_t(indexType) << kMemIndexTypeShift};
   }
 
   static inline constexpr OperandSignature fromPredicate(uint32_t predicate) noexcept {
-    return OperandSignature(predicate << kPredicateShift);
+    return OperandSignature{predicate << kPredicateShift};
   }
 
   static inline constexpr OperandSignature fromSize(uint32_t size) noexcept {
-    return OperandSignature(size << kSizeShift);
+    return OperandSignature{size << kSizeShift};
   }
 
   //! \}
@@ -544,7 +533,7 @@ struct Operand_ {
   //! assert(a == b);
   //! ```
   inline void reset() noexcept {
-    _signature = 0;
+    _signature.reset();
     _baseId = 0;
     _data[0] = 0;
     _data[1] = 0;
@@ -1091,7 +1080,7 @@ struct RegTraits<REG_TYPE> {                                                 \
 public:                                                                      \
   /*! Default constructor that only setups basics. */                        \
   inline constexpr REG() noexcept                                            \
-    : BASE(Signature(kSignature), kIdBad) {}                                 \
+    : BASE(Signature{kSignature}, kIdBad) {}                                 \
                                                                              \
   /*! Makes a copy of the `other` register operand. */                       \
   inline constexpr REG(const REG& other) noexcept                            \
@@ -1134,7 +1123,7 @@ public:                                                                      \
                                                                              \
   /*! Creates a register operand having its id set to `id`. */               \
   inline constexpr explicit REG(uint32_t id) noexcept                        \
-    : BASE(Signature(kSignature), id) {}
+    : BASE(Signature{kSignature}, id) {}
 //! \endcond
 
 //! Base class for all memory operands.

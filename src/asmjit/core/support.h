@@ -17,18 +17,24 @@ ASMJIT_BEGIN_NAMESPACE
 //! \addtogroup asmjit_utilities
 //! \{
 
-//! Contains support classes and functions that may be used by AsmJit source
-//! and header files. Anything defined here is considered internal and should
-//! not be used outside of AsmJit and related projects like AsmTK.
+//! Contains support classes and functions that may be used by AsmJit source and header files. Anything defined
+//! here is considered internal and should not be used outside of AsmJit and related projects like AsmTK.
 namespace Support {
 
 // Support - Architecture Features & Constraints
 // =============================================
 
 //! \cond INTERNAL
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ >= 11
+// There is a bug in GCC11+ that makes it unusable to use annotated unaligned loads/stores.
+static constexpr bool kUnalignedAccess16 = false;
+static constexpr bool kUnalignedAccess32 = false;
+static constexpr bool kUnalignedAccess64 = false;
+#else
 static constexpr bool kUnalignedAccess16 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess32 = ASMJIT_ARCH_X86 != 0;
 static constexpr bool kUnalignedAccess64 = ASMJIT_ARCH_X86 != 0;
+#endif
 //! \endcond
 
 // Support - Basic Traits

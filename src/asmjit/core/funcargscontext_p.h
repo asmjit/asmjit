@@ -27,7 +27,7 @@ static inline OperandSignature getSuitableRegForMemToMemMove(Arch arch, TypeId d
   uint32_t maxSize = Support::max<uint32_t>(dstSize, srcSize);
   uint32_t regSize = Environment::registerSizeFromArch(arch);
 
-  OperandSignature signature(0);
+  OperandSignature signature{0};
   if (maxSize <= regSize || (TypeUtils::isInt(dstTypeId) && TypeUtils::isInt(srcTypeId)))
     signature = maxSize <= 4 ? archTraits.regTypeToSignature(RegType::kGp32)
                              : archTraits.regTypeToSignature(RegType::kGp64);

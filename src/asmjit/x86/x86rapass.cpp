@@ -695,8 +695,8 @@ Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept
 // ================================
 
 static inline OperandSignature x86VecRegSignatureBySize(uint32_t size) noexcept {
-  return OperandSignature(size >= 64 ? uint32_t(Zmm::kSignature) :
-                          size >= 32 ? uint32_t(Ymm::kSignature) : uint32_t(Xmm::kSignature));
+  return OperandSignature{size >= 64 ? uint32_t(Zmm::kSignature) :
+                          size >= 32 ? uint32_t(Ymm::kSignature) : uint32_t(Xmm::kSignature)};
 }
 
 Error RACFGBuilder::moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, const Vec& src, BaseReg* out) noexcept {
@@ -1358,8 +1358,8 @@ Error X86RAPass::emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, 
   RAWorkReg* wbReg = workRegById(bWorkId);
 
   bool is64Bit = Support::max(waReg->typeId(), wbReg->typeId()) >= TypeId::kInt64;
-  OperandSignature sign = is64Bit ? OperandSignature(RegTraits<RegType::kX86_Gpq>::kSignature)
-                                  : OperandSignature(RegTraits<RegType::kX86_Gpd>::kSignature);
+  OperandSignature sign = is64Bit ? OperandSignature{RegTraits<RegType::kX86_Gpq>::kSignature}
+                                  : OperandSignature{RegTraits<RegType::kX86_Gpd>::kSignature};
 
 #ifndef ASMJIT_NO_LOGGING
   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {

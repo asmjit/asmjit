@@ -85,14 +85,14 @@ public:
   //! \{
 
   //! Creates a new \ref FuncNode.
-  ASMJIT_API Error newFuncNode(FuncNode** out, const FuncSignature& signature);
+  ASMJIT_API Error newFuncNode(FuncNode** ASMJIT_NONNULL(out), const FuncSignature& signature);
   //! Creates a new \ref FuncNode adds it to the instruction stream.
-  ASMJIT_API Error addFuncNode(FuncNode** out, const FuncSignature& signature);
+  ASMJIT_API Error addFuncNode(FuncNode** ASMJIT_NONNULL(out), const FuncSignature& signature);
 
   //! Creates a new \ref FuncRetNode.
-  ASMJIT_API Error newFuncRetNode(FuncRetNode** out, const Operand_& o0, const Operand_& o1);
+  ASMJIT_API Error newFuncRetNode(FuncRetNode** ASMJIT_NONNULL(out), const Operand_& o0, const Operand_& o1);
   //! Creates a new \ref FuncRetNode and adds it to the instruction stream.
-  ASMJIT_API Error addFuncRetNode(FuncRetNode** out, const Operand_& o0, const Operand_& o1);
+  ASMJIT_API Error addFuncRetNode(FuncRetNode** ASMJIT_NONNULL(out), const Operand_& o0, const Operand_& o1);
 
   //! Returns the current function.
   inline FuncNode* func() const noexcept { return _func; }
@@ -113,7 +113,7 @@ public:
   }
 
   //! Adds a function `node` to the instruction stream.
-  ASMJIT_API FuncNode* addFunc(FuncNode* func);
+  ASMJIT_API FuncNode* addFunc(FuncNode* ASMJIT_NONNULL(func));
   //! Emits a sentinel that marks the end of the current function.
   ASMJIT_API Error endFunc();
 
@@ -140,9 +140,9 @@ public:
   //! \{
 
   //! Creates a new \ref InvokeNode.
-  ASMJIT_API Error newInvokeNode(InvokeNode** out, InstId instId, const Operand_& o0, const FuncSignature& signature);
+  ASMJIT_API Error newInvokeNode(InvokeNode** ASMJIT_NONNULL(out), InstId instId, const Operand_& o0, const FuncSignature& signature);
   //! Creates a new \ref InvokeNode and adds it to the instruction stream.
-  ASMJIT_API Error addInvokeNode(InvokeNode** out, InstId instId, const Operand_& o0, const FuncSignature& signature);
+  ASMJIT_API Error addInvokeNode(InvokeNode** ASMJIT_NONNULL(out), InstId instId, const Operand_& o0, const FuncSignature& signature);
 
   //! \}
 
@@ -153,23 +153,23 @@ public:
   //!
   //! \note This function is public, but it's not generally recommended to be used by AsmJit users, use architecture
   //! specific `newReg()` functionality instead or functions like \ref _newReg() and \ref _newRegFmt().
-  ASMJIT_API Error newVirtReg(VirtReg** out, TypeId typeId, OperandSignature signature, const char* name);
+  ASMJIT_API Error newVirtReg(VirtReg** ASMJIT_NONNULL(out), TypeId typeId, OperandSignature signature, const char* name);
 
   //! Creates a new virtual register of the given `typeId` and stores it to `out` operand.
-  ASMJIT_API Error _newReg(BaseReg* out, TypeId typeId, const char* name = nullptr);
+  ASMJIT_API Error _newReg(BaseReg* ASMJIT_NONNULL(out), TypeId typeId, const char* name = nullptr);
 
   //! Creates a new virtual register of the given `typeId` and stores it to `out` operand.
   //!
   //! \note This version accepts a snprintf() format `fmt` followed by a variadic arguments.
-  ASMJIT_API Error _newRegFmt(BaseReg* out, TypeId typeId, const char* fmt, ...);
+  ASMJIT_API Error _newRegFmt(BaseReg* ASMJIT_NONNULL(out), TypeId typeId, const char* fmt, ...);
 
   //! Creates a new virtual register compatible with the provided reference register `ref`.
-  ASMJIT_API Error _newReg(BaseReg* out, const BaseReg& ref, const char* name = nullptr);
+  ASMJIT_API Error _newReg(BaseReg* ASMJIT_NONNULL(out), const BaseReg& ref, const char* name = nullptr);
 
   //! Creates a new virtual register compatible with the provided reference register `ref`.
   //!
   //! \note This version accepts a snprintf() format `fmt` followed by a variadic arguments.
-  ASMJIT_API Error _newRegFmt(BaseReg* out, const BaseReg& ref, const char* fmt, ...);
+  ASMJIT_API Error _newRegFmt(BaseReg* ASMJIT_NONNULL(out), const BaseReg& ref, const char* fmt, ...);
 
   //! Tests whether the given `id` is a valid virtual register id.
   inline bool isVirtIdValid(uint32_t id) const noexcept {
@@ -205,7 +205,7 @@ public:
   //! Creates a new stack of the given `size` and `alignment` and stores it to `out`.
   //!
   //! \note `name` can be used to give the stack a name, for debugging purposes.
-  ASMJIT_API Error _newStack(BaseMem* out, uint32_t size, uint32_t alignment, const char* name = nullptr);
+  ASMJIT_API Error _newStack(BaseMem* ASMJIT_NONNULL(out), uint32_t size, uint32_t alignment, const char* name = nullptr);
 
   //! Updates the stack size of a stack created by `_newStack()` by its `virtId`.
   ASMJIT_API Error setStackSize(uint32_t virtId, uint32_t newSize, uint32_t newAlignment = 0);
@@ -224,7 +224,7 @@ public:
   //!
   //! This function adds a constant of the given `size` to the built-in \ref ConstPool and stores the reference to that
   //! constant to the `out` operand.
-  ASMJIT_API Error _newConst(BaseMem* out, ConstPoolScope scope, const void* data, size_t size);
+  ASMJIT_API Error _newConst(BaseMem* ASMJIT_NONNULL(out), ConstPoolScope scope, const void* data, size_t size);
 
   //! \}
 
@@ -243,7 +243,7 @@ public:
     return _jumpAnnotations;
   }
 
-  ASMJIT_API Error newJumpNode(JumpNode** out, InstId instId, InstOptions instOptions, const Operand_& o0, JumpAnnotation* annotation);
+  ASMJIT_API Error newJumpNode(JumpNode** ASMJIT_NONNULL(out), InstId instId, InstOptions instOptions, const Operand_& o0, JumpAnnotation* annotation);
   ASMJIT_API Error emitAnnotatedJump(InstId instId, const Operand_& o0, JumpAnnotation* annotation);
 
   //! Returns a new `JumpAnnotation` instance, which can be used to aggregate possible targets of a jump where the
@@ -286,7 +286,7 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline JumpAnnotation(BaseCompiler* compiler, uint32_t annotationId) noexcept
+  inline JumpAnnotation(BaseCompiler* ASMJIT_NONNULL(compiler), uint32_t annotationId) noexcept
     : _compiler(compiler),
       _annotationId(annotationId) {}
 
@@ -339,7 +339,7 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline JumpNode(BaseCompiler* cc, InstId instId, InstOptions options, uint32_t opCount, JumpAnnotation* annotation) noexcept
+  inline JumpNode(BaseCompiler* ASMJIT_NONNULL(cc), InstId instId, InstOptions options, uint32_t opCount, JumpAnnotation* annotation) noexcept
     : InstNode(cc, instId, options, opCount, kBaseOpCapacity),
       _annotation(annotation) {
     setType(NodeType::kJump);
@@ -439,7 +439,7 @@ public:
   //! Creates a new `FuncNode` instance.
   //!
   //! Always use `BaseCompiler::addFunc()` to create a new `FuncNode`.
-  inline FuncNode(BaseBuilder* cb) noexcept
+  inline FuncNode(BaseBuilder* ASMJIT_NONNULL(cb)) noexcept
     : LabelNode(cb),
       _funcDetail(),
       _frame(),
@@ -539,7 +539,7 @@ public:
   //! \{
 
   //! Creates a new `FuncRetNode` instance.
-  inline FuncRetNode(BaseBuilder* cb) noexcept : InstNode(cb, BaseInst::kIdAbstract, InstOptions::kNone, 0) {
+  inline FuncRetNode(BaseBuilder* ASMJIT_NONNULL(cb)) noexcept : InstNode(cb, BaseInst::kIdAbstract, InstOptions::kNone, 0) {
     _any._nodeType = NodeType::kFuncRet;
   }
 
@@ -593,7 +593,7 @@ public:
   //! \{
 
   //! Creates a new `InvokeNode` instance.
-  inline InvokeNode(BaseBuilder* cb, InstId instId, InstOptions options) noexcept
+  inline InvokeNode(BaseBuilder* ASMJIT_NONNULL(cb), InstId instId, InstOptions options) noexcept
     : InstNode(cb, instId, options, kBaseOpCapacity),
       _funcDetail(),
       _args(nullptr) {

@@ -115,7 +115,7 @@ public:
 
   template<RegType REG_TYPE>
   inline void setRegT(uint32_t rId) noexcept {
-    setSignature(OperandSignature(RegTraits<REG_TYPE>::kSignature));
+    setSignature(OperandSignature{RegTraits<REG_TYPE>::kSignature});
     setId(rId);
   }
 
@@ -135,18 +135,18 @@ public:
   static inline TypeId typeIdOfT() noexcept { return TypeId(RegTraits<REG_TYPE>::kTypeId); }
 
   template<RegType REG_TYPE>
-  static inline OperandSignature signatureOfT() noexcept { return OperandSignature(RegTraits<REG_TYPE>::kSignature); }
+  static inline OperandSignature signatureOfT() noexcept { return OperandSignature{RegTraits<REG_TYPE>::kSignature}; }
 
   static inline OperandSignature signatureOfVecByType(TypeId typeId) noexcept {
-    return OperandSignature(typeId <= TypeId::_kVec128End ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
+    return OperandSignature{typeId <= TypeId::_kVec128End ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
                             typeId <= TypeId::_kVec256End ? uint32_t(RegTraits<RegType::kX86_Ymm>::kSignature) :
-                                                            uint32_t(RegTraits<RegType::kX86_Zmm>::kSignature));
+                                                            uint32_t(RegTraits<RegType::kX86_Zmm>::kSignature)};
   }
 
   static inline OperandSignature signatureOfVecBySize(uint32_t size) noexcept {
-    return OperandSignature(size <= 16 ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
+    return OperandSignature{size <= 16 ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
                             size <= 32 ? uint32_t(RegTraits<RegType::kX86_Ymm>::kSignature) :
-                                         uint32_t(RegTraits<RegType::kX86_Zmm>::kSignature));
+                                         uint32_t(RegTraits<RegType::kX86_Zmm>::kSignature)};
   }
 
   //! Tests whether the `op` operand is either a low or high 8-bit GPB register.
@@ -735,13 +735,13 @@ public:
   inline constexpr Mem(const Signature& signature, uint32_t baseId, uint32_t indexId, int32_t offset) noexcept
     : BaseMem(signature, baseId, indexId, offset) {}
 
-  inline constexpr Mem(const Label& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature(0)) noexcept
+  inline constexpr Mem(const Label& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(RegType::kLabelTag) |
               Signature::fromSize(size) |
               signature, base.id(), 0, off) {}
 
-  inline constexpr Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature(0)) noexcept
+  inline constexpr Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(RegType::kLabelTag) |
               Signature::fromMemIndexType(index.type()) |
@@ -749,13 +749,13 @@ public:
               Signature::fromSize(size) |
               signature, base.id(), index.id(), off) {}
 
-  inline constexpr Mem(const BaseReg& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature(0)) noexcept
+  inline constexpr Mem(const BaseReg& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(base.type()) |
               Signature::fromSize(size) |
               signature, base.id(), 0, off) {}
 
-  inline constexpr Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature(0)) noexcept
+  inline constexpr Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(base.type()) |
               Signature::fromMemIndexType(index.type()) |
@@ -763,12 +763,12 @@ public:
               Signature::fromSize(size) |
               signature, base.id(), index.id(), off) {}
 
-  inline constexpr explicit Mem(uint64_t base, uint32_t size = 0, Signature signature = OperandSignature(0)) noexcept
+  inline constexpr explicit Mem(uint64_t base, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromSize(size) |
               signature, uint32_t(base >> 32), 0, int32_t(uint32_t(base & 0xFFFFFFFFu))) {}
 
-  inline constexpr Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, Signature signature = OperandSignature(0)) noexcept
+  inline constexpr Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemIndexType(index.type()) |
               Signature::fromValue<kSignatureMemShiftValueMask>(shift) |
@@ -798,7 +798,7 @@ public:
   }
 
   inline constexpr Mem cloneBroadcasted(Broadcast b) const noexcept {
-    return Mem((_signature & ~Signature(kSignatureMemBroadcastMask)) | Signature::fromValue<kSignatureMemBroadcastMask>(b), _baseId, _data[0], int32_t(_data[1]));
+    return Mem((_signature & ~Signature{kSignatureMemBroadcastMask}) | Signature::fromValue<kSignatureMemBroadcastMask>(b), _baseId, _data[0], int32_t(_data[1]));
   }
 
   //! \}

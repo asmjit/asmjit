@@ -7,7 +7,7 @@
 #define ASMJIT_CORE_H_INCLUDED
 
 //! Root namespace used by AsmJit.
-namespace asmjit {}
+namespace asmjit {
 
 //! \mainpage API Reference
 //!
@@ -240,7 +240,7 @@ namespace asmjit {}
 //!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
 //!     it's not using anything, which was deprecated.
 //!
-//! ### Changes committed at XXXX-XX-XX
+//! ### Changes committed at 2021-12-13
 //!
 //! Core changes:
 //!
@@ -1811,6 +1811,8 @@ namespace asmjit {}
 //! \defgroup asmjit_ra RA
 //! \brief Register allocator internals.
 //! \endcond
+
+} // {asmjit}
 
 #include "asmjit-scope-begin.h"
 #include "core/archtraits.h"

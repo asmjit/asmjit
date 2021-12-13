@@ -58,7 +58,7 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline VirtReg(const OperandSignature& signature, uint32_t id, uint32_t virtSize, uint32_t alignment, TypeId typeId) noexcept
+  inline VirtReg(OperandSignature signature, uint32_t id, uint32_t virtSize, uint32_t alignment, TypeId typeId) noexcept
     : _signature(signature),
       _id(id),
       _virtSize(virtSize),

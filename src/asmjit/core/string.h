@@ -169,20 +169,20 @@ public:
   //! \name Accessors
   //! \{
 
-  inline bool isLarge() const noexcept { return _type >= kTypeLarge; }
   inline bool isExternal() const noexcept { return _type == kTypeExternal; }
+  inline bool isLargeOrExternal() const noexcept { return _type >= kTypeLarge; }
 
   //! Tests whether the string is empty.
   inline bool empty() const noexcept { return size() == 0; }
   //! Returns the size of the string.
-  inline size_t size() const noexcept { return isLarge() ? size_t(_large.size) : size_t(_type); }
+  inline size_t size() const noexcept { return isLargeOrExternal() ? size_t(_large.size) : size_t(_type); }
   //! Returns the capacity of the string.
-  inline size_t capacity() const noexcept { return isLarge() ? _large.capacity : size_t(kSSOCapacity); }
+  inline size_t capacity() const noexcept { return isLargeOrExternal() ? _large.capacity : size_t(kSSOCapacity); }
 
   //! Returns the data of the string.
-  inline char* data() noexcept { return isLarge() ? _large.data : _small.data; }
+  inline char* data() noexcept { return isLargeOrExternal() ? _large.data : _small.data; }
   //! \overload
-  inline const char* data() const noexcept { return isLarge() ? _large.data : _small.data; }
+  inline const char* data() const noexcept { return isLargeOrExternal() ? _large.data : _small.data; }
 
   inline char* start() noexcept { return data(); }
   inline const char* start() const noexcept { return data(); }
@@ -330,7 +330,7 @@ public:
   }
 
   inline void _setSize(size_t newSize) noexcept {
-    if (isLarge())
+    if (isLargeOrExternal())
       _large.size = newSize;
     else
       _small.type = uint8_t(newSize);

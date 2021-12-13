@@ -99,6 +99,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
         RegGroup srcGroup = archTraits().regTypeToGroup(src.regType());
 
         if (dstGroup == srcGroup) {
+          ASMJIT_ASSERT(dstWd != nullptr);
           dstWd->assign(varId, srcId);
 
           // The best case, register is allocated where it is expected to be.

@@ -671,9 +671,9 @@ public:
   //! \{
 
   //! Called after the emitter was attached to `CodeHolder`.
-  virtual Error onAttach(CodeHolder* code) noexcept = 0;
+  virtual Error onAttach(CodeHolder* ASMJIT_NONNULL(code)) noexcept = 0;
   //! Called after the emitter was detached from `CodeHolder`.
-  virtual Error onDetach(CodeHolder* code) noexcept = 0;
+  virtual Error onDetach(CodeHolder* ASMJIT_NONNULL(code)) noexcept = 0;
 
   //! Called when \ref CodeHolder has updated an important setting, which involves the following:
   //!

@@ -374,6 +374,33 @@ namespace asmjit {
   #define ASMJIT_MAYBE_UNUSED
 #endif
 
+#if defined(__clang_major__) && __clang_major__ >= 4 && !defined(_DOXYGEN)
+  // NOTE: Clang allows to apply this attribute to function arguments, which is what we want. Once GCC decides to
+  // support this use, we will enable it for GCC as well. However, until that, it will be clang only, which is
+  // what we need for static analysis.
+  #define ASMJIT_NONNULL(FUNCTION_ARGUMENT) FUNCTION_ARGUMENT __attribute__((__nonnull__))
+#else
+  #define ASMJIT_NONNULL(FUNCTION_ARGUMENT) FUNCTION_ARGUMENT
+#endif
+
+//! \def ASMJIT_ASSUME(...)
+//!
+//! Macro that tells the C/C++ compiler that the expression `...` evaluates to true.
+//!
+//! This macro has two purposes:
+//!
+//!   1. Enable optimizations that would not be possible without the assumption.
+//!   2. Hint static analysis tools that a certain condition is true to prevent false positives.
+#if defined(__clang__)
+  #define ASMJIT_ASSUME(...) __builtin_assume(__VA_ARGS__)
+#elif defined(__GNUC__)
+  #define ASMJIT_ASSUME(...) do { if (!(__VA_ARGS__)) __builtin_unreachable(); } while (0)
+#elif defined(_MSC_VER)
+  #define ASMJIT_ASSUME(...) __assume(__VA_ARGS__)
+#else
+  #define ASMJIT_ASSUME(...) (void)0
+#endif
+
 //! \def ASMJIT_LIKELY(...)
 //!
 //! Condition is likely to be taken (mostly error handling and edge cases).

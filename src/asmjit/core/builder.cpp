@@ -146,7 +146,6 @@ Error BaseBuilder::newCommentNode(CommentNode** out, const char* data, size_t si
 }
 
 BaseNode* BaseBuilder::addNode(BaseNode* node) noexcept {
-  ASMJIT_ASSERT(node);
   ASMJIT_ASSERT(!node->_prev);
   ASMJIT_ASSERT(!node->_next);
   ASMJIT_ASSERT(!node->isActive());
@@ -185,9 +184,6 @@ BaseNode* BaseBuilder::addNode(BaseNode* node) noexcept {
 }
 
 BaseNode* BaseBuilder::addAfter(BaseNode* node, BaseNode* ref) noexcept {
-  ASMJIT_ASSERT(node);
-  ASMJIT_ASSERT(ref);
-
   ASMJIT_ASSERT(!node->_prev);
   ASMJIT_ASSERT(!node->_next);
 
@@ -211,11 +207,9 @@ BaseNode* BaseBuilder::addAfter(BaseNode* node, BaseNode* ref) noexcept {
 }
 
 BaseNode* BaseBuilder::addBefore(BaseNode* node, BaseNode* ref) noexcept {
-  ASMJIT_ASSERT(node != nullptr);
   ASMJIT_ASSERT(!node->_prev);
   ASMJIT_ASSERT(!node->_next);
   ASMJIT_ASSERT(!node->isActive());
-  ASMJIT_ASSERT(ref != nullptr);
   ASMJIT_ASSERT(ref->isActive());
 
   BaseNode* prev = ref->prev();
@@ -357,6 +351,7 @@ Error BaseBuilder::sectionNodeOf(SectionNode** out, uint32_t sectionId) {
 Error BaseBuilder::section(Section* section) {
   SectionNode* node;
   ASMJIT_PROPAGATE(sectionNodeOf(&node, section->id()));
+  ASMJIT_ASSUME(node != nullptr);
 
   if (!node->isActive()) {
     // Insert the section at the end if it was not part of the code.
@@ -649,6 +644,7 @@ Error BaseBuilder::align(AlignMode alignMode, uint32_t alignment) {
 
   AlignNode* node;
   ASMJIT_PROPAGATE(newAlignNode(&node, alignMode, alignment));
+  ASMJIT_ASSUME(node != nullptr);
 
   addNode(node);
   return kErrorOk;
@@ -663,6 +659,7 @@ Error BaseBuilder::embed(const void* data, size_t dataSize) {
 
   EmbedDataNode* node;
   ASMJIT_PROPAGATE(newEmbedDataNode(&node, TypeId::kUInt8, data, dataSize));
+  ASMJIT_ASSUME(node != nullptr);
 
   addNode(node);
   return kErrorOk;
@@ -674,6 +671,7 @@ Error BaseBuilder::embedDataArray(TypeId typeId, const void* data, size_t itemCo
 
   EmbedDataNode* node;
   ASMJIT_PROPAGATE(newEmbedDataNode(&node, typeId, data, itemCount, itemRepeat));
+  ASMJIT_ASSUME(node != nullptr);
 
   addNode(node);
   return kErrorOk;
@@ -691,6 +689,7 @@ Error BaseBuilder::embedConstPool(const Label& label, const ConstPool& pool) {
 
   EmbedDataNode* node;
   ASMJIT_PROPAGATE(newEmbedDataNode(&node, TypeId::kUInt8, nullptr, pool.size()));
+  ASMJIT_ASSUME(node != nullptr);
 
   pool.fill(node->data());
   addNode(node);
@@ -744,6 +743,7 @@ Error BaseBuilder::comment(const char* data, size_t size) {
 
   CommentNode* node;
   ASMJIT_PROPAGATE(newCommentNode(&node, data, size));
+  ASMJIT_ASSUME(node != nullptr);
 
   addNode(node);
   return kErrorOk;
@@ -848,6 +848,7 @@ Error BaseBuilder::onAttach(CodeHolder* code) noexcept {
     return err;
   }
 
+  ASMJIT_ASSUME(initialSection != nullptr);
   _cursor = initialSection;
   _firstNode = initialSection;
   _lastNode = initialSection;

@@ -1054,6 +1054,8 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
 
   // Fixup the virtual size of the address table if it's the last section.
   if (_sectionsByOrder.last() == addressTableSection) {
+    ASMJIT_ASSERT(addressTableSection != nullptr);
+
     size_t addressTableSize = addressTableEntryCount * addressSize;
     addressTableSection->_buffer._size = addressTableSize;
     addressTableSection->_virtualSize = addressTableSize;

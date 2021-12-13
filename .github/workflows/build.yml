@@ -37,7 +37,7 @@ jobs:
           - { title: "diag-asan"      , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON", diagnostics: "address" }
           - { title: "diag-ubsan"     , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON", diagnostics: "undefined" }
           - { title: "diag-valgrind"  , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON", diagnostics: "valgrind" }
-          - { title: "diag-scan-build", os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON", diagnostics: "scan-build" }
+          - { title: "diag-scan-build", os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Debug"  , diagnostics: "scan-build" }
 
           - { title: "no-deprecated"  , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON,ASMJIT_NO_DEPRECATED=1" }
           - { title: "no-intrinsics"  , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON,ASMJIT_NO_INTRINSICS=1" }
@@ -67,6 +67,10 @@ jobs:
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-10"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-latest" , cc: "clang"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-latest" , cc: "clang"   , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
@@ -79,6 +83,14 @@ jobs:
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-10", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-10", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-10", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
           - { title: "macos-10.15"    , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "macos-10.15"    , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }

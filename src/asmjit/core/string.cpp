@@ -29,7 +29,7 @@ Error String::reset() noexcept {
 }
 
 Error String::clear() noexcept {
-  if (isLarge()) {
+  if (isLargeOrExternal()) {
     _large.size = 0;
     _large.data[0] = '\0';
   }
@@ -48,7 +48,7 @@ char* String::prepare(ModifyOp op, size_t size) noexcept {
   size_t curSize;
   size_t curCapacity;
 
-  if (isLarge()) {
+  if (isLargeOrExternal()) {
     curData = this->_large.data;
     curSize = this->_large.size;
     curCapacity = this->_large.capacity;
@@ -143,7 +143,7 @@ Error String::assign(const char* data, size_t size) noexcept {
   if (size == SIZE_MAX)
     size = data ? strlen(data) : size_t(0);
 
-  if (isLarge()) {
+  if (isLargeOrExternal()) {
     if (size <= _large.capacity) {
       dst = _large.data;
       _large.size = size;
@@ -157,7 +157,7 @@ Error String::assign(const char* data, size_t size) noexcept {
       if (ASMJIT_UNLIKELY(!dst))
         return DebugUtils::errored(kErrorOutOfMemory);
 
-      if (!isExternal())
+      if (_type == kTypeLarge)
         ::free(_large.data);
 
       _large.type = kTypeLarge;
@@ -447,7 +447,7 @@ Error String::_opVFormat(ModifyOp op, const char* fmt, va_list ap) noexcept {
 }
 
 Error String::truncate(size_t newSize) noexcept {
-  if (isLarge()) {
+  if (isLargeOrExternal()) {
     if (newSize < _large.size) {
       _large.data[newSize] = '\0';
       _large.size = newSize;
@@ -491,7 +491,7 @@ bool String::eq(const char* other, size_t size) const noexcept {
 UNIT(core_string) {
   String s;
 
-  EXPECT(s.isLarge() == false);
+  EXPECT(s.isLargeOrExternal() == false);
   EXPECT(s.isExternal() == false);
 
   EXPECT(s.assign('a') == kErrorOk);
@@ -525,14 +525,14 @@ UNIT(core_string) {
 
   const char* large = "Large string that will not fit into SSO buffer";
   EXPECT(s.assign(large) == kErrorOk);
-  EXPECT(s.isLarge() == true);
+  EXPECT(s.isLargeOrExternal() == true);
   EXPECT(s.size() == strlen(large));
   EXPECT(s.capacity() > String::kSSOCapacity);
   EXPECT(s.eq(large) == true);
   EXPECT(s.eq(large, strlen(large)) == true);
 
   const char* additional = " (additional content)";
-  EXPECT(s.isLarge() == true);
+  EXPECT(s.isLargeOrExternal() == true);
   EXPECT(s.append(additional) == kErrorOk);
   EXPECT(s.size() == strlen(large) + strlen(additional));
 
@@ -540,7 +540,7 @@ UNIT(core_string) {
   EXPECT(s.size() == 0);
   EXPECT(s.empty() == true);
   EXPECT(s.data()[0] == '\0');
-  EXPECT(s.isLarge() == true); // Clear should never release the memory.
+  EXPECT(s.isLargeOrExternal() == true); // Clear should never release the memory.
 
   EXPECT(s.appendUInt(1234) == kErrorOk);
   EXPECT(s.eq("1234") == true);
@@ -549,7 +549,7 @@ UNIT(core_string) {
   EXPECT(s.eq("0xFFFF"));
 
   StringTmp<64> sTmp;
-  EXPECT(sTmp.isLarge());
+  EXPECT(sTmp.isLargeOrExternal());
   EXPECT(sTmp.isExternal());
   EXPECT(sTmp.appendChars(' ', 1000) == kErrorOk);
   EXPECT(!sTmp.isExternal());

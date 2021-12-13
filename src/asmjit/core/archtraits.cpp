@@ -39,7 +39,7 @@ static const constexpr ArchTraits noArchTraits = {
   }},
 
   // RegTypeToSignature.
-  #define V(index) { OperandSignature(0) }
+  #define V(index) OperandSignature{0}
   {{ ASMJIT_LOOKUP_TABLE_32(V, 0) }},
   #undef V
 

@@ -39,7 +39,7 @@ static const constexpr ArchTraits x86ArchTraits = {
   }},
 
   // Register signatures.
-  #define V(index) OperandSignature(x86::RegTraits<RegType(index)>::kSignature)
+  #define V(index) OperandSignature{x86::RegTraits<RegType(index)>::kSignature}
   {{ ASMJIT_LOOKUP_TABLE_32(V, 0) }},
   #undef V
 
@@ -100,7 +100,7 @@ static const constexpr ArchTraits x64ArchTraits = {
   }},
 
   // Register signatures.
-  #define V(index) OperandSignature(x86::RegTraits<RegType(index)>::kSignature)
+  #define V(index) OperandSignature{x86::RegTraits<RegType(index)>::kSignature}
   {{ ASMJIT_LOOKUP_TABLE_32(V, 0) }},
   #undef V
 

@@ -80,8 +80,10 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
       if (memFlags & kSrcMem) {
         instId = Inst::kIdMovzx;
         dst.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
+        break;
       }
-      else if (!memFlags) {
+
+      if (!memFlags) {
         // Change both destination and source registers to GPD (safer, no dependencies).
         dst.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());
         src.setSignature(Reg::signatureOfT<RegType::kX86_Gpd>());

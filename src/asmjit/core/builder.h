@@ -191,7 +191,7 @@ public:
   //! \remarks The pointer returned (if non-null) is owned by the Builder or Compiler. When the Builder/Compiler
   //! is destroyed it destroys all nodes it created so no manual memory management is required.
   template<typename T, typename... Args>
-  inline Error _newNodeT(T** out, Args&&... args) {
+  inline Error _newNodeT(T** ASMJIT_NONNULL(out), Args&&... args) {
     *out = _allocator.newT<T>(this, std::forward<Args>(args)...);
     if (ASMJIT_UNLIKELY(!*out))
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
@@ -199,26 +199,26 @@ public:
   }
 
   //! Creates a new \ref InstNode.
-  ASMJIT_API Error newInstNode(InstNode** out, InstId instId, InstOptions instOptions, uint32_t opCount);
+  ASMJIT_API Error newInstNode(InstNode** ASMJIT_NONNULL(out), InstId instId, InstOptions instOptions, uint32_t opCount);
   //! Creates a new \ref LabelNode.
-  ASMJIT_API Error newLabelNode(LabelNode** out);
+  ASMJIT_API Error newLabelNode(LabelNode** ASMJIT_NONNULL(out));
   //! Creates a new \ref AlignNode.
-  ASMJIT_API Error newAlignNode(AlignNode** out, AlignMode alignMode, uint32_t alignment);
+  ASMJIT_API Error newAlignNode(AlignNode** ASMJIT_NONNULL(out), AlignMode alignMode, uint32_t alignment);
   //! Creates a new \ref EmbedDataNode.
-  ASMJIT_API Error newEmbedDataNode(EmbedDataNode** out, TypeId typeId, const void* data, size_t itemCount, size_t repeatCount = 1);
+  ASMJIT_API Error newEmbedDataNode(EmbedDataNode** ASMJIT_NONNULL(out), TypeId typeId, const void* data, size_t itemCount, size_t repeatCount = 1);
   //! Creates a new \ref ConstPoolNode.
-  ASMJIT_API Error newConstPoolNode(ConstPoolNode** out);
+  ASMJIT_API Error newConstPoolNode(ConstPoolNode** ASMJIT_NONNULL(out));
   //! Creates a new \ref CommentNode.
-  ASMJIT_API Error newCommentNode(CommentNode** out, const char* data, size_t size);
+  ASMJIT_API Error newCommentNode(CommentNode** ASMJIT_NONNULL(out), const char* data, size_t size);
 
   //! Adds `node` after the current and sets the current node to the given `node`.
-  ASMJIT_API BaseNode* addNode(BaseNode* node) noexcept;
+  ASMJIT_API BaseNode* addNode(BaseNode* ASMJIT_NONNULL(node)) noexcept;
   //! Inserts the given `node` after `ref`.
-  ASMJIT_API BaseNode* addAfter(BaseNode* node, BaseNode* ref) noexcept;
+  ASMJIT_API BaseNode* addAfter(BaseNode* ASMJIT_NONNULL(node), BaseNode* ASMJIT_NONNULL(ref)) noexcept;
   //! Inserts the given `node` before `ref`.
-  ASMJIT_API BaseNode* addBefore(BaseNode* node, BaseNode* ref) noexcept;
+  ASMJIT_API BaseNode* addBefore(BaseNode* ASMJIT_NONNULL(node), BaseNode* ASMJIT_NONNULL(ref)) noexcept;
   //! Removes the given `node`.
-  ASMJIT_API BaseNode* removeNode(BaseNode* node) noexcept;
+  ASMJIT_API BaseNode* removeNode(BaseNode* ASMJIT_NONNULL(node)) noexcept;
   //! Removes multiple nodes.
   ASMJIT_API void removeNodes(BaseNode* first, BaseNode* last) noexcept;
 
@@ -227,9 +227,7 @@ public:
   //! When the Builder/Compiler is created it automatically creates a '.text' \ref SectionNode, which will be the
   //! initial one. When instructions are added they are always added after the cursor and the cursor is changed
   //! to be that newly added node. Use `setCursor()` to change where new nodes are inserted.
-  inline BaseNode* cursor() const noexcept {
-    return _cursor;
-  }
+  inline BaseNode* cursor() const noexcept { return _cursor; }
 
   //! Sets the current node to `node` and return the previous one.
   ASMJIT_API BaseNode* setCursor(BaseNode* node) noexcept;
@@ -238,9 +236,7 @@ public:
   //!
   //! Only use this function if you are concerned about performance and want this inlined (for example if you set
   //! the cursor in a loop, etc...).
-  inline void _setCursor(BaseNode* node) noexcept {
-    _cursor = node;
-  }
+  inline void _setCursor(BaseNode* node) noexcept { _cursor = node; }
 
   //! \}
 
@@ -264,9 +260,9 @@ public:
   //!
   //! \remarks This function will either get the existing `SectionNode` or create it in case it wasn't created before.
   //! You can check whether a section has a registered `SectionNode` by using `BaseBuilder::hasRegisteredSectionNode()`.
-  ASMJIT_API Error sectionNodeOf(SectionNode** out, uint32_t sectionId);
+  ASMJIT_API Error sectionNodeOf(SectionNode** ASMJIT_NONNULL(out), uint32_t sectionId);
 
-  ASMJIT_API Error section(Section* section) override;
+  ASMJIT_API Error section(Section* ASMJIT_NONNULL(section)) override;
 
   //! Returns whether the section links of active section nodes are dirty. You can update these links by calling
   //! `updateSectionLinks()` in such case.
@@ -300,10 +296,10 @@ public:
   //!
   //! \remarks This function will either get the existing `LabelNode` or create it in case it wasn't created before.
   //! You can check whether a label has a registered `LabelNode` by calling \ref BaseBuilder::hasRegisteredLabelNode().
-  ASMJIT_API Error labelNodeOf(LabelNode** out, uint32_t labelId);
+  ASMJIT_API Error labelNodeOf(LabelNode** ASMJIT_NONNULL(out), uint32_t labelId);
 
   //! \overload
-  inline Error labelNodeOf(LabelNode** out, const Label& label) {
+  inline Error labelNodeOf(LabelNode** ASMJIT_NONNULL(out), const Label& label) {
     return labelNodeOf(out, label.id());
   }
 
@@ -311,7 +307,7 @@ public:
   //!
   //! This function is used internally to register a newly created `LabelNode` with this instance of Builder/Compiler.
   //! Use \ref labelNodeOf() functions to get back \ref LabelNode from a label or its identifier.
-  ASMJIT_API Error registerLabelNode(LabelNode* node);
+  ASMJIT_API Error registerLabelNode(LabelNode* ASMJIT_NONNULL(node));
 
   ASMJIT_API Label newLabel() override;
   ASMJIT_API Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parentId = Globals::kInvalidId) override;
