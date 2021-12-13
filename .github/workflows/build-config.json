@@ -20,6 +20,10 @@
       "optional": true
     },
     {
+      "cmd": ["asmjit_test_assembler", "--quiet", "--validate"],
+      "optional": true
+    },
+    {
       "cmd": ["asmjit_test_emitters"],
       "optional": true
     },

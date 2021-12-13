@@ -1,25 +1,7 @@
-// AsmJit - Machine code generation for C++
+// This file is part of AsmJit project <https://asmjit.com>
 //
-//  * Official AsmJit Home Page: https://asmjit.com
-//  * Official Github Repository: https://github.com/asmjit/asmjit
-//
-// Copyright (c) 2008-2020 The AsmJit Authors
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//    claim that you wrote the original software. If you use this software
-//    in a product, an acknowledgment in the product documentation would be
-//    appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//    misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
+// See asmjit.h or LICENSE.md for license and copyright information
+// SPDX-License-Identifier: Zlib
 
 // ============================================================================
 // tablegen-x86.js
@@ -161,7 +143,11 @@ const VexToEvexMap = {
   "vpand": "vpandd",
   "vpandn": "vpandnd",
   "vpor": "vpord",
-  "vpxor": "vpxord"
+  "vpxor": "vpxord",
+  "vroundpd": "vrndscalepd",
+  "vroundps": "vrndscaleps",
+  "vroundsd": "vrndscalesd",
+  "vroundss": "vrndscaless"
 };
 
 class GenUtils {
@@ -242,7 +228,8 @@ class GenUtils {
     var i, j;
 
     var mib = dbInsts.length > 0 && /^(?:bndldx|bndstx)$/.test(dbInsts[0].name);
-    if (mib) f.Mib = true;
+    if (mib)
+      f.Mib = true;
 
     var mmx = false;
     var vec = false;
@@ -274,13 +261,14 @@ class GenUtils {
       const dbInst = dbInsts[i];
       const operands = dbInst.operands;
 
-      if (dbInst.attributes.Lock      ) f.Lock       = true;
-      if (dbInst.attributes.XAcquire  ) f.XAcquire   = true;
-      if (dbInst.attributes.XRelease  ) f.XRelease   = true;
-      if (dbInst.attributes.BND       ) f.Rep        = true;
-      if (dbInst.attributes.REP       ) f.Rep        = true;
-      if (dbInst.attributes.REPNE     ) f.Rep        = true;
-      if (dbInst.attributes.RepIgnored) f.RepIgnored = true;
+      if (dbInst.attributes.Lock           ) f.Lock            = true;
+      if (dbInst.attributes.XAcquire       ) f.XAcquire        = true;
+      if (dbInst.attributes.XRelease       ) f.XRelease        = true;
+      if (dbInst.attributes.BND            ) f.Rep             = true;
+      if (dbInst.attributes.REP            ) f.Rep             = true;
+      if (dbInst.attributes.REPNE          ) f.Rep             = true;
+      if (dbInst.attributes.RepIgnored     ) f.RepIgnored      = true;
+      if (dbInst.attributes.ImplicitZeroing) f.Avx512ImplicitZ = true;
 
       if (dbInst.fpu) {
         for (var j = 0; j < operands.length; j++) {
@@ -325,7 +313,9 @@ class GenUtils {
       GenUtils.assignVexEvexCompatibilityFlags(f, dbInsts)
     }
 
-    return Object.getOwnPropertyNames(f);
+    const result = Object.getOwnPropertyNames(f);
+    result.sort();
+    return result;
   }
 
   static eqOps(aOps, aFrom, bOps, bFrom) {
@@ -457,12 +447,12 @@ class GenUtils {
     }
   }
 
-  static controlType(dbInsts) {
+  static controlFlow(dbInsts) {
     if (dbInsts.checkAttribute("Control", "Jump")) return "Jump";
     if (dbInsts.checkAttribute("Control", "Call")) return "Call";
     if (dbInsts.checkAttribute("Control", "Branch")) return "Branch";
     if (dbInsts.checkAttribute("Control", "Return")) return "Return";
-    return "None";
+    return "Regular";
   }
 }
 
@@ -473,6 +463,8 @@ class GenUtils {
 class X86TableGen extends core.TableGen {
   constructor() {
     super("X86");
+
+    this.emitMissingString = "";
   }
 
   // --------------------------------------------------------------------------
@@ -526,31 +518,31 @@ class X86TableGen extends core.TableGen {
         FAIL(`Instruction '${name}' not found in asmdb`);
 
       const flags         = GenUtils.flagsOf(dbInsts);
-      const controlType   = GenUtils.controlType(dbInsts);
+      const controlFlow   = GenUtils.controlFlow(dbInsts);
       const singleRegCase = GenUtils.singleRegCase(name);
 
       this.addInst({
-        id                : 0,             // Instruction id (numeric value).
-        name              : name,          // Instruction name.
-        enum              : enum_,         // Instruction enum without `kId` prefix.
-        dbInsts           : dbInsts,       // All dbInsts returned from asmdb query.
-        encoding          : encoding,      // Instruction encoding.
-        opcode0           : opcode0,       // Primary opcode.
-        opcode1           : opcode1,       // Secondary opcode.
-        flags             : flags,
-        signatures        : null,          // Instruction signatures.
-        controlType       : controlType,
-        singleRegCase     : singleRegCase,
+        id                 : 0,             // Instruction id (numeric value).
+        name               : name,          // Instruction name.
+        enum               : enum_,         // Instruction enum without `kId` prefix.
+        dbInsts            : dbInsts,       // All dbInsts returned from asmdb query.
+        encoding           : encoding,      // Instruction encoding.
+        opcode0            : opcode0,       // Primary opcode.
+        opcode1            : opcode1,       // Secondary opcode.
+        flags              : flags,
+        signatures         : null,          // Instruction signatures.
+        controlFlow        : controlFlow,
+        singleRegCase      : singleRegCase,
 
-        mainOpcodeValue   : -1,            // Main opcode value (0.255 hex).
-        mainOpcodeIndex   : -1,            // Index to InstDB::_mainOpcodeTable.
-        altOpcodeIndex    : -1,            // Index to InstDB::_altOpcodeTable.
-        nameIndex         : -1,            // Index to InstDB::_nameData.
-        commonInfoIndexA  : -1,
-        commomInfoIndexB  : -1,
+        mainOpcodeValue    : -1,            // Main opcode value (0.255 hex).
+        mainOpcodeIndex    : -1,            // Index to InstDB::_mainOpcodeTable.
+        altOpcodeIndex     : -1,            // Index to InstDB::_altOpcodeTable.
+        nameIndex          : -1,            // Index to InstDB::_nameData.
+        commonInfoIndex    : -1,
+        additionalInfoIndex: -1,
 
-        signatureIndex    : -1,
-        signatureCount    : -1
+        signatureIndex     : -1,
+        signatureCount     : -1
       });
     }
 
@@ -563,15 +555,15 @@ class X86TableGen extends core.TableGen {
   merge() {
     var s = StringUtils.format(this.insts, "", true, function(inst) {
       return "INST(" +
-        String(inst.enum            ).padEnd(17) + ", " +
-        String(inst.encoding        ).padEnd(19) + ", " +
-        String(inst.opcode0         ).padEnd(26) + ", " +
-        String(inst.opcode1         ).padEnd(26) + ", " +
-        String(inst.mainOpcodeIndex ).padEnd( 3) + ", " +
-        String(inst.altOpcodeIndex  ).padEnd( 3) + ", " +
-        String(inst.nameIndex       ).padEnd( 5) + ", " +
-        String(inst.commonInfoIndexA).padEnd( 3) + ", " +
-        String(inst.commomInfoIndexB).padEnd( 3) + ")";
+        String(inst.enum               ).padEnd(17) + ", " +
+        String(inst.encoding           ).padEnd(19) + ", " +
+        String(inst.opcode0            ).padEnd(26) + ", " +
+        String(inst.opcode1            ).padEnd(26) + ", " +
+        String(inst.mainOpcodeIndex    ).padEnd( 3) + ", " +
+        String(inst.altOpcodeIndex     ).padEnd( 3) + ", " +
+        String(inst.nameIndex          ).padEnd( 5) + ", " +
+        String(inst.commonInfoIndex    ).padEnd( 3) + ", " +
+        String(inst.additionalInfoIndex).padEnd( 3) + ")";
     }) + "\n";
     this.inject("InstInfo", s, this.insts.length * 8);
   }
@@ -613,6 +605,7 @@ class X86TableGen extends core.TableGen {
       }
     }, this);
     console.log(out);
+    console.log(this.emitMissingString);
   }
 
   newInstFromGroup(dbInsts) {
@@ -637,24 +630,83 @@ class X86TableGen extends core.TableGen {
       return s === "VEX" || s === "EVEX" || s === "XOP";
     }
 
+    function formatEmit(dbi) {
+      const results = [];
+      const nameUp = dbi.name[0].toUpperCase() + dbi.name.substr(1);
+
+      for (let choice = 0; choice < 2; choice++) {
+        let s = `ASMJIT_INST_${dbi.operands.length}x(${dbi.name}, ${nameUp}`;
+        for (let j = 0; j < dbi.operands.length; j++) {
+          s += ", ";
+          const op = dbi.operands[j];
+          var reg = op.reg;
+          var mem = op.mem;
+
+          if (op.isReg() && op.isMem()) {
+            if (choice == 0) mem = null;
+            if (choice == 1) reg = null;
+          }
+
+          if (reg) {
+            if (reg === "xmm" || reg === "ymm" || reg === "zmm")
+              s += "Vec";
+            else if (reg === "k")
+              s += "KReg";
+            else if (reg === "r32" || reg === "r64" || reg === "r16" || reg === "r8")
+              s += "Gp";
+            else
+              s += reg;
+          }
+          else if (mem) {
+            s += "Mem";
+          }
+          else if (op.isImm()) {
+            s += "Imm";
+          }
+          else {
+            s += "Unknown";
+          }
+        }
+        s += `)`;
+        results.push(s);
+      }
+
+      return results;
+    }
+
     var dbi = dbInsts[0];
 
-    var id       = this.insts.length;
-    var name     = dbi.name;
-    var enum_    = name[0].toUpperCase() + name.substr(1);
+    var id = this.insts.length;
+    var name = dbi.name;
+    var enum_ = name[0].toUpperCase() + name.substr(1);
 
-    var opcode   = dbi.opcodeHex;
-    var modR     = dbi.modR;
-    var mm       = dbi.mm;
-    var pp       = dbi.pp;
+    var opcode = dbi.opcodeHex;
+    var modR = dbi.modR;
+    var mm = dbi.mm;
+    var pp = dbi.pp;
     var encoding = dbi.encoding;
-    var isVec    = isVecPrefix(dbi.prefix);
+    var isVec = isVecPrefix(dbi.prefix);
+    var evexCount = 0;
 
-    var access   = GetAccess(dbi);
+    var access = GetAccess(dbi);
 
-    var vexL     = undefined;
-    var vexW     = undefined;
-    var evexW    = undefined;
+    var vexL = undefined;
+    var vexW = undefined;
+    var evexW = undefined;
+    var cdshl = "_";
+    var tupleType = "_";
+
+    const tupleTypeToCDSHL = {
+      "FVM": "4",
+      "FV": "4",
+      "HVM": "3",
+      "HV": "3",
+      "QVM": "2",
+      "QV": "2",
+      "T1S": "?"
+    }
+
+    const emitMap = {};
 
     for (var i = 0; i < dbInsts.length; i++) {
       dbi = dbInsts[i];
@@ -674,47 +726,66 @@ class X86TableGen extends core.TableGen {
       }
 
       if (dbi.prefix === "EVEX") {
+        evexCount++;
         var newEvexW = String(dbi.w === "W0" ? 0 : dbi.w === "W1" ? 1 : "_");
         if (evexW !== undefined && evexW !== newEvexW)
           evexW = "x";
         else
           evexW = newEvexW;
+
+        if (dbi.tupleType) {
+          if (tupleType !== "_" && tupleType !== dbi.tupleType) {
+            console.log(`${dbi.name}: WARNING: TupleType ${tupleType} != ${dbi.tupleType}`);
+          }
+
+          tupleType = dbi.tupleType;
+        }
       }
 
-      if (opcode   !== dbi.opcodeHex ) { console.log(`ISSUE: Opcode ${opcode} != ${dbi.opcodeHex}`); return null; }
-      if (modR     !== dbi.modR      ) { console.log(`ISSUE: ModR ${modR} != ${dbi.modR}`); return null; }
-      if (mm       !== dbi.mm        ) { console.log(`ISSUE: MM ${mm} != ${dbi.mm}`); return null; }
-      if (pp       !== dbi.pp        ) { console.log(`ISSUE: PP ${pp} != ${dbi.pp}`); return null; }
-      if (encoding !== dbi.encoding  ) { console.log(`ISSUE: Enc ${encoding} != ${dbi.encoding}`); return null; }
-      if (access   !== GetAccess(dbi)) { console.log(`ISSUE: Access ${access} != ${GetAccess(dbi)}`); return null; }
-      if (isVec    != isVecPrefix(dbi.prefix)) { console.log(`ISSUE: Vex/Non-Vex mismatch`); return null; }
+      if (opcode   !== dbi.opcodeHex ) { console.log(`${dbi.name}: ISSUE: Opcode ${opcode} != ${dbi.opcodeHex}`); return null; }
+      if (modR     !== dbi.modR      ) { console.log(`${dbi.name}: ISSUE: ModR ${modR} != ${dbi.modR}`); return null; }
+      if (mm       !== dbi.mm        ) { console.log(`${dbi.name}: ISSUE: MM ${mm} != ${dbi.mm}`); return null; }
+      if (pp       !== dbi.pp        ) { console.log(`${dbi.name}: ISSUE: PP ${pp} != ${dbi.pp}`); return null; }
+      if (encoding !== dbi.encoding  ) { console.log(`${dbi.name}: ISSUE: Enc ${encoding} != ${dbi.encoding}`); return null; }
+      if (access   !== GetAccess(dbi)) { console.log(`${dbi.name}: ISSUE: Access ${access} != ${GetAccess(dbi)}`); return null; }
+      if (isVec    != isVecPrefix(dbi.prefix)) { console.log(`${dbi.name}: ISSUE: Vex/Non-Vex mismatch`); return null; }
+
+      formatEmit(dbi).forEach((emit) => {
+        if (!emitMap[emit]) {
+          emitMap[emit] = true;
+          this.emitMissingString += emit + "\n";
+        }
+      });
     }
+
+    if (tupleType !== "_")
+      cdshl = tupleTypeToCDSHL[tupleType] || "?";
 
     var ppmm = pp.padEnd(2).replace(/ /g, "0") +
                mm.padEnd(4).replace(/ /g, "0") ;
 
     var composed = composeOpCode({
-      type  : isVec ? "V" : "O",
+      type  : evexCount == dbInsts.length ? "E" : isVec ? "V" : "O",
       prefix: ppmm,
       opcode: opcode,
       o     : modR === "r" ? "_" : (modR ? modR : "_"),
       l     : vexL !== undefined ? vexL : "_",
       w     : vexW !== undefined ? vexW : "_",
       ew    : evexW !== undefined ? evexW : "_",
-      en    : "_",
-      tt    : dbi.modRM ? dbi.modRM + "  " : "_  "
+      en    : cdshl,
+      tt    : dbi.modRM ? dbi.modRM + "  " : tupleType.padEnd(3)
     });
 
     return {
-      id                : id,
-      name              : name,
-      enum              : enum_,
-      encoding          : encoding,
-      opcode0           : composed,
-      opcode1           : "0",
-      nameIndex         : -1,
-      commonInfoIndexA  : -1,
-      commomInfoIndexB  : -1
+      id                 : id,
+      name               : name,
+      enum               : enum_,
+      encoding           : encoding,
+      opcode0            : composed,
+      opcode1            : "0",
+      nameIndex          : -1,
+      commonInfoIndex    : -1,
+      additionalInfoIndex: -1
     };
   }
 
@@ -823,39 +894,103 @@ class AltOpcodeTable extends core.Task {
     const mainOpcodeTable = new IndexedArray();
     const altOpcodeTable = new IndexedArray();
 
-    mainOpcodeTable.addIndexed("O(000000,00,0,0,0,0,0,_  )");
+    const cdttSimplification = {
+      "0"    : "None",
+      "_"    : "None",
+      "FV"   : "ByLL",
+      "HV"   : "ByLL",
+      "QV"   : "ByLL",
+      "FVM"  : "ByLL",
+      "T1S"  : "None",
+      "T1F"  : "None",
+      "T1_4X": "None",
+      "T2"   : "None",
+      "T4"   : "None",
+      "T8"   : "None",
+      "HVM"  : "ByLL",
+      "QVM"  : "ByLL",
+      "OVM"  : "ByLL",
+      "128"  : "None",
+      "T4X"  : "None"
+    }
 
-    function indexOpcode(opcode) {
+    const noOp = "O(000000,00,0,0,0,0,0,0   )";
+
+    mainOpcodeTable.addIndexed(noOp);
+
+    function splitOpcodeToComponents(opcode) {
+      const i = opcode.indexOf("(");
+      const prefix = opcode.substr(0, i);
+      return [prefix].concat(opcode.substring(i + 1, opcode.length - 1).split(","));
+    }
+
+    function normalizeOpcodeComponents(components) {
+      for (let i = 1; i < components.length; i++) {
+        components[i] = components[i].trim();
+        // These all are zeros that only have some contextual meaning in the table, but the assembler doesn't care.
+        if (components[i] === "_" || components[i] === "I" || components[i] === "x")
+          components[i] = "0";
+      }
+
+      // Simplify CDTT (compressed displacement TupleType).
+      if (components.length >= 9) {
+        if (components[0] === "V" || components[0] === "E") {
+          const cdtt = components[8];
+          if (cdttSimplification[cdtt] !== undefined)
+            components[8] = cdttSimplification[cdtt];
+        }
+      }
+      return components;
+    }
+
+    function joinOpcodeComponents(components) {
+      const prefix = components[0];
+      const values = components.slice(1);
+      if (values.length >= 8)
+        values[7] = values[7].padEnd(4);
+      return prefix + "(" + values.join(",") + ")";
+    }
+
+    function indexMainOpcode(opcode) {
       if (opcode === "0")
         return ["00", 0];
 
-      // O_FPU(__,__OP,_)
-      if (opcode.startsWith("O_FPU(")) {
-        var value = opcode.substring(11, 13);
-        var remaining = opcode.substring(0, 11) + "00" + opcode.substring(13);
+      var opcodeByte = "";
+      const components = normalizeOpcodeComponents(splitOpcodeToComponents(opcode));
 
-        return [value, mainOpcodeTable.addIndexed(remaining.padEnd(26))];
+      if (components[0] === "O_FPU") {
+        // Reset opcode byte, this is stored in the instruction data itself.
+        opcodeByte = components[2].substr(2, 2);
+        components[2] = components[2].substr(0, 2) + "00";
+      }
+      else if (components[0] === "O" || components[0] === "V" || components[0] === "E") {
+        // Reset opcode byte, this is stored in the instruction data itself.
+        opcodeByte = components[2];
+        components[2] = "00";
+      }
+      else {
+        FAIL(`Failed to process opcode '${opcode}'`);
       }
 
-      // X(______,OP,_,_,_,_,_,_  )
-      if (opcode.startsWith("O(") || opcode.startsWith("V(") || opcode.startsWith("E(")) {
-        var value = opcode.substring(9, 11);
-        var remaining = opcode.substring(0, 9) + "00" + opcode.substring(11);
+      const newOpcode = joinOpcodeComponents(components);
+      return [opcodeByte, mainOpcodeTable.addIndexed(newOpcode.padEnd(27))];
+    }
 
-        remaining = remaining.replace(/,[_xI],/g, ",0,");
-        remaining = remaining.replace(/,[_xI],/g, ",0,");
-        return [value, mainOpcodeTable.addIndexed(remaining.padEnd(26))];
-      }
-
-      FAIL(`Failed to process opcode '${opcode}'`);
+    function indexAltOpcode(opcode) {
+      if (opcode === "0")
+        opcode = noOp;
+      else
+        opcode = joinOpcodeComponents(normalizeOpcodeComponents(splitOpcodeToComponents(opcode)));
+      return altOpcodeTable.addIndexed(opcode.padEnd(27));
     }
 
     insts.map((inst) => {
-      const [value, index] = indexOpcode(inst.opcode0);
+      const [value, index] = indexMainOpcode(inst.opcode0);
       inst.mainOpcodeValue = value;
       inst.mainOpcodeIndex = index;
-      inst.altOpcodeIndex = altOpcodeTable.addIndexed(inst.opcode1.padEnd(26));
+      inst.altOpcodeIndex = indexAltOpcode(inst.opcode1);
     });
+
     // console.log(mainOpcodeTable.length);
     // console.log(StringUtils.format(mainOpcodeTable, kIndent, true));
 
@@ -877,84 +1012,32 @@ const RegOp = MapUtils.arrayToMap(["al", "ah", "ax", "eax", "rax", "cl", "r8lo",
 const MemOp = MapUtils.arrayToMap(["m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024"]);
 
 const cmpOp = StringUtils.makePriorityCompare([
-  "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st", "bnd",
-  "mem", "vm", "m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024",
-  "mib",
-  "vm32x", "vm32y", "vm32z", "vm64x", "vm64y", "vm64z",
-  "memBase", "memES", "memDS",
-  "i4", "u4", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
-  "rel8", "rel32",
-  "implicit"
+  "RegGpbLo", "RegGpbHi", "RegGpw", "RegGpd", "RegGpq", "RegXmm", "RegYmm", "RegZmm", "RegMm", "RegKReg", "RegSReg", "RegCReg", "RegDReg", "RegSt", "RegBnd", "RegTmm",
+  "MemUnspecified", "Mem8", "Mem16", "Mem32", "Mem48", "Mem64", "Mem80", "Mem128", "Mem256", "Mem512", "Mem1024",
+  "Vm32x", "Vm32y", "Vm32z", "Vm64x", "Vm64y", "Vm64z",
+  "ImmI4", "ImmU4", "ImmI8", "ImmU8", "ImmI16", "ImmU16", "ImmI32", "ImmU32", "ImmI64", "ImmU64",
+  "Rel8", "Rel32",
+  "FlagMemBase",
+  "FlagMemDs",
+  "FlagMemEs",
+  "FlagMib",
+  "FlagTMem",
+  "FlagConsecutive",
+  "FlagImplicit"
 ]);
 
-const OpToAsmJitOp = {
-  "implicit": "F(Implicit)",
-
-  "r8lo"    : "F(GpbLo)",
-  "r8hi"    : "F(GpbHi)",
-  "r16"     : "F(Gpw)",
-  "r32"     : "F(Gpd)",
-  "r64"     : "F(Gpq)",
-  "xmm"     : "F(Xmm)",
-  "ymm"     : "F(Ymm)",
-  "zmm"     : "F(Zmm)",
-  "mm"      : "F(Mm)",
-  "k"       : "F(KReg)",
-  "sreg"    : "F(SReg)",
-  "creg"    : "F(CReg)",
-  "dreg"    : "F(DReg)",
-  "st"      : "F(St)",
-  "bnd"     : "F(Bnd)",
-  "tmm"     : "F(Tmm)",
-
-  "mem"     : "F(Mem)",
-  "vm"      : "F(Vm)",
-
-  "i4"      : "F(I4)",
-  "u4"      : "F(U4)",
-  "i8"      : "F(I8)",
-  "u8"      : "F(U8)",
-  "i16"     : "F(I16)",
-  "u16"     : "F(U16)",
-  "i32"     : "F(I32)",
-  "u32"     : "F(U32)",
-  "i64"     : "F(I64)",
-  "u64"     : "F(U64)",
-
-  "rel8"    : "F(Rel8)",
-  "rel32"   : "F(Rel32)",
-
-  "m8"      : "M(M8)",
-  "m16"     : "M(M16)",
-  "m32"     : "M(M32)",
-  "m48"     : "M(M48)",
-  "m64"     : "M(M64)",
-  "m80"     : "M(M80)",
-  "m128"    : "M(M128)",
-  "m256"    : "M(M256)",
-  "m512"    : "M(M512)",
-  "m1024"   : "M(M1024)",
-  "mib"     : "M(Mib)",
-  "mAny"    : "M(Any)",
-  "vm32x"   : "M(Vm32x)",
-  "vm32y"   : "M(Vm32y)",
-  "vm32z"   : "M(Vm32z)",
-  "vm64x"   : "M(Vm64x)",
-  "vm64y"   : "M(Vm64y)",
-  "vm64z"   : "M(Vm64z)",
-
-  "memBase" : "M(BaseOnly)",
-  "memDS"   : "M(Ds)",
-  "memES"   : "M(Es)"
-};
-
-function StringifyArray(a, map) {
+function StringifyOpArray(a, map) {
   var s = "";
   for (var i = 0; i < a.length; i++) {
     const op = a[i];
-    if (!hasOwn.call(map, op))
+    var mapped = null;
+    if (typeof map === "function")
+      mapped = map(op);
+    else if (hasOwn.call(map, op))
+      mapped = map[op];
+    else
       FAIL(`UNHANDLED OPERAND '${op}'`);
-    s += (s ? " | " : "") + map[op];
+    s += (s ? " | " : "") + mapped;
   }
   return s ? s : "0";
 }
@@ -1034,134 +1117,117 @@ class OSignature {
   }
 
   toAsmJitOpData() {
-    var oFlags = this.flags;
+    var opFlags = Object.create(null);
+    var regMask = 0;
 
-    var mFlags = Object.create(null);
-    var mMemFlags = Object.create(null);
-    var mExtFlags = Object.create(null);
-    var sRegMask = 0;
-
-    for (var k in oFlags) {
+    for (var k in this.flags) {
       switch (k) {
-        case "implicit":
-        case "r8lo"    :
-        case "r8hi"    :
-        case "r16"     :
-        case "r32"     :
-        case "r64"     :
-        case "creg"    :
-        case "dreg"    :
-        case "sreg"    :
-        case "bnd"     :
-        case "st"      :
-        case "k"       :
-        case "mm"      :
-        case "xmm"     :
-        case "ymm"     :
-        case "zmm"     :
-        case "tmm"     : mFlags[k] = true; break;
+        case "r8lo"    : opFlags.RegGpbLo = true; break;
+        case "r8hi"    : opFlags.RegGpbHi = true; break;
+        case "r16"     : opFlags.RegGpw = true; break;
+        case "r32"     : opFlags.RegGpd = true; break;
+        case "r64"     : opFlags.RegGpq = true; break;
+        case "creg"    : opFlags.RegCReg = true; break;
+        case "dreg"    : opFlags.RegDReg = true; break;
+        case "sreg"    : opFlags.RegSReg = true; break;
+        case "bnd"     : opFlags.RegBnd = true; break;
+        case "st"      : opFlags.RegSt = true; break;
+        case "k"       : opFlags.RegKReg = true; break;
+        case "mm"      : opFlags.RegMm = true; break;
+        case "xmm"     : opFlags.RegXmm = true; break;
+        case "ymm"     : opFlags.RegYmm = true; break;
+        case "zmm"     : opFlags.RegZmm = true; break;
+        case "tmm"     : opFlags.RegTmm = true; break;
 
-        case "m8"      :
-        case "m16"     :
-        case "m32"     :
-        case "m48"     :
-        case "m64"     :
-        case "m80"     :
-        case "m128"    :
-        case "m256"    :
-        case "m512"    :
-        case "m1024"   : mFlags.mem = true; mMemFlags[k] = true; break;
-        case "mib"     : mFlags.mem = true; mMemFlags.mib = true; break;
-        case "mem"     : mFlags.mem = true; mMemFlags.mAny = true; break;
-        case "tmem"    : mFlags.mem = true; mMemFlags.mAny = true; break;
+        case "m8"      : opFlags.Mem8 = true; break;
+        case "m16"     : opFlags.Mem16 = true; break;
+        case "m32"     : opFlags.Mem32 = true; break;
+        case "m48"     : opFlags.Mem48 = true; break;
+        case "m64"     : opFlags.Mem64 = true; break;
+        case "m80"     : opFlags.Mem80 = true; break;
+        case "m128"    : opFlags.Mem128 = true; break;
+        case "m256"    : opFlags.Mem256 = true; break;
+        case "m512"    : opFlags.Mem512 = true; break;
+        case "m1024"   : opFlags.Mem1024 = true; break;
 
-        case "memBase" : mFlags.mem = true; mMemFlags.memBase = true; break;
-        case "memDS"   : mFlags.mem = true; mMemFlags.memDS = true; break;
-        case "memES"   : mFlags.mem = true; mMemFlags.memES = true; break;
-        case "memZAX"  : mFlags.mem = true; sRegMask |= 1 << 0; break;
-        case "memZSI"  : mFlags.mem = true; sRegMask |= 1 << 6; break;
-        case "memZDI"  : mFlags.mem = true; sRegMask |= 1 << 7; break;
+        case "mem"     : opFlags.MemUnspecified = true; break;
+        case "mib"     : opFlags.MemUnspecified = true; opFlags.FlagMib = true; break;
+        case "tmem"    : opFlags.MemUnspecified = true; opFlags.FlagTMem = true; break;
 
-        case "vm32x"   : mFlags.vm = true; mMemFlags.vm32x = true; break;
-        case "vm32y"   : mFlags.vm = true; mMemFlags.vm32y = true; break;
-        case "vm32z"   : mFlags.vm = true; mMemFlags.vm32z = true; break;
-        case "vm64x"   : mFlags.vm = true; mMemFlags.vm64x = true; break;
-        case "vm64y"   : mFlags.vm = true; mMemFlags.vm64y = true; break;
-        case "vm64z"   : mFlags.vm = true; mMemFlags.vm64z = true; break;
+        case "memBase" : opFlags.FlagMemBase = true; break;
+        case "memDS"   : opFlags.FlagMemDs = true; break;
+        case "memES"   : opFlags.FlagMemEs = true; break;
+        case "memZAX"  : regMask |= 1 << 0; break;
+        case "memZSI"  : regMask |= 1 << 6; break;
+        case "memZDI"  : regMask |= 1 << 7; break;
 
-        case "i4"      :
-        case "u4"      :
-        case "i8"      :
-        case "u8"      :
-        case "i16"     :
-        case "u16"     :
-        case "i32"     :
-        case "u32"     :
-        case "i64"     :
-        case "u64"     : mFlags[k] = true; break;
+        case "vm32x"   : opFlags.Vm32x = true; break;
+        case "vm32y"   : opFlags.Vm32y = true; break;
+        case "vm32z"   : opFlags.Vm32z = true; break;
+        case "vm64x"   : opFlags.Vm64x = true; break;
+        case "vm64y"   : opFlags.Vm64y = true; break;
+        case "vm64z"   : opFlags.Vm64z = true; break;
 
-        case "rel8"    :
-        case "rel32"   :
-          mFlags.i32 = true;
-          mFlags.i64 = true;
-          mFlags[k] = true;
-          break;
+        case "i4"      : opFlags.ImmI4 = true; break;
+        case "u4"      : opFlags.ImmU4 = true; break;
+        case "i8"      : opFlags.ImmI8 = true; break;
+        case "u8"      : opFlags.ImmU8 = true; break;
+        case "i16"     : opFlags.ImmI16 = true; break;
+        case "u16"     : opFlags.ImmU16 = true; break;
+        case "i32"     : opFlags.ImmI32 = true; break;
+        case "u32"     : opFlags.ImmU32 = true; break;
+        case "i64"     : opFlags.ImmI64 = true; break;
+        case "u64"     : opFlags.ImmU64 = true; break;
 
-        case "rel16"   :
-          mFlags.i32 = true;
-          mFlags.i64 = true;
-          mFlags.rel32 = true;
-          break;
+        case "rel8"    : opFlags.ImmI32 = true; opFlags.ImmI64 = true; opFlags.Rel8  = true; break;
+        case "rel16"   : opFlags.ImmI32 = true; opFlags.ImmI64 = true; opFlags.Rel32 = true; break;
+        case "rel32"   : opFlags.ImmI32 = true; opFlags.ImmI64 = true; opFlags.Rel32 = true; break;
 
-        default: {
-          switch (k) {
-            case "es"    : mFlags.sreg = true; sRegMask |= 1 << 1; break;
-            case "cs"    : mFlags.sreg = true; sRegMask |= 1 << 2; break;
-            case "ss"    : mFlags.sreg = true; sRegMask |= 1 << 3; break;
-            case "ds"    : mFlags.sreg = true; sRegMask |= 1 << 4; break;
-            case "fs"    : mFlags.sreg = true; sRegMask |= 1 << 5; break;
-            case "gs"    : mFlags.sreg = true; sRegMask |= 1 << 6; break;
-            case "al"    : mFlags.r8lo = true; sRegMask |= 1 << 0; break;
-            case "ah"    : mFlags.r8hi = true; sRegMask |= 1 << 0; break;
-            case "ax"    : mFlags.r16  = true; sRegMask |= 1 << 0; break;
-            case "eax"   : mFlags.r32  = true; sRegMask |= 1 << 0; break;
-            case "rax"   : mFlags.r64  = true; sRegMask |= 1 << 0; break;
-            case "cl"    : mFlags.r8lo = true; sRegMask |= 1 << 1; break;
-            case "ch"    : mFlags.r8hi = true; sRegMask |= 1 << 1; break;
-            case "cx"    : mFlags.r16  = true; sRegMask |= 1 << 1; break;
-            case "ecx"   : mFlags.r32  = true; sRegMask |= 1 << 1; break;
-            case "rcx"   : mFlags.r64  = true; sRegMask |= 1 << 1; break;
-            case "dl"    : mFlags.r8lo = true; sRegMask |= 1 << 2; break;
-            case "dh"    : mFlags.r8hi = true; sRegMask |= 1 << 2; break;
-            case "dx"    : mFlags.r16  = true; sRegMask |= 1 << 2; break;
-            case "edx"   : mFlags.r32  = true; sRegMask |= 1 << 2; break;
-            case "rdx"   : mFlags.r64  = true; sRegMask |= 1 << 2; break;
-            case "bl"    : mFlags.r8lo = true; sRegMask |= 1 << 3; break;
-            case "bh"    : mFlags.r8hi = true; sRegMask |= 1 << 3; break;
-            case "bx"    : mFlags.r16  = true; sRegMask |= 1 << 3; break;
-            case "ebx"   : mFlags.r32  = true; sRegMask |= 1 << 3; break;
-            case "rbx"   : mFlags.r64  = true; sRegMask |= 1 << 3; break;
-            case "si"    : mFlags.r16  = true; sRegMask |= 1 << 6; break;
-            case "esi"   : mFlags.r32  = true; sRegMask |= 1 << 6; break;
-            case "rsi"   : mFlags.r64  = true; sRegMask |= 1 << 6; break;
-            case "di"    : mFlags.r16  = true; sRegMask |= 1 << 7; break;
-            case "edi"   : mFlags.r32  = true; sRegMask |= 1 << 7; break;
-            case "rdi"   : mFlags.r64  = true; sRegMask |= 1 << 7; break;
-            case "st0"   : mFlags.st   = true; sRegMask |= 1 << 0; break;
-            case "xmm0"  : mFlags.xmm  = true; sRegMask |= 1 << 0; break;
-            case "ymm0"  : mFlags.ymm  = true; sRegMask |= 1 << 0; break;
-            default:
-              console.log(`UNKNOWN OPERAND '${k}'`);
-          }
-        }
+        case "es"      : opFlags.RegSReg  = true; regMask |= 1 << 1; break;
+        case "cs"      : opFlags.RegSReg  = true; regMask |= 1 << 2; break;
+        case "ss"      : opFlags.RegSReg  = true; regMask |= 1 << 3; break;
+        case "ds"      : opFlags.RegSReg  = true; regMask |= 1 << 4; break;
+        case "fs"      : opFlags.RegSReg  = true; regMask |= 1 << 5; break;
+        case "gs"      : opFlags.RegSReg  = true; regMask |= 1 << 6; break;
+        case "al"      : opFlags.RegGpbLo = true; regMask |= 1 << 0; break;
+        case "ah"      : opFlags.RegGpbHi = true; regMask |= 1 << 0; break;
+        case "ax"      : opFlags.RegGpw   = true; regMask |= 1 << 0; break;
+        case "eax"     : opFlags.RegGpd   = true; regMask |= 1 << 0; break;
+        case "rax"     : opFlags.RegGpq   = true; regMask |= 1 << 0; break;
+        case "cl"      : opFlags.RegGpbLo = true; regMask |= 1 << 1; break;
+        case "ch"      : opFlags.RegGpbHi = true; regMask |= 1 << 1; break;
+        case "cx"      : opFlags.RegGpw   = true; regMask |= 1 << 1; break;
+        case "ecx"     : opFlags.RegGpd   = true; regMask |= 1 << 1; break;
+        case "rcx"     : opFlags.RegGpq   = true; regMask |= 1 << 1; break;
+        case "dl"      : opFlags.RegGpbLo = true; regMask |= 1 << 2; break;
+        case "dh"      : opFlags.RegGpbHi = true; regMask |= 1 << 2; break;
+        case "dx"      : opFlags.RegGpw   = true; regMask |= 1 << 2; break;
+        case "edx"     : opFlags.RegGpd   = true; regMask |= 1 << 2; break;
+        case "rdx"     : opFlags.RegGpq   = true; regMask |= 1 << 2; break;
+        case "bl"      : opFlags.RegGpbLo = true; regMask |= 1 << 3; break;
+        case "bh"      : opFlags.RegGpbHi = true; regMask |= 1 << 3; break;
+        case "bx"      : opFlags.RegGpw   = true; regMask |= 1 << 3; break;
+        case "ebx"     : opFlags.RegGpd   = true; regMask |= 1 << 3; break;
+        case "rbx"     : opFlags.RegGpq   = true; regMask |= 1 << 3; break;
+        case "si"      : opFlags.RegGpw   = true; regMask |= 1 << 6; break;
+        case "esi"     : opFlags.RegGpd   = true; regMask |= 1 << 6; break;
+        case "rsi"     : opFlags.RegGpq   = true; regMask |= 1 << 6; break;
+        case "di"      : opFlags.RegGpw   = true; regMask |= 1 << 7; break;
+        case "edi"     : opFlags.RegGpd   = true; regMask |= 1 << 7; break;
+        case "rdi"     : opFlags.RegGpq   = true; regMask |= 1 << 7; break;
+        case "st0"     : opFlags.RegSt    = true; regMask |= 1 << 0; break;
+        case "xmm0"    : opFlags.RegXmm   = true; regMask |= 1 << 0; break;
+        case "ymm0"    : opFlags.RegYmm   = true; regMask |= 1 << 0; break;
+
+        case "implicit": opFlags.FlagImplicit = true; break;
+
+        default:
+          console.log(`UNKNOWN OPERAND '${k}'`);
       }
     }
 
-    const sFlags    = StringifyArray(ArrayUtils.sorted(mFlags   , cmpOp), OpToAsmJitOp);
-    const sMemFlags = StringifyArray(ArrayUtils.sorted(mMemFlags, cmpOp), OpToAsmJitOp);
-    const sExtFlags = StringifyArray(ArrayUtils.sorted(mExtFlags, cmpOp), OpToAsmJitOp);
-
-    return `ROW(${sFlags || 0}, ${sMemFlags || 0}, ${sExtFlags || 0}, ${decToHex(sRegMask, 2)})`;
+    const outputFlags = StringifyOpArray(ArrayUtils.sorted(opFlags, cmpOp), function(k) { return `F(${k})`; });
+    return `ROW(${outputFlags || 0}, ${decToHex(regMask, 2)})`;
   }
 }
 
@@ -1411,7 +1477,7 @@ class InstSignatureTable extends core.Task {
     const oSignatureArr = [];
 
     // Must be first to be assigned to zero.
-    const oSignatureNone = "ROW(0, 0, 0, 0xFF)";
+    const oSignatureNone = "ROW(0, 0xFF)";
     oSignatureMap[oSignatureNone] = [0];
     oSignatureArr.push(oSignatureNone);
 
@@ -1508,21 +1574,19 @@ class InstSignatureTable extends core.Task {
       });
     }
 
-    var s = `#define ROW(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5)  \\\n` +
-            `  { count, (x86 ? uint8_t(InstDB::kModeX86) : uint8_t(0)) |     \\\n` +
-            `           (x64 ? uint8_t(InstDB::kModeX64) : uint8_t(0)) ,     \\\n` +
-            `    implicit,                                                   \\\n` +
-            `    0,                                                          \\\n` +
-            `    { o0, o1, o2, o3, o4, o5 }                                  \\\n` +
+    var s = `#define ROW(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5)       \\\n` +
+            `  { count, uint8_t(x86 ? uint8_t(InstDB::Mode::kX86) : uint8_t(0)) | \\\n` +
+            `                  (x64 ? uint8_t(InstDB::Mode::kX64) : uint8_t(0)) , \\\n` +
+            `    implicit,                                                        \\\n` +
+            `    0,                                                               \\\n` +
+            `    { o0, o1, o2, o3, o4, o5 }                                       \\\n` +
             `  }\n` +
             StringUtils.makeCxxArrayWithComment(iSignatureArr, "const InstDB::InstSignature InstDB::_instSignatureTable[]") +
             `#undef ROW\n` +
             `\n` +
-            `#define ROW(flags, mFlags, extFlags, regId) { uint32_t(flags), uint16_t(mFlags), uint8_t(extFlags), uint8_t(regId) }\n` +
-            `#define F(VAL) InstDB::kOp##VAL\n` +
-            `#define M(VAL) InstDB::kMemOp##VAL\n` +
+            `#define ROW(opFlags, regId) { opFlags, uint8_t(regId) }\n` +
+            `#define F(VAL) uint64_t(InstDB::OpFlags::k##VAL)\n` +
             StringUtils.makeCxxArray(oSignatureArr, "const InstDB::OpSignature InstDB::_opSignatureTable[]") +
-            `#undef M\n` +
             `#undef F\n` +
             `#undef ROW\n`;
     this.inject("InstSignatureTable", disclaimer(s), oSignatureArr.length * 8 + iSignatureArr.length * 8);
@@ -1710,18 +1774,18 @@ class InstSignatureTable extends core.Task {
 }
 
 // ============================================================================
-// [tablegen.x86.InstCommonInfoTableB]
+// [tablegen.x86.AdditionalInfoTable]
 // ============================================================================
 
-class InstCommonInfoTableB extends core.Task {
+class AdditionalInfoTable extends core.Task {
   constructor() {
-    super("InstCommonInfoTableB");
+    super("AdditionalInfoTable");
   }
 
   run() {
     const insts = this.ctx.insts;
-    const commonTableB = new IndexedArray();
     const rwInfoTable = new IndexedArray();
+    const additionaInfoTable = new IndexedArray();
 
     // If the instruction doesn't read any flags it should point to the first index.
     rwInfoTable.addIndexed(`{ 0, 0 }`);
@@ -1737,17 +1801,17 @@ class InstCommonInfoTableB extends core.Task {
       const wData = w.map(function(flag) { return `FLAG(${flag})`; }).join(" | ") || "0";
       const rwDataIndex = rwInfoTable.addIndexed(`{ ${rData}, ${wData} }`);
 
-      inst.commomInfoIndexB = commonTableB.addIndexed(`{ { ${features} }, ${rwDataIndex}, 0 }`);
+      inst.additionalInfoIndex = additionaInfoTable.addIndexed(`{ { ${features} }, ${rwDataIndex}, 0 }`);
     });
 
-    var s = `#define EXT(VAL) uint32_t(Features::k##VAL)\n` +
-            `const InstDB::CommonInfoTableB InstDB::_commonInfoTableB[] = {\n${StringUtils.format(commonTableB, kIndent, true)}\n};\n` +
+    var s = `#define EXT(VAL) uint32_t(CpuFeatures::X86::k##VAL)\n` +
+            `const InstDB::AdditionalInfo InstDB::_additionalInfoTable[] = {\n${StringUtils.format(additionaInfoTable, kIndent, true)}\n};\n` +
             `#undef EXT\n` +
             `\n` +
-            `#define FLAG(VAL) uint32_t(Status::k##VAL)\n` +
+            `#define FLAG(VAL) uint32_t(CpuRWFlags::kX86_##VAL)\n` +
             `const InstDB::RWFlagsInfoTable InstDB::_rwFlagsInfoTable[] = {\n${StringUtils.format(rwInfoTable, kIndent, true)}\n};\n` +
             `#undef FLAG\n`;
-    this.inject("InstCommonInfoTableB", disclaimer(s), commonTableB.length * 8 + rwInfoTable.length * 8);
+    this.inject("AdditionalInfoTable", disclaimer(s), additionaInfoTable.length * 8 + rwInfoTable.length * 8);
   }
 
   rwFlagsOf(dbInsts) {
@@ -1852,35 +1916,35 @@ class InstRWInfoTable extends core.Task {
     const _ = null;
     this.rwCategoryByData = {
       Vmov1_8: [
-        [{access: "W", flags: {}, fixed: -1, index: 0, width:  8}, {access: "R", flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 16}, {access: "R", flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 32}, {access: "R", flags: {}, fixed: -1, index: 0, width:256},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 64}, {access: "R", flags: {}, fixed: -1, index: 0, width:512},_,_,_,_]
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width:  8}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 16}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 32}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:256},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 64}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:512},_,_,_,_]
       ],
       Vmov1_4: [
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 32}, {access: "R", flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 64}, {access: "R", flags: {}, fixed: -1, index: 0, width:256},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width:128}, {access: "R", flags: {}, fixed: -1, index: 0, width:512},_,_,_,_]
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 32}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 64}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:256},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width:128}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:512},_,_,_,_]
       ],
       Vmov1_2: [
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 64}, {access: "R", flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width:128}, {access: "R", flags: {}, fixed: -1, index: 0, width:256},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width:256}, {access: "R", flags: {}, fixed: -1, index: 0, width:512},_,_,_,_]
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 64}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width:128}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:256},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width:256}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:512},_,_,_,_]
       ],
       Vmov2_1: [
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 128}, {access: "R", flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 256}, {access: "R", flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 512}, {access: "R", flags: {}, fixed: -1, index: 0, width:256},_,_,_,_]
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 128}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 256}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:128},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 512}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:256},_,_,_,_]
       ],
       Vmov4_1: [
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 128}, {access: "R", flags: {}, fixed: -1, index: 0, width: 32},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 256}, {access: "R", flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 512}, {access: "R", flags: {}, fixed: -1, index: 0, width:128},_,_,_,_]
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 128}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width: 32},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 256}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 512}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width:128},_,_,_,_]
       ],
       Vmov8_1: [
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 128}, {access: "R", flags: {}, fixed: -1, index: 0, width: 16},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 256}, {access: "R", flags: {}, fixed: -1, index: 0, width: 32},_,_,_,_],
-        [{access: "W", flags: {}, fixed: -1, index: 0, width: 512}, {access: "R", flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_]
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 128}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width: 16},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 256}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width: 32},_,_,_,_],
+        [{access: "W", clc: 0, flags: {}, fixed: -1, index: 0, width: 512}, {access: "R", clc: 0, flags: {}, fixed: -1, index: 0, width: 64},_,_,_,_]
       ]
     };
   }
@@ -1900,8 +1964,9 @@ class InstRWInfoTable extends core.Task {
       "0x0000000000000000u",
       "0x0000000000000000u",
       "0xFF",
+      "0",
       CxxUtils.struct(0),
-      "0"
+      "OpRWFlags::kNone"
     );
 
     this.rmInfoTable.addIndexed(noRmInfo);
@@ -1946,12 +2011,15 @@ class InstRWInfoTable extends core.Task {
           const wIndex = opAcc === "X" || opAcc === "W" ? op.index : -1;
           const wWidth = opAcc === "X" || opAcc === "W" ? op.width : -1;
 
+          const consecutiveLeadCount = op.clc;
+
           const opData = CxxUtils.struct(
             this.byteMaskFromBitRanges([{ start: rIndex, end: rIndex + rWidth - 1 }]) + "u",
             this.byteMaskFromBitRanges([{ start: wIndex, end: wIndex + wWidth - 1 }]) + "u",
             StringUtils.decToHex(op.fixed === -1 ? 0xFF : op.fixed, 2),
+            String(consecutiveLeadCount),
             CxxUtils.struct(0),
-            CxxUtils.flags(flags, function(flag) { return "OpRWInfo::k" + flag; })
+            CxxUtils.flags(flags, function(flag) { return "OpRWFlags::k" + flag; }, "OpRWFlags::kNone")
           );
 
           rwOpsIndex.push(this.opInfoTable.addIndexed(opData));
@@ -1962,7 +2030,7 @@ class InstRWInfoTable extends core.Task {
           StringUtils.decToHex(rmInfo.rmIndexes, 2),
           String(Math.max(rmInfo.memFixed, 0)).padEnd(2),
           CxxUtils.flags({ "InstDB::RWInfoRm::kFlagAmbiguous": Boolean(rmInfo.memAmbiguous) }),
-          rmInfo.memExtension === "None" ? "0" : "Features::k" + rmInfo.memExtension
+          rmInfo.memExtension === "None" ? "0" : "uint32_t(CpuFeatures::X86::k" + rmInfo.memExtension + ")"
         );
 
         const rwData = CxxUtils.struct(
@@ -2045,6 +2113,7 @@ class InstRWInfoTable extends core.Task {
 
       return {
         access: op.read && op.write ? "X" : op.read ? "R" : op.write ? "W" : "?",
+        clc: 0,
         flags: {},
         fixed: GenUtils.fixedRegOf(op.reg),
         index: op.rwxIndex,
@@ -2066,11 +2135,15 @@ class InstRWInfoTable extends core.Task {
           const opSize = op.isReg() ? op.regSize : op.memSize;
           var d = {
             access: op.read && op.write ? "X" : op.read ? "R" : op.write ? "W" : "?",
+            clc: 0,
             flags: {},
             fixed: -1,
             index: -1,
             width: -1
           };
+
+          if (op.consecutiveLeadCount)
+            d.clc = op.consecutiveLeadCount;
 
           if (op.isReg())
             d.fixed = GenUtils.fixedRegOf(op.reg);
@@ -2079,6 +2152,9 @@ class InstRWInfoTable extends core.Task {
 
           if (op.zext)
             d.flags.ZExt = true;
+
+          if (op.regIndexRel)
+            d.flags.Consecutive = true;
 
           for (var k in self.rwOpFlagsForInstruction(asmInst.name, j))
             d.flags[k] = true;
@@ -2436,7 +2512,7 @@ class InstCommonTable extends core.Task {
       "IdEnum",
       "NameTable",
       "InstSignatureTable",
-      "InstCommonInfoTableB",
+      "AdditionalInfoTable",
       "InstRWInfoTable"
     ]);
   }
@@ -2452,26 +2528,26 @@ class InstCommonTable extends core.Task {
       const commonFlags = commonFlagsArray.map(function(flag) { return `F(${flag          })`; }).join("|") || "0";
       const avx512Flags = avx512FlagsArray.map(function(flag) { return `X(${flag.substr(6)})`; }).join("|") || "0";
 
-      const singleRegCase = `SINGLE_REG(${inst.singleRegCase})`;
-      const controlType = `CONTROL(${inst.controlType})`;
+      const controlFlow = `CONTROL_FLOW(${inst.controlFlow})`;
+      const singleRegCase = `SAME_REG_HINT(${inst.singleRegCase})`;
 
       const row = "{ " +
         String(commonFlags        ).padEnd(50) + ", " +
         String(avx512Flags        ).padEnd(30) + ", " +
         String(inst.signatureIndex).padEnd( 3) + ", " +
         String(inst.signatureCount).padEnd( 2) + ", " +
-        String(controlType        ).padEnd(16) + ", " +
+        String(controlFlow        ).padEnd(16) + ", " +
         String(singleRegCase      ).padEnd(16) + "}";
-      inst.commonInfoIndexA = table.addIndexed(row);
+      inst.commonInfoIndex = table.addIndexed(row);
     });
 
-    var s = `#define F(VAL) InstDB::kFlag##VAL\n` +
-            `#define X(VAL) InstDB::kAvx512Flag##VAL\n` +
-            `#define CONTROL(VAL) Inst::kControl##VAL\n` +
-            `#define SINGLE_REG(VAL) InstDB::kSingleReg##VAL\n` +
+    var s = `#define F(VAL) uint32_t(InstDB::InstFlags::k##VAL)\n` +
+            `#define X(VAL) uint32_t(InstDB::Avx512Flags::k##VAL)\n` +
+            `#define CONTROL_FLOW(VAL) uint8_t(InstControlFlow::k##VAL)\n` +
+            `#define SAME_REG_HINT(VAL) uint8_t(InstSameRegHint::k##VAL)\n` +
             `const InstDB::CommonInfo InstDB::_commonInfoTable[] = {\n${StringUtils.format(table, kIndent, true)}\n};\n` +
-            `#undef SINGLE_REG\n` +
-            `#undef CONTROL\n` +
+            `#undef SAME_REG_HINT\n` +
+            `#undef CONTROL_FLOW\n` +
             `#undef X\n` +
             `#undef F\n`;
     this.inject("InstCommonTable", disclaimer(s), table.length * 8);
@@ -2487,7 +2563,7 @@ new X86TableGen()
   .addTask(new NameTable())
   .addTask(new AltOpcodeTable())
   .addTask(new InstSignatureTable())
-  .addTask(new InstCommonInfoTableB())
+  .addTask(new AdditionalInfoTable())
   .addTask(new InstRWInfoTable())
   .addTask(new InstCommonTable())
   .run();

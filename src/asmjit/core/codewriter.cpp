@@ -1,25 +1,7 @@
-// AsmJit - Machine code generation for C++
+// This file is part of AsmJit project <https://asmjit.com>
 //
-//  * Official AsmJit Home Page: https://asmjit.com
-//  * Official Github Repository: https://github.com/asmjit/asmjit
-//
-// Copyright (c) 2008-2020 The AsmJit Authors
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//    claim that you wrote the original software. If you use this software
-//    in a product, an acknowledgment in the product documentation would be
-//    appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//    misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
+// See asmjit.h or LICENSE.md for license and copyright information
+// SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
 #include "../core/codeholder.h"
@@ -50,13 +32,13 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
     return false;
 
   switch (format.type()) {
-    case OffsetFormat::kTypeCommon: {
+    case OffsetType::kCommon: {
       *dst = (uint32_t(offset32) & Support::lsbMask<uint32_t>(bitCount)) << bitShift;
       return true;
     }
 
-    case OffsetFormat::kTypeAArch64_ADR:
-    case OffsetFormat::kTypeAArch64_ADRP: {
+    case OffsetType::kAArch64_ADR:
+    case OffsetType::kAArch64_ADRP: {
       // Sanity checks.
       if (format.valueSize() != 4 || bitCount != 21 || bitShift != 5)
         return false;
@@ -91,7 +73,7 @@ bool CodeWriterUtils::encodeOffset64(uint64_t* dst, int64_t offset64, const Offs
     return false;
 
   switch (format.type()) {
-    case OffsetFormat::kTypeCommon: {
+    case OffsetType::kCommon: {
       *dst = (uint64_t(offset64) & Support::lsbMask<uint64_t>(bitCount)) << format.immBitShift();
       return true;
     }
