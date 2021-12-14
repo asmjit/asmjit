@@ -66,14 +66,14 @@ public:
   template<typename T>
   ASMJIT_FORCE_INLINE void emit16uLE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    Support::writeU16uLE(_cursor, uint32_t(U(val) & 0xFFFFu));
+    Support::writeU16uLE(_cursor, uint16_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 
   template<typename T>
   ASMJIT_FORCE_INLINE void emit16uBE(T val) noexcept {
     typedef typename std::make_unsigned<T>::type U;
-    Support::writeU16uBE(_cursor, uint32_t(U(val) & 0xFFFFu));
+    Support::writeU16uBE(_cursor, uint16_t(U(val) & 0xFFFFu));
     _cursor += 2;
   }
 

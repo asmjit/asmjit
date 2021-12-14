@@ -94,7 +94,7 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
       if (!encodeOffset32(&mask, offset64, format))
         return false;
 
-      Support::writeU8(dst, Support::readU8(dst) | mask);
+      Support::writeU8(dst, uint8_t(Support::readU8(dst) | mask));
       return true;
     }
 
@@ -103,7 +103,7 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
       if (!encodeOffset32(&mask, offset64, format))
         return false;
 
-      Support::writeU16uLE(dst, Support::readU16uLE(dst) | mask);
+      Support::writeU16uLE(dst, uint16_t(Support::readU16uLE(dst) | mask));
       return true;
     }
 

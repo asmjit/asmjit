@@ -119,8 +119,10 @@ static void testBitUtils() noexcept {
 
 static void testIntUtils() noexcept {
   INFO("Support::byteswap()");
+  EXPECT(Support::byteswap16(int32_t(0x0102)) == int32_t(0x0201));
   EXPECT(Support::byteswap32(int32_t(0x01020304)) == int32_t(0x04030201));
   EXPECT(Support::byteswap32(uint32_t(0x01020304)) == uint32_t(0x04030201));
+  EXPECT(Support::byteswap64(uint64_t(0x0102030405060708)) == uint64_t(0x0807060504030201));
 
   INFO("Support::bytepack()");
   union BytePackData {

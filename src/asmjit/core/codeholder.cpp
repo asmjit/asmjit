@@ -1032,11 +1032,11 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
 
     switch (re->format().valueSize()) {
       case 1:
-        Support::writeU8(buffer + valueOffset, uint32_t(value & 0xFFu));
+        Support::writeU8(buffer + valueOffset, uint8_t(value & 0xFFu));
         break;
 
       case 2:
-        Support::writeU16uLE(buffer + valueOffset, uint32_t(value & 0xFFFFu));
+        Support::writeU16uLE(buffer + valueOffset, uint16_t(value & 0xFFFFu));
         break;
 
       case 4:
