@@ -353,8 +353,6 @@ public:
     ASMJIT_ASSUME(save != nullptr);
 
     ZoneTreeNode* saveChild = save->_getChild(dir);
-    ASMJIT_ASSUME(saveChild != nullptr);
-
     root->_setChild(!dir, saveChild);
     save->_setChild( dir, root);
     root->_makeRed();
