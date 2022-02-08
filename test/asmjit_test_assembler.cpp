@@ -18,6 +18,10 @@ bool testX86Assembler(const TestSettings& settings) noexcept;
 bool testX64Assembler(const TestSettings& settings) noexcept;
 #endif
 
+#if !defined(ASMJIT_NO_AARCH64)
+bool testA64Assembler(const TestSettings& settings) noexcept;
+#endif
+
 int main(int argc, char* argv[]) {
   CmdLine cmdLine(argc, argv);
 
@@ -43,6 +47,7 @@ int main(int argc, char* argv[]) {
   const char* arch = cmdLine.valueOf("--arch", "all");
   bool x86Failed = false;
   bool x64Failed = false;
+  bool aarch64Failed = false;
 
 #if !defined(ASMJIT_NO_X86)
   if ((strcmp(arch, "all") == 0 || strcmp(arch, "x86") == 0))
@@ -52,11 +57,23 @@ int main(int argc, char* argv[]) {
     x64Failed = !testX64Assembler(settings);
 #endif
 
-  bool failed = x86Failed || x64Failed;
+#if !defined(ASMJIT_NO_AARCH64)
+  if ((strcmp(arch, "all") == 0 || strcmp(arch, "aarch64") == 0))
+    aarch64Failed = !testA64Assembler(settings);
+#endif
+
+  bool failed = x86Failed || x64Failed || aarch64Failed;
 
   if (failed) {
-    if (x86Failed) printf("** X86 test suite failed **\n");
-    if (x64Failed) printf("** X64 test suite failed **\n");
+    if (x86Failed)
+      printf("** X86 test suite failed **\n");
+
+    if (x64Failed)
+      printf("** X64 test suite failed **\n");
+
+    if (aarch64Failed)
+      printf("** AArch64 test suite failed **\n");
+
     printf("** FAILURE **\n");
   }
   else {

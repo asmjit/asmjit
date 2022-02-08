@@ -980,7 +980,7 @@ namespace AppleHWId {
 
 static ASMJIT_FAVOR_SIZE uint32_t queryARMCpuFamilyId() noexcept {
   uint32_t result = 0;
-  size_t size = sizeof(cpuFamily);
+  size_t size = sizeof(result);
 
   int res = sysctlbyname("hw.cpufamily", &result, &size, nullptr, 0);
   if (res != 0)

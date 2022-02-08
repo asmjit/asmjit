@@ -276,7 +276,10 @@ enum class OffsetType : uint8_t {
   //!
   //! This offset type is sufficient for many targets that store offset as a continuous set bits within an
   //! instruction word / sequence of bytes.
-  kCommon = 0,
+  kSignedOffset,
+
+  //! An unsigned value having `_immBitCount` bits and shifted by `_immBitShift`.
+  kUnsignedOffset,
 
   // AArch64 Specific Offset Formats
   // -------------------------------
@@ -370,15 +373,15 @@ struct OffsetFormat {
   //!
   //! The region will be the same size as data and immediate bits would correspond to `dataSize * 8`. There will be
   //! no immediate bit shift or discarded bits.
-  inline void resetToDataValue(size_t dataSize) noexcept {
-    ASMJIT_ASSERT(dataSize <= 8u);
+  inline void resetToSimpleValue(OffsetType type, size_t valueSize) noexcept {
+    ASMJIT_ASSERT(valueSize <= 8u);
 
-    _type = OffsetType::kCommon;
+    _type = type;
     _flags = uint8_t(0);
-    _regionSize = uint8_t(dataSize);
-    _valueSize = uint8_t(dataSize);
+    _regionSize = uint8_t(valueSize);
+    _valueSize = uint8_t(valueSize);
     _valueOffset = uint8_t(0);
-    _immBitCount = uint8_t(dataSize * 8u);
+    _immBitCount = uint8_t(valueSize * 8u);
     _immBitShift = uint8_t(0);
     _immDiscardLsb = uint8_t(0);
   }

@@ -21,11 +21,11 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 namespace FormatterInternal {
 
-Error formatFeature(
+Error ASMJIT_CDECL formatFeature(
   String& sb,
   uint32_t featureId) noexcept;
 
-Error formatRegister(
+Error ASMJIT_CDECL formatRegister(
   String& sb,
   FormatFlags flags,
   const BaseEmitter* emitter,
@@ -33,14 +33,14 @@ Error formatRegister(
   RegType regType,
   uint32_t regId) noexcept;
 
-Error formatOperand(
+Error ASMJIT_CDECL formatOperand(
   String& sb,
   FormatFlags flags,
   const BaseEmitter* emitter,
   Arch arch,
   const Operand_& op) noexcept;
 
-Error formatInstruction(
+Error ASMJIT_CDECL formatInstruction(
   String& sb,
   FormatFlags flags,
   const BaseEmitter* emitter,

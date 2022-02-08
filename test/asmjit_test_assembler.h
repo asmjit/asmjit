@@ -20,6 +20,7 @@ public:
   asmjit::Environment env {};
   asmjit::CodeHolder code {};
   AssemblerType assembler {};
+  asmjit::Label L0 {};
   const TestSettings& settings;
 
   size_t passed {};
@@ -45,6 +46,7 @@ public:
     code.reset();
     code.init(env, 0);
     code.attach(&assembler);
+    L0 = assembler.newLabel();
 
     if (settings.validate)
       assembler.addDiagnosticOptions(asmjit::DiagnosticOptions::kValidateAssembler);

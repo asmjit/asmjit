@@ -271,7 +271,7 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
 
   re->_sourceSectionId = _section->id();
   re->_sourceOffset = offset();
-  re->_format.resetToDataValue(uint32_t(dataSize));
+  re->_format.resetToSimpleValue(OffsetType::kUnsignedOffset, dataSize);
 
   if (le->isBound()) {
     re->_targetSectionId = le->section()->id();
@@ -279,7 +279,7 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
   }
   else {
     OffsetFormat of;
-    of.resetToDataValue(uint32_t(dataSize));
+    of.resetToSimpleValue(OffsetType::kUnsignedOffset, dataSize);
 
     LabelLink* link = _code->newLabelLink(le, _section->id(), offset(), 0, of);
     if (ASMJIT_UNLIKELY(!link))
@@ -348,7 +348,7 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
     exp->setValueAsLabel(0, labelEntry);
     exp->setValueAsLabel(1, baseEntry);
 
-    re->_format.resetToDataValue(dataSize);
+    re->_format.resetToSimpleValue(OffsetType::kSignedOffset, dataSize);
     re->_sourceSectionId = _section->id();
     re->_sourceOffset = offset();
     re->_payload = (uint64_t)(uintptr_t)exp;

@@ -194,6 +194,10 @@ Error CodeHolder::attach(BaseEmitter* emitter) noexcept {
   if (ASMJIT_UNLIKELY(type == EmitterType::kNone || uint32_t(type) > uint32_t(EmitterType::kMaxValue)))
     return DebugUtils::errored(kErrorInvalidState);
 
+  uint64_t archMask = emitter->_archMask;
+  if (ASMJIT_UNLIKELY(!(archMask & (uint64_t(1) << uint32_t(arch())))))
+    return DebugUtils::errored(kErrorInvalidArch);
+
   // This is suspicious, but don't fail if `emitter` is already attached
   // to this code holder. This is not error, but it's not recommended.
   if (emitter->_code != nullptr) {
@@ -944,7 +948,6 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
       return DebugUtils::errored(kErrorInvalidRelocEntry);
 
     uint8_t* buffer = sourceSection->data();
-    size_t valueOffset = size_t(re->sourceOffset()) + re->format().valueOffset();
 
     switch (re->relocType()) {
       case RelocType::kExpression: {
@@ -970,12 +973,18 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
 
       case RelocType::kAbsToRel: {
         value -= baseAddress + sectionOffset + sourceOffset + regionSize;
-        if (addressSize > 4 && !Support::isInt32(int64_t(value)))
+
+        // Sign extend as we are not interested in the high 32-bit word in a 32-bit address space.
+        if (addressSize <= 4)
+          value = uint64_t(int64_t(int32_t(value & 0xFFFFFFFFu)));
+        else if (!Support::isInt32(int64_t(value)))
           return DebugUtils::errored(kErrorRelocOffsetOutOfRange);
+
         break;
       }
 
       case RelocType::kX64AddressEntry: {
+        size_t valueOffset = size_t(re->sourceOffset()) + re->format().valueOffset();
         if (re->format().valueSize() != 4 || valueOffset < 2)
           return DebugUtils::errored(kErrorInvalidRelocEntry);
 
@@ -1030,25 +1039,8 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress) noexcept {
         return DebugUtils::errored(kErrorInvalidRelocEntry);
     }
 
-    switch (re->format().valueSize()) {
-      case 1:
-        Support::writeU8(buffer + valueOffset, uint8_t(value & 0xFFu));
-        break;
-
-      case 2:
-        Support::writeU16uLE(buffer + valueOffset, uint16_t(value & 0xFFFFu));
-        break;
-
-      case 4:
-        Support::writeU32uLE(buffer + valueOffset, uint32_t(value & 0xFFFFFFFFu));
-        break;
-
-      case 8:
-        Support::writeU64uLE(buffer + valueOffset, value);
-        break;
-
-      default:
-        return DebugUtils::errored(kErrorInvalidRelocEntry);
+    if (!CodeWriterUtils::writeOffset(buffer + re->sourceOffset(), int64_t(value), re->format())) {
+      return DebugUtils::errored(kErrorInvalidRelocEntry);
     }
   }
 
