@@ -129,10 +129,8 @@ public:
   //! Scratch registers used at exit, by a terminator instruction.
   RegMask _exitScratchGpRegs = 0;
 
-  //! Register assignment (PhysToWork) on entry.
+  //! Register assignment on entry.
   PhysToWorkMap* _entryPhysToWorkMap = nullptr;
-  //! Register assignment (WorkToPhys) on entry.
-  WorkToPhysMap* _entryWorkToPhysMap = nullptr;
 
   //! \}
 
@@ -247,13 +245,8 @@ public:
   }
 
   inline bool hasEntryAssignment() const noexcept { return _entryPhysToWorkMap != nullptr; }
-  inline WorkToPhysMap* entryWorkToPhysMap() const noexcept { return _entryWorkToPhysMap; }
   inline PhysToWorkMap* entryPhysToWorkMap() const noexcept { return _entryPhysToWorkMap; }
-
-  inline void setEntryAssignment(PhysToWorkMap* physToWorkMap, WorkToPhysMap* workToPhysMap) noexcept {
-    _entryPhysToWorkMap = physToWorkMap;
-    _entryWorkToPhysMap = workToPhysMap;
-  }
+  inline void setEntryAssignment(PhysToWorkMap* physToWorkMap) noexcept { _entryPhysToWorkMap = physToWorkMap; }
 
   //! \}
 
@@ -616,8 +609,6 @@ public:
   ZoneBitVector _liveIn {};
   //! Register assignment (PhysToWork).
   PhysToWorkMap* _physToWorkMap = nullptr;
-  //! Register assignment (WorkToPhys).
-  WorkToPhysMap* _workToPhysMap = nullptr;
 
   //! \}
 
@@ -632,12 +623,7 @@ public:
   inline const ZoneBitVector& liveIn() const noexcept { return _liveIn; }
 
   inline PhysToWorkMap* physToWorkMap() const noexcept { return _physToWorkMap; }
-  inline WorkToPhysMap* workToPhysMap() const noexcept { return _workToPhysMap; }
-
-  inline void assignMaps(PhysToWorkMap* physToWorkMap, WorkToPhysMap* workToPhysMap) noexcept {
-    _physToWorkMap = physToWorkMap;
-    _workToPhysMap = workToPhysMap;
-  }
+  inline void assignPhysToWorkMap(PhysToWorkMap* physToWorkMap) noexcept { _physToWorkMap = physToWorkMap; }
 
   //! \}
 };
@@ -1066,13 +1052,6 @@ public:
     return static_cast<PhysToWorkMap*>(zone()->dupAligned(map, size, sizeof(uint32_t)));
   }
 
-  inline WorkToPhysMap* cloneWorkToPhysMap(const WorkToPhysMap* map) noexcept {
-    size_t size = WorkToPhysMap::sizeOf(_workRegs.size());
-    if (ASMJIT_UNLIKELY(size == 0))
-      return const_cast<WorkToPhysMap*>(map);
-    return static_cast<WorkToPhysMap*>(zone()->dup(map, size));
-  }
-
   //! \name Liveness Analysis & Statistics
   //! \{
 
@@ -1110,7 +1089,7 @@ public:
   //! Called after the RA assignment has been assigned to a block.
   //!
   //! This cannot change the assignment, but can examine it.
-  Error blockEntryAssigned(const RAAssignment& as) noexcept;
+  Error blockEntryAssigned(const PhysToWorkMap* physToWorkMap) noexcept;
 
   //! \}
 
