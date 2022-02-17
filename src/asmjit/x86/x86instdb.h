@@ -442,8 +442,8 @@ ASMJIT_VARAPI const CommonInfo _commonInfoTable[];
 
 //! Instruction information.
 struct InstInfo {
-  //! Index to \ref _nameData.
-  uint32_t _nameDataIndex : 14;
+  //! Reserved for future use.
+  uint32_t _reserved : 14;
   //! Index to \ref _commonInfoTable.
   uint32_t _commonInfoIndex : 10;
   //! Index to \ref _additionalInfoTable.

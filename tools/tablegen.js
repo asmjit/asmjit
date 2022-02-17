@@ -580,6 +580,218 @@ class IndexedString {
 }
 exports.IndexedString = IndexedString;
 
+
+// ============================================================================
+// [InstructionNameData]
+// ============================================================================
+
+function decimalToHexString(number, pad) {
+  if (number < 0)
+    number = 0xFFFFFFFF + number + 1;
+
+  let s = number.toString(16).toUpperCase();
+  if (pad)
+    s = s.padStart(pad, "0")
+  return s;
+}
+
+function charTo5Bit(c) {
+  if (c >= 'a' && c <= 'z')
+    return 1 + (c.charCodeAt(0) - 'a'.charCodeAt(0));
+  else if (c >= '0' && c <= '4')
+    return 1 + 26 + (c.charCodeAt(0) - '0'.charCodeAt(0));
+  else
+    FAIL(`Character '${c}' cannot be encoded into a 5-bit string`);
+}
+
+class InstructionNameData {
+  constructor() {
+    this.names = [];
+    this.primaryTable = [];
+    this.stringTable = "";
+    this.size = 0;
+    this.indexComment = [];
+    this.maxNameLength = 0;
+  }
+
+  add(s) {
+    // First try to encode the string with 5-bit characters that fit into a 32-bit int.
+    if (/^[a-z0-4]{0,6}$/.test(s)) {
+      let index = 0;
+      for (let i = 0; i < s.length; i++)
+        index |= charTo5Bit(s[i]) << (i * 5);
+
+      this.names.push(s);
+      this.primaryTable.push(index | (1 << 31));
+      this.indexComment.push(`Small '${s}'.`);
+    }
+    else {
+      // Put the string into a string table.
+      this.names.push(s);
+      this.primaryTable.push(-1);
+      this.indexComment.push(``);
+    }
+
+    if (this.maxNameLength < s.length)
+      this.maxNameLength = s.length;
+  }
+
+  index() {
+    const kMaxPrefixSize = 15;
+    const kMaxSuffixSize = 7;
+    const names = [];
+
+    for (let idx = 0; idx < this.primaryTable.length; idx++) {
+      if (this.primaryTable[idx] === -1) {
+        names.push({ name: this.names[idx], index: idx });
+      }
+    }
+
+    names.sort(function(a, b) {
+      if (a.name.length > b.name.length)
+        return -1;
+      if (a.name.length < b.name.length)
+        return 1;
+      return (a > b) ? 1 : (a < b) ? -1 : 0;
+    });
+
+    for (let z = 0; z < names.length; z++) {
+      const idx = names[z].index;
+      const name = names[z].name;
+
+      let done = false;
+      let longestPrefix = 0;
+      let longestSuffix = 0;
+
+      let prefix = "";
+      let suffix = "";
+
+      for (let i = Math.min(name.length, kMaxPrefixSize); i > 0; i--) {
+        prefix = name.substring(0, i);
+        suffix = name.substring(i);
+
+        const prefixIndex = this.stringTable.indexOf(prefix);
+        const suffixIndex = this.stringTable.indexOf(suffix);
+
+        // Matched both parts?
+        if (prefixIndex !== -1 && suffix === "") {
+          done = true;
+          break;
+        }
+
+        if (prefixIndex !== -1 && suffixIndex !== -1) {
+          done = true;
+          break;
+        }
+
+        if (prefixIndex !== -1 && longestPrefix === 0)
+          longestPrefix = prefix.length;
+
+        if (suffixIndex !== -1 && suffix.length > longestSuffix)
+          longestSuffix = suffix.length;
+
+        if (suffix.length === kMaxSuffixSize)
+          break;
+      }
+
+      if (!done) {
+        let minPrefixSize = name.length >= 8 ? name.length / 2 + 1 : name.length - 2;
+
+        prefix = "";
+        suffix = "";
+
+        if (longestPrefix >= minPrefixSize) {
+          prefix = name.substring(0, longestPrefix);
+          suffix = name.substring(longestPrefix);
+        }
+        else if (longestSuffix) {
+          const splitAt = Math.min(name.length - longestSuffix, kMaxPrefixSize);;
+          prefix = name.substring(0, splitAt);
+          suffix = name.substring(splitAt);
+        }
+        else if (name.length > kMaxPrefixSize) {
+          prefix = name.substring(0, kMaxPrefixSize);
+          suffix = name.substring(kMaxPrefixSize);
+        }
+        else {
+          prefix = name;
+          suffix = "";
+        }
+      }
+
+      if (suffix) {
+        const prefixIndex = this.addOrReferenceString(prefix);
+        const suffixIndex = this.addOrReferenceString(suffix);
+
+        this.primaryTable[idx] = prefixIndex | (prefix.length << 12) | (suffixIndex << 16) | (suffix.length << 28);
+        this.indexComment[idx] = `Large '${prefix}|${suffix}'.`;
+      }
+      else {
+        const prefixIndex = this.addOrReferenceString(prefix);
+
+        this.primaryTable[idx] = prefixIndex | (prefix.length << 12);
+        this.indexComment[idx] = `Large '${prefix}'.`;
+      }
+    }
+  }
+
+  addOrReferenceString(s) {
+    let index = this.stringTable.indexOf(s);
+    if (index === -1) {
+      index = this.stringTable.length;
+      this.stringTable += s;
+    }
+    return index;
+  }
+
+  formatIndexTable(tableName) {
+    if (this.size === -1)
+      FAIL(`IndexedString.formatIndexTable(): Not indexed yet, call index()`);
+
+    let s = "";
+    for (let i = 0; i < this.primaryTable.length; i++) {
+      s += "0x" + decimalToHexString(this.primaryTable[i], 8);
+      s += i !== this.primaryTable.length - 1 ? "," : " ";
+      s += " // " + this.indexComment[i] + "\n";
+    }
+
+    return `const uint32_t ${tableName}[] = {\n${StringUtils.indent(s, "  ")}};\n`;
+  }
+
+  formatStringTable(tableName) {
+    if (this.size === -1)
+      FAIL(`IndexedString.formatStringTable(): Not indexed yet, call index()`);
+
+    let s = "";
+    for (let i = 0; i < this.stringTable.length; i += 80) {
+      if (s)
+        s += "\n"
+      s += '"' + this.stringTable.substring(i, i + 80) + '"';
+    }
+    s += ";\n";
+
+    return `const char ${tableName}[] =\n${StringUtils.indent(s, "  ")}\n`;
+  }
+
+  getSize() {
+    if (this.size === -1)
+      FAIL(`IndexedString.getSize(): Not indexed yet, call index()`);
+
+    return this.primaryTable.length * 4 + this.stringTable.length;
+  }
+
+  getIndex(k) {
+    if (this.size === -1)
+      FAIL(`IndexedString.getIndex(): Not indexed yet, call index()`);
+
+    if (!hasOwn.call(this.map, k))
+      FAIL(`IndexedString.getIndex(): Key '${k}' not found.`);
+
+    return this.map[k];
+  }
+}
+exports.InstructionNameData = InstructionNameData;
+
 // ============================================================================
 // [IndexedArray]
 // ============================================================================
@@ -891,41 +1103,37 @@ class NameTable extends Task {
   }
 
   run() {
-    const arch = this.ctx.arch;
     const none = "Inst::kIdNone";
-
     const insts = this.ctx.insts;
-    const instNames = new IndexedString();
 
     const instFirst = new Array(26);
     const instLast  = new Array(26);
 
-    var maxLength = 0;
-    for (var i = 0; i < insts.length; i++) {
-      const inst = insts[i];
-      instNames.add(inst.displayName);
-      maxLength = Math.max(maxLength, inst.displayName.length);
-    }
-    instNames.index();
+    const instNameData = new InstructionNameData();
 
-    for (var i = 0; i < insts.length; i++) {
+    for (let i = 0; i < insts.length; i++)
+      instNameData.add(insts[i].displayName);
+    instNameData.index();
+
+    for (let i = 0; i < insts.length; i++) {
       const inst = insts[i];
       const name = inst.displayName;
-      const nameIndex = instNames.getIndex(name);
-
       const index = name.charCodeAt(0) - 'a'.charCodeAt(0);
+
       if (index < 0 || index >= 26)
         FAIL(`TableGen.generateNameData(): Invalid lookup character '${name[0]}' of '${name}'`);
 
-      inst.nameIndex = nameIndex;
       if (instFirst[index] === undefined)
         instFirst[index] = `Inst::kId${inst.enum}`;
       instLast[index] = `Inst::kId${inst.enum}`;
     }
 
     var s = "";
-    s += `const char InstDB::_nameData[] =\n${instNames.format(kIndent, kJustify)}\n`;
+    s += instNameData.formatIndexTable("InstDB::_instNameIndexTable");
     s += `\n`;
+    s += instNameData.formatStringTable("InstDB::_instNameStringTable");
+    s += `\n`;
+
     s += `const InstDB::InstNameIndex InstDB::instNameIndex[26] = {\n`;
     for (var i = 0; i < instFirst.length; i++) {
       const firstId = instFirst[i] || none;
@@ -939,9 +1147,9 @@ class NameTable extends Task {
     s += `};\n`;
 
     this.ctx.inject("NameLimits",
-      StringUtils.disclaimer(`enum : uint32_t { kMaxNameSize = ${maxLength} };\n`));
+      StringUtils.disclaimer(`enum : uint32_t { kMaxNameSize = ${instNameData.maxNameLength} };\n`));
 
-    return this.ctx.inject("NameData", StringUtils.disclaimer(s), instNames.getSize() + 26 * 4);
+    return this.ctx.inject("NameData", StringUtils.disclaimer(s), instNameData.getSize() + 26 * 4);
   }
 }
 exports.NameTable = NameTable;

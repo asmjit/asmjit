@@ -26,7 +26,7 @@
 
 #include "../core/cpuinfo.h"
 #include "../core/misc_p.h"
-#include "../core/support.h"
+#include "../core/support_p.h"
 #include "../x86/x86instapi_p.h"
 #include "../x86/x86instdb_p.h"
 #include "../x86/x86opcode_p.h"
@@ -44,8 +44,10 @@ Error InstInternal::instIdToString(Arch arch, InstId instId, String& output) noe
   if (ASMJIT_UNLIKELY(!Inst::isDefinedId(instId)))
     return DebugUtils::errored(kErrorInvalidInstruction);
 
-  const InstDB::InstInfo& info = InstDB::infoById(instId);
-  return output.append(InstDB::_nameData + info._nameDataIndex);
+  char nameData[32];
+  size_t nameSize = Support::decodeInstName(nameData, InstDB::_instNameIndexTable[instId], InstDB::_instNameStringTable);
+
+  return output.append(nameData, nameSize);
 }
 
 InstId InstInternal::stringToInstId(Arch arch, const char* s, size_t len) noexcept {
@@ -64,30 +66,28 @@ InstId InstInternal::stringToInstId(Arch arch, const char* s, size_t len) noexce
   if (ASMJIT_UNLIKELY(prefix > 'z' - 'a'))
     return Inst::kIdNone;
 
-  uint32_t index = InstDB::instNameIndex[prefix].start;
-  if (ASMJIT_UNLIKELY(!index))
+  size_t base = InstDB::instNameIndex[prefix].start;
+  size_t end = InstDB::instNameIndex[prefix].end;
+
+  if (ASMJIT_UNLIKELY(!base))
     return Inst::kIdNone;
 
-  const char* nameData = InstDB::_nameData;
-  const InstDB::InstInfo* table = InstDB::_instInfoTable;
+  char nameData[32];
+  for (size_t lim = end - base; lim != 0; lim >>= 1) {
+    size_t instId = base + (lim >> 1);
+    size_t nameSize = Support::decodeInstName(nameData, InstDB::_instNameIndexTable[instId], InstDB::_instNameStringTable);
 
-  const InstDB::InstInfo* base = table + index;
-  const InstDB::InstInfo* end  = table + InstDB::instNameIndex[prefix].end;
+    int result = Support::compareStringViews(s, len, nameData, nameSize);
+    if (result < 0)
+      continue;
 
-  for (size_t lim = (size_t)(end - base); lim != 0; lim >>= 1) {
-    const InstDB::InstInfo* cur = base + (lim >> 1);
-    int result = Support::cmpInstName(nameData + cur[0]._nameDataIndex, s, len);
-
-    if (result < 0) {
-      base = cur + 1;
+    if (result > 0) {
+      base = instId + 1;
       lim--;
       continue;
     }
 
-    if (result > 0)
-      continue;
-
-    return InstId((size_t)(cur - table));
+    return InstId(instId);
   }
 
   return Inst::kIdNone;
