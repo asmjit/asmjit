@@ -606,7 +606,7 @@ namespace Inst {
     kIdPaddusb,                          //!< Instruction 'paddusb' {MMX|SSE2}.
     kIdPaddusw,                          //!< Instruction 'paddusw' {MMX|SSE2}.
     kIdPaddw,                            //!< Instruction 'paddw' {MMX|SSE2}.
-    kIdPalignr,                          //!< Instruction 'palignr' {SSE3}.
+    kIdPalignr,                          //!< Instruction 'palignr' {SSSE3}.
     kIdPand,                             //!< Instruction 'pand' {MMX|SSE2}.
     kIdPandn,                            //!< Instruction 'pandn' {MMX|SSE2}.
     kIdPause,                            //!< Instruction 'pause'.

@@ -2030,7 +2030,11 @@ class InstRWInfoTable extends core.Task {
           "InstDB::RWInfoRm::kCategory" + rmInfo.category.padEnd(10),
           StringUtils.decToHex(rmInfo.rmIndexes, 2),
           String(Math.max(rmInfo.memFixed, 0)).padEnd(2),
-          CxxUtils.flags({ "InstDB::RWInfoRm::kFlagAmbiguous": Boolean(rmInfo.memAmbiguous) }),
+          CxxUtils.flags({
+            "InstDB::RWInfoRm::kFlagAmbiguous": Boolean(rmInfo.memAmbiguous),
+            "InstDB::RWInfoRm::kFlagPextrw": Boolean(inst.name === "pextrw"),
+            "InstDB::RWInfoRm::kFlagFeatureIfRMI": Boolean(rmInfo.memExtensionIfRMI)
+          }),
           rmInfo.memExtension === "None" ? "0" : "uint32_t(CpuFeatures::X86::k" + rmInfo.memExtension + ")"
         );
 
@@ -2284,7 +2288,8 @@ class InstRWInfoTable extends core.Task {
       memFixed: this.rmFixedSize(dbInsts),
       memAmbiguous: this.rmIsAmbiguous(dbInsts),
       memConsistent: this.rmIsConsistent(dbInsts),
-      memExtension: this.rmExtension(dbInsts)
+      memExtension: this.rmExtension(dbInsts),
+      memExtensionIfRMI: this.rmExtensionIfRMI(dbInsts)
     };
 
     if (info.memFixed !== -1)
@@ -2493,13 +2498,31 @@ class InstRWInfoTable extends core.Task {
       case "pextrw":
         return "SSE4_1";
 
+      case "vpslld":
+      case "vpsllq":
+      case "vpsrad":
+      case "vpsrld":
+      case "vpsrlq":
+        return "AVX512_F";
+
       case "vpslldq":
+      case "vpsllw":
+      case "vpsraw":
       case "vpsrldq":
+      case "vpsrlw":
         return "AVX512_BW";
 
       default:
         return "None";
     }
+  }
+
+  rmExtensionIfRMI(dbInsts) {
+    if (!dbInsts.length)
+      return 0;
+
+    const name = dbInsts[0].name;
+    return /^(vpslld|vpsllq|vpsrad|vpsrld|vpsrlq|vpslldq|vpsllw|vpsraw|vpsrldq|vpsrlw)$/.test(name);
   }
 }
 

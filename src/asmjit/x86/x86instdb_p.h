@@ -259,7 +259,9 @@ struct RWInfoRm {
   };
 
   enum Flags : uint8_t {
-    kFlagAmbiguous = 0x01
+    kFlagAmbiguous = 0x01,
+    kFlagPextrw = 0x02,
+    kFlagFeatureIfRMI = 0x04
   };
 
   uint8_t category;

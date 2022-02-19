@@ -562,7 +562,7 @@ const InstDB::InstInfo InstDB::_instInfoTable[] = {
   INST(Paddusb          , ExtRm_P            , O(000F00,DC,_,_,_,_,_,_  ), 0                         , 4  , 0  , 7741 , 146, 82 ), // #487
   INST(Paddusw          , ExtRm_P            , O(000F00,DD,_,_,_,_,_,_  ), 0                         , 4  , 0  , 7750 , 146, 82 ), // #488
   INST(Paddw            , ExtRm_P            , O(000F00,FD,_,_,_,_,_,_  ), 0                         , 4  , 0  , 7759 , 146, 82 ), // #489
-  INST(Palignr          , ExtRmi_P           , O(000F3A,0F,_,_,_,_,_,_  ), 0                         , 85 , 0  , 7766 , 147, 6  ), // #490
+  INST(Palignr          , ExtRmi_P           , O(000F3A,0F,_,_,_,_,_,_  ), 0                         , 85 , 0  , 7766 , 147, 86 ), // #490
   INST(Pand             , ExtRm_P            , O(000F00,DB,_,_,_,_,_,_  ), 0                         , 4  , 0  , 7775 , 148, 82 ), // #491
   INST(Pandn            , ExtRm_P            , O(000F00,DF,_,_,_,_,_,_  ), 0                         , 4  , 0  , 7788 , 149, 82 ), // #492
   INST(Pause            , X86Op              , O(F30000,90,_,_,_,_,_,_  ), 0                         , 86 , 0  , 3195 , 30 , 0  ), // #493
@@ -2615,7 +2615,7 @@ const InstDB::AdditionalInfo InstDB::_additionalInfoTable[] = {
   { { EXT(ADX) }, 3, 0 }, // #3 [ref=1x]
   { { EXT(SSE2) }, 0, 0 }, // #4 [ref=65x]
   { { EXT(SSE) }, 0, 0 }, // #5 [ref=44x]
-  { { EXT(SSE3) }, 0, 0 }, // #6 [ref=12x]
+  { { EXT(SSE3) }, 0, 0 }, // #6 [ref=11x]
   { { EXT(ADX) }, 4, 0 }, // #7 [ref=1x]
   { { EXT(AESNI) }, 0, 0 }, // #8 [ref=6x]
   { { EXT(BMI) }, 1, 0 }, // #9 [ref=6x]
@@ -2695,7 +2695,7 @@ const InstDB::AdditionalInfo InstDB::_additionalInfoTable[] = {
   { { EXT(MOVDIR64B) }, 0, 0 }, // #83 [ref=1x]
   { { EXT(MOVDIRI) }, 0, 0 }, // #84 [ref=1x]
   { { EXT(BMI2) }, 0, 0 }, // #85 [ref=7x]
-  { { EXT(SSSE3) }, 0, 0 }, // #86 [ref=15x]
+  { { EXT(SSSE3) }, 0, 0 }, // #86 [ref=16x]
   { { EXT(MMX2), EXT(SSE2) }, 0, 0 }, // #87 [ref=10x]
   { { EXT(PCLMULQDQ) }, 0, 0 }, // #88 [ref=1x]
   { { EXT(SSE4_2) }, 1, 0 }, // #89 [ref=4x]
@@ -3764,56 +3764,56 @@ const uint8_t InstDB::rwInfoIndexA[Inst::_kIdCount] = {
   71, 71, 72, 72, 59, 59, 67, 59, 59, 71, 71, 73, 48, 52, 74, 48, 7, 7, 47, 75,
   9, 66, 66, 75, 0, 35, 4, 4, 5, 6, 0, 76, 0, 0, 77, 0, 2, 4, 4, 78, 79, 9, 9,
   9, 3, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 3, 3, 0, 3, 80, 3, 0, 0, 0, 3, 3,
-  4, 3, 0, 0, 3, 3, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 27, 80, 80, 80, 80, 80,
-  80, 80, 80, 80, 80, 27, 80, 80, 80, 27, 27, 80, 80, 80, 3, 3, 3, 81, 3, 3, 3,
-  27, 27, 0, 0, 0, 0, 3, 3, 4, 4, 3, 3, 4, 4, 4, 4, 3, 3, 4, 4, 82, 83, 84, 24,
-  24, 24, 83, 83, 84, 24, 24, 24, 83, 4, 3, 80, 3, 3, 4, 3, 3, 0, 0, 0, 9, 0, 0,
-  0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 85, 3, 3, 0, 3, 3,
-  3, 85, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 27, 86, 0, 3, 3, 4, 3, 87, 87, 4, 87, 0,
-  0, 0, 0, 0, 0, 0, 3, 88, 7, 89, 88, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 90, 0, 0,
-  0, 0, 0, 88, 88, 0, 0, 0, 0, 0, 0, 7, 89, 0, 0, 88, 88, 0, 0, 2, 91, 0, 0, 0,
+  4, 3, 0, 0, 3, 3, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 81, 27, 27, 80, 80, 80, 80, 80,
+  80, 80, 80, 80, 80, 27, 80, 80, 80, 27, 27, 80, 80, 80, 3, 3, 3, 82, 3, 3, 3,
+  27, 27, 0, 0, 0, 0, 3, 3, 4, 4, 3, 3, 4, 4, 4, 4, 3, 3, 4, 4, 83, 84, 85, 24,
+  24, 24, 84, 84, 85, 24, 24, 24, 84, 4, 3, 80, 3, 3, 4, 3, 3, 0, 0, 0, 9, 0,
+  0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 86, 3, 3, 0, 3, 3,
+  3, 86, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 27, 87, 0, 3, 3, 4, 3, 88, 88, 4, 88, 0,
+  0, 0, 0, 0, 0, 0, 3, 89, 7, 90, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 91, 0, 0,
+  0, 0, 0, 89, 89, 0, 0, 0, 0, 0, 0, 7, 90, 0, 0, 89, 89, 0, 0, 2, 92, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 4, 4, 0, 88, 0, 0, 88, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 7, 7, 26, 89, 0, 0, 0, 0, 0, 0, 92, 0, 0, 0, 2, 4, 4, 5, 6, 0, 0, 0, 0, 0,
-  0, 0, 9, 0, 0, 0, 0, 0, 15, 0, 93, 93, 0, 94, 0, 0, 9, 9, 20, 21, 95, 95, 0, 0,
-  0, 0, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 96, 28, 97, 98, 97, 98, 96, 28, 97, 98, 97, 98,
-  99, 100, 0, 0, 0, 0, 0, 0, 20, 101, 21, 102, 102, 103, 75, 9, 0, 75, 104, 105,
-  104, 9, 104, 9, 106, 107, 103, 106, 107, 106, 107, 9, 9, 9, 103, 0, 75, 103,
-  9, 103, 9, 105, 104, 0, 28, 0, 28, 0, 108, 0, 108, 0, 0, 0, 0, 0, 33, 33, 104,
-  9, 104, 9, 106, 107, 106, 107, 9, 9, 9, 103, 9, 103, 28, 28, 108, 108, 33,
-  33, 103, 75, 9, 9, 105, 104, 0, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  109, 109, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 4, 4, 4, 0, 4, 4, 0, 89, 0, 0, 89, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 7, 7, 26, 90, 0, 0, 0, 0, 0, 0, 93, 0, 0, 0, 2, 4, 4, 5, 6, 0, 0, 0, 0, 0,
+  0, 0, 9, 0, 0, 0, 0, 0, 15, 0, 94, 94, 0, 95, 0, 0, 9, 9, 20, 21, 96, 96, 0,
+  0, 0, 0, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 97, 28, 98, 99, 98, 99, 97, 28, 98, 99, 98, 99,
+  100, 101, 0, 0, 0, 0, 0, 0, 20, 102, 21, 103, 103, 104, 75, 9, 0, 75, 105,
+  106, 105, 9, 105, 9, 107, 108, 104, 107, 108, 107, 108, 9, 9, 9, 104, 0, 75, 104,
+  9, 104, 9, 106, 105, 0, 28, 0, 28, 0, 109, 0, 109, 0, 0, 0, 0, 0, 33, 33,
+  105, 9, 105, 9, 107, 108, 107, 108, 9, 9, 9, 104, 9, 104, 28, 28, 109, 109, 33,
+  33, 104, 75, 9, 9, 106, 105, 0, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 110, 110, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 27, 110, 60, 60, 0, 0, 0, 0,
-  0, 0, 0, 0, 60, 111, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 112, 112, 47, 113, 112, 112, 112, 112, 112, 112, 112,
-  112, 0, 114, 114, 0, 71, 71, 115, 116, 67, 67, 67, 67, 117, 71, 118, 9, 9,
-  73, 112, 112, 49, 0, 0, 0, 102, 0, 0, 0, 0, 0, 0, 0, 0, 0, 119, 0, 0, 0, 0, 0,
-  0, 0, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 120, 33, 121, 121, 28, 122, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 102, 102, 102, 102, 0, 0, 0, 0,
-  0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 0, 0, 0, 0, 60, 60, 111, 60, 7, 7, 7, 0, 7, 0,
-  7, 7, 7, 7, 7, 7, 0, 7, 7, 81, 7, 0, 7, 0, 0, 7, 0, 0, 0, 0, 9, 9, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 123, 123, 124, 125, 121, 121, 121, 121, 82, 123, 126, 125, 124, 124,
-  125, 126, 125, 124, 125, 127, 128, 103, 103, 103, 127, 124, 125, 126, 125,
-  124, 125, 123, 125, 127, 128, 103, 103, 103, 127, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 67, 67, 129, 67,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 119, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 9, 9, 0, 0, 109, 109, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 0, 109, 109, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0,
-  0, 0, 67, 67, 0, 0, 0, 0, 0, 0, 0, 0, 67, 129, 0, 0, 0, 0, 0, 0, 9, 9, 9, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 119, 119, 20, 101, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 130, 131, 130, 131, 0, 132, 0, 133, 0, 0, 0, 2, 4, 4, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 27, 111, 60, 60, 0, 0, 0,
+  0, 0, 0, 0, 0, 60, 112, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 113, 113, 47, 114, 113, 113, 113, 113, 113, 113,
+  113, 113, 0, 115, 115, 0, 71, 71, 116, 117, 67, 67, 67, 67, 118, 71, 119, 9, 9,
+  73, 113, 113, 49, 0, 0, 0, 103, 0, 0, 0, 0, 0, 0, 0, 0, 0, 120, 0, 0, 0, 0,
+  0, 0, 0, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 121, 33, 122, 122, 28, 123, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 103, 103, 103, 103, 0, 0, 0,
+  0, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 0, 0, 0, 0, 60, 60, 112, 60, 7, 7, 7, 0, 7, 0,
+  7, 7, 7, 7, 7, 7, 0, 7, 7, 82, 7, 0, 7, 0, 0, 7, 0, 0, 0, 0, 9, 9, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 124, 124, 125, 126, 122, 122, 122, 122, 83, 124, 127, 126, 125,
+  125, 126, 127, 126, 125, 126, 128, 129, 104, 104, 104, 128, 125, 126, 127, 126,
+  125, 126, 124, 126, 128, 129, 104, 104, 104, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 67, 67, 130,
+  67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 9, 9, 0, 0, 110, 110, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 0, 110, 110, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0,
+  0, 0, 67, 67, 0, 0, 0, 0, 0, 0, 0, 0, 67, 130, 0, 0, 0, 0, 0, 0, 9, 9, 9, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 120, 120, 20, 102, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 131, 132, 131, 132, 0, 133, 0, 134, 0, 0, 0, 2, 4, 4, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {
@@ -3885,19 +3885,19 @@ const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {
   0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 163, 84, 84, 3, 3, 84,
   84, 3, 3, 164, 164, 164, 164, 3, 0, 0, 0, 0, 164, 164, 164, 164, 164, 164, 3,
   3, 120, 120, 120, 3, 164, 164, 3, 3, 120, 120, 120, 3, 3, 103, 84, 84, 84, 3,
-  3, 3, 165, 166, 165, 3, 3, 3, 165, 165, 165, 3, 3, 3, 165, 165, 166, 165, 3,
-  3, 3, 165, 3, 3, 3, 3, 3, 3, 3, 3, 120, 120, 0, 103, 103, 103, 103, 103, 103,
+  3, 3, 165, 166, 165, 3, 3, 3, 167, 165, 168, 3, 3, 3, 167, 165, 166, 165, 3,
+  3, 3, 167, 3, 3, 3, 3, 3, 3, 3, 3, 120, 120, 0, 103, 103, 103, 103, 103, 103,
   103, 103, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 139, 141, 0, 0, 139, 141, 0,
   0, 139, 141, 0, 0, 140, 141, 84, 84, 84, 139, 140, 141, 84, 84, 84, 139, 140,
   141, 84, 84, 139, 141, 0, 0, 139, 141, 0, 0, 139, 141, 0, 0, 140, 141, 3, 3,
   3, 99, 100, 101, 0, 0, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 3, 3, 3, 3, 3, 3,
   0, 0, 0, 139, 140, 141, 92, 3, 3, 3, 99, 100, 101, 0, 0, 0, 0, 0, 3, 3, 3, 3,
-  3, 3, 0, 0, 0, 0, 56, 56, 167, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 0, 0, 0, 0,
-  168, 168, 168, 168, 169, 169, 169, 169, 169, 169, 169, 169, 167, 0, 0
+  3, 3, 0, 0, 0, 0, 56, 56, 169, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 0, 0, 0, 0,
+  170, 170, 170, 170, 171, 171, 171, 171, 171, 171, 171, 171, 169, 0, 0
 };
 
 const InstDB::RWInfo InstDB::rwInfoA[] = {
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #0 [ref=1008x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #0 [ref=1007x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 1 , 0 , 0 , 0 , 0 , 0  } }, // #1 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 1 , { 2 , 3 , 0 , 0 , 0 , 0  } }, // #2 [ref=7x]
   { InstDB::RWInfo::kCategoryGeneric   , 2 , { 2 , 3 , 0 , 0 , 0 , 0  } }, // #3 [ref=96x]
@@ -3978,59 +3978,60 @@ const InstDB::RWInfo InstDB::rwInfoA[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 52, 22, 0 , 0 , 0 , 0  } }, // #78 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 52, 66, 0 , 0 , 0 , 0  } }, // #79 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 4 , { 26, 7 , 0 , 0 , 0 , 0  } }, // #80 [ref=18x]
-  { InstDB::RWInfo::kCategoryGeneric   , 3 , { 69, 5 , 0 , 0 , 0 , 0  } }, // #81 [ref=2x]
-  { InstDB::RWInfo::kCategoryVmov1_8   , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #82 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 10, 9 , 0 , 0 , 0 , 0  } }, // #83 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 27, { 10, 13, 0 , 0 , 0 , 0  } }, // #84 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 4 , 0 , 0 , 0 , 0 , 0  } }, // #85 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 3 , { 5 , 5 , 0 , 0 , 0 , 0  } }, // #86 [ref=1x]
-  { InstDB::RWInfo::kCategoryPunpcklxx , 34, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #87 [ref=3x]
-  { InstDB::RWInfo::kCategoryGeneric   , 10, { 2 , 71, 0 , 0 , 0 , 0  } }, // #88 [ref=8x]
-  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 37, 9 , 0 , 0 , 0 , 0  } }, // #89 [ref=3x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 16, 50, 0 , 0 , 0 , 0  } }, // #90 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 22, 21, 0 , 0 , 0 , 0  } }, // #91 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 63, 22, 0 , 0 , 0 , 0  } }, // #92 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 74, 3 , 0 , 0 , 0 , 0  } }, // #93 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 11, 43, 0 , 0 , 0 , 0  } }, // #94 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 53, 9 , 0 , 0 , 0 , 0  } }, // #95 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 13, { 80, 5 , 0 , 0 , 0 , 0  } }, // #96 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 13, { 11, 5 , 0 , 0 , 0 , 0  } }, // #97 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 39, { 74, 81, 0 , 0 , 0 , 0  } }, // #98 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 40, { 11, 7 , 0 , 0 , 0 , 0  } }, // #99 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 41, { 11, 9 , 0 , 0 , 0 , 0  } }, // #100 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 27, { 13, 13, 0 , 0 , 0 , 0  } }, // #101 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 11, { 11, 3 , 0 , 0 , 0 , 0  } }, // #102 [ref=7x]
-  { InstDB::RWInfo::kCategoryVmov2_1   , 42, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #103 [ref=14x]
-  { InstDB::RWInfo::kCategoryVmov1_2   , 14, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #104 [ref=7x]
-  { InstDB::RWInfo::kCategoryGeneric   , 14, { 10, 3 , 0 , 0 , 0 , 0  } }, // #105 [ref=3x]
-  { InstDB::RWInfo::kCategoryGeneric   , 42, { 11, 3 , 0 , 0 , 0 , 0  } }, // #106 [ref=5x]
-  { InstDB::RWInfo::kCategoryGeneric   , 43, { 11, 5 , 0 , 0 , 0 , 0  } }, // #107 [ref=5x]
-  { InstDB::RWInfo::kCategoryGeneric   , 27, { 11, 5 , 0 , 0 , 0 , 0  } }, // #108 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 47, { 74, 43, 0 , 0 , 0 , 0  } }, // #109 [ref=6x]
-  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 44, 9 , 0 , 0 , 0 , 0  } }, // #110 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 18, { 2 , 3 , 0 , 0 , 0 , 0  } }, // #111 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 54, { 11, 3 , 0 , 0 , 0 , 0  } }, // #112 [ref=12x]
-  { InstDB::RWInfo::kCategoryVmovddup  , 34, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #113 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 12, { 35, 61, 0 , 0 , 0 , 0  } }, // #114 [ref=2x]
-  { InstDB::RWInfo::kCategoryVmovmskpd , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #115 [ref=1x]
-  { InstDB::RWInfo::kCategoryVmovmskps , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #116 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 55, { 35, 7 , 0 , 0 , 0 , 0  } }, // #117 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 21, { 48, 13, 0 , 0 , 0 , 0  } }, // #118 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 2 , { 3 , 3 , 0 , 0 , 0 , 0  } }, // #119 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 15, { 11, 40, 0 , 0 , 0 , 0  } }, // #120 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 11, 7 , 0 , 0 , 0 , 0  } }, // #121 [ref=6x]
-  { InstDB::RWInfo::kCategoryGeneric   , 27, { 11, 13, 0 , 0 , 0 , 0  } }, // #122 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 35, 3 , 0 , 0 , 0 , 0  } }, // #123 [ref=4x]
-  { InstDB::RWInfo::kCategoryVmov1_4   , 58, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #124 [ref=6x]
-  { InstDB::RWInfo::kCategoryVmov1_2   , 44, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #125 [ref=9x]
-  { InstDB::RWInfo::kCategoryVmov1_8   , 59, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #126 [ref=3x]
-  { InstDB::RWInfo::kCategoryVmov4_1   , 43, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #127 [ref=4x]
-  { InstDB::RWInfo::kCategoryVmov8_1   , 60, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #128 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 18, { 11, 3 , 0 , 0 , 0 , 0  } }, // #129 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 17, { 44, 9 , 0 , 0 , 0 , 0  } }, // #130 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 32, { 35, 7 , 0 , 0 , 0 , 0  } }, // #131 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 11, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #132 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 54, { 2 , 2 , 0 , 0 , 0 , 0  } }  // #133 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 33, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #81 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 3 , { 69, 5 , 0 , 0 , 0 , 0  } }, // #82 [ref=2x]
+  { InstDB::RWInfo::kCategoryVmov1_8   , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #83 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 10, 9 , 0 , 0 , 0 , 0  } }, // #84 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 27, { 10, 13, 0 , 0 , 0 , 0  } }, // #85 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 4 , 0 , 0 , 0 , 0 , 0  } }, // #86 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 3 , { 5 , 5 , 0 , 0 , 0 , 0  } }, // #87 [ref=1x]
+  { InstDB::RWInfo::kCategoryPunpcklxx , 35, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #88 [ref=3x]
+  { InstDB::RWInfo::kCategoryGeneric   , 10, { 2 , 71, 0 , 0 , 0 , 0  } }, // #89 [ref=8x]
+  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 37, 9 , 0 , 0 , 0 , 0  } }, // #90 [ref=3x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 16, 50, 0 , 0 , 0 , 0  } }, // #91 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 22, 21, 0 , 0 , 0 , 0  } }, // #92 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 63, 22, 0 , 0 , 0 , 0  } }, // #93 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 74, 3 , 0 , 0 , 0 , 0  } }, // #94 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 11, 43, 0 , 0 , 0 , 0  } }, // #95 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 53, 9 , 0 , 0 , 0 , 0  } }, // #96 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 13, { 80, 5 , 0 , 0 , 0 , 0  } }, // #97 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 13, { 11, 5 , 0 , 0 , 0 , 0  } }, // #98 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 40, { 74, 81, 0 , 0 , 0 , 0  } }, // #99 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 41, { 11, 7 , 0 , 0 , 0 , 0  } }, // #100 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 42, { 11, 9 , 0 , 0 , 0 , 0  } }, // #101 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 27, { 13, 13, 0 , 0 , 0 , 0  } }, // #102 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 11, { 11, 3 , 0 , 0 , 0 , 0  } }, // #103 [ref=7x]
+  { InstDB::RWInfo::kCategoryVmov2_1   , 43, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #104 [ref=14x]
+  { InstDB::RWInfo::kCategoryVmov1_2   , 14, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #105 [ref=7x]
+  { InstDB::RWInfo::kCategoryGeneric   , 14, { 10, 3 , 0 , 0 , 0 , 0  } }, // #106 [ref=3x]
+  { InstDB::RWInfo::kCategoryGeneric   , 43, { 11, 3 , 0 , 0 , 0 , 0  } }, // #107 [ref=5x]
+  { InstDB::RWInfo::kCategoryGeneric   , 44, { 11, 5 , 0 , 0 , 0 , 0  } }, // #108 [ref=5x]
+  { InstDB::RWInfo::kCategoryGeneric   , 27, { 11, 5 , 0 , 0 , 0 , 0  } }, // #109 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 48, { 74, 43, 0 , 0 , 0 , 0  } }, // #110 [ref=6x]
+  { InstDB::RWInfo::kCategoryGeneric   , 5 , { 44, 9 , 0 , 0 , 0 , 0  } }, // #111 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 18, { 2 , 3 , 0 , 0 , 0 , 0  } }, // #112 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 55, { 11, 3 , 0 , 0 , 0 , 0  } }, // #113 [ref=12x]
+  { InstDB::RWInfo::kCategoryVmovddup  , 35, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #114 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 12, { 35, 61, 0 , 0 , 0 , 0  } }, // #115 [ref=2x]
+  { InstDB::RWInfo::kCategoryVmovmskpd , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #116 [ref=1x]
+  { InstDB::RWInfo::kCategoryVmovmskps , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #117 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 56, { 35, 7 , 0 , 0 , 0 , 0  } }, // #118 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 21, { 48, 13, 0 , 0 , 0 , 0  } }, // #119 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 2 , { 3 , 3 , 0 , 0 , 0 , 0  } }, // #120 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 15, { 11, 40, 0 , 0 , 0 , 0  } }, // #121 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 11, 7 , 0 , 0 , 0 , 0  } }, // #122 [ref=6x]
+  { InstDB::RWInfo::kCategoryGeneric   , 27, { 11, 13, 0 , 0 , 0 , 0  } }, // #123 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 35, 3 , 0 , 0 , 0 , 0  } }, // #124 [ref=4x]
+  { InstDB::RWInfo::kCategoryVmov1_4   , 59, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #125 [ref=6x]
+  { InstDB::RWInfo::kCategoryVmov1_2   , 45, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #126 [ref=9x]
+  { InstDB::RWInfo::kCategoryVmov1_8   , 60, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #127 [ref=3x]
+  { InstDB::RWInfo::kCategoryVmov4_1   , 44, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #128 [ref=4x]
+  { InstDB::RWInfo::kCategoryVmov8_1   , 61, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #129 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 18, { 11, 3 , 0 , 0 , 0 , 0  } }, // #130 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 17, { 44, 9 , 0 , 0 , 0 , 0  } }, // #131 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 32, { 35, 7 , 0 , 0 , 0 , 0  } }, // #132 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 11, { 2 , 2 , 0 , 0 , 0 , 0  } }, // #133 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 55, { 2 , 2 , 0 , 0 , 0 , 0  } }  // #134 [ref=1x]
 };
 
 const InstDB::RWInfo InstDB::rwInfoB[] = {
@@ -4106,7 +4107,7 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 3 , { 5 , 5 , 0 , 68, 0 , 0  } }, // #69 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 31, { 56, 5 , 0 , 0 , 0 , 0  } }, // #70 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 32, { 35, 5 , 0 , 0 , 0 , 0  } }, // #71 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 33, { 48, 3 , 0 , 0 , 0 , 0  } }, // #72 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 34, { 48, 3 , 0 , 0 , 0 , 0  } }, // #72 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 15, { 4 , 40, 0 , 0 , 0 , 0  } }, // #73 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 4 , { 4 , 7 , 0 , 0 , 0 , 0  } }, // #74 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 27, { 2 , 13, 0 , 0 , 0 , 0  } }, // #75 [ref=1x]
@@ -4125,7 +4126,7 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 7 , 0 , 0 , 0 , 0 , 0  } }, // #88 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 31, { 73, 0 , 0 , 0 , 0 , 0  } }, // #89 [ref=30x]
   { InstDB::RWInfo::kCategoryGeneric   , 11, { 2 , 3 , 71, 0 , 0 , 0  } }, // #90 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 35, { 11, 0 , 0 , 0 , 0 , 0  } }, // #91 [ref=3x]
+  { InstDB::RWInfo::kCategoryGeneric   , 36, { 11, 0 , 0 , 0 , 0 , 0  } }, // #91 [ref=3x]
   { InstDB::RWInfo::kCategoryGeneric   , 28, { 44, 0 , 0 , 0 , 0 , 0  } }, // #92 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 16, { 74, 0 , 0 , 0 , 0 , 0  } }, // #93 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 75, 43, 43, 0 , 0 , 0  } }, // #94 [ref=5x]
@@ -4133,52 +4134,52 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 9 , 60, 17, 0 , 0 , 0  } }, // #96 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 13, { 75, 76, 77, 77, 77, 5  } }, // #97 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 13, { 4 , 78, 79, 79, 79, 5  } }, // #98 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 10, 5 , 7 , 0 , 0 , 0  } }, // #99 [ref=8x]
-  { InstDB::RWInfo::kCategoryGeneric   , 37, { 10, 5 , 13, 0 , 0 , 0  } }, // #100 [ref=7x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 10, 5 , 9 , 0 , 0 , 0  } }, // #101 [ref=9x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 10, 5 , 7 , 0 , 0 , 0  } }, // #99 [ref=8x]
+  { InstDB::RWInfo::kCategoryGeneric   , 38, { 10, 5 , 13, 0 , 0 , 0  } }, // #100 [ref=7x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 10, 5 , 9 , 0 , 0 , 0  } }, // #101 [ref=9x]
   { InstDB::RWInfo::kCategoryGeneric   , 6 , { 11, 3 , 3 , 3 , 0 , 0  } }, // #102 [ref=3x]
   { InstDB::RWInfo::kCategoryGeneric   , 6 , { 35, 3 , 3 , 0 , 0 , 0  } }, // #103 [ref=18x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 11, 5 , 7 , 0 , 0 , 0  } }, // #104 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 37, { 35, 13, 13, 0 , 0 , 0  } }, // #105 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 11, 5 , 9 , 0 , 0 , 0  } }, // #106 [ref=1x]
-  { InstDB::RWInfo::kCategoryVmov1_2   , 44, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #107 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 10, 5 , 5 , 0 , 0 , 0  } }, // #108 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 10, 82, 7 , 0 , 0 , 0  } }, // #109 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 37, { 10, 5 , 5 , 0 , 0 , 0  } }, // #110 [ref=3x]
-  { InstDB::RWInfo::kCategoryGeneric   , 45, { 10, 61, 3 , 0 , 0 , 0  } }, // #111 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 45, { 10, 3 , 3 , 0 , 0 , 0  } }, // #112 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 45, { 10, 82, 3 , 0 , 0 , 0  } }, // #113 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 10, 61, 9 , 0 , 0 , 0  } }, // #114 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 10, 5 , 5 , 0 , 0 , 0  } }, // #115 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 46, { 10, 5 , 5 , 0 , 0 , 0  } }, // #116 [ref=9x]
-  { InstDB::RWInfo::kCategoryGeneric   , 48, { 10, 81, 0 , 0 , 0 , 0  } }, // #117 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 48, { 10, 3 , 0 , 0 , 0 , 0  } }, // #118 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 49, { 80, 43, 0 , 0 , 0 , 0  } }, // #119 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 11, 5 , 7 , 0 , 0 , 0  } }, // #104 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 38, { 35, 13, 13, 0 , 0 , 0  } }, // #105 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 11, 5 , 9 , 0 , 0 , 0  } }, // #106 [ref=1x]
+  { InstDB::RWInfo::kCategoryVmov1_2   , 45, { 0 , 0 , 0 , 0 , 0 , 0  } }, // #107 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 10, 5 , 5 , 0 , 0 , 0  } }, // #108 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 10, 82, 7 , 0 , 0 , 0  } }, // #109 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 38, { 10, 5 , 5 , 0 , 0 , 0  } }, // #110 [ref=3x]
+  { InstDB::RWInfo::kCategoryGeneric   , 46, { 10, 61, 3 , 0 , 0 , 0  } }, // #111 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 46, { 10, 3 , 3 , 0 , 0 , 0  } }, // #112 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 46, { 10, 82, 3 , 0 , 0 , 0  } }, // #113 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 10, 61, 9 , 0 , 0 , 0  } }, // #114 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 10, 5 , 5 , 0 , 0 , 0  } }, // #115 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 47, { 10, 5 , 5 , 0 , 0 , 0  } }, // #116 [ref=9x]
+  { InstDB::RWInfo::kCategoryGeneric   , 49, { 10, 81, 0 , 0 , 0 , 0  } }, // #117 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 49, { 10, 3 , 0 , 0 , 0 , 0  } }, // #118 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 50, { 80, 43, 0 , 0 , 0 , 0  } }, // #119 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 6 , { 2 , 3 , 3 , 0 , 0 , 0  } }, // #120 [ref=82x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 4 , 5 , 5 , 0 , 0 , 0  } }, // #121 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 4 , 61, 7 , 0 , 0 , 0  } }, // #122 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 4 , 82, 9 , 0 , 0 , 0  } }, // #123 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 6 , 7 , 7 , 0 , 0 , 0  } }, // #124 [ref=11x]
-  { InstDB::RWInfo::kCategoryGeneric   , 37, { 4 , 5 , 5 , 0 , 0 , 0  } }, // #125 [ref=6x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 8 , 9 , 9 , 0 , 0 , 0  } }, // #126 [ref=11x]
-  { InstDB::RWInfo::kCategoryGeneric   , 50, { 11, 3 , 3 , 3 , 0 , 0  } }, // #127 [ref=15x]
-  { InstDB::RWInfo::kCategoryGeneric   , 51, { 35, 7 , 7 , 7 , 0 , 0  } }, // #128 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 52, { 44, 9 , 9 , 9 , 0 , 0  } }, // #129 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 37, { 4 , 5 , 13, 0 , 0 , 0  } }, // #130 [ref=6x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 26, 7 , 7 , 0 , 0 , 0  } }, // #131 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 53, 9 , 9 , 0 , 0 , 0  } }, // #132 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 4 , 5 , 5 , 0 , 0 , 0  } }, // #121 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 4 , 61, 7 , 0 , 0 , 0  } }, // #122 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 4 , 82, 9 , 0 , 0 , 0  } }, // #123 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 6 , 7 , 7 , 0 , 0 , 0  } }, // #124 [ref=11x]
+  { InstDB::RWInfo::kCategoryGeneric   , 38, { 4 , 5 , 5 , 0 , 0 , 0  } }, // #125 [ref=6x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 8 , 9 , 9 , 0 , 0 , 0  } }, // #126 [ref=11x]
+  { InstDB::RWInfo::kCategoryGeneric   , 51, { 11, 3 , 3 , 3 , 0 , 0  } }, // #127 [ref=15x]
+  { InstDB::RWInfo::kCategoryGeneric   , 52, { 35, 7 , 7 , 7 , 0 , 0  } }, // #128 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 53, { 44, 9 , 9 , 9 , 0 , 0  } }, // #129 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 38, { 4 , 5 , 13, 0 , 0 , 0  } }, // #130 [ref=6x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 26, 7 , 7 , 0 , 0 , 0  } }, // #131 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 53, 9 , 9 , 0 , 0 , 0  } }, // #132 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 14, { 35, 3 , 0 , 0 , 0 , 0  } }, // #133 [ref=3x]
   { InstDB::RWInfo::kCategoryGeneric   , 27, { 35, 13, 0 , 0 , 0 , 0  } }, // #134 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 5 , { 35, 9 , 0 , 0 , 0 , 0  } }, // #135 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 8 , { 2 , 3 , 2 , 0 , 0 , 0  } }, // #136 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 2 , 3 , 2 , 0 , 0 , 0  } }, // #137 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 18, { 4 , 3 , 4 , 0 , 0 , 0  } }, // #138 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 36, { 10, 61, 7 , 0 , 0 , 0  } }, // #139 [ref=11x]
-  { InstDB::RWInfo::kCategoryGeneric   , 37, { 10, 83, 13, 0 , 0 , 0  } }, // #140 [ref=7x]
-  { InstDB::RWInfo::kCategoryGeneric   , 38, { 10, 82, 9 , 0 , 0 , 0  } }, // #141 [ref=13x]
-  { InstDB::RWInfo::kCategoryGeneric   , 46, { 80, 81, 5 , 0 , 0 , 0  } }, // #142 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 46, { 11, 3 , 5 , 0 , 0 , 0  } }, // #143 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 53, { 74, 43, 81, 0 , 0 , 0  } }, // #144 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 37, { 10, 61, 7 , 0 , 0 , 0  } }, // #139 [ref=11x]
+  { InstDB::RWInfo::kCategoryGeneric   , 38, { 10, 83, 13, 0 , 0 , 0  } }, // #140 [ref=7x]
+  { InstDB::RWInfo::kCategoryGeneric   , 39, { 10, 82, 9 , 0 , 0 , 0  } }, // #141 [ref=13x]
+  { InstDB::RWInfo::kCategoryGeneric   , 47, { 80, 81, 5 , 0 , 0 , 0  } }, // #142 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 47, { 11, 3 , 5 , 0 , 0 , 0  } }, // #143 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 54, { 74, 43, 81, 0 , 0 , 0  } }, // #144 [ref=4x]
   { InstDB::RWInfo::kCategoryVmaskmov  , 0 , { 0 , 0 , 0 , 0 , 0 , 0  } }, // #145 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 12, { 35, 0 , 0 , 0 , 0 , 0  } }, // #146 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 22, 0 , 0 , 0 , 0 , 0  } }, // #147 [ref=2x]
@@ -4190,20 +4191,22 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 10, 83, 13, 0 , 0 , 0  } }, // #153 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 10, 82, 9 , 0 , 0 , 0  } }, // #154 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 0 , { 84, 0 , 0 , 0 , 0 , 0  } }, // #155 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 56, { 85, 86, 3 , 3 , 0 , 0  } }, // #156 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 57, { 85, 86, 3 , 3 , 0 , 0  } }, // #156 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 13, { 74, 76, 77, 77, 77, 5  } }, // #157 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 53, { 80, 81, 81, 0 , 0 , 0  } }, // #158 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 54, { 80, 81, 81, 0 , 0 , 0  } }, // #158 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 22, { 11, 3 , 3 , 0 , 0 , 0  } }, // #159 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 7 , { 48, 5 , 0 , 0 , 0 , 0  } }, // #160 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 57, { 10, 5 , 40, 0 , 0 , 0  } }, // #161 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 46, { 10, 5 , 5 , 5 , 0 , 0  } }, // #162 [ref=12x]
-  { InstDB::RWInfo::kCategoryGeneric   , 61, { 10, 5 , 5 , 5 , 0 , 0  } }, // #163 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 62, { 10, 5 , 5 , 0 , 0 , 0  } }, // #164 [ref=12x]
-  { InstDB::RWInfo::kCategoryGeneric   , 22, { 11, 3 , 5 , 0 , 0 , 0  } }, // #165 [ref=9x]
-  { InstDB::RWInfo::kCategoryGeneric   , 63, { 11, 3 , 0 , 0 , 0 , 0  } }, // #166 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 60, 17, 29, 0 , 0 , 0  } }, // #167 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 3 , 60, 17, 0 , 0 , 0  } }, // #168 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 11, 60, 17, 0 , 0 , 0  } }  // #169 [ref=8x]
+  { InstDB::RWInfo::kCategoryGeneric   , 58, { 10, 5 , 40, 0 , 0 , 0  } }, // #161 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 47, { 10, 5 , 5 , 5 , 0 , 0  } }, // #162 [ref=12x]
+  { InstDB::RWInfo::kCategoryGeneric   , 62, { 10, 5 , 5 , 5 , 0 , 0  } }, // #163 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 63, { 10, 5 , 5 , 0 , 0 , 0  } }, // #164 [ref=12x]
+  { InstDB::RWInfo::kCategoryGeneric   , 64, { 11, 3 , 5 , 0 , 0 , 0  } }, // #165 [ref=5x]
+  { InstDB::RWInfo::kCategoryGeneric   , 65, { 11, 3 , 0 , 0 , 0 , 0  } }, // #166 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 66, { 11, 3 , 5 , 0 , 0 , 0  } }, // #167 [ref=3x]
+  { InstDB::RWInfo::kCategoryGeneric   , 22, { 11, 3 , 5 , 0 , 0 , 0  } }, // #168 [ref=1x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 60, 17, 29, 0 , 0 , 0  } }, // #169 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 3 , 60, 17, 0 , 0 , 0  } }, // #170 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 11, 60, 17, 0 , 0 , 0  } }  // #171 [ref=8x]
 };
 
 const InstDB::RWInfoOp InstDB::rwInfoOp[] = {
@@ -4297,7 +4300,7 @@ const InstDB::RWInfoOp InstDB::rwInfoOp[] = {
 };
 
 const InstDB::RWInfoRm InstDB::rwInfoRm[] = {
-  { InstDB::RWInfoRm::kCategoryNone      , 0x00, 0 , 0, 0 }, // #0 [ref=2000x]
+  { InstDB::RWInfoRm::kCategoryNone      , 0x00, 0 , 0, 0 }, // #0 [ref=1999x]
   { InstDB::RWInfoRm::kCategoryConsistent, 0x03, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #1 [ref=8x]
   { InstDB::RWInfoRm::kCategoryConsistent, 0x02, 0 , 0, 0 }, // #2 [ref=204x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 16, 0, 0 }, // #3 [ref=122x]
@@ -4319,7 +4322,7 @@ const InstDB::RWInfoRm InstDB::rwInfoRm[] = {
   { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 10, 0, 0 }, // #19 [ref=2x]
   { InstDB::RWInfoRm::kCategoryNone      , 0x01, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #20 [ref=5x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 2 , 0, 0 }, // #21 [ref=4x]
-  { InstDB::RWInfoRm::kCategoryConsistent, 0x06, 0 , 0, 0 }, // #22 [ref=14x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x06, 0 , 0, 0 }, // #22 [ref=6x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 1 , 0, 0 }, // #23 [ref=1x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 4 , 0, 0 }, // #24 [ref=4x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 8 , 0, 0 }, // #25 [ref=3x]
@@ -4330,37 +4333,40 @@ const InstDB::RWInfoRm InstDB::rwInfoRm[] = {
   { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 16, 0, 0 }, // #30 [ref=6x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 1 , 0, 0 }, // #31 [ref=32x]
   { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 8 , 0, 0 }, // #32 [ref=4x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 2 , 0, uint32_t(CpuFeatures::X86::kSSE4_1) }, // #33 [ref=1x]
-  { InstDB::RWInfoRm::kCategoryNone      , 0x02, 0 , 0, 0 }, // #34 [ref=4x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 2 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #35 [ref=3x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 8 , 0, 0 }, // #36 [ref=35x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 2 , 0, 0 }, // #37 [ref=30x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 4 , 0, 0 }, // #38 [ref=42x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 32, 0, 0 }, // #39 [ref=4x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 8 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #40 [ref=1x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 4 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #41 [ref=1x]
-  { InstDB::RWInfoRm::kCategoryHalf      , 0x02, 0 , 0, 0 }, // #42 [ref=19x]
-  { InstDB::RWInfoRm::kCategoryQuarter   , 0x02, 0 , 0, 0 }, // #43 [ref=9x]
-  { InstDB::RWInfoRm::kCategoryHalf      , 0x01, 0 , 0, 0 }, // #44 [ref=10x]
-  { InstDB::RWInfoRm::kCategoryConsistent, 0x04, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #45 [ref=6x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 16, 0, 0 }, // #46 [ref=27x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 64, 0, 0 }, // #47 [ref=6x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 16, 0, 0 }, // #48 [ref=6x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 32, 0, 0 }, // #49 [ref=4x]
-  { InstDB::RWInfoRm::kCategoryConsistent, 0x0C, 0 , 0, 0 }, // #50 [ref=15x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x0C, 8 , 0, 0 }, // #51 [ref=4x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x0C, 4 , 0, 0 }, // #52 [ref=4x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 32, 0, 0 }, // #53 [ref=6x]
-  { InstDB::RWInfoRm::kCategoryConsistent, 0x03, 0 , 0, 0 }, // #54 [ref=13x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 8 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #55 [ref=1x]
-  { InstDB::RWInfoRm::kCategoryConsistent, 0x08, 0 , 0, 0 }, // #56 [ref=2x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 1 , 0, 0 }, // #57 [ref=1x]
-  { InstDB::RWInfoRm::kCategoryQuarter   , 0x01, 0 , 0, 0 }, // #58 [ref=6x]
-  { InstDB::RWInfoRm::kCategoryEighth    , 0x01, 0 , 0, 0 }, // #59 [ref=3x]
-  { InstDB::RWInfoRm::kCategoryEighth    , 0x02, 0 , 0, 0 }, // #60 [ref=2x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x0C, 16, 0, 0 }, // #61 [ref=1x]
-  { InstDB::RWInfoRm::kCategoryFixed     , 0x06, 16, 0, 0 }, // #62 [ref=12x]
-  { InstDB::RWInfoRm::kCategoryConsistent, 0x02, 0 , 0, uint32_t(CpuFeatures::X86::kAVX512_BW) }  // #63 [ref=2x]
+  { InstDB::RWInfoRm::kCategoryNone      , 0x00, 0 , InstDB::RWInfoRm::kFlagPextrw, 0 }, // #33 [ref=1x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 2 , InstDB::RWInfoRm::kFlagPextrw, uint32_t(CpuFeatures::X86::kSSE4_1) }, // #34 [ref=1x]
+  { InstDB::RWInfoRm::kCategoryNone      , 0x02, 0 , 0, 0 }, // #35 [ref=4x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 2 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #36 [ref=3x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 8 , 0, 0 }, // #37 [ref=35x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 2 , 0, 0 }, // #38 [ref=30x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 4 , 0, 0 }, // #39 [ref=42x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x00, 32, 0, 0 }, // #40 [ref=4x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 8 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #41 [ref=1x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 4 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #42 [ref=1x]
+  { InstDB::RWInfoRm::kCategoryHalf      , 0x02, 0 , 0, 0 }, // #43 [ref=19x]
+  { InstDB::RWInfoRm::kCategoryQuarter   , 0x02, 0 , 0, 0 }, // #44 [ref=9x]
+  { InstDB::RWInfoRm::kCategoryHalf      , 0x01, 0 , 0, 0 }, // #45 [ref=10x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x04, 0 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #46 [ref=6x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 16, 0, 0 }, // #47 [ref=27x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x02, 64, 0, 0 }, // #48 [ref=6x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 16, 0, 0 }, // #49 [ref=6x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x01, 32, 0, 0 }, // #50 [ref=4x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x0C, 0 , 0, 0 }, // #51 [ref=15x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x0C, 8 , 0, 0 }, // #52 [ref=4x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x0C, 4 , 0, 0 }, // #53 [ref=4x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 32, 0, 0 }, // #54 [ref=6x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x03, 0 , 0, 0 }, // #55 [ref=13x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x03, 8 , InstDB::RWInfoRm::kFlagAmbiguous, 0 }, // #56 [ref=1x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x08, 0 , 0, 0 }, // #57 [ref=2x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x04, 1 , 0, 0 }, // #58 [ref=1x]
+  { InstDB::RWInfoRm::kCategoryQuarter   , 0x01, 0 , 0, 0 }, // #59 [ref=6x]
+  { InstDB::RWInfoRm::kCategoryEighth    , 0x01, 0 , 0, 0 }, // #60 [ref=3x]
+  { InstDB::RWInfoRm::kCategoryEighth    , 0x02, 0 , 0, 0 }, // #61 [ref=2x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x0C, 16, 0, 0 }, // #62 [ref=1x]
+  { InstDB::RWInfoRm::kCategoryFixed     , 0x06, 16, 0, 0 }, // #63 [ref=12x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x06, 0 , InstDB::RWInfoRm::kFlagFeatureIfRMI, uint32_t(CpuFeatures::X86::kAVX512_F) }, // #64 [ref=5x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x02, 0 , InstDB::RWInfoRm::kFlagFeatureIfRMI, uint32_t(CpuFeatures::X86::kAVX512_BW) }, // #65 [ref=2x]
+  { InstDB::RWInfoRm::kCategoryConsistent, 0x06, 0 , InstDB::RWInfoRm::kFlagFeatureIfRMI, uint32_t(CpuFeatures::X86::kAVX512_BW) }  // #66 [ref=3x]
 };
 // ----------------------------------------------------------------------------
 // ${InstRWInfoTable:End}

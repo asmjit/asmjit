@@ -878,6 +878,20 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
       }
     }
 
+    if (instRmInfo.flags & (InstDB::RWInfoRm::kFlagPextrw | InstDB::RWInfoRm::kFlagFeatureIfRMI)) {
+      if (instRmInfo.flags & InstDB::RWInfoRm::kFlagPextrw) {
+        if (opCount == 3 && Reg::isMm(operands[1])) {
+          out->_rmFeature = 0;
+          rmOpsMask = 0;
+        }
+      }
+      else if (instRmInfo.flags & InstDB::RWInfoRm::kFlagFeatureIfRMI) {
+        if (opCount != 3 || !operands[2].isImm()) {
+          out->_rmFeature = 0;
+        }
+      }
+    }
+
     rmOpsMask &= instRmInfo.rmOpsMask;
     if (rmOpsMask) {
       Support::BitWordIterator<uint32_t> it(rmOpsMask);
@@ -1616,6 +1630,68 @@ UNIT(x86_inst_api_text) {
 
     EXPECT(a == b,
            "Instructions do not match \"%s\" (#%u) != \"%s\" (#%u)", aName.data(), a, bName.data(), b);
+  }
+}
+
+template<typename... Args>
+static Error queryRWInfoSimple(InstRWInfo* out, Arch arch, InstId instId, InstOptions options, Args&&... args) {
+  BaseInst inst(instId);
+  inst.addOptions(options);
+  Operand_ opArray[] = { std::forward<Args>(args)... };
+  return InstInternal::queryRWInfo(arch, inst, opArray, sizeof...(args), out);
+}
+
+UNIT(x86_inst_api_rm_feature) {
+  INFO("Verifying whether RM/feature is reported correctly for PEXTRW instruction");
+  {
+    InstRWInfo rwi;
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdPextrw, InstOptions::kNone, eax, mm1, imm(1));
+    EXPECT(rwi._rmFeature == 0);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdPextrw, InstOptions::kNone, eax, xmm1, imm(1));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kSSE4_1);
+  }
+
+  INFO("Verifying whether RM/feature is reported correctly for AVX512 shift instructions");
+  {
+    InstRWInfo rwi;
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpslld, InstOptions::kNone, xmm1, xmm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_F);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsllq, InstOptions::kNone, ymm1, ymm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_F);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrad, InstOptions::kNone, xmm1, xmm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_F);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrld, InstOptions::kNone, ymm1, ymm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_F);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrlq, InstOptions::kNone, xmm1, xmm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_F);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpslldq, InstOptions::kNone, xmm1, xmm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_BW);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsllw, InstOptions::kNone, ymm1, ymm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_BW);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsraw, InstOptions::kNone, xmm1, xmm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_BW);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrldq, InstOptions::kNone, ymm1, ymm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_BW);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrlw, InstOptions::kNone, xmm1, xmm2, imm(8));
+    EXPECT(rwi._rmFeature == CpuFeatures::X86::kAVX512_BW);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpslld, InstOptions::kNone, xmm1, xmm2, xmm3);
+    EXPECT(rwi._rmFeature == 0);
+
+    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsllw, InstOptions::kNone, xmm1, xmm2, xmm3);
+    EXPECT(rwi._rmFeature == 0);
   }
 }
 #endif
