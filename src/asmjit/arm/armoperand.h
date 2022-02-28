@@ -178,7 +178,7 @@ public:
     kSignatureRegElementIndexMask = 0x0F << kSignatureRegElementIndexShift
   };
 
-  //! Element type.
+  //! Element type (AArch64 only).
   enum ElementType : uint32_t {
     //! No element type specified.
     kElementTypeNone = 0,
@@ -258,15 +258,15 @@ public:
     return Vec((signature() & ~kSignatureRegElementIndexMask) | (elementIndex << kSignatureRegElementIndexShift) | kSignatureRegElementFlagMask, id());
   }
 
-  //! Cast this register to an 8-bit B register (scalar).
+  //! Cast this register to an 8-bit B register (AArch64 only).
   inline VecB b() const noexcept;
-  //! Cast this register to a 16-bit H register (scalar).
+  //! Cast this register to a 16-bit H register (AArch64 only).
   inline VecH h() const noexcept;
-  //! Cast this register to a 32-bit S register (scalar).
+  //! Cast this register to a 32-bit S register.
   inline VecS s() const noexcept;
-  //! Cast this register to a 64-bit D register (scalar).
+  //! Cast this register to a 64-bit D register.
   inline VecD d() const noexcept;
-  //! Cast this register to a 128-bit Q register (scalar).
+  //! Cast this register to a 128-bit Q register.
   inline VecV q() const noexcept;
   //! Cast this register to a 128-bit V register.
   inline VecV v() const noexcept;
@@ -553,37 +553,42 @@ public:
   //! \}
 };
 
-//! Creates `[base.reg, offset]` memory operand (offset mode).
+//! Creates `[base, offset]` memory operand (offset mode).
 static inline constexpr Mem ptr(const Gp& base, int32_t offset = 0) noexcept {
   return Mem(base, offset);
 }
 
-//! Creates `[base.reg, offset]!` memory operand (pre-index mode).
+//! Creates `[base, offset]!` memory operand (pre-index mode).
 static inline constexpr Mem ptr_pre(const Gp& base, int32_t offset = 0) noexcept {
   return Mem(base, offset, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPreIndex));
 }
 
-//! Creates `[base.reg], offset` memory operand (post-index mode).
+//! Creates `[base], offset` memory operand (post-index mode).
 static inline constexpr Mem ptr_post(const Gp& base, int32_t offset = 0) noexcept {
   return Mem(base, offset, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPostIndex));
 }
 
-//! Creates `[base.reg, index]` memory operand.
+//! Creates `[base, index]` memory operand.
 static inline constexpr Mem ptr(const Gp& base, const Gp& index) noexcept {
   return Mem(base, index);
 }
 
-//! Creates `[base.reg], index` memory operand (post-index mode).
+//! Creates `[base, index]!` memory operand (pre-index mode).
+static inline constexpr Mem ptr_pre(const Gp& base, const Gp& index) noexcept {
+  return Mem(base, index, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPreIndex));
+}
+
+//! Creates `[base], index` memory operand (post-index mode).
 static inline constexpr Mem ptr_post(const Gp& base, const Gp& index) noexcept {
   return Mem(base, index, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPostIndex));
 }
 
-//! Creates `[base.reg, index, SHIFT_OP #shift]` memory operand.
+//! Creates `[base, index, SHIFT_OP #shift]` memory operand.
 static inline constexpr Mem ptr(const Gp& base, const Gp& index, const Shift& shift) noexcept {
   return Mem(base, index, shift);
 }
 
-//! Creates `[base + offset]` memory operand.
+//! Creates `[base, offset]` memory operand.
 static inline constexpr Mem ptr(const Label& base, int32_t offset = 0) noexcept {
   return Mem(base, offset);
 }
@@ -600,8 +605,8 @@ static inline constexpr Mem ptr(const PC& pc, int32_t offset = 0) noexcept {
 //!
 //! \note The concept of absolute memory operands doesn't exist on ARM, the ISA only provides PC relative addressing.
 //! Absolute memory operands can only be used if it's known that the PC relative offset is encodable and that it
-//! would be within the limits. Absolute address is also often output from disassemblers, so AsmJit support it so it
-//! can assemble it back.
+//! would be within the limits. Absolute address is also often output from disassemblers, so AsmJit supports it to
+//! make it possible to assemble such output back.
 static inline constexpr Mem ptr(uint64_t base) noexcept { return Mem(base); }
 
 //! \}

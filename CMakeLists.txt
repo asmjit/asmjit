@@ -400,6 +400,21 @@ set(ASMJIT_SRC_LIST
   asmjit/arm/armformatter_p.h
   asmjit/arm/armglobals.h
   asmjit/arm/armoperand.h
+  asmjit/arm/armutils.h
+  asmjit/arm/a32archtraits_p.h
+  asmjit/arm/a32assembler.cpp
+  asmjit/arm/a32assembler.h
+  asmjit/arm/a32builder.cpp
+  asmjit/arm/a32builder.h
+  asmjit/arm/a32emithelper.cpp
+  asmjit/arm/a32emithelper_p.h
+  asmjit/arm/a32emitter.h
+  asmjit/arm/a32formatter.cpp
+  asmjit/arm/a32formatter_p.h
+  asmjit/arm/a32globals.h
+  asmjit/arm/a32instdb.cpp
+  asmjit/arm/a32instdb_p.h
+  asmjit/arm/a32operand.h
   asmjit/arm/a64archtraits_p.h
   asmjit/arm/a64assembler.cpp
   asmjit/arm/a64assembler.h
@@ -423,7 +438,6 @@ set(ASMJIT_SRC_LIST
   asmjit/arm/a64operand.h
   asmjit/arm/a64rapass.cpp
   asmjit/arm/a64rapass_p.h
-  asmjit/arm/a64utils.h
 
   asmjit/x86.h
   asmjit/x86/x86archtraits_p.h
@@ -549,6 +563,7 @@ if (NOT ASMJIT_EMBED)
     asmjit_add_target(asmjit_test_assembler TEST
                       SOURCES    test/asmjit_test_assembler.cpp
                                  test/asmjit_test_assembler.h
+                                 test/asmjit_test_assembler_a32.cpp
                                  test/asmjit_test_assembler_a64.cpp
                                  test/asmjit_test_assembler_x64.cpp
                                  test/asmjit_test_assembler_x86.cpp
@@ -559,6 +574,7 @@ if (NOT ASMJIT_EMBED)
 
     asmjit_add_target(asmjit_test_perf EXECUTABLE
                       SOURCES    test/asmjit_test_perf.cpp
+                                 test/asmjit_test_perf_a32.cpp
                                  test/asmjit_test_perf_a64.cpp
                                  test/asmjit_test_perf_x86.cpp
                       SOURCES    test/asmjit_test_perf.h

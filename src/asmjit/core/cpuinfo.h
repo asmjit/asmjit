@@ -436,27 +436,29 @@ public:
       kVFPv4,                    //!< CPU has VFPv4 instruction set.
       kVFP_D32,                  //!< CPU has 32 VFP-D (64-bit) registers.
 
+      kAA32BF16,                 //!< CPU has BF16 in AArch32 mode (AArch32 only).
+      kAA32I8MM,                 //!< CPU has I8MM in AArch32 mode (AArch32 only).
       kAES,                      //!< CPU has AES (AArch64 only).
       kALTNZCV,                  //!< CPU has ALTNZCV (AArch64 only).
-      kASIMD,                    //!< CPU has Advanced SIMD (NEON on ARM/THUMB).
+      kASIMD,                    //!< CPU has ASIMD.
       kBF16,                     //!< CPU has BF16 (AArch64 only).
       kBTI,                      //!< CPU has BTI (branch target identification).
-      kCPUID,                    //!< CPU has accessible CPUID register (ID_AA64ZFR0_EL1).
+      kCPUID,                    //!< CPU has accessible CPUID register ID_AA64ZFR0_EL1 (AArch64 only).
       kCRC32,                    //!< CPU has CRC32 .
       kDGH,                      //!< CPU has DGH (AArch64 only).
       kDIT,                      //!< CPU has data independent timing instructions (DIT).
-      kDOTPROD,                  //!< CPU has DOTPROD (SDOT/UDOT).
-      kEDSP,                     //!< CPU has EDSP (ARM/THUMB only).
+      kDOTPROD,                  //!< CPU has DOTPROD ([V]SDOT/[V]UDOT).
+      kEDSP,                     //!< CPU has EDSP (AArch32 only).
       kFCMA,                     //!< CPU has FCMA (FCADD/FCMLA).
-      kFJCVTZS,                  //!< CPU has FJCVTZS (AArch64 only).
       kFLAGM,                    //!< CPU has FLAGM (AArch64 only).
       kFP16CONV,                 //!< CPU has FP16 (half-float) conversion.
-      kFP16FML,                  //!< CPU has FMLAL{2}/FMLSL{2}
+      kFP16FML,                  //!< CPU has [V]FMLAL{2}/[V]FMLSL{2}
       kFP16FULL,                 //!< CPU has full support for FP16.
       kFRINT,                    //!< CPU has FRINT[32|64][X|Z] (AArch64 only).
+      kJSCVT,                    //!< CPU has JSCVT (VJCVT/FJCVTZS) (AArch32/AArch64).
       kI8MM,                     //!< CPU has I8MM (AArch64 only).
-      kIDIVA,                    //!< CPU has hardware SDIV and UDIV (ARM mode).
-      kIDIVT,                    //!< CPU has hardware SDIV and UDIV (THUMB mode).
+      kIDIVA,                    //!< CPU has SDIV/UDIV in ARM mode (AArch32 only).
+      kIDIVT,                    //!< CPU has SDIV/UDIV in THUMB mode (AArch32 only).
       kLSE,                      //!< CPU has large system extensions (LSE) (AArch64 only).
       kMTE,                      //!< CPU has MTE (AArch64 only).
       kRCPC_IMMO,                //!< CPU has RCPC_IMMO (AArch64 only).
@@ -465,6 +467,7 @@ public:
       kPMULL,                    //!< CPU has PMULL (AArch64 only).
       kRNG,                      //!< CPU has random number generation (RNG).
       kSB,                       //!< CPU has speculative barrier SB (AArch64 only).
+      kSECURITY,                 //!< CPU has SECURITY.
       kSHA1,                     //!< CPU has SHA1.
       kSHA2,                     //!< CPU has SHA2.
       kSHA3,                     //!< CPU has SHA3.
@@ -473,16 +476,16 @@ public:
       kSM4,                      //!< CPU has SM4.
       kSSBS,                     //!< CPU has SSBS.
       kSVE,                      //!< CPU has SVE (AArch64 only).
-      kSVE_BF16,                 //!< CPU has SVE-BF16 (AArch64 only).
-      kSVE_F32MM,                //!< CPU has SVE-F32MM (AArch64 only).
-      kSVE_F64MM,                //!< CPU has SVE-F64MM (AArch64 only).
-      kSVE_I8MM,                 //!< CPU has SVE-I8MM (AArch64 only).
-      kSVE_PMULL,                //!< CPU has SVE-PMULL (AArch64 only).
+      kSVE_BF16,                 //!< CPU has SVE_BF16 (AArch64 only).
+      kSVE_F32MM,                //!< CPU has SVE_F32MM (AArch64 only).
+      kSVE_F64MM,                //!< CPU has SVE_F64MM (AArch64 only).
+      kSVE_I8MM,                 //!< CPU has SVE_I8MM (AArch64 only).
+      kSVE_PMULL,                //!< CPU has SVE_PMULL (AArch64 only).
       kSVE2,                     //!< CPU has SVE2 (AArch64 only).
-      kSVE2_AES,                 //!< CPU has SVE2-AES (AArch64 only).
-      kSVE2_BITPERM,             //!< CPU has SVE2-BITPERM (AArch64 only).
-      kSVE2_SHA3,                //!< CPU has SVE2-SHA3 (AArch64 only).
-      kSVE2_SM4,                 //!< CPU has SVE2-SM4 (AArch64 only).
+      kSVE2_AES,                 //!< CPU has SVE2_AES (AArch64 only).
+      kSVE2_BITPERM,             //!< CPU has SVE2_BITPERM (AArch64 only).
+      kSVE2_SHA3,                //!< CPU has SVE2_SHA3 (AArch64 only).
+      kSVE2_SM4,                 //!< CPU has SVE2_SM4 (AArch64 only).
       kTME,                      //!< CPU has transactional memory extensions (TME).
       // @EnumValuesEnd@
 
@@ -511,6 +514,8 @@ public:
     ASMJIT_ARM_FEATURE(VFPv4)
     ASMJIT_ARM_FEATURE(VFP_D32)
 
+    ASMJIT_ARM_FEATURE(AA32BF16)
+    ASMJIT_ARM_FEATURE(AA32I8MM)
     ASMJIT_ARM_FEATURE(AES)
     ASMJIT_ARM_FEATURE(ALTNZCV)
     ASMJIT_ARM_FEATURE(ASIMD)
@@ -528,11 +533,11 @@ public:
     ASMJIT_ARM_FEATURE(FP16FML)
     ASMJIT_ARM_FEATURE(FP16FULL)
     ASMJIT_ARM_FEATURE(FRINT)
+    ASMJIT_ARM_FEATURE(JSCVT)
     ASMJIT_ARM_FEATURE(IDIVA)
     ASMJIT_ARM_FEATURE(IDIVT)
     ASMJIT_ARM_FEATURE(LSE)
     ASMJIT_ARM_FEATURE(MTE)
-    ASMJIT_ARM_FEATURE(FJCVTZS)
     ASMJIT_ARM_FEATURE(I8MM)
     ASMJIT_ARM_FEATURE(RCPC_IMMO)
     ASMJIT_ARM_FEATURE(RDM)
@@ -540,6 +545,7 @@ public:
     ASMJIT_ARM_FEATURE(PMULL)
     ASMJIT_ARM_FEATURE(RNG)
     ASMJIT_ARM_FEATURE(SB)
+    ASMJIT_ARM_FEATURE(SECURITY)
     ASMJIT_ARM_FEATURE(SHA1)
     ASMJIT_ARM_FEATURE(SHA2)
     ASMJIT_ARM_FEATURE(SHA3)

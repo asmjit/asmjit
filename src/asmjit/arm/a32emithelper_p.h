@@ -3,17 +3,17 @@
 // See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_ARM_A64EMITHELPER_P_H_INCLUDED
-#define ASMJIT_ARM_A64EMITHELPER_P_H_INCLUDED
+#ifndef ASMJIT_ARM_A32EMITHELPER_P_H_INCLUDED
+#define ASMJIT_ARM_A32EMITHELPER_P_H_INCLUDED
 
 #include "../core/api-config.h"
 
 #include "../core/emithelper_p.h"
 #include "../core/func.h"
-#include "../arm/a64emitter.h"
-#include "../arm/a64operand.h"
+#include "../arm/a32emitter.h"
+#include "../arm/a32operand.h"
 
-ASMJIT_BEGIN_SUB_NAMESPACE(a64)
+ASMJIT_BEGIN_SUB_NAMESPACE(a32)
 
 //! \cond INTERNAL
 //! \addtogroup asmjit_a64
@@ -47,4 +47,4 @@ void assignEmitterFuncs(BaseEmitter* emitter);
 
 ASMJIT_END_SUB_NAMESPACE
 
-#endif // ASMJIT_ARM_A64EMITHELPER_P_H_INCLUDED
+#endif // ASMJIT_ARM_A32EMITHELPER_P_H_INCLUDED

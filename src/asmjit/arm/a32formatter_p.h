@@ -3,8 +3,8 @@
 // See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_ARM_A64FORMATTER_P_H_INCLUDED
-#define ASMJIT_ARM_A64FORMATTER_P_H_INCLUDED
+#ifndef ASMJIT_ARM_A32FORMATTER_P_H_INCLUDED
+#define ASMJIT_ARM_A32FORMATTER_P_H_INCLUDED
 
 #include "../core/api-config.h"
 #ifndef ASMJIT_NO_LOGGING
@@ -12,12 +12,12 @@
 #include "../core/formatter.h"
 #include "../core/string.h"
 #include "../arm/armformatter_p.h"
-#include "../arm/a64globals.h"
+#include "../arm/a32globals.h"
 
-ASMJIT_BEGIN_SUB_NAMESPACE(a64)
+ASMJIT_BEGIN_SUB_NAMESPACE(a32)
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_a64
+//! \addtogroup asmjit_a32
 //! \{
 
 namespace FormatterInternal {
@@ -39,4 +39,4 @@ Error ASMJIT_CDECL formatInstruction(
 ASMJIT_END_SUB_NAMESPACE
 
 #endif // !ASMJIT_NO_LOGGING
-#endif // ASMJIT_ARM_A64FORMATTER_P_H_INCLUDED
+#endif // ASMJIT_ARM_A32FORMATTER_P_H_INCLUDED

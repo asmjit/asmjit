@@ -76,17 +76,6 @@ struct EmitterExplicitT {
 
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Options]
-  // --------------------------------------------------------------------------
-
-protected:
-  inline This& _addInstOptions(InstOptions options) noexcept {
-    static_cast<This*>(this)->addInstOptions(options);
-    return *static_cast<This*>(this);
-  }
-
-public:
   //! \name General Purpose Instructions
   //! \{
 
@@ -1111,7 +1100,7 @@ public:
 
   //! \}
 
-  //! \name FJCVTZS Instruction (ARMv8.3-A)
+  //! \name JSCVT Instruction (ARMv8.3-A)
   //! \{
 
   ASMJIT_INST_2x(fjcvtzs, Fjcvtzs_v, Gp, Vec);

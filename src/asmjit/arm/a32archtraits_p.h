@@ -3,33 +3,33 @@
 // See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_ARM_A64ARCHTRAITS_P_H_INCLUDED
-#define ASMJIT_ARM_A64ARCHTRAITS_P_H_INCLUDED
+#ifndef ASMJIT_ARM_A32ARCHTRAITS_P_H_INCLUDED
+#define ASMJIT_ARM_A32ARCHTRAITS_P_H_INCLUDED
 
 #include "../core/archtraits.h"
 #include "../core/misc_p.h"
 #include "../core/type.h"
-#include "../arm/a64globals.h"
-#include "../arm/a64operand.h"
+#include "../arm/a32globals.h"
+#include "../arm/a32operand.h"
 
-ASMJIT_BEGIN_SUB_NAMESPACE(a64)
+ASMJIT_BEGIN_SUB_NAMESPACE(a32)
 
 //! \cond INTERNAL
-//! \addtogroup asmjit_a64
+//! \addtogroup asmjit_a32
 //! \{
 
-static const constexpr ArchTraits a64ArchTraits = {
+static const constexpr ArchTraits a32ArchTraits = {
   // SP/FP/LR/PC.
-  Gp::kIdSp, Gp::kIdFp, Gp::kIdLr, 0xFF,
+  13, 11, 14, 15,
 
   // Reserved.
   { 0, 0, 0 },
 
-  // HW stack alignment (AArch64 requires stack aligned to 16 bytes at HW level).
-  16,
+  // HW stack alignment (AArch32 requires stack aligned to 4 bytes at HW level).
+  4,
 
-  // Min/max stack offset - byte addressing is the worst, VecQ addressing the best.
-  4095, 65520,
+  // Min/max stack offset.
+  0, 0, // TODO: ARM32
 
   // Instruction hints [Gp, Vec, ExtraVirt2, ExtraVirt3].
   {{
@@ -56,10 +56,8 @@ static const constexpr ArchTraits a64ArchTraits = {
                     index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kUInt16)  ? RegType::kARM_GpW   : \
                     index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kInt32)   ? RegType::kARM_GpW   : \
                     index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kUInt32)  ? RegType::kARM_GpW   : \
-                    index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kInt64)   ? RegType::kARM_GpX   : \
-                    index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kUInt64)  ? RegType::kARM_GpX   : \
-                    index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kIntPtr)  ? RegType::kARM_GpX   : \
-                    index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kUIntPtr) ? RegType::kARM_GpX   : \
+                    index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kIntPtr)  ? RegType::kARM_GpW   : \
+                    index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kUIntPtr) ? RegType::kARM_GpW   : \
                     index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kFloat32) ? RegType::kARM_VecS  : \
                     index + uint32_t(TypeId::_kBaseStart) == uint32_t(TypeId::kFloat64) ? RegType::kARM_VecD  : RegType::kNone)
   {{ ASMJIT_LOOKUP_TABLE_32(V, 0) }},
@@ -79,4 +77,4 @@ static const constexpr ArchTraits a64ArchTraits = {
 
 ASMJIT_END_SUB_NAMESPACE
 
-#endif // ASMJIT_ARM_A64ARCHTRAITS_P_H_INCLUDED
+#endif // ASMJIT_ARM_A32ARCHTRAITS_P_H_INCLUDED

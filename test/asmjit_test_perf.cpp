@@ -16,6 +16,10 @@ using namespace asmjit;
 void benchmarkX86Emitters(uint32_t numIterations, bool testX86, bool testX64) noexcept;
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+void benchmarkA32Emitters(uint32_t numIterations);
+#endif
+
 #if !defined(ASMJIT_NO_AARCH64)
 void benchmarkA64Emitters(uint32_t numIterations);
 #endif
@@ -30,9 +34,22 @@ int main(int argc, char* argv[]) {
     unsigned((ASMJIT_LIBRARY_VERSION      ) & 0xFF));
 
   printf("Usage:\n");
-  printf("  --help        Show usage only\n");
-  printf("  --quick       Decrease the number of iterations to make tests quicker\n");
-  printf("  --arch=<ARCH> Select architecture to run ('all' by default)\n");
+  printf("  --help         Show usage only\n");
+  printf("  --quick        Decrease the number of iterations to make tests quicker\n");
+  printf("  --arch=<ARCH>  Select architecture(s) to run ('all' by default)\n");
+  printf("\n");
+
+  printf("Architectures:\n");
+#if !defined(ASMJIT_NO_X86)
+  printf("  --arch=x86     32-bit X86 architecture (X86)\n");
+  printf("  --arch=x64     64-bit X86 architecture (X86_64)\n");
+#endif
+#if !defined(ASMJIT_AARCH32)
+  printf("  --arch=arm     32-bit ARM architecture (AArch32)\n");
+#endif
+#if !defined(ASMJIT_AARCH64)
+  printf("  --arch=aarch64 64-bit ARM architecture (AArch64)\n");
+#endif
   printf("\n");
 
   if (cmdLine.hasArg("--help"))
@@ -49,6 +66,13 @@ int main(int argc, char* argv[]) {
 
   if (testX86 || testX64)
     benchmarkX86Emitters(numIterations, testX86, testX64);
+#endif
+
+#if !defined(ASMJIT_NO_AARCH32)
+  bool testArm = strcmp(arch, "all") == 0 || strcmp(arch, "arm") == 0;
+
+  if (testArm)
+    benchmarkA32Emitters(numIterations);
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)

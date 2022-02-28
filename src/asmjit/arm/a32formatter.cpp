@@ -8,18 +8,17 @@
 
 #include "../core/misc_p.h"
 #include "../core/support.h"
-#include "../arm/a64formatter_p.h"
-#include "../arm/a64instapi_p.h"
-#include "../arm/a64instdb_p.h"
-#include "../arm/a64operand.h"
+#include "../arm/a32formatter_p.h"
+#include "../arm/a32instdb_p.h"
+#include "../arm/a32operand.h"
 
 #ifndef ASMJIT_NO_COMPILER
   #include "../core/compiler.h"
 #endif
 
-ASMJIT_BEGIN_SUB_NAMESPACE(a64)
+ASMJIT_BEGIN_SUB_NAMESPACE(a32)
 
-// a64::FormatterInternal - Format Instruction
+// a32::FormatterInternal - Format Instruction
 // ===========================================
 
 ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
@@ -31,6 +30,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
 
   DebugUtils::unused(arch);
 
+  /*
   // Format instruction options and instruction mnemonic.
   InstId instId = inst.realId();
   if (instId < Inst::_kIdCount)
@@ -52,6 +52,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
     ASMJIT_PROPAGATE(sb.append(i == 0 ? " " : ", "));
     ASMJIT_PROPAGATE(formatOperand(sb, flags, emitter, arch, op));
   }
+  */
 
   return kErrorOk;
 }

@@ -3,23 +3,12 @@
 // See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-// ============================================================================
-// tablegen-x86.js
-//
-// The purpose of this script is to fetch all instructions' names into a single
-// string and to optimize common patterns that appear in instruction data. It
-// prevents relocation of small strings (instruction names) that has to be done
-// by a linker to make all pointers the binary application/library uses valid.
-// This approach decreases the final size of AsmJit binary and relocation data.
-//
-// NOTE: This script relies on 'asmdb' package. Either install it by using
-// node.js package manager (npm) or by copying/symlinking the whole asmdb
-// directory as [asmjit]/tools/asmdb.
-// ============================================================================
-
 "use strict";
 
+const cxx = require("./gencxx.js");
+const commons = require("./gencommons.js");
 const core = require("./tablegen.js");
+
 const asmdb = core.asmdb;
 const kIndent = core.kIndent;
 
@@ -33,8 +22,8 @@ const IndexedArray = core.IndexedArray;
 const hasOwn = Object.prototype.hasOwnProperty;
 const disclaimer = StringUtils.disclaimer;
 
-const FAIL = core.FAIL;
-const DEBUG = core.DEBUG;
+const DEBUG = commons.DEBUG;
+const FATAL = commons.FATAL;
 
 const decToHex = StringUtils.decToHex;
 
@@ -514,7 +503,7 @@ class X86TableGen extends core.TableGen {
 
       const dbInsts = this.query(name);
       if (name && !dbInsts.length)
-        FAIL(`Instruction '${name}' not found in asmdb`);
+        FATAL(`Instruction '${name}' not found in asmdb`);
 
       const flags         = GenUtils.flagsOf(dbInsts);
       const controlFlow   = GenUtils.controlFlow(dbInsts);
@@ -547,7 +536,7 @@ class X86TableGen extends core.TableGen {
     }
 
     if (this.insts.length === 0)
-      FAIL("X86TableGen.parse(): Invalid parsing regexp (no data parsed)");
+      FATAL("X86TableGen.parse(): Invalid parsing regexp (no data parsed)");
 
     console.log("Number of Instructions: " + this.insts.length);
   }
@@ -968,7 +957,7 @@ class AltOpcodeTable extends core.Task {
         components[2] = "00";
       }
       else {
-        FAIL(`Failed to process opcode '${opcode}'`);
+        FATAL(`Failed to process opcode '${opcode}'`);
       }
 
       const newOpcode = joinOpcodeComponents(components);
@@ -1035,7 +1024,7 @@ function StringifyOpArray(a, map) {
     else if (hasOwn.call(map, op))
       mapped = map[op];
     else
-      FAIL(`UNHANDLED OPERAND '${op}'`);
+      FATAL(`UNHANDLED OPERAND '${op}'`);
     s += (s ? " | " : "") + mapped;
   }
   return s ? s : "0";
@@ -2087,7 +2076,7 @@ class InstRWInfoTable extends core.Task {
       for (var j = start; j <= end; j++) {
         const bytePos = j >> 3;
         if (bytePos < 0 || bytePos >= arr.length)
-          FAIL(`Range ${start}:${end} cannot be used to create a byte-mask`);
+          FATAL(`Range ${start}:${end} cannot be used to create a byte-mask`);
         arr[bytePos] = 1;
       }
     }
@@ -2245,7 +2234,7 @@ class InstRWInfoTable extends core.Task {
       if (queryRwByData(dbInsts, this.rwCategoryByData[k]))
         return { category: k, rwOps: nullOps() };
 
-    // FAILURE: Missing data to categorize this instruction.
+    // FATALURE: Missing data to categorize this instruction.
     if (name) {
       const items = dumpRwToData(dbInsts)
       console.log(`RW: ${dbInsts.length ? dbInsts[0].name : ""}:`);
@@ -2335,7 +2324,7 @@ class InstRWInfoTable extends core.Task {
         if (/^(punpcklbw|punpckldq|punpcklwd)$/.test(dbInst.name))
           return "None";
 
-        return StringUtils.capitalize(dbInst.name);
+        return cxx.Utils.capitalize(dbInst.name);
       }
     }
 

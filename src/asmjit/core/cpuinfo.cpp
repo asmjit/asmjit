@@ -593,7 +593,7 @@ static ASMJIT_FAVOR_SIZE void detectARMFeaturesViaCompilerFlags(CpuInfo& cpu) no
 #endif
 
 #if defined(__ARM_FEATURE_JCVT)
-  cpu.addFeature(CpuFeatures::ARM::kFJCVTZS);
+  cpu.addFeature(CpuFeatures::ARM::kJSCVT);
 #endif
 
 #if defined(__ARM_FEATURE_MATMUL_INT8)
@@ -714,7 +714,7 @@ static ASMJIT_FAVOR_SIZE void expandARMFeaturesByVersion(CpuInfo& cpu) noexcept 
   if (features.hasARMv8_3a()) {
     features.add(CpuFeatures::ARM::kARMv8_2a,
                  CpuFeatures::ARM::kFCMA,
-                 CpuFeatures::ARM::kFJCVTZS);
+                 CpuFeatures::ARM::kJSCVT);
   }
 
   if (features.hasARMv8_2a()) {
@@ -888,7 +888,7 @@ static const LinuxHWCapMapping hwCapMapping[] = {
   { uint8_t(CpuFeatures::ARM::kFP16FULL)    , 10 }, // HWCAP_ASIMDHP
   { uint8_t(CpuFeatures::ARM::kCPUID)       , 11 }, // HWCAP_CPUID
   { uint8_t(CpuFeatures::ARM::kRDM)         , 12 }, // HWCAP_ASIMDRDM
-  { uint8_t(CpuFeatures::ARM::kFJCVTZS)     , 13 }, // HWCAP_JSCVT
+  { uint8_t(CpuFeatures::ARM::kJSCVT)       , 13 }, // HWCAP_JSCVT
   { uint8_t(CpuFeatures::ARM::kFCMA)        , 14 }, // HWCAP_FCMA
   /*
   { uint8_t(CpuFeatures::ARM::k)            , 15 }, // HWCAP_LRCPC
