@@ -312,6 +312,10 @@ public:
     return id | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
   }
 
+  static inline constexpr InstId extractRealId(uint32_t id) noexcept {
+    return id & uint32_t(InstIdParts::kRealId);
+  }
+
   static inline constexpr arm::CondCode extractARMCondCode(uint32_t id) noexcept {
     return (arm::CondCode)((uint32_t(id) & uint32_t(InstIdParts::kARM_Cond)) >> Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
   }

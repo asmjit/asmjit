@@ -102,7 +102,7 @@ public:
 
 // TODO: [ARM] This is just a workaround...
 static InstControlFlow getControlFlowType(InstId instId) noexcept {
-  switch (instId) {
+  switch (BaseInst::extractRealId(instId)) {
     case Inst::kIdB:
     case Inst::kIdBr:
       if (BaseInst::extractARMCondCode(instId) == CondCode::kAL)
@@ -127,8 +127,8 @@ static InstControlFlow getControlFlowType(InstId instId) noexcept {
 Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& controlType, RAInstBuilder& ib) noexcept {
   InstRWInfo rwInfo;
 
-  InstId instId = inst->id();
-  if (Inst::isDefinedId(instId)) {
+  if (Inst::isDefinedId(inst->realId())) {
+    InstId instId = inst->id();
     uint32_t opCount = inst->opCount();
     const Operand* opArray = inst->operands();
     ASMJIT_PROPAGATE(InstInternal::queryRWInfo(_arch, inst->baseInst(), opArray, opCount, &rwInfo));
