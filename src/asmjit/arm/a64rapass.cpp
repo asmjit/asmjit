@@ -713,6 +713,48 @@ ASMJIT_FAVOR_SPEED Error ARMRAPass::_rewrite(BaseNode* first, BaseNode* stop) no
             mem.clearRegHome();
             mem.addOffsetLo32(offset);
           }
+
+          // Rewrite `loadAddressOf()` construct.
+          if (node->type() == NodeType::kInst) {
+            InstNode* inst = node->as<InstNode>();
+            if (inst->realId() == Inst::kIdAdr && inst->opCount() == 2) {
+              int64_t offset = mem.offset();
+              if (!mem.hasBase()) {
+                inst->setId(Inst::kIdMov);
+                inst->setOp(1, Imm(offset));
+              }
+              else {
+                InstId op = offset < 0 ? Inst::kIdSub : Inst::kIdAdd;
+                uint64_t val = offset < 0 ? Support::neg(uint64_t(offset)) : uint64_t(offset);
+
+                GpX base = GpX(mem.baseId());
+
+                inst->setId(op);
+                inst->setOpCount(3);
+                inst->setOp(1, base);
+                inst->setOp(2, Imm(val));
+
+                if (val > 0xFFFu && (val & ~uint64_t(0xFFF000u)) != 0) {
+                  const Operand_& dst = inst->op(0);
+                  // Use two operations if the stack address is greater than 4095.
+                  if (val <= 0xFFFFFFu) {
+                    cc()->_setCursor(inst->prev());
+                    cc()->_emitI(op, dst, base, Imm(val & 0xFFFu));
+
+                    inst->setOp(1, dst);
+                    inst->setOp(2, Imm(val & 0xFFF000u));
+                  }
+                  else {
+                    cc()->_setCursor(inst->prev());
+                    cc()->_emitI(Inst::kIdMov, inst->op(0), Imm(val));
+
+                    inst->setOp(1, base);
+                    inst->setOp(2, dst);
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
