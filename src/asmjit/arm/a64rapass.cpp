@@ -713,46 +713,48 @@ ASMJIT_FAVOR_SPEED Error ARMRAPass::_rewrite(BaseNode* first, BaseNode* stop) no
             mem.clearRegHome();
             mem.addOffsetLo32(offset);
           }
+        }
+      }
 
-          // Rewrite `loadAddressOf()` construct.
-          if (node->type() == NodeType::kInst) {
-            InstNode* inst = node->as<InstNode>();
-            if (inst->realId() == Inst::kIdAdr && inst->opCount() == 2) {
-              int64_t offset = mem.offset();
-              if (!mem.hasBase()) {
-                inst->setId(Inst::kIdMov);
-                inst->setOp(1, Imm(offset));
-              }
-              else {
-                InstId op = offset < 0 ? Inst::kIdSub : Inst::kIdAdd;
-                uint64_t val = offset < 0 ? Support::neg(uint64_t(offset)) : uint64_t(offset);
+      // Rewrite `loadAddressOf()` construct.
+      if (inst->realId() == Inst::kIdAdr && inst->opCount() == 2 && inst->op(1).isMem()) {
+        BaseMem mem = inst->op(1).as<BaseMem>();
+        int64_t offset = mem.offset();
 
-                GpX base = GpX(mem.baseId());
+        if (!mem.hasBaseOrIndex()) {
+          inst->setId(Inst::kIdMov);
+          inst->setOp(1, Imm(offset));
+        }
+        else {
+          if (mem.hasIndex())
+            return DebugUtils::errored(kErrorInvalidAddressIndex);
 
-                inst->setId(op);
-                inst->setOpCount(3);
-                inst->setOp(1, base);
-                inst->setOp(2, Imm(val));
+          GpX dst(inst->op(0).as<Gp>().id());
+          GpX base(mem.baseId());
 
-                if (val > 0xFFFu && (val & ~uint64_t(0xFFF000u)) != 0) {
-                  const Operand_& dst = inst->op(0);
-                  // Use two operations if the stack address is greater than 4095.
-                  if (val <= 0xFFFFFFu) {
-                    cc()->_setCursor(inst->prev());
-                    cc()->_emitI(op, dst, base, Imm(val & 0xFFFu));
+          InstId arithInstId = offset < 0 ? Inst::kIdSub : Inst::kIdAdd;
+          uint64_t absOffset = offset < 0 ? Support::neg(uint64_t(offset)) : uint64_t(offset);
 
-                    inst->setOp(1, dst);
-                    inst->setOp(2, Imm(val & 0xFFF000u));
-                  }
-                  else {
-                    cc()->_setCursor(inst->prev());
-                    cc()->_emitI(Inst::kIdMov, inst->op(0), Imm(val));
+          inst->setId(arithInstId);
+          inst->setOpCount(3);
+          inst->setOp(1, base);
+          inst->setOp(2, Imm(absOffset));
 
-                    inst->setOp(1, base);
-                    inst->setOp(2, dst);
-                  }
-                }
-              }
+          // Use two operations if the offset cannot be encoded with ADD/SUB.
+          if (absOffset > 0xFFFu && (absOffset & ~uint64_t(0xFFF000u)) != 0) {
+            if (absOffset <= 0xFFFFFFu) {
+              cc()->_setCursor(inst->prev());
+              ASMJIT_PROPAGATE(cc()->emit(arithInstId, dst, base, Imm(absOffset & 0xFFFu)));
+
+              inst->setOp(1, dst);
+              inst->setOp(2, Imm(absOffset & 0xFFF000u));
+            }
+            else {
+              cc()->_setCursor(inst->prev());
+              ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, inst->op(0), Imm(absOffset)));
+
+              inst->setOp(1, base);
+              inst->setOp(2, dst);
             }
           }
         }
