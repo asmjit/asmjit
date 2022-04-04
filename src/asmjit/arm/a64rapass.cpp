@@ -136,6 +136,8 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& controlType, RAInstB
     const InstDB::InstInfo& instInfo = InstDB::infoById(instId);
     uint32_t singleRegOps = 0;
 
+    ib.addInstRWFlags(rwInfo.instFlags());
+
     if (opCount) {
       uint32_t consecutiveOffset = 0xFFFFFFFFu;
       uint32_t consecutiveParent = Globals::kInvalidId;
