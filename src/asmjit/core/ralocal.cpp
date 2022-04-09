@@ -836,6 +836,34 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     // STEP 9
     // ------
     //
+    // Vector registers can be cloberred partially by invoke - find if that's the case and clobber when necessary.
+
+    if (node->isInvoke() && group == RegGroup::kVec) {
+      const InvokeNode* invokeNode = node->as<InvokeNode>();
+
+      RegMask maybeClobberedRegs = invokeNode->detail().callConv().preservedRegs(group) & _curAssignment.assigned(group);
+      if (maybeClobberedRegs) {
+        uint32_t saveRestoreVecSize = invokeNode->detail().callConv().saveRestoreRegSize(group);
+        Support::BitWordIterator<RegMask> it(maybeClobberedRegs);
+
+        do {
+          uint32_t physId = it.next();
+          uint32_t workId = _curAssignment.physToWorkId(group, physId);
+
+          RAWorkReg* workReg = workRegById(workId);
+          uint32_t virtSize = workReg->virtReg()->virtSize();
+
+          if (virtSize > saveRestoreVecSize) {
+            ASMJIT_PROPAGATE(onSpillReg(group, workId, physId));
+          }
+
+        } while (it.hasNext());
+      }
+    }
+
+    // STEP 10
+    // -------
+    //
     // Assign OUT registers.
 
     if (outPending) {
