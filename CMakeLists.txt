@@ -63,6 +63,14 @@ if (NOT DEFINED ASMJIT_NO_AARCH64)
   set(ASMJIT_NO_AARCH64 FALSE)
 endif()
 
+if (NOT DEFINED ASMJIT_NO_RISCV32)
+  set(ASMJIT_NO_RISCV32 FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_RISCV64)
+  set(ASMJIT_NO_RISCV64 FALSE)
+endif()
+
 if (NOT DEFINED ASMJIT_NO_FOREIGN)
   set(ASMJIT_NO_FOREIGN FALSE)
 endif()
@@ -88,6 +96,8 @@ set(ASMJIT_SANITIZE        "${ASMJIT_SANITIZE}"        CACHE STRING "Build with 
 set(ASMJIT_NO_X86          "${ASMJIT_NO_X86}"          CACHE BOOL "Disable X86/X64 backend")
 set(ASMJIT_NO_AARCH32      "${ASMJIT_NO_AARCH32}"      CACHE BOOL "Disable AArch32 backend (ARM and THUMB)")
 set(ASMJIT_NO_AARCH64      "${ASMJIT_NO_AARCH64}"      CACHE BOOL "Disable AArch64 backend")
+set(ASMJIT_NO_RISCV32      "${ASMJIT_NO_RISCV32}"      CACHE BOOL "Disable RISCV32 backend")
+set(ASMJIT_NO_RISCV64      "${ASMJIT_NO_RISCV64}"      CACHE BOOL "Disable RISCV64 backend")
 set(ASMJIT_NO_FOREIGN      "${ASMJIT_NO_FOREIGN}"      CACHE BOOL "Disable all foreign architectures (enables only a native architecture)")
 set(ASMJIT_NO_NATVIS       "${ASMJIT_NO_NATVIS}"       CACHE BOOL "Disable natvis support (embedding asmjit.natvis in PDB)")
 set(ASMJIT_NO_CUSTOM_FLAGS "${ASMJIT_NO_CUSTOM_FLAGS}" CACHE BOOL "Disable extra compilation flags added by AsmJit to its targets")
@@ -276,6 +286,8 @@ foreach(build_option ASMJIT_STATIC
                      ASMJIT_NO_X86
                      ASMJIT_NO_AARCH32
                      ASMJIT_NO_AARCH64
+                     ASMJIT_NO_RISCV32
+                     ASMJIT_NO_RISCV64
                      ASMJIT_NO_FOREIGN
                      # AsmJit features selection.
                      ASMJIT_NO_DEPRECATED
@@ -439,6 +451,10 @@ set(ASMJIT_SRC_LIST
   asmjit/arm/a64rapass.cpp
   asmjit/arm/a64rapass_p.h
 
+  asmjit/riscv.h
+  asmjit/riscv/riscv64assembler.h
+  asmjit/riscv/riscv64assembler.cpp
+
   asmjit/x86.h
   asmjit/x86/x86archtraits_p.h
   asmjit/x86/x86assembler.cpp
@@ -565,6 +581,7 @@ if (NOT ASMJIT_EMBED)
                                  test/asmjit_test_assembler.h
                                  test/asmjit_test_assembler_a32.cpp
                                  test/asmjit_test_assembler_a64.cpp
+                                 test/asmjit_test_assembler_riscv64.cpp
                                  test/asmjit_test_assembler_x64.cpp
                                  test/asmjit_test_assembler_x86.cpp
                       LIBRARIES  asmjit::asmjit
@@ -576,6 +593,7 @@ if (NOT ASMJIT_EMBED)
                       SOURCES    test/asmjit_test_perf.cpp
                                  test/asmjit_test_perf_a32.cpp
                                  test/asmjit_test_perf_a64.cpp
+                                 test/asmjit_test_perf_riscv64.cpp
                                  test/asmjit_test_perf_x86.cpp
                       SOURCES    test/asmjit_test_perf.h
                       LIBRARIES  asmjit::asmjit
@@ -614,6 +632,7 @@ if (NOT ASMJIT_EMBED)
                         SOURCES    test/asmjit_test_compiler.cpp
                                    test/asmjit_test_compiler.h
                                    test/asmjit_test_compiler_a64.cpp
+                                   test/asmjit_test_compiler_riscv64.cpp
                                    test/asmjit_test_compiler_x86.cpp
                         LIBRARIES  asmjit::asmjit
                         CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${sse2_flags}
