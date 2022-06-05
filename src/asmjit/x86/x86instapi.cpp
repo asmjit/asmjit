@@ -1588,20 +1588,35 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
         uint32_t mustUseEvex = 0;
 
         switch (instId) {
-          // Special case: VPSLLDQ and VPSRLDQ instructions only allow `reg, reg. imm` combination in AVX|AVX2 mode,
-          // then AVX-512 introduced `reg, reg/mem, imm` combination that uses EVEX prefix. This means that if the
-          // second operand is memory then this is AVX-512_BW instruction and not AVX/AVX2 instruction.
-          case Inst::kIdVpslldq:
-          case Inst::kIdVpsrldq:
-            mustUseEvex = opCount >= 2 && operands[1].isMem();
-            break;
-
           // Special case: VPBROADCAST[B|D|Q|W] only supports r32/r64 with EVEX prefix.
           case Inst::kIdVpbroadcastb:
           case Inst::kIdVpbroadcastd:
           case Inst::kIdVpbroadcastq:
           case Inst::kIdVpbroadcastw:
             mustUseEvex = opCount >= 2 && x86::Reg::isGp(operands[1]);
+            break;
+
+          case Inst::kIdVcvtpd2dq:
+          case Inst::kIdVcvtpd2ps:
+          case Inst::kIdVcvttpd2dq:
+            mustUseEvex = opCount >= 2 && Reg::isYmm(operands[0]);
+            break;
+
+          // Special case: These instructions only allow `reg, reg. imm` combination in AVX|AVX2 mode, then
+          // AVX-512 introduced `reg, reg/mem, imm` combination that uses EVEX prefix. This means that if
+          // the second operand is memory then this is AVX-512_BW instruction and not AVX/AVX2 instruction.
+          case Inst::kIdVpslldq:
+          case Inst::kIdVpslld:
+          case Inst::kIdVpsllq:
+          case Inst::kIdVpsllw:
+          case Inst::kIdVpsrad:
+          case Inst::kIdVpsraq:
+          case Inst::kIdVpsraw:
+          case Inst::kIdVpsrld:
+          case Inst::kIdVpsrldq:
+          case Inst::kIdVpsrlq:
+          case Inst::kIdVpsrlw:
+            mustUseEvex = opCount >= 2 && operands[1].isMem();
             break;
 
           // Special case: VPERMPD - AVX2 vs AVX512-F case.

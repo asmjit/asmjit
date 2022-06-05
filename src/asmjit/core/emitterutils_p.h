@@ -71,7 +71,7 @@ void logInstructionEmitted(
   uint32_t relSize, uint32_t immSize, uint8_t* afterCursor);
 
 Error logInstructionFailed(
-  BaseAssembler* self,
+  BaseEmitter* self,
   Error err,
   InstId instId,
   InstOptions options,

@@ -344,7 +344,10 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(String& sb, FormatFlag
         else
           ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(id))));
 
-        if (vReg->type() != type && uint32_t(type) <= uint32_t(RegType::kMaxValue) && Support::test(formatFlags, FormatFlags::kRegCasts)) {
+        bool formatType = (Support::test(formatFlags, FormatFlags::kRegType)) ||
+                          (Support::test(formatFlags, FormatFlags::kRegCasts) && vReg->type() != type);
+
+        if (formatType && uint32_t(type) <= uint32_t(RegType::kMaxValue)) {
           const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[size_t(type)];
           if (typeEntry.index)
             ASMJIT_PROPAGATE(sb.appendFormat("@%s", info.typeStrings + typeEntry.index));
