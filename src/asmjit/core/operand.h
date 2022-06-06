@@ -156,6 +156,16 @@ enum class RegType : uint8_t {
   //! 128-bit view of VFP/ASIMD register (Q|V).
   kARM_VecV = kVec128,
 
+  // RISC-V Specific Register Types
+  // ==============================
+
+  //! Program counter (PC) register (RISC-V).
+  kRISCV_PC = kPC,
+  //! 32-bit general purpose register (X).
+  kRISCV_GpX32 = kGp32,
+  //! 64-bit general purpose register (X).
+  kRISCV_GpX64 = kGp64,
+
   //! Maximum value of `RegType`.
   kMaxValue = 31
 };

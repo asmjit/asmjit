@@ -452,8 +452,12 @@ set(ASMJIT_SRC_LIST
   asmjit/arm/a64rapass_p.h
 
   asmjit/riscv.h
+  asmjit/riscv/riscvglobals.h
+  asmjit/riscv/riscvoperand.h
   asmjit/riscv/riscv64assembler.h
   asmjit/riscv/riscv64assembler.cpp
+  asmjit/riscv/riscv64operand.h
+  asmjit/riscv/riscv64operand.cpp
 
   asmjit/x86.h
   asmjit/x86/x86archtraits_p.h
