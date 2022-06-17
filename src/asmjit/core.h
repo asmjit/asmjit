@@ -1494,7 +1494,7 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! void formattingExample(BaseBuilder* builder) {
-//!   FormatFlags formatFlags = FormatFlags::kNone;
+//!   FormatOptions formatOptions {};
 //!
 //!   // This also shows how temporary strings can be used.
 //!   StringTmp<512> sb;
@@ -1503,7 +1503,7 @@ namespace asmjit {
 //!   // were zero (no extra flags), and the builder instance, which we have
 //!   // provided. An overloaded version also exists, which accepts begin and
 //!   // and end nodes, which can be used to only format a range of nodes.
-//!   Formatter::formatNodeList(sb, formatFlags, builder);
+//!   Formatter::formatNodeList(sb, formatOptions, builder);
 //!
 //!   // You can do whatever else with the string, it's always null terminated,
 //!   // so it can be passed to C functions like printf().
