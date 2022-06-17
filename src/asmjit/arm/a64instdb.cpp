@@ -226,8 +226,8 @@ const InstInfo _instInfoTable[] = {
   INST(Ldrab            , BaseRM_SImm10      , (0b1111100010100000000001, kX , kZR, 0, 3)                                            , kRWI_W    , 0                         , 1  , 1562), // #156
   INST(Ldrb             , BaseLdSt           , (0b0011100101, 0b00111000010, 0b00111000011, 0         , kW , 0 , 0, Inst::kIdLdurb)  , kRWI_W    , 0                         , 1  , 1568), // #157
   INST(Ldrh             , BaseLdSt           , (0b0111100101, 0b01111000010, 0b01111000011, 0         , kW , 0 , 1, Inst::kIdLdurh)  , kRWI_W    , 0                         , 2  , 1573), // #158
-  INST(Ldrsb            , BaseLdSt           , (0b0011100111, 0b00111000100, 0b00111000101, 0         , kWX, 22, 0, Inst::kIdLdursb) , kRWI_W    , 0                         , 3  , 1578), // #159
-  INST(Ldrsh            , BaseLdSt           , (0b0111100110, 0b01111000100, 0b01111000101, 0         , kWX, 22, 1, Inst::kIdLdursh) , kRWI_W    , 0                         , 4  , 1584), // #160
+  INST(Ldrsb            , BaseLdSt           , (0b0011100111, 0b00111000100, 0b00111000111, 0         , kWX, 22, 0, Inst::kIdLdursb) , kRWI_W    , 0                         , 3  , 1578), // #159
+  INST(Ldrsh            , BaseLdSt           , (0b0111100110, 0b01111000100, 0b01111000111, 0         , kWX, 22, 1, Inst::kIdLdursh) , kRWI_W    , 0                         , 4  , 1584), // #160
   INST(Ldrsw            , BaseLdSt           , (0b1011100110, 0b10111000100, 0b10111000101, 0b10011000, kX , 0 , 2, Inst::kIdLdursw) , kRWI_W    , 0                         , 5  , 1590), // #161
   INST(Ldset            , BaseAtomicOp       , (0b1011100000100000001100, kWX, 30, 0)                                                , kRWI_WRX  , 0                         , 48 , 1596), // #162
   INST(Ldseta           , BaseAtomicOp       , (0b1011100010100000001100, kWX, 30, 1)                                                , kRWI_WRX  , 0                         , 49 , 1602), // #163
@@ -1132,8 +1132,8 @@ const BaseLdSt baseLdSt[9] = {
   { 0b1011100101, 0b10111000010, 0b10111000011, 0b00011000, kWX, 30, 2, Inst::kIdLdur }, // ldr
   { 0b0011100101, 0b00111000010, 0b00111000011, 0         , kW , 0 , 0, Inst::kIdLdurb }, // ldrb
   { 0b0111100101, 0b01111000010, 0b01111000011, 0         , kW , 0 , 1, Inst::kIdLdurh }, // ldrh
-  { 0b0011100111, 0b00111000100, 0b00111000101, 0         , kWX, 22, 0, Inst::kIdLdursb }, // ldrsb
-  { 0b0111100110, 0b01111000100, 0b01111000101, 0         , kWX, 22, 1, Inst::kIdLdursh }, // ldrsh
+  { 0b0011100111, 0b00111000100, 0b00111000111, 0         , kWX, 22, 0, Inst::kIdLdursb }, // ldrsb
+  { 0b0111100110, 0b01111000100, 0b01111000111, 0         , kWX, 22, 1, Inst::kIdLdursh }, // ldrsh
   { 0b1011100110, 0b10111000100, 0b10111000101, 0b10011000, kX , 0 , 2, Inst::kIdLdursw }, // ldrsw
   { 0b1011100100, 0b10111000000, 0b10111000001, 0         , kWX, 30, 2, Inst::kIdStur }, // str
   { 0b0011100100, 0b00111000000, 0b00111000001, 0         , kW , 30, 0, Inst::kIdSturb }, // strb

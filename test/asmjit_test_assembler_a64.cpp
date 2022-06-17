@@ -485,15 +485,19 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("41104078", ldrh(w1, ptr(x2, 1)));   // LDURH
   TEST_INSTRUCTION("41D05F78", ldrh(w1, ptr(x2, -3)));  // LDURH
   TEST_INSTRUCTION("41705F78", ldrh(w1, ptr(x2, -9)));  // LDURH
+  TEST_INSTRUCTION("4168E338", ldrsb(w1, ptr(x2, x3)));
   TEST_INSTRUCTION("4104C039", ldrsb(w1, ptr(x2, 1)));
   TEST_INSTRUCTION("41D0DF38", ldrsb(w1, ptr(x2, -3))); // LDURSB
   TEST_INSTRUCTION("4170DF38", ldrsb(w1, ptr(x2, -9))); // LDURSB
+  TEST_INSTRUCTION("4168A338", ldrsb(x1, ptr(x2, x3)));
   TEST_INSTRUCTION("41048039", ldrsb(x1, ptr(x2, 1)));
   TEST_INSTRUCTION("41D09F38", ldrsb(x1, ptr(x2, -3))); // LDURSB
   TEST_INSTRUCTION("41709F38", ldrsb(x1, ptr(x2, -9))); // LDURSB
+  TEST_INSTRUCTION("4168E378", ldrsh(w1, ptr(x2, x3)));
   TEST_INSTRUCTION("4110C078", ldrsh(w1, ptr(x2, 1)));  // LDURSH
   TEST_INSTRUCTION("41D0DF78", ldrsh(w1, ptr(x2, -3))); // LDURSH
   TEST_INSTRUCTION("4170DF78", ldrsh(w1, ptr(x2, -9))); // LDURSH
+  TEST_INSTRUCTION("4168A378", ldrsh(x1, ptr(x2, x3)));
   TEST_INSTRUCTION("41108078", ldrsh(x1, ptr(x2, 1)));  // LDURSH
   TEST_INSTRUCTION("41D09F78", ldrsh(x1, ptr(x2, -3))); // LDURSH
   TEST_INSTRUCTION("41709F78", ldrsh(x1, ptr(x2, -9))); // LDURSH
