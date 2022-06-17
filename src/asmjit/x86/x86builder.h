@@ -36,7 +36,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! // Small helper function to print the current content of `cb`.
 //! static void dumpCode(BaseBuilder& builder, const char* phase) {
 //!   String sb;
-//!   builder.dump(sb);
+//!   FormatFlags formatFlags = FormatFlags::kNone;
+//!   Formatter::formatNodeList(sb, formatFlags, &builder);
 //!   printf("%s:\n%s\n", phase, sb.data());
 //! }
 //!
