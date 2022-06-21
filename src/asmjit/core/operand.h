@@ -907,9 +907,9 @@ public:
   }
 
   //! Tests whether the `op` is a general purpose register of the given `rId`.
-  static inline bool isGp(const Operand_& op, uint32_t rId) noexcept { return isGp(op) & (op.id() == rId); }
+  static inline bool isGp(const Operand_& op, uint32_t rId) noexcept { return isGp(op) && (op.id() == rId); }
   //! Tests whether the `op` is a vector register of the given `rId`.
-  static inline bool isVec(const Operand_& op, uint32_t rId) noexcept { return isVec(op) & (op.id() == rId); }
+  static inline bool isVec(const Operand_& op, uint32_t rId) noexcept { return isVec(op) && (op.id() == rId); }
 
   //! \}
 };

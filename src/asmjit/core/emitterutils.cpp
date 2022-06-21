@@ -39,7 +39,6 @@ namespace EmitterUtils {
 #ifndef ASMJIT_NO_LOGGING
 
 Error formatLine(String& sb, const uint8_t* binData, size_t binSize, size_t dispSize, size_t immSize, const char* comment) noexcept {
-  size_t currentSize = sb.size();
   size_t commentSize = comment ? Support::strLen(comment, Globals::kMaxCommentSize) : 0;
 
   ASMJIT_ASSERT(binSize >= dispSize);
@@ -50,7 +49,6 @@ Error formatLine(String& sb, const uint8_t* binData, size_t binSize, size_t disp
     char sep = ';';
 
     for (size_t i = (binSize == kNoBinSize); i < 2; i++) {
-      size_t begin = sb.size();
       ASMJIT_PROPAGATE(sb.padEnd(align));
 
       if (sep) {
@@ -69,7 +67,6 @@ Error formatLine(String& sb, const uint8_t* binData, size_t binSize, size_t disp
         ASMJIT_PROPAGATE(sb.append(comment, commentSize));
       }
 
-      currentSize += sb.size() - begin;
       align += kMaxBinarySize;
       sep = '|';
     }

@@ -326,24 +326,24 @@ public:
   static inline bool isTmm(const Operand_& op) noexcept { return op.as<Reg>().isTmm(); }
   static inline bool isRip(const Operand_& op) noexcept { return op.as<Reg>().isRip(); }
 
-  static inline bool isGpb(const Operand_& op, uint32_t rId) noexcept { return isGpb(op) & (op.id() == rId); }
-  static inline bool isGpbLo(const Operand_& op, uint32_t rId) noexcept { return isGpbLo(op) & (op.id() == rId); }
-  static inline bool isGpbHi(const Operand_& op, uint32_t rId) noexcept { return isGpbHi(op) & (op.id() == rId); }
-  static inline bool isGpw(const Operand_& op, uint32_t rId) noexcept { return isGpw(op) & (op.id() == rId); }
-  static inline bool isGpd(const Operand_& op, uint32_t rId) noexcept { return isGpd(op) & (op.id() == rId); }
-  static inline bool isGpq(const Operand_& op, uint32_t rId) noexcept { return isGpq(op) & (op.id() == rId); }
-  static inline bool isXmm(const Operand_& op, uint32_t rId) noexcept { return isXmm(op) & (op.id() == rId); }
-  static inline bool isYmm(const Operand_& op, uint32_t rId) noexcept { return isYmm(op) & (op.id() == rId); }
-  static inline bool isZmm(const Operand_& op, uint32_t rId) noexcept { return isZmm(op) & (op.id() == rId); }
-  static inline bool isMm(const Operand_& op, uint32_t rId) noexcept { return isMm(op) & (op.id() == rId); }
-  static inline bool isKReg(const Operand_& op, uint32_t rId) noexcept { return isKReg(op) & (op.id() == rId); }
-  static inline bool isSReg(const Operand_& op, uint32_t rId) noexcept { return isSReg(op) & (op.id() == rId); }
-  static inline bool isCReg(const Operand_& op, uint32_t rId) noexcept { return isCReg(op) & (op.id() == rId); }
-  static inline bool isDReg(const Operand_& op, uint32_t rId) noexcept { return isDReg(op) & (op.id() == rId); }
-  static inline bool isSt(const Operand_& op, uint32_t rId) noexcept { return isSt(op) & (op.id() == rId); }
-  static inline bool isBnd(const Operand_& op, uint32_t rId) noexcept { return isBnd(op) & (op.id() == rId); }
-  static inline bool isTmm(const Operand_& op, uint32_t rId) noexcept { return isTmm(op) & (op.id() == rId); }
-  static inline bool isRip(const Operand_& op, uint32_t rId) noexcept { return isRip(op) & (op.id() == rId); }
+  static inline bool isGpb(const Operand_& op, uint32_t rId) noexcept { return isGpb(op) && (op.id() == rId); }
+  static inline bool isGpbLo(const Operand_& op, uint32_t rId) noexcept { return isGpbLo(op) && (op.id() == rId); }
+  static inline bool isGpbHi(const Operand_& op, uint32_t rId) noexcept { return isGpbHi(op) && (op.id() == rId); }
+  static inline bool isGpw(const Operand_& op, uint32_t rId) noexcept { return isGpw(op) && (op.id() == rId); }
+  static inline bool isGpd(const Operand_& op, uint32_t rId) noexcept { return isGpd(op) && (op.id() == rId); }
+  static inline bool isGpq(const Operand_& op, uint32_t rId) noexcept { return isGpq(op) && (op.id() == rId); }
+  static inline bool isXmm(const Operand_& op, uint32_t rId) noexcept { return isXmm(op) && (op.id() == rId); }
+  static inline bool isYmm(const Operand_& op, uint32_t rId) noexcept { return isYmm(op) && (op.id() == rId); }
+  static inline bool isZmm(const Operand_& op, uint32_t rId) noexcept { return isZmm(op) && (op.id() == rId); }
+  static inline bool isMm(const Operand_& op, uint32_t rId) noexcept { return isMm(op) && (op.id() == rId); }
+  static inline bool isKReg(const Operand_& op, uint32_t rId) noexcept { return isKReg(op) && (op.id() == rId); }
+  static inline bool isSReg(const Operand_& op, uint32_t rId) noexcept { return isSReg(op) && (op.id() == rId); }
+  static inline bool isCReg(const Operand_& op, uint32_t rId) noexcept { return isCReg(op) && (op.id() == rId); }
+  static inline bool isDReg(const Operand_& op, uint32_t rId) noexcept { return isDReg(op) && (op.id() == rId); }
+  static inline bool isSt(const Operand_& op, uint32_t rId) noexcept { return isSt(op) && (op.id() == rId); }
+  static inline bool isBnd(const Operand_& op, uint32_t rId) noexcept { return isBnd(op) && (op.id() == rId); }
+  static inline bool isTmm(const Operand_& op, uint32_t rId) noexcept { return isTmm(op) && (op.id() == rId); }
+  static inline bool isRip(const Operand_& op, uint32_t rId) noexcept { return isRip(op) && (op.id() == rId); }
 };
 
 //! General purpose register (X86).

@@ -153,6 +153,9 @@ struct RARegCount {
   //! \name Construction & Destruction
   //! \{
 
+  RARegCount() = default;
+  RARegCount(const RARegCount& other) = default;
+
   //! Resets all counters to zero.
   inline void reset() noexcept { _packed = 0; }
 
@@ -237,6 +240,9 @@ struct RARegMask {
 
   //! \name Construction & Destruction
   //! \{
+
+  inline RARegMask() noexcept = default;
+  inline RARegMask(const RARegMask& other) noexcept = default;
 
   inline void init(const RARegMask& other) noexcept {
     for (uint32_t i = 0; i < BaseReg::kGroupVirt; i++)

@@ -2746,7 +2746,7 @@ CaseExtRm:
 
     case InstDB::kEncodingExtRm_P:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
-        opcode.add66hIf(Reg::isXmm(o0) | Reg::isXmm(o1));
+        opcode.add66hIf(Reg::isXmm(o0) || Reg::isXmm(o1));
 
         opReg = o0.id();
         rbReg = o1.id();
@@ -2790,7 +2790,7 @@ CaseExtRm:
 
     case InstDB::kEncodingExtRmRi_P:
       if (isign3 == ENC_OPS2(Reg, Reg)) {
-        opcode.add66hIf(Reg::isXmm(o0) | Reg::isXmm(o1));
+        opcode.add66hIf(Reg::isXmm(o0) || Reg::isXmm(o1));
 
         opReg = o0.id();
         rbReg = o1.id();
@@ -2842,7 +2842,7 @@ CaseExtRm:
       immSize = 1;
 
       if (isign3 == ENC_OPS3(Reg, Reg, Imm)) {
-        opcode.add66hIf(Reg::isXmm(o0) | Reg::isXmm(o1));
+        opcode.add66hIf(Reg::isXmm(o0) || Reg::isXmm(o1));
 
         opReg = o0.id();
         rbReg = o1.id();
@@ -3073,7 +3073,7 @@ CaseVexMri:
       goto CaseVexRm;
 
     case InstDB::kEncodingVexRm_Wx:
-      opcode.addWIf(Reg::isGpq(o0) | Reg::isGpq(o1));
+      opcode.addWIf(Reg::isGpq(o0) || Reg::isGpq(o1));
       goto CaseVexRm;
 
     case InstDB::kEncodingVexRm_Lx_Narrow:
@@ -3143,7 +3143,7 @@ CaseVexRm:
     }
 
     case InstDB::kEncodingVexRmi_Wx:
-      opcode.addWIf(Reg::isGpq(o0) | Reg::isGpq(o1));
+      opcode.addWIf(Reg::isGpq(o0) || Reg::isGpq(o1));
       goto CaseVexRmi;
 
     case InstDB::kEncodingVexRmi_Lx:
@@ -3192,7 +3192,7 @@ CaseVexRvm_R:
     }
 
     case InstDB::kEncodingVexRvm_Wx: {
-      opcode.addWIf(Reg::isGpq(o0) | (o2.size() == 8));
+      opcode.addWIf(Reg::isGpq(o0) || (o2.size() == 8));
       goto CaseVexRvm;
     }
 
@@ -3294,7 +3294,7 @@ VexRvmi:
     }
 
     case InstDB::kEncodingVexRmv_Wx:
-      opcode.addWIf(Reg::isGpq(o0) | Reg::isGpq(o2));
+      opcode.addWIf(Reg::isGpq(o0) || Reg::isGpq(o2));
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingVexRmv:
@@ -3647,7 +3647,7 @@ VexRvmi:
       break;
 
     case InstDB::kEncodingVexVm_Wx:
-      opcode.addWIf(Reg::isGpq(o0) | Reg::isGpq(o1));
+      opcode.addWIf(Reg::isGpq(o0) || Reg::isGpq(o1));
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingVexVm:
