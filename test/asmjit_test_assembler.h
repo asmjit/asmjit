@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 struct TestSettings {
-  bool quiet;
+  bool verbose;
   bool validate;
 };
 
@@ -73,7 +73,7 @@ public:
       return false;
     }
 
-    if (!settings.quiet)
+    if (settings.verbose)
       printf("  OK [%s] <- %s\n", encodedOpcode.data(), s);
 
     passed++;

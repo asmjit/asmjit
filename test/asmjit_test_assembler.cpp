@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
   CmdLine cmdLine(argc, argv);
 
   TestSettings settings {};
-  settings.quiet = cmdLine.hasArg("--quiet");
+  settings.verbose = cmdLine.hasArg("--verbose");
   settings.validate = cmdLine.hasArg("--validate");
 
   printf("AsmJit Assembler Test-Suite v%u.%u.%u:\n\n",
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
   printf("Usage:\n");
   printf("  --help        Show usage only\n");
   printf("  --arch=<ARCH> Select architecture to run ('all' by default)\n");
-  printf("  --quiet       Show only assembling errors [%s]\n", settings.quiet ? "x" : " ");
+  printf("  --verbose     Log all instruction tests [%s]\n", settings.verbose ? "x" : " ");
   printf("  --validate    Use instruction validation [%s]\n", settings.validate ? "x" : " ");
   printf("\n");
 

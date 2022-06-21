@@ -31,7 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { title: "linux-lib"      , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", problem_matcher: "cpp" }
+          - { title: "linux-lib"      , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Release", problem_matcher: "cpp" }
           - { title: "windows-lib"    , os: "windows-2022"  , cc: "vs2022"  , arch: "x86", build_type: "Debug"  , problem_matcher: "cpp" }
 
           - { title: "diag-asan"      , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON", diagnostics: "address" }
@@ -91,6 +91,14 @@ jobs:
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-13", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-13", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-13", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-13", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
           - { title: "macos-10.15"    , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "macos-10.15"    , os: "macos-10.15"   , cc: "gcc-9"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
