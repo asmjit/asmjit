@@ -1,25 +1,7 @@
-// AsmJit - Machine code generation for C++
+// This file is part of AsmJit project <https://asmjit.com>
 //
-//  * Official AsmJit Home Page: https://asmjit.com
-//  * Official Github Repository: https://github.com/asmjit/asmjit
-//
-// Copyright (c) 2008-2020 The AsmJit Authors
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//    claim that you wrote the original software. If you use this software
-//    in a product, an acknowledgment in the product documentation would be
-//    appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//    misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
+// See asmjit.h or LICENSE.md for license and copyright information
+// SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_X86_X86INSTDB_P_H_INCLUDED
 #define ASMJIT_X86_X86INSTDB_P_H_INCLUDED
@@ -34,17 +16,12 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
 namespace InstDB {
 
-// ============================================================================
-// [asmjit::x86::InstDB::Encoding]
-// ============================================================================
-
 //! Instruction encoding (X86).
 //!
-//! This is a specific identifier that is used by AsmJit to describe the way
-//! each instruction is encoded. Some encodings are special only for a single
-//! instruction as X86 instruction set contains a lot of legacy encodings, and
-//! some encodings describe a group of instructions that share some commons,
-//! like MMX, SSE, AVX, AVX512 instructions, etc...
+//! This is a specific identifier that is used by AsmJit to describe the way each instruction is encoded. Some
+//! encodings are special only for a single instruction as X86 instruction set contains a lot of legacy encodings,
+//! and some encodings describe a group of instructions that share some commons, like MMX, SSE, AVX, AVX512
+//! instructions, etc...
 enum EncodingId : uint32_t {
   kEncodingNone = 0,                     //!< Never used.
   kEncodingX86Op,                        //!< X86 [OP].
@@ -210,26 +187,18 @@ enum EncodingId : uint32_t {
   kEncodingCount                         //!< Count of instruction encodings.
 };
 
-// ============================================================================
-// [asmjit::x86::InstDB - CommonInfoTableB]
-// ============================================================================
-
-//! CPU extensions required to execute instruction.
-struct CommonInfoTableB {
-  //! Features vector.
-  uint8_t _features[6];
+//! Additional information table, provides CPU extensions required to execute an instruction and RW flags.
+struct AdditionalInfo {
+  //! Index to `_instFlagsTable`.
+  uint8_t _instFlagsIndex;
   //! Index to `_rwFlagsTable`.
   uint8_t _rwFlagsIndex;
-  //! Reserved for future use.
-  uint8_t _reserved;
+  //! Features vector.
+  uint8_t _features[6];
 
   inline const uint8_t* featuresBegin() const noexcept { return _features; }
   inline const uint8_t* featuresEnd() const noexcept { return _features + ASMJIT_ARRAY_SIZE(_features); }
 };
-
-// ============================================================================
-// [asmjit::x86::InstDB - InstNameIndex]
-// ============================================================================
 
 // ${NameLimits:Begin}
 // ------------------- Automatically generated, do not edit -------------------
@@ -241,10 +210,6 @@ struct InstNameIndex {
   uint16_t start;
   uint16_t end;
 };
-
-// ============================================================================
-// [asmjit::x86::InstDB - RWInfo]
-// ============================================================================
 
 struct RWInfo {
   enum Category : uint8_t {
@@ -275,8 +240,9 @@ struct RWInfoOp {
   uint64_t rByteMask;
   uint64_t wByteMask;
   uint8_t physId;
-  uint8_t reserved[3];
-  uint32_t flags;
+  uint8_t consecutiveLeadCount;
+  uint8_t reserved[2];
+  OpRWFlags flags;
 };
 
 //! R/M information.
@@ -293,7 +259,13 @@ struct RWInfoRm {
   };
 
   enum Flags : uint8_t {
-    kFlagAmbiguous = 0x01
+    kFlagAmbiguous = 0x01,
+    //! Special semantics for PEXTRW - memory operand can only be used with SSE4.1 instruction and it's forbidden in MMX.
+    kFlagPextrw = 0x02,
+    //! Special semantics for MOVSS and MOVSD - doesn't zero extend the destination if the operation is a reg to reg move.
+    kFlagMovssMovsd = 0x04,
+    //! Special semantics for AVX shift instructions that do not provide reg/mem in AVX/AVX2 mode (AVX-512 is required).
+    kFlagFeatureIfRMI = 0x08
   };
 
   uint8_t category;
@@ -317,10 +289,7 @@ extern const RWInfo rwInfoB[];
 extern const RWInfoOp rwInfoOp[];
 extern const RWInfoRm rwInfoRm[];
 extern const RWFlagsInfoTable _rwFlagsInfoTable[];
-
-// ============================================================================
-// [asmjit::x86::InstDB::Tables]
-// ============================================================================
+extern const InstRWFlags _instFlagsTable[];
 
 extern const uint32_t _mainOpcodeTable[];
 extern const uint32_t _altOpcodeTable[];
@@ -330,7 +299,7 @@ extern const char _nameData[];
 extern const InstNameIndex instNameIndex[26];
 #endif // !ASMJIT_NO_TEXT
 
-extern const CommonInfoTableB _commonInfoTableB[];
+extern const AdditionalInfo _additionalInfoTable[];
 
 } // {InstDB}
 
