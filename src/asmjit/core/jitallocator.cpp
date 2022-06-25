@@ -889,8 +889,12 @@ Error JitAllocator::shrink(void* rxPtr, size_t newSize) noexcept {
 
   // The first bit representing the allocated area and its size.
   uint32_t areaStart = uint32_t(offset >> pool->granularityLog2);
-  uint32_t areaEnd = uint32_t(Support::bitVectorIndexOf(block->_stopBitVector, areaStart, true)) + 1;
 
+  bool isUsed = Support::bitVectorGetBit(block->_usedBitVector, areaStart);
+  if (ASMJIT_UNLIKELY(!isUsed))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  uint32_t areaEnd = uint32_t(Support::bitVectorIndexOf(block->_stopBitVector, areaStart, true)) + 1;
   uint32_t areaPrevSize = areaEnd - areaStart;
   uint32_t areaShrunkSize = pool->areaSizeFromByteSize(newSize);
 
@@ -905,6 +909,43 @@ Error JitAllocator::shrink(void* rxPtr, size_t newSize) noexcept {
     if (Support::test(impl->options, JitAllocatorOptions::kFillUnusedMemory))
       JitAllocatorImpl_fillPattern(block->rwPtr() + (areaStart + areaShrunkSize) * pool->granularity, fillPattern(), areaDiff * pool->granularity);
   }
+
+  return kErrorOk;
+}
+
+Error JitAllocator::query(void* rxPtr, void** rxPtrOut, void** rwPtrOut, size_t* sizeOut) const noexcept {
+  *rxPtrOut = nullptr;
+  *rwPtrOut = nullptr;
+  *sizeOut = 0u;
+
+  if (ASMJIT_UNLIKELY(_impl == &JitAllocatorImpl_none))
+    return DebugUtils::errored(kErrorNotInitialized);
+
+  JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
+  LockGuard guard(impl->lock);
+  JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(rxPtr));
+
+  if (ASMJIT_UNLIKELY(!block))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  // Offset relative to the start of the block.
+  JitAllocatorPool* pool = block->pool();
+  size_t offset = (size_t)((uint8_t*)rxPtr - block->rxPtr());
+
+  // The first bit representing the allocated area and its size.
+  uint32_t areaStart = uint32_t(offset >> pool->granularityLog2);
+
+  bool isUsed = Support::bitVectorGetBit(block->_usedBitVector, areaStart);
+  if (ASMJIT_UNLIKELY(!isUsed))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  uint32_t areaEnd = uint32_t(Support::bitVectorIndexOf(block->_stopBitVector, areaStart, true)) + 1;
+  size_t byteOffset = pool->byteSizeFromAreaSize(areaStart);
+  size_t byteSize = pool->byteSizeFromAreaSize(areaEnd - areaStart);
+
+  *rxPtrOut = static_cast<uint8_t*>(block->_mapping.rx) + byteOffset;
+  *rwPtrOut = static_cast<uint8_t*>(block->_mapping.rw) + byteOffset;
+  *sizeOut = byteSize;
 
   return kErrorOk;
 }
@@ -1100,7 +1141,7 @@ static void BitVectorRangeIterator_testRandom(Random& rnd, size_t count) noexcep
   }
 }
 
-UNIT(jit_allocator) {
+static void test_jit_allocator_alloc_release() noexcept {
   size_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 100000;
 
   struct TestParams {
@@ -1234,6 +1275,32 @@ UNIT(jit_allocator) {
 
     ::free(ptrArray);
   }
+}
+
+static void test_jit_allocator_query() noexcept {
+  JitAllocator allocator;
+
+  void* rxPtr = nullptr;
+  void* rwPtr = nullptr;
+  size_t size = 100;
+
+  EXPECT(allocator.alloc(&rxPtr, &rwPtr, size) == kErrorOk);
+  EXPECT(rxPtr != nullptr);
+  EXPECT(rwPtr != nullptr);
+
+  void* rxPtrQueried = nullptr;
+  void* rwPtrQueried = nullptr;
+  size_t sizeQueried;
+
+  EXPECT(allocator.query(rxPtr, &rxPtrQueried, &rwPtrQueried, &sizeQueried) == kErrorOk);
+  EXPECT(rxPtrQueried == rxPtr);
+  EXPECT(rwPtrQueried == rwPtr);
+  EXPECT(sizeQueried == Support::alignUp(size, allocator.granularity()));
+}
+
+UNIT(jit_allocator) {
+  test_jit_allocator_alloc_release();
+  test_jit_allocator_query();
 }
 #endif
 
