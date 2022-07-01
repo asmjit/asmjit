@@ -110,14 +110,14 @@ public:
   static inline bool isVecQ(const Operand_& op) noexcept { return op.as<Reg>().isVecQ(); }
   static inline bool isVecV(const Operand_& op) noexcept { return op.as<Reg>().isVecV(); }
 
-  static inline bool isGpW(const Operand_& op, uint32_t id) noexcept { return isGpW(op) & (op.id() == id); }
-  static inline bool isGpX(const Operand_& op, uint32_t id) noexcept { return isGpX(op) & (op.id() == id); }
-  static inline bool isVecB(const Operand_& op, uint32_t id) noexcept { return isVecB(op) & (op.id() == id); }
-  static inline bool isVecH(const Operand_& op, uint32_t id) noexcept { return isVecH(op) & (op.id() == id); }
-  static inline bool isVecS(const Operand_& op, uint32_t id) noexcept { return isVecS(op) & (op.id() == id); }
-  static inline bool isVecD(const Operand_& op, uint32_t id) noexcept { return isVecD(op) & (op.id() == id); }
-  static inline bool isVecQ(const Operand_& op, uint32_t id) noexcept { return isVecQ(op) & (op.id() == id); }
-  static inline bool isVecV(const Operand_& op, uint32_t id) noexcept { return isVecV(op) & (op.id() == id); }
+  static inline bool isGpW(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isGpW(op)) & unsigned(op.id() == id)); }
+  static inline bool isGpX(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isGpX(op)) & unsigned(op.id() == id)); }
+  static inline bool isVecB(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVecB(op)) & unsigned(op.id() == id)); }
+  static inline bool isVecH(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVecH(op)) & unsigned(op.id() == id)); }
+  static inline bool isVecS(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVecS(op)) & unsigned(op.id() == id)); }
+  static inline bool isVecD(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVecD(op)) & unsigned(op.id() == id)); }
+  static inline bool isVecQ(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVecQ(op)) & unsigned(op.id() == id)); }
+  static inline bool isVecV(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVecV(op)) & unsigned(op.id() == id)); }
 };
 
 //! General purpose register (ARM).

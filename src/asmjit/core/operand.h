@@ -994,9 +994,9 @@ public:
   }
 
   //! Tests whether the `op` is a general purpose register of the given `id`.
-  static inline bool isGp(const Operand_& op, uint32_t id) noexcept { return isGp(op) & (op.id() == id); }
+  static inline bool isGp(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isGp(op)) & unsigned(op.id() == id)); }
   //! Tests whether the `op` is a vector register of the given `id`.
-  static inline bool isVec(const Operand_& op, uint32_t id) noexcept { return isVec(op) & (op.id() == id); }
+  static inline bool isVec(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVec(op)) & unsigned(op.id() == id)); }
 
   //! \}
 };

@@ -481,16 +481,6 @@ namespace asmjit {
 #if defined _DOXYGEN
   #define ASMJIT_BEGIN_NAMESPACE namespace asmjit {
   #define ASMJIT_END_NAMESPACE }
-#elif defined(__clang_major__) && __clang_major__ >= 14
-  #define ASMJIT_BEGIN_NAMESPACE                                              \
-    namespace asmjit { inline namespace ASMJIT_ABI_NAMESPACE {                \
-      _Pragma("clang diagnostic push")                                        \
-      _Pragma("clang diagnostic ignored \"-Wbitwise-instead-of-logical\"")    \
-      _Pragma("clang diagnostic ignored \"-Wconstant-logical-operand\"")      \
-      _Pragma("clang diagnostic ignored \"-Wunnamed-type-template-args\"")
-  #define ASMJIT_END_NAMESPACE                                                \
-      _Pragma("clang diagnostic pop")                                         \
-    }}
 #elif defined(__clang__)
   #define ASMJIT_BEGIN_NAMESPACE                                              \
     namespace asmjit { inline namespace ASMJIT_ABI_NAMESPACE {                \
