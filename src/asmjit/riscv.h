@@ -6,7 +6,12 @@
 #ifndef ASMJIT_RISCV_H_INCLUDED
 #define ASMJIT_RISCV_H_INCLUDED
 
+// TODO: [RISC-V] doc
+
 #include "./riscv/riscv64assembler.h"
+#include "./riscv/riscv64emitter.h"
+#include "./riscv/riscv64globals.h"
+#include "./riscv/riscv64operand.h"
 
 // TODO: [RISC-V]
 

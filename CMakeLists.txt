@@ -456,6 +456,8 @@ set(ASMJIT_SRC_LIST
   asmjit/riscv/riscvoperand.h
   asmjit/riscv/riscv64assembler.h
   asmjit/riscv/riscv64assembler.cpp
+  asmjit/riscv/riscv64emitter.h
+  asmjit/riscv/riscv64globals.h
   asmjit/riscv/riscv64operand.h
   asmjit/riscv/riscv64operand.cpp
 
