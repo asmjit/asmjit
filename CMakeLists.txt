@@ -195,7 +195,7 @@ set(ASMJIT_SANITIZE_LFLAGS "")                   # Linker flags required by curr
 set(ASMJIT_INCLUDE_DIR "${ASMJIT_INCLUDE_DIRS}")
 
 if (NOT ASMJIT_NO_CUSTOM_FLAGS)
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
     list(APPEND ASMJIT_PRIVATE_CFLAGS
       -MP                      # [+] Multi-Process Compilation.
       -GF                      # [+] Eliminate duplicate strings.
@@ -238,7 +238,7 @@ if (ASMJIT_SANITIZE)
     set(ASMJIT_SANITIZE_LFLAGS ${ASMJIT_SANITIZE_CFLAGS})
 
     # Don't omit frame pointer if sanitizers are enabled.
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
       list(APPEND ASMJIT_SANITIZE_CFLAGS -Oy-)
     else()
       list(APPEND ASMJIT_SANITIZE_CFLAGS -fno-omit-frame-pointer -g)
@@ -589,7 +589,7 @@ if (NOT ASMJIT_EMBED)
     if (NOT (ASMJIT_NO_BUILDER OR ASMJIT_NO_COMPILER))
       # Vectorcall tests and XMM tests require at least SSE2 in 32-bit mode (in 64-bit mode it's implicit).
       set(sse2_flags "")
-      if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
+      if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
         asmjit_detect_cflags(sse2_flags "-arch:SSE2")
       else()
         asmjit_detect_cflags(sse2_flags "-msse2")
