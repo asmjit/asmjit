@@ -499,13 +499,14 @@ struct ImmBits {
   char text[48 - 3];
 };
 
-ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmShuf(String& sb, uint32_t u8, uint32_t bits, uint32_t count) noexcept {
+ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmShuf(String& sb, uint32_t imm8, uint32_t bits, uint32_t count) noexcept {
   uint32_t mask = (1 << bits) - 1;
+  uint32_t lastPredicateShift = bits * (count - 1u);
 
-  for (uint32_t i = 0; i < count; i++, u8 >>= bits) {
-    uint32_t value = u8 & mask;
+  for (uint32_t i = 0; i < count; i++, imm8 <<= bits) {
+    uint32_t index = (imm8 >> lastPredicateShift) & mask;
     ASMJIT_PROPAGATE(sb.append(i == 0 ? kImmCharStart : kImmCharOr));
-    ASMJIT_PROPAGATE(sb.appendUInt(value));
+    ASMJIT_PROPAGATE(sb.appendUInt(index));
   }
 
   if (kImmCharEnd)
@@ -514,14 +515,14 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmShuf(String& sb, uint3
   return kErrorOk;
 }
 
-ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmBits(String& sb, uint32_t u8, const ImmBits* bits, uint32_t count) noexcept {
+ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmBits(String& sb, uint32_t imm8, const ImmBits* bits, uint32_t count) noexcept {
   uint32_t n = 0;
   char buf[64];
 
   for (uint32_t i = 0; i < count; i++) {
     const ImmBits& spec = bits[i];
 
-    uint32_t value = (u8 & uint32_t(spec.mask)) >> spec.shift;
+    uint32_t value = (imm8 & uint32_t(spec.mask)) >> spec.shift;
     const char* str = nullptr;
 
     switch (spec.mode) {
@@ -551,12 +552,12 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmBits(String& sb, uint3
   return kErrorOk;
 }
 
-ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmText(String& sb, uint32_t u8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
+ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmText(String& sb, uint32_t imm8, uint32_t bits, uint32_t advance, const char* text, uint32_t count = 1) noexcept {
   uint32_t mask = (1u << bits) - 1;
   uint32_t pos = 0;
 
-  for (uint32_t i = 0; i < count; i++, u8 >>= bits, pos += advance) {
-    uint32_t value = (u8 & mask) + pos;
+  for (uint32_t i = 0; i < count; i++, imm8 >>= bits, pos += advance) {
+    uint32_t value = (imm8 & mask) + pos;
     ASMJIT_PROPAGATE(sb.append(i == 0 ? kImmCharStart : kImmCharOr));
     ASMJIT_PROPAGATE(sb.append(Support::findPackedString(text, value)));
   }
@@ -611,25 +612,25 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
   };
 
   static const ImmBits vmpsadbw[] = {
-    { 0x04u, 2, ImmBits::kModeLookup, "BLK1[0]\0" "BLK1[1]\0" },
-    { 0x03u, 0, ImmBits::kModeLookup, "BLK2[0]\0" "BLK2[1]\0" "BLK2[2]\0" "BLK2[3]\0" },
     { 0x40u, 6, ImmBits::kModeLookup, "BLK1[4]\0" "BLK1[5]\0" },
-    { 0x30u, 4, ImmBits::kModeLookup, "BLK2[4]\0" "BLK2[5]\0" "BLK2[6]\0" "BLK2[7]\0" }
+    { 0x30u, 4, ImmBits::kModeLookup, "BLK2[4]\0" "BLK2[5]\0" "BLK2[6]\0" "BLK2[7]\0" },
+    { 0x04u, 2, ImmBits::kModeLookup, "BLK1[0]\0" "BLK1[1]\0" },
+    { 0x03u, 0, ImmBits::kModeLookup, "BLK2[0]\0" "BLK2[1]\0" "BLK2[2]\0" "BLK2[3]\0" }
   };
 
   static const ImmBits vpclmulqdq[] = {
-    { 0x01u, 0, ImmBits::kModeLookup, "LQ\0" "HQ\0" },
-    { 0x10u, 4, ImmBits::kModeLookup, "LQ\0" "HQ\0" }
+    { 0x10u, 4, ImmBits::kModeLookup, "LQ\0" "HQ\0" },
+    { 0x01u, 0, ImmBits::kModeLookup, "LQ\0" "HQ\0" }
   };
 
   static const ImmBits vperm2x128[] = {
-    { 0x0Bu, 0, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" },
-    { 0xB0u, 4, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" }
+    { 0xB0u, 4, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" },
+    { 0x0Bu, 0, ImmBits::kModeLookup, "A0\0" "A1\0" "B0\0" "B1\0" "\0" "\0" "\0" "\0" "0\0" "0\0" "0\0" "0\0" }
   };
 
   static const ImmBits vrangexx[] = {
-    { 0x03u, 0, ImmBits::kModeLookup, "MIN\0" "MAX\0" "MIN_ABS\0" "MAX_ABS\0" },
-    { 0x0Cu, 2, ImmBits::kModeLookup, "SIGN_A\0" "SIGN_B\0" "SIGN_0\0" "SIGN_1\0" }
+    { 0x0Cu, 2, ImmBits::kModeLookup, "SIGN_A\0" "SIGN_B\0" "SIGN_0\0" "SIGN_1\0" },
+    { 0x03u, 0, ImmBits::kModeLookup, "MIN\0" "MAX\0" "MIN_ABS\0" "MAX_ABS\0" }
   };
 
   static const ImmBits vreducexx_vrndscalexx[] = {
