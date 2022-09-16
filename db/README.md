@@ -8,6 +8,7 @@ AsmJit database provides the following ISAs:
   * `x86data.js` - provides 32-bit and 64-bit X86 instructions
   * `armdata.js` - provides AArch32 instructions (both ARM32 and THUMB)
   * `a64data.json` - provides AArch64 instructions
+  * `riscvdata.js` - provides RISC-V instructions
 
 To Be Documented
 ----------------
