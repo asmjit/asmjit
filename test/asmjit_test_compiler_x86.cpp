@@ -277,7 +277,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-     Label L0 = cc.newLabel();
+    Label L0 = cc.newLabel();
     Label L1 = cc.newLabel();
     Label L2 = cc.newLabel();
     Label LEnd = cc.newLabel();
@@ -707,6 +707,126 @@ public:
 
     expected[0] = 0;
     expected[1] = 1;
+
+    result.assignFormat("ret={%d, %d}", results[0], results[1]);
+    expect.assignFormat("ret={%d, %d}", expected[0], expected[1]);
+
+    return result == expect;
+  }
+};
+
+// x86::Compiler - X86Test_JumpTable3
+// ==================================
+
+class X86Test_JumpTable3 : public X86TestCase {
+public:
+  X86Test_JumpTable3()
+    : X86TestCase("JumpTable {Jumping to a single label}") {}
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_JumpTable3());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+
+    Label L_Target = cc.newLabel();
+    x86::Gp target = cc.newUIntPtr("target");
+    x86::Gp result = cc.newUInt32("result");
+
+    JumpAnnotation* annotation = cc.newJumpAnnotation();
+    annotation->addLabel(L_Target);
+
+    cc.lea(target, x86::ptr(L_Target));
+    cc.jmp(target, annotation);
+
+    cc.bind(L_Target);
+    cc.mov(result, 1234);
+    cc.ret(result);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef int (*Func)(void);
+    Func func = ptr_as_func<Func>(_func);
+
+    int out = func();
+    int expected = 1234;
+
+    result.assignFormat("ret=%d", out);
+    expect.assignFormat("ret=%d", expected);
+
+    return result == expect;
+  }
+};
+
+// x86::Compiler - X86Test_JumpTable4
+// ==================================
+
+class X86Test_JumpTable4 : public X86TestCase {
+public:
+  X86Test_JumpTable4()
+    : X86TestCase("JumpTable {Jumping to a single label and multiple labels}") {}
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_JumpTable4());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    x86::Gp result = cc.newUInt32("result");
+    x86::Gp condition = cc.newUInt32("condition");
+
+    FuncNode* func = cc.addFunc(FuncSignatureT<int, int>(CallConvId::kHost));
+    func->setArg(0, condition);
+
+    Label L_NonZero = cc.newLabel();
+    cc.test(condition, condition);
+    cc.jnz(L_NonZero);
+
+    {
+      JumpAnnotation* annotation = cc.newJumpAnnotation();
+      Label L_Target = cc.newLabel();
+      annotation->addLabel(L_Target);
+
+      x86::Gp target = cc.newUIntPtr("target");
+      cc.lea(target, x86::ptr(L_Target));
+      cc.jmp(target, annotation);
+      cc.bind(L_Target);
+      cc.mov(result, 1234);
+      cc.ret(result);
+    }
+
+    {
+      JumpAnnotation* annotation = cc.newJumpAnnotation();
+      Label L_Target1 = cc.newLabel();
+      Label L_Target2 = cc.newLabel();
+      annotation->addLabel(L_Target1);
+      annotation->addLabel(L_Target2);
+
+      cc.bind(L_NonZero);
+      x86::Gp target = cc.newUIntPtr("target");
+      cc.lea(target, x86::ptr(L_Target1));
+      cc.jmp(target, annotation);
+
+      cc.bind(L_Target1);
+      cc.mov(result, 4321);
+      cc.ret(result);
+
+      // Never executed.
+      cc.bind(L_Target2);
+      cc.mov(result, 0);
+      cc.ret(result);
+    }
+
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef int (*Func)(int);
+    Func func = ptr_as_func<Func>(_func);
+
+    int results[2] = { func(0), func(1) };
+    int expected[2] = { 1234, 4321 };
 
     result.assignFormat("ret={%d, %d}", results[0], results[1]);
     expect.assignFormat("ret={%d, %d}", expected[0], expected[1]);
@@ -4246,6 +4366,8 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_JumpUnreachable2>();
   app.addT<X86Test_JumpTable1>();
   app.addT<X86Test_JumpTable2>();
+  app.addT<X86Test_JumpTable3>();
+  app.addT<X86Test_JumpTable4>();
 
   // Alloc tests.
   app.addT<X86Test_AllocBase>();

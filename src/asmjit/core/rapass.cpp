@@ -328,9 +328,14 @@ Error BaseRAPass::initSharedAssignments(const ZoneVector<uint32_t>& sharedAssign
         RABlock* firstSuccessor = successors[0];
         // NOTE: Shared assignments connect all possible successors so we only need the first to propagate exit scratch
         // GP registers.
-        ASMJIT_ASSERT(firstSuccessor->hasSharedAssignmentId());
-        RASharedAssignment& sa = _sharedAssignments[firstSuccessor->sharedAssignmentId()];
-        sa.addEntryScratchGpRegs(block->exitScratchGpRegs());
+        if (firstSuccessor->hasSharedAssignmentId()) {
+          RASharedAssignment& sa = _sharedAssignments[firstSuccessor->sharedAssignmentId()];
+          sa.addEntryScratchGpRegs(block->exitScratchGpRegs());
+        }
+        else {
+          // This is only allowed if there is a single successor - in that case shared assignment is not necessary.
+          ASMJIT_ASSERT(successors.size() == 1u);
+        }
       }
     }
     if (block->hasSharedAssignmentId()) {
