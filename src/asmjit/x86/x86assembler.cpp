@@ -2259,7 +2259,7 @@ CaseX86PushPop_Gp:
               goto EmitX86OpReg;
             }
             else {
-              // Encode 'xchg eax, eax' by by using a generic path.
+              // Encode 'xchg eax, eax' by using a generic path.
             }
           }
           else if (!Support::test(options, InstOptions::kLongForm)) {
