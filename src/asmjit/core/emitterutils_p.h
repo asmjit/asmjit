@@ -23,7 +23,7 @@ namespace EmitterUtils {
 
 //! Default paddings used by Emitter utils and Formatter.
 
-static constexpr Operand noExt[3];
+static constexpr Operand noExt[3] = { };
 
 enum kOpIndex : uint32_t {
   kOp3 = 0,

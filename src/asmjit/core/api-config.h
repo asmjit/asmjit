@@ -586,7 +586,7 @@ namespace asmjit {
 //! \def ASMJIT_DEFINE_ENUM_COMPARE(T)
 //!
 //! Defines comparison operations for enumeration flags.
-#ifdef _DOXYGEN
+#if defined(_DOXYGEN) || (defined(_MSC_VER) && _MSC_VER <= 1900)
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)
 #else
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)                                                \
