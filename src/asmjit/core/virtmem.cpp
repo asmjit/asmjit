@@ -53,13 +53,11 @@
 #endif
 
 // Android NDK doesn't provide `shm_open()` and `shm_unlink()`.
-#if defined(__BIONIC__)
-  #define ASMJIT_VM_SHM_AVAILABLE 0
-#else
-  #define ASMJIT_VM_SHM_AVAILABLE 1
+#if !defined(_WIN32) && !defined(__BIONIC__)
+  #define ASMJIT_HAS_SHM_OPEN_AND_UNLINK
 #endif
 
-#if defined(__APPLE__) && ASMJIT_ARCH_ARM >= 64
+#if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
   #define ASMJIT_HAS_PTHREAD_JIT_WRITE_PROTECT_NP
 #endif
 
@@ -347,7 +345,7 @@ public:
           return kErrorOk;
         }
       }
-#if ASMJIT_VM_SHM_AVAILABLE
+#ifdef ASMJIT_HAS_SHM_OPEN_AND_UNLINK
       else {
         _tmpName.assignFormat(kShmFormat, (unsigned long long)bits);
         _fd = ::shm_open(_tmpName.data(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -371,7 +369,7 @@ public:
     FileType type = _fileType;
     _fileType = kFileTypeNone;
 
-#if ASMJIT_VM_SHM_AVAILABLE
+#ifdef ASMJIT_HAS_SHM_OPEN_AND_UNLINK
     if (type == kFileTypeShm) {
       ::shm_unlink(_tmpName.data());
       return;
@@ -409,12 +407,29 @@ static int mmProtFromMemoryFlags(MemoryFlags memoryFlags) noexcept {
   return protection;
 }
 
-#if defined(__APPLE__)
-// Detects whether the current process is hardened, which means that pages that have WRITE and EXECUTABLE flags cannot
-// be allocated without MAP_JIT flag.
-static inline bool hasHardenedRuntimeMacOS() noexcept {
+#if defined(__APPLE__) && TARGET_OS_OSX
+static int getOSXVersion() noexcept {
+  // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave).
+  static std::atomic<uint32_t> globalVersion;
+
+  int ver = globalVersion.load();
+  if (!ver) {
+    struct utsname osname {};
+    uname(&osname);
+    ver = atoi(osname.release);
+    globalVersion.store(ver);
+  }
+
+  return ver;
+}
+#endif // __APPLE__ && TARGET_OS_OSX
+
+// Detects whether the current process is hardened, which means that pages that have WRITE and EXECUTABLE flags
+// cannot be normally allocated. On OSX + AArch64 such allocation requires MAP_JIT flag, other platforms don't
+// support this combination.
+static bool hasHardenedRuntime() noexcept {
 #if TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
-  // MacOS on AArch64 has always hardened runtime enabled.
+  // OSX on AArch64 has always hardened runtime enabled.
   return true;
 #else
   static std::atomic<uint32_t> globalHardenedFlag;
@@ -427,7 +442,7 @@ static inline bool hasHardenedRuntimeMacOS() noexcept {
 
   uint32_t flag = globalHardenedFlag.load();
   if (flag == kHardenedFlagUnknown) {
-    size_t pageSize = ::getpagesize();
+    uint32_t pageSize = uint32_t(::getpagesize());
 
     void* ptr = mmap(nullptr, pageSize, PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (ptr == MAP_FAILED) {
@@ -444,45 +459,16 @@ static inline bool hasHardenedRuntimeMacOS() noexcept {
 #endif
 }
 
-static inline bool hasMapJitSupportMacOS() noexcept {
-#if TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
-  // MacOS for 64-bit AArch architecture always uses hardened runtime. Some documentation can be found here:
-  //   - https://developer.apple.com/documentation/apple_silicon/porting_just-in-time_compilers_to_apple_silicon
-  return true;
-#elif TARGET_OS_OSX
-  // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave) and IOS.
-  static std::atomic<uint32_t> globalVersion;
-
-  int ver = globalVersion.load();
-  if (!ver) {
-    struct utsname osname {};
-    uname(&osname);
-    ver = atoi(osname.release);
-    globalVersion.store(ver);
-  }
-  return ver >= 18;
-#else
-  // Assume it's available.
-  return true;
-#endif
-}
-#endif // __APPLE__
-
-// Detects whether the current process is hardened, which means that pages that have WRITE and EXECUTABLE flags
-// cannot be normally allocated. On MacOS such allocation requires MAP_JIT flag.
-static inline bool hasHardenedRuntime() noexcept {
-#if defined(__APPLE__)
-  return hasHardenedRuntimeMacOS();
-#else
-  return false;
-#endif
-}
-
 // Detects whether MAP_JIT is available.
 static inline bool hasMapJitSupport() noexcept {
-#if defined(__APPLE__)
-  return hasMapJitSupportMacOS();
+#if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
+  // OSX on AArch64 always uses hardened runtime + MAP_JIT:
+  //   - https://developer.apple.com/documentation/apple_silicon/porting_just-in-time_compilers_to_apple_silicon
+  return true;
+#elif defined(__APPLE__) && TARGET_OS_OSX
+  return getOSXVersion() >= 18;
 #else
+  // MAP_JIT is not available (it's only available on OSX).
   return false;
 #endif
 }
@@ -564,15 +550,15 @@ static Error getShmStrategy(ShmStrategy* strategyOut) noexcept {
 }
 
 static HardenedRuntimeFlags getHardenedRuntimeFlags() noexcept {
-  HardenedRuntimeFlags hrFlags = HardenedRuntimeFlags::kNone;
+  HardenedRuntimeFlags flags = HardenedRuntimeFlags::kNone;
 
   if (hasHardenedRuntime())
-    hrFlags |= HardenedRuntimeFlags::kEnabled;
+    flags |= HardenedRuntimeFlags::kEnabled;
 
   if (hasMapJitSupport())
-    hrFlags |= HardenedRuntimeFlags::kMapJit;
+    flags |= HardenedRuntimeFlags::kMapJit;
 
-  return hrFlags;
+  return flags;
 }
 
 Error alloc(void** p, size_t size, MemoryFlags memoryFlags) noexcept {
