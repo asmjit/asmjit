@@ -790,15 +790,23 @@ public:
   //! Clones the memory operand.
   inline constexpr Mem clone() const noexcept { return Mem(*this); }
 
-  //! Creates a new copy of this memory operand adjusted by `off`.
+  //! Creates a copy of this memory operand adjusted by `off`.
   inline Mem cloneAdjusted(int64_t off) const noexcept {
     Mem result(*this);
     result.addOffset(off);
     return result;
   }
 
-  inline constexpr Mem cloneBroadcasted(Broadcast b) const noexcept {
-    return Mem((_signature & ~Signature{kSignatureMemBroadcastMask}) | Signature::fromValue<kSignatureMemBroadcastMask>(b), _baseId, _data[0], int32_t(_data[1]));
+  //! Creates a copy of this memory operand resized to `size`.
+  inline Mem cloneResized(uint32_t size) const noexcept {
+    Mem result(*this);
+    result.setSize(size);
+    return result;
+  }
+
+  //! Creates a copy of this memory operand with a broadcast `bcst`.
+  inline constexpr Mem cloneBroadcasted(Broadcast bcst) const noexcept {
+    return Mem((_signature & ~Signature{kSignatureMemBroadcastMask}) | Signature::fromValue<kSignatureMemBroadcastMask>(bcst), _baseId, _data[0], int32_t(_data[1]));
   }
 
   //! \}
