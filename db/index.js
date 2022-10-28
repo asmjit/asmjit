@@ -10,6 +10,7 @@ exports.base      = require("./base.js");
 exports.arm       = require("./arm.js");
 exports.armdata   = require("./armdata.js");
 
+exports.riscv     = require("./riscv.js");
 exports.riscvdata = require("./riscvdata.js");
 
 exports.x86       = require("./x86.js");

@@ -35,7 +35,45 @@ struct EmitterExplicitT {
   //! \endcond
 
   // ${riscv64::EmitterExplicit:Begin}
-  // TODO: [RISC-V] See `EmitterExplicitT` of `a32`, try to generate instructions using 'https://github.com/riscv/riscv-opcodes'
+  // ------------------- Automatically generated, do not edit -------------------
+  ASMJIT_INST_3x(add, Inst::kIdAdd, Gp, Gp, Gp)
+  ASMJIT_INST_3x(addi, Inst::kIdAddi, Gp, Gp, Imm)
+  ASMJIT_INST_3x(and, Inst::kIdAnd, Gp, Gp, Gp)
+  ASMJIT_INST_3x(andi, Inst::kIdAndi, Gp, Gp, Imm)
+  ASMJIT_INST_2x(auipc, Inst::kIdAuipc, Gp, Imm)
+  ASMJIT_INST_4x(beq, Inst::kIdBeq, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_4x(bge, Inst::kIdBge, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_4x(bgeu, Inst::kIdBgeu, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_4x(blt, Inst::kIdBlt, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_4x(bltu, Inst::kIdBltu, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_4x(bne, Inst::kIdBne, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_0x(ebreak, Inst::kIdEbreak)
+  ASMJIT_INST_0x(ecall, Inst::kIdEcall)
+  ASMJIT_INST_5x(fence, Inst::kIdFence, Imm, Imm, Imm, Gp, Gp)
+  ASMJIT_INST_2x(jal, Inst::kIdJal, Gp, Imm)
+  ASMJIT_INST_3x(jalr, Inst::kIdJalr, Gp, Gp, Imm)
+  ASMJIT_INST_3x(lb, Inst::kIdLb, Gp, Gp, Imm)
+  ASMJIT_INST_3x(lbu, Inst::kIdLbu, Gp, Gp, Imm)
+  ASMJIT_INST_3x(lh, Inst::kIdLh, Gp, Gp, Imm)
+  ASMJIT_INST_3x(lhu, Inst::kIdLhu, Gp, Gp, Imm)
+  ASMJIT_INST_2x(lui, Inst::kIdLui, Gp, Imm)
+  ASMJIT_INST_3x(lw, Inst::kIdLw, Gp, Gp, Imm)
+  ASMJIT_INST_3x(or, Inst::kIdOr, Gp, Gp, Gp)
+  ASMJIT_INST_3x(ori, Inst::kIdOri, Gp, Gp, Imm)
+  ASMJIT_INST_4x(sb, Inst::kIdSb, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_4x(sh, Inst::kIdSh, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_3x(sll, Inst::kIdSll, Gp, Gp, Gp)
+  ASMJIT_INST_3x(slt, Inst::kIdSlt, Gp, Gp, Gp)
+  ASMJIT_INST_3x(slti, Inst::kIdSlti, Gp, Gp, Imm)
+  ASMJIT_INST_3x(sltiu, Inst::kIdSltiu, Gp, Gp, Imm)
+  ASMJIT_INST_3x(sltu, Inst::kIdSltu, Gp, Gp, Gp)
+  ASMJIT_INST_3x(sra, Inst::kIdSra, Gp, Gp, Gp)
+  ASMJIT_INST_3x(srl, Inst::kIdSrl, Gp, Gp, Gp)
+  ASMJIT_INST_3x(sub, Inst::kIdSub, Gp, Gp, Gp)
+  ASMJIT_INST_4x(sw, Inst::kIdSw, Imm, Gp, Gp, Imm)
+  ASMJIT_INST_3x(xor, Inst::kIdXor, Gp, Gp, Gp)
+  ASMJIT_INST_3x(xori, Inst::kIdXori, Gp, Gp, Imm)
+  // ----------------------------------------------------------------------------
   // ${riscv64::EmitterExplicit:End}
 };
 
