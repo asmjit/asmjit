@@ -486,7 +486,7 @@ public:
   //! Clones the memory operand and makes it post-index.
   inline Mem post() const noexcept {
     Mem result(*this);
-    result.setPredicate(kOffsetPreIndex);
+    result.setPredicate(kOffsetPostIndex);
     return result;
   }
 
