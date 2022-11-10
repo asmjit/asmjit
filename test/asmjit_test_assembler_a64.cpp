@@ -746,6 +746,10 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("411088B8", ldursw(x1, ptr(x2, 129)));
   TEST_INSTRUCTION("E10380B8", ldursw(x1, ptr(sp)));
   TEST_INSTRUCTION("E11388B8", ldursw(x1, ptr(sp, 129)));
+  TEST_INSTRUCTION("420080B8", ldursw(x2, ptr(x2)));
+  TEST_INSTRUCTION("421088B8", ldursw(x2, ptr(x2, 129)));
+  TEST_INSTRUCTION("E20380B8", ldursw(x2, ptr(sp)));
+  TEST_INSTRUCTION("E21388B8", ldursw(x2, ptr(sp, 129)));
   TEST_INSTRUCTION("61087F88", ldxp(w1, w2, ptr(x3)));
   TEST_INSTRUCTION("E10B7F88", ldxp(w1, w2, ptr(sp)));
   TEST_INSTRUCTION("61087FC8", ldxp(x1, x2, ptr(x3)));
