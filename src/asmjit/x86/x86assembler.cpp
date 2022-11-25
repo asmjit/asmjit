@@ -493,11 +493,11 @@ static ASMJIT_FORCE_INLINE uint32_t x86GetMovAbsInstSize64Bit(uint32_t regSize, 
 static ASMJIT_FORCE_INLINE bool x86ShouldUseMovabs(Assembler* self, X86BufferWriter& writer, uint32_t regSize, InstOptions options, const Mem& rmRel) noexcept {
   if (self->is32Bit()) {
     // There is no relative addressing, just decide whether to use MOV encoded with MOD R/M or absolute.
-    return !Support::test(options, InstOptions::kX86_ModMR | InstOptions::kX86_ModMR);
+    return !Support::test(options, InstOptions::kX86_ModMR | InstOptions::kX86_ModRM);
   }
   else {
     // If the addressing type is REL or MOD R/M was specified then absolute mov won't be used.
-    if (rmRel.addrType() == Mem::AddrType::kRel || Support::test(options, InstOptions::kX86_ModMR))
+    if (rmRel.addrType() == Mem::AddrType::kRel || Support::test(options, InstOptions::kX86_ModMR | InstOptions::kX86_ModRM))
       return false;
 
     int64_t addrValue = rmRel.offset();
