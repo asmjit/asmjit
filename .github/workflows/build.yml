@@ -100,10 +100,10 @@ jobs:
           - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
-          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "macos-11.0"    , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
           - { title: "windows"        , os: "windows-2019"  , cc: "vs2019"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "windows"        , os: "windows-2019"  , cc: "vs2019"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
@@ -120,15 +120,18 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: "source"
 
-      - name: "Checkout build-actions"
-        run: git clone https://github.com/build-actions/build-actions.git build-actions --depth=1
+      - name: "Checkout Build Actions"
+        uses: actions/checkout@v3
+        with:
+          repository: build-actions/build-actions
+          path: "build-actions"
 
       - name: "Python"
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.x"
 
