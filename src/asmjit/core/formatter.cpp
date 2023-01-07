@@ -471,8 +471,7 @@ Error formatNode(
 
     case NodeType::kComment: {
       const CommentNode* commentNode = node->as<CommentNode>();
-      ASMJIT_PROPAGATE(sb.appendFormat("; %s", commentNode->inlineComment()));
-      break;
+      return sb.appendFormat("; %s", commentNode->inlineComment());
     }
 
     case NodeType::kSentinel: {
