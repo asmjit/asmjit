@@ -2247,8 +2247,9 @@ class InstRWInfoTable extends core.Task {
         const operands = dbInst.operands;
         const rwOps = nullOps();
 
-        for (var j = 0; j < operands.length; j++)
+        for (var j = 0; j < operands.length; j++) {
           rwOps[j] = makeRwFromOp(operands[j])
+        }
 
         var match = 0;
         for (var j = 0; j < rwOpsArray.length; j++)

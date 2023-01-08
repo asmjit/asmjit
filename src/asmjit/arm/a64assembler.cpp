@@ -4997,9 +4997,7 @@ EmitDone:
 #endif
   }
 
-  resetExtraReg();
-  resetInstOptions();
-  resetInlineComment();
+  resetState();
 
   writer.done(this);
   return kErrorOk;
@@ -5025,9 +5023,7 @@ Failed:
 #ifndef ASMJIT_NO_LOGGING
   return EmitterUtils::logInstructionFailed(this, err, instId, options, o0, o1, o2, opExt);
 #else
-  resetExtraReg();
-  resetInstOptions();
-  resetInlineComment();
+  resetState();
   return reportError(err);
 #endif
 }

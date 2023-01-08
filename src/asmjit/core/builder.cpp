@@ -597,9 +597,7 @@ Error BaseBuilder::_emit(InstId instId, const Operand_& o0, const Operand_& o1, 
 #ifndef ASMJIT_NO_LOGGING
         return EmitterUtils::logInstructionFailed(this, err, instId, options, o0, o1, o2, opExt);
 #else
-        resetInstOptions();
-        resetExtraReg();
-        resetInlineComment();
+        resetState();
         return reportError(err);
 #endif
       }

@@ -116,9 +116,7 @@ Error logInstructionFailed(
     sb.append(self->inlineComment());
   }
 
-  self->resetInstOptions();
-  self->resetExtraReg();
-  self->resetInlineComment();
+  self->resetState();
   return self->reportError(err, sb.data());
 }
 

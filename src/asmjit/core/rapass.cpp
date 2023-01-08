@@ -114,11 +114,14 @@ Error BaseRAPass::runOnFunction(Zone* zone, Logger* logger, FuncNode* func) {
 #ifndef ASMJIT_NO_LOGGING
   _logger = logger;
   _formatOptions.reset();
-  _diagnosticOptions = DiagnosticOptions::kNone;
+  _diagnosticOptions = _cb->diagnosticOptions();
 
   if (logger) {
     _formatOptions = logger->options();
-    _diagnosticOptions = _cb->diagnosticOptions();
+  }
+  else {
+    _diagnosticOptions &= ~(DiagnosticOptions::kRADebugCFG |
+                            DiagnosticOptions::kRADebugUnreachable);
   }
 #else
   DebugUtils::unused(logger);
