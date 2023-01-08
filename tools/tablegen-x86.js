@@ -2195,10 +2195,14 @@ class InstRWInfoTable extends core.Task {
           if (op.consecutiveLeadCount)
             d.clc = op.consecutiveLeadCount;
 
-          if (op.isReg())
-            d.fixed = GenUtils.fixedRegOf(op.reg);
-          else
-            d.fixed = GenUtils.fixedRegOf(op.mem);
+          // NOTE: Avoid push/pop here as PUSH/POP has many variations for segment registers,
+          // which would set 'd.fixed' field even for GP variation of the instuction.
+          if (dbInst.name !== "push" && dbInst.name !== "pop") {
+            if (op.isReg())
+              d.fixed = GenUtils.fixedRegOf(op.reg);
+            else
+              d.fixed = GenUtils.fixedRegOf(op.mem);
+          }
 
           if (op.zext)
             d.flags.ZExt = true;
