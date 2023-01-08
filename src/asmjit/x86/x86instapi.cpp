@@ -794,9 +794,6 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
   if (ASMJIT_UNLIKELY(!Inst::isDefinedId(instId)))
     return DebugUtils::errored(kErrorInvalidInstruction);
 
-  if (instId == Inst::kIdPop)
-    printf("HERE\n");
-
   // Read/Write flags.
   const InstDB::InstInfo& instInfo = InstDB::_instInfoTable[instId];
   const InstDB::CommonInfo& commonInfo = InstDB::_commonInfoTable[instInfo._commonInfoIndex];
