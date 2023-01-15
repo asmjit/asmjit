@@ -133,11 +133,8 @@ class ArmTableGen extends core.TableGen {
 
         // [06] OpcodeDataIndex.
         "([^\\)]+)" +
-        "\\s*,\\s*" +
-
-        // [07] NameDataIndex.
-        "([^\\)]+)" +
         "\\s*\\)"
+
       , "g");
 
     var m;
@@ -168,9 +165,7 @@ class ArmTableGen extends core.TableGen {
         opcodeData        : opcodeData,      // Opcode data.
         opcodeDataIndex   : -1,              // Opcode data index.
         rwInfo            : rwInfo,          // RW info.
-        flags             : instFlags,       // Instruction flags.
-
-        nameIndex         : -1               // Index to InstDB::_nameData.
+        flags             : instFlags        // Instruction flags.
       });
     }
 
@@ -188,8 +183,7 @@ class ArmTableGen extends core.TableGen {
         String(inst.opcodeData      ).padEnd(86) + ", " +
         String(inst.rwInfo          ).padEnd(10) + ", " +
         String(inst.flags           ).padEnd(26) + ", " +
-        String(inst.opcodeDataIndex ).padEnd( 3) + ", " +
-        String(inst.nameIndex       ).padEnd( 4) + ")";
+        String(inst.opcodeDataIndex ).padEnd( 3) + ")" ;
     }) + "\n";
     return this.inject("InstInfo", s, this.insts.length * 4);
   }
