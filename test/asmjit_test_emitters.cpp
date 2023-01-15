@@ -90,7 +90,7 @@ static uint32_t testFunc(JitRuntime& rt, EmitterType emitterType) noexcept {
 #endif
 
   CodeHolder code;
-  code.init(rt.environment());
+  code.init(rt.environment(), rt.cpuFeatures());
 
 #ifndef ASMJIT_NO_LOGGING
   code.setLogger(&logger);

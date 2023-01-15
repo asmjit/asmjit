@@ -454,7 +454,8 @@ namespace asmjit {
 //!   JitRuntime rt;                    // Runtime specialized for JIT code execution.
 //!
 //!   CodeHolder code;                  // Holds code and relocation information.
-//!   code.init(rt.environment());      // Initialize code to match the JIT environment.
+//!   code.init(rt.environment(),       // Initialize code to match the JIT environment.
+//!             rt.cpuFeatures());
 //!
 //!   x86::Assembler a(&code);          // Create and attach x86::Assembler to code.
 //!   a.mov(x86::eax, 1);               // Move one to eax register.
@@ -599,9 +600,10 @@ namespace asmjit {
 //! int main() {
 //!   // Create a custom environment that matches the current host environment.
 //!   Environment env = Environment::host();
+//!   CpuFeatures cpuFeatures = CpuInfo::host().features();
 //!
 //!   CodeHolder code;                  // Create a CodeHolder.
-//!   code.init(env);                   // Initialize CodeHolder with environment.
+//!   code.init(env, cpuFeatures);      // Initialize CodeHolder with environment.
 //!
 //!   x86::Assembler a(&code);          // Create and attach x86::Assembler to `code`.
 //!
@@ -722,10 +724,11 @@ namespace asmjit {
 //!
 //! void initializeCodeHolder(CodeHolder& code) {
 //!   Environment env = Environment::host();
+//!   CpuFeatures cpuFeatures = CpuInfo::host().features();
 //!   uint64_t baseAddress = uint64_t(0x1234);
 //!
 //!   // initialize CodeHolder with environment and custom base address.
-//!   code.init(env, baseAddress);
+//!   code.init(env, cpuFeatures, baseAddress);
 //! }
 //! ```
 //!
@@ -1346,7 +1349,8 @@ namespace asmjit {
 //!   FileLogger logger(stdout);   // Logger should always survive CodeHolder.
 //!
 //!   CodeHolder code;             // Holds code and relocation information.
-//!   code.init(rt.environment()); // Initialize to the same arch as JIT runtime.
+//!   code.init(rt.environment(),  // Initialize code to match the JIT environment.
+//!             rt.cpuFeatures());
 //!   code.setLogger(&logger);     // Attach the `logger` to `code` holder.
 //!
 //!   // ... code as usual, everything emitted will be logged to `stdout` ...
@@ -1369,7 +1373,8 @@ namespace asmjit {
 //!   StringLogger logger;         // Logger should always survive CodeHolder.
 //!
 //!   CodeHolder code;             // Holds code and relocation information.
-//!   code.init(rt.environment()); // Initialize to the same arch as JIT runtime.
+//!   code.init(rt.environment(),  // Initialize code to match the JIT environment.
+//!             rt.cpuFeatures());
 //!   code.setLogger(&logger);     // Attach the `logger` to `code` holder.
 //!
 //!   // ... code as usual, logging will be concatenated to logger string  ...
@@ -1560,7 +1565,7 @@ namespace asmjit {
 //!   MyErrorHandler myErrorHandler;
 //!   CodeHolder code;
 //!
-//!   code.init(rt.environment());
+//!   code.init(rt.environment(), rt.cpuFeatures());
 //!   code.setErrorHandler(&myErrorHandler);
 //!
 //!   x86::Assembler a(&code);

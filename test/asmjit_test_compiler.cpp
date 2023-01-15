@@ -91,7 +91,7 @@ int TestApp::run() {
       CodeHolder code;
       SimpleErrorHandler errorHandler;
 
-      code.init(runtime.environment());
+      code.init(runtime.environment(), runtime.cpuFeatures());
       code.setErrorHandler(&errorHandler);
 
       if (pass != 0) {

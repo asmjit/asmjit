@@ -220,9 +220,11 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               }
             }
 
-            // Do not use RegMem flag if changing Reg to Mem requires additional CPU feature that may not be enabled.
+            // Do not use RegMem flag if changing Reg to Mem requires a CPU feature that is not available.
             if (rwInfo.rmFeature() && Support::test(flags, RATiedFlags::kUseRM | RATiedFlags::kOutRM)) {
-              flags &= ~(RATiedFlags::kUseRM | RATiedFlags::kOutRM);
+              if (!cc()->code()->cpuFeatures().has(rwInfo.rmFeature())) {
+                flags &= ~(RATiedFlags::kUseRM | RATiedFlags::kOutRM);
+              }
             }
 
             RegGroup group = workReg->group();

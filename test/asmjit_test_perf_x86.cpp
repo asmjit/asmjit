@@ -4912,42 +4912,49 @@ static void benchmarkX86Function(Arch arch, uint32_t numIterations, const char* 
   CodeHolder code;
   printf("%s:\n", description);
 
-  bench<x86::Assembler>(code, arch, numIterations, "[raw]", [&](x86::Assembler& cc) {
+  uint32_t instCount = 0;
+
+#ifndef ASMJIT_NO_BUILDER
+  instCount = asmjit_perf_utils::calculateInstructionCount<x86::Builder>(code, arch, [&](x86::Builder& cc) {
+    emitterFn(cc, false);
+  });
+#endif
+
+  asmjit_perf_utils::bench<x86::Assembler>(code, arch, numIterations, "[raw]", instCount, [&](x86::Assembler& cc) {
     emitterFn(cc, false);
   });
 
-  bench<x86::Assembler>(code, arch, numIterations, "[validated]", [&](x86::Assembler& cc) {
+  asmjit_perf_utils::bench<x86::Assembler>(code, arch, numIterations, "[validated]", instCount, [&](x86::Assembler& cc) {
     cc.addDiagnosticOptions(DiagnosticOptions::kValidateAssembler);
     emitterFn(cc, false);
   });
 
-  bench<x86::Assembler>(code, arch, numIterations, "[prolog/epilog]", [&](x86::Assembler& cc) {
-    cc.addDiagnosticOptions(DiagnosticOptions::kValidateAssembler);
+  asmjit_perf_utils::bench<x86::Assembler>(code, arch, numIterations, "[prolog/epilog]", instCount, [&](x86::Assembler& cc) {
     emitterFn(cc, true);
   });
 
 #ifndef ASMJIT_NO_BUILDER
-  bench<x86::Builder>(code, arch, numIterations, "[no-asm]", [&](x86::Builder& cc) {
+  asmjit_perf_utils::bench<x86::Builder>(code, arch, numIterations, "[no-asm]", instCount, [&](x86::Builder& cc) {
     emitterFn(cc, false);
   });
 
-  bench<x86::Builder>(code, arch, numIterations, "[finalized]", [&](x86::Builder& cc) {
+  asmjit_perf_utils::bench<x86::Builder>(code, arch, numIterations, "[finalized]", instCount, [&](x86::Builder& cc) {
     emitterFn(cc, false);
     cc.finalize();
   });
 
-  bench<x86::Builder>(code, arch, numIterations, "[prolog/epilog]", [&](x86::Builder& cc) {
+  asmjit_perf_utils::bench<x86::Builder>(code, arch, numIterations, "[prolog/epilog]", instCount, [&](x86::Builder& cc) {
     emitterFn(cc, true);
     cc.finalize();
   });
 #endif
 
 #ifndef ASMJIT_NO_COMPILER
-  bench<x86::Compiler>(code, arch, numIterations, "[no-asm]", [&](x86::Compiler& cc) {
+  asmjit_perf_utils::bench<x86::Compiler>(code, arch, numIterations, "[no-asm]", instCount, [&](x86::Compiler& cc) {
     emitterFn(cc, true);
   });
 
-  bench<x86::Compiler>(code, arch, numIterations, "[finalized]", [&](x86::Compiler& cc) {
+  asmjit_perf_utils::bench<x86::Compiler>(code, arch, numIterations, "[finalized]", instCount, [&](x86::Compiler& cc) {
     emitterFn(cc, true);
     cc.finalize();
   });
