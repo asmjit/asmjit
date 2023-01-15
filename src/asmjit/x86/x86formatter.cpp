@@ -198,6 +198,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "AESNI\0"
     "ALTMOVCR8\0"
     "AMX_BF16\0"
+    "AMX_FP16\0"
     "AMX_INT8\0"
     "AMX_TILE\0"
     "AVX\0"
@@ -220,17 +221,22 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "AVX512_VNNI\0"
     "AVX512_VP2INTERSECT\0"
     "AVX512_VPOPCNTDQ\0"
+    "AVX_IFMA\0"
+    "AVX_NE_CONVERT\0"
     "AVX_VNNI\0"
+    "AVX_VNNI_INT8\0"
     "BMI\0"
     "BMI2\0"
     "CET_IBT\0"
     "CET_SS\0"
+    "CET_SSS\0"
     "CLDEMOTE\0"
     "CLFLUSH\0"
     "CLFLUSHOPT\0"
     "CLWB\0"
     "CLZERO\0"
     "CMOV\0"
+    "CMPCCXADD\0"
     "CMPXCHG16B\0"
     "CMPXCHG8B\0"
     "ENCLV\0"
@@ -241,14 +247,19 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "FMA4\0"
     "FPU\0"
     "FSGSBASE\0"
+    "FSRM\0"
+    "FSRC\0"
+    "FSRS\0"
     "FXSR\0"
     "FXSROPT\0"
+    "FZRM\0"
     "GEODE\0"
     "GFNI\0"
     "HLE\0"
     "HRESET\0"
     "I486\0"
     "LAHFSAHF\0"
+    "LAM\0"
     "LWP\0"
     "LZCNT\0"
     "MCOMMIT\0"
@@ -261,15 +272,18 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "MOVDIRI\0"
     "MPX\0"
     "MSR\0"
+    "MSRLIST\0"
     "MSSE\0"
     "OSXSAVE\0"
     "OSPKE\0"
     "PCLMULQDQ\0"
     "PCONFIG\0"
     "POPCNT\0"
+    "PREFETCHI\0"
     "PREFETCHW\0"
     "PREFETCHWT1\0"
     "PTWRITE\0"
+    "RAO_INT\0"
     "RDPID\0"
     "RDPRU\0"
     "RDRAND\0"
@@ -301,6 +315,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "VPCLMULQDQ\0"
     "WAITPKG\0"
     "WBNOINVD\0"
+    "WRMSRNS\0"
     "XOP\0"
     "XSAVE\0"
     "XSAVEC\0"
@@ -309,14 +324,15 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "<Unknown>\0";
 
   static const uint16_t sFeatureIndex[] = {
-    0, 5, 8, 11, 17, 24, 28, 34, 44, 53, 62, 71, 75, 80, 94, 108, 120, 134, 144,
-    155, 165, 176, 185, 197, 209, 220, 232, 245, 255, 267, 287, 304, 313, 317,
-    322, 330, 337, 346, 354, 365, 370, 377, 382, 393, 403, 409, 416, 421, 426,
-    430, 435, 439, 448, 453, 461, 467, 472, 476, 483, 488, 497, 501, 507, 515,
-    519, 524, 532, 541, 547, 557, 565, 569, 573, 578, 586, 592, 602, 610, 617,
-    627, 639, 647, 653, 659, 666, 673, 679, 686, 690, 700, 704, 711, 716, 721,
-    725, 729, 733, 738, 743, 750, 757, 763, 769, 773, 777, 781, 790, 796, 801,
-    805, 816, 824, 833, 837, 843, 850, 859, 866
+    0, 5, 8, 11, 17, 24, 28, 34, 44, 53, 62, 71, 80, 84, 89, 103, 117, 129, 143,
+    153, 164, 174, 185, 194, 206, 218, 229, 241, 254, 264, 276, 296, 313, 322,
+    337, 346, 360, 364, 369, 377, 384, 392, 401, 409, 420, 425, 432, 437, 447,
+    458, 468, 474, 481, 486, 491, 495, 500, 504, 513, 518, 523, 528, 533, 541,
+    546, 552, 557, 561, 568, 573, 582, 586, 590, 596, 604, 608, 613, 621, 630,
+    636, 646, 654, 658, 662, 670, 675, 683, 689, 699, 707, 714, 724, 734, 746,
+    754, 762, 768, 774, 781, 788, 794, 801, 805, 815, 819, 826, 831, 836, 840,
+    844, 848, 853, 858, 865, 872, 878, 884, 888, 892, 896, 905, 911, 916, 920,
+    931, 939, 948, 956, 960, 966, 973, 982, 989
   };
   // @EnumStringEnd@
 
