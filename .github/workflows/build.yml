@@ -19,7 +19,7 @@ jobs:
     - name: "Setup node.js"
       uses: actions/setup-node@v3
       with:
-        node-version: "14"
+        node-version: "16"
 
     - name: "Check Enumerations"
       run: |
@@ -31,7 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { title: "linux-lib"      , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Release", problem_matcher: "cpp" }
+          - { title: "linux-lib"      , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", problem_matcher: "cpp" }
           - { title: "windows-lib"    , os: "windows-2022"  , cc: "vs2022"  , arch: "x86", build_type: "Debug"  , problem_matcher: "cpp" }
 
           - { title: "diag-asan"      , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON", diagnostics: "address" }
@@ -45,52 +45,42 @@ jobs:
           - { title: "no-builder"     , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON,ASMJIT_NO_BUILDER=1" }
           - { title: "no-compiler"    , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON,ASMJIT_NO_COMPILER=1" }
 
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "gcc"     , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "gcc"     , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "gcc"     , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "gcc"     , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-4.8" , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-4.8" , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-4.8" , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-4.8" , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-5"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-5"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-6"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-18.04"  , cc: "gcc-6"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-7"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-7"   , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-7"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-7"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-8"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-8"   , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-8"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-9"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-9"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-10"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-10"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-11"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "clang"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "clang"   , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-latest" , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-9" , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-9" , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-9" , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-9" , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "gcc-8"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-9"   , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-9"   , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-9"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-9"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-10"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-10"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-11"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-11"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-11"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-11"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-12"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-12"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-12"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "gcc-12"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-10", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-10", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-10", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-10", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-11", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "linux"          , os: "ubuntu-20.04"  , cc: "clang-12", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-11", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-11", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-11", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-11", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-12", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-12", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-12", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-12", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-13", arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-13", arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-13", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
@@ -100,10 +90,10 @@ jobs:
           - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "linux"          , os: "ubuntu-22.04"  , cc: "clang-14", arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
-          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
-          - { title: "macos-11.0"     , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos"          , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos"          , os: "macos-11.0"    , cc: "gcc-10"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { title: "macos"          , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
+          - { title: "macos"          , os: "macos-11.0"    , cc: "clang"   , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
           - { title: "windows"        , os: "windows-2019"  , cc: "vs2019"  , arch: "x86", build_type: "Debug"  , defs: "ASMJIT_TEST=ON" }
           - { title: "windows"        , os: "windows-2019"  , cc: "vs2019"  , arch: "x86", build_type: "Release", defs: "ASMJIT_TEST=ON" }

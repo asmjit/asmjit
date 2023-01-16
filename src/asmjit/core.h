@@ -105,40 +105,35 @@ namespace asmjit {
 //!
 //!   - Tested:
 //!
-//!     - **Clang** - Tested by GitHub Actions - Clang 3.9+ (with C++11 enabled) is officially supported (older Clang
-//!       versions having C++11 support are probably fine, but are not regularly tested).
+//!     - **Clang** - Tested by GitHub Actions - Clang 10+ is officially supported and tested by CI, older Clang versions
+//!       having C++11 should work, but are not tested anymore due to upgraded CI images.
 //!
-//!     - **GNU** - Tested by GitHub Actions - GCC 4.8+ (with C++11 enabled) is officially supported.
+//!     - **GNU** - Tested by GitHub Actions - GCC 7+ is officially supported, older GCC versions from 4.8+ having C++11
+//!       enabled should also work, but are not tested anymore due to upgraded CI images.
 //!
-//!     - **MINGW** - Should work, but it's not tested in our CI environment.
+//!     - **MINGW** - Reported to work, but not tested in our CI environment (help welcome).
 //!
-//!     - **MSVC** - Tested by GitHub Actions - VS2017+ is officially supported, VS2015 is reported to work.
-//!
-//!   - Untested:
-//!
-//!     - **Intel** - No maintainers and no CI environment to regularly test this compiler.
-//!
-//!     - **Other** C++ compilers would require basic support in
-//!       [core/api-config.h](https://github.com/asmjit/asmjit/tree/master/src/asmjit/core/api-config.h).
+//!     - **MSVC** - Tested by GitHub Actions - VS2019+ is officially supported, VS2015 and VS2017 is reported to work,
+//!       but not tested by CI anymore.
 //!
 //! ### Supported Operating Systems and Platforms
 //!
 //!   - Tested:
 //!
-//!     - **Linux** - Tested by GitHub Actions (any distribution is generally supported).
+//!     - **Linux** - Tested by GitHub Actions (any distribution is generally supported, CI uses Ubuntu images).
 //!
 //!     - **Mac OS** - Tested by GitHub Actions (any version is supported).
 //!
 //!     - **Windows** - Tested by GitHub Actions - (Windows 7+ is officially supported).
 //!
 //!     - **Emscripten** - Works if compiled with \ref ASMJIT_NO_JIT. AsmJit cannot generate WASM code, but can be
-//!       used to generate X86/X64 code within a browser, for example.
+//!       used to generate X86/X64/AArch64 code within a browser, for example.
 //!
 //!   - Untested:
 //!
 //!     - **BSDs** - No maintainers, no CI environment to regularly test BSDs, but they should work out of box.
 //!
-//!     - **Haiku** - Not regularly tested, but reported to work.
+//!     - **Haiku** - Reported to work, not tested by CI.
 //!
 //!     - **Other** operating systems would require some testing and support in the following files:
 //!       - [core/api-config.h](https://github.com/asmjit/asmjit/tree/master/src/asmjit/core/api-config.h)
@@ -149,7 +144,7 @@ namespace asmjit {
 //!
 //!   - **X86** and **X86_64** - Both 32-bit and 64-bit backends tested on CI.
 //!   - **AArch64** - AArch64 backend is currently only partially tested (there is no native AArch64 runner to test
-//!     AsmJit Builder/Compiler)
+//!     AsmJit Builder/Compiler).
 //!
 //! ### Static Builds and Embedding
 //!
