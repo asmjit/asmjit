@@ -410,7 +410,7 @@ static int mmProtFromMemoryFlags(MemoryFlags memoryFlags) noexcept {
 #if defined(__APPLE__) && TARGET_OS_OSX
 static int getOSXVersion() noexcept {
   // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave).
-  static std::atomic<uint32_t> globalVersion;
+  static std::atomic<int> globalVersion;
 
   int ver = globalVersion.load();
   if (!ver) {
