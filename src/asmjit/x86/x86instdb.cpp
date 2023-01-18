@@ -4619,8 +4619,8 @@ const InstDB::InstSignature InstDB::_instSignatureTable[] = {
   ROW(3, 1, 1, 2, 34 , 33 , 27 , 0  , 0  , 0  ), //      {<dx>, <ax>, r16|m16|mem}
   ROW(3, 1, 1, 2, 35 , 36 , 28 , 0  , 0  , 0  ), //      {<edx>, <eax>, r32|m32|mem}
   ROW(3, 0, 1, 2, 37 , 38 , 15 , 0  , 0  , 0  ), //      {<rdx>, <rax>, r64|m64|mem}
-  ROW(2, 1, 1, 0, 4  , 39 , 0  , 0  , 0  , 0  ), //      {r16, r16|m16|mem|i8|i16}
-  ROW(2, 1, 1, 0, 6  , 40 , 0  , 0  , 0  , 0  ), //      {r32, r32|m32|mem|i8|i32}
+  ROW(2, 1, 1, 0, 4  , 39 , 0  , 0  , 0  , 0  ), //      {r16, r16|m16|mem|i8|i16|u16}
+  ROW(2, 1, 1, 0, 6  , 40 , 0  , 0  , 0  , 0  ), //      {r32, r32|m32|mem|i8|i32|u32}
   ROW(2, 0, 1, 0, 8  , 41 , 0  , 0  , 0  , 0  ), //      {r64, r64|m64|mem|i8|i32}
   ROW(3, 1, 1, 0, 4  , 27 , 42 , 0  , 0  , 0  ), //      {r16, r16|m16|mem, i8|i16|u16}
   ROW(3, 1, 1, 0, 6  , 28 , 43 , 0  , 0  , 0  ), //      {r32, r32|m32|mem, i8|i32|u32}
@@ -5137,8 +5137,8 @@ const InstDB::OpSignature InstDB::_opSignatureTable[] = {
   ROW(F(RegGpd) | F(FlagImplicit), 0x01),
   ROW(F(RegGpq) | F(FlagImplicit), 0x04),
   ROW(F(RegGpq) | F(FlagImplicit), 0x01),
-  ROW(F(RegGpw) | F(MemUnspecified) | F(Mem16) | F(ImmI8) | F(ImmI16), 0x00),
-  ROW(F(RegGpd) | F(MemUnspecified) | F(Mem32) | F(ImmI8) | F(ImmI32), 0x00),
+  ROW(F(RegGpw) | F(MemUnspecified) | F(Mem16) | F(ImmI8) | F(ImmI16) | F(ImmU16), 0x00),
+  ROW(F(RegGpd) | F(MemUnspecified) | F(Mem32) | F(ImmI8) | F(ImmI32) | F(ImmU32), 0x00),
   ROW(F(RegGpq) | F(MemUnspecified) | F(Mem64) | F(ImmI8) | F(ImmI32), 0x00),
   ROW(F(ImmI8) | F(ImmI16) | F(ImmU16), 0x00),
   ROW(F(ImmI8) | F(ImmI32) | F(ImmU32), 0x00),
