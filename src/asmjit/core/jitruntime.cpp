@@ -47,9 +47,6 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
   if (codeSize < estimatedCodeSize)
     _allocator.shrink(rx, codeSize);
 
-  if (codeSize < estimatedCodeSize)
-    _allocator.shrink(rx, codeSize);
-
   {
     VirtMem::ProtectJitReadWriteScope rwScope(rx, codeSize);
 
