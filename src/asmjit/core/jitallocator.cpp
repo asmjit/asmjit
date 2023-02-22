@@ -430,6 +430,15 @@ static inline JitAllocatorPrivateImpl* JitAllocatorImpl_new(const JitAllocator::
   if (ASMJIT_UNLIKELY(!p))
     return nullptr;
 
+  VirtMem::HardenedRuntimeInfo hardenedRtInfo = VirtMem::hardenedRuntimeInfo();
+  if (Support::test(hardenedRtInfo.flags, VirtMem::HardenedRuntimeFlags::kEnabled)) {
+    // If we are running within a hardened environment (mapping RWX is not allowed) then we have to use dual mapping
+    // or other runtime capabilities like Apple specific MAP_JIT. There is no point in not enabling these as otherwise
+    // the allocation would fail and JitAllocator would not be able to allocate memory.
+    if (!Support::test(hardenedRtInfo.flags, VirtMem::HardenedRuntimeFlags::kMapJit))
+      options |= JitAllocatorOptions::kUseDualMapping;
+  }
+
   JitAllocatorPool* pools = reinterpret_cast<JitAllocatorPool*>((uint8_t*)p + sizeof(JitAllocatorPrivateImpl));
   JitAllocatorPrivateImpl* impl = new(p) JitAllocatorPrivateImpl(pools, poolCount);
 
