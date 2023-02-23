@@ -492,7 +492,7 @@ static Error getAnonMemStrategy(AnonymousMemStrategy* strategyOut) noexcept {
 // cannot be normally allocated. On OSX + AArch64 such allocation requires MAP_JIT flag, other platforms don't
 // support this combination.
 static bool hasHardenedRuntime() noexcept {
-#if TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
+#if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
   // OSX on AArch64 has always hardened runtime enabled.
   return true;
 #else
@@ -508,7 +508,7 @@ static bool hasHardenedRuntime() noexcept {
   if (flag == kHardenedFlagUnknown) {
     uint32_t pageSize = uint32_t(::getpagesize());
 
-    void* ptr = mmap(nullptr, pageSize, PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    void* ptr = mmap(nullptr, pageSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (ptr == MAP_FAILED) {
       flag = kHardenedFlagEnabled;
     }
