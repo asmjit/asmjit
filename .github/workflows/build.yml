@@ -186,7 +186,7 @@ jobs:
             PATH="/usr/sbin:/usr/pkg/sbin:/usr/pkg/bin:$PATH:$(pwd)/build-actions"
             export PATH
 
-            sh ./build-actions/install-python3.sh
+            sh ./build-actions/prepare-environment.sh
             python3 build-actions/action.py                       \
               --step=all                                          \
               --compiler=${{matrix.cc}}                           \
@@ -230,7 +230,7 @@ jobs:
             PATH="/usr/sbin:/usr/pkg/sbin:/usr/pkg/bin:$PATH:$(pwd)/build-actions"
             export PATH
 
-            bash ./build-actions/install-python3.sh
+            bash ./build-actions/prepare-environment.sh
             python3 ./build-actions/action.py                     \
               --step=all                                          \
               --compiler=${{matrix.cc}}                           \
