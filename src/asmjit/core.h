@@ -120,9 +120,13 @@ namespace asmjit {
 //!
 //!   - Tested:
 //!
-//!     - **Linux** - Tested by GitHub Actions (any distribution is generally supported, CI uses Ubuntu images).
+//!     - **BSD** - FreeBSD, NetBSD, and OpenBSD tested by GitHub Actions (only recent images are tested by CI). BSD
+//!       runners only test BSD images with clang compiler.
 //!
-//!     - **Mac OS** - Tested by GitHub Actions (any version is supported).
+//!     - **Linux** - Tested by GitHub Actions (only recent Ubuntu images are tested by CI, in general any distribution
+//!       should be supported as AsmJit has no dependencies).
+//!
+//!     - **Mac OS** - Tested by GitHub Actions.
 //!
 //!     - **Windows** - Tested by GitHub Actions - (Windows 7+ is officially supported).
 //!
@@ -130,8 +134,6 @@ namespace asmjit {
 //!       used to generate X86/X64/AArch64 code within a browser, for example.
 //!
 //!   - Untested:
-//!
-//!     - **BSDs** - No maintainers, no CI environment to regularly test BSDs, but they should work out of box.
 //!
 //!     - **Haiku** - Reported to work, not tested by CI.
 //!

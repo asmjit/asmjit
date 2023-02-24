@@ -155,8 +155,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { host: "macos-12", os: "freebsd", osver: "13.1", cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { host: "macos-12", os: "openbsd", osver: "7.2" , cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { host: "macos-12"     , os: "freebsd", osver: "13.1", cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { host: "macos-12"     , os: "netbsd" , osver: "9.2" , cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { host: "macos-12"     , os: "openbsd", osver: "7.2" , cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
+          - { host: "ubuntu-latest", os: "openbsd", osver: "7.2" , cc: "clang", arch: "arm64" , build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
     name: "${{matrix.os}}-${{matrix.osver}} (${{matrix.cc}}, ${{matrix.arch}}, ${{matrix.build_type}})"
     runs-on: ${{matrix.host}}
@@ -184,54 +186,13 @@ jobs:
             set -e
 
             PATH="/usr/sbin:/usr/pkg/sbin:/usr/pkg/bin:$PATH:$(pwd)/build-actions"
+            CI_NETBSD_USE_PKGIN=1
+
             export PATH
+            export CI_NETBSD_USE_PKGIN
 
             sh ./build-actions/prepare-environment.sh
             python3 build-actions/action.py                       \
-              --step=all                                          \
-              --compiler=${{matrix.cc}}                           \
-              --architecture=${{matrix.arch}}                     \
-              --source-dir=source                                 \
-              --config=source/.github/workflows/build-config.json \
-              --build-type=${{matrix.build_type}}                 \
-              --build-defs=${{matrix.defs}}
-
-  build-netbsd:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { title: "netbsd", host: "macos-12", os: "netbsd", cc: "clang", arch: "x86_64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-
-    name: "${{matrix.title}} (${{matrix.cc}}, ${{matrix.arch}}, ${{matrix.build_type}})"
-    runs-on: ${{matrix.host}}
-
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@v3
-        with:
-          path: "source"
-
-      - name: "Checkout Build Actions"
-        uses: actions/checkout@v3
-        with:
-          repository: build-actions/build-actions
-          path: "build-actions"
-
-      - name: Build & Test (VM)
-        uses: vmactions/netbsd-vm@v0
-        with:
-          mem: 6144
-          usesh: true
-          copyback: false
-          run: |
-            set -e
-
-            PATH="/usr/sbin:/usr/pkg/sbin:/usr/pkg/bin:$PATH:$(pwd)/build-actions"
-            export PATH
-
-            bash ./build-actions/prepare-environment.sh
-            python3 ./build-actions/action.py                     \
               --step=all                                          \
               --compiler=${{matrix.cc}}                           \
               --architecture=${{matrix.arch}}                     \
