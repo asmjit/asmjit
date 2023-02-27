@@ -915,8 +915,13 @@ Error JitAllocator::shrink(void* rxPtr, size_t newSize) noexcept {
     block->markShrunkArea(areaStart + areaShrunkSize, areaEnd);
 
     // Fill released memory if the secure mode is enabled.
-    if (Support::test(impl->options, JitAllocatorOptions::kFillUnusedMemory))
-      JitAllocatorImpl_fillPattern(block->rwPtr() + (areaStart + areaShrunkSize) * pool->granularity, fillPattern(), areaDiff * pool->granularity);
+    if (Support::test(impl->options, JitAllocatorOptions::kFillUnusedMemory)) {
+      uint8_t* spanPtr = block->rwPtr() + (areaStart + areaShrunkSize) * pool->granularity;
+      size_t spanSize = areaDiff * pool->granularity;
+
+      VirtMem::ProtectJitReadWriteScope scope(spanPtr, spanSize);
+      JitAllocatorImpl_fillPattern(spanPtr, fillPattern(), spanSize);
+    }
   }
 
   return kErrorOk;
