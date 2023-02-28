@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
-#ifndef ASMJIT_NO_LOGGING
+#if !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_LOGGING)
 
 #include "../core/cpuinfo.h"
 #include "../core/misc_p.h"
@@ -961,4 +961,4 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
 
 ASMJIT_END_SUB_NAMESPACE
 
-#endif // !ASMJIT_NO_LOGGING
+#endif // !ASMJIT_NO_X86 && !ASMJIT_NO_LOGGING
