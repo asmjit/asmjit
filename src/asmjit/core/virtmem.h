@@ -96,6 +96,13 @@ enum class MemoryFlags : uint32_t {
   //! MemoryFlags::kMMapMaxAccessExecute.
   kMMapMaxAccessRWX = kMMapMaxAccessRead | kMMapMaxAccessWrite | kMMapMaxAccessExecute,
 
+  //! Use `MAP_SHARED` when calling mmap().
+  //!
+  //! \note In some cases `MAP_SHARED` may be set automatically. For example when using dual mapping it's important to
+  //! to use `MAP_SHARED` instead of `MAP_PRIVATE` to ensure that the OS would not copy pages on write (that would mean
+  //! updating only the RW mapped region and not RX mapped one).
+  kMapShared = 0x00000100u,
+
   //! Not an access flag, only used by `allocDualMapping()` to override the default allocation strategy to always use
   //! a 'tmp' directory instead of "/dev/shm" (on POSIX platforms). Please note that this flag will be ignored if the
   //! operating system allows to allocate an executable memory by a different API than `open()` or `shm_open()`. For

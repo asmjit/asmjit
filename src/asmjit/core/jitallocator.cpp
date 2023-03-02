@@ -506,7 +506,7 @@ ASMJIT_FAVOR_SPEED static void JitAllocatorImpl_fillPattern(void* mem, uint32_t 
 //
 // NOTE: The block doesn't have `kFlagEmpty` flag set, because the new block
 // is only allocated when it's actually needed, so it would be cleared anyway.
-static JitAllocatorBlock* JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocatorPool* pool, size_t blockSize) noexcept {
+static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocatorBlock** dst, JitAllocatorPool* pool, size_t blockSize) noexcept {
   using Support::BitWord;
   using Support::kBitWordSizeInBits;
 
@@ -541,7 +541,10 @@ static JitAllocatorBlock* JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* imp
     if (block)
       ::free(block);
 
-    return nullptr;
+    if (err)
+      return err;
+    else
+      return kErrorOutOfMemory;
   }
 
   // Fill the memory if the secure mode is enabled.
@@ -551,7 +554,8 @@ static JitAllocatorBlock* JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* imp
   }
 
   memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
-  return new(block) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
+  *dst = new(block) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
+  return kErrorOk;
 }
 
 static void JitAllocatorImpl_deleteBlock(JitAllocatorPrivateImpl* impl, JitAllocatorBlock* block) noexcept {
@@ -798,11 +802,8 @@ Error JitAllocator::alloc(void** rxPtrOut, void** rwPtrOut, size_t size) noexcep
     if (ASMJIT_UNLIKELY(!blockSize))
       return DebugUtils::errored(kErrorOutOfMemory);
 
-    block = JitAllocatorImpl_newBlock(impl, pool, blockSize);
+    ASMJIT_PROPAGATE(JitAllocatorImpl_newBlock(impl, &block, pool, blockSize));
     areaIndex = 0;
-
-    if (ASMJIT_UNLIKELY(!block))
-      return DebugUtils::errored(kErrorOutOfMemory);
 
     JitAllocatorImpl_insertBlock(impl, block);
     block->_searchStart = areaSize;
@@ -1018,6 +1019,34 @@ public:
   uint64_t _state[2];
 };
 
+namespace JitAllocatorUtils {
+  static void fillPattern64(void* p_, uint64_t pattern, size_t sizeInBytes) noexcept {
+    uint64_t* p = static_cast<uint64_t*>(p_);
+    size_t n = sizeInBytes / 8u;
+
+    for (size_t i = 0; i < n; i++)
+      p[i] = pattern;
+  }
+
+  static bool verifyPattern64(const void* p_, uint64_t pattern, size_t sizeInBytes) noexcept {
+    const uint64_t* p = static_cast<const uint64_t*>(p_);
+    size_t n = sizeInBytes / 8u;
+
+    for (size_t i = 0; i < n; i++) {
+      if (p[i] != pattern) {
+        INFO("Pattern verification failed at 0x%p [%zu * 8]: value(0x%016llX) != expected(0x%016llX)",
+          p,
+          i,
+          (unsigned long long)p[i],
+          (unsigned long long)pattern);
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
 // Helper class to verify that JitAllocator doesn't return addresses that overlap.
 class JitAllocatorWrapper {
 public:
@@ -1035,9 +1064,19 @@ public:
   class Record : public ZoneTreeNodeT<Record>,
                  public Range {
   public:
-    inline Record(uint8_t* addr, size_t size)
+    //! Read/write address, in case this is a dual mapping.
+    void* _rw;
+    //! Describes a pattern used to fill the allocated memory.
+    uint64_t pattern;
+
+    inline Record(void* rx, void* rw, size_t size, uint64_t pattern)
       : ZoneTreeNodeT<Record>(),
-        Range(addr, size) {}
+        Range(static_cast<uint8_t*>(rx), size),
+        _rw(rw),
+        pattern(pattern) {}
+
+    inline void* rx() const noexcept { return addr; }
+    inline void* rw() const noexcept { return _rw; }
 
     inline bool operator<(const Record& other) const noexcept { return addr < other.addr; }
     inline bool operator>(const Record& other) const noexcept { return addr > other.addr; }
@@ -1050,14 +1089,16 @@ public:
   ZoneAllocator _heap;
   ZoneTree<Record> _records;
   JitAllocator _allocator;
+  Random _rng;
 
   explicit JitAllocatorWrapper(const JitAllocator::CreateParams* params) noexcept
     : _zone(1024 * 1024),
       _heap(&_zone),
-      _allocator(params) {}
+      _allocator(params),
+      _rng(0x123456789u) {}
 
-  void _insert(void* p_, size_t size) noexcept {
-    uint8_t* p = static_cast<uint8_t*>(p_);
+  void _insert(void* pRX, void* pRW, size_t size) noexcept {
+    uint8_t* p = static_cast<uint8_t*>(pRX);
     uint8_t* pEnd = p + size - 1;
 
     Record* record;
@@ -1070,8 +1111,17 @@ public:
     if (record)
       EXPECT(record == nullptr, "Address [%p:%p] collides with a newly allocated [%p:%p]\n", record->addr, record->addr + record->size, p, p + size);
 
-    record = _heap.newT<Record>(p, size);
+    uint64_t pattern = _rng.nextUInt64();
+    record = _heap.newT<Record>(pRX, pRW, size, pattern);
     EXPECT(record != nullptr, "Out of memory, cannot allocate 'Record'");
+
+    {
+      VirtMem::ProtectJitReadWriteScope scope(pRW, size);
+      JitAllocatorUtils::fillPattern64(pRW, pattern, size);
+    }
+
+    VirtMem::flushInstructionCache(pRX, size);
+    EXPECT(JitAllocatorUtils::verifyPattern64(pRX, pattern, size) == true);
 
     _records.insert(record);
   }
@@ -1079,6 +1129,9 @@ public:
   void _remove(void* p) noexcept {
     Record* record = _records.get(static_cast<uint8_t*>(p));
     EXPECT(record != nullptr, "Address [%p] doesn't exist\n", p);
+
+    EXPECT(JitAllocatorUtils::verifyPattern64(record->rx(), record->pattern, record->size) == true);
+    EXPECT(JitAllocatorUtils::verifyPattern64(record->rw(), record->pattern, record->size) == true);
 
     _records.remove(record);
     _heap.release(record, sizeof(Record));
@@ -1091,7 +1144,7 @@ public:
     Error err = _allocator.alloc(&rxPtr, &rwPtr, size);
     EXPECT(err == kErrorOk, "JitAllocator failed to allocate %zu bytes\n", size);
 
-    _insert(rxPtr, size);
+    _insert(rxPtr, rwPtr, size);
     return rxPtr;
   }
 
@@ -1156,7 +1209,7 @@ static void BitVectorRangeIterator_testRandom(Random& rnd, size_t count) noexcep
 }
 
 static void test_jit_allocator_alloc_release() noexcept {
-  size_t kCount = BrokenAPI::hasArg("--quick") ? 1000 : 100000;
+  size_t kCount = BrokenAPI::hasArg("--quick") ? 20000 : 100000;
 
   struct TestParams {
     const char* name;
@@ -1316,8 +1369,8 @@ UNIT(jit_allocator) {
   test_jit_allocator_alloc_release();
   test_jit_allocator_query();
 }
-#endif
+#endif // ASMJIT_TEST
 
 ASMJIT_END_NAMESPACE
 
-#endif
+#endif // !ASMJIT_NO_JIT
