@@ -53,7 +53,7 @@
 
   // Android NDK doesn't provide `shm_open()` and `shm_unlink()`.
   #if !defined(__BIONIC__)
-    #define ASMJIT_HAS_SHM_OPEN_AND_UNLINK
+    #define ASMJIT_HAS_SHM_OPEN
   #endif
 
   #if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
@@ -332,6 +332,11 @@ public:
 
   Error open(bool preferTmpOverDevShm) noexcept {
 #if defined(__linux__) && defined(__NR_memfd_create)
+
+#if !defined(MFD_CLOEXEC)
+  #define MFD_CLOEXEC 0x0001u
+#endif
+
     // Linux specific 'memfd_create' - if the syscall returns `ENOSYS` it means
     // it's not available and we will never call it again (would be pointless).
     //
@@ -344,7 +349,7 @@ public:
     static volatile uint32_t memfd_create_not_supported;
 
     if (!memfd_create_not_supported) {
-      _fd = (int)syscall(__NR_memfd_create, "vmem", 0);
+      _fd = (int)syscall(__NR_memfd_create, "vmem", MFD_CLOEXEC);
       if (ASMJIT_LIKELY(_fd >= 0))
         return kErrorOk;
 
@@ -356,7 +361,7 @@ public:
     }
 #endif
 
-#if defined(SHM_ANON)
+#if defined(ASMJIT_HAS_SHM_OPEN) && defined(SHM_ANON)
     // Originally FreeBSD extension, apparently works in other BSDs too.
     DebugUtils::unused(preferTmpOverDevShm);
     _fd = ::shm_open(SHM_ANON, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -391,7 +396,7 @@ public:
           return kErrorOk;
         }
       }
-#ifdef ASMJIT_HAS_SHM_OPEN_AND_UNLINK
+#if defined(ASMJIT_HAS_SHM_OPEN)
       else {
         _tmpName.assignFormat(kShmFormat, (unsigned long long)bits);
         _fd = ::shm_open(_tmpName.data(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -415,7 +420,7 @@ public:
     FileType type = _fileType;
     _fileType = kFileTypeNone;
 
-#ifdef ASMJIT_HAS_SHM_OPEN_AND_UNLINK
+#ifdef ASMJIT_HAS_SHM_OPEN
     if (type == kFileTypeShm) {
       ::shm_unlink(_tmpName.data());
       return;
@@ -511,9 +516,9 @@ static bool hasHardenedRuntime() noexcept {
 
   uint32_t flag = globalHardenedFlag.load();
   if (flag == kHardenedFlagUnknown) {
-    uint32_t pageSize = uint32_t(::getpagesize());
-
+    size_t pageSize = size_t(::getpagesize());
     void* ptr = mmap(nullptr, pageSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
     if (ptr == MAP_FAILED) {
       flag = kHardenedFlagEnabled;
     }
@@ -521,6 +526,7 @@ static bool hasHardenedRuntime() noexcept {
       flag = kHardenedFlagDisabled;
       munmap(ptr, pageSize);
     }
+
     globalHardenedFlag.store(flag);
   }
 

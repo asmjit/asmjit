@@ -1633,14 +1633,57 @@ namespace asmjit {
 //!
 //! ### Overview
 //!
-//! AsmJit's virtual memory management is divided into two main categories:
+//! AsmJit's virtual memory management is divided into three main categories:
 //!
-//!   - Low level API that provides cross-platform abstractions for virtual memory allocation. Implemented in
-//!     \ref VirtMem namespace.
+//!   - Low level interface that provides cross-platform abstractions for virtual memory allocation. Implemented in
+//!     \ref VirtMem namespace. This API is a thin wrapper around operating system specific calls such as
+//!     `VirtualAlloc()` and `mmap()` and it's intended to be used by AsmJit's higher level API. Low-level virtual
+//!     memory functions can be used to allocate virtual memory, change its permissions, and to release it.
+//!     Additionally, an API that allows to create dual mapping (to support hardened environments) is provided.
 //!
-//!   - High level API that makes it very easy to store generated code for execution. See \ref JitRuntime, which is
-//!     used by many examples for its simplicity and easy integration with \ref CodeHolder. There is also \ref
-//!     JitAllocator, which lays somewhere between RAW memory allocation and \ref JitRuntime.
+//!   - Middle level API that is provided by \ref JitAllocator, which uses \ref VirtMem internally and offers nicer
+//!     API that can be used by users to allocate executable memory conveniently. \ref JitAllocator tries to be smart,
+//!     for example automatically using dual mapping or `MAP_JIT` on hardened environments.
+//!
+//!   - High level API that is provided by \ref JitRuntime, which implements \ref Target interface and uses \ref
+//!     JitAllocator under the hood. Since \ref JitRuntime inherits from \ref Target it makes it easy to use with
+//!     \ref CodeHolder. Many AsmJit examples use \ref JitRuntime for its simplicity and easy integration.
+//!
+//! The main difference between \ref VirtMem and \ref JitAllocator is that \ref VirtMem can only be used to allocate
+//! whole pages, whereas \ref JitAllocator has `malloc()` like API that allows to allocate smaller quantities that
+//! usually represent the size of an assembled function or a chunk of functions that can represent a module, for
+//! example. \ref JitAllocator then tracks used space of each page it maintains. Internally, \ref JitAllocator uses
+//! two bit arrays to track occupied regions in each allocated block of pages.
+//!
+//! ### Hardened Environments
+//!
+//! In the past, allocating virtual memory with Read+Write+Execute (RWX) access permissions was easy. However, modern
+//! operating systems and runtime environments often use hardening, which typically prohibits mapping pages with both
+//! Write and Execute permissions (known as the W^X policy). This presents a challenge for JIT compilers because
+//! generated code for a single function is unlikely to fit in exactly N pages without leaving some space empty. To
+//! accommodate this, the execution environment may need to temporarily change the permissions of existing pages to
+//! read+write (RW) to insert new code into them, however, sometimes it's not possible to ensure that no thread is
+//! executing code in such affected pages in a multithreaded environment, in which multiple threads may be executing
+//! generated code.
+//!
+//! Such restrictions leave a lot of complexity on the application, so AsmJit implements a dual mapping technique to
+//! make the life of AsmJit users easier. In this technique, a region of memory is mapped to two different virtual
+//! addresses with different access permissions. One virtual address is mapped with read and write (RW) access, which
+//! is used by the JIT compiler to write generated code. The other virtual address is mapped with read and execute (RX)
+//! access, which is used by the application to execute the generated code.
+//!
+//! However, implementing dual mapping can be challenging because it typically requires obtaining an anonymous file
+//! descriptor on most Unix-like operating systems. This file descriptor is then passed to mmap() twice to create
+//! the two mappings. AsmJit handles this challenge by using system-specific techniques such as `memfd_create()` on
+//! Linux, `shm_open(SHM_ANON)` on BSD, and `MAP_REMAPDUP` with `mremap()` on NetBSD. The latter approach does not
+//! require a file descriptor. If none of these options are available, AsmJit uses a plain `open()` call followed by
+//! `unlink()`.
+//!
+//! The most challenging part is actually obtaing a file descriptor that can be passed to `mmap()` with `PROT_EXEC`.
+//! This is still something that may fail, for example the environment could be hardened in a way that this would
+//! not be possible at all, and thus dual mapping would not work.
+//!
+//! Dual mapping is provided by both \ref VirtMem and \ref JitAllocator.
 
 
 //! \defgroup asmjit_zone Zone Memory

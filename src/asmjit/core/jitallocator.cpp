@@ -544,7 +544,7 @@ static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocat
     if (err)
       return err;
     else
-      return kErrorOutOfMemory;
+      return DebugUtils::errored(kErrorOutOfMemory);
   }
 
   // Fill the memory if the secure mode is enabled.

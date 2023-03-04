@@ -50,57 +50,71 @@ enum class MemoryFlags : uint32_t {
   //! Memory is executable.
   kAccessExecute = 0x00000004u,
 
-  //! A combination of \ref MemoryFlags::kAccessRead and \ref MemoryFlags::kAccessWrite.
+  //! A combination of \ref kAccessRead and \ref kAccessWrite.
   kAccessReadWrite = kAccessRead | kAccessWrite,
 
-  //! A combination of \ref MemoryFlags::kAccessRead, \ref MemoryFlags::kAccessWrite.
+  //! A combination of \ref kAccessRead, \ref kAccessWrite.
   kAccessRW = kAccessRead | kAccessWrite,
 
-  //! A combination of \ref MemoryFlags::kAccessRead and \ref MemoryFlags::kAccessExecute.
+  //! A combination of \ref kAccessRead and \ref kAccessExecute.
   kAccessRX = kAccessRead | kAccessExecute,
 
-  //! A combination of \ref MemoryFlags::kAccessRead, \ref MemoryFlags::kAccessWrite, and
-  //! \ref MemoryFlags::kAccessExecute.
+  //! A combination of \ref kAccessRead, \ref kAccessWrite, and \ref kAccessExecute.
   kAccessRWX = kAccessRead | kAccessWrite | kAccessExecute,
 
-  //! Use a `MAP_JIT` flag available on Apple platforms (introduced by Mojave), which allows JIT code to be executed
-  //! in MAC bundles. This flag is not turned on by default, because when a process uses `fork()` the child process
-  //! has no access to the pages mapped with `MAP_JIT`, which could break code that doesn't expect this behavior.
+  //! Use a `MAP_JIT` flag available on Apple platforms (introduced by Mojave), which allows JIT code to be
+  //! executed in a MAC bundle.
+  //!
+  //! This flag may be turned on by the allocator if there is no other way of allocating executable memory.
   //!
   //! \note This flag can only be used with \ref VirtMem::alloc(), `MAP_JIT` only works on OSX and not on iOS.
+  //! When a process uses `fork()` the child process has no access to the pages mapped with `MAP_JIT`.
   kMMapEnableMapJit = 0x00000010u,
 
-  //! Pass `PROT_MAX(PROT_READ)` to mmap() on platforms that support `PROT_MAX`.
+  //! Pass `PROT_MAX(PROT_READ)` or `PROT_MPROTECT(PROT_READ)` to `mmap()` on platforms that support it.
   //!
-  //! \note This flag can only be used with \ref VirtMem::alloc().
+  //! This flag allows to set a "maximum access" that the memory page can get during its lifetime. Use
+  //! \ref VirtMem::protect() to change the access flags.
+  //!
+  //! \note This flag can only be used with \ref VirtMem::alloc() and \ref VirtMem::allocDualMapping().
+  //! However \ref VirtMem::allocDualMapping() may automatically use this if \ref kAccessRead is used.
   kMMapMaxAccessRead = 0x00000020u,
-  //! Pass `PROT_MAX(PROT_WRITE)` to mmap() on platforms that support `PROT_MAX`.
+
+  //! Pass `PROT_MAX(PROT_WRITE)` or `PROT_MPROTECT(PROT_WRITE)` to `mmap()` on platforms that support it.
   //!
-  //! \note This flag can only be used with \ref VirtMem::alloc().
+  //! This flag allows to set a "maximum access" that the memory page can get during its lifetime. Use
+  //! \ref VirtMem::protect() to change the access flags.
+  //!
+  //! \note This flag can only be used with \ref VirtMem::alloc() and \ref VirtMem::allocDualMapping().
+  //! However \ref VirtMem::allocDualMapping() may automatically use this if \ref kAccessWrite is used.
   kMMapMaxAccessWrite = 0x00000040u,
-  //! Pass `PROT_MAX(PROT_EXEC)` to mmap() on platforms that support `PROT_MAX`.
+
+  //! Pass `PROT_MAX(PROT_EXEC)` or `PROT_MPROTECT(PROT_EXEC)` to `mmap()` on platforms that support it.
   //!
-  //! \note This flag can only be used with \ref VirtMem::alloc().
+  //! This flag allows to set a "maximum access" that the memory page can get during its lifetime. Use
+  //! \ref VirtMem::protect() to change the access flags.
+  //!
+  //! \note This flag can only be used with \ref VirtMem::alloc() and \ref VirtMem::allocDualMapping().
+  //! However \ref VirtMem::allocDualMapping() may automatically use this if \ref kAccessExecute is used.
   kMMapMaxAccessExecute = 0x00000080u,
 
-  //! A combination of \ref MemoryFlags::kMMapMaxAccessRead and \ref MemoryFlags::kMMapMaxAccessWrite.
+  //! A combination of \ref kMMapMaxAccessRead and \ref kMMapMaxAccessWrite.
   kMMapMaxAccessReadWrite = kMMapMaxAccessRead | kMMapMaxAccessWrite,
 
-  //! A combination of \ref MemoryFlags::kMMapMaxAccessRead and \ref MemoryFlags::kMMapMaxAccessWrite.
+  //! A combination of \ref kMMapMaxAccessRead and \ref kMMapMaxAccessWrite.
   kMMapMaxAccessRW = kMMapMaxAccessRead | kMMapMaxAccessWrite,
 
-  //! A combination of \ref MemoryFlags::kMMapMaxAccessRead and \ref MemoryFlags::kMMapMaxAccessExecute.
+  //! A combination of \ref kMMapMaxAccessRead and \ref kMMapMaxAccessExecute.
   kMMapMaxAccessRX = kMMapMaxAccessRead | kMMapMaxAccessExecute,
 
-  //! A combination of \ref MemoryFlags::kMMapMaxAccessRead, \ref MemoryFlags::kMMapMaxAccessWrite, \ref
-  //! MemoryFlags::kMMapMaxAccessExecute.
+  //! A combination of \ref kMMapMaxAccessRead, \ref kMMapMaxAccessWrite, \ref kMMapMaxAccessExecute.
   kMMapMaxAccessRWX = kMMapMaxAccessRead | kMMapMaxAccessWrite | kMMapMaxAccessExecute,
 
   //! Use `MAP_SHARED` when calling mmap().
   //!
-  //! \note In some cases `MAP_SHARED` may be set automatically. For example when using dual mapping it's important to
-  //! to use `MAP_SHARED` instead of `MAP_PRIVATE` to ensure that the OS would not copy pages on write (that would mean
-  //! updating only the RW mapped region and not RX mapped one).
+  //! \note In some cases `MAP_SHARED` may be set automatically. For example, some dual mapping implementations must
+  //! use `MAP_SHARED` instead of `MAP_PRIVATE` to ensure that the OS would not apply copy on write on RW page, which
+  //! would cause RX page not having the updated content.
   kMapShared = 0x00000100u,
 
   //! Not an access flag, only used by `allocDualMapping()` to override the default allocation strategy to always use
