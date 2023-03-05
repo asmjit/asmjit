@@ -4274,7 +4274,7 @@ EmitModSib_LabelRip_X86:
           }
           else {
             // Non-bound label or label bound to a different section.
-            relOffset = -4 - immSize;
+            relOffset = -4 - int32_t(immSize);
             relSize = 4;
             goto EmitRel;
           }

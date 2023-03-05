@@ -1104,16 +1104,16 @@ public:
     Record* record;
 
     record = _records.get(p);
-    if (record)
-      EXPECT(record == nullptr, "Address [%p:%p] collides with a newly allocated [%p:%p]\n", record->addr, record->addr + record->size, p, p + size);
+    EXPECT_NULL(record)
+      .message("Address [%p:%p] collides with a newly allocated [%p:%p]\n", record->addr, record->addr + record->size, p, p + size);
 
     record = _records.get(pEnd);
-    if (record)
-      EXPECT(record == nullptr, "Address [%p:%p] collides with a newly allocated [%p:%p]\n", record->addr, record->addr + record->size, p, p + size);
+    EXPECT_NULL(record)
+      .message("Address [%p:%p] collides with a newly allocated [%p:%p]\n", record->addr, record->addr + record->size, p, p + size);
 
     uint64_t pattern = _rng.nextUInt64();
     record = _heap.newT<Record>(pRX, pRW, size, pattern);
-    EXPECT(record != nullptr, "Out of memory, cannot allocate 'Record'");
+    EXPECT_NOT_NULL(record);
 
     {
       VirtMem::ProtectJitReadWriteScope scope(pRW, size);
@@ -1121,17 +1121,17 @@ public:
     }
 
     VirtMem::flushInstructionCache(pRX, size);
-    EXPECT(JitAllocatorUtils::verifyPattern64(pRX, pattern, size) == true);
+    EXPECT_TRUE(JitAllocatorUtils::verifyPattern64(pRX, pattern, size));
 
     _records.insert(record);
   }
 
   void _remove(void* p) noexcept {
     Record* record = _records.get(static_cast<uint8_t*>(p));
-    EXPECT(record != nullptr, "Address [%p] doesn't exist\n", p);
+    EXPECT_NOT_NULL(record);
 
-    EXPECT(JitAllocatorUtils::verifyPattern64(record->rx(), record->pattern, record->size) == true);
-    EXPECT(JitAllocatorUtils::verifyPattern64(record->rw(), record->pattern, record->size) == true);
+    EXPECT_TRUE(JitAllocatorUtils::verifyPattern64(record->rx(), record->pattern, record->size));
+    EXPECT_TRUE(JitAllocatorUtils::verifyPattern64(record->rw(), record->pattern, record->size));
 
     _records.remove(record);
     _heap.release(record, sizeof(Record));
@@ -1142,7 +1142,8 @@ public:
     void* rwPtr;
 
     Error err = _allocator.alloc(&rxPtr, &rwPtr, size);
-    EXPECT(err == kErrorOk, "JitAllocator failed to allocate %zu bytes\n", size);
+    EXPECT_EQ(err, kErrorOk)
+      .message("JitAllocator failed to allocate %zu bytes\n", size);
 
     _insert(rxPtr, rwPtr, size);
     return rxPtr;
@@ -1150,18 +1151,20 @@ public:
 
   void release(void* p) noexcept {
     _remove(p);
-    EXPECT(_allocator.release(p) == kErrorOk, "JitAllocator failed to release '%p'\n", p);
+    EXPECT_EQ(_allocator.release(p), kErrorOk)
+      .message("JitAllocator failed to release '%p'\n", p);
   }
 
   void shrink(void* p, size_t newSize) noexcept {
     Record* record = _records.get(static_cast<uint8_t*>(p));
-    EXPECT(record != nullptr, "Address [%p] doesn't exist\n", p);
+    EXPECT_NOT_NULL(record);
 
     if (!newSize)
       return release(p);
 
     Error err = _allocator.shrink(p, newSize);
-    EXPECT(err == kErrorOk, "JitAllocator failed to shrink %p to %zu bytes\n", p, newSize);
+    EXPECT_EQ(err, kErrorOk)
+      .message("JitAllocator failed to shrink %p to %zu bytes\n", p, newSize);
 
     record->size = newSize;
   }
@@ -1203,7 +1206,8 @@ static void BitVectorRangeIterator_testRandom(Random& rnd, size_t count) noexcep
     }
 
     for (size_t j = 0; j < kPatternSize; j++) {
-      EXPECT(in[j] == out[j], "Invalid pattern detected at [%zu] (%llX != %llX)", j, (unsigned long long)in[j], (unsigned long long)out[j]);
+      EXPECT_EQ(in[j], out[j])
+        .message("Invalid pattern detected at [%zu] (%llX != %llX)", j, (unsigned long long)in[j], (unsigned long long)out[j]);
     }
   }
 }
@@ -1259,8 +1263,7 @@ static void test_jit_allocator_alloc_release() noexcept {
     INFO("  Memory alloc/release test - %d allocations", kCount);
 
     void** ptrArray = (void**)::malloc(sizeof(void*) * size_t(kCount));
-    EXPECT(ptrArray != nullptr,
-          "Couldn't allocate '%u' bytes for pointer-array", unsigned(sizeof(void*) * size_t(kCount)));
+    EXPECT_NOT_NULL(ptrArray);
 
     // Random blocks tests...
     INFO("  Allocating random blocks...");
@@ -1351,18 +1354,18 @@ static void test_jit_allocator_query() noexcept {
   void* rwPtr = nullptr;
   size_t size = 100;
 
-  EXPECT(allocator.alloc(&rxPtr, &rwPtr, size) == kErrorOk);
-  EXPECT(rxPtr != nullptr);
-  EXPECT(rwPtr != nullptr);
+  EXPECT_EQ(allocator.alloc(&rxPtr, &rwPtr, size), kErrorOk);
+  EXPECT_NOT_NULL(rxPtr);
+  EXPECT_NOT_NULL(rwPtr);
 
   void* rxPtrQueried = nullptr;
   void* rwPtrQueried = nullptr;
   size_t sizeQueried;
 
-  EXPECT(allocator.query(rxPtr, &rxPtrQueried, &rwPtrQueried, &sizeQueried) == kErrorOk);
-  EXPECT(rxPtrQueried == rxPtr);
-  EXPECT(rwPtrQueried == rwPtr);
-  EXPECT(sizeQueried == Support::alignUp(size, allocator.granularity()));
+  EXPECT_EQ(allocator.query(rxPtr, &rxPtrQueried, &rwPtrQueried, &sizeQueried), kErrorOk);
+  EXPECT_EQ(rxPtrQueried, rxPtr);
+  EXPECT_EQ(rwPtrQueried, rwPtr);
+  EXPECT_EQ(sizeQueried, Support::alignUp(size, allocator.granularity()));
 }
 
 UNIT(jit_allocator) {

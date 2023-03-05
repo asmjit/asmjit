@@ -5931,20 +5931,33 @@ UNIT(x86_inst_db) {
   INFO("Checking validity of Inst enums");
 
   // Cross-validate prefixes.
-  EXPECT(uint32_t(InstOptions::kX86_Rex ) == 0x40000000u, "REX prefix must be at 0x40000000");
-  EXPECT(uint32_t(InstOptions::kX86_Evex) == 0x00001000u, "EVEX prefix must be at 0x00001000");
+  EXPECT_EQ(uint32_t(InstOptions::kX86_Rex ), 0x40000000u)
+    .message("REX prefix must be at 0x40000000");
+
+  EXPECT_EQ(uint32_t(InstOptions::kX86_Evex), 0x00001000u)
+    .message("EVEX prefix must be at 0x00001000");
 
   // These could be combined together to form a valid REX prefix, they must match.
-  EXPECT(uint32_t(InstOptions::kX86_OpCodeB) == uint32_t(Opcode::kB), "Opcode::kB must match InstOptions::kX86_OpCodeB");
-  EXPECT(uint32_t(InstOptions::kX86_OpCodeX) == uint32_t(Opcode::kX), "Opcode::kX must match InstOptions::kX86_OpCodeX");
-  EXPECT(uint32_t(InstOptions::kX86_OpCodeR) == uint32_t(Opcode::kR), "Opcode::kR must match InstOptions::kX86_OpCodeR");
-  EXPECT(uint32_t(InstOptions::kX86_OpCodeW) == uint32_t(Opcode::kW), "Opcode::kW must match InstOptions::kX86_OpCodeW");
+  EXPECT_EQ(uint32_t(InstOptions::kX86_OpCodeB), uint32_t(Opcode::kB))
+    .message("Opcode::kB must match InstOptions::kX86_OpCodeB");
+
+  EXPECT_EQ(uint32_t(InstOptions::kX86_OpCodeX), uint32_t(Opcode::kX))
+    .message("Opcode::kX must match InstOptions::kX86_OpCodeX");
+
+  EXPECT_EQ(uint32_t(InstOptions::kX86_OpCodeR), uint32_t(Opcode::kR))
+    .message("Opcode::kR must match InstOptions::kX86_OpCodeR");
+
+  EXPECT_EQ(uint32_t(InstOptions::kX86_OpCodeW), uint32_t(Opcode::kW))
+    .message("Opcode::kW must match InstOptions::kX86_OpCodeW");
 
   uint32_t rex_rb = (Opcode::kR >> Opcode::kREX_Shift) | (Opcode::kB >> Opcode::kREX_Shift) | 0x40;
   uint32_t rex_rw = (Opcode::kR >> Opcode::kREX_Shift) | (Opcode::kW >> Opcode::kREX_Shift) | 0x40;
 
-  EXPECT(rex_rb == 0x45, "Opcode::kR|B must form a valid REX prefix (0x45) if combined with 0x40");
-  EXPECT(rex_rw == 0x4C, "Opcode::kR|W must form a valid REX prefix (0x4C) if combined with 0x40");
+  EXPECT_EQ(rex_rb, 0x45u)
+    .message("Opcode::kR|B must form a valid REX prefix (0x45) if combined with 0x40");
+
+  EXPECT_EQ(rex_rw, 0x4Cu)
+    .message("Opcode::kR|W must form a valid REX prefix (0x4C) if combined with 0x40");
 }
 #endif
 
