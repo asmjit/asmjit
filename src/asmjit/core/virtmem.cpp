@@ -548,13 +548,17 @@ static inline bool hasMapJitSupport() noexcept {
 #endif
 }
 
-// Returns either MAP_JIT or 0 based on `flags` and the host operating system.
+// Returns either MAP_JIT or 0 based on `memoryFlags` and the host operating system.
 static inline int mmMapJitFromMemoryFlags(MemoryFlags memoryFlags) noexcept {
 #if defined(__APPLE__)
   // Always use MAP_JIT flag if user asked for it (could be used for testing on non-hardened processes) and detect
   // whether it must be used when the process is actually hardened (in that case it doesn't make sense to rely on
   // user `memoryFlags`).
-  bool useMapJit = Support::test(memoryFlags, MemoryFlags::kMMapEnableMapJit) || hasHardenedRuntime();
+  //
+  // MAP_JIT is not required when dual-mapping memory and is incompatible with MAP_SHARED, so it will not be
+  // added when the latter is enabled.
+  bool useMapJit = (Support::test(memoryFlags, MemoryFlags::kMMapEnableMapJit) || hasHardenedRuntime())
+                   && !Support::test(memoryFlags, MemoryFlags::kMapShared);
   if (useMapJit)
     return hasMapJitSupport() ? int(MAP_JIT) : 0;
   else
