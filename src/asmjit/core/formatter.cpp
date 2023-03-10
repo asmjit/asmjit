@@ -123,32 +123,33 @@ Error formatLabel(
 
   DebugUtils::unused(formatFlags);
 
-  const LabelEntry* le = emitter->code()->labelEntry(labelId);
-  if (ASMJIT_UNLIKELY(!le))
-    return sb.appendFormat("<InvalidLabel:%u>", labelId);
+  if (emitter && emitter->code()) {
+    const LabelEntry* le = emitter->code()->labelEntry(labelId);
+    if (ASMJIT_UNLIKELY(!le))
+      return sb.appendFormat("<InvalidLabel:%u>", labelId);
 
-  if (le->hasName()) {
-    if (le->hasParent()) {
-      uint32_t parentId = le->parentId();
-      const LabelEntry* pe = emitter->code()->labelEntry(parentId);
+    if (le->hasName()) {
+      if (le->hasParent()) {
+        uint32_t parentId = le->parentId();
+        const LabelEntry* pe = emitter->code()->labelEntry(parentId);
 
-      if (ASMJIT_UNLIKELY(!pe))
-        ASMJIT_PROPAGATE(sb.appendFormat("<InvalidLabel:%u>", labelId));
-      else if (ASMJIT_UNLIKELY(!pe->hasName()))
-        ASMJIT_PROPAGATE(sb.appendFormat("L%u", parentId));
-      else
-        ASMJIT_PROPAGATE(sb.append(pe->name()));
+        if (ASMJIT_UNLIKELY(!pe))
+          ASMJIT_PROPAGATE(sb.appendFormat("<InvalidLabel:%u>", labelId));
+        else if (ASMJIT_UNLIKELY(!pe->hasName()))
+          ASMJIT_PROPAGATE(sb.appendFormat("L%u", parentId));
+        else
+          ASMJIT_PROPAGATE(sb.append(pe->name()));
 
-      ASMJIT_PROPAGATE(sb.append('.'));
+        ASMJIT_PROPAGATE(sb.append('.'));
+      }
+
+      if (le->type() == LabelType::kAnonymous)
+        ASMJIT_PROPAGATE(sb.appendFormat("L%u@", labelId));
+      return sb.append(le->name());
     }
+  }
 
-    if (le->type() == LabelType::kAnonymous)
-      ASMJIT_PROPAGATE(sb.appendFormat("L%u@", labelId));
-    return sb.append(le->name());
-  }
-  else {
-    return sb.appendFormat("L%u", labelId);
-  }
+  return sb.appendFormat("L%u", labelId);
 }
 
 Error formatRegister(
