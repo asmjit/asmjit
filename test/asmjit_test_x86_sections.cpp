@@ -17,7 +17,7 @@
 // ----------------------------------------------------------------------------
 
 #include <asmjit/core.h>
-#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
+#if ASMJIT_ARCH_X86 && !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_JIT)
 
 #include <asmjit/x86.h>
 #include <stdio.h>
@@ -136,16 +136,15 @@ int main() {
   // Relocate to the base-address of the allocated memory.
   code.relocateToBase(uint64_t(uintptr_t(rxPtr)));
 
-  VirtMem::protectJitMemory(VirtMem::ProtectJitAccess::kReadWrite);
+  {
+    VirtMem::ProtectJitReadWriteScope scope(rxPtr, code.codeSize());
 
-  // Copy the flattened code into `mem.rw`. There are two ways. You can either copy
-  // everything manually by iterating over all sections or use `copyFlattenedData`.
-  // This code is similar to what `copyFlattenedData(p, codeSize, 0)` would do:
-  for (Section* section : code.sectionsByOrder())
-    memcpy(static_cast<uint8_t*>(rwPtr) + size_t(section->offset()), section->data(), section->bufferSize());
-
-  VirtMem::protectJitMemory(VirtMem::ProtectJitAccess::kReadExecute);
-  VirtMem::flushInstructionCache(rwPtr, code.codeSize());
+    // Copy the flattened code into `mem.rw`. There are two ways. You can either copy
+    // everything manually by iterating over all sections or use `copyFlattenedData`.
+    // This code is similar to what `copyFlattenedData(p, codeSize, 0)` would do:
+    for (Section* section : code.sectionsByOrder())
+      memcpy(static_cast<uint8_t*>(rwPtr) + size_t(section->offset()), section->data(), section->bufferSize());
+  }
 
   // Execute the function and test whether it works.
   typedef size_t (*Func)(size_t idx);
@@ -166,7 +165,7 @@ int main() {
 
 #else
 int main() {
-  printf("AsmJit X86 Sections Test is disabled on non-x86 host\n\n");
+  printf("AsmJit X86 Sections Test is disabled on non-x86 host or when compiled with ASMJIT_NO_JIT\n\n");
   return 0;
 }
-#endif // !ASMJIT_NO_X86 && ASMJIT_ARCH_X86
+#endif // ASMJIT_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT

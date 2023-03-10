@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
-#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
+#if !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_COMPILER)
 
 #include <asmjit/x86.h>
 #include <setjmp.h>
@@ -12,8 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Required for function tests that pass / return XMM registers.
-#include <emmintrin.h>
+#if ASMJIT_ARCH_X86
+  // Required for function tests that pass / return XMM registers.
+  #include <emmintrin.h>
+#endif
 
 #include "asmjit_test_misc.h"
 #include "asmjit_test_compiler.h"
@@ -31,7 +33,7 @@ using namespace asmjit;
 class X86TestCase : public TestCase {
 public:
   X86TestCase(const char* name = nullptr)
-    : TestCase(name) {}
+    : TestCase(name, Arch::kHost == Arch::kX86 ? Arch::kX86 : Arch::kX64) {}
 
   virtual void compile(BaseCompiler& cc) override {
     compile(static_cast<x86::Compiler&>(cc));
@@ -1888,6 +1890,7 @@ public:
 // x86::Compiler - X86Test_AllocArgsVec
 // ====================================
 
+#if ASMJIT_ARCH_X86
 class X86Test_AllocArgsVec : public X86TestCase {
 public:
   X86Test_AllocArgsVec() : X86TestCase("AllocArgsVec") {}
@@ -1937,6 +1940,7 @@ public:
     return result == expect;
   }
 };
+#endif // ASMJIT_ARCH_X86
 
 // x86::Compiler - X86Test_AllocRetFloat1
 // ======================================
@@ -2615,6 +2619,7 @@ public:
 // x86::Compiler - X86Test_FuncCallSIMD
 // ====================================
 
+#if ASMJIT_ARCH_X86
 class X86Test_FuncCallSIMD : public X86TestCase {
 public:
   bool _useVectorCall;
@@ -2701,6 +2706,7 @@ public:
   }
 #endif
 };
+#endif // ASMJIT_ARCH_X86
 
 // x86::Compiler - X86Test_FuncCallLight
 // =====================================
@@ -4390,7 +4396,9 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_AllocArgsIntPtr>();
   app.addT<X86Test_AllocArgsFloat>();
   app.addT<X86Test_AllocArgsDouble>();
+#if ASMJIT_ARCH_X86
   app.addT<X86Test_AllocArgsVec>();
+#endif
   app.addT<X86Test_AllocRetFloat1>();
   app.addT<X86Test_AllocRetFloat2>();
   app.addT<X86Test_AllocRetDouble1>();
@@ -4405,7 +4413,9 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_FuncCallBase2>();
   app.addT<X86Test_FuncCallStd>();
   app.addT<X86Test_FuncCallFast>();
+#if ASMJIT_ARCH_X86
   app.addT<X86Test_FuncCallSIMD>();
+#endif
   app.addT<X86Test_FuncCallLight>();
   app.addT<X86Test_FuncCallManyArgs>();
   app.addT<X86Test_FuncCallDuplicateArgs>();
@@ -4436,4 +4446,4 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_MiscUnfollow>();
 }
 
-#endif // !ASMJIT_NO_X86 && ASMJIT_ARCH_X86
+#endif // !ASMJIT_NO_X86 && !ASMJIT_NO_COMPILER

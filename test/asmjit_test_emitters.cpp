@@ -5,7 +5,7 @@
 
 #include <asmjit/core.h>
 
-#if !defined(ASMJIT_NO_X86) && ASMJIT_ARCH_X86
+#if ASMJIT_ARCH_X86  && !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_JIT)
 #include <asmjit/x86.h>
 
 #include <stdio.h>
@@ -191,7 +191,7 @@ int main() {
 }
 #else
 int main() {
-  printf("AsmJit X86 Emitter Test is disabled on non-x86 host\n\n");
+  printf("AsmJit X86 Emitter Test is disabled on non-x86 hosts or when compiled with ASMJIT_NO_JIT option\n\n");
   return 0;
 }
-#endif // !ASMJIT_NO_X86 && ASMJIT_ARCH_X86
+#endif // ASMJIT_ARCH_X86 && !ASMJIT_NO_X86 && !ASMJIT_NO_JIT

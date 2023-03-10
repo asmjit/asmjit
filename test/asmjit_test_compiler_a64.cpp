@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Zlib
 
 #include <asmjit/core.h>
-#if !defined(ASMJIT_NO_AARCH64) && ASMJIT_ARCH_ARM == 64
+#if !defined(ASMJIT_NO_COMPILER) && !defined(ASMJIT_NO_AARCH64)
 
 #include <asmjit/a64.h>
 #include <stdio.h>
@@ -21,7 +21,7 @@ using namespace asmjit;
 class A64TestCase : public TestCase {
 public:
   A64TestCase(const char* name = nullptr)
-    : TestCase(name) {}
+    : TestCase(name, Arch::kAArch64) {}
 
   virtual void compile(BaseCompiler& cc) override {
     compile(static_cast<a64::Compiler&>(cc));
@@ -687,4 +687,4 @@ void compiler_add_a64_tests(TestApp& app) {
   app.addT<A64Test_JumpTable>();
 }
 
-#endif // !ASMJIT_NO_AARCH64 && ASMJIT_ARCH_ARM == 64
+#endif // !ASMJIT_NO_COMPILER && !ASMJIT_NO_AARCH64
