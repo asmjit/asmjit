@@ -1602,6 +1602,18 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
             mustUseEvex = opCount >= 2 && Reg::isYmm(operands[0]);
             break;
 
+          case Inst::kIdVgatherdpd:
+          case Inst::kIdVgatherdps:
+          case Inst::kIdVgatherqpd:
+          case Inst::kIdVgatherqps:
+          case Inst::kIdVpgatherdd:
+          case Inst::kIdVpgatherdq:
+          case Inst::kIdVpgatherqd:
+          case Inst::kIdVpgatherqq:
+            if (opCount == 2)
+              mustUseEvex = true;
+            break;
+
           // Special case: These instructions only allow `reg, reg. imm` combination in AVX|AVX2 mode, then
           // AVX-512 introduced `reg, reg/mem, imm` combination that uses EVEX prefix. This means that if
           // the second operand is memory then this is AVX-512_BW instruction and not AVX/AVX2 instruction.
@@ -1661,6 +1673,18 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
 // x86::InstInternal - Tests
 // =========================
 
+template<typename... Args>
+static Error queryRWInfoInline(InstRWInfo* out, Arch arch, BaseInst inst, Args&&... args) {
+  Operand_ opArray[] = { std::forward<Args>(args)... };
+  return InstInternal::queryRWInfo(arch, inst, opArray, sizeof...(args), out);
+}
+
+template<typename... Args>
+static Error queryFeaturesInline(CpuFeatures* out, Arch arch, BaseInst inst, Args&&... args) {
+  Operand_ opArray[] = { std::forward<Args>(args)... };
+  return InstInternal::queryFeatures(arch, inst, opArray, sizeof...(args), out);
+}
+
 #if defined(ASMJIT_TEST)
 UNIT(x86_inst_api_text) {
   // All known instructions should be matched.
@@ -1678,23 +1702,90 @@ UNIT(x86_inst_api_text) {
   }
 }
 
-template<typename... Args>
-static Error queryRWInfoSimple(InstRWInfo* out, Arch arch, InstId instId, InstOptions options, Args&&... args) {
-  BaseInst inst(instId);
-  inst.addOptions(options);
-  Operand_ opArray[] = { std::forward<Args>(args)... };
-  return InstInternal::queryRWInfo(arch, inst, opArray, sizeof...(args), out);
+UNIT(x86_inst_api_cpu_features) {
+  INFO("Verifying whether SSE2+ features are reported correctly for legacy instructions");
+  {
+    CpuFeatures f;
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdPaddd), xmm1, xmm2);
+    EXPECT_TRUE(f.x86().hasSSE2());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdAddsubpd), xmm1, xmm2);
+    EXPECT_TRUE(f.x86().hasSSE3());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdPshufb), xmm1, xmm2);
+    EXPECT_TRUE(f.x86().hasSSSE3());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdBlendpd), xmm1, xmm2, Imm(1));
+    EXPECT_TRUE(f.x86().hasSSE4_1());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdCrc32), eax, al);
+    EXPECT_TRUE(f.x86().hasSSE4_2());
+  }
+
+  INFO("Verifying whether AVX+ features are reported correctly for AVX instructions");
+  {
+    CpuFeatures f;
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpaddd), xmm1, xmm2, xmm3);
+    EXPECT_TRUE(f.x86().hasAVX());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpaddd), ymm1, ymm2, ymm3);
+    EXPECT_TRUE(f.x86().hasAVX2());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVaddsubpd), xmm1, xmm2, xmm3);
+    EXPECT_TRUE(f.x86().hasAVX());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVaddsubpd), ymm1, ymm2, ymm3);
+    EXPECT_TRUE(f.x86().hasAVX());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpshufb), xmm1, xmm2, xmm3);
+    EXPECT_TRUE(f.x86().hasAVX());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpshufb), ymm1, ymm2, ymm3);
+    EXPECT_TRUE(f.x86().hasAVX2());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVblendpd), xmm1, xmm2, xmm3, Imm(1));
+    EXPECT_TRUE(f.x86().hasAVX());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVblendpd), ymm1, ymm2, ymm3, Imm(1));
+    EXPECT_TRUE(f.x86().hasAVX());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpunpcklbw), xmm1, xmm2, xmm3);
+    EXPECT_TRUE(f.x86().hasAVX());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpunpcklbw), ymm1, ymm2, ymm3);
+    EXPECT_TRUE(f.x86().hasAVX2());
+  }
+
+  INFO("Verifying whether AVX2 / AVX512 features are reported correctly for vpgatherxx instructions");
+  {
+    CpuFeatures f;
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpgatherdd), xmm1, ptr(rax, xmm2), xmm3);
+    EXPECT_TRUE(f.x86().hasAVX2());
+    EXPECT_FALSE(f.x86().hasAVX512_F());
+
+    // NOTE: This instruction is unencodable, but sometimes this signature is used to check the support (without the {k}).
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpgatherdd), xmm1, ptr(rax, xmm2));
+    EXPECT_FALSE(f.x86().hasAVX2());
+    EXPECT_TRUE(f.x86().hasAVX512_F());
+
+    queryFeaturesInline(&f, Arch::kX64, BaseInst(Inst::kIdVpgatherdd, InstOptions::kNone, k1), xmm1, ptr(rax, xmm2));
+    EXPECT_FALSE(f.x86().hasAVX2());
+    EXPECT_TRUE(f.x86().hasAVX512_F());
+  }
 }
 
-UNIT(x86_inst_api_rm_feature) {
+UNIT(x86_inst_api_rm_features) {
   INFO("Verifying whether RM/feature is reported correctly for PEXTRW instruction");
   {
     InstRWInfo rwi;
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdPextrw, InstOptions::kNone, eax, mm1, imm(1));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdPextrw), eax, mm1, imm(1));
     EXPECT_EQ(rwi.rmFeature(), 0u);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdPextrw, InstOptions::kNone, eax, xmm1, imm(1));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdPextrw), eax, xmm1, imm(1));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kSSE4_1);
   }
 
@@ -1702,40 +1793,40 @@ UNIT(x86_inst_api_rm_feature) {
   {
     InstRWInfo rwi;
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpslld, InstOptions::kNone, xmm1, xmm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpslld), xmm1, xmm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_F);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsllq, InstOptions::kNone, ymm1, ymm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsllq), ymm1, ymm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_F);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrad, InstOptions::kNone, xmm1, xmm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsrad), xmm1, xmm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_F);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrld, InstOptions::kNone, ymm1, ymm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsrld), ymm1, ymm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_F);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrlq, InstOptions::kNone, xmm1, xmm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsrlq), xmm1, xmm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_F);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpslldq, InstOptions::kNone, xmm1, xmm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpslldq), xmm1, xmm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_BW);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsllw, InstOptions::kNone, ymm1, ymm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsllw), ymm1, ymm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_BW);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsraw, InstOptions::kNone, xmm1, xmm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsraw), xmm1, xmm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_BW);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrldq, InstOptions::kNone, ymm1, ymm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsrldq), ymm1, ymm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_BW);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsrlw, InstOptions::kNone, xmm1, xmm2, imm(8));
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsrlw), xmm1, xmm2, imm(8));
     EXPECT_EQ(rwi.rmFeature(), CpuFeatures::X86::kAVX512_BW);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpslld, InstOptions::kNone, xmm1, xmm2, xmm3);
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpslld), xmm1, xmm2, xmm3);
     EXPECT_EQ(rwi.rmFeature(), 0u);
 
-    queryRWInfoSimple(&rwi, Arch::kX64, Inst::kIdVpsllw, InstOptions::kNone, xmm1, xmm2, xmm3);
+    queryRWInfoInline(&rwi, Arch::kX64, BaseInst(Inst::kIdVpsllw), xmm1, xmm2, xmm3);
     EXPECT_EQ(rwi.rmFeature(), 0u);
   }
 }
