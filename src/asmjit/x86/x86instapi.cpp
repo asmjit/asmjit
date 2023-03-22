@@ -1673,6 +1673,7 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
 // x86::InstInternal - Tests
 // =========================
 
+#if defined(ASMJIT_TEST)
 template<typename... Args>
 static Error queryRWInfoInline(InstRWInfo* out, Arch arch, BaseInst inst, Args&&... args) {
   Operand_ opArray[] = { std::forward<Args>(args)... };
@@ -1685,7 +1686,6 @@ static Error queryFeaturesInline(CpuFeatures* out, Arch arch, BaseInst inst, Arg
   return InstInternal::queryFeatures(arch, inst, opArray, sizeof...(args), out);
 }
 
-#if defined(ASMJIT_TEST)
 UNIT(x86_inst_api_text) {
   // All known instructions should be matched.
   INFO("Matching all X86 instructions");
