@@ -1686,6 +1686,7 @@ static Error queryFeaturesInline(CpuFeatures* out, Arch arch, BaseInst inst, Arg
   return InstInternal::queryFeatures(arch, inst, opArray, sizeof...(args), out);
 }
 
+#ifndef ASMJIT_NO_TEXT
 UNIT(x86_inst_api_text) {
   // All known instructions should be matched.
   INFO("Matching all X86 instructions");
@@ -1701,6 +1702,7 @@ UNIT(x86_inst_api_text) {
       .message("Instructions do not match \"%s\" (#%u) != \"%s\" (#%u)", aName.data(), a, bName.data(), b);
   }
 }
+#endif // !ASMJIT_NO_TEXT
 
 UNIT(x86_inst_api_cpu_features) {
   INFO("Verifying whether SSE2+ features are reported correctly for legacy instructions");

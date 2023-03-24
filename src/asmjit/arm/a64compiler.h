@@ -55,7 +55,7 @@ public:
       _newRegFmt(&reg, type, s, std::forward<Args>(args)...);
     return reg;
 #else
-    DebugUtils::unused(std::forward<Args>(args)...);
+    DebugUtils::unused(s, std::forward<Args>(args)...);
     RegT reg(Globals::NoInit);
     _newReg(&reg, type, nullptr);
     return reg;

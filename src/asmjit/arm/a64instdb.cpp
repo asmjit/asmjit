@@ -1843,7 +1843,7 @@ const InstDB::CommonInfo InstDB::commonData[] = {
 // ArmUtil - Id <-> Name
 // =====================
 
-#ifndef ASMJIT_DISABLE_TEXT
+#ifndef ASMJIT_NO_TEXT
 // ${NameData:Begin}
 // ------------------- Automatically generated, do not edit -------------------
 const uint32_t InstDB::_instNameIndexTable[] = {
@@ -2650,7 +2650,7 @@ const InstDB::InstNameIndex InstDB::instNameIndex[26] = {
 };
 // ----------------------------------------------------------------------------
 // ${NameData:End}
-#endif
+#endif // !ASMJIT_NO_TEXT
 
 ASMJIT_END_SUB_NAMESPACE
 
