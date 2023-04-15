@@ -54,6 +54,10 @@ enum class JitAllocatorOptions : uint32_t {
   //! or have all blocks fully occupied.
   kImmediateRelease = 0x00000008u,
 
+  //! Enables the use of large pages for virtual memory allocations to improve iTLB efficiency.  For example, on a
+  //! 64-bit x86, virtual memory allocations might use 2MiB large pages, instead of the 4KiB default pages.
+  kUseLargePages = 0x00000010u,
+
   //! Use a custom fill pattern, must be combined with `kFlagFillUnusedMemory`.
   kCustomFillPattern = 0x10000000u
 };

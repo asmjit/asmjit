@@ -22,6 +22,12 @@
   // Linux has a `memfd_create` syscall that we would like to use, if available.
   #if defined(__linux__)
     #include <sys/syscall.h>
+    #ifndef MFD_HUGETLB
+      #define MFD_HUGETLB 0x0004
+    #endif
+    #ifndef MFD_HUGE_SHIFT
+      #define MFD_HUGE_SHIFT 26
+    #endif
   #endif
 
   // Apple recently introduced MAP_JIT flag, which we want to use.
@@ -101,6 +107,7 @@ static void getVMInfo(Info& vmInfo) noexcept {
 
   ::GetSystemInfo(&systemInfo);
   vmInfo.pageSize = Support::alignUpPowerOf2<uint32_t>(systemInfo.dwPageSize);
+  vmInfo.largePageSize = ::GetLargePageMinimum();
   vmInfo.pageGranularity = systemInfo.dwAllocationGranularity;
 }
 
@@ -137,13 +144,23 @@ Error alloc(void** p, size_t size, MemoryFlags memoryFlags) noexcept {
     return DebugUtils::errored(kErrorInvalidArgument);
 
   DWORD protectFlags = protectFlagsFromMemoryFlags(memoryFlags);
-  void* result = ::VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, protectFlags);
+  DWORD allocationType = MEM_COMMIT | MEM_RESERVE;
 
-  if (!result)
-    return DebugUtils::errored(kErrorOutOfMemory);
+  if (Support::test(memoryFlags, MemoryFlags::kMMapLargePages)) {
+    void* result = ::VirtualAlloc(nullptr, size, allocationType | MEM_LARGE_PAGES, protectFlags);
+    if (result != nullptr) {
+      *p = result;
+      return kErrorOk;
+    }
+  }
 
-  *p = result;
-  return kErrorOk;
+  void* result = ::VirtualAlloc(nullptr, size, allocationType, protectFlags);
+  if (result != nullptr) {
+    *p = result;
+    return kErrorOk;
+  }
+
+  return DebugUtils::errored(kErrorOutOfMemory);
 }
 
 Error release(void* p, size_t size) noexcept {
@@ -251,10 +268,36 @@ static Error asmjitErrorFromErrno(int e) noexcept {
   }
 }
 
+static uint32_t getLargePageSize() noexcept {
+#if defined(__APPLE__) && defined(VM_FLAGS_SUPERPAGE_SIZE_2MB) && ASMJIT_ARCH_X86
+  return 2*1024*1024;
+#elif defined(__FreeBSD__)
+  Support::Array<size_t, 2> pageSize;
+  return (getpagesizes(pageSize.data(), 2) < 2) ? 0 : uint32_t(pageSize[1]);
+#elif defined(__linux__)
+  uint32_t largePageSize = 0;
+  int fd = ::open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size", O_RDONLY);
+  if (fd != -1) {
+    Support::Array<uint8_t, 11> buffer; // enough for `ceil(log10(pow(2, 32))) + 1`
+    ssize_t length = ::read(fd, buffer.data(), buffer.size());
+    ::close(fd);
+    // Try to parse the contents of `hpage_pmd_size` assuming the input has up to 10 decimal digits and is terminated
+    // with a newline character.
+    if (length > 0 && buffer[length - 1] == '\n')
+      for (int i = 0; i < length - 1; i++)
+        largePageSize = buffer[i] - '0' + largePageSize*10;
+  }
+  return largePageSize;
+#else
+  return 0;
+#endif
+}
+
 static void getVMInfo(Info& vmInfo) noexcept {
   uint32_t pageSize = uint32_t(::getpagesize());
 
   vmInfo.pageSize = pageSize;
+  vmInfo.largePageSize = getLargePageSize();
   vmInfo.pageGranularity = Support::max<uint32_t>(pageSize, 65536);
 }
 
@@ -330,7 +373,7 @@ public:
 
   inline int fd() const noexcept { return _fd; }
 
-  Error open(bool preferTmpOverDevShm) noexcept {
+  Error open(MemoryFlags memoryFlags) noexcept {
 #if defined(__linux__) && defined(__NR_memfd_create)
 
 #if !defined(MFD_CLOEXEC)
@@ -349,7 +392,12 @@ public:
     static volatile uint32_t memfd_create_not_supported;
 
     if (!memfd_create_not_supported) {
-      _fd = (int)syscall(__NR_memfd_create, "vmem", MFD_CLOEXEC);
+      unsigned int flags = MFD_CLOEXEC;
+      if (Support::test(memoryFlags, MemoryFlags::kMMapLargePages)) {
+        flags |= MFD_HUGETLB;
+        flags |= Support::ctz(info().largePageSize) << MFD_HUGE_SHIFT;
+      }
+      _fd = (int)syscall(__NR_memfd_create, "vmem", flags);
       if (ASMJIT_LIKELY(_fd >= 0))
         return kErrorOk;
 
@@ -362,8 +410,8 @@ public:
 #endif
 
 #if defined(ASMJIT_HAS_SHM_OPEN) && defined(SHM_ANON)
+    DebugUtils::unused(memoryFlags);
     // Originally FreeBSD extension, apparently works in other BSDs too.
-    DebugUtils::unused(preferTmpOverDevShm);
     _fd = ::shm_open(SHM_ANON, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 
     if (ASMJIT_LIKELY(_fd >= 0))
@@ -385,7 +433,7 @@ public:
       bits -= uint64_t(OSUtils::getTickCount()) * 773703683;
       bits = ((bits >> 14) ^ (bits << 6)) + uint64_t(++internalCounter) * 10619863;
 
-      bool useTmp = !ASMJIT_VM_SHM_DETECT || preferTmpOverDevShm;
+      bool useTmp = !ASMJIT_VM_SHM_DETECT || Support::test(memoryFlags, MemoryFlags::kMappingPreferTmp);
 
       if (useTmp) {
         _tmpName.assign(getTmpDir());
@@ -454,7 +502,7 @@ static Error detectAnonymousMemoryStrategy(AnonymousMemoryStrategy* strategyOut)
   AnonymousMemory anonMem;
   Info vmInfo = info();
 
-  ASMJIT_PROPAGATE(anonMem.open(false));
+  ASMJIT_PROPAGATE(anonMem.open(MemoryFlags::kNone));
   ASMJIT_PROPAGATE(anonMem.allocate(vmInfo.pageSize));
 
   void* ptr = mmap(nullptr, vmInfo.pageSize, PROT_READ | PROT_EXEC, MAP_SHARED, anonMem.fd(), 0);
@@ -641,7 +689,68 @@ static Error unmapMemory(void* p, size_t size) noexcept {
   return kErrorOk;
 }
 
+static Error mapMemoryLargePageAligned(void **p, size_t size, MemoryFlags memoryFlags) noexcept {
+  *p = nullptr;
+  if (size == 0)
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  int protection = mmProtFromMemoryFlags(memoryFlags) | mmMaxProtFromMemoryFlags(memoryFlags);
+  int mmFlags = MAP_PRIVATE | MAP_ANONYMOUS;
+  int fd = -1;
+
+#if defined(MAP_ALIGNED_SUPER)
+  mmFlags |= MAP_ALIGNED_SUPER;
+#elif defined(VM_FLAGS_SUPERPAGE_SIZE_2MB)
+  fd = VM_FLAGS_SUPERPAGE_SIZE_2MB;
+#endif
+
+  void *ptr = mmap(nullptr, size, protection, mmFlags, fd, 0);
+  if (ptr == MAP_FAILED)
+    return DebugUtils::errored(asmjitErrorFromErrno(errno));
+
+  *p = ptr;
+  return kErrorOk;
+}
+
+static Error mapMemoryWithLargePages(void** p, size_t size, MemoryFlags memoryFlags) noexcept {
+  size_t afterSize = 0;
+#if !defined(MAP_ALIGNED_SUPER) && !defined(VM_FLAGS_SUPERPAGE_SIZE_ANY)
+  afterSize += info().largePageSize - info().pageSize;
+#endif
+
+  void* ptr;
+  ASMJIT_PROPAGATE(mapMemoryLargePageAligned(&ptr, size + afterSize, memoryFlags));
+
+#if !defined(MAP_ALIGNED_SUPER) && !defined(VM_FLAGS_SUPERPAGE_SIZE_ANY)
+  uintptr_t addr = (uintptr_t)ptr;
+  if (size_t beforeSize = Support::alignUp(addr, info().largePageSize) - addr) {
+    ASMJIT_PROPAGATE(unmapMemory(ptr, beforeSize));
+    addr += beforeSize;
+    afterSize -= beforeSize;
+  }
+  if (afterSize)
+    ASMJIT_PROPAGATE(unmapMemory((void*)(addr + size), afterSize));
+  ASMJIT_ASSERT(Support::isAligned(addr, info().largePageSize));
+  ptr = (void*)addr;
+
+#if defined(MADV_HUGEPAGE)
+  if (ASMJIT_UNLIKELY(madvise(ptr, size, MADV_HUGEPAGE) != 0))
+    return DebugUtils::errored(kErrorInvalidArgument);
+#endif
+
+#endif
+  *p = ptr;
+  return kErrorOk;
+}
+
 Error alloc(void** p, size_t size, MemoryFlags memoryFlags) noexcept {
+  *p = nullptr;
+  if (size == 0)
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  if (Support::test(memoryFlags, MemoryFlags::kMMapLargePages))
+    return mapMemoryWithLargePages(p, size, memoryFlags);
+
   return mapMemory(p, size, memoryFlags);
 }
 
@@ -707,6 +816,19 @@ static Error allocDualMappingUsingRemapdup(DualMapping* dmOut, size_t size, Memo
 }
 #endif
 
+static Error tryAllocDualMapping(void* ptr[2], size_t size, int fd, MemoryFlags memoryFlags) {
+  for (uint32_t i = 0; i < 2; i++) {
+    MemoryFlags restrictedMemoryFlags = memoryFlags & ~dualMappingFilter[i];
+    Error err = mapMemory(&ptr[i], size, restrictedMemoryFlags | MemoryFlags::kMapShared, fd);
+    if (err != kErrorOk) {
+      if (i == 1)
+        unmapMemory(ptr[0], size);
+      return err;
+    }
+  }
+  return kErrorOk;
+}
+
 Error allocDualMapping(DualMapping* dm, size_t size, MemoryFlags memoryFlags) noexcept {
   dm->rx = nullptr;
   dm->rw = nullptr;
@@ -717,26 +839,35 @@ Error allocDualMapping(DualMapping* dm, size_t size, MemoryFlags memoryFlags) no
 #if defined(ASMJIT_ANONYMOUS_MEMORY_USE_REMAPDUP)
   return allocDualMappingUsingRemapdup(dm, size, memoryFlags);
 #elif defined(ASMJIT_ANONYMOUS_MEMORY_USE_FD)
-  bool preferTmpOverDevShm = Support::test(memoryFlags, MemoryFlags::kMappingPreferTmp);
-  if (!preferTmpOverDevShm) {
+  MemoryFlags openFlags = memoryFlags;
+  if (!Support::test(memoryFlags, MemoryFlags::kMappingPreferTmp)) {
     AnonymousMemoryStrategy strategy;
     ASMJIT_PROPAGATE(getAnonymousMemoryStrategy(&strategy));
-    preferTmpOverDevShm = (strategy == AnonymousMemoryStrategy::kTmpDir);
+    if (strategy == AnonymousMemoryStrategy::kTmpDir)
+      openFlags |= MemoryFlags::kMappingPreferTmp;
   }
 
   AnonymousMemory anonMem;
-  ASMJIT_PROPAGATE(anonMem.open(preferTmpOverDevShm));
+  ASMJIT_PROPAGATE(anonMem.open(openFlags));
   ASMJIT_PROPAGATE(anonMem.allocate(size));
 
   void* ptr[2];
-  for (uint32_t i = 0; i < 2; i++) {
-    MemoryFlags restrictedMemoryFlags = memoryFlags & ~dualMappingFilter[i];
-    Error err = mapMemory(&ptr[i], size, restrictedMemoryFlags | MemoryFlags::kMapShared, anonMem.fd(), 0);
-    if (err != kErrorOk) {
-      if (i == 1)
-        unmapMemory(ptr[0], size);
+  Error err = tryAllocDualMapping(ptr, size, anonMem.fd(), memoryFlags);
+  if (err != kErrorOk) {
+#if defined(__linux__) && defined(__NR_memfd_create)
+    if (err == kErrorOutOfMemory && Support::test(openFlags, MemoryFlags::kMMapLargePages)) {
+      // When an allocation requesting large pages has failed, fallback to allocating without large pages.
+      anonMem.close();
+      openFlags &= ~MemoryFlags::kMMapLargePages;
+      ASMJIT_PROPAGATE(anonMem.open(openFlags));
+      ASMJIT_PROPAGATE(anonMem.allocate(size));
+      ASMJIT_PROPAGATE(tryAllocDualMapping(ptr, size, anonMem.fd(), memoryFlags));
+    } else {
       return err;
     }
+#else
+    return err;
+#endif
   }
 
   dm->rx = ptr[0];

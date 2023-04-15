@@ -521,14 +521,17 @@ static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocat
   if (block != nullptr)
     bitWords = static_cast<BitWord*>(::malloc(size_t(numBitWords) * 2 * sizeof(BitWord)));
 
+  VirtMem::MemoryFlags memoryFlags = VirtMem::MemoryFlags::kAccessRWX;
+  if (Support::test(impl->options, JitAllocatorOptions::kUseLargePages))
+    memoryFlags |= VirtMem::MemoryFlags::kMMapLargePages;
   uint32_t blockFlags = 0;
   if (bitWords != nullptr) {
     if (Support::test(impl->options, JitAllocatorOptions::kUseDualMapping)) {
-      err = VirtMem::allocDualMapping(&virtMem, blockSize, VirtMem::MemoryFlags::kAccessRWX);
+      err = VirtMem::allocDualMapping(&virtMem, blockSize, memoryFlags);
       blockFlags |= JitAllocatorBlock::kFlagDualMapped;
     }
     else {
-      err = VirtMem::alloc(&virtMem.rx, blockSize, VirtMem::MemoryFlags::kAccessRWX);
+      err = VirtMem::alloc(&virtMem.rx, blockSize, memoryFlags);
       virtMem.rw = virtMem.rx;
     }
   }

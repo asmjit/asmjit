@@ -29,6 +29,8 @@ ASMJIT_API void flushInstructionCache(void* p, size_t size) noexcept;
 struct Info {
   //! Virtual memory page size.
   uint32_t pageSize;
+  //! Virtual memory large page size.
+  uint32_t largePageSize;
   //! Virtual memory page granularity.
   uint32_t pageGranularity;
 };
@@ -116,6 +118,9 @@ enum class MemoryFlags : uint32_t {
   //! use `MAP_SHARED` instead of `MAP_PRIVATE` to ensure that the OS would not apply copy on write on RW page, which
   //! would cause RX page not having the updated content.
   kMapShared = 0x00000100u,
+
+  //! Request that large pages be used for the memory range.
+  kMMapLargePages = 0x00000200u,
 
   //! Not an access flag, only used by `allocDualMapping()` to override the default allocation strategy to always use
   //! a 'tmp' directory instead of "/dev/shm" (on POSIX platforms). Please note that this flag will be ignored if the
