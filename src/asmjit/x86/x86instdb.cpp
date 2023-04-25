@@ -5434,14 +5434,14 @@ const uint8_t InstDB::rwInfoIndexB[Inst::_kIdCount] = {
   84, 84, 3, 3, 164, 164, 164, 164, 3, 0, 0, 0, 0, 164, 164, 164, 164, 164, 164,
   3, 3, 120, 120, 120, 3, 164, 164, 3, 3, 120, 120, 120, 3, 3, 103, 84, 84, 84,
   3, 3, 3, 165, 166, 165, 3, 3, 3, 167, 165, 168, 3, 3, 3, 167, 165, 166, 165,
-  3, 3, 3, 167, 3, 3, 3, 3, 3, 3, 3, 3, 120, 120, 0, 103, 103, 103, 103, 103, 103,
+  3, 3, 3, 167, 3, 3, 3, 3, 3, 3, 3, 3, 169, 169, 0, 103, 103, 103, 103, 103, 103,
   103, 103, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 139, 141, 0, 0, 139, 141,
   0, 0, 139, 141, 0, 0, 140, 141, 84, 84, 84, 139, 140, 141, 84, 84, 84, 139, 140,
   141, 84, 84, 139, 141, 0, 0, 139, 141, 0, 0, 139, 141, 0, 0, 140, 141, 3, 3,
   3, 99, 100, 101, 0, 0, 10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 3, 3, 3, 3, 3,
   3, 0, 0, 0, 139, 140, 141, 92, 3, 3, 3, 99, 100, 101, 0, 0, 0, 0, 0, 3, 3, 3,
-  3, 3, 3, 0, 0, 0, 0, 56, 56, 169, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 0, 0, 0, 0,
-  170, 170, 170, 170, 171, 171, 171, 171, 171, 171, 171, 171, 169, 0, 0
+  3, 3, 3, 0, 0, 0, 0, 56, 56, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 0, 0, 0, 0,
+  171, 171, 171, 171, 172, 172, 172, 172, 172, 172, 172, 172, 170, 0, 0
 };
 
 const InstDB::RWInfo InstDB::rwInfoA[] = {
@@ -5705,7 +5705,7 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 52, { 10, 80, 0 , 0 , 0 , 0  } }, // #117 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 52, { 10, 3 , 0 , 0 , 0 , 0  } }, // #118 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 53, { 79, 43, 0 , 0 , 0 , 0  } }, // #119 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 6 , { 2 , 3 , 3 , 0 , 0 , 0  } }, // #120 [ref=82x]
+  { InstDB::RWInfo::kCategoryGeneric   , 6 , { 2 , 3 , 3 , 0 , 0 , 0  } }, // #120 [ref=80x]
   { InstDB::RWInfo::kCategoryGeneric   , 42, { 4 , 5 , 5 , 0 , 0 , 0  } }, // #121 [ref=4x]
   { InstDB::RWInfo::kCategoryGeneric   , 40, { 4 , 61, 7 , 0 , 0 , 0  } }, // #122 [ref=1x]
   { InstDB::RWInfo::kCategoryGeneric   , 42, { 4 , 81, 9 , 0 , 0 , 0  } }, // #123 [ref=1x]
@@ -5754,9 +5754,10 @@ const InstDB::RWInfo InstDB::rwInfoB[] = {
   { InstDB::RWInfo::kCategoryGeneric   , 68, { 11, 3 , 0 , 0 , 0 , 0  } }, // #166 [ref=2x]
   { InstDB::RWInfo::kCategoryGeneric   , 69, { 11, 3 , 5 , 0 , 0 , 0  } }, // #167 [ref=3x]
   { InstDB::RWInfo::kCategoryGeneric   , 22, { 11, 3 , 5 , 0 , 0 , 0  } }, // #168 [ref=1x]
-  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 60, 17, 29, 0 , 0 , 0  } }, // #169 [ref=2x]
-  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 3 , 60, 17, 0 , 0 , 0  } }, // #170 [ref=4x]
-  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 11, 60, 17, 0 , 0 , 0  } }  // #171 [ref=8x]
+  { InstDB::RWInfo::kCategoryGenericEx , 6 , { 2 , 3 , 3 , 0 , 0 , 0  } }, // #169 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 0 , { 60, 17, 29, 0 , 0 , 0  } }, // #170 [ref=2x]
+  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 3 , 60, 17, 0 , 0 , 0  } }, // #171 [ref=4x]
+  { InstDB::RWInfo::kCategoryGeneric   , 8 , { 11, 60, 17, 0 , 0 , 0  } }  // #172 [ref=8x]
 };
 
 const InstDB::RWInfoOp InstDB::rwInfoOp[] = {

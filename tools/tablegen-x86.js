@@ -2236,7 +2236,17 @@ class InstRWInfoTable extends core.Task {
           }
         }
       }
-      return { category: "Generic", rwOps };
+
+      const name = dbInsts.length ? dbInsts[0].name : "";
+
+      switch (name) {
+        case "vpternlogd":
+        case "vpternlogq":
+          return { category: "GenericEx", rwOps };
+
+        default:
+          return { category: "Generic", rwOps };
+      }
     }
 
     function queryRwByData(dbInsts, rwOpsArray) {

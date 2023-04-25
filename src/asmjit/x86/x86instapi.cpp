@@ -827,7 +827,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
   constexpr OpRWFlags RegPhys = OpRWFlags::kRegPhysId;
   constexpr OpRWFlags MibRead = OpRWFlags::kMemBaseRead | OpRWFlags::kMemIndexRead;
 
-  if (instRwInfo.category == InstDB::RWInfo::kCategoryGeneric) {
+  if (instRwInfo.category <= uint32_t(InstDB::RWInfo::kCategoryGenericEx)) {
     uint32_t i;
     uint32_t rmOpsMask = 0;
     uint32_t rmMaxSize = 0;
@@ -946,6 +946,25 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
             break;
         }
       } while (it.hasNext());
+    }
+
+    // Special cases per instruction.
+    if (instRwInfo.category == InstDB::RWInfo::kCategoryGenericEx) {
+      switch (inst.id()) {
+        case Inst::kIdVpternlogd:
+        case Inst::kIdVpternlogq: {
+          if (opCount == 4 && operands[3].isImm()) {
+            uint32_t predicate = operands[3].as<Imm>().valueAs<uint8_t>();
+            if ((predicate >> 4) == (predicate & 0xF)) {
+              out->_operands[0].clearOpFlags(OpRWFlags::kRead);
+            }
+          }
+          break;
+        }
+
+        default:
+          break;
+      }
     }
 
     return rwHandleAVX512(inst, commonInfo, out);

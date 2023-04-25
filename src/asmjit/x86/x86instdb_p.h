@@ -213,7 +213,8 @@ struct InstNameIndex {
 
 struct RWInfo {
   enum Category : uint8_t {
-    kCategoryGeneric,
+    kCategoryGeneric = 0,
+    kCategoryGenericEx,
     kCategoryMov,
     kCategoryMovabs,
     kCategoryImul,
