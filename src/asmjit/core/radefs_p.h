@@ -740,6 +740,11 @@ enum class RATiedFlags : uint32_t {
   kLeadConsecutive = 0x00001000u,
   kConsecutiveData = 0x00006000u,
 
+  // Other Constraints
+  // -----------------
+
+  kUnique = 0x00008000u,
+
   // Liveness Flags
   // --------------
 
@@ -888,6 +893,9 @@ struct RATiedReg {
   inline bool isUseConsecutive() const noexcept { return hasFlag(RATiedFlags::kUseConsecutive); }
   //! Tests whether the tied register has \ref RATiedFlags::kOutConsecutive flag set.
   inline bool isOutConsecutive() const noexcept { return hasFlag(RATiedFlags::kOutConsecutive); }
+
+  //! Tests whether the tied register must be unique (cannot be allocated to any other allocated register).
+  inline bool isUnique() const noexcept { return hasFlag(RATiedFlags::kUnique); }
 
   //! Tests whether the tied register has any consecutive flag.
   inline bool hasAnyConsecutiveFlag() const noexcept { return hasFlag(RATiedFlags::kLeadConsecutive | RATiedFlags::kUseConsecutive | RATiedFlags::kOutConsecutive); }

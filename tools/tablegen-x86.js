@@ -2193,13 +2193,28 @@ class InstRWInfoTable extends core.Task {
           if (op.consecutiveLeadCount)
             d.clc = op.consecutiveLeadCount;
 
+          const instName = dbInst.name;
           // NOTE: Avoid push/pop here as PUSH/POP has many variations for segment registers,
           // which would set 'd.fixed' field even for GP variation of the instuction.
-          if (dbInst.name !== "push" && dbInst.name !== "pop") {
+          if (instName !== "push" && instName !== "pop") {
             if (op.isReg())
               d.fixed = GenUtils.fixedRegOf(op.reg);
             else
               d.fixed = GenUtils.fixedRegOf(op.mem);
+          }
+
+          switch (instName) {
+            case "vfcmaddcph":
+            case "vfmaddcph":
+            case "vfcmaddcsh":
+            case "vfmaddcsh":
+            case "vfcmulcsh":
+            case "vfmulcsh":
+            case "vfcmulcph":
+            case "vfmulcph":
+              if (j === 0)
+                d.flags.Unique = true;
+              break;
           }
 
           if (op.zext)

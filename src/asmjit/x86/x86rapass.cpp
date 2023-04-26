@@ -183,6 +183,9 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
           RATiedFlags flags = raRegRwFlags(opRwInfo.opFlags());
           RegMask allowedRegs = instructionAllowedRegs;
 
+          if (opRwInfo.isUnique())
+            flags |= RATiedFlags::kUnique;
+
           // X86-specific constraints related to LO|HI general purpose registers. This is only required when the
           // register is part of the encoding. If the register is fixed we won't restrict anything as it doesn't
           // restrict encoding of other registers.

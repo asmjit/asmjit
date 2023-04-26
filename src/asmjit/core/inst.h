@@ -406,6 +406,9 @@ enum class OpRWFlags {
   //! The `extendByteMask()` represents a zero extension.
   kZExt = 0x00000010u,
 
+  //! The register must have assigned a unique physical ID, which cannot be assigned to any other register.
+  kUnique = 0x00000080u,
+
   //! Register operand must use \ref OpRWInfo::physId().
   kRegPhysId = 0x00000100u,
   //! Base register of a memory operand must use \ref OpRWInfo::physId().
@@ -531,6 +534,10 @@ struct OpRWInfo {
 
   //! Tests whether the operand will be zero extended.
   inline bool isZExt() const noexcept { return hasOpFlag(OpRWFlags::kZExt); }
+
+  //! Tests whether the operand must have allocated a unique physical id that cannot be shared with other register
+  //! operands.
+  inline bool isUnique() const noexcept { return hasOpFlag(OpRWFlags::kUnique); }
 
   //! \}
 
