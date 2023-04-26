@@ -222,8 +222,8 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     features.addIf(bitTest(regs.edx, 19), CpuFeatures::X86::kCLFLUSH);
     features.addIf(bitTest(regs.edx, 23), CpuFeatures::X86::kMMX);
     features.addIf(bitTest(regs.edx, 24), CpuFeatures::X86::kFXSR);
-    features.addIf(bitTest(regs.edx, 25), CpuFeatures::X86::kSSE);
-    features.addIf(bitTest(regs.edx, 25), CpuFeatures::X86::kSSE, CpuFeatures::X86::kSSE2);
+    features.addIf(bitTest(regs.edx, 25), CpuFeatures::X86::kSSE, CpuFeatures::X86::kMMX2);
+    features.addIf(bitTest(regs.edx, 25), CpuFeatures::X86::kSSE2, CpuFeatures::X86::kSSE);
     features.addIf(bitTest(regs.edx, 28), CpuFeatures::X86::kMT);
 
     // Get the content of XCR0 if supported by the CPU and enabled by the OS.
