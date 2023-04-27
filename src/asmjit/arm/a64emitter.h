@@ -11,6 +11,14 @@
 #include "../arm/a64instdb.h"
 #include "../arm/a64operand.h"
 
+// MSVC targeting AArch64 defines a lot of macros without underscores clashing
+// with AArch64 instruction names. We have to workaround until it's fixed in SDK.
+#if defined(_MSC_VER) && defined(mvn)
+  #define ASMJIT_RESTORE_MSVC_AARCH64_MACROS
+  #pragma push_macro("mvn")
+  #undef mvn
+#endif
+
 ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 
 #define ASMJIT_INST_0x(NAME, ID) \
@@ -1224,5 +1232,10 @@ class Emitter : public BaseEmitter, public EmitterExplicitT<Emitter> {
 #undef ASMJIT_INST_1cc
 
 ASMJIT_END_SUB_NAMESPACE
+
+// Restore undefined MSVC AArch64 macros.
+#if defined(ASMJIT_RESTORE_MSVC_AARCH64_MACROS)
+  #pragma pop_macro("mvn")
+#endif
 
 #endif // ASMJIT_ARM_A64EMITTER_H_INCLUDED
