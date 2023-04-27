@@ -172,7 +172,7 @@ namespace asmjit {
   #define ASMJIT_ARCH_X86 0
 #endif
 
-#if defined(__arm64__) || defined(__aarch64__)
+#if defined(_M_ARM64) || defined(__arm64__) || defined(__aarch64__)
 # define ASMJIT_ARCH_ARM 64
 #elif defined(_M_ARM) || defined(_M_ARMT) || defined(__arm__) || defined(__thumb__) || defined(__thumb2__)
   #define ASMJIT_ARCH_ARM 32
