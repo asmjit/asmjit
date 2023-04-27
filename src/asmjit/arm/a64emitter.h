@@ -11,6 +11,12 @@
 #include "../arm/a64instdb.h"
 #include "../arm/a64operand.h"
 
+// Dectect and undef MSVC mvn macro
+#if defined(_MSC_VER) && defined(mvn)
+  #pragma push_macro("mvn")
+  #undef mvn
+#endif
+
 ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 
 #define ASMJIT_INST_0x(NAME, ID) \
@@ -1224,5 +1230,10 @@ class Emitter : public BaseEmitter, public EmitterExplicitT<Emitter> {
 #undef ASMJIT_INST_1cc
 
 ASMJIT_END_SUB_NAMESPACE
+
+// Restore MSVC mvn macro
+#if defined(_MSC_VER)
+  #pragma pop_macro("mvn")
+#endif
 
 #endif // ASMJIT_ARM_A64EMITTER_H_INCLUDED
