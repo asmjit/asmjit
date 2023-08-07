@@ -280,12 +280,19 @@ UNIT(const_pool) {
 
   INFO("Checking if the constants were split into 4-byte patterns");
   {
-    uint32_t c = 0x01010101;
-    for (i = 0; i < kCount; i++) {
-      size_t offset;
-      EXPECT_EQ(pool.add(&c, 4, offset), kErrorOk);
-      EXPECT_EQ(offset, i * 8);
+    uint32_t c = 0x01010101u;
+    size_t offset;
+
+    EXPECT_EQ(pool.add(&c, 4, offset), kErrorOk);
+    EXPECT_EQ(offset, 0);
+
+    // NOTE: We have to adjust the offset to successfully test this on big endian architectures.
+    size_t baseOffset = size_t(ASMJIT_ARCH_BE ? 4 : 0);
+
+    for (i = 1; i < kCount; i++) {
       c++;
+      EXPECT_EQ(pool.add(&c, 4, offset), kErrorOk);
+      EXPECT_EQ(offset, baseOffset + i * 8);
     }
   }
 
