@@ -45,7 +45,7 @@ static uint32_t calculateInstructionCount(asmjit::CodeHolder& code, asmjit::Arch
 }
 #endif
 
-static inline double mbps(double duration, uint64_t outputSize) noexcept {
+static inline double calculateMBPS(double duration, uint64_t outputSize) noexcept {
   if (duration == 0)
     return 0.0;
 
@@ -53,7 +53,7 @@ static inline double mbps(double duration, uint64_t outputSize) noexcept {
   return (bytesTotal * 1000) / (duration * 1024 * 1024);
 }
 
-static inline double mips(double duration, uint64_t instCount) noexcept {
+static inline double calculateMIPS(double duration, uint64_t instCount) noexcept {
   if (duration == 0)
     return 0.0;
 
@@ -95,14 +95,14 @@ static void bench(asmjit::CodeHolder& code, asmjit::Arch arch, uint32_t numItera
 
   printf("  [%s] %-9s %-16s | CodeSize:%5llu [B] | Time:%8.4f [ms]", archName, emitterName, testName, (unsigned long long)codeSize, duration);
   if (codeSize) {
-    printf(" | Speed:%8.3f [MB/s]", mbps(duration, codeSize));
+    printf(" | Speed:%7.1f [MiB/s]", calculateMBPS(duration, codeSize));
   }
   else {
-    printf(" | Speed: N/A           ");
+    printf(" | Speed:    N/A        ");
   }
 
   if (instCount) {
-    printf(", %8.3f [MI/s]", mips(duration, instCount));
+    printf(", %8.1f [MInst/s]", calculateMIPS(duration, instCount));
   }
 
   printf("\n");
