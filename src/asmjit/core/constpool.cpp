@@ -284,7 +284,7 @@ UNIT(const_pool) {
     size_t offset;
 
     EXPECT_EQ(pool.add(&c, 4, offset), kErrorOk);
-    EXPECT_EQ(offset, 0);
+    EXPECT_EQ(offset, 0u);
 
     // NOTE: We have to adjust the offset to successfully test this on big endian architectures.
     size_t baseOffset = size_t(ASMJIT_ARCH_BE ? 4 : 0);

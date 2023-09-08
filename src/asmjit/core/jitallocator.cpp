@@ -146,34 +146,28 @@ public:
   //! Double linked list of blocks.
   ZoneList<JitAllocatorBlock> blocks;
   //! Where to start looking first.
-  JitAllocatorBlock* cursor;
+  JitAllocatorBlock* cursor = nullptr;
 
   //! Count of blocks.
-  uint32_t blockCount;
+  uint32_t blockCount = 0;
   //! Allocation granularity.
-  uint16_t granularity;
+  uint16_t granularity = 0;
   //! Log2(granularity).
-  uint8_t granularityLog2;
+  uint8_t granularityLog2 = 0;
   //! Count of empty blocks (either 0 or 1 as we won't keep more blocks empty).
-  uint8_t emptyBlockCount;
+  uint8_t emptyBlockCount = 0;
 
   //! Number of bits reserved across all blocks.
-  size_t totalAreaSize;
+  size_t totalAreaSize = 0;
   //! Number of bits used across all blocks.
-  size_t totalAreaUsed;
+  size_t totalAreaUsed = 0;
   //! Overhead of all blocks (in bytes).
-  size_t totalOverheadBytes;
+  size_t totalOverheadBytes = 0;
 
   inline JitAllocatorPool(uint32_t granularity) noexcept
     : blocks(),
-      cursor(nullptr),
-      blockCount(0),
       granularity(uint16_t(granularity)),
-      granularityLog2(uint8_t(Support::ctz(granularity))),
-      emptyBlockCount(0),
-      totalAreaSize(0),
-      totalAreaUsed(0),
-      totalOverheadBytes(0) {}
+      granularityLog2(uint8_t(Support::ctz(granularity))) {}
 
   inline void reset() noexcept {
     blocks.reset();
@@ -202,39 +196,45 @@ public:
   ASMJIT_NONCOPYABLE(JitAllocatorBlock)
 
   enum Flags : uint32_t {
+    //! Block has initial padding, see \ref JitAllocatorOptions::kDisableInitialPadding.
+    kFlagInitialPadding = 0x00000001u,
     //! Block is empty.
-    kFlagEmpty = 0x00000001u,
+    kFlagEmpty = 0x00000002u,
     //! Block is dirty (largestUnusedArea, searchStart, searchEnd).
-    kFlagDirty = 0x00000002u,
+    kFlagDirty = 0x00000004u,
     //! Block is dual-mapped.
-    kFlagDualMapped = 0x00000004u
+    kFlagDualMapped = 0x00000008u
   };
 
+  static_assert(kFlagInitialPadding == 1, "JitAllocatorBlock::kFlagInitialPadding must be equal to 1");
+
+  static inline uint32_t initialAreaStartByFlags(uint32_t flags) noexcept { return flags & kFlagInitialPadding; }
+
   //! Link to the pool that owns this block.
-  JitAllocatorPool* _pool;
+  JitAllocatorPool* _pool {};
   //! Virtual memory mapping - either single mapping (both pointers equal) or
   //! dual mapping, where one pointer is Read+Execute and the second Read+Write.
-  VirtMem::DualMapping _mapping;
+  VirtMem::DualMapping _mapping {};
   //! Virtual memory size (block size) [bytes].
-  size_t _blockSize;
+  size_t _blockSize = 0;
 
   //! Block flags.
-  uint32_t _flags;
+  uint32_t _flags = 0;
   //! Size of the whole block area (bit-vector size).
-  uint32_t _areaSize;
+  uint32_t _areaSize = 0;
   //! Used area (number of bits in bit-vector used).
-  uint32_t _areaUsed;
+  uint32_t _areaUsed = 0;
   //! The largest unused continuous area in the bit-vector (or `areaSize` to initiate rescan).
-  uint32_t _largestUnusedArea;
+  uint32_t _largestUnusedArea = 0;
   //! Start of a search range (for unused bits).
-  uint32_t _searchStart;
+  uint32_t _searchStart = 0;
   //! End of a search range (for unused bits).
-  uint32_t _searchEnd;
+  uint32_t _searchEnd = 0;
 
   //! Used bit-vector (0 = unused, 1 = used).
-  Support::BitWord* _usedBitVector;
+  Support::BitWord* _usedBitVector {};
   //! Stop bit-vector (0 = don't care, 1 = stop).
-  Support::BitWord* _stopBitVector;
+  Support::BitWord* _stopBitVector {};
 
   inline JitAllocatorBlock(
     JitAllocatorPool* pool,
@@ -250,12 +250,15 @@ public:
       _blockSize(blockSize),
       _flags(blockFlags),
       _areaSize(areaSize),
-      _areaUsed(0),
-      _largestUnusedArea(areaSize),
-      _searchStart(0),
-      _searchEnd(areaSize),
+      _areaUsed(0),          // Will be initialized by clearBlock().
+      _largestUnusedArea(0), // Will be initialized by clearBlock().
+      _searchStart(0),       // Will be initialized by clearBlock().
+      _searchEnd(0),         // Will be initialized by clearBlock().
       _usedBitVector(usedBitVector),
-      _stopBitVector(stopBitVector) {}
+      _stopBitVector(stopBitVector) {
+
+    clearBlock();
+  }
 
   inline JitAllocatorPool* pool() const noexcept { return _pool; }
 
@@ -266,6 +269,10 @@ public:
   inline void addFlags(uint32_t f) noexcept { _flags |= f; }
   inline void clearFlags(uint32_t f) noexcept { _flags &= ~f; }
 
+  inline bool hasInitialPadding() const noexcept { return hasFlag(kFlagInitialPadding); }
+  inline uint32_t initialAreaStart() const noexcept { return initialAreaStartByFlags(_flags); }
+
+  inline bool empty() const noexcept { return hasFlag(kFlagEmpty); }
   inline bool isDirty() const noexcept { return hasFlag(kFlagDirty); }
   inline void makeDirty() noexcept { addFlags(kFlagDirty); }
 
@@ -279,6 +286,26 @@ public:
   inline void decreaseUsedArea(uint32_t value) noexcept {
     _areaUsed -= value;
     _pool->totalAreaUsed -= value;
+  }
+
+  inline void clearBlock() noexcept {
+    bool bit = hasInitialPadding();
+    size_t numBitWords = _pool->bitWordCountFromAreaSize(_areaSize);
+
+    memset(_usedBitVector, 0, numBitWords * sizeof(Support::BitWord));
+    memset(_stopBitVector, 0, numBitWords * sizeof(Support::BitWord));
+
+    Support::bitVectorSetBit(_usedBitVector, 0, bit);
+    Support::bitVectorSetBit(_stopBitVector, 0, bit);
+
+    uint32_t start = initialAreaStartByFlags(_flags);
+    _areaUsed = start;
+    _largestUnusedArea = _areaSize - start;
+    _searchStart = start;
+    _searchEnd = _areaSize;
+
+    addFlags(JitAllocatorBlock::kFlagEmpty);
+    clearFlags(JitAllocatorBlock::kFlagDirty);
   }
 
   inline void markAllocatedArea(uint32_t allocatedAreaStart, uint32_t allocatedAreaEnd) noexcept {
@@ -296,14 +323,17 @@ public:
       _searchStart = _areaSize;
       _searchEnd = 0;
       _largestUnusedArea = 0;
-      clearFlags(kFlagDirty);
+
+      clearFlags(kFlagDirty | kFlagEmpty);
     }
     else {
       if (_searchStart == allocatedAreaStart)
         _searchStart = allocatedAreaEnd;
       if (_searchEnd == allocatedAreaEnd)
         _searchEnd = allocatedAreaStart;
+
       addFlags(kFlagDirty);
+      clearFlags(kFlagEmpty);
     }
   }
 
@@ -320,10 +350,10 @@ public:
     Support::bitVectorClear(_usedBitVector, releasedAreaStart, releasedAreaSize);
     Support::bitVectorSetBit(_stopBitVector, releasedAreaEnd - 1, false);
 
-    if (areaUsed() == 0) {
-      _searchStart = 0;
+    if (areaUsed() == initialAreaStart()) {
+      _searchStart = initialAreaStart();
       _searchEnd = _areaSize;
-      _largestUnusedArea = _areaSize;
+      _largestUnusedArea = _areaSize - initialAreaStart();
       addFlags(kFlagEmpty);
       clearFlags(kFlagDirty);
     }
@@ -482,6 +512,13 @@ static inline size_t JitAllocatorImpl_calculateIdealBlockSize(JitAllocatorPrivat
   JitAllocatorBlock* last = pool->blocks.last();
   size_t blockSize = last ? last->blockSize() : size_t(impl->blockSize);
 
+  // We have to increase the allocationSize if we know that the block must provide padding.
+  if (!Support::test(impl->options, JitAllocatorOptions::kDisableInitialPadding)) {
+    if (SIZE_MAX - allocationSize < 64u)
+      return 0; // Overflown
+    allocationSize += 64u;
+  }
+
   if (blockSize < kJitAllocatorMaxBlockSize)
     blockSize *= 2u;
 
@@ -513,38 +550,33 @@ static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocat
   uint32_t areaSize = uint32_t((blockSize + pool->granularity - 1) >> pool->granularityLog2);
   uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
 
-  JitAllocatorBlock* block = static_cast<JitAllocatorBlock*>(::malloc(sizeof(JitAllocatorBlock)));
-  BitWord* bitWords = nullptr;
-  VirtMem::DualMapping virtMem {};
-  Error err = kErrorOutOfMemory;
+  JitAllocatorBlock* block = static_cast<JitAllocatorBlock*>(::malloc(sizeof(JitAllocatorBlock) + size_t(numBitWords) * 2u * sizeof(BitWord)));
+  if (ASMJIT_UNLIKELY(block == nullptr))
+    return DebugUtils::errored(kErrorOutOfMemory);
 
-  if (block != nullptr)
-    bitWords = static_cast<BitWord*>(::malloc(size_t(numBitWords) * 2 * sizeof(BitWord)));
-
+  BitWord* bitWords = reinterpret_cast<BitWord*>(reinterpret_cast<uint8_t*>(block) + sizeof(JitAllocatorBlock));
   uint32_t blockFlags = 0;
-  if (bitWords != nullptr) {
-    if (Support::test(impl->options, JitAllocatorOptions::kUseDualMapping)) {
-      err = VirtMem::allocDualMapping(&virtMem, blockSize, VirtMem::MemoryFlags::kAccessRWX);
-      blockFlags |= JitAllocatorBlock::kFlagDualMapped;
-    }
-    else {
-      err = VirtMem::alloc(&virtMem.rx, blockSize, VirtMem::MemoryFlags::kAccessRWX);
-      virtMem.rw = virtMem.rx;
-    }
+
+  if (!Support::test(impl->options, JitAllocatorOptions::kDisableInitialPadding))
+    blockFlags |= JitAllocatorBlock::kFlagInitialPadding;
+
+  Error err {};
+  VirtMem::DualMapping virtMem {};
+
+  if (Support::test(impl->options, JitAllocatorOptions::kUseDualMapping)) {
+    err = VirtMem::allocDualMapping(&virtMem, blockSize, VirtMem::MemoryFlags::kAccessRWX);
+    blockFlags |= JitAllocatorBlock::kFlagDualMapped;
+  }
+  else {
+    err = VirtMem::alloc(&virtMem.rx, blockSize, VirtMem::MemoryFlags::kAccessRWX);
+    virtMem.rw = virtMem.rx;
   }
 
   // Out of memory.
-  if (ASMJIT_UNLIKELY(!block || !bitWords || err != kErrorOk)) {
-    if (bitWords)
-      ::free(bitWords);
-
+  if (ASMJIT_UNLIKELY(err != kErrorOk)) {
     if (block)
       ::free(block);
-
-    if (err)
-      return err;
-    else
-      return DebugUtils::errored(kErrorOutOfMemory);
+    return err;
   }
 
   // Fill the memory if the secure mode is enabled.
@@ -553,7 +585,6 @@ static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocat
     JitAllocatorImpl_fillPattern(virtMem.rw, impl->fillPattern, blockSize);
   }
 
-  memset(bitWords, 0, size_t(numBitWords) * 2 * sizeof(BitWord));
   *dst = new(block) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
   return kErrorOk;
 }
@@ -566,7 +597,6 @@ static void JitAllocatorImpl_deleteBlock(JitAllocatorPrivateImpl* impl, JitAlloc
   else
     VirtMem::release(block->rxPtr(), block->blockSize());
 
-  ::free(block->_usedBitVector);
   ::free(block);
 }
 
@@ -583,6 +613,7 @@ static void JitAllocatorImpl_insertBlock(JitAllocatorPrivateImpl* impl, JitAlloc
   // Update statistics.
   pool->blockCount++;
   pool->totalAreaSize += block->areaSize();
+  pool->totalAreaUsed += block->areaUsed();
   pool->totalOverheadBytes += sizeof(JitAllocatorBlock) + JitAllocatorImpl_bitVectorSizeToByteSize(block->areaSize()) * 2u;
 }
 
@@ -599,6 +630,7 @@ static void JitAllocatorImpl_removeBlock(JitAllocatorPrivateImpl* impl, JitAlloc
   // Update statistics.
   pool->blockCount--;
   pool->totalAreaSize -= block->areaSize();
+  pool->totalAreaUsed -= block->areaUsed();
   pool->totalOverheadBytes -= sizeof(JitAllocatorBlock) + JitAllocatorImpl_bitVectorSizeToByteSize(block->areaSize()) * 2u;
 }
 
@@ -607,12 +639,10 @@ static void JitAllocatorImpl_wipeOutBlock(JitAllocatorPrivateImpl* impl, JitAllo
     return;
 
   JitAllocatorPool* pool = block->pool();
-  uint32_t areaSize = block->areaSize();
-  uint32_t granularity = pool->granularity;
-  size_t numBitWords = pool->bitWordCountFromAreaSize(areaSize);
-
-  VirtMem::protectJitMemory(VirtMem::ProtectJitAccess::kReadWrite);
   if (Support::test(impl->options, JitAllocatorOptions::kFillUnusedMemory)) {
+    VirtMem::protectJitMemory(VirtMem::ProtectJitAccess::kReadWrite);
+
+    uint32_t granularity = pool->granularity;
     uint8_t* rwPtr = block->rwPtr();
     BitVectorRangeIterator<Support::BitWord, 0> it(block->_usedBitVector, pool->bitWordCountFromAreaSize(block->areaSize()));
 
@@ -626,18 +656,10 @@ static void JitAllocatorImpl_wipeOutBlock(JitAllocatorPrivateImpl* impl, JitAllo
       JitAllocatorImpl_fillPattern(spanPtr, impl->fillPattern, spanSize);
       VirtMem::flushInstructionCache(spanPtr, spanSize);
     }
+    VirtMem::protectJitMemory(VirtMem::ProtectJitAccess::kReadExecute);
   }
-  VirtMem::protectJitMemory(VirtMem::ProtectJitAccess::kReadExecute);
 
-  memset(block->_usedBitVector, 0, size_t(numBitWords) * sizeof(Support::BitWord));
-  memset(block->_stopBitVector, 0, size_t(numBitWords) * sizeof(Support::BitWord));
-
-  block->_areaUsed = 0;
-  block->_largestUnusedArea = areaSize;
-  block->_searchStart = 0;
-  block->_searchEnd = areaSize;
-  block->addFlags(JitAllocatorBlock::kFlagEmpty);
-  block->clearFlags(JitAllocatorBlock::kFlagDirty);
+  block->clearBlock();
 }
 
 // JitAllocator - Construction & Destruction
@@ -796,18 +818,18 @@ Error JitAllocator::alloc(void** rxPtrOut, void** rwPtrOut, size_t size) noexcep
     } while (block != initial);
   }
 
-  // Allocate a new block if there is no region of a required width.
+  // Allocate a new block if there is no region of a required size.
   if (areaIndex == kNoIndex) {
     size_t blockSize = JitAllocatorImpl_calculateIdealBlockSize(impl, pool, size);
     if (ASMJIT_UNLIKELY(!blockSize))
       return DebugUtils::errored(kErrorOutOfMemory);
 
     ASMJIT_PROPAGATE(JitAllocatorImpl_newBlock(impl, &block, pool, blockSize));
-    areaIndex = 0;
+    areaIndex = block->initialAreaStart();
 
     JitAllocatorImpl_insertBlock(impl, block);
-    block->_searchStart = areaSize;
-    block->_largestUnusedArea = block->areaSize() - areaSize;
+    block->_searchStart += areaSize;
+    block->_largestUnusedArea -= areaSize;
   }
   else if (block->hasFlag(JitAllocatorBlock::kFlagEmpty)) {
     pool->emptyBlockCount--;
@@ -863,7 +885,7 @@ Error JitAllocator::release(void* rxPtr) noexcept {
   }
 
   // Release the whole block if it became empty.
-  if (block->areaUsed() == 0) {
+  if (block->empty()) {
     if (pool->emptyBlockCount || Support::test(impl->options, JitAllocatorOptions::kImmediateRelease)) {
       JitAllocatorImpl_removeBlock(impl, block);
       JitAllocatorImpl_deleteBlock(impl, block);
@@ -1222,7 +1244,7 @@ static void test_jit_allocator_alloc_release() noexcept {
     uint32_t granularity;
   };
 
-  static TestParams testParams[] = {
+  TestParams testParams[] = {
     { "Default", JitAllocatorOptions::kNone, 0, 0 },
     { "16MB blocks", JitAllocatorOptions::kNone, 16 * 1024 * 1024, 0 },
     { "256B granularity", JitAllocatorOptions::kNone, 0, 256 },
@@ -1230,6 +1252,7 @@ static void test_jit_allocator_alloc_release() noexcept {
     { "kUseMultiplePools", JitAllocatorOptions::kUseMultiplePools, 0, 0 },
     { "kFillUnusedMemory", JitAllocatorOptions::kFillUnusedMemory, 0, 0 },
     { "kImmediateRelease", JitAllocatorOptions::kImmediateRelease, 0, 0 },
+    { "kDisableInitialPadding", JitAllocatorOptions::kDisableInitialPadding, 0, 0 },
     { "kUseDualMapping | kFillUnusedMemory", JitAllocatorOptions::kUseDualMapping | JitAllocatorOptions::kFillUnusedMemory, 0, 0 }
   };
 

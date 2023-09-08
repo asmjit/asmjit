@@ -28,7 +28,7 @@ enum class JitAllocatorOptions : uint32_t {
   //! See \ref VirtMem::allocDualMapping() for more details about this feature.
   //!
   //! \remarks Dual mapping would be automatically turned on by \ref JitAllocator in case of hardened runtime that
-  //! enforces `W^X` policy, so specifying this flag is essentually forcing to use dual mapped pages even when RWX
+  //! enforces `W^X` policy, so specifying this flag is essentially forcing to use dual mapped pages even when RWX
   //! pages can be allocated and dual mapping is not necessary.
   kUseDualMapping = 0x00000001u,
 
@@ -53,6 +53,22 @@ enum class JitAllocatorOptions : uint32_t {
   //! single block caused by repetitive calling `alloc()` and `release()` when the allocator has either no blocks
   //! or have all blocks fully occupied.
   kImmediateRelease = 0x00000008u,
+
+  //! This flag enables placing functions (or allocating memory) at the very beginning of each memory mapped region.
+  //!
+  //! Initially, this was the default behavior. However, LLVM developers working on undefined behavior sanitizer
+  //! (UBSAN) decided that they want to store metadata before each function and to access such metadata before an
+  //! indirect function call. This means that the instrumented code always reads from `[fnPtr - 8]` to decode whether
+  //! the function has his metadata present. However, reading 8 bytes below a function means that if a function is
+  //! placed at the very beginning of a memory mapped region, it could try to read bytes that are inaccessible. And
+  //! since AsmJit can be compiled as a shared library and used by applications instrumented by UBSAN, it's not
+  //! possible to conditionally compile the support only when necessary.
+  //!
+  //! \important This flag controls a workaround to make it possible to use LLVM UBSAN with AsmJit's \ref JitAllocator.
+  //! There is no undefined behavior even when `kDisableInitialPadding` is used, however, that doesn't really matter
+  //! as LLVM's UBSAN introduces one, and according to LLVM developers it's a "trade-off". This flag is safe to use
+  //! when the code is not instrumented with LLVM's UBSAN.
+  kDisableInitialPadding = 0x00000010u,
 
   //! Use a custom fill pattern, must be combined with `kFlagFillUnusedMemory`.
   kCustomFillPattern = 0x10000000u
