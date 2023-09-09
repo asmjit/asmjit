@@ -177,7 +177,7 @@ namespace asmjit {
 //! ### AsmJit Backends
 //!
 //! AsmJit currently supports only X86/X64 backend, but the plan is to add more backends in the future. By default
-//! AsmJit builds only the host backend, which is autodetected at compile-time, but this can be overridden.
+//! AsmJit builds only the host backend, which is auto-detected at compile-time, but this can be overridden.
 //!
 //!   - \ref ASMJIT_NO_X86 - Disable X86/X64 backends.
 //!   - \ref ASMJIT_NO_FOREIGN - Disables the support for foreign architectures.
@@ -306,7 +306,7 @@ namespace asmjit {
 //!     However, `gpCount()` was removed - at the moment `ArchTraits` can be used to access such properties.
 //!
 //!     Some other functions were renamed, like `ArchInfo::isX86Family()` is now `Environment::isFamilyX86()`, etc.
-//!     The reason for changing the order was support for more propertries and all the accessors now start with the
+//!     The reason for changing the order was support for more properties and all the accessors now start with the
 //!     type of the property, like `Environment::isPlatformWindows()`.
 //!
 //!     This function causes many other classes to provide `environment()` getter instead of `archInfo()` getter.
@@ -870,7 +870,7 @@ namespace asmjit {
 //!
 //!   if (code.hasUnresolvedLinks()) {
 //!     // This would mean either unbound label or some other issue.
-//!     printf("The code has %zu unbound labels\n", code.unresovedLinkCount());
+//!     printf("The code has %zu unbound labels\n", code.unresolvedLinkCount());
 //!     exit(1);
 //!   }
 //! }
@@ -1524,7 +1524,7 @@ namespace asmjit {
 //! override \ref ErrorHandler::handleError() to throw, in that case no error will be returned and exception will be
 //! thrown instead. All functions where this can happen are not marked `noexcept`.
 //!
-//! Errors should never be ignored, however, checking errors after each AsmJit API call would simply overcomplicate
+//! Errors should never be ignored, however, checking errors after each AsmJit API call would simply over-complicate
 //! the whole code generation experience. \ref ErrorHandler exists to make the use of AsmJit API simpler as it allows
 //! to customize how errors can be handled:
 //!
@@ -1679,7 +1679,7 @@ namespace asmjit {
 //! require a file descriptor. If none of these options are available, AsmJit uses a plain `open()` call followed by
 //! `unlink()`.
 //!
-//! The most challenging part is actually obtaing a file descriptor that can be passed to `mmap()` with `PROT_EXEC`.
+//! The most challenging part is actually obtaining a file descriptor that can be passed to `mmap()` with `PROT_EXEC`.
 //! This is still something that may fail, for example the environment could be hardened in a way that this would
 //! not be possible at all, and thus dual mapping would not work.
 //!

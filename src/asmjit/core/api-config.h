@@ -12,20 +12,23 @@
 //! \addtogroup asmjit_core
 //! \{
 
-//! AsmJit library version in `(Major << 16) | (Minor << 8) | (Patch)` format.
-#define ASMJIT_LIBRARY_VERSION 0x010A00 /* 1.10.0 */
+//! Makes a 32-bit integer that represents AsmJit version in `(major << 16) | (minor << 8) | patch` form.
+#define ASMJIT_LIBRARY_MAKE_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
+
+//! AsmJit library version, see \ref ASMJIT_LIBRARY_MAKE_VERSION for a version format reference.
+#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 11, 0)
 
 //! \def ASMJIT_ABI_NAMESPACE
 //!
 //! AsmJit ABI namespace is an inline namespace within \ref asmjit namespace.
 //!
-//! It's used to make sure that when user links to an incompatible version of AsmJit, it won't link. It has also some
-//! additional properties as well. When `ASMJIT_ABI_NAMESPACE` is defined by the user it would override the AsmJit
-//! default, which makes it possible to use use multiple AsmJit libraries within a single project, totally controlled
-//! by the users. This is useful especially in cases in which some of such library comes from a third party.
-#ifndef ASMJIT_ABI_NAMESPACE
-  #define ASMJIT_ABI_NAMESPACE _abi_1_10
-#endif
+//! It's used to make sure that when user links to an incompatible version of AsmJit, it won't link. It has also
+//! some additional properties as well. When `ASMJIT_ABI_NAMESPACE` is defined by the user it would override the
+//! AsmJit default, which makes it possible to use multiple AsmJit libraries within a single project, totally
+//! controlled by users. This is useful especially in cases in which some of such library comes from third party.
+#if !defined(ASMJIT_ABI_NAMESPACE)
+  #define ASMJIT_ABI_NAMESPACE _abi_1_11
+#endif // !ASMJIT_ABI_NAMESPACE
 
 //! \}
 
@@ -68,12 +71,12 @@ namespace asmjit {
 
 //! Defined when AsmJit's build configuration is 'Debug'.
 //!
-//! \note Can be defined explicitly to bypass autodetection.
+//! \note Can be defined explicitly to bypass auto-detection.
 #define ASMJIT_BUILD_DEBUG
 
 //! Defined when AsmJit's build configuration is 'Release'.
 //!
-//! \note Can be defined explicitly to bypass autodetection.
+//! \note Can be defined explicitly to bypass auto-detection.
 #define ASMJIT_BUILD_RELEASE
 
 //! Disables X86/X64 backends.

@@ -175,7 +175,10 @@ enum ErrorCode : uint32_t {
   //! The object is already initialized.
   kErrorAlreadyInitialized,
 
-  //! Built-in feature was disabled at compile time and it's not available.
+  //! Either a built-in feature was disabled at compile time and it's not available or the feature is not
+  //! available on the target platform.
+  //!
+  //! For example trying to allocate large pages on unsupported platform would return this error.
   kErrorFeatureNotEnabled,
 
   //! Too many handles (Windows) or file descriptors (Unix/Posix).
@@ -319,6 +322,11 @@ enum ErrorCode : uint32_t {
 
   //! Failed to open anonymous memory handle or file descriptor.
   kErrorFailedToOpenAnonymousMemory,
+
+  //! Failed to open a file.
+  //!
+  //! \note This is a generic error that is used by internal filesystem API.
+  kErrorFailedToOpenFile,
 
   // @EnumValuesEnd@
 

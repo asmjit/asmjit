@@ -7,6 +7,7 @@
 #define ASMJIT_CORE_OSUTILS_P_H_INCLUDED
 
 #include "../core/osutils.h"
+#include "../core/string.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -58,6 +59,15 @@ public:
     : _target(target) { _target.lock(); }
   inline ~LockGuard() noexcept { _target.unlock(); }
 };
+
+#if !defined(_WIN32)
+namespace OSUtils {
+
+//! Reads a file, only used on non-Windows platforms to access /sys or other files when necessary.
+Error readFile(const char* name, String& dst, size_t maxSize) noexcept;
+
+} // {OSUtils}
+#endif
 
 //! \}
 //! \endcond

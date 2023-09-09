@@ -189,7 +189,7 @@ enum class InstControlFlow : uint32_t {
 
 //! Hint that is used when both input operands to the instruction are the same.
 //!
-//! Provides hints to the instrution RW query regarding special cases in which two or more operands are the same
+//! Provides hints to the instruction RW query regarding special cases in which two or more operands are the same
 //! registers. This is required by instructions such as XOR, AND, OR, SUB, etc... These hints will influence the
 //! RW operations query.
 enum class InstSameRegHint : uint8_t {

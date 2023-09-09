@@ -127,28 +127,26 @@ int main() {
   }
 
   // Allocate memory for the function and relocate it there.
-  void* rxPtr;
-  void* rwPtr;
-  err = allocator.alloc(&rxPtr, &rwPtr, codeSize);
+  JitAllocator::Span span;
+  err = allocator.alloc(span, codeSize);
   if (err)
     fail("Failed to allocate executable memory", err);
 
   // Relocate to the base-address of the allocated memory.
-  code.relocateToBase(uint64_t(uintptr_t(rxPtr)));
+  code.relocateToBase(uint64_t(uintptr_t(span.rx())));
 
-  {
-    VirtMem::ProtectJitReadWriteScope scope(rxPtr, code.codeSize());
-
+  allocator.write(span, [&](JitAllocator::Span& span) noexcept -> Error {
     // Copy the flattened code into `mem.rw`. There are two ways. You can either copy
     // everything manually by iterating over all sections or use `copyFlattenedData`.
     // This code is similar to what `copyFlattenedData(p, codeSize, 0)` would do:
     for (Section* section : code.sectionsByOrder())
-      memcpy(static_cast<uint8_t*>(rwPtr) + size_t(section->offset()), section->data(), section->bufferSize());
-  }
+      memcpy(static_cast<uint8_t*>(span.rw()) + size_t(section->offset()), section->data(), section->bufferSize());
+    return kErrorOk;
+  });
 
   // Execute the function and test whether it works.
   typedef size_t (*Func)(size_t idx);
-  Func fn = (Func)rxPtr;
+  Func fn = (Func)span.rx();
 
   printf("\n");
   if (fn(0) != dataArray[0] ||

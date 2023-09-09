@@ -31,7 +31,7 @@ static constexpr uint32_t kJitAllocatorMultiPoolCount = 3;
 static constexpr uint32_t kJitAllocatorBaseGranularity = 64;
 
 //! Maximum block size (32MB).
-static constexpr uint32_t kJitAllocatorMaxBlockSize = 1024 * 1024 * 32;
+static constexpr uint32_t kJitAllocatorMaxBlockSize = 1024 * 1024 * 64;
 
 // JitAllocator - Fill Pattern
 // ===========================
@@ -158,9 +158,9 @@ public:
   uint8_t emptyBlockCount = 0;
 
   //! Number of bits reserved across all blocks.
-  size_t totalAreaSize = 0;
+  size_t totalAreaSize[2] {};
   //! Number of bits used across all blocks.
-  size_t totalAreaUsed = 0;
+  size_t totalAreaUsed[2] {};
   //! Overhead of all blocks (in bytes).
   size_t totalOverheadBytes = 0;
 
@@ -172,10 +172,12 @@ public:
   inline void reset() noexcept {
     blocks.reset();
     cursor = nullptr;
-    blockCount = 0;
-    totalAreaSize = 0;
-    totalAreaUsed = 0;
-    totalOverheadBytes = 0;
+    blockCount = 0u;
+    totalAreaSize[0] = 0u;
+    totalAreaSize[1] = 0u;
+    totalAreaUsed[0] = 0u;
+    totalAreaUsed[1] = 0u;
+    totalOverheadBytes = 0u;
   }
 
   inline size_t byteSizeFromAreaSize(uint32_t areaSize) const noexcept { return size_t(areaSize) * granularity; }
@@ -202,8 +204,10 @@ public:
     kFlagEmpty = 0x00000002u,
     //! Block is dirty (largestUnusedArea, searchStart, searchEnd).
     kFlagDirty = 0x00000004u,
-    //! Block is dual-mapped.
-    kFlagDualMapped = 0x00000008u
+    //! Block represents memory that is using large pages.
+    kFlagLargePages = 0x00000008u,
+    //! Block represents memory that is dual-mapped.
+    kFlagDualMapped = 0x00000010u
   };
 
   static_assert(kFlagInitialPadding == 1, "JitAllocatorBlock::kFlagInitialPadding must be equal to 1");
@@ -269,12 +273,14 @@ public:
   inline void addFlags(uint32_t f) noexcept { _flags |= f; }
   inline void clearFlags(uint32_t f) noexcept { _flags &= ~f; }
 
-  inline bool hasInitialPadding() const noexcept { return hasFlag(kFlagInitialPadding); }
-  inline uint32_t initialAreaStart() const noexcept { return initialAreaStartByFlags(_flags); }
-
   inline bool empty() const noexcept { return hasFlag(kFlagEmpty); }
   inline bool isDirty() const noexcept { return hasFlag(kFlagDirty); }
   inline void makeDirty() noexcept { addFlags(kFlagDirty); }
+
+  inline bool hasLargePages() const noexcept { return hasFlag(kFlagLargePages); }
+  inline bool hasInitialPadding() const noexcept { return hasFlag(kFlagInitialPadding); }
+
+  inline uint32_t initialAreaStart() const noexcept { return initialAreaStartByFlags(_flags); }
 
   inline size_t blockSize() const noexcept { return _blockSize; }
 
@@ -285,7 +291,7 @@ public:
 
   inline void decreaseUsedArea(uint32_t value) noexcept {
     _areaUsed -= value;
-    _pool->totalAreaUsed -= value;
+    _pool->totalAreaUsed[size_t(hasLargePages())] -= value;
   }
 
   inline void clearBlock() noexcept {
@@ -316,7 +322,7 @@ public:
     Support::bitVectorSetBit(_stopBitVector, allocatedAreaEnd - 1, true);
 
     // Update search region and statistics.
-    _pool->totalAreaUsed += allocatedAreaSize;
+    _pool->totalAreaUsed[size_t(hasLargePages())] += allocatedAreaSize;
     _areaUsed += allocatedAreaSize;
 
     if (areaAvailable() == 0) {
@@ -341,7 +347,7 @@ public:
     uint32_t releasedAreaSize = releasedAreaEnd - releasedAreaStart;
 
     // Update the search region and statistics.
-    _pool->totalAreaUsed -= releasedAreaSize;
+    _pool->totalAreaUsed[size_t(hasLargePages())] -= releasedAreaSize;
     _areaUsed -= releasedAreaSize;
     _searchStart = Support::min(_searchStart, releasedAreaStart);
     _searchEnd = Support::max(_searchEnd, releasedAreaEnd);
@@ -371,7 +377,7 @@ public:
     ASMJIT_ASSERT(shrunkAreaSize != 0);
 
     // Update the search region and statistics.
-    _pool->totalAreaUsed -= shrunkAreaSize;
+    _pool->totalAreaUsed[size_t(hasLargePages())] -= shrunkAreaSize;
     _areaUsed -= shrunkAreaSize;
     _searchStart = Support::min(_searchStart, shrunkAreaStart);
     _searchEnd = Support::max(_searchEnd, shrunkAreaEnd);
@@ -514,9 +520,10 @@ static inline size_t JitAllocatorImpl_calculateIdealBlockSize(JitAllocatorPrivat
 
   // We have to increase the allocationSize if we know that the block must provide padding.
   if (!Support::test(impl->options, JitAllocatorOptions::kDisableInitialPadding)) {
-    if (SIZE_MAX - allocationSize < 64u)
+    size_t granularity = pool->granularity;
+    if (SIZE_MAX - allocationSize < granularity)
       return 0; // Overflown
-    allocationSize += 64u;
+    allocationSize += granularity;
   }
 
   if (blockSize < kJitAllocatorMaxBlockSize)
@@ -531,12 +538,31 @@ static inline size_t JitAllocatorImpl_calculateIdealBlockSize(JitAllocatorPrivat
   return blockSize;
 }
 
-ASMJIT_FAVOR_SPEED static void JitAllocatorImpl_fillPattern(void* mem, uint32_t pattern, size_t sizeInBytes) noexcept {
-  size_t n = sizeInBytes / 4u;
-  uint32_t* p = static_cast<uint32_t*>(mem);
+ASMJIT_NOINLINE
+ASMJIT_FAVOR_SPEED static void JitAllocatorImpl_fillPattern(void* mem, uint32_t pattern, size_t byteSize) noexcept {
+  // NOTE: This is always used to fill a pattern in allocated / freed memory. The allocation has always
+  // a granularity that is greater than the pattern, however, when shrink() is used, we may end up having
+  // an unaligned start, so deal with it here and then copy aligned pattern in the loop.
+  if ((uintptr_t(mem) & 0x1u) && byteSize >= 1u) {
+    static_cast<uint8_t*>(mem)[0] = uint8_t(pattern & 0xFF);
+    mem = static_cast<uint8_t*>(mem) + 1;
+    byteSize--;
+  }
+
+  if ((uintptr_t(mem) & 0x2u) && byteSize >= 2u) {
+    static_cast<uint16_t*>(mem)[0] = uint16_t(pattern & 0xFFFF);
+    mem = static_cast<uint16_t*>(mem) + 1;
+    byteSize -= 2;
+  }
+
+  // Something would be seriously broken if we end up with aligned `mem`, but unaligned `byteSize`.
+  ASMJIT_ASSERT((byteSize & 0x3u) == 0u);
+
+  uint32_t* mem32 = static_cast<uint32_t*>(mem);
+  size_t n = byteSize / 4u;
 
   for (size_t i = 0; i < n; i++)
-    p[i] = pattern;
+    mem32[i] = pattern;
 }
 
 // Allocate a new `JitAllocatorBlock` for the given `blockSize`.
@@ -547,45 +573,66 @@ static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocat
   using Support::BitWord;
   using Support::kBitWordSizeInBits;
 
-  uint32_t areaSize = uint32_t((blockSize + pool->granularity - 1) >> pool->granularityLog2);
-  uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
-
-  JitAllocatorBlock* block = static_cast<JitAllocatorBlock*>(::malloc(sizeof(JitAllocatorBlock) + size_t(numBitWords) * 2u * sizeof(BitWord)));
-  if (ASMJIT_UNLIKELY(block == nullptr))
-    return DebugUtils::errored(kErrorOutOfMemory);
-
-  BitWord* bitWords = reinterpret_cast<BitWord*>(reinterpret_cast<uint8_t*>(block) + sizeof(JitAllocatorBlock));
   uint32_t blockFlags = 0;
-
   if (!Support::test(impl->options, JitAllocatorOptions::kDisableInitialPadding))
     blockFlags |= JitAllocatorBlock::kFlagInitialPadding;
 
-  Error err {};
   VirtMem::DualMapping virtMem {};
+  VirtMem::MemoryFlags memFlags = VirtMem::MemoryFlags::kAccessRWX;
 
   if (Support::test(impl->options, JitAllocatorOptions::kUseDualMapping)) {
-    err = VirtMem::allocDualMapping(&virtMem, blockSize, VirtMem::MemoryFlags::kAccessRWX);
+    ASMJIT_PROPAGATE(VirtMem::allocDualMapping(&virtMem, blockSize, memFlags));
     blockFlags |= JitAllocatorBlock::kFlagDualMapped;
   }
   else {
-    err = VirtMem::alloc(&virtMem.rx, blockSize, VirtMem::MemoryFlags::kAccessRWX);
+    bool allocateRegularPages = true;
+    if (Support::test(impl->options, JitAllocatorOptions::kUseLargePages)) {
+      size_t largePageSize = VirtMem::largePageSize();
+      bool tryLargePage = blockSize >= largePageSize || Support::test(impl->options, JitAllocatorOptions::kAlignBlockSizeToLargePage);
+
+      // Only proceed if we can actually allocate large pages.
+      if (largePageSize && tryLargePage) {
+        size_t largeBlockSize = Support::alignUp(blockSize, largePageSize);
+        Error err = VirtMem::alloc(&virtMem.rx, largeBlockSize, memFlags | VirtMem::MemoryFlags::kMMapLargePages);
+
+        // Fallback to regular pages if large page(s) allocation failed.
+        if (err == kErrorOk) {
+          allocateRegularPages = false;
+          blockSize = largeBlockSize;
+          blockFlags |= JitAllocatorBlock::kFlagLargePages;
+        }
+      }
+    }
+
+    // Called either if large pages were not requested or large page(s) allocation failed.
+    if (allocateRegularPages) {
+      ASMJIT_PROPAGATE(VirtMem::alloc(&virtMem.rx, blockSize, memFlags));
+    }
+
     virtMem.rw = virtMem.rx;
   }
 
-  // Out of memory.
-  if (ASMJIT_UNLIKELY(err != kErrorOk)) {
-    if (block)
-      ::free(block);
-    return err;
+  uint32_t areaSize = uint32_t((blockSize + pool->granularity - 1) >> pool->granularityLog2);
+  uint32_t numBitWords = (areaSize + kBitWordSizeInBits - 1u) / kBitWordSizeInBits;
+  uint8_t* blockPtr = static_cast<uint8_t*>(::malloc(sizeof(JitAllocatorBlock) + size_t(numBitWords) * 2u * sizeof(BitWord)));
+
+  // Out of memory...
+  if (ASMJIT_UNLIKELY(blockPtr == nullptr)) {
+    if (Support::test(impl->options, JitAllocatorOptions::kUseDualMapping))
+      VirtMem::releaseDualMapping(&virtMem, blockSize);
+    else
+      VirtMem::release(virtMem.rx, blockSize);
+    return DebugUtils::errored(kErrorOutOfMemory);
   }
 
-  // Fill the memory if the secure mode is enabled.
+  // Fill the allocated virtual memory if secure mode is enabled.
   if (Support::test(impl->options, JitAllocatorOptions::kFillUnusedMemory)) {
     VirtMem::ProtectJitReadWriteScope scope(virtMem.rw, blockSize);
     JitAllocatorImpl_fillPattern(virtMem.rw, impl->fillPattern, blockSize);
   }
 
-  *dst = new(block) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
+  BitWord* bitWords = reinterpret_cast<BitWord*>(blockPtr + sizeof(JitAllocatorBlock));
+  *dst = new(blockPtr) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
   return kErrorOk;
 }
 
@@ -611,9 +658,10 @@ static void JitAllocatorImpl_insertBlock(JitAllocatorPrivateImpl* impl, JitAlloc
   pool->blocks.append(block);
 
   // Update statistics.
+  size_t statIndex = size_t(block->hasLargePages());
   pool->blockCount++;
-  pool->totalAreaSize += block->areaSize();
-  pool->totalAreaUsed += block->areaUsed();
+  pool->totalAreaSize[statIndex] += block->areaSize();
+  pool->totalAreaUsed[statIndex] += block->areaUsed();
   pool->totalOverheadBytes += sizeof(JitAllocatorBlock) + JitAllocatorImpl_bitVectorSizeToByteSize(block->areaSize()) * 2u;
 }
 
@@ -628,9 +676,10 @@ static void JitAllocatorImpl_removeBlock(JitAllocatorPrivateImpl* impl, JitAlloc
   pool->blocks.unlink(block);
 
   // Update statistics.
+  size_t statIndex = size_t(block->hasLargePages());
   pool->blockCount--;
-  pool->totalAreaSize -= block->areaSize();
-  pool->totalAreaUsed -= block->areaUsed();
+  pool->totalAreaSize[statIndex] -= block->areaSize();
+  pool->totalAreaUsed[statIndex] -= block->areaUsed();
   pool->totalOverheadBytes -= sizeof(JitAllocatorBlock) + JitAllocatorImpl_bitVectorSizeToByteSize(block->areaSize()) * 2u;
 }
 
@@ -733,8 +782,8 @@ JitAllocator::Statistics JitAllocator::statistics() const noexcept {
     for (size_t poolId = 0; poolId < poolCount; poolId++) {
       const JitAllocatorPool& pool = impl->pools[poolId];
       statistics._blockCount   += size_t(pool.blockCount);
-      statistics._reservedSize += size_t(pool.totalAreaSize) * pool.granularity;
-      statistics._usedSize     += size_t(pool.totalAreaUsed) * pool.granularity;
+      statistics._reservedSize += size_t(pool.totalAreaSize[0] + pool.totalAreaSize[1]) * pool.granularity;
+      statistics._usedSize     += size_t(pool.totalAreaUsed[0] + pool.totalAreaUsed[1]) * pool.granularity;
       statistics._overheadSize += size_t(pool.totalOverheadBytes);
     }
 
@@ -747,15 +796,14 @@ JitAllocator::Statistics JitAllocator::statistics() const noexcept {
 // JitAllocator - Alloc & Release
 // ==============================
 
-Error JitAllocator::alloc(void** rxPtrOut, void** rwPtrOut, size_t size) noexcept {
+Error JitAllocator::alloc(Span& out, size_t size) noexcept {
+  out = Span{};
+
   if (ASMJIT_UNLIKELY(_impl == &JitAllocatorImpl_none))
     return DebugUtils::errored(kErrorNotInitialized);
 
   JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
   constexpr uint32_t kNoIndex = std::numeric_limits<uint32_t>::max();
-
-  *rxPtrOut = nullptr;
-  *rwPtrOut = nullptr;
 
   // Align to the minimum granularity by default.
   size = Support::alignUp<size_t>(size, impl->granularity);
@@ -840,32 +888,35 @@ Error JitAllocator::alloc(void** rxPtrOut, void** rwPtrOut, size_t size) noexcep
   impl->allocationCount++;
   block->markAllocatedArea(areaIndex, areaIndex + areaSize);
 
-  // Return a pointer to the allocated memory.
+  // Return a span referencing the allocated memory.
   size_t offset = pool->byteSizeFromAreaSize(areaIndex);
   ASMJIT_ASSERT(offset <= block->blockSize() - size);
 
-  *rxPtrOut = block->rxPtr() + offset;
-  *rwPtrOut = block->rwPtr() + offset;
+  out._rx = block->rxPtr() + offset;
+  out._rw = block->rwPtr() + offset;
+  out._size = size;
+  out._block = static_cast<void*>(block);
+
   return kErrorOk;
 }
 
-Error JitAllocator::release(void* rxPtr) noexcept {
+Error JitAllocator::release(void* rx) noexcept {
   if (ASMJIT_UNLIKELY(_impl == &JitAllocatorImpl_none))
     return DebugUtils::errored(kErrorNotInitialized);
 
-  if (ASMJIT_UNLIKELY(!rxPtr))
+  if (ASMJIT_UNLIKELY(!rx))
     return DebugUtils::errored(kErrorInvalidArgument);
 
   JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
   LockGuard guard(impl->lock);
 
-  JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(rxPtr));
+  JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(rx));
   if (ASMJIT_UNLIKELY(!block))
     return DebugUtils::errored(kErrorInvalidState);
 
   // Offset relative to the start of the block.
   JitAllocatorPool* pool = block->pool();
-  size_t offset = (size_t)((uint8_t*)rxPtr - block->rxPtr());
+  size_t offset = (size_t)((uint8_t*)rx - block->rxPtr());
 
   // The first bit representing the allocated area and its size.
   uint32_t areaIndex = uint32_t(offset >> pool->granularityLog2);
@@ -898,76 +949,88 @@ Error JitAllocator::release(void* rxPtr) noexcept {
   return kErrorOk;
 }
 
-Error JitAllocator::shrink(void* rxPtr, size_t newSize) noexcept {
-  if (ASMJIT_UNLIKELY(_impl == &JitAllocatorImpl_none))
-    return DebugUtils::errored(kErrorNotInitialized);
-
-  if (ASMJIT_UNLIKELY(!rxPtr))
-    return DebugUtils::errored(kErrorInvalidArgument);
-
-  if (ASMJIT_UNLIKELY(newSize == 0))
-    return release(rxPtr);
-
-  JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
-  LockGuard guard(impl->lock);
-  JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(rxPtr));
-
+static Error JitAllocatorImpl_shrink(JitAllocatorPrivateImpl* impl, JitAllocator::Span& span, size_t newSize, bool alreadyUnderWriteScope) noexcept {
+  JitAllocatorBlock* block = static_cast<JitAllocatorBlock*>(span._block);
   if (ASMJIT_UNLIKELY(!block))
     return DebugUtils::errored(kErrorInvalidArgument);
 
+  LockGuard guard(impl->lock);
+
   // Offset relative to the start of the block.
   JitAllocatorPool* pool = block->pool();
-  size_t offset = (size_t)((uint8_t*)rxPtr - block->rxPtr());
+  size_t offset = (size_t)((uint8_t*)span.rx() - block->rxPtr());
 
   // The first bit representing the allocated area and its size.
   uint32_t areaStart = uint32_t(offset >> pool->granularityLog2);
 
+  // Don't trust `span.size()` - if it has been already truncated we would be off...
   bool isUsed = Support::bitVectorGetBit(block->_usedBitVector, areaStart);
   if (ASMJIT_UNLIKELY(!isUsed))
     return DebugUtils::errored(kErrorInvalidArgument);
 
   uint32_t areaEnd = uint32_t(Support::bitVectorIndexOf(block->_stopBitVector, areaStart, true)) + 1;
   uint32_t areaPrevSize = areaEnd - areaStart;
+  uint32_t spanPrevSize = areaPrevSize * pool->granularity;
   uint32_t areaShrunkSize = pool->areaSizeFromByteSize(newSize);
 
   if (ASMJIT_UNLIKELY(areaShrunkSize > areaPrevSize))
-    return DebugUtils::errored(kErrorInvalidState);
+    return DebugUtils::errored(kErrorInvalidArgument);
 
   uint32_t areaDiff = areaPrevSize - areaShrunkSize;
   if (areaDiff) {
     block->markShrunkArea(areaStart + areaShrunkSize, areaEnd);
+    span._size = pool->byteSizeFromAreaSize(areaShrunkSize);
+  }
 
-    // Fill released memory if the secure mode is enabled.
-    if (Support::test(impl->options, JitAllocatorOptions::kFillUnusedMemory)) {
-      uint8_t* spanPtr = block->rwPtr() + (areaStart + areaShrunkSize) * pool->granularity;
-      size_t spanSize = areaDiff * pool->granularity;
+  // Fill released memory if the secure mode is enabled.
+  if (newSize < spanPrevSize && Support::test(impl->options, JitAllocatorOptions::kFillUnusedMemory)) {
+    uint8_t* spanPtr = block->rwPtr() + (areaStart + areaShrunkSize) * pool->granularity;
+    size_t spanSize = areaDiff * pool->granularity;
 
-      VirtMem::ProtectJitReadWriteScope scope(spanPtr, spanSize);
-      JitAllocatorImpl_fillPattern(spanPtr, fillPattern(), spanSize);
+    if (!alreadyUnderWriteScope) {
+      VirtMem::ProtectJitReadWriteScope scope(spanPtr, spanSize, VirtMem::CachePolicy::kNeverFlush);
+      JitAllocatorImpl_fillPattern(spanPtr, impl->fillPattern, spanSize);
+    }
+    else {
+      JitAllocatorImpl_fillPattern(spanPtr, impl->fillPattern, spanSize);
     }
   }
 
   return kErrorOk;
 }
 
-Error JitAllocator::query(void* rxPtr, void** rxPtrOut, void** rwPtrOut, size_t* sizeOut) const noexcept {
-  *rxPtrOut = nullptr;
-  *rwPtrOut = nullptr;
-  *sizeOut = 0u;
+Error JitAllocator::shrink(Span& span, size_t newSize) noexcept {
+  if (ASMJIT_UNLIKELY(_impl == &JitAllocatorImpl_none))
+    return DebugUtils::errored(kErrorNotInitialized);
+
+  if (ASMJIT_UNLIKELY(!span.rx()))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  if (ASMJIT_UNLIKELY(newSize == 0)) {
+    Error err = release(span.rx());
+    span = Span{};
+    return err;
+  }
+
+  return JitAllocatorImpl_shrink(static_cast<JitAllocatorPrivateImpl*>(_impl), span, newSize, false);
+}
+
+Error JitAllocator::query(Span& out, void* rx) const noexcept {
+  out = Span{};
 
   if (ASMJIT_UNLIKELY(_impl == &JitAllocatorImpl_none))
     return DebugUtils::errored(kErrorNotInitialized);
 
   JitAllocatorPrivateImpl* impl = static_cast<JitAllocatorPrivateImpl*>(_impl);
   LockGuard guard(impl->lock);
-  JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(rxPtr));
+  JitAllocatorBlock* block = impl->tree.get(static_cast<uint8_t*>(rx));
 
   if (ASMJIT_UNLIKELY(!block))
     return DebugUtils::errored(kErrorInvalidArgument);
 
   // Offset relative to the start of the block.
   JitAllocatorPool* pool = block->pool();
-  size_t offset = (size_t)((uint8_t*)rxPtr - block->rxPtr());
+  size_t offset = (size_t)((uint8_t*)rx - block->rxPtr());
 
   // The first bit representing the allocated area and its size.
   uint32_t areaStart = uint32_t(offset >> pool->granularityLog2);
@@ -980,11 +1043,100 @@ Error JitAllocator::query(void* rxPtr, void** rxPtrOut, void** rwPtrOut, size_t*
   size_t byteOffset = pool->byteSizeFromAreaSize(areaStart);
   size_t byteSize = pool->byteSizeFromAreaSize(areaEnd - areaStart);
 
-  *rxPtrOut = static_cast<uint8_t*>(block->_mapping.rx) + byteOffset;
-  *rwPtrOut = static_cast<uint8_t*>(block->_mapping.rw) + byteOffset;
-  *sizeOut = byteSize;
+  out._rx = static_cast<uint8_t*>(block->_mapping.rx) + byteOffset;
+  out._rw = static_cast<uint8_t*>(block->_mapping.rw) + byteOffset;
+  out._size = byteSize;
+  out._block = static_cast<void*>(block);
 
   return kErrorOk;
+}
+
+// JitAllocator - Write
+// ====================
+
+static ASMJIT_FORCE_INLINE VirtMem::CachePolicy JitAllocator_defaultPolicyForSpan(const JitAllocator::Span& span) noexcept {
+  if (Support::test(span.flags(), JitAllocator::Span::Flags::kInstructionCacheClean))
+    return VirtMem::CachePolicy::kNeverFlush;
+  else
+    return VirtMem::CachePolicy::kFlushAfterWrite;
+}
+
+Error JitAllocator::write(Span& span, size_t offset, const void* src, size_t size, VirtMem::CachePolicy policy) noexcept {
+  if (ASMJIT_UNLIKELY(span._block == nullptr || offset > span.size() || span.size() - offset < size))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  if (ASMJIT_UNLIKELY(size == 0))
+    return kErrorOk;
+
+  if (policy == VirtMem::CachePolicy::kDefault)
+    policy = JitAllocator_defaultPolicyForSpan(span);
+
+  VirtMem::ProtectJitReadWriteScope writeScope(span.rx(), span.size(), policy);
+  memcpy(static_cast<uint8_t*>(span.rw()) + offset, src, size);
+  return kErrorOk;
+}
+
+Error JitAllocator::write(Span& span, WriteFunc writeFunc, void* userData, VirtMem::CachePolicy policy) noexcept {
+  if (ASMJIT_UNLIKELY(span._block == nullptr) || span.size() == 0)
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  size_t size = span.size();
+  if (ASMJIT_UNLIKELY(size == 0))
+    return kErrorOk;
+
+  if (policy == VirtMem::CachePolicy::kDefault)
+    policy = JitAllocator_defaultPolicyForSpan(span);
+
+  VirtMem::ProtectJitReadWriteScope writeScope(span.rx(), span.size(), policy);
+  ASMJIT_PROPAGATE(writeFunc(span, userData));
+
+  // Check whether span.truncate() has been called.
+  if (span.size() != size) {
+    // OK, this is a bit awkward... However, shrink wants the original span and newSize, so we have to swap.
+    std::swap(span._size, size);
+    return JitAllocatorImpl_shrink(static_cast<JitAllocatorPrivateImpl*>(_impl), span, size, true);
+  }
+
+  return kErrorOk;
+}
+
+// JitAllocator - Write Scope
+// ==========================
+
+Error JitAllocator::beginWriteScope(WriteScopeData& scope, VirtMem::CachePolicy policy) noexcept {
+  scope._allocator = this;
+  scope._data[0] = size_t(policy);
+  return kErrorOk;
+}
+
+Error JitAllocator::endWriteScope(WriteScopeData& scope) noexcept {
+  if (ASMJIT_UNLIKELY(!scope._allocator))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  return kErrorOk;
+}
+
+Error JitAllocator::flushWriteScope(WriteScopeData& scope) noexcept {
+  if (ASMJIT_UNLIKELY(!scope._allocator))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  return kErrorOk;
+}
+
+Error JitAllocator::scopedWrite(WriteScopeData& scope, Span& span, size_t offset, const void* src, size_t size) noexcept {
+  if (ASMJIT_UNLIKELY(!scope._allocator))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  VirtMem::CachePolicy policy = VirtMem::CachePolicy(scope._data[0]);
+  return scope._allocator->write(span, offset, src, size, policy);
+}
+
+Error JitAllocator::scopedWrite(WriteScopeData& scope, Span& span, WriteFunc writeFunc, void* userData) noexcept {
+  if (ASMJIT_UNLIKELY(!scope._allocator))
+    return DebugUtils::errored(kErrorInvalidArgument);
+
+  VirtMem::CachePolicy policy = VirtMem::CachePolicy(scope._data[0]);
+  return scope._allocator->write(span, writeFunc, userData, policy);
 }
 
 // JitAllocator - Tests
@@ -1160,15 +1312,13 @@ public:
   }
 
   void* alloc(size_t size) noexcept {
-    void* rxPtr;
-    void* rwPtr;
-
-    Error err = _allocator.alloc(&rxPtr, &rwPtr, size);
+    JitAllocator::Span span;
+    Error err = _allocator.alloc(span, size);
     EXPECT_EQ(err, kErrorOk)
       .message("JitAllocator failed to allocate %zu bytes\n", size);
 
-    _insert(rxPtr, rwPtr, size);
-    return rxPtr;
+    _insert(span.rx(), span.rw(), size);
+    return span.rx();
   }
 
   void release(void* p) noexcept {
@@ -1184,7 +1334,9 @@ public:
     if (!newSize)
       return release(p);
 
-    Error err = _allocator.shrink(p, newSize);
+    JitAllocator::Span span;
+    EXPECT_EQ(_allocator.query(span, p), kErrorOk);
+    Error err = _allocator.shrink(span, newSize);
     EXPECT_EQ(err, kErrorOk)
       .message("JitAllocator failed to shrink %p to %zu bytes\n", p, newSize);
 
@@ -1244,16 +1396,21 @@ static void test_jit_allocator_alloc_release() noexcept {
     uint32_t granularity;
   };
 
+  using Opt = JitAllocatorOptions;
+
   TestParams testParams[] = {
-    { "Default", JitAllocatorOptions::kNone, 0, 0 },
-    { "16MB blocks", JitAllocatorOptions::kNone, 16 * 1024 * 1024, 0 },
-    { "256B granularity", JitAllocatorOptions::kNone, 0, 256 },
-    { "kUseDualMapping", JitAllocatorOptions::kUseDualMapping, 0, 0 },
-    { "kUseMultiplePools", JitAllocatorOptions::kUseMultiplePools, 0, 0 },
-    { "kFillUnusedMemory", JitAllocatorOptions::kFillUnusedMemory, 0, 0 },
-    { "kImmediateRelease", JitAllocatorOptions::kImmediateRelease, 0, 0 },
-    { "kDisableInitialPadding", JitAllocatorOptions::kDisableInitialPadding, 0, 0 },
-    { "kUseDualMapping | kFillUnusedMemory", JitAllocatorOptions::kUseDualMapping | JitAllocatorOptions::kFillUnusedMemory, 0, 0 }
+    { "Default"                                    , Opt::kNone, 0, 0 },
+    { "16MB blocks"                                , Opt::kNone, 16 * 1024 * 1024, 0 },
+    { "256B granularity"                           , Opt::kNone, 0, 256 },
+    { "kUseDualMapping"                            , Opt::kUseDualMapping , 0, 0 },
+    { "kUseMultiplePools"                          , Opt::kUseMultiplePools, 0, 0 },
+    { "kFillUnusedMemory"                          , Opt::kFillUnusedMemory, 0, 0 },
+    { "kImmediateRelease"                          , Opt::kImmediateRelease, 0, 0 },
+    { "kDisableInitialPadding"                     , Opt::kDisableInitialPadding, 0, 0 },
+    { "kUseLargePages"                             , Opt::kUseLargePages, 0, 0 },
+    { "kUseLargePages | kFillUnusedMemory"         , Opt::kUseLargePages | Opt::kFillUnusedMemory, 0, 0 },
+    { "kUseLargePages | kAlignBlockSizeToLargePage", Opt::kUseLargePages | Opt::kAlignBlockSizeToLargePage, 0, 0 },
+    { "kUseDualMapping | kFillUnusedMemory"        , Opt::kUseDualMapping | Opt::kFillUnusedMemory, 0, 0 }
   };
 
   INFO("BitVectorRangeIterator<uint32_t>");
@@ -1372,23 +1529,18 @@ static void test_jit_allocator_alloc_release() noexcept {
 
 static void test_jit_allocator_query() noexcept {
   JitAllocator allocator;
+  size_t allocatedSize = 100;
 
-  void* rxPtr = nullptr;
-  void* rwPtr = nullptr;
-  size_t size = 100;
+  JitAllocator::Span allocatedSpan;
+  EXPECT_EQ(allocator.alloc(allocatedSpan, allocatedSize), kErrorOk);
+  EXPECT_NOT_NULL(allocatedSpan.rx());
+  EXPECT_GE(allocatedSpan.size(), allocatedSize);
 
-  EXPECT_EQ(allocator.alloc(&rxPtr, &rwPtr, size), kErrorOk);
-  EXPECT_NOT_NULL(rxPtr);
-  EXPECT_NOT_NULL(rwPtr);
-
-  void* rxPtrQueried = nullptr;
-  void* rwPtrQueried = nullptr;
-  size_t sizeQueried;
-
-  EXPECT_EQ(allocator.query(rxPtr, &rxPtrQueried, &rwPtrQueried, &sizeQueried), kErrorOk);
-  EXPECT_EQ(rxPtrQueried, rxPtr);
-  EXPECT_EQ(rwPtrQueried, rwPtr);
-  EXPECT_EQ(sizeQueried, Support::alignUp(size, allocator.granularity()));
+  JitAllocator::Span queriedSpan;
+  EXPECT_EQ(allocator.query(queriedSpan, allocatedSpan.rx()), kErrorOk);
+  EXPECT_EQ(allocatedSpan.rx(), queriedSpan.rx());
+  EXPECT_EQ(allocatedSpan.rw(), queriedSpan.rw());
+  EXPECT_EQ(allocatedSpan.size(), queriedSpan.size());
 }
 
 UNIT(jit_allocator) {

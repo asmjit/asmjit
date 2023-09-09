@@ -36,7 +36,7 @@ enum class CallConvId : uint8_t {
 
   //! Standard function call or explicit `__cdecl` where it can be specified.
   //!
-  //! This is a universal calling convention, which is used to initialize specific calling connventions based on
+  //! This is a universal calling convention, which is used to initialize specific calling conventions based on
   //! architecture, platform, and its ABI.
   kCDecl = 1,
 
@@ -163,14 +163,12 @@ struct CallConv {
   //! \name Constants
   //! \{
 
-  enum : uint32_t {
-    //! Maximum number of register arguments per register group.
-    //!
-    //! \note This is not really AsmJit's limitatation, it's just the number that makes sense considering all common
-    //! calling conventions. Usually even conventions that use registers to pass function arguments are limited to 8
-    //! and less arguments passed via registers per group.
-    kMaxRegArgsPerGroup = 16
-  };
+  //! Maximum number of register arguments per register group.
+  //!
+  //! \note This is not really AsmJit's limitation, it's just the number that makes sense considering all common
+  //! calling conventions. Usually even conventions that use registers to pass function arguments are limited to 8
+  //! and less arguments passed via registers per group.
+  static constexpr uint32_t kMaxRegArgsPerGroup = 16;
 
   //! \}
 
@@ -370,10 +368,8 @@ struct FuncSignature {
   //! \name Constants
   //! \{
 
-  enum : uint8_t {
-    //! Doesn't have variable number of arguments (`...`).
-    kNoVarArgs = 0xFFu
-  };
+  //! Doesn't have variable number of arguments (`...`).
+  static constexpr uint8_t kNoVarArgs = 0xFFu;
 
   //! \}
 
@@ -393,7 +389,7 @@ struct FuncSignature {
 
   //! \}
 
-  //! \name Initializtion & Reset
+  //! \name Initialization & Reset
   //! \{
 
   //! Initializes the function signature.
@@ -460,7 +456,7 @@ class FuncSignatureBuilder : public FuncSignature {
 public:
   TypeId _builderArgList[Globals::kMaxFuncArgs];
 
-  //! \name Initializtion & Reset
+  //! \name Initialization & Reset
   //! \{
 
   inline FuncSignatureBuilder(CallConvId ccId = CallConvId::kHost, uint32_t vaIndex = kNoVarArgs) noexcept {
@@ -533,7 +529,7 @@ struct FuncValue {
 
   //! \}
 
-  //! \name Initializtion & Reset
+  //! \name Initialization & Reset
   //!
   //! These initialize the whole `FuncValue` to either register or stack. Useful when you know all of these
   //! properties and wanna just set it up.
@@ -561,7 +557,7 @@ struct FuncValue {
   //! \name Assign
   //!
   //! These initialize only part of `FuncValue`, useful when building `FuncValue` incrementally. The caller
-  //! should first init the type-id by caliing `initTypeId` and then continue building either register or stack.
+  //! should first init the type-id by calling `initTypeId` and then continue building either register or stack.
   //!
   //! \{
 
@@ -901,7 +897,7 @@ public:
 //! Function frame.
 //!
 //! Function frame is used directly by prolog and epilog insertion (PEI) utils. It provides information necessary to
-//! insert a proper and ABI comforming prolog and epilog. Function frame calculation is based on `CallConv` and
+//! insert a proper and ABI conforming prolog and epilog. Function frame calculation is based on `CallConv` and
 //! other function attributes.
 //!
 //! SSE vs AVX vs AVX-512
@@ -1016,7 +1012,7 @@ public:
   uint16_t _extraRegSaveSize;
   //! Offset where registers saved/restored via push/pop are stored
   uint32_t _pushPopSaveOffset;
-  //! Offset where extra ragisters that cannot use push/pop are stored.
+  //! Offset where extra registers that cannot use push/pop are stored.
   uint32_t _extraRegSaveOffset;
 
   //! \}
@@ -1269,7 +1265,7 @@ public:
   //! Returns the mask of preserved registers of the given register `group`.
   //!
   //! Preserved registers are those that must survive the function call unmodified. The function can only modify
-  //! preserved registers it they are saved and restored in funciton's prolog and epilog, respectively.
+  //! preserved registers it they are saved and restored in function's prolog and epilog, respectively.
   inline RegMask preservedRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _preservedRegs[group];
@@ -1439,7 +1435,7 @@ public:
 
   //! Update `FuncFrame` based on function's arguments assignment.
   //!
-  //! \note You MUST call this in orher to use `BaseEmitter::emitArgsAssignment()`, otherwise the FuncFrame would
+  //! \note You MUST call this in order to use `BaseEmitter::emitArgsAssignment()`, otherwise the FuncFrame would
   //! not contain the information necessary to assign all arguments into the registers and/or stack specified.
   ASMJIT_API Error updateFuncFrame(FuncFrame& frame) const noexcept;
 

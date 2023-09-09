@@ -362,6 +362,7 @@ set(ASMJIT_SRC_LIST
   asmjit/core/operand.h
   asmjit/core/osutils.cpp
   asmjit/core/osutils.h
+  asmjit/core/osutils_p.h
   asmjit/core/raassignment_p.h
   asmjit/core/rabuilders_p.h
   asmjit/core/radefs_p.h
