@@ -14,10 +14,10 @@
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../arm/armformatter_p.h"
+#include "../arm/armutils.h"
 #include "../arm/a64assembler.h"
 #include "../arm/a64emithelper_p.h"
 #include "../arm/a64instdb_p.h"
-#include "../arm/a64utils.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 
@@ -396,14 +396,6 @@ static inline bool encodeLMH(uint32_t sizeField, uint32_t elementIndex, LMHImm* 
   out->maxRmId = (8u << sizeField) - 1;
 
   return elementIndex <= maxElementIndex;
-}
-
-// [.......A|B.......|.......C|D.......|.......E|F.......|.......G|H.......]
-static inline uint32_t encodeImm64ByteMaskToImm8(uint64_t imm) noexcept {
-  return uint32_t(((imm >> (7  - 0)) & 0b00000011) | // [.......G|H.......]
-                  ((imm >> (23 - 2)) & 0b00001100) | // [.......E|F.......]
-                  ((imm >> (39 - 4)) & 0b00110000) | // [.......C|D.......]
-                  ((imm >> (55 - 6)) & 0b11000000)); // [.......A|B.......]
 }
 
 // a64::Assembler - Opcode
@@ -3753,7 +3745,7 @@ Case_BaseLdurStur:
             goto InvalidImmediate;
         }
         else if (imm) {
-          shift = Support::ctz(imm) & 0x7u;
+          shift = Support::ctz(imm) & ~0x7u;
           imm >>= shift;
 
           if (imm > 0xFFu || shift > maxShift)
@@ -4056,7 +4048,7 @@ Case_BaseLdurStur:
             goto InvalidImmediate;
 
           if (Utils::isByteMaskImm8(imm64)) {
-            imm8 = encodeImm64ByteMaskToImm8(imm64);
+            imm8 = Utils::encodeImm64ByteMaskToImm8(imm64);
           }
           else {
             // Change from D to S and from 64-bit imm to 32-bit imm if this

@@ -179,7 +179,7 @@ static constexpr X sar(const X& x, const Y& y) noexcept {
 template<typename X, typename Y>
 static constexpr X ror(const X& x, const Y& y) noexcept {
   typedef typename std::make_unsigned<X>::type U;
-  return X((U(x) >> y) | (U(x) << (bitSizeOf<U>() - y)));
+  return X((U(x) >> y) | (U(x) << (bitSizeOf<U>() - U(y))));
 }
 
 //! Returns `x | (x >> y)` - helper used by some bit manipulation helpers.

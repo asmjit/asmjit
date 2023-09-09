@@ -1501,6 +1501,8 @@ static inline uint32_t InstInternal_usesAvx512(InstOptions instOptions, const Re
 }
 
 Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand_* operands, size_t opCount, CpuFeatures* out) noexcept {
+  typedef CpuFeatures::X86 Ext;
+
   // Only called when `arch` matches X86 family.
   DebugUtils::unused(arch);
   ASMJIT_ASSERT(Environment::isFamilyX86(arch));
@@ -1533,19 +1535,19 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
     RegAnalysis regAnalysis = InstInternal_regAnalysis(operands, opCount);
 
     // Handle MMX vs SSE overlap.
-    if (out->has(CpuFeatures::X86::kMMX) || out->has(CpuFeatures::X86::kMMX2)) {
+    if (out->has(Ext::kMMX) || out->has(Ext::kMMX2)) {
       // Only instructions defined by SSE and SSE2 overlap. Instructions introduced by newer instruction sets like
       // SSE3+ don't state MMX as they require SSE3+.
-      if (out->has(CpuFeatures::X86::kSSE) || out->has(CpuFeatures::X86::kSSE2)) {
+      if (out->has(Ext::kSSE) || out->has(Ext::kSSE2)) {
         if (!regAnalysis.hasRegType(RegType::kX86_Xmm)) {
           // The instruction doesn't use XMM register(s), thus it's MMX/MMX2 only.
-          out->remove(CpuFeatures::X86::kSSE);
-          out->remove(CpuFeatures::X86::kSSE2);
-          out->remove(CpuFeatures::X86::kSSE4_1);
+          out->remove(Ext::kSSE);
+          out->remove(Ext::kSSE2);
+          out->remove(Ext::kSSE4_1);
         }
         else {
-          out->remove(CpuFeatures::X86::kMMX);
-          out->remove(CpuFeatures::X86::kMMX2);
+          out->remove(Ext::kMMX);
+          out->remove(Ext::kMMX2);
         }
 
         // Special case: PEXTRW instruction is MMX/SSE2 instruction. However, MMX/SSE version cannot access memory
@@ -1554,30 +1556,30 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
         // is, of course, not compatible with MMX/SSE2 and would #UD if SSE4.1 is not supported.
         if (instId == Inst::kIdPextrw) {
           if (opCount >= 1 && operands[0].isMem())
-            out->remove(CpuFeatures::X86::kSSE2);
+            out->remove(Ext::kSSE2);
           else
-            out->remove(CpuFeatures::X86::kSSE4_1);
+            out->remove(Ext::kSSE4_1);
         }
       }
     }
 
     // Handle PCLMULQDQ vs VPCLMULQDQ.
-    if (out->has(CpuFeatures::X86::kVPCLMULQDQ)) {
+    if (out->has(Ext::kVPCLMULQDQ)) {
       if (regAnalysis.hasRegType(RegType::kX86_Zmm) || Support::test(options, InstOptions::kX86_Evex)) {
         // AVX512_F & VPCLMULQDQ.
-        out->remove(CpuFeatures::X86::kAVX, CpuFeatures::X86::kPCLMULQDQ);
+        out->remove(Ext::kAVX, Ext::kPCLMULQDQ);
       }
       else if (regAnalysis.hasRegType(RegType::kX86_Ymm)) {
-        out->remove(CpuFeatures::X86::kAVX512_F, CpuFeatures::X86::kAVX512_VL);
+        out->remove(Ext::kAVX512_F, Ext::kAVX512_VL);
       }
       else {
         // AVX & PCLMULQDQ.
-        out->remove(CpuFeatures::X86::kAVX512_F, CpuFeatures::X86::kAVX512_VL, CpuFeatures::X86::kVPCLMULQDQ);
+        out->remove(Ext::kAVX512_F, Ext::kAVX512_VL, Ext::kVPCLMULQDQ);
       }
     }
 
     // Handle AVX vs AVX2 overlap.
-    if (out->has(CpuFeatures::X86::kAVX) && out->has(CpuFeatures::X86::kAVX2)) {
+    if (out->has(Ext::kAVX) && out->has(Ext::kAVX2)) {
       bool isAVX2 = true;
       // Special case: VBROADCASTSS and VBROADCASTSD were introduced in AVX, but only version that uses memory as a
       // source operand. AVX2 then added support for register source operand.
@@ -1594,95 +1596,111 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
       }
 
       if (isAVX2)
-        out->remove(CpuFeatures::X86::kAVX);
+        out->remove(Ext::kAVX);
       else
-        out->remove(CpuFeatures::X86::kAVX2);
+        out->remove(Ext::kAVX2);
     }
 
-    // Handle AVX|AVX2|FMA|F16C vs AVX512 overlap.
-    if (out->has(CpuFeatures::X86::kAVX) || out->has(CpuFeatures::X86::kAVX2) || out->has(CpuFeatures::X86::kFMA) || out->has(CpuFeatures::X86::kF16C)) {
-      // Only AVX512-F|BW|DQ allow to encode AVX/AVX2/FMA/F16C instructions
-      if (out->has(CpuFeatures::X86::kAVX512_F) || out->has(CpuFeatures::X86::kAVX512_BW) || out->has(CpuFeatures::X86::kAVX512_DQ)) {
-        uint32_t usesAvx512 = InstInternal_usesAvx512(options, inst.extraReg(), regAnalysis);
-        uint32_t mustUseEvex = 0;
+    // Handle AVX vs AVX512 overlap.
+    //
+    // In general, non-AVX encoding is preferred, however, AVX encoded instructions that were initially provided
+    // as AVX-512 instructions must naturally prefer AVX-512 encoding, as that was the first one provided.
+    if (out->hasAny(Ext::kAVX,
+                    Ext::kAVX_IFMA,
+                    Ext::kAVX_NE_CONVERT,
+                    Ext::kAVX_VNNI,
+                    Ext::kAVX2,
+                    Ext::kF16C,
+                    Ext::kFMA)
+        &&
+        out->hasAny(Ext::kAVX512_BF16,
+                    Ext::kAVX512_BW,
+                    Ext::kAVX512_DQ,
+                    Ext::kAVX512_F,
+                    Ext::kAVX512_IFMA,
+                    Ext::kAVX512_VNNI)) {
 
-        switch (instId) {
-          // Special case: VPBROADCAST[B|D|Q|W] only supports r32/r64 with EVEX prefix.
-          case Inst::kIdVpbroadcastb:
-          case Inst::kIdVpbroadcastd:
-          case Inst::kIdVpbroadcastq:
-          case Inst::kIdVpbroadcastw:
-            mustUseEvex = opCount >= 2 && x86::Reg::isGp(operands[1]);
-            break;
+      uint32_t useEvex = InstInternal_usesAvx512(options, inst.extraReg(), regAnalysis) | regAnalysis.highVecUsed;
+      switch (instId) {
+        // Special case: VPBROADCAST[B|D|Q|W] only supports r32/r64 with EVEX prefix.
+        case Inst::kIdVpbroadcastb:
+        case Inst::kIdVpbroadcastd:
+        case Inst::kIdVpbroadcastq:
+        case Inst::kIdVpbroadcastw:
+          useEvex |= uint32_t(opCount >= 2 && x86::Reg::isGp(operands[1]));
+          break;
 
-          case Inst::kIdVcvtpd2dq:
-          case Inst::kIdVcvtpd2ps:
-          case Inst::kIdVcvttpd2dq:
-            mustUseEvex = opCount >= 2 && Reg::isYmm(operands[0]);
-            break;
+        case Inst::kIdVcvtpd2dq:
+        case Inst::kIdVcvtpd2ps:
+        case Inst::kIdVcvttpd2dq:
+          useEvex |= uint32_t(opCount >= 2 && Reg::isYmm(operands[0]));
+          break;
 
-          case Inst::kIdVgatherdpd:
-          case Inst::kIdVgatherdps:
-          case Inst::kIdVgatherqpd:
-          case Inst::kIdVgatherqps:
-          case Inst::kIdVpgatherdd:
-          case Inst::kIdVpgatherdq:
-          case Inst::kIdVpgatherqd:
-          case Inst::kIdVpgatherqq:
-            if (opCount == 2)
-              mustUseEvex = true;
-            break;
+        case Inst::kIdVgatherdpd:
+        case Inst::kIdVgatherdps:
+        case Inst::kIdVgatherqpd:
+        case Inst::kIdVgatherqps:
+        case Inst::kIdVpgatherdd:
+        case Inst::kIdVpgatherdq:
+        case Inst::kIdVpgatherqd:
+        case Inst::kIdVpgatherqq:
+          useEvex |= uint32_t(opCount == 2);
+          break;
 
-          // Special case: These instructions only allow `reg, reg. imm` combination in AVX|AVX2 mode, then
-          // AVX-512 introduced `reg, reg/mem, imm` combination that uses EVEX prefix. This means that if
-          // the second operand is memory then this is AVX-512_BW instruction and not AVX/AVX2 instruction.
-          case Inst::kIdVpslldq:
-          case Inst::kIdVpslld:
-          case Inst::kIdVpsllq:
-          case Inst::kIdVpsllw:
-          case Inst::kIdVpsrad:
-          case Inst::kIdVpsraq:
-          case Inst::kIdVpsraw:
-          case Inst::kIdVpsrld:
-          case Inst::kIdVpsrldq:
-          case Inst::kIdVpsrlq:
-          case Inst::kIdVpsrlw:
-            mustUseEvex = opCount >= 2 && operands[1].isMem();
-            break;
+        // Special case: These instructions only allow `reg, reg. imm` combination in AVX|AVX2 mode, then
+        // AVX-512 introduced `reg, reg/mem, imm` combination that uses EVEX prefix. This means that if
+        // the second operand is memory then this is AVX-512_BW instruction and not AVX/AVX2 instruction.
+        case Inst::kIdVpslldq:
+        case Inst::kIdVpslld:
+        case Inst::kIdVpsllq:
+        case Inst::kIdVpsllw:
+        case Inst::kIdVpsrad:
+        case Inst::kIdVpsraq:
+        case Inst::kIdVpsraw:
+        case Inst::kIdVpsrld:
+        case Inst::kIdVpsrldq:
+        case Inst::kIdVpsrlq:
+        case Inst::kIdVpsrlw:
+          useEvex |= uint32_t(opCount >= 2 && operands[1].isMem());
+          break;
 
-          // Special case: VPERMPD - AVX2 vs AVX512-F case.
-          case Inst::kIdVpermpd:
-            mustUseEvex = opCount >= 3 && !operands[2].isImm();
-            break;
+        // Special case: VPERMPD - AVX2 vs AVX512-F case.
+        case Inst::kIdVpermpd:
+          useEvex |= uint32_t(opCount >= 3 && !operands[2].isImm());
+          break;
 
-          // Special case: VPERMQ - AVX2 vs AVX512-F case.
-          case Inst::kIdVpermq:
-            mustUseEvex = opCount >= 3 && (operands[1].isMem() || !operands[2].isImm());
-            break;
-        }
-
-        if (!(usesAvx512 | mustUseEvex | regAnalysis.highVecUsed))
-          out->remove(CpuFeatures::X86::kAVX512_F, CpuFeatures::X86::kAVX512_BW, CpuFeatures::X86::kAVX512_DQ, CpuFeatures::X86::kAVX512_VL);
-        else
-          out->remove(CpuFeatures::X86::kAVX, CpuFeatures::X86::kAVX2, CpuFeatures::X86::kFMA, CpuFeatures::X86::kF16C);
+        // Special case: VPERMQ - AVX2 vs AVX512-F case.
+        case Inst::kIdVpermq:
+          useEvex |= uint32_t(opCount >= 3 && (operands[1].isMem() || !operands[2].isImm()));
+          break;
       }
-    }
 
-    // Handle AVX_VNNI vs AVX512_VNNI overlap.
-    if (out->has(CpuFeatures::X86::kAVX512_VNNI)) {
-      // By default the AVX512_VNNI instruction should be used, because it was introduced first. However, VEX|VEX3
-      // prefix can be used to force AVX_VNNI instead.
-      uint32_t usesAvx512 = InstInternal_usesAvx512(options, inst.extraReg(), regAnalysis);
+      if (instInfo.commonInfo().preferEvex() && !Support::test(options, InstOptions::kX86_Vex | InstOptions::kX86_Vex3))
+        useEvex = 1;
 
-      if (!usesAvx512 && Support::test(options, InstOptions::kX86_Vex | InstOptions::kX86_Vex3))
-        out->remove(CpuFeatures::X86::kAVX512_VNNI, CpuFeatures::X86::kAVX512_VL);
-      else
-        out->remove(CpuFeatures::X86::kAVX_VNNI);
+      if (useEvex) {
+        out->remove(Ext::kAVX,
+                    Ext::kAVX_IFMA,
+                    Ext::kAVX_NE_CONVERT,
+                    Ext::kAVX_VNNI,
+                    Ext::kAVX2,
+                    Ext::kF16C,
+                    Ext::kFMA);
+      }
+      else {
+        out->remove(Ext::kAVX512_BF16,
+                    Ext::kAVX512_BW,
+                    Ext::kAVX512_DQ,
+                    Ext::kAVX512_F,
+                    Ext::kAVX512_IFMA,
+                    Ext::kAVX512_VL,
+                    Ext::kAVX512_VNNI);
+      }
     }
 
     // Clear AVX512_VL if ZMM register is used.
     if (regAnalysis.hasRegType(RegType::kX86_Zmm))
-      out->remove(CpuFeatures::X86::kAVX512_VL);
+      out->remove(Ext::kAVX512_VL);
   }
 
   return kErrorOk;

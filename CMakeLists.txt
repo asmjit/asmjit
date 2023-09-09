@@ -55,10 +55,6 @@ if (NOT DEFINED ASMJIT_NO_X86)
   set(ASMJIT_NO_X86 FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_NO_AARCH32)
-  set(ASMJIT_NO_AARCH32 FALSE)
-endif()
-
 if (NOT DEFINED ASMJIT_NO_AARCH64)
   set(ASMJIT_NO_AARCH64 FALSE)
 endif()
@@ -86,7 +82,6 @@ set(ASMJIT_EMBED           "${ASMJIT_EMBED}"           CACHE BOOL "Embed 'asmjit
 set(ASMJIT_STATIC          "${ASMJIT_STATIC}"          CACHE BOOL "Build 'asmjit' library as static")
 set(ASMJIT_SANITIZE        "${ASMJIT_SANITIZE}"        CACHE STRING "Build with sanitizers: 'address', 'undefined', etc...")
 set(ASMJIT_NO_X86          "${ASMJIT_NO_X86}"          CACHE BOOL "Disable X86/X64 backend")
-set(ASMJIT_NO_AARCH32      "${ASMJIT_NO_AARCH32}"      CACHE BOOL "Disable AArch32 backend (ARM and THUMB)")
 set(ASMJIT_NO_AARCH64      "${ASMJIT_NO_AARCH64}"      CACHE BOOL "Disable AArch64 backend")
 set(ASMJIT_NO_FOREIGN      "${ASMJIT_NO_FOREIGN}"      CACHE BOOL "Disable all foreign architectures (enables only a native architecture)")
 set(ASMJIT_NO_NATVIS       "${ASMJIT_NO_NATVIS}"       CACHE BOOL "Disable natvis support (embedding asmjit.natvis in PDB)")
@@ -274,7 +269,6 @@ endif()
 foreach(build_option ASMJIT_STATIC
                      # AsmJit backends selection.
                      ASMJIT_NO_X86
-                     ASMJIT_NO_AARCH32
                      ASMJIT_NO_AARCH64
                      ASMJIT_NO_FOREIGN
                      # AsmJit features selection.
@@ -396,11 +390,13 @@ set(ASMJIT_SRC_LIST
   asmjit/core/zonevector.cpp
   asmjit/core/zonevector.h
 
+  asmjit/a64.h
   asmjit/arm.h
   asmjit/arm/armformatter.cpp
   asmjit/arm/armformatter_p.h
   asmjit/arm/armglobals.h
   asmjit/arm/armoperand.h
+  asmjit/arm/armutils.h
   asmjit/arm/a64archtraits_p.h
   asmjit/arm/a64assembler.cpp
   asmjit/arm/a64assembler.h
@@ -424,7 +420,6 @@ set(ASMJIT_SRC_LIST
   asmjit/arm/a64operand.h
   asmjit/arm/a64rapass.cpp
   asmjit/arm/a64rapass_p.h
-  asmjit/arm/a64utils.h
 
   asmjit/x86.h
   asmjit/x86/x86archtraits_p.h

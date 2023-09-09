@@ -103,6 +103,8 @@ enum class DataType : uint32_t {
   kF64 = 12,
   //! 8-bit polynomial.
   kP8 = 13,
+  //! 16-bit BF16 floating point.
+  kBF16 = 14,
   //! 64-bit polynomial.
   kP64 = 15,
 

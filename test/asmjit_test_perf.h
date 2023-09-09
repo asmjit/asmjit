@@ -41,6 +41,7 @@ static uint32_t calculateInstructionCount(asmjit::CodeHolder& code, asmjit::Arch
     node = node->next();
   }
 
+  code.reset();
   return count;
 }
 #endif

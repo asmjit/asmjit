@@ -354,6 +354,9 @@ struct OperandSignature {
 
   inline constexpr OperandSignature subset(uint32_t mask) const noexcept { return OperandSignature{_bits & mask}; }
 
+  template<uint32_t kFieldMask, uint32_t kFieldShift = Support::ConstCTZ<kFieldMask>::value>
+  inline constexpr OperandSignature replacedValue(uint32_t value) const noexcept { return OperandSignature{(_bits & ~kFieldMask) | (value << kFieldShift)}; }
+
   template<uint32_t kFieldMask>
   inline constexpr bool matchesSignature(const OperandSignature& signature) const noexcept {
     return (_bits & kFieldMask) == signature._bits;

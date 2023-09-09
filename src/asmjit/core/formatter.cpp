@@ -107,7 +107,7 @@ Error formatFeature(
     return x86::FormatterInternal::formatFeature(sb, featureId);
 #endif
 
-#if !defined(ASMJIT_NO_AARCH32) && !defined(ASMJIT_NO_AARCH64)
+#if !defined(ASMJIT_NO_AARCH64)
   if (Environment::isFamilyARM(arch))
     return arm::FormatterInternal::formatFeature(sb, featureId);
 #endif

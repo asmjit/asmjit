@@ -312,6 +312,17 @@ public:
     return id | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
   }
 
+  static inline constexpr InstId composeARMInstId(uint32_t id, arm::DataType dt, arm::CondCode cc = arm::CondCode::kAL) noexcept {
+    return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
+              | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
+  }
+
+  static inline constexpr InstId composeARMInstId(uint32_t id, arm::DataType dt, arm::DataType dt2, arm::CondCode cc = arm::CondCode::kAL) noexcept {
+    return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
+              | (uint32_t(dt2) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT2)>::value)
+              | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
+  }
+
   static inline constexpr InstId extractRealId(uint32_t id) noexcept {
     return id & uint32_t(InstIdParts::kRealId);
   }

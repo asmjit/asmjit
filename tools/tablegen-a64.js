@@ -1,17 +1,12 @@
-// [AsmJit]
-// Machine Code Generation for C++.
+// This file is part of AsmJit project <https://asmjit.com>
 //
-// [License]
-// ZLIB - See LICENSE.md file in the package.
-
-// ============================================================================
-// tablegen-arm.js
-// ============================================================================
+// See asmjit.h or LICENSE.md for license and copyright information
+// SPDX-License-Identifier: Zlib
 
 "use strict";
 
-const { executionAsyncResource } = require("async_hooks");
 const core = require("./tablegen.js");
+const commons = require("./gencommons.js");
 const hasOwn = Object.prototype.hasOwnProperty;
 
 const asmdb = core.asmdb;
@@ -19,7 +14,7 @@ const kIndent = core.kIndent;
 const IndexedArray = core.IndexedArray;
 const StringUtils = core.StringUtils;
 
-const FAIL = core.FAIL;
+const FATAL = commons.FATAL;
 
 // ============================================================================
 // [ArmDB]
@@ -170,7 +165,7 @@ class ArmTableGen extends core.TableGen {
     }
 
     if (this.insts.length === 0 || this.insts.length !== StringUtils.countOf(stringData, "INST("))
-      FAIL("ARMTableGen.parse(): Invalid parsing regexp (no data parsed)");
+      FATAL("ARMTableGen.parse(): Invalid parsing regexp (no data parsed)");
 
     console.log("Number of Instructions: " + this.insts.length);
   }

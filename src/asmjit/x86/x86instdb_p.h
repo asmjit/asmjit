@@ -126,6 +126,7 @@ enum EncodingId : uint32_t {
   kEncodingVexMri,                       //!< VEX|EVEX [MRI].
   kEncodingVexMri_Lx,                    //!< VEX|EVEX [MRI] (propagates VEX|EVEX.L if YMM used).
   kEncodingVexMri_Vpextrw,               //!< VEX|EVEX [MRI] (special case required by VPEXTRW instruction).
+  kEncodingVexMvr_Wx,                    //!< VEX|EVEX [MVR] (propagates VEX|EVEX.W if GPQ used).
   kEncodingVexRm,                        //!< VEX|EVEX [RM].
   kEncodingVexRm_ZDI,                    //!< VEX|EVEX [RM<ZDI>].
   kEncodingVexRm_Wx,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.W if GPQ used).

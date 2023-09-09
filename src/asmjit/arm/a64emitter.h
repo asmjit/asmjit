@@ -84,17 +84,6 @@ struct EmitterExplicitT {
 
   //! \endcond
 
-  // --------------------------------------------------------------------------
-  // [Options]
-  // --------------------------------------------------------------------------
-
-protected:
-  inline This& _addInstOptions(InstOptions options) noexcept {
-    static_cast<This*>(this)->addInstOptions(options);
-    return *static_cast<This*>(this);
-  }
-
-public:
   //! \name General Purpose Instructions
   //! \{
 
@@ -1119,14 +1108,14 @@ public:
 
   //! \}
 
-  //! \name FJCVTZS Instruction (ARMv8.3-A)
+  //! \name JSCVT Instruction (ARMv8.3-A)
   //! \{
 
   ASMJIT_INST_2x(fjcvtzs, Fjcvtzs_v, Gp, Vec);
 
   //! \}
 
-  //! \name FP16FML Instructions (ARMv8.4-A, optional in ARMv8.2-A)
+  //! \name FHM Instructions
   //! \{
 
   ASMJIT_INST_3x(fmlal, Fmlal_v, Vec, Vec, Vec);

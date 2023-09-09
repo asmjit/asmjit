@@ -381,7 +381,7 @@ static int getOSXVersion() noexcept {
   if (!ver) {
     struct utsname osname {};
     uname(&osname);
-    ver = atoi(osname.release);
+    ver = strtol(osname.release, nullptr, 10);
     globalVersion.store(ver);
   }
 

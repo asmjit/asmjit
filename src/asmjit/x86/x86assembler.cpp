@@ -954,7 +954,7 @@ CaseX86M_GPB_MulDiv:
       break;
 
     case InstDB::kEncodingX86Mr:
-      opcode.addPrefixBySize(o0.size());
+      opcode.addPrefixBySize(o1.size());
       ASMJIT_FALLTHROUGH;
 
     case InstDB::kEncodingX86Mr_NoSize:
@@ -3009,6 +3009,14 @@ CaseExtRm:
       }
 
       goto CaseVexMri;
+
+    case InstDB::kEncodingVexMvr_Wx:
+      if (isign3 == ENC_OPS3(Mem, Reg, Reg)) {
+        opcode.addWIf(unsigned(Reg::isGpq(o1)));
+        opReg = x86PackRegAndVvvvv(o1.id(), o2.id());
+        rmRel = &o0;
+        goto EmitVexEvexM;
+      }
 
     case InstDB::kEncodingVexMri_Lx:
       opcode |= x86OpcodeLBySize(o0.size() | o1.size());

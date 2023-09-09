@@ -198,9 +198,11 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "AESNI\0"
     "ALTMOVCR8\0"
     "AMX_BF16\0"
+    "AMX_COMPLEX\0"
     "AMX_FP16\0"
     "AMX_INT8\0"
     "AMX_TILE\0"
+    "APX_F\0"
     "AVX\0"
     "AVX2\0"
     "AVX512_4FMAPS\0"
@@ -208,13 +210,13 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "AVX512_BF16\0"
     "AVX512_BITALG\0"
     "AVX512_BW\0"
-    "AVX512_CDI\0"
+    "AVX512_CD\0"
     "AVX512_DQ\0"
-    "AVX512_ERI\0"
+    "AVX512_ER\0"
     "AVX512_F\0"
     "AVX512_FP16\0"
     "AVX512_IFMA\0"
-    "AVX512_PFI\0"
+    "AVX512_PF\0"
     "AVX512_VBMI\0"
     "AVX512_VBMI2\0"
     "AVX512_VL\0"
@@ -224,6 +226,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "AVX_IFMA\0"
     "AVX_NE_CONVERT\0"
     "AVX_VNNI\0"
+    "AVX_VNNI_INT16\0"
     "AVX_VNNI_INT8\0"
     "BMI\0"
     "BMI2\0"
@@ -258,6 +261,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "HLE\0"
     "HRESET\0"
     "I486\0"
+    "INVLPGB\0"
     "LAHFSAHF\0"
     "LAM\0"
     "LWP\0"
@@ -284,6 +288,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "PREFETCHWT1\0"
     "PTWRITE\0"
     "RAO_INT\0"
+    "RMPQUERY\0"
     "RDPID\0"
     "RDPRU\0"
     "RDRAND\0"
@@ -291,13 +296,20 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "RDTSC\0"
     "RDTSCP\0"
     "RTM\0"
+    "SEAM\0"
     "SERIALIZE\0"
+    "SEV\0"
+    "SEV_ES\0"
+    "SEV_SNP\0"
     "SHA\0"
+    "SHA512\0"
     "SKINIT\0"
+    "SM3\0"
+    "SM4\0"
     "SMAP\0"
+    "SME\0"
     "SMEP\0"
     "SMX\0"
-    "SNP\0"
     "SSE\0"
     "SSE2\0"
     "SSE3\0"
@@ -307,6 +319,7 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "SSSE3\0"
     "SVM\0"
     "TBM\0"
+    "TSE\0"
     "TSX\0"
     "TSXLDTRK\0"
     "UINTR\0"
@@ -324,15 +337,16 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "<Unknown>\0";
 
   static const uint16_t sFeatureIndex[] = {
-    0, 5, 8, 11, 17, 24, 28, 34, 44, 53, 62, 71, 80, 84, 89, 103, 117, 129, 143,
-    153, 164, 174, 185, 194, 206, 218, 229, 241, 254, 264, 276, 296, 313, 322,
-    337, 346, 360, 364, 369, 377, 384, 392, 401, 409, 420, 425, 432, 437, 447,
-    458, 468, 474, 481, 486, 491, 495, 500, 504, 513, 518, 523, 528, 533, 541,
-    546, 552, 557, 561, 568, 573, 582, 586, 590, 596, 604, 608, 613, 621, 630,
-    636, 646, 654, 658, 662, 670, 675, 683, 689, 699, 707, 714, 724, 734, 746,
-    754, 762, 768, 774, 781, 788, 794, 801, 805, 815, 819, 826, 831, 836, 840,
-    844, 848, 853, 858, 865, 872, 878, 884, 888, 892, 896, 905, 911, 916, 920,
-    931, 939, 948, 956, 960, 966, 973, 982, 989
+    0, 5, 8, 11, 17, 24, 28, 34, 44, 53, 65, 74, 83, 92, 98, 102, 107, 121, 135,
+    147, 161, 171, 181, 191, 201, 210, 222, 234, 244, 256, 269, 279, 291, 311,
+    328, 337, 352, 361, 376, 390, 394, 399, 407, 414, 422, 431, 439, 450, 455,
+    462, 467, 477, 488, 498, 504, 511, 516, 521, 525, 530, 534, 543, 548, 553,
+    558, 563, 571, 576, 582, 587, 591, 598, 603, 611, 620, 624, 628, 634, 642,
+    646, 651, 659, 668, 674, 684, 692, 696, 700, 708, 713, 721, 727, 737, 745,
+    752, 762, 772, 784, 792, 800, 809, 815, 821, 828, 835, 841, 848, 852, 857,
+    867, 871, 878, 886, 890, 897, 904, 908, 912, 917, 921, 926, 930, 934, 939,
+    944, 951, 958, 964, 970, 974, 978, 982, 986, 995, 1001, 1006, 1010, 1021,
+    1029, 1038, 1046, 1050, 1056, 1063, 1072, 1079
   };
   // @EnumStringEnd@
 

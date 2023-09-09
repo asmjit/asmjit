@@ -17,7 +17,7 @@
 using namespace asmjit;
 
 #define TEST_INSTRUCTION(OPCODE, ...) \
-  tester.testInstruction(OPCODE, #__VA_ARGS__, tester.assembler.__VA_ARGS__)
+  tester.testValidInstruction(#__VA_ARGS__, OPCODE, tester.assembler.__VA_ARGS__)
 
 static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>& tester) noexcept {
   using namespace a64;

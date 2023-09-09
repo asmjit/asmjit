@@ -12,31 +12,22 @@
 
 "use strict";
 
-const VERBOSE = false;
-
 // ============================================================================
 // [Imports]
 // ============================================================================
 
 const fs = require("fs");
+
+const commons = require("./gencommons.js");
+const cxx = require("./gencxx.js");
+const asmdb = require("../db");
+
+exports.asmdb = asmdb;
+exports.exp = asmdb.base.exp;
+
 const hasOwn = Object.prototype.hasOwnProperty;
 
-const asmdb = (function() {
-  // Try to import a local 'asmdb' package, if available.
-  try {
-    return require("./asmdb");
-  }
-  catch (ex) {
-    if (ex.code !== "MODULE_NOT_FOUND") {
-      console.log(`FATAL ERROR: ${ex.message}`);
-      throw ex;
-    }
-  }
-
-  // Try to import global 'asmdb' package as local package is not available.
-  return require("asmdb");
-})();
-exports.asmdb = asmdb;
+const FATAL = commons.FATAL;
 
 // ============================================================================
 // [Constants]
@@ -49,27 +40,6 @@ const kAsmJitRoot = "..";
 exports.kIndent = kIndent;
 exports.kJustify = kJustify;
 exports.kAsmJitRoot = kAsmJitRoot;
-
-// ============================================================================
-// [Debugging]
-// ============================================================================
-
-function DEBUG(msg) {
-  if (VERBOSE)
-    console.log(msg);
-}
-exports.DEBUG = DEBUG;
-
-function WARN(msg) {
-  console.log(msg);
-}
-exports.WARN = WARN;
-
-function FAIL(msg) {
-  console.log(`FATAL ERROR: ${msg}`);
-  throw new Error(msg);
-}
-exports.FAIL = FAIL;
 
 // ============================================================================
 // [Lang]
@@ -162,7 +132,7 @@ class StringUtils {
 
   static countOf(s, pattern) {
     if (!pattern)
-      FAIL(`Pattern cannot be empty`);
+      FATAL(`Pattern cannot be empty`);
 
     var n = 0;
     var pos = 0;
@@ -173,11 +143,6 @@ class StringUtils {
     }
 
     return n;
-  }
-
-  static capitalize(s) {
-    s = String(s);
-    return !s ? s : s[0].toUpperCase() + s.substr(1);
   }
 
   static trimLeft(s) { return s.replace(/^\s+/, ""); }
@@ -262,11 +227,15 @@ class StringUtils {
   }
 
   static indent(s, indentation) {
+    if (typeof indentation === "number")
+      indentation = " ".repeat(indentation);
+
     var lines = s.split(/\r?\n/g);
     if (indentation) {
       for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
-        if (line) lines[i] = indentation + line;
+        if (line)
+          lines[i] = indentation + line;
       }
     }
 
@@ -278,10 +247,10 @@ class StringUtils {
     var iEnd   = s.indexOf(end);
 
     if (iStart === -1)
-      FAIL(`StringUtils.extract(): Couldn't locate start mark '${start}'`);
+      FATAL(`StringUtils.extract(): Couldn't locate start mark '${start}'`);
 
     if (iEnd === -1)
-      FAIL(`StringUtils.extract(): Couldn't locate end mark '${end}'`);
+      FATAL(`StringUtils.extract(): Couldn't locate end mark '${end}'`);
 
     return s.substring(iStart + start.length, iEnd).trim();
   }
@@ -291,10 +260,10 @@ class StringUtils {
     var iEnd   = s.indexOf(end);
 
     if (iStart === -1)
-      FAIL(`StringUtils.inject(): Couldn't locate start mark '${start}'`);
+      FATAL(`StringUtils.inject(): Couldn't locate start mark '${start}'`);
 
     if (iEnd === -1)
-      FAIL(`StringUtils.inject(): Couldn't locate end mark '${end}'`);
+      FATAL(`StringUtils.inject(): Couldn't locate end mark '${end}'`);
 
     var nIndent = 0;
     while (iStart > 0 && s[iStart-1] === " ") {
@@ -443,8 +412,8 @@ class CxxUtils {
     if (!fn)
       fn = nop;
 
-    var out = "";
-    for (var k in obj) {
+    let out = "";
+    for (let k in obj) {
       if (obj[k])
         out += (out ? " | " : "") + fn(k);
     }
@@ -536,7 +505,7 @@ class IndexedString {
 
   format(indent, justify) {
     if (this.size === -1)
-      FAIL(`IndexedString.format(): not indexed yet, call index()`);
+      FATAL(`IndexedString.format(): not indexed yet, call index()`);
 
     const array = this.array;
     if (!justify) justify = 0;
@@ -564,16 +533,16 @@ class IndexedString {
 
   getSize() {
     if (this.size === -1)
-      FAIL(`IndexedString.getSize(): Not indexed yet, call index()`);
+      FATAL(`IndexedString.getSize(): Not indexed yet, call index()`);
     return this.size;
   }
 
   getIndex(k) {
     if (this.size === -1)
-      FAIL(`IndexedString.getIndex(): Not indexed yet, call index()`);
+      FATAL(`IndexedString.getIndex(): Not indexed yet, call index()`);
 
     if (!hasOwn.call(this.map, k))
-      FAIL(`IndexedString.getIndex(): Key '${k}' not found.`);
+      FATAL(`IndexedString.getIndex(): Key '${k}' not found.`);
 
     return this.map[k];
   }
@@ -585,23 +554,13 @@ exports.IndexedString = IndexedString;
 // [InstructionNameData]
 // ============================================================================
 
-function decimalToHexString(number, pad) {
-  if (number < 0)
-    number = 0xFFFFFFFF + number + 1;
-
-  let s = number.toString(16).toUpperCase();
-  if (pad)
-    s = s.padStart(pad, "0")
-  return s;
-}
-
 function charTo5Bit(c) {
   if (c >= 'a' && c <= 'z')
     return 1 + (c.charCodeAt(0) - 'a'.charCodeAt(0));
   else if (c >= '0' && c <= '4')
     return 1 + 26 + (c.charCodeAt(0) - '0'.charCodeAt(0));
   else
-    FAIL(`Character '${c}' cannot be encoded into a 5-bit string`);
+    FATAL(`Character '${c}' cannot be encoded into a 5-bit string`);
 }
 
 class InstructionNameData {
@@ -746,11 +705,11 @@ class InstructionNameData {
 
   formatIndexTable(tableName) {
     if (this.size === -1)
-      FAIL(`IndexedString.formatIndexTable(): Not indexed yet, call index()`);
+      FATAL(`IndexedString.formatIndexTable(): Not indexed yet, call index()`);
 
     let s = "";
     for (let i = 0; i < this.primaryTable.length; i++) {
-      s += "0x" + decimalToHexString(this.primaryTable[i], 8);
+      s += cxx.Utils.toHex(this.primaryTable[i], 8);
       s += i !== this.primaryTable.length - 1 ? "," : " ";
       s += " // " + this.indexComment[i] + "\n";
     }
@@ -760,7 +719,7 @@ class InstructionNameData {
 
   formatStringTable(tableName) {
     if (this.size === -1)
-      FAIL(`IndexedString.formatStringTable(): Not indexed yet, call index()`);
+      FATAL(`IndexedString.formatStringTable(): Not indexed yet, call index()`);
 
     let s = "";
     for (let i = 0; i < this.stringTable.length; i += 80) {
@@ -775,17 +734,17 @@ class InstructionNameData {
 
   getSize() {
     if (this.size === -1)
-      FAIL(`IndexedString.getSize(): Not indexed yet, call index()`);
+      FATAL(`IndexedString.getSize(): Not indexed yet, call index()`);
 
     return this.primaryTable.length * 4 + this.stringTable.length;
   }
 
   getIndex(k) {
     if (this.size === -1)
-      FAIL(`IndexedString.getIndex(): Not indexed yet, call index()`);
+      FATAL(`IndexedString.getIndex(): Not indexed yet, call index()`);
 
     if (!hasOwn.call(this.map, k))
-      FAIL(`IndexedString.getIndex(): Key '${k}' not found.`);
+      FATAL(`IndexedString.getIndex(): Key '${k}' not found.`);
 
     return this.map[k];
   }
@@ -855,7 +814,7 @@ class Task {
   }
 
   run() {
-    FAIL("Task.run(): Must be reimplemented");
+    FATAL("Task.run(): Must be reimplemented");
   }
 }
 exports.Task = Task;
@@ -917,7 +876,7 @@ class TableGen {
   dataOfFile(file) {
     const obj = this.files[file];
     if (!obj)
-      FAIL(`TableGen.dataOfFile(): File '${file}' not loaded`);
+      FATAL(`TableGen.dataOfFile(): File '${file}' not loaded`);
     return obj.data;
   }
 
@@ -938,7 +897,7 @@ class TableGen {
     }
 
     if (!done)
-      FAIL(`TableGen.inject(): Cannot find '${key}'`);
+      FATAL(`TableGen.inject(): Cannot find '${key}'`);
 
     if (size)
       this.tableSizes[key] = size;
@@ -952,14 +911,14 @@ class TableGen {
 
   addTask(task) {
     if (!task.name)
-      FAIL(`TableGen.addModule(): Module must have a name`);
+      FATAL(`TableGen.addModule(): Module must have a name`);
 
     if (this.taskMap[task.name])
-      FAIL(`TableGen.addModule(): Module '${task.name}' already added`);
+      FATAL(`TableGen.addModule(): Module '${task.name}' already added`);
 
     task.deps.forEach((dependency) => {
       if (!this.taskMap[dependency])
-        FAIL(`TableGen.addModule(): Dependency '${dependency}' of module '${task.name}' doesn't exist`);
+        FATAL(`TableGen.addModule(): Dependency '${dependency}' of module '${task.name}' doesn't exist`);
     });
 
     this.tasks.push(task);
@@ -1004,7 +963,7 @@ class TableGen {
 
   addInst(inst) {
     if (this.instMap[inst.name])
-      FAIL(`TableGen.addInst(): Instruction '${inst.name}' already added`);
+      FATAL(`TableGen.addInst(): Instruction '${inst.name}' already added`);
 
     inst.id = this.insts.length;
     this.insts.push(inst);
@@ -1068,7 +1027,7 @@ class IdEnum extends Task {
   }
 
   comment(name) {
-    FAIL("IdEnum.comment(): Must be reimplemented");
+    FATAL("IdEnum.comment(): Must be reimplemented");
   }
 
   run() {
@@ -1121,7 +1080,7 @@ class NameTable extends Task {
       const index = name.charCodeAt(0) - 'a'.charCodeAt(0);
 
       if (index < 0 || index >= 26)
-        FAIL(`TableGen.generateNameData(): Invalid lookup character '${name[0]}' of '${name}'`);
+        FATAL(`TableGen.generateNameData(): Invalid lookup character '${name[0]}' of '${name}'`);
 
       if (instFirst[index] === undefined)
         instFirst[index] = `Inst::kId${inst.enum}`;

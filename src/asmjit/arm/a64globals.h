@@ -1417,9 +1417,12 @@ namespace SysReg {
     kID_AA64DFR1_EL1      = encode(0b11, 0b000, 0b0000, 0b0101, 0b001), // RO
     kID_AA64ISAR0_EL1     = encode(0b11, 0b000, 0b0000, 0b0110, 0b000), // RO
     kID_AA64ISAR1_EL1     = encode(0b11, 0b000, 0b0000, 0b0110, 0b001), // RO
+    kID_AA64ISAR2_EL1     = encode(0b11, 0b000, 0b0000, 0b0110, 0b010), // RO
     kID_AA64MMFR0_EL1     = encode(0b11, 0b000, 0b0000, 0b0111, 0b000), // RO
     kID_AA64MMFR1_EL1     = encode(0b11, 0b000, 0b0000, 0b0111, 0b001), // RO
     kID_AA64MMFR2_EL1     = encode(0b11, 0b000, 0b0000, 0b0111, 0b010), // RO
+    kID_AA64MMFR3_EL1     = encode(0b11, 0b000, 0b0000, 0b0111, 0b011), // RO
+    kID_AA64MMFR4_EL1     = encode(0b11, 0b000, 0b0000, 0b0111, 0b100), // RO
     kID_AA64PFR0_EL1      = encode(0b11, 0b000, 0b0000, 0b0100, 0b000), // RO
     kID_AA64PFR1_EL1      = encode(0b11, 0b000, 0b0000, 0b0100, 0b001), // RO
     kID_AA64ZFR0_EL1      = encode(0b11, 0b000, 0b0000, 0b0100, 0b100), // RO

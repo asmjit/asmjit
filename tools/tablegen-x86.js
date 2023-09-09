@@ -3,23 +3,15 @@
 // See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-// ============================================================================
-// tablegen-x86.js
-//
-// The purpose of this script is to fetch all instructions' names into a single
-// string and to optimize common patterns that appear in instruction data. It
-// prevents relocation of small strings (instruction names) that has to be done
-// by a linker to make all pointers the binary application/library uses valid.
-// This approach decreases the final size of AsmJit binary and relocation data.
-//
-// NOTE: This script relies on 'asmdb' package. Either install it by using
-// node.js package manager (npm) or by copying/symlinking the whole asmdb
-// directory as [asmjit]/tools/asmdb.
-// ============================================================================
-
 "use strict";
 
+const fs = require("fs");
+const path = require("path");
+
+const cxx = require("./gencxx.js");
+const commons = require("./gencommons.js");
 const core = require("./tablegen.js");
+
 const asmdb = core.asmdb;
 const kIndent = core.kIndent;
 
@@ -33,56 +25,28 @@ const IndexedArray = core.IndexedArray;
 const hasOwn = Object.prototype.hasOwnProperty;
 const disclaimer = StringUtils.disclaimer;
 
-const FAIL = core.FAIL;
-const DEBUG = core.DEBUG;
+const DEBUG = commons.DEBUG;
+const FATAL = commons.FATAL;
 
 const decToHex = StringUtils.decToHex;
+
+function readJSON(fileName) {
+  const content = fs.readFileSync(fileName);
+  return JSON.parse(content);
+}
+
+const x86data = readJSON(path.join(__dirname, "..", "db", asmdb.x86.dbName));
+
+// TODO: Fix these regressions:
+//   cvtsi2ss
+//   enqcmd
 
 // ============================================================================
 // [tablegen.x86.x86isa]
 // ============================================================================
 
 // Create the X86 database and add some special cases recognized by AsmJit.
-const x86isa = new asmdb.x86.ISA({
-  instructions: [
-    // Imul in [reg, imm] form is encoded as [reg, reg, imm].
-    ["imul", "r16, ib"    , "RMI"  , "66 6B /r ib"   , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul", "r32, ib"    , "RMI"  , "6B /r ib"      , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul", "r64, ib"    , "RMI"  , "REX.W 6B /r ib", "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul", "r16, iw/uw" , "RMI"  , "66 69 /r iw"   , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul", "r32, id/ud" , "RMI"  , "69 /r id"      , "ANY OF=W SF=W ZF=U AF=U PF=U CF=W"],
-    ["imul", "r64, id"    , "RMI"  , "REX.W 69 /r id", "X64 OF=W SF=W ZF=U AF=U PF=U CF=W"],
-
-    // Movabs (X64 only).
-    ["movabs", "W:r64, iq/uq" , "I"   , "REX.W B8+r iq", "X64"],
-    ["movabs", "w:al, moff8"  , "NONE", "A0"           , "X64"],
-    ["movabs", "w:ax, moff16" , "NONE", "66 A1"        , "X64"],
-    ["movabs", "W:eax, moff32", "NONE", "A1"           , "X64"],
-    ["movabs", "W:rax, moff64", "NONE", "REX.W A1"     , "X64"],
-    ["movabs", "W:moff8, al"  , "NONE", "A2"           , "X64"],
-    ["movabs", "W:moff16, ax" , "NONE", "66 A3"        , "X64"],
-    ["movabs", "W:moff32, eax", "NONE", "A3"           , "X64"],
-    ["movabs", "W:moff64, rax", "NONE", "REX.W A3"     , "X64"]
-  ]
-});
-
-// Remapped instructions contain mapping between instructions that AsmJit expects
-// and instructions provided by asmdb. In general, AsmJit uses string instructions
-// (like cmps, movs, etc...) without the suffix, so we just remap these and keep
-// all others.
-const RemappedInsts = {
-  __proto__: null,
-
-  "cmpsd": { names: ["cmpsd"]                           , rep: false },
-  "movsd": { names: ["movsd"]                           , rep: false },
-  "cmps" : { names: ["cmpsb", "cmpsw", "cmpsd", "cmpsq"], rep: true  },
-  "movs" : { names: ["movsb", "movsw", "movsd", "movsq"], rep: true  },
-  "lods" : { names: ["lodsb", "lodsw", "lodsd", "lodsq"], rep: null  },
-  "scas" : { names: ["scasb", "scasw", "scasd", "scasq"], rep: null  },
-  "stos" : { names: ["stosb", "stosw", "stosd", "stosq"], rep: null  },
-  "ins"  : { names: ["insb" , "insw" , "insd" ]         , rep: null  },
-  "outs" : { names: ["outsb", "outsw", "outsd"]         , rep: null  }
-};
+const x86isa = new asmdb.x86.ISA(x86data);
 
 // ============================================================================
 // [tablegen.x86.Filter]
@@ -95,7 +59,7 @@ class Filter {
 
     for (var i = 0; i < instArray.length; i++) {
       const inst = instArray[i];
-      if (inst.attributes.AltForm)
+      if (inst.altForm)
         continue;
 
       const s = inst.operands.map((op) => { return op.isImm() ? "imm" : op.toString(); }).join(", ");
@@ -113,7 +77,7 @@ class Filter {
     const result = [];
     for (var i = 0; i < instArray.length; i++) {
       const inst = instArray[i];
-      if (inst.attributes.AltForm)
+      if (inst.altForm)
         continue;
       result.push(inst);
     }
@@ -167,7 +131,28 @@ class GenUtils {
   }
 
   static cpuFeaturesOf(dbInsts) {
-    return ArrayUtils.sorted(dbInsts.unionCpuFeatures());
+    function cmp(a, b) {
+      if (a.startsWith("AVX512") && !b.startsWith("AVX512"))
+        return 1;
+      if (b.startsWith("AVX512") && !a.startsWith("AVX512"))
+        return -1;
+
+      if (a.startsWith("AVX") && !b.startsWith("AVX"))
+        return 1;
+      if (b.startsWith("AVX") && !a.startsWith("AVX"))
+        return -1;
+
+      if (a === "FPU" && b !== "FPU")
+        return 1;
+      if (b === "FPU" && a !== "FPU")
+        return -1;
+
+      return a < b ? -1 : a === b ? 0 : 1;
+    }
+
+    const features = Object.getOwnPropertyNames(dbInsts.unionCpuFeatures());
+    features.sort(cmp);
+    return features;
   }
 
   static assignVexEvexCompatibilityFlags(f, dbInsts) {
@@ -261,16 +246,16 @@ class GenUtils {
       const dbInst = dbInsts[i];
       const operands = dbInst.operands;
 
-      if (dbInst.attributes.Lock           ) f.Lock            = true;
-      if (dbInst.attributes.XAcquire       ) f.XAcquire        = true;
-      if (dbInst.attributes.XRelease       ) f.XRelease        = true;
-      if (dbInst.attributes.BND            ) f.Rep             = true;
-      if (dbInst.attributes.REP            ) f.Rep             = true;
-      if (dbInst.attributes.REPNE          ) f.Rep             = true;
-      if (dbInst.attributes.RepIgnored     ) f.RepIgnored      = true;
-      if (dbInst.attributes.ImplicitZeroing) f.Avx512ImplicitZ = true;
+      if (dbInst.prefixes.lock           ) f.Lock            = true;
+      if (dbInst.prefixes.xacquire       ) f.XAcquire        = true;
+      if (dbInst.prefixes.xrelease       ) f.XRelease        = true;
+      if (dbInst.prefixes.bnd            ) f.Rep             = true;
+      if (dbInst.prefixes.rep            ) f.Rep             = true;
+      if (dbInst.prefixes.repne          ) f.Rep             = true;
+      if (dbInst.prefixes.repIgnore      ) f.RepIgnored      = true;
+      if (dbInst.k === "zeroing"         ) f.Avx512ImplicitZ = true;
 
-      if (dbInst.fpu) {
+      if (dbInst.category.FPU) {
         for (var j = 0; j < operands.length; j++) {
           const op = operands[j];
           if (op.memSize === 16) f.FpuM16 = true;
@@ -280,7 +265,7 @@ class GenUtils {
         }
       }
 
-      if (dbInst.attributes.Tsib)
+      if (dbInst.tsib)
         f.Tsib = true;
 
       if (dbInst.vsibReg)
@@ -289,12 +274,11 @@ class GenUtils {
       if (dbInst.prefix === "VEX" || dbInst.prefix === "XOP")
         f.Vex = true;
 
+      if (dbInst.encodingPreference === "EVEX")
+        f.PreferEvex = true;
+
       if (dbInst.prefix === "EVEX") {
         f.Evex = true;
-
-        if (dbInst.extensions["AVX512_VNNI"])
-          f.PreferEvex = true;
-
         if (dbInst.kmask) f.Avx512K = true;
         if (dbInst.zmask) f.Avx512Z = true;
 
@@ -418,7 +402,7 @@ class GenUtils {
     }
   }
 
-  static fixedRegOf(reg) {
+  static fixedRegOfRegName(reg) {
     switch (reg) {
       case "es"  : return 1;
       case "cs"  : return 2;
@@ -447,11 +431,23 @@ class GenUtils {
     }
   }
 
+  static fixedRegOf(op) {
+    if (op.isReg()) {
+      return GenUtils.fixedRegOfRegName(op.reg);
+    }
+    else if (op.isMem() && op.memRegOnly) {
+      return GenUtils.fixedRegOfRegName(op.memRegOnly);
+    }
+    else {
+      return -1;
+    }
+  }
+
   static controlFlow(dbInsts) {
-    if (dbInsts.checkAttribute("Control", "Jump")) return "Jump";
-    if (dbInsts.checkAttribute("Control", "Call")) return "Call";
-    if (dbInsts.checkAttribute("Control", "Branch")) return "Branch";
-    if (dbInsts.checkAttribute("Control", "Return")) return "Return";
+    if (dbInsts.checkAttribute("control", "jump")) return "Jump";
+    if (dbInsts.checkAttribute("control", "call")) return "Call";
+    if (dbInsts.checkAttribute("control", "branch")) return "Branch";
+    if (dbInsts.checkAttribute("control", "return")) return "Return";
     return "Regular";
   }
 }
@@ -473,16 +469,7 @@ class X86TableGen extends core.TableGen {
 
   // Get instructions (dbInsts) having the same name as understood by AsmJit.
   query(name) {
-    const remapped = RemappedInsts[name];
-    if (!remapped) return x86isa.query(name);
-
-    const dbInsts = x86isa.query(remapped.names);
-    const rep = remapped.rep;
-    if (rep === null) return dbInsts;
-
-    return dbInsts.filter((inst) => {
-      return rep === !!(inst.attributes.REP || inst.attributes.REPNE);
-    });
+    return x86isa.query(name);
   }
 
   // --------------------------------------------------------------------------
@@ -514,7 +501,7 @@ class X86TableGen extends core.TableGen {
 
       const dbInsts = this.query(name);
       if (name && !dbInsts.length)
-        FAIL(`Instruction '${name}' not found in asmdb`);
+        FATAL(`Instruction '${name}' not found in asmdb`);
 
       const flags         = GenUtils.flagsOf(dbInsts);
       const controlFlow   = GenUtils.controlFlow(dbInsts);
@@ -547,7 +534,7 @@ class X86TableGen extends core.TableGen {
     }
 
     if (this.insts.length === 0)
-      FAIL("X86TableGen.parse(): Invalid parsing regexp (no data parsed)");
+      FATAL("X86TableGen.parse(): Invalid parsing regexp (no data parsed)");
 
     console.log("Number of Instructions: " + this.insts.length);
   }
@@ -830,7 +817,7 @@ class IdEnum extends core.IdEnum {
     var text = "";
     var features = GenUtils.cpuFeaturesOf(dbInsts);
 
-    const priorityFeatures = ["AVX_VNNI"];
+    const priorityFeatures = ["AVX_VNNI", "AVX_VNNI_INT8", "AVX_IFMA", "AVX_NE_CONVERT"];
 
     if (features.length) {
       text += "{";
@@ -968,7 +955,7 @@ class AltOpcodeTable extends core.Task {
         components[2] = "00";
       }
       else {
-        FAIL(`Failed to process opcode '${opcode}'`);
+        FATAL(`Failed to process opcode '${opcode}'`);
       }
 
       const newOpcode = joinOpcodeComponents(components);
@@ -1035,7 +1022,7 @@ function StringifyOpArray(a, map) {
     else if (hasOwn.call(map, op))
       mapped = map[op];
     else
-      FAIL(`UNHANDLED OPERAND '${op}'`);
+      FATAL(`UNHANDLED OPERAND '${op}'`);
     s += (s ? " | " : "") + mapped;
   }
   return s ? s : "0";
@@ -1252,14 +1239,14 @@ class ISignature extends Array {
 
   mergeWith(other) {
     // If both architectures are the same, it's fine to merge.
-    var ok = this.x86 === other.x86 && this.x64 === other.x64;
+    const sameArch = this.x86 === other.x86 && this.x64 === other.x64;
 
     // If the first arch is [X86|X64] and the second [X64] it's also fine.
-    if (!ok && this.x86 && this.x64 && !other.x86 && other.x64)
-      ok = true;
+    // if (!ok && this.x86 && this.x64 && !other.x86 && other.x64)
+    //   ok = true;
 
     // It's not ok if both signatures have different number of implicit operands.
-    if (!ok || this.implicit !== other.implicit)
+    if (!sameArch || this.implicit !== other.implicit)
       return false;
 
     // It's not ok if both signatures have different number of operands.
@@ -1267,8 +1254,8 @@ class ISignature extends Array {
     if (len !== other.length)
       return false;
 
-    var xorIndex = -1;
-    for (var i = 0; i < len; i++) {
+    let xorIndex = -1;
+    for (let i = 0; i < len; i++) {
       const xor = this[i].xor(other[i]);
       if (xor === null) continue;
 
@@ -1279,11 +1266,8 @@ class ISignature extends Array {
     }
 
     // Bail if mergeWidth at operand-level failed.
-    if (xorIndex !== -1 && !this[xorIndex].mergeWith(other[xorIndex]))
+    if (xorIndex === -1 || !this[xorIndex].mergeWith(other[xorIndex]))
       return false;
-
-    this.x86 = this.x86 || other.x86;
-    this.x64 = this.x64 || other.x64;
 
     return true;
   }
@@ -1295,7 +1279,7 @@ class ISignature extends Array {
 
 class SignatureArray extends Array {
   // Iterate over all signatures and check which operands don't need explicit memory size.
-  calcImplicitMemSize() {
+  calcImplicitMemSize(instName) {
     // Calculates a hash-value (aka key) of all register operands specified by `regOps` in `inst`.
     function keyOf(inst, regOps) {
       var s = "";
@@ -1410,6 +1394,8 @@ class SignatureArray extends Array {
                 // then keep this implicit as it won't do any harm. These instructions
                 // cannot be mixed and it will make implicit the 32-bit one in cases
                 // where X64 introduced 64-bit ones like `cvtsi2ss`.
+                if (!/^(bndcl|bndcn|bndcu|ptwrite|(v)?cvtsi2ss|(v)?cvtsi2sd|vcvtusi2ss|vcvtusi2sd)$/.test(instName))
+                  implicit = false;
               }
               else {
                 implicit = false;
@@ -1422,8 +1408,9 @@ class SignatureArray extends Array {
       // Patch all instructions to accept implicit-size memory operand.
       for (bIndex = 0; bIndex < sameSizeSet.length; bIndex++) {
         const bInst = sameSizeSet[bIndex];
-        if (implicit)
+        if (implicit) {
           bInst[memPos].flags.mem = true;
+        }
 
         if (!implicit)
           DEBUG(`${this.name}: Explicit: ${bInst}`);
@@ -1592,7 +1579,9 @@ class InstSignatureTable extends core.Task {
   }
 
   makeSignatures(dbInsts) {
+    const instName = dbInsts.length ? dbInsts[0].name : "";
     const signatures = new SignatureArray();
+
     for (var i = 0; i < dbInsts.length; i++) {
       const inst = dbInsts[i];
       const ops = inst.operands;
@@ -1676,29 +1665,9 @@ class InstSignatureTable extends core.Task {
             op.flags.implicit = true;
           }
 
-          const seg = iop.memSeg;
+          const seg = iop.memSegment;
           if (seg) {
             switch (inst.name) {
-              case "cmpsb": op.flags.m8 = true; break;
-              case "cmpsw": op.flags.m16 = true; break;
-              case "cmpsd": op.flags.m32 = true; break;
-              case "cmpsq": op.flags.m64 = true; break;
-              case "lodsb": op.flags.m8 = true; break;
-              case "lodsw": op.flags.m16 = true; break;
-              case "lodsd": op.flags.m32 = true; break;
-              case "lodsq": op.flags.m64 = true; break;
-              case "movsb": op.flags.m8 = true; break;
-              case "movsw": op.flags.m16 = true; break;
-              case "movsd": op.flags.m32 = true; break;
-              case "movsq": op.flags.m64 = true; break;
-              case "scasb": op.flags.m8 = true; break;
-              case "scasw": op.flags.m16 = true; break;
-              case "scasd": op.flags.m32 = true; break;
-              case "scasq": op.flags.m64 = true; break;
-              case "stosb": op.flags.m8 = true; break;
-              case "stosw": op.flags.m16 = true; break;
-              case "stosd": op.flags.m32 = true; break;
-              case "stosq": op.flags.m64 = true; break;
               case "insb": op.flags.m8 = true; break;
               case "insw": op.flags.m16 = true; break;
               case "insd": op.flags.m32 = true; break;
@@ -1718,6 +1687,9 @@ class InstSignatureTable extends core.Task {
               default: console.log(`UNKNOWN MEM IN INSTRUCTION '${inst.name}'`); break;
             }
 
+            if (iop.memRegOnly)
+              reg = iop.memRegOnly;
+
             if (seg === "ds") op.flags.memDS = true;
             if (seg === "es") op.flags.memES = true;
             if (reg === "reg") { op.flags.memBase = true; }
@@ -1730,30 +1702,37 @@ class InstSignatureTable extends core.Task {
           else if (reg) {
             if (reg == "r8") {
               op.flags["r8lo"] = true;
-              op.flags["r8hi"] = true;
+
+              if (!inst.w || inst.w === "W0")
+                op.flags["r8hi"] = true;
             }
             else {
               op.flags[reg] = true;
             }
           }
+
           if (mem) {
             op.flags[mem] = true;
-            // HACK: Allow LEA|CL*|PREFETCH* to use any memory size.
-            if (/^(cldemote|clwb|clflush\w*|lea|prefetch\w*)$/.test(inst.name)) {
+            // HACK: Allow LEA to use any memory size.
+            if (/^(lea)$/.test(inst.name)) {
               op.flags.mem = true;
               Object.assign(op.flags, MemOp);
             }
 
             // HACK: These instructions specify explicit memory size, but it's just informational.
-            if (inst.name === "enqcmd" || inst.name === "enqcmds" || inst.name === "movdir64b")
+            if (/^(call|enqcmd|enqcmds|lcall|ljmp|movdir64b)$/.test(inst.name)) {
               op.flags.mem = true;
-
+            }
           }
+
           if (imm) {
             if (iop.immSign === "any" || iop.immSign === "signed"  ) op.flags["i" + imm] = true;
             if (iop.immSign === "any" || iop.immSign === "unsigned") op.flags["u" + imm] = true;
           }
-          if (rel) op.flags["rel" + rel] = true;
+
+          if (rel) {
+            op.flags["rel" + rel] = true;
+          }
 
           row.push(op);
         }
@@ -1764,8 +1743,8 @@ class InstSignatureTable extends core.Task {
       }
     }
 
-    if (signatures.length && GenUtils.canUseImplicitMemSize(dbInsts[0].name))
-      signatures.calcImplicitMemSize();
+    if (signatures.length && GenUtils.canUseImplicitMemSize(instName))
+      signatures.calcImplicitMemSize(instName);
 
     signatures.compact();
     return signatures;
@@ -1868,7 +1847,7 @@ class AdditionalInfoTable extends core.Task {
       if (dbInst.name === "mov")
         continue;
 
-      const specialRegs = dbInst.specialRegs;
+      const regs = dbInst.io;
 
       // Mov is a special case, moving to/from control regs makes flags undefined,
       // which we don't want to have in `X86InstDB::operationData`. This is, thus,
@@ -1876,28 +1855,28 @@ class AdditionalInfoTable extends core.Task {
       if (dbInst.name === "mov")
         continue;
 
-      for (var specialReg in specialRegs) {
+      for (var reg in regs) {
         var flag = "";
-        switch (specialReg) {
-          case "FLAGS.CF": flag = "CF"; break;
-          case "FLAGS.OF": flag = "OF"; break;
-          case "FLAGS.SF": flag = "SF"; break;
-          case "FLAGS.ZF": flag = "ZF"; break;
-          case "FLAGS.AF": flag = "AF"; break;
-          case "FLAGS.PF": flag = "PF"; break;
-          case "FLAGS.DF": flag = "DF"; break;
-          case "FLAGS.IF": flag = "IF"; break;
-        //case "FLAGS.TF": flag = "TF"; break;
-          case "FLAGS.AC": flag = "AC"; break;
-          case "X86SW.C0": flag = "C0"; break;
-          case "X86SW.C1": flag = "C1"; break;
-          case "X86SW.C2": flag = "C2"; break;
-          case "X86SW.C3": flag = "C3"; break;
+        switch (reg) {
+          case "CF": flag = "CF"; break;
+          case "OF": flag = "OF"; break;
+          case "SF": flag = "SF"; break;
+          case "ZF": flag = "ZF"; break;
+          case "AF": flag = "AF"; break;
+          case "PF": flag = "PF"; break;
+          case "DF": flag = "DF"; break;
+          case "IF": flag = "IF"; break;
+        //case "TF": flag = "TF"; break;
+          case "AC": flag = "AC"; break;
+          case "C0": flag = "C0"; break;
+          case "C1": flag = "C1"; break;
+          case "C2": flag = "C2"; break;
+          case "C3": flag = "C3"; break;
           default:
             continue;
         }
 
-        switch (specialRegs[specialReg]) {
+        switch (regs[reg]) {
           case "R":
             r[flag] = true;
             break;
@@ -2132,7 +2111,7 @@ class InstRWInfoTable extends core.Task {
       for (var j = start; j <= end; j++) {
         const bytePos = j >> 3;
         if (bytePos < 0 || bytePos >= arr.length)
-          FAIL(`Range ${start}:${end} cannot be used to create a byte-mask`);
+          FATAL(`Range ${start}:${end} cannot be used to create a byte-mask`);
         arr[bytePos] = 1;
       }
     }
@@ -2163,7 +2142,7 @@ class InstRWInfoTable extends core.Task {
         access: op.read && op.write ? "X" : op.read ? "R" : op.write ? "W" : "?",
         clc: 0,
         flags: {},
-        fixed: GenUtils.fixedRegOf(op.reg),
+        fixed: GenUtils.fixedRegOf(op),
         index: op.rwxIndex,
         width: op.rwxWidth
       };
@@ -2197,10 +2176,7 @@ class InstRWInfoTable extends core.Task {
           // NOTE: Avoid push/pop here as PUSH/POP has many variations for segment registers,
           // which would set 'd.fixed' field even for GP variation of the instuction.
           if (instName !== "push" && instName !== "pop") {
-            if (op.isReg())
-              d.fixed = GenUtils.fixedRegOf(op.reg);
-            else
-              d.fixed = GenUtils.fixedRegOf(op.mem);
+            d.fixed = GenUtils.fixedRegOf(op);
           }
 
           switch (instName) {
@@ -2232,7 +2208,7 @@ class InstRWInfoTable extends core.Task {
           }
 
           if (d.fixed !== -1) {
-            if (op.memSeg)
+            if (op.memSegment)
               d.flags.MemPhysId = true;
             else
               d.flags.RegPhysId = true;
@@ -2320,7 +2296,7 @@ class InstRWInfoTable extends core.Task {
       if (queryRwByData(dbInsts, this.rwCategoryByData[k]))
         return { category: k, rwOps: nullOps() };
 
-    // FAILURE: Missing data to categorize this instruction.
+    // FATALURE: Missing data to categorize this instruction.
     if (name) {
       const items = dumpRwToData(dbInsts)
       console.log(`RW: ${dbInsts.length ? dbInsts[0].name : ""}:`);
@@ -2410,7 +2386,7 @@ class InstRWInfoTable extends core.Task {
         if (/^(punpcklbw|punpckldq|punpcklwd)$/.test(dbInst.name))
           return "None";
 
-        return StringUtils.capitalize(dbInst.name);
+        return cxx.Utils.capitalize(dbInst.name);
       }
     }
 
