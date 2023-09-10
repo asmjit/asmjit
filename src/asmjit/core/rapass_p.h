@@ -793,7 +793,7 @@ public:
   ASMJIT_INLINE_NODEBUG uint32_t endPosition() const noexcept { return _instructionCount * 2; }
 
   ASMJIT_INLINE_NODEBUG const RARegMask& availableRegs() const noexcept { return _availableRegs; }
-  ASMJIT_INLINE_NODEBUG const RARegMask& cloberredRegs() const noexcept { return _clobberedRegs; }
+  ASMJIT_INLINE_NODEBUG const RARegMask& clobberedRegs() const noexcept { return _clobberedRegs; }
 
   //! \}
 
@@ -818,11 +818,11 @@ public:
 
   //! Called by \ref runOnFunction() before the register allocation to initialize
   //! architecture-specific data and constraints.
-  virtual void onInit() noexcept = 0;
+  virtual void onInit() noexcept;
 
   //! Called by \ref runOnFunction(` after register allocation to clean everything
   //! up. Called even if the register allocation failed.
-  virtual void onDone() noexcept = 0;
+  virtual void onDone() noexcept;
 
   //! \}
 
@@ -1160,7 +1160,7 @@ public:
   virtual Error emitSave(uint32_t workId, uint32_t srcPhysId) noexcept = 0;
 
   virtual Error emitJump(const Label& label) noexcept = 0;
-  virtual Error emitPreCall(InvokeNode* invokeNode) noexcept = 0;
+  virtual Error emitPreCall(InvokeNode* invokeNode) noexcept;
 
   //! \}
 };

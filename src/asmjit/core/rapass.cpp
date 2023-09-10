@@ -196,6 +196,12 @@ Error BaseRAPass::onPerformAllSteps() noexcept {
   return kErrorOk;
 }
 
+// BaseRAPass - Events
+// ===================
+
+void BaseRAPass::onInit() noexcept {}
+void BaseRAPass::onDone() noexcept {}
+
 // BaseRAPass - CFG - Basic Block Management
 // =========================================
 
@@ -306,6 +312,11 @@ Error BaseRAPass::addBlock(RABlock* block) noexcept {
 
 // BaseRAPass - CFG - Build
 // ========================
+
+// [[pure virtual]]
+Error BaseRAPass::buildCFG() noexcept {
+  return DebugUtils::errored(kErrorInvalidState);
+}
 
 Error BaseRAPass::initSharedAssignments(const ZoneVector<uint32_t>& sharedAssignmentsMap) noexcept {
   if (sharedAssignmentsMap.empty())
@@ -1812,6 +1823,50 @@ Error BaseRAPass::insertPrologEpilog() noexcept {
 
 Error BaseRAPass::rewrite() noexcept {
   return _rewrite(_func, _stop);
+}
+
+// [[pure virtual]]
+Error BaseRAPass::_rewrite(BaseNode* first, BaseNode* stop) noexcept {
+  DebugUtils::unused(first, stop);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
+// BaseRAPass - Emit
+// =================
+
+// [[pure virtual]]
+Error BaseRAPass::emitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {
+  DebugUtils::unused(workId, dstPhysId, srcPhysId);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
+// [[pure virtual]]
+Error BaseRAPass::emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, uint32_t bPhysId) noexcept {
+  DebugUtils::unused(aWorkId, aPhysId, bWorkId, bPhysId);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
+// [[pure virtual]]
+Error BaseRAPass::emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept {
+  DebugUtils::unused(workId, dstPhysId);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
+// [[pure virtual]]
+Error BaseRAPass::emitSave(uint32_t workId, uint32_t srcPhysId) noexcept {
+  DebugUtils::unused(workId, srcPhysId);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
+// [[pure virtual]]
+Error BaseRAPass::emitJump(const Label& label) noexcept {
+  DebugUtils::unused(label);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
+Error BaseRAPass::emitPreCall(InvokeNode* invokeNode) noexcept {
+  DebugUtils::unused(invokeNode);
+  return DebugUtils::errored(kErrorOk);
 }
 
 // BaseRAPass - Logging

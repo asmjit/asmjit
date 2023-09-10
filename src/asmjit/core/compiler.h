@@ -712,7 +712,7 @@ public:
   ASMJIT_API Error run(Zone* zone, Logger* logger) override;
 
   //! Called once per `FuncNode`.
-  virtual Error runOnFunction(Zone* zone, Logger* logger, FuncNode* func) = 0;
+  ASMJIT_API virtual Error runOnFunction(Zone* zone, Logger* logger, FuncNode* func) = 0;
 
   //! \}
 };

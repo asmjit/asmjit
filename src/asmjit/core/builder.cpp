@@ -886,6 +886,15 @@ Pass::Pass(const char* name) noexcept
   : _name(name) {}
 Pass::~Pass() noexcept {}
 
+// Pass - Interface
+// ================
+
+// [[pure virtual]]
+Error Pass::run(Zone* zone, Logger* logger) {
+  DebugUtils::unused(zone, logger);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
 ASMJIT_END_NAMESPACE
 
 #endif // !ASMJIT_NO_BUILDER

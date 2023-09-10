@@ -587,6 +587,12 @@ Error FuncPass::run(Zone* zone, Logger* logger) {
   return kErrorOk;
 }
 
+// [[pure virtual]]
+Error FuncPass::runOnFunction(Zone* zone, Logger* logger, FuncNode* func) {
+  DebugUtils::unused(zone, logger, func);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
 ASMJIT_END_NAMESPACE
 
 #endif // !ASMJIT_NO_COMPILER
