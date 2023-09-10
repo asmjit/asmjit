@@ -21,11 +21,11 @@ class BaseEmitHelper {
 public:
   BaseEmitter* _emitter;
 
-  inline explicit BaseEmitHelper(BaseEmitter* emitter = nullptr) noexcept
+  ASMJIT_INLINE_NODEBUG explicit BaseEmitHelper(BaseEmitter* emitter = nullptr) noexcept
     : _emitter(emitter) {}
 
-  inline BaseEmitter* emitter() const noexcept { return _emitter; }
-  inline void setEmitter(BaseEmitter* emitter) noexcept { _emitter = emitter; }
+  ASMJIT_INLINE_NODEBUG BaseEmitter* emitter() const noexcept { return _emitter; }
+  ASMJIT_INLINE_NODEBUG void setEmitter(BaseEmitter* emitter) noexcept { _emitter = emitter; }
 
   //! Emits a pure move operation between two registers or the same type or between a register and its home
   //! slot. This function does not handle register conversion.

@@ -502,52 +502,52 @@ public:
   //! \{
 
 #ifndef ASMJIT_NO_LOGGING
-# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                         \
+# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                                \
     _newRegFmt(&OUT, PARAM, FORMAT, ARGS)
 #else
-# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                         \
-    DebugUtils::unused(FORMAT);                                               \
-    DebugUtils::unused(std::forward<Args>(args)...);                          \
+# define ASMJIT_NEW_REG_FMT(OUT, PARAM, FORMAT, ARGS)                                \
+    DebugUtils::unused(FORMAT);                                                      \
+    DebugUtils::unused(std::forward<Args>(args)...);                                 \
     _newReg(&OUT, PARAM)
 #endif
 
-#define ASMJIT_NEW_REG_CUSTOM(FUNC, REG)                                      \
-    inline REG FUNC(TypeId typeId) {                                          \
-      REG reg(Globals::NoInit);                                               \
-      _newReg(&reg, typeId);                                                  \
-      return reg;                                                             \
-    }                                                                         \
-                                                                              \
-    template<typename... Args>                                                \
-    inline REG FUNC(TypeId typeId, const char* fmt, Args&&... args) {         \
-      REG reg(Globals::NoInit);                                               \
-      ASMJIT_NEW_REG_FMT(reg, typeId, fmt, std::forward<Args>(args)...);      \
-      return reg;                                                             \
+#define ASMJIT_NEW_REG_CUSTOM(FUNC, REG)                                             \
+    ASMJIT_INLINE_NODEBUG REG FUNC(TypeId typeId) {                                  \
+      REG reg(Globals::NoInit);                                                      \
+      _newReg(&reg, typeId);                                                         \
+      return reg;                                                                    \
+    }                                                                                \
+                                                                                     \
+    template<typename... Args>                                                       \
+    ASMJIT_INLINE_NODEBUG REG FUNC(TypeId typeId, const char* fmt, Args&&... args) { \
+      REG reg(Globals::NoInit);                                                      \
+      ASMJIT_NEW_REG_FMT(reg, typeId, fmt, std::forward<Args>(args)...);             \
+      return reg;                                                                    \
     }
 
-#define ASMJIT_NEW_REG_TYPED(FUNC, REG, TYPE_ID)                              \
-    inline REG FUNC() {                                                       \
-      REG reg(Globals::NoInit);                                               \
-      _newReg(&reg, TYPE_ID);                                                 \
-      return reg;                                                             \
-    }                                                                         \
-                                                                              \
-    template<typename... Args>                                                \
-    inline REG FUNC(const char* fmt, Args&&... args) {                        \
-      REG reg(Globals::NoInit);                                               \
-      ASMJIT_NEW_REG_FMT(reg, TYPE_ID, fmt, std::forward<Args>(args)...);     \
-      return reg;                                                             \
+#define ASMJIT_NEW_REG_TYPED(FUNC, REG, TYPE_ID)                                     \
+    ASMJIT_INLINE_NODEBUG REG FUNC() {                                               \
+      REG reg(Globals::NoInit);                                                      \
+      _newReg(&reg, TYPE_ID);                                                        \
+      return reg;                                                                    \
+    }                                                                                \
+                                                                                     \
+    template<typename... Args>                                                       \
+    ASMJIT_INLINE_NODEBUG REG FUNC(const char* fmt, Args&&... args) {                \
+      REG reg(Globals::NoInit);                                                      \
+      ASMJIT_NEW_REG_FMT(reg, TYPE_ID, fmt, std::forward<Args>(args)...);            \
+      return reg;                                                                    \
     }
 
   template<typename RegT>
-  inline RegT newSimilarReg(const RegT& ref) {
+  ASMJIT_INLINE_NODEBUG RegT newSimilarReg(const RegT& ref) {
     RegT reg(Globals::NoInit);
     _newReg(reg, ref);
     return reg;
   }
 
   template<typename RegT, typename... Args>
-  inline RegT newSimilarReg(const RegT& ref, const char* fmt, Args&&... args) {
+  ASMJIT_INLINE_NODEBUG RegT newSimilarReg(const RegT& ref, const char* fmt, Args&&... args) {
     RegT reg(Globals::NoInit);
     ASMJIT_NEW_REG_FMT(reg, ref, fmt, std::forward<Args>(args)...);
     return reg;
@@ -601,7 +601,7 @@ public:
   //! \{
 
   //! Creates a new memory chunk allocated on the current function's stack.
-  inline Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
+  ASMJIT_INLINE_NODEBUG Mem newStack(uint32_t size, uint32_t alignment, const char* name = nullptr) {
     Mem m(Globals::NoInit);
     _newStack(&m, size, alignment, name);
     return m;
@@ -613,38 +613,38 @@ public:
   //! \{
 
   //! Put data to a constant-pool and get a memory reference to it.
-  inline Mem newConst(ConstPoolScope scope, const void* data, size_t size) {
+  ASMJIT_INLINE_NODEBUG Mem newConst(ConstPoolScope scope, const void* data, size_t size) {
     Mem m(Globals::NoInit);
     _newConst(&m, scope, data, size);
     return m;
   }
 
   //! Put a BYTE `val` to a constant-pool.
-  inline Mem newByteConst(ConstPoolScope scope, uint8_t val) noexcept { return newConst(scope, &val, 1); }
+  ASMJIT_INLINE_NODEBUG Mem newByteConst(ConstPoolScope scope, uint8_t val) noexcept { return newConst(scope, &val, 1); }
   //! Put a WORD `val` to a constant-pool.
-  inline Mem newWordConst(ConstPoolScope scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem newWordConst(ConstPoolScope scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
   //! Put a DWORD `val` to a constant-pool.
-  inline Mem newDWordConst(ConstPoolScope scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem newDWordConst(ConstPoolScope scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
   //! Put a QWORD `val` to a constant-pool.
-  inline Mem newQWordConst(ConstPoolScope scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem newQWordConst(ConstPoolScope scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
 
   //! Put a WORD `val` to a constant-pool.
-  inline Mem newInt16Const(ConstPoolScope scope, int16_t val) noexcept { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem newInt16Const(ConstPoolScope scope, int16_t val) noexcept { return newConst(scope, &val, 2); }
   //! Put a WORD `val` to a constant-pool.
-  inline Mem newUInt16Const(ConstPoolScope scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
+  ASMJIT_INLINE_NODEBUG Mem newUInt16Const(ConstPoolScope scope, uint16_t val) noexcept { return newConst(scope, &val, 2); }
   //! Put a DWORD `val` to a constant-pool.
-  inline Mem newInt32Const(ConstPoolScope scope, int32_t val) noexcept { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem newInt32Const(ConstPoolScope scope, int32_t val) noexcept { return newConst(scope, &val, 4); }
   //! Put a DWORD `val` to a constant-pool.
-  inline Mem newUInt32Const(ConstPoolScope scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem newUInt32Const(ConstPoolScope scope, uint32_t val) noexcept { return newConst(scope, &val, 4); }
   //! Put a QWORD `val` to a constant-pool.
-  inline Mem newInt64Const(ConstPoolScope scope, int64_t val) noexcept { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem newInt64Const(ConstPoolScope scope, int64_t val) noexcept { return newConst(scope, &val, 8); }
   //! Put a QWORD `val` to a constant-pool.
-  inline Mem newUInt64Const(ConstPoolScope scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem newUInt64Const(ConstPoolScope scope, uint64_t val) noexcept { return newConst(scope, &val, 8); }
 
   //! Put a SP-FP `val` to a constant-pool.
-  inline Mem newFloatConst(ConstPoolScope scope, float val) noexcept { return newConst(scope, &val, 4); }
+  ASMJIT_INLINE_NODEBUG Mem newFloatConst(ConstPoolScope scope, float val) noexcept { return newConst(scope, &val, 4); }
   //! Put a DP-FP `val` to a constant-pool.
-  inline Mem newDoubleConst(ConstPoolScope scope, double val) noexcept { return newConst(scope, &val, 8); }
+  ASMJIT_INLINE_NODEBUG Mem newDoubleConst(ConstPoolScope scope, double val) noexcept { return newConst(scope, &val, 8); }
 
   //! \}
 
@@ -652,9 +652,9 @@ public:
   //! \{
 
   //! Force the compiler to not follow the conditional or unconditional jump.
-  inline Compiler& unfollow() noexcept { addInstOptions(InstOptions::kUnfollow); return *this; }
+  ASMJIT_INLINE_NODEBUG Compiler& unfollow() noexcept { addInstOptions(InstOptions::kUnfollow); return *this; }
   //! Tell the compiler that the destination variable will be overwritten.
-  inline Compiler& overwrite() noexcept { addInstOptions(InstOptions::kOverwrite); return *this; }
+  ASMJIT_INLINE_NODEBUG Compiler& overwrite() noexcept { addInstOptions(InstOptions::kOverwrite); return *this; }
 
   //! \}
 
@@ -662,7 +662,7 @@ public:
   //! \{
 
   //! Invoke a function call without `target` type enforcement.
-  inline Error invoke_(InvokeNode** out, const Operand_& target, const FuncSignature& signature) {
+  ASMJIT_INLINE_NODEBUG Error invoke_(InvokeNode** out, const Operand_& target, const FuncSignature& signature) {
     return addInvokeNode(out, Inst::kIdCall, target, signature);
   }
 
@@ -671,22 +671,22 @@ public:
   //! Creates a new \ref InvokeNode, initializes all the necessary members to match the given function `signature`,
   //! adds the node to the compiler, and stores its pointer to `out`. The operation is atomic, if anything fails
   //! nullptr is stored in `out` and error code is returned.
-  inline Error invoke(InvokeNode** out, const Gp& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
+  ASMJIT_INLINE_NODEBUG Error invoke(InvokeNode** out, const Gp& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
   //! \overload
-  inline Error invoke(InvokeNode** out, const Mem& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
+  ASMJIT_INLINE_NODEBUG Error invoke(InvokeNode** out, const Mem& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
   //! \overload
-  inline Error invoke(InvokeNode** out, const Label& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
+  ASMJIT_INLINE_NODEBUG Error invoke(InvokeNode** out, const Label& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
   //! \overload
-  inline Error invoke(InvokeNode** out, const Imm& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
+  ASMJIT_INLINE_NODEBUG Error invoke(InvokeNode** out, const Imm& target, const FuncSignature& signature) { return invoke_(out, target, signature); }
   //! \overload
-  inline Error invoke(InvokeNode** out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Imm(int64_t(target)), signature); }
+  ASMJIT_INLINE_NODEBUG Error invoke(InvokeNode** out, uint64_t target, const FuncSignature& signature) { return invoke_(out, Imm(int64_t(target)), signature); }
 
   //! Return from function.
-  inline Error ret() { return addRet(Operand(), Operand()); }
+  ASMJIT_INLINE_NODEBUG Error ret() { return addRet(Operand(), Operand()); }
   //! \overload
-  inline Error ret(const BaseReg& o0) { return addRet(o0, Operand()); }
+  ASMJIT_INLINE_NODEBUG Error ret(const BaseReg& o0) { return addRet(o0, Operand()); }
   //! \overload
-  inline Error ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
+  ASMJIT_INLINE_NODEBUG Error ret(const BaseReg& o0, const BaseReg& o1) { return addRet(o0, o1); }
 
   //! \}
 
@@ -696,9 +696,9 @@ public:
   using EmitterExplicitT<Compiler>::jmp;
 
   //! Adds a jump to the given `target` with the provided jump `annotation`.
-  inline Error jmp(const BaseReg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
+  ASMJIT_INLINE_NODEBUG Error jmp(const BaseReg& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
   //! \overload
-  inline Error jmp(const BaseMem& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
+  ASMJIT_INLINE_NODEBUG Error jmp(const BaseMem& target, JumpAnnotation* annotation) { return emitAnnotatedJump(Inst::kIdJmp, target, annotation); }
 
   //! \}
 

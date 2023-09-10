@@ -105,9 +105,9 @@ static constexpr CondCode _reverseCondTable[] = {
 //! \endcond
 
 //! Reverses a condition code (reverses the corresponding operands of a comparison).
-static inline constexpr CondCode reverseCond(CondCode cond) noexcept { return _reverseCondTable[uint8_t(cond)]; }
+static ASMJIT_INLINE_NODEBUG constexpr CondCode reverseCond(CondCode cond) noexcept { return _reverseCondTable[uint8_t(cond)]; }
 //! Negates a condition code.
-static inline constexpr CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ 1u); }
+static ASMJIT_INLINE_NODEBUG constexpr CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ 1u); }
 
 //! Instruction.
 //!
@@ -1843,7 +1843,7 @@ namespace Inst {
   };
 
   //! Tests whether the `instId` is defined.
-  static inline constexpr bool isDefinedId(InstId instId) noexcept { return instId < _kIdCount; }
+  static ASMJIT_INLINE_NODEBUG constexpr bool isDefinedId(InstId instId) noexcept { return instId < _kIdCount; }
 
   //! \cond
   #define ASMJIT_INST_FROM_COND(ID) \
@@ -1860,11 +1860,11 @@ namespace Inst {
   //! \endcond
 
   //! Translates a condition code `cond` to a `jcc` instruction id.
-  static constexpr InstId jccFromCond(CondCode cond) noexcept { return _jccTable[uint8_t(cond)]; }
+  static ASMJIT_INLINE_NODEBUG constexpr InstId jccFromCond(CondCode cond) noexcept { return _jccTable[uint8_t(cond)]; }
   //! Translates a condition code `cond` to a `setcc` instruction id.
-  static constexpr InstId setccFromCond(CondCode cond) noexcept { return _setccTable[uint8_t(cond)]; }
+  static ASMJIT_INLINE_NODEBUG constexpr InstId setccFromCond(CondCode cond) noexcept { return _setccTable[uint8_t(cond)]; }
   //! Translates a condition code `cond` to a `cmovcc` instruction id.
-  static constexpr InstId cmovccFromCond(CondCode cond) noexcept { return _cmovccTable[uint8_t(cond)]; }
+  static ASMJIT_INLINE_NODEBUG constexpr InstId cmovccFromCond(CondCode cond) noexcept { return _cmovccTable[uint8_t(cond)]; }
 } // {Inst}
 
 //! FPU status word bits.
@@ -2144,7 +2144,7 @@ enum class VReduceImm : uint8_t {
 ASMJIT_DEFINE_ENUM_FLAGS(VReduceImm)
 
 //! Creates a \ref VReduceImm from a combination of `flags` and `fixedPointLength`.
-static inline constexpr VReduceImm vReduceImm(VReduceImm flags, uint32_t fixedPointLength) noexcept {
+static ASMJIT_INLINE_NODEBUG constexpr VReduceImm vReduceImm(VReduceImm flags, uint32_t fixedPointLength) noexcept {
   return flags | VReduceImm(fixedPointLength << 4);
 }
 
@@ -2179,7 +2179,7 @@ enum class TLogImm : uint8_t {
 ASMJIT_DEFINE_ENUM_FLAGS(TLogImm)
 
 //! Creates an immediate that can be used by VPTERNLOG[D|Q] instructions.
-static inline constexpr TLogImm tLogFromBits(uint8_t b000, uint8_t b001, uint8_t b010, uint8_t b011, uint8_t b100, uint8_t b101, uint8_t b110, uint8_t b111) noexcept {
+static ASMJIT_INLINE_NODEBUG constexpr TLogImm tLogFromBits(uint8_t b000, uint8_t b001, uint8_t b010, uint8_t b011, uint8_t b100, uint8_t b101, uint8_t b110, uint8_t b111) noexcept {
   return TLogImm(uint8_t(b000 << 0) |
                  uint8_t(b001 << 1) |
                  uint8_t(b010 << 2) |
@@ -2191,7 +2191,7 @@ static inline constexpr TLogImm tLogFromBits(uint8_t b000, uint8_t b001, uint8_t
 }
 
 //! Creates an if/else logic that can be used by VPTERNLOG[D|Q] instructions.
-static inline constexpr TLogImm fLogIfElse(TLogImm condition, TLogImm a, TLogImm b) noexcept { return (condition & a) | (~condition & b); }
+static ASMJIT_INLINE_NODEBUG constexpr TLogImm fLogIfElse(TLogImm condition, TLogImm a, TLogImm b) noexcept { return (condition & a) | (~condition & b); }
 
 //! Creates a shuffle immediate value that be used with SSE/AVX/AVX-512 instructions to shuffle 2 elements in a vector.
 //!
@@ -2200,7 +2200,7 @@ static inline constexpr TLogImm fLogIfElse(TLogImm condition, TLogImm a, TLogImm
 //!
 //! Shuffle constants can be used to encode an immediate for these instructions:
 //!   - `shufpd|vshufpd`
-static inline constexpr uint32_t shuffleImm(uint32_t a, uint32_t b) noexcept {
+static ASMJIT_INLINE_NODEBUG constexpr uint32_t shuffleImm(uint32_t a, uint32_t b) noexcept {
   return (a << 1) | b;
 }
 
@@ -2217,7 +2217,7 @@ static inline constexpr uint32_t shuffleImm(uint32_t a, uint32_t b) noexcept {
 //!   - `pshufhw|vpshufhw`
 //!   - `pshufd|vpshufd`
 //!   - `shufps|vshufps`
-static inline constexpr uint32_t shuffleImm(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
+static ASMJIT_INLINE_NODEBUG constexpr uint32_t shuffleImm(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
   return (a << 6) | (b << 4) | (c << 2) | d;
 }
 

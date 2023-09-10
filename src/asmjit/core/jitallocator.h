@@ -182,7 +182,7 @@ public:
   //! Destroys the `JitAllocator` instance and release all blocks held.
   ASMJIT_API ~JitAllocator() noexcept;
 
-  inline bool isInitialized() const noexcept { return _impl->blockSize == 0; }
+  ASMJIT_INLINE_NODEBUG bool isInitialized() const noexcept { return _impl->blockSize == 0; }
 
   //! Free all allocated memory - makes all pointers returned by `alloc()` invalid.
   //!
@@ -196,16 +196,16 @@ public:
   //! \{
 
   //! Returns allocator options, see `Flags`.
-  inline JitAllocatorOptions options() const noexcept { return _impl->options; }
+  ASMJIT_INLINE_NODEBUG JitAllocatorOptions options() const noexcept { return _impl->options; }
   //! Tests whether the allocator has the given `option` set.
-  inline bool hasOption(JitAllocatorOptions option) const noexcept { return uint32_t(_impl->options & option) != 0; }
+  ASMJIT_INLINE_NODEBUG bool hasOption(JitAllocatorOptions option) const noexcept { return uint32_t(_impl->options & option) != 0; }
 
   //! Returns a base block size (a minimum size of block that the allocator would allocate).
-  inline uint32_t blockSize() const noexcept { return _impl->blockSize; }
+  ASMJIT_INLINE_NODEBUG uint32_t blockSize() const noexcept { return _impl->blockSize; }
   //! Returns granularity of the allocator.
-  inline uint32_t granularity() const noexcept { return _impl->granularity; }
+  ASMJIT_INLINE_NODEBUG uint32_t granularity() const noexcept { return _impl->granularity; }
   //! Returns pattern that is used to fill unused memory if `kFlagUseFillPattern` is set.
-  inline uint32_t fillPattern() const noexcept { return _impl->fillPattern; }
+  ASMJIT_INLINE_NODEBUG uint32_t fillPattern() const noexcept { return _impl->fillPattern; }
 
   //! \}
 
@@ -265,7 +265,7 @@ public:
     //! Returns a pointer having Read & Execute permissions (references executable memory).
     //!
     //! This pointer is never NULL if the allocation succeeded, it points to an executable memory.
-    inline void* rx() const noexcept { return _rx; }
+    ASMJIT_INLINE_NODEBUG void* rx() const noexcept { return _rx; }
 
     //! Returns a pointer having Read & Write permissions (references writable memory).
     //!
@@ -283,23 +283,23 @@ public:
     //! the permissions of the pointer to RW (that's per thread permissions). if \ref ProtectJitReadWriteScope is
     //! not used it's important to clear the instruction cache via \ref VirtMem::flushInstructionCache() after the
     //! write is done.
-    inline void* rw() const noexcept { return _rw; }
+    ASMJIT_INLINE_NODEBUG void* rw() const noexcept { return _rw; }
 
     //! Returns size of this span, aligned to the allocator granularity.
-    inline size_t size() const noexcept { return _size; }
+    ASMJIT_INLINE_NODEBUG size_t size() const noexcept { return _size; }
 
     //! Returns span flags.
-    inline Flags flags() const noexcept { return _flags; }
+    ASMJIT_INLINE_NODEBUG Flags flags() const noexcept { return _flags; }
 
     //! Shrinks this span to `newSize`.
     //!
     //! \note This is the only function that is able to change the size of a span, and it's only use case is to
     //! shrink the span size during \ref JitAllocator::write(). When the writer detects that the span size shrunk,
     //! it will automatically shrink the memory used by the span, and propagate the new aligned size to the caller.
-    inline void shrink(size_t newSize) noexcept { _size = Support::min(_size, newSize); }
+    ASMJIT_INLINE_NODEBUG void shrink(size_t newSize) noexcept { _size = Support::min(_size, newSize); }
 
     //! Returns whether \ref rw() returns a non-null pointer.
-    inline bool isDirectlyWritable() const noexcept { return _rw != nullptr; }
+    ASMJIT_INLINE_NODEBUG bool isDirectlyWritable() const noexcept { return _rw != nullptr; }
 
     //! \}
   };
@@ -473,8 +473,8 @@ public:
     //! \name Accessors
     //! \{
 
-    inline JitAllocator* allocator() const noexcept { return _allocator; }
-    inline VirtMem::CachePolicy policy() const noexcept { return _policy; }
+    ASMJIT_INLINE_NODEBUG JitAllocator* allocator() const noexcept { return _allocator; }
+    ASMJIT_INLINE_NODEBUG VirtMem::CachePolicy policy() const noexcept { return _policy; }
 
     //! \}
 
@@ -482,23 +482,23 @@ public:
     //! \{
 
     //! Similar to `JitAllocator::write(span, offset, src, size)`, but under a write scope.
-    inline Error write(Span& span, size_t offset, const void* src, size_t size) noexcept {
+    ASMJIT_INLINE_NODEBUG Error write(Span& span, size_t offset, const void* src, size_t size) noexcept {
       return _allocator->scopedWrite(*this, span, offset, src, size);
     }
 
     //! Similar to `JitAllocator::write(span, writeFunc, userData)`, but under a write scope.
-    inline Error write(Span& span, WriteFunc writeFunc, void* userData) noexcept {
+    ASMJIT_INLINE_NODEBUG Error write(Span& span, WriteFunc writeFunc, void* userData) noexcept {
       return _allocator->scopedWrite(*this, span, writeFunc, userData);
     }
 
     //! Similar to `JitAllocator::write(span, <lambda>)`, but under a write scope.
     template<class Lambda>
-    inline Error write(Span& span, Lambda&& lambdaFunc) noexcept {
+    ASMJIT_INLINE_NODEBUG Error write(Span& span, Lambda&& lambdaFunc) noexcept {
       return _allocator->scopedWrite(*this, span, lambdaFunc);
     }
 
     //! Flushes accumulated changes in this write scope.
-    inline Error flush() noexcept {
+    ASMJIT_INLINE_NODEBUG Error flush() noexcept {
       return _allocator->flushWriteScope(*this);
     }
 
@@ -524,31 +524,31 @@ public:
     size_t _overheadSize;
 
     //! Resets the statistics to all zeros.
-    inline void reset() noexcept { *this = Statistics{}; }
+    ASMJIT_INLINE_NODEBUG void reset() noexcept { *this = Statistics{}; }
 
     //! Returns count of blocks managed by `JitAllocator` at the moment.
-    inline size_t blockCount() const noexcept { return _blockCount; }
+    ASMJIT_INLINE_NODEBUG size_t blockCount() const noexcept { return _blockCount; }
     //! Returns the number of active allocations.
-    inline size_t allocationCount() const noexcept { return _allocationCount; }
+    ASMJIT_INLINE_NODEBUG size_t allocationCount() const noexcept { return _allocationCount; }
 
     //! Returns how many bytes are currently used.
-    inline size_t usedSize() const noexcept { return _usedSize; }
+    ASMJIT_INLINE_NODEBUG size_t usedSize() const noexcept { return _usedSize; }
     //! Returns the number of bytes unused by the allocator at the moment.
-    inline size_t unusedSize() const noexcept { return _reservedSize - _usedSize; }
+    ASMJIT_INLINE_NODEBUG size_t unusedSize() const noexcept { return _reservedSize - _usedSize; }
     //! Returns the total number of bytes bytes reserved by the allocator (sum of sizes of all blocks).
-    inline size_t reservedSize() const noexcept { return _reservedSize; }
+    ASMJIT_INLINE_NODEBUG size_t reservedSize() const noexcept { return _reservedSize; }
     //! Returns the number of bytes the allocator needs to manage the allocated memory.
-    inline size_t overheadSize() const noexcept { return _overheadSize; }
+    ASMJIT_INLINE_NODEBUG size_t overheadSize() const noexcept { return _overheadSize; }
 
-    inline double usedSizeAsPercent() const noexcept {
+    ASMJIT_INLINE_NODEBUG double usedSizeAsPercent() const noexcept {
       return (double(usedSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
 
-    inline double unusedSizeAsPercent() const noexcept {
+    ASMJIT_INLINE_NODEBUG double unusedSizeAsPercent() const noexcept {
       return (double(unusedSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
 
-    inline double overheadSizeAsPercent() const noexcept {
+    ASMJIT_INLINE_NODEBUG double overheadSizeAsPercent() const noexcept {
       return (double(overheadSize()) / (double(reservedSize()) + 1e-16)) * 100.0;
     }
   };

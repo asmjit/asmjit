@@ -83,31 +83,31 @@ public:
   //! \name Accessors
   //! \{
 
-  inline RAWorkReg* workRegById(uint32_t workId) const noexcept { return _pass->workRegById(workId); }
-  inline PhysToWorkMap* physToWorkMap() const noexcept { return _curAssignment.physToWorkMap(); }
-  inline WorkToPhysMap* workToPhysMap() const noexcept { return _curAssignment.workToPhysMap(); }
+  ASMJIT_INLINE_NODEBUG RAWorkReg* workRegById(uint32_t workId) const noexcept { return _pass->workRegById(workId); }
+  ASMJIT_INLINE_NODEBUG PhysToWorkMap* physToWorkMap() const noexcept { return _curAssignment.physToWorkMap(); }
+  ASMJIT_INLINE_NODEBUG WorkToPhysMap* workToPhysMap() const noexcept { return _curAssignment.workToPhysMap(); }
 
   //! Returns the currently processed block.
-  inline RABlock* block() const noexcept { return _block; }
+  ASMJIT_INLINE_NODEBUG RABlock* block() const noexcept { return _block; }
   //! Sets the currently processed block.
-  inline void setBlock(RABlock* block) noexcept { _block = block; }
+  ASMJIT_INLINE_NODEBUG void setBlock(RABlock* block) noexcept { _block = block; }
 
   //! Returns the currently processed `InstNode`.
-  inline InstNode* node() const noexcept { return _node; }
+  ASMJIT_INLINE_NODEBUG InstNode* node() const noexcept { return _node; }
   //! Returns the currently processed `RAInst`.
-  inline RAInst* raInst() const noexcept { return _raInst; }
+  ASMJIT_INLINE_NODEBUG RAInst* raInst() const noexcept { return _raInst; }
 
   //! Returns all tied regs as `RATiedReg` array.
-  inline RATiedReg* tiedRegs() const noexcept { return _raInst->tiedRegs(); }
+  ASMJIT_INLINE_NODEBUG RATiedReg* tiedRegs() const noexcept { return _raInst->tiedRegs(); }
   //! Returns tied registers grouped by the given `group`.
-  inline RATiedReg* tiedRegs(RegGroup group) const noexcept { return _raInst->tiedRegs(group); }
+  ASMJIT_INLINE_NODEBUG RATiedReg* tiedRegs(RegGroup group) const noexcept { return _raInst->tiedRegs(group); }
 
   //! Returns count of all TiedRegs used by the instruction.
-  inline uint32_t tiedCount() const noexcept { return _tiedTotal; }
+  ASMJIT_INLINE_NODEBUG uint32_t tiedCount() const noexcept { return _tiedTotal; }
   //! Returns count of TiedRegs used by the given register `group`.
-  inline uint32_t tiedCount(RegGroup group) const noexcept { return _tiedCount.get(group); }
+  ASMJIT_INLINE_NODEBUG uint32_t tiedCount(RegGroup group) const noexcept { return _tiedCount.get(group); }
 
-  inline bool isGroupUsed(RegGroup group) const noexcept { return _tiedCount[group] != 0; }
+  ASMJIT_INLINE_NODEBUG bool isGroupUsed(RegGroup group) const noexcept { return _tiedCount[group] != 0; }
 
   //! \}
 
@@ -126,7 +126,7 @@ public:
   //! a code sequence that is always executed regardless of the flow.
   Error switchToAssignment(PhysToWorkMap* dstPhysToWorkMap, const ZoneBitVector& liveIn, bool dstReadOnly, bool tryMode) noexcept;
 
-  inline Error spillRegsBeforeEntry(RABlock* block) noexcept {
+  ASMJIT_INLINE_NODEBUG Error spillRegsBeforeEntry(RABlock* block) noexcept {
     return spillScratchGpRegsBeforeEntry(block->entryScratchGpRegs());
   }
 
@@ -153,7 +153,7 @@ public:
     kCostOfDirtyFlag = kCostOfFrequency / 4
   };
 
-  inline uint32_t costByFrequency(float freq) const noexcept {
+  ASMJIT_INLINE_NODEBUG uint32_t costByFrequency(float freq) const noexcept {
     return uint32_t(int32_t(freq * float(kCostOfFrequency)));
   }
 

@@ -317,6 +317,15 @@ namespace asmjit {
   #define ASMJIT_FORCE_INLINE inline
 #endif
 
+
+#if defined(__clang__)
+  #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __nodebug__))
+#elif defined(__GNUC__)
+  #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __artificial__))
+#else
+  #define ASMJIT_INLINE_NODEBUG inline
+#endif
+
 #if defined(__GNUC__)
   #define ASMJIT_NOINLINE __attribute__((__noinline__))
   #define ASMJIT_NORETURN __attribute__((__noreturn__))
@@ -549,34 +558,34 @@ namespace asmjit {
   #define ASMJIT_DEFINE_ENUM_FLAGS(T)
 #else
   #define ASMJIT_DEFINE_ENUM_FLAGS(T)                                         \
-    static ASMJIT_FORCE_INLINE constexpr T operator~(T a) noexcept {          \
+    static ASMJIT_INLINE_NODEBUG constexpr T operator~(T a) noexcept {        \
       return T(~(std::underlying_type<T>::type)(a));                          \
     }                                                                         \
                                                                               \
-    static ASMJIT_FORCE_INLINE constexpr T operator|(T a, T b) noexcept {     \
+    static ASMJIT_INLINE_NODEBUG constexpr T operator|(T a, T b) noexcept {   \
       return T((std::underlying_type<T>::type)(a) |                           \
               (std::underlying_type<T>::type)(b));                            \
     }                                                                         \
-    static ASMJIT_FORCE_INLINE constexpr T operator&(T a, T b) noexcept {     \
+    static ASMJIT_INLINE_NODEBUG constexpr T operator&(T a, T b) noexcept {   \
       return T((std::underlying_type<T>::type)(a) &                           \
               (std::underlying_type<T>::type)(b));                            \
     }                                                                         \
-    static ASMJIT_FORCE_INLINE constexpr T operator^(T a, T b) noexcept {     \
+    static ASMJIT_INLINE_NODEBUG constexpr T operator^(T a, T b) noexcept {   \
       return T((std::underlying_type<T>::type)(a) ^                           \
               (std::underlying_type<T>::type)(b));                            \
     }                                                                         \
                                                                               \
-    static ASMJIT_FORCE_INLINE T& operator|=(T& a, T b) noexcept {            \
+    static ASMJIT_INLINE_NODEBUG T& operator|=(T& a, T b) noexcept {          \
       a = T((std::underlying_type<T>::type)(a) |                              \
             (std::underlying_type<T>::type)(b));                              \
       return a;                                                               \
     }                                                                         \
-    static ASMJIT_FORCE_INLINE T& operator&=(T& a, T b) noexcept {            \
+    static ASMJIT_INLINE_NODEBUG T& operator&=(T& a, T b) noexcept {          \
       a = T((std::underlying_type<T>::type)(a) &                              \
             (std::underlying_type<T>::type)(b));                              \
       return a;                                                               \
     }                                                                         \
-    static ASMJIT_FORCE_INLINE T& operator^=(T& a, T b) noexcept {            \
+    static ASMJIT_INLINE_NODEBUG T& operator^=(T& a, T b) noexcept {          \
       a = T((std::underlying_type<T>::type)(a) ^                              \
             (std::underlying_type<T>::type)(b));                              \
       return a;                                                               \
@@ -590,16 +599,16 @@ namespace asmjit {
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)
 #else
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)                                                \
-    static ASMJIT_FORCE_INLINE bool operator<(T a, T b) noexcept {                     \
+    static ASMJIT_INLINE_NODEBUG bool operator<(T a, T b) noexcept {                   \
       return (std::underlying_type<T>::type)(a) < (std::underlying_type<T>::type)(b);  \
     }                                                                                  \
-    static ASMJIT_FORCE_INLINE bool operator<=(T a, T b) noexcept {                    \
+    static ASMJIT_INLINE_NODEBUG bool operator<=(T a, T b) noexcept {                  \
       return (std::underlying_type<T>::type)(a) <= (std::underlying_type<T>::type)(b); \
     }                                                                                  \
-    static ASMJIT_FORCE_INLINE bool operator>(T a, T b) noexcept {                     \
+    static ASMJIT_INLINE_NODEBUG bool operator>(T a, T b) noexcept {                   \
       return (std::underlying_type<T>::type)(a) > (std::underlying_type<T>::type)(b);  \
     }                                                                                  \
-    static ASMJIT_FORCE_INLINE bool operator>=(T a, T b) noexcept {                    \
+    static ASMJIT_INLINE_NODEBUG bool operator>=(T a, T b) noexcept {                  \
       return (std::underlying_type<T>::type)(a) >= (std::underlying_type<T>::type)(b); \
     }
 #endif

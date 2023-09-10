@@ -47,11 +47,11 @@ public:
   Handle _handle;
 #endif
 
-  ASMJIT_FORCE_INLINE Lock() noexcept;
-  ASMJIT_FORCE_INLINE ~Lock() noexcept;
+  ASMJIT_INLINE_NODEBUG Lock() noexcept;
+  ASMJIT_INLINE_NODEBUG ~Lock() noexcept;
 
-  ASMJIT_FORCE_INLINE void lock() noexcept;
-  ASMJIT_FORCE_INLINE void unlock() noexcept;
+  ASMJIT_INLINE_NODEBUG void lock() noexcept;
+  ASMJIT_INLINE_NODEBUG void unlock() noexcept;
 };
 //! \endcond
 

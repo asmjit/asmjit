@@ -135,10 +135,10 @@ static const constexpr NoInit_ NoInit {};
 } // {Globals}
 
 template<typename Func>
-static inline Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
+static ASMJIT_INLINE_NODEBUG Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
 
 template<typename Func>
-static inline void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_impl<void*, Func>(func); }
+static ASMJIT_INLINE_NODEBUG void* func_as_ptr(Func func) noexcept { return Support::ptr_cast_impl<void*, Func>(func); }
 
 //! \}
 
@@ -340,7 +340,7 @@ namespace DebugUtils {
 //! \cond INTERNAL
 //! Used to silence warnings about unused arguments or variables.
 template<typename... Args>
-static inline void unused(Args&&...) noexcept {}
+static ASMJIT_INLINE_NODEBUG void unused(Args&&...) noexcept {}
 //! \endcond
 
 //! Returns the error `err` passed.

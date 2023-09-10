@@ -73,7 +73,7 @@ enum class CondCode : uint8_t {
 };
 
 //! Negates a condition code.
-static inline constexpr CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
+static ASMJIT_INLINE_NODEBUG constexpr CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
 
 //! Data type that can be encoded with the instruction (AArch32 only).
 enum class DataType : uint32_t {
@@ -172,57 +172,57 @@ public:
   uint32_t _value;
 
   //! Default constructed Shift is not initialized.
-  inline Shift() noexcept = default;
+  ASMJIT_INLINE_NODEBUG Shift() noexcept = default;
 
   //! Copy constructor (default)
-  constexpr Shift(const Shift& other) noexcept = default;
+  ASMJIT_INLINE_NODEBUG constexpr Shift(const Shift& other) noexcept = default;
 
   //! Constructs Shift from operation `op` and shift `value`.
-  constexpr Shift(ShiftOp op, uint32_t value) noexcept
+  ASMJIT_INLINE_NODEBUG constexpr Shift(ShiftOp op, uint32_t value) noexcept
     : _op(op),
       _value(value) {}
 
   //! Returns the shift operation.
-  constexpr ShiftOp op() const noexcept { return _op; }
+  ASMJIT_INLINE_NODEBUG constexpr ShiftOp op() const noexcept { return _op; }
   //! Sets shift operation to `op`.
-  inline void setOp(ShiftOp op) noexcept { _op = op; }
+  ASMJIT_INLINE_NODEBUG void setOp(ShiftOp op) noexcept { _op = op; }
 
   //! Returns the shift smount.
-  constexpr uint32_t value() const noexcept { return _value; }
+  ASMJIT_INLINE_NODEBUG constexpr uint32_t value() const noexcept { return _value; }
   //! Sets shift amount to `value`.
-  inline void setValue(uint32_t value) noexcept { _value = value; }
+  ASMJIT_INLINE_NODEBUG void setValue(uint32_t value) noexcept { _value = value; }
 };
 
 //! Constructs a `LSL #value` shift (logical shift left).
-static constexpr Shift lsl(uint32_t value) noexcept { return Shift(ShiftOp::kLSL, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift lsl(uint32_t value) noexcept { return Shift(ShiftOp::kLSL, value); }
 //! Constructs a `LSR #value` shift (logical shift right).
-static constexpr Shift lsr(uint32_t value) noexcept { return Shift(ShiftOp::kLSR, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift lsr(uint32_t value) noexcept { return Shift(ShiftOp::kLSR, value); }
 //! Constructs a `ASR #value` shift (arithmetic shift right).
-static constexpr Shift asr(uint32_t value) noexcept { return Shift(ShiftOp::kASR, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift asr(uint32_t value) noexcept { return Shift(ShiftOp::kASR, value); }
 //! Constructs a `ROR #value` shift (rotate right).
-static constexpr Shift ror(uint32_t value) noexcept { return Shift(ShiftOp::kROR, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift ror(uint32_t value) noexcept { return Shift(ShiftOp::kROR, value); }
 //! Constructs a `RRX` shift (rotate with carry by 1).
-static constexpr Shift rrx() noexcept { return Shift(ShiftOp::kRRX, 0); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift rrx() noexcept { return Shift(ShiftOp::kRRX, 0); }
 //! Constructs a `MSL #value` shift (logical shift left filling ones).
-static constexpr Shift msl(uint32_t value) noexcept { return Shift(ShiftOp::kMSL, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift msl(uint32_t value) noexcept { return Shift(ShiftOp::kMSL, value); }
 
 //! Constructs a `UXTB #value` extend and shift (unsigned byte extend).
-static constexpr Shift uxtb(uint32_t value) noexcept { return Shift(ShiftOp::kUXTB, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxtb(uint32_t value) noexcept { return Shift(ShiftOp::kUXTB, value); }
 //! Constructs a `UXTH #value` extend and shift (unsigned hword extend).
-static constexpr Shift uxth(uint32_t value) noexcept { return Shift(ShiftOp::kUXTH, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxth(uint32_t value) noexcept { return Shift(ShiftOp::kUXTH, value); }
 //! Constructs a `UXTW #value` extend and shift (unsigned word extend).
-static constexpr Shift uxtw(uint32_t value) noexcept { return Shift(ShiftOp::kUXTW, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxtw(uint32_t value) noexcept { return Shift(ShiftOp::kUXTW, value); }
 //! Constructs a `UXTX #value` extend and shift (unsigned dword extend).
-static constexpr Shift uxtx(uint32_t value) noexcept { return Shift(ShiftOp::kUXTX, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxtx(uint32_t value) noexcept { return Shift(ShiftOp::kUXTX, value); }
 
 //! Constructs a `SXTB #value` extend and shift (signed byte extend).
-static constexpr Shift sxtb(uint32_t value) noexcept { return Shift(ShiftOp::kSXTB, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxtb(uint32_t value) noexcept { return Shift(ShiftOp::kSXTB, value); }
 //! Constructs a `SXTH #value` extend and shift (signed hword extend).
-static constexpr Shift sxth(uint32_t value) noexcept { return Shift(ShiftOp::kSXTH, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxth(uint32_t value) noexcept { return Shift(ShiftOp::kSXTH, value); }
 //! Constructs a `SXTW #value` extend and shift (signed word extend).
-static constexpr Shift sxtw(uint32_t value) noexcept { return Shift(ShiftOp::kSXTW, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxtw(uint32_t value) noexcept { return Shift(ShiftOp::kSXTW, value); }
 //! Constructs a `SXTX #value` extend and shift (signed dword extend).
-static constexpr Shift sxtx(uint32_t value) noexcept { return Shift(ShiftOp::kSXTX, value); }
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxtx(uint32_t value) noexcept { return Shift(ShiftOp::kSXTX, value); }
 
 //! \}
 

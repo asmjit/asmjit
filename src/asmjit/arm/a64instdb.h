@@ -47,10 +47,10 @@ struct InstInfo {
   //! \name Accessors
   //! \{
 
-  inline uint32_t rwInfoIndex() const noexcept { return _rwInfoIndex; }
-  inline uint32_t flags() const noexcept { return _flags; }
+  ASMJIT_INLINE_NODEBUG uint32_t rwInfoIndex() const noexcept { return _rwInfoIndex; }
+  ASMJIT_INLINE_NODEBUG uint32_t flags() const noexcept { return _flags; }
 
-  inline bool hasFlag(uint32_t flag) const { return (_flags & flag) != 0; }
+  ASMJIT_INLINE_NODEBUG bool hasFlag(uint32_t flag) const { return (_flags & flag) != 0; }
 
   //! \}
 };

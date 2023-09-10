@@ -21,30 +21,30 @@ ASMJIT_BEGIN_NAMESPACE
 static_assert(sizeof(Lock::Handle) == sizeof(CRITICAL_SECTION), "asmjit::Lock::Handle layout must match CRITICAL_SECTION");
 static_assert(alignof(Lock::Handle) == alignof(CRITICAL_SECTION), "asmjit::Lock::Handle alignment must match CRITICAL_SECTION");
 
-ASMJIT_FORCE_INLINE Lock::Lock() noexcept { InitializeCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
-ASMJIT_FORCE_INLINE Lock::~Lock() noexcept { DeleteCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
-ASMJIT_FORCE_INLINE void Lock::lock() noexcept { EnterCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
-ASMJIT_FORCE_INLINE void Lock::unlock() noexcept { LeaveCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+ASMJIT_INLINE_NODEBUG Lock::Lock() noexcept { InitializeCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+ASMJIT_INLINE_NODEBUG Lock::~Lock() noexcept { DeleteCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+ASMJIT_INLINE_NODEBUG void Lock::lock() noexcept { EnterCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
+ASMJIT_INLINE_NODEBUG void Lock::unlock() noexcept { LeaveCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(&_handle)); }
 
 #elif !defined(__EMSCRIPTEN__)
 
 // PThread implementation.
 #ifdef PTHREAD_MUTEX_INITIALIZER
-ASMJIT_FORCE_INLINE Lock::Lock() noexcept : _handle(PTHREAD_MUTEX_INITIALIZER) {}
+ASMJIT_INLINE_NODEBUG Lock::Lock() noexcept : _handle(PTHREAD_MUTEX_INITIALIZER) {}
 #else
-ASMJIT_FORCE_INLINE Lock::Lock() noexcept { pthread_mutex_init(&_handle, nullptr); }
+ASMJIT_INLINE_NODEBUG Lock::Lock() noexcept { pthread_mutex_init(&_handle, nullptr); }
 #endif
-ASMJIT_FORCE_INLINE Lock::~Lock() noexcept { pthread_mutex_destroy(&_handle); }
-ASMJIT_FORCE_INLINE void Lock::lock() noexcept { pthread_mutex_lock(&_handle); }
-ASMJIT_FORCE_INLINE void Lock::unlock() noexcept { pthread_mutex_unlock(&_handle); }
+ASMJIT_INLINE_NODEBUG Lock::~Lock() noexcept { pthread_mutex_destroy(&_handle); }
+ASMJIT_INLINE_NODEBUG void Lock::lock() noexcept { pthread_mutex_lock(&_handle); }
+ASMJIT_INLINE_NODEBUG void Lock::unlock() noexcept { pthread_mutex_unlock(&_handle); }
 
 #else
 
 // Dummy implementation - Emscripten or other unsupported platform.
-ASMJIT_FORCE_INLINE Lock::Lock() noexcept {}
-ASMJIT_FORCE_INLINE Lock::~Lock() noexcept {}
-ASMJIT_FORCE_INLINE void Lock::lock() noexcept {}
-ASMJIT_FORCE_INLINE void Lock::unlock() noexcept {}
+ASMJIT_INLINE_NODEBUG Lock::Lock() noexcept {}
+ASMJIT_INLINE_NODEBUG Lock::~Lock() noexcept {}
+ASMJIT_INLINE_NODEBUG void Lock::lock() noexcept {}
+ASMJIT_INLINE_NODEBUG void Lock::unlock() noexcept {}
 
 #endif
 
@@ -55,9 +55,9 @@ public:
 
   Lock& _target;
 
-  inline LockGuard(Lock& target) noexcept
+  ASMJIT_INLINE_NODEBUG LockGuard(Lock& target) noexcept
     : _target(target) { _target.lock(); }
-  inline ~LockGuard() noexcept { _target.unlock(); }
+  ASMJIT_INLINE_NODEBUG ~LockGuard() noexcept { _target.unlock(); }
 };
 
 #if !defined(_WIN32)

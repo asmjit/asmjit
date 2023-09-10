@@ -101,7 +101,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! The example should be self-explanatory. It shows how to work with labels, how to use operands, and how to emit
 //! instructions that can use different registers based on runtime selection. It implements 32-bit CDECL, WIN64,
-//! and SysV64 caling conventions and will work on most X86/X64 environments.
+//! and SysV64 calling conventions and will work on most X86/X64 environments.
 //!
 //! Although functions prologs / epilogs can be implemented manually, AsmJit provides utilities that can be used
 //! to create function prologs and epilogs automatically, see \ref asmjit_function for more details.
@@ -615,7 +615,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   // vaddpd zmm0 {k1} {z}, zmm1, [rcx] {1to8}
 //!   a.k(k1).z().vaddpd(zmm0, zmm1, x86::mem(rcx)._1to8());
 //!
-//!   // Embedded Rounding & Suppress-All-Exceptoins
+//!   // Embedded Rounding & Suppress-All-Exceptions
 //!   // -------------------------------------------
 //!   //
 //!   //   - Rounding mode and {sae} are part of instruction options.
@@ -653,8 +653,8 @@ public:
   // NOTE: x86::Assembler uses _privateData to store 'address-override' bit that is used to decide whether to emit
   // address-override (67H) prefix based on the memory BASE+INDEX registers. It's either `kX86MemInfo_67H_X86` or
   // `kX86MemInfo_67H_X64`.
-  inline uint32_t _addressOverrideMask() const noexcept { return _privateData; }
-  inline void _setAddressOverrideMask(uint32_t m) noexcept { _privateData = m; }
+  ASMJIT_INLINE_NODEBUG uint32_t _addressOverrideMask() const noexcept { return _privateData; }
+  ASMJIT_INLINE_NODEBUG void _setAddressOverrideMask(uint32_t m) noexcept { _privateData = m; }
 
   //! \}
   //! \endcond

@@ -73,11 +73,11 @@ public:
   //! \{
 
   //! Tests whether the vector is empty.
-  inline bool empty() const noexcept { return _size == 0; }
+  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _size == 0; }
   //! Returns the vector size.
-  inline size_type size() const noexcept { return _size; }
+  ASMJIT_INLINE_NODEBUG size_type size() const noexcept { return _size; }
   //! Returns the vector capacity.
-  inline size_type capacity() const noexcept { return _capacity; }
+  ASMJIT_INLINE_NODEBUG size_type capacity() const noexcept { return _capacity; }
 
   //! \}
 
@@ -85,16 +85,16 @@ public:
   //! \{
 
   //! Makes the vector empty (won't change the capacity or data pointer).
-  inline void clear() noexcept { _size = 0; }
+  ASMJIT_INLINE_NODEBUG void clear() noexcept { _size = 0; }
   //! Resets the vector data and set its `size` to zero.
-  inline void reset() noexcept {
+  ASMJIT_INLINE_NODEBUG void reset() noexcept {
     _data = nullptr;
     _size = 0;
     _capacity = 0;
   }
 
   //! Truncates the vector to at most `n` items.
-  inline void truncate(size_type n) noexcept {
+  ASMJIT_INLINE_NODEBUG void truncate(size_type n) noexcept {
     _size = Support::min(_size, n);
   }
 
@@ -134,8 +134,8 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline ZoneVector() noexcept : ZoneVectorBase() {}
-  inline ZoneVector(ZoneVector&& other) noexcept : ZoneVector(other) {}
+  ASMJIT_INLINE_NODEBUG ZoneVector() noexcept : ZoneVectorBase() {}
+  ASMJIT_INLINE_NODEBUG ZoneVector(ZoneVector&& other) noexcept : ZoneVector(other) {}
 
   //! \}
 
@@ -143,9 +143,9 @@ public:
   //! \{
 
   //! Returns vector data.
-  inline T* data() noexcept { return static_cast<T*>(_data); }
+  ASMJIT_INLINE_NODEBUG T* data() noexcept { return static_cast<T*>(_data); }
   //! Returns vector data (const)
-  inline const T* data() const noexcept { return static_cast<const T*>(_data); }
+  ASMJIT_INLINE_NODEBUG const T* data() const noexcept { return static_cast<const T*>(_data); }
 
   //! Returns item at the given index `i` (const).
   inline const T& at(size_t i) const noexcept {
@@ -163,23 +163,23 @@ public:
   //! \name STL Compatibility (Iterators)
   //! \{
 
-  inline iterator begin() noexcept { return iterator(data()); };
-  inline const_iterator begin() const noexcept { return const_iterator(data()); };
+  ASMJIT_INLINE_NODEBUG iterator begin() noexcept { return iterator(data()); };
+  ASMJIT_INLINE_NODEBUG const_iterator begin() const noexcept { return const_iterator(data()); };
 
-  inline iterator end() noexcept { return iterator(data() + _size); };
-  inline const_iterator end() const noexcept { return const_iterator(data() + _size); };
+  ASMJIT_INLINE_NODEBUG iterator end() noexcept { return iterator(data() + _size); };
+  ASMJIT_INLINE_NODEBUG const_iterator end() const noexcept { return const_iterator(data() + _size); };
 
-  inline reverse_iterator rbegin() noexcept { return reverse_iterator(end()); };
-  inline const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); };
+  ASMJIT_INLINE_NODEBUG reverse_iterator rbegin() noexcept { return reverse_iterator(end()); };
+  ASMJIT_INLINE_NODEBUG const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); };
 
-  inline reverse_iterator rend() noexcept { return reverse_iterator(begin()); };
-  inline const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); };
+  ASMJIT_INLINE_NODEBUG reverse_iterator rend() noexcept { return reverse_iterator(begin()); };
+  ASMJIT_INLINE_NODEBUG const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); };
 
-  inline const_iterator cbegin() const noexcept { return const_iterator(data()); };
-  inline const_iterator cend() const noexcept { return const_iterator(data() + _size); };
+  ASMJIT_INLINE_NODEBUG const_iterator cbegin() const noexcept { return const_iterator(data()); };
+  ASMJIT_INLINE_NODEBUG const_iterator cend() const noexcept { return const_iterator(data() + _size); };
 
-  inline const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(cend()); };
-  inline const_reverse_iterator crend() const noexcept { return const_reverse_iterator(cbegin()); };
+  ASMJIT_INLINE_NODEBUG const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(cend()); };
+  ASMJIT_INLINE_NODEBUG const_reverse_iterator crend() const noexcept { return const_reverse_iterator(cbegin()); };
 
   //! \}
 
@@ -344,9 +344,9 @@ public:
   //!
   //! \note The vector must have at least one element. Attempting to use `first()` on empty vector will trigger
   //! an assertion failure in debug builds.
-  inline T& first() noexcept { return operator[](0); }
+  ASMJIT_INLINE_NODEBUG T& first() noexcept { return operator[](0); }
   //! \overload
-  inline const T& first() const noexcept { return operator[](0); }
+  ASMJIT_INLINE_NODEBUG const T& first() const noexcept { return operator[](0); }
 
   //! Returns a reference to the last element of the vector.
   //!
@@ -423,21 +423,21 @@ public:
   //! \name Internal
   //! \{
 
-  static inline uint32_t _wordsPerBits(uint32_t nBits) noexcept {
+  static ASMJIT_INLINE_NODEBUG uint32_t _wordsPerBits(uint32_t nBits) noexcept {
     return ((nBits + kBitWordSizeInBits - 1) / kBitWordSizeInBits);
   }
 
-  static inline void _zeroBits(BitWord* dst, uint32_t nBitWords) noexcept {
+  static ASMJIT_INLINE_NODEBUG void _zeroBits(BitWord* dst, uint32_t nBitWords) noexcept {
     for (uint32_t i = 0; i < nBitWords; i++)
       dst[i] = 0;
   }
 
-  static inline void _fillBits(BitWord* dst, uint32_t nBitWords) noexcept {
+  static ASMJIT_INLINE_NODEBUG void _fillBits(BitWord* dst, uint32_t nBitWords) noexcept {
     for (uint32_t i = 0; i < nBitWords; i++)
       dst[i] = ~BitWord(0);
   }
 
-  static inline void _copyBits(BitWord* dst, const BitWord* src, uint32_t nBitWords) noexcept {
+  static ASMJIT_INLINE_NODEBUG void _copyBits(BitWord* dst, const BitWord* src, uint32_t nBitWords) noexcept {
     for (uint32_t i = 0; i < nBitWords; i++)
       dst[i] = src[i];
   }
@@ -448,9 +448,9 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline ZoneBitVector() noexcept {}
+  ASMJIT_INLINE_NODEBUG ZoneBitVector() noexcept {}
 
-  inline ZoneBitVector(ZoneBitVector&& other) noexcept
+  ASMJIT_INLINE_NODEBUG ZoneBitVector(ZoneBitVector&& other) noexcept
     : _data(other._data),
       _size(other._size),
       _capacity(other._capacity) {}
@@ -460,8 +460,8 @@ public:
   //! \name Overloaded Operators
   //! \{
 
-  inline bool operator==(const ZoneBitVector& other) const noexcept { return  eq(other); }
-  inline bool operator!=(const ZoneBitVector& other) const noexcept { return !eq(other); }
+  ASMJIT_INLINE_NODEBUG bool operator==(const ZoneBitVector& other) const noexcept { return  eq(other); }
+  ASMJIT_INLINE_NODEBUG bool operator!=(const ZoneBitVector& other) const noexcept { return !eq(other); }
 
   //! \}
 
@@ -469,44 +469,44 @@ public:
   //! \{
 
   //! Tests whether the bit-vector is empty (has no bits).
-  inline bool empty() const noexcept { return _size == 0; }
+  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _size == 0; }
   //! Returns the size of this bit-vector (in bits).
-  inline uint32_t size() const noexcept { return _size; }
+  ASMJIT_INLINE_NODEBUG uint32_t size() const noexcept { return _size; }
   //! Returns the capacity of this bit-vector (in bits).
-  inline uint32_t capacity() const noexcept { return _capacity; }
+  ASMJIT_INLINE_NODEBUG uint32_t capacity() const noexcept { return _capacity; }
 
   //! Returns the size of the `BitWord[]` array in `BitWord` units.
-  inline uint32_t sizeInBitWords() const noexcept { return _wordsPerBits(_size); }
+  ASMJIT_INLINE_NODEBUG uint32_t sizeInBitWords() const noexcept { return _wordsPerBits(_size); }
   //! Returns the capacity of the `BitWord[]` array in `BitWord` units.
-  inline uint32_t capacityInBitWords() const noexcept { return _wordsPerBits(_capacity); }
+  ASMJIT_INLINE_NODEBUG uint32_t capacityInBitWords() const noexcept { return _wordsPerBits(_capacity); }
 
   //! Returns bit-vector data as `BitWord[]`.
-  inline BitWord* data() noexcept { return _data; }
+  ASMJIT_INLINE_NODEBUG BitWord* data() noexcept { return _data; }
   //! \overload
-  inline const BitWord* data() const noexcept { return _data; }
+  ASMJIT_INLINE_NODEBUG const BitWord* data() const noexcept { return _data; }
 
   //! \}
 
   //! \name Utilities
   //! \{
 
-  inline void swap(ZoneBitVector& other) noexcept {
+  ASMJIT_INLINE_NODEBUG void swap(ZoneBitVector& other) noexcept {
     std::swap(_data, other._data);
     std::swap(_size, other._size);
     std::swap(_capacity, other._capacity);
   }
 
-  inline void clear() noexcept {
+  ASMJIT_INLINE_NODEBUG void clear() noexcept {
     _size = 0;
   }
 
-  inline void reset() noexcept {
+  ASMJIT_INLINE_NODEBUG void reset() noexcept {
     _data = nullptr;
     _size = 0;
     _capacity = 0;
   }
 
-  inline void truncate(uint32_t newSize) noexcept {
+  ASMJIT_INLINE_NODEBUG void truncate(uint32_t newSize) noexcept {
     _size = Support::min(_size, newSize);
     _clearUnusedBits();
   }
@@ -648,12 +648,13 @@ public:
   //! \{
 
   inline void release(ZoneAllocator* allocator) noexcept {
-    if (!_data) return;
+    if (!_data)
+      return;
     allocator->release(_data, _capacity / 8);
     reset();
   }
 
-  inline Error resize(ZoneAllocator* allocator, uint32_t newSize, bool newBitsValue = false) noexcept {
+  ASMJIT_INLINE_NODEBUG Error resize(ZoneAllocator* allocator, uint32_t newSize, bool newBitsValue = false) noexcept {
     return _resize(allocator, newSize, newSize, newBitsValue);
   }
 

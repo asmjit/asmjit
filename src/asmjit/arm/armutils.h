@@ -89,7 +89,7 @@ static bool encodeLogicalImm(uint64_t imm, uint32_t width, LogicalImm* out) noex
 //! width of the operation, and must be either 32 or 64. This function can be used to test whether an immediate
 //! value can be used with AND, ANDS, BIC, BICS, EON, EOR, ORN, and ORR instruction.
 ASMJIT_MAYBE_UNUSED
-static ASMJIT_FORCE_INLINE bool isLogicalImm(uint64_t imm, uint32_t width) noexcept {
+static ASMJIT_INLINE_NODEBUG bool isLogicalImm(uint64_t imm, uint32_t width) noexcept {
   LogicalImm dummy;
   return encodeLogicalImm(imm, width, &dummy);
 }
@@ -98,13 +98,13 @@ static ASMJIT_FORCE_INLINE bool isLogicalImm(uint64_t imm, uint32_t width) noexc
 //! 0x00 or 0xFF. Some ARM instructions accept immediates that form a byte-mask and this function can be used to
 //! verify that the immediate is encodable before using the value.
 template<typename T>
-static ASMJIT_FORCE_INLINE bool isByteMaskImm8(const T& imm) noexcept {
+static ASMJIT_INLINE_NODEBUG bool isByteMaskImm8(const T& imm) noexcept {
   constexpr T kMask = T(0x0101010101010101 & Support::allOnes<T>());
   return imm == (imm & kMask) * T(255);
 }
 
 // [.......A|B.......|.......C|D.......|.......E|F.......|.......G|H.......]
-static ASMJIT_FORCE_INLINE uint32_t encodeImm64ByteMaskToImm8(uint64_t imm) noexcept {
+static ASMJIT_INLINE_NODEBUG uint32_t encodeImm64ByteMaskToImm8(uint64_t imm) noexcept {
   return uint32_t(((imm >> (7  - 0)) & 0b00000011) | // [.......G|H.......]
                   ((imm >> (23 - 2)) & 0b00001100) | // [.......E|F.......]
                   ((imm >> (39 - 4)) & 0b00110000) | // [.......C|D.......]
@@ -134,7 +134,7 @@ static ASMJIT_FORCE_INLINE bool isFPImm8Generic(T val) noexcept {
 //! ```
 //! [aBbbcdef|gh000000]
 //! ```
-static ASMJIT_FORCE_INLINE bool isFP16Imm8(uint32_t val) noexcept { return isFPImm8Generic<uint32_t, 3, 6, 6>(val); }
+static ASMJIT_INLINE_NODEBUG bool isFP16Imm8(uint32_t val) noexcept { return isFPImm8Generic<uint32_t, 3, 6, 6>(val); }
 
 //! Returns true if the given single precision floating point `val` can be encoded as ARM IMM8 value, which represents
 //! a limited set of floating point immediate values, which can be used with FMOV instruction.
@@ -144,9 +144,9 @@ static ASMJIT_FORCE_INLINE bool isFP16Imm8(uint32_t val) noexcept { return isFPI
 //! ```
 //! [aBbbbbbc|defgh000|00000000|00000000]
 //! ```
-static ASMJIT_FORCE_INLINE bool isFP32Imm8(uint32_t val) noexcept { return isFPImm8Generic<uint32_t, 6, 6, 19>(val); }
+static ASMJIT_INLINE_NODEBUG bool isFP32Imm8(uint32_t val) noexcept { return isFPImm8Generic<uint32_t, 6, 6, 19>(val); }
 //! \overload
-static ASMJIT_FORCE_INLINE bool isFP32Imm8(float val) noexcept { return isFP32Imm8(Support::bitCast<uint32_t>(val)); }
+static ASMJIT_INLINE_NODEBUG bool isFP32Imm8(float val) noexcept { return isFP32Imm8(Support::bitCast<uint32_t>(val)); }
 
 //! Returns true if the given double precision floating point `val` can be encoded as ARM IMM8 value, which represents
 //! a limited set of floating point immediate values, which can be used with FMOV instruction.
@@ -156,13 +156,13 @@ static ASMJIT_FORCE_INLINE bool isFP32Imm8(float val) noexcept { return isFP32Im
 //! ```
 //! [aBbbbbbb|bbcdefgh|00000000|00000000|00000000|00000000|00000000|00000000]
 //! ```
-static ASMJIT_FORCE_INLINE bool isFP64Imm8(uint64_t val) noexcept { return isFPImm8Generic<uint64_t, 9, 6, 48>(val); }
+static ASMJIT_INLINE_NODEBUG bool isFP64Imm8(uint64_t val) noexcept { return isFPImm8Generic<uint64_t, 9, 6, 48>(val); }
 //! \overload
-static ASMJIT_FORCE_INLINE bool isFP64Imm8(double val) noexcept { return isFP64Imm8(Support::bitCast<uint64_t>(val)); }
+static ASMJIT_INLINE_NODEBUG bool isFP64Imm8(double val) noexcept { return isFP64Imm8(Support::bitCast<uint64_t>(val)); }
 
 //! \cond
 template<typename T, uint32_t kNumBBits, uint32_t kNumCDEFGHBits, uint32_t kNumZeroBits>
-static ASMJIT_FORCE_INLINE uint32_t encodeFPToImm8Generic(T val) noexcept {
+static ASMJIT_INLINE_NODEBUG uint32_t encodeFPToImm8Generic(T val) noexcept {
   uint32_t bits = uint32_t(val >> kNumZeroBits);
   return ((bits >> (kNumBBits + kNumCDEFGHBits - 7)) & 0x80u) | (bits & 0x7F);
 }
@@ -172,9 +172,9 @@ static ASMJIT_FORCE_INLINE uint32_t encodeFPToImm8Generic(T val) noexcept {
 //!
 //! \note This function expects that `isFP64Imm8(val) == true` so it doesn't perform any checks of the value and just
 //! rearranges some bits into Imm8 order.
-static ASMJIT_FORCE_INLINE uint32_t encodeFP64ToImm8(uint64_t val) noexcept { return encodeFPToImm8Generic<uint64_t, 9, 6, 48>(val); }
+static ASMJIT_INLINE_NODEBUG uint32_t encodeFP64ToImm8(uint64_t val) noexcept { return encodeFPToImm8Generic<uint64_t, 9, 6, 48>(val); }
 //! \overload
-static ASMJIT_FORCE_INLINE uint32_t encodeFP64ToImm8(double val) noexcept { return encodeFP64ToImm8(Support::bitCast<uint64_t>(val)); }
+static ASMJIT_INLINE_NODEBUG uint32_t encodeFP64ToImm8(double val) noexcept { return encodeFP64ToImm8(Support::bitCast<uint64_t>(val)); }
 
 } // {Utils}
 

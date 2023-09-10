@@ -262,7 +262,7 @@ namespace EncodingData {
 
 #define M_OPCODE(field, bits) \
   uint32_t _##field : bits; \
-  inline constexpr uint32_t field() const noexcept { return uint32_t(_##field) << (32 - bits); }
+  ASMJIT_INLINE_NODEBUG constexpr uint32_t field() const noexcept { return uint32_t(_##field) << (32 - bits); }
 
 struct BaseOp {
   uint32_t opcode;

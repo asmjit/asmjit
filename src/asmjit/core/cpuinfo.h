@@ -55,8 +55,8 @@ public:
     //! \name Overloaded Operators
     //! \{
 
-    inline bool operator==(const Data& other) noexcept { return  eq(other); }
-    inline bool operator!=(const Data& other) noexcept { return !eq(other); }
+    ASMJIT_INLINE_NODEBUG bool operator==(const Data& other) noexcept { return  eq(other); }
+    ASMJIT_INLINE_NODEBUG bool operator!=(const Data& other) noexcept { return !eq(other); }
 
     //! \}
 
@@ -64,22 +64,22 @@ public:
     //! \{
 
     //! Returns true if there are no features set.
-    inline bool empty() const noexcept { return _bits.aggregate<Support::Or>(0) == 0; }
+    ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _bits.aggregate<Support::Or>(0) == 0; }
 
     //! Returns all features as array of bitwords (see \ref Support::BitWord).
-    inline BitWord* bits() noexcept { return _bits.data(); }
+    ASMJIT_INLINE_NODEBUG BitWord* bits() noexcept { return _bits.data(); }
     //! Returns all features as array of bitwords (const).
-    inline const BitWord* bits() const noexcept { return _bits.data(); }
+    ASMJIT_INLINE_NODEBUG const BitWord* bits() const noexcept { return _bits.data(); }
 
     //! Returns the number of BitWords returned by \ref bits().
-    inline size_t bitWordCount() const noexcept { return kNumBitWords; }
+    ASMJIT_INLINE_NODEBUG size_t bitWordCount() const noexcept { return kNumBitWords; }
 
     //! Returns \ref Support::BitVectorIterator, that can be used to iterate over all features efficiently.
-    inline Iterator iterator() const noexcept { return Iterator(_bits.data(), kNumBitWords); }
+    ASMJIT_INLINE_NODEBUG Iterator iterator() const noexcept { return Iterator(_bits.data(), kNumBitWords); }
 
     //! Tests whether the feature `featureId` is present.
     template<typename FeatureId>
-    ASMJIT_FORCE_INLINE bool has(const FeatureId& featureId) const noexcept {
+    ASMJIT_INLINE_NODEBUG bool has(const FeatureId& featureId) const noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
       uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
@@ -89,17 +89,17 @@ public:
     }
 
     template<typename FeatureId>
-    ASMJIT_FORCE_INLINE bool hasAny(const FeatureId& featureId) const noexcept {
+    ASMJIT_INLINE_NODEBUG bool hasAny(const FeatureId& featureId) const noexcept {
       return has(featureId);
     }
 
     template<typename FeatureId, typename... Args>
-    ASMJIT_FORCE_INLINE bool hasAny(const FeatureId& featureId, Args&&... otherFeatureIds) const noexcept {
+    ASMJIT_INLINE_NODEBUG bool hasAny(const FeatureId& featureId, Args&&... otherFeatureIds) const noexcept {
       return bool(unsigned(has(featureId)) | unsigned(hasAny(std::forward<Args>(otherFeatureIds)...)));
     }
 
     //! Tests whether all features as defined by `other` are present.
-    ASMJIT_FORCE_INLINE bool hasAll(const Data& other) const noexcept {
+    ASMJIT_INLINE_NODEBUG bool hasAll(const Data& other) const noexcept {
       uint32_t result = 1;
       for (uint32_t i = 0; i < kNumBitWords; i++)
         result &= uint32_t((_bits[i] & other._bits[i]) == other._bits[i]);
@@ -111,11 +111,11 @@ public:
     //! \name Manipulation
     //! \{
 
-    inline void reset() noexcept { _bits.fill(0); }
+    ASMJIT_INLINE_NODEBUG void reset() noexcept { _bits.fill(0); }
 
     //! Adds the given CPU `featureId` to the list of features.
     template<typename FeatureId>
-    ASMJIT_FORCE_INLINE void add(const FeatureId& featureId) noexcept {
+    ASMJIT_INLINE_NODEBUG void add(const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
       uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
@@ -125,13 +125,13 @@ public:
     }
 
     template<typename FeatureId, typename... Args>
-    ASMJIT_FORCE_INLINE void add(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
+    ASMJIT_INLINE_NODEBUG void add(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       add(featureId);
       add(std::forward<Args>(otherFeatureIds)...);
     }
 
     template<typename FeatureId>
-    ASMJIT_FORCE_INLINE void addIf(bool condition, const FeatureId& featureId) noexcept {
+    ASMJIT_INLINE_NODEBUG void addIf(bool condition, const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
       uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
@@ -141,14 +141,14 @@ public:
     }
 
     template<typename FeatureId, typename... Args>
-    ASMJIT_FORCE_INLINE void addIf(bool condition, const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
+    ASMJIT_INLINE_NODEBUG void addIf(bool condition, const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       addIf(condition, featureId);
       addIf(condition, std::forward<Args>(otherFeatureIds)...);
     }
 
     //! Removes the given CPU `featureId` from the list of features.
     template<typename FeatureId>
-    ASMJIT_FORCE_INLINE void remove(const FeatureId& featureId) noexcept {
+    ASMJIT_INLINE_NODEBUG void remove(const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
       uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
@@ -158,13 +158,13 @@ public:
     }
 
     template<typename FeatureId, typename... Args>
-    ASMJIT_FORCE_INLINE void remove(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
+    ASMJIT_INLINE_NODEBUG void remove(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       remove(featureId);
       remove(std::forward<Args>(otherFeatureIds)...);
     }
 
     //! Tests whether this CPU features data matches `other`.
-    ASMJIT_FORCE_INLINE bool eq(const Data& other) const noexcept { return _bits == other._bits; }
+    ASMJIT_INLINE_NODEBUG bool eq(const Data& other) const noexcept { return _bits == other._bits; }
 
     //! \}
 
@@ -327,7 +327,7 @@ public:
     };
 
     #define ASMJIT_X86_FEATURE(FEATURE) \
-      inline bool has##FEATURE() const noexcept { return has(X86::k##FEATURE); }
+      ASMJIT_INLINE_NODEBUG bool has##FEATURE() const noexcept { return has(X86::k##FEATURE); }
 
     ASMJIT_X86_FEATURE(MT)
     ASMJIT_X86_FEATURE(NX)
@@ -616,7 +616,7 @@ public:
     };
 
     #define ASMJIT_ARM_FEATURE(FEATURE) \
-      inline bool has##FEATURE() const noexcept { return has(ARM::k##FEATURE); }
+      ASMJIT_INLINE_NODEBUG bool has##FEATURE() const noexcept { return has(ARM::k##FEATURE); }
 
     ASMJIT_ARM_FEATURE(THUMB)
     ASMJIT_ARM_FEATURE(THUMBv2)
@@ -766,19 +766,19 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline CpuFeatures() noexcept {}
-  inline CpuFeatures(const CpuFeatures& other) noexcept = default;
-  inline explicit CpuFeatures(Globals::NoInit_) noexcept {}
+  ASMJIT_INLINE_NODEBUG CpuFeatures() noexcept {}
+  ASMJIT_INLINE_NODEBUG CpuFeatures(const CpuFeatures& other) noexcept = default;
+  ASMJIT_INLINE_NODEBUG explicit CpuFeatures(Globals::NoInit_) noexcept {}
 
   //! \}
 
   //! \name Overloaded Operators
   //! \{
 
-  inline CpuFeatures& operator=(const CpuFeatures& other) noexcept = default;
+  ASMJIT_INLINE_NODEBUG CpuFeatures& operator=(const CpuFeatures& other) noexcept = default;
 
-  inline bool operator==(const CpuFeatures& other) noexcept { return  eq(other); }
-  inline bool operator!=(const CpuFeatures& other) noexcept { return !eq(other); }
+  ASMJIT_INLINE_NODEBUG bool operator==(const CpuFeatures& other) noexcept { return  eq(other); }
+  ASMJIT_INLINE_NODEBUG bool operator!=(const CpuFeatures& other) noexcept { return !eq(other); }
 
   //! \}
 
@@ -786,68 +786,68 @@ public:
   //! \{
 
   //! Returns true if there are no features set.
-  inline bool empty() const noexcept { return _data.empty(); }
+  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _data.empty(); }
 
   //! Casts this base class into a derived type `T`.
   template<typename T = Data>
-  inline T& data() noexcept { return static_cast<T&>(_data); }
+  ASMJIT_INLINE_NODEBUG T& data() noexcept { return static_cast<T&>(_data); }
 
   //! Casts this base class into a derived type `T` (const).
   template<typename T = Data>
-  inline const T& data() const noexcept { return static_cast<const T&>(_data); }
+  ASMJIT_INLINE_NODEBUG const T& data() const noexcept { return static_cast<const T&>(_data); }
 
   //! Returns CpuFeatures::Data as \ref CpuFeatures::X86.
-  inline X86& x86() noexcept { return data<X86>(); }
+  ASMJIT_INLINE_NODEBUG X86& x86() noexcept { return data<X86>(); }
   //! Returns CpuFeatures::Data as \ref CpuFeatures::X86 (const).
-  inline const X86& x86() const noexcept { return data<X86>(); }
+  ASMJIT_INLINE_NODEBUG const X86& x86() const noexcept { return data<X86>(); }
 
   //! Returns CpuFeatures::Data as \ref CpuFeatures::ARM.
-  inline ARM& arm() noexcept { return data<ARM>(); }
+  ASMJIT_INLINE_NODEBUG ARM& arm() noexcept { return data<ARM>(); }
   //! Returns CpuFeatures::Data as \ref CpuFeatures::ARM (const).
-  inline const ARM& arm() const noexcept { return data<ARM>(); }
+  ASMJIT_INLINE_NODEBUG const ARM& arm() const noexcept { return data<ARM>(); }
 
   //! Returns all features as array of bitwords (see \ref Support::BitWord).
-  inline BitWord* bits() noexcept { return _data.bits(); }
+  ASMJIT_INLINE_NODEBUG BitWord* bits() noexcept { return _data.bits(); }
   //! Returns all features as array of bitwords (const).
-  inline const BitWord* bits() const noexcept { return _data.bits(); }
+  ASMJIT_INLINE_NODEBUG const BitWord* bits() const noexcept { return _data.bits(); }
   //! Returns the number of BitWords returned by \ref bits().
-  inline size_t bitWordCount() const noexcept { return _data.bitWordCount(); }
+  ASMJIT_INLINE_NODEBUG size_t bitWordCount() const noexcept { return _data.bitWordCount(); }
 
   //! Returns \ref Support::BitVectorIterator, that can be used to iterate over all features efficiently.
-  inline Iterator iterator() const noexcept { return _data.iterator(); }
+  ASMJIT_INLINE_NODEBUG Iterator iterator() const noexcept { return _data.iterator(); }
 
   //! Tests whether the feature `featureId` is present.
   template<typename FeatureId>
-  inline bool has(const FeatureId& featureId) const noexcept { return _data.has(featureId); }
+  ASMJIT_INLINE_NODEBUG bool has(const FeatureId& featureId) const noexcept { return _data.has(featureId); }
 
   //! Tests whether any of the features is present.
   template<typename... Args>
-  inline bool hasAny(Args&&... args) const noexcept { return _data.hasAny(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG bool hasAny(Args&&... args) const noexcept { return _data.hasAny(std::forward<Args>(args)...); }
 
   //! Tests whether all features as defined by `other` are present.
-  inline bool hasAll(const CpuFeatures& other) const noexcept { return _data.hasAll(other._data); }
+  ASMJIT_INLINE_NODEBUG bool hasAll(const CpuFeatures& other) const noexcept { return _data.hasAll(other._data); }
 
   //! \}
 
   //! \name Manipulation
   //! \{
 
-  inline void reset() noexcept { _data.reset(); }
+  ASMJIT_INLINE_NODEBUG void reset() noexcept { _data.reset(); }
 
   //! Adds the given CPU `featureId` to the list of features.
   template<typename... Args>
-  inline void add(Args&&... args) noexcept { return _data.add(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void add(Args&&... args) noexcept { return _data.add(std::forward<Args>(args)...); }
 
   //! Adds the given CPU `featureId` to the list of features if `condition` is true.
   template<typename... Args>
-  inline void addIf(bool condition, Args&&... args) noexcept { return _data.addIf(condition, std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void addIf(bool condition, Args&&... args) noexcept { return _data.addIf(condition, std::forward<Args>(args)...); }
 
   //! Removes the given CPU `featureId` from the list of features.
   template<typename... Args>
-  inline void remove(Args&&... args) noexcept { return _data.remove(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void remove(Args&&... args) noexcept { return _data.remove(std::forward<Args>(args)...); }
 
   //! Tests whether this CPU features matches `other`.
-  inline bool eq(const CpuFeatures& other) const noexcept { return _data.eq(other._data); }
+  ASMJIT_INLINE_NODEBUG bool eq(const CpuFeatures& other) const noexcept { return _data.eq(other._data); }
 
   //! \}
 };
@@ -895,29 +895,29 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  inline CpuInfo() noexcept { reset(); }
-  inline CpuInfo(const CpuInfo& other) noexcept = default;
+  ASMJIT_INLINE_NODEBUG CpuInfo() noexcept { reset(); }
+  ASMJIT_INLINE_NODEBUG CpuInfo(const CpuInfo& other) noexcept = default;
 
-  inline explicit CpuInfo(Globals::NoInit_) noexcept
+  ASMJIT_INLINE_NODEBUG explicit CpuInfo(Globals::NoInit_) noexcept
     : _features(Globals::NoInit) {};
 
   //! Returns the host CPU information.
   ASMJIT_API static const CpuInfo& host() noexcept;
 
   //! Initializes CpuInfo architecture and sub-architecture members to `arch` and `subArch`, respectively.
-  inline void initArch(Arch arch, SubArch subArch = SubArch::kUnknown) noexcept {
+  ASMJIT_INLINE_NODEBUG void initArch(Arch arch, SubArch subArch = SubArch::kUnknown) noexcept {
     _arch = arch;
     _subArch = subArch;
   }
 
-  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  ASMJIT_INLINE_NODEBUG void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
   //! \}
 
   //! \name Overloaded Operators
   //! \{
 
-  inline CpuInfo& operator=(const CpuInfo& other) noexcept = default;
+  ASMJIT_INLINE_NODEBUG CpuInfo& operator=(const CpuInfo& other) noexcept = default;
 
   //! \}
 
@@ -925,16 +925,16 @@ public:
   //! \{
 
   //! Returns the CPU architecture this information relates to.
-  inline Arch arch() const noexcept { return _arch; }
+  ASMJIT_INLINE_NODEBUG Arch arch() const noexcept { return _arch; }
 
   //! Returns the CPU sub-architecture this information relates to.
-  inline SubArch subArch() const noexcept { return _subArch; }
+  ASMJIT_INLINE_NODEBUG SubArch subArch() const noexcept { return _subArch; }
 
   //! Returns whether the CPU was detected successfully.
   //!
   //! If the returned value is false it means that AsmJit either failed to detect the CPU or it doesn't have
   //! implementation targeting the host architecture and operating system.
-  inline bool wasDetected() const noexcept { return _wasDetected; }
+  ASMJIT_INLINE_NODEBUG bool wasDetected() const noexcept { return _wasDetected; }
 
   //! Returns the CPU family ID.
   //!
@@ -943,71 +943,71 @@ public:
   //!     - Family identifier matches the FamilyId read by using CPUID.
   //!   - ARM:
   //!     - Apple - returns Apple Family identifier returned by sysctlbyname("hw.cpufamily").
-  inline uint32_t familyId() const noexcept { return _familyId; }
+  ASMJIT_INLINE_NODEBUG uint32_t familyId() const noexcept { return _familyId; }
 
   //! Returns the CPU model ID.
   //!
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Model identifier matches the ModelId read by using CPUID.
-  inline uint32_t modelId() const noexcept { return _modelId; }
+  ASMJIT_INLINE_NODEBUG uint32_t modelId() const noexcept { return _modelId; }
 
   //! Returns the CPU brand id.
   //!
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Brand identifier matches the BrandId read by using CPUID.
-  inline uint32_t brandId() const noexcept { return _brandId; }
+  ASMJIT_INLINE_NODEBUG uint32_t brandId() const noexcept { return _brandId; }
 
   //! Returns the CPU stepping.
   //!
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Stepping identifier matches the Stepping information read by using CPUID.
-  inline uint32_t stepping() const noexcept { return _stepping; }
+  ASMJIT_INLINE_NODEBUG uint32_t stepping() const noexcept { return _stepping; }
 
   //! Returns the processor type.
   //!
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Processor type identifier matches the ProcessorType read by using CPUID.
-  inline uint32_t processorType() const noexcept { return _processorType; }
+  ASMJIT_INLINE_NODEBUG uint32_t processorType() const noexcept { return _processorType; }
 
   //! Returns the maximum number of logical processors.
-  inline uint32_t maxLogicalProcessors() const noexcept { return _maxLogicalProcessors; }
+  ASMJIT_INLINE_NODEBUG uint32_t maxLogicalProcessors() const noexcept { return _maxLogicalProcessors; }
 
   //! Returns the size of a CPU cache line.
   //!
   //! On a multi-architecture system this should return the smallest cache line of all CPUs.
-  inline uint32_t cacheLineSize() const noexcept { return _cacheLineSize; }
+  ASMJIT_INLINE_NODEBUG uint32_t cacheLineSize() const noexcept { return _cacheLineSize; }
 
   //! Returns number of hardware threads available.
-  inline uint32_t hwThreadCount() const noexcept { return _hwThreadCount; }
+  ASMJIT_INLINE_NODEBUG uint32_t hwThreadCount() const noexcept { return _hwThreadCount; }
 
   //! Returns a CPU vendor string.
-  inline const char* vendor() const noexcept { return _vendor.str; }
+  ASMJIT_INLINE_NODEBUG const char* vendor() const noexcept { return _vendor.str; }
   //! Tests whether the CPU vendor string is equal to `s`.
-  inline bool isVendor(const char* s) const noexcept { return _vendor.eq(s); }
+  ASMJIT_INLINE_NODEBUG bool isVendor(const char* s) const noexcept { return _vendor.eq(s); }
 
   //! Returns a CPU brand string.
-  inline const char* brand() const noexcept { return _brand.str; }
+  ASMJIT_INLINE_NODEBUG const char* brand() const noexcept { return _brand.str; }
 
   //! Returns CPU features.
-  inline CpuFeatures& features() noexcept { return _features; }
+  ASMJIT_INLINE_NODEBUG CpuFeatures& features() noexcept { return _features; }
   //! Returns CPU features (const).
-  inline const CpuFeatures& features() const noexcept { return _features; }
+  ASMJIT_INLINE_NODEBUG const CpuFeatures& features() const noexcept { return _features; }
 
   //! Tests whether the CPU has the given `feature`.
   template<typename FeatureId>
-  inline bool hasFeature(const FeatureId& featureId) const noexcept { return _features.has(featureId); }
+  ASMJIT_INLINE_NODEBUG bool hasFeature(const FeatureId& featureId) const noexcept { return _features.has(featureId); }
 
   //! Adds the given CPU `featureId` to the list of features.
   template<typename... Args>
-  inline void addFeature(Args&&... args) noexcept { return _features.add(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void addFeature(Args&&... args) noexcept { return _features.add(std::forward<Args>(args)...); }
 
   //! Removes the given CPU `featureId` from the list of features.
   template<typename... Args>
-  inline void removeFeature(Args&&... args) noexcept { return _features.remove(std::forward<Args>(args)...); }
+  ASMJIT_INLINE_NODEBUG void removeFeature(Args&&... args) noexcept { return _features.remove(std::forward<Args>(args)...); }
 
   //! \}
 };
