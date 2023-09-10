@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Zlib
 
 #include "../core/api-build_p.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE

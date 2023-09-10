@@ -8,7 +8,7 @@
 
 #include "../core/globals.h"
 #include "../core/inst.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE

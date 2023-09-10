@@ -10,7 +10,7 @@
 #ifndef ASMJIT_NO_LOGGING
 
 #include "../core/formatter.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../x86/x86globals.h"
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)

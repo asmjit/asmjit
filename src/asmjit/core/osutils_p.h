@@ -7,7 +7,7 @@
 #define ASMJIT_CORE_OSUTILS_P_H_INCLUDED
 
 #include "../core/osutils.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 
 ASMJIT_BEGIN_NAMESPACE
 

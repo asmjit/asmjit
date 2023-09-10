@@ -7,7 +7,7 @@
 #ifndef ASMJIT_NO_LOGGING
 
 #include "../core/logger.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 
 ASMJIT_BEGIN_NAMESPACE

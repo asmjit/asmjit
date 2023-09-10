@@ -1919,7 +1919,7 @@ namespace asmjit {
 #include "core/logger.h"
 #include "core/operand.h"
 #include "core/osutils.h"
-#include "core/string.h"
+#include "core/strings.h"
 #include "core/support.h"
 #include "core/target.h"
 #include "core/type.h"

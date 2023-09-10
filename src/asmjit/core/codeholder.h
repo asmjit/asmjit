@@ -10,7 +10,7 @@
 #include "../core/codebuffer.h"
 #include "../core/errorhandler.h"
 #include "../core/operand.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 #include "../core/target.h"
 #include "../core/zone.h"

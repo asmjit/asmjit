@@ -7,7 +7,7 @@
 #ifndef ASMJIT_NO_JIT
 
 #include "../core/osutils_p.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 #include "../core/virtmem.h"
 

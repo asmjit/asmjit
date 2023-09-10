@@ -7,7 +7,7 @@
 #define ASMJIT_CORE_LOGGING_H_INCLUDED
 
 #include "../core/inst.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/formatter.h"
 
 #ifndef ASMJIT_NO_LOGGING

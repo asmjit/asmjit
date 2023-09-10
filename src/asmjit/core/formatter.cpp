@@ -12,7 +12,7 @@
 #include "../core/compiler.h"
 #include "../core/emitter.h"
 #include "../core/formatter_p.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 #include "../core/type.h"
 

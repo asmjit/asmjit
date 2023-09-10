@@ -8,7 +8,7 @@
 
 #include "../core/formatter.h"
 #include "../core/funcargscontext_p.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 #include "../core/type.h"
 #include "../core/radefs_p.h"

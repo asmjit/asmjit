@@ -15,7 +15,7 @@
 #include "../core/formatter.h"
 #include "../core/inst.h"
 #include "../core/operand.h"
-#include "../core/string.h"
+#include "../core/strings.h"
 #include "../core/support.h"
 #include "../core/type.h"
 #include "../core/zone.h"
