@@ -323,6 +323,12 @@ public:
       kXSAVES,                   //!< CPU has XSAVES.
       // @EnumValuesEnd@
 
+#ifndef ASMJIT_NO_DEPRECATED
+      kAVX512_CDI = kAVX512_CD,
+      kAVX512_ERI = kAVX512_ER,
+      kAVX512_PFI = kAVX512_PF,
+#endif
+
       kMaxValue = kXSAVES
     };
 
@@ -468,6 +474,17 @@ public:
     ASMJIT_X86_FEATURE(XSAVEC)
     ASMJIT_X86_FEATURE(XSAVEOPT)
     ASMJIT_X86_FEATURE(XSAVES)
+
+#ifndef ASMJIT_NO_DEPRECATED
+    ASMJIT_DEPRECATED("Use hasAVX512_CD() instead")
+    ASMJIT_X86_FEATURE(AVX512_CDI)
+
+    ASMJIT_DEPRECATED("Use hasAVX512_ER() instead")
+    ASMJIT_X86_FEATURE(AVX512_ERI)
+
+    ASMJIT_DEPRECATED("Use hasAVX512_PF() instead")
+    ASMJIT_X86_FEATURE(AVX512_PFI)
+#endif
 
     #undef ASMJIT_X86_FEATURE
   };

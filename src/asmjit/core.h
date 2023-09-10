@@ -239,6 +239,36 @@ namespace asmjit {
 //!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
 //!     it's not using anything, which was deprecated.
 //!
+//! ### Changes committed at 2023-09-10
+//!
+//! Core changes:
+//!
+//!   - Changed allocation API to work with spans (JitAllocator).
+//!
+//!     - This change is required to support more hardened platforms in the future that make it very difficult
+//!       to write JIT compilers.
+//!     - `JitAllocator::Span` now represents a memory that the user can access. It abstracts both regular and
+//!       dual mappings.
+//!     - The `Span` is mostly designed to make it possible to write into it, so in general the read+execute
+//!       pointer is what user is intended to keep. Use `span.rx()` to access RX pointer. `Span` is not needed
+//!       after the memory it references has been modified, only remember `span.rx()` pointer, which is then
+//!       used to deallocate or change the memory the span references.
+//!     - Use a new `JitAllocator::alloc()` to allocate a `Span`, then pass the populated Span to `JitAllocator`
+//!       write API such as `JitAllocator::write()` - note that JitAllocator can also establish a scope, so you
+//!       can use a lambda function that would perform the write, but since it's going through JitAllocator it's
+//!       able to ensure that the memory is actually writable.
+//!     - If you need to repopulate a `Span` from rx pointer, use `JitAllocator::query(<span-out>, rx)` to get it.
+//!     - Study what JitRuntime is doing to better understand how this new API works in detail.
+//!     - Users of JitRuntime do not have to do anything as JitRuntime properly abstracts the allocation.
+//!
+//!   - Renamed some X86 CPU features to make them compatible with architecture manuals:
+//!
+//!     - Changed `AVX512_CDI` to `AVX512_CD`.
+//!     - Changed `AVX512_ERI` to `AVX512_ER`.
+//!     - Changed `AVX512_PFI` to `AVX512_PF`.
+//!
+//!     - Old names were deprecated.
+//!
 //! ### Changes committed at 2021-12-13
 //!
 //! Core changes:
