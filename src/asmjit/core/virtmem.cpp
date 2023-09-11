@@ -373,11 +373,11 @@ static size_t detectLargePageSize() noexcept {
 }
 
 #if defined(__APPLE__) && TARGET_OS_OSX
-static int getOSXVersion() noexcept {
+static long getOSXVersion() noexcept {
   // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave).
-  static std::atomic<int> globalVersion;
+  static std::atomic<long> globalVersion;
 
-  int ver = globalVersion.load();
+  long ver = globalVersion.load();
   if (!ver) {
     struct utsname osname {};
     uname(&osname);
