@@ -212,9 +212,12 @@ if (NOT ASMJIT_NO_CUSTOM_FLAGS)
     list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)
     list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
 
-    asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS
-      -fno-threadsafe-statics
-      -fno-semantic-interposition)
+    # -fno-semantic-interposition is not available on apple - the compiler issues a warning, which is not detected.
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+      asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics)
+    else()
+      asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS -fno-threadsafe-statics -fno-semantic-interposition)
+    endif()
 
     # The following flags can save few bytes in the resulting binary.
     asmjit_detect_cflags(ASMJIT_PRIVATE_CFLAGS_REL
