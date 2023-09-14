@@ -932,7 +932,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
       uint32_t vecSize = 16;
       for (uint32_t j = 0; j < opCount; j++)
         if (operands[j].isReg())
-          vecSize = Support::max<uint32_t>(vecSize, operands[j].size());
+          vecSize = Support::max<uint32_t>(vecSize, operands[j].as<Reg>().size());
       ASMJIT_PROPAGATE(FormatterInternal_explainConst(sb, formatFlags, instId, vecSize, op.as<Imm>()));
     }
 

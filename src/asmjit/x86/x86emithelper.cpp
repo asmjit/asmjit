@@ -70,8 +70,8 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
   // Detect memory operands and patch them to have the same size as the register. BaseCompiler always sets memory size
   // of allocs and spills, so it shouldn't be really necessary, however, after this function was separated from Compiler
   // it's better to make sure that the size is always specified, as we can use 'movzx' and 'movsx' that rely on it.
-  if (dst.isMem()) { memFlags |= kDstMem; dst.as<Mem>().setSize(src.size()); }
-  if (src.isMem()) { memFlags |= kSrcMem; src.as<Mem>().setSize(dst.size()); }
+  if (dst.isMem()) { memFlags |= kDstMem; dst.as<Mem>().setSize(src.as<Mem>().size()); }
+  if (src.isMem()) { memFlags |= kSrcMem; src.as<Mem>().setSize(dst.as<Mem>().size()); }
 
   switch (typeId) {
     case TypeId::kInt8:

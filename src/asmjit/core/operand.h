@@ -627,23 +627,6 @@ struct Operand_ {
   //! Tests whether the operand is a virtual register.
   ASMJIT_INLINE_NODEBUG constexpr bool isVirtReg() const noexcept { return isReg() && _baseId > 0xFFu; }
 
-  //! Tests whether the operand specifies a size (i.e. the size is not zero).
-  ASMJIT_INLINE_NODEBUG constexpr bool hasSize() const noexcept { return _signature.hasField<Signature::kSizeMask>(); }
-  //! Tests whether the size of the operand matches `size`.
-  ASMJIT_INLINE_NODEBUG constexpr bool hasSize(uint32_t s) const noexcept { return size() == s; }
-
-  //! Returns the size of the operand in bytes.
-  //!
-  //! The value returned depends on the operand type:
-  //!   * None  - Should always return zero size.
-  //!   * Reg   - Should always return the size of the register. If the register size depends on architecture
-  //!             (like `x86::CReg` and `x86::DReg`) the size returned should be the greatest possible (so it
-  //!             should return 64-bit size in such case).
-  //!   * Mem   - Size is optional and will be in most cases zero.
-  //!   * Imm   - Should always return zero size.
-  //!   * Label - Should always return zero size.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
-
   //! Returns the operand id.
   //!
   //! The value returned should be interpreted accordingly to the operand type:
@@ -680,6 +663,32 @@ struct Operand_ {
   ASMJIT_INLINE_NODEBUG constexpr bool isRegOrMem() const noexcept {
     return Support::isBetween<uint32_t>(uint32_t(opType()), uint32_t(OperandType::kReg), uint32_t(OperandType::kMem));
   }
+
+  //! \}
+
+  //! \name Accessors (X86 Specific)
+  //! \{
+
+  //! Returns a size of a register or an X86 memory operand.
+  //!
+  //! At the moment only X86 and X86_64 memory operands have a size - other memory operands can use bits that represent
+  //! size as an additional payload. This means that memory size is architecture specific and should be accessed via
+  //! \ref x86::Mem::size(). Sometimes when the user knows that the operand is either a register or memory operand this
+  //! function can be helpful as it avoids casting.
+  ASMJIT_INLINE_NODEBUG constexpr uint32_t x86RmSize() const noexcept {
+    return _signature.size();
+  }
+
+#if !defined(ASMJIT_NO_DEPRECATED)
+  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() instead if, your target is X86/X86_64")
+  ASMJIT_INLINE_NODEBUG constexpr bool hasSize() const noexcept { return x86RmSize() != 0u; }
+
+  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() instead if, your target is X86/X86_64")
+  ASMJIT_INLINE_NODEBUG constexpr bool hasSize(uint32_t s) const noexcept { return x86RmSize() == s; }
+
+  ASMJIT_DEPRECATED("size() is no longer portable - use x86RmSize() instead, if your target is X86/X86_64")
+  ASMJIT_INLINE_NODEBUG constexpr uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
+#endif
 
   //! \}
 };
@@ -935,6 +944,15 @@ public:
   ASMJIT_INLINE_NODEBUG constexpr RegType type() const noexcept { return _signature.regType(); }
   //! Returns the register group.
   ASMJIT_INLINE_NODEBUG constexpr RegGroup group() const noexcept { return _signature.regGroup(); }
+
+  //! Tests whether the register specifies a size (i.e. the size is not zero).
+  ASMJIT_INLINE_NODEBUG constexpr bool hasSize() const noexcept { return _signature.hasField<Signature::kSizeMask>(); }
+  //! Tests whether the register size matches size `s`.
+  ASMJIT_INLINE_NODEBUG constexpr bool hasSize(uint32_t s) const noexcept { return size() == s; }
+
+  //! Returns the size of the register in bytes. If the register size depends on architecture (like `x86::CReg` and
+  //! `x86::DReg`) the size returned should be the greatest possible (so it should return 64-bit size in such case).
+  ASMJIT_INLINE_NODEBUG constexpr uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
 
   //! Returns operation predicate of the register (ARM/AArch64).
   //!

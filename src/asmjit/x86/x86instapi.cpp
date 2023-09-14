@@ -184,7 +184,7 @@ static const X86ValidationData _x64ValidationData = {
 #undef REG_MASK_FROM_REG_TYPE_X86
 
 static ASMJIT_FORCE_INLINE bool x86IsZmmOrM512(const Operand_& op) noexcept {
-  return Reg::isZmm(op) || (op.isMem() && op.size() == 64);
+  return Reg::isZmm(op) || (op.isMem() && op.x86RmSize() == 64);
 }
 
 static ASMJIT_FORCE_INLINE bool x86CheckOSig(const InstDB::OpSignature& op, const InstDB::OpSignature& ref, bool& immOutOfRange) noexcept {
@@ -852,8 +852,8 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
       uint64_t rByteMask = rwOpData.rByteMask;
       uint64_t wByteMask = rwOpData.wByteMask;
 
-      if (op.isRead()  && !rByteMask) rByteMask = Support::lsbMask<uint64_t>(srcOp.size());
-      if (op.isWrite() && !wByteMask) wByteMask = Support::lsbMask<uint64_t>(srcOp.size());
+      if (op.isRead()  && !rByteMask) rByteMask = Support::lsbMask<uint64_t>(srcOp.x86RmSize());
+      if (op.isWrite() && !wByteMask) wByteMask = Support::lsbMask<uint64_t>(srcOp.x86RmSize());
 
       op._readByteMask = rByteMask;
       op._writeByteMask = wByteMask;
@@ -876,7 +876,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
         }
 
         // Aggregate values required to calculate valid Reg/M info.
-        rmMaxSize  = Support::max(rmMaxSize, srcOp.size());
+        rmMaxSize  = Support::max(rmMaxSize, srcOp.x86RmSize());
         rmOpsMask |= Support::bitMask<uint32_t>(i);
       }
       else {
@@ -933,7 +933,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
             op.setRmSize(instRmInfo.fixedSize);
             break;
           case InstDB::RWInfoRm::kCategoryConsistent:
-            op.setRmSize(operands[i].size());
+            op.setRmSize(operands[i].x86RmSize());
             break;
           case InstDB::RWInfoRm::kCategoryHalf:
             op.setRmSize(rmMaxSize / 2u);
@@ -985,8 +985,8 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
           const Reg& o1 = operands[1].as<Reg>();
 
           if (o0.isGp() && o1.isGp()) {
-            out->_operands[0].reset(W | RegM, operands[0].size());
-            out->_operands[1].reset(R | RegM, operands[1].size());
+            out->_operands[0].reset(W | RegM, operands[0].x86RmSize());
+            out->_operands[1].reset(R | RegM, operands[1].x86RmSize());
 
             rwZeroExtendGp(out->_operands[0], operands[0].as<Gp>(), nativeGpSize);
             out->_instFlags |= InstRWFlags::kMovOp;
@@ -1133,14 +1133,14 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
 
       if (opCount == 2) {
         if (operands[0].isReg() && operands[1].isImm()) {
-          out->_operands[0].reset(X, operands[0].size());
+          out->_operands[0].reset(X, operands[0].as<Reg>().size());
           out->_operands[1].reset();
 
           rwZeroExtendGp(out->_operands[0], operands[0].as<Gp>(), nativeGpSize);
           return kErrorOk;
         }
 
-        if (Reg::isGpw(operands[0]) && operands[1].size() == 1) {
+        if (Reg::isGpw(operands[0]) && operands[1].x86RmSize() == 1) {
           // imul ax, r8/m8 <- AX = AL * r8/m8
           out->_operands[0].reset(X | RegPhys, 2, Gp::kIdAx);
           out->_operands[0].setReadByteMask(Support::lsbMask<uint64_t>(1));
@@ -1148,8 +1148,8 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
         }
         else {
           // imul r?, r?/m?
-          out->_operands[0].reset(X, operands[0].size());
-          out->_operands[1].reset(R | RegM, operands[0].size());
+          out->_operands[0].reset(X, operands[0].as<Gp>().size());
+          out->_operands[1].reset(R | RegM, operands[0].as<Gp>().size());
           rwZeroExtendGp(out->_operands[0], operands[0].as<Gp>(), nativeGpSize);
         }
 
@@ -1160,8 +1160,8 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
 
       if (opCount == 3) {
         if (operands[2].isImm()) {
-          out->_operands[0].reset(W, operands[0].size());
-          out->_operands[1].reset(R | RegM, operands[1].size());
+          out->_operands[0].reset(W, operands[0].x86RmSize());
+          out->_operands[1].reset(R | RegM, operands[1].x86RmSize());
           out->_operands[2].reset();
 
           rwZeroExtendGp(out->_operands[0], operands[0].as<Gp>(), nativeGpSize);
@@ -1170,9 +1170,9 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
           return kErrorOk;
         }
         else {
-          out->_operands[0].reset(W | RegPhys, operands[0].size(), Gp::kIdDx);
-          out->_operands[1].reset(X | RegPhys, operands[1].size(), Gp::kIdAx);
-          out->_operands[2].reset(R | RegM, operands[2].size());
+          out->_operands[0].reset(W | RegPhys, operands[0].x86RmSize(), Gp::kIdDx);
+          out->_operands[1].reset(X | RegPhys, operands[1].x86RmSize(), Gp::kIdAx);
+          out->_operands[2].reset(R | RegM, operands[2].x86RmSize());
 
           rwZeroExtendGp(out->_operands[0], operands[0].as<Gp>(), nativeGpSize);
           rwZeroExtendGp(out->_operands[1], operands[1].as<Gp>(), nativeGpSize);
@@ -1249,18 +1249,18 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
       // Special case for 'vmaskmovpd|vmaskmovps|vpmaskmovd|vpmaskmovq' instructions.
       if (opCount == 3) {
         if (BaseReg::isVec(operands[0]) && BaseReg::isVec(operands[1]) && operands[2].isMem()) {
-          out->_operands[0].reset(W, operands[0].size());
-          out->_operands[1].reset(R, operands[1].size());
-          out->_operands[2].reset(R | MibRead, operands[1].size());
+          out->_operands[0].reset(W, operands[0].x86RmSize());
+          out->_operands[1].reset(R, operands[1].x86RmSize());
+          out->_operands[2].reset(R | MibRead, operands[1].x86RmSize());
 
           rwZeroExtendAvxVec(out->_operands[0], operands[0].as<Vec>());
           return kErrorOk;
         }
 
         if (operands[0].isMem() && BaseReg::isVec(operands[1]) && BaseReg::isVec(operands[2])) {
-          out->_operands[0].reset(X | MibRead, operands[1].size());
-          out->_operands[1].reset(R, operands[1].size());
-          out->_operands[2].reset(R, operands[2].size());
+          out->_operands[0].reset(X | MibRead, operands[1].x86RmSize());
+          out->_operands[1].reset(R, operands[1].x86RmSize());
+          out->_operands[2].reset(R, operands[2].x86RmSize());
           return kErrorOk;
         }
       }
@@ -1273,7 +1273,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
       // operand, respectively.
       if (opCount == 2) {
         if (BaseReg::isVec(operands[0]) && BaseReg::isVec(operands[1])) {
-          uint32_t o0Size = operands[0].size();
+          uint32_t o0Size = operands[0].x86RmSize();
           uint32_t o1Size = o0Size == 16 ? 8 : o0Size;
 
           out->_operands[0].reset(W, o0Size);
@@ -1285,7 +1285,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
         }
 
         if (BaseReg::isVec(operands[0]) && operands[1].isMem()) {
-          uint32_t o0Size = operands[0].size();
+          uint32_t o0Size = operands[0].x86RmSize();
           uint32_t o1Size = o0Size == 16 ? 8 : o0Size;
 
           out->_operands[0].reset(W, o0Size);
@@ -1305,7 +1305,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
         if (BaseReg::isGp(operands[0]) && BaseReg::isVec(operands[1])) {
           out->_operands[0].reset(W, 1);
           out->_operands[0].setExtendByteMask(Support::lsbMask<uint32_t>(nativeGpSize - 1) << 1);
-          out->_operands[1].reset(R, operands[1].size());
+          out->_operands[1].reset(R, operands[1].x86RmSize());
           return kErrorOk;
         }
       }
@@ -1343,7 +1343,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
         }
 
         if (operands[0].isReg() && operands[1].isReg()) {
-          uint32_t size1 = operands[1].size();
+          uint32_t size1 = operands[1].x86RmSize();
           uint32_t size0 = size1 >> shift;
 
           out->_operands[0].reset(W, size0);
@@ -1370,7 +1370,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
         }
 
         if (operands[0].isReg() && operands[1].isMem()) {
-          uint32_t size1 = operands[1].size() ? operands[1].size() : uint32_t(16);
+          uint32_t size1 = operands[1].x86RmSize() ? operands[1].x86RmSize() : uint32_t(16);
           uint32_t size0 = size1 >> shift;
 
           out->_operands[0].reset(W, size0);
@@ -1379,7 +1379,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
         }
 
         if (operands[0].isMem() && operands[1].isReg()) {
-          uint32_t size1 = operands[1].size();
+          uint32_t size1 = operands[1].x86RmSize();
           uint32_t size0 = size1 >> shift;
 
           out->_operands[0].reset(W | MibRead, size0);
@@ -1420,7 +1420,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
           out->_operands[2].reset();
         }
 
-        uint32_t size0 = operands[0].size();
+        uint32_t size0 = operands[0].x86RmSize();
         uint32_t size1 = size0 >> shift;
 
         out->_operands[0].reset(W, size0);

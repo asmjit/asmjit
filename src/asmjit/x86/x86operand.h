@@ -831,6 +831,24 @@ public:
 
   //! \}
 
+  //! \name Memory Size
+  //! \{
+
+  //! Tests whether the memory operand specifies a size (i.e. the size is not zero).
+  ASMJIT_INLINE_NODEBUG constexpr bool hasSize() const noexcept { return _signature.hasField<Signature::kSizeMask>(); }
+  //! Tests whether the memory operand size matches size `s`.
+  ASMJIT_INLINE_NODEBUG constexpr bool hasSize(uint32_t s) const noexcept { return size() == s; }
+
+  //! Returns the size of the memory operand in bytes.
+  //!
+  //! \note Most instructions would deduce the size of the memory operand, so in most cases it's expected that the
+  //! returned value would be zero. However, some instruction require the size to select between multiple variations,
+  //! so in some cases size is required would would be non-zero (for example `inc [mem], immediate` requires size to
+  //! distinguish between 8-bit, 16-bit, 32-bit, and 64-bit increments.
+  ASMJIT_INLINE_NODEBUG constexpr uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
+
+  //! \}
+
   //! \name Address Type
   //! \{
 
