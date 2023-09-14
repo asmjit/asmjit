@@ -109,12 +109,66 @@ enum class NodeFlags : uint8_t {
 };
 ASMJIT_DEFINE_ENUM_FLAGS(NodeFlags)
 
-//! Type of the sentinel (purery informative purpose).
+//! Type of the sentinel (purely informative purpose).
 enum class SentinelType : uint8_t {
   //! Type of the sentinel is not known.
   kUnknown = 0u,
   //! This is a sentinel used at the end of \ref FuncNode.
   kFuncEnd = 1u
+};
+
+//! Node list.
+//!
+//! A double-linked list of pointers to \ref BaseNode, managed by \ref BaseBuilder or \ref BaseCompiler.
+//!
+//! \note At the moment NodeList is just a view, but it's planned that it will get more functionality in the future.
+class NodeList {
+public:
+  //! \name Members
+  //! \{
+
+  //! First node in the list or nullptr if there are no nodes in the list.
+  BaseNode* _first = nullptr;
+  //! Last node in the list or nullptr if there are no nodes in the list.
+  BaseNode* _last = nullptr;
+
+  //! \}
+
+  //! \name Construction & Destruction
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG NodeList() noexcept {}
+
+  ASMJIT_INLINE_NODEBUG NodeList(BaseNode* first, BaseNode* last) noexcept
+    : _first(first),
+      _last(last) {}
+
+  //! \}
+
+  //! \name Reset
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG void reset() noexcept {
+    _first = nullptr;
+    _last = nullptr;
+  }
+
+  ASMJIT_INLINE_NODEBUG void reset(BaseNode* first, BaseNode* last) noexcept {
+    _first = first;
+    _last = last;
+  }
+
+  //! \}
+
+  //! \name Accessors
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _first == nullptr; }
+
+  ASMJIT_INLINE_NODEBUG BaseNode* first() const noexcept { return _first; }
+  ASMJIT_INLINE_NODEBUG BaseNode* last() const noexcept { return _last; }
+
+  //! \}
 };
 
 //! Builder interface.
@@ -153,10 +207,8 @@ public:
 
   //! Current node (cursor).
   BaseNode* _cursor = nullptr;
-  //! First node of the current section.
-  BaseNode* _firstNode = nullptr;
-  //! Last node of the current section.
-  BaseNode* _lastNode = nullptr;
+  //! First and last nodes.
+  NodeList _nodeList;
 
   //! Flags assigned to each new node.
   NodeFlags _nodeFlags = NodeFlags::kNone;
@@ -178,10 +230,12 @@ public:
   //! \name Node Management
   //! \{
 
+  ASMJIT_INLINE_NODEBUG NodeList nodeList() const noexcept { return _nodeList; }
+
   //! Returns the first node.
-  ASMJIT_INLINE_NODEBUG BaseNode* firstNode() const noexcept { return _firstNode; }
+  ASMJIT_INLINE_NODEBUG BaseNode* firstNode() const noexcept { return _nodeList.first(); }
   //! Returns the last node.
-  ASMJIT_INLINE_NODEBUG BaseNode* lastNode() const noexcept { return _lastNode; }
+  ASMJIT_INLINE_NODEBUG BaseNode* lastNode() const noexcept { return _nodeList.last(); }
 
   //! Allocates and instantiates a new node of type `T` and returns its instance. If the allocation fails `nullptr`
   //! is returned.
