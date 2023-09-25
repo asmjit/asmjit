@@ -52,6 +52,11 @@
   #include <pthread.h>
 #endif
 
+#ifdef _KERNEL_MODE
+#include "Util/KernelSupport.h"
+#endif // _KERNEL_MODE
+
+
 // Build Options
 // =============
 
