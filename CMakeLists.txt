@@ -211,6 +211,9 @@ if (NOT ASMJIT_NO_CUSTOM_FLAGS)
     list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra -Wconversion)
     list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)
     list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
+    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+      list(APPEND ASMJIT_PRIVATE_CFLAGS -Winconsistent-missing-override -Winconsistent-missing-destructor-override)
+    endif()
 
     # -fno-semantic-interposition is not available on apple - the compiler issues a warning, which is not detected.
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")

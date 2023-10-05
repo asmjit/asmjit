@@ -45,7 +45,7 @@ public:
   //! Creates a new `BaseAssembler` instance.
   ASMJIT_API BaseAssembler() noexcept;
   //! Destroys the `BaseAssembler` instance.
-  ASMJIT_API virtual ~BaseAssembler() noexcept;
+  ASMJIT_API ~BaseAssembler() noexcept override;
 
   //! \}
 
