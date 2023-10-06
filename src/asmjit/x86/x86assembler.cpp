@@ -3017,6 +3017,7 @@ CaseExtRm:
         rmRel = &o0;
         goto EmitVexEvexM;
       }
+      break;
 
     case InstDB::kEncodingVexMri_Lx:
       opcode |= x86OpcodeLBySize(o0.x86RmSize() | o1.x86RmSize());

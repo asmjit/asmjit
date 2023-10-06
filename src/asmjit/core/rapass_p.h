@@ -754,7 +754,7 @@ public:
   //! \{
 
   BaseRAPass() noexcept;
-  virtual ~BaseRAPass() noexcept;
+  ~BaseRAPass() noexcept override;
 
   //! \}
 

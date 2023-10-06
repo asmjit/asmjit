@@ -37,7 +37,7 @@ public:
   //! \{
 
   ARMRAPass() noexcept;
-  virtual ~ARMRAPass() noexcept;
+  ~ARMRAPass() noexcept override;
 
   //! \}
 

@@ -30,7 +30,7 @@ public:
   //! \{
 
   ASMJIT_API explicit Compiler(CodeHolder* code = nullptr) noexcept;
-  ASMJIT_API virtual ~Compiler() noexcept;
+  ASMJIT_API ~Compiler() noexcept override;
 
   //! \}
 

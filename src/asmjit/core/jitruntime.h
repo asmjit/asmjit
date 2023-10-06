@@ -35,7 +35,7 @@ public:
   //! Creates a `JitRuntime` instance.
   ASMJIT_API explicit JitRuntime(const JitAllocator::CreateParams* params = nullptr) noexcept;
   //! Destroys the `JitRuntime` instance.
-  ASMJIT_API virtual ~JitRuntime() noexcept;
+  ASMJIT_API ~JitRuntime() noexcept override;
 
   ASMJIT_INLINE_NODEBUG void reset(ResetPolicy resetPolicy = ResetPolicy::kSoft) noexcept {
     _allocator.reset(resetPolicy);
