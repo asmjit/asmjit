@@ -45,7 +45,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   // Decide between 32-bit CDECL, WIN64, and SysV64 calling conventions:
 //!   //   32-BIT - passed all arguments by stack.
 //!   //   WIN64  - passes first 4 arguments by RCX, RDX, R8, and R9.
-//!   //   UNIX64 - passes first 6 arguments by RDI, RSI, RCX, RDX, R8, and R9.
+//!   //   UNIX64 - passes first 6 arguments by RDI, RSI, RDX, RCX, R8, and R9.
 //!   x86::Gp arr, cnt;
 //!   x86::Gp sum = x86::eax;           // Use EAX as 'sum' as it's a return register.
 //!
