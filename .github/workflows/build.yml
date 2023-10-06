@@ -110,7 +110,6 @@ jobs:
           - { title: "windows"         , os: "windows-2022"  , cc: "vs2022"  , arch: "x64", build_type: "Release", defs: "ASMJIT_TEST=1" }
 
           - { host: "macos-12"         , os: "freebsd", osver: "13.1", cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
-          - { host: "macos-12"         , os: "netbsd" , osver: "9.2" , cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { host: "macos-12"         , os: "openbsd", osver: "7.2" , cc: "clang", arch: "x86-64", build_type: "Release", defs: "ASMJIT_TEST=ON" }
           - { host: "ubuntu-latest"    , os: "openbsd", osver: "7.2" , cc: "clang", arch: "arm64" , build_type: "Release", defs: "ASMJIT_TEST=ON" }
 
