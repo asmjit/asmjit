@@ -27,7 +27,7 @@ public:
   //! \{
 
   ASMJIT_API Assembler(CodeHolder* code = nullptr) noexcept;
-  ASMJIT_API virtual ~Assembler() noexcept;
+  ASMJIT_API ~Assembler() noexcept override;
 
   //! \}
 

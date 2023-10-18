@@ -36,7 +36,7 @@ public:
   //! \{
 
   X86RAPass() noexcept;
-  virtual ~X86RAPass() noexcept;
+  ~X86RAPass() noexcept override;
 
   //! \}
 

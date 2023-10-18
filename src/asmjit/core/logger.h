@@ -119,7 +119,7 @@ public:
   //! Creates a new `FileLogger` that logs to `FILE*`.
   ASMJIT_API FileLogger(FILE* file = nullptr) noexcept;
   //! Destroys the `FileLogger`.
-  ASMJIT_API virtual ~FileLogger() noexcept;
+  ASMJIT_API ~FileLogger() noexcept override;
 
   //! \}
 
@@ -155,7 +155,7 @@ public:
   //! Create new `StringLogger`.
   ASMJIT_API StringLogger() noexcept;
   //! Destroys the `StringLogger`.
-  ASMJIT_API virtual ~StringLogger() noexcept;
+  ASMJIT_API ~StringLogger() noexcept override;
 
   //! \}
 

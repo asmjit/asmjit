@@ -223,7 +223,7 @@ public:
   //! Creates a new `BaseBuilder` instance.
   ASMJIT_API BaseBuilder() noexcept;
   //! Destroys the `BaseBuilder` instance.
-  ASMJIT_API virtual ~BaseBuilder() noexcept;
+  ASMJIT_API ~BaseBuilder() noexcept override;
 
   //! \}
 

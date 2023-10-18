@@ -77,7 +77,7 @@ public:
   //! Creates a new `BaseCompiler` instance.
   ASMJIT_API BaseCompiler() noexcept;
   //! Destroys the `BaseCompiler` instance.
-  ASMJIT_API virtual ~BaseCompiler() noexcept;
+  ASMJIT_API ~BaseCompiler() noexcept override;
 
   //! \}
 
