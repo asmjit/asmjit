@@ -284,21 +284,21 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! #include <asmjit/x86.h>
 //! using namespace asmjit;
 //!
-//! void embedData(x86::Assembler& a, const Label& L_Data) {
+//! void processData(x86::Assembler& a, const Label& L_Data) {
 //!   x86::Gp addr = a.zax();  // EAX or RAX.
 //!   x86::Gp val = x86::edi;  // Where to store some value...
 //!
 //!   // Approach 1 - Load the address to register through LEA. This approach
 //!   //              is flexible as the address can be then manipulated, for
 //!   //              example if you have a data array, which would need index.
-//!   a.lea(addr, L_Data);     // Loads the address of the label to EAX or RAX.
-//!   a.mov(val, dword_ptr(addr));
+//!   a.lea(addr, x86::ptr(L_Data));
+//!   a.mov(val, x86::dword_ptr(addr));
 //!
 //!   // Approach 2 - Load the data directly by using L_Data in address. It's
 //!   //              worth noting that this doesn't work with indexes in X64
 //!   //              mode. It will use absolute address in 32-bit mode and
 //!   //              relative address (RIP) in 64-bit mode.
-//!   a.mov(val, dword_ptr(L_Data));
+//!   a.mov(val, x86::dword_ptr(L_Data));
 //! }
 //! ```
 //!
