@@ -14,9 +14,14 @@ ASMJIT_BEGIN_NAMESPACE
 //! \addtogroup asmjit_utilities
 //! \{
 namespace Support {
-  //! Cast designed to cast between function and void* pointers.
-  template<typename Dst, typename Src>
-  static inline Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
+
+//! Cast designed to cast between function and void* pointers.
+template<typename Dst, typename Src>
+static inline Dst ptr_cast_impl(Src p) noexcept { return (Dst)p; }
+
+//! Helper to implement placement new/delete without relying on `<new>` header.
+struct PlacementNew { void* ptr; };
+
 } // {Support}
 
 #if defined(ASMJIT_NO_STDCXX)
@@ -25,12 +30,15 @@ namespace Support {
   ASMJIT_FORCE_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
 } // {Support}
 
-#define ASMJIT_BASE_CLASS(TYPE)                                                                  \
-  ASMJIT_FORCE_INLINE void* operator new(size_t n) noexcept { return Support::operatorNew(n); }  \
-  ASMJIT_FORCE_INLINE void operator delete(void* ptr) noexcept { Support::operatorDelete(ptr); } \
-                                                                                                 \
-  ASMJIT_FORCE_INLINE void* operator new(size_t, void* ptr) noexcept { return ptr; }             \
-  ASMJIT_FORCE_INLINE void operator delete(void*, void*) noexcept {}
+#define ASMJIT_BASE_CLASS(TYPE)                                                                          \
+  ASMJIT_FORCE_INLINE void* operator new(size_t n) noexcept { return Support::operatorNew(n); }          \
+  ASMJIT_FORCE_INLINE void operator delete(void* ptr) noexcept { Support::operatorDelete(ptr); }         \
+                                                                                                         \
+  ASMJIT_FORCE_INLINE void* operator new(size_t, void* ptr) noexcept { return ptr; }                     \
+  ASMJIT_FORCE_INLINE void operator delete(void*, void*) noexcept {}                                     \
+                                                                                                         \
+  ASMJIT_FORCE_INLINE void* operator new(size_t, Support::PlacementNew ptr) noexcept { return ptr.ptr; } \
+  ASMJIT_FORCE_INLINE void operator delete(void*, Support::PlacementNew) noexcept {}
 #else
 #define ASMJIT_BASE_CLASS(TYPE)
 #endif
@@ -392,5 +400,15 @@ ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, cons
 //! \}
 
 ASMJIT_END_NAMESPACE
+
+//! Implementation of a placement new so we don't have to depend on `<new>`.
+ASMJIT_INLINE_NODEBUG void* operator new(size_t, const asmjit::Support::PlacementNew& p) noexcept {
+#if defined(_MSC_VER) && !defined(__clang__)
+  __assume(p.ptr != nullptr); // Otherwise MSVC would emit a nullptr check.
+#endif
+  return p.ptr;
+}
+
+ASMJIT_INLINE_NODEBUG void operator delete(void*, const asmjit::Support::PlacementNew&) noexcept {}
 
 #endif // ASMJIT_CORE_GLOBALS_H_INCLUDED

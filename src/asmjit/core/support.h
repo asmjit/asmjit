@@ -21,12 +21,6 @@ ASMJIT_BEGIN_NAMESPACE
 //! here is considered internal and should not be used outside of AsmJit and related projects like AsmTK.
 namespace Support {
 
-// Support - Placement New
-// =======================
-
-//! Helper to implement placement new/delete without relying on `<new>` header.
-struct PlacementNew { void* ptr; };
-
 // Support - Basic Traits
 // ======================
 
@@ -1764,15 +1758,5 @@ struct Temporary {
 //! \}
 
 ASMJIT_END_NAMESPACE
-
-//! Implementation of a placement new so we don't have to depend on `<new>`.
-ASMJIT_INLINE_NODEBUG void* operator new(size_t, const asmjit::Support::PlacementNew& p) noexcept {
-#if defined(_MSC_VER) && !defined(__clang__)
-  __assume(p.ptr != nullptr); // Otherwise MSVC would emit a nullptr check.
-#endif
-  return p.ptr;
-}
-
-ASMJIT_INLINE_NODEBUG void operator delete(void*, const asmjit::Support::PlacementNew&) noexcept {}
 
 #endif // ASMJIT_CORE_SUPPORT_H_INCLUDED
