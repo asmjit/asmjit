@@ -322,7 +322,7 @@ public:
     void* p = alloc(sizeof(T), alignof(T));
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(p) T();
+    return new(Support::PlacementNew{p}) T();
   }
 
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
@@ -331,7 +331,7 @@ public:
     void* p = alloc(sizeof(T), alignof(T));
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(p) T(std::forward<Args>(args)...);
+    return new(Support::PlacementNew{p}) T(std::forward<Args>(args)...);
   }
 
   //! \cond INTERNAL
@@ -573,7 +573,7 @@ public:
     void* p = allocT<T>();
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(p) T();
+    return new(Support::PlacementNew{p}) T();
   }
   //! Like `new(std::nothrow) T(...)`, but allocated by `Zone`.
   template<typename T, typename... Args>
@@ -581,7 +581,7 @@ public:
     void* p = allocT<T>();
     if (ASMJIT_UNLIKELY(!p))
       return nullptr;
-    return new(p) T(std::forward<Args>(args)...);
+    return new(Support::PlacementNew{p}) T(std::forward<Args>(args)...);
   }
 
   //! Releases the memory previously allocated by `alloc()`. The `size` argument has to be the same as used to call

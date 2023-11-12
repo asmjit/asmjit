@@ -476,7 +476,7 @@ static inline JitAllocatorPrivateImpl* JitAllocatorImpl_new(const JitAllocator::
   }
 
   JitAllocatorPool* pools = reinterpret_cast<JitAllocatorPool*>((uint8_t*)p + sizeof(JitAllocatorPrivateImpl));
-  JitAllocatorPrivateImpl* impl = new(p) JitAllocatorPrivateImpl(pools, poolCount);
+  JitAllocatorPrivateImpl* impl = new(Support::PlacementNew{p}) JitAllocatorPrivateImpl(pools, poolCount);
 
   impl->options = options;
   impl->blockSize = blockSize;
@@ -485,7 +485,7 @@ static inline JitAllocatorPrivateImpl* JitAllocatorImpl_new(const JitAllocator::
   impl->pageSize = vmInfo.pageSize;
 
   for (size_t poolId = 0; poolId < poolCount; poolId++)
-    new(&pools[poolId]) JitAllocatorPool(granularity << poolId);
+    new(Support::PlacementNew{&pools[poolId]}) JitAllocatorPool(granularity << poolId);
 
   return impl;
 }
@@ -632,7 +632,7 @@ static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocat
   }
 
   BitWord* bitWords = reinterpret_cast<BitWord*>(blockPtr + sizeof(JitAllocatorBlock));
-  *dst = new(blockPtr) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
+  *dst = new(Support::PlacementNew{blockPtr}) JitAllocatorBlock(pool, virtMem, blockSize, blockFlags, bitWords, bitWords + numBitWords, areaSize);
   return kErrorOk;
 }
 

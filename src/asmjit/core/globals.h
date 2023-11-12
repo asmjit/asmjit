@@ -25,17 +25,12 @@ namespace Support {
   ASMJIT_FORCE_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
 } // {Support}
 
-#define ASMJIT_BASE_CLASS(TYPE)                                                  \
-  ASMJIT_FORCE_INLINE void* operator new(size_t n) noexcept {                    \
-    return Support::operatorNew(n);                                              \
-  }                                                                              \
-                                                                                 \
-  ASMJIT_FORCE_INLINE void  operator delete(void* p) noexcept {                  \
-    Support::operatorDelete(p);                                                  \
-  }                                                                              \
-                                                                                 \
-  ASMJIT_FORCE_INLINE void* operator new(size_t, void* p) noexcept { return p; } \
-  ASMJIT_FORCE_INLINE void  operator delete(void*, void*) noexcept {}
+#define ASMJIT_BASE_CLASS(TYPE)                                                                  \
+  ASMJIT_FORCE_INLINE void* operator new(size_t n) noexcept { return Support::operatorNew(n); }  \
+  ASMJIT_FORCE_INLINE void operator delete(void* ptr) noexcept { Support::operatorDelete(ptr); } \
+                                                                                                 \
+  ASMJIT_FORCE_INLINE void* operator new(size_t, void* ptr) noexcept { return ptr; }             \
+  ASMJIT_FORCE_INLINE void operator delete(void*, void*) noexcept {}
 #else
 #define ASMJIT_BASE_CLASS(TYPE)
 #endif

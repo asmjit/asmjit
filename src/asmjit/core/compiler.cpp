@@ -248,7 +248,7 @@ Error BaseCompiler::newVirtReg(VirtReg** out, TypeId typeId, OperandSignature si
   uint32_t size = TypeUtils::sizeOf(typeId);
   uint32_t alignment = Support::min<uint32_t>(size, 64);
 
-  vReg = new(vReg) VirtReg(signature, Operand::indexToVirtId(index), size, alignment, typeId);
+  vReg = new(Support::PlacementNew{vReg}) VirtReg(signature, Operand::indexToVirtId(index), size, alignment, typeId);
 
 #ifndef ASMJIT_NO_LOGGING
   if (name && name[0] != '\0')
@@ -490,7 +490,7 @@ Error BaseCompiler::newJumpNode(JumpNode** out, InstId instId, InstOptions instO
   if (ASMJIT_UNLIKELY(!node))
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
-  node = new(node) JumpNode(this, instId, instOptions, opCount, annotation);
+  node = new(Support::PlacementNew{node}) JumpNode(this, instId, instOptions, opCount, annotation);
   node->setOp(0, o0);
   node->resetOpRange(opCount, JumpNode::kBaseOpCapacity);
 

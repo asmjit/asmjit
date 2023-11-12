@@ -65,7 +65,7 @@ Error BaseBuilder::newInstNode(InstNode** out, InstId instId, InstOptions instOp
   if (ASMJIT_UNLIKELY(!node))
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
 
-  *out = new(node) InstNode(this, instId, instOptions, opCount, opCapacity);
+  *out = new(Support::PlacementNew{node}) InstNode(this, instId, instOptions, opCount, opCapacity);
   return kErrorOk;
 }
 
@@ -621,7 +621,7 @@ Error BaseBuilder::_emit(InstId instId, const Operand_& o0, const Operand_& o1, 
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
   }
 
-  node = new(node) InstNode(this, instId, options, opCount, opCapacity);
+  node = new(Support::PlacementNew{node}) InstNode(this, instId, options, opCount, opCapacity);
   node->setExtraReg(extraReg());
   node->setOp(0, o0);
   node->setOp(1, o1);
