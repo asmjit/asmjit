@@ -22,6 +22,7 @@
   // Linux has a `memfd_create` syscall that we would like to use, if available.
   #if defined(__linux__)
     #include <sys/syscall.h>
+    #include <sys/utsname.h>
 
     #ifndef MAP_HUGETLB
       #define MAP_HUGETLB 0x40000
@@ -30,6 +31,18 @@
     #ifndef MAP_HUGE_SHIFT
       #define MAP_HUGE_SHIFT 26
     #endif // MAP_HUGE_SHIFT
+
+    #if !defined(MFD_CLOEXEC)
+      #define MFD_CLOEXEC 0x0001u
+    #endif // MFD_CLOEXEC
+
+    #if !defined(MFD_NOEXEC_SEAL)
+      #define MFD_NOEXEC_SEAL 0x0008u
+    #endif // MFD_NOEXEC_SEAL
+
+    #if !defined(MFD_EXEC)
+      #define MFD_EXEC 0x0010u
+    #endif // MFD_EXEC
 
     #ifndef MFD_HUGETLB
       #define MFD_HUGETLB 0x0004
@@ -264,6 +277,42 @@ Error releaseDualMapping(DualMapping* dm, size_t size) noexcept {
 // Virtual Memory [Unix] - Utilities
 // =================================
 
+#if defined(__linux__) || (defined(__APPLE__) && TARGET_OS_OSX)
+struct KernelVersion {
+  long ver[2];
+
+  inline long major() const noexcept { return ver[0]; }
+  inline long minor() const noexcept { return ver[1]; }
+
+  inline bool eq(long major, long minor) const noexcept { return ver[0] == major && ver[1] == minor; }
+  inline bool ge(long major, long minor) const noexcept { return ver[0] > major || (ver[0] == major && ver[1] >= minor); }
+};
+
+ASMJIT_MAYBE_UNUSED
+static KernelVersion getKernelVersion() noexcept {
+  KernelVersion out {};
+  struct utsname buf {};
+
+  uname(&buf);
+
+  size_t i = 0;
+  char* p = buf.release;
+
+  while (*p && i < 2u) {
+    uint8_t c = uint8_t(*p);
+    if (c >= uint8_t('0') && c <= uint8_t('9')) {
+      out.ver[i] = strtol(p, &p, 10);
+      i++;
+      continue;
+    }
+
+    p++;
+  }
+
+  return out;
+}
+#endif // getKernelVersion
+
 // Translates libc errors specific to VirtualMemory mapping to `asmjit::Error`.
 ASMJIT_MAYBE_UNUSED
 static Error asmjitErrorFromErrno(int e) noexcept {
@@ -372,23 +421,6 @@ static size_t detectLargePageSize() noexcept {
 #endif
 }
 
-#if defined(__APPLE__) && TARGET_OS_OSX
-static long getOSXVersion() noexcept {
-  // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave).
-  static std::atomic<long> globalVersion;
-
-  long ver = globalVersion.load();
-  if (!ver) {
-    struct utsname osname {};
-    uname(&osname);
-    ver = strtol(osname.release, nullptr, 10);
-    globalVersion.store(ver);
-  }
-
-  return ver;
-}
-#endif // __APPLE__ && TARGET_OS_OSX
-
 // Virtual Memory [Posix] - Anonymous Memory
 // =========================================
 
@@ -410,6 +442,21 @@ static const char* getTmpDir() noexcept {
   return tmpDir ? tmpDir : "/tmp";
 }
 #endif
+
+#if defined(__linux__) && defined(__NR_memfd_create)
+static uint32_t getMfdExecFlag() noexcept {
+  static std::atomic<uint32_t> cachedMfdExecSupported;
+  uint32_t val = cachedMfdExecSupported.load();
+
+  if (val == 0u) {
+    KernelVersion ver = getKernelVersion();
+    val = uint32_t(ver.ge(6, 3)) + 1u;
+    cachedMfdExecSupported.store(val);
+  }
+
+  return val == 2u ? uint32_t(MFD_EXEC) : uint32_t(0u);
+}
+#endif // __linux__ && __NR_memfd_create
 
 class AnonymousMemory {
 public:
@@ -437,11 +484,6 @@ public:
 
   Error open(bool preferTmpOverDevShm) noexcept {
 #if defined(__linux__) && defined(__NR_memfd_create)
-
-#if !defined(MFD_CLOEXEC)
-  #define MFD_CLOEXEC 0x0001u
-#endif
-
     // Linux specific 'memfd_create' - if the syscall returns `ENOSYS` it means
     // it's not available and we will never call it again (would be pointless).
     //
@@ -454,7 +496,7 @@ public:
     static volatile uint32_t memfd_create_not_supported;
 
     if (!memfd_create_not_supported) {
-      _fd = (int)syscall(__NR_memfd_create, "vmem", MFD_CLOEXEC);
+      _fd = (int)syscall(__NR_memfd_create, "vmem", MFD_CLOEXEC | getMfdExecFlag());
       if (ASMJIT_LIKELY(_fd >= 0))
         return kErrorOk;
 
@@ -464,7 +506,7 @@ public:
       else
         return DebugUtils::errored(asmjitErrorFromErrno(e));
     }
-#endif
+#endif // __linux__ && __NR_memfd_create
 
 #if defined(ASMJIT_HAS_SHM_OPEN) && defined(SHM_ANON)
     // Originally FreeBSD extension, apparently works in other BSDs too.
@@ -582,12 +624,12 @@ static Error detectAnonymousMemoryStrategy(AnonymousMemoryStrategy* strategyOut)
 static Error getAnonymousMemoryStrategy(AnonymousMemoryStrategy* strategyOut) noexcept {
 #if ASMJIT_VM_SHM_DETECT
   // Initially don't assume anything. It has to be tested whether '/dev/shm' was mounted with 'noexec' flag or not.
-  static std::atomic<uint32_t> globalStrategy;
+  static std::atomic<uint32_t> cachedStrategy;
 
-  AnonymousMemoryStrategy strategy = static_cast<AnonymousMemoryStrategy>(globalStrategy.load());
+  AnonymousMemoryStrategy strategy = static_cast<AnonymousMemoryStrategy>(cachedStrategy.load());
   if (strategy == AnonymousMemoryStrategy::kUnknown) {
     ASMJIT_PROPAGATE(detectAnonymousMemoryStrategy(&strategy));
-    globalStrategy.store(static_cast<uint32_t>(strategy));
+    cachedStrategy.store(static_cast<uint32_t>(strategy));
   }
 
   *strategyOut = strategy;
@@ -611,7 +653,7 @@ static bool hasHardenedRuntime() noexcept {
   // OSX on AArch64 has always hardened runtime enabled.
   return true;
 #else
-  static std::atomic<uint32_t> globalHardenedFlag;
+  static std::atomic<uint32_t> cachedHardenedFlag;
 
   enum HardenedFlag : uint32_t {
     kHardenedFlagUnknown  = 0,
@@ -619,7 +661,7 @@ static bool hasHardenedRuntime() noexcept {
     kHardenedFlagEnabled  = 2
   };
 
-  uint32_t flag = globalHardenedFlag.load();
+  uint32_t flag = cachedHardenedFlag.load();
   if (flag == kHardenedFlagUnknown) {
     size_t pageSize = size_t(::getpagesize());
     void* ptr = mmap(nullptr, pageSize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -632,7 +674,7 @@ static bool hasHardenedRuntime() noexcept {
       munmap(ptr, pageSize);
     }
 
-    globalHardenedFlag.store(flag);
+    cachedHardenedFlag.store(flag);
   }
 
   return flag == kHardenedFlagEnabled;
@@ -646,7 +688,17 @@ static inline bool hasMapJitSupport() noexcept {
   //   - https://developer.apple.com/documentation/apple_silicon/porting_just-in-time_compilers_to_apple_silicon
   return true;
 #elif defined(__APPLE__) && TARGET_OS_OSX
-  return getOSXVersion() >= 18;
+  // MAP_JIT flag required to run unsigned JIT code is only supported by kernel version 10.14+ (Mojave).
+  static std::atomic<uint32_t> cachedMapJitSupport;
+  uint32_t val = cachedMapJitSupport.load();
+
+  if (val == 0u) {
+    KernelVersion ver = getKernelVersion();
+    val = uint32_t(ver.ge(18, 0)) + 1u;
+    cachedMapJitSupport.store(val);
+  }
+
+  return val == 2u;
 #else
   // MAP_JIT is not available (it's only available on OSX).
   return false;
