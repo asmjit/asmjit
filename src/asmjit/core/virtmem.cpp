@@ -852,7 +852,7 @@ Error releaseDualMapping(DualMapping* dm, size_t size) noexcept {
 // ========================================
 
 void flushInstructionCache(void* p, size_t size) noexcept {
-#if ASMJIT_ARCH_X86
+#if ASMJIT_ARCH_X86 || defined(__EMSCRIPTEN__)
   // X86/X86_64 architecture doesn't require to do anything to flush instruction cache.
   DebugUtils::unused(p, size);
 #elif defined(__APPLE__)
