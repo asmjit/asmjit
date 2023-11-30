@@ -1575,7 +1575,7 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
   getAuxValues(hwCapMasks, hwCapTags, 2u);
 
   mergeHWCaps(cpu, hwCapMasks[0], hwCapMapping, ASMJIT_ARRAY_SIZE(hwCapMapping));
-  mergeHWCaps(cpu, hwCap2Masks[0], hwCap2Mapping, ASMJIT_ARRAY_SIZE(hwCap2Mapping));
+  mergeHWCaps(cpu, hwCapMasks[1], hwCap2Mapping, ASMJIT_ARRAY_SIZE(hwCap2Mapping));
 
   CpuFeatures::ARM& features = cpu.features().arm();
 
