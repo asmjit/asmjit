@@ -945,7 +945,7 @@ public:
   //!      analysis and register allocation.
   //!
   //! Use `RACFGBuilderT` template that provides the necessary boilerplate.
-  virtual Error buildCFG() noexcept = 0;
+  virtual Error buildCFG() noexcept;
 
   //! Called after the CFG is built.
   Error initSharedAssignments(const ZoneVector<uint32_t>& sharedAssignmentsMap) noexcept;
@@ -1133,7 +1133,7 @@ public:
   //! \{
 
   Error rewrite() noexcept;
-  virtual Error _rewrite(BaseNode* first, BaseNode* stop) noexcept = 0;
+  virtual Error _rewrite(BaseNode* first, BaseNode* stop) noexcept;
 
   //! \}
 
@@ -1153,13 +1153,13 @@ public:
   //! \name Emit
   //! \{
 
-  virtual Error emitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept = 0;
-  virtual Error emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, uint32_t bPhysId) noexcept = 0;
+  virtual Error emitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept;
+  virtual Error emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, uint32_t bPhysId) noexcept;
 
-  virtual Error emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept = 0;
-  virtual Error emitSave(uint32_t workId, uint32_t srcPhysId) noexcept = 0;
+  virtual Error emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept;
+  virtual Error emitSave(uint32_t workId, uint32_t srcPhysId) noexcept;
 
-  virtual Error emitJump(const Label& label) noexcept = 0;
+  virtual Error emitJump(const Label& label) noexcept;
   virtual Error emitPreCall(InvokeNode* invokeNode) noexcept;
 
   //! \}

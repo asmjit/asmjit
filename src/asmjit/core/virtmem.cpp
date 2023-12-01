@@ -81,7 +81,7 @@
   #endif
 
   // Android NDK doesn't provide `shm_open()` and `shm_unlink()`.
-  #if !defined(__BIONIC__)
+  #if !defined(__BIONIC__) && !defined(ASMJIT_NO_SHM_OPEN)
     #define ASMJIT_HAS_SHM_OPEN
   #endif
 

@@ -1432,7 +1432,7 @@ public:
   //!
   //! This is the only function that is called by the `BaseBuilder` to process the code. It passes `zone`,
   //! which will be reset after the `run()` finishes.
-  ASMJIT_API virtual Error run(Zone* zone, Logger* logger) = 0;
+  ASMJIT_API virtual Error run(Zone* zone, Logger* logger);
 
   //! \}
 };

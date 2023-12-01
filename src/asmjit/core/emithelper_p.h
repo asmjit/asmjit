@@ -31,12 +31,12 @@ public:
   //! slot. This function does not handle register conversion.
   virtual Error emitRegMove(
     const Operand_& dst_,
-    const Operand_& src_, TypeId typeId, const char* comment = nullptr) = 0;
+    const Operand_& src_, TypeId typeId, const char* comment = nullptr);
 
   //! Emits swap between two registers.
   virtual Error emitRegSwap(
     const BaseReg& a,
-    const BaseReg& b, const char* comment = nullptr) = 0;
+    const BaseReg& b, const char* comment = nullptr);
 
   //! Emits move from a function argument (either register or stack) to a register.
   //!
@@ -45,7 +45,7 @@ public:
   //! (for example conversion from K to MMX on X86/X64) will fail.
   virtual Error emitArgMove(
     const BaseReg& dst_, TypeId dstTypeId,
-    const Operand_& src_, TypeId srcTypeId, const char* comment = nullptr) = 0;
+    const Operand_& src_, TypeId srcTypeId, const char* comment = nullptr);
 
   Error emitArgsAssignment(const FuncFrame& frame, const FuncArgsAssignment& args);
 };

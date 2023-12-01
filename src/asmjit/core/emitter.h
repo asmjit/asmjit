@@ -557,7 +557,7 @@ public:
   //! \name Sections
   //! \{
 
-  ASMJIT_API virtual Error section(Section* section) = 0;
+  ASMJIT_API virtual Error section(Section* section);
 
   //! \}
 
@@ -565,9 +565,9 @@ public:
   //! \{
 
   //! Creates a new label.
-  ASMJIT_API virtual Label newLabel() = 0;
+  ASMJIT_API virtual Label newLabel();
   //! Creates a new named label.
-  ASMJIT_API virtual Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parentId = Globals::kInvalidId) = 0;
+  ASMJIT_API virtual Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parentId = Globals::kInvalidId);
 
   //! Creates a new anonymous label with a name, which can only be used for debugging purposes.
   ASMJIT_INLINE_NODEBUG Label newAnonymousLabel(const char* name, size_t nameSize = SIZE_MAX) { return newNamedLabel(name, nameSize, LabelType::kAnonymous); }
@@ -585,7 +585,7 @@ public:
   //! Binds the `label` to the current position of the current section.
   //!
   //! \note Attempt to bind the same label multiple times will return an error.
-  ASMJIT_API virtual Error bind(const Label& label) = 0;
+  ASMJIT_API virtual Error bind(const Label& label);
 
   //! Tests whether the label `id` is valid (i.e. registered).
   ASMJIT_API bool isLabelValid(uint32_t labelId) const noexcept;
@@ -637,7 +637,7 @@ public:
 
   //! \cond INTERNAL
   //! Emits an instruction - all 6 operands must be defined.
-  ASMJIT_API virtual Error _emit(InstId instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_* oExt) = 0;
+  ASMJIT_API virtual Error _emit(InstId instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_* oExt);
   //! Emits instruction having operands stored in array.
   ASMJIT_API virtual Error _emitOpArray(InstId instId, const Operand_* operands, size_t opCount);
   //! \endcond
@@ -661,7 +661,7 @@ public:
   //! The sequence that is used to fill the gap between the aligned location and the current location depends on the
   //! align `mode`, see \ref AlignMode. The `alignment` argument specifies alignment in bytes, so for example when
   //! it's `32` it means that the code buffer will be aligned to `32` bytes.
-  ASMJIT_API virtual Error align(AlignMode alignMode, uint32_t alignment) = 0;
+  ASMJIT_API virtual Error align(AlignMode alignMode, uint32_t alignment);
 
   //! \}
 
@@ -669,7 +669,7 @@ public:
   //! \{
 
   //! Embeds raw data into the \ref CodeBuffer.
-  ASMJIT_API virtual Error embed(const void* data, size_t dataSize) = 0;
+  ASMJIT_API virtual Error embed(const void* data, size_t dataSize);
 
   //! Embeds a typed data array.
   //!
@@ -680,7 +680,7 @@ public:
   //!
   //!   - Repeat the given data `repeatCount` times, so the data can be used as a fill pattern for example, or as a
   //!     pattern used by SIMD instructions.
-  ASMJIT_API virtual Error embedDataArray(TypeId typeId, const void* data, size_t itemCount, size_t repeatCount = 1) = 0;
+  ASMJIT_API virtual Error embedDataArray(TypeId typeId, const void* data, size_t itemCount, size_t repeatCount = 1);
 
   //! Embeds int8_t `value` repeated by `repeatCount`.
   ASMJIT_INLINE_NODEBUG Error embedInt8(int8_t value, size_t repeatCount = 1) { return embedDataArray(TypeId::kInt8, &value, 1, repeatCount); }
@@ -707,17 +707,17 @@ public:
   //!   1. Aligns by using AlignMode::kData to the minimum `pool` alignment.
   //!   2. Binds the ConstPool label so it's bound to an aligned location.
   //!   3. Emits ConstPool content.
-  ASMJIT_API virtual Error embedConstPool(const Label& label, const ConstPool& pool) = 0;
+  ASMJIT_API virtual Error embedConstPool(const Label& label, const ConstPool& pool);
 
   //! Embeds an absolute `label` address as data.
   //!
   //! The `dataSize` is an optional argument that can be used to specify the size of the address data. If it's zero
   //! (default) the address size is deduced from the target architecture (either 4 or 8 bytes).
-  ASMJIT_API virtual Error embedLabel(const Label& label, size_t dataSize = 0) = 0;
+  ASMJIT_API virtual Error embedLabel(const Label& label, size_t dataSize = 0);
 
   //! Embeds a delta (distance) between the `label` and `base` calculating it as `label - base`. This function was
   //! designed to make it easier to embed lookup tables where each index is a relative distance of two labels.
-  ASMJIT_API virtual Error embedLabelDelta(const Label& label, const Label& base, size_t dataSize = 0) = 0;
+  ASMJIT_API virtual Error embedLabelDelta(const Label& label, const Label& base, size_t dataSize = 0);
 
   //! \}
 
@@ -725,7 +725,7 @@ public:
   //! \{
 
   //! Emits a comment stored in `data` with an optional `size` parameter.
-  ASMJIT_API virtual Error comment(const char* data, size_t size = SIZE_MAX) = 0;
+  ASMJIT_API virtual Error comment(const char* data, size_t size = SIZE_MAX);
 
   //! Emits a formatted comment specified by `fmt` and variable number of arguments.
   ASMJIT_API Error commentf(const char* fmt, ...);

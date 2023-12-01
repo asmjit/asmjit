@@ -290,6 +290,12 @@ Error BaseEmitter::embedDataArray(TypeId typeId, const void* data, size_t itemCo
 }
 
 // [[pure virtual]]
+Error BaseEmitter::embedConstPool(const Label& label, const ConstPool& pool) {
+  DebugUtils::unused(label, pool);
+  return DebugUtils::errored(kErrorInvalidState);
+}
+
+// [[pure virtual]]
 Error BaseEmitter::embedLabel(const Label& label, size_t dataSize) {
   DebugUtils::unused(label, dataSize);
   return DebugUtils::errored(kErrorInvalidState);
@@ -305,7 +311,7 @@ Error BaseEmitter::embedLabelDelta(const Label& label, const Label& base, size_t
 // =====================
 
 // [[pure virtual]]
-Error comment(const char* data, size_t size = SIZE_MAX) {
+Error BaseEmitter::comment(const char* data, size_t size) {
   DebugUtils::unused(data, size);
   return DebugUtils::errored(kErrorInvalidState);
 }

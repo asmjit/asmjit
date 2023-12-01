@@ -90,7 +90,7 @@ public:
   //! The function can accept either a null terminated string if `size` is `SIZE_MAX` or a non-null terminated
   //! string of the given `size`. The function cannot assume that the data is null terminated and must handle
   //! non-null terminated inputs.
-  ASMJIT_API virtual Error _log(const char* data, size_t size) noexcept = 0;
+  ASMJIT_API virtual Error _log(const char* data, size_t size) noexcept;
 
   //! Logs string `str`, which is either null terminated or having size `size`.
   ASMJIT_INLINE_NODEBUG Error log(const char* data, size_t size = SIZE_MAX) noexcept { return _log(data, size); }

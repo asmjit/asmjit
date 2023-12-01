@@ -17,6 +17,7 @@ if (NOT CMAKE_PROJECT_NAME OR "${CMAKE_PROJECT_NAME}" STREQUAL "asmjit")
 endif()
 
 include(CheckCXXCompilerFlag)
+INCLUDE(CheckCXXSourceCompiles)
 include(GNUInstallDirs)
 
 # AsmJit - Deprecated
@@ -35,10 +36,12 @@ endif()
 # AsmJit - Configuration
 # ======================
 
+# AsmJit testing.
 if (NOT DEFINED ASMJIT_TEST)
   set(ASMJIT_TEST FALSE)
 endif()
 
+# AsmJit build options
 if (NOT DEFINED ASMJIT_EMBED)
   set(ASMJIT_EMBED FALSE)
 endif()
@@ -51,6 +54,15 @@ if (NOT DEFINED ASMJIT_SANITIZE)
   set(ASMJIT_SANITIZE FALSE)
 endif()
 
+if (NOT DEFINED ASMJIT_NO_NATVIS)
+  set(ASMJIT_NO_NATVIS FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_CUSTOM_FLAGS)
+  set(ASMJIT_NO_CUSTOM_FLAGS FALSE)
+endif()
+
+# AsmJit backends selection.
 if (NOT DEFINED ASMJIT_NO_X86)
   set(ASMJIT_NO_X86 FALSE)
 endif()
@@ -63,12 +75,41 @@ if (NOT DEFINED ASMJIT_NO_FOREIGN)
   set(ASMJIT_NO_FOREIGN FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_NO_NATVIS)
-  set(ASMJIT_NO_NATVIS FALSE)
+# AsmJit features selection.
+if (NOT DEFINED ASMJIT_NO_DEPRECATED)
+  set(ASMJIT_NO_DEPRECATED FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_NO_CUSTOM_FLAGS)
-  set(ASMJIT_NO_CUSTOM_FLAGS FALSE)
+if (NOT DEFINED ASMJIT_NO_SHM_OPEN)
+  set(ASMJIT_NO_SHM_OPEN FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_JIT)
+  set(ASMJIT_NO_JIT FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_TEXT)
+  set(ASMJIT_NO_TEXT ${ASMJIT_NO_TEXT})
+endif()
+
+if (NOT DEFINED ASMJIT_NO_LOGGING)
+  set(ASMJIT_NO_LOGGING FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_VALIDATION)
+  set(ASMJIT_NO_VALIDATION ${ASMJIT_NO_VALIDATION})
+endif()
+
+if (NOT DEFINED ASMJIT_NO_INTROSPECTION)
+  set(ASMJIT_NO_INTROSPECTION ${ASMJIT_NO_INTROSPECTION})
+endif()
+
+if (NOT DEFINED ASMJIT_NO_BUILDER)
+  set(ASMJIT_NO_BUILDER FALSE)
+endif()
+
+if (NOT DEFINED ASMJIT_NO_COMPILER)
+  set(ASMJIT_NO_BUILDER ${ASMJIT_NO_BUILDER})
 endif()
 
 # EMBED implies STATIC.
@@ -76,16 +117,28 @@ if (ASMJIT_EMBED AND NOT ASMJIT_STATIC)
   set(ASMJIT_STATIC TRUE)
 endif()
 
-set(ASMJIT_DIR             "${CMAKE_CURRENT_LIST_DIR}" CACHE PATH "Location of 'asmjit'")
-set(ASMJIT_TEST            "${ASMJIT_TEST}"            CACHE BOOL "Build 'asmjit' test applications")
-set(ASMJIT_EMBED           "${ASMJIT_EMBED}"           CACHE BOOL "Embed 'asmjit' library (no targets)")
-set(ASMJIT_STATIC          "${ASMJIT_STATIC}"          CACHE BOOL "Build 'asmjit' library as static")
-set(ASMJIT_SANITIZE        "${ASMJIT_SANITIZE}"        CACHE STRING "Build with sanitizers: 'address', 'undefined', etc...")
-set(ASMJIT_NO_X86          "${ASMJIT_NO_X86}"          CACHE BOOL "Disable X86/X64 backend")
-set(ASMJIT_NO_AARCH64      "${ASMJIT_NO_AARCH64}"      CACHE BOOL "Disable AArch64 backend")
-set(ASMJIT_NO_FOREIGN      "${ASMJIT_NO_FOREIGN}"      CACHE BOOL "Disable all foreign architectures (enables only a native architecture)")
-set(ASMJIT_NO_NATVIS       "${ASMJIT_NO_NATVIS}"       CACHE BOOL "Disable natvis support (embedding asmjit.natvis in PDB)")
-set(ASMJIT_NO_CUSTOM_FLAGS "${ASMJIT_NO_CUSTOM_FLAGS}" CACHE BOOL "Disable extra compilation flags added by AsmJit to its targets")
+set(ASMJIT_DIR              "${CMAKE_CURRENT_LIST_DIR}"  CACHE PATH "Location of 'asmjit'")
+
+set(ASMJIT_TEST             "${ASMJIT_TEST}"             CACHE BOOL "Build 'asmjit' test applications")
+set(ASMJIT_EMBED            "${ASMJIT_EMBED}"            CACHE BOOL "Embed 'asmjit' library (no targets)")
+set(ASMJIT_STATIC           "${ASMJIT_STATIC}"           CACHE BOOL "Build 'asmjit' library as static")
+set(ASMJIT_SANITIZE         "${ASMJIT_SANITIZE}"         CACHE STRING "Build with sanitizers: 'address', 'undefined', etc...")
+set(ASMJIT_NO_NATVIS        "${ASMJIT_NO_NATVIS}"        CACHE BOOL "Disable natvis support (embedding asmjit.natvis in PDB)")
+set(ASMJIT_NO_CUSTOM_FLAGS  "${ASMJIT_NO_CUSTOM_FLAGS}"  CACHE BOOL "Disable extra compilation flags added by AsmJit to its targets")
+
+set(ASMJIT_NO_X86           "${ASMJIT_NO_X86}"           CACHE BOOL "Disable X86/X64 backend")
+set(ASMJIT_NO_AARCH64       "${ASMJIT_NO_AARCH64}"       CACHE BOOL "Disable AArch64 backend")
+set(ASMJIT_NO_FOREIGN       "${ASMJIT_NO_FOREIGN}"       CACHE BOOL "Disable all foreign architectures (enables only a target architecture)")
+
+set(ASMJIT_NO_DEPRECATED    "${ASMJIT_NO_DEPRECATED}"    CACHE BOOL "Disable deprecated API at build time")
+set(ASMJIT_NO_SHM_OPEN      "${ASMJIT_NO_SHM_OPEN}"      CACHE BOOL "Disable the use of shm_open() even on platforms where it's supported")
+set(ASMJIT_NO_JIT           "${ASMJIT_NO_JIT}"           CACHE BOOL "Disable VirtMem, JitAllocator, and JitRuntime at build time")
+set(ASMJIT_NO_TEXT          "${ASMJIT_NO_TEXT}"          CACHE BOOL "Disable textual representation of instructions, enums, cpu features, ...")
+set(ASMJIT_NO_LOGGING       "${ASMJIT_NO_LOGGING}"       CACHE BOOL "Disable logging features at build time")
+set(ASMJIT_NO_VALIDATION    "${ASMJIT_NO_VALIDATION}"    CACHE BOOL "Disable instruction validation API at build time")
+set(ASMJIT_NO_INTROSPECTION "${ASMJIT_NO_INTROSPECTION}" CACHE BOOL "Disable instruction introspection API at build time")
+set(ASMJIT_NO_BUILDER       "${ASMJIT_NO_BUILDER}"       CACHE BOOL "Disable Builder emitter at build time")
+set(ASMJIT_NO_COMPILER      "${ASMJIT_NO_COMPILER}"      CACHE BOOL "Disable Compiler emitter at build time")
 
 # AsmJit - Project
 # ================
@@ -155,7 +208,7 @@ function(asmjit_add_target target target_type)
   target_link_libraries(${target} PRIVATE ${X_LIBRARIES})
 
   # target_link_options was added in cmake v3.13, don't use it for now...
-  foreach(link_flag ${ASMJIT_SANITIZE_LFLAGS})
+  foreach(link_flag ${ASMJIT_PRIVATE_LFLAGS})
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${link_flag}")
   endforeach()
 
@@ -183,6 +236,7 @@ set(ASMJIT_CFLAGS "")                            # Public compiler flags.
 set(ASMJIT_PRIVATE_CFLAGS "")                    # Private compiler flags independent of build type.
 set(ASMJIT_PRIVATE_CFLAGS_DBG "")                # Private compiler flags used by debug builds.
 set(ASMJIT_PRIVATE_CFLAGS_REL "")                # Private compiler flags used by release builds.
+set(ASMJIT_PRIVATE_LFLAGS "")                    # Private linker flags.
 set(ASMJIT_SANITIZE_CFLAGS "")                   # Compiler flags required by currently enabled sanitizers.
 set(ASMJIT_SANITIZE_LFLAGS "")                   # Linker flags required by currently enabled sanitizers.
 
@@ -247,13 +301,44 @@ if (ASMJIT_SANITIZE)
   endif()
 endif()
 
-# Do not link to pthread on Android as it's part of C runtime.
-if (NOT WIN32 AND NOT ANDROID)
-  list(APPEND ASMJIT_DEPS pthread)
-endif()
+if (NOT WIN32)
+  # Dependency: libc is always required.
+  list(APPEND ASMJIT_DEPS c)
 
-if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" OR "${CMAKE_SYSTEM_NAME}" MATCHES "NetBSD")
-  list(APPEND ASMJIT_DEPS rt)
+  # Dependency: pthread (required so AsmJit can use pthread_lock).
+  if (NOT "${CMAKE_SYSTEM_NAME}" MATCHES "^(Android)$")
+    check_cxx_source_compiles("
+      #include <pthread.h>
+      int main() {
+        pthread_mutex_t m;
+        pthread_mutex_init(&m, nullptr);
+        return pthread_mutex_destroy(&m);
+      }
+      " ASMJIT_LIBC_HAS_PTHREAD)
+    if (ASMJIT_LIBC_HAS_PTHREAD)
+      message("-- Dependency: pthread provided by libc (not linking to libpthread)")
+    else ()
+      message("-- Dependency: pthread not provided by libc, linking to libpthread")
+      list(APPEND ASMJIT_DEPS pthread)
+    endif()
+  endif()
+
+  # Dependency: shm_open (required so AsmJit can use shm_open on supported platforms).
+  if ("${CMAKE_SYSTEM_NAME}" MATCHES "^(Linux|NetBSD)$" AND NOT ASMJIT_NO_SHM_OPEN)
+    check_cxx_source_compiles("
+      #include <sys/mman.h>
+      int main() {
+        const char file_name[1] {};
+        return shm_open(file_name, 0, 0);
+      }
+      " ASMJIT_LIBC_HAS_SHM_OPEN)
+    if (ASMJIT_LIBC_HAS_SHM_OPEN)
+      message("-- Dependency: shm_open provided by libc (not linking to librt)")
+    else ()
+      message("-- Dependency: shm_open not provided by libc, linking to librt")
+      list(APPEND ASMJIT_DEPS rt)
+    endif()
+  endif()
 endif()
 
 set(ASMJIT_LIBS ${ASMJIT_DEPS})
@@ -276,11 +361,12 @@ foreach(build_option ASMJIT_STATIC
                      ASMJIT_NO_FOREIGN
                      # AsmJit features selection.
                      ASMJIT_NO_DEPRECATED
+                     ASMJIT_NO_SHM_OPEN
                      ASMJIT_NO_JIT
+                     ASMJIT_NO_TEXT
                      ASMJIT_NO_LOGGING
                      ASMJIT_NO_BUILDER
                      ASMJIT_NO_COMPILER
-                     ASMJIT_NO_TEXT
                      ASMJIT_NO_VALIDATION
                      ASMJIT_NO_INTROSPECTION)
   if (${build_option})
