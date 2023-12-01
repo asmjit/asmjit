@@ -301,26 +301,35 @@ if (ASMJIT_SANITIZE)
   endif()
 endif()
 
-if (NOT WIN32)
+if (WIN32)
+  # Dependency: nothing extra at the moment.
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
+  # Dependency: libc is the only required library on Android as it also provides libthread.
+  message("-- Dependency: adding libc (Android target detected)")
+  list(APPEND ASMJIT_DEPS c)
+elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Haiku")
+  # Dependency: libroot is used by Haiku instead of libc, so link to libroot and libpthread.
+  message("-- Dependency: adding libroot and libpthread (Haiku target detected)")
+  list(APPEND ASMJIT_DEPS root pthread)
+else()
   # Dependency: libc is always required.
+  message("-- Dependency: adding libc (Linux, BSD, or other UNIX/POSIX environment)")
   list(APPEND ASMJIT_DEPS c)
 
   # Dependency: pthread (required so AsmJit can use pthread_lock).
-  if (NOT "${CMAKE_SYSTEM_NAME}" MATCHES "^(Android)$")
-    check_cxx_source_compiles("
-      #include <pthread.h>
-      int main() {
-        pthread_mutex_t m;
-        pthread_mutex_init(&m, nullptr);
-        return pthread_mutex_destroy(&m);
-      }
-      " ASMJIT_LIBC_HAS_PTHREAD)
-    if (ASMJIT_LIBC_HAS_PTHREAD)
-      message("-- Dependency: pthread provided by libc (not linking to libpthread)")
-    else ()
-      message("-- Dependency: pthread not provided by libc, linking to libpthread")
-      list(APPEND ASMJIT_DEPS pthread)
-    endif()
+  check_cxx_source_compiles("
+    #include <pthread.h>
+    int main() {
+      pthread_mutex_t m;
+      pthread_mutex_init(&m, nullptr);
+      return pthread_mutex_destroy(&m);
+    }
+    " ASMJIT_LIBC_HAS_LIBPTHREAD)
+  if (ASMJIT_LIBC_HAS_LIBPTHREAD)
+    message("-- Dependency: libpthread provided by libc (not linking to libpthread)")
+  else()
+    message("-- Dependency: libpthread not provided by libc, linking to libpthread")
+    list(APPEND ASMJIT_DEPS pthread)
   endif()
 
   # Dependency: shm_open (required so AsmJit can use shm_open on supported platforms).
@@ -331,10 +340,10 @@ if (NOT WIN32)
         const char file_name[1] {};
         return shm_open(file_name, 0, 0);
       }
-      " ASMJIT_LIBC_HAS_SHM_OPEN)
-    if (ASMJIT_LIBC_HAS_SHM_OPEN)
+      " ASMJIT_LIBC_HAS_LIBRT)
+    if (ASMJIT_LIBC_HAS_LIBRT)
       message("-- Dependency: shm_open provided by libc (not linking to librt)")
-    else ()
+    else()
       message("-- Dependency: shm_open not provided by libc, linking to librt")
       list(APPEND ASMJIT_DEPS rt)
     endif()
