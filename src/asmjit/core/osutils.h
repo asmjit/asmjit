@@ -13,14 +13,6 @@ ASMJIT_BEGIN_NAMESPACE
 //! \addtogroup asmjit_utilities
 //! \{
 
-//! Operating system utilities.
-namespace OSUtils {
-
-//! Gets the current CPU tick count, used for benchmarking (1ms resolution).
-ASMJIT_API uint32_t getTickCount() noexcept;
-
-} // {OSUtils}
-
 //! \cond INTERNAL
 //! Lock.
 //!

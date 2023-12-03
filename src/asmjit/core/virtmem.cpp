@@ -19,6 +19,10 @@
   #include <sys/types.h>
   #include <unistd.h>
 
+  #if !ASMJIT_ARCH_X86
+    #include <sys/time.h> // required by gettimeofday()
+  #endif
+
   // Linux has a `memfd_create` syscall that we would like to use, if available.
   #if defined(__linux__)
     #include <sys/syscall.h>
@@ -74,15 +78,15 @@
 
   #define ASMJIT_ANONYMOUS_MEMORY_USE_FD
 
-  #if defined(__APPLE__) || defined(__BIONIC__)
-    #define ASMJIT_VM_SHM_DETECT 0
-  #else
-    #define ASMJIT_VM_SHM_DETECT 1
-  #endif
-
   // Android NDK doesn't provide `shm_open()` and `shm_unlink()`.
   #if !defined(__BIONIC__) && !defined(ASMJIT_NO_SHM_OPEN)
     #define ASMJIT_HAS_SHM_OPEN
+  #endif
+
+  #if defined(__APPLE__) || defined(__BIONIC__) || !defined(ASMJIT_HAS_SHM_OPEN)
+    #define ASMJIT_VM_SHM_DETECT 0
+  #else
+    #define ASMJIT_VM_SHM_DETECT 1
   #endif
 
   #if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
@@ -458,6 +462,28 @@ static uint32_t getMfdExecFlag() noexcept {
 }
 #endif // __linux__ && __NR_memfd_create
 
+
+// It's not fully random, just to avoid collisions when opening TMP or SHM file.
+ASMJIT_MAYBE_UNUSED
+static uint64_t generateRandomBits(uintptr_t stackPtr, uint32_t attempt) noexcept {
+  static std::atomic<uint32_t> internalCounter;
+
+#if defined(__GNUC__) && ASMJIT_ARCH_X86
+  // Use RDTSC instruction to avoid gettimeofday() as we just need some "random" bits.
+  uint64_t mix = __builtin_ia32_rdtsc();
+#else
+  struct timeval tm {};
+  uint64_t mix = 1; // only used when gettimeofday() fails, which is unlikely.
+  if (gettimeofday(&tm, nullptr) == 0) {
+    mix = uint64_t(tm.tv_usec) ^ uint64_t(tm.tv_sec);
+  }
+#endif
+
+  uint64_t bits = (uint64_t(stackPtr) & 0x1010505000055590u) - mix * 773703683;
+  bits = (bits >> 33) ^ (bits << 7) ^ (attempt * 87178291199);
+  return bits + uint64_t(++internalCounter) * 10619863;
+}
+
 class AnonymousMemory {
 public:
   enum FileType : uint32_t {
@@ -518,26 +544,20 @@ public:
     else
       return DebugUtils::errored(asmjitErrorFromErrno(errno));
 #else
-    // POSIX API. We have to generate somehow a unique name. This is nothing cryptographic, just using a bit from
-    // the stack address to always have a different base for different threads (as threads have their own stack)
-    // and retries for avoiding collisions. We use `shm_open()` with flags that require creation of the file so we
-    // never open an existing shared memory.
-    static std::atomic<uint32_t> internalCounter;
-    const char* kShmFormat = "/shm-id-%016llX";
-
+    // POSIX API. We have to generate somehow a unique name, so use `generateRandomBits()` helper. To prevent
+    // having file collisions we use `shm_open()` with flags that require creation of the file so we never open
+    // an existing shared memory.
+    static const char kShmFormat[] = "/shm-id-%016llX";
     uint32_t kRetryCount = 100;
-    uint64_t bits = ((uintptr_t)(void*)this) & 0x55555555u;
 
     for (uint32_t i = 0; i < kRetryCount; i++) {
-      bits -= uint64_t(OSUtils::getTickCount()) * 773703683;
-      bits = ((bits >> 14) ^ (bits << 6)) + uint64_t(++internalCounter) * 10619863;
-
       bool useTmp = !ASMJIT_VM_SHM_DETECT || preferTmpOverDevShm;
+      uint64_t bits = generateRandomBits((uintptr_t)this, i);
 
       if (useTmp) {
         _tmpName.assign(getTmpDir());
         _tmpName.appendFormat(kShmFormat, (unsigned long long)bits);
-        _fd = ::open(_tmpName.data(), O_RDWR | O_CREAT | O_EXCL, 0);
+        _fd = ASMJIT_FILE64_API(::open)(_tmpName.data(), O_RDWR | O_CREAT | O_EXCL, 0);
         if (ASMJIT_LIKELY(_fd >= 0)) {
           _fileType = kFileTypeTmp;
           return kErrorOk;
@@ -589,7 +609,7 @@ public:
 
   Error allocate(size_t size) noexcept {
     // TODO: Improve this by using `posix_fallocate()` when available.
-    if (ftruncate(_fd, off_t(size)) != 0)
+    if (ASMJIT_FILE64_API(ftruncate)(_fd, off_t(size)) != 0)
       return DebugUtils::errored(asmjitErrorFromErrno(errno));
 
     return kErrorOk;
