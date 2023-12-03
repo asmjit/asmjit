@@ -843,7 +843,7 @@ public:
   //!
   //! \note Most instructions would deduce the size of the memory operand, so in most cases it's expected that the
   //! returned value would be zero. However, some instruction require the size to select between multiple variations,
-  //! so in some cases size is required would would be non-zero (for example `inc [mem], immediate` requires size to
+  //! so in some cases size is required would be non-zero (for example `inc [mem], immediate` requires size to
   //! distinguish between 8-bit, 16-bit, 32-bit, and 64-bit increments.
   ASMJIT_INLINE_NODEBUG constexpr uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
 
