@@ -535,7 +535,7 @@ public:
     ASMJIT_INLINE_NODEBUG size_t usedSize() const noexcept { return _usedSize; }
     //! Returns the number of bytes unused by the allocator at the moment.
     ASMJIT_INLINE_NODEBUG size_t unusedSize() const noexcept { return _reservedSize - _usedSize; }
-    //! Returns the total number of bytes bytes reserved by the allocator (sum of sizes of all blocks).
+    //! Returns the total number of bytes reserved by the allocator (sum of sizes of all blocks).
     ASMJIT_INLINE_NODEBUG size_t reservedSize() const noexcept { return _reservedSize; }
     //! Returns the number of bytes the allocator needs to manage the allocated memory.
     ASMJIT_INLINE_NODEBUG size_t overheadSize() const noexcept { return _overheadSize; }
