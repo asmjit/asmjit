@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 cmake_policy(PUSH)
 
@@ -212,11 +212,7 @@ function(asmjit_add_target target target_type)
     set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " ${link_flag}")
   endforeach()
 
-  if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
-    set_property(TARGET ${target} PROPERTY CXX_STANDARD 11)
-  else()
-    target_compile_features(${target} PUBLIC cxx_std_11)
-  endif()
+  target_compile_features(${target} PUBLIC cxx_std_11)
   set_property(TARGET ${target} PROPERTY CXX_EXTENSIONS NO)
   set_property(TARGET ${target} PROPERTY CXX_VISIBILITY_PRESET hidden)
   target_compile_options(${target} PRIVATE ${X_CFLAGS} ${ASMJIT_SANITIZE_CFLAGS} $<$<CONFIG:Debug>:${X_CFLAGS_DBG}> $<$<NOT:$<CONFIG:Debug>>:${X_CFLAGS_REL}>)
@@ -562,9 +558,7 @@ foreach(src_file ${ASMJIT_SRC_LIST})
   endif()
 endforeach()
 
-if (NOT ${CMAKE_VERSION} VERSION_LESS "3.8.0")
-  source_group(TREE "${ASMJIT_DIR}" FILES ${ASMJIT_SRC})
-endif()
+source_group(TREE "${ASMJIT_DIR}" FILES ${ASMJIT_SRC})
 
 # AsmJit - Summary
 # ================
