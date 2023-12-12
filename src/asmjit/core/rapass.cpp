@@ -366,21 +366,18 @@ Error BaseRAPass::initSharedAssignments(const ZoneVector<uint32_t>& sharedAssign
 
 class RABlockVisitItem {
 public:
+  RABlock* _block {};
+  uint32_t _index {};
+
   inline RABlockVisitItem(RABlock* block, uint32_t index) noexcept
     : _block(block),
       _index(index) {}
 
-  inline RABlockVisitItem(const RABlockVisitItem& other) noexcept
-    : _block(other._block),
-      _index(other._index) {}
-
+  inline RABlockVisitItem(const RABlockVisitItem& other) noexcept = default;
   inline RABlockVisitItem& operator=(const RABlockVisitItem& other) noexcept = default;
 
   inline RABlock* block() const noexcept { return _block; }
   inline uint32_t index() const noexcept { return _index; }
-
-  RABlock* _block;
-  uint32_t _index;
 };
 
 Error BaseRAPass::buildCFGViews() noexcept {

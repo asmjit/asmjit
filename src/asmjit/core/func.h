@@ -1332,13 +1332,13 @@ public:
   //! \{
 
   //! Function detail.
-  const FuncDetail* _funcDetail;
+  const FuncDetail* _funcDetail {};
   //! Register that can be used to access arguments passed by stack.
-  uint8_t _saRegId;
+  uint8_t _saRegId = uint8_t(BaseReg::kIdBad);
   //! Reserved for future use.
-  uint8_t _reserved[3];
+  uint8_t _reserved[3] {};
   //! Mapping of each function argument.
-  FuncValuePack _argPacks[Globals::kMaxFuncArgs];
+  FuncValuePack _argPacks[Globals::kMaxFuncArgs] {};
 
   //! \}
 
@@ -1347,9 +1347,7 @@ public:
 
   ASMJIT_INLINE_NODEBUG explicit FuncArgsAssignment(const FuncDetail* fd = nullptr) noexcept { reset(fd); }
 
-  ASMJIT_INLINE_NODEBUG FuncArgsAssignment(const FuncArgsAssignment& other) noexcept {
-    memcpy(this, &other, sizeof(*this));
-  }
+  ASMJIT_INLINE_NODEBUG FuncArgsAssignment(const FuncArgsAssignment& other) noexcept = default;
 
   inline void reset(const FuncDetail* fd = nullptr) noexcept {
     _funcDetail = fd;
@@ -1357,6 +1355,13 @@ public:
     memset(_reserved, 0, sizeof(_reserved));
     memset(_argPacks, 0, sizeof(_argPacks));
   }
+
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG FuncArgsAssignment& operator=(const FuncArgsAssignment& other) noexcept = default;
 
   //! \}
 

@@ -52,7 +52,8 @@ Error ZoneVectorBase::_grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t
 
 Error ZoneVectorBase::_reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept {
   uint32_t oldCapacity = _capacity;
-  if (oldCapacity >= n) return kErrorOk;
+  if (oldCapacity >= n)
+    return kErrorOk;
 
   uint32_t nBytes = n * sizeOfT;
   if (ASMJIT_UNLIKELY(nBytes < n))
@@ -65,11 +66,10 @@ Error ZoneVectorBase::_reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint3
     return DebugUtils::errored(kErrorOutOfMemory);
 
   void* oldData = _data;
-  if (_size)
+  if (oldData && _size) {
     memcpy(newData, oldData, size_t(_size) * sizeOfT);
-
-  if (oldData)
     allocator->release(oldData, size_t(oldCapacity) * sizeOfT);
+  }
 
   _capacity = uint32_t(allocatedBytes / sizeOfT);
   ASMJIT_ASSERT(_capacity >= n);

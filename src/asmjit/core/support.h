@@ -997,9 +997,9 @@ static ASMJIT_INLINE_NODEBUG int16_t readI16aBE(const void* p) noexcept { return
 
 template<ByteOrder BO = ByteOrder::kNative>
 static inline uint32_t readU24u(const void* p) noexcept {
-  uint32_t b0 = readU8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 2 : 0));
-  uint32_t b1 = readU8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 1 : 1));
-  uint32_t b2 = readU8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 0 : 2));
+  uint32_t b0 = readU8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 2u : 0u));
+  uint32_t b1 = readU8(static_cast<const uint8_t*>(p) + 1u);
+  uint32_t b2 = readU8(static_cast<const uint8_t*>(p) + (BO == ByteOrder::kLE ? 0u : 2u));
   return (b0 << 16) | (b1 << 8) | b2;
 }
 
@@ -1119,7 +1119,7 @@ static ASMJIT_INLINE_NODEBUG void writeI16aBE(void* p, int16_t x) noexcept { wri
 template<ByteOrder BO = ByteOrder::kNative>
 static inline void writeU24u(void* p, uint32_t v) noexcept {
   static_cast<uint8_t*>(p)[0] = uint8_t((v >> (BO == ByteOrder::kLE ?  0 : 16)) & 0xFFu);
-  static_cast<uint8_t*>(p)[1] = uint8_t((v >> (BO == ByteOrder::kLE ?  8 :  8)) & 0xFFu);
+  static_cast<uint8_t*>(p)[1] = uint8_t((v >> 8) & 0xFFu);
   static_cast<uint8_t*>(p)[2] = uint8_t((v >> (BO == ByteOrder::kLE ? 16 :  0)) & 0xFFu);
 }
 

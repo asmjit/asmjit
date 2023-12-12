@@ -29,52 +29,45 @@ public:
   typedef RAAssignment::WorkToPhysMap WorkToPhysMap;
 
   //! Link to `BaseRAPass`.
-  BaseRAPass* _pass;
+  BaseRAPass* _pass {};
   //! Link to `BaseCompiler`.
-  BaseCompiler* _cc;
+  BaseCompiler* _cc {};
 
   //! Architecture traits.
-  const ArchTraits* _archTraits;
+  const ArchTraits* _archTraits {};
   //! Registers available to the allocator.
-  RARegMask _availableRegs;
+  RARegMask _availableRegs {};
   //! Registers clobbered by the allocator.
-  RARegMask _clobberedRegs;
+  RARegMask _clobberedRegs {};
 
   //! Register assignment (current).
-  RAAssignment _curAssignment;
+  RAAssignment _curAssignment {};
   //! Register assignment used temporarily during assignment switches.
-  RAAssignment _tmpAssignment;
+  RAAssignment _tmpAssignment {};
 
   //! Link to the current `RABlock`.
-  RABlock* _block;
+  RABlock* _block {};
   //! InstNode.
-  InstNode* _node;
+  InstNode* _node {};
   //! RA instruction.
-  RAInst* _raInst;
+  RAInst* _raInst {};
 
   //! Count of all TiedReg's.
-  uint32_t _tiedTotal;
+  uint32_t _tiedTotal {};
   //! TiedReg's total counter.
-  RARegCount _tiedCount;
+  RARegCount _tiedCount {};
 
   //! Temporary workToPhysMap that can be used freely by the allocator.
-  WorkToPhysMap* _tmpWorkToPhysMap;
+  WorkToPhysMap* _tmpWorkToPhysMap {};
 
   //! \name Construction & Destruction
   //! \{
 
-  inline RALocalAllocator(BaseRAPass* pass) noexcept
+  inline explicit RALocalAllocator(BaseRAPass* pass) noexcept
     : _pass(pass),
       _cc(pass->cc()),
       _archTraits(pass->_archTraits),
-      _availableRegs(pass->_availableRegs),
-      _clobberedRegs(),
-      _curAssignment(),
-      _block(nullptr),
-      _node(nullptr),
-      _raInst(nullptr),
-      _tiedTotal(),
-      _tiedCount() {}
+      _availableRegs(pass->_availableRegs) {}
 
   Error init() noexcept;
 

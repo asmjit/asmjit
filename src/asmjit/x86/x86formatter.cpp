@@ -617,8 +617,8 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(
   static const char vpcmpx[] = "EQ\0" "LT\0" "LE\0" "FALSE\0" "NEQ\0" "GE\0"  "GT\0"    "TRUE\0";
   static const char vpcomx[] = "LT\0" "LE\0" "GT\0" "GE\0"    "EQ\0"  "NEQ\0" "FALSE\0" "TRUE\0";
 
-  static const char vshufpd[] = "A0\0A1\0B0\0B1\0A2\0A3\0B2\0B3\0A4\0A5\0B4\0B5\0A6\0A7\0B6\0B7\0";
-  static const char vshufps[] = "A0\0A1\0A2\0A3\0A0\0A1\0A2\0A3\0B0\0B1\0B2\0B3\0B0\0B1\0B2\0B3\0";
+  static const char vshufpd[] = "A0\0" "A1\0" "B0\0" "B1\0" "A2\0" "A3\0" "B2\0" "B3\0" "A4\0" "A5\0" "B4\0" "B5\0" "A6\0" "A7\0" "B6\0" "B7\0";
+  static const char vshufps[] = "A0\0" "A1\0" "A2\0" "A3\0" "A0\0" "A1\0" "A2\0" "A3\0" "B0\0" "B1\0" "B2\0" "B3\0" "B0\0" "B1\0" "B2\0" "B3\0";
 
   static const ImmBits vfpclassxx[] = {
     { 0x07u, 0, ImmBits::kModeLookup, "QNAN\0" "+0\0" "-0\0" "+INF\0" "-INF\0" "DENORMAL\0" "-FINITE\0" "SNAN\0" }

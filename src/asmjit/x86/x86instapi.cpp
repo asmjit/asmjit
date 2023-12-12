@@ -919,7 +919,7 @@ Error InstInternal::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_*
       }
     }
 
-    rmOpsMask &= instRmInfo.rmOpsMask;
+    rmOpsMask &= uint32_t(instRmInfo.rmOpsMask);
     if (rmOpsMask && !inst.hasOption(InstOptions::kX86_ER)) {
       Support::BitWordIterator<uint32_t> it(rmOpsMask);
       do {
