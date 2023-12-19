@@ -425,6 +425,12 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
   Gp gpReg = zsp;            // General purpose register (temporary).
   Gp saReg = zsp;            // Stack-arguments base pointer.
 
+  // Emit: 'endbr32' or 'endbr64' (indirect branch protection).
+  if (frame.hasIndirectBranchProtection()) {
+    InstId instId = emitter->is32Bit() ? Inst::kIdEndbr32 : Inst::kIdEndbr64;
+    ASMJIT_PROPAGATE(emitter->emit(instId));
+  }
+
   // Emit: 'push zbp'
   //       'mov  zbp, zsp'.
   if (frame.hasPreservedFP()) {

@@ -312,6 +312,12 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
     { Inst::kIdStr_v, Inst::kIdStp_v }
   }};
 
+  // Emit: 'bti' (indirect branch protection).
+  if (frame.hasIndirectBranchProtection()) {
+    // TODO: The instruction is not available at the moment (would be ABI break).
+    // ASMJIT_PROPAGATE(emitter->bti());
+  }
+
   uint32_t adjustInitialOffset = pei.sizeTotal;
 
   for (RegGroup group : Support::EnumValues<RegGroup, RegGroup::kGp, RegGroup::kVec>{}) {

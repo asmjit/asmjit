@@ -717,6 +717,11 @@ enum class FuncAttributes : uint32_t {
   kHasFuncCalls = 0x00000020u,
   //! Function has aligned save/restore of vector registers.
   kAlignedVecSR = 0x00000040u,
+  //! Function must begin with an instruction that marks a start of a branch or function.
+  //!
+  //!   * `ENDBR32/ENDBR64` instruction is inserted at the beginning of the function (X86, X86_64).
+  //!   * `BTI` instruction is inserted at the beginning of the function (AArch64)
+  kIndirectBranchProtection = 0x00000080u,
   //! FuncFrame is finalized and can be used by prolog/epilog inserter (PEI).
   kIsFinalized = 0x00000800u,
 
@@ -1072,10 +1077,17 @@ public:
 
   //! Tests whether the function calls other functions.
   ASMJIT_INLINE_NODEBUG bool hasFuncCalls() const noexcept { return hasAttribute(FuncAttributes::kHasFuncCalls); }
-  //! Sets `kFlagHasCalls` to true.
+  //! Sets `FuncAttributes::kHasFuncCalls` to true.
   ASMJIT_INLINE_NODEBUG void setFuncCalls() noexcept { addAttributes(FuncAttributes::kHasFuncCalls); }
-  //! Sets `kFlagHasCalls` to false.
+  //! Sets `FuncAttributes::kHasFuncCalls` to false.
   ASMJIT_INLINE_NODEBUG void resetFuncCalls() noexcept { clearAttributes(FuncAttributes::kHasFuncCalls); }
+
+  //! Tests whether the function uses indirect branch protection, see \ref FuncAttributes::kIndirectBranchProtection.
+  ASMJIT_INLINE_NODEBUG bool hasIndirectBranchProtection() const noexcept { return hasAttribute(FuncAttributes::kIndirectBranchProtection); }
+  //! Enabled indirect branch protection (sets `FuncAttributes::kIndirectBranchProtection` attribute to true).
+  ASMJIT_INLINE_NODEBUG void setIndirectBranchProtection() noexcept { addAttributes(FuncAttributes::kIndirectBranchProtection); }
+  //! Disables indirect branch protection (sets `FuncAttributes::kIndirectBranchProtection` attribute to false).
+  ASMJIT_INLINE_NODEBUG void resetIndirectBranchProtection() noexcept { clearAttributes(FuncAttributes::kIndirectBranchProtection); }
 
   //! Tests whether the function has AVX enabled.
   ASMJIT_INLINE_NODEBUG bool isAvxEnabled() const noexcept { return hasAttribute(FuncAttributes::kX86_AVXEnabled); }

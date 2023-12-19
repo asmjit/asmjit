@@ -546,7 +546,7 @@ public:
     uint8_t _reserved1;
   };
 
-  //! Data that can have different meaning dependning on \ref NodeType.
+  //! Data that can have different meaning depending on \ref NodeType.
   union {
     //! Data useful by any node type.
     AnyData _any;
@@ -694,8 +694,9 @@ public:
 
   //! Returns user data casted to `T*`.
   //!
-  //! User data is decicated to be used only by AsmJit users and not touched by the library. The data has a pointer
-  //! size so you can either store a pointer or `intptr_t` value through `setUserDataAsIntPtr()`.
+  //! User data is dedicated to be used only by AsmJit users and not touched by the library. The data is of a pointer
+  //! size so you can either store a pointer or `int64_t` value through `setUserDataAsPtr()`, `setUserDataAsInt64()`
+  //! and `setUserDataAsUInt64()`.
   template<typename T>
   ASMJIT_INLINE_NODEBUG T* userDataAsPtr() const noexcept { return static_cast<T*>(_userDataPtr); }
   //! Returns user data casted to `int64_t`.

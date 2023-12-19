@@ -238,8 +238,8 @@ public:
   }
 };
 
-// x86::Compiler - X86Test_AlignNone
-// =================================
+// x86::Compiler - X86Test_NoAlign
+// ===============================
 
 class X86Test_NoAlign : public X86TestCase {
 public:
@@ -266,6 +266,35 @@ public:
     return true;
   }
 };
+
+// x86::Compiler - X86Test_IndirectBranchProtection
+// ================================================
+
+class X86Test_IndirectBranchProtection : public X86TestCase {
+public:
+  X86Test_IndirectBranchProtection() : X86TestCase("IndirectBranchProtection") {}
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_IndirectBranchProtection());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    FuncNode* func = cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    func->addAttributes(FuncAttributes::kIndirectBranchProtection);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    DebugUtils::unused(result, expect);
+
+    typedef void (*Func)(void);
+    Func func = ptr_as_func<Func>(_func);
+
+    func();
+    return true;
+  }
+};
+
 
 // x86::Compiler - X86Test_JumpMerge
 // =================================
@@ -4362,6 +4391,7 @@ void compiler_add_x86_tests(TestApp& app) {
   // Base tests.
   app.addT<X86Test_NoCode>();
   app.addT<X86Test_NoAlign>();
+  app.addT<X86Test_IndirectBranchProtection>();
   app.addT<X86Test_AlignBase>();
 
   // Jump tests.
