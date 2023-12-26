@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <initializer_list>
 #include <iterator>
 #include <limits>
 #include <type_traits>
@@ -112,7 +113,7 @@ namespace asmjit {
 #define ASMJIT_NO_INTROSPECTION
 
 // Avoid doxygen preprocessor using feature-selection definitions.
-#undef ASMJIT_BUILD_EMBNED
+#undef ASMJIT_BUILD_EMBED
 #undef ASMJIT_BUILD_STATIC
 #undef ASMJIT_BUILD_DEBUG
 #undef ASMJIT_BUILD_RELEASE
@@ -212,7 +213,7 @@ namespace asmjit {
     #define ASMJIT_NO_X86
   #endif
 
-  #if !ASMJIT_ARCH_ARM && !defined(ASMJIT_NO_AARCH64)
+  #if ASMJIT_ARCH_ARM != 64 && !defined(ASMJIT_NO_AARCH64)
     #define ASMJIT_NO_AARCH64
   #endif
 #endif

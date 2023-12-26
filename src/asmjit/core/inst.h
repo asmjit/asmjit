@@ -303,6 +303,9 @@ public:
   ASMJIT_INLINE_NODEBUG arm::CondCode armCondCode() const noexcept { return (arm::CondCode)getInstIdPart<InstIdParts::kARM_Cond>(); }
   ASMJIT_INLINE_NODEBUG void setArmCondCode(arm::CondCode cc) noexcept { setInstIdPart<InstIdParts::kARM_Cond>(uint32_t(cc)); }
 
+  ASMJIT_INLINE_NODEBUG a32::DataType armDt() const noexcept { return (a32::DataType)getInstIdPart<InstIdParts::kA32_DT>(); }
+  ASMJIT_INLINE_NODEBUG a32::DataType armDt2() const noexcept { return (a32::DataType)getInstIdPart<InstIdParts::kA32_DT2>(); }
+
   //! \}
 
   //! \name Statics
@@ -312,12 +315,12 @@ public:
     return id | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
   }
 
-  static ASMJIT_INLINE_NODEBUG constexpr InstId composeARMInstId(uint32_t id, arm::DataType dt, arm::CondCode cc = arm::CondCode::kAL) noexcept {
+  static ASMJIT_INLINE_NODEBUG constexpr InstId composeARMInstId(uint32_t id, a32::DataType dt, arm::CondCode cc = arm::CondCode::kAL) noexcept {
     return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
               | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
   }
 
-  static ASMJIT_INLINE_NODEBUG constexpr InstId composeARMInstId(uint32_t id, arm::DataType dt, arm::DataType dt2, arm::CondCode cc = arm::CondCode::kAL) noexcept {
+  static ASMJIT_INLINE_NODEBUG constexpr InstId composeARMInstId(uint32_t id, a32::DataType dt, a32::DataType dt2, arm::CondCode cc = arm::CondCode::kAL) noexcept {
     return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
               | (uint32_t(dt2) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT2)>::value)
               | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
@@ -344,16 +347,16 @@ enum class CpuRWFlags : uint32_t {
   // Common RW Flags (0x000000FF)
   // ----------------------------
 
-  //! Carry flag.
-  kCF = 0x00000001u,
   //! Signed overflow flag.
-  kOF = 0x00000002u,
-  //! Sign flag (negative/sign, if set).
-  kSF = 0x00000004u,
+  kOF = 0x00000001u,
+  //! Carry flag.
+  kCF = 0x00000002u,
   //! Zero and/or equality flag (1 if zero/equal).
-  kZF = 0x00000008u,
+  kZF = 0x00000004u,
+  //! Sign flag (negative/sign, if set).
+  kSF = 0x00000008u,
 
-  // X86 Specific RW Flags (0xFFFFFF00)
+  // X86 Specific RW Flags
   // ----------------------------------
 
   //! Carry flag (X86, X86_64).
@@ -384,12 +387,22 @@ enum class CpuRWFlags : uint32_t {
   //! FPU C2 status flag (X86, X86_64).
   kX86_C2 = 0x00040000u,
   //! FPU C3 status flag (X86, X86_64).
-  kX86_C3 = 0x00080000u
+  kX86_C3 = 0x00080000u,
+
+  // ARM Specific RW Flags
+  // ----------------------------------
+
+  kARM_V = kOF,
+  kARM_C = kCF,
+  kARM_Z = kZF,
+  kARM_N = kSF,
+  kARM_Q = 0x00000100u,
+  kARM_GE = 0x00000200u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(CpuRWFlags)
 
 //! Operand read/write flags describe how the operand is accessed and some additional features.
-enum class OpRWFlags {
+enum class OpRWFlags : uint32_t {
   //! No flags.
   kNone = 0,
 

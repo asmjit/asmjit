@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Zlib
 
 // C++ code generation helpers.
-const commons = require("./gencommons.js");
+const commons = require("./generator-commons.js");
 const FATAL = commons.FATAL;
 
 // Utilities to convert primitives to C++ code.

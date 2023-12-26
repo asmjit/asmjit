@@ -616,7 +616,7 @@ void assignEmitterFuncs(BaseEmitter* emitter) {
 #endif
 
 #ifndef ASMJIT_NO_VALIDATION
-  emitter->_funcs.validate = InstInternal::validate;
+  emitter->_funcs.validate = emitter->is32Bit() ? InstInternal::validateX86 : InstInternal::validateX64;
 #endif
 }
 

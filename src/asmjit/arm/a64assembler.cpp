@@ -716,8 +716,6 @@ static inline bool checkValidRegs(const Operand_& o0, const Operand_& o1, const 
 
 Assembler::Assembler(CodeHolder* code) noexcept : BaseAssembler() {
   _archMask = uint64_t(1) << uint32_t(Arch::kAArch64);
-  assignEmitterFuncs(this);
-
   if (code)
     code->attach(this);
 }
@@ -803,7 +801,7 @@ Error Assembler::_emit(InstId instId, const Operand_& o0, const Operand_& o1, co
       Operand_ opArray[Globals::kMaxOpCount];
       EmitterUtils::opArrayFromEmitArgs(opArray, o0, o1, o2, opExt);
 
-      err = _funcs.validate(arch(), BaseInst(instId, options, _extraReg), opArray, Globals::kMaxOpCount, ValidationFlags::kNone);
+      err = _funcs.validate(BaseInst(instId, options, _extraReg), opArray, Globals::kMaxOpCount, ValidationFlags::kNone);
       if (ASMJIT_UNLIKELY(err))
         goto Failed;
     }
@@ -2266,7 +2264,7 @@ Error Assembler::_emit(InstId instId, const Operand_& o0, const Operand_& o1, co
         if (m.hasBaseReg()) {
           // [Base {Offset | Index}]
           if (m.hasIndex()) {
-            uint32_t opt = armShiftOpToLdStOptMap[m.predicate()];
+            uint32_t opt = armShiftOpToLdStOptMap[size_t(m.shiftOp())];
             if (opt == 0xFF)
               goto InvalidAddress;
 
@@ -2352,7 +2350,7 @@ Error Assembler::_emit(InstId instId, const Operand_& o0, const Operand_& o1, co
         if (m.hasBaseReg()) {
           // [Base {Offset | Index}]
           if (m.hasIndex()) {
-            uint32_t opt = armShiftOpToLdStOptMap[m.predicate()];
+            uint32_t opt = armShiftOpToLdStOptMap[size_t(m.shiftOp())];
             if (opt == 0xFF)
               goto InvalidAddress;
 
@@ -4513,7 +4511,7 @@ Case_BaseLdurStur:
         if (m.hasBaseReg()) {
           // [Base {Offset | Index}]
           if (m.hasIndex()) {
-            uint32_t opt = armShiftOpToLdStOptMap[m.predicate()];
+            uint32_t opt = armShiftOpToLdStOptMap[size_t(m.shiftOp())];
             if (opt == 0xFFu)
               goto InvalidAddress;
 
@@ -5169,6 +5167,10 @@ Error Assembler::align(AlignMode alignMode, uint32_t alignment) {
 
 Error Assembler::onAttach(CodeHolder* code) noexcept {
   ASMJIT_PROPAGATE(Base::onAttach(code));
+
+  _instructionAlignment = uint8_t(4);
+  assignEmitterFuncs(this);
+
   return kErrorOk;
 }
 

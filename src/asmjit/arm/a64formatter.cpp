@@ -29,12 +29,10 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
   Arch arch,
   const BaseInst& inst, const Operand_* operands, size_t opCount) noexcept {
 
-  DebugUtils::unused(arch);
-
   // Format instruction options and instruction mnemonic.
   InstId instId = inst.realId();
   if (instId < Inst::_kIdCount)
-    ASMJIT_PROPAGATE(InstInternal::instIdToString(arch, instId, sb));
+    ASMJIT_PROPAGATE(InstInternal::instIdToString(instId, sb));
   else
     ASMJIT_PROPAGATE(sb.appendFormat("[InstId=#%u]", unsigned(instId)));
 

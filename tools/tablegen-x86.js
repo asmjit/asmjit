@@ -8,25 +8,22 @@
 const fs = require("fs");
 const path = require("path");
 
-const cxx = require("./gencxx.js");
-const commons = require("./gencommons.js");
+const commons = require("./generator-commons.js");
+const cxx = require("./generator-cxx.js");
 const core = require("./tablegen.js");
 
 const asmdb = core.asmdb;
-const kIndent = core.kIndent;
-
-const Lang = core.Lang;
-const CxxUtils = core.CxxUtils;
-const MapUtils = core.MapUtils;
-const ArrayUtils = core.ArrayUtils;
-const StringUtils = core.StringUtils;
-const IndexedArray = core.IndexedArray;
-
-const hasOwn = Object.prototype.hasOwnProperty;
-const disclaimer = StringUtils.disclaimer;
 
 const DEBUG = commons.DEBUG;
 const FATAL = commons.FATAL;
+const kIndent = commons.kIndent;
+const ArrayUtils = commons.ArrayUtils;
+const IndexedArray = commons.IndexedArray;
+const ObjectUtils = commons.ObjectUtils;
+const StringUtils = commons.StringUtils;
+
+const hasOwn = Object.prototype.hasOwnProperty;
+const disclaimer = StringUtils.disclaimer;
 
 const decToHex = StringUtils.decToHex;
 
@@ -36,10 +33,6 @@ function readJSON(fileName) {
 }
 
 const x86data = readJSON(path.join(__dirname, "..", "db", asmdb.x86.dbName));
-
-// TODO: Fix these regressions:
-//   cvtsi2ss
-//   enqcmd
 
 // ============================================================================
 // [tablegen.x86.x86isa]
@@ -559,7 +552,7 @@ class X86TableGen extends core.TableGen {
   // --------------------------------------------------------------------------
 
   printMissing() {
-    const ignored = MapUtils.arrayToMap([
+    const ignored = ArrayUtils.toDict([
       "cmpsb", "cmpsw", "cmpsd", "cmpsq",
       "lodsb", "lodsw", "lodsd", "lodsq",
       "movsb", "movsw", "movsd", "movsq",
@@ -994,8 +987,8 @@ class AltOpcodeTable extends core.Task {
 // [tablegen.x86.InstSignatureTable]
 // ============================================================================
 
-const RegOp = MapUtils.arrayToMap(["al", "ah", "ax", "eax", "rax", "cl", "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st", "bnd"]);
-const MemOp = MapUtils.arrayToMap(["m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024"]);
+const RegOp = ArrayUtils.toDict(["al", "ah", "ax", "eax", "rax", "cl", "r8lo", "r8hi", "r16", "r32", "r64", "xmm", "ymm", "zmm", "mm", "k", "sreg", "creg", "dreg", "st", "bnd"]);
+const MemOp = ArrayUtils.toDict(["m8", "m16", "m32", "m48", "m64", "m80", "m128", "m256", "m512", "m1024"]);
 
 const cmpOp = StringUtils.makePriorityCompare([
   "RegGpbLo", "RegGpbHi", "RegGpw", "RegGpd", "RegGpq", "RegXmm", "RegYmm", "RegZmm", "RegMm", "RegKReg", "RegSReg", "RegCReg", "RegDReg", "RegSt", "RegBnd", "RegTmm",
@@ -1034,11 +1027,11 @@ class OSignature {
   }
 
   equals(other) {
-    return MapUtils.equals(this.flags, other.flags);
+    return ObjectUtils.equals(this.flags, other.flags);
   }
 
   xor(other) {
-    const result = MapUtils.xor(this.flags, other.flags);
+    const result = ObjectUtils.xor(this.flags, other.flags);
     return Object.getOwnPropertyNames(result).length === 0 ? null : result;
   }
 
@@ -1286,7 +1279,7 @@ class SignatureArray extends Array {
       for (var i = 0; i < inst.length; i++) {
         const op = inst[i];
         if (regOps & (1 << i))
-          s += "{" + ArrayUtils.sorted(MapUtils.and(op.flags, RegOp)).join("|") + "}";
+          s += "{" + ArrayUtils.sorted(ObjectUtils.and(op.flags, RegOp)).join("|") + "}";
       }
       return s || "?";
     }
@@ -1305,7 +1298,7 @@ class SignatureArray extends Array {
       // Check if this instruction signature has a memory operand of explicit size.
       for (i = 0; i < len; i++) {
         const aOp = aInst[i];
-        const mem = MapUtils.firstOf(aOp.flags, MemOp);
+        const mem = ObjectUtils.findKey(aOp.flags, MemOp);
 
         if (mem) {
           // Stop if the memory operand has implicit-size or if there is more than one.
@@ -1318,7 +1311,7 @@ class SignatureArray extends Array {
             memPos = i;
           }
         }
-        else if (MapUtils.anyOf(aOp.flags, RegOp)) {
+        else if (ObjectUtils.hasAny(aOp.flags, RegOp)) {
           // Doesn't consider 'r/m' as we already checked 'm'.
           regOps |= (1 << i);
         }
@@ -1343,7 +1336,7 @@ class SignatureArray extends Array {
         for (i = 0; i < len; i++) {
           if (i === memPos) continue;
 
-          const reg = MapUtils.anyOf(bInst[i].flags, RegOp);
+          const reg = ObjectUtils.hasAny(bInst[i].flags, RegOp);
           if (regOps & (1 << i))
             hasMatch &= reg;
           else if (reg)
@@ -1354,7 +1347,7 @@ class SignatureArray extends Array {
           const bOp = bInst[memPos];
           if (bOp.flags.mem) continue;
 
-          const mem = MapUtils.firstOf(bOp.flags, MemOp);
+          const mem = ObjectUtils.findKey(bOp.flags, MemOp);
           if (mem === memOp) {
             sameSizeSet.push(bInst);
           }
@@ -1816,7 +1809,7 @@ class AdditionalInfoTable extends core.Task {
           break;
       }
 
-      const instFlagsIndex = instFlagsTable.addIndexed("InstRWFlags(" + CxxUtils.flags(instFlags, (f) => { return `FLAG(${f})`; }, "FLAG(None)") + ")");
+      const instFlagsIndex = instFlagsTable.addIndexed("InstRWFlags(" + StringUtils.formatCppFlags(instFlags, (f) => { return `FLAG(${f})`; }, "FLAG(None)") + ")");
       const rwInfoIndex = rwInfoTable.addIndexed(`{ ${rData}, ${wData} }`);
 
       inst.additionalInfoIndex = additionaInfoTable.addIndexed(`{ ${instFlagsIndex}, ${rwInfoIndex}, { ${features} } }`);
@@ -1901,7 +1894,7 @@ class AdditionalInfoTable extends core.Task {
 // [tablegen.x86.InstRWInfoTable]
 // ============================================================================
 
-const NOT_MEM_AMBIGUOUS = MapUtils.arrayToMap([
+const NOT_MEM_AMBIGUOUS = ArrayUtils.toDict([
   "call", "movq"
 ]);
 
@@ -1974,20 +1967,20 @@ class InstRWInfoTable extends core.Task {
   run() {
     const insts = this.ctx.insts;
 
-    const noRmInfo = CxxUtils.struct(
+    const noRmInfo = StringUtils.formatCppStruct(
       "InstDB::RWInfoRm::kCategory" + "None".padEnd(10),
       StringUtils.decToHex(0, 2),
       String(0).padEnd(2),
-      CxxUtils.flags({}),
+      StringUtils.formatCppFlags({}),
       "0"
     );
 
-    const noOpInfo = CxxUtils.struct(
+    const noOpInfo = StringUtils.formatCppStruct(
       "0x0000000000000000u",
       "0x0000000000000000u",
       "0xFF",
       "0",
-      CxxUtils.struct(0),
+      StringUtils.formatCppStruct(0),
       "OpRWFlags::kNone"
     );
 
@@ -2026,7 +2019,7 @@ class InstRWInfoTable extends core.Task {
           if (opAcc === "R") flags.Read = true;
           if (opAcc === "W") flags.Write = true;
           if (opAcc === "X") flags.RW = true;
-          Lang.merge(flags, op.flags);
+          ObjectUtils.merge(flags, op.flags);
 
           const rIndex = opAcc === "X" || opAcc === "R" ? op.index : -1;
           const rWidth = opAcc === "X" || opAcc === "R" ? op.width : -1;
@@ -2035,23 +2028,23 @@ class InstRWInfoTable extends core.Task {
 
           const consecutiveLeadCount = op.clc;
 
-          const opData = CxxUtils.struct(
+          const opData = StringUtils.formatCppStruct(
             this.byteMaskFromBitRanges([{ start: rIndex, end: rIndex + rWidth - 1 }]) + "u",
             this.byteMaskFromBitRanges([{ start: wIndex, end: wIndex + wWidth - 1 }]) + "u",
             StringUtils.decToHex(op.fixed === -1 ? 0xFF : op.fixed, 2),
             String(consecutiveLeadCount),
-            CxxUtils.struct(0),
-            CxxUtils.flags(flags, function(flag) { return "OpRWFlags::k" + flag; }, "OpRWFlags::kNone")
+            StringUtils.formatCppStruct(0),
+            StringUtils.formatCppFlags(flags, function(flag) { return "OpRWFlags::k" + flag; }, "OpRWFlags::kNone")
           );
 
           rwOpsIndex.push(this.opInfoTable.addIndexed(opData));
         }
 
-        const rmData = CxxUtils.struct(
+        const rmData = StringUtils.formatCppStruct(
           "InstDB::RWInfoRm::kCategory" + rmInfo.category.padEnd(10),
           StringUtils.decToHex(rmInfo.rmIndexes, 2),
           String(Math.max(rmInfo.memFixed, 0)).padEnd(2),
-          CxxUtils.flags({
+          StringUtils.formatCppFlags({
             "InstDB::RWInfoRm::kFlagAmbiguous": Boolean(rmInfo.memAmbiguous),
             "InstDB::RWInfoRm::kFlagMovssMovsd": Boolean(inst.name === "movss" || inst.name === "movsd"),
             "InstDB::RWInfoRm::kFlagPextrw": Boolean(inst.name === "pextrw"),
@@ -2060,10 +2053,10 @@ class InstRWInfoTable extends core.Task {
           rmInfo.memExtension === "None" ? "0" : "uint32_t(CpuFeatures::X86::k" + rmInfo.memExtension + ")"
         );
 
-        const rwData = CxxUtils.struct(
+        const rwData = StringUtils.formatCppStruct(
           "InstDB::RWInfo::kCategory" + rwInfo.category.padEnd(10),
           String(this.rmInfoTable.addIndexed(rmData)).padEnd(2),
-          CxxUtils.struct(...(rwOpsIndex.map(function(item) { return String(item).padEnd(2); })))
+          StringUtils.formatCppStruct(...(rwOpsIndex.map(function(item) { return String(item).padEnd(2); })))
         );
 
         if (i == 0)
@@ -2218,12 +2211,12 @@ class InstRWInfoTable extends core.Task {
             rwOps[j] = d;
           }
           else {
-            if (!Lang.deepEqExcept(rwOps[j], d, { "fixed": true, "flags": true }))
+            if (!ObjectUtils.equalsExcept(rwOps[j], d, { "fixed": true, "flags": true }))
               return null;
 
             if (rwOps[j].fixed === -1)
               rwOps[j].fixed = d.fixed;
-            Lang.merge(rwOps[j].flags, d.flags);
+            ObjectUtils.merge(rwOps[j].flags, d.flags);
           }
         }
       }
@@ -2252,7 +2245,7 @@ class InstRWInfoTable extends core.Task {
 
         var match = 0;
         for (var j = 0; j < rwOpsArray.length; j++)
-          match |= Lang.deepEq(rwOps, rwOpsArray[j]);
+          match |= ObjectUtils.equals(rwOps, rwOpsArray[j]);
 
         if (!match)
           return false;
@@ -2309,7 +2302,7 @@ class InstRWInfoTable extends core.Task {
   }
 
   rwOpFlagsForInstruction(instName, opIndex) {
-    const toMap = MapUtils.arrayToMap;
+    const toMap = ArrayUtils.toDict;
 
     // TODO: We should be able to get this information from asmdb.
     switch (instName + "@" + opIndex) {

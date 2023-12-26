@@ -203,6 +203,11 @@ public:
   EmitterType _emitterType = EmitterType::kNone;
   //! See \ref EmitterFlags.
   EmitterFlags _emitterFlags = EmitterFlags::kNone;
+  //! Instruction alignment.
+  uint8_t _instructionAlignment = 0u;
+  //! \cond
+  uint8_t _reservedBaseEmitter = 0u;
+  //! \endcond
   //! Validation flags in case validation is used.
   //!
   //! \note Validation flags are specific to the emitter and they are setup at construction time and then never
@@ -263,7 +268,7 @@ public:
       Arch arch,
       const BaseInst& inst, const Operand_* operands, size_t opCount) ASMJIT_NOEXCEPT_TYPE;
 
-    typedef Error (ASMJIT_CDECL* ValidateFunc)(Arch arch, const BaseInst& inst, const Operand_* operands, size_t opCount, ValidationFlags validationFlags) ASMJIT_NOEXCEPT_TYPE;
+    typedef Error (ASMJIT_CDECL* ValidateFunc)(const BaseInst& inst, const Operand_* operands, size_t opCount, ValidationFlags validationFlags) ASMJIT_NOEXCEPT_TYPE;
 
     //! Emit prolog implementation.
     EmitProlog emitProlog;
@@ -360,6 +365,14 @@ public:
 
   //! Returns the target architecture's GP register size (4 or 8 bytes).
   ASMJIT_INLINE_NODEBUG uint32_t registerSize() const noexcept { return environment().registerSize(); }
+
+  //! Returns instruction alignment.
+  //!
+  //! The following values are returned based on the target architecture:
+  //!   - X86 and X86_64 - instruction alignment is 1
+  //!   - AArch32 - instruction alignment is 4 in A32 mode and 2 in THUMB mode.
+  //!   - AArch64 - instruction alignment is 4
+  ASMJIT_INLINE_NODEBUG uint32_t instructionAlignment() const noexcept { return _instructionAlignment; }
 
   //! \}
 

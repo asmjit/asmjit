@@ -1851,6 +1851,42 @@ const InstDB::CommonInfo InstDB::commonData[] = {
 #ifndef ASMJIT_NO_TEXT
 // ${NameData:Begin}
 // ------------------- Automatically generated, do not edit -------------------
+const InstNameIndex InstDB::instNameIndex = {{
+  { Inst::kIdAdc          , Inst::kIdAnd_v         + 1 },
+  { Inst::kIdB            , Inst::kIdBsl_v         + 1 },
+  { Inst::kIdCas          , Inst::kIdCnt_v         + 1 },
+  { Inst::kIdDc           , Inst::kIdDup_v         + 1 },
+  { Inst::kIdEon          , Inst::kIdExt_v         + 1 },
+  { Inst::kIdFabd_v       , Inst::kIdFsub_v        + 1 },
+  { Inst::kIdGmi          , Inst::kIdGmi           + 1 },
+  { Inst::kIdHint         , Inst::kIdHvc           + 1 },
+  { Inst::kIdIc           , Inst::kIdIns_v         + 1 },
+  { Inst::kIdNone         , Inst::kIdNone          + 1 },
+  { Inst::kIdNone         , Inst::kIdNone          + 1 },
+  { Inst::kIdLdadd        , Inst::kIdLdur_v        + 1 },
+  { Inst::kIdMadd         , Inst::kIdMvni_v        + 1 },
+  { Inst::kIdNeg          , Inst::kIdNot_v         + 1 },
+  { Inst::kIdOrn          , Inst::kIdOrr_v         + 1 },
+  { Inst::kIdPacda        , Inst::kIdPmull2_v      + 1 },
+  { Inst::kIdNone         , Inst::kIdNone          + 1 },
+  { Inst::kIdRbit         , Inst::kIdRsubhn2_v     + 1 },
+  { Inst::kIdSbc          , Inst::kIdSxtl2_v       + 1 },
+  { Inst::kIdTlbi         , Inst::kIdTrn2_v        + 1 },
+  { Inst::kIdUbfiz        , Inst::kIdUzp2_v        + 1 },
+  { Inst::kIdNone         , Inst::kIdNone          + 1 },
+  { Inst::kIdWfe          , Inst::kIdWfi           + 1 },
+  { Inst::kIdXaflag       , Inst::kIdXtn2_v        + 1 },
+  { Inst::kIdYield        , Inst::kIdYield         + 1 },
+  { Inst::kIdZip1_v       , Inst::kIdZip2_v        + 1 }
+}, uint16_t(9)};
+
+const char InstDB::_instNameStringTable[] =
+  "autia1716autibldsmaxalhldsminalldumaxallduminalsha256su0sha512su1sm3partwsqrshru"
+  "nldaddalldclralldeoralldsetallbstsmaxstsminstumaxstuminfrint32z64x64zh2sqdmlalsl"
+  "2sqdmulsqrdmlaulhn2sqshruuqrshrspcrc32cstaddstclrsteorstsetxpaclbfcvtbfmlaltfcvt"
+  "xfjcvtzfmaxnmfminnmfrsqrraddrsubsha1sm3tt12a2bsm4ekeysqxtuuqshrursqrsetfrev8";
+
+
 const uint32_t InstDB::_instNameIndexTable[] = {
   0x80000000, // Small ''.
   0x80000C81, // Small 'adc'.
@@ -2617,42 +2653,6 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0x800EBA98, // Small 'xtn2'.
   0x800E413A, // Small 'zip1'.
   0x800EC13A  // Small 'zip2'.
-};
-
-const char InstDB::_instNameStringTable[] =
-  "autia1716autibldsmaxalhldsminalldumaxallduminalsha256su0sha512su1sm3partwsqrshru"
-  "nldaddalldclralldeoralldsetallbstsmaxstsminstumaxstuminfrint32z64x64zh2sqdmlalsl"
-  "2sqdmulsqrdmlaulhn2sqshruuqrshrspcrc32cstaddstclrsteorstsetxpaclbfcvtbfmlaltfcvt"
-  "xfjcvtzfmaxnmfminnmfrsqrraddrsubsha1sm3tt12a2bsm4ekeysqxtuuqshrursqrsetfrev8";
-
-
-const InstDB::InstNameIndex InstDB::instNameIndex[26] = {
-  { Inst::kIdAdc          , Inst::kIdAnd_v         + 1 },
-  { Inst::kIdB            , Inst::kIdBsl_v         + 1 },
-  { Inst::kIdCas          , Inst::kIdCnt_v         + 1 },
-  { Inst::kIdDc           , Inst::kIdDup_v         + 1 },
-  { Inst::kIdEon          , Inst::kIdExt_v         + 1 },
-  { Inst::kIdFabd_v       , Inst::kIdFsub_v        + 1 },
-  { Inst::kIdGmi          , Inst::kIdGmi           + 1 },
-  { Inst::kIdHint         , Inst::kIdHvc           + 1 },
-  { Inst::kIdIc           , Inst::kIdIns_v         + 1 },
-  { Inst::kIdNone         , Inst::kIdNone          + 1 },
-  { Inst::kIdNone         , Inst::kIdNone          + 1 },
-  { Inst::kIdLdadd        , Inst::kIdLdur_v        + 1 },
-  { Inst::kIdMadd         , Inst::kIdMvni_v        + 1 },
-  { Inst::kIdNeg          , Inst::kIdNot_v         + 1 },
-  { Inst::kIdOrn          , Inst::kIdOrr_v         + 1 },
-  { Inst::kIdPacda        , Inst::kIdPmull2_v      + 1 },
-  { Inst::kIdNone         , Inst::kIdNone          + 1 },
-  { Inst::kIdRbit         , Inst::kIdRsubhn2_v     + 1 },
-  { Inst::kIdSbc          , Inst::kIdSxtl2_v       + 1 },
-  { Inst::kIdTlbi         , Inst::kIdTrn2_v        + 1 },
-  { Inst::kIdUbfiz        , Inst::kIdUzp2_v        + 1 },
-  { Inst::kIdNone         , Inst::kIdNone          + 1 },
-  { Inst::kIdWfe          , Inst::kIdWfi           + 1 },
-  { Inst::kIdXaflag       , Inst::kIdXtn2_v        + 1 },
-  { Inst::kIdYield        , Inst::kIdYield         + 1 },
-  { Inst::kIdZip1_v       , Inst::kIdZip2_v        + 1 }
 };
 // ----------------------------------------------------------------------------
 // ${NameData:End}

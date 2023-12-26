@@ -29,7 +29,7 @@ enum InstFlags : uint32_t {
   //! SIMD element access of half-words can only be used with v0..15.
   kInstFlagVH0_15 = 0x00000010u,
 
-  //! Instruction may consecutive registers if the number of operands is greater than 2.
+  //! Instruction uses consecutive registers if the number of operands is greater than 2.
   kInstFlagConsecutive = 0x00000080u
 };
 

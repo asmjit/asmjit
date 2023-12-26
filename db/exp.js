@@ -87,6 +87,7 @@ class ExpNode {
 
   info() { return null; }
   clone() { throw new Error("ExpNode.clone() must be overridden"); }
+  evaluate(ctx) { throw new Error("ExpNode.evaluate() must be overridden"); }
   toString(ctx) { throw new Error("ExpNode.toString() must be overridden"); }
 }
 
@@ -97,6 +98,7 @@ class ImmNode extends ExpNode {
   }
 
   clone() { return new ImmNode(this.imm); }
+  evaluate(ctx) { return this.imm; }
   toString(ctx) { return ctx ? ctx.stringifyImmediate(this.imm) : String(this.imm); }
 }
 
@@ -106,7 +108,8 @@ class VarNode extends ExpNode {
     this.name = name || "";
   }
 
-  clone() { return new VarNode(this.var); }
+  clone() { return new VarNode(this.name); }
+  evaluate(ctx) { return ctx.variable(this.name); }
   toString(ctx) { return ctx ? ctx.stringifyVariable(this.name) : String(this.name); }
 }
 
@@ -117,7 +120,14 @@ class CallNode extends ExpNode {
     this.args = args || [];
   }
 
-  clone() { return new CallNode(this.name, this.args.map(function(arg) { return arg.clone(); })); }
+  clone() {
+    return new CallNode(this.name, this.args.map(function(arg) { return arg.clone(); }));
+  }
+
+  evaluate(ctx) {
+    const evaluatedArgs = this.args.map(function(arg) { return arg.evaluate(ctx); });
+    return ctx.function(this.name, evaluatedArgs);
+  }
 
   toString(ctx) {
     if (this.name === "$bit") {
@@ -143,8 +153,23 @@ class UnaryNode extends ExpNode {
     this.child = child || null;
   }
 
-  info() { return kUnaryOperators[this.op]; }
-  clone() { return new UnaryNode(this.op, this.left ? this.left.clone() : null); }
+  info() {
+    return kUnaryOperators[this.op];
+  }
+
+  clone() {
+    return new UnaryNode(this.op, this.left ? this.left.clone() : null);
+  }
+
+  evaluate(ctx) {
+    const val = this.child.evaluate(ctx);
+    switch (this.op) {
+      case "-": return (-val);
+      case "~": return (~val);
+      case "!": return (val ? 0 : 1);
+      default : return ctx.unary(this.op, val);
+    }
+  }
 
   toString(ctx) {
     return this.info().emit.replace(/@1/g, () => {
@@ -166,8 +191,40 @@ class BinaryNode extends ExpNode {
     this.right = right || null;
   }
 
-  info() { return kBinaryOperators[this.op]; }
-  clone() { return new BinaryNode(this.op, this.left ? this.left.clone() : null, this.right ? this.right.clone() : null); }
+  info() {
+    return kBinaryOperators[this.op];
+  }
+
+  clone() {
+    return new BinaryNode(this.op, this.left ? this.left.clone() : null, this.right ? this.right.clone() : null);
+  }
+
+  evaluate(ctx) {
+    const left = this.left.evaluate(ctx);
+    const right = this.right.evaluate(ctx);
+
+    switch (this.op) {
+      case "-" : return left - right;
+      case "+" : return left + right;
+      case "*" : return left * right;
+      case "/" : return (left / right)|0;
+      case "%" : return (left % right)|0;
+      case "&" : return left & right;
+      case "|" : return left | right;
+      case "^" : return left ^ right;
+      case "<<": return left << right;
+      case ">>": return left >> right;
+      case "==": return left == right ? 1 : 0;
+      case "!=": return left != right ? 1 : 0;
+      case "<" : return left <  right ? 1 : 0;
+      case "<=": return left <= right ? 1 : 0;
+      case ">" : return left >  right ? 1 : 0;
+      case ">=": return left >= right ? 1 : 0;
+      case "&&": return left && right ? 1 : 0;
+      case "||": return left || right ? 1 : 0;
+      default  : return ctx.binary(this.op, left, right);
+    }
+  }
 
   toString(ctx) {
     return this.info().emit.replace(/@[1-2]/g, (p) => {
@@ -184,8 +241,6 @@ function Call(name, args) { return new CallNode(name, args); }
 function Unary(op, child) { return new UnaryNode(op, child); }
 function Binary(op, left, right) { return new BinaryNode(op, left, right); }
 
-/*
-// TODO: Unused, remove?
 function Negate(child) { return Unary("-", child); }
 function BitNot(child) { return Unary("~", child); }
 
@@ -207,7 +262,8 @@ function Gt(left, right) { return Binary(">", left, right); }
 function Ge(left, right) { return Binary(">=", left, right); }
 function And(left, right) { return Binary("&&", left, right); }
 function Or(left, right) { return Binary("||", left, right); }
-*/
+
+
 
 // Expression Tokenizer
 // --------------------
@@ -256,7 +312,44 @@ function newToken(type, position, data, value) {
 const NoToken = newToken(kTokenNone, -1, "<end>", null);
 
 // Must be reset before it can be used, use `RegExp.lastIndex`.
-const reValue = /(?:(?:\d*\.\d+|\d+)(?:[E|e][+|-]?\d+)?)/g;
+const reNumValue = /(?:(?:\d*\.\d+|\d+)(?:[E|e][+|-]?\d+)?)/g;
+
+function parseHex(source, from) {
+  let i = from;
+  let number = 0;
+
+  while (i < source.length) {
+    let c = source.charCodeAt(i);
+    let n = 0;
+
+    if (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)) {
+      n = c - '0'.charCodeAt(0);
+    }
+    else if (c >= 'a'.charCodeAt(0) && c <= 'f'.charCodeAt(0)) {
+      n = c - 'a'.charCodeAt(0) + 10;
+    }
+    else if (c >= 'A'.charCodeAt(0) && c <= 'F'.charCodeAt(0)) {
+      n = c - 'A'.charCodeAt(0) + 10;
+    }
+    else if (c >= 'g'.charCodeAt(0) && c <= 'z'.charCodeAt(0) || c >= 'g'.charCodeAt(0) && c <= 'Z'.charCodeAt(0)) {
+      throwExpressionError(`Invalid hex number 0x${source.substring(from, i + 1)}`);
+    }
+    else {
+      break;
+    }
+
+    number = (number << 4) | n;
+    i++;
+  }
+
+  if (i === from)
+    throwExpressionError(`Invalid number starting with 0x`);
+
+  return {
+    number: number,
+    end: i
+  };
+}
 
 function tokenize(source) {
   const len = source.length;
@@ -268,22 +361,33 @@ function tokenize(source) {
   let c, cat;       // Current character code and category.
 
   while (i < len) {
-    cat = Category(c = source.charCodeAt(i));
+    c = source.charCodeAt(i);
+    cat = Category(c);
 
     if (cat === kCharSpace) {
       i++;
     }
     else if (cat === kCharDigit) {
       const n = tokens.length - 1;
-      if (n >= 0 && tokens[n].data === "." && source[i - 1] === ".") {
-        tokens.length = n;
-        i--;
-      }
-      reValue.lastIndex = i;
-      data = reValue.exec(source)[0];
 
-      tokens.push(newToken(kTokenValue, i, data, parseFloat(data)));
-      i += data.length;
+      // Hex number.
+      if (c === '0'.charCodeAt(0) && i + 1 < len && source.charCodeAt(i + 1) === 'x'.charCodeAt(0)) {
+        const status = parseHex(source, i + 2);
+        tokens.push(newToken(kTokenValue, i, source.substring(i, status.end), status.number));
+        i = status.end;
+      }
+      else {
+        if (n >= 0 && tokens[n].data === "." && source[i - 1] === ".") {
+          tokens.length = n;
+          i--;
+        }
+
+        reNumValue.lastIndex = i;
+        data = reNumValue.exec(source)[0];
+
+        tokens.push(newToken(kTokenValue, i, data, parseFloat(data)));
+        i += data.length;
+      }
     }
     else if (cat === kCharAlpha) {
       start = i;
@@ -623,6 +727,29 @@ $scope[$as] = {
   Call: Call,
   Unary: Unary,
   Binary: Binary,
+
+  Negate: Negate,
+  BitNot: BitNot,
+
+  Add: Add,
+  Sub: Sub,
+  Mul: Mul,
+  Div: Div,
+  Mod: Mod,
+  Shl: Shl,
+  Shr: Shr,
+  BitAnd: BitAnd,
+  BitOr: BitOr,
+  BitXor: BitXor,
+  Eq: Eq,
+  Ne: Ne,
+  Lt: Lt,
+  Le: Le,
+  Gt: Gt,
+  Ge: Ge,
+  And: And,
+  Or: Or,
+
   Visitor: Visitor,
   ExpressionError: ExpressionError,
 

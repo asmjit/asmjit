@@ -95,6 +95,24 @@ struct RegFormatInfo_T {
                     X == uint32_t(RegType::kX86_Gpd  ) ? 8   :
                     X == uint32_t(RegType::kX86_Gpq  ) ? 8   :
                     X == uint32_t(RegType::kX86_SReg ) ? 7   :
+                    X == uint32_t(RegType::kX86_Rip  ) ? 1   : 0,
+
+    kRegCount =     X == uint32_t(RegType::kX86_GpbLo) ? 32  :
+                    X == uint32_t(RegType::kX86_GpbHi) ? 4   :
+                    X == uint32_t(RegType::kX86_Gpw  ) ? 32  :
+                    X == uint32_t(RegType::kX86_Gpd  ) ? 32  :
+                    X == uint32_t(RegType::kX86_Gpq  ) ? 32  :
+                    X == uint32_t(RegType::kX86_Xmm  ) ? 32  :
+                    X == uint32_t(RegType::kX86_Ymm  ) ? 32  :
+                    X == uint32_t(RegType::kX86_Zmm  ) ? 32  :
+                    X == uint32_t(RegType::kX86_Mm   ) ? 8   :
+                    X == uint32_t(RegType::kX86_KReg ) ? 8   :
+                    X == uint32_t(RegType::kX86_SReg ) ? 7   :
+                    X == uint32_t(RegType::kX86_CReg ) ? 16  :
+                    X == uint32_t(RegType::kX86_DReg ) ? 16  :
+                    X == uint32_t(RegType::kX86_St   ) ? 8   :
+                    X == uint32_t(RegType::kX86_Bnd  ) ? 4   :
+                    X == uint32_t(RegType::kX86_Tmm  ) ? 8   :
                     X == uint32_t(RegType::kX86_Rip  ) ? 1   : 0
   };
 };
@@ -104,7 +122,7 @@ struct RegFormatInfo_T {
 }
 
 #define ASMJIT_REG_NAME_ENTRY(TYPE) {   \
-  RegTraits<RegType(TYPE)>::kCount,     \
+  RegFormatInfo_T<TYPE>::kRegCount,     \
   RegFormatInfo_T<TYPE>::kFormatIndex,  \
   RegFormatInfo_T<TYPE>::kSpecialIndex, \
   RegFormatInfo_T<TYPE>::kSpecialCount  \
@@ -911,7 +929,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
       }
     }
 
-    ASMJIT_PROPAGATE(InstInternal::instIdToString(arch, instId, sb));
+    ASMJIT_PROPAGATE(InstInternal::instIdToString(instId, sb));
   }
   else {
     ASMJIT_PROPAGATE(sb.appendFormat("[InstId=#%u]", unsigned(instId)));

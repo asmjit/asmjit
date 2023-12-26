@@ -15,9 +15,6 @@
 
 ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 
-// a64 uses everything from arm namespace and adds into it.
-using namespace arm;
-
 //! \addtogroup asmjit_a64
 //! \{
 

@@ -13,24 +13,68 @@ ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 //! \addtogroup asmjit_a64
 //! \{
 
-using arm::Reg;
-using arm::Mem;
-using arm::Gp;
-using arm::GpW;
-using arm::GpX;
+class GpW;
+class GpX;
 
-using arm::Vec;
-using arm::VecB;
-using arm::VecH;
-using arm::VecS;
-using arm::VecD;
-using arm::VecV;
+//! General purpose register (AArch64).
+class Gp : public Reg {
+public:
+  ASMJIT_DEFINE_ABSTRACT_REG(Gp, Reg)
+
+  //! Special register id.
+  enum Id : uint32_t {
+    //! Register that depends on OS, could be used as TLS offset.
+    kIdOs = 18,
+    //! Frame pointer.
+    kIdFp = 29,
+    //! Link register.
+    kIdLr = 30,
+    //! Stack register id.
+    kIdSp = 31,
+    //! Zero register id.
+    //!
+    //! Although zero register has the same id as stack register it has a special treatment, because we need to be
+    //! able to distinguish between these two at API level. Some instructions were designed to be used with SP and
+    //! some other with ZR - so we need a way to distinguish these two to make sure we emit the right thing.
+    //!
+    //! The number 63 is not random, when you perform `id & 31` you would always get 31 for both SP and ZR inputs,
+    //! which is the identifier used by AArch64 ISA to encode either SP or ZR depending on the instruction.
+    kIdZr = 63
+  };
+
+  //! Test whether this register is ZR register.
+  ASMJIT_INLINE_NODEBUG constexpr bool isZR() const noexcept { return id() == kIdZr; }
+  //! Test whether this register is SP register.
+  ASMJIT_INLINE_NODEBUG constexpr bool isSP() const noexcept { return id() == kIdSp; }
+
+  //! Cast this register to a 32-bit W register (returns a new operand).
+  ASMJIT_INLINE_NODEBUG GpW w() const noexcept;
+  //! Cast this register to a 64-bit X register (returns a new operand).
+  ASMJIT_INLINE_NODEBUG GpX x() const noexcept;
+};
+
+//! 32-bit general purpose W register (AArch64).
+class GpW : public Gp { ASMJIT_DEFINE_FINAL_REG(GpW, Gp, RegTraits<RegType::kARM_GpW>); };
+//! 64-bit general purpose X register (AArch64).
+class GpX : public Gp { ASMJIT_DEFINE_FINAL_REG(GpX, Gp, RegTraits<RegType::kARM_GpX>); };
+
+#ifndef _DOXYGEN
+ASMJIT_INLINE_NODEBUG GpW Gp::w() const noexcept { return GpW(id()); }
+ASMJIT_INLINE_NODEBUG GpX Gp::x() const noexcept { return GpX(id()); }
+#endif
 
 #ifndef _DOXYGEN
 namespace regs {
 #endif
 
-using namespace ::asmjit::arm::regs;
+//! Creates a 32-bit W register operand (ARM/AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr GpW w(uint32_t id) noexcept { return GpW(id); }
+//! Creates a 64-bit X register operand (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr GpX x(uint32_t id) noexcept { return GpX(id); }
+
+using ::asmjit::arm::regs::s;
+using ::asmjit::arm::regs::d;
+using ::asmjit::arm::regs::v;
 
 static constexpr GpW w0 = GpW(0);
 static constexpr GpW w1 = GpW(1);
@@ -305,8 +349,91 @@ static constexpr VecV v31 = VecV(31);
 using namespace regs;
 #endif
 
+//! \name Shift Operation Construction
+//! \{
+
+//! Constructs a `UXTB #value` extend and shift (unsigned byte extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxtb(uint32_t value) noexcept { return Shift(ShiftOp::kUXTB, value); }
+//! Constructs a `UXTH #value` extend and shift (unsigned hword extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxth(uint32_t value) noexcept { return Shift(ShiftOp::kUXTH, value); }
+//! Constructs a `UXTW #value` extend and shift (unsigned word extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxtw(uint32_t value) noexcept { return Shift(ShiftOp::kUXTW, value); }
+//! Constructs a `UXTX #value` extend and shift (unsigned dword extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift uxtx(uint32_t value) noexcept { return Shift(ShiftOp::kUXTX, value); }
+
+//! Constructs a `SXTB #value` extend and shift (signed byte extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxtb(uint32_t value) noexcept { return Shift(ShiftOp::kSXTB, value); }
+//! Constructs a `SXTH #value` extend and shift (signed hword extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxth(uint32_t value) noexcept { return Shift(ShiftOp::kSXTH, value); }
+//! Constructs a `SXTW #value` extend and shift (signed word extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxtw(uint32_t value) noexcept { return Shift(ShiftOp::kSXTW, value); }
+//! Constructs a `SXTX #value` extend and shift (signed dword extend) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Shift sxtx(uint32_t value) noexcept { return Shift(ShiftOp::kSXTX, value); }
+
+//! \}
+
+//! \name Memory Operand Construction
+//! \{
+
+//! Creates `[base, offset]` memory operand (offset mode) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, int32_t offset = 0) noexcept {
+  return Mem(base, offset);
+}
+
+//! Creates `[base, offset]!` memory operand (pre-index mode) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_pre(const Gp& base, int32_t offset = 0) noexcept {
+  return Mem(base, offset, OperandSignature::fromValue<Mem::kSignatureMemOffsetModeMask>(OffsetMode::kPreIndex));
+}
+
+//! Creates `[base], offset` memory operand (post-index mode) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_post(const Gp& base, int32_t offset = 0) noexcept {
+  return Mem(base, offset, OperandSignature::fromValue<Mem::kSignatureMemOffsetModeMask>(OffsetMode::kPostIndex));
+}
+
+//! Creates `[base, index]` memory operand (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, const Gp& index) noexcept {
+  return Mem(base, index);
+}
+
+//! Creates `[base, index]!` memory operand (pre-index mode) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_pre(const Gp& base, const Gp& index) noexcept {
+  return Mem(base, index, OperandSignature::fromValue<Mem::kSignatureMemOffsetModeMask>(OffsetMode::kPreIndex));
+}
+
+//! Creates `[base], index` memory operand (post-index mode) (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_post(const Gp& base, const Gp& index) noexcept {
+  return Mem(base, index, OperandSignature::fromValue<Mem::kSignatureMemOffsetModeMask>(OffsetMode::kPostIndex));
+}
+
+//! Creates `[base, index, SHIFT_OP #shift]` memory operand (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, const Gp& index, const Shift& shift) noexcept {
+  return Mem(base, index, shift);
+}
+
+//! Creates `[base, offset]` memory operand (AArch64).
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Label& base, int32_t offset = 0) noexcept {
+  return Mem(base, offset);
+}
+
+// TODO: [ARM] PC + offset address.
+#if 0
+//! Creates `[PC + offset]` (relative) memory operand.
+static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const PC& pc, int32_t offset = 0) noexcept {
+  return Mem(pc, offset);
+}
+#endif
+
+//! \}
+
 //! \}
 
 ASMJIT_END_SUB_NAMESPACE
+
+//! \cond INTERNAL
+ASMJIT_BEGIN_NAMESPACE
+ASMJIT_DEFINE_TYPE_ID(a64::GpW, TypeId::kInt32);
+ASMJIT_DEFINE_TYPE_ID(a64::GpX, TypeId::kInt64);
+ASMJIT_END_NAMESPACE
+//! \endcond
 
 #endif // ASMJIT_ARM_A64OPERAND_H_INCLUDED

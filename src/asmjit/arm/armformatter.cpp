@@ -9,7 +9,7 @@
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../arm/armformatter_p.h"
-#include "../arm/armoperand.h"
+#include "../arm/a64operand.h"
 #include "../arm/a64instapi_p.h"
 #include "../arm/a64instdb_p.h"
 
@@ -178,7 +178,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatCondCode(String& sb, CondCode c
   static const char condCodeData[] =
     "al\0" "na\0"
     "eq\0" "ne\0"
-    "cs\0" "cc\0" "mi\0" "pl\0" "vs\0" "vc\0"
+    "hs\0" "lo\0" "mi\0" "pl\0" "vs\0" "vc\0"
     "hi\0" "ls\0" "ge\0" "lt\0" "gt\0" "le\0"
     "<Unknown>";
   return sb.append(condCodeData + Support::min<uint32_t>(uint32_t(cc), 16u) * 3);
@@ -208,6 +208,25 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatShiftOp(String& sb, ShiftOp shi
 
 // arm::FormatterInternal - Format Register
 // ========================================
+
+struct FormatElementData {
+  char letter;
+  uint8_t elementCount;
+  uint8_t onlyIndex;
+  uint8_t reserved;
+};
+
+static constexpr FormatElementData formatElementDataTable[9] = {
+  { '?' , 0 , 0, 0 }, // None
+  { 'b' , 16, 0, 0 }, // bX or b[index]
+  { 'h' , 8 , 0, 0 }, // hX or h[index]
+  { 's' , 4 , 0, 0 }, // sX or s[index]
+  { 'd' , 2 , 0, 0 }, // dX or d[index]
+  { 'b' , 4 , 1, 0 }, // ?? or b4[index]
+  { 'h' , 2 , 1, 0 }, // ?? or h2[index]
+  { '?' , 0 , 0, 0 }, // invalid (possibly stored in Operand)
+  { '?' , 0 , 0, 0 }  // invalid (never stored in Operand, bug...)
+};
 
 ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
   String& sb,
@@ -265,31 +284,22 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         if (Environment::is64Bit(arch)) {
           letter = 'w';
 
-          if (rId == Gp::kIdZr)
+          if (rId == a64::Gp::kIdZr)
             return sb.append("wzr", 3);
 
-          if (rId == Gp::kIdSp)
+          if (rId == a64::Gp::kIdSp)
             return sb.append("wsp", 3);
         }
         else {
           letter = 'r';
-
-          if (rId == 13)
-            return sb.append("sp", 2);
-
-          if (rId == 14)
-            return sb.append("lr", 2);
-
-          if (rId == 15)
-            return sb.append("pc", 2);
         }
         break;
 
       case RegType::kARM_GpX:
         if (Environment::is64Bit(arch)) {
-          if (rId == Gp::kIdZr)
+          if (rId == a64::Gp::kIdZr)
             return sb.append("xzr", 3);
-          if (rId == Gp::kIdSp)
+          if (rId == a64::Gp::kIdSp)
             return sb.append("sp", 2);
 
           letter = 'x';
@@ -300,7 +310,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         ASMJIT_FALLTHROUGH;
 
       default:
-        ASMJIT_PROPAGATE(sb.appendFormat("<Reg-%u>?$u", uint32_t(regType), rId));
+        ASMJIT_PROPAGATE(sb.appendFormat("<Reg-%u>?%u", uint32_t(regType), rId));
         break;
     }
 
@@ -309,49 +319,64 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
   }
 
   if (elementType) {
-    char elementLetter = '\0';
-    uint32_t elementCount = 0;
+    if (elementType > a64::Vec::kElementTypeCount)
+      elementType = a64::Vec::kElementTypeCount;
 
-    switch (elementType) {
-      case Vec::kElementTypeB:
-        elementLetter = 'b';
-        elementCount = 16;
-        break;
+    FormatElementData elementData = formatElementDataTable[elementType];
+    uint32_t elementCount = elementData.elementCount;
 
-      case Vec::kElementTypeH:
-        elementLetter = 'h';
-        elementCount = 8;
-        break;
-
-      case Vec::kElementTypeS:
-        elementLetter = 's';
-        elementCount = 4;
-        break;
-
-      case Vec::kElementTypeD:
-        elementLetter = 'd';
-        elementCount = 2;
-        break;
-
-      default:
-        return sb.append(".<Unknown>");
+    if (regType == RegType::kARM_VecD) {
+      elementCount /= 2u;
     }
 
-    if (elementLetter) {
-      if (elementIndex == 0xFFFFFFFFu) {
-        if (regType == RegType::kARM_VecD)
-          elementCount /= 2u;
-        ASMJIT_PROPAGATE(sb.appendFormat(".%u%c", elementCount, elementLetter));
-      }
-      else {
-        ASMJIT_PROPAGATE(sb.appendFormat(".%c[%u]", elementLetter, elementIndex));
-      }
+    ASMJIT_PROPAGATE(sb.append('.'));
+    if (elementCount) {
+      ASMJIT_PROPAGATE(sb.appendUInt(elementCount));
     }
+    ASMJIT_PROPAGATE(sb.append(elementData.letter));
   }
-  else if (elementIndex != 0xFFFFFFFFu) {
-    // This should only be used by AArch32 - AArch64 requires an additional elementType in index[].
+
+  if (elementIndex != 0xFFFFFFFFu) {
     ASMJIT_PROPAGATE(sb.appendFormat("[%u]", elementIndex));
   }
+
+  return kErrorOk;
+}
+
+ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegisterList(
+  String& sb,
+  FormatFlags flags,
+  const BaseEmitter* emitter,
+  Arch arch,
+  RegType regType,
+  uint32_t rMask) noexcept {
+
+  bool first = true;
+
+  ASMJIT_PROPAGATE(sb.append('{'));
+  while (rMask != 0u) {
+    uint32_t start = Support::ctz(rMask);
+    uint32_t count = 0u;
+
+    uint32_t mask = 1u << start;
+    do {
+      rMask &= ~mask;
+      mask <<= 1u;
+      count++;
+    } while (rMask & mask);
+
+    if (!first)
+      ASMJIT_PROPAGATE(sb.append(", "));
+
+    ASMJIT_PROPAGATE(formatRegister(sb, flags, emitter, arch, regType, start, 0, 0xFFFFFFFFu));
+    if (count >= 2u) {
+      ASMJIT_PROPAGATE(sb.append('-'));
+      ASMJIT_PROPAGATE(formatRegister(sb, flags, emitter, arch, regType, start + count - 1, 0, 0xFFFFFFFFu));
+    }
+
+    first = false;
+  }
+  ASMJIT_PROPAGATE(sb.append('}'));
 
   return kErrorOk;
 }
@@ -434,7 +459,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
     if (m.hasShift()) {
       ASMJIT_PROPAGATE(sb.append(' '));
       if (!m.isPreOrPost())
-        ASMJIT_PROPAGATE(formatShiftOp(sb, (ShiftOp)m.predicate()));
+        ASMJIT_PROPAGATE(formatShiftOp(sb, m.shiftOp()));
       ASMJIT_PROPAGATE(sb.appendFormat(" %u", m.shift()));
     }
 
@@ -462,6 +487,11 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
 
   if (op.isLabel()) {
     return Formatter::formatLabel(sb, flags, emitter, op.id());
+  }
+
+  if (op.isRegList()) {
+    const BaseRegList& regList = op.as<BaseRegList>();
+    return formatRegisterList(sb, flags, emitter, arch, regList.type(), regList.list());
   }
 
   return sb.append("<None>");

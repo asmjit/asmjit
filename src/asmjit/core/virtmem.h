@@ -275,7 +275,7 @@ public:
 
   //! \}
 
-  //! \name Construction / Destruction
+  //! \name Construction & Destruction
   //! \{
 
   //! Makes the given memory block RW protected.

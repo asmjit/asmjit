@@ -384,6 +384,7 @@ Error BaseEmitter::onDetach(CodeHolder* code) noexcept {
     _errorHandler = nullptr;
 
   _clearEmitterFlags(~kEmitterPreservedFlags);
+  _instructionAlignment = uint8_t(0);
   _forcedInstOptions = InstOptions::kReserved;
   _privateData = 0;
 
@@ -393,6 +394,7 @@ Error BaseEmitter::onDetach(CodeHolder* code) noexcept {
   _instOptions = InstOptions::kNone;
   _extraReg.reset();
   _inlineComment = nullptr;
+  _funcs.reset();
 
   return kErrorOk;
 }

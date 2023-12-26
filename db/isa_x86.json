@@ -2626,7 +2626,7 @@
     {"category": "AVX SIMD", "ext": "AVX SM3", "data": [
       {"inst": "vsm3msg1 X:xmm, xmm, xmm/m128"                              , "op": "RVM: VEX.128.NP.0F38.W0 DA /r"},
       {"inst": "vsm3msg2 X:xmm, xmm, xmm/m128"                              , "op": "RVM: VEX.128.66.0F38.W0 DA /r"},
-      {"inst": "vsm3rnds2 X:xmm, xmm, xmm/m128, ib/ub"                      , "op": "RVM: VEX.128.66.0F3A.W0 DE /r /ib"}
+      {"inst": "vsm3rnds2 X:xmm, xmm, xmm/m128, ib/ub"                      , "op": "RVM: VEX.128.66.0F3A.W0 DE /r ib"}
     ]},
 
     {"category": "AVX SIMD", "ext": "AVX SM4", "data": [

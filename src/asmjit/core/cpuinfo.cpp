@@ -693,7 +693,7 @@ static ASMJIT_FAVOR_SIZE void populateARMv8AFeatures(CpuFeatures::ARM& features,
       features.add(Ext::kCCIDX, Ext::kFCMA, Ext::kJSCVT, Ext::kLRCPC, Ext::kPAUTH);
       ASMJIT_FALLTHROUGH;
     case 2: // ARMv8.2
-      features.add(Ext::kCRC32, Ext::kDPB, Ext::kPAN2, Ext::kRAS, Ext::kUAO);
+      features.add(Ext::kDPB, Ext::kPAN2, Ext::kRAS, Ext::kUAO);
       ASMJIT_FALLTHROUGH;
     case 1: // ARMv8.1
       features.add(Ext::kCRC32, Ext::kLOR, Ext::kLSE, Ext::kPAN, Ext::kRDM, Ext::kVHE);
@@ -1499,7 +1499,7 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 
 #ifndef AT_HWCAP
   #define AT_HWCAP 16
-#endif // AT_HWCAP
+#endif // !AT_HWCAP
 
 #ifndef AT_HWCAP2
   #define AT_HWCAP2 26

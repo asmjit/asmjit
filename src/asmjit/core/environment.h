@@ -465,11 +465,6 @@ public:
     return arch == Arch::kX86 || arch == Arch::kX64;
   }
 
-  //! Tests whether the given architecture family is ARM, THUMB, or AArch64.
-  static ASMJIT_INLINE_NODEBUG bool isFamilyARM(Arch arch) noexcept {
-    return isArchARM(arch) || isArchAArch64(arch) || isArchThumb(arch);
-  }
-
   //! Tests whether the given architecture family is AArch32 (ARM or THUMB).
   static ASMJIT_INLINE_NODEBUG bool isFamilyAArch32(Arch arch) noexcept {
     return isArchARM(arch) || isArchThumb(arch);
@@ -478,6 +473,11 @@ public:
   //! Tests whether the given architecture family is AArch64.
   static ASMJIT_INLINE_NODEBUG bool isFamilyAArch64(Arch arch) noexcept {
     return isArchAArch64(arch);
+  }
+
+  //! Tests whether the given architecture family is ARM, THUMB, or AArch64.
+  static ASMJIT_INLINE_NODEBUG bool isFamilyARM(Arch arch) noexcept {
+    return isFamilyAArch32(arch) || isFamilyAArch64(arch);
   }
 
   //! Tests whether the given architecture family is MISP or MIPS64.

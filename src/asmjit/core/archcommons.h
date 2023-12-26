@@ -29,8 +29,8 @@ enum class CondCode : uint8_t {
   kNE             = 0x03u,      //!<        Z==0         (any_sign !=)
   kCS             = 0x04u,      //!< C==1                (unsigned >=)
   kHS             = 0x04u,      //!< C==1                (unsigned >=)
-  kCC             = 0x05u,      //!< C==0                (unsigned < )
   kLO             = 0x05u,      //!< C==0                (unsigned < )
+  kCC             = 0x05u,      //!< C==0                (unsigned < )
   kMI             = 0x06u,      //!<               N==1  (is negative)
   kPL             = 0x07u,      //!<               N==0  (is positive or zero)
   kVS             = 0x08u,      //!<               V==1  (is overflow)
@@ -75,41 +75,16 @@ enum class CondCode : uint8_t {
 //! Negates a condition code.
 static ASMJIT_INLINE_NODEBUG constexpr CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
 
-//! Data type that can be encoded with the instruction (AArch32 only).
-enum class DataType : uint32_t {
-  //! No data type specified (default for all general purpose instructions).
-  kNone = 0,
-  //! 8-bit signed integer, specified as `.s8` in assembly.
-  kS8 = 1,
-  //! 16-bit signed integer, specified as `.s16` in assembly.
-  kS16 = 2,
-  //! 32-bit signed integer, specified as `.s32` in assembly.
-  kS32 = 3,
-  //! 64-bit signed integer, specified as `.s64` in assembly.
-  kS64 = 4,
-  //! 8-bit unsigned integer, specified as `.u8` in assembly.
-  kU8 = 5,
-  //! 16-bit unsigned integer, specified as `.u16` in assembly.
-  kU16 = 6,
-  //! 32-bit unsigned integer, specified as `.u32` in assembly.
-  kU32 = 7,
-  //! 64-bit unsigned integer, specified as `.u64` in assembly.
-  kU64 = 8,
-  //! 16-bit floating point (half precision), specified as `.f16` in assembly.
-  kF16 = 10,
-  //! 32-bit floating point (single precision), specified as `.f32` in assembly.
-  kF32 = 11,
-  //! 64-bit floating point (double precision), specified as `.f64` in assembly.
-  kF64 = 12,
-  //! 8-bit polynomial.
-  kP8 = 13,
-  //! 16-bit BF16 floating point.
-  kBF16 = 14,
-  //! 64-bit polynomial.
-  kP64 = 15,
-
-  //! Maximum value of `DataType`.
-  kMaxValue = 15
+//! Memory offset mode.
+//!
+//! Describes either fixed, pre-index, or post-index offset modes.
+enum class OffsetMode : uint32_t {
+  //! Fixed offset mode (either no index at all or a regular index without a write-back).
+  kFixed = 0u,
+  //! Pre-index "[BASE, #Offset {, <shift>}]!" with write-back.
+  kPreIndex = 1u,
+  //! Post-index "[BASE], #Offset {, <shift>}" with write-back.
+  kPostIndex = 2u
 };
 
 //! Shift operation predicate (ARM) describes either SHIFT or EXTEND operation.
@@ -187,45 +162,70 @@ public:
   //! Sets shift operation to `op`.
   ASMJIT_INLINE_NODEBUG void setOp(ShiftOp op) noexcept { _op = op; }
 
-  //! Returns the shift smount.
+  //! Returns the shift amount.
   ASMJIT_INLINE_NODEBUG constexpr uint32_t value() const noexcept { return _value; }
   //! Sets shift amount to `value`.
   ASMJIT_INLINE_NODEBUG void setValue(uint32_t value) noexcept { _value = value; }
 };
 
-//! Constructs a `LSL #value` shift (logical shift left).
-static ASMJIT_INLINE_NODEBUG constexpr Shift lsl(uint32_t value) noexcept { return Shift(ShiftOp::kLSL, value); }
-//! Constructs a `LSR #value` shift (logical shift right).
-static ASMJIT_INLINE_NODEBUG constexpr Shift lsr(uint32_t value) noexcept { return Shift(ShiftOp::kLSR, value); }
-//! Constructs a `ASR #value` shift (arithmetic shift right).
-static ASMJIT_INLINE_NODEBUG constexpr Shift asr(uint32_t value) noexcept { return Shift(ShiftOp::kASR, value); }
-//! Constructs a `ROR #value` shift (rotate right).
-static ASMJIT_INLINE_NODEBUG constexpr Shift ror(uint32_t value) noexcept { return Shift(ShiftOp::kROR, value); }
-//! Constructs a `RRX` shift (rotate with carry by 1).
-static ASMJIT_INLINE_NODEBUG constexpr Shift rrx() noexcept { return Shift(ShiftOp::kRRX, 0); }
-//! Constructs a `MSL #value` shift (logical shift left filling ones).
-static ASMJIT_INLINE_NODEBUG constexpr Shift msl(uint32_t value) noexcept { return Shift(ShiftOp::kMSL, value); }
-
-//! Constructs a `UXTB #value` extend and shift (unsigned byte extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift uxtb(uint32_t value) noexcept { return Shift(ShiftOp::kUXTB, value); }
-//! Constructs a `UXTH #value` extend and shift (unsigned hword extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift uxth(uint32_t value) noexcept { return Shift(ShiftOp::kUXTH, value); }
-//! Constructs a `UXTW #value` extend and shift (unsigned word extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift uxtw(uint32_t value) noexcept { return Shift(ShiftOp::kUXTW, value); }
-//! Constructs a `UXTX #value` extend and shift (unsigned dword extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift uxtx(uint32_t value) noexcept { return Shift(ShiftOp::kUXTX, value); }
-
-//! Constructs a `SXTB #value` extend and shift (signed byte extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift sxtb(uint32_t value) noexcept { return Shift(ShiftOp::kSXTB, value); }
-//! Constructs a `SXTH #value` extend and shift (signed hword extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift sxth(uint32_t value) noexcept { return Shift(ShiftOp::kSXTH, value); }
-//! Constructs a `SXTW #value` extend and shift (signed word extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift sxtw(uint32_t value) noexcept { return Shift(ShiftOp::kSXTW, value); }
-//! Constructs a `SXTX #value` extend and shift (signed dword extend).
-static ASMJIT_INLINE_NODEBUG constexpr Shift sxtx(uint32_t value) noexcept { return Shift(ShiftOp::kSXTX, value); }
-
 //! \}
 
+ASMJIT_END_SUB_NAMESPACE
+
+ASMJIT_BEGIN_SUB_NAMESPACE(a32)
+
+using namespace arm;
+
+//! Data type that can be encoded with AArch32 instruction identifier.
+//!
+//! \note Data types are frequently used with AArch32 SIMD instructions. For example `VMAX` instruction can
+//! use almost all datatypes in a form `VMAX.F32`, `VMAX.S16`, `VMAX.U32`, etc... Emitter automatically adds
+//! the required data type at emit level.
+enum class DataType : uint32_t {
+  //! No data type specified (default for all general purpose instructions).
+  kNone = 0,
+  //! 8-bit signed integer, specified as `.s8` in assembly.
+  kS8 = 1,
+  //! 16-bit signed integer, specified as `.s16` in assembly.
+  kS16 = 2,
+  //! 32-bit signed integer, specified as `.s32` in assembly.
+  kS32 = 3,
+  //! 64-bit signed integer, specified as `.s64` in assembly.
+  kS64 = 4,
+  //! 8-bit unsigned integer, specified as `.u8` in assembly.
+  kU8 = 5,
+  //! 16-bit unsigned integer, specified as `.u16` in assembly.
+  kU16 = 6,
+  //! 32-bit unsigned integer, specified as `.u32` in assembly.
+  kU32 = 7,
+  //! 64-bit unsigned integer, specified as `.u64` in assembly.
+  kU64 = 8,
+  //! 16-bit floating point (half precision), specified as `.f16` in assembly.
+  kF16 = 10,
+  //! 32-bit floating point (single precision), specified as `.f32` in assembly.
+  kF32 = 11,
+  //! 64-bit floating point (double precision), specified as `.f64` in assembly.
+  kF64 = 12,
+  //! 8-bit polynomial.
+  kP8 = 13,
+  //! 16-bit BF16 floating point.
+  kBF16 = 14,
+  //! 64-bit polynomial.
+  kP64 = 15,
+
+  //! Maximum value of `DataType`.
+  kMaxValue = 15
+};
+
+static ASMJIT_INLINE_NODEBUG uint32_t dataTypeSize(DataType dt) noexcept {
+  static constexpr uint8_t table[] = { 0, 1, 2, 4, 8, 1, 2, 4, 8, 2, 4, 8, 1, 2, 8 };
+  return table[size_t(dt)];
+}
+
+ASMJIT_END_SUB_NAMESPACE
+
+ASMJIT_BEGIN_SUB_NAMESPACE(a64)
+using namespace arm;
 ASMJIT_END_SUB_NAMESPACE
 
 #endif // ASMJIT_CORE_ARCHCOMMONS_H_INCLUDED

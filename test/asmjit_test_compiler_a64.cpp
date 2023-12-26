@@ -64,11 +64,11 @@ public:
     if (_preserveFP)
       funcNode->frame().setPreservedFP();
 
-    arm::Gp sum;
+    a64::Gp sum;
 
     if (argCount) {
       for (i = 0; i < argCount; i++) {
-        arm::Gp iReg = cc.newInt32("i%u", i);
+        a64::Gp iReg = cc.newInt32("i%u", i);
         funcNode->setArg(i, iReg);
 
         if (i == 0)
@@ -184,7 +184,7 @@ public:
     result.assignFormat("ret={%u, %u}", resultRet >> 28, resultRet & 0x0FFFFFFFu);
     expect.assignFormat("ret={%u, %u}", expectRet >> 28, expectRet & 0x0FFFFFFFu);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -203,9 +203,9 @@ public:
   virtual void compile(a64::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, void*, const void*, const void*>());
 
-    arm::Gp dst = cc.newUIntPtr("dst");
-    arm::Gp src1 = cc.newUIntPtr("src1");
-    arm::Gp src2 = cc.newUIntPtr("src2");
+    a64::Gp dst = cc.newUIntPtr("dst");
+    a64::Gp src1 = cc.newUIntPtr("src1");
+    a64::Gp src2 = cc.newUIntPtr("src2");
 
     funcNode->setArg(0, dst);
     funcNode->setArg(1, src1);
@@ -215,10 +215,10 @@ public:
     arm::Vec v2 = cc.newVecQ("vec2");
     arm::Vec v3 = cc.newVecQ("vec3");
 
-    cc.ldr(v2, arm::ptr(src1));
-    cc.ldr(v3, arm::ptr(src2));
+    cc.ldr(v2, a64::ptr(src1));
+    cc.ldr(v3, a64::ptr(src2));
     cc.add(v1.b16(), v2.b16(), v3.b16());
-    cc.str(v1, arm::ptr(dst));
+    cc.str(v1, a64::ptr(dst));
 
     cc.endFunc();
   }
@@ -235,13 +235,10 @@ public:
 
     ptr_as_func<Func>(_func)(dst, aSrc, bSrc);
 
-    unsigned int resultRet = 0;
-    unsigned int expectRet = 0;
-
     result.assignFormat("ret={%u, %u, %u, %u}", dst[0], dst[1], dst[2], dst[3]);
     expect.assignFormat("ret={%u, %u, %u, %u}", ref[0], ref[1], ref[2], ref[3]);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -266,14 +263,14 @@ public:
   virtual void compile(a64::Compiler& cc) {
     cc.addFunc(FuncSignatureT<int>());
 
-    arm::Gp* regs = static_cast<arm::Gp*>(malloc(_regCount * sizeof(arm::Gp)));
+    a64::Gp* regs = static_cast<a64::Gp*>(malloc(_regCount * sizeof(a64::Gp)));
 
     for (uint32_t i = 0; i < _regCount; i++) {
       regs[i] = cc.newUInt32("reg%u", i);
       cc.mov(regs[i], i + 1);
     }
 
-    arm::Gp sum = cc.newUInt32("sum");
+    a64::Gp sum = cc.newUInt32("sum");
     cc.mov(sum, 0);
 
     for (uint32_t i = 0; i < _regCount; i++) {
@@ -316,13 +313,13 @@ public:
   virtual void compile(a64::Compiler& cc) {
     cc.addFunc(FuncSignatureT<int>());
 
-    arm::Gp addr = cc.newIntPtr("addr");
-    arm::Gp val = cc.newIntPtr("val");
+    a64::Gp addr = cc.newIntPtr("addr");
+    a64::Gp val = cc.newIntPtr("val");
 
     Label L_Table = cc.newLabel();
 
     cc.adr(addr, L_Table);
-    cc.ldrsw(val, arm::ptr(addr, 8));
+    cc.ldrsw(val, a64::ptr(addr, 8));
     cc.ret(val);
     cc.endFunc();
 
@@ -360,9 +357,9 @@ public:
   virtual void compile(a64::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, void*, size_t>());
 
-    arm::Gp p = cc.newIntPtr("p");
-    arm::Gp count = cc.newIntPtr("count");
-    arm::Gp i = cc.newIntPtr("i");
+    a64::Gp p = cc.newIntPtr("p");
+    a64::Gp count = cc.newIntPtr("count");
+    a64::Gp i = cc.newIntPtr("i");
     Label L = cc.newLabel();
 
     funcNode->setArg(0, p);
@@ -415,10 +412,10 @@ public:
   virtual void compile(a64::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignatureT<uint32_t, uint32_t, uint32_t>());
 
-    arm::Gp x = cc.newUInt32("x");
-    arm::Gp y = cc.newUInt32("y");
-    arm::Gp r = cc.newUInt32("r");
-    arm::Gp fn = cc.newUIntPtr("fn");
+    a64::Gp x = cc.newUInt32("x");
+    a64::Gp y = cc.newUInt32("y");
+    a64::Gp r = cc.newUInt32("r");
+    a64::Gp fn = cc.newUIntPtr("fn");
 
     funcNode->setArg(0, x);
     funcNode->setArg(1, y);
@@ -471,7 +468,7 @@ public:
     arm::Vec x = cc.newVecD("x");
     arm::Vec y = cc.newVecD("y");
     arm::Vec r = cc.newVecD("r");
-    arm::Gp fn = cc.newUIntPtr("fn");
+    a64::Gp fn = cc.newUIntPtr("fn");
 
     funcNode->setArg(0, x);
     funcNode->setArg(1, y);
@@ -523,7 +520,7 @@ public:
     arm::Vec x = cc.newVecD("x");
     arm::Vec y = cc.newVecD("y");
     arm::Vec r = cc.newVecD("r");
-    arm::Gp fn = cc.newUIntPtr("fn");
+    a64::Gp fn = cc.newUIntPtr("fn");
 
     funcNode->setArg(0, x);
     funcNode->setArg(1, y);
@@ -587,10 +584,10 @@ public:
 
     arm::Vec a = cc.newVecS("a");
     arm::Vec b = cc.newVecS("b");
-    arm::Gp op = cc.newUInt32("op");
+    a64::Gp op = cc.newUInt32("op");
 
-    arm::Gp target = cc.newIntPtr("target");
-    arm::Gp offset = cc.newIntPtr("offset");
+    a64::Gp target = cc.newIntPtr("target");
+    a64::Gp offset = cc.newIntPtr("offset");
 
     Label L_End = cc.newLabel();
 
@@ -605,7 +602,7 @@ public:
     funcNode->setArg(2, op);
 
     cc.adr(target, L_Table);
-    cc.ldrsw(offset, arm::ptr(target, op, arm::sxtw(2)));
+    cc.ldrsw(offset, a64::ptr(target, op, a64::sxtw(2)));
     cc.add(target, target, offset);
 
     // JumpAnnotation allows to annotate all possible jump targets of

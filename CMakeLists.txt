@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 cmake_policy(PUSH)
 
-if(POLICY CMP0063)
+if (POLICY CMP0063)
   cmake_policy(SET CMP0063 NEW) # Honor visibility properties.
 endif()
 
-if(POLICY CMP0092)
+if (POLICY CMP0092)
   cmake_policy(SET CMP0092 NEW) # Don't add -W3 warning level by default.
 endif()
 
@@ -33,15 +33,13 @@ if (DEFINED ASMJIT_BUILD_STATIC)
   set(ASMJIT_STATIC "${ASMJIT_BUILD_STATIC}")
 endif()
 
-# AsmJit - Configuration
-# ======================
+# AsmJit - Configuration - Build
+# ==============================
 
-# AsmJit testing.
 if (NOT DEFINED ASMJIT_TEST)
   set(ASMJIT_TEST FALSE)
 endif()
 
-# AsmJit build options
 if (NOT DEFINED ASMJIT_EMBED)
   set(ASMJIT_EMBED FALSE)
 endif()
@@ -54,15 +52,22 @@ if (NOT DEFINED ASMJIT_SANITIZE)
   set(ASMJIT_SANITIZE FALSE)
 endif()
 
-if (NOT DEFINED ASMJIT_NO_NATVIS)
-  set(ASMJIT_NO_NATVIS FALSE)
-endif()
-
 if (NOT DEFINED ASMJIT_NO_CUSTOM_FLAGS)
   set(ASMJIT_NO_CUSTOM_FLAGS FALSE)
 endif()
 
-# AsmJit backends selection.
+if (NOT DEFINED ASMJIT_NO_NATVIS)
+  set(ASMJIT_NO_NATVIS FALSE)
+endif()
+
+# EMBED implies STATIC.
+if (ASMJIT_EMBED AND NOT ASMJIT_STATIC)
+  set(ASMJIT_STATIC TRUE)
+endif()
+
+# AsmJit - Configuration - Backend
+# ================================
+
 if (NOT DEFINED ASMJIT_NO_X86)
   set(ASMJIT_NO_X86 FALSE)
 endif()
@@ -75,7 +80,9 @@ if (NOT DEFINED ASMJIT_NO_FOREIGN)
   set(ASMJIT_NO_FOREIGN FALSE)
 endif()
 
-# AsmJit features selection.
+# AsmJit - Configuration - Features
+# =================================
+
 if (NOT DEFINED ASMJIT_NO_DEPRECATED)
   set(ASMJIT_NO_DEPRECATED FALSE)
 endif()
@@ -89,19 +96,19 @@ if (NOT DEFINED ASMJIT_NO_JIT)
 endif()
 
 if (NOT DEFINED ASMJIT_NO_TEXT)
-  set(ASMJIT_NO_TEXT ${ASMJIT_NO_TEXT})
+  set(ASMJIT_NO_TEXT FALSE)
 endif()
 
 if (NOT DEFINED ASMJIT_NO_LOGGING)
-  set(ASMJIT_NO_LOGGING FALSE)
+  set(ASMJIT_NO_LOGGING ${ASMJIT_NO_TEXT})
 endif()
 
 if (NOT DEFINED ASMJIT_NO_VALIDATION)
-  set(ASMJIT_NO_VALIDATION ${ASMJIT_NO_VALIDATION})
+  set(ASMJIT_NO_VALIDATION FALSE)
 endif()
 
 if (NOT DEFINED ASMJIT_NO_INTROSPECTION)
-  set(ASMJIT_NO_INTROSPECTION ${ASMJIT_NO_INTROSPECTION})
+  set(ASMJIT_NO_INTROSPECTION FALSE)
 endif()
 
 if (NOT DEFINED ASMJIT_NO_BUILDER)
@@ -109,16 +116,17 @@ if (NOT DEFINED ASMJIT_NO_BUILDER)
 endif()
 
 if (NOT DEFINED ASMJIT_NO_COMPILER)
-  set(ASMJIT_NO_BUILDER ${ASMJIT_NO_BUILDER})
+  if (ASMJIT_NO_BUILDER OR ASMJIT_NO_INTROSPECTION)
+    set(ASMJIT_NO_COMPILER TRUE)
+  else()
+    set(ASMJIT_NO_COMPILER FALSE)
+  endif()
 endif()
 
-# EMBED implies STATIC.
-if (ASMJIT_EMBED AND NOT ASMJIT_STATIC)
-  set(ASMJIT_STATIC TRUE)
-endif()
+# AsmJit - Configuration - CMake Introspection
+# ============================================
 
 set(ASMJIT_DIR              "${CMAKE_CURRENT_LIST_DIR}"  CACHE PATH "Location of 'asmjit'")
-
 set(ASMJIT_TEST             "${ASMJIT_TEST}"             CACHE BOOL "Build 'asmjit' test applications")
 set(ASMJIT_EMBED            "${ASMJIT_EMBED}"            CACHE BOOL "Embed 'asmjit' library (no targets)")
 set(ASMJIT_STATIC           "${ASMJIT_STATIC}"           CACHE BOOL "Build 'asmjit' library as static")
@@ -359,21 +367,21 @@ else()
   set(ASMJIT_TARGET_TYPE "SHARED")
 endif()
 
-foreach(build_option ASMJIT_STATIC
+foreach(build_option # AsmJit build options.
+                     ASMJIT_STATIC
+                     ASMJIT_NO_DEPRECATED
                      # AsmJit backends selection.
                      ASMJIT_NO_X86
                      ASMJIT_NO_AARCH64
                      ASMJIT_NO_FOREIGN
                      # AsmJit features selection.
-                     ASMJIT_NO_DEPRECATED
-                     ASMJIT_NO_SHM_OPEN
                      ASMJIT_NO_JIT
                      ASMJIT_NO_TEXT
                      ASMJIT_NO_LOGGING
-                     ASMJIT_NO_BUILDER
-                     ASMJIT_NO_COMPILER
+                     ASMJIT_NO_INTROSPECTION
                      ASMJIT_NO_VALIDATION
-                     ASMJIT_NO_INTROSPECTION)
+                     ASMJIT_NO_BUILDER
+                     ASMJIT_NO_COMPILER)
   if (${build_option})
     List(APPEND ASMJIT_CFLAGS         "-D${build_option}")
     List(APPEND ASMJIT_PRIVATE_CFLAGS "-D${build_option}")
@@ -384,7 +392,7 @@ endforeach()
 # =======================
 
 if (WIN32)
-  if(CMAKE_LINKER MATCHES "link\\.exe" OR CMAKE_LINKER MATCHES "lld-link\\.exe")
+  if (CMAKE_LINKER MATCHES "link\\.exe" OR CMAKE_LINKER MATCHES "lld-link\\.exe")
     set(ASMJIT_LINKER_SUPPORTS_NATVIS TRUE)
   endif()
 endif()
@@ -439,6 +447,8 @@ set(ASMJIT_SRC_LIST
   asmjit/core/globals.h
   asmjit/core/inst.cpp
   asmjit/core/inst.h
+  asmjit/core/instdb.cpp
+  asmjit/core/instdb_p.h
   asmjit/core/jitallocator.cpp
   asmjit/core/jitallocator.h
   asmjit/core/jitruntime.cpp

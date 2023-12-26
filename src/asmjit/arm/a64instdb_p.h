@@ -7,6 +7,7 @@
 #define ASMJIT_ARM_A64INSTDB_H_P_INCLUDED
 
 #include "../core/codeholder.h"
+#include "../core/instdb_p.h"
 #include "../arm/a64instdb.h"
 #include "../arm/a64operand.h"
 
@@ -852,27 +853,13 @@ extern const SimdTblTbx simdTblTbx[2];
 
 } // {EncodingData}
 
-// a64::InstDB - InstNameIndex
-// ===========================
-
-// ${NameLimits:Begin}
-// ------------------- Automatically generated, do not edit -------------------
-enum : uint32_t { kMaxNameSize = 9 };
-// ----------------------------------------------------------------------------
-// ${NameLimits:End}
-
-struct InstNameIndex {
-  uint16_t start;
-  uint16_t end;
-};
-
 // a64::InstDB - Tables
 // ====================
 
 #ifndef ASMJIT_NO_TEXT
-extern const uint32_t _instNameIndexTable[];
+extern const InstNameIndex instNameIndex;
 extern const char _instNameStringTable[];
-extern const InstNameIndex instNameIndex[26];
+extern const uint32_t _instNameIndexTable[];
 #endif // !ASMJIT_NO_TEXT
 
 } // {InstDB}

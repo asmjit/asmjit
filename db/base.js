@@ -205,7 +205,7 @@ class Operand {
 
   toString() { return this.data; }
 
-  isReg() { return !!this.reg; }
+  isReg() { return !!this.reg && this.type !== "reg-list"; }
   isMem() { return !!this.mem; }
   isImm() { return !!this.imm; }
   isRel() { return !!this.rel; }
@@ -257,6 +257,20 @@ class Instruction {
     const out = Object.keys(this.ext);
     out.sort();
     return out;
+  }
+
+  get operandCount() {
+    return this.operands.length;
+  }
+
+  get minimumOperandCount() {
+    const count = this.operands.length;
+    for (let i = 0; i < count; i++) {
+      if (this.operands[i].optional) {
+        return i;
+      }
+    }
+    return count
   }
 
   _assignAttribute(key, value) {

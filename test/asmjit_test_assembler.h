@@ -52,7 +52,7 @@ public:
       assembler.addDiagnosticOptions(asmjit::DiagnosticOptions::kValidateAssembler);
   }
 
-  ASMJIT_NOINLINE bool testValidInstruction(const char* s, const char* expectedOpcode, asmjit::Error err) noexcept {
+  ASMJIT_NOINLINE bool testValidInstruction(const char* s, const char* expectedOpcode, asmjit::Error err = asmjit::kErrorOk) noexcept {
     count++;
 
     if (err) {

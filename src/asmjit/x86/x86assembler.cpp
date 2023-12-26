@@ -529,8 +529,6 @@ static ASMJIT_FORCE_INLINE bool x86ShouldUseMovabs(Assembler* self, X86BufferWri
 Assembler::Assembler(CodeHolder* code) noexcept : BaseAssembler() {
   _archMask = (uint64_t(1) << uint32_t(Arch::kX86)) |
               (uint64_t(1) << uint32_t(Arch::kX64)) ;
-  assignEmitterFuncs(this);
-
   if (code)
     code->attach(this);
 }
@@ -610,7 +608,7 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(InstId instId, const Operand_& o0, con
       Operand_ opArray[Globals::kMaxOpCount];
       EmitterUtils::opArrayFromEmitArgs(opArray, o0, o1, o2, opExt);
 
-      err = _funcs.validate(arch(), BaseInst(instId, options, _extraReg), opArray, Globals::kMaxOpCount, ValidationFlags::kNone);
+      err = _funcs.validate(BaseInst(instId, options, _extraReg), opArray, Globals::kMaxOpCount, ValidationFlags::kNone);
       if (ASMJIT_UNLIKELY(err))
         goto Failed;
     }
@@ -5087,6 +5085,9 @@ Error Assembler::align(AlignMode alignMode, uint32_t alignment) {
 Error Assembler::onAttach(CodeHolder* code) noexcept {
   Arch arch = code->arch();
   ASMJIT_PROPAGATE(Base::onAttach(code));
+
+  _instructionAlignment = uint8_t(1);
+  assignEmitterFuncs(this);
 
   if (Environment::is32Bit(arch)) {
     // 32 bit architecture - X86.

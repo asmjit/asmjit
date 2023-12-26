@@ -925,19 +925,6 @@ static ASMJIT_INLINE_NODEBUG const char* findPackedString(const char* p, uint32_
   return p;
 }
 
-//! Compares two instruction names.
-//!
-//! `a` is a null terminated instruction name from arch-specific `nameData[]`
-//! table. `b` is a possibly non-null terminated instruction name passed to
-//! `InstAPI::stringToInstId()`.
-static ASMJIT_FORCE_INLINE int cmpInstName(const char* a, const char* b, size_t size) noexcept {
-  for (size_t i = 0; i < size; i++) {
-    int c = int(uint8_t(a[i])) - int(uint8_t(b[i]));
-    if (c != 0) return c;
-  }
-  return int(uint8_t(a[size]));
-}
-
 //! Compares two string views.
 static ASMJIT_FORCE_INLINE int compareStringViews(const char* aData, size_t aSize, const char* bData, size_t bSize) noexcept {
   size_t size = Support::min(aSize, bSize);
@@ -950,6 +937,7 @@ static ASMJIT_FORCE_INLINE int compareStringViews(const char* aData, size_t aSiz
 
   return int(aSize) - int(bSize);
 }
+
 // Support - Memory Read Access - 8 Bits
 // =====================================
 

@@ -996,8 +996,8 @@ void protectJitMemory(ProtectJitAccess access) noexcept {
 
 ASMJIT_END_SUB_NAMESPACE
 
-// JitAllocator - Tests
-// ====================
+// Virtual Memory - Tests
+// ======================
 
 #if defined(ASMJIT_TEST)
 ASMJIT_BEGIN_NAMESPACE

@@ -43,6 +43,14 @@ Error ASMJIT_CDECL formatRegister(
   uint32_t elementType = 0,
   uint32_t elementIndex = 0xFFFFFFFF) noexcept;
 
+Error ASMJIT_CDECL formatRegisterList(
+  String& sb,
+  FormatFlags flags,
+  const BaseEmitter* emitter,
+  Arch arch,
+  RegType regType,
+  uint32_t rMask) noexcept;
+
 Error ASMJIT_CDECL formatOperand(
   String& sb,
   FormatFlags flags,

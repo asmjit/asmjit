@@ -19,10 +19,6 @@ ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 class Reg;
 class Mem;
 
-class Gp;
-class GpW;
-class GpX;
-
 class Vec;
 class VecB;
 class VecH;
@@ -30,7 +26,7 @@ class VecS;
 class VecD;
 class VecV;
 
-//! Register traits (ARM/AArch64).
+//! Register traits (AArch32/AArch64).
 //!
 //! Register traits contains information about a particular register type. It's used by asmjit to setup register
 //! information on-the-fly and to populate tables that contain register information (this way it's possible to
@@ -39,27 +35,31 @@ template<RegType kRegType>
 struct RegTraits : public BaseRegTraits {};
 
 //! \cond
-// <--------------------+-----+-------------------------+------------------------+---+---+------------------+
-//                      | Reg |        Reg-Type         |        Reg-Group       |Sz |Cnt|      TypeId      |
-// <--------------------+-----+-------------------------+------------------------+---+---+------------------+
-ASMJIT_DEFINE_REG_TRAITS(GpW  , RegType::kARM_GpW       , RegGroup::kGp          , 4 , 32, TypeId::kInt32   );
-ASMJIT_DEFINE_REG_TRAITS(GpX  , RegType::kARM_GpX       , RegGroup::kGp          , 8 , 32, TypeId::kInt64   );
-ASMJIT_DEFINE_REG_TRAITS(VecB , RegType::kARM_VecB      , RegGroup::kVec         , 1 , 32, TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(VecH , RegType::kARM_VecH      , RegGroup::kVec         , 2 , 32, TypeId::kVoid    );
-ASMJIT_DEFINE_REG_TRAITS(VecS , RegType::kARM_VecS      , RegGroup::kVec         , 4 , 32, TypeId::kInt32x1 );
-ASMJIT_DEFINE_REG_TRAITS(VecD , RegType::kARM_VecD      , RegGroup::kVec         , 8 , 32, TypeId::kInt32x2 );
-ASMJIT_DEFINE_REG_TRAITS(VecV , RegType::kARM_VecV      , RegGroup::kVec         , 16, 32, TypeId::kInt32x4 );
+// <--------------------+------------------------+------------------------+---+------------------+
+//                      |       Reg-Type         |        Reg-Group       |Sz |      TypeId      |
+// <--------------------+------------------------+------------------------+---+------------------+
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_GpW       , RegGroup::kGp          , 4 , TypeId::kInt32   ); // AArch32 & AArch64
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_GpX       , RegGroup::kGp          , 8 , TypeId::kInt64   ); //           AArch64
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecB      , RegGroup::kVec         , 1 , TypeId::kVoid    ); //           AArch64
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecH      , RegGroup::kVec         , 2 , TypeId::kVoid    ); //           AArch64
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecS      , RegGroup::kVec         , 4 , TypeId::kInt32x1 ); // AArch32 & AArch64
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecD      , RegGroup::kVec         , 8 , TypeId::kInt32x2 ); // AArch32 & AArch64
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_VecV      , RegGroup::kVec         , 16, TypeId::kInt32x4 ); // AArch32 & AArch64
+ASMJIT_DEFINE_REG_TRAITS(RegType::kARM_PC        , RegGroup::kPC          , 8 , TypeId::kInt64   ); //           AArch64
 //! \endcond
 
-//! Register (ARM).
+//! Register operand that can represent AArch32 and AArch64 registers.
 class Reg : public BaseReg {
 public:
   ASMJIT_DEFINE_ABSTRACT_REG(Reg, BaseReg)
 
-  //! Gets whether the register is a `R|W` register (32-bit).
+  //! Gets whether the register is either `R` or `W` register (32-bit).
+  ASMJIT_INLINE_NODEBUG constexpr bool isGpR() const noexcept { return baseSignature() == RegTraits<RegType::kARM_GpW>::kSignature; }
+  //! Gets whether the register is either `R` or `W` register (32-bit).
   ASMJIT_INLINE_NODEBUG constexpr bool isGpW() const noexcept { return baseSignature() == RegTraits<RegType::kARM_GpW>::kSignature; }
   //! Gets whether the register is an `X` register (64-bit).
   ASMJIT_INLINE_NODEBUG constexpr bool isGpX() const noexcept { return baseSignature() == RegTraits<RegType::kARM_GpX>::kSignature; }
+
   //! Gets whether the register is a VEC-B register (8-bit).
   ASMJIT_INLINE_NODEBUG constexpr bool isVecB() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecB>::kSignature; }
   //! Gets whether the register is a VEC-H register (16-bit).
@@ -70,10 +70,8 @@ public:
   ASMJIT_INLINE_NODEBUG constexpr bool isVecD() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecD>::kSignature; }
   //! Gets whether the register is a VEC-Q register (128-bit).
   ASMJIT_INLINE_NODEBUG constexpr bool isVecQ() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecV>::kSignature; }
-
   //! Gets whether the register is either VEC-D (64-bit) or VEC-Q (128-bit).
   ASMJIT_INLINE_NODEBUG constexpr bool isVecDOrQ() const noexcept { return uint32_t(type()) - uint32_t(RegType::kARM_VecD) <= 1u; }
-
   //! Gets whether the register is a VEC-V register (128-bit).
   ASMJIT_INLINE_NODEBUG constexpr bool isVecV() const noexcept { return baseSignature() == RegTraits<RegType::kARM_VecV>::kSignature; }
 
@@ -99,7 +97,7 @@ public:
   static ASMJIT_INLINE_NODEBUG TypeId typeIdOfT() noexcept { return RegTraits<kRegType>::kTypeId; }
 
   template<RegType kRegType>
-  static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfT() noexcept { return RegTraits<kRegType>::kSignature; }
+  static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfT() noexcept { return OperandSignature{RegTraits<kRegType>::kSignature}; }
 
   static ASMJIT_INLINE_NODEBUG bool isGpW(const Operand_& op) noexcept { return op.as<Reg>().isGpW(); }
   static ASMJIT_INLINE_NODEBUG bool isGpX(const Operand_& op) noexcept { return op.as<Reg>().isGpX(); }
@@ -120,45 +118,16 @@ public:
   static ASMJIT_INLINE_NODEBUG bool isVecV(const Operand_& op, uint32_t id) noexcept { return bool(unsigned(isVecV(op)) & unsigned(op.id() == id)); }
 };
 
-//! General purpose register (ARM).
-class Gp : public Reg {
+//! Vector register base - a common base for both AArch32 & AArch64 vector register.
+class BaseVec : public Reg {
 public:
-  ASMJIT_DEFINE_ABSTRACT_REG(Gp, Reg)
-
-  //! Special register id.
-  enum Id : uint32_t {
-    //! Register that depends on OS, could be used as TLS offset.
-    kIdOs = 18,
-    //! Frame pointer.
-    kIdFp = 29,
-    //! Link register.
-    kIdLr = 30,
-    //! Stack register id.
-    kIdSp = 31,
-    //! Zero register id.
-    //!
-    //! Although zero register has the same id as stack register it has a special treatment, because we need to be
-    //! able to distinguish between these two at API level. Some intructions were designed to be used with SP and
-    //! some other with ZR - so we need a way to distinguish these two to make sure we emit the right thing.
-    //!
-    //! The number 63 is not random, when you perform `id & 31` you would always get 31 for both SP and ZR inputs,
-    //! which is the identifier used by AArch64 ISA to encode either SP or ZR depending on the instruction.
-    kIdZr = 63
-  };
-
-  ASMJIT_INLINE_NODEBUG constexpr bool isZR() const noexcept { return id() == kIdZr; }
-  ASMJIT_INLINE_NODEBUG constexpr bool isSP() const noexcept { return id() == kIdSp; }
-
-  //! Cast this register to a 32-bit R|W.
-  ASMJIT_INLINE_NODEBUG GpW w() const noexcept;
-  //! Cast this register to a 64-bit X.
-  ASMJIT_INLINE_NODEBUG GpX x() const noexcept;
+  ASMJIT_DEFINE_ABSTRACT_REG(BaseVec, Reg)
 };
 
 //! Vector register (ARM).
-class Vec : public Reg {
+class Vec : public BaseVec {
 public:
-  ASMJIT_DEFINE_ABSTRACT_REG(Vec, Reg)
+  ASMJIT_DEFINE_ABSTRACT_REG(Vec, BaseVec)
 
   //! Additional signature bits used by arm::Vec.
   enum AdditionalBits : uint32_t {
@@ -219,7 +188,7 @@ public:
   ASMJIT_INLINE_NODEBUG constexpr bool hasElementType() const noexcept { return _signature.hasField<kSignatureRegElementTypeMask>(); }
   //! Returns whether the register has element index (it's an element index access).
   ASMJIT_INLINE_NODEBUG constexpr bool hasElementIndex() const noexcept { return _signature.hasField<kSignatureRegElementFlagMask>(); }
-  //! Returns whether the reggister has element type or element index (or both).
+  //! Returns whether the register has element type or element index (or both).
   ASMJIT_INLINE_NODEBUG constexpr bool hasElementTypeOrIndex() const noexcept { return _signature.hasField<kSignatureRegElementTypeMask | kSignatureRegElementFlagMask>(); }
 
   //! Returns element type of the register.
@@ -310,11 +279,6 @@ public:
   }
 };
 
-//! 32-bit GPW (AArch64) and/or GPR (ARM/AArch32) register.
-class GpW : public Gp { ASMJIT_DEFINE_FINAL_REG(GpW, Gp, RegTraits<RegType::kARM_GpW>) };
-//! 64-bit GPX (AArch64) register.
-class GpX : public Gp { ASMJIT_DEFINE_FINAL_REG(GpX, Gp, RegTraits<RegType::kARM_GpX>) };
-
 //! 8-bit view (S) of VFP/SIMD register.
 class VecB : public Vec { ASMJIT_DEFINE_FINAL_REG(VecB, Vec, RegTraits<RegType::kARM_VecB>) };
 //! 16-bit view (S) of VFP/SIMD register.
@@ -325,9 +289,6 @@ class VecS : public Vec { ASMJIT_DEFINE_FINAL_REG(VecS, Vec, RegTraits<RegType::
 class VecD : public Vec { ASMJIT_DEFINE_FINAL_REG(VecD, Vec, RegTraits<RegType::kARM_VecD>) };
 //! 128-bit vector register (Q or V).
 class VecV : public Vec { ASMJIT_DEFINE_FINAL_REG(VecV, Vec, RegTraits<RegType::kARM_VecV>) };
-
-ASMJIT_INLINE_NODEBUG GpW Gp::w() const noexcept { return GpW(id()); }
-ASMJIT_INLINE_NODEBUG GpX Gp::x() const noexcept { return GpX(id()); }
 
 ASMJIT_INLINE_NODEBUG VecB Vec::b() const noexcept { return VecB(id()); }
 ASMJIT_INLINE_NODEBUG VecH Vec::h() const noexcept { return VecH(id()); }
@@ -356,10 +317,6 @@ ASMJIT_INLINE_NODEBUG VecV Vec::d2() const noexcept { return VecV(OperandSignatu
 namespace regs {
 #endif
 
-//! Creates a 32-bit W register operand (ARM/AArch64).
-static ASMJIT_INLINE_NODEBUG constexpr GpW w(uint32_t id) noexcept { return GpW(id); }
-//! Creates a 64-bit X register operand (AArch64).
-static ASMJIT_INLINE_NODEBUG constexpr GpX x(uint32_t id) noexcept { return GpX(id); }
 //! Creates a 32-bit S register operand (ARM/AArch64).
 static ASMJIT_INLINE_NODEBUG constexpr VecS s(uint32_t id) noexcept { return VecS(id); }
 //! Creates a 64-bit D register operand (ARM/AArch64).
@@ -385,22 +342,17 @@ public:
     kSignatureMemShiftValueShift = 14,
     kSignatureMemShiftValueMask = 0x1Fu << kSignatureMemShiftValueShift,
 
-    // Shift operation type (4 bits).
+    // Index shift operation (4 bits).
     // |........|XXXX....|........|........|
-    kSignatureMemPredicateShift = 20,
-    kSignatureMemPredicateMask = 0x0Fu << kSignatureMemPredicateShift
+    kSignatureMemShiftOpShift = 20,
+    kSignatureMemShiftOpMask = 0x0Fu << kSignatureMemShiftOpShift,
+
+    // Offset mode type (2 bits).
+    // |......XX|........|........|........|
+    kSignatureMemOffsetModeShift = 24,
+    kSignatureMemOffsetModeMask = 0x03u << kSignatureMemOffsetModeShift
   };
   //! \endcond
-
-  //! Memory offset mode.
-  //!
-  //! Additional constants that can be used with the `predicate`.
-  enum OffsetMode : uint32_t {
-    //! Pre-index "[BASE, #Offset {, <shift>}]!" with write-back.
-    kOffsetPreIndex = 0xE,
-    //! Post-index "[BASE], #Offset {, <shift>}" with write-back.
-    kOffsetPostIndex = 0xF
-  };
 
   //! \name Construction & Destruction
   //! \{
@@ -438,7 +390,7 @@ public:
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(base.type()) |
               Signature::fromMemIndexType(index.type()) |
-              Signature::fromValue<kSignatureMemPredicateMask>(uint32_t(shift.op())) |
+              Signature::fromValue<kSignatureMemShiftOpMask>(uint32_t(shift.op())) |
               Signature::fromValue<kSignatureMemShiftValueMask>(shift.value()) |
               signature, base.id(), index.id(), 0) {}
 
@@ -471,14 +423,14 @@ public:
   //! Clones the memory operand and makes it pre-index.
   ASMJIT_INLINE_NODEBUG Mem pre() const noexcept {
     Mem result(*this);
-    result.setPredicate(kOffsetPreIndex);
+    result.setOffsetMode(OffsetMode::kPreIndex);
     return result;
   }
 
   //! Clones the memory operand, applies a given offset `off` and makes it pre-index.
   ASMJIT_INLINE_NODEBUG Mem pre(int64_t off) const noexcept {
     Mem result(*this);
-    result.setPredicate(kOffsetPreIndex);
+    result.setOffsetMode(OffsetMode::kPreIndex);
     result.addOffset(off);
     return result;
   }
@@ -486,14 +438,14 @@ public:
   //! Clones the memory operand and makes it post-index.
   ASMJIT_INLINE_NODEBUG Mem post() const noexcept {
     Mem result(*this);
-    result.setPredicate(kOffsetPostIndex);
+    result.setOffsetMode(OffsetMode::kPostIndex);
     return result;
   }
 
   //! Clones the memory operand, applies a given offset `off` and makes it post-index.
   ASMJIT_INLINE_NODEBUG Mem post(int64_t off) const noexcept {
     Mem result(*this);
-    result.setPredicate(kOffsetPostIndex);
+    result.setOffsetMode(OffsetMode::kPostIndex);
     result.addOffset(off);
     return result;
   }
@@ -520,10 +472,43 @@ public:
     setShift(shift);
   }
 
+  ASMJIT_INLINE_NODEBUG void setIndex(const BaseReg& index, Shift shift) noexcept {
+    setIndex(index);
+    setShift(shift);
+  }
+
   //! \}
 
   //! \name ARM Specific Features
   //! \{
+
+  //! Gets offset mode.
+  ASMJIT_INLINE_NODEBUG constexpr OffsetMode offsetMode() const noexcept { return OffsetMode(_signature.getField<kSignatureMemOffsetModeMask>()); }
+  //! Sets offset mode to `mode`.
+  ASMJIT_INLINE_NODEBUG void setOffsetMode(OffsetMode mode) noexcept { _signature.setField<kSignatureMemOffsetModeMask>(uint32_t(mode)); }
+  //! Resets offset mode to default (fixed offset, without write-back).
+  ASMJIT_INLINE_NODEBUG void resetOffsetMode() noexcept { _signature.setField<kSignatureMemOffsetModeMask>(uint32_t(OffsetMode::kFixed)); }
+
+  //! Tests whether the current memory offset mode is fixed (see \ref OffsetMode::kFixed).
+  ASMJIT_INLINE_NODEBUG constexpr bool isFixedOffset() const noexcept { return offsetMode() == OffsetMode::kFixed; }
+  //! Tests whether the current memory offset mode is either pre-index or post-index (write-back is used).
+  ASMJIT_INLINE_NODEBUG constexpr bool isPreOrPost() const noexcept { return offsetMode() != OffsetMode::kFixed; }
+  //! Tests whether the current memory offset mode is pre-index (write-back is used).
+  ASMJIT_INLINE_NODEBUG constexpr bool isPreIndex() const noexcept { return offsetMode() == OffsetMode::kPreIndex; }
+  //! Tests whether the current memory offset mode is post-index (write-back is used).
+  ASMJIT_INLINE_NODEBUG constexpr bool isPostIndex() const noexcept { return offsetMode() == OffsetMode::kPostIndex; }
+
+  //! Sets offset mode of this memory operand to pre-index (write-back is used).
+  ASMJIT_INLINE_NODEBUG void makePreIndex() noexcept { setOffsetMode(OffsetMode::kPreIndex); }
+  //! Sets offset mode of this memory operand to post-index (write-back is used).
+  ASMJIT_INLINE_NODEBUG void makePostIndex() noexcept { setOffsetMode(OffsetMode::kPostIndex); }
+
+  //! Gets shift operation that is used by index register.
+  ASMJIT_INLINE_NODEBUG constexpr ShiftOp shiftOp() const noexcept { return ShiftOp(_signature.getField<kSignatureMemShiftOpMask>()); }
+  //! Sets shift operation that is used by index register.
+  ASMJIT_INLINE_NODEBUG void setShiftOp(ShiftOp sop) noexcept { _signature.setField<kSignatureMemShiftOpMask>(uint32_t(sop)); }
+  //! Resets shift operation that is used by index register to LSL (default value).
+  ASMJIT_INLINE_NODEBUG void resetShiftOp() noexcept { _signature.setField<kSignatureMemShiftOpMask>(uint32_t(ShiftOp::kLSL)); }
 
   //! Gets whether the memory operand has shift (aka scale) constant.
   ASMJIT_INLINE_NODEBUG constexpr bool hasShift() const noexcept { return _signature.hasField<kSignatureMemShiftValueMask>(); }
@@ -531,77 +516,41 @@ public:
   ASMJIT_INLINE_NODEBUG constexpr uint32_t shift() const noexcept { return _signature.getField<kSignatureMemShiftValueMask>(); }
   //! Sets the memory operand's shift (aka scale) constant.
   ASMJIT_INLINE_NODEBUG void setShift(uint32_t shift) noexcept { _signature.setField<kSignatureMemShiftValueMask>(shift); }
+
+  //! Sets the memory operand's shift and shift operation.
+  ASMJIT_INLINE_NODEBUG void setShift(Shift shift) noexcept {
+    _signature.setField<kSignatureMemShiftOpMask>(uint32_t(shift.op()));
+    _signature.setField<kSignatureMemShiftValueMask>(shift.value());
+  }
+
   //! Resets the memory operand's shift (aka scale) constant to zero.
   ASMJIT_INLINE_NODEBUG void resetShift() noexcept { _signature.setField<kSignatureMemShiftValueMask>(0); }
-
-  //! Gets memory predicate (shift mode or offset mode), see \ref ShiftOp and \ref OffsetMode.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t predicate() const noexcept { return _signature.getField<kSignatureMemPredicateMask>(); }
-  //! Sets memory predicate to `predicate`, see `Mem::ShiftOp`.
-  ASMJIT_INLINE_NODEBUG void setPredicate(uint32_t predicate) noexcept { _signature.setField<kSignatureMemPredicateMask>(predicate); }
-  //! Resets shift mode to LSL (default).
-  ASMJIT_INLINE_NODEBUG void resetPredicate() noexcept { _signature.setField<kSignatureMemPredicateMask>(0); }
-
-  ASMJIT_INLINE_NODEBUG constexpr bool isFixedOffset() const noexcept { return predicate() < kOffsetPreIndex; }
-  ASMJIT_INLINE_NODEBUG constexpr bool isPreOrPost() const noexcept { return predicate() >= kOffsetPreIndex; }
-  ASMJIT_INLINE_NODEBUG constexpr bool isPreIndex() const noexcept { return predicate() == kOffsetPreIndex; }
-  ASMJIT_INLINE_NODEBUG constexpr bool isPostIndex() const noexcept { return predicate() == kOffsetPostIndex; }
-
-  ASMJIT_INLINE_NODEBUG void resetToFixedOffset() noexcept { resetPredicate(); }
-  ASMJIT_INLINE_NODEBUG void makePreIndex() noexcept { setPredicate(kOffsetPreIndex); }
-  ASMJIT_INLINE_NODEBUG void makePostIndex() noexcept { setPredicate(kOffsetPostIndex); }
 
   //! \}
 };
 
-//! Creates `[base, offset]` memory operand (offset mode).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, int32_t offset = 0) noexcept {
-  return Mem(base, offset);
-}
+//! \name Shift Operation Construction
+//! \{
 
-//! Creates `[base, offset]!` memory operand (pre-index mode).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_pre(const Gp& base, int32_t offset = 0) noexcept {
-  return Mem(base, offset, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPreIndex));
-}
+//! Constructs a `LSL #value` shift (logical shift left).
+static ASMJIT_INLINE_NODEBUG constexpr Shift lsl(uint32_t value) noexcept { return Shift(ShiftOp::kLSL, value); }
+//! Constructs a `LSR #value` shift (logical shift right).
+static ASMJIT_INLINE_NODEBUG constexpr Shift lsr(uint32_t value) noexcept { return Shift(ShiftOp::kLSR, value); }
+//! Constructs a `ASR #value` shift (arithmetic shift right).
+static ASMJIT_INLINE_NODEBUG constexpr Shift asr(uint32_t value) noexcept { return Shift(ShiftOp::kASR, value); }
+//! Constructs a `ROR #value` shift (rotate right).
+static ASMJIT_INLINE_NODEBUG constexpr Shift ror(uint32_t value) noexcept { return Shift(ShiftOp::kROR, value); }
+//! Constructs a `RRX` shift (rotate with carry by 1).
+static ASMJIT_INLINE_NODEBUG constexpr Shift rrx() noexcept { return Shift(ShiftOp::kRRX, 0); }
+//! Constructs a `MSL #value` shift (logical shift left filling ones).
+static ASMJIT_INLINE_NODEBUG constexpr Shift msl(uint32_t value) noexcept { return Shift(ShiftOp::kMSL, value); }
 
-//! Creates `[base], offset` memory operand (post-index mode).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_post(const Gp& base, int32_t offset = 0) noexcept {
-  return Mem(base, offset, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPostIndex));
-}
+//! \}
 
-//! Creates `[base, index]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, const Gp& index) noexcept {
-  return Mem(base, index);
-}
+//! \name Memory Operand Construction
+//! \{
 
-//! Creates `[base, index]!` memory operand (pre-index mode).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_pre(const Gp& base, const Gp& index) noexcept {
-  return Mem(base, index, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPreIndex));
-}
-
-//! Creates `[base], index` memory operand (post-index mode).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_post(const Gp& base, const Gp& index) noexcept {
-  return Mem(base, index, OperandSignature::fromValue<Mem::kSignatureMemPredicateMask>(Mem::kOffsetPostIndex));
-}
-
-//! Creates `[base, index, SHIFT_OP #shift]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, const Gp& index, const Shift& shift) noexcept {
-  return Mem(base, index, shift);
-}
-
-//! Creates `[base, offset]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Label& base, int32_t offset = 0) noexcept {
-  return Mem(base, offset);
-}
-
-// TODO: [ARM] PC + offset address.
-#if 0
-//! Creates `[PC + offset]` (relative) memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const PC& pc, int32_t offset = 0) noexcept {
-  return Mem(pc, offset);
-}
-#endif
-
-//! Creates `[base]` absolute memory operand.
+//! Creates `[base]` absolute memory operand (AArch32 or AArch64).
 //!
 //! \note The concept of absolute memory operands doesn't exist on ARM, the ISA only provides PC relative addressing.
 //! Absolute memory operands can only be used if it's known that the PC relative offset is encodable and that it
@@ -611,12 +560,12 @@ static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(uint64_t base) noexcept { return 
 
 //! \}
 
+//! \}
+
 ASMJIT_END_SUB_NAMESPACE
 
 //! \cond INTERNAL
 ASMJIT_BEGIN_NAMESPACE
-ASMJIT_DEFINE_TYPE_ID(arm::GpW, TypeId::kInt32);
-ASMJIT_DEFINE_TYPE_ID(arm::GpX, TypeId::kInt64);
 ASMJIT_DEFINE_TYPE_ID(arm::VecS, TypeId::kFloat32x1);
 ASMJIT_DEFINE_TYPE_ID(arm::VecD, TypeId::kFloat64x1);
 ASMJIT_DEFINE_TYPE_ID(arm::VecV, TypeId::kInt32x4);

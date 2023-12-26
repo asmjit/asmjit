@@ -3,24 +3,6 @@
 // See asmjit.h or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-// ----------------------------------------------------------------------------
-// IMPORTANT: AsmJit now uses an external instruction database to populate
-// static tables within this file. Perform the following steps to regenerate
-// all tables enclosed by ${...}:
-//
-//   1. Install node.js environment <https://nodejs.org>
-//   2. Go to asmjit/tools directory
-//   3. Get the latest asmdb from <https://github.com/asmjit/asmdb> and
-//      copy/link the `asmdb` directory to `asmjit/tools/asmdb`.
-//   4. Execute `node tablegen-x86.js`
-//
-// Instruction encoding and opcodes were added to the `x86inst.cpp` database
-// manually in the past and they are not updated by the script as it became
-// tricky. However, everything else is updated including instruction operands
-// and tables required to validate them, instruction read/write information
-// (including registers and flags), and all indexes to all tables.
-// ----------------------------------------------------------------------------
-
 #include "../core/api-build_p.h"
 #if !defined(ASMJIT_NO_X86)
 
@@ -2940,6 +2922,65 @@ const InstRWFlags InstDB::_instFlagsTable[] = {
 #ifndef ASMJIT_NO_TEXT
 // ${NameData:Begin}
 // ------------------- Automatically generated, do not edit -------------------
+const InstNameIndex InstDB::instNameIndex = {{
+  { Inst::kIdAaa          , Inst::kIdAxor          + 1 },
+  { Inst::kIdBextr        , Inst::kIdBzhi          + 1 },
+  { Inst::kIdCall         , Inst::kIdCwde          + 1 },
+  { Inst::kIdDaa          , Inst::kIdDpps          + 1 },
+  { Inst::kIdEmms         , Inst::kIdExtrq         + 1 },
+  { Inst::kIdF2xm1        , Inst::kIdFyl2xp1       + 1 },
+  { Inst::kIdGetsec       , Inst::kIdGf2p8mulb     + 1 },
+  { Inst::kIdHaddpd       , Inst::kIdHsubps        + 1 },
+  { Inst::kIdIdiv         , Inst::kIdIretq         + 1 },
+  { Inst::kIdJa           , Inst::kIdJz            + 1 },
+  { Inst::kIdKaddb        , Inst::kIdKxorw         + 1 },
+  { Inst::kIdLahf         , Inst::kIdLzcnt         + 1 },
+  { Inst::kIdMaskmovdqu   , Inst::kIdMwaitx        + 1 },
+  { Inst::kIdNeg          , Inst::kIdNot           + 1 },
+  { Inst::kIdOr           , Inst::kIdOuts          + 1 },
+  { Inst::kIdPabsb        , Inst::kIdPxor          + 1 },
+  { Inst::kIdNone         , Inst::kIdNone          + 1 },
+  { Inst::kIdRcl          , Inst::kIdRstorssp      + 1 },
+  { Inst::kIdSahf         , Inst::kIdSysretq       + 1 },
+  { Inst::kIdT1mskc       , Inst::kIdTzmsk         + 1 },
+  { Inst::kIdUcomisd      , Inst::kIdUnpcklps      + 1 },
+  { Inst::kIdV4fmaddps    , Inst::kIdVzeroupper    + 1 },
+  { Inst::kIdWbinvd       , Inst::kIdWrussq        + 1 },
+  { Inst::kIdXabort       , Inst::kIdXtest         + 1 },
+  { Inst::kIdNone         , Inst::kIdNone          + 1 },
+  { Inst::kIdNone         , Inst::kIdNone          + 1 }
+}, uint16_t(17)};
+
+const char InstDB::_instNameStringTable[] =
+  "vgf2p8affineinvqbvaeskeygenassistvbroadcastf32x464x264x4i32x2i32x4i32x8i64x2i64x"
+  "4vpbroadcastmb2w2dvbcstnebf162p128i128vcvtne2ps2vcvtneebf16vcvtneobf16vfmaddsub1"
+  "32ph213pd213ph213ps231pd231ph231psvfmsubadd132vpmultishiftvscatterpf0dqpdqps1dpd"
+  "1dps1qpd1qpsvcvtneps2vextracvextractfvgatherpf0vp2intersecttcmmimfp16tcmmrlfp16s"
+  "h2pssdph2psvfnmadd132213sd213sh213ss231sd231sh231ssvfnmsub132vinservinsertfvpshu"
+  "fbitqvsha512rndprefetchitntawt1saveprevsssha256rndtileloaddtilereleavaesdeclvaes"
+  "enclvcompressvcvttpd2uqqvcvttph2uvcvttps2uvcvttsd2uvcvttsh2uvcvttss2uvfixupimmvf"
+  "madd132vfmsub132vmaskmovdqvpcompressvpconflictvphminposuvpmadd52hluqvpscatterqdv"
+  "punpckhqlqdqvrndscalemsg1msg2clflushopcmpnbexcmpnlexcmpxchg16t0t2tilestorev4fnma"
+  "ddssvcvtpd2uvcvtph2psudqvcvtps2phvcvtsd2uvcvtsh2uvcvtss2uvcvtudq2vcvtuqq2vcvtusi"
+  "2vfcmaddcvfpclassvgetmanmulbvp4dpwssvpclmuvpcmpestrvpcmpistrvperm2fvpermil2vpgat"
+  "hervpmacssdqvpmadcsswubswvpmaskmovpternlogbwwdlbwldqlwdvrsqrt1428pd28ps28sd28ssv"
+  "shufvshuffvzeroupxsaveoptcmpbexcmplexcmpnbxcmpnlxcmpnoxcmpnpxcmpnsxcmpnzx8bfxrst"
+  "orldtilecfmovdir64pvalidarmpadjurmpupdaserialisha1nexsha1rndssttilecftdpbf16tdpf"
+  "p16v4fmadvaddsubvblendmvpdvcvtdq2uwvcvtqq2vcvtsi2vcvtuwvdbpsadvdpbf16vexpanvfcmu"
+  "lccphcshvgetexpvmovdqau16u32u64vmovmskvmovntvmovshdvmovsldvpackssdwbvpackuswbvpb"
+  "lendmdvpdpbssudsvpdpbusvpdpwssvpdpwus2pdvpermtvpexpanvphaddubwqdqhvpmovmskvpmovs"
+  "xbvpmovusqwvpmovzxbvpmulhrvptestnmqvreducevscalefvsm3rndvsm4rndsvunpckhlpdlpsxre"
+  "sldtrs64xsusldtrcldemoclrssbscmpbxcmplxcmpoxcmppxcmpsxcmpzxcvtpifcmovfxsavekorte"
+  "stkshiftrbkunpckmonitorpfrcpipfrsqirtvrdfsbrdgsbsspseamcalsenduisetssbssysesysex"
+  "vcvtwvfmulvldmxcsvmlaundupu8vmovhvmovlhvmpsadvmresumvpadduvpaligngtbgtdgtqgtw2b2"
+  "qbdbqvphsubvplzcnb2md2mq2mw2mvpopcnvpshldvqvpshrdvwhwvpsubuvrangevrcp14vroundsdv"
+  "sm4keyvstmxcsvucomiallwbnoinwrfsbwrgsbc64blcfiblsficmovnendbrenqcmnufdecsfincsfn"
+  "stefrndfsincfucomfyl2xincsspqinvlinvlpinvpcinvvpmcommmovq2pavgupfcmpepfpnaptwris"
+  "eamoseamrsyscsysretdpbutlbsyvaesivaligvandnvcomivfrczvhadvhsubvmclevmgexvmmcvmov"
+  "avmovuvmptvmwrivpandvpextrwvpinsvpmaxvpminvprolvprorvpsadvpsigvpslvpsllvpsravpsr"
+  "lvsqrvtes";
+
+
 const uint32_t InstDB::_instNameIndexTable[] = {
   0x80000000, // Small ''.
   0x80000421, // Small 'aaa'.
@@ -4663,65 +4704,6 @@ const uint32_t InstDB::_instNameIndexTable[] = {
   0xAC2A1678, // Small 'xsetbv'.
   0x101585A8, // Large 'xsusldtr|k'.
   0x81499698  // Small 'xtest'.
-};
-
-const char InstDB::_instNameStringTable[] =
-  "vgf2p8affineinvqbvaeskeygenassistvbroadcastf32x464x264x4i32x2i32x4i32x8i64x2i64x"
-  "4vpbroadcastmb2w2dvbcstnebf162p128i128vcvtne2ps2vcvtneebf16vcvtneobf16vfmaddsub1"
-  "32ph213pd213ph213ps231pd231ph231psvfmsubadd132vpmultishiftvscatterpf0dqpdqps1dpd"
-  "1dps1qpd1qpsvcvtneps2vextracvextractfvgatherpf0vp2intersecttcmmimfp16tcmmrlfp16s"
-  "h2pssdph2psvfnmadd132213sd213sh213ss231sd231sh231ssvfnmsub132vinservinsertfvpshu"
-  "fbitqvsha512rndprefetchitntawt1saveprevsssha256rndtileloaddtilereleavaesdeclvaes"
-  "enclvcompressvcvttpd2uqqvcvttph2uvcvttps2uvcvttsd2uvcvttsh2uvcvttss2uvfixupimmvf"
-  "madd132vfmsub132vmaskmovdqvpcompressvpconflictvphminposuvpmadd52hluqvpscatterqdv"
-  "punpckhqlqdqvrndscalemsg1msg2clflushopcmpnbexcmpnlexcmpxchg16t0t2tilestorev4fnma"
-  "ddssvcvtpd2uvcvtph2psudqvcvtps2phvcvtsd2uvcvtsh2uvcvtss2uvcvtudq2vcvtuqq2vcvtusi"
-  "2vfcmaddcvfpclassvgetmanmulbvp4dpwssvpclmuvpcmpestrvpcmpistrvperm2fvpermil2vpgat"
-  "hervpmacssdqvpmadcsswubswvpmaskmovpternlogbwwdlbwldqlwdvrsqrt1428pd28ps28sd28ssv"
-  "shufvshuffvzeroupxsaveoptcmpbexcmplexcmpnbxcmpnlxcmpnoxcmpnpxcmpnsxcmpnzx8bfxrst"
-  "orldtilecfmovdir64pvalidarmpadjurmpupdaserialisha1nexsha1rndssttilecftdpbf16tdpf"
-  "p16v4fmadvaddsubvblendmvpdvcvtdq2uwvcvtqq2vcvtsi2vcvtuwvdbpsadvdpbf16vexpanvfcmu"
-  "lccphcshvgetexpvmovdqau16u32u64vmovmskvmovntvmovshdvmovsldvpackssdwbvpackuswbvpb"
-  "lendmdvpdpbssudsvpdpbusvpdpwssvpdpwus2pdvpermtvpexpanvphaddubwqdqhvpmovmskvpmovs"
-  "xbvpmovusqwvpmovzxbvpmulhrvptestnmqvreducevscalefvsm3rndvsm4rndsvunpckhlpdlpsxre"
-  "sldtrs64xsusldtrcldemoclrssbscmpbxcmplxcmpoxcmppxcmpsxcmpzxcvtpifcmovfxsavekorte"
-  "stkshiftrbkunpckmonitorpfrcpipfrsqirtvrdfsbrdgsbsspseamcalsenduisetssbssysesysex"
-  "vcvtwvfmulvldmxcsvmlaundupu8vmovhvmovlhvmpsadvmresumvpadduvpaligngtbgtdgtqgtw2b2"
-  "qbdbqvphsubvplzcnb2md2mq2mw2mvpopcnvpshldvqvpshrdvwhwvpsubuvrangevrcp14vroundsdv"
-  "sm4keyvstmxcsvucomiallwbnoinwrfsbwrgsbc64blcfiblsficmovnendbrenqcmnufdecsfincsfn"
-  "stefrndfsincfucomfyl2xincsspqinvlinvlpinvpcinvvpmcommmovq2pavgupfcmpepfpnaptwris"
-  "eamoseamrsyscsysretdpbutlbsyvaesivaligvandnvcomivfrczvhadvhsubvmclevmgexvmmcvmov"
-  "avmovuvmptvmwrivpandvpextrwvpinsvpmaxvpminvprolvprorvpsadvpsigvpslvpsllvpsravpsr"
-  "lvsqrvtes";
-
-
-const InstDB::InstNameIndex InstDB::instNameIndex[26] = {
-  { Inst::kIdAaa          , Inst::kIdAxor          + 1 },
-  { Inst::kIdBextr        , Inst::kIdBzhi          + 1 },
-  { Inst::kIdCall         , Inst::kIdCwde          + 1 },
-  { Inst::kIdDaa          , Inst::kIdDpps          + 1 },
-  { Inst::kIdEmms         , Inst::kIdExtrq         + 1 },
-  { Inst::kIdF2xm1        , Inst::kIdFyl2xp1       + 1 },
-  { Inst::kIdGetsec       , Inst::kIdGf2p8mulb     + 1 },
-  { Inst::kIdHaddpd       , Inst::kIdHsubps        + 1 },
-  { Inst::kIdIdiv         , Inst::kIdIretq         + 1 },
-  { Inst::kIdJa           , Inst::kIdJz            + 1 },
-  { Inst::kIdKaddb        , Inst::kIdKxorw         + 1 },
-  { Inst::kIdLahf         , Inst::kIdLzcnt         + 1 },
-  { Inst::kIdMaskmovdqu   , Inst::kIdMwaitx        + 1 },
-  { Inst::kIdNeg          , Inst::kIdNot           + 1 },
-  { Inst::kIdOr           , Inst::kIdOuts          + 1 },
-  { Inst::kIdPabsb        , Inst::kIdPxor          + 1 },
-  { Inst::kIdNone         , Inst::kIdNone          + 1 },
-  { Inst::kIdRcl          , Inst::kIdRstorssp      + 1 },
-  { Inst::kIdSahf         , Inst::kIdSysretq       + 1 },
-  { Inst::kIdT1mskc       , Inst::kIdTzmsk         + 1 },
-  { Inst::kIdUcomisd      , Inst::kIdUnpcklps      + 1 },
-  { Inst::kIdV4fmaddps    , Inst::kIdVzeroupper    + 1 },
-  { Inst::kIdWbinvd       , Inst::kIdWrussq        + 1 },
-  { Inst::kIdXabort       , Inst::kIdXtest         + 1 },
-  { Inst::kIdNone         , Inst::kIdNone          + 1 },
-  { Inst::kIdNone         , Inst::kIdNone          + 1 }
 };
 // ----------------------------------------------------------------------------
 // ${NameData:End}

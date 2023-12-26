@@ -29,14 +29,14 @@ const arm = $scope[$as] = dict();
 // Database
 // ========
 
-arm.dbName = "isa_arm.json";
+arm.dbName = "isa_aarch32.json";
 
-// asmdb.arm.Utils
-// ===============
+// asmdb.aarch32.Utils
+// ===================
 
 // Can be used to assign the number of bits each part of the opcode occupies.
 // NOTE: THUMB instructions that use halfword must always specify the width
-// of all registers as many instructictions accept only LO (r0..r7) registers.
+// of all registers as many instructions accept only LO (r0..r7) registers.
 const FieldInfo = {
   "P"     : { "bits": 1 },
   "U"     : { "bits": 1 },
@@ -56,6 +56,7 @@ const FieldInfo = {
   "cmode" : { "bits": 4 },
   "Cn"    : { "bits": 4 },
   "Cm"    : { "bits": 4 },
+
   "Rd"    : { "bits": 4, "read": false, "write": true  },
   "Rd2"   : { "bits": 4, "read": false, "write": true  },
   "RdLo"  : { "bits": 4, "read": false, "write": true  },
@@ -70,17 +71,22 @@ const FieldInfo = {
   "Rs"    : { "bits": 4, "read": true , "write": false },
   "Rs2"   : { "bits": 4, "read": true , "write": false },
   "RsList": { "bits": 4, "read": true , "write": false , "list": true },
+
   "Sd"    : { "bits": 4, "read": false, "write": true  },
   "Sd2"   : { "bits": 4, "read": false, "write": true  },
+  "SdList": { "bits": 4, "read": false, "write": true  , "list": true },
   "Sx"    : { "bits": 4, "read": true , "write": true  },
   "Sn"    : { "bits": 4, "read": true , "write": false },
   "Sm"    : { "bits": 4, "read": true , "write": false },
   "Ss"    : { "bits": 4, "read": true , "write": false },
   "Ss2"   : { "bits": 4, "read": true , "write": false },
+  "SsList": { "bits": 4, "read": true , "write": false , "list": true },
+
   "Dd"    : { "bits": 4, "read": false, "write": true  },
   "Dd2"   : { "bits": 4, "read": false, "write": true  },
   "Dd3"   : { "bits": 4, "read": false, "write": true  },
   "Dd4"   : { "bits": 4, "read": false, "write": true  },
+  "DdList": { "bits": 4, "read": false, "write": true  , "list": true },
   "Dx"    : { "bits": 4, "read": true , "write": true  },
   "Dx2"   : { "bits": 4, "read": true , "write": true  },
   "Dn"    : { "bits": 4, "read": true , "write": false },
@@ -92,18 +98,18 @@ const FieldInfo = {
   "Ds2"   : { "bits": 4, "read": true , "write": false },
   "Ds3"   : { "bits": 4, "read": true , "write": false },
   "Ds4"   : { "bits": 4, "read": true , "write": false },
+  "DsList": { "bits": 4, "read": true , "write": false , "list": true },
+
   "Vd"    : { "bits": 4, "read": false, "write": true  },
   "Vd2"   : { "bits": 4, "read": false, "write": true  },
   "Vd3"   : { "bits": 4, "read": false, "write": true  },
   "Vd4"   : { "bits": 4, "read": false, "write": true  },
-  "VdList": { "bits": 4, "read": false, "write": true  , "list": true },
   "Vx"    : { "bits": 4, "read": true , "write": true  },
   "Vx2"   : { "bits": 4, "read": true , "write": true  },
   "Vn"    : { "bits": 4, "read": true , "write": false },
   "Vm"    : { "bits": 4, "read": true , "write": false },
   "Vs"    : { "bits": 4, "read": true , "write": false },
   "Vs2"   : { "bits": 4, "read": true , "write": false },
-  "VsList": { "bits": 4, "read": true , "write": false , "list": true }
 };
 
 arm.FieldInfo = FieldInfo;
@@ -192,10 +198,16 @@ function decomposeOperand(s) {
   const elementSuffix = "[#i]";
   let element = null;
   let consecutive = 0;
+  let userRegList = false;
+
+  if (s.endsWith("^")) {
+    userRegList = true;
+    s = s.substring(0, s.length - 1);
+  }
 
   if (s.endsWith(elementSuffix)) {
     element = "#i";
-    s = s.substr(0, s.length - elementSuffix.length);
+    s = s.substring(0, s.length - elementSuffix.length);
   }
 
   if (s.endsWith("++")) {
@@ -219,7 +231,8 @@ function decomposeOperand(s) {
     data    : s,
     element : element,
     restrict: restrict,
-    consecutive: consecutive
+    consecutive: consecutive,
+    userRegList: true
   };
 }
 
@@ -238,8 +251,8 @@ function splitOpcodeFields(s) {
   return out.map((field) => { return field.trim(); });
 }
 
-// asmdb.arm.Operand
-// =================
+// asmdb.aarch32.Operand
+// =====================
 
 // ARM operand.
 class Operand extends base.Operand {
@@ -267,15 +280,42 @@ class Operand extends base.Operand {
     else
       return 0;
   }
+
+  isRelative() {
+    if (this.type === "imm")
+      return this.name === "relA" || this.name === "relS" || this.name === "relZ";
+    else
+      return false;
+  }
 }
 arm.Operand = Operand;
 
-// asmdb.arm.Instruction
-// =====================
+// asmdb.aarch32.Instruction
+// =========================
 
 function patternFromOperand(key) {
   return key;
   // return key.replace(/\b(?:[RVDS](?:d|s|n|m|x|x2))\b/, "R");
+}
+
+// Rewrite a memory operand expression (either base or index) to a simplified one, which is okay
+// to be generated as C++ expression. In general, we want to simplify != to a more favorable code.
+function simplifyMemoryExpression(e) {
+  if (e.type === "binary" && e.op === "!=" && e.right.type === "var") {
+    // Rewrite A != PC to A < PC
+    if (e.right.name === "PC") { e.op = "<"; }
+
+    // Rewrite A != HI to A < 8
+    if (e.right.name === "HI") { e.op = "<"; e.right = exp.Imm(8); }
+
+    // Rewrite A != XX to A < SP || A == LR
+    if (e.right.name === "XX") {
+      return exp.Or(exp.Lt(e.left, exp.Var("SP")),
+                    exp.Eq(e.left.clone(), exp.Var("LR")));
+    }
+  }
+
+  return e;
 }
 
 // ARM instruction.
@@ -482,13 +522,14 @@ class Instruction extends base.Instruction {
 
             const m = part.match(/^([A-Za-z]\w*)/);
             if (m.length < part.length) {
-              op.base.exp = exp.parse(part);
+              op.base.exp = simplifyMemoryExpression(exp.parse(part));
               op.base.field = m[1];
             }
           }
           else if (part.startsWith("#")) {
             let p = part.substring(1);
             let u = "1";
+            let alwaysNegative = false;
 
             let offExp = null;
             let offMul = 1;
@@ -496,6 +537,11 @@ class Instruction extends base.Instruction {
             if (p.startsWith("+/-")) {
               u = "U";
               p = p.substring(3);
+            }
+
+            if (p.startsWith("-")) {
+              alwaysNegative = false;
+              p = p.substring(1);
             }
 
             const expMatch = p.match(/^([A-Za-z]\w*)==/);
@@ -515,6 +561,7 @@ class Instruction extends base.Instruction {
             op.offset.u = u;
             op.offset.exp = offExp;
             op.offset.mul = offMul;
+            op.offset.negative = alwaysNegative;
           }
           else {
             let p = part;
@@ -531,7 +578,7 @@ class Instruction extends base.Instruction {
 
             const m = p.match(/^([A-Za-z]\w*)/);
             if (m.length < p.length) {
-              op.index.exp = exp.parse(p);
+              op.index.exp = simplifyMemoryExpression(exp.parse(p));
               op.index.field = m[1];
             }
           }
@@ -858,8 +905,8 @@ class Instruction extends base.Instruction {
 }
 arm.Instruction = Instruction;
 
-// asmdb.arm.ISA
-// =============
+// asmdb.aarch32.ISA
+// =================
 
 function mergeGroupData(data, group) {
   for (let k in group) {
@@ -921,7 +968,7 @@ class ISA extends base.ISA {
                        hasOwn.call(obj, "t16") ? "t16" : "";
 
       if (!encoding)
-        FAIL(`Instrution ${names.join("/")} doesn't encoding, it must provide either a32, t32, or t16 field`);
+        FAIL(`Instruction ${names.join("/")} doesn't encoding, it must provide either a32, t32, or t16 field`);
 
       for (let j = 0; j < names.length; j++) {
         const inst = new Instruction(this, names[j], operands, encoding.toUpperCase(), obj[encoding], obj);
@@ -938,4 +985,4 @@ class ISA extends base.ISA {
 arm.ISA = ISA;
 
 }).apply(this, typeof module === "object" && module && module.exports
-  ? [module, "exports"] : [this.asmdb || (this.asmdb = {}), "arm"]);
+  ? [module, "exports"] : [this.asmdb || (this.asmdb = {}), "aarch32"]);

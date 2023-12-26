@@ -6,13 +6,13 @@
 "use strict";
 
 const core = require("./tablegen.js");
-const commons = require("./gencommons.js");
+const commons = require("./generator-commons.js");
 const hasOwn = Object.prototype.hasOwnProperty;
 
 const asmdb = core.asmdb;
-const kIndent = core.kIndent;
-const IndexedArray = core.IndexedArray;
-const StringUtils = core.StringUtils;
+const kIndent = commons.kIndent;
+const IndexedArray = commons.IndexedArray;
+const StringUtils = commons.StringUtils;
 
 const FATAL = commons.FATAL;
 
@@ -20,13 +20,10 @@ const FATAL = commons.FATAL;
 // [ArmDB]
 // ============================================================================
 
-// Create ARM ISA.
-const isa = new asmdb.arm.ISA();
+// Create AArch64 ISA.
+const isa = new asmdb.aarch64.ISA();
 
-// ============================================================================
-// [tablegen.arm.GenUtils]
-// ============================================================================
-
+/*
 class GenUtils {
   // Get a list of instructions based on `name` and optional `mode`.
   static query(name, mode) {
@@ -71,6 +68,7 @@ class GenUtils {
     return arr;
   }
 }
+*/
 
 // ============================================================================
 // [tablegen.arm.ArmTableGen]
