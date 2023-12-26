@@ -185,7 +185,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatCondCode(String& sb, CondCode c
 }
 
 ASMJIT_FAVOR_SIZE Error FormatterInternal::formatShiftOp(String& sb, ShiftOp shiftOp) noexcept {
-  const char* str = "<Unknown>";
+  const char* str = nullptr;
   switch (shiftOp) {
     case ShiftOp::kLSL: str = "lsl"; break;
     case ShiftOp::kLSR: str = "lsr"; break;
@@ -201,6 +201,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatShiftOp(String& sb, ShiftOp shi
     case ShiftOp::kSXTH: str = "sxth"; break;
     case ShiftOp::kSXTW: str = "sxtw"; break;
     case ShiftOp::kSXTX: str = "sxtx"; break;
+    default: str = "<Unknown>"; break;
   }
   return sb.append(str);
 }

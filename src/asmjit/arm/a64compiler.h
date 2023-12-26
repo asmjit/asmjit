@@ -45,20 +45,27 @@ public:
     return reg;
   }
 
+  template<typename RegT, typename Type>
+  ASMJIT_INLINE_NODEBUG RegT _newRegInternal(const Type& type, const char* s) {
+#ifndef ASMJIT_NO_LOGGING
+    RegT reg(Globals::NoInit);
+    _newReg(&reg, type, s);
+    return reg;
+#else
+    DebugUtils::unused(s);
+    return _newRegInternal<RegT>(type);
+#endif
+  }
+
   template<typename RegT, typename Type, typename... Args>
   ASMJIT_INLINE_NODEBUG RegT _newRegInternal(const Type& type, const char* s, Args&&... args) {
 #ifndef ASMJIT_NO_LOGGING
     RegT reg(Globals::NoInit);
-    if (sizeof...(Args) == 0)
-      _newReg(&reg, type, s);
-    else
-      _newRegFmt(&reg, type, s, std::forward<Args>(args)...);
+    _newRegFmt(&reg, type, s, std::forward<Args>(args)...);
     return reg;
 #else
     DebugUtils::unused(s, std::forward<Args>(args)...);
-    RegT reg(Globals::NoInit);
-    _newReg(&reg, type, nullptr);
-    return reg;
+    return _newRegInternal<RegT>(type);
 #endif
   }
   //! \endcond

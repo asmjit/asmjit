@@ -4114,7 +4114,6 @@ Case_BaseLdurStur:
 
             if (inverted) {
               imm8 = ~imm8 & 0xFFu;
-              inverted = 0;
             }
 
             cmode = B(3) | B(2) | B(1);
@@ -4147,7 +4146,6 @@ Case_BaseLdurStur:
           case 3:
             if (inverted) {
               imm8 = ~imm8 & 0xFFu;
-              inverted = 0;
             }
 
             op = 1;

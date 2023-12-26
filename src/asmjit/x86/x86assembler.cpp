@@ -560,7 +560,7 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(InstId instId, const Operand_& o0, con
 
   const Operand_* rmRel;           // Memory operand or operand that holds Label|Imm.
   uint32_t rmInfo;                 // Memory operand's info based on x86MemInfo.
-  uint32_t rbReg;                  // Memory base or modRM register.
+  uint32_t rbReg = 0;              // Memory base or modRM register.
   uint32_t rxReg;                  // Memory index register.
   uint32_t opReg;                  // ModR/M opcode or register id.
 
@@ -653,7 +653,6 @@ ASMJIT_FAVOR_SPEED Error Assembler::_emit(InstId instId, const Operand_& o0, con
   // This sequence seems to be the fastest.
   opcode = InstDB::_mainOpcodeTable[instInfo->_mainOpcodeIndex];
   opReg = opcode.extractModO();
-  rbReg = 0;
   opcode |= instInfo->_mainOpcodeValue;
 
   // Encoding Scope

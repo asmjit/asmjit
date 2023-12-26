@@ -1711,18 +1711,6 @@ Error InstInternal::queryFeatures(Arch arch, const BaseInst& inst, const Operand
 // =========================
 
 #if defined(ASMJIT_TEST)
-template<typename... Args>
-static Error queryRWInfoInline(InstRWInfo* out, Arch arch, BaseInst inst, Args&&... args) {
-  Operand_ opArray[] = { std::forward<Args>(args)... };
-  return InstInternal::queryRWInfo(arch, inst, opArray, sizeof...(args), out);
-}
-
-template<typename... Args>
-static Error queryFeaturesInline(CpuFeatures* out, Arch arch, BaseInst inst, Args&&... args) {
-  Operand_ opArray[] = { std::forward<Args>(args)... };
-  return InstInternal::queryFeatures(arch, inst, opArray, sizeof...(args), out);
-}
-
 #ifndef ASMJIT_NO_TEXT
 UNIT(x86_inst_api_text) {
   // All known instructions should be matched.
@@ -1740,6 +1728,13 @@ UNIT(x86_inst_api_text) {
   }
 }
 #endif // !ASMJIT_NO_TEXT
+
+#ifndef ASMJIT_NO_INTROSPECTION
+template<typename... Args>
+static Error queryFeaturesInline(CpuFeatures* out, Arch arch, BaseInst inst, Args&&... args) {
+  Operand_ opArray[] = { std::forward<Args>(args)... };
+  return InstInternal::queryFeatures(arch, inst, opArray, sizeof...(args), out);
+}
 
 UNIT(x86_inst_api_cpu_features) {
   INFO("Verifying whether SSE2+ features are reported correctly for legacy instructions");
@@ -1815,6 +1810,14 @@ UNIT(x86_inst_api_cpu_features) {
     EXPECT_TRUE(f.x86().hasAVX512_F());
   }
 }
+#endif // !ASMJIT_NO_INTROSPECTION
+
+#ifndef ASMJIT_NO_INTROSPECTION
+template<typename... Args>
+static Error queryRWInfoInline(InstRWInfo* out, Arch arch, BaseInst inst, Args&&... args) {
+  Operand_ opArray[] = { std::forward<Args>(args)... };
+  return InstInternal::queryRWInfo(arch, inst, opArray, sizeof...(args), out);
+}
 
 UNIT(x86_inst_api_rm_features) {
   INFO("Verifying whether RM/feature is reported correctly for PEXTRW instruction");
@@ -1869,7 +1872,9 @@ UNIT(x86_inst_api_rm_features) {
     EXPECT_EQ(rwi.rmFeature(), 0u);
   }
 }
-#endif
+#endif // !ASMJIT_NO_INTROSPECTION
+
+#endif // ASMJIT_TEST
 
 ASMJIT_END_SUB_NAMESPACE
 

@@ -98,10 +98,6 @@ static uint32_t testFunc(JitRuntime& rt, EmitterType emitterType) noexcept {
 
   Error err = kErrorOk;
   switch (emitterType) {
-    case EmitterType::kNone: {
-      break;
-    }
-
     case EmitterType::kAssembler: {
       printf("Using x86::Assembler:\n");
       x86::Assembler a(&code);
@@ -138,6 +134,11 @@ static uint32_t testFunc(JitRuntime& rt, EmitterType emitterType) noexcept {
       break;
     }
 #endif
+
+    default: {
+      printf("** FAILURE: No emitter to use **\n");
+      return 1;
+    }
   }
 
   // Add the code generated to the runtime.
@@ -150,9 +151,9 @@ static uint32_t testFunc(JitRuntime& rt, EmitterType emitterType) noexcept {
   }
 
   // Execute the generated function.
-  int inA[4] = { 4, 3, 2, 1 };
-  int inB[4] = { 1, 5, 2, 8 };
-  int out[4];
+  static const int inA[4] = { 4, 3, 2, 1 };
+  static const int inB[4] = { 1, 5, 2, 8 };
+  int out[4] {};
   fn(out, inA, inB);
 
   // Should print {5 8 4 9}.

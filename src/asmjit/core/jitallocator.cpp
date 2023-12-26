@@ -37,12 +37,13 @@ static constexpr uint32_t kJitAllocatorMaxBlockSize = 1024 * 1024 * 64;
 // ===========================
 
 static inline uint32_t JitAllocator_defaultFillPattern() noexcept {
+#if ASMJIT_ARCH_X86
   // X86 and X86_64 - 4x 'int3' instruction.
-  if (ASMJIT_ARCH_X86)
-    return 0xCCCCCCCCu;
-
+  return 0xCCCCCCCCu;
+#else
   // Unknown...
   return 0u;
+#endif
 }
 
 // JitAllocator - BitVectorRangeIterator

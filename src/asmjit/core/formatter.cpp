@@ -57,7 +57,7 @@ Error formatTypeId(String& sb, TypeId typeId) noexcept {
   if (!TypeUtils::isValid(typeId))
     return sb.append("unknown");
 
-  const char* typeName = "unknown";
+  const char* typeName = nullptr;
   uint32_t typeSize = TypeUtils::sizeOf(typeId);
   TypeId scalarType = TypeUtils::scalarOf(typeId);
 
@@ -514,7 +514,7 @@ Error formatNode(
       ASMJIT_PROPAGATE(sb.append("[FuncRet]"));
 
       for (uint32_t i = 0; i < 2; i++) {
-        const Operand_& op = retNode->_opArray[i];
+        const Operand_& op = retNode->op(i);
         if (!op.isNone()) {
           ASMJIT_PROPAGATE(sb.append(i == 0 ? " " : ", "));
           ASMJIT_PROPAGATE(formatOperand(sb, formatOptions.flags(), builder, builder->arch(), op));

@@ -499,7 +499,8 @@ struct OpRWInfo {
     _consecutiveLeadCount = 0;
     _resetReserved();
 
-    uint64_t mask = Support::lsbMask<uint64_t>(regSize);
+    uint64_t mask = Support::lsbMask<uint64_t>(Support::min<uint32_t>(regSize, 64));
+
     _readByteMask = Support::test(opFlags, OpRWFlags::kRead) ? mask : uint64_t(0);
     _writeByteMask = Support::test(opFlags, OpRWFlags::kWrite) ? mask : uint64_t(0);
     _extendByteMask = 0;

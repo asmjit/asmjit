@@ -194,6 +194,7 @@ ASMJIT_DEFINE_ENUM_FLAGS(DiagnosticOptions)
 class ASMJIT_VIRTAPI BaseEmitter {
 public:
   ASMJIT_BASE_CLASS(BaseEmitter)
+  ASMJIT_NONCOPYABLE(BaseEmitter)
 
   //! \name Members
   //! \{

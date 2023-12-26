@@ -514,8 +514,8 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
 // =====================================================
 
 static constexpr char kImmCharStart = '{';
-static constexpr char kImmCharEnd   = '}';
-static constexpr char kImmCharOr    = '|';
+static constexpr char kImmCharEnd = '}';
+static constexpr char kImmCharOr = '|';
 
 struct ImmBits {
   enum Mode : uint32_t {
@@ -539,8 +539,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmShuf(String& sb, uint3
     ASMJIT_PROPAGATE(sb.appendUInt(index));
   }
 
-  if (kImmCharEnd)
-    ASMJIT_PROPAGATE(sb.append(kImmCharEnd));
+  ASMJIT_PROPAGATE(sb.append(kImmCharEnd));
 
   return kErrorOk;
 }
@@ -576,7 +575,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmBits(String& sb, uint3
     ASMJIT_PROPAGATE(sb.append(str));
   }
 
-  if (n && kImmCharEnd)
+  if (n)
     ASMJIT_PROPAGATE(sb.append(kImmCharEnd));
 
   return kErrorOk;
@@ -592,10 +591,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmText(String& sb, uint3
     ASMJIT_PROPAGATE(sb.append(Support::findPackedString(text, value)));
   }
 
-  if (kImmCharEnd)
-    ASMJIT_PROPAGATE(sb.append(kImmCharEnd));
-
-  return kErrorOk;
+  return sb.append(kImmCharEnd);
 }
 
 ASMJIT_FAVOR_SIZE static Error FormatterInternal_explainConst(

@@ -325,7 +325,7 @@ public:
 //! \note This node should be only used to represent jump where the jump target cannot be deduced by examining
 //! instruction operands. For example if the jump target is register or memory location. This pattern is often
 //! used to perform indirect jumps that use jump table, e.g. to implement `switch{}` statement.
-class JumpNode : public InstNode {
+class JumpNode : public InstNodeWithOperands<InstNode::kBaseOpCapacity> {
 public:
   ASMJIT_NONCOPYABLE(JumpNode)
 
@@ -340,7 +340,7 @@ public:
   //! \{
 
   inline JumpNode(BaseCompiler* ASMJIT_NONNULL(cc), InstId instId, InstOptions options, uint32_t opCount, JumpAnnotation* annotation) noexcept
-    : InstNode(cc, instId, options, opCount, kBaseOpCapacity),
+    : InstNodeWithOperands(cc, instId, options, opCount),
       _annotation(annotation) {
     setType(NodeType::kJump);
   }
@@ -531,7 +531,7 @@ public:
 };
 
 //! Function return, used by \ref BaseCompiler.
-class FuncRetNode : public InstNode {
+class FuncRetNode : public InstNodeWithOperands<InstNode::kBaseOpCapacity> {
 public:
   ASMJIT_NONCOPYABLE(FuncRetNode)
 
@@ -539,7 +539,8 @@ public:
   //! \{
 
   //! Creates a new `FuncRetNode` instance.
-  inline FuncRetNode(BaseBuilder* ASMJIT_NONNULL(cb)) noexcept : InstNode(cb, BaseInst::kIdAbstract, InstOptions::kNone, 0) {
+  inline FuncRetNode(BaseBuilder* ASMJIT_NONNULL(cb)) noexcept
+    : InstNodeWithOperands(cb, BaseInst::kIdAbstract, InstOptions::kNone, 0) {
     _any._nodeType = NodeType::kFuncRet;
   }
 
@@ -547,12 +548,12 @@ public:
 };
 
 //! Function invocation, used by \ref BaseCompiler.
-class InvokeNode : public InstNode {
+class InvokeNode : public InstNodeWithOperands<InstNode::kBaseOpCapacity> {
 public:
   ASMJIT_NONCOPYABLE(InvokeNode)
 
   //! Operand pack provides multiple operands that can be associated with a single return value of function
-  //! argument. Sometims this is necessary to express an argument or return value that requires multiple
+  //! argument. Sometimes this is necessary to express an argument or return value that requires multiple
   //! registers, for example 64-bit value in 32-bit mode or passing / returning homogeneous data structures.
   struct OperandPack {
     //! Operands.
@@ -594,7 +595,7 @@ public:
 
   //! Creates a new `InvokeNode` instance.
   inline InvokeNode(BaseBuilder* ASMJIT_NONNULL(cb), InstId instId, InstOptions options) noexcept
-    : InstNode(cb, instId, options, kBaseOpCapacity),
+    : InstNodeWithOperands(cb, instId, options, 0),
       _funcDetail(),
       _args(nullptr) {
     setType(NodeType::kInvoke);
@@ -619,9 +620,9 @@ public:
   ASMJIT_INLINE_NODEBUG const FuncDetail& detail() const noexcept { return _funcDetail; }
 
   //! Returns the target operand.
-  ASMJIT_INLINE_NODEBUG Operand& target() noexcept { return _opArray[0].as<Operand>(); }
+  ASMJIT_INLINE_NODEBUG Operand& target() noexcept { return op(0); }
   //! \overload
-  ASMJIT_INLINE_NODEBUG const Operand& target() const noexcept { return _opArray[0].as<Operand>(); }
+  ASMJIT_INLINE_NODEBUG const Operand& target() const noexcept { return op(0); }
 
   //! Returns the number of function return values.
   ASMJIT_INLINE_NODEBUG bool hasRet() const noexcept { return _funcDetail.hasRet(); }

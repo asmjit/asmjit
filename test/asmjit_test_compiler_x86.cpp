@@ -971,8 +971,8 @@ public:
     typedef void (*Func)(int*, int*);
     Func func = ptr_as_func<Func>(_func);
 
-    int resultX;
-    int resultY;
+    int resultX = 0;
+    int resultY = 0;
 
     int expectX =  36;
     int expectY = -36;
@@ -1026,8 +1026,8 @@ public:
     Func func = ptr_as_func<Func>(_func);
 
     uint32_t i;
-    uint32_t resultBuf[32];
-    uint32_t expectBuf[32];
+    uint32_t resultBuf[32] {};
+    uint32_t expectBuf[32] {};
 
     for (i = 0; i < ASMJIT_ARRAY_SIZE(resultBuf); i++)
       expectBuf[i] = i * 32;
@@ -1085,8 +1085,8 @@ public:
     int v0 = 4;
     int v1 = 4;
 
-    int resultHi;
-    int resultLo;
+    int resultHi = 0;
+    int resultLo = 0;
 
     int expectHi = 0;
     int expectLo = v0 * v1;
@@ -1227,7 +1227,7 @@ public:
     typedef void (*Func)(int, int, char*);
     Func func = ptr_as_func<Func>(_func);
 
-    char resultBuf[4];
+    char resultBuf[4] {};
     char expectBuf[4] = { 1, 0, 0, 1 };
 
     func(0, 0, &resultBuf[0]); // We are expecting 1 (0 == 0).
@@ -1280,7 +1280,7 @@ public:
 
     int v0 = 0x000000FF;
 
-    int resultRet;
+    int resultRet = 0;
     int expectRet = 0x0000FF00;
 
     func(&resultRet, v0, 16, 8);
@@ -1347,10 +1347,9 @@ public:
 
     uint32_t i;
     uint32_t buf[kCount];
-    uint32_t resultRet;
-    uint32_t expectRet;
+    uint32_t resultRet = 0;
+    uint32_t expectRet = 0;
 
-    expectRet = 0;
     for (i = 0; i < kCount; i++) {
       buf[i] = 1;
     }
@@ -1700,7 +1699,7 @@ public:
     x86::Gp x = cc.newInt8("x");
     x86::Gp y = cc.newInt32("y");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, char>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int8_t>(CallConvId::kHost));
     funcNode->setArg(0, x);
 
     cc.movsx(y, x);
@@ -1710,10 +1709,10 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef int (*Func)(char);
+    typedef int (*Func)(int8_t);
     Func func = ptr_as_func<Func>(_func);
 
-    int resultRet = func(-13);
+    int resultRet = func(int8_t(-13));
     int expectRet = -13;
 
     result.assignFormat("ret=%d", resultRet);
@@ -1853,7 +1852,7 @@ public:
     typedef void (*Func)(float, float, float, float, float, float, float, float*);
     Func func = ptr_as_func<Func>(_func);
 
-    float resultRet;
+    float resultRet = 0;
     float expectRet = 1.0f + 2.0f + 3.0f + 4.0f + 5.0f + 6.0f + 7.0f;
 
     func(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, &resultRet);
@@ -1904,7 +1903,7 @@ public:
     typedef void (*Func)(double, double, double, double, double, double, double, double*);
     Func func = ptr_as_func<Func>(_func);
 
-    double resultRet;
+    double resultRet = 0;
     double expectRet = 1.0 + 2.0 + 3.0 + 4.0 + 5.0 + 6.0 + 7.0;
 
     func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, &resultRet);
@@ -1954,7 +1953,7 @@ public:
     uint8_t aData[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
     uint8_t bData[16] = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
 
-    uint8_t rData[16];
+    uint8_t rData[16] {};
     uint8_t eData[16] = { 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15 };
 
     __m128i aVec = _mm_loadu_si128(reinterpret_cast<const __m128i*>(aData));
@@ -2714,7 +2713,7 @@ public:
     uint8_t aData[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
     uint8_t bData[16] = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
 
-    uint8_t rData[16];
+    uint8_t rData[16] {};
     uint8_t eData[16] = { 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15 };
 
     func(rData, aData, bData);
@@ -2823,7 +2822,7 @@ public:
     int16_t c[8] = { 1, 3, 9, 7, 5, 4, 2, 1 };
     int16_t d[8] = { 2, 0,-6,-4,-2,-1, 1, 2 };
 
-    int16_t o[8];
+    int16_t o[8] {};
     int oExp = 7 * 3;
 
     func(a, b, c, d, o);
@@ -4066,8 +4065,8 @@ public:
     static const uint32_t aData[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     static const uint32_t bData[8] = { 6, 3, 5, 9, 1, 8, 7, 2 };
 
-    uint32_t resultData[8];
-    uint32_t expectData[8];
+    uint32_t resultData[8] {};
+    uint32_t expectData[8] {};
 
     for (i = 0; i < 8; i++)
       expectData[i] = aData[i] * 8 + bData[i] + 1;

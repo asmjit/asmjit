@@ -331,25 +331,25 @@ struct OperandSignature {
   ASMJIT_INLINE_NODEBUG constexpr uint32_t bits() const noexcept { return _bits; }
   ASMJIT_INLINE_NODEBUG void setBits(uint32_t bits) noexcept { _bits = bits; }
 
-  template<uint32_t kFieldMask, uint32_t kFieldShift = Support::ConstCTZ<kFieldMask>::value>
+  template<uint32_t kFieldMask>
   ASMJIT_INLINE_NODEBUG constexpr bool hasField() const noexcept {
     return (_bits & kFieldMask) != 0;
   }
 
-  template<uint32_t kFieldMask, uint32_t kFieldShift = Support::ConstCTZ<kFieldMask>::value>
+  template<uint32_t kFieldMask>
   ASMJIT_INLINE_NODEBUG constexpr bool hasField(uint32_t value) const noexcept {
-    return (_bits & kFieldMask) != value << kFieldShift;
+    return (_bits & kFieldMask) != value << Support::ConstCTZ<kFieldMask>::value;
   }
 
-  template<uint32_t kFieldMask, uint32_t kFieldShift = Support::ConstCTZ<kFieldMask>::value>
+  template<uint32_t kFieldMask>
   ASMJIT_INLINE_NODEBUG constexpr uint32_t getField() const noexcept {
-    return (_bits >> kFieldShift) & (kFieldMask >> kFieldShift);
+    return (_bits >> Support::ConstCTZ<kFieldMask>::value) & (kFieldMask >> Support::ConstCTZ<kFieldMask>::value);
   }
 
-  template<uint32_t kFieldMask, uint32_t kFieldShift = Support::ConstCTZ<kFieldMask>::value>
+  template<uint32_t kFieldMask>
   ASMJIT_INLINE_NODEBUG void setField(uint32_t value) noexcept {
-    ASMJIT_ASSERT((value & ~(kFieldMask >> kFieldShift)) == 0);
-    _bits = (_bits & ~kFieldMask) | (value << kFieldShift);
+    ASMJIT_ASSERT(((value << Support::ConstCTZ<kFieldMask>::value) & ~kFieldMask) == 0);
+    _bits = (_bits & ~kFieldMask) | (value << Support::ConstCTZ<kFieldMask>::value);
   }
 
   ASMJIT_INLINE_NODEBUG constexpr OperandSignature subset(uint32_t mask) const noexcept { return OperandSignature{_bits & mask}; }
@@ -643,10 +643,10 @@ struct Operand_ {
   //! \note This basically performs a binary comparison, if aby bit is
   //! different the operands are not equal.
   ASMJIT_INLINE_NODEBUG constexpr bool equals(const Operand_& other) const noexcept {
-    return (_signature == other._signature) &
-           (_baseId    == other._baseId   ) &
-           (_data[0]   == other._data[0]  ) &
-           (_data[1]   == other._data[1]  ) ;
+    return bool(unsigned(_signature == other._signature) &
+                unsigned(_baseId    == other._baseId   ) &
+                unsigned(_data[0]   == other._data[0]  ) &
+                unsigned(_data[1]   == other._data[1]  ));
   }
 
   //! Tests whether the operand is a register matching the given register `type`.
@@ -712,7 +712,7 @@ public:
 
   //! Creates an operand initialized to raw `[u0, u1, u2, u3]` values.
   ASMJIT_INLINE_NODEBUG constexpr Operand(Globals::Init_, const Signature& u0, uint32_t u1, uint32_t u2, uint32_t u3) noexcept
-    : Operand_{ u0, u1, { u2, u3 }} {}
+    : Operand_{{u0._bits}, u1, {u2, u3}} {}
 
   //! Creates an uninitialized operand (dangerous).
   ASMJIT_INLINE_NODEBUG explicit Operand(Globals::NoInit_) noexcept {}

@@ -48,7 +48,7 @@ enum class NodeType : uint8_t {
 
   // [BaseBuilder]
 
-  //! Node is \ref InstNode or \ref InstExNode.
+  //! Node is \ref InstNode.
   kInst = 1,
   //! Node is \ref SectionNode.
   kSection = 2,
@@ -748,12 +748,15 @@ public:
   //! \name Constants
   //! \{
 
-  enum : uint32_t {
-    //! Count of embedded operands per `InstNode` that are always allocated as a part of the instruction. Minimum
-    //! embedded operands is 4, but in 32-bit more pointers are smaller and we can embed 5. The rest (up to 6 operands)
-    //! is always stored in `InstExNode`.
-    kBaseOpCapacity = uint32_t((128 - sizeof(BaseNode) - sizeof(BaseInst)) / sizeof(Operand_))
-  };
+  //! The number of embedded operands for a default \ref InstNode instance that are always allocated as a part of
+  //! the instruction itself. Minimum embedded operands is 4, but in 32-bit more pointers are smaller and we can
+  //! embed 5. The rest (up to 6 operands) is considered extended.
+  //!
+  //! The number of operands InstNode holds is decided when \ref InstNode is created.
+  static constexpr uint32_t kBaseOpCapacity = uint32_t((128 - sizeof(BaseNode) - sizeof(BaseInst)) / sizeof(Operand_));
+
+  //! Count of maximum number of operands \ref InstNode can hold.
+  static constexpr uint32_t kFullOpCapacity = Globals::kMaxOpCount;
 
   //! \}
 
@@ -762,8 +765,6 @@ public:
 
   //! Base instruction data.
   BaseInst _baseInst;
-  //! First 4 or 5 operands (indexed from 0).
-  Operand_ _opArray[kBaseOpCapacity];
 
   //! \}
 
@@ -851,38 +852,52 @@ public:
   ASMJIT_INLINE_NODEBUG void setOpCount(uint32_t opCount) noexcept { _inst._opCount = uint8_t(opCount); }
 
   //! Returns operands array.
-  ASMJIT_INLINE_NODEBUG Operand* operands() noexcept { return (Operand*)_opArray; }
+  ASMJIT_INLINE_NODEBUG Operand* operands() noexcept {
+    return reinterpret_cast<Operand*>(reinterpret_cast<uint8_t*>(this) + sizeof(InstNode));
+  }
+
   //! Returns operands array (const).
-  ASMJIT_INLINE_NODEBUG const Operand* operands() const noexcept { return (const Operand*)_opArray; }
+  ASMJIT_INLINE_NODEBUG const Operand* operands() const noexcept {
+    return reinterpret_cast<const Operand*>(reinterpret_cast<const uint8_t*>(this) + sizeof(InstNode));
+  }
 
   //! Returns operand at the given `index`.
   inline Operand& op(uint32_t index) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
-    return _opArray[index].as<Operand>();
+
+    Operand* ops = operands();
+    return ops[index].as<Operand>();
   }
 
   //! Returns operand at the given `index` (const).
   inline const Operand& op(uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < opCapacity());
-    return _opArray[index].as<Operand>();
+
+    const Operand* ops = operands();
+    return ops[index].as<Operand>();
   }
 
   //! Sets operand at the given `index` to `op`.
   inline void setOp(uint32_t index, const Operand_& op) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
-    _opArray[index].copyFrom(op);
+
+    Operand* ops = operands();
+    ops[index].copyFrom(op);
   }
 
   //! Resets operand at the given `index` to none.
   inline void resetOp(uint32_t index) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
-    _opArray[index].reset();
+
+    Operand* ops = operands();
+    ops[index].reset();
   }
 
   //! Resets operands at `[start, end)` range.
   inline void resetOpRange(uint32_t start, uint32_t end) noexcept {
+    Operand* ops = operands();
     for (uint32_t i = start; i < end; i++)
-      _opArray[i].reset();
+      ops[i].reset();
   }
 
   //! \}
@@ -891,8 +906,9 @@ public:
   //! \{
 
   inline bool hasOpType(OperandType opType) const noexcept {
+    const Operand* ops = operands();
     for (uint32_t i = 0, count = opCount(); i < count; i++)
-      if (_opArray[i].opType() == opType)
+      if (ops[i].opType() == opType)
         return true;
     return false;
   }
@@ -905,9 +921,10 @@ public:
   inline uint32_t indexOfOpType(OperandType opType) const noexcept {
     uint32_t i = 0;
     uint32_t count = opCount();
+    const Operand* ops = operands();
 
     while (i < count) {
-      if (_opArray[i].opType() == opType)
+      if (ops[i].opType() == opType)
         break;
       i++;
     }
@@ -950,43 +967,31 @@ public:
   //! \{
 
   //! \cond INTERNAL
-  static ASMJIT_INLINE_NODEBUG uint32_t capacityOfOpCount(uint32_t opCount) noexcept {
+  static ASMJIT_INLINE_NODEBUG constexpr uint32_t capacityOfOpCount(uint32_t opCount) noexcept {
     return opCount <= kBaseOpCapacity ? kBaseOpCapacity : Globals::kMaxOpCount;
   }
 
-  static ASMJIT_INLINE_NODEBUG size_t nodeSizeOfOpCapacity(uint32_t opCapacity) noexcept {
-    size_t base = sizeof(InstNode) - kBaseOpCapacity * sizeof(Operand);
-    return base + opCapacity * sizeof(Operand);
+  static ASMJIT_INLINE_NODEBUG constexpr size_t nodeSizeOfOpCapacity(uint32_t opCapacity) noexcept {
+    return sizeof(InstNode) + opCapacity * sizeof(Operand);
   }
   //! \endcond
 
   //! \}
 };
 
-//! Instruction node with maximum number of operands.
+//! Instruction node with embedded operands following \ref InstNode layout.
 //!
-//! This node is created automatically by Builder/Compiler in case that the required number of operands exceeds
-//! the default capacity of `InstNode`.
-class InstExNode : public InstNode {
+//! \note This is used to make tools such as static analysis and compilers happy about the layout. There were two
+//! instruction nodes in the past, having the second extend the operand array of the first, but that has caused
+//! undefined behavior and made recent tools unhappy about that.
+template<uint32_t kN>
+class InstNodeWithOperands : public InstNode {
 public:
-  ASMJIT_NONCOPYABLE(InstExNode)
+  Operand_ _operands[kN];
 
-  //! \name Members
-  //! \{
-
-  //! Continued `_opArray[]` to hold up to `kMaxOpCount` operands.
-  Operand_ _opArrayEx[Globals::kMaxOpCount - kBaseOpCapacity];
-
-  //! \}
-
-  //! \name Construction & Destruction
-  //! \{
-
-  //! Creates a new `InstExNode` instance.
-  ASMJIT_INLINE_NODEBUG InstExNode(BaseBuilder* cb, InstId instId, InstOptions options, uint32_t opCapacity = Globals::kMaxOpCount) noexcept
-    : InstNode(cb, instId, options, opCapacity) {}
-
-  //! \}
+  //! Creates a new `InstNodeWithOperands` instance.
+  ASMJIT_INLINE_NODEBUG InstNodeWithOperands(BaseBuilder* cb, InstId instId, InstOptions options, uint32_t opCount) noexcept
+    : InstNode(cb, instId, options, opCount, kN) {}
 };
 
 //! Section node.
@@ -1013,9 +1018,9 @@ public:
   //! \{
 
   //! Creates a new `SectionNode` instance.
-  ASMJIT_INLINE_NODEBUG SectionNode(BaseBuilder* cb, uint32_t secionId = 0) noexcept
+  ASMJIT_INLINE_NODEBUG SectionNode(BaseBuilder* cb, uint32_t sectionId = 0) noexcept
     : BaseNode(cb, NodeType::kSection, NodeFlags::kHasNoEffect),
-      _id(secionId),
+      _id(sectionId),
       _nextSection(nullptr) {}
 
   //! \}

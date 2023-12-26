@@ -194,8 +194,13 @@ public:
     if (ASMJIT_UNLIKELY(_size == _capacity))
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
-    ::memmove(static_cast<T*>(_data) + 1, _data, size_t(_size) * sizeof(T));
-    memcpy(_data, &item, sizeof(T));
+    memmove(static_cast<void*>(static_cast<T*>(_data) + 1),
+            static_cast<const void*>(_data),
+            size_t(_size) * sizeof(T));
+
+    memcpy(static_cast<void*>(_data),
+           static_cast<const void*>(&item),
+           sizeof(T));
 
     _size++;
     return kErrorOk;
@@ -209,10 +214,15 @@ public:
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
     T* dst = static_cast<T*>(_data) + index;
-    ::memmove(dst + 1, dst, size_t(_size - index) * sizeof(T));
-    memcpy(dst, &item, sizeof(T));
-    _size++;
+    memmove(static_cast<void*>(dst + 1),
+            static_cast<const void*>(dst),
+            size_t(_size - index) * sizeof(T));
 
+    memcpy(static_cast<void*>(dst),
+           static_cast<const void*>(&item),
+           sizeof(T));
+
+    _size++;
     return kErrorOk;
   }
 
@@ -221,9 +231,11 @@ public:
     if (ASMJIT_UNLIKELY(_size == _capacity))
       ASMJIT_PROPAGATE(grow(allocator, 1));
 
-    memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
-    _size++;
+    memcpy(static_cast<void*>(static_cast<T*>(_data) + _size),
+           static_cast<const void*>(&item),
+           sizeof(T));
 
+    _size++;
     return kErrorOk;
   }
 
@@ -234,7 +246,9 @@ public:
       ASMJIT_PROPAGATE(grow(allocator, size));
 
     if (size) {
-      memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
+      memcpy(static_cast<void*>(static_cast<T*>(_data) + _size),
+             static_cast<const void*>(other._data),
+             size_t(size) * sizeof(T));
       _size += size;
     }
 
@@ -249,10 +263,15 @@ public:
     ASMJIT_ASSERT(_size < _capacity);
     T* data = static_cast<T*>(_data);
 
-    if (_size)
-      ::memmove(data + 1, data, size_t(_size) * sizeof(T));
+    if (_size) {
+      memmove(static_cast<void*>(data + 1),
+              static_cast<const void*>(data),
+              size_t(_size) * sizeof(T));
+    }
 
-    memcpy(data, &item, sizeof(T));
+    memcpy(static_cast<void*>(data),
+           static_cast<const void*>(&item),
+           sizeof(T));
     _size++;
   }
 
@@ -263,7 +282,9 @@ public:
   ASMJIT_FORCE_INLINE void appendUnsafe(const T& item) noexcept {
     ASMJIT_ASSERT(_size < _capacity);
 
-    memcpy(static_cast<T*>(_data) + _size, &item, sizeof(T));
+    memcpy(static_cast<void*>(static_cast<T*>(_data) + _size),
+           static_cast<const void*>(&item),
+           sizeof(T));
     _size++;
   }
 
@@ -273,17 +294,26 @@ public:
     ASMJIT_ASSERT(index <= _size);
 
     T* dst = static_cast<T*>(_data) + index;
-    ::memmove(dst + 1, dst, size_t(_size - index) * sizeof(T));
-    memcpy(dst, &item, sizeof(T));
+    memmove(static_cast<void*>(dst + 1),
+            static_cast<const void*>(dst),
+            size_t(_size - index) * sizeof(T));
+
+    memcpy(static_cast<void*>(dst),
+           static_cast<const void*>(&item),
+           sizeof(T));
+
     _size++;
   }
+
   //! Concatenates all items of `other` at the end of the vector.
   ASMJIT_FORCE_INLINE void concatUnsafe(const ZoneVector<T>& other) noexcept {
     uint32_t size = other._size;
     ASMJIT_ASSERT(_capacity - _size >= size);
 
     if (size) {
-      memcpy(static_cast<T*>(_data) + _size, other._data, size_t(size) * sizeof(T));
+      memcpy(static_cast<void*>(static_cast<T*>(_data) + _size),
+             static_cast<const void*>(other._data),
+             size_t(size) * sizeof(T));
       _size += size;
     }
   }
@@ -311,8 +341,11 @@ public:
     T* data = static_cast<T*>(_data) + i;
     size_t size = --_size - i;
 
-    if (size)
-      ::memmove(data, data + 1, size_t(size) * sizeof(T));
+    if (size) {
+      memmove(static_cast<void*>(data),
+              static_cast<const void*>(data + 1),
+              size_t(size) * sizeof(T));
+    }
   }
 
   //! Pops the last element from the vector and returns it.

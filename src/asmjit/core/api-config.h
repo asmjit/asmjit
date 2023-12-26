@@ -16,7 +16,7 @@
 #define ASMJIT_LIBRARY_MAKE_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
 //! AsmJit library version, see \ref ASMJIT_LIBRARY_MAKE_VERSION for a version format reference.
-#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 11, 0)
+#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 12, 0)
 
 //! \def ASMJIT_ABI_NAMESPACE
 //!
@@ -27,7 +27,7 @@
 //! AsmJit default, which makes it possible to use multiple AsmJit libraries within a single project, totally
 //! controlled by users. This is useful especially in cases in which some of such library comes from third party.
 #if !defined(ASMJIT_ABI_NAMESPACE)
-  #define ASMJIT_ABI_NAMESPACE _abi_1_11
+  #define ASMJIT_ABI_NAMESPACE _abi_1_12
 #endif // !ASMJIT_ABI_NAMESPACE
 
 //! \}
@@ -221,45 +221,11 @@ namespace asmjit {
 // C++ Compiler and Features Detection
 // ===================================
 
-#define ASMJIT_CXX_GNU 0
-#define ASMJIT_CXX_MAKE_VER(MAJOR, MINOR) ((MAJOR) * 1000 + (MINOR))
-
-// Intel Compiler [pretends to be GNU or MSC, so it must be checked first]:
-//   - https://software.intel.com/en-us/articles/c0x-features-supported-by-intel-c-compiler
-//   - https://software.intel.com/en-us/articles/c14-features-supported-by-intel-c-compiler
-//   - https://software.intel.com/en-us/articles/c17-features-supported-by-intel-c-compiler
-#if defined(__INTEL_COMPILER)
-
-// MSC Compiler:
-//   - https://msdn.microsoft.com/en-us/library/hh567368.aspx
-//
-// Version List:
-//   - 16.00.0 == VS2010
-//   - 17.00.0 == VS2012
-//   - 18.00.0 == VS2013
-//   - 19.00.0 == VS2015
-//   - 19.10.0 == VS2017
-#elif defined(_MSC_VER) && defined(_MSC_FULL_VER)
-
-// Clang Compiler [Pretends to be GNU, so it must be checked before]:
-//   - https://clang.llvm.org/cxx_status.html
-#elif defined(__clang_major__) && defined(__clang_minor__) && defined(__clang_patchlevel__)
-
-// GNU Compiler:
-//   - https://gcc.gnu.org/projects/cxx-status.html
-#elif defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
-
-  #undef ASMJIT_CXX_GNU
-  #define ASMJIT_CXX_GNU ASMJIT_CXX_MAKE_VER(__GNUC__, __GNUC_MINOR__)
-
-#endif
-
-// Compiler features detection macros.
-#if defined(__clang__) && defined(__has_attribute)
+#if defined(__GNUC__) && defined(__has_attribute)
   #define ASMJIT_CXX_HAS_ATTRIBUTE(NAME, CHECK) (__has_attribute(NAME))
 #else
   #define ASMJIT_CXX_HAS_ATTRIBUTE(NAME, CHECK) (!(!(CHECK)))
-#endif
+#endif // !ASMJIT_CXX_HAS_ATTRIBUTE
 
 // API Decorators & C++ Extensions
 // ===============================
@@ -301,7 +267,7 @@ namespace asmjit {
 //! is unwanted in most projects. MSVC automatically exports typeinfo and vtable if at least one symbol of the class
 //! is exported. However, GCC has some strange behavior that even if one or more symbol is exported it doesn't export
 //! typeinfo unless the class itself is decorated with "visibility(default)" (i.e. ASMJIT_API).
-#if !defined(_WIN32) && defined(__GNUC__)
+#if defined(__GNUC__) && !defined(_WIN32)
   #define ASMJIT_VIRTAPI ASMJIT_API
 #else
   #define ASMJIT_VIRTAPI
@@ -477,66 +443,60 @@ namespace asmjit {
 
 #if ASMJIT_CXX_HAS_ATTRIBUTE(no_sanitize, 0)
   #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF __attribute__((__no_sanitize__("undefined")))
-#elif ASMJIT_CXX_GNU >= ASMJIT_CXX_MAKE_VER(4, 9)
+#elif defined(__GNUC__) && __GNUC__ >= 5
   #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF __attribute__((__no_sanitize_undefined__))
 #else
   #define ASMJIT_ATTRIBUTE_NO_SANITIZE_UNDEF
 #endif
 
-// Begin-Namespace & End-Namespace Macros
+// Diagnostic Macros
 // ======================================
 
-#if defined _DOXYGEN
-  #define ASMJIT_BEGIN_NAMESPACE namespace asmjit {
-  #define ASMJIT_END_NAMESPACE }
-#elif defined(__clang__)
-  #define ASMJIT_BEGIN_NAMESPACE                                              \
-    namespace asmjit { inline namespace ASMJIT_ABI_NAMESPACE {                \
-      _Pragma("clang diagnostic push")                                        \
-      _Pragma("clang diagnostic ignored \"-Wconstant-logical-operand\"")      \
-      _Pragma("clang diagnostic ignored \"-Wunnamed-type-template-args\"")
-  #define ASMJIT_END_NAMESPACE                                                \
-      _Pragma("clang diagnostic pop")                                         \
-    }}
-#elif defined(__GNUC__) && __GNUC__ == 4
-  #define ASMJIT_BEGIN_NAMESPACE                                              \
-    namespace asmjit { inline namespace ASMJIT_ABI_NAMESPACE {                \
+#if !defined(__clang__) && !defined(__INTEL_COMPILER) && !defined(_DOXYGEN)
+  #if defined(__GNUC__) && __GNUC__ == 4
+    // There is a bug in GCC 4.X that has been fixed in GCC 5+, so just silence the warning.
+    #define ASMJIT_BEGIN_DIAGNOSTIC_SCOPE                                     \
       _Pragma("GCC diagnostic push")                                          \
       _Pragma("GCC diagnostic ignored \"-Wmissing-field-initializers\"")
-  #define ASMJIT_END_NAMESPACE                                                \
-      _Pragma("GCC diagnostic pop")                                           \
-    }}
-#elif defined(__GNUC__) && __GNUC__ >= 8
-  #define ASMJIT_BEGIN_NAMESPACE                                              \
-    namespace asmjit { inline namespace ASMJIT_ABI_NAMESPACE {                \
-      _Pragma("GCC diagnostic push")                                          \
-      _Pragma("GCC diagnostic ignored \"-Wclass-memaccess\"")
-  #define ASMJIT_END_NAMESPACE                                                \
-      _Pragma("GCC diagnostic pop")                                           \
-    }}
-#elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-  #define ASMJIT_BEGIN_NAMESPACE                                              \
-    namespace asmjit { inline namespace ASMJIT_ABI_NAMESPACE {                \
+    #define ASMJIT_END_DIAGNOSTIC_SCOPE                                       \
+      _Pragma("GCC diagnostic pop")
+  #elif defined(_MSC_VER)
+    #define ASMJIT_BEGIN_DIAGNOSTIC_SCOPE                                     \
       __pragma(warning(push))                                                 \
       __pragma(warning(disable: 4127))  /* conditional expression is const */ \
       __pragma(warning(disable: 4201))  /* nameless struct/union */
+    #define ASMJIT_END_DIAGNOSTIC_SCOPE                                       \
+      __pragma(warning(pop))
+  #endif
+#endif
+
+#if !defined(ASMJIT_BEGIN_DIAGNOSTIC_SCOPE) && !defined(ASMJIT_END_DIAGNOSTIC_SCOPE)
+  #define ASMJIT_BEGIN_DIAGNOSTIC_SCOPE
+  #define ASMJIT_END_DIAGNOSTIC_SCOPE
+#endif
+
+// Begin-Namespace & End-Namespace Macros
+// ======================================
+
+#if !defined(ASMJIT_NO_ABI_NAMESPACE) && !defined(_DOXYGEN)
+  #define ASMJIT_BEGIN_NAMESPACE                                              \
+    ASMJIT_BEGIN_DIAGNOSTIC_SCOPE                                             \
+    namespace asmjit {                                                        \
+    inline namespace ASMJIT_ABI_NAMESPACE {
   #define ASMJIT_END_NAMESPACE                                                \
-      __pragma(warning(pop))                                                  \
-    }}
+    }}                                                                        \
+    ASMJIT_END_DIAGNOSTIC_SCOPE
+#else
+  #define ASMJIT_BEGIN_NAMESPACE                                              \
+    ASMJIT_BEGIN_DIAGNOSTIC_SCOPE                                             \
+    namespace asmjit {
+  #define ASMJIT_END_NAMESPACE                                                \
+    }                                                                         \
+    ASMJIT_END_DIAGNOSTIC_SCOPE
 #endif
 
-#if !defined(ASMJIT_BEGIN_NAMESPACE) && !defined(ASMJIT_END_NAMESPACE)
-  #define ASMJIT_BEGIN_NAMESPACE namespace asmjit { inline namespace ASMJIT_ABI_NAMESPACE {
-  #define ASMJIT_END_NAMESPACE }}
-#endif
-
-#define ASMJIT_BEGIN_SUB_NAMESPACE(NAMESPACE)                                 \
-  ASMJIT_BEGIN_NAMESPACE                                                      \
-  namespace NAMESPACE {
-
-#define ASMJIT_END_SUB_NAMESPACE                                              \
-  }                                                                           \
-  ASMJIT_END_NAMESPACE
+#define ASMJIT_BEGIN_SUB_NAMESPACE(NAMESPACE) ASMJIT_BEGIN_NAMESPACE namespace NAMESPACE {
+#define ASMJIT_END_SUB_NAMESPACE } ASMJIT_END_NAMESPACE
 
 // C++ Utilities
 // =============
@@ -611,11 +571,5 @@ namespace asmjit {
       return (std::underlying_type<T>::type)(a) >= (std::underlying_type<T>::type)(b); \
     }
 #endif
-
-// Cleanup Api-Config Specific Macros
-// ==================================
-
-#undef ASMJIT_CXX_GNU
-#undef ASMJIT_CXX_MAKE_VER
 
 #endif // ASMJIT_CORE_API_CONFIG_H_INCLUDED

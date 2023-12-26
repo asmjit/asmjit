@@ -876,58 +876,57 @@ public:
   //! \{
 
   //! Architecture.
-  Arch _arch;
+  Arch _arch {};
   //! Sub-architecture.
-  SubArch _subArch;
+  SubArch _subArch {};
   //! True if the CPU was detected, false if the detection failed or it's not available.
-  bool _wasDetected;
+  bool _wasDetected {};
   //! Reserved for future use.
-  uint8_t _reserved;
+  uint8_t _reserved {};
   //! CPU family ID.
-  uint32_t _familyId;
+  uint32_t _familyId {};
   //! CPU model ID.
-  uint32_t _modelId;
+  uint32_t _modelId {};
   //! CPU brand ID.
-  uint32_t _brandId;
+  uint32_t _brandId {};
   //! CPU stepping.
-  uint32_t _stepping;
+  uint32_t _stepping {};
   //! Processor type.
-  uint32_t _processorType;
+  uint32_t _processorType {};
   //! Maximum number of addressable IDs for logical processors.
-  uint32_t _maxLogicalProcessors;
+  uint32_t _maxLogicalProcessors {};
   //! Cache line size (in bytes).
-  uint32_t _cacheLineSize;
+  uint32_t _cacheLineSize {};
   //! Number of hardware threads.
-  uint32_t _hwThreadCount;
+  uint32_t _hwThreadCount {};
 
   //! CPU vendor string.
-  FixedString<16> _vendor;
+  FixedString<16> _vendor {};
   //! CPU brand string.
-  FixedString<64> _brand;
+  FixedString<64> _brand {};
   //! CPU features.
-  CpuFeatures _features;
+  CpuFeatures _features {};
 
   //! \}
 
   //! \name Construction & Destruction
   //! \{
 
-  ASMJIT_INLINE_NODEBUG CpuInfo() noexcept { reset(); }
+  ASMJIT_INLINE_NODEBUG CpuInfo() noexcept {}
   ASMJIT_INLINE_NODEBUG CpuInfo(const CpuInfo& other) noexcept = default;
 
   ASMJIT_INLINE_NODEBUG explicit CpuInfo(Globals::NoInit_) noexcept
     : _features(Globals::NoInit) {};
 
+  //! \}
+
+  //! \name CPU Information Detection
+  //! \{
+
   //! Returns the host CPU information.
+  //!
+  //! \note The returned reference is global - it's setup only once and then shared.
   ASMJIT_API static const CpuInfo& host() noexcept;
-
-  //! Initializes CpuInfo architecture and sub-architecture members to `arch` and `subArch`, respectively.
-  ASMJIT_INLINE_NODEBUG void initArch(Arch arch, SubArch subArch = SubArch::kUnknown) noexcept {
-    _arch = arch;
-    _subArch = subArch;
-  }
-
-  ASMJIT_INLINE_NODEBUG void reset() noexcept { memset(this, 0, sizeof(*this)); }
 
   //! \}
 
@@ -935,6 +934,19 @@ public:
   //! \{
 
   ASMJIT_INLINE_NODEBUG CpuInfo& operator=(const CpuInfo& other) noexcept = default;
+
+  //! \}
+
+  //! \name Init & Reset
+  //! \{
+
+  //! Initializes CpuInfo architecture and sub-architecture members to `arch` and `subArch`, respectively.
+  ASMJIT_INLINE_NODEBUG void initArch(Arch arch, SubArch subArch = SubArch::kUnknown) noexcept {
+    _arch = arch;
+    _subArch = subArch;
+  }
+
+  ASMJIT_INLINE_NODEBUG void reset() noexcept { *this = CpuInfo{}; }
 
   //! \}
 

@@ -169,7 +169,7 @@ Error EmitHelper::emitArgMove(
 
   if (TypeUtils::isInt(dstTypeId)) {
     if (TypeUtils::isInt(srcTypeId)) {
-      uint32_t x = dstSize == 8;
+      uint32_t x = uint32_t(dstSize == 8);
 
       dst.setSignature(OperandSignature{x ? uint32_t(GpX::kSignature) : uint32_t(GpW::kSignature)});
       _emitter->setInlineComment(comment);
@@ -186,7 +186,7 @@ Error EmitHelper::emitArgMove(
           case TypeId::kInt16: instId = Inst::kIdLdrsh; break;
           case TypeId::kUInt16: instId = Inst::kIdLdrh; break;
           case TypeId::kInt32: instId = x ? Inst::kIdLdrsw : Inst::kIdLdr; break;
-          case TypeId::kUInt32: instId = Inst::kIdLdr; x = 0; break;
+          case TypeId::kUInt32: instId = Inst::kIdLdr; break;
           case TypeId::kInt64: instId = Inst::kIdLdr; break;
           case TypeId::kUInt64: instId = Inst::kIdLdr; break;
           default:

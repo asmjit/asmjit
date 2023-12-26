@@ -823,7 +823,7 @@ Error RACFGBuilder::moveImmToStackArg(InvokeNode* invokeNode, const FuncValue& a
 
   stackPtr.setSize(4);
   imm[0] = imm_;
-  uint32_t nMovs = 0;
+  uint32_t movCount = 0;
 
   // One stack entry has the same size as the native register size. That means that if we want to move a 32-bit
   // integer on the stack in 64-bit mode, we need to extend it to a 64-bit integer first. In 32-bit mode, pushing
@@ -839,7 +839,7 @@ Error RACFGBuilder::moveImmToStackArg(InvokeNode* invokeNode, const FuncValue& a
     case TypeId::kFloat32:
 MovU32:
       imm[0].zeroExtend32Bits();
-      nMovs = 1;
+      movCount = 1;
       break;
 
     case TypeId::kInt64:
@@ -849,20 +849,20 @@ MovU32:
     case TypeId::kMmx64:
       if (_is64Bit && imm[0].isInt32()) {
         stackPtr.setSize(8);
-        nMovs = 1;
+        movCount = 1;
         break;
       }
 
       imm[1].setValue(imm[0].uint32Hi());
       imm[0].zeroExtend32Bits();
-      nMovs = 2;
+      movCount = 2;
       break;
 
     default:
       return DebugUtils::errored(kErrorInvalidAssignment);
   }
 
-  for (uint32_t i = 0; i < nMovs; i++) {
+  for (uint32_t i = 0; i < movCount; i++) {
     ASMJIT_PROPAGATE(cc()->mov(stackPtr, imm[i]));
     stackPtr.addOffsetLo32(int32_t(stackPtr.size()));
   }
