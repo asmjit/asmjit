@@ -514,6 +514,8 @@ struct EmitterExplicitT {
   ASMJIT_INST_2x(ldxrb, Ldxrb, Gp, Mem)
   ASMJIT_INST_2x(ldxrh, Ldxrh, Gp, Mem)
 
+  ASMJIT_INST_2x(prfm, Prfm, Imm, Mem)
+
   ASMJIT_INST_2x(stadd, Stadd, Gp, Mem)
   ASMJIT_INST_2x(staddb, Staddb, Gp, Mem)
   ASMJIT_INST_2x(staddh, Staddh, Gp, Mem)

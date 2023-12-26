@@ -293,6 +293,7 @@ struct Inst {
     kIdPacdza,                           //!< Instruction 'pacdza'.
     kIdPacdzb,                           //!< Instruction 'pacdzb'.
     kIdPacga,                            //!< Instruction 'pacga'.
+    kIdPrfm,                             //!< Instruction 'prfm'.
     kIdPssbb,                            //!< Instruction 'pssbb'.
     kIdRbit,                             //!< Instruction 'rbit'.
     kIdRet,                              //!< Instruction 'ret'.

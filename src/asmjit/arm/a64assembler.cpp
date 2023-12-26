@@ -2242,6 +2242,86 @@ Error Assembler::_emit(InstId instId, const Operand_& o0, const Operand_& o1, co
     }
 
     // ------------------------------------------------------------------------
+    // [Base - Prefetch]
+    // ------------------------------------------------------------------------
+
+    case InstDB::kEncodingBasePrfm: {
+      const InstDB::EncodingData::BasePrfm& opData = InstDB::EncodingData::basePrfm[encodingIndex];
+
+      if (isign4 == ENC_OPS2(Imm, Mem)) {
+        const Mem& m = o1.as<Mem>();
+        rmRel = &m;
+
+        uint32_t immShift = 3u;
+
+        if (o0.as<Imm>().valueAs<uint64_t>() > 0x1Fu)
+          goto InvalidImmediate;
+
+        if (!armCheckMemBaseIndexRel(m))
+          goto InvalidAddress;
+
+        int64_t offset = m.offset();
+        uint32_t prfop = o0.as<Imm>().valueAs<uint32_t>();
+
+        if (m.hasBaseReg()) {
+          // [Base {Offset | Index}]
+          if (m.hasIndex()) {
+            uint32_t opt = armShiftOpToLdStOptMap[m.predicate()];
+            if (opt == 0xFF)
+              goto InvalidAddress;
+
+            uint32_t shift = m.shift();
+            uint32_t s = shift != 0;
+
+            if (s && shift != immShift)
+              goto InvalidAddressScale;
+
+            opcode.reset(uint32_t(opData.registerOp) << 21);
+            opcode.addImm(opt, 13);
+            opcode.addImm(s, 12);
+            opcode |= B(11);
+            opcode.addImm(prfop, 0);
+            goto EmitOp_MemBaseIndex_Rn5_Rm16;
+          }
+
+          if (!Support::isInt32(offset))
+            goto InvalidDisplacement;
+
+          int32_t offset32 = int32_t(offset);
+
+          if (m.isPreOrPost())
+            goto InvalidAddress;
+
+          uint32_t imm12 = uint32_t(offset32) >> immShift;
+
+          if (Support::isUInt12(imm12) && (imm12 << immShift) == uint32_t(offset32)) {
+            opcode.reset(uint32_t(opData.sOffsetOp) << 22);
+            opcode.addImm(imm12, 10);
+            opcode.addImm(prfop, 0);
+            goto EmitOp_MemBase_Rn5;
+          }
+
+          if (Support::isInt9(offset32)) {
+            opcode.reset(uint32_t(opData.uOffsetOp) << 21);
+            opcode.addImm(uint32_t(offset32) & 0x1FFu, 12);
+            opcode.addImm(prfop, 0);
+            goto EmitOp_MemBase_Rn5;
+          }
+
+          goto InvalidAddress;
+        }
+        else {
+          opcode.reset(uint32_t(opData.literalOp) << 24);
+          opcode.addImm(prfop, 0);
+          offsetFormat.resetToImmValue(OffsetType::kSignedOffset, 4, 5, 19, 2);
+          goto EmitOp_Rel;
+        }
+      }
+
+      break;
+    }
+
+    // ------------------------------------------------------------------------
     // [Base - Load / Store]
     // ------------------------------------------------------------------------
 

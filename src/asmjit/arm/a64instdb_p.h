@@ -192,6 +192,7 @@ enum EncodingId : uint32_t {
   kEncodingBaseMvnNeg,
   kEncodingBaseOp,
   kEncodingBaseOpImm,
+  kEncodingBasePrfm,
   kEncodingBaseR,
   kEncodingBaseRM_NoImm,
   kEncodingBaseRM_SImm10,
@@ -410,6 +411,13 @@ struct BaseRM_SImm10 {
   uint32_t rHiId : 6;
   uint32_t xOffset : 5;
   uint32_t immShift : 4;
+};
+
+struct BasePrfm {
+  uint32_t registerOp : 11;
+  uint32_t sOffsetOp  : 10;
+  uint32_t uOffsetOp  : 11;
+  uint32_t literalOp;
 };
 
 struct BaseLdSt {
@@ -787,6 +795,7 @@ extern const BaseMovKNZ baseMovKNZ[3];
 extern const BaseMvnNeg baseMvnNeg[3];
 extern const BaseOp baseOp[23];
 extern const BaseOpImm baseOpImm[14];
+extern const BasePrfm basePrfm[1];
 extern const BaseR baseR[10];
 extern const BaseRM_NoImm baseRM_NoImm[21];
 extern const BaseRM_SImm10 baseRM_SImm10[2];

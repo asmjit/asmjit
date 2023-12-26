@@ -862,6 +862,13 @@ static void ASMJIT_NOINLINE testA64AssemblerBase(AssemblerTester<a64::Assembler>
   TEST_INSTRUCTION("F42FC1DA", pacdzb(x20));
   TEST_INSTRUCTION("4130C39A", pacga(x1, x2, x3));
   TEST_INSTRUCTION("4130DF9A", pacga(x1, x2, sp));
+  TEST_INSTRUCTION("204080F9", prfm(Predicate::PRFOp::kPLDL1KEEP, ptr(x1, 128)));
+  TEST_INSTRUCTION("401098F8", prfm(Predicate::PRFOp::kPLDL1KEEP, ptr(x2, -127)));
+  TEST_INSTRUCTION("601088F8", prfm(Predicate::PRFOp::kPLDL1KEEP, ptr(x3, 129)));
+  TEST_INSTRUCTION("6068A4F8", prfm(Predicate::PRFOp::kPLDL1KEEP, ptr(x3, x4)));
+  TEST_INSTRUCTION("6078A4F8", prfm(Predicate::PRFOp::kPLDL1KEEP, ptr(x3, x4, lsl(3))));
+  TEST_INSTRUCTION("60C8A4F8", prfm(Predicate::PRFOp::kPLDL1KEEP, ptr(x3, x4, sxtw(0))));
+  TEST_INSTRUCTION("73D8A4F8", prfm(Predicate::PRFOp::kPSTL2STRM, ptr(x3, x4, sxtw(3))));
   TEST_INSTRUCTION("9F3403D5", pssbb());
   TEST_INSTRUCTION("4100C05A", rbit(w1, w2));
   TEST_INSTRUCTION("4100C0DA", rbit(x1, x2));
