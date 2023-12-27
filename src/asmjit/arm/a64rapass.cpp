@@ -230,7 +230,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& controlType, RAInstB
             if (reg.as<Vec>().hasElementIndex()) {
               // Only the first 0..15 registers can be used if the register uses
               // element accessor that accesses half-words (h[0..7] elements).
-              if (instInfo.hasFlag(InstDB::kInstFlagVH0_15) && reg.as<Vec>().elementType() == Vec::kElementTypeH) {
+              if (instInfo.hasFlag(InstDB::kInstFlagVH0_15) && reg.as<Vec>().elementType() == VecElementType::kH) {
                 if (Support::test(flags, RATiedFlags::kUse))
                   useId &= 0x0000FFFFu;
                 else

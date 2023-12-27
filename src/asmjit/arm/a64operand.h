@@ -69,73 +69,59 @@ ASMJIT_INLINE_NODEBUG GpW Gp::w() const noexcept { return GpW(id()); }
 ASMJIT_INLINE_NODEBUG GpX Gp::x() const noexcept { return GpX(id()); }
 #endif
 
+//! Vector element type (AArch64).
+enum class VecElementType : uint32_t {
+  //! No element type specified.
+  kNone = 0,
+  //! Byte elements (B8 or B16).
+  kB,
+  //! Halfword elements (H4 or H8).
+  kH,
+  //! Singleword elements (S2 or S4).
+  kS,
+  //! Doubleword elements (D2).
+  kD,
+  //! Byte elements grouped by 4 bytes (B4).
+  //!
+  //! \note This element-type is only used by few instructions.
+  kB4,
+  //! Halfword elements grouped by 2 halfwords (H2).
+  //!
+  //! \note This element-type is only used by few instructions.
+  kH2,
+
+  //! Maximum value of \ref VecElementType
+  kMaxValue = kH2
+};
+
 //! Vector register (AArch64).
 class Vec : public BaseVec {
 public:
   ASMJIT_DEFINE_ABSTRACT_REG(Vec, BaseVec)
 
-  //! Element type (AArch64 only).
-  enum ElementType : uint32_t {
-    //! No element type specified.
-    kElementTypeNone = 0,
-    //! Byte elements (B8 or B16).
-    kElementTypeB,
-    //! Halfword elements (H4 or H8).
-    kElementTypeH,
-    //! Singleword elements (S2 or S4).
-    kElementTypeS,
-    //! Doubleword elements (D2).
-    kElementTypeD,
-    //! Byte elements grouped by 4 bytes (B4).
-    //!
-    //! \note This element-type is only used by few instructions.
-    kElementTypeB4,
-    //! Halfword elements grouped by 2 halfwords (H2).
-    //!
-    //! \note This element-type is only used by few instructions.
-    kElementTypeH2,
-
-    //! Count of element types.
-    kElementTypeCount
-  };
-
   //! \cond
   //! Shortcuts.
   enum SignatureReg : uint32_t {
-    kSignatureElementB  = kElementTypeB  << kSignatureRegElementTypeShift,
-    kSignatureElementH  = kElementTypeH  << kSignatureRegElementTypeShift,
-    kSignatureElementS  = kElementTypeS  << kSignatureRegElementTypeShift,
-    kSignatureElementD  = kElementTypeD  << kSignatureRegElementTypeShift,
-    kSignatureElementB4 = kElementTypeB4 << kSignatureRegElementTypeShift,
-    kSignatureElementH2 = kElementTypeH2 << kSignatureRegElementTypeShift
+    kSignatureElementB = uint32_t(VecElementType::kB) << kSignatureRegElementTypeShift,
+    kSignatureElementH = uint32_t(VecElementType::kH) << kSignatureRegElementTypeShift,
+    kSignatureElementS = uint32_t(VecElementType::kS) << kSignatureRegElementTypeShift,
+    kSignatureElementD = uint32_t(VecElementType::kD) << kSignatureRegElementTypeShift,
+    kSignatureElementB4 = uint32_t(VecElementType::kB4) << kSignatureRegElementTypeShift,
+    kSignatureElementH2 = uint32_t(VecElementType::kH2) << kSignatureRegElementTypeShift
   };
   //! \endcond
 
-  //! Returns whether the register has associated an element type.
-  ASMJIT_INLINE_NODEBUG constexpr bool hasElementType() const noexcept { return _signature.hasField<kSignatureRegElementTypeMask>(); }
-  //! Returns whether the register has element index (it's an element index access).
-  ASMJIT_INLINE_NODEBUG constexpr bool hasElementIndex() const noexcept { return _signature.hasField<kSignatureRegElementFlagMask>(); }
   //! Returns whether the register has element type or element index (or both).
   ASMJIT_INLINE_NODEBUG constexpr bool hasElementTypeOrIndex() const noexcept { return _signature.hasField<kSignatureRegElementTypeMask | kSignatureRegElementFlagMask>(); }
 
-  //! Returns element type of the register.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t elementType() const noexcept { return _signature.getField<kSignatureRegElementTypeMask>(); }
-  //! Sets element type of the register to `elementType`.
-  ASMJIT_INLINE_NODEBUG void setElementType(uint32_t elementType) noexcept { _signature.setField<kSignatureRegElementTypeMask>(elementType); }
-  //! Resets element type to none.
+  //! Returns whether the vector register has associated a vector element type.
+  ASMJIT_INLINE_NODEBUG constexpr bool hasElementType() const noexcept { return _signature.hasField<kSignatureRegElementTypeMask>(); }
+  //! Returns vector element type of the register.
+  ASMJIT_INLINE_NODEBUG constexpr VecElementType elementType() const noexcept { return VecElementType(_signature.getField<kSignatureRegElementTypeMask>()); }
+  //! Sets vector element type of the register to `elementType`.
+  ASMJIT_INLINE_NODEBUG void setElementType(VecElementType elementType) noexcept { _signature.setField<kSignatureRegElementTypeMask>(uint32_t(elementType)); }
+  //! Resets vector element type to none.
   ASMJIT_INLINE_NODEBUG void resetElementType() noexcept { _signature.setField<kSignatureRegElementTypeMask>(0); }
-
-  //! Returns element index of the register.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t elementIndex() const noexcept { return _signature.getField<kSignatureRegElementIndexMask>(); }
-  //! Sets element index of the register to `elementType`.
-  ASMJIT_INLINE_NODEBUG void setElementIndex(uint32_t elementIndex) noexcept {
-    _signature |= kSignatureRegElementFlagMask;
-    _signature.setField<kSignatureRegElementIndexMask>(elementIndex);
-  }
-  //! Resets element index of the register.
-  ASMJIT_INLINE_NODEBUG void resetElementIndex() noexcept {
-    _signature &= ~(kSignatureRegElementFlagMask | kSignatureRegElementIndexMask);
-  }
 
   ASMJIT_INLINE_NODEBUG constexpr bool isVecB8() const noexcept { return _signature.subset(kBaseSignatureMask | kSignatureRegElementTypeMask) == (RegTraits<RegType::kARM_VecD>::kSignature | kSignatureElementB); }
   ASMJIT_INLINE_NODEBUG constexpr bool isVecH4() const noexcept { return _signature.subset(kBaseSignatureMask | kSignatureRegElementTypeMask) == (RegTraits<RegType::kARM_VecD>::kSignature | kSignatureElementH); }
@@ -197,12 +183,12 @@ public:
   //! Cast this register to V.2D.
   ASMJIT_INLINE_NODEBUG VecV d2() const noexcept;
 
-  static ASMJIT_INLINE_NODEBUG constexpr OperandSignature _makeElementAccessSignature(uint32_t elementType, uint32_t elementIndex) noexcept {
+  static ASMJIT_INLINE_NODEBUG constexpr OperandSignature _makeElementAccessSignature(VecElementType elementType, uint32_t elementIndex) noexcept {
     return OperandSignature{
-      uint32_t(RegTraits<RegType::kARM_VecV>::kSignature)      |
-      uint32_t(kSignatureRegElementFlagMask)                   |
-      uint32_t(elementType << kSignatureRegElementTypeShift)   |
-      uint32_t(elementIndex << kSignatureRegElementIndexShift)};
+      uint32_t(RegTraits<RegType::kARM_VecV>::kSignature)       |
+      uint32_t(kSignatureRegElementFlagMask)                    |
+      (uint32_t(elementType) << kSignatureRegElementTypeShift)  |
+      (uint32_t(elementIndex << kSignatureRegElementIndexShift))};
   }
 };
 
@@ -243,12 +229,12 @@ ASMJIT_INLINE_NODEBUG VecD Vec::d() const noexcept { return VecD(id()); }
 ASMJIT_INLINE_NODEBUG VecV Vec::q() const noexcept { return VecV(id()); }
 ASMJIT_INLINE_NODEBUG VecV Vec::v() const noexcept { return VecV(id()); }
 
-ASMJIT_INLINE_NODEBUG VecV Vec::b(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(kElementTypeB, elementIndex), id()); }
-ASMJIT_INLINE_NODEBUG VecV Vec::h(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(kElementTypeH, elementIndex), id()); }
-ASMJIT_INLINE_NODEBUG VecV Vec::s(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(kElementTypeS, elementIndex), id()); }
-ASMJIT_INLINE_NODEBUG VecV Vec::d(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(kElementTypeD, elementIndex), id()); }
-ASMJIT_INLINE_NODEBUG VecV Vec::h2(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(kElementTypeH2, elementIndex), id()); }
-ASMJIT_INLINE_NODEBUG VecV Vec::b4(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(kElementTypeB4, elementIndex), id()); }
+ASMJIT_INLINE_NODEBUG VecV Vec::b(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kB, elementIndex), id()); }
+ASMJIT_INLINE_NODEBUG VecV Vec::h(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kH, elementIndex), id()); }
+ASMJIT_INLINE_NODEBUG VecV Vec::s(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kS, elementIndex), id()); }
+ASMJIT_INLINE_NODEBUG VecV Vec::d(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kD, elementIndex), id()); }
+ASMJIT_INLINE_NODEBUG VecV Vec::h2(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kH2, elementIndex), id()); }
+ASMJIT_INLINE_NODEBUG VecV Vec::b4(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kB4, elementIndex), id()); }
 
 ASMJIT_INLINE_NODEBUG VecD Vec::b8() const noexcept { return VecD(OperandSignature{VecD::kSignature | kSignatureElementB}, id()); }
 ASMJIT_INLINE_NODEBUG VecS Vec::h2() const noexcept { return VecS(OperandSignature{VecS::kSignature | kSignatureElementH}, id()); }

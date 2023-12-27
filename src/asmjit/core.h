@@ -239,6 +239,13 @@ namespace asmjit {
 //!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
 //!     it's not using anything, which was deprecated.
 //!
+//! ### Changes committed at 2023-12-27
+//!
+//! Core changes:
+//!
+//!   - Renamed `a64::Vec::ElementType` to `a64::VecElementType` and made it a typed enum. This enum was used mostly
+//!     internally, but there is a public API using it, so it's a breaking change.
+//!
 //! ### Changes committed at 2023-12-26
 //!
 //! Core changes:
@@ -1045,7 +1052,7 @@ namespace asmjit {
 //!
 //!   // Type-unsafe, but possible.
 //!   a.emit(x86::Inst::kIdMov, dst, m);
-//!   // Also possible, `emit()` is typeless and can be used with raw Operand.
+//!   // Also possible, `emit()` is type-less and can be used with raw Operand.
 //!   a.emit(x86::Inst::kIdMov, dst, op);
 //! }
 //! ```
@@ -1139,7 +1146,7 @@ namespace asmjit {
 //!   mem.size();                       // 4.
 //!   mem.offset();                     // 12.
 //!
-//!   mem.setSize(0);                   // Sets the size to 0 (makes it sizeless).
+//!   mem.setSize(0);                   // Sets the size to 0 (makes it size-less).
 //!   mem.addOffset(-1);                // Adds -1 to the offset and makes it 11.
 //!   mem.setOffset(0);                 // Sets the offset to 0.
 //!   mem.setBase(rcx);                 // Changes BASE to RCX.

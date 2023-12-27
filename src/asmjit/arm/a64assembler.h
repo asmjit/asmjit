@@ -31,14 +31,6 @@ public:
 
   //! \}
 
-  //! \name Accessors
-  //! \{
-
-  //! Gets whether the current ARM mode is THUMB (alternative to 32-bit ARM encoding).
-  ASMJIT_INLINE_NODEBUG bool isInThumbMode() const noexcept { return _environment.isArchThumb(); }
-
-  //! \}
-
   //! \name Emit
   //! \{
 

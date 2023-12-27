@@ -47,7 +47,6 @@ TODO
 
   * [ ] Ports:
     * [ ] 32-bit ARM/Thumb port.
-    * [ ] 64-bit ARM (AArch64) port.
     * [ ] RISC-V port.
 
 Support

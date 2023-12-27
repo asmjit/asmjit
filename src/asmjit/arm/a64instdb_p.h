@@ -59,14 +59,14 @@ enum RWInfoType : uint32_t {
 // a64::InstDB - ElementType
 // =========================
 
-enum ElementType : uint8_t {
-  kET_None = Vec::kElementTypeNone,
-  kET_B    = Vec::kElementTypeB,
-  kET_H    = Vec::kElementTypeH,
-  kET_S    = Vec::kElementTypeS,
-  kET_D    = Vec::kElementTypeD,
-  kET_2H   = Vec::kElementTypeH2,
-  kET_4B   = Vec::kElementTypeB4
+enum InstElementType : uint8_t {
+  kET_None = uint8_t(VecElementType::kNone),
+  kET_B    = uint8_t(VecElementType::kB),
+  kET_H    = uint8_t(VecElementType::kH),
+  kET_S    = uint8_t(VecElementType::kS),
+  kET_D    = uint8_t(VecElementType::kD),
+  kET_2H   = uint8_t(VecElementType::kH2),
+  kET_4B   = uint8_t(VecElementType::kB4)
 };
 
 // a64::InstDB - GpType

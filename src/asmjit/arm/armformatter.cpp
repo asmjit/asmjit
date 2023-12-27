@@ -318,9 +318,9 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
       ASMJIT_PROPAGATE(sb.appendFormat("%c%u", letter, rId));
   }
 
+  constexpr uint32_t kElementTypeCount = uint32_t(a64::VecElementType::kMaxValue) + 1;
   if (elementType) {
-    if (elementType > a64::Vec::kElementTypeCount)
-      elementType = a64::Vec::kElementTypeCount;
+    elementType = Support::min(elementType, kElementTypeCount);
 
     FormatElementData elementData = formatElementDataTable[elementType];
     uint32_t elementCount = elementData.elementCount;

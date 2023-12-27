@@ -56,7 +56,7 @@ UNIT(a64_operand) {
   EXPECT_EQ(vd_1.group(), RegGroup::kVec);
   EXPECT_EQ(vd_1.id(), 15u);
   EXPECT_TRUE(vd_1.isVecD2());
-  EXPECT_EQ(vd_1.elementType(), Vec::kElementTypeD);
+  EXPECT_EQ(vd_1.elementType(), VecElementType::kD);
   EXPECT_TRUE(vd_1.hasElementIndex());
   EXPECT_EQ(vd_1.elementIndex(), 1u);
 
@@ -65,7 +65,7 @@ UNIT(a64_operand) {
   EXPECT_EQ(vs_3.group(), RegGroup::kVec);
   EXPECT_EQ(vs_3.id(), 15u);
   EXPECT_TRUE(vs_3.isVecS4());
-  EXPECT_EQ(vs_3.elementType(), Vec::kElementTypeS);
+  EXPECT_EQ(vs_3.elementType(), VecElementType::kS);
   EXPECT_TRUE(vs_3.hasElementIndex());
   EXPECT_EQ(vs_3.elementIndex(), 3u);
 
@@ -74,7 +74,7 @@ UNIT(a64_operand) {
   EXPECT_EQ(vb_4.group(), RegGroup::kVec);
   EXPECT_EQ(vb_4.id(), 15u);
   EXPECT_TRUE(vb_4.isVecB4x4());
-  EXPECT_EQ(vb_4.elementType(), Vec::kElementTypeB4);
+  EXPECT_EQ(vb_4.elementType(), VecElementType::kB4);
   EXPECT_TRUE(vb_4.hasElementIndex());
   EXPECT_EQ(vb_4.elementIndex(), 3u);
 }
