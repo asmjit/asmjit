@@ -211,9 +211,9 @@ public:
     funcNode->setArg(1, src1);
     funcNode->setArg(2, src2);
 
-    arm::Vec v1 = cc.newVecQ("vec1");
-    arm::Vec v2 = cc.newVecQ("vec2");
-    arm::Vec v3 = cc.newVecQ("vec3");
+    a64::Vec v1 = cc.newVecQ("vec1");
+    a64::Vec v2 = cc.newVecQ("vec2");
+    a64::Vec v3 = cc.newVecQ("vec3");
 
     cc.ldr(v2, a64::ptr(src1));
     cc.ldr(v3, a64::ptr(src2));
@@ -465,9 +465,9 @@ public:
   virtual void compile(a64::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double, double>());
 
-    arm::Vec x = cc.newVecD("x");
-    arm::Vec y = cc.newVecD("y");
-    arm::Vec r = cc.newVecD("r");
+    a64::Vec x = cc.newVecD("x");
+    a64::Vec y = cc.newVecD("y");
+    a64::Vec r = cc.newVecD("r");
     a64::Gp fn = cc.newUIntPtr("fn");
 
     funcNode->setArg(0, x);
@@ -517,9 +517,9 @@ public:
   virtual void compile(a64::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double, double>());
 
-    arm::Vec x = cc.newVecD("x");
-    arm::Vec y = cc.newVecD("y");
-    arm::Vec r = cc.newVecD("r");
+    a64::Vec x = cc.newVecD("x");
+    a64::Vec y = cc.newVecD("y");
+    a64::Vec r = cc.newVecD("r");
     a64::Gp fn = cc.newUIntPtr("fn");
 
     funcNode->setArg(0, x);
@@ -582,8 +582,8 @@ public:
   virtual void compile(a64::Compiler& cc) {
     FuncNode* funcNode = cc.addFunc(FuncSignatureT<float, float, float, uint32_t>());
 
-    arm::Vec a = cc.newVecS("a");
-    arm::Vec b = cc.newVecS("b");
+    a64::Vec a = cc.newVecS("a");
+    a64::Vec b = cc.newVecS("b");
     a64::Gp op = cc.newUInt32("op");
 
     a64::Gp target = cc.newIntPtr("target");

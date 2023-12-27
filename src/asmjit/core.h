@@ -239,6 +239,22 @@ namespace asmjit {
 //!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
 //!     it's not using anything, which was deprecated.
 //!
+//! ### Changes committed at 2023-12-26
+//!
+//! Core changes:
+//!
+//!   - Reworked InstNode and InstExNode to be friendlier to static analysis and to not cause undefined behavior.
+//!     InstNode has no operands visually embedded within the struct so there is no _opArray (which was internal).
+//!     This means that sizeof(InstNode) changed, but since it's allocated by AsmJit this should be fine. Moreover,
+//!     there is no longer InstExNode as that was more a hack, instead there is now InstNodeWithOperands, which is
+//!     a template and specifies the number of operands embedded (InstNode accesses these). All nodes that inherited
+//!     InstExNode now just inherit InstNodeWithOperands<InstNode::kBaseOpCapacity>, which would provide the same
+//!     number of nodes as InstNode.
+//!
+//!   - Moved GP and Vec registers from asmjit::arm namespace to asmjit::a64 namespace. At this time there was
+//!     no prior deprecation as having arm::Vec would collide with a64::Vec as arm namespace is used within a64
+//!     namespace. Just change `arm::Gp` to `a64::Gp` and `arm::Vec` to `a64::Vec`.
+//!
 //! ### Changes committed at 2023-09-10
 //!
 //! Core changes:

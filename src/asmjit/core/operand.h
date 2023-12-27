@@ -152,7 +152,9 @@ enum class RegType : uint8_t {
   kARM_VecS = kVec32,
   //! 64-bit view of VFP/ASIMD register (D).
   kARM_VecD = kVec64,
-  //! 128-bit view of VFP/ASIMD register (Q|V).
+  //! 128-bit view of VFP/ASIMD register (Q).
+  kARM_VecQ = kVec128,
+  //! 128-bit view of VFP/ASIMD register (V).
   kARM_VecV = kVec128,
 
   //! Maximum value of `RegType`.

@@ -394,10 +394,10 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
   if (op.isReg()) {
     const BaseReg& reg = op.as<BaseReg>();
 
-    uint32_t elementType = op.as<Vec>().elementType();
-    uint32_t elementIndex = op.as<Vec>().elementIndex();
+    uint32_t elementType = op._signature.getField<BaseVec::kSignatureRegElementTypeMask>();
+    uint32_t elementIndex = op.as<BaseVec>().elementIndex();
 
-    if (!op.as<Vec>().hasElementIndex())
+    if (!op.as<BaseVec>().hasElementIndex())
       elementIndex = 0xFFFFFFFFu;
 
     return formatRegister(sb, flags, emitter, arch, reg.type(), reg.id(), elementType, elementIndex);
