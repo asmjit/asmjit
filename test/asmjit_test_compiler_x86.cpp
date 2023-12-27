@@ -67,7 +67,7 @@ public:
     uint32_t i;
     uint32_t argCount = _argCount;
 
-    FuncSignatureBuilder signature(CallConvId::kHost);
+    FuncSignature signature(CallConvId::kHost);
     signature.setRetT<int>();
     for (i = 0; i < argCount; i++)
       signature.addArgT<int>();
@@ -223,7 +223,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
     cc.endFunc();
   }
 
@@ -250,7 +250,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
     cc.align(AlignMode::kCode, 0);
     cc.align(AlignMode::kCode, 1);
     cc.endFunc();
@@ -279,7 +279,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* func = cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    FuncNode* func = cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
     func->addAttributes(FuncAttributes::kIndirectBranchProtection);
     cc.endFunc();
   }
@@ -316,7 +316,7 @@ public:
     x86::Gp dst = cc.newIntPtr("dst");
     x86::Gp val = cc.newInt32("val");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, int*, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, int*, int>(CallConvId::kHost));
     funcNode->setArg(0, dst);
     funcNode->setArg(1, val);
 
@@ -372,7 +372,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
 
     Label L1 = cc.newLabel();
     Label L2 = cc.newLabel();
@@ -413,7 +413,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
     for (uint32_t i = 0; i < 1000; i++) {
       Label L = cc.newLabel();
       cc.jmp(L);
@@ -453,7 +453,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
 
     Label L_1 = cc.newLabel();
     Label L_2 = cc.newLabel();
@@ -515,7 +515,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
 
     Label L_1 = cc.newLabel();
     Label L_2 = cc.newLabel();
@@ -588,7 +588,7 @@ public:
     Label L_Div = cc.newLabel();
     Label L_End = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<float, float, float, uint32_t>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float, uint32_t>(CallConvId::kHost));
     funcNode->setArg(0, a);
     funcNode->setArg(1, b);
     funcNode->setArg(2, op);
@@ -689,7 +689,7 @@ public:
     Label L_Case1 = cc.newLabel();
     Label L_End = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int>(CallConvId::kHost));
     funcNode->setArg(0, value);
 
     cc.bind(L_Begin);
@@ -759,7 +759,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     Label L_Target = cc.newLabel();
     x86::Gp target = cc.newUIntPtr("target");
@@ -807,7 +807,7 @@ public:
     x86::Gp result = cc.newUInt32("result");
     x86::Gp condition = cc.newUInt32("condition");
 
-    FuncNode* func = cc.addFunc(FuncSignatureT<int, int>(CallConvId::kHost));
+    FuncNode* func = cc.addFunc(FuncSignature::build<int, int>(CallConvId::kHost));
     func->setArg(0, condition);
 
     Label L_NonZero = cc.newLabel();
@@ -878,7 +878,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     x86::Gp v0 = cc.newInt32("v0");
     x86::Gp v1 = cc.newInt32("v1");
@@ -933,7 +933,7 @@ public:
     x86::Gp a0 = cc.newIntPtr("a0");
     x86::Gp a1 = cc.newIntPtr("a1");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, int*, int*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, int*, int*>(CallConvId::kHost));
     funcNode->setArg(0, a0);
     funcNode->setArg(1, a1);
 
@@ -1001,7 +1001,7 @@ public:
     x86::Gp a = cc.newIntPtr("a");
     x86::Gp v[32];
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, uint32_t*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, uint32_t*>(CallConvId::kHost));
     funcNode->setArg(0, a);
 
     for (uint32_t i = 0; i < ASMJIT_ARRAY_SIZE(v); i++) v[i] = cc.newInt32("v%d", i);
@@ -1066,7 +1066,7 @@ public:
     x86::Gp vLo = cc.newInt32("vLo");
     x86::Gp src = cc.newInt32("src");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, int*, int*, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, int*, int*, int, int>(CallConvId::kHost));
     funcNode->setArg(0, dstHi);
     funcNode->setArg(1, dstLo);
     funcNode->setArg(2, vLo);
@@ -1115,7 +1115,7 @@ public:
     x86::Gp dst = cc.newIntPtr("dst");
     x86::Gp src = cc.newIntPtr("src");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, int*, const int*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, int*, const int*>(CallConvId::kHost));
     funcNode->setArg(0, dst);
     funcNode->setArg(1, src);
 
@@ -1168,7 +1168,7 @@ public:
     x86::Gp b = cc.newInt32("b");
     x86::Gp dummy = cc.newInt32("dummy");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, a);
     funcNode->setArg(1, b);
 
@@ -1212,7 +1212,7 @@ public:
     x86::Gp src1 = cc.newInt32("src1");
     x86::Gp dst0 = cc.newIntPtr("dst0");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, int, int, char*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, int, int, char*>(CallConvId::kHost));
     funcNode->setArg(0, src0);
     funcNode->setArg(1, src1);
     funcNode->setArg(2, dst0);
@@ -1262,7 +1262,7 @@ public:
     x86::Gp vShlParam = cc.newInt32("vShlParam");
     x86::Gp vRorParam = cc.newInt32("vRorParam");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, int*, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, int*, int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, dst);
     funcNode->setArg(1, var);
     funcNode->setArg(2, vShlParam);
@@ -1310,7 +1310,7 @@ public:
     x86::Gp rSum = cc.newUInt32("rSum");
     x86::Gp x[kCount];
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<uint32_t, uint32_t*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, uint32_t*>(CallConvId::kHost));
     funcNode->setArg(0, rPtr);
 
     for (uint32_t i = 0; i < kCount; i++) {
@@ -1391,7 +1391,7 @@ public:
   virtual void compile(x86::Compiler& cc) {
     x86::Gp v = cc.newUInt32("v");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<uint32_t, uint32_t>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, uint32_t>(CallConvId::kHost));
     funcNode->setArg(0, v);
 
     cc.mov(v.r8(), 0xFF);
@@ -1429,7 +1429,7 @@ public:
     x86::Gp src = cc.newIntPtr("src");
     x86::Gp cnt = cc.newIntPtr("cnt");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, void*, void*, size_t>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, void*, size_t>(CallConvId::kHost));
     funcNode->setArg(0, dst);
     funcNode->setArg(1, src);
     funcNode->setArg(2, cnt);
@@ -1471,7 +1471,7 @@ public:
     Label L_1 = cc.newLabel();
     Label L_2 = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, v1);
     funcNode->setArg(1, v2);
 
@@ -1523,7 +1523,7 @@ public:
     Label L_3 = cc.newLabel();
     Label L_4 = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, v1);
     funcNode->setArg(1, v2);
 
@@ -1582,7 +1582,7 @@ public:
     Label L_Loop = cc.newLabel();
     Label L_Exit = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, v1);
     funcNode->setArg(1, v2);
 
@@ -1642,7 +1642,7 @@ public:
     Label L_Loop2 = cc.newLabel();
     Label L_Exit = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, v1);
     funcNode->setArg(1, v2);
 
@@ -1699,7 +1699,7 @@ public:
     x86::Gp x = cc.newInt8("x");
     x86::Gp y = cc.newInt32("y");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int8_t>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int8_t>(CallConvId::kHost));
     funcNode->setArg(0, x);
 
     cc.movsx(y, x);
@@ -1736,7 +1736,7 @@ public:
   virtual void compile(x86::Compiler& cc) {
     x86::Gp x = cc.newInt32("x");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>(CallConvId::kHost));
     funcNode->setArg(2, x);
 
     cc.ret(x);
@@ -1769,7 +1769,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, void*, void*, void*, void*, void*, void*, void*, void*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, void*, void*, void*, void*, void*, void*, void*>(CallConvId::kHost));
     x86::Gp var[8];
 
     for (uint32_t i = 0; i < 8; i++) {
@@ -1825,7 +1825,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, float, float, float, float, float, float, float, void*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, float, float, float, float, float, float, float, void*>(CallConvId::kHost));
 
     x86::Gp p = cc.newIntPtr("p");
     x86::Xmm xv[7];
@@ -1876,7 +1876,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, double, double, double, double, double, double, double, void*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, double, double, double, double, double, double, double, void*>(CallConvId::kHost));
 
     x86::Gp p = cc.newIntPtr("p");
     x86::Xmm xv[7];
@@ -1936,7 +1936,7 @@ public:
     x86::Xmm a = cc.newXmm("aXmm");
     x86::Xmm b = cc.newXmm("bXmm");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<x86::Xmm, x86::Xmm, x86::Xmm>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<x86::Xmm, x86::Xmm, x86::Xmm>(CallConvId::kHost));
     funcNode->setArg(0, a);
     funcNode->setArg(1, b);
 
@@ -1984,7 +1984,7 @@ public:
   virtual void compile(x86::Compiler& cc) {
     x86::Xmm x = cc.newXmmSs("x");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<float, float>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float>(CallConvId::kHost));
     funcNode->setArg(0, x);
 
     cc.ret(x);
@@ -2020,7 +2020,7 @@ public:
     x86::Xmm x = cc.newXmmSs("x");
     x86::Xmm y = cc.newXmmSs("y");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<float, float, float>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float>(CallConvId::kHost));
     funcNode->setArg(0, x);
     funcNode->setArg(1, y);
 
@@ -2058,7 +2058,7 @@ public:
   virtual void compile(x86::Compiler& cc) {
     x86::Xmm x = cc.newXmmSd("x");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double>(CallConvId::kHost));
     funcNode->setArg(0, x);
 
     cc.ret(x);
@@ -2094,7 +2094,7 @@ public:
     x86::Xmm x = cc.newXmmSd("x");
     x86::Xmm y = cc.newXmmSd("y");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double, double>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>(CallConvId::kHost));
     funcNode->setArg(0, x);
     funcNode->setArg(1, y);
 
@@ -2132,7 +2132,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     x86::Mem stack = cc.newStack(kSize, 1);
     stack.setSize(1);
@@ -2206,7 +2206,7 @@ public:
     Label L_Loop = cc.newLabel();                   // Create base labels we use
     Label L_Exit = cc.newLabel();                   // in our function.
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, uint32_t*, const uint32_t*, size_t>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, uint32_t*, const uint32_t*, size_t>(CallConvId::kHost));
     funcNode->setArg(0, dst);
     funcNode->setArg(1, src);
     funcNode->setArg(2, cnt);
@@ -2283,7 +2283,7 @@ public:
     x86::Gp a = cc.newInt32("a");
     x86::Gp b = cc.newInt32("b");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, cond);
     funcNode->setArg(1, a);
     funcNode->setArg(2, b);
@@ -2422,7 +2422,7 @@ public:
     x86::Gp v1 = cc.newInt32("v1");
     x86::Gp v2 = cc.newInt32("v2");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, v0);
     funcNode->setArg(1, v1);
     funcNode->setArg(2, v2);
@@ -2434,7 +2434,7 @@ public:
 
     // Call a function.
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignatureT<int, int, int, int>(CallConvId::kHost));
+    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignature::build<int, int, int, int>(CallConvId::kHost));
     invokeNode->setArg(0, v2);
     invokeNode->setArg(1, v1);
     invokeNode->setArg(2, v0);
@@ -2474,7 +2474,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     const int kTokenSize = 32;
 
@@ -2494,19 +2494,19 @@ public:
     cc.lea(p2, s2);
 
     // Try to corrupt the stack if wrongly allocated.
-    cc.invoke(&invokeNode, imm((void*)memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConvId::kCDecl));
+    cc.invoke(&invokeNode, imm((void*)memcpy), FuncSignature::build<void*, void*, void*, size_t>(CallConvId::kCDecl));
     invokeNode->setArg(0, p1);
     invokeNode->setArg(1, imm(token));
     invokeNode->setArg(2, imm(kTokenSize));
     invokeNode->setRet(0, p1);
 
-    cc.invoke(&invokeNode, imm((void*)memcpy), FuncSignatureT<void*, void*, void*, size_t>(CallConvId::kCDecl));
+    cc.invoke(&invokeNode, imm((void*)memcpy), FuncSignature::build<void*, void*, void*, size_t>(CallConvId::kCDecl));
     invokeNode->setArg(0, p2);
     invokeNode->setArg(1, imm(token));
     invokeNode->setArg(2, imm(kTokenSize));
     invokeNode->setRet(0, p2);
 
-    cc.invoke(&invokeNode, imm((void*)memcmp), FuncSignatureT<int, void*, void*, size_t>(CallConvId::kCDecl));
+    cc.invoke(&invokeNode, imm((void*)memcmp), FuncSignature::build<int, void*, void*, size_t>(CallConvId::kCDecl));
     invokeNode->setArg(0, p1);
     invokeNode->setArg(1, p2);
     invokeNode->setArg(2, imm(kTokenSize));
@@ -2557,7 +2557,7 @@ public:
     x86::Gp y = cc.newInt32("y");
     x86::Gp z = cc.newInt32("z");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, x);
     funcNode->setArg(1, y);
     funcNode->setArg(2, z);
@@ -2565,7 +2565,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)calledFunc),
-      FuncSignatureT<int, int, int, int>(CallConvId::kStdCall));
+      FuncSignature::build<int, int, int, int>(CallConvId::kStdCall));
     invokeNode->setArg(0, x);
     invokeNode->setArg(1, y);
     invokeNode->setArg(2, z);
@@ -2608,16 +2608,16 @@ public:
   virtual void compile(x86::Compiler& cc) {
     x86::Gp var = cc.newInt32("var");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int>(CallConvId::kHost));
     funcNode->setArg(0, var);
 
     InvokeNode* invokeNode;
 
-    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignatureT<int, int>(CallConvId::kFastCall));
+    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignature::build<int, int>(CallConvId::kFastCall));
     invokeNode->setArg(0, var);
     invokeNode->setRet(0, var);
 
-    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignatureT<int, int>(CallConvId::kFastCall));
+    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignature::build<int, int>(CallConvId::kFastCall));
     invokeNode->setArg(0, var);
     invokeNode->setRet(0, var);
 
@@ -2666,7 +2666,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, void*, const void*, const void*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, const void*, const void*>(CallConvId::kHost));
 
     x86::Gp resultPtr = cc.newIntPtr("resultPtr");
     x86::Gp aPtr = cc.newIntPtr("aPtr");
@@ -2695,7 +2695,7 @@ public:
     cc.movdqu(bXmm, x86::ptr(bPtr));
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, pFn, FuncSignatureT<x86::Xmm, x86::Xmm, x86::Xmm>(ccId));
+    cc.invoke(&invokeNode, pFn, FuncSignature::build<x86::Xmm, x86::Xmm, x86::Xmm>(ccId));
 
     invokeNode->setArg(0, aXmm);
     invokeNode->setArg(1, bXmm);
@@ -2748,8 +2748,8 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncSignatureT<void, const void*, const void*, const void*, const void*, void*> f1Sig(CallConvId::kCDecl);
-    FuncSignatureT<x86::Xmm, x86::Xmm, x86::Xmm> f2Sig(CallConvId::kLightCall2);
+    FuncSignature f1Sig = FuncSignature::build<void, const void*, const void*, const void*, const void*, void*>(CallConvId::kCDecl);
+    FuncSignature f2Sig = FuncSignature::build<x86::Xmm, x86::Xmm, x86::Xmm>(CallConvId::kLightCall2);
 
     FuncNode* f1Node = cc.newFunc(f1Sig);
     FuncNode* f2Node = cc.newFunc(f2Sig);
@@ -2850,7 +2850,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     // Prepare.
     x86::Gp va = cc.newInt32("va");
@@ -2879,7 +2879,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)calledFunc),
-      FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConvId::kHost));
+      FuncSignature::build<int, int, int, int, int, int, int, int, int, int, int>(CallConvId::kHost));
     invokeNode->setArg(0, va);
     invokeNode->setArg(1, vb);
     invokeNode->setArg(2, vc);
@@ -2926,7 +2926,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     // Prepare.
     x86::Gp a = cc.newInt32("a");
@@ -2936,7 +2936,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)calledFunc),
-      FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConvId::kHost));
+      FuncSignature::build<int, int, int, int, int, int, int, int, int, int, int>(CallConvId::kHost));
     invokeNode->setArg(0, a);
     invokeNode->setArg(1, a);
     invokeNode->setArg(2, a);
@@ -2979,7 +2979,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     // Prepare.
     x86::Gp rv = cc.newInt32("rv");
@@ -2988,7 +2988,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)X86Test_FuncCallManyArgs::calledFunc),
-      FuncSignatureT<int, int, int, int, int, int, int, int, int, int, int>(CallConvId::kHost));
+      FuncSignature::build<int, int, int, int, int, int, int, int, int, int, int>(CallConvId::kHost));
 
     invokeNode->setArg(0, imm(0x03));
     invokeNode->setArg(1, imm(0x12));
@@ -3045,7 +3045,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     // Prepare.
     x86::Gp rv = cc.newInt32("rv");
@@ -3054,7 +3054,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)calledFunc),
-      FuncSignatureT<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>(CallConvId::kHost));
+      FuncSignature::build<int, void*, void*, void*, void*, void*, void*, void*, void*, void*, void*>(CallConvId::kHost));
 
     invokeNode->setArg(0, imm(0x01));
     invokeNode->setArg(1, imm(0x02));
@@ -3106,7 +3106,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int&, int&, int&, int&>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int&, int&, int&, int&>(CallConvId::kHost));
 
     // Prepare.
     x86::Gp arg1 = cc.newInt32();
@@ -3124,7 +3124,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)calledFunc),
-      FuncSignatureT<int, int&, int&, int&, int&>(CallConvId::kHost));
+      FuncSignature::build<int, int&, int&, int&, int&>(CallConvId::kHost));
 
     invokeNode->setArg(0, arg1);
     invokeNode->setArg(1, arg2);
@@ -3168,7 +3168,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<float, float, float>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float>(CallConvId::kHost));
 
     x86::Xmm a = cc.newXmmSs("a");
     x86::Xmm b = cc.newXmmSs("b");
@@ -3179,7 +3179,7 @@ public:
 
     // Call function.
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignatureT<float, float, float>(CallConvId::kHost));
+    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignature::build<float, float, float>(CallConvId::kHost));
     invokeNode->setArg(0, a);
     invokeNode->setArg(1, b);
     invokeNode->setRet(0, ret);
@@ -3218,7 +3218,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double, double>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>(CallConvId::kHost));
 
     x86::Xmm a = cc.newXmmSd("a");
     x86::Xmm b = cc.newXmmSd("b");
@@ -3228,7 +3228,7 @@ public:
     funcNode->setArg(1, b);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignatureT<double, double, double>(CallConvId::kHost));
+    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignature::build<double, double, double>(CallConvId::kHost));
     invokeNode->setArg(0, a);
     invokeNode->setArg(1, b);
     invokeNode->setRet(0, ret);
@@ -3270,7 +3270,7 @@ public:
     InvokeNode* invokeNode;
     x86::Gp result;
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>(CallConvId::kHost));
     funcNode->setArg(0, x);
     funcNode->setArg(1, y);
     funcNode->setArg(2, op);
@@ -3290,7 +3290,7 @@ public:
     cc.bind(opAdd);
     result = cc.newInt32("result_1");
 
-    cc.invoke(&invokeNode, (uint64_t)calledFuncAdd, FuncSignatureT<int, int, int>(CallConvId::kHost));
+    cc.invoke(&invokeNode, (uint64_t)calledFuncAdd, FuncSignature::build<int, int, int>(CallConvId::kHost));
     invokeNode->setArg(0, x);
     invokeNode->setArg(1, y);
     invokeNode->setRet(0, result);
@@ -3299,7 +3299,7 @@ public:
     cc.bind(opMul);
     result = cc.newInt32("result_2");
 
-    cc.invoke(&invokeNode, (uint64_t)calledFuncMul, FuncSignatureT<int, int, int>(CallConvId::kHost));
+    cc.invoke(&invokeNode, (uint64_t)calledFuncMul, FuncSignature::build<int, int, int>(CallConvId::kHost));
     invokeNode->setArg(0, x);
     invokeNode->setArg(1, y);
     invokeNode->setRet(0, result);
@@ -3353,7 +3353,7 @@ public:
     x86::Gp acc0 = cc.newInt32("acc0");
     x86::Gp acc1 = cc.newInt32("acc1");
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int*>(CallConvId::kHost));
     funcNode->setArg(0, buf);
 
     cc.mov(acc0, 0);
@@ -3368,7 +3368,7 @@ public:
       cc.mov(ptr, buf);
       cc.mov(idx, int(i));
 
-      cc.invoke(&invokeNode, (uint64_t)calledFunc, FuncSignatureT<int, int*, int>(CallConvId::kFastCall));
+      cc.invoke(&invokeNode, (uint64_t)calledFunc, FuncSignature::build<int, int*, int>(CallConvId::kFastCall));
       invokeNode->setArg(0, ptr);
       invokeNode->setArg(1, idx);
       invokeNode->setRet(0, ret);
@@ -3378,7 +3378,7 @@ public:
       cc.mov(ptr, buf);
       cc.mov(idx, int(i));
 
-      cc.invoke(&invokeNode, (uint64_t)calledFunc, FuncSignatureT<int, int*, int>(CallConvId::kFastCall));
+      cc.invoke(&invokeNode, (uint64_t)calledFunc, FuncSignature::build<int, int*, int>(CallConvId::kFastCall));
       invokeNode->setArg(0, ptr);
       invokeNode->setArg(1, idx);
       invokeNode->setRet(0, ret);
@@ -3422,7 +3422,7 @@ public:
     x86::Gp val = cc.newInt32("val");
     Label skip = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int>(CallConvId::kHost));
     funcNode->setArg(0, val);
 
     cc.cmp(val, 1);
@@ -3434,7 +3434,7 @@ public:
 
     InvokeNode* invokeNode;
 
-    cc.invoke(&invokeNode, funcNode->label(), FuncSignatureT<int, int>(CallConvId::kHost));
+    cc.invoke(&invokeNode, funcNode->label(), FuncSignature::build<int, int>(CallConvId::kHost));
     invokeNode->setArg(0, tmp);
     invokeNode->setRet(0, tmp);
     cc.mul(cc.newInt32(), val, tmp);
@@ -3470,7 +3470,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int, int>(CallConvId::kHost));
 
     x86::Gp a0 = cc.newInt32("a0");
     x86::Gp a1 = cc.newInt32("a1");
@@ -3488,7 +3488,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)calledFunc),
-      FuncSignatureT<int, size_t, int, int, int, int>(CallConvId::kHost, 1));
+      FuncSignature::build<int, size_t, int, int, int, int>(CallConvId::kHost, 1));
     invokeNode->setArg(0, imm(4));
     invokeNode->setArg(1, a0);
     invokeNode->setArg(2, a1);
@@ -3538,7 +3538,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double, double, double, double>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double, double, double>(CallConvId::kHost));
 
     x86::Xmm a0 = cc.newXmmSd("a0");
     x86::Xmm a1 = cc.newXmmSd("a1");
@@ -3556,7 +3556,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)calledFunc),
-      FuncSignatureT<double, size_t, double, double, double, double>(CallConvId::kHost, 1));
+      FuncSignature::build<double, size_t, double, double, double, double>(CallConvId::kHost, 1));
     invokeNode->setArg(0, imm(4));
     invokeNode->setArg(1, a0);
     invokeNode->setArg(2, a1);
@@ -3606,7 +3606,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<uint64_t, uint64_t>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint64_t, uint64_t>(CallConvId::kHost));
 
     if (cc.is64Bit()) {
       x86::Gp reg = cc.newUInt64();
@@ -3669,7 +3669,7 @@ public:
   static void dummy(int, int) {}
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
 
     x86::Gp a = cc.newInt32("a");
     x86::Gp b = cc.newInt32("b");
@@ -3681,7 +3681,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)dummy),
-      FuncSignatureT<void, int, int>(CallConvId::kHost));
+      FuncSignature::build<void, int, int>(CallConvId::kHost));
     invokeNode->setArg(0, a);
     invokeNode->setArg(1, b);
 
@@ -3717,7 +3717,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, const double*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, const double*>(CallConvId::kHost));
 
     x86::Gp p = cc.newIntPtr("p");
     x86::Xmm arg = cc.newXmmSd("arg");
@@ -3729,7 +3729,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)op),
-      FuncSignatureT<double, double>(CallConvId::kHost));
+      FuncSignature::build<double, double>(CallConvId::kHost));
     invokeNode->setArg(0, arg);
     invokeNode->setRet(0, ret);
 
@@ -3767,7 +3767,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, const double*>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, const double*>(CallConvId::kHost));
 
     x86::Gp p = cc.newIntPtr("p");
     x86::Xmm arg = cc.newXmmSd("arg");
@@ -3779,7 +3779,7 @@ public:
     InvokeNode* invokeNode;
     cc.invoke(&invokeNode,
       imm((void*)op),
-      FuncSignatureT<double, double>(CallConvId::kHost));
+      FuncSignature::build<double, double>(CallConvId::kHost));
     invokeNode->setArg(0, arg);
     invokeNode->setRet(0, ret);
 
@@ -3822,12 +3822,12 @@ public:
   virtual void compile(x86::Compiler& cc) {
     InvokeNode* invokeNode;
 
-    FuncSignatureBuilder funcSignature;
+    FuncSignature funcSignature;
     funcSignature.setCallConvId(CallConvId::kHost);
     funcSignature.setRet(TypeId::kFloat64);
     cc.addFunc(funcSignature);
 
-    FuncSignatureBuilder invokeSignature;
+    FuncSignature invokeSignature;
     invokeSignature.setCallConvId(CallConvId::kHost);
     invokeSignature.setRet(TypeId::kFloat64);
 
@@ -3868,7 +3868,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     x86::Gp pFn = cc.newIntPtr("pFn");
     x86::Gp vars[16];
@@ -3887,7 +3887,7 @@ public:
     }
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, pFn, FuncSignatureT<void>(CallConvId::kHost));
+    cc.invoke(&invokeNode, pFn, FuncSignature::build<void>(CallConvId::kHost));
 
     for (i = 1; i < regCount; i++)
       if (vars[i].isValid())
@@ -3925,7 +3925,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<uint32_t, uint32_t>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, uint32_t>(CallConvId::kHost));
 
     constexpr uint32_t kCount = 16;
 
@@ -3941,7 +3941,7 @@ public:
       v[i] = cc.newUInt32("v%u", i);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignatureT<uint32_t, uint32_t>(CallConvId::kHost));
+    cc.invoke(&invokeNode, imm((void*)calledFunc), FuncSignature::build<uint32_t, uint32_t>(CallConvId::kHost));
     invokeNode->setArg(0, argVal);
     invokeNode->setRet(0, retVal);
 
@@ -3988,12 +3988,12 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* mainFunc = cc.addFunc(FuncSignatureT<void, void*, const void*, const void*>(CallConvId::kHost));
+    FuncNode* mainFunc = cc.addFunc(FuncSignature::build<void, void*, const void*, const void*>(CallConvId::kHost));
     mainFunc->frame().setAvxEnabled();
     mainFunc->frame().setAvxCleanup();
 
     // We need a Windows calling convention to test this properly also on a non-Windows machine.
-    FuncNode* helperFunc = cc.newFunc(FuncSignatureT<void, void*, const void*>(CallConvId::kX64Windows));
+    FuncNode* helperFunc = cc.newFunc(FuncSignature::build<void, void*, const void*>(CallConvId::kX64Windows));
     helperFunc->frame().setAvxEnabled();
     helperFunc->frame().setAvxCleanup();
 
@@ -4020,7 +4020,7 @@ public:
       InvokeNode* invokeNode;
       cc.invoke(&invokeNode,
         helperFunc->label(),
-        FuncSignatureT<void, void*, const void*>(CallConvId::kX64Windows));
+        FuncSignature::build<void, void*, const void*>(CallConvId::kX64Windows));
       invokeNode->setArg(0, tPtr);
       invokeNode->setArg(1, bPtr);
 
@@ -4103,7 +4103,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     x86::Gp v0 = cc.newInt32("v0");
     x86::Gp v1 = cc.newInt32("v1");
@@ -4145,7 +4145,7 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<int>(CallConvId::kHost));
 
     x86::Gp v0 = cc.newInt32("v0");
     x86::Gp v1 = cc.newInt32("v1");
@@ -4186,7 +4186,7 @@ struct X86Test_MiscMultiRet : public X86TestCase {
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, int, int>(CallConvId::kHost));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, int, int>(CallConvId::kHost));
 
     x86::Gp op = cc.newInt32("op");
     x86::Gp a = cc.newInt32("a");
@@ -4278,8 +4278,8 @@ public:
   }
 
   virtual void compile(x86::Compiler& cc) {
-    FuncNode* f1Node = cc.newFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
-    FuncNode* f2Node = cc.newFunc(FuncSignatureT<int, int, int>(CallConvId::kHost));
+    FuncNode* f1Node = cc.newFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
+    FuncNode* f2Node = cc.newFunc(FuncSignature::build<int, int, int>(CallConvId::kHost));
 
     {
       x86::Gp a = cc.newInt32("a");
@@ -4290,7 +4290,7 @@ public:
       f1Node->setArg(1, b);
 
       InvokeNode* invokeNode;
-      cc.invoke(&invokeNode, f2Node->label(), FuncSignatureT<int, int, int>(CallConvId::kHost));
+      cc.invoke(&invokeNode, f2Node->label(), FuncSignature::build<int, int, int>(CallConvId::kHost));
       invokeNode->setArg(0, a);
       invokeNode->setArg(1, b);
       invokeNode->setRet(0, a);
@@ -4349,7 +4349,7 @@ public:
     x86::Gp b = cc.newIntPtr("b");
     Label tramp = cc.newLabel();
 
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<int, int, void*>(CallConvId::kFastCall));
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<int, int, void*>(CallConvId::kFastCall));
     funcNode->setArg(0, a);
     funcNode->setArg(1, b);
 

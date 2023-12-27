@@ -582,7 +582,7 @@ static void generateGpSequence(BaseEmitter& emitter, bool emitPrologEpilog) {
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignatureT<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -608,7 +608,7 @@ static void generateGpSequence(BaseEmitter& emitter, bool emitPrologEpilog) {
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignatureT<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -633,7 +633,7 @@ static void generateGpSequence(BaseEmitter& emitter, bool emitPrologEpilog) {
     a64::Gp c = cc.newIntPtr("c");
     a64::Gp d = cc.newIntPtr("d");
 
-    cc.addFunc(FuncSignatureT<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
     generateGpSequenceInternal(cc, a, b, c, d);
     cc.endFunc();
   }

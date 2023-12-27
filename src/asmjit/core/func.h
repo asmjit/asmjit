@@ -377,33 +377,77 @@ struct FuncSignature {
   //! \{
 
   //! Calling convention id.
-  CallConvId _ccId;
+  CallConvId _ccId = CallConvId::kHost;
   //! Count of arguments.
-  uint8_t _argCount;
+  uint8_t _argCount = 0;
   //! Index of a first VA or `kNoVarArgs`.
-  uint8_t _vaIndex;
+  uint8_t _vaIndex = kNoVarArgs;
   //! Return value TypeId.
-  TypeId _ret;
-  //! Function arguments TypeIds.
-  const TypeId* _args;
+  TypeId _ret = TypeId::kVoid;
+  //! Reserved for future use.
+  uint8_t _reserved[4] {};
+  //! Function argument TypeIds.
+  TypeId _args[Globals::kMaxFuncArgs] {};
 
   //! \}
 
-  //! \name Initialization & Reset
+  //! \name Construction & Destruction
   //! \{
 
-  //! Initializes the function signature.
-  inline void init(CallConvId ccId, uint32_t vaIndex, TypeId ret, const TypeId* args, uint32_t argCount) noexcept {
-    ASMJIT_ASSERT(argCount <= 0xFF);
+  //! Default constructed function signature, initialized to \ref CallConvId::kHost, having no return value and no arguments.
+  ASMJIT_FORCE_INLINE constexpr FuncSignature() = default;
 
-    _ccId = ccId;
-    _argCount = uint8_t(argCount);
-    _vaIndex = uint8_t(vaIndex);
-    _ret = ret;
-    _args = args;
+  //! Copy constructor, which is initialized to the same function signature as `other`.
+  ASMJIT_FORCE_INLINE constexpr FuncSignature(const FuncSignature& other) = default;
+
+  //! Initializes the function signature with calling convention id `ccId` and variable argument's index `vaIndex`.
+  ASMJIT_FORCE_INLINE constexpr FuncSignature(CallConvId ccId, uint32_t vaIndex = kNoVarArgs) noexcept
+    : _ccId(ccId),
+      _vaIndex(uint8_t(vaIndex)) {}
+
+  //! Initializes the function signature with calling convention id `ccId`, `vaIndex`, return value, and function arguments.
+  template<typename... Args>
+  ASMJIT_FORCE_INLINE constexpr FuncSignature(CallConvId ccId, uint32_t vaIndex, TypeId ret, Args&&...args) noexcept
+    : _ccId(ccId),
+      _argCount(uint8_t(sizeof...(args))),
+      _vaIndex(uint8_t(vaIndex)),
+      _ret(ret),
+      _args{std::forward<Args>(args)...} {}
+
+  template<typename... RetValueAndArgs>
+  static ASMJIT_INLINE_NODEBUG constexpr FuncSignature build(CallConvId ccId = CallConvId::kHost, uint32_t vaIndex = kNoVarArgs) noexcept {
+    return FuncSignature(ccId, vaIndex, (TypeId(TypeUtils::TypeIdOfT<RetValueAndArgs>::kTypeId))... );
   }
 
+  //! \}
+
+  //! \name Overloaded Operators
+  //! \{
+
+  ASMJIT_FORCE_INLINE FuncSignature& operator=(const FuncSignature& other) noexcept = default;
+
+  ASMJIT_FORCE_INLINE bool operator==(const FuncSignature& other) const noexcept { return  equals(other); }
+  ASMJIT_FORCE_INLINE bool operator!=(const FuncSignature& other) const noexcept { return !equals(other); }
+
+  //! \}
+
+  //! \name Init & Reset
+  //! \{
+
   ASMJIT_INLINE_NODEBUG void reset() noexcept { *this = FuncSignature{}; }
+
+  //! \}
+
+  //! \name Equality & Comparison
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG bool equals(const FuncSignature& other) const noexcept {
+    return _ccId == other._ccId &&
+           _argCount == other._argCount &&
+           _vaIndex == other._vaIndex &&
+           _ret == other._ret &&
+           memcmp(_args, other._args, sizeof(_args)) == 0;
+  }
 
   //! \}
 
@@ -415,6 +459,55 @@ struct FuncSignature {
   //! Sets the calling convention to `ccId`;
   ASMJIT_INLINE_NODEBUG void setCallConvId(CallConvId ccId) noexcept { _ccId = ccId; }
 
+  //! Tests whether the function signature has a return value.
+  ASMJIT_INLINE_NODEBUG bool hasRet() const noexcept { return _ret != TypeId::kVoid; }
+  //! Returns the type of the return value.
+  ASMJIT_INLINE_NODEBUG TypeId ret() const noexcept { return _ret; }
+  //! Sets the return type to `retType`.
+  ASMJIT_INLINE_NODEBUG void setRet(TypeId retType) noexcept { _ret = retType; }
+  //! Sets the return type based on `T`.
+  template<typename T>
+  ASMJIT_INLINE_NODEBUG void setRetT() noexcept { setRet(TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
+
+
+  //! Returns the array of function arguments' types.
+  ASMJIT_INLINE_NODEBUG const TypeId* args() const noexcept { return _args; }
+  //! Returns the number of function arguments.
+  ASMJIT_INLINE_NODEBUG uint32_t argCount() const noexcept { return _argCount; }
+
+  //! Returns the type of the argument at index `i`.
+  inline TypeId arg(uint32_t i) const noexcept {
+    ASMJIT_ASSERT(i < _argCount);
+    return _args[i];
+  }
+
+  //! Sets the argument at index `index` to `argType`.
+  inline void setArg(uint32_t index, TypeId argType) noexcept {
+    ASMJIT_ASSERT(index < _argCount);
+    _args[index] = argType;
+  }
+  //! Sets the argument at index `i` to the type based on `T`.
+  template<typename T>
+  inline void setArgT(uint32_t index) noexcept { setArg(index, TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
+
+  //! Tests whether an argument can be added to the signature, use before calling \ref addArg() and \ref addArgT().
+  //!
+  //! \note If you know that you are not adding more arguments than \ref Globals::kMaxFuncArgs then it's not necessary
+  //! to use this function. However, if you are adding arguments based on user input, for example, then either check
+  //! the number of arguments before using function signature or use \ref canAddArg() before actually adding them to
+  //! the function signature.
+  inline bool canAddArg() const noexcept { return _argCount < Globals::kMaxFuncArgs; }
+
+  //! Appends an argument of `type` to the function prototype.
+  inline void addArg(TypeId type) noexcept {
+    ASMJIT_ASSERT(_argCount < Globals::kMaxFuncArgs);
+    _args[_argCount++] = type;
+  }
+
+  //! Appends an argument of type based on `T` to the function prototype.
+  template<typename T>
+  inline void addArgT() noexcept { addArg(TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
+
   //! Tests whether the function has variable number of arguments (...).
   ASMJIT_INLINE_NODEBUG bool hasVarArgs() const noexcept { return _vaIndex != kNoVarArgs; }
   //! Returns the variable arguments (...) index, `kNoVarArgs` if none.
@@ -424,76 +517,20 @@ struct FuncSignature {
   //! Resets the variable arguments index (making it a non-va function).
   ASMJIT_INLINE_NODEBUG void resetVaIndex() noexcept { _vaIndex = kNoVarArgs; }
 
-  //! Returns the number of function arguments.
-  ASMJIT_INLINE_NODEBUG uint32_t argCount() const noexcept { return _argCount; }
-
-  ASMJIT_INLINE_NODEBUG bool hasRet() const noexcept { return _ret != TypeId::kVoid; }
-  //! Returns the return value type.
-  ASMJIT_INLINE_NODEBUG TypeId ret() const noexcept { return _ret; }
-
-  //! Returns the type of the argument at index `i`.
-  inline TypeId arg(uint32_t i) const noexcept {
-    ASMJIT_ASSERT(i < _argCount);
-    return _args[i];
-  }
-  //! Returns the array of function arguments' types.
-  ASMJIT_INLINE_NODEBUG const TypeId* args() const noexcept { return _args; }
-
   //! \}
 };
 
-template<typename... RET_ARGS>
-class FuncSignatureT : public FuncSignature {
+#if !defined(ASMJIT_NO_DEPRECATED)
+template<typename... RetValueAndArgs>
+class ASMJIT_DEPRECATED("Use FuncSignature::build<RetValueAndArgs>() instead") FuncSignatureT : public FuncSignature {
 public:
-  ASMJIT_INLINE_NODEBUG FuncSignatureT(CallConvId ccId = CallConvId::kHost, uint32_t vaIndex = kNoVarArgs) noexcept {
-    static constexpr TypeId ret_args[] = { (TypeId(TypeUtils::TypeIdOfT<RET_ARGS>::kTypeId))... };
-    init(ccId, vaIndex, ret_args[0], ret_args + 1, uint32_t(ASMJIT_ARRAY_SIZE(ret_args) - 1));
-  }
+  ASMJIT_INLINE_NODEBUG constexpr FuncSignatureT(CallConvId ccId = CallConvId::kHost, uint32_t vaIndex = kNoVarArgs) noexcept
+    : FuncSignature(ccId, vaIndex, (TypeId(TypeUtils::TypeIdOfT<RetValueAndArgs>::kTypeId))... ) {}
 };
 
-//! Function signature builder.
-class FuncSignatureBuilder : public FuncSignature {
-public:
-  TypeId _builderArgList[Globals::kMaxFuncArgs];
-
-  //! \name Initialization & Reset
-  //! \{
-
-  ASMJIT_INLINE_NODEBUG FuncSignatureBuilder(CallConvId ccId = CallConvId::kHost, uint32_t vaIndex = kNoVarArgs) noexcept {
-    init(ccId, vaIndex, TypeId::kVoid, _builderArgList, 0);
-  }
-
-  //! \}
-
-  //! \name Accessors
-  //! \{
-
-  //! Sets the return type to `retType`.
-  ASMJIT_INLINE_NODEBUG void setRet(TypeId retType) noexcept { _ret = retType; }
-  //! Sets the return type based on `T`.
-  template<typename T>
-  ASMJIT_INLINE_NODEBUG void setRetT() noexcept { setRet(TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
-
-  //! Sets the argument at index `index` to `argType`.
-  inline void setArg(uint32_t index, TypeId argType) noexcept {
-    ASMJIT_ASSERT(index < _argCount);
-    _builderArgList[index] = argType;
-  }
-  //! Sets the argument at index `i` to the type based on `T`.
-  template<typename T>
-  inline void setArgT(uint32_t index) noexcept { setArg(index, TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
-
-  //! Appends an argument of `type` to the function prototype.
-  inline void addArg(TypeId type) noexcept {
-    ASMJIT_ASSERT(_argCount < Globals::kMaxFuncArgs);
-    _builderArgList[_argCount++] = type;
-  }
-  //! Appends an argument of type based on `T` to the function prototype.
-  template<typename T>
-  inline void addArgT() noexcept { addArg(TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
-
-  //! \}
-};
+ASMJIT_DEPRECATED("Use FuncSignature instead of FuncSignatureBuilder")
+typedef FuncSignature FuncSignatureBuilder;
+#endif // ASMJIT_NO_DEPRECATED
 
 //! Argument or return value (or its part) as defined by `FuncSignature`, but with register or stack address
 //! (and other metadata) assigned.
@@ -758,10 +795,8 @@ public:
   //! \name Constants
   //! \{
 
-  enum : uint8_t {
-    //! Doesn't have variable number of arguments (`...`).
-    kNoVarArgs = 0xFFu
-  };
+  //! Function doesn't have a variable number of arguments (`...`).
+  static constexpr uint8_t kNoVarArgs = 0xFFu;
 
   //! \}
 

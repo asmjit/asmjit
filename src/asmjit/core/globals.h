@@ -96,10 +96,9 @@ static constexpr uint32_t kMaxTreeHeight = (ASMJIT_ARCH_BITS == 32 ? 30 : 61) + 
 static constexpr uint32_t kMaxOpCount = 6;
 
 //! Maximum arguments of a function supported by the Compiler / Function API.
-static constexpr uint32_t kMaxFuncArgs = 16;
+static constexpr uint32_t kMaxFuncArgs = 32;
 
-//! The number of values that can be assigned to a single function argument or
-//! return value.
+//! The number of values that can be assigned to a single function argument or return value.
 static constexpr uint32_t kMaxValuePack = 4;
 
 //! Maximum number of physical registers AsmJit can use per register group.

@@ -425,17 +425,10 @@ namespace asmjit {
 //! Marks function, class, struct, enum, or anything else as deprecated.
 #if defined(__GNUC__)
   #define ASMJIT_DEPRECATED(MESSAGE) __attribute__((__deprecated__(MESSAGE)))
-  #if defined(__clang__)
-    #define ASMJIT_DEPRECATED_STRUCT(MESSAGE) __attribute__((__deprecated__(MESSAGE)))
-  #else
-    #define ASMJIT_DEPRECATED_STRUCT(MESSAGE) /* not usable if a deprecated function uses it */
-  #endif
 #elif defined(_MSC_VER)
   #define ASMJIT_DEPRECATED(MESSAGE) __declspec(deprecated(MESSAGE))
-  #define ASMJIT_DEPRECATED_STRUCT(MESSAGE) /* not usable if a deprecated function uses it */
 #else
   #define ASMJIT_DEPRECATED(MESSAGE)
-  #define ASMJIT_DEPRECATED_STRUCT(MESSAGE)
 #endif
 
 // Utilities.

@@ -365,7 +365,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //!   // Create/initialize FuncDetail and FuncFrame.
 //!   FuncDetail func;
-//!   func.init(FuncSignatureT<void, int*, const int*, const int*>(CallConvId::kHost));
+//!   func.init(FuncSignature::build<void, int*, const int*, const int*>(CallConvId::kHost));
 //!
 //!   FuncFrame frame;
 //!   frame.init(func);

@@ -55,7 +55,7 @@ public:
     uint32_t i;
     uint32_t argCount = _argCount;
 
-    FuncSignatureBuilder signature;
+    FuncSignature signature;
     signature.setRetT<int>();
     for (i = 0; i < argCount; i++)
       signature.addArgT<int>();
@@ -201,7 +201,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, void*, const void*, const void*>());
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, const void*, const void*>());
 
     a64::Gp dst = cc.newUIntPtr("dst");
     a64::Gp src1 = cc.newUIntPtr("src1");
@@ -261,7 +261,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>());
+    cc.addFunc(FuncSignature::build<int>());
 
     a64::Gp* regs = static_cast<a64::Gp*>(malloc(_regCount * sizeof(a64::Gp)));
 
@@ -311,7 +311,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    cc.addFunc(FuncSignatureT<int>());
+    cc.addFunc(FuncSignature::build<int>());
 
     a64::Gp addr = cc.newIntPtr("addr");
     a64::Gp val = cc.newIntPtr("val");
@@ -355,7 +355,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<void, void*, size_t>());
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*, size_t>());
 
     a64::Gp p = cc.newIntPtr("p");
     a64::Gp count = cc.newIntPtr("count");
@@ -410,7 +410,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<uint32_t, uint32_t, uint32_t>());
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<uint32_t, uint32_t, uint32_t>());
 
     a64::Gp x = cc.newUInt32("x");
     a64::Gp y = cc.newUInt32("y");
@@ -423,7 +423,7 @@ public:
     cc.mov(fn, (uint64_t)calledFunc);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, fn, FuncSignatureT<uint32_t, uint32_t, uint32_t>(CallConvId::kHost));
+    cc.invoke(&invokeNode, fn, FuncSignature::build<uint32_t, uint32_t, uint32_t>(CallConvId::kHost));
     invokeNode->setArg(0, x);
     invokeNode->setArg(1, y);
     invokeNode->setRet(0, r);
@@ -463,7 +463,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double, double>());
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>());
 
     a64::Vec x = cc.newVecD("x");
     a64::Vec y = cc.newVecD("y");
@@ -475,7 +475,7 @@ public:
     cc.mov(fn, (uint64_t)calledFunc);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, fn, FuncSignatureT<double, double, double>(CallConvId::kHost));
+    cc.invoke(&invokeNode, fn, FuncSignature::build<double, double, double>(CallConvId::kHost));
     invokeNode->setArg(0, x);
     invokeNode->setArg(1, y);
     invokeNode->setRet(0, r);
@@ -515,7 +515,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<double, double, double>());
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<double, double, double>());
 
     a64::Vec x = cc.newVecD("x");
     a64::Vec y = cc.newVecD("y");
@@ -527,7 +527,7 @@ public:
     cc.mov(fn, (uint64_t)calledFunc);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, fn, FuncSignatureT<double, double, double>(CallConvId::kHost));
+    cc.invoke(&invokeNode, fn, FuncSignature::build<double, double, double>(CallConvId::kHost));
     invokeNode->setArg(0, y);
     invokeNode->setArg(1, x);
     invokeNode->setRet(0, r);
@@ -580,7 +580,7 @@ public:
   }
 
   virtual void compile(a64::Compiler& cc) {
-    FuncNode* funcNode = cc.addFunc(FuncSignatureT<float, float, float, uint32_t>());
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float, uint32_t>());
 
     a64::Vec a = cc.newVecS("a");
     a64::Vec b = cc.newVecS("b");

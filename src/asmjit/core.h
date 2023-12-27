@@ -246,6 +246,12 @@ namespace asmjit {
 //!   - Renamed `a64::Vec::ElementType` to `a64::VecElementType` and made it a typed enum. This enum was used mostly
 //!     internally, but there is a public API using it, so it's a breaking change.
 //!
+//!   - Refactored `FuncSignature`, `FuncSignatureT`, and `FuncSignatureBuilder`. There is only `FuncSignature` now,
+//!     which acts as a function signature holder and builder. Replace `FuncSignatureBuilder` with `FuncSignature`
+//!     and use `FuncSignature::build<args>` instead of `FuncSignatureT<args>`. The old API has been deprecated.
+//!
+//!   - The maximum number of function arguments was raised from 16 to 32.
+//!
 //! ### Changes committed at 2023-12-26
 //!
 //! Core changes:
@@ -442,7 +448,7 @@ namespace asmjit {
 //! // Calling a function (Compiler) changed - use invoke() instead of call().
 //! void functionInvocation(x86::Compiler& cc) {
 //!   InvokeNode* invokeNode;
-//!   cc.invoke(&invokeNode, targetOperand, FuncSignatureT<...>(...));
+//!   cc.invoke(&invokeNode, targetOperand, FuncSignature::build<...>(...));
 //! }
 //! ```
 
