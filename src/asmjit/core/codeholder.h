@@ -313,7 +313,7 @@ enum class OffsetType : uint8_t {
   //!   - `jb` is calculated as imm[22] ^ imm[20] ^ 1.
   kThumb32_BLX,
 
-  //! AArch32 THUMBv2 immediate encoding of 'B' instruction without <cond> (24-bit immediate payload, multiplied by 2):
+  //! AArch32 THUMBv2 immediate encoding of 'B' instruction without `<cond>` (24-bit immediate payload, multiplied by 2):
   //!
   //!   `|.....|imm[23]|imm[20:11]|..|ja|1|jb|imm[10:0]`
   //!
@@ -323,7 +323,7 @@ enum class OffsetType : uint8_t {
   //!   - `jb` is calculated as imm[23] ^ imm[21] ^ 1.
   kThumb32_B,
 
-  //! AArch32 THUMBv2 immediate encoding of 'B' instruction with <cond> (20-bit immediate payload, multiplied by 2).
+  //! AArch32 THUMBv2 immediate encoding of 'B' instruction with `<cond>` (20-bit immediate payload, multiplied by 2).
   //!
   //!   `|.....|imm[19]|....|imm[16:11]|..|ja|1|jb|imm[10:0]`
   //!

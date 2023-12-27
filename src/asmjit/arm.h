@@ -53,12 +53,17 @@
 //!     - \ref a64::Gp - 32-bit or 64-bit general purpose register used by AArch64:
 //!       - \ref a64::GpW - 32-bit register (AArch64).
 //!       - \ref a64::GpX - 64-bit register (AArch64).
-//!     - \ref arm::Vec - Vector (SIMD) register:
-//!       - \ref arm::VecB - 8-bit SIMD register (AArch64 only).
-//!       - \ref arm::VecH - 16-bit SIMD register (AArch64 only).
-//!       - \ref arm::VecS - 32-bit SIMD register.
-//!       - \ref arm::VecD - 64-bit SIMD register.
-//!       - \ref arm::VecV - 128-bit SIMD register.
+//!     - \ref arm::BaseVec - Base vector (SIMD) register.
+//!       - \ref a32::Vec - Vector (SIMD) register (AArch32):
+//!         - \ref a32::VecS - 32-bit SIMD register (AArch32).
+//!         - \ref a32::VecD - 64-bit SIMD register (AArch32).
+//!         - \ref a32::VecV - 128-bit SIMD register (AArch32).
+//!       - \ref a64::Vec - Vector (SIMD) register (AArch64):
+//!         - \ref a64::VecB - 8-bit SIMD register (AArch64).
+//!         - \ref a64::VecH - 16-bit SIMD register (AArch64).
+//!         - \ref a64::VecS - 32-bit SIMD register (AArch64).
+//!         - \ref a64::VecD - 64-bit SIMD register (AArch64).
+//!         - \ref a64::VecV - 128-bit SIMD register (AArch64).
 //!
 //! ### Memory Operands
 //!

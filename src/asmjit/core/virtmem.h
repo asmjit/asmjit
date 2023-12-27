@@ -143,7 +143,7 @@ enum class MemoryFlags : uint32_t {
 
   //! Request large memory mapped pages.
   //!
-  //! \important If this option is used and large page(s) cannot be mapped, the allocation will fail. Fallback to
+  //! \remarks If this option is used and large page(s) cannot be mapped, the allocation will fail. Fallback to
   //! regular pages must be done by the user in this case. Higher level API such as \ref JitAllocator provides an
   //! additional mechanism to allocate regular page(s) when large page(s) allocation fails.
   kMMapLargePages = 0x00000200u,

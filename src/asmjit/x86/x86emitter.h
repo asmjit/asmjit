@@ -664,7 +664,6 @@ public:
   //! \{
 
   // NOTE: For some reason Doxygen is messed up here and thinks we are in cond.
-  //! \endcond
 
   ASMJIT_INST_2x(in, In, Gp_ZAX, Imm)                                  // ANY
   ASMJIT_INST_2x(in, In, Gp_ZAX, Gp_DX)                                // ANY
@@ -2160,9 +2159,6 @@ public:
 
   //! \name GFNI Instructions
   //! \{
-
-  // NOTE: For some reason Doxygen is messed up here and thinks we are in cond.
-  //! \endcond
 
   ASMJIT_INST_3x(gf2p8affineinvqb, Gf2p8affineinvqb, Xmm, Xmm, Imm)    // GFNI
   ASMJIT_INST_3x(gf2p8affineinvqb, Gf2p8affineinvqb, Xmm, Mem, Imm)    // GFNI

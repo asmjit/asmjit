@@ -659,6 +659,7 @@ public:
   //! \}
   //! \endcond
 
+  //! \cond INTERNAL
   //! \name Emit
   //! \{
 

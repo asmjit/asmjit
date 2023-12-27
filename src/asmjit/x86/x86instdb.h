@@ -464,9 +464,9 @@ struct InstInfo {
   //! Returns common information, see \ref CommonInfo.
   ASMJIT_INLINE_NODEBUG const CommonInfo& commonInfo() const noexcept { return _commonInfoTable[_commonInfoIndex]; }
 
-  //! Returns instruction flags, see \ref Flags.
+  //! Returns instruction flags, see \ref InstFlags.
   ASMJIT_INLINE_NODEBUG InstFlags flags() const noexcept { return commonInfo().flags(); }
-  //! Tests whether the instruction has flag `flag`, see \ref Flags.
+  //! Tests whether the instruction has flag `flag`, see \ref InstFlags.
   ASMJIT_INLINE_NODEBUG bool hasFlag(InstFlags flag) const noexcept { return commonInfo().hasFlag(flag); }
 
   //! Returns instruction AVX-512 flags, see \ref Avx512Flags.

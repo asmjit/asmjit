@@ -65,7 +65,7 @@ enum class JitAllocatorOptions : uint32_t {
   //! since AsmJit can be compiled as a shared library and used by applications instrumented by UBSAN, it's not
   //! possible to conditionally compile the support only when necessary.
   //!
-  //! \important This flag controls a workaround to make it possible to use LLVM UBSAN with AsmJit's \ref JitAllocator.
+  //! \remarks This flag controls a workaround to make it possible to use LLVM UBSAN with AsmJit's \ref JitAllocator.
   //! There is no undefined behavior even when `kDisableInitialPadding` is used, however, that doesn't really matter
   //! as LLVM's UBSAN introduces one, and according to LLVM developers it's a "trade-off". This flag is safe to use
   //! when the code is not instrumented with LLVM's UBSAN.
@@ -73,7 +73,7 @@ enum class JitAllocatorOptions : uint32_t {
 
   //! Enables the use of large pages, if they are supported and the process can actually allocate them.
   //!
-  //! \important This flag is a hint - if large pages can be allocated, JitAllocator would try to allocate them.
+  //! \remarks This flag is a hint - if large pages can be allocated, JitAllocator would try to allocate them.
   //! However, if the allocation fails, it will still try to fallback to use regular pages as \ref JitAllocator
   //! is designed to minimize allocation failures, so a regular page is better than no page at all. Also, if a
   //! block \ref JitAllocator wants to allocate is too small to consume a whole large page, regular page(s) will
@@ -272,17 +272,18 @@ public:
     //! Depending on the type of the allocation strategy this could either be:
     //!
     //!   - the same address as returned by `rx()` if the allocator uses RWX mapping (pages have all of Read, Write,
-    //!     and Execute permissions) or MAP_JIT, which requires either \ref ProtectJitReadWriteScope or to call
-    //!     VirtMem::protectJitMemory() manually.
+    //!     and Execute permissions) or MAP_JIT, which requires either \ref VirtMem::ProtectJitReadWriteScope or to
+    //!     call \ref VirtMem::protectJitMemory() manually.
     //!   - a valid pointer, but not the same as `rx` - this would be valid if dual mapping is used.
     //!   - NULL pointer, in case that the allocation strategy doesn't use RWX, MAP_JIT, or dual mapping. In this
-    //!     case only \ref JitAllocator can copy new code into the executable memory referenced by \ref Addr.
+    //!     case only \ref JitAllocator can copy new code into the executable memory referenced by \ref Span.
     //!
     //! \note If `rw()` returns a non-null pointer it's important to use either VirtMem::protectJitMemory() or
-    //! \ref ProtectJitReadWriteScope to guard the write, because in case of `MAP_JIT` it would temporarily switch
-    //! the permissions of the pointer to RW (that's per thread permissions). if \ref ProtectJitReadWriteScope is
-    //! not used it's important to clear the instruction cache via \ref VirtMem::flushInstructionCache() after the
-    //! write is done.
+    //! \ref VirtMem::ProtectJitReadWriteScope to guard the write, because in case of `MAP_JIT` it would temporarily
+    //! switch the permissions of the pointer to RW (that's per thread permissions).
+    //!
+    //! If \ref VirtMem::ProtectJitReadWriteScope is not used it's important to clear the instruction cache via
+    //! \ref VirtMem::flushInstructionCache() after the write is done.
     ASMJIT_INLINE_NODEBUG void* rw() const noexcept { return _rw; }
 
     //! Returns size of this span, aligned to the allocator granularity.
@@ -430,12 +431,12 @@ public:
   //! This is mostly for internal purposes, please use \ref WriteScope::write() instead.
   ASMJIT_API Error scopedWrite(WriteScopeData& scope, Span& span, size_t offset, const void* src, size_t size) noexcept;
 
-  //! Alternative to `JitAllocator::write(span. writeFunc, userData)`, but under a write `scope`.
+  //! Alternative to `JitAllocator::write(span, writeFunc, userData)`, but under a write `scope`.
   //!
   //! This is mostly for internal purposes, please use \ref WriteScope::write() instead.
   ASMJIT_API Error scopedWrite(WriteScopeData& scope, Span& span, WriteFunc writeFunc, void* userData) noexcept;
 
-  //! Alternative to `JitAllocator::write(span. <lambda>)`, but under a write `scope`.
+  //! Alternative to `JitAllocator::write(span, [lambda])`, but under a write `scope`.
   //!
   //! This is mostly for internal purposes, please use \ref WriteScope::write() instead.
   template<class Lambda>
