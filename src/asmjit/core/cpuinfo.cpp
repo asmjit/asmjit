@@ -14,12 +14,15 @@
   #endif
 #endif // ASMJIT_ARCH_X86
 
+#if !defined(_WIN32)
+  #include <unistd.h>
+#endif
+
 #if ASMJIT_ARCH_ARM
   // Required by various utilities that are required by features detection.
   #if !defined(_WIN32)
     #include <errno.h>
     #include <sys/utsname.h>
-    #include <unistd.h>
   #endif
 
   //! Required to detect CPU and features on Apple platforms.
