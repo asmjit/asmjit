@@ -703,10 +703,10 @@ struct Operand_ {
   }
 
 #if !defined(ASMJIT_NO_DEPRECATED)
-  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() instead if, your target is X86/X86_64")
+  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() instead, if your target is X86/X86_64")
   ASMJIT_INLINE_NODEBUG constexpr bool hasSize() const noexcept { return x86RmSize() != 0u; }
 
-  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() instead if, your target is X86/X86_64")
+  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() instead, if your target is X86/X86_64")
   ASMJIT_INLINE_NODEBUG constexpr bool hasSize(uint32_t s) const noexcept { return x86RmSize() == s; }
 
   ASMJIT_DEPRECATED("size() is no longer portable - use x86RmSize() instead, if your target is X86/X86_64")

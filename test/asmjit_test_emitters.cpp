@@ -34,7 +34,7 @@ static void makeRawFunc(x86::Emitter* emitter) noexcept {
 
   // Create and initialize `FuncDetail` and `FuncFrame`.
   FuncDetail func;
-  func.init(FuncSignature::build<void, int*, const int*, const int*>(CallConvId::kHost), emitter->environment());
+  func.init(FuncSignature::build<void, int*, const int*, const int*>(), emitter->environment());
 
   FuncFrame frame;
   frame.init(func);
@@ -70,7 +70,7 @@ static void makeCompiledFunc(x86::Compiler* cc) noexcept {
   x86::Xmm vec0 = cc->newXmm("vec0");
   x86::Xmm vec1 = cc->newXmm("vec1");
 
-  FuncNode* funcNode = cc->addFunc(FuncSignature::build<void, int*, const int*, const int*>(CallConvId::kHost));
+  FuncNode* funcNode = cc->addFunc(FuncSignature::build<void, int*, const int*, const int*>());
   funcNode->setArg(0, dst);
   funcNode->setArg(1, src_a);
   funcNode->setArg(2, src_b);

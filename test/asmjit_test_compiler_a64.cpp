@@ -423,7 +423,7 @@ public:
     cc.mov(fn, (uint64_t)calledFunc);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, fn, FuncSignature::build<uint32_t, uint32_t, uint32_t>(CallConvId::kHost));
+    cc.invoke(&invokeNode, fn, FuncSignature::build<uint32_t, uint32_t, uint32_t>());
     invokeNode->setArg(0, x);
     invokeNode->setArg(1, y);
     invokeNode->setRet(0, r);
@@ -475,7 +475,7 @@ public:
     cc.mov(fn, (uint64_t)calledFunc);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, fn, FuncSignature::build<double, double, double>(CallConvId::kHost));
+    cc.invoke(&invokeNode, fn, FuncSignature::build<double, double, double>());
     invokeNode->setArg(0, x);
     invokeNode->setArg(1, y);
     invokeNode->setRet(0, r);
@@ -527,7 +527,7 @@ public:
     cc.mov(fn, (uint64_t)calledFunc);
 
     InvokeNode* invokeNode;
-    cc.invoke(&invokeNode, fn, FuncSignature::build<double, double, double>(CallConvId::kHost));
+    cc.invoke(&invokeNode, fn, FuncSignature::build<double, double, double>());
     invokeNode->setArg(0, y);
     invokeNode->setArg(1, x);
     invokeNode->setRet(0, r);

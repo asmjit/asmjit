@@ -179,37 +179,46 @@ namespace asmjit {
 //! AsmJit currently supports only X86/X64 backend, but the plan is to add more backends in the future. By default
 //! AsmJit builds only the host backend, which is auto-detected at compile-time, but this can be overridden.
 //!
-//!   - \ref ASMJIT_NO_X86 - Disable X86/X64 backends.
-//!   - \ref ASMJIT_NO_FOREIGN - Disables the support for foreign architectures.
+//!   - \ref ASMJIT_NO_X86 - Disables both X86 and X86_64 backends.
+//!   - \ref ASMJIT_NO_AARCH64 - Disables AArch64 backend.
+//!   - \ref ASMJIT_NO_FOREIGN - Disables the support for foreign architecture backends, only keeps a native backend.
+//!
+//! ### AsmJit Compilation Options
+//!
+//!   - \ref ASMJIT_NO_DEPRECATED - Disables deprecated API at compile time so it won't be available and the
+//!     compilation will fail if there is attempt to use such API. This includes deprecated classes, namespaces,
+//!     enumerations, and functions.
+//!
+//!   - \ref ASMJIT_NO_SHM_OPEN - Disables functionality that uses `shm_open()`.
+//!
+//!   - \ref ASMJIT_NO_ABI_NAMESPACE - Disables inline ABI namespace within `asmjit` namespace. This is only provided
+//!     for users that control all the dependencies (even transitive ones) and that make sure that no two AsmJit
+//!     versions are used at the same time. This option can be debugging a little simpler as there would not be ABI
+//!     tag after `asmjit::` namespace. Otherwise asmjit would look like `asmjit::_abi_1_13::`, for example.
 //!
 //! ### Features Selection
 //!
 //! AsmJit builds by defaults all supported features, which includes all emitters, logging, instruction validation and
 //! introspection, and JIT memory allocation. Features can be disabled at compile time by using `ASMJIT_NO_...`
 //! definitions.
-//!
-//!   - \ref ASMJIT_NO_DEPRECATED - Disables deprecated API at compile time so it won't be available and the
-//!     compilation will fail if there is attempt to use such API. This includes deprecated classes, namespaces,
-//!     enumerations, and functions.
-//!
-//!   - \ref ASMJIT_NO_BUILDER - Disables \ref asmjit_builder functionality completely. This implies \ref
-//!     ASMJIT_NO_COMPILER as \ref asmjit_compiler cannot be used without \ref asmjit_builder.
-//!
-//!   - \ref ASMJIT_NO_COMPILER - Disables \ref asmjit_compiler functionality completely.
-//!
 //!   - \ref ASMJIT_NO_JIT - Disables JIT memory management and \ref JitRuntime.
-//!
-//!   - \ref ASMJIT_NO_LOGGING - Disables \ref Logger and \ref Formatter.
 //!
 //!   - \ref ASMJIT_NO_TEXT - Disables everything that contains string representation of AsmJit constants, should
 //!     be used together with \ref ASMJIT_NO_LOGGING as logging doesn't make sense without the ability to query
 //!     instruction names, register names, etc...
+//!
+//!   - \ref ASMJIT_NO_LOGGING - Disables \ref Logger and \ref Formatter.
 //!
 //!   - \ref ASMJIT_NO_VALIDATION - Disables validation API.
 //!
 //!   - \ref ASMJIT_NO_INTROSPECTION - Disables instruction introspection API, must be used together with \ref
 //!     ASMJIT_NO_COMPILER as \ref asmjit_compiler requires introspection for its liveness analysis and register
 //!     allocation.
+//!
+//!   - \ref ASMJIT_NO_BUILDER - Disables \ref asmjit_builder functionality completely. This implies \ref
+//!     ASMJIT_NO_COMPILER as \ref asmjit_compiler cannot be used without \ref asmjit_builder.
+//!
+//!   - \ref ASMJIT_NO_COMPILER - Disables \ref asmjit_compiler functionality completely.
 //!
 //! \note It's not recommended to disable features if you plan to build AsmJit as a shared library that will be
 //! used by multiple projects that you don't control how AsmJit was built (for example AsmJit in a Linux distribution).
@@ -238,6 +247,18 @@ namespace asmjit {
 //!     it's not possible to decorate everything like classes, which are used by deprecated functions as well,
 //!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
 //!     it's not using anything, which was deprecated.
+//!
+//! ### Changes committed at 2024-01-01
+//!
+//! Core changes:
+//!
+//!   - Renamed equality functions `eq()` to `equals()` - Only related to `String`, `ZoneVector`, and `CpuFeatures`.
+//!     Old function names were deprecated.
+//!
+//!   - Removed `CallConvId::kNone` in favor of `CallConvId::kCDecl`, which is now the default calling convention.
+//!
+//!   - Deprecated `CallConvId::kHost` in favor of `CallConvId::kCDecl` - host calling convention is now not part
+//!     of CallConvId, it can be calculated from CallConvId and Environment instead.
 //!
 //! ### Changes committed at 2023-12-27
 //!

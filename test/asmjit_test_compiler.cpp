@@ -98,8 +98,10 @@ int TestApp::run() {
   stringLogger.setOptions(formatOptions);
 
   auto printStringLoggerContent = [&]() {
-    if (!_verbose)
+    if (!_verbose) {
       printf("%s", stringLogger.data());
+      fflush(stdout);
+    }
   };
 #else
   auto printStringLoggerContent = [&]() {};
@@ -202,6 +204,7 @@ int TestApp::run() {
 
       if (pass != 0) {
         printf("[Test:%s] %s", asmjitArchAsString(test->arch()), test->name());
+        fflush(stdout);
 
 #ifndef ASMJIT_NO_LOGGING
         if (_verbose || _dumpAsm || _dumpHex) {

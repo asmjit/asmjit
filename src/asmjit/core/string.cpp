@@ -463,7 +463,7 @@ Error String::truncate(size_t newSize) noexcept {
   return kErrorOk;
 }
 
-bool String::eq(const char* other, size_t size) const noexcept {
+bool String::equals(const char* other, size_t size) const noexcept {
   const char* aData = data();
   const char* bData = other;
 
@@ -499,8 +499,8 @@ UNIT(core_string) {
   EXPECT_EQ(s.capacity(), String::kSSOCapacity);
   EXPECT_EQ(s.data()[0], 'a');
   EXPECT_EQ(s.data()[1], '\0');
-  EXPECT_TRUE(s.eq("a"));
-  EXPECT_TRUE(s.eq("a", 1));
+  EXPECT_TRUE(s.equals("a"));
+  EXPECT_TRUE(s.equals("a", 1));
 
   EXPECT_EQ(s.assignChars('b', 4), kErrorOk);
   EXPECT_EQ(s.size(), 4u);
@@ -510,8 +510,8 @@ UNIT(core_string) {
   EXPECT_EQ(s.data()[2], 'b');
   EXPECT_EQ(s.data()[3], 'b');
   EXPECT_EQ(s.data()[4], '\0');
-  EXPECT_TRUE(s.eq("bbbb"));
-  EXPECT_TRUE(s.eq("bbbb", 4));
+  EXPECT_TRUE(s.equals("bbbb"));
+  EXPECT_TRUE(s.equals("bbbb", 4));
 
   EXPECT_EQ(s.assign("abc"), kErrorOk);
   EXPECT_EQ(s.size(), 3u);
@@ -520,16 +520,16 @@ UNIT(core_string) {
   EXPECT_EQ(s.data()[1], 'b');
   EXPECT_EQ(s.data()[2], 'c');
   EXPECT_EQ(s.data()[3], '\0');
-  EXPECT_TRUE(s.eq("abc"));
-  EXPECT_TRUE(s.eq("abc", 3));
+  EXPECT_TRUE(s.equals("abc"));
+  EXPECT_TRUE(s.equals("abc", 3));
 
   const char* large = "Large string that will not fit into SSO buffer";
   EXPECT_EQ(s.assign(large), kErrorOk);
   EXPECT_TRUE(s.isLargeOrExternal());
   EXPECT_EQ(s.size(), strlen(large));
   EXPECT_GT(s.capacity(), String::kSSOCapacity);
-  EXPECT_TRUE(s.eq(large));
-  EXPECT_TRUE(s.eq(large, strlen(large)));
+  EXPECT_TRUE(s.equals(large));
+  EXPECT_TRUE(s.equals(large, strlen(large)));
 
   const char* additional = " (additional content)";
   EXPECT_TRUE(s.isLargeOrExternal());
@@ -543,10 +543,10 @@ UNIT(core_string) {
   EXPECT_TRUE(s.isLargeOrExternal()); // Clear should never release the memory.
 
   EXPECT_EQ(s.appendUInt(1234), kErrorOk);
-  EXPECT_TRUE(s.eq("1234"));
+  EXPECT_TRUE(s.equals("1234"));
 
   EXPECT_EQ(s.assignUInt(0xFFFF, 16, 0, StringFormatFlags::kAlternate), kErrorOk);
-  EXPECT_TRUE(s.eq("0xFFFF"));
+  EXPECT_TRUE(s.equals("0xFFFF"));
 
   StringTmp<64> sTmp;
   EXPECT_TRUE(sTmp.isLargeOrExternal());

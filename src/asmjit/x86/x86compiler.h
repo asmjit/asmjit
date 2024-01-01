@@ -414,7 +414,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! using namespace asmjit;
 //!
 //! static void exampleUseOfIndirectJump(x86::Compiler& cc) {
-//!   FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float, uint32_t>(CallConvId::kHost));
+//!   FuncNode* funcNode = cc.addFunc(FuncSignature::build<float, float, float, uint32_t>());
 //!
 //!   // Function arguments
 //!   x86::Xmm a = cc.newXmmSs("a");

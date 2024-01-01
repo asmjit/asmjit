@@ -335,7 +335,7 @@ static void generateGpSequence(BaseEmitter& emitter, InstForm form, bool emitPro
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -361,7 +361,7 @@ static void generateGpSequence(BaseEmitter& emitter, InstForm form, bool emitPro
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -386,7 +386,7 @@ static void generateGpSequence(BaseEmitter& emitter, InstForm form, bool emitPro
     Gp c = cc.newIntPtr("c");
     Gp d = cc.newIntPtr("d");
 
-    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>());
     generateGpSequenceInternal(cc, form, a, b, c, d);
     cc.endFunc();
   }
@@ -927,7 +927,7 @@ static void generateSseSequence(BaseEmitter& emitter, InstForm form, bool emitPr
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -948,7 +948,7 @@ static void generateSseSequence(BaseEmitter& emitter, InstForm form, bool emitPr
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -974,7 +974,7 @@ static void generateSseSequence(BaseEmitter& emitter, InstForm form, bool emitPr
     Xmm c = cc.newXmm("c");
     Xmm d = cc.newXmm("d");
 
-    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>());
     generateSseSequenceInternal(cc, form, gp, a, b, c, d);
     cc.endFunc();
   }
@@ -2134,7 +2134,7 @@ static void generateAvxSequence(BaseEmitter& emitter, InstForm form, bool emitPr
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -2155,7 +2155,7 @@ static void generateAvxSequence(BaseEmitter& emitter, InstForm form, bool emitPr
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -2181,7 +2181,7 @@ static void generateAvxSequence(BaseEmitter& emitter, InstForm form, bool emitPr
     Ymm c = cc.newYmm("c");
     Ymm d = cc.newYmm("d");
 
-    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>());
     generateAvxSequenceInternal(cc, form, gp, a, b, c, d);
     cc.endFunc();
   }
@@ -4928,7 +4928,7 @@ static void generateAvx512Sequence(BaseEmitter& emitter, InstForm form, bool emi
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -4949,7 +4949,7 @@ static void generateAvx512Sequence(BaseEmitter& emitter, InstForm form, bool emi
 
     if (emitPrologEpilog) {
       FuncDetail func;
-      func.init(FuncSignature::build<void, void*, const void*, size_t>(CallConvId::kHost), cc.environment());
+      func.init(FuncSignature::build<void, void*, const void*, size_t>(), cc.environment());
 
       FuncFrame frame;
       frame.init(func);
@@ -4979,7 +4979,7 @@ static void generateAvx512Sequence(BaseEmitter& emitter, InstForm form, bool emi
     KReg kB = cc.newKq("kB");
     KReg kC = cc.newKq("kC");
 
-    cc.addFunc(FuncSignature::build<void>(CallConvId::kHost));
+    cc.addFunc(FuncSignature::build<void>());
     generateAvx512SequenceInternal(cc, form, gp, kA, kB, kC, vecA, vecB, vecC, vecD);
     cc.endFunc();
   }

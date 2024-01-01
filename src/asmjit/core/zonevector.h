@@ -493,8 +493,8 @@ public:
   //! \name Overloaded Operators
   //! \{
 
-  ASMJIT_INLINE_NODEBUG bool operator==(const ZoneBitVector& other) const noexcept { return  eq(other); }
-  ASMJIT_INLINE_NODEBUG bool operator!=(const ZoneBitVector& other) const noexcept { return !eq(other); }
+  ASMJIT_INLINE_NODEBUG bool operator==(const ZoneBitVector& other) const noexcept { return  equals(other); }
+  ASMJIT_INLINE_NODEBUG bool operator!=(const ZoneBitVector& other) const noexcept { return !equals(other); }
 
   //! \}
 
@@ -661,7 +661,7 @@ public:
     _data[idx] &= (BitWord(1) << bit) - 1u;
   }
 
-  ASMJIT_FORCE_INLINE bool eq(const ZoneBitVector& other) const noexcept {
+  ASMJIT_FORCE_INLINE bool equals(const ZoneBitVector& other) const noexcept {
     if (_size != other._size)
       return false;
 
@@ -674,6 +674,11 @@ public:
         return false;
     return true;
   }
+
+#if !defined(ASMJIT_NO_DEPRECATED)
+  ASMJIT_DEPRECATED("Use ZoneVector::equals() instead")
+  ASMJIT_FORCE_INLINE bool eq(const ZoneBitVector& other) const noexcept { return equals(other); }
+#endif // !ASMJIT_NO_DEPRECATED
 
   //! \}
 

@@ -70,7 +70,7 @@ int main() {
     Label data = a.newLabel();
 
     FuncDetail func;
-    func.init(FuncSignature::build<size_t, size_t>(CallConvId::kHost), code.environment());
+    func.init(FuncSignature::build<size_t, size_t>(), code.environment());
 
     FuncFrame frame;
     frame.init(func);
