@@ -966,12 +966,15 @@ namespace asmjit {
 //! with assembler requires the knowledge of the following:
 //!
 //!   - \ref BaseAssembler and architecture-specific assemblers:
-//!     - \ref x86::Assembler - Assembler specific to X86 architecture
+//!     - \ref x86::Assembler - Assembler implementation targeting X86 and X86_64 architectures.
+//!     - \ref a64::Assembler - Assembler implementation targeting AArch64 architecture.
 //!   - \ref Operand and its variations:
 //!     - \ref BaseReg - Base class for a register operand, inherited by:
-//!        - \ref x86::Reg - Register operand specific to X86 architecture.
+//!        - \ref x86::Reg - Register operand specific to X86 and X86_64 architectures.
+//!        - \ref arm::Reg - Register operand specific to AArch64 architecture.
 //!     - \ref BaseMem - Base class for a memory operand, inherited by:
 //!        - \ref x86::Mem - Memory operand specific to X86 architecture.
+//!        - \ref arm::Mem - Memory operand specific to AArch64 architecture.
 //!     - \ref Imm - Immediate (value) operand.
 //!     - \ref Label - Label operand.
 //!
@@ -1150,10 +1153,10 @@ namespace asmjit {
 //!
 //! void testX86Mem() {
 //!   // The same as: dword ptr [rax + rbx].
-//!   x86::Mem a = x86::dword_ptr(rax, rbx);
+//!   x86::Mem a = x86::dword_ptr(x86::rax, x86::rbx);
 //!
 //!   // The same as: qword ptr [rdx + rsi << 0 + 1].
-//!   x86::Mem b = x86::qword_ptr(rdx, rsi, 0, 1);
+//!   x86::Mem b = x86::qword_ptr(x86::rdx, x86::rsi, 0, 1);
 //! }
 //! ```
 //!
@@ -1166,7 +1169,7 @@ namespace asmjit {
 //!
 //! void testX86Mem() {
 //!   // The same as: dword ptr [rax + 12].
-//!   x86::Mem mem = x86::dword_ptr(rax, 12);
+//!   x86::Mem mem = x86::dword_ptr(x86::rax, 12);
 //!
 //!   mem.hasBase();                    // true.
 //!   mem.hasIndex();                   // false.
@@ -1176,8 +1179,8 @@ namespace asmjit {
 //!   mem.setSize(0);                   // Sets the size to 0 (makes it size-less).
 //!   mem.addOffset(-1);                // Adds -1 to the offset and makes it 11.
 //!   mem.setOffset(0);                 // Sets the offset to 0.
-//!   mem.setBase(rcx);                 // Changes BASE to RCX.
-//!   mem.setIndex(rax);                // Changes INDEX to RAX.
+//!   mem.setBase(x86::rcx);            // Changes BASE to RCX.
+//!   mem.setIndex(x86::rax);           // Changes INDEX to RAX.
 //!   mem.hasIndex();                   // true.
 //! }
 //! // ...
@@ -1269,7 +1272,8 @@ namespace asmjit {
 //!
 //! ### Builder Examples
 //!
-//!   - \ref x86::Builder provides many X86/X64 examples.
+//!   - \ref x86::Builder - Builder implementation targeting X86 and X86_64 architectures.
+//!   - \ref a64::Builder - Builder implementation targeting AArch64 architecture.
 
 
 //! \defgroup asmjit_compiler Compiler
@@ -1306,7 +1310,8 @@ namespace asmjit {
 //!
 //! ### Compiler Examples
 //!
-//!   - \ref x86::Compiler provides many X86/X64 examples.
+//!   - \ref x86::Compiler - Compiler implementation targeting X86 and X86_64 architectures.
+//!   - \ref a64::Compiler - Compiler implementation targeting AArch64 architecture.
 //!
 //! ### Compiler Tips
 //!
@@ -1478,7 +1483,7 @@ namespace asmjit {
 //! The first example illustrates how to format operands:
 //!
 //! ```
-//! #include <asmjit/core.h>
+//! #include <asmjit/x86.h>
 //! #include <stdio.h>
 //!
 //! using namespace asmjit;
@@ -1503,17 +1508,17 @@ namespace asmjit {
 //!   // compatible with what AsmJit normally does.
 //!   Arch arch = Arch::kX64;
 //!
-//!   log(arch, rax);                    // Prints 'rax'.
-//!   log(arch, ptr(rax, rbx, 2));       // Prints '[rax + rbx * 4]`.
-//!   log(arch, dword_ptr(rax, rbx, 2)); // Prints 'dword [rax + rbx * 4]`.
-//!   log(arch, imm(42));                // Prints '42'.
+//!   logOperand(arch, rax);                    // Prints 'rax'.
+//!   logOperand(arch, ptr(rax, rbx, 2));       // Prints '[rax + rbx * 4]`.
+//!   logOperand(arch, dword_ptr(rax, rbx, 2)); // Prints 'dword [rax + rbx * 4]`.
+//!   logOperand(arch, imm(42));                // Prints '42'.
 //! }
 //! ```
 //!
 //! Next example illustrates how to format whole instructions:
 //!
 //! ```
-//! #include <asmjit/core.h>
+//! #include <asmjit/x86.h>
 //! #include <stdio.h>
 //! #include <utility>
 //!
@@ -1528,7 +1533,7 @@ namespace asmjit {
 //!   FormatFlags formatFlags = FormatFlags::kNone;
 //!
 //!   // The formatter expects operands in an array.
-//!   Operand_ operands { std::forward<Args>(args)... };
+//!   Operand_ operands[] { std::forward<Args>(args)... };
 //!
 //!   StringTmp<128> sb;
 //!   Formatter::formatInstruction(
@@ -1550,13 +1555,13 @@ namespace asmjit {
 //!   // Prints 'vaddpd zmm0, zmm1, [rax] {1to8}'.
 //!   logInstruction(arch,
 //!                  BaseInst(Inst::kIdVaddpd),
-//!                  zmm0, zmm1, ptr(rax)._1toN());
+//!                  zmm0, zmm1, ptr(rax)._1to8());
 //!
 //!   // BaseInst abstracts instruction id, instruction options, and extraReg.
 //!   // Prints 'lock add [rax], rcx'.
 //!   logInstruction(arch,
 //!                  BaseInst(Inst::kIdAdd, InstOptions::kX86_Lock),
-//!                  x86::ptr(rax), rcx);
+//!                  ptr(rax), rcx);
 //!
 //!   // Similarly an extra register (like AVX-512 selector) can be used.
 //!   // Prints 'vaddpd zmm0 {k2} {z}, zmm1, [rax]'.

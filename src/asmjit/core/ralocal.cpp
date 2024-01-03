@@ -21,8 +21,8 @@ static ASMJIT_FORCE_INLINE RATiedReg* RALocal_findTiedRegByWorkId(RATiedReg* tie
   return nullptr;
 }
 
-// RALocalAllocator - Init & Reset
-// ===============================
+// RALocalAllocator - Initialization & Reset
+// =========================================
 
 Error RALocalAllocator::init() noexcept {
   PhysToWorkMap* physToWorkMap;

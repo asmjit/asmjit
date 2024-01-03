@@ -247,16 +247,17 @@ int TestApp::run() {
       compileTimer.stop();
 
       Error err = errorHandler._err;
-      if (!err) {
+      if (err == kErrorOk) {
         finalizeTimer.start();
         err = cc->finalize();
         finalizeTimer.stop();
       }
 
-      // The first pass is only for timing serialization and compilation, because otherwise it would be biased by
-      // logging, which takes much more time than finalize() does. We want to benchmark Compiler the way it would
-      // be used in production.
+      // The first pass is only used for timing of serialization and compilation, because otherwise it would be
+      // biased by logging, which takes much more time than finalize() does. We want to benchmark Compiler the
+      // way it would be used in the production.
       if (pass == 0) {
+        _outputSize += code.codeSize();
         compileTime += compileTimer.duration();
         finalizeTime += finalizeTimer.duration();
         continue;
@@ -290,8 +291,6 @@ int TestApp::run() {
           fflush(stdout);
 
         if (err == kErrorOk) {
-          _outputSize += code.codeSize();
-
           StringTmp<128> result;
           StringTmp<128> expect;
 

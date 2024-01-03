@@ -20,8 +20,8 @@
 
 ASMJIT_BEGIN_NAMESPACE
 
-// CallConv - Init & Reset
-// =======================
+// CallConv - Initialization & Reset
+// =================================
 
 ASMJIT_FAVOR_SIZE Error CallConv::init(CallConvId ccId, const Environment& environment) noexcept {
   reset();

@@ -1110,7 +1110,7 @@ public:
 
   //! \}
 
-  //! \name Init & Reset
+  //! \name Initialization & Reset
   //! \{
 
   //! Initializes CpuInfo architecture and sub-architecture members to `arch` and `subArch`, respectively.
