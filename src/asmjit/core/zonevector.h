@@ -128,8 +128,8 @@ public:
 
   typedef T* iterator;
   typedef const T* const_iterator;
-  typedef std::reverse_iterator<iterator> reverse_iterator;
-  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+  typedef Support::ArrayReverseIterator<T> reverse_iterator;
+  typedef Support::ArrayReverseIterator<const T> const_reverse_iterator;
 
   //! \name Construction & Destruction
   //! \{
