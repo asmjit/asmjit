@@ -390,8 +390,8 @@ struct OperandSignature {
   ASMJIT_INLINE_NODEBUG void setRegType(RegType regType) noexcept { setField<kRegTypeMask>(uint32_t(regType)); }
   ASMJIT_INLINE_NODEBUG void setRegGroup(RegGroup regGroup) noexcept { setField<kRegGroupMask>(uint32_t(regGroup)); }
 
-  ASMJIT_INLINE_NODEBUG void setMemBaseType(RegGroup baseType) noexcept { setField<kMemBaseTypeMask>(uint32_t(baseType)); }
-  ASMJIT_INLINE_NODEBUG void setMemIndexType(RegGroup indexType) noexcept { setField<kMemIndexTypeMask>(uint32_t(indexType)); }
+  ASMJIT_INLINE_NODEBUG void setMemBaseType(RegType baseType) noexcept { setField<kMemBaseTypeMask>(uint32_t(baseType)); }
+  ASMJIT_INLINE_NODEBUG void setMemIndexType(RegType indexType) noexcept { setField<kMemIndexTypeMask>(uint32_t(indexType)); }
 
   ASMJIT_INLINE_NODEBUG void setPredicate(uint32_t predicate) noexcept { setField<kPredicateMask>(predicate); }
   ASMJIT_INLINE_NODEBUG void setSize(uint32_t size) noexcept { setField<kSizeMask>(size); }
@@ -1524,8 +1524,13 @@ public:
 
   //! Sets the id of the BASE register (without modifying its type).
   ASMJIT_INLINE_NODEBUG void setBaseId(uint32_t id) noexcept { _baseId = id; }
+  //! Sets the register type of the BASE register (without modifying its id).
+  ASMJIT_INLINE_NODEBUG void setBaseType(RegType regType) noexcept { _signature.setMemBaseType(regType); }
+
   //! Sets the id of the INDEX register (without modifying its type).
   ASMJIT_INLINE_NODEBUG void setIndexId(uint32_t id) noexcept { _data[kDataMemIndexId] = id; }
+  //! Sets the register type of the INDEX register (without modifying its id).
+  ASMJIT_INLINE_NODEBUG void setIndexType(RegType regType) noexcept { _signature.setMemIndexType(regType); }
 
   //! Sets the base register to type and id of the given `base` operand.
   ASMJIT_INLINE_NODEBUG void setBase(const BaseReg& base) noexcept { return _setBase(base.type(), base.id()); }
