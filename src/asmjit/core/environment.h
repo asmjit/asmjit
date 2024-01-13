@@ -24,7 +24,7 @@ enum class Vendor : uint8_t {
   //! Unknown or uninitialized platform vendor.
   kUnknown = 0,
 
-  //! Maximum value of `PlatformVendor`.
+  //! Maximum value of `Vendor`.
   kMaxValue = kUnknown,
 
   //! Platform vendor detected at compile-time.
@@ -500,7 +500,7 @@ public:
     return isFamilyAArch32(arch) || isFamilyAArch64(arch);
   }
 
-  //! Tests whether the given architecture family is MISP or MIPS64.
+  //! Tests whether the given architecture family is MIPS or MIPS64.
   static ASMJIT_INLINE_NODEBUG bool isFamilyMIPS(Arch arch) noexcept {
     return isArchMIPS32(arch) || isArchMIPS64(arch);
   }

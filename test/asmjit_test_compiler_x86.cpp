@@ -203,7 +203,7 @@ public:
     result.assignFormat("ret={%u, %u}", resultRet >> 28, resultRet & 0x0FFFFFFFu);
     expect.assignFormat("ret={%u, %u}", expectRet >> 28, expectRet & 0x0FFFFFFFu);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   uint32_t _argCount;
@@ -437,7 +437,7 @@ public:
     result.assignFormat("ret={%d}", resultRet);
     expect.assignFormat("ret={%d}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -912,7 +912,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1192,7 +1192,7 @@ public:
     result.assignFormat("result=%d", resultRet);
     expect.assignFormat("result=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1288,7 +1288,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1373,7 +1373,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1409,7 +1409,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1860,7 +1860,7 @@ public:
     result.assignFormat("ret={%g}", resultRet);
     expect.assignFormat("ret={%g}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -1911,7 +1911,7 @@ public:
     result.assignFormat("ret={%g}", resultRet);
     expect.assignFormat("ret={%g}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2001,7 +2001,7 @@ public:
     result.assignFormat("ret={%g}", resultRet);
     expect.assignFormat("ret={%g}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2040,7 +2040,7 @@ public:
     result.assignFormat("ret={%g}", resultRet);
     expect.assignFormat("ret={%g}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2075,7 +2075,7 @@ public:
     result.assignFormat("ret={%g}", resultRet);
     expect.assignFormat("ret={%g}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2114,7 +2114,7 @@ public:
     result.assignFormat("ret={%g}", resultRet);
     expect.assignFormat("ret={%g}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2181,7 +2181,7 @@ public:
     result.assignInt(resultRet);
     expect.assignInt(expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2406,6 +2406,47 @@ public:
   }
 };
 
+// x86::Compiler - X86Test_FuncArgInt8
+// ===================================
+
+class X86Test_FuncArgInt8 : public X86TestCase {
+public:
+  X86Test_FuncArgInt8() : X86TestCase("FuncArgInt8") {}
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_FuncArgInt8());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    x86::Gp v0 = cc.newUInt32("v0");
+    x86::Gp v1 = cc.newUInt32("v1");
+
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<unsigned, uint8_t, uint8_t, uint32_t>());
+    funcNode->setArg(0, v0);
+    funcNode->setArg(1, v1);
+
+    cc.add(v0, v1);
+
+    cc.ret(v0);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef uint32_t (*Func)(uint8_t, uint8_t, uint32_t);
+    Func func = ptr_as_func<Func>(_func);
+
+    uint32_t arg = uint32_t(uintptr_t(_func) & 0xFFFFFFFF);
+
+    unsigned resultRet = func(uint8_t(arg & 0xFF), uint8_t(arg & 0xFF), arg);
+    unsigned expectRet = (arg & 0xFF) * 2;
+
+    result.assignFormat("ret=%u", resultRet);
+    expect.assignFormat("ret=%u", expectRet);
+
+    return result == expect;
+  }
+};
+
 // x86::Compiler - X86Test_FuncCallBase1
 // =====================================
 
@@ -2454,7 +2495,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static int calledFunc(int a, int b, int c) { return (a + b) * c; }
@@ -2537,7 +2578,7 @@ public:
     result.assignInt(resultRet);
     expect.assignInt(expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2585,7 +2626,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   // STDCALL function that is called inside the generated one.
@@ -2635,7 +2676,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   // FASTCALL function that is called inside the generated one.
@@ -2906,7 +2947,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -2963,7 +3004,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3016,7 +3057,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3082,7 +3123,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3148,7 +3189,7 @@ public:
     result.assignFormat("ret={%08X %08X %08X %08X %08X}", resultRet, inputs[0], inputs[1], inputs[2], inputs[3]);
     expect.assignFormat("ret={%08X %08X %08X %08X %08X}", expectRet, outputs[0], outputs[1], outputs[2], outputs[3]);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3198,7 +3239,7 @@ public:
     result.assignFormat("ret=%g", resultRet);
     expect.assignFormat("ret=%g", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3247,7 +3288,7 @@ public:
     result.assignFormat("ret=%g", resultRet);
     expect.assignFormat("ret=%g", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3403,7 +3444,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3454,7 +3495,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3510,7 +3551,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static int calledFunc(size_t n, ...) {
@@ -3578,7 +3619,7 @@ public:
     result.assignFormat("ret=%f", resultRet);
     expect.assignFormat("ret=%f", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static double calledFunc(size_t n, ...) {
@@ -3639,7 +3680,7 @@ public:
     result.assignFormat("ret=%llu", (unsigned long long)resultRet);
     expect.assignFormat("ret=%llu", (unsigned long long)expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static double calledFunc(size_t n, ...) {
@@ -3701,7 +3742,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -3749,7 +3790,7 @@ public:
     result.assignFormat("ret=%g", resultRet);
     expect.assignFormat("ret=%g", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static double op(double a) { return a * a; }
@@ -3802,7 +3843,7 @@ public:
     result.assignFormat("ret=%g", resultRet);
     expect.assignFormat("ret=%g", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static double op(double a) { return a * a; }
@@ -3849,7 +3890,7 @@ public:
     result.assignFormat("ret=%g", resultRet);
     expect.assignFormat("ret=%g", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static double calledFunc() { return 3.14; }
@@ -3907,7 +3948,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static void calledFunc() {}
@@ -3967,7 +4008,7 @@ public:
     result.assignFormat("ret=%u", resultRet);
     expect.assignFormat("ret=%u", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static uint32_t calledFunc(uint32_t x) { return x + 1; }
@@ -4129,7 +4170,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -4171,7 +4212,7 @@ public:
     result.assignFormat("ret=%d", resultRet);
     expect.assignFormat("ret=%d", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 };
 
@@ -4377,7 +4418,7 @@ public:
     result.assignFormat("ret={%d}", resultRet);
     expect.assignFormat("ret={%d}", expectRet);
 
-    return resultRet == expectRet;
+    return result == expect;
   }
 
   static void ASMJIT_FASTCALL handler() { longjmp(globalJmpBuf, 1); }
@@ -4436,6 +4477,9 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_AllocMemcpy>();
   app.addT<X86Test_AllocExtraBlock>();
   app.addT<X86Test_AllocAlphaBlend>();
+
+  // Function arguments handling tests.
+  app.addT<X86Test_FuncArgInt8>();
 
   // Function call tests.
   app.addT<X86Test_FuncCallBase1>();

@@ -35,6 +35,7 @@ using namespace asmjit;
 int TestApp::handleArgs(int argc, const char* const* argv) {
   CmdLine cmd(argc, argv);
   _arch = cmd.valueOf("--arch", "all");
+  _filter = cmd.valueOf("--filter", nullptr);
 
   if (cmd.hasArg("--help")) _helpOnly = true;
   if (cmd.hasArg("--verbose")) _verbose = true;
@@ -56,11 +57,12 @@ void TestApp::showInfo() {
     asmjitArchAsString(Arch::kHost));
 
   printf("Usage:\n");
-  printf("  --help        Show usage only\n");
-  printf("  --arch=<ARCH> Select architecture to run ('all' by default)\n");
-  printf("  --verbose     Verbose output\n");
-  printf("  --dump-asm    Assembler output\n");
-  printf("  --dump-hex    Hexadecimal output (relocated, only for host arch)\n");
+  printf("  --help          Show usage only\n");
+  printf("  --arch=<NAME>   Select architecture to run ('all' by default)\n");
+  printf("  --filter=<NAME> Use a filter to restrict which test is called\n");
+  printf("  --verbose       Verbose output\n");
+  printf("  --dump-asm      Assembler output\n");
+  printf("  --dump-hex      Hexadecimal output (relocated, only for host arch)\n");
   printf("\n");
 }
 
@@ -81,6 +83,13 @@ public:
   }
 };
 #endif // !ASMJIT_NO_LOGGING
+
+bool TestApp::shouldRun(const TestCase* tc) {
+  if (!_filter)
+    return true;
+
+  return strstr(tc->name(), _filter) != nullptr;
+}
 
 int TestApp::run() {
 #ifndef ASMJIT_NO_LOGGING
@@ -120,6 +129,11 @@ int TestApp::run() {
   double finalizeTime = 0;
 
   for (std::unique_ptr<TestCase>& test : _tests) {
+    if (!shouldRun(test.get()))
+      continue;
+
+    _numTests++;
+
     for (uint32_t pass = 0; pass < 2; pass++) {
       bool runnable = false;
       CodeHolder code;
@@ -306,7 +320,7 @@ int TestApp::run() {
             printf("  [Output]\n");
             printf("    Returned: %s\n", result.data());
             printf("    Expected: %s\n", expect.data());
-            _nFailed++;
+            _numFailed++;
           }
 
           if (_dumpAsm)
@@ -321,7 +335,7 @@ int TestApp::run() {
           printStringLoggerContent();
           printf("  [Status]\n");
           printf("    ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
-          _nFailed++;
+          _numFailed++;
         }
       }
 #endif // !ASMJIT_NO_JIT
@@ -330,7 +344,7 @@ int TestApp::run() {
         if (err) {
           printf("  [Status]\n");
           printf("    ERROR 0x%08X: %s\n", unsigned(err), errorHandler._message.data());
-          _nFailed++;
+          _numFailed++;
         }
         else {
           printf("%s[COMPILE OK]\n", statusSeparator);
@@ -352,12 +366,12 @@ int TestApp::run() {
   printf("  FinalizeTime: %.2f ms\n", finalizeTime);
   printf("\n");
 
-  if (_nFailed == 0)
-    printf("** SUCCESS: All %u tests passed **\n", unsigned(_tests.size()));
+  if (_numFailed == 0)
+    printf("** SUCCESS: All %u tests passed **\n", _numTests);
   else
-    printf("** FAILURE: %u of %u tests failed **\n", _nFailed, unsigned(_tests.size()));
+    printf("** FAILURE: %u of %u tests failed **\n", _numFailed, _numTests);
 
-  return _nFailed == 0 ? 0 : 1;
+  return _numFailed == 0 ? 0 : 1;
 }
 
 int main(int argc, char* argv[]) {

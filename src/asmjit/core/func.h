@@ -180,6 +180,11 @@ struct CallConv {
   //! Natural stack alignment as defined by OS/ABI.
   uint8_t _naturalStackAlignment;
 
+  //! \cond INTERNAL
+  //! Reserved for future use.
+  uint8_t _reserved[2];
+  //! \endcond
+
   //! Calling convention flags.
   CallConvFlags _flags;
 
@@ -220,7 +225,7 @@ struct CallConv {
   //! as it prevents from using an uninitialized data (CallConv doesn't have a constructor that would initialize it,
   //! it's just a struct).
   ASMJIT_INLINE_NODEBUG void reset() noexcept {
-    memset(this, 0, sizeof(*this));
+    *this = CallConv{};
     memset(_passedOrder.data(), 0xFF, sizeof(_passedOrder));
   }
 

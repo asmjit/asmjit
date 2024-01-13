@@ -52,12 +52,14 @@ public:
   std::vector<std::unique_ptr<TestCase>> _tests;
 
   const char* _arch = nullptr;
+  const char* _filter = nullptr;
   bool _helpOnly = false;
   bool _verbose = false;
   bool _dumpAsm = false;
   bool _dumpHex = false;
 
-  unsigned _nFailed = 0;
+  unsigned _numTests = 0;
+  unsigned _numFailed = 0;
   size_t _outputSize = 0;
 
   TestApp() noexcept
@@ -73,6 +75,8 @@ public:
 
   int handleArgs(int argc, const char* const* argv);
   void showInfo();
+
+  bool shouldRun(const TestCase* tc);
   int run();
 };
 
