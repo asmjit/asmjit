@@ -16,6 +16,10 @@ using namespace asmjit;
 void benchmarkX86Emitters(uint32_t numIterations, bool testX86, bool testX64) noexcept;
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+void benchmarkA32Emitters(uint32_t numIterations);
+#endif
+
 #if !defined(ASMJIT_NO_AARCH64)
 void benchmarkA64Emitters(uint32_t numIterations);
 #endif
@@ -40,6 +44,9 @@ int main(int argc, char* argv[]) {
   printf("  --arch=x86     32-bit X86 architecture (X86)\n");
   printf("  --arch=x64     64-bit X86 architecture (X86_64)\n");
 #endif
+#if !defined(ASMJIT_NO_AARCH32)
+  printf("  --arch=aarch32 32-bit ARM architecture (AArch32)\n");
+#endif
 #if !defined(ASMJIT_NO_AARCH64)
   printf("  --arch=aarch64 64-bit ARM architecture (AArch64)\n");
 #endif
@@ -59,6 +66,13 @@ int main(int argc, char* argv[]) {
 
   if (testX86 || testX64)
     benchmarkX86Emitters(numIterations, testX86, testX64);
+#endif
+
+#if !defined(ASMJIT_NO_AARCH32)
+  bool testAArch32 = strcmp(arch, "all") == 0 || strcmp(arch, "aarch32") == 0;
+
+  if (testAArch32)
+    benchmarkA32Emitters(numIterations);
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
