@@ -686,11 +686,29 @@ if (NOT ASMJIT_EMBED)
 
     if (NOT (ASMJIT_NO_BUILDER OR ASMJIT_NO_COMPILER))
       # Vectorcall tests and XMM tests require at least SSE2 in 32-bit mode (in 64-bit mode it's implicit).
-      set(sse2_flags "")
-      if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
-        asmjit_detect_cflags(sse2_flags "-arch:SSE2")
-      else()
-        asmjit_detect_cflags(sse2_flags "-msse2")
+      # Some compilers don't like passing -msse2 for 64-bit targets, and some compilers targeting non-x86
+      # would pass "-msse2" compile flag check, but with a warning not detected by CMake. Thus, verify that
+      # our target is really 32-bit X86 and only use -msse2 or -arch:SSE2 flags when necessary.
+      set(ASMJIT_SSE2_CFLAGS "")
+
+      check_cxx_source_compiles("
+        #if defined(_M_IX86) || defined(__X86__) || defined(__i386__)
+          int target_is_32_bit_x86() { return 1; }
+        #else
+          // Compile error...
+        #endif
+
+        int main() {
+          return target_is_32_bit_x86();
+        }
+        " ASMJIT_TARGET_IS_32_BIT_X86)
+
+      if (ASMJIT_TARGET_IS_32_BIT_X86)
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xMSVC")
+          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS "-arch:SSE2")
+        else()
+          asmjit_detect_cflags(ASMJIT_SSE2_CFLAGS "-msse2")
+        endif()
       endif()
       asmjit_add_target(asmjit_test_compiler TEST
                         SOURCES    test/asmjit_test_compiler.cpp
@@ -698,7 +716,7 @@ if (NOT ASMJIT_EMBED)
                                    test/asmjit_test_compiler_a64.cpp
                                    test/asmjit_test_compiler_x86.cpp
                         LIBRARIES  asmjit::asmjit
-                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${sse2_flags}
+                        CFLAGS     ${ASMJIT_PRIVATE_CFLAGS} ${ASMJIT_SSE2_CFLAGS}
                         CFLAGS_DBG ${ASMJIT_PRIVATE_CFLAGS_DBG}
                         CFLAGS_REL ${ASMJIT_PRIVATE_CFLAGS_REL})
     endif()

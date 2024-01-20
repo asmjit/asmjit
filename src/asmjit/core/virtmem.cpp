@@ -141,6 +141,11 @@ static size_t detectLargePageSize() noexcept {
   return ::GetLargePageMinimum();
 }
 
+static bool hasDualMappingSupport() noexcept {
+  // TODO: This assumption works on X86 platforms, this may not work on AArch64.
+  return true;
+}
+
 // Returns windows-specific protectFlags from \ref MemoryFlags.
 static DWORD protectFlagsFromMemoryFlags(MemoryFlags memoryFlags) noexcept {
   DWORD protectFlags;
@@ -165,7 +170,12 @@ static DWORD desiredAccessFromMemoryFlags(MemoryFlags memoryFlags) noexcept {
 }
 
 static HardenedRuntimeFlags getHardenedRuntimeFlags() noexcept {
-  return HardenedRuntimeFlags::kNone;
+  HardenedRuntimeFlags flags = HardenedRuntimeFlags::kNone;
+
+  if (hasDualMappingSupport())
+    flags |= HardenedRuntimeFlags::kDualMapping;
+
+  return flags;
 }
 
 Error alloc(void** p, size_t size, MemoryFlags memoryFlags) noexcept {
@@ -703,8 +713,8 @@ static bool hasHardenedRuntime() noexcept {
 
 // Detects whether MAP_JIT is available.
 static inline bool hasMapJitSupport() noexcept {
-#if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_ARM >= 64
-  // OSX on AArch64 always uses hardened runtime + MAP_JIT:
+#if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_X86 == 0
+  // Apple platforms always use hardened runtime + MAP_JIT on non-x86 hardware:
   //   - https://developer.apple.com/documentation/apple_silicon/porting_just-in-time_compilers_to_apple_silicon
   return true;
 #elif defined(__APPLE__) && TARGET_OS_OSX
@@ -746,6 +756,15 @@ static inline int mmMapJitFromMemoryFlags(MemoryFlags memoryFlags) noexcept {
 #endif
 }
 
+static inline bool hasDualMappingSupport() noexcept {
+#if defined(__APPLE__) && TARGET_OS_OSX && ASMJIT_ARCH_X86 == 0
+  // Apple platforms don't allow dual-mapping on non-x86 hardware.
+  return false;
+#else
+  return true;
+#endif
+}
+
 static HardenedRuntimeFlags getHardenedRuntimeFlags() noexcept {
   HardenedRuntimeFlags flags = HardenedRuntimeFlags::kNone;
 
@@ -754,6 +773,9 @@ static HardenedRuntimeFlags getHardenedRuntimeFlags() noexcept {
 
   if (hasMapJitSupport())
     flags |= HardenedRuntimeFlags::kMapJit;
+
+  if (hasDualMappingSupport())
+    flags |= HardenedRuntimeFlags::kDualMapping;
 
   return flags;
 }

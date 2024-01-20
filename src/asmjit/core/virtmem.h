@@ -215,8 +215,11 @@ enum class HardenedRuntimeFlags : uint32_t {
   //! architecture.
   kEnabled = 0x00000001u,
 
-  //! Read+Write+Execute can only be allocated with MAP_JIT flag (Apple specific, only available on OSX).
-  kMapJit = 0x00000002u
+  //! Read+Write+Execute can only be allocated with MAP_JIT flag (Apple specific, only available on Apple platforms).
+  kMapJit = 0x00000002u,
+
+  //! Read+Write+Executa can be allocated with dual mapping approach (one region with RW and the other with RX).
+  kDualMapping = 0x00000004u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(HardenedRuntimeFlags)
 
