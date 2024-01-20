@@ -119,6 +119,8 @@ enum class CallConvStrategy : uint8_t {
   kX64Windows = 1,
   //! Windows 64-bit __vectorcall register assignment strategy.
   kX64VectorCall = 2,
+  //! Apple's AArch64 calling convention (differs compared to AArch64 calling convention used by Linux).
+  kAArch64Apple = 3,
 
   //! Maximum value of `CallConvStrategy`.
   kMaxValue = kX64VectorCall

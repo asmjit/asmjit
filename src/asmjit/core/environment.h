@@ -126,6 +126,8 @@ enum class PlatformABI : uint8_t {
   kAndroid,
   //! Cygwin ABI.
   kCygwin,
+  //! Darwin ABI.
+  kDarwin,
 
   //! Maximum value of `PlatformABI`.
   kMaxValue,
@@ -142,6 +144,8 @@ enum class PlatformABI : uint8_t {
     kGNU
 #elif defined(__ANDROID__)
     kAndroid
+#elif defined(__APPLE__)
+    kDarwin
 #else
     kUnknown
 #endif
@@ -399,6 +403,8 @@ public:
   ASMJIT_INLINE_NODEBUG bool isMSVC() const noexcept { return _platformABI == PlatformABI::kMSVC; }
   //! Tests whether the ABI is GNU.
   ASMJIT_INLINE_NODEBUG bool isGNU() const noexcept { return _platformABI == PlatformABI::kGNU; }
+  //! Tests whether the ABI is GNU.
+  ASMJIT_INLINE_NODEBUG bool isDarwin() const noexcept { return _platformABI == PlatformABI::kDarwin; }
 
   //! Returns a calculated stack alignment for this environment.
   ASMJIT_API uint32_t stackAlignment() const noexcept;
