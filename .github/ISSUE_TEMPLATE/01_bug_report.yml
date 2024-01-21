@@ -1,0 +1,42 @@
+name: Bug Report
+description: File a bug report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you hit the submit button:
+          * Please see our [Contribution Guidelines](https://github.com/asmjit/asmjit/blob/master/CONTRIBUTING.md).
+          * Make sure that you use a recent AsmJit (master branch) before filing a bug report.
+          * Make sure that you use logging and error handling features to collect as much information as possible, if applicable.
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Please share a clear and concise description of the issue and optionally provide reproducibility information and output from AsmJit's logger.
+      placeholder: Description
+    validations:
+      required: true
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating System
+      multiple: true
+      options:
+        - Not specified / possibly all
+        - Windows
+        - Linux
+        - Mac
+        - Android
+        - Other
+  - type: dropdown
+    id: target-architecture
+    attributes:
+      label: Architecture
+      multiple: true
+      options:
+        - Not specified
+        - X86 / X86_64
+        - AArch32
+        - AArch64
+        - RISC-V
+        - Other

@@ -1,0 +1,11 @@
+name: Other Issues
+description: Something that doesn't fit the other categories
+body:
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Please share a clear and concise description of the issue.
+      placeholder: Description
+    validations:
+      required: true

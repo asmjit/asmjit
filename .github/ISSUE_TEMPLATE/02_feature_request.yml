@@ -1,0 +1,18 @@
+name: Feature Request
+description: Request a new feature or enhancement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you hit the submit button:
+          * Please see our [Contribution Guidelines](https://github.com/asmjit/asmjit/blob/master/CONTRIBUTING.md).
+          * Make sure that you use a recent AsmJit (master branch) before filing a feature request.
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Please share a clear and concise description of a new feature or enhancement.
+      placeholder: Description
+    validations:
+      required: true
