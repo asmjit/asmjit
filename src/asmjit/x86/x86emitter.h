@@ -2827,7 +2827,7 @@ public:
   ASMJIT_INST_3x(vpand, Vpand, Vec, Vec, Mem)                          // AVX+
   ASMJIT_INST_3x(vpandd, Vpandd, Vec, Vec, Vec)                        //      AVX512_F{kz|b32}
   ASMJIT_INST_3x(vpandd, Vpandd, Vec, Vec, Mem)                        //      AVX512_F{kz|b32}
-  ASMJIT_INST_3x(vpandn, Vpandn, Vec, Vec, Vec)                        // AV+
+  ASMJIT_INST_3x(vpandn, Vpandn, Vec, Vec, Vec)                        // AVX+
   ASMJIT_INST_3x(vpandn, Vpandn, Vec, Vec, Mem)                        // AVX+
   ASMJIT_INST_3x(vpandnd, Vpandnd, Vec, Vec, Vec)                      //      AVX512_F{kz|b32}
   ASMJIT_INST_3x(vpandnd, Vpandnd, Vec, Vec, Mem)                      //      AVX512_F{kz|b32}
@@ -3186,7 +3186,7 @@ public:
   ASMJIT_INST_2x(vpopcntq, Vpopcntq, Vec, Mem)                         //      AVX512_VPOPCNTDQ{kz|b64}
   ASMJIT_INST_2x(vpopcntw, Vpopcntw, Vec, Vec)                         //      AVX512_BITALG{kz|b32}
   ASMJIT_INST_2x(vpopcntw, Vpopcntw, Vec, Mem)                         //      AVX512_BITALG{kz|b32}
-  ASMJIT_INST_3x(vpor, Vpor, Vec, Vec, Vec)                            // AV+
+  ASMJIT_INST_3x(vpor, Vpor, Vec, Vec, Vec)                            // AVX+
   ASMJIT_INST_3x(vpor, Vpor, Vec, Vec, Mem)                            // AVX+
   ASMJIT_INST_3x(vpord, Vpord, Vec, Vec, Vec)                          //      AVX512_F{kz|b32}
   ASMJIT_INST_3x(vpord, Vpord, Vec, Vec, Mem)                          //      AVX512_F{kz|b32}

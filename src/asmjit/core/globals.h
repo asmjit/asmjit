@@ -334,6 +334,10 @@ enum ErrorCode : uint32_t {
   //! \note This is a generic error that is used by internal filesystem API.
   kErrorFailedToOpenFile,
 
+  //! Protection failure can be returned from a virtual memory allocator or when trying to change memory access
+  //! permissions.
+  kErrorProtectionFailure,
+
   // @EnumValuesEnd@
 
   //! Count of AsmJit error codes.
