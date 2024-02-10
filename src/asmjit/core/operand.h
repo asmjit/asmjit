@@ -173,8 +173,8 @@ enum class RegGroup : uint8_t {
   //! Describes X86 XMM|YMM|ZMM registers ARM/AArch64 V registers.
   kVec = 1,
 
-  //! Extra virtual group #2 that can be used by Compiler for register allocation.
-  kExtraVirt2 = 2,
+  //! Mask register group compatible with all backends that can use masking.
+  kMask = 2,
   //! Extra virtual group #3 that can be used by Compiler for register allocation.
   kExtraVirt3 = 3,
 
@@ -187,8 +187,8 @@ enum class RegGroup : uint8_t {
   // X86 Specific Register Groups
   // ----------------------------
 
-  //! K register group (KReg) - maps to \ref RegGroup::kExtraVirt2 (X86, X86_64).
-  kX86_K = kExtraVirt2,
+  //! K register group (KReg) - maps to \ref RegGroup::kMask (X86, X86_64).
+  kX86_K = kMask,
   //! MMX register group (MM) - maps to \ref RegGroup::kExtraVirt3 (X86, X86_64).
   kX86_MM = kExtraVirt3,
 
@@ -591,6 +591,22 @@ struct Operand_ {
 
   //! \}
 
+  //! \name Equality
+  //! \{
+
+  //! Tests whether the operand is 100% equal to `other` operand.
+  //!
+  //! \note This basically performs a binary comparison, if aby bit is
+  //! different the operands are not equal.
+  ASMJIT_INLINE_NODEBUG constexpr bool equals(const Operand_& other) const noexcept {
+    return bool(unsigned(_signature == other._signature) &
+                unsigned(_baseId    == other._baseId   ) &
+                unsigned(_data[0]   == other._data[0]  ) &
+                unsigned(_data[1]   == other._data[1]  ));
+  }
+
+  //! \}
+
   //! \name Accessors
   //! \{
 
@@ -609,6 +625,8 @@ struct Operand_ {
   //!
   //! \note Improper use of `setSignature()` can lead to hard-to-debug errors.
   ASMJIT_INLINE_NODEBUG void setSignature(const Signature& signature) noexcept { _signature = signature; }
+  //! \overload
+  ASMJIT_INLINE_NODEBUG void setSignature(uint32_t signature) noexcept { _signature._bits = signature; }
 
   //! Returns the type of the operand, see `OpType`.
   ASMJIT_INLINE_NODEBUG constexpr OperandType opType() const noexcept { return _signature.opType(); }
@@ -643,30 +661,51 @@ struct Operand_ {
   //!             not initialized.
   ASMJIT_INLINE_NODEBUG constexpr uint32_t id() const noexcept { return _baseId; }
 
-  //! Tests whether the operand is 100% equal to `other` operand.
-  //!
-  //! \note This basically performs a binary comparison, if aby bit is
-  //! different the operands are not equal.
-  ASMJIT_INLINE_NODEBUG constexpr bool equals(const Operand_& other) const noexcept {
-    return bool(unsigned(_signature == other._signature) &
-                unsigned(_baseId    == other._baseId   ) &
-                unsigned(_data[0]   == other._data[0]  ) &
-                unsigned(_data[1]   == other._data[1]  ));
-  }
-
   //! Tests whether the operand is a register matching the given register `type`.
   ASMJIT_INLINE_NODEBUG constexpr bool isReg(RegType type) const noexcept {
     return _signature.subset(Signature::kOpTypeMask | Signature::kRegTypeMask) == (Signature::fromOpType(OperandType::kReg) | Signature::fromRegType(type));
   }
 
+  //! Tests whether the operand is a register of the provided register group `regGroup`.
+  ASMJIT_INLINE_NODEBUG constexpr bool isReg(RegGroup regGroup) const noexcept {
+    return _signature.subset(Signature::kOpTypeMask | Signature::kRegGroupMask) == (Signature::fromOpType(OperandType::kReg) | Signature::fromRegGroup(regGroup));
+  }
+
+  //! Tests whether the operand is register and of register type `regType` and `regId`.
+  ASMJIT_INLINE_NODEBUG constexpr bool isReg(RegType regType, uint32_t regId) const noexcept { return isReg(regType) && _baseId == regId; }
+  //! Tests whether the operand is register and of register group `regGroup` and `regId`.
+  ASMJIT_INLINE_NODEBUG constexpr bool isReg(RegGroup regGroup, uint32_t regId) const noexcept { return isReg(regGroup) && _baseId == regId; }
+
+  //! Tests whether the register is a general purpose register (any size).
+  ASMJIT_INLINE_NODEBUG constexpr bool isGp() const noexcept { return isReg(RegGroup::kGp); }
+  //! Tests whether the register is a 32-bit general purpose register.
+  ASMJIT_INLINE_NODEBUG constexpr bool isGp32() const noexcept { return isReg(RegType::kGp32); }
+  //! Tests whether the register is a 64-bit general purpose register.
+  ASMJIT_INLINE_NODEBUG constexpr bool isGp64() const noexcept { return isReg(RegType::kGp64); }
+
+  //! Tests whether the register is a vector register of any size.
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec() const noexcept { return isReg(RegGroup::kVec); }
+  //! Tests whether the register is an 8-bit vector register or view (AArch64).
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec8() const noexcept { return isReg(RegType::kVec8); }
+  //! Tests whether the register is a 16-bit vector register or view (AArch64).
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec16() const noexcept { return isReg(RegType::kVec16); }
+  //! Tests whether the register is a 32-bit vector register or view (AArch32, AArch64).
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec32() const noexcept { return isReg(RegType::kVec32); }
+  //! Tests whether the register is a 64-bit vector register or view (AArch32, AArch64).
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec64() const noexcept { return isReg(RegType::kVec64); }
+  //! Tests whether the register is a 128-bit vector register or view (AArch32, AArch64, X86, X86_64).
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec128() const noexcept { return isReg(RegType::kVec128); }
+  //! Tests whether the register is a 256-bit vector register or view (X86, X86_64).
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec256() const noexcept { return isReg(RegType::kVec256); }
+  //! Tests whether the register is a 512-bit vector register or view (X86, X86_64).
+  ASMJIT_INLINE_NODEBUG constexpr bool isVec512() const noexcept { return isReg(RegType::kVec512); }
+
+  //! Tests whether the register is a mask register of any size.
+  ASMJIT_INLINE_NODEBUG constexpr bool isMask() const noexcept { return isReg(RegGroup::kMask); }
+
   //! Tests whether the operand is a register matching the given register `type`.
   ASMJIT_INLINE_NODEBUG constexpr bool isRegList(RegType type) const noexcept {
     return _signature.subset(Signature::kOpTypeMask | Signature::kRegTypeMask) == (Signature::fromOpType(OperandType::kRegList) | Signature::fromRegType(type));
-  }
-
-  //! Tests whether the operand is register and of register `type` and `id`.
-  ASMJIT_INLINE_NODEBUG constexpr bool isReg(RegType type, uint32_t regId) const noexcept {
-    return isReg(type) && _baseId == regId;
   }
 
   //! Tests whether the operand is a register or memory.
@@ -951,8 +990,10 @@ public:
 
   //! Tests whether the register is a general purpose register (any size).
   ASMJIT_INLINE_NODEBUG constexpr bool isGp() const noexcept { return isGroup(RegGroup::kGp); }
-  //! Tests whether the register is a vector register.
+  //! Tests whether the register is a vector register of any size.
   ASMJIT_INLINE_NODEBUG constexpr bool isVec() const noexcept { return isGroup(RegGroup::kVec); }
+  //! Tests whether the register is a mask register of any size.
+  ASMJIT_INLINE_NODEBUG constexpr bool isMask() const noexcept { return isGroup(RegGroup::kMask); }
 
   using Operand_::isReg;
 

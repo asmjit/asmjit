@@ -4,17 +4,17 @@
 
   * Please use [Issues](https://github.com/asmjit/asmjit/issues) page to report bugs or create a [pull request](https://github.com/asmjit/asmjit/pulls) if you have already fixed it.
 
-  * Make sure that when a bug is reported it provides as much information as possible to make it easy to either reproduce it locally or to at least guess where the problem could be. AsmJit is a low-level tool, which makes it very easy to emit code that would crash or not work as intended. Always use AsmJit's [Logging](https://asmjit.com/doc/group__asmjit__logging.html) and [Error Handling](https://asmjit.com/doc/group__asmjit__error__handling.html) features first to analyze whether there is not a simple to catch bug in your own code.
+  * Make sure that when a bug is reported it provides as much information as possible to make it easy to either reproduce it locally or to at least guess where the problem could be. AsmJit is a low-level tool, which makes it very easy to emit code that would crash or not work as intended when executed. Always use AsmJit's [Logging](https://asmjit.com/doc/group__asmjit__logging.html) and [Error Handling](https://asmjit.com/doc/group__asmjit__error__handling.html) features first to analyze whether there is not a simple to catch bug in your own code.
 
   * Don't be afraid to ask for help if you don't know how to solve a particular problem or in case it's unclear how to do it. The community would help if the problem is well described and has a solution. In general we always try to at least improve the documentation in case it doesn't provide enough information and users must ask for help.
 
 ### Asking questions
 
-  * We prefer GitHub issues to be used for reporting bugs or feature requests, but it's still okay to do that. Consider joining our [Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) to ask questions; it has an active community that can quickly.
+  * We prefer GitHub issues to be used for reporting bugs or feature requests, but it's still okay to ask questions there as well. However, please consider joining our [Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) to ask questions; it has an active community that can quickly respond.
 
 ### Suggesting feature requests
 
-  * It's very likely that when using AsmJit you have found something that AsmJit doesn't provide and it would be handy to have it built-in. The [Issues](https://github.com/asmjit/asmjit/issues) page can be used to submit feature requests, but please keep in mind that AsmJit is a relatively small project and not all requested features will be accepted, especially if they are non-trivial, time consuming to implement, or the scope of the feature doesn't match AsmJit goals.
+  * It's very likely that when using AsmJit you have found something that AsmJit doesn't provide, which would be handy to have as a built-in. The [Issues](https://github.com/asmjit/asmjit/issues) page can be used to submit feature requests, but please keep in mind that AsmJit is a relatively small project and not all requested features will be accepted, especially if they are non-trivial, time consuming to implement, or the scope of the feature doesn't match AsmJit goals.
 
   * If you have already implemented the feature you are suggesting, please open a [pull request](https://github.com/asmjit/asmjit/pulls).
 
@@ -22,11 +22,11 @@
 
 ### Suggesting a documentation enhancement
 
-  * [AsmJit's documentation](https://asmjit.com/doc/index.html) is auto-generated from source code, so if you would like to improve it just open a [pull request](https://github.com/asmjit/asmjit/pulls) with your changes. The documentation uses [Doxygen](https://www.doxygen.nl/) as a front-end, so please use `\ref`, etc... to create links in documentation when necessary.
+  * [AsmJit's documentation](https://asmjit.com/doc/index.html) is auto-generated from source code, so if you would like to improve it just open a [pull request](https://github.com/asmjit/asmjit/pulls) with your changes. The documentation uses [Doxygen](https://www.doxygen.nl/) as a front-end, so you can use `\ref` keyword to create links and other Doxygen keywords to enhance the documentation.
 
 ### Suggesting a website content enhancement
 
-  * [AsmJit's website](https://asmjit.com) is also generated, but not from public sources at the moment. If you did find an issue on the website you can either use contact on the [support page](https://asmjit.com/support.html) or just discuss the change in our [Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im). Alternatively, opening a regular issue is also okay.
+  * [AsmJit's website](https://asmjit.com) is also generated, but not from public sources at the moment. If you did find an issue on the website you can either use contact information on the [support page](https://asmjit.com/support.html) or to discuss the change on our [Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im). Alternatively, opening a regular issue is also okay.
 
 
 ## Coding Style & Consistency
@@ -47,7 +47,7 @@
 
   * The code uses a soft limit of 120 characters per line (including documentation), but it's not enforced and it's okay to use more when it makes sense (for example defining tables, etc...).
 
-  * Since AsmJit doesn't use Exceptions nor RTTI the code cannot use containers provided by the C++ standard library as they use exception handling by design. In general, we try to only use a bare minimum from the C++ standard library to make it viable to use AsmJit even in C code bases where JIT complier is implemented in C++ ([Erlang](https://www.erlang.org/) can be seen as a great example).
+  * Since AsmJit doesn't use Exceptions nor RTTI the code cannot use containers provided by the C++ standard library. In general, we try to only use a bare minimum from the C++ standard library to make it viable to use AsmJit even in C code bases where JIT complier is implemented in C++ ([Erlang](https://www.erlang.org/) can be seen as a great example).
 
 ## Testing
 
@@ -79,7 +79,7 @@
 
   * ABI changes happen, but they are usually accumulated and committed within a short time window to not break it often. In general we prefer to break ABI once a year, or once 6 months if there is something that has a high priority. There are no hard rules though.
 
-  * AsmJit uses an `inline namespace`, which should make it impossible to link to AsmJit library that is ABI incompatible. When ABI break happens AsmJit version and ABI namespace is changed, see [asmjit/core/api-config.h](./src/asmjit/core/api-config.h) for more details.
+  * AsmJit uses an `inline namespace`, which should make it impossible to link to AsmJit library that is ABI incompatible. When ABI break happens both AsmJit version and ABI namespace are changed, see [asmjit/core/api-config.h](./src/asmjit/core/api-config.h) for more details.
 
   * What is an ABI break?
 
@@ -87,14 +87,16 @@
 
     * Adding/removing virtual functions to/from classes, respectively
 
-    * Changing a signature of a public function or a class member function.
+    * Changing a signature of a public function or a class member function (for example adding a parameter).
 
-    * Changing the value of an enum or global constant (for example instructions are now sorted by name, so adding a new instruction is an ABI break)
+    * Changing the value of an enum or global constant (for example instructions are now sorted by name, so adding a new instruction breaks ABI)
 
     * Possibly more, but these were the most common...
 
   * What is not ABI break?
 
     * Extending the functionality by using reserved members of a struct/class
+
+    * Adding new API including new structs and classes
 
     * Changing anything that is internal and that doesn't leak to public headers

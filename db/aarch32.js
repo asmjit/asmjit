@@ -1,8 +1,7 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
 // See asmjit.h or LICENSE.md for license and copyright information
-// SPDX-License-Identifier: Zlib
-
+// SPDX-License-Identifier: (Zlib or Unlicense)
 
 (function($scope, $as) {
 "use strict";

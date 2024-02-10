@@ -55,8 +55,12 @@ public:
 
   //! Cast this register to a 32-bit W register (returns a new operand).
   ASMJIT_INLINE_NODEBUG GpW w() const noexcept;
+  //! \overload
+  ASMJIT_INLINE_NODEBUG GpW r32() const noexcept;
   //! Cast this register to a 64-bit X register (returns a new operand).
   ASMJIT_INLINE_NODEBUG GpX x() const noexcept;
+  //! \overload
+  ASMJIT_INLINE_NODEBUG GpX r64() const noexcept;
 };
 
 //! 32-bit general purpose W register (AArch64).
@@ -67,6 +71,8 @@ class GpX : public Gp { ASMJIT_DEFINE_FINAL_REG(GpX, Gp, RegTraits<RegType::kARM
 #ifndef _DOXYGEN
 ASMJIT_INLINE_NODEBUG GpW Gp::w() const noexcept { return GpW(id()); }
 ASMJIT_INLINE_NODEBUG GpX Gp::x() const noexcept { return GpX(id()); }
+ASMJIT_INLINE_NODEBUG GpW Gp::r32() const noexcept { return GpW(id()); }
+ASMJIT_INLINE_NODEBUG GpX Gp::r64() const noexcept { return GpX(id()); }
 #endif
 
 //! Vector element type (AArch64).
@@ -153,6 +159,17 @@ public:
   //! Cast this register to a 128-bit V register.
   ASMJIT_INLINE_NODEBUG VecV v() const noexcept;
 
+  //! Casts this register to b (clone).
+  ASMJIT_INLINE_NODEBUG Vec v8() const noexcept;
+  //! Casts this register to h (clone).
+  ASMJIT_INLINE_NODEBUG Vec v16() const noexcept;
+  //! Casts this register to s (clone).
+  ASMJIT_INLINE_NODEBUG Vec v32() const noexcept;
+  //! Casts this register to d (clone).
+  ASMJIT_INLINE_NODEBUG Vec v64() const noexcept;
+  //! Casts this register to q (clone).
+  ASMJIT_INLINE_NODEBUG Vec v128() const noexcept;
+
   //! Cast this register to a 128-bit V.B[elementIndex] register.
   ASMJIT_INLINE_NODEBUG VecV b(uint32_t elementIndex) const noexcept;
   //! Cast this register to a 128-bit V.H[elementIndex] register.
@@ -228,6 +245,12 @@ ASMJIT_INLINE_NODEBUG VecS Vec::s() const noexcept { return VecS(id()); }
 ASMJIT_INLINE_NODEBUG VecD Vec::d() const noexcept { return VecD(id()); }
 ASMJIT_INLINE_NODEBUG VecV Vec::q() const noexcept { return VecV(id()); }
 ASMJIT_INLINE_NODEBUG VecV Vec::v() const noexcept { return VecV(id()); }
+
+ASMJIT_INLINE_NODEBUG Vec Vec::v8() const noexcept { return VecB(id()); }
+ASMJIT_INLINE_NODEBUG Vec Vec::v16() const noexcept { return VecH(id()); }
+ASMJIT_INLINE_NODEBUG Vec Vec::v32() const noexcept { return VecS(id()); }
+ASMJIT_INLINE_NODEBUG Vec Vec::v64() const noexcept { return VecD(id()); }
+ASMJIT_INLINE_NODEBUG Vec Vec::v128() const noexcept { return VecV(id()); }
 
 ASMJIT_INLINE_NODEBUG VecV Vec::b(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kB, elementIndex), id()); }
 ASMJIT_INLINE_NODEBUG VecV Vec::h(uint32_t elementIndex) const noexcept { return VecV(_makeElementAccessSignature(VecElementType::kH, elementIndex), id()); }

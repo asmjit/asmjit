@@ -542,7 +542,7 @@ public:
   template<typename RegT>
   ASMJIT_INLINE_NODEBUG RegT newSimilarReg(const RegT& ref) {
     RegT reg(Globals::NoInit);
-    _newReg(reg, ref);
+    _newReg(&reg, ref);
     return reg;
   }
 

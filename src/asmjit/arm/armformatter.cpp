@@ -555,6 +555,12 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
   if (op.isImm()) {
     const Imm& i = op.as<Imm>();
     int64_t val = i.value();
+    uint32_t predicate = i.predicate();
+
+    if (predicate) {
+      ASMJIT_PROPAGATE(formatShiftOp(sb, ShiftOp(predicate)));
+      ASMJIT_PROPAGATE(sb.append(' '));
+    }
 
     if (Support::test(flags, FormatFlags::kHexImms) && uint64_t(val) > 9) {
       ASMJIT_PROPAGATE(sb.append("0x"));

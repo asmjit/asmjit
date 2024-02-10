@@ -47,7 +47,7 @@ ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Enviro
   cc.setSaveRestoreRegSize(RegGroup::kVec, 8);
   cc.setSaveRestoreAlignment(RegGroup::kGp, 16);
   cc.setSaveRestoreAlignment(RegGroup::kVec, 16);
-  cc.setSaveRestoreAlignment(RegGroup::kExtraVirt2, 1);
+  cc.setSaveRestoreAlignment(RegGroup::kMask, 1);
   cc.setSaveRestoreAlignment(RegGroup::kExtraVirt3, 1);
   cc.setPassedOrder(RegGroup::kGp, 0, 1, 2, 3, 4, 5, 6, 7);
   cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5, 6, 7);

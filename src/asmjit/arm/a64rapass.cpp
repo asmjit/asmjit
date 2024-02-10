@@ -595,14 +595,14 @@ void ARMRAPass::onInit() noexcept {
   _archTraits = &ArchTraits::byArch(arch);
   _physRegCount.set(RegGroup::kGp, 32);
   _physRegCount.set(RegGroup::kVec, 32);
-  _physRegCount.set(RegGroup::kExtraVirt2, 0);
+  _physRegCount.set(RegGroup::kMask, 0);
   _physRegCount.set(RegGroup::kExtraVirt3, 0);
   _buildPhysIndex();
 
   _availableRegCount = _physRegCount;
   _availableRegs[RegGroup::kGp] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kGp));
   _availableRegs[RegGroup::kVec] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kVec));
-  _availableRegs[RegGroup::kExtraVirt3] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kExtraVirt2));
+  _availableRegs[RegGroup::kMask] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kMask));
   _availableRegs[RegGroup::kExtraVirt3] = Support::lsbMask<uint32_t>(_physRegCount.get(RegGroup::kExtraVirt3));
 
   _scratchRegIndexes[0] = uint8_t(27);
