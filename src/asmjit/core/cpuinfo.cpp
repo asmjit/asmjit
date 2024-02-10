@@ -7,6 +7,8 @@
 #include "../core/cpuinfo.h"
 #include "../core/support.h"
 
+#include <atomic>
+
 // Required by `__cpuidex()` and `_xgetbv()`.
 #if ASMJIT_ARCH_X86
   #if defined(_MSC_VER)
@@ -1969,13 +1971,13 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 // CpuInfo - Detect - Host
 // =======================
 
-static uint32_t cpuInfoInitialized;
-static CpuInfo cpuInfoGlobal(Globals::NoInit);
-
 const CpuInfo& CpuInfo::host() noexcept {
-  // This should never cause a problem as the resulting information should always be the same.
-  // In the worst case it would just be overwritten non-atomically.
-  if (!cpuInfoInitialized) {
+  static std::atomic<uint32_t> cpuInfoInitialized;
+  static CpuInfo cpuInfoGlobal(Globals::NoInit);
+
+  // This should never cause a problem as the resulting information should always
+  // be the same. In the worst case it would just be overwritten non-atomically.
+  if (!cpuInfoInitialized.load(std::memory_order_relaxed)) {
     CpuInfo cpuInfoLocal;
 
     cpuInfoLocal._arch = Arch::kHost;
@@ -1989,7 +1991,7 @@ const CpuInfo& CpuInfo::host() noexcept {
 
     cpuInfoLocal._hwThreadCount = detectHWThreadCount();
     cpuInfoGlobal = cpuInfoLocal;
-    cpuInfoInitialized = 1;
+    cpuInfoInitialized.store(1, std::memory_order_seq_cst);
   }
 
   return cpuInfoGlobal;

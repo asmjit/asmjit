@@ -22,11 +22,6 @@ ASMJIT_BEGIN_NAMESPACE
 //! Each feature is represented by a single bit in an embedded bit array.
 class CpuFeatures {
 public:
-  //! A word that is used to represents feature bits.
-  typedef Support::BitWord BitWord;
-  //! Iterator that can iterate all CPU features set.
-  typedef Support::BitVectorIterator<BitWord> Iterator;
-
   //! \name Constants
   //! \{
 
@@ -36,6 +31,13 @@ public:
     kNumBitWords = kMaxFeatures / Support::kBitWordSizeInBits
   };
   //! \endcond
+
+  //! A word that is used to represents feature bits.
+  typedef Support::BitWord BitWord;
+  //! Iterator that can iterate all CPU features set.
+  typedef Support::BitVectorIterator<BitWord> Iterator;
+
+  typedef Support::Array<BitWord, kNumBitWords> Bits;
 
   //! \}
 
@@ -48,7 +50,7 @@ public:
     //! \{
 
     //! Data bits.
-    Support::Array<BitWord, kNumBitWords> _bits;
+    Bits _bits;
 
     //! \}
 
@@ -178,8 +180,7 @@ public:
 #endif // !ASMJIT_NO_DEPRECATED
 
     //! \}
-
-  };
+ };
 
   //! X86 specific features data.
   struct X86 : public Data {
@@ -948,6 +949,7 @@ public:
 
   ASMJIT_INLINE_NODEBUG CpuFeatures() noexcept {}
   ASMJIT_INLINE_NODEBUG CpuFeatures(const CpuFeatures& other) noexcept = default;
+  ASMJIT_INLINE_NODEBUG explicit CpuFeatures(const Data& other) noexcept : _data{other._bits} {}
   ASMJIT_INLINE_NODEBUG explicit CpuFeatures(Globals::NoInit_) noexcept {}
 
   //! \}
