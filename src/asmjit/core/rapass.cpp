@@ -1223,6 +1223,7 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::binPack(RegGroup group) noexcept {
 
   uint32_t numWorkRegs = workRegs.size();
   RegMask availableRegs = _availableRegs[group];
+  RegMask preservedRegs = func()->frame().preservedRegs(group);
 
   // First try to pack everything that provides register-id hint as these are most likely function arguments and fixed
   // (precolored) virtual registers.
@@ -1354,18 +1355,30 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::binPack(RegGroup group) noexcept {
       if (workReg->isAllocated())
         continue;
 
-      RegMask physRegs = availableRegs;
-      if (physRegs & workReg->preferredMask())
-        physRegs &= workReg->preferredMask();
+      RegMask remainingPhysRegs = availableRegs;
+      if (remainingPhysRegs & workReg->preferredMask())
+        remainingPhysRegs &= workReg->preferredMask();
 
-      while (physRegs) {
-        RegMask preferredMask = physRegs;
-        uint32_t physId = Support::ctz(preferredMask);
+      RegMask physRegs = remainingPhysRegs & ~preservedRegs;
+      remainingPhysRegs &= preservedRegs;
+
+      for (;;) {
+        if (!physRegs) {
+          if (!remainingPhysRegs)
+            break;
+          physRegs = remainingPhysRegs;
+          remainingPhysRegs = 0;
+        }
+
+        uint32_t physId = Support::ctz(physRegs);
 
         if (workReg->clobberSurvivalMask()) {
-          preferredMask &= workReg->clobberSurvivalMask();
-          if (preferredMask)
+          RegMask preferredMask = (physRegs | remainingPhysRegs) & workReg->clobberSurvivalMask();
+          if (preferredMask) {
+            if (preferredMask & ~remainingPhysRegs)
+              preferredMask &= ~remainingPhysRegs;
             physId = Support::ctz(preferredMask);
+          }
         }
 
         LiveRegSpans& live = _globalLiveSpans[group][physId];
@@ -1381,7 +1394,8 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::binPack(RegGroup group) noexcept {
         if (ASMJIT_UNLIKELY(err != 0xFFFFFFFFu))
           return err;
 
-        physRegs ^= Support::bitMask(physId);
+        physRegs &= ~Support::bitMask(physId);
+        remainingPhysRegs &= ~Support::bitMask(physId);
       }
 
       // Keep it in `workRegs` if it was not allocated.
