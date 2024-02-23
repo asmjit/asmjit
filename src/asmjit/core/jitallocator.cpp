@@ -448,7 +448,7 @@ static inline JitAllocatorPrivateImpl* JitAllocatorImpl_new(const JitAllocator::
   // Setup pool count to [1..3].
   size_t poolCount = 1;
   if (Support::test(options, JitAllocatorOptions::kUseMultiplePools))
-    poolCount = kJitAllocatorMultiPoolCount;;
+    poolCount = kJitAllocatorMultiPoolCount;
 
   // Setup block size [64kB..256MB].
   if (blockSize < 64 * 1024 || blockSize > 256 * 1024 * 1024 || !Support::isPowerOf2(blockSize))

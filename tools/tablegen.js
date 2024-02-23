@@ -147,7 +147,7 @@ class InstructionNameData {
           suffix = name.substring(longestPrefix);
         }
         else if (longestSuffix) {
-          const splitAt = Math.min(name.length - longestSuffix, kMaxPrefixSize);;
+          const splitAt = Math.min(name.length - longestSuffix, kMaxPrefixSize);
           prefix = name.substring(0, splitAt);
           suffix = name.substring(splitAt);
         }
