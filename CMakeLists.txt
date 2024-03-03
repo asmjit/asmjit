@@ -667,7 +667,8 @@ if (NOT ASMJIT_EMBED)
 
     foreach(_target asmjit_test_emitters
                     asmjit_test_execute
-                    asmjit_test_x86_sections)
+                    asmjit_test_x86_sections
+                    asmjit_test_stress_x86)
       asmjit_add_target(${_target} TEST
                         SOURCES    test/${_target}.cpp
                         LIBRARIES  asmjit::asmjit
