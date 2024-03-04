@@ -1,6 +1,7 @@
 #include <asmjit/core.h>
 #include <asmjit/asmjit.h>
 #include <string>
+#include <vector>
 #include <map>
 #include <set>
 #include <cassert>
