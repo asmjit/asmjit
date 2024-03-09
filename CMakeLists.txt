@@ -233,17 +233,6 @@ endfunction()
 # AsmJit - Compiler Support
 # =========================
 
-set(ASMJIT_INCLUDE_DIRS "${ASMJIT_DIR}/src")     # Include directory is the same as source dir.
-set(ASMJIT_DEPS "")                              # AsmJit dependencies (libraries) for the linker.
-set(ASMJIT_LIBS "")                              # Dependencies of libs/apps that want to use AsmJit.
-set(ASMJIT_CFLAGS "")                            # Public compiler flags.
-set(ASMJIT_PRIVATE_CFLAGS "")                    # Private compiler flags independent of build type.
-set(ASMJIT_PRIVATE_CFLAGS_DBG "")                # Private compiler flags used by debug builds.
-set(ASMJIT_PRIVATE_CFLAGS_REL "")                # Private compiler flags used by release builds.
-set(ASMJIT_PRIVATE_LFLAGS "")                    # Private linker flags.
-set(ASMJIT_SANITIZE_CFLAGS "")                   # Compiler flags required by currently enabled sanitizers.
-set(ASMJIT_SANITIZE_LFLAGS "")                   # Linker flags required by currently enabled sanitizers.
-
 # We will have to keep this most likely forever as some users may still be using it.
 set(ASMJIT_INCLUDE_DIR "${ASMJIT_INCLUDE_DIRS}")
 
@@ -286,7 +275,7 @@ endif()
 
 # Support for sanitizers.
 if (ASMJIT_SANITIZE)
-  ASMJIT_detect_sanitizers(ASMJIT_SANITIZE_CFLAGS ${ASMJIT_SANITIZE})
+  asmjit_detect_sanitizers(ASMJIT_SANITIZE_CFLAGS ${ASMJIT_SANITIZE})
   if (ASMJIT_SANITIZE_CFLAGS)
     message("-- Enabling sanitizers: '${ASMJIT_SANITIZE_CFLAGS}'")
 

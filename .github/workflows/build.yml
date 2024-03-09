@@ -131,7 +131,9 @@ jobs:
           - { title: "openbsd"         , host: "macos-12"      , arch: "x86-64" , cc: "clang"   , conf: "Release", vm: "openbsd", vm_ver: "7.4" , defs: "ASMJIT_TEST=1" }
           - { title: "openbsd"         , host: "ubuntu-latest" , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "openbsd", vm_ver: "7.4" , defs: "ASMJIT_TEST=1" }
 
-          - { title: "debian"          , host: "ubuntu-latest" , arch: "arm/v7" , cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
+          # arm/v7 VM image doesn't work on CI environment at the moment
+          # - { title: "debian"          , host: "ubuntu-latest" , arch: "arm/v7" , cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
+
           - { title: "debian"          , host: "ubuntu-latest" , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
           - { title: "debian"          , host: "ubuntu-latest" , arch: "riscv64", cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
           - { title: "debian"          , host: "ubuntu-latest" , arch: "ppc64le", cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
