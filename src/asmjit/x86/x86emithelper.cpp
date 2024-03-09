@@ -407,25 +407,29 @@ Error EmitHelper::emitRegSwap(
 // x86::EmitHelper - Emit Prolog & Epilog
 // ======================================
 
-static inline void X86Internal_setupSaveRestoreInfo(RegGroup group, const FuncFrame& frame, Reg& xReg, uint32_t& xInst, uint32_t& xSize) noexcept {
+static inline Error X86Internal_setupSaveRestoreInfo(RegGroup group, const FuncFrame& frame, Reg& xReg, uint32_t& xInst, uint32_t& xSize) noexcept {
   switch (group) {
     case RegGroup::kVec:
       xReg = xmm(0);
       xInst = getXmmMovInst(frame);
       xSize = xReg.size();
-      break;
+      return kErrorOk;
+
     case RegGroup::kX86_K:
       xReg = k(0);
       xInst = Inst::kIdKmovq;
       xSize = xReg.size();
-      break;
+      return kErrorOk;
+
     case RegGroup::kX86_MM:
       xReg = mm(0);
       xInst = Inst::kIdMovq;
       xSize = xReg.size();
-      break;
+      return kErrorOk;
+
     default:
-      break;
+      // This would be a bug in AsmJit if hit.
+      return DebugUtils::errored(kErrorInvalidState);
   }
 }
 
@@ -492,16 +496,15 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
 
   // Emit 'movxxx [zsp + X], {[x|y|z]mm, k}'.
   {
-    Reg xReg;
     Mem xBase = ptr(zsp, int32_t(frame.extraRegSaveOffset()));
-
-    uint32_t xInst;
-    uint32_t xSize;
 
     for (RegGroup group : Support::EnumValues<RegGroup, RegGroup(1), RegGroup::kMaxVirt>{}) {
       Support::BitWordIterator<RegMask> it(frame.savedRegs(group));
       if (it.hasNext()) {
-        X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize);
+        Reg xReg;
+        uint32_t xInst = 0;
+        uint32_t xSize = 0;
+        ASMJIT_PROPAGATE(X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize));
         do {
           xReg.setId(it.next());
           ASMJIT_PROPAGATE(emitter->emit(xInst, xBase, xReg));
@@ -533,16 +536,15 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitEpilog(const FuncFrame& frame) {
 
   // Emit 'movxxx {[x|y|z]mm, k}, [zsp + X]'.
   {
-    Reg xReg;
     Mem xBase = ptr(zsp, int32_t(frame.extraRegSaveOffset()));
-
-    uint32_t xInst;
-    uint32_t xSize;
 
     for (RegGroup group : Support::EnumValues<RegGroup, RegGroup(1), RegGroup::kMaxVirt>{}) {
       Support::BitWordIterator<RegMask> it(frame.savedRegs(group));
       if (it.hasNext()) {
-        X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize);
+        Reg xReg;
+        uint32_t xInst;
+        uint32_t xSize;
+        ASMJIT_PROPAGATE(X86Internal_setupSaveRestoreInfo(group, frame, xReg, xInst, xSize));
         do {
           xReg.setId(it.next());
           ASMJIT_PROPAGATE(emitter->emit(xInst, xReg, xBase));
