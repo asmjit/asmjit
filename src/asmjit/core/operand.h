@@ -530,7 +530,12 @@ struct Operand_ {
   //! \endcond
 
   //! Initializes the operand from `other` operand (used by operator overloads).
-  ASMJIT_INLINE_NODEBUG void copyFrom(const Operand_& other) noexcept { memcpy(this, &other, sizeof(Operand_)); }
+  ASMJIT_INLINE_NODEBUG void copyFrom(const Operand_& other) noexcept {
+    _signature._bits = other._signature._bits;
+    _baseId = other._baseId;
+    _data[0] = other._data[0];
+    _data[1] = other._data[1];
+  }
 
   //! Resets the `Operand` to none.
   //!
