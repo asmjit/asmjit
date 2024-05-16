@@ -31,10 +31,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { title: "linux-lib"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang"   , conf: "Debug" }
-          - { title: "macos-lib"       , host: "macos-latest"  , arch: "x64"    , cc: "clang"   , conf: "Debug" }
-          - { title: "windows-lib"     , host: "windows-latest", arch: "x64"    , cc: "vs2022"  , conf: "Debug" }
-
           - { title: "diag-analyze"    , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , diagnostics: "analyze-build" }
           - { title: "diag-asan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "asan", defs: "ASMJIT_TEST=1" }
           - { title: "diag-msan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "msan", defs: "ASMJIT_TEST=1" }
@@ -121,6 +117,8 @@ jobs:
           - { title: "macos"           , host: "macos-12"      , arch: "x64"    , cc: "gcc-11"  , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "macos"           , host: "macos-12"      , arch: "x64"    , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "macos"           , host: "macos-12"      , arch: "x64"    , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "macos"           , host: "macos-14"      , arch: "arm64"  , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "macos"           , host: "macos-14"      , arch: "arm64"  , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "windows"         , host: "windows-2019"  , arch: "x86"    , cc: "vs2019"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "windows"         , host: "windows-2019"  , arch: "x86"    , cc: "vs2019"  , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "windows"         , host: "windows-2019"  , arch: "x64"    , cc: "vs2019"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
