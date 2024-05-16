@@ -590,7 +590,7 @@ if (NOT ASMJIT_EMBED)
                              $<BUILD_INTERFACE:${ASMJIT_INCLUDE_DIRS}>
                              $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-  # Add blend2d::blend2d alias.
+  # Add asmjit::asmjit alias.
   add_library(asmjit::asmjit ALIAS asmjit)
   # TODO: [CMAKE] Deprecated alias - we use projectname::libraryname convention now.
   add_library(AsmJit::AsmJit ALIAS asmjit)
