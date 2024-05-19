@@ -137,6 +137,7 @@ Error RALocalAllocator::switchToAssignment(PhysToWorkMap* dstPhysToWorkMap, cons
   dst.initMaps(dstPhysToWorkMap, _tmpWorkToPhysMap);
   dst.assignWorkIdsFromPhysIds();
 
+  // TODO: Remove this - finally enable this functionality.
   if (tryMode)
     return kErrorOk;
 
@@ -601,6 +602,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
               tiedReg->_useRewriteMask = 0;
 
               tiedReg->markUseDone();
+              raInst->addFlags(RATiedFlags::kInst_RegToMemPatched);
               usePending--;
 
               rmAllocated = true;
@@ -687,7 +689,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     // ------
     //
     // ALLOCATE / SHUFFLE all registers that we marked as `willUse` and weren't allocated yet. This is a bit
-    // complicated as the allocation is iterative. In some cases we have to wait before allocating a particual
+    // complicated as the allocation is iterative. In some cases we have to wait before allocating a particular
     // physical register as it's still occupied by some other one, which we need to move before we can use it.
     // In this case we skip it and allocate another some other instead (making it free for another iteration).
     //
@@ -836,7 +838,7 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     // STEP 9
     // ------
     //
-    // Vector registers can be cloberred partially by invoke - find if that's the case and clobber when necessary.
+    // Vector registers can be clobbered partially by invoke - find if that's the case and clobber when necessary.
 
     if (node->isInvoke() && group == RegGroup::kVec) {
       const InvokeNode* invokeNode = node->as<InvokeNode>();

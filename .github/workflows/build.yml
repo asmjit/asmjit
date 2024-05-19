@@ -35,6 +35,7 @@ jobs:
           - { title: "diag-asan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "asan", defs: "ASMJIT_TEST=1" }
           - { title: "diag-msan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "msan", defs: "ASMJIT_TEST=1" }
           - { title: "diag-ubsan"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "ubsan", defs: "ASMJIT_TEST=1" }
+          - { title: "diag-hardened"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "hardened", defs: "ASMJIT_TEST=1" }
           - { title: "diag-valgrind"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "valgrind", defs: "ASMJIT_TEST=1" }
 
           - { title: "no-deprecated"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_DEPRECATED=1" }
@@ -169,7 +170,6 @@ jobs:
       - name: "Build & Test - Native"
         if: ${{!matrix.vm}}
         run: python build-actions/action.py
-               --step=all
                --source-dir=source
                --config=source/.github/workflows/build-config.json
                --compiler=${{matrix.cc}}
@@ -200,7 +200,6 @@ jobs:
 
             sh ./build-actions/prepare-environment.sh
             python3 build-actions/action.py                        \
-              --step=all                                           \
               --source-dir=source                                  \
               --config=source/.github/workflows/build-config.json  \
               --compiler=${{matrix.cc}}                            \
@@ -220,7 +219,6 @@ jobs:
             --platform linux/${{matrix.arch}}                      \
             ${{matrix.vm}}                                         \
             bash action.sh                                         \
-            --step=all                                             \
             --source-dir=../source                                 \
             --config=../source/.github/workflows/build-config.json \
             --compiler=${{matrix.cc}}                              \

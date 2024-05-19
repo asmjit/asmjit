@@ -4132,6 +4132,60 @@ public:
   }
 };
 
+// x86::Compiler - X86Test_VecToScalar
+// ===================================
+
+class X86Test_VecToScalar : public X86TestCase {
+public:
+  static constexpr uint32_t kVecCount = 64;
+
+  X86Test_VecToScalar() : X86TestCase("VecToScalar") {}
+
+  static void add(TestApp& app) {
+    app.add(new X86Test_VecToScalar());
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    FuncNode* func = cc.addFunc(FuncSignature::build<uint32_t, uint32_t>());
+
+    x86::Gp x = cc.newInt32("x");
+    x86::Gp t = cc.newInt32("t");
+    x86::Xmm v[kVecCount];
+
+    func->setArg(0, x);
+
+    for (size_t i = 0; i < kVecCount; i++) {
+      v[i] = cc.newXmm("v%d", i);
+      if (i != 0)
+        cc.add(x, 1);
+      cc.movd(v[i], x);
+    }
+
+    cc.xor_(x, x);
+
+    for (size_t i = 0; i < kVecCount; i++) {
+      cc.movd(t, v[i]);
+      cc.add(x, t);
+    }
+
+    cc.ret(x);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef uint32_t (*Func)(uint32_t);
+    Func func = ptr_as_func<Func>(_func);
+
+    uint32_t resultRet = func(1);
+    uint32_t expectRet = 2080; // 1 + 2 + 3 + ... + 64
+
+    result.assignFormat("ret=%d", resultRet);
+    expect.assignFormat("ret=%d", expectRet);
+
+    return result == expect;
+  }
+};
+
 // x86::Compiler - X86Test_MiscLocalConstPool
 // ==========================================
 
@@ -4512,6 +4566,7 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_FuncCallAVXClobber>();
 
   // Miscellaneous tests.
+  app.addT<X86Test_VecToScalar>();
   app.addT<X86Test_MiscLocalConstPool>();
   app.addT<X86Test_MiscGlobalConstPool>();
   app.addT<X86Test_MiscMultiRet>();

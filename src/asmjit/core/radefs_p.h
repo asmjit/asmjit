@@ -767,6 +767,12 @@ enum class RATiedFlags : uint32_t {
   // Instruction Flags (Never used by RATiedReg)
   // -------------------------------------------
 
+  //! Instruction has been patched to address a memory location instead of a register.
+  //!
+  //! This is currently only possible on X86 or X86_64 targets. It informs rewriter to rewrite the instruction if
+  //! necessary.
+  kInst_RegToMemPatched = 0x40000000u,
+
   //! Instruction is transformable to another instruction if necessary.
   //!
   //! This is flag that is only used by \ref RAInst to inform register allocator that the instruction has some
