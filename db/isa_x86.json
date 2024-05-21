@@ -1817,7 +1817,7 @@
       {"inst": "movntdqa W:xmm, m128"                                       , "op": "RM: 66 0F 38 2A /r"},
       {"inst": "mpsadbw X:xmm, xmm/m128, ib/ub"                             , "op": "RM: 66 0F 3A 42 /r ib"},
       {"inst": "packusdw X:xmm, xmm/m128"                                   , "op": "RM: 66 0F 38 2B /r"},
-      {"inst": "pblendvb X:xmm, xmm/m128, <xmm0>"                           , "op": "RM: 66 0F E0 /r"},
+      {"inst": "pblendvb X:xmm, xmm/m128, <xmm0>"                           , "op": "RM: 66 0F 38 10 /r"},
       {"inst": "pblendw X:xmm, xmm/m128, ib/ub"                             , "op": "RM: 66 0F 3A 0E /r ib"},
       {"inst": "pcmpeqq X:~xmm, ~xmm/m128"                                  , "op": "RM: 66 0F 38 29 /r"},
       {"inst": "pextrb W:r32[7:0]/m8, xmm, ib/ub"                           , "op": "MR: 66 0F 3A 14 /r ib"},
