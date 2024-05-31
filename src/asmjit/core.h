@@ -145,8 +145,7 @@ namespace asmjit {
 //! ### Supported Backends / Architectures
 //!
 //!   - **X86** and **X86_64** - Both 32-bit and 64-bit backends tested on CI.
-//!   - **AArch64** - AArch64 backend is currently only partially tested (there is no native AArch64 runner to test
-//!     AsmJit Builder/Compiler).
+//!   - **AArch64** - Tested on CI (Native Apple runners and Linux emulated via QEMU).
 //!
 //! ### Static Builds and Embedding
 //!

@@ -198,7 +198,7 @@ static ASMJIT_FAVOR_SIZE void simplifyCpuBrand(char* s) noexcept {
     if (!c)
       break;
 
-    if (!(c == ' ' && (prev == '@' || s[1] == ' ' || s[1] == '@'))) {
+    if (!(c == ' ' && (prev == '@' || s[1] == ' ' || s[1] == '@' || s[1] == '\0'))) {
       *d++ = c;
       prev = c;
     }
