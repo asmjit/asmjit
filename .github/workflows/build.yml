@@ -50,6 +50,10 @@ jobs:
           - { title: "no-x86"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_X86=1" }
           - { title: "no-aarch64"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_AARCH64=1" }
 
+          - { title: "lang-c++17"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++17" }
+          - { title: "lang-c++20"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++20" }
+          - { title: "lang-c++23"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++23" }
+
           - { title: "linux"           , host: "ubuntu-20.04"  , arch: "x86"    , cc: "gcc-7"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "linux"           , host: "ubuntu-20.04"  , arch: "x86"    , cc: "gcc-7"   , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "linux"           , host: "ubuntu-20.04"  , arch: "x64"    , cc: "gcc-7"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
