@@ -137,10 +137,6 @@ Error RALocalAllocator::switchToAssignment(PhysToWorkMap* dstPhysToWorkMap, cons
   dst.initMaps(dstPhysToWorkMap, _tmpWorkToPhysMap);
   dst.assignWorkIdsFromPhysIds();
 
-  // TODO: Remove this - finally enable this functionality.
-  if (tryMode)
-    return kErrorOk;
-
   for (RegGroup group : RegGroupVirtValues{}) {
     // STEP 1
     // ------
