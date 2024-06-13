@@ -24,6 +24,9 @@
   #include "../arm/a64formatter_p.h"
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  #include "../loongarch/la64formatter_p.h"
+#endif
 ASMJIT_BEGIN_NAMESPACE
 
 #if defined(ASMJIT_NO_COMPILER)
@@ -112,6 +115,11 @@ Error formatFeature(
     return arm::FormatterInternal::formatFeature(sb, featureId);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la::FormatterInternal::formatFeature(sb, featureId);
+#endif
+
   return kErrorInvalidArch;
 }
 
@@ -170,6 +178,10 @@ Error formatRegister(
     return arm::FormatterInternal::formatRegister(sb, formatFlags, emitter, arch, regType, regId);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la::FormatterInternal::formatRegister(sb, formatFlags, emitter, arch, regType, regId);
+#endif
   return kErrorInvalidArch;
 }
 
@@ -190,6 +202,10 @@ Error formatOperand(
     return arm::FormatterInternal::formatOperand(sb, formatFlags, emitter, arch, op);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la::FormatterInternal::formatOperand(sb, formatFlags, emitter, arch, op);
+#endif
   return kErrorInvalidArch;
 }
 
@@ -288,6 +304,10 @@ Error formatInstruction(
     return a64::FormatterInternal::formatInstruction(sb, formatFlags, emitter, arch, inst, operands, opCount);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la64::FormatterInternal::formatInstruction(sb, formatFlags, emitter, arch, inst, operands, opCount);
+#endif
   return kErrorInvalidArch;
 }
 

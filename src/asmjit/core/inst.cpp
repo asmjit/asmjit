@@ -15,6 +15,10 @@
   #include "../arm/a64instapi_p.h"
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  #include "../loongarch/la64instapi_p.h"
+#endif
+
 ASMJIT_BEGIN_NAMESPACE
 
 // InstAPI - InstId <-> String
@@ -32,6 +36,10 @@ Error InstAPI::instIdToString(Arch arch, InstId instId, String& output) noexcept
     return a64::InstInternal::instIdToString(instId, output);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la64::InstInternal::instIdToString(instId, output);
+#endif
   return DebugUtils::errored(kErrorInvalidArch);
 }
 
@@ -46,6 +54,10 @@ InstId InstAPI::stringToInstId(Arch arch, const char* s, size_t len) noexcept {
     return a64::InstInternal::stringToInstId(s, len);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la64::InstInternal::stringToInstId(s, len);
+#endif
   return 0;
 }
 #endif // !ASMJIT_NO_TEXT
@@ -67,6 +79,11 @@ Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operand
 #if !defined(ASMJIT_NO_AARCH64)
   if (Environment::isFamilyAArch64(arch))
     return a64::InstInternal::validate(inst, operands, opCount, validationFlags);
+#endif
+
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la64::InstInternal::validate(inst, operands, opCount, validationFlags);
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);
@@ -91,6 +108,10 @@ Error InstAPI::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* oper
     return a64::InstInternal::queryRWInfo(inst, operands, opCount, out);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la64::InstInternal::queryRWInfo(inst, operands, opCount, out);
+#endif
   return DebugUtils::errored(kErrorInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION
@@ -110,6 +131,10 @@ Error InstAPI::queryFeatures(Arch arch, const BaseInst& inst, const Operand_* op
     return a64::InstInternal::queryFeatures(inst, operands, opCount, out);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (Environment::isFamilyLOONGARCH(arch))
+    return la64::InstInternal::queryFeatures(inst, operands, opCount, out);
+#endif
   return DebugUtils::errored(kErrorInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION

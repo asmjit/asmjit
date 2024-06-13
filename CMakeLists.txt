@@ -54,6 +54,10 @@ if (NOT DEFINED ASMJIT_NO_AARCH64)
   set(ASMJIT_NO_AARCH64 FALSE)
 endif()
 
+if (NOT DEFINED ASMJIT_NO_LOONGARCH64)
+    set(ASMJIT_NO_LOONGARCH64 FALSE)
+endif()
+
 if (NOT DEFINED ASMJIT_NO_FOREIGN)
   set(ASMJIT_NO_FOREIGN FALSE)
 endif()
@@ -114,6 +118,7 @@ set(ASMJIT_NO_CUSTOM_FLAGS  "${ASMJIT_NO_CUSTOM_FLAGS}"  CACHE BOOL "Disable ext
 
 set(ASMJIT_NO_X86           "${ASMJIT_NO_X86}"           CACHE BOOL "Disable X86/X64 backend")
 set(ASMJIT_NO_AARCH64       "${ASMJIT_NO_AARCH64}"       CACHE BOOL "Disable AArch64 backend")
+set(ASMJIT_NO_LOONGARCH64   "${ASMJIT_NO_LOONGARCH64}"   CACHE BOOL "Disable Loongarch64 backend")
 set(ASMJIT_NO_FOREIGN       "${ASMJIT_NO_FOREIGN}"       CACHE BOOL "Disable all foreign architectures (enables only a target architecture)")
 
 set(ASMJIT_NO_DEPRECATED    "${ASMJIT_NO_DEPRECATED}"    CACHE BOOL "Disable deprecated API at build time")
@@ -336,6 +341,7 @@ foreach(build_option # AsmJit build options.
                      # AsmJit backends selection.
                      ASMJIT_NO_X86
                      ASMJIT_NO_AARCH64
+                     ASMJIT_NO_LOONGARCH64
                      ASMJIT_NO_FOREIGN
                      # AsmJit features selection.
                      ASMJIT_NO_JIT
@@ -513,6 +519,36 @@ set(ASMJIT_SRC_LIST
   asmjit/x86/x86operand.h
   asmjit/x86/x86rapass.cpp
   asmjit/x86/x86rapass_p.h
+
+./asmjit/loongarch/la64assembler.h
+./asmjit/loongarch/lautils.h
+./asmjit/loongarch/la64rapass_p.h
+./asmjit/loongarch/la64func_p.h
+./asmjit/loongarch/la64formatter_p.h
+./asmjit/loongarch/laglobals.h
+./asmjit/loongarch/la64formatter.cpp
+./asmjit/loongarch/la64compiler.h
+./asmjit/loongarch/la64instdb_p.h
+./asmjit/loongarch/la64emitter.h
+./asmjit/loongarch/la64operand.h
+./asmjit/loongarch/la64assembler.cpp
+./asmjit/loongarch/la64archtraits_p.h
+./asmjit/loongarch/la64operand.cpp
+./asmjit/loongarch/laoperand.h
+./asmjit/loongarch/la64emithelper.cpp
+./asmjit/loongarch/la64compiler.cpp
+./asmjit/loongarch/la64builder.h
+./asmjit/loongarch/la64builder.cpp
+./asmjit/loongarch/laformatter_p.h
+./asmjit/loongarch/la64rapass.cpp
+./asmjit/loongarch/la64instdb.h
+./asmjit/loongarch/la64instapi_p.h
+./asmjit/loongarch/la64instapi.cpp
+./asmjit/loongarch/la64emithelper_p.h
+./asmjit/loongarch/la64instdb.cpp
+./asmjit/loongarch/la64globals.h
+./asmjit/loongarch/laformatter.cpp
+./asmjit/loongarch/la64func.cpp
 )
 
 if (MSVC AND NOT ASMJIT_NO_NATVIS)
@@ -609,6 +645,7 @@ if (NOT ASMJIT_EMBED)
                       SOURCES    test/asmjit_test_assembler.cpp
                                  test/asmjit_test_assembler.h
                                  test/asmjit_test_assembler_a64.cpp
+                                 test/asmjit_test_assembler_la64.cpp
                                  test/asmjit_test_assembler_x64.cpp
                                  test/asmjit_test_assembler_x86.cpp
                       LIBRARIES  asmjit::asmjit

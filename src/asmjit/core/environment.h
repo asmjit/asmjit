@@ -373,6 +373,8 @@ public:
   ASMJIT_INLINE_NODEBUG bool isFamilyMIPS() const noexcept { return isFamilyMIPS(_arch); }
   //! Tests whether this architecture family is RISC-V (both 32-bit and 64-bit).
   ASMJIT_INLINE_NODEBUG bool isFamilyRISCV() const noexcept { return isFamilyRISCV(_arch); }
+  //! Tests whether this architecture family is RISC-V (both 32-bit and 64-bit).
+  ASMJIT_INLINE_NODEBUG bool isFamilyLOONGARCH() const noexcept { return isFamilyLOONGARCH(_arch); }
 
   //! Tests whether the environment platform is Windows.
   ASMJIT_INLINE_NODEBUG bool isPlatformWindows() const noexcept { return _platform == Platform::kWindows; }
@@ -486,6 +488,14 @@ public:
     return arch == Arch::kMIPS64_LE || arch == Arch::kMIPS64_BE;
   }
 
+  static ASMJIT_INLINE_NODEBUG bool isArchLOONGARCH64(Arch arch) noexcept {
+    return arch == Arch::kLOONGARCH64;
+  }
+
+  static ASMJIT_INLINE_NODEBUG bool isArchLOONGARCH32(Arch arch) noexcept {
+    return arch == Arch::kLOONGARCH32;
+  }
+
   //! Tests whether the given architecture family is X86 or X64.
   static ASMJIT_INLINE_NODEBUG bool isFamilyX86(Arch arch) noexcept {
     return arch == Arch::kX86 || arch == Arch::kX64;
@@ -514,6 +524,10 @@ public:
   //! Tests whether the given architecture family is RISC-V (both 32-bit and 64-bit).
   static ASMJIT_INLINE_NODEBUG bool isFamilyRISCV(Arch arch) noexcept {
     return arch == Arch::kRISCV32 || arch == Arch::kRISCV64;
+  }
+
+  static ASMJIT_INLINE_NODEBUG bool isFamilyLOONGARCH(Arch arch) noexcept {
+    return arch == Arch::kLOONGARCH32 || arch == Arch::kLOONGARCH64;
   }
 
   //! Returns a native general purpose register size from the given architecture.

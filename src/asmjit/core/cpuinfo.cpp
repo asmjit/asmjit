@@ -1975,6 +1975,25 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 
 #endif
 
+#if ASMJIT_ARCH_LOONGARCH
+
+namespace loongarch {
+
+typedef CpuFeatures::LOONGARCH Ext;
+
+//! Detect LOONGARCH CPU features on Windows.
+//!
+//! The detection is based on `IsProcessorFeaturePresent()` API call.
+static ASMJIT_FAVOR_SIZE void detectLOONGARCHCpu(CpuInfo& cpu) noexcept {
+  cpu._wasDetected = true;
+
+  CpuFeatures::LOONGARCH& features = cpu.features().loongarch();
+  features.add(Ext::kLOONGARCH64);
+
+}
+
+} // {loongarch}
+#endif
 // CpuInfo - Detect - Host
 // =======================
 
@@ -1994,6 +2013,8 @@ const CpuInfo& CpuInfo::host() noexcept {
     x86::detectX86Cpu(cpuInfoLocal);
 #elif ASMJIT_ARCH_ARM
     arm::detectARMCpu(cpuInfoLocal);
+#elif ASMJIT_ARCH_LOONGARCH
+    loongarch::detectLOONGARCHCpu(cpuInfoLocal);
 #endif
 
     cpuInfoLocal._hwThreadCount = detectHWThreadCount();
