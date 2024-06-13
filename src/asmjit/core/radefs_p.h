@@ -80,6 +80,16 @@ public:
         return kErrorOk;
       }
 
+      case Arch::kLOONGARCH64: {
+        /* _availableRegs[RegGroup::kGp] = 0xFFFFFFFFu & ~Support::bitMask(0, 1, 2, 3, 21, 22u); */
+        _availableRegs[RegGroup::kGp] = 0x1ff000u;   //FIXME
+        _availableRegs[RegGroup::kVec] = 0xFFFFFFFFu;
+        _availableRegs[RegGroup::kMask] = 0;
+        _availableRegs[RegGroup::kExtraVirt3] = 0;
+        return kErrorOk;
+
+      }
+
       default:
         return DebugUtils::errored(kErrorInvalidArch);
     }
