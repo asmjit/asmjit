@@ -559,7 +559,7 @@ public:
 
   ASMJIT_FORCE_INLINE Error nonOverlappingUnionOf(ZoneAllocator* allocator, const RALiveSpans<T>& x, const RALiveSpans<T>& y, const DataType& yData) noexcept {
     uint32_t finalSize = x.size() + y.size();
-    ASMJIT_PROPAGATE(_data.reserve(allocator, finalSize));
+    ASMJIT_PROPAGATE(_data.growingReserve(allocator, finalSize));
 
     T* dstPtr = _data.data();
     const T* xSpan = x.data();
@@ -694,7 +694,7 @@ typedef RALiveSpans<LiveRegSpan> LiveRegSpans;
 //!   - LEA x{  W|Out}, [x{R|Use} + y{R|Out}]  -> {x:R|W|Use|Out y:R|Use}
 //!
 //! It should be obvious from the example above how these flags get created. Each operand contains READ/WRITE
-//! information, which is then merged to RATiedReg's flags. However, we also need to represent the possitility
+//! information, which is then merged to RATiedReg's flags. However, we also need to represent the possibility
 //! to view the operation as two independent operations - USE and OUT, because the register allocator first
 //! allocates USE registers, and then assigns OUT registers independently of USE registers.
 enum class RATiedFlags : uint32_t {
