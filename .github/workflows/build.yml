@@ -3,6 +3,10 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ${{github.ref}}
+  cancel-in-progress: ${{github.ref != 'refs/heads/master'}}
+
 defaults:
   run:
     shell: bash
@@ -133,14 +137,14 @@ jobs:
           - { title: "windows"         , host: "windows-2022"  , arch: "x64"    , cc: "vs2022"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "windows"         , host: "windows-2022"  , arch: "x64"    , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=1" }
 
-          - { title: "freebsd"         , host: "macos-12"      , arch: "x86-64" , cc: "clang"   , conf: "Release", vm: "freebsd", vm_ver: "13.2", defs: "ASMJIT_TEST=1" }
-          - { title: "netbsd"          , host: "macos-12"      , arch: "x86-64" , cc: "clang"   , conf: "Release", vm: "netbsd" , vm_ver: "9.3" , defs: "ASMJIT_TEST=1" }
-          - { title: "openbsd"         , host: "macos-12"      , arch: "x86-64" , cc: "clang"   , conf: "Release", vm: "openbsd", vm_ver: "7.4" , defs: "ASMJIT_TEST=1" }
+          - { title: "freebsd"         , host: "ubuntu-latest" , arch: "x64"    , cc: "clang"   , conf: "Release", vm: "freebsd", vm_ver: "14.1", defs: "ASMJIT_TEST=1" }
+          - { title: "freebsd"         , host: "ubuntu-latest" , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "freebsd", vm_ver: "14.1", defs: "ASMJIT_TEST=1" }
+          - { title: "netbsd"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang"   , conf: "Release", vm: "netbsd" , vm_ver: "10.0", defs: "ASMJIT_TEST=1" }
+          - { title: "netbsd"          , host: "ubuntu-latest" , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "netbsd" , vm_ver: "10.0", defs: "ASMJIT_TEST=1" }
+          - { title: "openbsd"         , host: "ubuntu-latest" , arch: "x64"    , cc: "clang"   , conf: "Release", vm: "openbsd", vm_ver: "7.4" , defs: "ASMJIT_TEST=1" }
           - { title: "openbsd"         , host: "ubuntu-latest" , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "openbsd", vm_ver: "7.4" , defs: "ASMJIT_TEST=1" }
 
-          # arm/v7 VM image doesn't work on CI environment at the moment
-          # - { title: "debian"          , host: "ubuntu-latest" , arch: "arm/v7" , cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
-
+          - { title: "debian"          , host: "ubuntu-latest" , arch: "arm/v7" , cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
           - { title: "debian"          , host: "ubuntu-latest" , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
           - { title: "debian"          , host: "ubuntu-latest" , arch: "riscv64", cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
           - { title: "debian"          , host: "ubuntu-latest" , arch: "ppc64le", cc: "clang"   , conf: "Release", vm: "debian:unstable", defs: "ASMJIT_TEST=1" }
