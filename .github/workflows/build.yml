@@ -40,7 +40,7 @@ jobs:
           - { title: "diag-msan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "msan", defs: "ASMJIT_TEST=1" }
           - { title: "diag-ubsan"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "ubsan", defs: "ASMJIT_TEST=1" }
           - { title: "diag-hardened"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "hardened", defs: "ASMJIT_TEST=1" }
-          - { title: "diag-valgrind"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "valgrind", defs: "ASMJIT_TEST=1" }
+          - { title: "diag-valgrind"   , host: "ubuntu-24.04"  , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "valgrind", defs: "ASMJIT_TEST=1" }
 
           - { title: "no-deprecated"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_DEPRECATED=1" }
           - { title: "no-intrinsics"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_INTRINSICS=1" }

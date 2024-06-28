@@ -594,7 +594,10 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
             if (rmSize <= workReg->virtReg()->virtSize()) {
               Operand& op = node->operands()[opIndex];
               op = _pass->workRegAsMem(workReg);
-              op.as<BaseMem>().setSize(rmSize);
+
+              // NOTE: We cannot use `x86::Mem::setSize()` from here, so let's manipulate the signature directly.
+              op._signature.setSize(rmSize);
+
               tiedReg->_useRewriteMask = 0;
 
               tiedReg->markUseDone();
