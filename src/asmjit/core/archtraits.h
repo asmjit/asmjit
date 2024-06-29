@@ -58,8 +58,11 @@ enum class Arch : uint8_t {
   //! 64-bit MIPS ISA in (big endian).
   kMIPS64_BE = 16,
 
+  kLOONGARCH32 = 17,
+  kLOONGARCH64 = 18,
+
   //! Maximum value of `Arch`.
-  kMaxValue = kMIPS64_BE,
+  kMaxValue = kLOONGARCH64,
 
   //! Mask used by 32-bit ISAs (odd are 32-bit, even are 64-bit).
   k32BitMask = 0x01,
@@ -87,6 +90,8 @@ enum class Arch : uint8_t {
     ASMJIT_ARCH_MIPS == 64 && ASMJIT_ARCH_LE ? kMIPS64_LE :
     ASMJIT_ARCH_MIPS == 64 && ASMJIT_ARCH_BE ? kMIPS64_BE :
 
+    ASMJIT_ARCH_LOONGARCH == 32 ? kLOONGARCH32 :
+    ASMJIT_ARCH_LOONGARCH == 64 ? kLOONGARCH64 :
     kUnknown
 #endif
 };
