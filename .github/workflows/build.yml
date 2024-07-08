@@ -137,6 +137,13 @@ jobs:
           - { title: "windows"         , host: "windows-2022"  , arch: "x64"    , cc: "vs2022"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "windows"         , host: "windows-2022"  , arch: "x64"    , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=1" }
 
+          # Cross compiled, cannot run tests (Windows/ARM64).
+          - { title: "windows"         , host: "windows-2022"  , arch: "arm64"  , cc: "vs2022"  , conf: "Debug"  , defs: "ASMJIT_TEST=0" }
+          - { title: "windows"         , host: "windows-2022"  , arch: "arm64"  , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=0" }
+
+          # Cross compiled, cannot run tests (Windows/UWP).
+          - { title: "windows/uwp"     , host: "windows-2022"  , arch: "x64"    , cc: "vs2022"  , conf: "Release", defs: "ASMJIT_TEST=0,CMAKE_SYSTEM_NAME=WindowsStore,CMAKE_SYSTEM_VERSION=10.0,CMAKE_CXX_FLAGS=-D_WIN32_WINNT=0x0A00" }
+
           - { title: "freebsd"         , host: "ubuntu-latest" , arch: "x64"    , cc: "clang"   , conf: "Release", vm: "freebsd", vm_ver: "14.1", defs: "ASMJIT_TEST=1" }
           - { title: "freebsd"         , host: "ubuntu-latest" , arch: "arm64"  , cc: "clang"   , conf: "Release", vm: "freebsd", vm_ver: "14.1", defs: "ASMJIT_TEST=1" }
           - { title: "netbsd"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang"   , conf: "Release", vm: "netbsd" , vm_ver: "10.0", defs: "ASMJIT_TEST=1" }
