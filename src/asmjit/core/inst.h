@@ -48,7 +48,12 @@ enum class InstIdParts : uint32_t {
   //! AArch32 second data type, used by ASIMD instructions (`inst.dt.dt2`).
   kA32_DT2  = 0x00F00000u,
   //! AArch32/AArch64 condition code.
-  kARM_Cond = 0x78000000u
+  kARM_Cond = 0x78000000u,
+
+  // Loongarch Specific  FIXME
+  // ------------
+  //! AArch32/AArch64 condition code.
+  kLA_Cond = 0x78000000u
 };
 
 //! Instruction options.
@@ -308,6 +313,14 @@ public:
 
   //! \}
 
+  //! \name ARM Specific
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG la::CondCode laCondCode() const noexcept { return (la::CondCode)getInstIdPart<InstIdParts::kLA_Cond>(); }
+  ASMJIT_INLINE_NODEBUG void setLaCondCode(la::CondCode cc) noexcept { setInstIdPart<InstIdParts::kARM_Cond>(uint32_t(cc)); }
+
+  //! \}
+
   //! \name Statics
   //! \{
 
@@ -334,6 +347,25 @@ public:
     return (arm::CondCode)((uint32_t(id) & uint32_t(InstIdParts::kARM_Cond)) >> Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
   }
 
+  //Loongarch  FIXME
+  static ASMJIT_INLINE_NODEBUG constexpr InstId composeLAInstId(uint32_t id, la::CondCode cc) noexcept {
+    return id | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kLA_Cond)>::value);
+  }
+
+  static ASMJIT_INLINE_NODEBUG constexpr InstId composeLAInstId(uint32_t id, a32::DataType dt, la::CondCode cc = la::CondCode::kAL) noexcept {
+    return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
+              | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kLA_Cond)>::value);
+  }
+
+  static ASMJIT_INLINE_NODEBUG constexpr InstId composeLAInstId(uint32_t id, a32::DataType dt, a32::DataType dt2, la::CondCode cc = la::CondCode::kAL) noexcept {
+    return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
+              | (uint32_t(dt2) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT2)>::value)
+              | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kLA_Cond)>::value);
+  }
+
+  static ASMJIT_INLINE_NODEBUG constexpr la::CondCode extractLACondCode(uint32_t id) noexcept {
+    return (la::CondCode)((uint32_t(id) & uint32_t(InstIdParts::kARM_Cond)) >> Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
+  }
   //! \}
 };
 
