@@ -122,10 +122,10 @@ jobs:
           - { title: "linux"           , host: "ubuntu-22.04"  , arch: "x86"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "linux"           , host: "ubuntu-22.04"  , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "linux"           , host: "ubuntu-22.04"  , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1" }
-          - { title: "macos"           , host: "macos-12"      , arch: "x64"    , cc: "gcc-11"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
-          - { title: "macos"           , host: "macos-12"      , arch: "x64"    , cc: "gcc-11"  , conf: "Release", defs: "ASMJIT_TEST=1" }
-          - { title: "macos"           , host: "macos-12"      , arch: "x64"    , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
-          - { title: "macos"           , host: "macos-12"      , arch: "x64"    , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "macos"           , host: "macos-13"      , arch: "x64"    , cc: "gcc-14"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "macos"           , host: "macos-13"      , arch: "x64"    , cc: "gcc-14"  , conf: "Release", defs: "ASMJIT_TEST=1" }
+          - { title: "macos"           , host: "macos-13"      , arch: "x64"    , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
+          - { title: "macos"           , host: "macos-13"      , arch: "x64"    , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "macos"           , host: "macos-14"      , arch: "arm64"  , cc: "clang"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "macos"           , host: "macos-14"      , arch: "arm64"  , cc: "clang"   , conf: "Release", defs: "ASMJIT_TEST=1" }
           - { title: "windows"         , host: "windows-2019"  , arch: "x86"    , cc: "vs2019"  , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
