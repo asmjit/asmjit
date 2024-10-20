@@ -52,6 +52,8 @@ jobs:
           - { title: "no-jit"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_JIT=1" }
           - { title: "no-validation"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_VALIDATION=1" }
           - { title: "no-x86"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_X86=1" }
+          - { title: "no-arm"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-17", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_AARCH32=1,ASMJIT_NO_AARCH64=1" }
+          - { title: "no-aarch32"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-17", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_AARCH32=1" }
           - { title: "no-aarch64"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_AARCH64=1" }
 
           - { title: "lang-c++17"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++17" }
