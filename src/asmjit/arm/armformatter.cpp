@@ -9,6 +9,7 @@
 #include "../core/misc_p.h"
 #include "../core/support.h"
 #include "../arm/armformatter_p.h"
+#include "../arm/a32operand.h"
 #include "../arm/a64operand.h"
 #include "../arm/a64instapi_p.h"
 #include "../arm/a64instdb_p.h"
@@ -372,6 +373,15 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         }
         else {
           letter = 'r';
+
+          if (rId == a32::Gp::kIdSP)
+            return sb.append("sp", 2);
+
+          if (rId == a32::Gp::kIdLR)
+            return sb.append("lr", 2);
+
+          if (rId == a32::Gp::kIdPC)
+            return sb.append("pc", 2);
         }
         break;
 
