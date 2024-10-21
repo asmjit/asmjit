@@ -258,4 +258,158 @@ ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 using namespace arm;
 ASMJIT_END_SUB_NAMESPACE
 
+ASMJIT_BEGIN_SUB_NAMESPACE(la)
+
+//! \addtogroup asmjit_la
+//! \{
+
+//! Condition code.
+//!
+enum class CondCode : uint8_t {
+  kAL             = 0x00u,      //!< (no condition code) (always)
+  kNA             = 0x01u,      //!< (not available)     (special)
+  kEQ             = 0x02u,      //!<        Z==1         (any_sign ==)
+  kNE             = 0x03u,      //!<        Z==0         (any_sign !=)
+  kCS             = 0x04u,      //!< C==1                (unsigned >=)
+  kHS             = 0x04u,      //!< C==1                (unsigned >=)
+  kLO             = 0x05u,      //!< C==0                (unsigned < )
+  kCC             = 0x05u,      //!< C==0                (unsigned < )
+  kMI             = 0x06u,      //!<               N==1  (is negative)
+  kPL             = 0x07u,      //!<               N==0  (is positive or zero)
+  kVS             = 0x08u,      //!<               V==1  (is overflow)
+  kVC             = 0x09u,      //!<               V==0  (no overflow)
+  kHI             = 0x0Au,      //!< C==1 & Z==0         (unsigned > )
+  kLS             = 0x0Bu,      //!< C==0 | Z==1         (unsigned <=)
+  kGE             = 0x0Cu,      //!<               N==V  (signed   >=)
+  kLT             = 0x0Du,      //!<               N!=V  (signed   < )
+  kGT             = 0x0Eu,      //!<        Z==0 & N==V  (signed   > )
+  kLE             = 0x0Fu,      //!<        Z==1 | N!=V  (signed   <=)
+
+  kZero           = kEQ,        //!< Zero flag (alias to equal).
+  kNotZero        = kNE,        //!< Not zero (alias to Not Equal).
+
+  kEqual          = kEQ,        //!< Equal     `a == b`.
+  kNotEqual       = kNE,        //!< Not Equal `a != b`.
+
+  kCarry          = kCS,        //!< Carry flag.
+  kNotCarry       = kCC,        //!< Not carry.
+
+  kSign           = kMI,        //!< Sign flag.
+  kNotSign        = kPL,        //!< Not sign.
+
+  kNegative       = kMI,        //!< Negative.
+  kPositive       = kPL,        //!< Positive or zero.
+
+  kOverflow       = kVS,        //!< Signed overflow.
+  kNotOverflow    = kVC,        //!< Not signed overflow.
+
+  kSignedLT       = kLT,        //!< Signed    `a <  b`.
+  kSignedLE       = kLE,        //!< Signed    `a <= b`.
+  kSignedGT       = kGT,        //!< Signed    `a >  b`.
+  kSignedGE       = kGE,        //!< Signed    `a >= b`.
+
+  kUnsignedLT     = kLO,        //!< Unsigned  `a <  b`.
+  kUnsignedLE     = kLS,        //!< Unsigned  `a <= b`.
+  kUnsignedGT     = kHI,        //!< Unsigned  `a >  b`.
+  kUnsignedGE     = kHS,        //!< Unsigned  `a >= b`.
+
+  kBTZero         = kZero,      //!< Tested bit is zero.
+  kBTNotZero      = kNotZero,   //!< Tested bit is not zero.
+
+  kAlways         = kAL,        //!< No condition code (always).
+
+  kMaxValue       = 0x0Fu       //!< Maximum value of `CondCode`.
+};
+
+
+//! \cond
+static constexpr CondCode _reverseCondTable[] = {
+  CondCode::kAL, // AL <- AL
+  CondCode::kNA, // NA <- NA
+  CondCode::kEQ, // EQ <- EQ
+  CondCode::kNE, // NE <- NE
+  CondCode::kLS, // LS <- CS
+  CondCode::kHI, // HI <- LO
+  CondCode::kMI, // MI <- MI
+  CondCode::kPL, // PL <- PL
+  CondCode::kVS, // VS <- VS
+  CondCode::kVC, // VC <- VC
+  CondCode::kLO, // LO <- HI
+  CondCode::kCS, // CS <- LS
+  CondCode::kLE, // LE <- GE
+  CondCode::kGT, // GT <- LT
+  CondCode::kLT, // LT <- GT
+  CondCode::kGE  // GE <- LE
+};
+//! \endcond
+
+//! Reverses a condition code (reverses the corresponding operands of a comparison).
+static ASMJIT_INLINE_NODEBUG constexpr CondCode reverseCond(CondCode cond) noexcept { return _reverseCondTable[uint8_t(cond)]; }
+//! Negates a condition code.
+static ASMJIT_INLINE_NODEBUG constexpr CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
+//! Memory offset mode loongarch only has fixed mode.
+//!
+//! Describes either fixed, pre-index, or post-index offset modes.
+enum class OffsetMode : uint32_t {
+  //! Fixed offset mode (either no index at all or a regular index without a write-back).
+  kFixed = 0u,
+};
+
+//! Shift operation predicate (ARM) describes either SHIFT or EXTEND operation.
+//!
+//! \note The constants are AsmJit specific. The first 5 values describe real constants on ARM32 and AArch64 hardware,
+//! however, the addition constants that describe extend modes are specific to AsmJit and would be translated to the
+//! AArch64 specific constants by the assembler.
+enum class ShiftOp : uint32_t {
+  //! Shift left logical operation (default).
+  //!
+  kSLL = 0x00u,
+
+  //! Shift right logical operation.
+  //!
+  kSRL = 0x01u,
+
+  //! Shift right arithmetic operation.
+  //!
+  kSRA = 0x02u,
+
+  //! Rotate right operation.
+  kRORT = 0x03u,
+
+};
+
+//! Represents ARM immediate shift operation type and value.
+class Shift {
+public:
+  //! Shift operation.
+  ShiftOp _op;
+  //! Shift Value.
+  uint32_t _value;
+
+  //! Default constructed Shift is not initialized.
+  ASMJIT_INLINE_NODEBUG Shift() noexcept = default;
+
+  //! Copy constructor (default)
+  ASMJIT_INLINE_NODEBUG constexpr Shift(const Shift& other) noexcept = default;
+
+  //! Constructs Shift from operation `op` and shift `value`.
+  ASMJIT_INLINE_NODEBUG constexpr Shift(ShiftOp op, uint32_t value) noexcept
+    : _op(op),
+      _value(value) {}
+
+  //! Returns the shift operation.
+  ASMJIT_INLINE_NODEBUG constexpr ShiftOp op() const noexcept { return _op; }
+  //! Sets shift operation to `op`.
+  ASMJIT_INLINE_NODEBUG void setOp(ShiftOp op) noexcept { _op = op; }
+
+  //! Returns the shift amount.
+  ASMJIT_INLINE_NODEBUG constexpr uint32_t value() const noexcept { return _value; }
+  //! Sets shift amount to `value`.
+  ASMJIT_INLINE_NODEBUG void setValue(uint32_t value) noexcept { _value = value; }
+};
+ASMJIT_END_SUB_NAMESPACE
+
+ASMJIT_BEGIN_SUB_NAMESPACE(la64)
+using namespace la;
+ASMJIT_END_SUB_NAMESPACE
 #endif // ASMJIT_CORE_ARCHCOMMONS_H_INCLUDED

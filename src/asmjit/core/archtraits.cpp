@@ -16,6 +16,10 @@
   #include "../arm/a64archtraits_p.h"
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  #include "../loongarch/la64archtraits_p.h"
+#endif
+
 ASMJIT_BEGIN_NAMESPACE
 
 static const constexpr ArchTraits noArchTraits = {
@@ -90,15 +94,38 @@ ASMJIT_VARAPI const ArchTraits _archTraits[uint32_t(Arch::kMaxValue) + 1] = {
   noArchTraits,
 #endif
 
+
   // ARM/Thumb architecture.
   noArchTraits,
 
   // Reserved.
   noArchTraits,
 
-  // MIPS32/MIPS64
+  // MIPS32/MIPS64 le
   noArchTraits,
+  noArchTraits,
+
+  //ARM/AARCH64 Thumb be
+  noArchTraits,
+  noArchTraits,
+  noArchTraits,
+
+  // Reserved.
+  noArchTraits,
+
+  // MIPS32/MIPS64 be
+  noArchTraits,
+  noArchTraits,
+
+  //Loongarch32
+  noArchTraits,
+  // Loongarch64 architecture.
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  la64::la64ArchTraits
+#else
   noArchTraits
+#endif
+
 };
 
 ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegSignature(Arch arch, TypeId typeId, TypeId* typeIdOut, OperandSignature* regSignatureOut) noexcept {
