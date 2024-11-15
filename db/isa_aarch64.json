@@ -410,6 +410,13 @@
       {"inst": "clrbhb"                                                  , "op": "11010101|000|00011|0010|0010|110|11111"}
     ]},
 
+    {"category": "GP", "ext": "CPA", "data": [
+      {"inst": "addpt Xd|SP, Xn|SP, Xm, {lsl #n}"                        , "op": "10011010|000|Rm|001|n:3|Rn|Rd"},
+      {"inst": "maddpt Xd, Xn, Xm, Xa"                                   , "op": "10011011|011|Rm|0|Ra|Rn|Rd"},
+      {"inst": "msubpt Xd, Xn, Xm, Xa"                                   , "op": "10011011|011|Rm|1|Ra|Rn|Rd"},
+      {"inst": "subpt Xd|SP, Xn|SP, Xm, {lsl #n}"                        , "op": "11011010|000|Rm|001|n:3|Rn|Rd"}
+    ]},
+
     {"category": "GP GP_EXT CRYPTO_HASH", "ext": "CRC32", "data": [
       {"inst": "crc32b Wd, Wn, Wm"                                       , "op": "00011010|110|Rm|0|10000|Rn|Rd"},
       {"inst": "crc32h Wd, Wn, Wm"                                       , "op": "00011010|110|Rm|0|10001|Rn|Rd"},
@@ -1936,16 +1943,16 @@
       {"inst": "sminv Sd, Vn.4S"                                         , "op": "01001110|10|11000|11010|10|Vn|Vd"},
       {"inst": "smlal Vx.ta, Vn.tb, Vm.tb"                               , "op": "00001110|sz|1|Vm|10000|0|Vn|Vx"                        , "t": "8H.8B 4S.4H 2D.2S"},
       {"inst": "smlal2 Vx.ta, Vn.tb, Vm.tb"                              , "op": "01001110|sz|1|Vm|10000|0|Vn|Vx"                        , "t": "8H.16B 4S.8H 2D.4S"},
-      {"inst": "smlal Vx.4S, Vn.4H, Vm.H[#dx]"                           , "op": "00001111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vx"},
-      {"inst": "smlal2 Vx.4S, Vn.8H, Vm.H[#dx]"                          , "op": "01001111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vx"},
-      {"inst": "smlal Vx.2D, Vn.2S, Vm.S[#dx]"                           , "op": "00001111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vx"},
-      {"inst": "smlal2 Vx.2D, Vn.4S, Vm.S[#dx]"                          , "op": "01001111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vx"},
+      {"inst": "smlal Vx.4S, Vn.4H, Vm.H[#idx]"                          , "op": "00001111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vx"},
+      {"inst": "smlal2 Vx.4S, Vn.8H, Vm.H[#idx]"                         , "op": "01001111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vx"},
+      {"inst": "smlal Vx.2D, Vn.2S, Vm.S[#idx]"                          , "op": "00001111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vx"},
+      {"inst": "smlal2 Vx.2D, Vn.4S, Vm.S[#idx]"                         , "op": "01001111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vx"},
       {"inst": "smlsl Vx.ta, Vn.tb, Vm.tb"                               , "op": "00001110|sz|1|Vm|10100|0|Vn|Vx"                        , "t": "8H.8B 4S.4H 2D.2S"},
       {"inst": "smlsl2 Vx.ta, Vn.tb, Vm.tb"                              , "op": "01001110|sz|1|Vm|10100|0|Vn|Vx"                        , "t": "8H.16B 4S.8H 2D.4S"},
-      {"inst": "smlsl Vx.4S, Vn.4H, Vm.H[#dx]"                           , "op": "00001111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vx"},
-      {"inst": "smlsl2 Vx.4S, Vn.8H, Vm.H[#dx]"                          , "op": "01001111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vx"},
-      {"inst": "smlsl Vx.2D, Vn.2S, Vm.S[#dx]"                           , "op": "00001111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vx"},
-      {"inst": "smlsl2 Vx.2D, Vn.4S, Vm.S[#dx]"                          , "op": "01001111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vx"},
+      {"inst": "smlsl Vx.4S, Vn.4H, Vm.H[#idx]"                          , "op": "00001111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vx"},
+      {"inst": "smlsl2 Vx.4S, Vn.8H, Vm.H[#idx]"                         , "op": "01001111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vx"},
+      {"inst": "smlsl Vx.2D, Vn.2S, Vm.S[#idx]"                          , "op": "00001111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vx"},
+      {"inst": "smlsl2 Vx.2D, Vn.4S, Vm.S[#idx]"                         , "op": "01001111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vx"},
       {"inst": "smov Wd, Vn.B[#idx]"                                     , "op": "00001110|00|0|idx:4|  1|00101|1|Vn|Rd"},
       {"inst": "smov Wd, Vn.H[#idx]"                                     , "op": "00001110|00|0|idx:3| 10|00101|1|Vn|Rd"},
       {"inst": "smov Xd, Vn.B[#idx]"                                     , "op": "01001110|00|0|idx:4|  1|00101|1|Vn|Rd"},
@@ -2343,16 +2350,16 @@
       {"inst": "uminv Sd, Vn.4S"                                         , "op": "01101110|10|11000|11010|10|Vn|Vd"},
       {"inst": "umlal Vd.ta, Vn.tb, Vm.tb"                               , "op": "00101110|sz|1|Vm|10000|0|Vn|Vd"                        , "t": "8H.8B 4S.4H 2D.2S"},
       {"inst": "umlal2 Vd.ta, Vn.tb, Vm.tb"                              , "op": "01101110|sz|1|Vm|10000|0|Vn|Vd"                        , "t": "8H.16B 4S.8H 2D.4S"},
-      {"inst": "umlal Vd.4S, Vn.4H, Vm.H[#dx]"                           , "op": "00101111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vd"},
-      {"inst": "umlal2 Vd.4S, Vn.8H, Vm.H[#dx]"                          , "op": "01101111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vd"},
-      {"inst": "umlal Vd.2D, Vn.2S, Vm.S[#dx]"                           , "op": "00101111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vd"},
-      {"inst": "umlal2 Vd.2D, Vn.4S, Vm.S[#dx]"                          , "op": "01101111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vd"},
+      {"inst": "umlal Vd.4S, Vn.4H, Vm.H[#idx]"                          , "op": "00101111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vd"},
+      {"inst": "umlal2 Vd.4S, Vn.8H, Vm.H[#idx]"                         , "op": "01101111|01|idx[1:0]|Vm:4|0010|idx[2]|0|Vn|Vd"},
+      {"inst": "umlal Vd.2D, Vn.2S, Vm.S[#idx]"                          , "op": "00101111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vd"},
+      {"inst": "umlal2 Vd.2D, Vn.4S, Vm.S[#idx]"                         , "op": "01101111|10|idx[0]  |Vm  |0010|idx[1]|0|Vn|Vd"},
       {"inst": "umlsl Vd.ta, Vn.tb, Vm.tb"                               , "op": "00101110|sz|1|Vm|10100|0|Vn|Vd"                        , "t": "8H.8B 4S.4H 2D.2S"},
       {"inst": "umlsl2 Vd.ta, Vn.tb, Vm.tb"                              , "op": "01101110|sz|1|Vm|10100|0|Vn|Vd"                        , "t": "8H.16B 4S.8H 2D.4S"},
-      {"inst": "umlsl Vd.4S, Vn.4H, Vm.H[#dx]"                           , "op": "00101111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vd"},
-      {"inst": "umlsl2 Vd.4S, Vn.8H, Vm.H[#dx]"                          , "op": "01101111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vd"},
-      {"inst": "umlsl Vd.2D, Vn.2S, Vm.S[#dx]"                           , "op": "00101111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vd"},
-      {"inst": "umlsl2 Vd.2D, Vn.4S, Vm.S[#dx]"                          , "op": "01101111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vd"},
+      {"inst": "umlsl Vd.4S, Vn.4H, Vm.H[#idx]"                          , "op": "00101111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vd"},
+      {"inst": "umlsl2 Vd.4S, Vn.8H, Vm.H[#idx]"                         , "op": "01101111|01|idx[1:0]|Vm:4|0110|idx[2]|0|Vn|Vd"},
+      {"inst": "umlsl Vd.2D, Vn.2S, Vm.S[#idx]"                          , "op": "00101111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vd"},
+      {"inst": "umlsl2 Vd.2D, Vn.4S, Vm.S[#idx]"                         , "op": "01101111|10|idx[0]  |Vm  |0110|idx[1]|0|Vn|Vd"},
       {"inst": "umov Wd, Vn.B[#idx]"                                     , "op": "00001110|00|0|idx:4|   1|00111|1|Vn|Rd"},
       {"inst": "umov Wd, Vn.H[#idx]"                                     , "op": "00001110|00|0|idx:3|  10|00111|1|Vn|Rd"},
       {"inst": "umov|mov Wd, Vn.S[#idx]"                                 , "op": "00001110|00|0|idx:2| 100|00111|1|Vn|Rd"},
@@ -2478,9 +2485,9 @@
       {"inst": "bfdot Vx.2S, Vn.4H, Vm.2H[#idx]"                         , "op": "00001111|01|idx[0]|Vm|1111|idx[1]|0|Vn|Vx"},
       {"inst": "bfdot Vx.4S, Vn.8H, Vm.2H[#idx]"                         , "op": "01001111|01|idx[0]|Vm|1111|idx[1]|0|Vn|Vx"},
       {"inst": "bfmlalb Vx.4S, Vn.8H, Vm.8H"                             , "op": "00101110|11|0|Vm|11111|1|Vn|Vx"},
-      {"inst": "bfmlalb Vx.4S, Vn.8H, Vm.H[#idx]"                        , "op": "00001111|11|imm[1:0]|Vm:4|1111|imm[2]|1|Vn|Vx"},
+      {"inst": "bfmlalb Vx.4S, Vn.8H, Vm.H[#idx]"                        , "op": "00001111|11|idx[1:0]|Vm:4|1111|idx[2]|1|Vn|Vx"},
       {"inst": "bfmlalt Vx.4S, Vn.8H, Vm.8H"                             , "op": "01101110|11|0|Vm|11111|1|Vn|Vx"},
-      {"inst": "bfmlalt Vx.4S, Vn.8H, Vm.H[#idx]"                        , "op": "01001111|11|imm[1:0]|Vm:4|1111|imm[2]|1|Vn|Vx"},
+      {"inst": "bfmlalt Vx.4S, Vn.8H, Vm.H[#idx]"                        , "op": "01001111|11|idx[1:0]|Vm:4|1111|idx[2]|1|Vn|Vx"},
       {"inst": "bfmmla Vx.4S, Vn.8H, Vm.8H"                              , "op": "01101110|01|0|Vm|11101|1|Vn|Vx"}
     ]},
 
@@ -2493,6 +2500,19 @@
       {"inst": "udot Vx.4S, Vn.16B, Vm.16B"                              , "op": "01101110|10|0|Vm|10010|1|Vn|Vx"},
       {"inst": "udot Vx.2S, Vn.8B, Vm.4B[#idx]"                          , "op": "00101111|10|idx[0]|Vm|1110|idx[1]|0|Vn|Vx"},
       {"inst": "udot Vx.4S, Vn.16B, Vm.4B[#idx]"                         , "op": "01101111|10|idx[0]|Vm|1110|idx[1]|0|Vn|Vx"}
+    ]},
+
+    {"category": "ASIMD", "ext": "FAMINMAX", "data": [
+      {"inst": "famax Vd.4H, Vn.4H, Vm.4H"                               , "op": "00001110|11|0|Vm|00011|1|Vn|Vd"},
+      {"inst": "famax Vd.8H, Vn.8H, Vm.8H"                               , "op": "01001110|11|0|Vm|00011|1|Vn|Vd"},
+      {"inst": "famax Vd.2S, Vn.2S, Vm.2S"                               , "op": "00001110|10|1|Vm|11011|1|Vn|Vd"},
+      {"inst": "famax Vd.4S, Vn.4S, Vm.4S"                               , "op": "01001110|10|1|Vm|11011|1|Vn|Vd"},
+      {"inst": "famax Vd.2D, Vn.2D, Vm.2D"                               , "op": "01001110|11|1|Vm|11011|1|Vn|Vd"},
+      {"inst": "famin Vd.4H, Vn.4H, Vm.4H"                               , "op": "00101110|11|0|Vm|00011|1|Vn|Vd"},
+      {"inst": "famin Vd.8H, Vn.8H, Vm.8H"                               , "op": "01101110|11|0|Vm|00011|1|Vn|Vd"},
+      {"inst": "famin Vd.2S, Vn.2S, Vm.2S"                               , "op": "00101110|10|1|Vm|11011|1|Vn|Vd"},
+      {"inst": "famin Vd.4S, Vn.4S, Vm.4S"                               , "op": "01101110|10|1|Vm|11011|1|Vn|Vd"},
+      {"inst": "famin Vd.2D, Vn.2D, Vm.2D"                               , "op": "01101110|11|1|Vm|11011|1|Vn|Vd"}
     ]},
 
     {"category": "ASIMD", "ext": "FCMA", "data": [
@@ -2769,6 +2789,56 @@
       {"inst": "ucvtf Vd.8H, Vn.8H, #fbits"                              , "op": "01101111|0|immh:4|immb:3|11100|1|Vn|Vd"                , "imm": "ASimdFBitsHBImm(fbits, 16)"}
     ]},
 
+    {"category": "ASIMD", "ext": "FP8", "data": [
+      {"inst": "bf1cvtl Vd.8H, Vn.8B"                                    , "op": "00101110|10|10000|10111|10|Vn|Vd"},
+      {"inst": "bf1cvtl2 Vd.8H, Vn.16B"                                  , "op": "01101110|10|10000|10111|10|Vn|Vd"},
+      {"inst": "bf2cvtl Vd.8H, Vn.8B"                                    , "op": "00101110|11|10000|10111|10|Vn|Vd"},
+      {"inst": "bf2cvtl2 Vd.8H, Vn.16B"                                  , "op": "01101110|11|10000|10111|10|Vn|Vd"},
+      {"inst": "f1cvtl Vd.8H, Vn.8B"                                     , "op": "00101110|00|10000|10111|10|Vn|Vd"},
+      {"inst": "f1cvtl2 Vd.8H, Vn.16B"                                   , "op": "01101110|00|10000|10111|10|Vn|Vd"},
+      {"inst": "f2cvtl Vd.8H, Vn.8B"                                     , "op": "00101110|01|10000|10111|10|Vn|Vd"},
+      {"inst": "f2cvtl2 Vd.8H, Vn.16B"                                   , "op": "01101110|01|10000|10111|10|Vn|Vd"},
+      {"inst": "fcvtn Vd.8B, Vn.4H, Vm.4H"                               , "op": "00001110|01|0|Vm|11110|1|Vn|Vd"},
+      {"inst": "fcvtn Vd.16B, Vn.8H, Vm.8H"                              , "op": "01001110|01|0|Vm|11110|1|Vn|Vd"},
+      {"inst": "fcvtn Vd.8B, Vn.4S, Vm.4S"                               , "op": "00001110|00|0|Vm|11110|1|Vn|Vd"},
+      {"inst": "fcvtn2 Vx.16B, Vn.4S, Vm.4S"                             , "op": "01001110|00|0|Vm|11110|1|Vn|Vx"},
+      {"inst": "fscale Vd.4H, Vn.4H, Vm.4H"                              , "op": "00101110|11|0|Vm|00111|1|Vn|Vd"},
+      {"inst": "fscale Vd.8H, Vn.8H, Vm.8H"                              , "op": "01101110|11|0|Vm|00111|1|Vn|Vd"},
+      {"inst": "fscale Vd.2S, Vn.2S, Vm.2S"                              , "op": "00101110|10|1|Vm|11111|1|Vn|Vd"},
+      {"inst": "fscale Vd.4S, Vn.4S, Vm.4S"                              , "op": "01101110|10|1|Vm|11111|1|Vn|Vd"},
+      {"inst": "fscale Vd.2D, Vn.2D, Vm.2D"                              , "op": "01101110|11|1|Vm|11111|1|Vn|Vd"}
+
+    ]},
+
+    {"category": "ASIMD", "ext": "FP8DOT2", "data": [
+      {"inst": "fdot Vx.4H, Vn.8B, Vm.8B"                                , "op": "00001110|01|0|Vm|11111|1|Vn|Vx"},
+      {"inst": "fdot Vx.8H, Vn.16B, Vm.16B"                              , "op": "01001110|01|0|Vm|11111|1|Vn|Vx"},
+      {"inst": "fdot Vx.4H, Vn.8B, Vm.2B[#idx]"                          , "op": "00001111|01|idx[1:0]|Vm:4|0000|idx[2]|0|Vn|Vx"},
+      {"inst": "fdot Vx.8H, Vn.16B, Vm.2B[#idx]"                         , "op": "01001111|01|idx[1:0]|Vm:4|0000|idx[2]|0|Vn|Vx"}
+    ]},
+
+    {"category": "ASIMD", "ext": "FP8DOT4", "data": [
+      {"inst": "fdot Vx.2S, Vn.8B, Vm.8B"                                , "op": "00001110|00|0|Vm|11111|1|Vn|Vx"},
+      {"inst": "fdot Vx.4S, Vn.16B, Vm.16B"                              , "op": "01001110|00|0|Vm|11111|1|Vn|Vx"},
+      {"inst": "fdot Vx.2S, Vn.8B, Vm.4B[#idx]"                          , "op": "00001111|00|idx[0]|Vm|0000|idx[1]|0|Vn|Vx"},
+      {"inst": "fdot Vx.4S, Vn.16B, Vm.4B[#idx]"                         , "op": "01001111|00|idx[0]|Vm|0000|idx[1]|0|Vn|Vx"}
+    ]},
+
+    {"category": "ASIMD", "ext": "FP8FMA", "data": [
+      {"inst": "fmlalb Vx.8H, Vn.16B, Vm.16B"                            , "op": "00001110|110|Vm|11111|1|Vn|Vx"},
+      {"inst": "fmlalt Vx.8H, Vn.16B, Vm.16B"                            , "op": "01001110|110|Vm|11111|1|Vn|Vx"},
+      {"inst": "fmlalb Vx.8H, Vn.16B, Vm.B[#idx]"                        , "op": "00001111|11|idx[2:0]|Vm:3|0000|idx[3]|0|Vn|Vx"},
+      {"inst": "fmlalt Vx.8H, Vn.16B, Vm.B[#idx]"                        , "op": "01001111|11|idx[2:0]|Vm:3|0000|idx[3]|0|Vn|Vx"},
+      {"inst": "fmlallbb Vx.4S, Vn.16B, Vm.16B"                          , "op": "00001110|000|Vm|11000|1|Vn|Vx"},
+      {"inst": "fmlallbt Vx.4S, Vn.16B, Vm.16B"                          , "op": "00001110|010|Vm|11000|1|Vn|Vx"},
+      {"inst": "fmlalltb Vx.4S, Vn.16B, Vm.16B"                          , "op": "01001110|000|Vm|11000|1|Vn|Vx"},
+      {"inst": "fmlalltt Vx.4S, Vn.16B, Vm.16B"                          , "op": "01001110|010|Vm|11000|1|Vn|Vx"},
+      {"inst": "fmlallbb Vx.4S, Vn.16B, Vm.B[#idx]"                      , "op": "00101111|00|idx[2:0]|Vm:3|1000|idx[3]|0|Vn|Vx"},
+      {"inst": "fmlallbt Vx.4S, Vn.16B, Vm.B[#idx]"                      , "op": "00101111|01|idx[2:0]|Vm:3|1000|idx[3]|0|Vn|Vx"},
+      {"inst": "fmlalltb Vx.4S, Vn.16B, Vm.B[#idx]"                      , "op": "01101111|00|idx[2:0]|Vm:3|1000|idx[3]|0|Vn|Vx"},
+      {"inst": "fmlalltt Vx.4S, Vn.16B, Vm.B[#idx]"                      , "op": "01101111|01|idx[2:0]|Vm:3|1000|idx[3]|0|Vn|Vx"}
+    ]},
+
     {"category": "ASIMD", "ext": "FRINTTS", "data": [
       {"inst": "frint32x Sd, Sn"                                         , "op": "00011110|00|10100|01100|00|Vn|Vd"},
       {"inst": "frint32x Dd, Dn"                                         , "op": "00011110|01|10100|01100|00|Vn|Vd"},
@@ -2808,7 +2878,14 @@
       {"inst": "fjcvtzs Wd, Dn"                                          , "op": "00011110|011|11110|00000|0|Vn|Vd"}
     ]},
 
-    {"category": "ASIMD", "ext": "ASIMD LRCPC3", "data": [
+    {"category": "ASIMD", "ext": "LUT", "data": [
+      {"inst": "luti2 Vd.16B, Vn.16B, Vm[#idx]"                          , "op": "01001110|100|Vm|0|idx:2|100|Vn|Vd"},
+      {"inst": "luti2 Vd.8H, Vn.8H, Vm[#idx]"                            , "op": "01001110|110|Vm|0|idx:3|00|Vn|Vd"},
+      {"inst": "luti4 Vd.16B, Vn.16B, Vm[#idx]"                          , "op": "01001110|010|Vm|0|idx:1|1000|Vn|Vd"},
+      {"inst": "luti4 Vd.8H, 2x{Vn.8H}, Vm[#idx]"                        , "op": "01001110|010|Vm|0|idx:2|100|Vn|Vd"}
+    ]},
+
+    {"category": "ASIMD", "ext": "LRCPC3", "data": [
       {"inst": "ldap1 Vd.D[#idx], [Xn|SP]"                               , "op": "0|idx:1|001101|010|00001|10000|1|Rn|Vd"},
       {"inst": "ldapur Bd, [Xn|SP, #offS]"                               , "op": "00011101|010|offS:9|10|Rn|Vd"},
       {"inst": "ldapur Hd, [Xn|SP, #offS]"                               , "op": "01011101|010|offS:9|10|Rn|Vd"},
@@ -2826,24 +2903,24 @@
     {"category": "ASIMD", "ext": "RDM", "data": [
       {"inst": "sqrdmlah Hx, Hn, Hm"                                     , "op": "01111110|01|0|Vm|10000|1|Vn|Vx"                       , "io": "QC|=SAT"},
       {"inst": "sqrdmlah Sx, Sn, Sm"                                     , "op": "01111110|10|0|Vm|10000|1|Vn|Vx"                       , "io": "QC|=SAT"},
-      {"inst": "sqrdmlah Hx, Hn, Vn.H[#idx]"                             , "op": "01111111|01|imm[1:0]|Vm:4|1101|imm[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlah Sx, Sn, Vn.S[#idx]"                             , "op": "01111111|10|imm[0]  |Vm  |1101|imm[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlah Hx, Hn, Vn.H[#idx]"                             , "op": "01111111|01|idx[1:0]|Vm:4|1101|idx[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlah Sx, Sn, Vn.S[#idx]"                             , "op": "01111111|10|idx[0]  |Vm  |1101|idx[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
       {"inst": "sqrdmlah Vx.t, Vn.t, Vm.t"                               , "op": "00101110|sz|0|Vm|10000|1|Vn|Vx"                       , "io": "QC|=SAT", "t": "~ 4H 2S"},
       {"inst": "sqrdmlah Vx.t, Vn.t, Vm.t"                               , "op": "01101110|sz|0|Vm|10000|1|Vn|Vx"                       , "io": "QC|=SAT", "t": "~ 8H 4S"},
-      {"inst": "sqrdmlah Vx.4H, Vn.4H, Vm.H[#idx]"                       , "op": "00101111|01|imm[1:0]|Vm:4|1101|imm[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlah Vx.2S, Vn.2S, Vm.S[#idx]"                       , "op": "00101111|10|imm[0]  |Vm  |1101|imm[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlah Vx.8H, Vn.8H, Vm.H[#idx]"                       , "op": "01101111|01|imm[1:0]|Vm:4|1101|imm[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlah Vx.4S, Vn.4S, Vm.S[#idx]"                       , "op": "01101111|10|imm[0]  |Vm  |1101|imm[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlah Vx.4H, Vn.4H, Vm.H[#idx]"                       , "op": "00101111|01|idx[1:0]|Vm:4|1101|idx[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlah Vx.2S, Vn.2S, Vm.S[#idx]"                       , "op": "00101111|10|idx[0]  |Vm  |1101|idx[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlah Vx.8H, Vn.8H, Vm.H[#idx]"                       , "op": "01101111|01|idx[1:0]|Vm:4|1101|idx[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlah Vx.4S, Vn.4S, Vm.S[#idx]"                       , "op": "01101111|10|idx[0]  |Vm  |1101|idx[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
       {"inst": "sqrdmlsh Hx, Hn, Hm"                                     , "op": "01111110|01|0|Vm|10001|1|Vn|Vx"                       , "io": "QC|=SAT"},
       {"inst": "sqrdmlsh Sx, Sn, Sm"                                     , "op": "01111110|10|0|Vm|10001|1|Vn|Vx"                       , "io": "QC|=SAT"},
-      {"inst": "sqrdmlsh Hx, Hn, Vn.H[#idx]"                             , "op": "01111111|01|imm[1:0]|Vm:4|1111|imm[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlsh Sx, Sn, Vn.S[#idx]"                             , "op": "01111111|10|imm[0]  |Vm  |1111|imm[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlsh Hx, Hn, Vn.H[#idx]"                             , "op": "01111111|01|idx[1:0]|Vm:4|1111|idx[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlsh Sx, Sn, Vn.S[#idx]"                             , "op": "01111111|10|idx[0]  |Vm  |1111|idx[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
       {"inst": "sqrdmlsh Vx.t, Vn.t, Vm.t"                               , "op": "00101110|sz|0|Vm|10001|1|Vn|Vx"                       , "io": "QC|=SAT", "t": "~ 4H 2S"},
       {"inst": "sqrdmlsh Vx.t, Vn.t, Vm.t"                               , "op": "01101110|sz|0|Vm|10001|1|Vn|Vx"                       , "io": "QC|=SAT", "t": "~ 8H 4S"},
-      {"inst": "sqrdmlsh Vx.4H, Vn.4H, Vm.H[#idx]"                       , "op": "00101111|01|imm[1:0]|Vm:4|1111|imm[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlsh Vx.2S, Vn.2S, Vm.S[#idx]"                       , "op": "00101111|10|imm[0]  |Vm  |1111|imm[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlsh Vx.8H, Vn.8H, Vm.H[#idx]"                       , "op": "01101111|01|imm[1:0]|Vm:4|1111|imm[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
-      {"inst": "sqrdmlsh Vx.4S, Vn.4S, Vm.S[#idx]"                       , "op": "01101111|10|imm[0]  |Vm  |1111|imm[1]|0|Vn|Vx"        , "io": "QC|=SAT"}
+      {"inst": "sqrdmlsh Vx.4H, Vn.4H, Vm.H[#idx]"                       , "op": "00101111|01|idx[1:0]|Vm:4|1111|idx[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlsh Vx.2S, Vn.2S, Vm.S[#idx]"                       , "op": "00101111|10|idx[0]  |Vm  |1111|idx[1]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlsh Vx.8H, Vn.8H, Vm.H[#idx]"                       , "op": "01101111|01|idx[1:0]|Vm:4|1111|idx[2]|0|Vn|Vx"        , "io": "QC|=SAT"},
+      {"inst": "sqrdmlsh Vx.4S, Vn.4S, Vm.S[#idx]"                       , "op": "01101111|10|idx[0]  |Vm  |1111|idx[1]|0|Vn|Vx"        , "io": "QC|=SAT"}
     ]},
 
     {"category": "ASIMD CRYPTO_HASH", "ext": "SHA1", "data": [
