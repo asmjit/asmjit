@@ -511,6 +511,8 @@ class Instruction extends base.Instruction {
 
       case "k":
         this.kmask = true;
+        if (typeof value === "string")
+          super._assignAttribute(key, value);
         return;
 
       case "er":
