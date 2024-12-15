@@ -477,6 +477,20 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
           }
         }
       }
+      else if (opCount == 4 && inst->op(3).isImm()) {
+        const Imm& imm = inst->op(3).as<Imm>();
+
+        switch (inst->id()) {
+          case Inst::kIdVpternlogd:
+          case Inst::kIdVpternlogq: {
+            uint32_t predicate = uint32_t(imm.value() & 0xFFu);
+            if (predicate == 0x00u || predicate == 0xFFu) {
+              ib[0]->makeWriteOnly();
+            }
+            break;
+          }
+        }
+      }
 
       switch (sameRegHint) {
         case InstSameRegHint::kNone:

@@ -2463,6 +2463,60 @@ public:
   }
 };
 
+// x86::Compiler - X86Test_AVX512_TernLog
+// ======================================
+
+class X86Test_AVX512_TernLog : public X86TestCase {
+public:
+  X86Test_AVX512_TernLog() : X86TestCase("AVX512_TernLog") {}
+
+  static void add(TestApp& app) {
+    const CpuInfo& cpuInfo = CpuInfo::host();
+
+    if (cpuInfo.features().x86().hasAVX512_F()) {
+      app.add(new X86Test_AVX512_TernLog());
+    }
+  }
+
+  virtual void compile(x86::Compiler& cc) {
+    FuncNode* funcNode = cc.addFunc(FuncSignature::build<void, void*>());
+
+    x86::Gp out = cc.newIntPtr("outPtr");
+    x86::Vec vec = cc.newZmm("vec");
+
+    funcNode->setArg(0, out);
+
+    cc.vpternlogd(vec, vec, vec, 0xFFu);
+    cc.vmovdqu8(x86::ptr(out), vec);
+    cc.endFunc();
+  }
+
+  virtual bool run(void* _func, String& result, String& expect) {
+    typedef void (*Func)(void*);
+    Func func = ptr_as_func<Func>(_func);
+
+    uint32_t out[16];
+    func(out);
+
+    result.assign("{");
+    expect.assign("{");
+
+    for (uint32_t i = 0; i < 16; i++) {
+      if (i) {
+        result.append(", ");
+        expect.append(", ");
+      }
+      result.appendFormat("0x%08X", out[i]);
+      expect.appendFormat("0x%08X", 0xFFFFFFFFu);
+    }
+
+    result.append("}");
+    expect.append("}");
+
+    return result == expect;
+  }
+};
+
 // x86::Compiler - X86Test_FuncArgInt8
 // ===================================
 
@@ -4590,6 +4644,7 @@ void compiler_add_x86_tests(TestApp& app) {
   app.addT<X86Test_ExtraBlock>();
   app.addT<X86Test_AlphaBlend>();
   app.addT<X86Test_AVX512_KK>();
+  app.addT<X86Test_AVX512_TernLog>();
 
   // Function arguments handling tests.
   app.addT<X86Test_FuncArgInt8>();
