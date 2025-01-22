@@ -742,8 +742,9 @@ namespace asmjit {
 //!   JitAllocator::Span span;
 //!   Error err = allocator.alloc(span, estimatedSize);
 //!
-//!   if (err != kErrorOk) // <- NOTE: This must be checked, always!
+//!   if (err != kErrorOk) { // <- NOTE: This must be checked, always!
 //!     return 0;
+//!   }
 //!
 //!   // Now relocate the code to the address provided by the memory allocator.
 //!   // Please note that this DOESN'T COPY anything to it. This function will
@@ -780,15 +781,16 @@ namespace asmjit {
 //!   int out[4];
 //!
 //!   // This code uses AsmJit's ptr_as_func<> to cast between void* and SumIntsFunc.
-//!   ptr_as_func<SumIntsFunc>(p)(out, inA, inB);
+//!   SumIntsFunc fn = ptr_as_func<SumIntsFunc>(span.rx());
+//!   fn(out, inA, inB);
 //!
 //!   // Prints {5 8 4 9}
 //!   printf("{%d %d %d %d}\n", out[0], out[1], out[2], out[3]);
 //!
-//!   // Release 'p' is it's no longer needed. It will be destroyed with 'vm'
+//!   // Release `fn` is it's no longer needed. It will be destroyed with 'vm'
 //!   // instance anyway, but it's a good practice to release it explicitly
 //!   // when you know that the function will not be needed anymore.
-//!   allocator.release(p);
+//!   allocator.release(fn);
 //!
 //!   return 0;
 //! }
