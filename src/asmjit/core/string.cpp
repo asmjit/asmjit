@@ -291,7 +291,7 @@ Error String::_opNumber(ModifyOp op, uint64_t i, uint32_t base, size_t width, St
   // -----------
 
   if (Support::test(flags, StringFormatFlags::kSigned) && int64_t(i) < 0) {
-    i = uint64_t(-int64_t(i));
+    i = Support::neg(i);
     sign = '-';
   }
   else if (Support::test(flags, StringFormatFlags::kShowSign)) {
