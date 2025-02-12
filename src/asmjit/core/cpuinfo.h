@@ -502,6 +502,26 @@ public:
     #undef ASMJIT_X86_FEATURE
   };
 
+  struct LOONGARCH : public Data {
+    //! LOONGARCH CPU feature identifiers.
+    enum Id : uint8_t {
+        kNone = 0,                 //!< No feature (never set, used internally).
+        kLOONGARCH64,
+        kLOONGARCH32,
+
+        kLSX,
+        kLASX,
+        kMaxValue = kLASX,
+      };
+    #define ASMJIT_LOONGARCH_FEATURE(FEATURE) \
+      /*! Tests whether FEATURE is present. */ \
+      ASMJIT_INLINE_NODEBUG bool has##FEATURE() const noexcept { return has(LOONGARCH::k##FEATURE); }
+
+    ASMJIT_LOONGARCH_FEATURE(LOONGARCH64);
+    ASMJIT_LOONGARCH_FEATURE(LOONGARCH32);
+    ASMJIT_LOONGARCH_FEATURE(LSX);
+    ASMJIT_LOONGARCH_FEATURE(LASX);
+  };
   //! ARM specific features data.
   //!
   //! Naming reference:
@@ -934,6 +954,7 @@ public:
 
   static_assert(uint32_t(X86::kMaxValue) < kMaxFeatures, "The number of X86 CPU features cannot exceed CpuFeatures::kMaxFeatures");
   static_assert(uint32_t(ARM::kMaxValue) < kMaxFeatures, "The number of ARM CPU features cannot exceed CpuFeatures::kMaxFeatures");
+  static_assert(uint32_t(LOONGARCH::kMaxValue) < kMaxFeatures, "The number of LOONGARCH CPU features cannot exceed CpuFeatures::kMaxFeatures");
 
   //! \}
 
@@ -987,6 +1008,11 @@ public:
   ASMJIT_INLINE_NODEBUG ARM& arm() noexcept { return data<ARM>(); }
   //! Returns CpuFeatures::Data as \ref CpuFeatures::ARM (const).
   ASMJIT_INLINE_NODEBUG const ARM& arm() const noexcept { return data<ARM>(); }
+
+  //! Returns CpuFeatures::Data as \ref CpuFeatures::LOONGARCH.
+  ASMJIT_INLINE_NODEBUG LOONGARCH& loongarch() noexcept { return data<LOONGARCH>(); }
+  //! Returns CpuFeatures::Data as \ref CpuFeatures::LOONGARCH (const).
+  ASMJIT_INLINE_NODEBUG const LOONGARCH& loongarch() const noexcept { return data<LOONGARCH>(); }
 
   //! Returns all features as array of bitwords (see \ref Support::BitWord).
   ASMJIT_INLINE_NODEBUG BitWord* bits() noexcept { return _data.bits(); }
