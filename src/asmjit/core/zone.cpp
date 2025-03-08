@@ -14,7 +14,21 @@ ASMJIT_BEGIN_NAMESPACE
 
 // Zero size block used by `Zone` that doesn't have any memory allocated. Should be allocated in read-only memory
 // and should never be modified.
-const Zone::Block Zone::_zeroBlock = { nullptr, nullptr, 0 };
+const Zone::Block Zone::_zeroBlock {};
+
+static inline void Zone_assignZeroBlock(Zone* zone) noexcept {
+  Zone::Block* block = const_cast<Zone::Block*>(&zone->_zeroBlock);
+  zone->_ptr = block->data();
+  zone->_end = block->data();
+  zone->_block = block;
+}
+
+static inline void Zone_assignBlock(Zone* zone, Zone::Block* block) noexcept {
+  size_t alignment = zone->blockAlignment();
+  zone->_ptr = Support::alignUp(block->data(), alignment);
+  zone->_end = block->data() + block->size;
+  zone->_block = block;
+}
 
 // Zone - Initialization & Reset
 // =============================
@@ -24,14 +38,17 @@ void Zone::_init(size_t blockSize, size_t blockAlignment, const Support::Tempora
   ASMJIT_ASSERT(blockSize <= kMaxBlockSize);
   ASMJIT_ASSERT(blockAlignment <= 64);
 
-  // Just to make the compiler happy...
-  constexpr size_t kBlockSizeMask = (Support::allOnes<size_t>() >> 4);
-  constexpr size_t kBlockAlignmentShiftMask = 0x7u;
+  Zone_assignZeroBlock(this);
 
-  _assignZeroBlock();
-  _blockSize = blockSize & kBlockSizeMask;
-  _isTemporary = temporary != nullptr;
-  _blockAlignmentShift = Support::ctz(blockAlignment) & kBlockAlignmentShiftMask;
+  size_t blockSizeShift = Support::bitSizeOf<size_t>() - Support::clz(blockSize);
+  size_t blockAlignmentShift = Support::bitSizeOf<size_t>() - Support::clz(blockAlignment | (size_t(1) << 3));
+
+  _blockAlignmentShift = uint8_t(blockAlignmentShift);
+  _minimumBlockSizeShift = uint8_t(blockSizeShift);
+  _maximumBlockSizeShift = uint8_t(25); // (1 << 25) Equals 32 MiB blocks (should be enough for all cases)
+  _hasStaticBlock = uint8_t(temporary != nullptr);
+  _reserved = uint8_t(0u);
+  _blockCount = size_t(temporary != nullptr);
 
   // Setup the first [temporary] block, if necessary.
   if (temporary) {
@@ -42,7 +59,8 @@ void Zone::_init(size_t blockSize, size_t blockAlignment, const Support::Tempora
     ASMJIT_ASSERT(temporary->size() >= kBlockSize);
     block->size = temporary->size() - kBlockSize;
 
-    _assignBlock(block);
+    Zone_assignBlock(this, block);
+    _blockCount = 1u;
   }
 }
 
@@ -50,14 +68,18 @@ void Zone::reset(ResetPolicy resetPolicy) noexcept {
   Block* cur = _block;
 
   // Can't be altered.
-  if (cur == &_zeroBlock)
+  if (cur == &_zeroBlock) {
     return;
+  }
 
   if (resetPolicy == ResetPolicy::kHard) {
+    bool hasStatic = hasStaticBlock();
     Block* initial = const_cast<Zone::Block*>(&_zeroBlock);
+
     _ptr = initial->data();
     _end = initial->data();
     _block = initial;
+    _blockCount = size_t(hasStatic);
 
     // Since cur can be in the middle of the double-linked list, we have to traverse both directions (`prev` and
     // `next`) separately to visit all.
@@ -65,12 +87,11 @@ void Zone::reset(ResetPolicy resetPolicy) noexcept {
     do {
       Block* prev = cur->prev;
 
-      // If this is the first block and this ZoneTmp is temporary then the first block is statically allocated.
-      // We cannot free it and it makes sense to keep it even when this is hard reset.
-      if (prev == nullptr && _isTemporary) {
+      if (prev == nullptr && hasStatic) {
+        // If this is the first block and this Zone is actually a ZoneTmp then the first block cannot be freed.
         cur->prev = nullptr;
         cur->next = nullptr;
-        _assignBlock(cur);
+        Zone_assignBlock(this, cur);
         break;
       }
 
@@ -86,9 +107,10 @@ void Zone::reset(ResetPolicy resetPolicy) noexcept {
     }
   }
   else {
-    while (cur->prev)
+    while (cur->prev) {
       cur = cur->prev;
-    _assignBlock(cur);
+    }
+    Zone_assignBlock(this, cur);
   }
 }
 
@@ -99,68 +121,91 @@ void* Zone::_alloc(size_t size, size_t alignment) noexcept {
   Block* curBlock = _block;
   Block* next = curBlock->next;
 
-  size_t rawBlockAlignment = blockAlignment();
-  size_t minimumAlignment = Support::max<size_t>(alignment, rawBlockAlignment);
+  size_t defaultBlockAlignment = blockAlignment();
+  size_t requiredBlockAlignment = Support::max<size_t>(alignment, defaultBlockAlignment);
 
   // If the `Zone` has been cleared the current block doesn't have to be the last one. Check if there is a block
   // that can be used instead of allocating a new one. If there is a `next` block it's completely unused, we don't
   // have to check for remaining bytes in that case.
   if (next) {
-    uint8_t* ptr = Support::alignUp(next->data(), minimumAlignment);
-    uint8_t* end = Support::alignDown(next->data() + next->size, rawBlockAlignment);
+    uint8_t* ptr = Support::alignUp(next->data(), requiredBlockAlignment);
+    uint8_t* end = next->data() + next->size;
 
     if (size <= (size_t)(end - ptr)) {
       _block = next;
       _ptr = ptr + size;
-      _end = Support::alignDown(next->data() + next->size, rawBlockAlignment);
+      _end = end;
       return static_cast<void*>(ptr);
     }
   }
 
-  size_t blockAlignmentOverhead = alignment - Support::min<size_t>(alignment, Globals::kAllocAlignment);
-  size_t newSize = Support::max(blockSize(), size);
+  // Calculates the "default" size of a next block - in most cases this would be enough for the allocation. In
+  // general we want to gradually increase block size when more and more blocks are allocated until the maximum
+  // block size. Since we use shifts (aka log2(size) sizes) we just need block count and minumum/maximum block
+  // size shift to calculate the final size.
+  size_t defaultBlockSizeShift = Support::min<size_t>(_blockCount + _minimumBlockSizeShift, _maximumBlockSizeShift);
+  size_t defaultBlockSize = size_t(1) << defaultBlockSizeShift;
 
-  // Prevent arithmetic overflow.
-  if (ASMJIT_UNLIKELY(newSize > SIZE_MAX - kBlockSize - blockAlignmentOverhead))
+  // Allocate a new block. We have to accommodate all possible overheads so after the memory is allocated and then
+  // properly aligned there will be size for the requested memory. In 99.9999% cases this is never a problem, but
+  // we must be sure that even rare border cases would allocate properly.
+  size_t alignmentOverhead = requiredBlockAlignment - Support::min<size_t>(requiredBlockAlignment, Globals::kAllocAlignment);
+  size_t blockSizeOverhead = kBlockSize + Globals::kAllocOverhead + alignmentOverhead;
+
+  // If the requested size is larger than a default calculated block size -> increase block size so the allocation
+  // would be enough to fit the requested size.
+  size_t finalBlockSize = defaultBlockSize;
+
+  if (ASMJIT_UNLIKELY(size > defaultBlockSize - blockSizeOverhead)) {
+    if (ASMJIT_UNLIKELY(size > SIZE_MAX - blockSizeOverhead)) {
+      // This would probably never happen in practice - however, it needs to be done to stop malicious cases like
+      // `alloc(SIZE_MAX)`.
+      return nullptr;
+    }
+    finalBlockSize = size + alignmentOverhead + kBlockSize;
+  }
+  else {
+    finalBlockSize -= Globals::kAllocOverhead;
+  }
+
+  // Allocate new block.
+  Block* newBlock = static_cast<Block*>(::malloc(finalBlockSize));
+
+  if (ASMJIT_UNLIKELY(!newBlock)) {
     return nullptr;
+  }
 
-  // Allocate new block - we add alignment overhead to `newSize`, which becomes the new block size, and we also add
-  // `kBlockOverhead` to the allocator as it includes members of `Zone::Block` structure.
-  newSize += blockAlignmentOverhead;
-  Block* newBlock = static_cast<Block*>(::malloc(newSize + kBlockSize));
-
-  if (ASMJIT_UNLIKELY(!newBlock))
-    return nullptr;
+  // finalBlockSize includes the struct size, which must be avoided when assigning the size to a newly allocated block.
+  size_t realBlockSize = finalBlockSize - kBlockSize;
 
   // Align the pointer to `minimumAlignment` and adjust the size of this block accordingly. It's the same as using
   // `minimumAlignment - Support::alignUpDiff()`, just written differently.
-  {
-    newBlock->prev = nullptr;
-    newBlock->next = nullptr;
-    newBlock->size = newSize;
+  newBlock->prev = nullptr;
+  newBlock->next = nullptr;
+  newBlock->size = realBlockSize;
 
-    if (curBlock != &_zeroBlock) {
-      newBlock->prev = curBlock;
-      curBlock->next = newBlock;
+  if (curBlock != &_zeroBlock) {
+    newBlock->prev = curBlock;
+    curBlock->next = newBlock;
 
-      // Does only happen if there is a next block, but the requested memory can't fit into it. In this case a new
-      // buffer is allocated and inserted between the current block and the next one.
-      if (next) {
-        newBlock->next = next;
-        next->prev = newBlock;
-      }
+    // Does only happen if there is a next block, but the requested memory can't fit into it. In this case a new
+    // buffer is allocated and inserted between the current block and the next one.
+    if (next) {
+      newBlock->next = next;
+      next->prev = newBlock;
     }
-
-    uint8_t* ptr = Support::alignUp(newBlock->data(), minimumAlignment);
-    uint8_t* end = Support::alignDown(newBlock->data() + newSize, rawBlockAlignment);
-
-    _ptr = ptr + size;
-    _end = end;
-    _block = newBlock;
-
-    ASMJIT_ASSERT(_ptr <= _end);
-    return static_cast<void*>(ptr);
   }
+
+  uint8_t* ptr = Support::alignUp(newBlock->data(), requiredBlockAlignment);
+  uint8_t* end = newBlock->data() + realBlockSize;
+
+  _ptr = ptr + size;
+  _end = end;
+  _block = newBlock;
+  _blockCount++;
+
+  ASMJIT_ASSERT(_ptr <= _end);
+  return static_cast<void*>(ptr);
 }
 
 void* Zone::allocZeroed(size_t size, size_t alignment) noexcept {
@@ -286,13 +331,13 @@ void* ZoneAllocator::_alloc(size_t size, size_t& allocatedSize) noexcept {
   }
   else {
     // Allocate a dynamic block.
-    size_t kBlockOverhead = sizeof(DynamicBlock) + sizeof(DynamicBlock*) + kBlockAlignment;
+    size_t blockOverhead = sizeof(DynamicBlock) + sizeof(DynamicBlock*) + kBlockAlignment;
 
     // Handle a possible overflow.
-    if (ASMJIT_UNLIKELY(kBlockOverhead >= SIZE_MAX - size))
+    if (ASMJIT_UNLIKELY(blockOverhead >= SIZE_MAX - size))
       return nullptr;
 
-    void* p = ::malloc(size + kBlockOverhead);
+    void* p = ::malloc(size + blockOverhead);
     if (ASMJIT_UNLIKELY(!p)) {
       allocatedSize = 0;
       return nullptr;

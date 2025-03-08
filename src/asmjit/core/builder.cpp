@@ -45,9 +45,9 @@ static void BaseBuilder_deletePasses(BaseBuilder* self) noexcept {
 
 BaseBuilder::BaseBuilder() noexcept
   : BaseEmitter(EmitterType::kBuilder),
-    _codeZone(32768 - Zone::kBlockOverhead),
-    _dataZone(16384 - Zone::kBlockOverhead),
-    _passZone(65536 - Zone::kBlockOverhead),
+    _codeZone(32u * 1024u),
+    _dataZone(16u * 1024u),
+    _passZone(64u * 1024u),
     _allocator(&_codeZone) {}
 
 BaseBuilder::~BaseBuilder() noexcept {

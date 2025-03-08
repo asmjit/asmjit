@@ -240,7 +240,7 @@ void ConstPool::fill(void* dst) const noexcept {
 
 #if defined(ASMJIT_TEST)
 UNIT(const_pool) {
-  Zone zone(32384 - Zone::kBlockOverhead);
+  Zone zone(32u * 1024u);
   ConstPool pool(&zone);
 
   uint32_t i;

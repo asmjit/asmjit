@@ -1269,7 +1269,7 @@ public:
   Random _rng;
 
   explicit JitAllocatorWrapper(const JitAllocator::CreateParams* params) noexcept
-    : _zone(1024 * 1024),
+    : _zone(1024u * 1024u),
       _heap(&_zone),
       _allocator(params),
       _rng(0x123456789u) {}

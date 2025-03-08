@@ -51,7 +51,7 @@ public:
 BaseCompiler::BaseCompiler() noexcept
   : BaseBuilder(),
     _func(nullptr),
-    _vRegZone(4096 - Zone::kBlockOverhead),
+    _vRegZone(4u * 1024u),
     _vRegArray(),
     _constPools { nullptr, nullptr } {
   _emitterType = EmitterType::kCompiler;

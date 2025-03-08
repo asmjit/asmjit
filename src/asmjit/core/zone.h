@@ -42,13 +42,14 @@ public:
   };
 
   enum Limits : size_t {
-    kBlockSize = sizeof(Block),
-    kBlockOverhead = Globals::kAllocOverhead + kBlockSize,
+    kMinBlockSize = 256, // The number is ridiculously small, but still possible.
+    kMaxBlockSize = size_t(1) << (sizeof(size_t) * 8 - 1),
 
-    kMinBlockSize = 64, // The number is ridiculously small, but still possible.
-    kMaxBlockSize = size_t(1) << (sizeof(size_t) * 8 - 4 - 1),
     kMinAlignment = 1,
-    kMaxAlignment = 64
+    kMaxAlignment = 64,
+
+    kBlockSize = sizeof(Block),
+    kBlockOverhead = kBlockSize + Globals::kAllocOverhead
   };
 
   //! Pointer in the current block.
@@ -58,17 +59,18 @@ public:
   //! Current block.
   Block* _block;
 
-  union {
-    struct {
-      //! Default block size.
-      size_t _blockSize : Support::bitSizeOf<size_t>() - 4;
-      //! First block is temporary (ZoneTmp).
-      size_t _isTemporary : 1;
-      //! Block alignment (1 << alignment).
-      size_t _blockAlignmentShift : 3;
-    };
-    size_t _packedData;
-  };
+  //! Block alignment shift
+  uint8_t _blockAlignmentShift;
+  //! Minimum log2(blockSize) to allocate.
+  uint8_t _minimumBlockSizeShift;
+  //! Maximum log2(blockSize) to allocate.
+  uint8_t _maximumBlockSizeShift;
+  //! True when the Zone has a static block (static blocks are used by ZoneTmp).
+  uint8_t _hasStaticBlock;
+  //! Reserved for future use, must be zero.
+  uint32_t _reserved;
+  //! Count of allocated blocks.
+  size_t _blockCount;
 
   static ASMJIT_API const Block _zeroBlock;
 
@@ -85,33 +87,39 @@ public:
   //!
   //! It's not required, but it's good practice to set `blockSize` to a reasonable value that depends on the usage
   //! of `Zone`. Greater block sizes are generally safer and perform better than unreasonably low block sizes.
-  ASMJIT_INLINE_NODEBUG explicit Zone(size_t blockSize, size_t blockAlignment = 1) noexcept {
-    _init(blockSize, blockAlignment, nullptr);
+  ASMJIT_INLINE_NODEBUG explicit Zone(size_t minimumBlockSize, size_t blockAlignment = 1) noexcept {
+    _init(minimumBlockSize, blockAlignment, nullptr);
   }
 
   //! Creates a new Zone with a first block pointing to a `temporary` memory.
-  ASMJIT_INLINE_NODEBUG Zone(size_t blockSize, size_t blockAlignment, const Support::Temporary& temporary) noexcept {
-    _init(blockSize, blockAlignment, &temporary);
+  ASMJIT_INLINE_NODEBUG Zone(size_t minimumBlockSize, size_t blockAlignment, const Support::Temporary& temporary) noexcept {
+    _init(minimumBlockSize, blockAlignment, &temporary);
   }
 
   //! \overload
-  ASMJIT_INLINE_NODEBUG Zone(size_t blockSize, size_t blockAlignment, const Support::Temporary* temporary) noexcept {
-    _init(blockSize, blockAlignment, temporary);
+  ASMJIT_INLINE_NODEBUG Zone(size_t minimumBlockSize, size_t blockAlignment, const Support::Temporary* temporary) noexcept {
+    _init(minimumBlockSize, blockAlignment, temporary);
   }
 
   //! Moves an existing `Zone`.
   //!
   //! \note You cannot move an existing `ZoneTmp` as it uses embedded storage. Attempting to move `ZoneTmp` would
-  //! result in assertion failure in debug mode and undefined behavior in release mode.
+  //! cause an undefined behavior (covered by assertions in debug mode).
   inline Zone(Zone&& other) noexcept
     : _ptr(other._ptr),
       _end(other._end),
       _block(other._block),
-      _packedData(other._packedData) {
-    ASMJIT_ASSERT(!other.isTemporary());
+      _blockAlignmentShift(other._blockAlignmentShift),
+      _minimumBlockSizeShift(other._minimumBlockSizeShift),
+      _maximumBlockSizeShift(other._maximumBlockSizeShift),
+      _hasStaticBlock(other._hasStaticBlock),
+      _reserved(other._reserved),
+      _blockCount(other._blockCount) {
+    ASMJIT_ASSERT(!other.hasStaticBlock());
     other._block = const_cast<Block*>(&_zeroBlock);
     other._ptr = other._block->data();
     other._end = other._block->data();
+    other._blockCount = 0u;
   }
 
   //! Destroys the `Zone` instance.
@@ -132,13 +140,15 @@ public:
   //! \name Accessors
   //! \{
 
-  //! Tests whether this `Zone` is actually a `ZoneTmp` that uses temporary memory.
-  ASMJIT_INLINE_NODEBUG bool isTemporary() const noexcept { return _isTemporary != 0; }
-
-  //! Returns the default block size.
-  ASMJIT_INLINE_NODEBUG size_t blockSize() const noexcept { return _blockSize; }
   //! Returns the default block alignment.
   ASMJIT_INLINE_NODEBUG size_t blockAlignment() const noexcept { return size_t(1) << _blockAlignmentShift; }
+  //! Returns a minimum block size.
+  ASMJIT_INLINE_NODEBUG size_t minimumBlockSize() const noexcept { return size_t(1) << _minimumBlockSizeShift; }
+  //! Returns a maximum block size.
+  ASMJIT_INLINE_NODEBUG size_t maximumBlockSize() const noexcept { return size_t(1) << _maximumBlockSizeShift; }
+  //! Tests whether this `Zone` is actually a `ZoneTmp` that uses temporary memory.
+  ASMJIT_INLINE_NODEBUG uint8_t hasStaticBlock() const noexcept { return _hasStaticBlock; }
+
   //! Returns remaining size of the current block.
   ASMJIT_INLINE_NODEBUG size_t remainingSize() const noexcept { return (size_t)(_end - _ptr); }
 
@@ -175,13 +185,19 @@ public:
 
   inline void swap(Zone& other) noexcept {
     // This could lead to a disaster.
-    ASMJIT_ASSERT(!this->isTemporary());
-    ASMJIT_ASSERT(!other.isTemporary());
+    ASMJIT_ASSERT(!this->hasStaticBlock());
+    ASMJIT_ASSERT(!other.hasStaticBlock());
 
     std::swap(_ptr, other._ptr);
     std::swap(_end, other._end);
     std::swap(_block, other._block);
-    std::swap(_packedData, other._packedData);
+
+    std::swap(_blockAlignmentShift, other._blockAlignmentShift);
+    std::swap(_minimumBlockSizeShift, other._minimumBlockSizeShift);
+    std::swap(_maximumBlockSizeShift, other._maximumBlockSizeShift);
+    std::swap(_hasStaticBlock, other._hasStaticBlock);
+    std::swap(_reserved, other._reserved);
+    std::swap(_blockCount, other._blockCount);
   }
 
   //! Aligns the current pointer to `alignment`.
@@ -194,24 +210,10 @@ public:
   //! \note This function doesn't respect any alignment. If you need to ensure there is enough room for an aligned
   //! allocation you need to call `align()` before calling `ensure()`.
   ASMJIT_INLINE_NODEBUG Error ensure(size_t size) noexcept {
-    if (size <= remainingSize())
+    if (ASMJIT_LIKELY(size <= remainingSize()))
       return kErrorOk;
     else
       return _alloc(0, 1) ? kErrorOk : DebugUtils::errored(kErrorOutOfMemory);
-  }
-
-  inline void _assignBlock(Block* block) noexcept {
-    size_t alignment = blockAlignment();
-    _ptr = Support::alignUp(block->data(), alignment);
-    _end = Support::alignDown(block->data() + block->size, alignment);
-    _block = block;
-  }
-
-  inline void _assignZeroBlock() noexcept {
-    Block* block = const_cast<Block*>(&_zeroBlock);
-    _ptr = block->data();
-    _end = block->data();
-    _block = block;
   }
 
   //! \}
@@ -229,8 +231,8 @@ public:
   //!
   //! class Object { ... };
   //!
-  //! // Create Zone with default block size of approximately 65536 bytes.
-  //! Zone zone(65536 - Zone::kBlockOverhead);
+  //! // Create Zone with default block size of 65536 bytes (the maximum size per alloc() would be slightly less).
+  //! Zone zone(65536);
   //!
   //! // Create your objects using zone object allocating, for example:
   //! Object* obj = static_cast<Object*>( zone.alloc(sizeof(Object)) );
@@ -353,6 +355,14 @@ public:
   ASMJIT_API char* sformat(const char* str, ...) noexcept;
 
   //! \}
+
+#if !defined(ASMJIT_NO_DEPRECATED)
+  ASMJIT_DEPRECATED("Use Zone::minimumBlockSize() instead of Zone::blockSize()")
+  ASMJIT_INLINE_NODEBUG size_t blockSize() const noexcept { return minimumBlockSize(); }
+
+  ASMJIT_DEPRECATED("Use Zone::hasStaticBlock() instead of Zone::isTemporary()")
+  ASMJIT_INLINE_NODEBUG bool isTemporary() const noexcept { return hasStaticBlock() != 0u; }
+#endif
 };
 
 //! \ref Zone with `N` bytes of a static storage, used for the initial block.

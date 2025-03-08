@@ -167,7 +167,7 @@ public:
     }
 
     static inline Node* _newNode(Zone* zone, const void* data, size_t size, size_t offset, bool shared) noexcept {
-      Node* node = zone->allocT<Node>(sizeof(Node) + size);
+      Node* node = zone->allocT<Node>(Support::alignUp(sizeof(Node) + size, alignof(Node)));
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
 
       node = new(Support::PlacementNew{node}) Node(offset, shared);

@@ -544,7 +544,7 @@ namespace Internal {
   inline T addOverflowFallback(T x, T y, FastUInt8* of) noexcept {
     typedef typename std::make_unsigned<T>::type U;
 
-    U result = U(x) + U(y);
+    U result = U(U(x) + U(y));
     *of = FastUInt8(*of | FastUInt8(isUnsigned<T>() ? result < U(x) : T((U(x) ^ ~U(y)) & (U(x) ^ result)) < 0));
     return T(result);
   }

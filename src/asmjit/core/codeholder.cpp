@@ -123,7 +123,7 @@ CodeHolder::CodeHolder(const Support::Temporary* temporary) noexcept
     _baseAddress(Globals::kNoBaseAddress),
     _logger(nullptr),
     _errorHandler(nullptr),
-    _zone(16384 - Zone::kBlockOverhead, 1, temporary),
+    _zone(16u * 1024u, 1, temporary),
     _allocator(&_zone),
     _unresolvedLinkCount(0),
     _addressTableSection(nullptr) {}

@@ -364,7 +364,7 @@ static void test_zone_vector(ZoneAllocator* allocator, const char* typeName) {
 }
 
 static void test_zone_bitvector(ZoneAllocator* allocator) {
-  Zone zone(8096 - Zone::kBlockOverhead);
+  Zone zone(8096);
 
   uint32_t i, count;
   uint32_t kMaxCount = 100;
@@ -411,7 +411,7 @@ static void test_zone_bitvector(ZoneAllocator* allocator) {
 }
 
 UNIT(zone_vector) {
-  Zone zone(8096 - Zone::kBlockOverhead);
+  Zone zone(8096);
   ZoneAllocator allocator(&zone);
 
   test_zone_vector<int>(&allocator, "int");

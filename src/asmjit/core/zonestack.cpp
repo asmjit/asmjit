@@ -175,7 +175,7 @@ static void test_zone_stack(ZoneAllocator* allocator, const char* typeName) {
 }
 
 UNIT(zone_stack) {
-  Zone zone(8096 - Zone::kBlockOverhead);
+  Zone zone(8096);
   ZoneAllocator allocator(&zone);
 
   test_zone_stack<int>(&allocator, "int");
