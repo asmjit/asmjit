@@ -44,9 +44,14 @@
   #endif
 
   #if ASMJIT_ARCH_ARM >= 64 && defined(__OpenBSD__)
-    #include <sys/sysctl.h>
     #include <machine/cpu.h>
+    #include <sys/sysctl.h>
   #endif
+
+  #if ASMJIT_ARCH_ARM >= 64 && defined(__NetBSD__)
+    #include <sys/sysctl.h>
+  #endif
+
 #endif // ASMJIT_ARCH_ARM
 
 #if !defined(_WIN32) && (ASMJIT_ARCH_X86 || ASMJIT_ARCH_ARM)
@@ -85,7 +90,7 @@ ASMJIT_BEGIN_NAMESPACE
 //   * ARM64:
 //     - Linux   - HWCAPS and CPUID based detection.
 //     - FreeBSD - HWCAPS and CPUID based detection (shared with Linux code).
-//     - NetBSD  - NOT IMPLEMENTED!
+//     - NetBSD  - CPUID based detection (reading CPUID via sysctl's cpu0 info)
 //     - OpenBSD - CPUID based detection (reading CPUID via sysctl's CTL_MACHDEP).
 //     - Apple   - sysctlbyname() based detection with FamilyId matrix (record for each family id).
 //     - Windows - IsProcessorFeaturePresent() based detection (only detects a subset of features).
@@ -1774,6 +1779,92 @@ static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
 }
 
 #endif // ASMJIT_ARCH_ARM
+
+// CpuInfo - Detect - ARM - Detect by NetBSD API That Reads CPUID
+// ==============================================================
+
+#elif defined(__NetBSD__) && ASMJIT_ARCH_ARM >= 64
+
+//! Position of AArch64 registers in a`aarch64_sysctl_cpu_id` struct, which is filled by sysctl().
+struct NetBSDAArch64Regs {
+  enum ID : uint32_t {
+    k64_MIDR      = 0,    //!< Main ID Register.
+    k64_REVIDR    = 8,    //!< Revision ID Register.
+    k64_MPIDR     = 16,   //!< Multiprocessor Affinity Register.
+    k64_AA64DFR0  = 24,   //!< A64 Debug Feature Register 0.
+    k64_AA64DFR1  = 32,   //!< A64 Debug Feature Register 1.
+    k64_AA64ISAR0 = 40,   //!< A64 Instruction Set Attribute Register 0.
+    k64_AA64ISAR1 = 48,   //!< A64 Instruction Set Attribute Register 1.
+    k64_AA64MMFR0 = 56,   //!< A64 Memory Model Feature Register 0.
+    k64_AA64MMFR1 = 64,   //!< A64 Memory Model Feature Register 1.
+    k64_AA64MMFR2 = 72,   //!< A64 Memory Model Feature Register 2.
+    k64_AA64PFR0  = 80,   //!< A64 Processor Feature Register 0.
+    k64_AA64PFR1  = 88,   //!< A64 Processor Feature Register 1.
+    k64_AA64ZFR0  = 96,   //!< A64 SVE Feature ID Register 0.
+    k32_MVFR0     = 104,  //!< Media and VFP Feature Register 0.
+    k32_MVFR1     = 108,  //!< Media and VFP Feature Register 1.
+    k32_MVFR2     = 112,  //!< Media and VFP Feature Register 2.
+    k32_PAD       = 116,  //!< Padding (not used).
+    k64_CLIDR     = 120,  //!< Cache Level ID Register.
+    k64_CTR       = 128   //!< Cache Type Register.
+  };
+
+  enum Limits : uint32_t {
+    kBufferSize   = 136
+  };
+
+  uint64_t data[kBufferSize / 8u];
+
+  ASMJIT_INLINE_NODEBUG uint64_t r64(uint32_t index) const noexcept {
+    ASMJIT_ASSERT(index % 8u == 0u);
+    return data[index / 8u];
+  }
+
+  ASMJIT_INLINE_NODEBUG uint32_t r32(uint32_t index) const noexcept {
+    ASMJIT_ASSERT(index % 4u == 0u);
+    uint32_t shift = (index % 8) * 8;
+    return uint32_t((r64(index) >> shift) & 0xFFFFFFFFu);
+  }
+};
+
+static ASMJIT_FAVOR_SIZE void detectARMCpu(CpuInfo& cpu) noexcept {
+  using Regs = NetBSDAArch64Regs;
+
+  populateBaseARMFeatures(cpu);
+
+  Regs regs {};
+  size_t len = sizeof(regs);
+  const char sysctlCpuPath[] = "machdep.cpu0.cpu_id";
+
+  if (sysctlbyname(sysctlCpuPath, &regs, &len, nullptr, 0) == 0) {
+    detectAArch64FeaturesViaCPUID_AA64PFR0_AA64PFR1(cpu,
+      regs.r64(Regs::k64_AA64PFR0),
+      regs.r64(Regs::k64_AA64PFR1));
+
+    detectAArch64FeaturesViaCPUID_AA64ISAR0_AA64ISAR1(cpu,
+      regs.r64(Regs::k64_AA64ISAR0),
+      regs.r64(Regs::k64_AA64ISAR1));
+
+    // TODO: AA64ISAR2 should be added when it's provided by NetBSD.
+    // detectAArch64FeaturesViaCPUID_AA64ISAR2(cpu, regs.r64Regs::k64_AA64ISAR2));
+
+    detectAArch64FeaturesViaCPUID_AA64MMFR0(cpu, regs.r64(Regs::k64_AA64MMFR0));
+    detectAArch64FeaturesViaCPUID_AA64MMFR1(cpu, regs.r64(Regs::k64_AA64MMFR1));
+    detectAArch64FeaturesViaCPUID_AA64MMFR2(cpu, regs.r64(Regs::k64_AA64MMFR2));
+
+    // Only read CPU_ID_AA64ZFR0 when either SVE or SME is available.
+    if (cpu.features().arm().hasAny(Ext::kSVE, Ext::kSME)) {
+      detectAArch64FeaturesViaCPUID_AA64ZFR0(cpu, regs.r64(Regs::k64_AA64ZFR0));
+
+      // TODO: AA64SMFR0 should be added when it's provided by NetBSD.
+      // if (cpu.features().arm().hasSME()) {
+      //   detectAArch64FeaturesViaCPUID_AA64SMFR0(cpu, regs.r64(Regs::k64_kAA64SMFR0));
+      // }
+    }
+  }
+
+  postProcessARMCpuInfo(cpu);
+}
 
 // CpuInfo - Detect - ARM - Detect by OpenBSD API That Reads CPUID
 // ===============================================================
