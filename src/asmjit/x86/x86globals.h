@@ -793,6 +793,7 @@ namespace Inst {
     kIdPushf,                            //!< Instruction 'pushf'.
     kIdPushfd,                           //!< Instruction 'pushfd' (X86).
     kIdPushfq,                           //!< Instruction 'pushfq' (X64).
+    kIdPushw,                            //!< Instruction 'pushw'.
     kIdPvalidate,                        //!< Instruction 'pvalidate' {SEV_SNP}.
     kIdPxor,                             //!< Instruction 'pxor' {MMX|SSE2}.
     kIdRcl,                              //!< Instruction 'rcl'.

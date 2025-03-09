@@ -1899,6 +1899,15 @@ CaseX86M_GPB_MulDiv:
       }
       break;
 
+    case InstDB::kEncodingX86Pushw:
+      if (isign3 == ENC_OPS1(Imm)) {
+        immValue = o0.as<Imm>().value();
+        immSize = 2;
+        opcode = 0x68u | Opcode::kPP_66;
+        goto EmitX86Op;
+      }
+      break;
+
     case InstDB::kEncodingX86Push:
       if (isign3 == ENC_OPS1(Reg)) {
         if (Reg::isSReg(o0)) {

@@ -558,6 +558,7 @@ public:
   ASMJIT_INST_0x(pushf, Pushf)                                         // ANY
   ASMJIT_INST_0x(pushfd, Pushfd)                                       // X86
   ASMJIT_INST_0x(pushfq, Pushfq)                                       // X64
+  ASMJIT_INST_1x(pushw, Pushw, Imm)                                    // ANY
   ASMJIT_INST_2x(rcl, Rcl, Gp, Gp_CL)                                  // ANY
   ASMJIT_INST_2x(rcl, Rcl, Mem, Gp_CL)                                 // ANY
   ASMJIT_INST_2x(rcl, Rcl, Gp, Imm)                                    // ANY

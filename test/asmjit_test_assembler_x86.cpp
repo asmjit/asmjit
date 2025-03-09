@@ -710,6 +710,8 @@ static void ASMJIT_NOINLINE testX86AssemblerBase(AssemblerTester<x86::Assembler>
   TEST_INSTRUCTION("60"                            , pushad());
   TEST_INSTRUCTION("669C"                          , pushf());
   TEST_INSTRUCTION("9C"                            , pushfd());
+  TEST_INSTRUCTION("66680100"                      , pushw(1));
+  TEST_INSTRUCTION("66683412"                      , pushw(0x1234));
   TEST_INSTRUCTION("D2D1"                          , rcl(cl, cl));
   TEST_INSTRUCTION("D0D1"                          , rcl(cl, 1));
   TEST_INSTRUCTION("D2D5"                          , rcl(ch, cl));

@@ -76,6 +76,7 @@ enum EncodingId : uint32_t {
   kEncodingX86Out,                       //!< X86 out.
   kEncodingX86Outs,                      //!< X86 out[b|w|d].
   kEncodingX86Push,                      //!< X86 push.
+  kEncodingX86Pushw,                     //!< X86 pushw.
   kEncodingX86Pop,                       //!< X86 pop.
   kEncodingX86Ret,                       //!< X86 ret.
   kEncodingX86Rot,                       //!< X86 rcl, rcr, rol, ror, sal, sar, shl, shr.
