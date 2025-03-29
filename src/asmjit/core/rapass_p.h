@@ -365,6 +365,20 @@ public:
     return tiedRegs(group) + index;
   }
 
+  inline const RATiedReg* tiedRegForWorkReg(RegGroup group, uint32_t workId) const noexcept {
+    const RATiedReg* array = tiedRegs(group);
+    size_t count = tiedCount(group);
+
+    for (size_t i = 0; i < count; i++) {
+      const RATiedReg* tiedReg = &array[i];
+      if (tiedReg->workId() == workId) {
+        return tiedReg;
+      }
+    }
+
+    return nullptr;
+  }
+
   inline void setTiedAt(uint32_t index, RATiedReg& tied) noexcept {
     ASMJIT_ASSERT(index < _tiedTotal);
     _tiedRegs[index] = tied;

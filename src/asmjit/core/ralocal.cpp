@@ -671,10 +671,11 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
 
           // DECIDE whether to MOVE or SPILL.
           if (allocableRegs) {
-            uint32_t reassignedId = decideOnReassignment(group, workId, assignedId, allocableRegs);
+            uint32_t reassignedId = decideOnReassignment(group, workId, assignedId, allocableRegs, raInst);
             if (reassignedId != RAAssignment::kPhysNone) {
               ASMJIT_PROPAGATE(onMoveReg(group, workId, reassignedId, assignedId));
               allocableRegs ^= Support::bitMask(reassignedId);
+              _pass->_clobberedRegs[group] |= Support::bitMask(reassignedId);
               continue;
             }
           }
@@ -690,11 +691,11 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
     // ALLOCATE / SHUFFLE all registers that we marked as `willUse` and weren't allocated yet. This is a bit
     // complicated as the allocation is iterative. In some cases we have to wait before allocating a particular
     // physical register as it's still occupied by some other one, which we need to move before we can use it.
-    // In this case we skip it and allocate another some other instead (making it free for another iteration).
+    // In this case we skip it and allocate another one instead (making it free for the next iteration).
     //
     // NOTE: Iterations are mostly important for complicated allocations like function calls, where there can
     // be up to N registers used at once. Asm instructions won't run the loop more than once in 99.9% of cases
-    // as they use 2..3 registers in average.
+    // as they use 2 to 3 registers in average.
 
     if (usePending) {
       bool mustSwap = false;
@@ -743,8 +744,21 @@ Error RALocalAllocator::allocInst(InstNode* node) noexcept {
               continue;
 
             // Only branched here if the previous iteration did nothing. This is essentially a SWAP operation without
-            // having a dedicated instruction for that purpose (vector registers, etc). The simplest way to handle
-            // such case is to SPILL the target register.
+            // having a dedicated instruction for that purpose (vector registers, etc...). The simplest way to handle
+            // such case is to SPILL the target register or MOVE it to another register so the loop can continue.
+            RegMask availableRegs = _availableRegs[group] & ~_curAssignment.assigned(group);
+            if (availableRegs) {
+              uint32_t tmpRegId = Support::ctz(availableRegs);
+
+              ASMJIT_PROPAGATE(onMoveReg(group, thisWorkId, tmpRegId, thisPhysId));
+              _pass->_clobberedRegs[group] |= Support::bitMask(tmpRegId);
+
+              // NOTE: This register is not done, we have just moved it to another physical spot, and we will have to
+              // move it again into the correct spot once it's free (since this is essentially doing a swap operation
+              // via moves).
+              break;
+            }
+
             ASMJIT_PROPAGATE(onSpillReg(group, targetWorkId, targetPhysId));
           }
 
@@ -1119,16 +1133,22 @@ uint32_t RALocalAllocator::decideOnAssignment(RegGroup group, uint32_t workId, u
   return Support::ctz(allocableRegs);
 }
 
-uint32_t RALocalAllocator::decideOnReassignment(RegGroup group, uint32_t workId, uint32_t physId, RegMask allocableRegs) const noexcept {
+uint32_t RALocalAllocator::decideOnReassignment(RegGroup group, uint32_t workId, uint32_t physId, RegMask allocableRegs, RAInst* raInst) const noexcept {
   ASMJIT_ASSERT(allocableRegs != 0);
-  DebugUtils::unused(group, physId);
+  DebugUtils::unused(physId);
 
   RAWorkReg* workReg = workRegById(workId);
 
-  // Prefer allocating back to HomeId, if possible.
+  // Prefer reassignment back to HomeId, if possible.
   if (workReg->hasHomeRegId()) {
     if (Support::bitTest(allocableRegs, workReg->homeRegId()))
       return workReg->homeRegId();
+  }
+
+  // Prefer assignment to a temporary register in case this register is killed by the instruction (or has an out slot).
+  const RATiedReg* tiedReg = raInst->tiedRegForWorkReg(group, workId);
+  if (tiedReg && tiedReg->isOutOrKill()) {
+    return Support::ctz(allocableRegs);
   }
 
   // TODO: [Register Allocator] This could be improved.

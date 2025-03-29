@@ -169,7 +169,7 @@ public:
   //! The function must return either `RAAssignment::kPhysNone`, which means that the WorkReg of `workId` should be
   //! spilled, or a valid physical register ID, which means that the register should be moved to that physical register
   //! instead.
-  uint32_t decideOnReassignment(RegGroup group, uint32_t workId, uint32_t assignedId, RegMask allocableRegs) const noexcept;
+  uint32_t decideOnReassignment(RegGroup group, uint32_t workId, uint32_t assignedId, RegMask allocableRegs, RAInst* raInst) const noexcept;
 
   //! Decides on best spill given a register mask `spillableRegs`
   uint32_t decideOnSpillFor(RegGroup group, uint32_t workId, RegMask spillableRegs, uint32_t* spillWorkId) const noexcept;
