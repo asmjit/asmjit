@@ -157,6 +157,27 @@ enum class RegType : uint8_t {
   //! 128-bit view of VFP/ASIMD register (V).
   kARM_VecV = kVec128,
 
+  // LoongArch Specific Register Types
+  // ---------------------------
+
+  //! Program pointer (PC) register (AArch64).
+  kLA_PC = kPC,
+  //! 32-bit general purpose register (R or W).
+  kLA_GpW = kGp32,
+  //! 64-bit general purpose register (X).
+  kLA_GpX = kGp64,
+  //! 8-bit view of VFP/ASIMD register (B).
+  kLA_VecB = kVec8,
+  //! 16-bit view of VFP/ASIMD register (H).
+  kLA_VecH = kVec16,
+  //! 32-bit view of VFP/ASIMD register (S).
+  kLA_VecS = kVec32,
+  //! 64-bit view of VFP/ASIMD register (D).
+  kLA_VecD = kVec64,
+  //! 128-bit view of VFP/ASIMD register (Q).
+  kLA_VecQ = kVec128,
+  //! 128-bit view of VFP/ASIMD register (V).
+  kLA_VecV = kVec128,
   //! Maximum value of `RegType`.
   kMaxValue = 31
 };

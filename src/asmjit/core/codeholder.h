@@ -361,8 +361,13 @@ enum class OffsetType : uint8_t {
   //! in a 32-bit word.
   kAArch32_1To24At0_0At24,
 
+  //! Loongarch B/BL
+  kTypeLa64_B26,
+  //! Loongarch BEQ/BNE/...
+  kTypeLa64_B16,
+
   //! Maximum value of `OffsetFormatType`.
-  kMaxValue = kAArch32_1To24At0_0At24
+  kMaxValue = kTypeLa64_B16
 };
 
 //! Provides information about formatting offsets, absolute addresses, or their parts. Offset format is used by both

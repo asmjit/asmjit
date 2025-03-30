@@ -18,6 +18,10 @@
   #include "../arm/a64func_p.h"
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  #include "../loongarch/la64func_p.h"
+#endif
+
 ASMJIT_BEGIN_NAMESPACE
 
 // CallConv - Initialization & Reset
@@ -36,6 +40,10 @@ ASMJIT_FAVOR_SIZE Error CallConv::init(CallConvId ccId, const Environment& envir
     return a64::FuncInternal::initCallConv(*this, ccId, environment);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (environment.isFamilyLOONGARCH())
+    return la64::FuncInternal::initCallConv(*this, ccId, environment);
+#endif
   return DebugUtils::errored(kErrorInvalidArgument);
 }
 
@@ -78,6 +86,10 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& signature, const E
     return a64::FuncInternal::initFuncDetail(*this, signature);
 #endif
 
+#if !defined(ASMJIT_NO_LOONGARCH64)
+  if (environment.isFamilyLOONGARCH())
+    return la64::FuncInternal::initFuncDetail(*this, signature);
+#endif
   // We should never bubble here as if `cc.init()` succeeded then there has to be an implementation for the current
   // architecture. However, stay safe.
   return DebugUtils::errored(kErrorInvalidArgument);
