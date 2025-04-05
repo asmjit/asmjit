@@ -65,7 +65,7 @@ public:
 #endif
   }
 
-  inline BaseCompiler* cc() const noexcept { return _cc; }
+  ASMJIT_INLINE_NODEBUG BaseCompiler* cc() const noexcept { return _cc; }
 
   //! \name Run
   //! \{
@@ -80,8 +80,10 @@ public:
 
     RABlock* entryBlock = _curBlock;
     BaseNode* node = _funcNode->next();
-    if (ASMJIT_UNLIKELY(!node))
+
+    if (ASMJIT_UNLIKELY(!node)) {
       return DebugUtils::errored(kErrorInvalidState);
+    }
 
     _curBlock->setFirst(_funcNode);
     _curBlock->setLast(_funcNode);
@@ -117,16 +119,19 @@ public:
             // the first possible inserted node by `onBeforeInvoke()` or `onBeforeRet()`.
             BaseNode* prev = node->prev();
 
-            if (node->type() == NodeType::kInvoke)
+            if (node->type() == NodeType::kInvoke) {
               ASMJIT_PROPAGATE(static_cast<This*>(this)->onBeforeInvoke(node->as<InvokeNode>()));
-            else
+            }
+            else {
               ASMJIT_PROPAGATE(static_cast<This*>(this)->onBeforeRet(node->as<FuncRetNode>()));
+            }
 
             if (prev != node->prev()) {
               // If this was the first node in the block and something was
               // inserted before it then we have to update the first block.
-              if (_curBlock->first() == node)
+              if (_curBlock->first() == node) {
                 _curBlock->setFirst(prev->next());
+              }
 
               node->setPosition(kNodePositionDidOnBefore);
               node = prev->next();
@@ -148,7 +153,7 @@ public:
         logNode(inst, kCodeIndentation);
 
         InstControlFlow cf = InstControlFlow::kRegular;
-        ib.reset();
+        ib.reset(_curBlock->blockId());
         ASMJIT_PROPAGATE(static_cast<This*>(this)->onInst(inst, cf, ib));
 
         if (node->isInvoke()) {
@@ -191,8 +196,9 @@ public:
               const Operand* opArray = inst->operands();
 
               // Cannot jump anywhere without operands.
-              if (ASMJIT_UNLIKELY(!opCount))
+              if (ASMJIT_UNLIKELY(!opCount)) {
                 return DebugUtils::errored(kErrorInvalidState);
+              }
 
               if (opArray[opCount - 1].isLabel()) {
                 // Labels are easy for constructing the control flow.
@@ -200,8 +206,9 @@ public:
                 ASMJIT_PROPAGATE(cc()->labelNodeOf(&labelNode, opArray[opCount - 1].as<Label>()));
 
                 RABlock* targetBlock = _pass->newBlockOrExistingAt(labelNode);
-                if (ASMJIT_UNLIKELY(!targetBlock))
+                if (ASMJIT_UNLIKELY(!targetBlock)) {
                   return DebugUtils::errored(kErrorOutOfMemory);
+                }
 
                 targetBlock->makeTargetable();
                 ASMJIT_PROPAGATE(_curBlock->appendSuccessor(targetBlock));
@@ -213,8 +220,9 @@ public:
                 JumpAnnotation* jumpAnnotation = nullptr;
                 _curBlock->addFlags(RABlockFlags::kHasJumpTable);
 
-                if (inst->type() == NodeType::kJump)
+                if (inst->type() == NodeType::kJump) {
                   jumpAnnotation = inst->as<JumpNode>()->annotation();
+                }
 
                 if (jumpAnnotation) {
                   uint64_t timestamp = _pass->nextTimestamp();
@@ -223,8 +231,9 @@ public:
                     ASMJIT_PROPAGATE(cc()->labelNodeOf(&labelNode, id));
 
                     RABlock* targetBlock = _pass->newBlockOrExistingAt(labelNode);
-                    if (ASMJIT_UNLIKELY(!targetBlock))
+                    if (ASMJIT_UNLIKELY(!targetBlock)) {
                       return DebugUtils::errored(kErrorOutOfMemory);
+                    }
 
                     // Prevents adding basic-block successors multiple times.
                     if (!targetBlock->hasTimestamp(timestamp)) {
@@ -260,15 +269,17 @@ public:
                 }
                 else {
                   consecutiveBlock = _pass->newBlock(node);
-                  if (ASMJIT_UNLIKELY(!consecutiveBlock))
+                  if (ASMJIT_UNLIKELY(!consecutiveBlock)) {
                     return DebugUtils::errored(kErrorOutOfMemory);
+                  }
                   node->setPassData<RABlock>(consecutiveBlock);
                 }
               }
               else {
                 consecutiveBlock = _pass->newBlock(node);
-                if (ASMJIT_UNLIKELY(!consecutiveBlock))
+                if (ASMJIT_UNLIKELY(!consecutiveBlock)) {
                   return DebugUtils::errored(kErrorOutOfMemory);
+                }
               }
 
               _curBlock->addFlags(RABlockFlags::kHasConsecutive);
@@ -308,14 +319,16 @@ public:
           if (_curBlock) {
             // If the label has a block assigned we can either continue with it or skip it if the block has been
             // constructed already.
-            if (_curBlock->isConstructed())
+            if (_curBlock->isConstructed()) {
               break;
+            }
           }
           else {
             // No block assigned - create a new one and assign it.
             _curBlock = _pass->newBlock(node);
-            if (ASMJIT_UNLIKELY(!_curBlock))
+            if (ASMJIT_UNLIKELY(!_curBlock)) {
               return DebugUtils::errored(kErrorOutOfMemory);
+            }
             node->setPassData<RABlock>(_curBlock);
           }
 
@@ -333,8 +346,9 @@ public:
               // The label currently processed is part of the current block. This is only possible for multiple labels
               // that are right next to each other or labels that are separated by non-code nodes like directives and
               // comments.
-              if (ASMJIT_UNLIKELY(_hasCode))
+              if (ASMJIT_UNLIKELY(_hasCode)) {
                 return DebugUtils::errored(kErrorInvalidState);
+              }
             }
             else {
               // Label makes the current block constructed. There is a chance that the Label is not used, but we don't
@@ -363,8 +377,9 @@ public:
               _curBlock->makeConstructed(_blockRegStats);
 
               RABlock* consecutive = _pass->newBlock(node);
-              if (ASMJIT_UNLIKELY(!consecutive))
+              if (ASMJIT_UNLIKELY(!consecutive)) {
                 return DebugUtils::errored(kErrorOutOfMemory);
+              }
               consecutive->makeTargetable();
 
               ASMJIT_PROPAGATE(_curBlock->appendSuccessor(consecutive));
@@ -379,8 +394,9 @@ public:
           }
         }
 
-        if (_curBlock && _curBlock != _lastLoggedBlock)
+        if (_curBlock && _curBlock != _lastLoggedBlock) {
           logBlock(_curBlock, kRootIndentation);
+        }
         logNode(node, kRootIndentation);
 
         // Unlikely: Assume that the exit label is reached only once per function.

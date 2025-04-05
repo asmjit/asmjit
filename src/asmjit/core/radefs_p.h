@@ -223,18 +223,29 @@ struct RARegIndex : public RARegCount {
 
 //! Registers mask.
 struct RARegMask {
+  //! \name Types
+  //! \{
+
+  using RegMasks = Support::Array<RegMask, Globals::kNumVirtGroups>;
+
+  //! \}
+
   //! \name Members
   //! \{
 
-  Support::Array<RegMask, Globals::kNumVirtGroups> _masks;
+  RegMasks _masks;
 
   //! \}
 
   //! \name Construction & Destruction
   //! \{
 
+  //! Initializes from other `RARegMask`.
   ASMJIT_INLINE_NODEBUG void init(const RARegMask& other) noexcept { _masks = other._masks; }
-  //! Reset all register masks to zero.
+  //! Initializes directly from an array of masks.
+  ASMJIT_INLINE_NODEBUG void init(const RegMasks& masks) noexcept { _masks = masks; }
+
+  //! Resets all register masks to zero.
   ASMJIT_INLINE_NODEBUG void reset() noexcept { _masks.fill(0); }
 
   //! \}
@@ -981,17 +992,20 @@ enum class RAWorkRegFlags : uint32_t {
   //! Has been coalesced to another WorkReg.
   kCoalesced = 0x00000002u,
 
+  //! This register is used across multiple basic blocks - this can be used as an optimization.
+  kMultipleBasicBlocks = 0x00000004u,
+
   //! Set when this register is used as a LEAD consecutive register at least once.
-  kLeadConsecutive = 0x00000004u,
+  kLeadConsecutive = 0x00000010u,
   //! Used to mark consecutive registers during processing.
-  kProcessedConsecutive = 0x00000008u,
+  kProcessedConsecutive = 0x00000020u,
 
   //! Stack slot has to be allocated.
-  kStackUsed = 0x00000010u,
+  kStackUsed = 0x00000100u,
   //! Stack allocation is preferred.
-  kStackPreferred = 0x00000020u,
+  kStackPreferred = 0x00000200u,
   //! Marked for stack argument reassignment.
-  kStackArgToStack = 0x00000040u
+  kStackArgToStack = 0x00000400u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(RAWorkRegFlags)
 
@@ -1039,6 +1053,12 @@ public:
   OperandSignature _signature {};
   //! RAPass specific flags used during analysis and allocation.
   RAWorkRegFlags _flags = RAWorkRegFlags::kNone;
+
+  //! The identifier of a basic block this register lives in.
+  //!
+  //! If this register is used by multiple basic blocks, the id would always be `kIdNone`. However, if the register
+  //! lives in a single basic block, the id would be a valid block id, and `_flags` would not contain `kMultipleBasicBlocks`.
+  uint32_t _singleBasicBlockId = kIdNone;
 
   //! Constains all USE ids collected from all instructions.
   //!
@@ -1121,6 +1141,23 @@ public:
 
   ASMJIT_INLINE_NODEBUG bool isAllocated() const noexcept { return hasFlag(RAWorkRegFlags::kAllocated); }
   ASMJIT_INLINE_NODEBUG void markAllocated() noexcept { addFlags(RAWorkRegFlags::kAllocated); }
+
+  ASMJIT_INLINE_NODEBUG bool isWithinSingleBasicBlock() const noexcept { return !hasFlag(RAWorkRegFlags::kMultipleBasicBlocks); }
+  ASMJIT_INLINE_NODEBUG uint32_t singleBasicBlockId() const noexcept { return _singleBasicBlockId; }
+
+  //! Called when this register appeared in a basic block having `blockId`.
+  //!
+  //! This function just sets the basic block of this work register, and then later, when this register is processed
+  //! again it's compared with all other basic blocks it appears in so the flag `kMultipleBasicBlocks` can be properly
+  //! set when the compared basic blocks differ.
+  ASMJIT_INLINE_NODEBUG void assignBasicBlock(uint32_t blockId) noexcept { _singleBasicBlockId = blockId; }
+
+  //! Marks this register as using multiple basic blocks, which means reseting the single basic block identifier and
+  //! adding `kMultipleBasicBlocks` flag.
+  ASMJIT_INLINE_NODEBUG void markUseOfMultipleBasicBlocks() noexcept {
+    _singleBasicBlockId = Globals::kInvalidId;
+    addFlags(RAWorkRegFlags::kMultipleBasicBlocks);
+  }
 
   ASMJIT_INLINE_NODEBUG bool isLeadConsecutive() const noexcept { return hasFlag(RAWorkRegFlags::kLeadConsecutive); }
   ASMJIT_INLINE_NODEBUG void markLeadConsecutive() noexcept { addFlags(RAWorkRegFlags::kLeadConsecutive); }
