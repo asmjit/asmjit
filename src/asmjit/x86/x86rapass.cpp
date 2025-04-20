@@ -83,16 +83,16 @@ public:
   bool _is64Bit;
   bool _avxEnabled;
 
-  inline RACFGBuilder(X86RAPass* pass) noexcept
+  ASMJIT_INLINE_NODEBUG RACFGBuilder(X86RAPass* pass) noexcept
     : RACFGBuilderT<RACFGBuilder>(pass),
       _arch(pass->cc()->arch()),
       _is64Bit(pass->registerSize() == 8),
       _avxEnabled(pass->avxEnabled()) {
   }
 
-  inline Compiler* cc() const noexcept { return static_cast<Compiler*>(_cc); }
+  ASMJIT_INLINE_NODEBUG Compiler* cc() const noexcept { return static_cast<Compiler*>(_cc); }
 
-  inline uint32_t choose(uint32_t sseInst, uint32_t avxInst) const noexcept {
+  ASMJIT_INLINE_NODEBUG uint32_t choose(uint32_t sseInst, uint32_t avxInst) const noexcept {
     return _avxEnabled ? avxInst : sseInst;
   }
 

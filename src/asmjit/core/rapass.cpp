@@ -964,14 +964,22 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::buildLiveness() noexcept {
     ASMJIT_PROPAGATE(workReg->_writes.reserve(allocator(), nOutsPerWorkReg[i]));
   }
 
+  // These are not needed anymore, so release the memory now so other allocations can reuse it.
+  nUsesPerWorkReg.release(allocator());
+  nOutsPerWorkReg.release(allocator());
+
   // Assign block and instruction positions, build LiveCount and LiveSpans
   // ---------------------------------------------------------------------
 
+  // This is a starting position, reserving [0, 1] for function arguments.
   uint32_t position = 2;
+
   for (i = 0; i < numAllBlocks; i++) {
     RABlock* block = _blocks[i];
     if (!block->isReachable())
       continue;
+
+    uint32_t blockId = block->blockId();
 
     BaseNode* node = block->first();
     BaseNode* stop = block->last();
@@ -995,6 +1003,8 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::buildLiveness() noexcept {
       if (node->isInst()) {
         InstNode* inst = node->as<InstNode>();
         RAInst* raInst = inst->passData<RAInst>();
+
+        // Impossible - each processed instruction node must have an associated RAInst.
         ASMJIT_ASSERT(raInst != nullptr);
 
         RATiedReg* tiedRegs = raInst->tiedRegs();
@@ -1010,14 +1020,20 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::buildLiveness() noexcept {
           // Create refs and writes.
           RAWorkReg* workReg = workRegById(workId);
           workReg->_refs.appendUnsafe(node);
-          if (tiedReg->isWrite())
+          if (tiedReg->isWrite()) {
             workReg->_writes.appendUnsafe(node);
+          }
+
+          if (workReg->singleBasicBlockId() != blockId) {
+            workReg->markUseOfMultipleBasicBlocks();
+          }
 
           // We couldn't calculate this in previous steps, but since we know all LIVE-OUT at this point it becomes
           // trivial. If this is the last instruction that uses this `workReg` and it's not LIVE-OUT then it is
           // KILLed here.
-          if (tiedReg->isLast() && !block->liveOut().bitAt(workId))
+          if (tiedReg->isLast() && !block->liveOut().bitAt(workId)) {
             tiedReg->addFlags(RATiedFlags::kKill);
+          }
 
           LiveRegSpans& liveSpans = workReg->liveSpans();
           bool wasOpen;
@@ -1038,26 +1054,33 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::buildLiveness() noexcept {
           if (tiedReg->hasUseId()) {
             uint32_t useId = tiedReg->useId();
             workReg->addUseIdMask(Support::bitMask(useId));
-            if (!workReg->hasHintRegId() && !Support::bitTest(raInst->_clobberedRegs[group], useId))
+            if (!workReg->hasHintRegId() && !Support::bitTest(raInst->_clobberedRegs[group], useId)) {
               workReg->setHintRegId(useId);
+            }
           }
 
           if (tiedReg->useRegMask()) {
             workReg->restrictPreferredMask(tiedReg->useRegMask());
-            if (workReg->isLeadConsecutive())
+            if (workReg->isLeadConsecutive()) {
               workReg->restrictConsecutiveMask(tiedReg->useRegMask());
+            }
           }
 
           if (tiedReg->outRegMask()) {
             workReg->restrictPreferredMask(tiedReg->outRegMask());
-            if (workReg->isLeadConsecutive())
+            if (workReg->isLeadConsecutive()) {
               workReg->restrictConsecutiveMask(tiedReg->outRegMask());
+            }
           }
 
           // Update `RAWorkReg::clobberedSurvivalMask`.
           if (raInst->_clobberedRegs[group] && !tiedReg->isOutOrKill()) {
             workReg->addClobberSurvivalMask(raInst->_clobberedRegs[group]);
           }
+        }
+
+        if (node->isInvoke()) {
+          func()->frame().updateCallStackAlignment(node->as<InvokeNode>()->detail().naturalStackAlignment());
         }
 
         position += 2;
@@ -1098,8 +1121,6 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::buildLiveness() noexcept {
     logger->log(sb);
   });
 
-  nUsesPerWorkReg.release(allocator());
-  nOutsPerWorkReg.release(allocator());
   nInstsPerBlock.release(allocator());
 
   return kErrorOk;
@@ -1226,7 +1247,7 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::binPack(RegGroup group) noexcept {
   RegMask preservedRegs = func()->frame().preservedRegs(group);
 
   // First try to pack everything that provides register-id hint as these are most likely function arguments and fixed
-  // (precolored) virtual registers.
+  // (pre-colored) virtual registers.
   if (!workRegs.empty()) {
     uint32_t dstIndex = 0;
 

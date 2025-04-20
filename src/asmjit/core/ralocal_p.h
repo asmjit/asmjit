@@ -25,8 +25,8 @@ class RALocalAllocator {
 public:
   ASMJIT_NONCOPYABLE(RALocalAllocator)
 
-  typedef RAAssignment::PhysToWorkMap PhysToWorkMap;
-  typedef RAAssignment::WorkToPhysMap WorkToPhysMap;
+  using PhysToWorkMap = RAAssignment::PhysToWorkMap;
+  using WorkToPhysMap = RAAssignment::WorkToPhysMap;
 
   //! Link to `BaseRAPass`.
   BaseRAPass* _pass {};
@@ -39,6 +39,8 @@ public:
   RARegMask _availableRegs {};
   //! Registers clobbered by the allocator.
   RARegMask _clobberedRegs {};
+  //! Registers that must be preserved by the function (clobbering means saving & restoring in function prolog & epilog).
+  RARegMask _funcPreservedRegs {};
 
   //! Register assignment (current).
   RAAssignment _curAssignment {};
@@ -67,7 +69,9 @@ public:
     : _pass(pass),
       _cc(pass->cc()),
       _archTraits(pass->_archTraits),
-      _availableRegs(pass->_availableRegs) {}
+      _availableRegs(pass->_availableRegs) {
+    _funcPreservedRegs.init(pass->func()->frame().preservedRegs());
+  }
 
   Error init() noexcept;
 
@@ -150,7 +154,7 @@ public:
     return uint32_t(int32_t(freq * float(kCostOfFrequency)));
   }
 
-  inline uint32_t calculateSpillCost(RegGroup group, uint32_t workId, uint32_t assignedId) const noexcept {
+  ASMJIT_FORCE_INLINE uint32_t calculateSpillCost(RegGroup group, uint32_t workId, uint32_t assignedId) const noexcept {
     RAWorkReg* workReg = workRegById(workId);
     uint32_t cost = costByFrequency(workReg->liveStats().freq());
 
@@ -158,6 +162,18 @@ public:
       cost += kCostOfDirtyFlag;
 
     return cost;
+  }
+
+  ASMJIT_FORCE_INLINE uint32_t pickBestSuitableRegister(RegGroup group, RegMask allocableRegs) const noexcept {
+    // These are registers must be preserved by the function itself.
+    RegMask preservedRegs = _funcPreservedRegs[group];
+
+    // Reduce the set by removing preserved registers when possible.
+    if (allocableRegs & ~preservedRegs) {
+      allocableRegs &= ~preservedRegs;
+    }
+
+    return Support::ctz(allocableRegs);
   }
 
   //! Decides on register assignment.
@@ -182,7 +198,10 @@ public:
   //! Emits a move between a destination and source register, and fixes the
   //! register assignment.
   inline Error onMoveReg(RegGroup group, uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {
-    if (dstPhysId == srcPhysId) return kErrorOk;
+    if (dstPhysId == srcPhysId) {
+      return kErrorOk;
+    }
+
     _curAssignment.reassign(group, workId, dstPhysId, srcPhysId);
     return _pass->emitMove(workId, dstPhysId, srcPhysId);
   }

@@ -44,7 +44,7 @@ enum class RABlockFlags : uint32_t {
   kHasConsecutive = 0x00000200u,
   //! Block has a jump to a jump-table at the end.
   kHasJumpTable = 0x00000400u,
-  //! Block contains fixed registers (precolored).
+  //! Block contains fixed registers (pre-colored).
   kHasFixedRegs = 0x00000800u,
   //! Block contains function calls.
   kHasFuncCalls = 0x00001000u
@@ -402,6 +402,8 @@ public:
   //! \name Members
   //! \{
 
+  //! Basic block id.
+  uint32_t _basicBlockId;
   //! Instruction RW flags.
   InstRWFlags _instRWFlags;
 
@@ -425,10 +427,11 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  ASMJIT_INLINE_NODEBUG RAInstBuilder() noexcept { reset(); }
+  ASMJIT_INLINE_NODEBUG explicit RAInstBuilder(uint32_t blockId = Globals::kInvalidId) noexcept { reset(blockId); }
 
-  ASMJIT_INLINE_NODEBUG void init() noexcept { reset(); }
-  ASMJIT_INLINE_NODEBUG void reset() noexcept {
+  ASMJIT_INLINE_NODEBUG void init(uint32_t blockId) noexcept { reset(blockId); }
+  ASMJIT_INLINE_NODEBUG void reset(uint32_t blockId) noexcept {
+    _basicBlockId = blockId;
     _instRWFlags = InstRWFlags::kNone;
     _aggregatedFlags = RATiedFlags::kNone;
     _forbiddenFlags = RATiedFlags::kNone;
@@ -465,13 +468,13 @@ public:
   ASMJIT_INLINE_NODEBUG const RATiedReg* end() const noexcept { return _cur; }
 
   //! Returns `RATiedReg` at the given `index`.
-  inline RATiedReg* operator[](uint32_t index) noexcept {
+  inline RATiedReg* operator[](size_t index) noexcept {
     ASMJIT_ASSERT(index < tiedRegCount());
     return &_tiedRegs[index];
   }
 
   //! Returns `RATiedReg` at the given `index`. (const).
-  inline const RATiedReg* operator[](uint32_t index) const noexcept {
+  inline const RATiedReg* operator[](size_t index) const noexcept {
     ASMJIT_ASSERT(index < tiedRegCount());
     return &_tiedRegs[index];
   }
@@ -487,8 +490,8 @@ public:
     RegMask useRegMask, uint32_t useId, uint32_t useRewriteMask,
     RegMask outRegMask, uint32_t outId, uint32_t outRewriteMask,
     uint32_t rmSize = 0,
-    uint32_t consecutiveParent = Globals::kInvalidId) noexcept {
-
+    uint32_t consecutiveParent = Globals::kInvalidId
+  ) noexcept {
     RegGroup group = workReg->group();
     RATiedReg* tiedReg = workReg->tiedReg();
 
@@ -507,12 +510,14 @@ public:
     _stats.makeUsed(group);
 
     if (!tiedReg) {
-      // Could happen when the builder is not reset properly after each instruction.
+      // Would happen when the builder is not reset properly after each instruction - so catch that!
       ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
 
       tiedReg = _cur++;
       tiedReg->init(workReg->workId(), flags, useRegMask, useId, useRewriteMask, outRegMask, outId, outRewriteMask, rmSize, consecutiveParent);
+
       workReg->setTiedReg(tiedReg);
+      workReg->assignBasicBlock(_basicBlockId);
 
       _count.add(group);
       return kErrorOk;
@@ -566,7 +571,9 @@ public:
 
       tiedReg = _cur++;
       tiedReg->init(workReg->workId(), flags, allocable, useId, 0, allocable, BaseReg::kIdBad, 0);
+
       workReg->setTiedReg(tiedReg);
+      workReg->assignBasicBlock(_basicBlockId);
 
       _count.add(group);
       return kErrorOk;
@@ -606,7 +613,9 @@ public:
 
       tiedReg = _cur++;
       tiedReg->init(workReg->workId(), flags, Support::allOnes<RegMask>(), BaseReg::kIdBad, 0, outRegs, outId, 0);
+
       workReg->setTiedReg(tiedReg);
+      workReg->assignBasicBlock(_basicBlockId);
 
       _count.add(group);
       return kErrorOk;

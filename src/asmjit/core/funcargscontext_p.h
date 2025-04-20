@@ -65,8 +65,8 @@ public:
       out.reset();
     }
 
-    inline bool isDone() const noexcept { return cur.isDone(); }
-    inline void markDone() noexcept { cur.addFlags(FuncValue::kFlagIsDone); }
+    ASMJIT_INLINE_NODEBUG bool isDone() const noexcept { return cur.isDone(); }
+    ASMJIT_INLINE_NODEBUG void markDone() noexcept { cur.addFlags(FuncValue::kFlagIsDone); }
   };
 
   struct WorkData {
@@ -86,8 +86,10 @@ public:
     uint8_t _numSwaps;
     //! Number of stack loads.
     uint8_t _numStackArgs;
+    //! Whether this work data would need reassignment.
+    uint8_t _needsScratch;
     //! Reserved (only used as padding).
-    uint8_t _reserved[6];
+    uint8_t _reserved[5];
     //! Physical ID to variable ID mapping.
     uint8_t _physToVarId[32];
 
@@ -100,6 +102,7 @@ public:
       _dstShuf = 0;
       _numSwaps = 0;
       _numStackArgs = 0;
+      _needsScratch = 0;
       memset(_reserved, 0, sizeof(_reserved));
       memset(_physToVarId, kVarIdNone, 32);
     }
@@ -147,12 +150,12 @@ public:
       _assignedRegs ^= Support::bitMask(regId);
     }
 
-    inline RegMask archRegs() const noexcept { return _archRegs; }
-    inline RegMask workRegs() const noexcept { return _workRegs; }
-    inline RegMask usedRegs() const noexcept { return _usedRegs; }
-    inline RegMask assignedRegs() const noexcept { return _assignedRegs; }
-    inline RegMask dstRegs() const noexcept { return _dstRegs; }
-    inline RegMask availableRegs() const noexcept { return _workRegs & ~_assignedRegs; }
+    ASMJIT_INLINE_NODEBUG RegMask archRegs() const noexcept { return _archRegs; }
+    ASMJIT_INLINE_NODEBUG RegMask workRegs() const noexcept { return _workRegs; }
+    ASMJIT_INLINE_NODEBUG RegMask usedRegs() const noexcept { return _usedRegs; }
+    ASMJIT_INLINE_NODEBUG RegMask assignedRegs() const noexcept { return _assignedRegs; }
+    ASMJIT_INLINE_NODEBUG RegMask dstRegs() const noexcept { return _dstRegs; }
+    ASMJIT_INLINE_NODEBUG RegMask availableRegs() const noexcept { return _workRegs & ~_assignedRegs; }
   };
 
   //! Architecture traits.

@@ -1041,6 +1041,13 @@ public:
 
   //! \}
 
+  //! \name Types
+  //! \{
+
+  using RegMasks = Support::Array<RegMask, Globals::kNumVirtGroups>;
+
+  //! \}
+
   //! \name Members
   //! \{
 
@@ -1093,9 +1100,9 @@ public:
   uint32_t _stackAdjustment = 0;
 
   //! Registers that are dirty.
-  Support::Array<RegMask, Globals::kNumVirtGroups> _dirtyRegs {};
+  RegMasks _dirtyRegs {};
   //! Registers that must be preserved (copied from CallConv).
-  Support::Array<RegMask, Globals::kNumVirtGroups> _preservedRegs {};
+  RegMasks _preservedRegs {};
   //! Size to save/restore per register group.
   Support::Array<uint8_t, Globals::kNumVirtGroups> _saveRestoreRegSize {};
   //! Alignment of save/restore area per register group.
@@ -1379,6 +1386,12 @@ public:
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _dirtyRegs[group] & _preservedRegs[group];
   }
+
+  //! Returns all dirty registers as a Support::Array<> type.
+  ASMJIT_INLINE_NODEBUG const RegMasks& dirtyRegs() const noexcept { return _dirtyRegs; }
+
+  //! Returns all preserved registers as a Support::Array<> type.
+  ASMJIT_INLINE_NODEBUG const RegMasks& preservedRegs() const noexcept { return _preservedRegs; }
 
   //! Returns the mask of preserved registers of the given register `group`.
   //!
