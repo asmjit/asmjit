@@ -379,9 +379,9 @@ namespace asmjit {
 #endif
 
 
-#if defined(__clang__)
+#if !defined(ASMJIT_BUILD_DEBUG) && defined(__clang__)
   #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __nodebug__))
-#elif defined(__GNUC__)
+#elif !defined(ASMJIT_BUILD_DEBUG) && defined(__GNUC__)
   #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __artificial__))
 #else
   #define ASMJIT_INLINE_NODEBUG inline
