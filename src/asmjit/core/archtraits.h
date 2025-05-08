@@ -196,7 +196,7 @@ struct ArchTraits {
   //! Maps scalar TypeId values (from TypeId::_kIdBaseStart) to register types, see \ref TypeId.
   Support::Array<RegType, 32> _typeIdToRegType;
 
-  //! Word name identifiers of 8-bit, 16-bit, 32-biit, and 64-bit quantities that appear in formatted text.
+  //! Word name identifiers of 8-bit, 16-bit, 32-bit, and 64-bit quantities that appear in formatted text.
   ArchTypeNameId _typeNameIdTable[4];
 
   //! \}

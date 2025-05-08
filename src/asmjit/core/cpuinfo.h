@@ -180,7 +180,7 @@ public:
 #endif // !ASMJIT_NO_DEPRECATED
 
     //! \}
- };
+  };
 
   //! X86 specific features data.
   struct X86 : public Data {

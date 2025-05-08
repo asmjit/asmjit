@@ -1120,7 +1120,8 @@ public:
     : _workId(workId),
       _virtId(vReg->id()),
       _virtReg(vReg),
-      _signature(vReg->signature()) {}
+      _signature(vReg->signature()),
+      _hintRegId(uint8_t(vReg->homeIdHint())) {}
 
   //! \}
 

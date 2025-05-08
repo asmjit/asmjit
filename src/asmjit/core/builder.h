@@ -609,14 +609,12 @@ public:
   template<typename T>
   ASMJIT_INLINE_NODEBUG const T* as() const noexcept { return static_cast<const T*>(this); }
 
-  //! Returns previous node or `nullptr` if this node is either first or not
-  //! part of Builder/Compiler node-list.
+  //! Returns previous node or `nullptr` if this node is either first or not part of Builder/Compiler node-list.
   ASMJIT_INLINE_NODEBUG BaseNode* prev() const noexcept { return _prev; }
-  //! Returns next node or `nullptr` if this node is either last or not part
-  //! of Builder/Compiler node-list.
+  //! Returns next node or `nullptr` if this node is either last or not part of Builder/Compiler node-list.
   ASMJIT_INLINE_NODEBUG BaseNode* next() const noexcept { return _next; }
 
-  //! Returns the type of the node, see `NodeType`.
+  //! Returns the type of the node, see \ref NodeType.
   ASMJIT_INLINE_NODEBUG NodeType type() const noexcept { return _any._nodeType; }
 
   //! Sets the type of the node, see `NodeType` (internal).

@@ -488,7 +488,7 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   // The highest EAX that we understand.
   constexpr uint32_t kHighestProcessedEAX = 0x8000001Fu;
 
-  // Several CPUID calls are required to get the whole branc string. It's easier
+  // Several CPUID calls are required to get the whole brand string. It's easier
   // to copy one DWORD at a time instead of copying the string a byte by byte.
   uint32_t* brand = cpu._brand.u32;
   do {

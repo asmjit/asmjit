@@ -17,10 +17,9 @@ ASMJIT_BEGIN_NAMESPACE
 
 //! Base assembler.
 //!
-//! This is a base class that provides interface used by architecture specific
-//! assembler implementations. Assembler doesn't hold any data, instead it's
-//! attached to \ref CodeHolder, which provides all the data that Assembler
-//! needs and which can be altered by it.
+//! This is a base class that provides interface used by architecture specific assembler implementations. Assembler
+//! doesn't hold any data, instead it's attached to \ref CodeHolder, which provides all the data that Assembler needs
+//! and which can be altered by it.
 //!
 //! Check out architecture specific assemblers for more details and examples:
 //!
@@ -63,8 +62,7 @@ public:
 
   //! Sets the current position in the CodeBuffer to `offset`.
   //!
-  //! \note The `offset` cannot be greater than buffer size even if it's
-  //! within the buffer's capacity.
+  //! \note The `offset` cannot be greater than buffer size even if it's within the buffer's capacity.
   ASMJIT_API Error setOffset(size_t offset);
 
   //! Returns the start of the CodeBuffer in the current section.

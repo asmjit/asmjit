@@ -18,7 +18,18 @@ class RAWorkReg;
 //! \addtogroup asmjit_compiler
 //! \{
 
-//! Virtual register data, managed by \ref BaseCompiler.
+//! Public virtual register interface, managed by \ref BaseCompiler.
+//!
+//! When a virtual register is created by \ref BaseCompiler a `VirtReg` is linked with the register operand id it
+//! returns. This `VirtReg` can be accessed via \ref BaseCompiler::virtRegByReg() function, which returns a pointer
+//! to `VirtReg`.
+//!
+//! In general, `VirtReg` should be only introspected as it contains important variables that are needed and managed
+//! by AsmJit, however, the `VirtReg` API can also be used to influence register allocation. For example there is
+//! a \ref VirtReg::setWeight() function, which could be used to increase a weight of a virtual register (thus make
+//! it hard to spill, for example). In addition, there is a \ref VirtReg::setHomeIdHint() function, which can be used
+//! to do an initial assignment of a physical register of a virtual register. However, AsmJit could still override
+//! the physical register assigned in some special cases.
 class VirtReg {
 public:
   ASMJIT_NONCOPYABLE(VirtReg)
@@ -45,6 +56,8 @@ public:
   //! True if this virtual register has assigned stack offset (can be only valid after register allocation pass).
   uint8_t _hasStackSlot : 1;
   uint8_t _reservedBits : 5;
+  //! Home register hint for the register allocator (initially unassigned).
+  uint8_t _homeIdHint = BaseReg::kIdBad;
 
   //! Stack offset assigned by the register allocator relative to stack pointer (can be negative as well).
   int32_t _stackOffset = 0;
@@ -144,6 +157,15 @@ public:
     _hasStackSlot = 1;
     _stackOffset = stackOffset;
   }
+
+  //! Tests whether this virtual register has assigned a physical register as a hint to the register allocator.
+  ASMJIT_INLINE_NODEBUG bool hasHomeIdHint() const noexcept { return _homeIdHint != BaseReg::kIdBad; }
+  //! Returns a physical register hint, which will be used by the register allocator.
+  ASMJIT_INLINE_NODEBUG uint32_t homeIdHint() const noexcept { return _homeIdHint; }
+  //! Assigns a physical register hint, which will be used by the register allocator.
+  ASMJIT_INLINE_NODEBUG void setHomeIdHint(uint32_t homeId) noexcept { _homeIdHint = uint8_t(homeId); }
+  //! Resets a physical register hint.
+  ASMJIT_INLINE_NODEBUG void resetHomeIdHint() noexcept { _homeIdHint = BaseReg::kIdBad; }
 
   //! Returns a stack offset associated with a virtual register or explicit stack allocation.
   //!
