@@ -292,8 +292,7 @@ enum class InstFlags : uint32_t {
 
   //! Instruction uses consecutive registers.
   //!
-  //! Used by V4FMADDPS, V4FMADDSS, V4FNMADDPS, V4FNMADDSS, VP4DPWSSD, VP4DPWSSDS, VP2INTERSECTD, and VP2INTERSECTQ
-  //! instructions
+  //! Used by VP2INTERSECTD and VP2INTERSECTQ instructions.
   kConsecutiveRegs = 0x20000000u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(InstFlags)
@@ -532,10 +531,14 @@ struct InstInfo {
   //! Returns a hint that can be used when both inputs are the same register.
   ASMJIT_INLINE_NODEBUG InstSameRegHint sameRegHint() const noexcept { return commonInfo().sameRegHint(); }
 
+  //! Returns the beginning of the instruction signature list relative to \ref _instSignatureTable.
   ASMJIT_INLINE_NODEBUG uint32_t signatureIndex() const noexcept { return commonInfo().signatureIndex(); }
+  //! Returns the number of instruction signature entries.
   ASMJIT_INLINE_NODEBUG uint32_t signatureCount() const noexcept { return commonInfo().signatureCount(); }
 
+  //! Returns the beginning of instruction signature data (relative to \ref _instSignatureTable).
   ASMJIT_INLINE_NODEBUG const InstSignature* signatureData() const noexcept { return commonInfo().signatureData(); }
+  //! Returns the end of instruction signature data (relative to \ref _instSignatureTable).
   ASMJIT_INLINE_NODEBUG const InstSignature* signatureEnd() const noexcept { return commonInfo().signatureEnd(); }
 
   //! \}

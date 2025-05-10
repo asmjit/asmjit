@@ -437,9 +437,8 @@ enum class OpRWFlags : uint32_t {
   //!
   //! This flag is used by all architectures to describe instructions that use consecutive registers, where only the
   //! first one is encoded in the instruction, and the others are just a sequence that starts with the first one. On
-  //! X86/X86_64 architecture this is used by instructions such as V4FMADDPS, V4FMADDSS, V4FNMADDPS, V4FNMADDSS,
-  //! VP4DPWSSD, VP4DPWSSDS, VP2INTERSECTD, and VP2INTERSECTQ. On ARM/AArch64 this is used by vector load and store
-  //! instructions that can load or store multiple registers at once.
+  //! X86/X86_64 architecture this is used by instructions such as VP2INTERSECTD and VP2INTERSECTQ. On ARM/AArch64
+  //! this is used by vector load and store instructions that can load or store multiple registers at once.
   kConsecutive = 0x00000008u,
 
   //! The `extendByteMask()` represents a zero extension.
