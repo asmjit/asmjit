@@ -275,6 +275,19 @@ namespace asmjit {
 //!
 //! \section api_changes API Changes
 //!
+//! ### Changes committed at XXXX-XX-XX
+//!
+//! Core changes:
+//!
+//!   - Removed AVX512 functionality that was never used on x86 hardware as Xeon Phi was never supported by AsmJit:
+//!
+//!     - AVX512_ER
+//!     - AVX512_PF
+//!     - AVX512_4FMAPS
+//!     - AVX512_4VNNIW
+//!
+//!   - Instruction 'vcvtneps2bf16' no longer accepts memory operand without explicit size (to minimize ambiguity)
+//!
 //! ### Changes committed at 2024-01-01
 //!
 //! Core changes:

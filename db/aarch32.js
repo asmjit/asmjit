@@ -1,7 +1,7 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
 // See asmjit.h or LICENSE.md for license and copyright information
-// SPDX-License-Identifier: (Zlib or Unlicense)
+// SPDX-License-Identifier: Zlib
 
 (function($scope, $as) {
 "use strict";
@@ -14,11 +14,11 @@ function FAIL(msg) { throw new Error("[AArch32] " + msg); }
 const base = $scope.base ? $scope.base : require("./base.js");
 const exp = $scope.exp ? $scope.exp : require("./exp.js")
 
-const hasOwn = Object.prototype.hasOwnProperty;
 const dict = base.dict;
 const NONE = base.NONE;
 const Parsing = base.Parsing;
 const MapUtils = base.MapUtils;
+const hasOwn = base.hasOwn;
 
 // Export
 // ======
@@ -256,7 +256,8 @@ function splitOpcodeFields(s) {
 // ARM operand.
 class Operand extends base.Operand {
   constructor(def) {
-    super(def);
+    super();
+    this.data = def;
   }
 
   hasMemModes() {
@@ -323,9 +324,9 @@ class Instruction extends base.Instruction {
     super(db, data);
     // name, operands, encoding, opcode, metadata
 
-    const encoding = hasOwn.call(data, "a32") ? "a32" :
-                     hasOwn.call(data, "t32") ? "t32" :
-                     hasOwn.call(data, "t16") ? "t16" : "";
+    const encoding = hasOwn(data, "a32") ? "a32" :
+                     hasOwn(data, "t32") ? "t32" :
+                     hasOwn(data, "t16") ? "t16" : "";
 
     this.name = data.name;
     this.it = dict();                // THUMB's 'it' flags.
@@ -962,9 +963,9 @@ class ISA extends base.ISA {
       const names = (sep !== -1 ? sgn.substring(0, sep) : sgn).trim().split("/");
       const operands = sep !== -1 ? sgn.substring(sep + 1) : "";
 
-      const encoding = hasOwn.call(obj, "a32") ? "a32" :
-                       hasOwn.call(obj, "t32") ? "t32" :
-                       hasOwn.call(obj, "t16") ? "t16" : "";
+      const encoding = hasOwn(obj, "a32") ? "a32" :
+                       hasOwn(obj, "t32") ? "t32" :
+                       hasOwn(obj, "t16") ? "t16" : "";
 
       if (!encoding)
         FAIL(`Instruction ${names.join("/")} doesn't encoding, it must provide either a32, t32, or t16 field`);

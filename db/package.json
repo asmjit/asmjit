@@ -1,7 +1,7 @@
 {
   "name": "asmdb",
   "version": "0.1.0",
-  "license": "Unlicense",
+  "license": "Zlib",
   "engines": { "node": ">=8" },
 
   "description": "Instructions database and utilities for X86/X64 and ARM (THUMB/A32/A64) architectures.",

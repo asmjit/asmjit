@@ -235,8 +235,8 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   // We are gonna execute CPUID, which was introduced by I486, so it's the requirement.
   features.add(Ext::kI486);
 
-  // CPUID EAX=0
-  // -----------
+  // CPUID EAX=0x00 (Basic CPUID Information)
+  // ----------------------------------------
 
   // Get vendor string/id.
   cpuidQuery(&regs, 0x0);
@@ -246,10 +246,10 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
 
   simplifyCpuVendor(cpu, regs.ebx, regs.edx, regs.ecx);
 
-  // CPUID EAX=1
-  // -----------
+  // CPUID EAX=0x01 (Basic CPUID Information)
+  // ----------------------------------------
 
-  if (maxId >= 0x1) {
+  if (maxId >= 0x01u) {
     // Get feature flags in ECX/EDX and family/model in EAX.
     cpuidQuery(&regs, 0x1);
 
@@ -317,39 +317,35 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   }
 
   constexpr uint32_t kXCR0_AMX_Bits = 0x3u << 17;
-  bool amxEnabledByOS = (xcr0.eax & kXCR0_AMX_Bits) == kXCR0_AMX_Bits;
+  bool amxEnabled = (xcr0.eax & kXCR0_AMX_Bits) == kXCR0_AMX_Bits;
 
 #if defined(__APPLE__)
   // Apple platform provides on-demand AVX512 support. When an AVX512 instruction is used the first time it results
   // in #UD, which would cause the thread being promoted to use AVX512 support by the OS in addition to enabling the
   // necessary bits in XCR0 register.
-  bool avx512EnabledByOS = true;
+  bool avx512Enabled = true;
 #else
   // - XCR0[2:1] ==  11b - XMM/YMM states need to be enabled by OS.
   // - XCR0[7:5] == 111b - Upper 256-bit of ZMM0-XMM15 and ZMM16-ZMM31 need to be enabled by OS.
   constexpr uint32_t kXCR0_AVX512_Bits = (0x3u << 1) | (0x7u << 5);
-  bool avx512EnabledByOS = (xcr0.eax & kXCR0_AVX512_Bits) == kXCR0_AVX512_Bits;
+  bool avx512Enabled = (xcr0.eax & kXCR0_AVX512_Bits) == kXCR0_AVX512_Bits;
 #endif
 
-  // CPUID EAX=7 ECX=0
-  // -----------------
+  bool avx10Enabled = false;
 
-  // Detect new features if the processor supports CPUID-07.
-  bool maybeMPX = false;
+  // CPUID EAX=0x07 ECX=0 (Structured Extended Feature Flags Enumeration Leaf)
+  // -------------------------------------------------------------------------
 
-  if (maxId >= 0x7) {
+  if (maxId >= 0x07u) {
     cpuidQuery(&regs, 0x7);
 
-    maybeMPX = bitTest(regs.ebx, 14);
     maxSubLeafId_0x7 = regs.eax;
 
     features.addIf(bitTest(regs.ebx,  0), Ext::kFSGSBASE);
     features.addIf(bitTest(regs.ebx,  3), Ext::kBMI);
-    features.addIf(bitTest(regs.ebx,  4), Ext::kHLE);
     features.addIf(bitTest(regs.ebx,  7), Ext::kSMEP);
     features.addIf(bitTest(regs.ebx,  8), Ext::kBMI2);
     features.addIf(bitTest(regs.ebx,  9), Ext::kERMS);
-    features.addIf(bitTest(regs.ebx, 11), Ext::kRTM);
     features.addIf(bitTest(regs.ebx, 18), Ext::kRDSEED);
     features.addIf(bitTest(regs.ebx, 19), Ext::kADX);
     features.addIf(bitTest(regs.ebx, 20), Ext::kSMAP);
@@ -364,6 +360,7 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     features.addIf(bitTest(regs.ecx,  9), Ext::kVAES);
     features.addIf(bitTest(regs.ecx, 10), Ext::kVPCLMULQDQ);
     features.addIf(bitTest(regs.ecx, 22), Ext::kRDPID);
+    features.addIf(bitTest(regs.ecx, 23), Ext::kKL);
     features.addIf(bitTest(regs.ecx, 25), Ext::kCLDEMOTE);
     features.addIf(bitTest(regs.ecx, 27), Ext::kMOVDIRI);
     features.addIf(bitTest(regs.ecx, 28), Ext::kMOVDIR64B);
@@ -375,22 +372,15 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     features.addIf(bitTest(regs.edx, 18), Ext::kPCONFIG);
     features.addIf(bitTest(regs.edx, 20), Ext::kCET_IBT);
 
-    // Detect 'TSX' - Requires at least one of `HLE` and `RTM` features.
-    if (features.hasHLE() || features.hasRTM()) {
-      features.add(Ext::kTSX);
-    }
-
     if (bitTest(regs.ebx, 5) && features.hasAVX()) {
       features.add(Ext::kAVX2);
     }
 
-    if (avx512EnabledByOS && bitTest(regs.ebx, 16)) {
+    if (avx512Enabled && bitTest(regs.ebx, 16)) {
       features.add(Ext::kAVX512_F);
 
       features.addIf(bitTest(regs.ebx, 17), Ext::kAVX512_DQ);
       features.addIf(bitTest(regs.ebx, 21), Ext::kAVX512_IFMA);
-      features.addIf(bitTest(regs.ebx, 26), Ext::kAVX512_PF);
-      features.addIf(bitTest(regs.ebx, 27), Ext::kAVX512_ER);
       features.addIf(bitTest(regs.ebx, 28), Ext::kAVX512_CD);
       features.addIf(bitTest(regs.ebx, 30), Ext::kAVX512_BW);
       features.addIf(bitTest(regs.ebx, 31), Ext::kAVX512_VL);
@@ -399,21 +389,19 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
       features.addIf(bitTest(regs.ecx, 11), Ext::kAVX512_VNNI);
       features.addIf(bitTest(regs.ecx, 12), Ext::kAVX512_BITALG);
       features.addIf(bitTest(regs.ecx, 14), Ext::kAVX512_VPOPCNTDQ);
-      features.addIf(bitTest(regs.edx,  2), Ext::kAVX512_4VNNIW);
-      features.addIf(bitTest(regs.edx,  3), Ext::kAVX512_4FMAPS);
       features.addIf(bitTest(regs.edx,  8), Ext::kAVX512_VP2INTERSECT);
       features.addIf(bitTest(regs.edx, 23), Ext::kAVX512_FP16);
     }
 
-    if (amxEnabledByOS) {
+    if (amxEnabled) {
       features.addIf(bitTest(regs.edx, 22), Ext::kAMX_BF16);
       features.addIf(bitTest(regs.edx, 24), Ext::kAMX_TILE);
       features.addIf(bitTest(regs.edx, 25), Ext::kAMX_INT8);
     }
   }
 
-  // CPUID EAX=7 ECX=1
-  // -----------------
+  // CPUID EAX=0x07 ECX=1 (Structured Extended Feature Enumeration Sub-leaf)
+  // -----------------------------------------------------------------------
 
   if (maxSubLeafId_0x7 >= 1) {
     cpuidQuery(&regs, 0x7, 1);
@@ -430,6 +418,8 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     features.addIf(bitTest(regs.eax, 22), Ext::kHRESET);
     features.addIf(bitTest(regs.eax, 26), Ext::kLAM);
     features.addIf(bitTest(regs.eax, 27), Ext::kMSRLIST);
+    features.addIf(bitTest(regs.eax, 31), Ext::kMOVRS);
+    features.addIf(bitTest(regs.ecx,  5), Ext::kMSR_IMM);
     features.addIf(bitTest(regs.ebx,  1), Ext::kTSE);
     features.addIf(bitTest(regs.edx, 14), Ext::kPREFETCHI);
     features.addIf(bitTest(regs.edx, 18), Ext::kCET_SSS);
@@ -447,22 +437,20 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
       features.addIf(bitTest(regs.eax,  5), Ext::kAVX512_BF16);
     }
 
-    if (amxEnabledByOS) {
+    if (features.hasAVX512_F()) {
+      avx10Enabled = Support::bitTest(regs.edx, 19);
+    }
+
+    if (amxEnabled) {
       features.addIf(bitTest(regs.eax, 21), Ext::kAMX_FP16);
       features.addIf(bitTest(regs.edx,  8), Ext::kAMX_COMPLEX);
     }
   }
 
-  // CPUID EAX=13 ECX=0
-  // ------------------
+  // CPUID EAX=0x0D ECX=1 (Processor Extended State Enumeration Sub-leaf)
+  // --------------------------------------------------------------------
 
-  if (maxId >= 0xD) {
-    cpuidQuery(&regs, 0xD, 0);
-
-    // Both CPUID result and XCR0 has to be enabled to have support for MPX.
-    if (((regs.eax & xcr0.eax) & 0x00000018u) == 0x00000018u && maybeMPX)
-      features.add(Ext::kMPX);
-
+  if (maxId >= 0x0Du) {
     cpuidQuery(&regs, 0xD, 1);
 
     features.addIf(bitTest(regs.eax, 0), Ext::kXSAVEOPT);
@@ -470,13 +458,55 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     features.addIf(bitTest(regs.eax, 3), Ext::kXSAVES);
   }
 
-  // CPUID EAX=14 ECX=0
-  // ------------------
+  // CPUID EAX=0x0E ECX=0 (Processor Trace Enumeration Main Leaf)
+  // ------------------------------------------------------------
 
-  if (maxId >= 0xE) {
-    cpuidQuery(&regs, 0xE, 0);
+  if (maxId >= 0x0Eu) {
+    cpuidQuery(&regs, 0x0E, 0);
 
     features.addIf(bitTest(regs.ebx, 4), Ext::kPTWRITE);
+  }
+
+  // CPUID EAX=0x19 ECX=0 (Key Locker Leaf)
+  // --------------------------------------
+
+  if (maxId >= 0x19u && features.hasKL()) {
+    cpuidQuery(&regs, 0x19, 0);
+
+    features.addIf(bitTest(regs.ebx, 0), Ext::kAESKLE);
+    features.addIf(bitTest(regs.ebx, 0) && bitTest(regs.ebx, 2), Ext::kAESKLEWIDE_KL);
+  }
+
+  // CPUID EAX=0x1E ECX=1 (TMUL Information Sub-leaf)
+  // ------------------------------------------------
+
+  if (maxId >= 0x1Eu && features.hasAMX_TILE()) {
+    cpuidQuery(&regs, 0x1E, 1);
+
+    // NOTE: Some AMX flags are mirrored here from CPUID[0x07, 0x00].
+    features.addIf(bitTest(regs.eax, 0), Ext::kAMX_INT8);
+    features.addIf(bitTest(regs.eax, 1), Ext::kAMX_BF16);
+    features.addIf(bitTest(regs.eax, 2), Ext::kAMX_COMPLEX);
+    features.addIf(bitTest(regs.eax, 3), Ext::kAMX_FP16);
+    features.addIf(bitTest(regs.eax, 4), Ext::kAMX_FP8);
+    features.addIf(bitTest(regs.eax, 5), Ext::kAMX_TRANSPOSE);
+    features.addIf(bitTest(regs.eax, 6), Ext::kAMX_TF32);
+    features.addIf(bitTest(regs.eax, 7), Ext::kAMX_AVX512);
+    features.addIf(bitTest(regs.eax, 8), Ext::kAMX_MOVRS);
+  }
+
+  // CPUID EAX=0x24 ECX=0 (AVX10 Information)
+  // ----------------------------------------
+
+  if (maxId >= 0x24u && avx10Enabled) {
+    // EAX output is the maximum supported sub-leaf.
+    cpuidQuery(&regs, 0x24, 0);
+
+    // AVX10 Converged Vector ISA version.
+    uint32_t ver = regs.ebx & 0xFFu;
+
+    features.addIf(ver >= 1u, Ext::kAVX10_1);
+    features.addIf(ver >= 2u, Ext::kAVX10_2);
   }
 
   // CPUID EAX=0x80000000...maxId

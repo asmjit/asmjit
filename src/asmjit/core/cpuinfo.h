@@ -174,11 +174,6 @@ public:
     //! Tests whether this CPU features data matches `other`.
     ASMJIT_INLINE_NODEBUG bool equals(const Data& other) const noexcept { return _bits == other._bits; }
 
-#if !defined(ASMJIT_NO_DEPRECATED)
-    ASMJIT_DEPRECATED("Use CpuFeatures::Data::equals() instead")
-    ASMJIT_INLINE_NODEBUG bool eq(const Data& other) const noexcept { return equals(other); }
-#endif // !ASMJIT_NO_DEPRECATED
-
     //! \}
   };
 
@@ -191,42 +186,9 @@ public:
 
       kMT,                       //!< CPU has multi-threading capabilities.
       kNX,                       //!< CPU has Not-Execute-Bit aka DEP (data-execution prevention).
-      k3DNOW,                    //!< CPU has 3DNOW            (3DNOW base instructions) {AMD} (deprecated).
-      k3DNOW2,                   //!< CPU has 3DNOW2           (enhanced 3DNOW) {AMD} (deprecated).
       kADX,                      //!< CPU has ADX              (multi-precision add-carry instruction extensions).
-      kAESNI,                    //!< CPU has AESNI            (AES encode/decode instructions).
       kALTMOVCR8,                //!< CPU has LOCK MOV R<->CR0 (supports `MOV R<->CR8` via `LOCK MOV R<->CR0` in 32-bit mode) {AMD}.
-      kAMX_BF16,                 //!< CPU has AMX_BF16         (AMX-BF16 instructions).
-      kAMX_COMPLEX,              //!< CPU has AMX_COMPLEX      (AMX-COMPLEX instructions).
-      kAMX_FP16,                 //!< CPU has AMX_FP16         (AMX-FP16 instructions).
-      kAMX_INT8,                 //!< CPU has AMX_INT8         (AMX-INT8 instructions).
-      kAMX_TILE,                 //!< CPU has AMX_TILE         (advanced matrix extensions).
       kAPX_F,                    //!< CPU has APX_F            (advanced performance extensions - 32 GP registers, REX2 prefix, ...) {X86_64}.
-      kAVX,                      //!< CPU has AVX              (advanced vector extensions).
-      kAVX2,                     //!< CPU has AVX2             (advanced vector extensions 2).
-      kAVX512_4FMAPS,            //!< CPU has AVX512_FMAPS     (FMA packed single).
-      kAVX512_4VNNIW,            //!< CPU has AVX512_VNNIW     (vector NN instructions word variable precision).
-      kAVX512_BF16,              //!< CPU has AVX512_BF16      (AVX512 BFLOAT16 support instructions).
-      kAVX512_BITALG,            //!< CPU has AVX512_BITALG    (AVX512 VPOPCNT[B|W] and VPSHUFBITQMB instructions).
-      kAVX512_BW,                //!< CPU has AVX512_BW        (AVX512 integer BYTE|WORD instructions).
-      kAVX512_CD,                //!< CPU has AVX512_CD        (AVX512 conflict detection DWORD|QWORD instructions).
-      kAVX512_DQ,                //!< CPU has AVX512_DQ        (AVX512 integer DWORD|QWORD instructions).
-      kAVX512_ER,                //!< CPU has AVX512_ER        (AVX512 exponential and reciprocal instructions).
-      kAVX512_F,                 //!< CPU has AVX512_F         (AVX512 foundation).
-      kAVX512_FP16,              //!< CPU has AVX512_FP16      (AVX512 FP16 instructions).
-      kAVX512_IFMA,              //!< CPU has AVX512_IFMA      (AVX512 integer fused-multiply-add using 52-bit precision).
-      kAVX512_PF,                //!< CPU has AVX512_PF        (AVX512 prefetch instructions).
-      kAVX512_VBMI,              //!< CPU has AVX512_VBMI      (AVX152 vector byte manipulation instructions).
-      kAVX512_VBMI2,             //!< CPU has AVX512_VBMI2     (AVX512 vector byte manipulation instructions v2).
-      kAVX512_VL,                //!< CPU has AVX512_VL        (AVX512 vector length extensions).
-      kAVX512_VNNI,              //!< CPU has AVX512_VNNI      (AVX512 vector neural network instructions).
-      kAVX512_VP2INTERSECT,      //!< CPU has AVX512_VP2INTERSECT
-      kAVX512_VPOPCNTDQ,         //!< CPU has AVX512_VPOPCNTDQ (AVX512 VPOPCNT[D|Q] instructions).
-      kAVX_IFMA,                 //!< CPU has AVX_IFMA         (AVX/VEX encoding of vpmadd52huq/vpmadd52luq).
-      kAVX_NE_CONVERT,           //!< CPU has AVX_NE_CONVERT.
-      kAVX_VNNI,                 //!< CPU has AVX_VNNI         (AVX/VEX encoding of vpdpbusd/vpdpbusds/vpdpwssd/vpdpwssds).
-      kAVX_VNNI_INT16,           //!< CPU has AVX_VNNI_INT16.
-      kAVX_VNNI_INT8,            //!< CPU has AVX_VNNI_INT8.
       kBMI,                      //!< CPU has BMI              (bit manipulation instructions #1).
       kBMI2,                     //!< CPU has BMI2             (bit manipulation instructions #2).
       kCET_IBT,                  //!< CPU has CET-IBT          (indirect branch tracking).
@@ -244,10 +206,6 @@ public:
       kENCLV,                    //!< CPU has ENCLV.
       kENQCMD,                   //!< CPU has ENQCMD           (enqueue stores).
       kERMS,                     //!< CPU has ERMS             (enhanced REP MOVSB/STOSB).
-      kF16C,                     //!< CPU has F16C             (AVX FP16 conversion instructions).
-      kFMA,                      //!< CPU has FMA              (AVX fused-multiply-add - 3 operand form).
-      kFMA4,                     //!< CPU has FMA4             (AVX fused-multiply-add - 4 operand form) (deprecated).
-      kFPU,                      //!< CPU has FPU              (FPU support).
       kFSGSBASE,                 //!< CPU has FSGSBASE.
       kFSRM,                     //!< CPU has FSRM             (fast short REP MOVSB).
       kFSRC,                     //!< CPU has FSRC             (fast short REP CMPSB|SCASB).
@@ -255,9 +213,6 @@ public:
       kFXSR,                     //!< CPU has FXSR             (FXSAVE/FXRSTOR instructions).
       kFXSROPT,                  //!< CPU has FXSROTP          (FXSAVE/FXRSTOR is optimized).
       kFZRM,                     //!< CPU has FZRM             (fast zero-length REP MOVSB).
-      kGEODE,                    //!< CPU has GEODE extensions (GEODE 3DNOW additions) (deprecated).
-      kGFNI,                     //!< CPU has GFNI             (galois field instructions).
-      kHLE,                      //!< CPU has HLE.
       kHRESET,                   //!< CPU has HRESET.
       kI486,                     //!< CPU has I486 features    (I486+ support).
       kINVLPGB,                  //!< CPU has INVLPGB.
@@ -266,20 +221,19 @@ public:
       kLWP,                      //!< CPU has LWP              (lightweight profiling) {AMD}.
       kLZCNT,                    //!< CPU has LZCNT            (LZCNT instruction).
       kMCOMMIT,                  //!< CPU has MCOMMIT          (MCOMMIT instruction).
-      kMMX,                      //!< CPU has MMX              (MMX base instructions) (deprecated).
-      kMMX2,                     //!< CPU has MMX2             (MMX2 extensions or initial SSE extensions) (deprecated).
       kMONITOR,                  //!< CPU has MONITOR          (MONITOR/MWAIT instructions).
       kMONITORX,                 //!< CPU has MONITORX         (MONITORX/MWAITX instructions).
       kMOVBE,                    //!< CPU has MOVBE            (move with byte-order swap).
       kMOVDIR64B,                //!< CPU has MOVDIR64B        (move 64 bytes as direct store).
       kMOVDIRI,                  //!< CPU has MOVDIRI          (move dword/qword as direct store).
+      kMOVRS,                    //!< CPU has MOVRS            (move from shared memory).
       kMPX,                      //!< CPU has MPX              (memory protection extensions).
       kMSR,                      //!< CPU has MSR              (RDMSR/WRMSR instructions).
       kMSRLIST,                  //!< CPU has MSRLIST.
+      kMSR_IMM,                  //!< CPU has MSR_IMM          (RDMSR/WRMSR immediate encoding).
       kMSSE,                     //!< CPU has MSSE             (misaligned SSE support).
       kOSXSAVE,                  //!< CPU has OSXSAVE          (XSAVE enabled by OS).
       kOSPKE,                    //!< CPU has OSPKE            (PKE enabled by OS).
-      kPCLMULQDQ,                //!< CPU has PCLMULQDQ        (packed carry-less multiplication).
       kPCONFIG,                  //!< CPU has PCONFIG          (PCONFIG instruction).
       kPOPCNT,                   //!< CPU has POPCNT           (POPCNT instruction).
       kPREFETCHI,                //!< CPU has PREFETCHI.
@@ -294,54 +248,103 @@ public:
       kRDSEED,                   //!< CPU has RDSEED           (RDSEED instruction).
       kRDTSC,                    //!< CPU has RDTSC.
       kRDTSCP,                   //!< CPU has RDTSCP.
-      kRTM,                      //!< CPU has RTM.
+      kRTM,                      //!< CPU has RTM              (RTM instructions - deprecated).
       kSEAM,                     //!< CPU has SEAM.
       kSERIALIZE,                //!< CPU has SERIALIZE.
       kSEV,                      //!< CPU has SEV              (secure encrypted virtualization).
       kSEV_ES,                   //!< CPU has SEV_ES           (SEV encrypted state).
       kSEV_SNP,                  //!< CPU has SEV_SNP          (SEV secure nested paging).
-      kSHA,                      //!< CPU has SHA              (SHA-1 and SHA-256 instructions).
-      kSHA512,                   //!< CPU has SHA512           (SHA-512 instructions).
       kSKINIT,                   //!< CPU has SKINIT           (SKINIT/STGI instructions) {AMD}.
-      kSM3,                      //!< CPU has SM3              (SM3 hash extensions).
-      kSM4,                      //!< CPU has SM4              (SM4 cipher extensions).
       kSMAP,                     //!< CPU has SMAP             (supervisor-mode access prevention).
-      kSME ,                     //!< CPU has SME              (secure memory encryption).
+      kSME,                      //!< CPU has SME              (secure memory encryption).
       kSMEP,                     //!< CPU has SMEP             (supervisor-mode execution prevention).
       kSMX,                      //!< CPU has SMX              (safer mode extensions).
-      kSSE,                      //!< CPU has SSE              (SSE instructions).
-      kSSE2,                     //!< CPU has SSE2             (SSE2 instructions).
-      kSSE3,                     //!< CPU has SSE3             (SSE3 instructions).
-      kSSE4_1,                   //!< CPU has SSE4.1           (SSE4.1 instructions).
-      kSSE4_2,                   //!< CPU has SSE4.2           (SSE4.2 instructions).
-      kSSE4A,                    //!< CPU has SSE4A            (SSE4.A instructions) {AMD} (deprecated).
-      kSSSE3,                    //!< CPU has SSSE3            (SSSE3 instructions).
       kSVM,                      //!< CPU has SVM              (virtualization) {AMD}.
       kTBM,                      //!< CPU has TBM              (trailing bit manipulation) {AMD}.
       kTSE,                      //!< CPU has TSE.
-      kTSX,                      //!< CPU has TSX.
       kTSXLDTRK,                 //!< CPU has TSXLDTRK.
       kUINTR,                    //!< CPU has UINTR            (user interrupts).
-      kVAES,                     //!< CPU has VAES             (vector AES 256|512 bit support).
       kVMX,                      //!< CPU has VMX              (virtualization) {INTEL}.
-      kVPCLMULQDQ,               //!< CPU has VPCLMULQDQ       (vector PCLMULQDQ 256|512-bit support).
       kWAITPKG,                  //!< CPU has WAITPKG          (UMONITOR, UMWAIT, TPAUSE).
       kWBNOINVD,                 //!< CPU has WBNOINVD.
       kWRMSRNS,                  //!< CPU has WRMSRNS.
-      kXOP,                      //!< CPU has XOP              (XOP instructions) {AMD} (deprecated).
       kXSAVE,                    //!< CPU has XSAVE.
       kXSAVEC,                   //!< CPU has XSAVEC.
       kXSAVEOPT,                 //!< CPU has XSAVEOPT.
       kXSAVES,                   //!< CPU has XSAVES.
+
+      kFPU,                      //!< CPU has FPU              (FPU support).
+      kMMX,                      //!< CPU has MMX              (MMX base instructions) (deprecated).
+      kMMX2,                     //!< CPU has MMX2             (MMX2 extensions or initial SSE extensions) (deprecated).
+      k3DNOW,                    //!< CPU has 3DNOW            (3DNOW base instructions) {AMD} (deprecated).
+      k3DNOW2,                   //!< CPU has 3DNOW2           (enhanced 3DNOW) {AMD} (deprecated).
+      kGEODE,                    //!< CPU has GEODE extensions (GEODE 3DNOW additions) (deprecated).
+
+      kSSE,                      //!< CPU has SSE              (SSE instructions).
+      kSSE2,                     //!< CPU has SSE2             (SSE2 instructions).
+      kSSE3,                     //!< CPU has SSE3             (SSE3 instructions).
+      kSSSE3,                    //!< CPU has SSSE3            (SSSE3 instructions).
+      kSSE4_1,                   //!< CPU has SSE4.1           (SSE4.1 instructions).
+      kSSE4_2,                   //!< CPU has SSE4.2           (SSE4.2 instructions).
+      kSSE4A,                    //!< CPU has SSE4A            (SSE4.A instructions) {AMD} (deprecated).
+      kPCLMULQDQ,                //!< CPU has PCLMULQDQ        (packed carry-less multiplication).
+
+      kAVX,                      //!< CPU has AVX              (advanced vector extensions).
+      kAVX2,                     //!< CPU has AVX2             (advanced vector extensions 2).
+      kAVX_IFMA,                 //!< CPU has AVX_IFMA         (AVX/VEX encoding of vpmadd52huq/vpmadd52luq).
+      kAVX_NE_CONVERT,           //!< CPU has AVX_NE_CONVERT.
+      kAVX_VNNI,                 //!< CPU has AVX_VNNI         (AVX/VEX encoding of vpdpbusd/vpdpbusds/vpdpwssd/vpdpwssds).
+      kAVX_VNNI_INT16,           //!< CPU has AVX_VNNI_INT16.
+      kAVX_VNNI_INT8,            //!< CPU has AVX_VNNI_INT8.
+      kF16C,                     //!< CPU has F16C             (AVX FP16 conversion instructions).
+      kFMA,                      //!< CPU has FMA              (AVX fused-multiply-add - 3 operand form).
+      kFMA4,                     //!< CPU has FMA4             (AVX fused-multiply-add - 4 operand form) (deprecated).
+      kXOP,                      //!< CPU has XOP              (XOP instructions) {AMD} (deprecated).
+
+      kAVX512_BF16,              //!< CPU has AVX512_BF16      (AVX512 BFLOAT16 support instructions).
+      kAVX512_BITALG,            //!< CPU has AVX512_BITALG    (AVX512 VPOPCNT[B|W] and VPSHUFBITQMB instructions).
+      kAVX512_BW,                //!< CPU has AVX512_BW        (AVX512 integer BYTE|WORD instructions).
+      kAVX512_CD,                //!< CPU has AVX512_CD        (AVX512 conflict detection DWORD|QWORD instructions).
+      kAVX512_DQ,                //!< CPU has AVX512_DQ        (AVX512 integer DWORD|QWORD instructions).
+      kAVX512_F,                 //!< CPU has AVX512_F         (AVX512 foundation).
+      kAVX512_FP16,              //!< CPU has AVX512_FP16      (AVX512 FP16 instructions).
+      kAVX512_IFMA,              //!< CPU has AVX512_IFMA      (AVX512 integer fused-multiply-add using 52-bit precision).
+      kAVX512_VBMI,              //!< CPU has AVX512_VBMI      (AVX512 vector byte manipulation instructions).
+      kAVX512_VBMI2,             //!< CPU has AVX512_VBMI2     (AVX512 vector byte manipulation instructions v2).
+      kAVX512_VL,                //!< CPU has AVX512_VL        (AVX512 vector length extensions).
+      kAVX512_VNNI,              //!< CPU has AVX512_VNNI      (AVX512 vector neural network instructions).
+      kAVX512_VP2INTERSECT,      //!< CPU has AVX512_VP2INTERSECT
+      kAVX512_VPOPCNTDQ,         //!< CPU has AVX512_VPOPCNTDQ (AVX512 VPOPCNT[D|Q] instructions).
+
+      kAESNI,                    //!< CPU has AESNI            (AES encode/decode instructions).
+      kGFNI,                     //!< CPU has GFNI             (galois field instructions).
+      kSHA,                      //!< CPU has SHA              (SHA-1 and SHA-256 instructions).
+      kSHA512,                   //!< CPU has SHA512           (SHA-512 instructions).
+      kSM3,                      //!< CPU has SM3              (SM3 hash extensions).
+      kSM4,                      //!< CPU has SM4              (SM4 cipher extensions).
+      kVAES,                     //!< CPU has VAES             (vector AES 256|512 bit support).
+      kVPCLMULQDQ,               //!< CPU has VPCLMULQDQ       (vector PCLMULQDQ 256|512-bit support).
+
+      kKL,                       //!< CPU has KL               (Key Locker).
+      kAESKLE,                   //!< CPU has AESKLE           (AESKLE).
+      kAESKLEWIDE_KL,            //!< CPU has AESKLE+WIDEKL+KL (AESKLE & WIDEKL instructions and KL enabled)
+
+      kAVX10_1,                  //!< CPU has AVX10.1/512      (AVX10.1 with 512-bit vectors).
+      kAVX10_2,                  //!< CPU has AVX10.2/512      (AVX10.2 with 512-bit vectors).
+
+      kAMX_AVX512,               //!< CPU has AMX_AVX512       (AMX-AVX512 instructions).
+      kAMX_BF16,                 //!< CPU has AMX_BF16         (AMX-BF16 instructions).
+      kAMX_COMPLEX,              //!< CPU has AMX_COMPLEX      (AMX-COMPLEX instructions).
+      kAMX_FP16,                 //!< CPU has AMX_FP16         (AMX-FP16 instructions).
+      kAMX_FP8,                  //!< CPU has AMX_FP8          (AMX-FP8 instructions).
+      kAMX_INT8,                 //!< CPU has AMX_INT8         (AMX-INT8 instructions).
+      kAMX_MOVRS,                //!< CPU has AMX_MOVRS        (AMX-MOVRS instructions).
+      kAMX_TF32,                 //!< CPU has AMX_TF32         (AMX-TF32 instructions).
+      kAMX_TILE,                 //!< CPU has AMX_TILE         (advanced matrix extensions).
+      kAMX_TRANSPOSE,            //!< CPU has AMX_TRANSPOSE    (AMX-TRANSPOSE instructions).
       // @EnumValuesEnd@
 
-#ifndef ASMJIT_NO_DEPRECATED
-      kAVX512_CDI = kAVX512_CD,
-      kAVX512_ERI = kAVX512_ER,
-      kAVX512_PFI = kAVX512_PF,
-#endif
-
-      kMaxValue = kXSAVES
+      kMaxValue = kAMX_TILE
     };
 
     #define ASMJIT_X86_FEATURE(FEATURE) \
@@ -350,42 +353,9 @@ public:
 
     ASMJIT_X86_FEATURE(MT)
     ASMJIT_X86_FEATURE(NX)
-    ASMJIT_X86_FEATURE(3DNOW)
-    ASMJIT_X86_FEATURE(3DNOW2)
     ASMJIT_X86_FEATURE(ADX)
-    ASMJIT_X86_FEATURE(AESNI)
     ASMJIT_X86_FEATURE(ALTMOVCR8)
-    ASMJIT_X86_FEATURE(AMX_BF16)
-    ASMJIT_X86_FEATURE(AMX_COMPLEX)
-    ASMJIT_X86_FEATURE(AMX_FP16)
-    ASMJIT_X86_FEATURE(AMX_INT8)
-    ASMJIT_X86_FEATURE(AMX_TILE)
     ASMJIT_X86_FEATURE(APX_F)
-    ASMJIT_X86_FEATURE(AVX)
-    ASMJIT_X86_FEATURE(AVX2)
-    ASMJIT_X86_FEATURE(AVX512_4FMAPS)
-    ASMJIT_X86_FEATURE(AVX512_4VNNIW)
-    ASMJIT_X86_FEATURE(AVX512_BF16)
-    ASMJIT_X86_FEATURE(AVX512_BITALG)
-    ASMJIT_X86_FEATURE(AVX512_BW)
-    ASMJIT_X86_FEATURE(AVX512_CD)
-    ASMJIT_X86_FEATURE(AVX512_DQ)
-    ASMJIT_X86_FEATURE(AVX512_ER)
-    ASMJIT_X86_FEATURE(AVX512_F)
-    ASMJIT_X86_FEATURE(AVX512_FP16)
-    ASMJIT_X86_FEATURE(AVX512_IFMA)
-    ASMJIT_X86_FEATURE(AVX512_PF)
-    ASMJIT_X86_FEATURE(AVX512_VBMI)
-    ASMJIT_X86_FEATURE(AVX512_VBMI2)
-    ASMJIT_X86_FEATURE(AVX512_VL)
-    ASMJIT_X86_FEATURE(AVX512_VNNI)
-    ASMJIT_X86_FEATURE(AVX512_VP2INTERSECT)
-    ASMJIT_X86_FEATURE(AVX512_VPOPCNTDQ)
-    ASMJIT_X86_FEATURE(AVX_IFMA)
-    ASMJIT_X86_FEATURE(AVX_NE_CONVERT)
-    ASMJIT_X86_FEATURE(AVX_VNNI)
-    ASMJIT_X86_FEATURE(AVX_VNNI_INT16)
-    ASMJIT_X86_FEATURE(AVX_VNNI_INT8)
     ASMJIT_X86_FEATURE(BMI)
     ASMJIT_X86_FEATURE(BMI2)
     ASMJIT_X86_FEATURE(CET_IBT)
@@ -402,10 +372,6 @@ public:
     ASMJIT_X86_FEATURE(ENCLV)
     ASMJIT_X86_FEATURE(ENQCMD)
     ASMJIT_X86_FEATURE(ERMS)
-    ASMJIT_X86_FEATURE(F16C)
-    ASMJIT_X86_FEATURE(FMA)
-    ASMJIT_X86_FEATURE(FMA4)
-    ASMJIT_X86_FEATURE(FPU)
     ASMJIT_X86_FEATURE(FSGSBASE)
     ASMJIT_X86_FEATURE(FSRM)
     ASMJIT_X86_FEATURE(FSRC)
@@ -413,9 +379,6 @@ public:
     ASMJIT_X86_FEATURE(FXSR)
     ASMJIT_X86_FEATURE(FXSROPT)
     ASMJIT_X86_FEATURE(FZRM)
-    ASMJIT_X86_FEATURE(GEODE)
-    ASMJIT_X86_FEATURE(GFNI)
-    ASMJIT_X86_FEATURE(HLE)
     ASMJIT_X86_FEATURE(HRESET)
     ASMJIT_X86_FEATURE(I486)
     ASMJIT_X86_FEATURE(INVLPGB)
@@ -424,20 +387,19 @@ public:
     ASMJIT_X86_FEATURE(LWP)
     ASMJIT_X86_FEATURE(LZCNT)
     ASMJIT_X86_FEATURE(MCOMMIT)
-    ASMJIT_X86_FEATURE(MMX)
-    ASMJIT_X86_FEATURE(MMX2)
     ASMJIT_X86_FEATURE(MONITOR)
     ASMJIT_X86_FEATURE(MONITORX)
     ASMJIT_X86_FEATURE(MOVBE)
     ASMJIT_X86_FEATURE(MOVDIR64B)
     ASMJIT_X86_FEATURE(MOVDIRI)
+    ASMJIT_X86_FEATURE(MOVRS)
     ASMJIT_X86_FEATURE(MPX)
     ASMJIT_X86_FEATURE(MSR)
     ASMJIT_X86_FEATURE(MSRLIST)
+    ASMJIT_X86_FEATURE(MSR_IMM)
     ASMJIT_X86_FEATURE(MSSE)
     ASMJIT_X86_FEATURE(OSXSAVE)
     ASMJIT_X86_FEATURE(OSPKE)
-    ASMJIT_X86_FEATURE(PCLMULQDQ)
     ASMJIT_X86_FEATURE(PCONFIG)
     ASMJIT_X86_FEATURE(POPCNT)
     ASMJIT_X86_FEATURE(PREFETCHI)
@@ -458,46 +420,93 @@ public:
     ASMJIT_X86_FEATURE(SEV)
     ASMJIT_X86_FEATURE(SEV_ES)
     ASMJIT_X86_FEATURE(SEV_SNP)
-    ASMJIT_X86_FEATURE(SHA)
     ASMJIT_X86_FEATURE(SKINIT)
     ASMJIT_X86_FEATURE(SMAP)
     ASMJIT_X86_FEATURE(SMEP)
     ASMJIT_X86_FEATURE(SMX)
-    ASMJIT_X86_FEATURE(SSE)
-    ASMJIT_X86_FEATURE(SSE2)
-    ASMJIT_X86_FEATURE(SSE3)
-    ASMJIT_X86_FEATURE(SSE4_1)
-    ASMJIT_X86_FEATURE(SSE4_2)
-    ASMJIT_X86_FEATURE(SSE4A)
-    ASMJIT_X86_FEATURE(SSSE3)
     ASMJIT_X86_FEATURE(SVM)
     ASMJIT_X86_FEATURE(TBM)
     ASMJIT_X86_FEATURE(TSE)
-    ASMJIT_X86_FEATURE(TSX)
     ASMJIT_X86_FEATURE(TSXLDTRK)
     ASMJIT_X86_FEATURE(UINTR)
-    ASMJIT_X86_FEATURE(VAES)
     ASMJIT_X86_FEATURE(VMX)
-    ASMJIT_X86_FEATURE(VPCLMULQDQ)
     ASMJIT_X86_FEATURE(WAITPKG)
     ASMJIT_X86_FEATURE(WBNOINVD)
     ASMJIT_X86_FEATURE(WRMSRNS)
-    ASMJIT_X86_FEATURE(XOP)
     ASMJIT_X86_FEATURE(XSAVE)
     ASMJIT_X86_FEATURE(XSAVEC)
     ASMJIT_X86_FEATURE(XSAVEOPT)
     ASMJIT_X86_FEATURE(XSAVES)
 
-#ifndef ASMJIT_NO_DEPRECATED
-    ASMJIT_DEPRECATED("Use hasAVX512_CD() instead")
-    ASMJIT_X86_FEATURE(AVX512_CDI)
+    ASMJIT_X86_FEATURE(FPU)
+    ASMJIT_X86_FEATURE(MMX)
+    ASMJIT_X86_FEATURE(MMX2)
+    ASMJIT_X86_FEATURE(3DNOW)
+    ASMJIT_X86_FEATURE(3DNOW2)
+    ASMJIT_X86_FEATURE(GEODE)
 
-    ASMJIT_DEPRECATED("Use hasAVX512_ER() instead")
-    ASMJIT_X86_FEATURE(AVX512_ERI)
+    ASMJIT_X86_FEATURE(SSE)
+    ASMJIT_X86_FEATURE(SSE2)
+    ASMJIT_X86_FEATURE(SSE3)
+    ASMJIT_X86_FEATURE(SSSE3)
+    ASMJIT_X86_FEATURE(SSE4_1)
+    ASMJIT_X86_FEATURE(SSE4_2)
+    ASMJIT_X86_FEATURE(SSE4A)
+    ASMJIT_X86_FEATURE(PCLMULQDQ)
 
-    ASMJIT_DEPRECATED("Use hasAVX512_PF() instead")
-    ASMJIT_X86_FEATURE(AVX512_PFI)
-#endif
+    ASMJIT_X86_FEATURE(AVX)
+    ASMJIT_X86_FEATURE(AVX2)
+    ASMJIT_X86_FEATURE(AVX_IFMA)
+    ASMJIT_X86_FEATURE(AVX_NE_CONVERT)
+    ASMJIT_X86_FEATURE(AVX_VNNI)
+    ASMJIT_X86_FEATURE(AVX_VNNI_INT16)
+    ASMJIT_X86_FEATURE(AVX_VNNI_INT8)
+    ASMJIT_X86_FEATURE(F16C)
+    ASMJIT_X86_FEATURE(FMA)
+    ASMJIT_X86_FEATURE(FMA4)
+    ASMJIT_X86_FEATURE(XOP)
+
+    ASMJIT_X86_FEATURE(AVX512_BF16)
+    ASMJIT_X86_FEATURE(AVX512_BITALG)
+    ASMJIT_X86_FEATURE(AVX512_BW)
+    ASMJIT_X86_FEATURE(AVX512_CD)
+    ASMJIT_X86_FEATURE(AVX512_DQ)
+    ASMJIT_X86_FEATURE(AVX512_F)
+    ASMJIT_X86_FEATURE(AVX512_FP16)
+    ASMJIT_X86_FEATURE(AVX512_IFMA)
+    ASMJIT_X86_FEATURE(AVX512_VBMI)
+    ASMJIT_X86_FEATURE(AVX512_VBMI2)
+    ASMJIT_X86_FEATURE(AVX512_VL)
+    ASMJIT_X86_FEATURE(AVX512_VNNI)
+    ASMJIT_X86_FEATURE(AVX512_VP2INTERSECT)
+    ASMJIT_X86_FEATURE(AVX512_VPOPCNTDQ)
+
+    ASMJIT_X86_FEATURE(AESNI)
+    ASMJIT_X86_FEATURE(GFNI)
+    ASMJIT_X86_FEATURE(SHA)
+    ASMJIT_X86_FEATURE(SHA512)
+    ASMJIT_X86_FEATURE(SM3)
+    ASMJIT_X86_FEATURE(SM4)
+    ASMJIT_X86_FEATURE(VAES)
+    ASMJIT_X86_FEATURE(VPCLMULQDQ)
+
+    ASMJIT_X86_FEATURE(KL)
+    ASMJIT_X86_FEATURE(AESKLE)
+    ASMJIT_X86_FEATURE(AESKLEWIDE_KL)
+
+    ASMJIT_X86_FEATURE(AVX10_1)
+    ASMJIT_X86_FEATURE(AVX10_2)
+
+    ASMJIT_X86_FEATURE(AMX_AVX512)
+    ASMJIT_X86_FEATURE(AMX_BF16)
+    ASMJIT_X86_FEATURE(AMX_COMPLEX)
+    ASMJIT_X86_FEATURE(AMX_FP16)
+    ASMJIT_X86_FEATURE(AMX_FP8)
+    ASMJIT_X86_FEATURE(AMX_INT8)
+    ASMJIT_X86_FEATURE(AMX_MOVRS)
+    ASMJIT_X86_FEATURE(AMX_TF32)
+    ASMJIT_X86_FEATURE(AMX_TILE)
+    ASMJIT_X86_FEATURE(AMX_TRANSPOSE)
 
     #undef ASMJIT_X86_FEATURE
   };
@@ -1031,11 +1040,6 @@ public:
 
   //! Tests whether this CPU features matches `other`.
   ASMJIT_INLINE_NODEBUG bool equals(const CpuFeatures& other) const noexcept { return _data.equals(other._data); }
-
-#if !defined(ASMJIT_NO_DEPRECATED)
-  ASMJIT_DEPRECATED("Use CpuFeatures::equals() instead")
-  ASMJIT_INLINE_NODEBUG bool eq(const CpuFeatures& other) const noexcept { return equals(other); }
-#endif // !ASMJIT_NO_DEPRECATED
 
   //! \}
 };

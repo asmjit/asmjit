@@ -18,7 +18,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 namespace InstInternal {
 
 #ifndef ASMJIT_NO_TEXT
-Error ASMJIT_CDECL instIdToString(InstId instId, String& output) noexcept;
+Error ASMJIT_CDECL instIdToString(InstId instId, InstStringifyOptions options, String& output) noexcept;
 InstId ASMJIT_CDECL stringToInstId(const char* s, size_t len) noexcept;
 #endif // !ASMJIT_NO_TEXT
 

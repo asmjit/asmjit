@@ -201,6 +201,21 @@ enum class InstSameRegHint : uint8_t {
   kWO = 2
 };
 
+//! Options that can be used when converting instruction IDs to strings.
+enum class InstStringifyOptions : uint32_t {
+  //! No options.
+  kNone = 0x00000000u,
+
+  //! Stringify a full instruction name with known aliases.
+  //!
+  //! This option is designed for architectures where instruction aliases are common, for example X86, and where
+  //! multiple aliases can be used in assembly code to distinguish between intention - for example instructions
+  //! such as JZ and JE are the same, but the first is used in a context of equality to zero, and the second is
+  //! used when two values equal (for example JE next to CMP).
+  kAliases = 0x00000001u
+};
+ASMJIT_DEFINE_ENUM_FLAGS(InstStringifyOptions)
+
 //! Instruction id, options, and extraReg in a single structure. This structure exists mainly to simplify analysis
 //! and validation API that requires `BaseInst` and `Operand[]` array.
 class BaseInst {
@@ -769,11 +784,16 @@ ASMJIT_DEFINE_ENUM_FLAGS(ValidationFlags)
 namespace InstAPI {
 
 #ifndef ASMJIT_NO_TEXT
-//! Appends the name of the instruction specified by `instId` and `instOptions` into the `output` string.
+//! Appends the name of the instruction specified by `instId` and `options` into the `output` string.
 //!
 //! \note Instruction options would only affect instruction prefix & suffix, other options would be ignored.
 //! If `instOptions` is zero then only raw instruction name (without any additional text) will be appended.
-ASMJIT_API Error instIdToString(Arch arch, InstId instId, String& output) noexcept;
+ASMJIT_API Error instIdToString(Arch arch, InstId instId, InstStringifyOptions options, String& output) noexcept;
+
+ASMJIT_DEPRECATED("Use `instIdToString()` with `InstStringifyOptions` parameter")
+static inline Error instIdToString(Arch arch, InstId instId, String& output) noexcept {
+  return instIdToString(arch, instId, InstStringifyOptions::kNone, output);
+}
 
 //! Parses an instruction name in the given string `s`. Length is specified by `len` argument, which can be
 //! `SIZE_MAX` if `s` is known to be null terminated.

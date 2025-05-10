@@ -95,15 +95,6 @@ enum class CallConvId : uint8_t {
 
   //! Maximum value of `CallConvId`.
   kMaxValue = kX64Windows
-
-  // Deprecated Aliases
-  // ------------------
-
-#if !defined(ASMJIT_NO_DEPRECATED)
-  ,
-  kNone = kCDecl,
-  kHost = kCDecl
-#endif // !ASMJIT_NO_DEPRECATED
 };
 
 //! Strategy used by calling conventions to assign registers to function arguments.
@@ -535,19 +526,6 @@ struct FuncSignature {
 
   //! \}
 };
-
-#if !defined(ASMJIT_NO_DEPRECATED)
-template<typename... RetValueAndArgs>
-class FuncSignatureT : public FuncSignature {
-public:
-  ASMJIT_DEPRECATED("Use FuncSignature::build<RetValueAndArgs>() instead")
-  ASMJIT_INLINE_NODEBUG constexpr FuncSignatureT(CallConvId ccId = CallConvId::kCDecl, uint32_t vaIndex = kNoVarArgs) noexcept
-    : FuncSignature(ccId, vaIndex, (TypeId(TypeUtils::TypeIdOfT<RetValueAndArgs>::kTypeId))... ) {}
-};
-
-ASMJIT_DEPRECATED("Use FuncSignature instead of FuncSignatureBuilder")
-typedef FuncSignature FuncSignatureBuilder;
-#endif // !ASMJIT_NO_DEPRECATED
 
 //! Argument or return value (or its part) as defined by `FuncSignature`, but with register or stack address
 //! (and other metadata) assigned.

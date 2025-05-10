@@ -96,6 +96,7 @@ int TestApp::run() {
   FormatOptions formatOptions;
   formatOptions.addFlags(
     FormatFlags::kMachineCode |
+    FormatFlags::kShowAliases |
     FormatFlags::kExplainImms |
     FormatFlags::kRegCasts   );
   formatOptions.setIndentation(FormatIndentationGroup::kCode, 2);

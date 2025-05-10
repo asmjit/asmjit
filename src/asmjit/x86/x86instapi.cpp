@@ -22,15 +22,37 @@ namespace InstInternal {
 // ========================
 
 #ifndef ASMJIT_NO_TEXT
-Error instIdToString(InstId instId, String& output) noexcept {
+Error instIdToString(InstId instId, InstStringifyOptions options, String& output) noexcept {
   if (ASMJIT_UNLIKELY(!Inst::isDefinedId(instId)))
     return DebugUtils::errored(kErrorInvalidInstruction);
 
-  return InstNameUtils::decode(output, InstDB::_instNameIndexTable[instId], InstDB::_instNameStringTable);
+  return InstNameUtils::decode(InstDB::_instNameIndexTable[instId], options, InstDB::_instNameStringTable, output);
 }
 
 InstId stringToInstId(const char* s, size_t len) noexcept {
-  return InstNameUtils::find(s, len, InstDB::instNameIndex, InstDB::_instNameIndexTable, InstDB::_instNameStringTable);
+  if (ASMJIT_UNLIKELY(!s)) {
+    return BaseInst::kIdNone;
+  }
+
+  if (len == SIZE_MAX) {
+    len = strlen(s);
+  }
+
+  if (len == 0u || len > InstDB::instNameIndex.maxNameLength) {
+    return BaseInst::kIdNone;
+  }
+
+  InstId instId = InstNameUtils::findInstruction(s, len, InstDB::_instNameIndexTable, InstDB::_instNameStringTable, InstDB::instNameIndex);
+  if (instId != BaseInst::kIdNone) {
+    return instId;
+  }
+
+  uint32_t aliasIndex = InstNameUtils::findAlias(s, len, InstDB::_aliasNameIndexTable, InstDB::_aliasNameStringTable, InstDB::kAliasTableSize);
+  if (aliasIndex != Globals::kInvalidId) {
+    return InstDB::_aliasIndexToInstId[aliasIndex];
+  }
+
+  return BaseInst::kIdNone;
 }
 #endif // !ASMJIT_NO_TEXT
 
@@ -1668,12 +1690,12 @@ UNIT(x86_inst_api_text) {
   INFO("Matching all X86 instructions");
   for (uint32_t a = 1; a < Inst::_kIdCount; a++) {
     StringTmp<128> aName;
-    EXPECT_EQ(InstInternal::instIdToString(a, aName), kErrorOk)
+    EXPECT_EQ(InstInternal::instIdToString(a, InstStringifyOptions::kNone, aName), kErrorOk)
       .message("Failed to get the name of instruction #%u", a);
 
     uint32_t b = InstInternal::stringToInstId(aName.data(), aName.size());
     StringTmp<128> bName;
-    InstInternal::instIdToString(b, bName);
+    InstInternal::instIdToString(b, InstStringifyOptions::kNone, bName);
     EXPECT_EQ(a, b)
       .message("Instructions do not match \"%s\" (#%u) != \"%s\" (#%u)", aName.data(), a, bName.data(), b);
   }

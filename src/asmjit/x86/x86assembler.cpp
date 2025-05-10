@@ -2976,13 +2976,6 @@ CaseExtRm:
       }
       break;
 
-    case InstDB::kEncodingVexM_VM:
-      if (isign3 == ENC_OPS1(Mem)) {
-        rmRel = &o0;
-        goto EmitVexEvexM;
-      }
-      break;
-
     case InstDB::kEncodingVexMr_Lx:
       opcode |= x86OpcodeLBySize(o0.x86RmSize() | o1.x86RmSize());
 
@@ -3109,28 +3102,6 @@ CaseVexRm:
         goto EmitVexEvexM;
       }
       break;
-
-    case InstDB::kEncodingVexRm_T1_4X: {
-      const Operand_& o3 = opExt[EmitterUtils::kOp3];
-      const Operand_& o4 = opExt[EmitterUtils::kOp4];
-      const Operand_& o5 = opExt[EmitterUtils::kOp5];
-
-      if (Reg::isVec(o0) && Reg::isVec(o1) && Reg::isVec(o2) && Reg::isVec(o3) && Reg::isVec(o4) && o5.isMem()) {
-        // Registers [o1, o2, o3, o4] must start aligned and must be consecutive.
-        uint32_t i1 = o1.id();
-        uint32_t i2 = o2.id();
-        uint32_t i3 = o3.id();
-        uint32_t i4 = o4.id();
-
-        if (ASMJIT_UNLIKELY((i1 & 0x3) != 0 || i2 != i1 + 1 || i3 != i1 + 2 || i4 != i1 + 3))
-          goto NotConsecutiveRegs;
-
-        opReg = x86PackRegAndVvvvv(o0.id(), i1);
-        rmRel = &o5;
-        goto EmitVexEvexM;
-      }
-      break;
-    }
 
     case InstDB::kEncodingVexRmi_Wx:
       opcode.addWIf(unsigned(Reg::isGpq(o0)) | unsigned(Reg::isGpq(o1)));
@@ -5000,7 +4971,6 @@ EmitDone:
   ERROR_HANDLER(InvalidBroadcast)
   ERROR_HANDLER(OperandSizeMismatch)
   ERROR_HANDLER(AmbiguousOperandSize)
-  ERROR_HANDLER(NotConsecutiveRegs)
 #undef ERROR_HANDLER
 
 Failed:

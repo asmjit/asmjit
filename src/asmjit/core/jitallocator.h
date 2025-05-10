@@ -323,35 +323,6 @@ public:
   //! If the pointer is matched, the function returns `kErrorOk` and fills `out` with the corresponding span.
   ASMJIT_API Error query(Span& out, void* rx) const noexcept;
 
-#if !defined(ASMJIT_NO_DEPRECATED)
-  //! Allocates a new memory block of the requested `size`.
-  ASMJIT_DEPRECATED("Use alloc(Span& out, size_t size) instead")
-  ASMJIT_FORCE_INLINE Error alloc(void** rxPtrOut, void** rwPtrOut, size_t size) noexcept {
-    Span span;
-    Error err = alloc(span, size);
-    *rwPtrOut = span.rw();
-    *rxPtrOut = span.rx();
-    return err;
-  }
-
-  ASMJIT_DEPRECATED("Use shrink(Span& span, size_t newSize) instead")
-  ASMJIT_FORCE_INLINE Error shrink(void* rxPtr, size_t newSize) noexcept {
-    Span span;
-    ASMJIT_PROPAGATE(query(span, rxPtr));
-    return (span.size() > newSize) ? shrink(span, newSize) : Error(kErrorOk);
-  }
-
-  ASMJIT_DEPRECATED("Use query(Span& out, void* rx) instead")
-  ASMJIT_FORCE_INLINE Error query(void* rxPtr, void** rxPtrOut, void** rwPtrOut, size_t* sizeOut) const noexcept {
-    Span span;
-    Error err = query(span, rxPtr);
-    *rxPtrOut = span.rx();
-    *rwPtrOut = span.rw();
-    *sizeOut = span.size();
-    return err;
-  }
-#endif
-
   //! \}
 
   //! \name Write Operations

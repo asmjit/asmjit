@@ -118,18 +118,6 @@ public:
   //! Emits a sentinel that marks the end of the current function.
   ASMJIT_API Error endFunc();
 
-#if !defined(ASMJIT_NO_DEPRECATED)
-  inline Error _setArg(size_t argIndex, size_t valueIndex, const BaseReg& reg);
-
-  //! Sets a function argument at `argIndex` to `reg`.
-  ASMJIT_DEPRECATED("Setting arguments through Compiler is deprecated, use FuncNode->setArg() instead")
-  inline Error setArg(size_t argIndex, const BaseReg& reg) { return _setArg(argIndex, 0, reg); }
-
-  //! Sets a function argument at `argIndex` at `valueIndex` to `reg`.
-  ASMJIT_DEPRECATED("Setting arguments through Compiler is deprecated, use FuncNode->setArg() instead")
-  inline Error setArg(size_t argIndex, size_t valueIndex, const BaseReg& reg) { return _setArg(argIndex, valueIndex, reg); }
-#endif
-
   inline Error addRet(const Operand_& o0, const Operand_& o1) {
     FuncRetNode* node;
     return addFuncRetNode(&node, o0, o1);
@@ -720,18 +708,6 @@ public:
 
   //! \}
 };
-
-#if !defined(ASMJIT_NO_DEPRECATED)
-inline Error BaseCompiler::_setArg(size_t argIndex, size_t valueIndex, const BaseReg& reg) {
-  FuncNode* func = _func;
-
-  if (ASMJIT_UNLIKELY(!func))
-    return reportError(DebugUtils::errored(kErrorInvalidState));
-
-  func->setArg(argIndex, valueIndex, reg);
-  return kErrorOk;
-}
-#endif
 
 //! \}
 

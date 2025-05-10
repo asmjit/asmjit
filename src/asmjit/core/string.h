@@ -55,11 +55,6 @@ union FixedString {
 
   inline bool equals(const char* other) const noexcept { return strcmp(str, other) == 0; }
 
-#if !defined(ASMJIT_NO_DEPRECATED)
-  ASMJIT_DEPRECATED("Use FixedString::equals() instead")
-  inline bool eq(const char* other) const noexcept { return equals(other); }
-#endif // !ASMJIT_NO_DEPRECATED
-
   //! \}
 };
 
@@ -317,14 +312,6 @@ public:
 
   ASMJIT_API bool equals(const char* other, size_t size = SIZE_MAX) const noexcept;
   ASMJIT_INLINE_NODEBUG bool equals(const String& other) const noexcept { return equals(other.data(), other.size()); }
-
-#if !defined(ASMJIT_NO_DEPRECATED)
-  ASMJIT_DEPRECATED("Use String::equals() instead")
-  ASMJIT_INLINE_NODEBUG bool eq(const char* other, size_t size = SIZE_MAX) const noexcept { return equals(other, size); }
-
-  ASMJIT_DEPRECATED("Use String::equals() instead")
-  ASMJIT_INLINE_NODEBUG bool eq(const String& other) const noexcept { return equals(other.data(), other.size()); }
-#endif // !ASMJIT_NO_DEPRECATED
 
   //! \}
 

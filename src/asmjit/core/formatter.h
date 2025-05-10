@@ -26,20 +26,25 @@ enum class FormatFlags : uint32_t {
   //! No formatting flags.
   kNone = 0u,
 
-  //! Show also binary form of each logged instruction (Assembler).
+  //! Show also a binary representation of each logged instruction (Assembler).
   kMachineCode = 0x00000001u,
+  //! Show aliases of some instructions that have them.
+  //!
+  //! This option is now mostly for x86/x64 to show aliases of instructions such as `cmov<cc>`, `j<cc>`, `set<cc>`,
+  //! etc...
+  kShowAliases = 0x00000008u,
   //! Show a text explanation of some immediate values.
-  kExplainImms = 0x00000002u,
+  kExplainImms = 0x00000010u,
   //! Use hexadecimal notation of immediate values.
-  kHexImms = 0x00000004u,
+  kHexImms = 0x00000020u,
   //! Use hexadecimal notation of addresses and offsets in addresses.
-  kHexOffsets = 0x00000008u,
-  //! Show casts between virtual register types (Compiler output).
-  kRegCasts = 0x00000010u,
-  //! Show positions associated with nodes (Compiler output).
-  kPositions = 0x00000020u,
-  //! Always format a register type (Compiler output).
-  kRegType = 0x00000040u
+  kHexOffsets = 0x00000040u,
+  //! Show casts between virtual register types (Compiler).
+  kRegCasts = 0x00000100u,
+  //! Show positions associated with nodes (Compiler).
+  kPositions = 0x00000200u,
+  //! Always format a register type (Compiler).
+  kRegType = 0x00000400u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(FormatFlags)
 

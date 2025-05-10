@@ -745,17 +745,6 @@ struct Operand_ {
   ASMJIT_INLINE_NODEBUG constexpr uint32_t x86RmSize() const noexcept { return _signature.size(); }
 
   //! \}
-
-#if !defined(ASMJIT_NO_DEPRECATED)
-  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() or x86::Mem::hasSize() instead, if your target is X86/X86_64")
-  ASMJIT_INLINE_NODEBUG constexpr bool hasSize() const noexcept { return x86RmSize() != 0u; }
-
-  ASMJIT_DEPRECATED("hasSize() is no longer portable - use x86RmSize() or x86::Mem::hasSize() instead, if your target is X86/X86_64")
-  ASMJIT_INLINE_NODEBUG constexpr bool hasSize(uint32_t s) const noexcept { return x86RmSize() == s; }
-
-  ASMJIT_DEPRECATED("size() is no longer portable - use x86RmSize() or x86::Mem::size() instead, if your target is X86/X86_64")
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
-#endif
 };
 
 //! Base class representing an operand in AsmJit (default constructed version).
@@ -1665,11 +1654,6 @@ public:
   ASMJIT_INLINE_NODEBUG void resetOffsetLo32() noexcept { setOffsetLo32(0); }
 
   //! \}
-
-#if !defined(ASMJIT_NO_DEPRECATED)
-  ASMJIT_DEPRECATED("setSize() is no longer portable - use setX86RmSize() or x86::Mem::setSize() instead, if your target is X86/X86_64")
-  ASMJIT_INLINE_NODEBUG void setSize(uint32_t size) noexcept { _signature.setField<Signature::kSizeMask>(size); }
-#endif
 };
 
 //! Type of the an immediate value.

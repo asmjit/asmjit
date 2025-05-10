@@ -173,6 +173,14 @@ static void testX86Arch() {
 
   printInfoExtra(arch, Inst::kIdVaddpd, InstOptions::kNone, k1, zmm0, zmm1, zmm2);
   printInfoExtra(arch, Inst::kIdVaddpd, InstOptions::kX86_ZMask, k1, zmm0, zmm1, zmm2);
+
+  printInfoSimple(arch, Inst::kIdVcvtdq2pd, InstOptions::kNone, xmm0, xmm1);
+  printInfoSimple(arch, Inst::kIdVcvtdq2pd, InstOptions::kNone, ymm0, xmm1);
+  printInfoSimple(arch, Inst::kIdVcvtdq2pd, InstOptions::kNone, zmm0, ymm1);
+
+  printInfoSimple(arch, Inst::kIdVcvtdq2pd, InstOptions::kNone, xmm0, ptr(rsi));
+  printInfoSimple(arch, Inst::kIdVcvtdq2pd, InstOptions::kNone, ymm0, ptr(rsi));
+  printInfoSimple(arch, Inst::kIdVcvtdq2pd, InstOptions::kNone, zmm0, ptr(rsi));
 #endif // !ASMJIT_NO_X86
 }
 

@@ -122,7 +122,6 @@ enum EncodingId : uint32_t {
   kEncodingVexKmov,                      //!< VEX [RM|MR] (used by kmov[b|w|d|q]).
   kEncodingVexR_Wx,                      //!< VEX|EVEX [R] (propagatex VEX.W if GPQ used).
   kEncodingVexM,                         //!< VEX|EVEX [M].
-  kEncodingVexM_VM,                      //!< VEX|EVEX [M] (propagates VEX|EVEX.L, VSIB support).
   kEncodingVexMr_Lx,                     //!< VEX|EVEX [MR] (propagates VEX|EVEX.L if YMM used).
   kEncodingVexMr_VM,                     //!< VEX|EVEX [MR] (VSIB support).
   kEncodingVexMri,                       //!< VEX|EVEX [MRI].
@@ -136,7 +135,6 @@ enum EncodingId : uint32_t {
   kEncodingVexRm_Lx_Narrow,              //!< VEX|EVEX [RM] (the destination vector size is narrowed).
   kEncodingVexRm_Lx_Bcst,                //!< VEX|EVEX [RM] (can handle broadcast r32/r64).
   kEncodingVexRm_VM,                     //!< VEX|EVEX [RM] (propagates VEX|EVEX.L, VSIB support).
-  kEncodingVexRm_T1_4X,                  //!<     EVEX [RM] (used by NN instructions that use RM-T1_4X encoding).
   kEncodingVexRmi,                       //!< VEX|EVEX [RMI].
   kEncodingVexRmi_Wx,                    //!< VEX|EVEX [RMI] (propagates VEX|EVEX.W if GPQ used).
   kEncodingVexRmi_Lx,                    //!< VEX|EVEX [RMI] (propagates VEX|EVEX.L if YMM used).
@@ -288,9 +286,21 @@ extern const uint32_t _mainOpcodeTable[];
 extern const uint32_t _altOpcodeTable[];
 
 #ifndef ASMJIT_NO_TEXT
+
 extern const InstNameIndex instNameIndex;
 extern const char _instNameStringTable[];
 extern const uint32_t _instNameIndexTable[];
+
+extern const char _aliasNameStringTable[];
+extern const uint32_t _aliasNameIndexTable[];
+extern const uint32_t _aliasIndexToInstId[];
+
+// ${NameDataInfo:Begin}
+// ------------------- Automatically generated, do not edit -------------------
+static constexpr uint32_t kAliasTableSize = 44;
+// ----------------------------------------------------------------------------
+// ${NameDataInfo:End}
+
 #endif // !ASMJIT_NO_TEXT
 
 extern const AdditionalInfo _additionalInfoTable[];

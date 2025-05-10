@@ -35,28 +35,28 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { title: "diag-analyze"    , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , diagnostics: "analyze-build" }
-          - { title: "diag-asan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "asan", defs: "ASMJIT_TEST=1" }
-          - { title: "diag-msan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "msan", defs: "ASMJIT_TEST=1" }
-          - { title: "diag-ubsan"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "ubsan", defs: "ASMJIT_TEST=1" }
-          - { title: "diag-hardened"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "hardened", defs: "ASMJIT_TEST=1" }
-          - { title: "diag-valgrind"   , host: "ubuntu-24.04"  , arch: "x64"    , cc: "clang-18", conf: "Release", diagnostics: "valgrind", defs: "ASMJIT_TEST=1" }
+          - { title: "diag-analyze"    , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Debug"  , diagnostics: "analyze-build" }
+          - { title: "diag-asan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", diagnostics: "asan", defs: "ASMJIT_TEST=1" }
+          - { title: "diag-msan"       , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", diagnostics: "msan", defs: "ASMJIT_TEST=1" }
+          - { title: "diag-ubsan"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", diagnostics: "ubsan", defs: "ASMJIT_TEST=1" }
+          - { title: "diag-hardened"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", diagnostics: "hardened", defs: "ASMJIT_TEST=1" }
+          - { title: "diag-valgrind"   , host: "ubuntu-24.04"  , arch: "x64"    , cc: "clang-19", conf: "Release", diagnostics: "valgrind", defs: "ASMJIT_TEST=1" }
 
-          - { title: "no-deprecated"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_DEPRECATED=1" }
-          - { title: "no-intrinsics"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_INTRINSICS=1" }
-          - { title: "no-logging"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_LOGGING=1" }
-          - { title: "no-logging-text" , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_LOGGING=1,ASMJIT_NO_TEXT=1" }
-          - { title: "no-builder"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_BUILDER=1" }
-          - { title: "no-compiler"     , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_COMPILER=1" }
-          - { title: "no-introspection", host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_COMPILER=1,ASMJIT_NO_INTROSPECTION=1" }
-          - { title: "no-jit"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_JIT=1" }
-          - { title: "no-validation"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_VALIDATION=1" }
-          - { title: "no-x86"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_X86=1" }
-          - { title: "no-aarch64"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_AARCH64=1" }
+          - { title: "no-deprecated"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_DEPRECATED=1" }
+          - { title: "no-intrinsics"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_INTRINSICS=1" }
+          - { title: "no-logging"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_LOGGING=1" }
+          - { title: "no-logging-text" , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_LOGGING=1,ASMJIT_NO_TEXT=1" }
+          - { title: "no-builder"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_BUILDER=1" }
+          - { title: "no-compiler"     , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_COMPILER=1" }
+          - { title: "no-introspection", host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_COMPILER=1,ASMJIT_NO_INTROSPECTION=1" }
+          - { title: "no-jit"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_JIT=1" }
+          - { title: "no-validation"   , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_VALIDATION=1" }
+          - { title: "no-x86"          , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_X86=1" }
+          - { title: "no-aarch64"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Release", defs: "ASMJIT_TEST=1,ASMJIT_NO_AARCH64=1" }
 
-          - { title: "lang-c++17"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++17" }
-          - { title: "lang-c++20"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++20" }
-          - { title: "lang-c++23"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-18", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++23" }
+          - { title: "lang-c++17"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++17" }
+          - { title: "lang-c++20"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++20" }
+          - { title: "lang-c++23"      , host: "ubuntu-latest" , arch: "x64"    , cc: "clang-19", conf: "Debug"  , defs: "ASMJIT_TEST=1,CMAKE_CXX_FLAGS=-std=c++23" }
 
           - { title: "linux"           , host: "ubuntu-22.04"  , arch: "x86"    , cc: "gcc-9"   , conf: "Debug"  , defs: "ASMJIT_TEST=1" }
           - { title: "linux"           , host: "ubuntu-22.04"  , arch: "x86"    , cc: "gcc-9"   , conf: "Release", defs: "ASMJIT_TEST=1" }

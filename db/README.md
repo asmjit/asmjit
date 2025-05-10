@@ -18,4 +18,4 @@ This project will be refactored and documented in the future.
 License
 -------
 
-AsmJit database is dual licensed under Zlib (AsmJit license) or public domain. The database can be used for any purpose, not just by AsmJit.
+AsmJit database is licensed under [Zlib License](./LICENSE.md)

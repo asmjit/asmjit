@@ -215,6 +215,9 @@ exports.ArrayUtils = ArrayUtils;
 class StringUtils {
   static asString(x) { return String(x); }
 
+  static makeEnumName(name) {
+    return name ? name.charAt(0).toUpperCase() + name.substring(1) : "";
+  }
   static countOf(s, pattern) {
     if (!pattern)
       FATAL(`Pattern cannot be empty`);

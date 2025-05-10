@@ -1,17 +1,15 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
 // See asmjit.h or LICENSE.md for license and copyright information
-// SPDX-License-Identifier: (Zlib or Unlicense)
+// SPDX-License-Identifier: Zlib
 
 (function($scope, $as) {
 "use strict";
 
-function FAIL(msg) { throw new Error("[X86] " + msg); }
-
 // Import.
 const base = $scope.base ? $scope.base : require("./base.js");
 
-const hasOwn = Object.prototype.hasOwnProperty;
+const hasOwn = base.hasOwn;
 const dict = base.dict;
 const NONE = base.NONE;
 const Parsing = base.Parsing;
@@ -20,10 +18,90 @@ const MapUtils = base.MapUtils;
 // Export.
 const x86 = $scope[$as] = {};
 
+function FAIL(msg) { throw new Error("[X86] " + msg); }
+
 // Database
 // ========
 
 x86.dbName = "isa_x86.json";
+
+// Metadata Tables
+// ===============
+
+const ArchGroupInfo = dict({
+  "ry": ["ANY", "X64"],
+  "rv": ["ANY", "ANY", "X64"]
+});
+
+// Groups are used by instruction tables to group multiple operand combinations into a single record. In general
+// X86 and X86_64 instructions can be divided into GP and SIMD groups, where GP groups use `ry/my` syntax to
+// specify operation for 16/32/64 bit registers and "xy/mxy"/"xyz/mxyz" groups to specify a SIMD instruction that
+// uses either XMM/YMM (AVX) or XMM/YMM/ZMM registers (AVX-512).
+const OperandGroupInfo = dict({
+  "ry"   : { "group": "ry" , "subst": ["r32", "r64"] },
+  "my"   : { "group": "ry" , "subst": ["m32", "m64"] },
+  "axy"  : { "group": "ry" , "subst": ["eax", "rax"] },
+  "bxy"  : { "group": "ry" , "subst": ["ebx", "rbx"] },
+  "cxy"  : { "group": "ry" , "subst": ["ecx", "rcx"] },
+  "dxy"  : { "group": "ry" , "subst": ["edx", "rdx"] },
+
+  "rv"   : { "group": "rv" , "subst": ["r16", "r32", "r64"] },
+  "mv"   : { "group": "rv" , "subst": ["m16", "m32", "m64"] },
+  "axv"  : { "group": "rv" , "subst": ["ax", "eax", "rax"] },
+  "bxv"  : { "group": "rv" , "subst": ["bx", "ebx", "rbx"] },
+  "cxv"  : { "group": "rv" , "subst": ["cx", "ecx", "rcx"] },
+  "dxv"  : { "group": "rv" , "subst": ["dx", "edx", "rdx"] },
+  "immv" : { "group": "rv" , "subst": ["imm16", "imm32", "imms32"] },
+
+  "xy"   : { "group": "xy" , "subst": ["xmm", "ymm"] },
+  "mxy"  : { "group": "xy" , "subst": ["m128", "m256"] },
+
+  "xxx"  : { "group": "xyz", "subst": ["xmm[31:0]", "xmm[63:0]", "xmm"] },
+  "xxy"  : { "group": "xyz", "subst": ["xmm[63:0]", "xmm", "ymm"] },
+  "xyz"  : { "group": "xyz", "subst": ["xmm", "ymm", "zmm"] },
+  "mxxx" : { "group": "xyz", "subst": ["m32", "m64", "m128"] },
+  "mxxy" : { "group": "xyz", "subst": ["m64", "m128", "m256"] },
+  "mxyz" : { "group": "xyz", "subst": ["m128", "m256", "m512"] }
+});
+
+const OpcodeGroupInfo = dict({
+  "Wy"   : { "group": "ry" , "subst": ["W0", "W1"] },
+  "iv"   : { "group": "rv" , "subst": ["iw", "id", "id"] },
+  "Pv"   : { "group": "rv" , "subst": ["66", "NP", "NP"] },
+  "Wv"   : { "group": "rv" , "subst": ["W0", "W0", "W1"] }
+});
+
+// Instruction tables use various notations to specify L/LL field, which is used by VEX/EVEX/XOP encodings. This
+// field has 1 bit (VEX/XOP) and 2 bits (EVEX) and in general the notation used is 128/256/512, which determines
+// the size of SIMD operation, and this is also the notation we want to convert everything else into.
+const OpcodeLLMapping = dict({
+  "128": "128",
+  "256": "256",
+  "512": "512",
+  "LZ" : "128",
+  "LLZ": "128",
+  "L0" : "128",
+  "L1" : "256",
+  "LIG": "LIG",
+  "Lxy": "xy",
+  "xyz": "xyz"
+});
+
+const RegSize = Object.freeze({
+  "r8"  : 8,
+  "r8hi": 8,
+  "r16" : 16,
+  "r32" : 32,
+  "r64" : 64,
+  "mm"  : 64,
+  "xmm" : 128,
+  "ymm" : 256,
+  "zmm" : 512,
+  "tmm" : 512, // Maximum size (64 bytes).
+  "bnd" : 128,
+  "k"   : 64,
+  "st"  : 80
+});
 
 // CpuRegs
 // =======
@@ -32,29 +110,32 @@ x86.dbName = "isa_x86.json";
 function buildCpuRegs(defs) {
   const map = dict();
 
-  for (var type in defs) {
+  for (let type in defs) {
     const def = defs[type];
     const kind = def.kind;
     const names = def.names;
+    const group = def.group;
 
     if (def.any)
-      map[def.any] = { type: type, kind: kind, index: -1 };
+      map[def.any] = { type: type, kind: kind, index: -1, group: group };
 
-    for (var i = 0; i < names.length; i++) {
-      var name = names[i];
-      var m = /^([A-Za-z\(\)]+)(\d+)-(\d+)([A-Za-z\(\)]*)$/.exec(name);
+    if (names) {
+      for (let i = 0; i < names.length; i++) {
+        let name = names[i];
+        let m = /^([A-Za-z\(\)]+)(\d+)-(\d+)([A-Za-z\(\)]*)$/.exec(name);
 
-      if (m) {
-        var a = parseInt(m[2], 10);
-        var b = parseInt(m[3], 10);
+        if (m) {
+          let a = parseInt(m[2], 10);
+          let b = parseInt(m[3], 10);
 
-        for (var n = a; n <= b; n++) {
-          const index = m[1] + n + m[4];
-          map[index] = { type: type, kind: kind, index: index };
+          for (let n = a; n <= b; n++) {
+            const index = m[1] + n + m[4];
+            map[index] = { type: type, kind: kind, index: index };
+          }
         }
-      }
-      else {
-        map[name] = { type: type, kind: kind, index: i };
+        else {
+          map[name] = { type: type, kind: kind, index: i };
+        }
       }
     }
   }
@@ -68,7 +149,7 @@ function buildCpuRegs(defs) {
   return map;
 }
 
-const kCpuRegisters = buildCpuRegs({
+const CpuRegisters = buildCpuRegs({
   "r8"  : { "kind": "gp"  , "any": "r8"   , "names": ["al", "cl", "dl", "bl", "spl", "bpl", "sil", "dil", "r8-15b"] },
   "r8hi": { "kind": "gp"                  , "names": ["ah", "ch", "dh", "bh"] },
   "r16" : { "kind": "gp"  , "any": "r16"  , "names": ["ax", "cx", "dx", "bx", "sp", "bp", "si", "di", "r8-15w"] },
@@ -91,24 +172,12 @@ const kCpuRegisters = buildCpuRegs({
 // asmdb.x86.Utils
 // ===============
 
-const RegSize = Object.freeze({
-  "r8"  : 8,
-  "r8hi": 8,
-  "r16" : 16,
-  "r32" : 32,
-  "r64" : 64,
-  "mm"  : 64,
-  "xmm" : 128,
-  "ymm" : 256,
-  "zmm" : 512,
-  "tmm" : 512, // Maximum size (64 bytes).
-  "bnd" : 128,
-  "k"   : 64,
-  "st"  : 80
-});
-
 // X86/X64 utilities.
 class Utils {
+  static groupOf(op) {
+    return hasOwn(OperandGroupInfo, op) ? OperandGroupInfo[op].group : null;
+  }
+
   static splitInstructionSignature(s) {
     let prefixes = [];
     if (s.startsWith("[")) {
@@ -118,12 +187,17 @@ class Utils {
       s = s.substring(prefixEnd + 1).trim();
     }
 
-    const nameEnd = s.indexOf(" ");
-    const names = s.substring(0, nameEnd === -1 ? s.length : nameEnd).split("|");
-    const operands = nameEnd === -1 ? "" : s.substring(nameEnd + 1).trim();
+    let nameEnd = s.indexOf(" ");
+    let names = s.substring(0, nameEnd === -1 ? s.length : nameEnd);
+    let operands = nameEnd === -1 ? "" : s.substring(nameEnd + 1).trim();
+
+    if (names.endsWith("{nf}")) {
+      names = names.substring(0, names.length - 4);
+      prefixes.nf = true;
+    }
 
     return {
-      names: names,
+      names: names.split("|"),
       prefixes: prefixes,
       operands: operands
     }
@@ -136,33 +210,33 @@ class Utils {
   // this function is here for compatibility with other instruction sets.
   static splitOperands(s) {
     const array = s.split(",");
-    for (var i = 0; i < array.length; i++)
+    for (let i = 0; i < array.length; i++)
       array[i] = array[i].trim();
     return array;
   }
 
   // Get whether the string `s` describes a register operand.
-  static isRegOp(s) { return s && hasOwn.call(kCpuRegisters, s); }
+  static isRegOp(s) { return s && hasOwn(CpuRegisters, s); }
   // Get whether the string `s` describes a memory operand.
-  static isMemOp(s) { return s && /^(?:mem|mib|tmem|moff|(?:m(?:off)?\d+(?:dec|bcd|fp|int)?)|(?:m16_\d+)|(?:vm\d+(?:x|y|z)))$/.test(s); }
+  static isMemOp(s) { return s && /^(?:mem|mib|tmem|moff||(?:m(?:off)?\d+(?:dec|bcd|fp|int)?)|(?:m16_\d+)|(?:vm\d+(?:x|y|z)))$/.test(s); }
   // Get whether the string `s` describes an immediate operand.
-  static isImmOp(s) { return s && /^(?:1|i4|u4|ib|ub|iw|uw|id|ud|if|iq|uq|p16_16|p16_32)$/.test(s); }
+  static isImmOp(s) { return s && /^(?:1|imm4|imm8|imm16|imm32|imm64|imms8|imms32|immu16|immu32|immv|if|p16_16|p16_32|dfv)$/.test(s); }
   // Get whether the string `s` describes a relative displacement (label).
   static isRelOp(s) { return s && /^rel\d+$/.test(s); }
 
   // Get a register type of a `s`, returns `null` if the register is unknown.
-  static regTypeOf(s) { return hasOwn.call(kCpuRegisters, s) ? kCpuRegisters[s].type : null; }
+  static regTypeOf(s) { return hasOwn(CpuRegisters, s) ? CpuRegisters[s].type : null; }
   // Get a register kind of a `s`, returns `null` if the register is unknown.
-  static regKindOf(s) { return hasOwn.call(kCpuRegisters, s) ? kCpuRegisters[s].kind : null; }
+  static regKindOf(s) { return hasOwn(CpuRegisters, s) ? CpuRegisters[s].kind : null; }
   // Get a register type of a `s`, returns `null` if the register is unknown and `-1`
   // if the given string does only represent a register type, but not a specific reg.
-  static regIndexOf(s) { return hasOwn.call(kCpuRegisters, s) ? kCpuRegisters[s].index : null; }
+  static regIndexOf(s) { return hasOwn(CpuRegisters, s) ? CpuRegisters[s].index : null; }
 
   static regSize(s) {
     if (s in RegSize)
       return RegSize[s];
 
-    const reg = kCpuRegisters[s];
+    const reg = CpuRegisters[s];
     if (reg && reg.type in RegSize)
       return RegSize[reg.type];
 
@@ -174,10 +248,17 @@ class Utils {
   // Handles "ib", "iw", "id", "if", "iq", and also "/is4".
   static immSize(s) {
     switch (s) {
-      case "1"     : return 8;
-      case "i4"    :
-      case "u4"    :
       case "/is4"  : return 4;
+      case "imm4"  : return 4;
+      case "1"     : return 8;
+      case "imm8"  : return 8;
+      case "imm16" : return 16;
+      case "imm32" : return 32;
+      case "imm64" : return 64;
+      case "imms8" : return 8;
+      case "imms32": return 32;
+      case "immu16": return 16;
+      case "immu32": return 32;
       case "ib"    :
       case "ub"    : return 8;
       case "iw"    :
@@ -189,7 +270,12 @@ class Utils {
       case "p16_16": return 32;
       case "if"    :
       case "p16_32": return 48;
-      default      : return -1;
+
+      // Influences EVEX encoding, not an immediate byte.
+      case "dfv"   : return 0;
+
+      // Invalid immediate.
+      default      : FAIL(`Invalid immediate ${s}`);
     }
   }
 
@@ -210,24 +296,43 @@ x86.Utils = Utils;
 
 // X86/X64 operand.
 class Operand extends base.Operand {
-  constructor(data, defaultAccess) {
-    super(data);
+  constructor() {
+    super();
 
+    this.groupPattern = "";    // Group pattern in case this operand was created from a group.
     this.memSegment = "";      // Segment specified with register that is used to perform a memory IO.
     this.memOff = false;       // Memory operand is an absolute offset (only a specific version of MOV).
     this.memFar = false;       // Memory is a far pointer (includes segment in first two bytes).
     this.vsibReg = "";         // AVX VSIB register type (xmm/ymm/zmm).
     this.vsibSize = -1;        // AVX VSIB register size (32/64).
     this.bcstSize = -1;        // AVX-512 broadcast size.
+  }
+
+  _substituteGroupOp(op, groupIndex) {
+    const opPart = op.match(/^([A-Za-z]+)/);
+    if (opPart) {
+      const groupPattern = Utils.groupOf(opPart[1]);
+      if (groupPattern) {
+        this.groupPattern = groupPattern;
+        return OperandGroupInfo[opPart[1]].subst[groupIndex] + op.substring(opPart[1].length);
+      }
+    }
+    return op;
+  }
+
+  assignData(data, defaultAccess, groupIndex) {
+    let s = data;
+    this.data = data;
 
     const type = [];
-    var s = data;
 
     // Handle RWX decorators prefix "[RWwXx]:".
-    const mAccess = /^([RWwXx])\:/.exec(s);
-    if (mAccess) {
-      this.setAccess(mAccess[1]);
-      s = s.substring(mAccess[0].length);
+    let access = defaultAccess;
+    const access_match = /^(R|W|w|X|x)(\?)?\:/.exec(s);
+    if (access_match) {
+      // TODO: Conditional access is ignored at the moment.
+      access = access_match[1];
+      s = s.substring(access_match[0].length);
     }
 
     // Handle commutativity attribute.
@@ -251,19 +356,19 @@ class Operand extends base.Operand {
       s = Parsing.clearImplicit(s);
     }
 
-    // Support multiple operands separated by "/" (only used by r/m and i/u).
-    var ops = s.split("/");
-    var oArr = [];
+    // Support multiple operands separated by "/" (only used by r/m).
+    let ops = s.split("/");
+    let oArr = [];
 
-    for (var i = 0; i < ops.length; i++) {
-      var origOp = ops[i].trim();
-      var op = origOp;
+    for (let i = 0; i < ops.length; i++) {
+      let origOp = ops[i].trim();
+      let op = this._substituteGroupOp(origOp, groupIndex);
 
       // Handle range suffix [A] or [A:B]:
       const mRange = /\[(\d+)\s*(?:\:\s*(\d+)\s*)?\]$/.exec(op);
       if (mRange) {
-        var a = parseInt(mRange[1], 10);
-        var b = parseInt(mRange[2] || String(a), 10);
+        const a = parseInt(mRange[1], 10);
+        const b = parseInt(mRange[2] || String(a), 10);
 
         if (a < b)
           FAIL(`Operand '${origOp}' contains invalid range '[${a}:${b}]'`)
@@ -274,8 +379,7 @@ class Operand extends base.Operand {
         op = op.substring(0, op.length - mRange[0].length);
       }
 
-      // Handle a segment specification if this is an implicit register performing
-      // memory access.
+      // Handle a segment specification if this is an implicit register performing memory access.
       const memSegRegM = op.match(/\((ds|es)\:\s*([\w]+)\)$/);
       if (memSegRegM) {
         this.memSegment = memSegRegM[1];
@@ -285,16 +389,23 @@ class Operand extends base.Operand {
 
       oArr.push(op);
 
-      var regIndexRel = 0;
+      let regIndexRel = 0;
       if (op.endsWith("+1") || op.endsWith("+2") || op.endsWith("+3")) {
         regIndexRel = parseInt(op.substr(op.length - 1, 1));
         op = op.substring(0, op.length - 2);
+      }
+
+      // Group substitution - when a rv/mv instruction uses 'w' or 'x' access it's only used by
+      // the 16-bit form, 32-bit and 64-bit always use 'W' and 'X' when used in a 'rv/mv' group.
+      if (this.groupPattern === "rv" && groupIndex > 0 && access !== "R") {
+        access = access.toUpperCase();
       }
 
       if (Utils.isRegOp(op)) {
         this.reg = op;
         this.regType = Utils.regTypeOf(op);
         this.regIndexRel = regIndexRel;
+        this.setAccess(access);
 
         type.push("reg");
         continue;
@@ -302,6 +413,7 @@ class Operand extends base.Operand {
 
       if (Utils.isMemOp(op)) {
         this.mem = op;
+        this.setAccess(access);
 
         // Handle memory size.
         const mOff = /^m(?:off)?(\d+)/.exec(op);
@@ -333,12 +445,9 @@ class Operand extends base.Operand {
           FAIL(`Immediate size mismatch: ${this.imm} != ${size}`);
 
         // Sign-extend / zero-extend.
-        const sign = op.startsWith("i") ? "signed" : "unsigned";
-
-        if (!this.immSign)
-          this.immSign = sign;
-        else if (this.immType !== sign)
-          this.immSign = "any";
+        const sign = op.startsWith("imms") ? "signed" :
+                     op.startsWith("immu") ? "unsigned" : "any";
+        this.immSign = sign;
 
         if (op === "1") {
           this.immValue = 1;
@@ -373,9 +482,6 @@ class Operand extends base.Operand {
         this.rwxWidth = opSize;
       }
     }
-
-    if (!mAccess && this.isRegOrMem())
-      this.setAccess(defaultAccess);
   }
 
   get regSize() {
@@ -422,25 +528,30 @@ x86.Operand = Operand;
 
 // X86/X64 instruction.
 class Instruction extends base.Instruction {
-  constructor(db, data) {
+  constructor(db) {
     super(db);
 
-    const semicolon = data.op.indexOf(":");
+    this.opcode = dict({
+      byte : "",                  // Opcode byte (a single value specified as HEX string "00-FF").
+      ri   : false,               // Instruction opcode is combined with register, "XX+r" or "XX+i".
+      _67h : false,               // Opcode 67h prefix use.
+      mm   : "",                  // Opcode MM[MMM] part (map).
+      pp   : "",                  // Opcode PP part.
+      w    : "",                  // Opcode W field.
+      l    : "",                  // EVEX.LL (nothing, 128, 256, 512, LIG).
+      nd   : 0,                   // EVEX.ND (new dest) field (default is false, specified as ND=0 or ND=1).
+      nf   : 0,                   // EVEX.NF (no flags) field (default is false, specified as NF=0 or NF=1).
+      scc  : "",                  // EVEX.SCC field (4 bits - condition flags).
+      mod  : "",                  // MODRM.MOD part (2 bits) - either "xx", "11" or "!(11)".
+      modr : "",                  // MODRM.R part (3 bits) - either "rrr"
+      modrm: ""                   // MODRM.R/M part - either "bbb"
+    });
 
-    this.name = data.name;        // Instruction name.
-    this.privilege = "L3";        // Privilege level required to execute the instruction.
     this.prefix = "";             // Prefix - "", "3DNOW", "EVEX", "VEX", "XOP".
-    this.opcodeHex = "";          // A single opcode byte as hexadecimal string "00-FF".
+    this.privilege = "L3";        // Privilege level required to execute the instruction.
+    this.groupPattern = "";       // Group pattern in case the instruction was created from a group such as "ry", "rv", "xy", "xyz".
+    this.groupIndex = -1;         // Group index.
 
-    this.l = "";                  // Opcode L field (nothing, 128, 256, 512).
-    this.w = "";                  // Opcode W field.
-    this.pp = "";                 // Opcode PP part.
-    this.mm = "";                 // Opcode MM[MMM] part.
-    this._67h = false;            // Instruction requires a size override prefix.
-
-    this.modR = "";               // Instruction specific payload in ModRM byte (R part), specified as "/0..7".
-    this.modRM = "";              // Instruction specific payload in ModRM byte (RM part), specified as another opcode byte.
-    this.ri = false;              // Instruction opcode is combined with register, "XX+r" or "XX+i".
     this.rel = 0;                 // Displacement ("cb", "cw", and "cd" parts).
 
     this.fpuTop = 0;              // FPU top index manipulation [-1, 0, 1, 2].
@@ -464,10 +575,31 @@ class Instruction extends base.Instruction {
 
     this.consecutiveLead = 0;     // Consecutive register leading N other registers.
     this.prefixes = dict();       // Allowed prefixes.
+  }
 
-    this._assignOperands(data.operands);
-    this._assignEncoding(semicolon !== -1 ? data.op.substring(0, semicolon) : "NONE");
-    this._assignOpcode(semicolon !== -1 ? data.op.substring(semicolon + 1).trim() : data.op.trim());
+  _substituteOpcodePart(op, groupIndex) {
+    if (hasOwn(OpcodeGroupInfo, op)) {
+      return OpcodeGroupInfo[op].subst[groupIndex];
+    }
+    else {
+      return op;
+    }
+  }
+
+  assignData(data, groupIndex) {
+    this.name = data.name;
+    this.groupIndex = groupIndex;
+
+    if (data.tt)
+      this.tupleType = data.tt;
+
+    const em = data.op.match(/^\[\s*(\w+)\s*\](.*)$/);
+    const encodingField = em ? em[1] : "NONE";
+    const opcodeField = em ? em[2] : data.op;
+
+    this._assignOperands(data.operands, groupIndex);
+    this._assignEncoding(encodingField);
+    this._assignOpcode(opcodeField.trim(), groupIndex);
 
     for (let k in data) {
       if (k === "name" || k === "op" || k === "operands")
@@ -517,7 +649,7 @@ class Instruction extends base.Instruction {
 
       case "er":
         this.er = true;
-        this.sae = true; // fall: {er} implies {sae}.
+        this.sae = true; // {er} implies {sae}.
         return;
 
       case "sae":
@@ -534,14 +666,14 @@ class Instruction extends base.Instruction {
     }
   }
 
-  _assignOperands(s) {
+  _assignOperands(s, groupIndex) {
     if (!s) return;
 
     // First remove all flags specified as {...}. We put them into `flags`
     // map and mix with others. This seems to be the best we can do here.
     for (;;) {
-      var a = s.indexOf("{");
-      var b = s.indexOf("}");
+      let a = s.indexOf("{");
+      let b = s.indexOf("}");
 
       if (a === -1 || b === -1)
         break;
@@ -553,82 +685,115 @@ class Instruction extends base.Instruction {
 
     // Split into individual operands and push them to `operands`.
     const arr = Utils.splitOperands(s);
-    for (var i = 0; i < arr.length; i++) {
-      const operand = new Operand(arr[i].trim(), i === 0 ? "X" : "R");
-      if (operand.mem == "tmem")
+    for (let i = 0; i < arr.length; i++) {
+      const operand = new Operand();
+      operand.assignData(arr[i].trim(), i === 0 ? "X" : "R", groupIndex);
+
+      if (operand.mem == "tmem") {
         this.tsib = true;
+      }
+
+      if (operand.groupPattern && this.groupPattern !== operand.groupPattern) {
+        if (this.groupPattern) {
+          FAIL(`Instruction ${this.name}: Operand's group pattern mismatch '${this.groupPattern}' != '${operand.groupPattern}'`);
+        }
+        this.groupPattern = operand.groupPattern;
+      }
+
       this.operands.push(operand);
     }
   }
 
   _assignEncoding(s) {
-    // Parse 'TUPLE-TYPE' as defined by AVX-512.
-    var i = s.indexOf("-");
-    if (i !== -1) {
-      this.tupleType = s.substring(i + 1);
-      s = s.substring(0, i);
-    }
-
     this.encoding = s;
   }
 
-  _assignOpcode(s) {
+  _assignOpcode(s, groupIndex) {
     this.opcodeString = s;
 
-    var parts = s.split(" ");
-    var prefix, comp;
-    var i;
+    let parts = s.split(" ");
 
-    if (/^(EVEX|VEX|XOP)\./.test(s)) {
-      // Parse VEX and EVEX encoded instruction.
-      prefix = parts[0].split(".");
+    if (/^(VEX|EVEX|XOP)\./.test(s)) {
+      // Parse VEX/XOP and EVEX encoded instruction, which looks like "<PREFIX>.[APX-DATA].<LL>.<PP>.<MAP>.<W>"
+      let prefix = parts[0].split(".");
+      this.prefix = prefix[0];
 
-      for (i = 0; i < prefix.length; i++) {
-        comp = prefix[i];
+      for (let i = 1; i < prefix.length; i++) {
+        let comp = prefix[i];
 
-        // Ignore NP, it's just a placeholder.
-        if (comp == "NP")
+        if (/^(Pv|Wv|Wy)$/.test(comp)) {
+          comp = OpcodeGroupInfo[comp].subst[groupIndex];
+        }
+
+        // Process APX EVEX.ND field - ND=0 or ND=1.
+        if (/^ND=[01]$/.test(comp)) {
+          this.opcode.nd = comp === "ND=1";
           continue;
+        }
 
-        // Process "EVEX", "VEX", and "XOP" prefixes.
-        if (/^(?:EVEX|VEX|XOP)$/.test(comp)) { this.prefix = comp; continue; }
+        // Process APX EVEX.NF field - NF=0 or NF=1.
+        if (/^NF=[01]$/.test(comp)) {
+          this.opcode.nf = comp === "NF=1";
+          continue;
+        }
 
-        // Process `L` field.
-        if (/^LIG$/      .test(comp)) { this.l = "LIG"; continue; }
-        if (/^128|L0|LZ$/.test(comp)) { this.l = "128"; continue; }
-        if (/^256|L1$/   .test(comp)) { this.l = "256"; continue; }
-        if (/^512$/      .test(comp)) { this.l = "512"; continue; }
+        // Process APX EVEX.SCC field - SCC=0-F
+        if (/^SCC=[0-9A-F]$/.test(comp)) {
+          this.opcode.scc = comp.charAt(5);
+          continue;
+        }
 
-        // Process `PP` field - 66/F2/F3.
+        // Process `L/LL` field.
+        if (hasOwn(OpcodeLLMapping, comp)) {
+          this.opcode.l = OpcodeLLMapping[comp];
+          continue;
+        }
+
+        // Process `PP` field - 66/F2/F3/NP (NP means no PP field used)
         if (comp === "P0") { /* ignored, `P` is zero... */ continue; }
-        if (/^(?:66|F2|F3)$/.test(comp)) { this.pp = comp; continue; }
+        if (/^(?:66|F2|F3|NP)$/.test(comp)) { this.opcode.pp = comp; continue; }
 
-        // Process `MM` field - 0F/0F3A/0F38/MAP5/MAP6/M8/M9.
-        if (/^(?:0F|0F3A|0F38|MAP5|MAP6|M08|M09|M0A)$/.test(comp)) { this.mm = comp; continue; }
+        // Process `MM` field - 0F/0F3A/0F38/MAP4/MAP5/MAP6/M8/M9.
+        if (/^(?:0F|0F3A|0F38|MAP[4-9A])$/.test(comp)) { this.opcode.mm = comp; continue; }
 
         // Process `W` field.
-        if (/^WIG|W0|W1$/.test(comp)) { this.w = comp; continue; }
+        if (/^(WIG|W0|W1|)$/.test(comp)) { this.opcode.w = comp; continue; }
+
+        // TODO: Some new APX instructions don't have W specified (ENQCMD/ENQCMDS).
+        if (comp === "W?") { this.opcode.w = "W0"; continue; }
 
         // ERROR.
         this.report(`'${this.opcodeString}' Unhandled component: ${comp}`);
       }
 
-      for (i = 1; i < parts.length; i++) {
-        comp = parts[i];
+      for (let i = 1; i < parts.length; i++) {
+        let comp = parts[i];
 
         // Parse opcode.
         if (/^[0-9A-Fa-f]{2}$/.test(comp)) {
-          this.opcodeHex = comp.toUpperCase();
+          this.opcode.byte = comp.toUpperCase();
           continue;
         }
 
-        // Parse "/r" or "/0-7".
+        // Parse ModR/M field using "/r" or "/0-7" notation.
         if (/^\/[r0-7]$/.test(comp)) {
-          this.modR = comp.charAt(1);
+          this.opcode.mod = "xx";
+          this.opcode.modr = comp.charAt(1);
+          this.opcode.modm = "b";
           continue;
+        }
+
+        // Parse ModR/M field using "11:xxx:xxx" and "!(11):xxx:xxx" notation.
+        const m = comp.match(/^(11|!\(11\)):(rrr|[01]{3}):(bbb|[01]{3})$/);
+        if (m) {
+          this.opcode.mod = m[1];
+          this.opcode.modr = m[2] === "rrr" ? "r" : String(parseInt(m[2], 2));
+          this.opcode.modrm = m[3] === "bbb" ? "b" : String(parseInt(m[3], 2));
+         continue;
         }
 
         // Parse immediate byte, word, dword, or qword.
+        comp = this._substituteOpcodePart(comp, groupIndex);
         if (/^(?:ib|iw|id|iq|\/is4)$/.test(comp)) {
           this.imm += Utils.immSize(comp);
           continue;
@@ -639,33 +804,73 @@ class Instruction extends base.Instruction {
     }
     else {
       // Parse X86/X64 instruction (including legacy MMX/SSE/3DNOW instructions).
-      for (i = 0; i < parts.length; i++) {
-        comp = parts[i];
+      let rex_parsed = false;
 
-        // Parse REX.W prefix.
-        if (comp === "REX.W") {
-          this.w = "W1";
-          // Instructions that force REX.W prefix are always 64-bit instructions.
+      for (let i = 0; i < parts.length; i++) {
+        let comp = parts[i];
+
+        if (comp === "NFx" || comp === "NOREP" || comp === "NO67") {
+          // Ignored for now.
+          continue;
+        }
+
+        // Parse REX or REX2 prefix.
+        if (comp.startsWith("REX2.") || comp === "REX.W") {
+          if (rex_parsed) {
+            FAIL(`'${this.opcodeString}' Multiple REX prefixes are invalid`);
+          }
+
+          rex_parsed = true;
+
+          // Instructions that force REX.W prefix or use REX2 prefix are always 64-bit instructions.
           this.arch = "X64";
+
+          if (comp === "REX.W") {
+            this.opcode.w = "W1";
+          }
+          else {
+            this.prefix = "REX2";
+
+            // REX2 has always 3 components - "REX2.<MAP>.<W>".
+            const rex2 = comp.split(".");
+            if (rex2.length !== 3) {
+              FAIL(`'${this.opcodeString}' Invalid REX2 prefix - expected exactly 3 REX2 components`);
+            }
+
+            if (rex2[1] === "MAP0") {
+              // nothing.
+            }
+            else if (rex2[1] === "MAP1") {
+              this.opcode.mm = "0F";
+            }
+            else {
+              FAIL(`'${this.opcodeString}' Invalid REX2 prefix - REX2.MAP component could be either MAP0 or MAP1`);
+            }
+
+            this.opcode.w = rex2[2];
+          }
+
           continue;
         }
 
         // Parse `PP` prefixes.
-        if ((this.mm === "" && ((this.pp === ""   && /^(?:66|F2|F3)$/.test(comp)) ||
-                                (this.pp === "66" && /^(?:F2|F3)$/   .test(comp))))) {
-          this.pp += comp;
-          continue;
+        if (this.opcode.mm === "") {
+          if (this.opcode.pp === ""   && /^(?:66|F2|F3|NP)$/.test(comp) ||
+              this.opcode.pp === "66" && /^(?:F2|F3)$/.test(comp)) {
+            this.opcode.pp += comp;
+            continue;
+          }
         }
 
         // Parse `MM` prefixes.
-        if ((this.mm === ""   && comp === "0F") ||
-            (this.mm === "0F" && /^(?:01|3A|38)$/.test(comp))) {
-          this.mm += comp;
+        if ((this.opcode.mm === ""   && comp === "0F") ||
+            (this.opcode.mm === "0F" && /^(?:01|3A|38)$/.test(comp))) {
+          this.opcode.mm += comp;
           continue;
         }
 
         // Recognize "0F 0F /r XX" encoding.
-        if (this.mm === "0F" && comp === "0F") {
+        if (this.opcode.mm === "0F" && comp === "0F") {
           this.prefix = "3DNOW";
           continue;
         }
@@ -674,7 +879,7 @@ class Instruction extends base.Instruction {
         if (/^[0-9A-F]{2}(?:\+[ri])?$/.test(comp)) {
           // Parse "+r" or "+i" suffix.
           if (comp.length > 2) {
-            this.ri = true;
+            this.opcode.ri = true;
             comp = comp.substring(0, 2);
           }
 
@@ -683,54 +888,69 @@ class Instruction extends base.Instruction {
           // instruction tables to allow storing this prefix together with other "MM"
           // prefixes, currently the unused indexes are used, but if X86 moves forward
           // and starts using these we can simply use more bits in the opcode DWORD.
-          if (!this.pp && this.opcodeHex === "9B") {
-            this.pp = this.opcodeHex;
-            this.opcodeHex = comp;
+          if (!this.opcode.pp && this.opcode.byte === "9B") {
+            this.opcode.pp = this.opcode.byte;
+            this.opcode.byte = comp;
             continue;
           }
 
-          if (!this.mm && (/^(?:D8|D9|DA|DB|DC|DD|DE|DF)$/.test(this.opcodeHex))) {
-            this.mm = this.opcodeHex;
-            this.opcodeHex = comp;
+          if (!this.opcode.mm && (/^(?:D8|D9|DA|DB|DC|DD|DE|DF)$/.test(this.opcode.byte))) {
+            this.opcode.mm = this.opcode.byte;
+            this.opcode.byte = comp;
             continue;
           }
 
-          if (this.opcodeHex) {
-            if (this.opcodeHex === "67") {
-              this._67h = true;
+          if (this.opcode.byte) {
+            if (this.opcode.byte === "67") {
+              this.opcode._67h = true;
             }
             else {
-              if (!this.modR && !this.modRM) {
+              if (!this.opcode.modr && !this.opcode.modrm) {
                 const value = parseInt(comp, 16);
                 if ((value & 0xC0) == 0xC0) {
-                  this.modR = String((value >> 3) & 0x7);
-                  this.modRM = String((value >> 0) & 0x7);
+                  this.opcode.mod = "11";
+                  this.opcode.modr = String((value >> 3) & 0x7);
+                  this.opcode.modrm = String((value >> 0) & 0x7);
                 }
                 else {
                   this.report(`'${this.opcodeString}' Unsupported secondary opcode (MOD/RM) '${comp}' value`);
                 }
               }
               else {
-                this.report(`'${this.opcodeString}' Multiple opcodes, have ${this.opcodeHex}, found ${comp}`);
+                this.report(`'${this.opcodeString}' Multiple opcodes, have ${this.opcode.byte}, found ${comp}`);
               }
             }
           }
 
-          this.opcodeHex = comp;
+          this.opcode.byte = comp;
           continue;
         }
 
-        // Parse "/r" or "/0-7".
-        if (/^\/[r0-7]$/.test(comp) && !this.modR) {
-          this.modR = comp.charAt(1);
+        // Parse ModR/M field using "/r" or "/0-7" notation.
+        if (/^\/[r0-7]$/.test(comp) && !this.opcode.modr) {
+          this.opcode.mod = "xx";
+          this.opcode.modr = comp.charAt(1);
+          this.opcode.modm = "b";
+          continue;
+        }
+
+        // Parse ModR/M field using "11:xxx:xxx" and "!(11):xxx:xxx" notation.
+        const m = comp.match(/^(11|!\(11\)):(rrr|[01]{3}):(bbb|[01]{3})$/);
+        if (m) {
+          this.opcode.mod = m[1];
+          this.opcode.modr = m[2] === "rrr" ? "r" : String(parseInt(m[2], 2));
+          this.opcode.modrm = m[3] === "bbb" ? "b" : String(parseInt(m[3], 2));
           continue;
         }
 
         // Parse immediate byte, word, dword, fword, or qword.
-        if (/^(?:ib|iw|id|iq|if)$/.test(comp)) {
+        if (/^(?:ib|iw|id|iq|iv|if)$/.test(comp)) {
+          if (comp === "iv")
+            comp = OpcodeGroupInfo[comp].subst[groupIndex];
           this.imm += Utils.immSize(comp);
           continue;
         }
+
         if (comp === "moff") {
           this.moff = true;
           continue;
@@ -750,25 +970,25 @@ class Instruction extends base.Instruction {
     }
 
     // HACK: Fix instructions having opcode "01".
-    if (this.opcodeHex === "" && this.mm.indexOf("0F01") === this.mm.length - 4) {
-      this.opcodeHex = "01";
-      this.mm = this.mm.substring(0, this.mm.length - 2);
+    if (this.opcode.byte === "" && this.opcode.mm.indexOf("0F01") === this.opcode.mm.length - 4) {
+      this.opcode.byte = "01";
+      this.opcode.mm = this.opcode.mm.substring(0, this.opcode.mm.length - 2);
     }
 
-    if (this.opcodeHex)
-      this.opcodeValue = parseInt(this.opcodeHex, 16);
+    if (this.opcode.byte)
+      this.opcodeValue = parseInt(this.opcode.byte, 16);
 
-    if (!this.opcodeHex)
+    if (!this.opcode.byte)
       this.report(`Couldn't parse instruction's opcode '${this.opcodeString}'`);
   }
 
   _updateOperandsInfo() {
     super._updateOperandsInfo();
 
-    var consecutiveLead = null;
-    var consecutiveLastIndex = 0;
+    let consecutiveLead = null;
+    let consecutiveLastIndex = 0;
 
-    for (var i = 0; i < this.operands.length; i++) {
+    for (let i = 0; i < this.operands.length; i++) {
       const op = this.operands[i];
 
       // Instructions that use 64-bit GP registers are always 64-bit instructions.
@@ -815,10 +1035,20 @@ class Instruction extends base.Instruction {
   // reported easily, however, if the mistake is just an invalid opcode or
   // something else it's impossible to detect.
   _postProcess() {
+    if (this.groupPattern) {
+      const archInfo = ArchGroupInfo[this.groupPattern];
+      if (this.arch === "ANY" && archInfo && this.arch !== archInfo[this.groupIndex]) {
+        // TODO: Never triggered, which means it should be removed.
+        this.arch = archInfo[this.groupIndex];
+      }
+    }
+    else {
+      this.groupIndex = -1;
+    }
+
     if (this.privilege === "L0")
       this.category.SYSTEM = true;
 
-    let isValid = true;
     let immCount = this.immCount;
 
     // Verify that the immediate operand/operands are specified in instruction
@@ -831,9 +1061,8 @@ class Instruction extends base.Instruction {
       }
       else {
         // Every immediate should have its imm byte ("ib", "iw", "id", or "iq") in the opcode data.
-        let m = this.opcodeString.match(/(?:^|\s+)(ib|iw|id|if|iq|\/is4)/g);
+        let m = this.opcodeString.match(/(?:^|\s+)(ib|iw|id|iq|iv|if|\/is4)/g);
         if (!m || m.length !== immCount) {
-          isValid = false;
           this.report(`Immediate(s) [${immCount}] not found in opcode: ${this.opcodeString}`);
         }
       }
@@ -845,7 +1074,7 @@ class Instruction extends base.Instruction {
   isEVEX() { return this.prefix === "EVEX" }
 
   getWValue() {
-    switch (this.w) {
+    switch (this.opcode.w) {
       case "W0": return 0;
       case "W1": return 1;
     }
@@ -854,33 +1083,33 @@ class Instruction extends base.Instruction {
 
   // Get signature of the instruction as "ARCH PREFIX ENCODING[:operands]" form.
   get signature() {
-    var operands = this.operands;
-    var sign = this.arch;
+    let operands = this.operands;
+    let sign = this.arch;
 
     if (this.prefix) {
       sign += " " + this.prefix;
       if (this.prefix !== "3DNOW") {
-        if (this.l === "L1")
+        if (this.opcode.l === "L1")
           sign += ".256";
-        else if (this.l === "256" || this.l === "512")
-          sign += `.${this.l}`;
+        else if (this.opcode.l === "256" || this.opcode.l === "512")
+          sign += `.${this.opcode.l}`;
         else
           sign += ".128";
 
-        if (this.w === "W1")
+        if (this.opcode.w === "W1")
           sign += ".W";
       }
     }
-    else if (this.w === "W1") {
+    else if (this.opcode.w === "W1") {
       sign += " REX.W";
     }
 
     sign += " " + this.encoding;
 
-    for (var i = 0; i < operands.length; i++) {
+    for (let i = 0; i < operands.length; i++) {
       sign += (i === 0) ? ":" : ",";
 
-      var operand = operands[i];
+      let operand = operands[i];
       if (operand.implicit)
         sign += `[${operand.reg}]`;
       else
@@ -891,24 +1120,24 @@ class Instruction extends base.Instruction {
   }
 
   get immCount() {
-    var ops = this.operands;
-    var n = 0;
-    for (var i = 0; i < ops.length; i++)
+    let ops = this.operands;
+    let n = 0;
+    for (let i = 0; i < ops.length; i++)
       if (ops[i].isImm())
         n++;
     return n;
   }
 
   get modRValue() {
-    if (/^[0-7]$/.test(this.modR))
-      return parseInt(this.modR, 10);
+    if (/^[0-7]$/.test(this.opcode.modr))
+      return parseInt(this.opcode.modr, 10);
     else
       return 0;
   }
 
   get modRMValue() {
-    if (/^[0-7]$/.test(this.modRM))
-      return parseInt(this.modRM, 10);
+    if (/^[0-7]$/.test(this.opcode.modrm))
+      return parseInt(this.opcode.modrm, 10);
     else
       return 0;
   }
@@ -918,11 +1147,23 @@ x86.Instruction = Instruction;
 // asmdb.x86.ISA
 // =============
 
+const ArchKeys = MapUtils.mapFromArray(["any", "x86", "x64", "apx", "___"]);
+
+function findArch(inst) {
+  for (let a in ArchKeys) {
+    if (typeof inst[a] === "string") {
+      return a;
+    }
+  }
+
+  FAIL(`Instruction signature not found in record: ${JSON.stringify(inst)}`);
+}
+
 function mergeGroupData(data, group) {
   for (let k in group) {
     switch (k) {
       case "group":
-      case "data":
+      case "instructions":
         break;
 
       case "ext":
@@ -947,19 +1188,34 @@ class ISA extends base.ISA {
 
   _addInstructions(groups) {
     for (let group of groups) {
-      for (let inst of group.data) {
-        const sgn = Utils.splitInstructionSignature(inst.inst);
-        const data = MapUtils.cloneExcept(inst, { "inst": true });
+      for (let record of group.instructions) {
+        const arch = findArch(record);
+
+        // TODO: Ignore records having this (only used for testing purposes).
+        if (arch === "___")
+          continue;
+
+        const sgn = Utils.splitInstructionSignature(record[arch]);
+        const data = MapUtils.cloneExcept(record, arch);
 
         mergeGroupData(data, group)
 
-        for (var j = 0; j < sgn.names.length; j++) {
+        for (let j = 0; j < sgn.names.length; j++) {
           data.name = sgn.names[j];
           data.prefixes = sgn.prefixes;
           data.operands = sgn.operands;
           if (j > 0)
             data.aliasOf = sgn.names[0];
-          this._addInstruction(new Instruction(this, data));
+
+          let groupIndex = 0;
+          let instruction = null;
+          do {
+            instruction = new Instruction(this);
+            instruction.arch = arch.toUpperCase();
+            instruction.assignData(data, groupIndex);
+
+            this._addInstruction(instruction);
+          } while (instruction.groupPattern && ++groupIndex < OperandGroupInfo[instruction.groupPattern].subst.length);
         }
       }
     }
@@ -975,19 +1231,19 @@ x86.ISA = ISA;
 class X86DataCheck {
   static checkVexEvex(db) {
     const map = db.instructionMap;
-    for (var name in map) {
-      const insts = map[name];
-      for (var i = 0; i < insts.length; i++) {
-        const instA = insts[i];
-        for (var j = i + 1; j < insts.length; j++) {
-          const instB = insts[j];
+    for (let name in map) {
+      const instructions = map[name];
+      for (let i = 0; i < instructions.length; i++) {
+        const instA = instructions[i];
+        for (let j = i + 1; j < instructions.length; j++) {
+          const instB = instructions[j];
           if (instA.operands.join("_") === instB.operands.join("_")) {
             const vex  = instA.prefix === "VEX"  ? instA : instB.prefix === "VEX"  ? instB : null;
             const evex = instA.prefix === "EVEX" ? instA : instB.prefix === "EVEX" ? instB : null;
 
-            if (vex && evex && vex.opcodeHex === evex.opcodeHex) {
+            if (vex && evex && vex.opcode.byte === evex.opcode.byte) {
               // NOTE: There are some false positives, they will be printed as well.
-              var ok = vex.w === evex.w && vex.l === evex.l;
+              let ok = vex.opcode.w === evex.opcode.w && vex.opcode.l === evex.opcode.l;
 
               if (!ok) {
                 console.log(`Instruction ${name} differs:`);

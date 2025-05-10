@@ -1,7 +1,7 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
 // See asmjit.h or LICENSE.md for license and copyright information
-// SPDX-License-Identifier: (Zlib or Unlicense)
+// SPDX-License-Identifier: Zlib
 
 (function($scope, $as) {
 "use strict";
@@ -296,7 +296,8 @@ function splitOpcodeFields(s) {
 // ARM operand.
 class Operand extends base.Operand {
   constructor(def) {
-    super(def);
+    super();
+    this.data = def;
 
     // Register.
     this.sp = "";   // GP register stack access: ["", "WSP" or "SP"].
@@ -895,9 +896,9 @@ class ISA extends base.ISA {
 
   _addInstructions(groups) {
     for (let group of groups) {
-      for (let inst of group.data) {
-        const sgn = Utils.splitInstructionSignature(inst.inst);
-        const data = MapUtils.cloneExcept(inst, { "inst": true });
+      for (let instructions of group.data) {
+        const sgn = Utils.splitInstructionSignature(instructions.inst);
+        const data = MapUtils.cloneExcept(instructions, { "inst": true });
 
         mergeGroupData(data, group)
 

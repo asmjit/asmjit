@@ -210,42 +210,9 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "None\0"
     "MT\0"
     "NX\0"
-    "3DNOW\0"
-    "3DNOW2\0"
     "ADX\0"
-    "AESNI\0"
     "ALTMOVCR8\0"
-    "AMX_BF16\0"
-    "AMX_COMPLEX\0"
-    "AMX_FP16\0"
-    "AMX_INT8\0"
-    "AMX_TILE\0"
     "APX_F\0"
-    "AVX\0"
-    "AVX2\0"
-    "AVX512_4FMAPS\0"
-    "AVX512_4VNNIW\0"
-    "AVX512_BF16\0"
-    "AVX512_BITALG\0"
-    "AVX512_BW\0"
-    "AVX512_CD\0"
-    "AVX512_DQ\0"
-    "AVX512_ER\0"
-    "AVX512_F\0"
-    "AVX512_FP16\0"
-    "AVX512_IFMA\0"
-    "AVX512_PF\0"
-    "AVX512_VBMI\0"
-    "AVX512_VBMI2\0"
-    "AVX512_VL\0"
-    "AVX512_VNNI\0"
-    "AVX512_VP2INTERSECT\0"
-    "AVX512_VPOPCNTDQ\0"
-    "AVX_IFMA\0"
-    "AVX_NE_CONVERT\0"
-    "AVX_VNNI\0"
-    "AVX_VNNI_INT16\0"
-    "AVX_VNNI_INT8\0"
     "BMI\0"
     "BMI2\0"
     "CET_IBT\0"
@@ -263,10 +230,6 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "ENCLV\0"
     "ENQCMD\0"
     "ERMS\0"
-    "F16C\0"
-    "FMA\0"
-    "FMA4\0"
-    "FPU\0"
     "FSGSBASE\0"
     "FSRM\0"
     "FSRC\0"
@@ -274,9 +237,6 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "FXSR\0"
     "FXSROPT\0"
     "FZRM\0"
-    "GEODE\0"
-    "GFNI\0"
-    "HLE\0"
     "HRESET\0"
     "I486\0"
     "INVLPGB\0"
@@ -285,20 +245,19 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "LWP\0"
     "LZCNT\0"
     "MCOMMIT\0"
-    "MMX\0"
-    "MMX2\0"
     "MONITOR\0"
     "MONITORX\0"
     "MOVBE\0"
     "MOVDIR64B\0"
     "MOVDIRI\0"
+    "MOVRS\0"
     "MPX\0"
     "MSR\0"
     "MSRLIST\0"
+    "MSR_IMM\0"
     "MSSE\0"
     "OSXSAVE\0"
     "OSPKE\0"
-    "PCLMULQDQ\0"
     "PCONFIG\0"
     "POPCNT\0"
     "PREFETCHI\0"
@@ -319,52 +278,99 @@ Error FormatterInternal::formatFeature(String& sb, uint32_t featureId) noexcept 
     "SEV\0"
     "SEV_ES\0"
     "SEV_SNP\0"
-    "SHA\0"
-    "SHA512\0"
     "SKINIT\0"
-    "SM3\0"
-    "SM4\0"
     "SMAP\0"
     "SME\0"
     "SMEP\0"
     "SMX\0"
-    "SSE\0"
-    "SSE2\0"
-    "SSE3\0"
-    "SSE4_1\0"
-    "SSE4_2\0"
-    "SSE4A\0"
-    "SSSE3\0"
     "SVM\0"
     "TBM\0"
     "TSE\0"
-    "TSX\0"
     "TSXLDTRK\0"
     "UINTR\0"
-    "VAES\0"
     "VMX\0"
-    "VPCLMULQDQ\0"
     "WAITPKG\0"
     "WBNOINVD\0"
     "WRMSRNS\0"
-    "XOP\0"
     "XSAVE\0"
     "XSAVEC\0"
     "XSAVEOPT\0"
     "XSAVES\0"
+    "FPU\0"
+    "MMX\0"
+    "MMX2\0"
+    "3DNOW\0"
+    "3DNOW2\0"
+    "GEODE\0"
+    "SSE\0"
+    "SSE2\0"
+    "SSE3\0"
+    "SSSE3\0"
+    "SSE4_1\0"
+    "SSE4_2\0"
+    "SSE4A\0"
+    "PCLMULQDQ\0"
+    "AVX\0"
+    "AVX2\0"
+    "AVX_IFMA\0"
+    "AVX_NE_CONVERT\0"
+    "AVX_VNNI\0"
+    "AVX_VNNI_INT16\0"
+    "AVX_VNNI_INT8\0"
+    "F16C\0"
+    "FMA\0"
+    "FMA4\0"
+    "XOP\0"
+    "AVX512_BF16\0"
+    "AVX512_BITALG\0"
+    "AVX512_BW\0"
+    "AVX512_CD\0"
+    "AVX512_DQ\0"
+    "AVX512_F\0"
+    "AVX512_FP16\0"
+    "AVX512_IFMA\0"
+    "AVX512_VBMI\0"
+    "AVX512_VBMI2\0"
+    "AVX512_VL\0"
+    "AVX512_VNNI\0"
+    "AVX512_VP2INTERSECT\0"
+    "AVX512_VPOPCNTDQ\0"
+    "AESNI\0"
+    "GFNI\0"
+    "SHA\0"
+    "SHA512\0"
+    "SM3\0"
+    "SM4\0"
+    "VAES\0"
+    "VPCLMULQDQ\0"
+    "KL\0"
+    "AESKLE\0"
+    "AESKLEWIDE_KL\0"
+    "AVX10_1\0"
+    "AVX10_2\0"
+    "AMX_AVX512\0"
+    "AMX_BF16\0"
+    "AMX_COMPLEX\0"
+    "AMX_FP16\0"
+    "AMX_FP8\0"
+    "AMX_INT8\0"
+    "AMX_MOVRS\0"
+    "AMX_TF32\0"
+    "AMX_TILE\0"
+    "AMX_TRANSPOSE\0"
     "<Unknown>\0";
 
   static const uint16_t sFeatureIndex[] = {
-    0, 5, 8, 11, 17, 24, 28, 34, 44, 53, 65, 74, 83, 92, 98, 102, 107, 121, 135,
-    147, 161, 171, 181, 191, 201, 210, 222, 234, 244, 256, 269, 279, 291, 311,
-    328, 337, 352, 361, 376, 390, 394, 399, 407, 414, 422, 431, 439, 450, 455,
-    462, 467, 477, 488, 498, 504, 511, 516, 521, 525, 530, 534, 543, 548, 553,
-    558, 563, 571, 576, 582, 587, 591, 598, 603, 611, 620, 624, 628, 634, 642,
-    646, 651, 659, 668, 674, 684, 692, 696, 700, 708, 713, 721, 727, 737, 745,
-    752, 762, 772, 784, 792, 800, 809, 815, 821, 828, 835, 841, 848, 852, 857,
-    867, 871, 878, 886, 890, 897, 904, 908, 912, 917, 921, 926, 930, 934, 939,
-    944, 951, 958, 964, 970, 974, 978, 982, 986, 995, 1001, 1006, 1010, 1021,
-    1029, 1038, 1046, 1050, 1056, 1063, 1072, 1079
+    0, 5, 8, 11, 15, 25, 31, 35, 40, 48, 55, 63, 72, 80, 91, 96, 103, 108, 118,
+    129, 139, 145, 152, 157, 166, 171, 176, 181, 186, 194, 199, 206, 211, 219,
+    228, 232, 236, 242, 250, 258, 267, 273, 283, 291, 297, 301, 305, 313, 321,
+    326, 334, 340, 348, 355, 365, 375, 387, 395, 403, 412, 418, 424, 431, 438,
+    444, 451, 455, 460, 470, 474, 481, 489, 496, 501, 505, 510, 514, 518, 522,
+    526, 535, 541, 545, 553, 562, 570, 576, 583, 592, 599, 603, 607, 612, 618,
+    625, 631, 635, 640, 645, 651, 658, 665, 671, 681, 685, 690, 699, 714, 723,
+    738, 752, 757, 761, 766, 770, 782, 796, 806, 816, 826, 835, 847, 859, 871,
+    884, 894, 906, 926, 943, 949, 954, 958, 965, 969, 973, 978, 989, 992, 999,
+    1013, 1021, 1029, 1040, 1049, 1061, 1070, 1078, 1087, 1097, 1106, 1115, 1129
   };
   // @EnumStringEnd@
 
@@ -929,7 +935,12 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
       }
     }
 
-    ASMJIT_PROPAGATE(InstInternal::instIdToString(instId, sb));
+    InstStringifyOptions stringifyOptions =
+      Support::test(formatFlags, FormatFlags::kShowAliases)
+        ? InstStringifyOptions::kAliases
+        : InstStringifyOptions::kNone;
+
+    ASMJIT_PROPAGATE(InstInternal::instIdToString(instId, stringifyOptions, sb));
   }
   else {
     ASMJIT_PROPAGATE(sb.appendFormat("[InstId=#%u]", unsigned(instId)));

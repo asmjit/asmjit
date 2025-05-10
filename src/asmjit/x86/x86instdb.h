@@ -319,8 +319,6 @@ enum class Avx512Flags : uint32_t {
   kB32 = 0x00000020u,
   //! Supports 64-bit broadcast 'b64'.
   kB64 = 0x00000040u,
-  //! Operates on a vector of consecutive registers (AVX512_4FMAPS and AVX512_4VNNIW).
-  kT4X = 0x00000080u,
 
   //! Implicit zeroing if {k} masking is used. Using {z} is not valid in this case as it's implicit.
   kImplicitZ = 0x00000100,
