@@ -11,6 +11,10 @@
   #include "../x86/x86instapi_p.h"
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  #include "../arm/a32instapi_p.h"
+#endif
+
 #if !defined(ASMJIT_NO_AARCH64)
   #include "../arm/a64instapi_p.h"
 #endif
@@ -34,6 +38,11 @@ Error InstAPI::instIdToString(Arch arch, InstId instId, InstStringifyOptions opt
   }
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::isFamilyAArch32(arch))
+    return a32::InstInternal::instIdToString(instId, options, output);
+#endif
+
   return DebugUtils::errored(kErrorInvalidArch);
 }
 
@@ -48,6 +57,11 @@ InstId InstAPI::stringToInstId(Arch arch, const char* s, size_t len) noexcept {
   if (Environment::isFamilyAArch64(arch)) {
     return a64::InstInternal::stringToInstId(s, len);
   }
+#endif
+
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::isFamilyAArch32(arch))
+    return a32::InstInternal::stringToInstId(s, len);
 #endif
 
   return 0;
@@ -76,6 +90,11 @@ Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operand
   }
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::isFamilyAArch32(arch))
+    return a32::InstInternal::validate(inst, operands, opCount, validationFlags);
+#endif
+
   return DebugUtils::errored(kErrorInvalidArch);
 }
 #endif // !ASMJIT_NO_VALIDATION
@@ -101,6 +120,11 @@ Error InstAPI::queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* oper
   }
 #endif
 
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::isFamilyAArch32(arch))
+    return a32::InstInternal::queryRWInfo(inst, operands, opCount, out);
+#endif
+
   return DebugUtils::errored(kErrorInvalidArch);
 }
 #endif // !ASMJIT_NO_INTROSPECTION
@@ -120,6 +144,11 @@ Error InstAPI::queryFeatures(Arch arch, const BaseInst& inst, const Operand_* op
   if (Environment::isFamilyAArch64(arch)) {
     return a64::InstInternal::queryFeatures(inst, operands, opCount, out);
   }
+#endif
+
+#if !defined(ASMJIT_NO_AARCH32)
+  if (Environment::isFamilyAArch32(arch))
+    return a32::InstInternal::queryFeatures(inst, operands, opCount, out);
 #endif
 
   return DebugUtils::errored(kErrorInvalidArch);

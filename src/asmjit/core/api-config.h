@@ -81,6 +81,9 @@ namespace asmjit {
 //! Disables X86/X64 backends.
 #define ASMJIT_NO_X86
 
+//! Disables AArch32 backends (both ARM and Thumb).
+#define ASMJIT_NO_AARCH32
+
 //! Disables AArch64 backend.
 #define ASMJIT_NO_AARCH64
 
@@ -252,6 +255,10 @@ namespace asmjit {
 #if defined(ASMJIT_NO_FOREIGN)
   #if !ASMJIT_ARCH_X86 && !defined(ASMJIT_NO_X86)
     #define ASMJIT_NO_X86
+  #endif
+
+  #if ASMJIT_ARCH_ARM != 32 && !defined(ASMJIT_NO_AARCH32)
+    #define ASMJIT_NO_AARCH32
   #endif
 
   #if ASMJIT_ARCH_ARM != 64 && !defined(ASMJIT_NO_AARCH64)
