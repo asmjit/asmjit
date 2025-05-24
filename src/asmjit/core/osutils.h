@@ -35,7 +35,7 @@ public:
   Handle _handle;
 #pragma pack(pop)
 #elif !defined(__EMSCRIPTEN__)
-  typedef pthread_mutex_t Handle;
+  using Handle = pthread_mutex_t;
   Handle _handle;
 #endif
 

@@ -24,6 +24,8 @@
 #ifndef ASMJIT_ASMJIT_H_INCLUDED
 #define ASMJIT_ASMJIT_H_INCLUDED
 
+#pragma message("asmjit/asmjit.h is deprecated! Please use asmjit/core.h, asmjit/x86.h, or asmjit/a64.h")
+
 #include "./core.h"
 
 #ifndef ASMJIT_NO_X86

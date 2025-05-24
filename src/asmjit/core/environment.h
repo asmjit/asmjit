@@ -225,13 +225,13 @@ public:
   //! \{
 
   //! Creates a default initialized environment (all values either unknown or set to safe defaults).
-  ASMJIT_INLINE_NODEBUG constexpr Environment() noexcept = default;
+  ASMJIT_INLINE_CONSTEXPR Environment() noexcept = default;
   //! Creates a copy of `other` instance.
-  ASMJIT_INLINE_NODEBUG constexpr Environment(const Environment& other) noexcept = default;
+  ASMJIT_INLINE_CONSTEXPR Environment(const Environment& other) noexcept = default;
 
   //! Creates \ref Environment initialized to `arch`, `subArch`, `vendor`, `platform`, `platformABI`, `objectFormat`,
   //! and `floatABI`.
-  ASMJIT_INLINE_NODEBUG constexpr explicit Environment(
+  ASMJIT_INLINE_CONSTEXPR explicit Environment(
     Arch arch,
     SubArch subArch = SubArch::kUnknown,
     Vendor vendor = Vendor::kUnknown,
@@ -251,7 +251,7 @@ public:
   //!
   //! The returned environment should precisely match the target host architecture, sub-architecture, platform,
   //! and ABI.
-  static ASMJIT_INLINE_NODEBUG Environment host() noexcept {
+  static ASMJIT_INLINE_CONSTEXPR Environment host() noexcept {
     return Environment(Arch::kHost, SubArch::kHost, Vendor::kHost, Platform::kHost, PlatformABI::kHost, ObjectFormat::kUnknown, FloatABI::kHost);
   }
 
@@ -262,7 +262,10 @@ public:
 
   ASMJIT_INLINE_NODEBUG Environment& operator=(const Environment& other) noexcept = default;
 
-  ASMJIT_INLINE_NODEBUG bool operator==(const Environment& other) const noexcept { return  equals(other); }
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool operator==(const Environment& other) const noexcept { return equals(other); }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool operator!=(const Environment& other) const noexcept { return !equals(other); }
 
   //! \}
@@ -273,6 +276,7 @@ public:
   //! Tests whether the environment is not set up.
   //!
   //! Returns true if all members are zero, and thus unknown.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool empty() const noexcept {
     // Unfortunately compilers won't optimize fields are checked one by one...
     return _packed() == 0;
@@ -280,10 +284,12 @@ public:
 
   //! Tests whether the environment is initialized, which means it must have
   //! a valid architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isInitialized() const noexcept {
     return _arch != Arch::kUnknown;
   }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint64_t _packed() const noexcept {
     uint64_t x;
     memcpy(&x, this, 8);
@@ -294,21 +300,35 @@ public:
   ASMJIT_INLINE_NODEBUG void reset() noexcept { *this = Environment{}; }
 
   //! Tests whether this environment is equal to `other`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool equals(const Environment& other) const noexcept { return _packed() == other._packed(); }
 
   //! Returns the architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Arch arch() const noexcept { return _arch; }
+
   //! Returns the sub-architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG SubArch subArch() const noexcept { return _subArch; }
+
   //! Returns vendor.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Vendor vendor() const noexcept { return _vendor; }
+
   //! Returns target's platform or operating system.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Platform platform() const noexcept { return _platform; }
+
   //! Returns target's ABI.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG PlatformABI platformABI() const noexcept { return _platformABI; }
+
   //! Returns target's object format.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG ObjectFormat objectFormat() const noexcept { return _objectFormat; }
+
   //! Returns floating point ABI.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FloatABI floatABI() const noexcept { return _floatABI; }
 
   //! Initializes \ref Environment to `arch`, `subArch`, `vendor`, `platform`, `platformABI`, `objectFormat`,
@@ -333,57 +353,99 @@ public:
   }
 
   //! Tests whether this environment describes a 32-bit X86.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchX86() const noexcept { return _arch == Arch::kX86; }
+
   //! Tests whether this environment describes a 64-bit X86.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchX64() const noexcept { return _arch == Arch::kX64; }
+
   //! Tests whether this environment describes a 32-bit ARM.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchARM() const noexcept { return isArchARM(_arch); }
+
   //! Tests whether this environment describes a 32-bit ARM in THUMB mode.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchThumb() const noexcept { return isArchThumb(_arch); }
+
   //! Tests whether this environment describes a 64-bit X86.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchAArch64() const noexcept { return isArchAArch64(_arch); }
+
   //! Tests whether this environment describes a 32-bit MIPS.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchMIPS32() const noexcept { return isArchMIPS32(_arch); }
+
   //! Tests whether this environment describes a 64-bit MIPS.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchMIPS64() const noexcept { return isArchMIPS64(_arch); }
+
   //! Tests whether this environment describes a 32-bit RISC-V.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchRISCV32() const noexcept { return _arch == Arch::kRISCV32; }
+
   //! Tests whether this environment describes a 64-bit RISC-V.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isArchRISCV64() const noexcept { return _arch == Arch::kRISCV64; }
 
   //! Tests whether the architecture is 32-bit.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool is32Bit() const noexcept { return is32Bit(_arch); }
+
   //! Tests whether the architecture is 64-bit.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool is64Bit() const noexcept { return is64Bit(_arch); }
 
   //! Tests whether the architecture is little endian.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isLittleEndian() const noexcept { return isLittleEndian(_arch); }
+
   //! Tests whether the architecture is big endian.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isBigEndian() const noexcept { return isBigEndian(_arch); }
 
   //! Tests whether this architecture is of X86 family.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFamilyX86() const noexcept { return isFamilyX86(_arch); }
+
   //! Tests whether this architecture family is ARM, THUMB, or AArch64.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFamilyARM() const noexcept { return isFamilyARM(_arch); }
+
   //! Tests whether this architecture family is AArch32 (ARM or THUMB).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFamilyAArch32() const noexcept { return isFamilyAArch32(_arch); }
+
   //! Tests whether this architecture family is AArch64.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFamilyAArch64() const noexcept { return isFamilyAArch64(_arch); }
+
   //! Tests whether this architecture family is MISP or MIPS64.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFamilyMIPS() const noexcept { return isFamilyMIPS(_arch); }
+
   //! Tests whether this architecture family is RISC-V (both 32-bit and 64-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFamilyRISCV() const noexcept { return isFamilyRISCV(_arch); }
 
   //! Tests whether the environment platform is Windows.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isPlatformWindows() const noexcept { return _platform == Platform::kWindows; }
+
   //! Tests whether the environment platform is Linux.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isPlatformLinux() const noexcept { return _platform == Platform::kLinux; }
+
   //! Tests whether the environment platform is Hurd.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isPlatformHurd() const noexcept { return _platform == Platform::kHurd; }
+
   //! Tests whether the environment platform is Haiku.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isPlatformHaiku() const noexcept { return _platform == Platform::kHaiku; }
 
   //! Tests whether the environment platform is any BSD.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isPlatformBSD() const noexcept {
     return _platform == Platform::kFreeBSD ||
            _platform == Platform::kOpenBSD ||
@@ -392,6 +454,7 @@ public:
   }
 
   //! Tests whether the environment platform is any Apple platform (OSX, iOS, TVOS, WatchOS).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isPlatformApple() const noexcept {
     return _platform == Platform::kOSX ||
            _platform == Platform::kIOS ||
@@ -400,16 +463,23 @@ public:
   }
 
   //! Tests whether the ABI is MSVC.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isMSVC() const noexcept { return _platformABI == PlatformABI::kMSVC; }
+
   //! Tests whether the ABI is GNU.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isGNU() const noexcept { return _platformABI == PlatformABI::kGNU; }
+
   //! Tests whether the ABI is GNU.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isDarwin() const noexcept { return _platformABI == PlatformABI::kDarwin; }
 
   //! Returns a calculated stack alignment for this environment.
+  [[nodiscard]]
   ASMJIT_API uint32_t stackAlignment() const noexcept;
 
   //! Returns a native register size of this architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t registerSize() const noexcept { return registerSizeFromArch(_arch); }
 
   //! Sets the architecture to `arch`.
@@ -433,90 +503,108 @@ public:
   //! \name Static Utilities
   //! \{
 
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isDefinedArch(Arch arch) noexcept {
     return uint32_t(arch) <= uint32_t(Arch::kMaxValue);
   }
 
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isValidArch(Arch arch) noexcept {
     return arch != Arch::kUnknown && uint32_t(arch) <= uint32_t(Arch::kMaxValue);
   }
 
   //! Tests whether the given architecture `arch` is 32-bit.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool is32Bit(Arch arch) noexcept {
     return (uint32_t(arch) & uint32_t(Arch::k32BitMask)) == uint32_t(Arch::k32BitMask);
   }
 
   //! Tests whether the given architecture `arch` is 64-bit.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool is64Bit(Arch arch) noexcept {
     return (uint32_t(arch) & uint32_t(Arch::k32BitMask)) == 0;
   }
 
   //! Tests whether the given architecture `arch` is little endian.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isLittleEndian(Arch arch) noexcept {
     return uint32_t(arch) < uint32_t(Arch::kBigEndian);
   }
 
   //! Tests whether the given architecture `arch` is big endian.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isBigEndian(Arch arch) noexcept {
     return uint32_t(arch) >= uint32_t(Arch::kBigEndian);
   }
 
   //! Tests whether the given architecture is Thumb or Thumb_BE.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isArchThumb(Arch arch) noexcept {
     return arch == Arch::kThumb || arch == Arch::kThumb_BE;
   }
 
   //! Tests whether the given architecture is ARM or ARM_BE.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isArchARM(Arch arch) noexcept {
     return arch == Arch::kARM || arch == Arch::kARM_BE;
   }
 
   //! Tests whether the given architecture is AArch64 or AArch64_BE.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isArchAArch64(Arch arch) noexcept {
     return arch == Arch::kAArch64 || arch == Arch::kAArch64_BE;
   }
 
   //! Tests whether the given architecture is MIPS32_LE or MIPS32_BE.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isArchMIPS32(Arch arch) noexcept {
     return arch == Arch::kMIPS32_LE || arch == Arch::kMIPS32_BE;
   }
 
   //! Tests whether the given architecture is MIPS64_LE or MIPS64_BE.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isArchMIPS64(Arch arch) noexcept {
     return arch == Arch::kMIPS64_LE || arch == Arch::kMIPS64_BE;
   }
 
   //! Tests whether the given architecture family is X86 or X64.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isFamilyX86(Arch arch) noexcept {
     return arch == Arch::kX86 || arch == Arch::kX64;
   }
 
   //! Tests whether the given architecture family is AArch32 (ARM or THUMB).
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isFamilyAArch32(Arch arch) noexcept {
     return isArchARM(arch) || isArchThumb(arch);
   }
 
   //! Tests whether the given architecture family is AArch64.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isFamilyAArch64(Arch arch) noexcept {
     return isArchAArch64(arch);
   }
 
   //! Tests whether the given architecture family is ARM, THUMB, or AArch64.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isFamilyARM(Arch arch) noexcept {
     return isFamilyAArch32(arch) || isFamilyAArch64(arch);
   }
 
   //! Tests whether the given architecture family is MIPS or MIPS64.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isFamilyMIPS(Arch arch) noexcept {
     return isArchMIPS32(arch) || isArchMIPS64(arch);
   }
 
   //! Tests whether the given architecture family is RISC-V (both 32-bit and 64-bit).
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isFamilyRISCV(Arch arch) noexcept {
     return arch == Arch::kRISCV32 || arch == Arch::kRISCV64;
   }
 
   //! Returns a native general purpose register size from the given architecture.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG uint32_t registerSizeFromArch(Arch arch) noexcept {
     return is32Bit(arch) ? 4u : 8u;
   }

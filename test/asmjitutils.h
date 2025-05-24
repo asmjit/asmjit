@@ -10,7 +10,7 @@
 
 namespace {
 
-ASMJIT_MAYBE_UNUSED
+[[maybe_unused]]
 static inline const char* asmjitArchAsString(asmjit::Arch arch) noexcept {
   switch (arch) {
     case asmjit::Arch::kX86       : return "X86";
@@ -38,7 +38,7 @@ static inline const char* asmjitArchAsString(asmjit::Arch arch) noexcept {
   }
 }
 
-ASMJIT_MAYBE_UNUSED
+[[maybe_unused]]
 static inline void printIndented(const char* str, size_t indent) noexcept {
   const char* start = str;
   while (*str) {

@@ -257,18 +257,18 @@ public:
   //!
   //! These are typically shared between Assembler/Builder/Compiler of a single backend.
   struct Funcs {
-    typedef Error (ASMJIT_CDECL* EmitProlog)(BaseEmitter* emitter, const FuncFrame& frame);
-    typedef Error (ASMJIT_CDECL* EmitEpilog)(BaseEmitter* emitter, const FuncFrame& frame);
-    typedef Error (ASMJIT_CDECL* EmitArgsAssignment)(BaseEmitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args);
+    using EmitProlog = Error (ASMJIT_CDECL*)(BaseEmitter* emitter, const FuncFrame& frame);
+    using EmitEpilog = Error (ASMJIT_CDECL*)(BaseEmitter* emitter, const FuncFrame& frame);
+    using EmitArgsAssignment = Error (ASMJIT_CDECL*)(BaseEmitter* emitter, const FuncFrame& frame, const FuncArgsAssignment& args);
 
-    typedef Error (ASMJIT_CDECL* FormatInstruction)(
+    using FormatInstruction = Error (ASMJIT_CDECL*)(
       String& sb,
       FormatFlags formatFlags,
       const BaseEmitter* emitter,
       Arch arch,
-      const BaseInst& inst, const Operand_* operands, size_t opCount) ASMJIT_NOEXCEPT_TYPE;
+      const BaseInst& inst, const Operand_* operands, size_t opCount) noexcept;
 
-    typedef Error (ASMJIT_CDECL* ValidateFunc)(const BaseInst& inst, const Operand_* operands, size_t opCount, ValidationFlags validationFlags) ASMJIT_NOEXCEPT_TYPE;
+    using ValidateFunc = Error (ASMJIT_CDECL*)(const BaseInst& inst, const Operand_* operands, size_t opCount, ValidationFlags validationFlags) noexcept;
 
     //! Emit prolog implementation.
     EmitProlog emitProlog;
@@ -306,9 +306,11 @@ public:
   //! \{
 
   template<typename T>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG T* as() noexcept { return reinterpret_cast<T*>(this); }
 
   template<typename T>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const T* as() const noexcept { return reinterpret_cast<const T*>(this); }
 
   //! \}
@@ -317,24 +319,37 @@ public:
   //! \{
 
   //! Returns the type of this emitter, see `EmitterType`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG EmitterType emitterType() const noexcept { return _emitterType; }
+
   //! Returns emitter flags , see `Flags`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG EmitterFlags emitterFlags() const noexcept { return _emitterFlags; }
 
   //! Tests whether the emitter inherits from `BaseAssembler`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isAssembler() const noexcept { return _emitterType == EmitterType::kAssembler; }
+
   //! Tests whether the emitter inherits from `BaseBuilder`.
   //!
   //! \note Both Builder and Compiler emitters would return `true`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isBuilder() const noexcept { return uint32_t(_emitterType) >= uint32_t(EmitterType::kBuilder); }
+
   //! Tests whether the emitter inherits from `BaseCompiler`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isCompiler() const noexcept { return _emitterType == EmitterType::kCompiler; }
 
   //! Tests whether the emitter has the given `flag` enabled.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasEmitterFlag(EmitterFlags flag) const noexcept { return Support::test(_emitterFlags, flag); }
+
   //! Tests whether the emitter is finalized.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFinalized() const noexcept { return hasEmitterFlag(EmitterFlags::kFinalized); }
+
   //! Tests whether the emitter is destroyed (only used during destruction).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isDestroyed() const noexcept { return hasEmitterFlag(EmitterFlags::kDestroyed); }
 
   //! \}
@@ -353,27 +368,37 @@ public:
   //! \{
 
   //! Returns the CodeHolder this emitter is attached to.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG CodeHolder* code() const noexcept { return _code; }
 
   //! Returns the target environment.
   //!
   //! The returned \ref Environment reference matches \ref CodeHolder::environment().
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const Environment& environment() const noexcept { return _environment; }
 
   //! Tests whether the target architecture is 32-bit.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool is32Bit() const noexcept { return environment().is32Bit(); }
+
   //! Tests whether the target architecture is 64-bit.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool is64Bit() const noexcept { return environment().is64Bit(); }
 
   //! Returns the target architecture type.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Arch arch() const noexcept { return environment().arch(); }
+
   //! Returns the target architecture sub-type.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG SubArch subArch() const noexcept { return environment().subArch(); }
 
   //! Returns the target architecture's GP register size (4 or 8 bytes).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t registerSize() const noexcept { return environment().registerSize(); }
 
   //! Returns a signature of a native general purpose register (either 32-bit or 64-bit depending on the architecture).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG OperandSignature gpSignature() const noexcept { return _gpSignature; }
 
   //! Returns instruction alignment.
@@ -382,6 +407,7 @@ public:
   //!   - X86 and X86_64 - instruction alignment is 1
   //!   - AArch32 - instruction alignment is 4 in A32 mode and 2 in THUMB mode.
   //!   - AArch64 - instruction alignment is 4
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t instructionAlignment() const noexcept { return _instructionAlignment; }
 
   //! \}
@@ -390,6 +416,7 @@ public:
   //! \{
 
   //! Tests whether the emitter is initialized (i.e. attached to \ref CodeHolder).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isInitialized() const noexcept { return _code != nullptr; }
 
   //! Finalizes this emitter.
@@ -407,18 +434,21 @@ public:
   //! \{
 
   //! Tests whether the emitter has a logger.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasLogger() const noexcept { return _logger != nullptr; }
 
   //! Tests whether the emitter has its own logger.
   //!
   //! Own logger means that it overrides the possible logger that may be used by \ref CodeHolder this emitter is
   //! attached to.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasOwnLogger() const noexcept { return hasEmitterFlag(EmitterFlags::kOwnLogger); }
 
   //! Returns the logger this emitter uses.
   //!
   //! The returned logger is either the emitter's own logger or it's logger used by \ref CodeHolder this emitter
   //! is attached to.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Logger* logger() const noexcept { return _logger; }
 
   //! Sets or resets the logger of the emitter.
@@ -440,18 +470,21 @@ public:
   //! \{
 
   //! Tests whether the emitter has an error handler attached.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasErrorHandler() const noexcept { return _errorHandler != nullptr; }
 
   //! Tests whether the emitter has its own error handler.
   //!
   //! Own error handler means that it overrides the possible error handler that may be used by \ref CodeHolder this
   //! emitter is attached to.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasOwnErrorHandler() const noexcept { return hasEmitterFlag(EmitterFlags::kOwnErrorHandler); }
 
   //! Returns the error handler this emitter uses.
   //!
   //! The returned error handler is either the emitter's own error handler or it's error handler used by
   //! \ref CodeHolder this emitter is attached to.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG ErrorHandler* errorHandler() const noexcept { return _errorHandler; }
 
   //! Sets or resets the error handler of the emitter.
@@ -472,8 +505,11 @@ public:
   //! \{
 
   //! Returns encoding options.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG EncodingOptions encodingOptions() const noexcept { return _encodingOptions; }
+
   //! Tests whether the encoding `option` is set.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasEncodingOption(EncodingOptions option) const noexcept { return Support::test(_encodingOptions, option); }
 
   //! Enables the given encoding `options`.
@@ -487,9 +523,11 @@ public:
   //! \{
 
   //! Returns the emitter's diagnostic options.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG DiagnosticOptions diagnosticOptions() const noexcept { return _diagnosticOptions; }
 
   //! Tests whether the given `option` is present in the emitter's diagnostic options.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasDiagnosticOption(DiagnosticOptions option) const noexcept { return Support::test(_diagnosticOptions, option); }
 
   //! Activates the given diagnostic `options`.
@@ -527,35 +565,49 @@ public:
   //! Forced instruction options are merged with next instruction options before the instruction is encoded. These
   //! options have some bits reserved that are used by error handling, logging, and instruction validation purposes.
   //! Other options are globals that affect each instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstOptions forcedInstOptions() const noexcept { return _forcedInstOptions; }
 
   //! Returns options of the next instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstOptions instOptions() const noexcept { return _instOptions; }
+
   //! Returns options of the next instruction.
   ASMJIT_INLINE_NODEBUG void setInstOptions(InstOptions options) noexcept { _instOptions = options; }
+
   //! Adds options of the next instruction.
   ASMJIT_INLINE_NODEBUG void addInstOptions(InstOptions options) noexcept { _instOptions |= options; }
+
   //! Resets options of the next instruction.
   ASMJIT_INLINE_NODEBUG void resetInstOptions() noexcept { _instOptions = InstOptions::kNone; }
 
   //! Tests whether the extra register operand is valid.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasExtraReg() const noexcept { return _extraReg.isReg(); }
+
   //! Returns an extra operand that will be used by the next instruction (architecture specific).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const RegOnly& extraReg() const noexcept { return _extraReg; }
+
   //! Sets an extra operand that will be used by the next instruction (architecture specific).
   ASMJIT_INLINE_NODEBUG void setExtraReg(const BaseReg& reg) noexcept { _extraReg.init(reg); }
+
   //! Sets an extra operand that will be used by the next instruction (architecture specific).
   ASMJIT_INLINE_NODEBUG void setExtraReg(const RegOnly& reg) noexcept { _extraReg.init(reg); }
+
   //! Resets an extra operand that will be used by the next instruction (architecture specific).
   ASMJIT_INLINE_NODEBUG void resetExtraReg() noexcept { _extraReg.reset(); }
 
   //! Returns comment/annotation of the next instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const char* inlineComment() const noexcept { return _inlineComment; }
+
   //! Sets comment/annotation of the next instruction.
   //!
   //! \note This string is set back to null by `_emit()`, but until that it has to remain valid as the Emitter is not
   //! required to make a copy of it (and it would be slow to do that for each instruction).
   ASMJIT_INLINE_NODEBUG void setInlineComment(const char* s) noexcept { _inlineComment = s; }
+
   //! Resets the comment/annotation to nullptr.
   ASMJIT_INLINE_NODEBUG void resetInlineComment() noexcept { _inlineComment = nullptr; }
 
@@ -581,6 +633,7 @@ public:
 
   //! Grabs the current emitter state and resets the emitter state at the same time, returning the state the emitter
   //! had before the state was reset.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG State _grabState() noexcept {
     State s{_instOptions | _forcedInstOptions, _extraReg, _inlineComment};
     resetState();
@@ -604,13 +657,19 @@ public:
   //! \{
 
   //! Creates a new label.
+  [[nodiscard]]
   ASMJIT_API virtual Label newLabel();
+
   //! Creates a new named label.
+  [[nodiscard]]
   ASMJIT_API virtual Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parentId = Globals::kInvalidId);
 
   //! Creates a new anonymous label with a name, which can only be used for debugging purposes.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Label newAnonymousLabel(const char* name, size_t nameSize = SIZE_MAX) { return newNamedLabel(name, nameSize, LabelType::kAnonymous); }
+
   //! Creates a new external label.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Label newExternalLabel(const char* name, size_t nameSize = SIZE_MAX) { return newNamedLabel(name, nameSize, LabelType::kExternal); }
 
   //! Returns `Label` by `name`.
@@ -619,6 +678,7 @@ public:
   //!
   //! \note This function doesn't trigger ErrorHandler in case the name is invalid or no such label exist. You must
   //! always check the validity of the `Label` returned.
+  [[nodiscard]]
   ASMJIT_API Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept;
 
   //! Binds the `label` to the current position of the current section.
@@ -627,8 +687,11 @@ public:
   ASMJIT_API virtual Error bind(const Label& label);
 
   //! Tests whether the label `id` is valid (i.e. registered).
+  [[nodiscard]]
   ASMJIT_API bool isLabelValid(uint32_t labelId) const noexcept;
+
   //! Tests whether the `label` is valid (i.e. registered).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isLabelValid(const Label& label) const noexcept { return isLabelValid(label.id()); }
 
   //! \}
@@ -676,7 +739,7 @@ public:
 
   //! Similar to \ref emit(), but emits instruction with both instruction options and extra register, followed
   //! by an array of `operands`.
-  ASMJIT_FORCE_INLINE Error emitInst(const BaseInst& inst, const Operand_* operands, size_t opCount) {
+  ASMJIT_INLINE Error emitInst(const BaseInst& inst, const Operand_* operands, size_t opCount) {
     setInstOptions(inst.options());
     setExtraReg(inst.extraReg());
     return _emitOpArray(inst.id(), operands, opCount);
@@ -794,6 +857,7 @@ public:
 
   //! Called after the emitter was attached to `CodeHolder`.
   ASMJIT_API virtual Error onAttach(CodeHolder* ASMJIT_NONNULL(code)) noexcept;
+
   //! Called after the emitter was detached from `CodeHolder`.
   ASMJIT_API virtual Error onDetach(CodeHolder* ASMJIT_NONNULL(code)) noexcept;
 

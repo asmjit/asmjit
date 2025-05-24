@@ -76,9 +76,12 @@
 //!   - \ref arm::DataType - Data type that is part of an instruction in AArch32 mode.
 //!   - \ref arm::Utils - Utilities that can help during code generation for AArch32 and AArch64.
 
-#include "./core.h"
-#include "./arm/armglobals.h"
-#include "./arm/armoperand.h"
-#include "./arm/armutils.h"
+#include "core.h"
+
+#include "asmjit-scope-begin.h"
+#include "arm/armglobals.h"
+#include "arm/armoperand.h"
+#include "arm/armutils.h"
+#include "asmjit-scope-end.h"
 
 #endif // ASMJIT_ARM_H_INCLUDED

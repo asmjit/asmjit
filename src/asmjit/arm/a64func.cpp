@@ -25,18 +25,24 @@ static inline bool shouldTreatAsCDecl(CallConvId ccId) noexcept {
 }
 
 static RegType regTypeFromFpOrVecTypeId(TypeId typeId) noexcept {
-  if (typeId == TypeId::kFloat32)
+  if (typeId == TypeId::kFloat32) {
     return RegType::kARM_VecS;
-  else if (typeId == TypeId::kFloat64)
+  }
+  else if (typeId == TypeId::kFloat64) {
     return RegType::kARM_VecD;
-  else if (TypeUtils::isVec32(typeId))
+  }
+  else if (TypeUtils::isVec32(typeId)) {
     return RegType::kARM_VecS;
-  else if (TypeUtils::isVec64(typeId))
+  }
+  else if (TypeUtils::isVec64(typeId)) {
     return RegType::kARM_VecD;
-  else if (TypeUtils::isVec128(typeId))
+  }
+  else if (TypeUtils::isVec128(typeId)) {
     return RegType::kARM_VecV;
-  else
+  }
+  else {
     return RegType::kNone;
+  }
 }
 
 ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Environment& environment) noexcept {
@@ -116,8 +122,9 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
 
         default: {
           RegType regType = regTypeFromFpOrVecTypeId(typeId);
-          if (regType == RegType::kNone)
+          if (regType == RegType::kNone) {
             return DebugUtils::errored(kErrorInvalidRegType);
+          }
 
           func._rets[valueIndex].initReg(regType, valueIndex, typeId);
           break;
@@ -139,8 +146,9 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
         if (TypeUtils::isInt(typeId)) {
           uint32_t regId = BaseReg::kIdBad;
 
-          if (gpzPos < CallConv::kMaxRegArgsPerGroup)
+          if (gpzPos < CallConv::kMaxRegArgsPerGroup) {
             regId = cc._passedOrder[RegGroup::kGp].id[gpzPos];
+          }
 
           if (regId != BaseReg::kIdBad) {
             RegType regType = typeId <= TypeId::kUInt32 ? RegType::kARM_GpW : RegType::kARM_GpX;
@@ -150,8 +158,9 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
           }
           else {
             uint32_t size = Support::max<uint32_t>(TypeUtils::sizeOf(typeId), minStackArgSize);
-            if (size >= 8)
+            if (size >= 8) {
               stackOffset = Support::alignUp(stackOffset, 8);
+            }
             arg.assignStackOffset(int32_t(stackOffset));
             stackOffset += size;
           }
@@ -161,13 +170,15 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
         if (TypeUtils::isFloat(typeId) || TypeUtils::isVec(typeId)) {
           uint32_t regId = BaseReg::kIdBad;
 
-          if (vecPos < CallConv::kMaxRegArgsPerGroup)
+          if (vecPos < CallConv::kMaxRegArgsPerGroup) {
             regId = cc._passedOrder[RegGroup::kVec].id[vecPos];
+          }
 
           if (regId != BaseReg::kIdBad) {
             RegType regType = regTypeFromFpOrVecTypeId(typeId);
-            if (regType == RegType::kNone)
+            if (regType == RegType::kNone) {
               return DebugUtils::errored(kErrorInvalidRegType);
+            }
 
             arg.initTypeId(typeId);
             arg.assignRegData(regType, regId);
@@ -176,8 +187,9 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
           }
           else {
             uint32_t size = Support::max<uint32_t>(TypeUtils::sizeOf(typeId), minStackArgSize);
-            if (size >= 8)
+            if (size >= 8) {
               stackOffset = Support::alignUp(stackOffset, 8);
+            }
             arg.assignStackOffset(int32_t(stackOffset));
             stackOffset += size;
           }

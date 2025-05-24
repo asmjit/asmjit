@@ -210,28 +210,36 @@ void* Zone::_alloc(size_t size, size_t alignment) noexcept {
 
 void* Zone::allocZeroed(size_t size, size_t alignment) noexcept {
   void* p = alloc(size, alignment);
-  if (ASMJIT_UNLIKELY(!p))
+  if (ASMJIT_UNLIKELY(!p)) {
     return p;
+  }
   return memset(p, 0, size);
 }
 
 void* Zone::dup(const void* data, size_t size, bool nullTerminate) noexcept {
-  if (ASMJIT_UNLIKELY(!data || !size))
+  if (ASMJIT_UNLIKELY(!data || !size)) {
     return nullptr;
+  }
 
   ASMJIT_ASSERT(size != SIZE_MAX);
+
   uint8_t* m = allocT<uint8_t>(size + nullTerminate);
-  if (ASMJIT_UNLIKELY(!m)) return nullptr;
+  if (ASMJIT_UNLIKELY(!m)) {
+    return nullptr;
+  }
 
   memcpy(m, data, size);
-  if (nullTerminate) m[size] = '\0';
+  if (nullTerminate) {
+    m[size] = '\0';
+  }
 
   return static_cast<void*>(m);
 }
 
 char* Zone::sformat(const char* fmt, ...) noexcept {
-  if (ASMJIT_UNLIKELY(!fmt))
+  if (ASMJIT_UNLIKELY(!fmt)) {
     return nullptr;
+  }
 
   char buf[512];
   size_t size;
@@ -252,8 +260,9 @@ char* Zone::sformat(const char* fmt, ...) noexcept {
 static bool ZoneAllocator_hasDynamicBlock(ZoneAllocator* self, ZoneAllocator::DynamicBlock* block) noexcept {
   ZoneAllocator::DynamicBlock* cur = self->_dynamicBlocks;
   while (cur) {
-    if (cur == block)
+    if (cur == block) {
       return true;
+    }
     cur = cur->next;
   }
   return false;
@@ -334,8 +343,9 @@ void* ZoneAllocator::_alloc(size_t size, size_t& allocatedSize) noexcept {
     size_t blockOverhead = sizeof(DynamicBlock) + sizeof(DynamicBlock*) + kBlockAlignment;
 
     // Handle a possible overflow.
-    if (ASMJIT_UNLIKELY(blockOverhead >= SIZE_MAX - size))
+    if (ASMJIT_UNLIKELY(blockOverhead >= SIZE_MAX - size)) {
       return nullptr;
+    }
 
     void* p = ::malloc(size + blockOverhead);
     if (ASMJIT_UNLIKELY(!p)) {
@@ -347,8 +357,9 @@ void* ZoneAllocator::_alloc(size_t size, size_t& allocatedSize) noexcept {
     DynamicBlock* block = static_cast<DynamicBlock*>(p);
     DynamicBlock* next = _dynamicBlocks;
 
-    if (next)
+    if (next) {
       next->prev = block;
+    }
 
     block->prev = nullptr;
     block->next = next;
@@ -368,7 +379,9 @@ void* ZoneAllocator::_allocZeroed(size_t size, size_t& allocatedSize) noexcept {
   ASMJIT_ASSERT(isInitialized());
 
   void* p = _alloc(size, allocatedSize);
-  if (ASMJIT_UNLIKELY(!p)) return p;
+  if (ASMJIT_UNLIKELY(!p)) {
+    return p;
+  }
   return memset(p, 0, allocatedSize);
 }
 
@@ -384,13 +397,16 @@ void ZoneAllocator::_releaseDynamic(void* p, size_t size) noexcept {
   DynamicBlock* prev = block->prev;
   DynamicBlock* next = block->next;
 
-  if (prev)
+  if (prev) {
     prev->next = next;
-  else
+  }
+  else {
     _dynamicBlocks = next;
+  }
 
-  if (next)
+  if (next) {
     next->prev = prev;
+  }
 
   ::free(block);
 }

@@ -48,13 +48,16 @@
 //!   - \ref arm::Utils - Utilities that can help during code generation for AArch32 and AArch64.
 
 #include "./arm.h"
-#include "./arm/a64assembler.h"
-#include "./arm/a64builder.h"
-#include "./arm/a64compiler.h"
-#include "./arm/a64emitter.h"
-#include "./arm/a64globals.h"
-#include "./arm/a64instdb.h"
-#include "./arm/a64operand.h"
+
+#include "asmjit-scope-begin.h"
+#include "arm/a64assembler.h"
+#include "arm/a64builder.h"
+#include "arm/a64compiler.h"
+#include "arm/a64emitter.h"
+#include "arm/a64globals.h"
+#include "arm/a64instdb.h"
+#include "arm/a64operand.h"
+#include "asmjit-scope-end.h"
 
 #endif // ASMJIT_A64_H_INCLUDED
 

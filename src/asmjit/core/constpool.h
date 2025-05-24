@@ -73,6 +73,7 @@ public:
         _shared(shared),
         _offset(uint32_t(offset)) {}
 
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG void* data() const noexcept {
       return static_cast<void*>(const_cast<ConstPool::Node*>(this) + 1);
     }
@@ -86,10 +87,12 @@ public:
     ASMJIT_INLINE_NODEBUG Compare(size_t dataSize) noexcept
       : _dataSize(dataSize) {}
 
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG int operator()(const Node& a, const Node& b) const noexcept {
       return ::memcmp(a.data(), b.data(), _dataSize);
     }
 
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG int operator()(const Node& a, const void* data) const noexcept {
       return ::memcmp(a.data(), data, _dataSize);
     }
@@ -114,7 +117,10 @@ public:
       _size = 0;
     }
 
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _size == 0; }
+
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG size_t size() const noexcept { return _size; }
 
     inline void setDataSize(size_t dataSize) noexcept {
@@ -122,6 +128,7 @@ public:
       _dataSize = dataSize;
     }
 
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG Node* get(const void* data) noexcept {
       Compare cmp(_dataSize);
       return _tree.get(data, cmp);
@@ -166,6 +173,7 @@ public:
       }
     }
 
+    [[nodiscard]]
     static inline Node* _newNode(Zone* zone, const void* data, size_t size, size_t offset, bool shared) noexcept {
       Node* node = zone->allocT<Node>(Support::alignUp(sizeof(Node) + size, alignof(Node)));
       if (ASMJIT_UNLIKELY(!node)) return nullptr;
@@ -221,12 +229,19 @@ public:
   //! \{
 
   //! Tests whether the constant-pool is empty.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _size == 0; }
+
   //! Returns the size of the constant-pool in bytes.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t size() const noexcept { return _size; }
+
   //! Returns minimum alignment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t alignment() const noexcept { return _alignment; }
+
   //! Returns the minimum size of all items added to the constant pool.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t minItemSize() const noexcept { return _minItemSize; }
 
   //! \}

@@ -40,8 +40,9 @@ void ConstPool::reset(Zone* zone) noexcept {
 
 static inline ConstPool::Gap* ConstPool_allocGap(ConstPool* self) noexcept {
   ConstPool::Gap* gap = self->_gapPool;
-  if (!gap)
+  if (!gap) {
     return self->_zone->allocT<ConstPool::Gap>();
+  }
 
   self->_gapPool = gap->_next;
   return gap;
@@ -87,8 +88,9 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t size) noexce
     // We don't have to check for errors here, if this failed nothing really happened (just the gap won't be
     // visible) and it will fail again at place where the same check would generate `kErrorOutOfMemory` error.
     ConstPool::Gap* gap = ConstPool_allocGap(self);
-    if (!gap)
+    if (!gap) {
       return;
+    }
 
     gap->_next = self->_gaps[gapIndex];
     self->_gaps[gapIndex] = gap;
@@ -102,24 +104,19 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t size) noexce
 }
 
 Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept {
-  size_t treeIndex;
+  constexpr size_t kMaxSize = size_t(1) << (kIndexCount - 1);
 
-  if (size == 64)
-    treeIndex = kIndex64;
-  else if (size == 32)
-    treeIndex = kIndex32;
-  else if (size == 16)
-    treeIndex = kIndex16;
-  else if (size == 8)
-    treeIndex = kIndex8;
-  else if (size == 4)
-    treeIndex = kIndex4;
-  else if (size == 2)
-    treeIndex = kIndex2;
-  else if (size == 1)
-    treeIndex = kIndex1;
-  else
+  // Avoid sizes outside of the supported range.
+  if (ASMJIT_UNLIKELY(size == 0 || size > kMaxSize)) {
     return DebugUtils::errored(kErrorInvalidArgument);
+  }
+
+  size_t treeIndex = Support::ctz(size);
+
+  // Avoid sizes, which are not aligned to power of 2.
+  if (ASMJIT_UNLIKELY((size_t(1) << treeIndex) != size)) {
+    return DebugUtils::errored(kErrorInvalidArgument);
+  }
 
   ConstPool::Node* node = _tree[treeIndex].get(data);
   if (node) {
@@ -147,8 +144,9 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
       ASMJIT_ASSERT(Support::isAligned<size_t>(offset, size));
 
       gapSize -= size;
-      if (gapSize > 0)
+      if (gapSize > 0) {
         ConstPool_addGap(this, gapOffset, gapSize);
+      }
     }
 
     gapIndex++;
@@ -169,8 +167,9 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
 
   // Add the initial node to the right index.
   node = ConstPool::Tree::_newNode(_zone, data, size, offset, false);
-  if (ASMJIT_UNLIKELY(!node))
+  if (ASMJIT_UNLIKELY(!node)) {
     return DebugUtils::errored(kErrorOutOfMemory);
+  }
 
   _tree[treeIndex].insert(node);
   _alignment = Support::max<size_t>(_alignment, size);
@@ -192,18 +191,16 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
     const uint8_t* pData = static_cast<const uint8_t*>(data);
     for (size_t i = 0; i < pCount; i++, pData += smallerSize) {
       node = _tree[treeIndex].get(pData);
-      if (node) continue;
+      if (node) {
+        continue;
+      }
 
       node = ConstPool::Tree::_newNode(_zone, pData, smallerSize, offset + (i * smallerSize), true);
       _tree[treeIndex].insert(node);
     }
   }
 
-  if (_minItemSize == 0)
-    _minItemSize = size;
-  else
-    _minItemSize = Support::min(_minItemSize, size);
-
+  _minItemSize = !_minItemSize ? size : Support::min(_minItemSize, size);
   return kErrorOk;
 }
 
@@ -216,8 +213,9 @@ struct ConstPoolFill {
     _dataSize(dataSize) {}
 
   inline void operator()(const ConstPool::Node* node) noexcept {
-    if (!node->_shared)
+    if (!node->_shared) {
       memcpy(_dst + node->_offset, node->data(), _dataSize);
+    }
   }
 
   uint8_t* _dst;

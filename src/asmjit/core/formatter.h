@@ -108,28 +108,39 @@ public:
   //! \{
 
   //! Returns format flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FormatFlags flags() const noexcept { return _flags; }
+
   //! Tests whether the given `flag` is set in format flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(FormatFlags flag) const noexcept { return Support::test(_flags, flag); }
 
   //! Resets all format flags to `flags`.
   ASMJIT_INLINE_NODEBUG void setFlags(FormatFlags flags) noexcept { _flags = flags; }
+
   //! Adds `flags` to format flags.
   ASMJIT_INLINE_NODEBUG void addFlags(FormatFlags flags) noexcept { _flags |= flags; }
+
   //! Removes `flags` from format flags.
   ASMJIT_INLINE_NODEBUG void clearFlags(FormatFlags flags) noexcept { _flags &= ~flags; }
 
   //! Returns indentation for the given indentation `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint8_t indentation(FormatIndentationGroup group) const noexcept { return _indentation[group]; }
+
   //! Sets indentation for the given indentation `group`.
   ASMJIT_INLINE_NODEBUG void setIndentation(FormatIndentationGroup group, uint32_t n) noexcept { _indentation[group] = uint8_t(n); }
+
   //! Resets indentation for the given indentation `group` to zero.
   ASMJIT_INLINE_NODEBUG void resetIndentation(FormatIndentationGroup group) noexcept { _indentation[group] = uint8_t(0); }
 
   //! Returns padding for the given padding `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t padding(FormatPaddingGroup group) const noexcept { return _padding[group]; }
+
   //! Sets padding for the given padding `group`.
   ASMJIT_INLINE_NODEBUG void setPadding(FormatPaddingGroup group, size_t n) noexcept { _padding[group] = uint16_t(n); }
+
   //! Resets padding for the given padding `group` to zero, which means that a default padding will be used
   //! based on the target architecture properties.
   ASMJIT_INLINE_NODEBUG void resetPadding(FormatPaddingGroup group) noexcept { _padding[group] = uint16_t(0); }

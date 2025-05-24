@@ -18,8 +18,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 Builder::Builder(CodeHolder* code) noexcept : BaseBuilder() {
   _archMask = (uint64_t(1) << uint32_t(Arch::kX86)) |
               (uint64_t(1) << uint32_t(Arch::kX64)) ;
-  if (code)
+  if (code) {
     code->attach(this);
+  }
 }
 Builder::~Builder() noexcept {}
 

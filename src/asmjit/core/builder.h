@@ -163,9 +163,13 @@ public:
   //! \name Accessors
   //! \{
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _first == nullptr; }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* first() const noexcept { return _first; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* last() const noexcept { return _last; }
 
   //! \}
@@ -185,7 +189,7 @@ public:
 class ASMJIT_VIRTAPI BaseBuilder : public BaseEmitter {
 public:
   ASMJIT_NONCOPYABLE(BaseBuilder)
-  typedef BaseEmitter Base;
+  using Base = BaseEmitter;
 
   //! \name Members
   //! \{
@@ -231,11 +235,15 @@ public:
   //! \name Node Management
   //! \{
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG NodeList nodeList() const noexcept { return _nodeList; }
 
   //! Returns the first node.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* firstNode() const noexcept { return _nodeList.first(); }
+
   //! Returns the last node.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* lastNode() const noexcept { return _nodeList.last(); }
 
   //! Allocates and instantiates a new node of type `T` and returns its instance. If the allocation fails `nullptr`
@@ -282,6 +290,7 @@ public:
   //! When the Builder/Compiler is created it automatically creates a '.text' \ref SectionNode, which will be the
   //! initial one. When instructions are added they are always added after the cursor and the cursor is changed
   //! to be that newly added node. Use `setCursor()` to change where new nodes are inserted.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* cursor() const noexcept { return _cursor; }
 
   //! Sets the current node to `node` and return the previous one.
@@ -302,11 +311,13 @@ public:
   //!
   //! \note If a section of some id is not associated with the Builder/Compiler it would be null, so always check
   //! for nulls if you iterate over the vector.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const ZoneVector<SectionNode*>& sectionNodes() const noexcept {
     return _sectionNodes;
   }
 
   //! Tests whether the `SectionNode` of the given `sectionId` was registered.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRegisteredSectionNode(uint32_t sectionId) const noexcept {
     return sectionId < _sectionNodes.size() && _sectionNodes[sectionId] != nullptr;
   }
@@ -321,6 +332,7 @@ public:
 
   //! Returns whether the section links of active section nodes are dirty. You can update these links by calling
   //! `updateSectionLinks()` in such case.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasDirtySectionLinks() const noexcept { return _dirtySectionLinks; }
 
   //! Updates links of all active section nodes.
@@ -335,14 +347,17 @@ public:
   //!
   //! \note If a label of some id is not associated with the Builder/Compiler it would be null, so always check for
   //! nulls if you iterate over the vector.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const ZoneVector<LabelNode*>& labelNodes() const noexcept { return _labelNodes; }
 
   //! Tests whether the `LabelNode` of the given `labelId` was registered.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRegisteredLabelNode(uint32_t labelId) const noexcept {
     return labelId < _labelNodes.size() && _labelNodes[labelId] != nullptr;
   }
 
   //! \overload
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRegisteredLabelNode(const Label& label) const noexcept {
     return hasRegisteredLabelNode(label.id());
   }
@@ -364,8 +379,12 @@ public:
   //! Use \ref labelNodeOf() functions to get back \ref LabelNode from a label or its identifier.
   ASMJIT_API Error registerLabelNode(LabelNode* ASMJIT_NONNULL(node));
 
+  [[nodiscard]]
   ASMJIT_API Label newLabel() override;
+
+  [[nodiscard]]
   ASMJIT_API Label newNamedLabel(const char* name, size_t nameSize = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parentId = Globals::kInvalidId) override;
+
   ASMJIT_API Error bind(const Label& label) override;
 
   //! \}
@@ -374,6 +393,7 @@ public:
   //! \{
 
   //! Returns a vector of `Pass` instances that will be executed by `runPasses()`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const ZoneVector<Pass*>& passes() const noexcept { return _passes; }
 
   //! Allocates and instantiates a new pass of type `T` and returns its instance. If the allocation fails `nullptr` is
@@ -384,10 +404,12 @@ public:
   //! \remarks The pointer returned (if non-null) is owned by the Builder or Compiler. When the Builder/Compiler is
   //! destroyed it destroys all passes it created so no manual memory management is required.
   template<typename T>
+  [[nodiscard]]
   inline T* newPassT() noexcept { return _codeZone.newT<T>(); }
 
   //! \overload
   template<typename T, typename... Args>
+  [[nodiscard]]
   inline T* newPassT(Args&&... args) noexcept { return _codeZone.newT<T>(std::forward<Args>(args)...); }
 
   template<typename T>
@@ -399,9 +421,12 @@ public:
   //! Returns `Pass` by name.
   //!
   //! If the pass having the given `name` doesn't exist `nullptr` is returned.
+  [[nodiscard]]
   ASMJIT_API Pass* passByName(const char* name) const noexcept;
+
   //! Adds `pass` to the list of passes.
   ASMJIT_API Error addPass(Pass* pass) noexcept;
+
   //! Removes `pass` from the list of passes and delete it.
   ASMJIT_API Error deletePass(Pass* pass) noexcept;
 
@@ -604,17 +629,24 @@ public:
 
   //! Casts this node to `T*`.
   template<typename T>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG T* as() noexcept { return static_cast<T*>(this); }
+
   //! Casts this node to `const T*`.
   template<typename T>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const T* as() const noexcept { return static_cast<const T*>(this); }
 
   //! Returns previous node or `nullptr` if this node is either first or not part of Builder/Compiler node-list.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* prev() const noexcept { return _prev; }
+
   //! Returns next node or `nullptr` if this node is either last or not part of Builder/Compiler node-list.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* next() const noexcept { return _next; }
 
   //! Returns the type of the node, see \ref NodeType.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG NodeType type() const noexcept { return _any._nodeType; }
 
   //! Sets the type of the node, see `NodeType` (internal).
@@ -624,37 +656,65 @@ public:
   ASMJIT_INLINE_NODEBUG void setType(NodeType type) noexcept { _any._nodeType = type; }
 
   //! Tests whether this node is either `InstNode` or extends it.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isInst() const noexcept { return hasFlag(NodeFlags::kActsAsInst); }
+
   //! Tests whether this node is `SectionNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isSection() const noexcept { return type() == NodeType::kSection; }
+
   //! Tests whether this node is either `LabelNode` or extends it.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isLabel() const noexcept { return hasFlag(NodeFlags::kActsAsLabel); }
+
   //! Tests whether this node is `AlignNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isAlign() const noexcept { return type() == NodeType::kAlign; }
+
   //! Tests whether this node is `EmbedDataNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEmbedData() const noexcept { return type() == NodeType::kEmbedData; }
+
   //! Tests whether this node is `EmbedLabelNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEmbedLabel() const noexcept { return type() == NodeType::kEmbedLabel; }
+
   //! Tests whether this node is `EmbedLabelDeltaNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEmbedLabelDelta() const noexcept { return type() == NodeType::kEmbedLabelDelta; }
+
   //! Tests whether this node is `ConstPoolNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isConstPool() const noexcept { return type() == NodeType::kConstPool; }
+
   //! Tests whether this node is `CommentNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isComment() const noexcept { return type() == NodeType::kComment; }
+
   //! Tests whether this node is `SentinelNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isSentinel() const noexcept { return type() == NodeType::kSentinel; }
 
   //! Tests whether this node is `FuncNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFunc() const noexcept { return type() == NodeType::kFunc; }
+
   //! Tests whether this node is `FuncRetNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFuncRet() const noexcept { return type() == NodeType::kFuncRet; }
+
   //! Tests whether this node is `InvokeNode`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isInvoke() const noexcept { return type() == NodeType::kInvoke; }
 
   //! Returns the node flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG NodeFlags flags() const noexcept { return _any._nodeFlags; }
+
   //! Tests whether the node has the given `flag` set.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(NodeFlags flag) const noexcept { return Support::test(_any._nodeFlags, flag); }
+
   //! Replaces node flags with `flags`.
   ASMJIT_INLINE_NODEBUG void setFlags(NodeFlags flags) noexcept { _any._nodeFlags = flags; }
   //! Adds the given `flags` to node flags.
@@ -663,24 +723,39 @@ public:
   ASMJIT_INLINE_NODEBUG void clearFlags(NodeFlags flags) noexcept { _any._nodeFlags &= ~flags; }
 
   //! Tests whether the node is code that can be executed.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isCode() const noexcept { return hasFlag(NodeFlags::kIsCode); }
+
   //! Tests whether the node is data that cannot be executed.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isData() const noexcept { return hasFlag(NodeFlags::kIsData); }
+
   //! Tests whether the node is informative only (is never encoded like comment, etc...).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isInformative() const noexcept { return hasFlag(NodeFlags::kIsInformative); }
+
   //! Tests whether the node is removable if it's in an unreachable code block.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isRemovable() const noexcept { return hasFlag(NodeFlags::kIsRemovable); }
+
   //! Tests whether the node has no effect when executed (label, .align, nop, ...).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasNoEffect() const noexcept { return hasFlag(NodeFlags::kHasNoEffect); }
+
   //! Tests whether the node is part of the code.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isActive() const noexcept { return hasFlag(NodeFlags::kIsActive); }
 
   //! Tests whether the node has a position assigned.
   //!
   //! \remarks Returns `true` if node position is non-zero.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasPosition() const noexcept { return _position != 0; }
+
   //! Returns node position.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t position() const noexcept { return _position; }
+
   //! Sets node position.
   //!
   //! Node position is a 32-bit unsigned integer that is used by Compiler to track where the node is relatively to
@@ -697,10 +772,15 @@ public:
   //! size so you can either store a pointer or `int64_t` value through `setUserDataAsPtr()`, `setUserDataAsInt64()`
   //! and `setUserDataAsUInt64()`.
   template<typename T>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG T* userDataAsPtr() const noexcept { return static_cast<T*>(_userDataPtr); }
+
   //! Returns user data casted to `int64_t`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG int64_t userDataAsInt64() const noexcept { return int64_t(_userDataU64); }
+
   //! Returns user data casted to `uint64_t`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint64_t userDataAsUInt64() const noexcept { return _userDataU64; }
 
   //! Sets user data to `data`.
@@ -715,10 +795,14 @@ public:
   ASMJIT_INLINE_NODEBUG void resetUserData() noexcept { _userDataU64 = 0; }
 
   //! Tests whether the node has an associated pass data.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasPassData() const noexcept { return _passData != nullptr; }
+
   //! Returns the node pass data - data used during processing & transformations.
   template<typename T>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG T* passData() const noexcept { return (T*)_passData; }
+
   //! Sets the node pass data to `data`.
   template<typename T>
   ASMJIT_INLINE_NODEBUG void setPassData(T* data) noexcept { _passData = (void*)data; }
@@ -726,9 +810,13 @@ public:
   ASMJIT_INLINE_NODEBUG void resetPassData() noexcept { _passData = nullptr; }
 
   //! Tests whether the node has an inline comment/annotation.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasInlineComment() const noexcept { return _inlineComment != nullptr; }
+
   //! Returns an inline comment/annotation string.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const char* inlineComment() const noexcept { return _inlineComment; }
+
   //! Sets an inline comment/annotation string to `s`.
   ASMJIT_INLINE_NODEBUG void setInlineComment(const char* s) noexcept { _inlineComment = s; }
   //! Resets an inline comment/annotation string to nullptr.
@@ -752,10 +840,10 @@ public:
   //! embed 5. The rest (up to 6 operands) is considered extended.
   //!
   //! The number of operands InstNode holds is decided when \ref InstNode is created.
-  static constexpr uint32_t kBaseOpCapacity = uint32_t((128 - sizeof(BaseNode) - sizeof(BaseInst)) / sizeof(Operand_));
+  static inline constexpr uint32_t kBaseOpCapacity = uint32_t((128 - sizeof(BaseNode) - sizeof(BaseInst)) / sizeof(Operand_));
 
   //! Count of maximum number of operands \ref InstNode can hold.
-  static constexpr uint32_t kFullOpCapacity = Globals::kMaxOpCount;
+  static inline constexpr uint32_t kFullOpCapacity = Globals::kMaxOpCount;
 
   //! \}
 
@@ -791,7 +879,10 @@ public:
   //! \name Instruction Object
   //! \{
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseInst& baseInst() noexcept { return _baseInst; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const BaseInst& baseInst() const noexcept { return _baseInst; }
 
   //! \}
@@ -800,8 +891,11 @@ public:
   //! \{
 
   //! Returns the instruction id, see `BaseInst::Id`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstId id() const noexcept { return _baseInst.id(); }
+
   //! Returns the instruction real id, see `BaseInst::Id`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstId realId() const noexcept { return _baseInst.realId(); }
 
   //! Sets the instruction id to `id`, see `BaseInst::Id`.
@@ -813,9 +907,13 @@ public:
   //! \{
 
   //! Returns instruction options, see \ref InstOptions for more details.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstOptions options() const noexcept { return _baseInst.options(); }
+
   //! Tests whether instruction has the given \option` set/enabled.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasOption(InstOptions option) const noexcept { return _baseInst.hasOption(option); }
+
   //! Sets instruction `options` to the provided value, resetting all others.
   ASMJIT_INLINE_NODEBUG void setOptions(InstOptions options) noexcept { _baseInst.setOptions(options); }
   //! Adds instruction `options` to the instruction.
@@ -831,11 +929,17 @@ public:
   //! \{
 
   //! Tests whether the node has an extra register operand.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasExtraReg() const noexcept { return _baseInst.hasExtraReg(); }
+
   //! Returns extra register operand.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG RegOnly& extraReg() noexcept { return _baseInst.extraReg(); }
+
   //! \overload
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const RegOnly& extraReg() const noexcept { return _baseInst.extraReg(); }
+
   //! Sets extra register operand to `reg`.
   ASMJIT_INLINE_NODEBUG void setExtraReg(const BaseReg& reg) noexcept { _baseInst.setExtraReg(reg); }
   //! Sets extra register operand to `reg`.
@@ -849,24 +953,30 @@ public:
   //! \{
 
   //! Returns operand count.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t opCount() const noexcept { return _inst._opCount; }
+
   //! Returns operand capacity.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t opCapacity() const noexcept { return _inst._opCapacity; }
 
   //! Sets operand count.
   ASMJIT_INLINE_NODEBUG void setOpCount(uint32_t opCount) noexcept { _inst._opCount = uint8_t(opCount); }
 
   //! Returns operands array.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Operand* operands() noexcept {
     return reinterpret_cast<Operand*>(reinterpret_cast<uint8_t*>(this) + sizeof(InstNode));
   }
 
   //! Returns operands array (const).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const Operand* operands() const noexcept {
     return reinterpret_cast<const Operand*>(reinterpret_cast<const uint8_t*>(this) + sizeof(InstNode));
   }
 
   //! Returns operand at the given `index`.
+  [[nodiscard]]
   inline Operand& op(uint32_t index) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
 
@@ -875,6 +985,7 @@ public:
   }
 
   //! Returns operand at the given `index` (const).
+  [[nodiscard]]
   inline const Operand& op(uint32_t index) const noexcept {
     ASMJIT_ASSERT(index < opCapacity());
 
@@ -911,6 +1022,7 @@ public:
   //! \{
 
   //! Tests whether the given operand type `opType` is used by the instruction.
+  [[nodiscard]]
   inline bool hasOpType(OperandType opType) const noexcept {
     const Operand* ops = operands();
     for (uint32_t i = 0, count = opCount(); i < count; i++)
@@ -920,18 +1032,26 @@ public:
   }
 
   //! Tests whether the instruction uses at least one register operand.
+  [[nodiscard]]
   inline bool hasRegOp() const noexcept { return hasOpType(OperandType::kReg); }
+
   //! Tests whether the instruction uses at least one memory operand.
+  [[nodiscard]]
   inline bool hasMemOp() const noexcept { return hasOpType(OperandType::kMem); }
+
   //! Tests whether the instruction uses at least one immediate operand.
+  [[nodiscard]]
   inline bool hasImmOp() const noexcept { return hasOpType(OperandType::kImm); }
+
   //! Tests whether the instruction uses at least one label operand.
+  [[nodiscard]]
   inline bool hasLabelOp() const noexcept { return hasOpType(OperandType::kLabel); }
 
   //! Returns the index of the given operand type `opType`.
   //!
   //! \note If the operand type wa found, the value returned represents its index in \ref operands()
   //! array, otherwise \ref Globals::kNotFound is returned to signalize that the operand was not found.
+  [[nodiscard]]
   inline uint32_t indexOfOpType(OperandType opType) const noexcept {
     uint32_t i = 0;
     uint32_t count = opCount();
@@ -947,10 +1067,15 @@ public:
   }
 
   //! A shortcut that calls `indexOfOpType(OperandType::kMem)`.
+  [[nodiscard]]
   inline uint32_t indexOfMemOp() const noexcept { return indexOfOpType(OperandType::kMem); }
+
   //! A shortcut that calls `indexOfOpType(OperandType::kImm)`.
+  [[nodiscard]]
   inline uint32_t indexOfImmOp() const noexcept { return indexOfOpType(OperandType::kImm); }
+
   //! A shortcut that calls `indexOfOpType(OperandType::kLabel)`.
+  [[nodiscard]]
   inline uint32_t indexOfLabelOp() const noexcept { return indexOfOpType(OperandType::kLabel); }
 
   //! \}
@@ -961,18 +1086,22 @@ public:
   //! \cond INTERNAL
 
   //! Returns uint32_t[] view that represents BaseInst::RegOnly and instruction operands.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t* _getRewriteArray() noexcept { return &_baseInst._extraReg._id; }
+
   //! \overload
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const uint32_t* _getRewriteArray() const noexcept { return &_baseInst._extraReg._id; }
 
   //! Maximum value of rewrite id - 6 operands each having 4 slots is 24, one RegOnly having 2 slots => 26.
-  static constexpr uint32_t kMaxRewriteId = 26 - 1;
+  static inline constexpr uint32_t kMaxRewriteId = 26 - 1;
 
   //! Returns a rewrite index of the given pointer to `id`.
   //!
   //! This function returns a value that can be then passed to `\ref rewriteIdAtIndex() function. It can address
   //! any id from any operand that is used by the instruction in addition to \ref BaseInst::regOnly field, which
   //! can also be used by the register allocator.
+  [[nodiscard]]
   inline uint32_t getRewriteIndex(const uint32_t* id) const noexcept {
     const uint32_t* array = _getRewriteArray();
     ASMJIT_ASSERT(array <= id);
@@ -1010,14 +1139,16 @@ public:
   //! There are only two capacities used - \ref kBaseOpCapacity and \ref kFullOpCapacity, so this function
   //! is used to decide between these two. The general rule is that instructions that can be represented with
   //! \ref kBaseOpCapacity would use this value, and all others would take \ref kFullOpCapacity.
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t capacityOfOpCount(uint32_t opCount) noexcept {
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR uint32_t capacityOfOpCount(uint32_t opCount) noexcept {
     return opCount <= kBaseOpCapacity ? kBaseOpCapacity : kFullOpCapacity;
   }
 
   //! Calculates the size of \ref InstNode required to hold at most `opCapacity` operands.
   //!
   //! This function is used internally to allocate \ref InstNode.
-  static ASMJIT_INLINE_NODEBUG constexpr size_t nodeSizeOfOpCapacity(uint32_t opCapacity) noexcept {
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR size_t nodeSizeOfOpCapacity(uint32_t opCapacity) noexcept {
     return sizeof(InstNode) + opCapacity * sizeof(Operand);
   }
   //! \endcond
@@ -1107,8 +1238,11 @@ public:
   //! \{
 
   //! Returns \ref Label representation of the \ref LabelNode.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Label label() const noexcept { return Label(_labelId); }
+
   //! Returns the id of the label.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t labelId() const noexcept { return _labelId; }
 
   //! \}
@@ -1146,12 +1280,16 @@ public:
   //! \{
 
   //! Returns align mode.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG AlignMode alignMode() const noexcept { return _alignData._alignMode; }
+
   //! Sets align mode to `alignMode`.
   ASMJIT_INLINE_NODEBUG void setAlignMode(AlignMode alignMode) noexcept { _alignData._alignMode = alignMode; }
 
   //! Returns align offset in bytes.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t alignment() const noexcept { return _alignment; }
+
   //! Sets align offset in bytes to `offset`.
   ASMJIT_INLINE_NODEBUG void setAlignment(uint32_t alignment) noexcept { _alignment = alignment; }
 
@@ -1167,9 +1305,7 @@ public:
   ASMJIT_NONCOPYABLE(EmbedDataNode)
 
   //! \cond INTERNAL
-  enum : uint32_t {
-    kInlineBufferSize = 128 - (sizeof(BaseNode) + sizeof(size_t) * 2)
-  };
+  static inline constexpr uint32_t kInlineBufferSize = 128 - (sizeof(BaseNode) + sizeof(size_t) * 2);
   //! \endcond
 
   //! \name Members
@@ -1204,30 +1340,38 @@ public:
   //! \{
 
   //! Returns data type as \ref TypeId.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG TypeId typeId() const noexcept { return _embed._typeId; }
+
   //! Returns the size of a single data element.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t typeSize() const noexcept { return _embed._typeSize; }
 
   //! Returns a pointer to the data casted to `uint8_t`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint8_t* data() const noexcept {
     return dataSize() <= kInlineBufferSize ? const_cast<uint8_t*>(_inlineData) : _externalData;
   }
 
   //! Returns a pointer to the data casted to `T`.
   template<typename T>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG T* dataAs() const noexcept { return reinterpret_cast<T*>(data()); }
 
   //! Returns the number of (typed) items in the array.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t itemCount() const noexcept { return _itemCount; }
 
   //! Returns how many times the data is repeated (default 1).
   //!
   //! Repeated data is useful when defining constants for SIMD, for example.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t repeatCount() const noexcept { return _repeatCount; }
 
   //! Returns the size of the data, not considering the number of times it repeats.
   //!
   //! \note The returned value is the same as `typeSize() * itemCount()`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t dataSize() const noexcept { return typeSize() * _itemCount; }
 
   //! \}
@@ -1261,17 +1405,23 @@ public:
   //! \{
 
   //! Returns the label to embed as \ref Label operand.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Label label() const noexcept { return Label(_labelId); }
-  //! Returns the id of the label.
-  ASMJIT_INLINE_NODEBUG uint32_t labelId() const noexcept { return _labelId; }
 
   //! Sets the label id from `label` operand.
   ASMJIT_INLINE_NODEBUG void setLabel(const Label& label) noexcept { setLabelId(label.id()); }
+
+  //! Returns the id of the label.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG uint32_t labelId() const noexcept { return _labelId; }
+
   //! Sets the label id (use with caution, improper use can break a lot of things).
   ASMJIT_INLINE_NODEBUG void setLabelId(uint32_t labelId) noexcept { _labelId = labelId; }
 
   //! Returns the data size.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t dataSize() const noexcept { return _dataSize; }
+
   //! Sets the data size.
   ASMJIT_INLINE_NODEBUG void setDataSize(uint32_t dataSize) noexcept { _dataSize = dataSize; }
 
@@ -1308,18 +1458,25 @@ public:
   //! \{
 
   //! Returns the label as `Label` operand.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Label label() const noexcept { return Label(_labelId); }
-  //! Returns the id of the label.
-  ASMJIT_INLINE_NODEBUG uint32_t labelId() const noexcept { return _labelId; }
 
   //! Sets the label id from `label` operand.
   ASMJIT_INLINE_NODEBUG void setLabel(const Label& label) noexcept { setLabelId(label.id()); }
+
+  //! Returns the id of the label.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG uint32_t labelId() const noexcept { return _labelId; }
+
   //! Sets the label id.
   ASMJIT_INLINE_NODEBUG void setLabelId(uint32_t labelId) noexcept { _labelId = labelId; }
 
   //! Returns the base label as `Label` operand.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Label baseLabel() const noexcept { return Label(_baseLabelId); }
+
   //! Returns the id of the base label.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t baseLabelId() const noexcept { return _baseLabelId; }
 
   //! Sets the base label id from `label` operand.
@@ -1328,7 +1485,9 @@ public:
   ASMJIT_INLINE_NODEBUG void setBaseLabelId(uint32_t baseLabelId) noexcept { _baseLabelId = baseLabelId; }
 
   //! Returns the size of the embedded label address.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t dataSize() const noexcept { return _dataSize; }
+
   //! Sets the size of the embedded label address.
   ASMJIT_INLINE_NODEBUG void setDataSize(uint32_t dataSize) noexcept { _dataSize = dataSize; }
 
@@ -1366,15 +1525,23 @@ public:
   //! \{
 
   //! Tests whether the constant-pool is empty.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _constPool.empty(); }
+
   //! Returns the size of the constant-pool in bytes.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t size() const noexcept { return _constPool.size(); }
+
   //! Returns minimum alignment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t alignment() const noexcept { return _constPool.alignment(); }
 
   //! Returns the wrapped `ConstPool` instance.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG ConstPool& constPool() noexcept { return _constPool; }
+
   //! Returns the wrapped `ConstPool` instance (const).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const ConstPool& constPool() const noexcept { return _constPool; }
 
   //! \}
@@ -1431,6 +1598,7 @@ public:
   //! \{
 
   //! Returns the type of the sentinel.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG SentinelType sentinelType() const noexcept {
     return _sentinel._sentinelType;
   }
@@ -1471,8 +1639,11 @@ public:
   //! \{
 
   //! Returns \ref BaseBuilder associated with the pass.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const BaseBuilder* cb() const noexcept { return _cb; }
+
   //! Returns the name of the pass.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const char* name() const noexcept { return _name; }
 
   //! \}

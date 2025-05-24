@@ -47,36 +47,53 @@ public:
   //! \{
 
   //! Returns \ref FormatOptions of this logger.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FormatOptions& options() noexcept { return _options; }
+
   //! \overload
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const FormatOptions& options() const noexcept { return _options; }
+
   //! Sets formatting options of this Logger to `options`.
   ASMJIT_INLINE_NODEBUG void setOptions(const FormatOptions& options) noexcept { _options = options; }
+
   //! Resets formatting options of this Logger to defaults.
   ASMJIT_INLINE_NODEBUG void resetOptions() noexcept { _options.reset(); }
 
   //! Returns formatting flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FormatFlags flags() const noexcept { return _options.flags(); }
+
   //! Tests whether the logger has the given `flag` enabled.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(FormatFlags flag) const noexcept { return _options.hasFlag(flag); }
+
   //! Sets formatting flags to `flags`.
   ASMJIT_INLINE_NODEBUG void setFlags(FormatFlags flags) noexcept { _options.setFlags(flags); }
+
   //! Enables the given formatting `flags`.
   ASMJIT_INLINE_NODEBUG void addFlags(FormatFlags flags) noexcept { _options.addFlags(flags); }
+
   //! Disables the given formatting `flags`.
   ASMJIT_INLINE_NODEBUG void clearFlags(FormatFlags flags) noexcept { _options.clearFlags(flags); }
 
   //! Returns indentation of a given indentation `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t indentation(FormatIndentationGroup type) const noexcept { return _options.indentation(type); }
+
   //! Sets indentation of the given indentation `group` to `n` spaces.
   ASMJIT_INLINE_NODEBUG void setIndentation(FormatIndentationGroup type, uint32_t n) noexcept { _options.setIndentation(type, n); }
+
   //! Resets indentation of the given indentation `group` to 0 spaces.
   ASMJIT_INLINE_NODEBUG void resetIndentation(FormatIndentationGroup type) noexcept { _options.resetIndentation(type); }
 
   //! Returns padding of a given padding `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t padding(FormatPaddingGroup type) const noexcept { return _options.padding(type); }
+
   //! Sets padding of a given padding `group` to `n`.
   ASMJIT_INLINE_NODEBUG void setPadding(FormatPaddingGroup type, uint32_t n) noexcept { _options.setPadding(type, n); }
+
   //! Resets padding of a given padding `group` to 0, which means that a default will be used.
   ASMJIT_INLINE_NODEBUG void resetPadding(FormatPaddingGroup type) noexcept { _options.resetPadding(type); }
 
@@ -127,6 +144,7 @@ public:
   //! \{
 
   //! Returns the logging output stream or null if the logger has no output stream.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FILE* file() const noexcept { return _file; }
 
   //! Sets the logging output stream to `stream` or null.
@@ -165,15 +183,21 @@ public:
   //! Returns the content of the logger as \ref String.
   //!
   //! It can be moved, if desired.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG String& content() noexcept { return _content; }
+
   //! \overload
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const String& content() const noexcept { return _content; }
 
   //! Returns aggregated logger data as `char*` pointer.
   //!
   //! The pointer is owned by `StringLogger`, it can't be modified or freed.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const char* data() const noexcept { return _content.data(); }
+
   //! Returns size of the data returned by `data()`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG size_t dataSize() const noexcept { return _content.size(); }
 
   //! \}

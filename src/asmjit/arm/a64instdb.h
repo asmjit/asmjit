@@ -47,9 +47,13 @@ struct InstInfo {
   //! \name Accessors
   //! \{
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t rwInfoIndex() const noexcept { return _rwInfoIndex; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t flags() const noexcept { return _flags; }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(uint32_t flag) const { return (_flags & flag) != 0; }
 
   //! \}
@@ -57,6 +61,7 @@ struct InstInfo {
 
 ASMJIT_VARAPI const InstInfo _instInfoTable[];
 
+[[nodiscard]]
 static inline const InstInfo& infoById(InstId instId) noexcept {
   instId &= uint32_t(InstIdParts::kRealId);
   ASMJIT_ASSERT(Inst::isDefinedId(instId));

@@ -205,49 +205,76 @@ struct ArchTraits {
   //! \{
 
   //! Returns stack pointer register id.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t spRegId() const noexcept { return _spRegId; }
+
   //! Returns stack frame register id.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t fpRegId() const noexcept { return _fpRegId; }
+
   //! Returns link register id, if the architecture provides it.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t linkRegId() const noexcept { return _linkRegId; }
+
   //! Returns instruction pointer register id, if the architecture provides it.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t ipRegId() const noexcept { return _ipRegId; }
 
   //! Returns a hardware stack alignment requirement.
   //!
   //! \note This is a hardware constraint. Architectures that don't constrain it would return the lowest alignment
   //! (1), however, some architectures may constrain the alignment, for example AArch64 requires 16-byte alignment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t hwStackAlignment() const noexcept { return _hwStackAlignment; }
 
   //! Tests whether the architecture provides link register, which is used across function calls. If the link
   //! register is not provided then a function call pushes the return address on stack (X86/X64).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasLinkReg() const noexcept { return _linkRegId != BaseReg::kIdBad; }
 
   //! Returns minimum addressable offset on stack guaranteed for all instructions.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t minStackOffset() const noexcept { return _minStackOffset; }
+
   //! Returns maximum addressable offset on stack depending on specific instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t maxStackOffset() const noexcept { return _maxStackOffset; }
 
   //! Returns ISA flags of the given register `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstHints instFeatureHints(RegGroup group) const noexcept { return _instHints[group]; }
+
   //! Tests whether the given register `group` has the given `flag` set.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasInstHint(RegGroup group, InstHints feature) const noexcept { return Support::test(_instHints[group], feature); }
+
   //! Tests whether the ISA provides register swap instruction for the given register `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasInstRegSwap(RegGroup group) const noexcept { return hasInstHint(group, InstHints::kRegSwap); }
+
   //! Tests whether the ISA provides push/pop instructions for the given register `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasInstPushPop(RegGroup group) const noexcept { return hasInstHint(group, InstHints::kPushPop); }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRegType(RegType type) const noexcept {
     return type <= RegType::kMaxValue && _regSignature[type].isValid();
   }
 
   //! Returns an operand signature from the given register `type` of this architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG OperandSignature regTypeToSignature(RegType type) const noexcept { return _regSignature[type]; }
+
   //! Returns a register from the given register `type` of this architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG RegGroup regTypeToGroup(RegType type) const noexcept { return _regSignature[type].regGroup(); }
+
   //! Returns a register size the given register `type` of this architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t regTypeToSize(RegType type) const noexcept { return _regSignature[type].size(); }
+
   //! Returns a corresponding `TypeId` from the given register `type` of this architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG TypeId regTypeToTypeId(RegType type) const noexcept { return _regTypeToTypeId[type]; }
 
   //! Returns a table of ISA word names that appear in formatted text. Word names are ISA dependent.
@@ -257,9 +284,11 @@ struct ArchTraits {
   //!   - [1] 16-bits
   //!   - [2] 32-bits
   //!   - [3] 64-bits
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const ArchTypeNameId* typeNameIdTable() const noexcept { return _typeNameIdTable; }
 
   //! Returns an ISA word name identifier of the given `index`, see \ref typeNameIdTable() for more details.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG ArchTypeNameId typeNameIdByIndex(uint32_t index) const noexcept { return _typeNameIdTable[index]; }
 
   //! \}
@@ -268,6 +297,7 @@ struct ArchTraits {
   //! \{
 
   //! Returns a const reference to `ArchTraits` for the given architecture `arch`.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG const ArchTraits& byArch(Arch arch) noexcept;
 
   //! \}

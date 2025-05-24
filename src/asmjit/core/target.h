@@ -40,12 +40,18 @@ public:
   //! \{
 
   //! Returns target's environment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const Environment& environment() const noexcept { return _environment; }
+
   //! Returns the target architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Arch arch() const noexcept { return _environment.arch(); }
+
   //! Returns the target sub-architecture.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG SubArch subArch() const noexcept { return _environment.subArch(); }
 
+  [[nodiscard]]
   //! Returns target CPU features.
   ASMJIT_INLINE_NODEBUG const CpuFeatures& cpuFeatures() const noexcept { return _cpuFeatures; }
 

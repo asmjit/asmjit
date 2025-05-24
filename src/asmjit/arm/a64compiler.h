@@ -24,7 +24,7 @@ class ASMJIT_VIRTAPI Compiler
     public EmitterExplicitT<Compiler> {
 public:
   ASMJIT_NONCOPYABLE(Compiler)
-  typedef BaseCompiler Base;
+  using Base = BaseCompiler;
 
   //! \name Construction & Destruction
   //! \{

@@ -195,7 +195,7 @@ function(asmjit_add_target target target_type)
       DEFINE_SYMBOL ""
       CXX_VISIBILITY_PRESET hidden)
   target_compile_options(${target} PRIVATE ${X_CFLAGS} ${ASMJIT_SANITIZE_CFLAGS} $<$<CONFIG:Debug>:${X_CFLAGS_DBG}> $<$<NOT:$<CONFIG:Debug>>:${X_CFLAGS_REL}>)
-  target_compile_features(${target} PUBLIC cxx_std_11)
+  target_compile_features(${target} PUBLIC cxx_std_17)
   target_link_options(${target} PRIVATE ${ASMJIT_PRIVATE_LFLAGS})
   target_link_libraries(${target} PRIVATE ${X_LIBRARIES})
 

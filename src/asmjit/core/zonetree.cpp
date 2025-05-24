@@ -16,7 +16,7 @@ ASMJIT_BEGIN_NAMESPACE
 #if defined(ASMJIT_TEST)
 template<typename NodeT>
 struct ZoneRBUnit {
-  typedef ZoneTree<NodeT> Tree;
+  using Tree = ZoneTree<NodeT>;
 
   static void verifyTree(Tree& tree) noexcept {
     EXPECT_GT(checkHeight(static_cast<NodeT*>(tree._root)), 0);

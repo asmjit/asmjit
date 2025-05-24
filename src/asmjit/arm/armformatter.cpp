@@ -334,10 +334,12 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
         ASMJIT_ASSERT(vReg != nullptr);
 
         const char* name = vReg->name();
-        if (name && name[0] != '\0')
+        if (name && name[0] != '\0') {
           ASMJIT_PROPAGATE(sb.append(name));
-        else
+        }
+        else {
           ASMJIT_PROPAGATE(sb.appendFormat("%%%u", unsigned(Operand::virtIdToIndex(rId))));
+        }
 
         virtRegFormatted = true;
       }
@@ -356,19 +358,22 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
       case RegType::kARM_VecD:
       case RegType::kARM_VecV:
         letter = bhsdq[uint32_t(regType) - uint32_t(RegType::kARM_VecB)];
-        if (elementType)
+        if (elementType) {
           letter = 'v';
+        }
         break;
 
       case RegType::kARM_GpW:
         if (Environment::is64Bit(arch)) {
           letter = 'w';
 
-          if (rId == a64::Gp::kIdZr)
+          if (rId == a64::Gp::kIdZr) {
             return sb.append("wzr", 3);
+          }
 
-          if (rId == a64::Gp::kIdSp)
+          if (rId == a64::Gp::kIdSp) {
             return sb.append("wsp", 3);
+          }
         }
         else {
           letter = 'r';
@@ -377,17 +382,20 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(
 
       case RegType::kARM_GpX:
         if (Environment::is64Bit(arch)) {
-          if (rId == a64::Gp::kIdZr)
+          if (rId == a64::Gp::kIdZr) {
             return sb.append("xzr", 3);
-          if (rId == a64::Gp::kIdSp)
+          }
+
+          if (rId == a64::Gp::kIdSp) {
             return sb.append("sp", 2);
+          }
 
           letter = 'x';
           break;
         }
 
         // X registers are undefined in 32-bit mode.
-        ASMJIT_FALLTHROUGH;
+        [[fallthrough]];
 
       default:
         ASMJIT_PROPAGATE(sb.appendFormat("<Reg-%u>?%u", uint32_t(regType), rId));
@@ -445,8 +453,9 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegisterList(
       count++;
     } while (rMask & mask);
 
-    if (!first)
+    if (!first) {
       ASMJIT_PROPAGATE(sb.append(", "));
+    }
 
     ASMJIT_PROPAGATE(formatRegister(sb, flags, emitter, arch, regType, start, 0, 0xFFFFFFFFu));
     if (count >= 2u) {
@@ -477,8 +486,9 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
     uint32_t elementType = op._signature.getField<BaseVec::kSignatureRegElementTypeMask>();
     uint32_t elementIndex = op.as<BaseVec>().elementIndex();
 
-    if (!op.as<BaseVec>().hasElementIndex())
+    if (!op.as<BaseVec>().hasElementIndex()) {
       elementIndex = 0xFFFFFFFFu;
+    }
 
     return formatRegister(sb, flags, emitter, arch, reg.type(), reg.id(), elementType, elementIndex);
   }
@@ -524,8 +534,9 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
       int64_t off = int64_t(m.offset());
       uint32_t base = 10;
 
-      if (Support::test(flags, FormatFlags::kHexOffsets) && uint64_t(off) > 9)
+      if (Support::test(flags, FormatFlags::kHexOffsets) && uint64_t(off) > 9) {
         base = 16;
+      }
 
       if (base == 10) {
         ASMJIT_PROPAGATE(sb.appendInt(off, base));
@@ -538,16 +549,19 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatOperand(
 
     if (m.hasShift()) {
       ASMJIT_PROPAGATE(sb.append(' '));
-      if (!m.isPreOrPost())
+      if (!m.isPreOrPost()) {
         ASMJIT_PROPAGATE(formatShiftOp(sb, m.shiftOp()));
+      }
       ASMJIT_PROPAGATE(sb.appendFormat(" %u", m.shift()));
     }
 
-    if (!m.isPostIndex())
+    if (!m.isPostIndex()) {
       ASMJIT_PROPAGATE(sb.append(']'));
+    }
 
-    if (m.isPreIndex())
+    if (m.isPreIndex()) {
       ASMJIT_PROPAGATE(sb.append('!'));
+    }
 
     return kErrorOk;
   }

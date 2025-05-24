@@ -59,6 +59,7 @@ public:
   //! \{
 
   //! Returns the associated `JitAllocator`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG JitAllocator* allocator() const noexcept { return const_cast<JitAllocator*>(&_allocator); }
 
   //! \}

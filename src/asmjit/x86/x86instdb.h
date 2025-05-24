@@ -30,7 +30,7 @@ enum class Mode : uint8_t {
 ASMJIT_DEFINE_ENUM_FLAGS(Mode)
 
 //! Converts architecture to operation mode, see \ref Mode.
-static ASMJIT_INLINE_NODEBUG constexpr Mode modeFromArch(Arch arch) noexcept {
+static ASMJIT_INLINE_CONSTEXPR Mode modeFromArch(Arch arch) noexcept {
   return arch == Arch::kX86 ? Mode::kX86 :
          arch == Arch::kX64 ? Mode::kX64 : Mode::kNone;
 }
@@ -127,26 +127,39 @@ struct OpSignature {
   //! \{
 
   //! Returns operand signature flags.
+  [[nodiscard]]
   inline OpFlags flags() const noexcept { return (OpFlags)_flags; }
 
   //! Tests whether the given `flag` is set.
+  [[nodiscard]]
   inline bool hasFlag(OpFlags flag) const noexcept { return (_flags & uint64_t(flag)) != 0; }
 
   //! Tests whether this signature contains at least one register operand of any type.
+  [[nodiscard]]
   inline bool hasReg() const noexcept { return hasFlag(OpFlags::kRegMask); }
+
   //! Tests whether this signature contains at least one scalar memory operand of any type.
+  [[nodiscard]]
   inline bool hasMem() const noexcept { return hasFlag(OpFlags::kMemMask); }
+
   //! Tests whether this signature contains at least one vector memory operand of any type.
+  [[nodiscard]]
   inline bool hasVm() const noexcept { return hasFlag(OpFlags::kVmMask); }
+
   //! Tests whether this signature contains at least one immediate operand of any type.
+  [[nodiscard]]
   inline bool hasImm() const noexcept { return hasFlag(OpFlags::kImmMask); }
+
   //! Tests whether this signature contains at least one relative displacement operand of any type.
+  [[nodiscard]]
   inline bool hasRel() const noexcept { return hasFlag(OpFlags::kRelMask); }
 
   //! Tests whether the operand is implicit.
+  [[nodiscard]]
   inline bool isImplicit() const noexcept { return hasFlag(OpFlags::kFlagImplicit); }
 
   //! Returns a physical register mask.
+  [[nodiscard]]
   inline RegMask regMask() const noexcept { return _regMask; }
 
   //! \}
@@ -179,30 +192,41 @@ struct InstSignature {
   //! \{
 
   //! Returns instruction operation mode.
+  [[nodiscard]]
   inline Mode mode() const noexcept { return (Mode)_mode; }
+
   //! Tests whether the instruction supports the given operating mode.
+  [[nodiscard]]
   inline bool supportsMode(Mode mode) const noexcept { return (uint8_t(_mode) & uint8_t(mode)) != 0; }
 
   //! Returns the number of operands of this signature.
+  [[nodiscard]]
   inline uint32_t opCount() const noexcept { return _opCount; }
+
   //! Returns the number of implicit operands this signature has.
+  [[nodiscard]]
   inline uint32_t implicitOpCount() const noexcept { return _implicitOpCount; }
+
   //! Tests whether this instruction signature has at least one implicit operand.
+  [[nodiscard]]
   inline bool hasImplicitOperands() const noexcept { return _implicitOpCount != 0; }
 
   //! Returns indexes to \ref _opSignatureTable for each operand of the instruction.
   //!
   //! \note The returned array always provides indexes for all operands (see \ref Globals::kMaxOpCount) even if the
   //! instruction provides less operands. Undefined operands have always index of zero.
+  [[nodiscard]]
   inline const uint8_t* opSignatureIndexes() const noexcept { return _opSignatureIndexes; }
 
   //! Returns index to \ref _opSignatureTable, corresponding to the requested operand `index` of the instruction.
+  [[nodiscard]]
   inline uint8_t opSignatureIndex(size_t index) const noexcept {
     ASMJIT_ASSERT(index < Globals::kMaxOpCount);
     return _opSignatureIndexes[index];
   }
 
   //! Returns \ref OpSignature corresponding to the requested operand `index` of the instruction.
+  [[nodiscard]]
   inline const OpSignature& opSignature(size_t index) const noexcept {
     ASMJIT_ASSERT(index < Globals::kMaxOpCount);
     return _opSignatureTable[_opSignatureIndexes[index]];
@@ -345,91 +369,158 @@ struct CommonInfo {
   //! \{
 
   //! Returns instruction flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstFlags flags() const noexcept { return (InstFlags)_flags; }
+
   //! Tests whether the instruction has a `flag`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(InstFlags flag) const noexcept { return Support::test(_flags, flag); }
 
   //! Returns instruction AVX-512 flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Avx512Flags avx512Flags() const noexcept { return (Avx512Flags)_avx512Flags; }
+
   //! Tests whether the instruction has an AVX-512 `flag`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512Flag(Avx512Flags flag) const noexcept { return Support::test(_avx512Flags, flag); }
 
   //! Tests whether the instruction is FPU instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFpu() const noexcept { return hasFlag(InstFlags::kFpu); }
+
   //! Tests whether the instruction is MMX/3DNOW instruction that accesses MMX registers (includes EMMS and FEMMS).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isMmx() const noexcept { return hasFlag(InstFlags::kMmx); }
+
   //! Tests whether the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVec() const noexcept { return hasFlag(InstFlags::kVec); }
+
   //! Tests whether the instruction is SSE+ (SSE4.2, AES, SHA included) instruction that accesses XMM registers.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isSse() const noexcept { return (flags() & (InstFlags::kVec | InstFlags::kVex | InstFlags::kEvex)) == InstFlags::kVec; }
+
   //! Tests whether the instruction is AVX+ (FMA included) instruction that accesses XMM|YMM|ZMM registers.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isAvx() const noexcept { return isVec() && isVexOrEvex(); }
 
   //! Tests whether the instruction can be prefixed with LOCK prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasLockPrefix() const noexcept { return hasFlag(InstFlags::kLock); }
+
   //! Tests whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRepPrefix() const noexcept { return hasFlag(InstFlags::kRep); }
+
   //! Tests whether the instruction can be prefixed with XACQUIRE prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasXAcquirePrefix() const noexcept { return hasFlag(InstFlags::kXAcquire); }
+
   //! Tests whether the instruction can be prefixed with XRELEASE prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasXReleasePrefix() const noexcept { return hasFlag(InstFlags::kXRelease); }
 
   //! Tests whether the rep prefix is supported by the instruction, but ignored (has no effect).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isRepIgnored() const noexcept { return hasFlag(InstFlags::kRepIgnored); }
+
   //! Tests whether the instruction uses MIB.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isMibOp() const noexcept { return hasFlag(InstFlags::kMib); }
+
   //! Tests whether the instruction uses VSIB.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVsibOp() const noexcept { return hasFlag(InstFlags::kVsib); }
+
   //! Tests whether the instruction uses TSIB (AMX, instruction requires MOD+SIB).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isTsibOp() const noexcept { return hasFlag(InstFlags::kTsib); }
+
   //! Tests whether the instruction uses VEX (can be set together with EVEX if both are encodable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVex() const noexcept { return hasFlag(InstFlags::kVex); }
+
   //! Tests whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvex() const noexcept { return hasFlag(InstFlags::kEvex); }
+
   //! Tests whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVexOrEvex() const noexcept { return hasFlag(InstFlags::kVex | InstFlags::kEvex); }
 
   //! Tests whether the instruction should prefer EVEX prefix instead of VEX prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool preferEvex() const noexcept { return hasFlag(InstFlags::kPreferEvex); }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexCompatible() const noexcept { return hasFlag(InstFlags::kEvexCompat); }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexKRegOnly() const noexcept { return hasFlag(InstFlags::kEvexKReg); }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexTwoOpOnly() const noexcept { return hasFlag(InstFlags::kEvexTwoOp); }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexTransformable() const noexcept { return hasFlag(InstFlags::kEvexTransformable); }
 
   //! Tests whether the instruction supports AVX512 masking {k}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512K() const noexcept { return hasAvx512Flag(Avx512Flags::kK); }
+
   //! Tests whether the instruction supports AVX512 zeroing {k}{z}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512Z() const noexcept { return hasAvx512Flag(Avx512Flags::kZ); }
+
   //! Tests whether the instruction supports AVX512 embedded-rounding {er}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512ER() const noexcept { return hasAvx512Flag(Avx512Flags::kER); }
+
   //! Tests whether the instruction supports AVX512 suppress-all-exceptions {sae}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512SAE() const noexcept { return hasAvx512Flag(Avx512Flags::kSAE); }
+
   //! Tests whether the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B() const noexcept { return hasAvx512Flag(Avx512Flags::kB16 | Avx512Flags::kB32 | Avx512Flags::kB64); }
+
   //! Tests whether the instruction supports AVX512 broadcast (16-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B16() const noexcept { return hasAvx512Flag(Avx512Flags::kB16); }
+
   //! Tests whether the instruction supports AVX512 broadcast (32-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B32() const noexcept { return hasAvx512Flag(Avx512Flags::kB32); }
+
   //! Tests whether the instruction supports AVX512 broadcast (64-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B64() const noexcept { return hasAvx512Flag(Avx512Flags::kB64); }
 
   // Returns the size of the broadcast - either 2, 4, or 8, or 0 if broadcast is not supported.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t broadcastSize() const noexcept {
     constexpr uint32_t kShift = Support::ConstCTZ<uint32_t(Avx512Flags::kB16)>::value;
     return (uint32_t(_avx512Flags) & uint32_t(Avx512Flags::kB16 | Avx512Flags::kB32 | Avx512Flags::kB64)) >> (kShift - 1);
   }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t signatureIndex() const noexcept { return _iSignatureIndex; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t signatureCount() const noexcept { return _iSignatureCount; }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const InstSignature* signatureData() const noexcept { return _instSignatureTable + _iSignatureIndex; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const InstSignature* signatureEnd() const noexcept { return _instSignatureTable + _iSignatureIndex + _iSignatureCount; }
 
   //! Returns a control flow category of the instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstControlFlow controlFlow() const noexcept { return (InstControlFlow)_controlFlow; }
 
   //! Returns a hint that can be used when both inputs are the same register.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstSameRegHint sameRegHint() const noexcept { return (InstSameRegHint)_sameRegHint; }
 
   //! \}
@@ -459,86 +550,151 @@ struct InstInfo {
   //! \{
 
   //! Returns common information, see \ref CommonInfo.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const CommonInfo& commonInfo() const noexcept { return _commonInfoTable[_commonInfoIndex]; }
 
   //! Returns instruction flags, see \ref InstFlags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstFlags flags() const noexcept { return commonInfo().flags(); }
+
   //! Tests whether the instruction has flag `flag`, see \ref InstFlags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(InstFlags flag) const noexcept { return commonInfo().hasFlag(flag); }
 
   //! Returns instruction AVX-512 flags, see \ref Avx512Flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Avx512Flags avx512Flags() const noexcept { return commonInfo().avx512Flags(); }
+
   //! Tests whether the instruction has an AVX-512 `flag`, see \ref Avx512Flags.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512Flag(Avx512Flags flag) const noexcept { return commonInfo().hasAvx512Flag(flag); }
 
   //! Tests whether the instruction is FPU instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isFpu() const noexcept { return commonInfo().isFpu(); }
+
   //! Tests whether the instruction is MMX/3DNOW instruction that accesses MMX registers (includes EMMS and FEMMS).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isMmx() const noexcept { return commonInfo().isMmx(); }
+
   //! Tests whether the instruction is SSE|AVX|AVX512 instruction that accesses XMM|YMM|ZMM registers.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVec() const noexcept { return commonInfo().isVec(); }
+
   //! Tests whether the instruction is SSE+ (SSE4.2, AES, SHA included) instruction that accesses XMM registers.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isSse() const noexcept { return commonInfo().isSse(); }
+
   //! Tests whether the instruction is AVX+ (FMA included) instruction that accesses XMM|YMM|ZMM registers.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isAvx() const noexcept { return commonInfo().isAvx(); }
 
   //! Tests whether the instruction can be prefixed with LOCK prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasLockPrefix() const noexcept { return commonInfo().hasLockPrefix(); }
+
   //! Tests whether the instruction can be prefixed with REP (REPE|REPZ) prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRepPrefix() const noexcept { return commonInfo().hasRepPrefix(); }
+
   //! Tests whether the instruction can be prefixed with XACQUIRE prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasXAcquirePrefix() const noexcept { return commonInfo().hasXAcquirePrefix(); }
+
   //! Tests whether the instruction can be prefixed with XRELEASE prefix.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasXReleasePrefix() const noexcept { return commonInfo().hasXReleasePrefix(); }
 
   //! Tests whether the rep prefix is supported by the instruction, but ignored (has no effect).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isRepIgnored() const noexcept { return commonInfo().isRepIgnored(); }
+
   //! Tests whether the instruction uses MIB.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isMibOp() const noexcept { return hasFlag(InstFlags::kMib); }
+
   //! Tests whether the instruction uses VSIB.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVsibOp() const noexcept { return hasFlag(InstFlags::kVsib); }
+
   //! Tests whether the instruction uses VEX (can be set together with EVEX if both are encodable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVex() const noexcept { return hasFlag(InstFlags::kVex); }
+
   //! Tests whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvex() const noexcept { return hasFlag(InstFlags::kEvex); }
+
   //! Tests whether the instruction uses EVEX (can be set together with VEX if both are encodable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVexOrEvex() const noexcept { return hasFlag(InstFlags::kVex | InstFlags::kEvex); }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexCompatible() const noexcept { return hasFlag(InstFlags::kEvexCompat); }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexKRegOnly() const noexcept { return hasFlag(InstFlags::kEvexKReg); }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexTwoOpOnly() const noexcept { return hasFlag(InstFlags::kEvexTwoOp); }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isEvexTransformable() const noexcept { return hasFlag(InstFlags::kEvexTransformable); }
 
   //! Tests whether the instruction supports AVX512 masking {k}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512K() const noexcept { return hasAvx512Flag(Avx512Flags::kK); }
+
   //! Tests whether the instruction supports AVX512 zeroing {k}{z}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512Z() const noexcept { return hasAvx512Flag(Avx512Flags::kZ); }
+
   //! Tests whether the instruction supports AVX512 embedded-rounding {er}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512ER() const noexcept { return hasAvx512Flag(Avx512Flags::kER); }
+
   //! Tests whether the instruction supports AVX512 suppress-all-exceptions {sae}.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512SAE() const noexcept { return hasAvx512Flag(Avx512Flags::kSAE); }
+
   //! Tests whether the instruction supports AVX512 broadcast (either 32-bit or 64-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B() const noexcept { return hasAvx512Flag(Avx512Flags::kB16 | Avx512Flags::kB32 | Avx512Flags::kB64); }
+
   //! Tests whether the instruction supports AVX512 broadcast (16-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B16() const noexcept { return hasAvx512Flag(Avx512Flags::kB16); }
+
   //! Tests whether the instruction supports AVX512 broadcast (32-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B32() const noexcept { return hasAvx512Flag(Avx512Flags::kB32); }
+
   //! Tests whether the instruction supports AVX512 broadcast (64-bit).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvx512B64() const noexcept { return hasAvx512Flag(Avx512Flags::kB64); }
 
   //! Returns a control flow category of the instruction.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstControlFlow controlFlow() const noexcept { return commonInfo().controlFlow(); }
+
   //! Returns a hint that can be used when both inputs are the same register.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstSameRegHint sameRegHint() const noexcept { return commonInfo().sameRegHint(); }
 
   //! Returns the beginning of the instruction signature list relative to \ref _instSignatureTable.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t signatureIndex() const noexcept { return commonInfo().signatureIndex(); }
+
   //! Returns the number of instruction signature entries.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t signatureCount() const noexcept { return commonInfo().signatureCount(); }
 
   //! Returns the beginning of instruction signature data (relative to \ref _instSignatureTable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const InstSignature* signatureData() const noexcept { return commonInfo().signatureData(); }
+
   //! Returns the end of instruction signature data (relative to \ref _instSignatureTable).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const InstSignature* signatureEnd() const noexcept { return commonInfo().signatureEnd(); }
 
   //! \}
@@ -546,6 +702,7 @@ struct InstInfo {
 
 ASMJIT_VARAPI const InstInfo _instInfoTable[];
 
+[[nodiscard]]
 static inline const InstInfo& infoById(InstId instId) noexcept {
   ASMJIT_ASSERT(Inst::isDefinedId(instId));
   return _instInfoTable[instId];

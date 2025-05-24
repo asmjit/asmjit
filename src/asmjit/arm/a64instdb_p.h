@@ -264,7 +264,7 @@ namespace EncodingData {
 
 #define M_OPCODE(field, bits) \
   uint32_t _##field : bits; \
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t field() const noexcept { return uint32_t(_##field) << (32 - bits); }
+  ASMJIT_INLINE_CONSTEXPR uint32_t field() const noexcept { return uint32_t(_##field) << (32 - bits); }
 
 struct BaseOp {
   uint32_t opcode;
@@ -477,20 +477,20 @@ struct BaseAtomicCasp {
   uint32_t xOffset : 5;
 };
 
-typedef BaseOp BaseBranchReg;
-typedef BaseOp BaseBranchRel;
-typedef BaseOp BaseBranchCmp;
-typedef BaseOp BaseBranchTst;
-typedef BaseOp BaseExtract;
-typedef BaseOp BaseBfc;
-typedef BaseOp BaseBfi;
-typedef BaseOp BaseBfx;
-typedef BaseOp BaseCCmp;
-typedef BaseOp BaseCInc;
-typedef BaseOp BaseCSet;
-typedef BaseOp BaseCSel;
-typedef BaseOp BaseMovKNZ;
-typedef BaseOp BaseMull;
+using BaseBranchReg = BaseOp;
+using BaseBranchRel = BaseOp;
+using BaseBranchCmp = BaseOp;
+using BaseBranchTst = BaseOp;
+using BaseExtract = BaseOp;
+using BaseBfc = BaseOp;
+using BaseBfi = BaseOp;
+using BaseBfx = BaseOp;
+using BaseCCmp = BaseOp;
+using BaseCInc = BaseOp;
+using BaseCSet = BaseOp;
+using BaseCSel = BaseOp;
+using BaseMovKNZ = BaseOp;
+using BaseMull = BaseOp;
 
 struct FSimdGeneric {
   uint32_t _scalarOp : 28;
@@ -504,9 +504,9 @@ struct FSimdGeneric {
   constexpr uint32_t vectorHf() const noexcept { return uint32_t(_vectorHf); }
 };
 
-typedef FSimdGeneric FSimdVV;
-typedef FSimdGeneric FSimdVVV;
-typedef FSimdGeneric FSimdVVVV;
+using FSimdVV = FSimdGeneric;
+using FSimdVVV = FSimdGeneric;
+using FSimdVVVV = FSimdGeneric;
 
 struct FSimdSV {
   uint32_t opcode;

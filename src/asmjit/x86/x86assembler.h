@@ -32,7 +32,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! using namespace asmjit;
 //!
 //! // Signature of the generated function.
-//! typedef int (*SumFunc)(const int* arr, size_t count);
+//! using SumFunc = int (*)(const int* arr, size_t count);
 //!
 //! int main() {
 //!   JitRuntime rt;                    // Create a runtime specialized for JIT.
@@ -183,7 +183,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! using namespace asmjit;
 //!
-//! typedef int (*Func)(void);
+//! using Func = int (*)(void);
 //!
 //! int main(int argc, char* argv[]) {
 //!   JitRuntime rt;                    // Create a runtime specialized for JIT.
@@ -346,7 +346,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! using namespace asmjit;
 //!
-//! typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
+//! using SumIntsFunc = void (*)(int* dst, const int* a, const int* b);
 //!
 //! int main(int argc, char* argv[]) {
 //!   JitRuntime rt;                    // Create JIT Runtime.
@@ -455,9 +455,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! using namespace asmjit;
 //!
-//! typedef int (*Func)(void);
-//!
 //! int main(int argc, char* argv[]) {
+//!   using Func = int (*)(void);
+//!
 //!   JitRuntime rt;                    // Create a runtime specialized for JIT.
 //!   CodeHolder code;                  // Create a CodeHolder.
 //!
@@ -640,7 +640,7 @@ class ASMJIT_VIRTAPI Assembler
     public EmitterImplicitT<Assembler> {
 public:
   ASMJIT_NONCOPYABLE(Assembler)
-  typedef BaseAssembler Base;
+  using Base = BaseAssembler;
 
   //! \name Construction & Destruction
   //! \{

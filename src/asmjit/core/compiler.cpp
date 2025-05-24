@@ -22,10 +22,10 @@ ASMJIT_BEGIN_NAMESPACE
 // ===================
 
 class GlobalConstPoolPass : public Pass {
-public:
-  typedef Pass Base;
-public:
   ASMJIT_NONCOPYABLE(GlobalConstPoolPass)
+
+public:
+  using Base = Pass;
 
   GlobalConstPoolPass() noexcept : Pass("GlobalConstPoolPass") {}
 
@@ -73,27 +73,31 @@ Error BaseCompiler::newFuncNode(FuncNode** out, const FuncSignature& signature) 
 
   // Initialize the function's detail info.
   Error err = funcNode->detail().init(signature, environment());
-  if (ASMJIT_UNLIKELY(err))
+  if (ASMJIT_UNLIKELY(err)) {
     return reportError(err);
+  }
 
   // If the Target guarantees greater stack alignment than required by the calling convention
   // then override it as we can prevent having to perform dynamic stack alignment
   uint32_t environmentStackAlignment = _environment.stackAlignment();
 
-  if (funcNode->_funcDetail._callConv.naturalStackAlignment() < environmentStackAlignment)
+  if (funcNode->_funcDetail._callConv.naturalStackAlignment() < environmentStackAlignment) {
     funcNode->_funcDetail._callConv.setNaturalStackAlignment(environmentStackAlignment);
+  }
 
   // Initialize the function frame.
   err = funcNode->_frame.init(funcNode->_funcDetail);
-  if (ASMJIT_UNLIKELY(err))
+  if (ASMJIT_UNLIKELY(err)) {
     return reportError(err);
+  }
 
   // Allocate space for function arguments.
   funcNode->_args = nullptr;
   if (funcNode->argCount() != 0) {
     funcNode->_args = _allocator.allocT<FuncNode::ArgPack>(funcNode->argCount() * sizeof(FuncNode::ArgPack));
-    if (ASMJIT_UNLIKELY(!funcNode->_args))
+    if (ASMJIT_UNLIKELY(!funcNode->_args)) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
+    }
     memset(funcNode->_args, 0, funcNode->argCount() * sizeof(FuncNode::ArgPack));
   }
 
@@ -159,8 +163,9 @@ Error BaseCompiler::endFunc() {
   FuncNode* func = _func;
   resetState();
 
-  if (ASMJIT_UNLIKELY(!func))
+  if (ASMJIT_UNLIKELY(!func)) {
     return reportError(DebugUtils::errored(kErrorInvalidState));
+  }
 
   // Add the local constant pool at the end of the function (if exists).
   ConstPoolNode* localConstPool = _constPools[uint32_t(ConstPoolScope::kLocal)];
@@ -191,15 +196,17 @@ Error BaseCompiler::newInvokeNode(InvokeNode** out, InstId instId, const Operand
   node->resetOpRange(1, node->opCapacity());
 
   Error err = node->detail().init(signature, environment());
-  if (ASMJIT_UNLIKELY(err))
+  if (ASMJIT_UNLIKELY(err)) {
     return reportError(err);
+  }
 
   // Skip the allocation if there are no arguments.
   uint32_t argCount = signature.argCount();
   if (argCount) {
     node->_args = static_cast<InvokeNode::OperandPack*>(_allocator.alloc(argCount * sizeof(InvokeNode::OperandPack)));
-    if (!node->_args)
+    if (!node->_args) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
+    }
     memset(node->_args, 0, argCount * sizeof(InvokeNode::OperandPack));
   }
 
@@ -235,15 +242,18 @@ Error BaseCompiler::newVirtReg(VirtReg** out, TypeId typeId, OperandSignature si
   *out = nullptr;
   uint32_t index = _vRegArray.size();
 
-  if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kVirtIdCount)))
+  if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kVirtIdCount))) {
     return reportError(DebugUtils::errored(kErrorTooManyVirtRegs));
+  }
 
-  if (ASMJIT_UNLIKELY(_vRegArray.willGrow(&_allocator) != kErrorOk))
+  if (ASMJIT_UNLIKELY(_vRegArray.willGrow(&_allocator) != kErrorOk)) {
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
+  }
 
   VirtReg* vReg = _vRegZone.allocZeroedT<VirtReg>();
-  if (ASMJIT_UNLIKELY(!vReg))
+  if (ASMJIT_UNLIKELY(!vReg)) {
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
+  }
 
   uint32_t size = TypeUtils::sizeOf(typeId);
   uint32_t alignment = Support::min<uint32_t>(size, 64);
@@ -251,10 +261,12 @@ Error BaseCompiler::newVirtReg(VirtReg** out, TypeId typeId, OperandSignature si
   vReg = new(Support::PlacementNew{vReg}) VirtReg(signature, Operand::indexToVirtId(index), size, alignment, typeId);
 
 #ifndef ASMJIT_NO_LOGGING
-  if (name && name[0] != '\0')
+  if (name && name[0] != '\0') {
     vReg->_name.setData(&_dataZone, name, SIZE_MAX);
-  else
+  }
+  else {
     BaseCompiler_assignGenericName(this, vReg);
+  }
 #else
   DebugUtils::unused(name);
 #endif
@@ -270,8 +282,9 @@ Error BaseCompiler::_newReg(BaseReg* out, TypeId typeId, const char* name) {
   out->reset();
 
   Error err = ArchUtils::typeIdToRegSignature(arch(), typeId, &typeId, &regSignature);
-  if (ASMJIT_UNLIKELY(err))
+  if (ASMJIT_UNLIKELY(err)) {
     return reportError(err);
+  }
 
   VirtReg* vReg;
   ASMJIT_PROPAGATE(newVirtReg(&vReg, typeId, regSignature, name));
@@ -345,8 +358,9 @@ Error BaseCompiler::_newReg(BaseReg* out, const BaseReg& ref, const char* name) 
         }
       }
 
-      if (typeId == TypeId::kVoid)
+      if (typeId == TypeId::kVoid) {
         return reportError(DebugUtils::errored(kErrorInvalidState));
+      }
     }
   }
   else {
@@ -354,8 +368,9 @@ Error BaseCompiler::_newReg(BaseReg* out, const BaseReg& ref, const char* name) 
   }
 
   Error err = ArchUtils::typeIdToRegSignature(arch(), typeId, &typeId, &regSignature);
-  if (ASMJIT_UNLIKELY(err))
+  if (ASMJIT_UNLIKELY(err)) {
     return reportError(err);
+  }
 
   VirtReg* vReg;
   ASMJIT_PROPAGATE(newVirtReg(&vReg, typeId, regSignature, name));
@@ -379,17 +394,21 @@ Error BaseCompiler::_newRegFmt(BaseReg* out, const BaseReg& ref, const char* fmt
 Error BaseCompiler::_newStack(BaseMem* out, uint32_t size, uint32_t alignment, const char* name) {
   out->reset();
 
-  if (size == 0)
+  if (size == 0) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
+  }
 
-  if (alignment == 0)
+  if (alignment == 0) {
     alignment = 1;
+  }
 
-  if (!Support::isPowerOf2(alignment))
+  if (!Support::isPowerOf2(alignment)) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
+  }
 
-  if (alignment > 64)
+  if (alignment > 64) {
     alignment = 64;
+  }
 
   VirtReg* vReg;
   ASMJIT_PROPAGATE(newVirtReg(&vReg, TypeId::kVoid, OperandSignature{0}, name));
@@ -408,21 +427,26 @@ Error BaseCompiler::_newStack(BaseMem* out, uint32_t size, uint32_t alignment, c
 }
 
 Error BaseCompiler::setStackSize(uint32_t virtId, uint32_t newSize, uint32_t newAlignment) {
-  if (!isVirtIdValid(virtId))
+  if (!isVirtIdValid(virtId)) {
     return DebugUtils::errored(kErrorInvalidVirtId);
+  }
 
-  if (newAlignment && !Support::isPowerOf2(newAlignment))
+  if (newAlignment && !Support::isPowerOf2(newAlignment)) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
+  }
 
-  if (newAlignment > 64)
+  if (newAlignment > 64) {
     newAlignment = 64;
+  }
 
   VirtReg* vReg = virtRegById(virtId);
-  if (newSize)
+  if (newSize) {
     vReg->_virtSize = newSize;
+  }
 
-  if (newAlignment)
+  if (newAlignment) {
     vReg->_alignment = uint8_t(newAlignment);
+  }
 
   // This is required if the RAPass is already running. There is a chance that a stack-slot has been already
   // allocated and in that case it has to be updated as well, otherwise we would allocate wrong amount of memory.
@@ -438,18 +462,21 @@ Error BaseCompiler::setStackSize(uint32_t virtId, uint32_t newSize, uint32_t new
 Error BaseCompiler::_newConst(BaseMem* out, ConstPoolScope scope, const void* data, size_t size) {
   out->reset();
 
-  if (uint32_t(scope) > 1)
+  if (uint32_t(scope) > 1) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
+  }
 
-  if (!_constPools[uint32_t(scope)])
+  if (!_constPools[uint32_t(scope)]) {
     ASMJIT_PROPAGATE(newConstPoolNode(&_constPools[uint32_t(scope)]));
+  }
 
   ConstPoolNode* pool = _constPools[uint32_t(scope)];
   size_t off;
   Error err = pool->add(data, size, off);
 
-  if (ASMJIT_UNLIKELY(err))
+  if (ASMJIT_UNLIKELY(err)) {
     return reportError(err);
+  }
 
   *out = BaseMem(OperandSignature::fromOpType(OperandType::kMem) |
                  OperandSignature::fromMemBaseType(RegType::kLabelTag) |
@@ -462,7 +489,9 @@ void BaseCompiler::rename(const BaseReg& reg, const char* fmt, ...) {
   if (!reg.isVirtReg()) return;
 
   VirtReg* vReg = virtRegById(reg.id());
-  if (!vReg) return;
+  if (!vReg) {
+    return;
+  }
 
   if (fmt && fmt[0] != '\0') {
     char buf[128];
@@ -487,8 +516,9 @@ Error BaseCompiler::newJumpNode(JumpNode** out, InstId instId, InstOptions instO
   uint32_t opCount = 1;
 
   *out = node;
-  if (ASMJIT_UNLIKELY(!node))
+  if (ASMJIT_UNLIKELY(!node)) {
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
+  }
 
   node = new(Support::PlacementNew{node}) JumpNode(this, instId, instOptions, opCount, annotation);
   node->setOp(0, o0);

@@ -152,7 +152,7 @@ struct CallConv {
   //! \note This is not really AsmJit's limitation, it's just the number that makes sense considering all common
   //! calling conventions. Usually even conventions that use registers to pass function arguments are limited to 8
   //! and less arguments passed via registers per group.
-  static constexpr uint32_t kMaxRegArgsPerGroup = 16;
+  static inline constexpr uint32_t kMaxRegArgsPerGroup = 16;
 
   //! \}
 
@@ -228,46 +228,66 @@ struct CallConv {
   //! \{
 
   //! Returns the target architecture of this calling convention.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Arch arch() const noexcept { return _arch; }
+
   //! Sets the target architecture of this calling convention.
   ASMJIT_INLINE_NODEBUG void setArch(Arch arch) noexcept { _arch = arch; }
 
   //! Returns the calling convention id.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG CallConvId id() const noexcept { return _id; }
+
   //! Sets the calling convention id.
   ASMJIT_INLINE_NODEBUG void setId(CallConvId ccId) noexcept { _id = ccId; }
 
   //! Returns the strategy used to assign registers to arguments.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG CallConvStrategy strategy() const noexcept { return _strategy; }
+
   //! Sets the strategy used to assign registers to arguments.
   ASMJIT_INLINE_NODEBUG void setStrategy(CallConvStrategy ccStrategy) noexcept { _strategy = ccStrategy; }
 
   //! Tests whether the calling convention has the given `flag` set.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(CallConvFlags flag) const noexcept { return Support::test(_flags, flag); }
+
   //! Returns the calling convention flags, see `Flags`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG CallConvFlags flags() const noexcept { return _flags; }
+
   //! Adds the calling convention flags, see `Flags`.
   ASMJIT_INLINE_NODEBUG void setFlags(CallConvFlags flag) noexcept { _flags = flag; };
+
   //! Adds the calling convention flags, see `Flags`.
   ASMJIT_INLINE_NODEBUG void addFlags(CallConvFlags flags) noexcept { _flags |= flags; };
 
   //! Tests whether this calling convention specifies 'RedZone'.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRedZone() const noexcept { return _redZoneSize != 0; }
+
   //! Tests whether this calling convention specifies 'SpillZone'.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasSpillZone() const noexcept { return _spillZoneSize != 0; }
 
   //! Returns size of 'RedZone'.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t redZoneSize() const noexcept { return _redZoneSize; }
-  //! Returns size of 'SpillZone'.
-  ASMJIT_INLINE_NODEBUG uint32_t spillZoneSize() const noexcept { return _spillZoneSize; }
 
   //! Sets size of 'RedZone'.
   ASMJIT_INLINE_NODEBUG void setRedZoneSize(uint32_t size) noexcept { _redZoneSize = uint8_t(size); }
+
+  //! Returns size of 'SpillZone'.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG uint32_t spillZoneSize() const noexcept { return _spillZoneSize; }
+
   //! Sets size of 'SpillZone'.
   ASMJIT_INLINE_NODEBUG void setSpillZoneSize(uint32_t size) noexcept { _spillZoneSize = uint8_t(size); }
 
   //! Returns a natural stack alignment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t naturalStackAlignment() const noexcept { return _naturalStackAlignment; }
+
   //! Sets a natural stack alignment.
   //!
   //! This function can be used to override the default stack alignment in case that you know that it's alignment is
@@ -275,22 +295,28 @@ struct CallConv {
   ASMJIT_INLINE_NODEBUG void setNaturalStackAlignment(uint32_t value) noexcept { _naturalStackAlignment = uint8_t(value); }
 
   //! Returns the size of a register (or its part) to be saved and restored of the given `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saveRestoreRegSize(RegGroup group) const noexcept { return _saveRestoreRegSize[group]; }
+
   //! Sets the size of a vector register (or its part) to be saved and restored.
   ASMJIT_INLINE_NODEBUG void setSaveRestoreRegSize(RegGroup group, uint32_t size) noexcept { _saveRestoreRegSize[group] = uint8_t(size); }
 
   //! Returns the alignment of a save-restore area of the given `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saveRestoreAlignment(RegGroup group) const noexcept { return _saveRestoreAlignment[group]; }
+
   //! Sets the alignment of a save-restore area of the given `group`.
   ASMJIT_INLINE_NODEBUG void setSaveRestoreAlignment(RegGroup group, uint32_t alignment) noexcept { _saveRestoreAlignment[group] = uint8_t(alignment); }
 
   //! Returns the order of passed registers of the given `group`.
+  [[nodiscard]]
   inline const uint8_t* passedOrder(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _passedOrder[size_t(group)].id;
   }
 
   //! Returns the mask of passed registers of the given `group`.
+  [[nodiscard]]
   inline RegMask passedRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _passedRegs[size_t(group)];
@@ -335,6 +361,7 @@ struct CallConv {
   }
 
   //! Returns preserved register mask of the given `group`.
+  [[nodiscard]]
   inline RegMask preservedRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _preservedRegs[group];
@@ -365,7 +392,7 @@ struct FuncSignature {
   //! \{
 
   //! Doesn't have variable number of arguments (`...`).
-  static constexpr uint8_t kNoVarArgs = 0xFFu;
+  static inline constexpr uint8_t kNoVarArgs = 0xFFu;
 
   //! \}
 
@@ -391,19 +418,19 @@ struct FuncSignature {
   //! \{
 
   //! Default constructed function signature, initialized to \ref CallConvId::kCDecl, having no return value and no arguments.
-  ASMJIT_FORCE_INLINE constexpr FuncSignature() = default;
+  ASMJIT_INLINE_CONSTEXPR FuncSignature() = default;
 
   //! Copy constructor, which is initialized to the same function signature as `other`.
-  ASMJIT_FORCE_INLINE constexpr FuncSignature(const FuncSignature& other) = default;
+  ASMJIT_INLINE_CONSTEXPR FuncSignature(const FuncSignature& other) = default;
 
   //! Initializes the function signature with calling convention id `ccId` and variable argument's index `vaIndex`.
-  ASMJIT_FORCE_INLINE constexpr FuncSignature(CallConvId ccId, uint32_t vaIndex = kNoVarArgs) noexcept
+  ASMJIT_INLINE_CONSTEXPR FuncSignature(CallConvId ccId, uint32_t vaIndex = kNoVarArgs) noexcept
     : _ccId(ccId),
       _vaIndex(uint8_t(vaIndex)) {}
 
   //! Initializes the function signature with calling convention id `ccId`, `vaIndex`, return value, and function arguments.
   template<typename... Args>
-  ASMJIT_FORCE_INLINE constexpr FuncSignature(CallConvId ccId, uint32_t vaIndex, TypeId ret, Args&&...args) noexcept
+  ASMJIT_INLINE_CONSTEXPR FuncSignature(CallConvId ccId, uint32_t vaIndex, TypeId ret, Args&&...args) noexcept
     : _ccId(ccId),
       _argCount(uint8_t(sizeof...(args))),
       _vaIndex(uint8_t(vaIndex)),
@@ -417,7 +444,8 @@ struct FuncSignature {
   //! a convenience function that allows to build function signature statically based on types known at compile time,
   //! which is common in JIT code generation.
   template<typename... RetValueAndArgs>
-  static ASMJIT_INLINE_NODEBUG constexpr FuncSignature build(CallConvId ccId = CallConvId::kCDecl, uint32_t vaIndex = kNoVarArgs) noexcept {
+  [[nodiscard]]
+  static ASMJIT_INLINE_CONSTEXPR FuncSignature build(CallConvId ccId = CallConvId::kCDecl, uint32_t vaIndex = kNoVarArgs) noexcept {
     return FuncSignature(ccId, vaIndex, (TypeId(TypeUtils::TypeIdOfT<RetValueAndArgs>::kTypeId))... );
   }
 
@@ -427,12 +455,15 @@ struct FuncSignature {
   //! \{
 
   //! Copy assignment - function signature can be copied by value.
-  ASMJIT_FORCE_INLINE FuncSignature& operator=(const FuncSignature& other) noexcept = default;
+  ASMJIT_INLINE FuncSignature& operator=(const FuncSignature& other) noexcept = default;
 
   //! Compares this function signature with `other` for equality..
-  ASMJIT_FORCE_INLINE bool operator==(const FuncSignature& other) const noexcept { return equals(other); }
+  [[nodiscard]]
+  ASMJIT_INLINE bool operator==(const FuncSignature& other) const noexcept { return equals(other); }
+
   //! Compares this function signature with `other` for inequality..
-  ASMJIT_FORCE_INLINE bool operator!=(const FuncSignature& other) const noexcept { return !equals(other); }
+  [[nodiscard]]
+  ASMJIT_INLINE bool operator!=(const FuncSignature& other) const noexcept { return !equals(other); }
 
   //! \}
 
@@ -448,6 +479,7 @@ struct FuncSignature {
   //! \{
 
   //! Compares this function signature with `other` for equality..
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool equals(const FuncSignature& other) const noexcept {
     return _ccId == other._ccId &&
            _argCount == other._argCount &&
@@ -462,27 +494,38 @@ struct FuncSignature {
   //! \{
 
   //! Returns the calling convention.
-  ASMJIT_INLINE_NODEBUG CallConvId callConvId() const noexcept { return _ccId; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR CallConvId callConvId() const noexcept { return _ccId; }
+
   //! Sets the calling convention to `ccId`;
-  ASMJIT_INLINE_NODEBUG void setCallConvId(CallConvId ccId) noexcept { _ccId = ccId; }
+  ASMJIT_INLINE_CONSTEXPR void setCallConvId(CallConvId ccId) noexcept { _ccId = ccId; }
 
   //! Tests whether the function signature has a return value.
-  ASMJIT_INLINE_NODEBUG bool hasRet() const noexcept { return _ret != TypeId::kVoid; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasRet() const noexcept { return _ret != TypeId::kVoid; }
+
   //! Returns the type of the return value.
-  ASMJIT_INLINE_NODEBUG TypeId ret() const noexcept { return _ret; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR TypeId ret() const noexcept { return _ret; }
+
   //! Sets the return type to `retType`.
-  ASMJIT_INLINE_NODEBUG void setRet(TypeId retType) noexcept { _ret = retType; }
+  ASMJIT_INLINE_CONSTEXPR void setRet(TypeId retType) noexcept { _ret = retType; }
+
   //! Sets the return type based on `T`.
   template<typename T>
-  ASMJIT_INLINE_NODEBUG void setRetT() noexcept { setRet(TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
+  ASMJIT_INLINE_CONSTEXPR void setRetT() noexcept { setRet(TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
 
 
   //! Returns the array of function arguments' types.
-  ASMJIT_INLINE_NODEBUG const TypeId* args() const noexcept { return _args; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR const TypeId* args() const noexcept { return _args; }
+
   //! Returns the number of function arguments.
-  ASMJIT_INLINE_NODEBUG uint32_t argCount() const noexcept { return _argCount; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR uint32_t argCount() const noexcept { return _argCount; }
 
   //! Returns the type of the argument at index `i`.
+  [[nodiscard]]
   inline TypeId arg(uint32_t i) const noexcept {
     ASMJIT_ASSERT(i < _argCount);
     return _args[i];
@@ -493,6 +536,7 @@ struct FuncSignature {
     ASMJIT_ASSERT(index < _argCount);
     _args[index] = argType;
   }
+
   //! Sets the argument at index `i` to the type based on `T`.
   template<typename T>
   inline void setArgT(uint32_t index) noexcept { setArg(index, TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
@@ -503,6 +547,7 @@ struct FuncSignature {
   //! to use this function. However, if you are adding arguments based on user input, for example, then either check
   //! the number of arguments before using function signature or use \ref canAddArg() before actually adding them to
   //! the function signature.
+  [[nodiscard]]
   inline bool canAddArg() const noexcept { return _argCount < Globals::kMaxFuncArgs; }
 
   //! Appends an argument of `type` to the function prototype.
@@ -516,11 +561,16 @@ struct FuncSignature {
   inline void addArgT() noexcept { addArg(TypeId(TypeUtils::TypeIdOfT<T>::kTypeId)); }
 
   //! Tests whether the function has variable number of arguments (...).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasVarArgs() const noexcept { return _vaIndex != kNoVarArgs; }
+
   //! Returns the variable arguments (...) index, `kNoVarArgs` if none.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t vaIndex() const noexcept { return _vaIndex; }
+
   //! Sets the variable arguments (...) index to `index`.
   ASMJIT_INLINE_NODEBUG void setVaIndex(uint32_t index) noexcept { _vaIndex = uint8_t(index); }
+
   //! Resets the variable arguments index (making it a non-va function).
   ASMJIT_INLINE_NODEBUG void resetVaIndex() noexcept { _vaIndex = kNoVarArgs; }
 
@@ -620,45 +670,68 @@ struct FuncValue {
   //! \endcond
 
   //! Tests whether the `FuncValue` has a flag `flag` set.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(uint32_t flag) const noexcept { return Support::test(_data, flag); }
+
   //! Adds `flags` to `FuncValue`.
   ASMJIT_INLINE_NODEBUG void addFlags(uint32_t flags) noexcept { _data |= flags; }
+
   //! Clears `flags` of `FuncValue`.
   ASMJIT_INLINE_NODEBUG void clearFlags(uint32_t flags) noexcept { _data &= ~flags; }
 
   //! Tests whether the value is initialized (i.e. contains a valid data).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isInitialized() const noexcept { return _data != 0; }
+
   //! Tests whether the argument is passed by register.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isReg() const noexcept { return hasFlag(kFlagIsReg); }
+
   //! Tests whether the argument is passed by stack.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isStack() const noexcept { return hasFlag(kFlagIsStack); }
+
   //! Tests whether the argument is passed by register.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isAssigned() const noexcept { return hasFlag(kFlagIsReg | kFlagIsStack); }
+
   //! Tests whether the argument is passed through a pointer (used by WIN64 to pass XMM|YMM|ZMM).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isIndirect() const noexcept { return hasFlag(kFlagIsIndirect); }
 
   //! Tests whether the argument was already processed (used internally).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isDone() const noexcept { return hasFlag(kFlagIsDone); }
 
   //! Returns a register type of the register used to pass function argument or return value.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG RegType regType() const noexcept { return RegType((_data & kRegTypeMask) >> kRegTypeShift); }
+
   //! Sets a register type of the register used to pass function argument or return value.
   ASMJIT_INLINE_NODEBUG void setRegType(RegType regType) noexcept { _replaceValue(kRegTypeMask, uint32_t(regType) << kRegTypeShift); }
 
   //! Returns a physical id of the register used to pass function argument or return value.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t regId() const noexcept { return (_data & kRegIdMask) >> kRegIdShift; }
+
   //! Sets a physical id of the register used to pass function argument or return value.
   ASMJIT_INLINE_NODEBUG void setRegId(uint32_t regId) noexcept { _replaceValue(kRegIdMask, regId << kRegIdShift); }
 
   //! Returns a stack offset of this argument.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG int32_t stackOffset() const noexcept { return int32_t(_data & kStackOffsetMask) >> kStackOffsetShift; }
+
   //! Sets a stack offset of this argument.
   ASMJIT_INLINE_NODEBUG void setStackOffset(int32_t offset) noexcept { _replaceValue(kStackOffsetMask, uint32_t(offset) << kStackOffsetShift); }
 
   //! Tests whether the argument or return value has associated `TypeId`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasTypeId() const noexcept { return Support::test(_data, kTypeIdMask); }
+
   //! Returns a TypeId of this argument or return value.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG TypeId typeId() const noexcept { return TypeId((_data & kTypeIdMask) >> kTypeIdShift); }
+
   //! Sets a TypeId of this argument or return value.
   ASMJIT_INLINE_NODEBUG void setTypeId(TypeId typeId) noexcept { _replaceValue(kTypeIdMask, uint32_t(typeId) << kTypeIdShift); }
 
@@ -692,6 +765,7 @@ public:
   //! \{
 
   //! Calculates how many values are in the pack, checking for non-values from the end.
+  [[nodiscard]]
   inline uint32_t count() const noexcept {
     uint32_t n = Globals::kMaxValuePack;
     while (n && !_values[n - 1])
@@ -702,8 +776,11 @@ public:
   //! Returns values in this value in the pack.
   //!
   //! \note The returned array has exactly \ref Globals::kMaxValuePack elements.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FuncValue* values() noexcept { return _values; }
+
   //! \overload
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const FuncValue* values() const noexcept { return _values; }
 
   //! Resets a value at the given `index` in the pack, which makes it unassigned.
@@ -740,11 +817,14 @@ public:
   //! Accesses the value in the pack at the given `index`.
   //!
   //! \note The maximum index value is `Globals::kMaxValuePack - 1`.
+  [[nodiscard]]
   inline FuncValue& operator[](size_t index) {
     ASMJIT_ASSERT(index < Globals::kMaxValuePack);
     return _values[index];
   }
+
   //! \overload
+  [[nodiscard]]
   inline const FuncValue& operator[](size_t index) const {
     ASMJIT_ASSERT(index < Globals::kMaxValuePack);
     return _values[index];
@@ -809,7 +889,7 @@ public:
   //! \{
 
   //! Function doesn't have a variable number of arguments (`...`).
-  static constexpr uint8_t kNoVarArgs = 0xFFu;
+  static inline constexpr uint8_t kNoVarArgs = 0xFFu;
 
   //! \}
 
@@ -871,52 +951,72 @@ public:
   //! \{
 
   //! Returns the function's calling convention, see `CallConv`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const CallConv& callConv() const noexcept { return _callConv; }
 
   //! Returns the associated calling convention flags, see `CallConv::Flags`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG CallConvFlags flags() const noexcept { return _callConv.flags(); }
+
   //! Checks whether a CallConv `flag` is set, see `CallConv::Flags`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(CallConvFlags ccFlag) const noexcept { return _callConv.hasFlag(ccFlag); }
 
   //! Tests whether the function has a return value.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRet() const noexcept { return bool(_rets[0]); }
+
   //! Returns the number of function arguments.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t argCount() const noexcept { return _argCount; }
 
   //! Returns function return values.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FuncValuePack& retPack() noexcept { return _rets; }
+
   //! Returns function return values.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const FuncValuePack& retPack() const noexcept { return _rets; }
 
   //! Returns a function return value associated with the given `valueIndex`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FuncValue& ret(size_t valueIndex = 0) noexcept { return _rets[valueIndex]; }
+
   //! Returns a function return value associated with the given `valueIndex` (const).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const FuncValue& ret(size_t valueIndex = 0) const noexcept { return _rets[valueIndex]; }
 
   //! Returns function argument packs array.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FuncValuePack* argPacks() noexcept { return _args; }
+
   //! Returns function argument packs array (const).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const FuncValuePack* argPacks() const noexcept { return _args; }
 
   //! Returns function argument pack at the given `argIndex`.
+  [[nodiscard]]
   inline FuncValuePack& argPack(size_t argIndex) noexcept {
     ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
     return _args[argIndex];
   }
 
   //! Returns function argument pack at the given `argIndex` (const).
+  [[nodiscard]]
   inline const FuncValuePack& argPack(size_t argIndex) const noexcept {
     ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
     return _args[argIndex];
   }
 
   //! Returns an argument at `valueIndex` from the argument pack at the given `argIndex`.
+  [[nodiscard]]
   inline FuncValue& arg(size_t argIndex, size_t valueIndex = 0) noexcept {
     ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
     return _args[argIndex][valueIndex];
   }
 
   //! Returns an argument at `valueIndex` from the argument pack at the given `argIndex` (const).
+  [[nodiscard]]
   inline const FuncValue& arg(size_t argIndex, size_t valueIndex = 0) const noexcept {
     ASMJIT_ASSERT(argIndex < Globals::kMaxFuncArgs);
     return _args[argIndex][valueIndex];
@@ -931,28 +1031,43 @@ public:
   }
 
   //! Tests whether the function has variable arguments.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasVarArgs() const noexcept { return _vaIndex != kNoVarArgs; }
+
   //! Returns an index of a first variable argument.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t vaIndex() const noexcept { return _vaIndex; }
 
   //! Tests whether the function passes one or more argument by stack.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasStackArgs() const noexcept { return _argStackSize != 0; }
+
   //! Returns stack size needed for function arguments passed on the stack.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t argStackSize() const noexcept { return _argStackSize; }
 
   //! Returns red zone size.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t redZoneSize() const noexcept { return _callConv.redZoneSize(); }
+
   //! Returns spill zone size.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t spillZoneSize() const noexcept { return _callConv.spillZoneSize(); }
+
   //! Returns natural stack alignment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t naturalStackAlignment() const noexcept { return _callConv.naturalStackAlignment(); }
 
   //! Returns a mask of all passed registers of the given register `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG RegMask passedRegs(RegGroup group) const noexcept { return _callConv.passedRegs(group); }
+
   //! Returns a mask of all preserved registers of the given register `group`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG RegMask preservedRegs(RegGroup group) const noexcept { return _callConv.preservedRegs(group); }
 
   //! Returns a mask of all used registers of the given register `group`.
+  [[nodiscard]]
   inline RegMask usedRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _usedRegs[size_t(group)];
@@ -1012,10 +1127,8 @@ public:
   //! \name Constants
   //! \{
 
-  enum : uint32_t {
-    //! Tag used to inform that some offset is invalid.
-    kTagInvalidOffset = 0xFFFFFFFFu
-  };
+  //! Tag used to inform that some offset is invalid.
+  static inline constexpr uint32_t kTagInvalidOffset = 0xFFFFFFFFu;
 
   //! \}
 
@@ -1129,90 +1242,133 @@ public:
   //! \{
 
   //! Returns the target architecture of the function frame.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Arch arch() const noexcept { return _arch; }
 
   //! Returns function frame attributes, see `Attributes`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG FuncAttributes attributes() const noexcept { return _attributes; }
+
   //! Checks whether the FuncFame contains an attribute `attr`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAttribute(FuncAttributes attr) const noexcept { return Support::test(_attributes, attr); }
+
   //! Adds attributes `attrs` to the FuncFrame.
   ASMJIT_INLINE_NODEBUG void addAttributes(FuncAttributes attrs) noexcept { _attributes |= attrs; }
+
   //! Clears attributes `attrs` from the FrameFrame.
   ASMJIT_INLINE_NODEBUG void clearAttributes(FuncAttributes attrs) noexcept { _attributes &= ~attrs; }
 
   //! Tests whether the function has variable number of arguments.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasVarArgs() const noexcept { return hasAttribute(FuncAttributes::kHasVarArgs); }
+
   //! Sets the variable arguments flag.
   ASMJIT_INLINE_NODEBUG void setVarArgs() noexcept { addAttributes(FuncAttributes::kHasVarArgs); }
+
   //! Resets variable arguments flag.
   ASMJIT_INLINE_NODEBUG void resetVarArgs() noexcept { clearAttributes(FuncAttributes::kHasVarArgs); }
 
   //! Tests whether the function preserves frame pointer (EBP|ESP on X86).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasPreservedFP() const noexcept { return hasAttribute(FuncAttributes::kHasPreservedFP); }
+
   //! Enables preserved frame pointer.
   ASMJIT_INLINE_NODEBUG void setPreservedFP() noexcept { addAttributes(FuncAttributes::kHasPreservedFP); }
+
   //! Disables preserved frame pointer.
   ASMJIT_INLINE_NODEBUG void resetPreservedFP() noexcept { clearAttributes(FuncAttributes::kHasPreservedFP); }
 
   //! Tests whether the function calls other functions.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFuncCalls() const noexcept { return hasAttribute(FuncAttributes::kHasFuncCalls); }
+
   //! Sets `FuncAttributes::kHasFuncCalls` to true.
   ASMJIT_INLINE_NODEBUG void setFuncCalls() noexcept { addAttributes(FuncAttributes::kHasFuncCalls); }
+
   //! Sets `FuncAttributes::kHasFuncCalls` to false.
   ASMJIT_INLINE_NODEBUG void resetFuncCalls() noexcept { clearAttributes(FuncAttributes::kHasFuncCalls); }
 
   //! Tests whether the function uses indirect branch protection, see \ref FuncAttributes::kIndirectBranchProtection.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasIndirectBranchProtection() const noexcept { return hasAttribute(FuncAttributes::kIndirectBranchProtection); }
+
   //! Enabled indirect branch protection (sets `FuncAttributes::kIndirectBranchProtection` attribute to true).
   ASMJIT_INLINE_NODEBUG void setIndirectBranchProtection() noexcept { addAttributes(FuncAttributes::kIndirectBranchProtection); }
+
   //! Disables indirect branch protection (sets `FuncAttributes::kIndirectBranchProtection` attribute to false).
   ASMJIT_INLINE_NODEBUG void resetIndirectBranchProtection() noexcept { clearAttributes(FuncAttributes::kIndirectBranchProtection); }
 
   //! Tests whether the function has AVX enabled.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isAvxEnabled() const noexcept { return hasAttribute(FuncAttributes::kX86_AVXEnabled); }
+
   //! Enables AVX use.
   ASMJIT_INLINE_NODEBUG void setAvxEnabled() noexcept { addAttributes(FuncAttributes::kX86_AVXEnabled); }
+
   //! Disables AVX use.
   ASMJIT_INLINE_NODEBUG void resetAvxEnabled() noexcept { clearAttributes(FuncAttributes::kX86_AVXEnabled); }
 
   //! Tests whether the function has AVX-512 enabled.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isAvx512Enabled() const noexcept { return hasAttribute(FuncAttributes::kX86_AVX512Enabled); }
+
   //! Enables AVX-512 use.
   ASMJIT_INLINE_NODEBUG void setAvx512Enabled() noexcept { addAttributes(FuncAttributes::kX86_AVX512Enabled); }
+
   //! Disables AVX-512 use.
   ASMJIT_INLINE_NODEBUG void resetAvx512Enabled() noexcept { clearAttributes(FuncAttributes::kX86_AVX512Enabled); }
 
   //! Tests whether the function has MMX cleanup - 'emms' instruction in epilog.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasMmxCleanup() const noexcept { return hasAttribute(FuncAttributes::kX86_MMXCleanup); }
+
   //! Enables MMX cleanup.
   ASMJIT_INLINE_NODEBUG void setMmxCleanup() noexcept { addAttributes(FuncAttributes::kX86_MMXCleanup); }
+
   //! Disables MMX cleanup.
   ASMJIT_INLINE_NODEBUG void resetMmxCleanup() noexcept { clearAttributes(FuncAttributes::kX86_MMXCleanup); }
 
   //! Tests whether the function has AVX cleanup - 'vzeroupper' instruction in epilog.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAvxCleanup() const noexcept { return hasAttribute(FuncAttributes::kX86_AVXCleanup); }
+
   //! Enables AVX cleanup.
   ASMJIT_INLINE_NODEBUG void setAvxCleanup() noexcept { addAttributes(FuncAttributes::kX86_AVXCleanup); }
+
   //! Disables AVX cleanup.
   ASMJIT_INLINE_NODEBUG void resetAvxCleanup() noexcept { clearAttributes(FuncAttributes::kX86_AVXCleanup); }
 
   //! Tests whether the function uses call stack.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasCallStack() const noexcept { return _callStackSize != 0; }
+
   //! Tests whether the function uses local stack.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasLocalStack() const noexcept { return _localStackSize != 0; }
+
   //! Tests whether vector registers can be saved and restored by using aligned reads and writes.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasAlignedVecSR() const noexcept { return hasAttribute(FuncAttributes::kAlignedVecSR); }
+
   //! Tests whether the function has to align stack dynamically.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasDynamicAlignment() const noexcept { return _finalStackAlignment >= _minDynamicAlignment; }
 
   //! Tests whether the calling convention specifies 'RedZone'.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasRedZone() const noexcept { return _redZoneSize != 0; }
-  //! Tests whether the calling convention specifies 'SpillZone'.
-  ASMJIT_INLINE_NODEBUG bool hasSpillZone() const noexcept { return _spillZoneSize != 0; }
 
   //! Returns the size of 'RedZone'.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t redZoneSize() const noexcept { return _redZoneSize; }
+
+  //! Tests whether the calling convention specifies 'SpillZone'.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG bool hasSpillZone() const noexcept { return _spillZoneSize != 0; }
+
   //! Returns the size of 'SpillZone'.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t spillZoneSize() const noexcept { return _spillZoneSize; }
 
   //! Resets the size of red zone, which would disable it entirely.
@@ -1224,20 +1380,31 @@ public:
   ASMJIT_INLINE_NODEBUG void resetRedZone() noexcept { _redZoneSize = 0; }
 
   //! Returns natural stack alignment (guaranteed stack alignment upon entry).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t naturalStackAlignment() const noexcept { return _naturalStackAlignment; }
+
   //! Returns natural stack alignment (guaranteed stack alignment upon entry).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t minDynamicAlignment() const noexcept { return _minDynamicAlignment; }
 
   //! Tests whether the callee must adjust SP before returning (X86-STDCALL only)
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasCalleeStackCleanup() const noexcept { return _calleeStackCleanup != 0; }
+
   //! Returns home many bytes of the stack the callee must adjust before returning (X86-STDCALL only)
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t calleeStackCleanup() const noexcept { return _calleeStackCleanup; }
 
   //! Returns call stack alignment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t callStackAlignment() const noexcept { return _callStackAlignment; }
+
   //! Returns local stack alignment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t localStackAlignment() const noexcept { return _localStackAlignment; }
+
   //! Returns final stack alignment (the maximum value of call, local, and natural stack alignments).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t finalStackAlignment() const noexcept { return _finalStackAlignment; }
 
   //! Sets call stack alignment.
@@ -1273,42 +1440,57 @@ public:
   }
 
   //! Returns call stack size.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t callStackSize() const noexcept { return _callStackSize; }
+
   //! Returns local stack size.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t localStackSize() const noexcept { return _localStackSize; }
 
   //! Sets call stack size.
   ASMJIT_INLINE_NODEBUG void setCallStackSize(uint32_t size) noexcept { _callStackSize = size; }
+
   //! Sets local stack size.
   ASMJIT_INLINE_NODEBUG void setLocalStackSize(uint32_t size) noexcept { _localStackSize = size; }
 
   //! Combines call stack size with `size`, updating it to the greater value.
   ASMJIT_INLINE_NODEBUG void updateCallStackSize(uint32_t size) noexcept { _callStackSize = Support::max(_callStackSize, size); }
+
   //! Combines local stack size with `size`, updating it to the greater value.
   ASMJIT_INLINE_NODEBUG void updateLocalStackSize(uint32_t size) noexcept { _localStackSize = Support::max(_localStackSize, size); }
 
   //! Returns final stack size (only valid after the FuncFrame is finalized).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t finalStackSize() const noexcept { return _finalStackSize; }
 
   //! Returns an offset to access the local stack (non-zero only if call stack is used).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t localStackOffset() const noexcept { return _localStackOffset; }
 
   //! Tests whether the function prolog/epilog requires a memory slot for storing unaligned SP.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasDAOffset() const noexcept { return _daOffset != kTagInvalidOffset; }
+
   //! Returns a memory offset used to store DA (dynamic alignment) slot (relative to SP).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t daOffset() const noexcept { return _daOffset; }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saOffset(uint32_t regId) const noexcept {
     return regId == _spRegId ? saOffsetFromSP()
                              : saOffsetFromSA();
   }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saOffsetFromSP() const noexcept { return _saOffsetFromSP; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saOffsetFromSA() const noexcept { return _saOffsetFromSA; }
 
   //! Returns mask of registers of the given register `group` that are modified by the function. The engine would
   //! then calculate which registers must be saved & restored by the function by using the data provided by the
   //! calling convention.
+  [[nodiscard]]
   inline RegMask dirtyRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _dirtyRegs[group];
@@ -1360,61 +1542,82 @@ public:
   //! Returns a calculated mask of registers of the given `group` that will be saved and restored in the function's
   //! prolog and epilog, respectively. The register mask is calculated from both `dirtyRegs` (provided by user) and
   //! `preservedMask` (provided by the calling convention).
+  [[nodiscard]]
   inline RegMask savedRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _dirtyRegs[group] & _preservedRegs[group];
   }
 
   //! Returns all dirty registers as a Support::Array<> type.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const RegMasks& dirtyRegs() const noexcept { return _dirtyRegs; }
 
   //! Returns all preserved registers as a Support::Array<> type.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const RegMasks& preservedRegs() const noexcept { return _preservedRegs; }
 
   //! Returns the mask of preserved registers of the given register `group`.
   //!
   //! Preserved registers are those that must survive the function call unmodified. The function can only modify
   //! preserved registers it they are saved and restored in function's prolog and epilog, respectively.
+  [[nodiscard]]
   inline RegMask preservedRegs(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _preservedRegs[group];
   }
 
   //! Returns the size of a save-restore are for the required register `group`.
+  [[nodiscard]]
   inline uint32_t saveRestoreRegSize(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _saveRestoreRegSize[group];
   }
 
+  //! Returns the alignment that must be guaranteed to save/restore the required register `group`.
+  [[nodiscard]]
   inline uint32_t saveRestoreAlignment(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
     return _saveRestoreAlignment[group];
   }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasSARegId() const noexcept { return _saRegId != BaseReg::kIdBad; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saRegId() const noexcept { return _saRegId; }
+
   ASMJIT_INLINE_NODEBUG void setSARegId(uint32_t regId) { _saRegId = uint8_t(regId); }
+
   ASMJIT_INLINE_NODEBUG void resetSARegId() { setSARegId(BaseReg::kIdBad); }
 
   //! Returns stack size required to save/restore registers via push/pop.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t pushPopSaveSize() const noexcept { return _pushPopSaveSize; }
+
   //! Returns an offset to the stack where registers are saved via push/pop.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t pushPopSaveOffset() const noexcept { return _pushPopSaveOffset; }
 
   //! Returns stack size required to save/restore extra registers that don't use push/pop/
   //!
   //! \note On X86 this covers all registers except GP registers, on other architectures it can be always
   //! zero (for example AArch64 saves all registers via push/pop like instructions, so this would be zero).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t extraRegSaveSize() const noexcept { return _extraRegSaveSize; }
+
   //! Returns an offset to the stack where extra registers are saved.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t extraRegSaveOffset() const noexcept { return _extraRegSaveOffset; }
 
   //! Tests whether the functions contains stack adjustment.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasStackAdjustment() const noexcept { return _stackAdjustment != 0; }
+
   //! Returns function's stack adjustment used in function's prolog and epilog.
   //!
   //! If the returned value is zero it means that the stack is not adjusted. This can mean both that the stack
   //! is not used and/or the stack is only adjusted by instructions that pust/pop registers into/from stack.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t stackAdjustment() const noexcept { return _stackAdjustment; }
 
   //! \}
@@ -1477,30 +1680,41 @@ public:
   //! \{
 
   //! Returns the associated \ref FuncDetail of this `FuncArgsAssignment`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const FuncDetail* funcDetail() const noexcept { return _funcDetail; }
+
   //! Associates \ref FuncDetails with this `FuncArgsAssignment`.
   ASMJIT_INLINE_NODEBUG void setFuncDetail(const FuncDetail* fd) noexcept { _funcDetail = fd; }
 
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasSARegId() const noexcept { return _saRegId != BaseReg::kIdBad; }
+
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t saRegId() const noexcept { return _saRegId; }
+
   ASMJIT_INLINE_NODEBUG void setSARegId(uint32_t regId) { _saRegId = uint8_t(regId); }
+
   ASMJIT_INLINE_NODEBUG void resetSARegId() { _saRegId = uint8_t(BaseReg::kIdBad); }
 
   //! Returns assigned argument at `argIndex` and `valueIndex`.
   //!
   //! \note `argIndex` refers to he function argument and `valueIndex` refers to a value pack (in case multiple
   //! values are passed as a single argument).
+  [[nodiscard]]
   inline FuncValue& arg(size_t argIndex, size_t valueIndex) noexcept {
     ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     return _argPacks[argIndex][valueIndex];
   }
+
   //! \overload
+  [[nodiscard]]
   inline const FuncValue& arg(size_t argIndex, size_t valueIndex) const noexcept {
     ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     return _argPacks[argIndex][valueIndex];
   }
 
   //! Tests whether argument at `argIndex` and `valueIndex` has been assigned.
+  [[nodiscard]]
   inline bool isAssigned(size_t argIndex, size_t valueIndex) const noexcept {
     ASMJIT_ASSERT(argIndex < ASMJIT_ARRAY_SIZE(_argPacks));
     return _argPacks[argIndex][valueIndex].isAssigned();

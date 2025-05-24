@@ -16,7 +16,7 @@ ASMJIT_BEGIN_NAMESPACE
 
 namespace Formatter {
 
-static ASMJIT_FORCE_INLINE size_t paddingFromOptions(const FormatOptions& formatOptions, FormatPaddingGroup group) noexcept {
+static ASMJIT_INLINE size_t paddingFromOptions(const FormatOptions& formatOptions, FormatPaddingGroup group) noexcept {
   static constexpr uint16_t _defaultPaddingTable[uint32_t(FormatPaddingGroup::kMaxValue) + 1] = { 44, 26 };
   static_assert(uint32_t(FormatPaddingGroup::kMaxValue) + 1 == 2, "If a new group is defined it must be added here");
 

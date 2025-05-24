@@ -21,7 +21,7 @@ class ASMJIT_VIRTAPI Assembler
     public EmitterExplicitT<Assembler> {
 
 public:
-  typedef BaseAssembler Base;
+  using Base = BaseAssembler;
 
   //! \name Construction & Destruction
   //! \{

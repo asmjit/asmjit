@@ -52,11 +52,13 @@ FileLogger::FileLogger(FILE* file) noexcept
 FileLogger::~FileLogger() noexcept {}
 
 Error FileLogger::_log(const char* data, size_t size) noexcept {
-  if (!_file)
+  if (!_file) {
     return kErrorOk;
+  }
 
-  if (size == SIZE_MAX)
+  if (size == SIZE_MAX) {
     size = strlen(data);
+  }
 
   fwrite(data, 1, size, _file);
   return kErrorOk;

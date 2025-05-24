@@ -50,6 +50,7 @@ struct Info {
 };
 
 //! Returns virtual memory information, see `VirtMem::Info` for more details.
+[[nodiscard]]
 ASMJIT_API Info info() noexcept;
 
 //! Returns the size of the smallest large page supported.
@@ -59,6 +60,7 @@ ASMJIT_API Info info() noexcept;
 //!
 //! Returns either the detected large page size or 0, if large page support is either not supported by AsmJit
 //! or not accessible to the process.
+[[nodiscard]]
 ASMJIT_API size_t largePageSize() noexcept;
 
 //! Virtual memory access and mmap-specific flags.
@@ -164,15 +166,18 @@ ASMJIT_DEFINE_ENUM_FLAGS(MemoryFlags)
 //!
 //! \note `size` should be aligned to page size, use \ref VirtMem::info() to obtain it. Invalid size will not be
 //! corrected by the implementation and the allocation would not succeed in such case.
+[[nodiscard]]
 ASMJIT_API Error alloc(void** p, size_t size, MemoryFlags flags) noexcept;
 
 //! Releases virtual memory previously allocated by \ref VirtMem::alloc().
 //!
 //! \note The size must be the same as used by \ref VirtMem::alloc(). If the size is not the same value the call
 //! will fail on any POSIX system, but pass on Windows, because it's implemented differently.
+[[nodiscard]]
 ASMJIT_API Error release(void* p, size_t size) noexcept;
 
 //! A cross-platform wrapper around `mprotect()` (POSIX) and `VirtualProtect()` (Windows).
+[[nodiscard]]
 ASMJIT_API Error protect(void* p, size_t size, MemoryFlags flags) noexcept;
 
 //! Dual memory mapping used to map an anonymous memory into two memory regions where one region is read-only, but
@@ -195,11 +200,13 @@ struct DualMapping {
 //! release the memory returned by `allocDualMapping()` as that would fail on Windows.
 //!
 //! \remarks Both pointers in `dm` would be set to `nullptr` if the function fails.
+[[nodiscard]]
 ASMJIT_API Error allocDualMapping(DualMapping* dm, size_t size, MemoryFlags flags) noexcept;
 
 //! Releases virtual memory mapping previously allocated by \ref VirtMem::allocDualMapping().
 //!
 //! \remarks Both pointers in `dm` would be set to `nullptr` if the function succeeds.
+[[nodiscard]]
 ASMJIT_API Error releaseDualMapping(DualMapping* dm, size_t size) noexcept;
 
 //! Hardened runtime flags.
@@ -238,12 +245,14 @@ struct HardenedRuntimeInfo {
   //! \{
 
   //! Tests whether the hardened runtime `flag` is set.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFlag(HardenedRuntimeFlags flag) const noexcept { return Support::test(flags, flag); }
 
   //! \}
 };
 
 //! Returns runtime features provided by the OS.
+[[nodiscard]]
 ASMJIT_API HardenedRuntimeInfo hardenedRuntimeInfo() noexcept;
 
 //! Values that can be used with `protectJitMemory()` function.
@@ -296,10 +305,11 @@ public:
   //! \{
 
   //! Makes the given memory block RW protected.
-  ASMJIT_FORCE_INLINE ProtectJitReadWriteScope(
+  ASMJIT_INLINE ProtectJitReadWriteScope(
     void* rxPtr,
     size_t size,
-    CachePolicy policy = CachePolicy::kDefault) noexcept
+    CachePolicy policy = CachePolicy::kDefault
+  ) noexcept
     : _rxPtr(rxPtr),
       _size(size),
       _policy(policy) {
@@ -307,11 +317,12 @@ public:
   }
 
   //! Makes the memory block RX protected again and flushes instruction cache.
-  ASMJIT_FORCE_INLINE  ~ProtectJitReadWriteScope() noexcept {
+  ASMJIT_INLINE  ~ProtectJitReadWriteScope() noexcept {
     protectJitMemory(ProtectJitAccess::kReadExecute);
 
-    if (_policy != CachePolicy::kNeverFlush)
+    if (_policy != CachePolicy::kNeverFlush) {
       flushInstructionCache(_rxPtr, _size);
+    }
   }
 
   //! \}

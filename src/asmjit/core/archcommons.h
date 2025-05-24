@@ -101,9 +101,12 @@ static constexpr CondCode _reverseCondTable[] = {
 //! \endcond
 
 //! Reverses a condition code (reverses the corresponding operands of a comparison).
-static ASMJIT_INLINE_NODEBUG constexpr CondCode reverseCond(CondCode cond) noexcept { return _reverseCondTable[uint8_t(cond)]; }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR CondCode reverseCond(CondCode cond) noexcept { return _reverseCondTable[uint8_t(cond)]; }
+
 //! Negates a condition code.
-static ASMJIT_INLINE_NODEBUG constexpr CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR CondCode negateCond(CondCode cond) noexcept { return CondCode(uint8_t(cond) ^ uint8_t(1)); }
 
 //! Memory offset mode.
 //!
@@ -180,20 +183,24 @@ public:
   ASMJIT_INLINE_NODEBUG Shift() noexcept = default;
 
   //! Copy constructor (default)
-  ASMJIT_INLINE_NODEBUG constexpr Shift(const Shift& other) noexcept = default;
+  ASMJIT_INLINE_CONSTEXPR Shift(const Shift& other) noexcept = default;
 
   //! Constructs Shift from operation `op` and shift `value`.
-  ASMJIT_INLINE_NODEBUG constexpr Shift(ShiftOp op, uint32_t value) noexcept
+  ASMJIT_INLINE_CONSTEXPR Shift(ShiftOp op, uint32_t value) noexcept
     : _op(op),
       _value(value) {}
 
   //! Returns the shift operation.
-  ASMJIT_INLINE_NODEBUG constexpr ShiftOp op() const noexcept { return _op; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR ShiftOp op() const noexcept { return _op; }
+
   //! Sets shift operation to `op`.
   ASMJIT_INLINE_NODEBUG void setOp(ShiftOp op) noexcept { _op = op; }
 
   //! Returns the shift amount.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t value() const noexcept { return _value; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR uint32_t value() const noexcept { return _value; }
+
   //! Sets shift amount to `value`.
   ASMJIT_INLINE_NODEBUG void setValue(uint32_t value) noexcept { _value = value; }
 };

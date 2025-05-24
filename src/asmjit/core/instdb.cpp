@@ -12,12 +12,12 @@ namespace InstNameUtils {
 
 static constexpr uint32_t kBufferSize = 32;
 
-static ASMJIT_FORCE_INLINE char decode5BitChar(uint32_t c) noexcept {
+static ASMJIT_INLINE_CONSTEXPR char decode5BitChar(uint32_t c) noexcept {
   uint32_t base = c <= 26 ? uint32_t('a') - 1u : uint32_t('0') - 27u;
   return char(base + c);
 }
 
-static ASMJIT_FORCE_INLINE size_t decodeToBuffer(char nameOut[kBufferSize], uint32_t nameValue, InstStringifyOptions options, const char* stringTable) noexcept {
+static ASMJIT_INLINE size_t decodeToBuffer(char nameOut[kBufferSize], uint32_t nameValue, InstStringifyOptions options, const char* stringTable) noexcept {
   size_t i;
 
   if (nameValue & 0x80000000u) {

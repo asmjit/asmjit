@@ -31,8 +31,6 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //! using namespace asmjit;
 //!
-//! typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
-//!
 //! // Small helper function to print the current content of `cb`.
 //! static void dumpCode(BaseBuilder& builder, const char* phase) {
 //!   String sb;
@@ -43,6 +41,8 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! }
 //!
 //! int main() {
+//!   using SumIntsFunc = void (*)(int* dst, const int* a, const int* b);
+//!
 //!   JitRuntime rt;                    // Create JIT Runtime.
 //!   CodeHolder code;                  // Create a CodeHolder.
 //!
@@ -109,7 +109,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!
 //!   SumIntsFunc fn;
 //!   Error err = rt.add(&fn, &code);   // Add the generated code to the runtime.
-//!   if (err) return 1;                // Handle a possible error case.
+//!   if (err) {
+//!     return 1;                       // Handle a possible error case.
+//!   }
 //!
 //!   // Execute the generated function.
 //!   int inA[4] = { 4, 3, 2, 1 };
@@ -178,8 +180,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!       }
 //!     }
 //!
-//!     if (node == last)
+//!     if (node == last) {
 //!       break;
+//!     }
 //!     node = node->next();
 //!   }
 //! }
@@ -320,7 +323,7 @@ class ASMJIT_VIRTAPI Builder
     public EmitterImplicitT<Builder> {
 public:
   ASMJIT_NONCOPYABLE(Builder)
-  typedef BaseBuilder Base;
+  using Base = BaseBuilder;
 
   //! \name Construction & Destruction
   //! \{

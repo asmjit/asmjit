@@ -26,19 +26,19 @@ struct PlacementNew { void* ptr; };
 
 #if defined(ASMJIT_NO_STDCXX)
 namespace Support {
-  ASMJIT_FORCE_INLINE void* operatorNew(size_t n) noexcept { return malloc(n); }
-  ASMJIT_FORCE_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
+  ASMJIT_INLINE void* operatorNew(size_t n) noexcept { return malloc(n); }
+  ASMJIT_INLINE void operatorDelete(void* p) noexcept { if (p) free(p); }
 } // {Support}
 
 #define ASMJIT_BASE_CLASS(TYPE)                                                                          \
-  ASMJIT_FORCE_INLINE void* operator new(size_t n) noexcept { return Support::operatorNew(n); }          \
-  ASMJIT_FORCE_INLINE void operator delete(void* ptr) noexcept { Support::operatorDelete(ptr); }         \
+  ASMJIT_INLINE void* operator new(size_t n) noexcept { return Support::operatorNew(n); }          \
+  ASMJIT_INLINE void operator delete(void* ptr) noexcept { Support::operatorDelete(ptr); }         \
                                                                                                          \
-  ASMJIT_FORCE_INLINE void* operator new(size_t, void* ptr) noexcept { return ptr; }                     \
-  ASMJIT_FORCE_INLINE void operator delete(void*, void*) noexcept {}                                     \
+  ASMJIT_INLINE void* operator new(size_t, void* ptr) noexcept { return ptr; }                     \
+  ASMJIT_INLINE void operator delete(void*, void*) noexcept {}                                     \
                                                                                                          \
-  ASMJIT_FORCE_INLINE void* operator new(size_t, Support::PlacementNew ptr) noexcept { return ptr.ptr; } \
-  ASMJIT_FORCE_INLINE void operator delete(void*, Support::PlacementNew) noexcept {}
+  ASMJIT_INLINE void* operator new(size_t, Support::PlacementNew ptr) noexcept { return ptr.ptr; } \
+  ASMJIT_INLINE void operator delete(void*, Support::PlacementNew) noexcept {}
 #else
 #define ASMJIT_BASE_CLASS(TYPE)
 #endif
@@ -69,7 +69,7 @@ enum class ResetPolicy : uint32_t {
   kHard = 1
 };
 
-//! Contains typedefs, constants, and variables used globally by AsmJit.
+//! Contains constants and variables used globally across AsmJit.
 namespace Globals {
 
 //! Host memory allocator overhead.
@@ -152,7 +152,7 @@ static ASMJIT_INLINE_NODEBUG void* func_as_ptr(Func func) noexcept { return Supp
 //! \{
 
 //! AsmJit error type (uint32_t).
-typedef uint32_t Error;
+using Error = uint32_t;
 
 //! AsmJit error codes.
 enum ErrorCode : uint32_t {
@@ -357,9 +357,11 @@ static ASMJIT_INLINE_NODEBUG void unused(Args&&...) noexcept {}
 //!
 //! Provided for debugging purposes. Putting a breakpoint inside `errored` can help with tracing the origin of any
 //! error reported / returned by AsmJit.
+[[nodiscard]]
 static constexpr Error errored(Error err) noexcept { return err; }
 
 //! Returns a printable version of `asmjit::Error` code.
+[[nodiscard]]
 ASMJIT_API const char* errorAsString(Error err) noexcept;
 
 //! Called to output debugging message(s).
@@ -375,7 +377,8 @@ ASMJIT_API void debugOutput(const char* str) noexcept;
 //! (asmjit/core/globals.cpp). A call stack will be available when such assertion failure is triggered. AsmJit
 //! always returns errors on failures, assertions are a last resort and usually mean unrecoverable state due to out
 //! of range array access or totally invalid arguments like nullptr where a valid pointer should be provided, etc...
-ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, const char* msg) noexcept;
+[[noreturn]]
+ASMJIT_API void assertionFailed(const char* file, int line, const char* msg) noexcept;
 
 } // {DebugUtils}
 
@@ -385,9 +388,9 @@ ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, cons
 #if defined(ASMJIT_BUILD_DEBUG)
 #define ASMJIT_ASSERT(...)                                                     \
   do {                                                                         \
-    if (ASMJIT_LIKELY(__VA_ARGS__))                                            \
-      break;                                                                   \
-    ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #__VA_ARGS__);   \
+    if (ASMJIT_UNLIKELY(!(__VA_ARGS__))) {                                     \
+      ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #__VA_ARGS__); \
+    }                                                                          \
   } while (0)
 #else
 #define ASMJIT_ASSERT(...) ((void)0)
@@ -399,9 +402,10 @@ ASMJIT_API void ASMJIT_NORETURN assertionFailed(const char* file, int line, cons
 //! internally, but kept public for users that want to use the same technique to propagate errors to the caller.
 #define ASMJIT_PROPAGATE(...)               \
   do {                                      \
-    ::asmjit::Error _err = __VA_ARGS__;     \
-    if (ASMJIT_UNLIKELY(_err))              \
-      return _err;                          \
+    ::asmjit::Error _err_ = __VA_ARGS__;    \
+    if (ASMJIT_UNLIKELY(_err_)) {           \
+      return _err_;                         \
+    }                                       \
   } while (0)
 
 //! \}

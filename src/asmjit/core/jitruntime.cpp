@@ -27,8 +27,9 @@ Error JitRuntime::_add(void** dst, CodeHolder* code) noexcept {
   ASMJIT_PROPAGATE(code->resolveUnresolvedLinks());
 
   size_t estimatedCodeSize = code->codeSize();
-  if (ASMJIT_UNLIKELY(estimatedCodeSize == 0))
+  if (ASMJIT_UNLIKELY(estimatedCodeSize == 0)) {
     return DebugUtils::errored(kErrorNoCodeGenerated);
+  }
 
   JitAllocator::Span span;
   ASMJIT_PROPAGATE(_allocator.alloc(span, estimatedCodeSize));

@@ -23,8 +23,9 @@ namespace InstInternal {
 #ifndef ASMJIT_NO_TEXT
 Error instIdToString(InstId instId, InstStringifyOptions options, String& output) noexcept {
   uint32_t realId = instId & uint32_t(InstIdParts::kRealId);
-  if (ASMJIT_UNLIKELY(!Inst::isDefinedId(realId)))
+  if (ASMJIT_UNLIKELY(!Inst::isDefinedId(realId))) {
     return DebugUtils::errored(kErrorInvalidInstruction);
+  }
 
   return InstNameUtils::decode(InstDB::_instNameIndexTable[realId], options, InstDB::_instNameStringTable, output);
 }
@@ -100,8 +101,9 @@ Error queryRWInfo(const BaseInst& inst, const Operand_* operands, size_t opCount
   // Get the instruction data.
   uint32_t realId = inst.id() & uint32_t(InstIdParts::kRealId);
 
-  if (ASMJIT_UNLIKELY(!Inst::isDefinedId(realId)))
+  if (ASMJIT_UNLIKELY(!Inst::isDefinedId(realId))) {
     return DebugUtils::errored(kErrorInvalidInstruction);
+  }
 
   out->_instFlags = InstRWFlags::kNone;
   out->_opCount = uint8_t(opCount);
@@ -139,10 +141,12 @@ Error queryRWInfo(const BaseInst& inst, const Operand_* operands, size_t opCount
       op._consecutiveLeadCount = 0;
 
       if (srcOp.isReg()) {
-        if (i == 0)
+        if (i == 0) {
           op._consecutiveLeadCount = uint8_t(opCount - 1);
-        else
+        }
+        else {
           op.addOpFlags(OpRWFlags::kConsecutive);
+        }
       }
       else {
         const Mem& memOp = srcOp.as<Mem>();

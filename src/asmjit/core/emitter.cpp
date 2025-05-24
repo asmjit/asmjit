@@ -52,17 +52,21 @@ static ASMJIT_NOINLINE void BaseEmitter_updateForcedOptions(BaseEmitter* self) n
     hasDiagnosticOptions = self->hasDiagnosticOption(DiagnosticOptions::kValidateIntermediate);
   }
 
-  if (emitComments)
+  if (emitComments) {
     self->_addEmitterFlags(EmitterFlags::kLogComments);
-  else
+  }
+  else {
     self->_clearEmitterFlags(EmitterFlags::kLogComments);
+  }
 
   // The reserved option tells emitter (Assembler/Builder/Compiler) that there may be either a border
   // case (CodeHolder not attached, for example) or that logging or validation is required.
-  if (self->_code == nullptr || self->_logger || hasDiagnosticOptions)
+  if (self->_code == nullptr || self->_logger || hasDiagnosticOptions) {
     self->_forcedInstOptions |= InstOptions::kReserved;
-  else
+  }
+  else {
     self->_forcedInstOptions &= ~InstOptions::kReserved;
+  }
 }
 
 // BaseEmitter - Diagnostic Options
@@ -90,8 +94,9 @@ void BaseEmitter::setLogger(Logger* logger) noexcept {
   else {
     _logger = nullptr;
     _clearEmitterFlags(EmitterFlags::kOwnLogger);
-    if (_code)
+    if (_code) {
       _logger = _code->logger();
+    }
   }
   BaseEmitter_updateForcedOptions(this);
 #else
@@ -110,16 +115,18 @@ void BaseEmitter::setErrorHandler(ErrorHandler* errorHandler) noexcept {
   else {
     _errorHandler = nullptr;
     _clearEmitterFlags(EmitterFlags::kOwnErrorHandler);
-    if (_code)
+    if (_code) {
       _errorHandler = _code->errorHandler();
+    }
   }
 }
 
 Error BaseEmitter::reportError(Error err, const char* message) {
   ErrorHandler* eh = _errorHandler;
   if (eh) {
-    if (!message)
+    if (!message) {
       message = DebugUtils::errorAsString(err);
+    }
     eh->handleError(err, message, this);
   }
   return err;
@@ -318,8 +325,9 @@ Error BaseEmitter::comment(const char* data, size_t size) {
 
 Error BaseEmitter::commentf(const char* fmt, ...) {
   if (!hasEmitterFlag(EmitterFlags::kLogComments)) {
-    if (!hasEmitterFlag(EmitterFlags::kAttached))
+    if (!hasEmitterFlag(EmitterFlags::kAttached)) {
       return reportError(DebugUtils::errored(kErrorNotInitialized));
+    }
     return kErrorOk;
   }
 
@@ -341,8 +349,9 @@ Error BaseEmitter::commentf(const char* fmt, ...) {
 
 Error BaseEmitter::commentv(const char* fmt, va_list ap) {
   if (!hasEmitterFlag(EmitterFlags::kLogComments)) {
-    if (!hasEmitterFlag(EmitterFlags::kAttached))
+    if (!hasEmitterFlag(EmitterFlags::kAttached)) {
       return reportError(DebugUtils::errored(kErrorNotInitialized));
+    }
     return kErrorOk;
   }
 
@@ -377,11 +386,13 @@ Error BaseEmitter::onAttach(CodeHolder* code) noexcept {
 Error BaseEmitter::onDetach(CodeHolder* code) noexcept {
   DebugUtils::unused(code);
 
-  if (!hasOwnLogger())
+  if (!hasOwnLogger()) {
     _logger = nullptr;
+  }
 
-  if (!hasOwnErrorHandler())
+  if (!hasOwnErrorHandler()) {
     _errorHandler = nullptr;
+  }
 
   _clearEmitterFlags(~kEmitterPreservedFlags);
   _instructionAlignment = uint8_t(0);
@@ -403,11 +414,13 @@ void BaseEmitter::onSettingsUpdated() noexcept {
   // Only called when attached to CodeHolder by CodeHolder.
   ASMJIT_ASSERT(_code != nullptr);
 
-  if (!hasOwnLogger())
+  if (!hasOwnLogger()) {
     _logger = _code->logger();
+  }
 
-  if (!hasOwnErrorHandler())
+  if (!hasOwnErrorHandler()) {
     _errorHandler = _code->errorHandler();
+  }
 
   BaseEmitter_updateForcedOptions(this);
 }

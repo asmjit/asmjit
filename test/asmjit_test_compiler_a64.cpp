@@ -87,25 +87,25 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef unsigned int U;
+    using U = unsigned int;
 
-    typedef U (*Func0)();
-    typedef U (*Func1)(U);
-    typedef U (*Func2)(U, U);
-    typedef U (*Func3)(U, U, U);
-    typedef U (*Func4)(U, U, U, U);
-    typedef U (*Func5)(U, U, U, U, U);
-    typedef U (*Func6)(U, U, U, U, U, U);
-    typedef U (*Func7)(U, U, U, U, U, U, U);
-    typedef U (*Func8)(U, U, U, U, U, U, U, U);
-    typedef U (*Func9)(U, U, U, U, U, U, U, U, U);
-    typedef U (*Func10)(U, U, U, U, U, U, U, U, U, U);
-    typedef U (*Func11)(U, U, U, U, U, U, U, U, U, U, U);
-    typedef U (*Func12)(U, U, U, U, U, U, U, U, U, U, U, U);
-    typedef U (*Func13)(U, U, U, U, U, U, U, U, U, U, U, U, U);
-    typedef U (*Func14)(U, U, U, U, U, U, U, U, U, U, U, U, U, U);
-    typedef U (*Func15)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
-    typedef U (*Func16)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
+    using Func0 = U (*)();
+    using Func1 = U (*)(U);
+    using Func2 = U (*)(U, U);
+    using Func3 = U (*)(U, U, U);
+    using Func4 = U (*)(U, U, U, U);
+    using Func5 = U (*)(U, U, U, U, U);
+    using Func6 = U (*)(U, U, U, U, U, U);
+    using Func7 = U (*)(U, U, U, U, U, U, U);
+    using Func8 = U (*)(U, U, U, U, U, U, U, U);
+    using Func9 = U (*)(U, U, U, U, U, U, U, U, U);
+    using Func10 = U (*)(U, U, U, U, U, U, U, U, U, U);
+    using Func11 = U (*)(U, U, U, U, U, U, U, U, U, U, U);
+    using Func12 = U (*)(U, U, U, U, U, U, U, U, U, U, U, U);
+    using Func13 = U (*)(U, U, U, U, U, U, U, U, U, U, U, U, U);
+    using Func14 = U (*)(U, U, U, U, U, U, U, U, U, U, U, U, U, U);
+    using Func15 = U (*)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
+    using Func16 = U (*)(U, U, U, U, U, U, U, U, U, U, U, U, U, U, U, U);
 
     unsigned int resultRet = 0;
     unsigned int expectRet = 0;
@@ -224,7 +224,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef void (*Func)(void*, const void*, const void*);
+    using Func = void (*)(void*, const void*, const void*);
 
     uint32_t dst[4];
     uint32_t aSrc[4] = { 0 , 1 , 2 , 255 };
@@ -284,7 +284,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef int (*Func)(void);
+    using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
     result.assignFormat("ret={%d}", func());
@@ -332,7 +332,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef int (*Func)(void);
+    using Func = int (*)(void);
     Func func = ptr_as_func<Func>(_func);
 
     result.assignFormat("ret={%d}", func());
@@ -377,7 +377,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef void (*Func)(void* p, size_t n);
+    using Func = void (*)(void* p, size_t n);
     Func func = ptr_as_func<Func>(_func);
 
     uint8_t array[16];
@@ -433,7 +433,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef uint32_t (*Func)(uint32_t, uint32_t);
+    using Func = uint32_t (*)(uint32_t, uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
     uint32_t x = 49;
@@ -485,7 +485,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef double (*Func)(double, double);
+    using Func = double (*)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
     double x = 49;
@@ -537,7 +537,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef double (*Func)(double, double);
+    using Func = double (*)(double, double);
     Func func = ptr_as_func<Func>(_func);
 
     double x = 49;
@@ -646,7 +646,7 @@ public:
   }
 
   virtual bool run(void* _func, String& result, String& expect) {
-    typedef float (*Func)(float, float, uint32_t);
+    using Func = float (*)(float, float, uint32_t);
     Func func = ptr_as_func<Func>(_func);
 
     float dst[4];

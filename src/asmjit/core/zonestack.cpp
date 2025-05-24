@@ -30,8 +30,9 @@ Error ZoneStackBase::_init(ZoneAllocator* allocator, size_t middleIndex) noexcep
 
   if (allocator) {
     Block* block = static_cast<Block*>(allocator->alloc(kBlockSize));
-    if (ASMJIT_UNLIKELY(!block))
+    if (ASMJIT_UNLIKELY(!block)) {
       return DebugUtils::errored(kErrorOutOfMemory);
+    }
 
     block->_link[kBlockIndexPrev] = nullptr;
     block->_link[kBlockIndexNext] = nullptr;
@@ -56,8 +57,9 @@ Error ZoneStackBase::_prepareBlock(uint32_t side, size_t initialIndex) noexcept 
   ASMJIT_ASSERT(!prev->empty());
 
   Block* block = _allocator->allocT<Block>(kBlockSize);
-  if (ASMJIT_UNLIKELY(!block))
+  if (ASMJIT_UNLIKELY(!block)) {
     return DebugUtils::errored(kErrorOutOfMemory);
+  }
 
   block->_link[ side] = nullptr;
   block->_link[!side] = prev;

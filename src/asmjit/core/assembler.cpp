@@ -26,12 +26,14 @@ BaseAssembler::~BaseAssembler() noexcept {}
 // =================================
 
 Error BaseAssembler::setOffset(size_t offset) {
-  if (ASMJIT_UNLIKELY(!_code))
+  if (ASMJIT_UNLIKELY(!_code)) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
+  }
 
   size_t size = Support::max<size_t>(_section->bufferSize(), this->offset());
-  if (ASMJIT_UNLIKELY(offset > size))
+  if (ASMJIT_UNLIKELY(offset > size)) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
+  }
 
   _bufferPtr = _bufferData + offset;
   return kErrorOk;
@@ -50,15 +52,18 @@ static void BaseAssembler_initSection(BaseAssembler* self, Section* section) noe
 }
 
 Error BaseAssembler::section(Section* section) {
-  if (ASMJIT_UNLIKELY(!_code))
+  if (ASMJIT_UNLIKELY(!_code)) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
+  }
 
-  if (!_code->isSectionValid(section->id()) || _code->_sections[section->id()] != section)
+  if (!_code->isSectionValid(section->id()) || _code->_sections[section->id()] != section) {
     return reportError(DebugUtils::errored(kErrorInvalidSection));
+  }
 
 #ifndef ASMJIT_NO_LOGGING
-  if (_logger)
+  if (_logger) {
     _logger->logf(".section %s {#%u}\n", section->name(), section->id());
+  }
 #endif
 
   BaseAssembler_initSection(this, section);
@@ -73,10 +78,12 @@ Label BaseAssembler::newLabel() {
   if (ASMJIT_LIKELY(_code)) {
     LabelEntry* le;
     Error err = _code->newLabelEntry(&le);
-    if (ASMJIT_UNLIKELY(err))
+    if (ASMJIT_UNLIKELY(err)) {
       reportError(err);
-    else
+    }
+    else {
       labelId = le->id();
+    }
   }
   return Label(labelId);
 }
@@ -86,28 +93,33 @@ Label BaseAssembler::newNamedLabel(const char* name, size_t nameSize, LabelType 
   if (ASMJIT_LIKELY(_code)) {
     LabelEntry* le;
     Error err = _code->newNamedLabelEntry(&le, name, nameSize, type, parentId);
-    if (ASMJIT_UNLIKELY(err))
+    if (ASMJIT_UNLIKELY(err)) {
       reportError(err);
-    else
+    }
+    else {
       labelId = le->id();
+    }
   }
   return Label(labelId);
 }
 
 Error BaseAssembler::bind(const Label& label) {
-  if (ASMJIT_UNLIKELY(!_code))
+  if (ASMJIT_UNLIKELY(!_code)) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
+  }
 
   Error err = _code->bindLabel(label, _section->id(), offset());
 
 #ifndef ASMJIT_NO_LOGGING
-  if (_logger)
+  if (_logger) {
     EmitterUtils::logLabelBound(this, label);
+  }
 #endif
 
   resetInlineComment();
-  if (err)
+  if (err) {
     return reportError(err);
+  }
 
   return kErrorOk;
 }
@@ -116,11 +128,13 @@ Error BaseAssembler::bind(const Label& label) {
 // =====================
 
 Error BaseAssembler::embed(const void* data, size_t dataSize) {
-  if (ASMJIT_UNLIKELY(!_code))
+  if (ASMJIT_UNLIKELY(!_code)) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
+  }
 
-  if (dataSize == 0)
+  if (dataSize == 0) {
     return kErrorOk;
+  }
 
   CodeWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
@@ -144,11 +158,13 @@ Error BaseAssembler::embedDataArray(TypeId typeId, const void* data, size_t item
   uint32_t deabstractDelta = TypeUtils::deabstractDeltaOfSize(registerSize());
   TypeId finalTypeId = TypeUtils::deabstract(typeId, deabstractDelta);
 
-  if (ASMJIT_UNLIKELY(!TypeUtils::isValid(finalTypeId)))
+  if (ASMJIT_UNLIKELY(!TypeUtils::isValid(finalTypeId))) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
+  }
 
-  if (itemCount == 0 || repeatCount == 0)
+  if (itemCount == 0 || repeatCount == 0) {
     return kErrorOk;
+  }
 
   uint32_t typeSize = TypeUtils::sizeOf(finalTypeId);
   Support::FastUInt8 of = 0;
@@ -156,15 +172,16 @@ Error BaseAssembler::embedDataArray(TypeId typeId, const void* data, size_t item
   size_t dataSize = Support::mulOverflow(itemCount, size_t(typeSize), &of);
   size_t totalSize = Support::mulOverflow(dataSize, repeatCount, &of);
 
-  if (ASMJIT_UNLIKELY(of))
+  if (ASMJIT_UNLIKELY(of)) {
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
+  }
 
   CodeWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, totalSize));
 
-  for (size_t i = 0; i < repeatCount; i++)
+  for (size_t i = 0; i < repeatCount; i++) {
     writer.emitData(data, dataSize);
-
+  }
   writer.done(this);
 
 #ifndef ASMJIT_NO_LOGGING
@@ -194,18 +211,21 @@ static const TypeId dataTypeIdBySize[9] = {
 #endif
 
 Error BaseAssembler::embedConstPool(const Label& label, const ConstPool& pool) {
-  if (ASMJIT_UNLIKELY(!_code))
+  if (ASMJIT_UNLIKELY(!_code)) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
+  }
 
-  if (ASMJIT_UNLIKELY(!isLabelValid(label)))
+  if (ASMJIT_UNLIKELY(!isLabelValid(label))) {
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
+  }
 
   ASMJIT_PROPAGATE(align(AlignMode::kData, uint32_t(pool.alignment())));
   ASMJIT_PROPAGATE(bind(label));
 
   size_t size = pool.size();
-  if (!size)
+  if (!size) {
     return kErrorOk;
+  }
 
   CodeWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, size));
@@ -234,21 +254,25 @@ Error BaseAssembler::embedConstPool(const Label& label, const ConstPool& pool) {
 }
 
 Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
-  if (ASMJIT_UNLIKELY(!_code))
+  if (ASMJIT_UNLIKELY(!_code)) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
+  }
 
   ASMJIT_ASSERT(_code != nullptr);
   RelocEntry* re;
   LabelEntry* le = _code->labelEntry(label);
 
-  if (ASMJIT_UNLIKELY(!le))
+  if (ASMJIT_UNLIKELY(!le)) {
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
+  }
 
-  if (dataSize == 0)
+  if (dataSize == 0) {
     dataSize = registerSize();
+  }
 
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8))
+  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8)) {
     return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
+  }
 
   CodeWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
@@ -266,8 +290,9 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
 #endif
 
   Error err = _code->newRelocEntry(&re, RelocType::kRelToAbs);
-  if (ASMJIT_UNLIKELY(err))
+  if (ASMJIT_UNLIKELY(err)) {
     return reportError(err);
+  }
 
   re->_sourceSectionId = _section->id();
   re->_sourceOffset = offset();
@@ -282,8 +307,9 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
     of.resetToSimpleValue(OffsetType::kUnsignedOffset, dataSize);
 
     LabelLink* link = _code->newLabelLink(le, _section->id(), offset(), 0, of);
-    if (ASMJIT_UNLIKELY(!link))
+    if (ASMJIT_UNLIKELY(!link)) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
+    }
 
     link->relocId = re->id();
   }
@@ -296,20 +322,24 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
 }
 
 Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size_t dataSize) {
-  if (ASMJIT_UNLIKELY(!_code))
+  if (ASMJIT_UNLIKELY(!_code)) {
     return reportError(DebugUtils::errored(kErrorNotInitialized));
+  }
 
   LabelEntry* labelEntry = _code->labelEntry(label);
   LabelEntry* baseEntry = _code->labelEntry(base);
 
-  if (ASMJIT_UNLIKELY(!labelEntry || !baseEntry))
+  if (ASMJIT_UNLIKELY(!labelEntry || !baseEntry)) {
     return reportError(DebugUtils::errored(kErrorInvalidLabel));
+  }
 
-  if (dataSize == 0)
+  if (dataSize == 0) {
     dataSize = registerSize();
+  }
 
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8))
+  if (ASMJIT_UNLIKELY(!Support::isPowerOf2(dataSize) || dataSize > 8)) {
     return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
+  }
 
   CodeWriter writer(this);
   ASMJIT_PROPAGATE(writer.ensureSpace(this, dataSize));
@@ -336,12 +366,14 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
   else {
     RelocEntry* re;
     Error err = _code->newRelocEntry(&re, RelocType::kExpression);
-    if (ASMJIT_UNLIKELY(err))
+    if (ASMJIT_UNLIKELY(err)) {
       return reportError(err);
+    }
 
     Expression* exp = _code->_zone.newT<Expression>();
-    if (ASMJIT_UNLIKELY(!exp))
+    if (ASMJIT_UNLIKELY(!exp)) {
       return reportError(DebugUtils::errored(kErrorOutOfMemory));
+    }
 
     exp->reset();
     exp->opType = ExpressionOpType::kSub;
@@ -365,8 +397,9 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
 
 Error BaseAssembler::comment(const char* data, size_t size) {
   if (!hasEmitterFlag(EmitterFlags::kLogComments)) {
-    if (!hasEmitterFlag(EmitterFlags::kAttached))
+    if (!hasEmitterFlag(EmitterFlags::kAttached)) {
       return reportError(DebugUtils::errored(kErrorNotInitialized));
+    }
     return kErrorOk;
   }
 

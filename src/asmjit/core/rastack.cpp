@@ -15,12 +15,14 @@ ASMJIT_BEGIN_NAMESPACE
 // ========================
 
 RAStackSlot* RAStackAllocator::newSlot(uint32_t baseRegId, uint32_t size, uint32_t alignment, uint32_t flags) noexcept {
-  if (ASMJIT_UNLIKELY(_slots.willGrow(allocator(), 1) != kErrorOk))
+  if (ASMJIT_UNLIKELY(_slots.willGrow(allocator(), 1) != kErrorOk)) {
     return nullptr;
+  }
 
   RAStackSlot* slot = allocator()->allocT<RAStackSlot>();
-  if (ASMJIT_UNLIKELY(!slot))
+  if (ASMJIT_UNLIKELY(!slot)) {
     return nullptr;
+  }
 
   slot->_baseRegId = uint8_t(baseRegId);
   slot->_alignment = uint8_t(Support::max<uint32_t>(alignment, 1));
@@ -72,15 +74,18 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
     uint32_t power = Support::min<uint32_t>(Support::ctz(alignment), 6);
     uint64_t weight;
 
-    if (slot->isRegHome())
+    if (slot->isRegHome()) {
       weight = kBaseRegWeight + (uint64_t(slot->useCount()) * (7 - power));
-    else
+    }
+    else {
       weight = power;
+    }
 
     // If overflown, which has less chance of winning a lottery, just use max possible weight. In such case it
     // probably doesn't matter at all.
-    if (weight > 0xFFFFFFFFu)
+    if (weight > 0xFFFFFFFFu) {
       weight = 0xFFFFFFFFu;
+    }
 
     slot->setWeight(uint32_t(weight));
   }
@@ -104,8 +109,9 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
   ZoneVector<RAStackGap> gaps[kSizeCount - 1];
 
   for (RAStackSlot* slot : _slots) {
-    if (slot->isStackArg())
+    if (slot->isStackArg()) {
       continue;
+    }
 
     uint32_t slotAlignment = slot->alignment();
     uint32_t alignedOffset = Support::alignUp(offset, slotAlignment);
@@ -153,8 +159,9 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
         uint32_t slotSize = 1u << index;
 
         // Weird case, better to bail...
-        if (gapEnd - gapOffset < slotSize)
+        if (gapEnd - gapOffset < slotSize) {
           break;
+        }
 
         ASMJIT_PROPAGATE(gaps[index].append(allocator(), RAStackGap(gapOffset, slotSize)));
         gapOffset += slotSize;
@@ -173,9 +180,11 @@ Error RAStackAllocator::calculateStackFrame() noexcept {
 }
 
 Error RAStackAllocator::adjustSlotOffsets(int32_t offset) noexcept {
-  for (RAStackSlot* slot : _slots)
-    if (!slot->isStackArg())
+  for (RAStackSlot* slot : _slots) {
+    if (!slot->isStackArg()) {
       slot->_offset += offset;
+    }
+  }
   return kErrorOk;
 }
 

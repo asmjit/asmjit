@@ -102,21 +102,21 @@ namespace asmjit {
 //!
 //!   - Requirements:
 //!
-//!     - AsmJit won't build without C++11 enabled. If you use older GCC or Clang you would have to enable at least
-//!       C++11 standard through compiler flags.
+//!     - AsmJit won't build without C++17 enabled. If you use older GCC or Clang you would have to enable at least
+//!       C++17 standard through compiler flags.
 //!
 //!   - Tested:
 //!
 //!     - **Clang** - Tested by GitHub Actions - Clang 10+ is officially supported and tested by CI, older Clang versions
-//!       having C++11 should work, but are not tested anymore due to upgraded CI images.
+//!       having C++17 should work, but these versions are not tested anymore due to upgraded CI images.
 //!
-//!     - **GNU** - Tested by GitHub Actions - GCC 7+ is officially supported, older GCC versions from 4.8+ having C++11
-//!       enabled should also work, but are not tested anymore due to upgraded CI images.
+//!     - **GNU** - Tested by GitHub Actions - GCC 9+ is officially supported and tested by CI, older GCC versions such
+//!       as GCC 7 should work, but these versions are not tested anymore due to upgraded CI images.
 //!
-//!     - **MINGW** - Reported to work, but not tested in our CI environment (help welcome).
+//!     - **MINGW** - Reported to work, but not tested in our CI environment (help welcome!).
 //!
-//!     - **MSVC** - Tested by GitHub Actions - VS2019+ is officially supported, VS2015 and VS2017 is reported to work,
-//!       but not tested by CI anymore.
+//!     - **MSVC** - Tested by GitHub Actions - VS2019 and onwards are officially supported and tested by CI, VS2015 and
+//!       VS2017 are not tested anymore due to upgraded CI images.
 //!
 //! ### Supported Operating Systems and Platforms
 //!
@@ -173,7 +173,7 @@ namespace asmjit {
 //! cmake_minimum_required(VERSION 3.30)
 //!
 //! project(asmjit_consumer C CXX)    # Both C and CXX are required.
-//! set(CMAKE_CXX_STANDARD 17)        # C++11 and never is supported.
+//! set(CMAKE_CXX_STANDARD 17)        # C++17 and never is supported.
 //!
 //! set(ASMJIT_DIR "3rdparty/asmjit") # Location of AsmJit.
 //! set(ASMJIT_STATIC TRUE)           # Force static build.
@@ -201,12 +201,12 @@ namespace asmjit {
 //!
 //! \section build_backends AsmJit Backends
 //!
-//! AsmJit currently supports only X86/X64 backend, but the plan is to add more backends in the future. By default
-//! AsmJit builds only the host backend, which is auto-detected at compile-time, but this can be overridden.
+//! All backends AsmJit supports are included by default. To exclude a backend use the following build-type macros:
 //!
 //!   - \ref ASMJIT_NO_X86 - Disables both X86 and X86_64 backends.
 //!   - \ref ASMJIT_NO_AARCH64 - Disables AArch64 backend.
 //!   - \ref ASMJIT_NO_FOREIGN - Disables the support for foreign architecture backends, only keeps a native backend.
+//!     For example if your target is X86, `ASMJIT_NO_FOREIGN` would disable every backend but X86.
 //!
 //! \section build_options Build Options
 //!
@@ -268,14 +268,24 @@ namespace asmjit {
 //!   - Visit our [Public Gitter Chat](https://app.gitter.im/#/room/#asmjit:gitter.im) if you need a quick help.
 //!
 //!   - Build AsmJit with `ASMJIT_NO_DEPRECATED` macro defined to make sure that you are not using deprecated
-//!     functionality at all. Deprecated functions are decorated with `ASMJIT_DEPRECATED()` macro, but sometimes
+//!     functionality at all. Deprecated functions are decorated with `[[deprecated]]` attribute, but sometimes
 //!     it's not possible to decorate everything like classes, which are used by deprecated functions as well,
 //!     because some compilers would warn about that. If your project compiles fine with `ASMJIT_NO_DEPRECATED`
 //!     it's not using anything, which was deprecated.
 //!
 //! \section api_changes API Changes
 //!
-//! ### Changes committed at XXXX-XX-XX
+//! ### Changes committed at 2025-05-24
+//!
+//! Core changes:
+//!
+//!   - AsmJit now requires C++17 to compile.
+//!
+//!   - Deprecated asmjit/asmjit.h header. Use asmjit/core.h to include everything except backend specific stuff,
+//!     and asmjit/x86.h or asmjit/a64.h to include tools of a specific architecture. At this time the asmjit.h
+//!     header is just deprecated, so it will still work as it used to for some time.
+//!
+//! ### Changes committed at 2025-05-10
 //!
 //! Core changes:
 //!
@@ -565,7 +575,7 @@ namespace asmjit {
 //! using namespace asmjit;
 //!
 //! // Signature of the generated function.
-//! typedef int (*Func)(void);
+//! using Func = int (*)(void);
 //!
 //! int main() {
 //!   JitRuntime rt;                    // Runtime specialized for JIT code execution.
@@ -712,7 +722,7 @@ namespace asmjit {
 //!
 //! using namespace asmjit;
 //!
-//! typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
+//! using SumIntsFunc = void (*)(int* dst, const int* a, const int* b);
 //!
 //! int main() {
 //!   // Create a custom environment that matches the current host environment.

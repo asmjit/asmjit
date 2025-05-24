@@ -1,8 +1,8 @@
 {
   "diagnostics": {
     "asan": { "definitions": ["ASMJIT_SANITIZE=address"] },
-    "ubsan": { "definitions": ["ASMJIT_SANITIZE=undefined"] },
-    "msan": { "definitions": ["ASMJIT_SANITIZE=memory"] }
+    "msan": { "definitions": ["ASMJIT_SANITIZE=memory"] },
+    "ubsan": { "definitions": ["ASMJIT_SANITIZE=undefined"] }
   },
 
   "valgrind_arguments": [

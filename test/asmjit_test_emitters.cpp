@@ -31,7 +31,7 @@ static void printInfo() noexcept {
 using namespace asmjit;
 
 // Signature of the generated function.
-typedef void (*SumIntsFunc)(int* dst, const int* a, const int* b);
+using SumIntsFunc = void (*)(int* dst, const int* a, const int* b);
 
 // X86 Backend
 // -----------

@@ -172,12 +172,12 @@ void ZoneHashBase::_rehash(ZoneAllocator* allocator, uint32_t primeIndex) noexce
   uint32_t newCount = ZoneHash_primeArray[primeIndex].prime;
 
   ZoneHashNode** oldData = _data;
-  ZoneHashNode** newData = reinterpret_cast<ZoneHashNode**>(
-    allocator->allocZeroed(size_t(newCount) * sizeof(ZoneHashNode*)));
+  ZoneHashNode** newData = reinterpret_cast<ZoneHashNode**>(allocator->allocZeroed(size_t(newCount) * sizeof(ZoneHashNode*)));
 
   // We can still store nodes into the table, but it will degrade.
-  if (ASMJIT_UNLIKELY(newData == nullptr))
+  if (ASMJIT_UNLIKELY(newData == nullptr)) {
     return;
+  }
 
   uint32_t i;
   uint32_t oldCount = _bucketsCount;
@@ -201,8 +201,9 @@ void ZoneHashBase::_rehash(ZoneAllocator* allocator, uint32_t primeIndex) noexce
     }
   }
 
-  if (oldData != _embedded)
+  if (oldData != _embedded) {
     allocator->release(oldData, oldCount * sizeof(ZoneHashNode*));
+  }
 }
 
 // ZoneHashBase - Operations
@@ -217,8 +218,9 @@ ZoneHashNode* ZoneHashBase::_insert(ZoneAllocator* allocator, ZoneHashNode* node
 
   if (++_size > _bucketsGrow) {
     uint32_t primeIndex = Support::min<uint32_t>(_primeIndex + 2, ASMJIT_ARRAY_SIZE(ZoneHash_primeArray) - 1);
-    if (primeIndex > _primeIndex)
+    if (primeIndex > _primeIndex) {
       _rehash(allocator, primeIndex);
+    }
   }
 
   return node;

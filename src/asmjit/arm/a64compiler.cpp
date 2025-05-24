@@ -18,8 +18,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(a64)
 
 Compiler::Compiler(CodeHolder* code) noexcept : BaseCompiler() {
   _archMask = uint64_t(1) << uint32_t(Arch::kAArch64);
-  if (code)
+  if (code) {
     code->attach(this);
+  }
 }
 Compiler::~Compiler() noexcept {}
 

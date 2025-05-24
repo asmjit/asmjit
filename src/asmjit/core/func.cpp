@@ -27,13 +27,15 @@ ASMJIT_FAVOR_SIZE Error CallConv::init(CallConvId ccId, const Environment& envir
   reset();
 
 #if !defined(ASMJIT_NO_X86)
-  if (environment.isFamilyX86())
+  if (environment.isFamilyX86()) {
     return x86::FuncInternal::initCallConv(*this, ccId, environment);
+  }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if (environment.isFamilyAArch64())
+  if (environment.isFamilyAArch64()) {
     return a64::FuncInternal::initCallConv(*this, ccId, environment);
+  }
 #endif
 
   return DebugUtils::errored(kErrorInvalidArgument);
@@ -46,8 +48,9 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& signature, const E
   CallConvId ccId = signature.callConvId();
   uint32_t argCount = signature.argCount();
 
-  if (ASMJIT_UNLIKELY(argCount > Globals::kMaxFuncArgs))
+  if (ASMJIT_UNLIKELY(argCount > Globals::kMaxFuncArgs)) {
     return DebugUtils::errored(kErrorInvalidArgument);
+  }
 
   CallConv& cc = _callConv;
   ASMJIT_PROPAGATE(cc.init(ccId, environment));
@@ -65,17 +68,20 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& signature, const E
   _vaIndex = uint8_t(signature.vaIndex());
 
   TypeId ret = signature.ret();
-  if (ret != TypeId::kVoid)
+  if (ret != TypeId::kVoid) {
     _rets[0].initTypeId(TypeUtils::deabstract(ret, deabstractDelta));
+  }
 
 #if !defined(ASMJIT_NO_X86)
-  if (environment.isFamilyX86())
+  if (environment.isFamilyX86()) {
     return x86::FuncInternal::initFuncDetail(*this, signature, registerSize);
+  }
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  if (environment.isFamilyAArch64())
+  if (environment.isFamilyAArch64()) {
     return a64::FuncInternal::initFuncDetail(*this, signature);
+  }
 #endif
 
   // We should never bubble here as if `cc.init()` succeeded then there has to be an implementation for the current
@@ -88,8 +94,9 @@ ASMJIT_FAVOR_SIZE Error FuncDetail::init(const FuncSignature& signature, const E
 
 ASMJIT_FAVOR_SIZE Error FuncFrame::init(const FuncDetail& func) noexcept {
   Arch arch = func.callConv().arch();
-  if (!Environment::isValidArch(arch))
+  if (!Environment::isValidArch(arch)) {
     return DebugUtils::errored(kErrorInvalidArch);
+  }
 
   const ArchTraits& archTraits = ArchTraits::byArch(arch);
 
@@ -104,8 +111,9 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::init(const FuncDetail& func) noexcept {
   uint32_t naturalStackAlignment = func.callConv().naturalStackAlignment();
   uint32_t minDynamicAlignment = Support::max<uint32_t>(naturalStackAlignment, 16);
 
-  if (minDynamicAlignment == naturalStackAlignment)
+  if (minDynamicAlignment == naturalStackAlignment) {
     minDynamicAlignment <<= 1;
+  }
 
   _naturalStackAlignment = uint8_t(naturalStackAlignment);
   _minDynamicAlignment = uint8_t(minDynamicAlignment);
@@ -137,8 +145,9 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::init(const FuncDetail& func) noexcept {
 // ====================
 
 ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
-  if (!Environment::isValidArch(arch()))
+  if (!Environment::isValidArch(arch())) {
     return DebugUtils::errored(kErrorInvalidArch);
+  }
 
   const ArchTraits& archTraits = ArchTraits::byArch(arch());
 
@@ -148,9 +157,7 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
   // The final stack alignment must be updated accordingly to call and local stack alignments.
   uint32_t stackAlignment = _finalStackAlignment;
-  ASMJIT_ASSERT(stackAlignment == Support::max(_naturalStackAlignment,
-                                               _callStackAlignment,
-                                               _localStackAlignment));
+  ASMJIT_ASSERT(stackAlignment == Support::max(_naturalStackAlignment, _callStackAlignment, _localStackAlignment));
 
   bool hasFP = hasPreservedFP();
   bool hasDA = hasDynamicAlignment();
@@ -165,32 +172,37 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
     // Currently required by ARM, if this works differently across architectures we would have to generalize most
     // likely in CallConv.
-    if (kLr != BaseReg::kIdBad)
+    if (kLr != BaseReg::kIdBad) {
       _dirtyRegs[RegGroup::kGp] |= Support::bitMask(kLr);
+    }
   }
 
   // These two are identical if the function doesn't align its stack dynamically.
   uint32_t saRegId = _saRegId;
-  if (saRegId == BaseReg::kIdBad)
+  if (saRegId == BaseReg::kIdBad) {
     saRegId = kSp;
+  }
 
   // Fix stack arguments base-register from SP to FP in case it was not picked before and the function performs
   // dynamic stack alignment.
-  if (hasDA && saRegId == kSp)
+  if (hasDA && saRegId == kSp) {
     saRegId = kFp;
+  }
 
   // Mark as dirty any register but SP if used as SA pointer.
-  if (saRegId != kSp)
+  if (saRegId != kSp) {
     _dirtyRegs[RegGroup::kGp] |= Support::bitMask(saRegId);
+  }
 
   _spRegId = uint8_t(kSp);
   _saRegId = uint8_t(saRegId);
 
   // Setup stack size used to save preserved registers.
   uint32_t saveRestoreSizes[2] {};
-  for (RegGroup group : RegGroupVirtValues{})
+  for (RegGroup group : RegGroupVirtValues{}) {
     saveRestoreSizes[size_t(!archTraits.hasInstPushPop(group))]
       += Support::alignUp(Support::popcnt(savedRegs(group)) * saveRestoreRegSize(group), saveRestoreAlignment(group));
+  }
 
   _pushPopSaveSize  = uint16_t(saveRestoreSizes[0]);
   _extraRegSaveSize = uint16_t(saveRestoreSizes[1]);
@@ -235,22 +247,25 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
   // (basically the native register/pointer size). We don't adjust it now as `v` now contains the exact size
   // that the function requires to adjust (call frame + stack frame, vec stack size). The stack (if we consider
   // this size) is misaligned now, as it's always aligned before the function call - when `call()` is executed
-  // it pushes the current EIP|RIP onto the stack, and misaligns it by 12 or 8 bytes (depending on the
+  // it pushes the current EIP|RIP onto the stack, and unaligns it by 12 or 8 bytes (depending on the
   // architecture). So count number of bytes needed to align it up to the function's CallFrame (the beginning).
-  if (v || hasFuncCalls() || !returnAddressSize)
+  if (v || hasFuncCalls() || !returnAddressSize) {
     v += Support::alignUpDiff(v + pushPopSaveSize() + returnAddressSize, stackAlignment);
+  }
 
   _pushPopSaveOffset = v;                    // Store 'pushPopSaveOffset'  <- Function's push/pop save/restore starts here.
   _stackAdjustment = v;                      // Store 'stackAdjustment'    <- SA used by 'add SP, SA' and 'sub SP, SA'.
   v += _pushPopSaveSize;                     // Count 'pushPopSaveSize'    <- Function's push/pop save/restore ends here.
   _finalStackSize = v;                       // Store 'finalStackSize'     <- Final stack used by the function.
 
-  if (!archTraits.hasLinkReg())
+  if (!archTraits.hasLinkReg()) {
     v += registerSize;                       // Count 'ReturnAddress'      <- As CALL pushes onto stack.
+  }
 
   // If the function performs dynamic stack alignment then the stack-adjustment must be aligned.
-  if (hasDA)
+  if (hasDA) {
     _stackAdjustment = Support::alignUp(_stackAdjustment, stackAlignment);
+  }
 
   // Calculate where the function arguments start relative to SP.
   _saOffsetFromSP = hasDA ? FuncFrame::kTagInvalidOffset : v;
@@ -269,8 +284,9 @@ ASMJIT_FAVOR_SIZE Error FuncArgsAssignment::updateFuncFrame(FuncFrame& frame) co
   Arch arch = frame.arch();
   const FuncDetail* func = funcDetail();
 
-  if (!func)
+  if (!func) {
     return DebugUtils::errored(kErrorInvalidState);
+  }
 
   RAConstraints constraints;
   ASMJIT_PROPAGATE(constraints.init(arch));

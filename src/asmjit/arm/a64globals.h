@@ -802,7 +802,7 @@ namespace Predicate {
 
 //! Address translate options (AT).
 namespace AT {
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
     return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
   }
 
@@ -860,7 +860,7 @@ namespace DB {
 
 //! Data cache maintenance options.
 namespace DC {
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
     return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
   }
 
@@ -899,7 +899,7 @@ namespace DC {
 
 //! Instruction cache maintenance options.
 namespace IC {
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
     return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
   }
 
@@ -953,7 +953,7 @@ namespace PSB {
 }
 
 namespace TLBI {
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
     return (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
   }
 
@@ -1052,7 +1052,7 @@ namespace TSB {
 //! Processor state access through MSR.
 namespace PState {
   //! Encodes a pstate from `op0` and `op1`.
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t encode(uint32_t op0, uint32_t op1) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op0, uint32_t op1) noexcept {
     return (op0 << 3) | (op1 << 0);
   }
 
@@ -1081,17 +1081,17 @@ namespace SysReg {
   };
 
   //! Encodes a system register from `op0`, `op1`, `cRn`, `cRm`, and `op2` fields.
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t encode(uint32_t op0, uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(uint32_t op0, uint32_t op1, uint32_t cRn, uint32_t cRm, uint32_t op2) noexcept {
     return (op0 << 14) | (op1 << 11) | (cRn << 7) | (cRm << 3) | (op2 << 0);
   }
 
   //! Encodes a system register from `fields`.
-  static ASMJIT_INLINE_NODEBUG constexpr uint32_t encode(const Fields& fields) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR uint32_t encode(const Fields& fields) noexcept {
     return encode(fields.op0, fields.op1, fields.cRn, fields.cRm, fields.op2);
   }
 
   //! Decodes a system register to \ref Fields.
-  static ASMJIT_INLINE_NODEBUG constexpr Fields decode(uint32_t id) noexcept {
+  static ASMJIT_INLINE_CONSTEXPR Fields decode(uint32_t id) noexcept {
     return Fields {
       uint8_t((id >> 14) & 0x3u),
       uint8_t((id >> 11) & 0x7u),

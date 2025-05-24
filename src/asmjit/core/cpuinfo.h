@@ -26,18 +26,21 @@ public:
   //! \{
 
   //! \cond INTERNAL
-  enum : uint32_t {
-    kMaxFeatures = 256,
-    kNumBitWords = kMaxFeatures / Support::kBitWordSizeInBits
-  };
+  static inline constexpr uint32_t kMaxFeatures = 256;
+  static inline constexpr uint32_t kNumBitWords = kMaxFeatures / Support::kBitWordSizeInBits;
   //! \endcond
 
-  //! A word that is used to represents feature bits.
-  typedef Support::BitWord BitWord;
-  //! Iterator that can iterate all CPU features set.
-  typedef Support::BitVectorIterator<BitWord> Iterator;
+  //! \}
 
-  typedef Support::Array<BitWord, kNumBitWords> Bits;
+  //! \name Types
+  //! \{
+
+  //! A word that is used to represents feature bits.
+  using BitWord = Support::BitWord;
+  //! Iterator that can iterate all CPU features set.
+  using Iterator = Support::BitVectorIterator<BitWord>;
+
+  using Bits = Support::Array<BitWord, kNumBitWords>;
 
   //! \}
 
@@ -57,7 +60,10 @@ public:
     //! \name Overloaded Operators
     //! \{
 
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool operator==(const Data& other) const noexcept { return  equals(other); }
+
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool operator!=(const Data& other) const noexcept { return !equals(other); }
 
     //! \}
@@ -66,21 +72,28 @@ public:
     //! \{
 
     //! Returns true if there are no features set.
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _bits.aggregate<Support::Or>(0) == 0; }
 
     //! Returns all features as array of bitwords (see \ref Support::BitWord).
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG BitWord* bits() noexcept { return _bits.data(); }
+
     //! Returns all features as array of bitwords (const).
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG const BitWord* bits() const noexcept { return _bits.data(); }
 
     //! Returns the number of BitWords returned by \ref bits().
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG size_t bitWordCount() const noexcept { return kNumBitWords; }
 
     //! Returns \ref Support::BitVectorIterator, that can be used to iterate over all features efficiently.
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG Iterator iterator() const noexcept { return Iterator(_bits.data(), kNumBitWords); }
 
     //! Tests whether the feature `featureId` is present.
     template<typename FeatureId>
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool has(const FeatureId& featureId) const noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
@@ -92,6 +105,7 @@ public:
 
     //! \cond NONE
     template<typename FeatureId>
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool hasAny(const FeatureId& featureId) const noexcept {
       return has(featureId);
     }
@@ -101,11 +115,13 @@ public:
     //!
     //! \note This is a variadic function template that can be used with multiple features.
     template<typename FeatureId, typename... Args>
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool hasAny(const FeatureId& featureId, Args&&... otherFeatureIds) const noexcept {
       return bool(unsigned(has(featureId)) | unsigned(hasAny(std::forward<Args>(otherFeatureIds)...)));
     }
 
     //! Tests whether all features as defined by `other` are present.
+    [[nodiscard]]
     ASMJIT_INLINE_NODEBUG bool hasAll(const Data& other) const noexcept {
       uint32_t result = 1;
       for (uint32_t i = 0; i < kNumBitWords; i++)
@@ -123,7 +139,7 @@ public:
 
     //! Adds the given CPU `featureId` to the list of features.
     template<typename FeatureId>
-    ASMJIT_INLINE_NODEBUG void add(const FeatureId& featureId) noexcept {
+    inline void add(const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
       uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
@@ -133,13 +149,13 @@ public:
     }
 
     template<typename FeatureId, typename... Args>
-    ASMJIT_INLINE_NODEBUG void add(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
+    inline void add(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       add(featureId);
       add(std::forward<Args>(otherFeatureIds)...);
     }
 
     template<typename FeatureId>
-    ASMJIT_INLINE_NODEBUG void addIf(bool condition, const FeatureId& featureId) noexcept {
+    inline void addIf(bool condition, const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
       uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
@@ -149,14 +165,14 @@ public:
     }
 
     template<typename FeatureId, typename... Args>
-    ASMJIT_INLINE_NODEBUG void addIf(bool condition, const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
+    inline void addIf(bool condition, const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       addIf(condition, featureId);
       addIf(condition, std::forward<Args>(otherFeatureIds)...);
     }
 
     //! Removes the given CPU `featureId` from the list of features.
     template<typename FeatureId>
-    ASMJIT_INLINE_NODEBUG void remove(const FeatureId& featureId) noexcept {
+    inline void remove(const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
       uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
@@ -166,7 +182,7 @@ public:
     }
 
     template<typename FeatureId, typename... Args>
-    ASMJIT_INLINE_NODEBUG void remove(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
+    inline void remove(const FeatureId& featureId, Args&&... otherFeatureIds) noexcept {
       remove(featureId);
       remove(std::forward<Args>(otherFeatureIds)...);
     }
@@ -1104,6 +1120,7 @@ public:
   //! Returns the host CPU information.
   //!
   //! \note The returned reference is global - it's setup only once and then shared.
+  [[nodiscard]]
   ASMJIT_API static const CpuInfo& host() noexcept;
 
   //! \}
@@ -1134,15 +1151,18 @@ public:
   //! \{
 
   //! Returns the CPU architecture this information relates to.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Arch arch() const noexcept { return _arch; }
 
   //! Returns the CPU sub-architecture this information relates to.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG SubArch subArch() const noexcept { return _subArch; }
 
   //! Returns whether the CPU was detected successfully.
   //!
   //! If the returned value is false it means that AsmJit either failed to detect the CPU or it doesn't have
   //! implementation targeting the host architecture and operating system.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool wasDetected() const noexcept { return _wasDetected; }
 
   //! Returns the CPU family ID.
@@ -1152,6 +1172,7 @@ public:
   //!     - Family identifier matches the FamilyId read by using CPUID.
   //!   - ARM:
   //!     - Apple - returns Apple Family identifier returned by sysctlbyname("hw.cpufamily").
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t familyId() const noexcept { return _familyId; }
 
   //! Returns the CPU model ID.
@@ -1159,6 +1180,7 @@ public:
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Model identifier matches the ModelId read by using CPUID.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t modelId() const noexcept { return _modelId; }
 
   //! Returns the CPU brand id.
@@ -1166,6 +1188,7 @@ public:
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Brand identifier matches the BrandId read by using CPUID.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t brandId() const noexcept { return _brandId; }
 
   //! Returns the CPU stepping.
@@ -1173,6 +1196,7 @@ public:
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Stepping identifier matches the Stepping information read by using CPUID.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t stepping() const noexcept { return _stepping; }
 
   //! Returns the processor type.
@@ -1180,34 +1204,46 @@ public:
   //! The information provided depends on architecture and OS:
   //!   - X86:
   //!     - Processor type identifier matches the ProcessorType read by using CPUID.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t processorType() const noexcept { return _processorType; }
 
   //! Returns the maximum number of logical processors.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t maxLogicalProcessors() const noexcept { return _maxLogicalProcessors; }
 
   //! Returns the size of a CPU cache line.
   //!
   //! On a multi-architecture system this should return the smallest cache line of all CPUs.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t cacheLineSize() const noexcept { return _cacheLineSize; }
 
   //! Returns number of hardware threads available.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t hwThreadCount() const noexcept { return _hwThreadCount; }
 
   //! Returns a CPU vendor string.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const char* vendor() const noexcept { return _vendor.str; }
+
   //! Tests whether the CPU vendor string is equal to `s`.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isVendor(const char* s) const noexcept { return _vendor.equals(s); }
 
   //! Returns a CPU brand string.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const char* brand() const noexcept { return _brand.str; }
 
   //! Returns CPU features.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG CpuFeatures& features() noexcept { return _features; }
+
   //! Returns CPU features (const).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const CpuFeatures& features() const noexcept { return _features; }
 
   //! Tests whether the CPU has the given `feature`.
   template<typename FeatureId>
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasFeature(const FeatureId& featureId) const noexcept { return _features.has(featureId); }
 
   //! Adds the given CPU `featureId` to the list of features.

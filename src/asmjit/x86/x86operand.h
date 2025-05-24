@@ -77,55 +77,96 @@ public:
   ASMJIT_DEFINE_ABSTRACT_REG(Reg, BaseReg)
 
   //! Tests whether the register is a GPB register (8-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isGpb() const noexcept { return size() == 1; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGpb() const noexcept { return size() == 1; }
+
   //! Tests whether the register is a low GPB register (8-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isGpbLo() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_GpbLo>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGpbLo() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_GpbLo>::kSignature); }
+
   //! Tests whether the register is a high GPB register (8-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isGpbHi() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_GpbHi>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGpbHi() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_GpbHi>::kSignature); }
+
   //! Tests whether the register is a GPW register (16-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isGpw() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpw>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGpw() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpw>::kSignature); }
+
   //! Tests whether the register is a GPD register (32-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isGpd() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpd>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGpd() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpd>::kSignature); }
+
   //! Tests whether the register is a GPQ register (64-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isGpq() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpq>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGpq() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpq>::kSignature); }
 
   //! Tests whether the register is a 32-bit general purpose register, alias of \ref isGpd().
-  ASMJIT_INLINE_NODEBUG constexpr bool isGp32() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpd>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp32() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpd>::kSignature); }
+
   //! Tests whether the register is a 64-bit general purpose register, alias of \ref isGpq()
-  ASMJIT_INLINE_NODEBUG constexpr bool isGp64() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpq>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isGp64() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Gpq>::kSignature); }
 
   //! Tests whether the register is an XMM register (128-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isXmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Xmm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isXmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Xmm>::kSignature); }
+
   //! Tests whether the register is a YMM register (256-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isYmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Ymm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isYmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Ymm>::kSignature); }
+
   //! Tests whether the register is a ZMM register (512-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isZmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Zmm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isZmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Zmm>::kSignature); }
 
   //! Tests whether the register is a 128-bit vector register, alias of \ref isXmm().
-  ASMJIT_INLINE_NODEBUG constexpr bool isVec128() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Xmm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec128() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Xmm>::kSignature); }
+
   //! Tests whether the register is a 256-bit vector register, alias of \ref isYmm().
-  ASMJIT_INLINE_NODEBUG constexpr bool isVec256() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Ymm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec256() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Ymm>::kSignature); }
+
   //! Tests whether the register is a 512-bit vector register, alias of \ref isZmm().
-  ASMJIT_INLINE_NODEBUG constexpr bool isVec512() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Zmm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isVec512() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Zmm>::kSignature); }
 
   //! Tests whether the register is an MMX register (64-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isMm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Mm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isMm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Mm>::kSignature); }
+
   //! Tests whether the register is a K register (64-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isKReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_KReg>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isKReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_KReg>::kSignature); }
+
   //! Tests whether the register is a segment register.
-  ASMJIT_INLINE_NODEBUG constexpr bool isSReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_SReg>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isSReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_SReg>::kSignature); }
+
   //! Tests whether the register is a control register.
-  ASMJIT_INLINE_NODEBUG constexpr bool isCReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_CReg>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isCReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_CReg>::kSignature); }
+
   //! Tests whether the register is a debug register.
-  ASMJIT_INLINE_NODEBUG constexpr bool isDReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_DReg>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isDReg() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_DReg>::kSignature); }
+
   //! Tests whether the register is an FPU register (80-bit).
-  ASMJIT_INLINE_NODEBUG constexpr bool isSt() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_St>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isSt() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_St>::kSignature); }
+
   //! Tests whether the register is a bound register.
-  ASMJIT_INLINE_NODEBUG constexpr bool isBnd() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Bnd>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isBnd() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Bnd>::kSignature); }
+
   //! Tests whether the register is a TMM register.
-  ASMJIT_INLINE_NODEBUG constexpr bool isTmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Tmm>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isTmm() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Tmm>::kSignature); }
+
   //! Tests whether the register is RIP.
-  ASMJIT_INLINE_NODEBUG constexpr bool isRip() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Rip>::kSignature); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isRip() const noexcept { return hasBaseSignature(RegTraits<RegType::kX86_Rip>::kSignature); }
 
   template<RegType REG_TYPE>
   ASMJIT_INLINE_NODEBUG void setRegT(uint32_t rId) noexcept {
@@ -138,25 +179,35 @@ public:
     setId(id);
   }
 
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG RegGroup groupOf(RegType type) noexcept { return ArchTraits::byArch(Arch::kX86).regTypeToGroup(type); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG TypeId typeIdOf(RegType type) noexcept { return ArchTraits::byArch(Arch::kX86).regTypeToTypeId(type); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG OperandSignature signatureOf(RegType type) noexcept { return ArchTraits::byArch(Arch::kX86).regTypeToSignature(type); }
 
   template<RegType REG_TYPE>
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG RegGroup groupOfT() noexcept { return RegGroup(RegTraits<REG_TYPE>::kGroup); }
 
   template<RegType REG_TYPE>
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG TypeId typeIdOfT() noexcept { return TypeId(RegTraits<REG_TYPE>::kTypeId); }
 
   template<RegType REG_TYPE>
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfT() noexcept { return OperandSignature{RegTraits<REG_TYPE>::kSignature}; }
 
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfVecByType(TypeId typeId) noexcept {
     return OperandSignature{typeId <= TypeId::_kVec128End ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
                             typeId <= TypeId::_kVec256End ? uint32_t(RegTraits<RegType::kX86_Ymm>::kSignature) :
                                                             uint32_t(RegTraits<RegType::kX86_Zmm>::kSignature)};
   }
 
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG OperandSignature signatureOfVecBySize(uint32_t size) noexcept {
     return OperandSignature{size <= 16 ? uint32_t(RegTraits<RegType::kX86_Xmm>::kSignature) :
                             size <= 32 ? uint32_t(RegTraits<RegType::kX86_Ymm>::kSignature) :
@@ -164,47 +215,116 @@ public:
   }
 
   //! Tests whether the `op` operand is either a low or high 8-bit GPB register.
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpb(const Operand_& op) noexcept {
     // Check operand type, register group, and size. Not interested in register type.
     return op.signature().subset(Signature::kOpTypeMask | Signature::kRegGroupMask | Signature::kSizeMask) ==
            (Signature::fromOpType(OperandType::kReg) | Signature::fromRegGroup(RegGroup::kGp) | Signature::fromSize(1));
   }
 
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpbLo(const Operand_& op) noexcept { return op.as<Reg>().isGpbLo(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpbHi(const Operand_& op) noexcept { return op.as<Reg>().isGpbHi(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpw(const Operand_& op) noexcept { return op.as<Reg>().isGpw(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpd(const Operand_& op) noexcept { return op.as<Reg>().isGpd(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpq(const Operand_& op) noexcept { return op.as<Reg>().isGpq(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isXmm(const Operand_& op) noexcept { return op.as<Reg>().isXmm(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isYmm(const Operand_& op) noexcept { return op.as<Reg>().isYmm(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isZmm(const Operand_& op) noexcept { return op.as<Reg>().isZmm(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isMm(const Operand_& op) noexcept { return op.as<Reg>().isMm(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isKReg(const Operand_& op) noexcept { return op.as<Reg>().isKReg(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isSReg(const Operand_& op) noexcept { return op.as<Reg>().isSReg(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isCReg(const Operand_& op) noexcept { return op.as<Reg>().isCReg(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isDReg(const Operand_& op) noexcept { return op.as<Reg>().isDReg(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isSt(const Operand_& op) noexcept { return op.as<Reg>().isSt(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isBnd(const Operand_& op) noexcept { return op.as<Reg>().isBnd(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isTmm(const Operand_& op) noexcept { return op.as<Reg>().isTmm(); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isRip(const Operand_& op) noexcept { return op.as<Reg>().isRip(); }
 
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpb(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isGpb(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpbLo(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isGpbLo(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpbHi(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isGpbHi(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpw(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isGpw(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpd(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isGpd(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isGpq(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isGpq(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isXmm(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isXmm(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isYmm(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isYmm(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isZmm(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isZmm(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isMm(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isMm(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isKReg(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isKReg(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isSReg(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isSReg(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isCReg(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isCReg(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isDReg(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isDReg(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isSt(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isSt(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isBnd(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isBnd(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isTmm(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isTmm(op)) & unsigned(op.id() == rId)); }
+
+  [[nodiscard]]
   static ASMJIT_INLINE_NODEBUG bool isRip(const Operand_& op, uint32_t rId) noexcept { return bool(unsigned(isRip(op)) & unsigned(op.id() == rId)); }
 };
 
@@ -237,16 +357,27 @@ public:
   };
 
   //! Casts this register to 8-bit (LO) part.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG GpbLo r8() const noexcept;
+
   //! Casts this register to 8-bit (LO) part.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG GpbLo r8Lo() const noexcept;
+
   //! Casts this register to 8-bit (HI) part.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG GpbHi r8Hi() const noexcept;
+
   //! Casts this register to 16-bit.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Gpw r16() const noexcept;
+
   //! Casts this register to 32-bit.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Gpd r32() const noexcept;
+
   //! Casts this register to 64-bit.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Gpq r64() const noexcept;
 };
 
@@ -255,20 +386,31 @@ class Vec : public Reg {
   ASMJIT_DEFINE_ABSTRACT_REG(Vec, Reg)
 
   //! Casts this register to XMM (clone).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Xmm xmm() const noexcept;
+
   //! Casts this register to YMM (clone).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Ymm ymm() const noexcept;
+
   //! Casts this register to ZMM (clone).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Zmm zmm() const noexcept;
 
   //! Casts this register to XMM (clone).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Vec v128() const noexcept;
+
   //! Casts this register to YMM (clone).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Vec v256() const noexcept;
+
   //! Casts this register to ZMM (clone).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Vec v512() const noexcept;
 
   //! Casts this register to a register that has half the size (or XMM if it's already XMM).
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Vec half() const noexcept {
     return Vec(type() == RegType::kX86_Zmm ? signatureOfT<RegType::kX86_Ymm>() : signatureOfT<RegType::kX86_Xmm>(), id());
   }
@@ -380,37 +522,68 @@ namespace regs {
 #endif
 
 //! Creates an 8-bit low GPB register operand.
-static ASMJIT_INLINE_NODEBUG constexpr GpbLo gpb(uint32_t rId) noexcept { return GpbLo(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR GpbLo gpb(uint32_t rId) noexcept { return GpbLo(rId); }
+
 //! Creates an 8-bit low GPB register operand.
-static ASMJIT_INLINE_NODEBUG constexpr GpbLo gpb_lo(uint32_t rId) noexcept { return GpbLo(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR GpbLo gpb_lo(uint32_t rId) noexcept { return GpbLo(rId); }
+
 //! Creates an 8-bit high GPB register operand.
-static ASMJIT_INLINE_NODEBUG constexpr GpbHi gpb_hi(uint32_t rId) noexcept { return GpbHi(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR GpbHi gpb_hi(uint32_t rId) noexcept { return GpbHi(rId); }
+
 //! Creates a 16-bit GPW register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Gpw gpw(uint32_t rId) noexcept { return Gpw(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gpw gpw(uint32_t rId) noexcept { return Gpw(rId); }
+
 //! Creates a 32-bit GPD register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Gpd gpd(uint32_t rId) noexcept { return Gpd(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gpd gpd(uint32_t rId) noexcept { return Gpd(rId); }
+
 //! Creates a 64-bit GPQ register operand (64-bit).
-static ASMJIT_INLINE_NODEBUG constexpr Gpq gpq(uint32_t rId) noexcept { return Gpq(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Gpq gpq(uint32_t rId) noexcept { return Gpq(rId); }
+
 //! Creates a 128-bit XMM register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Xmm xmm(uint32_t rId) noexcept { return Xmm(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Xmm xmm(uint32_t rId) noexcept { return Xmm(rId); }
+
 //! Creates a 256-bit YMM register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Ymm ymm(uint32_t rId) noexcept { return Ymm(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Ymm ymm(uint32_t rId) noexcept { return Ymm(rId); }
+
 //! Creates a 512-bit ZMM register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Zmm zmm(uint32_t rId) noexcept { return Zmm(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Zmm zmm(uint32_t rId) noexcept { return Zmm(rId); }
+
 //! Creates a 64-bit Mm register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mm mm(uint32_t rId) noexcept { return Mm(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mm mm(uint32_t rId) noexcept { return Mm(rId); }
+
 //! Creates a 64-bit K register operand.
-static ASMJIT_INLINE_NODEBUG constexpr KReg k(uint32_t rId) noexcept { return KReg(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR KReg k(uint32_t rId) noexcept { return KReg(rId); }
+
 //! Creates a 32-bit or 64-bit control register operand.
-static ASMJIT_INLINE_NODEBUG constexpr CReg cr(uint32_t rId) noexcept { return CReg(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR CReg cr(uint32_t rId) noexcept { return CReg(rId); }
+
 //! Creates a 32-bit or 64-bit debug register operand.
-static ASMJIT_INLINE_NODEBUG constexpr DReg dr(uint32_t rId) noexcept { return DReg(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR DReg dr(uint32_t rId) noexcept { return DReg(rId); }
+
 //! Creates an 80-bit st register operand.
-static ASMJIT_INLINE_NODEBUG constexpr St st(uint32_t rId) noexcept { return St(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR St st(uint32_t rId) noexcept { return St(rId); }
+
 //! Creates a 128-bit bound register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Bnd bnd(uint32_t rId) noexcept { return Bnd(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Bnd bnd(uint32_t rId) noexcept { return Bnd(rId); }
+
 //! Creates a TMM register operand.
-static ASMJIT_INLINE_NODEBUG constexpr Tmm tmm(uint32_t rId) noexcept { return Tmm(rId); }
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Tmm tmm(uint32_t rId) noexcept { return Tmm(rId); }
 
 static constexpr GpbLo al = GpbLo(Gp::kIdAx);
 static constexpr GpbLo bl = GpbLo(Gp::kIdBx);
@@ -682,28 +855,25 @@ public:
   //! \name Constants
   //! \{
 
-  //! Additional bits of operand's signature used by `x86::Mem`.
-  enum AdditionalBits : uint32_t {
-    // Memory address type (2 bits).
-    // |........|........|XX......|........|
-    kSignatureMemAddrTypeShift = 14,
-    kSignatureMemAddrTypeMask = 0x03u << kSignatureMemAddrTypeShift,
+  // Memory address type (2 bits).
+  // |........|........|XX......|........|
+  static inline constexpr uint32_t kSignatureMemAddrTypeShift = 14;
+  static inline constexpr uint32_t kSignatureMemAddrTypeMask = 0x03u << kSignatureMemAddrTypeShift;
 
-    // Memory shift amount (2 bits).
-    // |........|......XX|........|........|
-    kSignatureMemShiftValueShift = 16,
-    kSignatureMemShiftValueMask = 0x03u << kSignatureMemShiftValueShift,
+  // Memory shift amount (2 bits).
+  // |........|......XX|........|........|
+  static inline constexpr uint32_t kSignatureMemShiftValueShift = 16;
+  static inline constexpr uint32_t kSignatureMemShiftValueMask = 0x03u << kSignatureMemShiftValueShift;
 
-    // Memory segment reg (3 bits).
-    // |........|...XXX..|........|........|
-    kSignatureMemSegmentShift = 18,
-    kSignatureMemSegmentMask = 0x07u << kSignatureMemSegmentShift,
+  // Memory segment reg (3 bits).
+  // |........|...XXX..|........|........|
+  static inline constexpr uint32_t kSignatureMemSegmentShift = 18;
+  static inline constexpr uint32_t kSignatureMemSegmentMask = 0x07u << kSignatureMemSegmentShift;
 
-    // Memory broadcast type (3 bits).
-    // |........|XXX.....|........|........|
-    kSignatureMemBroadcastShift = 21,
-    kSignatureMemBroadcastMask = 0x7u << kSignatureMemBroadcastShift
-  };
+  // Memory broadcast type (3 bits).
+  // |........|XXX.....|........|........|
+  static inline constexpr uint32_t kSignatureMemBroadcastShift = 21;
+  static inline constexpr uint32_t kSignatureMemBroadcastMask = 0x7u << kSignatureMemBroadcastShift;
 
   //! Address type.
   enum class AddrType : uint32_t {
@@ -745,25 +915,25 @@ public:
   //! \{
 
   //! Creates a default `Mem` operand that points to [0].
-  ASMJIT_INLINE_NODEBUG constexpr Mem() noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem() noexcept
     : BaseMem() {}
 
-  ASMJIT_INLINE_NODEBUG constexpr Mem(const Mem& other) noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem(const Mem& other) noexcept
     : BaseMem(other) {}
 
   ASMJIT_INLINE_NODEBUG explicit Mem(Globals::NoInit_) noexcept
     : BaseMem(Globals::NoInit) {}
 
-  ASMJIT_INLINE_NODEBUG constexpr Mem(const Signature& signature, uint32_t baseId, uint32_t indexId, int32_t offset) noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem(const Signature& signature, uint32_t baseId, uint32_t indexId, int32_t offset) noexcept
     : BaseMem(signature, baseId, indexId, offset) {}
 
-  ASMJIT_INLINE_NODEBUG constexpr Mem(const Label& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem(const Label& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(RegType::kLabelTag) |
               Signature::fromSize(size) |
               signature, base.id(), 0, off) {}
 
-  ASMJIT_INLINE_NODEBUG constexpr Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem(const Label& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(RegType::kLabelTag) |
               Signature::fromMemIndexType(index.type()) |
@@ -771,13 +941,13 @@ public:
               Signature::fromSize(size) |
               signature, base.id(), index.id(), off) {}
 
-  ASMJIT_INLINE_NODEBUG constexpr Mem(const BaseReg& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem(const BaseReg& base, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(base.type()) |
               Signature::fromSize(size) |
               signature, base.id(), 0, off) {}
 
-  ASMJIT_INLINE_NODEBUG constexpr Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem(const BaseReg& base, const BaseReg& index, uint32_t shift, int32_t off, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemBaseType(base.type()) |
               Signature::fromMemIndexType(index.type()) |
@@ -785,12 +955,12 @@ public:
               Signature::fromSize(size) |
               signature, base.id(), index.id(), off) {}
 
-  ASMJIT_INLINE_NODEBUG constexpr explicit Mem(uint64_t base, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
+  ASMJIT_INLINE_CONSTEXPR explicit Mem(uint64_t base, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromSize(size) |
               signature, uint32_t(base >> 32), 0, int32_t(uint32_t(base & 0xFFFFFFFFu))) {}
 
-  ASMJIT_INLINE_NODEBUG constexpr Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
+  ASMJIT_INLINE_CONSTEXPR Mem(uint64_t base, const BaseReg& index, uint32_t shift = 0, uint32_t size = 0, Signature signature = OperandSignature{0}) noexcept
     : BaseMem(Signature::fromOpType(OperandType::kMem) |
               Signature::fromMemIndexType(index.type()) |
               Signature::fromValue<kSignatureMemShiftValueMask>(shift) |
@@ -810,24 +980,28 @@ public:
   //! \{
 
   //! Clones the memory operand.
-  ASMJIT_INLINE_NODEBUG constexpr Mem clone() const noexcept { return Mem(*this); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem clone() const noexcept { return Mem(*this); }
 
   //! Creates a copy of this memory operand adjusted by `off`.
-  inline Mem cloneAdjusted(int64_t off) const noexcept {
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem cloneAdjusted(int64_t off) const noexcept {
     Mem result(*this);
     result.addOffset(off);
     return result;
   }
 
   //! Creates a copy of this memory operand resized to `size`.
-  inline Mem cloneResized(uint32_t size) const noexcept {
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem cloneResized(uint32_t size) const noexcept {
     Mem result(*this);
     result.setSize(size);
     return result;
   }
 
   //! Creates a copy of this memory operand with a broadcast `bcst`.
-  ASMJIT_INLINE_NODEBUG constexpr Mem cloneBroadcasted(Broadcast bcst) const noexcept {
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem cloneBroadcasted(Broadcast bcst) const noexcept {
     return Mem((_signature & ~Signature{kSignatureMemBroadcastMask}) | Signature::fromValue<kSignatureMemBroadcastMask>(bcst), _baseId, _data[0], int32_t(_data[1]));
   }
 
@@ -839,16 +1013,18 @@ public:
   //! Converts memory `baseType` and `baseId` to `x86::Reg` instance.
   //!
   //! The memory must have a valid base register otherwise the result will be wrong.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Reg baseReg() const noexcept { return Reg::fromTypeAndId(baseType(), baseId()); }
 
   //! Converts memory `indexType` and `indexId` to `x86::Reg` instance.
   //!
   //! The memory must have a valid index register otherwise the result will be wrong.
+  [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Reg indexReg() const noexcept { return Reg::fromTypeAndId(indexType(), indexId()); }
 
   using BaseMem::setIndex;
 
-  ASMJIT_INLINE_NODEBUG void setIndex(const BaseReg& index, uint32_t shift) noexcept {
+  ASMJIT_INLINE_CONSTEXPR void setIndex(const BaseReg& index, uint32_t shift) noexcept {
     setIndex(index);
     setShift(shift);
   }
@@ -859,9 +1035,12 @@ public:
   //! \{
 
   //! Tests whether the memory operand specifies a size (i.e. the size is not zero).
-  ASMJIT_INLINE_NODEBUG constexpr bool hasSize() const noexcept { return _signature.hasField<Signature::kSizeMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasSize() const noexcept { return _signature.hasField<Signature::kSizeMask>(); }
+
   //! Tests whether the memory operand size matches size `s`.
-  ASMJIT_INLINE_NODEBUG constexpr bool hasSize(uint32_t s) const noexcept { return size() == s; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasSize(uint32_t s) const noexcept { return size() == s; }
 
   //! Returns the size of the memory operand in bytes.
   //!
@@ -869,10 +1048,11 @@ public:
   //! returned value would be zero. However, some instruction require the size to select between multiple variations,
   //! so in some cases size is required would be non-zero (for example `inc [mem], immediate` requires size to
   //! distinguish between 8-bit, 16-bit, 32-bit, and 64-bit increments.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR uint32_t size() const noexcept { return _signature.getField<Signature::kSizeMask>(); }
 
   //! Sets the memory operand size (in bytes).
-  ASMJIT_INLINE_NODEBUG void setSize(uint32_t size) noexcept { _signature.setField<Signature::kSizeMask>(size); }
+  ASMJIT_INLINE_CONSTEXPR void setSize(uint32_t size) noexcept { _signature.setField<Signature::kSizeMask>(size); }
 
   //! \}
 
@@ -882,21 +1062,28 @@ public:
   //! Returns the address type of the memory operand.
   //!
   //! By default, address type of newly created memory operands is always \ref AddrType::kDefault.
-  ASMJIT_INLINE_NODEBUG constexpr AddrType addrType() const noexcept { return (AddrType)_signature.getField<kSignatureMemAddrTypeMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR AddrType addrType() const noexcept { return (AddrType)_signature.getField<kSignatureMemAddrTypeMask>(); }
+
   //! Sets the address type to `addrType`.
-  ASMJIT_INLINE_NODEBUG void setAddrType(AddrType addrType) noexcept { _signature.setField<kSignatureMemAddrTypeMask>(uint32_t(addrType)); }
+  ASMJIT_INLINE_CONSTEXPR void setAddrType(AddrType addrType) noexcept { _signature.setField<kSignatureMemAddrTypeMask>(uint32_t(addrType)); }
+
   //! Resets the address type to \ref AddrType::kDefault.
-  ASMJIT_INLINE_NODEBUG void resetAddrType() noexcept { _signature.setField<kSignatureMemAddrTypeMask>(uint32_t(AddrType::kDefault)); }
+  ASMJIT_INLINE_CONSTEXPR void resetAddrType() noexcept { _signature.setField<kSignatureMemAddrTypeMask>(uint32_t(AddrType::kDefault)); }
 
   //! Tests whether the address type is \ref AddrType::kAbs.
-  ASMJIT_INLINE_NODEBUG constexpr bool isAbs() const noexcept { return addrType() == AddrType::kAbs; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isAbs() const noexcept { return addrType() == AddrType::kAbs; }
+
   //! Sets the address type to \ref AddrType::kAbs.
-  ASMJIT_INLINE_NODEBUG void setAbs() noexcept { setAddrType(AddrType::kAbs); }
+  ASMJIT_INLINE_CONSTEXPR void setAbs() noexcept { setAddrType(AddrType::kAbs); }
 
   //! Tests whether the address type is \ref AddrType::kRel.
-  ASMJIT_INLINE_NODEBUG constexpr bool isRel() const noexcept { return addrType() == AddrType::kRel; }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool isRel() const noexcept { return addrType() == AddrType::kRel; }
+
   //! Sets the address type to \ref AddrType::kRel.
-  ASMJIT_INLINE_NODEBUG void setRel() noexcept { setAddrType(AddrType::kRel); }
+  ASMJIT_INLINE_CONSTEXPR void setRel() noexcept { setAddrType(AddrType::kRel); }
 
   //! \}
 
@@ -904,18 +1091,25 @@ public:
   //! \{
 
   //! Tests whether the memory operand has a segment override.
-  ASMJIT_INLINE_NODEBUG constexpr bool hasSegment() const noexcept { return _signature.hasField<kSignatureMemSegmentMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasSegment() const noexcept { return _signature.hasField<kSignatureMemSegmentMask>(); }
+
   //! Returns the associated segment override as `SReg` operand.
-  ASMJIT_INLINE_NODEBUG constexpr SReg segment() const noexcept { return SReg(segmentId()); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR SReg segment() const noexcept { return SReg(segmentId()); }
+
   //! Returns segment override register id, see `SReg::Id`.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t segmentId() const noexcept { return _signature.getField<kSignatureMemSegmentMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR uint32_t segmentId() const noexcept { return _signature.getField<kSignatureMemSegmentMask>(); }
 
   //! Sets the segment override to `seg`.
-  ASMJIT_INLINE_NODEBUG void setSegment(const SReg& seg) noexcept { setSegment(seg.id()); }
+  ASMJIT_INLINE_CONSTEXPR void setSegment(const SReg& seg) noexcept { setSegment(seg.id()); }
+
   //! Sets the segment override to `id`.
-  ASMJIT_INLINE_NODEBUG void setSegment(uint32_t rId) noexcept { _signature.setField<kSignatureMemSegmentMask>(rId); }
+  ASMJIT_INLINE_CONSTEXPR void setSegment(uint32_t rId) noexcept { _signature.setField<kSignatureMemSegmentMask>(rId); }
+
   //! Resets the segment override.
-  ASMJIT_INLINE_NODEBUG void resetSegment() noexcept { _signature.setField<kSignatureMemSegmentMask>(0); }
+  ASMJIT_INLINE_CONSTEXPR void resetSegment() noexcept { _signature.setField<kSignatureMemSegmentMask>(0); }
 
   //! \}
 
@@ -923,13 +1117,18 @@ public:
   //! \{
 
   //! Tests whether the memory operand has shift (aka scale) value.
-  ASMJIT_INLINE_NODEBUG constexpr bool hasShift() const noexcept { return _signature.hasField<kSignatureMemShiftValueMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasShift() const noexcept { return _signature.hasField<kSignatureMemShiftValueMask>(); }
+
   //! Returns the memory operand's shift (aka scale) value.
-  ASMJIT_INLINE_NODEBUG constexpr uint32_t shift() const noexcept { return _signature.getField<kSignatureMemShiftValueMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR uint32_t shift() const noexcept { return _signature.getField<kSignatureMemShiftValueMask>(); }
+
   //! Sets the memory operand's shift (aka scale) value.
-  ASMJIT_INLINE_NODEBUG void setShift(uint32_t shift) noexcept { _signature.setField<kSignatureMemShiftValueMask>(shift); }
+  ASMJIT_INLINE_CONSTEXPR void setShift(uint32_t shift) noexcept { _signature.setField<kSignatureMemShiftValueMask>(shift); }
+
   //! Resets the memory operand's shift (aka scale) value to zero.
-  ASMJIT_INLINE_NODEBUG void resetShift() noexcept { _signature.setField<kSignatureMemShiftValueMask>(0); }
+  ASMJIT_INLINE_CONSTEXPR void resetShift() noexcept { _signature.setField<kSignatureMemShiftValueMask>(0); }
 
   //! \}
 
@@ -937,165 +1136,224 @@ public:
   //! \{
 
   //! Tests whether the memory operand has broadcast {1tox}.
-  ASMJIT_INLINE_NODEBUG constexpr bool hasBroadcast() const noexcept { return _signature.hasField<kSignatureMemBroadcastMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR bool hasBroadcast() const noexcept { return _signature.hasField<kSignatureMemBroadcastMask>(); }
+
   //! Returns the memory operand's broadcast.
-  ASMJIT_INLINE_NODEBUG constexpr Broadcast getBroadcast() const noexcept { return (Broadcast)_signature.getField<kSignatureMemBroadcastMask>(); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Broadcast getBroadcast() const noexcept { return (Broadcast)_signature.getField<kSignatureMemBroadcastMask>(); }
+
   //! Sets the memory operand's broadcast.
-  ASMJIT_INLINE_NODEBUG void setBroadcast(Broadcast b) noexcept { _signature.setField<kSignatureMemBroadcastMask>(uint32_t(b)); }
+  ASMJIT_INLINE_CONSTEXPR void setBroadcast(Broadcast b) noexcept { _signature.setField<kSignatureMemBroadcastMask>(uint32_t(b)); }
+
   //! Resets the memory operand's broadcast to none.
-  ASMJIT_INLINE_NODEBUG void resetBroadcast() noexcept { _signature.setField<kSignatureMemBroadcastMask>(0); }
+  ASMJIT_INLINE_CONSTEXPR void resetBroadcast() noexcept { _signature.setField<kSignatureMemBroadcastMask>(0); }
 
   //! Returns a new `Mem` without a broadcast (the possible broadcast is cleared).
-  ASMJIT_INLINE_NODEBUG constexpr Mem _1to1() const noexcept { return cloneBroadcasted(Broadcast::kNone); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem _1to1() const noexcept { return cloneBroadcasted(Broadcast::kNone); }
+
   //! Returns a new `Mem` with {1to2} broadcast (AVX-512).
-  ASMJIT_INLINE_NODEBUG constexpr Mem _1to2() const noexcept { return cloneBroadcasted(Broadcast::k1To2); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem _1to2() const noexcept { return cloneBroadcasted(Broadcast::k1To2); }
+
   //! Returns a new `Mem` with {1to4} broadcast (AVX-512).
-  ASMJIT_INLINE_NODEBUG constexpr Mem _1to4() const noexcept { return cloneBroadcasted(Broadcast::k1To4); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem _1to4() const noexcept { return cloneBroadcasted(Broadcast::k1To4); }
+
   //! Returns a new `Mem` with {1to8} broadcast (AVX-512).
-  ASMJIT_INLINE_NODEBUG constexpr Mem _1to8() const noexcept { return cloneBroadcasted(Broadcast::k1To8); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem _1to8() const noexcept { return cloneBroadcasted(Broadcast::k1To8); }
+
   //! Returns a new `Mem` with {1to16} broadcast (AVX-512).
-  ASMJIT_INLINE_NODEBUG constexpr Mem _1to16() const noexcept { return cloneBroadcasted(Broadcast::k1To16); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem _1to16() const noexcept { return cloneBroadcasted(Broadcast::k1To16); }
+
   //! Returns a new `Mem` with {1to32} broadcast (AVX-512).
-  ASMJIT_INLINE_NODEBUG constexpr Mem _1to32() const noexcept { return cloneBroadcasted(Broadcast::k1To32); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem _1to32() const noexcept { return cloneBroadcasted(Broadcast::k1To32); }
+
   //! Returns a new `Mem` with {1to64} broadcast (AVX-512).
-  ASMJIT_INLINE_NODEBUG constexpr Mem _1to64() const noexcept { return cloneBroadcasted(Broadcast::k1To64); }
+  [[nodiscard]]
+  ASMJIT_INLINE_CONSTEXPR Mem _1to64() const noexcept { return cloneBroadcasted(Broadcast::k1To64); }
 
   //! \}
 };
 
 //! Creates `[base.reg + offset]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, int32_t offset = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(const Gp& base, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, offset, size);
 }
+
 //! Creates `[base.reg + (index << shift) + offset]` memory operand (scalar index).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
+
 //! Creates `[base.reg + (index << shift) + offset]` memory operand (vector index).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 
 //! Creates `[base + offset]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Label& base, int32_t offset = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(const Label& base, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, offset, size);
 }
+
 //! Creates `[base + (index << shift) + offset]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
+
 //! Creates `[base + (index << shift) + offset]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Label& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(const Label& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, offset, size);
 }
 
 //! Creates `[rip + offset]` memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(const Rip& rip_, int32_t offset = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(const Rip& rip_, int32_t offset = 0, uint32_t size = 0) noexcept {
   return Mem(rip_, offset, size);
 }
 
 //! Creates `[base]` absolute memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(uint64_t base, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size);
 }
+
 //! Creates `[base + (index.reg << shift)]` absolute memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
 }
+
 //! Creates `[base + (index.reg << shift)]` absolute memory operand.
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size);
 }
 
 //! Creates `[base]` absolute memory operand (absolute).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_abs(uint64_t base, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr_abs(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs));
 }
+
 //! Creates `[base + (index.reg << shift)]` absolute memory operand (absolute).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_abs(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr_abs(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs));
 }
+
 //! Creates `[base + (index.reg << shift)]` absolute memory operand (absolute).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_abs(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr_abs(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs));
 }
 
 //! Creates `[base]` relative memory operand (relative).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_rel(uint64_t base, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr_rel(uint64_t base, uint32_t size = 0) noexcept {
   return Mem(base, size, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel));
 }
+
 //! Creates `[base + (index.reg << shift)]` relative memory operand (relative).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_rel(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr_rel(uint64_t base, const Reg& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel));
 }
+
 //! Creates `[base + (index.reg << shift)]` relative memory operand (relative).
-static ASMJIT_INLINE_NODEBUG constexpr Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE_CONSTEXPR Mem ptr_rel(uint64_t base, const Vec& index, uint32_t shift = 0, uint32_t size = 0) noexcept {
   return Mem(base, index, shift, size, OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel));
 }
 
 #define ASMJIT_MEM_PTR(FUNC, SIZE)                                                             \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     const Gp& base, int32_t offset = 0) noexcept                                               \
       { return Mem(base, offset, SIZE); }                                                      \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     const Gp& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept          \
       { return Mem(base, index, shift, offset, SIZE); }                                        \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     const Gp& base, const Vec& index, uint32_t shift = 0, int32_t offset = 0) noexcept         \
       { return Mem(base, index, shift, offset, SIZE); }                                        \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     const Label& base, int32_t offset = 0) noexcept                                            \
       { return Mem(base, offset, SIZE); }                                                      \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     const Label& base, const Gp& index, uint32_t shift = 0, int32_t offset = 0) noexcept       \
       { return Mem(base, index, shift, offset, SIZE); }                                        \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     const Rip& rip_, int32_t offset = 0) noexcept                                              \
       { return Mem(rip_, offset, SIZE); }                                                      \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     uint64_t base) noexcept                                                                    \
       { return Mem(base, SIZE); }                                                              \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     uint64_t base, const Gp& index, uint32_t shift = 0) noexcept                               \
       { return Mem(base, index, shift, SIZE); }                                                \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC(                                             \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC(                                                     \
     uint64_t base, const Vec& index, uint32_t shift = 0) noexcept                              \
       { return Mem(base, index, shift, SIZE); }                                                \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC##_abs(                                       \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC##_abs(                                               \
     uint64_t base) noexcept                                                                    \
       { return Mem(base, SIZE,                                                                 \
           OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs)); } \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC##_abs(                                       \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC##_abs(                                               \
     uint64_t base, const Gp& index, uint32_t shift = 0) noexcept                               \
       { return Mem(base, index, shift, SIZE,                                                   \
           OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs)); } \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC##_abs(                                       \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC##_abs(                                               \
     uint64_t base, const Vec& index, uint32_t shift = 0) noexcept                              \
       { return Mem(base, index, shift, SIZE,                                                   \
           OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kAbs)); } \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC##_rel(                                       \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC##_rel(                                               \
     uint64_t base) noexcept                                                                    \
       { return Mem(base, SIZE,                                                                 \
           OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel)); } \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC##_rel(                                       \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC##_rel(                                               \
     uint64_t base, const Gp& index, uint32_t shift = 0) noexcept                               \
       { return Mem(base, index, shift, SIZE,                                                   \
           OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel)); } \
                                                                                                \
-  static ASMJIT_INLINE_NODEBUG constexpr Mem FUNC##_rel(                                       \
+  [[nodiscard]]                                                                                \
+  static ASMJIT_INLINE_CONSTEXPR Mem FUNC##_rel(                                               \
     uint64_t base, const Vec& index, uint32_t shift = 0) noexcept                              \
       { return Mem(base, index, shift, SIZE,                                                   \
           OperandSignature::fromValue<Mem::kSignatureMemAddrTypeMask>(Mem::AddrType::kRel)); }

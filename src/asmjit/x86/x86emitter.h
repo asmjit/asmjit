@@ -108,34 +108,34 @@ template<typename This>
 struct EmitterExplicitT {
   //! \cond
 
-  // These typedefs are used to describe implicit operands passed explicitly.
-  typedef Gp Gp_AL;
-  typedef Gp Gp_AH;
-  typedef Gp Gp_CL;
-  typedef Gp Gp_AX;
-  typedef Gp Gp_DX;
+  // These types are used to describe implicit operands passed explicitly.
+  using Gp_AL = Gp;
+  using Gp_AH = Gp;
+  using Gp_CL = Gp;
+  using Gp_AX = Gp;
+  using Gp_DX = Gp;
 
-  typedef Gp Gp_EAX;
-  typedef Gp Gp_EBX;
-  typedef Gp Gp_ECX;
-  typedef Gp Gp_EDX;
+  using Gp_EAX = Gp;
+  using Gp_EBX = Gp;
+  using Gp_ECX = Gp;
+  using Gp_EDX = Gp;
 
-  typedef Gp Gp_RAX;
-  typedef Gp Gp_RBX;
-  typedef Gp Gp_RCX;
-  typedef Gp Gp_RDX;
+  using Gp_RAX = Gp;
+  using Gp_RBX = Gp;
+  using Gp_RCX = Gp;
+  using Gp_RDX = Gp;
 
-  typedef Gp Gp_ZAX;
-  typedef Gp Gp_ZBX;
-  typedef Gp Gp_ZCX;
-  typedef Gp Gp_ZDX;
+  using Gp_ZAX = Gp;
+  using Gp_ZBX = Gp;
+  using Gp_ZCX = Gp;
+  using Gp_ZDX = Gp;
 
-  typedef Mem DS_ZAX; // ds:[zax]
-  typedef Mem DS_ZDI; // ds:[zdi]
-  typedef Mem ES_ZDI; // es:[zdi]
-  typedef Mem DS_ZSI; // ds:[zsi]
+  using DS_ZAX = Mem; // ds:[zax]
+  using DS_ZDI = Mem; // ds:[zdi]
+  using ES_ZDI = Mem; // es:[zdi]
+  using DS_ZSI = Mem; // ds:[zsi]
 
-  typedef Xmm XMM0;
+  using XMM0 = Xmm;
 
   // These two are unfortunately reported by the sanitizer. We know what we do, however, the sanitizer doesn't.
   // I have tried to use reinterpret_cast instead, but that would generate bad code when compiled by MSC.

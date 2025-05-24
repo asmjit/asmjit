@@ -11,18 +11,13 @@
 
 class PerformanceTimer {
 public:
-  typedef std::chrono::high_resolution_clock::time_point TimePoint;
+  using TimePoint = std::chrono::high_resolution_clock::time_point;
 
   TimePoint _startTime {};
   TimePoint _endTime {};
 
-  inline void start() {
-    _startTime = std::chrono::high_resolution_clock::now();
-  }
-
-  inline void stop() {
-    _endTime = std::chrono::high_resolution_clock::now();
-  }
+  inline void start() { _startTime = std::chrono::high_resolution_clock::now(); }
+  inline void stop() { _endTime = std::chrono::high_resolution_clock::now(); }
 
   inline double duration() const {
     std::chrono::duration<double> elapsed = _endTime - _startTime;

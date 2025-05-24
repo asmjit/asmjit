@@ -18,7 +18,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(arm)
 namespace Utils {
 
 //! Encodes a 12-bit immediate part of opcode that ise used by a standard 32-bit ARM encoding.
-ASMJIT_MAYBE_UNUSED
+[[maybe_unused]]
 static inline bool encodeAArch32Imm(uint64_t imm, uint32_t* encodedImmOut) noexcept {
   if (imm & 0xFFFFFFFF00000000u)
     return false;
@@ -73,7 +73,7 @@ struct LogicalImm {
 //! | 0 | 11110s | .....r |  2   |
 //! +---+--------+--------+------+
 //! ```
-ASMJIT_MAYBE_UNUSED
+[[maybe_unused]]
 static bool encodeLogicalImm(uint64_t imm, uint32_t width, LogicalImm* out) noexcept {
   // Determine the element width, which must be 2, 4, 8, 16, 32, or 64 bits.
   do {
@@ -121,7 +121,7 @@ static bool encodeLogicalImm(uint64_t imm, uint32_t width, LogicalImm* out) noex
 //! Returns true if the given `imm` value is encodable as a logical immediate. The `width` argument describes the
 //! width of the operation, and must be either 32 or 64. This function can be used to test whether an immediate
 //! value can be used with AND, ANDS, BIC, BICS, EON, EOR, ORN, and ORR instruction.
-ASMJIT_MAYBE_UNUSED
+[[maybe_unused]]
 static ASMJIT_INLINE_NODEBUG bool isLogicalImm(uint64_t imm, uint32_t width) noexcept {
   LogicalImm dummy;
   return encodeLogicalImm(imm, width, &dummy);
@@ -129,7 +129,7 @@ static ASMJIT_INLINE_NODEBUG bool isLogicalImm(uint64_t imm, uint32_t width) noe
 
 //! Returns true if the given `imm` value is encodable as an immediate with `add` and `sub` instructions on AArch64.
 //! These two instructions can encode 12-bit immediate value optionally shifted left by 12 bits.
-ASMJIT_MAYBE_UNUSED
+[[maybe_unused]]
 static ASMJIT_INLINE_NODEBUG bool isAddSubImm(uint64_t imm) noexcept {
   return imm <= 0xFFFu || (imm & ~uint64_t(0xFFFu << 12)) == 0;
 }
@@ -153,7 +153,7 @@ static ASMJIT_INLINE_NODEBUG uint32_t encodeImm64ByteMaskToImm8(uint64_t imm) no
 //! \cond
 //! A generic implementation that checjs whether a floating point value can be converted to ARM Imm8.
 template<typename T, uint32_t kNumBBits, uint32_t kNumCDEFGHBits, uint32_t kNumZeroBits>
-static ASMJIT_FORCE_INLINE bool isFPImm8Generic(T val) noexcept {
+static ASMJIT_INLINE bool isFPImm8Generic(T val) noexcept {
   constexpr uint32_t kAllBsMask = Support::lsbMask<uint32_t>(kNumBBits);
   constexpr uint32_t kB0Pattern = Support::bitMask(kNumBBits - 1);
   constexpr uint32_t kB1Pattern = kAllBsMask ^ kB0Pattern;

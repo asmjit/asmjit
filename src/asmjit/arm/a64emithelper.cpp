@@ -54,14 +54,17 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
         return emitter->ldr(dst.as<Gp>().x(), src);
 
       default: {
-        if (TypeUtils::isFloat32(typeId) || TypeUtils::isVec32(typeId))
+        if (TypeUtils::isFloat32(typeId) || TypeUtils::isVec32(typeId)) {
           return emitter->ldr(dst.as<Vec>().s(), src);
+        }
 
-        if (TypeUtils::isFloat64(typeId) || TypeUtils::isVec64(typeId))
+        if (TypeUtils::isFloat64(typeId) || TypeUtils::isVec64(typeId)) {
           return emitter->ldr(dst.as<Vec>().d(), src);
+        }
 
-        if (TypeUtils::isVec128(typeId))
+        if (TypeUtils::isVec128(typeId)) {
           return emitter->ldr(dst.as<Vec>().q(), src);
+        }
 
         break;
       }
@@ -90,14 +93,17 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
         return emitter->str(src.as<Gp>().x(), dst);
 
       default: {
-        if (TypeUtils::isFloat32(typeId) || TypeUtils::isVec32(typeId))
+        if (TypeUtils::isFloat32(typeId) || TypeUtils::isVec32(typeId)) {
           return emitter->str(src.as<Vec>().s(), dst);
+        }
 
-        if (TypeUtils::isFloat64(typeId) || TypeUtils::isVec64(typeId))
+        if (TypeUtils::isFloat64(typeId) || TypeUtils::isVec64(typeId)) {
           return emitter->str(src.as<Vec>().d(), dst);
+        }
 
-        if (TypeUtils::isVec128(typeId))
+        if (TypeUtils::isVec128(typeId)) {
           return emitter->str(src.as<Vec>().q(), dst);
+        }
 
         break;
       }
@@ -120,14 +126,17 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
         return emitter->mov(dst.as<Gp>().x(), src.as<Gp>().x());
 
       default: {
-        if (TypeUtils::isFloat32(typeId) || TypeUtils::isVec32(typeId))
+        if (TypeUtils::isFloat32(typeId) || TypeUtils::isVec32(typeId)) {
           return emitter->fmov(dst.as<Vec>().s(), src.as<Vec>().s());
+        }
 
-        if (TypeUtils::isFloat64(typeId) || TypeUtils::isVec64(typeId))
+        if (TypeUtils::isFloat64(typeId) || TypeUtils::isVec64(typeId)) {
           return emitter->mov(dst.as<Vec>().b8(), src.as<Vec>().b8());
+        }
 
-        if (TypeUtils::isVec128(typeId))
+        if (TypeUtils::isVec128(typeId)) {
           return emitter->mov(dst.as<Vec>().b16(), src.as<Vec>().b16());
+        }
 
         break;
       }
@@ -340,10 +349,12 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
         mem.makePreIndex();
       }
 
-      if (pair.ids[1] == BaseReg::kIdBad)
+      if (pair.ids[1] == BaseReg::kIdBad) {
         ASMJIT_PROPAGATE(emitter->emit(insts.singleInstId, regs[0], mem));
-      else
+      }
+      else {
         ASMJIT_PROPAGATE(emitter->emit(insts.pairInstId, regs[0], regs[1], mem));
+      }
 
       mem.resetOffsetMode();
 
@@ -422,10 +433,12 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitEpilog(const FuncFrame& frame) {
         mem.makePostIndex();
       }
 
-      if (pair.ids[1] == BaseReg::kIdBad)
+      if (pair.ids[1] == BaseReg::kIdBad) {
         ASMJIT_PROPAGATE(emitter->emit(insts.singleInstId, regs[0], mem));
-      else
+      }
+      else {
         ASMJIT_PROPAGATE(emitter->emit(insts.pairInstId, regs[0], regs[1], mem));
+      }
 
       mem.resetOffsetMode();
     }

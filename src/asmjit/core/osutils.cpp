@@ -17,8 +17,9 @@ ASMJIT_BEGIN_NAMESPACE
 #if !defined(_WIN32)
 Error OSUtils::readFile(const char* name, String& dst, size_t maxSize) noexcept {
   char* buffer = dst.prepare(String::ModifyOp::kAssign, maxSize);
-  if (ASMJIT_UNLIKELY(!buffer))
+  if (ASMJIT_UNLIKELY(!buffer)) {
     return DebugUtils::errored(kErrorOutOfMemory);
+  }
 
   int fd = ASMJIT_FILE64_API(::open)(name, O_RDONLY);
   if (fd < 0) {

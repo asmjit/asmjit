@@ -31,7 +31,8 @@ enum kOpIndex : uint32_t {
   kOp5 = 2
 };
 
-static ASMJIT_FORCE_INLINE uint32_t opCountFromEmitArgs(const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_* opExt) noexcept {
+[[nodiscard]]
+static ASMJIT_INLINE uint32_t opCountFromEmitArgs(const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_* opExt) noexcept {
   uint32_t opCount = 0;
 
   if (opExt[kOp3].isNone()) {
@@ -49,7 +50,7 @@ static ASMJIT_FORCE_INLINE uint32_t opCountFromEmitArgs(const Operand_& o0, cons
   return opCount;
 }
 
-static ASMJIT_FORCE_INLINE void opArrayFromEmitArgs(Operand_ dst[Globals::kMaxOpCount], const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_* opExt) noexcept {
+static ASMJIT_INLINE void opArrayFromEmitArgs(Operand_ dst[Globals::kMaxOpCount], const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_* opExt) noexcept {
   dst[0].copyFrom(o0);
   dst[1].copyFrom(o1);
   dst[2].copyFrom(o2);

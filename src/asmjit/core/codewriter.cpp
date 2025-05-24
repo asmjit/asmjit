@@ -16,8 +16,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
   uint32_t discardLsb = format.immDiscardLsb();
 
   // Invalid offset (should not happen).
-  if (!bitCount || bitCount > format.valueSize() * 8u)
+  if (!bitCount || bitCount > format.valueSize() * 8u) {
     return false;
+  }
 
   uint32_t value;
   uint32_t u = 0;
@@ -27,8 +28,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
   // absolute value.
   if (format.hasSignBit()) {
     u = uint32_t(offset64 >= 0);
-    if (u == 0)
+    if (u == 0) {
       offset64 = -offset64;
+    }
     unsignedLogic = true;
   }
 
@@ -36,30 +38,35 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
   if (unsignedLogic) {
     if (discardLsb) {
       ASMJIT_ASSERT(discardLsb <= 32);
-      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0)
+      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0) {
         return false;
+      }
       offset64 = int64_t(uint64_t(offset64) >> discardLsb);
     }
 
     value = uint32_t(offset64 & Support::lsbMask<uint32_t>(bitCount));
-    if (value != offset64)
+    if (value != offset64) {
       return false;
+    }
   }
   else {
     // The rest of OffsetType options are all signed.
     if (discardLsb) {
       ASMJIT_ASSERT(discardLsb <= 32);
-      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0)
+      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0) {
         return false;
+      }
       offset64 >>= discardLsb;
     }
 
-    if (!Support::isInt32(offset64))
+    if (!Support::isInt32(offset64)) {
       return false;
+    }
 
     value = uint32_t(int32_t(offset64));
-    if (!Support::isEncodableOffset32(int32_t(value), bitCount))
+    if (!Support::isEncodableOffset32(int32_t(value), bitCount)) {
       return false;
+    }
   }
 
   switch (format.type()) {
@@ -72,8 +79,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
     // Opcode: {.....|imm:1|..N.N|......|imm:3|....|imm:8}
     case OffsetType::kThumb32_ADR: {
       // Sanity checks.
-      if (format.valueSize() != 4 || bitCount != 12 || bitShift != 0)
+      if (format.valueSize() != 4 || bitCount != 12 || bitShift != 0) {
         return false;
+      }
 
       uint32_t imm8 = (value & 0x00FFu);
       uint32_t imm3 = (value & 0x0700u) << (12 - 8);
@@ -88,13 +96,14 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
     case OffsetType::kThumb32_BLX:
       // The calculation is the same as `B`, but the first LSB bit must be zero, so account for that.
       value <<= 1;
-      ASMJIT_FALLTHROUGH;
+      [[fallthrough]];
 
     // Opcode: {....|.|imm[23]|imm[20:11]|..|ja|.|jb|imm[10:0]}
     case OffsetType::kThumb32_B: {
       // Sanity checks.
-      if (format.valueSize() != 4)
+      if (format.valueSize() != 4) {
         return false;
+      }
 
       uint32_t ia = (value & 0x0007FFu);
       uint32_t ib = (value & 0x1FF800u) << (16 - 11);
@@ -109,8 +118,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
     // Opcode: {....|.|imm[19]|....|imm[16:11]|..|ja|.|jb|imm[10:0]}
     case OffsetType::kThumb32_BCond: {
       // Sanity checks.
-      if (format.valueSize() != 4 || bitCount != 20 || bitShift != 0)
+      if (format.valueSize() != 4 || bitCount != 20 || bitShift != 0) {
         return false;
+      }
 
       uint32_t ia = (value & 0x0007FFu);
       uint32_t ib = (value & 0x01F800u) << (16 - 11);
@@ -124,8 +134,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
 
     case OffsetType::kAArch32_ADR: {
       uint32_t encodedImm;
-      if (!arm::Utils::encodeAArch32Imm(value, &encodedImm))
+      if (!arm::Utils::encodeAArch32Imm(value, &encodedImm)) {
         return false;
+      }
 
       *dst = (Support::bitMask(22) << u) | (encodedImm << bitShift);
       return true;
@@ -138,8 +149,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
 
     case OffsetType::kAArch32_U23_0To3At0_4To7At8: {
       // Sanity checks.
-      if (format.valueSize() != 4 || bitCount != 8 || bitShift != 0)
+      if (format.valueSize() != 4 || bitCount != 8 || bitShift != 0) {
         return false;
+      }
 
       uint32_t immLo = (value & 0x0Fu);
       uint32_t immHi = (value & 0xF0u) << (8 - 4);
@@ -150,8 +162,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
 
     case OffsetType::kAArch32_1To24At0_0At24: {
       // Sanity checks.
-      if (format.valueSize() != 4 || bitCount != 25 || bitShift != 0)
+      if (format.valueSize() != 4 || bitCount != 25 || bitShift != 0) {
         return false;
+      }
 
       uint32_t immLo = (value & 0x0000001u) << 24;
       uint32_t immHi = (value & 0x1FFFFFEu) >> 1;
@@ -163,8 +176,9 @@ bool CodeWriterUtils::encodeOffset32(uint32_t* dst, int64_t offset64, const Offs
     case OffsetType::kAArch64_ADR:
     case OffsetType::kAArch64_ADRP: {
       // Sanity checks.
-      if (format.valueSize() != 4 || bitCount != 21 || bitShift != 5)
+      if (format.valueSize() != 4 || bitCount != 21 || bitShift != 5) {
         return false;
+      }
 
       uint32_t immLo = value & 0x3u;
       uint32_t immHi = (value >> 2) & Support::lsbMask<uint32_t>(19);
@@ -182,8 +196,9 @@ bool CodeWriterUtils::encodeOffset64(uint64_t* dst, int64_t offset64, const Offs
   uint32_t bitCount = format.immBitCount();
   uint32_t discardLsb = format.immDiscardLsb();
 
-  if (!bitCount || bitCount > format.valueSize() * 8u)
+  if (!bitCount || bitCount > format.valueSize() * 8u) {
     return false;
+  }
 
   uint64_t value;
 
@@ -191,26 +206,30 @@ bool CodeWriterUtils::encodeOffset64(uint64_t* dst, int64_t offset64, const Offs
   if (format.type() == OffsetType::kUnsignedOffset) {
     if (discardLsb) {
       ASMJIT_ASSERT(discardLsb <= 32);
-      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0)
+      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0) {
         return false;
+      }
       offset64 = int64_t(uint64_t(offset64) >> discardLsb);
     }
 
     value = uint64_t(offset64) & Support::lsbMask<uint64_t>(bitCount);
-    if (value != uint64_t(offset64))
+    if (value != uint64_t(offset64)) {
       return false;
+    }
   }
   else {
     // The rest of OffsetType options are all signed.
     if (discardLsb) {
       ASMJIT_ASSERT(discardLsb <= 32);
-      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0)
+      if ((offset64 & Support::lsbMask<uint32_t>(discardLsb)) != 0) {
         return false;
+      }
       offset64 >>= discardLsb;
     }
 
-    if (!Support::isEncodableOffset64(offset64, bitCount))
+    if (!Support::isEncodableOffset64(offset64, bitCount)) {
       return false;
+    }
 
     value = uint64_t(offset64);
   }
@@ -235,8 +254,9 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
   switch (format.valueSize()) {
     case 1: {
       uint32_t mask;
-      if (!encodeOffset32(&mask, offset64, format))
+      if (!encodeOffset32(&mask, offset64, format)) {
         return false;
+      }
 
       Support::writeU8(dst, uint8_t(Support::readU8(dst) | mask));
       return true;
@@ -244,8 +264,9 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
 
     case 2: {
       uint32_t mask;
-      if (!encodeOffset32(&mask, offset64, format))
+      if (!encodeOffset32(&mask, offset64, format)) {
         return false;
+      }
 
       Support::writeU16uLE(dst, uint16_t(Support::readU16uLE(dst) | mask));
       return true;
@@ -263,8 +284,9 @@ bool CodeWriterUtils::writeOffset(void* dst, int64_t offset64, const OffsetForma
 
     case 8: {
       uint64_t mask;
-      if (!encodeOffset64(&mask, offset64, format))
+      if (!encodeOffset64(&mask, offset64, format)) {
         return false;
+      }
 
       Support::writeU64uLE(dst, Support::readU64uLE(dst) | mask);
       return true;
